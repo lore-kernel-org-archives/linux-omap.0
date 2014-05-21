@@ -1,8 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 05/16] ARM: OMAP2+: gpmc: Use low level read/write for
- context save/restore
-Date: Wed, 21 May 2014 14:20:53 +0300
-Message-ID: <1400671264-10702-6-git-send-email-rogerq@ti.com>
+Subject: [RFC PATCH 13/16] mtd: nand: omap: True device tree support
+Date: Wed, 21 May 2014 14:21:01 +0300
+Message-ID: <1400671264-10702-14-git-send-email-rogerq@ti.com>
 References: <1400671264-10702-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,201 +21,446 @@ To: tony@atomide.com, computersforpeace@gmail.com
 Cc: devicetree@vger.kernel.org, robertcnelson@gmail.com, jg1.han@samsung.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This will make it easier to move the GPMC driver out of arch/arm/mach-omap2.
-Just the context save/restore code can remain there without any dependency
-with the GPMC driver.
+The NAND controller must be a child node of the Chip select (CS) node.
+NAND specific parameters are moved to the NAND node.
+
+Move NAND specific device tree parsing to NAND driver.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c | 121 +++++++++++++++++++++++++++++++--------------
- arch/arm/mach-omap2/gpmc.h |   1 +
- arch/arm/mach-omap2/io.c   |   2 +
- 3 files changed, 88 insertions(+), 36 deletions(-)
+ arch/arm/mach-omap2/gpmc.c                   | 183 +++++++++++++--------------
+ drivers/mtd/nand/omap2.c                     | 124 +++++++++++++++---
+ include/linux/platform_data/mtd-nand-omap2.h |   6 +-
+ 3 files changed, 195 insertions(+), 118 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 04bae67..26b26ec 100644
+index 132f786..6493010 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1976,34 +1976,80 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+@@ -27,9 +27,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+-#include <linux/of_mtd.h>
+ #include <linux/of_device.h>
+-#include <linux/mtd/nand.h>
+ #include <linux/pm_runtime.h>
  
- static struct omap3_gpmc_regs gpmc_context;
+ #include <linux/platform_data/mtd-nand-omap2.h>
+@@ -40,7 +38,6 @@
+ #include "common.h"
+ #include "omap_device.h"
+ #include "gpmc.h"
+-#include "gpmc-nand.h"
+ #include "gpmc-onenand.h"
  
-+/*
-+ * Below code only for OMAP3 OFF mode support.
-+ * This code must be left back in mach-omap2.
-+ */
-+void __iomem *omap2_gpmc_base;
-+
-+void __init omap2_set_globals_gpmc(void __iomem *gpmc)
+ #define	DEVICE_NAME		"omap-gpmc"
+@@ -1153,96 +1150,6 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+ 		of_property_read_bool(np, "gpmc,time-para-granularity");
+ }
+ 
+-#if IS_ENABLED(CONFIG_MTD_NAND)
+-
+-static const char * const nand_xfer_types[] = {
+-	[NAND_OMAP_PREFETCH_POLLED]		= "prefetch-polled",
+-	[NAND_OMAP_POLLED]			= "polled",
+-	[NAND_OMAP_PREFETCH_DMA]		= "prefetch-dma",
+-	[NAND_OMAP_PREFETCH_IRQ]		= "prefetch-irq",
+-};
+-
+-static int gpmc_probe_nand_child(struct platform_device *pdev,
+-				 struct device_node *child)
+-{
+-	u32 val;
+-	const char *s;
+-	struct gpmc_timings gpmc_t;
+-	struct omap_nand_platform_data *gpmc_nand_data;
+-
+-	if (of_property_read_u32(child, "reg", &val) < 0) {
+-		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+-			child->full_name);
+-		return -ENODEV;
+-	}
+-
+-	gpmc_nand_data = devm_kzalloc(&pdev->dev, sizeof(*gpmc_nand_data),
+-				      GFP_KERNEL);
+-	if (!gpmc_nand_data)
+-		return -ENOMEM;
+-
+-	gpmc_nand_data->cs = val;
+-	gpmc_nand_data->of_node = child;
+-
+-	/* Detect availability of ELM module */
+-	gpmc_nand_data->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
+-	if (gpmc_nand_data->elm_of_node == NULL)
+-		gpmc_nand_data->elm_of_node =
+-					of_parse_phandle(child, "elm_id", 0);
+-	if (gpmc_nand_data->elm_of_node == NULL)
+-		pr_warn("%s: ti,elm-id property not found\n", __func__);
+-
+-	/* select ecc-scheme for NAND */
+-	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
+-		pr_err("%s: ti,nand-ecc-opt not found\n", __func__);
+-		return -ENODEV;
+-	}
+-	if (!strcmp(s, "ham1") || !strcmp(s, "sw") ||
+-		!strcmp(s, "hw") || !strcmp(s, "hw-romcode"))
+-		gpmc_nand_data->ecc_opt =
+-				OMAP_ECC_HAM1_CODE_HW;
+-	else if (!strcmp(s, "bch4"))
+-		if (gpmc_nand_data->elm_of_node)
+-			gpmc_nand_data->ecc_opt =
+-				OMAP_ECC_BCH4_CODE_HW;
+-		else
+-			gpmc_nand_data->ecc_opt =
+-				OMAP_ECC_BCH4_CODE_HW_DETECTION_SW;
+-	else if (!strcmp(s, "bch8"))
+-		if (gpmc_nand_data->elm_of_node)
+-			gpmc_nand_data->ecc_opt =
+-				OMAP_ECC_BCH8_CODE_HW;
+-		else
+-			gpmc_nand_data->ecc_opt =
+-				OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
+-	else
+-		pr_err("%s: ti,nand-ecc-opt invalid value\n", __func__);
+-
+-	/* select data transfer mode for NAND controller */
+-	if (!of_property_read_string(child, "ti,nand-xfer-type", &s))
+-		for (val = 0; val < ARRAY_SIZE(nand_xfer_types); val++)
+-			if (!strcasecmp(s, nand_xfer_types[val])) {
+-				gpmc_nand_data->xfer_type = val;
+-				break;
+-			}
+-
+-	val = of_get_nand_bus_width(child);
+-	if (val == 16)
+-		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
+-
+-	gpmc_read_timings_dt(child, &gpmc_t);
+-	gpmc_nand_init(gpmc_nand_data, &gpmc_t);
+-
+-	return 0;
+-}
+-#else
+-static int gpmc_probe_nand_child(struct platform_device *pdev,
+-				 struct device_node *child)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #if IS_ENABLED(CONFIG_MTD_ONENAND)
+ static int gpmc_probe_onenand_child(struct platform_device *pdev,
+ 				 struct device_node *child)
+@@ -1372,6 +1279,90 @@ err:
+ 	return ret;
+ }
+ 
++static int gpmc_probe_child(struct platform_device *pdev,
++			    struct device_node *child)
 +{
-+	omap2_gpmc_base = gpmc;
-+}
-+
-+static u32 _gpmc_read_reg(u16 reg)
-+{
-+	return __raw_readl(omap2_gpmc_base + reg);
-+}
-+
-+static void _gpmc_write_reg(u32 val, u16 reg)
-+{
-+	__raw_readl(omap2_gpmc_base + reg);
-+}
-+
-+static u32 _gpmc_cs_read_reg(int cs, int idx)
-+{
-+	u16 reg;
-+
-+	reg = GPMC_CS0_OFFSET + (cs * GPMC_CS_SIZE) + idx;
-+
-+	return _gpmc_read_reg(reg);
-+}
-+
-+static void _gpmc_cs_write_reg(int cs, int idx, u32 val)
-+{
-+	u16 reg;
-+
-+	reg = GPMC_CS0_OFFSET + (cs * GPMC_CS_SIZE) + idx;
-+	_gpmc_write_reg(val, reg);
-+}
-+
- void omap3_gpmc_save_context(void)
- {
- 	int i;
++	struct gpmc_settings gpmc_s;
++	struct gpmc_timings gpmc_t;
++	struct resource res;
++	unsigned long base;
++	int ret, cs;
++	struct device *dev = &pdev->dev;
++	const char *child_name = child->full_name;
 +	u32 val;
 +
-+	if (!omap2_gpmc_base)
-+		return;
- 
--	gpmc_context.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
--	gpmc_context.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
--	gpmc_context.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
--	gpmc_context.config = gpmc_read_reg(GPMC_CONFIG);
--	gpmc_context.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
--	gpmc_context.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
--	gpmc_context.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
-+	gpmc_context.sysconfig = _gpmc_read_reg(GPMC_SYSCONFIG);
-+	gpmc_context.irqenable = _gpmc_read_reg(GPMC_IRQENABLE);
-+	gpmc_context.timeout_ctrl = _gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
-+	gpmc_context.config = _gpmc_read_reg(GPMC_CONFIG);
-+	gpmc_context.prefetch_config1 = _gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
-+	gpmc_context.prefetch_config2 = _gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
-+	gpmc_context.prefetch_control = _gpmc_read_reg(GPMC_PREFETCH_CONTROL);
- 	for (i = 0; i < gpmc_cs_num; i++) {
--		gpmc_context.cs_context[i].is_valid = gpmc_cs_mem_enabled(i);
-+		/* check if valid */
-+		val = _gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
-+		gpmc_context.cs_context[i].is_valid =
-+						val & GPMC_CONFIG7_CSVALID;
++	if (of_property_read_u32(child, "gpmc,cs", &cs) < 0) {
++		dev_err(dev, "%s: has no 'gpmc,cs' property\n", child_name);
++		return -EINVAL;
++	}
 +
- 		if (gpmc_context.cs_context[i].is_valid) {
- 			gpmc_context.cs_context[i].config1 =
--				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
-+				_gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
- 			gpmc_context.cs_context[i].config2 =
--				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
-+				_gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
- 			gpmc_context.cs_context[i].config3 =
--				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
-+				_gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
- 			gpmc_context.cs_context[i].config4 =
--				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
-+				_gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
- 			gpmc_context.cs_context[i].config5 =
--				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
-+				_gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
- 			gpmc_context.cs_context[i].config6 =
--				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
-+				_gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
- 			gpmc_context.cs_context[i].config7 =
--				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
-+				_gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
- 		}
- 	}
- }
-@@ -2012,29 +2058,32 @@ void omap3_gpmc_restore_context(void)
++	if (of_address_to_resource(child, 0, &res) < 0) {
++		dev_err(dev, "%s: has malformed 'reg' property\n", child_name);
++		return -EINVAL;
++	}
++
++	ret = gpmc_cs_request(cs, resource_size(&res), &base);
++	if (ret < 0) {
++		dev_err(dev, "%s: cannot request GPMC CS %d\n", child_name, cs);
++		return ret;
++	}
++
++	ret = gpmc_cs_remap(cs, res.start);
++	if (ret < 0) {
++		dev_err(dev, "%s: cannot remap GPMC CS %d to %pa\n",
++			child_name, cs, (void *)res.start);
++		goto err;
++	}
++
++	gpmc_read_settings_dt(child, &gpmc_s);
++
++	ret = of_property_read_u32(child, "gpmc,device-width", &val);
++	if (ret) {
++		dev_err(dev, "%s: has no 'gpmc,device-width' property\n",
++			child_name);
++		goto err;
++	}
++
++	switch (val) {
++	case 1:
++		gpmc_s.device_width = GPMC_DEVWIDTH_8BIT;
++		break;
++	case 2:
++		gpmc_s.device_width = GPMC_DEVWIDTH_16BIT;
++		break;
++	default:
++		dev_err(dev, "%s: invalid 'gpmc,device-width'\n", child_name);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	gpmc_s.device_nand = of_property_read_bool(child, "gpmc,nand");
++
++	ret = gpmc_cs_program_settings(cs, &gpmc_s);
++	if (ret < 0) {
++		dev_err(dev, "%s: failed to program GPMC settings\n",
++			child_name);
++		goto err;
++	}
++
++	gpmc_read_timings_dt(child, &gpmc_t);
++	gpmc_cs_set_timings(cs, &gpmc_t);
++
++	ret = of_platform_populate(child, NULL, NULL, &pdev->dev);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to create gpmc child %s\n",
++			child_name);
++		goto err;
++	}
++
++	return 0;
++
++err:
++	gpmc_cs_free(cs);
++
++	return ret;
++}
++
+ static int gpmc_probe_dt(struct platform_device *pdev)
  {
- 	int i;
+ 	int ret;
+@@ -1408,14 +1399,14 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ 		if (!child->name)
+ 			continue;
  
--	gpmc_write_reg(GPMC_SYSCONFIG, gpmc_context.sysconfig);
--	gpmc_write_reg(GPMC_IRQENABLE, gpmc_context.irqenable);
--	gpmc_write_reg(GPMC_TIMEOUT_CONTROL, gpmc_context.timeout_ctrl);
--	gpmc_write_reg(GPMC_CONFIG, gpmc_context.config);
--	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, gpmc_context.prefetch_config1);
--	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, gpmc_context.prefetch_config2);
--	gpmc_write_reg(GPMC_PREFETCH_CONTROL, gpmc_context.prefetch_control);
-+	if (!omap2_gpmc_base)
-+		return;
-+
-+	_gpmc_write_reg(GPMC_SYSCONFIG, gpmc_context.sysconfig);
-+	_gpmc_write_reg(GPMC_IRQENABLE, gpmc_context.irqenable);
-+	_gpmc_write_reg(GPMC_TIMEOUT_CONTROL, gpmc_context.timeout_ctrl);
-+	_gpmc_write_reg(GPMC_CONFIG, gpmc_context.config);
-+	_gpmc_write_reg(GPMC_PREFETCH_CONFIG1, gpmc_context.prefetch_config1);
-+	_gpmc_write_reg(GPMC_PREFETCH_CONFIG2, gpmc_context.prefetch_config2);
-+	_gpmc_write_reg(GPMC_PREFETCH_CONTROL, gpmc_context.prefetch_control);
- 	for (i = 0; i < gpmc_cs_num; i++) {
- 		if (gpmc_context.cs_context[i].is_valid) {
--			gpmc_cs_write_reg(i, GPMC_CS_CONFIG1,
--				gpmc_context.cs_context[i].config1);
--			gpmc_cs_write_reg(i, GPMC_CS_CONFIG2,
--				gpmc_context.cs_context[i].config2);
--			gpmc_cs_write_reg(i, GPMC_CS_CONFIG3,
--				gpmc_context.cs_context[i].config3);
--			gpmc_cs_write_reg(i, GPMC_CS_CONFIG4,
--				gpmc_context.cs_context[i].config4);
--			gpmc_cs_write_reg(i, GPMC_CS_CONFIG5,
--				gpmc_context.cs_context[i].config5);
--			gpmc_cs_write_reg(i, GPMC_CS_CONFIG6,
--				gpmc_context.cs_context[i].config6);
--			gpmc_cs_write_reg(i, GPMC_CS_CONFIG7,
--				gpmc_context.cs_context[i].config7);
-+			_gpmc_cs_write_reg(i, GPMC_CS_CONFIG1,
-+					   gpmc_context.cs_context[i].config1);
-+			_gpmc_cs_write_reg(i, GPMC_CS_CONFIG2,
-+					   gpmc_context.cs_context[i].config2);
-+			_gpmc_cs_write_reg(i, GPMC_CS_CONFIG3,
-+					   gpmc_context.cs_context[i].config3);
-+			_gpmc_cs_write_reg(i, GPMC_CS_CONFIG4,
-+					   gpmc_context.cs_context[i].config4);
-+			_gpmc_cs_write_reg(i, GPMC_CS_CONFIG5,
-+					   gpmc_context.cs_context[i].config5);
-+			_gpmc_cs_write_reg(i, GPMC_CS_CONFIG6,
-+					   gpmc_context.cs_context[i].config6);
-+			_gpmc_cs_write_reg(i, GPMC_CS_CONFIG7,
-+					   gpmc_context.cs_context[i].config7);
- 		}
+-		if (of_node_cmp(child->name, "nand") == 0)
+-			ret = gpmc_probe_nand_child(pdev, child);
+-		else if (of_node_cmp(child->name, "onenand") == 0)
++		if (of_node_cmp(child->name, "onenand") == 0)
+ 			ret = gpmc_probe_onenand_child(pdev, child);
+ 		else if (of_node_cmp(child->name, "ethernet") == 0 ||
+ 			 of_node_cmp(child->name, "nor") == 0 ||
+ 			 of_node_cmp(child->name, "uart") == 0)
+ 			ret = gpmc_probe_generic_child(pdev, child);
++		else
++			ret = gpmc_probe_child(pdev, child);
+ 
+ 		if (WARN(ret < 0, "%s: probing gpmc child %s failed\n",
+ 			 __func__, child->full_name))
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 7ff5cb3..4ca1f48 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/of_mtd.h>
+ 
+ #include <linux/mtd/nand_bch.h>
+ #include <linux/platform_data/elm.h>
+@@ -1676,10 +1677,81 @@ static void gpmc_update_nand_reg(struct omap_nand_info *info)
  	}
  }
-diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
-index c18b022..795502f 100644
---- a/arch/arm/mach-omap2/gpmc.h
-+++ b/arch/arm/mach-omap2/gpmc.h
-@@ -107,4 +107,5 @@ extern int gpmc_generic_init(int cs, enum gpmc_omap_type type,
- 			     struct platform_device *pdev,
- 			     unsigned pdata_size);
  
-+void __init omap2_set_globals_gpmc(void __iomem *gpmc);
++static const char * const nand_xfer_types[] = {
++	[NAND_OMAP_PREFETCH_POLLED] = "prefetch-polled",
++	[NAND_OMAP_POLLED] = "polled",
++	[NAND_OMAP_PREFETCH_DMA] = "prefetch-dma",
++	[NAND_OMAP_PREFETCH_IRQ] = "prefetch-irq",
++};
++
++static int omap_get_dt_info(struct device *dev, struct omap_nand_info *info)
++{
++	struct device_node *child = dev->of_node;
++	int i;
++	const char *s;
++
++	if (of_property_read_u32(child, "ti,nand-cs", &info->gpmc_cs)) {
++		dev_err(dev, "ti,nand-cs not found in DT\n");
++		return -EINVAL;
++	}
++
++	/* detect availability of ELM module. Won't be present pre-OMAP4 */
++	info->elm_of_node = of_parse_phandle(child, "ti,elm-id", 0);
++	if (info->elm_of_node == NULL)
++		dev_dbg(dev, "ti,elm-id not in DT\n");
++
++	/* select ecc-scheme */
++	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
++		/* default to HAM1 */
++		info->ecc_opt = OMAP_ECC_HAM1_CODE_HW;
++		goto ecc_done;
++	}
++
++	if (!strcmp(s, "ham1") || !strcmp(s, "sw") ||
++	    !strcmp(s, "hw") || !strcmp(s, "hw-romcode")) {
++		info->ecc_opt = OMAP_ECC_HAM1_CODE_HW;
++
++	} else if (!strcmp(s, "bch4")) {
++		if (info->elm_of_node)
++			info->ecc_opt = OMAP_ECC_BCH4_CODE_HW;
++		else
++			info->ecc_opt = OMAP_ECC_BCH4_CODE_HW_DETECTION_SW;
++
++	} else if (!strcmp(s, "bch8")) {
++		if (info->elm_of_node)
++			info->ecc_opt = OMAP_ECC_BCH8_CODE_HW;
++		else
++			info->ecc_opt = OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
++	} else {
++		dev_err(dev, "unrecognized value for ti,nand-ecc-opt\n");
++		return -EINVAL;
++	}
++
++ecc_done:
++	/* select data transfer mode */
++	if (!of_property_read_string(child, "ti,nand-xfer-type", &s)) {
++		for (i = 0; i < ARRAY_SIZE(nand_xfer_types); i++) {
++			if (!strcasecmp(s, nand_xfer_types[i])) {
++				info->xfer_type = i;
++				goto found;
++			}
++		}
++
++		dev_err(dev, "unrecognized value for ti,nand-xfer-type\n");
++		return -EINVAL;
++	}
++
++found:
++	if (of_get_nand_bus_width(child) == 16)
++		info->devsize = NAND_BUSWIDTH_16;
++
++	return 0;
++}
++
+ static int omap_nand_probe(struct platform_device *pdev)
+ {
+ 	struct omap_nand_info *info;
+-	struct omap_nand_platform_data *pdata;
++	struct omap_nand_platform_data *pdata = NULL;
+ 	struct mtd_info	*mtd;
+ 	struct nand_chip *nand_chip;
+ 	struct nand_ecclayout *ecclayout;
+@@ -1692,31 +1764,37 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	struct mtd_part_parser_data ppdata = {};
+ 	struct device *dev = &pdev->dev;
+ 
+-	pdata = dev_get_platdata(&pdev->dev);
+-	if (pdata == NULL) {
+-		dev_err(&pdev->dev, "platform data missing\n");
+-		return -ENODEV;
+-	}
+ 
+ 	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
+ 				GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+ 
++	info->pdev = pdev;
++
++	if (dev->of_node) {
++		if (omap_get_dt_info(dev, info))
++			return -EINVAL;
++	} else {
++		pdata = dev_get_platdata(&pdev->dev);
++		if (pdata == NULL) {
++			dev_err(&pdev->dev, "platform data missing\n");
++			return -EINVAL;
++		}
++
++		info->gpmc_cs = pdata->cs;
++		info->of_node = pdata->of_node;
++		info->ecc_opt = pdata->ecc_opt;
++		info->dev_ready	= pdata->dev_ready;
++		info->xfer_type = pdata->xfer_type;
++		info->devsize = pdata->devsize;
++	}
++
+ 	platform_set_drvdata(pdev, info);
+ 
+ 	spin_lock_init(&info->controller.lock);
+ 	init_waitqueue_head(&info->controller.wq);
+ 
+-	info->pdev		= pdev;
+-	info->gpmc_cs		= pdata->cs;
+-	info->of_node		= pdata->of_node;
+-	info->ecc_opt		= pdata->ecc_opt;
+-	info->dev_ready	= pdata->dev_ready;
+-	info->xfer_type = pdata->xfer_type;
+-	info->devsize = pdata->devsize;
+-	info->elm_of_node = pdata->elm_of_node;
+-
+ 	mtd			= &info->mtd;
+ 	mtd->priv		= &info->nand;
+ 	mtd->name		= dev_name(&pdev->dev);
+@@ -2067,9 +2145,13 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		goto return_error;
+ 	}
+ 
+-	ppdata.of_node = pdata->of_node;
+-	mtd_device_parse_register(mtd, NULL, &ppdata, pdata->parts,
+-				  pdata->nr_parts);
++	if (dev->of_node) {
++		ppdata.of_node = dev->of_node;
++		mtd_device_parse_register(mtd, NULL, &ppdata, NULL, 0);
++
++	} else {
++		mtd_device_register(mtd, pdata->parts, pdata->nr_parts);
++	}
+ 
+ 	platform_set_drvdata(pdev, mtd);
+ 
+@@ -2101,12 +2183,18 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id omap_nand_ids[] = {
++	{ .compatible = "ti,omap2-nand", },
++	{},
++};
++
+ static struct platform_driver omap_nand_driver = {
+ 	.probe		= omap_nand_probe,
+ 	.remove		= omap_nand_remove,
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(omap_nand_ids),
+ 	},
+ };
+ 
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 62a855e..45203a5 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -64,10 +64,8 @@ struct omap_nand_platform_data {
+ 	int			devsize;
+ 	enum omap_ecc           ecc_opt;
+ 
+-	/* for passing the partitions */
+-	struct device_node	*of_node;
+-	struct device_node	*elm_of_node;
+-
+ 	struct gpmc_nand_regs	reg;		/* deprecated */
++	struct device_node	*elm_of_node;	/* deprecated */
++	struct device_node	*of_node;	/* deprecated */
+ };
  #endif
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index f14f9ac..e3321fd 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -53,6 +53,7 @@
- #include "prm2xxx.h"
- #include "prm3xxx.h"
- #include "prm44xx.h"
-+#include "gpmc.h"
- 
- /*
-  * omap_clk_soc_init: points to a function that does the SoC-specific
-@@ -464,6 +465,7 @@ void __init omap3_init_early(void)
- 				  NULL);
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE));
- 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE), NULL);
-+	omap2_set_globals_gpmc(OMAP2_L3_IO_ADDRESS(OMAP34XX_GPMC_BASE));
- 	omap3xxx_check_revision();
- 	omap3xxx_check_features();
- 	omap3xxx_prm_init();
 -- 
 1.8.3.2
 
