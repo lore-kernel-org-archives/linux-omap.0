@@ -1,60 +1,58 @@
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: [RFC PATCH 00/16] OMAP: GPMC: Restructure OMAP GPMC driver (NAND)
-Date: Wed, 21 May 2014 13:08:18 -0300
-Message-ID: <20140521160818.GA1150@arch.cereza>
-References: <1400671264-10702-1-git-send-email-rogerq@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1400671264-10702-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, computersforpeace@gmail.com, pekon@ti.com, robertcnelson@gmail.com, jg1.han@samsung.com, dwmw2@infradead.org, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCHv4 0/4] tsc2005 DT binding
+Date: Wed, 21 May 2014 19:36:10 +0200
+Message-ID: <1400693774-21306-1-git-send-email-sre@kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+Hi,
 
-On 21 May 02:20 PM, Roger Quadros wrote:
->=20
-> For DT boot:
-> - The GPMC controller node should have a chip select (CS) node for ea=
-ch used
->   chip select. The CS node must have a child device node for each dev=
-ice
->   attached to that chip select. Properties for that child are GPMC ag=
-nostic.
->=20
->   i.e.
-> 	gpmc {
-> 		cs0 {
-> 			nand0 {
-> 			}
-> 		};
->=20
-> 		cs1 {
-> 			nor0 {
-> 			}
-> 		}
-> 		...
-> 	};
->=20
+This adds device tree support for the tsc2005 touchscreen
+controller, which is currently only used by the Nokia N900
+board.
 
-While I agree that the GPMC driver is a bit messy, I'm not sure it's po=
-ssible
-to go through such a complete devicetree binding re-design (breaking ba=
-ckwards
-compatibility) now that the binding is already in production.
+The patch does not update the reset pin handling for platform
+data based probe to avoid merge conflicts. The n900 platform
+code will be removed in the near future (3.17?) and the driver
+can be simplified once that has happened.
 
-AFAIK, TI's SDK 7.0 is released, with a v3.8.x kernel which uses this G=
-PMC
-binding. And then you have the ISEE board too, using this binding.
+Changes since v3 [0]:
+ * Move common touchscreen DT handling code into its own file
+ * Add regulator support to tsc2005 driver
+ * Added N900 DTS patch for completeness. It should go via
+   Tony's Tree of course.
 
-Also, what's the problem with the current devicetree binding (not that =
-I'm fan
-of it)?
---=20
-Ezequiel Garc=EDa, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+[0] https://lkml.org/lkml/2014/4/25/694
+
+-- Sebastian
+
+Sebastian Reichel (4):
+  Input: add common DT binding for touchscreens
+  Input: tsc2005: add DT support
+  Documentation: dt: Document TSC2005 DT binding
+  DTS: ARM: OMAP3-N900: Add tsc2005 support
+
+ .../bindings/input/touchscreen/touchscreen.txt     |  27 +++++
+ .../bindings/input/touchscreen/tsc2005.txt         |  42 +++++++
+ arch/arm/boot/dts/omap3-n900.dts                   |  17 ++-
+ drivers/input/touchscreen/Kconfig                  |   4 +
+ drivers/input/touchscreen/Makefile                 |   1 +
+ drivers/input/touchscreen/of_touchscreen.c         |  44 ++++++++
+ drivers/input/touchscreen/tsc2005.c                | 122 +++++++++++++++++----
+ include/linux/input/touchscreen.h                  |  22 ++++
+ 8 files changed, 258 insertions(+), 21 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+ create mode 100644 Documentation/devicetree/bindings/input/touchscreen/tsc2005.txt
+ create mode 100644 drivers/input/touchscreen/of_touchscreen.c
+ create mode 100644 include/linux/input/touchscreen.h
+
+-- 
+2.0.0.rc2
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
