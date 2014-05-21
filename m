@@ -1,52 +1,104 @@
 From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH] ARM: dts: duovero-parlor: Add HDMI output
-Date: Wed, 21 May 2014 11:04:17 +0200
-Message-ID: <537C6C11.8010808@epfl.ch>
-References: <1400595946-1294-1-git-send-email-florian.vaussard@epfl.ch> <CAGhQ9VxtJwrKzW77mo=y9_gvCRW_8TJEp90OVN+YPg2RpC=b_w@mail.gmail.com> <537C6082.2000405@epfl.ch> <537C6322.2000101@ti.com>
-Reply-To: florian.vaussard@epfl.ch
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v2] ARM: dts: duovero-parlor: Add HDMI output
+Date: Wed, 21 May 2014 11:15:06 +0200
+Message-ID: <1400663706-24104-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.219]:52972 "EHLO smtp4.epfl.ch"
+Received: from smtp5.epfl.ch ([128.178.224.8]:33946 "EHLO smtp5.epfl.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750865AbaEUJEW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 May 2014 05:04:22 -0400
-In-Reply-To: <537C6322.2000101@ti.com>
+	id S1750796AbaEUJPY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 May 2014 05:15:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Joachim Eastwood <manabian@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
+Add the necessary DTS nodes to enable the micro-HDMI output on Parlor
+board.
 
-On 05/21/2014 10:26 AM, Tomi Valkeinen wrote:
-> On 21/05/14 11:14, Florian Vaussard wrote:
-> 
->>> I think Parlor has one and the "hdmi-connector" binding now
->>> supports it. See Tomi's 3.16/fbdev-omap branch.
->>> 
->> 
->> Looking into the details, the HPD pin of the parlor board is
->> connected to the OMAP4 HDMI IP. The LINK_CONNECT and
->> LINK_DISCONNECT events are managed by hdmi_irq_handler() in
->> hdmi4.c to turn on/off the PHY's power. So there is no need to
->> use the hgp-gpios binding of "hdmi-connector" IMHO. Correct me if
->> I am wrong, as the public TRM is pretty thin regarding the OMAP4
->> HDMI IP.
-> 
-> The PHY's link-connect and disconnect are a separate thing, not
-> really related to the HPD.
-> 
-> The hdmi_hpd pin on OMAP should be configured to GPIO mode, and the
-> GPIO should be handled by the hdmi-connector.
-> 
-> The HDMI driver doesn't have support for the HDMI IP's HPD, and if
-> I recall right, the HDMI IP's HPD was not without problems. And
-> afaik it doesn't really bring anything, a normal GPIO does the job
-> just fine.
-> 
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+---
+v1->v2:
+- Rebased on Tony's omap-for-v3.16/dt-v2
+- Use OMAP4_IOPAD macro
+- Use hpd pin as GPIO with hdmi-connector
 
-I see. I will use the pin as a GPIO, and post a v2.
+ arch/arm/boot/dts/omap4-duovero-parlor.dts | 44 ++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-Regards,
-Florian
+diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+index cd53a64..6dc84d9 100644
+--- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
++++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+@@ -15,6 +15,10 @@
+ 	model = "OMAP4430 Gumstix Duovero on Parlor";
+ 	compatible = "gumstix,omap4-duovero-parlor", "gumstix,omap4-duovero", "ti,omap4430", "ti,omap4";
+ 
++	aliases {
++		display0 = &hdmi0;
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 		led0 {
+@@ -35,6 +39,21 @@
+ 			gpio-key,wakeup;
+ 		};
+ 	};
++
++	hdmi0: connector@0 {
++		compatible = "hdmi-connector";
++		label = "hdmi";
++
++		type = "d";
++
++		hpd-gpios = <&gpio2 31 GPIO_ACTIVE_HIGH>;	/* gpio_63 */
++
++		port {
++			hdmi_connector_in: endpoint {
++				remote-endpoint = <&hdmi_out>;
++			};
++		};
++	};
+ };
+ 
+ &omap4_pmx_core {
+@@ -77,6 +96,15 @@
+ 			OMAP4_IOPAD(0x070, PIN_INPUT_PULLUP | MUX_MODE3)	/* gpmc_a24.gpio_48: amdix enabled */
+ 		>;
+ 	};
++
++	dss_hdmi_pins: pinmux_dss_hdmi_pins {
++		pinctrl-single,pins = <
++			OMAP4_IOPAD(0x098, PIN_INPUT | MUX_MODE3)		/* hdmi_hpd.gpio_63 */
++			OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			OMAP4_IOPAD(0x09c, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_ddc_scl.hdmi_ddc_scl */
++			OMAP4_IOPAD(0x09e, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_ddc_sda.hdmi_ddc_sda */
++		>;
++	};
+ };
+ 
+ &i2c2 {
+@@ -143,4 +171,20 @@
+ 	};
+ };
+ 
++&dss {
++	status = "ok";
++};
++
++&hdmi {
++	status = "ok";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dss_hdmi_pins>;
++
++	port {
++		hdmi_out: endpoint {
++			remote-endpoint = <&hdmi_connector_in>;
++		};
++	};
++};
+ 
+-- 
+1.8.3.2
+
