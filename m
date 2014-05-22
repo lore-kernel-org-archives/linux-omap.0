@@ -1,60 +1,237 @@
-From: Alex Shi <alex.shi@linaro.org>
-Subject: Re: RCU stall on panda
-Date: Thu, 22 May 2014 16:59:45 +0800
-Message-ID: <537DBC81.2090809@linaro.org>
-References: <53675C5F.10509@linaro.org> <20140505180617.GM8754@linux.vnet.ibm.com> <20140512212102.GF5668@atomide.com> <5371BD69.8010600@linaro.org> <20140513153220.GC16837@atomide.com> <53747E6D.60500@linaro.org> <53748371.5030704@linaro.org> <5374C07C.1070400@linaro.org> <20140515183247.GF23659@atomide.com> <5375091D.3010607@ti.com> <5375C145.6070904@linaro.org> <537614AF.50100@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 1/2] regulator: palmas: Reemove open coded functions with helper functions
+Date: Thu, 22 May 2014 14:48:29 +0530
+Message-ID: <1400750310-20925-2-git-send-email-j-keerthy@ti.com>
+References: <1400750310-20925-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:60912 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbaEVI7u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2014 04:59:50 -0400
-Received: by mail-pb0-f52.google.com with SMTP id rr13so2312663pbb.25
-        for <linux-omap@vger.kernel.org>; Thu, 22 May 2014 01:59:49 -0700 (PDT)
-In-Reply-To: <537614AF.50100@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1400750310-20925-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 05/16/2014 09:37 PM, Santosh Shilimkar wrote:
-> On Friday 16 May 2014 03:41 AM, Alex Shi wrote:
->> On 05/16/2014 02:36 AM, Santosh Shilimkar wrote:
->>>>>>> yes.
->>>>>>> My board is panda ES. without this revert, it works.
->>>>>
->>>>> Care to specify what linux version you are testing against?
->>>>>
->>>>> Does it hang in idle always immediately on booting?
->>>>>
->>>>> Or does the serial console first hang with sysrq still
->>>>> working (ctrl-a h in minicom for help) with device
->>>>> eventually locking up hard?
->>>>>
->>> I just posted an updated patch Alex on other thread.
->>> Attaching here again for your reference. Please try
->>> it out and see if the you still get a hang.
->>
->> it does not hang this time.
->>
-> This is good news and exactly what I expected.
->  
->> but I am not sure it can solve my problem, since RCU stall is not easy
->> to reproduce in short time.
->>
-> You may want to run the system longer if you can. I suspect the RCU stall
-> was also side effect of missing interrupts.
+Reemove open coded functions with helper functions.
 
-Sure. it do remove the RCU stall on my panda board.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ drivers/regulator/palmas-regulator.c |  158 ++++++----------------------------
+ 1 file changed, 26 insertions(+), 132 deletions(-)
 
-> 
-> Regards,
-> Santosh
-> 
-
-
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index 9c62b1d..9602eba 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -36,6 +36,18 @@ struct regs_info {
+ 	int	sleep_id;
+ };
+ 
++static const struct regulator_linear_range smps_low_ranges[] = {
++	REGULATOR_LINEAR_RANGE(500000, 0x1, 0x6, 0),
++	REGULATOR_LINEAR_RANGE(510000, 0x7, 0x79, 10000),
++	REGULATOR_LINEAR_RANGE(1650000, 0x7A, 0x7f, 0),
++};
++
++static const struct regulator_linear_range smps_high_ranges[] = {
++	REGULATOR_LINEAR_RANGE(1000000, 0x1, 0x6, 0),
++	REGULATOR_LINEAR_RANGE(1020000, 0x7, 0x79, 20000),
++	REGULATOR_LINEAR_RANGE(3300000, 0x7A, 0x7f, 0),
++};
++
+ static const struct regs_info palmas_regs_info[] = {
+ 	{
+ 		.name		= "SMPS12",
+@@ -280,54 +292,6 @@ static int palmas_ldo_write(struct palmas *palmas, unsigned int reg,
+ 	return regmap_write(palmas->regmap[REGULATOR_SLAVE], addr, value);
+ }
+ 
+-static int palmas_is_enabled_smps(struct regulator_dev *dev)
+-{
+-	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+-	int id = rdev_get_id(dev);
+-	unsigned int reg;
+-
+-	palmas_smps_read(pmic->palmas, palmas_regs_info[id].ctrl_addr, &reg);
+-
+-	reg &= PALMAS_SMPS12_CTRL_STATUS_MASK;
+-	reg >>= PALMAS_SMPS12_CTRL_STATUS_SHIFT;
+-
+-	return !!(reg);
+-}
+-
+-static int palmas_enable_smps(struct regulator_dev *dev)
+-{
+-	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+-	int id = rdev_get_id(dev);
+-	unsigned int reg;
+-
+-	palmas_smps_read(pmic->palmas, palmas_regs_info[id].ctrl_addr, &reg);
+-
+-	reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+-	if (pmic->current_reg_mode[id])
+-		reg |= pmic->current_reg_mode[id];
+-	else
+-		reg |= SMPS_CTRL_MODE_ON;
+-
+-	palmas_smps_write(pmic->palmas, palmas_regs_info[id].ctrl_addr, reg);
+-
+-	return 0;
+-}
+-
+-static int palmas_disable_smps(struct regulator_dev *dev)
+-{
+-	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+-	int id = rdev_get_id(dev);
+-	unsigned int reg;
+-
+-	palmas_smps_read(pmic->palmas, palmas_regs_info[id].ctrl_addr, &reg);
+-
+-	reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+-
+-	palmas_smps_write(pmic->palmas, palmas_regs_info[id].ctrl_addr, reg);
+-
+-	return 0;
+-}
+-
+ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
+ {
+ 	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+@@ -382,81 +346,6 @@ static unsigned int palmas_get_mode_smps(struct regulator_dev *dev)
+ 	return 0;
+ }
+ 
+-static int palmas_list_voltage_smps(struct regulator_dev *dev,
+-					unsigned selector)
+-{
+-	struct palmas_pmic *pmic = rdev_get_drvdata(dev);
+-	int id = rdev_get_id(dev);
+-	int mult = 1;
+-
+-	/* Read the multiplier set in VSEL register to return
+-	 * the correct voltage.
+-	 */
+-	if (pmic->range[id])
+-		mult = 2;
+-
+-	if (selector == 0)
+-		return 0;
+-	else if (selector < 6)
+-		return 500000 * mult;
+-	else
+-		/* Voltage is linear mapping starting from selector 6,
+-		 * volt = (0.49V + ((selector - 5) * 0.01V)) * RANGE
+-		 * RANGE is either x1 or x2
+-		 */
+-		return (490000 + ((selector - 5) * 10000)) * mult;
+-}
+-
+-static int palmas_map_voltage_smps(struct regulator_dev *rdev,
+-		int min_uV, int max_uV)
+-{
+-	struct palmas_pmic *pmic = rdev_get_drvdata(rdev);
+-	int id = rdev_get_id(rdev);
+-	int ret, voltage;
+-
+-	if (min_uV == 0)
+-		return 0;
+-
+-	if (pmic->range[id]) { /* RANGE is x2 */
+-		if (min_uV < 1000000)
+-			min_uV = 1000000;
+-		ret = DIV_ROUND_UP(min_uV - 1000000, 20000) + 6;
+-	} else {		/* RANGE is x1 */
+-		if (min_uV < 500000)
+-			min_uV = 500000;
+-		ret = DIV_ROUND_UP(min_uV - 500000, 10000) + 6;
+-	}
+-
+-	/* Map back into a voltage to verify we're still in bounds */
+-	voltage = palmas_list_voltage_smps(rdev, ret);
+-	if (voltage < min_uV || voltage > max_uV)
+-		return -EINVAL;
+-
+-	return ret;
+-}
+-
+-static int palma_smps_set_voltage_smps_time_sel(struct regulator_dev *rdev,
+-	unsigned int old_selector, unsigned int new_selector)
+-{
+-	struct palmas_pmic *pmic = rdev_get_drvdata(rdev);
+-	int id = rdev_get_id(rdev);
+-	int old_uv, new_uv;
+-	unsigned int ramp_delay = pmic->ramp_delay[id];
+-
+-	if (!ramp_delay)
+-		return 0;
+-
+-	old_uv = palmas_list_voltage_smps(rdev, old_selector);
+-	if (old_uv < 0)
+-		return old_uv;
+-
+-	new_uv = palmas_list_voltage_smps(rdev, new_selector);
+-	if (new_uv < 0)
+-		return new_uv;
+-
+-	return DIV_ROUND_UP(abs(old_uv - new_uv), ramp_delay);
+-}
+-
+ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ 		 int ramp_delay)
+ {
+@@ -493,16 +382,16 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ }
+ 
+ static struct regulator_ops palmas_ops_smps = {
+-	.is_enabled		= palmas_is_enabled_smps,
+-	.enable			= palmas_enable_smps,
+-	.disable		= palmas_disable_smps,
++	.is_enabled		= regulator_is_enabled_regmap,
++	.enable			= regulator_enable_regmap,
++	.disable		= regulator_disable_regmap,
+ 	.set_mode		= palmas_set_mode_smps,
+ 	.get_mode		= palmas_get_mode_smps,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+ 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+-	.list_voltage		= palmas_list_voltage_smps,
+-	.map_voltage		= palmas_map_voltage_smps,
+-	.set_voltage_time_sel	= palma_smps_set_voltage_smps_time_sel,
++	.list_voltage		= regulator_list_voltage_linear_range,
++	.map_voltage		= regulator_map_voltage_linear_range,
++	.set_voltage_time_sel	= regulator_set_voltage_time_sel,
+ 	.set_ramp_delay		= palmas_smps_set_ramp_delay,
+ };
+ 
+@@ -511,9 +400,9 @@ static struct regulator_ops palmas_ops_ext_control_smps = {
+ 	.get_mode		= palmas_get_mode_smps,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+ 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+-	.list_voltage		= palmas_list_voltage_smps,
+-	.map_voltage		= palmas_map_voltage_smps,
+-	.set_voltage_time_sel	= palma_smps_set_voltage_smps_time_sel,
++	.list_voltage		= regulator_list_voltage_linear_range,
++	.map_voltage		= regulator_map_voltage_linear_range,
++	.set_voltage_time_sel	= regulator_set_voltage_time_sel,
+ 	.set_ramp_delay		= palmas_smps_set_ramp_delay,
+ };
+ 
+@@ -1042,12 +931,17 @@ static int palmas_regulators_probe(struct platform_device *pdev)
+ 			 * ranges. Read the current smps mode for later use.
+ 			 */
+ 			addr = palmas_regs_info[id].vsel_addr;
++			pmic->desc[id].n_linear_ranges = 3;
+ 
+ 			ret = palmas_smps_read(pmic->palmas, addr, &reg);
+ 			if (ret)
+ 				return ret;
+ 			if (reg & PALMAS_SMPS12_VOLTAGE_RANGE)
+ 				pmic->range[id] = 1;
++			if (pmic->range[id])
++				pmic->desc[id].linear_ranges = smps_high_ranges;
++			else
++				pmic->desc[id].linear_ranges = smps_low_ranges;
+ 
+ 			if (reg_init && reg_init->roof_floor)
+ 				pmic->desc[id].ops =
 -- 
-Thanks
-    Alex
+1.7.9.5
