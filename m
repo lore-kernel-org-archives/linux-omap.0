@@ -1,53 +1,90 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: RCU stall on panda
-Date: Thu, 22 May 2014 09:36:34 -0400
-Message-ID: <537DFD62.7040502@ti.com>
-References: <53675C5F.10509@linaro.org> <20140505180617.GM8754@linux.vnet.ibm.com> <20140512212102.GF5668@atomide.com> <5371BD69.8010600@linaro.org> <20140513153220.GC16837@atomide.com> <53747E6D.60500@linaro.org> <53748371.5030704@linaro.org> <5374C07C.1070400@linaro.org> <20140515183247.GF23659@atomide.com> <5375091D.3010607@ti.com> <5375C145.6070904@linaro.org> <537614AF.50100@ti.com> <537DBC81.2090809@linaro.org>
+From: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [RFC PATCH 00/16] OMAP: GPMC: Restructure OMAP GPMC driver
+ (NAND) : DT binding change proposal
+Date: Thu, 22 May 2014 11:46:00 -0300
+Message-ID: <20140522144600.GA1785@arch.cereza>
+References: <1400671264-10702-1-git-send-email-rogerq@ti.com>
+ <20140521160818.GA1150@arch.cereza>
+ <537DB17A.6060608@ti.com>
+ <CABxcv=nbgGhVN+XYO8s=mYOpoLU9-kWuEqc+FLMaSbWS7BJNyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56943 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190AbaEVNhI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2014 09:37:08 -0400
-In-Reply-To: <537DBC81.2090809@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CABxcv=nbgGhVN+XYO8s=mYOpoLU9-kWuEqc+FLMaSbWS7BJNyQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Cc: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alex Shi <alex.shi@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "naresh.kamboju@linaro.org Kamboju" <naresh.kamboju@linaro.org>, Linaro Kernel <linaro-kernel@lists.linaro.org>, LAK <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thursday 22 May 2014 04:59 AM, Alex Shi wrote:
-> On 05/16/2014 09:37 PM, Santosh Shilimkar wrote:
->> On Friday 16 May 2014 03:41 AM, Alex Shi wrote:
->>> On 05/16/2014 02:36 AM, Santosh Shilimkar wrote:
->>>>>>>> yes.
->>>>>>>> My board is panda ES. without this revert, it works.
->>>>>>
->>>>>> Care to specify what linux version you are testing against?
->>>>>>
->>>>>> Does it hang in idle always immediately on booting?
->>>>>>
->>>>>> Or does the serial console first hang with sysrq still
->>>>>> working (ctrl-a h in minicom for help) with device
->>>>>> eventually locking up hard?
->>>>>>
->>>> I just posted an updated patch Alex on other thread.
->>>> Attaching here again for your reference. Please try
->>>> it out and see if the you still get a hang.
->>>
->>> it does not hang this time.
->>>
->> This is good news and exactly what I expected.
->>  
->>> but I am not sure it can solve my problem, since RCU stall is not easy
->>> to reproduce in short time.
->>>
->> You may want to run the system longer if you can. I suspect the RCU stall
->> was also side effect of missing interrupts.
-> 
-> Sure. it do remove the RCU stall on my panda board.
-> 
-Thanks for confirming. Tony already send fix upstream so it should
-show up in next rc mostly
+On 22 May 01:51 PM, Javier Martinez Canillas wrote:
+> On Thu, May 22, 2014 at 10:12 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote=
+:
+> >> On 21 May 02:20 PM, Roger Quadros wrote:
+> >>>
+> >>> For DT boot:
+> >>> - The GPMC controller node should have a chip select (CS) node fo=
+r each used
+> >>>   chip select. The CS node must have a child device node for each=
+ device
+> >>>   attached to that chip select. Properties for that child are GPM=
+C agnostic.
+> >>>
+> >>>   i.e.
+> >>>      gpmc {
+> >>>              cs0 {
+> >>>                      nand0 {
+> >>>                      }
+> >>>              };
+> >>>
+> >>>              cs1 {
+> >>>                      nor0 {
+> >>>                      }
+> >>>              }
+> >>>              ...
+> >>>      };
+> >>>
+> >>
+> >> While I agree that the GPMC driver is a bit messy, I'm not sure it=
+'s possible
+> >> to go through such a complete devicetree binding re-design (breaki=
+ng backwards
+> >> compatibility) now that the binding is already in production.
+> >
+> > Why not? especially if the existing bindings are poorly dones. Is a=
+nyone using these
+> > bindings burning the DT into ROM and can't change it when they upda=
+te the kernel?
+> >
+>=20
+> While I do agree that your DT bindings are much better than the
+> current ones, there is a policy that DT bindings are an external API
+> and once are released with a kernel are set in stone and can't be
+> changed.
+>=20
 
+Exactly. The DT binding is considered an ABI. Thus, invariant across ke=
+rnel
+versions. Users can't be coherced into a DTB update after a kernel upda=
+te.
+
+That said, I don't really care if you break compatilibity in this case.
+Rather, I'm suggesting that you make sure this change is going to be ac=
+cepted
+upstream, before doing any more work. The DT maintainers are reluctant =
+to do
+so.
+
+On the other side, I guess you will also break bisectability while brea=
+king
+backward compatibility. Doesn't sound very nice.
+--=20
+Ezequiel Garc=EDa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
