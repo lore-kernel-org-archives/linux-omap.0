@@ -1,46 +1,109 @@
-From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 3/6] usb: musb: dsps: Call usb_phy(_shutdown/_init) during musb_platform_reset()
-Date: Thu, 22 May 2014 11:59:38 +0530
-Message-ID: <1400740181-31213-4-git-send-email-george.cherian@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v5 4/6] usb: musb: core: Convert the musb_platform_reset to have a return value.
+Date: Thu, 22 May 2014 11:59:39 +0530
+Message-ID: <1400740181-31213-5-git-send-email-george.cherian@ti.com>
 References: <1400740181-31213-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1400740181-31213-1-git-send-email-george.cherian-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1400740181-31213-1-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-For DSPS platform usb_phy_vbus(_off/_on) are NOPs.
-So during musb_platform_reset() call usb_phy(_shutdown/_init)
+Currently musb_platform_reset() is only used by dsps.
+In case of BABBLE interrupt for other platforms the  musb_platform_reset()
+is a NOP. In such situations no need to re-initialize the endpoints.
+Also in the latest silicon revision of AM335x, we do have a babble recovery
+mechanism without resetting the IP block. In preperation to add that support
+its better to have a rest_done return for  musb_platform_reset().
 
-Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/musb/musb_dsps.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/usb/musb/musb_core.c | 10 ++++++----
+ drivers/usb/musb/musb_core.h | 10 ++++++----
+ drivers/usb/musb/musb_dsps.c |  3 ++-
+ 3 files changed, 14 insertions(+), 9 deletions(-)
 
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 8920b80..7c6836cc 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1755,9 +1755,11 @@ static void musb_irq_work(struct work_struct *data)
+ static void musb_recover_work(struct work_struct *data)
+ {
+ 	struct musb *musb = container_of(data, struct musb, recover_work.work);
+-	int status;
++	int status, ret;
+ 
+-	musb_platform_reset(musb);
++	ret  = musb_platform_reset(musb);
++	if (ret)
++		return;
+ 
+ 	usb_phy_vbus_off(musb->xceiv);
+ 	usleep_range(100, 200);
+@@ -1766,8 +1768,8 @@ static void musb_recover_work(struct work_struct *data)
+ 	usleep_range(100, 200);
+ 
+ 	/*
+-	 * When a babble condition occurs, the musb controller removes the
+-	 * session bit and the endpoint config is lost.
++	 * When a babble condition occurs, the musb controller
++	 * removes the session bit and the endpoint config is lost.
+ 	 */
+ 	if (musb->dyn_fifo)
+ 		status = ep_config_from_table(musb);
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 9241025..414e57a 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -192,7 +192,7 @@ struct musb_platform_ops {
+ 
+ 	int	(*set_mode)(struct musb *musb, u8 mode);
+ 	void	(*try_idle)(struct musb *musb, unsigned long timeout);
+-	void	(*reset)(struct musb *musb);
++	int	(*reset)(struct musb *musb);
+ 
+ 	int	(*vbus_status)(struct musb *musb);
+ 	void	(*set_vbus)(struct musb *musb, int on);
+@@ -555,10 +555,12 @@ static inline void musb_platform_try_idle(struct musb *musb,
+ 		musb->ops->try_idle(musb, timeout);
+ }
+ 
+-static inline void musb_platform_reset(struct musb *musb)
++static inline int  musb_platform_reset(struct musb *musb)
+ {
+-	if (musb->ops->reset)
+-		musb->ops->reset(musb);
++	if (!musb->ops->reset)
++		return -EINVAL;
++
++	return musb->ops->reset(musb);
+ }
+ 
+ static inline int musb_platform_get_vbus_status(struct musb *musb)
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 51beb13..74c4193 100644
+index 74c4193..f6f3087 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
-@@ -543,7 +543,11 @@ static void dsps_musb_reset(struct musb *musb)
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+@@ -536,7 +536,7 @@ static int dsps_musb_set_mode(struct musb *musb, u8 mode)
+ 	return 0;
+ }
  
- 	dsps_writel(musb->ctrl_base, wrp->control, (1 << wrp->reset));
--	udelay(100);
-+	usleep_range(100, 200);
-+	usb_phy_shutdown(musb->xceiv);
-+	usleep_range(100, 200);
-+	usb_phy_init(musb->xceiv);
-+
+-static void dsps_musb_reset(struct musb *musb)
++static int dsps_musb_reset(struct musb *musb)
+ {
+ 	struct device *dev = musb->controller;
+ 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+@@ -548,6 +548,7 @@ static void dsps_musb_reset(struct musb *musb)
+ 	usleep_range(100, 200);
+ 	usb_phy_init(musb->xceiv);
+ 
++	return 0;
  }
  
  static struct musb_platform_ops dsps_ops = {
 -- 
 1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
