@@ -1,34 +1,75 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v3 0/6] Cleanup and fixes for dwc3-omap
-Date: Thu, 22 May 2014 09:31:32 +0530
-Message-ID: <1400731298-18442-1-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v3 2/6] usb: dwc3: dwc3-omap: Add dwc3_omap_map_offset() function
+Date: Thu, 22 May 2014 09:31:34 +0530
+Message-ID: <1400731298-18442-3-git-send-email-george.cherian@ti.com>
+References: <1400731298-18442-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1400731298-18442-1-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 Cc: gregkh@linuxfoundation.org, balbi@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The series does some refactoring on dwc3_probe()
+Move map offset to its own seperate function.
+Improve code readability, decrease the dwc3_probe() size.
 
-Patch 1 - Now that we use driver compatible for revision check, remove the unnecessary logic.
-Patch 2-4 - reduce the size of dwc3_probe()
-Patch 5 - Fix the crash on dwc3_omap removal
-Patch 6 - Addresses the issue of  xhci hang while resuming from system sleep.
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
+ drivers/usb/dwc3/dwc3-omap.c | 33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-George Cherian (6):
-  usb: dwc3: dwc3-omap: Remove x_major calculation from revision
-    register
-  usb: dwc3: dwc3-omap: Add dwc3_omap_map_offset() function
-  usb: dwc3: dwc3-omap: Add dwc3_omap_set_utmi_mode() function
-  usb: dwc3: dwc3-omap: Add dwc3_omap_extcon_register function
-  usb: dwc3: dwc3-omap: Fix the crash on module removal
-  usb: dwc3: dwc3-omap: Disable/Enable only wrapper interrupts in
-    prepare/complete
-
- drivers/usb/dwc3/dwc3-omap.c | 187 +++++++++++++++++++++++--------------------
- 1 file changed, 98 insertions(+), 89 deletions(-)
-
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 999bdc8..09918ac 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -378,6 +378,25 @@ static int dwc3_omap_vbus_notifier(struct notifier_block *nb,
+ 	return NOTIFY_DONE;
+ }
+ 
++static void dwc3_omap_map_offset(struct dwc3_omap *omap)
++{
++	struct device_node	*node = omap->dev->of_node;
++
++	/* Differentiate between OMAP5 and AM437x.
++	 * For OMAP5(ES2.0) and AM437x wrapper revision is same  even
++	 * though there are changes in wrapper register offsets.
++	 * Using dt compatible to differentiate  AM437x.
++	 */
++
++	if (of_device_is_compatible(node, "ti,am437x-dwc3")) {
++		omap->irq_eoi_offset = USBOTGSS_EOI_OFFSET;
++		omap->irq0_offset = USBOTGSS_IRQ0_OFFSET;
++		omap->irqmisc_offset = USBOTGSS_IRQMISC_OFFSET;
++		omap->utmi_otg_offset = USBOTGSS_UTMI_OTG_OFFSET;
++		omap->debug_offset = USBOTGSS_DEBUG_OFFSET;
++	}
++}
++
+ static int dwc3_omap_probe(struct platform_device *pdev)
+ {
+ 	struct device_node	*node = pdev->dev.of_node;
+@@ -442,19 +461,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
+-	/* Differentiate between OMAP5 and AM437x.
+-	 * For OMAP5(ES2.0) and AM437x wrapper revision is same, even
+-	 * though there are changes in wrapper register offsets.
+-	 * Using dt compatible to differentiate  AM437x.
+-	 */
+-
+-	if (of_device_is_compatible(node, "ti,am437x-dwc3")) {
+-		omap->irq_eoi_offset = USBOTGSS_EOI_OFFSET;
+-		omap->irq0_offset = USBOTGSS_IRQ0_OFFSET;
+-		omap->irqmisc_offset = USBOTGSS_IRQMISC_OFFSET;
+-		omap->utmi_otg_offset = USBOTGSS_UTMI_OTG_OFFSET;
+-		omap->debug_offset = USBOTGSS_DEBUG_OFFSET;
+-	}
++	dwc3_omap_map_offset(omap);
+ 
+ 	reg = dwc3_omap_read_utmi_status(omap);
+ 
 -- 
 1.8.3.1
