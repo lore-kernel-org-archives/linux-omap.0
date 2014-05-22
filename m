@@ -1,377 +1,70 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH] OMAPDSS: move 'compatible' converter to omapdss driver
-Date: Thu, 22 May 2014 15:10:46 +0300
-Message-ID: <1400760646-10191-1-git-send-email-tomi.valkeinen@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v5 6/6] usb: musb: dsps: Enable sw babble control for
+ newer silicon
+Date: Thu, 22 May 2014 18:22:52 +0530
+Message-ID: <537DF324.7040907@ti.com>
+References: <1400740181-31213-1-git-send-email-george.cherian@ti.com> <1400740181-31213-7-git-send-email-george.cherian@ti.com> <537DE67A.10203@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54519 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754873AbaEVMLA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 May 2014 08:11:00 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <537DE67A.10203@cogentembedded.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Move the panel/encoder driver compatible-string converter from
-arch/arm/mach-omap2/display.c to omapdss driver. That is a more logical
-place for it, as it's really an omapdss internal hack.
+On 5/22/2014 5:28 PM, Sergei Shtylyov wrote:
+> Hello.
+>
+> On 22-05-2014 10:29, George Cherian wrote:
+>
+>> Find whether we are running on newer silicon. The babble control
+>> register reads 0x4 by default in newer silicon as opposed to 0
+>> in old versions of AM335x. Based on this enable the sw babble
+>> control logic.
+>
+>> Signed-off-by: George Cherian <george.cherian@ti.com>
+>> ---
+>>   drivers/usb/musb/musb_dsps.c | 38 
+>> ++++++++++++++++++++++++++++++++------
+>>   1 file changed, 32 insertions(+), 6 deletions(-)
+>
+>> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+>> index 868caf8..2ced061 100644
+>> --- a/drivers/usb/musb/musb_dsps.c
+>> +++ b/drivers/usb/musb/musb_dsps.c
+> [...]
+>> @@ -469,6 +470,19 @@ static int dsps_musb_init(struct musb *musb)
+>>       val &= ~(1 << wrp->otg_disable);
+>>       dsps_writel(musb->ctrl_base, wrp->phy_utmi, val);
+>>
+>> +    /*
+>> +     *  Check whether the dsps version has babble control enabled.
+>
+>    One space too many before this sentence.
+>
+>> +     * In latest silicon revision the babble control logic is enabled.
+>> +     * If MUSB_BABBLE_CTL returns 0x4 then we have the babble control
+>> +     * logic enabled.
+>> +     */
+>> +    val = dsps_readb(musb->mregs, MUSB_BABBLE_CTL);
+>> +    if (val == MUSB_BABBLE_RCV_DISABLE) {
+>> +        glue->sw_babble_enabled = true;
+>> +        val |= MUSB_BABBLE_SW_SESSION_CTRL;
+>> +        dsps_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
+>> +    }
+>> +
+>
+>    Hm, from the register offset that you declared in the previous 
+> patch, I got an impression that this is a new standard MUSB register? 
+Its very AM335x MUSB specific register, not a standard one.
+Unfortunately the designers put it as part of MUSB core regs.
+> Shouldn't this check be done in the generic MUSB code then?
+>
+> WBR, Sergei
+>
 
-The code is rewritten to follow the video node graph, starting from
-omapdss. This removes the need to have the device compatible-string
-database.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/display.c                     |  56 ------
- drivers/video/fbdev/omap2/Makefile                |   2 +-
- drivers/video/fbdev/omap2/dss/Kconfig             |   4 +
- drivers/video/fbdev/omap2/dss/Makefile            |   1 +
- drivers/video/fbdev/omap2/dss/omapdss-boot-init.c | 229 ++++++++++++++++++++++
- 5 files changed, 235 insertions(+), 57 deletions(-)
- create mode 100644 drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 16d33d831287..519a20fc0432 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -555,65 +555,9 @@ int omap_dss_reset(struct omap_hwmod *oh)
- 	return r;
- }
- 
--/* list of 'compatible' nodes to convert to omapdss specific */
--static const char * const dss_compat_conv_list[] __initconst = {
--	"composite-connector",
--	"dvi-connector",
--	"hdmi-connector",
--	"panel-dpi",
--	"panel-dsi-cm",
--	"sony,acx565akm",
--	"svideo-connector",
--	"ti,tfp410",
--	"ti,tpd12s015",
--};
--
--/* prepend compatible string with "omapdss," */
--static __init void omapdss_omapify_node(struct device_node *node,
--	const char *compat)
--{
--	char *new_compat;
--	struct property *prop;
--
--	new_compat = kasprintf(GFP_KERNEL, "omapdss,%s", compat);
--
--	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
--
--	if (!prop) {
--		pr_err("omapdss_omapify_node: kzalloc failed\n");
--		return;
--	}
--
--	prop->name = "compatible";
--	prop->value = new_compat;
--	prop->length = strlen(new_compat) + 1;
--
--	of_update_property(node, prop);
--}
--
--/*
-- * As omapdss panel drivers are omapdss specific, but we want to define the
-- * DT-data in generic manner, we convert the compatible strings of the panel
-- * nodes from "panel-foo" to "omapdss,panel-foo". This way we can have both
-- * correct DT data and omapdss specific drivers.
-- *
-- * When we get generic panel drivers to the kernel, this will be removed.
-- */
- void __init omapdss_early_init_of(void)
- {
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(dss_compat_conv_list); ++i) {
--		const char *compat = dss_compat_conv_list[i];
--		struct device_node *node = NULL;
--
--		while ((node = of_find_compatible_node(node, NULL, compat))) {
--			if (!of_device_is_available(node))
--				continue;
- 
--			omapdss_omapify_node(node, compat);
--		}
--	}
- }
- 
- struct device_node * __init omapdss_find_dss_of_node(void)
-diff --git a/drivers/video/fbdev/omap2/Makefile b/drivers/video/fbdev/omap2/Makefile
-index bf8127df8c71..f8745ec369cc 100644
---- a/drivers/video/fbdev/omap2/Makefile
-+++ b/drivers/video/fbdev/omap2/Makefile
-@@ -1,5 +1,5 @@
- obj-$(CONFIG_OMAP2_VRFB) += vrfb.o
- 
--obj-$(CONFIG_OMAP2_DSS) += dss/
-+obj-y += dss/
- obj-y += displays-new/
- obj-$(CONFIG_FB_OMAP2) += omapfb/
-diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbdev/omap2/dss/Kconfig
-index dde4281663b1..a28f3a39ab1b 100644
---- a/drivers/video/fbdev/omap2/dss/Kconfig
-+++ b/drivers/video/fbdev/omap2/dss/Kconfig
-@@ -1,6 +1,10 @@
-+config OMAP2_DSS_INIT
-+	bool
-+
- menuconfig OMAP2_DSS
-         tristate "OMAP2+ Display Subsystem support"
- 	select VIDEOMODE_HELPERS
-+	select OMAP2_DSS_INIT
-         help
- 	  OMAP2+ Display Subsystem support.
- 
-diff --git a/drivers/video/fbdev/omap2/dss/Makefile b/drivers/video/fbdev/omap2/dss/Makefile
-index 8aec8bda27cc..3b79ad74f2e1 100644
---- a/drivers/video/fbdev/omap2/dss/Makefile
-+++ b/drivers/video/fbdev/omap2/dss/Makefile
-@@ -1,3 +1,4 @@
-+obj-$(CONFIG_OMAP2_DSS_INIT) += omapdss-boot-init.o
- obj-$(CONFIG_OMAP2_DSS) += omapdss.o
- # Core DSS files
- omapdss-y := core.o dss.o dss_features.o dispc.o dispc_coefs.o display.o \
-diff --git a/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-new file mode 100644
-index 000000000000..99af9e88b2d8
---- /dev/null
-+++ b/drivers/video/fbdev/omap2/dss/omapdss-boot-init.c
-@@ -0,0 +1,229 @@
-+/*
-+ * Copyright (C) 2014 Texas Instruments
-+ * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+/*
-+ * As omapdss panel drivers are omapdss specific, but we want to define the
-+ * DT-data in generic manner, we convert the compatible strings of the panel and
-+ * encoder nodes from "panel-foo" to "omapdss,panel-foo". This way we can have
-+ * both correct DT data and omapdss specific drivers.
-+ *
-+ * When we get generic panel drivers to the kernel, this file will be removed.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/slab.h>
-+#include <linux/list.h>
-+
-+static struct list_head dss_conv_list __initdata;
-+
-+static const char prefix[] __initconst = "omapdss,";
-+
-+struct dss_conv_node {
-+	struct list_head list;
-+	struct device_node *node;
-+	bool root;
-+};
-+
-+static int __init omapdss_count_strings(const struct property *prop)
-+{
-+	const char *p = prop->value;
-+	int l = 0, total = 0;
-+	int i;
-+
-+	for (i = 0; total < prop->length; total += l, p += l, i++)
-+		l = strlen(p) + 1;
-+
-+	return i;
-+}
-+
-+static void __init omapdss_update_prop(struct device_node *node, char *compat,
-+	int len)
-+{
-+	struct property *prop;
-+
-+	prop = kzalloc(sizeof(*prop), GFP_KERNEL);
-+	if (!prop)
-+		return;
-+
-+	prop->name = "compatible";
-+	prop->value = compat;
-+	prop->length = len;
-+
-+	of_update_property(node, prop);
-+}
-+
-+static void __init omapdss_prefix_strcpy(char *dst, int dst_len,
-+	const char *src, int src_len)
-+{
-+	size_t total = 0;
-+
-+	while (total < src_len) {
-+		size_t l = strlen(src) + 1;
-+
-+		strcpy(dst, prefix);
-+		dst += strlen(prefix);
-+
-+		strcpy(dst, src);
-+		dst += l;
-+
-+		src += l;
-+		total += l;
-+	}
-+}
-+
-+/* prepend compatible property strings with "omapdss," */
-+static void __init omapdss_omapify_node(struct device_node *node)
-+{
-+	struct property *prop;
-+	char *new_compat;
-+	int num_strs;
-+	int new_len;
-+
-+	prop = of_find_property(node, "compatible", NULL);
-+
-+	if (!prop || !prop->value)
-+		return;
-+
-+	if (strnlen(prop->value, prop->length) >= prop->length)
-+		return;
-+
-+	/* is it already prefixed? */
-+	if (strncmp(prefix, prop->value, strlen(prefix)) == 0)
-+		return;
-+
-+	num_strs = omapdss_count_strings(prop);
-+
-+	new_len = prop->length + strlen(prefix) * num_strs;
-+	new_compat = kmalloc(new_len, GFP_KERNEL);
-+
-+	omapdss_prefix_strcpy(new_compat, new_len, prop->value, prop->length);
-+
-+	omapdss_update_prop(node, new_compat, new_len);
-+}
-+
-+static void __init omapdss_add_to_list(struct device_node *node, bool root)
-+{
-+	struct dss_conv_node *n = kmalloc(sizeof(struct dss_conv_node),
-+		GFP_KERNEL);
-+	n->node = node;
-+	n->root = root;
-+	list_add(&n->list, &dss_conv_list);
-+}
-+
-+static bool __init omapdss_list_contains(const struct device_node *node)
-+{
-+	struct dss_conv_node *n;
-+
-+	list_for_each_entry(n, &dss_conv_list, list) {
-+		if (n->node == node)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+static void __init omapdss_walk_device(struct device_node *node, bool root)
-+{
-+	struct device_node *n;
-+
-+	omapdss_add_to_list(node, root);
-+
-+	/*
-+	 * of_graph_get_remote_port_parent() prints an error if there is no
-+	 * port/ports node. To avoid that, check first that there's the node.
-+	 */
-+	n = of_get_child_by_name(node, "ports");
-+	if (!n)
-+		n = of_get_child_by_name(node, "port");
-+	if (!n)
-+		return;
-+
-+	of_node_put(n);
-+
-+	n = NULL;
-+	while ((n = of_graph_get_next_endpoint(node, n)) != NULL) {
-+		struct device_node *pn;
-+
-+		pn = of_graph_get_remote_port_parent(n);
-+
-+		if (!pn) {
-+			of_node_put(n);
-+			continue;
-+		}
-+
-+		if (!of_device_is_available(pn) || omapdss_list_contains(pn)) {
-+			of_node_put(pn);
-+			of_node_put(n);
-+			continue;
-+		}
-+
-+		omapdss_walk_device(pn, false);
-+
-+		of_node_put(n);
-+	}
-+}
-+
-+static const struct of_device_id omapdss_of_match[] __initconst = {
-+	{ .compatible = "ti,omap2-dss", },
-+	{ .compatible = "ti,omap3-dss", },
-+	{ .compatible = "ti,omap4-dss", },
-+	{ .compatible = "ti,omap5-dss", },
-+	{},
-+};
-+
-+static int __init omapdss_boot_init(void)
-+{
-+	struct device_node *dss, *child;
-+
-+	INIT_LIST_HEAD(&dss_conv_list);
-+
-+	dss = of_find_matching_node(NULL, omapdss_of_match);
-+
-+	if (dss == NULL || !of_device_is_available(dss))
-+		return 0;
-+
-+	omapdss_walk_device(dss, true);
-+
-+	for_each_available_child_of_node(dss, child) {
-+		if (!of_find_property(child, "compatible", NULL)) {
-+			of_node_put(child);
-+			continue;
-+		}
-+
-+		omapdss_walk_device(child, true);
-+	}
-+
-+	while (!list_empty(&dss_conv_list)) {
-+		struct dss_conv_node *n;
-+
-+		n = list_first_entry(&dss_conv_list, struct dss_conv_node,
-+			list);
-+
-+		if (!n->root)
-+			omapdss_omapify_node(n->node);
-+
-+		list_del(&n->list);
-+		of_node_put(n->node);
-+		kfree(n);
-+	}
-+
-+	return 0;
-+}
-+
-+subsys_initcall(omapdss_boot_init);
 -- 
-1.9.1
-
+-George
