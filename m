@@ -1,108 +1,35 @@
-From: Bin Liu <binmlist@gmail.com>
-Subject: Re: [PATCH v4 1/6] usb: musb: core: Handle Babble condition only in
- HOST mode
-Date: Thu, 22 May 2014 15:42:51 -0500
-Message-ID: <CADYTM3bO5FecJCMMv4iYzugF4DFNmGKs5gtFODLWqnq1u_BDHw@mail.gmail.com>
-References: <1400506776-2816-1-git-send-email-george.cherian@ti.com>
-	<1400506776-2816-2-git-send-email-george.cherian@ti.com>
-	<CADYTM3bd8Bq5QTn-HC4jYX-owEw_sF1DOtXsc-cMDqKHGJHXjQ@mail.gmail.com>
-	<537ADAEF.9060105@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Christoph Fritz <chf.fritz@googlemail.com>
+Subject: [PATCH 0/5] ARM: omap3-lilly-a83x: update board support
+Date: Fri, 23 May 2014 01:06:21 +0200
+Message-ID: <1400799986-20043-1-git-send-email-chf.fritz@googlemail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:64919 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053AbaEVUmw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2014 16:42:52 -0400
-In-Reply-To: <537ADAEF.9060105@ti.com>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:58710 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626AbaEVXGw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2014 19:06:52 -0400
+Received: by mail-la0-f45.google.com with SMTP id gl10so3340641lab.32
+        for <linux-omap@vger.kernel.org>; Thu, 22 May 2014 16:06:51 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
+To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pekon Gupta <pekon@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi George,
+This set of patches updates board support for omap3-lilly-a83x.
 
-On Mon, May 19, 2014 at 11:32 PM, George Cherian <george.cherian@ti.com> wrote:
-> Hi Bin,
->
-> On 5/19/2014 9:24 PM, Bin Liu wrote:
->>
->> Hi,
->>
->> On Mon, May 19, 2014 at 8:39 AM, George Cherian <george.cherian@ti.com>
->> wrote:
->>>
->>> BABBLE and RESET share the same interrupt. The interrupt
->>> is considered to be RESET if MUSB is in peripheral mode and
->>> as a BABBLE if MUSB is in HOST mode.
->>>
->>> Handle babble condition iff MUSB is in HOST mode.
->>>
->>> Signed-off-by: George Cherian <george.cherian@ti.com>
->>> ---
->>>   drivers/usb/musb/musb_core.c | 2 +-
->>>   1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
->>> index 61da471..eff3c5c 100644
->>> --- a/drivers/usb/musb/musb_core.c
->>> +++ b/drivers/usb/musb/musb_core.c
->>> @@ -849,7 +849,7 @@ b_host:
->>>          }
->>>
->>>          /* handle babble condition */
->>> -       if (int_usb & MUSB_INTR_BABBLE)
->>> +       if (int_usb & MUSB_INTR_BABBLE && is_host_active(musb))
->>>                  schedule_work(&musb->recover_work);
->>
->> I guess my following comments are for Daniel's patch as while which
->> initially added the babble work.
->>
->> Should this if statement be merged into the previous 'if(int_usb &
->> MUSB_INTR_RESET)' one, which handles the same interrupt and already
->> handles host and device mode respectively.
->
->
-> Initially I too had the babble handling as part of  'if(int_usb &
-> MUSB_INTR_RESET)'
-> one. But during my tests I hit a corner case where in we hit a BABBLE
-> condition
-> on disconnect. In such case the babble interrupt can be handled only if we
-> have a seperate
-> check, else its considered as a BUS RESET.
->
-> When all devices are disconnected  MUSB_DEVCTL_HM = 0 and the code always
-> enter the
-> else path. In this path it treats the BABBLE as a BUS RESET.
+Christoph Fritz (5):
+  [RFC-HACK] pinctrl-single: init by postcore_initcall()
+  [RFC-HACK] ARM: dts: OMAP3: reorder pinmux_gpio1_pins
+  ARM: dts: omap3: set mcbsp2 status
+  [RFC] ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable
+  ARM: dts: OMAP3 a83x: fix duplicate usb pin config
 
-The code flow is a bit confusing, two if() handle the same interrupt.
-The second one implied using 'handled = IRQ_HANDLED;' from the first
-one.
-Also does the switch() in else{} in the first if() cause any side effect?
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi |    7 +++---
+ arch/arm/boot/dts/omap34xx.dtsi         |   28 ++++++++++++----------
+ arch/arm/boot/dts/omap36xx.dtsi         |   40 ++++++++++++++++---------------
+ arch/arm/mach-omap2/gpmc-nand.c         |   16 +++++--------
+ drivers/pinctrl/pinctrl-single.c        |   15 ++++++++++++
+ 5 files changed, 61 insertions(+), 45 deletions(-)
 
-Since this babble handing is AM335x specific, how about handle it in
-dsps_interrupt() in musb_dsps.c, which already has an entry for babble
-interrupt? TI 3.2 kernel does this way.
+-- 
+1.7.10.4
 
-Regards,
--Bin.
-
->
->
->> Regards,
->> -Bin.
->>
->>>   #if 0
->>> --
->>> 1.8.3.1
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->
-> --
-> -George
->
