@@ -1,39 +1,54 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for v3.15 -rc cycle
-Date: Wed, 21 May 2014 22:19:59 -0700
-Message-ID: <20140522051959.GD32618@quad.lixom.net>
-References: <20140520003419.GA15793@atomide.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v5 0/6] Add support for SW babble Control
+Date: Thu, 22 May 2014 11:59:35 +0530
+Message-ID: <1400740181-31213-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:61625 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899AbaEVFTu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2014 01:19:50 -0400
-Received: by mail-pd0-f177.google.com with SMTP id g10so2075561pdj.8
-        for <linux-omap@vger.kernel.org>; Wed, 21 May 2014 22:19:50 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140520003419.GA15793@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, May 19, 2014 at 05:34:20PM -0700, Tony Lindgren wrote:
-> The following changes since commit 89ca3b881987f5a4be4c5dbaa7f0df12bbdde2fd:
-> 
->   Linux 3.15-rc4 (2014-05-04 18:14:42 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.15/fixes-v3-signed
-> 
-> for you to fetch changes up to 4b353a706a86598ba47307c47301c3c428b79e09:
-> 
->   ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled (2014-05-19 11:20:38 -0700)
+Series add support for SW babble control logic found in 
+new silicon versions of AM335x. Runtime differentiation of
+silicon version is done by checking the BABBLE_CTL register.
+For newer silicon the register default value read is 0x4 and
+for older versions its 0x0.
 
+Patch 1 -> Handle Babble only if MUSB is in HOST mode
+Patch 2 -> Convert recover work to delayed work.
+Patch 3 -> usb_phy_vbus_(off/_on) are NOPs for am335x PHY
+	   so use usb_phy(_shutdown/_init) in musb_platform_reset()
+Patch 4 -> Add return value for musb_platform_reset() in prepration
+	   to support SW babble_ctrl
+Patch 5 -> Add the sw_babble_control()
+Patch 6 -> Enable sw babble control for newer silicon
 
-Pulled, thanks!
+v4 -> v5 : Added a debug print before resetting MUSB.
+	   changed a musb_readb to dsps_readb introduced in Patch#5 of v4.
 
+v3 -> v4 : Fixes an issue in gagdet mode - BUS RESET should not
+	   be handled as a BABBLE. Added a check for the same.(Patch #1)
+	   Enable sw babble control properly (Patch #6)
+	   	
+v2 -> v3 : Modify musb_platform_reset() to return zero on success.
 
--Olof
+George Cherian (6):
+  usb: musb: core: Handle Babble condition only in HOST mode
+  usb: musb: core: Convert babble recover work to delayed work
+  usb: musb: dsps: Call usb_phy(_shutdown/_init) during
+    musb_platform_reset()
+  usb: musb: core: Convert the musb_platform_reset to have a return
+    value.
+  usb: musb: dsps: Add the sw_babble_control()
+  usb: musb: dsps: Enable sw babble control for newer silicon
+
+ drivers/usb/musb/musb_core.c | 27 ++++++++------
+ drivers/usb/musb/musb_core.h | 12 +++---
+ drivers/usb/musb/musb_dsps.c | 87 ++++++++++++++++++++++++++++++++++++++++++--
+ drivers/usb/musb/musb_regs.h |  7 ++++
+ 4 files changed, 113 insertions(+), 20 deletions(-)
+
+-- 
+1.8.3.1
