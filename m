@@ -1,82 +1,58 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 00/13]  ARM/DT: edma: IP configuration from hardware
- and cleanups
-Date: Thu, 22 May 2014 08:15:53 +0530
-Message-ID: <20140522024553.GS21128@intel.com>
-References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
- <537A01F2.2090107@ti.com>
- <537A36F9.40004@ti.com>
- <537B34C9.1020508@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v3 0/4] tps65917: Drivers for TPS65917 PMIC
+Date: Thu, 22 May 2014 09:30:35 +0530
+Message-ID: <1400731239-3180-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <537B34C9.1020508@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com, arnd@arndb.de, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41254 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751461AbaEVECH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 May 2014 00:02:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: devicetree@vger.kernel.org
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, sameo@linux.intel.com, grant.likely@linaro.org, ian@slimlogic.co.uk, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@linaro.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>
 
-On Tue, May 20, 2014 at 04:26:09PM +0530, Sekhar Nori wrote:
-> On Monday 19 May 2014 10:23 PM, Peter Ujfalusi wrote:
-> > On 05/19/2014 04:06 PM, Sekhar Nori wrote:
-> >> On Friday 16 May 2014 05:47 PM, Peter Ujfalusi wrote:
-> >>> Hi,
-> >>>
-> >>> Changes since v2:
-> >>> - Comments from Sekhar and Arnd has been addressed best as I could.
-> >>> - Use the CCCFG information in all cases instead of pdata provided information
-> >>> - To achieve this I needed to do a bit more cleanup in this series
-> >>> - In the documentation patch, retrain the old properties for reference
-> >>> - Cleanups in the old davinci board files and removing edma_soc_info members
-> >>>
-> >>> Changes sicne v1:
-> >>> - added missing patch to remove the memset from edma_of_parse_dt()
-> >>>
-> >>> We are requesting redundant information via DT for the driver since the very same
-> >>> data is available in the HW: by reading and decoding the content of CCCFG
-> >>> register we can get:
-> >>> Number of channels: NUM_DMACH
-> >>> Number of regions: NUM_REGN
-> >>> Number of slots (PaRAM sets): NUM_PAENTRY
-> >>> Number of TC/EQ: NUM_EVQUE
-> >>>
-> >>> So these does not need to be provided by the DT binding.
-> >>>
-> >>> The driver will no longer look for these properties from DT and they can be
-> >>> removed from the binding documentation and from the dtsi files as well.
-> >>> The change will not introduce regression when new kernel is booted using older
-> >>> DTB (since we just ignore the mentioned properties).
-> >>
-> >> Applied all patches and pushed to branch v3.16/edma of:
-> >>
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/nsekhar/linux-davinci.git
-> >>
-> >> Since the patches did not apply cleanly, please verify. I tested on
-> >> DA850 EVM using MMC/SD as EDMA user.
-> > 
-> > The patches in this series looks OK in your branch.
-> > However I can not find the following commits in there, which I have in linux-next:
-> > c689a7b79c28 Merge remote-tracking branch 'slave-dma/next'
-> > cdae05a0f0f7 dmaengine: edma: Make reading the position of active channels work
-> > cf7eb979116c ARM: common: edma: Fix xbar mapping
-> > 232b223d8281 dmaengine: edma: Set DMA_CYCLIC capability flag
-> > 7cf2af90cd51 arm: common: edma: Save the number of event queues/TCs
-> > 
-> > They might come via different route...
-> 
-> Vinod,
-> 
-> Do you have an immutable branch based on which I can send this patch
-> series to ARM-SoC? Some of the patches in the series depend on code that
-> went through your tree.
-yup, pls pull my topic/edma for these change. This branch will not be rebased.
+The TPS65917 chip is a power management IC for Portable Navigation Systems
+and Tablet Computing devices. It contains the following components:
 
-> Or if you are comfortable taking this series through your tree, thats
-> okay by me too. We are still waiting for acks from DT maintainers on the
-> binding change patches.
-Since these patchs are for ARM, I think they are best suited thru arm tree. If
-you run into issues with that I cna merge this but with right ACKs...
+ - Regulators.
+ - GPADC.
+ - Over Temperature warning and Shut down.
+
+This patch series adds support for TPS65917 mfd device. At this time only
+the regulator functionality is made available.
+
+The closest drivers are PALMAS series drivers.
+The register set is changed. Bit-field defenitions are changed.
+Hence based on the PALMAS drivers and created a new set of drivers
+with code changes as required.
+
+The patches are boot tested on DRA72-EVM.
+
+Keerthy (4):
+  MFD: DT bindings for the TPS65917 family MFD
+  Regulators: Add TPS65917 Bindings
+  mfd: tps65917: Add driver for the TPS65917 PMIC
+  regulator: tps65917: Add Regulator driver for TPS65917 PMIC
+
+ Documentation/devicetree/bindings/mfd/tps65917.txt |   35 +
+ .../bindings/regulator/tps65917-pmic.txt           |   67 +
+ drivers/mfd/Kconfig                                |   12 +
+ drivers/mfd/Makefile                               |    1 +
+ drivers/mfd/tps65917.c                             |  594 ++++++++
+ drivers/regulator/Kconfig                          |   12 +
+ drivers/regulator/Makefile                         |    1 +
+ drivers/regulator/tps65917-regulator.c             |  809 +++++++++++
+ include/linux/mfd/tps65917.h                       | 1485 ++++++++++++++++++++
+ 9 files changed, 3016 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps65917.txt
+ create mode 100644 Documentation/devicetree/bindings/regulator/tps65917-pmic.txt
+ create mode 100644 drivers/mfd/tps65917.c
+ create mode 100644 drivers/regulator/tps65917-regulator.c
+ create mode 100644 include/linux/mfd/tps65917.h
 
 -- 
-~Vinod
+1.7.9.5
+
