@@ -1,81 +1,54 @@
-From: Christoph Fritz <chf.fritz@googlemail.com>
-Subject: [PATCH 4/5] [RFC] ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable
-Date: Fri, 23 May 2014 01:06:25 +0200
-Message-ID: <1400799986-20043-5-git-send-email-chf.fritz@googlemail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] ARM: omap3-lilly-a83x: update board support
+Date: Thu, 22 May 2014 16:28:55 -0700
+Message-ID: <20140522232854.GD29577@atomide.com>
 References: <1400799986-20043-1-git-send-email-chf.fritz@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:63815 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752898AbaEVXHB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2014 19:07:01 -0400
-Received: by mail-la0-f46.google.com with SMTP id ec20so1734735lab.5
-        for <linux-omap@vger.kernel.org>; Thu, 22 May 2014 16:07:00 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37216 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751430AbaEVX3C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 May 2014 19:29:02 -0400
+Content-Disposition: inline
 In-Reply-To: <1400799986-20043-1-git-send-email-chf.fritz@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pekon Gupta <pekon@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
-Cc: Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Pekon Gupta <pekon@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Most dt omap3 boards configure nand-ecc-opt as bch8. Due
-to lack of hardware elm support, bch8 software implementation
-gets set.
+* Christoph Fritz <chf.fritz@googlemail.com> [140522 16:07]:
+> This set of patches updates board support for omap3-lilly-a83x.
+> 
+> Christoph Fritz (5):
+>   [RFC-HACK] pinctrl-single: init by postcore_initcall()
 
-Since commit 0611c41934ab35ce84dea "ARM: OMAP2+: gpmc: update
-gpmc_hwecc_bch_capable() for new platforms and ECC schemes",
-nand support stops working.
+I would prefer to start initializing other things later as
+then we get proper error messages on the console. Let's first
+investigate a bit more if we can just initialize other
+drivers later on.
 
-This patch allows ecc software fallback.
----
- arch/arm/mach-omap2/gpmc-nand.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+Which version of kernel are you using? With all the fixes
+that have gone into this -rc cycle, v3.15-rc4 is pretty much
+the first kernel that should behave for us properly for
+deferred probe for irqchips that get initialized later on.
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 4349e82..52c4834 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -43,13 +43,17 @@ static struct platform_device gpmc_nand_device = {
- 	.resource	= gpmc_nand_resource,
- };
- 
--static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
-+static bool gpmc_ecc_bch_capable(enum omap_ecc ecc_opt)
- {
- 	/* platforms which support all ECC schemes */
- 	if (soc_is_am33xx() || cpu_is_omap44xx() ||
- 		 soc_is_omap54xx() || soc_is_dra7xx())
- 		return 1;
- 
-+	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) ||
-+		(ecc_opt == OMAP_ECC_BCH8_CODE_HW_DETECTION_SW))
-+		return 1;
-+
- 	/* OMAP3xxx do not have ELM engine, so cannot support ECC schemes
- 	 * which require H/W based ECC error detection */
- 	if ((cpu_is_omap34xx() || cpu_is_omap3630()) &&
-@@ -57,14 +61,6 @@ static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
- 		 (ecc_opt == OMAP_ECC_BCH8_CODE_HW)))
- 		return 0;
- 
--	/*
--	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
--	 * and AM33xx derivates. Other chips may be added if confirmed to work.
--	 */
--	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) &&
--	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)))
--		return 0;
--
- 	/* legacy platforms support only HAM1 (1-bit Hamming) ECC scheme */
- 	if (ecc_opt == OMAP_ECC_HAM1_CODE_HW)
- 		return 1;
-@@ -140,7 +136,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 
- 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
- 
--	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
-+	if (!gpmc_ecc_bch_capable(gpmc_nand_data->ecc_opt)) {
- 		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
- 		return -EINVAL;
- 	}
--- 
-1.7.10.4
+Regards,
 
+Tony 
+
+>   [RFC-HACK] ARM: dts: OMAP3: reorder pinmux_gpio1_pins
+>   ARM: dts: omap3: set mcbsp2 status
+>   [RFC] ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable
+>   ARM: dts: OMAP3 a83x: fix duplicate usb pin config
+> 
+>  arch/arm/boot/dts/omap3-lilly-a83x.dtsi |    7 +++---
+>  arch/arm/boot/dts/omap34xx.dtsi         |   28 ++++++++++++----------
+>  arch/arm/boot/dts/omap36xx.dtsi         |   40 ++++++++++++++++---------------
+>  arch/arm/mach-omap2/gpmc-nand.c         |   16 +++++--------
+>  drivers/pinctrl/pinctrl-single.c        |   15 ++++++++++++
+>  5 files changed, 61 insertions(+), 45 deletions(-)
+> 
+> -- 
+> 1.7.10.4
+> 
