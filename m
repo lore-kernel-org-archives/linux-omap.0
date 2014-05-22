@@ -1,68 +1,82 @@
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: Re: [RFC PATCH 08/16] mtd: nand: omap: Fix build warning
-Date: Thu, 22 May 2014 09:54:59 +0900
-Message-ID: <02cd01cf7558$7500eb00$5f02c100$%han@samsung.com>
-References: <1400671264-10702-1-git-send-email-rogerq@ti.com>
- <1400671264-10702-9-git-send-email-rogerq@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v3 00/13]  ARM/DT: edma: IP configuration from hardware
+ and cleanups
+Date: Thu, 22 May 2014 08:15:53 +0530
+Message-ID: <20140522024553.GS21128@intel.com>
+References: <1400242640-9902-1-git-send-email-peter.ujfalusi@ti.com>
+ <537A01F2.2090107@ti.com>
+ <537A36F9.40004@ti.com>
+ <537B34C9.1020508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1400671264-10702-9-git-send-email-rogerq@ti.com>
-Content-language: ko
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Roger Quadros' <rogerq@ti.com>
-Cc: tony@atomide.com, computersforpeace@gmail.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, robertcnelson@gmail.com, dwmw2@infradead.org, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>, 'Christian Engelmayer' <cengelma@gmx.at>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <537B34C9.1020508@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, joelf@ti.com, arnd@arndb.de, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, May 21, 2014 8:21 PM, Roger Quadros wrote:
->=20
-> Fix the following warning when CONFIG_MTD_NAND_OMAP_BCH is disabled.
-> warning: =E2=80=98erased_sector_bitflips=E2=80=99 defined but not use=
-d [-Wunused-function]
->=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+On Tue, May 20, 2014 at 04:26:09PM +0530, Sekhar Nori wrote:
+> On Monday 19 May 2014 10:23 PM, Peter Ujfalusi wrote:
+> > On 05/19/2014 04:06 PM, Sekhar Nori wrote:
+> >> On Friday 16 May 2014 05:47 PM, Peter Ujfalusi wrote:
+> >>> Hi,
+> >>>
+> >>> Changes since v2:
+> >>> - Comments from Sekhar and Arnd has been addressed best as I could.
+> >>> - Use the CCCFG information in all cases instead of pdata provided information
+> >>> - To achieve this I needed to do a bit more cleanup in this series
+> >>> - In the documentation patch, retrain the old properties for reference
+> >>> - Cleanups in the old davinci board files and removing edma_soc_info members
+> >>>
+> >>> Changes sicne v1:
+> >>> - added missing patch to remove the memset from edma_of_parse_dt()
+> >>>
+> >>> We are requesting redundant information via DT for the driver since the very same
+> >>> data is available in the HW: by reading and decoding the content of CCCFG
+> >>> register we can get:
+> >>> Number of channels: NUM_DMACH
+> >>> Number of regions: NUM_REGN
+> >>> Number of slots (PaRAM sets): NUM_PAENTRY
+> >>> Number of TC/EQ: NUM_EVQUE
+> >>>
+> >>> So these does not need to be provided by the DT binding.
+> >>>
+> >>> The driver will no longer look for these properties from DT and they can be
+> >>> removed from the binding documentation and from the dtsi files as well.
+> >>> The change will not introduce regression when new kernel is booted using older
+> >>> DTB (since we just ignore the mentioned properties).
+> >>
+> >> Applied all patches and pushed to branch v3.16/edma of:
+> >>
+> >> git://git.kernel.org/pub/scm/linux/kernel/git/nsekhar/linux-davinci.git
+> >>
+> >> Since the patches did not apply cleanly, please verify. I tested on
+> >> DA850 EVM using MMC/SD as EDMA user.
+> > 
+> > The patches in this series looks OK in your branch.
+> > However I can not find the following commits in there, which I have in linux-next:
+> > c689a7b79c28 Merge remote-tracking branch 'slave-dma/next'
+> > cdae05a0f0f7 dmaengine: edma: Make reading the position of active channels work
+> > cf7eb979116c ARM: common: edma: Fix xbar mapping
+> > 232b223d8281 dmaengine: edma: Set DMA_CYCLIC capability flag
+> > 7cf2af90cd51 arm: common: edma: Save the number of event queues/TCs
+> > 
+> > They might come via different route...
+> 
+> Vinod,
+> 
+> Do you have an immutable branch based on which I can send this patch
+> series to ARM-SoC? Some of the patches in the series depend on code that
+> went through your tree.
+yup, pls pull my topic/edma for these change. This branch will not be rebased.
 
-(+cc Christian Engelmayer)
+> Or if you are comfortable taking this series through your tree, thats
+> okay by me too. We are still waiting for acks from DT maintainers on the
+> binding change patches.
+Since these patchs are for ARM, I think they are best suited thru arm tree. If
+you run into issues with that I cna merge this but with right ACKs...
 
-The same patch was already sent by Christian Engelmayer. [1]
-Also, it was applied to mtd tree by Brian Norris. [2]
-Thank you.
-
-[1] http://lists.infradead.org/pipermail/linux-mtd/2014-April/053330.ht=
-ml
-[2] http://git.infradead.org/users/dedekind/l2-mtd.git/commit/9fd6c6c18=
-c1a4a3220473c76fd447c5708b5ecf9
-
-Best regards,
-Jingoo Han
-
-> ---
->  drivers/mtd/nand/omap2.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 1ff49b8..1b800bc 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1237,6 +1237,7 @@ static int __maybe_unused omap_calculate_ecc_bc=
-h(struct mtd_info *mtd,
->  	return 0;
->  }
->=20
-> +#ifdef CONFIG_MTD_NAND_OMAP_BCH
->  /**
->   * erased_sector_bitflips - count bit flips
->   * @data:	data sector buffer
-> @@ -1276,7 +1277,6 @@ static int erased_sector_bitflips(u_char *data,=
- u_char *oob,
->  	return flip_bits;
->  }
->=20
-> -#ifdef CONFIG_MTD_NAND_OMAP_BCH
->  /**
->   * omap_elm_correct_data - corrects page data area in case error rep=
-orted
->   * @mtd:	MTD device structure
-> --
-> 1.8.3.2
+-- 
+~Vinod
