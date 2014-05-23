@@ -1,91 +1,95 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 3/4] mfd: tps65917: Add driver for the TPS65917 PMIC
-Date: Fri, 23 May 2014 11:06:34 +0100
-Message-ID: <20140523100634.GP19747@lee--X1>
-References: <1400731239-3180-1-git-send-email-j-keerthy@ti.com>
- <1400731239-3180-4-git-send-email-j-keerthy@ti.com>
- <20140522083707.GM6679@lee--X1>
- <537DD836.3040501@ti.com>
- <20140522114808.GU6679@lee--X1>
- <537EBEE4.9050309@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v13 1/7] mmc: omap_hsmmc: install dummy pm runtime hooks
+ if !CONFIG_PM_RUNTIME
+Date: Fri, 23 May 2014 15:46:28 +0530
+Message-ID: <537F1FFC.8070609@ti.com>
+References: <1400833834-15893-1-git-send-email-afenkart@gmail.com> <1400833834-15893-2-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <537EBEE4.9050309@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com, sameo@linux.intel.com, grant.likely@linaro.org, ian@slimlogic.co.uk, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@linaro.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1400833834-15893-2-git-send-email-afenkart@gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-> >>>>The TPS65917 chip is a power management IC for Portable Navigatio=
-n Systems
-> >>>>and Tablet Computing devices. It contains the following component=
-s:
-> >>>>
-> >>>>  - Regulators.
-> >>>>  - Over Temperature warning and Shut down.
-> >>>>
-> >>>>This patch adds support for tps65917 mfd device. At this time onl=
-y
-> >>>>the regulator functionality is made available.
-> >>>>
-> >>>>Signed-off-by: Keerthy <j-keerthy@ti.com>
-> >>>>---
-> >>>>v3 Changes:
-> >>>>
-> >>>>  * Header file formating
-> >>>>  * Changed the cache_type to REGCACHE_RBTREE
-> >>>>  * removed unnecessary code
-> >>>>  * Corrected documentation style
-> >>>>  * Added pm_power_off function
-> >>>>
-> >>>>  v2 Changes:
-> >>>>
-> >>>>  * Added volatile register check as some of the registers
-> >>>>    in the set are volatile.
-> >>>>drivers/mfd/Kconfig          |   12 +
-> >>>>  drivers/mfd/Makefile         |    1 +
-> >>>>  drivers/mfd/tps65917.c       |  594 +++++++++++++++++
-> >>>>  include/linux/mfd/tps65917.h | 1485 +++++++++++++++++++++++++++=
-+++++++++++++++
-> >>>>  4 files changed, 2092 insertions(+)
-> >>>>  create mode 100644 drivers/mfd/tps65917.c
-> >>>>  create mode 100644 include/linux/mfd/tps65917.h
+On Friday 23 May 2014 02:00 PM, Andreas Fenkart wrote:
+> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 272e0ee..c62d9dd 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -199,7 +199,9 @@ struct omap_hsmmc_host {
+>   	struct dma_chan		*rx_chan;
+>   	int			slot_id;
+>   	int			response_busy;
+> +#ifdef CONFIG_PM
+>   	int			context_loss;
+> +#endif
+>   	int			protect_card;
+>   	int			reqs_blocked;
+>   	int			use_reg;
+> @@ -712,14 +714,8 @@ static void omap_hsmmc_context_save(struct omap_hsmmc_host *host)
+>
+>   #else
+>
+> -static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
+> -{
+> -	return 0;
+> -}
+> -
+> -static void omap_hsmmc_context_save(struct omap_hsmmc_host *host)
+> -{
+> -}
+> +#define omap_hsmmc_context_restore(host)
+> +#define omap_hsmmc_context_save(host)
+>
+>   #endif
+>
+> @@ -1700,11 +1696,14 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
+>   	struct mmc_host *mmc = s->private;
+>   	struct omap_hsmmc_host *host = mmc_priv(mmc);
+>
+> -	seq_printf(s, "mmc%d:\n ctx_loss:\t%d\n\nregs:\n",
+> -			mmc->index, host->context_loss);
+> +	seq_printf(s, "mmc%d:\n", mmc->index);
+>
+> -	pm_runtime_get_sync(host->dev);
+> +#ifdef CONFIG_PM
+> +	seq_printf(s, "ctx_loss:\t%d\n", host->context_loss);
+> +#endif
+>
+> +	pm_runtime_get_sync(host->dev);
+> +	seq_puts(s, "\nregs:\n");
+>   	seq_printf(s, "CON:\t\t0x%08x\n",
+>   			OMAP_HSMMC_READ(host->base, CON));
+>   	seq_printf(s, "HCTL:\t\t0x%08x\n",
+> @@ -2243,6 +2242,7 @@ static int omap_hsmmc_resume(struct device *dev)
+>   #define omap_hsmmc_resume	NULL
+>   #endif
+>
+> +#ifdef CONFIG_PM_RUNTIME
 
-[...]
+AFAIK, omap_hsmmc can build without these changes,
+So, I think this patch is not needed.
 
-> >>>>+		ret =3D regmap_read(tps65917->regmap[slave], addr, &reg);
-> >>>>+		if (ret)
-> >>>>+			goto err_irq;
-> >>>>+	}i
-> >>>What does the read do?  You're not doing anything with the value.
-> >>This pad1 and pad2 stuff is not needed. I will remove this.
-> >Then why is it in here?
-> >
-> >Did you copy this code from somewhere, if so, where?
-> >
-> >Okay, I just answered my own question.  There is so much common code
-> >in between this and palmas, there is no way I'm going to accept this
-> >driver.  Please merge it in with the palmas driver!
-> >
-> The chip is more like a subset of palmas with lot of register offset =
-changes
-> and register bit field changes. Adding this would make it clumsy.
-> There could
-> be lot of checks. That is why i chose to write a new driver.
->=20
-> Palmas driver already supports palmas variants and tps659038. Merging
-> this would mean more and more checks :-/.
+Let me I know If it is not the case.
 
-Then find an elegant way of representing the variants.  I'm not
-prepared to carry that much duplicated code in MFD.  It's already
-overladened and in need of an overhaul.  This will exacerbate the
-matter.
+>   static int omap_hsmmc_runtime_suspend(struct device *dev)
+>   {
+>   	struct omap_hsmmc_host *host;
+> @@ -2264,6 +2264,10 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+>
+>   	return 0;
+>   }
+> +#else
+> +#define omap_hsmmc_runtime_suspend	NULL
+> +#define omap_hsmmc_runtime_resume	NULL
+> +#endif
+>
+>   static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+>   	.suspend	= omap_hsmmc_suspend,
+>
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
