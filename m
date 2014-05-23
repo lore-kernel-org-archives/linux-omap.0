@@ -1,61 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 00/16] OMAP: GPMC: Restructure OMAP GPMC driver
- (NAND) : DT binding change proposal
-Date: Fri, 23 May 2014 07:53:55 -0700
-Message-ID: <20140523145354.GE2321@atomide.com>
-References: <1400671264-10702-1-git-send-email-rogerq@ti.com>
- <20140521160818.GA1150@arch.cereza>
- <537DB17A.6060608@ti.com>
- <CABxcv=nbgGhVN+XYO8s=mYOpoLU9-kWuEqc+FLMaSbWS7BJNyQ@mail.gmail.com>
- <20140522144600.GA1785@arch.cereza>
- <537F03C8.3070101@ti.com>
+Subject: Re: Accessing GPIOs from userspace using recent kernels
+Date: Fri, 23 May 2014 08:11:40 -0700
+Message-ID: <20140523151140.GF2321@atomide.com>
+References: <3385f19f3e1427613732f6d5c9f8513d@net2air.co>
+ <CABxcv=mFV3nJf1eqNhTbh1KWwe8Z6Z62JtFn5KZbHnGprk1_bg@mail.gmail.com>
+ <7bd3dbc0c3217f43eefc8d228995690f@net2air.co>
+ <CABxcv=nTV23Un91fSUmkixsF5uywoisCOi1qhPqVvZb+RvikDA@mail.gmail.com>
+ <ea43ccacfe4caf1f51f9e5a5c8bbdd5e@net2air.co>
+ <CACRpkdYTa+_zAsbwU+XYSWnsN4i4Xkfm28S1=vcC5=oz0TH3Gg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:10001 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752785AbaEWPL7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 11:11:59 -0400
 Content-Disposition: inline
-In-Reply-To: <537F03C8.3070101@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, Brian Norris <computersforpeace@gmail.com>, "Gupta, Pekon" <pekon@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Jingoo Han <jg1.han@samsung.com>, dwmw2@infradead.org, nsekhar@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>
+In-Reply-To: <CACRpkdYTa+_zAsbwU+XYSWnsN4i4Xkfm28S1=vcC5=oz0TH3Gg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Peter TB Brett <peter@peter-b.co.uk>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-* Roger Quadros <rogerq@ti.com> [140523 01:17]:
-> On 05/22/2014 05:46 PM, Ezequiel Garcia wrote:
-> > On 22 May 01:51 PM, Javier Martinez Canillas wrote:
-> >> On Thu, May 22, 2014 at 10:12 AM, Roger Quadros <rogerq@ti.com> wrote:
-> >>>> On 21 May 02:20 PM, Roger Quadros wrote:
-> >>>> While I agree that the GPMC driver is a bit messy, I'm not sure it's possible
-> >>>> to go through such a complete devicetree binding re-design (breaking backwards
-> >>>> compatibility) now that the binding is already in production.
-> >>>
-> >>> Why not? especially if the existing bindings are poorly dones. Is anyone using these
-> >>> bindings burning the DT into ROM and can't change it when they update the kernel?
-> >>>
-> >>
-> >> While I do agree that your DT bindings are much better than the
-> >> current ones, there is a policy that DT bindings are an external API
-> >> and once are released with a kernel are set in stone and can't be
-> >> changed.
-> >>
-> > 
-> > Exactly. The DT binding is considered an ABI. Thus, invariant across kernel
-> > versions. Users can't be coherced into a DTB update after a kernel update.
-> > 
-> > That said, I don't really care if you break compatilibity in this case.
-> > Rather, I'm suggesting that you make sure this change is going to be accepted
-> > upstream, before doing any more work. The DT maintainers are reluctant to do
-> > so.
-> 
-> Appreciate your concern.
-> 
-> Would be really nice if you can review patches 1-12. They have nothing to do with DT changes.
-> Thanks.
+* Linus Walleij <linus.walleij@linaro.org> [140523 04:36]:
+> On Fri, May 16, 2014 at 12:15 PM, Peter TB Brett <peter@peter-b.co.uk> wrote:
+> > The current call chain seems to be: gpiod_export() --> gpiod_request() -->
+> > omap_gpio_request().  Looking at other GPIO drivers, it seems like
+> > omap_gpio_request() should eventually call pinctrl_request_gpio().  Would be
+> > useful if someone who knows about OMAP4/gpio/pinctrl could take a look at
+> > this.
 
-I'm mostly concerned about keeping things working. I think the
-only way we can keep things working is to keep support for
-the old binding around in addition to the new one. That way
-we can update devices one at a time.
+If we do this, we also need a solution to prevent automatic remuxing
+of GPIO pins from happending. For wake-up events, some drivers need
+to remux a rx pin to GPIO input for the duration of idle, and then
+back to device rx pin. This is needed on some other platforms too
+AFAIK.
+
+For the drivers needing GPIO wake-up events, request_gpio is done in
+the driver after drivers/base/pinctrl.c has already muxed the device
+pin to rx. At minimum we would get warnings about reserved pins if
+we tried to automatically mux them to GPIO.
+
+We may be able to use some GPIO specific property to prevent
+automatic remuxing as we discussed in the #armlinux few days ago.
+
+Related to automatic remuxing of GPIO pins, there are also other
+needs for pinctrl and GPIO interaction. We need to remux GPIO output
+pins to input + pull + safe_mode to prevent the GPIO pins losing
+value briefly during off-idle. That's the gpio errata 1.158 at as
+shown at least at [1]. Because the GPIO to pinctrl mapping is
+sparse and SoC specific, there's currently now obvious way to do
+that. And we would need few new GPIO functions to tell pinctrl
+subsystem about the change.
 
 Regards,
 
 Tony
+
+
+[1] https://www.gitorious.org/rowboat/kernel/commit/86b15f21298b749a9d8216ff1839d33ad542464e?format=patch
