@@ -1,80 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v13 3/7] mmc: omap_hsmmc: Extend debugfs by SDIO IRQ
- handling, runtime state
-Date: Fri, 23 May 2014 08:14:24 -0700
-Message-ID: <20140523151424.GG2321@atomide.com>
-References: <1400833834-15893-1-git-send-email-afenkart@gmail.com>
- <1400833834-15893-4-git-send-email-afenkart@gmail.com>
- <537F3E6E.7060000@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
+Date: Fri, 23 May 2014 11:32:29 -0700
+Message-ID: <20140523183228.GH2321@atomide.com>
+References: <20140516212942.GK12881@atomide.com>
+ <537A3544.1050307@linaro.org>
+ <20140519172338.GJ4849@atomide.com>
+ <537A408F.7070301@ti.com>
+ <20140519175157.GK4849@atomide.com>
+ <537A4827.30604@linaro.org>
+ <20140519193622.GA11945@atomide.com>
+ <537A5F5B.6050403@linaro.org>
+ <537A7522.30007@math.uni-bielefeld.de>
+ <20140523144425.GB2321@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16524 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32431 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750981AbaEWPOf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 11:14:35 -0400
+	with ESMTP id S1751359AbaEWSci (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 14:32:38 -0400
 Content-Disposition: inline
-In-Reply-To: <537F3E6E.7060000@ti.com>
+In-Reply-To: <20140523144425.GB2321@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-* Balaji T K <balajitk@ti.com> [140523 05:27]:
-> On Friday 23 May 2014 02:00 PM, Andreas Fenkart wrote:
-> >Add SDIO IRQ entries to debugfs entry. Note that PSTATE shows current
-> >state of data lines, incl. SDIO IRQ pending
-> >
-> >Acked-by: Balaji T K <balajitk@ti.com>
-> >Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
-> >
-> >diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> >index 0125eea..cfd2bfb 100644
-> >--- a/drivers/mmc/host/omap_hsmmc.c
-> >+++ b/drivers/mmc/host/omap_hsmmc.c
-> >@@ -56,6 +56,7 @@
-> >  #define OMAP_HSMMC_RSP54	0x0118
-> >  #define OMAP_HSMMC_RSP76	0x011C
-> >  #define OMAP_HSMMC_DATA		0x0120
-> >+#define OMAP_HSMMC_PSTATE	0x0124
-> >  #define OMAP_HSMMC_HCTL		0x0128
-> >  #define OMAP_HSMMC_SYSCTL	0x012C
-> >  #define OMAP_HSMMC_STAT		0x0130
-> >@@ -1816,10 +1817,23 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
-> >  {
-> >  	struct mmc_host *mmc = s->private;
-> >  	struct omap_hsmmc_host *host = mmc_priv(mmc);
-> >+#ifdef CONFIG_PM
-> >+	bool suspended;
-> >+#endif
-> >
-> >  	seq_printf(s, "mmc%d:\n", mmc->index);
-> >+	seq_printf(s, "sdio irq mode\t%s\n",
-> >+		   (mmc->caps & MMC_CAP_SDIO_IRQ) ? "interrupt" : "polling");
-> >+
-> >+	if (mmc->caps & MMC_CAP_SDIO_IRQ) {
-> >+		seq_printf(s, "sdio irq \t%s\n",
-> >+			   (host->flags & HSMMC_SDIO_IRQ_ENABLED) ?  "enabled"
-> >+			   : "disabled");
-> >+	}
-> >
-> >  #ifdef CONFIG_PM
+* Tony Lindgren <tony@atomide.com> [140523 07:45]:
+> * Tobias Jakobi <tjakobi@math.uni-bielefeld.de> [140519 14:19]:
+> > 
+> > But even if I don't connect via WiFi at all, just boot and let me system
+> > run with serial console connected, after some time I get a kernel 'WARNING':
+> > http://www.math.uni-bielefeld.de/~tjakobi/archive/dmesg.1.log
 > 
-> shouldn't this be CONFIG_PM_RUNTIME ?
+> BTW, care to update the bugzilla page with the second warning
+> in this log?
 > 
-> >+	suspended = host->dev->power.runtime_status != RPM_ACTIVE;
-> >+	seq_printf(s, "runtime state\t%s\n", (suspended ? "idle" : "active"));
-> 
-> The whole check for runtime status (and check for CONFIG_PM..) can be removed,
-> since runtime status is available via sysfs
-> 
-> cat /sys/class/mmc_host/mmc<X>/device/power/runtime_status
-> 
-> >  	seq_printf(s, "ctx_loss:\t%d\n", host->context_loss);
-> >  #endif
+> That's the WARNING: CPU: 1 PID: 0 at kernel/timer.c:1147 that's
+> at 238 seconds.
 
-Also CONFIG_SYSFS is a bool FYI.
+Also, with Santosh's fix applied, can you also try disabling one
+or more of the idle states for cpuidle and see if that helps?
+
+Something like this patch below. If that helps with the WARNING
+above you're getting it narrows down the problem down quite a bit.
 
 Regards,
 
 Tony
+
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -44,11 +44,13 @@ static struct idle_statedata omap4_idle_data[] = {
+ 		.mpu_state = PWRDM_POWER_RET,
+ 		.mpu_logic_state = PWRDM_POWER_RET,
+ 	},
++#if 0
+ 	{
+ 		.cpu_state = PWRDM_POWER_OFF,
+ 		.mpu_state = PWRDM_POWER_RET,
+ 		.mpu_logic_state = PWRDM_POWER_OFF,
+ 	},
++#endif
+ };
+ 
+ static struct powerdomain *mpu_pd, *cpu_pd[MAX_CPUS];
