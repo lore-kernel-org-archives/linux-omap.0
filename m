@@ -1,74 +1,111 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: dts: AM4372: clk: efuse based crystal frequency
- detect
-Date: Fri, 23 May 2014 14:05:57 +0300
-Message-ID: <537F2B95.1010808@ti.com>
-References: <062e8a534b1e372db7ed3daa3df7e3c5b885ffab.1400062517.git.nsekhar@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v3 3/4] mfd: tps65917: Add driver for the TPS65917 PMIC
+Date: Fri, 23 May 2014 12:18:43 +0100
+Message-ID: <20140523111843.GW19747@lee--X1>
+References: <1400731239-3180-1-git-send-email-j-keerthy@ti.com>
+ <1400731239-3180-4-git-send-email-j-keerthy@ti.com>
+ <20140522083707.GM6679@lee--X1>
+ <537DD836.3040501@ti.com>
+ <20140522114808.GU6679@lee--X1>
+ <537EBEE4.9050309@ti.com>
+ <20140523100634.GP19747@lee--X1>
+ <537F2A15.9060901@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55238 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752520AbaEWLFe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 May 2014 07:05:34 -0400
-In-Reply-To: <062e8a534b1e372db7ed3daa3df7e3c5b885ffab.1400062517.git.nsekhar@ti.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:55750 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439AbaEWLSv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 07:18:51 -0400
+Received: by mail-ie0-f174.google.com with SMTP id lx4so4895726iec.19
+        for <linux-omap@vger.kernel.org>; Fri, 23 May 2014 04:18:51 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <537F2A15.9060901@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Device Tree Mailing List <devicetree@vger.kernel.org>
+To: Keerthy <a0393675@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com, sameo@linux.intel.com, grant.likely@linaro.org, ian@slimlogic.co.uk, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@linaro.org, linux-omap@vger.kernel.org
 
-On 05/14/2014 02:36 PM, Sekhar Nori wrote:
-> From: Afzal Mohammed <afzal@ti.com>
->
-> Currently oscillator frequency is determined based on sysboot settings,
-> it may not be the case always. To determine it properly, efuse settings
-> also has to be read. CONTROL_STATUS register holds this information.
-> Bit 31:	if 0, frequency to be determined based on sysboot
-> 	if 1, frequency to be determined based on efuse
-> Bit 29,30 - for efuse detection of frequency
-> Bit 22,23 - for sysboot detection of frequency
->
-> Add clock nodes (mux) to determine oscillator frequency as above.
->
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> Acked-by: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> >>>>>>The TPS65917 chip is a power management IC for Portable Navigat=
+ion Systems
+> >>>>>>and Tablet Computing devices. It contains the following compone=
+nts:
+> >>>>>>
+> >>>>>>  - Regulators.
+> >>>>>>  - Over Temperature warning and Shut down.
+> >>>>>>
+> >>>>>>This patch adds support for tps65917 mfd device. At this time o=
+nly
+> >>>>>>the regulator functionality is made available.
+> >>>>>>
+> >>>>>>Signed-off-by: Keerthy <j-keerthy@ti.com>
+> >>>>>>---
+> >>>>>>v3 Changes:
+> >>>>>>
+> >>>>>>  * Header file formating
+> >>>>>>  * Changed the cache_type to REGCACHE_RBTREE
+> >>>>>>  * removed unnecessary code
+> >>>>>>  * Corrected documentation style
+> >>>>>>  * Added pm_power_off function
+> >>>>>>
+> >>>>>>  v2 Changes:
+> >>>>>>
+> >>>>>>  * Added volatile register check as some of the registers
+> >>>>>>    in the set are volatile.
+> >>>>>>drivers/mfd/Kconfig          |   12 +
+> >>>>>>  drivers/mfd/Makefile         |    1 +
+> >>>>>>  drivers/mfd/tps65917.c       |  594 +++++++++++++++++
+> >>>>>>  include/linux/mfd/tps65917.h | 1485 +++++++++++++++++++++++++=
++++++++++++++++++
+> >>>>>>  4 files changed, 2092 insertions(+)
+> >>>>>>  create mode 100644 drivers/mfd/tps65917.c
+> >>>>>>  create mode 100644 include/linux/mfd/tps65917.h
+> >[...]
+> >
+> >>>>>>+		ret =3D regmap_read(tps65917->regmap[slave], addr, &reg);
+> >>>>>>+		if (ret)
+> >>>>>>+			goto err_irq;
+> >>>>>>+	}i
+> >>>>>What does the read do?  You're not doing anything with the value=
+=2E
+> >>>>This pad1 and pad2 stuff is not needed. I will remove this.
+> >>>Then why is it in here?
+> >>>
+> >>>Did you copy this code from somewhere, if so, where?
+> >>>
+> >>>Okay, I just answered my own question.  There is so much common co=
+de
+> >>>in between this and palmas, there is no way I'm going to accept th=
+is
+> >>>driver.  Please merge it in with the palmas driver!
+> >>>
+> >>The chip is more like a subset of palmas with lot of register offse=
+t changes
+> >>and register bit field changes. Adding this would make it clumsy.
+> >>There could
+> >>be lot of checks. That is why i chose to write a new driver.
+> >>
+> >>Palmas driver already supports palmas variants and tps659038. Mergi=
+ng
+> >>this would mean more and more checks :-/.
+> >Then find an elegant way of representing the variants.  I'm not
+> >prepared to carry that much duplicated code in MFD.  It's already
+> >overladened and in need of an overhaul.  This will exacerbate the
+> >matter.
+> >
+>=20
+> Okay. I am working on that.
 
-Thanks, queued for 3.16.
+Thanks.
 
--Tero
-
-> ---
->   arch/arm/boot/dts/am43xx-clocks.dtsi |   16 ++++++++++++++++
->   1 file changed, 16 insertions(+)
->
-> diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> index 142009c..71b029c 100644
-> --- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-> +++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-> @@ -11,6 +11,22 @@
->   	sys_clkin_ck: sys_clkin_ck {
->   		#clock-cells = <0>;
->   		compatible = "ti,mux-clock";
-> +		clocks = <&sysboot_freq_sel_ck>, <&crystal_freq_sel_ck>;
-> +		ti,bit-shift = <31>;
-> +		reg = <0x0040>;
-> +	};
-> +
-> +	crystal_freq_sel_ck: crystal_freq_sel_ck {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,mux-clock";
-> +		clocks = <&virt_19200000_ck>, <&virt_24000000_ck>, <&virt_25000000_ck>, <&virt_26000000_ck>;
-> +		ti,bit-shift = <29>;
-> +		reg = <0x0040>;
-> +	};
-> +
-> +	sysboot_freq_sel_ck: sysboot_freq_sel_ck@44e10040 {
-> +		#clock-cells = <0>;
-> +		compatible = "ti,mux-clock";
->   		clocks = <&virt_19200000_ck>, <&virt_24000000_ck>, <&virt_25000000_ck>, <&virt_26000000_ck>;
->   		ti,bit-shift = <22>;
->   		reg = <0x0040>;
->
-
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
