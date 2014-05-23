@@ -1,38 +1,61 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 2/3] ARM: dts: oma3-gta04: Add display support
-Date: Fri, 23 May 2014 07:45:34 -0700
-Message-ID: <20140523144533.GC2321@atomide.com>
-References: <1399580212-5183-1-git-send-email-marek@goldelico.com>
- <1399580212-5183-3-git-send-email-marek@goldelico.com>
- <537F04D7.4000201@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/19] Rework OMAP4+ HDMI audio support
+Date: Fri, 23 May 2014 07:46:17 -0700
+Message-ID: <20140523144617.GD2321@atomide.com>
+References: <cover.1399884780.git.jsarha@ti.com>
+ <20140512150616.GF31772@atomide.com>
+ <537F2ACD.6030603@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62485 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752291AbaEWOqY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 10:46:24 -0400
 Content-Disposition: inline
-In-Reply-To: <537F04D7.4000201-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
+In-Reply-To: <537F2ACD.6030603@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
-* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [140523 01:21]:
-> On 08/05/14 23:16, Marek Belisko wrote:
-> > This patch add support for lcd display on gta04 board. Display control
-> > is connected to spi (used spi bitbang driver).
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140523 04:03]:
+> On 12/05/14 18:06, Tony Lindgren wrote:
+> > * Jyri Sarha <jsarha@ti.com> [140512 02:13]:
+> >> Since RFC version of the patch set: 
+> >> - Split callbacks removal patch away from "Integrated ASoC DAI
+> >>   component driver implementation" patches for easier reading
+> >>
+> >> This set of patches fixes OMAP4+ HDMI audio. The structure of the
+> >> implementatin looks a bit different than before. Instead of creating a
+> >> driver specific API for a separate ASoC component driver to connect
+> >> to, this implementation integrates an the component driver into the
+> >> HDMI driver.
+> >>
+> >> The idea is to use an existing ASoC component driver API instead of
+> >> creating a new custom API for each HDMI IP and to avoid splitting the
+> >> driver to half for separate video and audio parts connected with the
+> >> API.
+> >>
+> >> The new implementation also uses simple-audio-card for a machine
+> >> driver instead of having its own HW specific machine driver.
 > > 
-> > Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> > ---
-> >  arch/arm/boot/dts/omap3-gta04.dts | 87 +++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 87 insertions(+)
+> > Can you guys please post this split into the following separate
+> > parts for the maintainers to merge:
+> > 
+> > - ASoC changes
+> > - DSS changes
+> > - DTS changes
+> > 
+> > And once those are all in, please post the defconfig changes.
 > 
-> I can take this via my tree.
+> Tony, this series will get delayed until 3.17, but I'd like to merge the
+> HDMI DMA channel changes to omap4/omap5.dtsi already to 3.16. They are
+> patches 13 and 15.
 > 
-> Tony, can I have your ack on this?
+> Those are very trivial, but I'd rather have acks from you for all the
+> .dts changes I'll be sending.
 
-Yes for the whole series:
+OK fine with me:
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
