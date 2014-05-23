@@ -1,61 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/19] Rework OMAP4+ HDMI audio support
-Date: Fri, 23 May 2014 07:46:17 -0700
-Message-ID: <20140523144617.GD2321@atomide.com>
-References: <cover.1399884780.git.jsarha@ti.com>
- <20140512150616.GF31772@atomide.com>
- <537F2ACD.6030603@ti.com>
+Subject: Re: [RFC PATCH 00/16] OMAP: GPMC: Restructure OMAP GPMC driver
+ (NAND) : DT binding change proposal
+Date: Fri, 23 May 2014 07:53:55 -0700
+Message-ID: <20140523145354.GE2321@atomide.com>
+References: <1400671264-10702-1-git-send-email-rogerq@ti.com>
+ <20140521160818.GA1150@arch.cereza>
+ <537DB17A.6060608@ti.com>
+ <CABxcv=nbgGhVN+XYO8s=mYOpoLU9-kWuEqc+FLMaSbWS7BJNyQ@mail.gmail.com>
+ <20140522144600.GA1785@arch.cereza>
+ <537F03C8.3070101@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62485 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752291AbaEWOqY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 10:46:24 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <537F2ACD.6030603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <537F03C8.3070101@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, Brian Norris <computersforpeace@gmail.com>, "Gupta, Pekon" <pekon@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Jingoo Han <jg1.han@samsung.com>, dwmw2@infradead.org, nsekhar@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, detheridge@ti.com
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140523 04:03]:
-> On 12/05/14 18:06, Tony Lindgren wrote:
-> > * Jyri Sarha <jsarha@ti.com> [140512 02:13]:
-> >> Since RFC version of the patch set: 
-> >> - Split callbacks removal patch away from "Integrated ASoC DAI
-> >>   component driver implementation" patches for easier reading
+* Roger Quadros <rogerq@ti.com> [140523 01:17]:
+> On 05/22/2014 05:46 PM, Ezequiel Garcia wrote:
+> > On 22 May 01:51 PM, Javier Martinez Canillas wrote:
+> >> On Thu, May 22, 2014 at 10:12 AM, Roger Quadros <rogerq@ti.com> wrote:
+> >>>> On 21 May 02:20 PM, Roger Quadros wrote:
+> >>>> While I agree that the GPMC driver is a bit messy, I'm not sure it's possible
+> >>>> to go through such a complete devicetree binding re-design (breaking backwards
+> >>>> compatibility) now that the binding is already in production.
+> >>>
+> >>> Why not? especially if the existing bindings are poorly dones. Is anyone using these
+> >>> bindings burning the DT into ROM and can't change it when they update the kernel?
+> >>>
 > >>
-> >> This set of patches fixes OMAP4+ HDMI audio. The structure of the
-> >> implementatin looks a bit different than before. Instead of creating a
-> >> driver specific API for a separate ASoC component driver to connect
-> >> to, this implementation integrates an the component driver into the
-> >> HDMI driver.
+> >> While I do agree that your DT bindings are much better than the
+> >> current ones, there is a policy that DT bindings are an external API
+> >> and once are released with a kernel are set in stone and can't be
+> >> changed.
 > >>
-> >> The idea is to use an existing ASoC component driver API instead of
-> >> creating a new custom API for each HDMI IP and to avoid splitting the
-> >> driver to half for separate video and audio parts connected with the
-> >> API.
-> >>
-> >> The new implementation also uses simple-audio-card for a machine
-> >> driver instead of having its own HW specific machine driver.
 > > 
-> > Can you guys please post this split into the following separate
-> > parts for the maintainers to merge:
+> > Exactly. The DT binding is considered an ABI. Thus, invariant across kernel
+> > versions. Users can't be coherced into a DTB update after a kernel update.
 > > 
-> > - ASoC changes
-> > - DSS changes
-> > - DTS changes
-> > 
-> > And once those are all in, please post the defconfig changes.
+> > That said, I don't really care if you break compatilibity in this case.
+> > Rather, I'm suggesting that you make sure this change is going to be accepted
+> > upstream, before doing any more work. The DT maintainers are reluctant to do
+> > so.
 > 
-> Tony, this series will get delayed until 3.17, but I'd like to merge the
-> HDMI DMA channel changes to omap4/omap5.dtsi already to 3.16. They are
-> patches 13 and 15.
+> Appreciate your concern.
 > 
-> Those are very trivial, but I'd rather have acks from you for all the
-> .dts changes I'll be sending.
+> Would be really nice if you can review patches 1-12. They have nothing to do with DT changes.
+> Thanks.
 
-OK fine with me:
+I'm mostly concerned about keeping things working. I think the
+only way we can keep things working is to keep support for
+the old binding around in addition to the new one. That way
+we can update devices one at a time.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
