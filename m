@@ -1,86 +1,80 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 0/3] ARM: OMAP5+: Support Duty Cycle Correction(DCC)
-Date: Fri, 23 May 2014 14:21:16 +0300
-Message-ID: <537F2F2C.3070202@ti.com>
-References: <1400237160-25125-1-git-send-email-nm@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: Accessing GPIOs from userspace using recent kernels
+Date: Fri, 23 May 2014 13:35:50 +0200
+Message-ID: <CACRpkdYTa+_zAsbwU+XYSWnsN4i4Xkfm28S1=vcC5=oz0TH3Gg@mail.gmail.com>
+References: <3385f19f3e1427613732f6d5c9f8513d@net2air.co>
+	<CABxcv=mFV3nJf1eqNhTbh1KWwe8Z6Z62JtFn5KZbHnGprk1_bg@mail.gmail.com>
+	<7bd3dbc0c3217f43eefc8d228995690f@net2air.co>
+	<CABxcv=nTV23Un91fSUmkixsF5uywoisCOi1qhPqVvZb+RvikDA@mail.gmail.com>
+	<ea43ccacfe4caf1f51f9e5a5c8bbdd5e@net2air.co>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1400237160-25125-1-git-send-email-nm@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, Paul <paul@pwsan.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:49314 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751232AbaEWLfu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 07:35:50 -0400
+Received: by mail-ob0-f174.google.com with SMTP id uz6so5217364obc.5
+        for <linux-omap@vger.kernel.org>; Fri, 23 May 2014 04:35:50 -0700 (PDT)
+In-Reply-To: <ea43ccacfe4caf1f51f9e5a5c8bbdd5e@net2air.co>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter TB Brett <peter@peter-b.co.uk>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ext Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-On 05/16/2014 01:45 PM, Nishanth Menon wrote:
-> Hi,
->
-> This patch series has been carried over in vendor kernel for quiet
-> few years now.
->
-> Unfortunately, it was very recently re-discovered and upstream kernel
-> is noticed to be broken for OMAP5 1.5GHz - at least we are operating
-> DPLL at frequency higher than what it was intended to be when CPUFreq
-> is enabled. Thankfully, with nominal voltage(we dont use AVS yet in
-> upstream for the mentioned platforms) and margins in trimming, we
-> have so far not crashed - but I strongly suspect this might be some
-> boundary case survival.
->
-> Verified on the following impacted platforms using 3.15-rc4 based
-> vendor kernel.
->
-> Before:
-> OMAP5432: http://slexy.org/view/s20cs0qQFg
-> DRA72x: http://slexy.org/view/s2TXtSa6mH (refused to lock)
-> DRA75x: http://slexy.org/view/s20AW8MU5c
-> After:
-> OMAP5432: http://slexy.org/view/s21iAfWxpu
-> DRA72x: http://slexy.org/view/s2hwsvGLmC (locks properly)
-> DRA75x: http://slexy.org/view/s21ehw8WQn
->
-> Hopefully, we can get these into some kernel revision in some form.
+Hi Peter,
 
-Thanks, queued for 3.16/ti-clk-drv. Anybody on the delivery feel free to 
-yell if you got any complaints.
+I think you have already understood from the rest of the conversation that pin
+control configuration shall be done in the device tree and not from userspace,
+which is a good start.
 
--Tero
+As shown by Javier many things people sometimes do in userspace should
+rather be done in kernelspace, such as controlling LEDs and reading
+pushbuttons etc.
 
->
-> NOTE: Support for 4470(which is the only other platform requiring
-> DCC) is not present in upstream kernel and there are no plans to
-> support that SoC, even if it is added at a later point, support can be
-> extended as needed.
->
-> Series based on v3.15-rc5 tag.
-> Also available on my tree:
-> 	https://github.com/nmenon/linux-2.6-playground/
-> 	branch:  push/clock/dcc
-> 	
-> 	weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/clock/dcc
->
-> Verification:
-> 3.15-rc4 based kernel - DRA75x-evm, 72x-evm, OMAP5uevm
-> 3.15-rc5 - OMAP5uEVM(only one supporting 1.5GHz atm)
->
-> Andrii Tseglytskyi (1):
->    ARM: OMAP5+: dpll: support Duty Cycle Correction(DCC)
->
-> Nishanth Menon (2):
->    clk: dpll: support OMAP5 MPU DPLL that need special handling for
->      higher frequencies
->    ARM: dts: OMAP5/DRA7: use omap5-mpu-dpll-clock capable of dealing
->      with higher frequencies
->
->   .../devicetree/bindings/clock/ti/dpll.txt          |    1 +
->   arch/arm/boot/dts/dra7xx-clocks.dtsi               |    2 +-
->   arch/arm/boot/dts/omap54xx-clocks.dtsi             |    2 +-
->   arch/arm/mach-omap2/dpll3xxx.c                     |    9 +++++++++
->   drivers/clk/ti/dpll.c                              |   21 ++++++++++++++++++++
->   include/linux/clk/ti.h                             |    4 ++++
->   6 files changed, 37 insertions(+), 2 deletions(-)
->
-> Regards,
-> Nishanth Menon
->
+On Fri, May 16, 2014 at 12:15 PM, Peter TB Brett <peter@peter-b.co.uk> wrote:
+> On 2014-05-15 19:54, Javier Martinez Canillas wrote:
 
+>> 0x5e (PIN_INPUT_PULLUP | MUX_MODE0)     /* hdmi_sda.hdmi_sda */
+>> 0x12e (PIN_OUTPUT | MUX_MODE5)  /* dispc2_data15 */
+>
+> Yes, that's my mistake.  I took the pin control register addresses from the
+> OMAP4 documentation and forgot that you have to subtract 0x40 to get the
+> correct address for use in the device tree.
+>
+> The correct snippet has 0x1e and 0xee.
+
+I find the pinctrl-single hexdigit syntax infinitely complex and confusing,
+but it was chosen by its designers. Most drivers use strings to configure
+muxing and biasing etc.
+
+>> Is what you shared your real change or just an example that does not
+>> apply to the Pandaboard? Could you please share your complete DTS?
+>
+>
+> The attached .dts file sort of works-ish.  It's an ugly hack, but I don't
+> have the time to do any more investigation into this now, unfortunately.
+>
+> I guess my main question is: if I use /sys/class/gpio/export to export a
+> GPIO for userspace control,
+
+Which you should avoid, if possible.
+
+> it would make sense for the kernel to try and
+> ensure that the GPIO is actually connected to something!
+
+How should we do that? The physics of that request evades me.
+
+The pin control subsystem will however
+refuse to use the pin if it is used for something else.
+
+> The current call chain seems to be: gpiod_export() --> gpiod_request() -->
+> omap_gpio_request().  Looking at other GPIO drivers, it seems like
+> omap_gpio_request() should eventually call pinctrl_request_gpio().  Would be
+> useful if someone who knows about OMAP4/gpio/pinctrl could take a look at
+> this.
+
+That is Tony Lindgren and the linux-omap mailing list.
+
+Yours,
+Linus Walleij
