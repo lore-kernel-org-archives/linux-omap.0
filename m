@@ -1,43 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Fri, 23 May 2014 07:44:26 -0700
-Message-ID: <20140523144425.GB2321@atomide.com>
-References: <537615EA.3020809@ti.com>
- <20140516212942.GK12881@atomide.com>
- <537A3544.1050307@linaro.org>
- <20140519172338.GJ4849@atomide.com>
- <537A408F.7070301@ti.com>
- <20140519175157.GK4849@atomide.com>
- <537A4827.30604@linaro.org>
- <20140519193622.GA11945@atomide.com>
- <537A5F5B.6050403@linaro.org>
- <537A7522.30007@math.uni-bielefeld.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 2/3] ARM: dts: oma3-gta04: Add display support
+Date: Fri, 23 May 2014 07:45:34 -0700
+Message-ID: <20140523144533.GC2321@atomide.com>
+References: <1399580212-5183-1-git-send-email-marek@goldelico.com>
+ <1399580212-5183-3-git-send-email-marek@goldelico.com>
+ <537F04D7.4000201@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58033 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751130AbaEWOof (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 10:44:35 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <537A7522.30007@math.uni-bielefeld.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <537F04D7.4000201-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-* Tobias Jakobi <tjakobi@math.uni-bielefeld.de> [140519 14:19]:
+* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [140523 01:21]:
+> On 08/05/14 23:16, Marek Belisko wrote:
+> > This patch add support for lcd display on gta04 board. Display control
+> > is connected to spi (used spi bitbang driver).
+> > 
+> > Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> > ---
+> >  arch/arm/boot/dts/omap3-gta04.dts | 87 +++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 87 insertions(+)
 > 
-> But even if I don't connect via WiFi at all, just boot and let me system
-> run with serial console connected, after some time I get a kernel 'WARNING':
-> http://www.math.uni-bielefeld.de/~tjakobi/archive/dmesg.1.log
+> I can take this via my tree.
+> 
+> Tony, can I have your ack on this?
 
-BTW, care to update the bugzilla page with the second warning
-in this log?
+Yes for the whole series:
 
-That's the WARNING: CPU: 1 PID: 0 at kernel/timer.c:1147 that's
-at 238 seconds.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
