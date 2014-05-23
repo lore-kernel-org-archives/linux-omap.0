@@ -1,59 +1,69 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 13/13] ASoC: omap: Add Kconfig option for OMAP5 HDMI audio
-Date: Fri, 23 May 2014 22:08:02 +0300
-Message-ID: <cabfe3a2a2b3475bbd0ee8d121fb10c42c66b6fe.1400871999.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 12/13] OMAPDSS: hdmi5: Register HDMI audio ASoC drivers from HDMI driver
+Date: Fri, 23 May 2014 22:08:01 +0300
+Message-ID: <4e030b54017bfe0959f803f7474919f98e283c42.1400871999.git.jsarha@ti.com>
 References: <cover.1400871999.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46945 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751792AbaEWTIm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 15:08:42 -0400
-In-Reply-To: <cover.1400871999.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1400871999.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: peter.ujfalusi-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Adds SND_OMAP_SOC_OMAP5_HDMI config option for OMAP5 HDMI audio support.
+The registering is best done here to share the resources owned by OMAPDSS
+HDMI driver with ASoC DAI and platform drivers.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 ---
- sound/soc/omap/Kconfig |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/video/fbdev/omap2/dss/hdmi5.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index d44463a..697e1b8 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -101,7 +101,7 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	  - PandaBoardES (4460)
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi5.c b/drivers/video/fbdev/omap2/dss/hdmi5.c
+index c468b9e..1ba387b 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi5.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi5.c
+@@ -57,6 +57,9 @@ static struct {
+ 	struct clk *sys_clk;
+ 	struct regulator *vdda_reg;
  
- config SND_OMAP_SOC_OMAP_HDMI
--	tristate "SoC Audio support for Texas Instruments OMAP HDMI"
-+	tristate "SoC Audio support for Texas Instruments OMAP4 HDMI"
- 	depends on SND_OMAP_SOC && OMAP4_DSS_HDMI && OMAP2_DSS
- 	select SND_OMAP_SOC_HDMI
- 	select SND_SOC_HDMI_CODEC
-@@ -110,6 +110,17 @@ config SND_OMAP_SOC_OMAP_HDMI
- 	  Say Y if you want to add support for SoC HDMI audio on Texas Instruments
- 	  OMAP4 chips
++#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
++	struct hdmi_audio_data audio;
++#endif
+ 	bool core_enabled;
  
-+
-+config SND_OMAP_SOC_OMAP5_HDMI
-+	tristate "SoC Audio support for Texas Instruments OMAP5 HDMI"
-+	depends on SND_OMAP_SOC && OMAP5_DSS_HDMI && OMAP2_DSS
-+	select SND_OMAP_SOC_HDMI
-+	select SND_SOC_HDMI_CODEC
-+	select OMAP5_DSS_HDMI_AUDIO
-+	help
-+	  Say Y if you want to add support for SoC HDMI audio on Texas Instruments
-+	  OMAP5 chips
-+
- config SND_OMAP_SOC_OMAP3_PANDORA
- 	tristate "SoC Audio support for OMAP3 Pandora"
- 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_PANDORA
+ 	struct omap_dss_device output;
+@@ -761,6 +764,15 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ 
+ 	hdmi_init_output(pdev);
+ 
++#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
++	r = hdmi_audio_register(pdev, &hdmi.audio, &hdmi.output, &hdmi.wp);
++	if (r) {
++		DSSERR("Registering HDMI audio failed\n");
++		hdmi_uninit_output(pdev);
++		pm_runtime_disable(&pdev->dev);
++		return r;
++	}
++#endif
+ 	dss_debugfs_create_file("hdmi", hdmi_dump_regs);
+ 
+ 	return 0;
+@@ -768,6 +780,9 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+ 
+ static int __exit omapdss_hdmihw_remove(struct platform_device *pdev)
+ {
++#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
++	hdmi_audio_unregister(&hdmi.audio);
++#endif
+ 	hdmi_uninit_output(pdev);
+ 
+ 	pm_runtime_disable(&pdev->dev);
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
