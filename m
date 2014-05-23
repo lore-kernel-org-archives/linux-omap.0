@@ -1,67 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: Fix the boot regression with CPU_IDLE enabled
-Date: Fri, 23 May 2014 11:32:29 -0700
-Message-ID: <20140523183228.GH2321@atomide.com>
-References: <20140516212942.GK12881@atomide.com>
- <537A3544.1050307@linaro.org>
- <20140519172338.GJ4849@atomide.com>
- <537A408F.7070301@ti.com>
- <20140519175157.GK4849@atomide.com>
- <537A4827.30604@linaro.org>
- <20140519193622.GA11945@atomide.com>
- <537A5F5B.6050403@linaro.org>
- <537A7522.30007@math.uni-bielefeld.de>
- <20140523144425.GB2321@atomide.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH 00/13] Fix OMAP4+ HDMI audio
+Date: Fri, 23 May 2014 22:07:49 +0300
+Message-ID: <cover.1400871999.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32431 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359AbaEWSci (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 14:32:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20140523144425.GB2321@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46895 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056AbaEWTIV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 15:08:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Alex Shi <alex.shi@linaro.org>, khilman@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, bcousson@baylibre.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [140523 07:45]:
-> * Tobias Jakobi <tjakobi@math.uni-bielefeld.de> [140519 14:19]:
-> > 
-> > But even if I don't connect via WiFi at all, just boot and let me system
-> > run with serial console connected, after some time I get a kernel 'WARNING':
-> > http://www.math.uni-bielefeld.de/~tjakobi/archive/dmesg.1.log
-> 
-> BTW, care to update the bugzilla page with the second warning
-> in this log?
-> 
-> That's the WARNING: CPU: 1 PID: 0 at kernel/timer.c:1147 that's
-> at 238 seconds.
+This patch set fixes the resource sharing problems between
+omap-hdmi-dai driver and OMAPDSS HDMI driver. It does it by
+registering the OMAP HDMI audio related ASoC drivers from OMAPDSS HDMI
+driver. Platform data structs have been added for omap-hdmi-dai and
+omap-hdmi-card drivers to pass the information and resources from
+OMAPDSS HDMI driver.
 
-Also, with Santosh's fix applied, can you also try disabling one
-or more of the idle states for cpuidle and see if that helps?
+The idea of this patch set is to fix HDMI audio for the next release
+after it got broken by OMAPDSS DT changes. It does not mean that I
+have abandoned the patch set that integrates the omap-hdmi-dai driver
+into OMAPDSS HDMI driver. The OMAPDSS side of those patches just had
+some dependencies to the recent ASoC side patches that would have
+caused problems in the next merge. I'll mail a revised and rebased
+version of those patches soon.
 
-Something like this patch below. If that helps with the WARNING
-above you're getting it narrows down the problem down quite a bit.
+Best regards,
+Jyri
 
-Regards,
+Jyri Sarha (13):
+  ARM: omap4.dtsi: Add audio related parametes to hdmi node
+  ARM: omap5.dtsi: Add audio related parameters to hdmi node
+  ARM: OMAP2+: Remove non working OMAP HDMI audio initialization
+  OMAPDSS: hdmi_wp: Add function for getting hdmi_wp physical base
+    address
+  OMAPDSS: hdmi_audio: Add hdmi_audio.c for registering HDMI audio
+    support
+  ASoC: omap-hdmi-dai: Add platform data struct for omap-hdmi-dai
+    driver
+  ASoC: omap-hdmi-card: Add platform data stuct for omap-hdmi-card
+    driver
+  ASoC: omap-hdmi: Changes for registeing the driver from OMAPDSS
+  ASoC: omap-hdmi-card: Changes for registeing the driver from OMAPDSS
+  OMAPDSS: hdmi4: Register HDMI audio ASoC drivers from HDMI driver
+  OMAPDSS: hdmi.h: Add HDMI_AUDIO_LAYOUT_6CH enum value
+  OMAPDSS: hdmi5: Register HDMI audio ASoC drivers from HDMI driver
+  ASoC: omap: Add Kconfig option for OMAP5 HDMI audio
 
-Tony
+ arch/arm/boot/dts/omap4.dtsi               |    2 +
+ arch/arm/boot/dts/omap5.dtsi               |    2 +
+ arch/arm/mach-omap2/devices.c              |   28 ---------
+ drivers/video/fbdev/omap2/dss/Makefile     |    2 +-
+ drivers/video/fbdev/omap2/dss/hdmi.h       |   17 ++++-
+ drivers/video/fbdev/omap2/dss/hdmi4.c      |   15 +++++
+ drivers/video/fbdev/omap2/dss/hdmi5.c      |   15 +++++
+ drivers/video/fbdev/omap2/dss/hdmi_audio.c |   92 ++++++++++++++++++++++++++++
+ drivers/video/fbdev/omap2/dss/hdmi_wp.c    |    6 ++
+ include/sound/omap-hdmi-card-pdata.h       |   28 +++++++++
+ include/sound/omap-hdmi-dai-pdata.h        |   31 ++++++++++
+ sound/soc/omap/Kconfig                     |   13 +++-
+ sound/soc/omap/omap-hdmi-card.c            |   20 ++++--
+ sound/soc/omap/omap-hdmi.c                 |   65 +++++---------------
+ 14 files changed, 253 insertions(+), 83 deletions(-)
+ create mode 100644 drivers/video/fbdev/omap2/dss/hdmi_audio.c
+ create mode 100644 include/sound/omap-hdmi-card-pdata.h
+ create mode 100644 include/sound/omap-hdmi-dai-pdata.h
 
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -44,11 +44,13 @@ static struct idle_statedata omap4_idle_data[] = {
- 		.mpu_state = PWRDM_POWER_RET,
- 		.mpu_logic_state = PWRDM_POWER_RET,
- 	},
-+#if 0
- 	{
- 		.cpu_state = PWRDM_POWER_OFF,
- 		.mpu_state = PWRDM_POWER_RET,
- 		.mpu_logic_state = PWRDM_POWER_OFF,
- 	},
-+#endif
- };
- 
- static struct powerdomain *mpu_pd, *cpu_pd[MAX_CPUS];
+-- 
+1.7.9.5
+
