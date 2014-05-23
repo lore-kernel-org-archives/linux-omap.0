@@ -1,17 +1,91 @@
-From: "Linux msdos" <achizitii@elcen.ro>
-Subject: Get designer watches for less
-Date: Fri, 23 May 2014 20:40:27 +0200
-Message-ID: <EEEAFB73.08830623@elcen.ro>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 0/3] ARM: OMAP5+: Support Duty Cycle Correction(DCC)
+Date: Fri, 23 May 2014 14:07:20 -0700
+Message-ID: <20140523210720.23136.65858@quantum>
+References: <1400237160-25125-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-msdos-owner@vger.kernel.org>
-Sender: linux-msdos-owner@vger.kernel.org
-To: linux-msdos@vger.kernel.org, linux-net@vger.kernel.org, linux-newbie-owner@vger.kernel.org, linux-newbie@vger.kernel.org, linux-next@vger.kernel.org, linux-nfs@vger.kernel.org, linux-numa@vger.kernel.org, linux-omap@vger.kernel.org, linux-parisc@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-ppp-owner@vger.kernel.org, linux-ppp@vger.kernel.org, linux-raid-owner@vger.kernel.org, linux-raid@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-serial@vger.kernel.org, linux-sh@vger.kernel.org, linux-smp-owner@vger.kernel.org, linux-smp@vger.kernel.org, linux-sound-owner@vger.kernel.org, linux-sound@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1400237160-25125-1-git-send-email-nm@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul <paul@pwsan.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-I now know where to get my trusted branded goods 
+Quoting Nishanth Menon (2014-05-16 03:45:57)
+> Hi,
+> 
+> This patch series has been carried over in vendor kernel for quiet
+> few years now.
+> 
+> Unfortunately, it was very recently re-discovered and upstream kernel
+> is noticed to be broken for OMAP5 1.5GHz - at least we are operating
+> DPLL at frequency higher than what it was intended to be when CPUFreq
+> is enabled. Thankfully, with nominal voltage(we dont use AVS yet in
+> upstream for the mentioned platforms) and margins in trimming, we
+> have so far not crashed - but I strongly suspect this might be some
+> boundary case survival.
 
-http://smilingsoulcoaching.com/llltdud.php
+DCC also exists in OMAP4. In some cases customers used it, in other
+cases we just ran the PLL way out of spec and the mpu_clk would divide
+by 2.
 
+Is this broken for OMAP4 as well?
 
+Regards,
+Mike
+
+> 
+> Verified on the following impacted platforms using 3.15-rc4 based
+> vendor kernel.
+> 
+> Before:
+> OMAP5432: http://slexy.org/view/s20cs0qQFg
+> DRA72x: http://slexy.org/view/s2TXtSa6mH (refused to lock)
+> DRA75x: http://slexy.org/view/s20AW8MU5c
+> After:
+> OMAP5432: http://slexy.org/view/s21iAfWxpu
+> DRA72x: http://slexy.org/view/s2hwsvGLmC (locks properly)
+> DRA75x: http://slexy.org/view/s21ehw8WQn
+> 
+> Hopefully, we can get these into some kernel revision in some form.
+> 
+> NOTE: Support for 4470(which is the only other platform requiring
+> DCC) is not present in upstream kernel and there are no plans to
+> support that SoC, even if it is added at a later point, support can be
+> extended as needed.
+> 
+> Series based on v3.15-rc5 tag.
+> Also available on my tree:
+>         https://github.com/nmenon/linux-2.6-playground/
+>         branch:  push/clock/dcc 
+>         
+>         weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/clock/dcc
+> 
+> Verification:
+> 3.15-rc4 based kernel - DRA75x-evm, 72x-evm, OMAP5uevm
+> 3.15-rc5 - OMAP5uEVM(only one supporting 1.5GHz atm)
+> 
+> Andrii Tseglytskyi (1):
+>   ARM: OMAP5+: dpll: support Duty Cycle Correction(DCC)
+> 
+> Nishanth Menon (2):
+>   clk: dpll: support OMAP5 MPU DPLL that need special handling for
+>     higher frequencies
+>   ARM: dts: OMAP5/DRA7: use omap5-mpu-dpll-clock capable of dealing
+>     with higher frequencies
+> 
+>  .../devicetree/bindings/clock/ti/dpll.txt          |    1 +
+>  arch/arm/boot/dts/dra7xx-clocks.dtsi               |    2 +-
+>  arch/arm/boot/dts/omap54xx-clocks.dtsi             |    2 +-
+>  arch/arm/mach-omap2/dpll3xxx.c                     |    9 +++++++++
+>  drivers/clk/ti/dpll.c                              |   21 ++++++++++++++++++++
+>  include/linux/clk/ti.h                             |    4 ++++
+>  6 files changed, 37 insertions(+), 2 deletions(-)
+> 
+> Regards,
+> Nishanth Menon
+> -- 
+> 1.7.9.5
+> 
