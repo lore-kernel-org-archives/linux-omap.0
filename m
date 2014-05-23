@@ -1,50 +1,42 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 0/3] ARM: dts: overo: Add panel support
-Date: Fri, 23 May 2014 11:18:09 +0300
-Message-ID: <537F0441.50507@ti.com>
-References: <1400594337-5096-1-git-send-email-florian.vaussard@epfl.ch> <537EF413.5050600@epfl.ch>
+Subject: Re: [PATCH v3 2/3] ARM: dts: oma3-gta04: Add display support
+Date: Fri, 23 May 2014 11:20:39 +0300
+Message-ID: <537F04D7.4000201@ti.com>
+References: <1399580212-5183-1-git-send-email-marek@goldelico.com> <1399580212-5183-3-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="CXRbvks9B6lERw4vhSC20r8MClh843phI"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47994 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750823AbaEWISr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 May 2014 04:18:47 -0400
-In-Reply-To: <537EF413.5050600@epfl.ch>
-Sender: linux-omap-owner@vger.kernel.org
+	boundary="1xVJCwgQitDeSfiF9inGJJ1rQ4AH41P3w"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1399580212-5183-3-git-send-email-marek@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marek Belisko <marek@goldelico.com>, tony@atomide.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rdunlap@infradead.org, bcousson@baylibre.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
---CXRbvks9B6lERw4vhSC20r8MClh843phI
-Content-Type: text/plain; charset=UTF-8
+--1xVJCwgQitDeSfiF9inGJJ1rQ4AH41P3w
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 23/05/14 10:09, Florian Vaussard wrote:
-> Hi Tomi,
+On 08/05/14 23:16, Marek Belisko wrote:
+> This patch add support for lcd display on gta04 board. Display control
+> is connected to spi (used spi bitbang driver).
 >=20
-> On 05/20/2014 03:58 PM, Florian Vaussard wrote:
->> Hi,
->>
->> This series enables the DVI and LCD panels present on some of
->> the Overo expansion boards.
->>
->=20
-> Do you have any more comments on these? If no, do you want to pull them=
+> Signed-off-by: Marek Belisko <marek@goldelico.com>
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dts | 87 +++++++++++++++++++++++++++++++=
+++++++++
+>  1 file changed, 87 insertions(+)
 
-> through your tree for 3.16, as discussed with Tony?
+I can take this via my tree.
 
-Yes, I can take these.
-
-Tony, do I have your ack on this series?
+Tony, can I have your ack on this?
 
  Tomi
 
 
 
---CXRbvks9B6lERw4vhSC20r8MClh843phI
+--1xVJCwgQitDeSfiF9inGJJ1rQ4AH41P3w
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -52,19 +44,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTfwRHAAoJEPo9qoy8lh71VdIQAJkCNh6He1xUmZHWU6kzrE/Y
-JFuCTeNRtFkbARW2dqhRvlIBGHa0/v7JYl1X7z3WFmCXynouZ+bPQKNdYfGf62pC
-X6BWMASnDMbUeXFO2YFdCcPtOcl2yBvcj1WsCCn8o/8JTk3MdMsQZBoHtStMUksX
-0lYbqafLT8knzqrRGTHOfGGkqpRotQrAWx7K7a/5aL5ftw7/X7ENvTzw1FzryA4V
-h5wCSbWgLI15l67vFRKx/msJsiY9XjLqfP6jURmSYdq1HUMoxg2i0aYRPBKDq6Cv
-mhcPtFAYWeb1v7pM7QiKlFIAA/icJw3xFRD7xlLWUptCn4n0OtQuAXcKQE0YBVUe
-eBek50bG/azS8AwIvEB90nE7PUtva30J9d5Tsf03Z2EnZPWzMG08i26qo/q95VSM
-Y9NMjFlHyjAECAygiH+dFtzquBoVUhkB0VLg1TGF83jw2hIzWyddcrbdZG5767id
-NAS+Jb56jEZrUkV+JBlEeKFab1OiUhEam9tKUNmyDcUXeyna9BEsW36dGtF2boSG
-HjQuj02AAqfjqGKKRNQXgQfto5npFJ3qnrjkINFDT/0lR/3jndnxeh04gnVHHuqw
-0wz6OpHYEwYVaWVAaWHmhGHmBAd85E0kKQOUAFTDwEtQDnC3MSCiNQJTHOBWQ6FU
-ffbR6pnm6Yijzc1FcybY
-=j2yq
+iQIcBAEBAgAGBQJTfwTXAAoJEPo9qoy8lh71xtQP/1AaQcujZPBukzX0AnjmzEmd
+CSFR+ZOMA5kOv8MeVlVydnMCEEkBL9tbfwux34ynxZVLItKlidMJU/8dm+KArT4D
+BjZNS1WvlbBrWlEIzIJ0m35GDSElBlbGIbQOmKOqhSAwoSVeBR5A9C3AO/Usnnnu
+NGa4E2sjoK8vyTwlBEMzDIuMgawugmfyrFA7nnpRXIHIpA03bIqq4XE5xURTN+LM
+OIaQAQ61/M0mdVunfKIkkawSfLD7VS7UfnVvKPY3j9XhAciV415R1/aG+FszGUOX
+47xYPsiOmyXS59avWCs9zI+z7MgY+czkybyG85k+rqJ4aHYdLwYhVNwHaJwibDHM
+LHkyqRzZT4uylNjY2m81n1jI8cQFyoWsHUtnYiDxRgYOT4BoxaFXBYYYVSmGey/H
+9Wy3FkOtSAoAbPZCHiwIL//mhKBXDJjkSOYZT/m0T61S5aGegpEAR6+Yp7Og7FAp
+xHC5iUzTmrAf0BEtdaw4elFN5MYv6UJWNDaQOfN/xNa33sIexo3RXaqYUTziReBd
+VNOXWQmMC/xftx93J2Efee55Z8pNrhxP4rC2YyXkAybZIrExOS2wa9ttQVQPGXob
+a2TZcu+ZHUD/ny+lUAkwJ1NzJ2nx1o3o5z+ZUIvvdg5ODidwUv507BaoIMdR5N63
+puJySdapu2eGnhTmM/sX
+=JoXo
 -----END PGP SIGNATURE-----
 
---CXRbvks9B6lERw4vhSC20r8MClh843phI--
+--1xVJCwgQitDeSfiF9inGJJ1rQ4AH41P3w--
