@@ -1,80 +1,94 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: Accessing GPIOs from userspace using recent kernels
-Date: Fri, 23 May 2014 13:35:50 +0200
-Message-ID: <CACRpkdYTa+_zAsbwU+XYSWnsN4i4Xkfm28S1=vcC5=oz0TH3Gg@mail.gmail.com>
-References: <3385f19f3e1427613732f6d5c9f8513d@net2air.co>
-	<CABxcv=mFV3nJf1eqNhTbh1KWwe8Z6Z62JtFn5KZbHnGprk1_bg@mail.gmail.com>
-	<7bd3dbc0c3217f43eefc8d228995690f@net2air.co>
-	<CABxcv=nTV23Un91fSUmkixsF5uywoisCOi1qhPqVvZb+RvikDA@mail.gmail.com>
-	<ea43ccacfe4caf1f51f9e5a5c8bbdd5e@net2air.co>
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: Re: [PATCH v13 1/7] mmc: omap_hsmmc: install dummy pm runtime hooks
+ if !CONFIG_PM_RUNTIME
+Date: Fri, 23 May 2014 14:10:59 +0200
+Message-ID: <CALtMJEABZgB_vkX6wMrR11VSKgb8F3D-qTahk-5X_x73KW+bJA@mail.gmail.com>
+References: <1400833834-15893-1-git-send-email-afenkart@gmail.com>
+	<1400833834-15893-2-git-send-email-afenkart@gmail.com>
+	<537F1FFC.8070609@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:49314 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232AbaEWLfu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 07:35:50 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uz6so5217364obc.5
-        for <linux-omap@vger.kernel.org>; Fri, 23 May 2014 04:35:50 -0700 (PDT)
-In-Reply-To: <ea43ccacfe4caf1f51f9e5a5c8bbdd5e@net2air.co>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <537F1FFC.8070609@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter TB Brett <peter@peter-b.co.uk>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ext Tony Lindgren <tony@atomide.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-Hi Peter,
-
-I think you have already understood from the rest of the conversation that pin
-control configuration shall be done in the device tree and not from userspace,
-which is a good start.
-
-As shown by Javier many things people sometimes do in userspace should
-rather be done in kernelspace, such as controlling LEDs and reading
-pushbuttons etc.
-
-On Fri, May 16, 2014 at 12:15 PM, Peter TB Brett <peter@peter-b.co.uk> wrote:
-> On 2014-05-15 19:54, Javier Martinez Canillas wrote:
-
->> 0x5e (PIN_INPUT_PULLUP | MUX_MODE0)     /* hdmi_sda.hdmi_sda */
->> 0x12e (PIN_OUTPUT | MUX_MODE5)  /* dispc2_data15 */
->
-> Yes, that's my mistake.  I took the pin control register addresses from the
-> OMAP4 documentation and forgot that you have to subtract 0x40 to get the
-> correct address for use in the device tree.
->
-> The correct snippet has 0x1e and 0xee.
-
-I find the pinctrl-single hexdigit syntax infinitely complex and confusing,
-but it was chosen by its designers. Most drivers use strings to configure
-muxing and biasing etc.
-
->> Is what you shared your real change or just an example that does not
->> apply to the Pandaboard? Could you please share your complete DTS?
+2014-05-23 12:16 GMT+02:00 Balaji T K <balajitk@ti.com>:
+> On Friday 23 May 2014 02:00 PM, Andreas Fenkart wrote:
+>>
+>>
+>> +#ifdef CONFIG_PM_RUNTIME
 >
 >
-> The attached .dts file sort of works-ish.  It's an ugly hack, but I don't
-> have the time to do any more investigation into this now, unfortunately.
+> AFAIK, omap_hsmmc can build without these changes,
+> So, I think this patch is not needed.
 >
-> I guess my main question is: if I use /sys/class/gpio/export to export a
-> GPIO for userspace control,
+> Let me I know If it is not the case.
 
-Which you should avoid, if possible.
+if do not guard suspend/resume then I have to add guards in patch 1/7:
 
-> it would make sense for the kernel to try and
-> ensure that the GPIO is actually connected to something!
+> @@ -2200,11 +2346,18 @@ static int omap_hsmmc_suspend(struct device *dev)
+>         pm_runtime_get_sync(host->dev);
+>
+>         if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER)) {
+> -               omap_hsmmc_disable_irq(host);
+> +               OMAP_HSMMC_WRITE(host->base, ISE, 0);
+> +               OMAP_HSMMC_WRITE(host->base, IE, 0);
+> +               OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+>                 OMAP_HSMMC_WRITE(host->base, HCTL,
+>                                 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+>         }
+>
+> +       /* do not wake up due to sdio irq */
+> +       if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
+> +           !(host->mmc->pm_flags & MMC_PM_WAKE_SDIO_IRQ))
+> +               disable_irq(host->wake_irq);
 
-How should we do that? The physics of that request evades me.
+here
 
-The pin control subsystem will however
-refuse to use the pin if it is used for something else.
+> +
+>         if (host->dbclk)
+>                 clk_disable_unprepare(host->dbclk);
+>
+> @@ -2230,6 +2383,10 @@ static int omap_hsmmc_resume(struct device *dev)
+>
+>         omap_hsmmc_protect_card(host);
+>
+> +       if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
+> +           !(host->mmc->pm_flags & MMC_PM_WAKE_SDIO_IRQ))
+> +               enable_irq(host->wake_irq);
+> +
+>         pm_runtime_mark_last_busy(host->dev);
+>         pm_runtime_put_autosuspend(host->dev);
+>         return 0;
+> @@ -2246,22 +2403,51 @@ static int omap_hsmmc_resume(struct device *dev)
+>  static int omap_hsmmc_runtime_suspend(struct device *dev)
+>  {
+>         struct omap_hsmmc_host *host;
+> +       unsigned long flags;
+>
+>         host = platform_get_drvdata(to_platform_device(dev));
+>         omap_hsmmc_context_save(host);
+>         dev_dbg(dev, "disabled\n");
+>
+> +       spin_lock_irqsave(&host->irq_lock, flags);
+> +       if ((host->mmc->caps & MMC_CAP_SDIO_IRQ) &&
+> +           (host->flags & HSMMC_SDIO_IRQ_ENABLED)) {
+> +               /* disable sdio irq handling to prevent race */
+> +               OMAP_HSMMC_WRITE(host->base, ISE, 0);
+> +               OMAP_HSMMC_WRITE(host->base, IE, 0);
+> +               OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+> +
+> +               WARN_ON(host->flags & HSMMC_WAKE_IRQ_ENABLED);
+> +               enable_irq(host->wake_irq);
 
-> The current call chain seems to be: gpiod_export() --> gpiod_request() -->
-> omap_gpio_request().  Looking at other GPIO drivers, it seems like
-> omap_gpio_request() should eventually call pinctrl_request_gpio().  Would be
-> useful if someone who knows about OMAP4/gpio/pinctrl could take a look at
-> this.
+and here
 
-That is Tony Lindgren and the linux-omap mailing list.
-
-Yours,
-Linus Walleij
+> +               host->flags |= HSMMC_WAKE_IRQ_ENABLED;
+> +       }
+> +       spin_unlock_irqrestore(&host->irq_lock, flags);
+>         return 0;
+>  }
+>
