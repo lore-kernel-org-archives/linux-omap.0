@@ -1,82 +1,70 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 00/16] OMAP: GPMC: Restructure OMAP GPMC driver (NAND)
- : DT binding change proposal
-Date: Fri, 23 May 2014 11:16:08 +0300
-Message-ID: <537F03C8.3070101@ti.com>
-References: <1400671264-10702-1-git-send-email-rogerq@ti.com> <20140521160818.GA1150@arch.cereza> <537DB17A.6060608@ti.com> <CABxcv=nbgGhVN+XYO8s=mYOpoLU9-kWuEqc+FLMaSbWS7BJNyQ@mail.gmail.com> <20140522144600.GA1785@arch.cereza>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 0/3] ARM: dts: overo: Add panel support
+Date: Fri, 23 May 2014 11:18:09 +0300
+Message-ID: <537F0441.50507@ti.com>
+References: <1400594337-5096-1-git-send-email-florian.vaussard@epfl.ch> <537EF413.5050600@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140522144600.GA1785-nAQHv47ARr+vIlHkl8J1cg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
-Cc: Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="CXRbvks9B6lERw4vhSC20r8MClh843phI"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47994 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750823AbaEWISr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 May 2014 04:18:47 -0400
+In-Reply-To: <537EF413.5050600@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Ezequiel & Javier,
+--CXRbvks9B6lERw4vhSC20r8MClh843phI
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On 05/22/2014 05:46 PM, Ezequiel Garcia wrote:
-> On 22 May 01:51 PM, Javier Martinez Canillas wrote:
->> On Thu, May 22, 2014 at 10:12 AM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
->>>> On 21 May 02:20 PM, Roger Quadros wrote:
->>>>>
->>>>> For DT boot:
->>>>> - The GPMC controller node should have a chip select (CS) node for each used
->>>>>   chip select. The CS node must have a child device node for each device
->>>>>   attached to that chip select. Properties for that child are GPMC agnostic.
->>>>>
->>>>>   i.e.
->>>>>      gpmc {
->>>>>              cs0 {
->>>>>                      nand0 {
->>>>>                      }
->>>>>              };
->>>>>
->>>>>              cs1 {
->>>>>                      nor0 {
->>>>>                      }
->>>>>              }
->>>>>              ...
->>>>>      };
->>>>>
->>>>
->>>> While I agree that the GPMC driver is a bit messy, I'm not sure it's possible
->>>> to go through such a complete devicetree binding re-design (breaking backwards
->>>> compatibility) now that the binding is already in production.
->>>
->>> Why not? especially if the existing bindings are poorly dones. Is anyone using these
->>> bindings burning the DT into ROM and can't change it when they update the kernel?
->>>
+On 23/05/14 10:09, Florian Vaussard wrote:
+> Hi Tomi,
+>=20
+> On 05/20/2014 03:58 PM, Florian Vaussard wrote:
+>> Hi,
 >>
->> While I do agree that your DT bindings are much better than the
->> current ones, there is a policy that DT bindings are an external API
->> and once are released with a kernel are set in stone and can't be
->> changed.
+>> This series enables the DVI and LCD panels present on some of
+>> the Overo expansion boards.
 >>
-> 
-> Exactly. The DT binding is considered an ABI. Thus, invariant across kernel
-> versions. Users can't be coherced into a DTB update after a kernel update.
-> 
-> That said, I don't really care if you break compatilibity in this case.
-> Rather, I'm suggesting that you make sure this change is going to be accepted
-> upstream, before doing any more work. The DT maintainers are reluctant to do
-> so.
+>=20
+> Do you have any more comments on these? If no, do you want to pull them=
 
-Appreciate your concern.
+> through your tree for 3.16, as discussed with Tony?
 
-Would be really nice if you can review patches 1-12. They have nothing to do with DT changes.
-Thanks.
+Yes, I can take these.
 
-cheers,
--roger
+Tony, do I have your ack on this series?
 
-> 
-> On the other side, I guess you will also break bisectability while breaking
-> backward compatibility. Doesn't sound very nice.
-> 
+ Tomi
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--CXRbvks9B6lERw4vhSC20r8MClh843phI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTfwRHAAoJEPo9qoy8lh71VdIQAJkCNh6He1xUmZHWU6kzrE/Y
+JFuCTeNRtFkbARW2dqhRvlIBGHa0/v7JYl1X7z3WFmCXynouZ+bPQKNdYfGf62pC
+X6BWMASnDMbUeXFO2YFdCcPtOcl2yBvcj1WsCCn8o/8JTk3MdMsQZBoHtStMUksX
+0lYbqafLT8knzqrRGTHOfGGkqpRotQrAWx7K7a/5aL5ftw7/X7ENvTzw1FzryA4V
+h5wCSbWgLI15l67vFRKx/msJsiY9XjLqfP6jURmSYdq1HUMoxg2i0aYRPBKDq6Cv
+mhcPtFAYWeb1v7pM7QiKlFIAA/icJw3xFRD7xlLWUptCn4n0OtQuAXcKQE0YBVUe
+eBek50bG/azS8AwIvEB90nE7PUtva30J9d5Tsf03Z2EnZPWzMG08i26qo/q95VSM
+Y9NMjFlHyjAECAygiH+dFtzquBoVUhkB0VLg1TGF83jw2hIzWyddcrbdZG5767id
+NAS+Jb56jEZrUkV+JBlEeKFab1OiUhEam9tKUNmyDcUXeyna9BEsW36dGtF2boSG
+HjQuj02AAqfjqGKKRNQXgQfto5npFJ3qnrjkINFDT/0lR/3jndnxeh04gnVHHuqw
+0wz6OpHYEwYVaWVAaWHmhGHmBAd85E0kKQOUAFTDwEtQDnC3MSCiNQJTHOBWQ6FU
+ffbR6pnm6Yijzc1FcybY
+=j2yq
+-----END PGP SIGNATURE-----
+
+--CXRbvks9B6lERw4vhSC20r8MClh843phI--
