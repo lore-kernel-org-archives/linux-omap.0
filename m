@@ -1,102 +1,83 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] arm/omap4: add twd clock to DT
-Date: Fri, 23 May 2014 13:57:40 +0300
-Message-ID: <537F29A4.7030109@ti.com>
-References: <1396901139-17268-1-git-send-email-gilles.chanteperdrix@xenomai.org> <20140418223948.GK21823@atomide.com> <5353F44F.5080400@xenomai.org> <535662F0.4080300@ti.com> <CAGhQ9Vw-QaB+OnLa3yNVvD6a=XOutSZ1ejbsuUXvEcyrxEsRcQ@mail.gmail.com> <20140519161319.GD4849@atomide.com> <CAGhQ9Vy-mvaXZ_=E_mmqYqxF5EiJSdN1rJayussm+AgKf94a+g@mail.gmail.com> <20140519162741.GG4849@atomide.com> <537B19F1.5040907@ti.com> <20140520144928.GB27830@atomide.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH v3 3/4] mfd: tps65917: Add driver for the TPS65917 PMIC
+Date: Fri, 23 May 2014 16:29:33 +0530
+Message-ID: <537F2A15.9060901@ti.com>
+References: <1400731239-3180-1-git-send-email-j-keerthy@ti.com> <1400731239-3180-4-git-send-email-j-keerthy@ti.com> <20140522083707.GM6679@lee--X1> <537DD836.3040501@ti.com> <20140522114808.GU6679@lee--X1> <537EBEE4.9050309@ti.com> <20140523100634.GP19747@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34982 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750899AbaEWK5R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 May 2014 06:57:17 -0400
-In-Reply-To: <20140520144928.GB27830@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54726 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752237AbaEWLA4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 07:00:56 -0400
+In-Reply-To: <20140523100634.GP19747@lee--X1>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Joachim Eastwood <manabian@gmail.com>, Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com, sameo@linux.intel.com, grant.likely@linaro.org, ian@slimlogic.co.uk, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@linaro.org, linux-omap@vger.kernel.org
 
-On 05/20/2014 05:49 PM, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [140520 02:01]:
->> On 05/19/2014 07:27 PM, Tony Lindgren wrote:
->>> * Joachim Eastwood <manabian@gmail.com> [140519 09:24]:
->>>> On 19 May 2014 18:13, Tony Lindgren <tony@atomide.com> wrote:
->>>>> * Joachim Eastwood <manabian@gmail.com> [140518 05:08]:
->>>>>> On 22 April 2014 14:39, Tero Kristo <t-kristo@ti.com> wrote:
->>>>>>> On 04/20/2014 07:22 PM, Gilles Chanteperdrix wrote:
->>>>>>>>
->>>>>>>> Le 19/04/2014 00:39, Tony Lindgren a =C3=A9crit :
->>>>>>>>>
->>>>>>>>> * Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org> [14=
-0407 13:09]:
->>>>>>>>>>
->>>>>>>>>> Booting Linux 3.14 on Pandaboard currently gets the followin=
-g
->>>>>>>>>> message displayed:
->>>>>>>>>>
->>>>>>>>>> smp_twd: clock not found -2
->>>>>>>>>>
->>>>>>>>>> Define "mpu_periphclk" as the twd clock in omap4 dts to avoi=
-d this.
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> Tero, care to ack?
->>>>>>>>
->>>>>>>>
->>>>>>>> Sorry if I did not mail the right people, get_maintainer.pl ga=
-ve me a
->>>>>>>> long list, and I did not feel like spamming all these people f=
-or such a
->>>>>>>> small patch. I do not believe Tero was in this list.
->>>>>>>>
->>>>>>>> Regards.
->>>>>>>
->>>>>>>
->>>>>>> Yea I don't think this is my expertise area, however the patch =
-looks good to
->>>>>>> me, so if you really need it:
->>>>>>>
->>>>>>> Acked-by: Tero Kristo <t-kristo@ti.com>
+On Friday 23 May 2014 03:36 PM, Lee Jones wrote:
+>>>>>> The TPS65917 chip is a power management IC for Portable Navigation Systems
+>>>>>> and Tablet Computing devices. It contains the following components:
 >>>>>>
->>>>>> Tony, care to add this to your omap 3.16 dt branch?
+>>>>>>   - Regulators.
+>>>>>>   - Over Temperature warning and Shut down.
 >>>>>>
->>>>>> I am still getting:
->>>>>> [ 0.000152] smp_twd: clock not found -2
+>>>>>> This patch adds support for tps65917 mfd device. At this time only
+>>>>>> the regulator functionality is made available.
 >>>>>>
->>>>>> So this fix from Gilles would be nice to have.
->>>>>
->>>>> Best that Tero picks this one up along with the other dt clock ch=
-anges
->>>>> he's queueing.
->>>>
->>>> I kinda assumed you would take it since you asked Tero to ack it. =
-But
->>>> either way is fine :)
+>>>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>>>>> ---
+>>>>>> v3 Changes:
+>>>>>>
+>>>>>>   * Header file formating
+>>>>>>   * Changed the cache_type to REGCACHE_RBTREE
+>>>>>>   * removed unnecessary code
+>>>>>>   * Corrected documentation style
+>>>>>>   * Added pm_power_off function
+>>>>>>
+>>>>>>   v2 Changes:
+>>>>>>
+>>>>>>   * Added volatile register check as some of the registers
+>>>>>>     in the set are volatile.
+>>>>>> drivers/mfd/Kconfig          |   12 +
+>>>>>>   drivers/mfd/Makefile         |    1 +
+>>>>>>   drivers/mfd/tps65917.c       |  594 +++++++++++++++++
+>>>>>>   include/linux/mfd/tps65917.h | 1485 ++++++++++++++++++++++++++++++++++++++++++
+>>>>>>   4 files changed, 2092 insertions(+)
+>>>>>>   create mode 100644 drivers/mfd/tps65917.c
+>>>>>>   create mode 100644 include/linux/mfd/tps65917.h
+> [...]
+>
+>>>>>> +		ret = regmap_read(tps65917->regmap[slave], addr, &reg);
+>>>>>> +		if (ret)
+>>>>>> +			goto err_irq;
+>>>>>> +	}i
+>>>>> What does the read do?  You're not doing anything with the value.
+>>>> This pad1 and pad2 stuff is not needed. I will remove this.
+>>> Then why is it in here?
 >>>
->>> Yes that was before Tero started collecting the dt clock patches :)
+>>> Did you copy this code from somewhere, if so, where?
+>>>
+>>> Okay, I just answered my own question.  There is so much common code
+>>> in between this and palmas, there is no way I'm going to accept this
+>>> driver.  Please merge it in with the palmas driver!
+>>>
+>> The chip is more like a subset of palmas with lot of register offset changes
+>> and register bit field changes. Adding this would make it clumsy.
+>> There could
+>> be lot of checks. That is why i chose to write a new driver.
 >>
->> I wouldn't say this to be a clock patch as such, this touches the dr=
-iver
->> behavior, i.e. registers the correct clock for the driver. That bein=
-g said,
->> I can still queue this up with the clock patches if that is what you=
- want.
->
-> Yes please go ahead and take this one.
->
-> Thanks,
->
-> Tony
+>> Palmas driver already supports palmas variants and tps659038. Merging
+>> this would mean more and more checks :-/.
+> Then find an elegant way of representing the variants.  I'm not
+> prepared to carry that much duplicated code in MFD.  It's already
+> overladened and in need of an overhaul.  This will exacerbate the
+> matter.
 >
 
-Ok, thanks, queued for 3.16.
+Okay. I am working on that.
 
--Tero
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Keerthy
