@@ -1,135 +1,42 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH v13 7/7] mmc: omap_hsmmc: Pin remux workaround to support
- SDIO interrupt on AM335x
-Date: Fri, 23 May 2014 17:58:58 +0530
-Message-ID: <537F3F0A.1060306@ti.com>
-References: <1400833834-15893-1-git-send-email-afenkart@gmail.com> <1400833834-15893-8-git-send-email-afenkart@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/3] ARM: dts: overo: Add panel support
+Date: Fri, 23 May 2014 07:28:30 -0700
+Message-ID: <20140523142830.GA2321@atomide.com>
+References: <1400594337-5096-1-git-send-email-florian.vaussard@epfl.ch>
+ <537EF413.5050600@epfl.ch>
+ <537F0441.50507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1400833834-15893-8-git-send-email-afenkart@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22955 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638AbaEWO2h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 10:28:37 -0400
+Content-Disposition: inline
+In-Reply-To: <537F0441.50507@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Friday 23 May 2014 02:00 PM, Andreas Fenkart wrote:
-> The am335x can't detect pending cirq in PM runtime suspend.
-> This patch reconfigures dat1 as a GPIO before going to suspend.
-> SDIO interrupts are detected with the GPIO, the GPIO will only wake
-> the module from suspend, SDIO irq detection will still happen through the
-> IP block.
->
-> Idea of remuxing the pins by Tony Lindgren. Code contributions from
-> Tony Lindgren and Balaji T K <balajitk@ti.com>
->
-> Acked-by: Balaji T K <balajitk@ti.com>
-> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> index 0233ba7..76bf087 100644
-> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> @@ -57,3 +57,56 @@ Examples:
->   			&edma 25>;
->   		dma-names = "tx", "rx";
->   	};
-> +
-> +[workaround for missing swakeup on am33xx]
-> +
-> +This SOC is missing the swakeup line, it will not detect SDIO irq
-> +while in suspend.
-> +
-> +                             ------
-> +                             | PRCM |
-> +                              ------
-> +                               ^ |
-> +                       swakeup | | fclk
-> +                               | v
-> +       ------                -------               -----
-> +      | card | -- CIRQ -->  | hsmmc | -- IRQ -->  | CPU |
-> +       ------                -------               -----
-> +
-> +In suspend the fclk is off and the module is disfunctional. Even register reads
-> +will fail. A small logic in the host will request fclk restore, when an
-> +external event is detected. Once the clock is restored, the host detects the
-> +event normally. Since am33xx doesn't have this line it never wakes from
-> +suspend.
-> +
-> +The workaround is to reconfigure the dat1 line as a GPIO upon suspend. To make
-> +this work, we need to set the named pinctrl states "default" and "idle".
-> +Prepare idle to remux dat1 as a gpio, and default to remux it back as sdio
-> +dat1. The MMC driver will then toggle between idle and default state during
-> +runtime.
-> +
-> +In summary:
-> +1. select matching 'compatible' section, see example below.
-> +2. specify pinctrl states "default" and "idle", "sleep" is optional.
-> +3. specify the gpio irq used for detecting sdio irq in suspend
-> +
-> +If configuration is incomplete, a warning message is emitted "falling back to
-> +polling". Also check the "sdio irq mode" in /sys/kernel/debug/mmc0/regs. Mind
-> +not every application needs SDIO irq, e.g. MMC cards.
-> +
-> +	mmc1: mmc@48060100 {
-> +		compatible = "ti,am33xx-hsmmc";
-> +		...
-> +		pinctrl-names = "default", "idle", "sleep"
-> +		pinctrl-0 = <&mmc1_pins>;
-> +		pinctrl-1 = <&mmc1_idle>;
-> +		pinctrl-2 = <&mmc1_sleep>;
-> +		...
-> +		interrupts-extended = <&intc 64 &gpio2 28 0>;
-> +	};
-> +
-> +	mmc1_idle : pinmux_cirq_pin {
-> +		pinctrl-single,pins = <
-> +		        0x0f8 0x3f      /* GPIO2_28 */
-> +		>;
-> +	};
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 760b0ac..1238506 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1752,15 +1752,25 @@ static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
->   	 * and need to remux SDIO DAT1 to GPIO for wake-up from idle.
->   	 */
->   	if (host->pdata->controller_flags & OMAP_HSMMC_SWAKEUP_MISSING) {
-> -		ret = -ENODEV;
-> -		devm_free_irq(host->dev, host->wake_irq, host);
-> -		goto err;
-> +		if (IS_ERR(host->dev->pins->default_state)) {
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140523 01:19]:
+> On 23/05/14 10:09, Florian Vaussard wrote:
+> > Hi Tomi,
+> > 
+> > On 05/20/2014 03:58 PM, Florian Vaussard wrote:
+> >> Hi,
+> >>
+> >> This series enables the DVI and LCD panels present on some of
+> >> the Overo expansion boards.
+> >>
+> > 
+> > Do you have any more comments on these? If no, do you want to pull them
+> > through your tree for 3.16, as discussed with Tony?
+> 
+> Yes, I can take these.
+> 
+> Tony, do I have your ack on this series?
 
-Rater than introducing #ifdef CONFIG_PM on multiple places,
-I think things will simple, if pinctrl_lookup_state is used here
-to avoid build error on !CONFIG_PM
+Yes please go ahead and queue these:
 
-
-
-> +			dev_info(host->dev, "missing default pinctrl state\n");
-> +			ret = -EINVAL;
-> +			goto err_free_irq;
-> +		}
-> +
-> +		if (IS_ERR(host->dev->pins->idle_state)) {
-
-same here.
-
-> +			dev_info(host->dev, "missing idle pinctrl state\n");
-> +			ret = -EINVAL;
-> +			goto err_free_irq;
-> +		}
->   	}
->
->   	OMAP_HSMMC_WRITE(host->base, HCTL,
->   			 OMAP_HSMMC_READ(host->base, HCTL) | IWE);
->   	return 0;
->
-> +err_free_irq:
-> +	devm_free_irq(host->dev, host->wake_irq, host);
->   err:
->   	dev_warn(host->dev, "no SDIO IRQ support, falling back to polling\n");
->   	host->wake_irq = 0;
->
+Acked-by: Tony Lindgren <tony@atomide.com>
