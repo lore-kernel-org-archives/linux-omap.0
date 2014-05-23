@@ -1,111 +1,86 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 3/4] mfd: tps65917: Add driver for the TPS65917 PMIC
-Date: Fri, 23 May 2014 12:18:43 +0100
-Message-ID: <20140523111843.GW19747@lee--X1>
-References: <1400731239-3180-1-git-send-email-j-keerthy@ti.com>
- <1400731239-3180-4-git-send-email-j-keerthy@ti.com>
- <20140522083707.GM6679@lee--X1>
- <537DD836.3040501@ti.com>
- <20140522114808.GU6679@lee--X1>
- <537EBEE4.9050309@ti.com>
- <20140523100634.GP19747@lee--X1>
- <537F2A15.9060901@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP5+: Support Duty Cycle Correction(DCC)
+Date: Fri, 23 May 2014 14:21:16 +0300
+Message-ID: <537F2F2C.3070202@ti.com>
+References: <1400237160-25125-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:55750 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbaEWLSv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 May 2014 07:18:51 -0400
-Received: by mail-ie0-f174.google.com with SMTP id lx4so4895726iec.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 May 2014 04:18:51 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <537F2A15.9060901@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1400237160-25125-1-git-send-email-nm@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mike Turquette <mturquette@linaro.org>, Paul <paul@pwsan.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, robh+dt@kernel.org, mark.rutland@arm.com, sameo@linux.intel.com, grant.likely@linaro.org, ian@slimlogic.co.uk, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@linaro.org, linux-omap@vger.kernel.org
 
-> >>>>>>The TPS65917 chip is a power management IC for Portable Navigat=
-ion Systems
-> >>>>>>and Tablet Computing devices. It contains the following compone=
-nts:
-> >>>>>>
-> >>>>>>  - Regulators.
-> >>>>>>  - Over Temperature warning and Shut down.
-> >>>>>>
-> >>>>>>This patch adds support for tps65917 mfd device. At this time o=
-nly
-> >>>>>>the regulator functionality is made available.
-> >>>>>>
-> >>>>>>Signed-off-by: Keerthy <j-keerthy@ti.com>
-> >>>>>>---
-> >>>>>>v3 Changes:
-> >>>>>>
-> >>>>>>  * Header file formating
-> >>>>>>  * Changed the cache_type to REGCACHE_RBTREE
-> >>>>>>  * removed unnecessary code
-> >>>>>>  * Corrected documentation style
-> >>>>>>  * Added pm_power_off function
-> >>>>>>
-> >>>>>>  v2 Changes:
-> >>>>>>
-> >>>>>>  * Added volatile register check as some of the registers
-> >>>>>>    in the set are volatile.
-> >>>>>>drivers/mfd/Kconfig          |   12 +
-> >>>>>>  drivers/mfd/Makefile         |    1 +
-> >>>>>>  drivers/mfd/tps65917.c       |  594 +++++++++++++++++
-> >>>>>>  include/linux/mfd/tps65917.h | 1485 +++++++++++++++++++++++++=
-+++++++++++++++++
-> >>>>>>  4 files changed, 2092 insertions(+)
-> >>>>>>  create mode 100644 drivers/mfd/tps65917.c
-> >>>>>>  create mode 100644 include/linux/mfd/tps65917.h
-> >[...]
-> >
-> >>>>>>+		ret =3D regmap_read(tps65917->regmap[slave], addr, &reg);
-> >>>>>>+		if (ret)
-> >>>>>>+			goto err_irq;
-> >>>>>>+	}i
-> >>>>>What does the read do?  You're not doing anything with the value=
-=2E
-> >>>>This pad1 and pad2 stuff is not needed. I will remove this.
-> >>>Then why is it in here?
-> >>>
-> >>>Did you copy this code from somewhere, if so, where?
-> >>>
-> >>>Okay, I just answered my own question.  There is so much common co=
-de
-> >>>in between this and palmas, there is no way I'm going to accept th=
-is
-> >>>driver.  Please merge it in with the palmas driver!
-> >>>
-> >>The chip is more like a subset of palmas with lot of register offse=
-t changes
-> >>and register bit field changes. Adding this would make it clumsy.
-> >>There could
-> >>be lot of checks. That is why i chose to write a new driver.
-> >>
-> >>Palmas driver already supports palmas variants and tps659038. Mergi=
-ng
-> >>this would mean more and more checks :-/.
-> >Then find an elegant way of representing the variants.  I'm not
-> >prepared to carry that much duplicated code in MFD.  It's already
-> >overladened and in need of an overhaul.  This will exacerbate the
-> >matter.
-> >
->=20
-> Okay. I am working on that.
+On 05/16/2014 01:45 PM, Nishanth Menon wrote:
+> Hi,
+>
+> This patch series has been carried over in vendor kernel for quiet
+> few years now.
+>
+> Unfortunately, it was very recently re-discovered and upstream kernel
+> is noticed to be broken for OMAP5 1.5GHz - at least we are operating
+> DPLL at frequency higher than what it was intended to be when CPUFreq
+> is enabled. Thankfully, with nominal voltage(we dont use AVS yet in
+> upstream for the mentioned platforms) and margins in trimming, we
+> have so far not crashed - but I strongly suspect this might be some
+> boundary case survival.
+>
+> Verified on the following impacted platforms using 3.15-rc4 based
+> vendor kernel.
+>
+> Before:
+> OMAP5432: http://slexy.org/view/s20cs0qQFg
+> DRA72x: http://slexy.org/view/s2TXtSa6mH (refused to lock)
+> DRA75x: http://slexy.org/view/s20AW8MU5c
+> After:
+> OMAP5432: http://slexy.org/view/s21iAfWxpu
+> DRA72x: http://slexy.org/view/s2hwsvGLmC (locks properly)
+> DRA75x: http://slexy.org/view/s21ehw8WQn
+>
+> Hopefully, we can get these into some kernel revision in some form.
 
-Thanks.
+Thanks, queued for 3.16/ti-clk-drv. Anybody on the delivery feel free to 
+yell if you got any complaints.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
+
+>
+> NOTE: Support for 4470(which is the only other platform requiring
+> DCC) is not present in upstream kernel and there are no plans to
+> support that SoC, even if it is added at a later point, support can be
+> extended as needed.
+>
+> Series based on v3.15-rc5 tag.
+> Also available on my tree:
+> 	https://github.com/nmenon/linux-2.6-playground/
+> 	branch:  push/clock/dcc
+> 	
+> 	weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/clock/dcc
+>
+> Verification:
+> 3.15-rc4 based kernel - DRA75x-evm, 72x-evm, OMAP5uevm
+> 3.15-rc5 - OMAP5uEVM(only one supporting 1.5GHz atm)
+>
+> Andrii Tseglytskyi (1):
+>    ARM: OMAP5+: dpll: support Duty Cycle Correction(DCC)
+>
+> Nishanth Menon (2):
+>    clk: dpll: support OMAP5 MPU DPLL that need special handling for
+>      higher frequencies
+>    ARM: dts: OMAP5/DRA7: use omap5-mpu-dpll-clock capable of dealing
+>      with higher frequencies
+>
+>   .../devicetree/bindings/clock/ti/dpll.txt          |    1 +
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi               |    2 +-
+>   arch/arm/boot/dts/omap54xx-clocks.dtsi             |    2 +-
+>   arch/arm/mach-omap2/dpll3xxx.c                     |    9 +++++++++
+>   drivers/clk/ti/dpll.c                              |   21 ++++++++++++++++++++
+>   include/linux/clk/ti.h                             |    4 ++++
+>   6 files changed, 37 insertions(+), 2 deletions(-)
+>
+> Regards,
+> Nishanth Menon
+>
+
