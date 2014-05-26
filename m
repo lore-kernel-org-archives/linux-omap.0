@@ -1,53 +1,62 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ASoC: omap-pcm: Move omap-pcm under include/sound
-Date: Mon, 26 May 2014 15:32:02 +0100
-Message-ID: <20140526143202.GK22111@sirena.org.uk>
-References: <1401094274-5266-1-git-send-email-jsarha@ti.com>
+Subject: Re: [PATCH 5/5] regulator: tps65917: Add Regulator driver for
+ tps65917 PMIC
+Date: Mon, 26 May 2014 16:00:52 +0100
+Message-ID: <20140526150052.GP22111@sirena.org.uk>
+References: <1401098197-647-1-git-send-email-j-keerthy@ti.com>
+ <1401098197-647-6-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="giYBXacdduNkOBLu"
+	protocol="application/pgp-signature"; boundary="F+XLDYyeDCF2A2Dn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43215 "EHLO
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43270 "EHLO
 	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651AbaEZOcU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 10:32:20 -0400
+	with ESMTP id S1752103AbaEZPBM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 11:01:12 -0400
 Content-Disposition: inline
-In-Reply-To: <1401094274-5266-1-git-send-email-jsarha@ti.com>
+In-Reply-To: <1401098197-647-6-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, detheridge@ti.com
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org
 
 
---giYBXacdduNkOBLu
+--F+XLDYyeDCF2A2Dn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 26, 2014 at 11:51:14AM +0300, Jyri Sarha wrote:
-> Make including the omap-pcm.h outside sound/soc/omap more convenient.
+On Mon, May 26, 2014 at 03:26:37PM +0530, Keerthy wrote:
+> This patch adds support for TPS65917 PMIC regulators.
+>=20
+> The regulators set consists of 5 SMPSs and 5 LDOs. The output
+> voltages are configurable and are meant to supply power to the
+> main processor and other components.
 
-Applied, thanks.
+This appears to look *very* like the Palmas driver, should it not be
+sharing code with that?  If it were just data tables it'd be less of a
+concern but there's quite a bit of actual code here.
 
---giYBXacdduNkOBLu
+--F+XLDYyeDCF2A2Dn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBAgAGBQJTg1BeAAoJELSic+t+oim9pwoP/2Ilwuw4XWgzLUPo2moukWbS
-2rPGHchsmeeAmd6dlt1pXXcyK1B5i2kB6S53U4y73MhB5zfu1YEccAZ9YS5tPiNJ
-6C1nbZk/N/VvuAV+LZYq7ccABURTiIi7hRQ1OdcV90FXg/SHEzu2FY/W2Xd0Y7tt
-BhxYlPDFw7Jmh6q9Os/NnbKvQ0pqIKAfPKyDCYBHcnFnhWkxYb3p615vxlaLejEp
-R0QqB6CJhrtir8WBiYlk1IEp+Z5DRcwx+6XkqPNqio6F+Vdqm5xTH+jcSlRXeggA
-y7wQjO5PkCnjOYR0SrCgBJc9onPV4QPD9OF3Lf2esoA1r533JK16Y8TA/2dKbCkE
-DqyZuE/xehg/OZLvteEBt1x4BiLVZaBKtes5zKCKYNGi2/hUpsK/ZHGFJYfX/TJf
-nGT07lNu2zBOVMSGhxvDACSWth+JRP+Z/v1RtSXgp36zvrdfWeEXbEx7KPJVczlE
-FNNGA3gaWoyU6OJyA3RXFpgPDCy6fLzrAYdD9I0IQChWTQYVt6K/tcsN61vwqeHA
-ZKbFaB4o75YsTiqiW3nYUWMz5cr5njWTUoaQUk2pQhqer8+R5YFcUDyYP3QILV6Q
-DblGXCl8mLyLHYlkSbh9RqRHGRr3LcFOpraMrzPAtRywCykBZv4XVnRb9hvc6ge3
-24UfoN1EpPDxMteFGBHq
-=J41+
+iQIcBAEBAgAGBQJTg1cgAAoJELSic+t+oim9gJ8P/1eaPzxLm+nLLyS3uRty7y2X
+VL9Wrdqi8s1PhwfrRB1CQ0SMe2CRnKxNBp1hbZmgN7grZA6vOK2QSFUoaEyGU0+K
+0njx32XyAJndD6S/jEM0u5j55CqbFYDKwP1qeh3k39x1YBvVZR7ICsswxbYC1Iel
+Q667celyq81GvQgatm+Pi1qvSp31J1o2fH6xbILmDZ3P+3eD//Ti92oC4qhQVBNI
+7EhYC/NycsU1gxnnkxe1bpQkvBLaDDlO5njw7+nzO0R9jG36CI2g1CzsCRVUq5eC
+6JopYH0LcC38xhsnJWcLXiOz67iWTCrB9QVuqWmQ61IgFWZ+O7bChmv3gQuV1njj
+pbG/zp2dKK1F03GtxTk+aaYknokRLiCuX9GPogv1erztKcXPtHDUfTWCwYHoqd1F
+f+sC99QCbZhmG2wpMNQ7zScBwXrOypHeLxptK5J0nr4kqi8V1CJykkzQA/wiCfB9
++sPfYeHHUi002LUau+uL8cimtRObvLKLslA/jpTlT0nn6TLDBtCqlTsFdHHnLSRJ
+X1fVOlG17h/ZED0lV7d3rwXVJogywVBnWvJ6CFa0ke8Q+BB74gWlElYTvY2JRG1m
+ZBHyr540LKfyztVP9DgLuuMA1f81GF55l/mx684j6BfIODQepgvPdPJzymn+/58N
+8MOLYzced923r/HSEgw5
+=lygs
 -----END PGP SIGNATURE-----
 
---giYBXacdduNkOBLu--
+--F+XLDYyeDCF2A2Dn--
