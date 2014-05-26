@@ -1,193 +1,105 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-pcm: Move omap-pcm under include/sound
-Date: Mon, 26 May 2014 12:00:14 +0300
-Message-ID: <5383029E.8080508@ti.com>
-References: <1401094274-5266-1-git-send-email-jsarha@ti.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH v6 2/5] usb: musb: core: Convert babble recover work to delayed work
+Date: Mon, 26 May 2014 14:50:09 +0530
+Message-ID: <1401096012-6895-3-git-send-email-george.cherian@ti.com>
+References: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55565 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751515AbaEZJAW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 May 2014 05:00:22 -0400
-In-Reply-To: <1401094274-5266-1-git-send-email-jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com
 
-On 05/26/2014 11:51 AM, Jyri Sarha wrote:
-> Make including the omap-pcm.h outside sound/soc/omap more convenient.
+During babble condition both first disconnect of devices are
+initiated. Make sure MUSB controller is reset and re-initialized
+after all disconnects.
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To acheive this schedule a delayed work for babble recovery.
 
-> 
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
-> It would be nice to get this applied at ASAP for OMAP HDMI audio
-> rework patches depend on this and it would help a lot if this would
-> already be there when applying to OMAPDSS side patches.
-> 
->  include/sound/omap-pcm.h          |   30 ++++++++++++++++++++++++++++++
->  sound/soc/davinci/davinci-mcasp.c |    2 +-
->  sound/soc/omap/omap-dmic.c        |    2 +-
->  sound/soc/omap/omap-hdmi.c        |    2 +-
->  sound/soc/omap/omap-mcbsp.c       |    2 +-
->  sound/soc/omap/omap-mcpdm.c       |    2 +-
->  sound/soc/omap/omap-pcm.h         |   30 ------------------------------
->  7 files changed, 35 insertions(+), 35 deletions(-)
->  create mode 100644 include/sound/omap-pcm.h
->  delete mode 100644 sound/soc/omap/omap-pcm.h
-> 
-> diff --git a/include/sound/omap-pcm.h b/include/sound/omap-pcm.h
-> new file mode 100644
-> index 0000000..c1d2f31
-> --- /dev/null
-> +++ b/include/sound/omap-pcm.h
-> @@ -0,0 +1,30 @@
-> +/*
-> + * omap-pcm.h - OMAP PCM driver
-> + *
-> + * Copyright (C) 2014 Texas Instruments, Inc.
-> + *
-> + * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + */
-> +
-> +#ifndef __OMAP_PCM_H__
-> +#define __OMAP_PCM_H__
-> +
-> +#if IS_ENABLED(CONFIG_SND_OMAP_SOC)
-> +int omap_pcm_platform_register(struct device *dev);
-> +#else
-> +static inline int omap_pcm_platform_register(struct device *dev)
-> +{
-> +	return 0;
-> +}
-> +#endif /* CONFIG_SND_OMAP_SOC */
-> +
-> +#endif /* __OMAP_PCM_H__ */
-> diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-> index 14058dc..9afb146 100644
-> --- a/sound/soc/davinci/davinci-mcasp.c
-> +++ b/sound/soc/davinci/davinci-mcasp.c
-> @@ -33,10 +33,10 @@
->  #include <sound/initval.h>
->  #include <sound/soc.h>
->  #include <sound/dmaengine_pcm.h>
-> +#include <sound/omap-pcm.h>
->  
->  #include "davinci-pcm.h"
->  #include "davinci-mcasp.h"
-> -#include "../omap/omap-pcm.h"
->  
->  #define MCASP_MAX_AFIFO_DEPTH	64
->  
-> diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-> index 53da041..6925d71 100644
-> --- a/sound/soc/omap/omap-dmic.c
-> +++ b/sound/soc/omap/omap-dmic.c
-> @@ -40,9 +40,9 @@
->  #include <sound/initval.h>
->  #include <sound/soc.h>
->  #include <sound/dmaengine_pcm.h>
-> +#include <sound/omap-pcm.h>
->  
->  #include "omap-dmic.h"
-> -#include "omap-pcm.h"
->  
->  struct omap_dmic {
->  	struct device *dev;
-> diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-> index 537a1ec..eb9c392 100644
-> --- a/sound/soc/omap/omap-hdmi.c
-> +++ b/sound/soc/omap/omap-hdmi.c
-> @@ -34,9 +34,9 @@
->  #include <sound/asoundef.h>
->  #include <sound/dmaengine_pcm.h>
->  #include <video/omapdss.h>
-> +#include <sound/omap-pcm.h>
->  
->  #include "omap-hdmi.h"
-> -#include "omap-pcm.h"
->  
->  #define DRV_NAME "omap-hdmi-audio-dai"
->  
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index 71d2266..efe2cd6 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -34,11 +34,11 @@
->  #include <sound/initval.h>
->  #include <sound/soc.h>
->  #include <sound/dmaengine_pcm.h>
-> +#include <sound/omap-pcm.h>
->  
->  #include <linux/platform_data/asoc-ti-mcbsp.h>
->  #include "mcbsp.h"
->  #include "omap-mcbsp.h"
-> -#include "omap-pcm.h"
->  
->  #define OMAP_MCBSP_RATES	(SNDRV_PCM_RATE_8000_96000)
->  
-> diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-> index d8ebb52..f0e2ebe 100644
-> --- a/sound/soc/omap/omap-mcpdm.c
-> +++ b/sound/soc/omap/omap-mcpdm.c
-> @@ -40,9 +40,9 @@
->  #include <sound/pcm_params.h>
->  #include <sound/soc.h>
->  #include <sound/dmaengine_pcm.h>
-> +#include <sound/omap-pcm.h>
->  
->  #include "omap-mcpdm.h"
-> -#include "omap-pcm.h"
->  
->  struct mcpdm_link_config {
->  	u32 link_mask; /* channel mask for the direction */
-> diff --git a/sound/soc/omap/omap-pcm.h b/sound/soc/omap/omap-pcm.h
-> deleted file mode 100644
-> index c1d2f31..0000000
-> --- a/sound/soc/omap/omap-pcm.h
-> +++ /dev/null
-> @@ -1,30 +0,0 @@
-> -/*
-> - * omap-pcm.h - OMAP PCM driver
-> - *
-> - * Copyright (C) 2014 Texas Instruments, Inc.
-> - *
-> - * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> - *
-> - * This program is free software; you can redistribute it and/or
-> - * modify it under the terms of the GNU General Public License
-> - * version 2 as published by the Free Software Foundation.
-> - *
-> - * This program is distributed in the hope that it will be useful, but
-> - * WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> - * General Public License for more details.
-> - */
-> -
-> -#ifndef __OMAP_PCM_H__
-> -#define __OMAP_PCM_H__
-> -
-> -#if IS_ENABLED(CONFIG_SND_OMAP_SOC)
-> -int omap_pcm_platform_register(struct device *dev);
-> -#else
-> -static inline int omap_pcm_platform_register(struct device *dev)
-> -{
-> -	return 0;
-> -}
-> -#endif /* CONFIG_SND_OMAP_SOC */
-> -
-> -#endif /* __OMAP_PCM_H__ */
-> 
+While at that convert udelay to usleep_range.
+Refer Documentation/timers/timers-howto.txt
+
+Signed-off-by: George Cherian <george.cherian@ti.com>
+---
+ drivers/usb/musb/musb_core.c | 15 ++++++++-------
+ drivers/usb/musb/musb_core.h |  2 +-
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 0ad9551..c0ce09f 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -850,7 +850,8 @@ b_host:
+ 
+ 	/* handle babble condition */
+ 	if (int_usb & MUSB_INTR_BABBLE && is_host_active(musb))
+-		schedule_work(&musb->recover_work);
++		schedule_delayed_work(&musb->recover_work,
++				      msecs_to_jiffies(100));
+ 
+ #if 0
+ /* REVISIT ... this would be for multiplexing periodic endpoints, or
+@@ -1751,16 +1752,16 @@ static void musb_irq_work(struct work_struct *data)
+ /* Recover from babble interrupt conditions */
+ static void musb_recover_work(struct work_struct *data)
+ {
+-	struct musb *musb = container_of(data, struct musb, recover_work);
++	struct musb *musb = container_of(data, struct musb, recover_work.work);
+ 	int status;
+ 
+ 	musb_platform_reset(musb);
+ 
+ 	usb_phy_vbus_off(musb->xceiv);
+-	udelay(100);
++	usleep_range(100, 200);
+ 
+ 	usb_phy_vbus_on(musb->xceiv);
+-	udelay(100);
++	usleep_range(100, 200);
+ 
+ 	/*
+ 	 * When a babble condition occurs, the musb controller removes the
+@@ -1943,7 +1944,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 
+ 	/* Init IRQ workqueue before request_irq */
+ 	INIT_WORK(&musb->irq_work, musb_irq_work);
+-	INIT_WORK(&musb->recover_work, musb_recover_work);
++	INIT_DELAYED_WORK(&musb->recover_work, musb_recover_work);
+ 	INIT_DELAYED_WORK(&musb->deassert_reset_work, musb_deassert_reset);
+ 	INIT_DELAYED_WORK(&musb->finish_resume_work, musb_host_finish_resume);
+ 
+@@ -2039,7 +2040,7 @@ fail4:
+ 
+ fail3:
+ 	cancel_work_sync(&musb->irq_work);
+-	cancel_work_sync(&musb->recover_work);
++	cancel_delayed_work_sync(&musb->recover_work);
+ 	cancel_delayed_work_sync(&musb->finish_resume_work);
+ 	cancel_delayed_work_sync(&musb->deassert_reset_work);
+ 	if (musb->dma_controller)
+@@ -2105,7 +2106,7 @@ static int musb_remove(struct platform_device *pdev)
+ 		dma_controller_destroy(musb->dma_controller);
+ 
+ 	cancel_work_sync(&musb->irq_work);
+-	cancel_work_sync(&musb->recover_work);
++	cancel_delayed_work_sync(&musb->recover_work);
+ 	cancel_delayed_work_sync(&musb->finish_resume_work);
+ 	cancel_delayed_work_sync(&musb->deassert_reset_work);
+ 	musb_free(musb);
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index d155a15..9241025 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -297,7 +297,7 @@ struct musb {
+ 
+ 	irqreturn_t		(*isr)(int, void *);
+ 	struct work_struct	irq_work;
+-	struct work_struct	recover_work;
++	struct delayed_work	recover_work;
+ 	struct delayed_work	deassert_reset_work;
+ 	struct delayed_work	finish_resume_work;
+ 	u16			hwvers;
+-- 
+1.8.3.1
