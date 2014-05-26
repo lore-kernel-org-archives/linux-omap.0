@@ -1,39 +1,82 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 3/3] omap l3-noc bus driver changes for v3.16 merge
- window, resend
-Date: Mon, 26 May 2014 13:30:15 -0700
-Message-ID: <20140526203015.GK27093@quad.lixom.net>
-References: <20140520021300.GM15793@atomide.com>
+Subject: Re: [PATCH v3 01/10] platform_data: edma: Be precise with the paRAM struct
+Date: Mon, 26 May 2014 14:32:30 -0700
+Message-ID: <CAOesGMg43jT6D_ot2tKfRXXgAgwqs5Pu_tAFKc35yxLAczrzGQ@mail.gmail.com>
+References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>
+	<1397475725-5036-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:42285 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359AbaEZUaE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 16:30:04 -0400
-Received: by mail-pa0-f44.google.com with SMTP id ld10so7999521pab.17
-        for <linux-omap@vger.kernel.org>; Mon, 26 May 2014 13:30:04 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140520021300.GM15793@atomide.com>
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:55530 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920AbaEZVcb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 17:32:31 -0400
+Received: by mail-qc0-f179.google.com with SMTP id r5so4297355qcx.24
+        for <linux-omap@vger.kernel.org>; Mon, 26 May 2014 14:32:30 -0700 (PDT)
+In-Reply-To: <1397475725-5036-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, "Koul, Vinod" <vinod.koul@intel.com>, Sekhar Nori <nsekhar@ti.com>, Joel Fernandes <joelf@ti.com>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
 
-On Mon, May 19, 2014 at 07:13:00PM -0700, Tony Lindgren wrote:
-> The following changes since commit 455c6fdbd219161bd09b1165f11699d6d73de11c:
-> 
->   Linux 3.14 (2014-03-30 20:40:15 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/l3-noc-signed
-> 
-> for you to fetch changes up to 27b7d5f3cc49f2e5cd6c005d73696058b7140c5c:
-> 
->   bus: omap_l3_noc: Add AM4372 interconnect error data (2014-05-05 14:34:37 -0500)
+Hi,
 
-Pulled into next/drivers. Thanks.
+On Mon, Apr 14, 2014 at 4:41 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> The edmacc_param struct should follow the layout of the paRAM area in the
+> HW. Be explicit on the size of the fields (u32) and also mark the struct
+> as packed to avoid any padding on non 32bit architectures.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Acked-by: Joel Fernandes <joelf@ti.com>
+> ---
+>  include/linux/platform_data/edma.h | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+>
+> diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
+> index f50821cb64be..923f8a3e4ce0 100644
+> --- a/include/linux/platform_data/edma.h
+> +++ b/include/linux/platform_data/edma.h
+> @@ -43,15 +43,15 @@
+>
+>  /* PaRAM slots are laid out like this */
+>  struct edmacc_param {
+> -       unsigned int opt;
+> -       unsigned int src;
+> -       unsigned int a_b_cnt;
+> -       unsigned int dst;
+> -       unsigned int src_dst_bidx;
+> -       unsigned int link_bcntrld;
+> -       unsigned int src_dst_cidx;
+> -       unsigned int ccnt;
+> -};
+> +       u32 opt;
+> +       u32 src;
+> +       u32 a_b_cnt;
+> +       u32 dst;
+> +       u32 src_dst_bidx;
+> +       u32 link_bcntrld;
+> +       u32 src_dst_cidx;
+> +       u32 ccnt;
+> +} __packed;
+>
+>  /* fields in edmacc_param.opt */
+>  #define SAM            BIT(0)
+
+I came across this patch when I was looking at a pull request from
+Sekhar for EDMA cleanups, and it made me look closer at the contents
+of this file.
+
+The include/linux/platform_data/ directory is meant to hold
+platform_data definitions for drivers, and nothing more.
+platform_data/edma.h also contains a whole bunch of interface
+definitions for the driver. They do not belong there, and should be
+moved to a different include file.
+
+That also includes the above struct, because as far as I can tell it's
+a runtime state structure, not something that is passed in with
+platform data.
+
+Can someone please clean this up? Thanks.
 
 
 -Olof
