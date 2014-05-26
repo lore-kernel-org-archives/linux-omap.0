@@ -1,60 +1,101 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 00/16] OMAP: GPMC: Restructure OMAP GPMC driver (NAND)
- : DT binding change proposal
-Date: Mon, 26 May 2014 10:33:52 +0300
-Message-ID: <5382EE60.3000808@ti.com>
-References: <1400671264-10702-1-git-send-email-rogerq@ti.com> <20140521160818.GA1150@arch.cereza> <537DB17A.6060608@ti.com> <CABxcv=nbgGhVN+XYO8s=mYOpoLU9-kWuEqc+FLMaSbWS7BJNyQ@mail.gmail.com> <20140522144600.GA1785@arch.cereza> <537F03C8.3070101@ti.com> <20140523145354.GE2321@atomide.com>
+From: George Cherian <george.cherian@ti.com>
+Subject: Re: [PATCH v4 1/6] usb: musb: core: Handle Babble condition only
+ in HOST mode
+Date: Mon, 26 May 2014 14:16:23 +0530
+Message-ID: <5382FF5F.1050608@ti.com>
+References: <1400506776-2816-1-git-send-email-george.cherian@ti.com>	<1400506776-2816-2-git-send-email-george.cherian@ti.com>	<CADYTM3bd8Bq5QTn-HC4jYX-owEw_sF1DOtXsc-cMDqKHGJHXjQ@mail.gmail.com>	<537ADAEF.9060105@ti.com> <CADYTM3bO5FecJCMMv4iYzugF4DFNmGKs5gtFODLWqnq1u_BDHw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140523145354.GE2321@atomide.com>
+In-Reply-To: <CADYTM3bO5FecJCMMv4iYzugF4DFNmGKs5gtFODLWqnq1u_BDHw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Javier Martinez Canillas <javier@dowhile0.org>, Brian Norris <computersforpeace@gmail.com>, "Gupta, Pekon" <pekon@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Jingoo Han <jg1.han@samsung.com>, dwmw2@infradead.org, nsekhar@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>
+To: Bin Liu <binmlist@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 05/23/2014 05:53 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [140523 01:17]:
->> On 05/22/2014 05:46 PM, Ezequiel Garcia wrote:
->>> On 22 May 01:51 PM, Javier Martinez Canillas wrote:
->>>> On Thu, May 22, 2014 at 10:12 AM, Roger Quadros <rogerq@ti.com> wrote:
->>>>>> On 21 May 02:20 PM, Roger Quadros wrote:
->>>>>> While I agree that the GPMC driver is a bit messy, I'm not sure it's possible
->>>>>> to go through such a complete devicetree binding re-design (breaking backwards
->>>>>> compatibility) now that the binding is already in production.
->>>>>
->>>>> Why not? especially if the existing bindings are poorly dones. Is anyone using these
->>>>> bindings burning the DT into ROM and can't change it when they update the kernel?
->>>>>
->>>>
->>>> While I do agree that your DT bindings are much better than the
->>>> current ones, there is a policy that DT bindings are an external API
->>>> and once are released with a kernel are set in stone and can't be
->>>> changed.
->>>>
->>>
->>> Exactly. The DT binding is considered an ABI. Thus, invariant across kernel
->>> versions. Users can't be coherced into a DTB update after a kernel update.
->>>
->>> That said, I don't really care if you break compatilibity in this case.
->>> Rather, I'm suggesting that you make sure this change is going to be accepted
->>> upstream, before doing any more work. The DT maintainers are reluctant to do
->>> so.
+On 5/23/2014 2:12 AM, Bin Liu wrote:
+> Hi George,
+>
+> On Mon, May 19, 2014 at 11:32 PM, George Cherian <george.cherian@ti.com> wrote:
+>> Hi Bin,
 >>
->> Appreciate your concern.
+>> On 5/19/2014 9:24 PM, Bin Liu wrote:
+>>> Hi,
+>>>
+>>> On Mon, May 19, 2014 at 8:39 AM, George Cherian <george.cherian@ti.com>
+>>> wrote:
+>>>> BABBLE and RESET share the same interrupt. The interrupt
+>>>> is considered to be RESET if MUSB is in peripheral mode and
+>>>> as a BABBLE if MUSB is in HOST mode.
+>>>>
+>>>> Handle babble condition iff MUSB is in HOST mode.
+>>>>
+>>>> Signed-off-by: George Cherian <george.cherian@ti.com>
+>>>> ---
+>>>>    drivers/usb/musb/musb_core.c | 2 +-
+>>>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+>>>> index 61da471..eff3c5c 100644
+>>>> --- a/drivers/usb/musb/musb_core.c
+>>>> +++ b/drivers/usb/musb/musb_core.c
+>>>> @@ -849,7 +849,7 @@ b_host:
+>>>>           }
+>>>>
+>>>>           /* handle babble condition */
+>>>> -       if (int_usb & MUSB_INTR_BABBLE)
+>>>> +       if (int_usb & MUSB_INTR_BABBLE && is_host_active(musb))
+>>>>                   schedule_work(&musb->recover_work);
+>>> I guess my following comments are for Daniel's patch as while which
+>>> initially added the babble work.
+>>>
+>>> Should this if statement be merged into the previous 'if(int_usb &
+>>> MUSB_INTR_RESET)' one, which handles the same interrupt and already
+>>> handles host and device mode respectively.
 >>
->> Would be really nice if you can review patches 1-12. They have nothing to do with DT changes.
->> Thanks.
-> 
-> I'm mostly concerned about keeping things working. I think the
-> only way we can keep things working is to keep support for
-> the old binding around in addition to the new one. That way
-> we can update devices one at a time.
+>> Initially I too had the babble handling as part of  'if(int_usb &
+>> MUSB_INTR_RESET)'
+>> one. But during my tests I hit a corner case where in we hit a BABBLE
+>> condition
+>> on disconnect. In such case the babble interrupt can be handled only if we
+>> have a seperate
+>> check, else its considered as a BUS RESET.
+>>
+>> When all devices are disconnected  MUSB_DEVCTL_HM = 0 and the code always
+>> enter the
+>> else path. In this path it treats the BABBLE as a BUS RESET.
+> The code flow is a bit confusing, two if() handle the same interrupt.
+> The second one implied using 'handled = IRQ_HANDLED;' from the first
+> one.
+> Also does the switch() in else{} in the first if() cause any side effect?
+No it doesn't.
+> Since this babble handing is AM335x specific, how about handle it in
+> dsps_interrupt() in musb_dsps.c, which already has an entry for babble
+> interrupt? TI 3.2 kernel does this way.
+That the reason we have platform specific callbacks added  from the main 
+interrupt handler.
+> Regards,
+> -Bin.
+>
+>>
+>>> Regards,
+>>> -Bin.
+>>>
+>>>>    #if 0
+>>>> --
+>>>> 1.8.3.1
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>> --
+>> -George
+>>
 
-Good to hear that you are not keen on keeping the old bindings forever. I understand
-that we need to keep things working during the transition. I'll think of something to
-maintain backward compatibility while supporting the new binding.
 
-cheers,
--roger
+-- 
+-George
