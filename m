@@ -1,137 +1,53 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RFC 2/2] ARM: OMAP5: hwmod data: Make DSS hwmods share MODULEMODE fields
-Date: Mon, 26 May 2014 16:14:55 +0530
-Message-ID: <1401101095-27181-2-git-send-email-archit@ti.com>
-References: <alpine.DEB.2.02.1405141939030.21921@utopia.booyaka.com>
- <1401101095-27181-1-git-send-email-archit@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ASoC: omap-pcm: Move omap-pcm under include/sound
+Date: Mon, 26 May 2014 15:32:02 +0100
+Message-ID: <20140526143202.GK22111@sirena.org.uk>
+References: <1401094274-5266-1-git-send-email-jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="giYBXacdduNkOBLu"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34168 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751733AbaEZKqO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 May 2014 06:46:14 -0400
-In-Reply-To: <1401101095-27181-1-git-send-email-archit@ti.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43215 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751651AbaEZOcU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 10:32:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1401094274-5266-1-git-send-email-jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, rnayak@ti.com
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, detheridge@ti.com
 
-This is an example which shows how to use new 'shared modulemode' flag.
 
-DSS hwmods share the MODULEMODE field. Add the new HWMOD_OMAP4_MODULEMODE_SHARED
-flag, and create a modulemode_shared struct which the DSS hwmods refer to.
+--giYBXacdduNkOBLu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This will allow the hwmods to reset properly during boot, and not break things
-when the DSS driver runs.
+On Mon, May 26, 2014 at 11:51:14AM +0300, Jyri Sarha wrote:
+> Make including the omap-pcm.h outside sound/soc/omap more convenient.
 
-(Note: hdmi and rfbi hwmods still don't reset properly as they don't have their
-mainclks as dss_dss_clk, this will be fixed later).
+Applied, thanks.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 46 +++++++++++++++++++++---------
- 1 file changed, 33 insertions(+), 13 deletions(-)
+--giYBXacdduNkOBLu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index e8bdd7a..762d61f 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -337,6 +337,9 @@ static struct omap_hwmod omap54xx_dmic_hwmod = {
-  * 'dss' class
-  * display sub-system
-  */
-+
-+static struct modulemode_shared dss_modulemode_ref;
-+
- static struct omap_hwmod_class_sysconfig omap54xx_dss_sysc = {
- 	.rev_offs	= 0x0000,
- 	.syss_offs	= 0x0014,
-@@ -364,9 +367,11 @@ static struct omap_hwmod omap54xx_dss_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.context_offs = OMAP54XX_RM_DSS_DSS_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.context_offs	= OMAP54XX_RM_DSS_DSS_CONTEXT_OFFSET,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.flags		= HWMOD_OMAP4_MODULEMODE_SHARED,
-+			.modulemode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_opt_clks,
-@@ -414,8 +419,11 @@ static struct omap_hwmod omap54xx_dss_dispc_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT |
-+					  HWMOD_OMAP4_MODULEMODE_SHARED,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.modulemode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_dispc_opt_clks,
-@@ -456,8 +464,11 @@ static struct omap_hwmod omap54xx_dss_dsi1_a_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT |
-+					  HWMOD_OMAP4_MODULEMODE_SHARED,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.modulemode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_dsi1_a_opt_clks,
-@@ -476,8 +487,11 @@ static struct omap_hwmod omap54xx_dss_dsi1_c_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT |
-+					  HWMOD_OMAP4_MODULEMODE_SHARED,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.modulemode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_dsi1_c_opt_clks,
-@@ -515,8 +529,11 @@ static struct omap_hwmod omap54xx_dss_hdmi_hwmod = {
- 	.main_clk	= "dss_48mhz_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT |
-+					  HWMOD_OMAP4_MODULEMODE_SHARED,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.modulemode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_hdmi_opt_clks,
-@@ -554,8 +571,11 @@ static struct omap_hwmod omap54xx_dss_rfbi_hwmod = {
- 	.clkdm_name	= "dss_clkdm",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT |
-+					  HWMOD_OMAP4_MODULEMODE_SHARED,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.modulemode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_rfbi_opt_clks,
--- 
-1.8.3.2
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
+iQIcBAEBAgAGBQJTg1BeAAoJELSic+t+oim9pwoP/2Ilwuw4XWgzLUPo2moukWbS
+2rPGHchsmeeAmd6dlt1pXXcyK1B5i2kB6S53U4y73MhB5zfu1YEccAZ9YS5tPiNJ
+6C1nbZk/N/VvuAV+LZYq7ccABURTiIi7hRQ1OdcV90FXg/SHEzu2FY/W2Xd0Y7tt
+BhxYlPDFw7Jmh6q9Os/NnbKvQ0pqIKAfPKyDCYBHcnFnhWkxYb3p615vxlaLejEp
+R0QqB6CJhrtir8WBiYlk1IEp+Z5DRcwx+6XkqPNqio6F+Vdqm5xTH+jcSlRXeggA
+y7wQjO5PkCnjOYR0SrCgBJc9onPV4QPD9OF3Lf2esoA1r533JK16Y8TA/2dKbCkE
+DqyZuE/xehg/OZLvteEBt1x4BiLVZaBKtes5zKCKYNGi2/hUpsK/ZHGFJYfX/TJf
+nGT07lNu2zBOVMSGhxvDACSWth+JRP+Z/v1RtSXgp36zvrdfWeEXbEx7KPJVczlE
+FNNGA3gaWoyU6OJyA3RXFpgPDCy6fLzrAYdD9I0IQChWTQYVt6K/tcsN61vwqeHA
+ZKbFaB4o75YsTiqiW3nYUWMz5cr5njWTUoaQUk2pQhqer8+R5YFcUDyYP3QILV6Q
+DblGXCl8mLyLHYlkSbh9RqRHGRr3LcFOpraMrzPAtRywCykBZv4XVnRb9hvc6ge3
+24UfoN1EpPDxMteFGBHq
+=J41+
+-----END PGP SIGNATURE-----
+
+--giYBXacdduNkOBLu--
