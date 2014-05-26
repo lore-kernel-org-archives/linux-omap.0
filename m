@@ -1,43 +1,51 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/3] omap non urgent fixes for v3.16 merge window,
- resend
-Date: Mon, 26 May 2014 13:23:37 -0700
-Message-ID: <20140526202337.GI27093@quad.lixom.net>
-References: <20140520021029.GK15793@atomide.com>
+Subject: Re: [GIT PULL 2/3] omap pm changes for v3.16 merge window, resend
+Date: Mon, 26 May 2014 13:25:26 -0700
+Message-ID: <20140526202526.GJ27093@quad.lixom.net>
+References: <20140520021151.GL15793@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:57505 "EHLO
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:33981 "EHLO
 	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636AbaEZUX0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 16:23:26 -0400
-Received: by mail-pb0-f49.google.com with SMTP id jt11so8001786pbb.8
-        for <linux-omap@vger.kernel.org>; Mon, 26 May 2014 13:23:25 -0700 (PDT)
+	with ESMTP id S1751546AbaEZUZP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 16:25:15 -0400
+Received: by mail-pb0-f49.google.com with SMTP id jt11so8087976pbb.36
+        for <linux-omap@vger.kernel.org>; Mon, 26 May 2014 13:25:15 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140520021029.GK15793@atomide.com>
+In-Reply-To: <20140520021151.GL15793@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, May 19, 2014 at 07:10:30PM -0700, Tony Lindgren wrote:
-> Hi,
+On Mon, May 19, 2014 at 07:11:52PM -0700, Tony Lindgren wrote:
+> The following changes since commit 89ca3b881987f5a4be4c5dbaa7f0df12bbdde2fd:
 > 
-> Here are three pull requests that never made the lists
-> on the 8th of May as I have something still wrong with
-> my scripts it seems. Anyways, these should be fine pulled
-> out of order, if in doubt see my temporary merge branch
-> at omap-for-v3.16/tmp-merge-2014-05-19.
-> 
-> The following changes since commit fb677ef70b65e22cd4401d31b700a8b4041efae1:
-> 
->   ARM: OMAP2+: Fix GPMC remap for devices using an offset (2014-04-23 11:09:22 -0700)
+>   Linux 3.15-rc4 (2014-05-04 18:14:42 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-not-urgent-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/pm-signed
+> 
+> for you to fetch changes up to 57b05572267581c2320462e9b606709fa6da4c5a:
+> 
+>   ARM: OMAP2+: Enable CPUidle in omap2plus_defconfig (2014-05-06 15:45:15 -0700)
+> 
+> ----------------------------------------------------------------
+> PM related fixes for omap3 that were discovered during omap3
+> conversion to device tree. This series sets up the PMIC signaling
+> in a way where we can test for PM regressions easily by
+> looking at state of the the sys_clkreq and sys_off_mode pins.
+> 
+> Note that this series alone does not make omap3 PM to cut
+> off core voltage during off-idle, changes to twl4030-power.c
+> configurations are still needed. Those will be posted
+> separately.
 
-Pulled, thanks.
+Merged into next/soc.
 
+
+Thanks,
 
 -Olof
