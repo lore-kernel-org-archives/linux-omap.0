@@ -1,106 +1,89 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/3] ARM: OMAP5+: Support Duty Cycle Correction(DCC)
-Date: Mon, 26 May 2014 09:32:08 +0300
-Message-ID: <5382DFE8.1080104@ti.com>
-References: <1400237160-25125-1-git-send-email-nm@ti.com> <20140523210720.23136.65858@quantum>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 0/2] clk: Support for Palmas clk32kg and clk32kgaudio
+ clocks
+Date: Mon, 26 May 2014 10:06:39 +0300
+Message-ID: <5382E7FF.7070600@ti.com>
+References: <1399382685-14781-1-git-send-email-peter.ujfalusi@ti.com> <20140506133136.GA11626@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140523210720.23136.65858@quantum>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20140506133136.GA11626@kahuna>
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: mturquette@linaro.org, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ldewangan@nvidia.com, linux-doc@vger.kernel.org, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/24/2014 12:07 AM, Mike Turquette wrote:
-> Quoting Nishanth Menon (2014-05-16 03:45:57)
+Mike,
+
+On 05/06/2014 04:31 PM, Nishanth Menon wrote:
+> On 16:24-20140506, Peter Ujfalusi wrote:
 >> Hi,
 >>
->> This patch series has been carried over in vendor kernel for quiet
->> few years now.
->>
->> Unfortunately, it was very recently re-discovered and upstream kernel
->> is noticed to be broken for OMAP5 1.5GHz - at least we are operating
->> DPLL at frequency higher than what it was intended to be when CPUFreq
->> is enabled. Thankfully, with nominal voltage(we dont use AVS yet in
->> upstream for the mentioned platforms) and margins in trimming, we
->> have so far not crashed - but I strongly suspect this might be some
->> boundary case survival.
->
-> DCC also exists in OMAP4. In some cases customers used it, in other
-> cases we just ran the PLL way out of spec and the mpu_clk would divide
-> by 2.
->
-> Is this broken for OMAP4 as well?
+>> Changes since v1:
+>> - binding documentation and driver has been separated based on Nisha=
+nth Menon's
+>>   comment
 
-Yes, its broken. This series does not address the OMAP4 needs for it, 
-but can be expanded later by just defining a proper clock type with 
-OMAP4 specific DCC rate limits etc. for it. We would need properly 
-functioning DVFS for OMAP4 panda first though I guess... (support for 
-the TPS regulator.)
+Could you take a look at this series please? I really hoped that it wou=
+ld make
+it to 3.16...
 
--Tero
+Thanks,
+P=E9ter
 
->
-> Regards,
-> Mike
->
 >>
->> Verified on the following impacted platforms using 3.15-rc4 based
->> vendor kernel.
+>> v1 of the driver can be found:
+>> https://lkml.org/lkml/2014/4/3/104
 >>
->> Before:
->> OMAP5432: http://slexy.org/view/s20cs0qQFg
->> DRA72x: http://slexy.org/view/s2TXtSa6mH (refused to lock)
->> DRA75x: http://slexy.org/view/s20AW8MU5c
->> After:
->> OMAP5432: http://slexy.org/view/s21iAfWxpu
->> DRA72x: http://slexy.org/view/s2hwsvGLmC (locks properly)
->> DRA75x: http://slexy.org/view/s21ehw8WQn
+>> Palmas class of devices can provide 32K clock(s) to be used by other=
+ devices
+>> on the board. Depending on the actual device the provided clocks can=
+ be:
+>> CLK32K_KG and CLK32K_KGAUDIO
+>> or only one:
+>> CLK32K_KG (TPS659039 for example)
 >>
->> Hopefully, we can get these into some kernel revision in some form.
+>> Use separate compatible flags for the two 32K clock.
+>> A system which needs or have only one of the 32k clock from
+>> Palmas will need to add node(s) for each clock as separate section
+>> in the dts file.
+>> The two compatible property is:
+>> "ti,palmas-clk32kg" for clk32kg clock
+>> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
 >>
->> NOTE: Support for 4470(which is the only other platform requiring
->> DCC) is not present in upstream kernel and there are no plans to
->> support that SoC, even if it is added at a later point, support can be
->> extended as needed.
->>
->> Series based on v3.15-rc5 tag.
->> Also available on my tree:
->>          https://github.com/nmenon/linux-2.6-playground/
->>          branch:  push/clock/dcc
->>
->>          weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/clock/dcc
->>
->> Verification:
->> 3.15-rc4 based kernel - DRA75x-evm, 72x-evm, OMAP5uevm
->> 3.15-rc5 - OMAP5uEVM(only one supporting 1.5GHz atm)
->>
->> Andrii Tseglytskyi (1):
->>    ARM: OMAP5+: dpll: support Duty Cycle Correction(DCC)
->>
->> Nishanth Menon (2):
->>    clk: dpll: support OMAP5 MPU DPLL that need special handling for
->>      higher frequencies
->>    ARM: dts: OMAP5/DRA7: use omap5-mpu-dpll-clock capable of dealing
->>      with higher frequencies
->>
->>   .../devicetree/bindings/clock/ti/dpll.txt          |    1 +
->>   arch/arm/boot/dts/dra7xx-clocks.dtsi               |    2 +-
->>   arch/arm/boot/dts/omap54xx-clocks.dtsi             |    2 +-
->>   arch/arm/mach-omap2/dpll3xxx.c                     |    9 +++++++++
->>   drivers/clk/ti/dpll.c                              |   21 ++++++++++++++++++++
->>   include/linux/clk/ti.h                             |    4 ++++
->>   6 files changed, 37 insertions(+), 2 deletions(-)
+>> Apart from the register control of the clocks - which is done via
+>> the clock API there is a posibility to enable the external sleep
+>> control. In this way the clock can be enabled/disabled on demand by =
+the
+>> user of the clock.
 >>
 >> Regards,
->> Nishanth Menon
->> --
->> 1.7.9.5
+>> Peter
+>> ---
+>> Peter Ujfalusi (2):
+>>   dt/bindings: Binding documentation for Palmas clk32kg and clk32kga=
+udio
+>>     clocks
+>>   clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
 >>
+>>  .../bindings/clock/clk-palmas-clk32kg-clocks.txt   |  35 +++
+>>  drivers/clk/Kconfig                                |   7 +
+>>  drivers/clk/Makefile                               |   1 +
+>>  drivers/clk/clk-palmas.c                           | 307 ++++++++++=
++++++++++++
+>>  include/dt-bindings/mfd/palmas.h                   |  18 ++
+>>  5 files changed, 368 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/clock/clk-palm=
+as-clk32kg-clocks.txt
+>>  create mode 100644 drivers/clk/clk-palmas.c
+>>  create mode 100644 include/dt-bindings/mfd/palmas.h
+>>
+>> --=20
+>> 1.9.2
+>>
+>=20
+> Series:
+> Reviewed-by: Nishanth Menon <nm@ti.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
