@@ -1,105 +1,57 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH v6 2/5] usb: musb: core: Convert babble recover work to delayed work
-Date: Mon, 26 May 2014 14:50:09 +0530
-Message-ID: <1401096012-6895-3-git-send-email-george.cherian@ti.com>
-References: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
+Subject: [PATCH v6 0/5] Add support for SW babble Control
+Date: Mon, 26 May 2014 14:50:07 +0530
+Message-ID: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-During babble condition both first disconnect of devices are
-initiated. Make sure MUSB controller is reset and re-initialized
-after all disconnects.
+Series add support for SW babble control logic found in 
+new silicon versions of AM335x. Runtime differentiation of
+silicon version is done by checking the BABBLE_CTL register.
+For newer silicon the register default value read is 0x4 and
+for older versions its 0x0.
 
-To acheive this schedule a delayed work for babble recovery.
+Patch 1 -> Handle Babble only if MUSB is in HOST mode
+Patch 2 -> Convert recover work to delayed work.
+Patch 3 -> usb_phy_vbus_(off/_on) are NOPs for am335x PHY
+	   so use usb_phy(_shutdown/_init) in musb_platform_reset()
+Patch 4 -> Add return value for musb_platform_reset() in prepration
+	   to support SW babble_ctrl
+Patch 5 -> Add and Enable sw babble control for newer silicon
 
-While at that convert udelay to usleep_range.
-Refer Documentation/timers/timers-howto.txt
+v5 -> v6 : Squash patch 5 and 6 form v5 to avoid build warnings.
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- drivers/usb/musb/musb_core.c | 15 ++++++++-------
- drivers/usb/musb/musb_core.h |  2 +-
- 2 files changed, 9 insertions(+), 8 deletions(-)
+v4 -> v5 : Added a debug print before resetting MUSB.
+	   changed a musb_readb to dsps_readb introduced in Patch#5 of v4.
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 0ad9551..c0ce09f 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -850,7 +850,8 @@ b_host:
- 
- 	/* handle babble condition */
- 	if (int_usb & MUSB_INTR_BABBLE && is_host_active(musb))
--		schedule_work(&musb->recover_work);
-+		schedule_delayed_work(&musb->recover_work,
-+				      msecs_to_jiffies(100));
- 
- #if 0
- /* REVISIT ... this would be for multiplexing periodic endpoints, or
-@@ -1751,16 +1752,16 @@ static void musb_irq_work(struct work_struct *data)
- /* Recover from babble interrupt conditions */
- static void musb_recover_work(struct work_struct *data)
- {
--	struct musb *musb = container_of(data, struct musb, recover_work);
-+	struct musb *musb = container_of(data, struct musb, recover_work.work);
- 	int status;
- 
- 	musb_platform_reset(musb);
- 
- 	usb_phy_vbus_off(musb->xceiv);
--	udelay(100);
-+	usleep_range(100, 200);
- 
- 	usb_phy_vbus_on(musb->xceiv);
--	udelay(100);
-+	usleep_range(100, 200);
- 
- 	/*
- 	 * When a babble condition occurs, the musb controller removes the
-@@ -1943,7 +1944,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 
- 	/* Init IRQ workqueue before request_irq */
- 	INIT_WORK(&musb->irq_work, musb_irq_work);
--	INIT_WORK(&musb->recover_work, musb_recover_work);
-+	INIT_DELAYED_WORK(&musb->recover_work, musb_recover_work);
- 	INIT_DELAYED_WORK(&musb->deassert_reset_work, musb_deassert_reset);
- 	INIT_DELAYED_WORK(&musb->finish_resume_work, musb_host_finish_resume);
- 
-@@ -2039,7 +2040,7 @@ fail4:
- 
- fail3:
- 	cancel_work_sync(&musb->irq_work);
--	cancel_work_sync(&musb->recover_work);
-+	cancel_delayed_work_sync(&musb->recover_work);
- 	cancel_delayed_work_sync(&musb->finish_resume_work);
- 	cancel_delayed_work_sync(&musb->deassert_reset_work);
- 	if (musb->dma_controller)
-@@ -2105,7 +2106,7 @@ static int musb_remove(struct platform_device *pdev)
- 		dma_controller_destroy(musb->dma_controller);
- 
- 	cancel_work_sync(&musb->irq_work);
--	cancel_work_sync(&musb->recover_work);
-+	cancel_delayed_work_sync(&musb->recover_work);
- 	cancel_delayed_work_sync(&musb->finish_resume_work);
- 	cancel_delayed_work_sync(&musb->deassert_reset_work);
- 	musb_free(musb);
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index d155a15..9241025 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -297,7 +297,7 @@ struct musb {
- 
- 	irqreturn_t		(*isr)(int, void *);
- 	struct work_struct	irq_work;
--	struct work_struct	recover_work;
-+	struct delayed_work	recover_work;
- 	struct delayed_work	deassert_reset_work;
- 	struct delayed_work	finish_resume_work;
- 	u16			hwvers;
+v3 -> v4 : Fixes an issue in gagdet mode - BUS RESET should not
+	   be handled as a BABBLE. Added a check for the same.(Patch #1)
+	   Enable sw babble control properly (Patch #6)
+	   	
+v2 -> v3 : Modify musb_platform_reset() to return zero on success.
+
+
+
+George Cherian (5):
+  usb: musb: core: Handle Babble condition only in HOST mode
+  usb: musb: core: Convert babble recover work to delayed work
+  usb: musb: dsps: Call usb_phy(_shutdown/_init) during
+    musb_platform_reset()
+  usb: musb: core: Convert the musb_platform_reset to have a return
+    value.
+  usb: musb: dsps: Add the sw_babble_control() and Enable for newer
+    silicon
+
+ drivers/usb/musb/musb_core.c | 27 ++++++++------
+ drivers/usb/musb/musb_core.h | 12 +++---
+ drivers/usb/musb/musb_dsps.c | 88 ++++++++++++++++++++++++++++++++++++++++++--
+ drivers/usb/musb/musb_regs.h |  7 ++++
+ 4 files changed, 114 insertions(+), 20 deletions(-)
+
 -- 
 1.8.3.1
