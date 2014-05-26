@@ -1,52 +1,36 @@
-From: HUSAM AL SAYED <Husamalsayed@asia.com>
-Subject: Your Urgent reply.
-Date: Mon, 26 May 2014 22:00:48 +0400
-Message-ID: <CAKFyHyqE-jAV0G8GqYW7H_3cUYv2iXVQm5a6-m1VNZWRhKVXAg__36228.9855759174$1401127266$gmane$org@mail.gmail.com>
-Reply-To: Husamalsayed@asia.com
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/4] omap soc changes for v3.16 merge window
+Date: Mon, 26 May 2014 12:59:39 -0700
+Message-ID: <20140526195939.GE27093@quad.lixom.net>
+References: <20140520013030.GE15793@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f67.google.com ([74.125.82.67]:33858 "EHLO
-	mail-wg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067AbaEZSAu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 14:00:50 -0400
-Received: by mail-wg0-f67.google.com with SMTP id l18so2648170wgh.2
-        for <linux-omap@vger.kernel.org>; Mon, 26 May 2014 11:00:48 -0700 (PDT)
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:47315 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798AbaEZT72 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 15:59:28 -0400
+Received: by mail-pb0-f43.google.com with SMTP id up15so8051523pbc.16
+        for <linux-omap@vger.kernel.org>; Mon, 26 May 2014 12:59:28 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140520013030.GE15793@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Dear Friend,
+On Mon, May 19, 2014 at 06:30:31PM -0700, Tony Lindgren wrote:
+> Looks like I'm still having trouble sending out some pull requests,
+> so apologies you're seeing these as duplicates.
+> 
+> The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
+> 
+>   Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/soc-signed
 
+Merged into next/soc. Thanks!
 
-Compliments of the day.This mail May be a surprise to you Because you
-did not give me the permission to do so and Neither do you know me but
-before I tell you about myself I want you to please forgive me for
-sending this mail without your permission I have been in search of
-someone with this last name so when I saw you online, I was pushed to
-contact you and see how best we can assist each other. I am Mr. Husam
-Al Sayed, a Bank Officer here in U.A.E. I believe it is the wish of
-God for me to come across you now. I am having an important business
-discussion I wish to share with you which I  believe will interest
-you, because it is in connection with your last name and you are going
-to benefit from it.
-
-One Late peter who was among the death victims in the May 27 2006
-Earthquake disaster in Java, Indonesia that killed over 5,000 people.
-He was in Indonesia on a business trip and that was how he met his
-end. My bank management is yet to know about his death, I knew about
-it because he was my friend and I am his account officer.he did not
-mention any Next of Kin/ Heir when the account was opened, and he was
-not married and no children. Last week my Bank Management requested
-that he should give instructions on what to do about his funds,I know
-this will happen and that is why I have been looking for a means to
-handle the situation,
-
-If you are interested send me your private Email Address so that i can
-send you more details of the transaction,
-Thanks for your understanding
-
-I am waiting for your reply.
-
-Best regards,
-
-Mr. Husam Al Sayed
+-Olof
