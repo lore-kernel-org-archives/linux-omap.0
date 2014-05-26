@@ -1,62 +1,52 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 5/5] regulator: tps65917: Add Regulator driver for
- tps65917 PMIC
-Date: Mon, 26 May 2014 16:00:52 +0100
-Message-ID: <20140526150052.GP22111@sirena.org.uk>
-References: <1401098197-647-1-git-send-email-j-keerthy@ti.com>
- <1401098197-647-6-git-send-email-j-keerthy@ti.com>
+From: HUSAM AL SAYED <Husamalsayed@asia.com>
+Subject: Your Urgent reply.
+Date: Mon, 26 May 2014 22:00:48 +0400
+Message-ID: <CAKFyHyqE-jAV0G8GqYW7H_3cUYv2iXVQm5a6-m1VNZWRhKVXAg__36228.9855759174$1401127266$gmane$org@mail.gmail.com>
+Reply-To: Husamalsayed@asia.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="F+XLDYyeDCF2A2Dn"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43270 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103AbaEZPBM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 11:01:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1401098197-647-6-git-send-email-j-keerthy@ti.com>
+Received: from mail-wg0-f67.google.com ([74.125.82.67]:33858 "EHLO
+	mail-wg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067AbaEZSAu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 14:00:50 -0400
+Received: by mail-wg0-f67.google.com with SMTP id l18so2648170wgh.2
+        for <linux-omap@vger.kernel.org>; Mon, 26 May 2014 11:00:48 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org
+
+Dear Friend,
 
 
---F+XLDYyeDCF2A2Dn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Compliments of the day.This mail May be a surprise to you Because you
+did not give me the permission to do so and Neither do you know me but
+before I tell you about myself I want you to please forgive me for
+sending this mail without your permission I have been in search of
+someone with this last name so when I saw you online, I was pushed to
+contact you and see how best we can assist each other. I am Mr. Husam
+Al Sayed, a Bank Officer here in U.A.E. I believe it is the wish of
+God for me to come across you now. I am having an important business
+discussion I wish to share with you which I  believe will interest
+you, because it is in connection with your last name and you are going
+to benefit from it.
 
-On Mon, May 26, 2014 at 03:26:37PM +0530, Keerthy wrote:
-> This patch adds support for TPS65917 PMIC regulators.
->=20
-> The regulators set consists of 5 SMPSs and 5 LDOs. The output
-> voltages are configurable and are meant to supply power to the
-> main processor and other components.
+One Late peter who was among the death victims in the May 27 2006
+Earthquake disaster in Java, Indonesia that killed over 5,000 people.
+He was in Indonesia on a business trip and that was how he met his
+end. My bank management is yet to know about his death, I knew about
+it because he was my friend and I am his account officer.he did not
+mention any Next of Kin/ Heir when the account was opened, and he was
+not married and no children. Last week my Bank Management requested
+that he should give instructions on what to do about his funds,I know
+this will happen and that is why I have been looking for a means to
+handle the situation,
 
-This appears to look *very* like the Palmas driver, should it not be
-sharing code with that?  If it were just data tables it'd be less of a
-concern but there's quite a bit of actual code here.
+If you are interested send me your private Email Address so that i can
+send you more details of the transaction,
+Thanks for your understanding
 
---F+XLDYyeDCF2A2Dn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I am waiting for your reply.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Best regards,
 
-iQIcBAEBAgAGBQJTg1cgAAoJELSic+t+oim9gJ8P/1eaPzxLm+nLLyS3uRty7y2X
-VL9Wrdqi8s1PhwfrRB1CQ0SMe2CRnKxNBp1hbZmgN7grZA6vOK2QSFUoaEyGU0+K
-0njx32XyAJndD6S/jEM0u5j55CqbFYDKwP1qeh3k39x1YBvVZR7ICsswxbYC1Iel
-Q667celyq81GvQgatm+Pi1qvSp31J1o2fH6xbILmDZ3P+3eD//Ti92oC4qhQVBNI
-7EhYC/NycsU1gxnnkxe1bpQkvBLaDDlO5njw7+nzO0R9jG36CI2g1CzsCRVUq5eC
-6JopYH0LcC38xhsnJWcLXiOz67iWTCrB9QVuqWmQ61IgFWZ+O7bChmv3gQuV1njj
-pbG/zp2dKK1F03GtxTk+aaYknokRLiCuX9GPogv1erztKcXPtHDUfTWCwYHoqd1F
-f+sC99QCbZhmG2wpMNQ7zScBwXrOypHeLxptK5J0nr4kqi8V1CJykkzQA/wiCfB9
-+sPfYeHHUi002LUau+uL8cimtRObvLKLslA/jpTlT0nn6TLDBtCqlTsFdHHnLSRJ
-X1fVOlG17h/ZED0lV7d3rwXVJogywVBnWvJ6CFa0ke8Q+BB74gWlElYTvY2JRG1m
-ZBHyr540LKfyztVP9DgLuuMA1f81GF55l/mx684j6BfIODQepgvPdPJzymn+/58N
-8MOLYzced923r/HSEgw5
-=lygs
------END PGP SIGNATURE-----
-
---F+XLDYyeDCF2A2Dn--
+Mr. Husam Al Sayed
