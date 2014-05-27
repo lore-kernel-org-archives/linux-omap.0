@@ -1,127 +1,231 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 03/17] phy: ti-pipe3: add external clock support for PCIe
- PHY
-Date: Tue, 27 May 2014 11:41:09 +0530
-Message-ID: <53842C7D.6050106@ti.com>
-References: <1399383244-14556-1-git-send-email-kishon@ti.com>	<1399383244-14556-4-git-send-email-kishon@ti.com>	<53736CBC.2060702@ti.com>	<5373897C.6080504@ti.com>	<CAGo_u6qw1OomEw_ueb3x+xT+qZLAfGv7Se1K=o725aOoD3ankQ@mail.gmail.com>	<5374859F.5080902@ti.com>	<53748819.8060705@ti.com>	<CAGo_u6qbbdAbdvrB3AFXSH1qD5MaBkJbi6oJJvvTWW4xfbmd_Q@mail.gmail.com>	<5374AC0A.7070709@ti.com> <CAGo_u6r8XtGHOvsfJKQMZ2ghFRz8x8_UhzyKE9jnwO6mJ2HYpQ@mail.gmail.com> <5374B09F.2080803@ti.com> <5374B409.3000607@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 01/11] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Tue, 27 May 2014 09:29:56 +0300
+Message-ID: <538430E4.8030900@ti.com>
+References: <1399636579-8062-1-git-send-email-tomi.valkeinen@ti.com> <1399636579-8062-2-git-send-email-tomi.valkeinen@ti.com> <5379CDD2.6080807@ti.com> <5379D8F5.9030008@ti.com> <5379DCCE.3050400@ti.com> <5379E6B1.5000409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <5374B409.3000607@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Mike Turquette <mturquette@linaro.org>, Tero Kristo <t-kristo@ti.com>, Roger Quadros <rogerq@ti.com>
-Cc: dt list <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, linux-pci@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="QSLPAiL1LiNtsaee8WptemjOWPd5QHIFK"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41440 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881AbaE0Gaa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 May 2014 02:30:30 -0400
+In-Reply-To: <5379E6B1.5000409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>, Sathya Prakash M R <sathyap@ti.com>
 
-Hi,
+--QSLPAiL1LiNtsaee8WptemjOWPd5QHIFK
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 15 May 2014 06:03 PM, Nishanth Menon wrote:
-> On 05/15/2014 07:18 AM, Kishon Vijay Abraham I wrote:
->> Hi,
->>
->> On Thursday 15 May 2014 05:42 PM, Nishanth Menon wrote:
->>> On Thu, May 15, 2014 at 6:59 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>>> Hi Nishant,
->>>>
->>>> On Thursday 15 May 2014 05:16 PM, Nishanth Menon wrote:
->>>>> On Thu, May 15, 2014 at 4:25 AM, Roger Quadros <rogerq@ti.com> wrote:
->>>>>> On 05/15/2014 12:15 PM, Kishon Vijay Abraham I wrote:
->>>>>>> Hi Nishanth,
->>>>>>>
->>>>>>> On Wednesday 14 May 2014 09:04 PM, Nishanth Menon wrote:
->>>>>>>> On Wed, May 14, 2014 at 10:19 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>>>>>>>> Hi Roger,
->>>>>>>>>
->>>>>>>>> On Wednesday 14 May 2014 06:46 PM, Roger Quadros wrote:
->>>>>>>>>> Hi Kishon,
->>>>>>>>>>
->>>>>>>>>> On 05/06/2014 04:33 PM, Kishon Vijay Abraham I wrote:
->>>>>>>>>>> APLL used by PCIE phy can either use external clock as input or the clock
->>>>>>>>>>> from DPLL. Added support for the APLL to use external clock as input here.
->>>>>>>>>>>
->>>>>>>>>>> Cc: Rajendra Nayak <rnayak@ti.com>
->>>>>>>>>>> Cc: Tero Kristo <t-kristo@ti.com>
->>>>>>>>>>> Cc: Paul Walmsley <paul@pwsan.com>
->>>>>>>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>>>>>>>> ---
->>>>>>>>>>>  Documentation/devicetree/bindings/phy/ti-phy.txt |    4 ++
->>>>>>>>>>>  drivers/phy/phy-ti-pipe3.c                       |   75 ++++++++++++++--------
->>>>>>>>>>>  2 files changed, 52 insertions(+), 27 deletions(-)
->>>>>>>>>>>
->>>>>>>>>>> diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>>>>>>>> index bc9afb5..d50f8ee 100644
->>>>>>>>>>> --- a/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>>>>>>>> +++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
->>>>>>>>>>> @@ -76,6 +76,10 @@ Required properties:
->>>>>>>>>>>     * "dpll_ref_m2" - external dpll ref clk
->>>>>>>>>>>     * "phy-div" - divider for apll
->>>>>>>>>>>     * "div-clk" - apll clock
->>>>>>>>>>> +   * "apll_mux" - mux for pcie apll
->>>>>>>>>>> +   * "refclk_ext" - external reference clock for pcie apll
->>>>>>>>>>> + - ti,ext-clk: To specifiy if PCIE apll should use external clock. Applicable
->>>>>>>>>>> +   only to PCIE PHY.
->>>>>>>>>>
->>>>>>>>>> Instead of specifying both clock sources "dpll_ref_clock", "refclk_ext" and then specifying a 3rd control option "ti,ext-clk" to select one of the 2 sources, why can't the DT just supply one clock source, i.e. the one that is being used in the board instance? The driver should then just configure the clock rate that is needed at that node. Shouldn't the clock framework automatically take care of muxing and parent rates?
->>>>>>>>>
->>>>>>>>> Want the dt to have all the clocks used by the controller. "ti,ext-clk" should
->>>>>>>>> go in the board dt file (suggested by Nishanth).
->>>>>>>>> The point is at some point later if some one wants to change the clock source,
->>>>>>>>> it should be a simple enabling "ti,ext-clk" flag instead of finding the clock
->>>>>>>>> phandle etc..
->>>>>>>>
->>>>>>>> Wonder if that is implicit by the presence of  "refclk_ext" in the
->>>>>>>> clocks provided?
->>>>>>>
->>>>>>> IMO the presence of "refclk_ext" is useless unless the board indicates it
->>>>>>> provides the clock source.
->>>>>>>
->>>>>>> refclk_ext holds phandle for *fixed-clock*, so irrespective of whether the
->>>>>>> board provides a clock or not, it can have that handle for configuring in PRCM.
->>>>>>> However if the board does not provide the clock source, configuring refclk_ext
->>>>>>> in PRCM is useless.
->>>>>>
->>>>>> I think what Nishant meant is that if "refclk_ext" is provided it means that the driver
->>>>>> should use that over "dpll_ref_clock" so no need of a separate "ti,ext-clk" flag.
->>>>>
->>>>> yes, thank you for clarifying - it does indeed redundant to have
->>>>> "ti,ext-clk". and apologies on being a little obscure in the comment.
->>>>
->>>> Irrespective of whether external reference clock is used or not, all DRA7
->>>> (apll) has an input for external reference clock (and also a PRCM register for
->>>> programming it) and it has to be specified in dt no?
->>>
->>> Why is that a binding for ti-phy? that is a problem for the APLL clock
->>> driver (selecting it's own source). PHY properties should describe
->>> itself -> let the bindings of the APLL describe itself. please dont
->>> mix the two up.
->>
->> The apll clock node is like this
->>
->> apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
->>         compatible = "mux-clock";
->>         clocks = <&dpll_pcie_ref_m2ldo_ck>, <&pciesref_acs_clk_ck>;
->>         #clock-cells = <0>;
->>         reg = <0x4a00821c 0x4>;
->>         bit-mask = <0x80>;
->> };
->>
->> The external reference clock is denoted by *pciesref_acs_clk_ck*.
->>
->> refclk_ext holds the phandle to *pciesref_acs_clk_ck* and is used in
->> "clk_set_parent" to set the parent of apll mux.
-> 
-> So, How about this: if refclk_ext is not defined, dont do setparent,
-> if it is defined, do setparent.
-> in short:
-> Optional Properties:
-> * "refclk_ext" - external reference clock for pcie apll - if defined,
-> used as the parent to "apll_mux"
+Hi Paul,
 
-just realized, refclk_ext is not a property by itself but just one of the
-phandle for clocks/clock-names. Since we want to indicate if we are using
-external clock from *board* dts file, I'm not sure if there is a way to
-*append* a property.
+On 19/05/14 14:10, Tomi Valkeinen wrote:
+> On 19/05/14 13:28, Rajendra Nayak wrote:
+>=20
+>> Yeah, thats what it looks like to me. l3_gclk is the 200Mhz clock deri=
+ved from=20
+>> core-m4 post divider and l3s_gclk/l4ls_gclk are half of that at 100Mhz=
+, derived
+>> using a fixed divider of 2.
+>=20
+> Here's an updated patch, with the sdma entry removed and the ocp clock
+> changed to l3_gclk.
 
-Thanks
-Kishon
+Can we get this to 3.16?
+
+ Tomi
+
+> From bfaf0fafb21c698c86640764c1aa62d6fc73992a Mon Sep 17 00:00:00 2001
+> From: Sathya Prakash M R <sathyap@ti.com>
+> Date: Mon, 24 Mar 2014 16:31:53 +0530
+> Subject: [PATCH] ARM: AM43xx: hwmod: add DSS hwmod data
+>=20
+> Add DSS hwmod data for AM43xx.
+>=20
+> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++++++=
+++++++++
+>  arch/arm/mach-omap2/prcm43xx.h             |  1 +
+>  2 files changed, 99 insertions(+)
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_43xx_data.c
+> index 5c2cc8083fdd..d2a7b6dc36f2 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+> @@ -19,6 +19,8 @@
+>  #include "omap_hwmod.h"
+>  #include "omap_hwmod_33xx_43xx_common_data.h"
+>  #include "prcm43xx.h"
+> +#include "omap_hwmod_common_data.h"
+> +
+> =20
+>  /* IP blocks */
+>  static struct omap_hwmod am43xx_l4_hs_hwmod =3D {
+> @@ -415,6 +417,70 @@ static struct omap_hwmod am43xx_qspi_hwmod =3D {
+>  	},
+>  };
+> =20
+> +/* Display sub system - DSS */
+> +
+> +struct omap_dss_dispc_dev_attr am43xx_dss_dispc_dev_attr =3D {
+> +	.manager_count		=3D 1,
+> +	.has_framedonetv_irq	=3D 0
+> +};
+> +
+> +
+> +static struct omap_hwmod_class_sysconfig am43xx_dispc_sysc =3D {
+> +	.rev_offs	=3D 0x0000,
+> +	.sysc_offs	=3D 0x0010,
+> +	.syss_offs	=3D 0x0014,
+> +	.sysc_flags	=3D (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
+> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields	=3D &omap_hwmod_sysc_type1,
+> +};
+> +
+> +static struct omap_hwmod_class am43xx_dispc_hwmod_class =3D {
+> +	.name	=3D "dispc",
+> +	.sysc	=3D &am43xx_dispc_sysc,
+> +};
+> +
+> +static struct omap_hwmod am43xx_dss_core_hwmod =3D {
+> +	.name		=3D "dss_core",
+> +	.class		=3D &omap2_dss_hwmod_class,
+> +	.clkdm_name	=3D "dss_clkdm",
+> +	.main_clk	=3D "disp_clk",
+> +	.prcm =3D {
+> +		.omap4 =3D {
+> +			.clkctrl_offs =3D AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
+> +			.modulemode   =3D MODULEMODE_SWCTRL,
+> +		},
+> +	},
+> +};
+> +
+> +/* display controller -dispc*/
+> +
+> +static struct omap_hwmod am43xx_dss_dispc_hwmod =3D {
+> +	.name		=3D "dss_dispc",
+> +	.class		=3D &am43xx_dispc_hwmod_class,
+> +	.clkdm_name	=3D "dss_clkdm",
+> +	.main_clk	=3D "disp_clk",
+> +	.prcm =3D {
+> +		.omap4 =3D {
+> +			.clkctrl_offs =3D AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
+> +		},
+> +	},
+> +	.dev_attr	=3D &am43xx_dss_dispc_dev_attr,
+> +};
+> +
+> +/*RFBI*/
+> +
+> +static struct omap_hwmod am43xx_dss_rfbi_hwmod =3D {
+> +	.name		=3D "dss_rfbi",
+> +	.class		=3D &omap2_rfbi_hwmod_class,
+> +	.clkdm_name	=3D "dss_clkdm",
+> +	.main_clk	=3D "disp_clk",
+> +	.prcm =3D {
+> +		.omap4 =3D {
+> +			.clkctrl_offs =3D AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
+> +		},
+> +	},
+> +};
+> +
+>  /* Interfaces */
+>  static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs =3D {
+>  	.master		=3D &am33xx_l3_main_hwmod,
+> @@ -654,6 +720,34 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__qspi =
+=3D {
+>  	.user           =3D OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+> =20
+> +static struct omap_hwmod_ocp_if am43xx_dss__l3_main =3D {
+> +	.master		=3D &am43xx_dss_core_hwmod,
+> +	.slave		=3D &am33xx_l3_main_hwmod,
+> +	.clk		=3D "l3_gclk",
+> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +static struct omap_hwmod_ocp_if am43xx_l4_ls__dss =3D {
+> +	.master		=3D &am33xx_l4_ls_hwmod,
+> +	.slave		=3D &am43xx_dss_core_hwmod,
+> +	.clk		=3D "l4ls_gclk",
+> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_dispc =3D {
+> +	.master		=3D &am33xx_l4_ls_hwmod,
+> +	.slave		=3D &am43xx_dss_dispc_hwmod,
+> +	.clk		=3D "l4ls_gclk",
+> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi =3D {
+> +	.master		=3D &am33xx_l4_ls_hwmod,
+> +	.slave		=3D &am43xx_dss_rfbi_hwmod,
+> +	.clk		=3D "l4ls_gclk",
+> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+>  static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata =3D=
+ {
+>  	&am33xx_l4_wkup__synctimer,
+>  	&am43xx_l4_ls__timer8,
+> @@ -748,6 +842,10 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_=
+ifs[] __initdata =3D {
+>  	&am43xx_l4_ls__ocp2scp1,
+>  	&am43xx_l3_s__usbotgss0,
+>  	&am43xx_l3_s__usbotgss1,
+> +	&am43xx_dss__l3_main,
+> +	&am43xx_l4_ls__dss,
+> +	&am43xx_l4_ls__dss_dispc,
+> +	&am43xx_l4_ls__dss_rfbi,
+>  	NULL,
+>  };
+> =20
+> diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm4=
+3xx.h
+> index 7785be984edd..ad7b3e9977f8 100644
+> --- a/arch/arm/mach-omap2/prcm43xx.h
+> +++ b/arch/arm/mach-omap2/prcm43xx.h
+> @@ -142,5 +142,6 @@
+>  #define AM43XX_CM_PER_USBPHYOCP2SCP0_CLKCTRL_OFFSET	0x05B8
+>  #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+>  #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
+> +#define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
+> =20
+>  #endif
+>=20
+
+
+
+--QSLPAiL1LiNtsaee8WptemjOWPd5QHIFK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJThDDkAAoJEPo9qoy8lh716vwP/2QiUJzkFSCA1JdjlMpq6BRu
+ymqvVhB37mJXkt+Tq8yFGc0m1Ohix2x2gyH+J+nfIYeejaDMb6W8S7jC2gz9kvbM
+6hxnaZtdM6FyUz3iQ35kKvg9JXVBnSQbB9vk+ZsQvsIC3aGxLUllm3uojv9J4aKs
+YfMG8GB7DHWmebN7uP8PVnJmhodpIPIDpFAvasy02dI9boFodnmF7SfuY5q8j/6G
+vzQl03lTJidj68pvj0lRNwoPuF38m7IhFtahSygaIjFsntw3dSN05VnrR5idx6KF
+yQa22cwmGIRb2yBTv/M1n5b9MTSbExy1mRvw/xkBobqurWeWT0mKjTX+MGddr5iP
+OYD3IK6zaWHYjZIlAJ97pv2K9d8xVAhAXj3sRR0sQ3obsJ7Lpgh2GXvVcLbolH6L
+IrkOE0LxSivf3dQTZrb9+6Rm2hHGv/AS0NAjOq2AJt4r2pSh4pH6ONbITnxwnodj
+5UI/yEPjPMTGiqqmt75Iv7aDnRbeCPqqDx1DIsNwdWo0d0Nx8uvRS8KCjbgwp9rs
+ZIauwlIzhAzt6QKw0APzjCbMVhg8XeApS/ngcYL3Zpg1WY7ifDa+1CDczYlIzMa1
+TXowx2a92HHwRZxr2FwtEU3vi6sduxq93q3tif0mYX0uxzL2y13eIPpsm+kogZr/
+Cel03nGl6/ZYhJLKtK/o
+=uyav
+-----END PGP SIGNATURE-----
+
+--QSLPAiL1LiNtsaee8WptemjOWPd5QHIFK--
