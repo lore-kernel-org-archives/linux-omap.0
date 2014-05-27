@@ -1,71 +1,95 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 01/10] platform_data: edma: Be precise with the paRAM
-	struct
-Date: Tue, 27 May 2014 13:22:49 +0300
-Message-ID: <53846779.4070204@ti.com>
-References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>	<1397475725-5036-2-git-send-email-peter.ujfalusi@ti.com>
-	<CAOesGMg43jT6D_ot2tKfRXXgAgwqs5Pu_tAFKc35yxLAczrzGQ@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RFC v2 2/5] OMAPDSS: DT: Get source endpoint by matching reg-id
+Date: Tue, 27 May 2014 13:24:32 +0300
+Message-ID: <538467E0.2000305@ti.com>
+References: <1399540517-17883-1-git-send-email-archit@ti.com> <1401096492-1405-1-git-send-email-archit@ti.com> <1401096492-1405-2-git-send-email-archit@ti.com> <53844E14.9090504@ti.com> <53845F99.60603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <CAOesGMg43jT6D_ot2tKfRXXgAgwqs5Pu_tAFKc35yxLAczrzGQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Koul,  Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, "dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="shjFE6r06LKNH2Q5NkiWX5wGniMnJtPoR"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51566 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751742AbaE0KYf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 May 2014 06:24:35 -0400
+Received: from dlelxv90.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id s4RAOZCD031128
+	for <linux-omap@vger.kernel.org>; Tue, 27 May 2014 05:24:35 -0500
+Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
+	by dlelxv90.itg.ti.com (8.14.3/8.13.8) with ESMTP id s4RAOZeg014699
+	for <linux-omap@vger.kernel.org>; Tue, 27 May 2014 05:24:35 -0500
+In-Reply-To: <53845F99.60603@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-T24gMDUvMjcvMjAxNCAxMjozMiBBTSwgT2xvZiBKb2hhbnNzb24gd3JvdGU6Cj4gSGksCj4gCj4g
-T24gTW9uLCBBcHIgMTQsIDIwMTQgYXQgNDo0MSBBTSwgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
-ZmFsdXNpQHRpLmNvbT4gd3JvdGU6Cj4+IFRoZSBlZG1hY2NfcGFyYW0gc3RydWN0IHNob3VsZCBm
-b2xsb3cgdGhlIGxheW91dCBvZiB0aGUgcGFSQU0gYXJlYSBpbiB0aGUKPj4gSFcuIEJlIGV4cGxp
-Y2l0IG9uIHRoZSBzaXplIG9mIHRoZSBmaWVsZHMgKHUzMikgYW5kIGFsc28gbWFyayB0aGUgc3Ry
-dWN0Cj4+IGFzIHBhY2tlZCB0byBhdm9pZCBhbnkgcGFkZGluZyBvbiBub24gMzJiaXQgYXJjaGl0
-ZWN0dXJlcy4KPj4KPj4gU2lnbmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFs
-dXNpQHRpLmNvbT4KPj4gQWNrZWQtYnk6IEpvZWwgRmVybmFuZGVzIDxqb2VsZkB0aS5jb20+Cj4+
-IC0tLQo+PiAgaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kYXRhL2VkbWEuaCB8IDE4ICsrKysrKysr
-Ky0tLS0tLS0tLQo+PiAgMSBmaWxlIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlv
-bnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9lZG1h
-LmggYi9pbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvZWRtYS5oCj4+IGluZGV4IGY1MDgyMWNi
-NjRiZS4uOTIzZjhhM2U0Y2UwIDEwMDY0NAo+PiAtLS0gYS9pbmNsdWRlL2xpbnV4L3BsYXRmb3Jt
-X2RhdGEvZWRtYS5oCj4+ICsrKyBiL2luY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9lZG1hLmgK
-Pj4gQEAgLTQzLDE1ICs0MywxNSBAQAo+Pgo+PiAgLyogUGFSQU0gc2xvdHMgYXJlIGxhaWQgb3V0
-IGxpa2UgdGhpcyAqLwo+PiAgc3RydWN0IGVkbWFjY19wYXJhbSB7Cj4+IC0gICAgICAgdW5zaWdu
-ZWQgaW50IG9wdDsKPj4gLSAgICAgICB1bnNpZ25lZCBpbnQgc3JjOwo+PiAtICAgICAgIHVuc2ln
-bmVkIGludCBhX2JfY250Owo+PiAtICAgICAgIHVuc2lnbmVkIGludCBkc3Q7Cj4+IC0gICAgICAg
-dW5zaWduZWQgaW50IHNyY19kc3RfYmlkeDsKPj4gLSAgICAgICB1bnNpZ25lZCBpbnQgbGlua19i
-Y250cmxkOwo+PiAtICAgICAgIHVuc2lnbmVkIGludCBzcmNfZHN0X2NpZHg7Cj4+IC0gICAgICAg
-dW5zaWduZWQgaW50IGNjbnQ7Cj4+IC19Owo+PiArICAgICAgIHUzMiBvcHQ7Cj4+ICsgICAgICAg
-dTMyIHNyYzsKPj4gKyAgICAgICB1MzIgYV9iX2NudDsKPj4gKyAgICAgICB1MzIgZHN0Owo+PiAr
-ICAgICAgIHUzMiBzcmNfZHN0X2JpZHg7Cj4+ICsgICAgICAgdTMyIGxpbmtfYmNudHJsZDsKPj4g
-KyAgICAgICB1MzIgc3JjX2RzdF9jaWR4Owo+PiArICAgICAgIHUzMiBjY250Owo+PiArfSBfX3Bh
-Y2tlZDsKPj4KPj4gIC8qIGZpZWxkcyBpbiBlZG1hY2NfcGFyYW0ub3B0ICovCj4+ICAjZGVmaW5l
-IFNBTSAgICAgICAgICAgIEJJVCgwKQo+IAo+IEkgY2FtZSBhY3Jvc3MgdGhpcyBwYXRjaCB3aGVu
-IEkgd2FzIGxvb2tpbmcgYXQgYSBwdWxsIHJlcXVlc3QgZnJvbQo+IFNla2hhciBmb3IgRURNQSBj
-bGVhbnVwcywgYW5kIGl0IG1hZGUgbWUgbG9vayBjbG9zZXIgYXQgdGhlIGNvbnRlbnRzCj4gb2Yg
-dGhpcyBmaWxlLgo+IAo+IFRoZSBpbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvIGRpcmVjdG9y
-eSBpcyBtZWFudCB0byBob2xkCj4gcGxhdGZvcm1fZGF0YSBkZWZpbml0aW9ucyBmb3IgZHJpdmVy
-cywgYW5kIG5vdGhpbmcgbW9yZS4KPiBwbGF0Zm9ybV9kYXRhL2VkbWEuaCBhbHNvIGNvbnRhaW5z
-IGEgd2hvbGUgYnVuY2ggb2YgaW50ZXJmYWNlCj4gZGVmaW5pdGlvbnMgZm9yIHRoZSBkcml2ZXIu
-IFRoZXkgZG8gbm90IGJlbG9uZyB0aGVyZSwgYW5kIHNob3VsZCBiZQo+IG1vdmVkIHRvIGEgZGlm
-ZmVyZW50IGluY2x1ZGUgZmlsZS4KPiAKPiBUaGF0IGFsc28gaW5jbHVkZXMgdGhlIGFib3ZlIHN0
-cnVjdCwgYmVjYXVzZSBhcyBmYXIgYXMgSSBjYW4gdGVsbCBpdCdzCj4gYSBydW50aW1lIHN0YXRl
-IHN0cnVjdHVyZSwgbm90IHNvbWV0aGluZyB0aGF0IGlzIHBhc3NlZCBpbiB3aXRoCj4gcGxhdGZv
-cm0gZGF0YS4KPiAKPiBDYW4gc29tZW9uZSBwbGVhc2UgY2xlYW4gdGhpcyB1cD8gVGhhbmtzLgoK
-SSB0aGluayBKb2VsIGlzIHdvcmtpbmcgb24gdG8gbW92ZS9tZXJnZSB0aGUgY29kZSBmcm9tIGFy
-Y2gvYXJtL2NvbW1vbi9lZG1hLmMKdG8gZHJpdmVycy9kbWEvZWRtYS5jCkknbSBzdXJlIHdpdGhp
-biB0aGlzIHdvcmsgaGUgaXMgZ29pbmcgdG8gY2xlYW4gdXAgdGhlIGhlYWRlciBmaWxlIGFzIHdl
-bGwuCkFzIGEgZmlyc3Qgc3RlcCBJIHRoaW5rIHRoZSBub24gcGxhdGZvcm1fZGF0YSBjb250ZW50
-IGNhbiBiZSBtb3ZlZCBhcwppbmNsdWRlL2xpbnV4L2VkbWEuaCBvciBwcm9iYWJseSBhcyB0aS1l
-ZG1hLmg/CgotLSAKUMOpdGVyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCkRhdmluY2ktbGludXgtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0CkRhdmluY2kt
-bGludXgtb3Blbi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5jb20KaHR0cDovL2xpbnV4LmRhdmlu
-Y2lkc3AuY29tL21haWxtYW4vbGlzdGluZm8vZGF2aW5jaS1saW51eC1vcGVuLXNvdXJjZQo=
+--shjFE6r06LKNH2Q5NkiWX5wGniMnJtPoR
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 27/05/14 12:49, Archit Taneja wrote:
+> On Tuesday 27 May 2014 02:04 PM, Tomi Valkeinen wrote:
+
+>> Hmm, maybe the above function, and the helper functions, should be
+>> changed a bit more, so that this function would do:
+>>
+>> ep =3D omapdss_of_get_first_endpoint(node);
+>> src_port =3D omapdss_of_get_remote_port(ep);
+>> src =3D omap_dss_find_output_by_port_node(src_port);
+>=20
+> src_port will be just on level up(the parent node), the source node wil=
+l
+> be still a couple of hops up.
+>=20
+> Getting the source node would require us to do some DT related hopping
+> in omap_dss_find_output_by_port_node(). And it'll also require parsing
+> of the dss output_list in output.c. I'm worried it'll be a bit messy,
+> and we might end up adding some DT parsing in output.c
+
+But now the function above is messy =3D).
+
+Well, I haven't thought what the code would actually be. I just thought
+the functions I wrote would be logical in this context. As the output
+omap_dss_device more or less is a "port", it would feel logical to ask
+for the omap_dss_device by giving the port node.
+
+But you're right, the function in output.c would need to do a bit more
+than now. Then again, we could add helper functions to dss-of.c, so that
+output.c wouldn't need to do them manually.
+
+I guess the helper funcs in this case would be:
+
+struct device_node *dss_of_port_get_parent_device(struct device_node *por=
+t);
+
+int dss_of_port_get_port_number(struct device_node *port);
+
+ Tomi
+
+
+
+--shjFE6r06LKNH2Q5NkiWX5wGniMnJtPoR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJThGfgAAoJEPo9qoy8lh71qe0P/idudQ8B9CgNB4EQXorswrQB
+FW35TNdDV51Q0RxoPbaYQul7vi3Sq2nzsrPA7tMYEs68f0UpJKxuW4WXiybFIY/+
+uHI6BYTnB6Hv49EGHJlMbnveHTPdz2gY1edEa1EBMVLtY4VcaLdibYLZCuOpFuqZ
+dfMkCzbcm1aIDoclg5VQWSo13OZDENJme0fvchOjjvJYLfImqcobiX7qRN7KkJ7J
+RukW9kfpYfCJNZCgY7LK1wfZoPYjnqLiOrqAD0rQkXRhhfxx5PgZQcMaLrJDI9Ou
+2Y7XnVNhW4RoVUy0lTslCBKAIoyM0hSop/QopHP+oZZkEiEBQEC4UXCsaRbwg4eN
+EhNMk+1GMvaA6UCudm6qYzZ/hbyn1gVDWQcUIYqgNZn3LZuRaPMyMO9Au70dN5Ee
+S6OmngKBLZbVGyAmIwt+c/cAKIdRIr9UVXYZxyq/B6kh8L2dK2oc9Si9YmQqWlv4
+5f15HMN9O+RfHrRY/VPX0q+OSPA/EFSS3RbHdQ+wIMu6T1X2TZwyhowvcjaux+Rf
+I9cyLirU6Yn+iHpBoMXqFJglu4LOrULM1Z1Lh14Q5KADWyYLwOIdu4CR9gGbq9k+
+yhQPS6BJ6uZv6D2DS7sZaaCdF0WEM+WsOwrjNblbIgxwKBLA4gjtsk7y3QeitpcF
+q68/xXq26xPzMpIJAh99
+=Mz5g
+-----END PGP SIGNATURE-----
+
+--shjFE6r06LKNH2Q5NkiWX5wGniMnJtPoR--
