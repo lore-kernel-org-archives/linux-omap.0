@@ -1,47 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 4/4] omap dt changes for v3.16 merge window, part 2
-Date: Mon, 26 May 2014 19:47:41 -0700
-Message-ID: <20140527024741.GA4662@atomide.com>
-References: <20140520013125.GH15793@atomide.com>
- <20140526200304.GH27093@quad.lixom.net>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 5/5] regulator: tps65917: Add Regulator driver for tps65917
+ PMIC
+Date: Tue, 27 May 2014 08:52:26 +0530
+Message-ID: <538404F2.9000505@ti.com>
+References: <1401098197-647-1-git-send-email-j-keerthy@ti.com> <1401098197-647-6-git-send-email-j-keerthy@ti.com> <20140526150052.GP22111@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44247 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751577AbaE0Crs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 May 2014 22:47:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20140526200304.GH27093@quad.lixom.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60523 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751887AbaE0DXg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 May 2014 23:23:36 -0400
+In-Reply-To: <20140526150052.GP22111@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org
 
-* Olof Johansson <olof@lixom.net> [140526 13:03]:
-> On Mon, May 19, 2014 at 06:31:25PM -0700, Tony Lindgren wrote:
-> > The following changes since commit 3fdb77174a2c173e0e69f2499b836a0e412f6c4d:
-> > 
-> >   ARM: dts: omap3-n900: use MATRIX_KEY for keymap (2014-05-06 10:22:51 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/dt-part2-v2
-> > 
-> > for you to fetch changes up to d712ff63b18309c939396f593510fbcccbafb9e4:
-> > 
-> >   ARM: dts: Enable mcpdm and mcbsp1 on DuoVero (2014-05-19 17:20:31 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > Device tree related changes for omaps.
-> 
-> Merged into next/dt.
-> 
-> I'd appreciate a bit more verbose tag messages though -- a very brief
-> overview of what's new in here, etc. I think you used to do them in the past?
+Hi Mark,
 
-Just laziness.. I'll have more verbose overview next time.
+On Monday 26 May 2014 08:30 PM, Mark Brown wrote:
+> On Mon, May 26, 2014 at 03:26:37PM +0530, Keerthy wrote:
+>> This patch adds support for TPS65917 PMIC regulators.
+>>
+>> The regulators set consists of 5 SMPSs and 5 LDOs. The output
+>> voltages are configurable and are meant to supply power to the
+>> main processor and other components.
+> This appears to look *very* like the Palmas driver, should it not be
+> sharing code with that?  If it were just data tables it'd be less of a
+> concern but there's quite a bit of actual code here.
+Yes it is. The difference is in the entire register space of the regulators
+between the two. There are other differences in how the ramp delay
+is configured and SMPS ordering. The difference is also a bit in the 
+programming
+sequence. I agree that largely it is Palmas based. I did not want to add 
+more
+checks in the probe of the palmas driver. Hence came up with a new one.
 
-Thanks,
+Coming to sharing the code, can we have 2 drivers which share the common
+functions with separate data and specific functions?
 
-Tony
+I just simply do not want to add anything more to the palmas driver 
+probe function.
+
+Kind Regards,
+Keerthy
