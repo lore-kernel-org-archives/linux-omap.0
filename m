@@ -1,118 +1,260 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/6] mfd: twl4030-power: Fix some defines for SW_EVENTS
-Date: Tue, 27 May 2014 11:08:56 -0700
-Message-ID: <1401214140-9828-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/6] mfd: twl4030-power: Add generic reset configuration
+Date: Tue, 27 May 2014 11:08:57 -0700
+Message-ID: <1401214140-9828-4-git-send-email-tony@atomide.com>
 References: <1401214140-9828-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41845 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41958 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752175AbaE0SJH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 14:09:07 -0400
+	with ESMTP id S1752175AbaE0SJK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 14:09:10 -0400
 In-Reply-To: <1401214140-9828-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: lee.jones@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-We have these bits partially defined in two different
-places, so let's fix them up and add defines for the
-missing bits. These bits are the same for P1_SW_EVENTS,
-P2_SW_EVENTS and P3_SW_EVENTS.
+The twl4030 PMIC needs to be configured properly for things like
+warm reset and deeper idle states so the PMIC manages the regulators
+properly based on the hardware triggers from the SoC. Earlier
+we have configured twl4030 using platform data, but we want to
+do it for device tree based booting also.
 
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
+In some cases configuring twl4030 is needed for things to work.
+For example, when rebooting an OMAP3530 at 125 MHz, it hangs.
+With this patch, TWL4030 will be reset when a warm reset occures,
+and OMAP3530 does not hang on reboot.
+
+Let's add device tree support and configure things for warm reset
+as the default when compatible = "ti,twl4030-power". More
+complicated configurations can be added to the driver based on
+other compatible flags.
+
+Note we now also make the pdata const like it should be.
+This allows use it for match->data with the device tree
+related functions.
+
+Based on earlier patch by Matthias Brugger <matthias.bgg@gmail.com>
+and Lesly A M <leslyam@ti.com>.
+
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Robert Nelson <robertcnelson@gmail.com>
+Cc: Peter De Schrijver <pdeschrijver@nvidia.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mfd/twl4030-power.c | 27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ .../devicetree/bindings/mfd/twl4030-power.txt      |   7 +-
+ drivers/mfd/twl4030-power.c                        | 109 ++++++++++++++++++---
+ include/linux/i2c/twl.h                            |   3 +
+ 3 files changed, 105 insertions(+), 14 deletions(-)
 
+diff --git a/Documentation/devicetree/bindings/mfd/twl4030-power.txt b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
+index 8e15ec3..b906116 100644
+--- a/Documentation/devicetree/bindings/mfd/twl4030-power.txt
++++ b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
+@@ -5,7 +5,12 @@ to control the power resources, including power scripts. For now, the
+ binding only supports the complete shutdown of the system after poweroff.
+ 
+ Required properties:
+-- compatible : must be "ti,twl4030-power"
++- compatible : must be one of the following
++	"ti,twl4030-power"
++	"ti,twl4030-power-reset"
++
++The use of ti,twl4030-power-reset is recommended at least on
++3530 that needs a special configuration for warm reset to work.
+ 
+ Optional properties:
+ - ti,use_poweroff: With this flag, the chip will initiates an ACTIVE-to-OFF or
 diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 1b30d8a..0b037dc 100644
+index 0b037dc..cb5b0cb 100644
 --- a/drivers/mfd/twl4030-power.c
 +++ b/drivers/mfd/twl4030-power.c
-@@ -34,8 +34,15 @@
+@@ -29,6 +29,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/platform_device.h>
+ #include <linux/of.h>
++#include <linux/of_device.h>
  
- static u8 twl4030_start_script_address = 0x2b;
+ #include <asm/mach-types.h>
  
--#define PWR_P1_SW_EVENTS	0x10
--#define PWR_DEVOFF		(1 << 0)
-+/* Register bits for P1, P2 and P3_SW_EVENTS */
-+#define PWR_STOPON_PRWON	BIT(6)
-+#define PWR_STOPON_SYSEN	BIT(5)
-+#define PWR_ENABLE_WARMRESET	BIT(4)
-+#define PWR_LVL_WAKEUP		BIT(3)
-+#define PWR_DEVACT		BIT(2)
-+#define PWR_DEVSLP		BIT(1)
-+#define PWR_DEVOFF		BIT(0)
+@@ -128,6 +129,40 @@ static u8 res_config_addrs[] = {
+ 	[RES_MAIN_REF]	= 0x94,
+ };
+ 
++/*
++ * Usable values for .remap_sleep and .remap_off
++ * Based on table "5.3.3 Resource Operating modes"
++ */
++enum {
++	TWL_REMAP_OFF = 0,
++	TWL_REMAP_SLEEP = 8,
++	TWL_REMAP_ACTIVE = 9,
++};
 +
- #define SEQ_OFFSYNC		(1 << 0)
++/*
++ * Macros to configure the PM register states for various resources.
++ * Note that we can make MSG_SINGULAR etc private to this driver once
++ * omap3 has been made DT only.
++ */
++#define TWL_DFLT_DELAY		2	/* typically 2 32 KiHz cycles */
++#define TWL_RESOURCE_SET(res, state)					\
++	{ MSG_SINGULAR(DEV_GRP_NULL, (res), (state)), TWL_DFLT_DELAY }
++#define TWL_RESOURCE_ON(res)	TWL_RESOURCE_SET(res, RES_STATE_ACTIVE)
++#define TWL_RESOURCE_OFF(res)	TWL_RESOURCE_SET(res, RES_STATE_OFF)
++#define TWL_RESOURCE_RESET(res)	TWL_RESOURCE_SET(res, RES_STATE_WRST)
++/*
++ * It seems that type1 and type2 is just the resource init order
++ * number for the type1 and type2 group.
++ */
++#define TWL_RESOURCE_GROUP_RESET(group, type1, type2)			\
++	{ MSG_BROADCAST(DEV_GRP_NULL, (group), (type1), (type2),	\
++		RES_STATE_WRST), TWL_DFLT_DELAY }
++#define TWL_REMAP_SLEEP(res, devgrp, typ, typ2)				\
++	{ .resource = (res), .devgroup = (devgrp),			\
++	  .type = (typ), .type2 = (typ2),				\
++	  .remap_off = TWL_REMAP_OFF,					\
++	  .remap_sleep = TWL_REMAP_SLEEP, }
++
+ static int twl4030_write_script_byte(u8 address, u8 byte)
+ {
+ 	int err;
+@@ -502,7 +537,8 @@ int twl4030_remove_script(u8 flags)
+ 	return err;
+ }
  
- #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
-@@ -52,10 +59,6 @@ static u8 twl4030_start_script_address = 0x2b;
- #define R_CFG_P2_TRANSITION	PHY_TO_OFF_PM_MASTER(0x37)
- #define R_CFG_P3_TRANSITION	PHY_TO_OFF_PM_MASTER(0x38)
+-static int twl4030_power_configure_scripts(struct twl4030_power_data *pdata)
++static int
++twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
+ {
+ 	int err;
+ 	int i;
+@@ -518,7 +554,8 @@ static int twl4030_power_configure_scripts(struct twl4030_power_data *pdata)
+ 	return 0;
+ }
  
--#define LVL_WAKEUP	0x08
+-static int twl4030_power_configure_resources(struct twl4030_power_data *pdata)
++static int
++twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
+ {
+ 	struct twl4030_resconfig *resconfig = pdata->resource_config;
+ 	int err;
+@@ -550,7 +587,7 @@ void twl4030_power_off(void)
+ 		pr_err("TWL4030 Unable to power off\n");
+ }
+ 
+-static bool twl4030_power_use_poweroff(struct twl4030_power_data *pdata,
++static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
+ 					struct device_node *node)
+ {
+ 	if (pdata && pdata->use_poweroff)
+@@ -562,10 +599,60 @@ static bool twl4030_power_use_poweroff(struct twl4030_power_data *pdata,
+ 	return false;
+ }
+ 
++#ifdef CONFIG_OF
++
++/* Generic warm reset configuration for omap3 */
++
++static struct twl4030_ins omap3_wrst_seq[] = {
++	TWL_RESOURCE_OFF(RES_NRES_PWRON),
++	TWL_RESOURCE_OFF(RES_RESET),
++	TWL_RESOURCE_RESET(RES_MAIN_REF),
++	TWL_RESOURCE_GROUP_RESET(RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2),
++	TWL_RESOURCE_RESET(RES_VUSB_3V1),
++	TWL_RESOURCE_GROUP_RESET(RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1),
++	TWL_RESOURCE_GROUP_RESET(RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0),
++	TWL_RESOURCE_ON(RES_RESET),
++	TWL_RESOURCE_ON(RES_NRES_PWRON),
++};
++
++static struct twl4030_script omap3_wrst_script = {
++	.script	= omap3_wrst_seq,
++	.size	= ARRAY_SIZE(omap3_wrst_seq),
++	.flags	= TWL4030_WRST_SCRIPT,
++};
++
++static struct twl4030_script *omap3_reset_scripts[] = {
++	&omap3_wrst_script,
++};
++
++static struct twl4030_resconfig omap3_rconfig[] = {
++	TWL_REMAP_SLEEP(RES_HFCLKOUT, DEV_GRP_P3, -1, -1),
++	TWL_REMAP_SLEEP(RES_VDD1, DEV_GRP_P1, -1, -1),
++	TWL_REMAP_SLEEP(RES_VDD2, DEV_GRP_P1, -1, -1),
++	{ 0, 0 },
++};
++
++static struct twl4030_power_data omap3_reset = {
++	.scripts		= omap3_reset_scripts,
++	.num			= ARRAY_SIZE(omap3_reset_scripts),
++	.resource_config	= omap3_rconfig,
++};
++
++static struct of_device_id twl4030_power_of_match[] = {
++	{
++		.compatible = "ti,twl4030-power-reset",
++		.data = &omap3_reset,
++	},
++	{ },
++};
++MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
++#endif	/* CONFIG_OF */
++
+ static int twl4030_power_probe(struct platform_device *pdev)
+ {
+-	struct twl4030_power_data *pdata = dev_get_platdata(&pdev->dev);
++	const struct twl4030_power_data *pdata = dev_get_platdata(&pdev->dev);
+ 	struct device_node *node = pdev->dev.of_node;
++	const struct of_device_id *match;
+ 	int err = 0;
+ 	int err2 = 0;
+ 	u8 val;
+@@ -586,8 +673,12 @@ static int twl4030_power_probe(struct platform_device *pdev)
+ 		return err;
+ 	}
+ 
++	match = of_match_device(of_match_ptr(twl4030_power_of_match),
++				&pdev->dev);
++	if (match && match->data)
++		pdata = match->data;
++
+ 	if (pdata) {
+-		/* TODO: convert to device tree */
+ 		err = twl4030_power_configure_scripts(pdata);
+ 		if (err) {
+ 			pr_err("TWL4030 failed to load scripts\n");
+@@ -637,14 +728,6 @@ static int twl4030_power_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_OF
+-static const struct of_device_id twl4030_power_of_match[] = {
+-	{.compatible = "ti,twl4030-power", },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
+-#endif
 -
--#define ENABLE_WARMRESET (1<<4)
--
- #define END_OF_SCRIPT		0x3f
+ static struct platform_driver twl4030_power_driver = {
+ 	.driver = {
+ 		.name	= "twl4030_power",
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index ade1c06..5fe0313 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -486,7 +486,10 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
+ #define RES_GRP_ALL		0x7	/* All resource groups */
  
- #define R_SEQ_ADD_A2S		PHY_TO_OFF_PM_MASTER(0x55)
-@@ -196,7 +199,7 @@ static int twl4030_config_wakeup3_sequence(u8 address)
- 	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &data, R_P3_SW_EVENTS);
- 	if (err)
- 		goto out;
--	data |= LVL_WAKEUP;
-+	data |= PWR_LVL_WAKEUP;
- 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data, R_P3_SW_EVENTS);
- out:
- 	if (err)
-@@ -219,7 +222,7 @@ static int twl4030_config_wakeup12_sequence(u8 address)
- 	if (err)
- 		goto out;
+ #define RES_TYPE2_R0		0x0
++#define RES_TYPE2_R1		0x1
++#define RES_TYPE2_R2		0x2
  
--	data |= LVL_WAKEUP;
-+	data |= PWR_LVL_WAKEUP;
- 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data, R_P1_SW_EVENTS);
- 	if (err)
- 		goto out;
-@@ -228,7 +231,7 @@ static int twl4030_config_wakeup12_sequence(u8 address)
- 	if (err)
- 		goto out;
++#define RES_TYPE_R0		0x0
+ #define RES_TYPE_ALL		0x7
  
--	data |= LVL_WAKEUP;
-+	data |= PWR_LVL_WAKEUP;
- 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, data, R_P2_SW_EVENTS);
- 	if (err)
- 		goto out;
-@@ -281,7 +284,7 @@ static int twl4030_config_warmreset_sequence(u8 address)
- 	if (err)
- 		goto out;
- 
--	rd_data |= ENABLE_WARMRESET;
-+	rd_data |= PWR_ENABLE_WARMRESET;
- 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, rd_data, R_P1_SW_EVENTS);
- 	if (err)
- 		goto out;
-@@ -290,7 +293,7 @@ static int twl4030_config_warmreset_sequence(u8 address)
- 	if (err)
- 		goto out;
- 
--	rd_data |= ENABLE_WARMRESET;
-+	rd_data |= PWR_ENABLE_WARMRESET;
- 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, rd_data, R_P2_SW_EVENTS);
- 	if (err)
- 		goto out;
-@@ -299,7 +302,7 @@ static int twl4030_config_warmreset_sequence(u8 address)
- 	if (err)
- 		goto out;
- 
--	rd_data |= ENABLE_WARMRESET;
-+	rd_data |= PWR_ENABLE_WARMRESET;
- 	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, rd_data, R_P3_SW_EVENTS);
- out:
- 	if (err)
+ /* Resource states */
 -- 
 1.8.1.1
 
