@@ -1,65 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 2/4] ARM: dts: am437x-gp-evm: add support for parallel
- NAND flash
-Date: Tue, 27 May 2014 14:19:44 -0700
-Message-ID: <20140527211943.GG32336@atomide.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
- <1400490948-11571-3-git-send-email-pekon@ti.com>
- <20140519220659.GF11945@atomide.com>
- <20980858CB6D3A4BAE95CA194937D5E73EACE46E@DBDE04.ent.ti.com>
- <20140520055258.GB27152@atomide.com>
- <20980858CB6D3A4BAE95CA194937D5E73EACE4F3@DBDE04.ent.ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc: enable BCH_HW ecc-scheme for AM43xx
+ platforms
+Date: Tue, 27 May 2014 14:22:58 -0700
+Message-ID: <20140527212257.GH32336@atomide.com>
+References: <1400498556-24005-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26234 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32241 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753414AbaE0VTw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 17:19:52 -0400
+	with ESMTP id S1752126AbaE0VXF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 17:23:05 -0400
 Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EACE4F3@DBDE04.ent.ti.com>
+In-Reply-To: <1400498556-24005-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>
+To: Pekon Gupta <pekon@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 
-* Gupta, Pekon <pekon@ti.com> [140519 23:10]:
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> >* Gupta, Pekon <pekon@ti.com> [140519 21:07]:
-> >> From: Tony Lindgren [mailto:tony@atomide.com]
-> >> >* Pekon Gupta <pekon@ti.com> [140519 02:16]:
-> >> >> Adds pinmux and DT node for Micron (MT29F4G08AB) x8 NAND device present on
-> >> >> am437x-gp-evm board.
-> >> >> (1) As NAND Flash data lines are muxed with eMMC, Thus at a given time either
-> >> >>     eMMC or NAND can be enabled. Selection between eMMC and NAND is controlled:
-> >> >>     (a) By dynamically driving following GPIO pin from software
-> >> >>         SPI2_CS0(GPIO) == 0 NAND is selected (default)
-> >> >>         SPI2_CS0(GPIO) == 1 eMMC is selected
-> >> >>     (b) By statically using Jumper (J89) on the board
-> >> >
-> >> >So which MMC controller has eMMC then? How do we select which one we
-> >> >have enabled in the am437x-gp-evm.dts by default?
-> >> >
-> >> If there is no Jumper on the board, then driving SPI2_CS0 before device
-> >> probe decides the selection between NAND and eMMC. Therefore NAND
-> >> pin-mux also includes SPI2_CS0 and enables PULLDOWN on it to select NAND.
-> >
-> >So do they share lines outside omap, not inside omap?
-> >
-> >The reason I'm asking is I'm worried about the conflicting
-> >pinctrl settings if we try to use both. And I guess that's
-> >not an issue if the muxing of lines is done outside the
-> >omap?
-> >
-> Yes, the muxing is outside OMAP SoC, so if SPI2_CS0 is correctly
-> driven it will not allow contention on GPMC line (as per board design).
+* Pekon Gupta <pekon@ti.com> [140519 04:23]:
+> Fixes: commit 0611c41934ab35ce84dea34ab291897ad3cbc7be
+> ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
 > 
-> On am437x-gp-evm board, SPI2_CS0 is used to:
-> - route GPMC signals to selected device {eMMC | NAND}.
-> - keep the de-selected device {eMMC | NAND} in reset.
+> Though the commit log of above commit mentions AM43xx platforms, but code change
+> missed AM43xx. This patch adds AM43xx to list of those SoC which have built-in
+> ELM hardware engine, so that BCH ecc-schemes with hardware error-correction can
+> be enabled on AM43xx devices.
+> 
+> Reported-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
 
-OK thanks for clarifying that, applying into omap-for-v3.16/dt-v2.
-
-Regards,
+Applying into omap-for-v3.16/dt-v2 thanks.
 
 Tony
+
+> ---
+>  arch/arm/mach-omap2/gpmc-nand.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index 4349e82..17cd393 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -46,7 +46,7 @@ static struct platform_device gpmc_nand_device = {
+>  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+>  {
+>  	/* platforms which support all ECC schemes */
+> -	if (soc_is_am33xx() || cpu_is_omap44xx() ||
+> +	if (soc_is_am33xx() || soc_is_am43xx() || cpu_is_omap44xx() ||
+>  		 soc_is_omap54xx() || soc_is_dra7xx())
+>  		return 1;
+>  
+> -- 
+> 1.8.5.1.163.gd7aced9
+> 
