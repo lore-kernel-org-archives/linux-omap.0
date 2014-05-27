@@ -1,71 +1,324 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCHv5 09/10] DTS: ARM: OMAP3-N900: Add SSI support
-Date: Tue, 27 May 2014 22:47:31 +0200
-Message-ID: <20140527204730.GA30610@earth.universe>
-References: <1399739870-13526-10-git-send-email-sre@kernel.org>
- <20140514215503.GM27426@atomide.com>
- <20140520003538.GD15793@atomide.com>
- <20140521182513.GA26285@earth.universe>
- <20140521184319.GL17417@atomide.com>
- <20140521194527.GM17417@atomide.com>
- <20140521215055.GA26362@earth.universe>
- <20140521220807.GB14520@atomide.com>
- <20140522000558.GC29118@earth.universe>
- <20140527203543.GB32336@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] ARM: dts: Add LCD panel sharp ls037v7dw01 support
+ for omap3-evm and ldp
+Date: Tue, 27 May 2014 13:59:11 -0700
+Message-ID: <20140527205910.GE32336@atomide.com>
+References: <1398815562-24113-5-git-send-email-tony@atomide.com>
+ <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com>
+ <20140430174751.GA12362@atomide.com>
+ <20140505183919.GA15463@atomide.com>
+ <20140508233628.GJ2198@atomide.com>
+ <536C7EA7.5000306@ti.com>
+ <20140509153723.GD17814@atomide.com>
+ <20140513213205.GB18001@atomide.com>
+ <537C9FC6.8020104@ti.com>
+ <20140521145053.GG17417@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:45128 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752008AbaE0Uri (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 May 2014 16:47:38 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39314 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752008AbaE0U7S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 16:59:18 -0400
 Content-Disposition: inline
-In-Reply-To: <20140527203543.GB32336@atomide.com>
+In-Reply-To: <20140521145053.GG17417@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Carlos Chinea <cch.devel@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, Joni Lapilainen <joni.lapilainen@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Pavel Machek <pavel@ucw.cz>, Paul Walmsley <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Joachim Eastwood <manabian@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
+* Tony Lindgren <tony@atomide.com> [140521 07:51]:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [140521 05:45]:
+> > On 14/05/14 00:32, Tony Lindgren wrote:
+> > 
+> > > +&dss {
+> > > +	status = "ok";
+> > > +	vdds_dsi-supply = <&vpll2>;
+> > > +	port {
+> > > +		dpi_out: endpoint {
+> > > +			remote-endpoint = <&lcd_in>;
+> > > +			data-lines = <18>;
+> > > +		};
+> > > +	};
+> > > +};
+> > 
+> > I just noticed the vdds_dsi-supply there. While the driver currently
+> > uses that if available, I think it should be removed, and done the same
+> > way Florian did with his overo patches:
+> > 
+> > /* Needed to power the DPI pins */
+> > &vpll2 {
+> > 	regulator-always-on;
+> > };
+> > 
+> > That supply is not DSS's supply, but it's used to power up the pins. If
+> > the pins were used as GPIOs, that power should be enabled.
+> 
+> OK thanks for catching it.
 
---UugvWAfsgieZRqgk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In case you did not yet do it, here's this patch updated for you. I'm
+assuming you'll apply this to your panel dts branch. Let me know when the
+dependencies are in linux next and I'll test it one more time. The omap
+changes finally hit linux next as of today, so I'm only doing fixes
+and minimal changes for now.
 
-On Tue, May 27, 2014 at 01:35:44PM -0700, Tony Lindgren wrote:
-> Based on chatting with Paul it seems that we most likely don't have
-> bits for sysc_flags for SYSC_HAS_EMUFREE or SYSS_HAS_RESET_STATUS
-> either. So applying the updated patch below, and the SSI dts changes
-> into omap-for-v3.16/dt-v2.
->=20
-> I'm keeping your previous ack Sebastian as the the idlemodes did
-> not change from the previous version, hopefully that's OK with you.
+Regards,
 
-Sure, go for it.
+Tony
 
--- Sebastian
+8< ----------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 27 May 2014 11:31:02 -0700
+Subject: [PATCH] ARM: dts: Add LCD panel sharp ls037v7dw01 support for omap3-evm and ldp
 
---UugvWAfsgieZRqgk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Looks like quite a few omap3 boards have sharp ls037v7dw01 that's
+configured as various panel dpi entries for whatever legacy reasons.
+For device tree based support, let's just configure these properly for
+panel ls037v7dw01 instead of panel dpi.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+This patch creates a common file for panel ls037v7dw01, and makes
+boards ldp and omap3-evm to use it. The panel for ldp is configured
+in the qvga mode and omap3-evm panel in vga mode.
 
-iQIcBAEBCgAGBQJThPniAAoJENju1/PIO/qazuAP/jWUjp10rDZcckjKqggbXNZq
-8BJRYi8skClJDvpUpLq5C+FC2YGsrEXWeiI6+gjk7sVgjgSS4tFMIj94dpSWDfE/
-dp3FXPGDX5Q3CsX5I5zPVXU1TfszkgOF86E2P1RF4+ks1c/5ih7W++R45i4QvCM7
-+BeN9vcBrVZy+OkLWpCC5vdJM9lPzk6E4uD0KRxfL/AEgyF7ZyG8tilQVK73/FL6
-GtueirRT7uTox1/oi9+3644x3zRaPTJuo/EeX0pha5DSZx6yUPM1raR2QW0oI/V6
-mdXvwco6viNljS6NPUB/Mm/vMLGx9O9NpVK8Tf8tYZcZ6f482CutTkMQh3iDjH55
-zlZiHfknl+EaFGVJ6yHkeUfUe4kK89uMOCs7oZjkpnnqiqt9J9Sy/4hHgvkHvV44
-EzQ0CnDzt3SUAq9j2nlhGPNOqEUzqiTj/S3mFxnIE5SbpbtmIWY65mpzICnWyBVU
-a1pWeB4ZvIrTzQsoDmRu1SBm+22GClJf+85akgeddn3z8eBFABqC1hwOWnnbXb4o
-934N7E0mnB4mZ63gJJnUFfwY+vV70efDwXqxonAos7SJF6Er5YnnYei1cxRBNuSX
-yCVGnk8OIX9rCvOFS4/oUcIpvLXFVPEoMUIgHXDUxKepUv/hKuyaXYzLRuJ0ZJsf
-8guupD5jsKjqDJ6CqYuf
-=yBWr
------END PGP SIGNATURE-----
+The ls037v7dw01 also seems to be coupled with an ad7846 touchscreen
+controller for the omaps, so let's add a basic configuration for
+the touchscreen also using the default values.
 
---UugvWAfsgieZRqgk--
+Note that we can now remove the regulator-name = "vdds_dsi"
+entry for ldp, that's no longer needed as we have the entry
+for vdds_dsi-supply = <&vpll2>.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/dts/omap3-evm-37xx.dts
++++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
+@@ -26,7 +26,44 @@
+ 	};
+ };
+ 
++&dss {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&dss_dpi_pins1
++		&dss_dpi_pins2
++	>;
++};
++
+ &omap3_pmx_core {
++	dss_dpi_pins1: pinmux_dss_dpi_pins2 {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
++			OMAP3_CORE1_IOPAD(0x20d6, PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
++			OMAP3_CORE1_IOPAD(0x20d8, PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
++			OMAP3_CORE1_IOPAD(0x20da, PIN_OUTPUT | MUX_MODE0)   /* dss_acbias.dss_acbias */
++
++			OMAP3_CORE1_IOPAD(0x20e8, PIN_OUTPUT | MUX_MODE0)   /* dss_data6.dss_data6 */
++			OMAP3_CORE1_IOPAD(0x20ea, PIN_OUTPUT | MUX_MODE0)   /* dss_data7.dss_data7 */
++			OMAP3_CORE1_IOPAD(0x20ec, PIN_OUTPUT | MUX_MODE0)   /* dss_data8.dss_data8 */
++			OMAP3_CORE1_IOPAD(0x20ee, PIN_OUTPUT | MUX_MODE0)   /* dss_data9.dss_data9 */
++			OMAP3_CORE1_IOPAD(0x20f0, PIN_OUTPUT | MUX_MODE0)   /* dss_data10.dss_data10 */
++			OMAP3_CORE1_IOPAD(0x20f2, PIN_OUTPUT | MUX_MODE0)   /* dss_data11.dss_data11 */
++			OMAP3_CORE1_IOPAD(0x20f4, PIN_OUTPUT | MUX_MODE0)   /* dss_data12.dss_data12 */
++			OMAP3_CORE1_IOPAD(0x20f6, PIN_OUTPUT | MUX_MODE0)   /* dss_data13.dss_data13 */
++			OMAP3_CORE1_IOPAD(0x20f8, PIN_OUTPUT | MUX_MODE0)   /* dss_data14.dss_data14 */
++			OMAP3_CORE1_IOPAD(0x20fa, PIN_OUTPUT | MUX_MODE0)   /* dss_data15.dss_data15 */
++			OMAP3_CORE1_IOPAD(0x20fc, PIN_OUTPUT | MUX_MODE0)   /* dss_data16.dss_data16 */
++			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE0)   /* dss_data17.dss_data17 */
++
++			OMAP3_CORE1_IOPAD(0x2100, PIN_OUTPUT | MUX_MODE3)   /* dss_data18.dss_data0 */
++			OMAP3_CORE1_IOPAD(0x2102, PIN_OUTPUT | MUX_MODE3)   /* dss_data19.dss_data1 */
++			OMAP3_CORE1_IOPAD(0x2104, PIN_OUTPUT | MUX_MODE3)   /* dss_data20.dss_data2 */
++			OMAP3_CORE1_IOPAD(0x2106, PIN_OUTPUT | MUX_MODE3)   /* dss_data21.dss_data3 */
++			OMAP3_CORE1_IOPAD(0x2108, PIN_OUTPUT | MUX_MODE3)   /* dss_data22.dss_data4 */
++			OMAP3_CORE1_IOPAD(0x210a, PIN_OUTPUT | MUX_MODE3)   /* dss_data23.dss_data5 */
++		>;
++	};
++
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		pinctrl-single,pins = <
+ 			0x114 (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
+@@ -75,6 +112,19 @@
+ 	};
+ };
+ 
++&omap3_pmx_wkup {
++	dss_dpi_pins2: pinmux_dss_dpi_pins1 {
++		pinctrl-single,pins = <
++			0x0a (PIN_OUTPUT | MUX_MODE3)   /* sys_boot0.dss_data18 */
++			0x0c (PIN_OUTPUT | MUX_MODE3)   /* sys_boot1.dss_data19 */
++			0x10 (PIN_OUTPUT | MUX_MODE3)   /* sys_boot3.dss_data20 */
++			0x12 (PIN_OUTPUT | MUX_MODE3)   /* sys_boot4.dss_data21 */
++			0x14 (PIN_OUTPUT | MUX_MODE3)   /* sys_boot5.dss_data22 */
++			0x16 (PIN_OUTPUT | MUX_MODE3)   /* sys_boot6.dss_data23 */
++		>;
++	};
++};
++
+ &mmc1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc1_pins>;
+--- a/arch/arm/boot/dts/omap3-evm-common.dtsi
++++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
+@@ -44,6 +44,11 @@
+ 
+ #include "twl4030.dtsi"
+ #include "twl4030_omap3.dtsi"
++#include "omap3-panel-sharp-ls037v7dw01.dtsi"
++
++&backlight0 {
++	gpios = <&twl_gpio 18 GPIO_ACTIVE_LOW>;
++};
+ 
+ &twl {
+ 	twl_power: power {
+@@ -68,6 +73,32 @@
+ 	};
+ };
+ 
++&lcd_3v3 {
++	gpio = <&gpio5 25 GPIO_ACTIVE_LOW>;	/* gpio153 */
++	enable-active-low;
++};
++
++&lcd0 {
++	enable-gpios = <&gpio5 24 GPIO_ACTIVE_HIGH>;	/* gpio152, lcd INI */
++	reset-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;	/* gpio155, lcd RESB */
++	/*
++	 * The LCD is sideways, so we want the VGA mode instead of
++	 * QVGA mode. Probably also want to have omapfb.rotate=3
++	 * in the kernel cmdline until there's a binding for that.
++	 */
++	mode-gpios = <&gpio5 26 GPIO_ACTIVE_LOW		/* gpio154, lcd MO */
++		      &gpio1 2 GPIO_ACTIVE_HIGH		/* gpio2, lcd LR */
++		      &gpio1 3 GPIO_ACTIVE_HIGH>;	/* gpio3, lcd UD */
++};
++
++&mcspi1 {
++	tsc2046@0 {
++		interrupt-parent = <&gpio6>;
++		interrupts = <15 0>;		/* gpio175 */
++		pendown-gpio = <&gpio6 15 0>;
++	};
++};
++
+ &mmc1 {
+ 	vmmc-supply = <&vmmc1>;
+ 	vmmc_aux-supply = <&vsim>;
+--- a/arch/arm/boot/dts/omap3-ldp.dts
++++ b/arch/arm/boot/dts/omap3-ldp.dts
+@@ -164,6 +164,11 @@
+ 
+ #include "twl4030.dtsi"
+ #include "twl4030_omap3.dtsi"
++#include "omap3-panel-sharp-ls037v7dw01.dtsi"
++
++&backlight0 {
++	gpios = <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
++};
+ 
+ &i2c2 {
+ 	clock-frequency = <400000>;
+@@ -173,6 +178,25 @@
+ 	clock-frequency = <400000>;
+ };
+ 
++/* tps61130rsa enabled by twl4030 regen */
++&lcd_3v3 {
++	regulator-always-on;
++};
++
++&lcd0 {
++	enable-gpios = <&twl_gpio 15 GPIO_ACTIVE_HIGH>;	/* lcd INI */
++	reset-gpios = <&gpio2 23 GPIO_ACTIVE_HIGH>;	/* gpio55, lcd RESB */
++	mode-gpios = <&gpio2 24 GPIO_ACTIVE_HIGH>;	/* gpio56, lcd MO */
++};
++
++&mcspi1 {
++	tsc2046@0 {
++		interrupt-parent = <&gpio2>;
++		interrupts = <22 0>;		/* gpio54 */
++		pendown-gpio = <&gpio2 22 0>;
++	};
++};
++
+ &mmc1 {
+ 	/* See 35xx errata 2.1.1.128 in SPRZ278F */
+ 	compatible = "ti,omap3-pre-es3-hsmmc";
+@@ -251,8 +275,3 @@
+ 	/* Needed for ads7846 */
+         regulator-name = "vcc";
+ };
+-
+-&vpll2 {
+-       /* Needed for DSS */
+-       regulator-name = "vdds_dsi";
+-};
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
+@@ -0,0 +1,66 @@
++/*
++ * Common file for omap dpi panels with QVGA and reset pins
++ *
++ * Note that the board specifc DTS file needs to specify
++ * at minimum the GPIO enable-gpios for display, and
++ * gpios for gpio-backlight.
++ */
++
++/ {
++	aliases {
++		display0 = &lcd0;
++	};
++
++	backlight0: backlight {
++		compatible = "gpio-backlight";
++		default-on;
++	};
++
++	/* 3.3V GPIO controlled regulator for LCD_ENVDD */
++	lcd_3v3: regulator-lcd-3v3 {
++		compatible = "regulator-fixed";
++		regulator-name = "lcd_3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		startup-delay-us = <70000>;
++	};
++
++	lcd0: display {
++		compatible = "sharp,ls037v7dw01";
++		label = "lcd";
++		power-supply = <&lcd_3v3>;
++
++		port {
++			lcd_in: endpoint {
++				remote-endpoint = <&dpi_out>;
++			};
++		};
++	};
++};
++
++&dss {
++	status = "ok";
++	port {
++		dpi_out: endpoint {
++			remote-endpoint = <&lcd_in>;
++			data-lines = <18>;
++		};
++	};
++};
++
++&mcspi1 {
++	tsc2046@0 {
++		reg = <0>;			/* CS0 */
++		compatible = "ti,tsc2046";
++		spi-max-frequency = <1000000>;
++		vcc-supply = <&lcd_3v3>;
++		ti,x-min = /bits/ 16 <0>;
++		ti,x-max = /bits/ 16 <8000>;
++		ti,y-min = /bits/ 16 <0>;
++		ti,y-max = /bits/ 16 <4800>;
++		ti,x-plate-ohms = /bits/ 16 <40>;
++		ti,pressure-max = /bits/ 16 <255>;
++		ti,swap-xy;
++		linux,wakeup;
++	};
++};
