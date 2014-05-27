@@ -1,345 +1,71 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC 1/2] ARM: OMAP2+: hwmod: Add refcounting for modulemode
- shared by multiple hwmods
-Date: Tue, 27 May 2014 15:50:33 +0530
-Message-ID: <538466F1.3070806@ti.com>
-References: <alpine.DEB.2.02.1405141939030.21921@utopia.booyaka.com> <1401101095-27181-1-git-send-email-archit@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 01/10] platform_data: edma: Be precise with the paRAM
+	struct
+Date: Tue, 27 May 2014 13:22:49 +0300
+Message-ID: <53846779.4070204@ti.com>
+References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>	<1397475725-5036-2-git-send-email-peter.ujfalusi@ti.com>
+	<CAOesGMg43jT6D_ot2tKfRXXgAgwqs5Pu_tAFKc35yxLAczrzGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50914 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209AbaE0KWb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 06:22:31 -0400
-In-Reply-To: <1401101095-27181-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAOesGMg43jT6D_ot2tKfRXXgAgwqs5Pu_tAFKc35yxLAczrzGQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Koul,  Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, "dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: paul@pwsan.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 
-On Monday 26 May 2014 04:14 PM, Archit Taneja wrote:
-> Generally, IP blocks/modules within a clock domain each have their own
-> CM_x_CLKCTRL register, each having it's own MODULEMODE field to manage the
-> module.
-> 
-> DSS clockdoain, however, has multiple modules in it, but only one register
-> named CM_DSS_DSS_CLKCTRL, which contains one MODULEMODE register field.
-> 
-> Until now, we defined '.prcm.omap4.modulemode' only for the top level DSS
-> hwmod("dss_core") and didn't define it for other DSS hwmods(like "dss_dispc",
-> "dss_dsi1" and so on). This made the omapdss driver work as the top level DSS
-> platform device and the rest had a parent-child relationship. This ensured that
-> the parent hwmod("dss_core") is enabled if any of the children hwmods are
-> enabled while using omapdss.
-> 
-> This method, however, doesn't work when each hwmod is enabled individually.
-> This happens early in boot in omap_hwmod_setup_all, where each hwmod is enabled,
-> and then reset and idled. All the 'children' DSS hwmods fail to enable and
-> reset, since they don't enable modulemode.
-> 
-> The way to make such modules work both during initialization and when used by
-> pm runtime API in the driver would be to add refcounting for enabling/disabling
-> the modulemode field.
-> 
-> We add a new flag bit for the flag in omap_hwmod_omap4_prcm, which tells
-> omap_hwmod that this hwmod uses a modulemode field shared by other hwmods.
-> 
-> We create a struct called 'modulemode_shared'. The hwmod data file should define
-> a static instance of this struct. Each hwmod that uses this modulemode field
-> should hold a pointer to this instance.
-> 
-> omap_hwmod's soc enable_module and disable_module ops set the MODULEMODE
-> reigster bits only when the first module using it is enabled, or the last module
-> using it is disabled. We serialize accesses to the struct with a spinlock.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c | 123 +++++++++++++++++++++++++++++++++------
->  arch/arm/mach-omap2/omap_hwmod.h |  38 +++++++++---
->  2 files changed, 133 insertions(+), 28 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 66c60fe..b42718d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -973,17 +973,33 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
->   */
->  static void _omap4_enable_module(struct omap_hwmod *oh)
->  {
-> +	unsigned long flags;
-> +	struct modulemode_shared *mmode = NULL;
-> +	bool enable = true;
-> +
->  	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
->  		return;
->  
->  	pr_debug("omap_hwmod: %s: %s: %d\n",
->  		 oh->name, __func__, oh->prcm.omap4.modulemode);
->  
-> -	omap4_cminst_module_enable(oh->prcm.omap4.modulemode,
-> -				   oh->clkdm->prcm_partition,
-> -				   oh->clkdm->cm_inst,
-> -				   oh->clkdm->clkdm_offs,
-> -				   oh->prcm.omap4.clkctrl_offs);
-> +	if (oh->prcm.omap4.flags & HWMOD_OMAP4_MODULEMODE_SHARED) {
-> +		mmode = oh->prcm.omap4.modulemode_ref;
-> +
-> +		spin_lock_irqsave(&mmode->lock, flags);
-> +
-> +		enable = mmode->refcnt++ == 0;
-> +	}
-> +
-> +	if (enable)
-> +		omap4_cminst_module_enable(oh->prcm.omap4.modulemode,
-> +					   oh->clkdm->prcm_partition,
-> +					   oh->clkdm->cm_inst,
-> +					   oh->clkdm->clkdm_offs,
-> +					   oh->prcm.omap4.clkctrl_offs);
-> +
-> +	if (mmode)
-> +		spin_unlock_irqrestore(&mmode->lock, flags);
->  }
->  
->  /**
-> @@ -995,15 +1011,32 @@ static void _omap4_enable_module(struct omap_hwmod *oh)
->   */
->  static void _am33xx_enable_module(struct omap_hwmod *oh)
->  {
-> +	unsigned long flags;
-> +	struct modulemode_shared *mmode = NULL;
-> +	bool enable = true;
-> +
->  	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
->  		return;
->  
->  	pr_debug("omap_hwmod: %s: %s: %d\n",
->  		 oh->name, __func__, oh->prcm.omap4.modulemode);
->  
-> -	am33xx_cm_module_enable(oh->prcm.omap4.modulemode, oh->clkdm->cm_inst,
-> -				oh->clkdm->clkdm_offs,
-> -				oh->prcm.omap4.clkctrl_offs);
-> +	if (oh->prcm.omap4.flags & HWMOD_OMAP4_MODULEMODE_SHARED) {
-> +		mmode = oh->prcm.omap4.modulemode_ref;
-> +
-> +		spin_lock_irqsave(&mmode->lock, flags);
-> +
-> +		enable = mmode->refcnt++ == 0;
-> +	}
-> +
-> +	if (enable)
-> +		am33xx_cm_module_enable(oh->prcm.omap4.modulemode,
-> +					oh->clkdm->cm_inst,
-> +					oh->clkdm->clkdm_offs,
-> +					oh->prcm.omap4.clkctrl_offs);
-> +
-> +	if (mmode)
-> +		spin_unlock_irqrestore(&mmode->lock, flags);
->  }
->  
->  /**
-> @@ -1846,6 +1879,9 @@ static bool _are_any_hardreset_lines_asserted(struct omap_hwmod *oh)
->  static int _omap4_disable_module(struct omap_hwmod *oh)
->  {
->  	int v;
-> +	unsigned long flags;
-> +	struct modulemode_shared *mmode = NULL;
-> +	bool disable = true;
->  
->  	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
->  		return -EINVAL;
-> @@ -1859,15 +1895,30 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
->  
->  	pr_debug("omap_hwmod: %s: %s\n", oh->name, __func__);
->  
-> -	omap4_cminst_module_disable(oh->clkdm->prcm_partition,
-> +	if (oh->prcm.omap4.flags & HWMOD_OMAP4_MODULEMODE_SHARED) {
-> +		mmode = oh->prcm.omap4.modulemode_ref;
-> +
-> +		spin_lock_irqsave(&mmode->lock, flags);
-> +
-> +		WARN_ON(mmode->refcnt == 0);
-> +
-> +		disable = --mmode->refcnt == 0;
-> +	}
-> +
-> +	if (disable) {
-> +		omap4_cminst_module_disable(oh->clkdm->prcm_partition,
->  				    oh->clkdm->cm_inst,
->  				    oh->clkdm->clkdm_offs,
->  				    oh->prcm.omap4.clkctrl_offs);
->  
-> -	v = _omap4_wait_target_disable(oh);
-> -	if (v)
-> -		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-> -			oh->name);
-> +		v = _omap4_wait_target_disable(oh);
-> +		if (v)
-> +			pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-> +				oh->name);
-> +	}
-> +
-> +	if (mmode)
-> +		spin_unlock_irqrestore(&mmode->lock, flags);
->  
->  	return 0;
->  }
-> @@ -1882,6 +1933,9 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
->  static int _am33xx_disable_module(struct omap_hwmod *oh)
->  {
->  	int v;
-> +	unsigned long flags;
-> +	struct modulemode_shared *mmode = NULL;
-> +	bool disable = true;
->  
->  	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
->  		return -EINVAL;
-> @@ -1891,13 +1945,28 @@ static int _am33xx_disable_module(struct omap_hwmod *oh)
->  	if (_are_any_hardreset_lines_asserted(oh))
->  		return 0;
->  
-> -	am33xx_cm_module_disable(oh->clkdm->cm_inst, oh->clkdm->clkdm_offs,
-> -				 oh->prcm.omap4.clkctrl_offs);
-> +	if (oh->prcm.omap4.flags & HWMOD_OMAP4_MODULEMODE_SHARED) {
-> +		mmode = oh->prcm.omap4.modulemode_ref;
->  
-> -	v = _am33xx_wait_target_disable(oh);
-> -	if (v)
-> -		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-> -			oh->name);
-> +		spin_lock_irqsave(&mmode->lock, flags);
-> +
-> +		WARN_ON(mmode->refcnt == 0);
-> +
-> +		disable = --mmode->refcnt == 0;
-> +	}
-> +
-> +	if (disable) {
-> +		am33xx_cm_module_disable(oh->clkdm->cm_inst, oh->clkdm->clkdm_offs,
-> +					 oh->prcm.omap4.clkctrl_offs);
-> +
-> +		v = _am33xx_wait_target_disable(oh);
-> +		if (v)
-> +			pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-> +				oh->name);
-> +	}
-> +
-> +	if (mmode)
-> +		spin_unlock_irqrestore(&mmode->lock, flags);
->  
->  	return 0;
->  }
-> @@ -2751,6 +2820,13 @@ static int __init _register(struct omap_hwmod *oh)
->  	if (_lookup(oh->name))
->  		return -EEXIST;
->  
-> +	if (oh->prcm.omap4.flags & HWMOD_OMAP4_MODULEMODE_SHARED &&
-> +			!oh->prcm.omap4.modulemode_ref) {
-
-You might also want to check for someone populating a modulemode_ref but
-failing to populate the flag?
-
-Alternatively, Since you expect a modulemode_ref to be always available for all modules which
-share modulemode, that in itself can be used to identify such modules without the
-need of an additional flag?
-
-> +		pr_err("omap_hwmod: %s shares modulemode, but doesn't hold a ref to it\n",
-> +			oh->name);
-> +		return -EINVAL;
-> +	}
-> +
->  	list_add_tail(&oh->node, &omap_hwmod_list);
->  
->  	INIT_LIST_HEAD(&oh->master_ports);
-> @@ -2759,6 +2835,15 @@ static int __init _register(struct omap_hwmod *oh)
->  
->  	oh->_state = _HWMOD_STATE_REGISTERED;
->  
-> +	if (oh->prcm.omap4.flags & HWMOD_OMAP4_MODULEMODE_SHARED) {
-> +		struct modulemode_shared *mmode = oh->prcm.omap4.modulemode_ref;
-> +
-> +		if (!mmode->registered) {
-> +			spin_lock_init(&mmode->lock);
-> +			mmode->registered = true;
-
-If this is only used to keep track of the spin_lock being initialized, maybe it'll be
-more readable if you just call it mmode->spin_lock_init = true.
-
-> +		}
-> +	}
-> +
->  	/*
->  	 * XXX Rather than doing a strcmp(), this should test a flag
->  	 * set in the hwmod data, inserted by the autogenerator code.
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-> index 0f97d63..64c2af6 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.h
-> +++ b/arch/arm/mach-omap2/omap_hwmod.h
-> @@ -432,13 +432,31 @@ struct omap_hwmod_omap2_prcm {
->  };
->  
->  /*
-> + * struct for managing modulemode field shared accross IP blocks
-> + * @lock: spinlock to searilze enables/disables performed by different
-> + *     hwmods sharing the same modulemode field
-> + * @refcnt: keep a refcount of the enabled hwmods using this modulemode
-> + *     field
-> + * @registered: a flag to track whether the struct has been registered
-> + */
-> +struct modulemode_shared {
-> +	spinlock_t	lock;
-> +	unsigned	refcnt;
-> +	bool		registered;
-> +};
-> +
-> +/*
->   * Possible values for struct omap_hwmod_omap4_prcm.flags
->   *
->   * HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT: Some IP blocks don't have a PRCM
->   *     module-level context loss register associated with them; this
->   *     flag bit should be set in those cases
-> + * HWMOD_OMAP4_MODULEMODE_SHARED: Some IP blocks belonging to the same
-> + *     clock domain may have a shared MODULEMODE field; this flag bit
-> + *     should be set in those cases
->   */
->  #define HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT		(1 << 0)
-> +#define HWMOD_OMAP4_MODULEMODE_SHARED		(1 << 1)
->  
->  /**
->   * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
-> @@ -450,6 +468,7 @@ struct omap_hwmod_omap2_prcm {
->   * @submodule_wkdep_bit: bit shift of the WKDEP range
->   * @flags: PRCM register capabilities for this IP block
->   * @modulemode: allowable modulemodes
-> + * @modulemode_ref: pointer to modulemode struct shared by multiple hwmods
->   * @context_lost_counter: Count of module level context lost
->   *
->   * If @lostcontext_mask is not defined, context loss check code uses
-> @@ -458,15 +477,16 @@ struct omap_hwmod_omap2_prcm {
->   * more hwmods.
->   */
->  struct omap_hwmod_omap4_prcm {
-> -	u16		clkctrl_offs;
-> -	u16		rstctrl_offs;
-> -	u16		rstst_offs;
-> -	u16		context_offs;
-> -	u32		lostcontext_mask;
-> -	u8		submodule_wkdep_bit;
-> -	u8		modulemode;
-> -	u8		flags;
-> -	int		context_lost_counter;
-> +	u16				clkctrl_offs;
-> +	u16				rstctrl_offs;
-> +	u16				rstst_offs;
-> +	u16				context_offs;
-> +	u32				lostcontext_mask;
-> +	u8				submodule_wkdep_bit;
-> +	u8				modulemode;
-> +	struct modulemode_shared	*modulemode_ref;
-> +	u8				flags;
-> +	int				context_lost_counter;
->  };
->  
->  
-> 
-
+T24gMDUvMjcvMjAxNCAxMjozMiBBTSwgT2xvZiBKb2hhbnNzb24gd3JvdGU6Cj4gSGksCj4gCj4g
+T24gTW9uLCBBcHIgMTQsIDIwMTQgYXQgNDo0MSBBTSwgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
+ZmFsdXNpQHRpLmNvbT4gd3JvdGU6Cj4+IFRoZSBlZG1hY2NfcGFyYW0gc3RydWN0IHNob3VsZCBm
+b2xsb3cgdGhlIGxheW91dCBvZiB0aGUgcGFSQU0gYXJlYSBpbiB0aGUKPj4gSFcuIEJlIGV4cGxp
+Y2l0IG9uIHRoZSBzaXplIG9mIHRoZSBmaWVsZHMgKHUzMikgYW5kIGFsc28gbWFyayB0aGUgc3Ry
+dWN0Cj4+IGFzIHBhY2tlZCB0byBhdm9pZCBhbnkgcGFkZGluZyBvbiBub24gMzJiaXQgYXJjaGl0
+ZWN0dXJlcy4KPj4KPj4gU2lnbmVkLW9mZi1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFs
+dXNpQHRpLmNvbT4KPj4gQWNrZWQtYnk6IEpvZWwgRmVybmFuZGVzIDxqb2VsZkB0aS5jb20+Cj4+
+IC0tLQo+PiAgaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kYXRhL2VkbWEuaCB8IDE4ICsrKysrKysr
+Ky0tLS0tLS0tLQo+PiAgMSBmaWxlIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlv
+bnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9lZG1h
+LmggYi9pbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvZWRtYS5oCj4+IGluZGV4IGY1MDgyMWNi
+NjRiZS4uOTIzZjhhM2U0Y2UwIDEwMDY0NAo+PiAtLS0gYS9pbmNsdWRlL2xpbnV4L3BsYXRmb3Jt
+X2RhdGEvZWRtYS5oCj4+ICsrKyBiL2luY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9lZG1hLmgK
+Pj4gQEAgLTQzLDE1ICs0MywxNSBAQAo+Pgo+PiAgLyogUGFSQU0gc2xvdHMgYXJlIGxhaWQgb3V0
+IGxpa2UgdGhpcyAqLwo+PiAgc3RydWN0IGVkbWFjY19wYXJhbSB7Cj4+IC0gICAgICAgdW5zaWdu
+ZWQgaW50IG9wdDsKPj4gLSAgICAgICB1bnNpZ25lZCBpbnQgc3JjOwo+PiAtICAgICAgIHVuc2ln
+bmVkIGludCBhX2JfY250Owo+PiAtICAgICAgIHVuc2lnbmVkIGludCBkc3Q7Cj4+IC0gICAgICAg
+dW5zaWduZWQgaW50IHNyY19kc3RfYmlkeDsKPj4gLSAgICAgICB1bnNpZ25lZCBpbnQgbGlua19i
+Y250cmxkOwo+PiAtICAgICAgIHVuc2lnbmVkIGludCBzcmNfZHN0X2NpZHg7Cj4+IC0gICAgICAg
+dW5zaWduZWQgaW50IGNjbnQ7Cj4+IC19Owo+PiArICAgICAgIHUzMiBvcHQ7Cj4+ICsgICAgICAg
+dTMyIHNyYzsKPj4gKyAgICAgICB1MzIgYV9iX2NudDsKPj4gKyAgICAgICB1MzIgZHN0Owo+PiAr
+ICAgICAgIHUzMiBzcmNfZHN0X2JpZHg7Cj4+ICsgICAgICAgdTMyIGxpbmtfYmNudHJsZDsKPj4g
+KyAgICAgICB1MzIgc3JjX2RzdF9jaWR4Owo+PiArICAgICAgIHUzMiBjY250Owo+PiArfSBfX3Bh
+Y2tlZDsKPj4KPj4gIC8qIGZpZWxkcyBpbiBlZG1hY2NfcGFyYW0ub3B0ICovCj4+ICAjZGVmaW5l
+IFNBTSAgICAgICAgICAgIEJJVCgwKQo+IAo+IEkgY2FtZSBhY3Jvc3MgdGhpcyBwYXRjaCB3aGVu
+IEkgd2FzIGxvb2tpbmcgYXQgYSBwdWxsIHJlcXVlc3QgZnJvbQo+IFNla2hhciBmb3IgRURNQSBj
+bGVhbnVwcywgYW5kIGl0IG1hZGUgbWUgbG9vayBjbG9zZXIgYXQgdGhlIGNvbnRlbnRzCj4gb2Yg
+dGhpcyBmaWxlLgo+IAo+IFRoZSBpbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvIGRpcmVjdG9y
+eSBpcyBtZWFudCB0byBob2xkCj4gcGxhdGZvcm1fZGF0YSBkZWZpbml0aW9ucyBmb3IgZHJpdmVy
+cywgYW5kIG5vdGhpbmcgbW9yZS4KPiBwbGF0Zm9ybV9kYXRhL2VkbWEuaCBhbHNvIGNvbnRhaW5z
+IGEgd2hvbGUgYnVuY2ggb2YgaW50ZXJmYWNlCj4gZGVmaW5pdGlvbnMgZm9yIHRoZSBkcml2ZXIu
+IFRoZXkgZG8gbm90IGJlbG9uZyB0aGVyZSwgYW5kIHNob3VsZCBiZQo+IG1vdmVkIHRvIGEgZGlm
+ZmVyZW50IGluY2x1ZGUgZmlsZS4KPiAKPiBUaGF0IGFsc28gaW5jbHVkZXMgdGhlIGFib3ZlIHN0
+cnVjdCwgYmVjYXVzZSBhcyBmYXIgYXMgSSBjYW4gdGVsbCBpdCdzCj4gYSBydW50aW1lIHN0YXRl
+IHN0cnVjdHVyZSwgbm90IHNvbWV0aGluZyB0aGF0IGlzIHBhc3NlZCBpbiB3aXRoCj4gcGxhdGZv
+cm0gZGF0YS4KPiAKPiBDYW4gc29tZW9uZSBwbGVhc2UgY2xlYW4gdGhpcyB1cD8gVGhhbmtzLgoK
+SSB0aGluayBKb2VsIGlzIHdvcmtpbmcgb24gdG8gbW92ZS9tZXJnZSB0aGUgY29kZSBmcm9tIGFy
+Y2gvYXJtL2NvbW1vbi9lZG1hLmMKdG8gZHJpdmVycy9kbWEvZWRtYS5jCkknbSBzdXJlIHdpdGhp
+biB0aGlzIHdvcmsgaGUgaXMgZ29pbmcgdG8gY2xlYW4gdXAgdGhlIGhlYWRlciBmaWxlIGFzIHdl
+bGwuCkFzIGEgZmlyc3Qgc3RlcCBJIHRoaW5rIHRoZSBub24gcGxhdGZvcm1fZGF0YSBjb250ZW50
+IGNhbiBiZSBtb3ZlZCBhcwppbmNsdWRlL2xpbnV4L2VkbWEuaCBvciBwcm9iYWJseSBhcyB0aS1l
+ZG1hLmg/CgotLSAKUMOpdGVyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCkRhdmluY2ktbGludXgtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0CkRhdmluY2kt
+bGludXgtb3Blbi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5jb20KaHR0cDovL2xpbnV4LmRhdmlu
+Y2lkc3AuY29tL21haWxtYW4vbGlzdGluZm8vZGF2aW5jaS1saW51eC1vcGVuLXNvdXJjZQo=
