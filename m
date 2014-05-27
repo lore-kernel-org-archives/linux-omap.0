@@ -1,133 +1,260 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH 4/5] [RFC] ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable
-Date: Tue, 27 May 2014 07:16:25 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAEA346@DBDE04.ent.ti.com>
-References: <1400799986-20043-1-git-send-email-chf.fritz@googlemail.com>
- <1400799986-20043-5-git-send-email-chf.fritz@googlemail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RFC v2 1/5] OMAPDSS: DSS: init dss ports cleanly
+Date: Tue, 27 May 2014 11:24:41 +0300
+Message-ID: <53844BC9.3060307@ti.com>
+References: <1399540517-17883-1-git-send-email-archit@ti.com> <1401096492-1405-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="NOTud9qcQJP5OEJtAs2jQm1RuR9UEVD0s"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42758 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45830 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885AbaE0HQ6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 03:16:58 -0400
-In-Reply-To: <1400799986-20043-5-git-send-email-chf.fritz@googlemail.com>
-Content-Language: en-US
+	with ESMTP id S1752074AbaE0IYt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 04:24:49 -0400
+Received: from dflxv15.itg.ti.com ([128.247.5.124])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id s4R8OnYj024036
+	for <linux-omap@vger.kernel.org>; Tue, 27 May 2014 03:24:49 -0500
+Received: from DLEE70.ent.ti.com (dlemailx.itg.ti.com [157.170.170.113])
+	by dflxv15.itg.ti.com (8.14.3/8.13.8) with ESMTP id s4R8OnCG023427
+	for <linux-omap@vger.kernel.org>; Tue, 27 May 2014 03:24:49 -0500
+In-Reply-To: <1401096492-1405-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>, Tony Lindgren <tony@atomide.com>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, "Javier Martinez Canillas (javier@dowhile0.org)" <javier@dowhile0.org>
-Cc: Daniel Mack <zonque@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org
 
->From: Christoph Fritz [mailto:chf.fritz@googlemail.com]
->
->Most dt omap3 boards configure nand-ecc-opt as bch8. Due
->to lack of hardware elm support, bch8 software implementation
->gets set.
->
->Since commit 0611c41934ab35ce84dea "ARM: OMAP2+: gpmc: update
->gpmc_hwecc_bch_capable() for new platforms and ECC schemes",
->nand support stops working.
->
->This patch allows ecc software fallback.
+--NOTud9qcQJP5OEJtAs2jQm1RuR9UEVD0s
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Pleas add following tag at top of commit message.
+On 26/05/14 12:28, Archit Taneja wrote:
+> The init/uninit port functions are used to set up the DPI and SDI outpu=
+ts under
+> the dss platform device. A 'reg' property is used to determine whether =
+the node
+> is DPI or SDI for OMAP34xx DSS revision. For other DSS revisions, only =
+DPI
+> output exists.
+>=20
+> For multiple DPI output instances(introduced in DRA7xx DSS), we would u=
+se the
+> 'reg' property in dts to specify the DPI output instance.
+>=20
+> The current functions work fine if there is only one DPI output instanc=
+e in
+> DSS. For multiple DPI instances, it would get complicated to figure out=
+ whether
+> 'reg' is used to specify whether the output is SDI, or another DPI inst=
+ance.
+>=20
+> We create a list of port types supported for each DSS rev, with the ind=
+ex of the
+> port in the list matching the reg id. This allows us to have a more gen=
+eric way
+> to init/uninit ports within DSS, and support multiple DPI ports.
+>=20
+> Also, make the uninit_port functions iterative since we will have multi=
+ple DPI
+> ports to uninit in the future.
+>=20
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/video/fbdev/omap2/dss/dpi.c |  2 +-
+>  drivers/video/fbdev/omap2/dss/dss.c | 84 +++++++++++++++++++++++++++++=
++-------
+>  drivers/video/fbdev/omap2/dss/dss.h | 27 +++++++++++-
+>  drivers/video/fbdev/omap2/dss/sdi.c |  2 +-
+>  4 files changed, 97 insertions(+), 18 deletions(-)
+>=20
+> diff --git a/drivers/video/fbdev/omap2/dss/dpi.c b/drivers/video/fbdev/=
+omap2/dss/dpi.c
+> index 9368972..8593567 100644
+> --- a/drivers/video/fbdev/omap2/dss/dpi.c
+> +++ b/drivers/video/fbdev/omap2/dss/dpi.c
+> @@ -769,7 +769,7 @@ err_datalines:
+>  	return r;
+>  }
+> =20
+> -void __exit dpi_uninit_port(void)
+> +void __exit dpi_uninit_port(struct device_node *port)
+>  {
+>  	if (!dpi.port_initialized)
+>  		return;
+> diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/=
+omap2/dss/dss.c
+> index 6daeb7e..54a84f4 100644
+> --- a/drivers/video/fbdev/omap2/dss/dss.c
+> +++ b/drivers/video/fbdev/omap2/dss/dss.c
+> @@ -70,6 +70,8 @@ struct dss_features {
+>  	u8 fck_div_max;
+>  	u8 dss_fck_multiplier;
+>  	const char *parent_clk_name;
+> +	enum omap_display_type *ports;
+> +	int num_ports;
+>  	int (*dpi_select_source)(enum omap_channel channel);
+>  };
+> =20
+> @@ -689,6 +691,22 @@ void dss_debug_dump_clocks(struct seq_file *s)
+>  }
+>  #endif
+> =20
+> +
+> +static enum omap_display_type omap2plus_ports[] =3D {
+> +#ifdef CONFIG_OMAP2_DSS_DPI
+> +	OMAP_DISPLAY_TYPE_DPI,
+> +#endif
+> +};
+> +
+> +static enum omap_display_type omap34xx_ports[] =3D {
+> +#ifdef CONFIG_OMAP2_DSS_DPI
+> +	OMAP_DISPLAY_TYPE_DPI,
+> +#endif
+> +#ifdef CONFIG_OMAP2_DSS_DSI
+> +	OMAP_DISPLAY_TYPE_SDI,
+> +#endif
+> +};
 
-Fixes: commit 0611c41934ab35ce84dea34ab291897ad3cbc7be
-ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
+If you do this, then if you disable DPI from kernel config, the port
+indexes change. The above should reflect the hardware, not which drivers
+the user has enabled in the kernel.
 
-And please mark it for 3.15 stable if this gets accepted after 3.15-rcx.
-Cc: <stable@vger.kernel.org> # 3.15.x+ 
+Also, you used DSI above, not SDI.
 
+>  static const struct dss_features omap24xx_dss_feats __initconst =3D {
+>  	/*
+>  	 * fck div max is really 16, but the divider range has gaps. The rang=
+e
+> @@ -698,6 +716,8 @@ static const struct dss_features omap24xx_dss_feats=
+ __initconst =3D {
+>  	.dss_fck_multiplier	=3D	2,
+>  	.parent_clk_name	=3D	"core_ck",
+>  	.dpi_select_source	=3D	&dss_dpi_select_source_omap2_omap3,
+> +	.ports			=3D	omap2plus_ports,
+> +	.num_ports		=3D	ARRAY_SIZE(omap2plus_ports),
+>  };
+> =20
+>  static const struct dss_features omap34xx_dss_feats __initconst =3D {
+> @@ -705,6 +725,8 @@ static const struct dss_features omap34xx_dss_feats=
+ __initconst =3D {
+>  	.dss_fck_multiplier	=3D	2,
+>  	.parent_clk_name	=3D	"dpll4_ck",
+>  	.dpi_select_source	=3D	&dss_dpi_select_source_omap2_omap3,
+> +	.ports			=3D	omap34xx_ports,
+> +	.num_ports		=3D	ARRAY_SIZE(omap34xx_ports),
+>  };
+> =20
+>  static const struct dss_features omap3630_dss_feats __initconst =3D {
+> @@ -712,6 +734,8 @@ static const struct dss_features omap3630_dss_feats=
+ __initconst =3D {
+>  	.dss_fck_multiplier	=3D	1,
+>  	.parent_clk_name	=3D	"dpll4_ck",
+>  	.dpi_select_source	=3D	&dss_dpi_select_source_omap2_omap3,
+> +	.ports			=3D	omap2plus_ports,
+> +	.num_ports		=3D	ARRAY_SIZE(omap2plus_ports),
+>  };
+> =20
+>  static const struct dss_features omap44xx_dss_feats __initconst =3D {
+> @@ -719,6 +743,8 @@ static const struct dss_features omap44xx_dss_feats=
+ __initconst =3D {
+>  	.dss_fck_multiplier	=3D	1,
+>  	.parent_clk_name	=3D	"dpll_per_x2_ck",
+>  	.dpi_select_source	=3D	&dss_dpi_select_source_omap4,
+> +	.ports			=3D	omap2plus_ports,
+> +	.num_ports		=3D	ARRAY_SIZE(omap2plus_ports),
+>  };
+> =20
+>  static const struct dss_features omap54xx_dss_feats __initconst =3D {
+> @@ -726,6 +752,8 @@ static const struct dss_features omap54xx_dss_feats=
+ __initconst =3D {
+>  	.dss_fck_multiplier	=3D	1,
+>  	.parent_clk_name	=3D	"dpll_per_x2_ck",
+>  	.dpi_select_source	=3D	&dss_dpi_select_source_omap5,
+> +	.ports			=3D	omap2plus_ports,
+> +	.num_ports		=3D	ARRAY_SIZE(omap2plus_ports),
+>  };
+> =20
+>  static const struct dss_features am43xx_dss_feats __initconst =3D {
+> @@ -733,6 +761,8 @@ static const struct dss_features am43xx_dss_feats _=
+_initconst =3D {
+>  	.dss_fck_multiplier	=3D	0,
+>  	.parent_clk_name	=3D	NULL,
+>  	.dpi_select_source	=3D	&dss_dpi_select_source_omap2_omap3,
+> +	.ports			=3D	omap2plus_ports,
+> +	.num_ports		=3D	ARRAY_SIZE(omap2plus_ports),
+>  };
+> =20
+>  static int __init dss_init_features(struct platform_device *pdev)
+> @@ -798,6 +828,9 @@ static int __init dss_init_ports(struct platform_de=
+vice *pdev)
+>  	if (!port)
+>  		return 0;
+> =20
+> +	if (dss.feat->num_ports =3D=3D 0)
+> +		return 0;
+> +
+>  	do {
+>  		u32 reg;
+> =20
+> @@ -805,30 +838,53 @@ static int __init dss_init_ports(struct platform_=
+device *pdev)
+>  		if (r)
+>  			reg =3D 0;
+> =20
+> -#ifdef CONFIG_OMAP2_DSS_DPI
+> -		if (reg =3D=3D 0)
+> +		if (reg > dss.feat->num_ports - 1)
+> +			continue;
 
->---
-> arch/arm/mach-omap2/gpmc-nand.c |   16 ++++++----------
-> 1 file changed, 6 insertions(+), 10 deletions(-)
->
->diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
->index 4349e82..52c4834 100644
->--- a/arch/arm/mach-omap2/gpmc-nand.c
->+++ b/arch/arm/mach-omap2/gpmc-nand.c
->@@ -43,13 +43,17 @@ static struct platform_device gpmc_nand_device = {
-> 	.resource	= gpmc_nand_resource,
-> };
->
->-static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
->+static bool gpmc_ecc_bch_capable(enum omap_ecc ecc_opt)
+Maybe matter of taste, but I like (reg >=3D dss.feat_num_ports) more.
 
-I don't think this renaming is really required with this fix, so please
-drop it and just keep it simple only for OMAP3 fix.
+> +
+> +		if (dss.feat->ports[reg] =3D=3D OMAP_DISPLAY_TYPE_DPI)
+>  			dpi_init_port(pdev, port);
+> -#endif
+> =20
+> -#ifdef CONFIG_OMAP2_DSS_SDI
+> -		if (reg =3D=3D 1)
+> +		if (dss.feat->ports[reg] =3D=3D OMAP_DISPLAY_TYPE_SDI)
+>  			sdi_init_port(pdev, port);
+> -#endif
 
+Maybe the above could be something like this in pseudo code:
 
-> {
-> 	/* platforms which support all ECC schemes */
-> 	if (soc_is_am33xx() || cpu_is_omap44xx() ||
-> 		 soc_is_omap54xx() || soc_is_dra7xx())
-> 		return 1;
->
->+	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) ||
->+		(ecc_opt == OMAP_ECC_BCH8_CODE_HW_DETECTION_SW))
->+		return 1;
->+
+port_type =3D dss.feat->ports[reg];
 
-Note: Some very old legacy platforms have initial version of GPMC engine
-which only supports Hamming ECC, and not BCH ECC scheme, so lets
-filter them out to maintain backward compatibility.
-
-(1) As per TRM, OMAP2 platform does not support BCH ECC schemes,
-      So please filter out OMAP2 devices from this check ...
-
-(2) I don't know the history but below comment says:
-"* For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1"
-
-if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) ||
-	 (ecc_opt == OMAP_ECC_BCH8_CODE_HW_DETECTION_SW))  {
-	if (cpu_is_omap24xx())
-		return 0;
-	else if (cpu_is_omap3630() && (GET_OMAP_REVISION() == 0))
-		return 0;
-	else
-		return 1;
+switch (port_type) {
+case OMAP_DISPLAY_TYPE_DPI:
+	dpi_init_port(pdev, port);
+	break;
+=2E..
 }
 
-
-> 	/* OMAP3xxx do not have ELM engine, so cannot support ECC schemes
-> 	 * which require H/W based ECC error detection */
-> 	if ((cpu_is_omap34xx() || cpu_is_omap3630()) &&
->@@ -57,14 +61,6 @@ static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
-> 		 (ecc_opt == OMAP_ECC_BCH8_CODE_HW)))
-> 		return 0;
->
->-	/*
->-	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
->-	 * and AM33xx derivates. Other chips may be added if confirmed to work.
->-	 */
->-	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) &&
->-	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)))
->-		return 0;
->-
-Thanks for removing this, I too wasn't confident of this either.
+ Tomi
 
 
-> 	/* legacy platforms support only HAM1 (1-bit Hamming) ECC scheme */
-> 	if (ecc_opt == OMAP_ECC_HAM1_CODE_HW)
-> 		return 1;
->@@ -140,7 +136,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->
-> 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
->
->-	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
->+	if (!gpmc_ecc_bch_capable(gpmc_nand_data->ecc_opt)) {
 
-Please drop this renaming from this patch.
+--NOTud9qcQJP5OEJtAs2jQm1RuR9UEVD0s
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> 		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
-> 		return -EINVAL;
-> 	}
->--
->1.7.10.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-You may send this patch separately apart from the series, so that
-this gets accepted in current 3.15-rcx.
+iQIcBAEBAgAGBQJThEvOAAoJEPo9qoy8lh71lrAP/3spM5435yVLYV8KZzDCVjYL
+asJHCiIf4JCQk3wBfqB3QxQuH3H6TKRIYvFW6kjfvIXT+LWsTS4bj8yHttk5EW3T
+1fj9p65G6sTTVQk1E9DH+oT/ufB9FSFvhdSfzMTwz6o5ULfcnarzsF4PCzAysBhV
+pESV/x/SBT7hqSjL1mpPTP/qUOnZzvx7hQs+hPLQKVMbiQFzfdu7z54+NqokSE8W
+7woiiB+D5S+ZjGQ1H2FUJpBn1B55C2PBcTvU1NrN3qnYIACQBIbIRzrgDEuOKVMW
+ZCb8lQSaUBnIUzZT/Aa5bHVWesckwAlATMQaWioefdTbwGQMH1MeyeMyAskJ8YMr
+UKxzQHlt3DpQP3pZN6DponsXsKSBdtEPcaSaByv/oS3CYSwFkHImAvbFYJQXiHQC
+6Fp+5vBNEmO7E9WezztHeg31AAOlKqdCMPb3hBAlpXJm2AD+CUTBuFAea5CrrlMa
+GYDxPzF9nV+qRhK11fMv2hjOKGyPXQt58wlTRhKbU0Zm/vEsnN8KyMXK81Jl1keC
+gGiMTesIbF3sZSqnGxC6xa/nL21n/5ZdaEPHxQvLuEtiKc0XWAbXEJJR6K4d6+KD
+sjSYR88v0XfiC5LFlAgZPy2AGMswl6MtW0B9kymb2vqMmBB0k/oiWILFApe0/d7F
+fKUA//h4UYUlYEycIEFQ
+=aSnu
+-----END PGP SIGNATURE-----
 
-with regards, pekon
+--NOTud9qcQJP5OEJtAs2jQm1RuR9UEVD0s--
