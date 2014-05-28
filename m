@@ -1,57 +1,173 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC v2 0/6] ARM: dts: Add a new clk provider, and implement dss_deshdcp clock with it
-Date: Wed, 28 May 2014 16:20:49 +0530
-Message-ID: <1401274255-16845-1-git-send-email-archit@ti.com>
+Subject: [RFC v2 1/6] CLK: TI: clockdomain: add support for retrying init
+Date: Wed, 28 May 2014 16:20:50 +0530
+Message-ID: <1401274255-16845-2-git-send-email-archit@ti.com>
 References: <1397654063-8055-1-git-send-email-archit@ti.com>
+ <1401274255-16845-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53577 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53581 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751441AbaE1KwU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 May 2014 06:52:20 -0400
-In-Reply-To: <1397654063-8055-1-git-send-email-archit@ti.com>
+	id S1751441AbaE1KwW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 May 2014 06:52:22 -0400
+In-Reply-To: <1401274255-16845-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, t-kristo@ti.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-This series tries to create CONTROL_MODULE_CORE as a new clock provider, and
-create a clock using it required by DSS on DRA7.
+From: Tero Kristo <t-kristo@ti.com>
 
-The previous revision of the series added the new clock provider within prcm
-driver code itself. Suggestions were made by Paul and Tero to move it to control
-module driver code.
+Retry init is needed if clockdomains are registered before the corresponding
+clocks are ready. In this case, the clockdomain info is added to a list
+which will be processed once the clockdomains for next PRCM module are
+processed.
 
-I picked up 2 patches from Tero's WIP branch below, and added DRA7's control
-module core block as a clock provider. The DSS_DESHDCP clock is easy to
-implement after that.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/prm_common.c |  3 +-
+ drivers/clk/ti/clockdomain.c     | 77 ++++++++++++++++++++++++++++++++++------
+ include/linux/clk/ti.h           |  2 +-
+ 3 files changed, 68 insertions(+), 14 deletions(-)
 
-https://github.com/t-kristo/linux-pm/tree/3.14-rc4-cm-prm-driver-wip 
-
-Archit Taneja (5):
-  ARM: PRCM: split PRCM module init to their own driver files
-  ARM: OMAP2+: Add CONTROL_MODULE_CORE as a clock provider for DRA7x
-  ARM: dts: Add ctrl-core DT node for DRA7
-  ARM: dts: Add dss_deshdcp clock node under dra7-ctrl-core
-  CLK: TI: Enable dss_deshdcp clock in dra7xx_clk_init
-
-Tero Kristo (1):
-  CLK: TI: clockdomain: add support for retrying init
-
- arch/arm/boot/dts/dra7.dtsi          | 13 ++++++
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 10 +++++
- arch/arm/mach-omap2/cm_common.c      | 18 +++++++++
- arch/arm/mach-omap2/control.c        | 35 ++++++++++++++++
- arch/arm/mach-omap2/control.h        |  1 +
- arch/arm/mach-omap2/io.c             |  4 ++
- arch/arm/mach-omap2/prcm-common.h    |  5 +++
- arch/arm/mach-omap2/prm_common.c     | 55 +++++++++++++++-----------
- drivers/clk/ti/clk-7xx.c             |  8 +++-
- drivers/clk/ti/clockdomain.c         | 77 ++++++++++++++++++++++++++++++------
- include/linux/clk/ti.h               |  2 +-
- 11 files changed, 192 insertions(+), 36 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index b4c4ab9..56462af 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -523,10 +523,9 @@ int __init of_prcm_init(void)
+ 		mem = of_iomap(np, 0);
+ 		clk_memmaps[memmap_index] = mem;
+ 		ti_dt_clk_init_provider(np, memmap_index);
++		ti_dt_clockdomains_setup(np);
+ 		memmap_index++;
+ 	}
+ 
+-	ti_dt_clockdomains_setup();
+-
+ 	return 0;
+ }
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
+index f1e0038..29fa543 100644
+--- a/drivers/clk/ti/clockdomain.c
++++ b/drivers/clk/ti/clockdomain.c
+@@ -24,26 +24,60 @@
+ #undef pr_fmt
+ #define pr_fmt(fmt) "%s: " fmt, __func__
+ 
+-static void __init of_ti_clockdomain_setup(struct device_node *node)
++struct clkdm_init_item {
++	struct device_node *node;
++	int index;
++	struct list_head link;
++};
++
++static LIST_HEAD(retry_list);
++
++static int of_ti_init_clk_clkdm(struct device_node *node, int index)
+ {
+ 	struct clk *clk;
+ 	struct clk_hw *clk_hw;
+-	const char *clkdm_name = node->name;
++
++	clk = of_clk_get(node, index);
++
++	if (IS_ERR_OR_NULL(clk)) {
++		pr_debug("%s[%d] = %08x\n", node->name, index, (u32)clk);
++		return -EBUSY;
++	}
++
++	if (__clk_get_flags(clk) & CLK_IS_BASIC) {
++		pr_warn("can't setup clkdm for basic clk %s\n",
++			__clk_get_name(clk));
++		return -EINVAL;
++	}
++
++	clk_hw = __clk_get_hw(clk);
++	to_clk_hw_omap(clk_hw)->clkdm_name = node->name;
++	omap2_init_clk_clkdm(clk_hw);
++
++	return 0;
++}
++
++static void __init of_ti_clockdomain_setup(struct device_node *node)
++{
+ 	int i;
+ 	int num_clks;
++	struct clkdm_init_item *retry;
++	int ret;
+ 
+ 	num_clks = of_count_phandle_with_args(node, "clocks", "#clock-cells");
+ 
+ 	for (i = 0; i < num_clks; i++) {
+-		clk = of_clk_get(node, i);
+-		if (__clk_get_flags(clk) & CLK_IS_BASIC) {
+-			pr_warn("can't setup clkdm for basic clk %s\n",
+-				__clk_get_name(clk));
++		ret = of_ti_init_clk_clkdm(node, i);
++
++		if (ret == -EBUSY) {
++			retry = kzalloc(sizeof(*retry), GFP_KERNEL);
++			if (!retry)
++				return;
++			retry->node = node;
++			retry->index = i;
++			list_add(&retry->link, &retry_list);
+ 			continue;
+ 		}
+-		clk_hw = __clk_get_hw(clk);
+-		to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
+-		omap2_init_clk_clkdm(clk_hw);
+ 	}
+ }
+ 
+@@ -61,10 +95,31 @@ static struct of_device_id ti_clkdm_match_table[] __initdata = {
+  * called after rest of the DT clock init has completed and all
+  * clock nodes have been registered.
+  */
+-void __init ti_dt_clockdomains_setup(void)
++void __init ti_dt_clockdomains_setup(struct device_node *node)
+ {
+ 	struct device_node *np;
+-	for_each_matching_node(np, ti_clkdm_match_table) {
++	struct device_node *clkdms;
++	struct clkdm_init_item *retry, *tmp;
++	int ret;
++
++	clkdms = of_get_child_by_name(node, "clockdomains");
++	if (!clkdms)
++		return;
++
++	list_for_each_entry_safe(retry, tmp, &retry_list, link) {
++		pr_debug("retry-init: %s [%d]\n", retry->node->name,
++			 retry->index);
++		ret = of_ti_init_clk_clkdm(retry->node, retry->index);
++		if (!ret) {
++			list_del(&retry->link);
++			kfree(retry);
++		}
++	}
++
++	for_each_child_of_node(clkdms, np) {
++		if (!of_match_node(ti_clkdm_match_table, np))
++			continue;
++
+ 		of_ti_clockdomain_setup(np);
+ 	}
+ }
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 4a21a87..20dd7c0 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -263,7 +263,7 @@ void omap3_clk_lock_dpll5(void);
+ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
+ void ti_dt_clk_init_provider(struct device_node *np, int index);
+-void ti_dt_clockdomains_setup(void);
++void ti_dt_clockdomains_setup(struct device_node *node);
+ int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+ 		      ti_of_clk_init_cb_t func);
+ int of_ti_clk_autoidle_setup(struct device_node *node);
 -- 
 1.8.3.2
 
