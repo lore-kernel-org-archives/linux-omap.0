@@ -1,103 +1,51 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 4/4] ARM: dts: Add LCD panel sharp ls037v7dw01 support
  for omap3-evm and ldp
-Date: Wed, 28 May 2014 09:31:00 +0300
-Message-ID: <538582A4.7070104@ti.com>
-References: <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com> <20140430174751.GA12362@atomide.com> <20140505183919.GA15463@atomide.com> <20140508233628.GJ2198@atomide.com> <536C7EA7.5000306@ti.com> <20140509153723.GD17814@atomide.com> <20140513213205.GB18001@atomide.com> <537C9FC6.8020104@ti.com> <20140521145053.GG17417@atomide.com> <20140527205910.GE32336@atomide.com> <20140527211405.GF32336@atomide.com>
+Date: Wed, 28 May 2014 09:34:33 +0300
+Message-ID: <53858379.4050401@ti.com>
+References: <1398815562-24113-5-git-send-email-tony@atomide.com> <CAGhQ9Vwa8xXQEo5dNEKAvmaS9DoBjVSthtd8=owk+atVdFuiiA@mail.gmail.com> <20140430174751.GA12362@atomide.com> <20140505183919.GA15463@atomide.com> <20140508233628.GJ2198@atomide.com> <536C7EA7.5000306@ti.com> <20140509153723.GD17814@atomide.com> <20140513213205.GB18001@atomide.com> <537C9FC6.8020104@ti.com> <20140521145053.GG17417@atomide.com> <20140527205910.GE32336@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="8q648nsAKHHOlXkUwrQ0HvkPAq3dle5RN"
+	boundary="GqAk0cWqsK2d11Sq7VxJ7N8nlXimBRmWI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50029 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503AbaE1Gbg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2014 02:31:36 -0400
-In-Reply-To: <20140527211405.GF32336@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:53280 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751155AbaE1GfH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 May 2014 02:35:07 -0400
+In-Reply-To: <20140527205910.GE32336@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Joachim Eastwood <manabian@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
---8q648nsAKHHOlXkUwrQ0HvkPAq3dle5RN
-Content-Type: multipart/mixed;
- boundary="------------070109090406040702030004"
-
-This is a multi-part message in MIME format.
---------------070109090406040702030004
+--GqAk0cWqsK2d11Sq7VxJ7N8nlXimBRmWI
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 28/05/14 00:14, Tony Lindgren wrote:
+On 27/05/14 23:59, Tony Lindgren wrote:
 
-> FYI, I'm getting this with current linux next:
->=20
-> omapfb omapfb: failed to allocate framebuffer
-> omapfb omapfb: failed to allocate fbmem
-> omapfb omapfb: failed to setup omapfb
-> omapfb: probe of omapfb failed with error -12
+> In case you did not yet do it, here's this patch updated for you. I'm
+> assuming you'll apply this to your panel dts branch. Let me know when t=
+he
+> dependencies are in linux next and I'll test it one more time. The omap=
 
-You need the attached patch to fix linux-next's dma alloc.
+> changes finally hit linux next as of today, so I'm only doing fixes
+> and minimal changes for now.
+
+I haven't pushed the dts changes to linux-next as the base branch was
+missing. Now that it's there, I have pushed the DSS dts changes also.
+
+You can do a manual merge if you want to try before linux-next is updated=
+:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git for-next
 
  Tomi
 
 
---------------070109090406040702030004
-Content-Type: text/x-patch;
- name="0001-mm-compaction-properly-signal-and-act-upon-lock-and-.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename*0="0001-mm-compaction-properly-signal-and-act-upon-lock-and-.pa";
- filename*1="tch"
 
-=46rom 88275fcdf6e7545e66fe35b822a41c9c017656f2 Mon Sep 17 00:00:00 2001
-From: Vlastimil Babka <vbabka@suse.cz>
-Date: Fri, 23 May 2014 10:18:56 +0200
-Subject: [PATCH]=20
- mm-compaction-properly-signal-and-act-upon-lock-and-need_sched-contentio=
-n-fix2
-
-Step 1: Change function name and comment between v1 and v2 so that the re=
-turn
-        value signals the opposite thing.
-Step 2: Change the call sites to reflect the opposite return value.
-Step 3: ???
-Step 4: Make a complete fool of yourself.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
----
- mm/compaction.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/mm/compaction.c b/mm/compaction.c
-index a525cd47a9d5..51750197db11 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -237,13 +237,13 @@ static inline bool compact_should_abort(struct comp=
-act_control *cc)
- 	if (need_resched()) {
- 		if (cc->mode =3D=3D MIGRATE_ASYNC) {
- 			cc->contended =3D true;
--			return false;
-+			return true;
- 		}
-=20
- 		cond_resched();
- 	}
-=20
--	return true;
-+	return false;
- }
-=20
- /* Returns true if the page is within a block suitable for migration to =
-*/
---=20
-1.9.1
-
-
---------------070109090406040702030004--
-
---8q648nsAKHHOlXkUwrQ0HvkPAq3dle5RN
+--GqAk0cWqsK2d11Sq7VxJ7N8nlXimBRmWI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -105,19 +53,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJThYKnAAoJEPo9qoy8lh717P4P/jlGCuWBM9OWvdvzJRFfUExD
-28tg5yUHTWMHcSQHpavfH7MwIbFAjAWYtJ8EPSoFnOFSDmzhJ08d689B7ELD1i04
-zy5wVof2hspmIzzY+QSuZJk6qtJ0zsBEC3AxNbgxXfDV7t+gTM0P6drzfGneFNvS
-MkawJcW7gsrdUTi6IV8wyKkGM2TFJKsZyOYQ9GdU2wNbVECz+UuE1FqZx+fyKSuN
-zOkJvA57fEjPuwgZBGMZ1QyWGFdWm7YRGAvShDl0jWHPmNKroqUyJk0Q0shIzpXC
-P1wuxkP7R2hbcKp57rvK6Ckb6DYwJY7E6iWaLzZwXESzysgnXvHndit3KGnxwXOJ
-24DuFPLYtK36Em1NSJMohRFdImh/qBAdxIesgszerablNv/c62EihPY/NIn+AcD/
-OMyx9T0rMcMV9qNjjwPMG1Gcz3Wgr61DK5/rHW6jbdCARbvHnNYvDjftiL683GoI
-7AvtXPd5d2JBHPHKIGtkf7tO/JWtsd6yMYe/exb9T/T4yd/Hc2LM31uTh2BdDJIj
-wNMTgmjDl6NeNc1NMCIdELuoxFpOjOEA+w5xWYiJCWhNOdQxy41dEm14xusQGyUB
-OyFJlfqyronCTLQFwmOKOtPHrZUmO1Y46vS8Tt2IrRmXzfyWiLbkeZhXY/xKQTNc
-TtrTpWyY4racgSlriPZa
-=/H6q
+iQIcBAEBAgAGBQJThYN5AAoJEPo9qoy8lh71TjcP/1Bc+EQ+fwDSDr2dkyUyk6Am
+Fn867ZdIQVuhtemQz2cl59+B4e665AwdRQD+HK9n7RuH3pD6ddtmvt4jM8aioq9R
+iRFjRmVoeznky/c22zdyUj/VrJ8lmAflZe4oJK6xIzXSPD+UzaQVqrQCtVHNXsQW
+VbZLacY/CecnxdZWjZD5y1+r3zFUSN2VHfXemxfP2phsPu2YN4IWQTvL3B+BHyh/
+Dtfx1xhSaoUC8dL6KTw2pNoPJJ6+QYvMUP94iqP2bKcPt//T5nRmCPtMVAD3QHLL
+IMH4onaE+wRYbbGVjYM5J63inM03eoVvVNunjWa6QU4ZQIwO8QMsLkTOc4rt+I2f
+/fsz16lhRDVxdiBsFZXJ33dbL7n7HEgAxQ9SGkvuCa6+P50yB939E+wLiAq3569o
+4ZPpm0W0TpIU5WPFV7Ov2imI7UJ3lzh96ra12iAGt6A00SzRZeol3HRnlj8yx+jl
+P0ikZIAfCIHXE+n3voSqAwUqrUHVcp4CI8GqeWCqSGGHHq6AZd6OENHmBItgM9r9
+Z6uRHjE+KSdKOM02R+iSxxcZxgscPs25zS0OmAvbiWW7ZC8NGjo8nyk6E6xdLVsH
+/tYwSA9wI9QbKJagAxCS7no7oSIjoBu8hRo8g2l8stRrb36l/WK7Y84X1K5IjL56
+PGbkI1a5aJnZGJksoe6a
+=unUc
 -----END PGP SIGNATURE-----
 
---8q648nsAKHHOlXkUwrQ0HvkPAq3dle5RN--
+--GqAk0cWqsK2d11Sq7VxJ7N8nlXimBRmWI--
