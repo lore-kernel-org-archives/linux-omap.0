@@ -1,81 +1,55 @@
-From: Satish Patel <satish.patel@ti.com>
-Subject: Re: [PATCH v2 0/5] Smart Card(SC) interface, TI USIM & NxP SC phy
- driver
-Date: Wed, 28 May 2014 14:30:06 +0530
-Message-ID: <5385A596.4040508@ti.com>
-References: <1390192434-19386-1-git-send-email-satish.patel@ti.com> <52E9E8B0.2020000@ti.com> <20140130130515.GC23970@kroah.com> <537589A2.8060802@ti.com> <20140528004147.GA9699@kroah.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 0/9] mfd: tps65917: Add support for for TPS65917 PMIC
+Date: Wed, 28 May 2014 15:50:13 +0530
+Message-ID: <1401272423-25761-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140528004147.GA9699@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
+To: linux-omap@vger.kernel.org
+Cc: lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+The TPS65917 chip is a power management IC for Portable Navigation Systems
+and Tablet Computing devices. It contains the following components:
 
+ - Regulators.
+ - GPADC.
+ - Over Temperature warning and Shut down.
 
-On 5/28/2014 6:11 AM, Greg KH wrote:
-> On Fri, May 16, 2014 at 09:14:34AM +0530, Satish Patel wrote:
->>
->> On 1/30/2014 6:35 PM, Greg KH wrote:
->>> On Thu, Jan 30, 2014 at 11:22:48AM +0530, Satish Patel wrote:
->>>> On 1/20/2014 10:03 AM, Satish Patel wrote:
->>>>> Changes from v1:
->>>>> * RFC(v1) comments are fixed
->>>>>
->>>>> ** removed "gpio_to_irq" as GPIO controller process  cell from DT and
->>>>> give it to DT node
->>>>> ** comments on documentation
->>>>> ** few other comments on null checks are resolved
->>>>>
->>>>> * BWT timing configuration is added to ti-usim driver
->>>>>
->>>>> v1 cover letter link#
->>>>> https://lkml.org/lkml/2014/1/6/250
->>>>>
->>>>> Satish Patel (5):
->>>>>    sc_phy:SmartCard(SC) PHY interface to SC controller
->>>>>    misc: tda8026: Add NXP TDA8026 PHY driver
->>>>>    char: ti-usim: Add driver for USIM module on AM43xx
->>>>>    ARM: dts: AM43xx: DT entries added for ti-usim
->>>>>    ARM: dts: AM43xx-epos-evm: DT entries  for ti-usim and phy
->>>>>
->>>>>   Documentation/devicetree/bindings/misc/tda8026.txt |   19 +
->>>>>   .../devicetree/bindings/ti-usim/ti-usim.txt        |   31 +
->>>>>   Documentation/sc_phy.txt                           |  171 ++
->>>>>   arch/arm/boot/dts/am4372.dtsi                      |   10 +
->>>>>   arch/arm/boot/dts/am43x-epos-evm.dts               |   43 +
->>>>>   drivers/char/Kconfig                               |    7 +
->>>>>   drivers/char/Makefile                              |    1 +
->>>>>   drivers/char/ti-usim-hw.h                          |  863 +++++++++
->>>>>   drivers/char/ti-usim.c                             | 1859 ++++++++++++++++++++
->>>>>   drivers/misc/Kconfig                               |    7 +
->>>>>   drivers/misc/Makefile                              |    1 +
->>>>>   drivers/misc/tda8026.c                             | 1255 +++++++++++++
->>>>>   include/linux/sc_phy.h                             |  132 ++
->>>>>   include/linux/ti-usim.h                            |   98 +
->>>>>   14 files changed, 4497 insertions(+), 0 deletions(-)
->>>>>   create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
->>>>>   create mode 100644 Documentation/devicetree/bindings/ti-usim/ti-usim.txt
->>>>>   create mode 100644 Documentation/sc_phy.txt
->>>>>   create mode 100644 drivers/char/ti-usim-hw.h
->>>>>   create mode 100644 drivers/char/ti-usim.c
->>>>>   create mode 100644 drivers/misc/tda8026.c
->>>>>   create mode 100644 include/linux/sc_phy.h
->>>>>   create mode 100644 include/linux/ti-usim.h
->>>> Any comments on this patch series ?
->>>>
->>>> If not,
->>>> Can you accept these patches for next merge window
->>> It's the middle of this merge window, and I can't accept any patches
->>> until after 3.14-rc1 is out, at which point I'll start to work on my
->>> patch backlog.
->> Are these to be consider for next submission ? Or you want me to start
->> review cycle one more time.
->
-> I don't have them in my queue, so please resend.
-I have resent patches for review. could you consider the same for next 
-merge window ?
->
+This patch series adds support for TPS65917 mfd device. At this time only
+the regulator functionality is made available.
+
+The closest drivers are PALMAS series drivers. Hence adapted palmas mfd
+driver to support the tps65917 PMIC.
+
+The register set for SMPSs and LDOs are changed and the ramp delay support
+is also changed. Bit-field defenitions are changed.
+Hence added driver data structures for mfd and regulator drivers
+for palmas and added support for tps65917.
+
+The patches are boot tested on DRA72-EVM.
+The patches are boot tested on OMAP5-UEVM board.
+
+Keerthy (9):
+  mfd: Add DT bindings for tps65917 PMIC
+  regulator: palmas: Add tps65917 compatible string
+  mfd: palmas: Add tps65917 specific definitions and enums
+  mfd: palmas: Add tps65917 support
+  regulator: palmas: Shift the reg_info structure definition to the
+    header file
+  mfd: palmas: shift the palmas_sleep_requestor_info structure
+    definition to the header file
+  regulator: palmas: Add palmas_pmic_driver_data structure
+  regulator: palmas: add driver data and modularize the probe
+  regulator: palmas: Add tps65917 PMIC support
+
+ Documentation/devicetree/bindings/mfd/palmas.txt   |    2 +
+ .../devicetree/bindings/regulator/palmas-pmic.txt  |    1 +
+ drivers/mfd/palmas.c                               |  228 +++--
+ drivers/regulator/palmas-regulator.c               | 1006 +++++++++++++++-----
+ include/linux/mfd/palmas.h                         |  837 ++++++++++++++++
+ 5 files changed, 1770 insertions(+), 304 deletions(-)
+
+-- 
+1.7.9.5
