@@ -1,56 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc: enable BCH_HW ecc-scheme for AM43xx
- platforms
-Date: Tue, 27 May 2014 14:22:58 -0700
-Message-ID: <20140527212257.GH32336@atomide.com>
-References: <1400498556-24005-1-git-send-email-pekon@ti.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2 0/5] Smart Card(SC) interface, TI USIM & NxP SC phy
+ driver
+Date: Tue, 27 May 2014 17:41:47 -0700
+Message-ID: <20140528004147.GA9699@kroah.com>
+References: <1390192434-19386-1-git-send-email-satish.patel@ti.com>
+ <52E9E8B0.2020000@ti.com>
+ <20140130130515.GC23970@kroah.com>
+ <537589A2.8060802@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32241 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbaE0VXF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 May 2014 17:23:05 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1400498556-24005-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <537589A2.8060802@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Satish Patel <satish.patel@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>
 
-* Pekon Gupta <pekon@ti.com> [140519 04:23]:
-> Fixes: commit 0611c41934ab35ce84dea34ab291897ad3cbc7be
-> ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
+On Fri, May 16, 2014 at 09:14:34AM +0530, Satish Patel wrote:
 > 
-> Though the commit log of above commit mentions AM43xx platforms, but code change
-> missed AM43xx. This patch adds AM43xx to list of those SoC which have built-in
-> ELM hardware engine, so that BCH ecc-schemes with hardware error-correction can
-> be enabled on AM43xx devices.
-> 
-> Reported-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> On 1/30/2014 6:35 PM, Greg KH wrote:
+> >On Thu, Jan 30, 2014 at 11:22:48AM +0530, Satish Patel wrote:
+> >>On 1/20/2014 10:03 AM, Satish Patel wrote:
+> >>>Changes from v1:
+> >>>* RFC(v1) comments are fixed
+> >>>
+> >>>** removed "gpio_to_irq" as GPIO controller process  cell from DT and
+> >>>give it to DT node
+> >>>** comments on documentation
+> >>>** few other comments on null checks are resolved
+> >>>
+> >>>* BWT timing configuration is added to ti-usim driver
+> >>>
+> >>>v1 cover letter link#
+> >>>https://lkml.org/lkml/2014/1/6/250
+> >>>
+> >>>Satish Patel (5):
+> >>>   sc_phy:SmartCard(SC) PHY interface to SC controller
+> >>>   misc: tda8026: Add NXP TDA8026 PHY driver
+> >>>   char: ti-usim: Add driver for USIM module on AM43xx
+> >>>   ARM: dts: AM43xx: DT entries added for ti-usim
+> >>>   ARM: dts: AM43xx-epos-evm: DT entries  for ti-usim and phy
+> >>>
+> >>>  Documentation/devicetree/bindings/misc/tda8026.txt |   19 +
+> >>>  .../devicetree/bindings/ti-usim/ti-usim.txt        |   31 +
+> >>>  Documentation/sc_phy.txt                           |  171 ++
+> >>>  arch/arm/boot/dts/am4372.dtsi                      |   10 +
+> >>>  arch/arm/boot/dts/am43x-epos-evm.dts               |   43 +
+> >>>  drivers/char/Kconfig                               |    7 +
+> >>>  drivers/char/Makefile                              |    1 +
+> >>>  drivers/char/ti-usim-hw.h                          |  863 +++++++++
+> >>>  drivers/char/ti-usim.c                             | 1859 ++++++++++++++++++++
+> >>>  drivers/misc/Kconfig                               |    7 +
+> >>>  drivers/misc/Makefile                              |    1 +
+> >>>  drivers/misc/tda8026.c                             | 1255 +++++++++++++
+> >>>  include/linux/sc_phy.h                             |  132 ++
+> >>>  include/linux/ti-usim.h                            |   98 +
+> >>>  14 files changed, 4497 insertions(+), 0 deletions(-)
+> >>>  create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
+> >>>  create mode 100644 Documentation/devicetree/bindings/ti-usim/ti-usim.txt
+> >>>  create mode 100644 Documentation/sc_phy.txt
+> >>>  create mode 100644 drivers/char/ti-usim-hw.h
+> >>>  create mode 100644 drivers/char/ti-usim.c
+> >>>  create mode 100644 drivers/misc/tda8026.c
+> >>>  create mode 100644 include/linux/sc_phy.h
+> >>>  create mode 100644 include/linux/ti-usim.h
+> >>Any comments on this patch series ?
+> >>
+> >>If not,
+> >>Can you accept these patches for next merge window
+> >It's the middle of this merge window, and I can't accept any patches
+> >until after 3.14-rc1 is out, at which point I'll start to work on my
+> >patch backlog.
+> Are these to be consider for next submission ? Or you want me to start
+> review cycle one more time.
 
-Applying into omap-for-v3.16/dt-v2 thanks.
-
-Tony
-
-> ---
->  arch/arm/mach-omap2/gpmc-nand.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-> index 4349e82..17cd393 100644
-> --- a/arch/arm/mach-omap2/gpmc-nand.c
-> +++ b/arch/arm/mach-omap2/gpmc-nand.c
-> @@ -46,7 +46,7 @@ static struct platform_device gpmc_nand_device = {
->  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
->  {
->  	/* platforms which support all ECC schemes */
-> -	if (soc_is_am33xx() || cpu_is_omap44xx() ||
-> +	if (soc_is_am33xx() || soc_is_am43xx() || cpu_is_omap44xx() ||
->  		 soc_is_omap54xx() || soc_is_dra7xx())
->  		return 1;
->  
-> -- 
-> 1.8.5.1.163.gd7aced9
-> 
+I don't have them in my queue, so please resend.
