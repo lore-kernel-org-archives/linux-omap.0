@@ -1,42 +1,78 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.15-rc7
-Date: Wed, 28 May 2014 18:25:43 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1405281823460.1280@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1405271657050.28436@utopia.booyaka.com> <20140527201752.GD14191@drone.musicnaut.iki.fi>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v3 1/5] sc_phy:SmartCard(SC) PHY interface to SC
+ controller
+Date: Wed, 28 May 2014 11:44:08 -0700
+Message-ID: <20140528184408.GC30031@kroah.com>
+References: <1401267437-22489-1-git-send-email-satish.patel@ti.com>
+ <1401267437-22489-2-git-send-email-satish.patel@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42430 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400AbaE1SZo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 May 2014 14:25:44 -0400
-In-Reply-To: <20140527201752.GD14191@drone.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1401267437-22489-2-git-send-email-satish.patel@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Satish Patel <satish.patel@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Aaro,
+On Wed, May 28, 2014 at 02:27:13PM +0530, Satish Patel wrote:
+> +/**
+> + * struct sc_phy - The basic smart card phy structure
+> + *
+> + * @dev: phy device
+> + * @pdata: pointer to phy's private data structure
+> + * @set_config: called to set phy's configuration
+> + * @get_config: called to get phy's configuration
+> + * @activate_card: perform smart card activation
+> + * @deactivate_card: perform smart card de-activation
+> + * @warm_reset: execute smart card warm reset sequence
+> + * @register_card_activity_cb: register call back to phy device.
+> + * This call back will be called on card insert or remove event
+> + *
+> + * smart card controller uses this interface to communicate with
+> + * smart card via phy.Some smart card phy has multiple slots for
+> + * cards. This inerface also enables controller to communicate with
+> + * one or more smart card connected over phy.
+> + */
+> +struct sc_phy {
+> +	/* phy's device pointer */
+> +	struct device *dev;
 
-On Tue, 27 May 2014, Aaro Koskinen wrote:
+So this is the "parent", right?  Why not embed a struct device into this
+structure as well, further streaching out the device tree.
 
-> Hi Paul,
-> 
-> On Tue, May 27, 2014 at 04:59:16PM +0000, Paul Walmsley wrote:
-> > Here are some basic OMAP test results for Linux v3.15-rc7.
-> > Logs and other details at:
-> > 
-> >     http://www.pwsan.com/omap/testlogs/test_v3.15-rc7/20140526221127/
-> 
-> This is great stuff, as always, but just curious, why are the N800 booting
-> results not reported? Based on your logs you are still booting it...?
+> +
+> +	/* phy's private data */
+> +	void *pdata;
 
-That test run was broken.  Not only did it omit the N800 test, it also 
-tested v3.15-rc6, rather than v3.15-rc7 - hence the 0 difference in the 
-size report from v3.15-rc6.
+If you do the above, then this pointer is not needed.
 
-The tests are being rerun and will be reposted.
 
-Thanks for the sharp-eyed attention -
+> +
+> +	/* notify data, passed by interface user as a part of
+> +	 * register_notify API. Data should be passed back when
+> +	 * notification raised to the interface user
+> +	 */
+> +	void *notify_data;
 
-- Paul
+What makes this different from the pdata?
+
+
+> +
+> +	int	(*set_config)(struct sc_phy *phy, u8 slot,
+> +			enum sc_phy_config attr, int value);
+> +	int	(*get_config)(struct sc_phy *phy, u8 slot, enum
+> +			sc_phy_config attr);
+> +	int	(*activate_card)(struct sc_phy *phy, u8 slot);
+> +	int	(*deactivate_card)(struct sc_phy *phy, u8 slot);
+> +	int	(*get_syncatr)(struct sc_phy *phy, u8 slot, u8 len, char *atr);
+> +	int	(*warm_reset)(struct sc_phy *phy, u8 slot);
+> +	int	(*register_notify)(struct sc_phy *phy,
+> +			 struct	notifier_block *nb, void *notify_data);
+> +	int	(*unregister_notify)(struct sc_phy *phy,
+> +			struct	notifier_block *nb);
+> +};
+> +
+> +#endif /* __SC_PHY_H__ */
+> -- 
+> 1.7.9.5
