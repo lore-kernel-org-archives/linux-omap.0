@@ -1,64 +1,84 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 5/9] regulator: palmas: Shift the reg_info structure definition to the header file
-Date: Wed, 28 May 2014 15:50:18 +0530
-Message-ID: <1401272423-25761-6-git-send-email-j-keerthy@ti.com>
-References: <1401272423-25761-1-git-send-email-j-keerthy@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 01/10] platform_data: edma: Be precise with the paRAM
+	struct
+Date: Wed, 28 May 2014 13:31:48 +0300
+Message-ID: <5385BB14.9010804@ti.com>
+References: <1397475725-5036-1-git-send-email-peter.ujfalusi@ti.com>	<1397475725-5036-2-git-send-email-peter.ujfalusi@ti.com>
+	<CAOesGMg43jT6D_ot2tKfRXXgAgwqs5Pu_tAFKc35yxLAczrzGQ@mail.gmail.com>
+	<53846779.4070204@ti.com> <5384A92B.4080606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401272423-25761-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org, Keerthy <j-keerthy@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <5384A92B.4080606-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Joel Fernandes <joelf-l0cyMroinI0@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Koul,  Vinod" <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Shift the reg_info structure definition to the header file.
-
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/regulator/palmas-regulator.c |    9 ---------
- include/linux/mfd/palmas.h           |    9 +++++++++
- 2 files changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 9602eba..d41f3de 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -27,15 +27,6 @@
- #include <linux/of_platform.h>
- #include <linux/regulator/of_regulator.h>
- 
--struct regs_info {
--	char	*name;
--	char	*sname;
--	u8	vsel_addr;
--	u8	ctrl_addr;
--	u8	tstep_addr;
--	int	sleep_id;
--};
--
- static const struct regulator_linear_range smps_low_ranges[] = {
- 	REGULATOR_LINEAR_RANGE(500000, 0x1, 0x6, 0),
- 	REGULATOR_LINEAR_RANGE(510000, 0x7, 0x79, 10000),
-diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-index 52a24a9..150a6314 100644
---- a/include/linux/mfd/palmas.h
-+++ b/include/linux/mfd/palmas.h
-@@ -88,6 +88,15 @@ struct palmas {
- 	u8 pwm_muxed;
- };
- 
-+struct regs_info {
-+	char	*name;
-+	char	*sname;
-+	u8	vsel_addr;
-+	u8	ctrl_addr;
-+	u8	tstep_addr;
-+	int	sleep_id;
-+};
-+
- struct palmas_gpadc_platform_data {
- 	/* Channel 3 current source is only enabled during conversion */
- 	int ch3_current;
--- 
-1.7.9.5
+T24gMDUvMjcvMjAxNCAwNjowMyBQTSwgSm9lbCBGZXJuYW5kZXMgd3JvdGU6Cj4gT24gMDUvMjcv
+MjAxNCAwNToyMiBBTSwgUGV0ZXIgVWpmYWx1c2kgd3JvdGU6Cj4+IE9uIDA1LzI3LzIwMTQgMTI6
+MzIgQU0sIE9sb2YgSm9oYW5zc29uIHdyb3RlOgo+IFsuLl0KPj4+Cj4+PiBJIGNhbWUgYWNyb3Nz
+IHRoaXMgcGF0Y2ggd2hlbiBJIHdhcyBsb29raW5nIGF0IGEgcHVsbCByZXF1ZXN0IGZyb20KPj4+
+IFNla2hhciBmb3IgRURNQSBjbGVhbnVwcywgYW5kIGl0IG1hZGUgbWUgbG9vayBjbG9zZXIgYXQg
+dGhlIGNvbnRlbnRzCj4+PiBvZiB0aGlzIGZpbGUuCj4+Pgo+Pj4gVGhlIGluY2x1ZGUvbGludXgv
+cGxhdGZvcm1fZGF0YS8gZGlyZWN0b3J5IGlzIG1lYW50IHRvIGhvbGQKPj4+IHBsYXRmb3JtX2Rh
+dGEgZGVmaW5pdGlvbnMgZm9yIGRyaXZlcnMsIGFuZCBub3RoaW5nIG1vcmUuCj4+PiBwbGF0Zm9y
+bV9kYXRhL2VkbWEuaCBhbHNvIGNvbnRhaW5zIGEgd2hvbGUgYnVuY2ggb2YgaW50ZXJmYWNlCj4+
+PiBkZWZpbml0aW9ucyBmb3IgdGhlIGRyaXZlci4gVGhleSBkbyBub3QgYmVsb25nIHRoZXJlLCBh
+bmQgc2hvdWxkIGJlCj4+PiBtb3ZlZCB0byBhIGRpZmZlcmVudCBpbmNsdWRlIGZpbGUuCj4+Pgo+
+Pj4gVGhhdCBhbHNvIGluY2x1ZGVzIHRoZSBhYm92ZSBzdHJ1Y3QsIGJlY2F1c2UgYXMgZmFyIGFz
+IEkgY2FuIHRlbGwgaXQncwo+Pj4gYSBydW50aW1lIHN0YXRlIHN0cnVjdHVyZSwgbm90IHNvbWV0
+aGluZyB0aGF0IGlzIHBhc3NlZCBpbiB3aXRoCj4+PiBwbGF0Zm9ybSBkYXRhLgo+Pj4KPj4+IENh
+biBzb21lb25lIHBsZWFzZSBjbGVhbiB0aGlzIHVwPyBUaGFua3MuCj4+Cj4+IEkgdGhpbmsgSm9l
+bCBpcyB3b3JraW5nIG9uIHRvIG1vdmUvbWVyZ2UgdGhlIGNvZGUgZnJvbSBhcmNoL2FybS9jb21t
+b24vZWRtYS5jCj4+IHRvIGRyaXZlcnMvZG1hL2VkbWEuYwo+IAo+IFllcywgSSBhbSBwbGFubmlu
+ZyB0byB3b3JrIG9uIHRoYXQgc29vbi4gQnV0IHRoZXJlIGlzIGFuIGlzc3VlLCBtb3JlIG9uCj4g
+dGhhdCBkaXNjdXNzZWQgYmVsb3cuLgo+IAo+PiBJJ20gc3VyZSB3aXRoaW4gdGhpcyB3b3JrIGhl
+IGlzIGdvaW5nIHRvIGNsZWFuIHVwIHRoZSBoZWFkZXIgZmlsZSBhcyB3ZWxsLgo+IAo+IEFncmVl
+ZC4gVGhlIHByaXZhdGUgQVBJIHNob3VsZCBub3QgYmUgZXhwb3JlZCBpbiBhbnkgaGVhZGVyIGFu
+ZCBzaG91bGQKPiBiZSBleGNsdXNpdmUgZm9yIHRoZSBFRE1BIGRtYWVuZ2luZSBkcml2ZXIgaWRl
+YWxseS4KPiAKPj4gQXMgYSBmaXJzdCBzdGVwIEkgdGhpbmsgdGhlIG5vbiBwbGF0Zm9ybV9kYXRh
+IGNvbnRlbnQgY2FuIGJlIG1vdmVkIGFzCj4+IGluY2x1ZGUvbGludXgvZWRtYS5oIG9yIHByb2Jh
+Ymx5IGFzIHRpLWVkbWEuaD8KPj4KPiAKPiBzb3VuZC9zb2MvZGF2aW5jaS9kYXZpbmNpLXBjbS5j
+OiBUaGlzIHN0aWxsIHVzZXMgdGhlIEVETUEgcHJpdmF0ZSBBUEkgaW4KPiBhcmNoL2FybS9jb21t
+b24vZWRtYS5jLiBQZXRlciwgYW55IGlkZWEgd2hlbiB0aGUgcHJpdmF0ZSB1c2FnZSB3aWxsIGJl
+Cj4gcmVtb3ZlZCBmdWxseSwgYW5kIHdlIHN3aXRjaCB0byBkbWFlbmdpbmUgZm9yIEFTb0M/IEJl
+Zm9yZSB0aGF0IGNhbgo+IGhhcHBlbiwgd2UgY2FuJ3QgY2xlYW4gdXAgb3IgZG8gYW55IG1lcmdl
+cy4KCldlIGhhdmUgdGhlIGVkbWEtcGNtIHBsYXRmb3JtIGRyaXZlciB1cHN0cmVhbSBhbHJlYWR5
+IHdoaWNoIEknbSB1c2luZyBsb2NhbGx5CmZvciBhIGxvbmcgdGltZSBub3cgb24gQU0zMzV4L0FN
+NDM3eC4gSSdtIHBsYW5uaW5nIHRvIHNlbmQgYSBwYXRjaCB0byBkbyB0aGUKc2FtZSB1cHN0cmVh
+bSBhZnRlciB0aGUgMy4xNiB3aW5kb3cgY2xvc2VzLgpCdXQsIGRhdmluY2ktcGNtIGhhcyBhIG1v
+ZGUgY2FsbGVkICdwaW5nLXBvbmcnIHdoaWNoIGlzIG5vdCBhdmFpbGFibGUgdmlhCmRtYWVuZ2lu
+ZSBhbmQgdGhpcyBtb2RlIGlzIHVzZWQgYnkgc2V2ZXJhbCBkYVZpbmNpIFNvQ3MgdG8gb3ZlcmNv
+bWUgYnVmZmVyCnVuZGVyZmxvdy9vdmVyZmxvdyBpc3N1ZXMuIFRoaXMgbW9kZSBlc3NlbnRpYWxs
+eSBtZWFucyBpbiBwbGF5YmFjayBjYXNlOgogICAgICBkbWFfY2gxICAgICAgIGRtYV9jaDIKU0RS
+QU0gLS0tLS0tLT4gU1JBTSAtLS0tLS0tPiBNY0FTUAoKY2gxIGlzIHRvIG1vdmUgYSBibG9jayBv
+ZiBzYW1wbGVzIHRvIFNSQU0gZnJvbSB3aGVyZSBjaDIgd2lsbCBjb3B5IHRoZSBzYW1wbGVzCndv
+cmQgYnkgd29yZCB0byBNY0FTUC4KCklmIHdlIG1vdmUgYWxsIGRhdmluY2kgU29DcyB0byB1c2Ug
+dGhlIGVkbWEtcGNtLCB3ZSBhcmUgZ29pbmcgdG8gbG9vc2UgdGhpcwptb2RlLiBBcyBhIG5vdGU6
+IHRoZSBlZG1hLXBjbSBpcyBjb25maXJtZWQgdG8gd29yayBmaW5lIG9uIHRoZSB0ZXN0ZWQgZGFW
+aW5jaQpib2FyZHMuCkkgdGhpbmsgd2hhdCB3ZSBuZWVkIHRvIGRvIGZpcnN0OiBmaW5kIGEgYm9h
+cmQgd2hpY2ggaXMgdXNpbmcgcGluZy1wb25nIG1vZGUsCnB1dCB1bmRlciBzdHJlc3MgdGVzdCBp
+bjoKLSBkYXZpbmNpLXBjbSwgcGluZy1wb25nIG1vZGUKLSBkYXZpbmNpLXBjbSwgbm8gcGluZy1w
+b25nIG1vZGUKLSBlZG1hLXBjbQoKYW5kIHNlZSBob3cgZWRtYS1wY20gYmVoYXZlcyBjb21wYXJl
+ZCB0byB0aGUgZGF2aW5jaS1wY20uIE9uZSBvZiB0aGUgaXNzdWUKd2l0aCBkYXZpbmNpLXBjbSBp
+cyB0aGF0IGluIG5vbiBwaW5nLXBvbmcgbW9kZSBpdCByZWNvbmZpZ3VyZXMgdGhlIGVETUEgYWZ0
+ZXIKZXZlcnkgcGVyaW9kLCB3aGljaCBpcyBhIGJhZCB0aGluZy4gVGhlIGRtYWVuZ2luZSBpbXBs
+ZW1lbnRhdGlvbiBkb2VzIG5vdCBuZWVkCnRvIGRvIHRoYXQsIHNvIHdlIG1pZ2h0IGJlIGZpbmUg
+dGhlcmUuCgo+IFdoYXQgSSdkIGxpa2UgdG8gZG8gaXMgZm9sZCB0aGUgcHJpdmF0ZSBBUEkgaW50
+byB0aGUgZG1hZW5naW5lIGRyaXZlcgo+IGFuZCBlbGltaW5hdGUgdGhlIG5lZWQgdG8gZXhwb3Nl
+IHRoZSBwcml2YXRlIEFQSSwgdGh1cyBhbHNvIGdldHRpbmcgcmlkCj4gb2YgdGhlIGludGVyZmFj
+ZSBkZWNsYXJhdGlvbnMgT2xvZiByZWZlcnJlZCB0by4KPiAKPiB0aGFua3MsCj4gCj4gLUpvZWwK
+PiAKCgotLSAKUMOpdGVyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkRhdmluY2ktbGludXgtb3Blbi1zb3VyY2UgbWFpbGluZyBsaXN0CkRhdmluY2ktbGlu
+dXgtb3Blbi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5jb20KaHR0cDovL2xpbnV4LmRhdmluY2lk
+c3AuY29tL21haWxtYW4vbGlzdGluZm8vZGF2aW5jaS1saW51eC1vcGVuLXNvdXJjZQo=
