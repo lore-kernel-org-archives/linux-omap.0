@@ -1,48 +1,52 @@
-From: Kumar Gala <galak@codeaurora.org>
-Subject: Re: [PATCH v2 03/18] PCI: designware: Configuration space should be specified in 'reg'
-Date: Thu, 29 May 2014 11:51:00 -0500
-Message-ID: <A9B853EE-65C6-4B2E-ABC0-1E64DE584E91@codeaurora.org>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-4-git-send-email-kishon@ti.com> <98E18225-3C63-4106-901A-A5D3DEC268C8@codeaurora.org> <20140529151840.GD1677@bart.dudau.co.uk> <CF1BAF3F-E16E-4864-8052-8C3EC29000B0@codeaurora.org> <20140529163037.GC2552@obsidianresearch.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH v2 16/18] ARM: OMAP: Enable PCI for DRA7
+Date: Thu, 29 May 2014 12:52:14 -0500
+Message-ID: <CAL_JsqJifZqs9MpL=n4FRB+Z1OMtkw0sns8Vwec=_boGqRL8-w@mail.gmail.com>
+References: <1401345500-20188-1-git-send-email-kishon@ti.com>
+	<1401345500-20188-17-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140529163037.GC2552@obsidianresearch.com>
+In-Reply-To: <1401345500-20188-17-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Marek Vasut <marex@denx.de>, Liviu Dudau <liviu@dudau.co.uk>, Jingoo Han <jg1.han@samsung.com>, Arnd Bergmann <arnd@arndb.de>, devicetree <devicetree@vger.kernel.org>, tony@atomide.com, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Mohit Kumar <mohit.kumar@st.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jg1.han@samsung.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Will Deacon <will.deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, May 29, 2014 at 1:38 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> Now that we have added PCIe driver for DRA7 SOCs, enable PCI on
+> DRA7 SOCs.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index cb31d43..b179e80 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -75,6 +75,8 @@ config SOC_DRA7XX
+>         select ARM_GIC
+>         select HAVE_ARM_ARCH_TIMER
+>         select IRQ_CROSSBAR
+> +       select MIGHT_HAVE_PCI
 
-On May 29, 2014, at 11:30 AM, Jason Gunthorpe <jgunthorpe@obsidianresea=
-rch.com> wrote:
+I believe we moved or intend to move this under MULTI_PLATFORM, so you
+don't need this. Will D. had a patch, but I don't think I saw a final
+version to merge.
 
-> On Thu, May 29, 2014 at 11:03:36AM -0500, Kumar Gala wrote:
->=20
->> Just because the kernel doesn=92t handle this is NO reason to change
->> the way the DT works.
->=20
-> The OF specs do not specify how to process a config type ranges entry=
-,
-> and we all mutually agreed that the only sane interpretation for such
-> a thing would be to describe an ECAM memory space so generic code
-> could potentially make use of it.
->=20
-> Since designware is not ECAM it should not use config ranges.
->=20
-> This has come up multiple times now, and the above is the consensus.
->=20
-> Jason
+Rob
 
-Well the designware controller does support ECAM, just that the current=
- in kernel users don=92t do cfg space that way.
-
-So do we continue to support the current users that use a cfg range for=
- a non-ECAM space?  Or break their DT and convert them to using regs?
-
-- k
-
---=20
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, host=
-ed by The Linux Foundation
+> +       select ARCH_SUPPORTS_MSI
+>
+>  config ARCH_OMAP2PLUS
+>         bool
+> --
+> 1.7.9.5
+>
