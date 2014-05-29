@@ -1,109 +1,83 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 03/18] PCI: designware: Configuration space should be
- specified in 'reg'
-Date: Thu, 29 May 2014 12:08:05 +0530
-Message-ID: <1401345500-20188-4-git-send-email-kishon@ti.com>
+Subject: [TEMP PATCH v2 17/18] PCI: host: pcie-dra7xx: use reset framework APIs to reset PCIe
+Date: Thu, 29 May 2014 12:08:19 +0530
+Message-ID: <1401345500-20188-18-git-send-email-kishon@ti.com>
 References: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1401345500-20188-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Marek Vasut <marex@denx.de>, arnd@arndb.de, tony@atomide.com, Mohit Kumar <mohit.kumar@st.com>, jg1.han@samsung.com, kishon@ti.com, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com, Dan Murphy <dmurphy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The configuration address space has so far been specified in *ranges*,
-however it should be specified in *reg* making it a platform MEM resource.
-Hence used 'platform_get_resource_*' API to get configuration address
-space in the designware driver.
+Get reset nodes from dt and use reset framework APIs to reset PCIe.
+This is needed since reset is handled by the SoC.
 
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Mohit Kumar <mohit.kumar@st.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Marek Vasut <marex@denx.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Murphy <dmurphy@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
- drivers/pci/host/pcie-designware.c                 |   17 +++++++++++++++--
- 2 files changed, 16 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/pci/ti-pci.txt |    4 ++++
+ drivers/pci/host/pci-dra7xx.c                    |   10 ++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt b/Documentation/devicetree/bindings/pci/designware-pcie.txt
-index d6fae13..8314360 100644
---- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
-+++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
-@@ -6,6 +6,7 @@ Required properties:
- 	as "samsung,exynos5440-pcie" or "fsl,imx6q-pcie".
- - reg: base addresses and lengths of the pcie controller,
- 	the phy controller, additional register for the phy controller.
-+	The configuration address space should also be specified here.
- - interrupts: interrupt values for level interrupt,
- 	pulse interrupt, special interrupt.
- - clocks: from common clock binding: handle to pci clock.
-diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
-index c4e3732..603b386 100644
---- a/drivers/pci/host/pcie-designware.c
-+++ b/drivers/pci/host/pcie-designware.c
-@@ -20,6 +20,7 @@
- #include <linux/of_pci.h>
- #include <linux/pci.h>
- #include <linux/pci_regs.h>
-+#include <linux/platform_device.h>
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index d07d2eb..3649c2e 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -22,6 +22,8 @@ PCIe Designware Controller
+    num-lanes,
+    interrupt-map-mask,
+    interrupt-map : as specified in ../designware-pcie.txt
++ - resets: phandle used if reset is handled be soc
++ - reset-names: name given to the phandle
+ 
+ Example:
+ axi {
+@@ -45,6 +47,8 @@ axi {
+ 		ti,hwmods = "pcie1";
+ 		phys = <&pcie1_phy>;
+ 		phy-names = "pcie-phy0";
++		resets = <&prm_resets &device_reset>;
++		reset-names = "reset";
+ 		interrupt-map-mask = <0 0 0 7>;
+ 		interrupt-map = <0 0 0 1 &pcie_intc 1>,
+ 				<0 0 0 2 &pcie_intc 2>,
+diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+index 8fb3a2e..17f5e6a 100644
+--- a/drivers/pci/host/pci-dra7xx.c
++++ b/drivers/pci/host/pci-dra7xx.c
+@@ -22,6 +22,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/resource.h>
++#include <linux/reset.h>
  #include <linux/types.h>
  
  #include "pcie-designware.h"
-@@ -392,11 +393,23 @@ static const struct irq_domain_ops msi_domain_ops = {
- int __init dw_pcie_host_init(struct pcie_port *pp)
- {
- 	struct device_node *np = pp->dev->of_node;
-+	struct platform_device *pdev = to_platform_device(pp->dev);
- 	struct of_pci_range range;
- 	struct of_pci_range_parser parser;
-+	struct resource *cfg_res;
- 	u32 val;
- 	int i;
+@@ -332,6 +333,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *np = dev->of_node;
+ 	char name[10];
++	struct reset_control *rstc;
  
-+	cfg_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
-+	if (cfg_res) {
-+		pp->config.cfg0_size = resource_size(cfg_res)/2;
-+		pp->config.cfg1_size = resource_size(cfg_res)/2;
-+		pp->cfg0_base = cfg_res->start;
-+		pp->cfg1_base = cfg_res->start + pp->config.cfg0_size;
-+	} else {
-+		dev_err(pp->dev, "missing *config* reg space\n");
-+	}
+ 	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
+ 	if (!dra7xx)
+@@ -355,6 +357,14 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	if (!base)
+ 		return -ENOMEM;
+ 
++	rstc = devm_reset_control_get(dev, "reset");
++	if (IS_ERR(rstc))
++		return PTR_ERR(rstc);
 +
- 	if (of_pci_range_parser_init(&parser, np)) {
- 		dev_err(pp->dev, "missing ranges property\n");
- 		return -EINVAL;
-@@ -429,6 +442,8 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
- 			of_pci_range_to_resource(&range, np, &pp->cfg);
- 			pp->config.cfg0_size = resource_size(&pp->cfg)/2;
- 			pp->config.cfg1_size = resource_size(&pp->cfg)/2;
-+			pp->cfg0_base = pp->cfg.start;
-+			pp->cfg1_base = pp->cfg.start + pp->config.cfg0_size;
- 		}
- 	}
- 
-@@ -441,8 +456,6 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
- 		}
- 	}
- 
--	pp->cfg0_base = pp->cfg.start;
--	pp->cfg1_base = pp->cfg.start + pp->config.cfg0_size;
- 	pp->mem_base = pp->mem.start;
- 
- 	pp->va_cfg0_base = devm_ioremap(pp->dev, pp->cfg0_base,
++	ret = reset_control_deassert(rstc);
++	if (ret)
++		return ret;
++
+ 	phy_count = of_property_count_strings(np, "phy-names");
+ 	if (phy_count < 0) {
+ 		dev_err(dev, "unable to find the strings\n");
 -- 
 1.7.9.5
