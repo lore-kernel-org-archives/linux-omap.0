@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 02/18] phy: pipe3: insert delay to enumerate in GEN2 mode
-Date: Thu, 29 May 2014 12:08:04 +0530
-Message-ID: <1401345500-20188-3-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 04/18] PCI: designware: use untranslated address while programming ATU
+Date: Thu, 29 May 2014 12:08:06 +0530
+Message-ID: <1401345500-20188-5-git-send-email-kishon@ti.com>
 References: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,211 +9,179 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com
+Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bjorn Helgaas <bhelgaas@google.com>, Mohit Kumar <mohit.kumar@st.com>, Marek Vasut <marex@denx.de>
 List-Id: linux-omap@vger.kernel.org
 
-8-bit delay value (0xF1) is required for GEN2 devices to be enumerated
-consistently. Added an API to be called from PHY drivers to set this delay
-value and called it from PIPE3 driver to set the delay value.
+In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
+address. So whenever the cpu issues a read/write request, the 4 most
+significant bits are used by L3 to determine the target controller.
+For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
+the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
+the outbound translation window the *base* should be programmed as 0x000_0000.
+Whenever we try to write to say 0x2000_0000, it will be translated to whatever
+we have programmed in the translation window with base as 0x000_0000.
 
+This is needed when the dt node is modelled something like below
+axi {
+	compatible = "simple-bus";
+	#size-cells = <1>;
+	#address-cells = <1>;
+	ranges = <0x0        0x20000000 0x10000000 // 28-bit bus
+		  0x51000000 0x51000000 0x3000>;
+	pcie@51000000 {
+		reg = <0x1000 0x2000>, <0x51002000 0x14c>, <0x51000000 0x2000>;
+		reg-names = "config", "ti_conf", "rc_dbics";
+		#address-cells = <3>;
+		#size-cells = <2>;
+		ranges = <0x81000000 0 0          0x03000 0 0x00010000
+			  0x82000000 0 0x20013000 0x13000 0 0xffed000>;
+	};
+};
+
+Here the CPU address for configuration space is 0x20013000 and the controller
+address for configuration space is 0x13000. The controller address should be
+used while programming the ATU (in order for translation to happen properly in
+DRA7xx).
+
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Mohit Kumar <mohit.kumar@st.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Marek Vasut <marex@denx.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Reviewed-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/phy/ti-phy.txt |   12 ++---
- drivers/phy/phy-omap-control.c                   |   52 +++++++++++++++++++++-
- drivers/phy/phy-ti-pipe3.c                       |    4 +-
- include/linux/phy/omap_control_phy.h             |   10 +++++
- 4 files changed, 71 insertions(+), 7 deletions(-)
+ drivers/pci/host/pcie-designware.c |   49 ++++++++++++++++++++++++++++--------
+ drivers/pci/host/pcie-designware.h |    4 +++
+ 2 files changed, 42 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
-index cf3de7e..36bb6c9 100644
---- a/Documentation/devicetree/bindings/phy/ti-phy.txt
-+++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
-@@ -9,15 +9,17 @@ Required properties:
-                         e.g. USB2_PHY on OMAP5.
-  "ti,control-phy-pipe3" - if it has DPLL and individual Rx & Tx power control
-                         e.g. USB3 PHY and SATA PHY on OMAP5.
-+ "ti,control-phy-pcie" - for pcie to support external clock for pcie and to
-+			set PCS delay value.
-+			e.g. PCIE PHY in DRA7x
-  "ti,control-phy-usb2-dra7" - if it has power down register like USB2 PHY on
-                         DRA7 platform.
-  "ti,control-phy-usb2-am437" - if it has power down register like USB2 PHY on
-                         AM437 platform.
-- - reg : Address and length of the register set for the device. It contains
--   the address of "otghs_control" for control-phy-otghs or "power" register
--   for other types.
-- - reg-names: should be "otghs_control" control-phy-otghs and "power" for
--   other types.
-+ - reg : register ranges as listed in the reg-names property
-+ - reg-names: "otghs_control" for control-phy-otghs
-+	      "power", "pcie_pcs" and "control_sma" for control-phy-pcie
-+	      "power" for all other types
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+index 603b386..9dfd2d4 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -397,8 +397,15 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+ 	struct of_pci_range range;
+ 	struct of_pci_range_parser parser;
+ 	struct resource *cfg_res;
+-	u32 val;
+-	int i;
++	u32 val, na, ns;
++	const __be32 *addrp;
++	int i, index;
++
++	/* Find the address cell size and the number of cells in order to get
++	 * the untranslated address.
++	 */
++	of_property_read_u32(np, "#address-cells", &na);
++	ns = of_n_size_cells(np);
  
- omap_control_usb: omap-control-usb@4a002300 {
-         compatible = "ti,control-phy-otghs";
-diff --git a/drivers/phy/phy-omap-control.c b/drivers/phy/phy-omap-control.c
-index 311b4f9..9487bf1 100644
---- a/drivers/phy/phy-omap-control.c
-+++ b/drivers/phy/phy-omap-control.c
-@@ -27,6 +27,41 @@
- #include <linux/phy/omap_control_phy.h>
- 
- /**
-+ * omap_control_pcie_pcs - set the PCS delay count
-+ * @dev: the control module device
-+ * @id: index of the pcie PHY (should be 1 or 2)
-+ * @delay: 8 bit delay value
-+ */
-+void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay)
-+{
-+	u32 val;
-+	struct omap_control_phy	*control_phy;
+ 	cfg_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
+ 	if (cfg_res) {
+@@ -406,6 +413,12 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+ 		pp->config.cfg1_size = resource_size(cfg_res)/2;
+ 		pp->cfg0_base = cfg_res->start;
+ 		pp->cfg1_base = cfg_res->start + pp->config.cfg0_size;
 +
-+	if (IS_ERR(dev) || !dev) {
-+		pr_err("%s: invalid device\n", __func__);
-+		return;
-+	}
++		/* Find the untranslated configuration space address */
++		index = of_property_match_string(np, "reg-names", "config");
++		addrp = of_get_address(np, index, false, false);
++		pp->cfg0_mod_addr = of_read_number(addrp, ns);
++		pp->cfg1_mod_addr = pp->cfg0_mod_addr + pp->config.cfg0_size;
+ 	} else {
+ 		dev_err(pp->dev, "missing *config* reg space\n");
+ 	}
+@@ -431,12 +444,20 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+ 			pp->config.io_size = resource_size(&pp->io);
+ 			pp->config.io_bus_addr = range.pci_addr;
+ 			pp->io_base = range.cpu_addr;
 +
-+	control_phy = dev_get_drvdata(dev);
-+	if (!control_phy) {
-+		dev_err(dev, "%s: invalid control phy device\n", __func__);
-+		return;
-+	}
++			/* Find the untranslated IO space address */
++			pp->io_mod_addr = of_read_number(parser.range -
++							 parser.np + na, ns);
+ 		}
+ 		if (restype == IORESOURCE_MEM) {
+ 			of_pci_range_to_resource(&range, np, &pp->mem);
+ 			pp->mem.name = "MEM";
+ 			pp->config.mem_size = resource_size(&pp->mem);
+ 			pp->config.mem_bus_addr = range.pci_addr;
 +
-+	if (control_phy->type != OMAP_CTRL_TYPE_PCIE) {
-+		dev_err(dev, "%s: unsupported operation\n", __func__);
-+		return;
-+	}
++			/* Find the untranslated MEM space address */
++			pp->mem_mod_addr = of_read_number(parser.range -
++							  parser.np + na, ns);
+ 		}
+ 		if (restype == 0) {
+ 			of_pci_range_to_resource(&range, np, &pp->cfg);
+@@ -444,6 +465,12 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+ 			pp->config.cfg1_size = resource_size(&pp->cfg)/2;
+ 			pp->cfg0_base = pp->cfg.start;
+ 			pp->cfg1_base = pp->cfg.start + pp->config.cfg0_size;
 +
-+	val = readl(control_phy->pcie_pcs);
-+	val &= ~(OMAP_CTRL_PCIE_PCS_MASK <<
-+		(id * OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT));
-+	val |= delay << (id * OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT);
-+	writel(val, control_phy->pcie_pcs);
-+}
-+EXPORT_SYMBOL_GPL(omap_control_pcie_pcs);
-+
-+/**
-  * omap_control_phy_power - power on/off the phy using control module reg
-  * @dev: the control module device
-  * @on: 0 or 1, based on powering on or off the PHY
-@@ -61,6 +96,7 @@ void omap_control_phy_power(struct device *dev, int on)
- 			val |= OMAP_CTRL_DEV_PHY_PD;
- 		break;
- 
-+	case OMAP_CTRL_TYPE_PCIE:
- 	case OMAP_CTRL_TYPE_PIPE3:
- 		rate = clk_get_rate(control_phy->sys_clk);
- 		rate = rate/1000000;
-@@ -211,6 +247,7 @@ EXPORT_SYMBOL_GPL(omap_control_usb_set_mode);
- static const enum omap_control_phy_type otghs_data = OMAP_CTRL_TYPE_OTGHS;
- static const enum omap_control_phy_type usb2_data = OMAP_CTRL_TYPE_USB2;
- static const enum omap_control_phy_type pipe3_data = OMAP_CTRL_TYPE_PIPE3;
-+static const enum omap_control_phy_type pcie_data = OMAP_CTRL_TYPE_PCIE;
- static const enum omap_control_phy_type dra7usb2_data = OMAP_CTRL_TYPE_DRA7USB2;
- static const enum omap_control_phy_type am437usb2_data = OMAP_CTRL_TYPE_AM437USB2;
- 
-@@ -228,6 +265,10 @@ static const struct of_device_id omap_control_phy_id_table[] = {
- 		.data = &pipe3_data,
- 	},
- 	{
-+		.compatible = "ti,control-phy-pcie",
-+		.data = &pcie_data,
-+	},
-+	{
- 		.compatible = "ti,control-phy-usb2-dra7",
- 		.data = &dra7usb2_data,
- 	},
-@@ -279,7 +320,8 @@ static int omap_control_phy_probe(struct platform_device *pdev)
++			/* Find the untranslated configuration space address */
++			pp->cfg0_mod_addr = of_read_number(parser.range -
++							   parser.np + na, ns);
++			pp->cfg1_mod_addr = pp->cfg0_mod_addr +
++					    pp->config.cfg0_size;
  		}
  	}
  
--	if (control_phy->type == OMAP_CTRL_TYPE_PIPE3) {
-+	if (control_phy->type == OMAP_CTRL_TYPE_PIPE3 ||
-+	    control_phy->type == OMAP_CTRL_TYPE_PCIE) {
- 		control_phy->sys_clk = devm_clk_get(control_phy->dev,
- 			"sys_clkin");
- 		if (IS_ERR(control_phy->sys_clk)) {
-@@ -288,6 +330,14 @@ static int omap_control_phy_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	if (control_phy->type == OMAP_CTRL_TYPE_PCIE) {
-+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-+						   "pcie_pcs");
-+		control_phy->pcie_pcs = devm_ioremap_resource(&pdev->dev, res);
-+		if (IS_ERR(control_phy->pcie_pcs))
-+			return PTR_ERR(control_phy->pcie_pcs);
-+	}
-+
- 	dev_set_drvdata(control_phy->dev, control_phy);
- 
- 	return 0;
-diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-index d43019d..11a1594 100644
---- a/drivers/phy/phy-ti-pipe3.c
-+++ b/drivers/phy/phy-ti-pipe3.c
-@@ -216,8 +216,10 @@ static int ti_pipe3_init(struct phy *x)
- 	u32 val;
- 	int ret = 0;
- 
--	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie"))
-+	if (of_device_is_compatible(phy->dev->of_node, "ti,phy-pipe3-pcie")) {
-+		omap_control_pcie_pcs(phy->control_dev, 0x1, 0xF1);
- 		return 0;
-+	}
- 
- 	/* Bring it out of IDLE if it is IDLE */
- 	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
-diff --git a/include/linux/phy/omap_control_phy.h b/include/linux/phy/omap_control_phy.h
-index 5450403..e9e6cfb 100644
---- a/include/linux/phy/omap_control_phy.h
-+++ b/include/linux/phy/omap_control_phy.h
-@@ -23,6 +23,7 @@ enum omap_control_phy_type {
- 	OMAP_CTRL_TYPE_OTGHS = 1,	/* Mailbox OTGHS_CONTROL */
- 	OMAP_CTRL_TYPE_USB2,	/* USB2_PHY, power down in CONTROL_DEV_CONF */
- 	OMAP_CTRL_TYPE_PIPE3,	/* PIPE3 PHY, DPLL & seperate Rx/Tx power */
-+	OMAP_CTRL_TYPE_PCIE,	/* RX TX control of ACSPCIE */
- 	OMAP_CTRL_TYPE_DRA7USB2, /* USB2 PHY, power and power_aux e.g. DRA7 */
- 	OMAP_CTRL_TYPE_AM437USB2, /* USB2 PHY, power e.g. AM437x */
- };
-@@ -33,6 +34,7 @@ struct omap_control_phy {
- 	u32 __iomem *otghs_control;
- 	u32 __iomem *power;
- 	u32 __iomem *power_aux;
-+	u32 __iomem *pcie_pcs;
- 
- 	struct clk *sys_clk;
- 
-@@ -63,6 +65,9 @@ enum omap_control_usb_mode {
- #define	OMAP_CTRL_PIPE3_PHY_TX_RX_POWERON	0x3
- #define	OMAP_CTRL_PIPE3_PHY_TX_RX_POWEROFF	0x0
- 
-+#define	OMAP_CTRL_PCIE_PCS_MASK			0xff
-+#define	OMAP_CTRL_PCIE_PCS_DELAY_COUNT_SHIFT	0x8
-+
- #define OMAP_CTRL_USB2_PHY_PD		BIT(28)
- 
- #define AM437X_CTRL_USB2_PHY_PD		BIT(0)
-@@ -74,6 +79,7 @@ enum omap_control_usb_mode {
- void omap_control_phy_power(struct device *dev, int on);
- void omap_control_usb_set_mode(struct device *dev,
- 			       enum omap_control_usb_mode mode);
-+void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay);
- #else
- 
- static inline void omap_control_phy_power(struct device *dev, int on)
-@@ -84,6 +90,10 @@ static inline void omap_control_usb_set_mode(struct device *dev,
- 	enum omap_control_usb_mode mode)
- {
- }
-+
-+static inline void omap_control_pcie_pcs(struct device *dev, u8 id, u8 delay)
-+{
-+}
- #endif
- 
- #endif	/* __OMAP_CONTROL_PHY_H__ */
+@@ -518,9 +545,9 @@ static void dw_pcie_prog_viewport_cfg0(struct pcie_port *pp, u32 busdev)
+ 	/* Program viewport 0 : OUTBOUND : CFG0 */
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX0,
+ 			  PCIE_ATU_VIEWPORT);
+-	dw_pcie_writel_rc(pp, pp->cfg0_base, PCIE_ATU_LOWER_BASE);
+-	dw_pcie_writel_rc(pp, (pp->cfg0_base >> 32), PCIE_ATU_UPPER_BASE);
+-	dw_pcie_writel_rc(pp, pp->cfg0_base + pp->config.cfg0_size - 1,
++	dw_pcie_writel_rc(pp, pp->cfg0_mod_addr, PCIE_ATU_LOWER_BASE);
++	dw_pcie_writel_rc(pp, (pp->cfg0_mod_addr >> 32), PCIE_ATU_UPPER_BASE);
++	dw_pcie_writel_rc(pp, pp->cfg0_mod_addr + pp->config.cfg0_size - 1,
+ 			  PCIE_ATU_LIMIT);
+ 	dw_pcie_writel_rc(pp, busdev, PCIE_ATU_LOWER_TARGET);
+ 	dw_pcie_writel_rc(pp, 0, PCIE_ATU_UPPER_TARGET);
+@@ -534,9 +561,9 @@ static void dw_pcie_prog_viewport_cfg1(struct pcie_port *pp, u32 busdev)
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX1,
+ 			  PCIE_ATU_VIEWPORT);
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_CFG1, PCIE_ATU_CR1);
+-	dw_pcie_writel_rc(pp, pp->cfg1_base, PCIE_ATU_LOWER_BASE);
+-	dw_pcie_writel_rc(pp, (pp->cfg1_base >> 32), PCIE_ATU_UPPER_BASE);
+-	dw_pcie_writel_rc(pp, pp->cfg1_base + pp->config.cfg1_size - 1,
++	dw_pcie_writel_rc(pp, pp->cfg1_mod_addr, PCIE_ATU_LOWER_BASE);
++	dw_pcie_writel_rc(pp, (pp->cfg1_mod_addr >> 32), PCIE_ATU_UPPER_BASE);
++	dw_pcie_writel_rc(pp, pp->cfg1_mod_addr + pp->config.cfg1_size - 1,
+ 			  PCIE_ATU_LIMIT);
+ 	dw_pcie_writel_rc(pp, busdev, PCIE_ATU_LOWER_TARGET);
+ 	dw_pcie_writel_rc(pp, 0, PCIE_ATU_UPPER_TARGET);
+@@ -549,9 +576,9 @@ static void dw_pcie_prog_viewport_mem_outbound(struct pcie_port *pp)
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_REGION_OUTBOUND | PCIE_ATU_REGION_INDEX0,
+ 			  PCIE_ATU_VIEWPORT);
+ 	dw_pcie_writel_rc(pp, PCIE_ATU_TYPE_MEM, PCIE_ATU_CR1);
+-	dw_pcie_writel_rc(pp, pp->mem_base, PCIE_ATU_LOWER_BASE);
+-	dw_pcie_writel_rc(pp, (pp->mem_base >> 32), PCIE_ATU_UPPER_BASE);
+-	dw_pcie_writel_rc(pp, pp->mem_base + pp->config.mem_size - 1,
++	dw_pcie_writel_rc(pp, pp->mem_mod_addr, PCIE_ATU_LOWER_BASE);
++	dw_pcie_writel_rc(pp, (pp->mem_mod_addr >> 32), PCIE_ATU_UPPER_BASE);
++	dw_pcie_writel_rc(pp, pp->mem_mod_addr + pp->config.mem_size - 1,
+ 			  PCIE_ATU_LIMIT);
+ 	dw_pcie_writel_rc(pp, pp->config.mem_bus_addr, PCIE_ATU_LOWER_TARGET);
+ 	dw_pcie_writel_rc(pp, upper_32_bits(pp->config.mem_bus_addr),
+diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+index 3063b35..d1f7d5e 100644
+--- a/drivers/pci/host/pcie-designware.h
++++ b/drivers/pci/host/pcie-designware.h
+@@ -36,11 +36,15 @@ struct pcie_port {
+ 	u8			root_bus_nr;
+ 	void __iomem		*dbi_base;
+ 	u64			cfg0_base;
++	u64			cfg0_mod_addr;
+ 	void __iomem		*va_cfg0_base;
+ 	u64			cfg1_base;
++	u64			cfg1_mod_addr;
+ 	void __iomem		*va_cfg1_base;
+ 	u64			io_base;
++	u64			io_mod_addr;
+ 	u64			mem_base;
++	u64			mem_mod_addr;
+ 	spinlock_t		conf_lock;
+ 	struct resource		cfg;
+ 	struct resource		io;
 -- 
 1.7.9.5
