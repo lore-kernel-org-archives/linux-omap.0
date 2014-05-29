@@ -1,138 +1,89 @@
-From: Satish Patel <satish.patel@ti.com>
-Subject: Re: [PATCH v3 2/5] misc: tda8026: Add NXP TDA8026 PHY driver
-Date: Thu, 29 May 2014 14:07:59 +0530
-Message-ID: <5386F1E7.3030700@ti.com>
-References: <1401267437-22489-1-git-send-email-satish.patel@ti.com> <1401267437-22489-3-git-send-email-satish.patel@ti.com> <20140528184450.GD30031@kroah.com>
+From: Satish Patel <satish.patel-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 1/5] sc_phy:SmartCard(SC) PHY interface to SC controller
+Date: Thu, 29 May 2014 14:26:55 +0530
+Message-ID: <5386F657.9040805@ti.com>
+References: <1401267437-22489-1-git-send-email-satish.patel@ti.com> <1401267437-22489-2-git-send-email-satish.patel@ti.com> <20140528184408.GC30031@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140528184450.GD30031@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140528184408.GC30031-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
 On 5/29/2014 12:14 AM, Greg KH wrote:
-> On Wed, May 28, 2014 at 02:27:14PM +0530, Satish Patel wrote:
->> TDA8026 is a SmartCard PHY from NXP.
->>
->> The PHY interfaces with the main processor over the
->> I2C interface and acts as a slave device.
->>
->> The driver also exposes the phy interface
->> (defined@include/linux/sc_phy.h) for SmartCard controller.
->> Controller uses this interface to communicate with smart card
->> inserted to the phy's slot.
->>
->> Note: gpio irq is not validated as I do not have device with that.
->> I have validated interrupt with dedicated interrupt line on my device.
->>
->> Signed-off-by: Satish Patel <satish.patel@ti.com>
->> ---
->>   Documentation/devicetree/bindings/misc/tda8026.txt |   19 +
->>   drivers/misc/Kconfig                               |    7 +
->>   drivers/misc/Makefile                              |    1 +
->>   drivers/misc/tda8026.c                             | 1258 ++++++++++++++++++++
->>   4 files changed, 1285 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
->>   create mode 100644 drivers/misc/tda8026.c
->>
->> diff --git a/Documentation/devicetree/bindings/misc/tda8026.txt b/Documentation/devicetree/bindings/misc/tda8026.txt
->> new file mode 100644
->> index 0000000..f115c9c
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/misc/tda8026.txt
->> @@ -0,0 +1,19 @@
->> +TDA8026 smart card slot interface
->> +
->> +This is an i2c based smart card interface device forming the electrical
->> +interface between a microcontroller and smart cards. This device supports
->> +asynchronous cards (micro controller-based IC cards) as well as synchronous
->> +cards (mainly memory cards)
->> +
->> +Required properties:
->> +- compatible: "nxp,tda8026"
->> +- shutdown-gpio = GPIO pin mapping for SDWNN pin
->> +- reg = i2c interface address
->> +
->> +
->> +Example:
->> +tda8026: tda8026@48 {
->> +		 compatible = "nxp,tda8026";
->> +		 reg = <0x48>;
->> +		 shutdown-gpio = <&gpio5 19 GPIO_ACTIVE_HIGH>;/* Bank5, pin19 */
->> +	 };
->> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
->> index 8baff0e..80b21d7 100644
->> --- a/drivers/misc/Kconfig
->> +++ b/drivers/misc/Kconfig
->> @@ -515,6 +515,13 @@ config SRAM
->>   	  the genalloc API. It is supposed to be used for small on-chip SRAM
->>   	  areas found on many SoCs.
->>
->> +config NXP_TDA8026_PHY
->> +        tristate "NXP PHY Driver for Smart Card PHY"
->> +        depends on I2C=y
->> +        help
->> +          If you say yes here you get support for the TDA8026 Smart card PHY
->> +	  with I2C interface.
->> +
->>   source "drivers/misc/c2port/Kconfig"
->>   source "drivers/misc/eeprom/Kconfig"
->>   source "drivers/misc/cb710/Kconfig"
->> diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
->> index 7eb4b69..f262c0b 100644
->> --- a/drivers/misc/Makefile
->> +++ b/drivers/misc/Makefile
->> @@ -55,3 +55,4 @@ obj-$(CONFIG_SRAM)		+= sram.o
->>   obj-y				+= mic/
->>   obj-$(CONFIG_GENWQE)		+= genwqe/
->>   obj-$(CONFIG_ECHO)		+= echo/
->> +obj-$(CONFIG_NXP_TDA8026_PHY)	+= tda8026.o
->> diff --git a/drivers/misc/tda8026.c b/drivers/misc/tda8026.c
->> new file mode 100644
->> index 0000000..38df33e
->> --- /dev/null
->> +++ b/drivers/misc/tda8026.c
->> @@ -0,0 +1,1258 @@
->> +/*
->> + * tda8026.c - TDA8026 PHY driver for NXP Smart card PHY
+> On Wed, May 28, 2014 at 02:27:13PM +0530, Satish Patel wrote:
+>> +/**
+>> + * struct sc_phy - The basic smart card phy structure
 >> + *
+>> + * @dev: phy device
+>> + * @pdata: pointer to phy's private data structure
+>> + * @set_config: called to set phy's configuration
+>> + * @get_config: called to get phy's configuration
+>> + * @activate_card: perform smart card activation
+>> + * @deactivate_card: perform smart card de-activation
+>> + * @warm_reset: execute smart card warm reset sequence
+>> + * @register_card_activity_cb: register call back to phy device.
+>> + * This call back will be called on card insert or remove event
 >> + *
->> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License as
->> + * published by the Free Software Foundation version 2.
->> + *
->> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
->> + * kind, whether express or implied; without even the implied warranty
->> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
+>> + * smart card controller uses this interface to communicate with
+>> + * smart card via phy.Some smart card phy has multiple slots for
+>> + * cards. This inerface also enables controller to communicate with
+>> + * one or more smart card connected over phy.
 >> + */
+>> +struct sc_phy {
+>> +	/* phy's device pointer */
+>> +	struct device *dev;
+>
+> So this is the "parent", right?  Why not embed a struct device into this
+> structure as well, further streaching out the device tree.
+>
+Do you mean to use "dev->p" for pdata ?
+I have kept it outside, to give easeness/pragmatic focal for new phy 
+driver development. Driver can make this pointer null and use above pointer.
 >> +
->> +#include <linux/module.h>
->> +#include <linux/moduleparam.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/init.h>
->> +#include <linux/slab.h>
->> +#include <linux/gpio.h>
->> +#include <linux/i2c.h>
->> +#include <linux/mfd/core.h>
->> +#include <linux/notifier.h>
->> +#include <linux/sc_phy.h>
->> +#include <linux/of_gpio.h>
->> +#include <linux/of_device.h>
->> +#include <linux/delay.h>
+>> +	/* phy's private data */
+>> +	void *pdata;
 >
-> I think you just broke the build if this driver is enabled now right?
+> If you do the above, then this pointer is not needed.
 >
-> Not good :(
-Before sending, I have applied these patches to "v3.15-rc7" and build 
-with both the option ti-usim & tda8026 as module, as well as part of 
-kernel. Any specific tree you would like me to rebase these patches against.
-
 >
+>> +
+>> +	/* notify data, passed by interface user as a part of
+>> +	 * register_notify API. Data should be passed back when
+>> +	 * notification raised to the interface user
+>> +	 */
+>> +	void *notify_data;
+>
+> What makes this different from the pdata?
+pdata is phy's private data, while notify_data is something phy will 
+send to smart card controller on some event, like card 
+remove/insert/timeout etc..
+>
+>
+>> +
+>> +	int	(*set_config)(struct sc_phy *phy, u8 slot,
+>> +			enum sc_phy_config attr, int value);
+>> +	int	(*get_config)(struct sc_phy *phy, u8 slot, enum
+>> +			sc_phy_config attr);
+>> +	int	(*activate_card)(struct sc_phy *phy, u8 slot);
+>> +	int	(*deactivate_card)(struct sc_phy *phy, u8 slot);
+>> +	int	(*get_syncatr)(struct sc_phy *phy, u8 slot, u8 len, char *atr);
+>> +	int	(*warm_reset)(struct sc_phy *phy, u8 slot);
+>> +	int	(*register_notify)(struct sc_phy *phy,
+>> +			 struct	notifier_block *nb, void *notify_data);
+>> +	int	(*unregister_notify)(struct sc_phy *phy,
+>> +			struct	notifier_block *nb);
+>> +};
+>> +
+>> +#endif /* __SC_PHY_H__ */
+>> --
+>> 1.7.9.5
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
