@@ -1,61 +1,39 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v2 16/18] ARM: OMAP: Enable PCI for DRA7
-Date: Thu, 29 May 2014 18:54:07 +0100
-Message-ID: <20140529175407.GB24270@arm.com>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com>
- <1401345500-20188-17-git-send-email-kishon@ti.com>
- <CAL_JsqJifZqs9MpL=n4FRB+Z1OMtkw0sns8Vwec=_boGqRL8-w@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ARM: OMAP: SX1: remove check for CONFIG_SX1_OLD_FLASH
+Date: Thu, 29 May 2014 21:02:27 +0200
+Message-ID: <20140529190227.GB18230@amd.pavel.ucw.cz>
+References: <1400182902.11786.21.camel@x220>
+ <20140516211231.GF12881@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57878 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146AbaE2TC3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 May 2014 15:02:29 -0400
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqJifZqs9MpL=n4FRB+Z1OMtkw0sns8Vwec=_boGqRL8-w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Mark Rutland <Mark.Rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Jingoo Han <jg1.han@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>, Kumar Gala <galak@codeaurora.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20140516211231.GF12881@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Thu, May 29, 2014 at 06:52:14PM +0100, Rob Herring wrote:
-> On Thu, May 29, 2014 at 1:38 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> > Now that we have added PCIe driver for DRA7 SOCs, enable PCI on
-> > DRA7 SOCs.
-> >
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Rob Herring <robh+dt@kernel.org>
-> > Cc: Pawel Moll <pawel.moll@arm.com>
-> > Cc: Mark Rutland <mark.rutland@arm.com>
-> > Cc: Kumar Gala <galak@codeaurora.org>
-> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/Kconfig |    2 ++
-> >  1 file changed, 2 insertions(+)
-> >
-> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> > index cb31d43..b179e80 100644
-> > --- a/arch/arm/mach-omap2/Kconfig
-> > +++ b/arch/arm/mach-omap2/Kconfig
-> > @@ -75,6 +75,8 @@ config SOC_DRA7XX
-> >         select ARM_GIC
-> >         select HAVE_ARM_ARCH_TIMER
-> >         select IRQ_CROSSBAR
-> > +       select MIGHT_HAVE_PCI
+On Fri 2014-05-16 14:12:31, Tony Lindgren wrote:
+> * Paul Bolle <pebolle@tiscali.nl> [140515 12:42]:
+> > A check for CONFIG_SX1_OLD_FLASH was added in v2.6.24. But the related
+> > Kconfig symbol was never part of the tree. So we can remove some dead
+> > code.
 > 
-> I believe we moved or intend to move this under MULTI_PLATFORM, so you
-> don't need this. Will D. had a patch, but I don't think I saw a final
-> version to merge.
+> Thanks applying into omap-for-v3.16/board.
 
-I posted it earlier this week for somebody in arm-soc to pick up (although I
-don't think they have done yet):
+Actually... It seems there are two variant of SX1, and this is very
+useful piece of documentation how the _other_ variant looks.
 
-  http://lists.infradead.org/pipermail/linux-arm-kernel/2014-May/260238.html
+And if someone is hacking linux on sx1, he can probably figure out
+#ifdef in .c file...
 
-Will
+IOW adding the config option might be better solution.
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
