@@ -1,67 +1,59 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 11/18] ARM: dts: dra7: Add dt data for PCIe PHY control
- module
-Date: Thu, 29 May 2014 12:08:13 +0530
-Message-ID: <1401345500-20188-12-git-send-email-kishon@ti.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH v2 16/18] ARM: OMAP: Enable PCI for DRA7
+Date: Thu, 29 May 2014 15:48:55 +0900
+Message-ID: <000601cf7b0a$0fbce200$2f36a600$%han@samsung.com>
 References: <1401345500-20188-1-git-send-email-kishon@ti.com>
+ <1401345500-20188-17-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1401345500-20188-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, arnd@arndb.de, Pawel Moll <pawel.moll@arm.com>, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com, Rob Herring <robh+dt@kernel.org>, Kumar Gala <galak@codeaurora.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-reply-to: <1401345500-20188-17-git-send-email-kishon@ti.com>
+Content-language: ko
+Sender: linux-doc-owner@vger.kernel.org
+To: 'Kishon Vijay Abraham I' <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de, tony@atomide.com, 'Rob Herring' <robh+dt@kernel.org>, 'Pawel Moll' <pawel.moll@arm.com>, 'Mark Rutland' <mark.rutland@arm.com>, 'Kumar Gala' <galak@codeaurora.org>, 'Jingoo Han' <jg1.han@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Added dt data for PCIe PHY control module used by PCIe PHY.
-The documention for this node can be found @ ../bindings/phy/ti-phy.txt
+On Thursday, May 29, 2014 3:38 PM, Kishon Vijay Abraham I wrote:
+> 
+> Now that we have added PCIe driver for DRA7 SOCs, enable PCI on
+> DRA7 SOCs.
+> 
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Pawel Moll <pawel.moll@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Kumar Gala <galak@codeaurora.org>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index cb31d43..b179e80 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -75,6 +75,8 @@ config SOC_DRA7XX
+>  	select ARM_GIC
+>  	select HAVE_ARM_ARCH_TIMER
+>  	select IRQ_CROSSBAR
+> +	select MIGHT_HAVE_PCI
+> +	select ARCH_SUPPORTS_MSI
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Kumar Gala <galak@codeaurora.org>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Hi Kishon,
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index f0ca46d..3c7e7f2 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -803,6 +803,23 @@
- 			status = "disabled";
- 		};
- 
-+		omap_control_pcie1phy: omap-control-pciephy@0x4a003c40 {
-+			compatible = "ti,control-phy-pcie";
-+			reg = <0x4a003c40 0x4>, <0x4a003c14 0x4>, <0x4a003c34 0x4>;
-+			reg-names = "power", "control_sma", "pcie_pcs";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+		};
-+
-+		omap_control_pcie2phy: omap-control-pciephy@0x4a003c44 {
-+			compatible = "ti,control-phy-pcie";
-+			reg = <0x4a003c44 0x4>, <0x4a003c14 0x4>, <0x4a003c34 0x4>;
-+			reg-names = "power", "control_sma", "pcie_pcs";
-+			clocks = <&sys_clkin1>;
-+			clock-names = "sysclk";
-+			status = "disabled";
-+		};
-+
- 		omap_control_usb2phy1: control-phy@4a002300 {
- 			compatible = "ti,control-phy-usb2";
- 			reg = <0x4a002300 0x4>;
--- 
-1.7.9.5
+Please, don't select ARCH_SUPPORTS_MSI, because this kconfig
+option was already removed in v3.12 by the commit ebd97be635
+('PCI: remove ARCH_SUPPORTS_MSI kconfig option'). So, there is
+NO need to select 'ARCH_SUPPORTS_MSI'.
+
+Best regards,
+Jingoo Han
+
+> 
+>  config ARCH_OMAP2PLUS
+>  	bool
+> --
+> 1.7.9.5
+
