@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 16/18] ARM: OMAP: Enable PCI for DRA7
-Date: Thu, 29 May 2014 12:08:18 +0530
-Message-ID: <1401345500-20188-17-git-send-email-kishon@ti.com>
+Subject: [TEMP PATCH v2 18/18] ARM: dts: dra7: Add *resets* property for PCIe dt node
+Date: Thu, 29 May 2014 12:08:20 +0530
+Message-ID: <1401345500-20188-19-git-send-email-kishon@ti.com>
 References: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,34 +9,30 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>
+Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com, Dan Murphy <dmurphy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that we have added PCIe driver for DRA7 SOCs, enable PCI on
-DRA7 SOCs.
+Added *resets* and *reset-names* properies for PCIe dt node.
+The documention for this node can be found @ ../bindings/pci/ti-pci.txt.
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Dan Murphy <dmurphy@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig |    2 ++
+ arch/arm/boot/dts/dra7.dtsi |    2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index cb31d43..b179e80 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -75,6 +75,8 @@ config SOC_DRA7XX
- 	select ARM_GIC
- 	select HAVE_ARM_ARCH_TIMER
- 	select IRQ_CROSSBAR
-+	select MIGHT_HAVE_PCI
-+	select ARCH_SUPPORTS_MSI
- 
- config ARCH_OMAP2PLUS
- 	bool
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 1239f0d..03494b2 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1055,6 +1055,8 @@
+ 				#interrupt-cells = <1>;
+ 				num-lanes = <1>;
+ 				ti,hwmods = "pcie1";
++				resets = <&prm_resets &device_reset>;
++				reset-names = "reset";
+ 				phys = <&pcie1_phy>;
+ 				phy-names = "pcie-phy0";
+ 				interrupt-map-mask = <0 0 0 7>;
 -- 
 1.7.9.5
