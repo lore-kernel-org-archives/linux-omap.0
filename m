@@ -1,74 +1,89 @@
-From: "Liviu Dudau" <liviu@dudau.co.uk>
-Subject: Re: [PATCH v2 03/18] PCI: designware: Configuration space should be
- specified in 'reg'
-Date: Thu, 29 May 2014 16:18:40 +0100
-Message-ID: <20140529151840.GD1677@bart.dudau.co.uk>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com>
- <1401345500-20188-4-git-send-email-kishon@ti.com>
- <98E18225-3C63-4106-901A-A5D3DEC268C8@codeaurora.org>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v3 1/5] sc_phy:SmartCard(SC) PHY interface to SC
+ controller
+Date: Thu, 29 May 2014 08:51:22 -0700
+Message-ID: <20140529155122.GA32214@kroah.com>
+References: <1401267437-22489-1-git-send-email-satish.patel@ti.com>
+ <1401267437-22489-2-git-send-email-satish.patel@ti.com>
+ <20140528184408.GC30031@kroah.com>
+ <5386F657.9040805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <98E18225-3C63-4106-901A-A5D3DEC268C8@codeaurora.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kumar Gala <galak@codeaurora.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Marek Vasut <marex@denx.de>, arnd@arndb.de, tony@atomide.com, Mohit Kumar <mohit.kumar@st.com>, jg1.han@samsung.com, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bjorn Helgaas <bhelgaas@google.com>
+In-Reply-To: <5386F657.9040805@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Satish Patel <satish.patel@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 29, 2014 at 10:03:54AM -0500, Kumar Gala wrote:
+On Thu, May 29, 2014 at 02:26:55PM +0530, Satish Patel wrote:
 > 
-> On May 29, 2014, at 1:38 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
 > 
-> > The configuration address space has so far been specified in *ranges*,
-> > however it should be specified in *reg* making it a platform MEM resource.
-> > Hence used 'platform_get_resource_*' API to get configuration address
-> > space in the designware driver.
-> > 
-> > Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-> > Cc: Bjorn Helgaas <bhelgaas@google.com>
-> > Cc: Mohit Kumar <mohit.kumar@st.com>
-> > Cc: Jingoo Han <jg1.han@samsung.com>
-> > Cc: Marek Vasut <marex@denx.de>
-> > Cc: Arnd Bergmann <arnd@arndb.de>
-> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > ---
-> > .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
-> > drivers/pci/host/pcie-designware.c                 |   17 +++++++++++++++--
-> > 2 files changed, 16 insertions(+), 2 deletions(-)
-> 
-> Why should the cfg space be defined in *reg* instead of ranges?
+> On 5/29/2014 12:14 AM, Greg KH wrote:
+> >On Wed, May 28, 2014 at 02:27:13PM +0530, Satish Patel wrote:
+> >>+/**
+> >>+ * struct sc_phy - The basic smart card phy structure
+> >>+ *
+> >>+ * @dev: phy device
+> >>+ * @pdata: pointer to phy's private data structure
+> >>+ * @set_config: called to set phy's configuration
+> >>+ * @get_config: called to get phy's configuration
+> >>+ * @activate_card: perform smart card activation
+> >>+ * @deactivate_card: perform smart card de-activation
+> >>+ * @warm_reset: execute smart card warm reset sequence
+> >>+ * @register_card_activity_cb: register call back to phy device.
+> >>+ * This call back will be called on card insert or remove event
+> >>+ *
+> >>+ * smart card controller uses this interface to communicate with
+> >>+ * smart card via phy.Some smart card phy has multiple slots for
+> >>+ * cards. This inerface also enables controller to communicate with
+> >>+ * one or more smart card connected over phy.
+> >>+ */
+> >>+struct sc_phy {
+> >>+	/* phy's device pointer */
+> >>+	struct device *dev;
+> >
+> >So this is the "parent", right?  Why not embed a struct device into this
+> >structure as well, further streaching out the device tree.
+> >
+> Do you mean to use "dev->p" for pdata ?
 
-Because what you end up using is a struct resource to represent the cfg space and
-the conversion between ranges and resources breaks down for CFG space (we don't
-have a flag in the resource flags to say this is CFG resource). Specifying it
-as a *reg* property makes it a MEM resource and no special casing is needed.
+No, use the device itself.
 
-Best regards,
-Liviu
+> I have kept it outside, to give easeness/pragmatic focal for new phy driver
+> development. Driver can make this pointer null and use above pointer.
 
-> 
-> - k
-> 
-> -- 
-> Employee of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by The Linux Foundation
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Ick, no, that's not how the driver model works.  Each device in the
+system needs a struct device, don't try to "chain" off of an existing
+device like this.  Make it a "real" one.
 
--- 
--------------------
-   .oooO
-   (   )
-    \ (  Oooo.
-     \_) (   )
-          ) /
-         (_/
+> >>+
+> >>+	/* phy's private data */
+> >>+	void *pdata;
+> >
+> >If you do the above, then this pointer is not needed.
+> >
+> >
+> >>+
+> >>+	/* notify data, passed by interface user as a part of
+> >>+	 * register_notify API. Data should be passed back when
+> >>+	 * notification raised to the interface user
+> >>+	 */
+> >>+	void *notify_data;
+> >
+> >What makes this different from the pdata?
+> pdata is phy's private data, while notify_data is something phy will send to
+> smart card controller on some event, like card remove/insert/timeout etc..
 
- One small step
-   for me ...
+That doesn't make much sense to me, why not just put that in the notify
+function callback itself?
 
+Please either use the existing phy layer of the kernel, or make a "real"
+subsystem here, don't try to put a tiny shim on top of an existing
+struct device for this driver, that's not how subsystems in Linux are
+done.
+
+thanks,
+
+greg k-h
