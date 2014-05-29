@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 07/18] ARM: dts: DRA7: Change the parent of apll_pcie_in_clk_mux to dpll_pcie_ref_m2ldo_ck
-Date: Thu, 29 May 2014 12:08:09 +0530
-Message-ID: <1401345500-20188-8-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 06/18] ARM: dts: DRA7: Add divider table to optfclk_pciephy_div clock
+Date: Thu, 29 May 2014 12:08:08 +0530
+Message-ID: <1401345500-20188-7-git-send-email-kishon@ti.com>
 References: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,8 +14,8 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Keerthy <j-keerthy@ti.com>
 
-Change the parent of apll_pcie_in_clk_mux to dpll_pcie_ref_m2ldo_ck
-from dpll_pcie_ref_ck.
+Add divider table to optfclk_pciephy_div clock. The Documentation
+for divider clock can be found at ../clock/ti/divider.txt
 
 Cc: Rajendra Nayak <rnayak@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
@@ -23,21 +23,20 @@ Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 55e95c5..44993ec 100644
+index c767687..55e95c5 100644
 --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
 +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1152,7 +1152,7 @@
- 
- 	apll_pcie_in_clk_mux: apll_pcie_in_clk_mux@4ae06118 {
- 		compatible = "ti,mux-clock";
--		clocks = <&dpll_pcie_ref_ck>, <&pciesref_acs_clk_ck>;
-+		clocks = <&dpll_pcie_ref_m2ldo_ck>, <&pciesref_acs_clk_ck>;
+@@ -1170,6 +1170,7 @@
+ 		clocks = <&apll_pcie_ck>;
  		#clock-cells = <0>;
- 		reg = <0x021c 0x4>;
- 		ti,bit-shift = <7>;
+ 		reg = <0x021c>;
++		ti,dividers = <2>, <1>;
+ 		ti,bit-shift = <8>;
+ 		ti,max-div = <2>;
+ 	};
 -- 
 1.7.9.5
