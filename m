@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 10/18] ARM: dts: dra7xx-clocks: Add missing 32khz clocks used for PHY
-Date: Thu, 29 May 2014 12:08:12 +0530
-Message-ID: <1401345500-20188-11-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 12/18] ARM: dts: dra7xx-clocks: rename pcie clocks to accommodate second PHY instance
+Date: Thu, 29 May 2014 12:08:14 +0530
+Message-ID: <1401345500-20188-13-git-send-email-kishon@ti.com>
 References: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,13 +9,15 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1401345500-20188-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>
+Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, kishon@ti.com, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Keerthy <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Added missing 32khz clock used by PCIe PHY.
-The documention for this node can be found @ ../bindings/clock/ti/gate.txt.
+There are two instances of PCIe PHY in DRA7xx. So renamed
+optfclk_pciephy_32khz, optfclk_pciephy_clk and optfclk_pciephy_div_clk to
+optfclk_pciephy1_32khz, optfclk_pciephy1_clk and optfclk_pciephy1_div_clk
+respectively. This is needed for adding the clocks for second PCIe PHY
+instance.
 
-Cc: Tony Lindgren <tony@atomide.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
@@ -24,29 +26,42 @@ Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Pawel Moll <pawel.moll@arm.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Kumar Gala <galak@codeaurora.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index 44993ec..e1bd052 100644
+index e1bd052..3d8c9c2 100644
 --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
 +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1165,6 +1165,14 @@
+@@ -1165,7 +1165,7 @@
  		reg = <0x021c>, <0x0220>;
  	};
  
-+	optfclk_pciephy_32khz: optfclk_pciephy_32khz@4a0093b0 {
-+		compatible = "ti,gate-clock";
-+		clocks = <&sys_32k_ck>;
-+		#clock-cells = <0>;
-+		reg = <0x13b0>;
-+		ti,bit-shift = <8>;
-+	};
-+
- 	optfclk_pciephy_div: optfclk_pciephy_div@4a00821c {
- 		compatible = "ti,divider-clock";
+-	optfclk_pciephy_32khz: optfclk_pciephy_32khz@4a0093b0 {
++	optfclk_pciephy1_32khz: optfclk_pciephy_32khz@4a0093b0 {
+ 		compatible = "ti,gate-clock";
+ 		clocks = <&sys_32k_ck>;
+ 		#clock-cells = <0>;
+@@ -1183,7 +1183,7 @@
+ 		ti,max-div = <2>;
+ 	};
+ 
+-	optfclk_pciephy_clk: optfclk_pciephy_clk@4a0093b0 {
++	optfclk_pciephy1_clk: optfclk_pciephy_clk@4a0093b0 {
+ 		compatible = "ti,gate-clock";
  		clocks = <&apll_pcie_ck>;
+ 		#clock-cells = <0>;
+@@ -1191,7 +1191,7 @@
+ 		ti,bit-shift = <9>;
+ 	};
+ 
+-	optfclk_pciephy_div_clk: optfclk_pciephy_div_clk@4a0093b0 {
++	optfclk_pciephy1_div_clk: optfclk_pciephy_div_clk@4a0093b0 {
+ 		compatible = "ti,gate-clock";
+ 		clocks = <&optfclk_pciephy_div>;
+ 		#clock-cells = <0>;
 -- 
 1.7.9.5
