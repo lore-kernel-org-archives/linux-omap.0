@@ -1,55 +1,68 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 16/18] ARM: OMAP: Enable PCI for DRA7
-Date: Thu, 29 May 2014 18:47:07 +0530
-Message-ID: <53873353.9010609@ti.com>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-17-git-send-email-kishon@ti.com> <000601cf7b0a$0fbce200$2f36a600$%han@samsung.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: Re: [PATCH v14 2/6] mmc: omap_hsmmc: Extend debugfs by SDIO IRQ handling,
+ runtime state
+Date: Thu, 29 May 2014 19:08:06 +0530
+Message-ID: <5387383E.1040002@ti.com>
+References: <1401352085-22781-1-git-send-email-afenkart@gmail.com> <1401352085-22781-3-git-send-email-afenkart@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <000601cf7b0a$0fbce200$2f36a600$%han@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jingoo Han <jg1.han@samsung.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de, tony@atomide.com, 'Rob Herring' <robh+dt@kernel.org>, 'Pawel Moll' <pawel.moll@arm.com>, 'Mark Rutland' <mark.rutland@arm.com>, 'Kumar Gala' <galak@codeaurora.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1401352085-22781-3-git-send-email-afenkart@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Andreas Fenkart <afenkart@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thursday 29 May 2014 01:58 PM, Andreas Fenkart wrote:
+> Add SDIO IRQ entries to debugfs entry. Note that PSTATE shows current
+> state of data lines, incl. SDIO IRQ pending
+>
+> Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
 
-On Thursday 29 May 2014 12:18 PM, Jingoo Han wrote:
-> On Thursday, May 29, 2014 3:38 PM, Kishon Vijay Abraham I wrote:
->>
->> Now that we have added PCIe driver for DRA7 SOCs, enable PCI on
->> DRA7 SOCs.
->>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: Pawel Moll <pawel.moll@arm.com>
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Cc: Kumar Gala <galak@codeaurora.org>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  arch/arm/mach-omap2/Kconfig |    2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
->> index cb31d43..b179e80 100644
->> --- a/arch/arm/mach-omap2/Kconfig
->> +++ b/arch/arm/mach-omap2/Kconfig
->> @@ -75,6 +75,8 @@ config SOC_DRA7XX
->>  	select ARM_GIC
->>  	select HAVE_ARM_ARCH_TIMER
->>  	select IRQ_CROSSBAR
->> +	select MIGHT_HAVE_PCI
->> +	select ARCH_SUPPORTS_MSI
-> 
-> Hi Kishon,
-> 
-> Please, don't select ARCH_SUPPORTS_MSI, because this kconfig
-> option was already removed in v3.12 by the commit ebd97be635
-> ('PCI: remove ARCH_SUPPORTS_MSI kconfig option'). So, there is
-> NO need to select 'ARCH_SUPPORTS_MSI'.
+Thanks Andreas for fixing compilation with !CONFIG_PM[_RUNTIME],
 
-Thanks for spotting it. Will remove it.
+Acked-by: Balaji T K <balajitk@ti.com>
 
-Thanks
-Kishon
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 129569d..332d3d2 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -56,6 +56,7 @@
+>   #define OMAP_HSMMC_RSP54	0x0118
+>   #define OMAP_HSMMC_RSP76	0x011C
+>   #define OMAP_HSMMC_DATA		0x0120
+> +#define OMAP_HSMMC_PSTATE	0x0124
+>   #define OMAP_HSMMC_HCTL		0x0128
+>   #define OMAP_HSMMC_SYSCTL	0x012C
+>   #define OMAP_HSMMC_STAT		0x0130
+> @@ -1815,13 +1816,23 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
+>   	struct mmc_host *mmc = s->private;
+>   	struct omap_hsmmc_host *host = mmc_priv(mmc);
+>
+> -	seq_printf(s, "mmc%d:\n ctx_loss:\t%d\n\nregs:\n",
+> -			mmc->index, host->context_loss);
+> +	seq_printf(s, "mmc%d:\n", mmc->index);
+> +	seq_printf(s, "sdio irq mode\t%s\n",
+> +		   (mmc->caps & MMC_CAP_SDIO_IRQ) ? "interrupt" : "polling");
+>
+> -	pm_runtime_get_sync(host->dev);
+> +	if (mmc->caps & MMC_CAP_SDIO_IRQ) {
+> +		seq_printf(s, "sdio irq \t%s\n",
+> +			   (host->flags & HSMMC_SDIO_IRQ_ENABLED) ?  "enabled"
+> +			   : "disabled");
+> +	}
+> +	seq_printf(s, "ctx_loss:\t%d\n", host->context_loss);
+>
+> +	pm_runtime_get_sync(host->dev);
+> +	seq_puts(s, "\nregs:\n");
+>   	seq_printf(s, "CON:\t\t0x%08x\n",
+>   			OMAP_HSMMC_READ(host->base, CON));
+> +	seq_printf(s, "PSTATE:\t\t0x%08x\n",
+> +		   OMAP_HSMMC_READ(host->base, PSTATE));
+>   	seq_printf(s, "HCTL:\t\t0x%08x\n",
+>   			OMAP_HSMMC_READ(host->base, HCTL));
+>   	seq_printf(s, "SYSCTL:\t\t0x%08x\n",
+>
+
