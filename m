@@ -1,60 +1,138 @@
 From: Satish Patel <satish.patel@ti.com>
-Subject: Re: [PATCH v3 1/5] sc_phy:SmartCard(SC) PHY interface to SC controller
-Date: Thu, 29 May 2014 14:04:06 +0530
-Message-ID: <5386F0FE.7040003@ti.com>
-References: <1401267437-22489-1-git-send-email-satish.patel@ti.com> <1401267437-22489-2-git-send-email-satish.patel@ti.com> <20140528185334.GA30763@kroah.com>
+Subject: Re: [PATCH v3 2/5] misc: tda8026: Add NXP TDA8026 PHY driver
+Date: Thu, 29 May 2014 14:07:59 +0530
+Message-ID: <5386F1E7.3030700@ti.com>
+References: <1401267437-22489-1-git-send-email-satish.patel@ti.com> <1401267437-22489-3-git-send-email-satish.patel@ti.com> <20140528184450.GD30031@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60731 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229AbaE2Iei (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 May 2014 04:34:38 -0400
-In-Reply-To: <20140528185334.GA30763@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140528184450.GD30031@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Greg KH <gregkh@linuxfoundation.org>
 Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 
 
-On 5/29/2014 12:23 AM, Greg KH wrote:
-> On Wed, May 28, 2014 at 02:27:13PM +0530, Satish Patel wrote:
->> SmartCard controller uses this interface to communicate with
->> SmartCard via PHY
+On 5/29/2014 12:14 AM, Greg KH wrote:
+> On Wed, May 28, 2014 at 02:27:14PM +0530, Satish Patel wrote:
+>> TDA8026 is a SmartCard PHY from NXP.
 >>
->> Some SmartCard PHY has multiple slots for cards.
->> This inerface also enables controller to communicate
->> with one or more SmartCard connected over phy.
+>> The PHY interfaces with the main processor over the
+>> I2C interface and acts as a slave device.
 >>
->> interface structure includes following APIs
->> - set/get config
->> - activate/deactivate smart card
->> - warm reset
->> - register_notify (for card insert/remove/overheat)
->> - unregister_notify
+>> The driver also exposes the phy interface
+>> (defined@include/linux/sc_phy.h) for SmartCard controller.
+>> Controller uses this interface to communicate with smart card
+>> inserted to the phy's slot.
+>>
+>> Note: gpio irq is not validated as I do not have device with that.
+>> I have validated interrupt with dedicated interrupt line on my device.
 >>
 >> Signed-off-by: Satish Patel <satish.patel@ti.com>
 >> ---
->>   Documentation/sc_phy.txt |  171 ++++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/sc_phy.h   |  136 ++++++++++++++++++++++++++++++++++++
->>   2 files changed, 307 insertions(+)
->>   create mode 100644 Documentation/sc_phy.txt
->>   create mode 100644 include/linux/sc_phy.h
+>>   Documentation/devicetree/bindings/misc/tda8026.txt |   19 +
+>>   drivers/misc/Kconfig                               |    7 +
+>>   drivers/misc/Makefile                              |    1 +
+>>   drivers/misc/tda8026.c                             | 1258 ++++++++++++++++++++
+>>   4 files changed, 1285 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/misc/tda8026.txt
+>>   create mode 100644 drivers/misc/tda8026.c
+>>
+>> diff --git a/Documentation/devicetree/bindings/misc/tda8026.txt b/Documentation/devicetree/bindings/misc/tda8026.txt
+>> new file mode 100644
+>> index 0000000..f115c9c
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/misc/tda8026.txt
+>> @@ -0,0 +1,19 @@
+>> +TDA8026 smart card slot interface
+>> +
+>> +This is an i2c based smart card interface device forming the electrical
+>> +interface between a microcontroller and smart cards. This device supports
+>> +asynchronous cards (micro controller-based IC cards) as well as synchronous
+>> +cards (mainly memory cards)
+>> +
+>> +Required properties:
+>> +- compatible: "nxp,tda8026"
+>> +- shutdown-gpio = GPIO pin mapping for SDWNN pin
+>> +- reg = i2c interface address
+>> +
+>> +
+>> +Example:
+>> +tda8026: tda8026@48 {
+>> +		 compatible = "nxp,tda8026";
+>> +		 reg = <0x48>;
+>> +		 shutdown-gpio = <&gpio5 19 GPIO_ACTIVE_HIGH>;/* Bank5, pin19 */
+>> +	 };
+>> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+>> index 8baff0e..80b21d7 100644
+>> --- a/drivers/misc/Kconfig
+>> +++ b/drivers/misc/Kconfig
+>> @@ -515,6 +515,13 @@ config SRAM
+>>   	  the genalloc API. It is supposed to be used for small on-chip SRAM
+>>   	  areas found on many SoCs.
+>>
+>> +config NXP_TDA8026_PHY
+>> +        tristate "NXP PHY Driver for Smart Card PHY"
+>> +        depends on I2C=y
+>> +        help
+>> +          If you say yes here you get support for the TDA8026 Smart card PHY
+>> +	  with I2C interface.
+>> +
+>>   source "drivers/misc/c2port/Kconfig"
+>>   source "drivers/misc/eeprom/Kconfig"
+>>   source "drivers/misc/cb710/Kconfig"
+>> diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+>> index 7eb4b69..f262c0b 100644
+>> --- a/drivers/misc/Makefile
+>> +++ b/drivers/misc/Makefile
+>> @@ -55,3 +55,4 @@ obj-$(CONFIG_SRAM)		+= sram.o
+>>   obj-y				+= mic/
+>>   obj-$(CONFIG_GENWQE)		+= genwqe/
+>>   obj-$(CONFIG_ECHO)		+= echo/
+>> +obj-$(CONFIG_NXP_TDA8026_PHY)	+= tda8026.o
+>> diff --git a/drivers/misc/tda8026.c b/drivers/misc/tda8026.c
+>> new file mode 100644
+>> index 0000000..38df33e
+>> --- /dev/null
+>> +++ b/drivers/misc/tda8026.c
+>> @@ -0,0 +1,1258 @@
+>> +/*
+>> + * tda8026.c - TDA8026 PHY driver for NXP Smart card PHY
+>> + *
+>> + *
+>> + * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License as
+>> + * published by the Free Software Foundation version 2.
+>> + *
+>> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+>> + * kind, whether express or implied; without even the implied warranty
+>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/moduleparam.h>
+>> +#include <linux/interrupt.h>
+>> +#include <linux/init.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/gpio.h>
+>> +#include <linux/i2c.h>
+>> +#include <linux/mfd/core.h>
+>> +#include <linux/notifier.h>
+>> +#include <linux/sc_phy.h>
+>> +#include <linux/of_gpio.h>
+>> +#include <linux/of_device.h>
+>> +#include <linux/delay.h>
 >
-> These are .h files, but where is the "api" functions that use
-> these structures defined at?
+> I think you just broke the build if this driver is enabled now right?
 >
-This is like template/wrappers, smart card phy driver will write API 
-functions. And smartcard controller will call these functions.
-With proposed approach, smartcard controller can communicate with any 
-smart card phy (TI/NxP) without change in code. Using DT entry smartcard 
-and PHY will gets connected with each other.
-Refer diagram given @Documentation/sc_phy.txt.
+> Not good :(
+Before sending, I have applied these patches to "v3.15-rc7" and build 
+with both the option ti-usim & tda8026 as module, as well as part of 
+kernel. Any specific tree you would like me to rebase these patches against.
 
-
-> confused,
->
-> greg k-h
 >
