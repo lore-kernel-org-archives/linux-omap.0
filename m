@@ -1,43 +1,59 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ARM: OMAP: SX1: remove check for CONFIG_SX1_OLD_FLASH
-Date: Thu, 29 May 2014 21:42:23 +0200
-Message-ID: <20140529194223.GA20722@amd.pavel.ucw.cz>
-References: <1400182902.11786.21.camel@x220>
- <20140516211231.GF12881@atomide.com>
- <20140529190227.GB18230@amd.pavel.ucw.cz>
- <20140529191738.GA18567@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap dt fixes and and clocks for v3.16 merge window
+Date: Thu, 29 May 2014 12:44:23 -0700
+Message-ID: <20140529194423.GI18481@quad.lixom.net>
+References: <20140528175838.GA4707@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:58002 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932109AbaE2ToL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 May 2014 15:44:11 -0400
+Received: by mail-pd0-f179.google.com with SMTP id fp1so90113pdb.38
+        for <linux-omap@vger.kernel.org>; Thu, 29 May 2014 12:44:11 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140529191738.GA18567@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20140528175838.GA4707@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu 2014-05-29 12:17:39, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [140529 12:03]:
-> > On Fri 2014-05-16 14:12:31, Tony Lindgren wrote:
-> > > * Paul Bolle <pebolle@tiscali.nl> [140515 12:42]:
-> > > > A check for CONFIG_SX1_OLD_FLASH was added in v2.6.24. But the related
-> > > > Kconfig symbol was never part of the tree. So we can remove some dead
-> > > > code.
-> > > 
-> > > Thanks applying into omap-for-v3.16/board.
-> > 
-> > Actually... It seems there are two variant of SX1, and this is very
-> > useful piece of documentation how the _other_ variant looks.
-> > 
-> > And if someone is hacking linux on sx1, he can probably figure out
-> > #ifdef in .c file...
-> > 
-> > IOW adding the config option might be better solution.
+On Wed, May 28, 2014 at 10:58:39AM -0700, Tony Lindgren wrote:
+> The following changes since commit d712ff63b18309c939396f593510fbcccbafb9e4:
 > 
-> Or just a comment saying the same?
+>   ARM: dts: Enable mcpdm and mcbsp1 on DuoVero (2014-05-19 17:20:31 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/dt-part3
+> 
+> for you to fetch changes up to 43369f0fe81044427f6b1eedeb16bf8c74c86d48:
+> 
+>   Merge branch 'for-v3.16/clk-dt' of https://github.com/t-kristo/linux-pm into omap-for-v3.16/dt-v2 (2014-05-28 10:14:48 -0700)
+> 
+> ----------------------------------------------------------------
+> 
+> Most likely the last pull request from me for omap changes for
+> v3.16 that's dts fixes for clocks and enabling few features
+> that were still being discussed earlier:
+> 
+> - A bunch of omap clock related dts fixes queued by Tero Kristo.
+> 
+> - Enable parallel nand on am437x that was not merged earlier as
+>   I requested more information about the muxing for it. And
+>   we need to also enable ecc hardware support for am43xx.
+> 
+> - Enable the modem support for n900 that was dropped earlier
+>   because we had to fix the related hwmod entry first with patch
+>   ARM: OMAP2+: Fix ssi hwmod entry to allow idling.
+> 
+> - And finally, add the omap2 clock dts files. These will allow
+>   us to enable the dt clocks and drop the legacy clocks for omap2
+>   with a follow-up patch once the related clock driver binding
+>   changes are merged.
 
-Yes, #if 0 with a comment would do the same trick.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Merged into next/dt. Thanks.
+
+
+-Olof
