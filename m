@@ -1,41 +1,120 @@
-From: Satish Patel <satish.patel-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 3/5] char: ti-usim: Add driver for USIM module on AM43xx
-Date: Fri, 30 May 2014 09:38:20 +0530
-Message-ID: <53880434.7080002@ti.com>
-References: <1401267437-22489-1-git-send-email-satish.patel@ti.com> <1401267437-22489-4-git-send-email-satish.patel@ti.com> <CAL_JsqKs=a8GRJRmNE-oxU4imHqnb5szv+Km-wv3KuN0d6Bxkg@mail.gmail.com> <53870671.6080601@ti.com> <20140529155349.GD32214@kroah.com>
+From: Satish Patel <satish.patel@ti.com>
+Subject: Re: [PATCH v3 1/5] sc_phy:SmartCard(SC) PHY interface to SC controller
+Date: Fri, 30 May 2014 10:35:45 +0530
+Message-ID: <538811A9.1080800@ti.com>
+References: <1401267437-22489-1-git-send-email-satish.patel@ti.com> <1401267437-22489-2-git-send-email-satish.patel@ti.com> <20140528184408.GC30031@kroah.com> <5386F657.9040805@ti.com> <20140529155122.GA32214@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140529155349.GD32214-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140529155122.GA32214@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 5/29/2014 9:23 PM, Greg Kroah-Hartman wrote:
-> On Thu, May 29, 2014 at 03:35:37PM +0530, Satish Patel wrote:
->>>> +enum usim_card_mode {
->>>> +       USIM_CARD_MODE_ASYNC = 0,       /* asynchronous mode */
->>>> +       USIM_CARD_MODE_SYNC_TYPE1,      /* synchronous mode: Type 1 */
->>>> +       USIM_CARD_MODE_SYNC_TYPE2,      /* synchronous mode: Type 2 */
->>>> +       USIM_CARD_MODE_SYNC_OTHER,      /* Any other synchronous type */
->>>> +};
->>>> +struct usim_data {
->>>> +       int slot;
->>>> +       int rxexplen;
->>>> +       int txlen;
->>>> +       unsigned char apdu[256];
->>>> +};
+On 5/29/2014 9:21 PM, Greg KH wrote:
+> On Thu, May 29, 2014 at 02:26:55PM +0530, Satish Patel wrote:
+>>
+>>
+>> On 5/29/2014 12:14 AM, Greg KH wrote:
+>>> On Wed, May 28, 2014 at 02:27:13PM +0530, Satish Patel wrote:
+>>>> +/**
+>>>> + * struct sc_phy - The basic smart card phy structure
+>>>> + *
+>>>> + * @dev: phy device
+>>>> + * @pdata: pointer to phy's private data structure
+>>>> + * @set_config: called to set phy's configuration
+>>>> + * @get_config: called to get phy's configuration
+>>>> + * @activate_card: perform smart card activation
+>>>> + * @deactivate_card: perform smart card de-activation
+>>>> + * @warm_reset: execute smart card warm reset sequence
+>>>> + * @register_card_activity_cb: register call back to phy device.
+>>>> + * This call back will be called on card insert or remove event
+>>>> + *
+>>>> + * smart card controller uses this interface to communicate with
+>>>> + * smart card via phy.Some smart card phy has multiple slots for
+>>>> + * cards. This inerface also enables controller to communicate with
+>>>> + * one or more smart card connected over phy.
+>>>> + */
+>>>> +struct sc_phy {
+>>>> +	/* phy's device pointer */
+>>>> +	struct device *dev;
+>>>
+>>> So this is the "parent", right?  Why not embed a struct device into this
+>>> structure as well, further streaching out the device tree.
+>>>
+>> Do you mean to use "dev->p" for pdata ?
 >
-> You need to use the proper variable types for a structure that is going
-> to cross the user/kernel boundry in an ioctl :(
-Do you mean to use __u32 instead int ? make use of types defined in 
-types.h ? if yes, I will make that change :). Thanks for pointing out.
+> No, use the device itself.
 >
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> I have kept it outside, to give easeness/pragmatic focal for new phy driver
+>> development. Driver can make this pointer null and use above pointer.
+>
+> Ick, no, that's not how the driver model works.  Each device in the
+> system needs a struct device, don't try to "chain" off of an existing
+> device like this.  Make it a "real" one.
+>
+>>>> +
+>>>> +	/* phy's private data */
+>>>> +	void *pdata;
+>>>
+>>> If you do the above, then this pointer is not needed.
+>>>
+>>>
+>>>> +
+>>>> +	/* notify data, passed by interface user as a part of
+>>>> +	 * register_notify API. Data should be passed back when
+>>>> +	 * notification raised to the interface user
+>>>> +	 */
+>>>> +	void *notify_data;
+>>>
+>>> What makes this different from the pdata?
+>> pdata is phy's private data, while notify_data is something phy will send to
+>> smart card controller on some event, like card remove/insert/timeout etc..
+>
+> That doesn't make much sense to me, why not just put that in the notify
+> function callback itself?
+>
+Little correction over here..
+Here is brief flow
+USIM(Smart Card Controller) register notification callback to smarcard phy.
+
+usim->phy->register_notify(<phy handle>, <callback fn>, <notify_data>);
+notify_data : pass back when callback function will be called by PHY
+
+
+Smartcard PHY -> USIM
+blocking_notifier_call_chain(<notifier>, action, <notify_data>);
+
+action : card insert/remove/overheat etc..
+notify data: USIM data passing back (supplied at the time of cb 
+registration)
+
+
+> Please either use the existing phy layer of the kernel, or make a "real"
+> subsystem here, don't try to put a tiny shim on top of an existing
+> struct device for this driver, that's not how subsystems in Linux are
+> done.
+Why I am not using exiting PHY framework ?
+
+We will be more than happy to adapt generic phy if it
+includes/add support for smart card requirements like
+
+1) Some smart card phy (TDA8026-NxP) has multiple slots for smart
+cards. This interface enables controller to communicate with specific
+smart card inserted to the specific phy's slot.
+2) Warm reset to smart card inserted to phy slot.
+3) Bit banging of smart card pins to support vendor specific memory
+cards.
+4) Notification of card insert/remove/overheat etc.
+5) synchronous and asynchronous modes for smart card transaction
+
+
+>
+> thanks,
+>
+> greg k-h
+>
