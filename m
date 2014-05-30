@@ -1,150 +1,169 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 03/18] PCI: designware: Configuration space should
- be specified in 'reg'
-Date: Fri, 30 May 2014 11:00:01 +0530
-Message-ID: <53881759.2070905@ti.com>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-4-git-send-email-kishon@ti.com> <53876116.90504@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] rtc: omap: Enable RTC_IRQWAKEEN bits when Alarm is set
+Date: Fri, 30 May 2014 14:20:36 +0530
+Message-ID: <5388465C.4090204@ti.com>
+References: <1401439702-21626-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <53876116.90504@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Murali Karicheri <m-karicheri2@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, "jg1.han@samsung.com" <jg1.han@samsung.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bjorn Helgaas <bhelgaas@google.com>, Mohit Kumar <mohit.kumar@st.com>, Marek Vasut <marex@denx.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39294 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754878AbaE3Ivz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 May 2014 04:51:55 -0400
+In-Reply-To: <1401439702-21626-1-git-send-email-lokeshvutla@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: a.zummo@towertech.it, akpm@linux-foundation.org, rtc-linux@googlegroups.com, Rajendra Nayak <rnayak@ti.com>, nsekhar@ti.com, linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
-
-On Thursday 29 May 2014 10:02 PM, Murali Karicheri wrote:
-> On 5/29/2014 2:38 AM, ABRAHAM, KISHON VIJAY wrote:
->> The configuration address space has so far been specified in *ranges*,
->> however it should be specified in *reg* making it a platform MEM resource.
->> Hence used 'platform_get_resource_*' API to get configuration address
->> space in the designware driver.
->>
->> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
->> Cc: Bjorn Helgaas <bhelgaas@google.com>
->> Cc: Mohit Kumar <mohit.kumar@st.com>
->> Cc: Jingoo Han <jg1.han@samsung.com>
->> Cc: Marek Vasut <marex@denx.de>
->> Cc: Arnd Bergmann <arnd@arndb.de>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>   .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
->>   drivers/pci/host/pcie-designware.c                 |   17 +++++++++++++++--
->>   2 files changed, 16 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt
->> b/Documentation/devicetree/bindings/pci/designware-pcie.txt
->> index d6fae13..8314360 100644
->> --- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
->> +++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
->> @@ -6,6 +6,7 @@ Required properties:
->>       as "samsung,exynos5440-pcie" or "fsl,imx6q-pcie".
->>   - reg: base addresses and lengths of the pcie controller,
->>       the phy controller, additional register for the phy controller.
->> +    The configuration address space should also be specified here.
-> Kishon,
++ linux-omap
+On Friday 30 May 2014 02:18 PM, Lokesh Vutla wrote:
+> When RTC CLKTRCTRL bit is configured in HW_AUTO, module goes to sleep
+> in IDLE state.
+> The Alarm SWakeup event can be used to wakeup the RTC when it is in IDLE state.
+> In order to do so, the alarm needs to be set and enabled before RTC enters the
+> IDLE state. Also the wakeup generation for alarm/timer event needs
+> to be set (bits [1:0] in RTC_IRQWAKEEN register).
+> Currently RTC_IRQWAKEEN bits are set only in suspend/resume paths. With
+> this ALARM interrupts are not generated when it enters IDLE state.
+> So programming the RTC_IRQWAKEEN bits when ever ALARM is set.
 > 
-> I am working on the Keystone PCI driver for which v1 is already posted. Want to
-> clarify
-> following.
-> 1. Original text for reg states "base addresses and lengths of the pcie
-> controller,
->         the phy controller, additional register for the phy controller" and you
-> added
->         "The configuration address space should also be specified here"
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Acked-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  drivers/rtc/rtc-omap.c |   67 ++++++++++++++++++++++++------------------------
+>  1 file changed, 33 insertions(+), 34 deletions(-)
 > 
->    and the code below added resource name "config"
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index 03bce13..21142e6 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -171,17 +171,28 @@ static irqreturn_t rtc_irq(int irq, void *rtc)
+>  
+>  static int omap_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
+>  {
+> -	u8 reg;
+> +	u8 reg, irqwake_reg = 0;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	const struct platform_device_id *id_entry =
+> +					platform_get_device_id(pdev);
+>  
+>  	local_irq_disable();
+>  	rtc_wait_not_busy();
+>  	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+> -	if (enabled)
+> +	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> +		irqwake_reg = rtc_read(OMAP_RTC_IRQWAKEEN);
+> +
+> +	if (enabled) {
+>  		reg |= OMAP_RTC_INTERRUPTS_IT_ALARM;
+> -	else
+> +		irqwake_reg |= OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+> +	} else {
+>  		reg &= ~OMAP_RTC_INTERRUPTS_IT_ALARM;
+> +		irqwake_reg &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+> +	}
+>  	rtc_wait_not_busy();
+>  	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
+> +	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> +		rtc_write(irqwake_reg, OMAP_RTC_IRQWAKEEN);
+>  	local_irq_enable();
+>  
+>  	return 0;
+> @@ -281,7 +292,10 @@ static int omap_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  
+>  static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  {
+> -	u8 reg;
+> +	u8 reg, irqwake_reg = 0;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	const struct platform_device_id *id_entry =
+> +					platform_get_device_id(pdev);
+>  
+>  	if (tm2bcd(&alm->time) < 0)
+>  		return -EINVAL;
+> @@ -297,11 +311,19 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  	rtc_write(alm->time.tm_sec, OMAP_RTC_ALARM_SECONDS_REG);
+>  
+>  	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+> -	if (alm->enabled)
+> +	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> +		irqwake_reg = rtc_read(OMAP_RTC_IRQWAKEEN);
+> +
+> +	if (alm->enabled) {
+>  		reg |= OMAP_RTC_INTERRUPTS_IT_ALARM;
+> -	else
+> +		irqwake_reg |= OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+> +	} else {
+>  		reg &= ~OMAP_RTC_INTERRUPTS_IT_ALARM;
+> +		irqwake_reg &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+> +	}
+>  	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
+> +	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> +		rtc_write(irqwake_reg, OMAP_RTC_IRQWAKEEN);
+>  
+>  	local_irq_enable();
+>  
+> @@ -503,28 +525,16 @@ static u8 irqstat;
+>  
+>  static int omap_rtc_suspend(struct device *dev)
+>  {
+> -	u8 irqwake_stat;
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	const struct platform_device_id *id_entry =
+> -					platform_get_device_id(pdev);
+> -
+>  	irqstat = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+>  
+>  	/* FIXME the RTC alarm is not currently acting as a wakeup event
+>  	 * source on some platforms, and in fact this enable() call is just
+>  	 * saving a flag that's never used...
+>  	 */
+> -	if (device_may_wakeup(dev)) {
+> +	if (device_may_wakeup(dev))
+>  		enable_irq_wake(omap_rtc_alarm);
+> -
+> -		if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN) {
+> -			irqwake_stat = rtc_read(OMAP_RTC_IRQWAKEEN);
+> -			irqwake_stat |= OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+> -			rtc_write(irqwake_stat, OMAP_RTC_IRQWAKEEN);
+> -		}
+> -	} else {
+> +	else
+>  		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+> -	}
+>  
+>  	/* Disable the clock/module */
+>  	pm_runtime_put_sync(dev);
+> @@ -534,25 +544,14 @@ static int omap_rtc_suspend(struct device *dev)
+>  
+>  static int omap_rtc_resume(struct device *dev)
+>  {
+> -	u8 irqwake_stat;
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	const struct platform_device_id *id_entry =
+> -				platform_get_device_id(pdev);
+> -
+>  	/* Enable the clock/module so that we can access the registers */
+>  	pm_runtime_get_sync(dev);
+>  
+> -	if (device_may_wakeup(dev)) {
+> +	if (device_may_wakeup(dev))
+>  		disable_irq_wake(omap_rtc_alarm);
+> -
+> -		if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN) {
+> -			irqwake_stat = rtc_read(OMAP_RTC_IRQWAKEEN);
+> -			irqwake_stat &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+> -			rtc_write(irqwake_stat, OMAP_RTC_IRQWAKEEN);
+> -		}
+> -	} else {
+> +	else
+>  		rtc_write(irqstat, OMAP_RTC_INTERRUPTS_REG);
+> -	}
+> +
+>  	return 0;
+>  }
+>  #endif
 > 
-> Does PCI designware follow some convention? Does it mean after applying this patch
-> config name is mandatory or optional? Below code you are not returning error.
-> Can you
-> or author of PCI designware clarify what is expected to be present as mandatory
-> and
-> what is optional.
 
->From whatever I could make out from the comments for my previous version,
-'config' is mandatory for all new platforms adding support for PCIe DW. However
-since there already exists platforms that use 'ranges', I'm not returning
-error. Once all the platforms that use DW is modified to use 'reg', will return
-error.
-> 
-> Does config refers to RC's config space or EP's config space or both? The code
-> below divide
-
-In the case of DRA7, it's the space from where you read the configuration space
-contents of the EP (we have separate address space for the configuration space
-of RC denoted by *rc_dbics* in this patch series). But there are other
-platforms where RC does not have a separate configuration address space.
-> the size by 2. So it appears to be RC's + EP's config space. Please clarify.
-
-No. divide by 2 is for cfg1 and cfg1 is used by PCIe bridges.
-> 
->>   - interrupts: interrupt values for level interrupt,
->>       pulse interrupt, special interrupt.
->>   - clocks: from common clock binding: handle to pci clock.
->> diff --git a/drivers/pci/host/pcie-designware.c
->> b/drivers/pci/host/pcie-designware.c
->> index c4e3732..603b386 100644
->> --- a/drivers/pci/host/pcie-designware.c
->> +++ b/drivers/pci/host/pcie-designware.c
->> @@ -20,6 +20,7 @@
->>   #include <linux/of_pci.h>
->>   #include <linux/pci.h>
->>   #include <linux/pci_regs.h>
->> +#include <linux/platform_device.h>
->>   #include <linux/types.h>
->>     #include "pcie-designware.h"
->> @@ -392,11 +393,23 @@ static const struct irq_domain_ops msi_domain_ops = {
->>   int __init dw_pcie_host_init(struct pcie_port *pp)
->>   {
->>       struct device_node *np = pp->dev->of_node;
->> +    struct platform_device *pdev = to_platform_device(pp->dev);
->>       struct of_pci_range range;
->>       struct of_pci_range_parser parser;
->> +    struct resource *cfg_res;
->>       u32 val;
->>       int i;
->>   +    cfg_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
->> +    if (cfg_res) {
->> +        pp->config.cfg0_size = resource_size(cfg_res)/2;
->> +        pp->config.cfg1_size = resource_size(cfg_res)/2;
->> +        pp->cfg0_base = cfg_res->start;
->> +        pp->cfg1_base = cfg_res->start + pp->config.cfg0_size;
->> +    } else {
->> +        dev_err(pp->dev, "missing *config* reg space\n");
-> This should return error -EINVAL.
-
-ah.. it'll break for other platforms. It should be part of a different patch
-once we convert all users to 8reg*.
-> 
->> +    }
->> +
->>       if (of_pci_range_parser_init(&parser, np)) {
->>           dev_err(pp->dev, "missing ranges property\n");
->>           return -EINVAL;
->> @@ -429,6 +442,8 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
->>               of_pci_range_to_resource(&range, np, &pp->cfg);
->>               pp->config.cfg0_size = resource_size(&pp->cfg)/2;
->>               pp->config.cfg1_size = resource_size(&pp->cfg)/2;
->> +            pp->cfg0_base = pp->cfg.start;
->> +            pp->cfg1_base = pp->cfg.start + pp->config.cfg0_size;
->>           }
->>       }
->>   @@ -441,8 +456,6 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
->>           }
->>       }
->>   -    pp->cfg0_base = pp->cfg.start;
->> -    pp->cfg1_base = pp->cfg.start + pp->config.cfg0_size;
->>       pp->mem_base = pp->mem.start;
->>         pp->va_cfg0_base = devm_ioremap(pp->dev, pp->cfg0_base,
-> BTW, Please also review my Keystone series so that we could discuss this topic
-> in that context
-> as well.
-
-sure..
-
-Cheers
-Kishon
