@@ -1,120 +1,150 @@
-From: Satish Patel <satish.patel@ti.com>
-Subject: Re: [PATCH v3 1/5] sc_phy:SmartCard(SC) PHY interface to SC controller
-Date: Fri, 30 May 2014 10:35:45 +0530
-Message-ID: <538811A9.1080800@ti.com>
-References: <1401267437-22489-1-git-send-email-satish.patel@ti.com> <1401267437-22489-2-git-send-email-satish.patel@ti.com> <20140528184408.GC30031@kroah.com> <5386F657.9040805@ti.com> <20140529155122.GA32214@kroah.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 03/18] PCI: designware: Configuration space should
+ be specified in 'reg'
+Date: Fri, 30 May 2014 11:00:01 +0530
+Message-ID: <53881759.2070905@ti.com>
+References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-4-git-send-email-kishon@ti.com> <53876116.90504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140529155122.GA32214@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rob@landley.net, tony@atomide.com, grant.likely@linaro.org, robh+dt@kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <53876116.90504@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Murali Karicheri <m-karicheri2@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "tony@atomide.com" <tony@atomide.com>, "jg1.han@samsung.com" <jg1.han@samsung.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bjorn Helgaas <bhelgaas@google.com>, Mohit Kumar <mohit.kumar@st.com>, Marek Vasut <marex@denx.de>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
-
-On 5/29/2014 9:21 PM, Greg KH wrote:
-> On Thu, May 29, 2014 at 02:26:55PM +0530, Satish Patel wrote:
+On Thursday 29 May 2014 10:02 PM, Murali Karicheri wrote:
+> On 5/29/2014 2:38 AM, ABRAHAM, KISHON VIJAY wrote:
+>> The configuration address space has so far been specified in *ranges*,
+>> however it should be specified in *reg* making it a platform MEM resource.
+>> Hence used 'platform_get_resource_*' API to get configuration address
+>> space in the designware driver.
 >>
+>> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+>> Cc: Mohit Kumar <mohit.kumar@st.com>
+>> Cc: Jingoo Han <jg1.han@samsung.com>
+>> Cc: Marek Vasut <marex@denx.de>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>   .../devicetree/bindings/pci/designware-pcie.txt    |    1 +
+>>   drivers/pci/host/pcie-designware.c                 |   17 +++++++++++++++--
+>>   2 files changed, 16 insertions(+), 2 deletions(-)
 >>
->> On 5/29/2014 12:14 AM, Greg KH wrote:
->>> On Wed, May 28, 2014 at 02:27:13PM +0530, Satish Patel wrote:
->>>> +/**
->>>> + * struct sc_phy - The basic smart card phy structure
->>>> + *
->>>> + * @dev: phy device
->>>> + * @pdata: pointer to phy's private data structure
->>>> + * @set_config: called to set phy's configuration
->>>> + * @get_config: called to get phy's configuration
->>>> + * @activate_card: perform smart card activation
->>>> + * @deactivate_card: perform smart card de-activation
->>>> + * @warm_reset: execute smart card warm reset sequence
->>>> + * @register_card_activity_cb: register call back to phy device.
->>>> + * This call back will be called on card insert or remove event
->>>> + *
->>>> + * smart card controller uses this interface to communicate with
->>>> + * smart card via phy.Some smart card phy has multiple slots for
->>>> + * cards. This inerface also enables controller to communicate with
->>>> + * one or more smart card connected over phy.
->>>> + */
->>>> +struct sc_phy {
->>>> +	/* phy's device pointer */
->>>> +	struct device *dev;
->>>
->>> So this is the "parent", right?  Why not embed a struct device into this
->>> structure as well, further streaching out the device tree.
->>>
->> Do you mean to use "dev->p" for pdata ?
->
-> No, use the device itself.
->
->> I have kept it outside, to give easeness/pragmatic focal for new phy driver
->> development. Driver can make this pointer null and use above pointer.
->
-> Ick, no, that's not how the driver model works.  Each device in the
-> system needs a struct device, don't try to "chain" off of an existing
-> device like this.  Make it a "real" one.
->
->>>> +
->>>> +	/* phy's private data */
->>>> +	void *pdata;
->>>
->>> If you do the above, then this pointer is not needed.
->>>
->>>
->>>> +
->>>> +	/* notify data, passed by interface user as a part of
->>>> +	 * register_notify API. Data should be passed back when
->>>> +	 * notification raised to the interface user
->>>> +	 */
->>>> +	void *notify_data;
->>>
->>> What makes this different from the pdata?
->> pdata is phy's private data, while notify_data is something phy will send to
->> smart card controller on some event, like card remove/insert/timeout etc..
->
-> That doesn't make much sense to me, why not just put that in the notify
-> function callback itself?
->
-Little correction over here..
-Here is brief flow
-USIM(Smart Card Controller) register notification callback to smarcard phy.
+>> diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt
+>> b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+>> index d6fae13..8314360 100644
+>> --- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
+>> +++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+>> @@ -6,6 +6,7 @@ Required properties:
+>>       as "samsung,exynos5440-pcie" or "fsl,imx6q-pcie".
+>>   - reg: base addresses and lengths of the pcie controller,
+>>       the phy controller, additional register for the phy controller.
+>> +    The configuration address space should also be specified here.
+> Kishon,
+> 
+> I am working on the Keystone PCI driver for which v1 is already posted. Want to
+> clarify
+> following.
+> 1. Original text for reg states "base addresses and lengths of the pcie
+> controller,
+>         the phy controller, additional register for the phy controller" and you
+> added
+>         "The configuration address space should also be specified here"
+> 
+>    and the code below added resource name "config"
+> 
+> Does PCI designware follow some convention? Does it mean after applying this patch
+> config name is mandatory or optional? Below code you are not returning error.
+> Can you
+> or author of PCI designware clarify what is expected to be present as mandatory
+> and
+> what is optional.
 
-usim->phy->register_notify(<phy handle>, <callback fn>, <notify_data>);
-notify_data : pass back when callback function will be called by PHY
+>From whatever I could make out from the comments for my previous version,
+'config' is mandatory for all new platforms adding support for PCIe DW. However
+since there already exists platforms that use 'ranges', I'm not returning
+error. Once all the platforms that use DW is modified to use 'reg', will return
+error.
+> 
+> Does config refers to RC's config space or EP's config space or both? The code
+> below divide
 
+In the case of DRA7, it's the space from where you read the configuration space
+contents of the EP (we have separate address space for the configuration space
+of RC denoted by *rc_dbics* in this patch series). But there are other
+platforms where RC does not have a separate configuration address space.
+> the size by 2. So it appears to be RC's + EP's config space. Please clarify.
 
-Smartcard PHY -> USIM
-blocking_notifier_call_chain(<notifier>, action, <notify_data>);
+No. divide by 2 is for cfg1 and cfg1 is used by PCIe bridges.
+> 
+>>   - interrupts: interrupt values for level interrupt,
+>>       pulse interrupt, special interrupt.
+>>   - clocks: from common clock binding: handle to pci clock.
+>> diff --git a/drivers/pci/host/pcie-designware.c
+>> b/drivers/pci/host/pcie-designware.c
+>> index c4e3732..603b386 100644
+>> --- a/drivers/pci/host/pcie-designware.c
+>> +++ b/drivers/pci/host/pcie-designware.c
+>> @@ -20,6 +20,7 @@
+>>   #include <linux/of_pci.h>
+>>   #include <linux/pci.h>
+>>   #include <linux/pci_regs.h>
+>> +#include <linux/platform_device.h>
+>>   #include <linux/types.h>
+>>     #include "pcie-designware.h"
+>> @@ -392,11 +393,23 @@ static const struct irq_domain_ops msi_domain_ops = {
+>>   int __init dw_pcie_host_init(struct pcie_port *pp)
+>>   {
+>>       struct device_node *np = pp->dev->of_node;
+>> +    struct platform_device *pdev = to_platform_device(pp->dev);
+>>       struct of_pci_range range;
+>>       struct of_pci_range_parser parser;
+>> +    struct resource *cfg_res;
+>>       u32 val;
+>>       int i;
+>>   +    cfg_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
+>> +    if (cfg_res) {
+>> +        pp->config.cfg0_size = resource_size(cfg_res)/2;
+>> +        pp->config.cfg1_size = resource_size(cfg_res)/2;
+>> +        pp->cfg0_base = cfg_res->start;
+>> +        pp->cfg1_base = cfg_res->start + pp->config.cfg0_size;
+>> +    } else {
+>> +        dev_err(pp->dev, "missing *config* reg space\n");
+> This should return error -EINVAL.
 
-action : card insert/remove/overheat etc..
-notify data: USIM data passing back (supplied at the time of cb 
-registration)
+ah.. it'll break for other platforms. It should be part of a different patch
+once we convert all users to 8reg*.
+> 
+>> +    }
+>> +
+>>       if (of_pci_range_parser_init(&parser, np)) {
+>>           dev_err(pp->dev, "missing ranges property\n");
+>>           return -EINVAL;
+>> @@ -429,6 +442,8 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+>>               of_pci_range_to_resource(&range, np, &pp->cfg);
+>>               pp->config.cfg0_size = resource_size(&pp->cfg)/2;
+>>               pp->config.cfg1_size = resource_size(&pp->cfg)/2;
+>> +            pp->cfg0_base = pp->cfg.start;
+>> +            pp->cfg1_base = pp->cfg.start + pp->config.cfg0_size;
+>>           }
+>>       }
+>>   @@ -441,8 +456,6 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+>>           }
+>>       }
+>>   -    pp->cfg0_base = pp->cfg.start;
+>> -    pp->cfg1_base = pp->cfg.start + pp->config.cfg0_size;
+>>       pp->mem_base = pp->mem.start;
+>>         pp->va_cfg0_base = devm_ioremap(pp->dev, pp->cfg0_base,
+> BTW, Please also review my Keystone series so that we could discuss this topic
+> in that context
+> as well.
 
+sure..
 
-> Please either use the existing phy layer of the kernel, or make a "real"
-> subsystem here, don't try to put a tiny shim on top of an existing
-> struct device for this driver, that's not how subsystems in Linux are
-> done.
-Why I am not using exiting PHY framework ?
-
-We will be more than happy to adapt generic phy if it
-includes/add support for smart card requirements like
-
-1) Some smart card phy (TDA8026-NxP) has multiple slots for smart
-cards. This interface enables controller to communicate with specific
-smart card inserted to the specific phy's slot.
-2) Warm reset to smart card inserted to phy slot.
-3) Bit banging of smart card pins to support vendor specific memory
-cards.
-4) Notification of card insert/remove/overheat etc.
-5) synchronous and asynchronous modes for smart card transaction
-
-
->
-> thanks,
->
-> greg k-h
->
+Cheers
+Kishon
