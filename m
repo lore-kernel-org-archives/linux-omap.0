@@ -1,376 +1,197 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: [PATCH] ASoC: free jack GPIOs before the sound card is freed
-Date: Fri, 30 May 2014 12:42:57 -0600
-Message-ID: <1401475377-12123-1-git-send-email-swarren@wwwdotorg.org>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, Stephen Warren <swarren@nvidia.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Eric Miao <eric.y.miao@gmail.com>, Russell King <linux@arm.linux.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Sangbeom Kim <sbkim73@samsung.com>, "open list:OMAP AUDIO SUPPORT" <linux-omap@vger.kernel.org>, "moderated list:ARM/SAMSUNG ARM A..." <linux-samsung-soc@vger.kernel.org>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: Accessing GPIOs from userspace using recent kernels
+Date: Fri, 30 May 2014 21:35:30 +0200
+Message-ID: <CABxcv=nHWpX-KWMxnwu8Hjsankh+SgQp_ggVxSA=35VAU7X0kA@mail.gmail.com>
+References: <3385f19f3e1427613732f6d5c9f8513d@net2air.co>
+	<CABxcv=mFV3nJf1eqNhTbh1KWwe8Z6Z62JtFn5KZbHnGprk1_bg@mail.gmail.com>
+	<7bd3dbc0c3217f43eefc8d228995690f@net2air.co>
+	<CABxcv=nTV23Un91fSUmkixsF5uywoisCOi1qhPqVvZb+RvikDA@mail.gmail.com>
+	<ea43ccacfe4caf1f51f9e5a5c8bbdd5e@net2air.co>
+	<CACRpkdYTa+_zAsbwU+XYSWnsN4i4Xkfm28S1=vcC5=oz0TH3Gg@mail.gmail.com>
+	<20140523151140.GF2321@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:54112 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203AbaE3Tfd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 May 2014 15:35:33 -0400
+Received: by mail-wi0-f169.google.com with SMTP id hi2so1599556wib.4
+        for <linux-omap@vger.kernel.org>; Fri, 30 May 2014 12:35:31 -0700 (PDT)
+In-Reply-To: <20140523151140.GF2321@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Peter TB Brett <peter@peter-b.co.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 
-From: Stephen Warren <swarren@nvidia.com>
+Hello Tony,
 
-This is the same change as commit fb6b8e71448a "ASoC: tegra: free jack
-GPIOs before the sound card is freed", but applied to all other ASoC
-machine drivers where code inspection indicates the same problem exists.
+On Fri, May 23, 2014 at 5:11 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Linus Walleij <linus.walleij@linaro.org> [140523 04:36]:
+>> On Fri, May 16, 2014 at 12:15 PM, Peter TB Brett <peter@peter-b.co.uk> wrote:
+>> > The current call chain seems to be: gpiod_export() --> gpiod_request() -->
+>> > omap_gpio_request().  Looking at other GPIO drivers, it seems like
+>> > omap_gpio_request() should eventually call pinctrl_request_gpio().  Would be
+>> > useful if someone who knows about OMAP4/gpio/pinctrl could take a look at
+>> > this.
 
-That commit's description is:
-==========
-snd_soc_jack_add_gpios() schedules a work queue item to poll the GPIO to
-generate an initial jack status report. If sound card initialization
-fails, that work item needs to be cancelled, so it doesn't run after the
-card has been freed. Specifically, freeing the card calls
-snd_jack_dev_free() which calls snd_jack_dev_disconnect() which sets
-jack->input_dev = NULL, and input_dev is used by snd_jack_report(), which
-is called from the work queue item.
+I looked briefly at adding pinctrl back-end commands to the OMAP GPIO
+driver. That is to make all GPIO operations fall through to the
+pinctrl-single driver as Linus suggested before. The changes in the
+GPIO driver are quite trivial, here is a RFC patch [0]  that has only
+build tested but I think is useful to at least discuss this.
 
-snd_soc_jack_free_gpios() cancels the work item. The Tegra ASoC machine
-drivers do call this function in the platform driver remove() callback.
-However, this happens after the sound card is freed, at least when the
-card is freed due to errors late during snd_soc_instantiate_card(). This
-leaves a window where the work item can execute after the card is freed.
-In next-20140522, sound card initialization does fail for unrelated
-reasons, and hits the problem described above.
+Now, in order to make that patch to actually work someone has to
+register the chip GPIO range to pin controller mapping with
+gpiochip_add_pin_range() or something similar to make
+pinctrl_get_device_gpio_range() to succeed. The pinctrl-single driver
+has a "pinctrl-single,gpio-range" property that can be used to define
+a GPIO range to be registered.
 
-To solve this, fix the Tegra ASoC machine drivers to clean up the Jack
-GPIOs during the snd_soc_card's .remove() callback, which is executed
-before the overall card object is freed. also, guard the cleanup call
-based on whether we actually setup up the GPIOs in the first place.
-Ideally, we'd do the cleanup in a struct snd_soc_dai_link .fini/remove
-function to match where the GPIOs get set up. However, there is no such
-callback.
-==========
+But the problem is as you said that since there are two different hw
+blocks for pin muxing and GPIO control, the pins that can be
+multiplexed as GPIO are scattered all over the padconf registers
+address space. So there isn't an easy way to specify the mapping and
+we will have to add an entry on "pinctrl-single,gpio-range" for every
+single GPIO pin (that's from 128 to 256 entries depending on the SoC).
 
-Note that I have not even compile-tested this in most cases, since most
-of the drivers rely on specific mach-* support I don't have enabled, and
-don't support COMPILE_TEST. Testing by the relevant board maintainers
-would be useful.
+To make even more complicated, the padconf registers offset for GPIO
+pins are SoC specific so we need a mapping for each SoC.
 
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com> (maintainer:OMAP AUDIO SUPPORT)
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com> (maintainer:OMAP AUDIO SUPPORT)
-Cc: Philipp Zabel <philipp.zabel@gmail.com> (maintainer:ARM/H4700 (HP IPA...)
-Cc: Paul Parsons <lost.distance@yahoo.com> (maintainer:ARM/H4700 (HP IPA...)
-Cc: Eric Miao <eric.y.miao@gmail.com> (maintainer:PXA2xx/PXA3xx SUP...)
-Cc: Russell King <linux@arm.linux.org.uk> (maintainer:PXA2xx/PXA3xx SUP...)
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com> (maintainer:PXA2xx/PXA3xx SUP...)
-Cc: Ben Dooks <ben-linux@fluff.org> (maintainer:ARM/SAMSUNG ARM A...)
-Cc: Kukjin Kim <kgene.kim@samsung.com> (maintainer:ARM/SAMSUNG ARM A...)
-Cc: Sangbeom Kim <sbkim73@samsung.com> (supporter:SAMSUNG AUDIO (AS...)
-Cc: linux-omap@vger.kernel.org (open list:OMAP AUDIO SUPPORT)
-Cc: linux-samsung-soc@vger.kernel.org (moderated list:ARM/SAMSUNG ARM A...)
-Signed-off-by: Stephen Warren <swarren@nvidia.com>
----
-Mark, do you need this patch split up by architecture for topic branches?
-I assume not if you've already sent your pull requests. This applies fine
-on top of tag asoc-v3.16.
----
- sound/soc/omap/ams-delta.c         | 14 ++++++++++----
- sound/soc/omap/omap-twl4030.c      | 28 ++++++++++++++--------------
- sound/soc/omap/rx51.c              | 18 +++++++++---------
- sound/soc/pxa/hx4700.c             |  9 ++++++++-
- sound/soc/samsung/h1940_uda1380.c  | 11 +++++++++--
- sound/soc/samsung/rx1950_uda1380.c | 12 ++++++++++--
- sound/soc/samsung/smartq_wm8987.c  | 11 +++++++++--
- 7 files changed, 69 insertions(+), 34 deletions(-)
+So I wonder if is worth to add all that information to the DTS files.
+Athough on the other hand is nice to have a better coordination
+between the GPIO and pinctrl drivers and as Tony said there are use
+cases where this is needed to workaround some silicion erratas.
 
-diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
-index bb243c663e6b..1f41951d8b7f 100644
---- a/sound/soc/omap/ams-delta.c
-+++ b/sound/soc/omap/ams-delta.c
-@@ -527,6 +527,15 @@ static int ams_delta_cx20442_init(struct snd_soc_pcm_runtime *rtd)
- 	return 0;
- }
- 
-+static int ams_delta_card_remove(struct snd_soc_pcm_runtime *rtd)
-+{
-+	snd_soc_jack_free_gpios(&ams_delta_hook_switch,
-+			ARRAY_SIZE(ams_delta_hook_switch_gpios),
-+			ams_delta_hook_switch_gpios);
-+
-+	return 0;
-+}
-+
- /* DAI glue - connects codec <--> CPU */
- static struct snd_soc_dai_link ams_delta_dai_link = {
- 	.name = "CX20442",
-@@ -543,6 +552,7 @@ static struct snd_soc_dai_link ams_delta_dai_link = {
- static struct snd_soc_card ams_delta_audio_card = {
- 	.name = "AMS_DELTA",
- 	.owner = THIS_MODULE,
-+	.remove = ams_delta_card_remove,
- 	.dai_link = &ams_delta_dai_link,
- 	.num_links = 1,
- 
-@@ -579,10 +589,6 @@ static int ams_delta_remove(struct platform_device *pdev)
- 		dev_warn(&pdev->dev,
- 			"failed to unregister V253 line discipline\n");
- 
--	snd_soc_jack_free_gpios(&ams_delta_hook_switch,
--			ARRAY_SIZE(ams_delta_hook_switch_gpios),
--			ams_delta_hook_switch_gpios);
--
- 	snd_soc_unregister_card(card);
- 	card->dev = NULL;
- 	return 0;
-diff --git a/sound/soc/omap/omap-twl4030.c b/sound/soc/omap/omap-twl4030.c
-index 64141db311b2..b4e282871658 100644
---- a/sound/soc/omap/omap-twl4030.c
-+++ b/sound/soc/omap/omap-twl4030.c
-@@ -231,6 +231,19 @@ static int omap_twl4030_init(struct snd_soc_pcm_runtime *rtd)
- 	return ret;
- }
- 
-+static int omap_twl4030_card_remove(struct snd_soc_pcm_runtime *rtd)
-+{
-+	struct snd_soc_card *card = rtd->card;
-+	struct omap_twl4030 *priv = snd_soc_card_get_drvdata(card);
-+
-+	if (priv->jack_detect > 0)
-+		snd_soc_jack_free_gpios(&priv->hs_jack,
-+					ARRAY_SIZE(hs_jack_gpios),
-+					hs_jack_gpios);
-+
-+	return 0;
-+}
-+
- /* Digital audio interface glue - connects codec <--> CPU */
- static struct snd_soc_dai_link omap_twl4030_dai_links[] = {
- 	{
-@@ -258,6 +271,7 @@ static struct snd_soc_dai_link omap_twl4030_dai_links[] = {
- /* Audio machine driver */
- static struct snd_soc_card omap_twl4030_card = {
- 	.owner = THIS_MODULE,
-+	.remove = omap_twl4030_card_remove,
- 	.dai_link = omap_twl4030_dai_links,
- 	.num_links = ARRAY_SIZE(omap_twl4030_dai_links),
- 
-@@ -353,19 +367,6 @@ static int omap_twl4030_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int omap_twl4030_remove(struct platform_device *pdev)
--{
--	struct snd_soc_card *card = platform_get_drvdata(pdev);
--	struct omap_twl4030 *priv = snd_soc_card_get_drvdata(card);
--
--	if (priv->jack_detect > 0)
--		snd_soc_jack_free_gpios(&priv->hs_jack,
--					ARRAY_SIZE(hs_jack_gpios),
--					hs_jack_gpios);
--
--	return 0;
--}
--
- static const struct of_device_id omap_twl4030_of_match[] = {
- 	{.compatible = "ti,omap-twl4030", },
- 	{ },
-@@ -380,7 +381,6 @@ static struct platform_driver omap_twl4030_driver = {
- 		.of_match_table = omap_twl4030_of_match,
- 	},
- 	.probe = omap_twl4030_probe,
--	.remove = omap_twl4030_remove,
- };
- 
- module_platform_driver(omap_twl4030_driver);
-diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-index 6951dc812055..47a10290535b 100644
---- a/sound/soc/omap/rx51.c
-+++ b/sound/soc/omap/rx51.c
-@@ -334,6 +334,14 @@ static int rx51_aic34_init(struct snd_soc_pcm_runtime *rtd)
- 	return err;
- }
- 
-+static int rx51_card_remove(struct snd_soc_pcm_runtime *rtd)
-+{
-+	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpios),
-+				rx51_av_jack_gpios);
-+
-+	return 0;
-+}
-+
- /* Digital audio interface glue - connects codec <--> CPU */
- static struct snd_soc_dai_link rx51_dai[] = {
- 	{
-@@ -368,6 +376,7 @@ static struct snd_soc_codec_conf rx51_codec_conf[] = {
- static struct snd_soc_card rx51_sound_card = {
- 	.name = "RX-51",
- 	.owner = THIS_MODULE,
-+	.remove = rx51_card_remove,
- 	.dai_link = rx51_dai,
- 	.num_links = ARRAY_SIZE(rx51_dai),
- 	.aux_dev = rx51_aux_dev,
-@@ -499,14 +508,6 @@ static int rx51_soc_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int rx51_soc_remove(struct platform_device *pdev)
--{
--	snd_soc_jack_free_gpios(&rx51_av_jack, ARRAY_SIZE(rx51_av_jack_gpios),
--				rx51_av_jack_gpios);
--
--	return 0;
--}
--
- #if defined(CONFIG_OF)
- static const struct of_device_id rx51_audio_of_match[] = {
- 	{ .compatible = "nokia,n900-audio", },
-@@ -522,7 +523,6 @@ static struct platform_driver rx51_soc_driver = {
- 		.of_match_table = of_match_ptr(rx51_audio_of_match),
- 	},
- 	.probe = rx51_soc_probe,
--	.remove = rx51_soc_remove,
- };
- 
- module_platform_driver(rx51_soc_driver);
-diff --git a/sound/soc/pxa/hx4700.c b/sound/soc/pxa/hx4700.c
-index dcc9b04bd92c..6b81acaffddd 100644
---- a/sound/soc/pxa/hx4700.c
-+++ b/sound/soc/pxa/hx4700.c
-@@ -152,6 +152,13 @@ static int hx4700_ak4641_init(struct snd_soc_pcm_runtime *rtd)
- 	return err;
- }
- 
-+static int hx4700_card_remove(struct snd_soc_pcm_runtime *rtd)
-+{
-+	snd_soc_jack_free_gpios(&hs_jack, 1, &hs_jack_gpio);
-+
-+	return 0;
-+}
-+
- /* hx4700 digital audio interface glue - connects codec <--> CPU */
- static struct snd_soc_dai_link hx4700_dai = {
- 	.name = "ak4641",
-@@ -170,6 +177,7 @@ static struct snd_soc_dai_link hx4700_dai = {
- static struct snd_soc_card snd_soc_card_hx4700 = {
- 	.name			= "iPAQ hx4700",
- 	.owner			= THIS_MODULE,
-+	.remove			= hx4700_card_remove,
- 	.dai_link		= &hx4700_dai,
- 	.num_links		= 1,
- 	.dapm_widgets		= hx4700_dapm_widgets,
-@@ -206,7 +214,6 @@ static int hx4700_audio_probe(struct platform_device *pdev)
- 
- static int hx4700_audio_remove(struct platform_device *pdev)
+>
+> If we do this, we also need a solution to prevent automatic remuxing
+> of GPIO pins from happending. For wake-up events, some drivers need
+> to remux a rx pin to GPIO input for the duration of idle, and then
+> back to device rx pin. This is needed on some other platforms too
+> AFAIK.
+>
+> For the drivers needing GPIO wake-up events, request_gpio is done in
+> the driver after drivers/base/pinctrl.c has already muxed the device
+> pin to rx. At minimum we would get warnings about reserved pins if
+> we tried to automatically mux them to GPIO.
+>
+> We may be able to use some GPIO specific property to prevent
+> automatic remuxing as we discussed in the #armlinux few days ago.
+>
+
+Yes, adding a GPIO specific property to prevent automatic remuxing
+sounds sensible to me.
+
+> Related to automatic remuxing of GPIO pins, there are also other
+> needs for pinctrl and GPIO interaction. We need to remux GPIO output
+> pins to input + pull + safe_mode to prevent the GPIO pins losing
+> value briefly during off-idle. That's the gpio errata 1.158 at as
+> shown at least at [1]. Because the GPIO to pinctrl mapping is
+> sparse and SoC specific, there's currently now obvious way to do
+> that. And we would need few new GPIO functions to tell pinctrl
+> subsystem about the change.
+>
+
+I'm not that familiar with the pinctrl-single driver but can't that
+errata be handled on pinctrl-single without the GPIO OMAP driver
+intervention?
+
+I mean if we already add the complete GPIO <--> pin mapping using
+"pinctrl-single,gpio-range" then the pinctrl-single driver will know
+what pins can be muxed as GPIO and which ones were set as output with
+pinctrl_gpio_direction_output() and then can just mux these output
+GPIO pins to input + pull + safe_mode during off-idle. Or am I
+completely lost here? :-)
+
+> Regards,
+>
+> Tony
+>
+>
+> [1] https://www.gitorious.org/rowboat/kernel/commit/86b15f21298b749a9d8216ff1839d33ad542464e?format=patch
+
+Best regards,
+Javier
+
+[0]
+commit 96c886987219e37395a160f8bd0d228509c1d4f0
+Author: Javier Martinez Canillas <javier@dowhile0.org>
+Date:   Fri May 30 20:50:39 2014 +0200
+
+    gpio: omap: Make GPIO operations fall through pinctrl-single
+
+    On OMAP platforms, there are two diferent hardware blocks for
+    I/O multiplexing / pad configuration and GPIO control. So two
+    different drivers are used: pinctrl-single and gpio-omap.
+
+    Since two separate drivers are used there is no coordination
+    between these and a I/O pad is not configured as a GPIO when
+    a GPIO pin is requested.
+
+    This patch adds pinctrl back-end commands to the GPIO OMAP
+    driver so the pinmux_ops functions in the pinctrl-single
+    driver are called for each GPIO operation.
+
+    Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 00f29aa..cee63c6 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -27,6 +27,7 @@
+ #include <linux/irqchip/chained_irq.h>
+ #include <linux/gpio.h>
+ #include <linux/bitops.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/platform_data/gpio-omap.h>
+
+ #define OFF_MODE       1
+@@ -664,6 +665,11 @@ static int omap_gpio_request(struct gpio_chip
+*chip, unsigned offset)
  {
--	snd_soc_jack_free_gpios(&hs_jack, 1, &hs_jack_gpio);
- 	snd_soc_unregister_card(&snd_soc_card_hx4700);
- 
- 	gpio_set_value(GPIO92_HX4700_HP_DRIVER, 0);
-diff --git a/sound/soc/samsung/h1940_uda1380.c b/sound/soc/samsung/h1940_uda1380.c
-index 9f2fb69dbaae..720357f11a7f 100644
---- a/sound/soc/samsung/h1940_uda1380.c
-+++ b/sound/soc/samsung/h1940_uda1380.c
-@@ -189,6 +189,14 @@ static int h1940_uda1380_init(struct snd_soc_pcm_runtime *rtd)
- 	return 0;
+        struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+        unsigned long flags;
++       int ret;
++
++       ret = pinctrl_request_gpio(chip->base + offset);
++       if (ret)
++               return ret;
+
+        /*
+         * If this is the first gpio_request for the bank,
+@@ -704,6 +710,8 @@ static void omap_gpio_free(struct gpio_chip *chip,
+unsigned offset)
+         */
+        if (!BANK_USED(bank))
+                pm_runtime_put(bank->dev);
++
++       pinctrl_free_gpio(chip->base + offset);
  }
- 
-+static int h1940_uda1380_card_remove(struct snd_soc_pcm_runtime *rtd)
-+{
-+	snd_soc_jack_free_gpios(&hp_jack, ARRAY_SIZE(hp_jack_gpios),
-+		hp_jack_gpios);
-+
-+	return 0;
-+}
-+
- /* s3c24xx digital audio interface glue - connects codec <--> CPU */
- static struct snd_soc_dai_link h1940_uda1380_dai[] = {
- 	{
-@@ -206,6 +214,7 @@ static struct snd_soc_dai_link h1940_uda1380_dai[] = {
- static struct snd_soc_card h1940_asoc = {
- 	.name = "h1940",
- 	.owner = THIS_MODULE,
-+	.remove = h1940_uda1380_card_remove,
- 	.dai_link = h1940_uda1380_dai,
- 	.num_links = ARRAY_SIZE(h1940_uda1380_dai),
- 
-@@ -257,8 +266,6 @@ err_out:
- static void __exit h1940_exit(void)
+
+ /*
+@@ -947,6 +955,11 @@ static int gpio_input(struct gpio_chip *chip,
+unsigned offset)
  {
- 	platform_device_unregister(s3c24xx_snd_device);
--	snd_soc_jack_free_gpios(&hp_jack, ARRAY_SIZE(hp_jack_gpios),
--		hp_jack_gpios);
- 	gpio_free(S3C_GPIO_END + 9);
- }
- 
-diff --git a/sound/soc/samsung/rx1950_uda1380.c b/sound/soc/samsung/rx1950_uda1380.c
-index 5b3e504d3a32..192aa9fc102f 100644
---- a/sound/soc/samsung/rx1950_uda1380.c
-+++ b/sound/soc/samsung/rx1950_uda1380.c
-@@ -31,6 +31,7 @@
- #include "s3c24xx-i2s.h"
- 
- static int rx1950_uda1380_init(struct snd_soc_pcm_runtime *rtd);
-+static int rx1950_uda1380_card_remove(struct snd_soc_pcm_runtime *rtd);
- static int rx1950_startup(struct snd_pcm_substream *substream);
- static int rx1950_hw_params(struct snd_pcm_substream *substream,
- 				struct snd_pcm_hw_params *params);
-@@ -116,6 +117,7 @@ static const struct snd_soc_dapm_route audio_map[] = {
- static struct snd_soc_card rx1950_asoc = {
- 	.name = "rx1950",
- 	.owner = THIS_MODULE,
-+	.remove = rx1950_uda1380_card_remove,
- 	.dai_link = rx1950_uda1380_dai,
- 	.num_links = ARRAY_SIZE(rx1950_uda1380_dai),
- 
-@@ -234,6 +236,14 @@ static int rx1950_uda1380_init(struct snd_soc_pcm_runtime *rtd)
- 	return 0;
- }
- 
-+static int rx1950_uda1380_card_remove(struct snd_soc_pcm_runtime *rtd)
-+{
-+	snd_soc_jack_free_gpios(&hp_jack, ARRAY_SIZE(hp_jack_gpios),
-+		hp_jack_gpios);
+        struct gpio_bank *bank;
+        unsigned long flags;
++       int ret;
 +
-+	return 0;
-+}
-+
- static int __init rx1950_init(void)
++       ret = pinctrl_gpio_direction_input(chip->base + offset);
++       if (ret)
++               return ret;
+
+        bank = container_of(chip, struct gpio_bank, chip);
+        spin_lock_irqsave(&bank->lock, flags);
+@@ -973,6 +986,11 @@ static int gpio_output(struct gpio_chip *chip,
+unsigned offset, int value)
  {
- 	int ret;
-@@ -278,8 +288,6 @@ err_gpio:
- static void __exit rx1950_exit(void)
- {
- 	platform_device_unregister(s3c24xx_snd_device);
--	snd_soc_jack_free_gpios(&hp_jack, ARRAY_SIZE(hp_jack_gpios),
--		hp_jack_gpios);
- 	gpio_free(S3C2410_GPA(1));
- }
- 
-diff --git a/sound/soc/samsung/smartq_wm8987.c b/sound/soc/samsung/smartq_wm8987.c
-index df55db5d3554..271a904277a1 100644
---- a/sound/soc/samsung/smartq_wm8987.c
-+++ b/sound/soc/samsung/smartq_wm8987.c
-@@ -182,6 +182,14 @@ static int smartq_wm8987_init(struct snd_soc_pcm_runtime *rtd)
- 	return err;
- }
- 
-+static int smartq_wm8987_card_remove(struct snd_soc_pcm_runtime *rtd)
-+{
-+	snd_soc_jack_free_gpios(&smartq_jack, ARRAY_SIZE(smartq_jack_gpios),
-+				smartq_jack_gpios);
+        struct gpio_bank *bank;
+        unsigned long flags;
++       int ret;
 +
-+	return 0;
-+}
-+
- static struct snd_soc_dai_link smartq_dai[] = {
- 	{
- 		.name		= "wm8987",
-@@ -198,6 +206,7 @@ static struct snd_soc_dai_link smartq_dai[] = {
- static struct snd_soc_card snd_soc_smartq = {
- 	.name = "SmartQ",
- 	.owner = THIS_MODULE,
-+	.remove = smartq_wm8987_card_remove,
- 	.dai_link = smartq_dai,
- 	.num_links = ARRAY_SIZE(smartq_dai),
- 
-@@ -259,8 +268,6 @@ err_unregister_device:
- static void __exit smartq_exit(void)
- {
- 	gpio_free(S3C64XX_GPK(12));
--	snd_soc_jack_free_gpios(&smartq_jack, ARRAY_SIZE(smartq_jack_gpios),
--				smartq_jack_gpios);
- 
- 	platform_device_unregister(smartq_snd_device);
- }
--- 
-1.8.1.5
++       ret = pinctrl_gpio_direction_output(chip->base + offset);
++       if (ret)
++               return ret;
+
+        bank = container_of(chip, struct gpio_bank, chip);
+        spin_lock_irqsave(&bank->lock, flags);
