@@ -1,137 +1,128 @@
-From: Postmaster@il.ibm.com
-Subject: DELIVERY FAILURE: User muli (muli@il.ibm.com) not listed in Domino
- Directory
-Date: Mon, 2 Jun 2014 14:54:14 +0530
-Message-ID: <OF15CAC643.429AC920-ONC2257CEB.0033AA49-C2257CEB.0033AA72@il.ibm.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [GIT PULL] HSI changes for 3.16
+Date: Mon, 2 Jun 2014 13:40:28 +0200
+Message-ID: <20140602114028.GA23504@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status; boundary="==IFJRGLKFGIR11394250UHRUHIHD"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e06smtp17.uk.ibm.com ([195.75.94.113]:46910 "EHLO
-	e06smtp17.uk.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784AbaFBJYZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jun 2014 05:24:25 -0400
-Received: from /spool/local
-	by e06smtp17.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-omap@vger.kernel.org> from <>;
-	Mon, 2 Jun 2014 10:24:23 +0100
-Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
-	by d06dlp01.portsmouth.uk.ibm.com (Postfix) with ESMTP id 5A0B717D8063
-	for <linux-omap@vger.kernel.org>; Mon,  2 Jun 2014 10:25:38 +0100 (BST)
-Received: from d06av02.portsmouth.uk.ibm.com (d06av02.portsmouth.uk.ibm.com [9.149.37.228])
-	by b06cxnps3075.portsmouth.uk.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id s529OLMt16449616
-	for <linux-omap@vger.kernel.org>; Mon, 2 Jun 2014 09:24:21 GMT
-Received: from d06av02.portsmouth.uk.ibm.com (localhost [127.0.0.1])
-	by d06av02.portsmouth.uk.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id s529OKRd004971
-	for <linux-omap@vger.kernel.org>; Mon, 2 Jun 2014 03:24:20 -0600
-Received: from d06hbm20.portsmouth.uk.ibm.com (d06hbm20.portsmouth.uk.ibm.com [9.149.76.82])
-	by d06av02.portsmouth.uk.ibm.com (8.14.4/8.14.4/NCO v10.0 AVin) with ESMTP id s529OKr5004957
-	for <linux-omap@vger.kernel.org>; Mon, 2 Jun 2014 03:24:20 -0600
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-
---==IFJRGLKFGIR11394250UHRUHIHD
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-
-WW91ciBtZXNzYWdlDQoNCiAgU3ViamVjdDogUmV0dXJuZWQgbWFpbDogRGF0YSBmb3JtYXQgZXJy
-b3INCg0Kd2FzIG5vdCBkZWxpdmVyZWQgdG86DQoNCiAgbXVsaUBpbC5pYm0uY29tDQoNCmJlY2F1
-c2U6DQoNCiAgVXNlciBtdWxpIChtdWxpQGlsLmlibS5jb20pIG5vdCBsaXN0ZWQgaW4gRG9taW5v
-IERpcmVjdG9yeQ0KDQo=
-
---==IFJRGLKFGIR11394250UHRUHIHD
-Content-Type: message/delivery-status
-
-Reporting-MTA: dns;d06hbm20.portsmouth.uk.ibm.com
-
-Final-Recipient: rfc822;muli@il.ibm.com
-Action: failed
-Status: 5.1.1
-Diagnostic-Code: X-Notes; User muli (muli@il.ibm.com) not listed in Do
- mino Directory
-
---==IFJRGLKFGIR11394250UHRUHIHD
-Content-Type: message/rfc822
-
-Received: from b06cxnps4076.portsmouth.uk.ibm.com ([9.149.109.198])
-          by d06hbm20.portsmouth.uk.ibm.com (Lotus Domino Release 8.5.3FP5IF1)
-          with ESMTP id 2014060212241926-5024 ;
-          Mon, 2 Jun 2014 12:24:19 +0300
-Received: from d06av02.portsmouth.uk.ibm.com (d06av02.portsmouth.uk.ibm.com [9.149.37.228])
-	by b06cxnps4076.portsmouth.uk.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id s529OJ3d20381730
-	for <muli@il.ibm.com>; Mon, 2 Jun 2014 09:24:19 GMT
-Received: from d06av02.portsmouth.uk.ibm.com (localhost [127.0.0.1])
-	by d06av02.portsmouth.uk.ibm.com (8.14.4/8.14.4/NCO v10.0 AVout) with ESMTP id s529OJi6004913
-	for <muli@il.ibm.com>; Mon, 2 Jun 2014 03:24:19 -0600
-Received: from e06smtp07.uk.ibm.com (e06smtp07.portsmouth.uk.ibm.com [9.133.40.7])
-	by d06av02.portsmouth.uk.ibm.com (8.14.4/8.14.4/NCO v10.0 AVin) with ESMTP id s529OI9W004905
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <muli@il.ibm.com>; Mon, 2 Jun 2014 03:24:18 -0600
-Received: from /spool/local
-	by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <muli@il.ibm.com> from <linux-omap@vger.kernel.org>;
-	Mon, 2 Jun 2014 10:24:18 +0100
-Received: from vger.kernel.org (202.88.232.199)
-	by e06smtp07.uk.ibm.com (192.168.201.137) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-	Mon, 2 Jun 2014 10:24:15 +0100
-From: linux-omap@vger.kernel.org
-To: muli@il.ibm.com
-Subject: Returned mail: Data format error
-Date: Mon, 2 Jun 2014 14:54:14 +0530
-MIME-Version: 1.0
-X-Priority: 3 (Normal)
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MIMEOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-X-ZLA-Header: unknown; 0
-X-ZLA-DetailInfo: BA=6.00002216; NDR=6.00000001; ZLA=6.00000002; ZF=6.00000003; ZB=6.00032566; ZH=6.00082305; ZP=6.00068368; ZU=6.00000001; UDB=6.00122892; UTC=2014-06-02 09:24:16
-x-cbid: 14060209-2550-0000-0000-00000045DC25
-X-IBM-ISS-SpamDetectors: Score=0.13306; BY=0.13306; FL=0; FP=0; FZ=0; HX=0;
- KW=0; PH=0; SC=0; ST=0; TS=0; UL=0; ISC=
-X-IBM-ISS-DetailInfo: BY=3.00002408; HX=3.00000225; KW=3.00000007;
- PH=3.00000001; SC=3.00000031; SDB=6.00366113; UDB=6.00122892; UTC=2014-06-02
- 09:24:17
-X-TM-AS-MML: disable
-X-MIMETrack: Itemize by SMTP Server on D06HBM20/06/H/IBM(Release 8.5.3FP5IF1|September
- 12, 2013) at 02/06/2014 12:24:19,
-	Serialize by Router on D06HBM20/06/H/IBM(Release 8.5.3FP5IF1|September 12, 2013) at
- 02/06/2014 12:24:19,
-	Serialize complete at 02/06/2014 12:24:19
-X-TNEFEvaluated: 1
-Message-ID: <OF15CAC643.429AC920-ONC2257CEB.0033AA49-C2257CEB.0033AA72@il.ibm.com>
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0001_DCA9D338.DE81EDFC"
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0001_DCA9D338.DE81EDFC
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain;
-	charset="us-ascii"
-
-Dear user of il.ibm.com,
-
-Your account was used to send a huge amount of unsolicited email messages during this week.
-Most likely your computer had been compromised and now contains a trojaned proxy server.
-
-Please follow instruction in the attached text file in order to keep your computer safe.
-
-Best wishes,
-il.ibm.com user support team.
 
 
-******* ATTENTION *******
+--FL5UXtIhxfXey3p5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hi Linus,
 
-IBM's antivirus service has detected that this message contains an attachment with a potentially harmful file type extension and it was removed in accordance with IBM Security guidelines.
+Please pull the following changes for the HSI subsystem, which I
+have taken over from Carlos Chinea <carlos.chinea@nokia.com>.
 
-Attachment: muli@il.ibm.com matches regular expression: *.com$*
+The below patches have been worked on in the linux-omap mailinglist
+for 10 months and are well tested in linux-next (have been in there
+for more than two weeks) without any problems arising. Apart from
+that potential regressions are very limited, because the subsystem
+is not yet used by any platform in the mainline kernel.
 
-For IBM internal users, please reference additional details regarding security settings at http://d02ntcl02.ibm.com/Content/View/bfa39c5d-c0a7-435f-a87c-e58adf90cc82/size_limit_when_sending_mail
+-- Sebastian
 
-------=_NextPart_000_0001_DCA9D338.DE81EDFC--
+The following changes since commit d1db0eea852497762cab43b905b879dfcd3b8987:
 
+  Linux 3.15-rc3 (2014-04-27 19:29:27 -0700)
 
+are available in the git repository at:
 
---==IFJRGLKFGIR11394250UHRUHIHD--
+  git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-hsi.git tags/hsi-for-3.16
 
+for you to fetch changes up to eafaebd987fcd001e2c123c050939a29c625d673:
+
+  HSI: Introduce Nokia N900 modem driver (2014-05-16 00:55:42 +0200)
+
+----------------------------------------------------------------
+HSI changes for the v3.16 series:
+
+ - Add some documentation for the HSI subsystem
+
+ - Add Device Tree support for the HSI subsystem
+
+ - Add OMAP3 SSI driver (SSI is a legacy variant of HSI)
+
+ - Add Nokia N900 Modem driver (without speech support for now)
+
+----------------------------------------------------------------
+Sebastian Reichel (11):
+      Documentation: HSI: Add some general description for the HSI subsystem
+      MAINTAINERS: update HSI entry
+      HSI: hsi-char: fix driver for multiport scenarios
+      HSI: method to unregister clients from an hsi port
+      HSI: Add channel resource support to HSI clients
+      HSI: export method to (un)register clients
+      HSI: Add common DT binding for HSI client devices
+      HSI: Introduce OMAP SSI driver
+      Documentation: DT: omap-ssi binding documentation
+      HSI: Introduce driver for SSI Protocol
+      HSI: Introduce Nokia N900 modem driver
+
+ Documentation/devicetree/bindings/hsi/client-devices.txt |   44 +++
+ Documentation/devicetree/bindings/hsi/nokia-modem.txt    |   57 ++++
+ Documentation/devicetree/bindings/hsi/omap-ssi.txt       |   97 ++++++
+ Documentation/hsi.txt                                    |   75 +++++
+ MAINTAINERS                                              |    4 +-
+ drivers/hsi/Kconfig                                      |    1 +
+ drivers/hsi/Makefile                                     |    1 +
+ drivers/hsi/clients/Kconfig                              |   17 ++
+ drivers/hsi/clients/Makefile                             |    4 +-
+ drivers/hsi/clients/hsi_char.c                           |   14 +-
+ drivers/hsi/clients/nokia-modem.c                        |  285 ++++++++++++++++++
+ drivers/hsi/clients/ssi_protocol.c                       | 1191 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hsi/controllers/Kconfig                          |   19 ++
+ drivers/hsi/controllers/Makefile                         |    6 +
+ drivers/hsi/controllers/omap_ssi.c                       |  625 +++++++++++++++++++++++++++++++++++++++
+ drivers/hsi/controllers/omap_ssi.h                       |  166 +++++++++++
+ drivers/hsi/controllers/omap_ssi_port.c                  | 1399 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hsi/controllers/omap_ssi_regs.h                  |  171 +++++++++++
+ drivers/hsi/hsi.c                                        |  275 ++++++++++++++++-
+ include/linux/hsi/hsi.h                                  |   39 ++-
+ include/linux/hsi/ssi_protocol.h                         |   42 +++
+ 21 files changed, 4513 insertions(+), 19 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/hsi/client-devices.txt
+ create mode 100644 Documentation/devicetree/bindings/hsi/nokia-modem.txt
+ create mode 100644 Documentation/devicetree/bindings/hsi/omap-ssi.txt
+ create mode 100644 Documentation/hsi.txt
+ create mode 100644 drivers/hsi/clients/nokia-modem.c
+ create mode 100644 drivers/hsi/clients/ssi_protocol.c
+ create mode 100644 drivers/hsi/controllers/Kconfig
+ create mode 100644 drivers/hsi/controllers/Makefile
+ create mode 100644 drivers/hsi/controllers/omap_ssi.c
+ create mode 100644 drivers/hsi/controllers/omap_ssi.h
+ create mode 100644 drivers/hsi/controllers/omap_ssi_port.c
+ create mode 100644 drivers/hsi/controllers/omap_ssi_regs.h
+ create mode 100644 include/linux/hsi/ssi_protocol.h
+
+--FL5UXtIhxfXey3p5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTjGKsAAoJENju1/PIO/qaJ6AQAIHlotUwIfHXkjrLvPjKlkNt
+IhoAWaOq+4DwXx84WHCa5HxgYBc39vlJrQxAHMAuCSFv126hOOiO5Kwgmjs9Brj3
+jRUXAFgAcIfTObRmOsnNyIg2Zug3l1V6t8oMxvFUZCTRbz0M9NoOCtMuQlQKasKJ
+dyUBrDUy10HU20qqstcnoyV/utAd1a2LY8Z8DVgoq/ga7LxSbJ73TCozGDN5fUL9
+WELlKPZy2NMKppYeOB8YEZyvTOg9BwUjrznE9Xi3d0ZgqJ54WX/hZ6n58/se/7vq
+OUAKczz6zMFB3wvP9aMUyiDmlYUxqxxzpS92RwMSSlBJ5hw8Ha34RzBgtjTrLIdB
+02Xcsm3QIMLkkqU4AnHESfrmofXQGui3uDN+Su0Kb7f4wUtT1D8pJkEjpI/whkeB
+F9j8hXPil6eTHSz9LeRUOMKeBK685+T061+fId150SOfIPPOLGRDyPQRzCp5D27i
+eVigN5HOOhz/PX3cCydijzM/5/0jgqQvI26VH6Lpnr5BwxbD+VDRJfN7MD2/EcHY
+93Sncr1d48q7weDr2AqAmFTItTjGCi56Z1xPaqkPlKSWwvW2ZnG/Q/xFo78Pa7B8
+S1kO33dTld5BVqSWUnpws6IN+Zc4cH2ZXK/cPDNxN1z5epvH5in5NOX5YOGA4K2b
+fXwNNc0JyLX4Tdb1tynA
+=spgt
+-----END PGP SIGNATURE-----
+
+--FL5UXtIhxfXey3p5--
