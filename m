@@ -1,44 +1,52 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC] OMAP DT i2c aliases
-Date: Mon, 2 Jun 2014 11:19:46 -0500
-Message-ID: <538CA422.8000504@ti.com>
-References: <538B3877.70304@gmail.com> <538C9B62.9090404@ti.com> <538CA04C.1070509@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] mfd: Immutable branch between MFD and OMAP, due for
+ v3.16
+Date: Mon, 2 Jun 2014 09:38:41 -0700
+Message-ID: <20140602163841.GC11004@atomide.com>
+References: <1401214140-9828-1-git-send-email-tony@atomide.com>
+ <20140528071313.GH4227@lee--X1>
+ <20140528180607.GB4707@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52019 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753880AbaFBQTx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Jun 2014 12:19:53 -0400
-In-Reply-To: <538CA04C.1070509@gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30675 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751491AbaFBQiq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jun 2014 12:38:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20140528180607.GB4707@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, sre@kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon 02 Jun 2014 11:03:24 AM CDT, Ivaylo Dimitrov wrote:
-[...]
->>> 0,1 and 2. I've already send a patch https://lkml.org/lkml/2014/6/1/49
->>> that will allow me to fix that from board .dts, but I was wondering if
->>> it is the correct way, or ids should be changed in omap3.dtsi for all
->>> omap devices.
->>
->> Should'nt we retain 0,1,2 as indexing to make this consistent for all
->> SoCs?
->>
->>
->
-> I think this is the most sane thing, esp if the "alias replace" patch
-> gets accepted(thus allowing us to workaround the problems on N900 and
-> N9/50), however I wanted to hear from you on the matter. Esp that
-> indexing is different with legacy boot compared to DT boot.
+* Tony Lindgren <tony@atomide.com> [140528 11:11]:
+> * Lee Jones <lee.jones@linaro.org> [140528 00:14]:
+> > Thanks Tony, here's the pull-request:
+> > 
+> > The following changes since commit 455c6fdbd219161bd09b1165f11699d6d73de11c:
+> > 
+> >   Linux 3.14 (2014-03-30 20:40:15 -0700)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git tags/mfd-omap-v3.16-1
+> > 
+> > for you to fetch changes up to 43fef47f94a1ae46fb2720dada32fa3b5547bee2:
+> > 
+> >   mfd: twl4030-power: Add a configuration to turn off oscillator during off-idle (2014-05-28 08:06:18 +0100)
+> > 
+> > ----------------------------------------------------------------
+> > Second immutable branch between MFD and OMAP due for the v3.16 merge window.
+> 
+> Thanks a lot, this will make it easier for me to chase down potential
+> PM related regressions ;) I'm merging this for testing only into the
+> linux-omap master branch, no need for me to include it into any
+> of my upstream heading branches.
 
-I think that slipped my check list unfortunately. :( But then, if we 
-think that it is just n900 that is impacted, then I wonder if we can 
-override the alias? just wondering..
+Lee, I'm not seeing this in linux next, did you maybe forget to merge
+it into the MFD tree?
 
---
 Regards,
-Nishanth Menon
 
+Tony
