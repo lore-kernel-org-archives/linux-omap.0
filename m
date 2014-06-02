@@ -1,63 +1,148 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [RFC] OMAP DT i2c aliases
-Date: Mon, 02 Jun 2014 19:44:05 +0300
-Message-ID: <538CA9D5.1070506@gmail.com>
-References: <538B3877.70304@gmail.com> <538C9B62.9090404@ti.com> <538CA04C.1070509@gmail.com> <538CA422.8000504@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v14 6/6] mmc: omap_hsmmc: Pin remux workaround to support
+ SDIO interrupt on AM335x
+Date: Mon, 2 Jun 2014 15:38:14 -0700
+Message-ID: <20140602223814.GD11004@atomide.com>
+References: <1401352085-22781-1-git-send-email-afenkart@gmail.com>
+ <1401352085-22781-7-git-send-email-afenkart@gmail.com>
+ <538738F8.8000807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:51667 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754444AbaFBQoM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jun 2014 12:44:12 -0400
-Received: by mail-we0-f179.google.com with SMTP id q59so5407588wes.38
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jun 2014 09:44:11 -0700 (PDT)
-In-Reply-To: <538CA422.8000504@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <538738F8.8000807@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, Chris Ball <chris@printf.net>, Ulf Hansson <ulf.hansson@linaro.org>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, zonque@gmail.com, galak@codeaurora.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, sre@kernel.org
 
+* Balaji T K <balajitk@ti.com> [140529 06:42]:
+> On Thursday 29 May 2014 01:58 PM, Andreas Fenkart wrote:
+> >The am335x can't detect pending cirq in PM runtime suspend.
+> >This patch reconfigures dat1 as a GPIO before going to suspend.
+> >SDIO interrupts are detected with the GPIO, the GPIO will only wake
+> >the module from suspend, SDIO irq detection will still happen through the
+> >IP block.
+> >
+> >Idea of remuxing the pins by Tony Lindgren. Code contributions from
+> >Tony Lindgren and Balaji T K <balajitk@ti.com>
+> >
+> >Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+> >Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> Acked-by: Balaji T K <balajitk@ti.com>
+> 
+> Hi Chris/Ulf,
+> 
+> Can you please queue this series for 3.16
 
-
-On  2.06.2014 19:19, Nishanth Menon wrote:
->
-> I think that slipped my check list unfortunately. :( But then, if we
-> think that it is just n900 that is impacted, then I wonder if we can
-> override the alias? just wondering..
->
-
-That https://lkml.org/lkml/2014/6/1/49 patch will allow such override, I 
-tested it on N900 with Fremantle and it works fine. Ofc I had to add
-
-aliases {
-	i2c1 = &i2c1;
-	i2c2 = &i2c2;
-	i2c3 = &i2c3;
-};
-
-to omap3-n900.dts (while keeping omap3.dtsi intact) for it to work.
-
-I checked in some Nemo N9/N950 adaptation kernel and it seems those will 
-be broken too(and I bet it is the same in stock Nokia N9/50 kernels):
-
-static void __init rm680_i2c_init(void)
-{
-	omap3_pmic_get_config(&rm680_twl_data, TWL_COMMON_PDATA_USB,
-			      TWL_COMMON_REGULATOR_VDAC |
-			      TWL_COMMON_REGULATOR_VPLL2);
-	omap_pmic_init(1, 2900, "twl5031", INT_34XX_SYS_NIRQ, &rm680_twl_data);
-	omap_register_i2c_bus(2, 400, rm696_peripherals_i2c_board_info_2,
-			      ARRAY_SIZE(rm696_peripherals_i2c_board_info_2));
-	omap_register_i2c_bus(3, 400, rm696_peripherals_i2c_board_info_3,
-			      ARRAY_SIZE(rm696_peripherals_i2c_board_info_3));
-}
-
-Again 1,2 and 3 for bus indexes just like on N900.
-
-Anyway, I am fine with the alias override. If the patch makes it to the 
-upstream :)
+Yes please, not seeing these in linux next yet.
 
 Regards,
-Ivo
+
+Tony
+ 
+> >diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> >index 0233ba7..76bf087 100644
+> >--- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> >+++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> >@@ -57,3 +57,56 @@ Examples:
+> >  			&edma 25>;
+> >  		dma-names = "tx", "rx";
+> >  	};
+> >+
+> >+[workaround for missing swakeup on am33xx]
+> >+
+> >+This SOC is missing the swakeup line, it will not detect SDIO irq
+> >+while in suspend.
+> >+
+> >+                             ------
+> >+                             | PRCM |
+> >+                              ------
+> >+                               ^ |
+> >+                       swakeup | | fclk
+> >+                               | v
+> >+       ------                -------               -----
+> >+      | card | -- CIRQ -->  | hsmmc | -- IRQ -->  | CPU |
+> >+       ------                -------               -----
+> >+
+> >+In suspend the fclk is off and the module is disfunctional. Even register reads
+> >+will fail. A small logic in the host will request fclk restore, when an
+> >+external event is detected. Once the clock is restored, the host detects the
+> >+event normally. Since am33xx doesn't have this line it never wakes from
+> >+suspend.
+> >+
+> >+The workaround is to reconfigure the dat1 line as a GPIO upon suspend. To make
+> >+this work, we need to set the named pinctrl states "default" and "idle".
+> >+Prepare idle to remux dat1 as a gpio, and default to remux it back as sdio
+> >+dat1. The MMC driver will then toggle between idle and default state during
+> >+runtime.
+> >+
+> >+In summary:
+> >+1. select matching 'compatible' section, see example below.
+> >+2. specify pinctrl states "default" and "idle", "sleep" is optional.
+> >+3. specify the gpio irq used for detecting sdio irq in suspend
+> >+
+> >+If configuration is incomplete, a warning message is emitted "falling back to
+> >+polling". Also check the "sdio irq mode" in /sys/kernel/debug/mmc0/regs. Mind
+> >+not every application needs SDIO irq, e.g. MMC cards.
+> >+
+> >+	mmc1: mmc@48060100 {
+> >+		compatible = "ti,am33xx-hsmmc";
+> >+		...
+> >+		pinctrl-names = "default", "idle", "sleep"
+> >+		pinctrl-0 = <&mmc1_pins>;
+> >+		pinctrl-1 = <&mmc1_idle>;
+> >+		pinctrl-2 = <&mmc1_sleep>;
+> >+		...
+> >+		interrupts-extended = <&intc 64 &gpio2 28 0>;
+> >+	};
+> >+
+> >+	mmc1_idle : pinmux_cirq_pin {
+> >+		pinctrl-single,pins = <
+> >+		        0x0f8 0x3f      /* GPIO2_28 */
+> >+		>;
+> >+	};
+> >diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> >index 0febb17..35ac2e4 100644
+> >--- a/drivers/mmc/host/omap_hsmmc.c
+> >+++ b/drivers/mmc/host/omap_hsmmc.c
+> >@@ -1754,15 +1754,33 @@ static int omap_hsmmc_configure_wake_irq(struct omap_hsmmc_host *host)
+> >  	 * and need to remux SDIO DAT1 to GPIO for wake-up from idle.
+> >  	 */
+> >  	if (host->pdata->controller_flags & OMAP_HSMMC_SWAKEUP_MISSING) {
+> >-		ret = -ENODEV;
+> >-		devm_free_irq(host->dev, host->wake_irq, host);
+> >-		goto err;
+> >+		struct pinctrl *p = devm_pinctrl_get(host->dev);
+> >+		if (!p) {
+> >+			ret = -ENODEV;
+> >+			goto err_free_irq;
+> >+		}
+> >+		if (IS_ERR(pinctrl_lookup_state(p, PINCTRL_STATE_DEFAULT))) {
+> >+			dev_info(host->dev, "missing default pinctrl state\n");
+> >+			devm_pinctrl_put(p);
+> >+			ret = -EINVAL;
+> >+			goto err_free_irq;
+> >+		}
+> >+
+> >+		if (IS_ERR(pinctrl_lookup_state(p, PINCTRL_STATE_IDLE))) {
+> >+			dev_info(host->dev, "missing idle pinctrl state\n");
+> >+			devm_pinctrl_put(p);
+> >+			ret = -EINVAL;
+> >+			goto err_free_irq;
+> >+		}
+> >+		devm_pinctrl_put(p);
+> >  	}
+> >
+> >  	OMAP_HSMMC_WRITE(host->base, HCTL,
+> >  			 OMAP_HSMMC_READ(host->base, HCTL) | IWE);
+> >  	return 0;
+> >
+> >+err_free_irq:
+> >+	devm_free_irq(host->dev, host->wake_irq, host);
+> >  err:
+> >  	dev_warn(host->dev, "no SDIO IRQ support, falling back to polling\n");
+> >  	host->wake_irq = 0;
+> >
+> 
