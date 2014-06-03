@@ -1,43 +1,26 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: HSI: fix omap ssi driver dependency
-Date: Tue, 03 Jun 2014 17:14:01 +0200
-Message-ID: <5261510.XDu5DxNnFl@wuerfel>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 00/14] irqchip: crossbar: driver fixes
+Date: Tue, 3 Jun 2014 20:28:57 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1406032026440.3319@nanos>
+References: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:60202 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932080AbaFCPOL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 11:14:11 -0400
+Received: from www.linutronix.de ([62.245.132.108]:58116 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752217AbaFCS3A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 14:29:00 -0400
+In-Reply-To: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-kernel@lists.codethink.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, LAK <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, Russell King <linux@arm.linux.org.uk>, Jason Cooper <jason@lakedaemon.net>
 
-The SSI protocol implementation has an incorrect dependency on the OMAP_SSI
-driver, which allows SSI to be built-in while the underlying OMAP_SSI
-implementation is a loadable module, causing a link error.
+On Tue, 3 Jun 2014, Sricharan R wrote:
 
-This changes the dependency to the simpler 'depends on OMAP_SSI' that also
-ensures that SSI-protocol can only be a module if OMAP_SSI is not built-in.
+Please Cc all maintainers on such changes plus the relevant
+mailinglist. See MAINTAINERS.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
----
-diff --git a/drivers/hsi/clients/Kconfig b/drivers/hsi/clients/Kconfig
-index 71b9f9a..bc60dec 100644
---- a/drivers/hsi/clients/Kconfig
-+++ b/drivers/hsi/clients/Kconfig
-@@ -15,7 +15,7 @@ config NOKIA_MODEM
- 
- config SSI_PROTOCOL
- 	tristate "SSI protocol"
--	depends on HSI && PHONET && (OMAP_SSI=y || OMAP_SSI=m)
-+	depends on HSI && PHONET && OMAP_SSI
- 	help
- 	If you say Y here, you will enable the SSI protocol aka McSAAB.
- 
+Thanks,
 
+	tglx
