@@ -1,40 +1,54 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH 0/2] ARM: dts: dra7: Add crossbar dt support
-Date: Tue, 3 Jun 2014 14:45:49 +0530
-Message-ID: <538D9245.2070004@ti.com>
-References: <1401786635-5778-1-git-send-email-r.sricharan@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ASoC: free jack GPIOs before the sound card is freed
+Date: Tue, 3 Jun 2014 10:47:14 +0100
+Message-ID: <20140603094714.GS31751@sirena.org.uk>
+References: <1401475377-12123-1-git-send-email-swarren@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33671 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751132AbaFCJR6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jun 2014 05:17:58 -0400
-In-Reply-To: <1401786635-5778-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FYef6pHvFBuPZp1D"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1401475377-12123-1-git-send-email-swarren@wwwdotorg.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, alsa-devel@alsa-project.org, Stephen Warren <swarren@nvidia.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Eric Miao <eric.y.miao@gmail.com>, Russell King <linux@arm.linux.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Sangbeom Kim <sbkim73@samsung.com>, "open list:OMAP AUDIO SUPPORT" <linux-omap@vger.kernel.org>, "moderated list:ARM/SAMSUNG ARM A..." <linux-samsung-soc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, tglx@linutronix.de, linux@arm.linux.org.uk
 
-Hi,
 
-On Tuesday 03 June 2014 02:40 PM, Sricharan R wrote:
-> This series introduces DT support for crossbar device and
-> changes dra7 peripherals to use crossbar number instead of irq.
->
-> This depends on below driver fixes and DMA cleanup series.
-Sorry, i meant to say crossbar driver fixes and cleanup series.
+--FYef6pHvFBuPZp1D
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
- Sricharan
-> 	http://www.spinics.net/lists/arm-kernel/msg336594.html
->
-> R Sricharan (2):
->   ARM: dts: DRA7: Add routable-irqs property for gic node
->   ARM: dts: DRA7: Add crossbar device binding
->
->  arch/arm/boot/dts/dra7.dtsi |  134 ++++++++++++++++++++++++-------------------
->  1 file changed, 76 insertions(+), 58 deletions(-)
->
+On Fri, May 30, 2014 at 12:42:57PM -0600, Stephen Warren wrote:
+> From: Stephen Warren <swarren@nvidia.com>
+>=20
+> This is the same change as commit fb6b8e71448a "ASoC: tegra: free jack
+> GPIOs before the sound card is freed", but applied to all other ASoC
+> machine drivers where code inspection indicates the same problem exists.
 
+Applied, thanks.
+
+--FYef6pHvFBuPZp1D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTjZmeAAoJELSic+t+oim9N8oP/1SKkfvf0ai6JYcI3UJKuU2m
+oitENvUr5hYRCmfHyrRHFwcgG1iio5iItSfAcGpyN7sNGKz3QECpkFxR3dxLNYTk
+jt1Hlh37Zz/XexvM9zWp0g62RbuZ5CKsf3xA+zgVAAgbVM58qapaDLtYbrLrcy6r
+0HZVvcVrIgn8QOlnb7Iw03nw+hFa6MS1S8NWSi+5FW7NhwHrwAJAyCDPsU1MrqS8
+svlxuOTBw0f218IAcb8tcQvhVer75Eky0LI5ELIqIPFI5Ru5AjnEaLKoqO9DMDZH
+9mKd++aqzKOoSxaJKXfBRYo7AGFc254zPGEkbVM9q/tAai1tOhwqseWTeLyaS63n
+QG0ouVFf2L8UiDnx5VDG53abNHdO383atRaLyz6CePkcfKpfP8x1TSmEmPZ+YjXd
+b4o307UhS8VQmVq3z8gXkbOtuJOr3OR2rzLi+sJhlnmPiMQnCnl4m0J66/syGiz5
+z/64+ES4fknWET9K1flijnPsokRfYPFku5lq+8qlFTyUoKKnnv06iOe2AhZEgqNy
+SX3ZTY71xoXUF1KhwAB0zyrs2XIigmDm0G2Bhs3unnp1iHX6hiXDnaIgUkUJomrd
+Ps6wtN2DIe7FMBAT1/OYUXSToEn4umBWx/VjSA6R+a/J5Cu1H6n4IqqQ/k7wGP51
+CiODml83mXKzjn3YbwGo
+=Cxnt
+-----END PGP SIGNATURE-----
+
+--FYef6pHvFBuPZp1D--
