@@ -1,38 +1,43 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: am335x: system doesn't reboot after flashing NAND
-Date: Tue, 3 Jun 2014 12:48:35 +0200
-Message-ID: <CAGm1_kv7EmQ1MaXL0nhQcPZp53DjBLfdnTqFit9e0FT1J8zzug@mail.gmail.com>
-References: <CAGm1_kstgCEQRuaz836v7xg=DHVxpQ6VQPBzkORz1D=18fxp8w@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: HSI: fix omap ssi driver dependency
+Date: Tue, 03 Jun 2014 17:14:01 +0200
+Message-ID: <5261510.XDu5DxNnFl@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:64106 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891AbaFCKs4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 06:48:56 -0400
-Received: by mail-pb0-f48.google.com with SMTP id rr13so5369045pbb.21
-        for <linux-omap@vger.kernel.org>; Tue, 03 Jun 2014 03:48:55 -0700 (PDT)
-In-Reply-To: <CAGm1_kstgCEQRuaz836v7xg=DHVxpQ6VQPBzkORz1D=18fxp8w@mail.gmail.com>
+Received: from mout.kundenserver.de ([212.227.126.187]:60202 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932080AbaFCPOL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 11:14:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: rogerq@ti.com
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-kernel@lists.codethink.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jun 3, 2014 at 9:57 AM, Yegor Yefremov
-<yegorslists@googlemail.com> wrote:
-> Kernel: 3.14, 3.15 (I haven't tried another kernels)
->
-> As soon as I write something to my NAND flash (via cat image >
-> /dev/mtdblockx or ubiupdatevol) and make reboot or press a reset
-> button, I see only CCCCC and nothing happens before I make a power
-> cycle. Any idea?
+The SSI protocol implementation has an incorrect dependency on the OMAP_SSI
+driver, which allows SSI to be built-in while the underlying OMAP_SSI
+implementation is a loadable module, causing a link error.
 
-Just forgot to mention, that I was actually booting from MMC (mmc1).
-The boot sequence is UART0...XIP...MMC0...NAND.
+This changes the dependency to the simpler 'depends on OMAP_SSI' that also
+ensures that SSI-protocol can only be a module if OMAP_SSI is not built-in.
 
-If I just mount ubifs partition as rootfs and change some files, I
-still can perform reboot and boot from MMC again. The issue seems to
-occur only, if I write to /dev/mtdblock directly. What can affect ROM
-boot so that it doesn't follow the boot sequence?
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+---
+diff --git a/drivers/hsi/clients/Kconfig b/drivers/hsi/clients/Kconfig
+index 71b9f9a..bc60dec 100644
+--- a/drivers/hsi/clients/Kconfig
++++ b/drivers/hsi/clients/Kconfig
+@@ -15,7 +15,7 @@ config NOKIA_MODEM
+ 
+ config SSI_PROTOCOL
+ 	tristate "SSI protocol"
+-	depends on HSI && PHONET && (OMAP_SSI=y || OMAP_SSI=m)
++	depends on HSI && PHONET && OMAP_SSI
+ 	help
+ 	If you say Y here, you will enable the SSI protocol aka McSAAB.
+ 
 
-Yegor
