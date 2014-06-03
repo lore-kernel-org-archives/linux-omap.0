@@ -1,14 +1,14 @@
 From: Sricharan R <r.sricharan@ti.com>
 Subject: [PATCH 00/14] irqchip: crossbar: driver fixes
-Date: Tue, 3 Jun 2014 12:59:43 +0530
-Message-ID: <1401780597-4735-1-git-send-email-r.sricharan@ti.com>
+Date: Tue, 3 Jun 2014 13:12:52 +0530
+Message-ID: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49728 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50315 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525AbaFCHcI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 03:32:08 -0400
+	with ESMTP id S1753535AbaFCHpO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 03:45:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
@@ -29,6 +29,9 @@ the below discussions.
 http://www.spinics.net/lists/arm-kernel/msg329946.html
 
 Based on linux-next next-20140602 tag + Tony's omap-for-v3.16/crossbar branch.
+
+The patches are available here
+ git@github.com:Sricharanti/sricharan.git crossbar_updates
 
 Nishanth Menon (11):
   irqchip: crossbar: remove IS_ERR_VALUE check
