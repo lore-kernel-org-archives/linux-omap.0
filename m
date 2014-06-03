@@ -1,73 +1,72 @@
-From: Bin Liu <binmlist@gmail.com>
-Subject: Re: [PATCH v6 0/5] Add support for SW babble Control
-Date: Tue, 3 Jun 2014 14:00:29 -0500
-Message-ID: <CADYTM3aX-X4QbecitTD9EOFyoLeiqSnJum7AFnaF5UEV3FBmpQ@mail.gmail.com>
-References: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
+From: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Subject: RE: [PATCH] usb: dwc3: Keeping 'resource' related code together
+Date: Tue, 3 Jun 2014 19:11:54 +0000
+Message-ID: <A2CA0424C0A6F04399FB9E1CD98E0304844B2141@US01WEMBX2.internal.synopsys.com>
+References: <1401791978-3555-1-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
+In-Reply-To: <1401791978-3555-1-git-send-email-gautam.vivek@samsung.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
+To: Vivek Gautam <gautam.vivek@samsung.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "kishon@ti.com" <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-George,
+> From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Vivek Gautam
+> Sent: Tuesday, June 03, 2014 3:40 AM
+> 
+> Putting together the code related to getting the 'IORESOURCE_MEM'
+> and assigning the same to dwc->xhci_resources, for increasing
+> the readability.
+> 
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> ---
+> 
+> Based on 'next' branch of Felipe's usb tree.
+> Also cleanly applies to 'usb-next' branch of Greg's usb tree.
+> 
+>  drivers/usb/dwc3/core.c |   38 +++++++++++++++++++-------------------
+>  1 file changed, 19 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 3f59c12..4ca925d 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -656,6 +656,25 @@ static int dwc3_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  	}
+> 
+> +	dwc->xhci_resources[0].start = res->start;
+> +	dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+> +					DWC3_XHCI_REGS_END;
+> +	dwc->xhci_resources[0].flags = res->flags;
+> +	dwc->xhci_resources[0].name = res->name;
+> +
+> +	res->start += DWC3_GLOBALS_REGS_START;
+> +
+> +	/*
+> +	 * Request memory region but exclude xHCI regs,
+> +	 * since it will be requested by the xhci-plat driver.
+> +	 */
+> +	regs = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(regs))
+> +		return PTR_ERR(regs);
+> +
+> +	dwc->regs	= regs;
+> +	dwc->regs_size	= resource_size(res);
+> +
+>  	if (node) {
+>  		dwc->maximum_speed = of_usb_get_maximum_speed(node);
 
-On Mon, May 26, 2014 at 4:20 AM, George Cherian <george.cherian@ti.com> wrote:
-> Series add support for SW babble control logic found in
-> new silicon versions of AM335x. Runtime differentiation of
-> silicon version is done by checking the BABBLE_CTL register.
-> For newer silicon the register default value read is 0x4 and
-> for older versions its 0x0.
+I think this will break if the following dwc3_core_get_phy() call returns
+-EPROBE_DEFER. Since you have incremented res->start above, the next time
+this probe function is called, res->start will have the wrong value.
+Provided I'm reading the code correctly of course :)
 
-Please add 'Tested-by: Bin Liu <b-liu@ti.com>' to this series.
+I think you could fix that by decrementing res->start back to its
+original value just after the call to resource_size() above.
 
-Thanks,
--Bin.
-
->
-> Patch 1 -> Handle Babble only if MUSB is in HOST mode
-> Patch 2 -> Convert recover work to delayed work.
-> Patch 3 -> usb_phy_vbus_(off/_on) are NOPs for am335x PHY
->            so use usb_phy(_shutdown/_init) in musb_platform_reset()
-> Patch 4 -> Add return value for musb_platform_reset() in prepration
->            to support SW babble_ctrl
-> Patch 5 -> Add and Enable sw babble control for newer silicon
->
-> v5 -> v6 : Squash patch 5 and 6 form v5 to avoid build warnings.
->
-> v4 -> v5 : Added a debug print before resetting MUSB.
->            changed a musb_readb to dsps_readb introduced in Patch#5 of v4.
->
-> v3 -> v4 : Fixes an issue in gagdet mode - BUS RESET should not
->            be handled as a BABBLE. Added a check for the same.(Patch #1)
->            Enable sw babble control properly (Patch #6)
->
-> v2 -> v3 : Modify musb_platform_reset() to return zero on success.
->
->
->
-> George Cherian (5):
->   usb: musb: core: Handle Babble condition only in HOST mode
->   usb: musb: core: Convert babble recover work to delayed work
->   usb: musb: dsps: Call usb_phy(_shutdown/_init) during
->     musb_platform_reset()
->   usb: musb: core: Convert the musb_platform_reset to have a return
->     value.
->   usb: musb: dsps: Add the sw_babble_control() and Enable for newer
->     silicon
->
->  drivers/usb/musb/musb_core.c | 27 ++++++++------
->  drivers/usb/musb/musb_core.h | 12 +++---
->  drivers/usb/musb/musb_dsps.c | 88 ++++++++++++++++++++++++++++++++++++++++++--
->  drivers/usb/musb/musb_regs.h |  7 ++++
->  4 files changed, 114 insertions(+), 20 deletions(-)
->
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Paul
