@@ -1,15 +1,15 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH 04/14] irqchip: crossbar: fix kerneldoc warning
-Date: Tue, 3 Jun 2014 13:12:56 +0530
-Message-ID: <1401781386-4982-5-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH 06/14] irqchip: crossbar: fix memory leak incase of invalid entry
+Date: Tue, 3 Jun 2014 13:12:58 +0530
+Message-ID: <1401781386-4982-7-git-send-email-r.sricharan@ti.com>
 References: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58761 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932186AbaFCHpf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jun 2014 03:45:35 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:50341 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932247AbaFCHpn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 03:45:43 -0400
 In-Reply-To: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,54 +18,29 @@ Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, tglx@l
 
 From: Nishanth Menon <nm@ti.com>
 
-kernel doc style is wrong in code. fix it to squelch
-kerneldoc warnings:
-Warning(drivers/irqchip/irq-crossbar.c:27): missing initial short description on line:
- * struct crossbar_device: crossbar device description
-Info(drivers/irqchip/irq-crossbar.c:27): Scanning doc for struct
-Warning(drivers/irqchip/irq-crossbar.c:39): No description found for parameter 'write'
-Warning(drivers/irqchip/irq-crossbar.c:42): missing initial short description on line:
- * struct crossbar_data: Platform specific data
-Info(drivers/irqchip/irq-crossbar.c:42): Scanning doc for struct
-Warning(drivers/irqchip/irq-crossbar.c:50): No description found for parameter 'safe_map'
-4 warnings
+When the provided unused skip list entry is greater than max irqs
+possible, we go to err3, but we fail to free register_offsets,
+should have returned to err4 instead which ensures that allocated
+register_offsets are freed as well.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/irqchip/irq-crossbar.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/irqchip/irq-crossbar.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 58790d4..7d4db07 100644
+index 42a2e62..fea3e5d 100644
 --- a/drivers/irqchip/irq-crossbar.c
 +++ b/drivers/irqchip/irq-crossbar.c
-@@ -23,11 +23,13 @@
- #define IRQ_SKIP	-3
- #define GIC_IRQ_START	32
+@@ -225,7 +225,7 @@ static int __init crossbar_of_init(struct device_node *node,
  
--/*
-+/**
-+ * struct crossbar_device - crossbar device descriptio
-  * @int_max: maximum number of supported interrupts
-  * @irq_map: array of interrupts to crossbar number mapping
-  * @crossbar_base: crossbar base address
-  * @register_offsets: offsets for each irq number
-+ * @write: register write function pointer
-  */
- struct crossbar_device {
- 	uint int_max;
-@@ -39,9 +41,10 @@ struct crossbar_device {
- };
- 
- /**
-- * struct crossbar_data: Platform specific data
-+ * struct crossbar_data - Platform specific data
-  * @irqs_unused: array of irqs that cannot be used because of hw erratas
-  * @size: size of the irqs_unused array
-+ * @safe_map: safe value to write to crossbar register
-  */
- struct crossbar_data {
- 	const uint *irqs_unused;
+ 			if (entry > max) {
+ 				pr_err("Invalid skip entry\n");
+-				goto err3;
++				goto err4;
+ 			}
+ 			cb->irq_map[entry] = IRQ_SKIP;
+ 		}
 -- 
 1.7.9.5
 
