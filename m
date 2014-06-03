@@ -1,65 +1,55 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH 00/14] irqchip: crossbar: driver fixes
-Date: Tue, 3 Jun 2014 13:12:52 +0530
-Message-ID: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH 01/14] irqchip: crossbar: remove IS_ERR_VALUE check
+Date: Tue, 3 Jun 2014 13:12:53 +0530
+Message-ID: <1401781386-4982-2-git-send-email-r.sricharan@ti.com>
+References: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50315 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50316 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753535AbaFCHpO (ORCPT
+	with ESMTP id S1753232AbaFCHpO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jun 2014 03:45:14 -0400
+In-Reply-To: <1401781386-4982-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, tglx@linutronix.de, linux@arm.linux.org.uk, r.sricharan@ti.com
 
-This series does some cleanup and provides support for
-hardwired IRQ and crossbar definitions.
+From: Nishanth Menon <nm@ti.com>
 
-On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10,
-131, 132, 133 are direct wired to hardware blocks bypassing
-crossbar. This quirky implementation is *NOT* supposed to be the
-expectation of crossbar hardware usage. This series adds support
-to represent such hard-wired irqs through DT and avoid generic
-allocation/programming of crossbar in the driver.
+IS_ERR_VALUE makes sense only *if* there could be valid values in
+negative error range. But in the cases that we do use it, there is no
+such case. Just remove the same.
 
-This way of supporting hard-wired irqs was a result of
-the below discussions.
-http://www.spinics.net/lists/arm-kernel/msg329946.html
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ drivers/irqchip/irq-crossbar.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Based on linux-next next-20140602 tag + Tony's omap-for-v3.16/crossbar branch.
-
-The patches are available here
- git@github.com:Sricharanti/sricharan.git crossbar_updates
-
-Nishanth Menon (11):
-  irqchip: crossbar: remove IS_ERR_VALUE check
-  irqchip: crossbar: fix sparse warnings
-  irqchip: crossbar: fix checkpatch warning
-  irqchip: crossbar: fix kerneldoc warning
-  irqchip: crossbar: fix memory leak incase of invalid entry
-  irqchip: crossbar: return proper error value
-  irqchip: crossbar: change the goto naming
-  irqchip: crossbar: introduce ti,max-crossbar-sources to identify
-    valid crossbar mapping
-  irqchip: crossbar: introduce centralized check for crossbar write
-  Documentation: dt: OMAP: crossbar: add description for interrupt
-    consumer
-  irqchip: crossbar allow for quirky hardware with direct hardwiring of
-    GIC
-
-Rajendra Nayak (1):
-  irqchip: crossbar: DRA7: Fix unused crossbar list
-
-Sricharan R (2):
-  irqchip: crossbar: set cb pointer to null in case of error
-  irqchip: crossbar: Add kerneldoc for crossbar_domain_unmap callback
-
- .../devicetree/bindings/arm/omap/crossbar.txt      |   27 +++++
- drivers/irqchip/irq-crossbar.c                     |  127 +++++++++++++++-----
- 2 files changed, 125 insertions(+), 29 deletions(-)
-
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index de021638..c5415ae 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -110,15 +110,15 @@ static int crossbar_domain_xlate(struct irq_domain *d,
+ 				 unsigned long *out_hwirq,
+ 				 unsigned int *out_type)
+ {
+-	unsigned long ret;
++	int ret;
+ 
+ 	ret = get_prev_map_irq(intspec[1]);
+-	if (!IS_ERR_VALUE(ret))
++	if (ret >= 0)
+ 		goto found;
+ 
+ 	ret = allocate_free_irq(intspec[1]);
+ 
+-	if (IS_ERR_VALUE(ret))
++	if (ret < 0)
+ 		return ret;
+ 
+ found:
 -- 
 1.7.9.5
 
