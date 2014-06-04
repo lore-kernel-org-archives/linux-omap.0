@@ -1,33 +1,61 @@
-From: "System Administrator" <WEBMAIL@mail.ru>
-Subject: MEDDELELSER
-Date: Wed, 4 Jun 2014 14:42:23 +0300
-Message-ID: <13038cc1b3d7b40b10411258d6cdfd54.squirrel@webmail.buse.ac.zw>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: am335x: system doesn't reboot after flashing NAND
+Date: Wed, 4 Jun 2014 11:49:03 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF2B9B@DBDE04.ent.ti.com>
+References: <CAGm1_kstgCEQRuaz836v7xg=DHVxpQ6VQPBzkORz1D=18fxp8w@mail.gmail.com>
+ <CAGm1_kv7EmQ1MaXL0nhQcPZp53DjBLfdnTqFit9e0FT1J8zzug@mail.gmail.com>
+ <538EBF54.7080709@ti.com>
+ <CAGm1_ktWxQFQ0jWjn7A2NO8nPayY9S2McPrKHWbGRtkw1751ig@mail.gmail.com>
+ <538EDD77.8070807@ti.com>
+ <CAGm1_kt7BZ7RcbPd51QXhXxQV4SRzeXLzKW43wqK5UnPbYoHBw@mail.gmail.com>
+ <538EF2EF.4050709@ti.com>
+ <CAGm1_ksofkCNB1R9kg6L9FBFFPoE=62AZ1Vid4_n7DEu1oi4GQ@mail.gmail.com>
+ <538EFA70.4040102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from webmail.buse.ac.zw ([209.88.88.41]:53619 "EHLO
-	webmail.buse.ac.zw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752780AbaFDLlL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2014 07:41:11 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:40691 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753149AbaFDLtJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Jun 2014 07:49:09 -0400
+In-Reply-To: <538EFA70.4040102@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Nori, Sekhar" <nsekhar@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>
+Cc: "Quadros, Roger" <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Du har overskredet opbevaring gr=E6nse p=E5 din postkasse. Du vil ikke =
-v=E6re i
-stand til at sende eller modtage ny post, indtil du opgraderer din e
-kvote.
-
-Kopier nedenst=E5ende link og udfylde formularen for at opgradere din k=
-onto.
-
-https://www.formstack.com/forms/?1760287-AfOZDCCqwk
-
-System Administrator
-192.168.0.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pk9uIFdlZG5lc2RheSAwNCBKdW5lIDIwMTQgMDQ6MDAgUE0sIFllZ29yIFllZnJlbW92IHdyb3Rl
+Og0KWy4uLl0NCg0KPj4+IFRoZSB3YXkgUk9NIHdvcmtzIGZvciBYSVAgYm9vdCBpczoNCj4+Pg0K
+Pj4+IDEpIFNldCBjaGlwIHNlbGVjdCAwIGJhc2UgYWRkcmVzcyB0byAweDA4MDAnMDAwMA0KPj4+
+IDIpIFJlYWQgbWVtb3J5IGF0IDB4MDgwMCcwMDAwDQo+Pj4gMykgSWYgc29tZXRoaW5nIGVsc2Ug
+b3RoZXIgdGhhbiAweDAgb3IgfjB4MCBpcyBmb3VuZCwganVtcCB0bw0KPj4+IDB4MDgwMCcwMDAw
+IGFuZCBzdGFydCBleGVjdXRpbmcuDQo+Pj4NCj4+PiBDYW4geW91IGNoZWNrIHRvIHNlZSB0aGUg
+Y29udGVudHMgb2YgMHgwODAwJzAwMDAgYmVmb3JlIGFuZCBhZnRlciBuYW5kDQo+Pj4gd3JpdGUg
+dXNpbmcgbXRkYmxvY2s/DQo+Pg0KPj4gQmVmb3JlIHdyaXRpbmc6DQo+Pg0KPj4gIyBkZXZtZW0g
+MHgwODAwMDAwMCAzMg0KPj4gMHhGRkZGRkZGRg0KPj4NCj4+IEFmdGVyIHdyaXRpbmc6DQo+Pg0K
+Pj4gIyBkZXZtZW0gMHgwODAwMDAwMCAzMg0KPj4gMHhFMEUwRTBFMA0KPg0KPk9rYXksIHNvIHRo
+aXMgaXMgdGhlIGNhdXNlIG9mIGZhaWx1cmUgdG8gYm9vdC4gSSBhbSBub3Qgc3VyZSB3aGF0DQo+
+b3BlcmF0aW9uIGJ5IE5BTkQgZHJpdmVyIGNhdXNlcyB0aGlzIHZhbHVlIHRvIGNoYW5nZS4gUGVy
+aGFwcyB5b3UgY291bGQNCj5iaXNlY3QgYSBiaXQgYnkgZHVtcGluZyB0aGlzIGFkZHJlc3MgYXQg
+dmFyaW91cyBwb2ludHMgZHVyaW5nIHRoZSB3cml0ZQ0KPm9wZXJhdGlvbj8NCj4NCj5JZiB5b3Ug
+aGF2ZSBhIGRlYnVnZ2VyIGl0IHdpbGwgYmVjb21lIGVhc3kgdG8gZG8gdGhpcy4NCj4NCkknbSBu
+b3Qgc3VyZSwgaWYgYSBOQU5EIGRldmljZSBpcyBjb25uZWN0ZWQgYXMgQ1MwIGhvdyBpcyBST00g
+Y29kZQ0KZGV0ZWN0aW5nIGl0IGFzIE5PUiBhbmQgcHJvY2VlZGluZyBmb3IgYW4gWElQIHJlYWQu
+IA0KQXMgaXRzIG1lbnRpb25lZCBpbiBYSVAgYm9vdCBwcm9jZXNzIGluIEFNMzM1eCBUUk0gdGhh
+dCBpZiBhbiBpbnZhbGlkDQpib290IGltYWdlIGlzIGZvdW5kIHRoZW4gUk9NIGNvZGUgZmFsbHMg
+YmFjayB0byBuZXh0IGJvb3QgZGV2aWNlDQp3aGljaCBpcyBpbiB0aGlzIGNhc2UgTU1DIGJvb3Qu
+IEEgaHVuZyBjb2RlIGhlcmUgbWVhbiANCi0gWElQIGJvb3QgaXMgbm90IGZhaWxpbmcgT1INCi0g
+Uk9NIGNvZGUgaXMgd2FpdGluZyBvbiBHUE1DX1dBSVQwIHBpbiBhIHBhcnQgb2YgWElQIHJlYWQg
+YWNjZXNzLg0KU28gcGxlYXNlIGNoZWNrIGlmIHRoZSBHUE1DOg0KDQooMSkgVGhpcyBtYXkgaGFw
+cGVuIGJlY2F1c2UgR1BNQyBwaW5zIGFyZSBzaGFyZWQgZm9yIGJvdGggTk9SIGFuZA0KICAgTkFO
+RCBzbyBwbHogY2hlY2sgY29uZmxpY3RpbmcgcGlucyBhcyBnaXZlbiBpbiANCiAgQU0zMzV4IFRS
+TTogVGFibGUgMjYtOS4gUGlucyBVc2VkIGZvciBOb24tTXV4ZWQgTk9SIEJvb3QNCihQbGVhc2Ug
+c2VlIHRoYXQgR1BNQ19XQUlUMCBhbmQgR1BNQ19XQUlUMSBhcmUgcHVsbGVkIGhpZ2ggb24gdGhl
+IGJvYXJkKQ0KDQooMikgU29tZSBTWVNCT09UIGNvbmZpZ3VyYXRpb24gbWlnaHQgYWxzbyBiZSBj
+b25mdXNpbmcgUk9NIGNvZGUuDQogSWYgeW91IGFyZSB1c2luZyB4OCBOQU5EIGRldmljZSwgdGhl
+biBwbGVhc2UgdHJ5IHdpdGggc2V0dGluZw0KIFNZU0JPT1RbOF0gPSAxDQogU1lTQk9PVFsxMTog
+MTBdID09IDAxIG9yIDExIChyZXNlcnZlZCB2YWx1ZXMpIA0KIFRoaXMgc2hvdWxkIGZhaWwgWElQ
+IGJvb3QgYW5kIG1ha2UgdGhlIFJPTSBjb2RlIGZhbGwgYmFjaw0KIHRvIG5leHQgYm9vdCBkZXZp
+Y2Ugd2hpY2ggaXMgTU1DIGluIHRoaXMgY2FzZS4NCg0KDQp3aXRoIHJlZ2FyZHMsIHBla29uDQo=
