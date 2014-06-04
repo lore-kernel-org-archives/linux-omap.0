@@ -1,273 +1,270 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 4/7] OMAPDSS: DSS: init dss ports cleanly
-Date: Wed, 4 Jun 2014 12:11:00 +0530
-Message-ID: <1401864063-19196-5-git-send-email-archit@ti.com>
+Subject: [PATCH v3 5/7] OMAPDSS: DT: Get source endpoint by matching reg-id
+Date: Wed, 4 Jun 2014 12:11:01 +0530
+Message-ID: <1401864063-19196-6-git-send-email-archit@ti.com>
 References: <1401096492-1405-1-git-send-email-archit@ti.com>
  <1401864063-19196-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49256 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49258 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963AbaFDGmf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2014 02:42:35 -0400
+	with ESMTP id S1755269AbaFDGmi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2014 02:42:38 -0400
 In-Reply-To: <1401864063-19196-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The init/uninit port functions are used to set up the DPI and SDI outputs under
-the dss platform device. A 'reg' property is used to determine whether the node
-is DPI or SDI for OMAP34xx DSS revision. For other DSS revisions, only DPI
-output exists.
+In omapdss_of_find_source_for_first_ep, we retrieve a source endpoint's DT node,
+and then see what omapdss output has the matching device_node pointer in
+omap_dss_find_output_by_node.
 
-For multiple DPI output instances(introduced in DRA7xx DSS), we would use the
-'reg' property in dts to specify the DPI output instance.
+For all DPI and SDI outputs, the device_node pointer is set as the parent's DSS
+device_node pointer. If the source is one of these outputs, the above method
+won't work.
 
-The current functions work fine if there is only one DPI output instance in
-DSS. For multiple DPI instances, it would get complicated to figure out whether
-'reg' is used to specify whether the output is SDI, or another DPI instance.
+To get the correct output for ports within DSS(and in other cases in the future,
+where multiple ports might be under one device), we require additional
+information which is exclusive to the output port.
 
-We create a list of port types supported for each DSS rev, with the index of the
-port in the list matching the reg id. This allows us to have a more generic way
-to init/uninit ports within DSS, and support multiple DPI ports.
+We create a new field in omap_dss_device called 'port_num', this provides port
+number of the output port corresponding to this device. When searching for the
+source endpoint in DT, we extract the 'reg' property from the port corresponding
+to the endpoint source. From the list of registered outputs, we pick out that
+output which has both dev->of_node and port_num matching with the device_node
+pointer and 'reg' of the source endpoint node from DT.
 
-Also, make the uninit_port functions iterative since we will have multiple DPI
-ports to uninit in the future.
+For encoder blocks(the ones which have both an input and output port), we need
+to set the port_num as the 'reg' property for the output port as defined in the
+DT bindings. We set port_num to 1 in the tfp410 and tpd12s015 encoder drivers.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/dss.c | 81 ++++++++++++++++++++++++++++++-------
- drivers/video/fbdev/omap2/dss/dss.h | 26 +++++++++++-
- drivers/video/fbdev/omap2/dss/sdi.c |  2 +-
- 3 files changed, 93 insertions(+), 16 deletions(-)
+ .../fbdev/omap2/displays-new/encoder-tfp410.c      |  1 +
+ .../fbdev/omap2/displays-new/encoder-tpd12s015.c   |  1 +
+ drivers/video/fbdev/omap2/dss/dss-of.c             | 58 +++++++++++++++-------
+ drivers/video/fbdev/omap2/dss/dss.h                |  4 ++
+ drivers/video/fbdev/omap2/dss/output.c             | 19 +++++--
+ include/video/omapdss.h                            |  5 +-
+ 6 files changed, 66 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/dss.c b/drivers/video/fbdev/omap2/dss/dss.c
-index bebb824..3b41953 100644
---- a/drivers/video/fbdev/omap2/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/dss/dss.c
-@@ -70,6 +70,8 @@ struct dss_features {
- 	u8 fck_div_max;
- 	u8 dss_fck_multiplier;
- 	const char *parent_clk_name;
-+	enum omap_display_type *ports;
-+	int num_ports;
- 	int (*dpi_select_source)(enum omap_channel channel);
- };
+diff --git a/drivers/video/fbdev/omap2/displays-new/encoder-tfp410.c b/drivers/video/fbdev/omap2/displays-new/encoder-tfp410.c
+index b4e9a42..d927455 100644
+--- a/drivers/video/fbdev/omap2/displays-new/encoder-tfp410.c
++++ b/drivers/video/fbdev/omap2/displays-new/encoder-tfp410.c
+@@ -249,6 +249,7 @@ static int tfp410_probe(struct platform_device *pdev)
+ 	dssdev->output_type = OMAP_DISPLAY_TYPE_DVI;
+ 	dssdev->owner = THIS_MODULE;
+ 	dssdev->phy.dpi.data_lines = ddata->data_lines;
++	dssdev->port_num = 1;
  
-@@ -689,6 +691,16 @@ void dss_debug_dump_clocks(struct seq_file *s)
+ 	r = omapdss_register_output(dssdev);
+ 	if (r) {
+diff --git a/drivers/video/fbdev/omap2/displays-new/encoder-tpd12s015.c b/drivers/video/fbdev/omap2/displays-new/encoder-tpd12s015.c
+index 7e33686..9e25fe7 100644
+--- a/drivers/video/fbdev/omap2/displays-new/encoder-tpd12s015.c
++++ b/drivers/video/fbdev/omap2/displays-new/encoder-tpd12s015.c
+@@ -389,6 +389,7 @@ static int tpd_probe(struct platform_device *pdev)
+ 	dssdev->type = OMAP_DISPLAY_TYPE_HDMI;
+ 	dssdev->output_type = OMAP_DISPLAY_TYPE_HDMI;
+ 	dssdev->owner = THIS_MODULE;
++	dssdev->port_num = 1;
+ 
+ 	in = ddata->in;
+ 
+diff --git a/drivers/video/fbdev/omap2/dss/dss-of.c b/drivers/video/fbdev/omap2/dss/dss-of.c
+index a4b20aa..928ee63 100644
+--- a/drivers/video/fbdev/omap2/dss/dss-of.c
++++ b/drivers/video/fbdev/omap2/dss/dss-of.c
+@@ -20,6 +20,8 @@
+ 
+ #include <video/omapdss.h>
+ 
++#include "dss.h"
++
+ struct device_node *
+ omapdss_of_get_next_port(const struct device_node *parent,
+ 			 struct device_node *prev)
+@@ -84,20 +86,17 @@ omapdss_of_get_next_endpoint(const struct device_node *parent,
  }
- #endif
+ EXPORT_SYMBOL_GPL(omapdss_of_get_next_endpoint);
  
-+
-+static enum omap_display_type omap2plus_ports[] = {
-+	OMAP_DISPLAY_TYPE_DPI,
-+};
-+
-+static enum omap_display_type omap34xx_ports[] = {
-+	OMAP_DISPLAY_TYPE_DPI,
-+	OMAP_DISPLAY_TYPE_SDI,
-+};
-+
- static const struct dss_features omap24xx_dss_feats __initconst = {
- 	/*
- 	 * fck div max is really 16, but the divider range has gaps. The range
-@@ -698,6 +710,8 @@ static const struct dss_features omap24xx_dss_feats __initconst = {
- 	.dss_fck_multiplier	=	2,
- 	.parent_clk_name	=	"core_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
-+	.ports			=	omap2plus_ports,
-+	.num_ports		=	ARRAY_SIZE(omap2plus_ports),
- };
+-static struct device_node *
+-omapdss_of_get_remote_device_node(const struct device_node *node)
++struct device_node *dss_of_port_get_parent_device(struct device_node *port)
+ {
+ 	struct device_node *np;
+ 	int i;
  
- static const struct dss_features omap34xx_dss_feats __initconst = {
-@@ -705,6 +719,8 @@ static const struct dss_features omap34xx_dss_feats __initconst = {
- 	.dss_fck_multiplier	=	2,
- 	.parent_clk_name	=	"dpll4_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
-+	.ports			=	omap34xx_ports,
-+	.num_ports		=	ARRAY_SIZE(omap34xx_ports),
- };
+-	np = of_parse_phandle(node, "remote-endpoint", 0);
+-
+-	if (!np)
++	if (!port)
+ 		return NULL;
  
- static const struct dss_features omap3630_dss_feats __initconst = {
-@@ -712,6 +728,8 @@ static const struct dss_features omap3630_dss_feats __initconst = {
- 	.dss_fck_multiplier	=	1,
- 	.parent_clk_name	=	"dpll4_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
-+	.ports			=	omap2plus_ports,
-+	.num_ports		=	ARRAY_SIZE(omap2plus_ports),
- };
+-	np = of_get_next_parent(np);
++	np = of_get_next_parent(port);
  
- static const struct dss_features omap44xx_dss_feats __initconst = {
-@@ -719,6 +737,8 @@ static const struct dss_features omap44xx_dss_feats __initconst = {
- 	.dss_fck_multiplier	=	1,
- 	.parent_clk_name	=	"dpll_per_x2_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap4,
-+	.ports			=	omap2plus_ports,
-+	.num_ports		=	ARRAY_SIZE(omap2plus_ports),
- };
+-	for (i = 0; i < 3 && np; ++i) {
++	for (i = 0; i < 2 && np; ++i) {
+ 		struct property *prop;
  
- static const struct dss_features omap54xx_dss_feats __initconst = {
-@@ -726,6 +746,8 @@ static const struct dss_features omap54xx_dss_feats __initconst = {
- 	.dss_fck_multiplier	=	1,
- 	.parent_clk_name	=	"dpll_per_x2_ck",
- 	.dpi_select_source	=	&dss_dpi_select_source_omap5,
-+	.ports			=	omap2plus_ports,
-+	.num_ports		=	ARRAY_SIZE(omap2plus_ports),
- };
- 
- static const struct dss_features am43xx_dss_feats __initconst = {
-@@ -733,6 +755,8 @@ static const struct dss_features am43xx_dss_feats __initconst = {
- 	.dss_fck_multiplier	=	0,
- 	.parent_clk_name	=	NULL,
- 	.dpi_select_source	=	&dss_dpi_select_source_omap2_omap3,
-+	.ports			=	omap2plus_ports,
-+	.num_ports		=	ARRAY_SIZE(omap2plus_ports),
- };
- 
- static int __init dss_init_features(struct platform_device *pdev)
-@@ -798,23 +822,32 @@ static int __init dss_init_ports(struct platform_device *pdev)
- 	if (!port)
- 		return 0;
- 
-+	if (dss.feat->num_ports == 0)
-+		return 0;
-+
- 	do {
-+		enum omap_display_type port_type;
- 		u32 reg;
- 
- 		r = of_property_read_u32(port, "reg", &reg);
- 		if (r)
- 			reg = 0;
- 
--#ifdef CONFIG_OMAP2_DSS_DPI
--		if (reg == 0)
--			dpi_init_port(pdev, port);
--#endif
-+		if (reg >= dss.feat->num_ports)
-+			continue;
- 
--#ifdef CONFIG_OMAP2_DSS_SDI
--		if (reg == 1)
--			sdi_init_port(pdev, port);
--#endif
-+		port_type = dss.feat->ports[reg];
- 
-+		switch (port_type) {
-+		case OMAP_DISPLAY_TYPE_DPI:
-+			dpi_init_port(pdev, port);
-+			break;
-+		case OMAP_DISPLAY_TYPE_SDI:
-+			sdi_init_port(pdev, port);
-+			break;
-+		default:
-+			break;
-+		}
- 	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
- 
- 	return 0;
-@@ -833,13 +866,33 @@ static void __exit dss_uninit_ports(struct platform_device *pdev)
- 	if (!port)
- 		return;
- 
--#ifdef CONFIG_OMAP2_DSS_DPI
--	dpi_uninit_port(port);
--#endif
-+	if (dss.feat->num_ports == 0)
-+		return;
- 
--#ifdef CONFIG_OMAP2_DSS_SDI
--	sdi_uninit_port();
--#endif
-+	do {
-+		enum omap_display_type port_type;
-+		u32 reg;
-+
-+		r = of_property_read_u32(port, "reg", &reg);
-+		if (r)
-+			reg = 0;
-+
-+		if (reg >= dss.feat->num_ports)
-+			continue;
-+
-+		port_type = dss.feat->ports[reg];
-+
-+		switch (port_type) {
-+		case OMAP_DISPLAY_TYPE_DPI:
-+			dpi_uninit_port(port);
-+			break;
-+		case OMAP_DISPLAY_TYPE_SDI:
-+			sdi_uninit_port(port);
-+			break;
-+		default:
-+			break;
-+		}
-+	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
+ 		prop = of_find_property(np, "compatible", NULL);
+@@ -111,6 +110,31 @@ omapdss_of_get_remote_device_node(const struct device_node *node)
+ 	return NULL;
  }
  
- /* DSS HW IP initialisation */
++u32 dss_of_port_get_port_number(struct device_node *port)
++{
++	int r;
++	u32 reg;
++
++	r = of_property_read_u32(port, "reg", &reg);
++	if (r)
++		reg = 0;
++
++	return reg;
++}
++
++static struct device_node *omapdss_of_get_remote_port(const struct device_node *node)
++{
++	struct device_node *np;
++
++	np = of_parse_phandle(node, "remote-endpoint", 0);
++	if (!np)
++		return NULL;
++
++	np = of_get_next_parent(np);
++
++	return np;
++}
++
+ struct device_node *
+ omapdss_of_get_first_endpoint(const struct device_node *parent)
+ {
+@@ -133,27 +157,25 @@ struct omap_dss_device *
+ omapdss_of_find_source_for_first_ep(struct device_node *node)
+ {
+ 	struct device_node *ep;
+-	struct device_node *src_node;
++	struct device_node *src_port;
+ 	struct omap_dss_device *src;
+ 
+ 	ep = omapdss_of_get_first_endpoint(node);
+ 	if (!ep)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	src_node = omapdss_of_get_remote_device_node(ep);
+-
+-	of_node_put(ep);
+-
+-	if (!src_node)
++	src_port = omapdss_of_get_remote_port(ep);
++	if (!src_port) {
++		of_node_put(ep);
+ 		return ERR_PTR(-EINVAL);
++	}
+ 
+-	src = omap_dss_find_output_by_node(src_node);
++	of_node_put(ep);
+ 
+-	of_node_put(src_node);
++	src = omap_dss_find_output_by_port_node(src_port);
+ 
+-	if (!src)
+-		return ERR_PTR(-EPROBE_DEFER);
++	of_node_put(src_port);
+ 
+-	return src;
++	return src ? src : ERR_PTR(-EPROBE_DEFER);
+ }
+ EXPORT_SYMBOL_GPL(omapdss_of_find_source_for_first_ep);
 diff --git a/drivers/video/fbdev/omap2/dss/dss.h b/drivers/video/fbdev/omap2/dss/dss.h
-index 5b9db95..f0d3e82 100644
+index f0d3e82..849ede1 100644
 --- a/drivers/video/fbdev/omap2/dss/dss.h
 +++ b/drivers/video/fbdev/omap2/dss/dss.h
-@@ -244,8 +244,20 @@ bool dss_div_calc(unsigned long pck, unsigned long fck_min,
- int sdi_init_platform_driver(void) __init;
- void sdi_uninit_platform_driver(void) __exit;
+@@ -215,6 +215,10 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
+ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
+ void dss_dump_clocks(struct seq_file *s);
  
-+#ifdef CONFIG_OMAP2_DSS_SDI
- int sdi_init_port(struct platform_device *pdev, struct device_node *port) __init;
--void sdi_uninit_port(void) __exit;
-+void sdi_uninit_port(struct device_node *port) __exit;
-+#else
-+static inline int __init sdi_init_port(struct platform_device *pdev,
-+		struct device_node *port)
-+{
-+	WARN("%s: SDI not compiled in\n", __func__);
-+	return 0;
-+}
-+static inline void __exit sdi_uninit_port(struct device_node *port)
-+{
-+}
-+#endif
++/* dss-of */
++struct device_node *dss_of_port_get_parent_device(struct device_node *port);
++u32 dss_of_port_get_port_number(struct device_node *port);
++
+ #if defined(CONFIG_OMAP2_DSS_DEBUGFS)
+ void dss_debug_dump_clocks(struct seq_file *s);
+ #endif
+diff --git a/drivers/video/fbdev/omap2/dss/output.c b/drivers/video/fbdev/omap2/dss/output.c
+index 2ab3afa..1607215 100644
+--- a/drivers/video/fbdev/omap2/dss/output.c
++++ b/drivers/video/fbdev/omap2/dss/output.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
  
- /* DSI */
+ #include <video/omapdss.h>
  
-@@ -358,8 +370,20 @@ static inline bool dsi_pll_calc(struct platform_device *dsidev,
- int dpi_init_platform_driver(void) __init;
- void dpi_uninit_platform_driver(void) __exit;
- 
-+#ifdef CONFIG_OMAP2_DSS_DPI
- int dpi_init_port(struct platform_device *pdev, struct device_node *port) __init;
- void dpi_uninit_port(struct device_node *port) __exit;
-+#else
-+static inline int __init dpi_init_port(struct platform_device *pdev,
-+		struct device_node *port)
-+{
-+	WARN("%s: DPI not compiled in\n", __func__);
-+	return 0;
-+}
-+static inline void __exit dpi_uninit_port(struct device_node *port)
-+{
-+}
-+#endif
- 
- /* DISPC */
- int dispc_init_platform_driver(void) __init;
-diff --git a/drivers/video/fbdev/omap2/dss/sdi.c b/drivers/video/fbdev/omap2/dss/sdi.c
-index 911dcc9..72f89db 100644
---- a/drivers/video/fbdev/omap2/dss/sdi.c
-+++ b/drivers/video/fbdev/omap2/dss/sdi.c
-@@ -424,7 +424,7 @@ err_datapairs:
- 	return r;
+@@ -131,18 +132,30 @@ struct omap_dss_device *omap_dss_find_output(const char *name)
  }
+ EXPORT_SYMBOL(omap_dss_find_output);
  
--void __exit sdi_uninit_port(void)
-+void __exit sdi_uninit_port(struct device_node *port)
+-struct omap_dss_device *omap_dss_find_output_by_node(struct device_node *node)
++struct omap_dss_device *omap_dss_find_output_by_port_node(struct device_node *port)
  {
- 	if (!sdi.port_initialized)
- 		return;
++	struct device_node *src_node;
+ 	struct omap_dss_device *out;
++	u32 reg;
++
++	src_node = dss_of_port_get_parent_device(port);
++	if (!src_node)
++		return NULL;
++
++	reg = dss_of_port_get_port_number(port);
+ 
+ 	list_for_each_entry(out, &output_list, list) {
+-		if (out->dev->of_node == node)
++		if (out->dev->of_node == src_node && out->port_num == reg) {
++			of_node_put(src_node);
+ 			return omap_dss_get_device(out);
++		}
+ 	}
+ 
++	of_node_put(src_node);
++
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(omap_dss_find_output_by_node);
++EXPORT_SYMBOL(omap_dss_find_output_by_port_node);
+ 
+ struct omap_dss_device *omapdss_find_output_from_display(struct omap_dss_device *dssdev)
+ {
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index fc06c5b..ec0dc29 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -790,6 +790,9 @@ struct omap_dss_device {
+ 	/* output instance */
+ 	enum omap_dss_output_id id;
+ 
++	/* the port number in the DT node */
++	int port_num;
++
+ 	/* dynamic fields */
+ 	struct omap_overlay_manager *manager;
+ 
+@@ -909,7 +912,7 @@ int omapdss_register_output(struct omap_dss_device *output);
+ void omapdss_unregister_output(struct omap_dss_device *output);
+ struct omap_dss_device *omap_dss_get_output(enum omap_dss_output_id id);
+ struct omap_dss_device *omap_dss_find_output(const char *name);
+-struct omap_dss_device *omap_dss_find_output_by_node(struct device_node *node);
++struct omap_dss_device *omap_dss_find_output_by_port_node(struct device_node *port);
+ int omapdss_output_set_device(struct omap_dss_device *out,
+ 		struct omap_dss_device *dssdev);
+ int omapdss_output_unset_device(struct omap_dss_device *out);
 -- 
 1.8.3.2
 
