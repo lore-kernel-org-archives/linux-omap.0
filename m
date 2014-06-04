@@ -1,160 +1,108 @@
-From: Rostislav Lisovy <lisovy@gmail.com>
-Subject: [PATCH] ARM: omap2+: gpmc-nand: Use dynamic platform_device_alloc()
-Date: Wed,  4 Jun 2014 16:24:35 +0200
-Message-ID: <1401891875-27843-1-git-send-email-lisovy@merica.cz>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Pekon Gupta <pekon@ti.com>, Michal Vokac <vokac.m@gmail.com>, Michal Sojka <sojkam1@fel.cvut.cz>, Rostislav Lisovy <lisovy@merica.cz>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: mainline boot: 37 passed 4 failed
+ (mainline/v3.15-rc8-4569-g3de0ef8) (palmas regression uEVM)
+Date: Wed, 4 Jun 2014 14:34:31 -0500
+Message-ID: <20140604193431.GB4858@kahuna>
+References: <538e6a20.0168440a.7895.422b@mx.google.com>
+ <CAOesGMg4ESoPVvCc4is7wpA8PVOOSDzh5=VZZ67NnJjD3jUzmw@mail.gmail.com>
+ <20140604090111.GE2520@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58227 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750780AbaFDTfF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Jun 2014 15:35:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20140604090111.GE2520@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Olof Johansson <olof@lixom.net>, Kevin Hilman <khilman@linaro.org>, kernel-build-reports@lists.linaro.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, j-keerthy@ti.com
 
-GPMC controller supports up to 8 memory devices connected to it.
-Since there is one statically allocated "struct platform_device
-gpmc_nand_device" it is not possible to configure the system to
-use more than one NAND device connected to the GPMC. This
-modification makes it possible to use up to 8 NAND devices
-connected to the GPMC controller.
+Minor change in subject, +Keerthy.
 
-Signed-off-by: Rostislav Lisovy <lisovy@merica.cz>
+On 10:01-20140604, Mark Brown wrote:
+> On Tue, Jun 03, 2014 at 06:26:14PM -0700, Olof Johansson wrote:
+> > On Tue, Jun 3, 2014 at 5:36 PM, Olof's autobooter <build@lixom.net> wrote:
+> 
+> > > [    2.816920] smps9: failed to get the current voltage
+> 
+> > This seems to be from palmas registration failing, which in turns
+> > causes vmmc regulator lookup to fail. See the errors about palmas-pmic
+> > above.
+> 
+> Always CC maintainers on things.  This is a bug in the driver, it needs
+> to support retrieving voltages at all times (and would probably run into
+> trouble anyway).
+Full thread: http://marc.info/?t=140184538000004&r=1&w=2
+
+Yeah, this does seems to be a regression. The following is based on
+next-20140604.
+
+Seems to help my OMAP5uevm.
+If this makes sense, I will repost it as a formal patch.
+
+8<----------------
+>From 3feaa7f5c749b1673aef3fd26f43b965dd627dc9 Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Wed, 4 Jun 2014 14:09:09 -0500
+Subject: [PATCH] regulator: palmas: Fix SMPS list for 0V
+
+get_voltage_sel reads from SMPS register - if the read selector value
+is 0, the SMPS is actually disabled - So, this is in addition to the
+ctrl_register that may also be used to enable/disable the SMPS.
+
+The original logic(prior to commit dbabd624d4eec50b6) used to be:
+static int palmas_map_voltage_smps(struct regulator_dev *rdev,
+               int min_uV, int max_uV)
+<snip>
+       if (min_uV == 0)
+               return 0;
+
+To handle this scenario, with the transition to regulator_list
+implementation, we seem to have missed the data necessary to mark as
+one of the valid entries as "0" 'disabled regulator' which results in
+0 volts - So, stick with pre-existing logic.
+
+Without this added to the list, palmas regulator driver,
+on probe, attempts to setup constraints and in the case of
+OMAP5uEVM, SMPS9 (which is mapped for 2v1 audio supply) fails in
+regulator_list_voltage_linear_range mapping of '0', and as a fall back
+of constraints not being applied, the entire regulator list is not
+enumerated due to assumption that something system wide has gone bad
+on with the PMIC.
+
+Fixes: dbabd624d4eec50b6 ("regulator: palmas: Reemove open coded functions with helper functions")
+Reported-by: Olof Johansson <olof@lixom.net>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
+ drivers/regulator/palmas-regulator.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Tested on custom AM335x board with two different NAND chips
-(128 + 256 MiB) using GPMC configuration in FDT -- behaves
-correctly.
-
-
- arch/arm/mach-omap2/gpmc-nand.c | 79 +++++++++++++++++++----------------------
- 1 file changed, 37 insertions(+), 42 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 4349e82..c5481a8 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -24,25 +24,6 @@
- /* minimum size for IO mapping */
- #define	NAND_IO_SIZE	4
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index 864ed02..b982f0f 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -37,12 +37,14 @@ struct regs_info {
+ };
  
--static struct resource gpmc_nand_resource[] = {
--	{
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.flags		= IORESOURCE_IRQ,
--	},
--	{
--		.flags		= IORESOURCE_IRQ,
--	},
--};
--
--static struct platform_device gpmc_nand_device = {
--	.name		= "omap2-nand",
--	.id		= 0,
--	.num_resources	= ARRAY_SIZE(gpmc_nand_resource),
--	.resource	= gpmc_nand_resource,
--};
--
- static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
- {
- 	/* platforms which support all ECC schemes */
-@@ -93,43 +74,41 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- {
- 	int err	= 0;
- 	struct gpmc_settings s;
--	struct device *dev = &gpmc_nand_device.dev;
--
--	memset(&s, 0, sizeof(struct gpmc_settings));
-+	struct platform_device *pdev;
-+	struct resource gpmc_nand_res[] = {
-+		{ .flags = IORESOURCE_MEM, },
-+		{ .flags = IORESOURCE_IRQ, },
-+		{ .flags = IORESOURCE_IRQ, },
-+	};
+ static const struct regulator_linear_range smps_low_ranges[] = {
++	REGULATOR_LINEAR_RANGE(0, 0x0, 0x0, 0),
+ 	REGULATOR_LINEAR_RANGE(500000, 0x1, 0x6, 0),
+ 	REGULATOR_LINEAR_RANGE(510000, 0x7, 0x79, 10000),
+ 	REGULATOR_LINEAR_RANGE(1650000, 0x7A, 0x7f, 0),
+ };
  
--	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
-+	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
- 
- 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
--				(unsigned long *)&gpmc_nand_resource[0].start);
-+			      (unsigned long *)&gpmc_nand_res[0].start);
- 	if (err < 0) {
--		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
--			gpmc_nand_data->cs, err);
-+		pr_err("omap2-gpmc: Cannot request GPMC CS %d, error %d\n",
-+		       gpmc_nand_data->cs, err);
- 		return err;
- 	}
--
--	gpmc_nand_resource[0].end = gpmc_nand_resource[0].start +
--							NAND_IO_SIZE - 1;
--
--	gpmc_nand_resource[1].start =
--				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
--	gpmc_nand_resource[2].start =
--				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
-+	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
-+	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
-+	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
- 
- 	if (gpmc_t) {
- 		err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
- 		if (err < 0) {
--			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
-+			pr_err("omap2-gpmc: Unable to set gpmc timings: %d\n", err);
- 			return err;
- 		}
- 	}
- 
-+	memset(&s, 0, sizeof(struct gpmc_settings));
- 	if (gpmc_nand_data->of_node)
- 		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
- 	else
- 		gpmc_set_legacy(gpmc_nand_data, &s);
- 
- 	s.device_nand = true;
--
- 	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
- 	if (err < 0)
- 		goto out_free_cs;
-@@ -141,18 +120,34 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
- 
- 	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
--		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
--		return -EINVAL;
-+		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
-+		err = -EINVAL;
-+		goto out_free_cs;
- 	}
- 
--	err = platform_device_register(&gpmc_nand_device);
--	if (err < 0) {
--		dev_err(dev, "Unable to register NAND device\n");
--		goto out_free_cs;
-+
-+	pdev = platform_device_alloc("omap2-nand", gpmc_nand_data->cs);
-+	if (pdev) {
-+		err = platform_device_add_resources(pdev, gpmc_nand_res,
-+						    ARRAY_SIZE(gpmc_nand_res));
-+		if (!err)
-+			pdev->dev.platform_data = gpmc_nand_data;
-+	} else {
-+		err = -ENOMEM;
-+	}
-+	if (err)
-+		goto out_free_pdev;
-+
-+	err = platform_device_add(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Unable to register NAND device\n");
-+		goto out_free_pdev;
- 	}
- 
- 	return 0;
- 
-+out_free_pdev:
-+	platform_device_put(pdev);
- out_free_cs:
- 	gpmc_cs_free(gpmc_nand_data->cs);
- 
+ static const struct regulator_linear_range smps_high_ranges[] = {
++	REGULATOR_LINEAR_RANGE(0, 0x0, 0x0, 0),
+ 	REGULATOR_LINEAR_RANGE(1000000, 0x1, 0x6, 0),
+ 	REGULATOR_LINEAR_RANGE(1020000, 0x7, 0x79, 20000),
+ 	REGULATOR_LINEAR_RANGE(3300000, 0x7A, 0x7f, 0),
 -- 
-1.9.1
+1.7.9.5
+
+
+-- 
+Regards,
+Nishanth Menon
