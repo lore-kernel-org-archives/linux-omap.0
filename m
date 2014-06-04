@@ -1,54 +1,160 @@
-From: =?ISO-8859-1?Q?Pascal_H=FCrst?= <pascal.huerst@gmail.com>
-Subject: Re: [RFC PATCH 00/11] Embeddable Position Independent Executable
-Date: Wed, 04 Jun 2014 15:36:22 +0200
-Message-ID: <538F20D6.7030207@gmail.com>
-References: <1379421817-15759-1-git-send-email-Russ.Dill@ti.com> <201310241009.12597.heiko@sntech.de> <1441820.DP5PYDOd2T@phil>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rostislav Lisovy <lisovy@gmail.com>
+Subject: [PATCH] ARM: omap2+: gpmc-nand: Use dynamic platform_device_alloc()
+Date: Wed,  4 Jun 2014 16:24:35 +0200
+Message-ID: <1401891875-27843-1-git-send-email-lisovy@merica.cz>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1441820.DP5PYDOd2T@phil>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko@sntech.de>, Russ Dill <Russ.Dill@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mans@mansr.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-kbuild@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Pekon Gupta <pekon@ti.com>, Michal Vokac <vokac.m@gmail.com>, Michal Sojka <sojkam1@fel.cvut.cz>, Rostislav Lisovy <lisovy@merica.cz>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ru
+GPMC controller supports up to 8 memory devices connected to it.
+Since there is one statically allocated "struct platform_device
+gpmc_nand_device" it is not possible to configure the system to
+use more than one NAND device connected to the GPMC. This
+modification makes it possible to use up to 8 NAND devices
+connected to the GPMC controller.
 
-On 22.04.2014 10:15, Heiko St=FCbner wrote:
-> Hi Russ,
->
-> Am Donnerstag, 24. Oktober 2013, 10:09:12 schrieb Heiko St=FCbner:
->> Am Dienstag, 17. September 2013, 14:43:26 schrieb Russ Dill:
->>> This patch adds support for and demonstrates the usage of an embedd=
-ed
->>> position independent executable (PIE). The goal is to allow the use=
- of C
->>> code in situations where carefully written position independent ass=
-embly
->>> was previously required.
->>
->> As suggested yesterday evening by Kevin Hilman, just adding my 2ct o=
-f
->> support.
->>
->> This series looks exactly like the foundation I'll need at some poin=
-t in the
->> (probably still distant) future to handle suspend on my Rockchip pla=
-tform -
->> where like in your example stuff like putting the ram into selfrefre=
-sh has
->> to be done by the os.
->
-> just as it came up recently again for me and I couldn't find any newe=
-r version,
-> ist this series still on the table?
+Signed-off-by: Rostislav Lisovy <lisovy@merica.cz>
+---
 
-We have to maintain quite some patches, to keep pm working for our=20
-project, so we're interested to get this mainline, too. Is someone=20
-taking care of these issues? Or is there something i can do to help=20
-getting this done?
+Tested on custom AM335x board with two different NAND chips
+(128 + 256 MiB) using GPMC configuration in FDT -- behaves
+correctly.
 
-regards
-pascal
+
+ arch/arm/mach-omap2/gpmc-nand.c | 79 +++++++++++++++++++----------------------
+ 1 file changed, 37 insertions(+), 42 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 4349e82..c5481a8 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -24,25 +24,6 @@
+ /* minimum size for IO mapping */
+ #define	NAND_IO_SIZE	4
+ 
+-static struct resource gpmc_nand_resource[] = {
+-	{
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-	{
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-};
+-
+-static struct platform_device gpmc_nand_device = {
+-	.name		= "omap2-nand",
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(gpmc_nand_resource),
+-	.resource	= gpmc_nand_resource,
+-};
+-
+ static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+ {
+ 	/* platforms which support all ECC schemes */
+@@ -93,43 +74,41 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ {
+ 	int err	= 0;
+ 	struct gpmc_settings s;
+-	struct device *dev = &gpmc_nand_device.dev;
+-
+-	memset(&s, 0, sizeof(struct gpmc_settings));
++	struct platform_device *pdev;
++	struct resource gpmc_nand_res[] = {
++		{ .flags = IORESOURCE_MEM, },
++		{ .flags = IORESOURCE_IRQ, },
++		{ .flags = IORESOURCE_IRQ, },
++	};
+ 
+-	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
++	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
+ 
+ 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
+-				(unsigned long *)&gpmc_nand_resource[0].start);
++			      (unsigned long *)&gpmc_nand_res[0].start);
+ 	if (err < 0) {
+-		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
+-			gpmc_nand_data->cs, err);
++		pr_err("omap2-gpmc: Cannot request GPMC CS %d, error %d\n",
++		       gpmc_nand_data->cs, err);
+ 		return err;
+ 	}
+-
+-	gpmc_nand_resource[0].end = gpmc_nand_resource[0].start +
+-							NAND_IO_SIZE - 1;
+-
+-	gpmc_nand_resource[1].start =
+-				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
+-	gpmc_nand_resource[2].start =
+-				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
++	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
++	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
++	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
+ 
+ 	if (gpmc_t) {
+ 		err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
+ 		if (err < 0) {
+-			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
++			pr_err("omap2-gpmc: Unable to set gpmc timings: %d\n", err);
+ 			return err;
+ 		}
+ 	}
+ 
++	memset(&s, 0, sizeof(struct gpmc_settings));
+ 	if (gpmc_nand_data->of_node)
+ 		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+ 	else
+ 		gpmc_set_legacy(gpmc_nand_data, &s);
+ 
+ 	s.device_nand = true;
+-
+ 	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
+ 	if (err < 0)
+ 		goto out_free_cs;
+@@ -141,18 +120,34 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+ 
+ 	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
+-		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
+-		return -EINVAL;
++		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
++		err = -EINVAL;
++		goto out_free_cs;
+ 	}
+ 
+-	err = platform_device_register(&gpmc_nand_device);
+-	if (err < 0) {
+-		dev_err(dev, "Unable to register NAND device\n");
+-		goto out_free_cs;
++
++	pdev = platform_device_alloc("omap2-nand", gpmc_nand_data->cs);
++	if (pdev) {
++		err = platform_device_add_resources(pdev, gpmc_nand_res,
++						    ARRAY_SIZE(gpmc_nand_res));
++		if (!err)
++			pdev->dev.platform_data = gpmc_nand_data;
++	} else {
++		err = -ENOMEM;
++	}
++	if (err)
++		goto out_free_pdev;
++
++	err = platform_device_add(pdev);
++	if (err) {
++		dev_err(&pdev->dev, "Unable to register NAND device\n");
++		goto out_free_pdev;
+ 	}
+ 
+ 	return 0;
+ 
++out_free_pdev:
++	platform_device_put(pdev);
+ out_free_cs:
+ 	gpmc_cs_free(gpmc_nand_data->cs);
+ 
+-- 
+1.9.1
