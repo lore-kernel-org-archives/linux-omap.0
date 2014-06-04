@@ -1,70 +1,91 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: HSI: fix omap ssi driver dependency
-Date: Wed, 4 Jun 2014 01:18:07 +0200
-Message-ID: <20140603231807.GA13171@earth.universe>
-References: <5261510.XDu5DxNnFl@wuerfel>
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: Re: [PATCH] usb: dwc3: Keeping 'resource' related code together
+Date: Wed, 4 Jun 2014 11:55:31 +0530
+Message-ID: <CAFp+6iGgyh9eBfHU-XY=v+81oXpNk+OHRd0oUAdVG2tDzgH=gQ@mail.gmail.com>
+References: <1401791978-3555-1-git-send-email-gautam.vivek@samsung.com>
+	<A2CA0424C0A6F04399FB9E1CD98E0304844B2141@US01WEMBX2.internal.synopsys.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:41212 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955AbaFCXSL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jun 2014 19:18:11 -0400
-Content-Disposition: inline
-In-Reply-To: <5261510.XDu5DxNnFl@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <A2CA0424C0A6F04399FB9E1CD98E0304844B2141@US01WEMBX2.internal.synopsys.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Paul Zimmerman <Paul.Zimmerman@synopsys.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "kishon@ti.com" <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-kernel@lists.codethink.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+Hi,
 
 
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jun 4, 2014 at 12:41 AM, Paul Zimmerman
+<Paul.Zimmerman@synopsys.com> wrote:
+>> From: linux-usb-owner@vger.kernel.org [mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Vivek Gautam
+>> Sent: Tuesday, June 03, 2014 3:40 AM
+>>
+>> Putting together the code related to getting the 'IORESOURCE_MEM'
+>> and assigning the same to dwc->xhci_resources, for increasing
+>> the readability.
+>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> ---
+>>
+>> Based on 'next' branch of Felipe's usb tree.
+>> Also cleanly applies to 'usb-next' branch of Greg's usb tree.
+>>
+>>  drivers/usb/dwc3/core.c |   38 +++++++++++++++++++-------------------
+>>  1 file changed, 19 insertions(+), 19 deletions(-)
+>>
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index 3f59c12..4ca925d 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>> @@ -656,6 +656,25 @@ static int dwc3_probe(struct platform_device *pdev)
+>>               return -ENODEV;
+>>       }
+>>
+>> +     dwc->xhci_resources[0].start = res->start;
+>> +     dwc->xhci_resources[0].end = dwc->xhci_resources[0].start +
+>> +                                     DWC3_XHCI_REGS_END;
+>> +     dwc->xhci_resources[0].flags = res->flags;
+>> +     dwc->xhci_resources[0].name = res->name;
+>> +
+>> +     res->start += DWC3_GLOBALS_REGS_START;
+>> +
+>> +     /*
+>> +      * Request memory region but exclude xHCI regs,
+>> +      * since it will be requested by the xhci-plat driver.
+>> +      */
+>> +     regs = devm_ioremap_resource(dev, res);
+>> +     if (IS_ERR(regs))
+>> +             return PTR_ERR(regs);
+>> +
+>> +     dwc->regs       = regs;
+>> +     dwc->regs_size  = resource_size(res);
+>> +
+>>       if (node) {
+>>               dwc->maximum_speed = of_usb_get_maximum_speed(node);
+>
+> I think this will break if the following dwc3_core_get_phy() call returns
+> -EPROBE_DEFER. Since you have incremented res->start above, the next time
+> this probe function is called, res->start will have the wrong value.
+> Provided I'm reading the code correctly of course :)
 
-Hi Arnd,
+True, my fault. This will surely throw an error in requesting memory
+region the next time probe
+is called.
+Thanks for catching this.
 
-On Tue, Jun 03, 2014 at 05:14:01PM +0200, Arnd Bergmann wrote:
-> The SSI protocol implementation has an incorrect dependency on the OMAP_S=
-SI
-> driver, which allows SSI to be built-in while the underlying OMAP_SSI
-> implementation is a loadable module, causing a link error.
->=20
-> This changes the dependency to the simpler 'depends on OMAP_SSI' that also
-> ensures that SSI-protocol can only be a module if OMAP_SSI is not built-i=
-n.
->=20
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+> I think you could fix that by decrementing res->start back to its
+> original value just after the call to resource_size() above.
 
-Thanks, applied:
+Sure will put
+        res->start -= DWC3_GLOBALS_REGS_START;
+right after the call to resource_size() call.
 
-https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=3D=
-for-next&id=3D518e1624f56615a88c91bc79c7b4b4d9eb2419e5
 
--- Sebastian
 
---5mCyUwZo2JvN/JJP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTjleuAAoJENju1/PIO/qaBW0P+gNIQQuUewyzScNDOgkdDnAr
-FCOU1MFfTLSWNWusD+eSkxQMX6iOyQZ96s075ikkbCKtbiOjLLOHccHp5OUxPd4/
-1d2DSxhkUDihcDr4cutgAYUregCwEfLqJiOnMRvkMYBtFFL43ayeMdHKg2FUt6bH
-0s8LDyHxxO6YBAd8mHTuzMZzdcMC4S/9AkraTU8yxm0oYg4XM4k5jqbkT9z3Oc4n
-88tmOZn4PX9Ykb06UZGxv++Nt4UykA0vjW4jt7wUCF2miQfL0uQuWppgK929OfDJ
-T7FPuotCk/cbtyhWpSJbYGZyX5xJWft80x8X8tdc6NEd+mtGIMTL6K1CmSWW6ua0
-Vb1DSnzxvgVaLmt9La54TXCK28iIC3jsr8rMDXtH0lzWgLREl4Asm0eQXHu4qbs3
-PX0BOCyxPnHy4l0TPIlviAbCkSqYEm/krwuRGSoqacRbHnomuhWg8uziB+tz8UIz
-5hFVriS/dsFnXci4qsAoyetKrNxZAZGTCRcJ4geWLHkiUTPb+eTsEmDePJ8nTo4t
-4M36hfkVgHTrtvJK8pTBmbfOOwZkM0gPu3++dNi1RExj0x/P5WiI19cgZ9cFSFHy
-TtXzhLimsqvP2RLdObffmTLWcacRUPpfuyrhZa1zh2ppja/9d09ml0JxJI2Y5sXF
-1AfpaHmquJ+D6ZnVIxLg
-=q32A
------END PGP SIGNATURE-----
-
---5mCyUwZo2JvN/JJP--
+-- 
+Best Regards
+Vivek Gautam
+Samsung R&D Institute, Bangalore
+India
