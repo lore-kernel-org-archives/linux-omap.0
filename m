@@ -1,195 +1,273 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: am335x: system doesn't reboot after flashing NAND
-Date: Wed, 4 Jun 2014 14:32:01 +0200
-Message-ID: <CAGm1_ks-oAtTzOaaV9WTk13tibK20uKigGCJ22H=0qz7edHeRw@mail.gmail.com>
-References: <CAGm1_kstgCEQRuaz836v7xg=DHVxpQ6VQPBzkORz1D=18fxp8w@mail.gmail.com>
- <CAGm1_kv7EmQ1MaXL0nhQcPZp53DjBLfdnTqFit9e0FT1J8zzug@mail.gmail.com>
- <538EBF54.7080709@ti.com> <CAGm1_ktWxQFQ0jWjn7A2NO8nPayY9S2McPrKHWbGRtkw1751ig@mail.gmail.com>
- <538EDD77.8070807@ti.com> <CAGm1_kt7BZ7RcbPd51QXhXxQV4SRzeXLzKW43wqK5UnPbYoHBw@mail.gmail.com>
- <538EF2EF.4050709@ti.com> <CAGm1_ksofkCNB1R9kg6L9FBFFPoE=62AZ1Vid4_n7DEu1oi4GQ@mail.gmail.com>
- <538EFA70.4040102@ti.com> <20980858CB6D3A4BAE95CA194937D5E73EAF2B9B@DBDE04.ent.ti.com>
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Subject: Re: [PATCH 3/6] mfd: twl4030-power: Add generic reset configuration
+Date: Wed, 4 Jun 2014 15:02:21 +0200
+Message-ID: <CABuKBe+hd+nzWdUPK+LvGZoVy_8aHW3QgyXS+D0JZ2AOEyy5Ng@mail.gmail.com>
+References: <1401214140-9828-1-git-send-email-tony@atomide.com>
+	<1401214140-9828-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:43092 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686AbaFDMcW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2014 08:32:22 -0400
-Received: by mail-pb0-f47.google.com with SMTP id rp16so6949509pbb.34
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jun 2014 05:32:21 -0700 (PDT)
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAF2B9B@DBDE04.ent.ti.com>
+Received: from mail-qa0-f50.google.com ([209.85.216.50]:37355 "EHLO
+	mail-qa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753079AbaFDNCW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2014 09:02:22 -0400
+In-Reply-To: <1401214140-9828-4-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: "Nori, Sekhar" <nsekhar@ti.com>, "Quadros, Roger" <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: lee.jones@linaro.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On Wed, Jun 4, 2014 at 1:49 PM, Gupta, Pekon <pekon@ti.com> wrote:
->>On Wednesday 04 June 2014 04:00 PM, Yegor Yefremov wrote:
-> [...]
+2014-05-27 20:08 GMT+02:00 Tony Lindgren <tony@atomide.com>:
+> The twl4030 PMIC needs to be configured properly for things like
+> warm reset and deeper idle states so the PMIC manages the regulators
+> properly based on the hardware triggers from the SoC. Earlier
+> we have configured twl4030 using platform data, but we want to
+> do it for device tree based booting also.
 >
->>>> The way ROM works for XIP boot is:
->>>>
->>>> 1) Set chip select 0 base address to 0x0800'0000
->>>> 2) Read memory at 0x0800'0000
->>>> 3) If something else other than 0x0 or ~0x0 is found, jump to
->>>> 0x0800'0000 and start executing.
->>>>
->>>> Can you check to see the contents of 0x0800'0000 before and after nand
->>>> write using mtdblock?
->>>
->>> Before writing:
->>>
->>> # devmem 0x08000000 32
->>> 0xFFFFFFFF
->>>
->>> After writing:
->>>
->>> # devmem 0x08000000 32
->>> 0xE0E0E0E0
->>
->>Okay, so this is the cause of failure to boot. I am not sure what
->>operation by NAND driver causes this value to change. Perhaps you could
->>bisect a bit by dumping this address at various points during the write
->>operation?
->>
->>If you have a debugger it will become easy to do this.
->>
-> I'm not sure, if a NAND device is connected as CS0 how is ROM code
-> detecting it as NOR and proceeding for an XIP read.
-> As its mentioned in XIP boot process in AM335x TRM that if an invalid
-> boot image is found then ROM code falls back to next boot device
-> which is in this case MMC boot. A hung code here mean
-> - XIP boot is not failing OR
-> - ROM code is waiting on GPMC_WAIT0 pin a part of XIP read access.
-> So please check if the GPMC:
+> In some cases configuring twl4030 is needed for things to work.
+> For example, when rebooting an OMAP3530 at 125 MHz, it hangs.
+> With this patch, TWL4030 will be reset when a warm reset occures,
+> and OMAP3530 does not hang on reboot.
 >
-> (1) This may happen because GPMC pins are shared for both NOR and
->    NAND so plz check conflicting pins as given in
->   AM335x TRM: Table 26-9. Pins Used for Non-Muxed NOR Boot
-> (Please see that GPMC_WAIT0 and GPMC_WAIT1 are pulled high on the board)
+> Let's add device tree support and configure things for warm reset
+> as the default when compatible = "ti,twl4030-power". More
+> complicated configurations can be added to the driver based on
+> other compatible flags.
+>
+> Note we now also make the pdata const like it should be.
+> This allows use it for match->data with the device tree
+> related functions.
+>
+> Based on earlier patch by Matthias Brugger <matthias.bgg@gmail.com>
+> and Lesly A M <leslyam@ti.com>.
+>
+> Cc: Matthias Brugger <matthias.bgg@gmail.com>
+> Cc: Robert Nelson <robertcnelson@gmail.com>
+> Cc: Peter De Schrijver <pdeschrijver@nvidia.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  .../devicetree/bindings/mfd/twl4030-power.txt      |   7 +-
+>  drivers/mfd/twl4030-power.c                        | 109 ++++++++++++++++++---
+>  include/linux/i2c/twl.h                            |   3 +
+>  3 files changed, 105 insertions(+), 14 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/mfd/twl4030-power.txt b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
+> index 8e15ec3..b906116 100644
+> --- a/Documentation/devicetree/bindings/mfd/twl4030-power.txt
+> +++ b/Documentation/devicetree/bindings/mfd/twl4030-power.txt
+> @@ -5,7 +5,12 @@ to control the power resources, including power scripts. For now, the
+>  binding only supports the complete shutdown of the system after poweroff.
+>
+>  Required properties:
+> -- compatible : must be "ti,twl4030-power"
+> +- compatible : must be one of the following
+> +       "ti,twl4030-power"
+> +       "ti,twl4030-power-reset"
+> +
+> +The use of ti,twl4030-power-reset is recommended at least on
+> +3530 that needs a special configuration for warm reset to work.
+>
+>  Optional properties:
+>  - ti,use_poweroff: With this flag, the chip will initiates an ACTIVE-to-OFF or
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 0b037dc..cb5b0cb 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/i2c/twl.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/of.h>
+> +#include <linux/of_device.h>
+>
+>  #include <asm/mach-types.h>
+>
+> @@ -128,6 +129,40 @@ static u8 res_config_addrs[] = {
+>         [RES_MAIN_REF]  = 0x94,
+>  };
+>
+> +/*
+> + * Usable values for .remap_sleep and .remap_off
+> + * Based on table "5.3.3 Resource Operating modes"
+> + */
+> +enum {
+> +       TWL_REMAP_OFF = 0,
+> +       TWL_REMAP_SLEEP = 8,
+> +       TWL_REMAP_ACTIVE = 9,
 
-The system has only 8-bit NAND
+Do we really need remap active?
+As far as I can see it's not used anywhere.
 
-        nandflash_pins_s0: nandflash_pins_s0 {
-                pinctrl-single,pins = <
-                        0x0 (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad0.gpmc_ad0 */
-                        0x4 (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad1.gpmc_ad1 */
-                        0x8 (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad2.gpmc_ad2 */
-                        0xc (PIN_INPUT_PULLUP | MUX_MODE0)      /*
-gpmc_ad3.gpmc_ad3 */
-                        0x10 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad4.gpmc_ad4 */
-                        0x14 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad5.gpmc_ad5 */
-                        0x18 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad6.gpmc_ad6 */
-                        0x1c (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_ad7.gpmc_ad7 */
-                        0x70 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_wait0.gpmc_wait0 */
-                        0x74 (PIN_INPUT_PULLUP | MUX_MODE0)     /*
-gpmc_wpn.gpmc_wpn */
-                        0x7c (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_csn0.gpmc_csn0  */
-                        0x90 (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_advn_ale.gpmc_advn_ale */
-                        0x94 (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_oen_ren.gpmc_oen_ren */
-                        0x98 (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_wen.gpmc_wen */
-                        0x9c (PIN_OUTPUT | MUX_MODE0)           /*
-gpmc_be0n_cle.gpmc_be0n_cle */
-                >;
-&elm {
-        status = "okay";
-};
+> +};
+> +
+> +/*
+> + * Macros to configure the PM register states for various resources.
+> + * Note that we can make MSG_SINGULAR etc private to this driver once
+> + * omap3 has been made DT only.
+> + */
+> +#define TWL_DFLT_DELAY         2       /* typically 2 32 KiHz cycles */
+> +#define TWL_RESOURCE_SET(res, state)                                   \
+> +       { MSG_SINGULAR(DEV_GRP_NULL, (res), (state)), TWL_DFLT_DELAY }
+> +#define TWL_RESOURCE_ON(res)   TWL_RESOURCE_SET(res, RES_STATE_ACTIVE)
+> +#define TWL_RESOURCE_OFF(res)  TWL_RESOURCE_SET(res, RES_STATE_OFF)
+> +#define TWL_RESOURCE_RESET(res)        TWL_RESOURCE_SET(res, RES_STATE_WRST)
+> +/*
+> + * It seems that type1 and type2 is just the resource init order
+> + * number for the type1 and type2 group.
+> + */
+> +#define TWL_RESOURCE_GROUP_RESET(group, type1, type2)                  \
+> +       { MSG_BROADCAST(DEV_GRP_NULL, (group), (type1), (type2),        \
+> +               RES_STATE_WRST), TWL_DFLT_DELAY }
+> +#define TWL_REMAP_SLEEP(res, devgrp, typ, typ2)                                \
+> +       { .resource = (res), .devgroup = (devgrp),                      \
+> +         .type = (typ), .type2 = (typ2),                               \
+> +         .remap_off = TWL_REMAP_OFF,                                   \
+> +         .remap_sleep = TWL_REMAP_SLEEP, }
+> +
+>  static int twl4030_write_script_byte(u8 address, u8 byte)
+>  {
+>         int err;
+> @@ -502,7 +537,8 @@ int twl4030_remove_script(u8 flags)
+>         return err;
+>  }
+>
+> -static int twl4030_power_configure_scripts(struct twl4030_power_data *pdata)
+> +static int
+> +twl4030_power_configure_scripts(const struct twl4030_power_data *pdata)
+>  {
+>         int err;
+>         int i;
+> @@ -518,7 +554,8 @@ static int twl4030_power_configure_scripts(struct twl4030_power_data *pdata)
+>         return 0;
+>  }
+>
+> -static int twl4030_power_configure_resources(struct twl4030_power_data *pdata)
+> +static int
+> +twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
+>  {
+>         struct twl4030_resconfig *resconfig = pdata->resource_config;
+>         int err;
+> @@ -550,7 +587,7 @@ void twl4030_power_off(void)
+>                 pr_err("TWL4030 Unable to power off\n");
+>  }
+>
+> -static bool twl4030_power_use_poweroff(struct twl4030_power_data *pdata,
+> +static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
+>                                         struct device_node *node)
+>  {
+>         if (pdata && pdata->use_poweroff)
+> @@ -562,10 +599,60 @@ static bool twl4030_power_use_poweroff(struct twl4030_power_data *pdata,
+>         return false;
+>  }
+>
+> +#ifdef CONFIG_OF
+> +
+> +/* Generic warm reset configuration for omap3 */
+> +
+> +static struct twl4030_ins omap3_wrst_seq[] = {
+> +       TWL_RESOURCE_OFF(RES_NRES_PWRON),
+> +       TWL_RESOURCE_OFF(RES_RESET),
+> +       TWL_RESOURCE_RESET(RES_MAIN_REF),
+> +       TWL_RESOURCE_GROUP_RESET(RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2),
+> +       TWL_RESOURCE_RESET(RES_VUSB_3V1),
+> +       TWL_RESOURCE_GROUP_RESET(RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1),
+> +       TWL_RESOURCE_GROUP_RESET(RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0),
+> +       TWL_RESOURCE_ON(RES_RESET),
+> +       TWL_RESOURCE_ON(RES_NRES_PWRON),
+> +};
+> +
+> +static struct twl4030_script omap3_wrst_script = {
+> +       .script = omap3_wrst_seq,
+> +       .size   = ARRAY_SIZE(omap3_wrst_seq),
+> +       .flags  = TWL4030_WRST_SCRIPT,
+> +};
+> +
+> +static struct twl4030_script *omap3_reset_scripts[] = {
+> +       &omap3_wrst_script,
+> +};
+> +
+> +static struct twl4030_resconfig omap3_rconfig[] = {
+> +       TWL_REMAP_SLEEP(RES_HFCLKOUT, DEV_GRP_P3, -1, -1),
+> +       TWL_REMAP_SLEEP(RES_VDD1, DEV_GRP_P1, -1, -1),
+> +       TWL_REMAP_SLEEP(RES_VDD2, DEV_GRP_P1, -1, -1),
+> +       { 0, 0 },
+> +};
+> +
+> +static struct twl4030_power_data omap3_reset = {
+> +       .scripts                = omap3_reset_scripts,
+> +       .num                    = ARRAY_SIZE(omap3_reset_scripts),
+> +       .resource_config        = omap3_rconfig,
+> +};
+> +
+> +static struct of_device_id twl4030_power_of_match[] = {
+> +       {
+> +               .compatible = "ti,twl4030-power-reset",
+> +               .data = &omap3_reset,
+> +       },
+> +       { },
+> +};
+> +MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
+> +#endif /* CONFIG_OF */
+> +
+>  static int twl4030_power_probe(struct platform_device *pdev)
+>  {
+> -       struct twl4030_power_data *pdata = dev_get_platdata(&pdev->dev);
+> +       const struct twl4030_power_data *pdata = dev_get_platdata(&pdev->dev);
+>         struct device_node *node = pdev->dev.of_node;
+> +       const struct of_device_id *match;
+>         int err = 0;
+>         int err2 = 0;
+>         u8 val;
+> @@ -586,8 +673,12 @@ static int twl4030_power_probe(struct platform_device *pdev)
+>                 return err;
+>         }
+>
+> +       match = of_match_device(of_match_ptr(twl4030_power_of_match),
+> +                               &pdev->dev);
+> +       if (match && match->data)
+> +               pdata = match->data;
+> +
+>         if (pdata) {
+> -               /* TODO: convert to device tree */
+>                 err = twl4030_power_configure_scripts(pdata);
+>                 if (err) {
+>                         pr_err("TWL4030 failed to load scripts\n");
+> @@ -637,14 +728,6 @@ static int twl4030_power_remove(struct platform_device *pdev)
+>         return 0;
+>  }
+>
+> -#ifdef CONFIG_OF
+> -static const struct of_device_id twl4030_power_of_match[] = {
+> -       {.compatible = "ti,twl4030-power", },
+> -       { },
+> -};
+> -MODULE_DEVICE_TABLE(of, twl4030_power_of_match);
+> -#endif
+> -
+>  static struct platform_driver twl4030_power_driver = {
+>         .driver = {
+>                 .name   = "twl4030_power",
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index ade1c06..5fe0313 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -486,7 +486,10 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
+>  #define RES_GRP_ALL            0x7     /* All resource groups */
+>
+>  #define RES_TYPE2_R0           0x0
+> +#define RES_TYPE2_R1           0x1
+> +#define RES_TYPE2_R2           0x2
+>
+> +#define RES_TYPE_R0            0x0
+>  #define RES_TYPE_ALL           0x7
+>
+>  /* Resource states */
+> --
+> 1.8.1.1
+>
 
-&gpmc {
-        pinctrl-names = "default";
-        pinctrl-0 = <&nandflash_pins_s0>;
-        ranges = <0 0 0x08000000 0x10000000>;   /* CS0: NAND */
-        status = "okay";
 
-        nand@0,0 {
-                reg = <0 0 0>; /* CS0, offset 0 */
-                nand-bus-width = <8>;
-                ti,nand-ecc-opt = "bch8";
-                ti,nand-xfer-type = "polled";
 
-                gpmc,device-nand = "true";
-                gpmc,device-width = <1>;
-                gpmc,sync-clk-ps = <0>;
-                gpmc,cs-on-ns = <0>;
-                gpmc,cs-rd-off-ns = <44>;
-                gpmc,cs-wr-off-ns = <44>;
-                gpmc,adv-on-ns = <6>;
-                gpmc,adv-rd-off-ns = <34>;
-                gpmc,adv-wr-off-ns = <44>;
-                gpmc,we-on-ns = <0>;
-                gpmc,we-off-ns = <40>;
-                gpmc,oe-on-ns = <0>;
-                gpmc,oe-off-ns = <54>;
-                gpmc,access-ns = <64>;
-                gpmc,rd-cycle-ns = <82>;
-                gpmc,wr-cycle-ns = <82>;
-                gpmc,wait-on-read = "true";
-                gpmc,wait-on-write = "true";
-                gpmc,bus-turnaround-ns = <0>;
-                gpmc,cycle2cycle-delay-ns = <0>;
-                gpmc,clk-activation-ns = <0>;
-                gpmc,wait-monitoring-ns = <0>;
-                gpmc,wr-access-ns = <40>;
-                gpmc,wr-data-mux-bus-ns = <0>;
-
-                #address-cells = <1>;
-                #size-cells = <1>;
-                elm_id = <&elm>;
-
-                /* MTD partition table */
-                partition@0 {
-                       label = "MLO";
-                        reg = <0x00000000 0x000020000>;
-                };
-
-                partition@1 {
-                        label = "U-boot";
-                        reg = <0x00020000 0x001e0000>;
-                };
-
-                partition@2 {
-                        label = "DTB";
-                        reg = <0x00200000 0x000020000>;
-                };
-
-                partition@3 {
-                        label = "environment";
-                        reg = <0x00220000 0x000020000>;
-                };
-
-                partition@4 {
-                        label = "Kernel";
-                        reg = <0x00240000 0x00600000>;
-                };
-
-                partition@5 {
-                        label = "File-System";
-                        reg = <0x00840000 0x0C360000>;
-                };
-        };
-};
-
-GPMC_WAIT0 has a pull-up and when I measured it, the signal was high i.e. ready.
-
-> (2) Some SYSBOOT configuration might also be confusing ROM code.
->  If you are using x8 NAND device, then please try with setting
->  SYSBOOT[8] = 1
->  SYSBOOT[11: 10] == 01 or 11 (reserved values)
->  This should fail XIP boot and make the ROM code fall back
->  to next boot device which is MMC in this case.
-
-The stuff is soldered. I'll see, what I can do.
-
-Yegor
+-- 
+motzblog.wordpress.com
