@@ -1,90 +1,53 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 6/7] OMAPDSS: DPI: Add support for multiple instances
-Date: Wed, 4 Jun 2014 12:11:02 +0530
-Message-ID: <1401864063-19196-7-git-send-email-archit@ti.com>
-References: <1401096492-1405-1-git-send-email-archit@ti.com>
- <1401864063-19196-1-git-send-email-archit@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] hsi: omap_ssi_port: use normal module refcounting
+Date: Wed, 04 Jun 2014 09:56:48 +0200
+Message-ID: <7426698.eEpYu3o0WK@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57915 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932279AbaFDGml (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Jun 2014 02:42:41 -0400
-In-Reply-To: <1401864063-19196-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Carlos Chinea <carlos.chinea@nokia.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Register DPI outputs, and assign the port_num to them as specified by the
-'reg' property in the DPI ports in DT.
+The ref_module() function is used for internal housekeeping of the
+module code, it's not normally used by subsystems or device drivers,
+and the use of ref_module in the omap_ssi_port driver causes a link
+build error when modules are disabled:
 
-To support multiple DPI instances, dpi_get_channel needs to take the DPI
-instance's reg-id to get the corresponding channel. Make it take this
-argument.We just pass 0 in the non-DT path, since we don't support multiple
-instances in the non-DT case.
+hsi/controllers/omap_ssi_port.c: In function 'ssi_port_probe':
+hsi/controllers/omap_ssi_port.c:1119:2: error: implicit declaration of function 'ref_module' [-Werror=implicit-function-declaration]
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/fbdev/omap2/dss/dpi.c | 26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+This changes the omap_ssi_port driver to use try_module_get()
+and module_put() instead, which is the normal way to ensure that
+the driver providing a device used in another module does not
+go away.
 
-diff --git a/drivers/video/fbdev/omap2/dss/dpi.c b/drivers/video/fbdev/omap2/dss/dpi.c
-index b579022..3e204a8 100644
---- a/drivers/video/fbdev/omap2/dss/dpi.c
-+++ b/drivers/video/fbdev/omap2/dss/dpi.c
-@@ -616,7 +616,7 @@ static void dpi_init_pll(struct dpi_data *dpi)
-  * the channel in some more dynamic manner, or get the channel as a user
-  * parameter.
-  */
--static enum omap_channel dpi_get_channel(void)
-+static enum omap_channel dpi_get_channel(int reg)
- {
- 	switch (omapdss_get_version()) {
- 	case OMAPDSS_VER_OMAP24xx:
-@@ -710,7 +710,7 @@ static void dpi_init_output(struct platform_device *pdev)
- 	out->id = OMAP_DSS_OUTPUT_DPI;
- 	out->output_type = OMAP_DISPLAY_TYPE_DPI;
- 	out->name = "dpi.0";
--	out->dispc_channel = dpi_get_channel();
-+	out->dispc_channel = dpi_get_channel(0);
- 	out->ops.dpi = &dpi_ops;
- 	out->owner = THIS_MODULE;
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+
+diff --git a/drivers/hsi/controllers/omap_ssi_port.c b/drivers/hsi/controllers/omap_ssi_port.c
+index b8693f0..6eb7c28 100644
+--- a/drivers/hsi/controllers/omap_ssi_port.c
++++ b/drivers/hsi/controllers/omap_ssi_port.c
+@@ -1116,8 +1116,7 @@ static int __init ssi_port_probe(struct platform_device *pd)
  
-@@ -730,11 +730,31 @@ static void dpi_init_output_port(struct platform_device *pdev,
- {
- 	struct dpi_data *dpi = port->data;
- 	struct omap_dss_device *out = &dpi->output;
-+	int r;
-+	u32 reg;
-+
-+	r = of_property_read_u32(port, "reg", &reg);
-+	if (r)
-+		reg = 0;
-+
-+	switch (reg) {
-+	case 2:
-+		out->name = "dpi.2";
-+		break;
-+	case 1:
-+		out->name = "dpi.1";
-+		break;
-+	case 0:
-+	default:
-+		out->name = "dpi.0";
-+		break;
-+	}
+ 	dev_dbg(&pd->dev, "init ssi port...\n");
  
- 	out->dev = &pdev->dev;
- 	out->id = OMAP_DSS_OUTPUT_DPI;
- 	out->output_type = OMAP_DISPLAY_TYPE_DPI;
--	out->dispc_channel = dpi_get_channel();
-+	out->dispc_channel = dpi_get_channel(reg);
-+	out->port_num = reg;
- 	out->ops.dpi = &dpi_ops;
- 	out->owner = THIS_MODULE;
+-	err = ref_module(THIS_MODULE, ssi->owner);
+-	if (err) {
++	if (!try_module_get(ssi->owner)) {
+ 		dev_err(&pd->dev, "could not increment parent module refcount (err=%d)\n",
+ 			err);
+ 		return -ENODEV;
+@@ -1254,6 +1253,7 @@ static int __exit ssi_port_remove(struct platform_device *pd)
  
--- 
-1.8.3.2
-
+ 	omap_ssi->port[omap_port->port_id] = NULL;
+ 	platform_set_drvdata(pd, NULL);
++	module_put(port->owner);
+ 	pm_runtime_disable(&pd->dev);
+ 
+ 	return 0;
