@@ -1,15 +1,21 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] hsi: omap_ssi_port: use normal module refcounting
-Date: Wed, 04 Jun 2014 09:56:48 +0200
-Message-ID: <7426698.eEpYu3o0WK@wuerfel>
+Subject: [PATCH v2] hsi: omap_ssi_port: use normal module refcounting
+Date: Wed, 04 Jun 2014 10:00:59 +0200
+Message-ID: <4579153.ES6XlsZ43F@wuerfel>
+References: <7426698.eEpYu3o0WK@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.13]:54306 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140AbaFDIBd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jun 2014 04:01:33 -0400
+In-Reply-To: <7426698.eEpYu3o0WK@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>
 Cc: Carlos Chinea <carlos.chinea@nokia.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
 The ref_module() function is used for internal housekeeping of the
 module code, it's not normally used by subsystems or device drivers,
@@ -28,9 +34,11 @@ Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Sebastian Reichel <sre@kernel.org>
 Cc: Carlos Chinea <carlos.chinea@nokia.com>
 Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+v2: fix a stupid typo, I accidentally sent out the wrong version of the patch
 
 diff --git a/drivers/hsi/controllers/omap_ssi_port.c b/drivers/hsi/controllers/omap_ssi_port.c
-index b8693f0..6eb7c28 100644
+index b8693f0..29aea0b 100644
 --- a/drivers/hsi/controllers/omap_ssi_port.c
 +++ b/drivers/hsi/controllers/omap_ssi_port.c
 @@ -1116,8 +1116,7 @@ static int __init ssi_port_probe(struct platform_device *pd)
@@ -47,7 +55,8 @@ index b8693f0..6eb7c28 100644
  
  	omap_ssi->port[omap_port->port_id] = NULL;
  	platform_set_drvdata(pd, NULL);
-+	module_put(port->owner);
++	module_put(ssi->owner);
  	pm_runtime_disable(&pd->dev);
  
  	return 0;
+
