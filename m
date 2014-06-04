@@ -1,73 +1,70 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH V2 2/2] power: twl4030_charger: attempt to power off in
- case of critical events
-Date: Thu, 5 Jun 2014 01:30:40 +0300
-Message-ID: <CANOLnOMbjpLd2mGcTRcR-+jcp80H1z7g4-eZ6yMJvovEB2__RQ@mail.gmail.com>
-References: <1401313610-14252-1-git-send-email-nm@ti.com>
-	<1401313610-14252-3-git-send-email-nm@ti.com>
-	<CANOLnOPb1xbqb5WXaK5-kdCezVuDhNxTtE5VV_MbCi4WTd2=oA@mail.gmail.com>
-	<538F18B6.7070102@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2] hsi: omap_ssi_port: use normal module refcounting
+Date: Thu, 5 Jun 2014 01:48:46 +0200
+Message-ID: <20140604234846.GA16356@earth.universe>
+References: <7426698.eEpYu3o0WK@wuerfel>
+ <4579153.ES6XlsZ43F@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <538F18B6.7070102@ti.com>
+Content-Disposition: inline
+In-Reply-To: <4579153.ES6XlsZ43F@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: dbaryshkov@gmail.com, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, dwmw2@infradead.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Carlos Chinea <carlos.chinea@nokia.com>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 4, 2014 at 4:01 PM, Nishanth Menon <nm@ti.com> wrote:
-> On 06/04/2014 05:04 AM, Grazvydas Ignotas wrote:
->> On Thu, May 29, 2014 at 12:46 AM, Nishanth Menon <nm@ti.com> wrote:
->>> Attempt to power off in case of critical events such as battery rem=
-oval,
->>> over voltage events.
->>>
->>> There is no guarentee that we'd be in a safe scenario here, but the=
- very
->>> least we can try to do is to power off the device to prevent damage=
- to
->>> the system instead of just printing a message and hoping for the be=
-st.
->>
->> At least "battery temperature out of range" does seem to happen quit=
-e
->> often while charging on hot summer day. I'd prefer my pandora to not
->> shutdown in such case, it could just stop charging instead.
-> Yeah, We could call
->   twl4030_charger_enable_ac(false);
->   twl4030_charger_enable_usb(bci, false);
->
-> But then, is that sufficient?
-> From the TRM:
-> 7.5.8 Battery Temperature Out-of-Range Detection
-> Battery temperature out-of-range detection detects whether the batter=
-y
-> temperature is within a specific
-> range. Detection is possible for two temperature ranges. When the
-> battery temperature is not in the
-> 2=E2=80=9350=C2=B0C range or is in the 3=E2=80=9343=C2=B0C range, the=
- TBATOR1 and TBATOR2 status
-> bits rise and an interrupt is
-> generated.
-> This MADC monitoring function can be enabled by writing to the
-> TBATOR1EN (BCIMFEN2[3]) and
-> TBATOR2EN (BCIMFEN2[1]) fields.
->
-> Battery pack at high temperature is a risk, no? and it may not be jus=
-t
-> charger that might be causing such a condition. Is'nt it safer to shu=
-t
-> the device down in such a case?
 
-I don't know, so far nobody has complained about the battery exploding
-and anybody getting hurt, but it would make the device unusable for
-people in hot climates. From what I remember the automatic charge is
-stopped automatically on this condition, as some people complained
-they couldn't charge their device and saw these messages in dmesg. I
-guess mainline could choose the safer option and shutdown, no strong
-opinion about this.
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---=20
-Gra=C5=BEvydas
+Hi,
+
+On Wed, Jun 04, 2014 at 10:00:59AM +0200, Arnd Bergmann wrote:
+> The ref_module() function is used for internal housekeeping of the
+> module code, it's not normally used by subsystems or device drivers,
+> and the use of ref_module in the omap_ssi_port driver causes a link
+> build error when modules are disabled:
+>=20
+> hsi/controllers/omap_ssi_port.c: In function 'ssi_port_probe':
+> hsi/controllers/omap_ssi_port.c:1119:2: error: implicit declaration of fu=
+nction 'ref_module' [-Werror=3Dimplicit-function-declaration]
+>=20
+> This changes the omap_ssi_port driver to use try_module_get()
+> and module_put() instead, which is the normal way to ensure that
+> the driver providing a device used in another module does not
+> go away.
+
+Thanks, applied:
+
+https://git.kernel.org/cgit/linux/kernel/git/sre/linux-hsi.git/commit/?h=3D=
+for-next&id=3Db357d7b58f379ebe8038cd97b6204f2f5c52220d
+
+-- Sebastian
+
+--RnlQjJ0d97Da+TV1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTj7BeAAoJENju1/PIO/qac5YP/3iVFD6UynjVHKWwkRFmiUgS
++iJntl+MclSfLiXdeEGnlxyqd0faSrG2hbJLen7d5Cr+968q8NGBqaFRuXFbg5S9
++RkE2oudi4j2TgIvYTfOf9iOLXpesWvV8pugLGVTUdZWmXmp6r5fyBgVfRgh0+T4
+nF/5ZSZSYBbdqEXTokyLVLuFS/DRB6QqBxG40IFhwiTMj56mQFWSO9LTJpkPumKf
+JOvAJfOTG9pto9tidpgNr85SyJOkszfJlTNrfTOGyA1zSFuFUF0htEdCFdmTdL7K
+wfAl024qBFq85WN2q4ULP1oWmkk7OPjDqCFAUDQMhNiCQ51l74oHyRta29m/pIWP
+mdMKsJ+07mkoyip0dc8hEsWboabdFCknrC3eTu4WYBoGJcjquEhE+7BlAeMGxhBP
+c7fAG243urI+z6qwF26yXXBbNioUbLnZymNRNev/M1su6NabC05Wj0B7isCtobN2
+o4AdwF+yTeaklHsRFsRzkiOVFISzQqdkyIybNDVYci7Jl0/vNW60J/bU2n0oH2fL
+RmDaN5fKUAChHq+EUa/aEwF9fj4tEyuKhZYe2iAcX6yXBFbF0RLkDrh8zogELQL1
+UidJ4+ZrcHu8Em8b79X+wQvQubth7PmS1ukAXXmGJe85Fzl+XV10PGHY5ChAWci4
+DnoifoX3xorsSIBIJlEg
+=uzPR
+-----END PGP SIGNATURE-----
+
+--RnlQjJ0d97Da+TV1--
