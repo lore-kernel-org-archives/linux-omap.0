@@ -1,111 +1,121 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: am335x: system doesn't reboot after flashing NAND
-Date: Thu, 5 Jun 2014 12:07:53 +0200
-Message-ID: <CAGm1_ktfN+whCNAStC=sx_6PrH9EJNVe67xK1xdTkGMNjcTwJg@mail.gmail.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: am335x: system doesn't reboot after flashing NAND
+Date: Thu, 5 Jun 2014 10:11:32 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF2ED8@DBDE04.ent.ti.com>
 References: <CAGm1_kstgCEQRuaz836v7xg=DHVxpQ6VQPBzkORz1D=18fxp8w@mail.gmail.com>
  <CAGm1_kv7EmQ1MaXL0nhQcPZp53DjBLfdnTqFit9e0FT1J8zzug@mail.gmail.com>
- <538EBF54.7080709@ti.com> <CAGm1_ktWxQFQ0jWjn7A2NO8nPayY9S2McPrKHWbGRtkw1751ig@mail.gmail.com>
- <538EDD77.8070807@ti.com> <CAGm1_kt7BZ7RcbPd51QXhXxQV4SRzeXLzKW43wqK5UnPbYoHBw@mail.gmail.com>
- <538EF2EF.4050709@ti.com> <CAGm1_ksofkCNB1R9kg6L9FBFFPoE=62AZ1Vid4_n7DEu1oi4GQ@mail.gmail.com>
- <538EFA70.4040102@ti.com> <CAGm1_ktjgSnQmBPDVUf_6kWjZDJ3WKQv=5QMWmqWqP-XRp7k2Q@mail.gmail.com>
+ <538EBF54.7080709@ti.com>
+ <CAGm1_ktWxQFQ0jWjn7A2NO8nPayY9S2McPrKHWbGRtkw1751ig@mail.gmail.com>
+ <538EDD77.8070807@ti.com>
+ <CAGm1_kt7BZ7RcbPd51QXhXxQV4SRzeXLzKW43wqK5UnPbYoHBw@mail.gmail.com>
+ <538EF2EF.4050709@ti.com>
+ <CAGm1_ksofkCNB1R9kg6L9FBFFPoE=62AZ1Vid4_n7DEu1oi4GQ@mail.gmail.com>
+ <538EFA70.4040102@ti.com>
+ <CAGm1_ktjgSnQmBPDVUf_6kWjZDJ3WKQv=5QMWmqWqP-XRp7k2Q@mail.gmail.com>
  <53904038.8010200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:53630 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbaFEKIO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jun 2014 06:08:14 -0400
-Received: by mail-pd0-f173.google.com with SMTP id v10so883684pde.4
-        for <linux-omap@vger.kernel.org>; Thu, 05 Jun 2014 03:08:13 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:46843 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751566AbaFEKLg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jun 2014 06:11:36 -0400
 In-Reply-To: <53904038.8010200@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Pekon" <pekon@ti.com>
+To: "Quadros, Roger" <rogerq@ti.com>, Yegor Yefremov <yegorslists@googlemail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
 
-On Thu, Jun 5, 2014 at 12:02 PM, Roger Quadros <rogerq@ti.com> wrote:
-> On 06/04/2014 10:45 PM, Yegor Yefremov wrote:
->> On Wed, Jun 4, 2014 at 12:52 PM, Sekhar Nori <nsekhar@ti.com> wrote:
->>> On Wednesday 04 June 2014 04:00 PM, Yegor Yefremov wrote:
->>>> On Wed, Jun 4, 2014 at 12:20 PM, Sekhar Nori <nsekhar@ti.com> wrote:
->>>>> On Wednesday 04 June 2014 03:11 PM, Yegor Yefremov wrote:
->>>>>> On Wed, Jun 4, 2014 at 10:48 AM, Roger Quadros <rogerq@ti.com> wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> On 06/04/2014 11:25 AM, Yegor Yefremov wrote:
->>>>>>>> On Wed, Jun 4, 2014 at 8:40 AM, Sekhar Nori <nsekhar@ti.com> wrote:
->>>>>>>>> On Tuesday 03 June 2014 04:18 PM, Yegor Yefremov wrote:
->>>>>>>>>> On Tue, Jun 3, 2014 at 9:57 AM, Yegor Yefremov
->>>>>>>>>> <yegorslists@googlemail.com> wrote:
->>>>>>>>>>> Kernel: 3.14, 3.15 (I haven't tried another kernels)
->>>>>>>>>>>
->>>>>>>>>>> As soon as I write something to my NAND flash (via cat image >
->>>>>>>>>>> /dev/mtdblockx or ubiupdatevol) and make reboot or press a reset
->>>>>>>>>>> button, I see only CCCCC and nothing happens before I make a power
->>>>>>>>>>> cycle. Any idea?
->>>>>>>>>>
->>>>>>>>>> Just forgot to mention, that I was actually booting from MMC (mmc1).
->>>>>>>>>> The boot sequence is UART0...XIP...MMC0...NAND.
->>>>>>>
->>>>>>> Can you try to get XIP out of the boot sequence and see if it works?
->>>>>>> Maybe try to boot from mmc directly?
->>>>>>>
->>>>>>> This would prove that NAND/GPMC driver is leaving some state that doesn't
->>>>>>> go well with the bootROM XIP.
->>>>>>
->>>>>> This configuration is soldered. It won't be easy to change.
->>>>>
->>>>> Most likely XIP is the issue if sysboot has not changed.
->>>>>
->>>>> The way ROM works for XIP boot is:
->>>>>
->>>>> 1) Set chip select 0 base address to 0x0800'0000
->>>>> 2) Read memory at 0x0800'0000
->>>>> 3) If something else other than 0x0 or ~0x0 is found, jump to
->>>>> 0x0800'0000 and start executing.
->>>>>
->>>>> Can you check to see the contents of 0x0800'0000 before and after nand
->>>>> write using mtdblock?
->>>>
->>>> Before writing:
->>>>
->>>> # devmem 0x08000000 32
->>>> 0xFFFFFFFF
->>>>
->>>> After writing:
->>>>
->>>> # devmem 0x08000000 32
->>>> 0xE0E0E0E0
->>>
->>> Okay, so this is the cause of failure to boot. I am not sure what
->>> operation by NAND driver causes this value to change. Perhaps you could
->>> bisect a bit by dumping this address at various points during the write
->>> operation?
->>>
->>> If you have a debugger it will become easy to do this.
->>
->> The 0x80000000 address seems to be the beginning of NAND region:
->>
->> ranges = <0 0 0x08000000 0x10000000>;   /* CS0: NAND */
->>
->> I've taken this example from am335x_evm.dts. I have tried to change
->> the mapping to 0x90000000, but kernel still uses 0x80000000, Where in
->> the kernel will "ranges" be evaluated? I'm digging thorugh
->> arch/arm/mach-omap2/gpmc.c and gpmc-nand.c, but didn't really found
->> the place.
->
-> Well it doesn't. It just uses whatever was setup by the bootloader or
-> randomly allocated by gpmc_cs_request().
->
-> I'm working on fixing this up. I should be posting v2 of the GPMC refactor
-> series by this week and you should be able to map the CS region as specified
-> in the DT.
->
-> Till then, maybe you can pre-configure CS0 in the bootloader to wherever you want
-> or alternatively call gpmc_cs_remap() after the gpmc_cs_request() in gpmc_nand_init();
-
-I've found the stuff in bootloader and mapped NAND to 0x09000000, but
-it didn't help.
-
-Yegor
+SGkgUm9nZXIsIFllZ29yLA0KDQo+RnJvbTogUXVhZHJvcywgUm9nZXINCj4+T24gMDYvMDQvMjAx
+NCAxMDo0NSBQTSwgWWVnb3IgWWVmcmVtb3Ygd3JvdGU6DQpbLi4uXQ0KDQo+Pg0KPj4gVGhlIDB4
+ODAwMDAwMDAgYWRkcmVzcyBzZWVtcyB0byBiZSB0aGUgYmVnaW5uaW5nIG9mIE5BTkQgcmVnaW9u
+Og0KPj4NCj4+IHJhbmdlcyA9IDwwIDAgMHgwODAwMDAwMCAweDEwMDAwMDAwPjsgICAvKiBDUzA6
+IE5BTkQgKi8NCj4+DQo+PiBJJ3ZlIHRha2VuIHRoaXMgZXhhbXBsZSBmcm9tIGFtMzM1eF9ldm0u
+ZHRzLiBJIGhhdmUgdHJpZWQgdG8gY2hhbmdlDQo+PiB0aGUgbWFwcGluZyB0byAweDkwMDAwMDAw
+LCBidXQga2VybmVsIHN0aWxsIHVzZXMgMHg4MDAwMDAwMCwgV2hlcmUgaW4NCj4+IHRoZSBrZXJu
+ZWwgd2lsbCAicmFuZ2VzIiBiZSBldmFsdWF0ZWQ/IEknbSBkaWdnaW5nIHRob3J1Z2gNCj4+IGFy
+Y2gvYXJtL21hY2gtb21hcDIvZ3BtYy5jIGFuZCBncG1jLW5hbmQuYywgYnV0IGRpZG4ndCByZWFs
+bHkgZm91bmQNCj4+IHRoZSBwbGFjZS4NCj4NCj5XZWxsIGl0IGRvZXNuJ3QuIEl0IGp1c3QgdXNl
+cyB3aGF0ZXZlciB3YXMgc2V0dXAgYnkgdGhlIGJvb3Rsb2FkZXIgb3INCj5yYW5kb21seSBhbGxv
+Y2F0ZWQgYnkgZ3BtY19jc19yZXF1ZXN0KCkuDQo+DQo+SSdtIHdvcmtpbmcgb24gZml4aW5nIHRo
+aXMgdXAuIEkgc2hvdWxkIGJlIHBvc3RpbmcgdjIgb2YgdGhlIEdQTUMgcmVmYWN0b3INCj5zZXJp
+ZXMgYnkgdGhpcyB3ZWVrIGFuZCB5b3Ugc2hvdWxkIGJlIGFibGUgdG8gbWFwIHRoZSBDUyByZWdp
+b24gYXMgc3BlY2lmaWVkDQo+aW4gdGhlIERULg0KPg0KPlRpbGwgdGhlbiwgbWF5YmUgeW91IGNh
+biBwcmUtY29uZmlndXJlIENTMCBpbiB0aGUgYm9vdGxvYWRlciB0byB3aGVyZXZlciB5b3Ugd2Fu
+dA0KPm9yIGFsdGVybmF0aXZlbHkgY2FsbCBncG1jX2NzX3JlbWFwKCkgYWZ0ZXIgdGhlIGdwbWNf
+Y3NfcmVxdWVzdCgpIGluIGdwbWNfbmFuZF9pbml0KCk7DQo+DQo+Y2hlZXJzLA0KPi1yb2dlcg0K
+DQpJIGhhZCBhIGZpeCBmb3IgdGhpcyBncG1jX2NzX3JlbWFwIGlzc3VlLCBpdCB3b3JrZWQgZm9y
+IGJlYWdsZWJvbmUgTk9SLA0KYnV0IGhhdm4ndCBjaGVja2VkIG9uIG90aGVyIGRldmljZXMuIFNv
+IHBsZWFzZSBzZWUgaWYgaXQgd29ya3MgZm9yIHlvdS4NCg0KSG93ZXZlciwgSSBkb24ndCBzdXNw
+ZWN0IFhJUCBib290IGhlcmUgYmVjYXVzZSBldmVuIGlmIENQVSBpcyBkZXRlY3RpbmcNCmdhcmJh
+Z2UgZGF0YSB3aGlsZSByZWFkaW5nIGZyb20gMHg4MDAwMDAwMCBpdCB3b24ndCBmaW5kIGEgdmFs
+aWQgaW1hZ2UNCmhlYWRlciB0aGVyZSwgYW5kIHNvIFhJUCBib290IHNob3VsZCBoYXZlIGZhaWxl
+ZCwgYW5kIGJvb3Qgc2VxdWVuY2UNCnNob3VsZCBmYWxsIGJhY2sgdG8gTU1DLiBJdCBzaG91bGRu
+J3QgaGF2ZSBodW5nLg0KDQpTdGlsbCB5b3UgY2FuIHRyeSBiZWxvdyBwYXRjaCBmb3IgZ3BtY19j
+c19yZW1hcCgpLg0KDQotLS0tLS0tLS0tLS0tLS0NCg0KRnJvbTogUGVrb24gR3VwdGEgPHBla29u
+QHRpLmNvbT4NCkRhdGU6IEZyaSwgOSBNYXkgMjAxNCAxNToxNzozMiArMDUzMA0KU3ViamVjdDog
+W1BBVENIIDEyLzE0XSBBUk06IE9NQVAyKzogZml4IGdwbWNfY3NfcmVtYXA6IHJlLWFsbG9jYXRp
+bmcNCiBjaGlwLXNlbGVjdCBhZGRyZXNzIHNwYWNlIGJhc2VkIG9uIERUDQoNCkVhY2ggR1BNQyBj
+aGlwLXNlbGVjdCBuZWVkcyB0byBiZSBjb25maWd1cmVkIGZvciAoYmFzZS1hZGRyZXNzLENTLXNp
+emUpIHNvIHRoYXQNCkdQTUMgdW5kZXJzdGFuZHMgdGhlIGFkZHJlc3Mtc3BhY2UgYWxsb2NhdGVk
+IHRvIGRldmljZSBjb25uZWN0ZWQgZXh0ZXJuYWxseS4NClRoZXNlIGNoaXAtc2VsZWN0IGNvbmZp
+Z3VyYXRpb25zIChiYXNlLWFkZHJlc3MsIENTLXNpemUpIGZvbGxvdyBzb21lIGJhc2ljDQptYXBw
+aW5nIHJ1bGVzIGxpa2U6DQotIFRoZSBDUyBzaXplIGlzIHByb2dyYW1tYWJsZSBmcm9tIDI1NiBN
+Qnl0ZXMgdG8gMTYgTUJ5dGVzIChtdXN0IGJlIGEgcG93ZXIgb2YgMikNCiAgYW5kIGlzIGRlZmlu
+ZWQgYnkgdGhlIG1hc2sgZmllbGQuIEF0dGFjaGVkIG1lbW9yeSBzbWFsbGVyIHRoYW4gdGhlIHBy
+b2dyYW1tZWQNCiAgQ1MgcmVnaW9uIHNpemUgaXMgYWNjZXNzZWQgdGhyb3VnaCB0aGUgZW50aXJl
+IENTIHJlZ2lvbiAoYWxpYXNpbmcpLg0KLSBUaGUgcHJvZ3JhbW1lZCAnYmFzZS1hZGRyZXNzJyBt
+dXN0IGJlIGFsaWduZWQgdG8gdGhlICdDUy1zaXplJyBib3VuZGFyeSBhbmQNCiAgYmUgYSBwb3dl
+ciBvZiAyLg0KLSBWYWxpZCBDUy1zaXplIHZhbHVlcyBhcmUgezI1Nk1CKG1heCksIDEyOE1CLCA2
+NE1CLCAzMk1CIGFuZCAxNk1CIChtaW4pfQ0KICBBbnkgaW50ZXJtZWRpYXRlIHZhbHVlcyBjcmVh
+dGVzIGhvbGVzIGluIHRoZSBjaGlwLXNlbGVjdCBtZW1vcnktbWFwLg0KDQpUaGlzIHBhdGNoIGFk
+ZHMgYWJvdmUgY2hlY2tzIGluIGdwbWNfY3NfcmVtYXAoKSBzbyB0aGF0IGFueSBpbnZhbGlkIHZh
+bHVlDQpwYXNzZWQgYnkgRFQgPHJlZz4gcHJvcGVydHkgY2FuIGJlIGZpbHRlcmVkIGJlZm9yZSBh
+Y3R1YWxseSBhbGxvY2F0aW5nIHRoZQ0KYWRkcmVzcyBzcGFjZS4NCg0KU2lnbmVkLW9mZi1ieTog
+UGVrb24gR3VwdGEgPHBla29uQHRpLmNvbT4NCi0tLQ0KIGFyY2gvYXJtL21hY2gtb21hcDIvZ3Bt
+Yy5jIHwgNDIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tDQogMSBm
+aWxlIGNoYW5nZWQsIDI5IGluc2VydGlvbnMoKyksIDEzIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ncG1jLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2dw
+bWMuYw0KaW5kZXggNGZjNDk2My4uMjI0NTUwZSAxMDA2NDQNCi0tLSBhL2FyY2gvYXJtL21hY2gt
+b21hcDIvZ3BtYy5jDQorKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2dwbWMuYw0KQEAgLTUyMSwy
+NiArNTIxLDQyIEBAIHN0YXRpYyBpbnQgZ3BtY19jc19kZWxldGVfbWVtKGludCBjcykNCiAgKiAi
+YmFzZSIuIFJldHVybnMgMCBvbiBzdWNjZXNzIGFuZCBhcHByb3ByaWF0ZSBuZWdhdGl2ZSBlcnJv
+ciBjb2RlDQogICogb24gZmFpbHVyZS4NCiAgKi8NCi1zdGF0aWMgaW50IGdwbWNfY3NfcmVtYXAo
+aW50IGNzLCB1MzIgYmFzZSkNCitzdGF0aWMgaW50IGdwbWNfY3NfcmVtYXAoaW50IGNzLCB1MzIg
+YmFzZSwgdTMyIHNpemUpDQogew0KIAlpbnQgcmV0Ow0KLQl1MzIgb2xkX2Jhc2UsIHNpemU7DQog
+DQogCWlmIChjcyA+IGdwbWNfY3NfbnVtKSB7DQogCQlwcl9lcnIoIiVzOiByZXF1ZXN0ZWQgY2hp
+cC1zZWxlY3QgaXMgZGlzYWJsZWRcbiIsIF9fZnVuY19fKTsNCiAJCXJldHVybiAtRU5PREVWOw0K
+IAl9DQogDQotCS8qDQotCSAqIE1ha2Ugc3VyZSB3ZSBpZ25vcmUgYW55IGRldmljZSBvZmZzZXRz
+IGZyb20gdGhlIEdQTUMgcGFydGl0aW9uDQotCSAqIGFsbG9jYXRlZCBmb3IgdGhlIGNoaXAgc2Vs
+ZWN0IGFuZCB0aGF0IHRoZSBuZXcgYmFzZSBjb25maXJtcw0KLQkgKiB0byB0aGUgR1BNQyAxNk1C
+IG1pbmltdW0gZ3JhbnVsYXJpdHkuDQotCSAqLyANCi0JYmFzZSAmPSB+KFNaXzE2TSAtIDEpOw0K
+LQ0KLQlncG1jX2NzX2dldF9tZW1jb25mKGNzLCAmb2xkX2Jhc2UsICZzaXplKTsNCi0JaWYgKGJh
+c2UgPT0gb2xkX2Jhc2UpDQotCQlyZXR1cm4gMDsNCisJLyogYWxsb2NhdGUgZW5vdWdoIGFkZHJl
+c3Mtc3BhY2UgdW5kZXIgR1BNQyBjaGlwLXNlbGVjdCB0byBkZXZpY2UgKi8NCisJaWYgKHNpemUg
+PiBTWl8yNTZNKSB7DQorCQlwcl9lcnIoIiVzOiBtZW1vcnkgZGV2aWNlID4gMjU2TUIgbm90IHN1
+cHBvcnRlZFxuIiwgX19mdW5jX18pOw0KKwkJcmV0dXJuIC1FTk9ERVY7DQorCX0gZWxzZSBpZiAo
+c2l6ZSA+IFNaXzEyOE0pIHsNCisJCVdBUk4oKHNpemUgIT0gU1pfMjU2TSksICJjcz0lZDogYWxs
+b2NhdGluZyAyNTZNQlxuIiwgY3MpOw0KKwkJc2l6ZSA9IFNaXzI1Nk07DQorCX0gZWxzZSBpZiAo
+c2l6ZSA+IFNaXzY0TSkgew0KKwkJV0FSTigoc2l6ZSAhPSBTWl8xMjhNKSwgImNzPSVkOiBhbGxv
+Y2F0aW5nIDEyOE1CXG4iLCBjcyk7DQorCQlzaXplID0gU1pfMTI4TTsNCisJfSBlbHNlIGlmIChz
+aXplID4gU1pfMzJNKSB7DQorCQlXQVJOKChzaXplICE9IFNaXzY0TSksICJjcz0lZDogYWxsb2Nh
+dGluZyA2NE1CXG4iLCBjcyk7DQorCQlzaXplID0gU1pfNjRNOw0KKwl9IGVsc2UgaWYgKHNpemUg
+PiBTWl8xNk0pIHsNCisJCVdBUk4oKHNpemUgIT0gU1pfMzJNKSwgImNzPSVkOiBhbGxvY2F0aW5n
+IDY0TUJcbiIsIGNzKTsNCisJCXNpemUgPSBTWl8zMk07DQorCX0gZWxzZSB7DQorCQlXQVJOKChz
+aXplICE9IFNaXzE2TSksICJjcz0lZDogYWxsb2NhdGluZyA2NE1CXG4iLCBjcyk7DQorCQlzaXpl
+ID0gU1pfMTZNOw0KKwl9DQorDQorCS8qIGJhc2UgYWRkcmVzcyBzaG91bGQgYmUgYWxpZ25lZCB3
+aXRoIGFkZHJlc3Mtc3BhY2Ugc2l6ZSAqLw0KKwlpZiAoYmFzZSAmIChzaXplIC0gMSkpIHsNCisJ
+CXByX2VycigiYmFzZS1hZGRyPSV4IHNob3VsZCBiZSBhbGlnbmVkIHRvIHNpemU9JXgiLCBiYXNl
+LCBzaXplKTsNCisJCXJldHVybiAtRUlOVkFMOw0KKwl9DQorDQogCWdwbWNfY3NfZGlzYWJsZV9t
+ZW0oY3MpOw0KIAlyZXQgPSBncG1jX2NzX2RlbGV0ZV9tZW0oY3MpOw0KIAlpZiAocmV0IDwgMCkN
+CkBAIC0xNTUxLDcgKzE1NjcsNyBAQCBzdGF0aWMgaW50IGdwbWNfcHJvYmVfZ2VuZXJpY19jaGls
+ZChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2LA0KIAkgKiBDUyB0byB0aGlzIGxvY2F0aW9u
+LiBPbmNlIERUIG1pZ3JhdGlvbiBpcyBjb21wbGV0ZSBzaG91bGQNCiAJICoganVzdCBtYWtlIGdw
+bWNfY3NfcmVxdWVzdCgpIG1hcCBhIHNwZWNpZmljIGFkZHJlc3MuDQogCSAqLw0KLQlyZXQgPSBn
+cG1jX2NzX3JlbWFwKGNzLCByZXMuc3RhcnQpOw0KKwlyZXQgPSBncG1jX2NzX3JlbWFwKGNzLCBy
+ZXMuc3RhcnQsIHJlc291cmNlX3NpemUoJnJlcykpOw0KIAlpZiAocmV0IDwgMCkgew0KIAkJZGV2
+X2VycigmcGRldi0+ZGV2LCAiY2Fubm90IHJlbWFwIEdQTUMgQ1MgJWQgdG8gJXBhXG4iLA0KIAkJ
+CWNzLCAmcmVzLnN0YXJ0KTsNCi0tIA0KMS44LjUuMS4xNjMuZ2Q3YWNlZDkNCg0KLS0tLS0tLS0t
+LS0tDQoNCg0Kd2l0aCByZWdhcmRzLCBwZWtvbg0K
