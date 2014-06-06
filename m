@@ -1,65 +1,63 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 0/9] mfd: tps65917: Add support for for TPS65917 PMIC
-Date: Fri, 6 Jun 2014 13:43:28 +0100
-Message-ID: <20140606124328.GR24240@lee--X1>
-References: <1401272423-25761-1-git-send-email-j-keerthy@ti.com>
- <53919EF7.2000904@ti.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] PM / OPP: Remove ARCH_HAS_OPP
+Date: Fri, 6 Jun 2014 21:50:06 +0900
+Message-ID: <20140606125003.GA13332@verge.net.au>
+References: <1402051016-28853-1-git-send-email-broonie@kernel.org>
+ <20140606111411.GD25896@verge.net.au>
+ <CANqRtoTy_LwSiZgRFEw5Ly4ojfinoCichxrX7cO6m2XB9JGoww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:57918 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800AbaFFMnf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2014 08:43:35 -0400
-Received: by mail-ie0-f181.google.com with SMTP id rp18so2304120iec.26
-        for <linux-omap@vger.kernel.org>; Fri, 06 Jun 2014 05:43:34 -0700 (PDT)
+Received: from kirsty.vergenet.net ([202.4.237.240]:58485 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152AbaFFMuL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2014 08:50:11 -0400
 Content-Disposition: inline
-In-Reply-To: <53919EF7.2000904@ti.com>
+In-Reply-To: <CANqRtoTy_LwSiZgRFEw5Ly4ojfinoCichxrX7cO6m2XB9JGoww@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Rob Herring <robh@kernel.org>, Shawn Guo <shawn.guo@freescale.com>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Michal Simek <michal.simek@xilinx.com>, Linux PM list <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, SH-Linux <linux-sh@vger.kernel.org>, Mark Brown <broonie@linaro.org>
 
-> Hi Mark/Lee Jones,
->=20
-> On Wednesday 28 May 2014 03:50 PM, Keerthy wrote:
-> >The TPS65917 chip is a power management IC for Portable Navigation S=
-ystems
-> >and Tablet Computing devices. It contains the following components:
+On Fri, Jun 06, 2014 at 09:14:01PM +0900, Magnus Damm wrote:
+> On Fri, Jun 6, 2014 at 8:14 PM, Simon Horman <horms@verge.net.au> wrote:
+> > On Fri, Jun 06, 2014 at 11:36:56AM +0100, Mark Brown wrote:
+> >> From: Mark Brown <broonie@linaro.org>
+> >>
+> >> Since the OPP layer is a kernel library which has been converted to be
+> >> directly selectable by its callers rather than user selectable and
+> >> requiring architectures to enable it explicitly the ARCH_HAS_OPP symbol
+> >> has become redundant and can be removed. Do so.
+> >>
+> >> Signed-off-by: Mark Brown <broonie@linaro.org>
+> >> ---
+> >>  Documentation/power/opp.txt    | 3 ---
+> >>  arch/arm/mach-exynos/Kconfig   | 1 -
+> >>  arch/arm/mach-highbank/Kconfig | 1 -
+> >>  arch/arm/mach-imx/Kconfig      | 1 -
+> >>  arch/arm/mach-omap2/Kconfig    | 1 -
+> >>  arch/arm/mach-shmobile/Kconfig | 2 --
+> >>  arch/arm/mach-vexpress/Kconfig | 1 -
+> >>  arch/arm/mach-zynq/Kconfig     | 1 -
+> >>  drivers/devfreq/Kconfig        | 1 -
+> >>  kernel/power/Kconfig           | 3 ---
+> >>  10 files changed, 15 deletions(-)
 > >
-> >  - Regulators.
-> >  - GPADC.
-> >  - Over Temperature warning and Shut down.
+> > shmobile portion:
 > >
-> >This patch series adds support for TPS65917 mfd device. At this time=
- only
-> >the regulator functionality is made available.
-> >
-> >The closest drivers are PALMAS series drivers. Hence adapted palmas =
-mfd
-> >driver to support the tps65917 PMIC.
-> >
-> >The register set for SMPSs and LDOs are changed and the ramp delay s=
-upport
-> >is also changed. Bit-field defenitions are changed.
-> >Hence added driver data structures for mfd and regulator drivers
-> >for palmas and added support for tps65917.
-> >
-> >The patches are boot tested on DRA72-EVM.
-> >The patches are boot tested on OMAP5-UEVM board.
->=20
-> A gentle ping on this rework.
+> > Acked-by: Simon Horman <horms+renesas@verge.net.au>
+> 
+> Hi Simon, Mark,
+> 
+> Nice to see cleanups in this area. Reducing the number of Kconfig
+> symbols must be a good thing.
+> 
+> I'm not sure about the expected merge order for this kind of change vs
+> queued up stuff in the renesas git tree, but I believe the following
+> patch selects ARCH_HAS_OPP:
+> 
+> [PATCH v3] ARM: shmobile: Mark all SoCs in shmobile as CPUFreq, capable
 
-There's no point in pinging on any patch during the merge-window.
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I propose that we fix that up by adding an incremental patch to
+mach-shmobile via my renesas tree once the dependency (assuming there is
+one) is in Linus's tree.
