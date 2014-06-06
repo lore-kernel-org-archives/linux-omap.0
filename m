@@ -1,91 +1,166 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH] ARM: dts: am43x-epos-evm: Add Missing cpsw-phy-sel for
- am43x-epos-evm
-Date: Fri, 6 Jun 2014 15:26:11 +0530
-Message-ID: <5391903B.1050109@ti.com>
-References: <1402035454-25676-1-git-send-email-george.cherian@ti.com> <53916556.10608@ti.com> <539165E8.7030500@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38556 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751135AbaFFJ4h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Jun 2014 05:56:37 -0400
-In-Reply-To: <539165E8.7030500@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@kernel.org>
+Subject: [PATCH] PM / OPP: Remove ARCH_HAS_OPP
+Date: Fri,  6 Jun 2014 11:36:56 +0100
+Message-ID: <1402051016-28853-1-git-send-email-broonie@kernel.org>
+Return-path: <linux-sh-owner@vger.kernel.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Rob Herring <robh@kernel.org>, Shawn Guo <shawn.guo@freescale.com>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mark Brown <broonie@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, tony@atomide.com, bcousson@baylibre.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 6/6/2014 12:25 PM, Nishanth Menon wrote:
-> On 06/06/2014 01:53 AM, Nishanth Menon wrote:
->> On 06/06/2014 01:17 AM, George Cherian wrote:
->>> AM437x EPOS evm use external clock for RMII interface.
->>> Enable the same in DT.
->>>
->>> Signed-off-by: George Cherian <george.cherian@ti.com>
->>> Reported-by: Nishanth Menon <nm@ti.com>
->>> ---
->>>   arch/arm/boot/dts/am43x-epos-evm.dts | 4 ++++
->>>   1 file changed, 4 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
->>> index 19f1f7e..90098f9 100644
->>> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
->>> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
->>> @@ -319,6 +319,10 @@
->>>   	phy-mode = "rmii";
->>>   };
->>>   
->>> +&phy_sel {
->>> +	rmii-clock-ext;
->>> +};
->>> +
->>>   &i2c0 {
->>>   	status = "okay";
->>>   	pinctrl-names = "default";
->>>
->> Where does this apply on?
->> With linux-next next-20140506 tag, and this patch applied, I get the
->> following error.
->>
->>    LD      kernel/trace/built-in.o
->>    LD      kernel/built-in.o
->> build fail, Error:
->> Error: arch/arm/boot/dts/am43x-epos-evm.dts:219.2-3 label or path,
->> 'phy_sel', not found
->> FATAL ERROR: Syntax error parsing input tree
->> make[1]: *** [arch/arm/boot/dts/am43x-epos-evm.dtb] Error 1
->> make[1]: *** Waiting for unfinished jobs....
->> make: *** [dtbs] Error 2
->> make: *** Waiting for unfinished jobs....
->>
->> in the future, it is helpful if you can point out that this is a
->> regression seen on next-20140603 and the patch needs to be applied on
->> some specific branch.
->>
->> for the record:
->> last working next tag:
->> https://github.com/nmenon/kernel-test-logs/blob/next-20140602/omap2plus_defconfig/am43xx-epos.txt
->>
->> first broken next tag:
->> https://github.com/nmenon/kernel-test-logs/blob/next-20140603/omap2plus_defconfig/am43xx-epos.txt
->>
->>
-> interestingly, i just re-tested today's tag without the patch
-> (omap2plus_defconfig):
-> http://slexy.org/raw/s205sRdFvy
-Lil old kernel
-from the above link.
+From: Mark Brown <broonie@linaro.org>
 
-Linux version 3.15.0-rc4-next-20140506 (nmenon@kahuna) (gcc version 
-4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) ) #2 SMP Fri Jun 6 01:47:42 CDT 2014
-> I wonder why the behavior change and what was being fixed here?
-This kernel should not have the dt entries for phy sel driver.
-Thats why it is working.
+Since the OPP layer is a kernel library which has been converted to be
+directly selectable by its callers rather than user selectable and
+requiring architectures to enable it explicitly the ARCH_HAS_OPP symbol
+has become redundant and can be removed. Do so.
 
+Signed-off-by: Mark Brown <broonie@linaro.org>
+---
+ Documentation/power/opp.txt    | 3 ---
+ arch/arm/mach-exynos/Kconfig   | 1 -
+ arch/arm/mach-highbank/Kconfig | 1 -
+ arch/arm/mach-imx/Kconfig      | 1 -
+ arch/arm/mach-omap2/Kconfig    | 1 -
+ arch/arm/mach-shmobile/Kconfig | 2 --
+ arch/arm/mach-vexpress/Kconfig | 1 -
+ arch/arm/mach-zynq/Kconfig     | 1 -
+ drivers/devfreq/Kconfig        | 1 -
+ kernel/power/Kconfig           | 3 ---
+ 10 files changed, 15 deletions(-)
 
+diff --git a/Documentation/power/opp.txt b/Documentation/power/opp.txt
+index a9adad8..c6279c2 100644
+--- a/Documentation/power/opp.txt
++++ b/Documentation/power/opp.txt
+@@ -51,9 +51,6 @@ Typical usage of the OPP library is as follows:
+ SoC framework	-> modifies on required cases certain OPPs	-> OPP layer
+ 		-> queries to search/retrieve information	->
+ 
+-Architectures that provide a SoC framework for OPP should select ARCH_HAS_OPP
+-to make the OPP layer available.
+-
+ OPP layer expects each domain to be represented by a unique device pointer. SoC
+ framework registers a set of initial OPPs per device with the OPP layer. This
+ list is expected to be an optimally small number typically around 5 per device.
+diff --git a/arch/arm/mach-exynos/Kconfig b/arch/arm/mach-exynos/Kconfig
+index d58995c9..3f78c45 100644
+--- a/arch/arm/mach-exynos/Kconfig
++++ b/arch/arm/mach-exynos/Kconfig
+@@ -103,7 +103,6 @@ config SOC_EXYNOS5440
+ 	default y
+ 	depends on ARCH_EXYNOS5
+ 	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
+-	select ARCH_HAS_OPP
+ 	select HAVE_ARM_ARCH_TIMER
+ 	select AUTO_ZRELADDR
+ 	select MIGHT_HAVE_PCI
+diff --git a/arch/arm/mach-highbank/Kconfig b/arch/arm/mach-highbank/Kconfig
+index 830b76e..bef970f 100644
+--- a/arch/arm/mach-highbank/Kconfig
++++ b/arch/arm/mach-highbank/Kconfig
+@@ -3,7 +3,6 @@ config ARCH_HIGHBANK
+ 	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
+ 	select ARCH_HAS_CPUFREQ
+ 	select ARCH_HAS_HOLES_MEMORYMODEL
+-	select ARCH_HAS_OPP
+ 	select ARCH_SUPPORTS_BIG_ENDIAN
+ 	select ARM_AMBA
+ 	select ARM_ERRATA_764369 if SMP
+diff --git a/arch/arm/mach-imx/Kconfig b/arch/arm/mach-imx/Kconfig
+index 4cce93d..95690e4 100644
+--- a/arch/arm/mach-imx/Kconfig
++++ b/arch/arm/mach-imx/Kconfig
+@@ -1,7 +1,6 @@
+ config ARCH_MXC
+ 	bool "Freescale i.MX family" if ARCH_MULTI_V4_V5 || ARCH_MULTI_V6_V7
+ 	select ARCH_HAS_CPUFREQ
+-	select ARCH_HAS_OPP
+ 	select ARCH_REQUIRE_GPIOLIB
+ 	select ARM_CPU_SUSPEND if PM
+ 	select CLKSRC_MMIO
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 0ba4826..524b027 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -12,7 +12,6 @@ config ARCH_OMAP3
+ 	bool "TI OMAP3"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
+-	select ARCH_HAS_OPP
+ 	select ARM_CPU_SUSPEND if PM
+ 	select OMAP_INTERCONNECT
+ 	select PM_OPP if PM
+diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
+index dbd954e..b51d142 100644
+--- a/arch/arm/mach-shmobile/Kconfig
++++ b/arch/arm/mach-shmobile/Kconfig
+@@ -86,7 +86,6 @@ config ARCH_R8A73A4
+ 	select SH_CLK_CPG
+ 	select RENESAS_IRQC
+ 	select ARCH_HAS_CPUFREQ
+-	select ARCH_HAS_OPP
+ 	select SYS_SUPPORTS_SH_CMT
+ 	select SYS_SUPPORTS_SH_TMU
+ 
+@@ -265,7 +264,6 @@ config MACH_KZM9G
+ 	bool "KZM-A9-GT board"
+ 	depends on ARCH_SH73A0
+ 	select ARCH_HAS_CPUFREQ
+-	select ARCH_HAS_OPP
+ 	select ARCH_REQUIRE_GPIOLIB
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+ 	select SND_SOC_AK4642 if SND_SIMPLE_CARD
+diff --git a/arch/arm/mach-vexpress/Kconfig b/arch/arm/mach-vexpress/Kconfig
+index 90249cf..71629fe 100644
+--- a/arch/arm/mach-vexpress/Kconfig
++++ b/arch/arm/mach-vexpress/Kconfig
+@@ -66,7 +66,6 @@ config ARCH_VEXPRESS_DCSCB
+ config ARCH_VEXPRESS_SPC
+ 	bool "Versatile Express Serial Power Controller (SPC)"
+ 	select ARCH_HAS_CPUFREQ
+-	select ARCH_HAS_OPP
+ 	select PM_OPP
+ 	help
+ 	  The TC2 (A15x2 A7x3) versatile express core tile integrates a logic
+diff --git a/arch/arm/mach-zynq/Kconfig b/arch/arm/mach-zynq/Kconfig
+index 573e0db..bc485f2 100644
+--- a/arch/arm/mach-zynq/Kconfig
++++ b/arch/arm/mach-zynq/Kconfig
+@@ -1,7 +1,6 @@
+ config ARCH_ZYNQ
+ 	bool "Xilinx Zynq ARM Cortex A9 Platform" if ARCH_MULTI_V7
+ 	select ARCH_HAS_CPUFREQ
+-	select ARCH_HAS_OPP
+ 	select ARCH_SUPPORTS_BIG_ENDIAN
+ 	select ARM_AMBA
+ 	select ARM_GIC
+diff --git a/drivers/devfreq/Kconfig b/drivers/devfreq/Kconfig
+index 49e74c1..3dced0a 100644
+--- a/drivers/devfreq/Kconfig
++++ b/drivers/devfreq/Kconfig
+@@ -68,7 +68,6 @@ comment "DEVFREQ Drivers"
+ config ARM_EXYNOS4_BUS_DEVFREQ
+ 	bool "ARM Exynos4210/4212/4412 Memory Bus DEVFREQ Driver"
+ 	depends on (CPU_EXYNOS4210 || SOC_EXYNOS4212 || SOC_EXYNOS4412) && !ARCH_MULTIPLATFORM
+-	select ARCH_HAS_OPP
+ 	select DEVFREQ_GOV_SIMPLE_ONDEMAND
+ 	select PM_OPP
+ 	help
+diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+index 9a83d78..e4e4121 100644
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
+@@ -253,9 +253,6 @@ config APM_EMULATION
+ 	  anything, try disabling/enabling this option (or disabling/enabling
+ 	  APM in your BIOS).
+ 
+-config ARCH_HAS_OPP
+-	bool
+-
+ config PM_OPP
+ 	bool
+ 	---help---
 -- 
--George
+2.0.0
 
