@@ -1,67 +1,64 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am43x-epos-evm: Add Missing cpsw-phy-sel for
- am43x-epos-evm
-Date: Fri, 6 Jun 2014 10:28:01 -0500
-Message-ID: <5391DE01.2080600@ti.com>
-References: <1402035454-25676-1-git-send-email-george.cherian@ti.com> <53916556.10608@ti.com> <53918F75.1050000@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] PM / OPP: Remove ARCH_HAS_OPP
+Date: Fri, 6 Jun 2014 14:08:50 +0100
+Message-ID: <20140606130850.GO2520@sirena.org.uk>
+References: <1402051016-28853-1-git-send-email-broonie@kernel.org>
+ <20140606111411.GD25896@verge.net.au>
+ <CANqRtoTy_LwSiZgRFEw5Ly4ojfinoCichxrX7cO6m2XB9JGoww@mail.gmail.com>
+ <20140606125003.GA13332@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53918F75.1050000-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cU9XODsizZBnwgll"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140606125003.GA13332@verge.net.au>
+Sender: linux-pm-owner@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Cc: Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Rob Herring <robh@kernel.org>, Shawn Guo <shawn.guo@freescale.com>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Michal Simek <michal.simek@xilinx.com>, Linux PM list <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, SH-Linux <linux-sh@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/06/2014 04:52 AM, George Cherian wrote:
-> On 6/6/2014 12:23 PM, Nishanth Menon wrote:
->> On 06/06/2014 01:17 AM, George Cherian wrote:
->>> AM437x EPOS evm use external clock for RMII interface.
->>> Enable the same in DT.
->>>
->>> Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
->>> Reported-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>> ---
->>>   arch/arm/boot/dts/am43x-epos-evm.dts | 4 ++++
->>>   1 file changed, 4 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
->>> index 19f1f7e..90098f9 100644
->>> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
->>> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
->>> @@ -319,6 +319,10 @@
->>>   	phy-mode = "rmii";
->>>   };
->>>   
->>> +&phy_sel {
->>> +	rmii-clock-ext;
->>> +};
->>> +
->>>   &i2c0 {
->>>   	status = "okay";
->>>   	pinctrl-names = "default";
->>>
->> Where does this apply on?
->> With linux-next next-20140506 tag, and this patch applied, I get the
-> Is'nt next-20140506 a month old.
 
-Uggh.. yeah - 1AM+migraine is not a good combination to try to do
-testing. :( Apologies on the noise
+--cU9XODsizZBnwgll
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Fri, Jun 06, 2014 at 09:50:06PM +0900, Simon Horman wrote:
+> On Fri, Jun 06, 2014 at 09:14:01PM +0900, Magnus Damm wrote:
 
-> I tried the patch on next-20140604.
+> > I'm not sure about the expected merge order for this kind of change vs
+> > queued up stuff in the renesas git tree, but I believe the following
+> > patch selects ARCH_HAS_OPP:
 
-Tested on next-20140606 - applies clean, builds and works :)
+> > [PATCH v3] ARM: shmobile: Mark all SoCs in shmobile as CPUFreq, capable
 
-am43xx-epos:  Boot PASS: http://slexy.org/raw/s2fT6zs45y
+> I propose that we fix that up by adding an incremental patch to
+> mach-shmobile via my renesas tree once the dependency (assuming there is
+> one) is in Linus's tree.
 
-Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Yes, the conversion to make ARCH_HAS_OPP unused is in Raphael's tree for
+the merge window.  I'd expect this patch to end up going after the merge
+window (or at the end I guess).
 
--- 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--cU9XODsizZBnwgll
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTkb1fAAoJELSic+t+oim9ksoP+wUlNxCCTSQ9UrzvZfjNPynK
+oVQNuAvD0dlyrOaE/OnY3QuJOp/1FaVnWIr/kJO/N1KlSetg6Pz7n9I5W0/4zlQ/
+CtV50+Kj799fLTNAuFU5ftinugVHZCqccgqZuCGng/XR+/eJ4mq1PBSgQHVyrNxm
+PXyCXIjSlVIX84YW4zA+5en/Tts74zzH3w8R27AVj6oW0Au6VIgjKEoeBYlgWD/g
+b1j7ShJ9ykUlel8XtggfrddRo1u9UmLsyilFrWKEPFmpfbCPKCIwoAg/xsszLqgo
+6nUx7f4gRPLBcDGAyRmlH32LdKDnce3N0Bxxgiz9rfYyoOPJia/ZITMPnUyHiezZ
+vrQjrdx/V5A1GXSjXO9I/GdrJORmX+TmFajhyZGasCduxHT7TJhFjFEVtcaeVad1
+1jBhKKonWmLdiFq454UCFSStBW0JoGCoho19df/lGloUDHG8JQgd5Fm0izhPn0bC
+mTWmc3KuxYukXVY8sko0sdlu50wtBMSknxm/bYI3Q/LBrxRtTRIoBbxwFnyHUs+N
+ZRDyeym6iiu1MRECKOWJZ8jnrQei5v5pjmuOTpQyZTbOmecT/TEwz2mUQDir/5Wb
+Bda+Jrh+I4ut81r2vdE6FLzHvWxtW0ijkXvMtXVwhW4yYsmpvPc+YAW4VpcasxiG
+lzTDIush25LhobKeaccI
+=iMA5
+-----END PGP SIGNATURE-----
+
+--cU9XODsizZBnwgll--
