@@ -1,40 +1,50 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 0/4] randconfig fixes for mmc
-Date: Thu,  5 Jun 2014 23:14:37 +0200
-Message-ID: <1402002881-1986640-1-git-send-email-arnd@arndb.de>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <chris@printf.net>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Ludovic Desroches <ludovic.desroches@atmel.com>, Nicolas Pitre <nico@fluxnic.net>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: dts: OMAP5: Update CPU OPP table as per final production Manual
+Date: Thu, 5 Jun 2014 20:09:46 -0500
+Message-ID: <1402016986-12508-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39436 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751384AbaFFBKQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jun 2014 21:10:16 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-Hi Chris, Ulf,
+As per the Final production Data Manual for OMAP5432,
+SWPS050F(APRIL 2014)
 
-These are small fixes from my randconfig testing, almost all for
-older bugs, please apply to a tree you see appropriate.
+There are only two OPPs - 1GHz and 1.5GHz. the older OPP_LOW has been
+completely descoped. The Nominal voltages are still correct though.
+However, expectation for final production configuration is operation
+with Adaptive Body Bias (ABB) and Adaptive Voltage Scaling Class 0
+operation.
 
-	Arnd
+There are no IDcode or version change information encoded to
+programmatically detect this and software is supposed to NOT use
+OPP_LOW(500MHz) anymore for all devices (legacy and production
+samples).
 
-Arnd Bergmann (4):
-  mmc: atmel-mci: incude asm/cacheclush.h
-  mmc: mvsdio: avoid compiler warning
-  mmc: omap: don't select TPS65010
-  mmc: simplify SDHCI Kconfig dependencies
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/boot/dts/omap5.dtsi |    1 -
+ 1 file changed, 1 deletion(-)
 
- drivers/mmc/host/Kconfig     | 10 ++++------
- drivers/mmc/host/atmel-mci.c |  1 +
- drivers/mmc/host/mvsdio.c    |  2 +-
- 3 files changed, 6 insertions(+), 7 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 3bfda16..a4ed549 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -45,7 +45,6 @@
+ 
+ 			operating-points = <
+ 				/* kHz    uV */
+-				500000  880000
+ 				1000000 1060000
+ 				1500000 1250000
+ 			>;
 -- 
-1.8.3.2
+1.7.9.5
 
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>
-Cc: Chris Ball <chris@printf.net>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
