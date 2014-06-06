@@ -1,94 +1,40 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 4/7] ARM: OMAP4+: PRM: register interrupt information from DT
-Date: Thu, 5 Jun 2014 22:35:58 -0500
-Message-ID: <1402025761-16831-5-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [RFC PATCH 5/7] ARM: dts: OMAP4: Add PRM interrupt
+Date: Thu, 5 Jun 2014 22:35:59 -0500
+Message-ID: <1402025761-16831-6-git-send-email-nm@ti.com>
 References: <1402025761-16831-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1402025761-16831-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42533 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751677AbaFFDg3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jun 2014 23:36:29 -0400
+In-Reply-To: <1402025761-16831-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-Allow the PRM interrupt information to be picked up from device tree.
-the only exception is for OMAP4 which uses values pre-populated and allows
-compatibility with older dtb.
+Provide OMAP4 interrupt number for PRM
 
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.c |   41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 1ecf244..784b3e1 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -17,6 +17,7 @@
- #include <linux/errno.h>
- #include <linux/err.h>
- #include <linux/io.h>
-+#include <linux/of_irq.h>
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 7e26d22..6d2827f 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -129,6 +129,7 @@
+ 		prm: prm@4a306000 {
+ 			compatible = "ti,omap4-prm";
+ 			reg = <0x4a306000 0x3000>;
++			interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
  
- 
- #include "soc.h"
-@@ -698,11 +699,51 @@ int __init omap44xx_prm_init(void)
- 	return prm_register(&omap44xx_prm_ll_data);
- }
- 
-+static struct of_device_id omap_prm_dt_match_table[] = {
-+	{ .compatible = "ti,omap4-prm" },
-+	{ .compatible = "ti,omap5-prm" },
-+	{ .compatible = "ti,dra7-prm" },
-+	{ }
-+};
-+
- static int omap44xx_prm_late_init(void)
- {
-+	struct device_node *np;
-+	int irq_num;
-+
-+	/* OMAP4+ is DT only now */
-+	if (!of_have_populated_dt())
-+		return 0;
-+
- 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
- 		return 0;
- 
-+	np = of_find_matching_node(NULL, omap_prm_dt_match_table);
-+
-+	if (!np) {
-+		/* Default loaded up with OMAP4 values - older dtb compatible? */
-+		if (!cpu_is_omap44xx())
-+			return 0;
-+	} else {
-+		irq_num = of_irq_get(np, 0);
-+		/*
-+		 * Already have OMAP4 IRQ num. For all other platforms, we need
-+		 * IRQ numbers from DT - old dtb compatible?
-+		 */
-+		if (irq_num < 0 && !cpu_is_omap44xx()) {
-+
-+			if (irq_num == -EPROBE_DEFER)
-+				return irq_num;
-+
-+			/* Have nothing to do */
-+			return 0;
-+		}
-+
-+		/* Once OMAP4 DT is filled as well */
-+		if (irq_num >= 0)
-+			omap4_prcm_irq_setup.irq = irq_num;
-+	}
-+
- 	omap44xx_prm_enable_io_wakeup();
- 
- 	return omap_prcm_register_chain_handler(&omap4_prcm_irq_setup);
+ 			prm_clocks: clocks {
+ 				#address-cells = <1>;
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
