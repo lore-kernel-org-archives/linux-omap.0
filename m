@@ -1,110 +1,40 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2] ARM: dts: OMAP5: Add device nodes for ABB
-Date: Thu, 5 Jun 2014 20:11:12 -0500
-Message-ID: <1402017072-12599-1-git-send-email-nm@ti.com>
+Subject: [RFC PATCH 6/7] ARM: dts: OMAP5: add PRM interrupt
+Date: Thu, 5 Jun 2014 22:36:00 -0500
+Message-ID: <1402025761-16831-7-git-send-email-nm@ti.com>
+References: <1402025761-16831-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37599 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbaFFBL4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jun 2014 21:11:56 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44241 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751677AbaFFDg1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jun 2014 23:36:27 -0400
+In-Reply-To: <1402025761-16831-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nm@ti.com
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
+Provide OMAP5 interrupt number for PRM
 
-Add ABB device nodes for OMAP5 family of devices. Data is based on
-final production OMAP543x Technical Reference Manual revision Z (April 2013).
-Final production Data Manual for OMAP5432 SWPS050F(APRIL 2014).
-
-[nm@ti.com: co-developer and updates to latest documentation]
 Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
 ---
-Original patch (v1): https://patchwork.kernel.org/patch/3555191/
-
-Rest of the series was accepted, however, I had to drop this
-previously to ensure that the data we introduce is compatible with
-production samples and existing pre-production samples on various
-OMAP5uEVMs already in circulation.
-
- arch/arm/boot/dts/omap5.dtsi |   60 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ arch/arm/boot/dts/omap5.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index a4ed549..8eee6fb 100644
+index 3bfda16..ccced95 100644
 --- a/arch/arm/boot/dts/omap5.dtsi
 +++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -985,6 +985,66 @@
- 				dma-names = "audio_tx";
- 			};
- 		};
-+
-+		abb_mpu: regulator-abb-mpu {
-+			compatible = "ti,abb-v2";
-+			regulator-name = "abb_mpu";
-+			#address-cells = <0>;
-+			#size-cells = <0>;
-+			clocks = <&sys_clkin>;
-+			ti,settling-time = <50>;
-+			ti,clock-cycles = <16>;
-+
-+			reg = <0x4ae07cdc 0x8>, <0x4ae06014 0x4>,
-+			      <0x4a0021c4 0x8>, <0x4ae0c318 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address", "ldo-address";
-+			ti,tranxdone-status-mask = <0x80>;
-+			/* LDOVBBMPU_MUX_CTRL */
-+			ti,ldovbb-override-mask = <0x400>;
-+			/* LDOVBBMPU_VSET_OUT */
-+			ti,ldovbb-vset-mask = <0x1F>;
-+
-+			/*
-+			 * NOTE: only FBB mode used but actual vset will
-+			 * determine final biasing
-+			 */
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
-+			1060000		0	0x0	0 0x02000000 0x01F00000
-+			1250000		0	0x4	0 0x02000000 0x01F00000
-+			>;
-+		};
-+
-+		abb_mm: regulator-abb-mm {
-+			compatible = "ti,abb-v2";
-+			regulator-name = "abb_mm";
-+			#address-cells = <0>;
-+			#size-cells = <0>;
-+			clocks = <&sys_clkin>;
-+			ti,settling-time = <50>;
-+			ti,clock-cycles = <16>;
-+
-+			reg = <0x4ae07ce4 0x8>, <0x4ae06010 0x4>,
-+			      <0x4a0021a4 0x8>, <0x4ae0c314 0x4>;
-+			reg-names = "base-address", "int-address",
-+				    "efuse-address", "ldo-address";
-+			ti,tranxdone-status-mask = <0x80000000>;
-+			/* LDOVBBMM_MUX_CTRL */
-+			ti,ldovbb-override-mask = <0x400>;
-+			/* LDOVBBMM_VSET_OUT */
-+			ti,ldovbb-vset-mask = <0x1F>;
-+
-+			/*
-+			 * NOTE: only FBB mode used but actual vset will
-+			 * determine final biasing
-+			 */
-+			ti,abb_info = <
-+			/*uV		ABB	efuse	rbb_m fbb_m	vset_m*/
-+			1025000		0	0x0	0 0x02000000 0x01F00000
-+			1120000		0	0x4	0 0x02000000 0x01F00000
-+			>;
-+		};
- 	};
- };
+@@ -132,6 +132,7 @@
+ 		prm: prm@4ae06000 {
+ 			compatible = "ti,omap5-prm";
+ 			reg = <0x4ae06000 0x3000>;
++			interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
  
+ 			prm_clocks: clocks {
+ 				#address-cells = <1>;
 -- 
 1.7.9.5
 
