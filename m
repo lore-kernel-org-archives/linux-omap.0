@@ -1,69 +1,80 @@
 From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
-Subject: [PATCH 2/9] drm/tilcdc: panel: fix dangling sysfs connector node
-Date: Sat,  7 Jun 2014 00:02:01 -0300
-Message-ID: <1402110128-30471-3-git-send-email-guido@vanguardiasur.com.ar>
+Subject: [PATCH 3/9] drm/tilcdc: slave: fix dangling sysfs connector node
+Date: Sat,  7 Jun 2014 00:02:02 -0300
+Message-ID: <1402110128-30471-4-git-send-email-guido@vanguardiasur.com.ar>
 References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: stable-owner@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, linux-arm-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, stable@vger.kernel.org, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
+Cc: =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, David Airlie <airlied@linux.ie>, Russell King <linux@arm.linux.org.uk>, Rob Clark <robdclark@gmail.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-QWRkIGEgZHJtX3N5c2ZzX2Nvbm5lY3Rvcl9yZW1vdmUgY2FsbCB3aGVuIHdlIGRlc3Ryb3kgdGhl
-IHBhbmVsIHRvIG1ha2UKc3VyZSB0aGUgY29ubmVjdG9yIG5vZGUgaW4gc3lzZnMgZ2V0cyBkZWxl
-dGVkLgoKVGhpcyBpcyByZXF1aXJlZCBmb3IgcHJvcGVyIHVubG9hZCBhbmQgcmUtbG9hZCBvZiB0
-aGlzIGRyaXZlciBhcyBhCm1vZHVsZS4gV2l0aG91dCB0aGlzLCB3ZSB3b3VsZCBnZXQgYSB3YXJu
-aW5nIGF0IHJlLWxvYWQgdGltZSBsaWtlIHNvOgoKICAgLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBd
-LS0tLS0tLS0tLS0tCiAgIFdBUk5JTkc6IENQVTogMCBQSUQ6IDgyNCBhdCBmcy9zeXNmcy9kaXIu
-YzozMSBzeXNmc193YXJuX2R1cCsweDU0LzB4NzQoKQogICBzeXNmczogY2Fubm90IGNyZWF0ZSBk
-dXBsaWNhdGUgZmlsZW5hbWUgJy9jbGFzcy9kcm0vY2FyZDAtTFZEUy0xJwogICBNb2R1bGVzIGxp
-bmtlZCBpbjogWy4uLl0KICAgQ1BVOiAwIFBJRDogODI0IENvbW06IG1vZHByb2JlIE5vdCB0YWlu
-dGVkIDMuMTUuMC1yYzQtMDAwMjctZzY0ODRmOTYtZGlydHkgIzgxCiAgIFs8YzAwMTNiYjg+XSAo
-dW53aW5kX2JhY2t0cmFjZSkgZnJvbSBbPGMwMDExODI0Pl0gKHNob3dfc3RhY2srMHgxMC8weDE0
-KQogICBbPGMwMDExODI0Pl0gKHNob3dfc3RhY2spIGZyb20gWzxjMDAzNGU4Yz5dICh3YXJuX3Ns
-b3dwYXRoX2NvbW1vbisweDY4LzB4ODgpCiAgIFs8YzAwMzRlOGM+XSAod2Fybl9zbG93cGF0aF9j
-b21tb24pIGZyb20gWzxjMDAzNGVkYz5dICh3YXJuX3Nsb3dwYXRoX2ZtdCsweDMwLzB4NDApCiAg
-IFs8YzAwMzRlZGM+XSAod2Fybl9zbG93cGF0aF9mbXQpIGZyb20gWzxjMDEyNDNmND5dIChzeXNm
-c193YXJuX2R1cCsweDU0LzB4NzQpCiAgIFs8YzAxMjQzZjQ+XSAoc3lzZnNfd2Fybl9kdXApIGZy
-b20gWzxjMDEyNDcwOD5dIChzeXNmc19kb19jcmVhdGVfbGlua19zZC5pc3JhLjIrMHhiMC8weGI4
-KQogICBbPGMwMTI0NzA4Pl0gKHN5c2ZzX2RvX2NyZWF0ZV9saW5rX3NkLmlzcmEuMikgZnJvbSBb
-PGMwMmFlMzdjPl0gKGRldmljZV9hZGQrMHgzMzgvMHg1MjApCiAgIFs8YzAyYWUzN2M+XSAoZGV2
-aWNlX2FkZCkgZnJvbSBbPGMwMmFlNmU4Pl0gKGRldmljZV9jcmVhdGVfZ3JvdXBzX3ZhcmdzKzB4
-YTAvMHhjNCkKICAgWzxjMDJhZTZlOD5dIChkZXZpY2VfY3JlYXRlX2dyb3Vwc192YXJncykgZnJv
-bSBbPGMwMmFlNzU4Pl0gKGRldmljZV9jcmVhdGUrMHgyNC8weDJjKQogICBbPGMwMmFlNzU4Pl0g
-KGRldmljZV9jcmVhdGUpIGZyb20gWzxjMDI5YjRlYz5dIChkcm1fc3lzZnNfY29ubmVjdG9yX2Fk
-ZCsweDY0LzB4MjA0KQogICBbPGMwMjliNGVjPl0gKGRybV9zeXNmc19jb25uZWN0b3JfYWRkKSBm
-cm9tIFs8YmYwYjFmZWM+XSAocGFuZWxfbW9kZXNldF9pbml0KzB4YjgvMHgxMzQgW3RpbGNkY10p
-CiAgIFs8YmYwYjFmZWM+XSAocGFuZWxfbW9kZXNldF9pbml0IFt0aWxjZGNdKSBmcm9tIFs8YmYw
-YjJiZjA+XSAodGlsY2RjX2xvYWQrMHgyMTQvMHg0YzAgW3RpbGNkY10pCiAgIFs8YmYwYjJiZjA+
-XSAodGlsY2RjX2xvYWQgW3RpbGNkY10pIGZyb20gWzxjMDI5OTU1Yz5dIChkcm1fZGV2X3JlZ2lz
-dGVyKzB4YTQvMHgxMDQpCiAgICAgIFsgLi4gc25pcCAuLiBdCiAgIC0tLVsgZW5kIHRyYWNlIGIy
-ZDA5Y2Q5NTc4YjA0OTcgXS0tLQogICBbZHJtOmRybV9zeXNmc19jb25uZWN0b3JfYWRkXSAqRVJS
-T1IqIGZhaWxlZCB0byByZWdpc3RlciBjb25uZWN0b3IgZGV2aWNlOiAtMTcKClNpZ25lZC1vZmYt
-Ynk6IEd1aWRvIE1hcnTDrW5leiA8Z3VpZG9AdmFuZ3VhcmRpYXN1ci5jb20uYXI+CkNjOiBzdGFi
-bGVAdmdlci5rZXJuZWwub3JnCi0tLQogZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfcGFu
-ZWwuYyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfcGFuZWwuYyBiL2RyaXZlcnMvZ3B1L2RybS90
-aWxjZGMvdGlsY2RjX3BhbmVsLmMKaW5kZXggODZjNjczMi4uMTk0M2IyZiAxMDA2NDQKLS0tIGEv
-ZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfcGFuZWwuYworKysgYi9kcml2ZXJzL2dwdS9k
-cm0vdGlsY2RjL3RpbGNkY19wYW5lbC5jCkBAIC0xNTEsNiArMTUxLDcgQEAgc3RydWN0IHBhbmVs
-X2Nvbm5lY3RvciB7CiBzdGF0aWMgdm9pZCBwYW5lbF9jb25uZWN0b3JfZGVzdHJveShzdHJ1Y3Qg
-ZHJtX2Nvbm5lY3RvciAqY29ubmVjdG9yKQogewogCXN0cnVjdCBwYW5lbF9jb25uZWN0b3IgKnBh
-bmVsX2Nvbm5lY3RvciA9IHRvX3BhbmVsX2Nvbm5lY3Rvcihjb25uZWN0b3IpOworCWRybV9zeXNm
-c19jb25uZWN0b3JfcmVtb3ZlKGNvbm5lY3Rvcik7CiAJZHJtX2Nvbm5lY3Rvcl9jbGVhbnVwKGNv
-bm5lY3Rvcik7CiAJa2ZyZWUocGFuZWxfY29ubmVjdG9yKTsKIH0KLS0gCjIuMC4wLnJjMgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
-aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Add a drm_sysfs_connector_remove call when we destroy the panel to make
+sure the connector node in sysfs gets deleted.
+
+This is required for proper unload and re-load of this driver as a
+module. Without this, we would get a warning at re-load time like so:
+
+   tda998x 0-0070: found TDA19988
+   ------------[ cut here ]------------
+   WARNING: CPU: 0 PID: 825 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x54/0x=
+74()
+   sysfs: cannot create duplicate filename '/class/drm/card0-HDMI-A-1'
+   Modules linked in: [..]
+   CPU: 0 PID: 825 Comm: modprobe Not tainted 3.15.0-rc4-00027-g9dcdef4=
+ #82
+   [<c0013bb8>] (unwind_backtrace) from [<c0011824>] (show_stack+0x10/0=
+x14)
+   [<c0011824>] (show_stack) from [<c0034e8c>] (warn_slowpath_common+0x=
+68/0x88)
+   [<c0034e8c>] (warn_slowpath_common) from [<c0034edc>] (warn_slowpath=
+_fmt+0x30/0x40)
+   [<c0034edc>] (warn_slowpath_fmt) from [<c01243f4>] (sysfs_warn_dup+0=
+x54/0x74)
+   [<c01243f4>] (sysfs_warn_dup) from [<c0124708>] (sysfs_do_create_lin=
+k_sd.isra.2+0xb0/0xb8)
+   [<c0124708>] (sysfs_do_create_link_sd.isra.2) from [<c02ae37c>] (dev=
+ice_add+0x338/0x520)
+   [<c02ae37c>] (device_add) from [<c02ae6e8>] (device_create_groups_va=
+rgs+0xa0/0xc4)
+   [<c02ae6e8>] (device_create_groups_vargs) from [<c02ae758>] (device_=
+create+0x24/0x2c)
+   [<c02ae758>] (device_create) from [<c029b4ec>] (drm_sysfs_connector_=
+add+0x64/0x204)
+   [<c029b4ec>] (drm_sysfs_connector_add) from [<bf0b1b40>] (slave_mode=
+set_init+0x120/0x1bc [tilcdc])
+   [<bf0b1b40>] (slave_modeset_init [tilcdc]) from [<bf0b2be8>] (tilcdc=
+_load+0x214/0x4c0 [tilcdc])
+   [<bf0b2be8>] (tilcdc_load [tilcdc]) from [<c029955c>] (drm_dev_regis=
+ter+0xa4/0x104)
+      [..snip..]
+   ---[ end trace 4df8d614936ebdee ]---
+   [drm:drm_sysfs_connector_add] *ERROR* failed to register connector d=
+evice: -17
+
+Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
+Cc: stable@vger.kernel.org
+---
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/ti=
+lcdc/tilcdc_slave.c
+index a37924e..28c8478 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -176,6 +176,7 @@ struct slave_connector {
+ static void slave_connector_destroy(struct drm_connector *connector)
+ {
+ 	struct slave_connector *slave_connector =3D to_slave_connector(connec=
+tor);
++	drm_sysfs_connector_remove(connector);
+ 	drm_connector_cleanup(connector);
+ 	kfree(slave_connector);
+ }
+--=20
+2.0.0.rc2
