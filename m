@@ -1,49 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PM / OPP: Remove ARCH_HAS_OPP
-Date: Fri, 06 Jun 2014 23:15:06 +0200
-Message-ID: <3122018.iBNBjMKNbN@vostro.rjw.lan>
-References: <1402051016-28853-1-git-send-email-broonie@kernel.org>
- <20140606125003.GA13332@verge.net.au> <20140606130850.GO2520@sirena.org.uk>
+From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
+Subject: [PATCH 0/9] tilcdc driver fixes
+Date: Sat,  7 Jun 2014 00:01:59 -0300
+Message-ID: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20140606130850.GO2520@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Rob Herring <robh@kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, Linux PM list <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, SH-Linux <linux-sh@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, linux-samsung-soc@vger.kernel.org, Simon Horman <horms@verge.net.au>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sascha Hauer <kernel@pengutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Shawn Guo <shawn.guo@freescale.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, linux-arm-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday, June 06, 2014 02:08:50 PM Mark Brown wrote:
-> 
-> --cU9XODsizZBnwgll
-> Content-Type: text/plain; charset=us-ascii
-> Content-Disposition: inline
-> 
-> On Fri, Jun 06, 2014 at 09:50:06PM +0900, Simon Horman wrote:
-> > On Fri, Jun 06, 2014 at 09:14:01PM +0900, Magnus Damm wrote:
-> 
-> > > I'm not sure about the expected merge order for this kind of change vs
-> > > queued up stuff in the renesas git tree, but I believe the following
-> > > patch selects ARCH_HAS_OPP:
-> 
-> > > [PATCH v3] ARM: shmobile: Mark all SoCs in shmobile as CPUFreq, capable
-> 
-> > I propose that we fix that up by adding an incremental patch to
-> > mach-shmobile via my renesas tree once the dependency (assuming there is
-> > one) is in Linus's tree.
-> 
-> Yes, the conversion to make ARCH_HAS_OPP unused is in Raphael's tree for
-> the merge window.
-
-Perhaps already merged?
-
-Rafael
+VGhlIHRpbGNkYyBkcml2ZXIgY291bGQgYmUgY29tcGlsZWQgYXMgYSBtb2R1bGUsIGJ1dCB3YXMg
+c2V2ZXJlbHkgYnJva2VuCmFuZCBjb3VsZCBub3QgYmUgdXNlZCBhcyBzdWNoLiBUaGlzIHBhdGNo
+c2V0IGF0dGVtcHRzIHRvIGZpeCB0aGUgaXNzdWVzCnByZXZlbnRpbmcgYSBwcm9wZXIgbG9hZC91
+bmxvYWQgb2YgdGhlIG1vZHVsZS4KCklzc3VlcyBpbmNsdWRlZCBkYW5nbGluZyBzeXNmcyBub2Rl
+cywgZGFuZ2xpbmcgZGV2aWNlcywgbWVtb3J5IGxlYWtzIGFuZAphIGRvdWJsZSBrZnJlZS4KCkl0
+IG5vdyBzZWVtcyB0byBiZSB3b3JraW5nIG9rLiBXZSBoYXZlIHRlc3RlZCB0aGlzIGJ5IGxvYWRp
+bmcgYW5kCnVubG9hZGluZyB0aGUgZHJpdmVyIHJlcGV0ZWFkbHksIHdpdGggYm90aCBwYW5lbCBh
+bmQgc2xhdmUgY29ubmVjdG9ycwphbmQgZm91bmQgbm8gZmxhd3MuCgpUaGVyZSBpcyBzdGlsbCBv
+bmUgd2FybmluZyBsZWZ0IG9uIHRpbGNkY19jcnRjX2Rlc3Ryb3ksIGNhdXNlZCBieQpkZXN0cm95
+aW5nIHRoZSBjb25uZWN0b3Igd2hpbGUgc3RpbGwgaW4gYW4gT04gc3RhdHVzLiBXZSBkb24ndCBr
+bm93IHdoeQp0aGlzIGhhcHBlbnMgb3Igd2h5IGl0J3MgYW4gaXNzdWUsIHNvIHdlIGRpZCBub3Qg
+Zml4IGl0LgoKVGhlIGZpcnN0IDcgcGF0Y2hlcyBhcmUgYnVnIGZpeGVzIHdoaWNoIGFuZCBzaG91
+bGQgcHJvYmFibHkgYmUgYXBwbGllZAppbiB0aGUgc3RhYmxlIHRyZWVzLiBUaGUgbGFzdCB0d28g
+YXJlIGNsZWFuLXVwcy4KClRoZSBzZXJpZXMgYXBwbGllcyBjbGVhbmx5IG92ZXIgLW5leHQgYW5k
+IDMuMTUtcmM4LCBhbmQgd2lsbCBiZSByZXNlbnQKZm9yIHYzLjE2LXJjMSwgb25jZSBpdCdzIG91
+dC4KCkd1aWRvIE1hcnTDrW5leiAoOSk6CiAgZHJtL2kyYzogdGRhOTk4eDogbW92ZSBkcm1faTJj
+X2VuY29kZXJfZGVzdHJveSBjYWxsCiAgZHJtL3RpbGNkYzogcGFuZWw6IGZpeCBkYW5nbGluZyBz
+eXNmcyBjb25uZWN0b3Igbm9kZQogIGRybS90aWxjZGM6IHNsYXZlOiBmaXggZGFuZ2xpbmcgc3lz
+ZnMgY29ubmVjdG9yIG5vZGUKICBkcm0vdGlsY2RjOiB0ZnA0MTA6IGZpeCBkYW5nbGluZyBzeXNm
+cyBjb25uZWN0b3Igbm9kZQogIGRybS90aWxjZGM6IHBhbmVsOiBmaXggbGVhayB3aGVuIHVubG9h
+ZGluZyB0aGUgbW9kdWxlCiAgZHJtL3RpbGNkYzogZml4IHJlbGVhc2Ugb3JkZXIgb24gZXhpdAog
+IGRybS90aWxjZGM6IGZpeCBkb3VibGUga2ZyZWUKICBkcm0vdGlsY2RjOiByZW1vdmUgc3VibW9k
+dWxlIGRlc3Ryb3kgY2FsbHMKICBkcm0vdGlsY2RjOiByZXBsYWNlIGxhdGVfaW5pdGNhbGwgd2l0
+aCBtb2R1bGVfaW5pdAoKIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyAgICAgIHwg
+IDIgKy0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZlcnMgIHwgIDAKIGRyaXZl
+cnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jICAgIHwgMTUgKysrKystLS0tLS0tLQogZHJp
+dmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmggICAgfCAgMSAtCiBkcml2ZXJzL2dwdS9k
+cm0vdGlsY2RjL3RpbGNkY19wYW5lbC5jICB8IDM5ICsrKysrKysrKysrKysrKysrLS0tLS0tLS0t
+LS0tLS0tLS0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3NsYXZlLmMgIHwgMjcgKysr
+KysrKysrKysrKy0tLS0tLS0tLS0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3RmcDQx
+MC5jIHwgMzUgKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tCiA3IGZpbGVzIGNoYW5nZWQs
+IDU5IGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9ucygtKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGRy
+aXZlcnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZlcnMKCi0tIAoyLjAuMC5yYzIKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWls
+aW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
