@@ -1,65 +1,69 @@
 From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
-Subject: [PATCH 1/9] drm/i2c: tda998x: move drm_i2c_encoder_destroy call
-Date: Sat,  7 Jun 2014 00:02:00 -0300
-Message-ID: <1402110128-30471-2-git-send-email-guido@vanguardiasur.com.ar>
+Subject: [PATCH 2/9] drm/tilcdc: panel: fix dangling sysfs connector node
+Date: Sat,  7 Jun 2014 00:02:01 -0300
+Message-ID: <1402110128-30471-3-git-send-email-guido@vanguardiasur.com.ar>
 References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f181.google.com ([209.85.220.181]:42423 "EHLO
-	mail-vc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527AbaFGDBM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jun 2014 23:01:12 -0400
-Received: by mail-vc0-f181.google.com with SMTP id hq11so4126646vcb.12
-        for <linux-omap@vger.kernel.org>; Fri, 06 Jun 2014 20:01:12 -0700 (PDT)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: dri-devel@lists.freedesktop.org, linux-arm-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, David Airlie <airlied@linux.ie>, Russell King <linux@arm.linux.org.uk>, Rob Clark <robdclark@gmail.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, stable@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, stable@vger.kernel.org, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
+List-Id: linux-omap@vger.kernel.org
 
-Currently tda998x_encoder_destroy() calls cec_write() and reg_clear(),
-as part of the release procedure. Such calls need to access the I2C bus
-and therefore, we need to call them before drm_i2c_encoder_destroy()
-which unregisters the I2C device.
-
-This commit moves the latter so it's done afterwards.
-
-Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
-Signed-off-by: Ezequiel Garc=C3=ADa <ezequiel@vanguardiasur.com.ar>
-Cc: stable@vger.kernel.org
----
- drivers/gpu/drm/i2c/tda998x_drv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/td=
-a998x_drv.c
-index 219c7e8..d06eff6 100644
---- a/drivers/gpu/drm/i2c/tda998x_drv.c
-+++ b/drivers/gpu/drm/i2c/tda998x_drv.c
-@@ -1183,7 +1183,6 @@ static void
- tda998x_encoder_destroy(struct drm_encoder *encoder)
- {
- 	struct tda998x_priv *priv =3D to_tda998x_priv(encoder);
--	drm_i2c_encoder_destroy(encoder);
-=20
- 	/* disable all IRQs and free the IRQ handler */
- 	cec_write(priv, REG_CEC_RXSHPDINTENA, 0);
-@@ -1193,6 +1192,7 @@ tda998x_encoder_destroy(struct drm_encoder *encod=
-er)
-=20
- 	if (priv->cec)
- 		i2c_unregister_device(priv->cec);
-+	drm_i2c_encoder_destroy(encoder);
- 	kfree(priv);
- }
-=20
---=20
-2.0.0.rc2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+QWRkIGEgZHJtX3N5c2ZzX2Nvbm5lY3Rvcl9yZW1vdmUgY2FsbCB3aGVuIHdlIGRlc3Ryb3kgdGhl
+IHBhbmVsIHRvIG1ha2UKc3VyZSB0aGUgY29ubmVjdG9yIG5vZGUgaW4gc3lzZnMgZ2V0cyBkZWxl
+dGVkLgoKVGhpcyBpcyByZXF1aXJlZCBmb3IgcHJvcGVyIHVubG9hZCBhbmQgcmUtbG9hZCBvZiB0
+aGlzIGRyaXZlciBhcyBhCm1vZHVsZS4gV2l0aG91dCB0aGlzLCB3ZSB3b3VsZCBnZXQgYSB3YXJu
+aW5nIGF0IHJlLWxvYWQgdGltZSBsaWtlIHNvOgoKICAgLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBd
+LS0tLS0tLS0tLS0tCiAgIFdBUk5JTkc6IENQVTogMCBQSUQ6IDgyNCBhdCBmcy9zeXNmcy9kaXIu
+YzozMSBzeXNmc193YXJuX2R1cCsweDU0LzB4NzQoKQogICBzeXNmczogY2Fubm90IGNyZWF0ZSBk
+dXBsaWNhdGUgZmlsZW5hbWUgJy9jbGFzcy9kcm0vY2FyZDAtTFZEUy0xJwogICBNb2R1bGVzIGxp
+bmtlZCBpbjogWy4uLl0KICAgQ1BVOiAwIFBJRDogODI0IENvbW06IG1vZHByb2JlIE5vdCB0YWlu
+dGVkIDMuMTUuMC1yYzQtMDAwMjctZzY0ODRmOTYtZGlydHkgIzgxCiAgIFs8YzAwMTNiYjg+XSAo
+dW53aW5kX2JhY2t0cmFjZSkgZnJvbSBbPGMwMDExODI0Pl0gKHNob3dfc3RhY2srMHgxMC8weDE0
+KQogICBbPGMwMDExODI0Pl0gKHNob3dfc3RhY2spIGZyb20gWzxjMDAzNGU4Yz5dICh3YXJuX3Ns
+b3dwYXRoX2NvbW1vbisweDY4LzB4ODgpCiAgIFs8YzAwMzRlOGM+XSAod2Fybl9zbG93cGF0aF9j
+b21tb24pIGZyb20gWzxjMDAzNGVkYz5dICh3YXJuX3Nsb3dwYXRoX2ZtdCsweDMwLzB4NDApCiAg
+IFs8YzAwMzRlZGM+XSAod2Fybl9zbG93cGF0aF9mbXQpIGZyb20gWzxjMDEyNDNmND5dIChzeXNm
+c193YXJuX2R1cCsweDU0LzB4NzQpCiAgIFs8YzAxMjQzZjQ+XSAoc3lzZnNfd2Fybl9kdXApIGZy
+b20gWzxjMDEyNDcwOD5dIChzeXNmc19kb19jcmVhdGVfbGlua19zZC5pc3JhLjIrMHhiMC8weGI4
+KQogICBbPGMwMTI0NzA4Pl0gKHN5c2ZzX2RvX2NyZWF0ZV9saW5rX3NkLmlzcmEuMikgZnJvbSBb
+PGMwMmFlMzdjPl0gKGRldmljZV9hZGQrMHgzMzgvMHg1MjApCiAgIFs8YzAyYWUzN2M+XSAoZGV2
+aWNlX2FkZCkgZnJvbSBbPGMwMmFlNmU4Pl0gKGRldmljZV9jcmVhdGVfZ3JvdXBzX3ZhcmdzKzB4
+YTAvMHhjNCkKICAgWzxjMDJhZTZlOD5dIChkZXZpY2VfY3JlYXRlX2dyb3Vwc192YXJncykgZnJv
+bSBbPGMwMmFlNzU4Pl0gKGRldmljZV9jcmVhdGUrMHgyNC8weDJjKQogICBbPGMwMmFlNzU4Pl0g
+KGRldmljZV9jcmVhdGUpIGZyb20gWzxjMDI5YjRlYz5dIChkcm1fc3lzZnNfY29ubmVjdG9yX2Fk
+ZCsweDY0LzB4MjA0KQogICBbPGMwMjliNGVjPl0gKGRybV9zeXNmc19jb25uZWN0b3JfYWRkKSBm
+cm9tIFs8YmYwYjFmZWM+XSAocGFuZWxfbW9kZXNldF9pbml0KzB4YjgvMHgxMzQgW3RpbGNkY10p
+CiAgIFs8YmYwYjFmZWM+XSAocGFuZWxfbW9kZXNldF9pbml0IFt0aWxjZGNdKSBmcm9tIFs8YmYw
+YjJiZjA+XSAodGlsY2RjX2xvYWQrMHgyMTQvMHg0YzAgW3RpbGNkY10pCiAgIFs8YmYwYjJiZjA+
+XSAodGlsY2RjX2xvYWQgW3RpbGNkY10pIGZyb20gWzxjMDI5OTU1Yz5dIChkcm1fZGV2X3JlZ2lz
+dGVyKzB4YTQvMHgxMDQpCiAgICAgIFsgLi4gc25pcCAuLiBdCiAgIC0tLVsgZW5kIHRyYWNlIGIy
+ZDA5Y2Q5NTc4YjA0OTcgXS0tLQogICBbZHJtOmRybV9zeXNmc19jb25uZWN0b3JfYWRkXSAqRVJS
+T1IqIGZhaWxlZCB0byByZWdpc3RlciBjb25uZWN0b3IgZGV2aWNlOiAtMTcKClNpZ25lZC1vZmYt
+Ynk6IEd1aWRvIE1hcnTDrW5leiA8Z3VpZG9AdmFuZ3VhcmRpYXN1ci5jb20uYXI+CkNjOiBzdGFi
+bGVAdmdlci5rZXJuZWwub3JnCi0tLQogZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfcGFu
+ZWwuYyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfcGFuZWwuYyBiL2RyaXZlcnMvZ3B1L2RybS90
+aWxjZGMvdGlsY2RjX3BhbmVsLmMKaW5kZXggODZjNjczMi4uMTk0M2IyZiAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfcGFuZWwuYworKysgYi9kcml2ZXJzL2dwdS9k
+cm0vdGlsY2RjL3RpbGNkY19wYW5lbC5jCkBAIC0xNTEsNiArMTUxLDcgQEAgc3RydWN0IHBhbmVs
+X2Nvbm5lY3RvciB7CiBzdGF0aWMgdm9pZCBwYW5lbF9jb25uZWN0b3JfZGVzdHJveShzdHJ1Y3Qg
+ZHJtX2Nvbm5lY3RvciAqY29ubmVjdG9yKQogewogCXN0cnVjdCBwYW5lbF9jb25uZWN0b3IgKnBh
+bmVsX2Nvbm5lY3RvciA9IHRvX3BhbmVsX2Nvbm5lY3Rvcihjb25uZWN0b3IpOworCWRybV9zeXNm
+c19jb25uZWN0b3JfcmVtb3ZlKGNvbm5lY3Rvcik7CiAJZHJtX2Nvbm5lY3Rvcl9jbGVhbnVwKGNv
+bm5lY3Rvcik7CiAJa2ZyZWUocGFuZWxfY29ubmVjdG9yKTsKIH0KLS0gCjIuMC4wLnJjMgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
+aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5m
+cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
