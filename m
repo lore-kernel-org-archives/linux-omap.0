@@ -1,21 +1,28 @@
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Subject: Re: [PATCH] dts: Add UARTs to am335x-bone-common.dtsi
-Date: Sat, 7 Jun 2014 20:19:26 +0400 (MSK)
-Message-ID: <alpine.LRH.2.00.1406072017510.15288@lnfm1.sai.msu.ru>
-References: <alpine.LRH.2.00.1406071845220.13290@lnfm1.sai.msu.ru> <CAOCHtYjFT_96wxbsAUY4-aKAC7LmqVpFEGDfyLTODFQ-uy9e+A@mail.gmail.com>
+From: "Gill, Amy" <GillA@gtps.k12.nj.us>
+Subject: UPDATE YOUR WEBMAIL ACCOUNT NOW!
+Date: Sun, 8 Jun 2014 17:45:56 +0000
+Message-ID: <BAA778D87A91A046B23A78218BF00C313992CB24__14028.312583878$1402249910$gmane$org@gtmbxsrv01.gtps.k12.nj.us>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOCHtYjFT_96wxbsAUY4-aKAC7LmqVpFEGDfyLTODFQ-uy9e+A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rrserverex1.gtps.k12.nj.us ([75.147.118.196]:47405 "EHLO
+	rrserverex1.gtps.k12.nj.us" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753659AbaFHRvW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 8 Jun 2014 13:51:22 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
-On Sat, 7 Jun 2014, Robert Nelson wrote:
-> These need to stay disabled in mainline, so drop the status = "okay";
-> , (till we get a working capemgr/overlay). Otherwise the pinmuxing
-> looks good.
 
-What chances that we will eventually have working overlay in the mainline?
+Attention User;
+
+Your email Quota is almost exceeded. Starting from June 8th, we are migrating to new email interface. So we are currently doing a maintenance on our server. Please, click the link below to Enter and update your account and avoid losing your inbox.
+
+http://convert2web.com/staff/allow.html
+
+Thank you,
+Technical Team
+
