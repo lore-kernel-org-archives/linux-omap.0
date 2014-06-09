@@ -1,61 +1,46 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] PM / OPP: Remove ARCH_HAS_OPP
-Date: Mon, 9 Jun 2014 20:49:17 +0100
-Message-ID: <20140609194917.GH5099@sirena.org.uk>
-References: <1402051016-28853-1-git-send-email-broonie@kernel.org>
- <20140606125003.GA13332@verge.net.au>
- <20140606130850.GO2520@sirena.org.uk>
- <3122018.iBNBjMKNbN@vostro.rjw.lan>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: Change hardreset soc_ops for AM43XX
+Date: Mon, 9 Jun 2014 15:59:13 -0500
+Message-ID: <1402347553-26029-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZZc4RZLlj7DA0l+0"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:34340 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846AbaFITuY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jun 2014 15:50:24 -0400
-Content-Disposition: inline
-In-Reply-To: <3122018.iBNBjMKNbN@vostro.rjw.lan>
+Received: from comal.ext.ti.com ([198.47.26.152]:35321 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753837AbaFIU7w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Jun 2014 16:59:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Rob Herring <robh@kernel.org>, Shawn Guo <shawn.guo@freescale.com>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Michal Simek <michal.simek@xilinx.com>, Linux PM list <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-samsung-soc@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, SH-Linux <linux-sh@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>
 
+am43xx reset register layout is more similar to am33xx than omap4 so
+use the am33xx functions for hwmod hardreset soc_ops rather than the
+currently used omap4 functions. Without this, assert_hardreset and
+deassert_hardreset will not work on am43xx.
 
---ZZc4RZLlj7DA0l+0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-On Fri, Jun 06, 2014 at 11:15:06PM +0200, Rafael J. Wysocki wrote:
-> On Friday, June 06, 2014 02:08:50 PM Mark Brown wrote:
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 66c60fe..1c0885b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -4251,9 +4251,9 @@ void __init omap_hwmod_init(void)
+ 		soc_ops.enable_module = _omap4_enable_module;
+ 		soc_ops.disable_module = _omap4_disable_module;
+ 		soc_ops.wait_target_ready = _omap4_wait_target_ready;
+-		soc_ops.assert_hardreset = _omap4_assert_hardreset;
+-		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
+-		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
++		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
++		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
++		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
+ 		soc_ops.init_clkdm = _init_clkdm;
+ 	} else if (soc_is_am33xx()) {
+ 		soc_ops.enable_module = _am33xx_enable_module;
+-- 
+1.9.0
 
-> > Yes, the conversion to make ARCH_HAS_OPP unused is in Raphael's tree for
-> > the merge window.
-
-> Perhaps already merged?
-
-Yes, looks like it is.
-
---ZZc4RZLlj7DA0l+0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTlg+5AAoJELSic+t+oim9gPQQAJl+gVZkOImjKju67ucY3fZG
-AiQKQy/CtAMigWQ00llUxF2NBEJdQ5zRCzNKsVG3W0UYQYmyQMG6fNrUGsBRrsgK
-5t5koeipaq9aKha55tUkhs6eucv8yEL8dIRe6cQtfQjoZmQi9O2+KhaCwFBH+P/k
-S+3K2p4uwJyx5NI97Le4Wtqb/uu3Y17DQWhg+nFsxS9MeURaI8X39uanK/GQOW2o
-PSmWCRWcqOmGzf/pJ35R5RnhYHRk0bkZzoZ9h51BsM8r7Oc7RvO1XUi6YAllwrL9
-h1MbBb1aBC6lgnsiIC02UIVVuB23kzjRorbSrUVwvY7VSKM+P7IkqMo12wE41y24
-EGj+cGICmkAnmS2JzZlDTvFwvQoLsCkT51iql3+G2y4Wfj8m/1CErIO9umpOZcbW
-n9L6teTFKYl2lND7IT75C0CRACPJ/c2pkRBYqjIsMeV17hohVIJVgsBezVRGroZd
-vFyVq3sRaxba7uP93Z16Dp0+WeWjuDRfvH5KXZBQG/ECayFN32w3cTqCvBs7z6fr
-6XUW/eu3vOQlNLdR25efrkrJ6yxom+zsbVbXo1kbiYJ/a4O0efWFKz55F7009s2B
-pYGsC/D8ZMrbTmNyoblwxnfqhUWZCLR7HwdvUZC/wBzPMGxO5LVrWb4WzASKUhpU
-kz8BmH+8msYUA2PL806Q
-=wNKN
------END PGP SIGNATURE-----
-
---ZZc4RZLlj7DA0l+0--
