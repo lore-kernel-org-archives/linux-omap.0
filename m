@@ -1,28 +1,29 @@
-From: "Gill, Amy" <GillA@gtps.k12.nj.us>
-Subject: UPDATE YOUR WEBMAIL ACCOUNT NOW!
-Date: Sun, 8 Jun 2014 17:45:56 +0000
-Message-ID: <BAA778D87A91A046B23A78218BF00C313992CB24__14028.312583878$1402249910$gmane$org@gtmbxsrv01.gtps.k12.nj.us>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH] PM / OPP: Remove ARCH_HAS_OPP
+Date: Mon, 9 Jun 2014 09:56:59 +0800
+Message-ID: <20140609015658.GV8860@dragon>
+References: <1402051016-28853-1-git-send-email-broonie@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rrserverex1.gtps.k12.nj.us ([75.147.118.196]:47405 "EHLO
-	rrserverex1.gtps.k12.nj.us" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753659AbaFHRvW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 8 Jun 2014 13:51:22 -0400
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1402051016-28853-1-git-send-email-broonie@kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Russell King <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, Rob Herring <robh@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, Mark Brown <broonie@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Jun 06, 2014 at 11:36:56AM +0100, Mark Brown wrote:
+> From: Mark Brown <broonie@linaro.org>
+> 
+> Since the OPP layer is a kernel library which has been converted to be
+> directly selectable by its callers rather than user selectable and
+> requiring architectures to enable it explicitly the ARCH_HAS_OPP symbol
+> has become redundant and can be removed. Do so.
+> 
+> Signed-off-by: Mark Brown <broonie@linaro.org>
+> ---
+...
+>  arch/arm/mach-imx/Kconfig      | 1 -
 
-
-Attention User;
-
-Your email Quota is almost exceeded. Starting from June 8th, we are migrating to new email interface. So we are currently doing a maintenance on our server. Please, click the link below to Enter and update your account and avoid losing your inbox.
-
-http://convert2web.com/staff/allow.html
-
-Thank you,
-Technical Team
-
+Acked-by: Shawn Guo <shawn.guo@freescale.com>
