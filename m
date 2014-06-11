@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 27/36] ARM: OMAP2+: usb-tusb6010: Use omap_gpmc_retime()
-Date: Wed, 11 Jun 2014 11:56:32 +0300
-Message-ID: <1402477001-31132-28-git-send-email-rogerq@ti.com>
+Subject: [PATCH 25/36] ARM: OMAP2+: gpmc: Support multiple Chip Selects per device
+Date: Wed, 11 Jun 2014 11:56:30 +0300
+Message-ID: <1402477001-31132-26-git-send-email-rogerq@ti.com>
 References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,144 +9,188 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1402477001-31132-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com
-Cc: kyungmin.park@samsung.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: kyungmin.park@samsung.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-In order to change the GPMC settings/timings on the fly,
-we must use omap_gpmc_retime(). The other gpmc_*() functions
-will soon be made private and moved out of arch/mach-omap2/
+Some devices (e.g. tusb6010) need 2 chip selects to work with
+2 separate IOMEM resources. Allow such use case. The user just
+needs to call gpmc_generic_init() for as many chip selects
+with the same platform_device pointer. The GPMC driver will
+take care of fixing up the memory resources.
 
-CC: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/usb-tusb6010.c | 94 ++++++++++++++++++--------------------
- 1 file changed, 44 insertions(+), 50 deletions(-)
+ arch/arm/mach-omap2/gpmc.c | 134 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 91 insertions(+), 43 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index e832bc7..71e6246 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -48,58 +48,48 @@ static struct gpmc_settings tusb_sync = {
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 5563360..34545ca 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1388,9 +1388,14 @@ static int gpmc_nand_setup(struct platform_device *parent_pdev,
  
- /* NOTE:  timings are from tusb 6010 datasheet Rev 1.8, 12-Sept 2006 */
- 
--static int tusb_set_async_mode(unsigned sysclk_ps)
-+static void tusb_get_async_timings(unsigned sysclk_ps,
-+				   struct gpmc_device_timings *dev_t)
+ static void gpmc_probe_legacy(struct platform_device *pdev)
  {
--	struct gpmc_device_timings dev_t;
--	struct gpmc_timings	t;
--	unsigned		t_acsnh_advnh = sysclk_ps + 3000;
+-	int i, rc;
++	int i, rc, j;
+ 	struct device *dev = &pdev->dev;
+ 	struct gpmc_omap_platform_data *gpmc_pdata;
++	struct resource *mem_res;
++	unsigned long cs_base;
++	resource_size_t size;
++	struct gpmc_timings gpmc_timings;
++	struct gpmc_omap_cs_data *cs;
+ 
+ 	gpmc_pdata = dev->platform_data;
+ 	gpmc_cs_num = GPMC_CS_NUM;
+@@ -1400,52 +1405,10 @@ static void gpmc_probe_legacy(struct platform_device *pdev)
+ 		return;
+ 
+ 	for (i = 0; i < GPMC_CS_NUM; i++) {
+-		struct resource *mem_res;
+-		unsigned long cs_base;
+-		resource_size_t size;
+-		struct gpmc_timings gpmc_timings;
+-		struct gpmc_omap_cs_data *cs;
 -
--	memset(&dev_t, 0, sizeof(dev_t));
+ 		cs = &gpmc_pdata->cs[i];
+ 		if (!cs->valid)
+ 			continue;
+ 
+-		/*
+-		 * Request a CS space. Use size from
+-		 * platform device's MEM resource
+-		 */
+-		if (!cs->pdev)
+-			goto skip_mem;
 -
--	dev_t.t_ceasu = 8 * 1000;
--	dev_t.t_avdasu = t_acsnh_advnh - 7000;
--	dev_t.t_ce_avd = 1000;
--	dev_t.t_avdp_r = t_acsnh_advnh;
--	dev_t.t_oeasu = t_acsnh_advnh + 1000;
--	dev_t.t_oe = 300;
--	dev_t.t_cez_r = 7000;
--	dev_t.t_cez_w = dev_t.t_cez_r;
--	dev_t.t_avdp_w = t_acsnh_advnh;
--	dev_t.t_weasu = t_acsnh_advnh + 1000;
--	dev_t.t_wpl = 300;
--	dev_t.cyc_aavdh_we = 1;
+-		mem_res = cs->pdev->resource;
+-		if (cs->pdev->num_resources < 1 ||
+-		    resource_type(mem_res) != IORESOURCE_MEM) {
+-			dev_err(dev, "Invalid IOMEM resource for CS %d\n", i);
+-			continue;
+-		}
 -
--	gpmc_calc_timings(&t, &tusb_async, &dev_t);
+-		size = mem_res->end - mem_res->start + 1;
+-		if (gpmc_cs_request(i, size, &cs_base)) {
+-			dev_err(dev, "Couldn't request resource for CS %d\n",
+-				i);
+-			continue;
+-		}
 -
--	return gpmc_cs_set_timings(async_cs, &t);
-+	unsigned t_acsnh_advnh = sysclk_ps + 3000;
+-		mem_res->start = cs_base;
+-		mem_res->end = cs_base + size - 1;
+-
+-		/* FIXME: When do we need to call gpmc_cs_remap()? */
+-skip_mem:
+-
+-		/* Customized NAND setup */
+-		if (cs->is_nand) {
+-			if (gpmc_nand_setup(pdev, cs)) {
+-				dev_err(dev, "Error setting up NAND on CS %d\n",
+-					i);
+-				continue;
+-			}
+-		}
+-
+ 		if (cs->settings) {
+ 			if (gpmc_cs_program_settings(i, cs->settings)) {
+ 				dev_err(dev,
+@@ -1474,10 +1437,95 @@ skip_mem:
+ 				continue;
+ 			}
+ 		}
++	}
 +
-+	memset(dev_t, 0, sizeof(*dev_t));
++	/*
++	 * All Chip Selects must be configured before platform devices are
++	 * created as some devices (e.g. tusb6010) can use multiple
++	 * Chip selects.
++	 */
 +
-+	dev_t->t_ceasu = 8 * 1000;
-+	dev_t->t_avdasu = t_acsnh_advnh - 7000;
-+	dev_t->t_ce_avd = 1000;
-+	dev_t->t_avdp_r = t_acsnh_advnh;
-+	dev_t->t_oeasu = t_acsnh_advnh + 1000;
-+	dev_t->t_oe = 300;
-+	dev_t->t_cez_r = 7000;
-+	dev_t->t_cez_w = dev_t->t_cez_r;
-+	dev_t->t_avdp_w = t_acsnh_advnh;
-+	dev_t->t_weasu = t_acsnh_advnh + 1000;
-+	dev_t->t_wpl = 300;
-+	dev_t->cyc_aavdh_we = 1;
- }
- 
--static int tusb_set_sync_mode(unsigned sysclk_ps)
-+static void tusb_get_sync_timings(unsigned sysclk_ps,
-+				  struct gpmc_device_timings *dev_t)
- {
--	struct gpmc_device_timings dev_t;
--	struct gpmc_timings	t;
--	unsigned		t_scsnh_advnh = sysclk_ps + 3000;
--
--	memset(&dev_t, 0, sizeof(dev_t));
--
--	dev_t.clk = 11100;
--	dev_t.t_bacc = 1000;
--	dev_t.t_ces = 1000;
--	dev_t.t_ceasu = 8 * 1000;
--	dev_t.t_avdasu = t_scsnh_advnh - 7000;
--	dev_t.t_ce_avd = 1000;
--	dev_t.t_avdp_r = t_scsnh_advnh;
--	dev_t.cyc_aavdh_oe = 3;
--	dev_t.cyc_oe = 5;
--	dev_t.t_ce_rdyz = 7000;
--	dev_t.t_avdp_w = t_scsnh_advnh;
--	dev_t.cyc_aavdh_we = 3;
--	dev_t.cyc_wpl = 6;
--	dev_t.t_ce_rdyz = 7000;
--
--	gpmc_calc_timings(&t, &tusb_sync, &dev_t);
--
--	return gpmc_cs_set_timings(sync_cs, &t);
-+	unsigned t_scsnh_advnh = sysclk_ps + 3000;
++	/* Fixup Memory resources */
++	for (i = 0; i < GPMC_CS_NUM; i++) {
++		int required_resources;
 +
-+	memset(dev_t, 0, sizeof(dev_t));
++		cs = &gpmc_pdata->cs[i];
++		if (!cs->valid)
++			continue;
+ 
+ 		if (!cs->pdev)
+ 			continue;
+ 
++		/* Customized NAND setup */
++		if (cs->is_nand) {
++			if (gpmc_nand_setup(pdev, cs)) {
++				dev_err(dev, "Error setting up NAND on CS %d\n",
++					i);
++				continue;
++			}
++		}
 +
-+	dev_t->clk = 11100;
-+	dev_t->t_bacc = 1000;
-+	dev_t->t_ces = 1000;
-+	dev_t->t_ceasu = 8 * 1000;
-+	dev_t->t_avdasu = t_scsnh_advnh - 7000;
-+	dev_t->t_ce_avd = 1000;
-+	dev_t->t_avdp_r = t_scsnh_advnh;
-+	dev_t->cyc_aavdh_oe = 3;
-+	dev_t->cyc_oe = 5;
-+	dev_t->t_ce_rdyz = 7000;
-+	dev_t->t_avdp_w = t_scsnh_advnh;
-+	dev_t->cyc_aavdh_we = 3;
-+	dev_t->cyc_wpl = 6;
-+	dev_t->t_ce_rdyz = 7000;
- }
- 
- /* tusb driver calls this when it changes the chip's clocking */
-@@ -110,18 +100,22 @@ int tusb6010_platform_retime(unsigned is_refclk)
- 
- 	unsigned	sysclk_ps;
- 	int		status;
-+	struct gpmc_device_timings dev_t;
- 
- 	if (!refclk_psec)
- 		return -ENODEV;
- 
- 	sysclk_ps = is_refclk ? refclk_psec : TUSB6010_OSCCLK_60;
- 
--	status = tusb_set_async_mode(sysclk_ps);
-+	tusb_get_async_timings(sysclk_ps, &dev_t);
-+	status = omap_gpmc_retime(async_cs, &tusb_async, &dev_t);
- 	if (status < 0) {
- 		printk(error, "async", status);
- 		goto done;
- 	}
--	status = tusb_set_sync_mode(sysclk_ps);
++		mem_res = cs->pdev->resource;
 +
-+	tusb_get_sync_timings(sysclk_ps, &dev_t);
-+	status = omap_gpmc_retime(sync_cs, &tusb_sync, &dev_t);
- 	if (status < 0)
- 		printk(error, "sync", status);
- done:
++		/*
++		 * If device is present multiple times, fix the subsequent
++		 * resources
++		 */
++		required_resources = 1;
++		for (j = 0; j < i; j++) {
++			if (gpmc_pdata->cs[j].pdev == cs->pdev) {
++				mem_res++;
++				required_resources++;
++			}
++		}
++
++		if (cs->pdev->num_resources < required_resources ||
++		    resource_type(mem_res) != IORESOURCE_MEM) {
++			dev_err(dev, "Invalid IOMEM resource for CS %d\n", i);
++			continue;
++		}
++
++		/*
++		 * Request a CS space. Use size from
++		 * platform device's MEM resource
++		 */
++		size = mem_res->end - mem_res->start + 1;
++		if (gpmc_cs_request(i, size, &cs_base)) {
++			dev_err(dev, "Couldn't request resource for CS %d\n",
++				i);
++			continue;
++		}
++
++		mem_res->start = cs_base;
++		mem_res->end = cs_base + size - 1;
++	}
++
++	/* create the platform devices */
++	for (i = 0; i < GPMC_CS_NUM; i++) {
++		bool registered;
++
++		cs = &gpmc_pdata->cs[i];
++		if (!cs->valid)
++			continue;
++
++		if (!cs->pdev)
++			continue;
++
++		/*
++		 * same device can be present on multiple CS, don't
++		 * register device more than once.
++		 */
++		registered = false;
++		for (j = 0; j < i; j++) {
++			if (gpmc_pdata->cs[j].pdev == cs->pdev) {
++				registered = true;
++				break;
++			}
++		}
++
++		if (registered)
++			continue;
++
+ 		cs->pdev->dev.parent = dev;
+ 		rc = platform_device_register(cs->pdev);
+ 		if (rc < 0) {
 -- 
 1.8.3.2
