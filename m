@@ -1,7 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 21/36] ARM: dts: OMAP2+: Fix OneNAND device nodes
-Date: Wed, 11 Jun 2014 11:56:26 +0300
-Message-ID: <1402477001-31132-22-git-send-email-rogerq@ti.com>
+Subject: [PATCH 23/36] ARM: OMAP2+: gpmc: use platform data to configure CS
+ space and poplulate device
+Date: Wed, 11 Jun 2014 11:56:28 +0300
+Message-ID: <1402477001-31132-24-git-send-email-rogerq@ti.com>
 References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,120 +22,191 @@ To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com
 Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, kyungmin.park@samsung.com, linux-mtd@lists.infradead.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add compatible id, fix chip select partition size and
-I/O space size. OneNAND devices just need 128KB for I/O
-and the minimum possible chips select partition can be
-16MB.
+Add gpmc_probe_legacy() that will be called for non DT boots. This function
+will use platform data to setup each chip select and populate the child
+platform device for each of the chip selects.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 5 +++--
- arch/arm/boot/dts/omap3-n900.dts            | 6 ++++--
- arch/arm/boot/dts/omap3-n950-n9.dtsi        | 6 ++++--
- arch/arm/boot/dts/omap3430-sdp.dts          | 8 +++++---
- 4 files changed, 16 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/gpmc.c | 129 ++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 111 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-index 89608b2..14a67fb3 100644
---- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-+++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-@@ -34,14 +34,15 @@
- };
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index d3a64ed..c26ba3f 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1302,11 +1302,6 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ {
+ 	int ret;
+ 	struct device_node *child;
+-	const struct of_device_id *of_id =
+-		of_match_device(gpmc_dt_ids, &pdev->dev);
+-
+-	if (!of_id)
+-		return 0;
  
- &gpmc {
--	ranges = <0 0 0x04000000 0x10000000>;
-+	ranges = <0 0 0x04000000 0x1000000>;	/* CS0 space, 16MB min. */
+ 	ret = of_property_read_u32(pdev->dev.of_node, "gpmc,num-cs",
+ 				   &gpmc_cs_num);
+@@ -1355,11 +1350,106 @@ static int gpmc_probe_dt(struct platform_device *pdev)
+ }
+ #endif
  
- 	/* gpio-irq for dma: 26 */
++static void gpmc_probe_legacy(struct platform_device *pdev)
++{
++	int i, rc;
++	struct device *dev = &pdev->dev;
++	struct gpmc_omap_platform_data *gpmc_pdata;
++
++	gpmc_pdata = dev->platform_data;
++	gpmc_cs_num = GPMC_CS_NUM;
++	gpmc_nr_waitpins = GPMC_NR_WAITPINS;
++
++	if (!gpmc_pdata)
++		return;
++
++	for (i = 0; i < GPMC_CS_NUM; i++) {
++		struct resource *mem_res;
++		unsigned long cs_base;
++		resource_size_t size;
++		struct gpmc_timings gpmc_timings;
++		struct gpmc_omap_cs_data *cs;
++
++		cs = &gpmc_pdata->cs[i];
++		if (!cs->valid)
++			continue;
++
++		/*
++		 * Request a CS space. Use size from
++		 * platform device's MEM resource
++		 */
++		if (!cs->pdev)
++			goto skip_mem;
++
++		mem_res = cs->pdev->resource;
++		if (cs->pdev->num_resources < 1 ||
++		    resource_type(mem_res) != IORESOURCE_MEM) {
++			dev_err(dev, "Invalid IOMEM resource for CS %d\n", i);
++			continue;
++		}
++
++		size = mem_res->end - mem_res->start + 1;
++		if (gpmc_cs_request(i, size, &cs_base)) {
++			dev_err(dev, "Couldn't request resource for CS %d\n",
++				i);
++			continue;
++		}
++
++		mem_res->start = cs_base;
++		mem_res->end = cs_base + size - 1;
++
++		/* FIXME: When do we need to call gpmc_cs_remap()? */
++skip_mem:
++
++		if (cs->settings) {
++			if (gpmc_cs_program_settings(i, cs->settings)) {
++				dev_err(dev,
++					"Couldn't program settings for CS %d\n",
++					i);
++				continue;
++			}
++		}
++
++		/* give device_timings priority over gpmc_timings */
++		if (cs->device_timings) {
++			gpmc_calc_timings(&gpmc_timings, cs->settings,
++					  cs->device_timings);
++
++			if (gpmc_cs_set_timings(i, &gpmc_timings)) {
++				dev_err(dev,
++					"Couldn't program timings for CS %d\n",
++					i);
++				continue;
++			}
++		} else if (cs->gpmc_timings) {
++			if (gpmc_cs_set_timings(i, cs->gpmc_timings)) {
++				dev_err(dev,
++					"Couldn't program timings for CS %d\n",
++					i);
++				continue;
++			}
++		}
++
++		if (!cs->pdev)
++			continue;
++
++		cs->pdev->dev.parent = dev;
++		rc = platform_device_register(cs->pdev);
++		if (rc < 0) {
++			dev_err(dev,
++				"Failed to register device %s on CS %d\n",
++				cs->pdev->name, i);
++			continue;
++		}
++	}
++}
++
+ static int gpmc_probe(struct platform_device *pdev)
+ {
+ 	int rc;
+ 	u32 l;
+ 	struct resource *res;
++	struct device *dev = &pdev->dev;
  
- 	onenand@0,0 {
-+		compatible = "ti,omap2-onenand";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		reg = <0 0 0x10000000>;
-+		reg = <0 0 0x20000>;	/* OneNAND I/O 128K */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL)
+@@ -1390,7 +1480,7 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get_sync(&pdev->dev);
  
- 		gpmc,sync-read;
- 		gpmc,burst-length = <16>;
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 1a57b61..0c5af81 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -501,14 +501,16 @@
- };
+-	gpmc_dev = &pdev->dev;
++	gpmc_dev = dev;
  
- &gpmc {
--	ranges = <0 0 0x04000000 0x10000000>; /* 256MB */
-+	ranges = <0 0 0x04000000 0x1000000>;	/* CS0 space, 16MB min. */
+ 	l = gpmc_read_reg(GPMC_REVISION);
  
- 	/* gpio-irq for dma: 65 */
+@@ -1410,7 +1500,7 @@ static int gpmc_probe(struct platform_device *pdev)
+ 		gpmc_capability = GPMC_HAS_WR_ACCESS | GPMC_HAS_WR_DATA_MUX_BUS;
+ 	if (GPMC_REVISION_MAJOR(l) > 0x5)
+ 		gpmc_capability |= GPMC_HAS_MUX_AAD;
+-	dev_info(gpmc_dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
++	dev_info(dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
+ 		 GPMC_REVISION_MINOR(l));
  
- 	onenand@0,0 {
-+		compatible = "ti,omap2-onenand";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		reg = <0 0 0x10000000>;
-+		reg = <0 0 0x20000>;	/* OneNAND I/O 128K */
-+		ti,onenand-sync-rw;
+ 	gpmc_mem_init();
+@@ -1418,20 +1508,23 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	/* Now the GPMC is initialised, unreserve the chip-selects */
+ 	gpmc_cs_map = 0;
  
- 		gpmc,sync-read;
- 		gpmc,sync-write;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 5c26c18..9dcb367 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -101,12 +101,14 @@
- };
+-	if (!pdev->dev.of_node) {
+-		gpmc_cs_num	 = GPMC_CS_NUM;
+-		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
+-	}
+-
+-	rc = gpmc_probe_dt(pdev);
+-	if (rc < 0) {
+-		pm_runtime_put_sync(&pdev->dev);
+-		clk_put(gpmc_l3_clk);
+-		dev_err(gpmc_dev, "failed to probe DT parameters\n");
+-		return rc;
++	if (dev->of_node) {
++		rc = gpmc_probe_dt(pdev);
++		if (rc) {
++			dev_err(dev, "gpmc_probe_dt() failed\n");
++			goto error;
++		}
++	} else {
++		/* Legacy probing based on platform data */
++		gpmc_probe_legacy(pdev);
+ 	}
  
- &gpmc {
--	ranges = <0 0 0x04000000 0x20000000>;
-+	ranges = <0 0 0x04000000 0x1000000>;	/* CS0 space, 16MB min. */
+ 	return 0;
++
++error:
++	pm_runtime_put_sync(dev);
++	clk_put(gpmc_l3_clk);
++	return rc;
+ }
  
- 	onenand@0,0 {
-+		compatible = "ti,omap2-onenand";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		reg = <0 0 0x20000000>;
-+		reg = <0 0 0x20000>;	/* OneNAND I/O 128K */
-+		ti,onenand-sync-rw;
- 
- 		gpmc,sync-read;
- 		gpmc,sync-write;
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-index bf5f8b9..d6fe226 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -52,7 +52,7 @@
- &gpmc {
- 	ranges = <0 0 0x10000000 0x08000000>,
- 		 <1 0 0x28000000 0x08000000>,
--		 <2 0 0x20000000 0x10000000>,
-+		 <2 0 0x20000000 0x1000000>,	/* CS2, 16MB min. */
- 		 <255 0 0x6e000000 0x02d4>;	/* GPMC reg */
- 
- 	nor@0,0 {
-@@ -151,10 +151,11 @@
- 	};
- 
- 	onenand@2,0 {
--		linux,mtd-name= "samsung,kfm2g16q2m-deb8";
-+		compatible = "ti,omap2-onenand";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--		reg = <2 0 0x10000000>;
-+		reg = <2 0 0x20000>;	/* OneNAND I/O 128K */
-+		ti,onenand-sync-rw;
- 
- 		gpmc,device-width = <2>;
- 		gpmc,mux-add-data = <2>;
-@@ -173,6 +174,7 @@
- 		gpmc,access-ns = <78>;
- 		gpmc,wr-data-mux-bus-ns = <30>;
- 
-+		linux,mtd-name= "samsung,kfm2g16q2m-deb8";
- 		partition@0 {
- 			label = "xloader-onenand";
- 			reg = <0 0x80000>;
+ static int gpmc_remove(struct platform_device *pdev)
 -- 
 1.8.3.2
 
