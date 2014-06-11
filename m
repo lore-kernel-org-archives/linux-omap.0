@@ -1,63 +1,35 @@
-From: Tomasz Figa <t.figa@samsung.com>
-Subject: Re: [PATCH 1/5] ARM: mm: cache-l2x0: Add base address argument to
- write_sec callback
-Date: Wed, 11 Jun 2014 18:07:24 +0200
-Message-ID: <53987EBC.70307@samsung.com>
-References: <1402500612-4778-1-git-send-email-t.figa@samsung.com>
- <1402500612-4778-2-git-send-email-t.figa@samsung.com>
- <CAJgR-BhgZ7k_Uk_Md79pkZKQXTZUjspqq0u9sa9D69Kixy7DhA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <CAJgR-BhgZ7k_Uk_Md79pkZKQXTZUjspqq0u9sa9D69Kixy7DhA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Loeliger <loeliger@gmail.com>
-Cc: linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Robin Holt <holt@sgi.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] iio: ti_am335x_adc: Use same step id at FIFOs both ends
+Date: Wed, 11 Jun 2014 23:18:18 +0200
+Message-ID: <1402521498-11535-1-git-send-email-jan.kardell@telliq.com>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11.06.2014 18:00, Jon Loeliger wrote:
->> diff --git a/arch/arm/include/asm/mach/arch.h b/arch/arm/include/asm/mach/arch.h
->> index 060a75e..ddaebcd 100644
->> --- a/arch/arm/include/asm/mach/arch.h
->> +++ b/arch/arm/include/asm/mach/arch.h
->> @@ -46,7 +46,8 @@ struct machine_desc {
->>         enum reboot_mode        reboot_mode;    /* default restart mode */
->>         unsigned                l2c_aux_val;    /* L2 cache aux value   */
->>         unsigned                l2c_aux_mask;   /* L2 cache aux mask    */
->> -       void                    (*l2c_write_sec)(unsigned long, unsigned);
->> +       void                    (*l2c_write_sec)(void __iomem *,
->> +                                                unsigned long, unsigned);
->>         struct smp_operations   *smp;           /* SMP operations       */
->>         bool                    (*smp_init)(void);
->>         void                    (*fixup)(struct tag *, char **);
-> 
->> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
->> index efc5cab..1695eab 100644
->> --- a/arch/arm/mm/cache-l2x0.c
->> +++ b/arch/arm/mm/cache-l2x0.c
->> @@ -72,7 +72,7 @@ static void l2c_write_sec(unsigned long val, void __iomem *base, unsigned reg)
->>         if (val == readl_relaxed(base + reg))
->>                 return;
->>         if (outer_cache.write_sec)
->> -               outer_cache.write_sec(val, reg);
->> +               outer_cache.write_sec(base, val, reg);
->>         else
->>                 writel_relaxed(val, base + reg);
->>  }
-> 
-> The parameter order (base, val, reg) seems very non-intuitive.
-> Are you matching some existing prototype or adhering to some
-> backwards compatibility issue?  If not wouldn't, say, (base, reg, val)
-> or (val, base, reg) be more intuitive?
+Since AI lines could be selected at will (linux-3.11) the sending
+and receiving ends of the FIFO does not agree about what step is used
+for a line. It only works if the last lines are used, like 5,6,7,
+and fails if ie 2,4,6 is selected in DT.
 
-Hmm, I didn't think too much about this, so this order is just whatever
-first came to my mind, probably because I'm used to xxx_write(ctx, val,
-reg) accessors found in many drivers.
+Signed-off-by: Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/iio/adc/ti_am335x_adc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Anyway, l2c_write_sec() in arm/mm/cache-l2x0.c, which calls
-outer_cache.write_sec(), already uses (val, base, reg) convention, so
-probably this one would be most suitable. I'll change in v2.
-
-Best regards,
-Tomasz
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index a4db302..d5dc4c6 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -374,7 +374,7 @@ static int tiadc_read_raw(struct iio_dev *indio_dev,
+ 			return -EAGAIN;
+ 		}
+ 	}
+-	map_val = chan->channel + TOTAL_CHANNELS;
++	map_val = adc_dev->channel_step[chan->scan_index];
+ 
+ 	/*
+ 	 * We check the complete FIFO. We programmed just one entry but in case
+-- 
+1.8.4.5
