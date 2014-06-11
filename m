@@ -1,83 +1,63 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 00/36] OMAP: GPMC: Restructure and move OMAP GPMC driver
- out of mach-omap2
-Date: Wed, 11 Jun 2014 14:54:49 +0300
-Message-ID: <53984389.40000@ti.com>
-References: <1402477001-31132-1-git-send-email-rogerq@ti.com> <CABxcv=mMAnnjd=F7itDWCt5QpVr=U5_mP=xhCW-oB5c2Doo75w@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] [media] staging: allow omap4iss to be modular
+Date: Wed, 11 Jun 2014 16:35:38 +0200
+Message-ID: <5192928.MkINji4uKU@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABxcv=mMAnnjd=F7itDWCt5QpVr=U5_mP=xhCW-oB5c2Doo75w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, kyungmin.park@samsung.com, "Gupta, Pekon" <pekon@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, nsekhar@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-mtd@lists.infradead.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.17.24]:51139 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753610AbaFKOgV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jun 2014 10:36:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
 
-Hi Javier,
+The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
+of which can be loadable modules. This causes build failures
+if we want the camera driver to be built-in.
 
-On 06/11/2014 02:52 PM, Javier Martinez Canillas wrote:
-> Hello Roger,
-> 
-> What a great series!!
+This can be solved by turning the option into "tristate",
+which unfortunately causes another problem, because the
+driver incorrectly calls a platform-internal interface
+for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
+To work around that, we can export those symbols, but
+that isn't really the correct solution, as we should not
+have dependencies on platform code this way.
 
-Thanks :)
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+This is one of just two patches we currently need to get
+'make allmodconfig' to build again on ARM.
 
-> 
-> On Wed, Jun 11, 2014 at 10:56 AM, Roger Quadros <rogerq@ti.com> wrote:
->> Hi,
->>
->> This is a complete functional set to get the gpmc driver out of mach-omap2
->> and into drivers/memory. The DT binding remains the same except for the
->> following minor changes
-> 
-> I probably won't have time to do a proper review until at least next
-> week but doing a quick glance it looks very good to me.
-> 
->> - compatible property is required for NAND & OneNAND nodes
-> 
-> This is a minor ABI breakage but I agree with you that it is wrong
-> that these were not introduced in the first place and relied on the
-> dev node so I think is not that bad to break it in this case.
-> 
->> - Second register space and interrupts properties are required for
->>   NAND controller node
->> - ti,onenand-sync-rw property added for OneNAND node.
->>
->> The series does the following changes
->> - Move GPMC IRQ and NAND register handling to NAND driver.
->>   The entire GPMC register space is made available to the NAND driver.
->> - Clean up NAND device tree handling. Don't rely on legacy platform device
->>   i.e. don't call gpmc_nand_init()
->> - Add 2 public APIs omap_gpmc_retime() and omap_gpmc_get_clk_period()
->>   omap_gpmc_retime() allows to reconfigure the GPMC settings and timings
->>   for the specified Chip select region.
->>   omap_gpmc_get_clk_period() allows to query the GPMC_CLK (external clock)
->>   period, to perform timing calculations.
->>   Both functions will be needed by the OneNAND driver since it calculates
->>   device timings on the fly and needs to change from Asynchronous mode
->>   to Synchronous mode.
->> - Setup OneNAND in Asynchronous mode by default and move Synchronous
->>   setting code into OneNAND driver.
->> - Clean up OneNAND device tree handling. Don't rely on legacy platform device
->>   i.e. don't call gpmc_onenand_init()
->> - Introduce gpmc_generic_init() that should be used by board files to specify
->>   GPMC chip select setting/timing and platform device within that Chip Select.
->> - Stop using all gpmc*() that are meant to be private to GPMC driver.
->> - Move GPMC driver into drivers/memory
->>
->> Tested on:
->>
->> - beagleboard C4: NAND
->> - Nokia N900: OneNAND
->>
-> 
-> Do you have a tree somewhere that I can use it to test on the boards I
-> maintain and post patches to update the DTS according the new binding?
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 751f354..05d2d98 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
+ {
+ 	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
+ }
++EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
+ 
+ void omap4_ctrl_pad_writel(u32 val, u16 offset)
+ {
+ 	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
+ }
++EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+ 
+diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
+index 78b0fba..0c3e3c1 100644
+--- a/drivers/staging/media/omap4iss/Kconfig
++++ b/drivers/staging/media/omap4iss/Kconfig
+@@ -1,5 +1,5 @@
+ config VIDEO_OMAP4
+-	bool "OMAP 4 Camera support"
++	tristate "OMAP 4 Camera support"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	---help---
 
-You can find the series at
-git@github.com:rogerq/linux.git
-gpmc-3.16-v1
-
-cheers,
--roger
