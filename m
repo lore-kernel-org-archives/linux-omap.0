@@ -1,122 +1,54 @@
-From: Tomasz Figa <t.figa@samsung.com>
-Subject: [PATCH 4/5] ARM: EXYNOS: Add .write_sec outer cache callback for
- L2C-310
-Date: Wed, 11 Jun 2014 17:30:11 +0200
-Message-ID: <1402500612-4778-5-git-send-email-t.figa@samsung.com>
-References: <1402500612-4778-1-git-send-email-t.figa@samsung.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC] irqchip: gic: always mask interrupts during suspend
+Date: Wed, 11 Jun 2014 09:31:57 -0600
+Message-ID: <5398766D.1070900@wwwdotorg.org>
+References: <1402442098-21093-1-git-send-email-computersforpeace@gmail.com> <alpine.DEB.2.10.1406110129270.5170@nanos> <20140610234826.GK3599@ld-irv-0074>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <1402500612-4778-1-git-send-email-t.figa@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-samsung-soc@vger.kernel.org
-Cc: Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Robin Holt <holt@sgi.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Tomasz Figa <t.figa@samsung.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140610234826.GK3599@ld-irv-0074>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Jason Cooper <jason@lakedaemon.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Exynos4 SoCs equipped with an L2C-310 cache controller and running under
-secure firmware require certain registers of aforementioned IP to be
-accessed only from secure mode. This means that SMC calls are required
-for certain register writes. To handle this, an implementation of
-.write_sec callback is provided by this patch.
+On 06/10/2014 05:48 PM, Brian Norris wrote:
+> On Wed, Jun 11, 2014 at 01:34:39AM +0200, Thomas Gleixner wrote:
+>> On Tue, 10 Jun 2014, Brian Norris wrote:
+>>> Other random thought: it seems like any irqchip driver which does lazy IRQ
+>>> masking ought to use IRQCHIP_MASK_ON_SUSPEND. So maybe the IRQ core should just
+>>> do something like:
+>>>
+>>> 	if (!chip->irq_disable)
+>>> 		chip->flags |= IRQCHIP_MASK_ON_SUSPEND;
+>>
+>> No. Lazy irq disable and the suspend logic are different beasts.
+> 
+> OK, fair enough. Drop that random thought then. It's not in the patch
+> content anyway.
+> 
+>> That's up to the platform to decide this. Just for the record: there
+>> is a world outside of ARM...
+> 
+> OK. But GIC is ARM-specific, so we can still constrain this patch and
+> related topics to the world of ARM.
+> 
+>> But that brings me to a different question:
+>>
+>>     Why are you not putting that customization into the device tree
+>>     instead of trying to add this to some random arch/arm/mach-foo
+>>     files?
+> 
+> I'm not adding customization to arch/arm/mach-foo files. I'm trying to
+> remove it.
+> 
+> This property could be added to device tree, if there was really a valid
+> use case for a GIC which leaves its interrupts unmasked for suspend. My
+> question in this patch is essentially: does such a use case exist?
 
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
----
- arch/arm/mach-exynos/firmware.c | 61 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 61 insertions(+)
-
-diff --git a/arch/arm/mach-exynos/firmware.c b/arch/arm/mach-exynos/firmware.c
-index eb91d23..34f7798 100644
---- a/arch/arm/mach-exynos/firmware.c
-+++ b/arch/arm/mach-exynos/firmware.c
-@@ -14,7 +14,9 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
- 
-+#include <asm/cputype.h>
- #include <asm/firmware.h>
-+#include <asm/hardware/cache-l2x0.h>
- 
- #include <mach/map.h>
- 
-@@ -70,6 +72,55 @@ static const struct firmware_ops exynos_firmware_ops = {
- 	.cpu_boot		= exynos_cpu_boot,
- };
- 
-+static void exynos_l2_write_sec(void __iomem *base, unsigned long val,
-+				unsigned reg)
-+{
-+	switch (reg) {
-+	case L2X0_CTRL:
-+		exynos_smc(SMC_CMD_L2X0CTRL, val, 0, 0);
-+		break;
-+
-+	case L2X0_AUX_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP2,
-+				readl_relaxed(base + L310_POWER_CTRL),
-+				val, 0);
-+		break;
-+
-+	case L2X0_DEBUG_CTRL:
-+		exynos_smc(SMC_CMD_L2X0DEBUG, val, 0, 0);
-+		break;
-+
-+	case L310_TAG_LATENCY_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP1,
-+				val,
-+				readl_relaxed(base + L310_DATA_LATENCY_CTRL),
-+				readl_relaxed(base + L310_PREFETCH_CTRL));
-+		break;
-+
-+	case L310_DATA_LATENCY_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP1,
-+				readl_relaxed(base + L310_TAG_LATENCY_CTRL),
-+				val,
-+				readl_relaxed(base + L310_PREFETCH_CTRL));
-+		break;
-+
-+	case L310_PREFETCH_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP1,
-+				readl_relaxed(base + L310_TAG_LATENCY_CTRL),
-+				readl_relaxed(base + L310_DATA_LATENCY_CTRL),
-+				val);
-+		break;
-+
-+	case L310_POWER_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP2, val,
-+				readl_relaxed(base + L2X0_AUX_CTRL), 0);
-+		break;
-+
-+	default:
-+		WARN_ONCE(1, "%s: ignoring write to reg 0x%x\n", __func__, reg);
-+	}
-+}
-+
- void __init exynos_firmware_init(void)
- {
- 	struct device_node *nd;
-@@ -89,4 +140,14 @@ void __init exynos_firmware_init(void)
- 	pr_info("Running under secure firmware.\n");
- 
- 	register_firmware_ops(&exynos_firmware_ops);
-+
-+	/*
-+	 * Exynos 4 SoCs (based on Cortex A9 and equipped with L2C-310),
-+	 * running under secure firmware, require certain registers of L2
-+	 * cache controller to be written in secure mode. Here .write_sec
-+	 * callback is provided to perform necessary SMC calls.
-+	 */
-+	if (IS_ENABLED(CONFIG_CACHE_L2X0)
-+	    && read_cpuid_part_number() == ARM_CPU_PART_CORTEX_A9)
-+		outer_cache.write_sec = exynos_l2_write_sec;
- }
--- 
-1.9.3
+DT should genernally only contain data that's expected to vary between
+boards, or just possibly between SoCs. Anything that the kernel knows
+simply because it knows what HW model it's driving has no place in DT,
+since it just adds redundant work to parse the DT and end up with the
+same data.
