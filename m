@@ -1,54 +1,52 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [RFC] irqchip: gic: always mask interrupts during suspend
-Date: Wed, 11 Jun 2014 09:31:57 -0600
-Message-ID: <5398766D.1070900@wwwdotorg.org>
-References: <1402442098-21093-1-git-send-email-computersforpeace@gmail.com> <alpine.DEB.2.10.1406110129270.5170@nanos> <20140610234826.GK3599@ld-irv-0074>
+From: Jon Loeliger <loeliger@gmail.com>
+Subject: Re: [PATCH 1/5] ARM: mm: cache-l2x0: Add base address argument to
+ write_sec callback
+Date: Wed, 11 Jun 2014 11:00:40 -0500
+Message-ID: <CAJgR-BhgZ7k_Uk_Md79pkZKQXTZUjspqq0u9sa9D69Kixy7DhA@mail.gmail.com>
+References: <1402500612-4778-1-git-send-email-t.figa@samsung.com>
+	<1402500612-4778-2-git-send-email-t.figa@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140610234826.GK3599@ld-irv-0074>
+In-Reply-To: <1402500612-4778-2-git-send-email-t.figa@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Florian Fainelli <f.fainelli@gmail.com>, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Michal Simek <michal.simek@xilinx.com>, Jason Cooper <jason@lakedaemon.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Robin Holt <holt@sgi.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/10/2014 05:48 PM, Brian Norris wrote:
-> On Wed, Jun 11, 2014 at 01:34:39AM +0200, Thomas Gleixner wrote:
->> On Tue, 10 Jun 2014, Brian Norris wrote:
->>> Other random thought: it seems like any irqchip driver which does lazy IRQ
->>> masking ought to use IRQCHIP_MASK_ON_SUSPEND. So maybe the IRQ core should just
->>> do something like:
->>>
->>> 	if (!chip->irq_disable)
->>> 		chip->flags |= IRQCHIP_MASK_ON_SUSPEND;
->>
->> No. Lazy irq disable and the suspend logic are different beasts.
-> 
-> OK, fair enough. Drop that random thought then. It's not in the patch
-> content anyway.
-> 
->> That's up to the platform to decide this. Just for the record: there
->> is a world outside of ARM...
-> 
-> OK. But GIC is ARM-specific, so we can still constrain this patch and
-> related topics to the world of ARM.
-> 
->> But that brings me to a different question:
->>
->>     Why are you not putting that customization into the device tree
->>     instead of trying to add this to some random arch/arm/mach-foo
->>     files?
-> 
-> I'm not adding customization to arch/arm/mach-foo files. I'm trying to
-> remove it.
-> 
-> This property could be added to device tree, if there was really a valid
-> use case for a GIC which leaves its interrupts unmasked for suspend. My
-> question in this patch is essentially: does such a use case exist?
+> diff --git a/arch/arm/include/asm/mach/arch.h b/arch/arm/include/asm/mach/arch.h
+> index 060a75e..ddaebcd 100644
+> --- a/arch/arm/include/asm/mach/arch.h
+> +++ b/arch/arm/include/asm/mach/arch.h
+> @@ -46,7 +46,8 @@ struct machine_desc {
+>         enum reboot_mode        reboot_mode;    /* default restart mode */
+>         unsigned                l2c_aux_val;    /* L2 cache aux value   */
+>         unsigned                l2c_aux_mask;   /* L2 cache aux mask    */
+> -       void                    (*l2c_write_sec)(unsigned long, unsigned);
+> +       void                    (*l2c_write_sec)(void __iomem *,
+> +                                                unsigned long, unsigned);
+>         struct smp_operations   *smp;           /* SMP operations       */
+>         bool                    (*smp_init)(void);
+>         void                    (*fixup)(struct tag *, char **);
 
-DT should genernally only contain data that's expected to vary between
-boards, or just possibly between SoCs. Anything that the kernel knows
-simply because it knows what HW model it's driving has no place in DT,
-since it just adds redundant work to parse the DT and end up with the
-same data.
+> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> index efc5cab..1695eab 100644
+> --- a/arch/arm/mm/cache-l2x0.c
+> +++ b/arch/arm/mm/cache-l2x0.c
+> @@ -72,7 +72,7 @@ static void l2c_write_sec(unsigned long val, void __iomem *base, unsigned reg)
+>         if (val == readl_relaxed(base + reg))
+>                 return;
+>         if (outer_cache.write_sec)
+> -               outer_cache.write_sec(val, reg);
+> +               outer_cache.write_sec(base, val, reg);
+>         else
+>                 writel_relaxed(val, base + reg);
+>  }
+
+The parameter order (base, val, reg) seems very non-intuitive.
+Are you matching some existing prototype or adhering to some
+backwards compatibility issue?  If not wouldn't, say, (base, reg, val)
+or (val, base, reg) be more intuitive?
+
+Thanks,
+jdl
