@@ -1,169 +1,280 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 26/36] ARM: OMAP2+: gpmc-smc91x: Get rid of retime() from
- omap_smc91x_platform_data
-Date: Wed, 11 Jun 2014 11:56:31 +0300
-Message-ID: <1402477001-31132-27-git-send-email-rogerq@ti.com>
+Subject: [PATCH 34/36] ARM: OMAP2+: gpmc: Make externally unused functions/defines private
+Date: Wed, 11 Jun 2014 11:56:39 +0300
+Message-ID: <1402477001-31132-35-git-send-email-rogerq@ti.com>
 References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1402477001-31132-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com
-Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, kyungmin.park@samsung.com, linux-mtd@lists.infradead.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: kyungmin.park@samsung.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The retime() function is not provided by board files so get rid of
-it from omap_smc91x_platform_data().
-
-Instead change it to smc91c96_get_device_timing() to get the device
-timings.
+Most of the GPMC functions are now not used by other drivers.
+Make them private.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |  8 ++++--
- arch/arm/mach-omap2/gpmc-smc91x.c   | 55 ++++++++++++++-----------------------
- arch/arm/mach-omap2/gpmc-smc91x.h   |  1 -
- 3 files changed, 27 insertions(+), 37 deletions(-)
+ arch/arm/mach-omap2/gpmc.c | 84 ++++++++++++++++++++++++++++++----------------
+ arch/arm/mach-omap2/gpmc.h | 63 ----------------------------------
+ 2 files changed, 56 insertions(+), 91 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index d95d0ef..b781090 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -411,8 +411,12 @@ static int __init omap3430_i2c_init(void)
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 7a667ca..9173f71 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -80,6 +80,45 @@
+ #define GPMC_ECC_CTRL_ECCREG8		0x008
+ #define GPMC_ECC_CTRL_ECCREG9		0x009
  
- static struct omap_smc91x_platform_data board_smc91x_data = {
- 	.cs		= 3,
--	.flags		= GPMC_MUX_ADD_DATA | GPMC_TIMINGS_SMC91C96 |
--				IORESOURCE_IRQ_LOWLEVEL,
-+	/*
-+	 * Don't use GPMC_TIMINGS_SMC91C96 flag here as generic
-+	 * timing doesn't seem to have worked.
-+	 * Leave bootloader timing intact.
-+	 */
-+	.flags		= GPMC_MUX_ADD_DATA | IORESOURCE_IRQ_LOWLEVEL,
- };
++/* ECC commands */
++#define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
++#define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
++#define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
++
++/* CS CONFIG registers */
++#define GPMC_CS_CONFIG1		0x00
++#define GPMC_CS_CONFIG2		0x04
++#define GPMC_CS_CONFIG3		0x08
++#define GPMC_CS_CONFIG4		0x0c
++#define GPMC_CS_CONFIG5		0x10
++#define GPMC_CS_CONFIG6		0x14
++#define GPMC_CS_CONFIG7		0x18
++
++#define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
++#define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
++#define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
++#define GPMC_CONFIG1_READTYPE_SYNC      (1 << 29)
++#define GPMC_CONFIG1_WRITEMULTIPLE_SUPP (1 << 28)
++#define GPMC_CONFIG1_WRITETYPE_ASYNC    (0 << 27)
++#define GPMC_CONFIG1_WRITETYPE_SYNC     (1 << 27)
++#define GPMC_CONFIG1_CLKACTIVATIONTIME(val) ((val & 3) << 25)
++#define GPMC_CONFIG1_PAGE_LEN(val)      ((val & 3) << 23)
++#define GPMC_CONFIG1_WAIT_READ_MON      (1 << 22)
++#define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
++#define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
++#define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
++#define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
++#define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
++#define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
++#define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
++#define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
++#define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
++#define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
++#define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
++#define GPMC_CONFIG1_FCLK_DIV3          (GPMC_CONFIG1_FCLK_DIV(2))
++#define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
++#define GPMC_CONFIG7_CSVALID		(1 << 6)
++
+ #define	GPMC_CONFIG2_CSEXTRADELAY		BIT(7)
+ #define	GPMC_CONFIG3_ADVEXTRADELAY		BIT(7)
+ #define	GPMC_CONFIG4_OEEXTRADELAY		BIT(7)
+@@ -87,6 +126,12 @@
+ #define	GPMC_CONFIG6_CYCLE2CYCLEDIFFCSEN	BIT(6)
+ #define	GPMC_CONFIG6_CYCLE2CYCLESAMECSEN	BIT(7)
  
- static void __init board_smc91x_init(void)
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
-index 61a0635..7f5d84a 100644
---- a/arch/arm/mach-omap2/gpmc-smc91x.c
-+++ b/arch/arm/mach-omap2/gpmc-smc91x.c
-@@ -59,10 +59,8 @@ static struct gpmc_settings smc91x_settings = {
-  * http://www.smsc.com/main/catalog/lan91c96.html
-  * REVISIT: Level shifters can add at least to the access latency.
-  */
--static int smc91c96_gpmc_retime(void)
-+static void smc91c96_get_device_timing(struct gpmc_device_timings *dev_t)
- {
--	struct gpmc_timings t;
--	struct gpmc_device_timings dev_t;
- 	const int t3 = 10;	/* Figure 12.2 read and 12.4 write */
- 	const int t4_r = 20;	/* Figure 12.2 read */
- 	const int t4_w = 5;	/* Figure 12.4 write */
-@@ -72,33 +70,19 @@ static int smc91c96_gpmc_retime(void)
- 	const int t8 = 5;	/* Figure 12.4 write */
- 	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
- 
--	/*
--	 * FIXME: Calculate the address and data bus muxed timings.
--	 * Note that at least adv_rd_off needs to be changed according
--	 * to omap3430 TRM Figure 11-11. Are the sdp boards using the
--	 * FPGA in between smc91x and omap as the timings are different
--	 * from above?
--	 */
--	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
--		return 0;
--
--	memset(&dev_t, 0, sizeof(dev_t));
--
--	dev_t.t_oeasu = t3 * 1000;
--	dev_t.t_oe = t5 * 1000;
--	dev_t.t_cez_r = t4_r * 1000;
--	dev_t.t_oez = t6 * 1000;
--	dev_t.t_rd_cycle = (t20 - t3) * 1000;
-+	memset(dev_t, 0, sizeof(*dev_t));
- 
--	dev_t.t_weasu = t3 * 1000;
--	dev_t.t_wpl = t7 * 1000;
--	dev_t.t_wph = t8 * 1000;
--	dev_t.t_cez_w = t4_w * 1000;
--	dev_t.t_wr_cycle = (t20 - t3) * 1000;
-+	dev_t->t_oeasu = t3 * 1000;
-+	dev_t->t_oe = t5 * 1000;
-+	dev_t->t_cez_r = t4_r * 1000;
-+	dev_t->t_oez = t6 * 1000;
-+	dev_t->t_rd_cycle = (t20 - t3) * 1000;
- 
--	gpmc_calc_timings(&t, &smc91x_settings, &dev_t);
--
--	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
-+	dev_t->t_weasu = t3 * 1000;
-+	dev_t->t_wpl = t7 * 1000;
-+	dev_t->t_wph = t8 * 1000;
-+	dev_t->t_cez_w = t4_w * 1000;
-+	dev_t->t_wr_cycle = (t20 - t3) * 1000;
++#define GPMC_DEVICETYPE_NOR		0
++#define GPMC_DEVICETYPE_NAND		2
++#define WR_RD_PIN_MONITORING		0x00600000
++#define GPMC_IRQ_FIFOEVENTENABLE	0x01
++#define GPMC_IRQ_COUNT_EVENT		0x02
++
+ #define GPMC_CS0_OFFSET		0x60
+ #define GPMC_CS_SIZE		0x30
+ #define	GPMC_BCH_SIZE		0x10
+@@ -163,7 +208,7 @@ static u32 gpmc_read_reg(int idx)
+ 	return __raw_readl(gpmc_base + idx);
  }
  
- /*
-@@ -110,12 +94,10 @@ void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
+-void gpmc_cs_write_reg(int cs, int idx, u32 val)
++static void gpmc_cs_write_reg(int cs, int idx, u32 val)
  {
- 	unsigned long cs_mem_base;
- 	int ret;
-+	struct gpmc_device_timings dev_t;
+ 	void __iomem *reg_addr;
  
- 	gpmc_cfg = board_data;
+@@ -215,11 +260,6 @@ static unsigned int gpmc_ps_to_ticks(unsigned int time_ps)
+ 	return (time_ps + tick_ps - 1) / tick_ps;
+ }
  
--	if (gpmc_cfg->flags & GPMC_TIMINGS_SMC91C96)
--		gpmc_cfg->retime = smc91c96_gpmc_retime;
+-unsigned int gpmc_ticks_to_ns(unsigned int ticks)
+-{
+-	return ticks * gpmc_get_fclk_period() / 1000;
+-}
 -
- 	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
- 		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
- 		return;
-@@ -137,10 +119,15 @@ void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
- 	if (ret < 0)
- 		goto free1;
+ static unsigned int gpmc_ticks_to_ps(unsigned int ticks)
+ {
+ 	return ticks * gpmc_get_fclk_period();
+@@ -315,7 +355,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 		return -1
+ #endif
  
--	if (gpmc_cfg->retime) {
--		ret = gpmc_cfg->retime();
--		if (ret != 0)
-+	if (gpmc_cfg->flags & GPMC_TIMINGS_SMC91C96) {
-+		struct gpmc_timings gpmc_t;
-+
-+		smc91c96_get_device_timing(&dev_t);
-+		gpmc_calc_timings(&gpmc_t, &smc91x_settings, &dev_t);
-+		if (gpmc_cs_set_timings(gpmc_cfg->cs, &gpmc_t)) {
-+			pr_err("%s: failed to set GPMC timings\n", __func__);
- 			goto free1;
-+		}
- 	}
+-int gpmc_calc_divider(unsigned int sync_clk)
++static int gpmc_calc_divider(unsigned int sync_clk)
+ {
+ 	int div;
+ 	u32 l;
+@@ -330,7 +370,7 @@ int gpmc_calc_divider(unsigned int sync_clk)
+ 	return div;
+ }
  
- 	if (gpio_request_one(gpmc_cfg->gpio_irq, GPIOF_IN, "SMC91X irq") < 0)
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.h b/arch/arm/mach-omap2/gpmc-smc91x.h
-index b64fbee..1da09a0 100644
---- a/arch/arm/mach-omap2/gpmc-smc91x.h
-+++ b/arch/arm/mach-omap2/gpmc-smc91x.h
-@@ -22,7 +22,6 @@ struct omap_smc91x_platform_data {
- 	int	gpio_reset;
- 	int	wait_pin;	/* Optional GPMC_CONFIG1_WAITPINSELECT */
- 	u32	flags;
--	int	(*retime)(void);
- };
+-int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
++static int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ {
+ 	int div;
+ 	u32 l;
+@@ -537,7 +577,7 @@ static int gpmc_cs_remap(int cs, u32 base)
+ 	return 0;
+ }
  
- #if defined(CONFIG_SMC91X) || \
+-int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
++static int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
+ {
+ 	struct resource *res = &gpmc_cs_mem[cs];
+ 	int r = -1;
+@@ -575,9 +615,8 @@ out:
+ 	spin_unlock(&gpmc_mem_lock);
+ 	return r;
+ }
+-EXPORT_SYMBOL(gpmc_cs_request);
+ 
+-void gpmc_cs_free(int cs)
++static void gpmc_cs_free(int cs)
+ {
+ 	struct resource	*res = &gpmc_cs_mem[cs];
+ 
+@@ -594,18 +633,6 @@ void gpmc_cs_free(int cs)
+ 	gpmc_cs_set_reserved(cs, 0);
+ 	spin_unlock(&gpmc_mem_lock);
+ }
+-EXPORT_SYMBOL(gpmc_cs_free);
+-
+-void gpmc_get_mem_resource(struct resource *res)
+-{
+-	res->start =  phys_base;
+-	res->end = res->start + mem_size - 1;
+-}
+-
+-int gpmc_get_irq(void)
+-{
+-	return gpmc_irq;
+-}
+ 
+ static void gpmc_mem_exit(void)
+ {
+@@ -937,9 +964,9 @@ static void gpmc_convert_ps_to_ns(struct gpmc_timings *t)
+ 	t->wr_data_mux_bus /= 1000;
+ }
+ 
+-int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+-		      struct gpmc_settings *gpmc_s,
+-		      struct gpmc_device_timings *dev_t)
++static int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
++			     struct gpmc_settings *gpmc_s,
++			     struct gpmc_device_timings *dev_t)
+ {
+ 	bool mux = false, sync = false;
+ 
+@@ -980,7 +1007,7 @@ int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+  * register will be initialised to zero by this function. Returns 0 on
+  * success and appropriate negative error code on failure.
+  */
+-int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
++static int gpmc_cs_program_settings(int cs, struct gpmc_settings *p)
+ {
+ 	u32 config1;
+ 
+@@ -1073,7 +1100,8 @@ MODULE_DEVICE_TABLE(of, gpmc_dt_ids);
+  * structure is initialised to zero by this function and so any
+  * previously stored settings will be cleared.
+  */
+-void gpmc_read_settings_dt(struct device_node *np, struct gpmc_settings *p)
++static void gpmc_read_settings_dt(struct device_node *np,
++				  struct gpmc_settings *p)
+ {
+ 	memset(p, 0, sizeof(struct gpmc_settings));
+ 
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+index 301bc66..c8af000 100644
+--- a/arch/arm/mach-omap2/gpmc.h
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -11,77 +11,14 @@
+ #ifndef __OMAP2_GPMC_H
+ #define __OMAP2_GPMC_H
+ 
+-#include <linux/platform_data/mtd-nand-omap2.h>
+ #include <linux/platform_data/gpmc-omap.h>
+ 
+-#define GPMC_CS_CONFIG1		0x00
+-#define GPMC_CS_CONFIG2		0x04
+-#define GPMC_CS_CONFIG3		0x08
+-#define GPMC_CS_CONFIG4		0x0c
+-#define GPMC_CS_CONFIG5		0x10
+-#define GPMC_CS_CONFIG6		0x14
+-#define GPMC_CS_CONFIG7		0x18
+-
+-/* ECC commands */
+-#define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
+-#define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
+-#define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
+-
+-#define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+-#define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+-#define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
+-#define GPMC_CONFIG1_READTYPE_SYNC      (1 << 29)
+-#define GPMC_CONFIG1_WRITEMULTIPLE_SUPP (1 << 28)
+-#define GPMC_CONFIG1_WRITETYPE_ASYNC    (0 << 27)
+-#define GPMC_CONFIG1_WRITETYPE_SYNC     (1 << 27)
+-#define GPMC_CONFIG1_CLKACTIVATIONTIME(val) ((val & 3) << 25)
+-#define GPMC_CONFIG1_PAGE_LEN(val)      ((val & 3) << 23)
+-#define GPMC_CONFIG1_WAIT_READ_MON      (1 << 22)
+-#define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
+-#define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
+-#define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
+-#define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
+-#define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
+-#define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+-#define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+-#define GPMC_CONFIG1_MUXTYPE(val)       ((val & 3) << 8)
+-#define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+-#define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
+-#define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
+-#define GPMC_CONFIG1_FCLK_DIV3          (GPMC_CONFIG1_FCLK_DIV(2))
+-#define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
+-#define GPMC_CONFIG7_CSVALID		(1 << 6)
+-
+-#define GPMC_DEVICETYPE_NOR		0
+-#define GPMC_DEVICETYPE_NAND		2
+-#define WR_RD_PIN_MONITORING		0x00600000
+-#define GPMC_IRQ_FIFOEVENTENABLE	0x01
+-#define GPMC_IRQ_COUNT_EVENT		0x02
+-
+-extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
+-			     struct gpmc_settings *gpmc_s,
+-			     struct gpmc_device_timings *dev_t);
+-
+-void gpmc_get_mem_resource(struct resource *res);
+-int gpmc_get_irq(void);
+-
+-extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+-
+-extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
+-extern int gpmc_calc_divider(unsigned int sync_clk);
+-extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
+-extern int gpmc_cs_program_settings(int cs, struct gpmc_settings *p);
+-extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+-extern void gpmc_cs_free(int cs);
+ extern void omap3_gpmc_save_context(void);
+ extern void omap3_gpmc_restore_context(void);
+-extern void gpmc_read_settings_dt(struct device_node *np,
+-				  struct gpmc_settings *p);
+ int gpmc_generic_init(int cs, bool is_nand,
+ 		      struct gpmc_settings *settings,
+ 		      struct gpmc_device_timings *device_timings,
+ 		      struct gpmc_timings *gpmc_timings,
+ 		      struct platform_device *pdev,
+ 		      unsigned pdata_size);
+-
+ #endif
 -- 
 1.8.3.2
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
