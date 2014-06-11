@@ -1,72 +1,80 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 33/36] ARM: OMAP2+: board-flash: Use gpmc_generic_init() for NOR
-Date: Wed, 11 Jun 2014 11:56:38 +0300
-Message-ID: <1402477001-31132-34-git-send-email-rogerq@ti.com>
+Subject: [PATCH 13/36] ARM: OMAP2+: gpmc.c: sanity check bank-width DT property
+Date: Wed, 11 Jun 2014 11:56:18 +0300
+Message-ID: <1402477001-31132-14-git-send-email-rogerq@ti.com>
 References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 In-Reply-To: <1402477001-31132-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com
-Cc: kyungmin.park@samsung.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, kyungmin.park@samsung.com, linux-mtd@lists.infradead.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Don't access any GPMC registers here. Use gpmc_generic_init()
-to pass GPMC Chip Select settings, platform device and platform data
-to the GPMC driver.
+Make sure bank-width property provided via DT is sane.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/board-flash.c | 28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/gpmc.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index b6885e4..617e441 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -41,7 +41,10 @@ static struct physmap_flash_data board_nor_data = {
- };
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index c713616..70cb6b0 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1219,6 +1219,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	struct resource res;
+ 	unsigned long base;
+ 	int ret, cs;
++	struct device *dev = &pdev->dev;
  
- static struct resource board_nor_resource = {
-+	/* GPMC driver will fixup the resource, see gpmc_probe_legacy () */
- 	.flags		= IORESOURCE_MEM,
-+	.start		= 0,
-+	.end		= FLASH_SIZE_SDPV1 - 1,	/* fixed @runtime for SDPV2 */
- };
+ 	if (of_property_read_u32(child, "reg", &cs) < 0) {
+ 		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+@@ -1284,7 +1285,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 			gpmc_s.device_width = GPMC_DEVWIDTH_16BIT;
+ 			break;
+ 		default:
+-			dev_err(&pdev->dev, "%s: invalid 'nand-bus-width'\n",
++			dev_err(dev, "%s: invalid 'nand-bus-width'\n",
+ 				child->name);
+ 			ret = -EINVAL;
+ 			goto err;
+@@ -1292,10 +1293,18 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
  
- static struct platform_device board_nor_device = {
-@@ -62,23 +65,14 @@ __init board_nor_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
- 	board_nor_data.parts	= nor_parts;
- 	board_nor_data.nr_parts	= nr_parts;
- 
--	/* Configure start address and size of NOR device */
--	if (omap_rev() >= OMAP3430_REV_ES1_0) {
--		err = gpmc_cs_request(cs, FLASH_SIZE_SDPV2 - 1,
--				(unsigned long *)&board_nor_resource.start);
--		board_nor_resource.end = board_nor_resource.start
--					+ FLASH_SIZE_SDPV2 - 1;
--	} else {
--		err = gpmc_cs_request(cs, FLASH_SIZE_SDPV1 - 1,
--				(unsigned long *)&board_nor_resource.start);
--		board_nor_resource.end = board_nor_resource.start
--					+ FLASH_SIZE_SDPV1 - 1;
--	}
--	if (err < 0) {
--		pr_err("NOR: Can't request GPMC CS\n");
--		return;
--	}
--	if (platform_device_register(&board_nor_device) < 0)
-+	/* Configure size of NOR device */
-+	if (omap_rev() >= OMAP3430_REV_ES1_0)
-+		board_nor_resource.end = FLASH_SIZE_SDPV2 - 1;
+ 		gpmc_s.device_nand = true;
+ 	} else {
+-		ret = of_property_read_u32(child, "bank-width",
+-					   &gpmc_s.device_width);
+-		if (ret < 0)
++		if (of_property_read_u32(child, "bank-width",
++					 &gpmc_s.device_width)) {
++			dev_err(dev, "%s: no 'bank-width' property\n",
++				child->name);
++			goto err;
++		}
 +
-+	err = gpmc_generic_init(cs, false,
-+				NULL, NULL, NULL,
-+				&board_nor_device, sizeof(board_nor_data));
-+	if (err)
- 		pr_err("Unable to register NOR device\n");
- }
++		if (gpmc_s.device_width < 1 || gpmc_s.device_width > 2) {
++			dev_err(dev, "%s: invalid 'bank-width'\n",
++				child->name);
+ 			goto err;
++		}
+ 	}
  
+ 	ret = gpmc_cs_program_settings(cs, &gpmc_s);
 -- 
 1.8.3.2
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
