@@ -1,54 +1,52 @@
 From: Tomasz Figa <t.figa@samsung.com>
-Subject: [PATCH 0/5] Handle non-secure L2C initialization on Exynos4
-Date: Wed, 11 Jun 2014 17:30:07 +0200
-Message-ID: <1402500612-4778-1-git-send-email-t.figa@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 2/5] ARM: Get outer cache .write_sec callback from mach_desc
+ only if not NULL
+Date: Wed, 11 Jun 2014 17:30:09 +0200
+Message-ID: <1402500612-4778-3-git-send-email-t.figa@samsung.com>
+References: <1402500612-4778-1-git-send-email-t.figa@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-reply-to: <1402500612-4778-1-git-send-email-t.figa@samsung.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-samsung-soc@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Robin Holt <holt@sgi.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <tomasz.figa@gmail.com>, Tomasz Figa <t.figa@samsung.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Robin Holt <holt@sgi.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Tomasz Figa <t.figa@samsung.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This series intends to add support for L2 cache on Exynos4 SoCs on boards
-running under secure firmware, which requires certain initialization steps
-to be done with help of firmware, as selected registers are writable only
-from secure mode.
+Certain platforms (i.e. Exynos) might need to set .write_sec callback
+from firmware initialization which is happenning in .init_early callback
+of machine descriptor. However current code will overwrite the pointer
+with whatever is present in machine descriptor, even though it can be
+already set earlier. This patch fixes this by making the assignment
+conditional, depending on whether current .write_sec callback is NULL.
 
-First three patches extend existing support for secure write in L2C driver
-to account for design of secure firmware running on Exynos. Namely:
- 1) direct read access to certain registers is needed on Exynos, because
-    secure firmware calls set several registers at once,
- 2) not all boards are running secure firmware, so .write_sec callback
-    needs to be installed in Exynos firmware ops initialization code,
- 3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
-    is not allowed and so must use l2c_write_sec as well.
-Those patches might affect other platforms using .write_sec callback, so
-I'd like to kindly ask any interested people for testing.
+Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+---
+ arch/arm/kernel/irq.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Further two patches add impelmentation of .write_sec for Exynos secure
-firmware and necessary DT nodes to enable L2 cache.
-
-Tested on Exynos4210-based Universal C210 board (without secure firmware)
-and Exynos4412-based TRATS2 board (with secure firmware).
-
-Tomasz Figa (5):
-  ARM: mm: cache-l2x0: Add base address argument to write_sec callback
-  ARM: Get outer cache .write_sec callback from mach_desc only if not
-    NULL
-  ARM: mm: cache-l2x0: Use l2c_write_sec() for LATENCY_CTRL registers
-  ARM: EXYNOS: Add .write_sec outer cache callback for L2C-310
-  ARM: dts: exynos4: Add nodes for L2 cache controller
-
- arch/arm/boot/dts/exynos4210.dtsi  |  9 ++++++
- arch/arm/boot/dts/exynos4x12.dtsi  |  9 ++++++
- arch/arm/include/asm/mach/arch.h   |  3 +-
- arch/arm/include/asm/outercache.h  |  2 +-
- arch/arm/kernel/irq.c              |  3 +-
- arch/arm/mach-exynos/firmware.c    | 61 ++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-highbank/highbank.c  |  3 +-
- arch/arm/mach-omap2/omap4-common.c |  3 +-
- arch/arm/mach-ux500/cache-l2x0.c   |  3 +-
- arch/arm/mm/cache-l2x0.c           | 10 +++----
- 10 files changed, 95 insertions(+), 11 deletions(-)
-
+diff --git a/arch/arm/kernel/irq.c b/arch/arm/kernel/irq.c
+index 2c42576..e7383b9 100644
+--- a/arch/arm/kernel/irq.c
++++ b/arch/arm/kernel/irq.c
+@@ -125,7 +125,8 @@ void __init init_IRQ(void)
+ 
+ 	if (IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_CACHE_L2X0) &&
+ 	    (machine_desc->l2c_aux_mask || machine_desc->l2c_aux_val)) {
+-		outer_cache.write_sec = machine_desc->l2c_write_sec;
++		if (!outer_cache.write_sec)
++			outer_cache.write_sec = machine_desc->l2c_write_sec;
+ 		ret = l2x0_of_init(machine_desc->l2c_aux_val,
+ 				   machine_desc->l2c_aux_mask);
+ 		if (ret)
 -- 
 1.9.3
