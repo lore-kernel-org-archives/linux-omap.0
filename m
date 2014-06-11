@@ -1,48 +1,75 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 01/36] ARM: OMAP3: hwmod: Fix gpmc memory resource space
-Date: Wed, 11 Jun 2014 11:56:06 +0300
-Message-ID: <1402477001-31132-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 11/36] mtd: nand: omap: Update DT binding documentation
+Date: Wed, 11 Jun 2014 11:56:16 +0300
+Message-ID: <1402477001-31132-12-git-send-email-rogerq@ti.com>
 References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1402477001-31132-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, dwmw2@infradead.org, computersforpeace@gmail.com
-Cc: devicetree@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, kyungmin.park@samsung.com, linux-mtd@lists.infradead.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: kyungmin.park@samsung.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
+
+Add compatible id, interrupts and update reg property description.
+As the NAND controller needs access to GPMC register space, we need
+to pass a second memory resource to the NAND controller node.
+
+Due to the wierd way the reg property has been implemented (i.e.
+CS number required in 1st number of reg property) we will need to
+use a number outside the possible CS numbers for the GPMC register space.
+
+As a SoC can have fewer than 10 chip selects, 255 seems like a safe
+bet for the GPMC register space.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/mtd/gpmc-nand.txt | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 71ac7d5..f2848a8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3426,7 +3426,7 @@ static struct omap_hwmod_addr_space omap3xxx_counter_32k_addrs[] = {
- static struct omap_hwmod_addr_space omap3xxx_gpmc_addrs[] = {
- 	{
- 		.pa_start	= 0x6e000000,
--		.pa_end		= 0x6e000fff,
-+		.pa_end		= 0x6e0002d4,
- 		.flags		= ADDR_TYPE_RT
- 	},
- 	{ }
+diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+index 5e1f31b..8831116 100644
+--- a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
++++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+@@ -13,7 +13,13 @@ Documentation/devicetree/bindings/mtd/nand.txt
+ 
+ Required properties:
+ 
++ - compatible:	"ti,omap2-nand"
+  - reg:		The CS line the peripheral is connected to
++		Should contain 2 resource specifiers
++		- range id (CS number), base offset and length of the
++		  NAND I/O space
++		- range id,  base offset and length of the GPMC register space.
++ - interrupts:	Interrupt resource specifier for GPMC interrupt.
+ 
+ Optional properties:
+ 
+@@ -53,17 +59,21 @@ Example for an AM33xx board:
+ 	gpmc: gpmc@50000000 {
+ 		compatible = "ti,am3352-gpmc";
+ 		ti,hwmods = "gpmc";
+-		reg = <0x50000000 0x1000000>;
++		reg = <0x50000000 0x36c>;
+ 		interrupts = <100>;
+ 		gpmc,num-cs = <8>;
+ 		gpmc,num-waitpins = <2>;
+ 		#address-cells = <2>;
+ 		#size-cells = <1>;
+-		ranges = <0 0 0x08000000 0x2000>;	/* CS0: NAND */
++		ranges = <0 0 0x08000000 0x1000000	/* CS0 space, 16MB */
++			  255 0 0x50000000 0x36c>;	/* GPMC reg space */
+ 		elm_id = <&elm>;
+ 
+ 		nand@0,0 {
+-			reg = <0 0 0>; /* CS0, offset 0 */
++			compatible = "ti,omap2-nand";
++			reg = <0 0 4		/* CS0, offset 0, NAND I/O window 4 */
++			       255 0 0x36c>;	/* GPMC reg space */
++			interrupts = <100>;
+ 			nand-bus-width = <16>;
+ 			ti,nand-ecc-opt = "bch8";
+ 			ti,nand-xfer-type = "polled";
 -- 
 1.8.3.2
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
