@@ -1,127 +1,80 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH 1/2] clk: of: introduce of_clk_get_from_set()
-Date: Thu, 12 Jun 2014 19:53:42 +0300
-Message-ID: <1402592023-13416-2-git-send-email-grygorii.strashko@ti.com>
+Subject: [RFC PATCH 0/2] use named clocks list to register clocks for PM clock domain
+Date: Thu, 12 Jun 2014 19:53:41 +0300
+Message-ID: <1402592023-13416-1-git-send-email-grygorii.strashko@ti.com>
 References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
- <1402592023-13416-1-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51690 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756233AbaFLQGV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jun 2014 12:06:21 -0400
-In-Reply-To: <1402592023-13416-1-git-send-email-grygorii.strashko@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+Sender: linux-kernel-owner@vger.kernel.org
 To: geert+renesas@glider.be
 Cc: laurent.pinchart@ideasonboard.com, ulf.hansson@linaro.org, khilman@linaro.org, grant.likely@secretlab.ca, mturquette@linaro.org, tomasz.figa@gmail.com, ben.dooks@codethink.co.uk, horms@verge.net.au, magnus.damm@gmail.com, rjw@rjwysocki.net, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-In many case it's useful to divide device's clocks into
-few sets according to their designation.
-- some clocks can be optional for the device
-- some clocks can be managed by PM frameworks (like clock_ops for example)
-  while some need to be managed by driver directly.
+Hi Geert,
 
-This patch introduces new API of_clk_get_from_set() which allows
-the callers to specify additional prefix to be used together with
-generic DT clocks list property name "clocks".
+I've spent some time testing your patches on Keystone 2 SoC as I am interested 
+in these patches.
 
-In the example bellow, the caller asks CLK framework to retrieve
-clock from the clocks list "clkops-clocks" and not from "clocks":
-DT:
-	usb: usb@2680000 {
-		compatible = "ti,keystone-dwc3";
-		[...]
-		clkops-clocks = <&clkusb>;
+The Keystone 2 is pure DT platform, but we reuse some Drivers from Davinci SoC.
+Now I have to dial with following problem:
+- Some modules on Keystone need more then one clock to be managed by PM clock.
+  As result, I can solve this by filling cond_id list in  structure
+  pm_clk_notifier_block.
+  For example:
+  static struct pm_clk_notifier_block platform_domain_notifier = {
+	.pm_domain = &keystone_pm_domain,
+	.con_ids = { "fck", "master", "slave", NULL },
+	};
+  But, in this case I'll need to add names for all clocks or rename existed
+  clock's names in DT to be compatible with above list, like: 
+	clock-names = "gpio"; -> clock-names = "fck";
+    - or -
+    clocks = <&clkspi>;
+	+ clock-names = "fck";
 
-Code:
-	clk = of_clk_get_from_set(np, "clkops", 0);
+Your series gracefully solves this problem for me, but I'd like to avoid
+to use new CLK flag CLK_RUNTIME_PM, because:
+ - The same driver is used for all gated clocks for Keystone (and probably for
+   other SoCs)
+ - Some gated clocks can be optional.
+Taking into account above, driver for gated clock will need to maintain additional
+information internally about clocks which are suitable for Runtime PM - 
+it is too hard to support :(.
 
-This changes will not affect on already existed code.
+Therefore, I propose a solution which allows to specify clocks suitable for
+Runtime PM in DT using special property "clkops-clocks" (name can be changed:).
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
+Another possible option is to use DT definition like this:
+	spi2: spi@21000800 {
+		compatible = "ti,dm6441-spi";
+		reg = <0x21000800 0x200>;
+		num-cs = <4>;
+		ti,davinci-spi-intr-line = <0>;
+		interrupts = <GIC_SPI 300 IRQ_TYPE_EDGE_RISING>;
+->		clkops-clocks {
+->			clocks = <&clkspi>;
+->		}
+	}
+
+Regarding supporting of EPROBE_DEFER, in my opinion simplest solution would be to
+call of_clk_register_runtime_pm_clocks() directly from drivers.
+Another option 1, call of_clk_register_runtime_pm_clocks() before driver's probing 
+seems will be banned by Greg and Rafael.
+Another option 2, continue to use Bus notifiers, but then error path need to be
+handled somehow. Now BUS_NOTIFY_BIND_DRIVER even is sent before probing, but 
+it seems that nothing is sent in case if probe was failed.
+
+Grygorii Strashko (2):
+  clk: of: introduce of_clk_get_from_set()
+  of/clk: use "clkops-clocks" to specify clocks handled by clock_ops
+    domain
+
  drivers/clk/clkdev.c |   24 ++++++++++++++++++++++--
+ drivers/of/of_clk.c  |    7 ++-----
  include/linux/clk.h  |    7 +++++++
- 2 files changed, 29 insertions(+), 2 deletions(-)
+ 3 files changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-index f890b90..2308518 100644
---- a/drivers/clk/clkdev.c
-+++ b/drivers/clk/clkdev.c
-@@ -53,7 +53,8 @@ struct clk *of_clk_get_by_clkspec(struct of_phandle_args *clkspec)
- 	return clk;
- }
- 
--struct clk *of_clk_get(struct device_node *np, int index)
-+static struct clk *of_clk_get_named(struct device_node *np,
-+		const char *propname, int index)
- {
- 	struct of_phandle_args clkspec;
- 	struct clk *clk;
-@@ -62,7 +63,7 @@ struct clk *of_clk_get(struct device_node *np, int index)
- 	if (index < 0)
- 		return ERR_PTR(-EINVAL);
- 
--	rc = of_parse_phandle_with_args(np, "clocks", "#clock-cells", index,
-+	rc = of_parse_phandle_with_args(np, propname, "#clock-cells", index,
- 					&clkspec);
- 	if (rc)
- 		return ERR_PTR(rc);
-@@ -71,8 +72,27 @@ struct clk *of_clk_get(struct device_node *np, int index)
- 	of_node_put(clkspec.np);
- 	return clk;
- }
-+
-+struct clk *of_clk_get(struct device_node *np, int index)
-+{
-+	return of_clk_get_named(np, "clocks", index);
-+}
- EXPORT_SYMBOL(of_clk_get);
- 
-+struct clk *of_clk_get_from_set(struct device_node *np,
-+		const char *set_id, int index)
-+{
-+	char prop_name[32]; /* 32 is max size of property name */
-+
-+	if (set_id)
-+		snprintf(prop_name, 32, "%s-clocks", set_id);
-+	else
-+		snprintf(prop_name, 32, "clocks");
-+
-+	return of_clk_get_named(np, prop_name, index);
-+}
-+EXPORT_SYMBOL(of_clk_get_from_set);
-+
- /**
-  * of_clk_get_by_name() - Parse and lookup a clock referenced by a device node
-  * @np: pointer to clock consumer node
-diff --git a/include/linux/clk.h b/include/linux/clk.h
-index fb5e097..fc8865a 100644
---- a/include/linux/clk.h
-+++ b/include/linux/clk.h
-@@ -397,6 +397,8 @@ struct of_phandle_args;
- 
- #if defined(CONFIG_OF) && defined(CONFIG_COMMON_CLK)
- struct clk *of_clk_get(struct device_node *np, int index);
-+struct clk *of_clk_get_from_set(struct device_node *np,
-+		const char *set_id, int index);
- struct clk *of_clk_get_by_name(struct device_node *np, const char *name);
- struct clk *of_clk_get_from_provider(struct of_phandle_args *clkspec);
- #else
-@@ -409,6 +411,11 @@ static inline struct clk *of_clk_get_by_name(struct device_node *np,
- {
- 	return ERR_PTR(-ENOENT);
- }
-+static inline struct clk *of_clk_get_from_set(struct device_node *np,
-+					const char *set_id, int index)
-+{
-+	return ERR_PTR(-ENOENT);
-+}
- #endif
- 
- #endif
 -- 
 1.7.9.5
-
