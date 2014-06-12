@@ -1,124 +1,61 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
-Date: Thu, 12 Jun 2014 16:12:17 +0200
-Message-ID: <2046469.GckHavNRr1@avalon>
-References: <5192928.MkINji4uKU@wuerfel> <53986ABC.4070302@ti.com> <7948240.P51u2omQa4@wuerfel>
+From: Tomasz Figa <t.figa@samsung.com>
+Subject: Re: [PATCH 0/5] Handle non-secure L2C initialization on Exynos4
+Date: Thu, 12 Jun 2014 16:13:40 +0200
+Message-ID: <5399B594.2040205@samsung.com>
+References: <CAD8Lp46MbKZrCAMp+9T9LbWTB4uHRDdivhtjoQbkTyBbK48EgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54293 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755819AbaFLOLn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jun 2014 10:11:43 -0400
-In-Reply-To: <7948240.P51u2omQa4@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <CAD8Lp46MbKZrCAMp+9T9LbWTB4uHRDdivhtjoQbkTyBbK48EgQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Drake <drake@endlessm.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Robin Holt <holt@sgi.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Nishanth Menon <nm@ti.com>, gregkh@linuxfoundation.org, Tony Lindgren <tony@atomide.com>, Mauro Carvalho Chehab <m.chehab@samsung.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
 
-Hi Arnd,
+Hi Daniel,
 
-On Wednesday 11 June 2014 16:49:31 Arnd Bergmann wrote:
-> On Wednesday 11 June 2014 09:42:04 Nishanth Menon wrote:
-> > On 06/11/2014 09:35 AM, Arnd Bergmann wrote:
-> > > The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> > > of which can be loadable modules. This causes build failures
-> > > if we want the camera driver to be built-in.
-> > > 
-> > > This can be solved by turning the option into "tristate",
-> > > which unfortunately causes another problem, because the
-> > > driver incorrectly calls a platform-internal interface
-> > > for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
-> > > To work around that, we can export those symbols, but
-> > > that isn't really the correct solution, as we should not
-> > > have dependencies on platform code this way.
-> > > 
-> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > ---
-> > > This is one of just two patches we currently need to get
-> > > 'make allmodconfig' to build again on ARM.
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/control.c
-> > > b/arch/arm/mach-omap2/control.c
-> > > index 751f354..05d2d98 100644
-> > > --- a/arch/arm/mach-omap2/control.c
-> > > +++ b/arch/arm/mach-omap2/control.c
-> > > @@ -190,11 +190,13 @@ u32 omap4_ctrl_pad_readl(u16 offset)
-> > >  {
-> > >  	return readl_relaxed(OMAP4_CTRL_PAD_REGADDR(offset));
-> > >  }
-> > > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_readl);
-> > > 
-> > >  void omap4_ctrl_pad_writel(u32 val, u16 offset)
-> > >  {
-> > >  	writel_relaxed(val, OMAP4_CTRL_PAD_REGADDR(offset));
-> > >  }
-> > > +EXPORT_SYMBOL_GPL(omap4_ctrl_pad_writel);
-> > > 
-> > >  #ifdef CONFIG_ARCH_OMAP3
-> > > 
-> > > diff --git a/drivers/staging/media/omap4iss/Kconfig
-> > > b/drivers/staging/media/omap4iss/Kconfig index 78b0fba..0c3e3c1 100644
-> > > --- a/drivers/staging/media/omap4iss/Kconfig
-> > > +++ b/drivers/staging/media/omap4iss/Kconfig
-> > > @@ -1,5 +1,5 @@
-> > >  config VIDEO_OMAP4
-> > > -	bool "OMAP 4 Camera support"
-> > > +	tristate "OMAP 4 Camera support"
-> > >  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-> > >  	select VIDEOBUF2_DMA_CONTIG
-> > >  	---help---
-> > 
-> > This was discussed in detail here:
-> > http://marc.info/?t=140198692500001&r=1&w=2
-> > Direct dependency from a staging driver to mach-omap2 driver is not
-> > something we'd like, right?
+On 12.06.2014 15:38, Daniel Drake wrote:
+> Hi Tomasz,
 > 
-> So it was decided to just leave ARM allmodconfig broken?
+> Thanks for working on this!
 > 
-> Why not at least do this instead?
+> I have just tried this, against Linus master
+> 64b2d1fbbfda07765dae3f601862796a61b2c451.
+> Added patch "ARM: dts: Initial ODROID U2 support" and booted on
+> ODROID-U2. I believe this board has the security enabled.
 > 
-> 8<----
-> From 3a965f4fd5a6b3ef4a66aa4e7c916cfd34fd5706 Mon Sep 17 00:00:00 2001
-> From: Arnd Bergmann <arnd@arndb.de>
-> Date: Tue, 21 Jan 2014 09:32:43 +0100
-> Subject: [PATCH] [media] staging: tighten omap4iss dependencies
+> Unfortunately, it hangs during early boot. With earlyprintk the last
+> messages seen are:
 > 
-> The OMAP4 camera support depends on I2C and VIDEO_V4L2, both
-> of which can be loadable modules. This causes build failures
-> if we want the camera driver to be built-in.
+> L2C: platform modifies aux control register: 0x02070000 -> 0x3e470001
+> L2C: platform provided aux values permit register corruption.
+> L2C: DT/platform modifies aux control register: 0x02070000 -> 0x3e470001
+> L2C-310 enabling early BRESP for Cortex-A9
+> L2C-310: enabling full line of zeros but not enabled in Cortex-A9
+> L2C-310 ID prefetch enabled, offset 1 lines
+> L2C-310 dynamic clock gating enabled, standby mode enabled
+> L2C-310 cache controller enabled, 16 ways, 1024 kB
+> L2C-310: CACHE_ID 0x4100c4c8, AUX_CTRL 0x7e470001
 > 
-> This can be solved by turning the option into "tristate",
-> which unfortunately causes another problem, because the
-> driver incorrectly calls a platform-internal interface
-> for omap4_ctrl_pad_readl/omap4_ctrl_pad_writel.
+
+Thanks for testing. We have some ODROIDs U2 and U3 here too so I'll try
+to reproduce and investigate the issue.
+
+> I then tried to go back to the earlier patch "ARM: EXYNOS: Add secure
+> firmware support for l2x0 init" (attached, needed a rebase) but that
+> one also now hangs at:
 > 
-> Instead, this patch just forbids the invalid configurations
-> and ensures that the driver can only be built if all its
-> dependencies are built-in.
+> L2C: platform modifies aux control register: 0x02070000 -> 0x3e470001
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> It did work on 3.14 though. Looking at the changelogs, many changes
+> have been made to l2x0 recently. Can you confirm that you have tested
+> your patches against a kernel with all of Russell King's recent
+> changes?
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I'm usually working on latest linux-next, so I'm pretty sure all the
+mentioned patches were already in my tree. The base for this series was
+next-20140610 tag of linux-next tree.
 
-Should I take this in my tree for v3.17 or would you like to fast-track it ?
-
-> diff --git a/drivers/staging/media/omap4iss/Kconfig
-> b/drivers/staging/media/omap4iss/Kconfig index 78b0fba..8afc6fe 100644
-> --- a/drivers/staging/media/omap4iss/Kconfig
-> +++ b/drivers/staging/media/omap4iss/Kconfig
-> @@ -1,6 +1,6 @@
->  config VIDEO_OMAP4
->  	bool "OMAP 4 Camera support"
-> -	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
-> +	depends on VIDEO_V4L2=y && VIDEO_V4L2_SUBDEV_API && I2C=y && ARCH_OMAP4
->  	select VIDEOBUF2_DMA_CONTIG
->  	---help---
->  	  Driver for an OMAP 4 ISS controller.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Best regards,
+Tomasz
