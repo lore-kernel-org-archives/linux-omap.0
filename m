@@ -1,132 +1,68 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH V2 03/19] irqchip: crossbar: Skip some irqs from
- getting mapped to crossbar
-Date: Thu, 12 Jun 2014 08:51:34 -0400
-Message-ID: <20140612125134.GS8664@titan.lakedaemon.net>
+From: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
+Subject: Re: [PATCH V2 05/19] irqchip: crossbar: Change allocation logic by
+ reversing search for free irqs
+Date: Thu, 12 Jun 2014 08:56:15 -0400
+Message-ID: <20140612125615.GT8664@titan.lakedaemon.net>
 References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
- <1402574007-13987-4-git-send-email-r.sricharan@ti.com>
+ <1402574007-13987-6-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62196 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752572AbaFLMvs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jun 2014 08:51:48 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1402574007-13987-4-git-send-email-r.sricharan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1402574007-13987-6-git-send-email-r.sricharan-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de
 
-On Thu, Jun 12, 2014 at 05:23:11PM +0530, Sricharan R wrote:
-> From: Nishanth Menon <nm@ti.com>
+On Thu, Jun 12, 2014 at 05:23:13PM +0530, Sricharan R wrote:
+> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 > 
-> When, in the system due to varied reasons, interrupts might be unusable
-> due to hardware behavior, but register maps do exist, then those interrupts
-> should be skipped while mapping irq to crossbars.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Reverse the search algorithm to ensure that address mapping and IRQ
+> allocation logics are proper. This can open up new bugs which are
+> easily fixable rather than wait till allocation logic approaches
+> the limit to find new bugs.
 
-Tony, have you applied these somewhere already?
-
-> ---
->  drivers/irqchip/irq-crossbar.c |   47 ++++++++++++++++++++++++++++++++++++----
->  1 file changed, 43 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-> index 51d4b87..847f6e3 100644
-> --- a/drivers/irqchip/irq-crossbar.c
-> +++ b/drivers/irqchip/irq-crossbar.c
-> @@ -13,11 +13,13 @@
->  #include <linux/io.h>
->  #include <linux/of_address.h>
->  #include <linux/of_irq.h>
-> +#include <linux/of_device.h>
->  #include <linux/slab.h>
->  #include <linux/irqchip/arm-gic.h>
->  
->  #define IRQ_FREE	-1
->  #define IRQ_RESERVED	-2
-> +#define IRQ_SKIP	-3
->  #define GIC_IRQ_START	32
->  
->  /*
-> @@ -34,6 +36,16 @@ struct crossbar_device {
->  	void (*write) (int, int);
->  };
->  
-> +/**
-> + * struct crossbar_data: Platform specific data
-> + * @irqs_unused: array of irqs that cannot be used because of hw erratas
-> + * @size: size of the irqs_unused array
-> + */
-> +struct crossbar_data {
-> +	const uint *irqs_unused;
-> +	const uint size;
-> +};
-> +
->  static struct crossbar_device *cb;
->  
->  static inline void crossbar_writel(int irq_no, int cb_no)
-> @@ -119,10 +131,12 @@ const struct irq_domain_ops routable_irq_domain_ops = {
->  	.xlate = crossbar_domain_xlate
->  };
->  
-> -static int __init crossbar_of_init(struct device_node *node)
-> +static int __init crossbar_of_init(struct device_node *node,
-> +				   const struct crossbar_data *data)
->  {
->  	int i, size, max, reserved = 0, entry;
->  	const __be32 *irqsr;
-> +	const int *irqsk = NULL;
->  
->  	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
->  
-> @@ -194,6 +208,22 @@ static int __init crossbar_of_init(struct device_node *node)
->  		reserved += size;
->  	}
->  
-> +	/* Skip the ones marked as unused */
-> +	if (data) {
-> +		irqsk = data->irqs_unused;
-> +		size = data->size;
-> +
-> +		for (i = 0; i < size; i++) {
-> +			entry = irqsk[i];
-> +
-> +			if (entry > max) {
-> +				pr_err("Invalid skip entry\n");
-> +				goto err3;
-> +			}
-> +			cb->irq_map[entry] = IRQ_SKIP;
-> +		}
-> +	}
-> +
->  	register_routable_domain_ops(&routable_irq_domain_ops);
->  	return 0;
->  
-> @@ -208,18 +238,27 @@ err1:
->  	return -ENOMEM;
->  }
->  
-> +/* irq number 10 cannot be used because of hw bug */
-> +int dra_irqs_unused[] = { 10 };
-> +struct crossbar_data cb_dra_data = { dra_irqs_unused,
-> +				     ARRAY_SIZE(dra_irqs_unused) };
-> +
->  static const struct of_device_id crossbar_match[] __initconst = {
-> -	{ .compatible = "ti,irq-crossbar" },
-> +	{ .compatible = "ti,irq-crossbar", .data = &cb_dra_data },
->  	{}
->  };
-
-This is a bug in all implementations of this IP?  Or, a specific
-SoC's implementation?  Would this be better expressed in the dts via a
-property?  Can we expect future implementations to be fixed?
+Could you expand on this logic some more?  What class of bugs are you
+hoping to discover more easily?
 
 thx,
 
 Jason.
+
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/irqchip/irq-crossbar.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+> index 287d3ce..de021638 100644
+> --- a/drivers/irqchip/irq-crossbar.c
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -68,7 +68,7 @@ static inline int get_prev_map_irq(int cb_no)
+>  {
+>  	int i;
+>  
+> -	for (i = 0; i < cb->int_max; i++)
+> +	for (i = cb->int_max - 1; i >= 0; i--)
+>  		if (cb->irq_map[i] == cb_no)
+>  			return i;
+>  
+> @@ -79,7 +79,7 @@ static inline int allocate_free_irq(int cb_no)
+>  {
+>  	int i;
+>  
+> -	for (i = 0; i < cb->int_max; i++) {
+> +	for (i = cb->int_max - 1; i >= 0; i--) {
+>  		if (cb->irq_map[i] == IRQ_FREE) {
+>  			cb->irq_map[i] = cb_no;
+>  			return i;
+> -- 
+> 1.7.9.5
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
