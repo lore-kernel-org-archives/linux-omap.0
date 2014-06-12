@@ -1,67 +1,95 @@
 From: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
-Subject: Re: [PATCH V2 05/19] irqchip: crossbar: Change allocation logic by
- reversing search for free irqs
-Date: Thu, 12 Jun 2014 08:56:15 -0400
-Message-ID: <20140612125615.GT8664@titan.lakedaemon.net>
+Subject: Re: [PATCH V2 08/19] irqchip: crossbar: fix checkpatch warning
+Date: Thu, 12 Jun 2014 09:10:42 -0400
+Message-ID: <20140612131042.GU8664@titan.lakedaemon.net>
 References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
- <1402574007-13987-6-git-send-email-r.sricharan@ti.com>
+ <1402574007-13987-9-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1402574007-13987-6-git-send-email-r.sricharan-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1402574007-13987-9-git-send-email-r.sricharan-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 12, 2014 at 05:23:13PM +0530, Sricharan R wrote:
+On Thu, Jun 12, 2014 at 05:23:16PM +0530, Sricharan R wrote:
 > From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 > 
-> Reverse the search algorithm to ensure that address mapping and IRQ
-> allocation logics are proper. This can open up new bugs which are
-> easily fixable rather than wait till allocation logic approaches
-> the limit to find new bugs.
+> remove un-necessary space in function pointer.
+> 
+> Fixes checkpatch warning:
+> WARNING: Unnecessary space before function pointer arguments
+>  #37: FILE: drivers/irqchip/irq-crossbar.c:37:
+>  +	void (*write) (int, int);
+> 
+> WARNING: Missing a blank line after declarations
+> +	int *register_offsets;
+> +	void (*write)(int, int);
+> 
+> WARNING: Prefer kcalloc over kzalloc with multiply
+> +	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
+> 
+> WARNING: Prefer kcalloc over kzalloc with multiply
+> +	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
+> 
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/irqchip/irq-crossbar.c |    7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+> index 5da9d36..58790d4 100644
+> --- a/drivers/irqchip/irq-crossbar.c
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -34,7 +34,8 @@ struct crossbar_device {
+>  	uint *irq_map;
+>  	void __iomem *crossbar_base;
+>  	int *register_offsets;
+> -	void (*write) (int, int);
+> +
+> +	void (*write)(int, int);
 
-Could you expand on this logic some more?  What class of bugs are you
-hoping to discover more easily?
+The empty line here looks bogus to me.  Did you re-run checkpatch after
+fixing the unnecessary space to see if it still complained about having
+a 'blank line after declarations'?
+
+>  };
+>  
+>  /**
+> @@ -150,7 +151,7 @@ static int __init crossbar_of_init(struct device_node *node,
+>  		goto err1;
+>  
+>  	of_property_read_u32(node, "ti,max-irqs", &max);
+> -	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
+> +	cb->irq_map = kcalloc(max, sizeof(int), GFP_KERNEL);
+>  	if (!cb->irq_map)
+>  		goto err2;
+>  
+> @@ -176,7 +177,7 @@ static int __init crossbar_of_init(struct device_node *node,
+>  		}
+>  	}
+>  
+> -	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
+> +	cb->register_offsets = kcalloc(max, sizeof(int), GFP_KERNEL);
+>  	if (!cb->register_offsets)
+>  		goto err3;
+
+I'm generally opposed to these sorts of checkpatch patches, especially
+when they are just warnings.  It's great for a new driver in the staging
+tree, but it makes backporting future bugfixes that much harder when
+drivers have been live in mainline.
+
+If, in the future, you're changing code in this area, go ahead and
+convert to kcalloc(), but I wouldn't do a separate patch for this kind
+of thing.
+
+Honestly, I would just drop this patch and not worry about it.
 
 thx,
 
 Jason.
-
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/irqchip/irq-crossbar.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-> index 287d3ce..de021638 100644
-> --- a/drivers/irqchip/irq-crossbar.c
-> +++ b/drivers/irqchip/irq-crossbar.c
-> @@ -68,7 +68,7 @@ static inline int get_prev_map_irq(int cb_no)
->  {
->  	int i;
->  
-> -	for (i = 0; i < cb->int_max; i++)
-> +	for (i = cb->int_max - 1; i >= 0; i--)
->  		if (cb->irq_map[i] == cb_no)
->  			return i;
->  
-> @@ -79,7 +79,7 @@ static inline int allocate_free_irq(int cb_no)
->  {
->  	int i;
->  
-> -	for (i = 0; i < cb->int_max; i++) {
-> +	for (i = cb->int_max - 1; i >= 0; i--) {
->  		if (cb->irq_map[i] == IRQ_FREE) {
->  			cb->irq_map[i] = cb_no;
->  			return i;
-> -- 
-> 1.7.9.5
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
