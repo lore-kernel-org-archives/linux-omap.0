@@ -1,97 +1,37 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 1/2] ARM: OMAP2+: DMA: remove requirement of irq for platform-dma driver
-Date: Thu, 12 Jun 2014 17:15:22 +0530
-Message-ID: <1402573523-13814-2-git-send-email-r.sricharan@ti.com>
-References: <1402573523-13814-1-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V2 0/2] ARM: OMAP2+: remove DMA interrupt if DT provided
+Date: Thu, 12 Jun 2014 17:15:21 +0530
+Message-ID: <1402573523-13814-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60180 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752728AbaFLLrn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jun 2014 07:47:43 -0400
-In-Reply-To: <1402573523-13814-1-git-send-email-r.sricharan@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57931 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752728AbaFLLrm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jun 2014 07:47:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com
 
-From: Nishanth Menon <nm@ti.com>
+This series removes the DMA interrupt registration if DT provides interrupts,
+so we have no need for hwmod provided interrupt number.
 
-we have currently 2 DMA drivers that try to co-exist.
-drivers/dma/omap-dma.c which registers it's own IRQ and is device tree
-aware and uses arch/arm/plat-omap/dma.c instance created by
-arch/arm/mach-omap2/dma.c to maintain channel usage (omap_request_dma).
+This is a pre-req for crossbar migration as DMA is the last driver to use
+interrupt definition from hwmod.
 
-Currently both try to register interrupts and mach-omap2/plat-omap dma.c
-attempts to use the IRQ number registered by hwmod to register it's own
-interrupt handler.
+[V2] Rebased on 3.15 mainline
 
-Now, there is no reasonable way of static allocating DMA irq in GIC
-SPI when we use crossbar. However, since the dma_chan structure is
-freed as a result of IRQ not being present due to devm allocation,
-maintaining information of channel by platform code fails at a later
-point in time when that region of memory is reused.
+Nishanth Menon (2):
+  ARM: OMAP2+: DMA: remove requirement of irq for platform-dma driver
+  ARM: DRA7: hwmod: remove interrupts for DMA
 
-So, if hwmod does not indicate an IRQ number, then, assume that
-dma-engine will take care of the interrupt handling.
+ arch/arm/mach-omap2/dma.c                 |    3 +++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |    9 ---------
+ arch/arm/plat-omap/dma.c                  |    5 +++--
+ include/linux/omap-dma.h                  |    1 +
+ 4 files changed, 7 insertions(+), 11 deletions(-)
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/dma.c |    3 +++
- arch/arm/plat-omap/dma.c  |    5 +++--
- include/linux/omap-dma.h  |    1 +
- 3 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index a6d2cf1..e1a56d8 100644
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -259,6 +259,9 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
- 		d->dev_caps |= HS_CHANNELS_RESERVED;
- 
-+	if (platform_get_irq_byname(pdev, "0") < 0)
-+		d->dev_caps |= DMA_ENGINE_HANDLE_IRQ;
-+
- 	/* Check the capabilities register for descriptor loading feature */
- 	if (dma_read(CAPS_0, 0) & DMA_HAS_DESCRIPTOR_CAPS)
- 		dma_common_ch_end = CCDN;
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index b5608b1..7aae0e5 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2100,7 +2100,7 @@ static int omap_system_dma_probe(struct platform_device *pdev)
- 		omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE,
- 				DMA_DEFAULT_FIFO_DEPTH, 0);
- 
--	if (dma_omap2plus()) {
-+	if (dma_omap2plus() && !(d->dev_caps & DMA_ENGINE_HANDLE_IRQ)) {
- 		strcpy(irq_name, "0");
- 		dma_irq = platform_get_irq_byname(pdev, irq_name);
- 		if (dma_irq < 0) {
-@@ -2145,7 +2145,8 @@ static int omap_system_dma_remove(struct platform_device *pdev)
- 		char irq_name[4];
- 		strcpy(irq_name, "0");
- 		dma_irq = platform_get_irq_byname(pdev, irq_name);
--		remove_irq(dma_irq, &omap24xx_dma_irq);
-+		if (dma_irq >= 0)
-+			remove_irq(dma_irq, &omap24xx_dma_irq);
- 	} else {
- 		int irq_rel = 0;
- 		for ( ; irq_rel < dma_chan_count; irq_rel++) {
-diff --git a/include/linux/omap-dma.h b/include/linux/omap-dma.h
-index 88e6ea4..6f06f8b 100644
---- a/include/linux/omap-dma.h
-+++ b/include/linux/omap-dma.h
-@@ -130,6 +130,7 @@
- #define IS_WORD_16			BIT(0xd)
- #define ENABLE_16XX_MODE		BIT(0xe)
- #define HS_CHANNELS_RESERVED		BIT(0xf)
-+#define DMA_ENGINE_HANDLE_IRQ		BIT(0x10)
- 
- /* Defines for DMA Capabilities */
- #define DMA_HAS_TRANSPARENT_CAPS	(0x1 << 18)
 -- 
 1.7.9.5
 
