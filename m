@@ -1,114 +1,132 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 3/4] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
-Date: Thu, 12 Jun 2014 15:47:07 +0300
-Message-ID: <5399A14B.9070806@ti.com>
-References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274559-24777-1-git-send-email-rogerq@ti.com>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH V2 03/19] irqchip: crossbar: Skip some irqs from
+ getting mapped to crossbar
+Date: Thu, 12 Jun 2014 08:51:34 -0400
+Message-ID: <20140612125134.GS8664@titan.lakedaemon.net>
+References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
+ <1402574007-13987-4-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1398274559-24777-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: kishon-l0cyMroinI0@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62196 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752572AbaFLMvs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jun 2014 08:51:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1402574007-13987-4-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de
 
-Tony,
-
-We need this one as well for 3.16.
-
-cheers,
--roger
-
-On 04/23/2014 08:35 PM, Roger Quadros wrote:
-> From: Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
+On Thu, Jun 12, 2014 at 05:23:11PM +0530, Sricharan R wrote:
+> From: Nishanth Menon <nm@ti.com>
 > 
-> Add hwmods for ocp2scp3 and sata modules.
+> When, in the system due to varied reasons, interrupts might be unusable
+> due to hardware behavior, but register maps do exist, then those interrupts
+> should be skipped while mapping irq to crossbars.
 > 
-> [Roger Q] Clean up.
-> 
-> CC: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> CC: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Nikhil Devshatwar <nikhil.nd-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Tony, have you applied these somewhere already?
+
 > ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 31 ++++++++++++++++++++++++++-----
->  1 file changed, 26 insertions(+), 5 deletions(-)
+>  drivers/irqchip/irq-crossbar.c |   47 ++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 43 insertions(+), 4 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 810c205..b02a4ab 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
->  	},
->  };
+> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+> index 51d4b87..847f6e3 100644
+> --- a/drivers/irqchip/irq-crossbar.c
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -13,11 +13,13 @@
+>  #include <linux/io.h>
+>  #include <linux/of_address.h>
+>  #include <linux/of_irq.h>
+> +#include <linux/of_device.h>
+>  #include <linux/slab.h>
+>  #include <linux/irqchip/arm-gic.h>
 >  
-> +/* ocp2scp3 */
-> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
-> +
-> +/* l4_cfg -> ocp2scp3 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
-> +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_ocp2scp3_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-> +	.name		= "ocp2scp3",
-> +	.class		= &dra7xx_ocp2scp_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
-> +
->  /*
->   * 'qspi' class
->   *
-> @@ -1268,9 +1292,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
->  };
->  
->  /* sata */
-> -static struct omap_hwmod_opt_clk sata_opt_clks[] = {
-> -	{ .role = "ref_clk", .clk = "sata_ref_clk" },
-> -};
->  
->  static struct omap_hwmod dra7xx_sata_hwmod = {
->  	.name		= "sata",
-> @@ -1278,6 +1299,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->  	.clkdm_name	= "l3init_clkdm",
->  	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
->  	.main_clk	= "func_48m_fclk",
-> +	.mpu_rt_idx	= 1,
->  	.prcm = {
->  		.omap4 = {
->  			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
-> @@ -1285,8 +1307,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->  			.modulemode   = MODULEMODE_SWCTRL,
->  		},
->  	},
-> -	.opt_clks	= sata_opt_clks,
-> -	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
->  };
+>  #define IRQ_FREE	-1
+>  #define IRQ_RESERVED	-2
+> +#define IRQ_SKIP	-3
+>  #define GIC_IRQ_START	32
 >  
 >  /*
-> @@ -2682,6 +2702,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_per1__mmc4,
->  	&dra7xx_l4_cfg__mpu,
->  	&dra7xx_l4_cfg__ocp2scp1,
-> +	&dra7xx_l4_cfg__ocp2scp3,
->  	&dra7xx_l3_main_1__qspi,
->  	&dra7xx_l4_cfg__sata,
->  	&dra7xx_l4_cfg__smartreflex_core,
-> 
+> @@ -34,6 +36,16 @@ struct crossbar_device {
+>  	void (*write) (int, int);
+>  };
+>  
+> +/**
+> + * struct crossbar_data: Platform specific data
+> + * @irqs_unused: array of irqs that cannot be used because of hw erratas
+> + * @size: size of the irqs_unused array
+> + */
+> +struct crossbar_data {
+> +	const uint *irqs_unused;
+> +	const uint size;
+> +};
+> +
+>  static struct crossbar_device *cb;
+>  
+>  static inline void crossbar_writel(int irq_no, int cb_no)
+> @@ -119,10 +131,12 @@ const struct irq_domain_ops routable_irq_domain_ops = {
+>  	.xlate = crossbar_domain_xlate
+>  };
+>  
+> -static int __init crossbar_of_init(struct device_node *node)
+> +static int __init crossbar_of_init(struct device_node *node,
+> +				   const struct crossbar_data *data)
+>  {
+>  	int i, size, max, reserved = 0, entry;
+>  	const __be32 *irqsr;
+> +	const int *irqsk = NULL;
+>  
+>  	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+>  
+> @@ -194,6 +208,22 @@ static int __init crossbar_of_init(struct device_node *node)
+>  		reserved += size;
+>  	}
+>  
+> +	/* Skip the ones marked as unused */
+> +	if (data) {
+> +		irqsk = data->irqs_unused;
+> +		size = data->size;
+> +
+> +		for (i = 0; i < size; i++) {
+> +			entry = irqsk[i];
+> +
+> +			if (entry > max) {
+> +				pr_err("Invalid skip entry\n");
+> +				goto err3;
+> +			}
+> +			cb->irq_map[entry] = IRQ_SKIP;
+> +		}
+> +	}
+> +
+>  	register_routable_domain_ops(&routable_irq_domain_ops);
+>  	return 0;
+>  
+> @@ -208,18 +238,27 @@ err1:
+>  	return -ENOMEM;
+>  }
+>  
+> +/* irq number 10 cannot be used because of hw bug */
+> +int dra_irqs_unused[] = { 10 };
+> +struct crossbar_data cb_dra_data = { dra_irqs_unused,
+> +				     ARRAY_SIZE(dra_irqs_unused) };
+> +
+>  static const struct of_device_id crossbar_match[] __initconst = {
+> -	{ .compatible = "ti,irq-crossbar" },
+> +	{ .compatible = "ti,irq-crossbar", .data = &cb_dra_data },
+>  	{}
+>  };
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is a bug in all implementations of this IP?  Or, a specific
+SoC's implementation?  Would this be better expressed in the dts via a
+property?  Can we expect future implementations to be fixed?
+
+thx,
+
+Jason.
