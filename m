@@ -1,108 +1,98 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2 08/19] irqchip: crossbar: fix checkpatch warning
-Date: Thu, 12 Jun 2014 19:05:24 +0530
-Message-ID: <5399AC9C.4080602@ti.com>
-References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com> <1402574007-13987-9-git-send-email-r.sricharan@ti.com> <20140612131042.GU8664@titan.lakedaemon.net>
+From: Daniel Drake <drake@endlessm.com>
+Subject: Re: [PATCH 0/5] Handle non-secure L2C initialization on Exynos4
+Date: Thu, 12 Jun 2014 14:38:49 +0100
+Message-ID: <CAD8Lp46MbKZrCAMp+9T9LbWTB4uHRDdivhtjoQbkTyBbK48EgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140612131042.GU8664-u4khhh1J0LxI1Ri9qeTfzeTW4wlIGRCZ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+Content-Type: multipart/mixed; boundary=089e010d870c50d6f304fba3ae9b
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: t.figa@samsung.com
+Cc: Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Robin Holt <holt@sgi.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jason,
+--089e010d870c50d6f304fba3ae9b
+Content-Type: text/plain; charset=UTF-8
 
-On Thursday 12 June 2014 06:40 PM, Jason Cooper wrote:
-> On Thu, Jun 12, 2014 at 05:23:16PM +0530, Sricharan R wrote:
->> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>
->> remove un-necessary space in function pointer.
->>
->> Fixes checkpatch warning:
->> WARNING: Unnecessary space before function pointer arguments
->>  #37: FILE: drivers/irqchip/irq-crossbar.c:37:
->>  +	void (*write) (int, int);
->>
->> WARNING: Missing a blank line after declarations
->> +	int *register_offsets;
->> +	void (*write)(int, int);
->>
->> WARNING: Prefer kcalloc over kzalloc with multiply
->> +	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
->>
->> WARNING: Prefer kcalloc over kzalloc with multiply
->> +	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
->>
->> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->> ---
->>  drivers/irqchip/irq-crossbar.c |    7 ++++---
->>  1 file changed, 4 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
->> index 5da9d36..58790d4 100644
->> --- a/drivers/irqchip/irq-crossbar.c
->> +++ b/drivers/irqchip/irq-crossbar.c
->> @@ -34,7 +34,8 @@ struct crossbar_device {
->>  	uint *irq_map;
->>  	void __iomem *crossbar_base;
->>  	int *register_offsets;
->> -	void (*write) (int, int);
->> +
->> +	void (*write)(int, int);
-> 
-> The empty line here looks bogus to me.  Did you re-run checkpatch after
-> fixing the unnecessary space to see if it still complained about having
-> a 'blank line after declarations'?
-> 
- Yes, it still complains even after fixing unnecessary space.
+Hi Tomasz,
 
-WARNING: Missing a blank line after declarations
-#37: FILE: ./drivers/irqchip/irq-crossbar.c:37:
-+	int *register_offsets;
-+	void (*write)(int, int);
+Thanks for working on this!
 
->>  };
->>  
->>  /**
->> @@ -150,7 +151,7 @@ static int __init crossbar_of_init(struct device_node *node,
->>  		goto err1;
->>  
->>  	of_property_read_u32(node, "ti,max-irqs", &max);
->> -	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
->> +	cb->irq_map = kcalloc(max, sizeof(int), GFP_KERNEL);
->>  	if (!cb->irq_map)
->>  		goto err2;
->>  
->> @@ -176,7 +177,7 @@ static int __init crossbar_of_init(struct device_node *node,
->>  		}
->>  	}
->>  
->> -	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
->> +	cb->register_offsets = kcalloc(max, sizeof(int), GFP_KERNEL);
->>  	if (!cb->register_offsets)
->>  		goto err3;
-> 
-> I'm generally opposed to these sorts of checkpatch patches, especially
-> when they are just warnings.  It's great for a new driver in the staging
-> tree, but it makes backporting future bugfixes that much harder when
-> drivers have been live in mainline.
-> 
-> If, in the future, you're changing code in this area, go ahead and
-> convert to kcalloc(), but I wouldn't do a separate patch for this kind
-> of thing.
-> 
-> Honestly, I would just drop this patch and not worry about it.
-> 
-  Ok, but i just hope that there may not be real needs to make changes
-  for this driver in future. So if that's the case then it might be 
-  better to fix it once for now.
+I have just tried this, against Linus master
+64b2d1fbbfda07765dae3f601862796a61b2c451.
+Added patch "ARM: dts: Initial ODROID U2 support" and booted on
+ODROID-U2. I believe this board has the security enabled.
 
-Regards,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Unfortunately, it hangs during early boot. With earlyprintk the last
+messages seen are:
+
+L2C: platform modifies aux control register: 0x02070000 -> 0x3e470001
+L2C: platform provided aux values permit register corruption.
+L2C: DT/platform modifies aux control register: 0x02070000 -> 0x3e470001
+L2C-310 enabling early BRESP for Cortex-A9
+L2C-310: enabling full line of zeros but not enabled in Cortex-A9
+L2C-310 ID prefetch enabled, offset 1 lines
+L2C-310 dynamic clock gating enabled, standby mode enabled
+L2C-310 cache controller enabled, 16 ways, 1024 kB
+L2C-310: CACHE_ID 0x4100c4c8, AUX_CTRL 0x7e470001
+
+I then tried to go back to the earlier patch "ARM: EXYNOS: Add secure
+firmware support for l2x0 init" (attached, needed a rebase) but that
+one also now hangs at:
+
+L2C: platform modifies aux control register: 0x02070000 -> 0x3e470001
+
+It did work on 3.14 though. Looking at the changelogs, many changes
+have been made to l2x0 recently. Can you confirm that you have tested
+your patches against a kernel with all of Russell King's recent
+changes?
+
+Thanks
+Daniel
+
+--089e010d870c50d6f304fba3ae9b
+Content-Type: text/plain; charset=US-ASCII;
+	name="0001-ARM-EXYNOS-Add-secure-firmware-support-for-l2x0-init.txt"
+Content-Disposition: attachment;
+	filename="0001-ARM-EXYNOS-Add-secure-firmware-support-for-l2x0-init.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hwc42yce0
+
+RnJvbSAyZTY3MjMxZjEwZWQwYjA1YzJiYWNmZGQwNTc3NGZlMjEzMTVkNmRhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBHdTEgPGd1MUBhZXJveHRlYW0uZnI+CkRhdGU6IE1vbiwgMjEg
+SmFuIDIwMTMgMDQ6MTM6NTYgKzAxMDAKU3ViamVjdDogW1BBVENIXSBBUk06IEVYWU5PUzogQWRk
+IHNlY3VyZSBmaXJtd2FyZSBzdXBwb3J0IGZvciBsMngwIGluaXQKCkNvbmZsaWN0czoKCWFyY2gv
+YXJtL21tL2NhY2hlLWwyeDAuYwotLS0KIGFyY2gvYXJtL21hY2gtZXh5bm9zL2Zpcm13YXJlLmMg
+fCAxOSArKysrKysrKysrKysrKysrKysrCiBhcmNoL2FybS9tbS9jYWNoZS1sMngwLmMgICAgICAg
+IHwgIDMgKysrCiAyIGZpbGVzIGNoYW5nZWQsIDIyIGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQg
+YS9hcmNoL2FybS9tYWNoLWV4eW5vcy9maXJtd2FyZS5jIGIvYXJjaC9hcm0vbWFjaC1leHlub3Mv
+ZmlybXdhcmUuYwppbmRleCBlYjkxZDIzLi5jMjAwZjc3IDEwMDY0NAotLS0gYS9hcmNoL2FybS9t
+YWNoLWV4eW5vcy9maXJtd2FyZS5jCisrKyBiL2FyY2gvYXJtL21hY2gtZXh5bm9zL2Zpcm13YXJl
+LmMKQEAgLTE2LDYgKzE2LDcgQEAKIAogI2luY2x1ZGUgPGFzbS9maXJtd2FyZS5oPgogCisjaW5j
+bHVkZSA8YXNtL2hhcmR3YXJlL2NhY2hlLWwyeDAuaD4KICNpbmNsdWRlIDxtYWNoL21hcC5oPgog
+CiAjaW5jbHVkZSAiY29tbW9uLmgiCkBAIC02NCwxMCArNjUsMjggQEAgc3RhdGljIGludCBleHlu
+b3Nfc2V0X2NwdV9ib290X2FkZHIoaW50IGNwdSwgdW5zaWduZWQgbG9uZyBib290X2FkZHIpCiAJ
+cmV0dXJuIDA7CiB9CiAKK2V4dGVybiBzdHJ1Y3QgbDJ4MF9yZWdzIGwyeDBfc2F2ZWRfcmVnczsK
+KyNkZWZpbmUgTDJfQVVYX1ZBTCAweDdDNDcwMDAxCisjZGVmaW5lIEwyX0FVWF9NQVNLIDB4QzIw
+MGZmZmYKKworc3RhdGljIGludCBleHlub3NfbDJ4MF9pbml0KHZvaWQpCit7CisJZXh5bm9zX3Nt
+YyhTTUNfQ01EX0wyWDBTRVRVUDEsIGwyeDBfc2F2ZWRfcmVncy50YWdfbGF0ZW5jeSwKKwkJCWwy
+eDBfc2F2ZWRfcmVncy5kYXRhX2xhdGVuY3ksCisJCQlsMngwX3NhdmVkX3JlZ3MucHJlZmV0Y2hf
+Y3RybCk7CisJZXh5bm9zX3NtYyhTTUNfQ01EX0wyWDBTRVRVUDIsIGwyeDBfc2F2ZWRfcmVncy5w
+d3JfY3RybCwKKwkJCUwyX0FVWF9WQUwsIEwyX0FVWF9NQVNLKTsKKwlleHlub3Nfc21jKFNNQ19D
+TURfTDJYMElOVkFMTCwgMCwgMCwgMCk7CisJZXh5bm9zX3NtYyhTTUNfQ01EX0wyWDBDVFJMLCAx
+LCAwLCAwKTsKKwlyZXR1cm4gMDsKK30KKworCiBzdGF0aWMgY29uc3Qgc3RydWN0IGZpcm13YXJl
+X29wcyBleHlub3NfZmlybXdhcmVfb3BzID0gewogCS5kb19pZGxlCQk9IGV4eW5vc19kb19pZGxl
+LAogCS5zZXRfY3B1X2Jvb3RfYWRkcgk9IGV4eW5vc19zZXRfY3B1X2Jvb3RfYWRkciwKIAkuY3B1
+X2Jvb3QJCT0gZXh5bm9zX2NwdV9ib290LAorCS5sMngwX2luaXQJCT0gZXh5bm9zX2wyeDBfaW5p
+dCwKIH07CiAKIHZvaWQgX19pbml0IGV4eW5vc19maXJtd2FyZV9pbml0KHZvaWQpCmRpZmYgLS1n
+aXQgYS9hcmNoL2FybS9tbS9jYWNoZS1sMngwLmMgYi9hcmNoL2FybS9tbS9jYWNoZS1sMngwLmMK
+aW5kZXggZWZjNWNhYi4uNzM2N2JlZiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbW0vY2FjaGUtbDJ4
+MC5jCisrKyBiL2FyY2gvYXJtL21tL2NhY2hlLWwyeDAuYwpAQCAtMjksNiArMjksNyBAQAogI2lu
+Y2x1ZGUgPGFzbS9jcDE1Lmg+CiAjaW5jbHVkZSA8YXNtL2NwdXR5cGUuaD4KICNpbmNsdWRlIDxh
+c20vaGFyZHdhcmUvY2FjaGUtbDJ4MC5oPgorI2luY2x1ZGUgPGFzbS9maXJtd2FyZS5oPgogI2lu
+Y2x1ZGUgImNhY2hlLXRhdXJvczMuaCIKICNpbmNsdWRlICJjYWNoZS1hdXJvcmEtbDIuaCIKIApA
+QCAtMTUwNCw2ICsxNTA1LDggQEAgaW50IF9faW5pdCBsMngwX29mX2luaXQodTMyIGF1eF92YWws
+IHUzMiBhdXhfbWFzaykKIAkJaWYgKGRhdGEtPm9mX3BhcnNlKQogCQkJZGF0YS0+b2ZfcGFyc2Uo
+bnAsICZhdXhfdmFsLCAmYXV4X21hc2spOwogCisJY2FsbF9maXJtd2FyZV9vcChsMngwX2luaXQp
+OworCiAJaWYgKGNhY2hlX2lkX3BhcnRfbnVtYmVyX2Zyb21fZHQpCiAJCWNhY2hlX2lkID0gY2Fj
+aGVfaWRfcGFydF9udW1iZXJfZnJvbV9kdDsKIAllbHNlCi0tIAoxLjkuMQoK
+--089e010d870c50d6f304fba3ae9b--
