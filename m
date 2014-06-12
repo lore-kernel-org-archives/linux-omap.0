@@ -1,92 +1,57 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 12/19] irqchip: crossbar: return proper error value
-Date: Thu, 12 Jun 2014 17:23:20 +0530
-Message-ID: <1402574007-13987-13-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V2 10/19] irqchip: crossbar: DRA7: Fix unused crossbar list
+Date: Thu, 12 Jun 2014 17:23:18 +0530
+Message-ID: <1402574007-13987-11-git-send-email-r.sricharan@ti.com>
 References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net
+Cc: nm@ti.com, linux@arm.linux.org.uk, jason@lakedaemon.net, tony@atomide.com, rnayak@ti.com, r.sricharan@ti.com, santosh.shilimkar@ti.com, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-From: Nishanth Menon <nm@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
-crossbar_of_init always returns -ENOMEM in case of errors, return proper
-error results in case of failures.
+On DRA7 compatible IRQ crossbar, IRQ 10 default mapped to L3_APP_IRQ,
+IRQ133 is default mapped to NMI pin, 139 and 140 crossbars are
+unused(not routed). Mark these as unused crossbar IRQs.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Technical Reference Manual documentation update expected
+DRA72x-TRMINC00067 is being used to track the update.
+
+Reported-by: Nishanth Menon <nm@ti.com>
+Reported-by: Sricharan R <r.sricharan@ti.com>
+Reported-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- drivers/irqchip/irq-crossbar.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ drivers/irqchip/irq-crossbar.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index fea3e5d..524e6e9 100644
+index 7d4db07..42a2e62 100644
 --- a/drivers/irqchip/irq-crossbar.c
 +++ b/drivers/irqchip/irq-crossbar.c
-@@ -140,20 +140,26 @@ static const struct irq_domain_ops routable_irq_domain_ops = {
- static int __init crossbar_of_init(struct device_node *node,
- 				   const struct crossbar_data *data)
- {
--	int i, size, max, reserved = 0, entry, safe_map;
-+	int i, size, max = 0, reserved = 0, entry, safe_map;
- 	const __be32 *irqsr;
- 	const int *irqsk = NULL;
-+	int ret = -ENOMEM;
- 
- 	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
- 
- 	if (!cb)
--		return -ENOMEM;
-+		return ret;
- 
- 	cb->crossbar_base = of_iomap(node, 0);
- 	if (!cb->crossbar_base)
- 		goto err1;
- 
- 	of_property_read_u32(node, "ti,max-irqs", &max);
-+	if (!max) {
-+		pr_err("missing 'ti,max-irqs' property\n");
-+		ret = -EINVAL;
-+		goto err2;
-+	}
- 	cb->irq_map = kcalloc(max, sizeof(int), GFP_KERNEL);
- 	if (!cb->irq_map)
- 		goto err2;
-@@ -174,6 +180,7 @@ static int __init crossbar_of_init(struct device_node *node,
- 						   i, &entry);
- 			if (entry > max) {
- 				pr_err("Invalid reserved entry\n");
-+				ret = -EINVAL;
- 				goto err3;
- 			}
- 			cb->irq_map[entry] = IRQ_RESERVED;
-@@ -198,6 +205,7 @@ static int __init crossbar_of_init(struct device_node *node,
- 		break;
- 	default:
- 		pr_err("Invalid reg-size property\n");
-+		ret = -EINVAL;
- 		goto err4;
- 		break;
- 	}
-@@ -225,6 +233,7 @@ static int __init crossbar_of_init(struct device_node *node,
- 
- 			if (entry > max) {
- 				pr_err("Invalid skip entry\n");
-+				ret = -EINVAL;
- 				goto err4;
- 			}
- 			cb->irq_map[entry] = IRQ_SKIP;
-@@ -250,7 +259,7 @@ err2:
- 	iounmap(cb->crossbar_base);
- err1:
- 	kfree(cb);
--	return -ENOMEM;
-+	return ret;
+@@ -253,8 +253,8 @@ err1:
+ 	return -ENOMEM;
  }
  
- /* irq number 10,133,139 and 140 cannot be used because of hw bug */
+-/* irq number 10 cannot be used because of hw bug */
+-static int dra_irqs_unused[] = { 10 };
++/* irq number 10,133,139 and 140 cannot be used because of hw bug */
++static int dra_irqs_unused[] = { 10 , 133, 139, 140 };
+ static struct crossbar_data cb_dra_data = { dra_irqs_unused,
+ 				     ARRAY_SIZE(dra_irqs_unused), 0 };
+ 
 -- 
 1.7.9.5
