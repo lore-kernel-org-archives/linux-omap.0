@@ -1,62 +1,62 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 17/19] irqchip: crossbar: introduce centralized check for crossbar write
-Date: Thu, 12 Jun 2014 17:23:25 +0530
-Message-ID: <1402574007-13987-18-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V2 05/19] irqchip: crossbar: Change allocation logic by
+ reversing search for free irqs
+Date: Thu, 12 Jun 2014 17:23:13 +0530
+Message-ID: <1402574007-13987-6-git-send-email-r.sricharan@ti.com>
 References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net
+Cc: nm@ti.com, linux@arm.linux.org.uk, jason@lakedaemon.net, tony@atomide.com, rnayak@ti.com, r.sricharan@ti.com, santosh.shilimkar@ti.com, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
 From: Nishanth Menon <nm@ti.com>
 
-This is a basic check to ensure that crossbar register needs to be
-written. This ensures that we have a common check which is used in
-both map and unmap logic.
+Reverse the search algorithm to ensure that address mapping and IRQ
+allocation logics are proper. This can open up new bugs which are
+easily fixable rather than wait till allocation logic approaches
+the limit to find new bugs.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/irqchip/irq-crossbar.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/irqchip/irq-crossbar.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index cf69c4d..745ad0a 100644
+index 287d3ce..de021638 100644
 --- a/drivers/irqchip/irq-crossbar.c
 +++ b/drivers/irqchip/irq-crossbar.c
-@@ -96,10 +96,20 @@ static inline int allocate_free_irq(int cb_no)
- 	return -ENODEV;
- }
- 
-+static inline bool needs_crossbar_write(irq_hw_number_t hw)
-+{
-+	if (hw > GIC_IRQ_START)
-+		return true;
-+
-+	return false;
-+}
-+
- static int crossbar_domain_map(struct irq_domain *d, unsigned int irq,
- 			       irq_hw_number_t hw)
+@@ -68,7 +68,7 @@ static inline int get_prev_map_irq(int cb_no)
  {
--	cb->write(hw - GIC_IRQ_START, cb->irq_map[hw - GIC_IRQ_START]);
-+	if (needs_crossbar_write(hw))
-+		cb->write(hw - GIC_IRQ_START, cb->irq_map[hw - GIC_IRQ_START]);
-+
- 	return 0;
- }
+ 	int i;
  
-@@ -117,7 +127,7 @@ static void crossbar_domain_unmap(struct irq_domain *d, unsigned int irq)
+-	for (i = 0; i < cb->int_max; i++)
++	for (i = cb->int_max - 1; i >= 0; i--)
+ 		if (cb->irq_map[i] == cb_no)
+ 			return i;
+ 
+@@ -79,7 +79,7 @@ static inline int allocate_free_irq(int cb_no)
  {
- 	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
+ 	int i;
  
--	if (hw > GIC_IRQ_START)
-+	if (needs_crossbar_write(hw))
- 		cb->irq_map[hw - GIC_IRQ_START] = IRQ_FREE;
- }
- 
+-	for (i = 0; i < cb->int_max; i++) {
++	for (i = cb->int_max - 1; i >= 0; i--) {
+ 		if (cb->irq_map[i] == IRQ_FREE) {
+ 			cb->irq_map[i] = cb_no;
+ 			return i;
 -- 
 1.7.9.5
