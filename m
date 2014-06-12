@@ -1,81 +1,92 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 08/19] irqchip: crossbar: fix checkpatch warning
-Date: Thu, 12 Jun 2014 17:23:16 +0530
-Message-ID: <1402574007-13987-9-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V2 12/19] irqchip: crossbar: return proper error value
+Date: Thu, 12 Jun 2014 17:23:20 +0530
+Message-ID: <1402574007-13987-13-git-send-email-r.sricharan@ti.com>
 References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: nm@ti.com, linux@arm.linux.org.uk, jason@lakedaemon.net, tony@atomide.com, rnayak@ti.com, r.sricharan@ti.com, santosh.shilimkar@ti.com, tglx@linutronix.de
+Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net
 List-Id: linux-omap@vger.kernel.org
 
 From: Nishanth Menon <nm@ti.com>
 
-remove un-necessary space in function pointer.
-
-Fixes checkpatch warning:
-WARNING: Unnecessary space before function pointer arguments
- #37: FILE: drivers/irqchip/irq-crossbar.c:37:
- +	void (*write) (int, int);
-
-WARNING: Missing a blank line after declarations
-+	int *register_offsets;
-+	void (*write)(int, int);
-
-WARNING: Prefer kcalloc over kzalloc with multiply
-+	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
-
-WARNING: Prefer kcalloc over kzalloc with multiply
-+	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
+crossbar_of_init always returns -ENOMEM in case of errors, return proper
+error results in case of failures.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/irqchip/irq-crossbar.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/irqchip/irq-crossbar.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 5da9d36..58790d4 100644
+index fea3e5d..524e6e9 100644
 --- a/drivers/irqchip/irq-crossbar.c
 +++ b/drivers/irqchip/irq-crossbar.c
-@@ -34,7 +34,8 @@ struct crossbar_device {
- 	uint *irq_map;
- 	void __iomem *crossbar_base;
- 	int *register_offsets;
--	void (*write) (int, int);
-+
-+	void (*write)(int, int);
- };
+@@ -140,20 +140,26 @@ static const struct irq_domain_ops routable_irq_domain_ops = {
+ static int __init crossbar_of_init(struct device_node *node,
+ 				   const struct crossbar_data *data)
+ {
+-	int i, size, max, reserved = 0, entry, safe_map;
++	int i, size, max = 0, reserved = 0, entry, safe_map;
+ 	const __be32 *irqsr;
+ 	const int *irqsk = NULL;
++	int ret = -ENOMEM;
  
- /**
-@@ -150,7 +151,7 @@ static int __init crossbar_of_init(struct device_node *node,
+ 	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+ 
+ 	if (!cb)
+-		return -ENOMEM;
++		return ret;
+ 
+ 	cb->crossbar_base = of_iomap(node, 0);
+ 	if (!cb->crossbar_base)
  		goto err1;
  
  	of_property_read_u32(node, "ti,max-irqs", &max);
--	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
-+	cb->irq_map = kcalloc(max, sizeof(int), GFP_KERNEL);
++	if (!max) {
++		pr_err("missing 'ti,max-irqs' property\n");
++		ret = -EINVAL;
++		goto err2;
++	}
+ 	cb->irq_map = kcalloc(max, sizeof(int), GFP_KERNEL);
  	if (!cb->irq_map)
  		goto err2;
- 
-@@ -176,7 +177,7 @@ static int __init crossbar_of_init(struct device_node *node,
- 		}
+@@ -174,6 +180,7 @@ static int __init crossbar_of_init(struct device_node *node,
+ 						   i, &entry);
+ 			if (entry > max) {
+ 				pr_err("Invalid reserved entry\n");
++				ret = -EINVAL;
+ 				goto err3;
+ 			}
+ 			cb->irq_map[entry] = IRQ_RESERVED;
+@@ -198,6 +205,7 @@ static int __init crossbar_of_init(struct device_node *node,
+ 		break;
+ 	default:
+ 		pr_err("Invalid reg-size property\n");
++		ret = -EINVAL;
+ 		goto err4;
+ 		break;
  	}
+@@ -225,6 +233,7 @@ static int __init crossbar_of_init(struct device_node *node,
  
--	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
-+	cb->register_offsets = kcalloc(max, sizeof(int), GFP_KERNEL);
- 	if (!cb->register_offsets)
- 		goto err3;
+ 			if (entry > max) {
+ 				pr_err("Invalid skip entry\n");
++				ret = -EINVAL;
+ 				goto err4;
+ 			}
+ 			cb->irq_map[entry] = IRQ_SKIP;
+@@ -250,7 +259,7 @@ err2:
+ 	iounmap(cb->crossbar_base);
+ err1:
+ 	kfree(cb);
+-	return -ENOMEM;
++	return ret;
+ }
  
+ /* irq number 10,133,139 and 140 cannot be used because of hw bug */
 -- 
 1.7.9.5
