@@ -1,49 +1,142 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V2 15/19] irqchip: crossbar: Add kerneldoc for crossbar_domain_unmap callback
-Date: Thu, 12 Jun 2014 17:23:23 +0530
-Message-ID: <1402574007-13987-16-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V2 03/19] irqchip: crossbar: Skip some irqs from getting
+ mapped to crossbar
+Date: Thu, 12 Jun 2014 17:23:11 +0530
+Message-ID: <1402574007-13987-4-git-send-email-r.sricharan@ti.com>
 References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net
+Cc: nm@ti.com, linux@arm.linux.org.uk, jason@lakedaemon.net, tony@atomide.com, rnayak@ti.com, r.sricharan@ti.com, santosh.shilimkar@ti.com, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-The crossbar_domain_map/unmap callbacks need not be called same number
-of times for a particular irq. But still use counting is not needed
-here, because unmap(irq) gets called when irq_desc(irq) is disposed.
-After this the irq is anyways unusable and have to mapped again.
+From: Nishanth Menon <nm@ti.com>
 
-Adding the above kerneldoc for unmap callback clarity.
+When, in the system due to varied reasons, interrupts might be unusable
+due to hardware behavior, but register maps do exist, then those interrupts
+should be skipped while mapping irq to crossbars.
 
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/irqchip/irq-crossbar.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/irqchip/irq-crossbar.c |   47 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 43 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 5f3e75a..2a73a66 100644
+index 51d4b87..847f6e3 100644
 --- a/drivers/irqchip/irq-crossbar.c
 +++ b/drivers/irqchip/irq-crossbar.c
-@@ -101,6 +101,16 @@ static int crossbar_domain_map(struct irq_domain *d, unsigned int irq,
- 	return 0;
- }
+@@ -13,11 +13,13 @@
+ #include <linux/io.h>
+ #include <linux/of_address.h>
+ #include <linux/of_irq.h>
++#include <linux/of_device.h>
+ #include <linux/slab.h>
+ #include <linux/irqchip/arm-gic.h>
+ 
+ #define IRQ_FREE	-1
+ #define IRQ_RESERVED	-2
++#define IRQ_SKIP	-3
+ #define GIC_IRQ_START	32
+ 
+ /*
+@@ -34,6 +36,16 @@ struct crossbar_device {
+ 	void (*write) (int, int);
+ };
  
 +/**
-+ * crossbar_domain_unmap - unmap a crossbar<->irq connection
-+ * @d: domain of irq to unmap
-+ * @irq: virq number
-+ *
-+ * The map/unmap callbacks need not be called same number of times for
-+ * a particular irq. But still use counting is not needed here, because
-+ * unmap(irq) gets called when irq_desc(irq) is disposed. After this the
-+ * irq is anyways unusuable and have to be mapped again.
++ * struct crossbar_data: Platform specific data
++ * @irqs_unused: array of irqs that cannot be used because of hw erratas
++ * @size: size of the irqs_unused array
 + */
- static void crossbar_domain_unmap(struct irq_domain *d, unsigned int irq)
++struct crossbar_data {
++	const uint *irqs_unused;
++	const uint size;
++};
++
+ static struct crossbar_device *cb;
+ 
+ static inline void crossbar_writel(int irq_no, int cb_no)
+@@ -119,10 +131,12 @@ const struct irq_domain_ops routable_irq_domain_ops = {
+ 	.xlate = crossbar_domain_xlate
+ };
+ 
+-static int __init crossbar_of_init(struct device_node *node)
++static int __init crossbar_of_init(struct device_node *node,
++				   const struct crossbar_data *data)
  {
- 	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
+ 	int i, size, max, reserved = 0, entry;
+ 	const __be32 *irqsr;
++	const int *irqsk = NULL;
+ 
+ 	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
+ 
+@@ -194,6 +208,22 @@ static int __init crossbar_of_init(struct device_node *node)
+ 		reserved += size;
+ 	}
+ 
++	/* Skip the ones marked as unused */
++	if (data) {
++		irqsk = data->irqs_unused;
++		size = data->size;
++
++		for (i = 0; i < size; i++) {
++			entry = irqsk[i];
++
++			if (entry > max) {
++				pr_err("Invalid skip entry\n");
++				goto err3;
++			}
++			cb->irq_map[entry] = IRQ_SKIP;
++		}
++	}
++
+ 	register_routable_domain_ops(&routable_irq_domain_ops);
+ 	return 0;
+ 
+@@ -208,18 +238,27 @@ err1:
+ 	return -ENOMEM;
+ }
+ 
++/* irq number 10 cannot be used because of hw bug */
++int dra_irqs_unused[] = { 10 };
++struct crossbar_data cb_dra_data = { dra_irqs_unused,
++				     ARRAY_SIZE(dra_irqs_unused) };
++
+ static const struct of_device_id crossbar_match[] __initconst = {
+-	{ .compatible = "ti,irq-crossbar" },
++	{ .compatible = "ti,irq-crossbar", .data = &cb_dra_data },
+ 	{}
+ };
+ 
+ int __init irqcrossbar_init(void)
+ {
+ 	struct device_node *np;
+-	np = of_find_matching_node(NULL, crossbar_match);
++	const struct of_device_id *of_id;
++	const struct crossbar_data *cdata;
++
++	np = of_find_matching_node_and_match(NULL, crossbar_match, &of_id);
+ 	if (!np)
+ 		return -ENODEV;
+ 
+-	crossbar_of_init(np);
++	cdata = of_id->data;
++	crossbar_of_init(np, cdata);
+ 	return 0;
+ }
 -- 
 1.7.9.5
