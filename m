@@ -1,51 +1,64 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V2 05/19] irqchip: crossbar: Change allocation logic by
- reversing search for free irqs
-Date: Fri, 13 Jun 2014 11:39:39 +0530
-Message-ID: <539A95A3.1010301@ti.com>
-References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com> <1402574007-13987-6-git-send-email-r.sricharan@ti.com> <20140612125615.GT8664@titan.lakedaemon.net>
+From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V2 08/19] irqchip: crossbar: fix checkpatch warning
+Date: Fri, 13 Jun 2014 12:00:31 +0530
+Message-ID: <539A9A87.6020004@ti.com>
+References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>  <1402574007-13987-9-git-send-email-r.sricharan@ti.com>  <20140612131042.GU8664@titan.lakedaemon.net> <5399AC9C.4080602@ti.com>  <1402582711.9947.17.camel@joe-AO725>  <20140612153226.GE8664@titan.lakedaemon.net> <1402589159.12385.4.camel@joe-AO725>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44094 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653AbaFMGMV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 02:12:21 -0400
-In-Reply-To: <20140612125615.GT8664@titan.lakedaemon.net>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1402589159.12385.4.camel@joe-AO725>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jason Cooper <jason@lakedaemon.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de
 
 Hi Jason,
 
-On Thursday 12 June 2014 06:26 PM, Jason Cooper wrote:
-> On Thu, Jun 12, 2014 at 05:23:13PM +0530, Sricharan R wrote:
->> From: Nishanth Menon <nm@ti.com>
+On Thursday 12 June 2014 09:35 PM, Joe Perches wrote:
+> On Thu, 2014-06-12 at 11:32 -0400, Jason Cooper wrote:
+> 
+> Hi Jason.
+> 
+>>> But bugfix backports haven't been much of an issue in
+>>> other subsystems with fairly active whitespace/style
+>>> changes.
 >>
->> Reverse the search algorithm to ensure that address mapping and IRQ
->> allocation logics are proper. This can open up new bugs which are
->> easily fixable rather than wait till allocation logic approaches
->> the limit to find new bugs.
+>> Most of the mvebu fixes we've had that failed to apply were generally
+>> due to a large whitespace change (dts node shuffling, admittedly not
+>> checkpatch-related).
 > 
-> Could you expand on this logic some more?  What class of bugs are you
-> hoping to discover more easily?
+> So not due to this.
 > 
-
-class 1. address space errors -> example:
-reg = <a size_b>
-ti,max-irqs =  is a wrong parameter
-
-class 2: irq-reserved list - which decides which entries in the
-address space is not actually wired in
-
-class 3: wrong list of routable-irqs.
-
-in general allocating from max to min tends to have benefits in
-ensuring the different issues that may be present in dts is easily
-caught at definition time, rather than at a later point in time.
-
+>>   I've also frequently been stymied by code cleanups
+>> when using git blame to find the commit introducing a regression.
+> 
+> git blame -w can frequently help there.
+> 
+>> So, my general rule is: If you're submitting a patch to make checkpatch
+>> be quiet, re-assess the need.  If you're making changes and you can fix
+>> some checkpatch items while you're there, then do so.
+> 
+> Decent rule.
+> 
+>> There are certainly legitimate checkpatch-only patches, I just don't
+>> think this is one qualifies.
+> 
+> Of course it's the maintainer's choice (and last I saw,
+> that's you) to ignore whatever doesn't fit the appropriate
+> vision for the code.
+> 
+> $ ./scripts/get_maintainer.pl -f drivers/irqchip/irq-crossbar.c
+> Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> (maintainer:IRQCHIP DRIVERS)
+> Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org> (maintainer:IRQCHIP DRIVERS)
+ 
+  Ok, if this is not qualifying as a separate patch then i will merge
+  this with other patches in the series which touch them.
 
 Regards,
  Sricharan
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
