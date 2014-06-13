@@ -1,69 +1,120 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2 03/19] irqchip: crossbar: Skip some irqs from getting
- mapped to crossbar
-Date: Fri, 13 Jun 2014 16:34:53 +0530
-Message-ID: <539ADAD5.1000904@ti.com>
-References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com> <1402574007-13987-4-git-send-email-r.sricharan@ti.com> <20140612125134.GS8664@titan.lakedaemon.net> <20140612135715.GE17845@atomide.com> <20140612140508.GC8664@titan.lakedaemon.net> <539AA08A.7010001@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
+Date: Fri, 13 Jun 2014 04:10:12 -0700
+Message-ID: <20140613111011.GT17845@atomide.com>
+References: <5192928.MkINji4uKU@wuerfel>
+ <1830688.7p3Fp6u7a2@avalon>
+ <20140613075325.GO17845@atomide.com>
+ <1709586.iO4riM1soY@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <539AA08A.7010001-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55789 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbaFMLKT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 07:10:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1709586.iO4riM1soY@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, Mauro Carvalho Chehab <m.chehab@samsung.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
 
-On Friday 13 June 2014 12:26 PM, Sricharan R wrote:
-> Hi Jason,
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140613 03:30]:
+> Hi Tony,
 > 
-> On Thursday 12 June 2014 07:35 PM, Jason Cooper wrote:
->> On Thu, Jun 12, 2014 at 06:57:15AM -0700, Tony Lindgren wrote:
->>> * Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org> [140612 05:52]:
->>>> On Thu, Jun 12, 2014 at 05:23:11PM +0530, Sricharan R wrote:
->>>>> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>>>>
->>>>> When, in the system due to varied reasons, interrupts might be unusable
->>>>> due to hardware behavior, but register maps do exist, then those interrupts
->>>>> should be skipped while mapping irq to crossbars.
->>>>>
->>>>> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>>>> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
->>>>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->>>>
->>>> Tony, have you applied these somewhere already?
->>>
->>> I think some of these I had applied into a branch ready for
->>> merging but then it was discovered that further changes
->>> were needed and the branch was dropped.
->>
->> Ok.
->>
->>> Sricharan, please remove my Signed-off-by from this series.
->>> If I end up applying it for merging my scripts will add it
->>> automatically.
->>
->> Do you have other changes outside of irqchip depending on this series?
->> If so, I can set up a topic branch for you guys to base off of.
->> Otherwise, I'll just apply them to irqchip/core when they're ready.
->>
->  There are dts changes which are dependent upon this series.
+> On Friday 13 June 2014 00:53:25 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 23:48]:
+> > > On Thursday 12 June 2014 22:30:44 Tony Lindgren wrote:
+> > > > 1. They live in separate hardware modules that can be clocked separately
+> > > 
+> > > Actually I don't think that's true. The CSI2 PHY is part of the camera
+> > > device, with all its registers but the one above in the camera device
+> > > register space. For some weird reason a couple of bits were pushed to the
+> > > control module, but that doesn't make the CSI2 PHY itself a separate
+> > > device.
+> > 
+> > Yes they are separate. Anything in the system control module is
+> > a separate hardware module from the other devices. So in this case
+> > the CSI2 PHY is part of the system control module, not the camera
+> > module.
 > 
->   http://www.spinics.net/lists/linux-omap/msg108116.html
+> Section 8.2.3 ("ISS CSI2 PHY") of the OMAP4460 TRM (revision AA) documents the 
+> CSI2 PHY is being part of the ISS, with three PHY registers in the ISS 
+> register space (not counting the PHY interrupt and status bits in several 
+> other ISS registers) and one register in the system control module register 
+> space. It's far from clear which power domain(s) is (are) involved.
+
+OK I see. The register in the system control module just contains some
+pin and clock related resources for the phy.
+ 
+> > > > 2. Doing a read-back to flush a posted write in one hardware module most
+> > > >    likely won't flush the write to other and that can lead into hard to
+> > > >    find mysterious bugs
+> > > 
+> > > The OMAP4 ISS driver can just read back the CAMERA_RX register, can't it ?
+> > 
+> > Right, but you would have to do readbacks both from the phy register and
+> > camera register to ensure writes get written. It's best to keep the
+> > logic completely separate especially considering that they can be
+> > clocked separately.
+> > 
+> > > > 3. If we ever have a common system control module driver, we need to
+> > > >    rewrite all the system control module register tinkering in the
+> > > >    drivers
+> > > 
+> > > Sure, but that's already the case today, as the OMAP4 ISS driver already
+> > > accesses the control module register directly. I won't make that worse :-)
+> > 
+> > Well it's in staging for a reason :)
+> > 
+> > > > So it's best to try to use an existing framework for it. That avoids
+> > > > tons of pain later on ;)
+> > > 
+> > > I agree, but I don't think the PHY framework would be the right
+> > > abstraction. As explained above the CSI2 PHY is part of the OMAP4 ISS, so
+> > > modeling its single control module register as a PHY would be a hack.
+> > 
+> > Well that register belongs to the system control module, not the
+> > camera module. It's not like the camera IO space is out of registers
+> > or something! :)
 > 
->> Also, Sricharan, when you respin this, please clearly identify (in the
->> comment section) those patches that need to be flagged for stable.  It
->> would be helpful if they were the first patches in the series as well.
+> The PHY has 3 registers in the ISS I/O space and one register in the control 
+> module I/O space. I have no idea why they've split it that way. The clock 
+> enable bits are especially "interested", the source clock (CAM_PHY_CTRL_FCLK) 
+> comes from the ISS as documented in section 8.1.1 ("ISS Integration"), is 
+> gated by the control module (the gated clock is called CTRLCLK) and then goes 
+> back to the ISS CSI2 PHY (it's mentioned in the CSI2 PHY "REGISTER1" 
+> documentation).
 > 
-> Ok, i will point this out clearly.
- Infact since the dts node is not present in the older kernel (even now),
- the driver itself is not used. So i feel there is nothing to be flagged
-  for stable as such.
+> > We're already handling similar control module phy cases, see for
+> > example drivers/phy/phy-omap-control.c. Maybe you have most of the
+> > code already there?
+> 
+> I'm afraid not. For PHYs that are in the system control module that solution 
+> is perfectly fine, but the CSI2 PHY isn't (or at least not all of it).
+> 
+> I would be fine with writing a separate PHY driver if the PHY was completely 
+> separate. As the documentation doesn't make it clear which part of the 
+> hardware belongs to which module, matching the software implementation with an 
+> unknown hardware implementation would be pretty difficult :-)
+
+Yeah it seems the phy driver would still have to use the pin resources
+in the system control module.
+ 
+> If you have a couple of minutes to spare and can look at the CSI2 PHY 
+> documentation in the TRM, you might be more successful than me figuring out 
+> how the hardware is implemented.
+
+Took a look and it seems the phy is split into two parts. So probably
+using the syscon mapping for the register in scm are is a good start.
+At least then there's some protection from drivers tinkering directly
+with the system control modules.
+
+Maybe s	ee what drivers/regulator/pbias-regulator.c is doing with
+syscon to see if that works? Moving that to some phy driver later on
+should be trivial if needed :)
 
 Regards,
- Sricharan
- 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Tony
