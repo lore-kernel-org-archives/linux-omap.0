@@ -1,36 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 15/36] ARM: OMAP2+: gpmc: Allow drivers to query GPMC_CLK
- period
-Date: Fri, 13 Jun 2014 00:26:46 -0700
-Message-ID: <20140613072645.GN17845@atomide.com>
-References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
- <1402477001-31132-16-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 05/36] mtd: nand: omap: Move IRQ handling from GPMC to
+ NAND driver
+Date: Fri, 13 Jun 2014 10:38:52 +0300
+Message-ID: <539AAA8C.2070709@ti.com>
+References: <1402477001-31132-1-git-send-email-rogerq@ti.com> <1402477001-31132-6-git-send-email-rogerq@ti.com> <20140613071820.GI17845@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1402477001-31132-16-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: dwmw2@infradead.org, computersforpeace@gmail.com, kyungmin.park@samsung.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140613071820.GI17845-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, pekon-l0cyMroinI0@public.gmane.org, ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [140611 01:59]:
-> GPMC_CLK is the external clock output pin that is used for syncronous
-> accesses.
+On 06/13/2014 10:18 AM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140611 01:58]:
+>> Since the Interrupt Events are used only by the NAND driver,
+>> there is no point in managing the Interrupt registers
+>> in the GPMC driver and complicating it with irqchip modeling.
+>>
+>> Let's manage the interrupt registers directly in the NAND driver
+>> and get rid of irqchip model from GPMC driver.
+>>
+>> Get rid of IRQ commands and unused commands from gpmc_configure() in
+>> the GPMC driver.
 > 
-> Device drivers need to know the fastest possible GPMC_CLK period in order
-> to calculate the most optimal device timings. Add the function
-> omap_gpmc_get_clk_period() to allow drivers to get the nearset possible
-> (equal to or greater than) GPMC_CLK period given the minimum
-> clock period supported by the attached device.
+> This seems like a step backward to me. The GPMC interrupt enable
+> register can do edge detection on the wait pins, how is that
+> limited to NAND?
+
+OK. But wait pin edge detection was not yet being used and I couldn't
+think of how it would ever be used. Any ideas?
+
 > 
-> This is especially needed by the onenand driver as it calculates
-> device timings on the fly for various onenand speed grades.
+> Further, let's not start mixing GPMC hardware module register
+> access with the NAND driver register access. They can be clocked
+> separately. And bugs in the NAND driver can cause issues in other
+> GPMC using drivers.
 
-Here too this should probably still be done by the gpmc to driver
-glue layer, not by the actual driver that shoud be Linux generic.
+I understood that NAND controller is integrated into the GPMC module and they are clocked
+the same. Not sure why the hardware designers would keep the registers so closely knit.
 
-Regards,
+FYI. memory/ti-amif.c and mtd/nand/davinci_nand.c share the AMIF register space in the
+same way. I thought it'd be nice to be consistent across TI drivers.
 
-Tony
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
