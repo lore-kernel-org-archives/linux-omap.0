@@ -1,104 +1,126 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 05/36] mtd: nand: omap: Move IRQ handling from GPMC to
- NAND driver
-Date: Fri, 13 Jun 2014 05:08:39 -0700
-Message-ID: <20140613120839.GV17845@atomide.com>
-References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
- <1402477001-31132-6-git-send-email-rogerq@ti.com>
- <20140613071820.GI17845@atomide.com>
- <539AAA8C.2070709@ti.com>
- <20140613075856.GQ17845@atomide.com>
- <20980858CB6D3A4BAE95CA194937D5E73EAF51DB@DBDE04.ent.ti.com>
- <539AB4E4.6050408@ti.com>
- <20140613104610.GS17845@atomide.com>
- <539AE390.4080504@ti.com>
+From: satish kumar <gsatish10@gmail.com>
+Subject: Re: [PATCH 3/3] ASoC: simple-card: Add system-clock-id
+ DT parameter to dai nodes
+Date: Fri, 13 Jun 2014 17:54:37 +0530
+Message-ID: <CAE0hQF1Xpu2VJDA7u6JtQLTukHnaHQfu=aHADcaOmhJcLxOcJw@mail.gmail.com>
+References: <cover.1402653217.git.jsarha@ti.com>
+ <c0281e720e9ef2056d3460047cf5bc5e75684abf.1402653217.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <539AE390.4080504-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org" <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, "javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org" <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <c0281e720e9ef2056d3460047cf5bc5e75684abf.1402653217.git.jsarha@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, broonie@kernel.org, bcousson@baylibre.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140613 04:43]:
-> On 06/13/2014 01:46 PM, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140613 01:24]:
-> >> On 06/13/2014 11:13 AM, Gupta, Pekon wrote:
-> >>>> From: Tony Lindgren [mailto:tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org]
-> >>>>> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140613 00:40]:
-> >>>>>> On 06/13/2014 10:18 AM, Tony Lindgren wrote:
-> >>>>>>> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140611 01:58]:
-> >>>>>
-> >>>>> OK. But wait pin edge detection was not yet being used and I couldn't
-> >>>>> think of how it would ever be used. Any ideas?
-> >>>>
-> >>>> Maybe to wake-up the system on bus activity or something?
-> >>>>
-> >>> Sorry, I wasn't able to review this series.
-> >>> But just as pointer, GPMC driver was used for interfacing many
-> >>> non-memory devices like Ethernet (smc91x) and in past GPMC has been
-> >>> proved to work with camera devices too, but that's wasn't mainlined.
-> >>> So keeping IRQ and few other things in GPMC driver is helpful.
-> >>>
-> >>
-> >> On further study it seems that the wait pin edge detection is only used in the NAND controller use case.
-> >> see section 10.1.5.14.2.2 Ready Pin Monitored by Hardware Interrupt
-> > 
-> > It seems they can be used for anything slow like NOR and NAND.
-> 
-> But NOR driver never requests for any IRQ.
-> 
-> We should not confuse this wait pin edge interrupt with NOR bus cycle WAIT pin mechanism.
-> That is configured using GPMC_CONFIG1 register via WAITPINSELECT and WAITREAD/WRITEMONITORING bits.
-> That wait pin handling is done completely in hardware and doesn't need any software intervention.
-> Imagine using it for interrupt for every bus cycle wait. It will be dead slow and unusable.
-> 
-> The WAIT edge interrupt mechanism is exclusively for NAND use case to notify the status of READY pin after a block/page operation.
+Hi
 
-OK thanks for clarifying it. 
- 
-> >> For memory devices, no software wait pin intervention is necessary and doesn't even make sense.
-> > 
-> > Still seems that it's use can be generic though, not limited
-> > to NAND.
-> >  
-> >> So I don't agree on managing the IRQSTATUS and IRQENABLE register in the GPMC driver. It is adding unnecessary complexity. I don't mind having a wrapper around it though like the other nand registers.
-> > 
-> > But all the consumer driver should need to do is request_irq()
-> > on it? That's pretty much the most common interface we have
-> > for drivers :)
-> 
-> the client driver side is easy, but it adds unnecessary complication to model it as IRQ chip and assign a line for each event. Since it is going to be used exclusively by NAND we should avoid IRQ chip modeling.
+I have panda board (omap4430 <http://www.ti.com/product/omap4430>) , I am
+trying to debug omap4430 <http://www.ti.com/product/omap4430> board using
+trace32 [Lauterbach].
 
-OK up to you if there are no other users for it. 
- 
-> >> To be frank, I think it is cleaner if the NAND driver directly accesses the NAND registers.
-> >> I don't see why we should make things complicated just because the hardware designers didn't create a clear register split between GPMC and NAND.
-> > 
-> > Because they are in separate hardware modules :)
-> > 
-> > Who knows why it was set up this way. Maybe the plan was to have
-> > the common features in GPMC that then can be used by various MTD
-> > devices.
-> >  
-> >> Only the GPMC_CONFIG register needs to remain with the GPMC driver.
-> > 
-> > And managing clocks and runtime PM in general. In any case, let's
-> > not let drivers tinker with the GPMC registers directly though.
-> > Some kind of abstraction via existing frameworks or with regmap
-> > is needed.
-> 
-> OK. I agree about using some kind of abstraction instead of direct access.
+Can you please provide procedure to debug u-boot code kernel code.
 
-Yes and like we chatted on irc, adding a syscon mapping for for
-the NAND specific registers might do the trick here.
+I had installed trace32 and PC is identifying trace32 through serial cable.
 
-Regards,
+I wants to know steps to follow for debugging the boot code and kernel code.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have gone through net, I came to know ,  need CMM scripts [board specfic
+CMM scripts]
+
+can you please provide the same and further steps to debug the code.
+
+
+Thank you in advance.
+
+Regards
+
+Satish.G
+
+
+On Fri, Jun 13, 2014 at 3:34 PM, Jyri Sarha <jsarha@ti.com> wrote:
+
+> Select clk_id parameters for set_sysclk calls in the card init phase.
+>
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  .../devicetree/bindings/sound/simple-card.txt      |    2 ++
+>  include/sound/simple_card.h                        |    1 +
+>  sound/soc/generic/simple-card.c                    |    6 +++++-
+>  3 files changed, 8 insertions(+), 1 deletion(-)
+>
+> diff --git a/Documentation/devicetree/bindings/sound/simple-card.txt
+> b/Documentation/devicetree/bindings/sound/simple-card.txt
+> index 8460744..8877130 100644
+> --- a/Documentation/devicetree/bindings/sound/simple-card.txt
+> +++ b/Documentation/devicetree/bindings/sound/simple-card.txt
+> @@ -72,6 +72,8 @@ Optional CPU/CODEC subnodes properties:
+>                                           clock node (= common clock), or
+> "system-clock-frequency"
+>                                           (if system doens't support
+> common clock)
+>  - system-clock-direction               : "in" or "out", default "in"
+> +- system-clock-id                      : u32, clk_id parameter for
+> set_sysclk,
+> +                                         default 0
+>
+>  Example 1 - single DAI link:
+>
+> diff --git a/include/sound/simple_card.h b/include/sound/simple_card.h
+> index 6d74fef..f3c7a30 100644
+> --- a/include/sound/simple_card.h
+> +++ b/include/sound/simple_card.h
+> @@ -19,6 +19,7 @@ struct asoc_simple_dai {
+>         unsigned int fmt;
+>         unsigned int sysclk;
+>         int sysclk_dir;
+> +       int sysclk_id;
+>         int slots;
+>         int slot_width;
+>  };
+> diff --git a/sound/soc/generic/simple-card.c
+> b/sound/soc/generic/simple-card.c
+> index 8dd7957..f840d9c 100644
+> --- a/sound/soc/generic/simple-card.c
+> +++ b/sound/soc/generic/simple-card.c
+> @@ -64,7 +64,7 @@ static int __asoc_simple_card_dai_init(struct
+> snd_soc_dai *dai,
+>         }
+>
+>         if (set->sysclk) {
+> -               ret = snd_soc_dai_set_sysclk(dai, 0, set->sysclk,
+> +               ret = snd_soc_dai_set_sysclk(dai, set->sysclk_id,
+> set->sysclk,
+>                                              set->sysclk_dir);
+>                 if (ret && ret != -ENOTSUPP) {
+>                         dev_err(dai->dev, "simple-card: set_sysclk
+> error\n");
+> @@ -150,6 +150,10 @@ asoc_simple_card_sub_parse_of(struct device_node *np,
+>                         return -EINVAL;
+>         }
+>
+> +       ret = of_property_read_u32(np, "system-clock-id", &val);
+> +       if (ret == 0)
+> +               dai->sysclk_id = val;
+> +
+>         /*
+>          * dai->sysclk come from
+>          *  "clocks = <&xxx>" (if system has common clock)
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
