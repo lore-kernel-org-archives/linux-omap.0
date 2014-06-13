@@ -1,36 +1,28 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 06/36] mtd: nand: omap: Move gpmc_update_nand_reg to nand
- driver
-Date: Fri, 13 Jun 2014 00:19:46 -0700
-Message-ID: <20140613071945.GJ17845@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 07/36] mtd: nand: omap: Move NAND write protect code from
+ GPMC to NAND driver
+Date: Fri, 13 Jun 2014 00:20:23 -0700
+Message-ID: <20140613072023.GK17845@atomide.com>
 References: <1402477001-31132-1-git-send-email-rogerq@ti.com>
- <1402477001-31132-7-git-send-email-rogerq@ti.com>
+ <1402477001-31132-8-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50947 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbaFMHUc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 03:20:32 -0400
 Content-Disposition: inline
-In-Reply-To: <1402477001-31132-7-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, pekon-l0cyMroinI0@public.gmane.org, ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1402477001-31132-8-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: dwmw2@infradead.org, computersforpeace@gmail.com, kyungmin.park@samsung.com, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [140611 01:58]:
-> GPMC and NAND drivers share the same register space but never use the
-> same registers. As there is no clear address seperation between the
-> registers for GPMC and NAND, we can't easily split it up into 2 regions
-> i.e. one for GPMC and other for NAND. Instead, we simply remap the entire
-> register space in both the drivers. The NAND driver doesn't re-request
-> the region as it is already requested by the GPMC driver (parent).
+* Roger Quadros <rogerq@ti.com> [140611 01:58]:
+> The write protect (WP) pin is only used for NAND devices. So move
+> the code into the NAND driver.
 
-Oh now, let's not do this. It's best to limit GPMC register access
-to the GPMC driver. Even if we need to export few NAND specific
-functions from the GPMC driver.
-
-Regards,
+Eek, noooo!
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
