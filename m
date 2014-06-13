@@ -1,33 +1,62 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 5/7] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-Date: Fri, 13 Jun 2014 19:08:12 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406131907180.340@utopia.booyaka.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-6-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH] ARM: DRA7: hwmod: add entry for RTCSS
+Date: Fri, 13 Jun 2014 19:09:31 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406131908260.340@utopia.booyaka.com>
+References: <f99196358a3cc28b0bd451459badcfc286533845.1399638849.git.nsekhar@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53583 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:53599 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751117AbaFMTIN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 15:08:13 -0400
-In-Reply-To: <1399283686-6127-6-git-send-email-rogerq@ti.com>
+	with ESMTP id S1751056AbaFMTJc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 15:09:32 -0400
+In-Reply-To: <f99196358a3cc28b0bd451459badcfc286533845.1399638849.git.nsekhar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Lokesh Vutla <lokeshvutla@ti.com>
 
-Hi Roger,
+Hi Sekhar,
 
-On Mon, 5 May 2014, Roger Quadros wrote:
+On Fri, 9 May 2014, Sekhar Nori wrote:
 
-> Add the sysconfig class bits for the Super Speed USB
-> controllers
+> From: Lokesh Vutla <lokeshvutla@ti.com>
 > 
-> CC: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> RTCSS on DRA7 provides a precise real-time clock.
+> Add hwmod entry for this IP.
+> 
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 
-As with the previous DRA7 hwmod patch, I'd like to get a Reviewed-by: and 
-a Tested-by: before merging this one.
+Sorry for the delay on this patch.  Have been corresponding with TI to 
+figure out what to do about DRA7xx/AM43xx patches.  I don't have boards or 
+public documentation for these devices, so it's impossible for me to 
+meaningfully review the patches.  Looks like boards and/or public docs 
+won't be coming any time soon.
+
+So for my part, here's what I'll need to merge any hwmod patches that
+involve AM437x or DRA7xx:
+
+1. A Reviewed-by: from one of the following folks (which should come from
+a different person than who is submitting the patches):
+
+Roger Quadros
+Nishanth Menon
+Rajendra Nayak
+Kevin Hilman
+Tony Lindgren
+
+2. A Tested-by: from one of the following folks (who can be the same as 
+the person who is the same as the person who is submitting the patches):
+
+Nishanth Menon
+Rajendra Nayak
+Kevin Hilman 
+Tony Lindgren
+
+
+Once these are in place, I'd be happy to queue it for 3.16.
+
 
 
 - Paul
