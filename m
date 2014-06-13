@@ -1,42 +1,58 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH V2 00/19] irqchip: crossbar: driver fixes
-Date: Fri, 13 Jun 2014 12:54:58 -0400
-Message-ID: <20140613165458.GS8664@titan.lakedaemon.net>
-References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com>
- <20140613150122.GP8664@titan.lakedaemon.net>
- <1402676074.12385.40.camel@joe-AO725>
- <20140613163714.GR8664@titan.lakedaemon.net>
- <1402678104.3509.1.camel@joe-AO725>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4 3/4] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+Date: Fri, 13 Jun 2014 19:07:05 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406131901340.340@utopia.booyaka.com>
+References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274559-24777-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1402678104.3509.1.camel@joe-AO725>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:53556 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751146AbaFMTHH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 15:07:07 -0400
+In-Reply-To: <1398274559-24777-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 
-On Fri, Jun 13, 2014 at 09:48:24AM -0700, Joe Perches wrote:
-> On Fri, 2014-06-13 at 12:37 -0400, Jason Cooper wrote:
-> > On Fri, Jun 13, 2014 at 09:14:34AM -0700, Joe Perches wrote:
-> > > On Fri, 2014-06-13 at 11:01 -0400, Jason Cooper wrote:
-> > > > Please format the subject lines like so:
-> > > > 
-> > > >   irqchip: crossbar: Set cb pointer ...
-> > > >                      ^
-> > > >                      |
-> > > >                      \-- note the capitalization
-> > > 
-> > > I suggest you don't make this a rule and focus
-> > > on more important stuff instead.
-> > 
-> > It's not my rule.  ;-)
+Hi Roger,
+
+On Wed, 23 Apr 2014, Roger Quadros wrote:
+
+> From: Nikhil Devshatwar <nikhil.nd@ti.com>
 > 
-> Who's rule is it then?
+> Add hwmods for ocp2scp3 and sata modules.
+> 
+> [Roger Q] Clean up.
 
-Thomas'
+Sorry for the delay on this.  Have been corresponding with TI to figure 
+out what to do about these DRA7xx/AM43xx patches, since I don't have 
+boards or public documentation for these devices, so it's impossible for 
+me to meaningfully review the patches.  Looks like boards and/or public 
+docs won't be coming any time soon.
 
-thx,
+So for my part, here's what I'll need to merge any hwmod patches that 
+involve AM437x or DRA7xx:
 
-Jason.
+1. A Reviewed-by: from one of the following folks (which should come from 
+a different person than who is submitting the patches):
+
+Roger Quadros
+Nishanth Menon
+Rajendra Nayak
+Kevin Hilman
+Tony Lindgren
+
+2. A Tested-by: from one of the following folks (who can be the same as 
+the person who is the same as the person who is submitting the patches):
+
+Nishanth Menon
+Rajendra Nayak
+Kevin Hilman 
+Tony Lindgren
+
+Once these are in place, I'd be happy to queue it for 3.16.
+
+
+- Paul
