@@ -1,157 +1,118 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2 03/19] irqchip: crossbar: Skip some irqs from getting
- mapped to crossbar
-Date: Fri, 13 Jun 2014 12:07:49 +0530
-Message-ID: <539A9C3D.3050407@ti.com>
-References: <1402574007-13987-1-git-send-email-r.sricharan@ti.com> <1402574007-13987-4-git-send-email-r.sricharan@ti.com> <20140612125134.GS8664@titan.lakedaemon.net> <5399A8D5.6070105@ti.com> <20140612140729.GD8664@titan.lakedaemon.net>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] [media] staging: allow omap4iss to be modular
+Date: Fri, 13 Jun 2014 08:47:34 +0200
+Message-ID: <1830688.7p3Fp6u7a2@avalon>
+References: <5192928.MkINji4uKU@wuerfel> <1689719.caqIIBS1Wn@avalon> <20140613053044.GG17845@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140612140729.GD8664-u4khhh1J0LxI1Ri9qeTfzeTW4wlIGRCZ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20140613053044.GG17845@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, Mauro Carvalho Chehab <m.chehab@samsung.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jason,
+Hi Tony,
 
-On Thursday 12 June 2014 07:37 PM, Jason Cooper wrote:
-> On Thu, Jun 12, 2014 at 06:49:17PM +0530, Sricharan R wrote:
->> Hi Jason,
->>
->> On Thursday 12 June 2014 06:21 PM, Jason Cooper wrote:
->>> On Thu, Jun 12, 2014 at 05:23:11PM +0530, Sricharan R wrote:
->>>> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>>>
->>>> When, in the system due to varied reasons, interrupts might be unusable
->>>> due to hardware behavior, but register maps do exist, then those interrupts
->>>> should be skipped while mapping irq to crossbars.
->>>>
->>>> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>>> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
->>>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->>>
->>> Tony, have you applied these somewhere already?
->>>
->>>> ---
->>>>  drivers/irqchip/irq-crossbar.c |   47 ++++++++++++++++++++++++++++++++++++----
->>>>  1 file changed, 43 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
->>>> index 51d4b87..847f6e3 100644
->>>> --- a/drivers/irqchip/irq-crossbar.c
->>>> +++ b/drivers/irqchip/irq-crossbar.c
->>>> @@ -13,11 +13,13 @@
->>>>  #include <linux/io.h>
->>>>  #include <linux/of_address.h>
->>>>  #include <linux/of_irq.h>
->>>> +#include <linux/of_device.h>
->>>>  #include <linux/slab.h>
->>>>  #include <linux/irqchip/arm-gic.h>
->>>>  
->>>>  #define IRQ_FREE	-1
->>>>  #define IRQ_RESERVED	-2
->>>> +#define IRQ_SKIP	-3
->>>>  #define GIC_IRQ_START	32
->>>>  
->>>>  /*
->>>> @@ -34,6 +36,16 @@ struct crossbar_device {
->>>>  	void (*write) (int, int);
->>>>  };
->>>>  
->>>> +/**
->>>> + * struct crossbar_data: Platform specific data
->>>> + * @irqs_unused: array of irqs that cannot be used because of hw erratas
->>>> + * @size: size of the irqs_unused array
->>>> + */
->>>> +struct crossbar_data {
->>>> +	const uint *irqs_unused;
->>>> +	const uint size;
->>>> +};
->>>> +
->>>>  static struct crossbar_device *cb;
->>>>  
->>>>  static inline void crossbar_writel(int irq_no, int cb_no)
->>>> @@ -119,10 +131,12 @@ const struct irq_domain_ops routable_irq_domain_ops = {
->>>>  	.xlate = crossbar_domain_xlate
->>>>  };
->>>>  
->>>> -static int __init crossbar_of_init(struct device_node *node)
->>>> +static int __init crossbar_of_init(struct device_node *node,
->>>> +				   const struct crossbar_data *data)
->>>>  {
->>>>  	int i, size, max, reserved = 0, entry;
->>>>  	const __be32 *irqsr;
->>>> +	const int *irqsk = NULL;
->>>>  
->>>>  	cb = kzalloc(sizeof(*cb), GFP_KERNEL);
->>>>  
->>>> @@ -194,6 +208,22 @@ static int __init crossbar_of_init(struct device_node *node)
->>>>  		reserved += size;
->>>>  	}
->>>>  
->>>> +	/* Skip the ones marked as unused */
->>>> +	if (data) {
->>>> +		irqsk = data->irqs_unused;
->>>> +		size = data->size;
->>>> +
->>>> +		for (i = 0; i < size; i++) {
->>>> +			entry = irqsk[i];
->>>> +
->>>> +			if (entry > max) {
->>>> +				pr_err("Invalid skip entry\n");
->>>> +				goto err3;
->>>> +			}
->>>> +			cb->irq_map[entry] = IRQ_SKIP;
->>>> +		}
->>>> +	}
->>>> +
->>>>  	register_routable_domain_ops(&routable_irq_domain_ops);
->>>>  	return 0;
->>>>  
->>>> @@ -208,18 +238,27 @@ err1:
->>>>  	return -ENOMEM;
->>>>  }
->>>>  
->>>> +/* irq number 10 cannot be used because of hw bug */
->>>> +int dra_irqs_unused[] = { 10 };
->>>> +struct crossbar_data cb_dra_data = { dra_irqs_unused,
->>>> +				     ARRAY_SIZE(dra_irqs_unused) };
->>>> +
->>>>  static const struct of_device_id crossbar_match[] __initconst = {
->>>> -	{ .compatible = "ti,irq-crossbar" },
->>>> +	{ .compatible = "ti,irq-crossbar", .data = &cb_dra_data },
->>>>  	{}
->>>>  };
->>>
->>> This is a bug in all implementations of this IP?  Or, a specific
->>> SoC's implementation?  Would this be better expressed in the dts via a
->>> property?  Can we expect future implementations to be fixed?
->>>
->>> thx,
->>>
->>> Jason.
->>  Infact this and PATCH#10 should be merged. I will change that.
->>
->>  So in Socs's (2 so far) that do have a crossbar, some irqs are mapped
->>  through a crossbar and some are directly wired to the irqchip.
->>  These 'unused irqs' are those which are directly wired but they still
->>  have a crossbar register. Their routing cannot be changed. So this
->>  is not really expected usage of the crossbar hw ip. We initially thought
->>  having a dts property separately for this, but took this path to avoid
->>  loading the dts with additional bindings which may not be generic.
+On Thursday 12 June 2014 22:30:44 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 08:32]:
+> > On Thursday 12 June 2014 08:15:35 Tony Lindgren wrote:
+> >> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140612 07:52]:
+> >>> On Wednesday 11 June 2014 07:47:54 Tony Lindgren wrote:
+> >>>> These should just use either pinctrl-single.c instead for muxing.
+> >>>> Or if they are not mux registers, we do have the syscon mapping
+> >>>> available in omap4.dtsi that pbias-regulator.c is already using.
+> >>>> 
+> >>>> Laurent, got any better ideas?
+> >>> 
+> >>> The ISS driver needs to write a single register, which contains
+> >>> several independent fields. They thus need to be controlled by a
+> >>> single driver. Some of them might be considered to be related to
+> >>> pinmuxing (although I disagree on that), others are certainly not
+> >>> about muxing (there are clock gate bits for instance).
+> >>> 
+> >>> Using the syscon mapping seems like the best option. I'll give it a
+> >>> try.
+> >> 
+> >> OK if it's not strictly pinctrl related then let's not use
+> >> pinctrl-single,bits for it. You may be able to implement one or more
+> >> framework drivers for it for pinctrl/regulator/clock/transceiver
+> >> whatever that register is doing.
+> >> 
+> >> In any case it's best to have that handling in a separate helper driver
+> >> somewhere as it's a separate piece of hardware from the camera module.
+> >> If it does not fit into any existing frameworks then it's best to have
+> >> it in a separate driver with the camera driver.
+> > 
+> > The register contains the following fields that control the two CSI2 PHYs
+> > (PHY1 and PHY2).
+> > 
+> > 31    CAMERARX_CSI22_LANEENABLE2   PHY2 Lane 2 (CSI22_DX2, CSI22_DY2)
+> > Enable
+> > 30    CAMERARX_CSI22_LANEENABLE1   PHY2 Lane 1 (CSI22_DX1, CSI22_DY1)
+> > Enable
+> > 29    CAMERARX_CSI22_LANEENABLE0   PHY2 Lane 0 (CSI22_DX0, CSI22_DY0)
+> > Enable
+> > 28    CAMERARX_CSI21_LANEENABLE4   PHY1 Lane 4 (CSI21_DX4, CSI21_DY4)
+> > Enable
+> > 27    CAMERARX_CSI21_LANEENABLE3   PHY1 Lane 3 (CSI21_DX3, CSI21_DY3)
+> > Enable
+> > 26    CAMERARX_CSI21_LANEENABLE2   PHY1 Lane 2 (CSI21_DX2, CSI21_DY2)
+> > Enable
+> > 25    CAMERARX_CSI21_LANEENABLE1   PHY1 Lane 1 (CSI21_DX1, CSI21_DY1)
+> > Enable
+> > 24    CAMERARX_CSI21_LANEENABLE0   PHY1 Lane 0 (CSI21_DX0, CSI21_DY0)
+> > Enable
+> > 21    CAMERARX_CSI22_CTRLCLKEN     PHY2 Clock Enable
+> > 20:19 CAMERARX_CSI22_CAMMODE       PHY2 Mode (CCP2, CSI1, CSI2)
+> > 18    CAMERARX_CSI21_CTRLCLKEN     PHY1 Clock Enable
+> > 17:16 CAMERARX_CSI21_CAMMODE       PHY1 Mode (CCP2, CSI1, CSI2)
+> > 
+> > Bits 18 and 21 could be exposed through CCF. Bits 24 to 31 enable/disable
+> > the CSI2 lanes, so it could be argued that they could be exposed through
+> > the pinctrl framework. However, they need to be configured independently,
+> > possibly at runtime. I'm thus not sure pinctrl would be a good idea. Bits
+> > 17:16 and 20:19 don't fit in existing frameworks.
 > 
-> How do you plan to handle future SoCs with this IP and possibly
-> different hard-wired irqs?
-  Yes, that would require adding a new compatible in the above list and dts.
-  So if adding a new binding in the dts would be cleaner, then i will change
-  it that way.
+> OK thanks for the info. Sounds like drivers/phy might be the right location
+> for it then and then the phy driver can use the syscon regmap.
+>
+> > Given that this register is specific to the ISS, I think handling it as a
+> > separate device through a separate driver would only complicate the
+> > implementation without any real benefit.
+> 
+> Even though it's one register, it shoud still be treated separately from
+> the camera driver. The problems with keeping the register access to the
+> control module in the camera driver are at least following:
+> 
+> 1. They live in separate hardware modules that can be clocked separately
 
+Actually I don't think that's true. The CSI2 PHY is part of the camera device, 
+with all its registers but the one above in the camera device register space. 
+For some weird reason a couple of bits were pushed to the control module, but 
+that doesn't make the CSI2 PHY itself a separate device.
+
+> 2. Doing a read-back to flush a posted write in one hardware module most
+>    likely won't flush the write to other and that can lead into hard to
+>    find mysterious bugs
+
+The OMAP4 ISS driver can just read back the CAMERA_RX register, can't it ?
+
+> 3. If we ever have a common system control module driver, we need to
+>    rewrite all the system control module register tinkering in the drivers
+
+Sure, but that's already the case today, as the OMAP4 ISS driver already 
+accesses the control module register directly. I won't make that worse :-)
+
+> So it's best to try to use an existing framework for it. That avoids tons of
+> pain later on ;)
+
+I agree, but I don't think the PHY framework would be the right abstraction. 
+As explained above the CSI2 PHY is part of the OMAP4 ISS, so modeling its 
+single control module register as a PHY would be a hack. 
+
+-- 
 Regards,
- Sricharan
-  
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Laurent Pinchart
