@@ -1,58 +1,33 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 3/4] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
-Date: Fri, 13 Jun 2014 19:07:05 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406131901340.340@utopia.booyaka.com>
-References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274559-24777-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v3 5/7] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+Date: Fri, 13 Jun 2014 19:08:12 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406131907180.340@utopia.booyaka.com>
+References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-6-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53556 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:53583 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146AbaFMTHH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 15:07:07 -0400
-In-Reply-To: <1398274559-24777-1-git-send-email-rogerq@ti.com>
+	with ESMTP id S1751117AbaFMTIN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jun 2014 15:08:13 -0400
+In-Reply-To: <1399283686-6127-6-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org
 
 Hi Roger,
 
-On Wed, 23 Apr 2014, Roger Quadros wrote:
+On Mon, 5 May 2014, Roger Quadros wrote:
 
-> From: Nikhil Devshatwar <nikhil.nd@ti.com>
+> Add the sysconfig class bits for the Super Speed USB
+> controllers
 > 
-> Add hwmods for ocp2scp3 and sata modules.
-> 
-> [Roger Q] Clean up.
+> CC: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-Sorry for the delay on this.  Have been corresponding with TI to figure 
-out what to do about these DRA7xx/AM43xx patches, since I don't have 
-boards or public documentation for these devices, so it's impossible for 
-me to meaningfully review the patches.  Looks like boards and/or public 
-docs won't be coming any time soon.
-
-So for my part, here's what I'll need to merge any hwmod patches that 
-involve AM437x or DRA7xx:
-
-1. A Reviewed-by: from one of the following folks (which should come from 
-a different person than who is submitting the patches):
-
-Roger Quadros
-Nishanth Menon
-Rajendra Nayak
-Kevin Hilman
-Tony Lindgren
-
-2. A Tested-by: from one of the following folks (who can be the same as 
-the person who is the same as the person who is submitting the patches):
-
-Nishanth Menon
-Rajendra Nayak
-Kevin Hilman 
-Tony Lindgren
-
-Once these are in place, I'd be happy to queue it for 3.16.
+As with the previous DRA7 hwmod patch, I'd like to get a Reviewed-by: and 
+a Tested-by: before merging this one.
 
 
 - Paul
