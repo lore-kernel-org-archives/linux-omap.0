@@ -1,148 +1,100 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Fri, 13 Jun 2014 18:10:19 -0500
-Message-ID: <20140613231019.GA24121@saruman.home>
-References: <1402676147-3711-1-git-send-email-balbi@ti.com>
- <1402676147-3711-2-git-send-email-balbi@ti.com>
- <20140613162323.GH8319@saruman.home>
- <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
+Subject: Re: [PATCH] input: touchscreen: ti_am335x_tsc: warn about incorrect
+ spelling
+Date: Fri, 13 Jun 2014 19:23:55 -0500
+Message-ID: <20140614002355.GB24821@saruman.home>
+References: <20131118114029.GD30853@e106331-lin.cambridge.arm.com>
+ <1384788541-16338-1-git-send-email-balbi@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="jy6Sn24JjFx/iggw"
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Darren Etheridge <detheridge@ti.com>
+In-Reply-To: <1384788541-16338-1-git-send-email-balbi@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dmitry.torokhov@gmail.com, rob.herring@calxeda.com, Pawel.Moll@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---k1lZvvs/B4yU6o8G
+--jy6Sn24JjFx/iggw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Jun 13, 2014 at 07:11:58PM +0000, Paul Walmsley wrote:
-> > > From: Sathya Prakash M R <sathyap@ti.com>
-> > >=20
-> > > Add DSS hwmod data for AM43xx.
-> > >=20
-> > > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > > Acked-by: Rajendra Nayak <rnayak@ti.com>
-> > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > ---
-> > >=20
-> > > Note that this patch was originally send on May 9th [1], changes were=
- requested
-> > > and a new version was sent on May 19th [2], then on May 27th [3] Tomi=
- pinged
-> > > maintainer again and go no response.
-> > >=20
-> > > Without this patch, we cannot get display working on any AM437x devic=
-es.
-> > >=20
-> > > [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D139963677925227&w=3D2
-> > > [2] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140049799425512&w=3D2
-> > > [3] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140117232826754&w=3D2
-> > >=20
-> > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++++=
-++++++++++
-> > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
-> > >  2 files changed, 99 insertions(+)
+Here's another patch which has been pending for months.
+
+On Mon, Nov 18, 2013 at 09:29:01AM -0600, Felipe Balbi wrote:
+> In the hopes that people run new kernels on
+> their devices, let's add a warning message
+> asking users to have their DTS file fixed.
 >=20
-> Sorry for the delay on this.  Have been corresponding with TI management=
-=20
-> to figure out what to do about patches for AM43xx.  I don't have boards o=
-r=20
-> public documentation for these devices, so it's impossible for me to=20
-> meaningfully review the patches.  Looks like boards and/or public docs=20
-> won't be coming any time soon.
+> The goal is that by Linux 4.0 we will be
+> able to remove support for the bogus version
+> of our touchscreen's DTS.
 >=20
-> So for my part, here's what I'll need to merge any hwmod or PRCM patches=
-=20
-> that involve AM437x:
+> Suggested-by: Mark Rutland <mark.rutland@arm.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
 >=20
-> 1. A Reviewed-by: from one of the following folks (which should come from
-> a different person than who is submitting the patches):
+> Here you go, I've added your Suggested-by Mark,
+> if you wish I can remove or change to something
+> else.
 >=20
-> Roger Quadros
-> Nishanth Menon
-> Rajendra Nayak
-> Kevin Hilman
-> Tony Lindgren
+> cheers
 >=20
-> 2. A Tested-by: from one of the following folks (who can be the same as=
-=20
-> the person who is the same as the person who is submitting the patches):
+>  drivers/input/touchscreen/ti_am335x_tsc.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 >=20
-> Nishanth Menon
-> Rajendra Nayak
-> Kevin Hilman=20
-> Tony Lindgren
-
-What you're saying here is that it's pointless for anybody else in TI to
-review and/or test patches because you will only accept such tags from
-this list of 4 ~ 5 people. It doesn't take a brain surgeon to note how
-this won't scale and, if you continue to ignore patches during the
-entire development cycle and only reply after it's too late for $this
-merge window, it won't help much.
-
-Quite frankly, it's very upsetting to see an affirmation that all the
-work that I (personally) and many others do is seen as "pointless" from
-your side *unless* it gets the blessing from the few folks listed above.
-
-This just makes it ever more difficult for anything, which is clearly
-*BROKEN* to be fixed upstream and will just contribute to people
-vanishing from mainline development.
-
-The very fact that you will only accept patches blessed by the gang-of-4
-goes against the very foundations of open source development. Just
-because you don't have access to documentation - and granted, that
-_does_ make things a lot more difficult - does not mean you have to
-consider an entire company as a non-trust worthy organization. Specially
-when there are so many here who have been doing mainline development for
-quite some time.
-
-Anyway, whatever... I just hope that if we go through *another* merge
-window without $subject being merged, someone takes the patch because
-this already has a ridiculous amount of bureaucratic bariers to patches
-which are, to put it very bluntly, *CORRECT*.
-
-ps: $subject in particular, has been tested by 3 different people.
-Actually 4, if you consider Darren Etheridge who used $subject to help
-me get display working on AM437x SK.
-
-pps: Darren, can you reply with your (according to Paul) pointless
-Tested-by ?
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/to=
+uchscreen/ti_am335x_tsc.c
+> index b61df9d..91302cd 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -354,9 +354,12 @@ static int titsc_parse_dt(struct platform_device *pd=
+ev,
+>  	 */
+>  	err =3D of_property_read_u32(node, "ti,coordinate-readouts",
+>  			&ts_dev->coordinate_readouts);
+> -	if (err < 0)
+> +	if (err < 0) {
+> +		dev_warn(&pdev->dev, "please use 'ti,coordinate-readouts' instead\n");
+>  		err =3D of_property_read_u32(node, "ti,coordiante-readouts",
+>  				&ts_dev->coordinate_readouts);
+> +	}
+> +
+>  	if (err < 0)
+>  		return err;
+> =20
+> --=20
+> 1.8.4.GIT
+>=20
 
 --=20
 balbi
 
---k1lZvvs/B4yU6o8G
+--jy6Sn24JjFx/iggw
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTm4TbAAoJEIaOsuA1yqRE/HkP/0wjnnWQ8iRrv4a32Za8SYau
-nIlMDg7q5UmzXBUg7E26UoEgLe6RWD4Bg95BJqgWK8HS733GjRNehpUXQO9eTBJl
-eWr6vot9ooVuprVA8bKsOegeQXFthc5YCXBAM+VuuOEu9dolsD5S1s1KEgiXpZf7
-s0QQzf+oroQddLDUn4rkL8jWlsdUprLuzsEW57llOKwPCgfwdGlzdGeUVvyjPg9t
-k/r/Lgq41TfawsZTfj7w0VRLDLpC2QX2lGHgfGudctCmss0uZs8NPkf7jV7tqqfr
-RrUHa+yK5f2Raki+AYNNpIVsbrYh1h6B0fTlGS9h4HSw0lfvwXcm6BbS946jFxLW
-6ffL13fXA896sWTTLZmyQy93VmJm7CRUZqowasw6FCrMtM+OCq99baKuJiUMn/aU
-JQJa0yrRrBX3CELv7l2zma96X+cpoxaiTI6udR/zMith8LFJ1iX7r9cEEv7WkGD5
-0nnLqb5mxN6HFGfiBDZmOcrUov/8o9HK5XorvZHG2sLQ/x8/JSwfU9b6FNFbB3zK
-lcpDEsGprt+khqUcXNwngMhL5dePN+HH82+lKNc+w6SHzjXz0VYFp5W0Ll680xrd
-uLYmL6Zc3qmo6+cywEECzjTPt0drzIT+eyP5htzFGS9n0ydQMxlUuk9uKlhX1F9m
-3cYCz2Vhq081+dCohnCn
-=6YTc
+iQIcBAEBAgAGBQJTm5YbAAoJEIaOsuA1yqREA78P/iLF0BHGBbl9ppi7nKhphItv
+1xu5HKVN0YcI9e6EtUGfc5GWwQXZ3KXsuceAIzbugf0ofUT86Wh2ewhHRf3Aei2T
+aJllzrnVI8BSZT0HSD+t6P5AOe2VpyNk5Cx39FPswwYqq0JMLFmobMxESPE8wkn9
+YooKKBEXLrqA5A6COOFlYCAeFRGdvu9T6PMf11qQf8Y6+pEL1+BI7+MBEELxjtii
+uiCVnrw0dwMdTtLVk89Izhj3204NbxG+k902NBioDniie/5LW1vy32ri2xQro7EQ
+0UT8xbhUbkblDyAuSg94HcpdcveUxMHXGMWaV74ijTvg2zw4GH7C99PzstvgF4fj
+GcyUr343kp1sEQtsfRvB10qrsD7NjEeLDCTPYehlui5+tz/b/fjkdCoqT1B3ZHOB
+SRk2yYDsk8CrMjAZ/2bv1PuoPFYeEMRDilKnINCKWAPv50zOQChOTUsTeQpvnw0B
+X7338qT8EqWCUpX/qEaFCP/uIyqxvSsG1JjRpgxuQ1abDwOiTPXhCFKAp1PLGcYX
+LD5S8PEg2vN+kGbihIV7ref9GFAzTK4Io8zVdH+YNsHEcFj0OeTTxBpDaEOKdj7d
+2arElTOZHfSz3GEv5S1Zn9CElWJCTPsYln02oAAkR2Q13QlMwVOINYZwg+Bl3s6C
+8JIbi8Yl0txJcGNe83AE
+=vAUv
 -----END PGP SIGNATURE-----
 
---k1lZvvs/B4yU6o8G--
+--jy6Sn24JjFx/iggw--
