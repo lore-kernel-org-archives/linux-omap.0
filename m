@@ -1,100 +1,199 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] input: touchscreen: ti_am335x_tsc: warn about incorrect
- spelling
-Date: Fri, 13 Jun 2014 19:23:55 -0500
-Message-ID: <20140614002355.GB24821@saruman.home>
-References: <20131118114029.GD30853@e106331-lin.cambridge.arm.com>
- <1384788541-16338-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Sat, 14 Jun 2014 02:57:32 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406140127020.20370@utopia.booyaka.com>
+References: <1402676147-3711-1-git-send-email-balbi@ti.com> <1402676147-3711-2-git-send-email-balbi@ti.com> <20140613162323.GH8319@saruman.home> <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com> <20140613231019.GA24121@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jy6Sn24JjFx/iggw"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1384788541-16338-1-git-send-email-balbi@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dmitry.torokhov@gmail.com, rob.herring@calxeda.com, Pawel.Moll@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140613231019.GA24121@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Darren Etheridge <detheridge@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---jy6Sn24JjFx/iggw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi
 
-Hi,
+On Fri, 13 Jun 2014, Felipe Balbi wrote:
 
-Here's another patch which has been pending for months.
+> On Fri, Jun 13, 2014 at 07:11:58PM +0000, Paul Walmsley wrote:
+> > > > From: Sathya Prakash M R <sathyap@ti.com>
+> > > > 
+> > > > Add DSS hwmod data for AM43xx.
+> > > > 
+> > > > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > > > Acked-by: Rajendra Nayak <rnayak@ti.com>
+> > > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+> > > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > > ---
+> > > > 
+> > > > Note that this patch was originally send on May 9th [1], changes were requested
+> > > > and a new version was sent on May 19th [2], then on May 27th [3] Tomi pinged
+> > > > maintainer again and go no response.
+> > > > 
+> > > > Without this patch, we cannot get display working on any AM437x devices.
+> > > > 
+> > > > [1] http://marc.info/?l=linux-arm-kernel&m=139963677925227&w=2
+> > > > [2] http://marc.info/?l=linux-arm-kernel&m=140049799425512&w=2
+> > > > [3] http://marc.info/?l=linux-arm-kernel&m=140117232826754&w=2
+> > > > 
+> > > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++++++++++++++
+> > > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
+> > > >  2 files changed, 99 insertions(+)
+> > 
+> > Sorry for the delay on this.  Have been corresponding with TI management 
+> > to figure out what to do about patches for AM43xx.  I don't have boards or 
+> > public documentation for these devices, so it's impossible for me to 
+> > meaningfully review the patches.  Looks like boards and/or public docs 
+> > won't be coming any time soon.
+> > 
+> > So for my part, here's what I'll need to merge any hwmod or PRCM patches 
+> > that involve AM437x:
+> > 
+> > 1. A Reviewed-by: from one of the following folks (which should come from
+> > a different person than who is submitting the patches):
+> > 
+> > Roger Quadros
+> > Nishanth Menon
+> > Rajendra Nayak
+> > Kevin Hilman
+> > Tony Lindgren
+> > 
+> > 2. A Tested-by: from one of the following folks (who can be the same as 
+> > the person who is the same as the person who is submitting the patches):
+> > 
+> > Nishanth Menon
+> > Rajendra Nayak
+> > Kevin Hilman 
+> > Tony Lindgren
+> 
+> What you're saying here is that it's pointless for anybody else in TI to
+> review and/or test patches because you will only accept such tags from
+> this list of 4 ~ 5 people.
 
-On Mon, Nov 18, 2013 at 09:29:01AM -0600, Felipe Balbi wrote:
-> In the hopes that people run new kernels on
-> their devices, let's add a warning message
-> asking users to have their DTS file fixed.
->=20
-> The goal is that by Linux 4.0 we will be
-> able to remove support for the bogus version
-> of our touchscreen's DTS.
->=20
-> Suggested-by: Mark Rutland <mark.rutland@arm.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->=20
-> Here you go, I've added your Suggested-by Mark,
-> if you wish I can remove or change to something
-> else.
->=20
-> cheers
->=20
->  drivers/input/touchscreen/ti_am335x_tsc.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/to=
-uchscreen/ti_am335x_tsc.c
-> index b61df9d..91302cd 100644
-> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> @@ -354,9 +354,12 @@ static int titsc_parse_dt(struct platform_device *pd=
-ev,
->  	 */
->  	err =3D of_property_read_u32(node, "ti,coordinate-readouts",
->  			&ts_dev->coordinate_readouts);
-> -	if (err < 0)
-> +	if (err < 0) {
-> +		dev_warn(&pdev->dev, "please use 'ti,coordinate-readouts' instead\n");
->  		err =3D of_property_read_u32(node, "ti,coordiante-readouts",
->  				&ts_dev->coordinate_readouts);
-> +	}
-> +
->  	if (err < 0)
->  		return err;
-> =20
-> --=20
-> 1.8.4.GIT
->=20
+That might be how you interpreted the E-mail.  But that's not what was 
+written.
 
---=20
-balbi
+For the record, I'm pleased to accept Reviewed-by:s and Tested-by:s from 
+anyone.  But, like most maintainers, there are some folks who I think do a 
+better job of reviewing and testing hwmod and PRCM patches than others.
 
---jy6Sn24JjFx/iggw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+The people listed above are a first cut at that list.  I'm certainly happy 
+to consider adding others, but the reviewers need:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+1. to have experience with those parts of the kernel;
 
-iQIcBAEBAgAGBQJTm5YbAAoJEIaOsuA1yqREA78P/iLF0BHGBbl9ppi7nKhphItv
-1xu5HKVN0YcI9e6EtUGfc5GWwQXZ3KXsuceAIzbugf0ofUT86Wh2ewhHRf3Aei2T
-aJllzrnVI8BSZT0HSD+t6P5AOe2VpyNk5Cx39FPswwYqq0JMLFmobMxESPE8wkn9
-YooKKBEXLrqA5A6COOFlYCAeFRGdvu9T6PMf11qQf8Y6+pEL1+BI7+MBEELxjtii
-uiCVnrw0dwMdTtLVk89Izhj3204NbxG+k902NBioDniie/5LW1vy32ri2xQro7EQ
-0UT8xbhUbkblDyAuSg94HcpdcveUxMHXGMWaV74ijTvg2zw4GH7C99PzstvgF4fj
-GcyUr343kp1sEQtsfRvB10qrsD7NjEeLDCTPYehlui5+tz/b/fjkdCoqT1B3ZHOB
-SRk2yYDsk8CrMjAZ/2bv1PuoPFYeEMRDilKnINCKWAPv50zOQChOTUsTeQpvnw0B
-X7338qT8EqWCUpX/qEaFCP/uIyqxvSsG1JjRpgxuQ1abDwOiTPXhCFKAp1PLGcYX
-LD5S8PEg2vN+kGbihIV7ref9GFAzTK4Io8zVdH+YNsHEcFj0OeTTxBpDaEOKdj7d
-2arElTOZHfSz3GEv5S1Zn9CElWJCTPsYln02oAAkR2Q13QlMwVOINYZwg+Bl3s6C
-8JIbi8Yl0txJcGNe83AE
-=vAUv
------END PGP SIGNATURE-----
+2. to have access to the canonical documentation for AM43xx to review 
+against; and
 
---jy6Sn24JjFx/iggw--
+3. to have some kind of track record doing in-depth reviews of patches for 
+that subsystem, or writing clean code for that subsystem.
+
+
+Similarly, for testers, the folks listed above are people who:
+
+1. could actually have AM43xx boards; and
+
+2. who have a history of testing patches against mainline kernels in 
+public forums, rather than testing against vendor kernels; and
+
+3. who I think would be mortally embarrassed if a patch was broken 
+that they had a Tested-by: for.
+
+(N.B. In the case of anything involving DSS, such as this patch, I'd be 
+happy to accept Tested-by:s from Archit or Tomi.)
+
+If you have other people that you think I'm missing from the above two 
+lists, who meet those requirements, please suggest some names!
+
+> Quite frankly, it's very upsetting to see an affirmation that all the
+> work that I (personally) and many others do is seen as "pointless" from
+> your side *unless* it gets the blessing from the few folks listed above.
+
+I'd be curious to know how many of the people listed in the Signed-off-by: 
+for these patches have double-checked the data against the TRM (or 
+whatever documentation is canonical for this chip).  And have thought 
+through whether the data actually makes sense with regards to the SoC 
+integration.  I consider those to be the prerequisites for reviewing hwmod 
+device data patches.  That's what I generally do myself, and that's what I 
+expect from trusted reviewers.
+
+> This just makes it ever more difficult for anything, which is clearly
+> *BROKEN* to be fixed upstream and will just contribute to people
+> vanishing from mainline development.
+
+Sounds like you might be mixing mailing list threads.  
+
+The description for these patches states:
+
+"Add DSS hwmod data for AM43xx"
+
+Unless I'm missing something, these patches add a feature.  They are not 
+fixing something that is broken.
+
+> The very fact that you will only accept patches blessed by the gang-of-4
+> goes against the very foundations of open source development. Just
+> because you don't have access to documentation - and granted, that
+> _does_ make things a lot more difficult - does not mean you have to
+> consider an entire company as a non-trust worthy organization. Specially
+> when there are so many here who have been doing mainline development for
+> quite some time.
+
+As stated, I'm happy to consider adding more folks to the list, but they 
+need to have a track record of doing good work in that area, or doing 
+in-depth reviews.  If they don't have one yet, well, there's no better 
+time to start than the present.
+
+I'm also happy to do the reviews and a basic test myself, if I have 
+documentation and a board.
+
+> It doesn't take a brain surgeon to note how this won't scale and, if you 
+> continue to ignore patches during the entire development cycle and only 
+> reply after it's too late for $this merge window, it won't help much.
+
+...
+
+> Anyway, whatever... I just hope that if we go through *another* merge
+> window without $subject being merged
+
+What is this business about "*another* merge window" and "continue to 
+ignore"?  Using the dates from your own E-mail message above, the original 
+patches were sent May 9th.  This was the same day that v3.15-rc5 was 
+released. According to your message, the revised patches were sent May 
+19th - three days before v3.15-rc6.
+
+So by the time these patches were ready to go, we'd already reached the 
+cutoff point for getting anything merged into v3.16.
+
+I was rather hoping that I'd be able to review it against the AM43xx 
+documentation in time, but that turned out not to be available.
+
+If all this has nothing to do with the $SUBJECT patches, and is about the 
+DSS clocking issue, and not these patches, that's fine; but please direct 
+your flames to that thread instead.
+
+> ps: $subject in particular, has been tested by 3 different people.
+> Actually 4, if you consider Darren Etheridge who used $subject to help
+> me get display working on AM437x SK.
+
+There are no Tested-by:s on this patch.  It seems likely to me that Tomi 
+has tested it against something close to mainline, just based on general 
+experience with his level of patch quality in the past, but in general, I 
+have no way of knowing this.
+
+So if folks actually tested it against mainline, please do send 
+Tested-by:s, and note the mainline commit that it was tested on, along 
+with other patches were needed for this patch to apply and/or work.  It's 
+also helpful to include a serial console boot log to a Tested-by: message.  
+That adds confidence that the patches don't add extra warnings and that 
+the commit ID is what's expected.
+
+...
+
+For the specific case of this patch, since it's already been reviewed by 
+Rajendra, once there are good Tested-by:s sent to the list, I'd say it's 
+ready to merge.
+
+
+- Paul
