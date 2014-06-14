@@ -1,363 +1,189 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Fri, 13 Jun 2014 23:56:03 -0500
-Message-ID: <20140614045603.GA28775@saruman.home>
-References: <1402676147-3711-1-git-send-email-balbi@ti.com>
- <1402676147-3711-2-git-send-email-balbi@ti.com>
- <20140613162323.GH8319@saruman.home>
- <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
- <20140613231019.GA24121@saruman.home>
- <alpine.DEB.2.02.1406140127020.20370@utopia.booyaka.com>
-Reply-To: <balbi@ti.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH for v3.15] usb: musb: Fix panic upon musb_am335x module
+ removal
+Date: Sat, 14 Jun 2014 09:59:02 -0300
+Message-ID: <20140614125902.GA1202@arch.cereza>
+References: <1400371473-2053-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <20140520165510.GA28859@arch.cereza>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59618 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751343AbaFNE4x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 14 Jun 2014 00:56:53 -0400
+Received: from mail-yk0-f176.google.com ([209.85.160.176]:46399 "EHLO
+	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754678AbaFNM7p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jun 2014 08:59:45 -0400
+Received: by mail-yk0-f176.google.com with SMTP id 131so2858231ykp.21
+        for <linux-omap@vger.kernel.org>; Sat, 14 Jun 2014 05:59:44 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1406140127020.20370@utopia.booyaka.com>
+In-Reply-To: <20140520165510.GA28859@arch.cereza>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Darren Etheridge <detheridge@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>, Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>, George Cherian <george.cherian@ti.com>, stable@vger.kernel.org
 
---PEIAKu/WMn1b1Hv9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Felipe,
 
-Hi,
+On 20 May 01:55 PM, Ezequiel Garcia wrote:
+> On 17 May 09:04 PM, Ezequiel Garcia wrote:
+> > At probe time, the musb_am335x driver register its childs by
+> > calling of_platform_populate(), which registers all childs in
+> > the devicetree hierarchy recursively.
+> > 
+> > On the other side, the driver's remove() function uses of_device_unregister()
+> > to remove each child of musb_am335x's.
+> > 
+> > However, when musb_dsps is loaded, its devices are attached to the musb_am335x
+> > device as musb_am335x childs. Hence, musb_am335x remove() will attempt to
+> > unregister the devices registered by musb_dsps, which produces a kernel panic.
+> > 
+> > In other words, the childs in the "struct device" hierarchy are not the same
+> > as the childs in the "devicetree" hierarchy.
+> > 
+> > Ideally, we should enforce the removal of the devices registered by
+> > musb_am335x *only*, instead of all its child devices. However, because of the
+> > recursive nature of of_platform_populate, this doesn't seem possible.
+> > 
+> > Therefore, as the only solution at hand, this commit disables musb_am335x
+> > driver removal capability, preventing it from being ever removed. This was
+> > originally suggested by Sebastian Siewior:
+> > 
+> > https://www.mail-archive.com/linux-omap@vger.kernel.org/msg104946.html
+> > 
+> > And for reference, here's the panic upon module removal:
+> > 
+> > musb-hdrc musb-hdrc.0.auto: remove, state 4
+> > usb usb1: USB disconnect, device number 1
+> > musb-hdrc musb-hdrc.0.auto: USB bus 1 deregistered
+> > Unable to handle kernel NULL pointer dereference at virtual address 0000008c
+> > pgd = de11c000
+> > [0000008c] *pgd=9e174831, *pte=00000000, *ppte=00000000
+> > Internal error: Oops: 17 [#1] ARM
+> > Modules linked in: musb_am335x(-) musb_dsps musb_hdrc usbcore usb_common
+> > CPU: 0 PID: 623 Comm: modprobe Not tainted 3.15.0-rc4-00001-g24efd13 #69
+> > task: de1b7500 ti: de122000 task.ti: de122000
+> > PC is at am335x_shutdown+0x10/0x28
+> > LR is at am335x_shutdown+0xc/0x28
+> > pc : [<c0327798>]    lr : [<c0327794>]    psr: a0000013
+> > sp : de123df8  ip : 00000004  fp : 00028f00
+> > r10: 00000000  r9 : de122000  r8 : c000e6c4
+> > r7 : de0e3c10  r6 : de0e3800  r5 : de624010  r4 : de1ec750
+> > r3 : de0e3810  r2 : 00000000  r1 : 00000001  r0 : 00000000
+> > Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+> > Control: 10c5387d  Table: 9e11c019  DAC: 00000015
+> > Process modprobe (pid: 623, stack limit = 0xde122240)
+> > Stack: (0xde123df8 to 0xde124000)
+> > 3de0:                                                       de0e3810 bf054488
+> > 3e00: bf05444c de624010 60000013 bf043650 000012fc de624010 de0e3810 bf043a20
+> > 3e20: de0e3810 bf04b240 c0635b88 c02ca37c c02ca364 c02c8db0 de1b7500 de0e3844
+> > 3e40: de0e3810 c02c8e28 c0635b88 de02824c de0e3810 c02c884c de0e3800 de0e3810
+> > 3e60: de0e3818 c02c5b20 bf05417c de0e3800 de0e3800 c0635b88 de0f2410 c02ca838
+> > 3e80: bf05417c de0e3800 bf055438 c02ca8cc de0e3c10 bf054194 de0e3c10 c02ca37c
+> > 3ea0: c02ca364 c02c8db0 de1b7500 de0e3c44 de0e3c10 c02c8e28 c0635b88 de02824c
+> > 3ec0: de0e3c10 c02c884c de0e3c10 de0e3c10 de0e3c18 c02c5b20 de0e3c10 de0e3c10
+> > 3ee0: 00000000 bf059000 a0000013 c02c5bc0 00000000 bf05900c de0e3c10 c02c5c48
+> > 3f00: de0dd0c0 de1ec970 de0f2410 bf05929c de0f2444 bf05902c de0f2410 c02ca37c
+> > 3f20: c02ca364 c02c8db0 bf05929c de0f2410 bf05929c c02c94c8 bf05929c 00000000
+> > 3f40: 00000800 c02c8ab4 bf0592e0 c007fc40 c00dd820 6273756d 336d615f 00783533
+> > 3f60: c064a0ac de1b7500 de122000 de1b7500 c000e590 00000001 c000e6c4 c0060160
+> > 3f80: 00028e70 00028e70 00028ea4 00000081 60000010 00028e70 00028e70 00028ea4
+> > 3fa0: 00000081 c000e500 00028e70 00028e70 00028ea4 00000800 becb59f8 00027608
+> > 3fc0: 00028e70 00028e70 00028ea4 00000081 00000001 00000001 00000000 00028f00
+> > 3fe0: b6e6b6f0 becb59d4 000160e8 b6e6b6fc 60000010 00028ea4 00000000 00000000
+> > [<c0327798>] (am335x_shutdown) from [<bf054488>] (dsps_musb_exit+0x3c/0x4c [musb_dsps])
+> > [<bf054488>] (dsps_musb_exit [musb_dsps]) from [<bf043650>] (musb_shutdown+0x80/0x90 [musb_hdrc])
+> > [<bf043650>] (musb_shutdown [musb_hdrc]) from [<bf043a20>] (musb_remove+0x24/0x68 [musb_hdrc])
+> > [<bf043a20>] (musb_remove [musb_hdrc]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
+> > [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
+> > [<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
+> > [<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
+> > [<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
+> > [<c02c5b20>] (device_del) from [<c02ca838>] (platform_device_del+0x14/0x9c)
+> > [<c02ca838>] (platform_device_del) from [<c02ca8cc>] (platform_device_unregister+0xc/0x20)
+> > [<c02ca8cc>] (platform_device_unregister) from [<bf054194>] (dsps_remove+0x18/0x38 [musb_dsps])
+> > [<bf054194>] (dsps_remove [musb_dsps]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
+> > [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
+> > [<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_release_driver+0x20/0x2c)
+> > [<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_device+0xdc/0x10c)
+> > [<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0x198)
+> > [<c02c5b20>] (device_del) from [<c02c5bc0>] (device_unregister+0xc/0x20)
+> > [<c02c5bc0>] (device_unregister) from [<bf05900c>] (of_remove_populated_child+0xc/0x14 [musb_am335x])
+> > [<bf05900c>] (of_remove_populated_child [musb_am335x]) from [<c02c5c48>] (device_for_each_child+0x44/0x70)
+> > [<c02c5c48>] (device_for_each_child) from [<bf05902c>] (am335x_child_remove+0x18/0x30 [musb_am335x])
+> > [<bf05902c>] (am335x_child_remove [musb_am335x]) from [<c02ca37c>] (platform_drv_remove+0x18/0x1c)
+> > [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release_driver+0x70/0xc8)
+> > [<c02c8db0>] (__device_release_driver) from [<c02c94c8>] (driver_detach+0xb4/0xb8)
+> > [<c02c94c8>] (driver_detach) from [<c02c8ab4>] (bus_remove_driver+0x4c/0xa0)
+> > [<c02c8ab4>] (bus_remove_driver) from [<c007fc40>] (SyS_delete_module+0x128/0x1cc)
+> > [<c007fc40>] (SyS_delete_module) from [<c000e500>] (ret_fast_syscall+0x0/0x48)
+> > 
+> > Fixes: 97238b35d5bb ("usb: musb: dsps: use proper child nodes")
+> > Cc: <stable@vger.kernel.org> # v3.12+
+> > Acked-by: George Cherian <george.cherian@ti.com>
+> > Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+> > ---
+> >  drivers/usb/musb/musb_am335x.c | 23 ++++++-----------------
+> >  1 file changed, 6 insertions(+), 17 deletions(-)
+> > 
+> > diff --git a/drivers/usb/musb/musb_am335x.c b/drivers/usb/musb/musb_am335x.c
+> > index d235378..1e58ed2 100644
+> > --- a/drivers/usb/musb/musb_am335x.c
+> > +++ b/drivers/usb/musb/musb_am335x.c
+> > @@ -19,21 +19,6 @@ err:
+> >  	return ret;
+> >  }
+> >  
+> > -static int of_remove_populated_child(struct device *dev, void *d)
+> > -{
+> > -	struct platform_device *pdev = to_platform_device(dev);
+> > -
+> > -	of_device_unregister(pdev);
+> > -	return 0;
+> > -}
+> > -
+> > -static int am335x_child_remove(struct platform_device *pdev)
+> > -{
+> > -	device_for_each_child(&pdev->dev, NULL, of_remove_populated_child);
+> > -	pm_runtime_disable(&pdev->dev);
+> > -	return 0;
+> > -}
+> > -
+> >  static const struct of_device_id am335x_child_of_match[] = {
+> >  	{ .compatible = "ti,am33xx-usb" },
+> >  	{  },
+> > @@ -42,13 +27,17 @@ MODULE_DEVICE_TABLE(of, am335x_child_of_match);
+> >  
+> >  static struct platform_driver am335x_child_driver = {
+> >  	.probe		= am335x_child_probe,
+> > -	.remove         = am335x_child_remove,
+> >  	.driver         = {
+> >  		.name   = "am335x-usb-childs",
+> >  		.of_match_table	= am335x_child_of_match,
+> >  	},
+> >  };
+> >  
+> > -module_platform_driver(am335x_child_driver);
+> > +static int __init am335x_child_init(void)
+> > +{
+> > +	return platform_driver_register(&am335x_child_driver);
+> > +}
+> > +module_init(am335x_child_init);
+> > +
+> >  MODULE_DESCRIPTION("AM33xx child devices");
+> >  MODULE_LICENSE("GPL v2");
+> > -- 
+> > 1.9.1
+> > 
+> 
+> Felipe,
+> 
+> Any comments on this?
+> 
 
-On Sat, Jun 14, 2014 at 02:57:32AM +0000, Paul Walmsley wrote:
-> > > > > From: Sathya Prakash M R <sathyap@ti.com>
-> > > > >=20
-> > > > > Add DSS hwmod data for AM43xx.
-> > > > >=20
-> > > > > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > > > > Acked-by: Rajendra Nayak <rnayak@ti.com>
-> > > > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> > > > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > > ---
-> > > > >=20
-> > > > > Note that this patch was originally send on May 9th [1], changes =
-were requested
-> > > > > and a new version was sent on May 19th [2], then on May 27th [3] =
-Tomi pinged
-> > > > > maintainer again and go no response.
-> > > > >=20
-> > > > > Without this patch, we cannot get display working on any AM437x d=
-evices.
-> > > > >=20
-> > > > > [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D139963677925227&w=
-=3D2
-> > > > > [2] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140049799425512&w=
-=3D2
-> > > > > [3] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140117232826754&w=
-=3D2
-> > > > >=20
-> > > > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++=
-++++++++++++++
-> > > > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
-> > > > >  2 files changed, 99 insertions(+)
-> > >=20
-> > > Sorry for the delay on this.  Have been corresponding with TI managem=
-ent=20
-> > > to figure out what to do about patches for AM43xx.  I don't have boar=
-ds or=20
-> > > public documentation for these devices, so it's impossible for me to=
-=20
-> > > meaningfully review the patches.  Looks like boards and/or public doc=
-s=20
-> > > won't be coming any time soon.
-> > >=20
-> > > So for my part, here's what I'll need to merge any hwmod or PRCM patc=
-hes=20
-> > > that involve AM437x:
-> > >=20
-> > > 1. A Reviewed-by: from one of the following folks (which should come =
-=66rom
-> > > a different person than who is submitting the patches):
-> > >=20
-> > > Roger Quadros
-> > > Nishanth Menon
-> > > Rajendra Nayak
-> > > Kevin Hilman
-> > > Tony Lindgren
-> > >=20
-> > > 2. A Tested-by: from one of the following folks (who can be the same =
-as=20
-> > > the person who is the same as the person who is submitting the patche=
-s):
-> > >=20
-> > > Nishanth Menon
-> > > Rajendra Nayak
-> > > Kevin Hilman=20
-> > > Tony Lindgren
-> >=20
-> > What you're saying here is that it's pointless for anybody else in TI to
-> > review and/or test patches because you will only accept such tags from
-> > this list of 4 ~ 5 people.
->=20
-> That might be how you interpreted the E-mail.  But that's not what was=20
-> written.
+Any comments on this? I don't like to remove a feature, but as
+explained above, I don't see any other way to solve this.
 
-of course it was. Read what you wrote:
-
-"here's what I'll need to *merge* any hwmod or PRCM patches that involve
-AM437x".
-
-That basically puts down the requirements to getting any patches
-accepted and those requirements are the blessings of a handful.
-
-> For the record, I'm pleased to accept Reviewed-by:s and Tested-by:s from=
-=20
-> anyone.  But, like most maintainers, there are some folks who I think do =
-a=20
-> better job of reviewing and testing hwmod and PRCM patches than others.
->=20
-> The people listed above are a first cut at that list.  I'm certainly
-> happy to consider adding others, but the reviewers need:
->=20
-> 1. to have experience with those parts of the kernel;
->=20
-> 2. to have access to the canonical documentation for AM43xx to review
-> against; and
-
-anybody in ti.com have access to those.
-
-> 3. to have some kind of track record doing in-depth reviews of patches
-> for that subsystem, or writing clean code for that subsystem.
->=20
->=20
-> Similarly, for testers, the folks listed above are people who:
->=20
-> 1. could actually have AM43xx boards; and
-
-well, quite a few have rather easy access to multiple (3, to be exact)
-different am437x platforms.
-
-> 2. who have a history of testing patches against mainline kernels in=20
-> public forums, rather than testing against vendor kernels; and
-
-$subject and patch two have both been tested on top of linux next from
-june 10th. Is that bleeding edge enough for you ? Moreover, *only* these
-two patches were applied on top of Stephen's linux-next.
-
-> 3. who I think would be mortally embarrassed if a patch was broken=20
-> that they had a Tested-by: for.
-
-right, and when those guys try to get bugs fixed, we spend half a year
-discussing pointless might-happen-when-the-sun-dies problems with other
-drivers even when... aaaah what the heck, you'll just say I'm mixing
-threads again...
-
-The point is that it has been this back and forth for quite a while now,
-in countless occasions we have missed merge windows because this or that
-maintainer just stops responding and *nobody* else has balls to pick the
-patch up.
-
-Weeks later social network posts start to arise blaming TI for not
-sending patches upstream.
-
-> (N.B. In the case of anything involving DSS, such as this patch, I'd be=
-=20
-> happy to accept Tested-by:s from Archit or Tomi.)
->=20
-> If you have other people that you think I'm missing from the above two=20
-> lists, who meet those requirements, please suggest some names!
-
-the point is about not having a list. Sure, you need to know some folks
-who you can trust, but sometimes, when it's clear that the patch doesn't
-break anything, follows standard code practices, have passed through
-more than one hand and soaked in the mailing list for months, it's time
-to give up and just let the patch sit in linux-next for a while. You can
-always revert if someone else starts to scream.
-
-I'm *not* saying that you should blindly accept anything, but not
-accepting patches without a reason isn't fair.
-
-> > Quite frankly, it's very upsetting to see an affirmation that all the
-> > work that I (personally) and many others do is seen as "pointless" from
-> > your side *unless* it gets the blessing from the few folks listed above.
->=20
-> I'd be curious to know how many of the people listed in the Signed-off-by=
-:=20
-> for these patches have double-checked the data against the TRM (or=20
-
-I know I've done it. Have latest am437x Datasheed, TRM and board
-schematics open for quite a while now as I've been hacking this am437x
-StarterKit.
-
-Also, the thing is functional. Xorg + i3 runs just fine without any
-glitches or bogus colors, or any sort of warnings, errors, anything at
-all.
-
-> whatever documentation is canonical for this chip).  And have thought=20
-> through whether the data actually makes sense with regards to the SoC=20
-> integration.  I consider those to be the prerequisites for reviewing hwmo=
-d=20
-
-how else would we get the freaking thing to enable clocks ? Or are you
-forgetting that long ago the entire OMAP architecture was made tightly
-coupled with runtime PM and HWMOD; and are you also forgetting that no
-driver is now allowed to call clk_get() directly without hurting
-somebody's feelings ?
-
-With these details in mind, there's no SoC who depends on mach-omap2
-that can have any chance of *working* without hwmod data.
-
-> device data patches.  That's what I generally do myself, and that's what =
-I=20
-> expect from trusted reviewers.
-
-alright, so do you see any problems with the patch ? Do you think the
-data isn't necessary ? Instead of just being silent for months, why
-don't you just drop a line ? Reply to the f-ing thread ? How can we make
-any progress if you don't ? Is this what we have to go now ? Send a
-patch and hopefully, some day, it will make its way to mainline ?
-
-> > This just makes it ever more difficult for anything, which is clearly
-> > *BROKEN* to be fixed upstream and will just contribute to people
-> > vanishing from mainline development.
->=20
-> Sounds like you might be mixing mailing list threads. =20
->=20
-> The description for these patches states:
->=20
-> "Add DSS hwmod data for AM43xx"
->=20
-> Unless I'm missing something, these patches add a feature.  They are not=
-=20
-> fixing something that is broken.
-
-without DSS hwmod data, how can display work ? So it _is_ broken indeed.
-The same DSS code is functional in many other SoCs, but it's *broken* in
-am437x because $subject has been pending without *any* reply since
-May 19th.
-
-> > The very fact that you will only accept patches blessed by the gang-of-4
-> > goes against the very foundations of open source development. Just
-> > because you don't have access to documentation - and granted, that
-> > _does_ make things a lot more difficult - does not mean you have to
-> > consider an entire company as a non-trust worthy organization. Specially
-> > when there are so many here who have been doing mainline development for
-> > quite some time.
->=20
-> As stated, I'm happy to consider adding more folks to the list, but they=
-=20
-> need to have a track record of doing good work in that area, or doing=20
-> in-depth reviews.  If they don't have one yet, well, there's no better=20
-> time to start than the present.
->=20
-> I'm also happy to do the reviews and a basic test myself, if I have=20
-> documentation and a board.
->=20
-> > It doesn't take a brain surgeon to note how this won't scale and, if yo=
-u=20
-> > continue to ignore patches during the entire development cycle and only=
-=20
-> > reply after it's too late for $this merge window, it won't help much.
->=20
-> ...
->=20
-> > Anyway, whatever... I just hope that if we go through *another* merge
-> > window without $subject being merged
->=20
-> What is this business about "*another* merge window" and "continue to=20
-> ignore"?  Using the dates from your own E-mail message above, the origina=
-l=20
-> patches were sent May 9th.  This was the same day that v3.15-rc5 was=20
-> released. According to your message, the revised patches were sent May=20
-> 19th - three days before v3.15-rc6.
-
-right, right.. I'm talking in general. This *could* have made it into
-v3.16. There are also other patches which were missed. One of them since
-january.
-
-> So by the time these patches were ready to go, we'd already reached the=
-=20
-> cutoff point for getting anything merged into v3.16.
-
-not really. We had 3 more tags (3 more weeks) until v3.15 final was
-tagged. Add to that the fact that the merge window is 2 weeks long, 4
-weeks (leaving the last week as padding) seems like enough time.
-
-> I was rather hoping that I'd be able to review it against the AM43xx=20
-> documentation in time, but that turned out not to be available.
->=20
-> If all this has nothing to do with the $SUBJECT patches, and is about the=
-=20
-> DSS clocking issue, and not these patches, that's fine; but please direct=
-=20
-> your flames to that thread instead.
->=20
-> > ps: $subject in particular, has been tested by 3 different people.
-> > Actually 4, if you consider Darren Etheridge who used $subject to help
-> > me get display working on AM437x SK.
->=20
-> There are no Tested-by:s on this patch.  It seems likely to me that Tomi=
-=20
-> has tested it against something close to mainline, just based on general=
-=20
-> experience with his level of patch quality in the past, but in general, I=
-=20
-> have no way of knowing this.
-
-SoB usually means the patch was tested by that person. Or are you
-implying that neither me nor Sathya (patch author!!) ever tested the
-patch ? I can post a video on youtube if that makes you happy, but boy
-do I want to avoid doing that...
-
-> So if folks actually tested it against mainline, please do send=20
-> Tested-by:s, and note the mainline commit that it was tested on, along=20
-> with other patches were needed for this patch to apply and/or work.  It's=
-=20
-> also helpful to include a serial console boot log to a Tested-by: message=
-=2E =20
-> That adds confidence that the patches don't add extra warnings and that=
-=20
-> the commit ID is what's expected.
-
-sure thing, but don't expect everybody to just figure out what's going
-on inside your head. Silent gets us nowhere.
-
-> For the specific case of this patch, since it's already been reviewed by=
-=20
-> Rajendra, once there are good Tested-by:s sent to the list, I'd say it's=
-=20
-> ready to merge.
-
-good Tested-by:s ?
-
-nice
-
---=20
-balbi
-
---PEIAKu/WMn1b1Hv9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTm9XjAAoJEIaOsuA1yqREiD0P/1F3KQl/ibZafdDOdQjy8OTP
-Ref80xXzzjgEGNAMhZ8EZhYLvOv+AI/4qXiV52HG0/9WzjVNs2BJff7kQDxTRtoh
-iz67QvWctxm/vL0rP2sFwgOj3BUDEzWNra8Ty65rNwbHkeBSAd4H0BXv10dGUI59
-meP156jwplaE4HYgW1kJXU2M/xGwgQHBgnqfnvxPB/sk94Lau8qoRq2kGfKCVhJ0
-/0R20bPPK5hFpxI9jTfPUjheEd1K/7xgA+OJzKDw7FXkRpzvutYBagGoA2Nc6gEY
-C0K2pcB0+eQCbCQKlcPlgtFZvzr235b2c7j3Xs5cB4EGteQsuHZc3wvxvNPx3SsS
-x7r7IMbD4XoXY7dFIE41/zItW7dwm+FqlRFoDc5F1n0tQhtecvmfw7R/85ycQR7a
-/lRqDQ0VkhnZZz6dwAE5lR3fBQzfWIf7nYSn1s8dgjhsI33rUcLRK3XDgUpxDUXB
-doM9r7SNK7RnZOjZzDcSk6AJa1H2NCEu6XzmbmKbXKo5T+qERFHHQROLAq1Z6vcC
-+j4yAzGNbv+nO8Ij3w2hx9VYV4IY486h89QKBVoDBJunePcbhn6ONhY6YBuUmzfU
-RazZl+Mnh5bkKwnXhJevzDrCLqpxpRGp/fvbzmlJM8tQLuIz+vQiPYHh4UuFgE35
-3yvCLTU9a6nX6R8Fdxzd
-=w11V
------END PGP SIGNATURE-----
-
---PEIAKu/WMn1b1Hv9--
+The driver is currently broken. I tried using of_platform_depopulate()
+but failed.
+-- 
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
