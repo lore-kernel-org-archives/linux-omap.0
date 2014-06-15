@@ -1,64 +1,77 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: DRA7: hwmod: add entry for RTCSS
-Date: Sun, 15 Jun 2014 03:47:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406150346050.659@utopia.booyaka.com>
-References: <f99196358a3cc28b0bd451459badcfc286533845.1399638849.git.nsekhar@ti.com> <alpine.DEB.2.02.1406131908260.340@utopia.booyaka.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] input: touchscreen: ti_am335x_tsc: warn about incorrect
+ spelling
+Date: Sun, 15 Jun 2014 00:16:36 -0700
+Message-ID: <20140615071636.GA23746@core.coreip.homeip.net>
+References: <20131118114029.GD30853@e106331-lin.cambridge.arm.com>
+ <1384788541-16338-1-git-send-email-balbi@ti.com>
+ <20140614002355.GB24821@saruman.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:59429 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231AbaFODrd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jun 2014 23:47:33 -0400
-In-Reply-To: <alpine.DEB.2.02.1406131908260.340@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140614002355.GB24821@saruman.home>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, rob.herring@calxeda.com, Pawel.Moll@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Lokesh Vutla <lokeshvutla@ti.com>
 
-On Fri, 13 Jun 2014, Paul Walmsley wrote:
-
-> On Fri, 9 May 2014, Sekhar Nori wrote:
+On Fri, Jun 13, 2014 at 07:23:55PM -0500, Felipe Balbi wrote:
+> Hi,
 > 
-> > From: Lokesh Vutla <lokeshvutla@ti.com>
+> Here's another patch which has been pending for months.
+
+Sorry, lost track of this one, applied.
+
+> 
+> On Mon, Nov 18, 2013 at 09:29:01AM -0600, Felipe Balbi wrote:
+> > In the hopes that people run new kernels on
+> > their devices, let's add a warning message
+> > asking users to have their DTS file fixed.
 > > 
-> > RTCSS on DRA7 provides a precise real-time clock.
-> > Add hwmod entry for this IP.
+> > The goal is that by Linux 4.0 we will be
+> > able to remove support for the bogus version
+> > of our touchscreen's DTS.
 > > 
-> > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> > Suggested-by: Mark Rutland <mark.rutland@arm.com>
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> > 
+> > Here you go, I've added your Suggested-by Mark,
+> > if you wish I can remove or change to something
+> > else.
+> > 
+> > cheers
+> > 
+> >  drivers/input/touchscreen/ti_am335x_tsc.c | 5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> > index b61df9d..91302cd 100644
+> > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> > @@ -354,9 +354,12 @@ static int titsc_parse_dt(struct platform_device *pdev,
+> >  	 */
+> >  	err = of_property_read_u32(node, "ti,coordinate-readouts",
+> >  			&ts_dev->coordinate_readouts);
+> > -	if (err < 0)
+> > +	if (err < 0) {
+> > +		dev_warn(&pdev->dev, "please use 'ti,coordinate-readouts' instead\n");
+> >  		err = of_property_read_u32(node, "ti,coordiante-readouts",
+> >  				&ts_dev->coordinate_readouts);
+> > +	}
+> > +
+> >  	if (err < 0)
+> >  		return err;
+> >  
+> > -- 
+> > 1.8.4.GIT
+> > 
 > 
-> Sorry for the delay on this patch.  Have been corresponding with TI to 
-> figure out what to do about DRA7xx/AM43xx patches.  I don't have boards or 
-> public documentation for these devices, so it's impossible for me to 
-> meaningfully review the patches.  Looks like boards and/or public docs 
-> won't be coming any time soon.
-> 
-> So for my part, here's what I'll need to merge any hwmod patches that
-> involve AM437x or DRA7xx:
-> 
-> 1. A Reviewed-by: from one of the following folks (which should come from
-> a different person than who is submitting the patches):
-> 
-> Roger Quadros
-> Nishanth Menon
-> Rajendra Nayak
-> Kevin Hilman
-> Tony Lindgren
-> 
-> 2. A Tested-by: from one of the following folks (who can be the same as 
-> the person who is the same as the person who is submitting the patches):
-> 
-> Nishanth Menon
-> Rajendra Nayak
-> Kevin Hilman 
-> Tony Lindgren
-> 
-> 
-> Once these are in place, I'd be happy to queue it for 3.16.
+> -- 
+> balbi
 
-I've tried to refine this a little bit.  More details here:
 
-http://marc.info/?l=linux-omap&m=140280321814330&w=2
 
-- Paul
+-- 
+Dmitry
