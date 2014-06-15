@@ -1,77 +1,66 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH] input: touchscreen: ti_am335x_tsc: warn about incorrect
  spelling
-Date: Sun, 15 Jun 2014 00:16:36 -0700
-Message-ID: <20140615071636.GA23746@core.coreip.homeip.net>
+Date: Sun, 15 Jun 2014 10:55:25 -0500
+Message-ID: <20140615155525.GA28610@saruman.home>
 References: <20131118114029.GD30853@e106331-lin.cambridge.arm.com>
  <1384788541-16338-1-git-send-email-balbi@ti.com>
  <20140614002355.GB24821@saruman.home>
+ <20140615071636.GA23746@core.coreip.homeip.net>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37133 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246AbaFOP4L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jun 2014 11:56:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20140614002355.GB24821@saruman.home>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, rob.herring@calxeda.com, Pawel.Moll@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
+In-Reply-To: <20140615071636.GA23746@core.coreip.homeip.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, rob.herring@calxeda.com, Pawel.Moll@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 
-On Fri, Jun 13, 2014 at 07:23:55PM -0500, Felipe Balbi wrote:
-> Hi,
-> 
-> Here's another patch which has been pending for months.
+--/9DWx/yDrRhgMJTb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Sorry, lost track of this one, applied.
+On Sun, Jun 15, 2014 at 12:16:36AM -0700, Dmitry Torokhov wrote:
+> On Fri, Jun 13, 2014 at 07:23:55PM -0500, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > Here's another patch which has been pending for months.
+>=20
+> Sorry, lost track of this one, applied.
 
-> 
-> On Mon, Nov 18, 2013 at 09:29:01AM -0600, Felipe Balbi wrote:
-> > In the hopes that people run new kernels on
-> > their devices, let's add a warning message
-> > asking users to have their DTS file fixed.
-> > 
-> > The goal is that by Linux 4.0 we will be
-> > able to remove support for the bogus version
-> > of our touchscreen's DTS.
-> > 
-> > Suggested-by: Mark Rutland <mark.rutland@arm.com>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> > 
-> > Here you go, I've added your Suggested-by Mark,
-> > if you wish I can remove or change to something
-> > else.
-> > 
-> > cheers
-> > 
-> >  drivers/input/touchscreen/ti_am335x_tsc.c | 5 ++++-
-> >  1 file changed, 4 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-> > index b61df9d..91302cd 100644
-> > --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> > +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> > @@ -354,9 +354,12 @@ static int titsc_parse_dt(struct platform_device *pdev,
-> >  	 */
-> >  	err = of_property_read_u32(node, "ti,coordinate-readouts",
-> >  			&ts_dev->coordinate_readouts);
-> > -	if (err < 0)
-> > +	if (err < 0) {
-> > +		dev_warn(&pdev->dev, "please use 'ti,coordinate-readouts' instead\n");
-> >  		err = of_property_read_u32(node, "ti,coordiante-readouts",
-> >  				&ts_dev->coordinate_readouts);
-> > +	}
-> > +
-> >  	if (err < 0)
-> >  		return err;
-> >  
-> > -- 
-> > 1.8.4.GIT
-> > 
-> 
-> -- 
-> balbi
+Thank you
 
+--=20
+balbi
 
+--/9DWx/yDrRhgMJTb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--- 
-Dmitry
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTncHtAAoJEIaOsuA1yqRELDIQAIOEMQu56XmRGDrt6wSl0b8F
+uinYlR5o+k6g+wXL5Nw9TZY7Sumu3iAPlBbqgzZOt8o68q4zpBAbUHpCchQVZ2jx
+7XVxr6ibd2QWjUwgJ1R2BzB5KOAeVFeu6TkkW0AqERHdb31hBPmIxQnNDqKPMEd2
+zl2MRLhvvqcLhYEwLrdxU2YnVM8SKhj+cSaq71Tz29KTYYGC9bKwloEW0F+q0PFi
+9AReTj3RzezB7Fq+vQ2vFF4URTeUwmtDSi9ko6ZCdP5MIGk/nOwooWKiwem2meHQ
+GSf/Y4onHbjR3F+K8F6Ig+8Q/LQg6CM3zyVgFfzBLFjl7cERm8zrYQ4W6G05N6Z1
+Q+xI+jGfKE92ps9JpV1YGHmlabxmmmZ4852DUiTkM6AvSk29ZRjdy7wbqCw8wgVa
+9qKrFhbu2tinM37+qqgbEAb1lkTAjkhnM4Vyc5XYBGTcgJN8zBQectPzjEP9yZxn
+Kh2wALbAkt0HCQEOgDLQiiWzKOUyHaiLBJwEkR0/cPvup7au0YhZ1NfwqhdvuLNd
+AU4ealyYGbuiJM5tV/cL4ScGC1MsffasfNV8nh2dfz2ZUR4gco8/EdHk2fyPN/Px
+3sVdcNJRc/g9QAk8wGp4TNfdNkmsxQL2nxHFrMA0B31e717N8uHy1lBwmXBb82N5
+uWV5LLyS8GtarU97VVIT
+=Z6MU
+-----END PGP SIGNATURE-----
+
+--/9DWx/yDrRhgMJTb--
