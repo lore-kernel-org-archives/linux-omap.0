@@ -1,102 +1,76 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: omap: rework platform selection
-Date: Mon, 16 Jun 2014 13:16:57 +0200
-Message-ID: <7892694.KrnV5uCBX6@wuerfel>
-References: <5701099.0P1SIXsHc1@wuerfel> <20140616110042.GD17845@atomide.com>
+From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V3 00/16] irqchip: crossbar: driver fixes
+Date: Mon, 16 Jun 2014 16:53:00 +0530
+Message-ID: <1402917796-31574-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:63075 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbaFPLRH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 07:17:07 -0400
-In-Reply-To: <20140616110042.GD17845@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, rob.herring@linaro.org, linux-omap@vger.kernel.org, arm@kernel.org
 
-On Monday 16 June 2014 04:00:42 Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [140616 03:06]:
-> > Commit 9851b662f659 ("ARM: use menuconfig for sub-arch menus") did more
-> > than expected, which led to two OMAP specific bugs:
-> 
-> It seems the commit above is not -rc cycle material at least not without
-> proper testing. There's a good chance of breaking a lot of the existing
-> .config files which can create a big mess as we've seen before. 
+This series does some cleanups, fixes for handling two interrupts
+getting mapped twice to same crossbar and provides support for
+hardwired IRQ and crossbar definitions.
 
-Well, Kconfig is a big mess without it at the moment. The OMAP change
-was definitely wrong there, but for all other platforms I don't see any
-risk in applying it, because there is no semantic change, only cosmetic.
+On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10,
+131, 132, 133 are direct wired to hardware blocks bypassing
+crossbar. This quirky implementation is *NOT* supposed to be the
+expectation of crossbar hardware usage. This series adds support
+to represent such hard-wired irqs through DT and avoid generic
+allocation/programming of crossbar in the driver.
 
-> > * Turning CONFIG_ARCH_OMAP into a user-selectable option makes it possible
-> >   to have a configuration with ARCH_OMAP enabled but none of the specific
-> >   OMAP SoCs enabled, which triggers a couple of link errors due to the
-> >   layout of the Makefile
-> 
-> And so we have a regression to this old problem again :(
+This way of supporting hard-wired irqs was a result of
+the below discussions.
+http://www.spinics.net/lists/arm-kernel/msg329946.html
 
-Yes, I didn't actually see this happen but from looking at the patch, I
-concluded that it would likely be the case.
+Based on 3.15 mainline.
 
-> > * The plat-omap menu still appears mixed into the normal menuconfig list,
-> >   which is confusing and inconsistent.
-> 
-> That we should be able to remove completely soon but that's a
-> separate patch..
+All the patches are available here
+ git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:Sricharanti/sricharan.git crossbar_updates
 
-Ok.
+The fixes series[1] earlier posted is merged in to this.
+[1] http://www.spinics.net/lists/arm-kernel/msg328273.html
 
-> > To make matters worse, the change did not enable CONFIG_ARCH_OMAP in the
-> > defconfig files, which through some ripple effects disabled options that
-> > were implicitly enabled from OMAP2, and that caused all machines to
-> > fail booting with the unchanged config files.
-> > 
-> > This reorders the OMAP Kconfig files some more, to be consistent with
-> > the others, and also changes the defconfig files.
-> > 
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> > Tony, can you have a look at this please? I'd like to send out the
-> > fixes for 3.16, but this is needed on top of Rob's Kconfig changes.
-> 
-> Hmm why is this patch already in linux next before getting posted
-> to the mailing lists?
+[V2] Merged the above series and rebased on 3.15 mainline
 
-I had applied Rob's patch to the fixes series but that broke all
-multi_v7_defconfig runs on the boot test machines. I didn't want to
-spend too much work on it over the weekend, but applied it so at least
-today's linux-next wouldn't regress over last week's.
+[V3] Modified patch#3 to get irqs-skip properties from DT,
+     merged path#8 for checkpatch warning to other relevant
+     patches and fixed comments for other patches.
 
-> > --- a/arch/arm/plat-omap/Kconfig
-> > +++ b/arch/arm/plat-omap/Kconfig
-> > @@ -1,6 +1,11 @@
-> > -if ARCH_OMAP
-> > +menuconfig ARCH_OMAP_ENABLE
-> > +	bool "TI OMAP platforms" if ARCH_MULTI_V6 || ARCH_MULTI_V7
-> > +	default ARCH_OMAP1
-> >  
-> > -menu "TI OMAP Common Features"
-> > +if ARCH_OMAP_ENABLE
-> > +
-> > +source "arch/arm/mach-omap1/Kconfig"
-> > +source "arch/arm/mach-omap2/Kconfig"
-> 
-> It seems to me this kind of change is going to break all the
-> existing .config files unless they are manually updated. This
-> includes all the distros and automated build systems. I'll look
-> more at it, but my initial take is that we should be able to do
-> this all with CONFIG_ARCH_OMAP + the selected OMAP SoC and should
-> not introduce any new Kconfig options.
-> 
-> For now I'd just leave out Rob's changed and this patch from fixes
-> until they have been properly tested.
+Nishanth Menon (14):
+  irqchip: crossbar: dont use '0' to mark reserved interrupts
+  irqchip: crossbar: check for premapped crossbar before allocating
+  irqchip: crossbar: introduce ti,irqs-skip to skip
+  irqchip: crossbar: initialise the crossbar with a safe value
+  irqchip: crossbar: change allocation logic by reversing search for
+    free irqs
+  irqchip: crossbar: remove IS_ERR_VALUE check
+  irqchip: crossbar: fix sparse and checkpatch warnings
+  irqchip: crossbar: fix kerneldoc warning
+  irqchip: crossbar: return proper error value
+  irqchip: crossbar: change the goto naming
+  irqchip: crossbar: introduce ti,max-crossbar-sources to identify
+    valid crossbar mapping
+  irqchip: crossbar: introduce centralized check for crossbar write
+  documentation: dt: omap: crossbar: add description for interrupt
+    consumer
+  irqchip: crossbar: allow for quirky hardware with direct hardwiring
+    of GIC
 
-Let's see if others have similar opinions Rob's patch as a whole.
-I'd still like to keep all the parts aside from the OMAP change
-and just back out the change that caused the problems.
+Sricharan R (2):
+  irqchip: crossbar: set cb pointer to null in case of error
+  irqchip: crossbar: add kerneldoc for crossbar_domain_unmap callback
 
-Does that seem reasonable to you?
+ .../devicetree/bindings/arm/omap/crossbar.txt      |   34 ++++
+ drivers/irqchip/irq-crossbar.c                     |  168 +++++++++++++++++---
+ 2 files changed, 177 insertions(+), 25 deletions(-)
 
-	Arnd
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
