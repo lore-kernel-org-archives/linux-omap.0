@@ -1,37 +1,46 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V3 0/2] arm: dts: dra7: add crossbar dt support
-Date: Mon, 16 Jun 2014 17:40:20 +0530
-Message-ID: <1402920622-7998-1-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V3 1/2] arm: dts: dra7: add routable-irqs property for gic node
+Date: Mon, 16 Jun 2014 17:40:21 +0530
+Message-ID: <1402920622-7998-2-git-send-email-r.sricharan@ti.com>
+References: <1402920622-7998-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1402920622-7998-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-This series introduces DT support for crossbar device and
-changes dra7 peripherals to use crossbar number instead of irq.
+From: R Sricharan <r.sricharan@ti.com>
 
-This depends on below driver fixes and cleanup series.
+There is a IRQ crossbar device in the soc, which maps the
+irq requests from the peripherals to the mpu interrupt
+controller's inputs. The gic provides the support for such
+IPs in the form of routable-irqs. So adding the property
+here to gic node.
 
-https://lkml.org/lkml/2014/6/16/218
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/dra7.dtsi |    1 +
+ 1 file changed, 1 insertion(+)
 
-[V2] Rebased on 3.15 mainline.
-[V3] Added ti,irqs-skip property and ti,irqs-safe-map property to
-     crossbar dt node.
-
-R Sricharan (2):
-  arm: dts: dra7: add routable-irqs property for gic node
-  arm: dts: dra7: add crossbar device binding
-
- arch/arm/boot/dts/dra7.dtsi |  136 +++++++++++++++++++++++++------------------
- 1 file changed, 78 insertions(+), 58 deletions(-)
-
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index c29945e..1cf4ee1 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -45,6 +45,7 @@
+ 		compatible = "arm,cortex-a15-gic";
+ 		interrupt-controller;
+ 		#interrupt-cells = <3>;
++		arm,routable-irqs = <192>;
+ 		reg = <0x48211000 0x1000>,
+ 		      <0x48212000 0x1000>,
+ 		      <0x48214000 0x2000>,
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
