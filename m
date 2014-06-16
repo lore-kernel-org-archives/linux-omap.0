@@ -1,138 +1,41 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v14 0/6] mmc: omap_hsmmc: Enable SDIO IRQ
-Date: Mon, 16 Jun 2014 11:26:36 +0200
-Message-ID: <CAPDyKFrFoDabt=2eC_p7SsDB1x+DNKdAY4V9xTTJ4XNnAaQ4oA@mail.gmail.com>
-References: <1401352085-22781-1-git-send-email-afenkart@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/14] ARM: omap2: fix am43xx dependency on l2x0 cache
+Date: Mon, 16 Jun 2014 02:41:56 -0700
+Message-ID: <20140616094156.GA17845@atomide.com>
+References: <1402675276-538682-1-git-send-email-arnd@arndb.de>
+ <1402675276-538682-3-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1401352085-22781-1-git-send-email-afenkart@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13967 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754820AbaFPJmB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 05:42:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1402675276-538682-3-git-send-email-arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, arm@kernel.org, linux-omap@vger.kernel.org
 
-On 29 May 2014 10:27, Andreas Fenkart <afenkart@gmail.com> wrote:
-> Hi Balaji, Tony, Ulf, all
->
-> v14
-> - drop all ifdef/endif introduced by v13
-> -- rely on pinctrl_lookup_state to prevent ifdef CONFIG_PM
-> -- benefit: all code is compile tested no matter the configuration
-> -- drawback: require wake_irq/pinctrl configuration even when
->    runtime suspend is not configured
-> - drop runtime state from debugfs output
-> - rebased onto current mmc-next 06732b84b4cf
+* Arnd Bergmann <arnd@arndb.de> [140613 09:02]:
+> Commit d941f86fad41b ("ARM: l2c: AM43x: add L2 cache support") enabled
+> the L2 cache support for the am43xx SoC, but caused a build regression
+> when the driver for that cache controller is disabled:
+> 
+> arch/arm/mach-omap2/built-in.o: In function `am43xx_init_early':
+> :(.init.text+0xb20): undefined reference to `omap_l2_cache_init'
+> 
+> This did not happen for OMAP4, which has the same call, but enables
+> the l2x0 driver unconditionally. We could do the same thing for
+> am43xx, but it seems better to allow turning it off and make the
+> code work in either case.
+> 
+> This adds an inline wrapper for omap_l2_cache_init for the disabled
+> case, and removes the 'select' from OMAP4 so it becomes a user
+> visible option.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: linux-omap@vger.kernel.org
 
-Thanks! Applied for next.
-
-Kind regards
-Ulf Hansson
-
->
-> v13
-> - fix compile breaks if !CONFIG_PM
-> - additional patch: install dummy pm runtime hooks if !CONFIG_PM_RUNT=
-IME
->
-> v12
-> - drop !CONFIG_OF compile break only exists when
->   #undef CONFIG_OF after include headers 1/7(Sebastian Reichel)
-> - do not emit "falling back to polling" if wake_irq not specified
->   since MMC does not need it, and it might confuse users
->   only emit if pinmux default/idle is not present or claiming
->   the irq failed 2/7(Balaji)
-> - dropped out-of-tree patches 6/7(Balaji)
-> - mention "ti,am33xx-hsmmc" compatible section in bindings
->   documentation 1/5
->
-> v11
-> - split !CONFIG_OF compile break into separate patch
-> - enable IWE/CLKEXTFREE in CON/HCTL register needed for omap4
-> - '&' vs '&&' in omap_hsmmc_resume, 1/5 (Andreas M=C3=BCller)
-> - #define DLEV_DAT instead of BIT(21) 2/5 (Balaji)
-> - pinctrl_pm_select_default_state() removed, 4/5 (Balaji)
-> - drop _irqsave/_irqrestore from omap_hsmmc_wake_irq handler since it
->   can't be preempted by same priority omap_hsmmc_irq handler 1/5(Joel=
- Fernandes)
-> - replace devres_open_group by explicit devm_free calls 1/5 (Balaji)
-> - disable_irq_nosync wake_irq since we handle it thread safe 1/5 (Bal=
-aji)
-> - drop 'gpio_dat1' pinctrl states and rework documentation 5/5 (Balaj=
-i)
->
-> v10
-> - bug fix on multi-core, untested
-> - incorporated changes from Balaji
-> - use devres / RAII mechanism to configure wake_up /
->   sdio irq capabilities
-> - drop pinctrl state 'active'
->   rely on driver-model states 'default', 'idle'
-> - add specific 'gpio_dat1' state for am335x SWAKEUP hack
-> - reorganized patches; +1 patch multi-core bugfix / +1 for pinctrl
-> - rebased 455c6fdbd21916 / cherry-picks from mmc-next
->
-> v9
-> - extended comment about why wake-irq is needed
-> - drop double '(' ')' around card_detect_irq
-> - drop final '.' in in subject line of patch
->
-> v8
-> - rebased on top of Tony Lindgren<tony@atomide.com> changes
->   - improved changelog describing the earlier work
->   - improved wakeup irq setup
->   - works for am3730 es platform now
-> - my changes on top:
->   - compile tested with #undef CONFIG_OF
->   - disable wake_irq in handler to prevent infinite loop
->   - fixed typo and added comment about wake-irq
->
-> v7
-> - rebase on 3.14.0-rc3-49726-g77e15ec
-> - split omap_hsmmc_pin_init due to regression on omap-3730 platform
->
-> v6
-> - rebase on Linux 3.13-rc3
-> - reformatting debugfs
->
-> v5
-> - fix compile error introduced by last minute one line fix
->
-> v4:
-> - switch to interrupts-extended format
-> - drop ti,swakeup-missing flag convert to comaptible section
->
-> v3:
-> - removed gpio_irq from platform_data
->
-> v2:
-> - incorparated changes as suggested by reviewers
-> - simplified workaround for am335x, gpio will now only wake
->   the module from runtime suspend, not handle the sdio irq
->   itself
->
-> Andreas Fenkart (6):
->   mmc: omap_hsmmc: Enable SDIO interrupt
->   mmc: omap_hsmmc: Extend debugfs by SDIO IRQ handling, runtime state
->   mmc: omap_hsmmc: enable wakeup event for sdio OMAP4
->   mmc: omap_hsmmc: abort runtime suspend if pending sdio irq detected
->   mmc: omap_hsmmc: switch default/idle pinctrl states in runtime hook=
-s
->   mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt on
->     AM335x
->
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   54 ++++
->  drivers/mmc/host/omap_hsmmc.c                      |  283 ++++++++++=
-++++++++--
->  include/linux/platform_data/mmc-omap.h             |    1 +
->  3 files changed, 317 insertions(+), 21 deletions(-)
->
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
