@@ -1,80 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: DRA722: add detection of SoC information.
-Date: Mon, 16 Jun 2014 04:53:14 -0700
-Message-ID: <20140616115313.GG17845@atomide.com>
-References: <1401390350-10048-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: OMAP5: Update CPU OPP table as per final
+ production Manual
+Date: Mon, 16 Jun 2014 05:00:15 -0700
+Message-ID: <20140616120014.GH17845@atomide.com>
+References: <1402016986-12508-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30337 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751076AbaFPLxR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 07:53:17 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1401390350-10048-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1402016986-12508-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-* Nishanth Menon <nm@ti.com> [140529 12:07]:
-> Add support for DRA72x device DIEID. Currently these devices are
-> reported as DRA75/74 family of processors.
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [140605 18:11]:
+> As per the Final production Data Manual for OMAP5432,
+> SWPS050F(APRIL 2014)
 > 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> There are only two OPPs - 1GHz and 1.5GHz. the older OPP_LOW has been
+> completely descoped. The Nominal voltages are still correct though.
+> However, expectation for final production configuration is operation
+> with Adaptive Body Bias (ABB) and Adaptive Voltage Scaling Class 0
+> operation.
+> 
+> There are no IDcode or version change information encoded to
+> programmatically detect this and software is supposed to NOT use
+> OPP_LOW(500MHz) anymore for all devices (legacy and production
+> samples).
+> 
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 
 Thanks applying into omap-for-v3.16/fixes.
 
 Tony
 
 > ---
->  (test using linux-next next-20140529 tag):
->  before: http://slexy.org/raw/s21Yb8sOhy
->  after:  http://slexy.org/raw/s20Nx96NrY
+>  arch/arm/boot/dts/omap5.dtsi |    1 -
+>  1 file changed, 1 deletion(-)
 > 
->  Applies on:
->  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git 
->  branch: omap-for-v3.16/soc
-> 
->  arch/arm/mach-omap2/id.c  |   12 ++++++++++++
->  arch/arm/mach-omap2/soc.h |    1 +
->  2 files changed, 13 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 71bf216..801244a 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -649,6 +649,18 @@ void __init dra7xxx_check_revision(void)
->  		}
->  		break;
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index 3bfda16..a4ed549 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -45,7 +45,6 @@
 >  
-> +	case 0xb9bc:
-> +		switch (rev) {
-> +		case 0:
-> +			omap_revision = DRA722_REV_ES1_0;
-> +			break;
-> +		default:
-> +			/* If we have no new revisions */
-> +			omap_revision = DRA722_REV_ES1_0;
-> +			break;
-> +		}
-> +		break;
-> +
->  	default:
->  		/* Unknown default to latest silicon rev as default*/
->  		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%d)\n",
-> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-> index de2a34c..01ca808 100644
-> --- a/arch/arm/mach-omap2/soc.h
-> +++ b/arch/arm/mach-omap2/soc.h
-> @@ -462,6 +462,7 @@ IS_OMAP_TYPE(3430, 0x3430)
->  #define DRA7XX_CLASS		0x07000000
->  #define DRA752_REV_ES1_0	(DRA7XX_CLASS | (0x52 << 16) | (0x10 << 8))
->  #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
-> +#define DRA722_REV_ES1_0	(DRA7XX_CLASS | (0x22 << 16) | (0x10 << 8))
->  
->  void omap2xxx_check_revision(void);
->  void omap3xxx_check_revision(void);
+>  			operating-points = <
+>  				/* kHz    uV */
+> -				500000  880000
+>  				1000000 1060000
+>  				1500000 1250000
+>  			>;
 > -- 
 > 1.7.9.5
 > 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
