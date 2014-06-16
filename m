@@ -1,84 +1,102 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH] ARM: omap: rework platform selection
-Date: Mon, 16 Jun 2014 04:00:42 -0700
-Message-ID: <20140616110042.GD17845@atomide.com>
-References: <5701099.0P1SIXsHc1@wuerfel>
+Date: Mon, 16 Jun 2014 13:16:57 +0200
+Message-ID: <7892694.KrnV5uCBX6@wuerfel>
+References: <5701099.0P1SIXsHc1@wuerfel> <20140616110042.GD17845@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47129 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751092AbaFPLAr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 07:00:47 -0400
-Content-Disposition: inline
-In-Reply-To: <5701099.0P1SIXsHc1@wuerfel>
+Received: from mout.kundenserver.de ([212.227.17.10]:63075 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbaFPLRH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 07:17:07 -0400
+In-Reply-To: <20140616110042.GD17845@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, rob.herring@linaro.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, rob.herring@linaro.org, linux-omap@vger.kernel.org, arm@kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [140616 03:06]:
-> Commit 9851b662f659 ("ARM: use menuconfig for sub-arch menus") did more
-> than expected, which led to two OMAP specific bugs:
-
-It seems the commit above is not -rc cycle material at least not without
-proper testing. There's a good chance of breaking a lot of the existing
-.config files which can create a big mess as we've seen before. 
- 
-> * Turning CONFIG_ARCH_OMAP into a user-selectable option makes it possible
->   to have a configuration with ARCH_OMAP enabled but none of the specific
->   OMAP SoCs enabled, which triggers a couple of link errors due to the
->   layout of the Makefile
-
-And so we have a regression to this old problem again :(
- 
-> * The plat-omap menu still appears mixed into the normal menuconfig list,
->   which is confusing and inconsistent.
-
-That we should be able to remove completely soon but that's a
-separate patch..
- 
-> To make matters worse, the change did not enable CONFIG_ARCH_OMAP in the
-> defconfig files, which through some ripple effects disabled options that
-> were implicitly enabled from OMAP2, and that caused all machines to
-> fail booting with the unchanged config files.
+On Monday 16 June 2014 04:00:42 Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [140616 03:06]:
+> > Commit 9851b662f659 ("ARM: use menuconfig for sub-arch menus") did more
+> > than expected, which led to two OMAP specific bugs:
 > 
-> This reorders the OMAP Kconfig files some more, to be consistent with
-> the others, and also changes the defconfig files.
+> It seems the commit above is not -rc cycle material at least not without
+> proper testing. There's a good chance of breaking a lot of the existing
+> .config files which can create a big mess as we've seen before. 
+
+Well, Kconfig is a big mess without it at the moment. The OMAP change
+was definitely wrong there, but for all other platforms I don't see any
+risk in applying it, because there is no semantic change, only cosmetic.
+
+> > * Turning CONFIG_ARCH_OMAP into a user-selectable option makes it possible
+> >   to have a configuration with ARCH_OMAP enabled but none of the specific
+> >   OMAP SoCs enabled, which triggers a couple of link errors due to the
+> >   layout of the Makefile
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> Tony, can you have a look at this please? I'd like to send out the
-> fixes for 3.16, but this is needed on top of Rob's Kconfig changes.
+> And so we have a regression to this old problem again :(
 
-Hmm why is this patch already in linux next before getting posted
-to the mailing lists?
+Yes, I didn't actually see this happen but from looking at the patch, I
+concluded that it would likely be the case.
 
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -1,6 +1,11 @@
-> -if ARCH_OMAP
-> +menuconfig ARCH_OMAP_ENABLE
-> +	bool "TI OMAP platforms" if ARCH_MULTI_V6 || ARCH_MULTI_V7
-> +	default ARCH_OMAP1
->  
-> -menu "TI OMAP Common Features"
-> +if ARCH_OMAP_ENABLE
-> +
-> +source "arch/arm/mach-omap1/Kconfig"
-> +source "arch/arm/mach-omap2/Kconfig"
+> > * The plat-omap menu still appears mixed into the normal menuconfig list,
+> >   which is confusing and inconsistent.
+> 
+> That we should be able to remove completely soon but that's a
+> separate patch..
 
-It seems to me this kind of change is going to break all the
-existing .config files unless they are manually updated. This
-includes all the distros and automated build systems. I'll look
-more at it, but my initial take is that we should be able to do
-this all with CONFIG_ARCH_OMAP + the selected OMAP SoC and should
-not introduce any new Kconfig options.
+Ok.
 
-For now I'd just leave out Rob's changed and this patch from fixes
-until they have been properly tested.
+> > To make matters worse, the change did not enable CONFIG_ARCH_OMAP in the
+> > defconfig files, which through some ripple effects disabled options that
+> > were implicitly enabled from OMAP2, and that caused all machines to
+> > fail booting with the unchanged config files.
+> > 
+> > This reorders the OMAP Kconfig files some more, to be consistent with
+> > the others, and also changes the defconfig files.
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
+> > Tony, can you have a look at this please? I'd like to send out the
+> > fixes for 3.16, but this is needed on top of Rob's Kconfig changes.
+> 
+> Hmm why is this patch already in linux next before getting posted
+> to the mailing lists?
 
-Regards,
+I had applied Rob's patch to the fixes series but that broke all
+multi_v7_defconfig runs on the boot test machines. I didn't want to
+spend too much work on it over the weekend, but applied it so at least
+today's linux-next wouldn't regress over last week's.
 
-Tony
+> > --- a/arch/arm/plat-omap/Kconfig
+> > +++ b/arch/arm/plat-omap/Kconfig
+> > @@ -1,6 +1,11 @@
+> > -if ARCH_OMAP
+> > +menuconfig ARCH_OMAP_ENABLE
+> > +	bool "TI OMAP platforms" if ARCH_MULTI_V6 || ARCH_MULTI_V7
+> > +	default ARCH_OMAP1
+> >  
+> > -menu "TI OMAP Common Features"
+> > +if ARCH_OMAP_ENABLE
+> > +
+> > +source "arch/arm/mach-omap1/Kconfig"
+> > +source "arch/arm/mach-omap2/Kconfig"
+> 
+> It seems to me this kind of change is going to break all the
+> existing .config files unless they are manually updated. This
+> includes all the distros and automated build systems. I'll look
+> more at it, but my initial take is that we should be able to do
+> this all with CONFIG_ARCH_OMAP + the selected OMAP SoC and should
+> not introduce any new Kconfig options.
+> 
+> For now I'd just leave out Rob's changed and this patch from fixes
+> until they have been properly tested.
 
+Let's see if others have similar opinions Rob's patch as a whole.
+I'd still like to keep all the parts aside from the OMAP change
+and just back out the change that caused the problems.
+
+Does that seem reasonable to you?
+
+	Arnd
