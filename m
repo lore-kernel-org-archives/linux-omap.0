@@ -1,68 +1,55 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V3 01/16] irqchip: crossbar: dont use '0' to mark reserved
- interrupts
-Date: Mon, 16 Jun 2014 16:53:01 +0530
-Message-ID: <1402917796-31574-2-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V3 15/16] documentation: dt: omap: crossbar: add description for interrupt consumer
+Date: Mon, 16 Jun 2014 16:53:15 +0530
+Message-ID: <1402917796-31574-16-git-send-email-r.sricharan@ti.com>
 References: <1402917796-31574-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1402917796-31574-1-git-send-email-r.sricharan@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: nm@ti.com, linux@arm.linux.org.uk, jason@lakedaemon.net, tony@atomide.com, rnayak@ti.com, r.sricharan@ti.com, santosh.shilimkar@ti.com, joe@perches.com, tglx@linutronix.de
+Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com
 List-Id: linux-omap@vger.kernel.org
 
 From: Nishanth Menon <nm@ti.com>
 
-Today '0' is actually reserved, but may not be the same in the future.
+The current crossbar description does not include the description
+required for the consumer of the crossbar, a.k.a devices whoes events
+pass through the crossbar into the GIC interrupt controller.
 
-So, use a flag to mark the GIC interrupts that are reserved.
+So, provide documentation for the same.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
 ---
- drivers/irqchip/irq-crossbar.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/arm/omap/crossbar.txt      |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 3d15d16..20105bc 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -17,6 +17,7 @@
- #include <linux/irqchip/arm-gic.h>
- 
- #define IRQ_FREE	-1
-+#define IRQ_RESERVED	-2
- #define GIC_IRQ_START	32
- 
- /*
-@@ -139,7 +140,7 @@ static int __init crossbar_of_init(struct device_node *node)
- 				pr_err("Invalid reserved entry\n");
- 				goto err3;
- 			}
--			cb->irq_map[entry] = 0;
-+			cb->irq_map[entry] = IRQ_RESERVED;
- 		}
- 	}
- 
-@@ -170,7 +171,7 @@ static int __init crossbar_of_init(struct device_node *node)
- 	 * reserved irqs. so find and store the offsets once.
- 	 */
- 	for (i = 0; i < max; i++) {
--		if (!cb->irq_map[i])
-+		if (cb->irq_map[i] == IRQ_RESERVED)
- 			continue;
- 
- 		cb->register_offsets[i] = reserved;
+diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+index 41aef44..8210ea4 100644
+--- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
++++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+@@ -34,3 +34,20 @@ Examples:
+ 			ti,reg-size = <2>;
+ 			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
+ 		};
++
++Consumer:
++========
++See Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
++Documentation/devicetree/bindings/arm/gic.txt for further details.
++
++An interrupt consumer on an SoC using crossbar will use:
++	interrupts = <GIC_SPI request_number interrupt_level>
++request number shall be between 0 to that described by
++"ti,max-crossbar-sources"
++
++Example:
++	device_x@0x4a023000 {
++		/* Crossbar 8 used */
++		interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
++		...
++	};
 -- 
 1.7.9.5
