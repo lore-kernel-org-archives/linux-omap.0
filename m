@@ -1,127 +1,120 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Change hardreset soc_ops for
- AM43XX
-Date: Mon, 16 Jun 2014 01:56:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406160150590.659@utopia.booyaka.com>
-References: <1402347553-26029-1-git-send-email-d-gerlach@ti.com> <alpine.DEB.2.02.1406131939180.340@utopia.booyaka.com>
+Subject: [GIT PULL] ARM: OMAP2+: hwmod code and data changes for early
+ v3.16-rc
+Date: Mon, 16 Jun 2014 03:18:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406160317120.659@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:33994 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:34252 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114AbaFPB4b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jun 2014 21:56:31 -0400
-In-Reply-To: <alpine.DEB.2.02.1406131939180.340@utopia.booyaka.com>
+	with ESMTP id S1752491AbaFPDS0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jun 2014 23:18:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 13 Jun 2014, Paul Walmsley wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> On Mon, 9 Jun 2014, Dave Gerlach wrote:
-> 
-> > am43xx reset register layout is more similar to am33xx than omap4 so
-> > use the am33xx functions for hwmod hardreset soc_ops rather than the
-> > currently used omap4 functions. Without this, assert_hardreset and
-> > deassert_hardreset will not work on am43xx.
-> > 
-> > Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> 
-> Makes sense to me; queued for v3.16-rc.
+Hi Tony,
 
-The patch failed a build test for an AM43xx-only config:
+The following changes since commit abf04af74a9f27a65172a43b43ccabcbc2bbdc39:
 
-----
-arch/arm/mach-omap2/built-in.o: In function `_am33xx_is_hardreset_asserted':
-arch/arm/mach-omap2/omap_hwmod.c:3223: undefined reference to `am33xx_prm_is_hardreset_asserted'
-arch/arm/mach-omap2/built-in.o: In function `_am33xx_deassert_hardreset':
-arch/arm/mach-omap2/omap_hwmod.c:3201: undefined reference to `am33xx_prm_deassert_hardreset'
-arch/arm/mach-omap2/built-in.o: In function `_am33xx_assert_hardreset':
-arch/arm/mach-omap2/omap_hwmod.c:3181: 
-undefined reference to `am33xx_prm_assert_hardreset'
-make: *** [vmlinux] Error 1
-----
+  Merge tag 'scsi-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi (2014-06-14 19:49:48 -0500)
 
-I went ahead and modified the patch to build (updated patch below), but it 
-would be helpful if you could also build-test your AM43xx-specific patches 
-with an AM43xx-specific .config (along with the usual 
-omap2plus_defconfig).
+are available in the git repository at:
 
 
-- Paul
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.16-rc/omap-fixes-a
 
-From: Dave Gerlach <d-gerlach@ti.com>
-Date: Sun, 15 Jun 2014 16:02:17 -0600
-Subject: [PATCH 1/2] ARM: OMAP2+: hwmod: Change hardreset soc_ops for AM43XX
+for you to fetch changes up to bf32c4ad9924e2d60a23de4a3c074f806bf2ef05:
 
-am43xx reset register layout is more similar to am33xx than omap4 so
-use the am33xx functions for hwmod hardreset soc_ops rather than the
-currently used omap4 functions. Without this, assert_hardreset and
-deassert_hardreset will not work on am43xx.
+  ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods (2014-06-15 20:12:52 -0600)
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-[paul@pwsan.com: fixed build errors for an AM43xx-only Kconfig]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/Makefile     | 6 ++++--
- arch/arm/mach-omap2/cm33xx.h     | 2 +-
- arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
- 3 files changed, 8 insertions(+), 6 deletions(-)
+- ----------------------------------------------------------------
+Two OMAP hwmod patches for early v3.16-rc kernels.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 8421f38cf445..7a695362aee7 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -110,14 +110,16 @@ obj-y					+= prm_common.o cm_common.o
- obj-$(CONFIG_ARCH_OMAP2)		+= prm2xxx_3xxx.o prm2xxx.o cm2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= prm2xxx_3xxx.o prm3xxx.o cm3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
--obj-$(CONFIG_SOC_AM33XX)		+= prm33xx.o cm33xx.o
- omap-prcm-4-5-common			=  cminst44xx.o cm44xx.o prm44xx.o \
- 					   prcm_mpu44xx.o prminst44xx.o \
- 					   vc44xx_data.o vp44xx_data.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
- obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-prcm-4-5-common)
--obj-$(CONFIG_SOC_AM43XX)		+= $(omap-prcm-4-5-common)
-+am33xx-43xx-prcm-common			+= prm33xx.o
-+obj-$(CONFIG_SOC_AM33XX)		+= $(am33xx-43xx-prcm-common) cm33xx.o
-+obj-$(CONFIG_SOC_AM43XX)		+= $(omap-prcm-4-5-common) \
-+					   $(am33xx-43xx-prcm-common)
- 
- # OMAP voltage domains
- voltagedomain-common			:= voltage.o vc.o vp.o
-diff --git a/arch/arm/mach-omap2/cm33xx.h b/arch/arm/mach-omap2/cm33xx.h
-index 15a778ce7707..bd2441790779 100644
---- a/arch/arm/mach-omap2/cm33xx.h
-+++ b/arch/arm/mach-omap2/cm33xx.h
-@@ -380,7 +380,7 @@ void am33xx_cm_clkdm_disable_hwsup(u16 inst, u16 cdoffs);
- void am33xx_cm_clkdm_force_sleep(u16 inst, u16 cdoffs);
- void am33xx_cm_clkdm_force_wakeup(u16 inst, u16 cdoffs);
- 
--#ifdef CONFIG_SOC_AM33XX
-+#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
- extern int am33xx_cm_wait_module_idle(u16 inst, s16 cdoffs,
- 					u16 clkctrl_offs);
- extern void am33xx_cm_module_enable(u8 mode, u16 inst, s16 cdoffs,
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index f7bb435bb543..6c074f37cdd2 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -4251,9 +4251,9 @@ void __init omap_hwmod_init(void)
- 		soc_ops.enable_module = _omap4_enable_module;
- 		soc_ops.disable_module = _omap4_disable_module;
- 		soc_ops.wait_target_ready = _omap4_wait_target_ready;
--		soc_ops.assert_hardreset = _omap4_assert_hardreset;
--		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
--		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
-+		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
-+		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
-+		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
- 		soc_ops.init_clkdm = _init_clkdm;
- 	} else if (soc_is_am33xx()) {
- 		soc_ops.enable_module = _am33xx_enable_module;
--- 
-2.0.0
+There's one OMAP SoC integration fix for the AM43xx SoC, without
+which, IP blocks can't be placed into hard-reset.
 
+There is also one OMAP5 SoC data addition patch that should have gone
+in for v3.16. Normally I wouldn't send this as part of an -rc series,
+since it's not technically a fix. But I'd like to make an exception in
+this case because:
+
+- - it's intended to go in very early in the v3.16-rc series (or even
+pre-rc1);
+
+- - it's a fairly small change;
+
+- - the impact is limited to a single SoC and a single device;
+
+- - the only reason that it didn't go in earlier is because it "slipped
+through the cracks," rather than for any technical reason.
+
+Basic build, boot, and PM test logs are available here:
+
+http://www.pwsan.com/omap/testlogs/hwmod-a-v3.16-rc/20140615201307/
+
+- ----------------------------------------------------------------
+Dave Gerlach (1):
+      ARM: OMAP2+: hwmod: Change hardreset soc_ops for AM43XX
+
+Keshava Munegowda (1):
+      ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
+
+ arch/arm/mach-omap2/Makefile               |  6 ++-
+ arch/arm/mach-omap2/cm33xx.h               |  2 +-
+ arch/arm/mach-omap2/omap_hwmod.c           |  6 +--
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 73 ++++++++++++++++++++++++++++++
+ 4 files changed, 81 insertions(+), 6 deletions(-)
+
+
+vmlinux object size
+(delta in bytes from temp_base_for_hwmod-a-v3.16-rc (abf04af74a9f27a65172a43b43ccabcbc2bbdc39)):
+   text     data      bss    total  kernel
+      0        0        0        0  omap1_defconfig
+      0        0        0        0  omap1_defconfig_1510innovator_only
+      0        0        0        0  omap1_defconfig_5912osk_only
+    -28     +416        0     +388  multi_v7_defconfig
+    -28     +392        0     +364  omap2plus_defconfig
+      0        0        0        0  omap2plus_defconfig_2430sdp_only
+      0        0        0        0  omap2plus_defconfig_am33xx_only
+  +6492     +128        0    +6620  omap2plus_defconfig_am43xx_only
+    -28     +448        0     +420  omap2plus_defconfig_cpupm
+      0        0        0        0  omap2plus_defconfig_dra7xx_only
+      0        0        0        0  omap2plus_defconfig_n800_multi_omap2xxx
+      0       -8        0       -8  omap2plus_defconfig_n800_only_a
+    -28     +448        0     +420  omap2plus_defconfig_no_pm
+      0        0        0        0  omap2plus_defconfig_omap2_4_only
+      0        0        0        0  omap2plus_defconfig_omap3_4_only
+      0     +448        0     +448  omap2plus_defconfig_omap5_only
+      0        0        0        0  rmk_omap3430_ldp_allnoconfig
+      0        0        0        0  rmk_omap3430_ldp_oldconfig
+      0        0        0        0  rmk_omap4430_sdp_allnoconfig
+      0        0        0        0  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from temp_base_for_hwmod-a-v3.16-rc (abf04af74a9f27a65172a43b43ccabcbc2bbdc39))
+  avail  rsrvd   high  freed  board          kconfig
+    -4k     4k      .      .  4460pandaes    omap2plus_defconfig
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTnmGQAAoJEMePsQ0LvSpL6EgP/2RLO1wzsjZP8tcZnWGjLMuE
+jQUFi3G6eOIA0O64GA/q6XuNghKDIzGQ/w7MK94IS3W/VCkCrmYUrMfOpp66baIJ
+EKAHzLE2LTp7paeS2dNGNRl9GcYDNTiXZ3YJq5AZo3nR7QI6QlrF/UolyG/wlPjs
+epz9H7J1ijpcOMVhadixS3sYYxmUjhECgRWbeLKYc2qdpXNQ+XMaIyLBxpIEjIGb
+u07cmEFxT0PHbpCrKrc6PCrMc2LtLieSCZVLsFrNVm4vlY7rrIjkE7HtHE4wyI+J
+OM8hCs65nCKu7e9TOi2UkIF30BQiYYioBN4pLcIjVQoPnwrnJD465GWLtXQy9rFi
+H7sb+wSgRWcDYo1u8a/w3Qw99If7X6TJDP5AOlcdMlR0MufSnCSs9ItjMRuRJk/B
+TIyiCZdRFUXeVquPxdGSbkgJTDpmif9n10M10zw0bRUNakd3L/zyqRkqaylOQBhm
+KnyklnPpukqersExvDJJQO6mPVn/98g8AI1Lb/+JFLCgd5181gunRnlSB058ZXTS
+jCdvUJHkwat3lIa6iWmIG3LID4V3uQpHh3QhKOZjt5IqtNgEpwj5kCD4lupZRv95
+9B8KSL+2ZDrkI1mxl+Tq9OBi0UyW953vcXZLbXbDkl0TXmAB4wEdc6ODgOvkOmCq
+aDCWJgfiL2jUyEJGSVhH
+=ZW+p
+-----END PGP SIGNATURE-----
