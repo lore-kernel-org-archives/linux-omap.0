@@ -1,89 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] arm: dts: add support for AM437x StarterKit
-Date: Mon, 16 Jun 2014 00:27:21 -0700
-Message-ID: <20140616072720.GX17845@atomide.com>
-References: <1402676147-3711-1-git-send-email-balbi@ti.com>
- <1402676147-3711-3-git-send-email-balbi@ti.com>
- <20140613162334.GI8319@saruman.home>
- <20140613163118.GJ8319@saruman.home>
+Subject: Re: [GIT PULL] ARM: OMAP2+: hwmod code and data changes for early
+ v3.16-rc
+Date: Mon, 16 Jun 2014 01:29:48 -0700
+Message-ID: <20140616082948.GY17845@atomide.com>
+References: <alpine.DEB.2.02.1406160317120.659@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54034 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52429 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753947AbaFPH10 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 03:27:26 -0400
+	with ESMTP id S1754525AbaFPI3u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 04:29:50 -0400
 Content-Disposition: inline
-In-Reply-To: <20140613163118.GJ8319@saruman.home>
+In-Reply-To: <alpine.DEB.2.02.1406160317120.659@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Josh Elliot <jelliott@ti.com>, Darren Etheridge <detheridge@ti.com>, devicetree@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [140613 09:33]:
-> On Fri, Jun 13, 2014 at 11:23:34AM -0500, Felipe Balbi wrote:
-> > On Fri, Jun 13, 2014 at 11:15:47AM -0500, Felipe Balbi wrote:
-> > > --- /dev/null
-> > > +++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-> > > @@ -0,0 +1,539 @@
-> > > +/*
-> > > + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or modify
-> > > + * it under the terms of the GNU General Public License version 2 as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +
-> > > +/* AM437x SK EVM */
-> > > +
-> > > +/dts-v1/;
-> > > +
-> > > +#include "am4372.dtsi"
-> > > +#include <dt-bindings/pinctrl/am43xx.h>
-> > > +#include <dt-bindings/pwm/pwm.h>
-> > > +#include <dt-bindings/gpio/gpio.h>
-> > > +#include <dt-bindings/input/input.h>
-> > > +
-> > > +/ {
-> > > +	model = "TI AM437x SK EVM";
-> > > +	compatible = "ti,am437x-sk-evm","ti,am4372","ti,am43";
-> > > +
-> > > +	aliases {
-> > > +		display0 = &lcd0;
-> > > +	};
-> > > +
-> > > +	vmmcsd_fixed: fixedregulator-sd {
-> > > +		compatible = "regulator-fixed";
-> > > +		regulator-name = "vmmcsd_fixed";
-> > > +		regulator-min-microvolt = <3300000>;
-> > > +		regulator-max-microvolt = <3300000>;
-> > > +		enable-active-high;
-> > > +	};
-> > > +
-> > > +	v33_fixed: fixedregulator-v33 {
-> > > +		compatible = "regulator-fixed";
-> > > +		regulator-name = "v33_fixed";
-> > > +		regulator-min-microvolt = <3300000>;
-> > > +		regulator-max-microvolt = <3300000>;
-> > > +		enable-active-high;
-> > > +	};
-> > > +
-> > > +	v18_fixed: fixedregulator-v18 {
-> > > +		compatible = "regulator-fixed";
-> > > +		regulator-name = "v18_fixed";
-> > > +		regulator-min-microvolt = <1800000>;
-> > > +		regulator-max-microvolt = <1800000>;
-> > > +		enable-active-high;
-> > > +	};
+* Paul Walmsley <paul@pwsan.com> [140615 20:19]:
+> Hi Tony,
+> 
+> The following changes since commit abf04af74a9f27a65172a43b43ccabcbc2bbdc39:
+> 
+>   Merge tag 'scsi-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi (2014-06-14 19:49:48 -0500)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.16-rc/omap-fixes-a
+> 
+> for you to fetch changes up to bf32c4ad9924e2d60a23de4a3c074f806bf2ef05:
+> 
+>   ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods (2014-06-15 20:12:52 -0600)
+> 
+> ----------------------------------------------------------------
+> Two OMAP hwmod patches for early v3.16-rc kernels.
+> 
+> There's one OMAP SoC integration fix for the AM43xx SoC, without
+> which, IP blocks can't be placed into hard-reset.
+> 
+> There is also one OMAP5 SoC data addition patch that should have gone
+> in for v3.16. Normally I wouldn't send this as part of an -rc series,
+> since it's not technically a fix. But I'd like to make an exception in
+> this case because:
+> 
+> - it's intended to go in very early in the v3.16-rc series (or even
+> pre-rc1);
+> 
+> - it's a fairly small change;
+> 
+> - the impact is limited to a single SoC and a single device;
+> 
+> - the only reason that it didn't go in earlier is because it "slipped
+> through the cracks," rather than for any technical reason.
+> 
+> Basic build, boot, and PM test logs are available here:
+> 
+> http://www.pwsan.com/omap/testlogs/hwmod-a-v3.16-rc/20140615201307/
 
-Chances are these are not fixed regulators.. Typically the these
-come from external regulators controlled by GPIO pins. Sounds
-like you have the schematics so it would be best to verify it.
-If they come from something not yet supported, let's at least
-document it with comments.
-
-Also looks like all the am43xx boards are using vmmcsd_fixed,
-might be worth checking those as well while at it.
+Thanks, pulling into omap-for-v3.16/fixes. BTW, starting with -rc2
+your off-idle tests should finally start working for some DT based
+boards.
 
 Regards,
 
