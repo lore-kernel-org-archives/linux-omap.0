@@ -1,75 +1,96 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod: Change hardreset soc_ops for AM43XX
-Date: Mon, 16 Jun 2014 15:19:02 -0500
-Message-ID: <539F5136.60605@ti.com>
-References: <1402347553-26029-1-git-send-email-d-gerlach@ti.com> <alpine.DEB.2.02.1406160441150.26773@utopia.booyaka.com>
+From: "David R. Piegdon" <lkml@p23q.org>
+Subject: [PATCH 1/1] omap2: fix parser-bug in platform muxing code
+Date: Mon, 16 Jun 2014 23:42:51 +0000
+Message-ID: <20140616234251.GA10376@ganymede.118net.x>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33166 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755911AbaFPUT1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jun 2014 16:19:27 -0400
-In-Reply-To: <alpine.DEB.2.02.1406160441150.26773@utopia.booyaka.com>
+Received: from mx-out-2.rwth-aachen.de ([134.130.5.187]:35450 "EHLO
+	mx-out-2.rwth-aachen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660AbaFPXwb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 19:52:31 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Paul,
 
-On 06/15/2014 11:43 PM, Paul Walmsley wrote:
-> Dave,
->
-> On Mon, 9 Jun 2014, Dave Gerlach wrote:
->
->> am43xx reset register layout is more similar to am33xx than omap4 so
->> use the am33xx functions for hwmod hardreset soc_ops rather than the
->> currently used omap4 functions. Without this, assert_hardreset and
->> deassert_hardreset will not work on am43xx.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
->>   1 file changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 66c60fe..1c0885b 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -4251,9 +4251,9 @@ void __init omap_hwmod_init(void)
->>   		soc_ops.enable_module = _omap4_enable_module;
->>   		soc_ops.disable_module = _omap4_disable_module;
->>   		soc_ops.wait_target_ready = _omap4_wait_target_ready;
->> -		soc_ops.assert_hardreset = _omap4_assert_hardreset;
->> -		soc_ops.deassert_hardreset = _omap4_deassert_hardreset;
->> -		soc_ops.is_hardreset_asserted = _omap4_is_hardreset_asserted;
->> +		soc_ops.assert_hardreset = _am33xx_assert_hardreset;
->> +		soc_ops.deassert_hardreset = _am33xx_deassert_hardreset;
->> +		soc_ops.is_hardreset_asserted = _am33xx_is_hardreset_asserted;
->>   		soc_ops.init_clkdm = _init_clkdm;
->>   	} else if (soc_is_am33xx()) {
->>   		soc_ops.enable_module = _am33xx_enable_module;
->
-> Should AM43XX be using the _am33xx_{enable,disable}_module and
-> wait_target_ready functions?
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-AM43xx has been using the _omap4_{enable,disable}_module functions 
-without issue. Nothing is currently using the hardreset ops for am43xx 
-which is why it went unnoticed but I saw the issue when I tried to use 
-them for the wkup_m3 hwmod and they failed during internal development.
+Fix a parser-bug in the omap2 muxing code where muxtable-entries will be
+wrongly selected if the requested muxname is a *prefix* of their
+m0-entry and they have a matching mN-entry. Fix by additionally checking
+that the length of the m0_entry is equal.
 
-With that said, am43xx clockdomains have prcm_partition defined as part 
-of their data which is only used by the _omap4_{enable,disable}_module 
-functions and not the _am33xx functions so as the current configuration 
-stands the _omap4 variants are the right choice.
+Signed-off-by: David R. Piegdon <lkml@p23q.org>
 
-Regards,
-Dave
 
->
->
-> - Paul
->
+For example muxing of "dss_data2.dss_data2" on omap32xx will fail
+because the prefix "dss_data2" will match the mux-entries "dss_data2" as
+well as "dss_data20", with the suffix "dss_data2" matching m0 (for
+dss_data2) and m4 (for dss_data20). Thus both are recognized as signal
+path candidates:
 
+Relevant muxentries from mux34xx.c:
+        _OMAP3_MUXENTRY(DSS_DATA20, 90,
+                "dss_data20", NULL, "mcspi3_somi", "dss_data2",
+                "gpio_90", NULL, NULL, "safe_mode"),
+        _OMAP3_MUXENTRY(DSS_DATA2, 72,
+                "dss_data2", NULL, NULL, NULL,
+                "gpio_72", NULL, NULL, "safe_mode"),
+
+This will result in a failure to mux the pin at all:
+
+ _omap_mux_get_by_name: Multiple signal paths (2) for dss_data2.dss_data2
+
+
+Patch should apply to linus' latest master down to rather old linux-2.6
+trees.
+
+
+Yours,
+
+David
+
+
+
+
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index fd88ede..957a66f 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -183,8 +183,10 @@ static int __init _omap_mux_get_by_name(struct omap_mu=
+x_partition *partition,
+ 		m0_entry =3D mux->muxnames[0];
+=20
+ 		/* First check for full name in mode0.muxmode format */
+-		if (mode0_len && strncmp(muxname, m0_entry, mode0_len))
+-			continue;
++		if (mode0_len)
++			if (strncmp(muxname, m0_entry, mode0_len)
++					||(strlen(m0_entry) !=3D mode0_len))
++				continue;
+=20
+ 		/* Then check for muxmode only */
+ 		for (i =3D 0; i < OMAP_MUX_NR_MODES; i++) {
+
+
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iEYEARECAAYFAlOfgPoACgkQRAfqAVFUPde1vgCfeL1v8Rtaf/30n7qTd4b+U4/9
+pxQAn2r32SVzIOFxTp6GV0HfeIqTNcJw
+=B1kf
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
