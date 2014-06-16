@@ -1,156 +1,75 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] ARM: omap: rework platform selection
-Date: Mon, 16 Jun 2014 12:04:58 +0200
-Message-ID: <5701099.0P1SIXsHc1@wuerfel>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [GIT PULL] mfd: Immutable branch between MFD and OMAP, due for
+ v3.16
+Date: Mon, 16 Jun 2014 11:17:43 +0100
+Message-ID: <20140616101743.GO14323@lee--X1>
+References: <1401214140-9828-1-git-send-email-tony@atomide.com>
+ <20140528071313.GH4227@lee--X1>
+ <20140528180607.GB4707@atomide.com>
+ <20140602163841.GC11004@atomide.com>
+ <20140603080632.GC3060@lee--X1>
+ <20140612054348.GC17845@atomide.com>
+ <20140612074705.GB11421@lee--X1>
+ <20140612080030.GD17845@atomide.com>
+ <20140612083357.GB14323@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:54155 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754948AbaFPKFK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 06:05:10 -0400
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:35552 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755149AbaFPKRs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jun 2014 06:17:48 -0400
+Received: by mail-ig0-f182.google.com with SMTP id a13so2741890igq.15
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jun 2014 03:17:48 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140612083357.GB14323@lee--X1>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, rob.herring@linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Commit 9851b662f659 ("ARM: use menuconfig for sub-arch menus") did more
-than expected, which led to two OMAP specific bugs:
+> > > > Still not seeing this branch being merged..
+> > >=20
+> > > Oh crap, I see what's happened and it's completely my fault.
+> > >=20
+> > > If you read the final merge commit carefully:
+> > >=20
+> > > 28fee3f: ("Merge branches 'ib-from-asoc-3.16', 'ib-from-pm-3.16',
+> > > 'ib-from-regulator-3.16', 'ib-mfd-gpio-3.16' and
+> > > 'ib-mfd-mmc-memstick-3.16', tags 'ib-mfd-extcon-3.16',
+> > > 'ib-mfd-omap-3.16' and 'ib-mfd-regulator-3.16' into
+> > > ibs-for-mfd-merged")
+> > >=20
+> > > I appear to have a _branch_ AND a _tag_ called ib-mfd-omap-3.16 a=
+nd it
+> > > looks like Git has taken the tag as a preference. heads/ib-mfd-om=
+ap-3.16
+> > > is actually at tag/ib-mfd-omap-3.16-1 (notice the appended '-1'),
+> > > which contains your most recent patches.  Since I created the MFD=
+-OMAP
+> > > shared branch I have changed the naming convention to avoid this =
+sort
+> > > of ambiguity.  I'll send a second MFD pull-request to Linus today=
+=2E
+> >=20
+> > Heh OK yeah I've hit that also at some point :)
+> > =20
+> > > Sorry Tony.
+> >=20
+> > No problem, good to hear you got it figured out.
+>=20
+> Pull-request sent.  Hopefully it's sorted now.
 
-* Turning CONFIG_ARCH_OMAP into a user-selectable option makes it possible
-  to have a configuration with ARCH_OMAP enabled but none of the specific
-  OMAP SoCs enabled, which triggers a couple of link errors due to the
-  layout of the Makefile
+bae14e7a2dcb726476b5020396923a24ccc4c40b
 
-* The plat-omap menu still appears mixed into the normal menuconfig list,
-  which is confusing and inconsistent.
-
-To make matters worse, the change did not enable CONFIG_ARCH_OMAP in the
-defconfig files, which through some ripple effects disabled options that
-were implicitly enabled from OMAP2, and that caused all machines to
-fail booting with the unchanged config files.
-
-This reorders the OMAP Kconfig files some more, to be consistent with
-the others, and also changes the defconfig files.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-Tony, can you have a look at this please? I'd like to send out the
-fixes for 3.16, but this is needed on top of Rob's Kconfig changes.
-
-
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 245058b..fcf6ddf 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -973,10 +973,6 @@ source "arch/arm/mach-nspire/Kconfig"
- 
- source "arch/arm/plat-omap/Kconfig"
- 
--source "arch/arm/mach-omap1/Kconfig"
--
--source "arch/arm/mach-omap2/Kconfig"
--
- source "arch/arm/mach-orion5x/Kconfig"
- 
- source "arch/arm/mach-picoxcell/Kconfig"
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index e2d6204..d77bb9e 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -23,6 +23,7 @@ CONFIG_ARCH_BERLIN=y
- CONFIG_MACH_BERLIN_BG2=y
- CONFIG_MACH_BERLIN_BG2CD=y
- CONFIG_MACH_BERLIN_BG2Q=y
-+CONFIG_ARCH_OMAP_ENABLE=y
- CONFIG_ARCH_HIGHBANK=y
- CONFIG_ARCH_HI3xxx=y
- CONFIG_ARCH_KEYSTONE=y
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 536a137..85de0a1 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -25,6 +25,7 @@ CONFIG_POWER_AVS_OMAP=y
- CONFIG_POWER_AVS_OMAP_CLASS3=y
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_MUX_DEBUG=y
-+CONFIG_ARCH_OMAP_ENABLE=y
- CONFIG_ARCH_OMAP2=y
- CONFIG_ARCH_OMAP3=y
- CONFIG_ARCH_OMAP4=y
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index cdd05f2..53a802c 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -1,8 +1,6 @@
- if ARCH_OMAP1
- 
--menu "TI OMAP1 specific features"
--
--comment "OMAP Core Type"
-+comment "OMAP1 Core Type"
- 	depends on ARCH_OMAP1
- 
- config ARCH_OMAP730
-@@ -164,6 +162,4 @@ config MACH_OMAP_GENERIC
-           custom OMAP boards. Say Y here if you have a custom
-           board.
- 
--endmenu
--
- endif
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 4e81860..0006012 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -1,7 +1,5 @@
--menuconfig ARCH_OMAP
--	bool "TI OMAP/AM/DRA Based" if (ARCH_MULTI_V6 || ARCH_MULTI_V7)
--
--if ARCH_OMAP
-+config ARCH_OMAP
-+	bool
- 
- config ARCH_OMAP2
- 	bool "TI OMAP2"
-@@ -82,6 +80,7 @@ config ARCH_OMAP2PLUS
- 	bool
- 	select ARCH_HAS_BANDGAP
- 	select ARCH_HAS_HOLES_MEMORYMODEL
-+	select ARCH_OMAP
- 	select ARCH_REQUIRE_GPIOLIB
- 	select CLKSRC_MMIO
- 	select GENERIC_IRQ_CHIP
-@@ -342,5 +341,3 @@ config OMAP4_ERRATA_I688
- endmenu
- 
- endif
--
--endif
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 02fc10d..8aa2dd2 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -1,6 +1,11 @@
--if ARCH_OMAP
-+menuconfig ARCH_OMAP_ENABLE
-+	bool "TI OMAP platforms" if ARCH_MULTI_V6 || ARCH_MULTI_V7
-+	default ARCH_OMAP1
- 
--menu "TI OMAP Common Features"
-+if ARCH_OMAP_ENABLE
-+
-+source "arch/arm/mach-omap1/Kconfig"
-+source "arch/arm/mach-omap2/Kconfig"
- 
- config ARCH_OMAP_OTG
- 	bool
-@@ -153,6 +158,4 @@ config OMAP_PM_NOOP
- 
- endchoice
- 
--endmenu
--
- endif
-
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
