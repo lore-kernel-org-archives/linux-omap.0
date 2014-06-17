@@ -1,42 +1,75 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: omap: rework platform selection
-Date: Tue, 17 Jun 2014 15:57:15 +0200
-Message-ID: <201406171557.15819.arnd@arndb.de>
-References: <5701099.0P1SIXsHc1@wuerfel> <20140616141712.GL17845@atomide.com> <CABGGisxdKznLzR+0b0oYrN+aiWM0gNFbzYwfPtAZF=AiapU=eQ@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] clk: ti: am43x: Fix boot with CONFIG_SOC_AM33XX disabled
+Date: Tue, 17 Jun 2014 17:03:24 +0300
+Message-ID: <1403013804-13522-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:49496 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932133AbaFQN5u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 09:57:50 -0400
-In-Reply-To: <CABGGisxdKznLzR+0b0oYrN+aiWM0gNFbzYwfPtAZF=AiapU=eQ@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51457 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932133AbaFQODb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 10:03:31 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <rob.herring@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, arm@kernel.org
+To: mturquette@linaro.org, tony@atomide.com
+Cc: t-kristo@ti.com, nm@ti.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On Monday 16 June 2014, Rob Herring wrote:
-> > So far I have not come up with no great ideas on fixing this
-> > properly short of requiring all omap .config files to add
-> > CONFIG_ARCH_OMAP=y manually. Anybody got good ideas for that?
-> 
-> I've failed to come up with anything...
-> 
+Define ti_clk_register_dpll_x2() and of_ti_am3_dpll_x2_setup() if
+AM43XX is defined.
 
-I have two ideas, but neither is great:
+Fixes the below boot issue.
 
-a) we leave the individual per-soc options in the top-level menu
-   and move the sub-options under those. This is a bit or a problem
-   for options concerning all of OMAP, but I'm not sure how many of
-   those are actually required.
+[    2.157258] gpmc_l3_clk not enabled
+[    2.161194] gpmc_l3_clk not enabled
+[    2.164896] Division by zero in kernel.
+[    2.169055] CPU: 0 PID: 321 Comm: kworker/u2:2 Tainted: G        W     3.16.0-rc1-00008-g4c0e520 #273
+[    2.178880] Workqueue: deferwq deferred_probe_work_func
+[    2.184459] [<c001477c>] (unwind_backtrace) from [<c001187c>] (show_stack+0x10/0x14)
+[    2.192752] [<c001187c>] (show_stack) from [<c0530f28>] (dump_stack+0x80/0x9c)
+[    2.200486] [<c0530f28>] (dump_stack) from [<c02c867c>] (Ldiv0+0x8/0x10)
+[    2.207678] [<c02c867c>] (Ldiv0) from [<c0022da0>] (gpmc_calc_divider+0x24/0x40)
+[    2.215490] [<c0022da0>] (gpmc_calc_divider) from [<c0022e20>] (gpmc_cs_set_timings+0x18/0x474)
+[    2.224783] [<c0022e20>] (gpmc_cs_set_timings) from [<c003069c>] (gpmc_nand_init+0x74/0x1a8)
+[    2.233791] [<c003069c>] (gpmc_nand_init) from [<c0024668>] (gpmc_probe+0x52c/0x874)
+[    2.242089] [<c0024668>] (gpmc_probe) from [<c0349218>] (platform_drv_probe+0x18/0x48)
+[    2.250534] [<c0349218>] (platform_drv_probe) from [<c0347d88>] (driver_probe_device+0x104/0x22c)
+[    2.259988] [<c0347d88>] (driver_probe_device) from [<c03464dc>] (bus_for_each_drv+0x44/0x8c)
+[    2.269087] [<c03464dc>] (bus_for_each_drv) from [<c0347c4c>] (device_attach+0x74/0x8c)
+[    2.277620] [<c0347c4c>] (device_attach) from [<c0347380>] (bus_probe_device+0x88/0xb0)
+[    2.286074] [<c0347380>] (bus_probe_device) from [<c0347768>] (deferred_probe_work_func+0x60/0x90)
+[    2.295611] [<c0347768>] (deferred_probe_work_func) from [<c004ef50>] (process_one_work+0x1b4/0x4bc)
+[    2.305288] [<c004ef50>] (process_one_work) from [<c004f3d4>] (worker_thread+0x148/0x550)
+[    2.313954] [<c004f3d4>] (worker_thread) from [<c0055a48>] (kthread+0xc8/0xe4)
+[    2.321628] [<c0055a48>] (kthread) from [<c000e648>] (ret_from_fork+0x14/0x2c)
 
-b) We go back to Rob's version and make CONFIG_ARCH_OMAP the
-   user-selectable option, and then find another solution for
-   building a kernel with ARCH_OMAP set but none of individual
-   options. This will work for anybody who has a full .config
-   file, but still break the 'make savedefconfig' generated ones.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/clk/ti/dpll.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-	Arnd
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+index abd956d..79791e1 100644
+--- a/drivers/clk/ti/dpll.c
++++ b/drivers/clk/ti/dpll.c
+@@ -161,7 +161,8 @@ cleanup:
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
+-	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX)
++	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX) || \
++	defined(CONFIG_SOC_AM43XX)
+ /**
+  * ti_clk_register_dpll_x2 - Registers a DPLLx2 clock
+  * @node: device node for this clock
+@@ -322,7 +323,7 @@ CLK_OF_DECLARE(ti_omap4_dpll_x2_clock, "ti,omap4-dpll-x2-clock",
+ 	       of_ti_omap4_dpll_x2_setup);
+ #endif
+ 
+-#ifdef CONFIG_SOC_AM33XX
++#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
+ static void __init of_ti_am3_dpll_x2_setup(struct device_node *node)
+ {
+ 	ti_clk_register_dpll_x2(node, &dpll_x2_ck_ops, NULL);
+-- 
+1.8.3.2
+
