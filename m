@@ -1,129 +1,46 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RFC v2 2/2] arm: omap5 hwmod data: Example: Make DSS hwmods share MODULEMODE fields
-Date: Tue, 17 Jun 2014 15:24:34 +0530
-Message-ID: <1402998874-1024-3-git-send-email-archit@ti.com>
-References: <1401101095-27181-1-git-send-email-archit@ti.com>
- <1402998874-1024-1-git-send-email-archit@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Tue, 17 Jun 2014 02:57:15 -0700
+Message-ID: <20140617095715.GS17845@atomide.com>
+References: <1402994233-22599-1-git-send-email-tomi.valkeinen@ti.com>
+ <20140617085846.GO17845@atomide.com>
+ <53A00970.3090902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44211 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751994AbaFQJ4L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jun 2014 05:56:11 -0400
-In-Reply-To: <1402998874-1024-1-git-send-email-archit@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35525 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751994AbaFQJ5S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 05:57:18 -0400
+Content-Disposition: inline
+In-Reply-To: <53A00970.3090902@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Sathya Prakash M R <sathyap@ti.com>
 
-DSS hwmods share the MODULEMODE field. Create a new 'mmode_shared' struct which
-the DSS hwmods refer to.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140617 02:26]:
+> On 17/06/14 11:58, Tony Lindgren wrote:
+> 
+> >> +/* rfbi */
+> > 
+> > I think we're still missing am43x_rfbi_sysc entry though?
+> > 
+> >> +static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
+> >> +	.name		= "dss_rfbi",
+> >> +	.class		= &omap2_rfbi_hwmod_class,
+> >> +	.clkdm_name	= "dss_clkdm",
+> >> +	.main_clk	= "disp_clk",
+> >> +	.prcm = {
+> >> +		.omap4 = {
+> >> +			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
+> >> +		},
+> >> +	},
+> >> +};
+> 
+> That should come from omap2/3 hwmod data, as the above references
+> omap2_rfbi_hwmod_class. The bits there looked correct for AM43xx to me.
 
-This will allow the hwmods to reset properly during boot, and not break things
-when the omapdss module is inserted.
+OK looks good to me then:
 
-(Note: hdmi and rfbi hwmods still don't reset properly as they don't have their
-mainclks as dss_dss_clk, this needs to be changed later).
-
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 40 ++++++++++++++++++++----------
- 1 file changed, 27 insertions(+), 13 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-index 290213f..e855cf5 100644
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -337,6 +337,9 @@ static struct omap_hwmod omap54xx_dmic_hwmod = {
-  * 'dss' class
-  * display sub-system
-  */
-+
-+static struct mmode_shared dss_modulemode_ref;
-+
- static struct omap_hwmod_class_sysconfig omap54xx_dss_sysc = {
- 	.rev_offs	= 0x0000,
- 	.syss_offs	= 0x0014,
-@@ -364,9 +367,10 @@ static struct omap_hwmod omap54xx_dss_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.context_offs = OMAP54XX_RM_DSS_DSS_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.context_offs	= OMAP54XX_RM_DSS_DSS_CONTEXT_OFFSET,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.mmode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_opt_clks,
-@@ -414,8 +418,10 @@ static struct omap_hwmod omap54xx_dss_dispc_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.mmode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_dispc_opt_clks,
-@@ -456,8 +462,10 @@ static struct omap_hwmod omap54xx_dss_dsi1_a_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.mmode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_dsi1_a_opt_clks,
-@@ -476,8 +484,10 @@ static struct omap_hwmod omap54xx_dss_dsi1_c_hwmod = {
- 	.main_clk	= "dss_dss_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.mmode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_dsi1_c_opt_clks,
-@@ -515,8 +525,10 @@ static struct omap_hwmod omap54xx_dss_hdmi_hwmod = {
- 	.main_clk	= "dss_48mhz_clk",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.mmode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_hdmi_opt_clks,
-@@ -554,8 +566,10 @@ static struct omap_hwmod omap54xx_dss_rfbi_hwmod = {
- 	.clkdm_name	= "dss_clkdm",
- 	.prcm = {
- 		.omap4 = {
--			.clkctrl_offs = OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
--			.flags = HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.clkctrl_offs	= OMAP54XX_CM_DSS_DSS_CLKCTRL_OFFSET,
-+			.flags		= HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+			.mmode_ref	= &dss_modulemode_ref,
- 		},
- 	},
- 	.opt_clks	= dss_rfbi_opt_clks,
--- 
-1.9.1
-
+Acked-by: Tony Lindgren <tony@atomide.com>
