@@ -1,83 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] omap2: fix parser-bug in platform muxing code
-Date: Tue, 17 Jun 2014 01:46:16 -0700
-Message-ID: <20140617084615.GN17845@atomide.com>
-References: <20140616234251.GA10376@ganymede.118net.x>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V3 00/16] irqchip: crossbar: driver fixes
+Date: Tue, 17 Jun 2014 14:24:21 +0530
+Message-ID: <53A0023D.9010407@ti.com>
+References: <1402917796-31574-1-git-send-email-r.sricharan@ti.com> <539EF985.3080705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37052 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304AbaFQIqS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 04:46:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20140616234251.GA10376@ganymede.118net.x>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <539EF985.3080705@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com
 List-Id: linux-omap@vger.kernel.org
-To: "David R. Piegdon" <lkml@p23q.org>
-Cc: linux-omap@vger.kernel.org
 
-* David R. Piegdon <lkml@p23q.org> [140616 16:44]:
-> Fix a parser-bug in the omap2 muxing code where muxtable-entries will be
-> wrongly selected if the requested muxname is a *prefix* of their
-> m0-entry and they have a matching mN-entry. Fix by additionally checking
-> that the length of the m0_entry is equal.
-
-OK thanks, applying the following cosmetically updated version
-with formatting fixed up for checkpatch.pl.
+On Monday 16 June 2014 07:34 PM, Santosh Shilimkar wrote:
+> Sricharan,
+>
+> On Monday 16 June 2014 07:23 AM, Sricharan R wrote:
+>> This series does some cleanups, fixes for handling two interrupts
+>> getting mapped twice to same crossbar and provides support for
+>> hardwired IRQ and crossbar definitions.
+>>
+>> On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10,
+>> 131, 132, 133 are direct wired to hardware blocks bypassing
+>> crossbar. This quirky implementation is *NOT* supposed to be the
+>> expectation of crossbar hardware usage. This series adds support
+>> to represent such hard-wired irqs through DT and avoid generic
+>> allocation/programming of crossbar in the driver.
+>>
+>> This way of supporting hard-wired irqs was a result of
+>> the below discussions.
+>> http://www.spinics.net/lists/arm-kernel/msg329946.html
+>>
+>> Based on 3.15 mainline.
+>>
+>> All the patches are available here
+>>  git@github.com:Sricharanti/sricharan.git crossbar_updates
+>>
+>> The fixes series[1] earlier posted is merged in to this.
+>> [1] http://www.spinics.net/lists/arm-kernel/msg328273.html
+>>
+>> [V2] Merged the above series and rebased on 3.15 mainline
+>>
+>> [V3] Modified patch#3 to get irqs-skip properties from DT,
+>>      merged path#8 for checkpatch warning to other relevant
+>>      patches and fixed comments for other patches.
+>>
+> I scanned entire series again including your updates on Jason's
+> comments. All look good to my eyes.
+>
+> Hopefully after this series now, we can actually enable the crossbar
+> support on those machines.
+>
+> FWIW,
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Thanks Santosh.
 
 Regards,
-
-Tony
-
-8< ------------
-From: "David R. Piegdon" <lkml@p23q.org>
-Date: Mon, 16 Jun 2014 23:42:51 +0000
-Subject: [PATCH] ARM: OMAP2+: Fix parser-bug in platform muxing code
-
-Fix a parser-bug in the omap2 muxing code where muxtable-entries will be
-wrongly selected if the requested muxname is a *prefix* of their
-m0-entry and they have a matching mN-entry. Fix by additionally checking
-that the length of the m0_entry is equal.
-
-For example muxing of "dss_data2.dss_data2" on omap32xx will fail
-because the prefix "dss_data2" will match the mux-entries "dss_data2" as
-well as "dss_data20", with the suffix "dss_data2" matching m0 (for
-dss_data2) and m4 (for dss_data20). Thus both are recognized as signal
-path candidates:
-
-Relevant muxentries from mux34xx.c:
-        _OMAP3_MUXENTRY(DSS_DATA20, 90,
-                "dss_data20", NULL, "mcspi3_somi", "dss_data2",
-                "gpio_90", NULL, NULL, "safe_mode"),
-        _OMAP3_MUXENTRY(DSS_DATA2, 72,
-                "dss_data2", NULL, NULL, NULL,
-                "gpio_72", NULL, NULL, "safe_mode"),
-
-This will result in a failure to mux the pin at all:
-
- _omap_mux_get_by_name: Multiple signal paths (2) for dss_data2.dss_data2
-
-Patch should apply to linus' latest master down to rather old linux-2.6
-trees.
-
-Signed-off-by: David R. Piegdon <lkml@p23q.org>
-Cc: stable@vger.kernel.org
-[tony@atomide.com: updated description to include full description]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -183,8 +183,10 @@ static int __init _omap_mux_get_by_name(struct omap_mux_partition *partition,
- 		m0_entry = mux->muxnames[0];
- 
- 		/* First check for full name in mode0.muxmode format */
--		if (mode0_len && strncmp(muxname, m0_entry, mode0_len))
--			continue;
-+		if (mode0_len)
-+			if (strncmp(muxname, m0_entry, mode0_len) ||
-+			    (strlen(m0_entry) != mode0_len))
-+				continue;
- 
- 		/* Then check for muxmode only */
- 		for (i = 0; i < OMAP_MUX_NR_MODES; i++) {
+ Sricharan
