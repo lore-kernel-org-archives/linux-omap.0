@@ -1,57 +1,51 @@
-From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
-Subject: [PATCH/RESEND 9/9] drm/tilcdc: replace late_initcall with module_init
-Date: Tue, 17 Jun 2014 11:17:11 -0300
-Message-ID: <1403014631-18072-10-git-send-email-guido@vanguardiasur.com.ar>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+From: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
+Subject: Re: Unifying cape overlays into boot .dtb for
+ BeagleBoard.org boards
+Date: Tue, 17 Jun 2014 10:58:24 -0400
+Message-ID: <53A05790.7090803@ti.com>
+References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com> <CA+T6QPmCk9GzHPHqCKG4vHDvUGirgGaizH-V9bsHT4V=8=gCaA@mail.gmail.com> <20140617090931.GB3705@n2100.arm.linux.org.uk> <53A03675.1000908@ti.com> <20140617125640.GC3705@n2100.arm.linux.org.uk>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f43.google.com ([209.85.213.43]:34943 "EHLO
-	mail-yh0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932588AbaFQOQq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 10:16:46 -0400
-Received: by mail-yh0-f43.google.com with SMTP id a41so5558038yho.30
-        for <linux-omap@vger.kernel.org>; Tue, 17 Jun 2014 07:16:45 -0700 (PDT)
-In-Reply-To: <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <beagleboard+bncBCF77LUSWAKRBG5PQGOQKGQEOYYBXKI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <20140617125640.GC3705-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: robdclark@gmail.com, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, airlied@linux.ie, Daniel Mack <zonque@gmail.com>, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
 
-Use module_init instead of late_initcall, as is the norm for modular
-drivers.
+On 06/17/2014 08:56 AM, Russell King - ARM Linux wrote:
+> On Tue, Jun 17, 2014 at 08:37:09AM -0400, Tom Rini wrote:
+>> On 06/17/2014 05:09 AM, Russell King - ARM Linux wrote:
+>>> A good way that this could have been done is to put an I2C EEPROM on
+>>> each cape, and have that store the DT fragment.  The boot loader could
+>>> have then read that from each cape, and used that information to build
+>>> up the final DT.  Why this hasn't been thought of, considering that the
+>>> kernel has been moving towards DT for years, is quite unbelievable.
+>>
+>> I had actually talked about this a long while back (face to face) with
+>> people, but the problem was (and still kind of is) the bindings
+>> changing, etc.
+> 
+> And that's a strong argument for having stable bindings - or at the
+> very least, ensuring that new bindings which are compatible with older
+> versions.
 
-module_init was used until 6e8de0bd6a51fdeebd5d975c4fcc426f730b339b
-("drm/tilcdc: add encoder slave (v2)") changed it to a late_initcall,
-but it does not explain why. Tests show it's working properly with
-module_init.
+Yes.  This was a few years back (a bit before the first beaglebone was
+public) so before we had really pushed up on some level of binding
+stability.
 
-Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
----
- drivers/gpu/drm/tilcdc/tilcdc_drv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+-- 
+Tom
 
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilc=
-dc/tilcdc_drv.c
-index 2c860c4..6be623b 100644
---- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
-@@ -629,7 +629,7 @@ static void __exit tilcdc_drm_fini(void)
- 	tilcdc_tfp410_fini();
- }
-=20
--late_initcall(tilcdc_drm_init);
-+module_init(tilcdc_drm_init);
- module_exit(tilcdc_drm_fini);
-=20
- MODULE_AUTHOR("Rob Clark <robdclark@gmail.com");
---=20
-2.0.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+For more options, visit http://beagleboard.org/discuss
+--- 
+You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
