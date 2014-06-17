@@ -1,149 +1,100 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Tue, 17 Jun 2014 10:09:21 +0300
-Message-ID: <539FE9A1.7040409@ti.com>
-References: <1402676147-3711-1-git-send-email-balbi@ti.com> <1402676147-3711-2-git-send-email-balbi@ti.com> <20140616092219.GZ17845@atomide.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: Unifying cape overlays into boot .dtb for BeagleBoard.org boards
+Date: Tue, 17 Jun 2014 07:11:05 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF59A7@DBDE04.ent.ti.com>
+References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com>
+ <CA+T6QP=jqdKij3bg3qZKT8GAKTKP94XtDWR+rcJWnDME5ZNmUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="oqoebKgLU15r7lD6grmrISgRbXqhpMfG6"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140616092219.GZ17845@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.org>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59188 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752114AbaFQHLy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jun 2014 03:11:54 -0400
+In-Reply-To: <CA+T6QP=jqdKij3bg3qZKT8GAKTKP94XtDWR+rcJWnDME5ZNmUg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jason Kridner <jkridner@gmail.com>
+Cc: OMAP List <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>, Robert Nelson <robertcnelson@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
---oqoebKgLU15r7lD6grmrISgRbXqhpMfG6
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 16/06/14 12:22, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [140613 09:17]:
->> From: Sathya Prakash M R <sathyap@ti.com>
->>
->> Add DSS hwmod data for AM43xx.
->>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Acked-by: Rajendra Nayak <rnayak@ti.com>
->> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->> ---
->>
->> Note that this patch was originally send on May 9th [1], changes were =
-requested
->> and a new version was sent on May 19th [2], then on May 27th [3] Tomi =
-pinged
->> maintainer again and go no response.
->>
->> Without this patch, we cannot get display working on any AM437x device=
-s.
->>
->> [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D139963677925227&w=3D2
->> [2] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140049799425512&w=3D2
->> [3] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140117232826754&w=3D2
->>
->>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 +++++++++++++++++++++=
-+++++++++
->>  arch/arm/mach-omap2/prcm43xx.h             |  1 +
->>  2 files changed, 99 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mac=
-h-omap2/omap_hwmod_43xx_data.c
->> index 5c2cc80..d2a7b6d 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
->> @@ -19,6 +19,8 @@
->>  #include "omap_hwmod.h"
->>  #include "omap_hwmod_33xx_43xx_common_data.h"
->>  #include "prcm43xx.h"
->> +#include "omap_hwmod_common_data.h"
->> +
->> =20
->>  /* IP blocks */
->>  static struct omap_hwmod am43xx_l4_hs_hwmod =3D {
->> @@ -415,6 +417,70 @@ static struct omap_hwmod am43xx_qspi_hwmod =3D {
->>  	},
->>  };
->> =20
->> +/* Display sub system - DSS */
->> +
->> +struct omap_dss_dispc_dev_attr am43xx_dss_dispc_dev_attr =3D {
->> +	.manager_count		=3D 1,
->> +	.has_framedonetv_irq	=3D 0
->> +};
->> +
->> +
->> +static struct omap_hwmod_class_sysconfig am43xx_dispc_sysc =3D {
->> +	.rev_offs	=3D 0x0000,
->> +	.sysc_offs	=3D 0x0010,
->> +	.syss_offs	=3D 0x0014,
->> +	.sysc_flags	=3D (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
->> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
->> +	.sysc_fields	=3D &omap_hwmod_sysc_type1,
->> +};
->=20
-> Looking at the TRM, "Table 13-43. DISPC_SYSCFG Register Field
-> Descriptions" seems to list the folowing bits available:
->=20
-> 13-12	MIDLEMODE=20
-> 9-8	CLOCK_ACTIVITY=20
-> 4-3	SIDLEMODE=20
-> 2	ENWAKEUP=20
-> 1	SOFTRESET=20
-> 0	AUTOIDLE=20
->=20
-> Have I missed something or how come we don't define them all
-> as available?
-
-Yes, you're right. I don't see why they shouldn't be there.
-
-> The .idlemodes available values and .sysc_fields seems to match
-> the TRM.
-
-Shouldn't idlemodes also have:
-
-	MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART
-
-I changed the dispc flags to:
-
-	.sysc_flags	=3D (SYSC_HAS_AUTOIDLE | SYSC_HAS_SOFTRESET |
-		SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-		SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_MIDLEMODE),
-	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-		MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-
-and DSS seems to work fine for me. Then again, I don't think there's any
-proper PM going on (or at least things like debugfs/pm_debug/count shows
-no sensible values), so it could well be that those flags are not even
-used at the moment.
-
- Tomi
-
-
-
---oqoebKgLU15r7lD6grmrISgRbXqhpMfG6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTn+mkAAoJEPo9qoy8lh71XnAQAIZQy7OP66ONNS+KBbip/Kog
-l8dPO7k28b2pExm1CFUoJrTo64uEBd0LLD1CBOTYnDqvCs5b0ltCvQvJZ+9jRzoa
-NkhczXikQzAsSuSmNbUAWK7cz3x0LdvuoOLemxkzfsFxeGmgkGEBb7Sy8PGQLYBs
-vSZ34U0mRmiDfTjyCzO7E2Ihf6MtEaCjYbq9Z50aI1VCaqKz50XuHUVsWi9HsjVF
-AMSKSmv9jWYaHEZrDzq54ec5J8vmKiiRG9UpdZWMp/WKpOjkHerRSb3m22AjB1gw
-r3ITijetAXWlHIS3N8M2+5ZvUh4BpdD+i/g0JLFrfeBcopaZh06V6D8OyTbC/Z9b
-+iWyCmhOJuPXDizXyn6norWVLJZe44Cw1ecU9E8Oqm/KzGYMlDQ+lS74E8rLiqle
-goA0GNqNCvGlbc/VOxrVeVBxRWAOcN5GZ0UDNxaLy2g5q2MhagKoQDWYnakx7ra7
-CmP/45b0RjDiV8vn0Ktt+NgHMU2yY51YWjEyuckqZQS3Vjko8Giujjqx20Gs0iSC
-zK2pSM3aERLyyStiicGdb2URp/lXbtzjtfNZoupkzvfrNrMXC29T4xFeygRWR8A9
-rj3jiAydp5LjehcPqqoWXSqywF/Qt2QQfxri+CGoYTZaigBSfgVgI0dk4R6FsnWZ
-/tsZyfboDxf3Z0qinQ/7
-=/b+u
------END PGP SIGNATURE-----
-
---oqoebKgLU15r7lD6grmrISgRbXqhpMfG6--
+SGkgSmFzb24sDQoNCj5Gcm9tOiBKYXNvbiBLcmlkbmVyDQo+DQo+QWRkaW5nIGRldmljZXRyZWUg
+YW5kIGxpbnV4LWFybS1rZXJuZWwgbGlzdHMgYmFzZWQgb24gZmVlZGJhY2sgb24gSVJDLi4uDQo+
+DQo+T24gVHVlLCBKdW4gMTAsIDIwMTQgYXQgMTI6NDYgUE0sIEphc29uIEtyaWRuZXIgPGprcmlk
+bmVyQGdtYWlsLmNvbT4gd3JvdGU6DQo+PiBJJ2QgbGlrZSB0byBkaXNjdXNzIG1vdmluZyBvdXIg
+Y3VycmVudCBsaWJyYXJ5IG9mIGNhcGUgZGV2aWNldHJlZQ0KPj4gb3ZlcmxheSBzb3VyY2VzIGlu
+dG8gYSBzaW5nbGUgdHJlZSwgaW5jbHVkaW5nIHRoZSBib290IC5kdGIgZmlsZXMgZm9yDQo+PiBC
+ZWFnbGVCb2FyZC5vcmcgYm9hcmRzIGFuZCBtb3ZpbmcgdG93YXJkcyBlbmFibGluZyBhcyBtdWNo
+IG9mIHRoZSBjYXBlDQo+PiBzdXBwb3J0IGludG8gYSBzaW5nbGUgYm9vdC10aW1lIC5kdGIgZmls
+ZSB3aXRoIGFuIGFwcHJvYWNoIHNpbWlsYXIgdG8NCj4+IHRoZSBjYXBlLXVuaXZlcnNhbCBvdmVy
+bGF5DQo+PiAoaHR0cHM6Ly9naXRodWIuY29tL2Nkc3RlaW5rdWVobGVyL2JlYWdsZWJvbmUtdW5p
+dmVyc2FsLWlvKSwgYnV0IG5vdA0KPj4gaW4gYW4gb3ZlcmxheS4NCj4+DQo+PiBGaXJzdCBvZiBh
+bGwsIEkgd2FudCB0byBub3RlIHRoaXMgZG9lc24ndCBjaGFuZ2UgbXkgdmlldyBvbiB0aGUNCj4+
+IGltcG9ydGFuY2Ugb2YgbWFpbmxpbmUgc3VwcG9ydCBmb3IgZGV2aWNldHJlZSBvdmVybGF5cy4g
+VGhleSBhcmUgc3RpbGwNCj4+IGFic29sdXRlbHkgY3JpdGljYWwgYW5kIGhpZ2hseSB1c2VmdWws
+IHNvbHZpbmcgcHJvYmxlbXMgdGhhdCBjYW5ub3QgYmUNCj4+IHNvbHZlZCB0aHJvdWdoIGJvb3Qt
+dGltZSBkZXZpY2V0cmVlcy4gSSdtIHNpbXBseSBsb29raW5nIGZvciBhbg0KPj4gYXBwcm9hY2gg
+dGhhdCB3aWxsIGNvbXBsZW1lbnQgdGhlIGF2YWlsYWJpbGl0eSBvZiBvdmVybGF5cyBhbmQgcHJv
+dmlkZQ0KPj4gdGhlIGJlc3QgdXNlciBleHBlcmllbmNlLg0KPj4NCj4+IFJvYmVydCBoYXMgYmVl
+biB0YWxraW5nIGFib3V0IHRoZSBhY3Rpb25zIHJlcXVpcmVkIHRvIGNsZWFuLXVwIERlYmlhbg0K
+Pj4gSmVzc2llIHN1cHBvcnQgaW4gYW5vdGhlciB0aHJlYWQNCj4+IChodHRwczovL2dyb3Vwcy5n
+b29nbGUuY29tL2QvbXNnL2JlYWdsZWJvYXJkLzJiOHJBcnRmQUJZL0E4ZDFKem1KYTRJSikNCj4+
+IGFuZCBJIHN1Z2dlc3RlZCB3ZSBzaG91bGQgYWRkIGEgYml0IG9mIGEgZGV0b3VyIGJ5IGNsZWFu
+aW5nIHVwIHRoZQ0KPj4gY2FwZSBzdXBwb3J0IGZvciB0aGUgbWFpbmxpbmUga2VybmVsIGFuZCBz
+d2l0Y2hpbmcgYXdheSBvdXIgcHJpbWFyeQ0KPj4gcHJvY2VzcyBvZiBzdXBwb3J0aW5nIGNhcGVz
+IGZyb20gdXNpbmcgb3ZlcmxheXMgdG8gdXNpbmcgYSBzaW5nbGUNCj4+IGRldmljZXRyZWUgZmls
+ZSBwcm92aWRlZCBhdCBib290LiBJIHByb21pc2VkIGEgcHVsbC1yZXF1ZXN0IGFuZCBoYWRuJ3QN
+Cj4+IGdvdHRlbiBhcm91bmQgdG8gc2VuZGluZyBpdCB1bnRpbCBub3cgKGJlbG93KS4gTm8gYXJj
+aGl0ZWN0dXJlIGNoYW5nZXMNCj4+IGhhdmUgYmVlbiBtYWRlIGluIG15IHB1bGwtcmVxdWVzdCwg
+anVzdCBicmluZ2luZyBpbiB0aGUga2VybmVsDQo+PiBkZXZpY2V0cmVlIHNvdXJjZSBoaXN0b3J5
+LiBUaGlzIHN1Z2dlc3Rpb24gaXMgYmFzZWQgb24gc2V2ZXJhbA0KPj4gYXNzdW1wdGlvbnMsIGFu
+eSBudW1iZXIgb2Ygd2hpY2ggbWlnaHQgYmUgd3JvbmcuDQo+Pg0KPj4gVGhlIGFzc3VtcHRpb25z
+IChmb3Igd2hpY2ggSSdtIGxvb2tpbmcgZm9yIGZlZWRiYWNrL2NvcnJlY3Rpb25zKToNCj4+ICog
+VGhlIG92ZXJsYXlzIHByZXR0eSBtdWNoIGFsbCBuZWVkIHRvIGJlIGNvbXBpbGVkIGludG8gdGhl
+IGtlcm5lbCBpZg0KPj4gdGhleSBhcmUgZ29pbmcgdG8gYmUgbG9hZGVkIHVzaW5nIGtlcm5lbCBj
+b21tYW5kLWxpbmUgYXJndW1lbnRzIG9yDQo+PiAvZXRjL2NhcGVtZ3IgZm9yIHRoZSBtYWpvcml0
+eSBvZiBkaXN0cm9zLiBXaGlsZSBtYW55IGNhcGUgZGV2aWNldHJlZQ0KPj4gdXNlIGNhc2VzIGFy
+ZSBwZXJmZWN0bHkgaGFwcHkgd2l0aCBsb2FkaW5nIGF0IHJ1bi10aW1lIHJhdGhlciB0aGFuDQo+
+PiBib290LXRpbWUsIGl0IHNlZW1zIHRoZXJlIHNob3VsZCBiZSBhIG1lY2hhbmlzbSBmb3IgcHVz
+aGluZyBjYXBlDQo+PiBzdXBwb3J0IGludG8gdGhlIGNhdGVnb3J5IG9mIGJlaW5nIGF2YWlsYWJs
+ZSBhdCBib290LXRpbWUgYWNyb3NzDQo+PiBkaXN0cmlidXRpb25zLg0KPj4gKiBUaGUgZGV2aWNl
+dHJlZSBzb3VyY2VzLCBpbmNsdWRpbmcgdGhlIHByaW1hcnkgYm9vdCAuZHRzIGZpbGVzLCB3aWxs
+DQo+PiBldmVudHVhbGx5IGJlIHJlbW92ZWQgZnJvbSB0aGUga2VybmVsIHNvdXJjZSB0cmVlLiBJ
+J20gbm90IHRvbyBzdXJlIGlmDQo+PiBhbmQgd2hlbiBpdCdsbCByZWFsbHkgaGFwcGVuLCBidXQg
+c3RhcnRpbmcgdXAgYSBwcm9qZWN0IHRvIG1haW50YWluDQo+PiB0aGUgZGVmaW5pdGl2ZSBiZWFn
+bGVib2FyZC5vcmcgYm9hcmQgZGV2aWNldHJlZSBmaWxlcyBvdXRzaWRlIHRoZQ0KPj4ga2VybmVs
+IHNlZW1zIHRvIG1ha2Ugc2Vuc2UuIEdpdmVuIHRoZSBpbnRlcmRlcGVuZGVuY3kgb2YgdGhlIGJv
+b3QgLmR0Yg0KPj4gYW5kIHRoZSBvdmVybGF5IC5kdGJvIGZpbGVzLCBjb21iaW5pbmcgdGhlbSBp
+bnRvIGEgc2luZ2xlIHJlcG9zaXRvcnkNCj4+IHdoZXJlIGV2ZXJ5IGRpc3RyaWJ1dGlvbiBjYW4g
+cGljayB0aGVtIHVwIHNlZW1zIGxpa2UgYSBuYXR1cmFsIGFuZA0KPj4gb2J2aW91cyBjaG9pY2Uu
+IFRoZXJlIGFyZSBvZiBjb3Vyc2Ugc29tZSBkZXBlbmRlbmNpZXMgb24ga2VybmVsDQo+PiB2ZXJz
+aW9ucywgYnV0IEkgYmVsaWV2ZSBtb3N0IG9mIHRob3NlIGhhdmUgc2V0dGxlZCBvdXQgYnkgbm93
+IGFuZCB3ZQ0KPj4gc2hvdWxkIGJlIE9LIG1vdmluZyBmb3J3YXJkLg0KDQorMQ0KWWVzLCBtb3Zp
+bmcgY2FwZSBEVFMgb3V0IG9mIGtlcm5lbCB0cmVlIHNob3VsZCBoZWxwIGRldmVsb3BlcnMuDQpU
+aGVyZSBhcmUgcXVpdGUgYSBmZXcgY2FwZSBwYXRjaGVzIGZsb2F0aW5nIGluIG1haWwtbGlzdHMs
+IGJ1dCBhcyBjYXBlDQpEVFMgaXMgc3RpbGwgbm90IGFjY2VwdGVkIGluIG1haW5saW5lIHNvIHRo
+ZXkgZ2V0IGxvc3QgYW5kIGZvcmdvdHRlbi4NClNvIG9uZSBwbGFjZSBmb3IgY29sbGVjdGluZyBh
+bGwgdGhpcyBpcyBhIGdvb2QgaWRlYS4NCg0KDQpIb3dldmVyLCBzb21laG93IHRoZSB1bml2ZXJz
+YWwgSS9PIERUUyBsb29rZWQgc2VlbWVkIGNvbXBsaWNhdGVkOg0KKDEpDQpBbGwgY2FwZXMgd29y
+ayBzdGFuZGFsb25lLCBidXQgZHVlIHRvIHNoYXJlIHBpbi1tdXggc29tZSBjYXBlDQpjb21iaW5h
+dGlvbnMgY2Fubm90IGJlIHVzZWQgc2ltdWx0YW5lb3VzbHkuIEJ1dCBtb3N0IHVzZXJzIG9mDQpC
+ZWFnbGVCb25lIGFyZSBhbHJlYWR5IHdlbGwtdmVyc2VkIHdpdGggRFQgYW5kIGtlcm5lbCBpbmZy
+YXN0cnVjdHVyZSwNCnNvIHRoZXkgbmVlZCBub3QgYmUgc3Bvb24gZmVkIHRvIGdldCBhIG91dC1v
+Zi1ib3ggd29ya2luZyBzb2x1dGlvbg0KZm9yIGVhY2ggY29tYmluYXRpb24uIElmIHRoZXJlIGlz
+IHByb3BlciBkb2N1bWVudGF0aW9uIGlzIGF2YWlsYWJsZQ0KYWJvdXQgY29tcGF0aWJpbGl0eSBv
+ZiBjYXBlcyB3aXRoIGVhY2ggb3RoZXIsIHRoZW4gdXNlcnMgd2lsbCBmaWd1cmUNCm91dCB0aGVt
+c2VsdmVzLg0KDQooMikNCkFsc28sIHRoZXJlIHdhcyBhIHRhbGsgb2YgZW5hYmxpbmcgYW5kIGRp
+c2FibGluZyBEVCBmcmFnbWVudHMgdmlhIHUtYm9vdC4NClRoYXQgc2hvdWxkIGFsc28gYmUgZXhw
+bG9yZWQgaW5zdGVhZCBvZiBjb21wbGljYXRpbmcgY2FwZSBEVFMuDQoNCigzKQ0KQmVhZ2xlQm9u
+ZSBjb21tdW5pdHkgYW5kIG91dHNpZGUgYXJlIGNvbWluZyBvdXQgd2l0aCBuZXcgZmVhdHVyZWQN
+CmNhcGVzLCB3aGljaCBtaWdodCBwb3NzZXNzIGEgY2hhbGxlbmdlIHRvIGdldCBhIGFic29sdXRl
+IG5vbi1jb25mbGljdGluZw0KdW5pdmVyc2FsIEkvTyBEVFMuIFdoYXQgbWlnaHQgYmUgd29ya2lu
+ZyB0b2RheSBtaWdodCBoYXZlIGNvbmZsaWN0cw0KdG9tb3Jyb3cgd2l0aCBpbnRyb2R1Y3Rpb24g
+b2YgbmV3IGNhcGVzLg0KV2Ugc2hvdWxkIGJlIG9wZW4gdG8gYmUgY29tcGF0aWJsZSB0byBjYXBl
+cyBkZXZlbG9wZWQgb3V0c2lkZQ0KQmVhZ2xlYm9uZS5vcmcuIEluIG15IHZpZXcgdGhpcyBpcyBp
+bXBvcnRhbnQgZm9yIGxvbmdlciB0ZXJtLg0KRXhhbXBsZTogaHR0cDovL3ZhbGVudGZ4LmNvbS9s
+b2dpLWJvbmUvDQoNClNvLCBwbHogcmV2aWV3IG15IGZlZWRiYWNrIGFuZCBpZiB5b3UgcGxhbiB0
+byBjcmVhdGUgYW4gZXh0ZXJuYWwgdHJlZQ0KZm9yIGJlYWdsZWJvbmUgQ2FwZXMsIEkgd291bGQg
+YmUgaGFwcHkgdG8gc3VibWl0IHNvbWUgY2FwZSBwYXRjaGVzLg0KDQoNCndpdGggcmVnYXJkcywg
+cGVrb24NCg==
