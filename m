@@ -1,73 +1,80 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Tue, 17 Jun 2014 12:25:04 +0300
-Message-ID: <53A00970.3090902@ti.com>
-References: <1402994233-22599-1-git-send-email-tomi.valkeinen@ti.com> <20140617085846.GO17845@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v7 0/5] Input: pixcir_i2c_ts: Add Type-B Multi-touch and DT support
+Date: Tue, 17 Jun 2014 12:31:42 +0300
+Message-ID: <1402997507-9736-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="99SNfjjuriiLBhpcT8PQJGApnsWCUeDtb"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35320 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932263AbaFQJZb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jun 2014 05:25:31 -0400
-In-Reply-To: <20140617085846.GO17845@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: dmitry.torokhov@gmail.com, tony@atomide.com
+Cc: rydberg@euromail.se, balbi@ti.com, dmurphy@ti.com, mugunthanvnm@ti.com, nsekhar@ti.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Sathya Prakash M R <sathyap@ti.com>
 
---99SNfjjuriiLBhpcT8PQJGApnsWCUeDtb
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Dmitry,
 
-On 17/06/14 11:58, Tony Lindgren wrote:
+These are the pending patches that didn't go through in the 3.16 merge window.
+Please queue them for -next. Thanks.
 
->> +/* rfbi */
->=20
-> I think we're still missing am43x_rfbi_sysc entry though?
->=20
->> +static struct omap_hwmod am43xx_dss_rfbi_hwmod =3D {
->> +	.name		=3D "dss_rfbi",
->> +	.class		=3D &omap2_rfbi_hwmod_class,
->> +	.clkdm_name	=3D "dss_clkdm",
->> +	.main_clk	=3D "disp_clk",
->> +	.prcm =3D {
->> +		.omap4 =3D {
->> +			.clkctrl_offs =3D AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
->> +		},
->> +	},
->> +};
+The series does the following
+- convert to Type-B multi touch protocol
+- support upto 5 fingers with hardware supplied tracking IDs
+- device tree support
 
-That should come from omap2/3 hwmod data, as the above references
-omap2_rfbi_hwmod_class. The bits there looked correct for AM43xx to me.
+Tony,
 
- Tomi
+The last 2 patches fix the touch screen size property in the device tree since
+we now use the unified touch screen properties.
 
+cheers,
+-roger
 
+Changelog:
 
---99SNfjjuriiLBhpcT8PQJGApnsWCUeDtb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+v7:
+- Rebased on 3.16-rc1.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+v6:
+- Use unified touchscreen bindings.
+- Update pointer math i.e. bufptr += 4 instead of &bufptr[4];
 
-iQIcBAEBAgAGBQJToAlwAAoJEPo9qoy8lh71jxoP/id0sfMyTOX9g2bwyyCIWTt+
-AWVTFRER0Oa5WviBioIglP6tYYGstHJPa/OIfW74tJpn4Z32RYB+cMpQquj8DmGW
-heST+28idekmwjgS54M+2HHbxP3ALMcVGHhRKuHYqVqfk2IWjCYpNZkMdaKvRbQj
-KUxHDRIEOGtlKf0JVZ8a6bm4XsuF+Tf7PxZHlUBJfti43xmdTNa5EodgB091B7dm
-MzOQ3CwGb62Qh3M04ejHWHMjcMxxoU/LzOJvGlR7luEwsBeAAkkM3txmSxpqemaa
-q+r0q8yVBPHR3mBJJS/Piz3I/BVDQahIZqZxwfgW1HWJhrFFCrzLEz9dDs/H655i
-iq+FFfcxs3L5gCM0+qDgxmQ7CxdRpJbAuDklHJ95Q4Rib2xg9+Sew9jlWfuw75T0
-awk6FJx7oau5Ugnj61CAccmKE9kpU86w83lSUSq8jBKCkrTQlos1ePr2tb+F+0gH
-hmCrtAbPBfe32oUxtd7ial21PTOx81Lp1MhS9L/AtvfJP6ED6vg+SEJY0OyB9lFU
-R3teYc9CPpkbQmqTeY6lG9NtzAaFqrEVLMshB7+FUZMP9QzW0QJFPeu6EFdZZYOx
-3TLeBbJ2OvRvKncWrusuf5n9vXpKKKlycV42lWjLF3ki7bdC17gVzRHmed6geJ1C
-ZIWRr5oGBqezl5rdg2IS
-=LMAq
------END PGP SIGNATURE-----
+v5:
+- Changed ts->exiting flag to ts->running in patch 2.
+- Don't call pixcir_stop() from .suspend() if wakeup is required.
 
---99SNfjjuriiLBhpcT8PQJGApnsWCUeDtb--
+v4:
+- Imporved pixcir_stop() as per Dmitry's suggestion.
+- Removed unnecessary input_unregister_device() from .remove().
+
+v3:
+- Rebased to 3.15-rc3
+- Fixed suspend while touchscreen in use
+- Fixed module removal while touchscreen in use
+
+v2:
+- Addressed review comments and re-arranged patch order
+
+v1:
+- http://article.gmane.org/gmane.linux.kernel/1616417
+
+--
+
+Roger Quadros (5):
+  Input: pixcir_i2c_ts: Use Type-B Multi-Touch protocol
+  Input: pixcir_i2c_ts: support upto 5 fingers and hardware provided
+    tracking IDs
+  Input: pixcir_i2c_ts: Add device tree support
+  ARM: dts: am43x-epos-evm: Update binding for touchscreen size
+  ARM: dts: am437x-gp-evm: Update binding for touchscreen size
+
+ .../bindings/input/touchscreen/pixcir_i2c_ts.txt   |  26 +++
+ .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+ arch/arm/boot/dts/am437x-gp-evm.dts                |   4 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   4 +-
+ drivers/input/touchscreen/pixcir_i2c_ts.c          | 251 ++++++++++++++++++---
+ include/linux/input/pixcir_ts.h                    |  12 +
+ 6 files changed, 259 insertions(+), 39 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/input/touchscreen/pixcir_i2c_ts.txt
+
+-- 
+1.8.3.2
+
