@@ -1,57 +1,46 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH 0/7] ARM: OMAP4+: PRM: minor cleanups and dt support
- of interrupts
-Date: Tue, 17 Jun 2014 10:38:48 -0500
-Message-ID: <53A06108.9010108@ti.com>
-References: <1402025761-16831-1-git-send-email-nm@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Unifying cape overlays into boot .dtb for BeagleBoard.org
+	boards
+Date: Tue, 17 Jun 2014 17:01:19 +0100
+Message-ID: <20140617160119.GE3705@n2100.arm.linux.org.uk>
+References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com> <CA+T6QPmCk9GzHPHqCKG4vHDvUGirgGaizH-V9bsHT4V=8=gCaA@mail.gmail.com> <20140617090931.GB3705@n2100.arm.linux.org.uk> <20140617125831.GI4173@beef> <20140617131522.GD3705@n2100.arm.linux.org.uk> <C3DA6AFC-2784-4A41-BC72-EF25B2B03B41@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58098 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933122AbaFQPjP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jun 2014 11:39:15 -0400
-In-Reply-To: <1402025761-16831-1-git-send-email-nm@ti.com>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:33059 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933558AbaFQQB2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jun 2014 12:01:28 -0400
+Content-Disposition: inline
+In-Reply-To: <C3DA6AFC-2784-4A41-BC72-EF25B2B03B41@antoniou-consulting.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Matt Porter <mporter@linaro.org>, Jason Kridner <jkridner@gmail.com>, beagleboard@googlegroups.com, Robert Nelson <robertcnelson@gmail.com>, devicetree@vger.kernel.org, OMAP List <linux-omap@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
 
-On 06/05/2014 10:35 PM, Nishanth Menon wrote:
+On Tue, Jun 17, 2014 at 04:32:11PM +0300, Pantelis Antoniou wrote:
+> The complexity is absolutely required, and it has nothing to do with
+> beaglebone capes.
 > 
-> Hi,
-> 
-> The following series is a minimal set of cleanups and generalization
-> in the direction of supporting daisychain wakeup on all OMAP4+
-> platforms. We cannot still add IO_WAKEUP ability for OMAP5/DRA7/AM437x
-> yet pending further pinctrl patches.
-> 
-> These do have a few cosmetic issues, but hope is to get a view about
-> the approach. Also note that documentation of bindings for ti,dra7-prm
-> etc are still pending.
-> 
-> Nishanth Menon (7):
->   ARM: OMAP4+: prminst: provide function to find prm_dev instance
->     offset
->   ARM: OMAP4: prm use the generic prm_inst to allow logic to be
->     abstracted
->   ARM: OMAP4+: PRM: remove "wkup" event
->   ARM: OMAP4+: PRM: register interrupt information from DT
->   ARM: dts: OMAP4: Add PRM interrupt
->   ARM: dts: OMAP5: add PRM interrupt
->   ARM: dts: DRA7: add PRM interrupt
-> 
->  arch/arm/boot/dts/dra7.dtsi       |    1 +
->  arch/arm/boot/dts/omap4.dtsi      |    1 +
->  arch/arm/boot/dts/omap5.dtsi      |    1 +
->  arch/arm/mach-omap2/prm44xx.c     |   89 ++++++++++++++++++++++++++++++++-----
->  arch/arm/mach-omap2/prminst44xx.c |   41 ++++++++++-------
->  arch/arm/mach-omap2/prminst44xx.h |    3 ++
->  6 files changed, 111 insertions(+), 25 deletions(-)
-> 
-Gentle ping on this series? are we ok with this approach?
+> The fact of the matter is that reconfigurable hardware is here, on
+> shipping system, and we, as the linux kernel community have to make
+> sure it works, and that it works in a sane way.
+
+Right, so looking back in the git history, this project has been going
+on for... at least four years?  Probably longer than the length of time
+that we've been converting ARM to DT.  At no point during that has anyone
+brought up the issue of DT being dynamic, so none of the drivers which
+we have been converting caters for this.
+
+Isn't this a bit of a missed opportunity, if this is a direction that
+OF wishes to head towards?
+
+Wouldn't it have been relevant to the discussion at kernel summit too,
+concerning DRM/v4l2/componentised systems?  What if someone comes along
+tomorrow with part of their multimedia based system inside a FPGA
+which they program up at runtime?
 
 -- 
-Regards,
-Nishanth Menon
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
