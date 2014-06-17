@@ -1,53 +1,58 @@
-From: Iain Paton <ipaton0@gmail.com>
-Subject: Re: Unifying cape overlays into boot .dtb for BeagleBoard.org boards
-Date: Tue, 17 Jun 2014 15:08:28 +0100
-Message-ID: <53A04BDC.1060403@gmail.com>
-References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com> <CA+T6QPmCk9GzHPHqCKG4vHDvUGirgGaizH-V9bsHT4V=8=gCaA@mail.gmail.com> <20140617090931.GB3705@n2100.arm.linux.org.uk>
+From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
+Subject: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
+Date: Tue, 17 Jun 2014 11:17:02 -0300
+Message-ID: <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:43608 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932133AbaFQOIs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 10:08:48 -0400
-In-Reply-To: <20140617090931.GB3705@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, Daniel Mack <zonque@gmail.com>, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Jason Kridner <jkridner@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>, OMAP List <linux-omap@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On 17/06/14 10:09, Russell King - ARM Linux wrote:
-
-> Why should kernel developers go to the extent of adding support for DT
-> modification at runtime when the platform you want this for doesn't even
-> support hotplugging of these capes?
-
-I'm not convinced you should, but Grant Likely seemed to be much more open 
-to the idea with the latest attempt https://lkml.org/lkml/2014/5/29/586
-
-> A good way that this could have been done is to put an I2C EEPROM on
-> each cape, and have that store the DT fragment.  The boot loader could
-> have then read that from each cape, and used that information to build
-> up the final DT.  Why this hasn't been thought of, considering that the
-> kernel has been moving towards DT for years, is quite unbelievable.
-
-I believe that was Jasons original idea.
-
->From a users perspective, a fixed DT fragment in EEPROM quickly ends up 
-being out of step with OS implementation and simply becomes another 
-pain point that needs worked around.
-
-Anyway, there already exist capes in large scale production that don't 
-have the EEPROM. As well as ones that use the required I2C bus for other 
-purposes, thereby blocking all other capes connected at the same time 
-from using that mechanism even when they are capable of doing so.
-Not forgetting the number of capes that have shipped already without the
-DT fragment in their EEPROMS.
-
-Too late to shut the barn door, question is where to go from here.
-
-Consolidation the dt knowledge in one tree is a good idea, regardless of 
-how it's eventually used.
-
-
+VGhlIHRpbGNkYyBkcml2ZXIgY291bGQgYmUgY29tcGlsZWQgYXMgYSBtb2R1bGUsIGJ1dCB3YXMg
+c2V2ZXJlbHkgYnJva2VuCmFuZCBjb3VsZCBub3QgYmUgdXNlZCBhcyBzdWNoLiBUaGlzIHBhdGNo
+c2V0IGF0dGVtcHRzIHRvIGZpeCB0aGUgaXNzdWVzCnByZXZlbnRpbmcgYSBwcm9wZXIgbG9hZC91
+bmxvYWQgb2YgdGhlIG1vZHVsZS4KCklzc3VlcyBpbmNsdWRlZCBkYW5nbGluZyBzeXNmcyBub2Rl
+cywgZGFuZ2xpbmcgZGV2aWNlcywgbWVtb3J5IGxlYWtzIGFuZAphIGRvdWJsZSBrZnJlZS4KCkl0
+IG5vdyBzZWVtcyB0byBiZSB3b3JraW5nIG9rLiBXZSBoYXZlIHRlc3RlZCB0aGlzIGJ5IGxvYWRp
+bmcgYW5kCnVubG9hZGluZyB0aGUgZHJpdmVyIHJlcGV0ZWFkbHksIHdpdGggYm90aCBwYW5lbCBh
+bmQgc2xhdmUgY29ubmVjdG9ycwphbmQgZm91bmQgbm8gZmxhd3MuCgpUaGVyZSBpcyBzdGlsbCBv
+bmUgd2FybmluZyBsZWZ0IG9uIHRpbGNkY19jcnRjX2Rlc3Ryb3ksIGNhdXNlZCBieQpkZXN0cm95
+aW5nIHRoZSBjb25uZWN0b3Igd2hpbGUgc3RpbGwgaW4gYW4gT04gc3RhdHVzLiBXZSBkb24ndCBr
+bm93IHdoeQp0aGlzIGhhcHBlbnMgb3Igd2h5IGl0J3MgYW4gaXNzdWUsIHNvIHdlIGRpZCBub3Qg
+Zml4IGl0LgoKVGhlIGZpcnN0IDcgcGF0Y2hlcyBhcmUgYnVnIGZpeGVzIHdoaWNoIGFuZCBzaG91
+bGQgcHJvYmFibHkgYmUgYXBwbGllZAppbiB0aGUgc3RhYmxlIHRyZWVzLiBUaGUgbGFzdCB0d28g
+YXJlIGNsZWFuLXVwcy4KCgpSZXNlbmRpbmcgdGhpcyBzaW5jZSBJIGdvdCBubyByZXBsaWVzLgoK
+Ckd1aWRvIE1hcnTDrW5leiAoOSk6CiAgZHJtL2kyYzogdGRhOTk4eDogbW92ZSBkcm1faTJjX2Vu
+Y29kZXJfZGVzdHJveSBjYWxsCiAgZHJtL3RpbGNkYzogcGFuZWw6IGZpeCBkYW5nbGluZyBzeXNm
+cyBjb25uZWN0b3Igbm9kZQogIGRybS90aWxjZGM6IHNsYXZlOiBmaXggZGFuZ2xpbmcgc3lzZnMg
+Y29ubmVjdG9yIG5vZGUKICBkcm0vdGlsY2RjOiB0ZnA0MTA6IGZpeCBkYW5nbGluZyBzeXNmcyBj
+b25uZWN0b3Igbm9kZQogIGRybS90aWxjZGM6IHBhbmVsOiBmaXggbGVhayB3aGVuIHVubG9hZGlu
+ZyB0aGUgbW9kdWxlCiAgZHJtL3RpbGNkYzogZml4IHJlbGVhc2Ugb3JkZXIgb24gZXhpdAogIGRy
+bS90aWxjZGM6IGZpeCBkb3VibGUga2ZyZWUKICBkcm0vdGlsY2RjOiByZW1vdmUgc3VibW9kdWxl
+IGRlc3Ryb3kgY2FsbHMKICBkcm0vdGlsY2RjOiByZXBsYWNlIGxhdGVfaW5pdGNhbGwgd2l0aCBt
+b2R1bGVfaW5pdAoKIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyAgICAgIHwgIDIg
+Ky0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZlcnMgIHwgIDAKIGRyaXZlcnMv
+Z3B1L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jICAgIHwgMTUgKysrKystLS0tLS0tLQogZHJpdmVy
+cy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmggICAgfCAgMSAtCiBkcml2ZXJzL2dwdS9kcm0v
+dGlsY2RjL3RpbGNkY19wYW5lbC5jICB8IDM5ICsrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0t
+LS0tLS0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3NsYXZlLmMgIHwgMjcgKysrKysr
+KysrKysrKy0tLS0tLS0tLS0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3RmcDQxMC5j
+IHwgMzUgKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tCiA3IGZpbGVzIGNoYW5nZWQsIDU5
+IGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9ucygtKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZl
+cnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZlcnMKCi0tIAoyLjAuMAoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlz
+dApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3Rv
+cC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
