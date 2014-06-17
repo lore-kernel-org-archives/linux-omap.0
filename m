@@ -1,16 +1,16 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 6/9] mfd: palmas: shift the palmas_sleep_requestor_info
- structure definition to the header file
-Date: Tue, 17 Jun 2014 17:33:39 +0100
-Message-ID: <20140617163339.GQ29841@lee--X1>
+Subject: Re: [PATCH 7/9] regulator: palmas: Add palmas_pmic_driver_data
+ structure
+Date: Tue, 17 Jun 2014 17:37:21 +0100
+Message-ID: <20140617163721.GR29841@lee--X1>
 References: <1401272423-25761-1-git-send-email-j-keerthy@ti.com>
- <1401272423-25761-7-git-send-email-j-keerthy@ti.com>
+ <1401272423-25761-8-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1401272423-25761-7-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1401272423-25761-8-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: linux-omap@vger.kernel.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
@@ -18,59 +18,68 @@ List-Id: linux-omap@vger.kernel.org
 
 On Wed, 28 May 2014, Keerthy wrote:
 
-> shift the palmas_sleep_requestor_info structure definition to the hea=
-der file.
+> Add palmas_pmic_driver_data structure.
 >=20
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->  drivers/mfd/palmas.c       |   10 ----------
->  include/linux/mfd/palmas.h |   10 ++++++++++
->  2 files changed, 10 insertions(+), 10 deletions(-)
-
-Acked-by: Lee Jones <lee.jones@linaro.org>
-
-> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-> index 485d755..f1f31d5 100644
-> --- a/drivers/mfd/palmas.c
-> +++ b/drivers/mfd/palmas.c
-> @@ -25,16 +25,6 @@
->  #include <linux/mfd/palmas.h>
->  #include <linux/of_device.h>
-> =20
-> -#define PALMAS_EXT_REQ (PALMAS_EXT_CONTROL_ENABLE1 |	\
-> -			PALMAS_EXT_CONTROL_ENABLE2 |	\
-> -			PALMAS_EXT_CONTROL_NSLEEP)
-> -
-> -struct palmas_sleep_requestor_info {
-> -	int id;
-> -	int reg_offset;
-> -	int bit_pos;
-> -};
-> -
->  #define EXTERNAL_REQUESTOR(_id, _offset, _pos)		\
->  	[PALMAS_EXTERNAL_REQSTR_ID_##_id] =3D {		\
->  		.id =3D PALMAS_EXTERNAL_REQSTR_ID_##_id,	\
+>  include/linux/mfd/palmas.h |   25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+>=20
 > diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-> index 150a6314..8d68452 100644
+> index 8d68452..70f0695 100644
 > --- a/include/linux/mfd/palmas.h
 > +++ b/include/linux/mfd/palmas.h
-> @@ -88,6 +88,16 @@ struct palmas {
->  	u8 pwm_muxed;
+> @@ -53,6 +53,8 @@ struct palmas_pmic;
+>  struct palmas_gpadc;
+>  struct palmas_resource;
+>  struct palmas_usb;
+> +struct palmas_pmic_driver_data;
+> +struct palmas_pmic_platform_data;
+> =20
+>  enum palmas_usb_state {
+>  	PALMAS_USB_STATE_DISCONNECT,
+> @@ -76,6 +78,8 @@ struct palmas {
+>  	struct mutex irq_lock;
+>  	struct regmap_irq_chip_data *irq_data;
+> =20
+> +	struct palmas_pmic_driver_data *pmic_ddata;
+> +
+>  	/* Child Devices */
+>  	struct palmas_pmic *pmic;
+>  	struct palmas_gpadc *gpadc;
+> @@ -107,6 +111,27 @@ struct regs_info {
+>  	int	sleep_id;
 >  };
 > =20
-> +#define PALMAS_EXT_REQ (PALMAS_EXT_CONTROL_ENABLE1 |	\
-> +			PALMAS_EXT_CONTROL_ENABLE2 |	\
-> +			PALMAS_EXT_CONTROL_NSLEEP)
-> +
-> +struct palmas_sleep_requestor_info {
-> +	int id;
-> +	int reg_offset;
-> +	int bit_pos;
+> +struct palmas_pmic_driver_data {
+> +	int smps_start;
+> +	int smps_end;
+> +	int ldo_begin;
+> +	int ldo_end;
+> +	int max_reg;
+> +	struct regs_info *palmas_regs_info;
+> +	struct of_regulator_match *palmas_matches;
+> +	struct palmas_sleep_requestor_info *sleep_req_info;
+> +	int (*smps_register)(struct palmas_pmic *pmic,
+> +			     struct palmas_pmic_driver_data *ddata,
+> +			     struct palmas_pmic_platform_data *pdata,
+> +			     const char *pdev_name,
+> +			     struct regulator_config config);
+> +	int (*ldo_register)(struct palmas_pmic *pmic,
+> +			    struct palmas_pmic_driver_data *ddata,
+> +			    struct palmas_pmic_platform_data *pdata,
+> +			    const char *pdev_name,
+> +			    struct regulator_config config);
+
+Are you sure you need to store all of this stuff?
+
+Particularly the match pointer.  Do you really re-use it?
+
 > +};
 > +
->  struct regs_info {
->  	char	*name;
->  	char	*sname;
+>  struct palmas_gpadc_platform_data {
+>  	/* Channel 3 current source is only enabled during conversion */
+>  	int ch3_current;
 
 --=20
 Lee Jones
