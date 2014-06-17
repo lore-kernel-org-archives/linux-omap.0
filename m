@@ -1,113 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v3.16-rc1
-Date: Tue, 17 Jun 2014 07:58:55 -0700
-Message-ID: <20140617145854.GT17845@atomide.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] ARM: omap: rework platform selection
+Date: Tue, 17 Jun 2014 10:03:07 -0500
+Message-ID: <CAL_Jsq+MK+HMqE3k8p06bzzohzS0qu84N12C=VgF9_dMcSGGOQ@mail.gmail.com>
+References: <5701099.0P1SIXsHc1@wuerfel> <20140616141712.GL17845@atomide.com>
+ <CABGGisxdKznLzR+0b0oYrN+aiWM0gNFbzYwfPtAZF=AiapU=eQ@mail.gmail.com> <201406171557.15819.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60923 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933123AbaFQO66 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 10:58:58 -0400
-Content-Disposition: inline
+Received: from mail-ve0-f179.google.com ([209.85.128.179]:41718 "EHLO
+	mail-ve0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933047AbaFQPD2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 11:03:28 -0400
+Received: by mail-ve0-f179.google.com with SMTP id sa20so5909781veb.10
+        for <linux-omap@vger.kernel.org>; Tue, 17 Jun 2014 08:03:27 -0700 (PDT)
+In-Reply-To: <201406171557.15819.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Rob Herring <rob.herring@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+On Tue, Jun 17, 2014 at 8:57 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 16 June 2014, Rob Herring wrote:
+>> > So far I have not come up with no great ideas on fixing this
+>> > properly short of requiring all omap .config files to add
+>> > CONFIG_ARCH_OMAP=y manually. Anybody got good ideas for that?
+>>
+>> I've failed to come up with anything...
+>>
+>
+> I have two ideas, but neither is great:
+>
+> a) we leave the individual per-soc options in the top-level menu
+>    and move the sub-options under those. This is a bit or a problem
+>    for options concerning all of OMAP, but I'm not sure how many of
+>    those are actually required.
+>
+> b) We go back to Rob's version and make CONFIG_ARCH_OMAP the
+>    user-selectable option, and then find another solution for
+>    building a kernel with ARCH_OMAP set but none of individual
+>    options. This will work for anybody who has a full .config
+>    file, but still break the 'make savedefconfig' generated ones.
 
-  Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+After playing with this more yesterday, I think ARCH_OMAP2PLUS instead
+of ARCH_OMAP is actually a better choice to make the menuconfig item.
+It still has the same defconfig issues, but doesn't affect OMAP1.
 
-are available in the git repository at:
+Doing your trick of a default selection with "select ARCH_OMAP2 if
+!(ARCH_OMAP3 || ARCH_OMAP4 || ...)" in the menuconfig option can fix
+the build issues. We'd actually need 2 selects for v6 and v7 only
+builds.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-against-rc1
-
-for you to fetch changes up to edc56f871eefbc56baf1fd981eeff35ef447925c:
-
-  ARM: dts: dra7-evm: remove interrupt binding (2014-06-17 01:22:55 -0700)
-
-----------------------------------------------------------------
-Fixes for omaps for issues discovered during the merge window and
-enabling of a few features that had to wait for the driver
-dependencies to clear.
-
-The fixes included are:
-
-- Fix am43xx hard reset flags
-
-- Fix SoC detection for DRA722
-
-- Fix CPU OPP table for omap5
-
-- Fix legacy mux parser bug if requested muxname is a prefix of
-  multiple mux entries
-
-- Fix qspi interrupt binding that relies on the irq crossbar
-  that has not yet been enabled
-
-- Add missing phy_sel for am43x-epos-evm
-
-- Drop unused gic_init_irq() that is no longer needed
-
-And the enabling of features that had driver dependencies are:
-
-- Change dra7 to use Audio Tracking Logic clock instead of a fixed
-  clock now that the clock driver for it has been merged
-
-- Enable off idle configuration for selected omaps as all the kernel
-  dependencies for device tree based booting are finally merged as
-  this is needed to get the automated PM tests working finally with
-  device tree based booting
-
-- Add hwmod entry for ocp2scp3 for omap5 to get sata working as
-  all the driver dependencies are now in the kernel and this patch
-  fell through the cracks during the merge window
-
-----------------------------------------------------------------
-Brian Norris (1):
-      ARM: OMAP2+: drop unused function
-
-Dave Gerlach (1):
-      ARM: OMAP2+: hwmod: Change hardreset soc_ops for AM43XX
-
-David R. Piegdon (1):
-      ARM: OMAP2+: Fix parser-bug in platform muxing code
-
-George Cherian (1):
-      ARM: dts: am43x-epos-evm: Add Missing cpsw-phy-sel for am43x-epos-evm
-
-Keshava Munegowda (1):
-      ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
-
-Nishanth Menon (2):
-      ARM: DRA722: add detection of SoC information
-      ARM: dts: omap5: Update CPU OPP table as per final production Manual
-
-Peter Ujfalusi (1):
-      ARM: DTS: dra7/dra7xx-clocks: ATL related changes
-
-Sourav Poddar (1):
-      ARM: dts: dra7-evm: remove interrupt binding
-
-Tony Lindgren (2):
-      ARM: dts: Enable twl4030 off-idle configuration for selected omaps
-      Merge tag 'for-v3.16-rc/omap-fixes-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.16/fixes
-
- arch/arm/boot/dts/am43x-epos-evm.dts       |  4 ++
- arch/arm/boot/dts/dra7.dtsi                | 12 ++++-
- arch/arm/boot/dts/dra7xx-clocks.dtsi       | 16 +++----
- arch/arm/boot/dts/omap3-beagle-xm.dts      |  6 +++
- arch/arm/boot/dts/omap3-evm-common.dtsi    |  7 +++
- arch/arm/boot/dts/omap3-n900.dts           |  5 ++
- arch/arm/boot/dts/omap5.dtsi               |  1 -
- arch/arm/mach-omap2/Makefile               |  6 ++-
- arch/arm/mach-omap2/cm33xx.h               |  2 +-
- arch/arm/mach-omap2/common.h               |  1 -
- arch/arm/mach-omap2/id.c                   | 12 +++++
- arch/arm/mach-omap2/mux.c                  |  6 ++-
- arch/arm/mach-omap2/omap4-common.c         | 20 --------
- arch/arm/mach-omap2/omap_hwmod.c           |  6 +--
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 73 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/soc.h                  |  1 +
- 16 files changed, 139 insertions(+), 39 deletions(-)
+Rob
