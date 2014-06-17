@@ -1,46 +1,34 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for
  ti,mux-clock
-Date: Tue, 17 Jun 2014 08:15:09 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406170814220.31106@utopia.booyaka.com>
-References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com> <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com>
+Date: Tue, 17 Jun 2014 08:19:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406170815460.31106@utopia.booyaka.com>
+References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com> <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com> <539FF81E.2020606@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47484 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:47508 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754365AbaFQIPK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 04:15:10 -0400
-In-Reply-To: <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com>
+	with ESMTP id S1755072AbaFQITS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 04:19:18 -0400
+In-Reply-To: <539FF81E.2020606@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Tue, 17 Jun 2014, Tomi Valkeinen wrote:
+On Tue, 17 Jun 2014, Tero Kristo wrote:
 
-> When setting the rate of a clock, by default the clock framework will
-> change the parent of the clock to the most suitable one in
-> __clk_mux_determine_rate() (most suitable by looking at the clock rate).
+> I am fine with this approach, as it seems pretty much all the other mux-clock
+> users are setting this flag also. The TI clocks have had this way of using mux
+> clocks from the legacy times... might just be a design flaw.
 
-That is just insane.
+The non-CCF clock framework never automatically switched parents on rate 
+changes, AFAIK.
 
-> This is a rather dangerous default, and causes problems on AM43x when
-> using display and ethernet. There are multiple ways to select the clock
-> muxes on AM43x, and some of those clock paths have the same source
-> clocks for display and ethernet. When changing the clock rate for the
-> display subsystem, the clock framework decides to change the display mux
-> from the dedicated display PLL to a shared PLL which is used by the
-> ethernet, and then changes the rate of the shared PLL, breaking the
-> ethernet.
-> 
-> As I don't think there ever is a case where we want the clock framework
-> to automatically change the parent clock of a clock mux, this patch sets
-> the CLK_SET_RATE_NO_REPARENT for all ti,mux-clocks.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
+The only case that approached this was with PLLs.  PLLs would 
+automatically be placed into bypass if the PLL rate was set to the bypass 
+rate.
 
 
 - Paul
