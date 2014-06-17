@@ -1,69 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap: rework platform selection
-Date: Tue, 17 Jun 2014 08:25:42 -0700
-Message-ID: <20140617152542.GU17845@atomide.com>
-References: <5701099.0P1SIXsHc1@wuerfel>
- <20140616141712.GL17845@atomide.com>
- <CABGGisxdKznLzR+0b0oYrN+aiWM0gNFbzYwfPtAZF=AiapU=eQ@mail.gmail.com>
- <201406171557.15819.arnd@arndb.de>
- <CAL_Jsq+MK+HMqE3k8p06bzzohzS0qu84N12C=VgF9_dMcSGGOQ@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 0/7] ARM: OMAP4+: PRM: minor cleanups and dt support
+ of interrupts
+Date: Tue, 17 Jun 2014 10:38:48 -0500
+Message-ID: <53A06108.9010108@ti.com>
+References: <1402025761-16831-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53448 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755372AbaFQPZs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 11:25:48 -0400
-Content-Disposition: inline
-In-Reply-To: <CAL_Jsq+MK+HMqE3k8p06bzzohzS0qu84N12C=VgF9_dMcSGGOQ@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58098 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933122AbaFQPjP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jun 2014 11:39:15 -0400
+In-Reply-To: <1402025761-16831-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Rob Herring <rob.herring@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: =?ISO-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Rob Herring <robherring2@gmail.com> [140617 08:05]:
-> On Tue, Jun 17, 2014 at 8:57 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Monday 16 June 2014, Rob Herring wrote:
-> >> > So far I have not come up with no great ideas on fixing this
-> >> > properly short of requiring all omap .config files to add
-> >> > CONFIG_ARCH_OMAP=y manually. Anybody got good ideas for that?
-> >>
-> >> I've failed to come up with anything...
-> >>
-> >
-> > I have two ideas, but neither is great:
-> >
-> > a) we leave the individual per-soc options in the top-level menu
-> >    and move the sub-options under those. This is a bit or a problem
-> >    for options concerning all of OMAP, but I'm not sure how many of
-> >    those are actually required.
-> >
-> > b) We go back to Rob's version and make CONFIG_ARCH_OMAP the
-> >    user-selectable option, and then find another solution for
-> >    building a kernel with ARCH_OMAP set but none of individual
-> >    options. This will work for anybody who has a full .config
-> >    file, but still break the 'make savedefconfig' generated ones.
+On 06/05/2014 10:35 PM, Nishanth Menon wrote:
 > 
-> After playing with this more yesterday, I think ARCH_OMAP2PLUS instead
-> of ARCH_OMAP is actually a better choice to make the menuconfig item.
-> It still has the same defconfig issues, but doesn't affect OMAP1.
+> Hi,
+> 
+> The following series is a minimal set of cleanups and generalization
+> in the direction of supporting daisychain wakeup on all OMAP4+
+> platforms. We cannot still add IO_WAKEUP ability for OMAP5/DRA7/AM437x
+> yet pending further pinctrl patches.
+> 
+> These do have a few cosmetic issues, but hope is to get a view about
+> the approach. Also note that documentation of bindings for ti,dra7-prm
+> etc are still pending.
+> 
+> Nishanth Menon (7):
+>   ARM: OMAP4+: prminst: provide function to find prm_dev instance
+>     offset
+>   ARM: OMAP4: prm use the generic prm_inst to allow logic to be
+>     abstracted
+>   ARM: OMAP4+: PRM: remove "wkup" event
+>   ARM: OMAP4+: PRM: register interrupt information from DT
+>   ARM: dts: OMAP4: Add PRM interrupt
+>   ARM: dts: OMAP5: add PRM interrupt
+>   ARM: dts: DRA7: add PRM interrupt
+> 
+>  arch/arm/boot/dts/dra7.dtsi       |    1 +
+>  arch/arm/boot/dts/omap4.dtsi      |    1 +
+>  arch/arm/boot/dts/omap5.dtsi      |    1 +
+>  arch/arm/mach-omap2/prm44xx.c     |   89 ++++++++++++++++++++++++++++++++-----
+>  arch/arm/mach-omap2/prminst44xx.c |   41 ++++++++++-------
+>  arch/arm/mach-omap2/prminst44xx.h |    3 ++
+>  6 files changed, 111 insertions(+), 25 deletions(-)
+> 
+Gentle ping on this series? are we ok with this approach?
 
-Well eventually we'll have the same problem for both ARCH_OMAP1
-and ARCH_OMAP2PLUS so from that point of view it might make sense
-to use ARCH_OMAP to start with.
-
-> Doing your trick of a default selection with "select ARCH_OMAP2 if
-> !(ARCH_OMAP3 || ARCH_OMAP4 || ...)" in the menuconfig option can fix
-> the build issues. We'd actually need 2 selects for v6 and v7 only
-> builds.
-
-Yes that or the options in mach-omap2/Makefile can be fixed up
-further for building things only when a SoC is selected.
-
-So really the issue is how to deal with make oldconfig for
-existing .config files. I don't know if there's any solution to
-that short of doing make CONFIG_ARCH_OMAP=y oldconfig.
-
+-- 
 Regards,
-
-Tony
+Nishanth Menon
