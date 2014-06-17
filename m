@@ -1,124 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Tue, 17 Jun 2014 00:35:52 -0700
-Message-ID: <20140617073552.GM17845@atomide.com>
-References: <1402676147-3711-1-git-send-email-balbi@ti.com>
- <1402676147-3711-2-git-send-email-balbi@ti.com>
- <20140616092219.GZ17845@atomide.com>
- <539FE9A1.7040409@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [RFC PATCH] clk: ti: CLK_SET_RATE_NO_REPARENT for ti,mux-clock
+Date: Tue, 17 Jun 2014 11:04:31 +0300
+Message-ID: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <539FE9A1.7040409@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Benoit Cousson <bcousson@baylibre.org>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33109 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755274AbaFQIFA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jun 2014 04:05:00 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140617 00:10]:
-> On 16/06/14 12:22, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi@ti.com> [140613 09:17]:
-> >> From: Sathya Prakash M R <sathyap@ti.com>
-> >>
-> >> Add DSS hwmod data for AM43xx.
-> >>
-> >> Cc: Andrew Morton <akpm@linux-foundation.org>
-> >> Acked-by: Rajendra Nayak <rnayak@ti.com>
-> >> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> >> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >> ---
-> >>
-> >> Note that this patch was originally send on May 9th [1], changes were requested
-> >> and a new version was sent on May 19th [2], then on May 27th [3] Tomi pinged
-> >> maintainer again and go no response.
-> >>
-> >> Without this patch, we cannot get display working on any AM437x devices.
-> >>
-> >> [1] http://marc.info/?l=linux-arm-kernel&m=139963677925227&w=2
-> >> [2] http://marc.info/?l=linux-arm-kernel&m=140049799425512&w=2
-> >> [3] http://marc.info/?l=linux-arm-kernel&m=140117232826754&w=2
-> >>
-> >>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++++++++++++++
-> >>  arch/arm/mach-omap2/prcm43xx.h             |  1 +
-> >>  2 files changed, 99 insertions(+)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> >> index 5c2cc80..d2a7b6d 100644
-> >> --- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> >> +++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-> >> @@ -19,6 +19,8 @@
-> >>  #include "omap_hwmod.h"
-> >>  #include "omap_hwmod_33xx_43xx_common_data.h"
-> >>  #include "prcm43xx.h"
-> >> +#include "omap_hwmod_common_data.h"
-> >> +
-> >>  
-> >>  /* IP blocks */
-> >>  static struct omap_hwmod am43xx_l4_hs_hwmod = {
-> >> @@ -415,6 +417,70 @@ static struct omap_hwmod am43xx_qspi_hwmod = {
-> >>  	},
-> >>  };
-> >>  
-> >> +/* Display sub system - DSS */
-> >> +
-> >> +struct omap_dss_dispc_dev_attr am43xx_dss_dispc_dev_attr = {
-> >> +	.manager_count		= 1,
-> >> +	.has_framedonetv_irq	= 0
-> >> +};
-> >> +
-> >> +
-> >> +static struct omap_hwmod_class_sysconfig am43xx_dispc_sysc = {
-> >> +	.rev_offs	= 0x0000,
-> >> +	.sysc_offs	= 0x0010,
-> >> +	.syss_offs	= 0x0014,
-> >> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE),
-> >> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> >> +	.sysc_fields	= &omap_hwmod_sysc_type1,
-> >> +};
-> > 
-> > Looking at the TRM, "Table 13-43. DISPC_SYSCFG Register Field
-> > Descriptions" seems to list the folowing bits available:
-> > 
-> > 13-12	MIDLEMODE 
-> > 9-8	CLOCK_ACTIVITY 
-> > 4-3	SIDLEMODE 
-> > 2	ENWAKEUP 
-> > 1	SOFTRESET 
-> > 0	AUTOIDLE 
-> > 
-> > Have I missed something or how come we don't define them all
-> > as available?
-> 
-> Yes, you're right. I don't see why they shouldn't be there.
-> 
-> > The .idlemodes available values and .sysc_fields seems to match
-> > the TRM.
-> 
-> Shouldn't idlemodes also have:
-> 
-> 	MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART
+While implementing DSS support for AM43xx I encountered a problem with clock
+mux: clk mux may change the parent clock automatically, and with
+set-rate-parent this leads to changing clocks for other devices. The problem is
+described in more detail in the actual patch.
 
-Oops yes indeed looking at the MIDDLEDMOE values in addition to
-to SIDLEMODE.
- 
-> I changed the dispc flags to:
-> 
-> 	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SOFTRESET |
-> 		SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-> 		SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_MIDLEMODE),
-> 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> 		MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-> 
-> and DSS seems to work fine for me. Then again, I don't think there's any
-> proper PM going on (or at least things like debugfs/pm_debug/count shows
-> no sensible values), so it could well be that those flags are not even
-> used at the moment.
+The problem doesn't seem to happen in -rc1, even if it was there in linux-next
+(20140527). However, in -rc1, if I add debug prints to clk.c, I can see that
+the code is going through the parents, but it decides to use the first one (the
+correct one). So I presume it's just a matter of right clock rates or such
+which will cause the parent to be changed.
 
-Right. Having these set correctly for devices is pretty much a
-requirement for PM to have any chance of working :)
+Thus I think the problem is still there and should be fixed until it happens
+again, either for DSS or for some other device.
 
-Regards,
+This patch changes the behavior for all TI mux-clocks. I think it's much better
+to default to CLK_SET_RATE_NO_REPARENT as changing the parent automatically
+feels rather dangerouns to me.
 
-Tony
+Another option could be to set CLK_SET_RATE_NO_REPARENT only when the mux has
+"ti,set-rate-parent" set, as (maybe) it's safe to change the parent if the
+parent's rate will not be changed.
+
+However, I'm fine with doing this only for the DSS, if someone has ideas how to
+do that. A DT property would be easy, but I guess the argument against it is
+the same as for the PLL rounding: it's not a hardware property.
+
+Tomi Valkeinen (1):
+  clk: ti: set CLK_SET_RATE_NO_REPARENT for ti,mux-clock
+
+ drivers/clk/ti/mux.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+-- 
+1.9.1
+
