@@ -1,75 +1,53 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] clk: ti: am43x: Fix boot with CONFIG_SOC_AM33XX disabled
-Date: Tue, 17 Jun 2014 17:03:24 +0300
-Message-ID: <1403013804-13522-1-git-send-email-rogerq@ti.com>
+From: Iain Paton <ipaton0@gmail.com>
+Subject: Re: Unifying cape overlays into boot .dtb for BeagleBoard.org boards
+Date: Tue, 17 Jun 2014 15:08:28 +0100
+Message-ID: <53A04BDC.1060403@gmail.com>
+References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com> <CA+T6QPmCk9GzHPHqCKG4vHDvUGirgGaizH-V9bsHT4V=8=gCaA@mail.gmail.com> <20140617090931.GB3705@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51457 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932133AbaFQODb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 10:03:31 -0400
+Received: from mail-we0-f180.google.com ([74.125.82.180]:43608 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932133AbaFQOIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jun 2014 10:08:48 -0400
+In-Reply-To: <20140617090931.GB3705@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mturquette@linaro.org, tony@atomide.com
-Cc: t-kristo@ti.com, nm@ti.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Jason Kridner <jkridner@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>, OMAP List <linux-omap@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-Define ti_clk_register_dpll_x2() and of_ti_am3_dpll_x2_setup() if
-AM43XX is defined.
+On 17/06/14 10:09, Russell King - ARM Linux wrote:
 
-Fixes the below boot issue.
+> Why should kernel developers go to the extent of adding support for DT
+> modification at runtime when the platform you want this for doesn't even
+> support hotplugging of these capes?
 
-[    2.157258] gpmc_l3_clk not enabled
-[    2.161194] gpmc_l3_clk not enabled
-[    2.164896] Division by zero in kernel.
-[    2.169055] CPU: 0 PID: 321 Comm: kworker/u2:2 Tainted: G        W     3.16.0-rc1-00008-g4c0e520 #273
-[    2.178880] Workqueue: deferwq deferred_probe_work_func
-[    2.184459] [<c001477c>] (unwind_backtrace) from [<c001187c>] (show_stack+0x10/0x14)
-[    2.192752] [<c001187c>] (show_stack) from [<c0530f28>] (dump_stack+0x80/0x9c)
-[    2.200486] [<c0530f28>] (dump_stack) from [<c02c867c>] (Ldiv0+0x8/0x10)
-[    2.207678] [<c02c867c>] (Ldiv0) from [<c0022da0>] (gpmc_calc_divider+0x24/0x40)
-[    2.215490] [<c0022da0>] (gpmc_calc_divider) from [<c0022e20>] (gpmc_cs_set_timings+0x18/0x474)
-[    2.224783] [<c0022e20>] (gpmc_cs_set_timings) from [<c003069c>] (gpmc_nand_init+0x74/0x1a8)
-[    2.233791] [<c003069c>] (gpmc_nand_init) from [<c0024668>] (gpmc_probe+0x52c/0x874)
-[    2.242089] [<c0024668>] (gpmc_probe) from [<c0349218>] (platform_drv_probe+0x18/0x48)
-[    2.250534] [<c0349218>] (platform_drv_probe) from [<c0347d88>] (driver_probe_device+0x104/0x22c)
-[    2.259988] [<c0347d88>] (driver_probe_device) from [<c03464dc>] (bus_for_each_drv+0x44/0x8c)
-[    2.269087] [<c03464dc>] (bus_for_each_drv) from [<c0347c4c>] (device_attach+0x74/0x8c)
-[    2.277620] [<c0347c4c>] (device_attach) from [<c0347380>] (bus_probe_device+0x88/0xb0)
-[    2.286074] [<c0347380>] (bus_probe_device) from [<c0347768>] (deferred_probe_work_func+0x60/0x90)
-[    2.295611] [<c0347768>] (deferred_probe_work_func) from [<c004ef50>] (process_one_work+0x1b4/0x4bc)
-[    2.305288] [<c004ef50>] (process_one_work) from [<c004f3d4>] (worker_thread+0x148/0x550)
-[    2.313954] [<c004f3d4>] (worker_thread) from [<c0055a48>] (kthread+0xc8/0xe4)
-[    2.321628] [<c0055a48>] (kthread) from [<c000e648>] (ret_from_fork+0x14/0x2c)
+I'm not convinced you should, but Grant Likely seemed to be much more open 
+to the idea with the latest attempt https://lkml.org/lkml/2014/5/29/586
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/clk/ti/dpll.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+> A good way that this could have been done is to put an I2C EEPROM on
+> each cape, and have that store the DT fragment.  The boot loader could
+> have then read that from each cape, and used that information to build
+> up the final DT.  Why this hasn't been thought of, considering that the
+> kernel has been moving towards DT for years, is quite unbelievable.
 
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index abd956d..79791e1 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -161,7 +161,8 @@ cleanup:
- }
- 
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
--	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX)
-+	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX) || \
-+	defined(CONFIG_SOC_AM43XX)
- /**
-  * ti_clk_register_dpll_x2 - Registers a DPLLx2 clock
-  * @node: device node for this clock
-@@ -322,7 +323,7 @@ CLK_OF_DECLARE(ti_omap4_dpll_x2_clock, "ti,omap4-dpll-x2-clock",
- 	       of_ti_omap4_dpll_x2_setup);
- #endif
- 
--#ifdef CONFIG_SOC_AM33XX
-+#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
- static void __init of_ti_am3_dpll_x2_setup(struct device_node *node)
- {
- 	ti_clk_register_dpll_x2(node, &dpll_x2_ck_ops, NULL);
--- 
-1.8.3.2
+I believe that was Jasons original idea.
+
+>From a users perspective, a fixed DT fragment in EEPROM quickly ends up 
+being out of step with OS implementation and simply becomes another 
+pain point that needs worked around.
+
+Anyway, there already exist capes in large scale production that don't 
+have the EEPROM. As well as ones that use the required I2C bus for other 
+purposes, thereby blocking all other capes connected at the same time 
+from using that mechanism even when they are capable of doing so.
+Not forgetting the number of capes that have shipped already without the
+DT fragment in their EEPROMS.
+
+Too late to shut the barn door, question is where to go from here.
+
+Consolidation the dt knowledge in one tree is a good idea, regardless of 
+how it's eventually used.
+
 
