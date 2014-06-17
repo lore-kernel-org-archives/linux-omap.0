@@ -1,58 +1,54 @@
 From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
-Subject: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
-Date: Tue, 17 Jun 2014 11:17:02 -0300
-Message-ID: <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+Subject: [PATCH/RESEND 1/9] drm/i2c: tda998x: move drm_i2c_encoder_destroy call
+Date: Tue, 17 Jun 2014 11:17:03 -0300
+Message-ID: <1403014631-18072-2-git-send-email-guido@vanguardiasur.com.ar>
 References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+Sender: stable-owner@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, Daniel Mack <zonque@gmail.com>, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
+Cc: robdclark@gmail.com, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, airlied@linux.ie, Daniel Mack <zonque@gmail.com>, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIHRpbGNkYyBkcml2ZXIgY291bGQgYmUgY29tcGlsZWQgYXMgYSBtb2R1bGUsIGJ1dCB3YXMg
-c2V2ZXJlbHkgYnJva2VuCmFuZCBjb3VsZCBub3QgYmUgdXNlZCBhcyBzdWNoLiBUaGlzIHBhdGNo
-c2V0IGF0dGVtcHRzIHRvIGZpeCB0aGUgaXNzdWVzCnByZXZlbnRpbmcgYSBwcm9wZXIgbG9hZC91
-bmxvYWQgb2YgdGhlIG1vZHVsZS4KCklzc3VlcyBpbmNsdWRlZCBkYW5nbGluZyBzeXNmcyBub2Rl
-cywgZGFuZ2xpbmcgZGV2aWNlcywgbWVtb3J5IGxlYWtzIGFuZAphIGRvdWJsZSBrZnJlZS4KCkl0
-IG5vdyBzZWVtcyB0byBiZSB3b3JraW5nIG9rLiBXZSBoYXZlIHRlc3RlZCB0aGlzIGJ5IGxvYWRp
-bmcgYW5kCnVubG9hZGluZyB0aGUgZHJpdmVyIHJlcGV0ZWFkbHksIHdpdGggYm90aCBwYW5lbCBh
-bmQgc2xhdmUgY29ubmVjdG9ycwphbmQgZm91bmQgbm8gZmxhd3MuCgpUaGVyZSBpcyBzdGlsbCBv
-bmUgd2FybmluZyBsZWZ0IG9uIHRpbGNkY19jcnRjX2Rlc3Ryb3ksIGNhdXNlZCBieQpkZXN0cm95
-aW5nIHRoZSBjb25uZWN0b3Igd2hpbGUgc3RpbGwgaW4gYW4gT04gc3RhdHVzLiBXZSBkb24ndCBr
-bm93IHdoeQp0aGlzIGhhcHBlbnMgb3Igd2h5IGl0J3MgYW4gaXNzdWUsIHNvIHdlIGRpZCBub3Qg
-Zml4IGl0LgoKVGhlIGZpcnN0IDcgcGF0Y2hlcyBhcmUgYnVnIGZpeGVzIHdoaWNoIGFuZCBzaG91
-bGQgcHJvYmFibHkgYmUgYXBwbGllZAppbiB0aGUgc3RhYmxlIHRyZWVzLiBUaGUgbGFzdCB0d28g
-YXJlIGNsZWFuLXVwcy4KCgpSZXNlbmRpbmcgdGhpcyBzaW5jZSBJIGdvdCBubyByZXBsaWVzLgoK
-Ckd1aWRvIE1hcnTDrW5leiAoOSk6CiAgZHJtL2kyYzogdGRhOTk4eDogbW92ZSBkcm1faTJjX2Vu
-Y29kZXJfZGVzdHJveSBjYWxsCiAgZHJtL3RpbGNkYzogcGFuZWw6IGZpeCBkYW5nbGluZyBzeXNm
-cyBjb25uZWN0b3Igbm9kZQogIGRybS90aWxjZGM6IHNsYXZlOiBmaXggZGFuZ2xpbmcgc3lzZnMg
-Y29ubmVjdG9yIG5vZGUKICBkcm0vdGlsY2RjOiB0ZnA0MTA6IGZpeCBkYW5nbGluZyBzeXNmcyBj
-b25uZWN0b3Igbm9kZQogIGRybS90aWxjZGM6IHBhbmVsOiBmaXggbGVhayB3aGVuIHVubG9hZGlu
-ZyB0aGUgbW9kdWxlCiAgZHJtL3RpbGNkYzogZml4IHJlbGVhc2Ugb3JkZXIgb24gZXhpdAogIGRy
-bS90aWxjZGM6IGZpeCBkb3VibGUga2ZyZWUKICBkcm0vdGlsY2RjOiByZW1vdmUgc3VibW9kdWxl
-IGRlc3Ryb3kgY2FsbHMKICBkcm0vdGlsY2RjOiByZXBsYWNlIGxhdGVfaW5pdGNhbGwgd2l0aCBt
-b2R1bGVfaW5pdAoKIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyAgICAgIHwgIDIg
-Ky0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZlcnMgIHwgIDAKIGRyaXZlcnMv
-Z3B1L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jICAgIHwgMTUgKysrKystLS0tLS0tLQogZHJpdmVy
-cy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmggICAgfCAgMSAtCiBkcml2ZXJzL2dwdS9kcm0v
-dGlsY2RjL3RpbGNkY19wYW5lbC5jICB8IDM5ICsrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0t
-LS0tLS0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3NsYXZlLmMgIHwgMjcgKysrKysr
-KysrKysrKy0tLS0tLS0tLS0KIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3RmcDQxMC5j
-IHwgMzUgKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tCiA3IGZpbGVzIGNoYW5nZWQsIDU5
-IGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9ucygtKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZl
-cnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZlcnMKCi0tIAoyLjAuMAoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlz
-dApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3Rv
-cC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Currently tda998x_encoder_destroy() calls cec_write() and reg_clear(),
+as part of the release procedure. Such calls need to access the I2C bus
+and therefore, we need to call them before drm_i2c_encoder_destroy()
+which unregisters the I2C device.
+
+This commit moves the latter so it's done afterwards.
+
+Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
+Signed-off-by: Ezequiel Garc=C3=ADa <ezequiel@vanguardiasur.com.ar>
+Cc: <stable@vger.kernel.org> #v3.9+
+---
+ drivers/gpu/drm/i2c/tda998x_drv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/td=
+a998x_drv.c
+index 240c331..db9515f 100644
+--- a/drivers/gpu/drm/i2c/tda998x_drv.c
++++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+@@ -1183,7 +1183,6 @@ static void
+ tda998x_encoder_destroy(struct drm_encoder *encoder)
+ {
+ 	struct tda998x_priv *priv =3D to_tda998x_priv(encoder);
+-	drm_i2c_encoder_destroy(encoder);
+=20
+ 	/* disable all IRQs and free the IRQ handler */
+ 	cec_write(priv, REG_CEC_RXSHPDINTENA, 0);
+@@ -1193,6 +1192,7 @@ tda998x_encoder_destroy(struct drm_encoder *encod=
+er)
+=20
+ 	if (priv->cec)
+ 		i2c_unregister_device(priv->cec);
++	drm_i2c_encoder_destroy(encoder);
+ 	kfree(priv);
+ }
+=20
+--=20
+2.0.0
