@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v7 4/5] ARM: dts: am43x-epos-evm: Update binding for touchscreen size
-Date: Tue, 17 Jun 2014 12:31:46 +0300
-Message-ID: <1402997507-9736-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v7 5/5] ARM: dts: am437x-gp-evm: Update binding for touchscreen size
+Date: Tue, 17 Jun 2014 12:31:47 +0300
+Message-ID: <1402997507-9736-6-git-send-email-rogerq@ti.com>
 References: <1402997507-9736-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,16 +19,16 @@ CC: Tony Lindgren <tony@atomide.com>
 CC: Mugunthan V N <mugunthanvnm@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts | 4 ++--
+ arch/arm/boot/dts/am437x-gp-evm.dts | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 19f1f7e..f3fe017 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -340,8 +340,8 @@
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 003766c..2674132 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -277,8 +277,8 @@
  
- 		attb-gpio = <&gpio1 17 GPIO_ACTIVE_HIGH>;
+ 		attb-gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
  
 -		x-size = <1024>;
 -		y-size = <600>;
