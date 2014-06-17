@@ -1,40 +1,180 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for ti,mux-clock
-Date: Tue, 17 Jun 2014 11:23:31 +0300
-Message-ID: <539FFB03.6070407@ti.com>
-References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com> <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com> <539FF81E.2020606@ti.com> <alpine.DEB.2.02.1406170815460.31106@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH v2] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Tue, 17 Jun 2014 11:37:13 +0300
+Message-ID: <1402994233-22599-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40804 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41352 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932386AbaFQIXT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jun 2014 04:23:19 -0400
-In-Reply-To: <alpine.DEB.2.02.1406170815460.31106@utopia.booyaka.com>
+	id S1754609AbaFQIie (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jun 2014 04:38:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Sathya Prakash M R <sathyap@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 06/17/2014 11:19 AM, Paul Walmsley wrote:
-> On Tue, 17 Jun 2014, Tero Kristo wrote:
->
->> I am fine with this approach, as it seems pretty much all the other mux-clock
->> users are setting this flag also. The TI clocks have had this way of using mux
->> clocks from the legacy times... might just be a design flaw.
->
-> The non-CCF clock framework never automatically switched parents on rate
-> changes, AFAIK.
+From: Sathya Prakash M R <sathyap@ti.com>
 
-That might be true yea, so this must have been introduced with CCF.
+Add DSS hwmod data for AM43xx.
 
-> The only case that approached this was with PLLs.  PLLs would
-> automatically be placed into bypass if the PLL rate was set to the bypass
-> rate.
+Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+[tomi.valkeinen@ti.com: added missing dispc flags]
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Acked-by: Rajendra Nayak <rnayak@ti.com>
+---
+Changes to v1:
 
-Someone could argue that this is rather strange approach also and would 
-be better to use some other API for the purpose.
+* added missing dispc .sysc_flags and .idlemodes
+* reordered entries, as the dss and dispc were a bit mixed together
 
-.Tero
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 100 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm43xx.h             |   1 +
+ 2 files changed, 101 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+index 5c2cc8083fdd..fea01aa3ef42 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
+@@ -19,6 +19,8 @@
+ #include "omap_hwmod.h"
+ #include "omap_hwmod_33xx_43xx_common_data.h"
+ #include "prcm43xx.h"
++#include "omap_hwmod_common_data.h"
++
+ 
+ /* IP blocks */
+ static struct omap_hwmod am43xx_l4_hs_hwmod = {
+@@ -415,6 +417,72 @@ static struct omap_hwmod am43xx_qspi_hwmod = {
+ 	},
+ };
+ 
++/* dss */
++
++static struct omap_hwmod am43xx_dss_core_hwmod = {
++	.name		= "dss_core",
++	.class		= &omap2_dss_hwmod_class,
++	.clkdm_name	= "dss_clkdm",
++	.main_clk	= "disp_clk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* dispc */
++
++struct omap_dss_dispc_dev_attr am43xx_dss_dispc_dev_attr = {
++	.manager_count		= 1,
++	.has_framedonetv_irq	= 0
++};
++
++static struct omap_hwmod_class_sysconfig am43xx_dispc_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_MIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class am43xx_dispc_hwmod_class = {
++	.name	= "dispc",
++	.sysc	= &am43xx_dispc_sysc,
++};
++
++static struct omap_hwmod am43xx_dss_dispc_hwmod = {
++	.name		= "dss_dispc",
++	.class		= &am43xx_dispc_hwmod_class,
++	.clkdm_name	= "dss_clkdm",
++	.main_clk	= "disp_clk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
++		},
++	},
++	.dev_attr	= &am43xx_dss_dispc_dev_attr,
++};
++
++/* rfbi */
++
++static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
++	.name		= "dss_rfbi",
++	.class		= &omap2_rfbi_hwmod_class,
++	.clkdm_name	= "dss_clkdm",
++	.main_clk	= "disp_clk",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = AM43XX_CM_PER_DSS_CLKCTRL_OFFSET,
++		},
++	},
++};
++
+ /* Interfaces */
+ static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
+ 	.master		= &am33xx_l3_main_hwmod,
+@@ -654,6 +722,34 @@ static struct omap_hwmod_ocp_if am43xx_l3_s__qspi = {
+ 	.user           = OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++static struct omap_hwmod_ocp_if am43xx_dss__l3_main = {
++	.master		= &am43xx_dss_core_hwmod,
++	.slave		= &am33xx_l3_main_hwmod,
++	.clk		= "l3_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__dss = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_dss_core_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_dispc = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_dss_dispc_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
++	.master		= &am33xx_l4_ls_hwmod,
++	.slave		= &am43xx_dss_rfbi_hwmod,
++	.clk		= "l4ls_gclk",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am33xx_l4_wkup__synctimer,
+ 	&am43xx_l4_ls__timer8,
+@@ -748,6 +844,10 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
+ 	&am43xx_l4_ls__ocp2scp1,
+ 	&am43xx_l3_s__usbotgss0,
+ 	&am43xx_l3_s__usbotgss1,
++	&am43xx_dss__l3_main,
++	&am43xx_l4_ls__dss,
++	&am43xx_l4_ls__dss_dispc,
++	&am43xx_l4_ls__dss_rfbi,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
+index 7785be984edd..ad7b3e9977f8 100644
+--- a/arch/arm/mach-omap2/prcm43xx.h
++++ b/arch/arm/mach-omap2/prcm43xx.h
+@@ -142,5 +142,6 @@
+ #define AM43XX_CM_PER_USBPHYOCP2SCP0_CLKCTRL_OFFSET	0x05B8
+ #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
+ #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
++#define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
+ 
+ #endif
+-- 
+1.9.1
 
