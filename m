@@ -1,55 +1,140 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 0/9] mfd: tps65917: Add support for for TPS65917 PMIC
-Date: Wed, 18 Jun 2014 15:28:51 +0530
-Message-ID: <1403085540-20014-1-git-send-email-j-keerthy@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v4 3/4] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+Date: Wed, 18 Jun 2014 15:59:16 +0530
+Message-ID: <53A169FC.70907@ti.com>
+References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274559-24777-1-git-send-email-rogerq@ti.com> <53A14784.1030008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org, Keerthy <j-keerthy@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40455 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965039AbaFRKbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jun 2014 06:31:44 -0400
+In-Reply-To: <53A14784.1030008@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, "Menon, Nishanth" <nm@ti.com>, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
 
-The TPS65917 chip is a power management IC for Portable Navigation Systems
-and Tablet Computing devices. It contains the following components:
+On Wednesday 18 June 2014 01:32 PM, Roger Quadros wrote:
+> On 04/23/2014 08:35 PM, Roger Quadros wrote:
+>> From: Nikhil Devshatwar <nikhil.nd@ti.com>
+>>
+>> Add hwmods for ocp2scp3 and sata modules.
 
- - Regulators.
- - GPADC.
- - Over Temperature warning and Shut down.
+>From what I see this is actually adding the ocp2scp3 data and fixing up some
+of the sata data which is already added and erroneous.
 
-This patch series adds support for TPS65917 mfd device. At this time only
-the regulator functionality is made available.
+It would help if this is split up and the changelog explains whats fixed up for
+sata and why. Like for instance I see the opt clock data being removed but no
+mention of why.
+ 
+>>
+>> [Roger Q] Clean up.
+>>
+>> CC: Benoit Cousson <bcousson@baylibre.com>
+>> CC: Paul Walmsley <paul@pwsan.com>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> 
+> Tested-by: Roger Quadros <rogerq@ti.com>
+> against 3.16-rc1, no dependency patches needed.
+> 
+> Nishant/Rajendra,
+> 
+> Could you please review this? We need this for 3.16 SATA support and
+> Paul won't take this in without your reviewed-by tag. Thanks.
+> 
+> cheers,
+> -roger
+> 
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 31 ++++++++++++++++++++++++++-----
+>>  1 file changed, 26 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> index 810c205..b02a4ab 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
+>>  	},
+>>  };
+>>  
+>> +/* ocp2scp3 */
+>> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
+>> +
+>> +/* l4_cfg -> ocp2scp3 */
+>> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
+>> +	.master		= &dra7xx_l4_cfg_hwmod,
+>> +	.slave		= &dra7xx_ocp2scp3_hwmod,
+>> +	.clk		= "l4_root_clk_div",
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
 
-The closest drivers are PALMAS series drivers. Hence adapted palmas mfd
-driver to support the tps65917 PMIC.
+All hwmod data files are organized in a certain way with all the hwmod/IP block info on top
+and Interface structs at the bottom. Can we follow the same for ocp2scp3? It helps with better
+readability.
+ 
+>> +
+>> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+>> +	.name		= "ocp2scp3",
+>> +	.class		= &dra7xx_ocp2scp_hwmod_class,
+>> +	.clkdm_name	= "l3init_clkdm",
 
-The register set for SMPSs and LDOs are changed and the ramp delay support
-is also changed. Bit-field defenitions are changed.
-Hence added driver data structures for mfd and regulator drivers
-for palmas and added support for tps65917.
+No main_clk?
 
-The patches are boot tested on DRA72-EVM.
-The patches are boot tested on OMAP5-UEVM board.
+regards,
+Rajendra
 
-Keerthy (9):
-  mfd: Add DT bindings for tps65917 PMIC
-  regulator: palmas: Add tps65917 compatible string
-  mfd: palmas: Add tps65917 specific definitions and enums
-  mfd: palmas: Add tps65917 support
-  regulator: palmas: Shift the reg_info structure definition to the
-    header file
-  mfd: palmas: shift the palmas_sleep_requestor_info structure
-    definition to the header file
-  regulator: palmas: Add palmas_pmic_driver_data structure
-  regulator: palmas: add driver data and modularize the probe
-  regulator: palmas: Add tps65917 PMIC support
+>> +	.prcm = {
+>> +		.omap4 = {
+>> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
+>> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
+>> +			.modulemode   = MODULEMODE_HWCTRL,
+>> +		},
+>> +	},
+>> +};
+>> +
+>>  /*
+>>   * 'qspi' class
+>>   *
+>> @@ -1268,9 +1292,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
+>>  };
+>>  
+>>  /* sata */
+>> -static struct omap_hwmod_opt_clk sata_opt_clks[] = {
+>> -	{ .role = "ref_clk", .clk = "sata_ref_clk" },
+>> -};
+>>  
+>>  static struct omap_hwmod dra7xx_sata_hwmod = {
+>>  	.name		= "sata",
+>> @@ -1278,6 +1299,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+>>  	.clkdm_name	= "l3init_clkdm",
+>>  	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+>>  	.main_clk	= "func_48m_fclk",
+>> +	.mpu_rt_idx	= 1,
+>>  	.prcm = {
+>>  		.omap4 = {
+>>  			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
+>> @@ -1285,8 +1307,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+>>  			.modulemode   = MODULEMODE_SWCTRL,
+>>  		},
+>>  	},
+>> -	.opt_clks	= sata_opt_clks,
+>> -	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
+>>  };
+>>  
+>>  /*
+>> @@ -2682,6 +2702,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>>  	&dra7xx_l4_per1__mmc4,
+>>  	&dra7xx_l4_cfg__mpu,
+>>  	&dra7xx_l4_cfg__ocp2scp1,
+>> +	&dra7xx_l4_cfg__ocp2scp3,
+>>  	&dra7xx_l3_main_1__qspi,
+>>  	&dra7xx_l4_cfg__sata,
+>>  	&dra7xx_l4_cfg__smartreflex_core,
+>>
+> 
 
- Documentation/devicetree/bindings/mfd/palmas.txt   |    2 +
- .../devicetree/bindings/regulator/palmas-pmic.txt  |    1 +
- drivers/mfd/palmas.c                               |  233 +++--
- drivers/regulator/palmas-regulator.c               | 1010 +++++++++++++++-----
- include/linux/mfd/palmas.h                         |  837 ++++++++++++++++
- 5 files changed, 1774 insertions(+), 309 deletions(-)
-
--- 
-1.7.9.5
