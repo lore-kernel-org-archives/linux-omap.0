@@ -1,45 +1,90 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for
- ti,mux-clock
-Date: Wed, 18 Jun 2014 06:33:03 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406180617030.32511@utopia.booyaka.com>
-References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com> <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com> <539FF81E.2020606@ti.com> <alpine.DEB.2.02.1406170815460.31106@utopia.booyaka.com> <539FFB03.6070407@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap: rework platform selection
+Date: Tue, 17 Jun 2014 23:53:09 -0700
+Message-ID: <20140618065309.GV17845@atomide.com>
+References: <5701099.0P1SIXsHc1@wuerfel>
+ <20140616141712.GL17845@atomide.com>
+ <CABGGisxdKznLzR+0b0oYrN+aiWM0gNFbzYwfPtAZF=AiapU=eQ@mail.gmail.com>
+ <201406171557.15819.arnd@arndb.de>
+ <CAL_Jsq+MK+HMqE3k8p06bzzohzS0qu84N12C=VgF9_dMcSGGOQ@mail.gmail.com>
+ <20140617152542.GU17845@atomide.com>
+ <CAL_JsqJ_Q8x03wu5w0i6qNa5KrmSF0id0TOp-nSw9jSorC6atw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60412 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756390AbaFRGdF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 02:33:05 -0400
-In-Reply-To: <539FFB03.6070407@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41850 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756699AbaFRGxO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 02:53:14 -0400
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqJ_Q8x03wu5w0i6qNa5KrmSF0id0TOp-nSw9jSorC6atw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Rob Herring <rob.herring@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 17 Jun 2014, Tero Kristo wrote:
-
-> On 06/17/2014 11:19 AM, Paul Walmsley wrote:
+* Rob Herring <robherring2@gmail.com> [140617 09:42]:
+> On Tue, Jun 17, 2014 at 10:25 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Rob Herring <robherring2@gmail.com> [140617 08:05]:
+> >> On Tue, Jun 17, 2014 at 8:57 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> > On Monday 16 June 2014, Rob Herring wrote:
+> >> >> > So far I have not come up with no great ideas on fixing this
+> >> >> > properly short of requiring all omap .config files to add
+> >> >> > CONFIG_ARCH_OMAP=y manually. Anybody got good ideas for that?
+> >> >>
+> >> >> I've failed to come up with anything...
+> >> >>
+> >> >
+> >> > I have two ideas, but neither is great:
+> >> >
+> >> > a) we leave the individual per-soc options in the top-level menu
+> >> >    and move the sub-options under those. This is a bit or a problem
+> >> >    for options concerning all of OMAP, but I'm not sure how many of
+> >> >    those are actually required.
+> >> >
+> >> > b) We go back to Rob's version and make CONFIG_ARCH_OMAP the
+> >> >    user-selectable option, and then find another solution for
+> >> >    building a kernel with ARCH_OMAP set but none of individual
+> >> >    options. This will work for anybody who has a full .config
+> >> >    file, but still break the 'make savedefconfig' generated ones.
+> >>
+> >> After playing with this more yesterday, I think ARCH_OMAP2PLUS instead
+> >> of ARCH_OMAP is actually a better choice to make the menuconfig item.
+> >> It still has the same defconfig issues, but doesn't affect OMAP1.
+> >
+> > Well eventually we'll have the same problem for both ARCH_OMAP1
+> > and ARCH_OMAP2PLUS so from that point of view it might make sense
+> > to use ARCH_OMAP to start with.
 > 
-> > The only case that approached this was with PLLs.  PLLs would
-> > automatically be placed into bypass if the PLL rate was set to the bypass
-> > rate.
+> But OMAP1 and OMAP2PLUS are mutually exclusive being v5 and v6+. So
+> there would not be any user visible difference having 2 visible
+> options. Do you expect any of these kconfig symbols to become
+> obsolete?
+
+Yes you're right. They would be mutually exclusive and will most
+likely stay that way because of different compiler flags needed.
+All three Kconfig options are needed. So if you prefer using
+OMAP2PLUS there I'm fine with that.
+ 
+> >> Doing your trick of a default selection with "select ARCH_OMAP2 if
+> >> !(ARCH_OMAP3 || ARCH_OMAP4 || ...)" in the menuconfig option can fix
+> >> the build issues. We'd actually need 2 selects for v6 and v7 only
+> >> builds.
+> >
+> > Yes that or the options in mach-omap2/Makefile can be fixed up
+> > further for building things only when a SoC is selected.
+> >
+> > So really the issue is how to deal with make oldconfig for
+> > existing .config files. I don't know if there's any solution to
+> > that short of doing make CONFIG_ARCH_OMAP=y oldconfig.
 > 
-> Someone could argue that this is rather strange approach also and would be
-> better to use some other API for the purpose.
+> .config files are the full config, so wouldn't they be okay? It is
+> only the reduced savedefconfig that would break.
 
-Probably so.  clk_set_parent() doesn't fit very well, since the parent is 
-exactly the same.  Ideally there'd be some other API, like clk_lock_loop() 
-and clk_unlock_loop(), given the sheer number of clock sources with 
-optional, active loop compensation.
+Right, so maybe that problem does not affect as many people as I
+thought originally. But certainly not something to do during the
+-rc cycle though :)
 
-Returning to the specific OMAP PLL case.  When it was written there was 
-some serious thought put into trying to determine how reasonable or safe 
-of a thing it was to do.  At the time, it was concluded that the bypass 
-rates were unlikely to be configured by accident, since they were so low.  
-Furthermore no one identified any negative effect of switching to the the 
-bypass clock for the PLLs where it was practical (DPLL1, DPLL2).  In fact 
-it was considered a feature...
+Regards,
 
-
-- Paul
+Tony
