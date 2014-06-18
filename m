@@ -1,77 +1,37 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
-Date: Wed, 18 Jun 2014 18:04:51 +0530
-Message-ID: <53A1876B.2040701@ti.com>
-References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-2-git-send-email-rogerq@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 1/2] regulators: TPS65218: Add the missing of_node assignment in probe
+Date: Wed, 18 Jun 2014 10:17:47 -0500
+Message-ID: <1403104668-32316-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47469 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966138AbaFRMhK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jun 2014 08:37:10 -0400
-In-Reply-To: <1403093816-10960-2-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: lgirdwood@gmail.com, broonie@kernel.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, stable@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday 18 June 2014 05:46 PM, Roger Quadros wrote:
-> This module is needed for the SATA and PCIe PHYs.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Tested-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 25 +++++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 20b4398..cedef6b 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
->  	},
->  };
->  
-> +/* ocp2scp3 */
-> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
-> +
-> +/* l4_cfg -> ocp2scp3 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
-> +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_ocp2scp3_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
+From: Keerthy <j-keerthy@ti.com>
 
-is it not possible to move this down in the file where all interface
-structs are defined?
+Add the missing of_node assignment in probe.
 
-> +
-> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-> +	.name		= "ocp2scp3",
-> +	.class		= &dra7xx_ocp2scp_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
-> +
->  /*
->   * 'qspi' class
->   *
-> @@ -2672,6 +2696,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_per1__mmc4,
->  	&dra7xx_l4_cfg__mpu,
->  	&dra7xx_l4_cfg__ocp2scp1,
-> +	&dra7xx_l4_cfg__ocp2scp3,
->  	&dra7xx_l3_main_1__qspi,
->  	&dra7xx_l4_cfg__sata,
->  	&dra7xx_l4_cfg__smartreflex_core,
-> 
+Cc: <stable@vger.kernel.org> # v3.15
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/regulator/tps65218-regulator.c | 1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index 69b4b77..edbc46e 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -240,6 +240,7 @@ static int tps65218_regulator_probe(struct platform_device *pdev)
+ 	config.init_data = init_data;
+ 	config.driver_data = tps;
+ 	config.regmap = tps->regmap;
++	config.of_node = pdev->dev.of_node;
+ 
+ 	rdev = devm_regulator_register(&pdev->dev, &regulators[id], &config);
+ 	if (IS_ERR(rdev)) {
+-- 
+2.0.0.rc1
