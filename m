@@ -1,41 +1,69 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] omap3-n900.dts: Rename model name to "Nokia RX-51 board"
-Date: Wed, 18 Jun 2014 23:43:44 +0300
-Message-ID: <20140618204344.GC558@drone.musicnaut.iki.fi>
-References: <1403110635-29696-1-git-send-email-pali.rohar@gmail.com>
- <20140618201241.GB558@drone.musicnaut.iki.fi>
- <201406182223.03420@pali>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2 1/2] arm: dts: am4372: let boards enable RTC and Watchdog
+Date: Wed, 18 Jun 2014 16:43:28 -0500
+Message-ID: <53A20800.3070301@ti.com>
+References: <1403106200-777-1-git-send-email-balbi@ti.com> <1403106200-777-2-git-send-email-balbi@ti.com> <53A1B677.9010909@ti.com> <20140618192553.GB4570@saruman.home>
+Reply-To: nm@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201406182223.03420@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: devicetree@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Russell King <linux@arm.linux.org.uk>, Pavel Machek <pavel@ucw.cz>, Pawel Moll <pawel.moll@arm.com>, Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:41648 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbaFRVnc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 17:43:32 -0400
+In-Reply-To: <20140618192553.GB4570@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, r.sricharan@ti.com, robh+dt@kernel.org, Benoit Cousson <bcousson@baylibre.com>, galak@codeaurora.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+On 06/18/2014 02:25 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Wed, Jun 18, 2014 at 10:55:35AM -0500, Nishanth Menon wrote:
+>> $subject - ARM: dts:
+>>
+>> On 06/18/2014 10:43 AM, Felipe Balbi wrote:
+>>> by providing phandles to rtc and wdt nodes, we can
+>>> let boards enable rtc and wdt as necessary.
+>>>
+>>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>>> ---
+>>>   arch/arm/boot/dts/am4372.dtsi | 4 ++--
+>>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+>>> index 49fa596..e3830d4 100644
+>>> --- a/arch/arm/boot/dts/am4372.dtsi
+>>> +++ b/arch/arm/boot/dts/am4372.dtsi
+>>> @@ -270,7 +270,7 @@
+>>>   			ti,hwmods = "counter_32k";
+>>>   		};
+>>>
+>>> -		rtc@44e3e000 {
+>>> +		rtc: rtc@44e3e000 {
+>>>   			compatible = "ti,am4372-rtc","ti,da830-rtc";
+>>>   			reg = <0x44e3e000 0x1000>;
+>>>   			interrupts = <GIC_SPI 75 IRQ_TYPE_LEVEL_HIGH
+>>> @@ -279,7 +279,7 @@
+>>>   			status = "disabled";
+>>>   		};
+>>>
+>>> -		wdt@44e35000 {
+>>> +		wdt: wdt@44e35000 {
+>>>   			compatible = "ti,am4372-wdt","ti,omap3-wdt";
+>>>   			reg = <0x44e35000 0x1000>;
+>>>   			interrupts = <GIC_SPI 91 IRQ_TYPE_LEVEL_HIGH>;
+>>>
+>> we might want to fix up any other similar nodes in dtsi as well, no?
+>>
+>> examples:
+>> cpu@0
+>
+> and why would you want boards to mess with the cpu node ?
+>
+cpu-supply = <&regulator>;
 
-On Wed, Jun 18, 2014 at 10:23:03PM +0200, Pali Roh=E1r wrote:
-> On Wednesday 18 June 2014 22:12:41 Aaro Koskinen wrote:
-> > On Wed, Jun 18, 2014 at 06:57:15PM +0200, Pali Roh=E1r wrote:
-> > > Use same name as in legacy board code. There are lot of
-> > > userspace applications which using machine/model name for
-> > > determinating device type.
-> >=20
-> > Can you clarify this? Nokia kernel or userspace never had DT,
-> > so they cannot see e.g. /proc/device-tree/model. What other
-> > APIs expose model?
->=20
-> Basically that patch export model name in Hardware /proc/cpuinfo=20
-> instead generic DT name. And this patch change name to what=20
-> legacy board code reported.
+for cpufreq.
 
-I don't like the idea of changing the model name from Nokia
-marketing names to those cryptic internal names in DT files.
-There also may be already some userspace relying to find current model
-name from /proc/device-tree/model (e.g. I think my own OS would break).
-
-A.
