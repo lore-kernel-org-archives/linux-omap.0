@@ -1,81 +1,86 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 7/9] regulator: palmas: Add palmas_pmic_driver_data
- structure
-Date: Wed, 18 Jun 2014 08:24:36 +0100
-Message-ID: <20140618072436.GA21030@lee--X1>
-References: <1401272423-25761-1-git-send-email-j-keerthy@ti.com>
- <1401272423-25761-8-git-send-email-j-keerthy@ti.com>
- <20140617163721.GR29841@lee--X1>
- <53A11D40.7020201@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] clk: ti: am43x: Fix boot with CONFIG_SOC_AM33XX disabled
+Date: Wed, 18 Jun 2014 10:52:05 +0300
+Message-ID: <53A14525.5050208@ti.com>
+References: <1403013804-13522-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:52740 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbaFRHYm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 03:24:42 -0400
-Received: by mail-ie0-f179.google.com with SMTP id tr6so381167ieb.38
-        for <linux-omap@vger.kernel.org>; Wed, 18 Jun 2014 00:24:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <53A11D40.7020201@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37622 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932818AbaFRHwK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 03:52:10 -0400
+In-Reply-To: <1403013804-13522-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+To: mturquette@linaro.org, tony@atomide.com
+Cc: t-kristo@ti.com, nm@ti.com, linux-omap@vger.kernel.org
 
-> >>Add palmas_pmic_driver_data structure.
-> >>
-> >>Signed-off-by: Keerthy <j-keerthy@ti.com>
-> >>---
-> >>  include/linux/mfd/palmas.h |   25 +++++++++++++++++++++++++
-> >>  1 file changed, 25 insertions(+)
-> >>
-> >>diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.=
-h
-> >>index 8d68452..70f0695 100644
-> >>--- a/include/linux/mfd/palmas.h
-> >>+++ b/include/linux/mfd/palmas.h
-[...]
+On 06/17/2014 05:03 PM, Roger Quadros wrote:
+> Define ti_clk_register_dpll_x2() and of_ti_am3_dpll_x2_setup() if
+> AM43XX is defined.
+> 
+> Fixes the below boot issue.
+> 
+> [    2.157258] gpmc_l3_clk not enabled
+> [    2.161194] gpmc_l3_clk not enabled
+> [    2.164896] Division by zero in kernel.
+> [    2.169055] CPU: 0 PID: 321 Comm: kworker/u2:2 Tainted: G        W     3.16.0-rc1-00008-g4c0e520 #273
+> [    2.178880] Workqueue: deferwq deferred_probe_work_func
+> [    2.184459] [<c001477c>] (unwind_backtrace) from [<c001187c>] (show_stack+0x10/0x14)
+> [    2.192752] [<c001187c>] (show_stack) from [<c0530f28>] (dump_stack+0x80/0x9c)
+> [    2.200486] [<c0530f28>] (dump_stack) from [<c02c867c>] (Ldiv0+0x8/0x10)
+> [    2.207678] [<c02c867c>] (Ldiv0) from [<c0022da0>] (gpmc_calc_divider+0x24/0x40)
+> [    2.215490] [<c0022da0>] (gpmc_calc_divider) from [<c0022e20>] (gpmc_cs_set_timings+0x18/0x474)
+> [    2.224783] [<c0022e20>] (gpmc_cs_set_timings) from [<c003069c>] (gpmc_nand_init+0x74/0x1a8)
+> [    2.233791] [<c003069c>] (gpmc_nand_init) from [<c0024668>] (gpmc_probe+0x52c/0x874)
+> [    2.242089] [<c0024668>] (gpmc_probe) from [<c0349218>] (platform_drv_probe+0x18/0x48)
+> [    2.250534] [<c0349218>] (platform_drv_probe) from [<c0347d88>] (driver_probe_device+0x104/0x22c)
+> [    2.259988] [<c0347d88>] (driver_probe_device) from [<c03464dc>] (bus_for_each_drv+0x44/0x8c)
+> [    2.269087] [<c03464dc>] (bus_for_each_drv) from [<c0347c4c>] (device_attach+0x74/0x8c)
+> [    2.277620] [<c0347c4c>] (device_attach) from [<c0347380>] (bus_probe_device+0x88/0xb0)
+> [    2.286074] [<c0347380>] (bus_probe_device) from [<c0347768>] (deferred_probe_work_func+0x60/0x90)
+> [    2.295611] [<c0347768>] (deferred_probe_work_func) from [<c004ef50>] (process_one_work+0x1b4/0x4bc)
+> [    2.305288] [<c004ef50>] (process_one_work) from [<c004f3d4>] (worker_thread+0x148/0x550)
+> [    2.313954] [<c004f3d4>] (worker_thread) from [<c0055a48>] (kthread+0xc8/0xe4)
+> [    2.321628] [<c0055a48>] (kthread) from [<c000e648>] (ret_from_fork+0x14/0x2c)
+> 
 
-> >>+struct palmas_pmic_driver_data {
-> >>+	int smps_start;
-> >>+	int smps_end;
-> >>+	int ldo_begin;
-> >>+	int ldo_end;
-> >>+	int max_reg;
-> >>+	struct regs_info *palmas_regs_info;
-> >>+	struct of_regulator_match *palmas_matches;
-> >>+	struct palmas_sleep_requestor_info *sleep_req_info;
-> >>+	int (*smps_register)(struct palmas_pmic *pmic,
-> >>+			     struct palmas_pmic_driver_data *ddata,
-> >>+			     struct palmas_pmic_platform_data *pdata,
-> >>+			     const char *pdev_name,
-> >>+			     struct regulator_config config);
-> >>+	int (*ldo_register)(struct palmas_pmic *pmic,
-> >>+			    struct palmas_pmic_driver_data *ddata,
-> >>+			    struct palmas_pmic_platform_data *pdata,
-> >>+			    const char *pdev_name,
-> >>+			    struct regulator_config config);
-> >Are you sure you need to store all of this stuff?
-> >
-> >Particularly the match pointer.  Do you really re-use it?
->=20
-> Match pointer is used extensively in the palmas_regulator.c.
-> This structure is very much used by regulator driver.
+Sorry to miss that this was reported by Tony.
 
-On closer inspection, I now see that it's a 'of_regulator_match',
-rather than an 'of_match' pointer, which were my initial thoughts.  I
-think it would have been weird to carry the 'of_match', but the
-reality sounds sane.
+Reported-by: Tony Lindgren <tony@atomide.com>
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
+
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/clk/ti/dpll.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+> index abd956d..79791e1 100644
+> --- a/drivers/clk/ti/dpll.c
+> +++ b/drivers/clk/ti/dpll.c
+> @@ -161,7 +161,8 @@ cleanup:
+>  }
+>  
+>  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
+> -	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX)
+> +	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX) || \
+> +	defined(CONFIG_SOC_AM43XX)
+>  /**
+>   * ti_clk_register_dpll_x2 - Registers a DPLLx2 clock
+>   * @node: device node for this clock
+> @@ -322,7 +323,7 @@ CLK_OF_DECLARE(ti_omap4_dpll_x2_clock, "ti,omap4-dpll-x2-clock",
+>  	       of_ti_omap4_dpll_x2_setup);
+>  #endif
+>  
+> -#ifdef CONFIG_SOC_AM33XX
+> +#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
+>  static void __init of_ti_am3_dpll_x2_setup(struct device_node *node)
+>  {
+>  	ti_clk_register_dpll_x2(node, &dpll_x2_ck_ops, NULL);
+> 
+
