@@ -1,86 +1,126 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] clk: ti: am43x: Fix boot with CONFIG_SOC_AM33XX disabled
-Date: Wed, 18 Jun 2014 10:52:05 +0300
-Message-ID: <53A14525.5050208@ti.com>
-References: <1403013804-13522-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v4 3/4] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
+Date: Wed, 18 Jun 2014 10:56:42 +0300
+Message-ID: <53A1463A.9040401@ti.com>
+References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274559-24777-1-git-send-email-rogerq@ti.com> <alpine.DEB.2.02.1406131901340.340@utopia.booyaka.com> <alpine.DEB.2.02.1406150331530.659@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37622 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932818AbaFRHwK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 03:52:10 -0400
-In-Reply-To: <1403013804-13522-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1406150331530.659@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@linaro.org>
+Cc: tony@atomide.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
-To: mturquette@linaro.org, tony@atomide.com
-Cc: t-kristo@ti.com, nm@ti.com, linux-omap@vger.kernel.org
 
-On 06/17/2014 05:03 PM, Roger Quadros wrote:
-> Define ti_clk_register_dpll_x2() and of_ti_am3_dpll_x2_setup() if
-> AM43XX is defined.
-> 
-> Fixes the below boot issue.
-> 
-> [    2.157258] gpmc_l3_clk not enabled
-> [    2.161194] gpmc_l3_clk not enabled
-> [    2.164896] Division by zero in kernel.
-> [    2.169055] CPU: 0 PID: 321 Comm: kworker/u2:2 Tainted: G        W     3.16.0-rc1-00008-g4c0e520 #273
-> [    2.178880] Workqueue: deferwq deferred_probe_work_func
-> [    2.184459] [<c001477c>] (unwind_backtrace) from [<c001187c>] (show_stack+0x10/0x14)
-> [    2.192752] [<c001187c>] (show_stack) from [<c0530f28>] (dump_stack+0x80/0x9c)
-> [    2.200486] [<c0530f28>] (dump_stack) from [<c02c867c>] (Ldiv0+0x8/0x10)
-> [    2.207678] [<c02c867c>] (Ldiv0) from [<c0022da0>] (gpmc_calc_divider+0x24/0x40)
-> [    2.215490] [<c0022da0>] (gpmc_calc_divider) from [<c0022e20>] (gpmc_cs_set_timings+0x18/0x474)
-> [    2.224783] [<c0022e20>] (gpmc_cs_set_timings) from [<c003069c>] (gpmc_nand_init+0x74/0x1a8)
-> [    2.233791] [<c003069c>] (gpmc_nand_init) from [<c0024668>] (gpmc_probe+0x52c/0x874)
-> [    2.242089] [<c0024668>] (gpmc_probe) from [<c0349218>] (platform_drv_probe+0x18/0x48)
-> [    2.250534] [<c0349218>] (platform_drv_probe) from [<c0347d88>] (driver_probe_device+0x104/0x22c)
-> [    2.259988] [<c0347d88>] (driver_probe_device) from [<c03464dc>] (bus_for_each_drv+0x44/0x8c)
-> [    2.269087] [<c03464dc>] (bus_for_each_drv) from [<c0347c4c>] (device_attach+0x74/0x8c)
-> [    2.277620] [<c0347c4c>] (device_attach) from [<c0347380>] (bus_probe_device+0x88/0xb0)
-> [    2.286074] [<c0347380>] (bus_probe_device) from [<c0347768>] (deferred_probe_work_func+0x60/0x90)
-> [    2.295611] [<c0347768>] (deferred_probe_work_func) from [<c004ef50>] (process_one_work+0x1b4/0x4bc)
-> [    2.305288] [<c004ef50>] (process_one_work) from [<c004f3d4>] (worker_thread+0x148/0x550)
-> [    2.313954] [<c004f3d4>] (worker_thread) from [<c0055a48>] (kthread+0xc8/0xe4)
-> [    2.321628] [<c0055a48>] (kthread) from [<c000e648>] (ret_from_fork+0x14/0x2c)
-> 
-
-Sorry to miss that this was reported by Tony.
-
-Reported-by: Tony Lindgren <tony@atomide.com>
++ Rajendra, Nishant and Kevin.
+as you were mentioned in the discussion.
 
 cheers,
 -roger
 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/clk/ti/dpll.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+On 06/15/2014 06:33 AM, Paul Walmsley wrote:
+> On Fri, 13 Jun 2014, Paul Walmsley wrote:
 > 
-> diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-> index abd956d..79791e1 100644
-> --- a/drivers/clk/ti/dpll.c
-> +++ b/drivers/clk/ti/dpll.c
-> @@ -161,7 +161,8 @@ cleanup:
->  }
->  
->  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
-> -	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX)
-> +	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM33XX) || \
-> +	defined(CONFIG_SOC_AM43XX)
->  /**
->   * ti_clk_register_dpll_x2 - Registers a DPLLx2 clock
->   * @node: device node for this clock
-> @@ -322,7 +323,7 @@ CLK_OF_DECLARE(ti_omap4_dpll_x2_clock, "ti,omap4-dpll-x2-clock",
->  	       of_ti_omap4_dpll_x2_setup);
->  #endif
->  
-> -#ifdef CONFIG_SOC_AM33XX
-> +#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
->  static void __init of_ti_am3_dpll_x2_setup(struct device_node *node)
->  {
->  	ti_clk_register_dpll_x2(node, &dpll_x2_ck_ops, NULL);
+>> Hi Roger,
+>>
+>> On Wed, 23 Apr 2014, Roger Quadros wrote:
+>>
+>>> From: Nikhil Devshatwar <nikhil.nd@ti.com>
+>>>
+>>> Add hwmods for ocp2scp3 and sata modules.
+>>>
+>>> [Roger Q] Clean up.
+>>
+>> Sorry for the delay on this.  Have been corresponding with TI to figure 
+>> out what to do about these DRA7xx/AM43xx patches, since I don't have 
+>> boards or public documentation for these devices, so it's impossible for 
+>> me to meaningfully review the patches.  Looks like boards and/or public 
+>> docs won't be coming any time soon.
+>>
+>> So for my part, here's what I'll need to merge any hwmod patches that 
+>> involve AM437x or DRA7xx:
+>>
+>> 1. A Reviewed-by: from one of the following folks (which should come from 
+>> a different person than who is submitting the patches):
+>>
+>> Roger Quadros
+>> Nishanth Menon
+>> Rajendra Nayak
+>> Kevin Hilman
+>> Tony Lindgren
+>>
+>> 2. A Tested-by: from one of the following folks (who can be the same as 
+>> the person who is the same as the person who is submitting the patches):
+>>
+>> Nishanth Menon
+>> Rajendra Nayak
+>> Kevin Hilman 
+>> Tony Lindgren
+>>
+>> Once these are in place, I'd be happy to queue it for 3.16.
 > 
-
+> I've tried to clarify this a bit.  The update is below.
+> 
+> 
+> - Paul
+> 
+> 
+> 
+> For boards that I don't have access to, that I don't have 
+> documentation for, such as the AM43xx and DRA7xx), for me to merge or ack 
+> SoC infrastructure or PM-related patches, I want to have:
+> 
+> 1. a Reviewed-by: from people who:
+> 
+> a. I think know something about SoC integration or PM in general, and 
+> about OMAP-style integration specifically; and
+> 
+> b. who have a track record of doing strong and detailed reviews of that 
+> code, or who have contributed significantly to that code in the past.
+> 
+> My initial list of those reviewers is listed above, and I am happy to 
+> consider extending it or modifying that list.
+> 
+> 
+> 2. confidence that the patch or series has been tested against a mainline 
+> commit and isn't obviously breaking other things, like PM, and confidence 
+> that it's not adding new runtime warnings.
+> 
+> I've listed an initial set of people above who I feel have proven track 
+> records in testing who I'm happy to accept Tested-by:s without further 
+> explanation.  I'm sure I've missed some folks and if anyone who should be 
+> on that list is offended that I didn't mention them, please accept my 
+> apologies.  For other folks, like yourself, who aren't on that list (yet), 
+> please just specifically state:
+> 
+> a. what mainline commit they've tested the patch against,
+> 
+> b. what other prerequisite patches were needed for the patch to apply,
+> 
+> c. and a cut-and-paste of the serial console boot log from the boot 
+> portion of the test.
+> 
+> in such a way that myself or someone else can easily doublecheck it. 
+> 
+> And frankly, I'll probably be happy to merge it.
+> 
+> After someone has done these three things a few times, and I gain 
+> confidence that they're doing the right thing, I'm happy to add them to 
+> my list.
+> 
+> The testing doesn't have to be expressed via a Tested-by: tag in cases 
+> where you're testing as part of a Signed-off-by:.  Just be sure to state 
+> those three things above as part of the patch or series message.  The boot 
+> log can either be placed on a different page and linked to, or sent in 
+> another public E-mail.
+> 
+> If you can get two or three people to do the above, that's great - the 
+> more, the better.
+> 
+> ...
+> 
+> These two steps do not apply to boards that I have in my testbed or which 
+> I have documentation for (although they would definitely be very welcome 
+> in those cases too).
+> 
