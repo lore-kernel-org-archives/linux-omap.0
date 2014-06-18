@@ -1,143 +1,74 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 3/4] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
-Date: Wed, 18 Jun 2014 14:22:15 +0300
-Message-ID: <53A17667.5050903@ti.com>
-References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274559-24777-1-git-send-email-rogerq@ti.com> <53A14784.1030008@ti.com> <53A169FC.70907@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 5/7] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+Date: Wed, 18 Jun 2014 14:24:46 +0300
+Message-ID: <53A176FE.4040608@ti.com>
+References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-6-git-send-email-rogerq@ti.com> <53A173A5.7020509@ti.com> <53A175DC.8080709@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53A169FC.70907@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: tony@atomide.com, "Menon, Nishanth" <nm@ti.com>, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53A175DC.8080709-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, kishon-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, george.cherian-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/18/2014 01:29 PM, Rajendra Nayak wrote:
-> On Wednesday 18 June 2014 01:32 PM, Roger Quadros wrote:
->> On 04/23/2014 08:35 PM, Roger Quadros wrote:
->>> From: Nikhil Devshatwar <nikhil.nd@ti.com>
+On 06/18/2014 02:19 PM, Rajendra Nayak wrote:
+> On Wednesday 18 June 2014 04:40 PM, Roger Quadros wrote:
+>> + Nishant and Rajendra for review.
+>>
+>> On 05/05/2014 12:54 PM, Roger Quadros wrote:
+>>> Add the sysconfig class bits for the Super Speed USB
+>>> controllers
 >>>
->>> Add hwmods for ocp2scp3 and sata modules.
+>>> CC: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 > 
-> From what I see this is actually adding the ocp2scp3 data and fixing up some
-> of the sata data which is already added and erroneous.
-> 
-> It would help if this is split up and the changelog explains whats fixed up for
-> sata and why. Like for instance I see the opt clock data being removed but no
-> mention of why.
+> verified against TRM version vP, looks good to me.
+> Reviewed-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
 
-OK. I will split this up into 2 patches, one to add ocp2scp3 data and the other to fix sata hwmod.
+Tested-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+
+against 3.16-rc1. no dependency patches.
 
 cheers,
 -roger
 
->  
->>>
->>> [Roger Q] Clean up.
->>>
->>> CC: Benoit Cousson <bcousson@baylibre.com>
->>> CC: Paul Walmsley <paul@pwsan.com>
->>> Signed-off-by: Balaji T K <balajitk@ti.com>
->>> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>
->> Tested-by: Roger Quadros <rogerq@ti.com>
->> against 3.16-rc1, no dependency patches needed.
->>
->> Nishant/Rajendra,
->>
->> Could you please review this? We need this for 3.16 SATA support and
->> Paul won't take this in without your reviewed-by tag. Thanks.
->>
->> cheers,
->> -roger
->>
+> 
 >>> ---
->>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 31 ++++++++++++++++++++++++++-----
->>>  1 file changed, 26 insertions(+), 5 deletions(-)
+>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 12 ++++++++++++
+>>>  1 file changed, 12 insertions(+)
 >>>
 >>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> index 810c205..b02a4ab 100644
+>>> index 810c205..067d322 100644
 >>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
 >>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
->>>  	},
->>>  };
->>>  
->>> +/* ocp2scp3 */
->>> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
->>> +
->>> +/* l4_cfg -> ocp2scp3 */
->>> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
->>> +	.master		= &dra7xx_l4_cfg_hwmod,
->>> +	.slave		= &dra7xx_ocp2scp3_hwmod,
->>> +	.clk		= "l4_root_clk_div",
->>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->>> +};
-> 
-> All hwmod data files are organized in a certain way with all the hwmod/IP block info on top
-> and Interface structs at the bottom. Can we follow the same for ocp2scp3? It helps with better
-> readability.
->  
->>> +
->>> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
->>> +	.name		= "ocp2scp3",
->>> +	.class		= &dra7xx_ocp2scp_hwmod_class,
->>> +	.clkdm_name	= "l3init_clkdm",
-> 
-> No main_clk?
-> 
-> regards,
-> Rajendra
-> 
->>> +	.prcm = {
->>> +		.omap4 = {
->>> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
->>> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
->>> +			.modulemode   = MODULEMODE_HWCTRL,
->>> +		},
->>> +	},
->>> +};
->>> +
->>>  /*
->>>   * 'qspi' class
+>>> @@ -1731,8 +1731,20 @@ static struct omap_hwmod dra7xx_uart6_hwmod = {
 >>>   *
->>> @@ -1268,9 +1292,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
+>>>   */
+>>>  
+>>> +static struct omap_hwmod_class_sysconfig dra7xx_usb_otg_ss_sysc = {
+>>> +	.rev_offs	= 0x0000,
+>>> +	.sysc_offs	= 0x0010,
+>>> +	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
+>>> +			   SYSC_HAS_SIDLEMODE),
+>>> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>>> +			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
+>>> +			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
+>>> +	.sysc_fields	= &omap_hwmod_sysc_type2,
+>>> +};
+>>> +
+>>>  static struct omap_hwmod_class dra7xx_usb_otg_ss_hwmod_class = {
+>>>  	.name	= "usb_otg_ss",
+>>> +	.sysc	= &dra7xx_usb_otg_ss_sysc,
 >>>  };
 >>>  
->>>  /* sata */
->>> -static struct omap_hwmod_opt_clk sata_opt_clks[] = {
->>> -	{ .role = "ref_clk", .clk = "sata_ref_clk" },
->>> -};
->>>  
->>>  static struct omap_hwmod dra7xx_sata_hwmod = {
->>>  	.name		= "sata",
->>> @@ -1278,6 +1299,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->>>  	.clkdm_name	= "l3init_clkdm",
->>>  	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
->>>  	.main_clk	= "func_48m_fclk",
->>> +	.mpu_rt_idx	= 1,
->>>  	.prcm = {
->>>  		.omap4 = {
->>>  			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
->>> @@ -1285,8 +1307,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->>>  			.modulemode   = MODULEMODE_SWCTRL,
->>>  		},
->>>  	},
->>> -	.opt_clks	= sata_opt_clks,
->>> -	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
->>>  };
->>>  
->>>  /*
->>> @@ -2682,6 +2702,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->>>  	&dra7xx_l4_per1__mmc4,
->>>  	&dra7xx_l4_cfg__mpu,
->>>  	&dra7xx_l4_cfg__ocp2scp1,
->>> +	&dra7xx_l4_cfg__ocp2scp3,
->>>  	&dra7xx_l3_main_1__qspi,
->>>  	&dra7xx_l4_cfg__sata,
->>>  	&dra7xx_l4_cfg__smartreflex_core,
+>>>  /* usb_otg_ss1 */
 >>>
 >>
 > 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
