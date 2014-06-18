@@ -1,114 +1,117 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 3/4] ARM: DRA7: hwmod: Add ocp2scp3 and sata hwmods
-Date: Wed, 18 Jun 2014 11:02:12 +0300
-Message-ID: <53A14784.1030008@ti.com>
-References: <1398274237-24510-1-git-send-email-rogerq@ti.com> <1398274559-24777-1-git-send-email-rogerq@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: Unifying cape overlays into boot .dtb for BeagleBoard.org boards
+Date: Wed, 18 Jun 2014 08:51:24 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF5DD0@DBDE04.ent.ti.com>
+References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com>
+ <CA+T6QP=jqdKij3bg3qZKT8GAKTKP94XtDWR+rcJWnDME5ZNmUg@mail.gmail.com>
+ <20980858CB6D3A4BAE95CA194937D5E73EAF59A7@DBDE04.ent.ti.com>
+ <CA+T6QP=Q0db33NU1g=9QrOUqQhLfKg=UiHVSn=Loog_JFxtP1w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1398274559-24777-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, "Menon, Nishanth" <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, hdegoede@redhat.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CA+T6QP=Q0db33NU1g=9QrOUqQhLfKg=UiHVSn=Loog_JFxtP1w@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jason Kridner <jkridner@gmail.com>, "Tony Lindgren (tony@atomide.com)" <tony@atomide.com>, "Rini, Tom" <trini@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>, OMAP List <linux-omap@vger.kernel.org>, Robert Nelson <robertcnelson@gmail.com>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/23/2014 08:35 PM, Roger Quadros wrote:
-> From: Nikhil Devshatwar <nikhil.nd@ti.com>
-> 
-> Add hwmods for ocp2scp3 and sata modules.
-> 
-> [Roger Q] Clean up.
-> 
-> CC: Benoit Cousson <bcousson@baylibre.com>
-> CC: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+Hi,
 
-Tested-by: Roger Quadros <rogerq@ti.com>
-against 3.16-rc1, no dependency patches needed.
+>From: Jason Kridner [mailto:jkridner@gmail.com]
+>>On Tue, Jun 17, 2014 at 3:11 AM, Gupta, Pekon <pekon@ti.com> wrote:
+>>>From: Jason Kridner
+[...]
+>>>> * The devicetree sources, including the primary boot .dts files, will
+>>>> eventually be removed from the kernel source tree. I'm not too sure if
+>>>> and when it'll really happen, but starting up a project to maintain
+>>>> the definitive beagleboard.org board devicetree files outside the
+>>>> kernel seems to make sense. Given the interdependency of the boot .dtb
+>>>> and the overlay .dtbo files, combining them into a single repository
+>>>> where every distribution can pick them up seems like a natural and
+>>>> obvious choice. There are of course some dependencies on kernel
+>>>> versions, but I believe most of those have settled out by now and we
+>>>> should be OK moving forward.
+>>
+>> +1
+>> Yes, moving cape DTS out of kernel tree should help developers.
+>> There are quite a few cape patches floating in mail-lists, but as cape
+>> DTS is still not accepted in mainline so they get lost and forgotten.
+>> So one place for collecting all this is a good idea.
+>>
+>>
+>> However, somehow the universal I/O DTS looked seemed complicated:
+>> (1)
+>> All capes work standalone, but due to share pin-mux some cape
+>> combinations cannot be used simultaneously. But most users of
+>> BeagleBone are already well-versed with DT and kernel infrastructure,
+>> so they need not be spoon fed to get a out-of-box working solution
+>> for each combination. If there is proper documentation is available
+>> about compatibility of capes with each other, then users will figure
+>> out themselves.
+>
+>I think you have too much confidence in users. If this doesn't hurt
+>power users, then why is it bad have an option to spoon feed? This
+>doesn't prevent anyone with knowledge of DT from doing their own
+>thing.
+>
+Fair enough.
+But plz give a try to u-boot alternative below. It works at my end.
 
-Nishant/Rajendra,
+>>
+>> (2)
+>> Also, there was a talk of enabling and disabling DT fragments via u-boot.
+>> That should also be explored instead of complicating cape DTS.
+>
+>Link? Relevance?
+>
+we can modify DT from u-boot itself [1].
+Example:  "MMC2" pin-mux conflicts with "NAND" and "NOR" capes.
+But using following sequence of commands, you can modify DTB via
+u-boot and make NAND cape work _without_any_hack_ in patch [2].
 
-Could you please review this? We need this for 3.16 SATA support and
-Paul won't take this in without your reviewed-by tag. Thanks.
+/* load DTB */
+u-boot> tftp 0x81000000 am335x-boneblack.dtb
+u-boot> fdt addr 0x81000000
+/* disable MMC2 node */
+u-boot> fdt list /ocp/mmc@481d8000
+u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
+u-boot> fdt list /ocp/mmc@481d8000 status
+/* enable GPMC node */
+u-boot> fdt list /ocp/gpmc
+u-boot> fdt set  /ocp/gpmc status \o\k\a\y
+u-boot> fdt list /ocp/gpmc status
+/* enable ELM node */
+u-boot> fdt list /ocp/elm
+u-boot> fdt set  /ocp/elm status \o\k\a\y
+u-boot> fdt list /ocp/elm status
+/* boot uImage */
+tftp 0x82000000 uImage
+bootm 0x82000000 - 0x81000000
 
-cheers,
--roger
+Note: "fdt set" command does not accept string literals
+as binding values, it internally converts them to string, so
+escape sequenced characters were used here..
+"okay" == \o\k\a\y
+"disabled" == \d\i\s\a\b\l\e\d"
 
-> ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 31 ++++++++++++++++++++++++++-----
->  1 file changed, 26 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 810c205..b02a4ab 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
->  	},
->  };
->  
-> +/* ocp2scp3 */
-> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
-> +
-> +/* l4_cfg -> ocp2scp3 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
-> +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_ocp2scp3_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-> +	.name		= "ocp2scp3",
-> +	.class		= &dra7xx_ocp2scp_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
-> +
->  /*
->   * 'qspi' class
->   *
-> @@ -1268,9 +1292,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
->  };
->  
->  /* sata */
-> -static struct omap_hwmod_opt_clk sata_opt_clks[] = {
-> -	{ .role = "ref_clk", .clk = "sata_ref_clk" },
-> -};
->  
->  static struct omap_hwmod dra7xx_sata_hwmod = {
->  	.name		= "sata",
-> @@ -1278,6 +1299,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->  	.clkdm_name	= "l3init_clkdm",
->  	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
->  	.main_clk	= "func_48m_fclk",
-> +	.mpu_rt_idx	= 1,
->  	.prcm = {
->  		.omap4 = {
->  			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
-> @@ -1285,8 +1307,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->  			.modulemode   = MODULEMODE_SWCTRL,
->  		},
->  	},
-> -	.opt_clks	= sata_opt_clks,
-> -	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
->  };
->  
->  /*
-> @@ -2682,6 +2702,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_per1__mmc4,
->  	&dra7xx_l4_cfg__mpu,
->  	&dra7xx_l4_cfg__ocp2scp1,
-> +	&dra7xx_l4_cfg__ocp2scp3,
->  	&dra7xx_l3_main_1__qspi,
->  	&dra7xx_l4_cfg__sata,
->  	&dra7xx_l4_cfg__smartreflex_core,
-> 
+
+Hope above solves the pre-requisite because of which 'Tony Lindgren <tony@atomide.com>'
+was unable to accept cape related DTS into his tree [3]
+
+
+[1] http://www.denx.de/wiki/view/DULG/UBootCmdFDT
+[2] http://www.spinics.net/lists/linux-omap/msg107307.html
+[3] http://www.spinics.net/lists/linux-omap/msg107354.html
+
+
+with regards, pekon
