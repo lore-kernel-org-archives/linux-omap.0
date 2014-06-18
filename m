@@ -1,90 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap: rework platform selection
-Date: Tue, 17 Jun 2014 23:53:09 -0700
-Message-ID: <20140618065309.GV17845@atomide.com>
-References: <5701099.0P1SIXsHc1@wuerfel>
- <20140616141712.GL17845@atomide.com>
- <CABGGisxdKznLzR+0b0oYrN+aiWM0gNFbzYwfPtAZF=AiapU=eQ@mail.gmail.com>
- <201406171557.15819.arnd@arndb.de>
- <CAL_Jsq+MK+HMqE3k8p06bzzohzS0qu84N12C=VgF9_dMcSGGOQ@mail.gmail.com>
- <20140617152542.GU17845@atomide.com>
- <CAL_JsqJ_Q8x03wu5w0i6qNa5KrmSF0id0TOp-nSw9jSorC6atw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for
+ ti,mux-clock
+Date: Wed, 18 Jun 2014 06:57:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406180639290.32511@utopia.booyaka.com>
+References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com> <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.02.1406170814220.31106@utopia.booyaka.com> <20140617213404.32686.34311@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41850 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756699AbaFRGxO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 02:53:14 -0400
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqJ_Q8x03wu5w0i6qNa5KrmSF0id0TOp-nSw9jSorC6atw@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:60528 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756579AbaFRG5W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jun 2014 02:57:22 -0400
+In-Reply-To: <20140617213404.32686.34311@quantum>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Rob Herring <rob.herring@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "arm@kernel.org" <arm@kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
 
-* Rob Herring <robherring2@gmail.com> [140617 09:42]:
-> On Tue, Jun 17, 2014 at 10:25 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Rob Herring <robherring2@gmail.com> [140617 08:05]:
-> >> On Tue, Jun 17, 2014 at 8:57 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> > On Monday 16 June 2014, Rob Herring wrote:
-> >> >> > So far I have not come up with no great ideas on fixing this
-> >> >> > properly short of requiring all omap .config files to add
-> >> >> > CONFIG_ARCH_OMAP=y manually. Anybody got good ideas for that?
-> >> >>
-> >> >> I've failed to come up with anything...
-> >> >>
-> >> >
-> >> > I have two ideas, but neither is great:
-> >> >
-> >> > a) we leave the individual per-soc options in the top-level menu
-> >> >    and move the sub-options under those. This is a bit or a problem
-> >> >    for options concerning all of OMAP, but I'm not sure how many of
-> >> >    those are actually required.
-> >> >
-> >> > b) We go back to Rob's version and make CONFIG_ARCH_OMAP the
-> >> >    user-selectable option, and then find another solution for
-> >> >    building a kernel with ARCH_OMAP set but none of individual
-> >> >    options. This will work for anybody who has a full .config
-> >> >    file, but still break the 'make savedefconfig' generated ones.
-> >>
-> >> After playing with this more yesterday, I think ARCH_OMAP2PLUS instead
-> >> of ARCH_OMAP is actually a better choice to make the menuconfig item.
-> >> It still has the same defconfig issues, but doesn't affect OMAP1.
-> >
-> > Well eventually we'll have the same problem for both ARCH_OMAP1
-> > and ARCH_OMAP2PLUS so from that point of view it might make sense
-> > to use ARCH_OMAP to start with.
+On Tue, 17 Jun 2014, Mike Turquette wrote:
+
+> Quoting Paul Walmsley (2014-06-17 01:15:09)
+> > On Tue, 17 Jun 2014, Tomi Valkeinen wrote:
+> > 
+> > > When setting the rate of a clock, by default the clock framework will
+> > > change the parent of the clock to the most suitable one in
+> > > __clk_mux_determine_rate() (most suitable by looking at the clock rate).
+> > 
+> > That is just insane.
 > 
-> But OMAP1 and OMAP2PLUS are mutually exclusive being v5 and v6+. So
-> there would not be any user visible difference having 2 visible
-> options. Do you expect any of these kconfig symbols to become
-> obsolete?
+> The patch description is insane. The framework has nothing to do with
+> this dynamic re-parenting behavior and certainly the framework does not
+> force this behavior on clock providers. This behavior is specific to
+> users of __clk_mux_determine_rate.
 
-Yes you're right. They would be mutually exclusive and will most
-likely stay that way because of different compiler flags needed.
-All three Kconfig options are needed. So if you prefer using
-OMAP2PLUS there I'm fine with that.
- 
-> >> Doing your trick of a default selection with "select ARCH_OMAP2 if
-> >> !(ARCH_OMAP3 || ARCH_OMAP4 || ...)" in the menuconfig option can fix
-> >> the build issues. We'd actually need 2 selects for v6 and v7 only
-> >> builds.
-> >
-> > Yes that or the options in mach-omap2/Makefile can be fixed up
-> > further for building things only when a SoC is selected.
-> >
-> > So really the issue is how to deal with make oldconfig for
-> > existing .config files. I don't know if there's any solution to
-> > that short of doing make CONFIG_ARCH_OMAP=y oldconfig.
+drivers/clk/clk-mux.c and drivers/clk/clk.c aren't considered part of the 
+clock framework?
+
+> Those are:
 > 
-> .config files are the full config, so wouldn't they be okay? It is
-> only the reduced savedefconfig that would break.
+> 1) drivers/clk/clk-mux.c
+> 2) drivers/clk/qcom/mmcc-msm8960.c
+> 3) drivers/clk/samsung/clk-s3c2410-dclk.c
+> 4) drivers/clk/ti/mux.c
+> 
+> If dynamic re-parenting by default doesn't work for your platform then
+> you have two choices:
+> 
+> 1) use the CLK_SET_RATE_NO_REPARENT flag (as this patch does)
+> 2) don't use the basic divider type and write your own
+> 
+> If you choose #2 then all you have to do when implementing
+> .determine_rate is ignore the best_parent_rate argument.
+> 
+> Finally when the .determine_rate callback was introduced (allowing
+> dynamic re-parenting from a call to clk_set_rate) the
+> CLK_SET_RATE_NO_REPARENT flag was applied to all affected users to
+> maintain prior behavior and prevent regressions.
 
-Right, so maybe that problem does not affect as many people as I
-thought originally. But certainly not something to do during the
--rc cycle though :)
+I don't disagree that some platforms might want this behavior.  But it's 
+not a safe default, the flag should be the other way around.  Rare is the 
+software engineer that knows whether the clock muxes on their platform are 
+glitchless.
 
-Regards,
 
-Tony
+- Paul
