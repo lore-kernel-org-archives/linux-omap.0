@@ -1,29 +1,27 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
-Date: Thu, 19 Jun 2014 05:48:35 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406190546520.13869@utopia.booyaka.com>
-References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-2-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Gadget regression with enabling of MUSB babble interrupt handling
+Date: Thu, 19 Jun 2014 02:56:55 -0700
+Message-ID: <20140619095655.GA29055@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:44173 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757052AbaFSFsg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jun 2014 01:48:36 -0400
-In-Reply-To: <1403093816-10960-2-git-send-email-rogerq@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33812 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757850AbaFSJ45 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jun 2014 05:56:57 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, rnayak@ti.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: Daniel Mack <zonque@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-On Wed, 18 Jun 2014, Roger Quadros wrote:
+Hi,
 
-> This module is needed for the SATA and PCIe PHYs.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Tested-by: Roger Quadros <rogerq@ti.com>
+Looks like commit ca88fc2ef0d7 (usb: musb: add a work_struct
+to recover from babble errors) causes MUSB gadgets to stop
+enumerating at least on omap3. Reverting the the commit fixes
+the issue.
 
-Is this one a fix?  It looks to me like a new IP block addition.
+Regards,
 
-
-- Paul
+Tony
