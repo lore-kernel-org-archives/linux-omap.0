@@ -1,105 +1,82 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 13/18] ARM: dts: dra7xx-clocks: Add missing clocks
- for second PCIe PHY instance
-Date: Thu, 19 Jun 2014 18:55:04 +0530
-Message-ID: <53A2E4B0.7030204@ti.com>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-14-git-send-email-kishon@ti.com> <53A2C787.5060905@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 10/18] ARM: dts: dra7xx-clocks: Add missing 32khz clocks
+ used for PHY
+Date: Thu, 19 Jun 2014 16:26:31 +0300
+Message-ID: <53A2E507.7090405@ti.com>
+References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-11-git-send-email-kishon@ti.com> <53A2C690.1060106@ti.com> <53A2E452.5020109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53A2C787.5060905-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: arnd-r2nGTMty4D4@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53A2E452.5020109@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 06/19/2014 04:23 PM, Kishon Vijay Abraham I wrote:
+> Hi Tero,
+>
+> On Thursday 19 June 2014 04:46 PM, Tero Kristo wrote:
+>> On 05/29/2014 09:38 AM, Kishon Vijay Abraham I wrote:
+>>> Added missing 32khz clock used by PCIe PHY.
+>>> The documention for this node can be found @ ../bindings/clock/ti/gate.txt.
+>>
+>> You can drop the node documentation ref, and rather add a TRM reference about
+>> hardware details. Other than that, looks good to me.
+>
+> You mean something like why 32KHz clock is used (**PRCM.PCIE_32K_GFCLK (based
+> on PRM.SYS_32K) for debounce and wakeup logic inside the PCIe1_PHY_RX**)? Or
+> something like **Figure 26-19. PCIe PHY Subsystem Integration of DRA TRM vE
+> shows how 32KHz clock is being used** ?
 
-On Thursday 19 June 2014 04:50 PM, Tero Kristo wrote:
-> On 05/29/2014 09:38 AM, Kishon Vijay Abraham I wrote:
->> Added missing clocks used by second instance of PCIe PHY.
->> The documention for this nodes can be found @ ../bindings/clock/ti/gate.txt.
-> 
-> Drop the ref to the binding doc and rather add a ref to TRM about the clock
-> layout. Also, is the register offset wrong on these? Should be 0x13b8, no, or
-> is my TRM version wrong?
+Just having a reference to the TRM version used and if you can provide a 
+link to a figure or page where the clock integration is described should 
+be good.
 
-Er.. you are right. It should be 0x13b8.
+-Tero
 
-Thanks
-Kishon
-> 
-> -Tero
-> 
+>
+> Thanks
+> Kishon
+>
 >>
->> Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
->> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
->> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>
->> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
->> Cc: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/boot/dts/dra7xx-clocks.dtsi |   24 ++++++++++++++++++++++++
->>   1 file changed, 24 insertions(+)
+>> -Tero
 >>
->> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> index 3d8c9c2..a9ff0dc 100644
->> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> @@ -1173,6 +1173,14 @@
->>           ti,bit-shift = <8>;
->>       };
+>>>
+>>> Cc: Tony Lindgren <tony@atomide.com>
+>>> Cc: Rajendra Nayak <rnayak@ti.com>
+>>> Cc: Tero Kristo <t-kristo@ti.com>
+>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>> Cc: Tony Lindgren <tony@atomide.com>
+>>> Cc: Rob Herring <robh+dt@kernel.org>
+>>> Cc: Pawel Moll <pawel.moll@arm.com>
+>>> Cc: Mark Rutland <mark.rutland@arm.com>
+>>> Cc: Kumar Gala <galak@codeaurora.org>
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>> ---
+>>>    arch/arm/boot/dts/dra7xx-clocks.dtsi |    8 ++++++++
+>>>    1 file changed, 8 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>> b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>> index 44993ec..e1bd052 100644
+>>> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+>>> @@ -1165,6 +1165,14 @@
+>>>            reg = <0x021c>, <0x0220>;
+>>>        };
+>>>
+>>> +    optfclk_pciephy_32khz: optfclk_pciephy_32khz@4a0093b0 {
+>>> +        compatible = "ti,gate-clock";
+>>> +        clocks = <&sys_32k_ck>;
+>>> +        #clock-cells = <0>;
+>>> +        reg = <0x13b0>;
+>>> +        ti,bit-shift = <8>;
+>>> +    };
+>>> +
+>>>        optfclk_pciephy_div: optfclk_pciephy_div@4a00821c {
+>>>            compatible = "ti,divider-clock";
+>>>            clocks = <&apll_pcie_ck>;
+>>>
 >>
->> +    optfclk_pciephy2_32khz: optfclk_pciephy_32khz@4a0093b4 {
->> +        compatible = "ti,gate-clock";
->> +        clocks = <&sys_32k_ck>;
->> +        #clock-cells = <0>;
->> +        reg = <0x13b4>;
->> +        ti,bit-shift = <8>;
->> +    };
->> +
->>       optfclk_pciephy_div: optfclk_pciephy_div@4a00821c {
->>           compatible = "ti,divider-clock";
->>           clocks = <&apll_pcie_ck>;
->> @@ -1191,6 +1199,14 @@
->>           ti,bit-shift = <9>;
->>       };
->>
->> +    optfclk_pciephy2_clk: optfclk_pciephy_clk@4a0093b4 {
->> +        compatible = "ti,gate-clock";
->> +        clocks = <&apll_pcie_ck>;
->> +        #clock-cells = <0>;
->> +        reg = <0x13b4>;
->> +        ti,bit-shift = <9>;
->> +    };
->> +
->>       optfclk_pciephy1_div_clk: optfclk_pciephy_div_clk@4a0093b0 {
->>           compatible = "ti,gate-clock";
->>           clocks = <&optfclk_pciephy_div>;
->> @@ -1199,6 +1215,14 @@
->>           ti,bit-shift = <10>;
->>       };
->>
->> +    optfclk_pciephy2_div_clk: optfclk_pciephy_div_clk@4a0093b4 {
->> +        compatible = "ti,gate-clock";
->> +        clocks = <&optfclk_pciephy_div>;
->> +        #clock-cells = <0>;
->> +        reg = <0x13b4>;
->> +        ti,bit-shift = <10>;
->> +    };
->> +
->>       apll_pcie_clkvcoldo: apll_pcie_clkvcoldo {
->>           #clock-cells = <0>;
->>           compatible = "fixed-factor-clock";
->>
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
