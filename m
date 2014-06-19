@@ -1,52 +1,51 @@
-From: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
-Subject: Re: Gadget regression with enabling of MUSB babble interrupt handling
-Date: Thu, 19 Jun 2014 12:50:21 +0200
-Message-ID: <53A2C06D.1000705@zonque.org>
-References: <20140619095655.GA29055@atomide.com> <53A2B6B0.2040804@zonque.org> <20140619103100.GB29055@atomide.com> <53A2BD34.1060409@zonque.org> <20140619104324.GC29055@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH v2 06/18] ARM: dts: DRA7: Add divider table to optfclk_pciephy_div
+ clock
+Date: Thu, 19 Jun 2014 14:10:36 +0300
+Message-ID: <53A2C52C.6020606@ti.com>
+References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-7-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140619104324.GC29055-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, george.cherian-l0cyMroinI0@public.gmane.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1401345500-20188-7-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, Keerthy <j-keerthy@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/19/2014 12:43 PM, Tony Lindgren wrote:
-> * Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org> [140619 03:38]:
->> On 06/19/2014 12:31 PM, Tony Lindgren wrote:
->>> * Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org> [140619 03:10]:
->>>> On 06/19/2014 11:56 AM, Tony Lindgren wrote:
+On 05/29/2014 09:38 AM, Kishon Vijay Abraham I wrote:
+> From: Keerthy <j-keerthy@ti.com>
+>
+> Add divider table to optfclk_pciephy_div clock. The Documentation
+> for divider clock can be found at ../clock/ti/divider.txt
 
->>> But that also raises a question: Were these patches merged for
->>> v3.16 ever even tested in peripheral mode?
->>
->> At the time, I had no such hardware to test this on, so I was hoping for
->> more testers to give them a try in different environments, which
->> apparently didn't happen. It fixed a dead USB port condition on
->> host-mode enabled hardware, though.
-> 
-> Well we probably should not merge patches without proper acks and
-> tested-by:s in general as things just seem to keep breaking
-> constantly otherwise. And things not working will keep people from
-> using linux next which will lead into even less testing..
+This patch requires a better changelog. Why is the change done, any TRM 
+refs etc.?
 
-I'm fairly sure the patch causing your trouble has been in linux-next
-for a while before they hit the merge window, so people with gadget
-enabled musb could have noticed the breakage early enough. The feedback
-rate for patches to this driver posted to linux-usb is also usually low,
-unfortunately.
+-Tero
 
-Anyway, breaking things is certainly not good, and I'm sorry for that.
-I'm just uncertain what detail in the procedure should be tweaked in
-order to prevent that from happening in the future.
+>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>   arch/arm/boot/dts/dra7xx-clocks.dtsi |    1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> index c767687..55e95c5 100644
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -1170,6 +1170,7 @@
+>   		clocks = <&apll_pcie_ck>;
+>   		#clock-cells = <0>;
+>   		reg = <0x021c>;
+> +		ti,dividers = <2>, <1>;
+>   		ti,bit-shift = <8>;
+>   		ti,max-div = <2>;
+>   	};
+>
 
-
-Thanks,
-Daniel
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
