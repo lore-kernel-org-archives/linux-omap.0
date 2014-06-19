@@ -1,72 +1,64 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH v2 06/18] ARM: dts: DRA7: Add divider table to optfclk_pciephy_div
- clock
-Date: Thu, 19 Jun 2014 16:27:32 +0300
-Message-ID: <53A2E544.1020605@ti.com>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-7-git-send-email-kishon@ti.com> <53A2C52C.6020606@ti.com> <53A2DB81.5070105@ti.com>
+From: Darren Etheridge <detheridge@TI.COM>
+Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
+Date: Thu, 19 Jun 2014 08:41:43 -0500
+Message-ID: <53A2E897.1030206@ti.com>
+References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <53A2DB81.5070105@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: arnd@arndb.de, tony@atomide.com, jg1.han@samsung.com, Keerthy <j-keerthy@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: =?UTF-8?B?R3VpZG8gTWFydMOtbmV6?= <guido@vanguardiasur.com.ar>, dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?B?RXplcXVpZWwgR2FyY8OtYQ==?= <ezequiel@vanguardiasur.com.ar>, Daniel Mack <zonque@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/19/2014 03:45 PM, Kishon Vijay Abraham I wrote:
-> Hi Tero,
->
-> On Thursday 19 June 2014 04:40 PM, Tero Kristo wrote:
->> On 05/29/2014 09:38 AM, Kishon Vijay Abraham I wrote:
->>> From: Keerthy <j-keerthy@ti.com>
->>>
->>> Add divider table to optfclk_pciephy_div clock. The Documentation
->>> for divider clock can be found at ../clock/ti/divider.txt
->>
->> This patch requires a better changelog. Why is the change done, any TRM refs etc.?
->
-> The 8th bit of CM_CLKMODE_APLL_PCIE can be programmed to either 0x0 or 0x1
-> based on if the divider value is 0x2 or 0x1.
->
-> Figure 26-21. PCIe PHY Clock Generator Overview in vE of DRA7xx ES1.0 shows the
-> block diagram of Clock Generator Subsystem of PCIe PHY module. We have to do a
-> bypass (divided by 1) in order to get the correct PCIE_PHY_DIV_GCLK
-
-Yes, something like this on the changelog would be good.
-
--Tero
-
-> frequency.
->
-> Thanks
-> Kishon
->>
->> -Tero
->>
->>>
->>> Cc: Rajendra Nayak <rnayak@ti.com>
->>> Cc: Tero Kristo <t-kristo@ti.com>
->>> Cc: Paul Walmsley <paul@pwsan.com>
->>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>>    arch/arm/boot/dts/dra7xx-clocks.dtsi |    1 +
->>>    1 file changed, 1 insertion(+)
->>>
->>> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->>> b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->>> index c767687..55e95c5 100644
->>> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->>> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->>> @@ -1170,6 +1170,7 @@
->>>            clocks = <&apll_pcie_ck>;
->>>            #clock-cells = <0>;
->>>            reg = <0x021c>;
->>> +        ti,dividers = <2>, <1>;
->>>            ti,bit-shift = <8>;
->>>            ti,max-div = <2>;
->>>        };
->>>
->>
-
+R3VpZG8sCgpUaGFua3MgYW5kIHNvcnJ5IEkgbWlzc2VkIHRoaXMgdGhlIGZpcnN0IHRpbWUgYXJv
+dW5kLiAgSSdsbCBnaXZlIGl0IGEgCnRyeSBvbiBhIGZldyBvZiBteSBBTTMzNXggYmFzZWQgYm9h
+cmRzIHdoZW4gSSBoYXZlIGFjY2VzcyB0byB0aGVtIGFnYWluIApvbiBNb25kYXkuCgpEYXJyZW4K
+Ck9uIDA2LzE3LzIwMTQgMDk6MTcgQU0sIEd1aWRvIE1hcnTDrW5leiB3cm90ZToKPiBUaGUgdGls
+Y2RjIGRyaXZlciBjb3VsZCBiZSBjb21waWxlZCBhcyBhIG1vZHVsZSwgYnV0IHdhcyBzZXZlcmVs
+eSBicm9rZW4KPiBhbmQgY291bGQgbm90IGJlIHVzZWQgYXMgc3VjaC4gVGhpcyBwYXRjaHNldCBh
+dHRlbXB0cyB0byBmaXggdGhlIGlzc3Vlcwo+IHByZXZlbnRpbmcgYSBwcm9wZXIgbG9hZC91bmxv
+YWQgb2YgdGhlIG1vZHVsZS4KPgo+IElzc3VlcyBpbmNsdWRlZCBkYW5nbGluZyBzeXNmcyBub2Rl
+cywgZGFuZ2xpbmcgZGV2aWNlcywgbWVtb3J5IGxlYWtzIGFuZAo+IGEgZG91YmxlIGtmcmVlLgo+
+Cj4gSXQgbm93IHNlZW1zIHRvIGJlIHdvcmtpbmcgb2suIFdlIGhhdmUgdGVzdGVkIHRoaXMgYnkg
+bG9hZGluZyBhbmQKPiB1bmxvYWRpbmcgdGhlIGRyaXZlciByZXBldGVhZGx5LCB3aXRoIGJvdGgg
+cGFuZWwgYW5kIHNsYXZlIGNvbm5lY3RvcnMKPiBhbmQgZm91bmQgbm8gZmxhd3MuCj4KPiBUaGVy
+ZSBpcyBzdGlsbCBvbmUgd2FybmluZyBsZWZ0IG9uIHRpbGNkY19jcnRjX2Rlc3Ryb3ksIGNhdXNl
+ZCBieQo+IGRlc3Ryb3lpbmcgdGhlIGNvbm5lY3RvciB3aGlsZSBzdGlsbCBpbiBhbiBPTiBzdGF0
+dXMuIFdlIGRvbid0IGtub3cgd2h5Cj4gdGhpcyBoYXBwZW5zIG9yIHdoeSBpdCdzIGFuIGlzc3Vl
+LCBzbyB3ZSBkaWQgbm90IGZpeCBpdC4KPgo+IFRoZSBmaXJzdCA3IHBhdGNoZXMgYXJlIGJ1ZyBm
+aXhlcyB3aGljaCBhbmQgc2hvdWxkIHByb2JhYmx5IGJlIGFwcGxpZWQKPiBpbiB0aGUgc3RhYmxl
+IHRyZWVzLiBUaGUgbGFzdCB0d28gYXJlIGNsZWFuLXVwcy4KPgo+Cj4gUmVzZW5kaW5nIHRoaXMg
+c2luY2UgSSBnb3Qgbm8gcmVwbGllcy4KPgo+Cj4gR3VpZG8gTWFydMOtbmV6ICg5KToKPiAgICBk
+cm0vaTJjOiB0ZGE5OTh4OiBtb3ZlIGRybV9pMmNfZW5jb2Rlcl9kZXN0cm95IGNhbGwKPiAgICBk
+cm0vdGlsY2RjOiBwYW5lbDogZml4IGRhbmdsaW5nIHN5c2ZzIGNvbm5lY3RvciBub2RlCj4gICAg
+ZHJtL3RpbGNkYzogc2xhdmU6IGZpeCBkYW5nbGluZyBzeXNmcyBjb25uZWN0b3Igbm9kZQo+ICAg
+IGRybS90aWxjZGM6IHRmcDQxMDogZml4IGRhbmdsaW5nIHN5c2ZzIGNvbm5lY3RvciBub2RlCj4g
+ICAgZHJtL3RpbGNkYzogcGFuZWw6IGZpeCBsZWFrIHdoZW4gdW5sb2FkaW5nIHRoZSBtb2R1bGUK
+PiAgICBkcm0vdGlsY2RjOiBmaXggcmVsZWFzZSBvcmRlciBvbiBleGl0Cj4gICAgZHJtL3RpbGNk
+YzogZml4IGRvdWJsZSBrZnJlZQo+ICAgIGRybS90aWxjZGM6IHJlbW92ZSBzdWJtb2R1bGUgZGVz
+dHJveSBjYWxscwo+ICAgIGRybS90aWxjZGM6IHJlcGxhY2UgbGF0ZV9pbml0Y2FsbCB3aXRoIG1v
+ZHVsZV9pbml0Cj4KPiAgIGRyaXZlcnMvZ3B1L2RybS9pMmMvdGRhOTk4eF9kcnYuYyAgICAgIHwg
+IDIgKy0KPiAgIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZlcnMgIHwgIDAKPiAg
+IGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX2Rydi5jICAgIHwgMTUgKysrKystLS0tLS0t
+LQo+ICAgZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmggICAgfCAgMSAtCj4gICBk
+cml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19wYW5lbC5jICB8IDM5ICsrKysrKysrKysrKysr
+KysrLS0tLS0tLS0tLS0tLS0tLS0KPiAgIGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvdGlsY2RjX3Ns
+YXZlLmMgIHwgMjcgKysrKysrKysrKysrKy0tLS0tLS0tLS0KPiAgIGRyaXZlcnMvZ3B1L2RybS90
+aWxjZGMvdGlsY2RjX3RmcDQxMC5jIHwgMzUgKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0t
+Cj4gICA3IGZpbGVzIGNoYW5nZWQsIDU5IGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9ucygtKQo+
+ICAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvZ3B1L2RybS90aWxjZGMvTW9kdWxlLnN5bXZl
+cnMKPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmkt
+ZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
