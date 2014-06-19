@@ -1,66 +1,46 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6 1/5] usb: musb: core: Handle Babble condition only in
- HOST mode
-Date: Thu, 19 Jun 2014 11:01:53 -0500
-Message-ID: <20140619160153.GJ23782@saruman.home>
-References: <1401096012-6895-1-git-send-email-george.cherian@ti.com>
- <1401096012-6895-2-git-send-email-george.cherian@ti.com>
- <20140619104441.GD29055@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
+Date: Thu, 19 Jun 2014 13:25:39 -0300
+Message-ID: <20140619162538.GA29661@fox>
+References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+ <53A2E897.1030206@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sT9gWZPUZYhvPS56"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yh0-f49.google.com ([209.85.213.49]:44838 "EHLO
+	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757405AbaFSQXp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jun 2014 12:23:45 -0400
+Received: by mail-yh0-f49.google.com with SMTP id f73so1896438yha.8
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jun 2014 09:23:44 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140619104441.GD29055@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: George Cherian <george.cherian@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, zonque@gmail.com, b-liu@ti.com
+In-Reply-To: <53A2E897.1030206@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Darren Etheridge <detheridge@TI.COM>
+Cc: dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, Daniel Mack <zonque@gmail.com>, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
 
---sT9gWZPUZYhvPS56
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Darren,
 
-Hi,
-
-On Thu, Jun 19, 2014 at 03:44:42AM -0700, Tony Lindgren wrote:
-> * George Cherian <george.cherian@ti.com> [140526 02:25]:
-> > BABBLE and RESET share the same interrupt. The interrupt
-> > is considered to be RESET if MUSB is in peripheral mode and
-> > as a BABBLE if MUSB is in HOST mode.
-> >=20
-> > Handle babble condition iff MUSB is in HOST mode.
+On Thu, Jun 19, 2014 at 08:41:43AM -0500, Darren Etheridge wrote:
+> Guido,
 >=20
-> Please get this into mainline kernel for v3.16-rc.
+> Thanks and sorry I missed this the first time around.  I'll give it a=
+ try on
+> a few of my AM335x based boards when I have access to them again on M=
+onday.
+Thanks! And no worries :)
 
-will do. Finishing up my series of build-tests, you should receive
-confirmation that the patch applied in a few hours.
-
+>=20
+> Darren
+>=20
 --=20
-balbi
-
---sT9gWZPUZYhvPS56
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTowlxAAoJEIaOsuA1yqREjjAP/1iOJQuomqLuFrUlq+cNdDTG
-7la8fVIN15yPkumM64XbruZt1WuHtuZHEfAHLF0BFhB/wh5Po2SHUyQdS136drwo
-oyR1e/vyqeRkBiLT71jYXVNZjSoKcvpgy1+XfbhoDmJg+hXlxaW+qir1Cd6Wcyte
-n8+2qAh6OgEGIiNW0v+rcJAs42grEKx4W5QAro6BUP0kuem56kMa3SSCc/uQ8J6L
-WCEms3FefM8DcXE0i7goEDg3nsjKUXk0/hchM55VTCl10Tfvs/gGkUllOnp1rOjm
-2eI0qmNnLDfRPkCZB6yVhO1eLdz60DVZlKVmKARO9kkN3O+NXFiEXR7O40Zk2NaT
-q1/PkjCs5yXowUt30RvTdOcoz6ZiTRKVqWSbQ6sQI4X/nqFauV+55bfxrXnAqMuB
-B4Tz+V+owB3es3Y6l+ceXQrto7t94tQ26QIhpD00+ommDSYF99BoLc9JDQTQ2BUP
-Ky6QfdxbxINJ9+g3rUyrxG3/qcqlVqV2LuH28+SwiFv1ZClX2z2Q8+MYzZVEITAl
-A4/0EIKjsAqjR28Y6MGPqYeY0eyzJxdgiq4+/4qvhjaUaNFt6c6ZY0KjSm3eFxFe
-+w+VmFJwdQJ3LZMdY6A4M4iVVos1eb30rD0+D9WFVjA0tsUx/W70KxYBDD06dpbN
-JebAdbS7eSkR2R9vAXue
-=fgxK
------END PGP SIGNATURE-----
-
---sT9gWZPUZYhvPS56--
+Guido Mart=EDnez, VanguardiaSur
+www.vanguardiasur.com.ar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
