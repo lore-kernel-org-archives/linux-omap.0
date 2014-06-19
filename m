@@ -1,63 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Gadget regression with enabling of MUSB babble interrupt handling
-Date: Thu, 19 Jun 2014 04:24:56 -0700
-Message-ID: <20140619112455.GE29055@atomide.com>
-References: <20140619095655.GA29055@atomide.com>
- <53A2B6B0.2040804@zonque.org>
- <20140619103100.GB29055@atomide.com>
- <53A2BD34.1060409@zonque.org>
- <20140619104324.GC29055@atomide.com>
- <53A2C06D.1000705@zonque.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for ti,mux-clock
+Date: Thu, 19 Jun 2014 14:33:14 +0300
+Message-ID: <53A2CA7A.60206@ti.com>
+References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com> <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63842 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932503AbaFSLY6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jun 2014 07:24:58 -0400
-Content-Disposition: inline
-In-Reply-To: <53A2C06D.1000705@zonque.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47175 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757273AbaFSLc6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jun 2014 07:32:58 -0400
+In-Reply-To: <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <daniel@zonque.org>
-Cc: linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, george.cherian@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
 
-* Daniel Mack <daniel@zonque.org> [140619 03:51]:
-> On 06/19/2014 12:43 PM, Tony Lindgren wrote:
-> > * Daniel Mack <daniel@zonque.org> [140619 03:38]:
-> >> On 06/19/2014 12:31 PM, Tony Lindgren wrote:
-> >>> * Daniel Mack <daniel@zonque.org> [140619 03:10]:
-> >>>> On 06/19/2014 11:56 AM, Tony Lindgren wrote:
-> 
-> >>> But that also raises a question: Were these patches merged for
-> >>> v3.16 ever even tested in peripheral mode?
-> >>
-> >> At the time, I had no such hardware to test this on, so I was hoping for
-> >> more testers to give them a try in different environments, which
-> >> apparently didn't happen. It fixed a dead USB port condition on
-> >> host-mode enabled hardware, though.
-> > 
-> > Well we probably should not merge patches without proper acks and
-> > tested-by:s in general as things just seem to keep breaking
-> > constantly otherwise. And things not working will keep people from
-> > using linux next which will lead into even less testing..
-> 
-> I'm fairly sure the patch causing your trouble has been in linux-next
-> for a while before they hit the merge window, so people with gadget
-> enabled musb could have noticed the breakage early enough. The feedback
-> rate for patches to this driver posted to linux-usb is also usually low,
-> unfortunately.
+On 06/17/2014 11:04 AM, Tomi Valkeinen wrote:
+> When setting the rate of a clock, by default the clock framework will
+> change the parent of the clock to the most suitable one in
+> __clk_mux_determine_rate() (most suitable by looking at the clock rate).
+>
+> This is a rather dangerous default, and causes problems on AM43x when
+> using display and ethernet. There are multiple ways to select the clock
+> muxes on AM43x, and some of those clock paths have the same source
+> clocks for display and ethernet. When changing the clock rate for the
+> display subsystem, the clock framework decides to change the display mux
+> from the dedicated display PLL to a shared PLL which is used by the
+> ethernet, and then changes the rate of the shared PLL, breaking the
+> ethernet.
+>
+> As I don't think there ever is a case where we want the clock framework
+> to automatically change the parent clock of a clock mux, this patch sets
+> the CLK_SET_RATE_NO_REPARENT for all ti,mux-clocks.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/clk/ti/mux.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+> index 0197a478720c..e9d650e51287 100644
+> --- a/drivers/clk/ti/mux.c
+> +++ b/drivers/clk/ti/mux.c
+> @@ -160,7 +160,7 @@ static void of_mux_clk_setup(struct device_node *node)
+>   	u8 clk_mux_flags = 0;
+>   	u32 mask = 0;
+>   	u32 shift = 0;
+> -	u32 flags = 0;
+> +	u32 flags = CLK_SET_RATE_NO_REPARENT;
+>
+>   	num_parents = of_clk_get_parent_count(node);
+>   	if (num_parents < 2) {
+>
 
-Right but the problem is that people are not touching linux next
-because it's constantly broken :)
- 
-> Anyway, breaking things is certainly not good, and I'm sorry for that.
-> I'm just uncertain what detail in the procedure should be tweaked in
-> order to prevent that from happening in the future.
+Thanks, queued for 3.16-rc fixes.
 
-Well I guess somebody should run basic tests on this driver in
-linux next, that would probably solve the issues.
-
-Regards,
-
-Tony
+-Tero
