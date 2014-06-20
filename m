@@ -1,44 +1,33 @@
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH] ARM: arm925: ensure assembly sets up writethrough mapping
-Date: Fri, 20 Jun 2014 11:26:34 +0100
-Message-ID: <E1Wxw1i-0004OA-GW@rmk-PC.arm.linux.org.uk>
-References: <20140620085759.GG558@drone.musicnaut.iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:36199 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S965068AbaFTK0i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jun 2014 06:26:38 -0400
-In-Reply-To: <20140620085759.GG558@drone.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
+Date: Fri, 20 Jun 2014 16:50:15 +0530
+Message-ID: <53A418EF.5050005@ti.com>
+References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-2-git-send-email-rogerq@ti.com> <alpine.DEB.2.02.1406190546520.13869@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1406190546520.13869@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, rnayak@ti.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Commit ca8f0b0a545f ("ARM: ensure C page table setup code follows
-assembly code") did what it said on the tin, but some of the older
-CPU code omitted the default cache policy from their files.  This
-results in the kernel running with the caches disabled.  Fix this
-for ARM925.
+On Thursday 19 June 2014 11:18 AM, Paul Walmsley wrote:
+> On Wed, 18 Jun 2014, Roger Quadros wrote:
+> 
+>> This module is needed for the SATA and PCIe PHYs.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Tested-by: Roger Quadros <rogerq@ti.com>
+> 
+> Is this one a fix?  It looks to me like a new IP block addition.
 
-Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mm/proc-arm925.S | 1 +
- 1 file changed, 1 insertion(+)
+This is not a regression fix, but this is the only thing preventing
+users from using SATA on DRA7x - the DT fragments are already there.
 
-diff --git a/arch/arm/mm/proc-arm925.S b/arch/arm/mm/proc-arm925.S
-index 97448c3acf38..ba0d58e1a2a2 100644
---- a/arch/arm/mm/proc-arm925.S
-+++ b/arch/arm/mm/proc-arm925.S
-@@ -502,6 +502,7 @@ __\name\()_proc_info:
- 	.long	\cpu_val
- 	.long	\cpu_mask
- 	.long   PMD_TYPE_SECT | \
-+		PMD_SECT_CACHEABLE | \
- 		PMD_BIT4 | \
- 		PMD_SECT_AP_WRITE | \
- 		PMD_SECT_AP_READ
--- 
-1.8.3.1
+Since its still early -rc cycle, I am hoping enabling support for new
+devices can still go in.
 
+Thanks,
+Sekhar
