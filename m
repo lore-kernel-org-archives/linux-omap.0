@@ -1,158 +1,90 @@
-From: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
-Subject: RE: OMAP 3630 random crashes
-Date: Fri, 20 Jun 2014 14:26:53 +0000
-Message-ID: <1403274413159.44797@grundfos.com>
-References: <1403254242990.39117@grundfos.com>
- <20140620091431.GA28884@atomide.com>
- <1403272840480.35753@grundfos.com>,<CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
+From: =?UTF-8?Q?V=C3=ADctor_MV?= <v.mayoralv@gmail.com>
+Subject: RT_PREEMPT issue with capemgr: rwlock bad magic on CPU#0
+Date: Fri, 20 Jun 2014 17:05:39 +0200
+Message-ID: <CAKpQ202W==CaVY0w73n_M-DYb-58P6iVdcRdjh1VA3HLdKbphA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-db3lp0084.outbound.protection.outlook.com ([213.199.154.84]:44404
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752500AbaFTO05 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 10:26:57 -0400
-In-Reply-To: <CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-vc0-f182.google.com ([209.85.220.182]:32864 "EHLO
+	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752935AbaFTPFk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 11:05:40 -0400
+Received: by mail-vc0-f182.google.com with SMTP id il7so3536820vcb.41
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jun 2014 08:05:39 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ash Charles <ash@gumstix.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: beagleboard-gsoc@googlegroups.com
 
-Hi
+Dear developers,
 
-The memory on the Overo, i have with me right now, is actually marked JW513, 
-and 18 months is also around the time, they were bought. Will check my other 
-modules, when i get back to the office.
-However i have not been able to recreate the problem with the 3.5.0 kernel on
-same Overo
+=46ollowing Jason Kridner's advice I'm posting here an issue found whil=
+e
+working with the BeagleBone and an RT_PREEMPT patched kernel (3.8
+taken from https://github.com/beagleboard/kernel/tree/3.8-rt).
 
-Med venlig hilsen/Best regards
+The problem seems to be a conflict with the capemgr implemented in the
+BeagleBone. Particularly the problem arised when this overlay
+(https://github.com/BeaglePilot/ardupilot/blob/master/libraries/AP_HAL_=
+Linux/PRU/test_overlays/BB-BONE-PRU-05-00A0.dts)
+was loaded but the same behavior has been detected with other overlays
+(UART or I2C busses overlays create a similar result):
 
-Casper Mogensen
+[ 56.849553] bone-capemgr bone_capemgr.8: part_number
+'BB-BONE-PRU-05', version 'N/A'
+[ 56.850629] bone-capemgr bone_capemgr.8: slot #4: generic override
+[ 56.850661] bone-capemgr bone_capemgr.8: bone: Using override eeprom
+data at slot 4
+[ 56.850687] bone-capemgr bone_capemgr.8: slot #4: 'Override Board
+Name,00A0,Override Manuf,BB-BONE-PRU-05'
+[ 56.850866] bone-capemgr bone_capemgr.8: slot #4: Requesting part
+number/version based 'BB-BONE-PRU-05-00A0.dtbo
+[ 56.850894] bone-capemgr bone_capemgr.8: slot #4: Requesting firmware
+'BB-BONE-PRU-05-00A0.dtbo' for board-name 'Override Board Name',
+version '00A0'
+[ 56.856248] bone-capemgr bone_capemgr.8: slot #4: dtbo
+'BB-BONE-PRU-05-00A0.dtbo' loaded; converting to live tree
+[ 56.856408] BUG: rwlock bad magic on CPU#0, bash/688, c07021f4
+[ 56.862638] [] (unwind_backtrace+0x1/0x8a) from [] (do_raw_read_lock+0=
+x13/0x38)
+[ 56.872186] [] (do_raw_read_lock+0x13/0x38) from [] (of_resolve+0x27/0=
+x370)
+[ 56.881348] [] (of_resolve+0x27/0x370) from [] (bone_capemgr_load+0x17=
+5/0x408)
+[ 56.890787] [] (bone_capemgr_load+0x175/0x408) from []
+(slots_store+0x22b/0x26c)
+[ 56.900409] [] (slots_store+0x22b/0x26c) from [] (dev_attr_store+0xb/0=
+x12)
+[ 56.909495] [] (dev_attr_store+0xb/0x12) from [] (sysfs_write_file+0xa=
+3/0xda)
+[ 56.918847] [] (sysfs_write_file+0xa3/0xda) from [] (vfs_write+0x5d/0x=
+100)
+[ 56.927910] [] (vfs_write+0x5d/0x100) from [] (sys_write+0x27/0x44)
+[ 56.936335] [] (sys_write+0x27/0x44) from [] (ret_fast_syscall+0x1/0x4=
+6)
+[ 56.948739] bone-capemgr bone_capemgr.8: slot #4: #2 overlays
+[ 56.973249] omap_hwmod: pruss: failed to hardreset
+[ 56.985351] remoteproc0: 4a300000.prurproc is available
+[ 56.998312] remoteproc0: Note: remoteproc is still under development
+and considered experimental.
+[ 57.018198] remoteproc0: THE BINARY FORMAT IS NOT YET FINALIZED, and
+backward compatibility isn't yet guaranteed.
+[ 57.030780] pru-rproc 4a300000.prurproc: Loaded OK
+[ 57.041467] bone-capemgr bone_capemgr.8: slot #4: Applied #2 overlays.
 
-________________________________________
-From: ashcharles@gmail.com <ashcharles@gmail.com> on behalf of Ash Charles <ash@gumstix.com>
-Sent: Friday, June 20, 2014 16:17
-To: Casper Lyngesen Mogensen
-Cc: Tony Lindgren; linux-omap@vger.kernel.org
-Subject: Re: OMAP 3630 random crashes
+This behavior is not seen with Vanilla or Xenomai kernels. Reproducing
+this issue should be possible grabbing the rt-patched kernel and
+loading the overlay.
 
-Hi Casper,
+There's an active discussion about this topic at
+https://groups.google.com/forum/#!topic/drones-discuss/7DKcdm0AEPo.
 
-What is the top-side marking on the memory chip on your Overo?  There
-were some random faults due to poor memory chips marked 'JW513' from
-about 18 months ago.
+Thanks for your time,
 
---Ash
-
-On Fri, Jun 20, 2014 at 7:00 AM, Casper Lyngesen Mogensen
-<clmogensen@grundfos.com> wrote:
-> Hi
->
-> U-boot seems to set the speed to 165 Mhz
-> "OMAP36XX/37XX-GP ES1.2, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz"
->
-> I have a LAN9221, but tried the other timings, still same result.
->
-> Also tried running the entire system from an MMC card, same result, but my test had
-> to run a little longer.
->
-> Found a quicker test to reproduce the error, a little C-program:
->
-> #include <stdio.h>
-> #include <stdlib.h>
-> #include <errno.h>
->
-> int main(void){
->         long long var=0;
->
->         int *ptr=NULL;
->
->         int run=1;
->         while(run){
->                 ptr=malloc(sizeof(int)*1000);
->                 if(ptr==NULL){
->                         run=0;
->                 }
->                 var+=1000;
->                 printf("mallocsize = %lld\n",var*sizeof(int));
->         }
-> }
->
->
-> Booting from NFS, the system crashes at ~40mb allocated
-> On MMC at ~60MB
->
-> Med venlig hilsen/Best regards
->
-> Casper Mogensen
->
-> ________________________________________
-> From: Tony Lindgren <tony@atomide.com>
-> Sent: Friday, June 20, 2014 11:14
-> To: Casper Lyngesen Mogensen
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: OMAP 3630 random crashes
->
-> Hi,
->
-> * Casper Lyngesen Mogensen <clmogensen@grundfos.com> [140620 01:52]:
->> Hi
->>
->> I have  custom board with a Gumstix Overo, my board is similar to a
->> Tobi board. Right now i have it running with a 3.5.0 kernel. I'm
->> trying to upgrade the kernel, and have tried several versions (3.10 ->
->> 3.15) and i seem to be hitting the same problem with all versions, i
->> get random crashes. Found a way to  trigger the crash within
->> minutes/seconds:
->>
->> # dd if=/dev/urandom of=/tmp/test.file bs=1024 count=100000
->>
->> A count > 10000 will at some point trigger the crash. The hang/crash
->> is repeatable everytime but the log is not, sometimes i do not get
->> any trace at all. I can provide more logs if necessary.  Config and
->> crash log are below..
->>
->> Have tried disabling various peripherals, such as sound, usb,
->> ethernet, wifi, bluetooth, but with no luck. Also tried different Overo
->> boards.
->>
->> Hope someone can help me/point me in the right direction
->
-> I was seeing similar issues with NFSroot until commit dcf21919
-> (ARM: dts: Fix GPMC timings for LAN9220). Turns out LAN9220 has
-> much slower timings compared to LAN9221. So you need to check that
-> you're using right timings if you have LAN9220.
->
-> Also, check what rate your bootloader is setting the L3 speed.
-> If it's set to 200MHz, then LAN9220 timings seem to overflow the
-> GPMC registers for the calculated values and bootloader timings
-> are used instead.
->
->> Starting kernel ...
->>
->> [    0.000000] Booting Linux on physical CPU 0x0
->> [    0.000000] Linux version 3.15.0 (clmo@N66266) (gcc version 4.8.1 (crosstool-NG 1.19.0) ) #3 SMP Wed Jun 11 23:50:13 CEST 2014
->> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c5387d
->> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
->> [    0.000000] Machine model: OMAP36xx/AM37xx/DM37xx Gumstix Overo on Tobi
->> [    0.000000] cma: CMA: reserved 16 MiB at 8d800000
->> [    0.000000] Memory policy: Data cache writeback
->> [    0.000000] CPU: All CPU(s) started in SVC mode.
->> [    0.000000] OMAP3630 ES1.2 (l2cache neon isp 192mhz_clk )
->> [    0.000000] PERCPU: Embedded 9 pages/cpu @cecc6000 s14080 r8192 d14592 u36864
->> [    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 60704
->> [    0.000000] Kernel command line: console=ttyO2,115200n8 root=/dev/nfs nfsroot=192.168.100.1:/export/bbroot,nolock rw ip=192.168.100.7::192.168.100.1:::eth0:off mem=240M
->
-> Maybe also check if your test works with NFSroot idsabled.
->
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+V=C3=ADctor Mayoral Vilches.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
