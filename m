@@ -1,180 +1,137 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: Palmas regulator broken (was Re: [PATCH] ARM: tegra: TN7: relax
- some regulators)
-Date: Fri, 20 Jun 2014 23:14:51 +0900
-Message-ID: <CAAVeFuJ=JTNkwDKBvuoyL=ARQs_UJb_MHzL9S8gOc8EU98znPg@mail.gmail.com>
-References: <1403164154-1362-1-git-send-email-acourbot@nvidia.com>
- <53A308C8.2070004@wwwdotorg.org> <20140619175643.GR5099@sirena.org.uk>
- <53A3C613.8030207@nvidia.com> <53A3D85E.7030704@nvidia.com>
- <20140620094119.GT5099@sirena.org.uk> <53A4039B.7000504@nvidia.com>
- <20140620132310.GA11936@kahuna> <20140620135454.GA10566@kahuna>
+From: Ash Charles <ash@gumstix.com>
+Subject: Re: OMAP 3630 random crashes
+Date: Fri, 20 Jun 2014 07:17:17 -0700
+Message-ID: <CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
+References: <1403254242990.39117@grundfos.com> <20140620091431.GA28884@atomide.com>
+ <1403272840480.35753@grundfos.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140620135454.GA10566@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Alexandre Courbot <acourbot@nvidia.com>, Mark Brown <broonie@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Keerthy <j-keerthy@ti.com>, Thierry Reding <thierry.reding@gmail.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:48195 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751360AbaFTORs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 10:17:48 -0400
+Received: by mail-vc0-f171.google.com with SMTP id id10so3491873vcb.16
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jun 2014 07:17:47 -0700 (PDT)
+In-Reply-To: <1403272840480.35753@grundfos.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Jun 20, 2014 at 10:54 PM, Nishanth Menon <nm@ti.com> wrote:
-> On 08:23-20140620, Nishanth Menon wrote:
->> + l-o,
->>       http://marc.info/?t=140316427500004&r=1&w=2 full thread
->>
->> Minor change in subject to indicate palmas regulator fail
->>
->> On 18:49-20140620, Alexandre Courbot wrote:
->> > On 06/20/2014 06:41 PM, Mark Brown wrote:
->> > >* PGP Signed by an unknown key
->> > >
->> > >On Fri, Jun 20, 2014 at 03:44:46PM +0900, Alexandre Courbot wrote:
->> > >
->> > >>dbabd624d
->> > >>regulator: palmas: Reemove open coded functions with helper functions
->> > >
->> > >>Keerthy, Nishanth, could it be that there is still something wrong with the
->> > >>REGULATOR_LINEAR_RANGE() definitions?
->> > >
->> > >>This seems to be the cause for our trouble, but the other questions might
->> > >>still stand, in case there is interest in discussing them.
->> > >
->> > >There was a bug fix to the Palmas driver which just went to Linus the
->> > >other day, are you sure this isn't fixed in mainline (or -next, it's
->> > >been in -next for a week or something)?
->> >
->> > If you are talking about
->> >
->> > 6b7f2d82d5
->> > regulator: palmas: Fix SMPS list for 0V
->> >
->> > then it is in my tree. There is actually no difference on
->> > palmas-regulator.c between my tree and the current -next (or Linus'
->> > tree for that instance).
->> >
->> > So it seems to be something else we are dealing with here.
->>
->> Your quote earlier in the thread
->> "
->> _regulator_is_enabled() *also* returns false
->> "
->>
->> Got me curious. Looking at the patch:
->> dbabd624d4eec50b623bab070d1e39a854b2d65c (regulator: palmas: Reemove
->> open coded functions with helper functions)
->> I noticed the following change
->> palmas_is_enabled_smps -> regulator_is_enabled_regmap
->>
->> So I decided to search for enable_reg in palmas-regulator.c and I think
->> it needs valid enable_reg, mask, value for regulator_is_enabled_regmap to work
->> :).
->>
->> Maybe to be sure, we could print the following:
->> PALMAS_SMPS8_VOLTAGE, PALMAS_SMPS8_CTRL, PALMAS_SMPS8_TSTEP,
->>
->> Anyways, I quickly boot tested the following on DRA7evm (which also uses Palmas):
->> [    1.933939] palmas-pmic 48070000.i2c:tps659038@58:tps659038_pmic: enable_reg = 0x00, mask =0x00
->> [    1.944210] smps123: 850 <--> 1250 mV at 1060 mV
->> [    1.950717] palmas-pmic 48070000.i2c:tps659038@58:tps659038_pmic: enable_reg = 0x00, mask =0x00
->> [    1.960754] smps45: 850 <--> 1150 mV at 1060 mV
->> [    1.967048] palmas-pmic 48070000.i2c:tps659038@58:tps659038_pmic: enable_reg = 0x00, mask =0x00
->> [    1.977072] smps6: 850 <--> 1650 mV at 1060 mV
->> [    1.983077] palmas-pmic 48070000.i2c:tps659038@58:tps659038_pmic: enable_reg = 0x00, mask =0x00
->> [    1.992994] smps7: 850 <--> 1030 mV at 1030 mV
->> [    1.999238] palmas-pmic 48070000.i2c:tps659038@58:tps659038_pmic: enable_reg = 0x00, mask =0x00
->> [    2.009161] smps8: 850 <--> 1250 mV at 1060 mV
->> [    2.015304] palmas-pmic 48070000.i2c:tps659038@58:tps659038_pmic: enable_reg = 0x00, mask =0x00
->>
->> It does seem to me that either set_mode also should use core functions
->> OR you still need a palmas specific is_enable, enable/disable functions
->> (contrary to the claim of the patch in question - which I think
->>  introduced regressions).
->>
->> Otherwise, completely untested diff below - can you  give this a shot?
->>
->> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
->> index b982f0f..bbfe22f 100644
->> --- a/drivers/regulator/palmas-regulator.c
->> +++ b/drivers/regulator/palmas-regulator.c
->> @@ -964,6 +964,20 @@ static int palmas_regulators_probe(struct platform_device *pdev)
->>                               return ret;
->>                       pmic->current_reg_mode[id] = reg &
->>                                       PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
->> +
->> +                     dev_err(&pdev->dev, "enable_reg = 0x%02x, mask =0x%02x\n",
->> +                             pmic->desc[id].enable_reg,
->> +                             pmic->desc[id].enable_mask);
->> +                     pmic->desc[id].enable_reg =
->> +                                     PALMAS_BASE_TO_REG(PALMAS_LDO_BASE,
->> +                                             palmas_regs_info[id].ctrl_addr);
->> +                     pmic->desc[id].enable_mask =
->> +                                     PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
->> +                     /*
->> +                      * The following completely ignores
->> +                      * pmic->current_reg_mode[id] (set_mode)
->> +                      */
->> +                     pmic->desc[id].enable_val = SMPS_CTRL_MODE_ON;
->>               }
->>
->>               pmic->desc[id].type = REGULATOR_VOLTAGE;
+Hi Casper,
+
+What is the top-side marking on the memory chip on your Overo?  There
+were some random faults due to poor memory chips marked 'JW513' from
+about 18 months ago.
+
+--Ash
+
+On Fri, Jun 20, 2014 at 7:00 AM, Casper Lyngesen Mogensen
+<clmogensen@grundfos.com> wrote:
+> Hi
 >
-> rev 2 of the diff - this does depened on the fact that regulator_desc is
-> not memdup-ed by regulator code - that lets us do a bit of a trickery ;)
-> - and I dropped the prints.. Unrelated: This makes me wonder why
-> palmas_is_enabled_ldo at all?
+> U-boot seems to set the speed to 165 Mhz
+> "OMAP36XX/37XX-GP ES1.2, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz"
 >
-> Keerthy, Mark,
-> what do you think of the following (esp the flip of desc value):
-> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-> index b982f0f..f01d9c5 100644
-> --- a/drivers/regulator/palmas-regulator.c
-> +++ b/drivers/regulator/palmas-regulator.c
-> @@ -299,7 +299,7 @@ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
->         struct palmas_pmic *pmic = rdev_get_drvdata(dev);
->         int id = rdev_get_id(dev);
->         unsigned int reg;
-> -       bool rail_enable = true;
-> +       bool rail_enable = true, enable_val = true;
+> I have a LAN9221, but tried the other timings, still same result.
 >
->         palmas_smps_read(pmic->palmas, palmas_regs_info[id].ctrl_addr, &reg);
->         reg &= ~PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-> @@ -318,6 +318,7 @@ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
->                 reg |= SMPS_CTRL_MODE_PWM;
->                 break;
->         default:
-> +               enable_val = false;
->                 return -EINVAL;
->         }
+> Also tried running the entire system from an MMC card, same result, but my test had
+> to run a little longer.
 >
-> @@ -325,6 +326,11 @@ static int palmas_set_mode_smps(struct regulator_dev *dev, unsigned int mode)
->         if (rail_enable)
->                 palmas_smps_write(pmic->palmas,
->                         palmas_regs_info[id].ctrl_addr, reg);
-> +
-> +       /* Switch the enable value to ensure this is used for enable */
-> +       if (enable_val)
-> +               pmic->desc[id].enable_val = pmic->current_reg_mode[id];
-> +
->         return 0;
->  }
+> Found a quicker test to reproduce the error, a little C-program:
 >
-> @@ -964,6 +970,14 @@ static int palmas_regulators_probe(struct platform_device *pdev)
->                                 return ret;
->                         pmic->current_reg_mode[id] = reg &
->                                         PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-> +
-> +                       pmic->desc[id].enable_reg =
-> +                                       PALMAS_BASE_TO_REG(PALMAS_LDO_BASE,
-> +                                               palmas_regs_info[id].ctrl_addr);
-> +                       pmic->desc[id].enable_mask =
-> +                                       PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-> +                       /* set_mode overrides this value */
-> +                       pmic->desc[id].enable_val = SMPS_CTRL_MODE_ON;
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <errno.h>
+>
+> int main(void){
+>         long long var=0;
+>
+>         int *ptr=NULL;
+>
+>         int run=1;
+>         while(run){
+>                 ptr=malloc(sizeof(int)*1000);
+>                 if(ptr==NULL){
+>                         run=0;
 >                 }
+>                 var+=1000;
+>                 printf("mallocsize = %lld\n",var*sizeof(int));
+>         }
+> }
 >
->                 pmic->desc[id].type = REGULATOR_VOLTAGE;
-
-Tried this v2 and it seems to do the trick! My panel switches on as expected.
-
-Thanks,
-Alex.
+>
+> Booting from NFS, the system crashes at ~40mb allocated
+> On MMC at ~60MB
+>
+> Med venlig hilsen/Best regards
+>
+> Casper Mogensen
+>
+> ________________________________________
+> From: Tony Lindgren <tony@atomide.com>
+> Sent: Friday, June 20, 2014 11:14
+> To: Casper Lyngesen Mogensen
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: OMAP 3630 random crashes
+>
+> Hi,
+>
+> * Casper Lyngesen Mogensen <clmogensen@grundfos.com> [140620 01:52]:
+>> Hi
+>>
+>> I have  custom board with a Gumstix Overo, my board is similar to a
+>> Tobi board. Right now i have it running with a 3.5.0 kernel. I'm
+>> trying to upgrade the kernel, and have tried several versions (3.10 ->
+>> 3.15) and i seem to be hitting the same problem with all versions, i
+>> get random crashes. Found a way to  trigger the crash within
+>> minutes/seconds:
+>>
+>> # dd if=/dev/urandom of=/tmp/test.file bs=1024 count=100000
+>>
+>> A count > 10000 will at some point trigger the crash. The hang/crash
+>> is repeatable everytime but the log is not, sometimes i do not get
+>> any trace at all. I can provide more logs if necessary.  Config and
+>> crash log are below..
+>>
+>> Have tried disabling various peripherals, such as sound, usb,
+>> ethernet, wifi, bluetooth, but with no luck. Also tried different Overo
+>> boards.
+>>
+>> Hope someone can help me/point me in the right direction
+>
+> I was seeing similar issues with NFSroot until commit dcf21919
+> (ARM: dts: Fix GPMC timings for LAN9220). Turns out LAN9220 has
+> much slower timings compared to LAN9221. So you need to check that
+> you're using right timings if you have LAN9220.
+>
+> Also, check what rate your bootloader is setting the L3 speed.
+> If it's set to 200MHz, then LAN9220 timings seem to overflow the
+> GPMC registers for the calculated values and bootloader timings
+> are used instead.
+>
+>> Starting kernel ...
+>>
+>> [    0.000000] Booting Linux on physical CPU 0x0
+>> [    0.000000] Linux version 3.15.0 (clmo@N66266) (gcc version 4.8.1 (crosstool-NG 1.19.0) ) #3 SMP Wed Jun 11 23:50:13 CEST 2014
+>> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c5387d
+>> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+>> [    0.000000] Machine model: OMAP36xx/AM37xx/DM37xx Gumstix Overo on Tobi
+>> [    0.000000] cma: CMA: reserved 16 MiB at 8d800000
+>> [    0.000000] Memory policy: Data cache writeback
+>> [    0.000000] CPU: All CPU(s) started in SVC mode.
+>> [    0.000000] OMAP3630 ES1.2 (l2cache neon isp 192mhz_clk )
+>> [    0.000000] PERCPU: Embedded 9 pages/cpu @cecc6000 s14080 r8192 d14592 u36864
+>> [    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 60704
+>> [    0.000000] Kernel command line: console=ttyO2,115200n8 root=/dev/nfs nfsroot=192.168.100.1:/export/bbroot,nolock rw ip=192.168.100.7::192.168.100.1:::eth0:off mem=240M
+>
+> Maybe also check if your test works with NFSroot idsabled.
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
