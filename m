@@ -1,90 +1,70 @@
-From: =?UTF-8?Q?V=C3=ADctor_MV?= <v.mayoralv@gmail.com>
-Subject: RT_PREEMPT issue with capemgr: rwlock bad magic on CPU#0
-Date: Fri, 20 Jun 2014 17:05:39 +0200
-Message-ID: <CAKpQ202W==CaVY0w73n_M-DYb-58P6iVdcRdjh1VA3HLdKbphA@mail.gmail.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v2 04/18] PCI: designware: use untranslated address while programming ATU
+Date: Fri, 20 Jun 2014 18:18:23 +0200
+Message-ID: <5173253.SQfLkZY3Wx@wuerfel>
+References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-5-git-send-email-kishon@ti.com> <53A1571B.7080806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f182.google.com ([209.85.220.182]:32864 "EHLO
-	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752935AbaFTPFk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 11:05:40 -0400
-Received: by mail-vc0-f182.google.com with SMTP id il7so3536820vcb.41
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jun 2014 08:05:39 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53A1571B.7080806-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Mohit Kumar <mohit.kumar-qxv4g6HH51o@public.gmane.org>, jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, rob.herring-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Andrew Murray <Andrew.Murray-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: beagleboard-gsoc@googlegroups.com
 
-Dear developers,
+On Wednesday 18 June 2014 14:38:43 Kishon Vijay Abraham I wrote:
+> On Thursday 29 May 2014 12:08 PM, Kishon Vijay Abraham I wrote:
+> > 
+> > Here the CPU address for configuration space is 0x20013000 and the controller
+> > address for configuration space is 0x13000. The controller address should be
+> > used while programming the ATU (in order for translation to happen properly in
+> > DRA7xx).
+> 
+> I've fixed this up with what you suggested in the v1 of the series. Do you
+> think this is fine?
 
-=46ollowing Jason Kridner's advice I'm posting here an issue found whil=
-e
-working with the BeagleBone and an RT_PREEMPT patched kernel (3.8
-taken from https://github.com/beagleboard/kernel/tree/3.8-rt).
+Hi Kishon,
 
-The problem seems to be a conflict with the capemgr implemented in the
-BeagleBone. Particularly the problem arised when this overlay
-(https://github.com/BeaglePilot/ardupilot/blob/master/libraries/AP_HAL_=
-Linux/PRU/test_overlays/BB-BONE-PRU-05-00A0.dts)
-was loaded but the same behavior has been detected with other overlays
-(UART or I2C busses overlays create a similar result):
+Yes, I think this will work and do the right thing in all cases. I'm not
+completely sure if the change should be generalized into the range
+parser or better kept in the pcie-designware driver as you do it here:
 
-[ 56.849553] bone-capemgr bone_capemgr.8: part_number
-'BB-BONE-PRU-05', version 'N/A'
-[ 56.850629] bone-capemgr bone_capemgr.8: slot #4: generic override
-[ 56.850661] bone-capemgr bone_capemgr.8: bone: Using override eeprom
-data at slot 4
-[ 56.850687] bone-capemgr bone_capemgr.8: slot #4: 'Override Board
-Name,00A0,Override Manuf,BB-BONE-PRU-05'
-[ 56.850866] bone-capemgr bone_capemgr.8: slot #4: Requesting part
-number/version based 'BB-BONE-PRU-05-00A0.dtbo
-[ 56.850894] bone-capemgr bone_capemgr.8: slot #4: Requesting firmware
-'BB-BONE-PRU-05-00A0.dtbo' for board-name 'Override Board Name',
-version '00A0'
-[ 56.856248] bone-capemgr bone_capemgr.8: slot #4: dtbo
-'BB-BONE-PRU-05-00A0.dtbo' loaded; converting to live tree
-[ 56.856408] BUG: rwlock bad magic on CPU#0, bash/688, c07021f4
-[ 56.862638] [] (unwind_backtrace+0x1/0x8a) from [] (do_raw_read_lock+0=
-x13/0x38)
-[ 56.872186] [] (do_raw_read_lock+0x13/0x38) from [] (of_resolve+0x27/0=
-x370)
-[ 56.881348] [] (of_resolve+0x27/0x370) from [] (bone_capemgr_load+0x17=
-5/0x408)
-[ 56.890787] [] (bone_capemgr_load+0x175/0x408) from []
-(slots_store+0x22b/0x26c)
-[ 56.900409] [] (slots_store+0x22b/0x26c) from [] (dev_attr_store+0xb/0=
-x12)
-[ 56.909495] [] (dev_attr_store+0xb/0x12) from [] (sysfs_write_file+0xa=
-3/0xda)
-[ 56.918847] [] (sysfs_write_file+0xa3/0xda) from [] (vfs_write+0x5d/0x=
-100)
-[ 56.927910] [] (vfs_write+0x5d/0x100) from [] (sys_write+0x27/0x44)
-[ 56.936335] [] (sys_write+0x27/0x44) from [] (ret_fast_syscall+0x1/0x4=
-6)
-[ 56.948739] bone-capemgr bone_capemgr.8: slot #4: #2 overlays
-[ 56.973249] omap_hwmod: pruss: failed to hardreset
-[ 56.985351] remoteproc0: 4a300000.prurproc is available
-[ 56.998312] remoteproc0: Note: remoteproc is still under development
-and considered experimental.
-[ 57.018198] remoteproc0: THE BINARY FORMAT IS NOT YET FINALIZED, and
-backward compatibility isn't yet guaranteed.
-[ 57.030780] pru-rproc 4a300000.prurproc: Loaded OK
-[ 57.041467] bone-capemgr bone_capemgr.8: slot #4: Applied #2 overlays.
+> > @@ -406,6 +413,12 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+> >               pp->config.cfg1_size = resource_size(cfg_res)/2;
+> >               pp->cfg0_base = cfg_res->start;
+> >               pp->cfg1_base = cfg_res->start + pp->config.cfg0_size;
+> > +
+> > +             /* Find the untranslated configuration space address */
+> > +             index = of_property_match_string(np, "reg-names", "config");
+> > +             addrp = of_get_address(np, index, false, false);
+> > +             pp->cfg0_mod_addr = of_read_number(addrp, ns);
+> > +             pp->cfg1_mod_addr = pp->cfg0_mod_addr + pp->config.cfg0_size;
 
-This behavior is not seen with Vanilla or Xenomai kernels. Reproducing
-this issue should be possible grabbing the rt-patched kernel and
-loading the overlay.
+I think I've recently seen some objections to hand-parsing standard
+properties in driver code.
 
-There's an active discussion about this topic at
-https://groups.google.com/forum/#!topic/drones-discuss/7DKcdm0AEPo.
+> >       } else {
+> >               dev_err(pp->dev, "missing *config* reg space\n");
+> >       }
+> > @@ -431,12 +444,20 @@ int __init dw_pcie_host_init(struct pcie_port *pp)
+> >                       pp->config.io_size = resource_size(&pp->io);
+> >                       pp->config.io_bus_addr = range.pci_addr;
+> >                       pp->io_base = range.cpu_addr;
+> > +
+> > +                     /* Find the untranslated IO space address */
+> > +                     pp->io_mod_addr = of_read_number(parser.range -
+> > +                                                      parser.np + na, ns);
+> >               }
 
-Thanks for your time,
+So the of_read_number() call could be moved into of_pci_range_to_resource(),
+with another field added to struct of_pci_range to carry the address on
+the parent bus. Any other thoughts on this? Maybe Rob Herring or Andrew
+Murray have a strong opinion on this.
 
-V=C3=ADctor Mayoral Vilches.
+
+	Arnd
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
