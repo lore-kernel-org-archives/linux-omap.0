@@ -1,23 +1,44 @@
-From: Ash Charles <ash@gumstix.com>
-Subject: Re: OMAP 3630 random crashes
-Date: Fri, 20 Jun 2014 07:17:17 -0700
-Message-ID: <CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
-References: <1403254242990.39117@grundfos.com> <20140620091431.GA28884@atomide.com>
- <1403272840480.35753@grundfos.com>
+From: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
+Subject: RE: OMAP 3630 random crashes
+Date: Fri, 20 Jun 2014 14:26:53 +0000
+Message-ID: <1403274413159.44797@grundfos.com>
+References: <1403254242990.39117@grundfos.com>
+ <20140620091431.GA28884@atomide.com>
+ <1403272840480.35753@grundfos.com>,<CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:48195 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbaFTORs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 10:17:48 -0400
-Received: by mail-vc0-f171.google.com with SMTP id id10so3491873vcb.16
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jun 2014 07:17:47 -0700 (PDT)
-In-Reply-To: <1403272840480.35753@grundfos.com>
+Received: from mail-db3lp0084.outbound.protection.outlook.com ([213.199.154.84]:44404
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752500AbaFTO05 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 10:26:57 -0400
+In-Reply-To: <CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
+To: Ash Charles <ash@gumstix.com>
 Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi
+
+The memory on the Overo, i have with me right now, is actually marked JW513, 
+and 18 months is also around the time, they were bought. Will check my other 
+modules, when i get back to the office.
+However i have not been able to recreate the problem with the 3.5.0 kernel on
+same Overo
+
+Med venlig hilsen/Best regards
+
+Casper Mogensen
+
+________________________________________
+From: ashcharles@gmail.com <ashcharles@gmail.com> on behalf of Ash Charles <ash@gumstix.com>
+Sent: Friday, June 20, 2014 16:17
+To: Casper Lyngesen Mogensen
+Cc: Tony Lindgren; linux-omap@vger.kernel.org
+Subject: Re: OMAP 3630 random crashes
 
 Hi Casper,
 
