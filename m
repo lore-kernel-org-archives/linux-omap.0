@@ -1,51 +1,107 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] regulator: palmas: Fix SMPS enable/disable/is_enabled
-Date: Sat, 21 Jun 2014 11:22:29 +0100
-Message-ID: <20140621102229.GO5099@sirena.org.uk>
-References: <1403285183-15926-1-git-send-email-nm@ti.com>
+From: Daniel Walter <dwalter@google.com>
+Subject: [PATCH 1/9] [arch/arm/omap2] replace strict_strto* with kstrto*
+Date: Sat, 21 Jun 2014 13:04:25 +0100
+Message-ID: <20140621120425.GA5169@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="v8qIemIc9aARI1kK"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1403285183-15926-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, acourbot@nvidia.com, gnurou@gmail.com, j-keerthy@ti.com, linux-tegra@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
-
---v8qIemIc9aARI1kK
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f179.google.com ([74.125.82.179]:35679 "EHLO
+	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752476AbaFUME2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jun 2014 08:04:28 -0400
+Received: by mail-we0-f179.google.com with SMTP id w62so4771081wes.24
+        for <linux-omap@vger.kernel.org>; Sat, 21 Jun 2014 05:04:27 -0700 (PDT)
 Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Jun 20, 2014 at 12:26:23PM -0500, Nishanth Menon wrote:
-> We use regmap regulator ops to enable/disable and check if regulator
-> is enabled for various SMPS. However, these depend on valid
-> enable_reg, enable_mask and enable_value in regulator descriptor.
+Replace obsolete strict_strto call with kstrto calls.
+Simplify copy_from_user/strict_strto by using kstrto_from_user
 
-Applied, thanks.
+Signed-off-by: Daniel Walter <dwalter@google.com>
+---
+ arch/arm/mach-omap2/board-omap3touchbook.c |  2 +-
+ arch/arm/mach-omap2/mux.c                  | 22 ++++++----------------
+ 2 files changed, 7 insertions(+), 17 deletions(-)
 
---v8qIemIc9aARI1kK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 7da48bc..70b904c 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -336,7 +336,7 @@ static int __init early_touchbook_revision(char *p)
+ 	if (!p)
+ 		return 0;
+ 
+-	return strict_strtoul(p, 10, &touchbook_revision);
++	return kstrtoul(p, 10, &touchbook_revision);
+ }
+ early_param("tbr", early_touchbook_revision);
+ 
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index fd88ede..9e1b610 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -679,29 +679,19 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
+ 					 const char __user *user_buf,
+ 					 size_t count, loff_t *ppos)
+ {
+-	char buf[OMAP_MUX_MAX_ARG_CHAR];
+ 	struct seq_file *seqf;
+ 	struct omap_mux *m;
+-	unsigned long val;
+-	int buf_size, ret;
++	u16 val;
++	int ret;
+ 	struct omap_mux_partition *partition;
+ 
+ 	if (count > OMAP_MUX_MAX_ARG_CHAR)
+ 		return -EINVAL;
+ 
+-	memset(buf, 0, sizeof(buf));
+-	buf_size = min(count, sizeof(buf) - 1);
+-
+-	if (copy_from_user(buf, user_buf, buf_size))
+-		return -EFAULT;
+-
+-	ret = strict_strtoul(buf, 0x10, &val);
++	ret = kstrtou16_from_user(user_buf, count, 0x10, &val);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (val > 0xffff)
+-		return -EINVAL;
+-
+ 	seqf = file->private_data;
+ 	m = seqf->private;
+ 
+@@ -709,7 +699,7 @@ static ssize_t omap_mux_dbg_signal_write(struct file *file,
+ 	if (!partition)
+ 		return -ENODEV;
+ 
+-	omap_mux_write(partition, (u16)val, m->reg_offset);
++	omap_mux_write(partition, val, m->reg_offset);
+ 	*ppos += count;
+ 
+ 	return count;
+@@ -915,14 +905,14 @@ static void __init omap_mux_set_cmdline_signals(void)
+ 
+ 	while ((token = strsep(&next_opt, ",")) != NULL) {
+ 		char *keyval, *name;
+-		unsigned long val;
++		u16 val;
+ 
+ 		keyval = token;
+ 		name = strsep(&keyval, "=");
+ 		if (name) {
+ 			int res;
+ 
+-			res = strict_strtoul(keyval, 0x10, &val);
++			res = kstrtou16(keyval, 0x10, &val);
+ 			if (res < 0)
+ 				continue;
+ 
+-- 
+2.0.0.526.g5318336
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJTpVziAAoJELSic+t+oim9sX0P/R0RluukDF7FH7LD5M7wlFAk
-v50GMWpJD3cvOlxLOdCA/qV3Q/3O6o0ekfF6b6Lfg9xhrYdmskNOFtYctT6LxYMZ
-9oPWPP9W9ij1Szw7B0h+AvTxyPzsREH4AnKaVhM91rStAOku6KlZ6R6n+DOLHpVK
-6bkLFW+LU0uYgWNVsD9SyFe3zvJwYIR76oevJK+t8tbQoXjMHvxppaXntd7pEts5
-JA4Qu7KL5LMNV7iAO+cu5j4lu/AnsUAk+cto5rfvBYJ/r2fc1flqzs85hF/aDyG+
-U6OB7p8YeRz7Jy6AZYpSSHOghNeKeW2DBbmwZqXnTRsLTWzxpUBaQWJ3WxXp3dTR
-pjS/ecivOhok7cXSsmJkSk9EpZKYc6eM1YU4Svqsa9p6MhKsI7jNkEUC1IQoTNfB
-GVEZQChtNWdlETSexspjAZKCoUiqpphqvPW+S9ZvbKYjyEEGJknyJ6Hr8V9bi5zI
-ny79LBvfvsSl5M5A2Xb8EC+XIrXttZ69zb/ilM5KNu1E4nTkB5CV1knORHw1W+yS
-frc3+GP3cFD4dkUsFaH/VpdwBiDEbaR/0ODGEJ26Mr3FdewynJsiV4zhY2nht3zo
-rhJUTQZKFbFD2jD7dtvMmHM1hDzgtT88uSrA4x91tuJag0DToqKrBy0mJn2rmfsK
-AcAeIcxxw0IJfweYZy09
-=x59U
------END PGP SIGNATURE-----
-
---v8qIemIc9aARI1kK--
