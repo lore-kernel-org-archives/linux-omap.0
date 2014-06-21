@@ -1,73 +1,127 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 04/18] PCI: designware: use untranslated address while programming ATU
-Date: Fri, 20 Jun 2014 20:54:39 +0200
-Message-ID: <4516730.Mn8ZI8EqE1@wuerfel>
-References: <1401345500-20188-1-git-send-email-kishon@ti.com> <1401345500-20188-5-git-send-email-kishon@ti.com> <CAL_JsqJxppWOOWoX1MYF26OWXW7BdMZP1BQpq8cSgJ3n1QF5PA@mail.gmail.com>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH V3 03/16] irqchip: crossbar: introduce ti,irqs-skip to
+ skip
+Date: Fri, 20 Jun 2014 22:33:02 -0400
+Message-ID: <20140621023302.GE21711@titan.lakedaemon.net>
+References: <1402917796-31574-1-git-send-email-r.sricharan@ti.com>
+ <1402917796-31574-4-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:51414 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932472AbaFTSza (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 14:55:30 -0400
-In-Reply-To: <CAL_JsqJxppWOOWoX1MYF26OWXW7BdMZP1BQpq8cSgJ3n1QF5PA@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64100 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758139AbaFUCdP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jun 2014 22:33:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1402917796-31574-4-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Marek Vasut <marex@denx.de>, Tony Lindgren <tony@atomide.com>, Mohit Kumar <mohit.kumar@st.com>, Jingoo Han <jg1.han@samsung.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bjorn Helgaas <bhelgaas@google.com>
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de, joe@perches.com
 
-On Friday 20 June 2014 12:45:46 Rob Herring wrote:
-> On Thu, May 29, 2014 at 1:38 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> > In DRA7, the cpu sees 32bit address, but the pcie controller can see only 28bit
-> > address. So whenever the cpu issues a read/write request, the 4 most
-> > significant bits are used by L3 to determine the target controller.
-> > For example, the cpu reserves 0x2000_0000 - 0x2FFF_FFFF for PCIe controller but
-> > the PCIe controller will see only (0x000_0000 - 0xFFF_FFF). So for programming
-> > the outbound translation window the *base* should be programmed as 0x000_0000.
-> > Whenever we try to write to say 0x2000_0000, it will be translated to whatever
-> > we have programmed in the translation window with base as 0x000_0000.
-> >
-> > This is needed when the dt node is modelled something like below
-> > axi {
-> >         compatible = "simple-bus";
-> >         #size-cells = <1>;
-> >         #address-cells = <1>;
-> >         ranges = <0x0        0x20000000 0x10000000 // 28-bit bus
-> >                   0x51000000 0x51000000 0x3000>;
-> >         pcie@51000000 {
-> >                 reg = <0x1000 0x2000>, <0x51002000 0x14c>, <0x51000000 0x2000>;
-> >                 reg-names = "config", "ti_conf", "rc_dbics";
-> >                 #address-cells = >;
-> >                 #size-cells = <2>;
-> >                 ranges = <0x81000000 0 0          0x03000 0 0x00010000
-> >                           0x82000000 0 0x20013000 0x13000 0 0xffed000>;
-> >         };
-> > };
-> >
-> > Here the CPU address for configuration space is 0x20013000 and the controller
-> > address for configuration space is 0x13000. The controller address should be
-> > used while programming the ATU (in order for translation to happen properly in
-> > DRA7xx).
+Sricharan,
+
+Your subject line seems truncated:
+
+  "irqchip: crossbar: introduce ti,irqs-skip to skip"
+
+maybe "... Introduce DT property to skip hardwired irqs" ?
+
+Also note that you need to correct the subject line for *every* patch in
+the series wrt capitalization.
+
+I don't mind correcting it when I apply it, provided that:
+
+ - the patch is otherwise ready
+ - I only have to do it once or twice for the series
+ - I never had a chance to ask since you created a rockstar patch series
+   the first time out of the gate (except for capitalization).
+
+Once I've looked over the whole series, please resend with the subject
+lines corrected.
+
+On Mon, Jun 16, 2014 at 04:53:03PM +0530, Sricharan R wrote:
+> From: Nishanth Menon <nm@ti.com>
 > 
-> This talks about config space, but the ranges field is PCI memory
-> space. Also, does this actually work because I though Linux expects
-> memory BARs to be 1MB aligned.
+> When, in the system due to varied reasons, interrupts might be unusable
+> due to hardware behavior, but register maps do exist, then those interrupts
+> should be skipped while mapping irq to crossbars.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Sricharan R <r.sricharan@ti.com>
+> ---
+> [V3] introduced ti,irqs-skip dt property to list the
+>      irqs to be skipped.
+> 
+>  .../devicetree/bindings/arm/omap/crossbar.txt      |    4 ++++
+>  drivers/irqchip/irq-crossbar.c                     |   20 ++++++++++++++++++++
+>  2 files changed, 24 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> index fb88585..cfcbd52 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> @@ -17,6 +17,10 @@ Required properties:
+>  		 so crossbar bar driver should not consider them as free
+>  		 lines.
+>  
+> +Optional properties:
+> +- ti,irqs-skip: This is similar to "ti,irqs-reserved", but are irq mappings
+> +  which are not supposed to be used for errata or other reasons(virtualization).
 
-Good point about the alignment.
+I would specifically mention SoC-specific hard-wiring of irqs here.
+Also the fact that the hardwiring unexpectedly bypasses the crossbar.
 
-Actually both the config space and memory space are set up through the
-intermediate ranges of the parent bus.
+> +
+>  Examples:
+>  		crossbar_mpu: @4a020000 {
+>  			compatible = "ti,irq-crossbar";
 
-> Getting the controller offset should work whether you specify the
-> address as 0x13000 with translation or the absolute address
-> 0x20013000. In other words, the driver should know how many bits to
-> mask off to get the offset.
+Please include a ti,irqs-skip example here.
 
-That's what the first version of the patch did, and I didn't like that
-because the masking is not actually a property of the controller, but
-it's based on how the controller is connected to the parent bus, in this
-case by using a narrower connection. We can describe the connection just
-fine using standard DT properties and I think we should.
+> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+> index 51d4b87..27049de 100644
+> --- a/drivers/irqchip/irq-crossbar.c
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -18,6 +18,7 @@
+>  
+>  #define IRQ_FREE	-1
+>  #define IRQ_RESERVED	-2
+> +#define IRQ_SKIP	-3
+>  #define GIC_IRQ_START	32
+>  
+>  /*
+> @@ -160,6 +161,25 @@ static int __init crossbar_of_init(struct device_node *node)
+>  		}
+>  	}
+>  
+> +	/* Skip the ones marked as skip */
 
-	Arnd
+This comment is redundant, perhaps "Skip irqs hardwired to bypass the
+crossbar."?
+
+> +	irqsr = of_get_property(node, "ti,irqs-skip", &size);
+> +	if (irqsr) {
+> +		size /= sizeof(__be32);
+> +
+> +		for (i = 0; i < size; i++) {
+> +			of_property_read_u32_index(node,
+> +						   "ti,irqs-skip",
+> +						   i, &entry);
+> +			if (entry > max) {
+> +				pr_err("Invalid skip entry\n");
+> +				ret = -EINVAL;
+> +				goto err3;
+> +			}
+> +			cb->irq_map[entry] = IRQ_SKIP;
+> +		}
+> +	}
+> +
+> +
+>  	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
+>  	if (!cb->register_offsets)
+>  		goto err3;
+
+thx,
+
+Jason.
