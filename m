@@ -1,39 +1,56 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH] regulator: palmas: Fix SMPS enable/disable/is_enabled
-Date: Sat, 21 Jun 2014 13:06:53 +0900
-Message-ID: <CAAVeFuKhgVEtHMwacr=VoSChU5R2B3aVDhp7R7wRFCkwS=EKSw@mail.gmail.com>
-References: <1403285183-15926-1-git-send-email-nm@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/2] ASoC: davinci-mcasp: Add dependecy to
+ SND_DAVINCI_SOC or SND_OMAP_SOC
+Date: Sat, 21 Jun 2014 11:03:25 +0100
+Message-ID: <20140621100325.GZ5099@sirena.org.uk>
+References: <cover.1402652359.git.jsarha@ti.com>
+ <d2504eb8a058681b7ef67f6c41da020c4d1b1bed.1402652359.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403285183-15926-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, "acourbot@nvidia.com" <acourbot@nvidia.com>, j-keerthy@ti.com, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5pdrwNc8kybVvzwn"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:51690 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754800AbaFUKDz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jun 2014 06:03:55 -0400
+Content-Disposition: inline
+In-Reply-To: <d2504eb8a058681b7ef67f6c41da020c4d1b1bed.1402652359.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, detheridge@ti.com
 
-On Sat, Jun 21, 2014 at 2:26 AM, Nishanth Menon <nm@ti.com> wrote:
-> We use regmap regulator ops to enable/disable and check if regulator
-> is enabled for various SMPS. However, these depend on valid
-> enable_reg, enable_mask and enable_value in regulator descriptor.
->
-> Currently we do not populate these for SMPS other than SMPS10, this
-> results in spurious results as regmap assumes that the values are
-> valid and ends up reading register 0x0 RTC:SECONDS_REG on Palmas
-> variants that do have RTC! To fix this, we update proper parameters
-> for the descriptor fields.
->
-> Further, we want to ensure the behavior consistent with logic
-> prior to commit dbabd624d4eec50b6, where, once you do a set_mode,
-> enable/disable ensure the logic remains consistent and configures
-> Palmas to the configuration that we set with set_mode (since the
-> configuration register is common). To do this, we can rely on the
-> regulator core's regulator_register behavior where the regulator
-> descriptor pointer provided by the regulator driver is stored. (no
-> reallocation and copy is done). This lets us update the enable_value
-> post registration, to remain consistent with the mode we configure as
-> part of set_mode.
 
-Tested-by: Alexandre Courbot <acourbot@nvidia.com>
+--5pdrwNc8kybVvzwn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks!
+On Fri, Jun 13, 2014 at 12:49:59PM +0300, Jyri Sarha wrote:
+> Fixes build with SND_DAVINCI_SOC or SND_OMAP_SOC alone and adds build
+> dependecy to SND_DAVINCI_SOC or SND_OMAP_SOC.
+
+Applied, thanks.
+
+--5pdrwNc8kybVvzwn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJTpVhqAAoJELSic+t+oim9/Z8P/317MVEA7W8I9C4CYT8nVSv3
+ASYNvwdlOSr2CCCa2p7qRHxJMHOikxMfjH+NmyJK4eSX6l4XxdwUVuOWlw6bXy60
+BRycndc+JExzE8wCqld60ji48knABi9FxU3nR1bMewWAeuQc0D54DbaHZxMuoK6I
+F6Io5szJdvkjNZFh0Myh/eUpuoPFgMNkRTdeE/Cm3x4Fc6sPPZq1DIXRBgmbIgxm
+TLgGI9hLetSjtaL//jamrOBkN9aFN2chbGVY+0AV26qi4LZMQ8qFEVRUJWzwd2sn
+8XS1uOy8p7stXZpKXrs2W8be6wAk8yQYvt4owfX7XdRQ+3R3xmPyQx9fyWbgpPGG
+4BY4wNPV5fd1y7o14qJnvV+niqtcrySeMkW57frL9poRmSZDMIXs5m0J1gDasSCT
+sxGXfK2gRZxmlXBOIwMnVtu7OemHRttJ38PiurliN+ysZkkMyo8PrvcrWyNr9Zxy
+RJz59xjAch99Uh4uhbF7QR+VQ/kuvQ0BVqUERWkqqdOOARlOtTe1aQel1FteKTGJ
+PjHe7mOZnk0nVvXJeAUyie67BdWEO5QMFSgD6Y8e9pozynZnEmDpHGeKAMYV7dtl
+9l6EIBxeKP8RX3ytVBaLmgjV/x/lVJGbpW5Egpwo4scRC0RG/O2HiRjJdhCay/p6
+Bf91Jf3I2OwDCQp2ZkF+
+=Frxw
+-----END PGP SIGNATURE-----
+
+--5pdrwNc8kybVvzwn--
