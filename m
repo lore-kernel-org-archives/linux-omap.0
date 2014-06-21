@@ -1,76 +1,56 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 2/2] ASoC: davinci-mcasp: Allow best effort
- in selecting BCLK divider
-Date: Sat, 21 Jun 2014 11:04:52 +0100
-Message-ID: <20140621100452.GA5099@sirena.org.uk>
-References: <cover.1402652359.git.jsarha@ti.com>
- <6f645a7d31219c4410db31030a3ab07a4af6ae0e.1402652359.git.jsarha@ti.com>
+Subject: Re: [PATCH 1/3] ASoC: simple-card: Make u32 DT parameter handling
+ 64-bit proof
+Date: Sat, 21 Jun 2014 11:07:03 +0100
+Message-ID: <20140621100703.GB5099@sirena.org.uk>
+References: <cover.1402653217.git.jsarha@ti.com>
+ <ff985604371ff8afa35352db9d460b08760003e2.1402653217.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2682762194445751245=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <6f645a7d31219c4410db31030a3ab07a4af6ae0e.1402652359.git.jsarha@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, detheridge@ti.com
-List-Id: linux-omap@vger.kernel.org
-
-
---===============2682762194445751245==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WRrKW00JGQBXpjyg"
+	protocol="application/pgp-signature"; boundary="SaJ70UJ7F+qlPd18"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:51703 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754885AbaFUKHS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jun 2014 06:07:18 -0400
 Content-Disposition: inline
+In-Reply-To: <ff985604371ff8afa35352db9d460b08760003e2.1402653217.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, detheridge@ti.com
 
 
---WRrKW00JGQBXpjyg
+--SaJ70UJ7F+qlPd18
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Jun 13, 2014 at 12:50:00PM +0300, Jyri Sarha wrote:
-> Do not fail if the exact BLCK rate can not be produced, just print a
-> warning. Check that sysclk frequency is set before implicitly setting
-> the BCLK divider.
+On Fri, Jun 13, 2014 at 01:04:36PM +0300, Jyri Sarha wrote:
+> Passing unsigned int pointers as u32 ponters may be dangerous on 64-bit
+> system.
 
-I've appled this but not as a fix - it's kind of on the edge if we
-should be doing this at all, it's helpful for interoperability but
-getting an inexact frequency obviously impacts the resulting audio.
+Applied, thanks.
 
---WRrKW00JGQBXpjyg
+--SaJ70UJ7F+qlPd18
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBAgAGBQJTpVjAAAoJELSic+t+oim9ppUP/26zCW5fM2luP4Qzrk4OxJ5E
-w+a1M19GzocCDpRNPgqDIpgSQkeNMZNAa5dMGR7x+41TNJ3Z9Ev1O3RSD1zPnGVP
-2CeXh3HQZvcNYeB7hFEPwd+YCTBrvTB/1yFkvLgBL4odBTYfNctwL577xzZqRrjv
-V5omX/Zl8k8y3p0kTeOzEvw/jUIGSGecABXoSqo24xNmueh5Hauy4FpGvQ6nvgvo
-dG7YY+xJswwCtfJ2ZjO/xTF7XkBegwyTSpnEA1tnXLE0WCEsx/pQR1+t0sUDmYwx
-pxBKAHWf1fx1hDCdvSp3yc56QjRX6fohY+mYF7nCJINmcseTmqB6BhO8jxdNtOX+
-WAq3meAKYaX45rKl15RkShJ3Mprf1svbUIVRdJoSS3+0bG/UOSPv9qQ2FOMUkbUi
-6K7aHBzond6W0wQaR8xNznEP8yaN7l3f8s8yWuySolC31mst/GZnzBuesj259+9j
-mgTmsssSeBkyX5HUOTdsVlpzFHZDjpR6lvO1CdAYlNyRCtnaBcdeKhki+9Qvtxq7
-KfJZmGl0DxrWeTZyy0OlVOyhmMKtpTR23yls96y2FH8Utmck1bgvMfEy5ZZhBjhS
-b+oYR42xoQromHsFlzVlfpvPWWEYzbPnsDuAXOfTJ9deTYGXwrgc+Dsq/8DE01bb
-1ZHm1fG1krA2eiOkV0Rz
-=ZfPh
+iQIcBAEBAgAGBQJTpVlEAAoJELSic+t+oim9P8cP/2Ek+a3MNrJOrvDWv4ECP783
+zmCQ+0ZN0GBu9UasEtrdfniIdEnckuK5W+A9QYeTuZ5b3eo9CJRc2DWj+f+iJh1I
+xIZrVHhByuxRSCmRmLNJS1IaTsR3DLBMK4fyJrkHP6BopIwBSizEgJ/VML6Rdr1l
+6XSq3eRzfu22lpTmewTSJ7Sd+35vM4qhnpxbE3UVHJJgz7WL6KuzVkXm9PHb8EF/
+5qDeDGt1P3J2eLgE4VxIuhxx4SzLK1ucLDcHZuv3tCJd1ri+RMN6LBlQoZ+ggvm2
+LBAhpw468QD7D3MgyfSgNt61x4+kFVbJf5JwUujAiZw37ypr6s/nH19iiff6xlJh
+CeJKyJ08VkUe0PUHljvFXgj0LpD0DMN+kp0igrvva3BdFgQ7hAQwSyRie/a8hHh3
+I9WbexGtsIBSatJ4yTvX+Ie1UKIDX4at97LYS2R9TAPh78TFgh1rCVYCx6KrpU1F
+BhaRkfutlEv1yLGY26l9i+u206r7dRXd0jObAG4JX1PGtx2VnkfSWFyBIcytr5s4
+4pY7UwIcVUFT8ycY0hEJk7EfJOC0taWr45bd0I9g0XzJjjfqlgG/ZX1MRm6HKpAz
+ymVbElaBd4sHrP0Xo11fa5Zdw5flhrXReClNnQ4DKIqIqc6ckyvG0zMh1BGIsK11
+gtCgBHiuERiJd+Xe0J8t
+=5ALn
 -----END PGP SIGNATURE-----
 
---WRrKW00JGQBXpjyg--
-
---===============2682762194445751245==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============2682762194445751245==--
+--SaJ70UJ7F+qlPd18--
