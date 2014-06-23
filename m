@@ -1,96 +1,177 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Sun, 22 Jun 2014 22:48:39 -0700
-Message-ID: <20140623054838.GB28884@atomide.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
- <1400490948-11571-2-git-send-email-pekon@ti.com>
- <20140519162532.GF4849@atomide.com>
- <20980858CB6D3A4BAE95CA194937D5E73EAF6A7C@DBDE04.ent.ti.com>
+From: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
+Subject: RE: OMAP 3630 random crashes
+Date: Mon, 23 Jun 2014 06:07:04 +0000
+Message-ID: <1403503623834.68421@grundfos.com>
+References: <1403254242990.39117@grundfos.com>
+ <20140620091431.GA28884@atomide.com>
+ <1403272840480.35753@grundfos.com>,<CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>,<1403274413159.44797@grundfos.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65496 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751731AbaFWFsl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2014 01:48:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAF6A7C@DBDE04.ent.ti.com>
+Received: from mail-am1lp0010.outbound.protection.outlook.com ([213.199.154.10]:39460
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751261AbaFWGHI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2014 02:07:08 -0400
+In-Reply-To: <1403274413159.44797@grundfos.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>, "Jason Kridner (jkridner@gmail.com)" <jkridner@gmail.com>, "Robert Nelson (robertcnelson@gmail.com)" <robertcnelson@gmail.com>
+To: Ash Charles <ash@gumstix.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Gupta, Pekon <pekon@ti.com> [140622 22:42]:
-> Hi Tony,
-> 
-> Just reviving this thread for some information..
-> 
-> >From: Tony Lindgren [mailto:tony@atomide.com]
-> >Sent: Monday, May 19, 2014 9:56 PM
-> >To: Gupta, Pekon
-> >Cc: linux-omap; Ezequiel Garcia; Stefan Roese; Javier Martinez Canillas; Quadros, Roger
-> >Subject: Re: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for beaglebone NAND cape
-> >
-> >* Pekon Gupta <pekon@ti.com> [140519 02:16]:
-> >> --- a/arch/arm/boot/dts/am335x-bone.dts
-> >> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> >> @@ -9,6 +9,7 @@
-> >>
-> >>  #include "am33xx.dtsi"
-> >>  #include "am335x-bone-common.dtsi"
-> >> +#include "am335x-bone-memory-cape.dts"
-> >>
-> >>  &ldo3_reg {
-> >>  	regulator-min-microvolt = <1800000>;
-> >> --- a/arch/arm/boot/dts/am335x-boneblack.dts
-> >> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
-> >> @@ -9,6 +9,7 @@
-> >>
-> >>  #include "am33xx.dtsi"
-> >>  #include "am335x-bone-common.dtsi"
-> >> +#include "am335x-bone-memory-cape.dts"
-> >>
-> >>  &ldo3_reg {
-> >>  	regulator-min-microvolt = <1800000>;
-> >
-> >Based on the recent discussions on the capes, it seems that nobody
-> >wants to implement toggling of the capes in u-boot. And as there
-> >can be other capes using GPMC bus, we can't merge this.
-> 
-> I have been able to get toggling of capes (enabling and disabling of DT nodes)
-> in u-boot. It was already there in u-boot mainline [1], may be no-body tried it.
-> 
-> Example: Below sequence works for NAND cape patch mentioned in this thread.
-> ---------------
-> /* load DTB */
-> u-boot> tftp 0x81000000 am335x-boneblack.dtb
-> u-boot> fdt addr 0x81000000
-> /* disable MMC2 node */
-> u-boot> fdt list /ocp/mmc@481d8000
-> u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
-> u-boot> fdt list /ocp/mmc@481d8000 status
-> /* enable GPMC node */
-> u-boot> fdt list /ocp/gpmc
-> u-boot> fdt set  /ocp/gpmc status \o\k\a\y
-> u-boot> fdt list /ocp/gpmc status
-> /* enable ELM node */
-> u-boot> fdt list /ocp/elm
-> u-boot> fdt set  /ocp/elm status \o\k\a\y
-> u-boot> fdt list /ocp/elm status
-> /* boot uImage */
-> tftp 0x82000000 uImage
-> bootm 0x82000000 - 0x81000000
-> 
-> Note: "fdt set" command does not accept string literals
-> as binding values, it internally converts them to string, so
-> escape sequenced characters were used here..
-> "okay" == \o\k\a\y
-> "disabled" == \d\i\s\a\b\l\e\d"
+Hi again
 
-Cool. Now all we need is a few helper functions in u-boot
-so it can be done a bit easier :)
+All my boards are marked "JW513". So the problem might be hardware related, i will try to get some new Overo's and test on these instead. 
 
-Regards,
+Med venlig hilsen/Best regards
 
-Tony
+Casper Mogensen
+
+________________________________________
+From: linux-omap-owner@vger.kernel.org <linux-omap-owner@vger.kernel.org> on behalf of Casper Lyngesen Mogensen <clmogensen@grundfos.com>
+Sent: Friday, June 20, 2014 16:26
+To: Ash Charles
+Cc: Tony Lindgren; linux-omap@vger.kernel.org
+Subject: RE: OMAP 3630 random crashes
+
+Hi
+
+The memory on the Overo, i have with me right now, is actually marked JW513,
+and 18 months is also around the time, they were bought. Will check my other
+modules, when i get back to the office.
+However i have not been able to recreate the problem with the 3.5.0 kernel on
+same Overo
+
+Med venlig hilsen/Best regards
+
+Casper Mogensen
+
+________________________________________
+From: ashcharles@gmail.com <ashcharles@gmail.com> on behalf of Ash Charles <ash@gumstix.com>
+Sent: Friday, June 20, 2014 16:17
+To: Casper Lyngesen Mogensen
+Cc: Tony Lindgren; linux-omap@vger.kernel.org
+Subject: Re: OMAP 3630 random crashes
+
+Hi Casper,
+
+What is the top-side marking on the memory chip on your Overo?  There
+were some random faults due to poor memory chips marked 'JW513' from
+about 18 months ago.
+
+--Ash
+
+On Fri, Jun 20, 2014 at 7:00 AM, Casper Lyngesen Mogensen
+<clmogensen@grundfos.com> wrote:
+> Hi
+>
+> U-boot seems to set the speed to 165 Mhz
+> "OMAP36XX/37XX-GP ES1.2, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz"
+>
+> I have a LAN9221, but tried the other timings, still same result.
+>
+> Also tried running the entire system from an MMC card, same result, but my test had
+> to run a little longer.
+>
+> Found a quicker test to reproduce the error, a little C-program:
+>
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <errno.h>
+>
+> int main(void){
+>         long long var=0;
+>
+>         int *ptr=NULL;
+>
+>         int run=1;
+>         while(run){
+>                 ptr=malloc(sizeof(int)*1000);
+>                 if(ptr==NULL){
+>                         run=0;
+>                 }
+>                 var+=1000;
+>                 printf("mallocsize = %lld\n",var*sizeof(int));
+>         }
+> }
+>
+>
+> Booting from NFS, the system crashes at ~40mb allocated
+> On MMC at ~60MB
+>
+> Med venlig hilsen/Best regards
+>
+> Casper Mogensen
+>
+> ________________________________________
+> From: Tony Lindgren <tony@atomide.com>
+> Sent: Friday, June 20, 2014 11:14
+> To: Casper Lyngesen Mogensen
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: OMAP 3630 random crashes
+>
+> Hi,
+>
+> * Casper Lyngesen Mogensen <clmogensen@grundfos.com> [140620 01:52]:
+>> Hi
+>>
+>> I have  custom board with a Gumstix Overo, my board is similar to a
+>> Tobi board. Right now i have it running with a 3.5.0 kernel. I'm
+>> trying to upgrade the kernel, and have tried several versions (3.10 ->
+>> 3.15) and i seem to be hitting the same problem with all versions, i
+>> get random crashes. Found a way to  trigger the crash within
+>> minutes/seconds:
+>>
+>> # dd if=/dev/urandom of=/tmp/test.file bs=1024 count=100000
+>>
+>> A count > 10000 will at some point trigger the crash. The hang/crash
+>> is repeatable everytime but the log is not, sometimes i do not get
+>> any trace at all. I can provide more logs if necessary.  Config and
+>> crash log are below..
+>>
+>> Have tried disabling various peripherals, such as sound, usb,
+>> ethernet, wifi, bluetooth, but with no luck. Also tried different Overo
+>> boards.
+>>
+>> Hope someone can help me/point me in the right direction
+>
+> I was seeing similar issues with NFSroot until commit dcf21919
+> (ARM: dts: Fix GPMC timings for LAN9220). Turns out LAN9220 has
+> much slower timings compared to LAN9221. So you need to check that
+> you're using right timings if you have LAN9220.
+>
+> Also, check what rate your bootloader is setting the L3 speed.
+> If it's set to 200MHz, then LAN9220 timings seem to overflow the
+> GPMC registers for the calculated values and bootloader timings
+> are used instead.
+>
+>> Starting kernel ...
+>>
+>> [    0.000000] Booting Linux on physical CPU 0x0
+>> [    0.000000] Linux version 3.15.0 (clmo@N66266) (gcc version 4.8.1 (crosstool-NG 1.19.0) ) #3 SMP Wed Jun 11 23:50:13 CEST 2014
+>> [    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c5387d
+>> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+>> [    0.000000] Machine model: OMAP36xx/AM37xx/DM37xx Gumstix Overo on Tobi
+>> [    0.000000] cma: CMA: reserved 16 MiB at 8d800000
+>> [    0.000000] Memory policy: Data cache writeback
+>> [    0.000000] CPU: All CPU(s) started in SVC mode.
+>> [    0.000000] OMAP3630 ES1.2 (l2cache neon isp 192mhz_clk )
+>> [    0.000000] PERCPU: Embedded 9 pages/cpu @cecc6000 s14080 r8192 d14592 u36864
+>> [    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 60704
+>> [    0.000000] Kernel command line: console=ttyO2,115200n8 root=/dev/nfs nfsroot=192.168.100.1:/export/bbroot,nolock rw ip=192.168.100.7::192.168.100.1:::eth0:off mem=240M
+>
+> Maybe also check if your test works with NFSroot idsabled.
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
