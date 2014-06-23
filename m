@@ -1,114 +1,44 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] regulator: palmas: Fix SMPS enable/disable/is_enabled
-Date: Mon, 23 Jun 2014 15:29:17 -0500
-Message-ID: <CAGo_u6pnx5bQgpFGPbqzne_QmG4VbTFmBkJGhhp8e0DNU3GztA@mail.gmail.com>
-References: <1403285183-15926-1-git-send-email-nm@ti.com>
-	<53A884EF.100@wwwdotorg.org>
-	<CAGo_u6oMqKBu0PdY915+GHBekbPkSHODwoKafdY-6YcmkLGanA@mail.gmail.com>
-	<53A88BF5.9010603@wwwdotorg.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: [PATCH] regulator: palmas: fix typo in enable_reg calculation
+Date: Mon, 23 Jun 2014 14:53:25 -0600
+Message-ID: <1403556805-22824-1-git-send-email-swarren@wwwdotorg.org>
 Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53A88BF5.9010603-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
 Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Alex Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 23, 2014 at 3:20 PM, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org> wrote:
-> On 06/23/2014 02:11 PM, Nishanth Menon wrote:
->> On Mon, Jun 23, 2014 at 2:50 PM, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org> wrote:
->>> On 06/20/2014 11:26 AM, Nishanth Menon wrote:
->>>> We use regmap regulator ops to enable/disable and check if regulator
->>>> is enabled for various SMPS. However, these depend on valid
->>>> enable_reg, enable_mask and enable_value in regulator descriptor.
->>>>
->>>> Currently we do not populate these for SMPS other than SMPS10, this
->>>> results in spurious results as regmap assumes that the values are
->>>> valid and ends up reading register 0x0 RTC:SECONDS_REG on Palmas
->>>> variants that do have RTC! To fix this, we update proper parameters
->>>> for the descriptor fields.
->>>>
->>>> Further, we want to ensure the behavior consistent with logic
->>>> prior to commit dbabd624d4eec50b6, where, once you do a set_mode,
->>>> enable/disable ensure the logic remains consistent and configures
->>>> Palmas to the configuration that we set with set_mode (since the
->>>> configuration register is common). To do this, we can rely on the
->>>> regulator core's regulator_register behavior where the regulator
->>>> descriptor pointer provided by the regulator driver is stored. (no
->>>> reallocation and copy is done). This lets us update the enable_value
->>>> post registration, to remain consistent with the mode we configure as
->>>> part of set_mode.
->>>>
->>>> Fixes: dbabd624d4eec50b6 ("regulator: palmas: Reemove open coded functions with helper functions")
->>>> Reported-by: Alexandre Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
->>>> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>>
->>> Unfortunately, there is still some lingering problem in the original
->>> commit. In next-20130623 (and indeed since at least next-20140611),
->>> neither the LCD panel or HDMI work on the NVIDIA Dalmore board.
->>> Reverting this commit (just for conflicts) and the original problematic
->>> commit "regulator: palmas: Reemove open coded functions with helper
->>> functions" solves this. I see the following on boot:
->>>
->>>> [    3.558776] tegra-dsi 54300000.dsi: cannot get VDD supply
->>>> [    3.564272] platform 54300000.dsi: Driver tegra-dsi requests probe deferral
->>>> [    3.571990] tegra-hdmi 54280000.hdmi: failed to get PLL regulator
->>>> [    3.578377] platform 54280000.hdmi: Driver tegra-hdmi requests probe deferral
->>>
->>> ... but probe deferral never completes, yet with your "remove open coded
->>> ..." patch reverted, it all works fine.
->>>
->>> Can you please take another look at the original patch?
->>
->> Will let keerthy (original patch author) comment on it.
->>
->> arch/arm/boot/dts/tegra114-dalmore.dts tps65090, avdd_lcd_reg I
->> suppose is the path in question?
->>
->> Seems to use drivers/mfd/tps65090.c and
->> drivers/regulator/tps65090-regulator.c and not palmas?
->>
->> Am I looking at the right dts?
->
-> Yes, that's the right DTS.
->
-> There's both a 65090 and a Palmas on the board. It's probably simpler to
-> look at the HDMI PLL regulator, since the path to the Palmas is more
-> obvious:
->
-> / {
->         host1x@50000000 {
->                 hdmi@54280000 {
->                         pll-supply = <&palmas_smps3_reg>;
-> ...
->         i2c@7000d000 {
->                 palmas: tps65913@58 {
->                         compatible = "ti,palmas";
->                         pmic {
->                                 compatible = "ti,tps65913-pmic",
->                                                 "ti,palmas-pmic";
->                                 regulators {
->                                         palmas_smps3_reg: smps3 {
->
+From: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-based on "tegra-dsi 54300000.dsi: cannot get VDD supply" (from
-drivers/gpu/drm/tegra/dsi.c), first fail of the log,  I suspect LDO
-and not smps?
+When setting up .enable_reg for an SMPS regulator, presumably we should
+call PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE, ...) rather than using
+LDO_BASE. This change makes the LCD panel and HDMI work again on the
+NVIDIA Dalmore board anyway.
 
- avdd_1v2_reg: ldo3 {
-         regulator-name = "avdd-dsi-csi";
-         regulator-min-microvolt = <1200000>;
-         regulator-max-microvolt = <1200000>;
- };
-
-Do you have a complete boot log? there could be cascade fail that
-results in LDO not being available. a post on hastebin/slexy.org would
-be nice.
-
-The trouble is that when 1 registration fails, the entire cascade of
-regulators will not get registered :(.
-
+Cc: Alex Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Fixes: 318dbb02b50c ("regulator: palmas: Fix SMPS enable/disable/is_enabled")
+Fixes: dbabd624d4eec50b6 ("regulator: palmas: Reemove open coded functions with helper functions")
+Signed-off-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 ---
-Regards,
-Nishanth Menon
+ drivers/regulator/palmas-regulator.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index 3c861d5f9245..93b4ad842901 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -970,7 +970,7 @@ static int palmas_regulators_probe(struct platform_device *pdev)
+ 					PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+ 
+ 			pmic->desc[id].enable_reg =
+-					PALMAS_BASE_TO_REG(PALMAS_LDO_BASE,
++					PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
+ 						palmas_regs_info[id].ctrl_addr);
+ 			pmic->desc[id].enable_mask =
+ 					PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+-- 
+1.8.1.5
