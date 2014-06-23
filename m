@@ -1,117 +1,111 @@
-From: Jason Kridner <jkridner@gmail.com>
-Subject: Re: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Mon, 23 Jun 2014 02:13:15 -0400
-Message-ID: <CA+T6QPnfzPJXs4NftLoVZBHXXvUO=-_XMvTazxj+8HF41_UJ+g@mail.gmail.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
-	<1400490948-11571-2-git-send-email-pekon@ti.com>
-	<20140519162532.GF4849@atomide.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EAF6A7C@DBDE04.ent.ti.com>
-	<20140623054838.GB28884@atomide.com>
+From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V3 03/16] irqchip: crossbar: introduce ti,irqs-skip to
+ skip
+Date: Mon, 23 Jun 2014 12:50:33 +0530
+Message-ID: <53A7D541.6090009@ti.com>
+References: <1402917796-31574-1-git-send-email-r.sricharan@ti.com> <1402917796-31574-4-git-send-email-r.sricharan@ti.com> <20140621023302.GE21711@titan.lakedaemon.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:41054 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbaFWGNQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2014 02:13:16 -0400
-Received: by mail-oa0-f48.google.com with SMTP id m1so9640702oag.35
-        for <linux-omap@vger.kernel.org>; Sun, 22 Jun 2014 23:13:15 -0700 (PDT)
-In-Reply-To: <20140623054838.GB28884@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140621023302.GE21711-u4khhh1J0LxI1Ri9qeTfzeTW4wlIGRCZ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Gupta, Pekon" <pekon@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>, "Robert Nelson (robertcnelson@gmail.com)" <robertcnelson@gmail.com>
 
-On Mon, Jun 23, 2014 at 1:48 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Gupta, Pekon <pekon@ti.com> [140622 22:42]:
->> Hi Tony,
->>
->> Just reviving this thread for some information..
->>
->> >From: Tony Lindgren [mailto:tony@atomide.com]
->> >Sent: Monday, May 19, 2014 9:56 PM
->> >To: Gupta, Pekon
->> >Cc: linux-omap; Ezequiel Garcia; Stefan Roese; Javier Martinez Canillas; Quadros, Roger
->> >Subject: Re: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for beaglebone NAND cape
->> >
->> >* Pekon Gupta <pekon@ti.com> [140519 02:16]:
->> >> --- a/arch/arm/boot/dts/am335x-bone.dts
->> >> +++ b/arch/arm/boot/dts/am335x-bone.dts
->> >> @@ -9,6 +9,7 @@
->> >>
->> >>  #include "am33xx.dtsi"
->> >>  #include "am335x-bone-common.dtsi"
->> >> +#include "am335x-bone-memory-cape.dts"
->> >>
->> >>  &ldo3_reg {
->> >>    regulator-min-microvolt = <1800000>;
->> >> --- a/arch/arm/boot/dts/am335x-boneblack.dts
->> >> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
->> >> @@ -9,6 +9,7 @@
->> >>
->> >>  #include "am33xx.dtsi"
->> >>  #include "am335x-bone-common.dtsi"
->> >> +#include "am335x-bone-memory-cape.dts"
->> >>
->> >>  &ldo3_reg {
->> >>    regulator-min-microvolt = <1800000>;
->> >
->> >Based on the recent discussions on the capes, it seems that nobody
->> >wants to implement toggling of the capes in u-boot. And as there
->> >can be other capes using GPMC bus, we can't merge this.
->>
->> I have been able to get toggling of capes (enabling and disabling of DT nodes)
->> in u-boot. It was already there in u-boot mainline [1], may be no-body tried it.
->>
->> Example: Below sequence works for NAND cape patch mentioned in this thread.
->> ---------------
->> /* load DTB */
->> u-boot> tftp 0x81000000 am335x-boneblack.dtb
->> u-boot> fdt addr 0x81000000
->> /* disable MMC2 node */
->> u-boot> fdt list /ocp/mmc@481d8000
->> u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
->> u-boot> fdt list /ocp/mmc@481d8000 status
->> /* enable GPMC node */
->> u-boot> fdt list /ocp/gpmc
->> u-boot> fdt set  /ocp/gpmc status \o\k\a\y
->> u-boot> fdt list /ocp/gpmc status
->> /* enable ELM node */
->> u-boot> fdt list /ocp/elm
->> u-boot> fdt set  /ocp/elm status \o\k\a\y
->> u-boot> fdt list /ocp/elm status
->> /* boot uImage */
->> tftp 0x82000000 uImage
->> bootm 0x82000000 - 0x81000000
->>
->> Note: "fdt set" command does not accept string literals
->> as binding values, it internally converts them to string, so
->> escape sequenced characters were used here..
->> "okay" == \o\k\a\y
->> "disabled" == \d\i\s\a\b\l\e\d"
->
-> Cool. Now all we need is a few helper functions in u-boot
-> so it can be done a bit easier :)
->
+On Saturday 21 June 2014 08:03 AM, Jason Cooper wrote:
+> Sricharan,
+> 
+> Your subject line seems truncated:
+> 
+>   "irqchip: crossbar: introduce ti,irqs-skip to skip"
+> 
+> maybe "... Introduce DT property to skip hardwired irqs" ?
+> 
+> Also note that you need to correct the subject line for *every* patch in
+> the series wrt capitalization.
+> 
+> I don't mind correcting it when I apply it, provided that:
+> 
+ha, i think this got truncated unintentionally. Sorry will fix this.
+>  - the patch is otherwise ready
+>  - I only have to do it once or twice for the series
+>  - I never had a chance to ask since you created a rockstar patch series
+>    the first time out of the gate (except for capitalization).
+> 
+> Once I've looked over the whole series, please resend with the subject
+> lines corrected.
+> 
+Ok. I will look for your comments on the rest of the patches and
+resend with capitalization fix said above.
 
-The association of devicetree overlay files in /lib/firmware to cape
-IDs made it where the kernel-based cape overlay manager could modify
-the devicetree as needed without putting extensive cape-specific logic
-in the kernel or bootloader. Throwing a bunch of capes into a single
-class of capes won't save any work there. If we can get the bootloader
-to support the .dtbo files, then we can continue to use the ID in the
-cape to provide all the DT modifications we need. If we need to do
-scripts for the modifications, we'd still need to associate the cape
-ID to that script.
+> On Mon, Jun 16, 2014 at 04:53:03PM +0530, Sricharan R wrote:
+>> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+>>
+>> When, in the system due to varied reasons, interrupts might be unusable
+>> due to hardware behavior, but register maps do exist, then those interrupts
+>> should be skipped while mapping irq to crossbars.
+>>
+>> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+>> ---
+>> [V3] introduced ti,irqs-skip dt property to list the
+>>      irqs to be skipped.
+>>
+>>  .../devicetree/bindings/arm/omap/crossbar.txt      |    4 ++++
+>>  drivers/irqchip/irq-crossbar.c                     |   20 ++++++++++++++++++++
+>>  2 files changed, 24 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>> index fb88585..cfcbd52 100644
+>> --- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+>> @@ -17,6 +17,10 @@ Required properties:
+>>  		 so crossbar bar driver should not consider them as free
+>>  		 lines.
+>>  
+>> +Optional properties:
+>> +- ti,irqs-skip: This is similar to "ti,irqs-reserved", but are irq mappings
+>> +  which are not supposed to be used for errata or other reasons(virtualization).
+> 
+> I would specifically mention SoC-specific hard-wiring of irqs here.
+> Also the fact that the hardwiring unexpectedly bypasses the crossbar.
+ok, that will be more easily understandable and will add that.
+> 
+>> +
+>>  Examples:
+>>  		crossbar_mpu: @4a020000 {
+>>  			compatible = "ti,irq-crossbar";
+> 
+> Please include a ti,irqs-skip example here.
+> 
+ok.
+>> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+>> index 51d4b87..27049de 100644
+>> --- a/drivers/irqchip/irq-crossbar.c
+>> +++ b/drivers/irqchip/irq-crossbar.c
+>> @@ -18,6 +18,7 @@
+>>  
+>>  #define IRQ_FREE	-1
+>>  #define IRQ_RESERVED	-2
+>> +#define IRQ_SKIP	-3
+>>  #define GIC_IRQ_START	32
+>>  
+>>  /*
+>> @@ -160,6 +161,25 @@ static int __init crossbar_of_init(struct device_node *node)
+>>  		}
+>>  	}
+>>  
+>> +	/* Skip the ones marked as skip */
+> 
+> This comment is redundant, perhaps "Skip irqs hardwired to bypass the
+> crossbar."?
+ok, will change this.
 
-This still doesn't cover the need for run-time devicetree
-modification, but I'll leave that for the other on-going thread.
-
-I do agree with the idea of moving more of the potential sources of
-conflict that can be resolved out of the overlays and into the main
-devicetree, leaving the overlays or scripts simply to deal with the
-conflicts that cannot be resolved at run-time given the current
-infrastructure. I just think they should go into .dtsi (include) files
-for the main .dts/.dtb files for the boards, rather than additional
-overlays or alternative .dts files.
+Regards,
+ Sricharan
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
