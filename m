@@ -1,42 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP 3630 random crashes
-Date: Mon, 23 Jun 2014 01:35:12 -0700
-Message-ID: <20140623083512.GC28884@atomide.com>
-References: <1403254242990.39117@grundfos.com>
- <20140620091431.GA28884@atomide.com>
- <1403272840480.35753@grundfos.com>
- <CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
- <1403274413159.44797@grundfos.com>
- <1403503623834.68421@grundfos.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 0/9] mfd: tps65917: Add support for for TPS65917 PMIC
+Date: Mon, 23 Jun 2014 12:32:25 +0100
+Message-ID: <20140623113225.GC24291@sirena.org.uk>
+References: <1403085540-20014-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="o9w4P0ZCTVHZJ0iX"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26005 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751823AbaFWIfO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2014 04:35:14 -0400
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54375 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753776AbaFWLco (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2014 07:32:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1403503623834.68421@grundfos.com>
+In-Reply-To: <1403085540-20014-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
-Cc: Ash Charles <ash@gumstix.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, sameo@linux.intel.com, lee.jones@linaro.org
 
-* Casper Lyngesen Mogensen <clmogensen@grundfos.com> [140622 23:08]:
-> Hi again
-> 
-> All my boards are marked "JW513". So the problem might be hardware related, i will try to get some new Overo's and test on these instead. 
 
-OK, please let us know how it goes.
+--o9w4P0ZCTVHZJ0iX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Also if using armhf based distro some omap3 SoCs need
-CONFIG_CPU_BPREDICT_DISABLE=y or CONFIG_ARM_ERRATA_430973=y
-or both. Sorry no idea yet which revisions, but I've seen some
-flakeyness with apt-get dist-upgrade occasionally failing
-on a 3630 with revision info:
+On Wed, Jun 18, 2014 at 03:28:51PM +0530, Keerthy wrote:
+> The TPS65917 chip is a power management IC for Portable Navigation Systems
+> and Tablet Computing devices. It contains the following components:
 
-CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c5307d
+Applied all, thanks.
 
-Regards,
+--o9w4P0ZCTVHZJ0iX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tony
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJTqBBGAAoJELSic+t+oim9ZNsP/jIUdNJuuZDv/ZHfAhPZwh5x
+rI9yT2/hFXRIglZPCjDm4H1v1WizbBXO0Ma25MAaRL0ZXRmpGb2qMG+Dk9i1waV+
+MdfbZ47uIjwHUR8YKmA76DHPcddRuI3vp/8bJGdcrrzVQ5vwL4+JGWJ4FNvq0MRT
+HY6txz1KrcfZ/x4xoOUjc2WU5/HkSd3n8YDLF1byU+oXh9T3i18gVXEsb5RE7j4M
+PLeRXL9+PQ2JRaTcucTCEfxJCr0dfUqf/NwbtKSWh/ehnd1Z3KeM8PKCqHf44wUe
+5Goymp7bTNZ2+ElgstVmGiLzOHScLS06pI4kWyIrnMk4VdEqpVe064ca14lWqn/a
+beLAkTBj1ZU2skmFaOoQGrpFrjMzxrjUlBGv8IIFX/ol7K+HwZz7OKQBLpHSqG0R
+98NUMp18J0v/ez0oZgr+8QbILY4o6IzUKXff6igQjjzMn7emqgbMzfs8Dx1PsZ5z
+CvzaLUmkDvcqD9YgZs7pIbC9Zzc8LAvNj9mOBeGFW+8sas+/YVL3oELJmexP2+vP
+lbSN1Jz3RAK965krhV1Nld3vjmWOkq5586qnQ7wRrDpG+l/V0qqs6wloE/7huc/H
+QqSk/LI7MOm71a3mNyffHkSh7KSSH8Llhw1Rp62RWBdPpocpRLvqydowvp/M2qj4
+Mo+0ER0FhN34SuidgDnc
+=wX/a
+-----END PGP SIGNATURE-----
+
+--o9w4P0ZCTVHZJ0iX--
