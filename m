@@ -1,33 +1,31 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Sun, 22 Jun 2014 20:47:28 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406222046220.13165@utopia.booyaka.com>
-References: <1402994233-22599-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/2] ARM: DRA7: hwmod: fixes for 3.16
+Date: Mon, 23 Jun 2014 04:57:31 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406230450460.27636@utopia.booyaka.com>
+References: <1403093816-10960-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:49173 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:51246 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751842AbaFVUr3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jun 2014 16:47:29 -0400
-In-Reply-To: <1402994233-22599-1-git-send-email-tomi.valkeinen@ti.com>
+	with ESMTP id S1750833AbaFWE5c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jun 2014 00:57:32 -0400
+In-Reply-To: <1403093816-10960-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Sathya Prakash M R <sathyap@ti.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, rnayak@ti.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 17 Jun 2014, Tomi Valkeinen wrote:
+Hi Roger
 
-> From: Sathya Prakash M R <sathyap@ti.com>
-> 
-> Add DSS hwmod data for AM43xx.
-> 
-> Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> [tomi.valkeinen@ti.com: added missing dispc flags]
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Acked-by: Rajendra Nayak <rnayak@ti.com>
+On Wed, 18 Jun 2014, Roger Quadros wrote:
 
-Thanks, queued with Tony's Acked-by: and Felipe's Tested-by: for 3.17.
+> These patches add the missing OCP2SCP3 module and fixup the SATA hwmod
+> for DRA7 SoC. Both patches are tested on 3.16-rc1.
 
+Could you please post a quick serial capture of a boot log for these 
+patches, as Felipe has done for other patches?
+
+thanks,
 
 - Paul
