@@ -1,43 +1,67 @@
-From: Jyri Sarha <jsarha@TI.COM>
-Subject: Re: [PATCH 3/3] ASoC: simple-card: Add system-clock-id DT parameter
- to dai nodes
-Date: Tue, 24 Jun 2014 12:59:20 +0300
-Message-ID: <53A94BF8.4090808@ti.com>
-References: <cover.1402653217.git.jsarha@ti.com> <c0281e720e9ef2056d3460047cf5bc5e75684abf.1402653217.git.jsarha@ti.com> <20140621100959.GC5099@sirena.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/15] OMAPDSS: HDMI infoframe & cleanup
+Date: Tue, 24 Jun 2014 13:03:45 +0300
+Message-ID: <1403604240-16738-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46816 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46980 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752186AbaFXJ72 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 05:59:28 -0400
-In-Reply-To: <20140621100959.GC5099@sirena.org.uk>
+	id S1751818AbaFXKEI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 06:04:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, peter.ujfalusi@TI.COM, liam.r.girdwood@linux.intel.com, detheridge@TI.COM
+To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 06/21/2014 01:09 PM, Mark Brown wrote:
-> On Fri, Jun 13, 2014 at 01:04:38PM +0300, Jyri Sarha wrote:
->> Select clk_id parameters for set_sysclk calls in the card init phase.
->
-> This is making the ID defined by the drivers into ABI.  It's not clear
-> that this is something we want to do, and we certainly don't want to do
-> it without updating the driver bindings.  In principle what we want to
-> do here is have our clocks handled by the clock API, though that's not
-> trivial work.
->
+This series makes OMAP HDMI drivers use the common infoframe functionality and
+makes the drivers get the infoframe from the upper layer, instead of using
+hardcoded infoframes.
 
-I see, actually this is not something I would need anytime soon, but
-how about the previous "Add system-clock-direction DT parameter to dai 
-nodes" patch?
+This allows us to remove quite a bit of ugly code from the drivers.
 
-There is a clear common definitions for clock direction, so this should 
-be ok, right?
+The downside is that the infoframe functionality is only there for DRM, not for
+FB. So when using omapfb, the HDMI output will always use DVI mode, i.e.
+without sound support and without the HDMI features like color ranges.
+Considering that the HDMI audio hasn't been working for some time, and the
+other features were always hardcoded, this doesn't sound like a big issue.
 
-If the clock direction patch would go in I would not need to add more 
-stuff to already quite messy davinci-evm driver.
+ Tomi
 
-Best regards,
-Jyri
+Tomi Valkeinen (15):
+  OMAPDSS: DISPC: fix debugfs reg dump
+  OMAPDSS: DISPC: reject interlace for lcd out
+  OMAPDSS: DISPC: clean up dispc_mgr_timings_ok
+  OMAPDSS: HDMI: fix name conflict
+  OMAPDSS: Kconfig: select HDMI
+  OMAPDSS: HDMI4: use common AVI infoframe support
+  OMAPDSS: HDMI5: use common AVI infoframe support
+  OMAPDSS: HDMI: remove custom avi infoframe
+  OMAPDSS: add hdmi ops to hdmi_ops and omap_dss_driver
+  OMAPDSS: add hdmi ops to hdmi-connector and tpd12s015
+  OMAPDSS: HDMI: add infoframe and hdmi_dvi_mode fields
+  OMAPDSS: HDMI4: add support to set infoframe & HDMI mode
+  OMAPDSS: HDMI5: add support to set infoframe & HDMI mode
+  OMAPDSS: HDMI: remove the unused code
+  drm/omap: Add infoframe & dvi/hdmi mode support
+
+ drivers/gpu/drm/omapdrm/omap_connector.c           |  12 +
+ drivers/gpu/drm/omapdrm/omap_drv.h                 |   1 +
+ drivers/gpu/drm/omapdrm/omap_encoder.c             |  27 ++
+ .../fbdev/omap2/displays-new/connector-hdmi.c      |  19 ++
+ .../fbdev/omap2/displays-new/encoder-tpd12s015.c   |  20 ++
+ drivers/video/fbdev/omap2/dss/Kconfig              |   1 +
+ drivers/video/fbdev/omap2/dss/dispc.c              |  22 +-
+ drivers/video/fbdev/omap2/dss/hdmi.h               | 107 +------
+ drivers/video/fbdev/omap2/dss/hdmi4.c              |  47 ++-
+ drivers/video/fbdev/omap2/dss/hdmi4_core.c         | 164 ++---------
+ drivers/video/fbdev/omap2/dss/hdmi4_core.h         |   1 +
+ drivers/video/fbdev/omap2/dss/hdmi5.c              |  47 ++-
+ drivers/video/fbdev/omap2/dss/hdmi5_core.c         | 124 ++++----
+ drivers/video/fbdev/omap2/dss/hdmi_common.c        | 316 ---------------------
+ include/video/omapdss.h                            |   9 +
+ 15 files changed, 231 insertions(+), 686 deletions(-)
+
+-- 
+1.9.1
+
