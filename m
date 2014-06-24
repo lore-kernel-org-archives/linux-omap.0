@@ -1,46 +1,38 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 0/2] ARM: DRA7: hwmod: fixes for 3.16
-Date: Tue, 24 Jun 2014 10:35:57 +0530
-Message-ID: <53A90735.7050506@ti.com>
-References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <alpine.DEB.2.02.1406230450460.27636@utopia.booyaka.com> <53A83DAC.6050504@ti.com> <alpine.DEB.2.02.1406231634210.29849@utopia.booyaka.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 0/3] Misc. DSPBridge build/boot fixes
+Date: Tue, 24 Jun 2014 00:24:24 -0500
+Message-ID: <1403587467-59876-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1406231634210.29849@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Roger Quadros <rogerq@ti.com>, tony@atomide.com, rnayak@ti.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35519 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750710AbaFXFZJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 01:25:09 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-On Monday 23 June 2014 10:04 PM, Paul Walmsley wrote:
-> On Mon, 23 Jun 2014, Sekhar Nori wrote:
-> 
->> On Monday 23 June 2014 10:27 AM, Paul Walmsley wrote:
->>> Hi Roger
->>>
->>> On Wed, 18 Jun 2014, Roger Quadros wrote:
->>>
->>>> These patches add the missing OCP2SCP3 module and fixup the SATA hwmod
->>>> for DRA7 SoC. Both patches are tested on 3.16-rc1.
->>>
->>> Could you please post a quick serial capture of a boot log for these 
->>> patches, as Felipe has done for other patches?
->>
->> Roger is OOO so posting the logs on his behalf.
->>
->> $ git log -3
->> 3e0ca738 4 minutes ago  (HEAD) ARM: DRA7: hwmod: Add OCP2SCP3 module
->> 9961b81 4 minutes ago  ARM: DRA7: hwmod: Fixup SATA hwmod
->> 7171511 7 days ago  (v3.16-rc1, linus-git/master) Linux 3.16-rc1
->>
->> Attached is the minicom capture.
-> 
-> Thanks, so can I add your Tested-by: ?
+Hi,
 
-Sure Paul.
+The following are couple of miscellaneous patches for fixing build and
+boot issues when I attempted to build TI DSP/Bridge while doing the
+adaptation and validation of OMAP mailbox driver against the mailbox
+framework. The DSP/Bridge driver is disabled by default, so these can
+be treated as non-urgent fixes.
 
-Tested-by: Sekhar Nori <nsekhar@ti.com>
+Suman Anna (3):
+  staging: tidspbridge: fix an erroneous removal of parentheses
+  ARM: OMAP3: PRM/CM: Add back macros used by TI DSP/Bridge driver
+  ARM: OMAP2+: create dsp device only on OMAP3 SoCs
 
-Thanks,
-Sekhar
+ arch/arm/mach-omap2/cm-regbits-34xx.h         |  3 +++
+ arch/arm/mach-omap2/dsp.c                     | 10 ++++++++++
+ arch/arm/mach-omap2/prm-regbits-34xx.h        |  6 ++++++
+ drivers/staging/tidspbridge/core/tiomap3430.c |  6 ++++--
+ 4 files changed, 23 insertions(+), 2 deletions(-)
+
+-- 
+2.0.0
+
