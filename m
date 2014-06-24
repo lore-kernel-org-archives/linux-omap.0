@@ -1,69 +1,55 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 3/3] ASoC: simple-card: Add system-clock-id DT parameter
- to dai nodes
-Date: Tue, 24 Jun 2014 11:20:47 +0100
-Message-ID: <20140624102047.GF23300@sirena.org.uk>
-References: <cover.1402653217.git.jsarha@ti.com>
- <c0281e720e9ef2056d3460047cf5bc5e75684abf.1402653217.git.jsarha@ti.com>
- <20140621100959.GC5099@sirena.org.uk>
- <53A94BF8.4090808@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] regulator: palmas: fix typo in enable_reg calculation
+Date: Tue, 24 Jun 2014 12:01:36 +0100
+Message-ID: <20140624110136.GJ23300@sirena.org.uk>
+References: <1403556805-22824-1-git-send-email-swarren@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SnV5plBeK2Ge1I9g"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55470 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752454AbaFXKVG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2014 06:21:06 -0400
+	protocol="application/pgp-signature"; boundary="Z8yxTSU1mh2gsre7"
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <53A94BF8.4090808@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1403556805-22824-1-git-send-email-swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Alex Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@TI.COM>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, peter.ujfalusi@TI.COM, liam.r.girdwood@linux.intel.com, detheridge@TI.COM
 
 
---SnV5plBeK2Ge1I9g
+--Z8yxTSU1mh2gsre7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 24, 2014 at 12:59:20PM +0300, Jyri Sarha wrote:
+On Mon, Jun 23, 2014 at 02:53:25PM -0600, Stephen Warren wrote:
+> From: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+>=20
+> When setting up .enable_reg for an SMPS regulator, presumably we should
+> call PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE, ...) rather than using
+> LDO_BASE. This change makes the LCD panel and HDMI work again on the
+> NVIDIA Dalmore board anyway.
 
-> I see, actually this is not something I would need anytime soon, but
-> how about the previous "Add system-clock-direction DT parameter to dai
-> nodes" patch?
+Applied, thanks.
 
-> There is a clear common definitions for clock direction, so this should be
-> ok, right?
-
-> If the clock direction patch would go in I would not need to add more stuff
-> to already quite messy davinci-evm driver.
-
-Yeah, I'm still thinking about that one.  One thing I was wondering was
-if we should agree a definition that's generic with the clock API but
-then have an ASoC specific implementation for now until the clock API
-gets further along.
-
---SnV5plBeK2Ge1I9g
+--Z8yxTSU1mh2gsre7
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBAgAGBQJTqVD8AAoJELSic+t+oim95UwP+wVcA9XTUk4whD3liAAJ5HkN
-rWhvXSje+Whw3Nt+w0pCA8wCTIEPct4GvnFTTBQVnNLmVXyxzMWHhWuJjjk+Gt10
-Mz84onZFbst2xo5max36E/QuTwrklMCksIUIFGLUXIEjk8lZeE81LHJ9eJcp0R3D
-smbbHh7G5KSpRIHdczaZzV0U8XnJaAk4c0xA+QSh8Alm1VDJhDwPYVQBnro1QfhG
-DEJACQdXt/g6Vi9RylR//61OLXo6JDK5RmjrkZybciMB3JRdCD8M384Tx+8Setr1
-S0fGm7L5dsBtdfilkZAAz1DAkFZ+7lZnqbteyjS7FrUkn1vWMmVxsyxqXvM4XLUs
-T7fCIGmaeL4PT7RJGG1IJk+iZIwPYW1S5Y+/wz934dpSjaZp6Ed9p2KUAcf15Ilp
-DszRl5hqo0QjAwXiLQWcEyf7to14LCu/RhWLgxBhTYOfP5xLDRl8PfPa75dn+2fl
-upTrA9HkIV3h6iwsalVob9H9DjwwmIigWq01ZwERf/OjzGS6Fx7PUAPbPF4wZpq4
-BXC+vAnK0edLXKWVfsm+HOan+8WUkTu8QdJcluy8PtK9aqVcWqlTm8cdWVUj/Ksm
-9WNIx/1mYxYHGjwJ7sPg0J2fWwNP3AVn2WTUuyPAaK6fIb18+CYJS7H5fxpy2f99
-Q/0DqRCJut6cYXzDsgp5
-=Bzkl
+iQIcBAEBAgAGBQJTqVqNAAoJELSic+t+oim9WA4P/iiRFO2DcyLsf2kXeve75xXW
+RA4TyjYs0oLnpYymayeEnfXT/w6Hm2moTJGGuk81MxQRauTHaFKc1DwSRaXK/JMg
+WBfytAkTezbsOc8mvAiaRixlvRdGyg4jvbi2Y9gMWa6eJn9pMxtRCTwxsbLecnWJ
+ws6zO9pDQkM4ien10rpkaE+KZlJYWMFa2tEn3KT7gJhfO5RWJ9A7fIl9VW4DneAD
+0dNH8ujcC/LnuCLxnzLo6urrRCZkItjJe+oVsy9FKEMeGzTWRKtfDiviJBJirvxh
++jHiIkoVGknArfg0el904a6ZNnBx26kM3cFk6Ee8Wp67dzaoDYbRNrEuYk0SJMn0
+6Pc+9rjyNB68QEacxstgwYXHJFPMmO1LHX6xKhA50MoEoah7dHONx9Kolmr5jwu5
+hZ9qLE3TiWUal+N1sji26sX3aLrw6ZQYjSY8ij/kQ3jV4RuVke5p3/hfqHFgS0cF
+mZu2oRfT4+vw3oVlAO3e24mpwGzx/AVsUoyG34HImlFrxpHmGtM3/MS8myRmL1vl
+nnWcCR4GSjQ3AHJvP8zvXgr0HStcfdBKxKzeIdQqzm00GaAZLLUx8AHGsJQEoPNc
+D6MUZj31aurA1ZuZQ5BIFD4ugBktXh/3l0y2ise/b8WTma4ZCRjJKVqz9HJ54fBD
+SuRoXZqfJlIsNv1F7HeU
+=Ef3O
 -----END PGP SIGNATURE-----
 
---SnV5plBeK2Ge1I9g--
+--Z8yxTSU1mh2gsre7--
