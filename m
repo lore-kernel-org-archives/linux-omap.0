@@ -1,112 +1,55 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v7 1/4] ARM: dts: am335x-bone: add support for
- beaglebone NAND cape
-Date: Tue, 24 Jun 2014 08:03:53 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF6EA9@DBDE04.ent.ti.com>
-References: <1400490948-11571-1-git-send-email-pekon@ti.com>
-	<1400490948-11571-2-git-send-email-pekon@ti.com>
-	<20140519162532.GF4849@atomide.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EAF6A7C@DBDE04.ent.ti.com>
-	<20140623054838.GB28884@atomide.com>
- <CA+T6QPnfzPJXs4NftLoVZBHXXvUO=-_XMvTazxj+8HF41_UJ+g@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [GIT PULL] ARM: OMAP2+: clock driver fixes for early v3.16-rc
+Date: Tue, 24 Jun 2014 12:36:14 +0300
+Message-ID: <53A9468E.8070109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34865 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259AbaFXIGo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2014 04:06:44 -0400
-In-Reply-To: <CA+T6QPnfzPJXs4NftLoVZBHXXvUO=-_XMvTazxj+8HF41_UJ+g@mail.gmail.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:45984 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751713AbaFXJfs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 05:35:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Stefan Roese <sr@denx.de>, Javier Martinez Canillas <javier@dowhile0.org>, "Quadros, Roger" <rogerq@ti.com>, "Robert Nelson (robertcnelson@gmail.com)" <robertcnelson@gmail.com>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
 
-PkZyb206IEphc29uIEtyaWRuZXIgW21haWx0bzpqa3JpZG5lckBnbWFpbC5jb21dDQo+Pk9uIE1v
-biwgSnVuIDIzLCAyMDE0IGF0IDE6NDggQU0sIFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
-b20+IHdyb3RlOg0KPj4+ICogR3VwdGEsIFBla29uIDxwZWtvbkB0aS5jb20+IFsxNDA2MjIgMjI6
-NDJdOg0KPj4+ID5Gcm9tOiBUb255IExpbmRncmVuIFttYWlsdG86dG9ueUBhdG9taWRlLmNvbV0N
-Cg0KWy4uLl0NCg0KPj4+ID5CYXNlZCBvbiB0aGUgcmVjZW50IGRpc2N1c3Npb25zIG9uIHRoZSBj
-YXBlcywgaXQgc2VlbXMgdGhhdCBub2JvZHkNCj4+PiA+d2FudHMgdG8gaW1wbGVtZW50IHRvZ2ds
-aW5nIG9mIHRoZSBjYXBlcyBpbiB1LWJvb3QuIEFuZCBhcyB0aGVyZQ0KPj4+ID5jYW4gYmUgb3Ro
-ZXIgY2FwZXMgdXNpbmcgR1BNQyBidXMsIHdlIGNhbid0IG1lcmdlIHRoaXMuDQo+Pj4NCj4+PiBJ
-IGhhdmUgYmVlbiBhYmxlIHRvIGdldCB0b2dnbGluZyBvZiBjYXBlcyAoZW5hYmxpbmcgYW5kIGRp
-c2FibGluZyBvZiBEVCBub2RlcykNCj4+PiBpbiB1LWJvb3QuIEl0IHdhcyBhbHJlYWR5IHRoZXJl
-IGluIHUtYm9vdCBtYWlubGluZSBbMV0sIG1heSBiZSBuby1ib2R5IHRyaWVkIGl0Lg0KPj4+DQo+
-Pj4gRXhhbXBsZTogQmVsb3cgc2VxdWVuY2Ugd29ya3MgZm9yIE5BTkQgY2FwZSBwYXRjaCBtZW50
-aW9uZWQgaW4gdGhpcyB0aHJlYWQuDQo+Pj4gLS0tLS0tLS0tLS0tLS0tDQo+Pj4gLyogbG9hZCBE
-VEIgKi8NCj4+PiB1LWJvb3Q+IHRmdHAgMHg4MTAwMDAwMCBhbTMzNXgtYm9uZWJsYWNrLmR0Yg0K
-Pj4+IHUtYm9vdD4gZmR0IGFkZHIgMHg4MTAwMDAwMA0KPj4+IC8qIGRpc2FibGUgTU1DMiBub2Rl
-ICovDQo+Pj4gdS1ib290PiBmZHQgbGlzdCAvb2NwL21tY0A0ODFkODAwMA0KPj4+IHUtYm9vdD4g
-ZmR0IHNldCAgL29jcC9tbWNANDgxZDgwMDAgc3RhdHVzIFxkXGlcc1xhXGJcbFxlXGQNCj4+PiB1
-LWJvb3Q+IGZkdCBsaXN0IC9vY3AvbW1jQDQ4MWQ4MDAwIHN0YXR1cw0KPj4+IC8qIGVuYWJsZSBH
-UE1DIG5vZGUgKi8NCj4+PiB1LWJvb3Q+IGZkdCBsaXN0IC9vY3AvZ3BtYw0KPj4+IHUtYm9vdD4g
-ZmR0IHNldCAgL29jcC9ncG1jIHN0YXR1cyBcb1xrXGFceQ0KPj4+IHUtYm9vdD4gZmR0IGxpc3Qg
-L29jcC9ncG1jIHN0YXR1cw0KPj4+IC8qIGVuYWJsZSBFTE0gbm9kZSAqLw0KPj4+IHUtYm9vdD4g
-ZmR0IGxpc3QgL29jcC9lbG0NCj4+PiB1LWJvb3Q+IGZkdCBzZXQgIC9vY3AvZWxtIHN0YXR1cyBc
-b1xrXGFceQ0KPj4+IHUtYm9vdD4gZmR0IGxpc3QgL29jcC9lbG0gc3RhdHVzDQo+Pj4gLyogYm9v
-dCB1SW1hZ2UgKi8NCj4+PiB0ZnRwIDB4ODIwMDAwMDAgdUltYWdlDQo+Pj4gYm9vdG0gMHg4MjAw
-MDAwMCAtIDB4ODEwMDAwMDANCj4+Pg0KPj4+IE5vdGU6ICJmZHQgc2V0IiBjb21tYW5kIGRvZXMg
-bm90IGFjY2VwdCBzdHJpbmcgbGl0ZXJhbHMNCj4+PiBhcyBiaW5kaW5nIHZhbHVlcywgaXQgaW50
-ZXJuYWxseSBjb252ZXJ0cyB0aGVtIHRvIHN0cmluZywgc28NCj4+PiBlc2NhcGUgc2VxdWVuY2Vk
-IGNoYXJhY3RlcnMgd2VyZSB1c2VkIGhlcmUuLg0KPj4+ICJva2F5IiA9PSBcb1xrXGFceQ0KPj4+
-ICJkaXNhYmxlZCIgPT0gXGRcaVxzXGFcYlxsXGVcZCINCj4+DQo+PiBDb29sLiBOb3cgYWxsIHdl
-IG5lZWQgaXMgYSBmZXcgaGVscGVyIGZ1bmN0aW9ucyBpbiB1LWJvb3QNCj4+IHNvIGl0IGNhbiBi
-ZSBkb25lIGEgYml0IGVhc2llciA6KQ0KPj4NCj4NCj5UaGUgYXNzb2NpYXRpb24gb2YgZGV2aWNl
-dHJlZSBvdmVybGF5IGZpbGVzIGluIC9saWIvZmlybXdhcmUgdG8gY2FwZQ0KPklEcyBtYWRlIGl0
-IHdoZXJlIHRoZSBrZXJuZWwtYmFzZWQgY2FwZSBvdmVybGF5IG1hbmFnZXIgY291bGQgbW9kaWZ5
-DQo+dGhlIGRldmljZXRyZWUgYXMgbmVlZGVkIHdpdGhvdXQgcHV0dGluZyBleHRlbnNpdmUgY2Fw
-ZS1zcGVjaWZpYyBsb2dpYw0KPmluIHRoZSBrZXJuZWwgb3IgYm9vdGxvYWRlci4gVGhyb3dpbmcg
-YSBidW5jaCBvZiBjYXBlcyBpbnRvIGEgc2luZ2xlDQo+Y2xhc3Mgb2YgY2FwZXMgd29uJ3Qgc2F2
-ZSBhbnkgd29yayB0aGVyZS4NCj4NCkknbSBjbGFzc2lmeWluZyBjYXBlcyBiYXNlZCBvbiBmdW5j
-dGlvbmFsaXR5IHRvIHJlZHVjZSB0aGUgbnVtYmVyIG9mDQpEVFMgZmlsZXMsIGJlY2F1c2UgaW4g
-Z2VuZXJhbCBwZW9wbGUgd2lsbCBub3QgYm90aCBMQ0Q0IGFuZCBMQ0Q3IGNhcGVzDQp0b2dldGhl
-ciwgc2ltaWxhcmx5IG5vdCBtYW55IHdpbGwgdXNlIE5BTkQsIE5PUiBhbmQgZU1NQyBzaW11bGF0
-YW5lb3VzbHkuDQotIGFtMzM1eC1ib25lLW1lbW9yeS1jYXBlLmR0czogd2lsbCBoYXZlIE5BTkQs
-IE5PUiBhbmQgc3RvcmFnZSByZWxhdGVkIGNhcGVzDQotIGFtMzM1eC1ib25lLWRpc3BsYXktY2Fw
-ZS5kdHM6IHdpbGwgaGF2ZSBMQ0Q0LCBMQ0Q3LCAuLi4gZXRjIGNhcGVzLg0KDQoNCj4gSWYgd2Ug
-Y2FuIGdldCB0aGUgYm9vdGxvYWRlcg0KPnRvIHN1cHBvcnQgdGhlIC5kdGJvIGZpbGVzLCB0aGVu
-IHdlIGNhbiBjb250aW51ZSB0byB1c2UgdGhlIElEIGluIHRoZQ0KPmNhcGUgdG8gcHJvdmlkZSBh
-bGwgdGhlIERUIG1vZGlmaWNhdGlvbnMgd2UgbmVlZC4gSWYgd2UgbmVlZCB0byBkbw0KPnNjcmlw
-dHMgZm9yIHRoZSBtb2RpZmljYXRpb25zLCB3ZSdkIHN0aWxsIG5lZWQgdG8gYXNzb2NpYXRlIHRo
-ZSBjYXBlDQo+SUQgdG8gdGhhdCBzY3JpcHQuDQo+DQpXaXRoIElEIGJhc2VkIGF1dG8taWRlbnRp
-ZmljYXRpb24gb2YgQ2FwZXMsIHdlIG5lZWQgRUVQUk9NIG9yDQplLWZ1c2VzIG9uIGV2ZXJ5IGNh
-cGUuIEFuZCB0b2RheSBJIGRvbid0IHRoaW5rIGFsbCB0aGlyZC1wYXJ0eSBjYXBlcw0KaGF2ZSBF
-RVBST00gb24gdGhlbS4NCkFsc28sIHdpdGggaW5jcmVhc2UgaW4gbnVtYmVyIG9mIGNhcGUsIGl0
-IHdpbGwgYmUgaGFyZCB0byBtYWludGFpbg0KSUQgZ3JvdXBpbmcgYW5kIHVwZGF0aW5nIGZpcm13
-YXJlL3NvZnR3YXJlIGZvciBlYWNoIG5ldyBjYXBlLg0KDQoNCj4NCj5UaGlzIHN0aWxsIGRvZXNu
-J3QgY292ZXIgdGhlIG5lZWQgZm9yIHJ1bi10aW1lIGRldmljZXRyZWUNCj5tb2RpZmljYXRpb24s
-IGJ1dCBJJ2xsIGxlYXZlIHRoYXQgZm9yIHRoZSBvdGhlciBvbi1nb2luZyB0aHJlYWQuDQo+DQpJ
-J20ganVzdCBwcm9wb3NpbmcgdGhlIHUtYm9vdCB3YXkgb2YgZW5hYmxpbmcvZGlzYWJsaW5nIERU
-Lg0KVGhpcyBpcyBjZXJ0YWlubHkgbm90IHJlcGxhY2luZyByZXF1aXJlbWVudCBmb3IgRFQgb3Zl
-cmxheSBtYW5hZ2VyLA0KQnV0IHRpbGwgdGhlIHRpbWUgRFQgb3ZlcmxheSBpcyBhdmFpbGFibGUg
-aW4ga2VybmVsLCB0aGlzIHdvdWxkIGF0LWxlYXN0DQpiZSBhbiBwbGFjZWhvbGRlciBhbmQgd291
-bGQgZW5jb3VyYWdlIEJlYWdsZWJvbmUgdXNlcnMgdG8NCmNvbnRpbnVlIHVzaW5nIG1haW5saW5l
-IGtlcm5lbC4NClRoaXMgd2h5IEknbSB0cnlpbmcgdG8gZ2V0IGJhc2ljIGNhcGUgRFRTIGluIG1h
-aW5saW5lLCBzbyB0aGF0DQpCZWFnbGVib25lIGNvbW11bml0eSBjb250aW51ZXMgdG8gYmUgaW4g
-dG91Y2ggd2l0aCBtYWlubGluZS4NClRvbW9ycm93IGlmIERUIG92ZXJsYXkgY29tZXMsIHRoZW4g
-d2UgbWF5IGNob29zZSB0byBlaXRoZXIga2VlcA0KdGhlc2UgY2FwZSBEVFMsIG9yIGRlbGV0ZSB0
-aGVtIGZyb20gbWFpbmxpbmUgd2l0aG91dCBicmVha2luZyBhbnkNCmJhY2t3YXJkIGNvbXBhdGli
-aWxpdHkuDQoNCg0KPkkgZG8gYWdyZWUgd2l0aCB0aGUgaWRlYSBvZiBtb3ZpbmcgbW9yZSBvZiB0
-aGUgcG90ZW50aWFsIHNvdXJjZXMgb2YNCj5jb25mbGljdCB0aGF0IGNhbiBiZSByZXNvbHZlZCBv
-dXQgb2YgdGhlIG92ZXJsYXlzIGFuZCBpbnRvIHRoZSBtYWluDQo+ZGV2aWNldHJlZSwgbGVhdmlu
-ZyB0aGUgb3ZlcmxheXMgb3Igc2NyaXB0cyBzaW1wbHkgdG8gZGVhbCB3aXRoIHRoZQ0KPmNvbmZs
-aWN0cyB0aGF0IGNhbm5vdCBiZSByZXNvbHZlZCBhdCBydW4tdGltZSBnaXZlbiB0aGUgY3VycmVu
-dA0KPmluZnJhc3RydWN0dXJlLiBJIGp1c3QgdGhpbmsgdGhleSBzaG91bGQgZ28gaW50byAuZHRz
-aSAoaW5jbHVkZSkgZmlsZXMNCj5mb3IgdGhlIG1haW4gLmR0cy8uZHRiIGZpbGVzIGZvciB0aGUg
-Ym9hcmRzLCByYXRoZXIgdGhhbiBhZGRpdGlvbmFsDQo+b3ZlcmxheXMgb3IgYWx0ZXJuYXRpdmUg
-LmR0cyBmaWxlcy4NCj4NClllcywgdGhhdCBpcyB0aGUgbWFpbiBtb3RpdmUsIHRvIHJlc29sdmUg
-X2tub3duXyBjb25mbGljdHMgYmVmb3JlDQpSdW4tdGltZS4gQW5kIGtlZXAgdGhpbmdzIHdvcmtp
-bmcgdGlsbCAnRFQgb3ZlcmxheScgaXMgbWFpbmxpbmVkLg0KDQpBbm90aGVyIHRoaW5nIHdoaWNo
-IEknbSBub3Qgc3VyZSBpcyBob3cgRFQgb3ZlcmxheSB3aWxsIHdvcmsNCndpdGggY2FwZXMgd2hp
-Y2ggYXJlIHJlcXVpcmVkIGR1cmluZyBib290Pw0KRXhhbXBsZTogTkFORCwgTk9SIGNhcGVzIHRo
-ZW1zZWx2ZXMgY29udGFpbmluZyBmaWxlLXN5c3RlbS4NCkkgdGhpbmsgaW4gc3VjaCBzY2VuYXJp
-b3MgdXNpbmcgdS1ib290IGFwcHJvYWNoIGZvciBlbmFibGluZy9kaXNhYmxpbmcNCmNhcGVzIHdv
-dWxkIGJlIGJlbmVmaWNpYWwuDQoNCg0KSWYgeW91IGFuZCBvdGhlcnMgYXJlIG9rYXkgd2l0aCB0
-aGlzIGFwcHJvYWNoLCBJIHdvdWxkIHJlcXVlc3QgeW91DQp0byBwbGVhc2UgcHJvdmlkZSB5b3Vy
-ICJUZXN0ZWQtYnkiIGZvciBmZXcgY2FwZSBEVFMgcGF0Y2hlcyBJDQp3aWxsIGJlIHBvc3Rpbmcg
-c29vbi4gVGhpcyB3b3VsZCBnaXZlIGNvbmZpZGVuY2UgdGhhdCBjYXBlIERUUw0KcGF0Y2hlcyBh
-cmUgbm90IGJyZWFraW5nIGFueXRoaW5nIGluIGV4aXN0aW5nIERUUy4NCg0KDQpUaGFua3MuLg0K
-d2l0aCByZWdhcmRzLCBwZWtvbg0K
+Hi Mike,
+
+The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+
+   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+
+are available in the git repository at:
+
+   git@github.com:t-kristo/linux-pm.git for-v3.16-rc/ti-clk-drv
+
+for you to fetch changes up to 7d5fc85d961b807c799786afd175f5d964a2109f:
+
+   clk: ti: set CLK_SET_RATE_NO_REPARENT for ti,mux-clock (2014-06-19 
+14:52:32 +0300)
+
+----------------------------------------------------------------
+Four fixes for early 3.16-rc builds. Fixes some hidden problems found 
+with code checkers, AM43xx only build fix and a fix for the behavior of 
+TI mux clocks (by default, no longer select mux parent with rate change, 
+most of the other SoCs use similar behavior.)
+
+----------------------------------------------------------------
+Dan Carpenter (1):
+       clk: ti: apll: not allocating enough data
+
+Julia Lawall (1):
+       clk: ti: dra7: return error code in failure case
+
+Roger Quadros (1):
+       clk: ti: am43x: Fix boot with CONFIG_SOC_AM33XX disabled
+
+Tomi Valkeinen (1):
+       clk: ti: set CLK_SET_RATE_NO_REPARENT for ti,mux-clock
+
+  drivers/clk/ti/apll.c |    8 +++-----
+  drivers/clk/ti/dpll.c |    5 +++--
+  drivers/clk/ti/mux.c  |    2 +-
+  3 files changed, 7 insertions(+), 8 deletions(-)
