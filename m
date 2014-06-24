@@ -1,86 +1,42 @@
 From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for beaglebone NAND cape
-Date: Tue, 24 Jun 2014 17:54:24 +0530
-Message-ID: <1403612666-31197-2-git-send-email-pekon@ti.com>
+Subject: [PATCH v1 2/3] ARM: dts: am335x-bone: add support for beaglebone NOR cape
+Date: Tue, 24 Jun 2014 17:54:25 +0530
+Message-ID: <1403612666-31197-3-git-send-email-pekon@ti.com>
 References: <1403612666-31197-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34825 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57425 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752975AbaFXMZF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 08:25:05 -0400
+	id S1753646AbaFXMZK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 08:25:10 -0400
 In-Reply-To: <1403612666-31197-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, Pekon Gupta <pekon@ti.com>
 
-Beaglebone Board can be connected to expansion boards to add devices to them.
-These expansion boards are called 'capes'. This patch adds support for
-following versions of Beaglebone(AM335x) NAND capes
-(a) NAND Device with bus-width=16, block-size=128k, page-size=2k, oob-size=64
-(b) NAND Device with bus-width=16, block-size=256k, page-size=4k, oob-size=224
-Further information and datasheets can be found at [1] and [2]
+This patch adds support for 'NOR cape' having '128Mb 16-Bit' device connected to
+GPMC chip-select [1]. Due to shared nature of GPMC pins exposed on BeagleBone
+connector this cape cannot be simulataneously used with 'NAND cape'.
 
-* How to boot from NAND using Memory Expander + NAND Cape ? *
- - Important: As BOOTSEL values are sampled only at POR, so after changing any
-   setting on SW2 (DIP switch), disconnect and reconnect all board power supply
-   (including mini-USB console port) to POR the beaglebone.
-
- - Selection of ECC scheme
-  for NAND cape(a), ROM code expects BCH8_HW ecc-scheme
-  for NAND cape(b), ROM code expects BCH16_HW ecc-scheme
-
- - Selection of boot modes can be controlled via  DIP switch(SW2) present on
-   Memory Expander cape, so first boot via MMC or other sources to flash NAND
-   device and then switch to SW2[SWITCH_BOOT]=ON to boot from NAND Cape.
-   SW2[SWITCH_BOOT] == OFF  follow default boot order  MMC-> SPI -> UART -> USB
-   SW2[SWITCH_BOOT] == ON   boot mode selected via DIP switch(SW2)
-
- - For NAND boot following switch settings need to be followed
-   SW2[ 1] = ON   (SYSBOOT[ 0]==0: NAND boot mode selected )
-   SW2[ 2] = ON   (SYSBOOT[ 1]==0:       -- do --          )
-   SW2[ 3] = OFF  (SYSBOOT[ 2]==1:       -- do --          )
-   SW2[ 4] = OFF  (SYSBOOT[ 3]==1:       -- do --          )
-   SW2[ 5] = ON   (SYSBOOT[ 4]==0:       -- do --          )
-   SW2[ 6] = OFF  (SYSBOOT[ 8]==1: 0:x8 device, 1:x16 device )
-   SW2[ 7] = ON   (SYSBOOT[ 9]==0: ECC done by ROM  )
-   SW2[ 8] = ON   (SYSBOOT[10]==0: Non Muxed device )
-   SW2[ 9] = ON   (SYSBOOT[11]==0:    -- do --      )
-
-[1] http://beagleboardtoys.info/index.php?title=BeagleBone_Memory_Expansion
-[2] http://beagleboardtoys.info/index.php?title=BeagleBone_4Gb_16-Bit_NAND_Module
+[1] http://elinux.org/Beagleboardtoys:BeagleBone_128Mb_16-Bit_NOR_Module
 
 Signed-off-by: Pekon Gupta <pekon@ti.com>
-Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
 ---
- arch/arm/boot/dts/am335x-bone-memory-cape.dts | 127 ++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts             |   1 +
- arch/arm/boot/dts/am335x-boneblack.dts        |   1 +
- 3 files changed, 129 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
+ arch/arm/boot/dts/am335x-bone-memory-cape.dts | 124 +++++++++++++++++++++++++-
+ 1 file changed, 123 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-memory-cape.dts b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
-new file mode 100644
-index 0000000..6d8ebd8
---- /dev/null
+index 6d8ebd8..72131f6 100644
+--- a/arch/arm/boot/dts/am335x-bone-memory-cape.dts
 +++ b/arch/arm/boot/dts/am335x-bone-memory-cape.dts
-@@ -0,0 +1,127 @@
-+/*
-+ * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This DTS adds supports for capes using GPMC interface to connect external
-+ * memory like NAND, NOR Flash to Beaglebone-White and Beaglebone-Black.
-+ */
+@@ -38,11 +38,47 @@
+ 			0x9c (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_be0n_cle.gpmc_be0n_cle */
+ 		>;
+ 	};
 +
-+
-+&am33xx_pinmux {
-+	bbcape_nand_flash_pins: bbcape_nand_flash_pins {
++	bbcape_nor_flash_pins: bbcape_nor_flash_pins {
 +		pinctrl-single,pins = <
 +			0x00 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad0.gpmc_ad0 */
 +			0x04 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad1.gpmc_ad1 */
@@ -98,8 +54,16 @@ index 0000000..6d8ebd8
 +			0x34 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad13.gpmc_ad13 */
 +			0x38 (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad14.gpmc_ad14 */
 +			0x3c (MUX_MODE0 | PIN_INPUT)	/* gpmc_ad15.gpmc_ad15 */
++			0x40 (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a0.gpmc_a0 */
++			0x44 (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a1.gpmc_a1 */
++			0x48 (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a2.gpmc_a2 */
++			0x4c (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a3.gpmc_a3 */
++			0x50 (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a4.gpmc_a4 */
++			0x54 (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a5.gpmc_a5 */
++			0x58 (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a6.gpmc_a6 */
++			0x5c (MUX_MODE0 | PIN_OUTPUT)	/* gpmc_a7.gpmc_a7 */
 +			0x70 (MUX_MODE0 | PIN_INPUT_PULLUP )	/* gpmc_wait0.gpmc_wait0 */
-+			0x74 (MUX_MODE0 | PIN_OUTPUT_PULLUP)	/* gpmc_wpn.gpmc_wpn */
++		/*	0x74 (MUX_MODE0 | PIN_OUTPUT_PULLUP) */	/* gpmc_wpn (not connected) */
 +			0x7c (MUX_MODE0 | PIN_OUTPUT_PULLUP)	/* gpmc_csn0.gpmc_csn0  */
 +			0x90 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_advn_ale.gpmc_advn_ale */
 +			0x94 (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_oen_ren.gpmc_oen_ren */
@@ -107,117 +71,106 @@ index 0000000..6d8ebd8
 +			0x9c (MUX_MODE0 | PIN_OUTPUT)		/* gpmc_be0n_cle.gpmc_be0n_cle */
 +		>;
 +	};
-+};
+ };
+ 
+ 
+ &gpmc {
+-	ranges = <0 0 0 0x01000000>;	/* address range = 16MB (minimum GPMC partition) */
++	ranges = <0 0 0x08000000 0x01000000>;	/* address offset=128MB, range=128Mb=16MB */
+ 	nand@0,0 {
+ 		status = "disabled";
+ 		reg = <0 0 4>;		/* device IO registers */
+@@ -124,4 +160,90 @@
+ 			reg = <0x00a00000 0x1f600000>;
+ 		};
+ 	};
 +
-+
-+&gpmc {
-+	ranges = <0 0 0 0x01000000>;	/* address range = 16MB (minimum GPMC partition) */
-+	nand@0,0 {
++	nor@0,0 {
 +		status = "disabled";
-+		reg = <0 0 4>;		/* device IO registers */
 +		pinctrl-names = "default";
-+		pinctrl-0 = <&bbcape_nand_flash_pins>;
-+		ti,nand-ecc-opt = "bch8";
-+		ti,elm-id = <&elm>;
++		pinctrl-0 = <&bbcape_nor_flash_pins>;
++		compatible = "cfi-flash";
++		reg = <0 0 0x01000000>;		/* device memory map = actual device size = 16MB */
 +		/* generic bindings */
-+		nand-bus-width = <16>;
++		linux,mtd-name = "Micron,M29W128G";
++		bank-width = <2>;
 +		/* vendor specific bindings */
 +		gpmc,device-width = <2>;
++		gpmc,mux-add-data = <2>;
 +		gpmc,sync-clk-ps = <0>;
 +		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <80>;
-+		gpmc,cs-wr-off-ns = <80>;
-+		gpmc,adv-on-ns = <0>;
-+		gpmc,adv-rd-off-ns = <80>;
-+		gpmc,adv-wr-off-ns = <80>;
-+		gpmc,we-on-ns = <20>;
-+		gpmc,we-off-ns = <60>;
-+		gpmc,oe-on-ns = <20>;
-+		gpmc,oe-off-ns = <60>;
-+		gpmc,access-ns = <40>;
-+		gpmc,rd-cycle-ns = <80>;
-+		gpmc,wr-cycle-ns = <80>;
-+		gpmc,wait-pin = <0>;
-+		gpmc,wait-on-read;
-+		gpmc,wait-on-write;
++		gpmc,cs-rd-off-ns = <120>;
++		gpmc,cs-wr-off-ns = <120>;
++		gpmc,adv-on-ns = <10>;
++		gpmc,adv-rd-off-ns = <40>;
++		gpmc,adv-wr-off-ns = <40>;
++		gpmc,we-on-ns = <50>;
++		gpmc,we-off-ns = <120>;
++		gpmc,oe-on-ns = <50>;
++		gpmc,oe-off-ns = <120>;
++		gpmc,access-ns = <100>;
++		gpmc,rd-cycle-ns = <120>;
++		gpmc,wr-cycle-ns = <120>;
++		gpmc,page-burst-access-ns = <0>;
++		gpmc,cycle2cycle-samecsen;
++		/* gpmc,cycle2cycle-diffcsen; */
++		gpmc,num-waitpins = <4>;
++		/* gpmc,wait-pin = <0>; */
++		/* gpmc,wait-on-read; */
++		/* gpmc,wait-on-write; */
 +		gpmc,bus-turnaround-ns = <0>;
-+		gpmc,cycle2cycle-delay-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <20>;
++		/* gpmc,clk-activation-ns = <0>; */
 +		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
++		gpmc,wr-access-ns = <80>;
++		gpmc,wr-data-mux-bus-ns = <100>;
 +		/* MTD partition table */
 +		/* All SPL-* partitions are sized to minimal length
-+		 * which can be independently programmable. For
-+		 * NAND flash this is equal to size of erase-block */
++		 * which can be independently programmable */
 +		#address-cells = <1>;
 +		#size-cells = <1>;
-+		partition@0 {
-+			label = "NAND.SPL";
++		partition@0x00000000 {
++			label = "NOR.SPL";
 +			reg = <0x00000000 0x00040000>;
 +		};
-+		partition@1 {
-+			label = "NAND.SPL.backup1";
++		partition@0x00040000 {
++			label = "NOR.SPL.backup1";
 +			reg = <0x00040000 0x00040000>;
 +		};
-+		partition@2 {
-+			label = "NAND.SPL.backup2";
++		partition@0x00080000 {
++			label = "NOR.SPL.backup2";
 +			reg = <0x00080000 0x00040000>;
 +		};
-+		partition@3 {
-+			label = "NAND.SPL.backup3";
++		partition@0x000c0000 {
++			label = "NOR.SPL.backup3";
 +			reg = <0x000c0000 0x00040000>;
 +		};
-+		partition@4 {
-+			label = "NAND.u-boot-spl-os";
++		partition@0x00100000 {
++			label = "NOR.u-boot-spl-os";
 +			reg = <0x00100000 0x00080000>;
 +		};
-+		partition@5 {
-+			label = "NAND.u-boot";
++		partition@0x00180000 {
++			label = "NOR.u-boot";
 +			reg = <0x00180000 0x00100000>;
 +		};
-+		partition@6 {
-+			label = "NAND.u-boot-env";
++		partition@0x00280000 {
++			label = "NOR.u-boot-env";
 +			reg = <0x00280000 0x00040000>;
 +		};
-+		partition@7 {
-+			label = "NAND.u-boot-env.backup1";
++		partition@0x002c0000 {
++			label = "NOR.u-boot-env.backup1";
 +			reg = <0x002c0000 0x00040000>;
 +		};
-+		partition@8 {
-+			label = "NAND.kernel";
++		partition@0x00300000 {
++			label = "NOR.kernel";
 +			reg = <0x00300000 0x00700000>;
 +		};
-+		partition@9 {
-+			label = "NAND.file-system";
-+			reg = <0x00a00000 0x1f600000>;
++		partition@0x00a00000 {
++			label = "NOR.file-system";
++			reg = <0x00a00000 0x00600000>;
 +		};
 +	};
-+};
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 94ee427..f16bfcf 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -9,6 +9,7 @@
- 
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
-+#include "am335x-bone-memory-cape.dts"
- 
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 305975d..e6d7e54 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -9,6 +9,7 @@
- 
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
-+#include "am335x-bone-memory-cape.dts"
- 
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
+ };
 -- 
 1.8.5.1.163.gd7aced9
 
