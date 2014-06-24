@@ -1,129 +1,69 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 15/15] drm/omap: Add infoframe & dvi/hdmi mode support
-Date: Tue, 24 Jun 2014 13:04:00 +0300
-Message-ID: <1403604240-16738-16-git-send-email-tomi.valkeinen@ti.com>
-References: <1403604240-16738-1-git-send-email-tomi.valkeinen@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 3/3] ASoC: simple-card: Add system-clock-id DT parameter
+ to dai nodes
+Date: Tue, 24 Jun 2014 11:20:47 +0100
+Message-ID: <20140624102047.GF23300@sirena.org.uk>
+References: <cover.1402653217.git.jsarha@ti.com>
+ <c0281e720e9ef2056d3460047cf5bc5e75684abf.1402653217.git.jsarha@ti.com>
+ <20140621100959.GC5099@sirena.org.uk>
+ <53A94BF8.4090808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SnV5plBeK2Ge1I9g"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57847 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753478AbaFXKEd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 06:04:33 -0400
-In-Reply-To: <1403604240-16738-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55470 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752454AbaFXKVG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2014 06:21:06 -0400
+Content-Disposition: inline
+In-Reply-To: <53A94BF8.4090808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
-Cc: Jyri Sarha <jsarha@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Rob Clark <robdclark@gmail.com>
+To: Jyri Sarha <jsarha@TI.COM>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, peter.ujfalusi@TI.COM, liam.r.girdwood@linux.intel.com, detheridge@TI.COM
 
-Make the omapdrm driver use the new HDMI ops when possible.
 
-omapdrm will call set_hdmi_mode (when available) to tell the encoder
-driver whether the monitor is a DVI or HDMI monitor, and if it's an HDMI
-monitor, omapdrm will call set_hdmi_infoframe to to set the AVI
-infoframe.
+--SnV5plBeK2Ge1I9g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Rob Clark <robdclark@gmail.com>
----
- drivers/gpu/drm/omapdrm/omap_connector.c | 12 ++++++++++++
- drivers/gpu/drm/omapdrm/omap_drv.h       |  1 +
- drivers/gpu/drm/omapdrm/omap_encoder.c   | 27 +++++++++++++++++++++++++++
- 3 files changed, 40 insertions(+)
+On Tue, Jun 24, 2014 at 12:59:20PM +0300, Jyri Sarha wrote:
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_connector.c b/drivers/gpu/drm/omapdrm/omap_connector.c
-index 86f4ead0441d..19492cd31f10 100644
---- a/drivers/gpu/drm/omapdrm/omap_connector.c
-+++ b/drivers/gpu/drm/omapdrm/omap_connector.c
-@@ -32,8 +32,16 @@ struct omap_connector {
- 	struct drm_connector base;
- 	struct omap_dss_device *dssdev;
- 	struct drm_encoder *encoder;
-+	bool hdmi_mode;
- };
- 
-+bool omap_connector_get_hdmi_mode(struct drm_connector *connector)
-+{
-+	struct omap_connector *omap_connector = to_omap_connector(connector);
-+
-+	return omap_connector->hdmi_mode;
-+}
-+
- void copy_timings_omap_to_drm(struct drm_display_mode *mode,
- 		struct omap_video_timings *timings)
- {
-@@ -162,10 +170,14 @@ static int omap_connector_get_modes(struct drm_connector *connector)
- 			drm_mode_connector_update_edid_property(
- 					connector, edid);
- 			n = drm_add_edid_modes(connector, edid);
-+
-+			omap_connector->hdmi_mode =
-+				drm_detect_hdmi_monitor(edid);
- 		} else {
- 			drm_mode_connector_update_edid_property(
- 					connector, NULL);
- 		}
-+
- 		kfree(edid);
- 	} else {
- 		struct drm_display_mode *mode = drm_mode_create(dev);
-diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-index 284b80fc3c54..c204c1e7ce87 100644
---- a/drivers/gpu/drm/omapdrm/omap_drv.h
-+++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-@@ -194,6 +194,7 @@ struct drm_encoder *omap_connector_attached_encoder(
- 		struct drm_connector *connector);
- void omap_connector_flush(struct drm_connector *connector,
- 		int x, int y, int w, int h);
-+bool omap_connector_get_hdmi_mode(struct drm_connector *connector);
- 
- void copy_timings_omap_to_drm(struct drm_display_mode *mode,
- 		struct omap_video_timings *timings);
-diff --git a/drivers/gpu/drm/omapdrm/omap_encoder.c b/drivers/gpu/drm/omapdrm/omap_encoder.c
-index 5290a88c681d..7445fb1491ae 100644
---- a/drivers/gpu/drm/omapdrm/omap_encoder.c
-+++ b/drivers/gpu/drm/omapdrm/omap_encoder.c
-@@ -17,6 +17,8 @@
-  * this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <drm/drm_edid.h>
-+
- #include "omap_drv.h"
- 
- #include "drm_crtc.h"
-@@ -89,6 +91,31 @@ static void omap_encoder_mode_set(struct drm_encoder *encoder,
- 				struct drm_display_mode *mode,
- 				struct drm_display_mode *adjusted_mode)
- {
-+	struct drm_device *dev = encoder->dev;
-+	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
-+	struct omap_dss_device *dssdev = omap_encoder->dssdev;
-+	struct drm_connector *connector;
-+	bool hdmi_mode;
-+	int r;
-+
-+	hdmi_mode = false;
-+	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
-+		if (connector->encoder == encoder) {
-+			hdmi_mode = omap_connector_get_hdmi_mode(connector);
-+			break;
-+		}
-+	}
-+
-+	if (dssdev->driver->set_hdmi_mode)
-+		dssdev->driver->set_hdmi_mode(dssdev, hdmi_mode);
-+
-+	if (hdmi_mode && dssdev->driver->set_hdmi_infoframe) {
-+		struct hdmi_avi_infoframe avi;
-+
-+		r = drm_hdmi_avi_infoframe_from_display_mode(&avi, adjusted_mode);
-+		if (r == 0)
-+			dssdev->driver->set_hdmi_infoframe(dssdev, &avi);
-+	}
- }
- 
- static void omap_encoder_prepare(struct drm_encoder *encoder)
--- 
-1.9.1
+> I see, actually this is not something I would need anytime soon, but
+> how about the previous "Add system-clock-direction DT parameter to dai
+> nodes" patch?
 
+> There is a clear common definitions for clock direction, so this should be
+> ok, right?
+
+> If the clock direction patch would go in I would not need to add more stuff
+> to already quite messy davinci-evm driver.
+
+Yeah, I'm still thinking about that one.  One thing I was wondering was
+if we should agree a definition that's generic with the clock API but
+then have an ASoC specific implementation for now until the clock API
+gets further along.
+
+--SnV5plBeK2Ge1I9g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJTqVD8AAoJELSic+t+oim95UwP+wVcA9XTUk4whD3liAAJ5HkN
+rWhvXSje+Whw3Nt+w0pCA8wCTIEPct4GvnFTTBQVnNLmVXyxzMWHhWuJjjk+Gt10
+Mz84onZFbst2xo5max36E/QuTwrklMCksIUIFGLUXIEjk8lZeE81LHJ9eJcp0R3D
+smbbHh7G5KSpRIHdczaZzV0U8XnJaAk4c0xA+QSh8Alm1VDJhDwPYVQBnro1QfhG
+DEJACQdXt/g6Vi9RylR//61OLXo6JDK5RmjrkZybciMB3JRdCD8M384Tx+8Setr1
+S0fGm7L5dsBtdfilkZAAz1DAkFZ+7lZnqbteyjS7FrUkn1vWMmVxsyxqXvM4XLUs
+T7fCIGmaeL4PT7RJGG1IJk+iZIwPYW1S5Y+/wz934dpSjaZp6Ed9p2KUAcf15Ilp
+DszRl5hqo0QjAwXiLQWcEyf7to14LCu/RhWLgxBhTYOfP5xLDRl8PfPa75dn+2fl
+upTrA9HkIV3h6iwsalVob9H9DjwwmIigWq01ZwERf/OjzGS6Fx7PUAPbPF4wZpq4
+BXC+vAnK0edLXKWVfsm+HOan+8WUkTu8QdJcluy8PtK9aqVcWqlTm8cdWVUj/Ksm
+9WNIx/1mYxYHGjwJ7sPg0J2fWwNP3AVn2WTUuyPAaK6fIb18+CYJS7H5fxpy2f99
+Q/0DqRCJut6cYXzDsgp5
+=Bzkl
+-----END PGP SIGNATURE-----
+
+--SnV5plBeK2Ge1I9g--
