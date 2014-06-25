@@ -1,54 +1,155 @@
-From: janie18702@googlemail.com
-Subject: Re: Guaranteed Top 10 Google Placements for mail-archive.com In 100
- Days
-Date: Wed, 25 Jun 2014 13:20:43 -0700
-Message-ID: <53ab2814.e2a5440a.176c.1bcd@mx.google.com>
-Reply-To: cubic34956@gmail.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 7/9] ARM: OMAP2: hwmod_data: Remove legacy mailbox data
+ and addrs
+Date: Wed, 25 Jun 2014 22:05:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406252205020.10674@utopia.booyaka.com>
+References: <1403658295-54766-1-git-send-email-s-anna@ti.com> <1403658295-54766-8-git-send-email-s-anna@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f65.google.com ([209.85.160.65]:42157 "EHLO
-	mail-pb0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642AbaFYTup (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2014 15:50:45 -0400
-Received: by mail-pb0-f65.google.com with SMTP id rq2so837083pbb.0
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2014 12:50:45 -0700 (PDT)
-Received: from localhost.localdomain ([27.255.175.159])
-        by mx.google.com with ESMTPSA id zb2sm6489010pbb.45.2014.06.25.12.50.43
-        for <linux-omap@vger.kernel.org>
-        (version=TLSv1 cipher=RC4-SHA bits=128/128);
-        Wed, 25 Jun 2014 12:50:44 -0700 (PDT)
+Received: from utopia.booyaka.com ([74.50.51.50]:33073 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753932AbaFYWFS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2014 18:05:18 -0400
+In-Reply-To: <1403658295-54766-8-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hello Sir / Mam
+On Tue, 24 Jun 2014, Suman Anna wrote:
 
-We would like to have a chance to work on your website and get it positioned top 10 on major search engines around the world ( Google & Bing ). We are presently working with 500+ clients world wide and we have made sure all our clients rank top 10 for their best keywords. None of our clients have been caught in any of the recent google updates. We only use ethical white hat methods to deliver rankings. Our search engine packages include both onsite & off optimization, we provide complete SEO solution to our clients and not just link building packages.
+> OMAP2 devices are devicetree boot only, and the legacy mode
+> of mailbox device creation should no longer be used, so remove
+> the mailbox attribute data and the hwmod addr space used for
+> creating mailboxes in legacy mode.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-We understand there are many SEO Scam companies mailing you each day over and over again and I am also sure you have been robbed off a few times in past with no results at all. To make sure you we show you our WORTH, we have launched 15 DAY FREE SEO TRIAL service. We want to build your faith in our service and make sure you see results before paying for our service.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-Is 15 days Enough time to deliver results ?
+- Paul
 
-15 days is good enough a time to show you huge movements in rankings for all your keywords. We start with A) choosing the best keywords for your website, B)  Approve a final list of keywords, C) Make onsite changes D) Build links for your website. If in these 15 days you are not happy with our performance, you can cancel or decide to opt-out. You will not be billed a single dime for these 15 days.
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c                 | 14 --------------
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c                 | 13 -------------
+>  .../mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c    |  9 ---------
+>  arch/arm/mach-omap2/omap_hwmod_common_data.h               |  1 -
+>  4 files changed, 37 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> index 2f15979..65b1647 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -16,7 +16,6 @@
+>  #include <linux/i2c-omap.h>
+>  #include <linux/platform_data/spi-omap2-mcspi.h>
+>  #include <linux/omap-dma.h>
+> -#include <linux/platform_data/mailbox-omap.h>
+>  #include <plat/dmtimer.h>
+>  
+>  #include "omap_hwmod.h"
+> @@ -163,18 +162,6 @@ static struct omap_hwmod omap2420_dma_system_hwmod = {
+>  };
+>  
+>  /* mailbox */
+> -static struct omap_mbox_dev_info omap2420_mailbox_info[] = {
+> -	{ .name = "dsp", .tx_id = 0, .rx_id = 1, .irq_id = 0, .usr_id = 0 },
+> -	{ .name = "iva", .tx_id = 2, .rx_id = 3, .irq_id = 1, .usr_id = 3 },
+> -};
+> -
+> -static struct omap_mbox_pdata omap2420_mailbox_attrs = {
+> -	.num_users	= 4,
+> -	.num_fifos	= 6,
+> -	.info_cnt	= ARRAY_SIZE(omap2420_mailbox_info),
+> -	.info		= omap2420_mailbox_info,
+> -};
+> -
+>  static struct omap_hwmod omap2420_mailbox_hwmod = {
+>  	.name		= "mailbox",
+>  	.class		= &omap2xxx_mailbox_hwmod_class,
+> @@ -188,7 +175,6 @@ static struct omap_hwmod omap2420_mailbox_hwmod = {
+>  			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
+>  		},
+>  	},
+> -	.dev_attr	= &omap2420_mailbox_attrs,
+>  };
+>  
+>  /*
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> index 6d1b609..c2555cb 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> @@ -17,7 +17,6 @@
+>  #include <linux/platform_data/asoc-ti-mcbsp.h>
+>  #include <linux/platform_data/spi-omap2-mcspi.h>
+>  #include <linux/omap-dma.h>
+> -#include <linux/platform_data/mailbox-omap.h>
+>  #include <plat/dmtimer.h>
+>  
+>  #include "omap_hwmod.h"
+> @@ -161,17 +160,6 @@ static struct omap_hwmod omap2430_dma_system_hwmod = {
+>  };
+>  
+>  /* mailbox */
+> -static struct omap_mbox_dev_info omap2430_mailbox_info[] = {
+> -	{ .name = "dsp", .tx_id = 0, .rx_id = 1 },
+> -};
+> -
+> -static struct omap_mbox_pdata omap2430_mailbox_attrs = {
+> -	.num_users	= 4,
+> -	.num_fifos	= 6,
+> -	.info_cnt	= ARRAY_SIZE(omap2430_mailbox_info),
+> -	.info		= omap2430_mailbox_info,
+> -};
+> -
+>  static struct omap_hwmod omap2430_mailbox_hwmod = {
+>  	.name		= "mailbox",
+>  	.class		= &omap2xxx_mailbox_hwmod_class,
+> @@ -185,7 +173,6 @@ static struct omap_hwmod omap2430_mailbox_hwmod = {
+>  			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
+>  		},
+>  	},
+> -	.dev_attr	= &omap2430_mailbox_attrs,
+>  };
+>  
+>  /* mcspi3 */
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
+> index 0413dab..c1e98d5 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
+> @@ -152,15 +152,6 @@ struct omap_hwmod_addr_space omap2_dma_system_addrs[] = {
+>  	{ }
+>  };
+>  
+> -struct omap_hwmod_addr_space omap2_mailbox_addrs[] = {
+> -	{
+> -		.pa_start	= 0x48094000,
+> -		.pa_end		= 0x48094000 + SZ_512 - 1,
+> -		.flags		= ADDR_TYPE_RT,
+> -	},
+> -	{ }
+> -};
+> -
+>  struct omap_hwmod_addr_space omap2_mcbsp1_addrs[] = {
+>  	{
+>  		.name		= "mpu",
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+> index 2c38c6b..11ed5a1 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
+> +++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+> @@ -33,7 +33,6 @@ extern struct omap_hwmod_addr_space omap2_mcspi1_addr_space[];
+>  extern struct omap_hwmod_addr_space omap2_mcspi2_addr_space[];
+>  extern struct omap_hwmod_addr_space omap2430_mcspi3_addr_space[];
+>  extern struct omap_hwmod_addr_space omap2_dma_system_addrs[];
+> -extern struct omap_hwmod_addr_space omap2_mailbox_addrs[];
+>  extern struct omap_hwmod_addr_space omap2_mcbsp1_addrs[];
+>  extern struct omap_hwmod_addr_space omap2_hdq1w_addr_space[];
+>  
+> -- 
+> 2.0.0
+> 
 
-Post Trial Pricing & Package
 
-In the 15 days trial, we only work for 10 keywords so that we can show best possible results in the time span. Once the trial is over you pick one of the packages listed below :
-
-Package A ) $99 / month (10 keywords optimized ) Package B ) $149 / month ( 20 keywords optimized ) Package C ) $199 / month ( 30 keywords optimized )
-
-To Sign up for our free trial email us back with the information below so we can send you our sign up link.
-
-1) " Website You Want To Optimize "
-2) Keywords ( Optional )
-3) SEO Done Before ( Yes / No )
-
-Looking forward working with you, let us know if you would like to have more information about our company and procedures.
-Regards
-
-Anju AgarWal
-SEO Manager : T.O.B
-7 B Green Avenue, Amritsar Punjab
-
-----------------------------------------------------------------------------------------------------------------
-
-Our email above is not intended to waste your time or fill your inbox with spam. If you would not like to hear from us, email us back with NOT INTERESTED. We will never email you again.
+- Paul
