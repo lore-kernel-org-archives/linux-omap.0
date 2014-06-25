@@ -1,61 +1,55 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 9/9] ARM: AM33xx: hwmod_data: Remove legacy mailbox
- addrs
-Date: Wed, 25 Jun 2014 22:05:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406252205330.10674@utopia.booyaka.com>
-References: <1403658295-54766-1-git-send-email-s-anna@ti.com> <1403658295-54766-10-git-send-email-s-anna@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
+Date: Wed, 25 Jun 2014 17:27:44 -0500
+Message-ID: <53AB4CE0.6020705@ti.com>
+References: <1403700996-27105-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:33100 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754995AbaFYWFl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2014 18:05:41 -0400
-In-Reply-To: <1403658295-54766-10-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1403700996-27105-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Tue, 24 Jun 2014, Suman Anna wrote:
-
-> The legacy-style definition of the hwmod addr space is no longer
-> required as AM33xx/AM43xx are DT-boot only, and the minimal mailbox
-> DT nodes have been added, so clean up this data.
+On 06/25/2014 07:56 AM, Roger Quadros wrote:
+> The SATA and USB PHYs need the 1.8V and 3.3V supplies.
+> The PHY drivers/framework don't yet support regulator
+> supply so we have to keep these regulators always-on till
+> then.
 > 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c | 10 ----------
->  1 file changed, 10 deletions(-)
+>  arch/arm/boot/dts/dra7-evm.dts | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-> index e2db378..8f5989d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_interconnect_data.c
-> @@ -317,21 +317,11 @@ struct omap_hwmod_ocp_if am33xx_l4_per__i2c3 = {
->  	.user		= OCP_USER_MPU,
->  };
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index 4adc280..99a1f79 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -241,6 +241,7 @@
+>  					regulator-min-microvolt = <1800000>;
+>  					regulator-max-microvolt = <1800000>;
+>  					regulator-boot-on;
+> +					regulator-always-on;
+>  				};
 >  
-> -static struct omap_hwmod_addr_space am33xx_mailbox_addrs[] = {
-> -	{
-> -		.pa_start	= 0x480C8000,
-> -		.pa_end		= 0x480C8000 + (SZ_4K - 1),
-> -		.flags		= ADDR_TYPE_RT
-> -	},
-> -	{ }
-> -};
-> -
->  /* l4 ls -> mailbox */
->  struct omap_hwmod_ocp_if am33xx_l4_per__mailbox = {
->  	.master		= &am33xx_l4_ls_hwmod,
->  	.slave		= &am33xx_mailbox_hwmod,
->  	.clk		= "l4ls_gclk",
-> -	.addr		= am33xx_mailbox_addrs,
->  	.user		= OCP_USER_MPU,
->  };
+>  				ldo9_reg: ldo9 {
+> @@ -266,6 +267,7 @@
+>  					regulator-min-microvolt = <3300000>;
+>  					regulator-max-microvolt = <3300000>;
+>  					regulator-boot-on;
+> +					regulator-always-on;
+>  				};
+>  			};
+>  		};
+> 
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+Why not fix phy driver/framework as needed? the trouble is people
+always forget to remove always-on... who actually audits old logs and
+fixes stuff back up?
 
-
-- Paul
+-- 
+Regards,
+Nishanth Menon
