@@ -1,132 +1,124 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 1/7] mailbox/omap: use devm_* interfaces
-Date: Tue, 24 Jun 2014 19:43:37 -0500
-Message-ID: <1403657023-53897-2-git-send-email-s-anna@ti.com>
+Subject: [PATCH 3/7] mailbox/omap: remove omap_mbox_type_t from mailbox ops
+Date: Tue, 24 Jun 2014 19:43:39 -0500
+Message-ID: <1403657023-53897-4-git-send-email-s-anna@ti.com>
 References: <1403657023-53897-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33785 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33819 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752612AbaFYAoT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 20:44:19 -0400
+	id S1751479AbaFYAoj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 20:44:39 -0400
 In-Reply-To: <1403657023-53897-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
-Use the various devm_ interfaces to simplify the cleanup in
-probe and remove functions in OMAP2+ mailbox driver.
+The type definition omap_mbox_type_t used for distinguishing
+OMAP1 from OMAP2+ mailboxes is no longer needed after the
+removal of OMAP1 mailbox driver, and has therefore been
+cleaned up. This cleanup also eliminates the need for the
+polling logic used for checking the transmit readiness.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/mailbox/mailbox-omap2.c | 64 ++++++++++++-----------------------------
- 1 file changed, 19 insertions(+), 45 deletions(-)
+ drivers/mailbox/mailbox-omap2.c |  1 -
+ drivers/mailbox/omap-mailbox.c  | 22 ++--------------------
+ drivers/mailbox/omap-mbox.h     |  5 -----
+ 3 files changed, 2 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-index 42d2b89..75fbc90 100644
+index 75fbc90..b44e3bc 100644
 --- a/drivers/mailbox/mailbox-omap2.c
 +++ b/drivers/mailbox/mailbox-omap2.c
-@@ -236,23 +236,24 @@ static int omap2_mbox_probe(struct platform_device *pdev)
- 	}
+@@ -205,7 +205,6 @@ static void omap2_mbox_restore_ctx(struct omap_mbox *mbox)
+ }
  
- 	/* allocate one extra for marking end of list */
--	list = kzalloc((pdata->info_cnt + 1) * sizeof(*list), GFP_KERNEL);
-+	list = devm_kzalloc(&pdev->dev, (pdata->info_cnt + 1) * sizeof(*list),
-+			    GFP_KERNEL);
- 	if (!list)
- 		return -ENOMEM;
- 
--	mboxblk = mbox = kzalloc(pdata->info_cnt * sizeof(*mbox), GFP_KERNEL);
--	if (!mboxblk) {
--		ret = -ENOMEM;
--		goto free_list;
--	}
-+	mboxblk = devm_kzalloc(&pdev->dev, pdata->info_cnt * sizeof(*mbox),
-+			       GFP_KERNEL);
-+	if (!mboxblk)
-+		return -ENOMEM;
- 
--	privblk = priv = kzalloc(pdata->info_cnt * sizeof(*priv), GFP_KERNEL);
--	if (!privblk) {
--		ret = -ENOMEM;
--		goto free_mboxblk;
--	}
-+	privblk = devm_kzalloc(&pdev->dev, pdata->info_cnt * sizeof(*priv),
-+			       GFP_KERNEL);
-+	if (!privblk)
-+		return -ENOMEM;
- 
- 	info = pdata->info;
-+	mbox = mboxblk;
-+	priv = privblk;
- 	for (i = 0; i < pdata->info_cnt; i++, info++, priv++) {
- 		priv->tx_fifo.msg = MAILBOX_MESSAGE(info->tx_id);
- 		priv->tx_fifo.fifo_stat = MAILBOX_FIFOSTATUS(info->tx_id);
-@@ -276,55 +277,28 @@ static int omap2_mbox_probe(struct platform_device *pdev)
- 		mbox->name = info->name;
- 		mbox->ops = &omap2_mbox_ops;
- 		mbox->irq = platform_get_irq(pdev, info->irq_id);
--		if (mbox->irq < 0) {
--			ret = mbox->irq;
--			goto free_privblk;
--		}
-+		if (mbox->irq < 0)
-+			return mbox->irq;
- 		list[i] = mbox++;
- 	}
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!mem) {
--		ret = -ENOENT;
--		goto free_privblk;
--	}
+ static struct omap_mbox_ops omap2_mbox_ops = {
+-	.type		= OMAP_MBOX_TYPE2,
+ 	.startup	= omap2_mbox_startup,
+ 	.shutdown	= omap2_mbox_shutdown,
+ 	.fifo_read	= omap2_mbox_fifo_read,
+diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
+index d79a646..eab7227 100644
+--- a/drivers/mailbox/omap-mailbox.c
++++ b/drivers/mailbox/omap-mailbox.c
+@@ -24,7 +24,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
+ #include <linux/mutex.h>
+-#include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/kfifo.h>
+ #include <linux/err.h>
+@@ -74,20 +73,6 @@ static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+ /*
+  * message sender
+  */
+-static int __mbox_poll_for_space(struct omap_mbox *mbox)
+-{
+-	int ret = 0, i = 1000;
 -
--	mbox_base = ioremap(mem->start, resource_size(mem));
--	if (!mbox_base) {
--		ret = -ENOMEM;
--		goto free_privblk;
+-	while (mbox_fifo_full(mbox)) {
+-		if (mbox->ops->type == OMAP_MBOX_TYPE2)
+-			return -1;
+-		if (--i == 0)
+-			return -1;
+-		udelay(1);
 -	}
-+	mbox_base = devm_ioremap_resource(&pdev->dev, mem);
-+	if (IS_ERR(mbox_base))
-+		return PTR_ERR(mbox_base);
- 
- 	ret = omap_mbox_register(&pdev->dev, list);
- 	if (ret)
--		goto unmap_mbox;
-+		return ret;
-+
- 	platform_set_drvdata(pdev, list);
- 
- 	return 0;
--
--unmap_mbox:
--	iounmap(mbox_base);
--free_privblk:
--	kfree(privblk);
--free_mboxblk:
--	kfree(mboxblk);
--free_list:
--	kfree(list);
 -	return ret;
- }
- 
- static int omap2_mbox_remove(struct platform_device *pdev)
- {
--	struct omap_mbox2_priv *privblk;
--	struct omap_mbox **list = platform_get_drvdata(pdev);
--	struct omap_mbox *mboxblk = list[0];
+-}
 -
--	privblk = mboxblk->priv;
- 	omap_mbox_unregister();
--	iounmap(mbox_base);
--	kfree(privblk);
--	kfree(mboxblk);
--	kfree(list);
+ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+ {
+ 	struct omap_mbox_queue *mq = mbox->txq;
+@@ -100,7 +85,7 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+ 		goto out;
+ 	}
  
- 	return 0;
- }
+-	if (kfifo_is_empty(&mq->fifo) && !__mbox_poll_for_space(mbox)) {
++	if (kfifo_is_empty(&mq->fifo) && !mbox_fifo_full(mbox)) {
+ 		mbox_fifo_write(mbox, msg);
+ 		goto out;
+ 	}
+@@ -158,7 +143,7 @@ static void mbox_tx_tasklet(unsigned long tx_data)
+ 	int ret;
+ 
+ 	while (kfifo_len(&mq->fifo)) {
+-		if (__mbox_poll_for_space(mbox)) {
++		if (mbox_fifo_full(mbox)) {
+ 			omap_mbox_enable_irq(mbox, IRQ_TX);
+ 			break;
+ 		}
+@@ -223,9 +208,6 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ 
+ 		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+ 		WARN_ON(len != sizeof(msg));
+-
+-		if (mbox->ops->type == OMAP_MBOX_TYPE1)
+-			break;
+ 	}
+ 
+ 	/* no more messages in the fifo. clear IRQ source. */
+diff --git a/drivers/mailbox/omap-mbox.h b/drivers/mailbox/omap-mbox.h
+index 86d7518..fae2151 100644
+--- a/drivers/mailbox/omap-mbox.h
++++ b/drivers/mailbox/omap-mbox.h
+@@ -16,12 +16,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/omap-mailbox.h>
+ 
+-typedef int __bitwise omap_mbox_type_t;
+-#define OMAP_MBOX_TYPE1 ((__force omap_mbox_type_t) 1)
+-#define OMAP_MBOX_TYPE2 ((__force omap_mbox_type_t) 2)
+-
+ struct omap_mbox_ops {
+-	omap_mbox_type_t	type;
+ 	int		(*startup)(struct omap_mbox *mbox);
+ 	void		(*shutdown)(struct omap_mbox *mbox);
+ 	/* fifo */
 -- 
 2.0.0
 
