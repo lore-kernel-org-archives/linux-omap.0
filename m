@@ -1,968 +1,392 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 4/6] mailbox/omap: adapt to the new mailbox framework
-Date: Tue, 24 Jun 2014 20:47:56 -0500
-Message-ID: <1403660878-56350-5-git-send-email-s-anna@ti.com>
-References: <1403660878-56350-1-git-send-email-s-anna@ti.com>
+From: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 2/2] arm: dts: add support for AM437x StarterKit
+Date: Tue, 24 Jun 2014 21:07:50 -0500
+Message-ID: <53AA2EF6.6070604@ti.com>
+References: <1403547659-24558-1-git-send-email-balbi@ti.com> <1403547659-24558-3-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1403660878-56350-1-git-send-email-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jassi Brar <jassisinghbrar@gmail.com>, linux-kernel@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>, Omar Ramirez Luna <omar.ramirez@copitl.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed;
+	boundary="------------090103080008050308010404"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1403547659-24558-3-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, r.sricharan-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Josh Elliot <jelliott-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP mailbox driver and its existing clients (remoteproc
-for OMAP4+ and TI DSP/Bridge for OMAP3) are adapted to use
-the generic mailbox framework.
+--------------090103080008050308010404
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The main changes for the adaptation are:
-  - The tasklet used for Tx is replaced with the state machine from
-    the generic mailbox framework. The workqueue used for processing
-    the received messages stays intact for minimizing the effects on
-    the OMAP mailbox clients.
-  - The existing exported client API, omap_mbox_get, omap_mbox_put and
-    omap_mbox_send_msg are deleted, as the framework provides equivalent
-    functionality. A OMAP-specific omap_mbox_request_channel is added
-    though to support non-DT way of requesting mailboxes for OMAP3.
-  - The OMAP mailbox driver is integrated with the mailbox framework
-    through the proper implementations of mbox_chan_ops, except for
-    .last_tx_done and .peek_data. The OMAP mailbox driver does not need
-    these ops, as it is completely interrupt driven.
-  - The new framework does not support multiple clients operating on a
-    single channel, so the reference counting logic is simplified.
-  - The remoteproc and tidspbridge drivers (current clients) are adapted
-    to use the new API. The notifier callbacks used within these clients
-    are replaced with the regular callbacks from the newer framework.
-  - The exported OMAP mailbox API are limited to omap_mbox_save_ctx,
-    omap_mbox_restore_ctx, omap_mbox_enable_irq & omap_mbox_disable_irq,
-    with the signature modified to take in the new mbox_chan handle instead
-    of the OMAP specific omap_mbox handle. The first 2 will be removed when
-    the OMAP mailbox driver is adapted to runtime_pm. The other exported
-    API omap_mbox_request_channel is identical in signature to the framework
-    API mbox_request_channel, and will be removed once OMAP3 becomes DT-boot
-    only.
+On 06/23/2014 01:20 PM, Felipe Balbi wrote:
+> Add support for TI's AM437x StarterKit Evaluation
+> Module.
+>
+> Cc: Josh Elliot <jelliott-l0cyMroinI0@public.gmane.org>
+> Cc: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-Cc: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Omar Ramirez Luna <omar.ramirez@copitl.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- drivers/mailbox/omap-mailbox.c                     | 320 +++++++++++----------
- drivers/remoteproc/omap_remoteproc.c               |  54 ++--
- drivers/staging/tidspbridge/core/_tiomap.h         |   3 +-
- drivers/staging/tidspbridge/core/io_sm.c           |   7 +-
- drivers/staging/tidspbridge/core/tiomap3430.c      |  22 +-
- drivers/staging/tidspbridge/core/tiomap_io.c       |   7 +-
- .../tidspbridge/include/dspbridge/host_os.h        |   1 +
- .../staging/tidspbridge/include/dspbridge/io_sm.h  |   8 +-
- include/linux/omap-mailbox.h                       |  15 +-
- 9 files changed, 234 insertions(+), 203 deletions(-)
+Tested-by: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
 
-diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
-index c61435b..d71e84f 100644
---- a/drivers/mailbox/omap-mailbox.c
-+++ b/drivers/mailbox/omap-mailbox.c
-@@ -29,13 +29,14 @@
- #include <linux/slab.h>
- #include <linux/kfifo.h>
- #include <linux/err.h>
--#include <linux/notifier.h>
- #include <linux/module.h>
- #include <linux/of_device.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/platform_data/mailbox-omap.h>
- #include <linux/omap-mailbox.h>
-+#include <linux/mailbox_controller.h>
-+#include <linux/mailbox_client.h>
- 
- #define MAILBOX_REVISION		0x000
- #define MAILBOX_MESSAGE(m)		(0x040 + 4 * (m))
-@@ -80,7 +81,6 @@ struct omap_mbox_queue {
- 	spinlock_t		lock;
- 	struct kfifo		fifo;
- 	struct work_struct	work;
--	struct tasklet_struct	tasklet;
- 	struct omap_mbox	*mbox;
- 	bool full;
- };
-@@ -92,6 +92,7 @@ struct omap_mbox_device {
- 	u32 num_users;
- 	u32 num_fifos;
- 	struct omap_mbox **mboxes;
-+	struct mbox_controller controller;
- 	struct list_head elem;
- };
- 
-@@ -116,15 +117,14 @@ struct omap_mbox_device_data {
- struct omap_mbox {
- 	const char		*name;
- 	int			irq;
--	struct omap_mbox_queue	*txq, *rxq;
-+	struct omap_mbox_queue	*rxq;
- 	struct device		*dev;
- 	struct omap_mbox_device *parent;
- 	struct omap_mbox_fifo	tx_fifo;
- 	struct omap_mbox_fifo	rx_fifo;
- 	u32			ctx[OMAP4_MBOX_NR_REGS];
- 	u32			intr_type;
--	int			use_count;
--	struct blocking_notifier_head	notifier;
-+	struct mbox_chan	*chan;
- };
- 
- /* global variables for the mailbox devices */
-@@ -135,6 +135,14 @@ static unsigned int mbox_kfifo_size = CONFIG_OMAP_MBOX_KFIFO_SIZE;
- module_param(mbox_kfifo_size, uint, S_IRUGO);
- MODULE_PARM_DESC(mbox_kfifo_size, "Size of omap's mailbox kfifo (bytes)");
- 
-+static struct omap_mbox *mbox_chan_to_omap_mbox(struct mbox_chan *chan)
-+{
-+	if (!chan || !chan->con_priv)
-+		return NULL;
-+
-+	return (struct omap_mbox *)chan->con_priv;
-+}
-+
- static inline
- unsigned int mbox_read_reg(struct omap_mbox_device *mdev, size_t ofs)
- {
-@@ -200,41 +208,14 @@ static int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- 	return (int)(enable & status & bit);
- }
- 
--/*
-- * message sender
-- */
--int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
--{
--	struct omap_mbox_queue *mq = mbox->txq;
--	int ret = 0, len;
--
--	spin_lock_bh(&mq->lock);
--
--	if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
--		ret = -ENOMEM;
--		goto out;
--	}
--
--	if (kfifo_is_empty(&mq->fifo) && !mbox_fifo_full(mbox)) {
--		mbox_fifo_write(mbox, msg);
--		goto out;
--	}
--
--	len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
--	WARN_ON(len != sizeof(msg));
--
--	tasklet_schedule(&mbox->txq->tasklet);
--
--out:
--	spin_unlock_bh(&mq->lock);
--	return ret;
--}
--EXPORT_SYMBOL(omap_mbox_msg_send);
--
--void omap_mbox_save_ctx(struct omap_mbox *mbox)
-+void omap_mbox_save_ctx(struct mbox_chan *chan)
- {
- 	int i;
- 	int nr_regs;
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
-+
-+	if (WARN_ON(!mbox))
-+		return;
- 
- 	if (mbox->intr_type)
- 		nr_regs = OMAP4_MBOX_NR_REGS;
-@@ -249,10 +230,14 @@ void omap_mbox_save_ctx(struct omap_mbox *mbox)
- }
- EXPORT_SYMBOL(omap_mbox_save_ctx);
- 
--void omap_mbox_restore_ctx(struct omap_mbox *mbox)
-+void omap_mbox_restore_ctx(struct mbox_chan *chan)
- {
- 	int i;
- 	int nr_regs;
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
-+
-+	if (WARN_ON(!mbox))
-+		return;
- 
- 	if (mbox->intr_type)
- 		nr_regs = OMAP4_MBOX_NR_REGS;
-@@ -260,14 +245,13 @@ void omap_mbox_restore_ctx(struct omap_mbox *mbox)
- 		nr_regs = MBOX_NR_REGS;
- 	for (i = 0; i < nr_regs; i++) {
- 		mbox_write_reg(mbox->parent, mbox->ctx[i], i * sizeof(u32));
--
- 		dev_dbg(mbox->dev, "%s: [%02x] %08x\n", __func__,
- 			i, mbox->ctx[i]);
- 	}
- }
- EXPORT_SYMBOL(omap_mbox_restore_ctx);
- 
--void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+static void _omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	u32 l;
- 	struct omap_mbox_fifo *fifo = (irq == IRQ_TX) ?
-@@ -279,9 +263,8 @@ void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- 	l |= bit;
- 	mbox_write_reg(mbox->parent, l, irqenable);
- }
--EXPORT_SYMBOL(omap_mbox_enable_irq);
- 
--void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
-+static void _omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	struct omap_mbox_fifo *fifo = (irq == IRQ_TX) ?
- 				&mbox->tx_fifo : &mbox->rx_fifo;
-@@ -297,28 +280,28 @@ void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- 
- 	mbox_write_reg(mbox->parent, bit, irqdisable);
- }
--EXPORT_SYMBOL(omap_mbox_disable_irq);
- 
--static void mbox_tx_tasklet(unsigned long tx_data)
-+void omap_mbox_enable_irq(struct mbox_chan *chan, omap_mbox_irq_t irq)
- {
--	struct omap_mbox *mbox = (struct omap_mbox *)tx_data;
--	struct omap_mbox_queue *mq = mbox->txq;
--	mbox_msg_t msg;
--	int ret;
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
- 
--	while (kfifo_len(&mq->fifo)) {
--		if (mbox_fifo_full(mbox)) {
--			omap_mbox_enable_irq(mbox, IRQ_TX);
--			break;
--		}
-+	if (WARN_ON(!mbox))
-+		return;
-+
-+	_omap_mbox_enable_irq(mbox, irq);
-+}
-+EXPORT_SYMBOL(omap_mbox_enable_irq);
- 
--		ret = kfifo_out(&mq->fifo, (unsigned char *)&msg,
--								sizeof(msg));
--		WARN_ON(ret != sizeof(msg));
-+void omap_mbox_disable_irq(struct mbox_chan *chan, omap_mbox_irq_t irq)
-+{
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
- 
--		mbox_fifo_write(mbox, msg);
--	}
-+	if (WARN_ON(!mbox))
-+		return;
-+
-+	_omap_mbox_disable_irq(mbox, irq);
- }
-+EXPORT_SYMBOL(omap_mbox_disable_irq);
- 
- /*
-  * Message receiver(workqueue)
-@@ -334,12 +317,11 @@ static void mbox_rx_work(struct work_struct *work)
- 		len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
- 		WARN_ON(len != sizeof(msg));
- 
--		blocking_notifier_call_chain(&mq->mbox->notifier, len,
--								(void *)msg);
-+		mbox_chan_received_data(mq->mbox->chan, (void *)msg);
- 		spin_lock_irq(&mq->lock);
- 		if (mq->full) {
- 			mq->full = false;
--			omap_mbox_enable_irq(mq->mbox, IRQ_RX);
-+			_omap_mbox_enable_irq(mq->mbox, IRQ_RX);
- 		}
- 		spin_unlock_irq(&mq->lock);
- 	}
-@@ -350,9 +332,9 @@ static void mbox_rx_work(struct work_struct *work)
-  */
- static void __mbox_tx_interrupt(struct omap_mbox *mbox)
- {
--	omap_mbox_disable_irq(mbox, IRQ_TX);
-+	_omap_mbox_disable_irq(mbox, IRQ_TX);
- 	ack_mbox_irq(mbox, IRQ_TX);
--	tasklet_schedule(&mbox->txq->tasklet);
-+	mbox_chan_txdone(mbox->chan, 0);
- }
- 
- static void __mbox_rx_interrupt(struct omap_mbox *mbox)
-@@ -363,7 +345,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 
- 	while (!mbox_fifo_empty(mbox)) {
- 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
--			omap_mbox_disable_irq(mbox, IRQ_RX);
-+			_omap_mbox_disable_irq(mbox, IRQ_RX);
- 			mq->full = true;
- 			goto nomem;
- 		}
-@@ -394,11 +376,13 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
- }
- 
- static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
--					void (*work) (struct work_struct *),
--					void (*tasklet)(unsigned long))
-+					void (*work)(struct work_struct *))
- {
- 	struct omap_mbox_queue *mq;
- 
-+	if (!work)
-+		return NULL;
-+
- 	mq = kzalloc(sizeof(struct omap_mbox_queue), GFP_KERNEL);
- 	if (!mq)
- 		return NULL;
-@@ -408,12 +392,9 @@ static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
- 	if (kfifo_alloc(&mq->fifo, mbox_kfifo_size, GFP_KERNEL))
- 		goto error;
- 
--	if (work)
--		INIT_WORK(&mq->work, work);
--
--	if (tasklet)
--		tasklet_init(&mq->tasklet, tasklet, (unsigned long)mbox);
-+	INIT_WORK(&mq->work, work);
- 	return mq;
-+
- error:
- 	kfree(mq);
- 	return NULL;
-@@ -429,71 +410,35 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- {
- 	int ret = 0;
- 	struct omap_mbox_queue *mq;
--	struct omap_mbox_device *mdev = mbox->parent;
- 
--	mutex_lock(&mdev->cfg_lock);
--	ret = pm_runtime_get_sync(mdev->dev);
--	if (unlikely(ret < 0))
--		goto fail_startup;
--
--	if (!mbox->use_count++) {
--		mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
--		if (!mq) {
--			ret = -ENOMEM;
--			goto fail_alloc_txq;
--		}
--		mbox->txq = mq;
-+	mq = mbox_queue_alloc(mbox, mbox_rx_work);
-+	if (!mq)
-+		return -ENOMEM;
-+	mbox->rxq = mq;
-+	mq->mbox = mbox;
-+
-+	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
-+			  mbox->name, mbox);
-+	if (unlikely(ret)) {
-+		pr_err("failed to register mailbox interrupt:%d\n", ret);
-+		goto fail_request_irq;
-+	}
- 
--		mq = mbox_queue_alloc(mbox, mbox_rx_work, NULL);
--		if (!mq) {
--			ret = -ENOMEM;
--			goto fail_alloc_rxq;
--		}
--		mbox->rxq = mq;
--		mq->mbox = mbox;
--		ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
--							mbox->name, mbox);
--		if (unlikely(ret)) {
--			pr_err("failed to register mailbox interrupt:%d\n",
--									ret);
--			goto fail_request_irq;
--		}
-+	_omap_mbox_enable_irq(mbox, IRQ_RX);
- 
--		omap_mbox_enable_irq(mbox, IRQ_RX);
--	}
--	mutex_unlock(&mdev->cfg_lock);
- 	return 0;
- 
- fail_request_irq:
- 	mbox_queue_free(mbox->rxq);
--fail_alloc_rxq:
--	mbox_queue_free(mbox->txq);
--fail_alloc_txq:
--	pm_runtime_put_sync(mdev->dev);
--	mbox->use_count--;
--fail_startup:
--	mutex_unlock(&mdev->cfg_lock);
- 	return ret;
- }
- 
- static void omap_mbox_fini(struct omap_mbox *mbox)
- {
--	struct omap_mbox_device *mdev = mbox->parent;
--
--	mutex_lock(&mdev->cfg_lock);
--
--	if (!--mbox->use_count) {
--		omap_mbox_disable_irq(mbox, IRQ_RX);
--		free_irq(mbox->irq, mbox);
--		tasklet_kill(&mbox->txq->tasklet);
--		flush_work(&mbox->rxq->work);
--		mbox_queue_free(mbox->txq);
--		mbox_queue_free(mbox->rxq);
--	}
--
--	pm_runtime_put_sync(mdev->dev);
--
--	mutex_unlock(&mdev->cfg_lock);
-+	_omap_mbox_disable_irq(mbox, IRQ_RX);
-+	free_irq(mbox->irq, mbox);
-+	flush_work(&mbox->rxq->work);
-+	mbox_queue_free(mbox->rxq);
- }
- 
- static struct omap_mbox *omap_mbox_device_find(struct omap_mbox_device *mdev,
-@@ -515,42 +460,54 @@ static struct omap_mbox *omap_mbox_device_find(struct omap_mbox_device *mdev,
- 	return mbox;
- }
- 
--struct omap_mbox *omap_mbox_get(const char *name, struct notifier_block *nb)
-+struct mbox_chan *omap_mbox_request_channel(struct mbox_client *cl)
- {
-+	struct device *dev = cl->dev;
- 	struct omap_mbox *mbox = NULL;
- 	struct omap_mbox_device *mdev;
-+	struct mbox_chan *chan;
-+	unsigned long flags;
- 	int ret;
- 
-+	if (!dev)
-+		return ERR_PTR(-ENODEV);
-+
-+	if (dev->of_node) {
-+		pr_err("%s: please use mbox_request_channel(), this API is supported only for OMAP non-DT usage\n",
-+		       __func__);
-+		return ERR_PTR(-ENODEV);
-+	}
-+
- 	mutex_lock(&omap_mbox_devices_lock);
- 	list_for_each_entry(mdev, &omap_mbox_devices, elem) {
--		mbox = omap_mbox_device_find(mdev, name);
-+		mbox = omap_mbox_device_find(mdev, cl->chan_name);
- 		if (mbox)
- 			break;
- 	}
- 	mutex_unlock(&omap_mbox_devices_lock);
- 
--	if (!mbox)
-+	if (!mbox || !mbox->chan)
- 		return ERR_PTR(-ENOENT);
- 
--	if (nb)
--		blocking_notifier_chain_register(&mbox->notifier, nb);
-+	chan = mbox->chan;
-+	spin_lock_irqsave(&chan->lock, flags);
-+	chan->msg_free = 0;
-+	chan->msg_count = 0;
-+	chan->active_req = NULL;
-+	chan->cl = cl;
-+	init_completion(&chan->tx_complete);
-+	spin_unlock_irqrestore(&chan->lock, flags);
- 
--	ret = omap_mbox_startup(mbox);
-+	ret = chan->mbox->ops->startup(chan);
- 	if (ret) {
--		blocking_notifier_chain_unregister(&mbox->notifier, nb);
--		return ERR_PTR(-ENODEV);
-+		pr_err("Unable to startup the chan (%d)\n", ret);
-+		mbox_free_channel(chan);
-+		chan = ERR_PTR(ret);
- 	}
- 
--	return mbox;
-+	return chan;
- }
--EXPORT_SYMBOL(omap_mbox_get);
--
--void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb)
--{
--	blocking_notifier_chain_unregister(&mbox->notifier, nb);
--	omap_mbox_fini(mbox);
--}
--EXPORT_SYMBOL(omap_mbox_put);
-+EXPORT_SYMBOL(omap_mbox_request_channel);
- 
- static struct class omap_mbox_class = { .name = "mbox", };
- 
-@@ -566,25 +523,25 @@ static int omap_mbox_register(struct omap_mbox_device *mdev)
- 	mboxes = mdev->mboxes;
- 	for (i = 0; mboxes[i]; i++) {
- 		struct omap_mbox *mbox = mboxes[i];
--		mbox->dev = device_create(&omap_mbox_class,
--				mdev->dev, 0, mbox, "%s", mbox->name);
-+		mbox->dev = device_create(&omap_mbox_class, mdev->dev,
-+					0, mbox, "%s", mbox->name);
- 		if (IS_ERR(mbox->dev)) {
- 			ret = PTR_ERR(mbox->dev);
- 			goto err_out;
- 		}
--
--		BLOCKING_INIT_NOTIFIER_HEAD(&mbox->notifier);
- 	}
- 
- 	mutex_lock(&omap_mbox_devices_lock);
- 	list_add(&mdev->elem, &omap_mbox_devices);
- 	mutex_unlock(&omap_mbox_devices_lock);
- 
--	return 0;
-+	ret = mbox_controller_register(&mdev->controller);
- 
- err_out:
--	while (i--)
--		device_unregister(mboxes[i]->dev);
-+	if (ret) {
-+		while (i--)
-+			device_unregister(mboxes[i]->dev);
-+	}
- 	return ret;
- }
- 
-@@ -600,12 +557,64 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
- 	list_del(&mdev->elem);
- 	mutex_unlock(&omap_mbox_devices_lock);
- 
-+	mbox_controller_unregister(&mdev->controller);
-+
- 	mboxes = mdev->mboxes;
- 	for (i = 0; mboxes[i]; i++)
- 		device_unregister(mboxes[i]->dev);
- 	return 0;
- }
- 
-+static int omap_mbox_chan_startup(struct mbox_chan *chan)
-+{
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
-+	struct omap_mbox_device *mdev = mbox->parent;
-+	int ret = 0;
-+
-+	mutex_lock(&mdev->cfg_lock);
-+	pm_runtime_get_sync(mdev->dev);
-+	ret = omap_mbox_startup(mbox);
-+	if (ret)
-+		pm_runtime_put_sync(mdev->dev);
-+	mutex_unlock(&mdev->cfg_lock);
-+	return ret;
-+}
-+
-+static void omap_mbox_chan_shutdown(struct mbox_chan *chan)
-+{
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
-+	struct omap_mbox_device *mdev = mbox->parent;
-+
-+	mutex_lock(&mdev->cfg_lock);
-+	omap_mbox_fini(mbox);
-+	pm_runtime_put_sync(mdev->dev);
-+	mutex_unlock(&mdev->cfg_lock);
-+}
-+
-+static int omap_mbox_chan_send_data(struct mbox_chan *chan, void *data)
-+{
-+	struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
-+	int ret = -EBUSY;
-+
-+	if (!mbox)
-+		return -EINVAL;
-+
-+	if (!mbox_fifo_full(mbox)) {
-+		mbox_fifo_write(mbox, (mbox_msg_t)data);
-+		ret = 0;
-+	}
-+
-+	/* always enable the interrupt */
-+	_omap_mbox_enable_irq(mbox, IRQ_TX);
-+	return ret;
-+}
-+
-+static struct mbox_chan_ops omap_mbox_chan_ops = {
-+	.startup        = omap_mbox_chan_startup,
-+	.send_data      = omap_mbox_chan_send_data,
-+	.shutdown       = omap_mbox_chan_shutdown,
-+};
-+
- static const struct omap_mbox_device_data omap2_data = {
- 	.num_users	= 4,
- 	.num_fifos	= 6,
-@@ -671,6 +680,7 @@ static int omap_mbox_probe(struct platform_device *pdev)
- {
- 	struct resource *mem;
- 	int ret;
-+	struct mbox_chan *chnls;
- 	struct omap_mbox **list, *mbox, *mboxblk;
- 	struct omap_mbox_pdata *pdata = pdev->dev.platform_data;
- 	struct omap_mbox_dev_info *info = NULL;
-@@ -772,6 +782,11 @@ static int omap_mbox_probe(struct platform_device *pdev)
- 	if (!list)
- 		return -ENOMEM;
- 
-+	chnls = devm_kzalloc(&pdev->dev, (info_count + 1) * sizeof(*chnls),
-+			     GFP_KERNEL);
-+	if (!chnls)
-+		return -ENOMEM;
-+
- 	mboxblk = devm_kzalloc(&pdev->dev, info_count * sizeof(*mbox),
- 			       GFP_KERNEL);
- 	if (!mboxblk)
-@@ -803,6 +818,8 @@ static int omap_mbox_probe(struct platform_device *pdev)
- 		mbox->irq = platform_get_irq(pdev, finfo->tx_irq);
- 		if (mbox->irq < 0)
- 			return mbox->irq;
-+		mbox->chan = &chnls[i];
-+		chnls[i].con_priv = mbox;
- 		list[i] = mbox++;
- 	}
- 
-@@ -811,6 +828,13 @@ static int omap_mbox_probe(struct platform_device *pdev)
- 	mdev->num_users = num_users;
- 	mdev->num_fifos = num_fifos;
- 	mdev->mboxes = list;
-+
-+	/* OMAP does not have a Tx-Done IRQ, but rather a Tx-Ready IRQ */
-+	mdev->controller.txdone_irq = true;
-+	mdev->controller.dev = mdev->dev;
-+	mdev->controller.ops = &omap_mbox_chan_ops;
-+	mdev->controller.chans = chnls;
-+	mdev->controller.num_chans = info_count;
- 	ret = omap_mbox_register(mdev);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 5168972..0a87e57 100644
---- a/drivers/remoteproc/omap_remoteproc.c
-+++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -27,6 +27,7 @@
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/remoteproc.h>
-+#include <linux/mailbox_client.h>
- #include <linux/omap-mailbox.h>
- 
- #include <linux/platform_data/remoteproc-omap.h>
-@@ -36,20 +37,19 @@
- 
- /**
-  * struct omap_rproc - omap remote processor state
-- * @mbox: omap mailbox handle
-- * @nb: notifier block that will be invoked on inbound mailbox messages
-+ * @mbox: mailbox channel handle
-+ * @client: mailbox client to request the mailbox channel
-  * @rproc: rproc handle
-  */
- struct omap_rproc {
--	struct omap_mbox *mbox;
--	struct notifier_block nb;
-+	struct mbox_chan *mbox;
-+	struct mbox_client client;
- 	struct rproc *rproc;
- };
- 
- /**
-  * omap_rproc_mbox_callback() - inbound mailbox message handler
-- * @this: notifier block
-- * @index: unused
-+ * @client: mailbox client pointer used for requesting the mailbox channel
-  * @data: mailbox payload
-  *
-  * This handler is invoked by omap's mailbox driver whenever a mailbox
-@@ -61,13 +61,13 @@ struct omap_rproc {
-  * that indicates different events. Those values are deliberately very
-  * big so they don't coincide with virtqueue indices.
-  */
--static int omap_rproc_mbox_callback(struct notifier_block *this,
--					unsigned long index, void *data)
-+static void omap_rproc_mbox_callback(struct mbox_client *client, void *data)
- {
--	mbox_msg_t msg = (mbox_msg_t) data;
--	struct omap_rproc *oproc = container_of(this, struct omap_rproc, nb);
-+	struct omap_rproc *oproc = container_of(client, struct omap_rproc,
-+						client);
- 	struct device *dev = oproc->rproc->dev.parent;
- 	const char *name = oproc->rproc->name;
-+	u32 msg = (u32)data;
- 
- 	dev_dbg(dev, "mbox msg: 0x%x\n", msg);
- 
-@@ -84,8 +84,6 @@ static int omap_rproc_mbox_callback(struct notifier_block *this,
- 		if (rproc_vq_interrupt(oproc->rproc, msg) == IRQ_NONE)
- 			dev_dbg(dev, "no message was found in vqid %d\n", msg);
- 	}
--
--	return NOTIFY_DONE;
- }
- 
- /* kick a virtqueue */
-@@ -96,8 +94,8 @@ static void omap_rproc_kick(struct rproc *rproc, int vqid)
- 	int ret;
- 
- 	/* send the index of the triggered virtqueue in the mailbox payload */
--	ret = omap_mbox_msg_send(oproc->mbox, vqid);
--	if (ret)
-+	ret = mbox_send_message(oproc->mbox, (void *)vqid);
-+	if (ret < 0)
- 		dev_err(dev, "omap_mbox_msg_send failed: %d\n", ret);
- }
- 
-@@ -115,17 +113,25 @@ static int omap_rproc_start(struct rproc *rproc)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
- 	int ret;
-+	struct mbox_client *client = &oproc->client;
-+	char client_name[32];
- 
- 	if (pdata->set_bootaddr)
- 		pdata->set_bootaddr(rproc->bootaddr);
- 
--	oproc->nb.notifier_call = omap_rproc_mbox_callback;
-+	client->dev = dev;
-+	client->tx_done = NULL;
-+	client->rx_callback = omap_rproc_mbox_callback;
-+	client->tx_block = false;
-+	client->knows_txdone = false;
-+	sprintf(client_name, "%s", pdata->mbox_name);
-+	client->chan_name = client_name;
- 
--	/* every omap rproc is assigned a mailbox instance for messaging */
--	oproc->mbox = omap_mbox_get(pdata->mbox_name, &oproc->nb);
-+	oproc->mbox = omap_mbox_request_channel(client);
- 	if (IS_ERR(oproc->mbox)) {
--		ret = PTR_ERR(oproc->mbox);
--		dev_err(dev, "omap_mbox_get failed: %d\n", ret);
-+		ret = -EBUSY;
-+		dev_err(dev, "mbox_request_channel failed: %ld\n",
-+			PTR_ERR(oproc->mbox));
- 		return ret;
- 	}
- 
-@@ -136,9 +142,9 @@ static int omap_rproc_start(struct rproc *rproc)
- 	 * Note that the reply will _not_ arrive immediately: this message
- 	 * will wait in the mailbox fifo until the remote processor is booted.
- 	 */
--	ret = omap_mbox_msg_send(oproc->mbox, RP_MBOX_ECHO_REQUEST);
--	if (ret) {
--		dev_err(dev, "omap_mbox_get failed: %d\n", ret);
-+	ret = mbox_send_message(oproc->mbox, (void *)RP_MBOX_ECHO_REQUEST);
-+	if (ret < 0) {
-+		dev_err(dev, "mbox_send_message failed: %d\n", ret);
- 		goto put_mbox;
- 	}
- 
-@@ -151,7 +157,7 @@ static int omap_rproc_start(struct rproc *rproc)
- 	return 0;
- 
- put_mbox:
--	omap_mbox_put(oproc->mbox, &oproc->nb);
-+	mbox_free_channel(oproc->mbox);
- 	return ret;
- }
- 
-@@ -168,7 +174,7 @@ static int omap_rproc_stop(struct rproc *rproc)
- 	if (ret)
- 		return ret;
- 
--	omap_mbox_put(oproc->mbox, &oproc->nb);
-+	mbox_free_channel(oproc->mbox);
- 
- 	return 0;
- }
-diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/staging/tidspbridge/core/_tiomap.h
-index 65971b7..2b8390f 100644
---- a/drivers/staging/tidspbridge/core/_tiomap.h
-+++ b/drivers/staging/tidspbridge/core/_tiomap.h
-@@ -338,7 +338,8 @@ struct bridge_dev_context {
- 	u32 dsp_start_add;	/* API Boot vector */
- 	u32 internal_size;	/* Internal memory size */
- 
--	struct omap_mbox *mbox;		/* Mail box handle */
-+	struct mbox_client client;	/* Mailbox Client */
-+	struct mbox_chan *mbox;		/* Mailbox handle */
- 
- 	struct cfg_hostres *resources;	/* Host Resources */
- 
-diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
-index c2829aa..4b6673a 100644
---- a/drivers/staging/tidspbridge/core/io_sm.c
-+++ b/drivers/staging/tidspbridge/core/io_sm.c
-@@ -908,7 +908,7 @@ func_end:
-  *      Calls the Bridge's CHNL_ISR to determine if this interrupt is ours, then
-  *      schedules a DPC to dispatch I/O.
-  */
--int io_mbox_msg(struct notifier_block *self, unsigned long len, void *msg)
-+void io_mbox_msg(struct mbox_client *client, void *msg)
- {
- 	struct io_mgr *pio_mgr;
- 	struct dev_object *dev_obj;
-@@ -917,8 +917,8 @@ int io_mbox_msg(struct notifier_block *self, unsigned long len, void *msg)
- 	dev_obj = dev_get_first();
- 	dev_get_io_mgr(dev_obj, &pio_mgr);
- 
--	if (!pio_mgr)
--		return NOTIFY_BAD;
-+	if (WARN_ON(!pio_mgr))
-+		return;
- 
- 	pio_mgr->intr_val = (u16)((u32)msg);
- 	if (pio_mgr->intr_val & MBX_PM_CLASS)
-@@ -932,7 +932,6 @@ int io_mbox_msg(struct notifier_block *self, unsigned long len, void *msg)
- 		spin_unlock_irqrestore(&pio_mgr->dpc_lock, flags);
- 		tasklet_schedule(&pio_mgr->dpc_tasklet);
- 	}
--	return NOTIFY_OK;
- }
- 
- /*
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index 8945b4e..5f6287c 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -212,10 +212,6 @@ static struct bridge_drv_interface drv_interface_fxns = {
- 	bridge_msg_set_queue_id,
- };
- 
--static struct notifier_block dsp_mbox_notifier = {
--	.notifier_call = io_mbox_msg,
--};
--
- static inline void flush_all(struct bridge_dev_context *dev_context)
- {
- 	if (dev_context->brd_state == BRD_DSP_HIBERNATION ||
-@@ -378,6 +374,8 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 	u32 wdt_en = 0;
- 	struct omap_dsp_platform_data *pdata =
- 		omap_dspbridge_dev->dev.platform_data;
-+	struct mbox_client *client = &dev_context->client;
-+	char mbox_user_name[32];
- 
- 	/* The device context contains all the mmu setup info from when the
- 	 * last dsp base image was loaded. The first entry is always
-@@ -544,11 +542,17 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 		 * Enable Mailbox events and also drain any pending
- 		 * stale messages.
- 		 */
--		dev_context->mbox = omap_mbox_get("dsp", &dsp_mbox_notifier);
-+		client->dev = &omap_dspbridge_dev->dev;
-+		client->tx_done = NULL;
-+		client->rx_callback = io_mbox_msg;
-+		client->tx_block = false;
-+		client->knows_txdone = false;
-+		sprintf(mbox_user_name, "dsp");
-+		client->chan_name = mbox_user_name;
-+		dev_context->mbox = omap_mbox_request_channel(client);
- 		if (IS_ERR(dev_context->mbox)) {
--			dev_context->mbox = NULL;
--			pr_err("%s: Failed to get dsp mailbox handle\n",
--								__func__);
-+			pr_err("%s: Failed to get dsp mailbox handle, ret = %ld\n",
-+			       __func__, PTR_ERR(dev_context->mbox));
- 			status = -EPERM;
- 		}
- 
-@@ -680,7 +684,7 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	/* Disable the mailbox interrupts */
- 	if (dev_context->mbox) {
- 		omap_mbox_disable_irq(dev_context->mbox, IRQ_RX);
--		omap_mbox_put(dev_context->mbox, &dsp_mbox_notifier);
-+		mbox_free_channel(dev_context->mbox);
- 		dev_context->mbox = NULL;
- 	}
- 	/* Reset IVA2 clocks*/
-diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
-index f53ed98..fe86035 100644
---- a/drivers/staging/tidspbridge/core/tiomap_io.c
-+++ b/drivers/staging/tidspbridge/core/tiomap_io.c
-@@ -427,10 +427,9 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 		dsp_clock_enable_all(dev_context->dsp_per_clks);
- 	}
- 
--	status = omap_mbox_msg_send(dev_context->mbox, mb_val);
--
--	if (status) {
--		pr_err("omap_mbox_msg_send Fail and status = %d\n", status);
-+	status = mbox_send_message(dev_context->mbox, (void *)((u32)mb_val));
-+	if (status < 0) {
-+		pr_err("mbox_send_message failed, status = %d\n", status);
- 		status = -EPERM;
- 	}
- 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/host_os.h b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
-index d1441db..8ddef2b 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/host_os.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
-@@ -42,6 +42,7 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/omap-mailbox.h>
-+#include <linux/mailbox_client.h>
- #include <linux/pagemap.h>
- #include <asm/cacheflush.h>
- #include <linux/dma-mapping.h>
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-index 903ff12..b185d6e 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/io_sm.h
-@@ -80,13 +80,11 @@ extern void io_dpc(unsigned long ref_data);
-  *	Determine if this message is ours, then schedules a DPC to
-  *	dispatch I/O.
-  *  Parameters:
-- *	self:	Pointer to its own notifier_block struct.
-- *	len:	Length of message.
-- *	msg:	Message code received.
-+ *	client:	 Mailbox Client handle registered with the mailbox core.
-+ *	msg:	 Message code received.
-  *  Returns:
-- *	NOTIFY_OK if handled; NOTIFY_BAD otherwise.
-  */
--int io_mbox_msg(struct notifier_block *self, unsigned long len, void *msg);
-+void io_mbox_msg(struct mbox_client *client, void *msg);
- 
- /*
-  *  ======== io_request_chnl ========
-diff --git a/include/linux/omap-mailbox.h b/include/linux/omap-mailbox.h
-index f8322d9..fee452c 100644
---- a/include/linux/omap-mailbox.h
-+++ b/include/linux/omap-mailbox.h
-@@ -10,20 +10,19 @@
- #define OMAP_MAILBOX_H
- 
- typedef u32 mbox_msg_t;
--struct omap_mbox;
- 
- typedef int __bitwise omap_mbox_irq_t;
- #define IRQ_TX ((__force omap_mbox_irq_t) 1)
- #define IRQ_RX ((__force omap_mbox_irq_t) 2)
- 
--int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
-+struct mbox_chan;
-+struct mbox_client;
- 
--struct omap_mbox *omap_mbox_get(const char *, struct notifier_block *nb);
--void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb);
-+struct mbox_chan *omap_mbox_request_channel(struct mbox_client *cl);
- 
--void omap_mbox_save_ctx(struct omap_mbox *mbox);
--void omap_mbox_restore_ctx(struct omap_mbox *mbox);
--void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
--void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq);
-+void omap_mbox_save_ctx(struct mbox_chan *chan);
-+void omap_mbox_restore_ctx(struct mbox_chan *chan);
-+void omap_mbox_enable_irq(struct mbox_chan *chan, omap_mbox_irq_t irq);
-+void omap_mbox_disable_irq(struct mbox_chan *chan, omap_mbox_irq_t irq);
- 
- #endif /* OMAP_MAILBOX_H */
--- 
-2.0.0
+I tested with omap2plus_defconfig + additionally enabling OMAPDSS and 
+Backlight in .config.  Working great for me with ethernet, sdcard, lcd 
+panel and backlight all functional.
+
+dmesg log attached - generated by kernel built from the repo/branch 
+Felipe pointed to in the cover letter for this series and obviously 
+running on an AM437x StarterKit EVM.
+
+Darren
+
+--------------090103080008050308010404
+Content-Type: text/x-log; name="dmesg-am437x-sk.log"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="dmesg-am437x-sk.log"
+
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.16.0-rc1-next-20140617-00935-g2072735 (darrene@build-laptop) (gcc version 4.7.3 20130328 (prerelease) (crosstool-NG linaro-1.13.1-4.7-2013.04-20130415 - Linaro GCC 2013.04) ) #5 SMP Tue Jun 24 17:42:32 CDT 2014
+[    0.000000] CPU: ARMv7 Processor [412fc09a] revision 10 (ARMv7), cr=10c5387d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine model: TI AM437x SK EVM
+[    0.000000] cma: CMA: reserved 16 MiB at ae800000
+[    0.000000] Memory policy: Data cache writeback
+[    0.000000] On node 0 totalpages: 262144
+[    0.000000] free_area_init_node: node 0, pgdat c0956880, node_mem_map edff1000
+[    0.000000]   Normal zone: 1520 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 194560 pages, LIFO batch:31
+[    0.000000]   HighMem zone: 528 pages used for memmap
+[    0.000000]   HighMem zone: 67584 pages, LIFO batch:15
+[    0.000000] CPU: All CPU(s) started in SVC mode.
+[    0.000000] AM437x ES1.1 (sgx neon )
+[    0.000000] L2C: platform modifies aux control register: 0x0e030000 -> 0x3e430000
+[    0.000000] L2C: DT/platform modifies aux control register: 0x0e030000 -> 0x3e430000
+[    0.000000] L2C-310 enabling early BRESP for Cortex-A9
+[    0.000000] L2C-310 ID prefetch enabled, offset 1 lines
+[    0.000000] OMAP L2C310: ROM does not support power control setting
+[    0.000000] L2C-310 dynamic clock gating disabled, standby mode disabled
+[    0.000000] L2C-310 cache controller enabled, 16 ways, 256 kB
+[    0.000000] L2C-310: CACHE_ID 0x410000c9, AUX_CTRL 0x7e430000
+[    0.000000] PERCPU: Embedded 9 pages/cpu @edfb5000 s14336 r8192 d14336 u36864
+[    0.000000] pcpu-alloc: s14336 r8192 d14336 u36864 alloc=9*4096
+[    0.000000] pcpu-alloc: [0] 0
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 260624
+[    0.000000] Kernel command line: console=ttyO0,115200n8 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait
+[    0.000000] PID hash table entries: 4096 (order: 2, 16384 bytes)
+[    0.000000] Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
+[    0.000000] Memory: 1005092K/1048576K available (6039K kernel code, 705K rwdata, 2388K rodata, 414K init, 8220K bss, 43484K reserved, 270336K highmem)
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xffc00000 - 0xffe00000   (2048 kB)
+[    0.000000]     vmalloc : 0xf0000000 - 0xff000000   ( 240 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xef800000   ( 760 MB)
+[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+[    0.000000]       .text : 0xc0008000 - 0xc0843100   (8429 kB)
+[    0.000000]       .init : 0xc0844000 - 0xc08ab800   ( 414 kB)
+[    0.000000]       .data : 0xc08ac000 - 0xc095c498   ( 706 kB)
+[    0.000000]        .bss : 0xc095c498 - 0xc11635e0   (8221 kB)
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000]  RCU restricting CPUs from NR_CPUS=2 to nr_cpu_ids=1.
+[    0.000000] RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+[    0.000000] NR_IRQS:16 nr_irqs:16 16
+[    0.000000] GIC CPU mask not found - kernel will fail to boot.
+[    0.000000] GIC CPU mask not found - kernel will fail to boot.
+[    0.000000] OMAP clockevent source: timer2 at 24000000 Hz
+[    0.000012] sched_clock: 32 bits at 24MHz, resolution 41ns, wraps every 178956969942ns
+[    0.000062] OMAP clocksource: timer1 at 24000000 Hz
+[    0.000643] Console: colour dummy device 80x30
+[    0.000680] Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
+[    0.000692] ... MAX_LOCKDEP_SUBCLASSES:  8
+[    0.000702] ... MAX_LOCK_DEPTH:          48
+[    0.000711] ... MAX_LOCKDEP_KEYS:        8191
+[    0.000720] ... CLASSHASH_SIZE:          4096
+[    0.000729] ... MAX_LOCKDEP_ENTRIES:     32768
+[    0.000738] ... MAX_LOCKDEP_CHAINS:      65536
+[    0.000747] ... CHAINHASH_SIZE:          32768
+[    0.000756]  memory used by lock dependency info: 5167 kB
+[    0.000765]  per task-struct memory footprint: 1152 bytes
+[    0.000804] Calibrating delay loop... 1993.93 BogoMIPS (lpj=9969664)
+[    0.119229] pid_max: default: 32768 minimum: 301
+[    0.119549] Security Framework initialized
+[    0.119650] Mount-cache hash table entries: 2048 (order: 1, 8192 bytes)
+[    0.119666] Mountpoint-cache hash table entries: 2048 (order: 1, 8192 bytes)
+[    0.121422] CPU: Testing write buffer coherency: ok
+[    0.122355] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+[    0.122459] Setting up static identity map for 0x805b9230 - 0x805b92a0
+[    0.125160] Brought up 1 CPUs
+[    0.125179] SMP: Total of 1 processors activated.
+[    0.125193] CPU: All CPU(s) started in SVC mode.
+[    0.127382] devtmpfs: initialized
+[    0.137997] VFP support v0.3: implementor 41 architecture 3 part 30 variant 9 rev 4
+[    0.171344] omap_hwmod: tptc0 using broken dt data from edma
+[    0.171647] omap_hwmod: tptc1 using broken dt data from edma
+[    0.171925] omap_hwmod: tptc2 using broken dt data from edma
+[    0.236581] omap_hwmod: dss_dispc: cannot be enabled for reset (3)
+[    0.239887] omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
+[    0.241769] pinctrl core: initialized pinctrl subsystem
+[    0.243762] regulator-dummy: no parameters
+[    0.266686] NET: Registered protocol family 16
+[    0.271145] DMA: preallocated 256 KiB pool for atomic coherent allocations
+[    0.272944] cpuidle: using governor ladder
+[    0.272992] cpuidle: using governor menu
+[    0.287209] platform 49000000.edma: alias fck already exists
+[    0.287293] platform 49000000.edma: alias fck already exists
+[    0.287314] platform 49000000.edma: alias fck already exists
+[    0.288633] platform 44e3e000.rtc: Cannot lookup hwmod 'rtc'
+[    0.290482] gpiochip_add: registered GPIOs 0 to 31 on device: gpio
+[    0.291100] OMAP GPIO hardware version 0.1
+[    0.292129] gpiochip_add: registered GPIOs 32 to 63 on device: gpio
+[    0.293422] gpiochip_add: registered GPIOs 64 to 95 on device: gpio
+[    0.297098] platform 53701000.des: Cannot lookup hwmod 'des'
+[    0.303135] No ATAGs?
+[    0.303220] hw-breakpoint: found 5 (+1 reserved) breakpoint and 1 watchpoint registers.
+[    0.303256] hw-breakpoint: maximum watchpoint size is 4 bytes.
+[    0.338263] edma-dma-engine edma-dma-engine.0: TI EDMA DMA engine driver
+[    0.338869] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@0[0]'
+[    0.339398] V5_0D: 5000 mV
+[    0.339537] reg-fixed-voltage fixedregulator@0: Failed to find supply vin
+[    0.340842] reg-fixed-voltage fixedregulator@0: Failed to register regulator: -517
+[    0.340893] platform fixedregulator@0: Driver reg-fixed-voltage requests probe deferral
+[    0.341008] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@1[0]'
+[    0.341286] VBUS_USB: 5000 mV
+[    0.341401] reg-fixed-voltage fixedregulator@1: Failed to find supply vin
+[    0.341672] reg-fixed-voltage fixedregulator@1: Failed to register regulator: -517
+[    0.341709] platform fixedregulator@1: Driver reg-fixed-voltage requests probe deferral
+[    0.344303] SCSI subsystem initialized
+[    0.344904] usbcore: registered new interface driver usbfs
+[    0.345050] usbcore: registered new interface driver hub
+[    0.347504] usbcore: registered new device driver usb
+[    0.348353] omap_i2c 44e0b000.i2c: could not find pctldev for node /pinmux@44e10800/i2c0_pins, deferring probe
+[    0.348397] platform 44e0b000.i2c: Driver omap_i2c requests probe deferral
+[    0.348454] omap_i2c 4802a000.i2c: could not find pctldev for node /pinmux@44e10800/i2c1_pins, deferring probe
+[    0.348478] platform 4802a000.i2c: Driver omap_i2c requests probe deferral
+[    0.349489] Advanced Linux Sound Architecture Driver Initialized.
+[    0.352214] Switched to clocksource timer1
+[    0.459745] NET: Registered protocol family 2
+[    0.461308] TCP established hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.461502] TCP bind hash table entries: 8192 (order: 6, 294912 bytes)
+[    0.463402] TCP: Hash tables configured (established 8192 bind 8192)
+[    0.463731] TCP: reno registered
+[    0.463793] UDP hash table entries: 512 (order: 3, 40960 bytes)
+[    0.464052] UDP-Lite hash table entries: 512 (order: 3, 40960 bytes)
+[    0.465147] NET: Registered protocol family 1
+[    0.466781] RPC: Registered named UNIX socket transport module.
+[    0.466822] RPC: Registered udp transport module.
+[    0.466834] RPC: Registered tcp transport module.
+[    0.466846] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    0.470306] futex hash table entries: 256 (order: 2, 16384 bytes)
+[    0.474374] VFS: Disk quotas dquot_6.5.2
+[    0.474486] Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+[    0.476580] NFS: Registering the id_resolver key type
+[    0.476868] Key type id_resolver registered
+[    0.476904] Key type id_legacy registered
+[    0.477049] jffs2: version 2.2. (NAND) (SUMMARY)  © 2001-2006 Red Hat, Inc.
+[    0.477412] msgmni has been set to 1467
+[    0.481434] bounce: pool size: 64 pages
+[    0.481605] io scheduler noop registered
+[    0.481631] io scheduler deadline registered
+[    0.481696] io scheduler cfq registered (default)
+[    0.485979] pinctrl-single 44e10800.pinmux: 199 pins at pa f9e10800 size 796
+[    0.490000] pwm-backlight backlight: GPIO lookup for consumer enable
+[    0.490022] pwm-backlight backlight: using device tree for GPIO lookup
+[    0.490040] of_get_named_gpiod_flags: can't parse gpios property of node '/backlight[0]'
+[    0.490054] of_get_named_gpiod_flags: can't parse gpios property of node '/backlight[0]'
+[    0.490067] pwm-backlight backlight: using lookup tables for GPIO lookup
+[    0.490183] pwm-backlight backlight: lookup for GPIO enable failed
+[    0.490289] backlight supply power not found, using dummy regulator
+[    0.492682] DSS: set fck to 200000000
+[    0.493245] DSS: dss_runtime_get
+[    0.493292] DSS: dss_restore_context
+[    0.493336] OMAP DSS rev 2.0
+[    0.493346] DSS: dss_runtime_put
+[    0.493360] DSS: dss_save_context
+[    0.493370] DSS: context saved
+[    0.493854] DISPC: dispc_runtime_get
+[    0.493895] DSS: dss_restore_context
+[    0.493907] DSS: context restored
+[    0.493941] DISPC: dispc_restore_context
+[    0.493968] omapdss_dispc 4832a400.dispc: OMAP DISPC rev 3.0
+[    0.493979] DISPC: dispc_runtime_put
+[    0.493996] DISPC: dispc_save_context
+[    0.494032] DISPC: context saved
+[    0.495376] panel-dpi display: GPIO lookup for consumer enable
+[    0.495397] panel-dpi display: using device tree for GPIO lookup
+[    0.495451] of_get_named_gpiod_flags exited with status 0
+[    0.496831] DISPC: dispc_runtime_get
+[    0.497089] DISPC: dispc_runtime_put
+[    0.497111] DISPC: dispc_save_context
+[    0.497148] DISPC: context saved
+[    0.497358] DISPC: dispc_runtime_get
+[    0.497509] DISPC: dispc_runtime_put
+[    0.497548] DISPC: dispc_save_context
+[    0.497579] DISPC: context saved
+[    0.497604] DISPC: dispc_runtime_get
+[    0.497635] DISPC: dispc_runtime_put
+[    0.497650] DISPC: dispc_save_context
+[    0.497676] DISPC: context saved
+[    0.497696] DISPC: dispc_runtime_get
+[    0.497723] DISPC: dispc_runtime_put
+[    0.497737] DISPC: dispc_save_context
+[    0.497760] DISPC: context saved
+[    0.497960] DSS: dss_save_context
+[    0.498009] DSS: context saved
+[    0.501233] APPLY: omap_dss_mgr_apply(lcd)
+[    0.502209] Console: switching to colour frame buffer device 60x34
+[    0.504855] APPLY: omap_dss_mgr_apply(lcd)
+[    0.504885] APPLY: omap_dss_mgr_apply(lcd)
+[    0.504900] DPI: dpi_set_timings
+[    0.505078] DISPC: dispc_runtime_get
+[    0.505210] DSS: dss_restore_context
+[    0.505225] DSS: context restored
+[    0.505552] DSS: set fck to 198000000
+[    0.508202] APPLY: writing mgr 0 regs
+[    0.508252] APPLY: writing ovl 0 regs
+[    0.508273] DISPC: dispc_ovl_setup 0, pa 0xae840000, pa_uv 0x00000000, sw 480, 0,0, 480x272 -> 480x272, cmode 40, rot 0, mir 0, chan 0 repl 1
+[    0.508291] DISPC: calc_rot(0): scrw 480, 480x272
+[    0.508304] DISPC: offset0 0, offset1 0, row_inc 1, pix_inc 1
+[    0.508318] DISPC: 0,0 480x272 -> 480x272
+[    0.508332] APPLY: writing ovl 0 regs extra
+[    0.508342] DISPC: dispc_enable_plane 0, 1
+[    0.508355] DISPC: fifo(0) threshold (bytes), old 960/1023, new 960/1023
+[    0.508364] APPLY: writing ovl 1 regs
+[    0.508372] APPLY: writing ovl 1 regs extra
+[    0.508381] APPLY: writing ovl 2 regs
+[    0.508389] APPLY: writing ovl 2 regs extra
+[    0.508398] APPLY: writing mgr 0 regs extra
+[    0.508408] DISPC: channel 0 xres 480 yres 272
+[    0.508419] DISPC: pck 9000000
+[    0.508429] DISPC: hsw 4 hfp 8 hbp 43 vsw 10 vfp 4 vbp 12
+[    0.508440] DISPC: vsync_level 1 hsync_level 1 data_pclk_edge 1 de_level 0 sync_pclk_edge 0
+[    0.508449] DISPC: hsync 16822Hz, vsync 56Hz
+[    0.508461] DISPC: lck = 198000000 (1)
+[    0.508470] DISPC: pck = 9000000 (22)
+[    0.508743] omapfb omapfb: using display 'lcd' mode 480x272
+[    0.510994] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    0.516430] omap_uart 44e09000.serial: no wakeirq for uart0
+[    0.516467] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/serial@44e09000[0]'
+[    0.516488] omap_uart 44e09000.serial: No clock speed specified: using default: 48000000
+[    0.517035] 44e09000.serial: ttyO0 at MMIO 0x44e09000 (irq = 104, base_baud = 3000000) is a OMAP UART0
+[    1.369909] console [ttyO0] enabled
+[    1.393306] brd: module loaded
+[    1.407599] loop: module loaded
+[    1.413502] mtdoops: mtd device (mtddev=name/number) must be supplied
+[    1.421194] ti-qspi 47900000.qspi: memory mapped resource not required
+[    1.519456] usbcore: registered new interface driver asix
+[    1.525443] usbcore: registered new interface driver ax88179_178a
+[    1.531942] usbcore: registered new interface driver cdc_ether
+[    1.538249] usbcore: registered new interface driver smsc95xx
+[    1.544429] usbcore: registered new interface driver net1080
+[    1.550443] usbcore: registered new interface driver cdc_subset
+[    1.556778] usbcore: registered new interface driver zaurus
+[    1.562813] usbcore: registered new interface driver cdc_ncm
+[    1.570817] usbcore: registered new interface driver cdc_wdm
+[    1.577089] usbcore: registered new interface driver usb-storage
+[    1.583590] usbcore: registered new interface driver usbtest
+[    1.591744] mousedev: PS/2 mouse device common for all mice
+[    1.600240] omap_rtc 44e3e000.rtc: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
+[    1.610515] omap_rtc 44e3e000.rtc: rtc core: registered 44e3e000.rtc as rtc0
+[    1.618113] 44e3e000.rtc: already running
+[    1.622972] i2c /dev entries driver
+[    1.626696] Driver for 1-wire Dallas network protocol.
+[    1.636377] omap_wdt: OMAP Watchdog Timer Rev 0x01: initial timeout 60 sec
+[    1.644980] of_get_named_gpiod_flags exited with status 0
+[    1.645005] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@48060000[0]'
+[    1.646047] omap_hsmmc 48060000.mmc: unable to get vmmc regulator -517
+[    1.653419] platform 48060000.mmc: Driver omap_hsmmc requests probe deferral
+[    1.661412] of_get_named_gpiod_flags exited with status 0
+[    1.661441] of_get_named_gpiod_flags exited with status 0
+[    1.661461] of_get_named_gpiod_flags exited with status 0
+[    1.661479] of_get_named_gpiod_flags exited with status 0
+[    1.661501] of_get_named_gpiod_flags exited with status 0
+[    1.662298] of_get_named_gpiod_flags exited with status 0
+[    1.662599] of_get_named_gpiod_flags exited with status 0
+[    1.662851] of_get_named_gpiod_flags exited with status 0
+[    1.663539] ledtrig-cpu: registered to indicate activity on CPUs
+[    1.670316] usbcore: registered new interface driver usbhid
+[    1.676218] usbhid: USB HID core driver
+[    1.686465] davinci_evm sound: ASoC: CODEC (null) not registered
+[    1.693258] davinci_evm sound: snd_soc_register_card failed (-517)
+[    1.699796] platform sound: Driver davinci_evm requests probe deferral
+[    1.707389] oprofile: no performance counters
+[    1.712705] oprofile: using timer interrupt.
+[    1.717756] TCP: cubic registered
+[    1.721275] Initializing XFRM netlink socket
+[    1.725922] NET: Registered protocol family 17
+[    1.730642] NET: Registered protocol family 15
+[    1.735760] Key type dns_resolver registered
+[    1.740441] omap_voltage_late_init: Voltage driver support not added
+[    1.747176] sr_dev_init: No voltage domain specified for smartreflex0. Cannot initialize
+[    1.755674] sr_dev_init: No voltage domain specified for smartreflex1. Cannot initialize
+[    1.765097] ThumbEE CPU extension supported.
+[    1.769618] Registering SWP/SWPB emulation handler
+[    1.774719] SmartReflex Class3 initialized
+[    1.786932] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@0[0]'
+[    1.787552] V5_0D: 5000 mV
+[    1.790632] reg-fixed-voltage fixedregulator@0: Failed to find supply vin
+[    1.798436] reg-fixed-voltage fixedregulator@0: Failed to register regulator: -517
+[    1.806537] platform fixedregulator@0: Driver reg-fixed-voltage requests probe deferral
+[    1.815438] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@1[0]'
+[    1.815766] VBUS_USB: 5000 mV
+[    1.819088] reg-fixed-voltage fixedregulator@1: Failed to find supply vin
+[    1.826567] reg-fixed-voltage fixedregulator@1: Failed to register regulator: -517
+[    1.834559] platform fixedregulator@1: Driver reg-fixed-voltage requests probe deferral
+[    1.864401] vdd_core: 920 <--> 1140 mV at 1100 mV
+[    1.872723] vdd_mpu: 920 <--> 1375 mV at 1330 mV
+[    1.880067] vdds_ddr: 1350 mV
+[    1.885953] v3_3d: 3300 mV
+[    1.891406] v1_8d: 1800 mV
+[    1.895981] omap_i2c 44e0b000.i2c: bus 0 rev0.12 at 400 kHz
+[    1.907140] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/i2c@4802a000/tlv320aic3106@1b[0]'
+[    1.909258] omap_i2c 4802a000.i2c: bus 1 rev0.12 at 400 kHz
+[    1.915920] of_get_named_gpiod_flags exited with status 0
+[    1.915947] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@48060000[0]'
+[    1.956837] davinci_evm sound: tlv320aic3x-hifi <-> 4803c000.mcasp mapping ok
+[    1.985824] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@0[0]'
+[    1.986188] V5_0D: 5000 mV
+[    1.989231] V5_0D: supplied by v3_3d
+[    1.993646] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@1[0]'
+[    1.993982] VBUS_USB: 5000 mV
+[    1.997291] VBUS_USB: supplied by V5_0D
+[    2.029373] mmc0: host does not support reading read-only switch. assuming write-enable.
+[    2.039924] mmc0: new high speed SDHC card at address 0001
+[    2.049058] mmcblk0: mmc0:0001 00000 14.6 GiB
+[    2.058925]  mmcblk0: p1 p2
+[    2.062698] davinci_mdio 4a101000.mdio: davinci mdio revision 1.6
+[    2.069120] davinci_mdio 4a101000.mdio: detected phy mask ffffffcf
+[    2.081905] libphy: 4a101000.mdio: probed
+[    2.086292] davinci_mdio 4a101000.mdio: phy[4]: device 4a101000.mdio:04, driver unknown
+[    2.094745] davinci_mdio 4a101000.mdio: phy[5]: device 4a101000.mdio:05, driver unknown
+[    2.104147] cpsw 4a100000.ethernet: Detected MACID = 34:b1:f7:31:45:4b
+[    2.113009] cpsw 4a100000.ethernet: cpsw: Detected MACID = 34:b1:f7:31:45:4d
+[    2.122132] omap_rtc 44e3e000.rtc: setting system clock to 2000-01-01 00:00:00 UTC (946684800)
+[    2.131167] sr_init: No PMIC hook to init smartreflex
+[    2.136698] sr_init: platform driver register failed for SR
+[    2.156224] ALSA device list:
+[    2.159357]   #0: AM437x-SK-EVM
+[    2.322629] EXT4-fs (mmcblk0p2): recovery complete
+[    2.329912] EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (null)
+[    2.338573] VFS: Mounted root (ext4 filesystem) on device 179:2.
+[    2.354804] devtmpfs: mounted
+[    2.358353] Freeing unused kernel memory: 412K (c0844000 - c08ab000)
+>[    3.032245] udevd[783]: starting version 182
+[    4.003482] lis3lv02d: 16 bits lis331dlh sensor found
+[    4.142890] input: ST LIS3LV02DL Accelerometer as /devices/platform/lis3lv02d/input/input0
+[    4.340037] of_get_named_gpiod_flags exited with status 0
+[    4.340072] of_get_named_gpiod_flags exited with status 0
+[    4.340090] of_get_named_gpiod_flags exited with status 0
+[    4.340110] of_get_named_gpiod_flags exited with status 0
+[    4.341037] input: matrix_keypad@0 as /devices/matrix_keypad@0/input/input1
+[    7.454529] FAT-fs (mmcblk0p1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+[    8.000585] random: nonblocking pool is initialized
+[    8.103464] EXT4-fs (mmcblk0p2): re-mounted. Opts: data=ordered
+[    9.099669] net eth0: initializing cpsw version 1.15 (0)
+[    9.182898] net eth0: phy found : id is : 0x221621
+[   13.183101] cpsw 4a100000.ethernet eth0: Link is Up - 1Gbps/Full - flow control rx/tx
+
+
+--------------090103080008050308010404--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
