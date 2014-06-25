@@ -1,145 +1,54 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/2] arm: dra7xx: Add hwmod data for pcie1 phy and pcie2 phy
-Date: Wed, 25 Jun 2014 23:32:45 +0530
-Message-ID: <1403719366-9656-2-git-send-email-kishon@ti.com>
-References: <1403719366-9656-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403719366-9656-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: kishon@ti.com
+From: janie18702@googlemail.com
+Subject: Re: Guaranteed Top 10 Google Placements for mail-archive.com In 100
+ Days
+Date: Wed, 25 Jun 2014 13:20:43 -0700
+Message-ID: <53ab2814.e2a5440a.176c.1bcd@mx.google.com>
+Reply-To: cubic34956@gmail.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f65.google.com ([209.85.160.65]:42157 "EHLO
+	mail-pb0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642AbaFYTup (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2014 15:50:45 -0400
+Received: by mail-pb0-f65.google.com with SMTP id rq2so837083pbb.0
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2014 12:50:45 -0700 (PDT)
+Received: from localhost.localdomain ([27.255.175.159])
+        by mx.google.com with ESMTPSA id zb2sm6489010pbb.45.2014.06.25.12.50.43
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Wed, 25 Jun 2014 12:50:44 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Added hwmod data for pcie1 and pcie2 phy present in DRA7xx SOC.
-Also added the missing CLKCTRL OFFSET macro and CONTEXT OFFSET macro
-for pcie1 phy and pcie2 phy.
+Hello Sir / Mam
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Please find the bootlog with these hwmod patches
-http://paste.ubuntu.com/7701601/
- arch/arm/mach-omap2/cm2_7xx.h             |    4 ++
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   57 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm7xx.h              |    4 ++
- 3 files changed, 65 insertions(+)
+We would like to have a chance to work on your website and get it positioned top 10 on major search engines around the world ( Google & Bing ). We are presently working with 500+ clients world wide and we have made sure all our clients rank top 10 for their best keywords. None of our clients have been caught in any of the recent google updates. We only use ethical white hat methods to deliver rankings. Our search engine packages include both onsite & off optimization, we provide complete SEO solution to our clients and not just link building packages.
 
-diff --git a/arch/arm/mach-omap2/cm2_7xx.h b/arch/arm/mach-omap2/cm2_7xx.h
-index 9ad7594..e966e3a 100644
---- a/arch/arm/mach-omap2/cm2_7xx.h
-+++ b/arch/arm/mach-omap2/cm2_7xx.h
-@@ -357,6 +357,10 @@
- #define DRA7XX_CM_L3INIT_SATA_CLKCTRL				DRA7XX_CM_CORE_REGADDR(DRA7XX_CM_CORE_L3INIT_INST, 0x0088)
- #define DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET				0x00a0
- #define DRA7XX_CM_PCIE_STATICDEP_OFFSET				0x00a4
-+#define DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET			0x00b0
-+#define DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL			DRA7XX_CM_CORE_REGADDR(DRA7XX_CM_CORE_L3INIT_INST, 0x00b0)
-+#define DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET			0x00b8
-+#define DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL			DRA7XX_CM_CORE_REGADDR(DRA7XX_CM_CORE_L3INIT_INST, 0x00b8)
- #define DRA7XX_CM_GMAC_CLKSTCTRL_OFFSET				0x00c0
- #define DRA7XX_CM_GMAC_STATICDEP_OFFSET				0x00c4
- #define DRA7XX_CM_GMAC_DYNAMICDEP_OFFSET			0x00c8
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 3deb76e..6ff40a6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1290,6 +1290,45 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
- };
- 
- /*
-+ * 'PCIE PHY' class
-+ *
-+ */
-+
-+static struct omap_hwmod_class dra7xx_pcie_phy_hwmod_class = {
-+	.name	= "pcie-phy",
-+};
-+
-+/* pcie1 phy */
-+static struct omap_hwmod dra7xx_pcie1_phy_hwmod = {
-+	.name		= "pcie1-phy",
-+	.class		= &dra7xx_pcie_phy_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS1_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/* pcie2 phy */
-+static struct omap_hwmod dra7xx_pcie2_phy_hwmod = {
-+	.name		= "pcie2-phy",
-+	.class		= &dra7xx_pcie_phy_hwmod_class,
-+	.clkdm_name	= "l3init_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L3INIT_PCIESS2_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'qspi' class
-  *
-  */
-@@ -2409,6 +2448,22 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_cfg -> pcie1 phy */
-+static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
-+	.master		= &dra7xx_l4_cfg_hwmod,
-+	.slave		= &dra7xx_pcie1_phy_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> pcie2 phy */
-+static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2_phy = {
-+	.master		= &dra7xx_l4_cfg_hwmod,
-+	.slave		= &dra7xx_pcie2_phy_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_addr_space dra7xx_qspi_addrs[] = {
- 	{
- 		.pa_start	= 0x4b300000,
-@@ -2758,6 +2813,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_cfg__mpu,
- 	&dra7xx_l4_cfg__ocp2scp1,
- 	&dra7xx_l4_cfg__ocp2scp3,
-+	&dra7xx_l4_cfg__pcie1_phy,
-+	&dra7xx_l4_cfg__pcie2_phy,
- 	&dra7xx_l3_main_1__qspi,
- 	&dra7xx_l4_cfg__sata,
- 	&dra7xx_l4_cfg__smartreflex_core,
-diff --git a/arch/arm/mach-omap2/prm7xx.h b/arch/arm/mach-omap2/prm7xx.h
-index d92a840..4bb50fbf 100644
---- a/arch/arm/mach-omap2/prm7xx.h
-+++ b/arch/arm/mach-omap2/prm7xx.h
-@@ -374,6 +374,10 @@
- #define DRA7XX_RM_L3INIT_IEEE1500_2_OCP_CONTEXT_OFFSET		0x007c
- #define DRA7XX_PM_L3INIT_SATA_WKDEP_OFFSET			0x0088
- #define DRA7XX_RM_L3INIT_SATA_CONTEXT_OFFSET			0x008c
-+#define DRA7XX_PM_L3INIT_PCIESS1_WKDEP_OFFSET			0x00b0
-+#define DRA7XX_RM_L3INIT_PCIESS1_CONTEXT_OFFSET		0x00b4
-+#define DRA7XX_PM_L3INIT_PCIESS2_WKDEP_OFFSET			0x00b8
-+#define DRA7XX_RM_L3INIT_PCIESS2_CONTEXT_OFFSET		0x00bc
- #define DRA7XX_RM_GMAC_GMAC_CONTEXT_OFFSET			0x00d4
- #define DRA7XX_RM_L3INIT_OCP2SCP1_CONTEXT_OFFSET		0x00e4
- #define DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET		0x00ec
--- 
-1.7.9.5
+We understand there are many SEO Scam companies mailing you each day over and over again and I am also sure you have been robbed off a few times in past with no results at all. To make sure you we show you our WORTH, we have launched 15 DAY FREE SEO TRIAL service. We want to build your faith in our service and make sure you see results before paying for our service.
+
+Is 15 days Enough time to deliver results ?
+
+15 days is good enough a time to show you huge movements in rankings for all your keywords. We start with A) choosing the best keywords for your website, B)  Approve a final list of keywords, C) Make onsite changes D) Build links for your website. If in these 15 days you are not happy with our performance, you can cancel or decide to opt-out. You will not be billed a single dime for these 15 days.
+
+Post Trial Pricing & Package
+
+In the 15 days trial, we only work for 10 keywords so that we can show best possible results in the time span. Once the trial is over you pick one of the packages listed below :
+
+Package A ) $99 / month (10 keywords optimized ) Package B ) $149 / month ( 20 keywords optimized ) Package C ) $199 / month ( 30 keywords optimized )
+
+To Sign up for our free trial email us back with the information below so we can send you our sign up link.
+
+1) " Website You Want To Optimize "
+2) Keywords ( Optional )
+3) SEO Done Before ( Yes / No )
+
+Looking forward working with you, let us know if you would like to have more information about our company and procedures.
+Regards
+
+Anju AgarWal
+SEO Manager : T.O.B
+7 B Green Avenue, Amritsar Punjab
+
+----------------------------------------------------------------------------------------------------------------
+
+Our email above is not intended to waste your time or fill your inbox with spam. If you would not like to hear from us, email us back with NOT INTERESTED. We will never email you again.
