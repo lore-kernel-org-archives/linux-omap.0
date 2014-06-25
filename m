@@ -1,77 +1,84 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH/RESEND 9/9] drm/tilcdc: replace late_initcall with
- module_init
-Date: Wed, 25 Jun 2014 15:46:36 +0100
-Message-ID: <20140625144636.GO3705@n2100.arm.linux.org.uk>
+From: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH/RESEND 8/9] drm/tilcdc: remove submodule destroy calls
+Date: Wed, 25 Jun 2014 11:53:37 -0300
+Message-ID: <20140625145337.GB743@arch.cereza>
 References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
  <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-10-git-send-email-guido@vanguardiasur.com.ar>
- <53A9F5F4.3030806@ti.com> <20140625130042.GK3705@n2100.arm.linux.org.uk>
- <20140625143246.GA743@arch.cereza>
+ <1403014631-18072-9-git-send-email-guido@vanguardiasur.com.ar>
+ <53A9F660.8060703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:45373 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756918AbaFYOy0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2014 10:54:26 -0400
+Received: by mail-yk0-f177.google.com with SMTP id 10so1151821ykt.36
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2014 07:54:25 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20140625143246.GA743@arch.cereza>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel@lists.freedesktop.org, Daniel Mack <zonque@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <53A9F660.8060703@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Darren Etheridge <detheridge@ti.com>
+Cc: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>, dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Russell King <linux@arm.linux.org.uk>, Daniel Mack <zonque@gmail.com>
 
-On Wed, Jun 25, 2014 at 11:32:46AM -0300, Ezequiel Garc=EDa wrote:
-> (Ccing Guido back)
-> =
+On 24 Jun 05:06 PM, Darren Etheridge wrote:
+>=20
+> On 06/17/2014 09:17 AM, Guido Mart=EDnez wrote:
+> >The TI tilcdc driver is designed with a notion of submodules. Curren=
+tly,
+> >at unload time, these submodules are iterated and destroyed.
+> >
+> >Now that the tilcdc remove order is fixed, this can be handled perfe=
+ctly
+>=20
+> I am not sure I understand the first part of the above sentence - did
+> something change with tilcdc ordering?
 
-> Hello Russell, Darren,
-> =
+Yes, patch [PATCH/RESEND 6/9] drm/tilcdc: fix release order on exit cha=
+nges
+the tilcdc remove ordering.=20
 
-> On 25 Jun 02:00 PM, Russell King - ARM Linux wrote:
-> > On Tue, Jun 24, 2014 at 05:04:36PM -0500, Darren Etheridge wrote:
-> > > If I recall, the late_initcall stuff was done to try and make sure th=
-e  =
+Currently, the tilcdc DRM is removed with this:
 
-> > > tda998x/i2c subsystem came up before tilcdc.
-> =
+        tilcdc_tfp410_fini();
+        tilcdc_slave_fini();
+        tilcdc_panel_fini();
+        platform_driver_unregister(&tilcdc_platform_driver);
 
-> That doesn't make any sense. Using late_initcall for the tilcdc DRM
-> driver would make the tilcdc DRM get probed before any other regular
-> module_init driver, including the tda998x encoder.
+Which is wrong as you shouldn't remove the tilcdc "modules" (panel, sla=
+ve,
+tfp410) before the DRM driver itself. So the above patch fixed it to be=
+:
 
-A module_init() is a device_initcall(), which is at level 6.  A
-late_initcall() is at level 7.  Level 6 initcalls are run before level
-7 initcalls.  The tda998x is a module_init(), so the tda998x gets
-initialised *before* tilcdc's late_initcall().
+        platform_driver_unregister(&tilcdc_platform_driver);
+        tilcdc_panel_fini();
+        tilcdc_slave_fini();
+        tilcdc_tfp410_fini();
 
-Now, if you build everything as a module, then you have no initialisation
-ordering, and you can't rely on any kind of order.  Initialisation
-functions can even run in parallel on different CPUs due to modules being
-loaded from userspace in a multi-threaded way.  So anything which relies
-on a certain initcall ordering is fundamentally broken if it can be
-modular.
+> I think you a referring to previous
+> patches in your series which really mean tilcdc can actually unload n=
+ow.  So
+> really the method this patch uses could always have been used, it jus=
+t
+> wasn't for some reason?
+>=20
 
-> > There's a solution to that...
-> =
+No, I believe this patch which removes the tilcdc sub-module destroy
+infrastructure can only be applied *after* the above remove order is fi=
+xed
+(iow, the 6/9 patch mentioned above).
 
-> A solution to *what* ?
-
-Maybe if you left the context above that line in place, you might
-understand that my "that" refers to what was discussed in that
-context.  That being the initialisation ordering.
-
-Convention and proper Internet etiquette is to trim the quoted text
-and place relies below the paragraph to which they refer, the quoted
-paragraph giving the context to the reply.
-
--- =
-
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+In other words, only once you have a proper remove() that releases thin=
+gs
+in the right order you can rely in the kernel and avoid any custom
+implementation.
+--=20
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
