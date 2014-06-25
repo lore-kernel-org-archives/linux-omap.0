@@ -1,67 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 1/2] arm: dts: am4372: let boards access all nodes
- through phandles
-Date: Tue, 24 Jun 2014 20:40:16 -0500
-Message-ID: <20140625014016.GA21616@saruman.home>
-References: <1403547659-24558-1-git-send-email-balbi@ti.com>
- <1403547659-24558-2-git-send-email-balbi@ti.com>
- <CAL_JsqJx_DJqxpEJebi0Etfv5g7=eYje_53vd_44GykreA-rkQ@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 0/6] OMAP Mailbox framework adoption & DT support
+Date: Tue, 24 Jun 2014 20:47:52 -0500
+Message-ID: <1403660878-56350-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqJx_DJqxpEJebi0Etfv5g7=eYje_53vd_44GykreA-rkQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Sricharan R <r.sricharan@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36329 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752088AbaFYBsh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 21:48:37 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 
 Hi,
 
-On Tue, Jun 24, 2014 at 04:11:48PM -0500, Rob Herring wrote:
-> On Mon, Jun 23, 2014 at 1:20 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > by providing phandles to rtc, wdt, cpu and dispc nodes,
-> > boards can access them to add board-specific data.
->=20
-> Strictly speaking, you are adding labels, not phandles. You can do
+The first 3 patches in this series adds the DT bindings and the DT-parse
+support to the OMAP mailbox driver. The last 3 patches make the changes
+to adopt to the v7 version of mailbox framework from Jassi Brar [1]. I
+have posted all the patches together since both touch the bindings and
+dictate the usage for the OMAP mailbox clients. The current OMAP mailbox
+clients - omap remoteproc and tidspbridge have also been converted to use
+the new api.
 
-heh, fair point. Easily editable when applying, though (?)
+The DT-support patches incorporates feedback from the last DT adoption
+series [2], with the following main changes:
+ - Leverages more compatible strings
+ - Dropped the properties "ti,mbox-num-users" and "ti,mbox-num-fifos";
+   with these values retrieved through driver match data and compatible
+   strings
+ - Dropped the properties "ti,mbox-names" and "ti,mbox-data" that were
+   used to represent the sub-mailbox devices, which are now represented
+   as child nodes of the respective mailbox controller device node.
 
-> phandles without using labels, but the syntax is not so obvious. I'd
-> tell you what it is but offhand I don't remember. :)
+The series depends on the OMAP mailbox cleanup series [3] and the OMAP
+mailbox DT/hwmod cleanup series [4].
 
-something along the lines of using the full path ?
+The following shows the boot/validation logs on various OMAP platforms:
+  OMAP2 (SDP2430)           : http://slexy.org/view/s20VHd3CIc
+  OMAP3 (BeagleXM)          : http://slexy.org/view/s204yxxE7Q
+  OMAP4 (PandaBoard)        : http://slexy.org/view/s20GDw9Lxq
+  OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s201gZlzSB
+  DRA7  (DRA7 EVM)          : http://slexy.org/view/s2CPnJ1Boz
+  AM33xx (BeagleBone Black) : http://slexy.org/view/s20WvIuITK
+  AM43xx (AM437x GP EVM)    : http://slexy.org/view/s213DqnSg5
 
---=20
-balbi
+[1] https://lkml.org/lkml/2014/6/12/470
+[2] http://marc.info/?l=linux-omap&m=137582560717973&w=2
+[3] http://marc.info/?l=linux-omap&m=140365705821115&w=2
+[4] http://marc.info/?l=linux-omap&m=140365833121612&w=2
 
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Suman Anna (6):
+  Documentation: dt: add omap mailbox bindings
+  mailbox/omap: add support for parsing dt devices
+  ARM: dts: OMAP2+: Add sub mailboxes device node information
+  mailbox/omap: adapt to the new mailbox framework
+  ARM: dts: OMAP2+: Add #mbox-cells property to all mailbox nodes
+  mailbox/omap: add a custom of_xlate function
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+ .../devicetree/bindings/mailbox/omap-mailbox.txt   | 104 ++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   5 +
+ arch/arm/boot/dts/am4372.dtsi                      |   5 +
+ arch/arm/boot/dts/dra7.dtsi                        |  13 +
+ arch/arm/boot/dts/omap2420.dtsi                    |   9 +
+ arch/arm/boot/dts/omap2430.dtsi                    |   5 +
+ arch/arm/boot/dts/omap3.dtsi                       |   5 +
+ arch/arm/boot/dts/omap4.dtsi                       |   9 +
+ arch/arm/boot/dts/omap5.dtsi                       |   9 +
+ drivers/mailbox/omap-mailbox.c                     | 544 ++++++++++++++-------
+ drivers/remoteproc/omap_remoteproc.c               |  54 +-
+ drivers/staging/tidspbridge/core/_tiomap.h         |   3 +-
+ drivers/staging/tidspbridge/core/io_sm.c           |   7 +-
+ drivers/staging/tidspbridge/core/tiomap3430.c      |  22 +-
+ drivers/staging/tidspbridge/core/tiomap_io.c       |   7 +-
+ .../tidspbridge/include/dspbridge/host_os.h        |   1 +
+ .../staging/tidspbridge/include/dspbridge/io_sm.h  |   8 +-
+ include/linux/omap-mailbox.h                       |  15 +-
+ 18 files changed, 598 insertions(+), 227 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
 
-iQIbBAEBAgAGBQJTqih/AAoJEIaOsuA1yqREs7EP+KmPRAojfoBCwguTIiGQh4AJ
-0uUI1HD7WBWm3xrqIzsrz5leFhbytxsLmevLAxi1uWAuI+HNokwx6Kma4Nyha8RE
-Mv9rY9/ZJNtRFT2+zej8awlL0wTiKOVg6vHiSJVh4yh3lRkLLA12fpmipSOYRwDK
-mXkPtt+sSeV/EqLxU5MKN7kq7Vy19oYKTXGn57wHKlLnWI0xucJQMJR4JG2bFaka
-5ZWJSmyz3KgqsA4YNVOdxbXlUmzqCewgqvJij624oT/kPO5EGmd3pMXtKncOeGfl
-v9+2deuTGqQXzuErTULorcNjJuEY57WmdBRLHicunRYyZPqisjgS6keKSmlb2nnR
-z1qeitHYgocAXFScXl+j/I/jcswMR5pVYqoa86trPSiqCbZorQJh4U4oQKZFKpRZ
-i/jUQw9Q5ObG/en+yiBdGRed6zct41fDws0mJqLjNMXZUpKv2f2+21odtWU3Fg2P
-z95rDmd1tHWRuEgpqWTo7LE1VRf89dBShhUJPhPAKKt96XgDRLvO7q/9yevZPB5q
-cgH4/kgyZpH+mWq0njWWVFYF0pdEqLC3PjQw4pmnZGSQmQjB7L3ppX3HRGHJ6Wdh
-KQbh2cxBb+axGmGhsaGDSuxArD3CRkWGT/FZn3Tsm++/f/CRKAXMyhVZnFuTAhAW
-q8LOz2GdIcSMnFuXTEM=
-=+L+D
------END PGP SIGNATURE-----
+-- 
+2.0.0
 
---HlL+5n6rz5pIUxbD--
