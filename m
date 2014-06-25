@@ -1,392 +1,382 @@
-From: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] arm: dts: add support for AM437x StarterKit
-Date: Tue, 24 Jun 2014 21:07:50 -0500
-Message-ID: <53AA2EF6.6070604@ti.com>
-References: <1403547659-24558-1-git-send-email-balbi@ti.com> <1403547659-24558-3-git-send-email-balbi@ti.com>
+From: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Subject: Re: [PATCH/RESEND 8/9] drm/tilcdc: remove submodule destroy calls
+Date: Wed, 25 Jun 2014 00:53:39 -0300
+Message-ID: <20140625035339.GA9466@fox>
+References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1403014631-18072-9-git-send-email-guido@vanguardiasur.com.ar>
+ <53A9F660.8060703@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------090103080008050308010404"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1403547659-24558-3-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, r.sricharan-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Josh Elliot <jelliott-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yh0-f53.google.com ([209.85.213.53]:48840 "EHLO
+	mail-yh0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752599AbaFYDvb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2014 23:51:31 -0400
+Received: by mail-yh0-f53.google.com with SMTP id b6so818787yha.40
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jun 2014 20:51:30 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <53A9F660.8060703@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Darren Etheridge <detheridge@ti.com>
+Cc: dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, Daniel Mack <zonque@gmail.com>, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
 
---------------090103080008050308010404
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tue, Jun 24, 2014 at 05:06:24PM -0500, Darren Etheridge wrote:
+> Guido,
+>=20
+> On 06/17/2014 09:17 AM, Guido Mart=EDnez wrote:
+> >The TI tilcdc driver is designed with a notion of submodules. Curren=
+tly,
+> >at unload time, these submodules are iterated and destroyed.
+> >
+> >Now that the tilcdc remove order is fixed, this can be handled perfe=
+ctly
+>=20
+> I am not sure I understand the first part of the above sentence - did
+> something change with tilcdc ordering?  I think you a referring to pr=
+evious
+> patches in your series which really mean tilcdc can actually unload n=
+ow.
+Right, I guess I got a bit dizzy while writing that commit log :). If w=
+e
+find the patch reasonable I'll send a better explanation.
 
-On 06/23/2014 01:20 PM, Felipe Balbi wrote:
-> Add support for TI's AM437x StarterKit Evaluation
-> Module.
->
-> Cc: Josh Elliot <jelliott-l0cyMroinI0@public.gmane.org>
-> Cc: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> So really the method this patch uses could always have been used, it
+> just wasn't for some reason?
+Yes, I think so.
 
-Tested-by: Darren Etheridge <detheridge-l0cyMroinI0@public.gmane.org>
+> I have tested all of the other patches in your series and all looks g=
+ood on
+> BeagleBone Black and AM335xEVM, I tested as both built-ins and module=
+s and
+> can load/unload on BeagleBone Black with HDMI enabled correctly.
+Nice to hear that :)
 
-I tested with omap2plus_defconfig + additionally enabling OMAPDSS and 
-Backlight in .config.  Working great for me with ethernet, sdcard, lcd 
-panel and backlight all functional.
+> I want to play around a bit more with this particular patch, to try a=
+nd
+> understand how it differs from Rob's original intent with his module
+> registration/deregistration scheme.  I prefer your method, but do we =
+loose
+> anything that Rob's originally had in mind?
+Nothing really comes to mind, but I may be wrong on this...
 
-dmesg log attached - generated by kernel built from the repo/branch 
-Felipe pointed to in the cover letter for this series and obviously 
-running on an AM437x StarterKit EVM.
+Thanks a lot for your review!
 
-Darren
-
---------------090103080008050308010404
-Content-Type: text/x-log; name="dmesg-am437x-sk.log"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment; filename="dmesg-am437x-sk.log"
-
-[    0.000000] Booting Linux on physical CPU 0x0
-[    0.000000] Linux version 3.16.0-rc1-next-20140617-00935-g2072735 (darrene@build-laptop) (gcc version 4.7.3 20130328 (prerelease) (crosstool-NG linaro-1.13.1-4.7-2013.04-20130415 - Linaro GCC 2013.04) ) #5 SMP Tue Jun 24 17:42:32 CDT 2014
-[    0.000000] CPU: ARMv7 Processor [412fc09a] revision 10 (ARMv7), cr=10c5387d
-[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
-[    0.000000] Machine model: TI AM437x SK EVM
-[    0.000000] cma: CMA: reserved 16 MiB at ae800000
-[    0.000000] Memory policy: Data cache writeback
-[    0.000000] On node 0 totalpages: 262144
-[    0.000000] free_area_init_node: node 0, pgdat c0956880, node_mem_map edff1000
-[    0.000000]   Normal zone: 1520 pages used for memmap
-[    0.000000]   Normal zone: 0 pages reserved
-[    0.000000]   Normal zone: 194560 pages, LIFO batch:31
-[    0.000000]   HighMem zone: 528 pages used for memmap
-[    0.000000]   HighMem zone: 67584 pages, LIFO batch:15
-[    0.000000] CPU: All CPU(s) started in SVC mode.
-[    0.000000] AM437x ES1.1 (sgx neon )
-[    0.000000] L2C: platform modifies aux control register: 0x0e030000 -> 0x3e430000
-[    0.000000] L2C: DT/platform modifies aux control register: 0x0e030000 -> 0x3e430000
-[    0.000000] L2C-310 enabling early BRESP for Cortex-A9
-[    0.000000] L2C-310 ID prefetch enabled, offset 1 lines
-[    0.000000] OMAP L2C310: ROM does not support power control setting
-[    0.000000] L2C-310 dynamic clock gating disabled, standby mode disabled
-[    0.000000] L2C-310 cache controller enabled, 16 ways, 256 kB
-[    0.000000] L2C-310: CACHE_ID 0x410000c9, AUX_CTRL 0x7e430000
-[    0.000000] PERCPU: Embedded 9 pages/cpu @edfb5000 s14336 r8192 d14336 u36864
-[    0.000000] pcpu-alloc: s14336 r8192 d14336 u36864 alloc=9*4096
-[    0.000000] pcpu-alloc: [0] 0
-[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 260624
-[    0.000000] Kernel command line: console=ttyO0,115200n8 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait
-[    0.000000] PID hash table entries: 4096 (order: 2, 16384 bytes)
-[    0.000000] Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
-[    0.000000] Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
-[    0.000000] Memory: 1005092K/1048576K available (6039K kernel code, 705K rwdata, 2388K rodata, 414K init, 8220K bss, 43484K reserved, 270336K highmem)
-[    0.000000] Virtual kernel memory layout:
-[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
-[    0.000000]     fixmap  : 0xffc00000 - 0xffe00000   (2048 kB)
-[    0.000000]     vmalloc : 0xf0000000 - 0xff000000   ( 240 MB)
-[    0.000000]     lowmem  : 0xc0000000 - 0xef800000   ( 760 MB)
-[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
-[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
-[    0.000000]       .text : 0xc0008000 - 0xc0843100   (8429 kB)
-[    0.000000]       .init : 0xc0844000 - 0xc08ab800   ( 414 kB)
-[    0.000000]       .data : 0xc08ac000 - 0xc095c498   ( 706 kB)
-[    0.000000]        .bss : 0xc095c498 - 0xc11635e0   (8221 kB)
-[    0.000000] Hierarchical RCU implementation.
-[    0.000000]  RCU restricting CPUs from NR_CPUS=2 to nr_cpu_ids=1.
-[    0.000000] RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
-[    0.000000] NR_IRQS:16 nr_irqs:16 16
-[    0.000000] GIC CPU mask not found - kernel will fail to boot.
-[    0.000000] GIC CPU mask not found - kernel will fail to boot.
-[    0.000000] OMAP clockevent source: timer2 at 24000000 Hz
-[    0.000012] sched_clock: 32 bits at 24MHz, resolution 41ns, wraps every 178956969942ns
-[    0.000062] OMAP clocksource: timer1 at 24000000 Hz
-[    0.000643] Console: colour dummy device 80x30
-[    0.000680] Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
-[    0.000692] ... MAX_LOCKDEP_SUBCLASSES:  8
-[    0.000702] ... MAX_LOCK_DEPTH:          48
-[    0.000711] ... MAX_LOCKDEP_KEYS:        8191
-[    0.000720] ... CLASSHASH_SIZE:          4096
-[    0.000729] ... MAX_LOCKDEP_ENTRIES:     32768
-[    0.000738] ... MAX_LOCKDEP_CHAINS:      65536
-[    0.000747] ... CHAINHASH_SIZE:          32768
-[    0.000756]  memory used by lock dependency info: 5167 kB
-[    0.000765]  per task-struct memory footprint: 1152 bytes
-[    0.000804] Calibrating delay loop... 1993.93 BogoMIPS (lpj=9969664)
-[    0.119229] pid_max: default: 32768 minimum: 301
-[    0.119549] Security Framework initialized
-[    0.119650] Mount-cache hash table entries: 2048 (order: 1, 8192 bytes)
-[    0.119666] Mountpoint-cache hash table entries: 2048 (order: 1, 8192 bytes)
-[    0.121422] CPU: Testing write buffer coherency: ok
-[    0.122355] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
-[    0.122459] Setting up static identity map for 0x805b9230 - 0x805b92a0
-[    0.125160] Brought up 1 CPUs
-[    0.125179] SMP: Total of 1 processors activated.
-[    0.125193] CPU: All CPU(s) started in SVC mode.
-[    0.127382] devtmpfs: initialized
-[    0.137997] VFP support v0.3: implementor 41 architecture 3 part 30 variant 9 rev 4
-[    0.171344] omap_hwmod: tptc0 using broken dt data from edma
-[    0.171647] omap_hwmod: tptc1 using broken dt data from edma
-[    0.171925] omap_hwmod: tptc2 using broken dt data from edma
-[    0.236581] omap_hwmod: dss_dispc: cannot be enabled for reset (3)
-[    0.239887] omap_hwmod: dss_rfbi: cannot be enabled for reset (3)
-[    0.241769] pinctrl core: initialized pinctrl subsystem
-[    0.243762] regulator-dummy: no parameters
-[    0.266686] NET: Registered protocol family 16
-[    0.271145] DMA: preallocated 256 KiB pool for atomic coherent allocations
-[    0.272944] cpuidle: using governor ladder
-[    0.272992] cpuidle: using governor menu
-[    0.287209] platform 49000000.edma: alias fck already exists
-[    0.287293] platform 49000000.edma: alias fck already exists
-[    0.287314] platform 49000000.edma: alias fck already exists
-[    0.288633] platform 44e3e000.rtc: Cannot lookup hwmod 'rtc'
-[    0.290482] gpiochip_add: registered GPIOs 0 to 31 on device: gpio
-[    0.291100] OMAP GPIO hardware version 0.1
-[    0.292129] gpiochip_add: registered GPIOs 32 to 63 on device: gpio
-[    0.293422] gpiochip_add: registered GPIOs 64 to 95 on device: gpio
-[    0.297098] platform 53701000.des: Cannot lookup hwmod 'des'
-[    0.303135] No ATAGs?
-[    0.303220] hw-breakpoint: found 5 (+1 reserved) breakpoint and 1 watchpoint registers.
-[    0.303256] hw-breakpoint: maximum watchpoint size is 4 bytes.
-[    0.338263] edma-dma-engine edma-dma-engine.0: TI EDMA DMA engine driver
-[    0.338869] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@0[0]'
-[    0.339398] V5_0D: 5000 mV
-[    0.339537] reg-fixed-voltage fixedregulator@0: Failed to find supply vin
-[    0.340842] reg-fixed-voltage fixedregulator@0: Failed to register regulator: -517
-[    0.340893] platform fixedregulator@0: Driver reg-fixed-voltage requests probe deferral
-[    0.341008] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@1[0]'
-[    0.341286] VBUS_USB: 5000 mV
-[    0.341401] reg-fixed-voltage fixedregulator@1: Failed to find supply vin
-[    0.341672] reg-fixed-voltage fixedregulator@1: Failed to register regulator: -517
-[    0.341709] platform fixedregulator@1: Driver reg-fixed-voltage requests probe deferral
-[    0.344303] SCSI subsystem initialized
-[    0.344904] usbcore: registered new interface driver usbfs
-[    0.345050] usbcore: registered new interface driver hub
-[    0.347504] usbcore: registered new device driver usb
-[    0.348353] omap_i2c 44e0b000.i2c: could not find pctldev for node /pinmux@44e10800/i2c0_pins, deferring probe
-[    0.348397] platform 44e0b000.i2c: Driver omap_i2c requests probe deferral
-[    0.348454] omap_i2c 4802a000.i2c: could not find pctldev for node /pinmux@44e10800/i2c1_pins, deferring probe
-[    0.348478] platform 4802a000.i2c: Driver omap_i2c requests probe deferral
-[    0.349489] Advanced Linux Sound Architecture Driver Initialized.
-[    0.352214] Switched to clocksource timer1
-[    0.459745] NET: Registered protocol family 2
-[    0.461308] TCP established hash table entries: 8192 (order: 3, 32768 bytes)
-[    0.461502] TCP bind hash table entries: 8192 (order: 6, 294912 bytes)
-[    0.463402] TCP: Hash tables configured (established 8192 bind 8192)
-[    0.463731] TCP: reno registered
-[    0.463793] UDP hash table entries: 512 (order: 3, 40960 bytes)
-[    0.464052] UDP-Lite hash table entries: 512 (order: 3, 40960 bytes)
-[    0.465147] NET: Registered protocol family 1
-[    0.466781] RPC: Registered named UNIX socket transport module.
-[    0.466822] RPC: Registered udp transport module.
-[    0.466834] RPC: Registered tcp transport module.
-[    0.466846] RPC: Registered tcp NFSv4.1 backchannel transport module.
-[    0.470306] futex hash table entries: 256 (order: 2, 16384 bytes)
-[    0.474374] VFS: Disk quotas dquot_6.5.2
-[    0.474486] Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-[    0.476580] NFS: Registering the id_resolver key type
-[    0.476868] Key type id_resolver registered
-[    0.476904] Key type id_legacy registered
-[    0.477049] jffs2: version 2.2. (NAND) (SUMMARY)  © 2001-2006 Red Hat, Inc.
-[    0.477412] msgmni has been set to 1467
-[    0.481434] bounce: pool size: 64 pages
-[    0.481605] io scheduler noop registered
-[    0.481631] io scheduler deadline registered
-[    0.481696] io scheduler cfq registered (default)
-[    0.485979] pinctrl-single 44e10800.pinmux: 199 pins at pa f9e10800 size 796
-[    0.490000] pwm-backlight backlight: GPIO lookup for consumer enable
-[    0.490022] pwm-backlight backlight: using device tree for GPIO lookup
-[    0.490040] of_get_named_gpiod_flags: can't parse gpios property of node '/backlight[0]'
-[    0.490054] of_get_named_gpiod_flags: can't parse gpios property of node '/backlight[0]'
-[    0.490067] pwm-backlight backlight: using lookup tables for GPIO lookup
-[    0.490183] pwm-backlight backlight: lookup for GPIO enable failed
-[    0.490289] backlight supply power not found, using dummy regulator
-[    0.492682] DSS: set fck to 200000000
-[    0.493245] DSS: dss_runtime_get
-[    0.493292] DSS: dss_restore_context
-[    0.493336] OMAP DSS rev 2.0
-[    0.493346] DSS: dss_runtime_put
-[    0.493360] DSS: dss_save_context
-[    0.493370] DSS: context saved
-[    0.493854] DISPC: dispc_runtime_get
-[    0.493895] DSS: dss_restore_context
-[    0.493907] DSS: context restored
-[    0.493941] DISPC: dispc_restore_context
-[    0.493968] omapdss_dispc 4832a400.dispc: OMAP DISPC rev 3.0
-[    0.493979] DISPC: dispc_runtime_put
-[    0.493996] DISPC: dispc_save_context
-[    0.494032] DISPC: context saved
-[    0.495376] panel-dpi display: GPIO lookup for consumer enable
-[    0.495397] panel-dpi display: using device tree for GPIO lookup
-[    0.495451] of_get_named_gpiod_flags exited with status 0
-[    0.496831] DISPC: dispc_runtime_get
-[    0.497089] DISPC: dispc_runtime_put
-[    0.497111] DISPC: dispc_save_context
-[    0.497148] DISPC: context saved
-[    0.497358] DISPC: dispc_runtime_get
-[    0.497509] DISPC: dispc_runtime_put
-[    0.497548] DISPC: dispc_save_context
-[    0.497579] DISPC: context saved
-[    0.497604] DISPC: dispc_runtime_get
-[    0.497635] DISPC: dispc_runtime_put
-[    0.497650] DISPC: dispc_save_context
-[    0.497676] DISPC: context saved
-[    0.497696] DISPC: dispc_runtime_get
-[    0.497723] DISPC: dispc_runtime_put
-[    0.497737] DISPC: dispc_save_context
-[    0.497760] DISPC: context saved
-[    0.497960] DSS: dss_save_context
-[    0.498009] DSS: context saved
-[    0.501233] APPLY: omap_dss_mgr_apply(lcd)
-[    0.502209] Console: switching to colour frame buffer device 60x34
-[    0.504855] APPLY: omap_dss_mgr_apply(lcd)
-[    0.504885] APPLY: omap_dss_mgr_apply(lcd)
-[    0.504900] DPI: dpi_set_timings
-[    0.505078] DISPC: dispc_runtime_get
-[    0.505210] DSS: dss_restore_context
-[    0.505225] DSS: context restored
-[    0.505552] DSS: set fck to 198000000
-[    0.508202] APPLY: writing mgr 0 regs
-[    0.508252] APPLY: writing ovl 0 regs
-[    0.508273] DISPC: dispc_ovl_setup 0, pa 0xae840000, pa_uv 0x00000000, sw 480, 0,0, 480x272 -> 480x272, cmode 40, rot 0, mir 0, chan 0 repl 1
-[    0.508291] DISPC: calc_rot(0): scrw 480, 480x272
-[    0.508304] DISPC: offset0 0, offset1 0, row_inc 1, pix_inc 1
-[    0.508318] DISPC: 0,0 480x272 -> 480x272
-[    0.508332] APPLY: writing ovl 0 regs extra
-[    0.508342] DISPC: dispc_enable_plane 0, 1
-[    0.508355] DISPC: fifo(0) threshold (bytes), old 960/1023, new 960/1023
-[    0.508364] APPLY: writing ovl 1 regs
-[    0.508372] APPLY: writing ovl 1 regs extra
-[    0.508381] APPLY: writing ovl 2 regs
-[    0.508389] APPLY: writing ovl 2 regs extra
-[    0.508398] APPLY: writing mgr 0 regs extra
-[    0.508408] DISPC: channel 0 xres 480 yres 272
-[    0.508419] DISPC: pck 9000000
-[    0.508429] DISPC: hsw 4 hfp 8 hbp 43 vsw 10 vfp 4 vbp 12
-[    0.508440] DISPC: vsync_level 1 hsync_level 1 data_pclk_edge 1 de_level 0 sync_pclk_edge 0
-[    0.508449] DISPC: hsync 16822Hz, vsync 56Hz
-[    0.508461] DISPC: lck = 198000000 (1)
-[    0.508470] DISPC: pck = 9000000 (22)
-[    0.508743] omapfb omapfb: using display 'lcd' mode 480x272
-[    0.510994] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
-[    0.516430] omap_uart 44e09000.serial: no wakeirq for uart0
-[    0.516467] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/serial@44e09000[0]'
-[    0.516488] omap_uart 44e09000.serial: No clock speed specified: using default: 48000000
-[    0.517035] 44e09000.serial: ttyO0 at MMIO 0x44e09000 (irq = 104, base_baud = 3000000) is a OMAP UART0
-[    1.369909] console [ttyO0] enabled
-[    1.393306] brd: module loaded
-[    1.407599] loop: module loaded
-[    1.413502] mtdoops: mtd device (mtddev=name/number) must be supplied
-[    1.421194] ti-qspi 47900000.qspi: memory mapped resource not required
-[    1.519456] usbcore: registered new interface driver asix
-[    1.525443] usbcore: registered new interface driver ax88179_178a
-[    1.531942] usbcore: registered new interface driver cdc_ether
-[    1.538249] usbcore: registered new interface driver smsc95xx
-[    1.544429] usbcore: registered new interface driver net1080
-[    1.550443] usbcore: registered new interface driver cdc_subset
-[    1.556778] usbcore: registered new interface driver zaurus
-[    1.562813] usbcore: registered new interface driver cdc_ncm
-[    1.570817] usbcore: registered new interface driver cdc_wdm
-[    1.577089] usbcore: registered new interface driver usb-storage
-[    1.583590] usbcore: registered new interface driver usbtest
-[    1.591744] mousedev: PS/2 mouse device common for all mice
-[    1.600240] omap_rtc 44e3e000.rtc: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
-[    1.610515] omap_rtc 44e3e000.rtc: rtc core: registered 44e3e000.rtc as rtc0
-[    1.618113] 44e3e000.rtc: already running
-[    1.622972] i2c /dev entries driver
-[    1.626696] Driver for 1-wire Dallas network protocol.
-[    1.636377] omap_wdt: OMAP Watchdog Timer Rev 0x01: initial timeout 60 sec
-[    1.644980] of_get_named_gpiod_flags exited with status 0
-[    1.645005] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@48060000[0]'
-[    1.646047] omap_hsmmc 48060000.mmc: unable to get vmmc regulator -517
-[    1.653419] platform 48060000.mmc: Driver omap_hsmmc requests probe deferral
-[    1.661412] of_get_named_gpiod_flags exited with status 0
-[    1.661441] of_get_named_gpiod_flags exited with status 0
-[    1.661461] of_get_named_gpiod_flags exited with status 0
-[    1.661479] of_get_named_gpiod_flags exited with status 0
-[    1.661501] of_get_named_gpiod_flags exited with status 0
-[    1.662298] of_get_named_gpiod_flags exited with status 0
-[    1.662599] of_get_named_gpiod_flags exited with status 0
-[    1.662851] of_get_named_gpiod_flags exited with status 0
-[    1.663539] ledtrig-cpu: registered to indicate activity on CPUs
-[    1.670316] usbcore: registered new interface driver usbhid
-[    1.676218] usbhid: USB HID core driver
-[    1.686465] davinci_evm sound: ASoC: CODEC (null) not registered
-[    1.693258] davinci_evm sound: snd_soc_register_card failed (-517)
-[    1.699796] platform sound: Driver davinci_evm requests probe deferral
-[    1.707389] oprofile: no performance counters
-[    1.712705] oprofile: using timer interrupt.
-[    1.717756] TCP: cubic registered
-[    1.721275] Initializing XFRM netlink socket
-[    1.725922] NET: Registered protocol family 17
-[    1.730642] NET: Registered protocol family 15
-[    1.735760] Key type dns_resolver registered
-[    1.740441] omap_voltage_late_init: Voltage driver support not added
-[    1.747176] sr_dev_init: No voltage domain specified for smartreflex0. Cannot initialize
-[    1.755674] sr_dev_init: No voltage domain specified for smartreflex1. Cannot initialize
-[    1.765097] ThumbEE CPU extension supported.
-[    1.769618] Registering SWP/SWPB emulation handler
-[    1.774719] SmartReflex Class3 initialized
-[    1.786932] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@0[0]'
-[    1.787552] V5_0D: 5000 mV
-[    1.790632] reg-fixed-voltage fixedregulator@0: Failed to find supply vin
-[    1.798436] reg-fixed-voltage fixedregulator@0: Failed to register regulator: -517
-[    1.806537] platform fixedregulator@0: Driver reg-fixed-voltage requests probe deferral
-[    1.815438] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@1[0]'
-[    1.815766] VBUS_USB: 5000 mV
-[    1.819088] reg-fixed-voltage fixedregulator@1: Failed to find supply vin
-[    1.826567] reg-fixed-voltage fixedregulator@1: Failed to register regulator: -517
-[    1.834559] platform fixedregulator@1: Driver reg-fixed-voltage requests probe deferral
-[    1.864401] vdd_core: 920 <--> 1140 mV at 1100 mV
-[    1.872723] vdd_mpu: 920 <--> 1375 mV at 1330 mV
-[    1.880067] vdds_ddr: 1350 mV
-[    1.885953] v3_3d: 3300 mV
-[    1.891406] v1_8d: 1800 mV
-[    1.895981] omap_i2c 44e0b000.i2c: bus 0 rev0.12 at 400 kHz
-[    1.907140] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/i2c@4802a000/tlv320aic3106@1b[0]'
-[    1.909258] omap_i2c 4802a000.i2c: bus 1 rev0.12 at 400 kHz
-[    1.915920] of_get_named_gpiod_flags exited with status 0
-[    1.915947] of_get_named_gpiod_flags: can't parse gpios property of node '/ocp/mmc@48060000[0]'
-[    1.956837] davinci_evm sound: tlv320aic3x-hifi <-> 4803c000.mcasp mapping ok
-[    1.985824] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@0[0]'
-[    1.986188] V5_0D: 5000 mV
-[    1.989231] V5_0D: supplied by v3_3d
-[    1.993646] of_get_named_gpiod_flags: can't parse gpios property of node '/fixedregulator@1[0]'
-[    1.993982] VBUS_USB: 5000 mV
-[    1.997291] VBUS_USB: supplied by V5_0D
-[    2.029373] mmc0: host does not support reading read-only switch. assuming write-enable.
-[    2.039924] mmc0: new high speed SDHC card at address 0001
-[    2.049058] mmcblk0: mmc0:0001 00000 14.6 GiB
-[    2.058925]  mmcblk0: p1 p2
-[    2.062698] davinci_mdio 4a101000.mdio: davinci mdio revision 1.6
-[    2.069120] davinci_mdio 4a101000.mdio: detected phy mask ffffffcf
-[    2.081905] libphy: 4a101000.mdio: probed
-[    2.086292] davinci_mdio 4a101000.mdio: phy[4]: device 4a101000.mdio:04, driver unknown
-[    2.094745] davinci_mdio 4a101000.mdio: phy[5]: device 4a101000.mdio:05, driver unknown
-[    2.104147] cpsw 4a100000.ethernet: Detected MACID = 34:b1:f7:31:45:4b
-[    2.113009] cpsw 4a100000.ethernet: cpsw: Detected MACID = 34:b1:f7:31:45:4d
-[    2.122132] omap_rtc 44e3e000.rtc: setting system clock to 2000-01-01 00:00:00 UTC (946684800)
-[    2.131167] sr_init: No PMIC hook to init smartreflex
-[    2.136698] sr_init: platform driver register failed for SR
-[    2.156224] ALSA device list:
-[    2.159357]   #0: AM437x-SK-EVM
-[    2.322629] EXT4-fs (mmcblk0p2): recovery complete
-[    2.329912] EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (null)
-[    2.338573] VFS: Mounted root (ext4 filesystem) on device 179:2.
-[    2.354804] devtmpfs: mounted
-[    2.358353] Freeing unused kernel memory: 412K (c0844000 - c08ab000)
->[    3.032245] udevd[783]: starting version 182
-[    4.003482] lis3lv02d: 16 bits lis331dlh sensor found
-[    4.142890] input: ST LIS3LV02DL Accelerometer as /devices/platform/lis3lv02d/input/input0
-[    4.340037] of_get_named_gpiod_flags exited with status 0
-[    4.340072] of_get_named_gpiod_flags exited with status 0
-[    4.340090] of_get_named_gpiod_flags exited with status 0
-[    4.340110] of_get_named_gpiod_flags exited with status 0
-[    4.341037] input: matrix_keypad@0 as /devices/matrix_keypad@0/input/input1
-[    7.454529] FAT-fs (mmcblk0p1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
-[    8.000585] random: nonblocking pool is initialized
-[    8.103464] EXT4-fs (mmcblk0p2): re-mounted. Opts: data=ordered
-[    9.099669] net eth0: initializing cpsw version 1.15 (0)
-[    9.182898] net eth0: phy found : id is : 0x221621
-[   13.183101] cpsw 4a100000.ethernet eth0: Link is Up - 1Gbps/Full - flow control rx/tx
-
-
---------------090103080008050308010404--
+> Darren
+>=20
+> >by the kernel using the device infrastructure, since each submodule
+> >is a kernel driver itself, and they are only destroy()'ed at unload
+> >time. Therefore we move the destroy() functionality to each submodul=
+e's
+> >remove().
+> >
+> >Also, remove some checks in the unloading process since the new code
+> >guarantees the resources are allocated and need a release.
+> >
+> >Signed-off-by: Guido Mart=EDnez <guido@vanguardiasur.com.ar>
+> >---
+> >  drivers/gpu/drm/tilcdc/Module.symvers  |  0
+> >  drivers/gpu/drm/tilcdc/tilcdc_drv.c    |  6 ------
+> >  drivers/gpu/drm/tilcdc/tilcdc_drv.h    |  1 -
+> >  drivers/gpu/drm/tilcdc/tilcdc_panel.c  | 36 +++++++++++++++++-----=
+------------
+> >  drivers/gpu/drm/tilcdc/tilcdc_slave.c  | 26 +++++++++++++---------=
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >  drivers/gpu/drm/tilcdc/tilcdc_tfp410.c | 34 ++++++++++++++++------=
+----------
+> >  6 files changed, 50 insertions(+), 53 deletions(-)
+> >  create mode 100644 drivers/gpu/drm/tilcdc/Module.symvers
+> >
+> >diff --git a/drivers/gpu/drm/tilcdc/Module.symvers b/drivers/gpu/drm=
+/tilcdc/Module.symvers
+> >new file mode 100644
+> >index 0000000..e69de29
+> >diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/t=
+ilcdc/tilcdc_drv.c
+> >index 006a30e..2c860c4 100644
+> >--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+> >+++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+> >@@ -120,7 +120,6 @@ static int cpufreq_transition(struct notifier_bl=
+ock *nb,
+> >  static int tilcdc_unload(struct drm_device *dev)
+> >  {
+> >  	struct tilcdc_drm_private *priv =3D dev->dev_private;
+> >-	struct tilcdc_module *mod, *cur;
+> >
+> >  	drm_fbdev_cma_fini(priv->fbdev);
+> >  	drm_kms_helper_poll_fini(dev);
+> >@@ -149,11 +148,6 @@ static int tilcdc_unload(struct drm_device *dev=
+)
+> >
+> >  	pm_runtime_disable(dev->dev);
+> >
+> >-	list_for_each_entry_safe(mod, cur, &module_list, list) {
+> >-		DBG("destroying module: %s", mod->name);
+> >-		mod->funcs->destroy(mod);
+> >-	}
+> >-
+> >  	kfree(priv);
+> >
+> >  	return 0;
+> >diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.h b/drivers/gpu/drm/t=
+ilcdc/tilcdc_drv.h
+> >index 0938036..7596c14 100644
+> >--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+> >+++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.h
+> >@@ -98,7 +98,6 @@ struct tilcdc_module;
+> >  struct tilcdc_module_ops {
+> >  	/* create appropriate encoders/connectors: */
+> >  	int (*modeset_init)(struct tilcdc_module *mod, struct drm_device =
+*dev);
+> >-	void (*destroy)(struct tilcdc_module *mod);
+> >  #ifdef CONFIG_DEBUG_FS
+> >  	/* create debugfs nodes (can be NULL): */
+> >  	int (*debugfs_init)(struct tilcdc_module *mod, struct drm_minor *=
+minor);
+> >diff --git a/drivers/gpu/drm/tilcdc/tilcdc_panel.c b/drivers/gpu/drm=
+/tilcdc/tilcdc_panel.c
+> >index b085dcc..2f6efae 100644
+> >--- a/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+> >+++ b/drivers/gpu/drm/tilcdc/tilcdc_panel.c
+> >@@ -282,21 +282,8 @@ static int panel_modeset_init(struct tilcdc_mod=
+ule *mod, struct drm_device *dev)
+> >  	return 0;
+> >  }
+> >
+> >-static void panel_destroy(struct tilcdc_module *mod)
+> >-{
+> >-	struct panel_module *panel_mod =3D to_panel_module(mod);
+> >-
+> >-	if (panel_mod->timings)
+> >-		display_timings_release(panel_mod->timings);
+> >-
+> >-	tilcdc_module_cleanup(mod);
+> >-	kfree(panel_mod->info);
+> >-	kfree(panel_mod);
+> >-}
+> >-
+> >  static const struct tilcdc_module_ops panel_module_ops =3D {
+> >  		.modeset_init =3D panel_modeset_init,
+> >-		.destroy =3D panel_destroy,
+> >  };
+> >
+> >  /*
+> >@@ -372,6 +359,7 @@ static int panel_probe(struct platform_device *p=
+dev)
+> >  		return -ENOMEM;
+> >
+> >  	mod =3D &panel_mod->base;
+> >+	pdev->dev.platform_data =3D mod;
+> >
+> >  	tilcdc_module_init(mod, "panel", &panel_module_ops);
+> >
+> >@@ -379,17 +367,16 @@ static int panel_probe(struct platform_device =
+*pdev)
+> >  	if (IS_ERR(pinctrl))
+> >  		dev_warn(&pdev->dev, "pins are not configured\n");
+> >
+> >-
+> >  	panel_mod->timings =3D of_get_display_timings(node);
+> >  	if (!panel_mod->timings) {
+> >  		dev_err(&pdev->dev, "could not get panel timings\n");
+> >-		goto fail;
+> >+		goto fail_free;
+> >  	}
+> >
+> >  	panel_mod->info =3D of_get_panel_info(node);
+> >  	if (!panel_mod->info) {
+> >  		dev_err(&pdev->dev, "could not get panel info\n");
+> >-		goto fail;
+> >+		goto fail_timings;
+> >  	}
+> >
+> >  	mod->preferred_bpp =3D panel_mod->info->bpp;
+> >@@ -400,13 +387,26 @@ static int panel_probe(struct platform_device =
+*pdev)
+> >
+> >  	return 0;
+> >
+> >-fail:
+> >-	panel_destroy(mod);
+> >+fail_timings:
+> >+	display_timings_release(panel_mod->timings);
+> >+
+> >+fail_free:
+> >+	kfree(panel_mod);
+> >+	tilcdc_module_cleanup(mod);
+> >  	return ret;
+> >  }
+> >
+> >  static int panel_remove(struct platform_device *pdev)
+> >  {
+> >+	struct tilcdc_module *mod =3D dev_get_platdata(&pdev->dev);
+> >+	struct panel_module *panel_mod =3D to_panel_module(mod);
+> >+
+> >+	display_timings_release(panel_mod->timings);
+> >+
+> >+	tilcdc_module_cleanup(mod);
+> >+	kfree(panel_mod->info);
+> >+	kfree(panel_mod);
+> >+
+> >  	return 0;
+> >  }
+> >
+> >diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm=
+/tilcdc/tilcdc_slave.c
+> >index 2f83ffb..1e568ca 100644
+> >--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+> >+++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+> >@@ -296,17 +296,8 @@ static int slave_modeset_init(struct tilcdc_mod=
+ule *mod, struct drm_device *dev)
+> >  	return 0;
+> >  }
+> >
+> >-static void slave_destroy(struct tilcdc_module *mod)
+> >-{
+> >-	struct slave_module *slave_mod =3D to_slave_module(mod);
+> >-
+> >-	tilcdc_module_cleanup(mod);
+> >-	kfree(slave_mod);
+> >-}
+> >-
+> >  static const struct tilcdc_module_ops slave_module_ops =3D {
+> >  		.modeset_init =3D slave_modeset_init,
+> >-		.destroy =3D slave_destroy,
+> >  };
+> >
+> >  /*
+> >@@ -356,10 +347,13 @@ static int slave_probe(struct platform_device =
+*pdev)
+> >  	}
+> >
+> >  	slave_mod =3D kzalloc(sizeof(*slave_mod), GFP_KERNEL);
+> >-	if (!slave_mod)
+> >-		return -ENOMEM;
+> >+	if (!slave_mod) {
+> >+		ret =3D -ENOMEM;
+> >+		goto fail_adapter;
+> >+	}
+> >
+> >  	mod =3D &slave_mod->base;
+> >+	pdev->dev.platform_data =3D mod;
+> >
+> >  	mod->preferred_bpp =3D slave_info.bpp;
+> >
+> >@@ -374,10 +368,20 @@ static int slave_probe(struct platform_device =
+*pdev)
+> >  	tilcdc_slave_probedefer(false);
+> >
+> >  	return 0;
+> >+
+> >+fail_adapter:
+> >+	i2c_put_adapter(slavei2c);
+> >+	return ret;
+> >  }
+> >
+> >  static int slave_remove(struct platform_device *pdev)
+> >  {
+> >+	struct tilcdc_module *mod =3D dev_get_platdata(&pdev->dev);
+> >+	struct slave_module *slave_mod =3D to_slave_module(mod);
+> >+
+> >+	tilcdc_module_cleanup(mod);
+> >+	kfree(slave_mod);
+> >+
+> >  	return 0;
+> >  }
+> >
+> >diff --git a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c b/drivers/gpu/dr=
+m/tilcdc/tilcdc_tfp410.c
+> >index ce75ac8..32a0d2d 100644
+> >--- a/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+> >+++ b/drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+> >@@ -296,23 +296,8 @@ static int tfp410_modeset_init(struct tilcdc_mo=
+dule *mod, struct drm_device *dev
+> >  	return 0;
+> >  }
+> >
+> >-static void tfp410_destroy(struct tilcdc_module *mod)
+> >-{
+> >-	struct tfp410_module *tfp410_mod =3D to_tfp410_module(mod);
+> >-
+> >-	if (tfp410_mod->i2c)
+> >-		i2c_put_adapter(tfp410_mod->i2c);
+> >-
+> >-	if (!IS_ERR_VALUE(tfp410_mod->gpio))
+> >-		gpio_free(tfp410_mod->gpio);
+> >-
+> >-	tilcdc_module_cleanup(mod);
+> >-	kfree(tfp410_mod);
+> >-}
+> >-
+> >  static const struct tilcdc_module_ops tfp410_module_ops =3D {
+> >  		.modeset_init =3D tfp410_modeset_init,
+> >-		.destroy =3D tfp410_destroy,
+> >  };
+> >
+> >  /*
+> >@@ -342,6 +327,7 @@ static int tfp410_probe(struct platform_device *=
+pdev)
+> >  		return -ENOMEM;
+> >
+> >  	mod =3D &tfp410_mod->base;
+> >+	pdev->dev.platform_data =3D mod;
+> >
+> >  	tilcdc_module_init(mod, "tfp410", &tfp410_module_ops);
+> >
+> >@@ -365,6 +351,7 @@ static int tfp410_probe(struct platform_device *=
+pdev)
+> >  	tfp410_mod->i2c =3D of_find_i2c_adapter_by_node(i2c_node);
+> >  	if (!tfp410_mod->i2c) {
+> >  		dev_err(&pdev->dev, "could not get i2c\n");
+> >+		of_node_put(i2c_node);
+> >  		goto fail;
+> >  	}
+> >
+> >@@ -378,19 +365,32 @@ static int tfp410_probe(struct platform_device=
+ *pdev)
+> >  		ret =3D gpio_request(tfp410_mod->gpio, "DVI_PDn");
+> >  		if (ret) {
+> >  			dev_err(&pdev->dev, "could not get DVI_PDn gpio\n");
+> >-			goto fail;
+> >+			goto fail_adapter;
+> >  		}
+> >  	}
+> >
+> >  	return 0;
+> >
+> >+fail_adapter:
+> >+	i2c_put_adapter(tfp410_mod->i2c);
+> >+
+> >  fail:
+> >-	tfp410_destroy(mod);
+> >+	kfree(tfp410_mod);
+> >+	tilcdc_module_cleanup(mod);
+> >  	return ret;
+> >  }
+> >
+> >  static int tfp410_remove(struct platform_device *pdev)
+> >  {
+> >+	struct tilcdc_module *mod =3D dev_get_platdata(&pdev->dev);
+> >+	struct tfp410_module *tfp410_mod =3D to_tfp410_module(mod);
+> >+
+> >+	i2c_put_adapter(tfp410_mod->i2c);
+> >+	gpio_free(tfp410_mod->gpio);
+> >+
+> >+	tilcdc_module_cleanup(mod);
+> >+	kfree(tfp410_mod);
+> >+
+> >  	return 0;
+> >  }
+> >
+> >
+
+--=20
+Guido Mart=EDnez, VanguardiaSur
+www.vanguardiasur.com.ar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
