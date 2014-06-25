@@ -1,89 +1,78 @@
-From: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH/RESEND 9/9] drm/tilcdc: replace late_initcall with
- module_init
-Date: Wed, 25 Jun 2014 12:48:58 -0300
-Message-ID: <20140625154858.GD743@arch.cereza>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-10-git-send-email-guido@vanguardiasur.com.ar>
- <53A9F5F4.3030806@ti.com>
- <20140625130042.GK3705@n2100.arm.linux.org.uk>
- <20140625143246.GA743@arch.cereza>
- <20140625144636.GO3705@n2100.arm.linux.org.uk>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 6/6] mailbox/omap: add a custom of_xlate function
+Date: Wed, 25 Jun 2014 11:32:13 -0500
+Message-ID: <53AAF98D.7070309@ti.com>
+References: <1403660878-56350-1-git-send-email-s-anna@ti.com> <1403660878-56350-7-git-send-email-s-anna@ti.com> <5721425.bMLltMQDlc@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:41283 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757071AbaFYPtp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2014 11:49:45 -0400
-Received: by mail-yk0-f180.google.com with SMTP id 131so1202309ykp.11
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2014 08:49:44 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140625144636.GO3705@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5721425.bMLltMQDlc@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel@lists.freedesktop.org, Daniel Mack <zonque@gmail.com>, Guido Martinez <guido@vanguardiasur.com.ar>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Russell,
+Hi Arnd,
 
-On 25 Jun 03:46 PM, Russell King - ARM Linux wrote:
-> > 
-> > That doesn't make any sense. Using late_initcall for the tilcdc DRM
-> > driver would make the tilcdc DRM get probed before any other regular
-> > module_init driver, including the tda998x encoder.
+On 06/25/2014 03:39 AM, Arnd Bergmann wrote:
+> On Tuesday 24 June 2014 20:47:58 Suman Anna wrote:
+>> +static struct mbox_chan *omap_mbox_of_xlate(struct mbox_controller *controller,
+>> +                                           const struct of_phandle_args *sp)
+>> +{
+>> +       phandle phandle = sp->args[0];
+>> +       struct device_node *node;
+>> +       struct omap_mbox_device *mdev;
+>> +       struct omap_mbox *mbox;
+>> +
+>> +       node = of_find_node_by_phandle(phandle);
+>> +       if (!node) {
+>> +               pr_err("could not find node phandle 0x%x\n", phandle);
+>> +               return NULL;
+>> +       }
+>> +
+>> +       mdev = container_of(controller, struct omap_mbox_device, controller);
+>> +       if (WARN_ON(!mdev))
+>> +               return NULL;
+>> +
+>> +       mbox = omap_mbox_device_find(mdev, node->name);
+>> +       return mbox ? mbox->chan : NULL;
+>>
 > 
-> A module_init() is a device_initcall(), which is at level 6.  A
-> late_initcall() is at level 7.  Level 6 initcalls are run before level
-> 7 initcalls.  The tda998x is a module_init(), so the tda998x gets
-> initialised *before* tilcdc's late_initcall().
+> Wouldn't it be easier to change the omap_mbox_device_find() function to
+> take a phandle argument directly? You shouldn't have to walk all
+> nodes in the system, or match it by name if you already have the 
+> device node.
+
+The omap_mbox_device_find() function is also used on the non-DT mailbox
+client path (for OMAP3) at the moment where we don't have the device
+node pointers. I am merely reusing the function for the DT lookup path,
+and once I remove the non-DT support, I can surely do the matching logic
+just based on the device node pointer. I just chose to minimize the
+changes to the omap_mbox_device_find() to do both variants now when I
+know that I am gonna remove the non-DT part (name lookup) later on.
+
+The current expected DT usage model for the OMAP mailbox client is (with
+the v7 mailbox framework)
+    mbox = <&controller_phandle &channel_phandle>
+
+So, this is not walking through all the nodes in the system, only the
+channel/sub-mailbox nodes present on the particular controller node.
+Surely, it can done as mbox = <&channel_phandle> as the parent
+controller node relationship is inherent, but this requires changes to
+the mailbox framework, and I am not sure if every platform
+implementation would implement the child channels as their own nodes.
+
 > 
+> Also, the xlate function is normally the place where you read out
+> the other arguments and set them as members in your omap_mbox
+> structure.
 
-Oh, thanks a lot for correcting me.
+The current flow for the xlate function is during the
+mailbox_request_channel. The channels themselves would have been
+registered during the controller node probe, so this is merely a lookup
+for the correct channel. Should we be renaming the xlate function, if
+the behavior is not what one expects out of a standard xlate?
 
-> Now, if you build everything as a module, then you have no initialisation
-> ordering, and you can't rely on any kind of order.  Initialisation
-> functions can even run in parallel on different CPUs due to modules being
-> loaded from userspace in a multi-threaded way.  So anything which relies
-> on a certain initcall ordering is fundamentally broken if it can be
-> modular.
-> 
-
-OK, but is there any outstanding issue with the tilcdc initialization, either
-when compiled as built-in or as modules, *after* this patchset?
-
-Of course, this driver only worked as built-in (see the horrible bugs we are
-fixing here, that prevented unloading and re-loading it). This series fixes
-all such bugs, and also adds the required changes to allow to build everything
-as a module.
-
-Again, I can't see any issues that remain to be fixed after this patchset.
-When compiled as built-in, the tilcdc DRM will be defered and once the tda998x
-is ready, the tilcdc DRM will load properly.
-
-When compiled as module you can load any of them in any order. If the tda998x
-module is not loaded by the time you load the tilcdc module, the former will
-get loaded.
-
-Hm... now that I think about this. We still get into trouble if the tda998x
-is built as module, but the tilcdc is built-in. Shouldn't we just forbid that?
-Either both built-ins or both as modules?
-
-> > > There's a solution to that...
-> > 
-> > A solution to *what* ?
-> 
-> Maybe if you left the context above that line in place, you might
-> understand that my "that" refers to what was discussed in that
-> context.  That being the initialisation ordering.
-> 
-> Convention and proper Internet etiquette is to trim the quoted text
-> and place relies below the paragraph to which they refer, the quoted
-> paragraph giving the context to the reply.
-> 
-
-Yeah, sorry about that.
--- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+regards
+Suman
