@@ -1,53 +1,144 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 3/9] ARM: dts: AM4372: Correct mailbox node data
-Date: Tue, 24 Jun 2014 20:04:49 -0500
-Message-ID: <1403658295-54766-4-git-send-email-s-anna@ti.com>
+Subject: [PATCH 4/9] ARM: dts: DRA7: Add mailbox nodes
+Date: Tue, 24 Jun 2014 20:04:50 -0500
+Message-ID: <1403658295-54766-5-git-send-email-s-anna@ti.com>
 References: <1403658295-54766-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34786 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34793 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752612AbaFYBGF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 21:06:05 -0400
+	id S1752612AbaFYBGK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 21:06:10 -0400
 In-Reply-To: <1403658295-54766-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The mailbox DT node for AM4372 has been corrected to include
-the correct compatible flag, and remove the other properties
-that have crept in by mistake.
+DRA7xx has 13 system mailboxes, and is present on both the
+DRA72x and DRA74x family of SoCs. Add the DT nodes for all
+these 13 mailboxes. Except for mailbox 1, all other mailboxes
+do not have interrupts mapped into the MPU GIC by default.
 
-Fixes: 9e3269b (ARM: dts: AM4372: Add L2, EDMA, mailbox, MMC and SHAM nodes)
-Cc: Lokesh Vutla <lokeshvutla@ti.com>
+All the mailboxes have been disabled and the interrupts
+property information is left out intentionally for now,
+because of the dependencies against the crossbar driver.
+These mailboxes can be enabled when a usecase arises
+and the crossbar driver dependencies are met.
+
+NOTE: The mailbox 1 is backward compatible with the mailbox
+IP on OMAP4/OMAP5 with different number of mailbox fifos
+and IP interrupts, and hence the omap4 compatibility string
+is used.
+
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi | 91 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 49fa596..390cbb53 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -162,15 +162,10 @@
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index c29945e..8d7626f 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -338,6 +338,97 @@
+ 			status = "disabled";
  		};
  
- 		mailbox: mailbox@480C8000 {
--			compatible = "ti,omap4-mailbox";
-+			compatible = "ti,am4372-mailbox";
- 			reg = <0x480C8000 0x200>;
- 			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mailbox";
--			ti,mbox-num-users = <4>;
--			ti,mbox-num-fifos = <8>;
--			ti,mbox-names = "wkup_m3";
--			ti,mbox-data = <0 0 0 0>;
--			status = "disabled";
- 		};
- 
- 		timer1: timer@44e31000 {
++		mailbox1: mailbox@4a0f4000 {
++			compatible = "ti,omap4-mailbox";
++			reg = <0x4a0f4000 0x200>;
++			ti,hwmods = "mailbox1";
++			status = "disabled";
++		};
++
++		mailbox2: mailbox@4883a000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x4883a000 0x200>;
++			ti,hwmods = "mailbox2";
++			status = "disabled";
++		};
++
++		mailbox3: mailbox@4883c000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x4883c000 0x200>;
++			ti,hwmods = "mailbox3";
++			status = "disabled";
++		};
++
++		mailbox4: mailbox@4883e000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x4883e000 0x200>;
++			ti,hwmods = "mailbox4";
++			status = "disabled";
++		};
++
++		mailbox5: mailbox@48840000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48840000 0x200>;
++			ti,hwmods = "mailbox5";
++			status = "disabled";
++		};
++
++		mailbox6: mailbox@48842000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48842000 0x200>;
++			ti,hwmods = "mailbox6";
++			status = "disabled";
++		};
++
++		mailbox7: mailbox@48844000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48844000 0x200>;
++			ti,hwmods = "mailbox7";
++			status = "disabled";
++		};
++
++		mailbox8: mailbox@48846000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48846000 0x200>;
++			ti,hwmods = "mailbox8";
++			status = "disabled";
++		};
++
++		mailbox9: mailbox@4885e000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x4885e000 0x200>;
++			ti,hwmods = "mailbox9";
++			status = "disabled";
++		};
++
++		mailbox10: mailbox@48860000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48860000 0x200>;
++			ti,hwmods = "mailbox10";
++			status = "disabled";
++		};
++
++		mailbox11: mailbox@48862000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48862000 0x200>;
++			ti,hwmods = "mailbox11";
++			status = "disabled";
++		};
++
++		mailbox12: mailbox@48864000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48864000 0x200>;
++			ti,hwmods = "mailbox12";
++			status = "disabled";
++		};
++
++		mailbox13: mailbox@48802000 {
++			compatible = "ti,dra7-mailbox";
++			reg = <0x48802000 0x200>;
++			ti,hwmods = "mailbox13";
++			status = "disabled";
++		};
++
+ 		timer1: timer@4ae18000 {
+ 			compatible = "ti,omap5430-timer";
+ 			reg = <0x4ae18000 0x80>;
 -- 
 2.0.0
 
