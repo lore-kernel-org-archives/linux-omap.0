@@ -1,48 +1,38 @@
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Subject: [PATCH] ARM: dts: Fix TI CPSW Phy mode selection on IGEP COM AQUILA.
-Date: Wed, 25 Jun 2014 13:42:05 +0200
-Message-ID: <1403696525-10099-1-git-send-email-eballetbo@iseebcn.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:47328 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756170AbaFYLmn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jun 2014 07:42:43 -0400
-Received: by mail-wg0-f41.google.com with SMTP id a1so1768843wgh.0
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jun 2014 04:42:39 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] arm/arm64: DT: Fix GICv2 CPU interface size
+Date: Wed, 25 Jun 2014 07:21:17 -0500
+Message-ID: <CAL_Jsq+rS3FE8_F-4qdUUTaJ6X9XNFP2d2h7CdU9hDRG0KG9uA@mail.gmail.com>
+References: <1403692675-26503-1-git-send-email-marc.zyngier@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1403692675-26503-1-git-send-email-marc.zyngier@arm.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Maxime Ripard <maxime.ripard@free-electrons.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>linux
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-As this board use external clock for RMII interface we should specify 'rmii'
-phy mode and 'rmii-clock-ext' to make ethernet working.
+On Wed, Jun 25, 2014 at 5:37 AM, Marc Zyngier <marc.zyngier@arm.com> wrote:
+> All the Cortex-{A7,A15} implementations are using a GICv2. Same for
+> the current arm64 platforms.
+>
+> Turns out that most of these platforms have described their GIC CPU
+> interface size as being 4kB. while it is actually 8kB (the GICC_DIR
+> register lives at offset 0x1000).
+>
+> This was found when converting the GIC driver to use EOImode==1 on
+> GICv2-based systems. It uses the GICC_DIR register, and the result
+> is a very early firework...
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
----
- arch/arm/boot/dts/am335x-igep0033.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+What's your plan for making the kernel change? Updating the dts files
+is good, but that doesn't immediately help you if you have old dtbs.
 
-diff --git a/arch/arm/boot/dts/am335x-igep0033.dtsi b/arch/arm/boot/dts/am335x-igep0033.dtsi
-index 8a0a72d..a1a0cc5 100644
---- a/arch/arm/boot/dts/am335x-igep0033.dtsi
-+++ b/arch/arm/boot/dts/am335x-igep0033.dtsi
-@@ -105,10 +105,16 @@
- 
- &cpsw_emac0 {
- 	phy_id = <&davinci_mdio>, <0>;
-+	phy-mode = "rmii";
- };
- 
- &cpsw_emac1 {
- 	phy_id = <&davinci_mdio>, <1>;
-+	phy-mode = "rmii";
-+};
-+
-+&phy_sel {
-+	rmii-clock-ext;
- };
- 
- &elm {
--- 
-1.9.1
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  arch/arm/boot/dts/axm55xx.dtsi              | 2 +-
+>  arch/arm/boot/dts/dra7.dtsi                 | 2 +-
+>  arch/arm/boot/dts/ecx-2000.dts              | 2 +-
 
+Acked-by: Rob Herring <robh@kernel.org>
+
+Rob
