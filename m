@@ -1,124 +1,308 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 3/7] mailbox/omap: remove omap_mbox_type_t from mailbox ops
-Date: Tue, 24 Jun 2014 19:43:39 -0500
-Message-ID: <1403657023-53897-4-git-send-email-s-anna@ti.com>
+Subject: [PATCH 2/7] mailbox/omap: remove OMAP1 mailbox driver
+Date: Tue, 24 Jun 2014 19:43:38 -0500
+Message-ID: <1403657023-53897-3-git-send-email-s-anna@ti.com>
 References: <1403657023-53897-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33819 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57562 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751479AbaFYAoj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 20:44:39 -0400
+	id S1752281AbaFYAop (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 20:44:45 -0400
 In-Reply-To: <1403657023-53897-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-The type definition omap_mbox_type_t used for distinguishing
-OMAP1 from OMAP2+ mailboxes is no longer needed after the
-removal of OMAP1 mailbox driver, and has therefore been
-cleaned up. This cleanup also eliminates the need for the
-polling logic used for checking the transmit readiness.
+There are no existing users for OMAP1 mailbox driver
+in kernel. Commit ab6f775 "Removing dead OMAP_DSP"
+has cleaned up all the dead code related to the only
+possible user, including the creation of the mailbox
+platform device.
 
+Remove this stale driver so that the OMAP mailbox
+driver can be simplified and streamlined better for
+converting to mailbox framework.
+
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/mailbox/mailbox-omap2.c |  1 -
- drivers/mailbox/omap-mailbox.c  | 22 ++--------------------
- drivers/mailbox/omap-mbox.h     |  5 -----
- 3 files changed, 2 insertions(+), 26 deletions(-)
+ arch/arm/configs/omap1_defconfig |   2 -
+ drivers/mailbox/Kconfig          |  15 +--
+ drivers/mailbox/Makefile         |   2 -
+ drivers/mailbox/mailbox-omap1.c  | 203 ---------------------------------------
+ 4 files changed, 3 insertions(+), 219 deletions(-)
+ delete mode 100644 drivers/mailbox/mailbox-omap1.c
 
-diff --git a/drivers/mailbox/mailbox-omap2.c b/drivers/mailbox/mailbox-omap2.c
-index 75fbc90..b44e3bc 100644
---- a/drivers/mailbox/mailbox-omap2.c
-+++ b/drivers/mailbox/mailbox-omap2.c
-@@ -205,7 +205,6 @@ static void omap2_mbox_restore_ctx(struct omap_mbox *mbox)
- }
- 
- static struct omap_mbox_ops omap2_mbox_ops = {
--	.type		= OMAP_MBOX_TYPE2,
- 	.startup	= omap2_mbox_startup,
- 	.shutdown	= omap2_mbox_shutdown,
- 	.fifo_read	= omap2_mbox_fifo_read,
-diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
-index d79a646..eab7227 100644
---- a/drivers/mailbox/omap-mailbox.c
-+++ b/drivers/mailbox/omap-mailbox.c
-@@ -24,7 +24,6 @@
- #include <linux/interrupt.h>
- #include <linux/spinlock.h>
- #include <linux/mutex.h>
--#include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/kfifo.h>
- #include <linux/err.h>
-@@ -74,20 +73,6 @@ static inline int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- /*
-  * message sender
-  */
--static int __mbox_poll_for_space(struct omap_mbox *mbox)
--{
--	int ret = 0, i = 1000;
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+index ce541bb..115cda9 100644
+--- a/arch/arm/configs/omap1_defconfig
++++ b/arch/arm/configs/omap1_defconfig
+@@ -26,8 +26,6 @@ CONFIG_ARCH_OMAP=y
+ CONFIG_ARCH_OMAP1=y
+ CONFIG_OMAP_RESET_CLOCKS=y
+ # CONFIG_OMAP_MUX is not set
+-CONFIG_MAILBOX=y
+-CONFIG_OMAP1_MBOX=y
+ CONFIG_OMAP_32K_TIMER=y
+ CONFIG_OMAP_DM_TIMER=y
+ CONFIG_ARCH_OMAP730=y
+diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
+index c8b5c13..1ec8f4e 100644
+--- a/drivers/mailbox/Kconfig
++++ b/drivers/mailbox/Kconfig
+@@ -20,17 +20,8 @@ config OMAP_MBOX
+ 	tristate
+ 	help
+ 	  This option is selected by any OMAP architecture specific mailbox
+-	  driver such as CONFIG_OMAP1_MBOX or CONFIG_OMAP2PLUS_MBOX. This
+-	  enables the common OMAP mailbox framework code.
 -
--	while (mbox_fifo_full(mbox)) {
--		if (mbox->ops->type == OMAP_MBOX_TYPE2)
--			return -1;
--		if (--i == 0)
--			return -1;
--		udelay(1);
--	}
--	return ret;
+-config OMAP1_MBOX
+-	tristate "OMAP1 Mailbox framework support"
+-	depends on ARCH_OMAP1
+-	select OMAP_MBOX
+-	help
+-	  Mailbox implementation for OMAP chips with hardware for
+-	  interprocessor communication involving DSP in OMAP1. Say Y here
+-	  if you want to use OMAP1 Mailbox framework support.
++	  driver such as CONFIG_OMAP2PLUS_MBOX. This enables the common OMAP
++	  mailbox framework code.
+ 
+ config OMAP2PLUS_MBOX
+ 	tristate "OMAP2+ Mailbox framework support"
+@@ -44,7 +35,7 @@ config OMAP2PLUS_MBOX
+ 
+ config OMAP_MBOX_KFIFO_SIZE
+ 	int "Mailbox kfifo default buffer size (bytes)"
+-	depends on OMAP2PLUS_MBOX || OMAP1_MBOX
++	depends on OMAP2PLUS_MBOX
+ 	default 256
+ 	help
+ 	  Specify the default size of mailbox's kfifo buffers (bytes).
+diff --git a/drivers/mailbox/Makefile b/drivers/mailbox/Makefile
+index e0facb3..d023feb 100644
+--- a/drivers/mailbox/Makefile
++++ b/drivers/mailbox/Makefile
+@@ -1,7 +1,5 @@
+ obj-$(CONFIG_PL320_MBOX)	+= pl320-ipc.o
+ 
+ obj-$(CONFIG_OMAP_MBOX)		+= omap-mailbox.o
+-obj-$(CONFIG_OMAP1_MBOX)	+= mailbox_omap1.o
+-mailbox_omap1-objs		:= mailbox-omap1.o
+ obj-$(CONFIG_OMAP2PLUS_MBOX)	+= mailbox_omap2.o
+ mailbox_omap2-objs		:= mailbox-omap2.o
+diff --git a/drivers/mailbox/mailbox-omap1.c b/drivers/mailbox/mailbox-omap1.c
+deleted file mode 100644
+index 9001b76..0000000
+--- a/drivers/mailbox/mailbox-omap1.c
++++ /dev/null
+@@ -1,203 +0,0 @@
+-/*
+- * Mailbox reservation modules for OMAP1
+- *
+- * Copyright (C) 2006-2009 Nokia Corporation
+- * Written by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/interrupt.h>
+-#include <linux/platform_device.h>
+-#include <linux/io.h>
+-
+-#include "omap-mbox.h"
+-
+-#define MAILBOX_ARM2DSP1		0x00
+-#define MAILBOX_ARM2DSP1b		0x04
+-#define MAILBOX_DSP2ARM1		0x08
+-#define MAILBOX_DSP2ARM1b		0x0c
+-#define MAILBOX_DSP2ARM2		0x10
+-#define MAILBOX_DSP2ARM2b		0x14
+-#define MAILBOX_ARM2DSP1_Flag		0x18
+-#define MAILBOX_DSP2ARM1_Flag		0x1c
+-#define MAILBOX_DSP2ARM2_Flag		0x20
+-
+-static void __iomem *mbox_base;
+-
+-struct omap_mbox1_fifo {
+-	unsigned long cmd;
+-	unsigned long data;
+-	unsigned long flag;
+-};
+-
+-struct omap_mbox1_priv {
+-	struct omap_mbox1_fifo tx_fifo;
+-	struct omap_mbox1_fifo rx_fifo;
+-};
+-
+-static inline int mbox_read_reg(size_t ofs)
+-{
+-	return __raw_readw(mbox_base + ofs);
 -}
 -
- int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- {
- 	struct omap_mbox_queue *mq = mbox->txq;
-@@ -100,7 +85,7 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- 		goto out;
- 	}
- 
--	if (kfifo_is_empty(&mq->fifo) && !__mbox_poll_for_space(mbox)) {
-+	if (kfifo_is_empty(&mq->fifo) && !mbox_fifo_full(mbox)) {
- 		mbox_fifo_write(mbox, msg);
- 		goto out;
- 	}
-@@ -158,7 +143,7 @@ static void mbox_tx_tasklet(unsigned long tx_data)
- 	int ret;
- 
- 	while (kfifo_len(&mq->fifo)) {
--		if (__mbox_poll_for_space(mbox)) {
-+		if (mbox_fifo_full(mbox)) {
- 			omap_mbox_enable_irq(mbox, IRQ_TX);
- 			break;
- 		}
-@@ -223,9 +208,6 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 
- 		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
- 		WARN_ON(len != sizeof(msg));
+-static inline void mbox_write_reg(u32 val, size_t ofs)
+-{
+-	__raw_writew(val, mbox_base + ofs);
+-}
 -
--		if (mbox->ops->type == OMAP_MBOX_TYPE1)
--			break;
- 	}
- 
- 	/* no more messages in the fifo. clear IRQ source. */
-diff --git a/drivers/mailbox/omap-mbox.h b/drivers/mailbox/omap-mbox.h
-index 86d7518..fae2151 100644
---- a/drivers/mailbox/omap-mbox.h
-+++ b/drivers/mailbox/omap-mbox.h
-@@ -16,12 +16,7 @@
- #include <linux/workqueue.h>
- #include <linux/omap-mailbox.h>
- 
--typedef int __bitwise omap_mbox_type_t;
--#define OMAP_MBOX_TYPE1 ((__force omap_mbox_type_t) 1)
--#define OMAP_MBOX_TYPE2 ((__force omap_mbox_type_t) 2)
+-/* msg */
+-static mbox_msg_t omap1_mbox_fifo_read(struct omap_mbox *mbox)
+-{
+-	struct omap_mbox1_fifo *fifo =
+-		&((struct omap_mbox1_priv *)mbox->priv)->rx_fifo;
+-	mbox_msg_t msg;
 -
- struct omap_mbox_ops {
--	omap_mbox_type_t	type;
- 	int		(*startup)(struct omap_mbox *mbox);
- 	void		(*shutdown)(struct omap_mbox *mbox);
- 	/* fifo */
+-	msg = mbox_read_reg(fifo->data);
+-	msg |= ((mbox_msg_t) mbox_read_reg(fifo->cmd)) << 16;
+-
+-	return msg;
+-}
+-
+-static void
+-omap1_mbox_fifo_write(struct omap_mbox *mbox, mbox_msg_t msg)
+-{
+-	struct omap_mbox1_fifo *fifo =
+-		&((struct omap_mbox1_priv *)mbox->priv)->tx_fifo;
+-
+-	mbox_write_reg(msg & 0xffff, fifo->data);
+-	mbox_write_reg(msg >> 16, fifo->cmd);
+-}
+-
+-static int omap1_mbox_fifo_empty(struct omap_mbox *mbox)
+-{
+-	return 0;
+-}
+-
+-static int omap1_mbox_fifo_full(struct omap_mbox *mbox)
+-{
+-	struct omap_mbox1_fifo *fifo =
+-		&((struct omap_mbox1_priv *)mbox->priv)->rx_fifo;
+-
+-	return mbox_read_reg(fifo->flag);
+-}
+-
+-/* irq */
+-static void
+-omap1_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	if (irq == IRQ_RX)
+-		enable_irq(mbox->irq);
+-}
+-
+-static void
+-omap1_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	if (irq == IRQ_RX)
+-		disable_irq(mbox->irq);
+-}
+-
+-static int
+-omap1_mbox_is_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	if (irq == IRQ_TX)
+-		return 0;
+-	return 1;
+-}
+-
+-static struct omap_mbox_ops omap1_mbox_ops = {
+-	.type		= OMAP_MBOX_TYPE1,
+-	.fifo_read	= omap1_mbox_fifo_read,
+-	.fifo_write	= omap1_mbox_fifo_write,
+-	.fifo_empty	= omap1_mbox_fifo_empty,
+-	.fifo_full	= omap1_mbox_fifo_full,
+-	.enable_irq	= omap1_mbox_enable_irq,
+-	.disable_irq	= omap1_mbox_disable_irq,
+-	.is_irq		= omap1_mbox_is_irq,
+-};
+-
+-/* FIXME: the following struct should be created automatically by the user id */
+-
+-/* DSP */
+-static struct omap_mbox1_priv omap1_mbox_dsp_priv = {
+-	.tx_fifo = {
+-		.cmd	= MAILBOX_ARM2DSP1b,
+-		.data	= MAILBOX_ARM2DSP1,
+-		.flag	= MAILBOX_ARM2DSP1_Flag,
+-	},
+-	.rx_fifo = {
+-		.cmd	= MAILBOX_DSP2ARM1b,
+-		.data	= MAILBOX_DSP2ARM1,
+-		.flag	= MAILBOX_DSP2ARM1_Flag,
+-	},
+-};
+-
+-static struct omap_mbox mbox_dsp_info = {
+-	.name	= "dsp",
+-	.ops	= &omap1_mbox_ops,
+-	.priv	= &omap1_mbox_dsp_priv,
+-};
+-
+-static struct omap_mbox *omap1_mboxes[] = { &mbox_dsp_info, NULL };
+-
+-static int omap1_mbox_probe(struct platform_device *pdev)
+-{
+-	struct resource *mem;
+-	int ret;
+-	struct omap_mbox **list;
+-
+-	list = omap1_mboxes;
+-	list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+-
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!mem)
+-		return -ENOENT;
+-
+-	mbox_base = ioremap(mem->start, resource_size(mem));
+-	if (!mbox_base)
+-		return -ENOMEM;
+-
+-	ret = omap_mbox_register(&pdev->dev, list);
+-	if (ret) {
+-		iounmap(mbox_base);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+-static int omap1_mbox_remove(struct platform_device *pdev)
+-{
+-	omap_mbox_unregister();
+-	iounmap(mbox_base);
+-	return 0;
+-}
+-
+-static struct platform_driver omap1_mbox_driver = {
+-	.probe	= omap1_mbox_probe,
+-	.remove	= omap1_mbox_remove,
+-	.driver	= {
+-		.name	= "omap-mailbox",
+-	},
+-};
+-
+-static int __init omap1_mbox_init(void)
+-{
+-	return platform_driver_register(&omap1_mbox_driver);
+-}
+-
+-static void __exit omap1_mbox_exit(void)
+-{
+-	platform_driver_unregister(&omap1_mbox_driver);
+-}
+-
+-module_init(omap1_mbox_init);
+-module_exit(omap1_mbox_exit);
+-
+-MODULE_LICENSE("GPL v2");
+-MODULE_DESCRIPTION("omap mailbox: omap1 architecture specific functions");
+-MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
+-MODULE_ALIAS("platform:omap1-mailbox");
 -- 
 2.0.0
 
