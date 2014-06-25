@@ -1,78 +1,76 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 6/6] mailbox/omap: add a custom of_xlate function
-Date: Wed, 25 Jun 2014 11:32:13 -0500
-Message-ID: <53AAF98D.7070309@ti.com>
-References: <1403660878-56350-1-git-send-email-s-anna@ti.com> <1403660878-56350-7-git-send-email-s-anna@ti.com> <5721425.bMLltMQDlc@wuerfel>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
+Date: Wed, 25 Jun 2014 23:16:04 +0530
+Message-ID: <53AB0ADC.20004@ti.com>
+References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5721425.bMLltMQDlc@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43145 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757488AbaFYRqY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jun 2014 13:46:24 -0400
+In-Reply-To: <1403093816-10960-2-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, paul@pwsan.com
+Cc: rnayak@ti.com, nm@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Arnd,
 
-On 06/25/2014 03:39 AM, Arnd Bergmann wrote:
-> On Tuesday 24 June 2014 20:47:58 Suman Anna wrote:
->> +static struct mbox_chan *omap_mbox_of_xlate(struct mbox_controller *controller,
->> +                                           const struct of_phandle_args *sp)
->> +{
->> +       phandle phandle = sp->args[0];
->> +       struct device_node *node;
->> +       struct omap_mbox_device *mdev;
->> +       struct omap_mbox *mbox;
->> +
->> +       node = of_find_node_by_phandle(phandle);
->> +       if (!node) {
->> +               pr_err("could not find node phandle 0x%x\n", phandle);
->> +               return NULL;
->> +       }
->> +
->> +       mdev = container_of(controller, struct omap_mbox_device, controller);
->> +       if (WARN_ON(!mdev))
->> +               return NULL;
->> +
->> +       mbox = omap_mbox_device_find(mdev, node->name);
->> +       return mbox ? mbox->chan : NULL;
->>
+On Wednesday 18 June 2014 05:46 PM, Roger Quadros wrote:
+> This module is needed for the SATA and PCIe PHYs.
 > 
-> Wouldn't it be easier to change the omap_mbox_device_find() function to
-> take a phandle argument directly? You shouldn't have to walk all
-> nodes in the system, or match it by name if you already have the 
-> device node.
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Tested-by: Roger Quadros <rogerq@ti.com>
 
-The omap_mbox_device_find() function is also used on the non-DT mailbox
-client path (for OMAP3) at the moment where we don't have the device
-node pointers. I am merely reusing the function for the DT lookup path,
-and once I remove the non-DT support, I can surely do the matching logic
-just based on the device node pointer. I just chose to minimize the
-changes to the omap_mbox_device_find() to do both variants now when I
-know that I am gonna remove the non-DT part (name lookup) later on.
-
-The current expected DT usage model for the OMAP mailbox client is (with
-the v7 mailbox framework)
-    mbox = <&controller_phandle &channel_phandle>
-
-So, this is not walking through all the nodes in the system, only the
-channel/sub-mailbox nodes present on the particular controller node.
-Surely, it can done as mbox = <&channel_phandle> as the parent
-controller node relationship is inherent, but this requires changes to
-the mailbox framework, and I am not sure if every platform
-implementation would implement the child channels as their own nodes.
-
+I used this patch for testing PCIe.
+Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
 > 
-> Also, the xlate function is normally the place where you read out
-> the other arguments and set them as members in your omap_mbox
-> structure.
-
-The current flow for the xlate function is during the
-mailbox_request_channel. The channels themselves would have been
-registered during the controller node probe, so this is merely a lookup
-for the correct channel. Should we be renaming the xlate function, if
-the behavior is not what one expects out of a standard xlate?
-
-regards
-Suman
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> index 20b4398..cedef6b 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
+>  	},
+>  };
+>  
+> +/* ocp2scp3 */
+> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
+> +
+> +/* l4_cfg -> ocp2scp3 */
+> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
+> +	.master		= &dra7xx_l4_cfg_hwmod,
+> +	.slave		= &dra7xx_ocp2scp3_hwmod,
+> +	.clk		= "l4_root_clk_div",
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+> +	.name		= "ocp2scp3",
+> +	.class		= &dra7xx_ocp2scp_hwmod_class,
+> +	.clkdm_name	= "l3init_clkdm",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
+> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
+> +			.modulemode   = MODULEMODE_HWCTRL,
+> +		},
+> +	},
+> +};
+> +
+>  /*
+>   * 'qspi' class
+>   *
+> @@ -2672,6 +2696,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>  	&dra7xx_l4_per1__mmc4,
+>  	&dra7xx_l4_cfg__mpu,
+>  	&dra7xx_l4_cfg__ocp2scp1,
+> +	&dra7xx_l4_cfg__ocp2scp3,
+>  	&dra7xx_l3_main_1__qspi,
+>  	&dra7xx_l4_cfg__sata,
+>  	&dra7xx_l4_cfg__smartreflex_core,
+> 
