@@ -1,15 +1,15 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 0/9]
-Date: Tue, 24 Jun 2014 20:00:56 -0500
-Message-ID: <1403658065-54614-1-git-send-email-s-anna@ti.com>
+Subject: [PATCH 0/9] OMAP Mailbox DT node/hwmod cleanup
+Date: Tue, 24 Jun 2014 20:04:46 -0500
+Message-ID: <1403658295-54766-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43741 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34750 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752113AbaFYBBu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 21:01:50 -0400
+	id S1753306AbaFYBF3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 21:05:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
