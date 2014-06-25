@@ -1,113 +1,125 @@
 From: Tomasz Figa <t.figa@samsung.com>
-Subject: [PATCH v2 5/6] ARM: EXYNOS: Add .write_sec outer cache callback for
- L2C-310
-Date: Wed, 25 Jun 2014 15:37:30 +0200
-Message-ID: <1403703451-12233-6-git-send-email-t.figa@samsung.com>
+Subject: [PATCH v2 1/6] ARM: mm: cache-l2x0: Add base address argument to
+ write_sec callback
+Date: Wed, 25 Jun 2014 15:37:26 +0200
+Message-ID: <1403703451-12233-2-git-send-email-t.figa@samsung.com>
 References: <1403703451-12233-1-git-send-email-t.figa@samsung.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-reply-to: <1403703451-12233-1-git-send-email-t.figa@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-samsung-soc@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <tomasz.figa@gmail.com>, Daniel Drake <drake@endlessm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <t.figa@samsung.com>
+Cc: Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Tomasz Figa <t.figa@samsung.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Daniel Drake <drake@endlessm.com>, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Exynos4 SoCs equipped with an L2C-310 cache controller and running under
-secure firmware require certain registers of aforementioned IP to be
-accessed only from secure mode. This means that SMC calls are required
-for certain register writes. To handle this, an implementation of
-.write_sec callback is provided by this patch.
+For certain platforms (e.g. Exynos) it is necessary to read back some
+values from registers before they can be written (i.e. SMC calls that
+set multiple registers per call), so base address of L2C controller is
+needed for .write_sec operation. This patch adds base argument to
+.write_sec callback so that its implementation can also access registers
+directly.
 
 Signed-off-by: Tomasz Figa <t.figa@samsung.com>
 ---
- arch/arm/mach-exynos/firmware.c | 63 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
+ arch/arm/include/asm/mach/arch.h   | 3 ++-
+ arch/arm/include/asm/outercache.h  | 2 +-
+ arch/arm/mach-highbank/highbank.c  | 3 ++-
+ arch/arm/mach-omap2/omap4-common.c | 3 ++-
+ arch/arm/mach-ux500/cache-l2x0.c   | 3 ++-
+ arch/arm/mm/cache-l2x0.c           | 2 +-
+ 6 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-exynos/firmware.c b/arch/arm/mach-exynos/firmware.c
-index eb91d23..def7bb4 100644
---- a/arch/arm/mach-exynos/firmware.c
-+++ b/arch/arm/mach-exynos/firmware.c
-@@ -14,7 +14,9 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
+diff --git a/arch/arm/include/asm/mach/arch.h b/arch/arm/include/asm/mach/arch.h
+index 060a75e..fefff4d 100644
+--- a/arch/arm/include/asm/mach/arch.h
++++ b/arch/arm/include/asm/mach/arch.h
+@@ -46,7 +46,8 @@ struct machine_desc {
+ 	enum reboot_mode	reboot_mode;	/* default restart mode	*/
+ 	unsigned		l2c_aux_val;	/* L2 cache aux value	*/
+ 	unsigned		l2c_aux_mask;	/* L2 cache aux mask	*/
+-	void			(*l2c_write_sec)(unsigned long, unsigned);
++	void			(*l2c_write_sec)(unsigned long,
++						 void __iomem *, unsigned);
+ 	struct smp_operations	*smp;		/* SMP operations	*/
+ 	bool			(*smp_init)(void);
+ 	void			(*fixup)(struct tag *, char **);
+diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
+index 891a56b..25b70b5 100644
+--- a/arch/arm/include/asm/outercache.h
++++ b/arch/arm/include/asm/outercache.h
+@@ -35,7 +35,7 @@ struct outer_cache_fns {
+ 	void (*resume)(void);
  
-+#include <asm/cputype.h>
- #include <asm/firmware.h>
-+#include <asm/hardware/cache-l2x0.h>
- 
- #include <mach/map.h>
- 
-@@ -70,6 +72,57 @@ static const struct firmware_ops exynos_firmware_ops = {
- 	.cpu_boot		= exynos_cpu_boot,
+ 	/* This is an ARM L2C thing */
+-	void (*write_sec)(unsigned long, unsigned);
++	void (*write_sec)(unsigned long, void __iomem *, unsigned);
  };
  
-+static void exynos_l2_write_sec(unsigned long val, void __iomem *base,
-+				unsigned reg)
-+{
-+	switch (reg) {
-+	case L2X0_CTRL:
-+		if (val & L2X0_CTRL_EN)
-+			exynos_smc(SMC_CMD_L2X0INVALL, 0, 0, 0);
-+		exynos_smc(SMC_CMD_L2X0CTRL, val, 0, 0);
-+		break;
-+
-+	case L2X0_AUX_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP2,
-+				readl_relaxed(base + L310_POWER_CTRL),
-+				val, 0);
-+		break;
-+
-+	case L2X0_DEBUG_CTRL:
-+		exynos_smc(SMC_CMD_L2X0DEBUG, val, 0, 0);
-+		break;
-+
-+	case L310_TAG_LATENCY_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP1,
-+				val,
-+				readl_relaxed(base + L310_DATA_LATENCY_CTRL),
-+				readl_relaxed(base + L310_PREFETCH_CTRL));
-+		break;
-+
-+	case L310_DATA_LATENCY_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP1,
-+				readl_relaxed(base + L310_TAG_LATENCY_CTRL),
-+				val,
-+				readl_relaxed(base + L310_PREFETCH_CTRL));
-+		break;
-+
-+	case L310_PREFETCH_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP1,
-+				readl_relaxed(base + L310_TAG_LATENCY_CTRL),
-+				readl_relaxed(base + L310_DATA_LATENCY_CTRL),
-+				val);
-+		break;
-+
-+	case L310_POWER_CTRL:
-+		exynos_smc(SMC_CMD_L2X0SETUP2, val,
-+				readl_relaxed(base + L2X0_AUX_CTRL), 0);
-+		break;
-+
-+	default:
-+		WARN_ONCE(1, "%s: ignoring write to reg 0x%x\n", __func__, reg);
-+	}
-+}
-+
- void __init exynos_firmware_init(void)
- {
- 	struct device_node *nd;
-@@ -89,4 +142,14 @@ void __init exynos_firmware_init(void)
- 	pr_info("Running under secure firmware.\n");
+ extern struct outer_cache_fns outer_cache;
+diff --git a/arch/arm/mach-highbank/highbank.c b/arch/arm/mach-highbank/highbank.c
+index 8c35ae4..20cf160 100644
+--- a/arch/arm/mach-highbank/highbank.c
++++ b/arch/arm/mach-highbank/highbank.c
+@@ -51,7 +51,8 @@ static void __init highbank_scu_map_io(void)
+ }
  
- 	register_firmware_ops(&exynos_firmware_ops);
-+
-+	/*
-+	 * Exynos 4 SoCs (based on Cortex A9 and equipped with L2C-310),
-+	 * running under secure firmware, require certain registers of L2
-+	 * cache controller to be written in secure mode. Here .write_sec
-+	 * callback is provided to perform necessary SMC calls.
-+	 */
-+	if (IS_ENABLED(CONFIG_CACHE_L2X0)
-+	    && read_cpuid_part_number() == ARM_CPU_PART_CORTEX_A9)
-+		outer_cache.write_sec = exynos_l2_write_sec;
+ 
+-static void highbank_l2c310_write_sec(unsigned long val, unsigned reg)
++static void highbank_l2c310_write_sec(unsigned long val, void __iomem *base,
++				      unsigned reg)
+ {
+ 	if (reg == L2X0_CTRL)
+ 		highbank_smc1(0x102, val);
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 326cd98..ce04afa 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -167,7 +167,8 @@ void __iomem *omap4_get_l2cache_base(void)
+ 	return l2cache_base;
+ }
+ 
+-static void omap4_l2c310_write_sec(unsigned long val, unsigned reg)
++static void omap4_l2c310_write_sec(unsigned long val, void __iomem *base,
++				   unsigned reg)
+ {
+ 	unsigned smc_op;
+ 
+diff --git a/arch/arm/mach-ux500/cache-l2x0.c b/arch/arm/mach-ux500/cache-l2x0.c
+index 842ebed..bd87108 100644
+--- a/arch/arm/mach-ux500/cache-l2x0.c
++++ b/arch/arm/mach-ux500/cache-l2x0.c
+@@ -35,7 +35,8 @@ static int __init ux500_l2x0_unlock(void)
+ 	return 0;
+ }
+ 
+-static void ux500_l2c310_write_sec(unsigned long val, unsigned reg)
++static void ux500_l2c310_write_sec(unsigned long val, void __iomem *base,
++				   unsigned reg)
+ {
+ 	/*
+ 	 * We can't write to secure registers as we are in non-secure
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index efc5cab..478566b 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -72,7 +72,7 @@ static void l2c_write_sec(unsigned long val, void __iomem *base, unsigned reg)
+ 	if (val == readl_relaxed(base + reg))
+ 		return;
+ 	if (outer_cache.write_sec)
+-		outer_cache.write_sec(val, reg);
++		outer_cache.write_sec(val, base, reg);
+ 	else
+ 		writel_relaxed(val, base + reg);
  }
 -- 
 1.9.3
