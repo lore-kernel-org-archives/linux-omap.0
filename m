@@ -1,364 +1,45 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 5/9] ARM: DRA7: hwmod_data: Add mailbox hwmod data
-Date: Tue, 24 Jun 2014 20:04:51 -0500
-Message-ID: <1403658295-54766-6-git-send-email-s-anna@ti.com>
+Subject: [PATCH 6/9] ARM: OMAP2+: Avoid mailbox legacy device creation for DT-boot
+Date: Tue, 24 Jun 2014 20:04:52 -0500
+Message-ID: <1403658295-54766-7-git-send-email-s-anna@ti.com>
 References: <1403658295-54766-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55198 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbaFYBGY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jun 2014 21:06:24 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34799 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752612AbaFYBGY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jun 2014 21:06:24 -0400
 In-Reply-To: <1403658295-54766-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-Add the hwmod data for the 13 instances of the system mailbox
-IP in DRA7 SoC. The patch is needed for performing a soft-reset
-while configuring the respective mailbox instance, otherwise is
-a non-essential change for functionality. The modules are smart
-idled on reset, and the IP module mode is hardware controlled.
+The legacy platform device for mailbox should not be created for
+a DT boot, so adjust the platform device initialization logic
+appropriately.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 305 ++++++++++++++++++++++++++++++
- 1 file changed, 305 insertions(+)
+ arch/arm/mach-omap2/devices.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 20b4398..e35f5b1 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -939,6 +939,194 @@ static struct omap_hwmod dra7xx_i2c5_hwmod = {
- };
- 
- /*
-+ * 'mailbox' class
-+ *
-+ */
-+
-+static struct omap_hwmod_class_sysconfig dra7xx_mailbox_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class dra7xx_mailbox_hwmod_class = {
-+	.name	= "mailbox",
-+	.sysc	= &dra7xx_mailbox_sysc,
-+};
-+
-+/* mailbox1 */
-+static struct omap_hwmod dra7xx_mailbox1_hwmod = {
-+	.name		= "mailbox1",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX1_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX1_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox2 */
-+static struct omap_hwmod dra7xx_mailbox2_hwmod = {
-+	.name		= "mailbox2",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX2_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX2_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox3 */
-+static struct omap_hwmod dra7xx_mailbox3_hwmod = {
-+	.name		= "mailbox3",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX3_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX3_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox4 */
-+static struct omap_hwmod dra7xx_mailbox4_hwmod = {
-+	.name		= "mailbox4",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX4_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX4_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox5 */
-+static struct omap_hwmod dra7xx_mailbox5_hwmod = {
-+	.name		= "mailbox5",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX5_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX5_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox6 */
-+static struct omap_hwmod dra7xx_mailbox6_hwmod = {
-+	.name		= "mailbox6",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX6_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX6_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox7 */
-+static struct omap_hwmod dra7xx_mailbox7_hwmod = {
-+	.name		= "mailbox7",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX7_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX7_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox8 */
-+static struct omap_hwmod dra7xx_mailbox8_hwmod = {
-+	.name		= "mailbox8",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX8_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX8_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox9 */
-+static struct omap_hwmod dra7xx_mailbox9_hwmod = {
-+	.name		= "mailbox9",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX9_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX9_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox10 */
-+static struct omap_hwmod dra7xx_mailbox10_hwmod = {
-+	.name		= "mailbox10",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX10_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX10_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox11 */
-+static struct omap_hwmod dra7xx_mailbox11_hwmod = {
-+	.name		= "mailbox11",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX11_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX11_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox12 */
-+static struct omap_hwmod dra7xx_mailbox12_hwmod = {
-+	.name		= "mailbox12",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX12_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX12_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* mailbox13 */
-+static struct omap_hwmod dra7xx_mailbox13_hwmod = {
-+	.name		= "mailbox13",
-+	.class		= &dra7xx_mailbox_hwmod_class,
-+	.clkdm_name	= "l4cfg_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_L4CFG_MAILBOX13_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_L4CFG_MAILBOX13_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/*
-  * 'mcspi' class
-  *
-  */
-@@ -2246,6 +2434,110 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per1__i2c5 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l4_cfg -> mailbox1 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_cfg__mailbox1 = {
-+	.master		= &dra7xx_l4_cfg_hwmod,
-+	.slave		= &dra7xx_mailbox1_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox2 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox2 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox2_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox3 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox3 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox3_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox4 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox4 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox4_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox5 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox5 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox5_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox6 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox6 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox6_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox7 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox7 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox7_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox8 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox8 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox8_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox9 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox9 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox9_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox10 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox10 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox10_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox11 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox11 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox11_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox12 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox12 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox12_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per3 -> mailbox13 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__mailbox13 = {
-+	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_mailbox13_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_per1 -> mcspi1 */
- static struct omap_hwmod_ocp_if dra7xx_l4_per1__mcspi1 = {
- 	.master		= &dra7xx_l4_per1_hwmod,
-@@ -2662,6 +2954,19 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_per1__i2c3,
- 	&dra7xx_l4_per1__i2c4,
- 	&dra7xx_l4_per1__i2c5,
-+	&dra7xx_l4_cfg__mailbox1,
-+	&dra7xx_l4_per3__mailbox2,
-+	&dra7xx_l4_per3__mailbox3,
-+	&dra7xx_l4_per3__mailbox4,
-+	&dra7xx_l4_per3__mailbox5,
-+	&dra7xx_l4_per3__mailbox6,
-+	&dra7xx_l4_per3__mailbox7,
-+	&dra7xx_l4_per3__mailbox8,
-+	&dra7xx_l4_per3__mailbox9,
-+	&dra7xx_l4_per3__mailbox10,
-+	&dra7xx_l4_per3__mailbox11,
-+	&dra7xx_l4_per3__mailbox12,
-+	&dra7xx_l4_per3__mailbox13,
- 	&dra7xx_l4_per1__mcspi1,
- 	&dra7xx_l4_per1__mcspi2,
- 	&dra7xx_l4_per1__mcspi3,
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 592ba0a..708eb7d 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -460,9 +460,9 @@ static int __init omap2_init_devices(void)
+ 	omap_init_audio();
+ 	omap_init_camera();
+ 	omap_init_hdmi_audio();
+-	omap_init_mbox();
+ 	/* If dtb is there, the devices will be created dynamically */
+ 	if (!of_have_populated_dt()) {
++		omap_init_mbox();
+ 		omap_init_mcspi();
+ 		omap_init_sham();
+ 		omap_init_aes();
 -- 
 2.0.0
 
