@@ -1,38 +1,38 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH] arm/arm64: DT: Fix GICv2 CPU interface size
-Date: Wed, 25 Jun 2014 07:21:17 -0500
-Message-ID: <CAL_Jsq+rS3FE8_F-4qdUUTaJ6X9XNFP2d2h7CdU9hDRG0KG9uA@mail.gmail.com>
-References: <1403692675-26503-1-git-send-email-marc.zyngier@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1403692675-26503-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Maxime Ripard <maxime.ripard@free-electrons.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>linux
+From: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+Subject: [PATCH] arch: arm: mach-omap2: usb-tusb6010.c:  Cleaning up variable is set more than once
+Date: Wed, 25 Jun 2014 14:28:30 +0200
+Message-ID: <1403699310-22960-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 25, 2014 at 5:37 AM, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> All the Cortex-{A7,A15} implementations are using a GICv2. Same for
-> the current arm64 platforms.
->
-> Turns out that most of these platforms have described their GIC CPU
-> interface size as being 4kB. while it is actually 8kB (the GICC_DIR
-> register lives at offset 0x1000).
->
-> This was found when converting the GIC driver to use EOImode==1 on
-> GICv2-based systems. It uses the GICC_DIR register, and the result
-> is a very early firework...
+A struct member variable is set to the same value more than once
 
-What's your plan for making the kernel change? Updating the dts files
-is good, but that doesn't immediately help you if you have old dtbs.
+This was found using a static code analysis program called cppcheck.
 
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  arch/arm/boot/dts/axm55xx.dtsi              | 2 +-
->  arch/arm/boot/dts/dra7.dtsi                 | 2 +-
->  arch/arm/boot/dts/ecx-2000.dts              | 2 +-
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist-IW2WV5XWFqGZkjO+N0TKoMugMpMbD5Xr@public.gmane.org>
+---
+ arch/arm/mach-omap2/usb-tusb6010.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-Acked-by: Rob Herring <robh@kernel.org>
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index e832bc7..8333400 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -95,7 +95,6 @@ static int tusb_set_sync_mode(unsigned sysclk_ps)
+ 	dev_t.t_avdp_w = t_scsnh_advnh;
+ 	dev_t.cyc_aavdh_we = 3;
+ 	dev_t.cyc_wpl = 6;
+-	dev_t.t_ce_rdyz = 7000;
+ 
+ 	gpmc_calc_timings(&t, &tusb_sync, &dev_t);
+ 
+-- 
+1.7.10.4
 
-Rob
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
