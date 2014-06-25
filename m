@@ -1,87 +1,76 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH/RESEND 9/9] drm/tilcdc: replace late_initcall with
- module_init
-Date: Wed, 25 Jun 2014 14:13:33 +0100
-Message-ID: <20140625131333.GL3705@n2100.arm.linux.org.uk>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-10-git-send-email-guido@vanguardiasur.com.ar>
- <53A9F5F4.3030806@ti.com> <20140625130042.GK3705@n2100.arm.linux.org.uk>
+From: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] arm/arm64: DT: Fix GICv2 CPU interface size
+Date: Wed, 25 Jun 2014 15:31:34 +0200
+Message-ID: <20140625133134.GQ19730@lukather>
+References: <1403692675-26503-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Z8BXP3CGI0FdUons"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140625130042.GK3705@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Darren Etheridge <detheridge@ti.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
+In-Reply-To: <1403692675-26503-1-git-send-email-marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 25, 2014 at 02:00:42PM +0100, Russell King - ARM Linux wrote:
-> On Tue, Jun 24, 2014 at 05:04:36PM -0500, Darren Etheridge wrote:
-> > On 06/17/2014 09:17 AM, Guido Mart=EDnez wrote:
-> >> Use module_init instead of late_initcall, as is the norm for modular
-> >> drivers.
-> >>
-> >> module_init was used until 6e8de0bd6a51fdeebd5d975c4fcc426f730b339b
-> >> ("drm/tilcdc: add encoder slave (v2)") changed it to a late_initcall,
-> >> but it does not explain why. Tests show it's working properly with
-> >> module_init.
-> >>
-> >
-> > If I recall, the late_initcall stuff was done to try and make sure the  =
 
-> > tda998x/i2c subsystem came up before tilcdc. However it didn't always  =
+--Z8BXP3CGI0FdUons
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > work so we added commit: 39de6194131c155901f96686a063212656d80c2e to tr=
-y  =
+On Wed, Jun 25, 2014 at 11:37:54AM +0100, Marc Zyngier wrote:
+> All the Cortex-{A7,A15} implementations are using a GICv2. Same for
+> the current arm64 platforms.
+>=20
+> Turns out that most of these platforms have described their GIC CPU
+> interface size as being 4kB. while it is actually 8kB (the GICC_DIR
+> register lives at offset 0x1000).
+>=20
+> This was found when converting the GIC driver to use EOImode=3D=3D1 on
+> GICv2-based systems. It uses the GICC_DIR register, and the result
+> is a very early firework...
+>=20
+> Signed-off-by: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
 
-> > and ensure the ordering.  This might be why changing back to module_ini=
-t  =
+Just tested this on an Allwinner A31.
 
-> > is fine (and I agree with your assessment from my testing).
-> =
+Acked-by: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Tested-by: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 
-> There's a solution to that... I have patches which convert the tda998x
-> driver to also register into the component helpers as well as remaining
-> as a drm slave device.  This makes it possible to transition tilcdc to
-> use the component helper to solve the initialisation ordering.
-> =
+Thanks!
+Maxime
 
-> I'll (re-)post them later today.
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
 
-Except Daniel Mack will not be receiving any copies of them:
+--Z8BXP3CGI0FdUons
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-  zonque@gmail.com
-    SMTP error from remote mail server after end of data:
-    host gmail-smtp-in.l.google.com [2a00:1450:400c:c03::1a]:
-    550-5.7.1 [2001:4d48:ad52:3201:214:fdff:fe10:1be6      12] Our system h=
-as
-    550-5.7.1 detected that this message is likely unsolicited mail. To red=
-uce the
-    550-5.7.1 amount of spam sent to Gmail, this message has been blocked. =
-Please
-    550-5.7.1 visit
-    550-5.7.1 http://support.google.com/mail/bin/answer.py?hl=3Den&answer=
-=3D188131 for
-    550 5.7.1 more information. fs8si6627678wib.99 - gsmtp
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Google's anti-ham filter seems to be working perfectly, allowing spam
-through and blocking real messages... as usual.  And as usual, google
-provides no support for this crap.  Gmail has a history of increasingly
-blocking legitimate email in their alleged anti-spam fight.  Don't use
-gmail.
+iQIcBAEBAgAGBQJTqs82AAoJEBx+YmzsjxAgJtUP/j0Vbx/KdLy5szq5yRrNYza8
+n7XWqbf5uDMr/AUlmZh7E0ITdjlgGkjnT7K4zJUKndH+vem9NqMSS7aDzRG70TgH
+NVFrx3YagfixvZtpdxXH1z1RsbXj4v6/yOQPf8EO1GQR2dw8p3jPyL+Qsi9mXYFw
+EmZMwpWPIs0FSvQfq1pX+uvnM1Brw9gVzcounHHk81t3d1rgio3JFCo84zcqM8YD
+wIs1JQB/2k+PN7g30hM1yFjtkKSDzBgiQDo9I9hZnwjZXZ884+qXhT1DbWf8fXH4
+yRYgE0ZVtTjlIZn43UCM3IVwOv1Mkeztl2WYdBbr5ugU7nNY28SO7n1MzSoOjMyq
+9Y2nnYYc+JVtB9KCJWj0lcsI4yopMLPjNyHWkHgTeMRwOla1DoCmA91COF5C/Pl0
+y+hhdcdDotsvId1BImRb8FwMfmBAPyWUlReGiT7CsUxkiDgNmZgodBwo3FVSz0NM
+wqvb23FVwRK81z1mR2ubXdAMBOrz6g6dJqvdlAq5rbdS4RZyUacnY1JMjA3GIyp2
++LJSJXCNEtdcqMNp+zZy5z05ceJ0VSVJB9JpfgxdAZQBF8shAU6JCQ0EoojTNW8r
+caG3XHGLJuf2ryfvWj7Bqz9fTUShm5Fk3dpMsQ6+ze/CW+1R3HGWnBK1rvyWRUse
+wPqsESa8j5xxgj4IJbcH
+=kC28
+-----END PGP SIGNATURE-----
 
--- =
-
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+--Z8BXP3CGI0FdUons--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
