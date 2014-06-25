@@ -1,78 +1,67 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 0/9]
-Date: Tue, 24 Jun 2014 20:09:39 -0500
-Message-ID: <53AA2153.1010906@ti.com>
-References: <1403658065-54614-1-git-send-email-s-anna@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 1/2] arm: dts: am4372: let boards access all nodes
+ through phandles
+Date: Tue, 24 Jun 2014 20:40:16 -0500
+Message-ID: <20140625014016.GA21616@saruman.home>
+References: <1403547659-24558-1-git-send-email-balbi@ti.com>
+ <1403547659-24558-2-git-send-email-balbi@ti.com>
+ <CAL_JsqJx_DJqxpEJebi0Etfv5g7=eYje_53vd_44GykreA-rkQ@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58532 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753189AbaFYBKE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jun 2014 21:10:04 -0400
-In-Reply-To: <1403658065-54614-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqJx_DJqxpEJebi0Etfv5g7=eYje_53vd_44GykreA-rkQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Sricharan R <r.sricharan@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 06/24/2014 08:00 PM, Suman Anna wrote:
-> Hi Tony, Paul,
+--HlL+5n6rz5pIUxbD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please ignore this, resent the same message and the series with the
-proper subject.
+Hi,
 
-regards
-Suman
+On Tue, Jun 24, 2014 at 04:11:48PM -0500, Rob Herring wrote:
+> On Mon, Jun 23, 2014 at 1:20 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > by providing phandles to rtc, wdt, cpu and dispc nodes,
+> > boards can access them to add board-specific data.
+>=20
+> Strictly speaking, you are adding labels, not phandles. You can do
 
-> 
-> This patch series adds the minimal mailbox DT nodes for the SoCs that are
-> currently missing them (OMAP4, AM335x, DRA7). It also limits the legacy
-> mailbox platform device creation only for non-DT boot, and cleans up the
-> legacy hwmod addresses and attributes used for creating the sub-mailbox
-> devices. The sub-mailboxes in DT boot are not created until the OMAP
-> mailbox DT adoption series, and is not an issue since some of the other
-> required hwmod data for using legacy-mode devices have already been
-> cleaned up.
-> 
-> The patches are based on 3.16-rc2. The series do not have any order
-> dependencies with the OMAP mailbox cleanup series [1], and can be applied
-> in any order. The following shows the boot logs on various OMAP platforms
-> with just these patches on top of 3.16-rc2:
->   OMAP2 (SDP2430)           : http://slexy.org/view/s21gGdJxXP
->   OMAP3 (BeagleXM)          : http://slexy.org/view/s2n8Pc83Rp
->   OMAP4 (PandaBoard)        : http://slexy.org/view/s21StNWKPz
->   OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s2y3t6HZtk
->   DRA7  (DRA7 EVM)          : http://slexy.org/view/s2qY23Mt97
->   AM33xx (BeagleBone Black) : http://slexy.org/view/s2ce8jj35O
->   AM43xx (AM437x GP EVM)    : http://slexy.org/view/s2nttmOLSq
-> 
-> [1] http://marc.info/?l=linux-omap&m=140365705821115&w=2
-> 
-> Suman Anna (9):
->   ARM: dts: OMAP4: Add mailbox node
->   ARM: dts: AM33xx: Add mailbox node
->   ARM: dts: AM4372: Correct mailbox node data
->   ARM: dts: DRA7: Add mailbox nodes
->   ARM: DRA7: hwmod_data: Add mailbox hwmod data
->   ARM: OMAP2+: Avoid mailbox legacy device creation for DT-boot
->   ARM: OMAP2: hwmod_data: Remove legacy mailbox data and addrs
->   ARM: OMAP4: hwmod_data: Remove legacy mailbox addrs
->   ARM: AM33xx: hwmod_data: Remove legacy mailbox addrs
-> 
->  arch/arm/boot/dts/am33xx.dtsi                      |   7 +
->  arch/arm/boot/dts/am4372.dtsi                      |   7 +-
->  arch/arm/boot/dts/dra7.dtsi                        |  91 ++++++
->  arch/arm/boot/dts/omap4.dtsi                       |   7 +
->  arch/arm/mach-omap2/devices.c                      |   2 +-
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  14 -
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  13 -
->  .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |   9 -
->  .../omap_hwmod_33xx_43xx_interconnect_data.c       |  10 -
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  10 -
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 305 +++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_common_data.h       |   1 -
->  12 files changed, 412 insertions(+), 64 deletions(-)
-> 
+heh, fair point. Easily editable when applying, though (?)
 
+> phandles without using labels, but the syntax is not so obvious. I'd
+> tell you what it is but offhand I don't remember. :)
+
+something along the lines of using the full path ?
+
+--=20
+balbi
+
+--HlL+5n6rz5pIUxbD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIbBAEBAgAGBQJTqih/AAoJEIaOsuA1yqREs7EP+KmPRAojfoBCwguTIiGQh4AJ
+0uUI1HD7WBWm3xrqIzsrz5leFhbytxsLmevLAxi1uWAuI+HNokwx6Kma4Nyha8RE
+Mv9rY9/ZJNtRFT2+zej8awlL0wTiKOVg6vHiSJVh4yh3lRkLLA12fpmipSOYRwDK
+mXkPtt+sSeV/EqLxU5MKN7kq7Vy19oYKTXGn57wHKlLnWI0xucJQMJR4JG2bFaka
+5ZWJSmyz3KgqsA4YNVOdxbXlUmzqCewgqvJij624oT/kPO5EGmd3pMXtKncOeGfl
+v9+2deuTGqQXzuErTULorcNjJuEY57WmdBRLHicunRYyZPqisjgS6keKSmlb2nnR
+z1qeitHYgocAXFScXl+j/I/jcswMR5pVYqoa86trPSiqCbZorQJh4U4oQKZFKpRZ
+i/jUQw9Q5ObG/en+yiBdGRed6zct41fDws0mJqLjNMXZUpKv2f2+21odtWU3Fg2P
+z95rDmd1tHWRuEgpqWTo7LE1VRf89dBShhUJPhPAKKt96XgDRLvO7q/9yevZPB5q
+cgH4/kgyZpH+mWq0njWWVFYF0pdEqLC3PjQw4pmnZGSQmQjB7L3ppX3HRGHJ6Wdh
+KQbh2cxBb+axGmGhsaGDSuxArD3CRkWGT/FZn3Tsm++/f/CRKAXMyhVZnFuTAhAW
+q8LOz2GdIcSMnFuXTEM=
+=+L+D
+-----END PGP SIGNATURE-----
+
+--HlL+5n6rz5pIUxbD--
