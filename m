@@ -1,76 +1,44 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 01/12] ARM: OMAP2+: Remove non working OMAP HDMI audio initialization
-Date: Thu, 26 Jun 2014 22:20:52 +0300
-Message-ID: <b0764a3af8181db55db046d6139119def363e8eb.1403807781.git.jsarha@ti.com>
+Subject: [PATCH 02/12] OMAPDSS: hdmi.h: Add HDMI_AUDIO_LAYOUT_6CH enum value
+Date: Thu, 26 Jun 2014 22:20:53 +0300
+Message-ID: <3a1ecb5f60aae6b4af2733402da740d06a42fe6b.1403807781.git.jsarha@ti.com>
 References: <cover.1403807781.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36323 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36322 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751064AbaFZTV3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jun 2014 15:21:29 -0400
+	id S1750703AbaFZTV1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jun 2014 15:21:27 -0400
 In-Reply-To: <cover.1403807781.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi, Jyri Sarha <jsarha@ti.com>
 
-This code is not working currently and it can be removed. There is a
-conflict in sharing resources with the actual HDMI driver and with
-the ASoC HDMI audio DAI driver.
+The OMAP5 HDMI audio implementation needs HDMI_AUDIO_LAYOUT_6CH in
+hdmi_core_audio_layout enum. I found the correct value from ti-linux
+3.8 tree.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- arch/arm/mach-omap2/devices.c |   28 ----------------------------
- 1 file changed, 28 deletions(-)
+ drivers/video/fbdev/omap2/dss/hdmi.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 592ba0a..b6f8f34 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -297,33 +297,6 @@ static void omap_init_audio(void)
- static inline void omap_init_audio(void) {}
- #endif
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index 262771b..1f01068 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -160,7 +160,8 @@ enum hdmi_audio_blk_strt_end_sig {
  
--#if defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI) || \
--		defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI_MODULE)
--
--static struct platform_device omap_hdmi_audio = {
--	.name	= "omap-hdmi-audio",
--	.id	= -1,
--};
--
--static void __init omap_init_hdmi_audio(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--
--	oh = omap_hwmod_lookup("dss_hdmi");
--	if (!oh)
--		return;
--
--	pdev = omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0);
--	WARN(IS_ERR(pdev),
--	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
--
--	platform_device_register(&omap_hdmi_audio);
--}
--#else
--static inline void omap_init_hdmi_audio(void) {}
--#endif
--
- #if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE)
+ enum hdmi_core_audio_layout {
+ 	HDMI_AUDIO_LAYOUT_2CH = 0,
+-	HDMI_AUDIO_LAYOUT_8CH = 1
++	HDMI_AUDIO_LAYOUT_8CH = 1,
++	HDMI_AUDIO_LAYOUT_6CH = 2
+ };
  
- #include <linux/platform_data/spi-omap2-mcspi.h>
-@@ -459,7 +432,6 @@ static int __init omap2_init_devices(void)
- 	 */
- 	omap_init_audio();
- 	omap_init_camera();
--	omap_init_hdmi_audio();
- 	omap_init_mbox();
- 	/* If dtb is there, the devices will be created dynamically */
- 	if (!of_have_populated_dt()) {
+ enum hdmi_core_cts_mode {
 -- 
 1.7.9.5
 
