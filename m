@@ -1,46 +1,129 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Thu, 26 Jun 2014 03:40:44 -0700
-Message-ID: <20140626104044.GJ28884@atomide.com>
-References: <1403612666-31197-1-git-send-email-pekon@ti.com>
- <1403612666-31197-2-git-send-email-pekon@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 6/7] OMAPDSS: DPI: Add support for multiple instances
+Date: Thu, 26 Jun 2014 15:15:20 +0300
+Message-ID: <53AC0ED8.7060303@ti.com>
+References: <1401096492-1405-1-git-send-email-archit@ti.com> <1401864063-19196-1-git-send-email-archit@ti.com> <1401864063-19196-7-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="a56VLF9ivHeBUQp8GJvUxaa2vk4TfSsq4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16172 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750755AbaFZKkp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2014 06:40:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1403612666-31197-2-git-send-email-pekon@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59671 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932274AbaFZMPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jun 2014 08:15:22 -0400
+In-Reply-To: <1401864063-19196-7-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Pekon Gupta <pekon@ti.com> [140624 05:26]:
+--a56VLF9ivHeBUQp8GJvUxaa2vk4TfSsq4
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 04/06/14 09:41, Archit Taneja wrote:
+> Register DPI outputs, and assign the port_num to them as specified by t=
+he
+> 'reg' property in the DPI ports in DT.
+>=20
+> To support multiple DPI instances, dpi_get_channel needs to take the DP=
+I
+> instance's reg-id to get the corresponding channel. Make it take this
+> argument.We just pass 0 in the non-DT path, since we don't support mult=
+iple
+> instances in the non-DT case.
+>=20
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/video/fbdev/omap2/dss/dpi.c | 26 +++++++++++++++++++++++---
+>  1 file changed, 23 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/video/fbdev/omap2/dss/dpi.c b/drivers/video/fbdev/=
+omap2/dss/dpi.c
+> index b579022..3e204a8 100644
+> --- a/drivers/video/fbdev/omap2/dss/dpi.c
+> +++ b/drivers/video/fbdev/omap2/dss/dpi.c
+> @@ -616,7 +616,7 @@ static void dpi_init_pll(struct dpi_data *dpi)
+>   * the channel in some more dynamic manner, or get the channel as a us=
+er
+>   * parameter.
+>   */
+> -static enum omap_channel dpi_get_channel(void)
+> +static enum omap_channel dpi_get_channel(int reg)
+>  {
+>  	switch (omapdss_get_version()) {
+>  	case OMAPDSS_VER_OMAP24xx:
+> @@ -710,7 +710,7 @@ static void dpi_init_output(struct platform_device =
+*pdev)
+>  	out->id =3D OMAP_DSS_OUTPUT_DPI;
+>  	out->output_type =3D OMAP_DISPLAY_TYPE_DPI;
+>  	out->name =3D "dpi.0";
+> -	out->dispc_channel =3D dpi_get_channel();
+> +	out->dispc_channel =3D dpi_get_channel(0);
+>  	out->ops.dpi =3D &dpi_ops;
+>  	out->owner =3D THIS_MODULE;
+> =20
+> @@ -730,11 +730,31 @@ static void dpi_init_output_port(struct platform_=
+device *pdev,
+>  {
+>  	struct dpi_data *dpi =3D port->data;
+>  	struct omap_dss_device *out =3D &dpi->output;
+> +	int r;
+> +	u32 reg;
 > +
-> +&gpmc {
-> +	ranges = <0 0 0 0x01000000>;	/* address range = 16MB (minimum GPMC partition) */
-> +	nand@0,0 {
-> +		status = "disabled";
-> +		reg = <0 0 4>;		/* device IO registers */
+> +	r =3D of_property_read_u32(port, "reg", &reg);
+> +	if (r)
+> +		reg =3D 0;
+> +
+> +	switch (reg) {
+> +	case 2:
+> +		out->name =3D "dpi.2";
+> +		break;
+> +	case 1:
+> +		out->name =3D "dpi.1";
+> +		break;
+> +	case 0:
+> +	default:
+> +		out->name =3D "dpi.0";
+> +		break;
+> +	}
 
-Hmm so what about other capes potentially also using GPMC CS0?
+I don't think it makes sense to use "reg" word anywhere else than when
+getting the property from the DT data. What we need here is port number.
+That port number is just stored in "reg" property in the DT data. So
+rather do:
 
-Can you please do a check with two .dtsi files trying to use
-GPMC CS0 and see what the produced .dtb file looks like after
-decompiling it with dtc?
+of_property_read_u32(port, "reg", &port_num);
 
-I'd assume the 16MB GPMC partition will be just fine for many
-devices and can be also be larger if NOR needs it so maybe it
-can be handled for almost all the cases.
+and use the port_num (or such) everywhere, including the subject of the
+next patch.
 
-The names for devices must be unique though to avoid them
-getting merged. And I don't know if gpmc.c skips disabled devices
-properly.
+ Tomi
 
-Regards,
 
-Tony
+
+--a56VLF9ivHeBUQp8GJvUxaa2vk4TfSsq4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTrA7YAAoJEPo9qoy8lh71WKkP/3kZAYyH1b3Xj1ffI7eyOJgS
+vWYDhvlAT4H3YhRZ+1ncdV8kqOY1uKWPnkxiAJ2O0bzhfDymqZOzHRdymPpI9o3T
+4l7zdZ4oAx8UO5z+WStWD9N3H7IyQ7thHgudbb7o2t3k77qXmn2DJnBu8fzji9aV
+q1TOe/5R1StYRQAmSgQnwDTcZjLlYgkqokhnf7GPi1GCfcUk3D+4MapW9nYAQLPO
+cu351bR0dI4AvTiJkB85Byzcth5/pBCdl4iPWWTDnYA5gIp/wrDSikdaMICzOwta
+Cp/coIrGYXuGD2nVsUqxwmGiM0OIAJVJO3dKRm2ii4mZeGop8YHO0bwVy9cjZQJ3
+Ig//alNFFYDxRiyOttq3vANUEe64EmuPHzmhIDjosVRSNzVL+dAPvMzBM6eChSxO
+GLyzFLHZdgOipPJiJou6F3OIq8h+xC6F4QJxJd05pSvzfmji6GJKIldedZmgwUQQ
+nxtYajex0LYhV+n6tvOa++i7W1DU/uFCKNTl9/pViYqtNZwYZJwTqdRXsMiDWAHv
++B3wfCJ2k+qIgfIgv1wy9OWQVSV2CR0gZF6gCOD+0cdH//VZPihwF3VbMghJgEay
+j2AevWNaLD2GiO2HNJ2UmPKKaWdk1lMVKTu1PjuGlYPEWgTZRTtdVe0cYzbG8nSa
+K+E7dkSQ9KiUAf+XiETx
+=2rcA
+-----END PGP SIGNATURE-----
+
+--a56VLF9ivHeBUQp8GJvUxaa2vk4TfSsq4--
