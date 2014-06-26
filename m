@@ -1,157 +1,240 @@
-From: Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Unifying cape overlays into boot .dtb for
- BeagleBoard.org boards
-Date: Thu, 26 Jun 2014 11:27:08 -0400
-Message-ID: <CA+T6QP=-mUz_uGg6eZEdP-1y9hyYJfDbx+363THSJarF=dTcog@mail.gmail.com>
-References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com>
-	<CA+T6QP=jqdKij3bg3qZKT8GAKTKP94XtDWR+rcJWnDME5ZNmUg@mail.gmail.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EAF59A7@DBDE04.ent.ti.com>
-	<CA+T6QP=Q0db33NU1g=9QrOUqQhLfKg=UiHVSn=Loog_JFxtP1w@mail.gmail.com>
-	<20980858CB6D3A4BAE95CA194937D5E73EAF5DD0@DBDE04.ent.ti.com>
-	<20140626075039.GG28884@atomide.com>
-	<53AC1AC5.5000103@ti.com>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Subject: Re: [PATCH v1 3/3] ARM: dts: am335x-bone: add support for beaglebone
+ LCD4 cape
+Date: Thu, 26 Jun 2014 12:40:52 -0300
+Message-ID: <20140626154052.GB15648@fox>
+References: <1403612666-31197-1-git-send-email-pekon@ti.com>
+ <1403612666-31197-4-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <beagleboard+bncBDELZWNUYMHBBTPXWCOQKGQETBXREAQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <53AC1AC5.5000103-l0cyMroinI0@public.gmane.org>
-List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard>
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>, OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yh0-f42.google.com ([209.85.213.42]:58481 "EHLO
+	mail-yh0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755366AbaFZPii (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2014 11:38:38 -0400
+Received: by mail-yh0-f42.google.com with SMTP id i57so2242746yha.1
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jun 2014 08:38:37 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1403612666-31197-4-git-send-email-pekon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pekon Gupta <pekon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
 
-On Thu, Jun 26, 2014 at 9:06 AM, Tom Rini <trini-l0cyMroinI0@public.gmane.org> wrote:
-> On 06/26/2014 03:50 AM, Tony Lindgren wrote:
->> * Gupta, Pekon <pekon-l0cyMroinI0@public.gmane.org> [140618 01:52]:
->>> Hi,
->>>
->>>> From: Jason Kridner [mailto:jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->>>>> On Tue, Jun 17, 2014 at 3:11 AM, Gupta, Pekon <pekon-l0cyMroinI0@public.gmane.org> wrote:
->>>>>> From: Jason Kridner
->>> [...]
->>>>>>> * The devicetree sources, including the primary boot .dts files, will
->>>>>>> eventually be removed from the kernel source tree. I'm not too sure if
->>>>>>> and when it'll really happen, but starting up a project to maintain
->>>>>>> the definitive beagleboard.org board devicetree files outside the
->>>>>>> kernel seems to make sense. Given the interdependency of the boot .dtb
->>>>>>> and the overlay .dtbo files, combining them into a single repository
->>>>>>> where every distribution can pick them up seems like a natural and
->>>>>>> obvious choice. There are of course some dependencies on kernel
->>>>>>> versions, but I believe most of those have settled out by now and we
->>>>>>> should be OK moving forward.
->>>>>
->>>>> +1
->>>>> Yes, moving cape DTS out of kernel tree should help developers.
->>>>> There are quite a few cape patches floating in mail-lists, but as cape
->>>>> DTS is still not accepted in mainline so they get lost and forgotten.
->>>>> So one place for collecting all this is a good idea.
->>>>>
->>>>>
->>>>> However, somehow the universal I/O DTS looked seemed complicated:
->>>>> (1)
->>>>> All capes work standalone, but due to share pin-mux some cape
->>>>> combinations cannot be used simultaneously. But most users of
->>>>> BeagleBone are already well-versed with DT and kernel infrastructure,
->>>>> so they need not be spoon fed to get a out-of-box working solution
->>>>> for each combination. If there is proper documentation is available
->>>>> about compatibility of capes with each other, then users will figure
->>>>> out themselves.
->>>>
->>>> I think you have too much confidence in users. If this doesn't hurt
->>>> power users, then why is it bad have an option to spoon feed? This
->>>> doesn't prevent anyone with knowledge of DT from doing their own
->>>> thing.
->>>>
->>> Fair enough.
->>> But plz give a try to u-boot alternative below. It works at my end.
->>>
->>>>>
->>>>> (2)
->>>>> Also, there was a talk of enabling and disabling DT fragments via u-boot.
->>>>> That should also be explored instead of complicating cape DTS.
->>>>
->>>> Link? Relevance?
->>>>
->>> we can modify DT from u-boot itself [1].
->>> Example:  "MMC2" pin-mux conflicts with "NAND" and "NOR" capes.
->>> But using following sequence of commands, you can modify DTB via
->>> u-boot and make NAND cape work _without_any_hack_ in patch [2].
->>>
->>> /* load DTB */
->>> u-boot> tftp 0x81000000 am335x-boneblack.dtb
->>> u-boot> fdt addr 0x81000000
->>> /* disable MMC2 node */
->>> u-boot> fdt list /ocp/mmc@481d8000
->>> u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
->>> u-boot> fdt list /ocp/mmc@481d8000 status
->>> /* enable GPMC node */
->>> u-boot> fdt list /ocp/gpmc
->>> u-boot> fdt set  /ocp/gpmc status \o\k\a\y
->>> u-boot> fdt list /ocp/gpmc status
->>> /* enable ELM node */
->>> u-boot> fdt list /ocp/elm
->>> u-boot> fdt set  /ocp/elm status \o\k\a\y
->>> u-boot> fdt list /ocp/elm status
->>> /* boot uImage */
->>> tftp 0x82000000 uImage
->>> bootm 0x82000000 - 0x81000000
->>>
->>> Note: "fdt set" command does not accept string literals
->>> as binding values, it internally converts them to string, so
->>> escape sequenced characters were used here..
->>> "okay" == \o\k\a\y
->>> "disabled" == \d\i\s\a\b\l\e\d"
->>>
->>>
->>> Hope above solves the pre-requisite because of which 'Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>'
->>> was unable to accept cape related DTS into his tree [3]
->>
->> Yes. If the capes are disabled by default we can have at
->> least some of them included in the mainline kernel and
->> enabled by the bootloader as needed. I'd like to hear back
->> from the u-boot people too on this approach naturally.
+Hi Pekon,
 
-Great.
+I had some issues with this patch. Booting linux-next on a BeagleBone
+Black with this exact LCD left me with an unusable white screen. Please
+see below for some details.
 
->>
->> And some things we still cannot merge if they overlap for
->> GPMC bindings for example. So we have to carefully check
->> the generated .dtb file with dtc -I dtb -O dts.
->
-> This sounds really problematic to me from an end-user horror point of
-> view.  And fortunately 3.17 is going to have some level of overlay
-> support so we can set this problem aside (and even treat the am335x gp
-> evm "profileN" trees as overlays too).
+On Tue, Jun 24, 2014 at 05:54:26PM +0530, Pekon Gupta wrote:
+> This patch adds support for LCD4 cape as advertised on
+>   http://elinux.org/CircuitCo:BeagleBone_LCD4
+>=20
+> This cape has:
+> * 480x272 TFT-LCD panel
+>  - LCD panel datasheet and timing information are sourced from [1]
+>  - LCD backlight is connected to 'EHRPWM1A' on cape board, but its us=
+ed for
+>    enabling backlight power-supply. So 'gpio-backlight' driver is use=
+d instead
+>    of 'pwm-backlight' driver (Kconfig: BACKLIGHT_GPIO=3Dy).
+>=20
+> * 4-wire resistive Touchscreen
+>=20
+> *Known constrains*
+> As LCD panel pins (lcd_data, hsync, vsync, pclk) are shared with on-b=
+oard
+> NXP HDMI framer, so either HDMI or LCD-cape can be used at time. Thus=
+ while
+> using this cape 'hdmi' DT node needs to be disabled in am335x-bonebla=
+ck.dts
+>=20
+> [1] www.newhavendisplay.com/specs/NHD-4.3-480272MF-ATXI-T-1.pdf
+>     www.newhavendisplay.com/app_notes/OTA5180A.pdf
+>=20
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-bone-display-cape.dts | 104 +++++++++++++++=
+++++++++++
+>  arch/arm/boot/dts/am335x-bone.dts              |   1 +
+>  arch/arm/boot/dts/am335x-boneblack.dts         |   1 +
+>  3 files changed, 106 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/am335x-bone-display-cape.dts
+>=20
+> diff --git a/arch/arm/boot/dts/am335x-bone-display-cape.dts b/arch/ar=
+m/boot/dts/am335x-bone-display-cape.dts
+> new file mode 100644
+> index 0000000..f3b7cef
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am335x-bone-display-cape.dts
+> @@ -0,0 +1,104 @@
+> +/*
+> + * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti=
+=2Ecom/
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This DTS adds supports for display capes using LCD interface for =
+display
+> + * and GPIO or PWM interface for backlight controls.
+> + */
+> +
+> +
+> +&am33xx_pinmux {
+> +	bbcape_backlight_pins: bbcape_backlight_pins {
+> +		pinctrl-single,pins =3D <
+> +			0x48  (PIN_OUTPUT | MUX_MODE7)		/* gpmc_a[2].GPIO1[18] (backlight=
+ control) */
+> +		>;
+> +	};
+> +
+> +	bbcape_lcd_pins: bbcape_lcd_pins {
+> +		pinctrl-single,pins =3D <
+> +			0xa0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data0.lcd_data0 */
+> +			0xa4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data1.lcd_data1 */
+> +			0xa8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data2.lcd_data2 */
+> +			0xac (PIN_OUTPUT | MUX_MODE0)		/* lcd_data3.lcd_data3 */
+> +			0xb0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data4.lcd_data4 */
+> +			0xb4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data5.lcd_data5 */
+> +			0xb8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data6.lcd_data6 */
+> +			0xbc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data7.lcd_data7 */
+> +			0xc0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data8.lcd_data8 */
+> +			0xc4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data9.lcd_data9 */
+> +			0xc8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data10.lcd_data10 */
+> +			0xcc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data11.lcd_data11 */
+> +			0xd0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data12.lcd_data12 */
+> +			0xd4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data13.lcd_data13 */
+> +			0xd8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_data14.lcd_data14 */
+> +			0xdc (PIN_OUTPUT | MUX_MODE0)		/* lcd_data15.lcd_data15 */
+> +			0xe0 (PIN_OUTPUT | MUX_MODE0)		/* lcd_vsync.lcd_vsync */
+> +			0xe4 (PIN_OUTPUT | MUX_MODE0)		/* lcd_hsync.lcd_hsync */
+> +			0xe8 (PIN_OUTPUT | MUX_MODE0)		/* lcd_pclk.lcd_pclk */
+> +			0xec (PIN_OUTPUT | MUX_MODE0)		/* lcd_ac_bias_en.lcd_ac_bias_en (=
+lcd_en) */
+> +			0x1a4 (PIN_OUTPUT_PULLUP | MUX_MODE7)	/* mcasp0_fsr.gpio3[19] (lc=
+d_disen) */
+> +		>;
+> +	};
+> +
+> +	bbcape_touchscreen_pins: bbcape_touchscreen_pins {
+> +		pinctrl-single,pins =3D <
+> +			0x184 (PIN_INPUT_PULLDOWN | MUX_MODE7)		/* uart1_txd.gpio0[15] (e=
+nter) */
+> +			0x40  (PIN_INPUT_PULLDOWN | MUX_MODE7)		/* gpmc_a0.gpio1[16] (lef=
+t) */
+> +			0x44  (PIN_INPUT_PULLDOWN | MUX_MODE7)		/* gpmc_a1.gpio1[17] (rig=
+ht) */
+> +			0x4c  (PIN_INPUT_PULLDOWN | MUX_MODE7)		/* gpmc_a3.gpio1[19] (up)=
+ */
+> +			0x198 (PIN_INPUT_PULLDOWN | MUX_MODE7)		/* mcasp0_axr0.gpio3[16] =
+(down) */
+> +		>;
+> +	};
+> +};
+> +
+> +
+> +/ {
+> +	backlight {
+> +		status =3D "disabled";
+> +		compatible =3D "gpio-backlight";
+> +		pinctrl-names =3D "default";
+> +		pinctrl-0 =3D <&bbcape_backlight_pins>;
+> +		gpios =3D <&gpio1 18 GPIO_ACTIVE_HIGH>;
+> +		default-on;
+> +	};
+> +
+> +	panel {
+> +		status =3D "disabled";
+> +		compatible =3D "ti,tilcdc,panel";
+> +		pinctrl-names =3D "default";
+> +		pinctrl-0 =3D <&bbcape_lcd_pins>;
+> +		panel-info {
+> +			ac-bias           =3D <255>;
+> +			ac-bias-intrpt    =3D <0>;
+> +			dma-burst-sz      =3D <16>;
+> +			bpp               =3D <16>;
+> +			fdd               =3D <0x80>;
+> +			sync-edge         =3D <0>;
+> +			sync-ctrl         =3D <0>;
+I had to set this to <1>. Does that make sense?=20
 
-Thank you Tom for chiming in. I think the end user experience is
-horrific. Pekon should at least provide patches to u-boot that would
-provide a mechanism to enable/disable a cape with a single operation,
-rather than the individual devicetree nodes. This seems to really
-break any ability to keep information about a cape consolidated or
-usable by mere mortals.
+> +			raster-order      =3D <0>;
+> +			fifo-th           =3D <0>;
+> +		};
+> +		display-timings {
+> +			native-mode =3D <&timing0>;
+> +			/* www.newhavendisplay.com/app_notes/OTA5180A.pdf */
+> +			timing0: 480x272 {
+> +				clock-frequency =3D <30000000>;
+> +				hactive =3D <480>;
+> +				vactive =3D <272>;
+> +				hfront-porch =3D <8>;
+> +				hback-porch =3D <47>;
+> +				hsync-len =3D <41>;
+> +				vback-porch =3D <2>;
+> +				vfront-porch =3D <3>;
+> +				vsync-len =3D <10>;
+> +				hsync-active =3D <0>;
+> +				vsync-active =3D <0>;
+> +				de-active =3D <1>;
+> +				pixelclk-active =3D <0>;
+Are you sure these timings are ok? When enabling the sync control I get
+an usable display, but it looks a bit funny. For example an all black
+display looks very clear and has a dotted pattern.
 
-I don't know that pushing it all into the kernel with overlays,
-however, is the right answer. We've seen challenges with some
-userspaces not exposing /lib/firmware in time and needing to compile
-overlays into the kernel to make them work. More troublesome are the
-types of errors end-users get when there are syntax errors, conflicts
-or other failures, most notably because testing of loading all of the
-various overlays in conflict with each other is adhoc at best. We've
-gotten a lot of good feedback on using the pinmux-helper and
-config-pin utility from end users who are still struggling to learn
-how to do devicetree overlays properly. It seems to me that kernel
-run-time overlays should be used for development and dynamic hardware
-rather than boot-time configuration, despite the convenience they add
-to most of us who understand the basics of how to use them.
+I tried to take a picture of it but it doesn't show.
 
--- 
-For more options, visit http://beagleboard.org/discuss
---- 
-You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+Also I'm just guessing about the timings, maybe it's something else?
+
+> +			};
+> +		};
+> +	};
+> +};
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am=
+335x-bone.dts
+> index f16bfcf..41439dc 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -10,6 +10,7 @@
+>  #include "am33xx.dtsi"
+>  #include "am335x-bone-common.dtsi"
+>  #include "am335x-bone-memory-cape.dts"
+> +#include "am335x-bone-display-cape.dts"
+> =20
+>  &ldo3_reg {
+>  	regulator-min-microvolt =3D <1800000>;
+> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/d=
+ts/am335x-boneblack.dts
+> index e6d7e54..03232c7 100644
+> --- a/arch/arm/boot/dts/am335x-boneblack.dts
+> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+> @@ -10,6 +10,7 @@
+>  #include "am33xx.dtsi"
+>  #include "am335x-bone-common.dtsi"
+>  #include "am335x-bone-memory-cape.dts"
+> +#include "am335x-bone-display-cape.dts"
+> =20
+>  &ldo3_reg {
+>  	regulator-min-microvolt =3D <1800000>;
+> --=20
+> 1.8.5.1.163.gd7aced9
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+Guido Mart=EDnez, VanguardiaSur
+www.vanguardiasur.com.ar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
