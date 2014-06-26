@@ -1,38 +1,55 @@
-From: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH] arm: mach-omap2: gpmc: ignore non-available nodes
-Date: Thu, 26 Jun 2014 13:37:07 -0300
-Message-ID: <20140626163707.GA26836@arch.cereza>
-References: <1403794923-19511-1-git-send-email-guido@vanguardiasur.com.ar>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] regulator: tps65917: Fix SMPS enable/disable/is_enable
+Date: Thu, 26 Jun 2014 13:31:34 -0500
+Message-ID: <1403807494-23907-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1403794923-19511-1-git-send-email-guido@vanguardiasur.com.ar>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>
-Cc: Tony Lindgren <tony@atomide.com>, pekon@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
+Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 26 Jun 12:02 PM, Guido Mart=EDnez wrote:
-> Currently, child nodes of the gpmc node are iterated and probed
-> regardless of their 'status' property. This means adding 'status =3D
-> "disabled";' has no effect.
->=20
-> This patch changes the iteration to only probe nodes marked as
-> available.
->=20
-> Signed-off-by: Guido Mart=EDnez <guido@vanguardiasur.com.ar>
+We use regmap regulator ops to enable/disable and check if regulator
+is enabled for various SMPS. However, these depend on valid
+enable_reg, enable_mask and enable_value in regulator descriptor.
 
-Just a nit: the commit title doesn't match the recent commits. If you
-run "git log" on this file, you'll find the pattern should be something
-like:
+So, similar to fix we did in commit 318dbb02b50c
+("regulator: palmas: Fix SMPS enable/disable/is_enabled"), populate the
+same for TPS65917 SMPS registration. LDO definitions are already in place.
 
-"ARM: OMAP2+: GPMC should only probe enabled devices"
+Fixes: d6f83370ed97 ("regulator: palmas: Add tps65917 PMIC support")
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
 
-Other than this, the patch looks correct.
+Applies on:
+	git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
+branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
 
-Thanks,
---=20
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+Note: Ignored the minor style check from checkpatch --strict as fixing
+it would create an 80 char warning
+
+ drivers/regulator/palmas-regulator.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index 7c8b441..c7aa1b1 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -1333,6 +1333,14 @@ static int tps65917_smps_registration(struct palmas_pmic *pmic,
+ 		pmic->current_reg_mode[id] = reg &
+ 				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
+ 
++		pmic->desc[id].enable_reg =
++				PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
++					palmas_regs_info[id].ctrl_addr);
++		pmic->desc[id].enable_mask =
++				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
++		/* set_mode overrides this value */
++		pmic->desc[id].enable_val = SMPS_CTRL_MODE_ON;
++
+ 		pmic->desc[id].type = REGULATOR_VOLTAGE;
+ 		pmic->desc[id].owner = THIS_MODULE;
+ 
+-- 
+1.7.9.5
