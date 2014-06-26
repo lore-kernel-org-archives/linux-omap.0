@@ -1,94 +1,129 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 0/7] OMAPDSS: Support multiple DPI instances
-Date: Thu, 26 Jun 2014 15:28:50 +0300
-Message-ID: <53AC1202.5050901@ti.com>
-References: <1401096492-1405-1-git-send-email-archit@ti.com> <1401864063-19196-1-git-send-email-archit@ti.com>
+From: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
+Subject: Re: Unifying cape overlays into boot .dtb for
+ BeagleBoard.org boards
+Date: Thu, 26 Jun 2014 09:06:13 -0400
+Message-ID: <53AC1AC5.5000103@ti.com>
+References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com> <CA+T6QP=jqdKij3bg3qZKT8GAKTKP94XtDWR+rcJWnDME5ZNmUg@mail.gmail.com> <20980858CB6D3A4BAE95CA194937D5E73EAF59A7@DBDE04.ent.ti.com> <CA+T6QP=Q0db33NU1g=9QrOUqQhLfKg=UiHVSn=Loog_JFxtP1w@mail.gmail.com> <20980858CB6D3A4BAE95CA194937D5E73EAF5DD0@DBDE04.ent.ti.com> <20140626075039.GG28884@atomide.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="PmqUKt4C4LTlMJCxFXq1o2ILlpMWPItlN"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32905 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbaFZM2x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2014 08:28:53 -0400
-In-Reply-To: <1401864063-19196-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-
---PmqUKt4C4LTlMJCxFXq1o2ILlpMWPItlN
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Return-path: <beagleboard+bncBCF77LUSWAKRBVNVWCOQKGQE2YF5HFI-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <20140626075039.GG28884-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>
+Cc: Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+List-Id: linux-omap@vger.kernel.org
 
-On 04/06/14 09:40, Archit Taneja wrote:
-> DSS on DRA7x has 3 DPI outputs. In order to get them to work. We need t=
-o make
-> the DPI driver support multiple DPI instances. We also need to tweak th=
-e
-> DT parsing done to match an encoder/connector/panel driver to find the
-> corresponding omapdss output. This series tries to achieve the above 2 =
-tasks.
->=20
-> Changes in v3:
->=20
-> - Make indexes in port lists not depend on DPI and SDI CONFIGs.
-> - Cleaner code in dss_init_ports/uninit_ports.
-> - Split up the patch which creates multi DPI instances.
-> - Switch to a simpler way of extracting DPI driver data from dssdev.
-> - Change some of the dss-of fucntions, such that
->   omapdss_of_find_source_for_first_ep is simplified.
->=20
-> Archit Taneja (7):
->   OMAPDSS: DPI: Use DPI driver data
->   OMAPDSS: DPI: Allocate driver data
->   OMAPDSS: DPI: Store dpi_data pointer in the DT port's data
->   OMAPDSS: DSS: init dss ports cleanly
->   OMAPDSS: DT: Get source endpoint by matching reg-id
->   OMAPDSS: DPI: Add support for multiple instances
->   omapdss: DSS: add reg-id param to dpi_select_source
->=20
->  .../fbdev/omap2/displays-new/encoder-tfp410.c      |   1 +
->  .../fbdev/omap2/displays-new/encoder-tpd12s015.c   |   1 +
->  drivers/video/fbdev/omap2/dss/dpi.c                | 259 +++++++++++++=
-+-------
->  drivers/video/fbdev/omap2/dss/dss-of.c             |  58 +++--
->  drivers/video/fbdev/omap2/dss/dss.c                | 108 +++++++--
->  drivers/video/fbdev/omap2/dss/dss.h                |  34 ++-
->  drivers/video/fbdev/omap2/dss/output.c             |  19 +-
->  drivers/video/fbdev/omap2/dss/sdi.c                |   2 +-
->  include/video/omapdss.h                            |   5 +-
->  9 files changed, 354 insertions(+), 133 deletions(-)
+On 06/26/2014 03:50 AM, Tony Lindgren wrote:
+> * Gupta, Pekon <pekon-l0cyMroinI0@public.gmane.org> [140618 01:52]:
+>> Hi,
+>>
+>>> From: Jason Kridner [mailto:jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>>>> On Tue, Jun 17, 2014 at 3:11 AM, Gupta, Pekon <pekon-l0cyMroinI0@public.gmane.org> wrote:
+>>>>> From: Jason Kridner
+>> [...]
+>>>>>> * The devicetree sources, including the primary boot .dts files, will
+>>>>>> eventually be removed from the kernel source tree. I'm not too sure if
+>>>>>> and when it'll really happen, but starting up a project to maintain
+>>>>>> the definitive beagleboard.org board devicetree files outside the
+>>>>>> kernel seems to make sense. Given the interdependency of the boot .dtb
+>>>>>> and the overlay .dtbo files, combining them into a single repository
+>>>>>> where every distribution can pick them up seems like a natural and
+>>>>>> obvious choice. There are of course some dependencies on kernel
+>>>>>> versions, but I believe most of those have settled out by now and we
+>>>>>> should be OK moving forward.
+>>>>
+>>>> +1
+>>>> Yes, moving cape DTS out of kernel tree should help developers.
+>>>> There are quite a few cape patches floating in mail-lists, but as cape
+>>>> DTS is still not accepted in mainline so they get lost and forgotten.
+>>>> So one place for collecting all this is a good idea.
+>>>>
+>>>>
+>>>> However, somehow the universal I/O DTS looked seemed complicated:
+>>>> (1)
+>>>> All capes work standalone, but due to share pin-mux some cape
+>>>> combinations cannot be used simultaneously. But most users of
+>>>> BeagleBone are already well-versed with DT and kernel infrastructure,
+>>>> so they need not be spoon fed to get a out-of-box working solution
+>>>> for each combination. If there is proper documentation is available
+>>>> about compatibility of capes with each other, then users will figure
+>>>> out themselves.
+>>>
+>>> I think you have too much confidence in users. If this doesn't hurt
+>>> power users, then why is it bad have an option to spoon feed? This
+>>> doesn't prevent anyone with knowledge of DT from doing their own
+>>> thing.
+>>>
+>> Fair enough.
+>> But plz give a try to u-boot alternative below. It works at my end.
+>>
+>>>>
+>>>> (2)
+>>>> Also, there was a talk of enabling and disabling DT fragments via u-boot.
+>>>> That should also be explored instead of complicating cape DTS.
+>>>
+>>> Link? Relevance?
+>>>
+>> we can modify DT from u-boot itself [1].
+>> Example:  "MMC2" pin-mux conflicts with "NAND" and "NOR" capes.
+>> But using following sequence of commands, you can modify DTB via
+>> u-boot and make NAND cape work _without_any_hack_ in patch [2].
+>>
+>> /* load DTB */
+>> u-boot> tftp 0x81000000 am335x-boneblack.dtb
+>> u-boot> fdt addr 0x81000000
+>> /* disable MMC2 node */
+>> u-boot> fdt list /ocp/mmc@481d8000
+>> u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
+>> u-boot> fdt list /ocp/mmc@481d8000 status
+>> /* enable GPMC node */
+>> u-boot> fdt list /ocp/gpmc
+>> u-boot> fdt set  /ocp/gpmc status \o\k\a\y
+>> u-boot> fdt list /ocp/gpmc status
+>> /* enable ELM node */
+>> u-boot> fdt list /ocp/elm
+>> u-boot> fdt set  /ocp/elm status \o\k\a\y
+>> u-boot> fdt list /ocp/elm status
+>> /* boot uImage */
+>> tftp 0x82000000 uImage
+>> bootm 0x82000000 - 0x81000000
+>>
+>> Note: "fdt set" command does not accept string literals
+>> as binding values, it internally converts them to string, so
+>> escape sequenced characters were used here..
+>> "okay" == \o\k\a\y
+>> "disabled" == \d\i\s\a\b\l\e\d"
+>>
+>>
+>> Hope above solves the pre-requisite because of which 'Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>'
+>> was unable to accept cape related DTS into his tree [3]
+> 
+> Yes. If the capes are disabled by default we can have at
+> least some of them included in the mainline kernel and
+> enabled by the bootloader as needed. I'd like to hear back
+> from the u-boot people too on this approach naturally.
+> 
+> And some things we still cannot merge if they overlap for
+> GPMC bindings for example. So we have to carefully check
+> the generated .dtb file with dtc -I dtb -O dts.
 
-Other than the couple minor comments I had, the series looks good.
+This sounds really problematic to me from an end-user horror point of
+view.  And fortunately 3.17 is going to have some level of overlay
+support so we can set this problem aside (and even treat the am335x gp
+evm "profileN" trees as overlays too).
 
- Tomi
+-- 
+Tom
 
-
-
-
---PmqUKt4C4LTlMJCxFXq1o2ILlpMWPItlN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTrBICAAoJEPo9qoy8lh718PcP/1SBee+MRTfEu0ccT3Bnr/WQ
-q/enD2Ps8uLhhH1Hiz9RVbuGbDlfbqL9I16lFQQwYPboyRQ9DoRdc7JYYax+gSY/
-j0TtCUcovYbtLA54OdpLp0WZHeVQO8LOSckV/P4XPd1/Z7qB0x6qZlvM99jFls7h
-fUyJjn5EdcL+4N74HVqG0Ce8w0qahOkyCCW9hwEKyi4lWOqHdOywAUeznzgULDcE
-Ewp2tlCJW80l7XHARuM++dz+KbY743Yo2YNIUngkl+NDEKkO8kDKidBwXtuCx3aZ
-KpRIEIj2+anreyc0M3eagWuWLG3aUgXw3MYbppc/REa+4STM1xVLlLS5fLyZv1l3
-OardvUfr2n+naWEIW4KUY8bcOI1rsPK0EMkiLBxtq3+SgfOqlIvJHE+OEefom/B+
-wg7rjszwJbFCCJCSBz5doZ5tOzUneLU+A1Foh5iFwfqE9f6nR2/KoQMcKzseuebX
-tGMjQLuUt9dtXRnzKqeJhjQe6KPq40W1h0XokyP8MrynlnNFj6IcV3qbN+IwUpE+
-HkREILSvxeq/Wt3qiz6IJjoYPO8TJE0IQ75N9TmsYWf214LspAmMgSx/IpqZVY04
-ZpR4rf5o7mswhdaG+oShi4JasNWlJAHAERxlT4CxM7XbE19vSTnqvBLl/Y+5znU/
-7Mi7o4fhR5n48EE2RBbj
-=EdQh
------END PGP SIGNATURE-----
-
---PmqUKt4C4LTlMJCxFXq1o2ILlpMWPItlN--
+-- 
+For more options, visit http://beagleboard.org/discuss
+--- 
+You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
