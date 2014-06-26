@@ -1,82 +1,44 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
-Date: Thu, 26 Jun 2014 12:39:21 +0300
-Message-ID: <53ABEA49.5010808@ti.com>
-References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-2-git-send-email-rogerq@ti.com> <53AB0ADC.20004@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V4 2/2] arm: dts: dra7: add crossbar device binding
+Date: Thu, 26 Jun 2014 03:26:51 -0700
+Message-ID: <20140626102650.GH28884@atomide.com>
+References: <1403767532-19290-1-git-send-email-r.sricharan@ti.com>
+ <1403767532-19290-3-git-send-email-r.sricharan@ti.com>
+ <20140626074417.GF28884@atomide.com>
+ <53ABDA9A.8000108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53AB0ADC.20004@ti.com>
+Content-Disposition: inline
+In-Reply-To: <53ABDA9A.8000108@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com, paul@pwsan.com
-Cc: rnayak@ti.com, nm@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-Kishon,
-
-On 06/25/2014 08:46 PM, Kishon Vijay Abraham I wrote:
+* Sricharan R <r.sricharan@ti.com> [140626 01:36]:
+> Hi Tony,
 > 
-> On Wednesday 18 June 2014 05:46 PM, Roger Quadros wrote:
->> This module is needed for the SATA and PCIe PHYs.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> Tested-by: Roger Quadros <rogerq@ti.com>
-> 
-> I used this patch for testing PCIe.
-> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+> On Thursday 26 June 2014 01:14 PM, Tony Lindgren wrote:
+> > * Sricharan R <r.sricharan@ti.com> [140626 00:29]:
+> >> From: R Sricharan <r.sricharan@ti.com>
+> >>
+> >> There is a IRQ crossbar device in the soc, which
+> >> maps the irq requests from the peripherals to the
+> >> mpu interrupt controller's inputs. The Peripheral irq
+> >> requests are connected to only one crossbar
+> >> input and the output of the crossbar is connected to only one
+> >> controller's input line. The crossbar device is used to map
+> >> a peripheral input to a free mpu's interrupt controller line.
+> >>
+> >> Here, adding a new crossbar device node and replacing all the peripheral
+> >> interrupt numbers with its fixed crossbar input lines.
+> > 
+> > I think these two patches need to be a single patch to avoid
+> > breaking booting for git bisect inbetween these patches?
+>   This does not cause booting issues. irq_desc gets allocated linearly,
+>    but that does not create boot issues.
 
-There is a v2 of this patch in reply to the original patch. Could you please give your Tested-by tag on that one?
-Thanks.
+OK
 
-cheers,
--roger
-
->> ---
->>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 25 +++++++++++++++++++++++++
->>  1 file changed, 25 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> index 20b4398..cedef6b 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
->>  	},
->>  };
->>  
->> +/* ocp2scp3 */
->> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
->> +
->> +/* l4_cfg -> ocp2scp3 */
->> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
->> +	.master		= &dra7xx_l4_cfg_hwmod,
->> +	.slave		= &dra7xx_ocp2scp3_hwmod,
->> +	.clk		= "l4_root_clk_div",
->> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->> +};
->> +
->> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
->> +	.name		= "ocp2scp3",
->> +	.class		= &dra7xx_ocp2scp_hwmod_class,
->> +	.clkdm_name	= "l3init_clkdm",
->> +	.prcm = {
->> +		.omap4 = {
->> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
->> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
->> +			.modulemode   = MODULEMODE_HWCTRL,
->> +		},
->> +	},
->> +};
->> +
->>  /*
->>   * 'qspi' class
->>   *
->> @@ -2672,6 +2696,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->>  	&dra7xx_l4_per1__mmc4,
->>  	&dra7xx_l4_cfg__mpu,
->>  	&dra7xx_l4_cfg__ocp2scp1,
->> +	&dra7xx_l4_cfg__ocp2scp3,
->>  	&dra7xx_l3_main_1__qspi,
->>  	&dra7xx_l4_cfg__sata,
->>  	&dra7xx_l4_cfg__smartreflex_core,
->>
+Tony
