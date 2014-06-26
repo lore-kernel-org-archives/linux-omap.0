@@ -1,61 +1,82 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
-Date: Thu, 26 Jun 2014 12:36:45 +0300
-Message-ID: <53ABE9AD.1000100@ti.com>
-References: <1403700996-27105-1-git-send-email-rogerq@ti.com> <53AB4CE0.6020705@ti.com> <20140626073115.GD28884@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
+Date: Thu, 26 Jun 2014 12:39:21 +0300
+Message-ID: <53ABEA49.5010808@ti.com>
+References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-2-git-send-email-rogerq@ti.com> <53AB0ADC.20004@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140626073115.GD28884@atomide.com>
+In-Reply-To: <53AB0ADC.20004@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
-Cc: rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com, paul@pwsan.com
+Cc: rnayak@ti.com, nm@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/26/2014 10:31 AM, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [140625 15:29]:
->> On 06/25/2014 07:56 AM, Roger Quadros wrote:
->>> The SATA and USB PHYs need the 1.8V and 3.3V supplies.
->>> The PHY drivers/framework don't yet support regulator
->>> supply so we have to keep these regulators always-on till
->>> then.
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  arch/arm/boot/dts/dra7-evm.dts | 2 ++
->>>  1 file changed, 2 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->>> index 4adc280..99a1f79 100644
->>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>> @@ -241,6 +241,7 @@
->>>  					regulator-min-microvolt = <1800000>;
->>>  					regulator-max-microvolt = <1800000>;
->>>  					regulator-boot-on;
->>> +					regulator-always-on;
->>>  				};
->>>  
->>>  				ldo9_reg: ldo9 {
->>> @@ -266,6 +267,7 @@
->>>  					regulator-min-microvolt = <3300000>;
->>>  					regulator-max-microvolt = <3300000>;
->>>  					regulator-boot-on;
->>> +					regulator-always-on;
->>>  				};
->>>  			};
->>>  		};
->>>
+Kishon,
+
+On 06/25/2014 08:46 PM, Kishon Vijay Abraham I wrote:
+> 
+> On Wednesday 18 June 2014 05:46 PM, Roger Quadros wrote:
+>> This module is needed for the SATA and PCIe PHYs.
 >>
->> Why not fix phy driver/framework as needed? the trouble is people
->> always forget to remove always-on... who actually audits old logs and
->> fixes stuff back up?
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Tested-by: Roger Quadros <rogerq@ti.com>
 > 
-> Yes I agree let's not play with the regulator-always-on unless
-> absolutely necessary.
-> 
-Agreed. PHY framework must deal with this. Till then USB, SATA and most likely PCIe as well will not work on DRA7-evm.
+> I used this patch for testing PCIe.
+> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+There is a v2 of this patch in reply to the original patch. Could you please give your Tested-by tag on that one?
+Thanks.
 
 cheers,
 -roger
+
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 25 +++++++++++++++++++++++++
+>>  1 file changed, 25 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> index 20b4398..cedef6b 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> @@ -1215,6 +1215,30 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
+>>  	},
+>>  };
+>>  
+>> +/* ocp2scp3 */
+>> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod;
+>> +
+>> +/* l4_cfg -> ocp2scp3 */
+>> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
+>> +	.master		= &dra7xx_l4_cfg_hwmod,
+>> +	.slave		= &dra7xx_ocp2scp3_hwmod,
+>> +	.clk		= "l4_root_clk_div",
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+>> +	.name		= "ocp2scp3",
+>> +	.class		= &dra7xx_ocp2scp_hwmod_class,
+>> +	.clkdm_name	= "l3init_clkdm",
+>> +	.prcm = {
+>> +		.omap4 = {
+>> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
+>> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
+>> +			.modulemode   = MODULEMODE_HWCTRL,
+>> +		},
+>> +	},
+>> +};
+>> +
+>>  /*
+>>   * 'qspi' class
+>>   *
+>> @@ -2672,6 +2696,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>>  	&dra7xx_l4_per1__mmc4,
+>>  	&dra7xx_l4_cfg__mpu,
+>>  	&dra7xx_l4_cfg__ocp2scp1,
+>> +	&dra7xx_l4_cfg__ocp2scp3,
+>>  	&dra7xx_l3_main_1__qspi,
+>>  	&dra7xx_l4_cfg__sata,
+>>  	&dra7xx_l4_cfg__smartreflex_core,
+>>
