@@ -1,257 +1,157 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
-Date: Thu, 26 Jun 2014 18:06:21 +0300
-Message-ID: <53AC36ED.2000309@ti.com>
-References: <1403700996-27105-1-git-send-email-rogerq@ti.com> <53AB4CE0.6020705@ti.com> <20140626073115.GD28884@atomide.com> <53ABE9AD.1000100@ti.com> <53AC2CA7.30800@ti.com>
+From: Jason Kridner <jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Unifying cape overlays into boot .dtb for
+ BeagleBoard.org boards
+Date: Thu, 26 Jun 2014 11:27:08 -0400
+Message-ID: <CA+T6QP=-mUz_uGg6eZEdP-1y9hyYJfDbx+363THSJarF=dTcog@mail.gmail.com>
+References: <CA+T6QP==raXdWz9mezK3JxSvZjWhUZZ7aKv4CpCr0SbdaCMgDQ@mail.gmail.com>
+	<CA+T6QP=jqdKij3bg3qZKT8GAKTKP94XtDWR+rcJWnDME5ZNmUg@mail.gmail.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EAF59A7@DBDE04.ent.ti.com>
+	<CA+T6QP=Q0db33NU1g=9QrOUqQhLfKg=UiHVSn=Loog_JFxtP1w@mail.gmail.com>
+	<20980858CB6D3A4BAE95CA194937D5E73EAF5DD0@DBDE04.ent.ti.com>
+	<20140626075039.GG28884@atomide.com>
+	<53AC1AC5.5000103@ti.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53AC2CA7.30800@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
-Cc: rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <beagleboard+bncBDELZWNUYMHBBTPXWCOQKGQETBXREAQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <53AC1AC5.5000103-l0cyMroinI0@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Gupta, Pekon" <pekon-l0cyMroinI0@public.gmane.org>, OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/26/2014 05:22 PM, Roger Quadros wrote:
-> +Tero
->
-> On 06/26/2014 12:36 PM, Roger Quadros wrote:
->> On 06/26/2014 10:31 AM, Tony Lindgren wrote:
->>> * Nishanth Menon <nm@ti.com> [140625 15:29]:
->>>> On 06/25/2014 07:56 AM, Roger Quadros wrote:
->>>>> The SATA and USB PHYs need the 1.8V and 3.3V supplies.
->>>>> The PHY drivers/framework don't yet support regulator
->>>>> supply so we have to keep these regulators always-on till
->>>>> then.
+On Thu, Jun 26, 2014 at 9:06 AM, Tom Rini <trini-l0cyMroinI0@public.gmane.org> wrote:
+> On 06/26/2014 03:50 AM, Tony Lindgren wrote:
+>> * Gupta, Pekon <pekon-l0cyMroinI0@public.gmane.org> [140618 01:52]:
+>>> Hi,
+>>>
+>>>> From: Jason Kridner [mailto:jkridner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>>>>> On Tue, Jun 17, 2014 at 3:11 AM, Gupta, Pekon <pekon-l0cyMroinI0@public.gmane.org> wrote:
+>>>>>> From: Jason Kridner
+>>> [...]
+>>>>>>> * The devicetree sources, including the primary boot .dts files, will
+>>>>>>> eventually be removed from the kernel source tree. I'm not too sure if
+>>>>>>> and when it'll really happen, but starting up a project to maintain
+>>>>>>> the definitive beagleboard.org board devicetree files outside the
+>>>>>>> kernel seems to make sense. Given the interdependency of the boot .dtb
+>>>>>>> and the overlay .dtbo files, combining them into a single repository
+>>>>>>> where every distribution can pick them up seems like a natural and
+>>>>>>> obvious choice. There are of course some dependencies on kernel
+>>>>>>> versions, but I believe most of those have settled out by now and we
+>>>>>>> should be OK moving forward.
 >>>>>
->>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>> ---
->>>>>   arch/arm/boot/dts/dra7-evm.dts | 2 ++
->>>>>   1 file changed, 2 insertions(+)
+>>>>> +1
+>>>>> Yes, moving cape DTS out of kernel tree should help developers.
+>>>>> There are quite a few cape patches floating in mail-lists, but as cape
+>>>>> DTS is still not accepted in mainline so they get lost and forgotten.
+>>>>> So one place for collecting all this is a good idea.
 >>>>>
->>>>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->>>>> index 4adc280..99a1f79 100644
->>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>>>> @@ -241,6 +241,7 @@
->>>>>   					regulator-min-microvolt = <1800000>;
->>>>>   					regulator-max-microvolt = <1800000>;
->>>>>   					regulator-boot-on;
->>>>> +					regulator-always-on;
->>>>>   				};
 >>>>>
->>>>>   				ldo9_reg: ldo9 {
->>>>> @@ -266,6 +267,7 @@
->>>>>   					regulator-min-microvolt = <3300000>;
->>>>>   					regulator-max-microvolt = <3300000>;
->>>>>   					regulator-boot-on;
->>>>> +					regulator-always-on;
->>>>>   				};
->>>>>   			};
->>>>>   		};
->>>>>
+>>>>> However, somehow the universal I/O DTS looked seemed complicated:
+>>>>> (1)
+>>>>> All capes work standalone, but due to share pin-mux some cape
+>>>>> combinations cannot be used simultaneously. But most users of
+>>>>> BeagleBone are already well-versed with DT and kernel infrastructure,
+>>>>> so they need not be spoon fed to get a out-of-box working solution
+>>>>> for each combination. If there is proper documentation is available
+>>>>> about compatibility of capes with each other, then users will figure
+>>>>> out themselves.
 >>>>
->>>> Why not fix phy driver/framework as needed? the trouble is people
->>>> always forget to remove always-on... who actually audits old logs and
->>>> fixes stuff back up?
+>>>> I think you have too much confidence in users. If this doesn't hurt
+>>>> power users, then why is it bad have an option to spoon feed? This
+>>>> doesn't prevent anyone with knowledge of DT from doing their own
+>>>> thing.
+>>>>
+>>> Fair enough.
+>>> But plz give a try to u-boot alternative below. It works at my end.
 >>>
->>> Yes I agree let's not play with the regulator-always-on unless
->>> absolutely necessary.
+>>>>>
+>>>>> (2)
+>>>>> Also, there was a talk of enabling and disabling DT fragments via u-boot.
+>>>>> That should also be explored instead of complicating cape DTS.
+>>>>
+>>>> Link? Relevance?
+>>>>
+>>> we can modify DT from u-boot itself [1].
+>>> Example:  "MMC2" pin-mux conflicts with "NAND" and "NOR" capes.
+>>> But using following sequence of commands, you can modify DTB via
+>>> u-boot and make NAND cape work _without_any_hack_ in patch [2].
 >>>
->> Agreed. PHY framework must deal with this. Till then USB, SATA and most likely PCIe as well will not work on DRA7-evm.
+>>> /* load DTB */
+>>> u-boot> tftp 0x81000000 am335x-boneblack.dtb
+>>> u-boot> fdt addr 0x81000000
+>>> /* disable MMC2 node */
+>>> u-boot> fdt list /ocp/mmc@481d8000
+>>> u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
+>>> u-boot> fdt list /ocp/mmc@481d8000 status
+>>> /* enable GPMC node */
+>>> u-boot> fdt list /ocp/gpmc
+>>> u-boot> fdt set  /ocp/gpmc status \o\k\a\y
+>>> u-boot> fdt list /ocp/gpmc status
+>>> /* enable ELM node */
+>>> u-boot> fdt list /ocp/elm
+>>> u-boot> fdt set  /ocp/elm status \o\k\a\y
+>>> u-boot> fdt list /ocp/elm status
+>>> /* boot uImage */
+>>> tftp 0x82000000 uImage
+>>> bootm 0x82000000 - 0x81000000
+>>>
+>>> Note: "fdt set" command does not accept string literals
+>>> as binding values, it internally converts them to string, so
+>>> escape sequenced characters were used here..
+>>> "okay" == \o\k\a\y
+>>> "disabled" == \d\i\s\a\b\l\e\d"
+>>>
+>>>
+>>> Hope above solves the pre-requisite because of which 'Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>'
+>>> was unable to accept cape related DTS into his tree [3]
 >>
->
-> I tried the below patch to enable the relevant regulators in the PHY drivers but still couldn't manage to get USB to work. The same 1.8V regulator is used to supply 3 pins
-> -vdda_usb1: DPLL_USB and HS_USB1 analog supply
-> -vdda_usb2: HS_USB2 analog supply
-> -vdda_usb3: DPLL_USB_OTG_SS and USB3.0 Rx/Tx analog supply
->
-> It seems that the regulator auto disable kicks in before the phy driver enables the regulator thus causing some kind of malfunction. I'm not sure whether this is due to DPLL_USB supply glitch or HS_USB1 analog supply glitch.
->
-> In any case, the DPLL_USB (clock driver?) needs to enable the 1.8V regulator in addition to the HS_USB PHY driver to prevent this supply glitch.
->
-> Tero, any suggestions about this? If we are not concerned about disabling DPLL_USB anytime then the regulator might just as well be always-on. Alternatively can we place a regulator_get(), regulator_enable() in drivers/clk/ti/dpll.c?
+>> Yes. If the capes are disabled by default we can have at
+>> least some of them included in the mainline kernel and
+>> enabled by the bootloader as needed. I'd like to hear back
+>> from the u-boot people too on this approach naturally.
 
-I believe dpll_usb needs to go down for the core to idle. Also, we are 
-working on getting suspend-resume working on this platform, so having 
-the regulator always on is a no-no.
+Great.
 
-Also, I am heavily against adding regulator tweaks within the clock 
-driver, there needs to be another way.
+>>
+>> And some things we still cannot merge if they overlap for
+>> GPMC bindings for example. So we have to carefully check
+>> the generated .dtb file with dtc -I dtb -O dts.
+>
+> This sounds really problematic to me from an end-user horror point of
+> view.  And fortunately 3.17 is going to have some level of overlay
+> support so we can set this problem aside (and even treat the am335x gp
+> evm "profileN" trees as overlays too).
 
--Tero
+Thank you Tom for chiming in. I think the end user experience is
+horrific. Pekon should at least provide patches to u-boot that would
+provide a mechanism to enable/disable a cape with a single operation,
+rather than the individual devicetree nodes. This seems to really
+break any ability to keep information about a cape consolidated or
+usable by mere mortals.
 
->
-> cheers,
-> -roger
-> ---
->
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 4adc280..23379ab 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -495,3 +495,11 @@
->   		};
->   	};
->   };
-> +
-> +&usb2_phy1 {
-> +	vdda3v3-supply = <&ldousb_reg>;
-> +};
-> +
-> +&usb3_phy1 {
-> +	vdda1v8-supply = <&ldo3_reg>;
-> +};
-> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-> index 7007c11..bb1a768 100644
-> --- a/drivers/phy/phy-omap-usb2.c
-> +++ b/drivers/phy/phy-omap-usb2.c
-> @@ -30,6 +30,7 @@
->   #include <linux/phy/omap_control_phy.h>
->   #include <linux/phy/phy.h>
->   #include <linux/of_platform.h>
-> +#include <linux/regulator/consumer.h>
->
->   #define USB2PHY_DISCON_BYP_LATCH (1 << 31)
->   #define USB2PHY_ANA_CONFIG1 0x4c
-> @@ -107,6 +108,18 @@ static int omap_usb_power_off(struct phy *x)
->
->   	omap_control_phy_power(phy->control_dev, 0);
->
-> +	if (phy->pwr) {
-> +		int ret;
-> +
-> +		ret = regulator_disable(phy->pwr);
-> +		if (ret) {
-> +			dev_err(phy->dev, "failed to disable regulator\n");
-> +			return ret;
-> +		} else {
-> +			dev_info(phy->dev, "disabled regulator\n");
-> +		}
-> +	}
-> +
->   	return 0;
->   }
->
-> @@ -114,6 +127,18 @@ static int omap_usb_power_on(struct phy *x)
->   {
->   	struct omap_usb *phy = phy_get_drvdata(x);
->
-> +	if (phy->pwr) {
-> +		int ret;
-> +
-> +		ret = regulator_enable(phy->pwr);
-> +		if (ret) {
-> +			dev_err(phy->dev, "failed to enable regulator\n");
-> +			return ret;
-> +		} else {
-> +			dev_info(phy->dev, "enabled regulator\n");
-> +		}
-> +	}
-> +
->   	omap_control_phy_power(phy->control_dev, 1);
->
->   	return 0;
-> @@ -253,6 +278,14 @@ static int omap_usb2_probe(struct platform_device *pdev)
->   	phy->control_dev = &control_pdev->dev;
->   	omap_control_phy_power(phy->control_dev, 0);
->
-> +	/* phy-supply */
-> +	phy->pwr = devm_regulator_get_optional(phy->dev, "vdda3v3");
-> +	if (IS_ERR(phy->pwr)) {
-> +		if (PTR_ERR(phy->pwr) == -EPROBE_DEFER)
-> +			return -EPROBE_DEFER;
-> +		phy->pwr = NULL;
-> +	}
-> +
->   	otg->set_host		= omap_usb_set_host;
->   	otg->set_peripheral	= omap_usb_set_peripheral;
->   	if (phy_data->flags & OMAP_USB2_HAS_SET_VBUS)
-> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
-> index 5913676..1b46b0b 100644
-> --- a/drivers/phy/phy-ti-pipe3.c
-> +++ b/drivers/phy/phy-ti-pipe3.c
-> @@ -28,6 +28,7 @@
->   #include <linux/delay.h>
->   #include <linux/phy/omap_control_phy.h>
->   #include <linux/of_platform.h>
-> +#include <linux/regulator/consumer.h>
->
->   #define	PLL_STATUS		0x00000004
->   #define	PLL_GO			0x00000008
-> @@ -81,6 +82,7 @@ struct ti_pipe3 {
->   	struct clk		*sys_clk;
->   	struct clk		*refclk;
->   	struct pipe3_dpll_map	*dpll_map;
-> +	struct regulator	*pwr_dpll;
->   };
->
->   static struct pipe3_dpll_map dpll_map_usb[] = {
-> @@ -215,6 +217,17 @@ static int ti_pipe3_init(struct phy *x)
->   	u32 val;
->   	int ret = 0;
->
-> +	/* Enable DPLL regulator */
-> +	if (phy->pwr_dpll) {
-> +		ret = regulator_enable(phy->pwr_dpll);
-> +		if (ret) {
-> +			dev_err(phy->dev, "failed to enable regulator\n");
-> +			return ret;
-> +		} else {
-> +			dev_info(phy->dev, "enabled regulator\n");
-> +		}
-> +	}
-> +
->   	/* Bring it out of IDLE if it is IDLE */
->   	val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->   	if (val & PLL_IDLE) {
-> @@ -262,6 +275,18 @@ static int ti_pipe3_exit(struct phy *x)
->   		return -EBUSY;
->   	}
->
-> +	/* Disable DPLL regulator */
-> +	if (phy->pwr_dpll) {
-> +		int ret;
-> +
-> +		ret = regulator_disable(phy->pwr_dpll);
-> +		if (ret) {
-> +			dev_err(phy->dev, "failed to disable regulator\n");
-> +			return ret;
-> +		} else {
-> +			dev_info(phy->dev, "disabled regulator\n");
-> +		}
-> +	}
->   	return 0;
->   }
->   static struct phy_ops ops = {
-> @@ -308,7 +333,15 @@ static int ti_pipe3_probe(struct platform_device *pdev)
->   	if (IS_ERR(phy->pll_ctrl_base))
->   		return PTR_ERR(phy->pll_ctrl_base);
->
-> -	phy->dev		= &pdev->dev;
-> +	phy->dev = &pdev->dev;
-> +
-> +	/* dpll-supply */
-> +	phy->pwr_dpll = devm_regulator_get_optional(phy->dev, "vdda1v8");
-> +	if (IS_ERR(phy->pwr_dpll)) {
-> +		if (PTR_ERR(phy->pwr_dpll) == -EPROBE_DEFER)
-> +			return -EPROBE_DEFER;
-> +		phy->pwr_dpll = NULL;
-> +	}
->
->   	if (!of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
->
-> diff --git a/include/linux/phy/omap_usb.h b/include/linux/phy/omap_usb.h
-> index dc2c541..e2c46df 100644
-> --- a/include/linux/phy/omap_usb.h
-> +++ b/include/linux/phy/omap_usb.h
-> @@ -40,6 +40,7 @@ struct omap_usb {
->   	struct clk		*wkupclk;
->   	struct clk		*optclk;
->   	u8			flags;
-> +	struct regulator	*pwr;
->   };
->
->   struct usb_phy_data {
->
+I don't know that pushing it all into the kernel with overlays,
+however, is the right answer. We've seen challenges with some
+userspaces not exposing /lib/firmware in time and needing to compile
+overlays into the kernel to make them work. More troublesome are the
+types of errors end-users get when there are syntax errors, conflicts
+or other failures, most notably because testing of loading all of the
+various overlays in conflict with each other is adhoc at best. We've
+gotten a lot of good feedback on using the pinmux-helper and
+config-pin utility from end users who are still struggling to learn
+how to do devicetree overlays properly. It seems to me that kernel
+run-time overlays should be used for development and dynamic hardware
+rather than boot-time configuration, despite the convenience they add
+to most of us who understand the basics of how to use them.
+
+-- 
+For more options, visit http://beagleboard.org/discuss
+--- 
+You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
