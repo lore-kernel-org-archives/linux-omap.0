@@ -1,40 +1,61 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V4 2/2] arm: dts: dra7: add crossbar device binding
-Date: Thu, 26 Jun 2014 14:02:26 +0530
-Message-ID: <53ABDA9A.8000108@ti.com>
-References: <1403767532-19290-1-git-send-email-r.sricharan@ti.com> <1403767532-19290-3-git-send-email-r.sricharan@ti.com> <20140626074417.GF28884@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
+Date: Thu, 26 Jun 2014 12:36:45 +0300
+Message-ID: <53ABE9AD.1000100@ti.com>
+References: <1403700996-27105-1-git-send-email-rogerq@ti.com> <53AB4CE0.6020705@ti.com> <20140626073115.GD28884@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140626074417.GF28884@atomide.com>
+In-Reply-To: <20140626073115.GD28884@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com, Benoit Cousson <bcousson@baylibre.com>
+To: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Cc: rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Thursday 26 June 2014 01:14 PM, Tony Lindgren wrote:
-> * Sricharan R <r.sricharan@ti.com> [140626 00:29]:
->> From: R Sricharan <r.sricharan@ti.com>
+On 06/26/2014 10:31 AM, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [140625 15:29]:
+>> On 06/25/2014 07:56 AM, Roger Quadros wrote:
+>>> The SATA and USB PHYs need the 1.8V and 3.3V supplies.
+>>> The PHY drivers/framework don't yet support regulator
+>>> supply so we have to keep these regulators always-on till
+>>> then.
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>> ---
+>>>  arch/arm/boot/dts/dra7-evm.dts | 2 ++
+>>>  1 file changed, 2 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+>>> index 4adc280..99a1f79 100644
+>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>>> @@ -241,6 +241,7 @@
+>>>  					regulator-min-microvolt = <1800000>;
+>>>  					regulator-max-microvolt = <1800000>;
+>>>  					regulator-boot-on;
+>>> +					regulator-always-on;
+>>>  				};
+>>>  
+>>>  				ldo9_reg: ldo9 {
+>>> @@ -266,6 +267,7 @@
+>>>  					regulator-min-microvolt = <3300000>;
+>>>  					regulator-max-microvolt = <3300000>;
+>>>  					regulator-boot-on;
+>>> +					regulator-always-on;
+>>>  				};
+>>>  			};
+>>>  		};
+>>>
 >>
->> There is a IRQ crossbar device in the soc, which
->> maps the irq requests from the peripherals to the
->> mpu interrupt controller's inputs. The Peripheral irq
->> requests are connected to only one crossbar
->> input and the output of the crossbar is connected to only one
->> controller's input line. The crossbar device is used to map
->> a peripheral input to a free mpu's interrupt controller line.
->>
->> Here, adding a new crossbar device node and replacing all the peripheral
->> interrupt numbers with its fixed crossbar input lines.
+>> Why not fix phy driver/framework as needed? the trouble is people
+>> always forget to remove always-on... who actually audits old logs and
+>> fixes stuff back up?
 > 
-> I think these two patches need to be a single patch to avoid
-> breaking booting for git bisect inbetween these patches?
-  This does not cause booting issues. irq_desc gets allocated linearly,
-   but that does not create boot issues.
+> Yes I agree let's not play with the regulator-always-on unless
+> absolutely necessary.
+> 
+Agreed. PHY framework must deal with this. Till then USB, SATA and most likely PCIe as well will not work on DRA7-evm.
 
-Regards,
- Sricharan
-  
+cheers,
+-roger
