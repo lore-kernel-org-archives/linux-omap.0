@@ -1,104 +1,89 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V4 16/16] irqchip: crossbar: Allow for quirky hardware with direct hardwiring of GIC
-Date: Thu, 26 Jun 2014 12:40:34 +0530
-Message-ID: <1403766634-18543-17-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V4 07/16] irqchip: crossbar: Fix sparse and checkpatch warnings
+Date: Thu, 26 Jun 2014 12:40:25 +0530
+Message-ID: <1403766634-18543-8-git-send-email-r.sricharan@ti.com>
 References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com
+Cc: nm@ti.com, linux@arm.linux.org.uk, jason@lakedaemon.net, tony@atomide.com, rnayak@ti.com, r.sricharan@ti.com, santosh.shilimkar@ti.com, joe@perches.com, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
 From: Nishanth Menon <nm@ti.com>
 
-On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10, 131,
-132, 133 are direct wired to hardware blocks bypassing crossbar.
-This quirky implementation is *NOT* supposed to be the expectation
-of crossbar hardware usage. However, these are already marked in our
-description of the hardware with SKIP and RESERVED where appropriate.
+There is absolutely no need for crossbar driver to expose functions and
+variables into global namespace. So make them all static
 
-Unfortunately, we need to be able to refer to these hardwired IRQs.
-So, to request these, crossbar driver can use the existing information
-from it's table that these SKIP/RESERVED maps are direct wired sources
-and generic allocation/programming of crossbar should be avoided.
+Also fix a couple of checkpatch warnings.
+
+Fixes sparse warnings:
+drivers/irqchip/irq-crossbar.c:129:29: warning: symbol 'routable_irq_domain_ops' was not declared. Should it be static?
+drivers/irqchip/irq-crossbar.c:261:12: warning: symbol 'irqcrossbar_init' was not declared. Should it be static?
+
+Checkpatch warnings:
+WARNING: Prefer kcalloc over kzalloc with multiply
++	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
+
+WARNING: Prefer kcalloc over kzalloc with multiply
++	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- .../devicetree/bindings/arm/omap/crossbar.txt      |   12 ++++++++++--
- drivers/irqchip/irq-crossbar.c                     |   20 ++++++++++++++++++--
- 2 files changed, 28 insertions(+), 4 deletions(-)
+ drivers/irqchip/irq-crossbar.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-index 35356b6..51a85c3 100644
---- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-@@ -44,8 +44,10 @@ Documentation/devicetree/bindings/arm/gic.txt for further details.
- 
- An interrupt consumer on an SoC using crossbar will use:
- 	interrupts = <GIC_SPI request_number interrupt_level>
--request number shall be between 0 to that described by
--"ti,max-crossbar-sources"
-+When the request number is between 0 to that described by
-+"ti,max-crossbar-sources", it is assumed to be a crossbar mapping. If the
-+request_number is greater than "ti,max-crossbar-sources", then it is mapped as a
-+quirky hardware mapping direct to GIC.
- 
- Example:
- 	device_x@0x4a023000 {
-@@ -53,3 +55,9 @@ Example:
- 		interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
- 		...
- 	};
-+
-+	device_y@0x4a033000 {
-+		/* Direct mapped GIC SPI 1 used */
-+		interrupts = <GIC_SPI DIRECT_IRQ(1) IRQ_TYPE_LEVEL_HIGH>;
-+		...
-+	};
 diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 83f803b..85c2985 100644
+index 88fbe0f..f7eda9f 100644
 --- a/drivers/irqchip/irq-crossbar.c
 +++ b/drivers/irqchip/irq-crossbar.c
-@@ -86,8 +86,13 @@ static inline int allocate_free_irq(int cb_no)
+@@ -15,6 +15,7 @@
+ #include <linux/of_irq.h>
+ #include <linux/slab.h>
+ #include <linux/irqchip/arm-gic.h>
++#include <linux/irqchip/irq-crossbar.h>
  
- static inline bool needs_crossbar_write(irq_hw_number_t hw)
- {
--	if (hw > GIC_IRQ_START)
--		return true;
-+	int cb_no;
-+
-+	if (hw > GIC_IRQ_START) {
-+		cb_no = cb->irq_map[hw - GIC_IRQ_START];
-+		if (cb_no != IRQ_RESERVED && cb_no != IRQ_SKIP)
-+			return true;
-+	}
- 
- 	return false;
+ #define IRQ_FREE	-1
+ #define IRQ_RESERVED	-2
+@@ -118,7 +119,7 @@ found:
+ 	return 0;
  }
-@@ -130,8 +135,19 @@ static int crossbar_domain_xlate(struct irq_domain *d,
- {
- 	int ret;
- 	int req_num = intspec[1];
-+	int direct_map_num;
  
- 	if (req_num >= cb->max_crossbar_sources) {
-+		direct_map_num = req_num - cb->max_crossbar_sources;
-+		if (direct_map_num < cb->int_max) {
-+			ret = cb->irq_map[direct_map_num];
-+			if (ret == IRQ_RESERVED || ret == IRQ_SKIP) {
-+				/* We use the interrupt num as h/w irq num */
-+				ret = direct_map_num;
-+				goto found;
-+			}
-+		}
-+
- 		pr_err("%s: requested crossbar number %d > max %d\n",
- 		       __func__, req_num, cb->max_crossbar_sources);
- 		return -EINVAL;
+-const struct irq_domain_ops routable_irq_domain_ops = {
++static const struct irq_domain_ops routable_irq_domain_ops = {
+ 	.map = crossbar_domain_map,
+ 	.unmap = crossbar_domain_unmap,
+ 	.xlate = crossbar_domain_xlate
+@@ -139,7 +140,7 @@ static int __init crossbar_of_init(struct device_node *node)
+ 		goto err1;
+ 
+ 	of_property_read_u32(node, "ti,max-irqs", &max);
+-	cb->irq_map = kzalloc(max * sizeof(int), GFP_KERNEL);
++	cb->irq_map = kcalloc(max, sizeof(int), GFP_KERNEL);
+ 	if (!cb->irq_map)
+ 		goto err2;
+ 
+@@ -184,7 +185,7 @@ static int __init crossbar_of_init(struct device_node *node)
+ 	}
+ 
+ 
+-	cb->register_offsets = kzalloc(max * sizeof(int), GFP_KERNEL);
++	cb->register_offsets = kcalloc(max, sizeof(int), GFP_KERNEL);
+ 	if (!cb->register_offsets)
+ 		goto err3;
+ 
 -- 
 1.7.9.5
