@@ -1,79 +1,111 @@
-From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V4 00/16] irqchip: crossbar: Driver fixes
-Date: Thu, 26 Jun 2014 12:40:18 +0530
-Message-ID: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V4 04/16] irqchip: crossbar: Initialise the crossbar with a safe value
+Date: Thu, 26 Jun 2014 12:40:22 +0530
+Message-ID: <1403766634-18543-5-git-send-email-r.sricharan@ti.com>
+References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com
 List-Id: linux-omap@vger.kernel.org
 
-This series does some cleanups, fixes for handling two interrupts
-getting mapped twice to same crossbar and provides support for
-hardwired IRQ and crossbar definitions.
+From: Nishanth Menon <nm@ti.com>
 
-On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10,
-131, 132, 133 are direct wired to hardware blocks bypassing
-crossbar. This quirky implementation is *NOT* supposed to be the
-expectation of crossbar hardware usage. This series adds support
-to represent such hard-wired irqs through DT and avoid generic
-allocation/programming of crossbar in the driver.
+Since crossbar is s/w configurable, the initial settings of the
+crossbar cannot be assumed to be sane. This implies that:
+a) On initialization all un-reserved crossbars must be initialized to
+   a known 'safe' value.
+b) When unmapping the interrupt, the safe value must be written to
+   ensure that the crossbar mapping matches with interrupt controller
+   usage.
 
-This way of supporting hard-wired irqs was a result of
-the below discussions.
-http://www.spinics.net/lists/arm-kernel/msg329946.html
+So provide a safe value in the dt data to map if
+'0' is not safe for the platform and use it during init and unmap
 
-Based on 3.16 rc2 mainline.
+While at this, fix the below checkpatch warning.
+Fixes checkpatch warning:
+WARNING: Unnecessary space before function pointer arguments
+ #37: FILE: drivers/irqchip/irq-crossbar.c:37:
+ +	void (*write) (int, int);
 
-All the patches are available here
- git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:Sricharanti/sricharan.git crossbar_updates
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ .../devicetree/bindings/arm/omap/crossbar.txt      |    3 +++
+ drivers/irqchip/irq-crossbar.c                     |   19 +++++++++++++++++--
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-The fixes series[1] earlier posted is merged in to this.
-[1] http://www.spinics.net/lists/arm-kernel/msg328273.html
-
-[V2] Merged the above series and rebased on 3.15 mainline
-
-[V3] Modified patch#3 to get irqs-skip properties from DT,
-     merged path#8 for checkpatch warning to other relevant
-     patches and fixed comments for other patches.
-
-[V4] Based on 3.16rc2 and fixed Jason's <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org> comments.
-
-Nishanth Menon (14):
-  irqchip: crossbar: Dont use '0' to mark reserved interrupts
-  irqchip: crossbar: Check for premapped crossbar before allocating
-  irqchip: crossbar: Introduce ti,irqs-skip to skip irqs that bypass
-    crossbar
-  irqchip: crossbar: Initialise the crossbar with a safe value
-  irqchip: crossbar: Change allocation logic by reversing search for
-    free irqs
-  irqchip: crossbar: Remove IS_ERR_VALUE check
-  irqchip: crossbar: Fix sparse and checkpatch warnings
-  irqchip: crossbar: Fix kerneldoc warning
-  irqchip: crossbar: Return proper error value
-  irqchip: crossbar: Change the goto naming
-  irqchip: crossbar: Introduce ti,max-crossbar-sources to identify
-    valid crossbar mapping
-  irqchip: crossbar: Introduce centralized check for crossbar write
-  documentation: dt: omap: crossbar: Add description for interrupt
-    consumer
-  irqchip: crossbar: Allow for quirky hardware with direct hardwiring
-    of GIC
-
-Sricharan R (2):
-  irqchip: crossbar: Set cb pointer to null in case of error
-  irqchip: crossbar: Add kerneldoc for crossbar_domain_unmap callback
-
- .../devicetree/bindings/arm/omap/crossbar.txt      |   36 +++++
- drivers/irqchip/irq-crossbar.c                     |  168 +++++++++++++++++---
- 2 files changed, 179 insertions(+), 25 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+index 0795765..5f45c78 100644
+--- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
++++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+@@ -22,6 +22,9 @@ Optional properties:
+   SOC-specific hard-wiring of those irqs which unexpectedly bypasses the
+   crossbar. These irqs have a crossbar register, but still cannot be used.
+ 
++- ti,irqs-safe-map: integer which maps to a safe configuration to use
++  when the interrupt controller irq is unused (when not provided, default is 0)
++
+ Examples:
+ 		crossbar_mpu: @4a020000 {
+ 			compatible = "ti,irq-crossbar";
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 0533a71..4be30c0 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -23,16 +23,18 @@
+ 
+ /*
+  * @int_max: maximum number of supported interrupts
++ * @safe_map: safe default value to initialize the crossbar
+  * @irq_map: array of interrupts to crossbar number mapping
+  * @crossbar_base: crossbar base address
+  * @register_offsets: offsets for each irq number
+  */
+ struct crossbar_device {
+ 	uint int_max;
++	uint safe_map;
+ 	uint *irq_map;
+ 	void __iomem *crossbar_base;
+ 	int *register_offsets;
+-	void (*write) (int, int);
++	void (*write)(int, int);
+ };
+ 
+ static struct crossbar_device *cb;
+@@ -88,8 +90,10 @@ static void crossbar_domain_unmap(struct irq_domain *d, unsigned int irq)
+ {
+ 	irq_hw_number_t hw = irq_get_irq_data(irq)->hwirq;
+ 
+-	if (hw > GIC_IRQ_START)
++	if (hw > GIC_IRQ_START) {
+ 		cb->irq_map[hw - GIC_IRQ_START] = IRQ_FREE;
++		cb->write(hw - GIC_IRQ_START, cb->safe_map);
++	}
+ }
+ 
+ static int crossbar_domain_xlate(struct irq_domain *d,
+@@ -214,6 +218,17 @@ static int __init crossbar_of_init(struct device_node *node)
+ 		reserved += size;
+ 	}
+ 
++	of_property_read_u32(node, "ti,irqs-safe-map", &cb->safe_map);
++
++	/* Initialize the crossbar with safe map to start with */
++	for (i = 0; i < max; i++) {
++		if (cb->irq_map[i] == IRQ_RESERVED ||
++		    cb->irq_map[i] == IRQ_SKIP)
++			continue;
++
++		cb->write(i, cb->safe_map);
++	}
++
+ 	register_routable_domain_ops(&routable_irq_domain_ops);
+ 	return 0;
+ 
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
