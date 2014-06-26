@@ -1,7 +1,7 @@
 From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V4 05/16] irqchip: crossbar: Change allocation logic by reversing search for free irqs
-Date: Thu, 26 Jun 2014 12:40:23 +0530
-Message-ID: <1403766634-18543-6-git-send-email-r.sricharan@ti.com>
+Subject: [PATCH V4 08/16] irqchip: crossbar: Fix kerneldoc warning
+Date: Thu, 26 Jun 2014 12:40:26 +0530
+Message-ID: <1403766634-18543-9-git-send-email-r.sricharan@ti.com>
 References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,50 +14,42 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Nishanth Menon <nm@ti.com>
 
-Reverse the search algorithm to ensure that address mapping and IRQ
-allocation logics are proper. This makes the below bugs visible sooner.
+Adding missing properties for kerneldoc (@write) and cleanup
+of harmless warnings while we are here.
 
-class 1. address space errors -> example:
-reg = <a size_b>
-ti,max-irqs =  is a wrong parameter
-
-class 2: irq-reserved list - which decides which entries in the
-address space is not actually wired in
-
-class 3: wrong list of routable-irqs.
-
-In general allocating from max to min tends to have benefits in
-ensuring the different issues that may be present in dts is easily
-caught at definition time, rather than at a later point in time.
+kerneldoc warnings:
+Warning(drivers/irqchip/irq-crossbar.c:27): missing initial short description on line:
+ * struct crossbar_device: crossbar device description
+Info(drivers/irqchip/irq-crossbar.c:27): Scanning doc for struct
+Warning(drivers/irqchip/irq-crossbar.c:39): No description found for parameter 'write'
+2 warnings
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Sricharan R <r.sricharan@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/irqchip/irq-crossbar.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/irqchip/irq-crossbar.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 4be30c0..a39cb31 100644
+index f7eda9f..cee556b 100644
 --- a/drivers/irqchip/irq-crossbar.c
 +++ b/drivers/irqchip/irq-crossbar.c
-@@ -58,7 +58,7 @@ static inline int get_prev_map_irq(int cb_no)
- {
- 	int i;
+@@ -22,12 +22,14 @@
+ #define IRQ_SKIP	-3
+ #define GIC_IRQ_START	32
  
--	for (i = 0; i < cb->int_max; i++)
-+	for (i = cb->int_max - 1; i >= 0; i--)
- 		if (cb->irq_map[i] == cb_no)
- 			return i;
- 
-@@ -69,7 +69,7 @@ static inline int allocate_free_irq(int cb_no)
- {
- 	int i;
- 
--	for (i = 0; i < cb->int_max; i++) {
-+	for (i = cb->int_max - 1; i >= 0; i--) {
- 		if (cb->irq_map[i] == IRQ_FREE) {
- 			cb->irq_map[i] = cb_no;
- 			return i;
+-/*
++/**
++ * struct crossbar_device - crossbar device description
+  * @int_max: maximum number of supported interrupts
+  * @safe_map: safe default value to initialize the crossbar
+  * @irq_map: array of interrupts to crossbar number mapping
+  * @crossbar_base: crossbar base address
+  * @register_offsets: offsets for each irq number
++ * @write: register write function pointer
+  */
+ struct crossbar_device {
+ 	uint int_max;
 -- 
 1.7.9.5
