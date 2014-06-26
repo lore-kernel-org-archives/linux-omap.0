@@ -1,55 +1,162 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] regulator: tps65917: Fix SMPS enable/disable/is_enable
-Date: Thu, 26 Jun 2014 13:31:34 -0500
-Message-ID: <1403807494-23907-1-git-send-email-nm@ti.com>
+From: Darren Etheridge <detheridge@ti.com>
+Subject: Re: [PATCH v1 3/3] ARM: dts: am335x-bone: add support for beaglebone
+ LCD4 cape
+Date: Thu, 26 Jun 2014 13:35:40 -0500
+Message-ID: <53AC67FC.4050103@ti.com>
+References: <1403612666-31197-1-git-send-email-pekon@ti.com> <1403612666-31197-4-git-send-email-pekon@ti.com> <20140626154052.GB15648@fox>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49169 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbaFZShf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2014 14:37:35 -0400
+In-Reply-To: <20140626154052.GB15648@fox>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?ISO-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>, Pekon Gupta <pekon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
 
-We use regmap regulator ops to enable/disable and check if regulator
-is enabled for various SMPS. However, these depend on valid
-enable_reg, enable_mask and enable_value in regulator descriptor.
+Guido, Pekon,
 
-So, similar to fix we did in commit 318dbb02b50c
-("regulator: palmas: Fix SMPS enable/disable/is_enabled"), populate the
-same for TPS65917 SMPS registration. LDO definitions are already in place.
+On 06/26/2014 10:40 AM, Guido Mart=EDnez wrote:
+> Hi Pekon,
+>
+> I had some issues with this patch. Booting linux-next on a BeagleBone
+> Black with this exact LCD left me with an unusable white screen. Plea=
+se
+> see below for some details.
+>
+> On Tue, Jun 24, 2014 at 05:54:26PM +0530, Pekon Gupta wrote:
+>> This patch adds support for LCD4 cape as advertised on
+>>    http://elinux.org/CircuitCo:BeagleBone_LCD4
+>>
+>> This cape has:
+>> * 480x272 TFT-LCD panel
+>>   - LCD panel datasheet and timing information are sourced from [1]
+>>   - LCD backlight is connected to 'EHRPWM1A' on cape board, but its =
+used for
+>>     enabling backlight power-supply. So 'gpio-backlight' driver is u=
+sed instead
+>>     of 'pwm-backlight' driver (Kconfig: BACKLIGHT_GPIO=3Dy).
+>>
+>> * 4-wire resistive Touchscreen
+>>
+>> *Known constrains*
+>> As LCD panel pins (lcd_data, hsync, vsync, pclk) are shared with on-=
+board
+>> NXP HDMI framer, so either HDMI or LCD-cape can be used at time. Thu=
+s while
+>> using this cape 'hdmi' DT node needs to be disabled in am335x-bonebl=
+ack.dts
+>>
+>> [1] www.newhavendisplay.com/specs/NHD-4.3-480272MF-ATXI-T-1.pdf
+>>      www.newhavendisplay.com/app_notes/OTA5180A.pdf
+>>
+>> Signed-off-by: Pekon Gupta <pekon@ti.com>
+>> ---
 
-Fixes: d6f83370ed97 ("regulator: palmas: Add tps65917 PMIC support")
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+<snip>
 
-Applies on:
-	git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
-branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
+>> +
+>> +	panel {
+>> +		status =3D "disabled";
+>> +		compatible =3D "ti,tilcdc,panel";
+>> +		pinctrl-names =3D "default";
+>> +		pinctrl-0 =3D <&bbcape_lcd_pins>;
+>> +		panel-info {
+>> +			ac-bias           =3D <255>;
+>> +			ac-bias-intrpt    =3D <0>;
+>> +			dma-burst-sz      =3D <16>;
+>> +			bpp               =3D <16>;
+>> +			fdd               =3D <0x80>;
+>> +			sync-edge         =3D <0>;
+>> +			sync-ctrl         =3D <0>;
+> I had to set this to <1>. Does that make sense?
+>
+>> +			raster-order      =3D <0>;
+>> +			fifo-th           =3D <0>;
+>> +		};
+>> +		display-timings {
+>> +			native-mode =3D <&timing0>;
+>> +			/* www.newhavendisplay.com/app_notes/OTA5180A.pdf */
+>> +			timing0: 480x272 {
+>> +				clock-frequency =3D <30000000>;
+>> +				hactive =3D <480>;
+>> +				vactive =3D <272>;
+>> +				hfront-porch =3D <8>;
+>> +				hback-porch =3D <47>;
+>> +				hsync-len =3D <41>;
+>> +				vback-porch =3D <2>;
+>> +				vfront-porch =3D <3>;
+>> +				vsync-len =3D <10>;
+>> +				hsync-active =3D <0>;
+>> +				vsync-active =3D <0>;
+>> +				de-active =3D <1>;
+>> +				pixelclk-active =3D <0>;
+> Are you sure these timings are ok? When enabling the sync control I g=
+et
+> an usable display, but it looks a bit funny. For example an all black
+> display looks very clear and has a dotted pattern.
+>
+> I tried to take a picture of it but it doesn't show.
 
-Note: Ignored the minor style check from checkpatch --strict as fixing
-it would create an 80 char warning
+These timings look wrong to me, for instance this sets a clock frequenc=
+y=20
+of 30MHz where as the linked app-note says 9MHz.  I think the LCD4 cape=
+=20
+uses the same LCD panel as is used on the AM335x EVMSK.  Therefore the=20
+display timings from my DT patch for the EVMSK should work:=20
+https://patchwork.kernel.org/patch/4144801/
 
- drivers/regulator/palmas-regulator.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Darren
 
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 7c8b441..c7aa1b1 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -1333,6 +1333,14 @@ static int tps65917_smps_registration(struct palmas_pmic *pmic,
- 		pmic->current_reg_mode[id] = reg &
- 				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
- 
-+		pmic->desc[id].enable_reg =
-+				PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-+					palmas_regs_info[id].ctrl_addr);
-+		pmic->desc[id].enable_mask =
-+				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-+		/* set_mode overrides this value */
-+		pmic->desc[id].enable_val = SMPS_CTRL_MODE_ON;
-+
- 		pmic->desc[id].type = REGULATOR_VOLTAGE;
- 		pmic->desc[id].owner = THIS_MODULE;
- 
--- 
-1.7.9.5
+>
+> Also I'm just guessing about the timings, maybe it's something else?
+>
+>> +			};
+>> +		};
+>> +	};
+>> +};
+>> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/a=
+m335x-bone.dts
+>> index f16bfcf..41439dc 100644
+>> --- a/arch/arm/boot/dts/am335x-bone.dts
+>> +++ b/arch/arm/boot/dts/am335x-bone.dts
+>> @@ -10,6 +10,7 @@
+>>   #include "am33xx.dtsi"
+>>   #include "am335x-bone-common.dtsi"
+>>   #include "am335x-bone-memory-cape.dts"
+>> +#include "am335x-bone-display-cape.dts"
+>>
+>>   &ldo3_reg {
+>>   	regulator-min-microvolt =3D <1800000>;
+>> diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/=
+dts/am335x-boneblack.dts
+>> index e6d7e54..03232c7 100644
+>> --- a/arch/arm/boot/dts/am335x-boneblack.dts
+>> +++ b/arch/arm/boot/dts/am335x-boneblack.dts
+>> @@ -10,6 +10,7 @@
+>>   #include "am33xx.dtsi"
+>>   #include "am335x-bone-common.dtsi"
+>>   #include "am335x-bone-memory-cape.dts"
+>> +#include "am335x-bone-display-cape.dts"
+>>
+>>   &ldo3_reg {
+>>   	regulator-min-microvolt =3D <1800000>;
+>> --
+>> 1.8.5.1.163.gd7aced9
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
