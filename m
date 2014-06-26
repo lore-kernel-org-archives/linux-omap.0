@@ -1,60 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
-Date: Thu, 26 Jun 2014 00:31:16 -0700
-Message-ID: <20140626073115.GD28884@atomide.com>
-References: <1403700996-27105-1-git-send-email-rogerq@ti.com>
- <53AB4CE0.6020705@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V4 00/16] irqchip: crossbar: Driver fixes
+Date: Thu, 26 Jun 2014 00:42:09 -0700
+Message-ID: <20140626074209.GE28884@atomide.com>
+References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <53AB4CE0.6020705@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1403766634-18543-1-git-send-email-r.sricharan-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [140625 15:29]:
-> On 06/25/2014 07:56 AM, Roger Quadros wrote:
-> > The SATA and USB PHYs need the 1.8V and 3.3V supplies.
-> > The PHY drivers/framework don't yet support regulator
-> > supply so we have to keep these regulators always-on till
-> > then.
-> > 
-> > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> > ---
-> >  arch/arm/boot/dts/dra7-evm.dts | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> > index 4adc280..99a1f79 100644
-> > --- a/arch/arm/boot/dts/dra7-evm.dts
-> > +++ b/arch/arm/boot/dts/dra7-evm.dts
-> > @@ -241,6 +241,7 @@
-> >  					regulator-min-microvolt = <1800000>;
-> >  					regulator-max-microvolt = <1800000>;
-> >  					regulator-boot-on;
-> > +					regulator-always-on;
-> >  				};
-> >  
-> >  				ldo9_reg: ldo9 {
-> > @@ -266,6 +267,7 @@
-> >  					regulator-min-microvolt = <3300000>;
-> >  					regulator-max-microvolt = <3300000>;
-> >  					regulator-boot-on;
-> > +					regulator-always-on;
-> >  				};
-> >  			};
-> >  		};
-> > 
+* Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org> [140626 00:14]:
+> This series does some cleanups, fixes for handling two interrupts
+> getting mapped twice to same crossbar and provides support for
+> hardwired IRQ and crossbar definitions.
 > 
-> Why not fix phy driver/framework as needed? the trouble is people
-> always forget to remove always-on... who actually audits old logs and
-> fixes stuff back up?
+> On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10,
+> 131, 132, 133 are direct wired to hardware blocks bypassing
+> crossbar. This quirky implementation is *NOT* supposed to be the
+> expectation of crossbar hardware usage. This series adds support
+> to represent such hard-wired irqs through DT and avoid generic
+> allocation/programming of crossbar in the driver.
+> 
+> This way of supporting hard-wired irqs was a result of
+> the below discussions.
+> http://www.spinics.net/lists/arm-kernel/msg329946.html
+> 
+> Based on 3.16 rc2 mainline.
 
-Yes I agree let's not play with the regulator-always-on unless
-absolutely necessary.
+Jason, once these patches look OK for merging, can you please
+set them up into an immutable branch so I too can merge them in?
+
+The immutable branch is needed so I can eventually apply
+the related .dts changes to enable the crossbar interrupts.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
