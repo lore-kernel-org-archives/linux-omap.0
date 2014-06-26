@@ -1,64 +1,79 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: [PATCH V4 01/16] irqchip: crossbar: Dont use '0' to mark reserved interrupts
-Date: Thu, 26 Jun 2014 12:40:19 +0530
-Message-ID: <1403766634-18543-2-git-send-email-r.sricharan@ti.com>
-References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V4 00/16] irqchip: crossbar: Driver fixes
+Date: Thu, 26 Jun 2014 12:40:18 +0530
+Message-ID: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48736 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753358AbaFZHNO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jun 2014 03:13:14 -0400
-In-Reply-To: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, r.sricharan-l0cyMroinI0@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com
 
-From: Nishanth Menon <nm@ti.com>
+This series does some cleanups, fixes for handling two interrupts
+getting mapped twice to same crossbar and provides support for
+hardwired IRQ and crossbar definitions.
 
-Today '0' is actually reserved, but may not be the same in the future.
+On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10,
+131, 132, 133 are direct wired to hardware blocks bypassing
+crossbar. This quirky implementation is *NOT* supposed to be the
+expectation of crossbar hardware usage. This series adds support
+to represent such hard-wired irqs through DT and avoid generic
+allocation/programming of crossbar in the driver.
 
-So, use a flag to mark the GIC interrupts that are reserved.
+This way of supporting hard-wired irqs was a result of
+the below discussions.
+http://www.spinics.net/lists/arm-kernel/msg329946.html
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Sricharan R <r.sricharan@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- drivers/irqchip/irq-crossbar.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Based on 3.16 rc2 mainline.
 
-diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-index 3d15d16..20105bc 100644
---- a/drivers/irqchip/irq-crossbar.c
-+++ b/drivers/irqchip/irq-crossbar.c
-@@ -17,6 +17,7 @@
- #include <linux/irqchip/arm-gic.h>
- 
- #define IRQ_FREE	-1
-+#define IRQ_RESERVED	-2
- #define GIC_IRQ_START	32
- 
- /*
-@@ -139,7 +140,7 @@ static int __init crossbar_of_init(struct device_node *node)
- 				pr_err("Invalid reserved entry\n");
- 				goto err3;
- 			}
--			cb->irq_map[entry] = 0;
-+			cb->irq_map[entry] = IRQ_RESERVED;
- 		}
- 	}
- 
-@@ -170,7 +171,7 @@ static int __init crossbar_of_init(struct device_node *node)
- 	 * reserved irqs. so find and store the offsets once.
- 	 */
- 	for (i = 0; i < max; i++) {
--		if (!cb->irq_map[i])
-+		if (cb->irq_map[i] == IRQ_RESERVED)
- 			continue;
- 
- 		cb->register_offsets[i] = reserved;
+All the patches are available here
+ git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:Sricharanti/sricharan.git crossbar_updates
+
+The fixes series[1] earlier posted is merged in to this.
+[1] http://www.spinics.net/lists/arm-kernel/msg328273.html
+
+[V2] Merged the above series and rebased on 3.15 mainline
+
+[V3] Modified patch#3 to get irqs-skip properties from DT,
+     merged path#8 for checkpatch warning to other relevant
+     patches and fixed comments for other patches.
+
+[V4] Based on 3.16rc2 and fixed Jason's <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org> comments.
+
+Nishanth Menon (14):
+  irqchip: crossbar: Dont use '0' to mark reserved interrupts
+  irqchip: crossbar: Check for premapped crossbar before allocating
+  irqchip: crossbar: Introduce ti,irqs-skip to skip irqs that bypass
+    crossbar
+  irqchip: crossbar: Initialise the crossbar with a safe value
+  irqchip: crossbar: Change allocation logic by reversing search for
+    free irqs
+  irqchip: crossbar: Remove IS_ERR_VALUE check
+  irqchip: crossbar: Fix sparse and checkpatch warnings
+  irqchip: crossbar: Fix kerneldoc warning
+  irqchip: crossbar: Return proper error value
+  irqchip: crossbar: Change the goto naming
+  irqchip: crossbar: Introduce ti,max-crossbar-sources to identify
+    valid crossbar mapping
+  irqchip: crossbar: Introduce centralized check for crossbar write
+  documentation: dt: omap: crossbar: Add description for interrupt
+    consumer
+  irqchip: crossbar: Allow for quirky hardware with direct hardwiring
+    of GIC
+
+Sricharan R (2):
+  irqchip: crossbar: Set cb pointer to null in case of error
+  irqchip: crossbar: Add kerneldoc for crossbar_domain_unmap callback
+
+ .../devicetree/bindings/arm/omap/crossbar.txt      |   36 +++++
+ drivers/irqchip/irq-crossbar.c                     |  168 +++++++++++++++++---
+ 2 files changed, 179 insertions(+), 25 deletions(-)
+
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
