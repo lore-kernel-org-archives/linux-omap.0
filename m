@@ -1,66 +1,64 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for
- beaglebone NAND cape
-Date: Thu, 26 Jun 2014 05:43:30 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF79CC@DBDE04.ent.ti.com>
-References: <1403612666-31197-1-git-send-email-pekon@ti.com>
- <1403612666-31197-2-git-send-email-pekon@ti.com>
- <20140625152735.GA17792@arch.cereza>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: [PATCH V4 01/16] irqchip: crossbar: Dont use '0' to mark reserved interrupts
+Date: Thu, 26 Jun 2014 12:40:19 +0530
+Message-ID: <1403766634-18543-2-git-send-email-r.sricharan@ti.com>
+References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59847 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48736 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752814AbaFZFoD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jun 2014 01:44:03 -0400
-In-Reply-To: <20140625152735.GA17792@arch.cereza>
-Content-Language: en-US
+	id S1753358AbaFZHNO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jun 2014 03:13:14 -0400
+In-Reply-To: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>, =?iso-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, r.sricharan@ti.com, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com
 
->From: Ezequiel Garcia [mailto:ezequiel@vanguardiasur.com.ar]
->>On 24 Jun 05:54 PM, Pekon Gupta wrote:
->> +&gpmc {
->> +	ranges = <0 0 0 0x01000000>;	/* address range = 16MB (minimum GPMC partition) */
->> +	nand@0,0 {
->> +		status = "disabled";
->> +		reg = <0 0 4>;		/* device IO registers */
->> +		pinctrl-names = "default";
->> +		pinctrl-0 = <&bbcape_nand_flash_pins>;
->> +		ti,nand-ecc-opt = "bch8";
->> +		ti,elm-id = <&elm>;
->
->Don't you need something like this to turn on the elm device?
->
->&elm {
->	status = "okay";
->};
->
-No, This was the intend of these patches to keep cape DTS as "disabled"
-so that:
-(1)These patches should not change the behavior of existing DTS
- (am335x-boneblack.dts or am335x-bone.dts), or conflict with
- any existing node or other cape DTS.
-(2) In-case of share-pin mux where multiple capes use same pins
-Cape DTS should not conflict each other.
+From: Nishanth Menon <nm@ti.com>
 
-Now, to enable the choice of cape without hacking any source file,
-user can use u-boot commands (refer to example in cover-letter):
-/* load DTB */
-u-boot> tftp 0x81000000 am335x-boneblack.dtb
-u-boot> fdt addr 0x81000000
-/* disabled conflicting MMC2 (eMMC) */
-u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
-/* enable NAND cape*/
-u-boot> fdt set  /ocp/elm status \o\k\a\y
-u-boot> fdt set  /ocp/gpmc status \o\k\a\y
-u-boot> fdt set  /ocp/gpmc/nand status \o\k\a\y
+Today '0' is actually reserved, but may not be the same in the future.
 
-And then boot using this DTB loaded at 0x81000000
-(you can put all these commands in uEnv as part of $bootcmd)
+So, use a flag to mark the GIC interrupts that are reserved.
 
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sricharan R <r.sricharan@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ drivers/irqchip/irq-crossbar.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-with regards, Pekon
+diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+index 3d15d16..20105bc 100644
+--- a/drivers/irqchip/irq-crossbar.c
++++ b/drivers/irqchip/irq-crossbar.c
+@@ -17,6 +17,7 @@
+ #include <linux/irqchip/arm-gic.h>
+ 
+ #define IRQ_FREE	-1
++#define IRQ_RESERVED	-2
+ #define GIC_IRQ_START	32
+ 
+ /*
+@@ -139,7 +140,7 @@ static int __init crossbar_of_init(struct device_node *node)
+ 				pr_err("Invalid reserved entry\n");
+ 				goto err3;
+ 			}
+-			cb->irq_map[entry] = 0;
++			cb->irq_map[entry] = IRQ_RESERVED;
+ 		}
+ 	}
+ 
+@@ -170,7 +171,7 @@ static int __init crossbar_of_init(struct device_node *node)
+ 	 * reserved irqs. so find and store the offsets once.
+ 	 */
+ 	for (i = 0; i < max; i++) {
+-		if (!cb->irq_map[i])
++		if (cb->irq_map[i] == IRQ_RESERVED)
+ 			continue;
+ 
+ 		cb->register_offsets[i] = reserved;
+-- 
+1.7.9.5
+
