@@ -1,76 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 07/12] OMAPDSS: Kconfig: Select audio dependencies if
- OMAP5_DSS_HDMI_AUDIO=y
-Date: Fri, 27 Jun 2014 14:49:31 +0300
-Message-ID: <53AD5A4B.5050308@ti.com>
-References: <cover.1403807781.git.jsarha@ti.com> <67ea660311de39b8a35e90a9a7d3b345fdaaf895.1403807781.git.jsarha@ti.com>
+Subject: Re: [PATCH 04/12] OMAPDSS: hdmi_audio: Integrated ASoC DAI component
+ driver implementation
+Date: Fri, 27 Jun 2014 14:57:28 +0300
+Message-ID: <53AD5C28.6000009@ti.com>
+References: <cover.1403807781.git.jsarha@ti.com> <69f5b1481bd8b8a005b5d9142626f3529a0d71c7.1403807781.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="Bt4mDDp36HVECLUwfFVbwns1K6IKXtFeC"
+	boundary="KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54864 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56808 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753171AbaF0Ltu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jun 2014 07:49:50 -0400
-In-Reply-To: <67ea660311de39b8a35e90a9a7d3b345fdaaf895.1403807781.git.jsarha@ti.com>
+	id S1753754AbaF0L5x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Jun 2014 07:57:53 -0400
+In-Reply-To: <69f5b1481bd8b8a005b5d9142626f3529a0d71c7.1403807781.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, jyri.sarha@iki.fi
 
---Bt4mDDp36HVECLUwfFVbwns1K6IKXtFeC
+--KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
 On 26/06/14 22:20, Jyri Sarha wrote:
-> Adds help section and SND_SOC dependency to OMAP4_DSS_HDMI_AUDIO.
-> Selects SND_OMAP_SOC, SND_SOC_HDMI_CODEC, and SND_SIMPLE_CARD if
-> OMAP4_DSS_HDMI_AUDIO is enabled.
+> Integrate ASoC DAI component driver in to the OMAP hdmi driver. The
+> patch also updates the relevant entry in ti,omap5-dss DT binding
+> document. The driver registers a dummy hdmi codec driver and a
+> simple-card driver to produce a fully functional ALSA device. The DAI
+> driver is implemented in hdmi_audio.c, but it still needs to be
+> registered from hdmi4.c or hdmi5.c.
 >=20
 > Signed-off-by: Jyri Sarha <jsarha@ti.com>
 > ---
->  drivers/video/fbdev/omap2/dss/Kconfig |   16 ++++++++++++----
->  1 file changed, 12 insertions(+), 4 deletions(-)
+>  drivers/video/fbdev/omap2/dss/Makefile     |    2 +
+>  drivers/video/fbdev/omap2/dss/hdmi.h       |   38 +++-
+>  drivers/video/fbdev/omap2/dss/hdmi_audio.c |  317 ++++++++++++++++++++=
+++++++++
+>  3 files changed, 355 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/video/fbdev/omap2/dss/hdmi_audio.c
 >=20
-> diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbde=
-v/omap2/dss/Kconfig
-> index 871f722..1cce26c 100644
-> --- a/drivers/video/fbdev/omap2/dss/Kconfig
-> +++ b/drivers/video/fbdev/omap2/dss/Kconfig
-> @@ -6,9 +6,9 @@ menuconfig OMAP2_DSS
->  	select VIDEOMODE_HELPERS
->  	select OMAP2_DSS_INIT
->  	select HDMI
-> -	select SND_OMAP_SOC if OMAP4_DSS_HDMI_AUDIO
-> -	select SND_SOC_HDMI_CODEC if OMAP4_DSS_HDMI_AUDIO
-> -	select SND_SIMPLE_CARD if OMAP4_DSS_HDMI_AUDIO
-> +	select SND_OMAP_SOC if OMAP4_DSS_HDMI_AUDIO || OMAP5_DSS_HDMI_AUDIO
-> +	select SND_SOC_HDMI_CODEC if OMAP4_DSS_HDMI_AUDIO || OMAP5_DSS_HDMI_A=
-UDIO
-> +	select SND_SIMPLE_CARD if OMAP4_DSS_HDMI_AUDIO || OMAP5_DSS_HDMI_AUDI=
-O
->          help
->  	  OMAP2+ Display Subsystem support.
-> =20
-> @@ -99,8 +99,16 @@ config OMAP5_DSS_HDMI
->  	  specification.
-> =20
->  config OMAP5_DSS_HDMI_AUDIO
-> +	bool "HDMI audio support for OMAP5"
->  	depends on OMAP5_DSS_HDMI
-> -	bool
-> +	depends on SND_SOC=3Dy || OMAP2_DSS =3D SND_SOC
-> +	default y
+> diff --git a/drivers/video/fbdev/omap2/dss/Makefile b/drivers/video/fbd=
+ev/omap2/dss/Makefile
+> index 245f933..8260987 100644
+> --- a/drivers/video/fbdev/omap2/dss/Makefile
+> +++ b/drivers/video/fbdev/omap2/dss/Makefile
+> @@ -14,5 +14,7 @@ omapdss-$(CONFIG_OMAP2_DSS_DSI) +=3D dsi.o
+>  omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) +=3D hdmi_common.o hdmi_wp.o h=
+dmi_pll.o \
+>  	hdmi_phy.o
+>  omapdss-$(CONFIG_OMAP4_DSS_HDMI) +=3D hdmi4.o hdmi4_core.o
+> +omapdss-$(CONFIG_OMAP4_DSS_HDMI_AUDIO) +=3D hdmi_audio.o
+>  omapdss-$(CONFIG_OMAP5_DSS_HDMI) +=3D hdmi5.o hdmi5_core.o
+> +omapdss-$(CONFIG_OMAP5_DSS_HDMI_AUDIO) +=3D hdmi_audio.o
 
-These selects and depends ons make me feel a bit uneasy, but I don't
-have any idea how to deal with it in a nicer way...
+This adds the hdmi_audio.o twice. I'm not sure what the linker does, but
+I don't think that's correct.
+
+Maybe have a internal CONFIG_OMAP_DSS_HDMI_AUDIO option, which is
+selected if OMAP4 or OMAP5 HDMI AUDIO is selected by the user.
+
+That same internal option could be used in the code also (where is
+applies), instead of "if OMAP4_AUDIO || OMAP5_AUDIO".
 
  Tomi
 
 
 
---Bt4mDDp36HVECLUwfFVbwns1K6IKXtFeC
+--KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -78,19 +75,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTrVpMAAoJEPo9qoy8lh71moMP/3R4hZ7iDGprmjxuZDFb5SE4
-tPpPioNOPwbkFuhP65AZ/qdvZWl+fQyL4j5DnVi4bBMRQhwgj0kxZR1enKM1abBC
-JRdgLmwS6FyIpWTjKYIZE50KEgrplUt23lX310Ik41vwprPWlA2WsC1mNjNSEkEQ
-sL2FrRNL93bBkYeY/9B7hSO9ip/1+RgUFuOfeAflVJARAXe34fWU61wW0fgjMmPp
-Y4Kwg5VPN0QcrOsbG/W8ATF4eZk8RB91VjrSaRHknfeKljiH5quUmXxA6zHtuId3
-0A0qsoM9MgGauWw/zIX3FKaPD7waHo8TAcYDF4EzKu8mTbdWPr7t8PDtS3FkgRQc
-B8jtnTf1kEpdtj+jkJ4u0KpV2dIq4lb4/b7PSbHLlcSpxBCiW0euLhcscVT3+yFn
-66mAUKJVBlWDVKvliSiIInkmVHdZ2Wrbq9yraKuSy81Sr8DwzblPjMKV8mMN/Ore
-q1QPZnh5Y7d2SmAmVNPEm2MljTHe4ctbtV/DiBHmUQBnuvkftDuqYogjZY4oIBqe
-r/+yr863bJypcI5qF04mAGH6fB2DeRWpqyJXME1CzAxUhXvUQGyOvPxZIrw27vro
-Y6BCtEzn5B5rdVxbLUZOFwwcNOqp40uMhpRGEVtTg4rqTAcdIgG09CaXvRboMGEk
-OVmwmPrfd6ry+u5dUG92
-=qBZK
+iQIcBAEBAgAGBQJTrVwtAAoJEPo9qoy8lh71C48QAIa7G0+IrrRWToT81cqP2S1R
+zCXhZpmED7tCYg8ikvVz+wxhaoKeswhuWZkWDFQilLHXil7nJXfH5XjeeuhT0Lj0
+gSYWRTDlHVKcS57ge38tdKJYBTs/4DW7PXB16eHTqCDp+dQDkP2KwXN6Sb1OXkMU
+ZfnGDC/C6+tzvYL8c7moalmnUd2kE0gAKrsWZ96zM6h78KCrtyh+G7nFYF7pt5W/
+iNRciVmpeTygqE6aXKTBBURnIh0vc95IRwDeznRJMCGLBaE4YN16MKPrnojgpIMu
+omrOS8EsSyXL0CrV9lYhKTboeLWgrRLYzsCDuMB+9IKcLkHWLgfNt5Q6SOEq4151
+U53stdcxQj9qDeIs2jR2+K7ivIUgN8q7vC96fckD6mZqjWeGtr647wKuP9ORrGgz
+fKUdIlODSHioz3fcqw3o+Rbx7eMItpPFgwbOxMTG8j/RBj12W7NsDa5z9gd3wD1g
+6neBee+/hyjOh9YhW6DllYA5Z6owM7pkI+zuCKLRIIWPES0Jwm2njichgECRV0tY
+5+n5wCDI73ginN/VaU4fOFQscApkakKAqZiyz2rG2XorEjaPF+pIBGqs2s20nlED
+oKwhKzkuU2Ibv92wfHY6nLvBmnsPGC/BZqPw4hIVuz6AXMZjlqSwlw89AzZiXXl4
+VQ/sOTqi+aMJOoHv5jMa
+=EQTL
 -----END PGP SIGNATURE-----
 
---Bt4mDDp36HVECLUwfFVbwns1K6IKXtFeC--
+--KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx--
