@@ -1,93 +1,72 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 04/12] OMAPDSS: hdmi_audio: Integrated ASoC DAI component
- driver implementation
-Date: Fri, 27 Jun 2014 14:57:28 +0300
-Message-ID: <53AD5C28.6000009@ti.com>
-References: <cover.1403807781.git.jsarha@ti.com> <69f5b1481bd8b8a005b5d9142626f3529a0d71c7.1403807781.git.jsarha@ti.com>
+From: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
+Subject: Re: [PATCH V4 15/16] documentation: dt: omap: crossbar: Add
+ description for interrupt consumer
+Date: Fri, 27 Jun 2014 07:57:42 -0400
+Message-ID: <20140627115742.GA23978@titan.lakedaemon.net>
+References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
+ <1403766634-18543-16-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56808 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753754AbaF0L5x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jun 2014 07:57:53 -0400
-In-Reply-To: <69f5b1481bd8b8a005b5d9142626f3529a0d71c7.1403807781.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1403766634-18543-16-git-send-email-r.sricharan-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, jyri.sarha@iki.fi
 
---KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 26/06/14 22:20, Jyri Sarha wrote:
-> Integrate ASoC DAI component driver in to the OMAP hdmi driver. The
-> patch also updates the relevant entry in ti,omap5-dss DT binding
-> document. The driver registers a dummy hdmi codec driver and a
-> simple-card driver to produce a fully functional ALSA device. The DAI
-> driver is implemented in hdmi_audio.c, but it still needs to be
-> registered from hdmi4.c or hdmi5.c.
->=20
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+On Thu, Jun 26, 2014 at 12:40:33PM +0530, Sricharan R wrote:
+> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> 
+> The current crossbar description does not include the description
+> required for the consumer of the crossbar, a.k.a devices whoes events
+> pass through the crossbar into the GIC interrupt controller.
+> 
+> So, provide documentation for the same.
+> 
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sricharan R <r.sricharan-l0cyMroinI0@public.gmane.org>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 > ---
->  drivers/video/fbdev/omap2/dss/Makefile     |    2 +
->  drivers/video/fbdev/omap2/dss/hdmi.h       |   38 +++-
->  drivers/video/fbdev/omap2/dss/hdmi_audio.c |  317 ++++++++++++++++++++=
-++++++++
->  3 files changed, 355 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/video/fbdev/omap2/dss/hdmi_audio.c
->=20
-> diff --git a/drivers/video/fbdev/omap2/dss/Makefile b/drivers/video/fbd=
-ev/omap2/dss/Makefile
-> index 245f933..8260987 100644
-> --- a/drivers/video/fbdev/omap2/dss/Makefile
-> +++ b/drivers/video/fbdev/omap2/dss/Makefile
-> @@ -14,5 +14,7 @@ omapdss-$(CONFIG_OMAP2_DSS_DSI) +=3D dsi.o
->  omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) +=3D hdmi_common.o hdmi_wp.o h=
-dmi_pll.o \
->  	hdmi_phy.o
->  omapdss-$(CONFIG_OMAP4_DSS_HDMI) +=3D hdmi4.o hdmi4_core.o
-> +omapdss-$(CONFIG_OMAP4_DSS_HDMI_AUDIO) +=3D hdmi_audio.o
->  omapdss-$(CONFIG_OMAP5_DSS_HDMI) +=3D hdmi5.o hdmi5_core.o
-> +omapdss-$(CONFIG_OMAP5_DSS_HDMI_AUDIO) +=3D hdmi_audio.o
+>  .../devicetree/bindings/arm/omap/crossbar.txt      |   17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> index 6923531..35356b6 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
+> @@ -36,3 +36,20 @@ Examples:
+>  			ti,irqs-reserved = <0 1 2 3 5 6 131 132 139 140>;
+>  			ti,irqs-skip = <10 133 139 140>;
+>  		};
+> +
+> +Consumer:
+> +========
+> +See Documentation/devicetree/bindings/interrupt-controller/interrupts.txt and
+> +Documentation/devicetree/bindings/arm/gic.txt for further details.
+> +
+> +An interrupt consumer on an SoC using crossbar will use:
+> +	interrupts = <GIC_SPI request_number interrupt_level>
+> +request number shall be between 0 to that described by
+> +"ti,max-crossbar-sources"
+> +
+> +Example:
+> +	device_x@0x4a023000 {
+> +		/* Crossbar 8 used */
+> +		interrupts = <GIC_SPI 8 IRQ_TYPE_LEVEL_HIGH>;
 
-This adds the hdmi_audio.o twice. I'm not sure what the linker does, but
-I don't think that's correct.
+If you are going to reference MAX_SOURCES in the previous patch to the
+docs, then you should use the macro here as well and explain both.  Or,
+just use numbers in the docs, and macros in the dtsi files.
 
-Maybe have a internal CONFIG_OMAP_DSS_HDMI_AUDIO option, which is
-selected if OMAP4 or OMAP5 HDMI AUDIO is selected by the user.
+If you prefer the latter, just let me know and I'll fixup the other
+patch when applying these.  Otherwise, you can just send a v5 of the two
+patches affected.
 
-That same internal option could be used in the code also (where is
-applies), instead of "if OMAP4_AUDIO || OMAP5_AUDIO".
+thx,
 
- Tomi
-
-
-
---KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTrVwtAAoJEPo9qoy8lh71C48QAIa7G0+IrrRWToT81cqP2S1R
-zCXhZpmED7tCYg8ikvVz+wxhaoKeswhuWZkWDFQilLHXil7nJXfH5XjeeuhT0Lj0
-gSYWRTDlHVKcS57ge38tdKJYBTs/4DW7PXB16eHTqCDp+dQDkP2KwXN6Sb1OXkMU
-ZfnGDC/C6+tzvYL8c7moalmnUd2kE0gAKrsWZ96zM6h78KCrtyh+G7nFYF7pt5W/
-iNRciVmpeTygqE6aXKTBBURnIh0vc95IRwDeznRJMCGLBaE4YN16MKPrnojgpIMu
-omrOS8EsSyXL0CrV9lYhKTboeLWgrRLYzsCDuMB+9IKcLkHWLgfNt5Q6SOEq4151
-U53stdcxQj9qDeIs2jR2+K7ivIUgN8q7vC96fckD6mZqjWeGtr647wKuP9ORrGgz
-fKUdIlODSHioz3fcqw3o+Rbx7eMItpPFgwbOxMTG8j/RBj12W7NsDa5z9gd3wD1g
-6neBee+/hyjOh9YhW6DllYA5Z6owM7pkI+zuCKLRIIWPES0Jwm2njichgECRV0tY
-5+n5wCDI73ginN/VaU4fOFQscApkakKAqZiyz2rG2XorEjaPF+pIBGqs2s20nlED
-oKwhKzkuU2Ibv92wfHY6nLvBmnsPGC/BZqPw4hIVuz6AXMZjlqSwlw89AzZiXXl4
-VQ/sOTqi+aMJOoHv5jMa
-=EQTL
------END PGP SIGNATURE-----
-
---KHqoidoJmj00O3sRCGQbcfaEMCIOqxVQx--
+Jason.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
