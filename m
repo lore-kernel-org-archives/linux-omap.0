@@ -1,157 +1,70 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [RESEND 2/2] clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
-Date: Fri, 27 Jun 2014 20:23:12 +0200
-Message-ID: <CABxcv=metB4=eoT=fAh7S-b_mhAvHcJtn2wrV8v8koSyKMxNNw@mail.gmail.com>
-References: <1403848871-26519-1-git-send-email-peter.ujfalusi@ti.com>
-	<1403848871-26519-3-git-send-email-peter.ujfalusi@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v2 03/13] OMAPDSS: hdmi_wp: Add function for getting audio dma address
+Date: Fri, 27 Jun 2014 21:38:45 +0300
+Message-ID: <e90168befc41157a0b06b719b3b62c42ad16c53d.1403894190.git.jsarha@ti.com>
+References: <cover.1403894190.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403848871-26519-3-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ldewangan@nvidia.com, linux-doc@vger.kernel.org, Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50430 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750862AbaF0SjS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jun 2014 14:39:18 -0400
+In-Reply-To: <cover.1403894190.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi, Jyri Sarha <jsarha@ti.com>
 
-Hello Peter,
+The audio dma port is found in the hdmi_wp physical address space.
 
-On Fri, Jun 27, 2014 at 8:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> Palmas class of devices can provide 32K clock(s) to be used by other devices
-> on the board. Depending on the actual device the provided clocks can be:
-> CLK32K_KG and CLK32K_KGAUDIO
-> or only one:
-> CLK32K_KG (TPS659039 for example)
->
-> Use separate compatible flags for the two 32K clock.
-> A system which needs or have only one of the 32k clock from
-> Palmas will need to add node(s) for each clock as separate section
-> in the dts file.
-> The two compatible property is:
-> "ti,palmas-clk32kg" for clk32kg clock
-> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
->
-> Apart from the register control of the clocks - which is done via
-> the clock API there is a posibility to enable the external sleep
-> control. In this way the clock can be enabled/disabled on demand by the
-> user of the clock.
->
-> See the documentation for more details.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Reviewed-by: Nishanth Menon <nm@ti.com>
-> ---
->  drivers/clk/Kconfig      |   7 ++
->  drivers/clk/Makefile     |   1 +
->  drivers/clk/clk-palmas.c | 307 +++++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 315 insertions(+)
->  create mode 100644 drivers/clk/clk-palmas.c
->
-> diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-> index 9f9c5ae5359b..cfd3af7b2cbd 100644
-> --- a/drivers/clk/Kconfig
-> +++ b/drivers/clk/Kconfig
-> @@ -102,6 +102,13 @@ config COMMON_CLK_KEYSTONE
->            Supports clock drivers for Keystone based SOCs. These SOCs have local
->           a power sleep control module that gate the clock to the IPs and PLLs.
->
-> +config COMMON_CLK_PALMAS
-> +       tristate "Clock driver for TI Palmas devices"
-> +       depends on MFD_PALMAS
-> +       ---help---
-> +         This driver supports TI Palmas devices 32KHz output KG and KG_AUDIO
-> +         using common clock framework.
-> +
->  source "drivers/clk/qcom/Kconfig"
->
->  endmenu
-> diff --git a/drivers/clk/Makefile b/drivers/clk/Makefile
-> index 567f10259029..312742c10661 100644
-> --- a/drivers/clk/Makefile
-> +++ b/drivers/clk/Makefile
-> @@ -22,6 +22,7 @@ obj-$(CONFIG_COMMON_CLK_MAX77686)     += clk-max77686.o
->  obj-$(CONFIG_ARCH_MOXART)              += clk-moxart.o
->  obj-$(CONFIG_ARCH_NOMADIK)             += clk-nomadik.o
->  obj-$(CONFIG_ARCH_NSPIRE)              += clk-nspire.o
-> +obj-$(CONFIG_COMMON_CLK_PALMAS)                += clk-palmas.o
->  obj-$(CONFIG_CLK_PPC_CORENET)          += clk-ppc-corenet.o
->  obj-$(CONFIG_COMMON_CLK_S2MPS11)       += clk-s2mps11.o
->  obj-$(CONFIG_COMMON_CLK_SI5351)                += clk-si5351.o
-> diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
-> new file mode 100644
-> index 000000000000..781630e1372b
-> --- /dev/null
-> +++ b/drivers/clk/clk-palmas.c
-> @@ -0,0 +1,307 @@
-> +/*
-> + * Clock driver for Palmas device.
-> + *
-> + * Copyright (c) 2013, NVIDIA Corporation.
-> + * Copyright (c) 2013-2014 Texas Instruments, Inc.
-> + *
-> + * Author:     Laxman Dewangan <ldewangan@nvidia.com>
-> + *             Peter Ujfalusi <peter.ujfalusi@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-> + * whether express or implied; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-> + * General Public License for more details.
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/clkdev.h>
-> +#include <linux/clk-provider.h>
-> +#include <linux/mfd/palmas.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +
-> +#define PALMAS_CLOCK_DT_EXT_CONTROL_ENABLE1    1
-> +#define PALMAS_CLOCK_DT_EXT_CONTROL_ENABLE2    2
-> +#define PALMAS_CLOCK_DT_EXT_CONTROL_NSLEEP     3
-> +
-> +struct palmas_clk32k_desc {
-> +       const char *clk_name;
-> +       unsigned int control_reg;
-> +       unsigned int enable_mask;
-> +       unsigned int sleep_mask;
-> +       unsigned int sleep_reqstr_id;
-> +       int delay;
-> +};
-> +
-> +struct palmas_clock_info {
-> +       struct device *dev;
-> +       struct clk *clk;
-> +       struct clk_hw hw;
-> +       struct palmas *palmas;
-> +       struct palmas_clk32k_desc *clk_desc;
-> +       int ext_control_pin;
-> +};
-> +
-> +static inline struct palmas_clock_info *to_palmas_clks_info(struct clk_hw *hw)
-> +{
-> +       return container_of(hw, struct palmas_clock_info, hw);
-> +}
-> +
-> +static unsigned long palmas_clks_recalc_rate(struct clk_hw *hw,
-> +                                            unsigned long parent_rate)
-> +{
-> +       return 32768;
-> +}
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ drivers/video/fbdev/omap2/dss/hdmi.h    |    2 ++
+ drivers/video/fbdev/omap2/dss/hdmi_wp.c |    6 ++++++
+ 2 files changed, 8 insertions(+)
 
-I see that other clock drivers using a constant rate return 0 if the
-clock has not been enabled. So maybe is more correct to have something
-like the following?
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index 1f01068..9e85b86 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -250,6 +250,7 @@ struct hdmi_core_audio_config {
+ 
+ struct hdmi_wp_data {
+ 	void __iomem *base;
++	phys_addr_t phys_base;
+ };
+ 
+ struct hdmi_pll_data {
+@@ -317,6 +318,7 @@ void hdmi_wp_video_config_timing(struct hdmi_wp_data *wp,
+ void hdmi_wp_init_vid_fmt_timings(struct hdmi_video_format *video_fmt,
+ 		struct omap_video_timings *timings, struct hdmi_config *param);
+ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp);
++phys_addr_t hdmi_wp_get_audio_dma_addr(struct hdmi_wp_data *wp);
+ 
+ /* HDMI PLL funcs */
+ int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp);
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_wp.c b/drivers/video/fbdev/omap2/dss/hdmi_wp.c
+index 496327e..43bf93e 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi_wp.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi_wp.c
+@@ -247,6 +247,7 @@ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp)
+ 		DSSERR("can't get WP mem resource\n");
+ 		return -EINVAL;
+ 	}
++	wp->phys_base = res->start;
+ 
+ 	wp->base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(wp->base)) {
+@@ -256,3 +257,8 @@ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp)
+ 
+ 	return 0;
+ }
++
++phys_addr_t hdmi_wp_get_audio_dma_addr(struct hdmi_wp_data *wp)
++{
++	return wp->phys_base + HDMI_WP_AUDIO_DATA;
++}
+-- 
+1.7.9.5
 
-if (__clk_is_enabled(hw->clk))
-        return 32768;
-else
-        return 0;
-
-Best regards,
-Javier
