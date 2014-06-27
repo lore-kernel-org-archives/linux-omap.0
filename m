@@ -1,40 +1,87 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 1/6] ARM: mm: cache-l2x0: Add base address argument to
- write_sec callback
-Date: Fri, 27 Jun 2014 09:44:28 +0200
-Message-ID: <CACRpkdaA2oDOTBcL=S2j5bUTSB7oaS8ZWN0Rnf9Pbwtf3fTKjQ@mail.gmail.com>
-References: <1403703451-12233-1-git-send-email-t.figa@samsung.com>
-	<1403703451-12233-2-git-send-email-t.figa@samsung.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 7/9] regulator: palmas: Add palmas_pmic_driver_data
+ structure
+Date: Fri, 27 Jun 2014 09:20:45 +0100
+Message-ID: <20140627082045.GD19645@lee--X1>
+References: <1403085540-20014-1-git-send-email-j-keerthy@ti.com>
+ <1403085540-20014-8-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:60806 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751836AbaF0Hoc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jun 2014 03:44:32 -0400
-Received: by mail-oa0-f48.google.com with SMTP id m1so5124667oag.7
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jun 2014 00:44:28 -0700 (PDT)
-In-Reply-To: <1403703451-12233-2-git-send-email-t.figa@samsung.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1403085540-20014-8-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-omap@vger.kernel.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <tomasz.figa@gmail.com>, Daniel Drake <drake@endlessm.com>, Marek Szyprowski <m.szyprowski@samsung.com>
 
-On Wed, Jun 25, 2014 at 3:37 PM, Tomasz Figa <t.figa@samsung.com> wrote:
+On Wed, 18 Jun 2014, Keerthy wrote:
 
-> For certain platforms (e.g. Exynos) it is necessary to read back some
-> values from registers before they can be written (i.e. SMC calls that
-> set multiple registers per call), so base address of L2C controller is
-> needed for .write_sec operation. This patch adds base argument to
-> .write_sec callback so that its implementation can also access registers
-> directly.
->
-> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> Add palmas_pmic_driver_data structure.
+>=20
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  include/linux/mfd/palmas.h |   25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+>=20
+> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+> index 0136e58..1a045ba 100644
+> --- a/include/linux/mfd/palmas.h
+> +++ b/include/linux/mfd/palmas.h
+> @@ -53,6 +53,8 @@ struct palmas_pmic;
+>  struct palmas_gpadc;
+>  struct palmas_resource;
+>  struct palmas_usb;
+> +struct palmas_pmic_driver_data;
+> +struct palmas_pmic_platform_data;
 
->  arch/arm/mach-ux500/cache-l2x0.c   | 3 ++-
+Are you sure all of these forward declarations are required?  I'd
+prefer that you re-ordered the header file, rather than have them all
+looming here.
 
-In our case just changing the signature of the function I see so:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+>  enum palmas_usb_state {
+>  	PALMAS_USB_STATE_DISCONNECT,
+> @@ -76,6 +78,8 @@ struct palmas {
+>  	struct mutex irq_lock;
+>  	struct regmap_irq_chip_data *irq_data;
+> =20
+> +	struct palmas_pmic_driver_data *pmic_ddata;
+> +
+>  	/* Child Devices */
+>  	struct palmas_pmic *pmic;
+>  	struct palmas_gpadc *gpadc;
+> @@ -107,6 +111,27 @@ struct regs_info {
+>  	int	sleep_id;
+>  };
+> =20
+> +struct palmas_pmic_driver_data {
+> +	int smps_start;
+> +	int smps_end;
+> +	int ldo_begin;
+> +	int ldo_end;
+> +	int max_reg;
+> +	struct regs_info *palmas_regs_info;
+> +	struct of_regulator_match *palmas_matches;
+> +	struct palmas_sleep_requestor_info *sleep_req_info;
+> +	int (*smps_register)(struct palmas_pmic *pmic,
+> +			     struct palmas_pmic_driver_data *ddata,
+> +			     struct palmas_pmic_platform_data *pdata,
+> +			     const char *pdev_name,
+> +			     struct regulator_config config);
+> +	int (*ldo_register)(struct palmas_pmic *pmic,
+> +			    struct palmas_pmic_driver_data *ddata,
+> +			    struct palmas_pmic_platform_data *pdata,
+> +			    const char *pdev_name,
+> +			    struct regulator_config config);
+> +};
+> +
+>  struct palmas_gpadc_platform_data {
+>  	/* Channel 3 current source is only enabled during conversion */
+>  	int ch3_current;
 
-Yours,
-Linus Walleij
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
