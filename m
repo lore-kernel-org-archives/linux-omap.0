@@ -1,58 +1,43 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 09/12] ASoC: omap: Remove obsolete HDMI audio code and
- Kconfig options
-Date: Fri, 27 Jun 2014 13:17:04 +0100
-Message-ID: <20140627121704.GN23300@sirena.org.uk>
-References: <cover.1403807781.git.jsarha@ti.com>
- <93e1aaeba564e0e38ffbd7254adfbb54e3206211.1403807781.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH 04/12] OMAPDSS: hdmi_audio: Integrated ASoC DAI component
+ driver implementation
+Date: Fri, 27 Jun 2014 15:26:35 +0300
+Message-ID: <53AD62FB.10402@ti.com>
+References: <cover.1403807781.git.jsarha@ti.com> <69f5b1481bd8b8a005b5d9142626f3529a0d71c7.1403807781.git.jsarha@ti.com> <53AD5F65.2010107@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="991t1H9DIskWxVIu"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:32908 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753039AbaF0MRW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jun 2014 08:17:22 -0400
-Content-Disposition: inline
-In-Reply-To: <93e1aaeba564e0e38ffbd7254adfbb54e3206211.1403807781.git.jsarha@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45872 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752825AbaF0M0x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Jun 2014 08:26:53 -0400
+In-Reply-To: <53AD5F65.2010107@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, jyri.sarha@iki.fi
 
+On 06/27/2014 03:11 PM, Tomi Valkeinen wrote:
+> On 26/06/14 22:20, Jyri Sarha wrote:
+...
+>> +static struct asoc_simple_card_info card_info = {
+>> +	.name = "HDMI",
+>> +	.card = "OMAPHDMI",
+>> +	.codec_dai.name = "hdmi-hifi",
+>> +};
+>
+> The above is not const. That, and the contents of the struct make me
+> wonder, what happens if we have two HDMI instances?
+>
+> I know the core driver doesn't work with multiple instances yet, but as
+> I mentioned, it has to be done sooner or later. And on the core driver
+> side it should be quite straightforward.
+>
+> I'd rather not introduce new restrictions for that goal.
+>
 
---991t1H9DIskWxVIu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Ok, I'll alloc that with devm_kzalloc().
 
-On Thu, Jun 26, 2014 at 10:21:00PM +0300, Jyri Sarha wrote:
-> Removes omap-hdmi DAI driver, omap-hdmi-card driver, the related
-> Kconfig options, and Makefile entries. The HDMI DAI drivers has been
-> integrated directly to OMAP4+ HDMI drivers and simple-card driver is
-> used instead of omap-hdmi-card driver.
-
-Acked-by: Mark Brown <broonie@linaro.org>
-
---991t1H9DIskWxVIu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJTrWC9AAoJELSic+t+oim9PW4QAIooqH7DcPxYeYR95FBcNi3T
-9lULM1XT06QMFuiM9M/VK4grYmKaqJqaCCy+4eANz/PV5tJuzYFuLSNz47Jao2aK
-jusOw3cJBVvNf8y6y917DYzYAzIWFjXu9v1M7jg0czcZHh+JoffqxFusWNB54Vfn
-i6XpMnqOKZW6CgNa/cldDSlNOws07gyEozEGh0DpT9e/+TRT/p9R01C4O1xZKNLB
-bDZxvZ4WIVH+/BvQYcpV4BUV7YrdFsmjNHAARQvkB/GkXr6RRGvrDDeg5arMmvU3
-es0ZZ3dfiOHDXbYJo7BY9ygXBPEVYu4id/oe+GD7+M1Q6iRe5/v6G4uH83bB8EAY
-z6vyRb9yp5EQ3t9ZbvescR2ZWs/M/HtYYfnQJI9Hy2rjjvBbxJixmF/jTyRAyOp+
-Fo+UQ8MMDuGdaOQtUy1ege44lmBMf5W03CtPQ1kMhAlWpy604occIu67bOIJ6iW4
-630AG12tfK6Bnu2c6/MJTQzqtQXe9PSSJ7NdnqRucC8w6GXEWWK906W6qVpEcRXw
-ZKmCIgGP+ohmFugICe0QwJAR1WGtQz/E/mqiLN3uNGejEcMb7VvYC7GhV2HwgWxd
-NVXWNXU5PclYnkmqHqznOPW2A9OEfASR8Shr5DWITBK+LFYHHkC8G8EOvzJBr53t
-kwAiijNHiKLYeKzHU4e5
-=M+cs
------END PGP SIGNATURE-----
-
---991t1H9DIskWxVIu--
+Cheers,
+Jyri
