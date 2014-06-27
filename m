@@ -1,71 +1,103 @@
 From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH] regulator: tps65917: Fix SMPS enable/disable/is_enable
-Date: Fri, 27 Jun 2014 14:48:25 +0530
-Message-ID: <53AD36E1.1010700@ti.com>
-References: <1403807494-23907-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH v2 8/9] regulator: palmas: add driver data and modularize
+ the probe
+Date: Fri, 27 Jun 2014 15:06:58 +0530
+Message-ID: <53AD3B3A.2030401@ti.com>
+References: <1403085540-20014-1-git-send-email-j-keerthy@ti.com> <1403085540-20014-9-git-send-email-j-keerthy@ti.com> <20140627082351.GE19645@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403807494-23907-1-git-send-email-nm@ti.com>
+In-Reply-To: <20140627082351.GE19645@lee--X1>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello Nishanth,
+Hi Lee Jones,
 
-On Friday 27 June 2014 12:01 AM, Nishanth Menon wrote:
-> We use regmap regulator ops to enable/disable and check if regulator
-> is enabled for various SMPS. However, these depend on valid
-> enable_reg, enable_mask and enable_value in regulator descriptor.
->
-> So, similar to fix we did in commit 318dbb02b50c
-> ("regulator: palmas: Fix SMPS enable/disable/is_enabled"), populate the
-> same for TPS65917 SMPS registration. LDO definitions are already in place.
->
-> Fixes: d6f83370ed97 ("regulator: palmas: Add tps65917 PMIC support")
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->
-> Applies on:
-> 	git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
-> branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
->
-> Note: Ignored the minor style check from checkpatch --strict as fixing
-> it would create an 80 char warning
->
->   drivers/regulator/palmas-regulator.c |    8 ++++++++
->   1 file changed, 8 insertions(+)
->
-> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-> index 7c8b441..c7aa1b1 100644
-> --- a/drivers/regulator/palmas-regulator.c
-> +++ b/drivers/regulator/palmas-regulator.c
-> @@ -1333,6 +1333,14 @@ static int tps65917_smps_registration(struct palmas_pmic *pmic,
->   		pmic->current_reg_mode[id] = reg &
->   				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
->   
-> +		pmic->desc[id].enable_reg =
-> +				PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-> +					palmas_regs_info[id].ctrl_addr);
+On Friday 27 June 2014 01:53 PM, Lee Jones wrote:
+> On Wed, 18 Jun 2014, Keerthy wrote:
+>> add driver data and modularize the probe.
+> Nit: This is a sentence, it should start with a capital letter.
 
-This is wrong. Please change palmas_regs_info[id].ctrl_addr to
-ddata->palmas_regs_info[id].ctrl_addr. The palmas_regs_info
-should come from the driver data for specific instances as the regmap
-is different for the different PMICs we support.
+The series is already pulled by Mark. I Can send fixes on top of
+that patch set.
 
-Once you make the above changes please feel free to add
-Tested-by: Keerthy <j-keerthy@ti.com>.
-
-> +		pmic->desc[id].enable_mask =
-> +				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-> +		/* set_mode overrides this value */
-> +		pmic->desc[id].enable_val = SMPS_CTRL_MODE_ON;
-> +
->   		pmic->desc[id].type = REGULATOR_VOLTAGE;
->   		pmic->desc[id].owner = THIS_MODULE;
->   
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>
+>> Changes in V2:
+>>
+>>    * Fixed the order of variable declarations.
+>>
+>>   drivers/mfd/palmas.c                 |   44 +--
+>>   drivers/regulator/palmas-regulator.c |  658 ++++++++++++++++++++--------------
+>>   2 files changed, 396 insertions(+), 306 deletions(-)
+>>
+>> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+>> index c12759d..28cb048 100644
+>> --- a/drivers/mfd/palmas.c
+>> +++ b/drivers/mfd/palmas.c
+>> @@ -25,42 +25,6 @@
+>>   #include <linux/mfd/palmas.h>
+>>   #include <linux/of_device.h>
+>>   
+>> -#define EXTERNAL_REQUESTOR(_id, _offset, _pos)		\
+>> -	[PALMAS_EXTERNAL_REQSTR_ID_##_id] = {		\
+>> -		.id = PALMAS_EXTERNAL_REQSTR_ID_##_id,	\
+>> -		.reg_offset = _offset,			\
+>> -		.bit_pos = _pos,			\
+>> -	}
+>> -
+>> -static struct palmas_sleep_requestor_info sleep_req_info[] = {
+>> -	EXTERNAL_REQUESTOR(REGEN1, 0, 0),
+>> -	EXTERNAL_REQUESTOR(REGEN2, 0, 1),
+>> -	EXTERNAL_REQUESTOR(SYSEN1, 0, 2),
+>> -	EXTERNAL_REQUESTOR(SYSEN2, 0, 3),
+>> -	EXTERNAL_REQUESTOR(CLK32KG, 0, 4),
+>> -	EXTERNAL_REQUESTOR(CLK32KGAUDIO, 0, 5),
+>> -	EXTERNAL_REQUESTOR(REGEN3, 0, 6),
+>> -	EXTERNAL_REQUESTOR(SMPS12, 1, 0),
+>> -	EXTERNAL_REQUESTOR(SMPS3, 1, 1),
+>> -	EXTERNAL_REQUESTOR(SMPS45, 1, 2),
+>> -	EXTERNAL_REQUESTOR(SMPS6, 1, 3),
+>> -	EXTERNAL_REQUESTOR(SMPS7, 1, 4),
+>> -	EXTERNAL_REQUESTOR(SMPS8, 1, 5),
+>> -	EXTERNAL_REQUESTOR(SMPS9, 1, 6),
+>> -	EXTERNAL_REQUESTOR(SMPS10, 1, 7),
+>> -	EXTERNAL_REQUESTOR(LDO1, 2, 0),
+>> -	EXTERNAL_REQUESTOR(LDO2, 2, 1),
+>> -	EXTERNAL_REQUESTOR(LDO3, 2, 2),
+>> -	EXTERNAL_REQUESTOR(LDO4, 2, 3),
+>> -	EXTERNAL_REQUESTOR(LDO5, 2, 4),
+>> -	EXTERNAL_REQUESTOR(LDO6, 2, 5),
+>> -	EXTERNAL_REQUESTOR(LDO7, 2, 6),
+>> -	EXTERNAL_REQUESTOR(LDO8, 2, 7),
+>> -	EXTERNAL_REQUESTOR(LDO9, 3, 0),
+>> -	EXTERNAL_REQUESTOR(LDOLN, 3, 1),
+>> -	EXTERNAL_REQUESTOR(LDOUSB, 3, 2),
+>> -};
+>> -
+> Happy with this, good riddance.
+>
+>>   static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
+>>   	{
+>>   		.reg_bits = 8,
+>> @@ -365,10 +329,10 @@ static struct regmap_irq_chip tps65917_irq_chip = {
+>>   int palmas_ext_control_req_config(struct palmas *palmas,
+>>   	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
+>>   {
+>> +	struct palmas_pmic_driver_data *pmic_ddata = palmas->pmic_ddata;
+>>   	int preq_mask_bit = 0;
+>>   	int reg_add = 0;
+>> -	int bit_pos;
+>> -	int ret;
+>> +	int bit_pos, ret;
+> I don't like this change.
+>
+> [...]
+>
 
 Regards,
 Keerthy
