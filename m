@@ -1,59 +1,83 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH 06/12] OMAPDSS: hdmi4: Register HDMI audio ASoC drivers
- from HDMI driver
-Date: Fri, 27 Jun 2014 18:33:21 +0300
-Message-ID: <53AD8EC1.6050302@ti.com>
-References: <cover.1403807781.git.jsarha@ti.com> <f61b31d0b08c8a0b6ee295d5b0da62ead23983c9.1403807781.git.jsarha@ti.com> <53AD57F9.3030300@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arch: arm: mach-omap2: usb-tusb6010.c:  Cleaning up
+ variable is set more than once
+Date: Fri, 27 Jun 2014 10:57:13 -0500
+Message-ID: <20140627155713.GM8069@saruman.home>
+References: <1403699310-22960-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35261 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753367AbaF0Pdn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jun 2014 11:33:43 -0400
-In-Reply-To: <53AD57F9.3030300@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cGfB/trNgB3WtPHu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1403699310-22960-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, jyri.sarha@iki.fi
 
-On 06/27/2014 02:39 PM, Tomi Valkeinen wrote:
-> On 26/06/14 22:20, Jyri Sarha wrote:
-...
->> +#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
->> +	/* drvdata is only used by HDMI audio */
->> +	hdmi.audio.hdmi_lock = &hdmi.lock;
->> +	hdmi.audio.wp = &hdmi.wp;
->> +	hdmi.audio.core = &hdmi.core;
->> +	hdmi.audio.cfg = &hdmi.cfg;
->> +	hdmi.audio.hdmi_dai_drv = &omap_hdmi_dai;
->> +	hdmi.audio.audio_start = hdmi4_audio_start;
->> +	hdmi.audio.audio_stop = hdmi4_audio_stop;
->> +	hdmi.audio.audio_config = hdmi4_audio_config;
->> +	dev_set_drvdata(&pdev->dev, &hdmi.audio);
->> +	r = hdmi_audio_register(pdev);
->> +	if (r) {
->> +		DSSERR("Registering HDMI audio failed\n");
->> +		hdmi_uninit_output(pdev);
->> +		pm_runtime_disable(&pdev->dev);
->> +		return r;
->> +	}
->> +#endif
->
-> I don't think it's a good idea to reserve the driver data for audio. We
-> need to change the hdmi drivers sooner or later to support multiple
-> instances, and at that point having drvdata for audio will cause problems.
->
-> If you don't want to make the hdmi struct public yet, maybe just add a
-> function to this file which takes a pointer to the hdmi struct and
-> returns the audio part. That way you can set the whole hdmi struct as
-> driver data, which should be future safe.
->
+--cGfB/trNgB3WtPHu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Adding a function is not as simple as that because the OMAP4 and OMAP5 
-structs are subtly different and hdmi_audio.c is common to both. I'll 
-make the minimal changes to make the struct public.
+On Wed, Jun 25, 2014 at 02:28:30PM +0200, Rickard Strandqvist wrote:
+> A struct member variable is set to the same value more than once
+>=20
+> This was found using a static code analysis program called cppcheck.
+>=20
+> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.s=
+e>
 
-Cheers,
-Jyri
+I think there was a bigger series from Roger rewriting most of this, but
+if I'm mistaken:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+> ---
+>  arch/arm/mach-omap2/usb-tusb6010.c |    1 -
+>  1 file changed, 1 deletion(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb=
+-tusb6010.c
+> index e832bc7..8333400 100644
+> --- a/arch/arm/mach-omap2/usb-tusb6010.c
+> +++ b/arch/arm/mach-omap2/usb-tusb6010.c
+> @@ -95,7 +95,6 @@ static int tusb_set_sync_mode(unsigned sysclk_ps)
+>  	dev_t.t_avdp_w =3D t_scsnh_advnh;
+>  	dev_t.cyc_aavdh_we =3D 3;
+>  	dev_t.cyc_wpl =3D 6;
+> -	dev_t.t_ce_rdyz =3D 7000;
+> =20
+>  	gpmc_calc_timings(&t, &tusb_sync, &dev_t);
+> =20
+> --=20
+> 1.7.10.4
+>=20
+
+--=20
+balbi
+
+--cGfB/trNgB3WtPHu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTrZRZAAoJEIaOsuA1yqREtuwQAJOHyvyVnUtDT20I+RGkVhI9
+K15ifWzoQ7eh0ZfeksLgvy3ilmNyt/q2IxiIhZ2UJXHkemD69EYDEWf/kLRlFlmO
+sEzMrGPNI1uOVtmMgd/RdGTU+fvrv8a7gb63JkVGSLTjZnA2CDalKon7eQNpIFhc
+cy/jQzG1B/nOnuvDCxfLxMcKQWkTIB46w2yWylU+0zr6ch0/9pviRpzuHB3jXM0m
+GF6VM6DnqQwSp/YBrOBhvA26AUdVqGXdN5F2e3vRdOhHJaAOJ30lG+ZiOgeifKvH
+tUTX3rKJzVvbVaYOvwSFjD5Dh3cZxJrLG13PzDeWLcJLol1CGySQoXwkaOAR2c5X
+LwHyuSE33oUJgajM7ik20RPYj7sbaM9yuS0AT2+BqoFirPq/G8fxD4KWSeCEenP+
+92/nDxEApRGLZKtNvwC77FXxyp3C5Z0TOAviZTD4pqiFiEN6qlwiAVunuKmWTBS7
+IrPHmc+Db0FPHWq58Q7HfQ1FCNsmO2+PFbfgCHnyJXiHfoAz4T9URA30REk5MgAi
+3oNcRAbdLMdTz+nfKvvNsb9/wssTG78tdzfdSdrDlY4mkaKvnURfnUYSSEtI/w2x
+Gagu+O7D+/sZZZFvA2pOOtTHBv5MLUnQork5D6icsm9kKnjp+/l+UAJYjPsOc/mD
+vktCFVAYxAtUq2vysTN4
+=U2sB
+-----END PGP SIGNATURE-----
+
+--cGfB/trNgB3WtPHu--
