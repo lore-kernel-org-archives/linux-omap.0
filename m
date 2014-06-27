@@ -1,607 +1,457 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v2 10/13] ASoC: omap: Remove obsolete HDMI audio code and Kconfig options
-Date: Fri, 27 Jun 2014 21:38:52 +0300
-Message-ID: <c6bcc7a0f58cb45a8273c10582a72309cfbb528d.1403894190.git.jsarha@ti.com>
+Subject: [PATCH v2 05/13] OMAPDSS: hdmi_audio: Integrated ASoC DAI component driver implementation
+Date: Fri, 27 Jun 2014 21:38:47 +0300
+Message-ID: <a532c8653870ff642d2dea1f6c666a021cb1ab5f.1403894190.git.jsarha@ti.com>
 References: <cover.1403894190.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50441 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050AbaF0Sjc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jun 2014 14:39:32 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42185 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752050AbaF0Sj2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Jun 2014 14:39:28 -0400
 In-Reply-To: <cover.1403894190.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi, Jyri Sarha <jsarha@ti.com>
 
-Removes omap-hdmi DAI driver, omap-hdmi-card driver, the related
-Kconfig options, and Makefile entries. The HDMI DAI drivers has been
-integrated directly to OMAP4+ HDMI drivers and simple-card driver is
-used instead of omap-hdmi-card driver.
+Integrate ASoC DAI component driver in to the OMAP hdmi driver. The
+patch also updates the relevant entry in ti,omap5-dss DT binding
+document. The driver registers a dummy hdmi codec driver and a
+simple-card driver to produce a fully functional ALSA device. The DAI
+driver is implemented in hdmi_audio.c, but it still needs to be
+registered from hdmi4.c or hdmi5.c.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- sound/soc/omap/Kconfig          |   13 --
- sound/soc/omap/Makefile         |    4 -
- sound/soc/omap/omap-hdmi-card.c |   87 ----------
- sound/soc/omap/omap-hdmi.c      |  364 ---------------------------------------
- sound/soc/omap/omap-hdmi.h      |   38 ----
- 5 files changed, 506 deletions(-)
- delete mode 100644 sound/soc/omap/omap-hdmi-card.c
- delete mode 100644 sound/soc/omap/omap-hdmi.c
- delete mode 100644 sound/soc/omap/omap-hdmi.h
+ drivers/video/fbdev/omap2/dss/Kconfig      |    3 +
+ drivers/video/fbdev/omap2/dss/Makefile     |    1 +
+ drivers/video/fbdev/omap2/dss/hdmi.h       |   35 ++-
+ drivers/video/fbdev/omap2/dss/hdmi_audio.c |  323 ++++++++++++++++++++++++++++
+ 4 files changed, 358 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/video/fbdev/omap2/dss/hdmi_audio.c
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index d44463a..5c7b0aa 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -12,9 +12,6 @@ config SND_OMAP_SOC_MCBSP
- config SND_OMAP_SOC_MCPDM
- 	tristate
+diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbdev/omap2/dss/Kconfig
+index 3d5eb6c..41fb8ac 100644
+--- a/drivers/video/fbdev/omap2/dss/Kconfig
++++ b/drivers/video/fbdev/omap2/dss/Kconfig
+@@ -67,6 +67,9 @@ config OMAP2_DSS_VENC
+ config OMAP2_DSS_HDMI_COMMON
+ 	bool
  
--config SND_OMAP_SOC_HDMI
--	tristate
--
- config SND_OMAP_SOC_N810
- 	tristate "SoC Audio support for Nokia N810"
- 	depends on SND_OMAP_SOC && MACH_NOKIA_N810 && I2C
-@@ -100,16 +97,6 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	  - PandaBoard (4430)
- 	  - PandaBoardES (4460)
++config OMAP_DSS_HDMI_AUDIO
++	bool
++
+ config OMAP4_DSS_HDMI
+ 	bool "HDMI support for OMAP4"
+         default y
+diff --git a/drivers/video/fbdev/omap2/dss/Makefile b/drivers/video/fbdev/omap2/dss/Makefile
+index 245f933..a95d715 100644
+--- a/drivers/video/fbdev/omap2/dss/Makefile
++++ b/drivers/video/fbdev/omap2/dss/Makefile
+@@ -13,6 +13,7 @@ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
+ omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
+ omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) += hdmi_common.o hdmi_wp.o hdmi_pll.o \
+ 	hdmi_phy.o
++omapdss-$(CONFIG_OMAP_DSS_HDMI_AUDIO) += hdmi_audio.o
+ omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi4.o hdmi4_core.o
+ omapdss-$(CONFIG_OMAP5_DSS_HDMI) += hdmi5.o hdmi5_core.o
+ ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index 075357e..61ad4ce 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -25,6 +25,9 @@
+ #include <linux/hdmi.h>
+ #include <video/omapdss.h>
  
--config SND_OMAP_SOC_OMAP_HDMI
--	tristate "SoC Audio support for Texas Instruments OMAP HDMI"
--	depends on SND_OMAP_SOC && OMAP4_DSS_HDMI && OMAP2_DSS
--	select SND_OMAP_SOC_HDMI
--	select SND_SOC_HDMI_CODEC
--	select OMAP4_DSS_HDMI_AUDIO
--	help
--	  Say Y if you want to add support for SoC HDMI audio on Texas Instruments
--	  OMAP4 chips
--
- config SND_OMAP_SOC_OMAP3_PANDORA
- 	tristate "SoC Audio support for OMAP3 Pandora"
- 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_PANDORA
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index a725905..5832fe1 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -3,13 +3,11 @@ snd-soc-omap-objs := omap-pcm.o
- snd-soc-omap-dmic-objs := omap-dmic.o
- snd-soc-omap-mcbsp-objs := omap-mcbsp.o mcbsp.o
- snd-soc-omap-mcpdm-objs := omap-mcpdm.o
--snd-soc-omap-hdmi-objs := omap-hdmi.o
++#include <sound/dmaengine_pcm.h>
++#include <uapi/sound/asound.h>
++
+ #include "dss.h"
  
- obj-$(CONFIG_SND_OMAP_SOC) += snd-soc-omap.o
- obj-$(CONFIG_SND_OMAP_SOC_DMIC) += snd-soc-omap-dmic.o
- obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-soc-omap-mcbsp.o
- obj-$(CONFIG_SND_OMAP_SOC_MCPDM) += snd-soc-omap-mcpdm.o
--obj-$(CONFIG_SND_OMAP_SOC_HDMI) += snd-soc-omap-hdmi.o
+ /* HDMI Wrapper */
+@@ -337,7 +340,32 @@ int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes);
+ int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_node *ep,
+ 	struct hdmi_phy_data *phy);
  
- # OMAP Machine Support
- snd-soc-n810-objs := n810.o
-@@ -20,7 +18,6 @@ snd-soc-am3517evm-objs := am3517evm.o
- snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
- snd-soc-omap-twl4030-objs := omap-twl4030.o
- snd-soc-omap3pandora-objs := omap3pandora.o
--snd-soc-omap-hdmi-card-objs := omap-hdmi-card.o
+-#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO) || defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
++/* HDMI audio support */
++struct hdmi_audio_data {
++	/* These should be initialized when hdmi_audio_register() is called */
++	struct snd_soc_dai_driver *hdmi_dai_drv;
++
++	int (*audio_start)(struct hdmi_core_data *core,
++			   struct hdmi_wp_data *wp);
++	void (*audio_stop)(struct hdmi_core_data *core,
++			   struct hdmi_wp_data *wp);
++	int (*audio_config)(struct hdmi_core_data *core,
++			    struct hdmi_wp_data *wp,
++			    struct omap_dss_audio *audio,
++			    u32 pclk);
++
++	/* These are for audio implementation's private use */
++	struct snd_dmaengine_dai_dma_data dma_data;
++	struct omap_dss_audio dss_audio;
++	struct snd_aes_iec958 iec;
++	struct snd_cea_861_aud_if cea;
++	struct platform_device *codec_pdev;
++	struct platform_device *card_pdev;
++};
++
++int hdmi_audio_register(struct platform_device *pdev);
++void hdmi_audio_unregister(struct platform_device *pdev);
++
+ int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts);
+ int hdmi_wp_audio_enable(struct hdmi_wp_data *wp, bool enable);
+ int hdmi_wp_audio_core_req_enable(struct hdmi_wp_data *wp, bool enable);
+@@ -345,9 +373,9 @@ void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
+ 		struct hdmi_audio_format *aud_fmt);
+ void hdmi_wp_audio_config_dma(struct hdmi_wp_data *wp,
+ 		struct hdmi_audio_dma *aud_dma);
+-static inline bool hdmi_mode_has_audio(int mode)
++static inline bool hdmi_mode_has_audio(struct hdmi_config *cfg)
+ {
+-	return mode == HDMI_HDMI ? true : false;
++	return cfg->hdmi_dvi_mode == HDMI_HDMI ? true : false;
+ }
  
- obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
- obj-$(CONFIG_SND_OMAP_SOC_RX51) += snd-soc-rx51.o
-@@ -30,4 +27,3 @@ obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) += snd-soc-am3517evm.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) += snd-soc-omap-twl4030.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
--obj-$(CONFIG_SND_OMAP_SOC_OMAP_HDMI) += snd-soc-omap-hdmi-card.o
-diff --git a/sound/soc/omap/omap-hdmi-card.c b/sound/soc/omap/omap-hdmi-card.c
-deleted file mode 100644
-index f649fe8..0000000
---- a/sound/soc/omap/omap-hdmi-card.c
-+++ /dev/null
-@@ -1,87 +0,0 @@
--/*
-- * omap-hdmi-card.c
-- *
-- * OMAP ALSA SoC machine driver for TI OMAP HDMI
-- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-- * Author: Ricardo Neri <ricardo.neri@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-- */
--
--#include <linux/module.h>
--#include <sound/pcm.h>
--#include <sound/soc.h>
--#include <asm/mach-types.h>
--#include <video/omapdss.h>
--
--#define DRV_NAME "omap-hdmi-audio"
--
--static struct snd_soc_dai_link omap_hdmi_dai = {
--	.name = "HDMI",
--	.stream_name = "HDMI",
--	.cpu_dai_name = "omap-hdmi-audio-dai",
--	.platform_name = "omap-hdmi-audio-dai",
--	.codec_name = "hdmi-audio-codec",
--	.codec_dai_name = "hdmi-hifi",
--};
--
--static struct snd_soc_card snd_soc_omap_hdmi = {
--	.name = "OMAPHDMI",
--	.owner = THIS_MODULE,
--	.dai_link = &omap_hdmi_dai,
--	.num_links = 1,
--};
--
--static int omap_hdmi_probe(struct platform_device *pdev)
--{
--	struct snd_soc_card *card = &snd_soc_omap_hdmi;
--	int ret;
--
--	card->dev = &pdev->dev;
--
--	ret = snd_soc_register_card(card);
--	if (ret) {
--		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
--		card->dev = NULL;
--		return ret;
--	}
--	return 0;
--}
--
--static int omap_hdmi_remove(struct platform_device *pdev)
--{
--	struct snd_soc_card *card = platform_get_drvdata(pdev);
--
--	snd_soc_unregister_card(card);
--	card->dev = NULL;
--	return 0;
--}
--
--static struct platform_driver omap_hdmi_driver = {
--	.driver = {
--		.name = DRV_NAME,
--		.owner = THIS_MODULE,
--	},
--	.probe = omap_hdmi_probe,
--	.remove = omap_hdmi_remove,
--};
--
--module_platform_driver(omap_hdmi_driver);
--
--MODULE_AUTHOR("Ricardo Neri <ricardo.neri@ti.com>");
--MODULE_DESCRIPTION("OMAP HDMI machine ASoC driver");
--MODULE_LICENSE("GPL");
--MODULE_ALIAS("platform:" DRV_NAME);
-diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-deleted file mode 100644
-index eb9c392..0000000
---- a/sound/soc/omap/omap-hdmi.c
-+++ /dev/null
-@@ -1,364 +0,0 @@
--/*
-- * omap-hdmi.c
-- *
-- * OMAP ALSA SoC DAI driver for HDMI audio on OMAP4 processors.
-- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
-- * Authors: Jorge Candelaria <jorge.candelaria@ti.com>
-- *          Ricardo Neri <ricardo.neri@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-- */
--
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/device.h>
--#include <sound/core.h>
--#include <sound/pcm.h>
--#include <sound/pcm_params.h>
--#include <sound/initval.h>
--#include <sound/soc.h>
--#include <sound/asound.h>
--#include <sound/asoundef.h>
--#include <sound/dmaengine_pcm.h>
--#include <video/omapdss.h>
--#include <sound/omap-pcm.h>
--
--#include "omap-hdmi.h"
--
--#define DRV_NAME "omap-hdmi-audio-dai"
--
--struct hdmi_priv {
--	struct snd_dmaengine_dai_dma_data dma_data;
--	unsigned int dma_req;
--	struct omap_dss_audio dss_audio;
--	struct snd_aes_iec958 iec;
--	struct snd_cea_861_aud_if cea;
--	struct omap_dss_device *dssdev;
--};
--
--static int omap_hdmi_dai_startup(struct snd_pcm_substream *substream,
--				  struct snd_soc_dai *dai)
--{
--	struct hdmi_priv *priv = snd_soc_dai_get_drvdata(dai);
--	int err;
--	/*
--	 * Make sure that the period bytes are multiple of the DMA packet size.
--	 * Largest packet size we use is 32 32-bit words = 128 bytes
--	 */
--	err = snd_pcm_hw_constraint_step(substream->runtime, 0,
--				 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 128);
--	if (err < 0) {
--		dev_err(dai->dev, "could not apply constraint\n");
--		return err;
--	}
--
--	if (!priv->dssdev->driver->audio_supported(priv->dssdev)) {
--		dev_err(dai->dev, "audio not supported\n");
--		return -ENODEV;
--	}
--
--	snd_soc_dai_set_dma_data(dai, substream, &priv->dma_data);
--
--	return 0;
--}
--
--static int omap_hdmi_dai_prepare(struct snd_pcm_substream *substream,
--				struct snd_soc_dai *dai)
--{
--	struct hdmi_priv *priv = snd_soc_dai_get_drvdata(dai);
--
--	return priv->dssdev->driver->audio_enable(priv->dssdev);
--}
--
--static int omap_hdmi_dai_hw_params(struct snd_pcm_substream *substream,
--				    struct snd_pcm_hw_params *params,
--				    struct snd_soc_dai *dai)
--{
--	struct hdmi_priv *priv = snd_soc_dai_get_drvdata(dai);
--	struct snd_aes_iec958 *iec = &priv->iec;
--	struct snd_cea_861_aud_if *cea = &priv->cea;
--	int err = 0;
--
--	switch (params_format(params)) {
--	case SNDRV_PCM_FORMAT_S16_LE:
--		priv->dma_data.maxburst = 16;
--		break;
--	case SNDRV_PCM_FORMAT_S24_LE:
--		priv->dma_data.maxburst = 32;
--		break;
--	default:
--		dev_err(dai->dev, "format not supported!\n");
--		return -EINVAL;
--	}
--
--	/*
--	 * fill the IEC-60958 channel status word
--	 */
--	/* initialize the word bytes */
--	memset(iec->status, 0, sizeof(iec->status));
--
--	/* specify IEC-60958-3 (commercial use) */
--	iec->status[0] &= ~IEC958_AES0_PROFESSIONAL;
--
--	/* specify that the audio is LPCM*/
--	iec->status[0] &= ~IEC958_AES0_NONAUDIO;
--
--	iec->status[0] |= IEC958_AES0_CON_NOT_COPYRIGHT;
--
--	iec->status[0] |= IEC958_AES0_CON_EMPHASIS_NONE;
--
--	iec->status[0] |= IEC958_AES1_PRO_MODE_NOTID;
--
--	iec->status[1] = IEC958_AES1_CON_GENERAL;
--
--	iec->status[2] |= IEC958_AES2_CON_SOURCE_UNSPEC;
--
--	iec->status[2] |= IEC958_AES2_CON_CHANNEL_UNSPEC;
--
--	switch (params_rate(params)) {
--	case 32000:
--		iec->status[3] |= IEC958_AES3_CON_FS_32000;
--		break;
--	case 44100:
--		iec->status[3] |= IEC958_AES3_CON_FS_44100;
--		break;
--	case 48000:
--		iec->status[3] |= IEC958_AES3_CON_FS_48000;
--		break;
--	case 88200:
--		iec->status[3] |= IEC958_AES3_CON_FS_88200;
--		break;
--	case 96000:
--		iec->status[3] |= IEC958_AES3_CON_FS_96000;
--		break;
--	case 176400:
--		iec->status[3] |= IEC958_AES3_CON_FS_176400;
--		break;
--	case 192000:
--		iec->status[3] |= IEC958_AES3_CON_FS_192000;
--		break;
--	default:
--		dev_err(dai->dev, "rate not supported!\n");
--		return -EINVAL;
--	}
--
--	/* specify the clock accuracy */
--	iec->status[3] |= IEC958_AES3_CON_CLOCK_1000PPM;
--
--	/*
--	 * specify the word length. The same word length value can mean
--	 * two different lengths. Hence, we need to specify the maximum
--	 * word length as well.
--	 */
--	switch (params_format(params)) {
--	case SNDRV_PCM_FORMAT_S16_LE:
--		iec->status[4] |= IEC958_AES4_CON_WORDLEN_20_16;
--		iec->status[4] &= ~IEC958_AES4_CON_MAX_WORDLEN_24;
--		break;
--	case SNDRV_PCM_FORMAT_S24_LE:
--		iec->status[4] |= IEC958_AES4_CON_WORDLEN_24_20;
--		iec->status[4] |= IEC958_AES4_CON_MAX_WORDLEN_24;
--		break;
--	default:
--		dev_err(dai->dev, "format not supported!\n");
--		return -EINVAL;
--	}
--
--	/*
--	 * Fill the CEA-861 audio infoframe (see spec for details)
--	 */
--
--	cea->db1_ct_cc = (params_channels(params) - 1)
--		& CEA861_AUDIO_INFOFRAME_DB1CC;
--	cea->db1_ct_cc |= CEA861_AUDIO_INFOFRAME_DB1CT_FROM_STREAM;
--
--	cea->db2_sf_ss = CEA861_AUDIO_INFOFRAME_DB2SF_FROM_STREAM;
--	cea->db2_sf_ss |= CEA861_AUDIO_INFOFRAME_DB2SS_FROM_STREAM;
--
--	cea->db3 = 0; /* not used, all zeros */
--
--	/*
--	 * The OMAP HDMI IP requires to use the 8-channel channel code when
--	 * transmitting more than two channels.
--	 */
--	if (params_channels(params) == 2)
--		cea->db4_ca = 0x0;
--	else
--		cea->db4_ca = 0x13;
--
--	cea->db5_dminh_lsv = CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PROHIBITED;
--	/* the expression is trivial but makes clear what we are doing */
--	cea->db5_dminh_lsv |= (0 & CEA861_AUDIO_INFOFRAME_DB5_LSV);
--
--	priv->dss_audio.iec = iec;
--	priv->dss_audio.cea = cea;
--
--	err = priv->dssdev->driver->audio_config(priv->dssdev,
--						 &priv->dss_audio);
--
--	return err;
--}
--
--static int omap_hdmi_dai_trigger(struct snd_pcm_substream *substream, int cmd,
--				struct snd_soc_dai *dai)
--{
--	struct hdmi_priv *priv = snd_soc_dai_get_drvdata(dai);
--	int err = 0;
--
--	switch (cmd) {
--	case SNDRV_PCM_TRIGGER_START:
--	case SNDRV_PCM_TRIGGER_RESUME:
--	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
--		err = priv->dssdev->driver->audio_start(priv->dssdev);
--		break;
--	case SNDRV_PCM_TRIGGER_STOP:
--	case SNDRV_PCM_TRIGGER_SUSPEND:
--	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
--		priv->dssdev->driver->audio_stop(priv->dssdev);
--		break;
--	default:
--		err = -EINVAL;
--	}
--	return err;
--}
--
--static void omap_hdmi_dai_shutdown(struct snd_pcm_substream *substream,
--				struct snd_soc_dai *dai)
--{
--	struct hdmi_priv *priv = snd_soc_dai_get_drvdata(dai);
--
--	priv->dssdev->driver->audio_disable(priv->dssdev);
--}
--
--static const struct snd_soc_dai_ops omap_hdmi_dai_ops = {
--	.startup	= omap_hdmi_dai_startup,
--	.hw_params	= omap_hdmi_dai_hw_params,
--	.prepare	= omap_hdmi_dai_prepare,
--	.trigger	= omap_hdmi_dai_trigger,
--	.shutdown	= omap_hdmi_dai_shutdown,
--};
--
--static struct snd_soc_dai_driver omap_hdmi_dai = {
--	.playback = {
--		.channels_min = 2,
--		.channels_max = 8,
--		.rates = OMAP_HDMI_RATES,
--		.formats = OMAP_HDMI_FORMATS,
--	},
--	.ops = &omap_hdmi_dai_ops,
--};
--
--static const struct snd_soc_component_driver omap_hdmi_component = {
--	.name		= DRV_NAME,
--};
--
--static int omap_hdmi_probe(struct platform_device *pdev)
--{
--	int ret;
--	struct resource *hdmi_rsrc;
--	struct hdmi_priv *hdmi_data;
--	bool hdmi_dev_found = false;
--
--	hdmi_data = devm_kzalloc(&pdev->dev, sizeof(*hdmi_data), GFP_KERNEL);
--	if (hdmi_data == NULL) {
--		dev_err(&pdev->dev, "Cannot allocate memory for HDMI data\n");
--		return -ENOMEM;
--	}
--
--	hdmi_rsrc = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!hdmi_rsrc) {
--		dev_err(&pdev->dev, "Cannot obtain IORESOURCE_MEM HDMI\n");
--		return -ENODEV;
--	}
--
--	hdmi_data->dma_data.addr = hdmi_rsrc->start + OMAP_HDMI_AUDIO_DMA_PORT;
--
--	hdmi_rsrc = platform_get_resource(pdev, IORESOURCE_DMA, 0);
--	if (!hdmi_rsrc) {
--		dev_err(&pdev->dev, "Cannot obtain IORESOURCE_DMA HDMI\n");
--		return -ENODEV;
--	}
--
--	hdmi_data->dma_req = hdmi_rsrc->start;
--	hdmi_data->dma_data.filter_data = &hdmi_data->dma_req;
--	hdmi_data->dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
--
--	/*
--	 * TODO: We assume that there is only one DSS HDMI device. Future
--	 * OMAP implementations may support more than one HDMI devices and
--	 * we should provided separate audio support for all of them.
--	 */
--	/* Find an HDMI device. */
--	for_each_dss_dev(hdmi_data->dssdev) {
--		omap_dss_get_device(hdmi_data->dssdev);
--
--		if (!hdmi_data->dssdev->driver) {
--			omap_dss_put_device(hdmi_data->dssdev);
--			continue;
--		}
--
--		if (hdmi_data->dssdev->type == OMAP_DISPLAY_TYPE_HDMI) {
--			hdmi_dev_found = true;
--			break;
--		}
--	}
--
--	if (!hdmi_dev_found) {
--		dev_err(&pdev->dev, "no driver for HDMI display found\n");
--		return -ENODEV;
--	}
--
--	dev_set_drvdata(&pdev->dev, hdmi_data);
--	ret = snd_soc_register_component(&pdev->dev, &omap_hdmi_component,
--					 &omap_hdmi_dai, 1);
--
--	if (ret)
--		return ret;
--
--	return omap_pcm_platform_register(&pdev->dev);
--}
--
--static int omap_hdmi_remove(struct platform_device *pdev)
--{
--	struct hdmi_priv *hdmi_data = dev_get_drvdata(&pdev->dev);
--
--	snd_soc_unregister_component(&pdev->dev);
--
--	if (hdmi_data == NULL) {
--		dev_err(&pdev->dev, "cannot obtain HDMi data\n");
--		return -ENODEV;
--	}
--
--	omap_dss_put_device(hdmi_data->dssdev);
--	return 0;
--}
--
--static struct platform_driver hdmi_dai_driver = {
--	.driver = {
--		.name = DRV_NAME,
--		.owner = THIS_MODULE,
--	},
--	.probe = omap_hdmi_probe,
--	.remove = omap_hdmi_remove,
--};
--
--module_platform_driver(hdmi_dai_driver);
--
--MODULE_AUTHOR("Jorge Candelaria <jorge.candelaria@ti.com>");
--MODULE_AUTHOR("Ricardo Neri <ricardo.neri@ti.com>");
--MODULE_DESCRIPTION("OMAP HDMI SoC Interface");
--MODULE_LICENSE("GPL");
--MODULE_ALIAS("platform:" DRV_NAME);
-diff --git a/sound/soc/omap/omap-hdmi.h b/sound/soc/omap/omap-hdmi.h
-deleted file mode 100644
-index 6ad2bf4..0000000
---- a/sound/soc/omap/omap-hdmi.h
-+++ /dev/null
-@@ -1,38 +0,0 @@
--/*
-- * omap-hdmi.h
-- *
-- * Definitions for OMAP ALSA SoC DAI driver for HDMI audio on OMAP4 processors.
-- * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
-- * Authors: Jorge Candelaria <jorge.candelaria@ti.com>
-- *          Ricardo Neri <ricardo.neri@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-- *
-- */
--
--#ifndef __OMAP_HDMI_H__
--#define __OMAP_HDMI_H__
--
--#define OMAP_HDMI_AUDIO_DMA_PORT 0x8c
--
--#define OMAP_HDMI_RATES	(SNDRV_PCM_RATE_32000 | \
--				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | \
--				SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
--				SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
--
--#define OMAP_HDMI_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | \
--				SNDRV_PCM_FMTBIT_S24_LE)
--
+ /* HDMI DRV data */
+@@ -374,4 +402,3 @@ struct omap_hdmi {
+ };
+ 
+ #endif
 -#endif
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_audio.c b/drivers/video/fbdev/omap2/dss/hdmi_audio.c
+new file mode 100644
+index 0000000..7b53a5f
+--- /dev/null
++++ b/drivers/video/fbdev/omap2/dss/hdmi_audio.c
+@@ -0,0 +1,323 @@
++/*
++ * OMAP4+ HDMI audio
++ *
++ * Copyright (C) 2014 Texas Instruments Incorporated
++ *
++ * Authors: Jyri Sarha <jsarha@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/string.h>
++#include <linux/platform_device.h>
++#include <sound/soc.h>
++#include <sound/pcm_params.h>
++#include <sound/dmaengine_pcm.h>
++#include <uapi/sound/asound.h>
++#include <sound/asoundef.h>
++#include <sound/omap-pcm.h>
++#include <sound/simple_card.h>
++
++#include "hdmi.h"
++
++static int hdmi_dai_startup(struct snd_pcm_substream *substream,
++			    struct snd_soc_dai *dai)
++{
++	struct omap_hdmi *hd = snd_soc_dai_get_drvdata(dai);
++	struct hdmi_audio_data *ad = &hd->audio;
++	int ret;
++	/*
++	 * Make sure that the period bytes are multiple of the DMA packet size.
++	 * Largest packet size we use is 32 32-bit words = 128 bytes
++	 */
++	ret = snd_pcm_hw_constraint_step(substream->runtime, 0,
++					 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 128);
++	if (ret < 0) {
++		dev_err(dai->dev, "could not apply constraint\n");
++		return ret;
++	}
++
++	mutex_lock(&hd->lock);
++	ret = hdmi_mode_has_audio(&hd->cfg);
++	mutex_unlock(&hd->lock);
++	if (!ret) {
++		dev_err(dai->dev, "audio not supported\n");
++		return -ENODEV;
++	}
++
++	snd_soc_dai_set_dma_data(dai, substream, &ad->dma_data);
++
++	return 0;
++}
++
++static int hdmi_dai_prepare(struct snd_pcm_substream *substream,
++			    struct snd_soc_dai *dai)
++{
++	struct omap_hdmi *hd = snd_soc_dai_get_drvdata(dai);
++	int r;
++
++	mutex_lock(&hd->lock);
++
++	if (!hdmi_mode_has_audio(&hd->cfg)) {
++		r = -EPERM;
++		goto err;
++	}
++
++	r = hdmi_wp_audio_enable(&hd->wp, true);
++
++err:
++	mutex_unlock(&hd->lock);
++	return r;
++}
++
++static int hdmi_dai_hw_params(struct snd_pcm_substream *substream,
++			      struct snd_pcm_hw_params *params,
++			      struct snd_soc_dai *dai)
++{
++	struct omap_hdmi *hd = snd_soc_dai_get_drvdata(dai);
++	struct hdmi_audio_data *ad = &hd->audio;
++	struct snd_aes_iec958 *iec = &ad->iec;
++	struct snd_cea_861_aud_if *cea = &ad->cea;
++	int err;
++
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_S16_LE:
++		ad->dma_data.maxburst = 16;
++		break;
++	case SNDRV_PCM_FORMAT_S24_LE:
++		ad->dma_data.maxburst = 32;
++		break;
++	default:
++		dev_err(dai->dev, "format not supported!\n");
++		return -EINVAL;
++	}
++
++	ad->dss_audio.iec = iec;
++	ad->dss_audio.cea = cea;
++	/*
++	 * fill the IEC-60958 channel status word
++	 */
++	/* initialize the word bytes */
++	memset(iec->status, 0, sizeof(iec->status));
++
++	/* specify IEC-60958-3 (commercial use) */
++	iec->status[0] &= ~IEC958_AES0_PROFESSIONAL;
++
++	/* specify that the audio is LPCM*/
++	iec->status[0] &= ~IEC958_AES0_NONAUDIO;
++
++	iec->status[0] |= IEC958_AES0_CON_NOT_COPYRIGHT;
++
++	iec->status[0] |= IEC958_AES0_CON_EMPHASIS_NONE;
++
++	iec->status[0] |= IEC958_AES1_PRO_MODE_NOTID;
++
++	iec->status[1] = IEC958_AES1_CON_GENERAL;
++
++	iec->status[2] |= IEC958_AES2_CON_SOURCE_UNSPEC;
++
++	iec->status[2] |= IEC958_AES2_CON_CHANNEL_UNSPEC;
++
++	switch (params_rate(params)) {
++	case 32000:
++		iec->status[3] |= IEC958_AES3_CON_FS_32000;
++		break;
++	case 44100:
++		iec->status[3] |= IEC958_AES3_CON_FS_44100;
++		break;
++	case 48000:
++		iec->status[3] |= IEC958_AES3_CON_FS_48000;
++		break;
++	case 88200:
++		iec->status[3] |= IEC958_AES3_CON_FS_88200;
++		break;
++	case 96000:
++		iec->status[3] |= IEC958_AES3_CON_FS_96000;
++		break;
++	case 176400:
++		iec->status[3] |= IEC958_AES3_CON_FS_176400;
++		break;
++	case 192000:
++		iec->status[3] |= IEC958_AES3_CON_FS_192000;
++		break;
++	default:
++		dev_err(dai->dev, "rate not supported!\n");
++		return -EINVAL;
++	}
++
++	/* specify the clock accuracy */
++	iec->status[3] |= IEC958_AES3_CON_CLOCK_1000PPM;
++
++	/*
++	 * specify the word length. The same word length value can mean
++	 * two different lengths. Hence, we need to specify the maximum
++	 * word length as well.
++	 */
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_S16_LE:
++		iec->status[4] |= IEC958_AES4_CON_WORDLEN_20_16;
++		iec->status[4] &= ~IEC958_AES4_CON_MAX_WORDLEN_24;
++		break;
++	case SNDRV_PCM_FORMAT_S24_LE:
++		iec->status[4] |= IEC958_AES4_CON_WORDLEN_24_20;
++		iec->status[4] |= IEC958_AES4_CON_MAX_WORDLEN_24;
++		break;
++	default:
++		dev_err(dai->dev, "format not supported!\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Fill the CEA-861 audio infoframe (see spec for details)
++	 */
++
++	cea->db1_ct_cc = (params_channels(params) - 1)
++		& CEA861_AUDIO_INFOFRAME_DB1CC;
++	cea->db1_ct_cc |= CEA861_AUDIO_INFOFRAME_DB1CT_FROM_STREAM;
++
++	cea->db2_sf_ss = CEA861_AUDIO_INFOFRAME_DB2SF_FROM_STREAM;
++	cea->db2_sf_ss |= CEA861_AUDIO_INFOFRAME_DB2SS_FROM_STREAM;
++
++	cea->db3 = 0; /* not used, all zeros */
++
++	/*
++	 * The OMAP HDMI IP requires to use the 8-channel channel code when
++	 * transmitting more than two channels.
++	 */
++	if (params_channels(params) == 2)
++		cea->db4_ca = 0x0;
++	else
++		cea->db4_ca = 0x13;
++
++	cea->db5_dminh_lsv = CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PROHIBITED;
++	/* the expression is trivial but makes clear what we are doing */
++	cea->db5_dminh_lsv |= (0 & CEA861_AUDIO_INFOFRAME_DB5_LSV);
++
++	mutex_lock(&hd->lock);
++
++	if (!hdmi_mode_has_audio(&hd->cfg)) {
++		err = -EPERM;
++		goto err;
++	}
++
++	err = ad->audio_config(hd->core, &hd->wp, &ad->dss_audio,
++			       hd->cfg.timings.pixelclock);
++err:
++	mutex_unlock(&hd->lock);
++	return err;
++}
++
++static int hdmi_dai_trigger(struct snd_pcm_substream *substream, int cmd,
++			    struct snd_soc_dai *dai)
++{
++	struct omap_hdmi *hd = snd_soc_dai_get_drvdata(dai);
++	struct hdmi_audio_data *ad = &hd->audio;
++	int err = 0;
++
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++	case SNDRV_PCM_TRIGGER_RESUME:
++	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
++		err = ad->audio_start(hd->core, &hd->wp);
++		break;
++	case SNDRV_PCM_TRIGGER_STOP:
++	case SNDRV_PCM_TRIGGER_SUSPEND:
++	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
++		ad->audio_start(hd->core, &hd->wp);
++		break;
++	default:
++		err = -EINVAL;
++	}
++	return err;
++}
++
++static void hdmi_dai_shutdown(struct snd_pcm_substream *substream,
++			      struct snd_soc_dai *dai)
++{
++	struct omap_hdmi *hd = snd_soc_dai_get_drvdata(dai);
++
++	hdmi_wp_audio_enable(&hd->wp, false);
++}
++
++static const struct snd_soc_dai_ops hdmi_dai_ops = {
++	.startup	= hdmi_dai_startup,
++	.hw_params	= hdmi_dai_hw_params,
++	.prepare	= hdmi_dai_prepare,
++	.trigger	= hdmi_dai_trigger,
++	.shutdown	= hdmi_dai_shutdown,
++};
++
++static const struct snd_soc_component_driver omap_hdmi_component = {
++	.name = "omapdss_hdmi",
++};
++
++int hdmi_audio_register(struct platform_device *pdev)
++{
++	struct omap_hdmi *hd = dev_get_drvdata(&pdev->dev);
++	struct hdmi_audio_data *ad = &hd->audio;
++	struct device *dev = &pdev->dev;
++	struct asoc_simple_card_info card_info = {
++		.codec_dai.name = "hdmi-hifi",
++	};
++	char nametmp[64];
++	int ret;
++
++	ad->dma_data.addr = hdmi_wp_get_audio_dma_addr(&hd->wp);
++	ad->dma_data.filter_data = "audio_tx";
++	ad->dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
++	ad->hdmi_dai_drv->ops = &hdmi_dai_ops,
++
++	ret = snd_soc_register_component(dev, &omap_hdmi_component,
++					 ad->hdmi_dai_drv, 1);
++	if (ret)
++		return ret;
++
++	ret = omap_pcm_platform_register(dev);
++	if (ret)
++		return ret;
++
++	ad->codec_pdev = platform_device_register_data(dev, "hdmi-audio-codec",
++						       0, NULL, 0);
++	if (IS_ERR(ad->codec_pdev)) {
++		snd_soc_unregister_component(dev);
++		return PTR_ERR(ad->codec_pdev);
++	}
++
++	snprintf(nametmp, sizeof(nametmp), "HDMI %s", dev_name(dev));
++	card_info.name = devm_kstrdup(dev, nametmp, GFP_KERNEL);
++	card_info.card = card_info.name;
++	card_info.cpu_dai.name = dev_name(dev);
++	card_info.platform = dev_name(dev);
++	card_info.codec = dev_name(&ad->codec_pdev->dev);
++
++	ad->card_pdev =
++		platform_device_register_data(dev, "asoc-simple-card", 0,
++					      &card_info, sizeof(card_info));
++	if (IS_ERR(ad->card_pdev)) {
++		snd_soc_unregister_component(dev);
++		platform_device_unregister(ad->codec_pdev);
++		return PTR_ERR(ad->card_pdev);
++	}
++	return 0;
++}
++
++void hdmi_audio_unregister(struct platform_device *pdev)
++{
++	struct omap_hdmi *hd = dev_get_drvdata(&pdev->dev);
++	struct hdmi_audio_data *ad = &hd->audio;
++
++	platform_device_unregister(ad->card_pdev);
++	platform_device_unregister(ad->codec_pdev);
++	snd_soc_unregister_component(&pdev->dev);
++}
 -- 
 1.7.9.5
 
