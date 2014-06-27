@@ -1,74 +1,72 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for
- beaglebone NAND cape
-Date: Fri, 27 Jun 2014 21:06:54 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF8248@DBDE04.ent.ti.com>
-References: <1403612666-31197-1-git-send-email-pekon@ti.com>
- <1403612666-31197-2-git-send-email-pekon@ti.com> <20140626194824.GA18814@fox>
+From: Darren Etheridge <detheridge@ti.com>
+Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
+Date: Fri, 27 Jun 2014 17:08:51 -0500
+Message-ID: <53ADEB73.8090301@ti.com>
+References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50118 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406AbaF0VH0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jun 2014 17:07:26 -0400
-In-Reply-To: <20140626194824.GA18814@fox>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: =?UTF-8?B?R3VpZG8gTWFydMOtbmV6?= <guido@vanguardiasur.com.ar>, dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?B?RXplcXVpZWwgR2FyY8OtYQ==?= <ezequiel@vanguardiasur.com.ar>, Daniel Mack <zonque@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
 
->From: Guido Mart=EDnez [mailto:guido@vanguardiasur.com.ar]
->>On Tue, Jun 24, 2014 at 05:54:24PM +0530, Pekon Gupta wrote:
-
-[...]
-
->> +&gpmc {
->> +	ranges =3D <0 0 0 0x01000000>;	/* address range =3D 16MB (minimum =
-GPMC partition) */
->> +	nand@0,0 {
->> +		status =3D "disabled";
->> +		reg =3D <0 0 4>;		/* device IO registers */
->> +		pinctrl-names =3D "default";
->> +		pinctrl-0 =3D <&bbcape_nand_flash_pins>;
->This doesn't seem to work as pinctrl properties are not parsed for
->childs of the gpmc node. Did this work for you?
->Putting this in the gpmc node makes it work, but how will we control
->pins for the nand and nor independently? I believe there is currently =
-no
->support for muxing individual gpmc devices. If we want to add both
->devices to the DT and enable them as needed we'd need to add support f=
-or
->this, right?
->
-Yes, And that should be the case, because different devices would be
-connected to different chip-selects, so there should be support of
-providing individual pin-mux for different GPMC devices.
-
-Currently both NAND and NOR cape share GPMC_CS0, so both NAND and NOR
-capes will not work simultaneously. But I'm planning to modify NOR cape
-hardware at my end to use GPMC_CS1 instead of GPMC_CS0.
-- NAND on GPMC_CS0
-- NOR on GPMC_CS1
-In addition to pin-mux you may also require following patch:
-http://www.spinics.net/lists/linux-omap/msg107950.html
-
-Also, I should have marked this series as RFC as its not fully tested.
-My main intention was to get acknowledgement about cape DTS from
-various users and Tony Lindgren <tony@atomide.com>.
-Now as Tony has given some acceptance for these kind of cape DTS,
-I'll clean-up and re-send these patches with better testing and GPMC fi=
-xes.
-
-
-with regards, pekon
-
-
-with regards, pekon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+R3VpZG8sCgpPbiAwNi8xNy8yMDE0IDA5OjE3IEFNLCBHdWlkbyBNYXJ0w61uZXogd3JvdGU6Cj4g
+VGhlIHRpbGNkYyBkcml2ZXIgY291bGQgYmUgY29tcGlsZWQgYXMgYSBtb2R1bGUsIGJ1dCB3YXMg
+c2V2ZXJlbHkgYnJva2VuCj4gYW5kIGNvdWxkIG5vdCBiZSB1c2VkIGFzIHN1Y2guIFRoaXMgcGF0
+Y2hzZXQgYXR0ZW1wdHMgdG8gZml4IHRoZSBpc3N1ZXMKPiBwcmV2ZW50aW5nIGEgcHJvcGVyIGxv
+YWQvdW5sb2FkIG9mIHRoZSBtb2R1bGUuCj4KPiBJc3N1ZXMgaW5jbHVkZWQgZGFuZ2xpbmcgc3lz
+ZnMgbm9kZXMsIGRhbmdsaW5nIGRldmljZXMsIG1lbW9yeSBsZWFrcyBhbmQKPiBhIGRvdWJsZSBr
+ZnJlZS4KPgo+IEl0IG5vdyBzZWVtcyB0byBiZSB3b3JraW5nIG9rLiBXZSBoYXZlIHRlc3RlZCB0
+aGlzIGJ5IGxvYWRpbmcgYW5kCj4gdW5sb2FkaW5nIHRoZSBkcml2ZXIgcmVwZXRlYWRseSwgd2l0
+aCBib3RoIHBhbmVsIGFuZCBzbGF2ZSBjb25uZWN0b3JzCj4gYW5kIGZvdW5kIG5vIGZsYXdzLgo+
+Cj4gVGhlcmUgaXMgc3RpbGwgb25lIHdhcm5pbmcgbGVmdCBvbiB0aWxjZGNfY3J0Y19kZXN0cm95
+LCBjYXVzZWQgYnkKPiBkZXN0cm95aW5nIHRoZSBjb25uZWN0b3Igd2hpbGUgc3RpbGwgaW4gYW4g
+T04gc3RhdHVzLiBXZSBkb24ndCBrbm93IHdoeQo+IHRoaXMgaGFwcGVucyBvciB3aHkgaXQncyBh
+biBpc3N1ZSwgc28gd2UgZGlkIG5vdCBmaXggaXQuCj4KClllcyBJIHNlZSB3aGF0IHlvdSBtZWFu
+LCBpdCB0cmlnZ2VycyB0aGUgV0FSTl9PTiBpbiB0aWxjZGNfY3J0Y19kZXN0cm95IApiZWNhdXNl
+IERSTV9NT0RFX0RQTVNfT04gaXMgc3RpbGwgc2V0LiAgVGhpcyBXQVJOX09OIGRvZXMgbWFrZSBz
+b21lIApzZW5zZSBiZWNhdXNlIERQTVNfT0ZGIHdvdWxkIGhhdmUgdGhlIGVmZmVjdCBvZiB0dXJu
+aW5nIG9mZiBjbG9ja3MgYW5kIApwdXR0aW5nIHRoZSBtb25pdG9yIHRvIHNsZWVwIHdoaWNoIHNl
+ZW1zIGxvZ2ljYWwgY29uc2lkZXJpbmcgd2UgaGF2ZSAKdG9ybiBkb3duIHRoZSBkaXNwbGF5LiAg
+QWRkaW5nIGEgdGlsY2RjX2NydGNfZHBtcyhEUE1TX09GRikgcmlnaHQgYmVmb3JlIAp0aGUgV0FS
+Tl9PTiBjb25maXJtcyB0aGlzLCBidXQgaXQgc2VlbXMgc3RyYW5nZSB0aGF0IHRoaXMgaGFzbid0
+IApoYXBwZW5lZCBhdXRvbWF0aWNhbGx5ICgrIFJ1c3NlbGwgZG9lc24ndCBuZWVkIHRvIGRvIGl0
+IGluIGhpcyBBcm1hZGEgCmRyaXZlcikgLSBzbyBJIHN1c3BlY3QgdGhlcmUgaXMgYSBiZXR0ZXIg
+d2F5LgoKT3RoZXJ3aXNlIEkgdGhpbmsgdGhpcyBpcyBhIGdvb2QgYW5kIHVzZWZ1bCBwYXRjaCBz
+ZXJpZXMuCgpEYXJyZW4KCj4gVGhlIGZpcnN0IDcgcGF0Y2hlcyBhcmUgYnVnIGZpeGVzIHdoaWNo
+IGFuZCBzaG91bGQgcHJvYmFibHkgYmUgYXBwbGllZAo+IGluIHRoZSBzdGFibGUgdHJlZXMuIFRo
+ZSBsYXN0IHR3byBhcmUgY2xlYW4tdXBzLgo+Cj4KPiBSZXNlbmRpbmcgdGhpcyBzaW5jZSBJIGdv
+dCBubyByZXBsaWVzLgo+Cj4KPiBHdWlkbyBNYXJ0w61uZXogKDkpOgo+ICAgIGRybS9pMmM6IHRk
+YTk5OHg6IG1vdmUgZHJtX2kyY19lbmNvZGVyX2Rlc3Ryb3kgY2FsbAo+ICAgIGRybS90aWxjZGM6
+IHBhbmVsOiBmaXggZGFuZ2xpbmcgc3lzZnMgY29ubmVjdG9yIG5vZGUKPiAgICBkcm0vdGlsY2Rj
+OiBzbGF2ZTogZml4IGRhbmdsaW5nIHN5c2ZzIGNvbm5lY3RvciBub2RlCj4gICAgZHJtL3RpbGNk
+YzogdGZwNDEwOiBmaXggZGFuZ2xpbmcgc3lzZnMgY29ubmVjdG9yIG5vZGUKPiAgICBkcm0vdGls
+Y2RjOiBwYW5lbDogZml4IGxlYWsgd2hlbiB1bmxvYWRpbmcgdGhlIG1vZHVsZQo+ICAgIGRybS90
+aWxjZGM6IGZpeCByZWxlYXNlIG9yZGVyIG9uIGV4aXQKPiAgICBkcm0vdGlsY2RjOiBmaXggZG91
+YmxlIGtmcmVlCj4gICAgZHJtL3RpbGNkYzogcmVtb3ZlIHN1Ym1vZHVsZSBkZXN0cm95IGNhbGxz
+Cj4gICAgZHJtL3RpbGNkYzogcmVwbGFjZSBsYXRlX2luaXRjYWxsIHdpdGggbW9kdWxlX2luaXQK
+Pgo+ICAgZHJpdmVycy9ncHUvZHJtL2kyYy90ZGE5OTh4X2Rydi5jICAgICAgfCAgMiArLQo+ICAg
+ZHJpdmVycy9ncHUvZHJtL3RpbGNkYy9Nb2R1bGUuc3ltdmVycyAgfCAgMAo+ICAgZHJpdmVycy9n
+cHUvZHJtL3RpbGNkYy90aWxjZGNfZHJ2LmMgICAgfCAxNSArKysrKy0tLS0tLS0tCj4gICBkcml2
+ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19kcnYuaCAgICB8ICAxIC0KPiAgIGRyaXZlcnMvZ3B1
+L2RybS90aWxjZGMvdGlsY2RjX3BhbmVsLmMgIHwgMzkgKysrKysrKysrKysrKysrKystLS0tLS0t
+LS0tLS0tLS0tLQo+ICAgZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfc2xhdmUuYyAgfCAy
+NyArKysrKysrKysrKysrLS0tLS0tLS0tLQo+ICAgZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxj
+ZGNfdGZwNDEwLmMgfCAzNSArKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0KPiAgIDcgZmls
+ZXMgY2hhbmdlZCwgNTkgaW5zZXJ0aW9ucygrKSwgNjAgZGVsZXRpb25zKC0pCj4gICBjcmVhdGUg
+bW9kZSAxMDA2NDQgZHJpdmVycy9ncHUvZHJtL3RpbGNkYy9Nb2R1bGUuc3ltdmVycwo+Cl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWls
+aW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
