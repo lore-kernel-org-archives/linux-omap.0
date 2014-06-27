@@ -1,103 +1,128 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v2 8/9] regulator: palmas: add driver data and modularize
- the probe
-Date: Fri, 27 Jun 2014 15:06:58 +0530
-Message-ID: <53AD3B3A.2030401@ti.com>
-References: <1403085540-20014-1-git-send-email-j-keerthy@ti.com> <1403085540-20014-9-git-send-email-j-keerthy@ti.com> <20140627082351.GE19645@lee--X1>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 14/15] OMAPDSS: HDMI: remove the unused code
+Date: Fri, 27 Jun 2014 13:16:37 +0300
+Message-ID: <53AD4485.3070506@ti.com>
+References: <1403604240-16738-1-git-send-email-tomi.valkeinen@ti.com> <1403604240-16738-15-git-send-email-tomi.valkeinen@ti.com> <53AC6EDD.6040300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140627082351.GE19645@lee--X1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="HfW1exGQ263UATQPeeU5m7hABE9JSevv1"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51870 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752895AbaF0KQn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Jun 2014 06:16:43 -0400
+In-Reply-To: <53AC6EDD.6040300@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi Lee Jones,
+--HfW1exGQ263UATQPeeU5m7hABE9JSevv1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 27 June 2014 01:53 PM, Lee Jones wrote:
-> On Wed, 18 Jun 2014, Keerthy wrote:
->> add driver data and modularize the probe.
-> Nit: This is a sentence, it should start with a capital letter.
-
-The series is already pulled by Mark. I Can send fixes on top of
-that patch set.
-
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
+On 26/06/14 22:05, Jyri Sarha wrote:
+> On 06/24/2014 01:03 PM, Tomi Valkeinen wrote:
+>> We no longer need the horrible driver internal videmode tables, which
+>> were used to decide if a given videomode is a HDMI or DVI mode. So
+>> remove all related code.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 >> ---
+>>   drivers/video/fbdev/omap2/dss/hdmi.h        |  11 -
+>>   drivers/video/fbdev/omap2/dss/hdmi_common.c | 316
+>> ----------------------------
+>>   2 files changed, 327 deletions(-)
 >>
->> Changes in V2:
+>> diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h
+>> b/drivers/video/fbdev/omap2/dss/hdmi.h
+>> index e3956defc1c3..262771b9b76b 100644
+>> --- a/drivers/video/fbdev/omap2/dss/hdmi.h
+>> +++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+> ...
+>> @@ -192,7 +187,6 @@ struct hdmi_video_format {
 >>
->>    * Fixed the order of variable declarations.
->>
->>   drivers/mfd/palmas.c                 |   44 +--
->>   drivers/regulator/palmas-regulator.c |  658 ++++++++++++++++++++--------------
->>   2 files changed, 396 insertions(+), 306 deletions(-)
->>
->> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
->> index c12759d..28cb048 100644
->> --- a/drivers/mfd/palmas.c
->> +++ b/drivers/mfd/palmas.c
->> @@ -25,42 +25,6 @@
->>   #include <linux/mfd/palmas.h>
->>   #include <linux/of_device.h>
->>   
->> -#define EXTERNAL_REQUESTOR(_id, _offset, _pos)		\
->> -	[PALMAS_EXTERNAL_REQSTR_ID_##_id] = {		\
->> -		.id = PALMAS_EXTERNAL_REQSTR_ID_##_id,	\
->> -		.reg_offset = _offset,			\
->> -		.bit_pos = _pos,			\
->> -	}
->> -
->> -static struct palmas_sleep_requestor_info sleep_req_info[] = {
->> -	EXTERNAL_REQUESTOR(REGEN1, 0, 0),
->> -	EXTERNAL_REQUESTOR(REGEN2, 0, 1),
->> -	EXTERNAL_REQUESTOR(SYSEN1, 0, 2),
->> -	EXTERNAL_REQUESTOR(SYSEN2, 0, 3),
->> -	EXTERNAL_REQUESTOR(CLK32KG, 0, 4),
->> -	EXTERNAL_REQUESTOR(CLK32KGAUDIO, 0, 5),
->> -	EXTERNAL_REQUESTOR(REGEN3, 0, 6),
->> -	EXTERNAL_REQUESTOR(SMPS12, 1, 0),
->> -	EXTERNAL_REQUESTOR(SMPS3, 1, 1),
->> -	EXTERNAL_REQUESTOR(SMPS45, 1, 2),
->> -	EXTERNAL_REQUESTOR(SMPS6, 1, 3),
->> -	EXTERNAL_REQUESTOR(SMPS7, 1, 4),
->> -	EXTERNAL_REQUESTOR(SMPS8, 1, 5),
->> -	EXTERNAL_REQUESTOR(SMPS9, 1, 6),
->> -	EXTERNAL_REQUESTOR(SMPS10, 1, 7),
->> -	EXTERNAL_REQUESTOR(LDO1, 2, 0),
->> -	EXTERNAL_REQUESTOR(LDO2, 2, 1),
->> -	EXTERNAL_REQUESTOR(LDO3, 2, 2),
->> -	EXTERNAL_REQUESTOR(LDO4, 2, 3),
->> -	EXTERNAL_REQUESTOR(LDO5, 2, 4),
->> -	EXTERNAL_REQUESTOR(LDO6, 2, 5),
->> -	EXTERNAL_REQUESTOR(LDO7, 2, 6),
->> -	EXTERNAL_REQUESTOR(LDO8, 2, 7),
->> -	EXTERNAL_REQUESTOR(LDO9, 3, 0),
->> -	EXTERNAL_REQUESTOR(LDOLN, 3, 1),
->> -	EXTERNAL_REQUESTOR(LDOUSB, 3, 2),
->> -};
->> -
-> Happy with this, good riddance.
->
->>   static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
->>   	{
->>   		.reg_bits = 8,
->> @@ -365,10 +329,10 @@ static struct regmap_irq_chip tps65917_irq_chip = {
->>   int palmas_ext_control_req_config(struct palmas *palmas,
->>   	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
->>   {
->> +	struct palmas_pmic_driver_data *pmic_ddata = palmas->pmic_ddata;
->>   	int preq_mask_bit = 0;
->>   	int reg_add = 0;
->> -	int bit_pos;
->> -	int ret;
->> +	int bit_pos, ret;
-> I don't like this change.
->
-> [...]
->
+>>   struct hdmi_config {
+>>       struct omap_video_timings timings;
+>> -    struct hdmi_cm cm;
+>>       struct hdmi_avi_infoframe infoframe;
+>>       enum hdmi_core_hdmi_dvi hdmi_dvi_mode;
+>>   };
+>=20
+> The HDMI audio finctionality is broken already now, but removing
+> hdmi_config.cm will cause compilation failure if HDMI audio is enabled.=
 
-Regards,
-Keerthy
+
+Ah, true.
+
+> I'll mail a patch set to fix OMAP4+ HDMI audio shortly. The set should
+> be applied on top of these patches and it fixes (obviously) the
+> compilation issue too.
+
+I'll rather fix my series. It's not good to introduce compilation errors.=
+
+
+So I'll just add the following in my patches:
+
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi4.c
+b/drivers/video/fbdev/omap2/dss/hdmi4.c
+index 342ddb47811a..6a8550cf43e5 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi4.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi4.c
+@@ -491,7 +491,7 @@ static int hdmi_audio_enable(struct omap_dss_device
+*dssdev)
+
+        mutex_lock(&hdmi.lock);
+
+-       if (!hdmi_mode_has_audio(hdmi.cfg.cm.mode)) {
++       if (!hdmi_mode_has_audio(hdmi.cfg.hdmi_dvi_mode)) {
+                r =3D -EPERM;
+                goto err;
+        }
+@@ -529,7 +529,7 @@ static bool hdmi_audio_supported(struct
+omap_dss_device *dssdev)
+
+        mutex_lock(&hdmi.lock);
+
+-       r =3D hdmi_mode_has_audio(hdmi.cfg.cm.mode);
++       r =3D hdmi_mode_has_audio(hdmi.cfg.hdmi_dvi_mode);
+
+        mutex_unlock(&hdmi.lock);
+        return r;
+@@ -543,7 +543,7 @@ static int hdmi_audio_config(struct omap_dss_device
+*dssdev,
+
+        mutex_lock(&hdmi.lock);
+
+-       if (!hdmi_mode_has_audio(hdmi.cfg.cm.mode)) {
++       if (!hdmi_mode_has_audio(hdmi.cfg.hdmi_dvi_mode)) {
+                r =3D -EPERM;
+                goto err;
+        }
+
+
+
+--HfW1exGQ263UATQPeeU5m7hABE9JSevv1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTrUSIAAoJEPo9qoy8lh71Mt8P/A3dmE60s2vVgd67xzNfCVl4
+mlu8049TL7L/hfMKiBoyE0ccKo/0qzQHtaivm6BZA9WHzBqmoesRJs8xNuRh0u1O
+oYCf6vdXRwF7Z0v0esERd4Pjvhpq19LpCJ+d57gVzAHyOO00dt3meKNSA5E2aFCn
+BISYnhrD34XWvuAhD0FSObdV7/veb+LJNzd2SkhY0BeXjZn49ms9WeG2x/VZoBYL
+KPreWULkd/ReQQo4GusUyP+Jh+vVi1mnk3OqdGfARDFEqPy6LXlQqrzbwva2xp8b
+ukMsEdOviB8dtiisdPrkDT+ecqhWqAbIDC1FBBdZKS+bDOFqv7eoVa3nDjhPr5Jh
+mmR8z118sMNnzO854OpITVPV8PK8bIIVnJQV8oaaNx2aFh3hf+ZXiABjUpeNz+Jk
+se7sXfiZ31saTuEA2djWXMXnFcGyveQMsKJd1VEydYohOkvXBeh6hdsPPfGR82xo
+NThPy5JMIYBj7PIQMCvLpDootFLxARaZPDu/3ZmRYDe/balJX3Zuk9c409II7FnP
+iVVjhu72Od5BgsC7Y7FzN/cJN8S35yQKURMj6sQn2SDGVHOD/+GdhmlJ+Up9VqMq
+weSp/BRuo2qBeuna9BfzvGoqDIoHINGxitRd4ibJZtB2h+BthDxMfyXd8qhfWij0
+N2e3NtdbQ7hHVxa3luzY
+=devS
+-----END PGP SIGNATURE-----
+
+--HfW1exGQ263UATQPeeU5m7hABE9JSevv1--
