@@ -1,83 +1,48 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
-Date: Sat, 28 Jun 2014 06:51:15 -0400
-Message-ID: <CAF6AEGvp+A7eKWXf8uBoqXHb0Dtnt_Wz_dgFZ7Ua=UaD7yKBDw@mail.gmail.com>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
- <53ADEB73.8090301@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/1] drivers/power/avs/smartreflex.c: remove unnecessary
+ null test before debugfs_remove_recursive
+Date: Sat, 28 Jun 2014 08:36:23 -0500
+Message-ID: <53AEC4D7.50205@ti.com>
+References: <1403958799-4692-1-git-send-email-fabf@skynet.be>
+Reply-To: nm@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <53ADEB73.8090301@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Darren Etheridge <detheridge@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Daniel Mack <zonque@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1403958799-4692-1-git-send-email-fabf@skynet.be>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fabian Frederick <fabf@skynet.be>, linux-kernel@vger.kernel.org
+Cc: Kevin Hilman <khilman@kernel.org>, linux-pm@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBKdW4gMjcsIDIwMTQgYXQgNjowOCBQTSwgRGFycmVuIEV0aGVyaWRnZSA8ZGV0aGVy
-aWRnZUB0aS5jb20+IHdyb3RlOgo+IEd1aWRvLAo+Cj4KPiBPbiAwNi8xNy8yMDE0IDA5OjE3IEFN
-LCBHdWlkbyBNYXJ0w61uZXogd3JvdGU6Cj4+Cj4+IFRoZSB0aWxjZGMgZHJpdmVyIGNvdWxkIGJl
-IGNvbXBpbGVkIGFzIGEgbW9kdWxlLCBidXQgd2FzIHNldmVyZWx5IGJyb2tlbgo+PiBhbmQgY291
-bGQgbm90IGJlIHVzZWQgYXMgc3VjaC4gVGhpcyBwYXRjaHNldCBhdHRlbXB0cyB0byBmaXggdGhl
-IGlzc3Vlcwo+PiBwcmV2ZW50aW5nIGEgcHJvcGVyIGxvYWQvdW5sb2FkIG9mIHRoZSBtb2R1bGUu
-Cj4+Cj4+IElzc3VlcyBpbmNsdWRlZCBkYW5nbGluZyBzeXNmcyBub2RlcywgZGFuZ2xpbmcgZGV2
-aWNlcywgbWVtb3J5IGxlYWtzIGFuZAo+PiBhIGRvdWJsZSBrZnJlZS4KPj4KPj4gSXQgbm93IHNl
-ZW1zIHRvIGJlIHdvcmtpbmcgb2suIFdlIGhhdmUgdGVzdGVkIHRoaXMgYnkgbG9hZGluZyBhbmQK
-Pj4gdW5sb2FkaW5nIHRoZSBkcml2ZXIgcmVwZXRlYWRseSwgd2l0aCBib3RoIHBhbmVsIGFuZCBz
-bGF2ZSBjb25uZWN0b3JzCj4+IGFuZCBmb3VuZCBubyBmbGF3cy4KPj4KPj4gVGhlcmUgaXMgc3Rp
-bGwgb25lIHdhcm5pbmcgbGVmdCBvbiB0aWxjZGNfY3J0Y19kZXN0cm95LCBjYXVzZWQgYnkKPj4g
-ZGVzdHJveWluZyB0aGUgY29ubmVjdG9yIHdoaWxlIHN0aWxsIGluIGFuIE9OIHN0YXR1cy4gV2Ug
-ZG9uJ3Qga25vdyB3aHkKPj4gdGhpcyBoYXBwZW5zIG9yIHdoeSBpdCdzIGFuIGlzc3VlLCBzbyB3
-ZSBkaWQgbm90IGZpeCBpdC4KPj4KPgo+IFllcyBJIHNlZSB3aGF0IHlvdSBtZWFuLCBpdCB0cmln
-Z2VycyB0aGUgV0FSTl9PTiBpbiB0aWxjZGNfY3J0Y19kZXN0cm95Cj4gYmVjYXVzZSBEUk1fTU9E
-RV9EUE1TX09OIGlzIHN0aWxsIHNldC4gIFRoaXMgV0FSTl9PTiBkb2VzIG1ha2Ugc29tZSBzZW5z
-ZQo+IGJlY2F1c2UgRFBNU19PRkYgd291bGQgaGF2ZSB0aGUgZWZmZWN0IG9mIHR1cm5pbmcgb2Zm
-IGNsb2NrcyBhbmQgcHV0dGluZyB0aGUKPiBtb25pdG9yIHRvIHNsZWVwIHdoaWNoIHNlZW1zIGxv
-Z2ljYWwgY29uc2lkZXJpbmcgd2UgaGF2ZSB0b3JuIGRvd24gdGhlCj4gZGlzcGxheS4gIEFkZGlu
-ZyBhIHRpbGNkY19jcnRjX2RwbXMoRFBNU19PRkYpIHJpZ2h0IGJlZm9yZSB0aGUgV0FSTl9PTgo+
-IGNvbmZpcm1zIHRoaXMsIGJ1dCBpdCBzZWVtcyBzdHJhbmdlIHRoYXQgdGhpcyBoYXNuJ3QgaGFw
-cGVuZWQgYXV0b21hdGljYWxseQo+ICgrIFJ1c3NlbGwgZG9lc24ndCBuZWVkIHRvIGRvIGl0IGlu
-IGhpcyBBcm1hZGEgZHJpdmVyKSAtIHNvIEkgc3VzcGVjdCB0aGVyZQo+IGlzIGEgYmV0dGVyIHdh
-eS4KCnRiaCwgSSdtIG5vdCBlbnRpcmVseSBzdXJlIG9mZmhhbmQgd2h5IGRybV9tb2RlX2NvbmZp
-Z19jbGVhbnVwKCkKZG9lc24ndCByZW1vdmUgdGhlIGZiJ3MgZmlyc3QgKHdoaWNoIHNob3VsZCBo
-YXZlIHRoZSBlZmZlY3Qgb2YKc2h1dHRpbmcgZG93biBhbnkgbGl0IGNydGMvZW5jb2Rlci9jb25u
-ZWN0b3IpLi4gIHRoYXQgd291bGQgc2VlbSBsaWtlCnRoZSBzZW5zaWJsZSB3YXkgdG8gc2h1dCBk
-b3duLi4KCkJSLAotUgoKPiBPdGhlcndpc2UgSSB0aGluayB0aGlzIGlzIGEgZ29vZCBhbmQgdXNl
-ZnVsIHBhdGNoIHNlcmllcy4KPgo+IERhcnJlbgo+Cj4KPj4gVGhlIGZpcnN0IDcgcGF0Y2hlcyBh
-cmUgYnVnIGZpeGVzIHdoaWNoIGFuZCBzaG91bGQgcHJvYmFibHkgYmUgYXBwbGllZAo+PiBpbiB0
-aGUgc3RhYmxlIHRyZWVzLiBUaGUgbGFzdCB0d28gYXJlIGNsZWFuLXVwcy4KPj4KPj4KPj4gUmVz
-ZW5kaW5nIHRoaXMgc2luY2UgSSBnb3Qgbm8gcmVwbGllcy4KPj4KPj4KPj4gR3VpZG8gTWFydMOt
-bmV6ICg5KToKPj4gICAgZHJtL2kyYzogdGRhOTk4eDogbW92ZSBkcm1faTJjX2VuY29kZXJfZGVz
-dHJveSBjYWxsCj4+ICAgIGRybS90aWxjZGM6IHBhbmVsOiBmaXggZGFuZ2xpbmcgc3lzZnMgY29u
-bmVjdG9yIG5vZGUKPj4gICAgZHJtL3RpbGNkYzogc2xhdmU6IGZpeCBkYW5nbGluZyBzeXNmcyBj
-b25uZWN0b3Igbm9kZQo+PiAgICBkcm0vdGlsY2RjOiB0ZnA0MTA6IGZpeCBkYW5nbGluZyBzeXNm
-cyBjb25uZWN0b3Igbm9kZQo+PiAgICBkcm0vdGlsY2RjOiBwYW5lbDogZml4IGxlYWsgd2hlbiB1
-bmxvYWRpbmcgdGhlIG1vZHVsZQo+PiAgICBkcm0vdGlsY2RjOiBmaXggcmVsZWFzZSBvcmRlciBv
-biBleGl0Cj4+ICAgIGRybS90aWxjZGM6IGZpeCBkb3VibGUga2ZyZWUKPj4gICAgZHJtL3RpbGNk
-YzogcmVtb3ZlIHN1Ym1vZHVsZSBkZXN0cm95IGNhbGxzCj4+ICAgIGRybS90aWxjZGM6IHJlcGxh
-Y2UgbGF0ZV9pbml0Y2FsbCB3aXRoIG1vZHVsZV9pbml0Cj4+Cj4+ICAgZHJpdmVycy9ncHUvZHJt
-L2kyYy90ZGE5OTh4X2Rydi5jICAgICAgfCAgMiArLQo+PiAgIGRyaXZlcnMvZ3B1L2RybS90aWxj
-ZGMvTW9kdWxlLnN5bXZlcnMgIHwgIDAKPj4gICBkcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNk
-Y19kcnYuYyAgICB8IDE1ICsrKysrLS0tLS0tLS0KPj4gICBkcml2ZXJzL2dwdS9kcm0vdGlsY2Rj
-L3RpbGNkY19kcnYuaCAgICB8ICAxIC0KPj4gICBkcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNk
-Y19wYW5lbC5jICB8IDM5Cj4+ICsrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0KPj4g
-ICBkcml2ZXJzL2dwdS9kcm0vdGlsY2RjL3RpbGNkY19zbGF2ZS5jICB8IDI3ICsrKysrKysrKysr
-KystLS0tLS0tLS0tCj4+ICAgZHJpdmVycy9ncHUvZHJtL3RpbGNkYy90aWxjZGNfdGZwNDEwLmMg
-fCAzNQo+PiArKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0KPj4gICA3IGZpbGVzIGNoYW5n
-ZWQsIDU5IGluc2VydGlvbnMoKyksIDYwIGRlbGV0aW9ucygtKQo+PiAgIGNyZWF0ZSBtb2RlIDEw
-MDY0NCBkcml2ZXJzL2dwdS9kcm0vdGlsY2RjL01vZHVsZS5zeW12ZXJzCj4+Cj4gX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBkcmktZGV2ZWwgbWFpbGlu
-ZyBsaXN0Cj4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+IGh0dHA6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApk
-cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Minor fix of $subject to be inline with existing logs needed.
+PM / AVS: SmartReflex: ..
+
+On 06/28/2014 07:33 AM, Fabian Frederick wrote:
+> Fix checkpatch warning:
+> WARNING: debugfs_remove_recursive(NULL) is safe this check is probably not required
+>
+> Cc: Kevin Hilman <khilman@kernel.org>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: linux-pm@vger.kernel.org
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+>   drivers/power/avs/smartreflex.c | 3 +--
+>   1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+> index db9973b..ecc5979 100644
+> --- a/drivers/power/avs/smartreflex.c
+> +++ b/drivers/power/avs/smartreflex.c
+> @@ -1001,8 +1001,7 @@ static int omap_sr_remove(struct platform_device *pdev)
+>
+>   	if (sr_info->autocomp_active)
+>   		sr_stop_vddautocomp(sr_info);
+> -	if (sr_info->dbg_dir)
+> -		debugfs_remove_recursive(sr_info->dbg_dir);
+> +	debugfs_remove_recursive(sr_info->dbg_dir);
+>
+>   	pm_runtime_disable(&pdev->dev);
+>   	list_del(&sr_info->node);
+>
+Acked-by: Nishanth Menon <nm@ti.com>
