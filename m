@@ -1,48 +1,55 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/1] drivers/power/avs/smartreflex.c: remove unnecessary
- null test before debugfs_remove_recursive
-Date: Sat, 28 Jun 2014 08:36:23 -0500
-Message-ID: <53AEC4D7.50205@ti.com>
-References: <1403958799-4692-1-git-send-email-fabf@skynet.be>
-Reply-To: nm@ti.com
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/6] mailbox/omap: add support for parsing dt devices
+Date: Sat, 28 Jun 2014 19:07:09 +0200
+Message-ID: <20140628170709.GB23634@xo-6d-61-c0.localdomain>
+References: <1403660878-56350-1-git-send-email-s-anna@ti.com>
+ <1403660878-56350-3-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403958799-4692-1-git-send-email-fabf@skynet.be>
+Content-Disposition: inline
+In-Reply-To: <1403660878-56350-3-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>, linux-kernel@vger.kernel.org
-Cc: Kevin Hilman <khilman@kernel.org>, linux-pm@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Minor fix of $subject to be inline with existing logs needed.
-PM / AVS: SmartReflex: ..
+Hi!
 
-On 06/28/2014 07:33 AM, Fabian Frederick wrote:
-> Fix checkpatch warning:
-> WARNING: debugfs_remove_recursive(NULL) is safe this check is probably not required
->
-> Cc: Kevin Hilman <khilman@kernel.org>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: linux-pm@vger.kernel.org
-> Signed-off-by: Fabian Frederick <fabf@skynet.be>
-> ---
->   drivers/power/avs/smartreflex.c | 3 +--
->   1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-> index db9973b..ecc5979 100644
-> --- a/drivers/power/avs/smartreflex.c
-> +++ b/drivers/power/avs/smartreflex.c
-> @@ -1001,8 +1001,7 @@ static int omap_sr_remove(struct platform_device *pdev)
->
->   	if (sr_info->autocomp_active)
->   		sr_stop_vddautocomp(sr_info);
-> -	if (sr_info->dbg_dir)
-> -		debugfs_remove_recursive(sr_info->dbg_dir);
-> +	debugfs_remove_recursive(sr_info->dbg_dir);
->
->   	pm_runtime_disable(&pdev->dev);
->   	list_del(&sr_info->node);
->
-Acked-by: Nishanth Menon <nm@ti.com>
+> The non-DT support has to be maintained for now to not break
+> OMAP3 legacy boot, and the legacy-style code will be cleaned
+> up once OMAP3 is also converted to DT-boot only.
+
+> @@ -587,24 +606,157 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
+>  	return 0;
+>  }
+>  
+> +static const struct omap_mbox_device_data omap2_data = {
+> +	.num_users	= 4,
+> +	.num_fifos	= 6,
+> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+> +};
+> +
+> +static const struct omap_mbox_device_data omap3_data = {
+> +	.num_users	= 2,
+> +	.num_fifos	= 2,
+> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+> +};
+> +
+> +static const struct omap_mbox_device_data am335x_data = {
+> +	.num_users	= 4,
+> +	.num_fifos	= 8,
+> +	.intr_type	= MBOX_INTR_CFG_TYPE2,
+> +};
+
+So you use compatible strings to look up 3 integers. Would it be better to have
+num_users/num_fifos/intr_type directly in the device tree? That should be cleaner
+and more flexible...
+
+If you do that, would it be possible to have share compatible string?
+
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
