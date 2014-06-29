@@ -1,83 +1,126 @@
 From: Andre Heider <a.heider@gmail.com>
-Subject: [PATCH 04/13] uio: uio_pruss: use dmam_alloc_coherent()
-Date: Sun, 29 Jun 2014 18:21:38 +0200
-Message-ID: <1404058907-21112-5-git-send-email-a.heider@gmail.com>
+Subject: [PATCH 09/13] uio: uio_pruss: add devicetree support
+Date: Sun, 29 Jun 2014 18:21:43 +0200
+Message-ID: <1404058907-21112-10-git-send-email-a.heider@gmail.com>
 References: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:64396 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646AbaF2QWA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jun 2014 12:22:00 -0400
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:35036 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753253AbaF2QWH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jun 2014 12:22:07 -0400
 In-Reply-To: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Matt Porter <mporter@linaro.org>, "Hans J . Koch" <hjk@hansjkoch.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Replace dma_alloc_coherent() with dmam_alloc_coherent() and remove the
-dma_free_coherent() call.
-
-This shaves off 2 vars in the driver data struct.
+Add support to probe via devicetree.
 
 Signed-off-by: Andre Heider <a.heider@gmail.com>
 ---
- drivers/uio/uio_pruss.c | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ drivers/uio/uio_pruss.c | 46 +++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 39 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
-index 310598a..50ff206 100644
+index afaf726..2df54ab 100644
 --- a/drivers/uio/uio_pruss.c
 +++ b/drivers/uio/uio_pruss.c
-@@ -63,10 +63,8 @@ struct uio_pruss_dev {
- 	struct uio_info *info;
- 	struct clk *pruss_clk;
- 	dma_addr_t sram_paddr;
--	dma_addr_t ddr_paddr;
- 	void __iomem *prussio_vaddr;
- 	unsigned long sram_vaddr;
--	void *ddr_vaddr;
- 	unsigned int hostirq_start;
- 	unsigned int pintc_base;
+@@ -26,6 +26,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/genalloc.h>
++#include <linux/of_device.h>
+ 
+ #define DRV_NAME "pruss_uio"
+ #define DRV_VERSION "1.0"
+@@ -70,6 +71,27 @@ struct uio_pruss_dev {
  	struct gen_pool *sram_pool;
-@@ -100,10 +98,6 @@ static void pruss_cleanup(struct device *dev, struct uio_pruss_dev *gdev)
- 		uio_unregister_device(p);
- 		kfree(p->name);
- 	}
--	if (gdev->ddr_vaddr) {
--		dma_free_coherent(dev, extram_pool_sz, gdev->ddr_vaddr,
--			gdev->ddr_paddr);
--	}
- 	if (gdev->sram_vaddr)
- 		gen_pool_free(gdev->sram_pool,
- 			      gdev->sram_vaddr,
-@@ -119,6 +113,7 @@ static int pruss_probe(struct platform_device *pdev)
+ };
+ 
++#ifdef CONFIG_OF
++struct uio_pruss_params {
++	u32 pintc_offset;
++};
++
++static const struct uio_pruss_params uio_pruss_v1_params = {
++	.pintc_offset = 0x4000,
++};
++
++static const struct uio_pruss_params uio_pruss_v2_params = {
++	.pintc_offset = 0x20000,
++};
++
++static const struct of_device_id pruss_of_match_table[] = {
++	{ .compatible = "ti,pruss-v1", .data = &uio_pruss_v1_params, },
++	{ .compatible = "ti,pruss-v2", .data = &uio_pruss_v2_params, },
++	{},
++};
++MODULE_DEVICE_TABLE(of, pruss_of_match_table);
++#endif
++
+ static irqreturn_t pruss_handler(int irq, struct uio_info *info)
+ {
+ 	struct uio_pruss_dev *gdev = info->priv;
+@@ -111,6 +133,8 @@ static int pruss_probe(struct platform_device *pdev)
+ 	struct uio_pruss_dev *gdev;
+ 	struct resource *regs_prussio;
  	struct device *dev = &pdev->dev;
- 	int ret = -ENODEV, cnt = 0;
++	const struct of_device_id *match;
++	const struct uio_pruss_params *params;
+ 	int ret = -ENODEV, cnt = 0, i;
  	struct uio_pruss_pdata *pdata = dev_get_platdata(dev);
-+	dma_addr_t ddr_paddr;
+ 	dma_addr_t ddr_paddr;
+@@ -123,13 +147,21 @@ static int pruss_probe(struct platform_device *pdev)
+ 	if (!gdev->info)
+ 		return -ENOMEM;
  
- 	gdev = devm_kzalloc(dev, sizeof(struct uio_pruss_dev), GFP_KERNEL);
- 	if (!gdev)
-@@ -155,9 +150,8 @@ static int pruss_probe(struct platform_device *pdev)
- 		}
+-	/* Power on PRU in case its not done as part of boot-loader */
+-	gdev->pruss_clk = clk_get(dev, "pruss");
+-	if (IS_ERR(gdev->pruss_clk)) {
+-		dev_err(dev, "Failed to get clock\n");
+-		return PTR_ERR(gdev->pruss_clk);
++	if (dev->of_node) {
++		match = of_match_device(pruss_of_match_table, dev);
++		params = match->data;
++		gdev->pintc_base = params->pintc_offset;
+ 	} else {
++		/* Power on PRU in case its not done as part of boot-loader */
++		gdev->pruss_clk = clk_get(dev, "pruss");
++		if (IS_ERR(gdev->pruss_clk)) {
++			dev_err(dev, "Failed to get clock\n");
++			return PTR_ERR(gdev->pruss_clk);
++		}
++
+ 		clk_enable(gdev->pruss_clk);
++
++		gdev->pintc_base = pdata->pintc_base;
  	}
  
--	gdev->ddr_vaddr = dma_alloc_coherent(dev, extram_pool_sz,
--				&(gdev->ddr_paddr), GFP_KERNEL | GFP_DMA);
--	if (!gdev->ddr_vaddr) {
-+	if (!dmam_alloc_coherent(dev, extram_pool_sz, &ddr_paddr,
-+				 GFP_KERNEL | GFP_DMA)) {
- 		dev_err(dev, "Could not allocate external memory\n");
+ 	regs_prussio = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -139,7 +171,7 @@ static int pruss_probe(struct platform_device *pdev)
  		goto out_free;
  	}
-@@ -174,7 +168,7 @@ static int pruss_probe(struct platform_device *pdev)
- 		p->mem[1].size = sram_pool_sz;
- 		p->mem[1].memtype = UIO_MEM_PHYS;
  
--		p->mem[2].addr = gdev->ddr_paddr;
-+		p->mem[2].addr = ddr_paddr;
- 		p->mem[2].size = extram_pool_sz;
- 		p->mem[2].memtype = UIO_MEM_PHYS;
+-	if (pdata->sram_pool) {
++	if (pdata && pdata->sram_pool) {
+ 		gdev->sram_pool = pdata->sram_pool;
+ 		gdev->sram_vaddr =
+ 			(unsigned long)gen_pool_dma_alloc(gdev->sram_pool,
+@@ -156,7 +188,6 @@ static int pruss_probe(struct platform_device *pdev)
+ 		goto out_free;
+ 	}
+ 
+-	gdev->pintc_base = pdata->pintc_base;
+ 	gdev->hostirq_start = platform_get_irq(pdev, 0);
+ 
+ 	for (cnt = 0, p = gdev->info; cnt < MAX_PRUSS_EVT; cnt++, p++) {
+@@ -214,6 +245,7 @@ static struct platform_driver pruss_driver = {
+ 	.driver = {
+ 		   .name = DRV_NAME,
+ 		   .owner = THIS_MODULE,
++		   .of_match_table = of_match_ptr(pruss_of_match_table),
+ 		   },
+ };
  
 -- 
 2.0.0
