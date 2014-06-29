@@ -1,13 +1,13 @@
 From: Andre Heider <a.heider@gmail.com>
-Subject: [PATCH 07/13] Documentation: devicetree: add bindings for TI PRUSS
-Date: Sun, 29 Jun 2014 18:21:41 +0200
-Message-ID: <1404058907-21112-8-git-send-email-a.heider@gmail.com>
+Subject: [PATCH 11/13] uio: uio_pruss: enable the driver for am33xx SoCs
+Date: Sun, 29 Jun 2014 18:21:45 +0200
+Message-ID: <1404058907-21112-12-git-send-email-a.heider@gmail.com>
 References: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:61823 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753062AbaF2QWE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jun 2014 12:22:04 -0400
+Received: from mail-we0-f178.google.com ([74.125.82.178]:58578 "EHLO
+	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830AbaF2QWJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jun 2014 12:22:09 -0400
 In-Reply-To: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,35 +16,26 @@ Cc: Matt Porter <mporter@linaro.org>, "Hans J . Koch" <hjk@hansjkoch.de>, Greg K
 
 Signed-off-by: Andre Heider <a.heider@gmail.com>
 ---
- Documentation/devicetree/bindings/misc/ti,pruss.txt | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/misc/ti,pruss.txt
+ drivers/uio/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/misc/ti,pruss.txt b/Documentation/devicetree/bindings/misc/ti,pruss.txt
-new file mode 100644
-index 0000000..4eacc41
---- /dev/null
-+++ b/Documentation/devicetree/bindings/misc/ti,pruss.txt
-@@ -0,0 +1,19 @@
-+TI Programmable Real-Time Unit Sub System (PRUSS)
-+
-+Required properties:
-+- compatible :
-+	- "ti,pruss-v1" - for PRUv1 as found on the OMAPL138/DA850/AM18xx SoC families
-+	- "ti,pruss-v2" - for PRUv2 as found on the AM33xx SoC family
-+- ti,hwmods: Name of the hwmod associated to the PRUSS
-+- reg: Address range of rtc register set
-+- interrupts: host event interrupts in order
-+- interrupt-parent: phandle for the interrupt controller
-+
-+Example:
-+pruss: pruss@4a300000 {
-+	compatible = "ti,pruss-v2";
-+	ti,hwmods = "pruss";
-+	reg = <0x4a300000 0x080000>;
-+	interrupts = <20 21 22 23 24 25 26 27>;
-+	interrupt-parent = <&intc>;
-+};
+diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
+index 5a90914..1678387 100644
+--- a/drivers/uio/Kconfig
++++ b/drivers/uio/Kconfig
+@@ -106,10 +106,10 @@ config UIO_NETX
+ 
+ config UIO_PRUSS
+ 	tristate "Texas Instruments PRUSS driver"
+-	depends on ARCH_DAVINCI_DA850
++	depends on ARCH_DAVINCI_DA850 || SOC_AM33XX
+ 	select GENERIC_ALLOCATOR
+ 	help
+-	  PRUSS driver for OMAPL138/DA850/AM18XX devices
++	  PRUSS driver for OMAPL138/DA850/AM18XX/AM33XX devices
+ 	  PRUSS driver requires user space components, examples and user space
+ 	  driver is available from below SVN repo - you may use anonymous login
+ 
 -- 
 2.0.0
 
