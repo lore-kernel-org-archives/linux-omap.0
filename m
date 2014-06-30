@@ -1,258 +1,118 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
-Date: Mon, 30 Jun 2014 10:55:37 +0300
-Message-ID: <53B117F9.6080004@ti.com>
-References: <1403700996-27105-1-git-send-email-rogerq@ti.com> <53AB4CE0.6020705@ti.com> <20140626073115.GD28884@atomide.com> <53ABE9AD.1000100@ti.com> <53AC2CA7.30800@ti.com> <53AC36ED.2000309@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.16-rc2
+Date: Mon, 30 Jun 2014 08:56:45 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406300855570.24036@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53AC36ED.2000309@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
-Cc: rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:41200 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754698AbaF3I4q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 04:56:46 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On 06/26/2014 06:06 PM, Tero Kristo wrote:
-> On 06/26/2014 05:22 PM, Roger Quadros wrote:
->> +Tero
->>
->> On 06/26/2014 12:36 PM, Roger Quadros wrote:
->>> On 06/26/2014 10:31 AM, Tony Lindgren wrote:
->>>> * Nishanth Menon <nm@ti.com> [140625 15:29]:
->>>>> On 06/25/2014 07:56 AM, Roger Quadros wrote:
->>>>>> The SATA and USB PHYs need the 1.8V and 3.3V supplies.
->>>>>> The PHY drivers/framework don't yet support regulator
->>>>>> supply so we have to keep these regulators always-on till
->>>>>> then.
->>>>>>
->>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>>> ---
->>>>>>   arch/arm/boot/dts/dra7-evm.dts | 2 ++
->>>>>>   1 file changed, 2 insertions(+)
->>>>>>
->>>>>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->>>>>> index 4adc280..99a1f79 100644
->>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>>>>> @@ -241,6 +241,7 @@
->>>>>>                       regulator-min-microvolt = <1800000>;
->>>>>>                       regulator-max-microvolt = <1800000>;
->>>>>>                       regulator-boot-on;
->>>>>> +                    regulator-always-on;
->>>>>>                   };
->>>>>>
->>>>>>                   ldo9_reg: ldo9 {
->>>>>> @@ -266,6 +267,7 @@
->>>>>>                       regulator-min-microvolt = <3300000>;
->>>>>>                       regulator-max-microvolt = <3300000>;
->>>>>>                       regulator-boot-on;
->>>>>> +                    regulator-always-on;
->>>>>>                   };
->>>>>>               };
->>>>>>           };
->>>>>>
->>>>>
->>>>> Why not fix phy driver/framework as needed? the trouble is people
->>>>> always forget to remove always-on... who actually audits old logs and
->>>>> fixes stuff back up?
->>>>
->>>> Yes I agree let's not play with the regulator-always-on unless
->>>> absolutely necessary.
->>>>
->>> Agreed. PHY framework must deal with this. Till then USB, SATA and most likely PCIe as well will not work on DRA7-evm.
->>>
->>
->> I tried the below patch to enable the relevant regulators in the PHY drivers but still couldn't manage to get USB to work. The same 1.8V regulator is used to supply 3 pins
->> -vdda_usb1: DPLL_USB and HS_USB1 analog supply
->> -vdda_usb2: HS_USB2 analog supply
->> -vdda_usb3: DPLL_USB_OTG_SS and USB3.0 Rx/Tx analog supply
->>
->> It seems that the regulator auto disable kicks in before the phy driver enables the regulator thus causing some kind of malfunction. I'm not sure whether this is due to DPLL_USB supply glitch or HS_USB1 analog supply glitch.
->>
->> In any case, the DPLL_USB (clock driver?) needs to enable the 1.8V regulator in addition to the HS_USB PHY driver to prevent this supply glitch.
->>
->> Tero, any suggestions about this? If we are not concerned about disabling DPLL_USB anytime then the regulator might just as well be always-on. Alternatively can we place a regulator_get(), regulator_enable() in drivers/clk/ti/dpll.c?
-> 
-> I believe dpll_usb needs to go down for the core to idle. Also, we are working on getting suspend-resume working on this platform, so having the regulator always on is a no-no.
-> 
-> Also, I am heavily against adding regulator tweaks within the clock driver, there needs to be another way.
 
-Fair enough. There is not much information about controlling the power on vdda_usbx pins except the power-up and power-down sequence diagrams in Fig. 3.1 and 3.2 in the Data Manual (DRA75x_74x_ES1.1_DM_Early_Preliminary_vJ.pdf).
 
-Can the regulator be dealt with in the OMAP PM core driver, along with the vdd_mpu and vdd_core stuff?
+Here are some basic OMAP test results for Linux v3.16-rc2.
+Logs and other details at:
 
-cheers,
--roger
+    http://www.pwsan.com/omap/testlogs/test_v3.16-rc2/20140630000629/
 
->> ---
->>
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->> index 4adc280..23379ab 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
->> @@ -495,3 +495,11 @@
->>           };
->>       };
->>   };
->> +
->> +&usb2_phy1 {
->> +    vdda3v3-supply = <&ldousb_reg>;
->> +};
->> +
->> +&usb3_phy1 {
->> +    vdda1v8-supply = <&ldo3_reg>;
->> +};
->> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->> index 7007c11..bb1a768 100644
->> --- a/drivers/phy/phy-omap-usb2.c
->> +++ b/drivers/phy/phy-omap-usb2.c
->> @@ -30,6 +30,7 @@
->>   #include <linux/phy/omap_control_phy.h>
->>   #include <linux/phy/phy.h>
->>   #include <linux/of_platform.h>
->> +#include <linux/regulator/consumer.h>
->>
->>   #define USB2PHY_DISCON_BYP_LATCH (1 << 31)
->>   #define USB2PHY_ANA_CONFIG1 0x4c
->> @@ -107,6 +108,18 @@ static int omap_usb_power_off(struct phy *x)
->>
->>       omap_control_phy_power(phy->control_dev, 0);
->>
->> +    if (phy->pwr) {
->> +        int ret;
->> +
->> +        ret = regulator_disable(phy->pwr);
->> +        if (ret) {
->> +            dev_err(phy->dev, "failed to disable regulator\n");
->> +            return ret;
->> +        } else {
->> +            dev_info(phy->dev, "disabled regulator\n");
->> +        }
->> +    }
->> +
->>       return 0;
->>   }
->>
->> @@ -114,6 +127,18 @@ static int omap_usb_power_on(struct phy *x)
->>   {
->>       struct omap_usb *phy = phy_get_drvdata(x);
->>
->> +    if (phy->pwr) {
->> +        int ret;
->> +
->> +        ret = regulator_enable(phy->pwr);
->> +        if (ret) {
->> +            dev_err(phy->dev, "failed to enable regulator\n");
->> +            return ret;
->> +        } else {
->> +            dev_info(phy->dev, "enabled regulator\n");
->> +        }
->> +    }
->> +
->>       omap_control_phy_power(phy->control_dev, 1);
->>
->>       return 0;
->> @@ -253,6 +278,14 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>       phy->control_dev = &control_pdev->dev;
->>       omap_control_phy_power(phy->control_dev, 0);
->>
->> +    /* phy-supply */
->> +    phy->pwr = devm_regulator_get_optional(phy->dev, "vdda3v3");
->> +    if (IS_ERR(phy->pwr)) {
->> +        if (PTR_ERR(phy->pwr) == -EPROBE_DEFER)
->> +            return -EPROBE_DEFER;
->> +        phy->pwr = NULL;
->> +    }
->> +
->>       otg->set_host        = omap_usb_set_host;
->>       otg->set_peripheral    = omap_usb_set_peripheral;
->>       if (phy_data->flags & OMAP_USB2_HAS_SET_VBUS)
->> diff --git a/drivers/phy/phy-ti-pipe3.c b/drivers/phy/phy-ti-pipe3.c
->> index 5913676..1b46b0b 100644
->> --- a/drivers/phy/phy-ti-pipe3.c
->> +++ b/drivers/phy/phy-ti-pipe3.c
->> @@ -28,6 +28,7 @@
->>   #include <linux/delay.h>
->>   #include <linux/phy/omap_control_phy.h>
->>   #include <linux/of_platform.h>
->> +#include <linux/regulator/consumer.h>
->>
->>   #define    PLL_STATUS        0x00000004
->>   #define    PLL_GO            0x00000008
->> @@ -81,6 +82,7 @@ struct ti_pipe3 {
->>       struct clk        *sys_clk;
->>       struct clk        *refclk;
->>       struct pipe3_dpll_map    *dpll_map;
->> +    struct regulator    *pwr_dpll;
->>   };
->>
->>   static struct pipe3_dpll_map dpll_map_usb[] = {
->> @@ -215,6 +217,17 @@ static int ti_pipe3_init(struct phy *x)
->>       u32 val;
->>       int ret = 0;
->>
->> +    /* Enable DPLL regulator */
->> +    if (phy->pwr_dpll) {
->> +        ret = regulator_enable(phy->pwr_dpll);
->> +        if (ret) {
->> +            dev_err(phy->dev, "failed to enable regulator\n");
->> +            return ret;
->> +        } else {
->> +            dev_info(phy->dev, "enabled regulator\n");
->> +        }
->> +    }
->> +
->>       /* Bring it out of IDLE if it is IDLE */
->>       val = ti_pipe3_readl(phy->pll_ctrl_base, PLL_CONFIGURATION2);
->>       if (val & PLL_IDLE) {
->> @@ -262,6 +275,18 @@ static int ti_pipe3_exit(struct phy *x)
->>           return -EBUSY;
->>       }
->>
->> +    /* Disable DPLL regulator */
->> +    if (phy->pwr_dpll) {
->> +        int ret;
->> +
->> +        ret = regulator_disable(phy->pwr_dpll);
->> +        if (ret) {
->> +            dev_err(phy->dev, "failed to disable regulator\n");
->> +            return ret;
->> +        } else {
->> +            dev_info(phy->dev, "disabled regulator\n");
->> +        }
->> +    }
->>       return 0;
->>   }
->>   static struct phy_ops ops = {
->> @@ -308,7 +333,15 @@ static int ti_pipe3_probe(struct platform_device *pdev)
->>       if (IS_ERR(phy->pll_ctrl_base))
->>           return PTR_ERR(phy->pll_ctrl_base);
->>
->> -    phy->dev        = &pdev->dev;
->> +    phy->dev = &pdev->dev;
->> +
->> +    /* dpll-supply */
->> +    phy->pwr_dpll = devm_regulator_get_optional(phy->dev, "vdda1v8");
->> +    if (IS_ERR(phy->pwr_dpll)) {
->> +        if (PTR_ERR(phy->pwr_dpll) == -EPROBE_DEFER)
->> +            return -EPROBE_DEFER;
->> +        phy->pwr_dpll = NULL;
->> +    }
->>
->>       if (!of_device_is_compatible(node, "ti,phy-pipe3-sata")) {
->>
->> diff --git a/include/linux/phy/omap_usb.h b/include/linux/phy/omap_usb.h
->> index dc2c541..e2c46df 100644
->> --- a/include/linux/phy/omap_usb.h
->> +++ b/include/linux/phy/omap_usb.h
->> @@ -40,6 +40,7 @@ struct omap_usb {
->>       struct clk        *wkupclk;
->>       struct clk        *optclk;
->>       u8            flags;
->> +    struct regulator    *pwr;
->>   };
->>
->>   struct usb_phy_data {
->>
-> 
+
+Test summary
+------------
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
+
+Build: zImage:
+    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
+		  omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig
+
+Build: uImage+dtb:
+    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap5-uevm
+
+Boot to userspace:
+    FAIL ( 2/14): 2430sdp, 4460varsomom
+    skip ( 1/14): 5912osk
+    Pass (11/14): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517, 5430es2uevm
+
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
+		  4430es2panda, 4460pandaes, 4460varsomom
+
+PM: chip off except CORE via suspend:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+
+PM: chip off via dynamic idle:
+    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+
+
+vmlinux object size
+(delta in bytes from test_v3.16-rc1 (7171511eaec5bf23fb06078f59784a3a0626b38f)):
+   text     data      bss    total  kernel
+   +594      -24        0     +570  omap1_defconfig
+   +626      -24        0     +602  omap1_defconfig_1510innovator_only
+   +594       +8        0     +602  omap1_defconfig_5912osk_only
+   +746       +8        0     +754  multi_v7_defconfig
+   +598       +8      +64     +670  omap2plus_defconfig
+   +390      -24        0     +366  omap2plus_defconfig_2430sdp_only
+   +530       +8        0     +538  omap2plus_defconfig_am33xx_only
+   +594       +8        0     +602  omap2plus_defconfig_am43xx_only
+   +598       +8        0     +606  omap2plus_defconfig_cpupm
+   +530       +8        0     +538  omap2plus_defconfig_dra7xx_only
+    +30       +8        0      +38  omap2plus_defconfig_n800_multi_omap2xxx
+    -34      -16        0      -50  omap2plus_defconfig_n800_only_a
+   +530      -24        0     +506  omap2plus_defconfig_no_pm
+   +534      +16        0     +550  omap2plus_defconfig_omap2_4_only
+   +594      -16      +64     +642  omap2plus_defconfig_omap3_4_only
+   +594      +16        0     +610  omap2plus_defconfig_omap5_only
+   -172        0      -40     -212  rmk_omap3430_ldp_allnoconfig
+   +182       +8        0     +190  rmk_omap3430_ldp_oldconfig
+   -204        0       -8     -212  rmk_omap4430_sdp_allnoconfig
+   +290        0        0     +290  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.16-rc1 (7171511eaec5bf23fb06078f59784a3a0626b38f))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
