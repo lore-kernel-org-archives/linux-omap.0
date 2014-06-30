@@ -1,27 +1,42 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
-Subject: Re: OMAP 3630 random crashes
-Date: Mon, 30 Jun 2014 15:47:36 +0200
-Message-ID: <CAOf5uwn_+P5JkU7szHZNj74fqk7ArskiZnYn=eCeamPZ_dWS+g@mail.gmail.com>
+From: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
+Subject: RE: OMAP 3630 random crashes
+Date: Mon, 30 Jun 2014 14:01:49 +0000
+Message-ID: <1404136909195.23653@grundfos.com>
 References: <1403254242990.39117@grundfos.com>
-	<20140620091431.GA28884@atomide.com>
-	<1403272840480.35753@grundfos.com>
+	<20140620091431.GA28884@atomide.com>	<1403272840480.35753@grundfos.com>
 	<CAK8F28=pF=gy10Lar35q2-s=f0TxNJFZ6XpdTFvHYankXtzH4Q@mail.gmail.com>
 	<1403274413159.44797@grundfos.com>
-	<1404135826925.10774@grundfos.com>
+	<1404135826925.10774@grundfos.com>,<CAOf5uwn_+P5JkU7szHZNj74fqk7ArskiZnYn=eCeamPZ_dWS+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:44058 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897AbaF3Nri (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 09:47:38 -0400
-Received: by mail-wg0-f45.google.com with SMTP id l18so8002998wgh.28
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jun 2014 06:47:37 -0700 (PDT)
-In-Reply-To: <1404135826925.10774@grundfos.com>
+Received: from mail-db3lp0081.outbound.protection.outlook.com ([213.199.154.81]:42021
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751776AbaF3OBy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 10:01:54 -0400
+In-Reply-To: <CAOf5uwn_+P5JkU7szHZNj74fqk7ArskiZnYn=eCeamPZ_dWS+g@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Casper Lyngesen Mogensen <clmogensen@grundfos.com>
+To: Michael Trimarchi <michael@amarulasolutions.com>
 Cc: Ash Charles <ash@gumstix.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi
+
+I use a 3.15.0 
+
+Med venlig hilsen/Best regards
+
+Casper Mogensen
+
+________________________________________
+From: Michael Trimarchi <michael@amarulasolutions.com>
+Sent: Monday, June 30, 2014 15:47
+To: Casper Lyngesen Mogensen
+Cc: Ash Charles; Tony Lindgren; linux-omap@vger.kernel.org
+Subject: Re: OMAP 3630 random crashes
 
 Hi
 
@@ -403,7 +418,7 @@ Michael
 
 
 
--- 
+--
 | Michael Nazzareno Trimarchi                     Amarula Solutions BV |
 | COO  -  Founder                                      Cruquiuskade 47 |
 | +31(0)851119172                                 Amsterdam 1018 AM NL |
