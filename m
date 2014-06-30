@@ -1,82 +1,129 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RESEND 2/2] clk: Add driver for Palmas clk32kg and clk32kgaudio
- clocks
-Date: Mon, 30 Jun 2014 08:56:55 +0300
-Message-ID: <53B0FC27.5040002@ti.com>
-References: <1403848871-26519-1-git-send-email-peter.ujfalusi@ti.com>	<1403848871-26519-3-git-send-email-peter.ujfalusi@ti.com> <CABxcv=metB4=eoT=fAh7S-b_mhAvHcJtn2wrV8v8koSyKMxNNw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.16-rc1
+Date: Mon, 30 Jun 2014 06:12:04 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406300608160.24036@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CABxcv=metB4=eoT=fAh7S-b_mhAvHcJtn2wrV8v8koSyKMxNNw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Mike Turquette <mturquette@linaro.org>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ldewangan@nvidia.com, linux-doc@vger.kernel.org, Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:40301 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752176AbaF3GMG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 02:12:06 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi Javier,
-
-On 06/27/2014 09:23 PM, Javier Martinez Canillas wrote:
-> Hello Peter,
->=20
-> On Fri, Jun 27, 2014 at 8:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.co=
-m> wrote:
->> Palmas class of devices can provide 32K clock(s) to be used by other=
- devices
->> on the board. Depending on the actual device the provided clocks can=
- be:
->> CLK32K_KG and CLK32K_KGAUDIO
->> or only one:
->> CLK32K_KG (TPS659039 for example)
->>
->> Use separate compatible flags for the two 32K clock.
->> A system which needs or have only one of the 32k clock from
->> Palmas will need to add node(s) for each clock as separate section
->> in the dts file.
->> The two compatible property is:
->> "ti,palmas-clk32kg" for clk32kg clock
->> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
->>
->> Apart from the register control of the clocks - which is done via
->> the clock API there is a posibility to enable the external sleep
->> control. In this way the clock can be enabled/disabled on demand by =
-the
->> user of the clock.
->>
->> See the documentation for more details.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> Reviewed-by: Nishanth Menon <nm@ti.com>
-
->> +static unsigned long palmas_clks_recalc_rate(struct clk_hw *hw,
->> +                                            unsigned long parent_ra=
-te)
->> +{
->> +       return 32768;
->> +}
->=20
-> I see that other clock drivers using a constant rate return 0 if the
-> clock has not been enabled.
-
-and there are examples when similar fixed clock drivers returns only th=
-e clock
-value, like clk-max77686. I can not find clear guidelines neither in th=
-e
-documentation or around the header/c files for this.
-Mike, what is the appropriate way of handling the recalc_rate?
-
-> So maybe is more correct to have something
-> like the following?
->=20
-> if (__clk_is_enabled(hw->clk))
->         return 32768;
-> else
->         return 0;
->=20
-> Best regards,
-> Javier
->=20
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
 
---=20
-P=C3=A9ter
+Here are some basic OMAP test results for Linux v3.16-rc1.
+Logs and other details at:
+
+    http://www.pwsan.com/omap/testlogs/test_v3.16-rc1/20140629224344/
+
+
+Test summary
+------------
+
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
+
+Build: zImage:
+    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
+		  omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig
+
+Build: uImage+dtb:
+    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap5-uevm
+
+Boot to userspace:
+    FAIL ( 3/14): 2430sdp, 4460varsomom, 5430es2uevm
+    skip ( 1/14): 5912osk
+    Pass (10/14): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517
+
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
+
+PM: chip retention via dynamic idle:
+    FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
+		  4430es2panda, 4460pandaes, 4460varsomom
+
+PM: chip off except CORE via suspend:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off except CORE via dynamic idle:
+    FAIL ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+
+PM: chip off via dynamic idle:
+    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+
+
+vmlinux object size
+(delta in bytes from test_v3.15 (1860e379875dfe7271c649058aeddffe5afd9d0d)):
+   text     data      bss    total  kernel
+ +23574    +3656     -312   +26918  omap1_defconfig
+ +30629    +4080     -312   +34397  omap1_defconfig_1510innovator_only
+ +25906    +3736     -312   +29330  omap1_defconfig_5912osk_only
++439965  +168248   +14472  +622685  multi_v7_defconfig
++133191   +20776  +2750728  +2904695  omap2plus_defconfig
+ +98219    +3408  +2750408  +2852035  omap2plus_defconfig_2430sdp_only
++109673    +8560  +2750600  +2868833  omap2plus_defconfig_am33xx_only
++114337    +8664  +2750664  +2873665  omap2plus_defconfig_am43xx_only
++121683   +17736  +2750664  +2890083  omap2plus_defconfig_cpupm
++111269    +9184  +2750600  +2871053  omap2plus_defconfig_dra7xx_only
+ +75236   +10760  +2883536  +2969532  omap2plus_defconfig_n800_multi_omap2xxx
+ +71408   +10528  +2883536  +2965472  omap2plus_defconfig_n800_only_a
++135117   +22112  +2750664  +2907893  omap2plus_defconfig_no_pm
++131231   +14448  +2750664  +2896343  omap2plus_defconfig_omap2_4_only
++130619   +13864  +2750728  +2895211  omap2plus_defconfig_omap3_4_only
++114045    +9976  +2750664  +2874685  omap2plus_defconfig_omap5_only
+ +33012    +4104    -2692   +34424  rmk_omap3430_ldp_allnoconfig
+ +49799    +5712  +2883520  +2939031  rmk_omap3430_ldp_oldconfig
+ +33724    +3344    +1292   +38360  rmk_omap4430_sdp_allnoconfig
+ +62105    +5304  +2883484  +2950893  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.15 (1860e379875dfe7271c649058aeddffe5afd9d0d))
+  avail  rsrvd   high  freed  board          kconfig
+ -2904k  2904k      .    16k  2420n800       omap2plus_defconfig_n800_only_a
+ -3000k  3000k      .      .  2430sdp        omap2plus_defconfig
+ -3000k  3000k      .    12k  3517evm        omap2plus_defconfig
+ -3004k  3004k      .    12k  3530es3beagle  omap2plus_defconfig
+ -3000k  3000k      .    12k  3730beaglexm   omap2plus_defconfig
+ -3004k  3004k      .    12k  37xxevm        omap2plus_defconfig
+ -2996k  2996k      .    12k  4430es2panda   omap2plus_defconfig
+ -2840k  2840k      .    12k  4460pandaes    omap2plus_defconfig
+ -2816k  2816k      .    12k  am335xbone     omap2plus_defconfig_am33xx_only
+ -2996k  2996k      .    12k  am335xbonelt   omap2plus_defconfig
+
+
+A remarkable increase in omap2plus_defconfig kernel image size and memory 
+consumption: almost three megabytes.
