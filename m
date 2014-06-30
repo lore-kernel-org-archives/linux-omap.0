@@ -1,53 +1,33 @@
-From: Andre Heider <a.heider@gmail.com>
-Subject: Re: [PATCH 02/13] uio: uio_pruss: use devm_kzalloc()
-Date: Mon, 30 Jun 2014 21:42:40 +0200
-Message-ID: <20140630194240.GD78749@localhost>
-References: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
- <1404058907-21112-3-git-send-email-a.heider@gmail.com>
- <20140630093809.GW7262@leverpostej>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [PATCH V2 0/6] regulator: palmas: cleanup and fixes
+Date: Mon, 30 Jun 2014 14:22:04 -0600
+Message-ID: <53B1C6EC.7070907@wwwdotorg.org>
+References: <1404143859-8160-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:37953 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752231AbaF3Tmp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 15:42:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20140630093809.GW7262@leverpostej>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1404143859-8160-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Matt Porter <mporter@linaro.org>, "Hans J . Koch" <hjk@hansjkoch.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-On Mon, Jun 30, 2014 at 10:38:09AM +0100, Mark Rutland wrote:
-> On Sun, Jun 29, 2014 at 05:21:36PM +0100, Andre Heider wrote:
-> > --- a/drivers/uio/uio_pruss.c
-> > +++ b/drivers/uio/uio_pruss.c
-> > @@ -109,9 +109,7 @@ static void pruss_cleanup(struct device *dev, struct uio_pruss_dev *gdev)
-> >  		gen_pool_free(gdev->sram_pool,
-> >  			      gdev->sram_vaddr,
-> >  			      sram_pool_sz);
-> > -	kfree(gdev->info);
-> >  	clk_put(gdev->pruss_clk);
-> > -	kfree(gdev);
-> >  }
-> >  
-> >  static int pruss_probe(struct platform_device *pdev)
-> > @@ -123,24 +121,19 @@ static int pruss_probe(struct platform_device *pdev)
-> >  	int ret = -ENODEV, cnt = 0, len;
-> >  	struct uio_pruss_pdata *pdata = dev_get_platdata(dev);
-> >  
-> > -	gdev = kzalloc(sizeof(struct uio_pruss_dev), GFP_KERNEL);
-> > +	gdev = devm_kzalloc(dev, sizeof(struct uio_pruss_dev), GFP_KERNEL);
+On 06/30/2014 09:57 AM, Nishanth Menon wrote:
+> Hi,
+> 	Original thread (v1): http://marc.info/?t=140380766500004&r=1&w=2
+> This series is based on: git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
+> branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
 > 
-> If this is changing anyway, how about:
+> This series does a few cleanups to help ensure we dont make typo mistakes and finally provides a fix as attempted by (v1).
 > 
-> 	gdev = devm_kzalloc(dev, sizeof(*gdev), GFP_KERNEL);
+> Basic cpufreq tests performed on OMAP5uEVM, DRA7-evm, DRA72-evm all of which are palmas variants.
 > 
+> The patches are also available here: https://github.com/nmenon/linux-2.6-playground/commits/broonie-topic-palmas-fixes
 
-Sounds good, will do just that.
+The series,
+Tested-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-Thanks for having at look at the series, Mark!
-
-Regards,
-Andre
+(An NVIDIA Dalmore board boots and shuts down OK with these applied on
+top of next-20140630, and various peripherals such as LCD panel, audio,
+USB, and SPI flash all work)
