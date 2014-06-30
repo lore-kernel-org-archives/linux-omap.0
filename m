@@ -1,226 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH] usb: musb: Prevent musb_am335x from being removed
-Date: Mon, 30 Jun 2014 14:00:05 -0500
-Message-ID: <20140630190005.GX31442@saruman.home>
-References: <1399570060-28939-1-git-send-email-ezequiel@vanguardiasur.com.ar>
- <20140630184426.GU31442@saruman.home>
- <CAAEAJfDRUMCWJuWqaDprfBQS8j_e+L6nT02ieJ6JcehOO=5_Eg@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH V4 00/16] irqchip: crossbar: Driver fixes
+Date: Mon, 30 Jun 2014 15:29:10 -0400
+Message-ID: <20140630192910.GA23978@titan.lakedaemon.net>
+References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oNLI4EWr1RPQuPCf"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43786 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753840AbaF3TAd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jun 2014 15:00:33 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAAEAJfDRUMCWJuWqaDprfBQS8j_e+L6nT02ieJ6JcehOO=5_Eg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, santosh.shilimkar@ti.com, joe@perches.com, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>, George Cherian <george.cherian@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yegor Yefremov <yegorslists@googlemail.com>
 
---oNLI4EWr1RPQuPCf
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jun 26, 2014 at 12:40:18PM +0530, Sricharan R wrote:
+> This series does some cleanups, fixes for handling two interrupts
+> getting mapped twice to same crossbar and provides support for
+> hardwired IRQ and crossbar definitions.
+> 
+> On certain platforms such as DRA7, SPIs 0, 1, 2, 3, 5, 6, 10,
+> 131, 132, 133 are direct wired to hardware blocks bypassing
+> crossbar. This quirky implementation is *NOT* supposed to be the
+> expectation of crossbar hardware usage. This series adds support
+> to represent such hard-wired irqs through DT and avoid generic
+> allocation/programming of crossbar in the driver.
+> 
+> This way of supporting hard-wired irqs was a result of
+> the below discussions.
+> http://www.spinics.net/lists/arm-kernel/msg329946.html
+> 
+> Based on 3.16 rc2 mainline.
+> 
+> All the patches are available here
+>  git@github.com:Sricharanti/sricharan.git crossbar_updates
+> 
+> The fixes series[1] earlier posted is merged in to this.
+> [1] http://www.spinics.net/lists/arm-kernel/msg328273.html
+> 
+> [V2] Merged the above series and rebased on 3.15 mainline
+> 
+> [V3] Modified patch#3 to get irqs-skip properties from DT,
+>      merged path#8 for checkpatch warning to other relevant
+>      patches and fixed comments for other patches.
+> 
+> [V4] Based on 3.16rc2 and fixed Jason's <jason@lakedaemon.net> comments.
+> 
+> Nishanth Menon (14):
+>   irqchip: crossbar: Dont use '0' to mark reserved interrupts
+>   irqchip: crossbar: Check for premapped crossbar before allocating
+>   irqchip: crossbar: Introduce ti,irqs-skip to skip irqs that bypass
+>     crossbar
+>   irqchip: crossbar: Initialise the crossbar with a safe value
+>   irqchip: crossbar: Change allocation logic by reversing search for
+>     free irqs
+>   irqchip: crossbar: Remove IS_ERR_VALUE check
+>   irqchip: crossbar: Fix sparse and checkpatch warnings
+>   irqchip: crossbar: Fix kerneldoc warning
+>   irqchip: crossbar: Return proper error value
+>   irqchip: crossbar: Change the goto naming
+>   irqchip: crossbar: Introduce ti,max-crossbar-sources to identify
+>     valid crossbar mapping
+>   irqchip: crossbar: Introduce centralized check for crossbar write
+>   documentation: dt: omap: crossbar: Add description for interrupt
+>     consumer
+>   irqchip: crossbar: Allow for quirky hardware with direct hardwiring
+>     of GIC
+> 
+> Sricharan R (2):
+>   irqchip: crossbar: Set cb pointer to null in case of error
+>   irqchip: crossbar: Add kerneldoc for crossbar_domain_unmap callback
+> 
+>  .../devicetree/bindings/arm/omap/crossbar.txt      |   36 +++++
+>  drivers/irqchip/irq-crossbar.c                     |  168 +++++++++++++++++---
+>  2 files changed, 179 insertions(+), 25 deletions(-)
 
-On Mon, Jun 30, 2014 at 03:50:23PM -0300, Ezequiel Garc=EDa wrote:
-> On 30 June 2014 15:44, Felipe Balbi <balbi@ti.com> wrote:
-> > Hi,
-> >
-> > On Thu, May 08, 2014 at 02:27:40PM -0300, Ezequiel Garcia wrote:
-> >> At probe time, the musb_am335x driver registers its childs by
-> >> calling of_platform_populate(), which registers all childs in
-> >> the devicetree hierarchy recursively.
-> >>
-> >> On the other side, the driver's remove() function uses of_device_unreg=
-ister()
-> >> to remove each child in the musb_am335x driver device struct.
-> >>
-> >> However, when musb_dsps is loaded, its devices are attached to the mus=
-b_am335x
-> >> driver device struct as musb_am335x childs. Hence, musb_am335x remove()
-> >> will attempt to unregister the devices registered by musb_dsps, which =
-produces
-> >> a kernel panic.
-> >>
-> >> In other words, the childs in the "struct device" hierarchy are not th=
-e same
-> >> as the childs in the "devicetree" hierarchy.
-> >>
-> >> Ideally, we should be enforcing the removal of the devices registered =
-by
-> >> musb_am335x *only*, instead of all the child devices. However, because=
- of the
-> >> recursive nature of of_platform_populate, this doesn't seem possible.
-> >>
-> >> Therefore, as the only solution at hand, this commit disables musb_am3=
-35x driver
-> >> removal capability, preventing it from being ever removed.
-> >>
-> >> Just for reference, here's the panic upon module removal:
-> >>
-> >> musb-hdrc musb-hdrc.0.auto: remove, state 4
-> >> usb usb1: USB disconnect, device number 1
-> >> musb-hdrc musb-hdrc.0.auto: USB bus 1 deregistered
-> >> Unable to handle kernel NULL pointer dereference at virtual address 00=
-00008c
-> >> pgd =3D de11c000
-> >> [0000008c] *pgd=3D9e174831, *pte=3D00000000, *ppte=3D00000000
-> >> Internal error: Oops: 17 [#1] ARM
-> >> Modules linked in: musb_am335x(-) musb_dsps musb_hdrc usbcore usb_comm=
-on
-> >> CPU: 0 PID: 623 Comm: modprobe Not tainted 3.15.0-rc4-00001-g24efd13 #=
-69
-> >> task: de1b7500 ti: de122000 task.ti: de122000
-> >> PC is at am335x_shutdown+0x10/0x28
-> >> LR is at am335x_shutdown+0xc/0x28
-> >> pc : [<c0327798>]    lr : [<c0327794>]    psr: a0000013
-> >> sp : de123df8  ip : 00000004  fp : 00028f00
-> >> r10: 00000000  r9 : de122000  r8 : c000e6c4
-> >> r7 : de0e3c10  r6 : de0e3800  r5 : de624010  r4 : de1ec750
-> >> r3 : de0e3810  r2 : 00000000  r1 : 00000001  r0 : 00000000
-> >> Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> >> Control: 10c5387d  Table: 9e11c019  DAC: 00000015
-> >> Process modprobe (pid: 623, stack limit =3D 0xde122240)
-> >> Stack: (0xde123df8 to 0xde124000)
-> >> 3de0:                                                       de0e3810 b=
-f054488
-> >> 3e00: bf05444c de624010 60000013 bf043650 000012fc de624010 de0e3810 b=
-f043a20
-> >> 3e20: de0e3810 bf04b240 c0635b88 c02ca37c c02ca364 c02c8db0 de1b7500 d=
-e0e3844
-> >> 3e40: de0e3810 c02c8e28 c0635b88 de02824c de0e3810 c02c884c de0e3800 d=
-e0e3810
-> >> 3e60: de0e3818 c02c5b20 bf05417c de0e3800 de0e3800 c0635b88 de0f2410 c=
-02ca838
-> >> 3e80: bf05417c de0e3800 bf055438 c02ca8cc de0e3c10 bf054194 de0e3c10 c=
-02ca37c
-> >> 3ea0: c02ca364 c02c8db0 de1b7500 de0e3c44 de0e3c10 c02c8e28 c0635b88 d=
-e02824c
-> >> 3ec0: de0e3c10 c02c884c de0e3c10 de0e3c10 de0e3c18 c02c5b20 de0e3c10 d=
-e0e3c10
-> >> 3ee0: 00000000 bf059000 a0000013 c02c5bc0 00000000 bf05900c de0e3c10 c=
-02c5c48
-> >> 3f00: de0dd0c0 de1ec970 de0f2410 bf05929c de0f2444 bf05902c de0f2410 c=
-02ca37c
-> >> 3f20: c02ca364 c02c8db0 bf05929c de0f2410 bf05929c c02c94c8 bf05929c 0=
-0000000
-> >> 3f40: 00000800 c02c8ab4 bf0592e0 c007fc40 c00dd820 6273756d 336d615f 0=
-0783533
-> >> 3f60: c064a0ac de1b7500 de122000 de1b7500 c000e590 00000001 c000e6c4 c=
-0060160
-> >> 3f80: 00028e70 00028e70 00028ea4 00000081 60000010 00028e70 00028e70 0=
-0028ea4
-> >> 3fa0: 00000081 c000e500 00028e70 00028e70 00028ea4 00000800 becb59f8 0=
-0027608
-> >> 3fc0: 00028e70 00028e70 00028ea4 00000081 00000001 00000001 00000000 0=
-0028f00
-> >> 3fe0: b6e6b6f0 becb59d4 000160e8 b6e6b6fc 60000010 00028ea4 00000000 0=
-0000000
-> >> [<c0327798>] (am335x_shutdown) from [<bf054488>] (dsps_musb_exit+0x3c/=
-0x4c [musb_dsps])
-> >> [<bf054488>] (dsps_musb_exit [musb_dsps]) from [<bf043650>] (musb_shut=
-down+0x80/0x90 [musb_hdrc])
-> >> [<bf043650>] (musb_shutdown [musb_hdrc]) from [<bf043a20>] (musb_remov=
-e+0x24/0x68 [musb_hdrc])
-> >> [<bf043a20>] (musb_remove [musb_hdrc]) from [<c02ca37c>] (platform_drv=
-_remove+0x18/0x1c)
-> >> [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release=
-_driver+0x70/0xc8)
-> >> [<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_relea=
-se_driver+0x20/0x2c)
-> >> [<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_dev=
-ice+0xdc/0x10c)
-> >> [<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0=
-x198)
-> >> [<c02c5b20>] (device_del) from [<c02ca838>] (platform_device_del+0x14/=
-0x9c)
-> >> [<c02ca838>] (platform_device_del) from [<c02ca8cc>] (platform_device_=
-unregister+0xc/0x20)
-> >> [<c02ca8cc>] (platform_device_unregister) from [<bf054194>] (dsps_remo=
-ve+0x18/0x38 [musb_dsps])
-> >> [<bf054194>] (dsps_remove [musb_dsps]) from [<c02ca37c>] (platform_drv=
-_remove+0x18/0x1c)
-> >> [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release=
-_driver+0x70/0xc8)
-> >> [<c02c8db0>] (__device_release_driver) from [<c02c8e28>] (device_relea=
-se_driver+0x20/0x2c)
-> >> [<c02c8e28>] (device_release_driver) from [<c02c884c>] (bus_remove_dev=
-ice+0xdc/0x10c)
-> >> [<c02c884c>] (bus_remove_device) from [<c02c5b20>] (device_del+0x104/0=
-x198)
-> >> [<c02c5b20>] (device_del) from [<c02c5bc0>] (device_unregister+0xc/0x2=
-0)
-> >> [<c02c5bc0>] (device_unregister) from [<bf05900c>] (of_remove_populate=
-d_child+0xc/0x14 [musb_am335x])
-> >> [<bf05900c>] (of_remove_populated_child [musb_am335x]) from [<c02c5c48=
->] (device_for_each_child+0x44/0x70)
-> >> [<c02c5c48>] (device_for_each_child) from [<bf05902c>] (am335x_child_r=
-emove+0x18/0x30 [musb_am335x])
-> >> [<bf05902c>] (am335x_child_remove [musb_am335x]) from [<c02ca37c>] (pl=
-atform_drv_remove+0x18/0x1c)
-> >> [<c02ca37c>] (platform_drv_remove) from [<c02c8db0>] (__device_release=
-_driver+0x70/0xc8)
-> >> [<c02c8db0>] (__device_release_driver) from [<c02c94c8>] (driver_detac=
-h+0xb4/0xb8)
-> >> [<c02c94c8>] (driver_detach) from [<c02c8ab4>] (bus_remove_driver+0x4c=
-/0xa0)
-> >> [<c02c8ab4>] (bus_remove_driver) from [<c007fc40>] (SyS_delete_module+=
-0x128/0x1cc)
-> >> [<c007fc40>] (SyS_delete_module) from [<c000e500>] (ret_fast_syscall+0=
-x0/0x48)
-> >>
-> >> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> >
-> > can you send without RFC so it can be applied ?
-> >
->=20
-> Felipe,
->=20
-> I already did on May 17th:
->=20
-> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg105516.html
->=20
-> Then we agreed to send a new one to linux-usb; which I did on June 23rd:
->=20
-> https://www.mail-archive.com/linux-usb@vger.kernel.org/msg44347.html
->=20
-> I guess it's my bad for not putting proper patch v1, v2 information somew=
-here.
->=20
-> Sorry about that,
+Whole series applied to irqchip/crossbar, I'll give it a day or two in
+-next, then I'll merge it into irqchip/core.
 
-yeah, my bad too. Just got caught up on my linux-usb inbox though, so
-that's good.
+Tony: Right now, it's immutable unless you tell me I applied something
+incorrectly.  Once it goes into irqchip/core, it's immutable no matter
+what you say. ;-)
 
-cheers
+thx,
 
---=20
-balbi
-
---oNLI4EWr1RPQuPCf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTsbO1AAoJEIaOsuA1yqREinoP/1eQiwiK4BtaXMQsbdDyl7Qp
-dNqHBJXOtYDCWr8dHiNz+/TnM7X4RSDOZAhhUzKMOUXjeikUfmynuA4gwY/QFC6I
-+XklcB5HlKEsYeXZq6damLrgbVj55Yt1UoZg3fFSqzhfGPjz2Ee54LZdmuvCQzY7
-VJKa/yAQ6x53M0EQ+d80xE49ZatDylv2ej20MKK45gnvx7De9+2OXFe9GAYas2WH
-TBg/tSqcFsgUy2eGMr5sNmLg67jfV0s2VcTB8sbp2xWLM5ZhGG3Szw7xQoUeNM3/
-nT3e9vTASluuvVgfpsF3Zz5GoORodYS8A/tAnagZhuTTErtQagb8j3t0KeuWK/YO
-OqYBfp5yrOqbYJvGbs3hH7kCyIEeKaRsjA24RzA4ItJW1SSTgWgHCfl30X1Z//OX
-QyZzb9d0Gqea5HZ4StMrL52OSSNoQx+1OWeh/w7PzrrwBiDLqUpoIWP4WQ1mXBPW
-gWVXc5uz4tU4JPhA4PJtvuk+ag7XJuZ45IplPttzVVWMHNjTOlxn39uT6+EUmKWW
-KFF6ftOauid6vCBqSwLrfJS+FBKSPDmIr0f4oWLB0uey/DkfIlHGnUmMdDPyBN90
-ZZHkhQ505NOy5gSb0QCgqICG9x8Pg12W0Y1OQ1IRDqC/Zhufi2X4LBHXowbEQyEJ
-wddLyPxWs/lxU50yS1CN
-=AAYV
------END PGP SIGNATURE-----
-
---oNLI4EWr1RPQuPCf--
+Jason.
