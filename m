@@ -1,55 +1,31 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP3: PRM/CM: Add back macros used by TI
- DSP/Bridge driver
-Date: Mon, 30 Jun 2014 09:43:19 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406300943050.24036@utopia.booyaka.com>
-References: <1403587467-59876-1-git-send-email-s-anna@ti.com> <1403587467-59876-3-git-send-email-s-anna@ti.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCHv2 5/9] ASoC: omap: rx51: omap_mcbsp_st_add_controls: add
+ id parameter
+Date: Mon, 30 Jun 2014 12:02:28 +0200
+Message-ID: <20140630100228.GB4934@xo-6d-61-c0.localdomain>
+References: <1398694047-28596-1-git-send-email-sre@kernel.org>
+ <1398694047-28596-6-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41626 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838AbaF3JnU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 05:43:20 -0400
-In-Reply-To: <1403587467-59876-3-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1398694047-28596-6-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Tue, 24 Jun 2014, Suman Anna wrote:
-
-> The commit 7be914f {ARM: OMAP3: PRM/CM: Cleanup unused header} removed
-> some of the macros used by the TI DSP/Bridge driver. This fixes the
-> following build errors when trying to build DSP/Bridge driver (disabled
-> at present), otherwise results in the following build errors:
+On Mon 2014-04-28 16:07:23, Sebastian Reichel wrote:
+> This is a preparation for DT based booting where the McBSP id
+> is set to -1 for all McBSP instances.
 > 
-> drivers/staging/tidspbridge/core/tiomap3430.c:531:31: error: 'OMAP3430_AUTO_IVA2_DPLL_SHIFT' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap3430.c:531:31: note: each undeclared identifier is reported only once for each function it appears in
-> make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430.o] Error 1
-> make[3]: *** Waiting for unfinished jobs....
-> drivers/staging/tidspbridge/core/tiomap_io.c: In function 'sm_interrupt_dsp':
-> drivers/staging/tidspbridge/core/tiomap_io.c:404:31: error: 'OMAP3430_AUTO_IVA2_DPLL_SHIFT' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap_io.c:404:31: note: each undeclared identifier is reported only once for each function it appears in
-> drivers/staging/tidspbridge/core/tiomap_io.c:414:12: error: 'OMAP3430_IVA2_DPLL_FREQSEL_SHIFT' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap_io.c:415:12: error: 'OMAP3430_EN_IVA2_DPLL_SHIFT' undeclared (first use in this function)
-> make[3]: *** [drivers/staging/tidspbridge/core/tiomap_io.o] Error 1
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c: In function 'dsp_clk_wakeup_event_ctrl':
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:442:19: error: 'OMAP3430_GRPSEL_GPT5_MASK' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:442:19: note: each undeclared identifier is reported only once for each function it appears in
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:455:19: error: 'OMAP3430_GRPSEL_GPT6_MASK' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:468:19: error: 'OMAP3430_GRPSEL_GPT7_MASK' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:481:19: error: 'OMAP3430_GRPSEL_GPT8_MASK' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:494:19: error: 'OMAP3430_GRPSEL_MCBSP1_MASK' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:546:19: error: 'OMAP3430_GRPSEL_MCBSP5_MASK' undeclared (first use in this function)
-> make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430_pwr.o] Error 1
-> make[2]: *** [drivers/staging/tidspbridge] Error 2
-> 
-> Fixes: 7be914f (ARM: OMAP3: PRM/CM: Cleanup unused header)
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
+> Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Thanks; queued for v3.16-rc.
-
-- Paul
+Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
