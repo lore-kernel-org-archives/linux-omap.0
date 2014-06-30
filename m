@@ -1,129 +1,127 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.16-rc1
-Date: Mon, 30 Jun 2014 06:12:04 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1406300608160.24036@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes against v3.16-rc1
+Date: Mon, 30 Jun 2014 00:08:57 -0700
+Message-ID: <20140630070857.GK28884@atomide.com>
+References: <20140617145854.GT17845@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40301 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176AbaF3GMG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 02:12:06 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17687 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752595AbaF3HI7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 03:08:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20140617145854.GT17845@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony@atomide.com> [140617 08:01]:
+> The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+> 
+>   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-against-rc1
+> 
+> for you to fetch changes up to edc56f871eefbc56baf1fd981eeff35ef447925c:
+> 
+>   ARM: dts: dra7-evm: remove interrupt binding (2014-06-17 01:22:55 -0700)
+> 
+> ----------------------------------------------------------------
+> Fixes for omaps for issues discovered during the merge window and
+> enabling of a few features that had to wait for the driver
+> dependencies to clear.
+> 
+> The fixes included are:
+> 
+> - Fix am43xx hard reset flags
+> 
+> - Fix SoC detection for DRA722
+> 
+> - Fix CPU OPP table for omap5
+> 
+> - Fix legacy mux parser bug if requested muxname is a prefix of
+>   multiple mux entries
+> 
+> - Fix qspi interrupt binding that relies on the irq crossbar
+>   that has not yet been enabled
+> 
+> - Add missing phy_sel for am43x-epos-evm
+> 
+> - Drop unused gic_init_irq() that is no longer needed
+> 
+> And the enabling of features that had driver dependencies are:
+> 
+> - Change dra7 to use Audio Tracking Logic clock instead of a fixed
+>   clock now that the clock driver for it has been merged
+> 
+> - Enable off idle configuration for selected omaps as all the kernel
+>   dependencies for device tree based booting are finally merged as
+>   this is needed to get the automated PM tests working finally with
+>   device tree based booting
+> 
+> - Add hwmod entry for ocp2scp3 for omap5 to get sata working as
+>   all the driver dependencies are now in the kernel and this patch
+>   fell through the cracks during the merge window
 
-Here are some basic OMAP test results for Linux v3.16-rc1.
-Logs and other details at:
+Ping, it's already -rc3 and these are still pending?
 
-    http://www.pwsan.com/omap/testlogs/test_v3.16-rc1/20140629224344/
+Regards,
 
+Tony
 
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: zImage:
-    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
-		  omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Build: uImage+dtb:
-    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap5-uevm
-
-Boot to userspace:
-    FAIL ( 3/14): 2430sdp, 4460varsomom, 5430es2uevm
-    skip ( 1/14): 5912osk
-    Pass (10/14): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
-		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-		  am335xbonelt, cmt3517
-
-PM: chip retention via suspend:
-    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
-    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
-		  4430es2panda, 4460pandaes, 4460varsomom
-
-PM: chip off except CORE via suspend:
-    FAIL ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    FAIL ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
-
-PM: chip off via dynamic idle:
-    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
-
-
-vmlinux object size
-(delta in bytes from test_v3.15 (1860e379875dfe7271c649058aeddffe5afd9d0d)):
-   text     data      bss    total  kernel
- +23574    +3656     -312   +26918  omap1_defconfig
- +30629    +4080     -312   +34397  omap1_defconfig_1510innovator_only
- +25906    +3736     -312   +29330  omap1_defconfig_5912osk_only
-+439965  +168248   +14472  +622685  multi_v7_defconfig
-+133191   +20776  +2750728  +2904695  omap2plus_defconfig
- +98219    +3408  +2750408  +2852035  omap2plus_defconfig_2430sdp_only
-+109673    +8560  +2750600  +2868833  omap2plus_defconfig_am33xx_only
-+114337    +8664  +2750664  +2873665  omap2plus_defconfig_am43xx_only
-+121683   +17736  +2750664  +2890083  omap2plus_defconfig_cpupm
-+111269    +9184  +2750600  +2871053  omap2plus_defconfig_dra7xx_only
- +75236   +10760  +2883536  +2969532  omap2plus_defconfig_n800_multi_omap2xxx
- +71408   +10528  +2883536  +2965472  omap2plus_defconfig_n800_only_a
-+135117   +22112  +2750664  +2907893  omap2plus_defconfig_no_pm
-+131231   +14448  +2750664  +2896343  omap2plus_defconfig_omap2_4_only
-+130619   +13864  +2750728  +2895211  omap2plus_defconfig_omap3_4_only
-+114045    +9976  +2750664  +2874685  omap2plus_defconfig_omap5_only
- +33012    +4104    -2692   +34424  rmk_omap3430_ldp_allnoconfig
- +49799    +5712  +2883520  +2939031  rmk_omap3430_ldp_oldconfig
- +33724    +3344    +1292   +38360  rmk_omap4430_sdp_allnoconfig
- +62105    +5304  +2883484  +2950893  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.15 (1860e379875dfe7271c649058aeddffe5afd9d0d))
-  avail  rsrvd   high  freed  board          kconfig
- -2904k  2904k      .    16k  2420n800       omap2plus_defconfig_n800_only_a
- -3000k  3000k      .      .  2430sdp        omap2plus_defconfig
- -3000k  3000k      .    12k  3517evm        omap2plus_defconfig
- -3004k  3004k      .    12k  3530es3beagle  omap2plus_defconfig
- -3000k  3000k      .    12k  3730beaglexm   omap2plus_defconfig
- -3004k  3004k      .    12k  37xxevm        omap2plus_defconfig
- -2996k  2996k      .    12k  4430es2panda   omap2plus_defconfig
- -2840k  2840k      .    12k  4460pandaes    omap2plus_defconfig
- -2816k  2816k      .    12k  am335xbone     omap2plus_defconfig_am33xx_only
- -2996k  2996k      .    12k  am335xbonelt   omap2plus_defconfig
-
-
-A remarkable increase in omap2plus_defconfig kernel image size and memory 
-consumption: almost three megabytes.
+ 
+> ----------------------------------------------------------------
+> Brian Norris (1):
+>       ARM: OMAP2+: drop unused function
+> 
+> Dave Gerlach (1):
+>       ARM: OMAP2+: hwmod: Change hardreset soc_ops for AM43XX
+> 
+> David R. Piegdon (1):
+>       ARM: OMAP2+: Fix parser-bug in platform muxing code
+> 
+> George Cherian (1):
+>       ARM: dts: am43x-epos-evm: Add Missing cpsw-phy-sel for am43x-epos-evm
+> 
+> Keshava Munegowda (1):
+>       ARM: OMAP5: hwmod: Add ocp2scp3 and sata hwmods
+> 
+> Nishanth Menon (2):
+>       ARM: DRA722: add detection of SoC information
+>       ARM: dts: omap5: Update CPU OPP table as per final production Manual
+> 
+> Peter Ujfalusi (1):
+>       ARM: DTS: dra7/dra7xx-clocks: ATL related changes
+> 
+> Sourav Poddar (1):
+>       ARM: dts: dra7-evm: remove interrupt binding
+> 
+> Tony Lindgren (2):
+>       ARM: dts: Enable twl4030 off-idle configuration for selected omaps
+>       Merge tag 'for-v3.16-rc/omap-fixes-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.16/fixes
+> 
+>  arch/arm/boot/dts/am43x-epos-evm.dts       |  4 ++
+>  arch/arm/boot/dts/dra7.dtsi                | 12 ++++-
+>  arch/arm/boot/dts/dra7xx-clocks.dtsi       | 16 +++----
+>  arch/arm/boot/dts/omap3-beagle-xm.dts      |  6 +++
+>  arch/arm/boot/dts/omap3-evm-common.dtsi    |  7 +++
+>  arch/arm/boot/dts/omap3-n900.dts           |  5 ++
+>  arch/arm/boot/dts/omap5.dtsi               |  1 -
+>  arch/arm/mach-omap2/Makefile               |  6 ++-
+>  arch/arm/mach-omap2/cm33xx.h               |  2 +-
+>  arch/arm/mach-omap2/common.h               |  1 -
+>  arch/arm/mach-omap2/id.c                   | 12 +++++
+>  arch/arm/mach-omap2/mux.c                  |  6 ++-
+>  arch/arm/mach-omap2/omap4-common.c         | 20 --------
+>  arch/arm/mach-omap2/omap_hwmod.c           |  6 +--
+>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 73 ++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/soc.h                  |  1 +
+>  16 files changed, 139 insertions(+), 39 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
