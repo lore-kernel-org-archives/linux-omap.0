@@ -1,71 +1,79 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 2/6] mailbox/omap: add support for parsing dt devices
-Date: Mon, 30 Jun 2014 14:34:00 -0500
-Message-ID: <53B1BBA8.5090507@ti.com>
-References: <1403660878-56350-1-git-send-email-s-anna@ti.com> <1403660878-56350-3-git-send-email-s-anna@ti.com> <20140628170709.GB23634@xo-6d-61-c0.localdomain> <53B18999.2020506@ti.com> <20140630185942.GA5410@amd.pavel.ucw.cz>
+From: Andre Heider <a.heider@gmail.com>
+Subject: Re: [PATCH 07/13] Documentation: devicetree: add bindings for TI
+ PRUSS
+Date: Mon, 30 Jun 2014 21:36:52 +0200
+Message-ID: <20140630193651.GA78749@localhost>
+References: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
+ <1404058907-21112-8-git-send-email-a.heider@gmail.com>
+ <20140630093332.GT7262@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140630185942.GA5410@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:65089 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752471AbaF3Tg7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 15:36:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20140630093332.GT7262@leverpostej>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Matt Porter <mporter@linaro.org>, "Hans J . Koch" <hjk@hansjkoch.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Hi Pavel,
+On Mon, Jun 30, 2014 at 10:33:32AM +0100, Mark Rutland wrote:
+> On Sun, Jun 29, 2014 at 05:21:41PM +0100, Andre Heider wrote:
+> > diff --git a/Documentation/devicetree/bindings/misc/ti,pruss.txt b/Documentation/devicetree/bindings/misc/ti,pruss.txt
+> > new file mode 100644
+> > index 0000000..4eacc41
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/misc/ti,pruss.txt
+> > @@ -0,0 +1,19 @@
+> > +TI Programmable Real-Time Unit Sub System (PRUSS)
+> > +
+> > +Required properties:
+> > +- compatible :
+> > +	- "ti,pruss-v1" - for PRUv1 as found on the OMAPL138/DA850/AM18xx SoC families
+> > +	- "ti,pruss-v2" - for PRUv2 as found on the AM33xx SoC family
+> > +- ti,hwmods: Name of the hwmod associated to the PRUSS
+> > +- reg: Address range of rtc register set
 
->
->>>> The non-DT support has to be maintained for now to not break
->>>> OMAP3 legacy boot, and the legacy-style code will be cleaned
->>>> up once OMAP3 is also converted to DT-boot only.
->>>
->>>> @@ -587,24 +606,157 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
->>>>  	return 0;
->>>>  }
->>>>  
->>>> +static const struct omap_mbox_device_data omap2_data = {
->>>> +	.num_users	= 4,
->>>> +	.num_fifos	= 6,
->>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
->>>> +};
->>>> +
->>>> +static const struct omap_mbox_device_data omap3_data = {
->>>> +	.num_users	= 2,
->>>> +	.num_fifos	= 2,
->>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
->>>> +};
->>>> +
->>>> +static const struct omap_mbox_device_data am335x_data = {
->>>> +	.num_users	= 4,
->>>> +	.num_fifos	= 8,
->>>> +	.intr_type	= MBOX_INTR_CFG_TYPE2,
->>>> +};
->>>
->>> So you use compatible strings to look up 3 integers. Would it be better to have
->>> num_users/num_fifos/intr_type directly in the device tree? That should be cleaner
->>> and more flexible...
->>>
->>> If you do that, would it be possible to have share compatible string?
->>
->> Yeah, I have actually encoded the .num_users and .num_fifos in DT in the
->> previous version [1] with shared compatible strings, but dropped those
->> properties in favour of adding minimal custom properties to DT based on
->> some offline IRC comments. I have no objections either way, but there is
->> really nothing to be gained from minimizing compatible strings.
+Just noticed the "rtc" c&p error, will fix that.
+
+> > +- interrupts: host event interrupts in order
 > 
-> Actually, I'd guess best solution would be to do both: have it encoded
-> in device tree _and_ have separate compatible string for each version
-> (in case there are other differences). You'd still get rid of the
-> table...
+> How many of these do we expect?
 
-Do note that the .intr_type has to with the register layout rather than
-a physical property (mainly to distinguish the pre-OMAP4 IP register
-layout), so I am not convinced that belongs to DT. This is the reason
-why I didn't represent it in DT even in the previous version. The other
-two are HW IP design parameters, so in general putting them in DT isn't
-completely a bad idea, but I will wait to see if there are any further
-comments on this from Tony or DT maintainers before I make changes.
+Exactly 8, which correspond to the /dev/uio* devices the driver creates.
+I'll change that to make it clear.
 
-regards
-Suman
+Additionally, the driver currently expects those 8 to be sequential.
+In fact, it just gets the first irq and increments from there on, I'll
+add a patch to the series to improve that too.
+
+> > +- interrupt-parent: phandle for the interrupt controller
+> > +
+> > +Example:
+> > +pruss: pruss@4a300000 {
+> > +	compatible = "ti,pruss-v2";
+> > +	ti,hwmods = "pruss";
+> > +	reg = <0x4a300000 0x080000>;
+> > +	interrupts = <20 21 22 23 24 25 26 27>;
+> 
+> Assuming these represent more than one interrupt, could you please
+> bracket them individually? e.g.
+> 
+> 	interrupts = <20 21>, <22 23>, <24 25>, <26 27>;
+> 
+> It makes it far clearer that it's a list of multi-cell elements rather
+> than a giant binary blob, and usually makes it easier to read a dts.
+
+This interrupt controller has one cell, so I assume you meant:
+
+	interrupts = <20>, <21>, <22>, <23>, <24>, <25>, <26>, <27>;
+
+I can do that, but it would be out of line with the rest on the file. The
+audio devices are the only ones using that format, but they also got
+"interrupt-names".
+
+Thanks,
+Andre
