@@ -1,71 +1,71 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH V4 13/16] irqchip: crossbar: Introduce
- ti,max-crossbar-sources to identify valid crossbar mapping
-Date: Mon, 30 Jun 2014 15:30:09 -0400
-Message-ID: <20140630193009.GB23978@titan.lakedaemon.net>
-References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
- <1403766634-18543-14-git-send-email-r.sricharan@ti.com>
- <20140627120035.GB23978@titan.lakedaemon.net>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 2/6] mailbox/omap: add support for parsing dt devices
+Date: Mon, 30 Jun 2014 14:34:00 -0500
+Message-ID: <53B1BBA8.5090507@ti.com>
+References: <1403660878-56350-1-git-send-email-s-anna@ti.com> <1403660878-56350-3-git-send-email-s-anna@ti.com> <20140628170709.GB23634@xo-6d-61-c0.localdomain> <53B18999.2020506@ti.com> <20140630185942.GA5410@amd.pavel.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48072 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757149AbaF3TaV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 15:30:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20140627120035.GB23978@titan.lakedaemon.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140630185942.GA5410@amd.pavel.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: nm@ti.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, tony@atomide.com, rnayak@ti.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, joe@perches.com, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Jun 27, 2014 at 08:00:35AM -0400, Jason Cooper wrote:
-> On Thu, Jun 26, 2014 at 12:40:31PM +0530, Sricharan R wrote:
-> > From: Nishanth Menon <nm@ti.com>
-> > 
-> > Currently we attempt to map any crossbar value to an IRQ, however,
-> > this is not correct from hardware perspective. There is a max crossbar
-> > event number upto which hardware supports. So describe the same in
-> > device tree using 'ti,max-crossbar-sources' property and use it to
-> > validate requests.
-> > 
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > Signed-off-by: Sricharan R <r.sricharan@ti.com>
-> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> >  .../devicetree/bindings/arm/omap/crossbar.txt      |    2 ++
-> >  drivers/irqchip/irq-crossbar.c                     |   21 ++++++++++++++++++--
-> >  2 files changed, 21 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/arm/omap/crossbar.txt b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-> > index 5f45c78..6923531 100644
-> > --- a/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-> > +++ b/Documentation/devicetree/bindings/arm/omap/crossbar.txt
-> > @@ -10,6 +10,7 @@ Required properties:
-> >  - compatible : Should be "ti,irq-crossbar"
-> >  - reg: Base address and the size of the crossbar registers.
-> >  - ti,max-irqs: Total number of irqs available at the interrupt controller.
-> > +- ti,max-crossbar-sources: Maximum number of crossbar sources that can be routed.
-> >  - ti,reg-size: Size of a individual register in bytes. Every individual
-> >  	    register is assumed to be of same size. Valid sizes are 1, 2, 4.
-> >  - ti,irqs-reserved: List of the reserved irq lines that are not muxed using
-> > @@ -30,6 +31,7 @@ Examples:
-> >  			compatible = "ti,irq-crossbar";
-> >  			reg = <0x4a002a48 0x130>;
-> >  			ti,max-irqs = <160>;
-> > +			ti,max-crossbar-sources = <MAX_SOURCES>;
+Hi Pavel,
+
+>
+>>>> The non-DT support has to be maintained for now to not break
+>>>> OMAP3 legacy boot, and the legacy-style code will be cleaned
+>>>> up once OMAP3 is also converted to DT-boot only.
+>>>
+>>>> @@ -587,24 +606,157 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
+>>>>  	return 0;
+>>>>  }
+>>>>  
+>>>> +static const struct omap_mbox_device_data omap2_data = {
+>>>> +	.num_users	= 4,
+>>>> +	.num_fifos	= 6,
+>>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+>>>> +};
+>>>> +
+>>>> +static const struct omap_mbox_device_data omap3_data = {
+>>>> +	.num_users	= 2,
+>>>> +	.num_fifos	= 2,
+>>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+>>>> +};
+>>>> +
+>>>> +static const struct omap_mbox_device_data am335x_data = {
+>>>> +	.num_users	= 4,
+>>>> +	.num_fifos	= 8,
+>>>> +	.intr_type	= MBOX_INTR_CFG_TYPE2,
+>>>> +};
+>>>
+>>> So you use compatible strings to look up 3 integers. Would it be better to have
+>>> num_users/num_fifos/intr_type directly in the device tree? That should be cleaner
+>>> and more flexible...
+>>>
+>>> If you do that, would it be possible to have share compatible string?
+>>
+>> Yeah, I have actually encoded the .num_users and .num_fifos in DT in the
+>> previous version [1] with shared compatible strings, but dropped those
+>> properties in favour of adding minimal custom properties to DT based on
+>> some offline IRC comments. I have no objections either way, but there is
+>> really nothing to be gained from minimizing compatible strings.
 > 
-> As mentioned in my reply to #15, I can change this to 400 when I apply
-> it, or you can send a new version of #15 using the macro and explaining
-> it's definition.
-> 
-> Thinking about it more, it's probably best just to use numbers in the
-> docs.
+> Actually, I'd guess best solution would be to do both: have it encoded
+> in device tree _and_ have separate compatible string for each version
+> (in case there are other differences). You'd still get rid of the
+> table...
 
-I just did s/MAX_SOURCES/400/ when I applied this.  We shouldn't be
-polluting the binding docs with implementation details.
+Do note that the .intr_type has to with the register layout rather than
+a physical property (mainly to distinguish the pre-OMAP4 IP register
+layout), so I am not convinced that belongs to DT. This is the reason
+why I didn't represent it in DT even in the previous version. The other
+two are HW IP design parameters, so in general putting them in DT isn't
+completely a bad idea, but I will wait to see if there are any further
+comments on this from Tony or DT maintainers before I make changes.
 
-thx,
-
-Jason.
+regards
+Suman
