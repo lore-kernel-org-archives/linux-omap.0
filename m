@@ -1,56 +1,55 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 02/13] uio: uio_pruss: use devm_kzalloc()
-Date: Mon, 30 Jun 2014 10:38:09 +0100
-Message-ID: <20140630093809.GW7262@leverpostej>
-References: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
- <1404058907-21112-3-git-send-email-a.heider@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP3: PRM/CM: Add back macros used by TI
+ DSP/Bridge driver
+Date: Mon, 30 Jun 2014 09:43:19 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1406300943050.24036@utopia.booyaka.com>
+References: <1403587467-59876-1-git-send-email-s-anna@ti.com> <1403587467-59876-3-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:62177 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751314AbaF3Jit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jun 2014 05:38:49 -0400
-Content-Disposition: inline
-In-Reply-To: <1404058907-21112-3-git-send-email-a.heider@gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:41626 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838AbaF3JnU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 05:43:20 -0400
+In-Reply-To: <1403587467-59876-3-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andre Heider <a.heider@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Matt Porter <mporter@linaro.org>, "Hans J . Koch" <hjk@hansjkoch.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Sun, Jun 29, 2014 at 05:21:36PM +0100, Andre Heider wrote:
-> Replace kzalloc() by devm_kzalloc() and remove the kfree() calls.
+On Tue, 24 Jun 2014, Suman Anna wrote:
+
+> The commit 7be914f {ARM: OMAP3: PRM/CM: Cleanup unused header} removed
+> some of the macros used by the TI DSP/Bridge driver. This fixes the
+> following build errors when trying to build DSP/Bridge driver (disabled
+> at present), otherwise results in the following build errors:
 > 
-> Signed-off-by: Andre Heider <a.heider@gmail.com>
-> ---
->  drivers/uio/uio_pruss.c | 15 ++++-----------
->  1 file changed, 4 insertions(+), 11 deletions(-)
+> drivers/staging/tidspbridge/core/tiomap3430.c:531:31: error: 'OMAP3430_AUTO_IVA2_DPLL_SHIFT' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap3430.c:531:31: note: each undeclared identifier is reported only once for each function it appears in
+> make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430.o] Error 1
+> make[3]: *** Waiting for unfinished jobs....
+> drivers/staging/tidspbridge/core/tiomap_io.c: In function 'sm_interrupt_dsp':
+> drivers/staging/tidspbridge/core/tiomap_io.c:404:31: error: 'OMAP3430_AUTO_IVA2_DPLL_SHIFT' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap_io.c:404:31: note: each undeclared identifier is reported only once for each function it appears in
+> drivers/staging/tidspbridge/core/tiomap_io.c:414:12: error: 'OMAP3430_IVA2_DPLL_FREQSEL_SHIFT' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap_io.c:415:12: error: 'OMAP3430_EN_IVA2_DPLL_SHIFT' undeclared (first use in this function)
+> make[3]: *** [drivers/staging/tidspbridge/core/tiomap_io.o] Error 1
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c: In function 'dsp_clk_wakeup_event_ctrl':
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:442:19: error: 'OMAP3430_GRPSEL_GPT5_MASK' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:442:19: note: each undeclared identifier is reported only once for each function it appears in
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:455:19: error: 'OMAP3430_GRPSEL_GPT6_MASK' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:468:19: error: 'OMAP3430_GRPSEL_GPT7_MASK' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:481:19: error: 'OMAP3430_GRPSEL_GPT8_MASK' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:494:19: error: 'OMAP3430_GRPSEL_MCBSP1_MASK' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap3430_pwr.c:546:19: error: 'OMAP3430_GRPSEL_MCBSP5_MASK' undeclared (first use in this function)
+> make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430_pwr.o] Error 1
+> make[2]: *** [drivers/staging/tidspbridge] Error 2
 > 
-> diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
-> index c28d6e2..f07545b 100644
-> --- a/drivers/uio/uio_pruss.c
-> +++ b/drivers/uio/uio_pruss.c
-> @@ -109,9 +109,7 @@ static void pruss_cleanup(struct device *dev, struct uio_pruss_dev *gdev)
->  		gen_pool_free(gdev->sram_pool,
->  			      gdev->sram_vaddr,
->  			      sram_pool_sz);
-> -	kfree(gdev->info);
->  	clk_put(gdev->pruss_clk);
-> -	kfree(gdev);
->  }
->  
->  static int pruss_probe(struct platform_device *pdev)
-> @@ -123,24 +121,19 @@ static int pruss_probe(struct platform_device *pdev)
->  	int ret = -ENODEV, cnt = 0, len;
->  	struct uio_pruss_pdata *pdata = dev_get_platdata(dev);
->  
-> -	gdev = kzalloc(sizeof(struct uio_pruss_dev), GFP_KERNEL);
-> +	gdev = devm_kzalloc(dev, sizeof(struct uio_pruss_dev), GFP_KERNEL);
+> Fixes: 7be914f (ARM: OMAP3: PRM/CM: Cleanup unused header)
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-If this is changing anyway, how about:
+Thanks; queued for v3.16-rc.
 
-	gdev = devm_kzalloc(dev, sizeof(*gdev), GFP_KERNEL);
-
-Cheers,
-Mark.
+- Paul
