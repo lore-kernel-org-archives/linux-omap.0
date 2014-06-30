@@ -1,52 +1,39 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 6/6] regulator: palmas: Fix SMPS enable/disable/is_enable for tps65917
-Date: Mon, 30 Jun 2014 10:57:39 -0500
-Message-ID: <1404143859-8160-7-git-send-email-nm@ti.com>
-References: <1404143859-8160-1-git-send-email-nm@ti.com>
+Subject: [PATCH V2 0/6] regulator: palmas: cleanup and fixes
+Date: Mon, 30 Jun 2014 10:57:33 -0500
+Message-ID: <1404143859-8160-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58251 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754706AbaF3P5r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jun 2014 11:57:47 -0400
-In-Reply-To: <1404143859-8160-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Keerthy J <j-keerthy@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Nishanth Menon <nm@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-We use regmap regulator ops to enable/disable and check if regulator
-is enabled for various SMPS. However, these depend on valid
-enable_reg, enable_mask and enable_value in regulator descriptor.
+Hi,
+	Original thread (v1): http://marc.info/?t=140380766500004&r=1&w=2
+This series is based on: git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
+branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
 
-So, similar to fix we did in commit 318dbb02b50c
-("regulator: palmas: Fix SMPS enable/disable/is_enabled"), populate the
-same for TPS65917 SMPS registration. LDO definitions are already in
-place.
+This series does a few cleanups to help ensure we dont make typo mistakes and finally provides a fix as attempted by (v1).
 
-Fixes: d6f83370ed97 ("regulator: palmas: Add tps65917 PMIC support")
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/regulator/palmas-regulator.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Basic cpufreq tests performed on OMAP5uEVM, DRA7-evm, DRA72-evm all of which are palmas variants.
 
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index ae0f639..a7ce34d 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -1312,6 +1312,11 @@ static int tps65917_smps_registration(struct palmas_pmic *pmic,
- 			return ret;
- 		pmic->current_reg_mode[id] = reg &
- 				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-+		desc->enable_reg = PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-+						      rinfo->ctrl_addr);
-+		desc->enable_mask = PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
-+		/* set_mode overrides this value */
-+		desc->enable_val = SMPS_CTRL_MODE_ON;
- 
- 		desc->type = REGULATOR_VOLTAGE;
- 		desc->owner = THIS_MODULE;
+The patches are also available here: https://github.com/nmenon/linux-2.6-playground/commits/broonie-topic-palmas-fixes
+		     
+Nishanth Menon (6):
+  regulator: palmas: Squelch sparse warnings
+  regulator: palmas: Rename reg_info to palmas_reg_info
+  regulator: palmas: Simplify code by using pointer to palmas_reg_info
+  regulator: palmas: Rename palmas_regs_info to
+    palmas_generic_regs_info
+  regulator: palmas: Simplify code by not indexing regulator_desc
+    unnecessarily
+  regulator: palmas: Fix SMPS enable/disable/is_enable for tps65917
+
+ drivers/regulator/palmas-regulator.c |  344 ++++++++++++++++------------------
+ include/linux/mfd/palmas.h           |    4 +-
+ 2 files changed, 166 insertions(+), 182 deletions(-)
+
 -- 
 1.7.9.5
-
