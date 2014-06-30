@@ -1,179 +1,82 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH] regulator: tps65917: Fix SMPS enable/disable/is_enable
-Date: Mon, 30 Jun 2014 10:41:04 +0530
-Message-ID: <53B0F168.7050709@ti.com>
-References: <1403807494-23907-1-git-send-email-nm@ti.com> <53AD36E1.1010700@ti.com> <20140627171503.GA26734@kahuna>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RESEND 2/2] clk: Add driver for Palmas clk32kg and clk32kgaudio
+ clocks
+Date: Mon, 30 Jun 2014 08:56:55 +0300
+Message-ID: <53B0FC27.5040002@ti.com>
+References: <1403848871-26519-1-git-send-email-peter.ujfalusi@ti.com>	<1403848871-26519-3-git-send-email-peter.ujfalusi@ti.com> <CABxcv=metB4=eoT=fAh7S-b_mhAvHcJtn2wrV8v8koSyKMxNNw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37668 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109AbaF3FMs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jun 2014 01:12:48 -0400
-In-Reply-To: <20140627171503.GA26734@kahuna>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CABxcv=metB4=eoT=fAh7S-b_mhAvHcJtn2wrV8v8koSyKMxNNw@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Mike Turquette <mturquette@linaro.org>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ldewangan@nvidia.com, linux-doc@vger.kernel.org, Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com
 
-Hi Nishanth,
+Hi Javier,
 
-On Friday 27 June 2014 10:45 PM, Nishanth Menon wrote:
-> On 14:48-20140627, Keerthy wrote:
->> Hello Nishanth,
+On 06/27/2014 09:23 PM, Javier Martinez Canillas wrote:
+> Hello Peter,
+>=20
+> On Fri, Jun 27, 2014 at 8:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.co=
+m> wrote:
+>> Palmas class of devices can provide 32K clock(s) to be used by other=
+ devices
+>> on the board. Depending on the actual device the provided clocks can=
+ be:
+>> CLK32K_KG and CLK32K_KGAUDIO
+>> or only one:
+>> CLK32K_KG (TPS659039 for example)
 >>
->> On Friday 27 June 2014 12:01 AM, Nishanth Menon wrote:
->>> We use regmap regulator ops to enable/disable and check if regulator
->>> is enabled for various SMPS. However, these depend on valid
->>> enable_reg, enable_mask and enable_value in regulator descriptor.
->>>
->>> So, similar to fix we did in commit 318dbb02b50c
->>> ("regulator: palmas: Fix SMPS enable/disable/is_enabled"), populate the
->>> same for TPS65917 SMPS registration. LDO definitions are already in place.
->>>
->>> Fixes: d6f83370ed97 ("regulator: palmas: Add tps65917 PMIC support")
->>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>> ---
->>>
->>> Applies on:
->>> 	git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
->>> branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
->>>
->>> Note: Ignored the minor style check from checkpatch --strict as fixing
->>> it would create an 80 char warning
->>>
->>>   drivers/regulator/palmas-regulator.c |    8 ++++++++
->>>   1 file changed, 8 insertions(+)
->>>
->>> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
->>> index 7c8b441..c7aa1b1 100644
->>> --- a/drivers/regulator/palmas-regulator.c
->>> +++ b/drivers/regulator/palmas-regulator.c
->>> @@ -1333,6 +1333,14 @@ static int tps65917_smps_registration(struct palmas_pmic *pmic,
->>>   		pmic->current_reg_mode[id] = reg &
->>>   				PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
->>> +		pmic->desc[id].enable_reg =
->>> +				PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
->>> +					palmas_regs_info[id].ctrl_addr);
->> This is wrong. Please change palmas_regs_info[id].ctrl_addr to
->> ddata->palmas_regs_info[id].ctrl_addr. The palmas_regs_info
->> should come from the driver data for specific instances as the regmap
->> is different for the different PMICs we support.
+>> Use separate compatible flags for the two 32K clock.
+>> A system which needs or have only one of the 32k clock from
+>> Palmas will need to add node(s) for each clock as separate section
+>> in the dts file.
+>> The two compatible property is:
+>> "ti,palmas-clk32kg" for clk32kg clock
+>> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
 >>
->> Once you make the above changes please feel free to add
-> Uggh.. just realized... since I was testing CPUFREQ with SMPS1 never
-> realized it. and searched elsewhere on topic/palmas branch as well..
-> Looks like we should make the following changes? since the register data
-> is now a parameter and it so happened that palmas_reg_info was mapping
-> back to a valid variable and the error is easily missed - so rename the
-> variable as well - I can break this up as proper series of patches for
-> topic/palmas - let me know what you think..
->
->
-> diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-> index 7c8b441..86fefdfb 100644
-> --- a/drivers/regulator/palmas-regulator.c
-> +++ b/drivers/regulator/palmas-regulator.c
-> @@ -41,7 +41,7 @@ static const struct regulator_linear_range smps_high_ranges[] = {
->   	REGULATOR_LINEAR_RANGE(3300000, 0x7A, 0x7f, 0),
->   };
->   
-> -static struct regs_info palmas_regs_info[] = {
-> +static struct regs_info palmas_generic_regs_info[] = {
+>> Apart from the register control of the clocks - which is done via
+>> the clock API there is a posibility to enable the external sleep
+>> control. In this way the clock can be enabled/disabled on demand by =
+the
+>> user of the clock.
+>>
+>> See the documentation for more details.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> Reviewed-by: Nishanth Menon <nm@ti.com>
+
+>> +static unsigned long palmas_clks_recalc_rate(struct clk_hw *hw,
+>> +                                            unsigned long parent_ra=
+te)
+>> +{
+>> +       return 32768;
+>> +}
+>=20
+> I see that other clock drivers using a constant rate return 0 if the
+> clock has not been enabled.
+
+and there are examples when similar fixed clock drivers returns only th=
+e clock
+value, like clk-max77686. I can not find clear guidelines neither in th=
+e
+documentation or around the header/c files for this.
+Mike, what is the appropriate way of handling the recalc_rate?
+
+> So maybe is more correct to have something
+> like the following?
+>=20
+> if (__clk_is_enabled(hw->clk))
+>         return 32768;
+> else
+>         return 0;
+>=20
+> Best regards,
+> Javier
+>=20
 
 
-Good renaming but You need to make one more change i guess. Otherwise
-there is a compilation break.
-
-@@ -643,7 +643,8 @@
-static int palmas_regulator_config_external(struct palmas *palmas, int id,
-          struct palmas_reg_init *reg_init)
-{
--    int sleep_id = palmas_regs_info[id].sleep_id;
-+    struct palmas_pmic_driver_data *ddata = palmas->pmic_ddata;
-+    int sleep_id = ddata->palmas_regs_info[id].sleep_id;
-      int ret;
-
-Including the above change.
-Tested-by: Keerthy <j-keerthy@ti.com>.
-
->   	{
->   		.name		= "SMPS12",
->   		.sname		= "smps1-in",
-> @@ -1165,18 +1165,18 @@ static int palmas_smps_registration(struct palmas_pmic *pmic,
->   			pmic->desc[id].ops = &palmas_ops_smps10;
->   			pmic->desc[id].vsel_reg =
->   					PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-> -							PALMAS_SMPS10_CTRL);
-> +					        ddata->palmas_regs_info[id].ctrl_addr);
->   			pmic->desc[id].vsel_mask = SMPS10_VSEL;
->   			pmic->desc[id].enable_reg =
->   					PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-> -							PALMAS_SMPS10_CTRL);
-> +					        ddata->palmas_regs_info[id].ctrl_addr);
->   			if (id == PALMAS_REG_SMPS10_OUT1)
->   				pmic->desc[id].enable_mask = SMPS10_SWITCH_EN;
->   			else
->   				pmic->desc[id].enable_mask = SMPS10_BOOST_EN;
->   			pmic->desc[id].bypass_reg =
->   					PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-> -							PALMAS_SMPS10_CTRL);
-> +					        ddata->palmas_regs_info[id].ctrl_addr);
->   			pmic->desc[id].bypass_mask = SMPS10_BYPASS_EN;
->   			pmic->desc[id].min_uV = 3750000;
->   			pmic->desc[id].uV_step = 1250000;
-> @@ -1188,7 +1188,7 @@ static int palmas_smps_registration(struct palmas_pmic *pmic,
->   			 * otherwise we error in probe with unsupportable
->   			 * ranges. Read the current smps mode for later use.
->   			 */
-> -			addr = palmas_regs_info[id].vsel_addr;
-> +			addr = ddata->palmas_regs_info[id].vsel_addr;
->   			pmic->desc[id].n_linear_ranges = 3;
->   
->   			ret = palmas_smps_read(pmic->palmas, addr, &reg);
-> @@ -1209,12 +1209,12 @@ static int palmas_smps_registration(struct palmas_pmic *pmic,
->   			pmic->desc[id].n_voltages = PALMAS_SMPS_NUM_VOLTAGES;
->   			pmic->desc[id].vsel_reg =
->   					PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-> -						palmas_regs_info[id].vsel_addr);
-> +						ddata->palmas_regs_info[id].vsel_addr);
->   			pmic->desc[id].vsel_mask =
->   					PALMAS_SMPS12_VOLTAGE_VSEL_MASK;
->   
->   			/* Read the smps mode for later use. */
-> -			addr = palmas_regs_info[id].ctrl_addr;
-> +			addr = ddata->palmas_regs_info[id].ctrl_addr;
->   			ret = palmas_smps_read(pmic->palmas, addr, &reg);
->   			if (ret)
->   				return ret;
-> @@ -1223,7 +1223,7 @@ static int palmas_smps_registration(struct palmas_pmic *pmic,
->   
->   			pmic->desc[id].enable_reg =
->   					PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-> -						palmas_regs_info[id].ctrl_addr);
-> +						ddata->palmas_regs_info[id].ctrl_addr);
->   			pmic->desc[id].enable_mask =
->   					PALMAS_SMPS12_CTRL_MODE_ACTIVE_MASK;
->   			/* set_mode overrides this value */
-> @@ -1319,7 +1319,7 @@ static int tps65917_smps_registration(struct palmas_pmic *pmic,
->   		pmic->desc[id].n_voltages = PALMAS_SMPS_NUM_VOLTAGES;
->   		pmic->desc[id].vsel_reg =
->   				PALMAS_BASE_TO_REG(PALMAS_SMPS_BASE,
-> -						   tps65917_regs_info[id].vsel_addr);
-> +					        ddata->palmas_regs_info[id].vsel_addr);
->   		pmic->desc[id].vsel_mask =
->   				PALMAS_SMPS12_VOLTAGE_VSEL_MASK;
->   
-> @@ -1414,7 +1414,7 @@ struct palmas_pmic_driver_data palmas_ddata = {
->   	.ldo_begin = PALMAS_REG_LDO1,
->   	.ldo_end = PALMAS_REG_LDOUSB,
->   	.max_reg = PALMAS_NUM_REGS,
-> -	.palmas_regs_info = palmas_regs_info,
-> +	.palmas_regs_info = palmas_generic_regs_info,
->   	.palmas_matches = palmas_matches,
->   	.sleep_req_info = palma_sleep_req_info,
->   	.smps_register = palmas_smps_registration,
-
-Regards,
-Keerthy
+--=20
+P=C3=A9ter
