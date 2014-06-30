@@ -1,48 +1,65 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 4/6] regulator: palmas: Rename palmas_regs_info to palmas_generic_regs_info
-Date: Mon, 30 Jun 2014 10:57:37 -0500
-Message-ID: <1404143859-8160-5-git-send-email-nm@ti.com>
-References: <1404143859-8160-1-git-send-email-nm@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 2/6] mailbox/omap: add support for parsing dt devices
+Date: Mon, 30 Jun 2014 11:00:25 -0500
+Message-ID: <53B18999.2020506@ti.com>
+References: <1403660878-56350-1-git-send-email-s-anna@ti.com> <1403660878-56350-3-git-send-email-s-anna@ti.com> <20140628170709.GB23634@xo-6d-61-c0.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404143859-8160-1-git-send-email-nm@ti.com>
+In-Reply-To: <20140628170709.GB23634@xo-6d-61-c0.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Keerthy J <j-keerthy@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org, Nishanth Menon <nm@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-With commit d6f83370ed978d5570b7c8c22988310cb9376202 (regulator: palmas:
-Add tps65917 PMIC support) palmas_regs_info naming is confusing as it is
-a driver data parameter and a local variable. To prevent mistaken
-updates, rename the local variable to palmas_generic_regs_info.
+Hi Pavel,
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/regulator/palmas-regulator.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On 06/28/2014 12:07 PM, Pavel Machek wrote:
+> Hi!
+> 
+>> The non-DT support has to be maintained for now to not break
+>> OMAP3 legacy boot, and the legacy-style code will be cleaned
+>> up once OMAP3 is also converted to DT-boot only.
+> 
+>> @@ -587,24 +606,157 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
+>>  	return 0;
+>>  }
+>>  
+>> +static const struct omap_mbox_device_data omap2_data = {
+>> +	.num_users	= 4,
+>> +	.num_fifos	= 6,
+>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+>> +};
+>> +
+>> +static const struct omap_mbox_device_data omap3_data = {
+>> +	.num_users	= 2,
+>> +	.num_fifos	= 2,
+>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+>> +};
+>> +
+>> +static const struct omap_mbox_device_data am335x_data = {
+>> +	.num_users	= 4,
+>> +	.num_fifos	= 8,
+>> +	.intr_type	= MBOX_INTR_CFG_TYPE2,
+>> +};
+> 
+> So you use compatible strings to look up 3 integers. Would it be better to have
+> num_users/num_fifos/intr_type directly in the device tree? That should be cleaner
+> and more flexible...
+> 
+> If you do that, would it be possible to have share compatible string?
 
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index f75fb90..d6b734f 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -41,7 +41,7 @@ static const struct regulator_linear_range smps_high_ranges[] = {
- 	REGULATOR_LINEAR_RANGE(3300000, 0x7A, 0x7f, 0),
- };
- 
--static struct palmas_regs_info palmas_regs_info[] = {
-+static struct palmas_regs_info palmas_generic_regs_info[] = {
- 	{
- 		.name		= "SMPS12",
- 		.sname		= "smps1-in",
-@@ -1417,7 +1417,7 @@ static struct palmas_pmic_driver_data palmas_ddata = {
- 	.ldo_begin = PALMAS_REG_LDO1,
- 	.ldo_end = PALMAS_REG_LDOUSB,
- 	.max_reg = PALMAS_NUM_REGS,
--	.palmas_regs_info = palmas_regs_info,
-+	.palmas_regs_info = palmas_generic_regs_info,
- 	.palmas_matches = palmas_matches,
- 	.sleep_req_info = palma_sleep_req_info,
- 	.smps_register = palmas_smps_registration,
--- 
-1.7.9.5
+Yeah, I have actually encoded the .num_users and .num_fifos in DT in the
+previous version [1] with shared compatible strings, but dropped those
+properties in favour of adding minimal custom properties to DT based on
+some offline IRC comments. I have no objections either way, but there is
+really nothing to be gained from minimizing compatible strings.
+
+Tony,
+Any comments on this?
+
+regards
+Suman
+
+[1] https://patchwork.kernel.org/patch/2839662/
