@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3] phy: omap-usb2: Manage PHY 3.3V supply regulator
-Date: Mon, 30 Jun 2014 14:00:36 +0300
-Message-ID: <1404126038-19974-2-git-send-email-rogerq@ti.com>
+Subject: [PATCH 2/3] phy: omap-usb2: Add PHY regulator to DT binding documentation
+Date: Mon, 30 Jun 2014 14:00:37 +0300
+Message-ID: <1404126038-19974-3-git-send-email-rogerq@ti.com>
 References: <1404126038-19974-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,85 +12,26 @@ To: kishon-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, ton
 Cc: nm-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On some SoCs e.g. J6 the 3.3V supply to the USB2 PHY can be
-powered down when the PHY is not in use. Add regulator
-management code to control this power line.
+The PHY driver can manage a regulator that supplies power to
+the USB2 PHY. Add DT binding information for that.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/phy/phy-omap-usb2.c  | 25 +++++++++++++++++++++++++
- include/linux/phy/omap_usb.h |  1 +
- 2 files changed, 26 insertions(+)
+ Documentation/devicetree/bindings/phy/ti-phy.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index 7007c11..2afc79c 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -30,6 +30,7 @@
- #include <linux/phy/omap_control_phy.h>
- #include <linux/phy/phy.h>
- #include <linux/of_platform.h>
-+#include <linux/regulator/consumer.h>
+diff --git a/Documentation/devicetree/bindings/phy/ti-phy.txt b/Documentation/devicetree/bindings/phy/ti-phy.txt
+index 9ce458f..a6acd99 100644
+--- a/Documentation/devicetree/bindings/phy/ti-phy.txt
++++ b/Documentation/devicetree/bindings/phy/ti-phy.txt
+@@ -41,6 +41,7 @@ Required properties:
+ Optional properties:
+  - ctrl-module : phandle of the control module used by PHY driver to power on
+    the PHY.
++ - phy-supply: phandle of the regulator that supplies power to the PHY.
  
- #define USB2PHY_DISCON_BYP_LATCH (1 << 31)
- #define USB2PHY_ANA_CONFIG1 0x4c
-@@ -107,6 +108,14 @@ static int omap_usb_power_off(struct phy *x)
+ This is usually a subnode of ocp2scp to which it is connected.
  
- 	omap_control_phy_power(phy->control_dev, 0);
- 
-+	if (phy->pwr) {
-+		int ret;
-+
-+		ret = regulator_disable(phy->pwr);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	return 0;
- }
- 
-@@ -114,6 +123,14 @@ static int omap_usb_power_on(struct phy *x)
- {
- 	struct omap_usb *phy = phy_get_drvdata(x);
- 
-+	if (phy->pwr) {
-+		int ret;
-+
-+		ret = regulator_enable(phy->pwr);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	omap_control_phy_power(phy->control_dev, 1);
- 
- 	return 0;
-@@ -253,6 +270,14 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	phy->control_dev = &control_pdev->dev;
- 	omap_control_phy_power(phy->control_dev, 0);
- 
-+	/* phy-supply */
-+	phy->pwr = devm_regulator_get_optional(phy->dev, "phy");
-+	if (IS_ERR(phy->pwr)) {
-+		if (PTR_ERR(phy->pwr) == -EPROBE_DEFER)
-+			return -EPROBE_DEFER;
-+		phy->pwr = NULL;
-+	}
-+
- 	otg->set_host		= omap_usb_set_host;
- 	otg->set_peripheral	= omap_usb_set_peripheral;
- 	if (phy_data->flags & OMAP_USB2_HAS_SET_VBUS)
-diff --git a/include/linux/phy/omap_usb.h b/include/linux/phy/omap_usb.h
-index dc2c541..e2c46df 100644
---- a/include/linux/phy/omap_usb.h
-+++ b/include/linux/phy/omap_usb.h
-@@ -40,6 +40,7 @@ struct omap_usb {
- 	struct clk		*wkupclk;
- 	struct clk		*optclk;
- 	u8			flags;
-+	struct regulator	*pwr;
- };
- 
- struct usb_phy_data {
 -- 
 1.8.3.2
 
