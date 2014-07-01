@@ -1,50 +1,64 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH V4 00/16] irqchip: crossbar: Driver fixes
-Date: Tue, 1 Jul 2014 08:23:48 -0400
-Message-ID: <20140701122348.GE23978@titan.lakedaemon.net>
-References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com>
- <20140630192910.GA23978@titan.lakedaemon.net>
- <20140701075930.GN28884@atomide.com>
- <53B28124.40509@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv5 03/15] hwspinlock/core: maintain a list of registered
+ hwspinlock banks
+Date: Tue, 1 Jul 2014 15:26:09 +0300
+Message-ID: <CAK=WgbakGbTaYz+4K24aT3vyRkDYwPKCm6XrcJvH667NMMfTTA@mail.gmail.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com> <1398904476-26200-4-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19182 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbaGAMYG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2014 08:24:06 -0400
-Content-Disposition: inline
-In-Reply-To: <53B28124.40509@ti.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:36429 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751538AbaGAM0b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2014 08:26:31 -0400
+Received: by mail-la0-f50.google.com with SMTP id pv20so5837908lab.37
+        for <linux-omap@vger.kernel.org>; Tue, 01 Jul 2014 05:26:29 -0700 (PDT)
+In-Reply-To: <1398904476-26200-4-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, rnayak@ti.com, santosh.shilimkar@ti.com, joe@perches.com, tglx@linutronix.de
+To: Suman Anna <s-anna@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Jul 01, 2014 at 03:06:36PM +0530, Sricharan R wrote:
-> Hi Tony,
-> 
-> On Tuesday 01 July 2014 01:29 PM, Tony Lindgren wrote:
-> > * Jason Cooper <jason@lakedaemon.net> [140630 12:30]:
-> >>
-> >> Whole series applied to irqchip/crossbar, I'll give it a day or two in
-> >> -next, then I'll merge it into irqchip/core.
-> >>
-> >> Tony: Right now, it's immutable unless you tell me I applied something
-> >> incorrectly.  Once it goes into irqchip/core, it's immutable no matter
-> >> what you say. ;-)
-> > 
-> > Thanks, looks good to me. Sricharan and Nishant, can you please
-> > check that we can now apply the related .dts changes on top of
-> > Jason's branch at:
-> > 
-> > git://git.infradead.org/users/jcooper/linux.git irqchip/crossbar
-> > 
-> 
-> I applied the dts patches on top of this and it worked fine for
-> me on dra72 evm
+Hi Suman,
 
-Awesome, thanks.  irqchip/crossbar has been merged into irqchip/core.
+On Thu, May 1, 2014 at 3:34 AM, Suman Anna <s-anna@ti.com> wrote:
+>
+> The hwspinlock_device structure is used for registering a bank of
+> locks with the driver core. The structure already contains the
+> necessary members to identify the bank of locks. The core does not
+> maintain the hwspinlock_devices itself, but maintains only a radix
+> tree for all the registered locks. A specific lock can be requested
+> by users using a global lock id, and any device-specific fields
+> can be retrieved through a reference to the hwspinlock_device in
+> each lock.
+>
+> The global lock id, however, is not friendly to be requested for
+> users using the device-tree model. The device-tree representation
+> will typically have each of the hwspinlock devices represented as
+> a DT node, and a specific lock can be requested using the device's
+> phandle and a lock specifier. Add support to the core therefore to
+> maintain all the registered hwspinlock_devices, so that a device
+> can be looked up and a specific lock belonging to the device
+> requested through a phandle + args approach.
+>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-thx,
+I'm not sure we need this patch.
 
-Jason.
+It seems to me that the global lock id can be the base_id + lock
+index, where the former should be a property of the parent dt node,
+and the latter can just be the phandle argument. Then, with the global
+lock id in hand, drivers could just use the existing
+hwspin_lock_request_specific API.
+
+If future hardware will bring a more complex scenario, we could then
+introduce the xlate proposal to resolve it. As long as we're not
+changing the dt data, and this is all handled by kernel code, then I'd
+prefer opting for less code now as long as it addresses the
+requirements.
+
+Please let me know if currently there is a use case that can't be
+addressed using this simpler model.
+
+Thanks,
+Ohad.
