@@ -1,39 +1,48 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: Re: [PATCH V4 00/16] irqchip: crossbar: Driver fixes
-Date: Tue, 1 Jul 2014 15:06:36 +0530
-Message-ID: <53B28124.40509@ti.com>
-References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com> <20140630192910.GA23978@titan.lakedaemon.net> <20140701075930.GN28884@atomide.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: atmel_mxt_ts: defaulting irqflags to IRQF_TRIGGER_FALLING
+Date: Tue, 1 Jul 2014 15:21:42 +0530
+Message-ID: <53B284AE.3070302@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140701075930.GN28884@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jason Cooper <jason@lakedaemon.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, rnayak@ti.com, santosh.shilimkar@ti.com, joe@perches.com, tglx@linutronix.de
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Nick Dyer <nick.dyer@itdev.co.uk>
+Cc: Stephen Warren <swarren@nvidia.com>, linux-input@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Nick,
 
-On Tuesday 01 July 2014 01:29 PM, Tony Lindgren wrote:
-> * Jason Cooper <jason@lakedaemon.net> [140630 12:30]:
->>
->> Whole series applied to irqchip/crossbar, I'll give it a day or two in
->> -next, then I'll merge it into irqchip/core.
->>
->> Tony: Right now, it's immutable unless you tell me I applied something
->> incorrectly.  Once it goes into irqchip/core, it's immutable no matter
->> what you say. ;-)
-> 
-> Thanks, looks good to me. Sricharan and Nishant, can you please
-> check that we can now apply the related .dts changes on top of
-> Jason's branch at:
-> 
-> git://git.infradead.org/users/jcooper/linux.git irqchip/crossbar
-> 
+I have been using your for-next branch to base my development of 
+touchscreen support on TI's DRA7x EVM. With the recent updates,
+it has worked out great and once I got the configuration right,
+it was just a question of adding DT data for the platform.
 
-I applied the dts patches on top of this and it worked fine for
-me on dra72 evm
+Now, there is one problem with Stephen's patch defaulting the irqflags 
+to IRQF_TRIGGER_FALLING. The interrupt controller I am using (ARM GIC) 
+does not seem to support that and the device fails to probe:
 
-Regards,
- Sricharan
+[    1.932798] genirq: Setting trigger mode 2 for irq 151 failed (gic_set_type+0x0/0xf0)
+[    1.941340] atmel_mxt_ts 0-004a: Failed to register interrupt
+[    1.947452] atmel_mxt_ts: probe of 0-004a failed with error -22
+
+Attached patch does the trick for me:
+
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 71154c2..f2d3f72 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -3155,9 +3155,6 @@ static struct mxt_platform_data *mxt_parse_dt(struct i2c_client *client)
+ 	pdata->gpio_reset = of_get_named_gpio_flags(dev->of_node,
+ 		"atmel,reset-gpio", 0, NULL);
+ 
+-	/* Default to this. Properties can be added to configure it later */
+-	pdata->irqflags = IRQF_TRIGGER_FALLING;
+-
+ 	of_property_read_string(dev->of_node, "atmel,cfg_name",
+ 				&pdata->cfg_name); 
+
+Can you switch to leaving the platform to specify flags (at least for the DT case)?
+
+Thanks,
+Sekhar
