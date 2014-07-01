@@ -1,74 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for beaglebone
- NAND cape
-Date: Tue, 1 Jul 2014 01:47:10 -0700
-Message-ID: <20140701084709.GO28884@atomide.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for
+ beaglebone NAND cape
+Date: Tue, 1 Jul 2014 09:07:56 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF88FF@DBDE04.ent.ti.com>
 References: <1403612666-31197-1-git-send-email-pekon@ti.com>
  <1403612666-31197-2-git-send-email-pekon@ti.com>
  <20140626194824.GA18814@fox>
  <20980858CB6D3A4BAE95CA194937D5E73EAF8248@DBDE04.ent.ti.com>
+ <20140701084709.GO28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60275 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753510AbaGAIrL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2014 04:47:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAF8248@DBDE04.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49727 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753510AbaGAJI1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2014 05:08:27 -0400
+In-Reply-To: <20140701084709.GO28884@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>
-Cc: Guido =?utf-8?B?TWFydMOtbmV6?= <guido@vanguardiasur.com.ar>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
+To: Tony Lindgren <tony@atomide.com>, =?utf-8?B?R3VpZG8gTWFydMOtbmV6?= <guido@vanguardiasur.com.ar>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
 
-* Gupta, Pekon <pekon@ti.com> [140627 14:08]:
-> >From: Guido Mart=C3=ADnez [mailto:guido@vanguardiasur.com.ar]
-> >>On Tue, Jun 24, 2014 at 05:54:24PM +0530, Pekon Gupta wrote:
->=20
-> [...]
->=20
-> >> +&gpmc {
-> >> +	ranges =3D <0 0 0 0x01000000>;	/* address range =3D 16MB (minimu=
-m GPMC partition) */
-> >> +	nand@0,0 {
-> >> +		status =3D "disabled";
-> >> +		reg =3D <0 0 4>;		/* device IO registers */
-> >> +		pinctrl-names =3D "default";
-> >> +		pinctrl-0 =3D <&bbcape_nand_flash_pins>;
-> >This doesn't seem to work as pinctrl properties are not parsed for
-> >childs of the gpmc node. Did this work for you?
-> >Putting this in the gpmc node makes it work, but how will we control
-> >pins for the nand and nor independently? I believe there is currentl=
-y no
-> >support for muxing individual gpmc devices. If we want to add both
-> >devices to the DT and enable them as needed we'd need to add support=
- for
-> >this, right?
-> >
-> Yes, And that should be the case, because different devices would be
-> connected to different chip-selects, so there should be support of
-> providing individual pin-mux for different GPMC devices.
->=20
-> Currently both NAND and NOR cape share GPMC_CS0, so both NAND and NOR
-> capes will not work simultaneously. But I'm planning to modify NOR ca=
-pe
-> hardware at my end to use GPMC_CS1 instead of GPMC_CS0.
-> - NAND on GPMC_CS0
-> - NOR on GPMC_CS1
-
-Hmm but we should have these working with both using CS0 without
-any need to modify the hardware though?
-
-In that case we should make sure we always set large enough GPMC
-partition and that the pins are muxed for the connected GPMC
-devices only.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PkZyb206IFRvbnkgTGluZGdyZW4gW21haWx0bzp0b255QGF0b21pZGUuY29tXQ0KPj4qIEd1cHRh
+LCBQZWtvbiA8cGVrb25AdGkuY29tPiBbMTQwNjI3IDE0OjA4XToNCj4+ID5Gcm9tOiBHdWlkbyBN
+YXJ0w61uZXogW21haWx0bzpndWlkb0B2YW5ndWFyZGlhc3VyLmNvbS5hcl0NCj4+ID4+T24gVHVl
+LCBKdW4gMjQsIDIwMTQgYXQgMDU6NTQ6MjRQTSArMDUzMCwgUGVrb24gR3VwdGEgd3JvdGU6DQo+
+Pg0KPj4gWy4uLl0NCj4+DQo+PiA+PiArJmdwbWMgew0KPj4gPj4gKwlyYW5nZXMgPSA8MCAwIDAg
+MHgwMTAwMDAwMD47CS8qIGFkZHJlc3MgcmFuZ2UgPSAxNk1CIChtaW5pbXVtIEdQTUMgcGFydGl0
+aW9uKSAqLw0KPj4gPj4gKwluYW5kQDAsMCB7DQo+PiA+PiArCQlzdGF0dXMgPSAiZGlzYWJsZWQi
+Ow0KPj4gPj4gKwkJcmVnID0gPDAgMCA0PjsJCS8qIGRldmljZSBJTyByZWdpc3RlcnMgKi8NCj4+
+ID4+ICsJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiA+PiArCQlwaW5jdHJsLTAgPSA8
+JmJiY2FwZV9uYW5kX2ZsYXNoX3BpbnM+Ow0KPj4gPlRoaXMgZG9lc24ndCBzZWVtIHRvIHdvcmsg
+YXMgcGluY3RybCBwcm9wZXJ0aWVzIGFyZSBub3QgcGFyc2VkIGZvcg0KPj4gPmNoaWxkcyBvZiB0
+aGUgZ3BtYyBub2RlLiBEaWQgdGhpcyB3b3JrIGZvciB5b3U/DQo+PiA+UHV0dGluZyB0aGlzIGlu
+IHRoZSBncG1jIG5vZGUgbWFrZXMgaXQgd29yaywgYnV0IGhvdyB3aWxsIHdlIGNvbnRyb2wNCj4+
+ID5waW5zIGZvciB0aGUgbmFuZCBhbmQgbm9yIGluZGVwZW5kZW50bHk/IEkgYmVsaWV2ZSB0aGVy
+ZSBpcyBjdXJyZW50bHkgbm8NCj4+ID5zdXBwb3J0IGZvciBtdXhpbmcgaW5kaXZpZHVhbCBncG1j
+IGRldmljZXMuIElmIHdlIHdhbnQgdG8gYWRkIGJvdGgNCj4+ID5kZXZpY2VzIHRvIHRoZSBEVCBh
+bmQgZW5hYmxlIHRoZW0gYXMgbmVlZGVkIHdlJ2QgbmVlZCB0byBhZGQgc3VwcG9ydCBmb3INCj4+
+ID50aGlzLCByaWdodD8NCj4+ID4NCj4+IFllcywgQW5kIHRoYXQgc2hvdWxkIGJlIHRoZSBjYXNl
+LCBiZWNhdXNlIGRpZmZlcmVudCBkZXZpY2VzIHdvdWxkIGJlDQo+PiBjb25uZWN0ZWQgdG8gZGlm
+ZmVyZW50IGNoaXAtc2VsZWN0cywgc28gdGhlcmUgc2hvdWxkIGJlIHN1cHBvcnQgb2YNCj4+IHBy
+b3ZpZGluZyBpbmRpdmlkdWFsIHBpbi1tdXggZm9yIGRpZmZlcmVudCBHUE1DIGRldmljZXMuDQo+
+Pg0KPj4gQ3VycmVudGx5IGJvdGggTkFORCBhbmQgTk9SIGNhcGUgc2hhcmUgR1BNQ19DUzAsIHNv
+IGJvdGggTkFORCBhbmQgTk9SDQo+PiBjYXBlcyB3aWxsIG5vdCB3b3JrIHNpbXVsdGFuZW91c2x5
+LiBCdXQgSSdtIHBsYW5uaW5nIHRvIG1vZGlmeSBOT1IgY2FwZQ0KPj4gaGFyZHdhcmUgYXQgbXkg
+ZW5kIHRvIHVzZSBHUE1DX0NTMSBpbnN0ZWFkIG9mIEdQTUNfQ1MwLg0KPj4gLSBOQU5EIG9uIEdQ
+TUNfQ1MwDQo+PiAtIE5PUiBvbiBHUE1DX0NTMQ0KPg0KPkhtbSBidXQgd2Ugc2hvdWxkIGhhdmUg
+dGhlc2Ugd29ya2luZyB3aXRoIGJvdGggdXNpbmcgQ1MwIHdpdGhvdXQNCj5hbnkgbmVlZCB0byBt
+b2RpZnkgdGhlIGhhcmR3YXJlIHRob3VnaD8NCj4NClllcywgYnV0IG9uZSBhdCBhIHRpbWUuIFRo
+YXQgbWVhbiBlaXRoZXIgb2YgJ05BTkQgY2FwZScgb3IgJ05PUiBjYXBlJy4NCklmIHlvdSBuZWVk
+IGJvdGggd29ya2luZyBzaW11bHRhbmVvdXNseSBhcyAyIHNlcGFyYXRlIGRldmljZXMgYXR0YWNo
+ZWQNCnRvIEdQTUMsIHRoZW4geW91IG5lZWQgMiBzZXBhcmF0ZSBjaGlwLXNlbGVjdHMsIHdoaWNo
+IGlzIHdoYXQgSSdtIHRyeWluZw0KdG8gdGVzdCB3aXRoIFsxXS4NCg0KDQo+SW4gdGhhdCBjYXNl
+IHdlIHNob3VsZCBtYWtlIHN1cmUgd2UgYWx3YXlzIHNldCBsYXJnZSBlbm91Z2ggR1BNQw0KPnBh
+cnRpdGlvbg0KWWVzLCB0aGlzIGlzIHRha2VuIGNhcmUgd2l0aCBpbnRyb2R1Y3Rpb24gb2YgTk9S
+IGNhcGUgaW4NCltQQVRDSCB2MSAyLzNdIEFSTTogZHRzOiBhbTMzNXgtYm9uZTogYWRkIHN1cHBv
+cnQgZm9yIGJlYWdsZWJvbmUgTk9SIGNhcGUNCiAmZ3BtYyB7DQotCXJhbmdlcyA9IDwwIDAgMCAw
+eDAxMDAwMDAwPjsJLyogYWRkcmVzcyByYW5nZSA9IDE2TUIgKG1pbmltdW0gR1BNQyBwYXJ0aXRp
+b24pICovDQorCXJhbmdlcyA9IDwwIDAgMHgwODAwMDAwMCAweDAxMDAwMDAwPjsJLyogYWRkcmVz
+cyBvZmZzZXQ9MTI4TUIsIHJhbmdlPTEyOE1iPTE2TUIgKi8NClRoaXMgR1BNQyBwYXJ0aXRpb24g
+c3VmZmljZXMgZm9yIGJvdGggTkFORCBhbmQgTk9SIHJlcXVpcmVtZW50cy4NCg0KPiBhbmQgdGhh
+dCB0aGUgcGlucyBhcmUgbXV4ZWQgZm9yIHRoZSBjb25uZWN0ZWQgR1BNQw0KPmRldmljZXMgb25s
+eS4NCj4NClBpbiBtdXggaXMgc29tZXRoaW5nIEkgbmVlZCB0byByZS13b3JrLCBiZWNhdXNlIGN1
+cnJlbnRseQ0KSSd2ZSB0ZXN0ZWQgZWl0aGVyIE5BTkQgb3IgTk9SIGluZGl2aWR1YWxseSwgbm90
+IHRvZ2V0aGVyLg0KDQpBbHNvIGFzIG1lbnRpb25lZCBhYm92ZSBieSBHdWlkbywgcGluLWN0cmwg
+cHJvcGVydHkgaXMgbm90IHBhcnNlZCBpbmRpdmlkdWFsbHkNCmZvciBHUE1DIGNoaWxkcmVuLCBJ
+bnN0ZWFkIHBpbi1jdHJsIGlzIHNldCBvbmNlIGZvciBHUE1DIGFzIGEgd2hvbGUuDQoNCkRvIHlv
+dSBoYXZlIGFueSBzdWdnZXN0aW9ucyBvbiBob3cgcGluLWN0cmwgc2hvdWxkIGJlIHNldCBpZiB3
+ZSBoYXZlDQptdWx0aXBsZSBkZXZpY2VzIGNvbm5lY3RlZCB0byBHUE1DIGxpa2U7DQpBbGwgdGhl
+c2UgZGV2aWNlcyB3aWxsIHNoYXJlOg0KLSBjb250cm9sIGxpbmVzIChncG1jX3dhaXQsIGdwbWNf
+YmVuX2NsZSwgZ3BtY19hZHZuX2FsZSwgZ3BtY193ZSwgZ3BtY19vZV9yZW4pDQotICpzb21lKiBk
+YXRhIGxpbmVzIChncG1jX2FkW10pDQotICpzb21lKiBhZGRyZXNzIGxpbmVzIChncG1jX2FbXSkN
+Ci0gYnV0IGNoaXAtc2VsZWN0cyB3aWxsIGJlIGRpZmZlcmVudDoNCglncG1jX2NzMDogTkFORA0K
+CWdwbWNfY3MxOiBOT1INCglncG1jX2NzMjogU01TQzkxeHgNCglncG1jX2NzMzogQ2FtZXJhDQoN
+Cg0Kd2l0aCByZWdhcmRzLCBQZWtvbg0KDQo+UmVnYXJkcywNCj4NCj5Ub255DQoNClsxXSBodHRw
+Oi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW9tYXAvbXNnMTA3OTUwLmh0bWwNCg==
