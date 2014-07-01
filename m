@@ -1,79 +1,102 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
- setting
-Date: Tue, 1 Jul 2014 14:47:04 -0500
-Message-ID: <20140701194704.GG13396@saruman.home>
-References: <3c3a7a4861df01d0163787a9c18f7b7ac821c5b9.1403000372.git.nsekhar@ti.com>
- <20140617131935.GB9070@saruman.home>
+Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for
+ ti,mux-clock
+Date: Tue, 1 Jul 2014 14:48:33 -0500
+Message-ID: <20140701194833.GH13396@saruman.home>
+References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com>
+ <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com>
+ <53A2CA7A.60206@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="m972NQjnE83KvVa/"
+	protocol="application/pgp-signature"; boundary="IbVRjBtIbJdbeK1C"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51790 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33489 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757412AbaGATrl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Jul 2014 15:47:41 -0400
+	id S1758637AbaGATsh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Jul 2014 15:48:37 -0400
 Content-Disposition: inline
-In-Reply-To: <20140617131935.GB9070@saruman.home>
+In-Reply-To: <53A2CA7A.60206@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
 
---m972NQjnE83KvVa/
+--IbVRjBtIbJdbeK1C
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 17, 2014 at 08:19:35AM -0500, Felipe Balbi wrote:
-> On Tue, Jun 17, 2014 at 04:04:51PM +0530, Sekhar Nori wrote:
-> > ROM code on AM437x does not support writing to L2C-310 power control
-> > register. The L2C driver, however, tries writing to this register for
-> > all revisions >=3D r3p0.
-> >=20
-> > This leads to a warning dump on boot which leads most users to believe
-> > that L2 cache is non-functional.
-> >=20
-> > Since the problem is understood, and cannot be addressed through softwa=
-re,
-> > replace the warning with a pr_info() while maintaining the WARN_ON() for
-> > other truly unexpected scenarios.
-> >=20
-> > Reported-by: Nishanth Menon <nm@ti.com>
-> > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->=20
-> Tested with today's linux-next
-> (5f295cdf5c5dbbb0c40f10f2ddae02ff46bbf773) with am437x-sk, I can see
-> that the WARNING goes away.
->=20
-> Tested-by: Felipe Balbi <balbi@ti.com>
+Hi,
 
-ping here, I can't see this patch onl linus/master or next/master yet.
+On Thu, Jun 19, 2014 at 02:33:14PM +0300, Tero Kristo wrote:
+> On 06/17/2014 11:04 AM, Tomi Valkeinen wrote:
+> >When setting the rate of a clock, by default the clock framework will
+> >change the parent of the clock to the most suitable one in
+> >__clk_mux_determine_rate() (most suitable by looking at the clock rate).
+> >
+> >This is a rather dangerous default, and causes problems on AM43x when
+> >using display and ethernet. There are multiple ways to select the clock
+> >muxes on AM43x, and some of those clock paths have the same source
+> >clocks for display and ethernet. When changing the clock rate for the
+> >display subsystem, the clock framework decides to change the display mux
+> >from the dedicated display PLL to a shared PLL which is used by the
+> >ethernet, and then changes the rate of the shared PLL, breaking the
+> >ethernet.
+> >
+> >As I don't think there ever is a case where we want the clock framework
+> >to automatically change the parent clock of a clock mux, this patch sets
+> >the CLK_SET_RATE_NO_REPARENT for all ti,mux-clocks.
+> >
+> >Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >---
+> >  drivers/clk/ti/mux.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> >diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+> >index 0197a478720c..e9d650e51287 100644
+> >--- a/drivers/clk/ti/mux.c
+> >+++ b/drivers/clk/ti/mux.c
+> >@@ -160,7 +160,7 @@ static void of_mux_clk_setup(struct device_node *nod=
+e)
+> >  	u8 clk_mux_flags =3D 0;
+> >  	u32 mask =3D 0;
+> >  	u32 shift =3D 0;
+> >-	u32 flags =3D 0;
+> >+	u32 flags =3D CLK_SET_RATE_NO_REPARENT;
+> >
+> >  	num_parents =3D of_clk_get_parent_count(node);
+> >  	if (num_parents < 2) {
+> >
+>=20
+> Thanks, queued for 3.16-rc fixes.
+
+did you skip a few -rcs by any chance? Looks like this could've been
+merged on v3.16-rc3... Just checking.
 
 --=20
 balbi
 
---m972NQjnE83KvVa/
+--IbVRjBtIbJdbeK1C
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTsxA4AAoJEIaOsuA1yqRERtYQAIRZeuqCOIslgPUDTqszjr72
-2wSOqLWPDpAYwiY4xeZXohT4HFE4xYean6jamRMTmAfSQZxgsLv87wVxb/NY6f6d
-7KHvxdmP3cj5TwDTXEfPdvyttEm9KCVBUOqHxmQErOysSVvBZXAQEUomhoB7PRKW
-VTRbLmN6zx22rdNGvf1CPwt1Dgj4clK7CUpBo7KkFCoOhCF5UiJCHoVqbEtlWamI
-QOtx9v9gdhO0pwdLkZxFBBAUGHBBvCiQmkC9n4tmhjcCIHOYXgaKoYdefk0/p/jT
-BoManc+hr9KmjJdWbOef2jhbLGlF7aBLdce4FgihAFzd0KM4liLKY2ZrbruGNOLR
-IyWcYYS5muMGi7XA51nSOE6RWrMqd4Nbe67JcA24WAUbaktrBLQLzNexfVyXR3DG
-WBktxtcP7SDbZZ81PYzeS+QhlOunU1wnmrGuoEt/H9oUsXnoHWaIwjfISrmSIRbg
-ngFuMcS9Ya/QMCNxukY4oUKI3N7vFKkMeJW5p9zy4KNjUUsmwU9oyvRCLYmL+Hz8
-jpOgGwa1+qkV0RUcNwslbjyx5qyHG7TlyffLYdEwzWBA6uj4tLJs7o9hNvVN9/oR
-D8GB77WSiE7iIIyR282EjOENgyq5v+hP17cgO2bVLeX35zZ+pPZJAlQ3VHb0HdpR
-xBhTt1Nfi7bxwGJ43TqO
-=tUjO
+iQIcBAEBAgAGBQJTsxCRAAoJEIaOsuA1yqREW/MP/1O3Vz33ZQxsdgRJt0mqRXEc
+oBjBPPTvGTQcBaDgtFsC6MXH9iO4q8rk8fquZQI5GWcAFU5I0vk7Q3el0xvqWCFT
+3MGtlfiRQEB8K8Yj9leGwU3XTw3MiKMJLLyOY7cmoRsSXpyGnVg9AZDYrDerk69D
+e64Qvu8dvQ9QwZidDWZUi7dpzwTVnXyojtOQy2O3OCQi4d9cKB/3Vt/+NVuJ2GGc
+R4LOJ1xpqqwsW8J9LBFlobybEOnXDyVT6j+i2ZCmSfMGeLFwOlAIItc1JusjUSUP
+EhnejZ4JySWpaNVccPWbenl1G/02Vst+ZJ7QBLP8OIgda9cv8OG7aMCbrraGB9Do
+qEcZdyDaECiHDq1XM3uJKahFLL86j3OxN7tav5uKub5Uk+4HuKjO0TmSLFO9ly9H
+X/Csj9j5BsP2kKIbCuGCCd0MGsVBR+EKaCEBd+IqcdO1RaVx7b3WCVR/LfeMhcI5
+KokWfXItAvzW/3cVx3xBjCkWfQEIjJ+msco+iEMkKCgUWBtDpfvFoJdVuFiFjh5m
+u8TqgnzdfDCc8C6zD5GRKoMY2s/+w8VIRxFX7RWcGhoJlqA3hiqbz6cvTuHqdlmN
+MygbSzcyNDDAKRY/L3lB71S4TB5PJm2HsnjHy8eHIDzhz/W4KmGbIEJSZfpVVDI5
+MbVm4fEsjuqmhG7YN3P/
+=iIuu
 -----END PGP SIGNATURE-----
 
---m972NQjnE83KvVa/--
+--IbVRjBtIbJdbeK1C--
