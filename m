@@ -1,102 +1,74 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for
- ti,mux-clock
-Date: Tue, 1 Jul 2014 14:48:33 -0500
-Message-ID: <20140701194833.GH13396@saruman.home>
-References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com>
- <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com>
- <53A2CA7A.60206@ti.com>
-Reply-To: <balbi@ti.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+ (part1)
+Date: Tue, 01 Jul 2014 21:04:15 +0100
+Message-ID: <yw1xvbrgethc.fsf@unicorn.mansr.com>
+References: <E1X20mL-00083I-Sv@rmk-PC.arm.linux.org.uk>
+	<yw1x4mz1f2t9.fsf@unicorn.mansr.com>
+	<20140701171346.GP3705@n2100.arm.linux.org.uk>
+	<yw1xzjgtdmas.fsf@unicorn.mansr.com> <20140701173547.GW28164@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IbVRjBtIbJdbeK1C"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33489 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758637AbaGATsh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Jul 2014 15:48:37 -0400
-Content-Disposition: inline
-In-Reply-To: <53A2CA7A.60206@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20140701173547.GW28164@arm.com> (Will Deacon's message of "Tue,
+	1 Jul 2014 18:35:47 +0100")
+Sender: linux-crypto-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>
 
---IbVRjBtIbJdbeK1C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Will Deacon <will.deacon@arm.com> writes:
 
-Hi,
+> Hi Mans,
+>
+> On Tue, Jul 01, 2014 at 06:24:43PM +0100, M=E5ns Rullg=E5rd wrote:
+>> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+>> > As you point out, "bx lr" /may/ be treated specially (I've actuall=
+y been
+>>=20
+>> Most, if not all, Cortex-A cores do this according the public TRMs.
+>> They also do the same thing for "mov pc, lr" so there will probably =
+be
+>> no performance gain from this change.  It's still a good idea though=
+,
+>> since we don't know what future cores will do.
+>
+> Funnily enough, that's not actually true (and is more or less what pr=
+ompted
+> this patch after discussion with Russell). There are cores out there =
+that
+> don't predict mov pc, lr at all (let alone do anything with the retur=
+n
+> stack).
 
-On Thu, Jun 19, 2014 at 02:33:14PM +0300, Tero Kristo wrote:
-> On 06/17/2014 11:04 AM, Tomi Valkeinen wrote:
-> >When setting the rate of a clock, by default the clock framework will
-> >change the parent of the clock to the most suitable one in
-> >__clk_mux_determine_rate() (most suitable by looking at the clock rate).
-> >
-> >This is a rather dangerous default, and causes problems on AM43x when
-> >using display and ethernet. There are multiple ways to select the clock
-> >muxes on AM43x, and some of those clock paths have the same source
-> >clocks for display and ethernet. When changing the clock rate for the
-> >display subsystem, the clock framework decides to change the display mux
-> >from the dedicated display PLL to a shared PLL which is used by the
-> >ethernet, and then changes the rate of the shared PLL, breaking the
-> >ethernet.
-> >
-> >As I don't think there ever is a case where we want the clock framework
-> >to automatically change the parent clock of a clock mux, this patch sets
-> >the CLK_SET_RATE_NO_REPARENT for all ti,mux-clocks.
-> >
-> >Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >---
-> >  drivers/clk/ti/mux.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> >diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-> >index 0197a478720c..e9d650e51287 100644
-> >--- a/drivers/clk/ti/mux.c
-> >+++ b/drivers/clk/ti/mux.c
-> >@@ -160,7 +160,7 @@ static void of_mux_clk_setup(struct device_node *nod=
-e)
-> >  	u8 clk_mux_flags =3D 0;
-> >  	u32 mask =3D 0;
-> >  	u32 shift =3D 0;
-> >-	u32 flags =3D 0;
-> >+	u32 flags =3D CLK_SET_RATE_NO_REPARENT;
-> >
-> >  	num_parents =3D of_clk_get_parent_count(node);
-> >  	if (num_parents < 2) {
-> >
->=20
-> Thanks, queued for 3.16-rc fixes.
+Even ones where the TRM says they do?  I suppose the only way to know
+for sure is to measure it.
 
-did you skip a few -rcs by any chance? Looks like this could've been
-merged on v3.16-rc3... Just checking.
+>> > discussing this with Will Deacon over the last couple of days, who=
+ has
+>> > also been talking to the hardware people in ARM, and Will is happy=
+ with
+>> > this patch as in its current form.)  This is why I've changed all
+>> > "mov pc, reg" instructions which return in some way to use this ma=
+cro,
+>> > and left others (those which are used to call some function and re=
+turn
+>> > back to the same point) alone.
+>>=20
+>> In that case the patch should be fine.  Your patch description didn'=
+t
+>> make it clear that only actual returns were being changed.
+>
+> I'm led to believe that some predictors require lr in order to update=
+ the
+> return stack, whilst others don't. That part is all horribly
+> micro-architectural, so the current patch is doing the right thing by
+> sticking to the ARM ARM but enabling us to hook into other registers =
+later
+> on if we choose.
+
+Agreed.
 
 --=20
-balbi
-
---IbVRjBtIbJdbeK1C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTsxCRAAoJEIaOsuA1yqREW/MP/1O3Vz33ZQxsdgRJt0mqRXEc
-oBjBPPTvGTQcBaDgtFsC6MXH9iO4q8rk8fquZQI5GWcAFU5I0vk7Q3el0xvqWCFT
-3MGtlfiRQEB8K8Yj9leGwU3XTw3MiKMJLLyOY7cmoRsSXpyGnVg9AZDYrDerk69D
-e64Qvu8dvQ9QwZidDWZUi7dpzwTVnXyojtOQy2O3OCQi4d9cKB/3Vt/+NVuJ2GGc
-R4LOJ1xpqqwsW8J9LBFlobybEOnXDyVT6j+i2ZCmSfMGeLFwOlAIItc1JusjUSUP
-EhnejZ4JySWpaNVccPWbenl1G/02Vst+ZJ7QBLP8OIgda9cv8OG7aMCbrraGB9Do
-qEcZdyDaECiHDq1XM3uJKahFLL86j3OxN7tav5uKub5Uk+4HuKjO0TmSLFO9ly9H
-X/Csj9j5BsP2kKIbCuGCCd0MGsVBR+EKaCEBd+IqcdO1RaVx7b3WCVR/LfeMhcI5
-KokWfXItAvzW/3cVx3xBjCkWfQEIjJ+msco+iEMkKCgUWBtDpfvFoJdVuFiFjh5m
-u8TqgnzdfDCc8C6zD5GRKoMY2s/+w8VIRxFX7RWcGhoJlqA3hiqbz6cvTuHqdlmN
-MygbSzcyNDDAKRY/L3lB71S4TB5PJm2HsnjHy8eHIDzhz/W4KmGbIEJSZfpVVDI5
-MbVm4fEsjuqmhG7YN3P/
-=iIuu
------END PGP SIGNATURE-----
-
---IbVRjBtIbJdbeK1C--
+M=E5ns Rullg=E5rd
+mans@mansr.com
