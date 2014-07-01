@@ -1,40 +1,77 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2 0/6] regulator: palmas: cleanup and fixes
-Date: Tue, 1 Jul 2014 10:44:03 +0530
-Message-ID: <53B2439B.7060001@ti.com>
-References: <1404143859-8160-1-git-send-email-nm@ti.com> <53B1C6EC.7070907@wwwdotorg.org>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for
+ beaglebone NAND cape
+Date: Tue, 1 Jul 2014 07:01:03 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF8874@DBDE04.ent.ti.com>
+References: <1403612666-31197-1-git-send-email-pekon@ti.com>
+ <1403612666-31197-2-git-send-email-pekon@ti.com>
+ <20140626104044.GJ28884@atomide.com> <20140626150615.GA15648@fox>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53B1C6EC.7070907-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53358 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750811AbaGAHBg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2014 03:01:36 -0400
+In-Reply-To: <20140626150615.GA15648@fox>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?iso-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
 
-On Tuesday 01 July 2014 01:52 AM, Stephen Warren wrote:
-> On 06/30/2014 09:57 AM, Nishanth Menon wrote:
->> Hi,
->> 	Original thread (v1): http://marc.info/?t=140380766500004&r=1&w=2
->> This series is based on: git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
->> branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
+Hi Guido,
+
+>From: Guido Mart=EDnez
+>>On Thu, Jun 26, 2014 at 03:40:44AM -0700, Tony Lindgren wrote:
+>> * Pekon Gupta <pekon@ti.com> [140624 05:26]:
+>> > +
+>> > +&gpmc {
+>> > +	ranges =3D <0 0 0 0x01000000>;	/* address range =3D 16MB (minimu=
+m GPMC partition) */
+>> > +	nand@0,0 {
+>> > +		status =3D "disabled";
+>> > +		reg =3D <0 0 4>;		/* device IO registers */
 >>
->> This series does a few cleanups to help ensure we dont make typo mistakes and finally provides a fix as attempted by (v1).
+>> Hmm so what about other capes potentially also using GPMC CS0?
 >>
->> Basic cpufreq tests performed on OMAP5uEVM, DRA7-evm, DRA72-evm all of which are palmas variants.
+>> Can you please do a check with two .dtsi files trying to use
+>> GPMC CS0 and see what the produced .dtb file looks like after
+>> decompiling it with dtc?
 >>
->> The patches are also available here: https://github.com/nmenon/linux-2.6-playground/commits/broonie-topic-palmas-fixes
-> The series,
-> Tested-by: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+>> I'd assume the 16MB GPMC partition will be just fine for many
+>> devices and can be also be larger if NOR needs it so maybe it
+>> can be handled for almost all the cases.
+>>
+>> The names for devices must be unique though to avoid them
+>> getting merged. And I don't know if gpmc.c skips disabled devices
+>> properly.
+>It doesn't. I've just sent a patch for it.
 >
-> (An NVIDIA Dalmore board boots and shuts down OK with these applied on
-> top of next-20140630, and various peripherals such as LCD panel, audio,
-> USB, and SPI flash all work)
-Tested the series on DRA72 board. Checked for all the regulator
-and SMPS states and voltages of TPS65917 PMIC.
+>http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/266966=
+=2Ehtml
+>
+I don't think we need above patch.
+Helper macro "for_each_available_child_of_node" internally takes care
+of skipping nodes with status=3D"disabled".
 
-Tested-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+$KERNEL/include/linux/of.h
+#define for_each_available_child_of_node(parent, child) \
+	for (child =3D of_get_next_available_child(parent, NULL); child !=3D N=
+ULL; \
+	     child =3D of_get_next_available_child(parent, child))
 
-Regards,
-Keerthy
+$KERNEL/drivers/of/base.c @@ of_get_next_available_child(...) {
+	...
+	if (!__of_device_is_available(next))
+			continue;
+	...
+
+
+with regards, pekon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
