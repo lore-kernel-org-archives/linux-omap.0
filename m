@@ -1,80 +1,39 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for
- beaglebone NAND cape
-Date: Tue, 1 Jul 2014 09:07:56 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF88FF@DBDE04.ent.ti.com>
-References: <1403612666-31197-1-git-send-email-pekon@ti.com>
- <1403612666-31197-2-git-send-email-pekon@ti.com>
- <20140626194824.GA18814@fox>
- <20980858CB6D3A4BAE95CA194937D5E73EAF8248@DBDE04.ent.ti.com>
- <20140701084709.GO28884@atomide.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: Re: [PATCH V4 00/16] irqchip: crossbar: Driver fixes
+Date: Tue, 1 Jul 2014 15:06:36 +0530
+Message-ID: <53B28124.40509@ti.com>
+References: <1403766634-18543-1-git-send-email-r.sricharan@ti.com> <20140630192910.GA23978@titan.lakedaemon.net> <20140701075930.GN28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49727 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510AbaGAJI1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Jul 2014 05:08:27 -0400
-In-Reply-To: <20140701084709.GO28884@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140701075930.GN28884@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jason Cooper <jason@lakedaemon.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, rnayak@ti.com, santosh.shilimkar@ti.com, joe@perches.com, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, =?utf-8?B?R3VpZG8gTWFydMOtbmV6?= <guido@vanguardiasur.com.ar>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
 
-PkZyb206IFRvbnkgTGluZGdyZW4gW21haWx0bzp0b255QGF0b21pZGUuY29tXQ0KPj4qIEd1cHRh
-LCBQZWtvbiA8cGVrb25AdGkuY29tPiBbMTQwNjI3IDE0OjA4XToNCj4+ID5Gcm9tOiBHdWlkbyBN
-YXJ0w61uZXogW21haWx0bzpndWlkb0B2YW5ndWFyZGlhc3VyLmNvbS5hcl0NCj4+ID4+T24gVHVl
-LCBKdW4gMjQsIDIwMTQgYXQgMDU6NTQ6MjRQTSArMDUzMCwgUGVrb24gR3VwdGEgd3JvdGU6DQo+
-Pg0KPj4gWy4uLl0NCj4+DQo+PiA+PiArJmdwbWMgew0KPj4gPj4gKwlyYW5nZXMgPSA8MCAwIDAg
-MHgwMTAwMDAwMD47CS8qIGFkZHJlc3MgcmFuZ2UgPSAxNk1CIChtaW5pbXVtIEdQTUMgcGFydGl0
-aW9uKSAqLw0KPj4gPj4gKwluYW5kQDAsMCB7DQo+PiA+PiArCQlzdGF0dXMgPSAiZGlzYWJsZWQi
-Ow0KPj4gPj4gKwkJcmVnID0gPDAgMCA0PjsJCS8qIGRldmljZSBJTyByZWdpc3RlcnMgKi8NCj4+
-ID4+ICsJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+PiA+PiArCQlwaW5jdHJsLTAgPSA8
-JmJiY2FwZV9uYW5kX2ZsYXNoX3BpbnM+Ow0KPj4gPlRoaXMgZG9lc24ndCBzZWVtIHRvIHdvcmsg
-YXMgcGluY3RybCBwcm9wZXJ0aWVzIGFyZSBub3QgcGFyc2VkIGZvcg0KPj4gPmNoaWxkcyBvZiB0
-aGUgZ3BtYyBub2RlLiBEaWQgdGhpcyB3b3JrIGZvciB5b3U/DQo+PiA+UHV0dGluZyB0aGlzIGlu
-IHRoZSBncG1jIG5vZGUgbWFrZXMgaXQgd29yaywgYnV0IGhvdyB3aWxsIHdlIGNvbnRyb2wNCj4+
-ID5waW5zIGZvciB0aGUgbmFuZCBhbmQgbm9yIGluZGVwZW5kZW50bHk/IEkgYmVsaWV2ZSB0aGVy
-ZSBpcyBjdXJyZW50bHkgbm8NCj4+ID5zdXBwb3J0IGZvciBtdXhpbmcgaW5kaXZpZHVhbCBncG1j
-IGRldmljZXMuIElmIHdlIHdhbnQgdG8gYWRkIGJvdGgNCj4+ID5kZXZpY2VzIHRvIHRoZSBEVCBh
-bmQgZW5hYmxlIHRoZW0gYXMgbmVlZGVkIHdlJ2QgbmVlZCB0byBhZGQgc3VwcG9ydCBmb3INCj4+
-ID50aGlzLCByaWdodD8NCj4+ID4NCj4+IFllcywgQW5kIHRoYXQgc2hvdWxkIGJlIHRoZSBjYXNl
-LCBiZWNhdXNlIGRpZmZlcmVudCBkZXZpY2VzIHdvdWxkIGJlDQo+PiBjb25uZWN0ZWQgdG8gZGlm
-ZmVyZW50IGNoaXAtc2VsZWN0cywgc28gdGhlcmUgc2hvdWxkIGJlIHN1cHBvcnQgb2YNCj4+IHBy
-b3ZpZGluZyBpbmRpdmlkdWFsIHBpbi1tdXggZm9yIGRpZmZlcmVudCBHUE1DIGRldmljZXMuDQo+
-Pg0KPj4gQ3VycmVudGx5IGJvdGggTkFORCBhbmQgTk9SIGNhcGUgc2hhcmUgR1BNQ19DUzAsIHNv
-IGJvdGggTkFORCBhbmQgTk9SDQo+PiBjYXBlcyB3aWxsIG5vdCB3b3JrIHNpbXVsdGFuZW91c2x5
-LiBCdXQgSSdtIHBsYW5uaW5nIHRvIG1vZGlmeSBOT1IgY2FwZQ0KPj4gaGFyZHdhcmUgYXQgbXkg
-ZW5kIHRvIHVzZSBHUE1DX0NTMSBpbnN0ZWFkIG9mIEdQTUNfQ1MwLg0KPj4gLSBOQU5EIG9uIEdQ
-TUNfQ1MwDQo+PiAtIE5PUiBvbiBHUE1DX0NTMQ0KPg0KPkhtbSBidXQgd2Ugc2hvdWxkIGhhdmUg
-dGhlc2Ugd29ya2luZyB3aXRoIGJvdGggdXNpbmcgQ1MwIHdpdGhvdXQNCj5hbnkgbmVlZCB0byBt
-b2RpZnkgdGhlIGhhcmR3YXJlIHRob3VnaD8NCj4NClllcywgYnV0IG9uZSBhdCBhIHRpbWUuIFRo
-YXQgbWVhbiBlaXRoZXIgb2YgJ05BTkQgY2FwZScgb3IgJ05PUiBjYXBlJy4NCklmIHlvdSBuZWVk
-IGJvdGggd29ya2luZyBzaW11bHRhbmVvdXNseSBhcyAyIHNlcGFyYXRlIGRldmljZXMgYXR0YWNo
-ZWQNCnRvIEdQTUMsIHRoZW4geW91IG5lZWQgMiBzZXBhcmF0ZSBjaGlwLXNlbGVjdHMsIHdoaWNo
-IGlzIHdoYXQgSSdtIHRyeWluZw0KdG8gdGVzdCB3aXRoIFsxXS4NCg0KDQo+SW4gdGhhdCBjYXNl
-IHdlIHNob3VsZCBtYWtlIHN1cmUgd2UgYWx3YXlzIHNldCBsYXJnZSBlbm91Z2ggR1BNQw0KPnBh
-cnRpdGlvbg0KWWVzLCB0aGlzIGlzIHRha2VuIGNhcmUgd2l0aCBpbnRyb2R1Y3Rpb24gb2YgTk9S
-IGNhcGUgaW4NCltQQVRDSCB2MSAyLzNdIEFSTTogZHRzOiBhbTMzNXgtYm9uZTogYWRkIHN1cHBv
-cnQgZm9yIGJlYWdsZWJvbmUgTk9SIGNhcGUNCiAmZ3BtYyB7DQotCXJhbmdlcyA9IDwwIDAgMCAw
-eDAxMDAwMDAwPjsJLyogYWRkcmVzcyByYW5nZSA9IDE2TUIgKG1pbmltdW0gR1BNQyBwYXJ0aXRp
-b24pICovDQorCXJhbmdlcyA9IDwwIDAgMHgwODAwMDAwMCAweDAxMDAwMDAwPjsJLyogYWRkcmVz
-cyBvZmZzZXQ9MTI4TUIsIHJhbmdlPTEyOE1iPTE2TUIgKi8NClRoaXMgR1BNQyBwYXJ0aXRpb24g
-c3VmZmljZXMgZm9yIGJvdGggTkFORCBhbmQgTk9SIHJlcXVpcmVtZW50cy4NCg0KPiBhbmQgdGhh
-dCB0aGUgcGlucyBhcmUgbXV4ZWQgZm9yIHRoZSBjb25uZWN0ZWQgR1BNQw0KPmRldmljZXMgb25s
-eS4NCj4NClBpbiBtdXggaXMgc29tZXRoaW5nIEkgbmVlZCB0byByZS13b3JrLCBiZWNhdXNlIGN1
-cnJlbnRseQ0KSSd2ZSB0ZXN0ZWQgZWl0aGVyIE5BTkQgb3IgTk9SIGluZGl2aWR1YWxseSwgbm90
-IHRvZ2V0aGVyLg0KDQpBbHNvIGFzIG1lbnRpb25lZCBhYm92ZSBieSBHdWlkbywgcGluLWN0cmwg
-cHJvcGVydHkgaXMgbm90IHBhcnNlZCBpbmRpdmlkdWFsbHkNCmZvciBHUE1DIGNoaWxkcmVuLCBJ
-bnN0ZWFkIHBpbi1jdHJsIGlzIHNldCBvbmNlIGZvciBHUE1DIGFzIGEgd2hvbGUuDQoNCkRvIHlv
-dSBoYXZlIGFueSBzdWdnZXN0aW9ucyBvbiBob3cgcGluLWN0cmwgc2hvdWxkIGJlIHNldCBpZiB3
-ZSBoYXZlDQptdWx0aXBsZSBkZXZpY2VzIGNvbm5lY3RlZCB0byBHUE1DIGxpa2U7DQpBbGwgdGhl
-c2UgZGV2aWNlcyB3aWxsIHNoYXJlOg0KLSBjb250cm9sIGxpbmVzIChncG1jX3dhaXQsIGdwbWNf
-YmVuX2NsZSwgZ3BtY19hZHZuX2FsZSwgZ3BtY193ZSwgZ3BtY19vZV9yZW4pDQotICpzb21lKiBk
-YXRhIGxpbmVzIChncG1jX2FkW10pDQotICpzb21lKiBhZGRyZXNzIGxpbmVzIChncG1jX2FbXSkN
-Ci0gYnV0IGNoaXAtc2VsZWN0cyB3aWxsIGJlIGRpZmZlcmVudDoNCglncG1jX2NzMDogTkFORA0K
-CWdwbWNfY3MxOiBOT1INCglncG1jX2NzMjogU01TQzkxeHgNCglncG1jX2NzMzogQ2FtZXJhDQoN
-Cg0Kd2l0aCByZWdhcmRzLCBQZWtvbg0KDQo+UmVnYXJkcywNCj4NCj5Ub255DQoNClsxXSBodHRw
-Oi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW9tYXAvbXNnMTA3OTUwLmh0bWwNCg==
+Hi Tony,
+
+On Tuesday 01 July 2014 01:29 PM, Tony Lindgren wrote:
+> * Jason Cooper <jason@lakedaemon.net> [140630 12:30]:
+>>
+>> Whole series applied to irqchip/crossbar, I'll give it a day or two in
+>> -next, then I'll merge it into irqchip/core.
+>>
+>> Tony: Right now, it's immutable unless you tell me I applied something
+>> incorrectly.  Once it goes into irqchip/core, it's immutable no matter
+>> what you say. ;-)
+> 
+> Thanks, looks good to me. Sricharan and Nishant, can you please
+> check that we can now apply the related .dts changes on top of
+> Jason's branch at:
+> 
+> git://git.infradead.org/users/jcooper/linux.git irqchip/crossbar
+> 
+
+I applied the dts patches on top of this and it worked fine for
+me on dra72 evm
+
+Regards,
+ Sricharan
