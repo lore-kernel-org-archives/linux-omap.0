@@ -1,46 +1,40 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Wed, 2 Jul 2014 14:25:56 -0500
-Message-ID: <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
-References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
-	<20140702160932.GF5541@saruman.home>
-	<20140702190944.GA567@drone.musicnaut.iki.fi>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCHv5 06/15] hwspinlock/omap: enable module before reading
+ SYSSTATUS register
+Date: Wed, 2 Jul 2014 14:38:04 -0500
+Message-ID: <53B45F9C.2040209@ti.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com> <1398904476-26200-7-git-send-email-s-anna@ti.com> <CAK=WgbaKPgLLw-4wCSToE86QrREDB0sK95TLx2y17d71eBPFbg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140702190944.GA567@drone.musicnaut.iki.fi>
+In-Reply-To: <CAK=WgbaKPgLLw-4wCSToE86QrREDB0sK95TLx2y17d71eBPFbg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 2, 2014 at 2:09 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> Hi,
->
-> On Wed, Jul 02, 2014 at 11:09:32AM -0500, Felipe Balbi wrote:
->> > It has been only tested as console UART.
->> > The tty name is ttyS based instead of ttyO. How big is the pain here,
->> > what could be the easiest way to provide compatibility?
+Hi Ohad,
+
+On 07/01/2014 07:51 AM, Ohad Ben-Cohen wrote:
+> Hi Suman,
+> 
+> On Thu, May 1, 2014 at 3:34 AM, Suman Anna <s-anna@ti.com> wrote:
+>> The number of hwspinlocks are determined based on the value read
+>> from the IP block's SYSSTATUS register. However, the module may
+>> not be enabled and clocked, and the read may result in a bus error.
 >>
->> have been considering that myself for months. You could pass an optional
->> argument to serial8250_register_8250_port() but that only solves part of
->> the problem :-(
->
-> When ttyS -> ttyO change was done on OMAP, compatibility was not an issue.
-> Why should we care about it now?
+>> This particular issue is seen rather easily on AM33XX, since the
+>> module wakeup is software controlled, and it is disabled out of
+>> reset. Make sure the module is enabled and clocked before reading
+>> the SYSSTATUS register.
+> 
+> This seems like a valid fix that is independent of this patch series.
+> 
+> Feel free to submit it separately if you want, so we can get it merged.
+> 
 
-It would be a good opportunity to force everyone to update their bootloader. ;)
+OK, I will submit this patch and Patch 7 separately.
 
-Besides the BeagleBoard forum is quiet now, no one is complaining
-about that old (ttyS -> ttyO) transition anymore..
-
-I'll just end up carrying a patch like, to support bb.org users over
-the transition..
-
-https://github.com/RobertCNelson/stable-kernel/blob/v3.7.x/patches/omap_beagle/0004-zeroMAP-Open-your-eyes.patch
-
-Regards,
-
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+regards
+Suman
