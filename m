@@ -1,98 +1,94 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Tue, 1 Jul 2014 22:22:49 -0500
-Message-ID: <20140702032249.GA26010@saruman.home>
-References: <1402676147-3711-1-git-send-email-balbi@ti.com>
- <1402676147-3711-2-git-send-email-balbi@ti.com>
- <20140613162323.GH8319@saruman.home>
- <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
-Reply-To: <balbi@ti.com>
+From: "Mark A. Greer" <mgreer-luAo+O/VEmrlveNOaEYElw@public.gmane.org>
+Subject: [PATCH] spi: omap2-mcspi: Configure hardware when slave driver changes mode
+Date: Tue,  1 Jul 2014 20:28:32 -0700
+Message-ID: <1404271712-669-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Mark A. Greer" <mgreer-luAo+O/VEmrlveNOaEYElw@public.gmane.org>, =?UTF-8?q?Stefan=20S=C3=B8rensen?= <stefan.sorensen-usnHOLptxrsHrNJx0XZkJA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Commit id 2bd16e3e23d9df41592c6b257c59b6860a9cc3ea
+(spi: omap2-mcspi: Do not configure the controller
+on each transfer unless needed) does its job too
+well so omap2_mcspi_setup_transfer() isn't called
+even when an SPI slave driver changes 'spi->mode'.
+The result is that the mode requested by the SPI
+slave driver never takes effect.
 
-Hi,
+=46ix this by adding the 'mode' member to the
+omap2_mcspi_cs structure which holds the mode
+value that the hardware is configured for.
+When the SPI slave driver changes 'spi->mode'
+it will be different than the value of this new
+member and the SPI master driver will know that
+the hardware must be reconfigured (by calling
+omap2_mcspi_setup_transfer()).
 
-On Fri, Jun 13, 2014 at 07:11:58PM +0000, Paul Walmsley wrote:
-> Hi Felipe, Tomi,
->=20
-> On Fri, 13 Jun 2014, Felipe Balbi wrote:
->=20
-> > On Fri, Jun 13, 2014 at 11:15:46AM -0500, Felipe Balbi wrote:
-> > > From: Sathya Prakash M R <sathyap@ti.com>
-> > >=20
-> > > Add DSS hwmod data for AM43xx.
-> > >=20
-> > > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > > Acked-by: Rajendra Nayak <rnayak@ti.com>
-> > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > ---
-> > >=20
-> > > Note that this patch was originally send on May 9th [1], changes were=
- requested
-> > > and a new version was sent on May 19th [2], then on May 27th [3] Tomi=
- pinged
-> > > maintainer again and go no response.
-> > >=20
-> > > Without this patch, we cannot get display working on any AM437x devic=
-es.
-> > >=20
-> > > [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D139963677925227&w=3D2
-> > > [2] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140049799425512&w=3D2
-> > > [3] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140117232826754&w=3D2
-> > >=20
-> > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++++=
-++++++++++
-> > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
-> > >  2 files changed, 99 insertions(+)
->=20
-> Sorry for the delay on this.  Have been corresponding with TI management=
+CC: Stefan S=C3=B8rensen <stefan.sorensen-usnHOLptxrsHrNJx0XZkJA@public.gmane.org>
+Signed-off-by: Mark A. Greer <mgreer-luAo+O/VEmrlveNOaEYElw@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcsp=
+i.c
+index 4dc77df..68441fa 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -149,6 +149,7 @@ struct omap2_mcspi_cs {
+ 	void __iomem		*base;
+ 	unsigned long		phys;
+ 	int			word_len;
++	u16			mode;
+ 	struct list_head	node;
+ 	/* Context save and restore shadow register */
+ 	u32			chconf0, chctrl0;
+@@ -926,6 +927,8 @@ static int omap2_mcspi_setup_transfer(struct spi_de=
+vice *spi,
 =20
-> to figure out what to do about patches for AM43xx.  I don't have boards o=
-r=20
-> public documentation for these devices, so it's impossible for me to=20
-
-documentation is now available publicly
-
-http://www.ti.com/product/AM4379
-
+ 	mcspi_write_chconf0(spi, l);
+=20
++	cs->mode =3D spi->mode;
++
+ 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
+ 			speed_hz,
+ 			(spi->mode & SPI_CPHA) ? "trailing" : "leading",
+@@ -998,6 +1001,7 @@ static int omap2_mcspi_setup(struct spi_device *sp=
+i)
+ 			return -ENOMEM;
+ 		cs->base =3D mcspi->base + spi->chip_select * 0x14;
+ 		cs->phys =3D mcspi->phys + spi->chip_select * 0x14;
++		cs->mode =3D 0;
+ 		cs->chconf0 =3D 0;
+ 		cs->chctrl0 =3D 0;
+ 		spi->controller_state =3D cs;
+@@ -1079,6 +1083,16 @@ static void omap2_mcspi_work(struct omap2_mcspi =
+*mcspi, struct spi_message *m)
+ 	cs =3D spi->controller_state;
+ 	cd =3D spi->controller_data;
+=20
++	/*
++	 * The slave driver could have changed spi->mode in which case
++	 * it will be different from cs->mode (the current hardware setup).
++	 * If so, set par_override (even though its not a parity issue) so
++	 * omap2_mcspi_setup_transfer will be called to configure the hardwar=
+e
++	 * with the correct mode on the first iteration of the loop below.
++	 */
++	if (spi->mode !=3D cs->mode)
++		par_override =3D 1;
++
+ 	omap2_mcspi_set_enable(spi, 0);
+ 	list_for_each_entry(t, &m->transfers, transfer_list) {
+ 		if (t->tx_buf =3D=3D NULL && t->rx_buf =3D=3D NULL && t->len) {
 --=20
-balbi
+1.9.0
 
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTs3sJAAoJEIaOsuA1yqRErJkP/0IUeyJWfszabOTT5qEemT4r
-WoZLGpEPgkdttLrFFg6XSFwFTXYWPLGchPTnqS1l521n9nYpWS+duf5Z9rkyq7VZ
-J+UdysY0k1RfwNpDg1gfbDMBKO9PIXBNfaK5FRfGpW+r7WA7W36/jIi+4YH8qdMA
-yO24nxXoP/OtJH8QrTnzjZ8Z7L7cv5krdmMXUqS/AlYpLZyKXRgZMWZFFfq4anpr
-Wqqis2jSRa7p7Lr0wrB+lCDiV6gzxqwQ/7nO0uAD/VuwG0CoxlGWb7thjr8yYODv
-Lu+ieq/E8P3/q/IITPO0/IzcUmt89DSHbzur+ZCIfoenHfMeb2sB9X9K1frUZOhJ
-LNUmBmQAADw6QwGCSz/Op4qnD4qNtgvneUfDbySSVQAnf5ihLg+AXuBNCfp/GeCv
-AwjYwNvVgUuV2mqP9iOVoHReDzmZJMXVqn5jUiZMYIvqu43Ka2LXZb1CvUhjU8Fr
-sBadYqmppfIvJdQ3nXIOy/YXVBW1ewEBbwvaSDY8koeSG00Cq4LeimIzwa9A/Qf5
-yE5gXonA/ATZUO4nSD3XVTJFEm6KB2qWggd/liLCOzFv1RvS+v0BFz2R46W4Xf2Z
-5iYlmcPzX/YB8bVXudr4+636Kke04ejQo1c0FetTZ50ennc0H6Tv+ZMBUZr2cB4c
-L47l6y44dpynS3x8vVyW
-=qBjV
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
