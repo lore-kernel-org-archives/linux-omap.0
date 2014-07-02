@@ -1,67 +1,66 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 1/8] CLK: ti: dra7: Initialize USB_DPLL
-Date: Wed, 2 Jul 2014 17:23:30 +0300
-Message-ID: <53B415E2.9090203@ti.com>
-References: <1394197751-28984-1-git-send-email-rogerq@ti.com> <1394197751-28984-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/6] ARM: dts: dra7-evm: Make VDDA_1V8_PHY supply always
+ on
+Date: Wed, 2 Jul 2014 17:37:00 +0300
+Message-ID: <53B4190C.6040709@ti.com>
+References: <1404302638-3003-1-git-send-email-rogerq@ti.com> <1404302638-3003-2-git-send-email-rogerq@ti.com> <53B403AF.60505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1394197751-28984-2-git-send-email-rogerq@ti.com>
+In-Reply-To: <53B403AF.60505@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, balbi@ti.com, tony@atomide.com
-Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+To: Nishanth Menon <nm@ti.com>, tony@atomide.com, kishon@ti.com, balbi@ti.com
+Cc: nsekhar@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/07/2014 03:09 PM, Roger Quadros wrote:
-> USB_DPLL must be initialized and locked at boot so that
-> USB modules can work.
->
-> Also program USB_DLL_M2 output to half rate.
->
-> CC: Mike Turquette <mturquette@linaro.org>
-> CC: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->   drivers/clk/ti/clk-7xx.c | 11 +++++++++++
->   1 file changed, 11 insertions(+)
+On 07/02/2014 04:05 PM, Nishanth Menon wrote:
+> On 07/02/2014 07:03 AM, Roger Quadros wrote:
+>> After clarification from the hardware team it was found that
+>> this 1.8V PHY supply can't be switched OFF when SoC is Active.
+>> It can only be switched off when in PORz (power on reset).
+> 
+> I dont think folks know the reasoning why hardware team decided that
+> the voltage rail cannot be switched off -> I suggest adding the
+> following information as well.
+> 
+> Since isolation is not present in the design for these PHY IPs to
+> allow for the PHY rail to be switched off, there is a very high risk
+> of IP reliability and additional leakage paths which can result in
+> additional power consumption.
+> 
+> Only scenario where this rail can be switched off is part of Power on
+> reset sequencing, but it needs to be kept always-on during operation.
 
-Hi,
+This sort of information should be in the TRM instead, but doesn't harm to be in the commit message so I'll do that.
+Thanks.
 
-Resurrecting this patch, as it seems the clock-parenting stuff via DT 
-hasn't really moved that much forward.
-
-Thus, this patch has been now queued for 3.17, thanks.
-
--Tero
-
->
-> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-> index 9977653..f89f3c2 100644
-> --- a/drivers/clk/ti/clk-7xx.c
-> +++ b/drivers/clk/ti/clk-7xx.c
-> @@ -18,6 +18,7 @@
->
->   #define DRA7_DPLL_ABE_DEFFREQ				361267200
->   #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
-> +#define DRA7_DPLL_USB_DEFFREQ				960000000
->
->
->   static struct ti_dt_clk dra7xx_clks[] = {
-> @@ -328,5 +329,15 @@ int __init dra7xx_dt_clk_init(void)
->   	if (rc)
->   		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
->
-> +	dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
-> +	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
-> +	if (rc)
-> +		pr_err("%s: failed to configure USB DPLL!\n", __func__);
-> +
-> +	dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
-> +	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
-> +	if (rc)
-> +		pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
-> +
->   	return rc;
->   }
->
+cheers,
+-roger
+> 
+>>
+>> This patch is required for proper functionality of USB, SATA
+>> and PCIe on DRA7-evm.
+>>
+>> CC: Rajendra Nayak <rnayak@ti.com>
+>> CC: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  arch/arm/boot/dts/dra7-evm.dts | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+>> index 4adc280..8308954 100644
+>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>> @@ -240,6 +240,7 @@
+>>  					regulator-name = "ldo3";
+>>  					regulator-min-microvolt = <1800000>;
+>>  					regulator-max-microvolt = <1800000>;
+>> +					regulator-always-on;
+>>  					regulator-boot-on;
+>>  				};
+>>  
+>>
+> 
+> 
