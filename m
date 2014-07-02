@@ -1,35 +1,75 @@
-From: Tomas Novotny <tomas@novotny.cz>
-Subject: Pixel clock property from DT is not used in OMAP DRM
-Date: Wed, 2 Jul 2014 13:15:17 +0200
-Message-ID: <20140702131517.14ec38c0@tomas.local.tbs-biometrics.cz>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 5/7] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+Date: Wed, 2 Jul 2014 14:26:03 +0300
+Message-ID: <53B3EC4B.9080202@ti.com>
+References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-6-git-send-email-rogerq@ti.com> <53A173A5.7020509@ti.com> <53A175DC.8080709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kazi.fit.vutbr.cz ([147.229.8.12]:62945 "EHLO kazi.fit.vutbr.cz"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60721 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751381AbaGBLZN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jul 2014 07:25:13 -0400
+	id S1751834AbaGBL0L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jul 2014 07:26:11 -0400
+In-Reply-To: <53A175DC.8080709@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, dri-devel@lists.freedesktop.org
+To: "Nori, Sekhar" <nsekhar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com, "Menon, Nishanth" <nm@ti.com>, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-	Hi all,
+Sekhar,
 
-I was trying to bring up parallel LCD on our custom board (similar to
-BeagleBoard-xM) and I did it finally - but I needed to tweak hardcoded value
-of 'Invert pixel clock'. Maybe I'm doing something wrong, but anyway:
-	According to the display-timing.txt doc the 'pixelclk-active' DT
-optional property is here. But this is not honored (through IPC bit of
-DISPC_POL_FREQ register). The problem is that this property is hardcoded in 
-copy_timings_drm_to_omap() in file drivers/gpu/drm/omapdrm/omap_connector.c
-on that line:
-timings->data_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
-	Other optional properties (ie. [hv]sync-active) are taken into the
-account.
-	I'm using 3.16-rc1 kernel from Tony's OMAP tree.
-	Thanks and regards,
+On 06/18/2014 02:19 PM, Rajendra Nayak wrote:
+> On Wednesday 18 June 2014 04:40 PM, Roger Quadros wrote:
+>> + Nishant and Rajendra for review.
+>>
+>> On 05/05/2014 12:54 PM, Roger Quadros wrote:
+>>> Add the sysconfig class bits for the Super Speed USB
+>>> controllers
+>>>
+>>> CC: Paul Walmsley <paul@pwsan.com>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> 
+> verified against TRM version vP, looks good to me.
+> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 
-	Tomas
-	
-	
+Could you please give your Tested-by tag for this? Then we can take this into 3.16-rc.
+Thanks.
+
+cheers,
+-roger
+
+> 
+>>> ---
+>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 12 ++++++++++++
+>>>  1 file changed, 12 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> index 810c205..067d322 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> @@ -1731,8 +1731,20 @@ static struct omap_hwmod dra7xx_uart6_hwmod = {
+>>>   *
+>>>   */
+>>>  
+>>> +static struct omap_hwmod_class_sysconfig dra7xx_usb_otg_ss_sysc = {
+>>> +	.rev_offs	= 0x0000,
+>>> +	.sysc_offs	= 0x0010,
+>>> +	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
+>>> +			   SYSC_HAS_SIDLEMODE),
+>>> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>>> +			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
+>>> +			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
+>>> +	.sysc_fields	= &omap_hwmod_sysc_type2,
+>>> +};
+>>> +
+>>>  static struct omap_hwmod_class dra7xx_usb_otg_ss_hwmod_class = {
+>>>  	.name	= "usb_otg_ss",
+>>> +	.sysc	= &dra7xx_usb_otg_ss_sysc,
+>>>  };
+>>>  
+>>>  /* usb_otg_ss1 */
+>>>
+>>
+> 
+
