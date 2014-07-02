@@ -1,45 +1,60 @@
-From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2 0/6] regulator: palmas: cleanup and fixes
-Date: Wed, 2 Jul 2014 10:45:39 +0530
-Message-ID: <53B3957B.40006@ti.com>
-References: <1404143859-8160-1-git-send-email-nm@ti.com>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: [PATCH v1 1/3] ARM: dts: am335x-bone: add support for
+ beaglebone NAND cape
+Date: Wed, 2 Jul 2014 05:29:25 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAF8D33@DBDE04.ent.ti.com>
+References: <1403612666-31197-1-git-send-email-pekon@ti.com>
+ <1403612666-31197-2-git-send-email-pekon@ti.com>
+ <20140626104044.GJ28884@atomide.com> <20140626150615.GA15648@fox>
+ <20980858CB6D3A4BAE95CA194937D5E73EAF8874@DBDE04.ent.ti.com>
+ <20140701234219.GA27789@fox>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1404143859-8160-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60049 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750808AbaGBF36 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 01:29:58 -0400
+In-Reply-To: <20140701234219.GA27789@fox>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?iso-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mtd <linux-mtd@lists.infradead.org>, Jason Kridner <jkridner@gmail.com>, Robert Nelson <robertcnelson@gmail.com>
 
-On Monday 30 June 2014 09:27 PM, Nishanth Menon wrote:
-> Hi,
-> 	Original thread (v1): http://marc.info/?t=140380766500004&r=1&w=2
-> This series is based on: git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git
-> branch: topic/palmas (4c0c9ca Merge remote-tracking branch 'regulator/fix/palmas' into regulator-palmas)
+>From: Guido Mart=EDnez [mailto:guido@vanguardiasur.com.ar]
+>>On Tue, Jul 01, 2014 at 07:01:03AM +0000, Gupta, Pekon wrote:
+>> >http://lists.infradead.org/pipermail/linux-arm-kernel/2014-June/266=
+966.html
+>> >
+>> I don't think we need above patch.
+>> Helper macro "for_each_available_child_of_node" internally takes car=
+e
+>> of skipping nodes with status=3D"disabled".
+>>
+>> $KERNEL/include/linux/of.h
+>> #define for_each_available_child_of_node(parent, child) \
+>> 	for (child =3D of_get_next_available_child(parent, NULL); child !=3D=
+ NULL; \
+>> 	     child =3D of_get_next_available_child(parent, child))
+>>
+>> $KERNEL/drivers/of/base.c @@ of_get_next_available_child(...) {
+>> 	...
+>> 	if (!__of_device_is_available(next))
+>> 			continue;
+>> 	...
+>Yes, that's why I suggest using that macro. It's not currently used
+>in gpmc.c and my patch changes the 'for_each_child_of_node' to a
+>'for_each_available_child_of_node'. Or am I missing something?
 >
-> This series does a few cleanups to help ensure we dont make typo mistakes and finally provides a fix as attempted by (v1).
->
-> Basic cpufreq tests performed on OMAP5uEVM, DRA7-evm, DRA72-evm all of which are palmas variants.
->
-> The patches are also available here: https://github.com/nmenon/linux-2.6-playground/commits/broonie-topic-palmas-fixes
-> 		
-For the series:
+Oops my bad. I was probably dreaming, I already had your patch in my tr=
+ee
+before reviewing the code. So please ignore my previous email.
 
-  Acked-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->       
-> Nishanth Menon (6):
->    regulator: palmas: Squelch sparse warnings
->    regulator: palmas: Rename reg_info to palmas_reg_info
->    regulator: palmas: Simplify code by using pointer to palmas_reg_info
->    regulator: palmas: Rename palmas_regs_info to
->      palmas_generic_regs_info
->    regulator: palmas: Simplify code by not indexing regulator_desc
->      unnecessarily
->    regulator: palmas: Fix SMPS enable/disable/is_enable for tps65917
->
->   drivers/regulator/palmas-regulator.c |  344 ++++++++++++++++------------------
->   include/linux/mfd/palmas.h           |    4 +-
->   2 files changed, 166 insertions(+), 182 deletions(-)
->
+with regards, pekon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
