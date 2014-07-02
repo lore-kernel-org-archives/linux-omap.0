@@ -1,53 +1,76 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
-Date: Wed, 2 Jul 2014 17:01:04 +0530
-Message-ID: <53B3ED78.1070608@ti.com>
-References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3] ARM: dts: am335x-evmsk: enable display and lcd panel
+ support
+Date: Wed, 2 Jul 2014 04:50:10 -0700
+Message-ID: <20140702115010.GW28884@atomide.com>
+References: <1404248420-10086-1-git-send-email-detheridge@ti.com>
+ <20140701210812.GN13396@saruman.home>
+ <20140702074508.GT28884@atomide.com>
+ <53B3E731.5030604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <E1X20Rs-00082S-KI-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Gleb Natapov <gleb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Hans Ulli Kroll <ulli.kroll-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>Haojian Zhuang <h>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60034 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751252AbaGBLuM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 07:50:12 -0400
+Content-Disposition: inline
+In-Reply-To: <53B3E731.5030604@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Darren Etheridge <detheridge@ti.com>, bcousson@baylibre.com, wsa@sang-engineering.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 01 July 2014 09:28 PM, Russell King wrote:
-> ARMv6 and greater introduced a new instruction ("bx") which can be used
-> to return from function calls.  Recent CPUs perform better when the
-> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
-> and this sequence is strongly recommended to be used by the ARM
-> architecture manual (section A.4.1.1).
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [140702 04:06]:
+> On 02/07/14 10:45, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi@ti.com> [140701 14:10]:
+> >> Hi,
+> >>
+> >> On Tue, Jul 01, 2014 at 04:00:20PM -0500, Darren Etheridge wrote:
+> >>> Add the necessary nodes to enable the LCD controller and the
+> >>> LCD panel that is attached to the Texas Instruments AM335x
+> >>> EVMSK platform.  Also setup the necessary pin mux within the
+> >>> DT file to drive the LCD connector and add the correct
+> >>> pinmux settings for the lcd pins to be configured to when
+> >>> the SoC goes into sleep state for the minimum power
+> >>> consumption.
+> >>>
+> >>> For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
+> >>> this corresponds to switching the pins into input GPIO's with
+> >>> an internal pulldown.  Which has been determined to offer the
+> >>> lowest power solution vs leaving the pins configured in LCD
+> >>> mode.
+> >>>
+> >>> Signed-off-by: Darren Etheridge <detheridge@ti.com>
+> >>> Acked-by: Wolfram Sang <wsa@sang-engineering.com>
+> >>
+> >> Tested-by: Felipe Balbi <balbi@ti.com>
+> >>
+> >> serial console capture: http://slexy.org/view/s200thiMb3
+> >>
+> >> note that v2 has been pending since May 9th:
+> >> http://marc.info/?l=linux-omap&m=139966159102339&w=2
+> >>
+> >>> ---
+> >>> Tony, Benoit,
+> >>>
+> >>> I didn't see this patch get applied anywhere, so I updated it and I am
+> >>> resending it.  Please let me know if you need any more info before you will
+> >>> apply it.
+> > 
+> > Tomi, do you want to ack this one or want to queue the panel .dts
+> > changes into a separate branch?
 > 
-> We provide a new macro "ret" with all its variants for the condition
-> code which will resolve to the appropriate instruction.
+> I don't really have experience with the LCDC used on AM335x SoC (it
+> doesn't have DSS), but the patch looks ok, so for what it's worth:
 > 
-> Rather than doing this piecemeal, and miss some instances, change all
-> the "mov pc" instances to use the new macro, with the exception of
-> the "movs" instruction and the kprobes code.  This allows us to detect
-> the "mov pc, lr" case and fix it up - and also gives us the possibility
-> of deploying this for other registers depending on the CPU selection.
+> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 > 
-> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+> I don't have any .dts changes queued, so I think it's better if you pick
+> it up.
 
-> ---
+OK thanks applying into omap-for-v3.17/dt.
 
->  arch/arm/mach-davinci/sleep.S            |  2 +-
+Regards,
 
-I build, boot and suspend-to-RAM tested on DA850 which should exercise
-the path you modified. DaVinci devices are ARMv5 (ARM926) so the new bx
-instruction does not really get used.
-
-Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-
-Thanks,
-Sekhar
+Tony
