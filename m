@@ -1,82 +1,99 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 09/13] ARM: OMAP2+: clock/dpll: add jitter correction behind clk_features
-Date: Wed, 2 Jul 2014 11:47:43 +0300
-Message-ID: <1404290867-6768-10-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 05/13] ARM: OMAP2+: clock: introduce ti_clk_features flags
+Date: Wed, 2 Jul 2014 11:47:39 +0300
+Message-ID: <1404290867-6768-6-git-send-email-t-kristo@ti.com>
 References: <1404290867-6768-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39733 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39730 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751825AbaGBIsH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jul 2014 04:48:07 -0400
+	id S1752005AbaGBIsD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jul 2014 04:48:03 -0400
 In-Reply-To: <1404290867-6768-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, mturquette@linaro.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Currently DPLL code uses runtime cpu_is_343x checks to see if the DPLL
-has freqsel fields in its control register or not. Instead, add a new
-flag to the clk_features.flags and use this during runtime. Allows
-eventual move of the DPLL code under clock driver.
+This shall be used to replace the cpu type checks around the clock code.
+Actual bit values will be introduced in patches later.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clock.c    |    4 ++++
- arch/arm/mach-omap2/clock.h    |    3 +++
- arch/arm/mach-omap2/dpll3xxx.c |    4 ++--
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock.c |   14 ++++++++++++++
+ arch/arm/mach-omap2/clock.h |   10 ++++++++++
+ arch/arm/mach-omap2/io.c    |    2 ++
+ 3 files changed, 26 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index e438437..23b5f05 100644
+index 591581a..7897053 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -784,4 +784,8 @@ void __init ti_clk_init_features(void)
- 			(1 << OMAP4XXX_EN_DPLL_FRBYPASS) |
- 			(1 << OMAP4XXX_EN_DPLL_MNBYPASS);
- 	}
+@@ -47,6 +47,11 @@
+ u16 cpu_mask;
+ 
+ /*
++ * Clock features setup. Used instead of CPU type checks.
++ */
++struct ti_clk_features ti_clk_features;
 +
-+	/* Jitter correction only available on OMAP343X */
-+	if (cpu_is_omap343x())
-+		ti_clk_features.flags |= TI_CLK_DPLL_HAS_FREQSEL;
++/*
+  * clkdm_control: if true, then when a clock is enabled in the
+  * hardware, its clockdomain will first be enabled; and when a clock
+  * is disabled in the hardware, its clockdomain will be disabled
+@@ -731,3 +736,12 @@ void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
+ 		(clk_get_rate(core_ck) / 1000000),
+ 		(clk_get_rate(mpu_ck) / 1000000));
  }
++
++/**
++ * ti_clk_init_features - init clock features struct for the SoC
++ *
++ * Initializes the clock features struct based on the SoC type.
++ */
++void __init ti_clk_init_features(void)
++{
++}
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 7b2b099..d3ef147 100644
+index e29f982..9b89cc0 100644
 --- a/arch/arm/mach-omap2/clock.h
 +++ b/arch/arm/mach-omap2/clock.h
-@@ -234,6 +234,9 @@ struct ti_clk_features {
- 	long fint_band2_min;
- 	u8 dpll_bypass_vals;
- };
-+
-+#define TI_CLK_DPLL_HAS_FREQSEL		(1 << 0)
-+
- extern struct ti_clk_features ti_clk_features;
+@@ -223,6 +223,14 @@ void omap2_clk_writel(u32 val, struct clk_hw_omap *clk, void __iomem *reg);
  
+ extern u16 cpu_mask;
+ 
++/*
++ * Clock features setup. Used instead of CPU type checks.
++ */
++struct ti_clk_features {
++	u32 flags;
++};
++extern struct ti_clk_features ti_clk_features;
++
  extern const struct clkops clkops_omap2_dflt_wait;
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 6d7ba37..12ad0f5 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -310,7 +310,7 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
- 	 * Set jitter correction. Jitter correction applicable for OMAP343X
- 	 * only since freqsel field is no longer present on other devices.
- 	 */
--	if (cpu_is_omap343x()) {
-+	if (ti_clk_features.flags & TI_CLK_DPLL_HAS_FREQSEL) {
- 		v = omap2_clk_readl(clk, dd->control_reg);
- 		v &= ~dd->freqsel_mask;
- 		v |= freqsel << __ffs(dd->freqsel_mask);
-@@ -512,7 +512,7 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
- 			return -EINVAL;
+ extern const struct clkops clkops_dummy;
+ extern const struct clkops clkops_omap2_dflt;
+@@ -261,4 +269,6 @@ extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
  
- 		/* Freqsel is available only on OMAP343X devices */
--		if (cpu_is_omap343x()) {
-+		if (ti_clk_features.flags & TI_CLK_DPLL_HAS_FREQSEL) {
- 			freqsel = _omap3_dpll_compute_freqsel(clk,
- 						dd->last_rounded_n);
- 			WARN_ON(!freqsel);
+ extern void omap_clocks_register(struct omap_clk *oclks, int cnt);
++
++void __init ti_clk_init_features(void);
+ #endif
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 8f55945..1fae5c1 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -728,6 +728,8 @@ int __init omap_clk_init(void)
+ 	if (!omap_clk_soc_init)
+ 		return 0;
+ 
++	ti_clk_init_features();
++
+ 	ret = of_prcm_init();
+ 	if (!ret)
+ 		ret = omap_clk_soc_init();
 -- 
 1.7.9.5
 
