@@ -1,78 +1,46 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [RESEND 0/2] clk: Support for Palmas clk32kg and clk32kgaudio clocks
-Date: Tue, 01 Jul 2014 21:53:20 -0700
-Message-ID: <20140702045320.23338.25@quantum>
-References: <1403848871-26519-1-git-send-email-peter.ujfalusi@ti.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
+Date: Wed, 2 Jul 2014 13:10:27 +0800
+Message-ID: <20140702051026.GD16176@dragon>
+References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1403848871-26519-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, grant.likely@linaro.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ldewangan@nvidia.com, linux-doc@vger.kernel.org, nm@ti.com, robh+dt@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Andrew Lunn <andrew@lunn.ch>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, linux-tegra@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, kvmarm@lists.cs.columbia.edu, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Herbert Xu <herbert@gondor.apana.org.au>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Magnus Damm <magnus.damm@gmail.com>, Gleb Natapov <gleb@kernel.org>, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Marc Zyngier <marc.zyngier@arm.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Simon Horman <horms@verge.net.au>, Ben Dooks <ben-linux@fluff.org>
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Peter Ujfalusi (2014-06-26 23:01:09)
-> Hi Mike,
+On Tue, Jul 01, 2014 at 04:58:24PM +0100, Russell King wrote:
+> ARMv6 and greater introduced a new instruction ("bx") which can be used
+> to return from function calls.  Recent CPUs perform better when the
+> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
+> and this sequence is strongly recommended to be used by the ARM
+> architecture manual (section A.4.1.1).
 > 
-> This is a resend of the v2 version of the palmas clock driver which seamingly
-> missed the 3.16 merge window. I have added Nishanth's Reviewed-by tag to the
-> patches.
-
-Thanks for the resend. Applied to clk-next.
-
-Regards,
-Mike
-
+> We provide a new macro "ret" with all its variants for the condition
+> code which will resolve to the appropriate instruction.
 > 
-> Changes since v1:
-> - binding documentation and driver has been separated based on Nishanth Menon's
->   comment
+> Rather than doing this piecemeal, and miss some instances, change all
+> the "mov pc" instances to use the new macro, with the exception of
+> the "movs" instruction and the kprobes code.  This allows us to detect
+> the "mov pc, lr" case and fix it up - and also gives us the possibility
+> of deploying this for other registers depending on the CPU selection.
 > 
-> v2 of the series:
-> https://lkml.org/lkml/2014/5/6/323
-> 
-> v1 of the driver can be found:
-> https://lkml.org/lkml/2014/4/3/104
-> 
-> Palmas class of devices can provide 32K clock(s) to be used by other devices
-> on the board. Depending on the actual device the provided clocks can be:
-> CLK32K_KG and CLK32K_KGAUDIO
-> or only one:
-> CLK32K_KG (TPS659039 for example)
-> 
-> Use separate compatible flags for the two 32K clock.
-> A system which needs or have only one of the 32k clock from
-> Palmas will need to add node(s) for each clock as separate section
-> in the dts file.
-> The two compatible property is:
-> "ti,palmas-clk32kg" for clk32kg clock
-> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
-> 
-> Apart from the register control of the clocks - which is done via
-> the clock API there is a posibility to enable the external sleep
-> control. In this way the clock can be enabled/disabled on demand by the
-> user of the clock.
-> 
-> Regards,
-> Peter
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 > ---
-> Peter Ujfalusi (2):
->   dt/bindings: Binding documentation for Palmas clk32kg and clk32kgaudio
->     clocks
->   clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
-> 
->  .../bindings/clock/clk-palmas-clk32kg-clocks.txt   |  35 +++
->  drivers/clk/Kconfig                                |   7 +
->  drivers/clk/Makefile                               |   1 +
->  drivers/clk/clk-palmas.c                           | 307 +++++++++++++++++++++
->  include/dt-bindings/mfd/palmas.h                   |  18 ++
->  5 files changed, 368 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/clock/clk-palmas-clk32kg-clocks.txt
->  create mode 100644 drivers/clk/clk-palmas.c
->  create mode 100644 include/dt-bindings/mfd/palmas.h
-> 
-> -- 
-> 2.0.0
-> 
+...
+>  arch/arm/mach-imx/suspend-imx6.S         |  5 ++--
+
+Tested-by: Shawn Guo <shawn.guo@freescale.com>
