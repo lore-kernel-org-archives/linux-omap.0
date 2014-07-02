@@ -1,82 +1,67 @@
-From: Darren Etheridge <detheridge@ti.com>
-Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
-Date: Tue, 1 Jul 2014 21:31:13 -0500
-Message-ID: <53B36EF1.8060200@ti.com>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
- <53ADEB73.8090301@ti.com> <20140701233958.GA31549@fox>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
+ (part1)
+Date: Tue, 01 Jul 2014 23:17:22 -0400 (EDT)
+Message-ID: <alpine.LFD.2.11.1407012314100.16842@knanqh.ubzr>
+References: <E1X20mL-00083I-Sv@rmk-PC.arm.linux.org.uk>
+ <yw1x4mz1f2t9.fsf@unicorn.mansr.com>
+ <20140701171346.GP3705@n2100.arm.linux.org.uk>
+ <yw1xzjgtdmas.fsf@unicorn.mansr.com> <20140701173547.GW28164@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20140701233958.GA31549@fox>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: =?ISO-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>
-Cc: Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel@lists.freedesktop.org, Daniel Mack <zonque@gmail.com>, =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <ezequiel@vanguardiasur.com.ar>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed; boundary="Boundary_(ID_mgw8uSma0Mmji5Peh3Zp8w)"
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-reply-to: <20140701173547.GW28164@arm.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: =?ISO-8859-15?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/01/2014 06:39 PM, Guido Mart=EDnez wrote:
-> On Fri, Jun 27, 2014 at 05:08:51PM -0500, Darren Etheridge wrote:
->> [snip]
->>
->> Otherwise I think this is a good and useful patch series.
-> It that a Tested-by tag? :)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Sure - I would prefer that the WARN_ON was silenced when the tilcdc =
+--Boundary_(ID_mgw8uSma0Mmji5Peh3Zp8w)
+Content-type: TEXT/PLAIN; charset=iso-8859-1
+Content-transfer-encoding: 8BIT
 
-module is removed, but the series adds improvements over what is there =
+On Tue, 1 Jul 2014, Will Deacon wrote:
 
-now.  I have tested it across a few variants of AM335x boards and =
+> Hi Mans,
+> 
+> On Tue, Jul 01, 2014 at 06:24:43PM +0100, Måns Rullgård wrote:
+> > Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+> > > As you point out, "bx lr" /may/ be treated specially (I've actually been
+> > 
+> > Most, if not all, Cortex-A cores do this according the public TRMs.
+> > They also do the same thing for "mov pc, lr" so there will probably be
+> > no performance gain from this change.  It's still a good idea though,
+> > since we don't know what future cores will do.
+> 
+> Funnily enough, that's not actually true (and is more or less what prompted
+> this patch after discussion with Russell). There are cores out there that
+> don't predict mov pc, lr at all (let alone do anything with the return
+> stack).
+> 
+> > > discussing this with Will Deacon over the last couple of days, who has
+> > > also been talking to the hardware people in ARM, and Will is happy with
+> > > this patch as in its current form.)  This is why I've changed all
+> > > "mov pc, reg" instructions which return in some way to use this macro,
+> > > and left others (those which are used to call some function and return
+> > > back to the same point) alone.
+> > 
+> > In that case the patch should be fine.  Your patch description didn't
+> > make it clear that only actual returns were being changed.
+> 
+> I'm led to believe that some predictors require lr in order to update the
+> return stack, whilst others don't. That part is all horribly
+> micro-architectural, so the current patch is doing the right thing by
+> sticking to the ARM ARM but enabling us to hook into other registers later
+> on if we choose.
 
-attached display hardware in both module form and built-in to the =
+May I suggest to have a patch with only the macro definition in it and 
+all this discussion in the commit log please?  The usage sites should be 
+done in a separate patch to make it clearer.
 
-kernel, therefore:
 
-Tested-by: Darren Etheridge <detheridge@ti.com>
+Nicolas
 
->
-> Thanks!
-> Guido
->
->>
->> Darren
->>
->>> The first 7 patches are bug fixes which and should probably be applied
->>> in the stable trees. The last two are clean-ups.
->>>
->>>
->>> Resending this since I got no replies.
->>>
->>>
->>> Guido Mart=EDnez (9):
->>>    drm/i2c: tda998x: move drm_i2c_encoder_destroy call
->>>    drm/tilcdc: panel: fix dangling sysfs connector node
->>>    drm/tilcdc: slave: fix dangling sysfs connector node
->>>    drm/tilcdc: tfp410: fix dangling sysfs connector node
->>>    drm/tilcdc: panel: fix leak when unloading the module
->>>    drm/tilcdc: fix release order on exit
->>>    drm/tilcdc: fix double kfree
->>>    drm/tilcdc: remove submodule destroy calls
->>>    drm/tilcdc: replace late_initcall with module_init
->>>
->>>   drivers/gpu/drm/i2c/tda998x_drv.c      |  2 +-
->>>   drivers/gpu/drm/tilcdc/Module.symvers  |  0
->>>   drivers/gpu/drm/tilcdc/tilcdc_drv.c    | 15 +++++--------
->>>   drivers/gpu/drm/tilcdc/tilcdc_drv.h    |  1 -
->>>   drivers/gpu/drm/tilcdc/tilcdc_panel.c  | 39 +++++++++++++++++--------=
----------
->>>   drivers/gpu/drm/tilcdc/tilcdc_slave.c  | 27 +++++++++++++----------
->>>   drivers/gpu/drm/tilcdc/tilcdc_tfp410.c | 35 +++++++++++++++----------=
------
->>>   7 files changed, 59 insertions(+), 60 deletions(-)
->>>   create mode 100644 drivers/gpu/drm/tilcdc/Module.symvers
->>>
->
+--Boundary_(ID_mgw8uSma0Mmji5Peh3Zp8w)--
