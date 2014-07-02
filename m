@@ -1,75 +1,53 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 5/7] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-Date: Wed, 2 Jul 2014 14:26:03 +0300
-Message-ID: <53B3EC4B.9080202@ti.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-6-git-send-email-rogerq@ti.com> <53A173A5.7020509@ti.com> <53A175DC.8080709@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
+Date: Wed, 2 Jul 2014 17:01:04 +0530
+Message-ID: <53B3ED78.1070608@ti.com>
+References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60721 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834AbaGBL0L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jul 2014 07:26:11 -0400
-In-Reply-To: <53A175DC.8080709@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <E1X20Rs-00082S-KI-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Gleb Natapov <gleb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Hans Ulli Kroll <ulli.kroll-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>Haojian Zhuang <h>
 List-Id: linux-omap@vger.kernel.org
-To: "Nori, Sekhar" <nsekhar@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com, "Menon, Nishanth" <nm@ti.com>, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Sekhar,
-
-On 06/18/2014 02:19 PM, Rajendra Nayak wrote:
-> On Wednesday 18 June 2014 04:40 PM, Roger Quadros wrote:
->> + Nishant and Rajendra for review.
->>
->> On 05/05/2014 12:54 PM, Roger Quadros wrote:
->>> Add the sysconfig class bits for the Super Speed USB
->>> controllers
->>>
->>> CC: Paul Walmsley <paul@pwsan.com>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+On Tuesday 01 July 2014 09:28 PM, Russell King wrote:
+> ARMv6 and greater introduced a new instruction ("bx") which can be used
+> to return from function calls.  Recent CPUs perform better when the
+> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
+> and this sequence is strongly recommended to be used by the ARM
+> architecture manual (section A.4.1.1).
 > 
-> verified against TRM version vP, looks good to me.
-> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-
-Could you please give your Tested-by tag for this? Then we can take this into 3.16-rc.
-Thanks.
-
-cheers,
--roger
-
+> We provide a new macro "ret" with all its variants for the condition
+> code which will resolve to the appropriate instruction.
 > 
->>> ---
->>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 12 ++++++++++++
->>>  1 file changed, 12 insertions(+)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> index 810c205..067d322 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> @@ -1731,8 +1731,20 @@ static struct omap_hwmod dra7xx_uart6_hwmod = {
->>>   *
->>>   */
->>>  
->>> +static struct omap_hwmod_class_sysconfig dra7xx_usb_otg_ss_sysc = {
->>> +	.rev_offs	= 0x0000,
->>> +	.sysc_offs	= 0x0010,
->>> +	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
->>> +			   SYSC_HAS_SIDLEMODE),
->>> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->>> +			   SIDLE_SMART_WKUP | MSTANDBY_FORCE | MSTANDBY_NO |
->>> +			   MSTANDBY_SMART | MSTANDBY_SMART_WKUP),
->>> +	.sysc_fields	= &omap_hwmod_sysc_type2,
->>> +};
->>> +
->>>  static struct omap_hwmod_class dra7xx_usb_otg_ss_hwmod_class = {
->>>  	.name	= "usb_otg_ss",
->>> +	.sysc	= &dra7xx_usb_otg_ss_sysc,
->>>  };
->>>  
->>>  /* usb_otg_ss1 */
->>>
->>
+> Rather than doing this piecemeal, and miss some instances, change all
+> the "mov pc" instances to use the new macro, with the exception of
+> the "movs" instruction and the kprobes code.  This allows us to detect
+> the "mov pc, lr" case and fix it up - and also gives us the possibility
+> of deploying this for other registers depending on the CPU selection.
 > 
+> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 
+> ---
+
+>  arch/arm/mach-davinci/sleep.S            |  2 +-
+
+I build, boot and suspend-to-RAM tested on DA850 which should exercise
+the path you modified. DaVinci devices are ARMv5 (ARM926) so the new bx
+instruction does not really get used.
+
+Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+
+Thanks,
+Sekhar
