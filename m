@@ -1,45 +1,101 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
-Date: Wed, 2 Jul 2014 02:02:18 -0700
-Message-ID: <20140702090218.GV28884@atomide.com>
-References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [RESEND 2/2] clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
+Date: Wed, 2 Jul 2014 11:16:53 +0200
+Message-ID: <CABxcv==Ut40bQg22hWuXmMgHF7b_iLfJuLHrdGds1B3wXb74ug@mail.gmail.com>
+References: <1403848871-26519-1-git-send-email-peter.ujfalusi@ti.com>
+	<1403848871-26519-3-git-send-email-peter.ujfalusi@ti.com>
+	<CABxcv=metB4=eoT=fAh7S-b_mhAvHcJtn2wrV8v8koSyKMxNNw@mail.gmail.com>
+	<53B0FC27.5040002@ti.com>
+	<20140702043338.23338.31600@quantum>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E1X20Rs-00082S-KI-eh5Bv4kxaXIANfyc6IWni62ZND6+EDdj@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Gleb Natapov <gleb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Hans Ulli Kroll <ulli.kroll-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Haoj
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20140702043338.23338.31600@quantum>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Laxman Dewangan <ldewangan@nvidia.com>, linux-doc@vger.kernel.org, Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> [140701 09:01]:
-> ARMv6 and greater introduced a new instruction ("bx") which can be used
-> to return from function calls.  Recent CPUs perform better when the
-> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
-> and this sequence is strongly recommended to be used by the ARM
-> architecture manual (section A.4.1.1).
-> 
-> We provide a new macro "ret" with all its variants for the condition
-> code which will resolve to the appropriate instruction.
-> 
-> Rather than doing this piecemeal, and miss some instances, change all
-> the "mov pc" instances to use the new macro, with the exception of
-> the "movs" instruction and the kprobes code.  This allows us to detect
-> the "mov pc, lr" case and fix it up - and also gives us the possibility
-> of deploying this for other registers depending on the CPU selection.
-> 
-> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Hello Mike,
 
-Seems to boot fine for omaps:
+On Wed, Jul 2, 2014 at 6:33 AM, Mike Turquette <mturquette@linaro.org> wrote:
+> Quoting Peter Ujfalusi (2014-06-29 22:56:55)
+>> Hi Javier,
+>>
+>> On 06/27/2014 09:23 PM, Javier Martinez Canillas wrote:
+>> > Hello Peter,
+>> >
+>> > On Fri, Jun 27, 2014 at 8:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+>> >> Palmas class of devices can provide 32K clock(s) to be used by other devices
+>> >> on the board. Depending on the actual device the provided clocks can be:
+>> >> CLK32K_KG and CLK32K_KGAUDIO
+>> >> or only one:
+>> >> CLK32K_KG (TPS659039 for example)
+>> >>
+>> >> Use separate compatible flags for the two 32K clock.
+>> >> A system which needs or have only one of the 32k clock from
+>> >> Palmas will need to add node(s) for each clock as separate section
+>> >> in the dts file.
+>> >> The two compatible property is:
+>> >> "ti,palmas-clk32kg" for clk32kg clock
+>> >> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
+>> >>
+>> >> Apart from the register control of the clocks - which is done via
+>> >> the clock API there is a posibility to enable the external sleep
+>> >> control. In this way the clock can be enabled/disabled on demand by the
+>> >> user of the clock.
+>> >>
+>> >> See the documentation for more details.
+>> >>
+>> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> >> Reviewed-by: Nishanth Menon <nm@ti.com>
+>>
+>> >> +static unsigned long palmas_clks_recalc_rate(struct clk_hw *hw,
+>> >> +                                            unsigned long parent_rate)
+>> >> +{
+>> >> +       return 32768;
+>> >> +}
+>> >
+>> > I see that other clock drivers using a constant rate return 0 if the
+>> > clock has not been enabled.
+>>
+>> and there are examples when similar fixed clock drivers returns only the clock
+>> value, like clk-max77686. I can not find clear guidelines neither in the
+>> documentation or around the header/c files for this.
+>> Mike, what is the appropriate way of handling the recalc_rate?
+>
+> You are right that there are no guidelines stating, "don't do that", but
+> please, "don't do that" ;-)
+>
+> clk_enable and clk_set_rate are entirely unrelated operations from the
+> perspective of the Linux clock framework, and mixing these two classes
+> of operations is a recipe for pain.
+>
 
-Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Thanks a lot for the clarification. I just asked since when posting a
+clock driver I got feedback that recalc_rate should return 0 if the
+clock was disabled and also saw some drivers doing that, e.g:
+drivers/clk/clk-s2mps11.c
+
+>>
+>> > So maybe is more correct to have something
+>> > like the following?
+>> >
+>> > if (__clk_is_enabled(hw->clk))
+>> >         return 32768;
+>> > else
+>> >         return 0;
+>
+> So what happens here if this is gateable clock and later on we call
+> clk_enable on it? The clocks rate will still be zero since
+> clk_enable/clk_disable do not touch the rate at all.
+>
+
+Got it, thanks for the explanation.
+
+> Regards,
+> Mike
+>
+
+Best regards,
+Javier
