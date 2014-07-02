@@ -1,52 +1,50 @@
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: Re: atmel_mxt_ts: defaulting irqflags to IRQF_TRIGGER_FALLING
-Date: Wed, 02 Jul 2014 12:54:26 +0100
-Message-ID: <53B3F2F2.90707@itdev.co.uk>
-References: <53B284AE.3070302@ti.com> <5995217832cc40f5bcf132ac5c6c2546@HQMAIL105.nvidia.com> <53B3E3A8.4070605@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 2/6] phy: core: Fix error path in phy_create()
+Date: Wed, 2 Jul 2014 15:03:54 +0300
+Message-ID: <1404302638-3003-3-git-send-email-rogerq@ti.com>
+References: <1404302638-3003-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <53B3E3A8.4070605@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Stephen Warren <swarren@nvidia.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1404302638-3003-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, kishon@ti.com, balbi@ti.com
+Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/07/14 11:49, Sekhar Nori wrote:
-> On Tuesday 01 July 2014 09:44 PM, Stephen Warren wrote:
->> On the Tegra systems I have, IRQF_TRIGGER_FALLING is the correct (or at
->> least a valid) choice. That's probably because the Atmel IRQ signal is
->> routed to our GPIO controller, which is also an IRQ controller, and then
->> "forwarded" up the chain to the GIC, with the polarity the GIC expects.
->>
->> If IRQ_TRIGGER_FALLING doesn't work everywhere, then we'll need to add
->> some kind of DT property to configure the polarity of the IRQ output.
-> 
-> Yeah, I think so too.
-> 
-> Nick,
-> 
-> If you are going to rebase your branch, will you be able to fold in the
-> patch in my previous e-mail? Else, I can send a more formal patch to you.
+Prevent resources from being freed twice in case device_add() call
+fails within phy_create(). Also use ida_simple_remove() instead of
+ida_remove() as we had used ida_simple_get() to allocate the ida.
 
-Either IRQF_TRIGGER_FALLING or IRQF_TRIGGER_LOW will work with these chips
-(it isn't a question of polarity but whether it's edge- or level-
-triggered). There isn't a sensible default. Atmel prefer IRQF_TRIGGER_LOW,
-however I've seen some IRQ controllers will revert to a polled mode for
-IRQF_TRIGGER_LOW, which kills performance.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/phy/phy-core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-So, the sensible course of action seems to be to remove the default
-IRQF_TRIGGER_FALLING in the device tree parsing, and provide a device tree
-parameter for the flags. If you agree, I will sort this out at my end, you
-don't need to send a patch.
-
-I have to leave it in in the case where there is neither static platform
-data, or device tree node, because that is used for some systems, but that
-shouldn't affect either of you.
-
-BTW, I do have a set of patches ready to send, once this change is made.
-
-cheers
-
-Nick
+diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+index c64a2f3..49c4465 100644
+--- a/drivers/phy/phy-core.c
++++ b/drivers/phy/phy-core.c
+@@ -614,8 +614,9 @@ struct phy *phy_create(struct device *dev, const struct phy_ops *ops,
+ 	return phy;
+ 
+ put_dev:
+-	put_device(&phy->dev);
+-	ida_remove(&phy_ida, phy->id);
++	put_device(&phy->dev);  /* calls phy_release() which frees resources */
++	return ERR_PTR(ret);
++
+ free_phy:
+ 	kfree(phy);
+ 	return ERR_PTR(ret);
+@@ -799,7 +800,7 @@ static void phy_release(struct device *dev)
+ 
+ 	phy = to_phy(dev);
+ 	dev_vdbg(dev, "releasing '%s'\n", dev_name(dev));
+-	ida_remove(&phy_ida, phy->id);
++	ida_simple_remove(&phy_ida, phy->id);
+ 	kfree(phy);
+ }
+ 
+-- 
+1.8.3.2
