@@ -1,67 +1,98 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
- (part1)
-Date: Tue, 01 Jul 2014 23:17:22 -0400 (EDT)
-Message-ID: <alpine.LFD.2.11.1407012314100.16842@knanqh.ubzr>
-References: <E1X20mL-00083I-Sv@rmk-PC.arm.linux.org.uk>
- <yw1x4mz1f2t9.fsf@unicorn.mansr.com>
- <20140701171346.GP3705@n2100.arm.linux.org.uk>
- <yw1xzjgtdmas.fsf@unicorn.mansr.com> <20140701173547.GW28164@arm.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Tue, 1 Jul 2014 22:22:49 -0500
+Message-ID: <20140702032249.GA26010@saruman.home>
+References: <1402676147-3711-1-git-send-email-balbi@ti.com>
+ <1402676147-3711-2-git-send-email-balbi@ti.com>
+ <20140613162323.GH8319@saruman.home>
+ <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_mgw8uSma0Mmji5Peh3Zp8w)"
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-reply-to: <20140701173547.GW28164@arm.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: =?ISO-8859-15?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+--x+6KMIRAuhnl3hBn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---Boundary_(ID_mgw8uSma0Mmji5Peh3Zp8w)
-Content-type: TEXT/PLAIN; charset=iso-8859-1
-Content-transfer-encoding: 8BIT
+Hi,
 
-On Tue, 1 Jul 2014, Will Deacon wrote:
+On Fri, Jun 13, 2014 at 07:11:58PM +0000, Paul Walmsley wrote:
+> Hi Felipe, Tomi,
+>=20
+> On Fri, 13 Jun 2014, Felipe Balbi wrote:
+>=20
+> > On Fri, Jun 13, 2014 at 11:15:46AM -0500, Felipe Balbi wrote:
+> > > From: Sathya Prakash M R <sathyap@ti.com>
+> > >=20
+> > > Add DSS hwmod data for AM43xx.
+> > >=20
+> > > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > > Acked-by: Rajendra Nayak <rnayak@ti.com>
+> > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+> > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > ---
+> > >=20
+> > > Note that this patch was originally send on May 9th [1], changes were=
+ requested
+> > > and a new version was sent on May 19th [2], then on May 27th [3] Tomi=
+ pinged
+> > > maintainer again and go no response.
+> > >=20
+> > > Without this patch, we cannot get display working on any AM437x devic=
+es.
+> > >=20
+> > > [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D139963677925227&w=3D2
+> > > [2] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140049799425512&w=3D2
+> > > [3] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140117232826754&w=3D2
+> > >=20
+> > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++++=
+++++++++++
+> > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
+> > >  2 files changed, 99 insertions(+)
+>=20
+> Sorry for the delay on this.  Have been corresponding with TI management=
+=20
+> to figure out what to do about patches for AM43xx.  I don't have boards o=
+r=20
+> public documentation for these devices, so it's impossible for me to=20
 
-> Hi Mans,
-> 
-> On Tue, Jul 01, 2014 at 06:24:43PM +0100, Måns Rullgård wrote:
-> > Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-> > > As you point out, "bx lr" /may/ be treated specially (I've actually been
-> > 
-> > Most, if not all, Cortex-A cores do this according the public TRMs.
-> > They also do the same thing for "mov pc, lr" so there will probably be
-> > no performance gain from this change.  It's still a good idea though,
-> > since we don't know what future cores will do.
-> 
-> Funnily enough, that's not actually true (and is more or less what prompted
-> this patch after discussion with Russell). There are cores out there that
-> don't predict mov pc, lr at all (let alone do anything with the return
-> stack).
-> 
-> > > discussing this with Will Deacon over the last couple of days, who has
-> > > also been talking to the hardware people in ARM, and Will is happy with
-> > > this patch as in its current form.)  This is why I've changed all
-> > > "mov pc, reg" instructions which return in some way to use this macro,
-> > > and left others (those which are used to call some function and return
-> > > back to the same point) alone.
-> > 
-> > In that case the patch should be fine.  Your patch description didn't
-> > make it clear that only actual returns were being changed.
-> 
-> I'm led to believe that some predictors require lr in order to update the
-> return stack, whilst others don't. That part is all horribly
-> micro-architectural, so the current patch is doing the right thing by
-> sticking to the ARM ARM but enabling us to hook into other registers later
-> on if we choose.
+documentation is now available publicly
 
-May I suggest to have a patch with only the macro definition in it and 
-all this discussion in the commit log please?  The usage sites should be 
-done in a separate patch to make it clearer.
+http://www.ti.com/product/AM4379
 
+--=20
+balbi
 
-Nicolas
+--x+6KMIRAuhnl3hBn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
---Boundary_(ID_mgw8uSma0Mmji5Peh3Zp8w)--
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTs3sJAAoJEIaOsuA1yqRErJkP/0IUeyJWfszabOTT5qEemT4r
+WoZLGpEPgkdttLrFFg6XSFwFTXYWPLGchPTnqS1l521n9nYpWS+duf5Z9rkyq7VZ
+J+UdysY0k1RfwNpDg1gfbDMBKO9PIXBNfaK5FRfGpW+r7WA7W36/jIi+4YH8qdMA
+yO24nxXoP/OtJH8QrTnzjZ8Z7L7cv5krdmMXUqS/AlYpLZyKXRgZMWZFFfq4anpr
+Wqqis2jSRa7p7Lr0wrB+lCDiV6gzxqwQ/7nO0uAD/VuwG0CoxlGWb7thjr8yYODv
+Lu+ieq/E8P3/q/IITPO0/IzcUmt89DSHbzur+ZCIfoenHfMeb2sB9X9K1frUZOhJ
+LNUmBmQAADw6QwGCSz/Op4qnD4qNtgvneUfDbySSVQAnf5ihLg+AXuBNCfp/GeCv
+AwjYwNvVgUuV2mqP9iOVoHReDzmZJMXVqn5jUiZMYIvqu43Ka2LXZb1CvUhjU8Fr
+sBadYqmppfIvJdQ3nXIOy/YXVBW1ewEBbwvaSDY8koeSG00Cq4LeimIzwa9A/Qf5
+yE5gXonA/ATZUO4nSD3XVTJFEm6KB2qWggd/liLCOzFv1RvS+v0BFz2R46W4Xf2Z
+5iYlmcPzX/YB8bVXudr4+636Kke04ejQo1c0FetTZ50ennc0H6Tv+ZMBUZr2cB4c
+L47l6y44dpynS3x8vVyW
+=qBjV
+-----END PGP SIGNATURE-----
+
+--x+6KMIRAuhnl3hBn--
