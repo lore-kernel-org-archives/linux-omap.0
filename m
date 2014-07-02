@@ -1,53 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
- setting
-Date: Wed, 2 Jul 2014 01:11:43 -0700
-Message-ID: <20140702081142.GU28884@atomide.com>
-References: <3c3a7a4861df01d0163787a9c18f7b7ac821c5b9.1403000372.git.nsekhar@ti.com>
- <20140617131935.GB9070@saruman.home>
- <20140701194704.GG13396@saruman.home>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/13] ARM: OMAP2+: clock cleanup series for 3.17
+Date: Wed, 2 Jul 2014 11:47:34 +0300
+Message-ID: <1404290867-6768-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44706 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751074AbaGBILq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 04:11:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20140701194704.GG13396@saruman.home>
+Received: from comal.ext.ti.com ([198.47.26.152]:38794 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750982AbaGBIrw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jul 2014 04:47:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
+To: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [140701 12:49]:
-> On Tue, Jun 17, 2014 at 08:19:35AM -0500, Felipe Balbi wrote:
-> > On Tue, Jun 17, 2014 at 04:04:51PM +0530, Sekhar Nori wrote:
-> > > ROM code on AM437x does not support writing to L2C-310 power control
-> > > register. The L2C driver, however, tries writing to this register for
-> > > all revisions >= r3p0.
-> > > 
-> > > This leads to a warning dump on boot which leads most users to believe
-> > > that L2 cache is non-functional.
-> > > 
-> > > Since the problem is understood, and cannot be addressed through software,
-> > > replace the warning with a pr_info() while maintaining the WARN_ON() for
-> > > other truly unexpected scenarios.
-> > > 
-> > > Reported-by: Nishanth Menon <nm@ti.com>
-> > > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> > 
-> > Tested with today's linux-next
-> > (5f295cdf5c5dbbb0c40f10f2ddae02ff46bbf773) with am437x-sk, I can see
-> > that the WARNING goes away.
-> > 
-> > Tested-by: Felipe Balbi <balbi@ti.com>
-> 
-> ping here, I can't see this patch onl linus/master or next/master yet.
+Hi,
 
-Sorry I've been waiting for my pull request against -rc1 to get
-merged first, no idea why that is still pending.
+This sets cleans up some of the omap specific clock drivers still residing
+under arch/arm/mach-omap2. This set is done in preparation to migrate
+these drivers eventually under drivers/clk/ti, where we don't have access
+to certain board specific functionality. The basic idea of this set is to
+introduce clk_features struct which contains any SoC specific data / flags
+within it, and this is used runtime instead of the current cpu_is_? checks.
 
-Regards,
+There are also a couple of bug fixes introduced in this set:
+- Patch #1 : fix potential overflow in _dpll_test_fint
+- Patch #8 : embeds a fix for checking omap5/dra7 for the bypass modes also
 
-Tony
+Set tested on following boards:
+
+- omap2430-sdp : boot
+- omap3-beagle : boot / suspend
+- omap4-panda-es : boot / suspend
+- omap5-uevm : boot
+- dra7-evm : boot
+
+Branch also available:
+
+tree: https://github.com/t-kristo/linux-pm.git
+branch: for-v3.17/omap2-clk-cleanup
+
+-Tero
+
