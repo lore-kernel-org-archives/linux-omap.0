@@ -1,62 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/6] ARM: dts: dra7-evm: Make VDDA_1V8_PHY supply always
- on
-Date: Wed, 2 Jul 2014 08:05:51 -0500
-Message-ID: <53B403AF.60505@ti.com>
-References: <1404302638-3003-1-git-send-email-rogerq@ti.com> <1404302638-3003-2-git-send-email-rogerq@ti.com>
+From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: am335x: linux 3.16-rc3: USB DMA issue
+Date: Wed, 2 Jul 2014 15:28:18 +0200
+Message-ID: <CAGm1_kvTfPNcbp5M1OMWo-sfyBSd-tKm5wtqEVdTnswioajSBQ@mail.gmail.com>
+References: <CAGm1_kuA8nYvqHXYbg5kULCujzOYEBW6AAijeQt3yzg_P9=EHg@mail.gmail.com>
+ <CAGm1_ksYdfkiSBAsV6Rq2GZ5CBwNbO8An0bzKaknxrnkRLEAXQ@mail.gmail.com> <CAAEAJfDaEt0PGhFOs0-Q6W8ogu1aEGMGarnbuBVzZHnuHm4zZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404302638-3003-2-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, tony@atomide.com, kishon@ti.com, balbi@ti.com
-Cc: nsekhar@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAEAJfDaEt0PGhFOs0-Q6W8ogu1aEGMGarnbuBVzZHnuHm4zZQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/02/2014 07:03 AM, Roger Quadros wrote:
-> After clarification from the hardware team it was found that
-> this 1.8V PHY supply can't be switched OFF when SoC is Active.
-> It can only be switched off when in PORz (power on reset).
+On Tue, Jul 1, 2014 at 5:37 PM, Ezequiel Garc=C3=ADa
+<ezequiel-30ULvvUtt6G51wMPkGsGjgyUoB5FGQPZ@public.gmane.org> wrote:
+> On 1 July 2014 12:07, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wro=
+te:
+> [..]
+>>
+>> What can be done with these error messages:
+>>
+>> of_get_named_gpiod_flags: can't parse gpios property of node
+>> '/ocp/usb@47400000/usb-phy@47401300[0]'
+>> 47401300.usb-phy supply vcc not found, using dummy regulator
+>> musb-hdrc musb-hdrc.0.auto: Failed to request rx1.
+>> musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status =
+-517
+>> platform musb-hdrc.0.auto: Driver musb-hdrc requests probe deferral
+>> of_get_named_gpiod_flags: can't parse gpios property of node
+>> '/ocp/usb@47400000/usb-phy@47401b00[0]'
+>> 47401b00.usb-phy supply vcc not found, using dummy regulator
+>> musb-hdrc musb-hdrc.1.auto: Failed to request rx1.
+>> musb-hdrc musb-hdrc.1.auto: musb_init_controller failed with status =
+-517
+>> platform musb-hdrc.1.auto: Driver musb-hdrc requests probe deferral
+>> couldn't find an available UDC
+>>
+>
+> The above are typical deferal messages. Have you tried building
+> everything as a module or moving the DMA devicetree node so it's
+> probed earlier?
+>
+> But I'm not sure it's related to the problem you are seeing.
 
-I dont think folks know the reasoning why hardware team decided that
-the voltage rail cannot be switched off -> I suggest adding the
-following information as well.
+Compiling as a module helped. Thanks.
 
-Since isolation is not present in the design for these PHY IPs to
-allow for the PHY rail to be switched off, there is a very high risk
-of IP reliability and additional leakage paths which can result in
-additional power consumption.
-
-Only scenario where this rail can be switched off is part of Power on
-reset sequencing, but it needs to be kept always-on during operation.
-
-> 
-> This patch is required for proper functionality of USB, SATA
-> and PCIe on DRA7-evm.
-> 
-> CC: Rajendra Nayak <rnayak@ti.com>
-> CC: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/boot/dts/dra7-evm.dts | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 4adc280..8308954 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -240,6 +240,7 @@
->  					regulator-name = "ldo3";
->  					regulator-min-microvolt = <1800000>;
->  					regulator-max-microvolt = <1800000>;
-> +					regulator-always-on;
->  					regulator-boot-on;
->  				};
->  
-> 
-
-
--- 
-Regards,
-Nishanth Menon
+Yegor
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
