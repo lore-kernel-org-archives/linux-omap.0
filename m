@@ -1,58 +1,70 @@
-From: Pascal Huerst <pascal.huerst@gmail.com>
-Subject: gpio-omap: wakeup mask
-Date: Wed, 02 Jul 2014 14:09:43 +0200
-Message-ID: <53B3F687.5050502@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [next-20140702]Build regression omap2plus_defconfig, multi_v7_defconfig
+ builds fine
+Date: Wed, 2 Jul 2014 07:26:40 -0500
+Message-ID: <53B3FA80.9090403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: santosh.shilimkar@ti.com
-Cc: khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35934 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751134AbaGBM0m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 08:26:42 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi everyone,
+Tony,
 
-we have a device with an am335x and are using some gpios on bank0 to
-wake up the device from suspend to ram.
+make omap2plus_defconfig ;make zImage on next-20140702
 
-We have some user buttons which are configured in the devicetree as
-gpio-keys and one power-key which should wake up the device:
+>   LD      fs/built-in.o
+> scripts/mod/modpost.c: In function =91remove_dot=92:
+> scripts/mod/modpost.c:1710:10: warning: ignoring return value of =91s=
+trtoul=92, declared with attribute warn_unused_result [-Wunused-result]
+> arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: retur=
+n_address should use unwind tables" [-Wcpp]
+> arch/arm/kernel/return_address.c:63:2: warning: #warning "TODO: retur=
+n_address should use unwind tables" [-Wcpp]
+> In file included from arch/arm/kernel/perf_event_cpu.c:69:0:
+> arch/arm/kernel/perf_event_v6.c: In function =91armv6_1136_pmu_init=92=
+:
+> arch/arm/kernel/perf_event_v6.c:498:2: error: expected =91;=92 before=
+ =91return=92
+> arch/arm/kernel/perf_event_v6.c:499:1: warning: no return statement i=
+n function returning non-void [-Wreturn-type]
+> arch/arm/kernel/perf_event_v6.c: In function =91armv6_1156_pmu_init=92=
+:
+> arch/arm/kernel/perf_event_v6.c:505:2: error: expected =91;=92 before=
+ =91return=92
+> arch/arm/kernel/perf_event_v6.c:506:1: warning: no return statement i=
+n function returning non-void [-Wreturn-type]
+> arch/arm/kernel/perf_event_v6.c: In function =91armv6_1176_pmu_init=92=
+:
+> arch/arm/kernel/perf_event_v6.c:512:2: error: expected =91;=92 before=
+ =91return=92
+> arch/arm/kernel/perf_event_v6.c:513:1: warning: no return statement i=
+n function returning non-void [-Wreturn-type]
+> make[1]: *** [arch/arm/kernel/perf_event_cpu.o] Error 1
+> make: *** [arch/arm/kernel] Error 2
+> make: *** Waiting for unfinished jobs....
+> fs/direct-io.c: In function =91__blockdev_direct_IO=92:
+> fs/direct-io.c:1011:12: warning: =91to=92 may be used uninitialized i=
+n this function [-Wuninitialized]
+> fs/direct-io.c:913:16: note: =91to=92 was declared here
+> fs/direct-io.c:920:9: warning: =91from=92 may be used uninitialized i=
+n this function [-Wuninitialized]
+> fs/direct-io.c:913:10: note: =91from=92 was declared here
 
-&buttons {
-        power {
-                label = "Power";
-                gpios = <&gpio0 6 1>;
-                linux,code = <116>;
-                gpio-key,wakeup;
-        };
+multi_v7_defconfig seems to build fine.
 
-        one {
-                label = "One";
-                gpios = <&gpio0 11 1>;
-                linux,code = <2>;
-        };
-
-        : : :
-}
-
-The problem is, that the device wakes up on any trigger on bank 0. No
-matter which button was pressed. "gpio-key,wakeup" seems not to have any
-influence.
-
-Now, if I comment the following lines out in drivers/gpio/gpio-omap.c :
-set_gpio_trigger(...).
-
-321
-322 if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
-323    _gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
-324      bank->context.wake_en =
-325        readl_relaxed(bank->base + bank->regs->wkup_en);
-326 }
-327
-
-Everything works as expected. But I don't really understand why? Is this
-a bug, or does this break something else I have not discovered yet?
-
-Thanks,
-Pascal
+--=20
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
