@@ -1,101 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
-Date: Wed, 2 Jul 2014 14:51:01 +0300
-Message-ID: <53B3F225.5020303@ti.com>
-References: <1403700996-27105-1-git-send-email-rogerq@ti.com> <53AB4CE0.6020705@ti.com> <20140626073115.GD28884@atomide.com> <53ABE9AD.1000100@ti.com> <53AC2CA7.30800@ti.com> <53AC36ED.2000309@ti.com> <53B117F9.6080004@ti.com>
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: Re: atmel_mxt_ts: defaulting irqflags to IRQF_TRIGGER_FALLING
+Date: Wed, 02 Jul 2014 12:54:26 +0100
+Message-ID: <53B3F2F2.90707@itdev.co.uk>
+References: <53B284AE.3070302@ti.com> <5995217832cc40f5bcf132ac5c6c2546@HQMAIL105.nvidia.com> <53B3E3A8.4070605@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46847 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134AbaGBLvH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Jul 2014 07:51:07 -0400
-In-Reply-To: <53B117F9.6080004@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <53B3E3A8.4070605@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, Stephen Warren <swarren@nvidia.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
-Cc: rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 06/30/2014 10:55 AM, Roger Quadros wrote:
-> On 06/26/2014 06:06 PM, Tero Kristo wrote:
->> On 06/26/2014 05:22 PM, Roger Quadros wrote:
->>> +Tero
->>>
->>> On 06/26/2014 12:36 PM, Roger Quadros wrote:
->>>> On 06/26/2014 10:31 AM, Tony Lindgren wrote:
->>>>> * Nishanth Menon <nm@ti.com> [140625 15:29]:
->>>>>> On 06/25/2014 07:56 AM, Roger Quadros wrote:
->>>>>>> The SATA and USB PHYs need the 1.8V and 3.3V supplies.
->>>>>>> The PHY drivers/framework don't yet support regulator
->>>>>>> supply so we have to keep these regulators always-on till
->>>>>>> then.
->>>>>>>
->>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>>>> ---
->>>>>>>   arch/arm/boot/dts/dra7-evm.dts | 2 ++
->>>>>>>   1 file changed, 2 insertions(+)
->>>>>>>
->>>>>>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->>>>>>> index 4adc280..99a1f79 100644
->>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>>>>>> @@ -241,6 +241,7 @@
->>>>>>>                       regulator-min-microvolt = <1800000>;
->>>>>>>                       regulator-max-microvolt = <1800000>;
->>>>>>>                       regulator-boot-on;
->>>>>>> +                    regulator-always-on;
-
-There was a confirmation from the TI hardware team that this 1.8V regulator can't be powered down while the SoC is Active. So we need to have regulator-always-on here.
-
->>>>>>>                   };
->>>>>>>
->>>>>>>                   ldo9_reg: ldo9 {
->>>>>>> @@ -266,6 +267,7 @@
->>>>>>>                       regulator-min-microvolt = <3300000>;
->>>>>>>                       regulator-max-microvolt = <3300000>;
->>>>>>>                       regulator-boot-on;
->>>>>>> +                    regulator-always-on;
-
-This ldousb_reg 3.3V regulator can be turned off when the PHY is not in use. The PHY driver will manage this.
-
-cheers,
--roger
-
->>>>>>>                   };
->>>>>>>               };
->>>>>>>           };
->>>>>>>
->>>>>>
->>>>>> Why not fix phy driver/framework as needed? the trouble is people
->>>>>> always forget to remove always-on... who actually audits old logs and
->>>>>> fixes stuff back up?
->>>>>
->>>>> Yes I agree let's not play with the regulator-always-on unless
->>>>> absolutely necessary.
->>>>>
->>>> Agreed. PHY framework must deal with this. Till then USB, SATA and most likely PCIe as well will not work on DRA7-evm.
->>>>
->>>
->>> I tried the below patch to enable the relevant regulators in the PHY drivers but still couldn't manage to get USB to work. The same 1.8V regulator is used to supply 3 pins
->>> -vdda_usb1: DPLL_USB and HS_USB1 analog supply
->>> -vdda_usb2: HS_USB2 analog supply
->>> -vdda_usb3: DPLL_USB_OTG_SS and USB3.0 Rx/Tx analog supply
->>>
->>> It seems that the regulator auto disable kicks in before the phy driver enables the regulator thus causing some kind of malfunction. I'm not sure whether this is due to DPLL_USB supply glitch or HS_USB1 analog supply glitch.
->>>
->>> In any case, the DPLL_USB (clock driver?) needs to enable the 1.8V regulator in addition to the HS_USB PHY driver to prevent this supply glitch.
->>>
->>> Tero, any suggestions about this? If we are not concerned about disabling DPLL_USB anytime then the regulator might just as well be always-on. Alternatively can we place a regulator_get(), regulator_enable() in drivers/clk/ti/dpll.c?
+On 02/07/14 11:49, Sekhar Nori wrote:
+> On Tuesday 01 July 2014 09:44 PM, Stephen Warren wrote:
+>> On the Tegra systems I have, IRQF_TRIGGER_FALLING is the correct (or at
+>> least a valid) choice. That's probably because the Atmel IRQ signal is
+>> routed to our GPIO controller, which is also an IRQ controller, and then
+>> "forwarded" up the chain to the GIC, with the polarity the GIC expects.
 >>
->> I believe dpll_usb needs to go down for the core to idle. Also, we are working on getting suspend-resume working on this platform, so having the regulator always on is a no-no.
->>
->> Also, I am heavily against adding regulator tweaks within the clock driver, there needs to be another way.
+>> If IRQ_TRIGGER_FALLING doesn't work everywhere, then we'll need to add
+>> some kind of DT property to configure the polarity of the IRQ output.
 > 
-> Fair enough. There is not much information about controlling the power on vdda_usbx pins except the power-up and power-down sequence diagrams in Fig. 3.1 and 3.2 in the Data Manual (DRA75x_74x_ES1.1_DM_Early_Preliminary_vJ.pdf).
+> Yeah, I think so too.
 > 
-> Can the regulator be dealt with in the OMAP PM core driver, along with the vdd_mpu and vdd_core stuff?
+> Nick,
 > 
+> If you are going to rebase your branch, will you be able to fold in the
+> patch in my previous e-mail? Else, I can send a more formal patch to you.
 
+Either IRQF_TRIGGER_FALLING or IRQF_TRIGGER_LOW will work with these chips
+(it isn't a question of polarity but whether it's edge- or level-
+triggered). There isn't a sensible default. Atmel prefer IRQF_TRIGGER_LOW,
+however I've seen some IRQ controllers will revert to a polled mode for
+IRQF_TRIGGER_LOW, which kills performance.
 
+So, the sensible course of action seems to be to remove the default
+IRQF_TRIGGER_FALLING in the device tree parsing, and provide a device tree
+parameter for the flags. If you agree, I will sort this out at my end, you
+don't need to send a patch.
 
+I have to leave it in in the case where there is neither static platform
+data, or device tree node, because that is used for some systems, but that
+shouldn't affect either of you.
+
+BTW, I do have a set of patches ready to send, once this change is made.
+
+cheers
+
+Nick
