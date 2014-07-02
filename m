@@ -1,67 +1,39 @@
-From: Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
-Date: Wed, 2 Jul 2014 17:38:58 -0300
-Message-ID: <20140702203858.GA9576@arch.cereza>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
- <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
- <53ADEB73.8090301@ti.com>
- <20140701233958.GA31549@fox>
- <53B36EF1.8060200@ti.com>
- <CAPM=9tzQR446Xc2xnrSOGa+VetO44KskMFrkPqbatwsmv1dHXQ@mail.gmail.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH 0/3] GPIO OMAP driver changes for v3.17
+Date: Wed, 02 Jul 2014 13:55:17 -0700
+Message-ID: <7h8uobiiq2.fsf@paris.lan>
+References: <1403900258-20717-1-git-send-email-jmartinez@softcrates.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f41.google.com ([209.85.213.41]:37981 "EHLO
-	mail-yh0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751111AbaGBUjs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 16:39:48 -0400
-Received: by mail-yh0-f41.google.com with SMTP id z6so7196717yhz.0
-        for <linux-omap@vger.kernel.org>; Wed, 02 Jul 2014 13:39:47 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAPM=9tzQR446Xc2xnrSOGa+VetO44KskMFrkPqbatwsmv1dHXQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1403900258-20717-1-git-send-email-jmartinez@softcrates.net>
+	(Javier Martinez Canillas's message of "Fri, 27 Jun 2014 22:17:34
+	+0200")
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <acourbot@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <jmartinez@softcrates.net>
 List-Id: linux-omap@vger.kernel.org
-To: Dave Airlie <airlied@gmail.com>
-Cc: Darren Etheridge <detheridge@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel <dri-devel@lists.freedesktop.org>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org
 
-On 02 Jul 02:08 PM, Dave Airlie wrote:
-> On 2 July 2014 12:31, Darren Etheridge <detheridge@ti.com> wrote:
-> > On 07/01/2014 06:39 PM, Guido Mart=EDnez wrote:
-> >>
-> >> On Fri, Jun 27, 2014 at 05:08:51PM -0500, Darren Etheridge wrote:
-> >>>
-> >>> [snip]
-> >>>
-> >>> Otherwise I think this is a good and useful patch series.
-> >>
-> >> It that a Tested-by tag? :)
-> >
-> >
-> > Sure - I would prefer that the WARN_ON was silenced when the tilcdc=
- module
-> > is removed, but the series adds improvements over what is there now=
-=2E  I have
-> > tested it across a few variants of AM335x boards and attached displ=
-ay
-> > hardware in both module form and built-in to the kernel, therefore:
-> >
-> > Tested-by: Darren Etheridge <detheridge@ti.com>
->=20
-> Has someone gathered that tags and put these in a git tree by any cha=
-nce?
->=20
+Javier Martinez Canillas <javier@dowhile0.org> writes:
 
-I don't think anyone has. Is that a problem?
+> Hi Linus,
+>
+> This is a small series with trivial changes to the gpio-omap driver.
+>
+> There are no functional changes. Patches 1 and 2 removes code that it's
+> not necessary anymore now that the driver has been converted to use the
+> gpiolib irqchip and Patch 3 adds an "omap" prefix to all driver functions,
+> something that you suggested me to do before if I remember correctly.
+>
+> The patch-set is composed of the following patches:
+>
+> Javier Martinez Canillas (3):
+>   gpio: omap: Remove unnecessary lockdep class
+>   gpio: omap: Remove unneeded include
+>   gpio: omap: Add an omap prefix to all functions
 
-If you need a pull request with these, I can prepare something in bitbu=
-cket.
-Would that work you?
---=20
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Kevin Hilman <khilman@linaro.org>
+
+For the series.
+
+Kevin
