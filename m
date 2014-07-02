@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 3/6] phy: core: Support regulator supply for PHY power
-Date: Wed, 2 Jul 2014 15:03:55 +0300
-Message-ID: <1404302638-3003-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH 4/6] phy: core: Add phy-supply to DT binding documentation
+Date: Wed, 2 Jul 2014 15:03:56 +0300
+Message-ID: <1404302638-3003-5-git-send-email-rogerq@ti.com>
 References: <1404302638-3003-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,127 +12,29 @@ To: tony@atomide.com, kishon@ti.com, balbi@ti.com
 Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Some PHYs can be powered by an external power regulator.
-e.g. USB_HS PHY on DRA7 SoC. Make the PHY core support a
-power regulator.
+phy-supply is a phandle to the regulator that provides power to the
+PHY. This regulator is managed during the PHY power on/off sequence
+by the phy core driver.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/phy/phy-core.c  | 32 ++++++++++++++++++++++++++++++++
- include/linux/phy/phy.h |  2 ++
- 2 files changed, 34 insertions(+)
+ Documentation/devicetree/bindings/phy/phy-bindings.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-index 49c4465..d817107 100644
---- a/drivers/phy/phy-core.c
-+++ b/drivers/phy/phy-core.c
-@@ -21,6 +21,7 @@
- #include <linux/phy/phy.h>
- #include <linux/idr.h>
- #include <linux/pm_runtime.h>
-+#include <linux/regulator/consumer.h>
+diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt b/Documentation/devicetree/bindings/phy/phy-bindings.txt
+index 8ae844f..2aa1840 100644
+--- a/Documentation/devicetree/bindings/phy/phy-bindings.txt
++++ b/Documentation/devicetree/bindings/phy/phy-bindings.txt
+@@ -10,6 +10,10 @@ Required Properties:
+ 		provider can use the values in cells to find the appropriate
+ 		PHY.
  
- static struct class *phy_class;
- static DEFINE_MUTEX(phy_provider_mutex);
-@@ -226,6 +227,12 @@ int phy_power_on(struct phy *phy)
- 	if (!phy)
- 		return 0;
- 
-+	if (phy->pwr) {
-+		ret = regulator_enable(phy->pwr);
-+		if (ret)
-+			return ret;
-+	}
++Optional Properties:
++phy-supply:	Phandle to a regulator that provides power to the PHY. This
++		regulator will be managed during the PHY power on/off sequence.
 +
- 	ret = phy_pm_runtime_get_sync(phy);
- 	if (ret < 0 && ret != -ENOTSUPP)
- 		return ret;
-@@ -247,6 +254,8 @@ int phy_power_on(struct phy *phy)
- out:
- 	mutex_unlock(&phy->mutex);
- 	phy_pm_runtime_put_sync(phy);
-+	if (phy->pwr)
-+		regulator_disable(phy->pwr);
+ For example:
  
- 	return ret;
- }
-@@ -272,6 +281,9 @@ int phy_power_off(struct phy *phy)
- 	mutex_unlock(&phy->mutex);
- 	phy_pm_runtime_put(phy);
- 
-+	if (phy->pwr)
-+		regulator_disable(phy->pwr);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(phy_power_off);
-@@ -588,6 +600,16 @@ struct phy *phy_create(struct device *dev, const struct phy_ops *ops,
- 		goto free_phy;
- 	}
- 
-+	/* phy-supply */
-+	phy->pwr = regulator_get_optional(dev, "phy");
-+	if (IS_ERR(phy->pwr)) {
-+		if (PTR_ERR(phy->pwr) == -EPROBE_DEFER) {
-+			ret = -EPROBE_DEFER;
-+			goto free_ida;
-+		}
-+		phy->pwr = NULL;
-+	}
-+
- 	device_initialize(&phy->dev);
- 	mutex_init(&phy->mutex);
- 
-@@ -617,6 +639,9 @@ put_dev:
- 	put_device(&phy->dev);  /* calls phy_release() which frees resources */
- 	return ERR_PTR(ret);
- 
-+free_ida:
-+	ida_simple_remove(&phy_ida, phy->id);
-+
- free_phy:
- 	kfree(phy);
- 	return ERR_PTR(ret);
-@@ -664,6 +689,10 @@ EXPORT_SYMBOL_GPL(devm_phy_create);
- void phy_destroy(struct phy *phy)
- {
- 	pm_runtime_disable(&phy->dev);
-+
-+	if (phy->pwr)
-+		regulator_put(phy->pwr);
-+
- 	device_unregister(&phy->dev);
- }
- EXPORT_SYMBOL_GPL(phy_destroy);
-@@ -800,6 +829,9 @@ static void phy_release(struct device *dev)
- 
- 	phy = to_phy(dev);
- 	dev_vdbg(dev, "releasing '%s'\n", dev_name(dev));
-+	if (phy->pwr)
-+		regulator_put(phy->pwr);
-+
- 	ida_simple_remove(&phy_ida, phy->id);
- 	kfree(phy);
- }
-diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-index 2760744..9a86945 100644
---- a/include/linux/phy/phy.h
-+++ b/include/linux/phy/phy.h
-@@ -18,6 +18,7 @@
- #include <linux/of.h>
- #include <linux/device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/regulator/consumer.h>
- 
- struct phy;
- 
-@@ -65,6 +66,7 @@ struct phy {
- 	int			init_count;
- 	int			power_count;
- 	struct phy_attrs	attrs;
-+	struct regulator	*pwr;
- };
- 
- /**
+ phys: phy {
 -- 
 1.8.3.2
