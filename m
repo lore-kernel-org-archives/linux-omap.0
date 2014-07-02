@@ -1,55 +1,103 @@
-From: Dave Airlie <airlied@gmail.com>
-Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
-Date: Wed, 2 Jul 2014 14:08:02 +1000
-Message-ID: <CAPM=9tzQR446Xc2xnrSOGa+VetO44KskMFrkPqbatwsmv1dHXQ@mail.gmail.com>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
-	<1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
-	<53ADEB73.8090301@ti.com>
-	<20140701233958.GA31549@fox>
-	<53B36EF1.8060200@ti.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RESEND 2/2] clk: Add driver for Palmas clk32kg and clk32kgaudio clocks
+Date: Tue, 01 Jul 2014 21:33:38 -0700
+Message-ID: <20140702043338.23338.31600@quantum>
+References: <1403848871-26519-1-git-send-email-peter.ujfalusi@ti.com>
+ <1403848871-26519-3-git-send-email-peter.ujfalusi@ti.com>
+ <CABxcv=metB4=eoT=fAh7S-b_mhAvHcJtn2wrV8v8koSyKMxNNw@mail.gmail.com>
+ <53B0FC27.5040002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:65081 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbaGBEIF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 00:08:05 -0400
-Received: by mail-lb0-f178.google.com with SMTP id 10so7555659lbg.37
-        for <linux-omap@vger.kernel.org>; Tue, 01 Jul 2014 21:08:02 -0700 (PDT)
-In-Reply-To: <53B36EF1.8060200@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <53B0FC27.5040002@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ldewangan@nvidia.com, linux-doc@vger.kernel.org, Nishanth Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Darren Etheridge <detheridge@ti.com>
-Cc: =?UTF-8?Q?Guido_Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel <dri-devel@lists.freedesktop.org>, Daniel Mack <zonque@gmail.com>, =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 2 July 2014 12:31, Darren Etheridge <detheridge@ti.com> wrote:
-> On 07/01/2014 06:39 PM, Guido Mart=C3=ADnez wrote:
->>
->> On Fri, Jun 27, 2014 at 05:08:51PM -0500, Darren Etheridge wrote:
->>>
->>> [snip]
->>>
->>> Otherwise I think this is a good and useful patch series.
->>
->> It that a Tested-by tag? :)
->
->
-> Sure - I would prefer that the WARN_ON was silenced when the tilcdc m=
-odule
-> is removed, but the series adds improvements over what is there now. =
- I have
-> tested it across a few variants of AM335x boards and attached display
-> hardware in both module form and built-in to the kernel, therefore:
->
-> Tested-by: Darren Etheridge <detheridge@ti.com>
+Quoting Peter Ujfalusi (2014-06-29 22:56:55)
+> Hi Javier,
+>=20
+> On 06/27/2014 09:23 PM, Javier Martinez Canillas wrote:
+> > Hello Peter,
+> >=20
+> > On Fri, Jun 27, 2014 at 8:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.=
+com> wrote:
+> >> Palmas class of devices can provide 32K clock(s) to be used by oth=
+er devices
+> >> on the board. Depending on the actual device the provided clocks c=
+an be:
+> >> CLK32K_KG and CLK32K_KGAUDIO
+> >> or only one:
+> >> CLK32K_KG (TPS659039 for example)
+> >>
+> >> Use separate compatible flags for the two 32K clock.
+> >> A system which needs or have only one of the 32k clock from
+> >> Palmas will need to add node(s) for each clock as separate section
+> >> in the dts file.
+> >> The two compatible property is:
+> >> "ti,palmas-clk32kg" for clk32kg clock
+> >> "ti,palmas-clk32kgaudio" for clk32kgaudio clock
+> >>
+> >> Apart from the register control of the clocks - which is done via
+> >> the clock API there is a posibility to enable the external sleep
+> >> control. In this way the clock can be enabled/disabled on demand b=
+y the
+> >> user of the clock.
+> >>
+> >> See the documentation for more details.
+> >>
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >> Reviewed-by: Nishanth Menon <nm@ti.com>
+>=20
+> >> +static unsigned long palmas_clks_recalc_rate(struct clk_hw *hw,
+> >> +                                            unsigned long parent_=
+rate)
+> >> +{
+> >> +       return 32768;
+> >> +}
+> >=20
+> > I see that other clock drivers using a constant rate return 0 if th=
+e
+> > clock has not been enabled.
+>=20
+> and there are examples when similar fixed clock drivers returns only =
+the clock
+> value, like clk-max77686. I can not find clear guidelines neither in =
+the
+> documentation or around the header/c files for this.
+> Mike, what is the appropriate way of handling the recalc_rate?
 
-Has someone gathered that tags and put these in a git tree by any chanc=
-e?
+You are right that there are no guidelines stating, "don't do that", bu=
+t
+please, "don't do that" ;-)
 
-Dave.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+clk_enable and clk_set_rate are entirely unrelated operations from the
+perspective of the Linux clock framework, and mixing these two classes
+of operations is a recipe for pain.
+
+>=20
+> > So maybe is more correct to have something
+> > like the following?
+> >=20
+> > if (__clk_is_enabled(hw->clk))
+> >         return 32768;
+> > else
+> >         return 0;
+
+So what happens here if this is gateable clock and later on we call
+clk_enable on it? The clocks rate will still be zero since
+clk_enable/clk_disable do not touch the rate at all.
+
+Regards,
+Mike
+
+> >=20
+> > Best regards,
+> > Javier
+> >=20
+>=20
+>=20
+> --=20
+> P=C3=A9ter
