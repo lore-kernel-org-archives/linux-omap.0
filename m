@@ -1,59 +1,31 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: atmel_mxt_ts: defaulting irqflags to IRQF_TRIGGER_FALLING
-Date: Wed, 2 Jul 2014 10:25:36 -0700
-Message-ID: <CAKdAkRTueVK8ynFR7AJeeJL7SPK60U0EHESeONqqoBF_vXJQxA@mail.gmail.com>
-References: <53B284AE.3070302@ti.com>
-	<5995217832cc40f5bcf132ac5c6c2546@HQMAIL105.nvidia.com>
-	<53B3E3A8.4070605@ti.com>
-	<53B3F2F2.90707@itdev.co.uk>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
+Date: Wed, 2 Jul 2014 22:09:44 +0300
+Message-ID: <20140702190944.GA567@drone.musicnaut.iki.fi>
+References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
+ <20140702160932.GF5541@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <53B3F2F2.90707@itdev.co.uk>
-Sender: linux-input-owner@vger.kernel.org
-To: Nick Dyer <nick.dyer@itdev.co.uk>
-Cc: Sekhar Nori <nsekhar@ti.com>, Stephen Warren <swarren@nvidia.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140702160932.GF5541@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 2, 2014 at 4:54 AM, Nick Dyer <nick.dyer@itdev.co.uk> wrote:
-> On 02/07/14 11:49, Sekhar Nori wrote:
->> On Tuesday 01 July 2014 09:44 PM, Stephen Warren wrote:
->>> On the Tegra systems I have, IRQF_TRIGGER_FALLING is the correct (or at
->>> least a valid) choice. That's probably because the Atmel IRQ signal is
->>> routed to our GPIO controller, which is also an IRQ controller, and then
->>> "forwarded" up the chain to the GIC, with the polarity the GIC expects.
->>>
->>> If IRQ_TRIGGER_FALLING doesn't work everywhere, then we'll need to add
->>> some kind of DT property to configure the polarity of the IRQ output.
->>
->> Yeah, I think so too.
->>
->> Nick,
->>
->> If you are going to rebase your branch, will you be able to fold in the
->> patch in my previous e-mail? Else, I can send a more formal patch to you.
->
-> Either IRQF_TRIGGER_FALLING or IRQF_TRIGGER_LOW will work with these chips
-> (it isn't a question of polarity but whether it's edge- or level-
-> triggered). There isn't a sensible default. Atmel prefer IRQF_TRIGGER_LOW,
-> however I've seen some IRQ controllers will revert to a polled mode for
-> IRQF_TRIGGER_LOW, which kills performance.
->
-> So, the sensible course of action seems to be to remove the default
-> IRQF_TRIGGER_FALLING in the device tree parsing, and provide a device tree
-> parameter for the flags. If you agree, I will sort this out at my end, you
-> don't need to send a patch.
->
-> I have to leave it in in the case where there is neither static platform
-> data, or device tree node, because that is used for some systems, but that
-> shouldn't affect either of you.
+Hi,
 
-In this case board code should take care of setting up the interrupt
-properly and the driver should simply use 0 as flags in request_irq().
-By the way, doesn't generic DT infrastructure already allow specifying
-interrupt triggers and sets them up properly?
+On Wed, Jul 02, 2014 at 11:09:32AM -0500, Felipe Balbi wrote:
+> > It has been only tested as console UART.
+> > The tty name is ttyS based instead of ttyO. How big is the pain here,
+> > what could be the easiest way to provide compatibility?
+> 
+> have been considering that myself for months. You could pass an optional
+> argument to serial8250_register_8250_port() but that only solves part of
+> the problem :-(
 
-Thanks.
+When ttyS -> ttyO change was done on OMAP, compatibility was not an issue.
+Why should we care about it now?
 
--- 
-Dmitry
+A.
