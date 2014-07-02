@@ -1,76 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] ARM: dts: am335x-evmsk: enable display and lcd panel
- support
-Date: Wed, 2 Jul 2014 04:50:10 -0700
-Message-ID: <20140702115010.GW28884@atomide.com>
-References: <1404248420-10086-1-git-send-email-detheridge@ti.com>
- <20140701210812.GN13396@saruman.home>
- <20140702074508.GT28884@atomide.com>
- <53B3E731.5030604@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: DRA7-evm: Enable SATA PHY and USB PHY power supplies
+Date: Wed, 2 Jul 2014 14:51:01 +0300
+Message-ID: <53B3F225.5020303@ti.com>
+References: <1403700996-27105-1-git-send-email-rogerq@ti.com> <53AB4CE0.6020705@ti.com> <20140626073115.GD28884@atomide.com> <53ABE9AD.1000100@ti.com> <53AC2CA7.30800@ti.com> <53AC36ED.2000309@ti.com> <53B117F9.6080004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60034 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751252AbaGBLuM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 07:50:12 -0400
-Content-Disposition: inline
-In-Reply-To: <53B3E731.5030604@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46847 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751134AbaGBLvH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Jul 2014 07:51:07 -0400
+In-Reply-To: <53B117F9.6080004@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Darren Etheridge <detheridge@ti.com>, bcousson@baylibre.com, wsa@sang-engineering.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Cc: rnayak@ti.com, balbi@ti.com, nsekhar@ti.com, kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [140702 04:06]:
-> On 02/07/14 10:45, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi@ti.com> [140701 14:10]:
-> >> Hi,
-> >>
-> >> On Tue, Jul 01, 2014 at 04:00:20PM -0500, Darren Etheridge wrote:
-> >>> Add the necessary nodes to enable the LCD controller and the
-> >>> LCD panel that is attached to the Texas Instruments AM335x
-> >>> EVMSK platform.  Also setup the necessary pin mux within the
-> >>> DT file to drive the LCD connector and add the correct
-> >>> pinmux settings for the lcd pins to be configured to when
-> >>> the SoC goes into sleep state for the minimum power
-> >>> consumption.
-> >>>
-> >>> For the sleep mode LCD pin settings, MUX_MODE7 is chosen as
-> >>> this corresponds to switching the pins into input GPIO's with
-> >>> an internal pulldown.  Which has been determined to offer the
-> >>> lowest power solution vs leaving the pins configured in LCD
-> >>> mode.
-> >>>
-> >>> Signed-off-by: Darren Etheridge <detheridge@ti.com>
-> >>> Acked-by: Wolfram Sang <wsa@sang-engineering.com>
-> >>
-> >> Tested-by: Felipe Balbi <balbi@ti.com>
-> >>
-> >> serial console capture: http://slexy.org/view/s200thiMb3
-> >>
-> >> note that v2 has been pending since May 9th:
-> >> http://marc.info/?l=linux-omap&m=139966159102339&w=2
-> >>
-> >>> ---
-> >>> Tony, Benoit,
-> >>>
-> >>> I didn't see this patch get applied anywhere, so I updated it and I am
-> >>> resending it.  Please let me know if you need any more info before you will
-> >>> apply it.
-> > 
-> > Tomi, do you want to ack this one or want to queue the panel .dts
-> > changes into a separate branch?
+On 06/30/2014 10:55 AM, Roger Quadros wrote:
+> On 06/26/2014 06:06 PM, Tero Kristo wrote:
+>> On 06/26/2014 05:22 PM, Roger Quadros wrote:
+>>> +Tero
+>>>
+>>> On 06/26/2014 12:36 PM, Roger Quadros wrote:
+>>>> On 06/26/2014 10:31 AM, Tony Lindgren wrote:
+>>>>> * Nishanth Menon <nm@ti.com> [140625 15:29]:
+>>>>>> On 06/25/2014 07:56 AM, Roger Quadros wrote:
+>>>>>>> The SATA and USB PHYs need the 1.8V and 3.3V supplies.
+>>>>>>> The PHY drivers/framework don't yet support regulator
+>>>>>>> supply so we have to keep these regulators always-on till
+>>>>>>> then.
+>>>>>>>
+>>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>>>> ---
+>>>>>>>   arch/arm/boot/dts/dra7-evm.dts | 2 ++
+>>>>>>>   1 file changed, 2 insertions(+)
+>>>>>>>
+>>>>>>> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>> index 4adc280..99a1f79 100644
+>>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>> @@ -241,6 +241,7 @@
+>>>>>>>                       regulator-min-microvolt = <1800000>;
+>>>>>>>                       regulator-max-microvolt = <1800000>;
+>>>>>>>                       regulator-boot-on;
+>>>>>>> +                    regulator-always-on;
+
+There was a confirmation from the TI hardware team that this 1.8V regulator can't be powered down while the SoC is Active. So we need to have regulator-always-on here.
+
+>>>>>>>                   };
+>>>>>>>
+>>>>>>>                   ldo9_reg: ldo9 {
+>>>>>>> @@ -266,6 +267,7 @@
+>>>>>>>                       regulator-min-microvolt = <3300000>;
+>>>>>>>                       regulator-max-microvolt = <3300000>;
+>>>>>>>                       regulator-boot-on;
+>>>>>>> +                    regulator-always-on;
+
+This ldousb_reg 3.3V regulator can be turned off when the PHY is not in use. The PHY driver will manage this.
+
+cheers,
+-roger
+
+>>>>>>>                   };
+>>>>>>>               };
+>>>>>>>           };
+>>>>>>>
+>>>>>>
+>>>>>> Why not fix phy driver/framework as needed? the trouble is people
+>>>>>> always forget to remove always-on... who actually audits old logs and
+>>>>>> fixes stuff back up?
+>>>>>
+>>>>> Yes I agree let's not play with the regulator-always-on unless
+>>>>> absolutely necessary.
+>>>>>
+>>>> Agreed. PHY framework must deal with this. Till then USB, SATA and most likely PCIe as well will not work on DRA7-evm.
+>>>>
+>>>
+>>> I tried the below patch to enable the relevant regulators in the PHY drivers but still couldn't manage to get USB to work. The same 1.8V regulator is used to supply 3 pins
+>>> -vdda_usb1: DPLL_USB and HS_USB1 analog supply
+>>> -vdda_usb2: HS_USB2 analog supply
+>>> -vdda_usb3: DPLL_USB_OTG_SS and USB3.0 Rx/Tx analog supply
+>>>
+>>> It seems that the regulator auto disable kicks in before the phy driver enables the regulator thus causing some kind of malfunction. I'm not sure whether this is due to DPLL_USB supply glitch or HS_USB1 analog supply glitch.
+>>>
+>>> In any case, the DPLL_USB (clock driver?) needs to enable the 1.8V regulator in addition to the HS_USB PHY driver to prevent this supply glitch.
+>>>
+>>> Tero, any suggestions about this? If we are not concerned about disabling DPLL_USB anytime then the regulator might just as well be always-on. Alternatively can we place a regulator_get(), regulator_enable() in drivers/clk/ti/dpll.c?
+>>
+>> I believe dpll_usb needs to go down for the core to idle. Also, we are working on getting suspend-resume working on this platform, so having the regulator always on is a no-no.
+>>
+>> Also, I am heavily against adding regulator tweaks within the clock driver, there needs to be another way.
 > 
-> I don't really have experience with the LCDC used on AM335x SoC (it
-> doesn't have DSS), but the patch looks ok, so for what it's worth:
+> Fair enough. There is not much information about controlling the power on vdda_usbx pins except the power-up and power-down sequence diagrams in Fig. 3.1 and 3.2 in the Data Manual (DRA75x_74x_ES1.1_DM_Early_Preliminary_vJ.pdf).
 > 
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Can the regulator be dealt with in the OMAP PM core driver, along with the vdd_mpu and vdd_core stuff?
 > 
-> I don't have any .dts changes queued, so I think it's better if you pick
-> it up.
 
-OK thanks applying into omap-for-v3.17/dt.
 
-Regards,
 
-Tony
