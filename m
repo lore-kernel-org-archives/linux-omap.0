@@ -1,50 +1,46 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/6] phy: core: Fix error path in phy_create()
-Date: Wed, 2 Jul 2014 15:03:54 +0300
-Message-ID: <1404302638-3003-3-git-send-email-rogerq@ti.com>
-References: <1404302638-3003-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 0/6] omap: phy: dra7-evm PHY fixes for 3.16
+Date: Wed, 2 Jul 2014 15:03:52 +0300
+Message-ID: <1404302638-3003-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404302638-3003-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, kishon@ti.com, balbi@ti.com
 Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Prevent resources from being freed twice in case device_add() call
-fails within phy_create(). Also use ida_simple_remove() instead of
-ida_remove() as we had used ida_simple_get() to allocate the ida.
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+On DRA7-evm, the VDDA_1V8_PHY supply must be always-on for proper functioning
+of the PHYs on the SoC.
+
+The 3.3V USB supply (ldousb_reg) can be turned OFF when the High Speed USB PHYs
+are not in use. We add regulator support in the PHY framework core to manage
+the PHY's regulator during PHY power on/off.
+
+Finally we add the 3.3V regulator information to the USB2 PHYs.
+
+This series should get the USB and SATA working again on 3.16 on DRA7-evm.
+
+cheers,
+-roger
+
 ---
- drivers/phy/phy-core.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+Roger Quadros (6):
+  ARM: dts: dra7-evm: Make VDDA_1V8_PHY supply always on
+  phy: core: Fix error path in phy_create()
+  phy: core: Support regulator supply for PHY power
+  phy: core: Add phy-supply to DT binding documentation
+  phy: omap-usb2: Balance pm_runtime_enable() on probe failure
+  ARM: dts: dra7-evm: Add regulator information to USB2 PHYs
 
-diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-index c64a2f3..49c4465 100644
---- a/drivers/phy/phy-core.c
-+++ b/drivers/phy/phy-core.c
-@@ -614,8 +614,9 @@ struct phy *phy_create(struct device *dev, const struct phy_ops *ops,
- 	return phy;
- 
- put_dev:
--	put_device(&phy->dev);
--	ida_remove(&phy_ida, phy->id);
-+	put_device(&phy->dev);  /* calls phy_release() which frees resources */
-+	return ERR_PTR(ret);
-+
- free_phy:
- 	kfree(phy);
- 	return ERR_PTR(ret);
-@@ -799,7 +800,7 @@ static void phy_release(struct device *dev)
- 
- 	phy = to_phy(dev);
- 	dev_vdbg(dev, "releasing '%s'\n", dev_name(dev));
--	ida_remove(&phy_ida, phy->id);
-+	ida_simple_remove(&phy_ida, phy->id);
- 	kfree(phy);
- }
- 
+ .../devicetree/bindings/phy/phy-bindings.txt       |  4 +++
+ arch/arm/boot/dts/dra7-evm.dts                     |  9 +++++
+ drivers/phy/phy-core.c                             | 39 ++++++++++++++++++++--
+ drivers/phy/phy-omap-usb2.c                        |  8 +++--
+ include/linux/phy/phy.h                            |  2 ++
+ 5 files changed, 57 insertions(+), 5 deletions(-)
+
 -- 
 1.8.3.2
