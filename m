@@ -1,57 +1,67 @@
-From: =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
-Subject: [PATCH v2] ARM: OMAP2+: Make GPMC skip disabled devices
-Date: Wed,  2 Jul 2014 10:35:18 -0300
-Message-ID: <1404308118-14843-1-git-send-email-guido@vanguardiasur.com.ar>
-References: <20980858CB6D3A4BAE95CA194937D5E73EAF8D44@DBDE04.ent.ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/8] CLK: ti: dra7: Initialize USB_DPLL
+Date: Wed, 2 Jul 2014 17:23:30 +0300
+Message-ID: <53B415E2.9090203@ti.com>
+References: <1394197751-28984-1-git-send-email-rogerq@ti.com> <1394197751-28984-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yh0-f49.google.com ([209.85.213.49]:36446 "EHLO
-	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751297AbaGBNdD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Jul 2014 09:33:03 -0400
-Received: by mail-yh0-f49.google.com with SMTP id f73so6834300yha.22
-        for <linux-omap@vger.kernel.org>; Wed, 02 Jul 2014 06:33:02 -0700 (PDT)
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAF8D44@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1394197751-28984-2-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, balbi@ti.com, tony@atomide.com
+Cc: kishon@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, pekon@ti.com, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>
 
-Currently, child nodes of the gpmc node are iterated and probed
-regardless of their 'status' property. This means adding 'status =3D
-"disabled";' has no effect.
+On 03/07/2014 03:09 PM, Roger Quadros wrote:
+> USB_DPLL must be initialized and locked at boot so that
+> USB modules can work.
+>
+> Also program USB_DLL_M2 output to half rate.
+>
+> CC: Mike Turquette <mturquette@linaro.org>
+> CC: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>   drivers/clk/ti/clk-7xx.c | 11 +++++++++++
+>   1 file changed, 11 insertions(+)
 
-This patch changes the iteration to only probe nodes marked as
-available.
+Hi,
 
-Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
----
-v2: Make patch title consistent with previous gpmc patches
+Resurrecting this patch, as it seems the clock-parenting stuff via DT 
+hasn't really moved that much forward.
 
- arch/arm/mach-omap2/gpmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thus, this patch has been now queued for 3.17, thanks.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 2c0c281..8bc1338 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1615,7 +1615,7 @@ static int gpmc_probe_dt(struct platform_device *=
-pdev)
- 		return ret;
- 	}
-=20
--	for_each_child_of_node(pdev->dev.of_node, child) {
-+	for_each_available_child_of_node(pdev->dev.of_node, child) {
-=20
- 		if (!child->name)
- 			continue;
---=20
-2.0.0
+-Tero
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+> index 9977653..f89f3c2 100644
+> --- a/drivers/clk/ti/clk-7xx.c
+> +++ b/drivers/clk/ti/clk-7xx.c
+> @@ -18,6 +18,7 @@
+>
+>   #define DRA7_DPLL_ABE_DEFFREQ				361267200
+>   #define DRA7_DPLL_GMAC_DEFFREQ				1000000000
+> +#define DRA7_DPLL_USB_DEFFREQ				960000000
+>
+>
+>   static struct ti_dt_clk dra7xx_clks[] = {
+> @@ -328,5 +329,15 @@ int __init dra7xx_dt_clk_init(void)
+>   	if (rc)
+>   		pr_err("%s: failed to configure GMAC DPLL!\n", __func__);
+>
+> +	dpll_ck = clk_get_sys(NULL, "dpll_usb_ck");
+> +	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ);
+> +	if (rc)
+> +		pr_err("%s: failed to configure USB DPLL!\n", __func__);
+> +
+> +	dpll_ck = clk_get_sys(NULL, "dpll_usb_m2_ck");
+> +	rc = clk_set_rate(dpll_ck, DRA7_DPLL_USB_DEFFREQ/2);
+> +	if (rc)
+> +		pr_err("%s: failed to set USB_DPLL M2 OUT\n", __func__);
+> +
+>   	return rc;
+>   }
+>
