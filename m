@@ -1,49 +1,28 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv5 04/15] hwspinlock/core: add common OF helpers
-Date: Thu, 3 Jul 2014 10:15:38 +0300
-Message-ID: <CAK=WgbbJ6a17wrsEcvNq6tPiaciQ=E+22QE06t9EA8RFqicNRg@mail.gmail.com>
+Subject: Re: [PATCHv5 05/15] hwspinlock/omap: add support for dt nodes
+Date: Thu, 3 Jul 2014 10:25:01 +0300
+Message-ID: <CAK=WgbZL9XbMtHpsQz8zuo5mbqSUnQhtjDoWPi2M2mfVxjaFNw@mail.gmail.com>
 References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
- <1398904476-26200-5-git-send-email-s-anna@ti.com> <CAK=WgbbZvBLT7U638fBfPjF7-MJaP=4WJcrT_fEg6Uu3cXRAyg@mail.gmail.com>
- <53B47626.4040506@ti.com>
+ <1398904476-26200-6-git-send-email-s-anna@ti.com> <CAK=WgbamDPN9EmKUu3+c3RbsQn1uhz5MGGvpWSSUJSUKyoH8Cw@mail.gmail.com>
+ <53B460B4.9010200@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53B47626.4040506@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:40946 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755410AbaGCHZX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 03:25:23 -0400
+Received: by mail-lb0-f180.google.com with SMTP id w7so8892439lbi.11
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2014 00:25:21 -0700 (PDT)
+In-Reply-To: <53B460B4.9010200@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Suman Anna <s-anna@ti.com>
 Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
-List-Id: linux-omap@vger.kernel.org
 
-Hi Suman,
+On Wed, Jul 2, 2014 at 10:42 PM, Suman Anna <s-anna@ti.com> wrote:
+> Yeah, I did this since we only had 1 instance, and used the same value
+> as used in the non-DT legacy code. Once I fold back Patch 8 that adds
+> the hwlock-base-id property, this will be assigned by reading that property.
 
-On Thu, Jul 3, 2014 at 12:14 AM, Suman Anna <s-anna@ti.com> wrote:
->> Do we have a use case today that require the xlate() method?
->>
->> If not, let's remove it as we could always add it back if some new
->> hardware shows up that needs it.
->
-> The xlate() method is to support the phandle + args specifier way of
-> requesting hwlocks, platform implementations are free to implement their
-> own xlate functions, but the above supports the simplest case of
-> controller + relative lock index within controller.
-
-Do we have a use case for a different implementation other than the
-simplest case? If not, it seems to me this will just become redundant
-boilerplate code (every platform will use the simple xlate method).
-
-> This function again is to support the phandle + args specifier way of
-> requesting hwlocks, the hwspin_lock_request_specific() is invoked
-> internally within this function, so we are still reusing the actual
-> request code other than handling the DT parsing portion. If we go back
-> to using global locks in client hwlocks property, we don't need a
-> of_hwspin_lock_get_id(), the same can be achieved using the existing DT
-> function, of_property_read_u32_index().
-
-I think you may have misunderstood me, sorry. I'm ok with the phandle
-+ args specifier. I just think we can use it, together with the
-base_id property, to infer the global lock id from the DT data. This
-is not only a must to support heterogenous multi-processing systems,
-it will also substantially simplify the code.
-
-Thanks,
-Ohad.
+Sounds good, thanks!
