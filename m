@@ -1,54 +1,69 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Thu, 3 Jul 2014 18:19:47 +0200
-Message-ID: <CABxcv=nGPyK7SeQZ+W1ZEfBPQ-RraVTawyYuKOGz02df0g=6Qg@mail.gmail.com>
-References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
-	<20140702160932.GF5541@saruman.home>
-	<20140702190944.GA567@drone.musicnaut.iki.fi>
-	<CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
-	<20140703073411.GX28884@atomide.com>
-	<20140703132509.GA5814@saruman.home>
-	<CAOCHtYi0JwRO12gHa+KFGH1k7pPk4TL40igwhzRRxutw-tqf6A@mail.gmail.com>
-	<20140703140736.GF5814@saruman.home>
-	<20140703154425.GC23309@earth.universe>
-	<20140703155240.GU5814@saruman.home>
-	<20140703160622.GE23309@earth.universe>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 5/6] phy: omap-usb2: Balance pm_runtime_enable() on probe
+ failure
+Date: Thu, 3 Jul 2014 19:50:25 +0300
+Message-ID: <53B589D1.1090209@ti.com>
+References: <1404302638-3003-1-git-send-email-rogerq@ti.com> <1404302638-3003-6-git-send-email-rogerq@ti.com> <53B55B4A.8020709@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:52318 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759499AbaGCQTv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 12:19:51 -0400
-Received: by mail-wi0-f175.google.com with SMTP id r20so11636749wiv.14
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2014 09:19:47 -0700 (PDT)
-In-Reply-To: <20140703160622.GE23309@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53B55B4A.8020709@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com, balbi@ti.com
+Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Jul 3, 2014 at 6:06 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> Hi,
->
-> On Thu, Jul 03, 2014 at 10:52:40AM -0500, Felipe Balbi wrote:
->> > DT is supposed to contain information about the hardware, so it
->> > should stay the same? I think there is no non-hackish way to decide
+On 07/03/2014 04:31 PM, Kishon Vijay Abraham I wrote:
+> Hi Roger,
+> 
+> On Wednesday 02 July 2014 05:33 PM, Roger Quadros wrote:
+>> If probe fails then we need to call pm_runtime_disable() to balance
+>> out the previous pm_runtime_enable() call. Else it will cause
+>> unbalanced pm_runtime_enable() call in the succeding probe call.
 >>
->> compatible would change, at a minimum.
->
-> why? I would expect it to stay the same (and the current patch uses
-> the same compatible strings).
->
+>> This anomaly was observed when the call to devm_phy_create() failed
+>> with -EPROBE_DEFER.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  drivers/phy/phy-omap-usb2.c | 8 ++++++--
+>>  1 file changed, 6 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
+>> index 7007c11..c6f9809 100644
+>> --- a/drivers/phy/phy-omap-usb2.c
+>> +++ b/drivers/phy/phy-omap-usb2.c
+>> @@ -265,15 +265,19 @@ static int omap_usb2_probe(struct platform_device *pdev)
+>>  	pm_runtime_enable(phy->dev);
+>>  
+>>  	generic_phy = devm_phy_create(phy->dev, &ops, NULL);
+>> -	if (IS_ERR(generic_phy))
+>> +	if (IS_ERR(generic_phy)) {
+>> +		pm_runtime_disable(phy->dev);
+>>  		return PTR_ERR(generic_phy);
+>> +	}
+> 
+> Maybe we can move pm_runtime_enable to just before phy_provider_register?
 
-Exactly, the new driver must support all the compatible strings
-defined in Documentation/devicetree/bindings/serial/omap_serial.tx
-(which already does as you pointed out).
+OK. will try that.
 
-Otherwise the current drivers/tty/serial/omap-serial.c could never be
-removed since that would mean breaking DT backward compatibility.
+>>  
+>>  	phy_set_drvdata(generic_phy, phy);
+>>  
+>>  	phy_provider = devm_of_phy_provider_register(phy->dev,
+>>  			of_phy_simple_xlate);
+>> -	if (IS_ERR(phy_provider))
+>> +	if (IS_ERR(phy_provider)) {
+>> +		pm_runtime_disable(phy->dev);
+>>  		return PTR_ERR(phy_provider);
+>> +	}
+> 
+> Noticed pm_runtime_disable was missing in omap_usb2_remove too. Would be good
+> to fix it here.
+> 
 
-> -- Sebastian
+Fine, I'll add it there.
 
-Best regards,
-Javier
+cheers,
+-roger
