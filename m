@@ -1,91 +1,89 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] arm: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
-Date: Thu, 3 Jul 2014 11:59:11 +0300
-Message-ID: <53B51B5F.5040105@ti.com>
-References: <1401180943-14296-1-git-send-email-rnayak@ti.com> <53B5157A.3020108@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v7 0/5] Input: pixcir_i2c_ts: Add Type-B Multi-touch and
+ DT support
+Date: Thu, 3 Jul 2014 12:34:38 +0300
+Message-ID: <53B523AE.70601@ti.com>
+References: <1402997507-9736-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46105 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751182AbaGCI6s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jul 2014 04:58:48 -0400
-In-Reply-To: <53B5157A.3020108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1402997507-9736-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dmitry.torokhov@gmail.com, tony@atomide.com
+Cc: rydberg@euromail.se, balbi@ti.com, dmurphy@ti.com, mugunthanvnm@ti.com, nsekhar@ti.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/03/2014 11:34 AM, Rajendra Nayak wrote:
-> On Tuesday 27 May 2014 02:25 PM, Rajendra Nayak wrote:
->> Without the patch:
->> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck # cat clk_rate
->> 532000000
->> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div # cat clk_rate
->> 532000000
->> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div/l4_root_clk_div # cat clk_rate
->> 532000000
->>
->> With the patch:
->> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck # cat clk_rate
->> 532000000
->> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div # cat clk_rate
->> 266000000
->> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div/l4_root_clk_div # cat clk_rate
->> 133000000
->>
->> The l3 clock derived from core DPLL is actually a divider clock,
->> with the default divider set to 2. l4 then derived from l3 is a fixed factor
->> clock, but the fixed divider is 2 and not 1. Which means the l3 clock is
->> half of core DPLLs h12x2 and l4 is half of l3 (as seen with this patch)
->
-> Tero, this seems like is yet to be picked up. You see any issues with this that needs to be
-> addressed?
+Hi Dmitry,
 
-Yea this actually looks good to me. Queued for 3.16-rc dt-clk fixes.
+Gentle reminder to pick this series for -next. Thanks :).
 
--Tero
+cheers,
+-roger
 
->
-> regards,
-> Rajendra
->
->>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> ---
->>   arch/arm/boot/dts/dra7xx-clocks.dtsi |   10 ++++++----
->>   1 file changed, 6 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> index cfb8fc7..a14c99b 100644
->> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
->> @@ -673,10 +673,12 @@
->>
->>   	l3_iclk_div: l3_iclk_div {
->>   		#clock-cells = <0>;
->> -		compatible = "fixed-factor-clock";
->> +		compatible = "ti,divider-clock";
->> +		ti,max-div = <2>;
->> +		ti,bit-shift = <4>;
->> +		reg = <0x0100>;
->>   		clocks = <&dpll_core_h12x2_ck>;
->> -		clock-mult = <1>;
->> -		clock-div = <1>;
->> +		ti,index-power-of-two;
->>   	};
->>
->>   	l4_root_clk_div: l4_root_clk_div {
->> @@ -684,7 +686,7 @@
->>   		compatible = "fixed-factor-clock";
->>   		clocks = <&l3_iclk_div>;
->>   		clock-mult = <1>;
->> -		clock-div = <1>;
->> +		clock-div = <2>;
->>   	};
->>
->>   	video1_clk2_div: video1_clk2_div {
->>
->
-
+On 06/17/2014 12:31 PM, Roger Quadros wrote:
+> Hi Dmitry,
+> 
+> These are the pending patches that didn't go through in the 3.16 merge window.
+> Please queue them for -next. Thanks.
+> 
+> The series does the following
+> - convert to Type-B multi touch protocol
+> - support upto 5 fingers with hardware supplied tracking IDs
+> - device tree support
+> 
+> Tony,
+> 
+> The last 2 patches fix the touch screen size property in the device tree since
+> we now use the unified touch screen properties.
+> 
+> cheers,
+> -roger
+> 
+> Changelog:
+> 
+> v7:
+> - Rebased on 3.16-rc1.
+> 
+> v6:
+> - Use unified touchscreen bindings.
+> - Update pointer math i.e. bufptr += 4 instead of &bufptr[4];
+> 
+> v5:
+> - Changed ts->exiting flag to ts->running in patch 2.
+> - Don't call pixcir_stop() from .suspend() if wakeup is required.
+> 
+> v4:
+> - Imporved pixcir_stop() as per Dmitry's suggestion.
+> - Removed unnecessary input_unregister_device() from .remove().
+> 
+> v3:
+> - Rebased to 3.15-rc3
+> - Fixed suspend while touchscreen in use
+> - Fixed module removal while touchscreen in use
+> 
+> v2:
+> - Addressed review comments and re-arranged patch order
+> 
+> v1:
+> - http://article.gmane.org/gmane.linux.kernel/1616417
+> 
+> --
+> 
+> Roger Quadros (5):
+>   Input: pixcir_i2c_ts: Use Type-B Multi-Touch protocol
+>   Input: pixcir_i2c_ts: support upto 5 fingers and hardware provided
+>     tracking IDs
+>   Input: pixcir_i2c_ts: Add device tree support
+>   ARM: dts: am43x-epos-evm: Update binding for touchscreen size
+>   ARM: dts: am437x-gp-evm: Update binding for touchscreen size
+> 
+>  .../bindings/input/touchscreen/pixcir_i2c_ts.txt   |  26 +++
+>  .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+>  arch/arm/boot/dts/am437x-gp-evm.dts                |   4 +-
+>  arch/arm/boot/dts/am43x-epos-evm.dts               |   4 +-
+>  drivers/input/touchscreen/pixcir_i2c_ts.c          | 251 ++++++++++++++++++---
+>  include/linux/input/pixcir_ts.h                    |  12 +
+>  6 files changed, 259 insertions(+), 39 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/pixcir_i2c_ts.txt
+> 
