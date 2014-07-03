@@ -1,29 +1,31 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [GIT PULL] ARM: OMAP2+: clock cleanup for v3.17 merge window
-Date: Thu, 3 Jul 2014 21:09:33 +0300
-Message-ID: <53B59C5D.7010405@ti.com>
+Subject: [GIT PULL] ARM: OMAP2: clock data migration to DT for 3.17 merge
+ window
+Date: Thu, 3 Jul 2014 21:18:27 +0300
+Message-ID: <53B59E73.1020709@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49957 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39758 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752681AbaGCSIw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jul 2014 14:08:52 -0400
+	id S1752838AbaGCSRx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jul 2014 14:17:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "tony@atomide.com" <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, aaro.koskinen@iki.fi
 
 Hi Tony,
 
-Posting this early, as I will be going for vacation from next week and 
-might miss the merge window myself. Small cleanup set for the clock 
-drivers residing under mach-omap2 folder to prepare their move under 
-drivers/clk. I'll leave it for your judgement whether you pull this or 
-not based on the potential feedback.
+Posting this pull-request also early due to my holidays. Anyway, these 
+patches were supposed to go in already during 3.16 merge window, but 
+they missed it due to pending dependencies. Finalizes the move of 
+OMAP24xx clock data to the DT, and also removes the legacy clock data. 
+Might be good to try this branch out with n800 / 2420 hardware also as I 
+don't have access to those.
 
-----------------------------------------------------------------
+---------------------------------------------------------------
 
 The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
 
@@ -31,41 +33,41 @@ The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
 
 are available in the git repository at:
 
-   git@github.com:t-kristo/linux-pm.git for-v3.17/omap2-clk-cleanup
+   git@github.com:t-kristo/linux-pm.git for-v3.17/omap2-use-dt-clks
 
-for you to fetch changes up to 4eccc64a2bc25514754c30cdfc985207aee8b2fd:
+for you to fetch changes up to 6a194a6e2a8fa55e133936a124ed500aea434116:
 
-   ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c 
-file (2014-07-01 17:46:27 +0300)
+   ARM: OMAP24xx: clock: remove legacy clock data (2014-07-02 15:59:03 
++0300)
 
 ----------------------------------------------------------------
-Tero Kristo (13):
-       ARM: OMAP2+: clock/dpll: fix _dpll_test_fint arithmetics overflow
-       ARM: OMAP4+: clock: remove DEFINE_CLK_OMAP_HSDIVIDER macro
-       ARM: OMAP4+: dpll: remove cpu_is_omap44xx checks
-       ARM: OMAP4+: dpll44xx: remove cm-regbits-44xx.h and clock44xx.h 
-includes
-       ARM: OMAP2+: clock: introduce ti_clk_features flags
-       ARM: OMAP2+: clock: add fint values to the ti_clk_features struct
-       ARM: OMAP2+: clock/dpll: add private API for checking if DPLL is 
-in bypass
-       ARM: OMAP2+: clock/dpll: convert bypass check to use clk_features
-       ARM: OMAP2+: clock/dpll: add jitter correction behind clk_features
-       ARM: OMAP2+: clock/interface: add a clk_features definition for 
-idlest value
-       ARM: OMAP2+: clock/dpll: remove unused header includes from 
-clkt_dpll.c
-       ARM: OMAP2+: clock/dpll: remove unused header includes from 
-dpll3xxx.c
-       ARM: OMAP2+: clock/interface: remove some headers from 
-clkt_iclk.c file
+Tero Kristo (5):
+       ARM: OMAP2: convert sys_ck and osc_ck to standard clock types
+       ARM: OMAP2420: clock: get rid of fixed-div property use
+       ARM: OMAP2: PRM: add support for OMAP2 specific clock providers
+       ARM: OMAP2: clock: use DT clock boot if available
+       ARM: OMAP24xx: clock: remove legacy clock data
 
-  arch/arm/mach-omap2/clkt_dpll.c |  100 
-++++++++++++++++++---------------------
-  arch/arm/mach-omap2/clkt_iclk.c |    8 ++--
-  arch/arm/mach-omap2/clock.c     |   76 ++++++++++++++++++++++++++---
-  arch/arm/mach-omap2/clock.h     |   44 ++++++++---------
-  arch/arm/mach-omap2/dpll3xxx.c  |    7 +--
-  arch/arm/mach-omap2/dpll44xx.c  |   19 +++++---
-  arch/arm/mach-omap2/io.c        |    2 +
-  7 files changed, 155 insertions(+), 101 deletions(-)
+  .../devicetree/bindings/arm/omap/prcm.txt          |   65 +
+  arch/arm/boot/dts/omap2420.dtsi                    |    3 +
+  arch/arm/boot/dts/omap2430.dtsi                    |    3 +
+  arch/arm/mach-omap2/Makefile                       |    6 +-
+  arch/arm/mach-omap2/cclock2420_data.c              | 1931 
+------------------
+  arch/arm/mach-omap2/cclock2430_data.c              | 2048 
+--------------------
+  arch/arm/mach-omap2/clkt2xxx_osc.c                 |   69 -
+  arch/arm/mach-omap2/clkt2xxx_sys.c                 |   47 -
+  arch/arm/mach-omap2/clock.c                        |   21 -
+  arch/arm/mach-omap2/clock.h                        |    3 -
+  arch/arm/mach-omap2/clock2xxx.h                    |    2 -
+  arch/arm/mach-omap2/cm-regbits-24xx.h              |    1 +
+  arch/arm/mach-omap2/io.c                           |    7 +-
+  arch/arm/mach-omap2/pm24xx.c                       |    4 +
+  arch/arm/mach-omap2/prm_common.c                   |    2 +
+  15 files changed, 85 insertions(+), 4127 deletions(-)
+  create mode 100644 Documentation/devicetree/bindings/arm/omap/prcm.txt
+  delete mode 100644 arch/arm/mach-omap2/cclock2420_data.c
+  delete mode 100644 arch/arm/mach-omap2/cclock2430_data.c
+  delete mode 100644 arch/arm/mach-omap2/clkt2xxx_osc.c
+  delete mode 100644 arch/arm/mach-omap2/clkt2xxx_sys.c
