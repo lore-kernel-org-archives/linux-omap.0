@@ -1,84 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Thu, 3 Jul 2014 12:08:22 -0500
-Message-ID: <20140703170822.GB5814@saruman.home>
-References: <20140702190944.GA567@drone.musicnaut.iki.fi>
- <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
- <20140703073411.GX28884@atomide.com>
- <20140703132509.GA5814@saruman.home>
- <CAOCHtYi0JwRO12gHa+KFGH1k7pPk4TL40igwhzRRxutw-tqf6A@mail.gmail.com>
- <20140703140736.GF5814@saruman.home>
- <20140703154425.GC23309@earth.universe>
- <20140703155240.GU5814@saruman.home>
- <20140703160622.GE23309@earth.universe>
- <CABxcv=nGPyK7SeQZ+W1ZEfBPQ-RraVTawyYuKOGz02df0g=6Qg@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv5 03/15] hwspinlock/core: maintain a list of registered
+ hwspinlock banks
+Date: Thu, 3 Jul 2014 12:28:46 -0500
+Message-ID: <53B592CE.2010001@ti.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com> <1398904476-26200-4-git-send-email-s-anna@ti.com> <CAK=WgbakGbTaYz+4K24aT3vyRkDYwPKCm6XrcJvH667NMMfTTA@mail.gmail.com> <53B47621.6090307@ti.com> <CAK=WgbYtJ7TGqvjG3VAPPD5tVXx9-jEJU3iKEStUMxOvD1v=LQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tRjCiSMHexiP9I5N"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38376 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752324AbaGCRJQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jul 2014 13:09:16 -0400
-Content-Disposition: inline
-In-Reply-To: <CABxcv=nGPyK7SeQZ+W1ZEfBPQ-RraVTawyYuKOGz02df0g=6Qg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAK=WgbYtJ7TGqvjG3VAPPD5tVXx9-jEJU3iKEStUMxOvD1v=LQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Sebastian Reichel <sre@kernel.org>, Felipe Balbi <balbi@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---tRjCiSMHexiP9I5N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Ohad,
 
-On Thu, Jul 03, 2014 at 06:19:47PM +0200, Javier Martinez Canillas wrote:
-> On Thu, Jul 3, 2014 at 6:06 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> > Hi,
-> >
-> > On Thu, Jul 03, 2014 at 10:52:40AM -0500, Felipe Balbi wrote:
-> >> > DT is supposed to contain information about the hardware, so it
-> >> > should stay the same? I think there is no non-hackish way to decide
-> >>
-> >> compatible would change, at a minimum.
-> >
-> > why? I would expect it to stay the same (and the current patch uses
-> > the same compatible strings).
-> >
->=20
-> Exactly, the new driver must support all the compatible strings
-> defined in Documentation/devicetree/bindings/serial/omap_serial.tx
-> (which already does as you pointed out).
->=20
-> Otherwise the current drivers/tty/serial/omap-serial.c could never be
-> removed since that would mean breaking DT backward compatibility.
+On 07/03/2014 02:00 AM, Ohad Ben-Cohen wrote:
+> Hi Suman,
+> 
+> On Thu, Jul 3, 2014 at 12:14 AM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+>>> I'm not sure we need this patch.
+>>
+>> This patch is needed if we use the controller-phandle + args specifier
+>> for requesting hwlocks by a client, as we need to translate
+>> controller-phandle to the corresponding hwspinlock_device.
+>>
+>> Looks like we still don't have a closure on the semantics of how
+>> clients have to request a lock in DT. You are suggesting something like
+>>     hwlocks = <global_lock1 global_lock2 ...>;
+>>
+>> whereas this patch is built to support based on comments from
+>> DT-maintainers,
+>>     hwlocks = <controller-phandle lock-specifier1>, <controller-phandle
+>> lock-specifier2>...;
+> 
+> I'm actually ok with this suggestion and haven't suggested otherwise.
 
-that settles it then... good. I'll start testing this next week.
+OK, thanks for confirming and sorry for the misinterpretation.
 
---=20
-balbi
+> 
+> All I propose is that we add the base_id property to the controller
+> node (as you have done in the subsequent patches), and then drivers
+> will be able to infer the global lock id from the DT data by adding
+> the controller's base_id to the lock specifier.
 
---tRjCiSMHexiP9I5N
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+OK, but we would still require this function to lookup the registered
+device from the controller-phandle to retrieve the base_id. Do note that
+the hwspinlock core currently only maintains the registered locks in an
+integrated radix tree, but not the registered hwspinlock banks themselves.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+regards
+Suman
 
-iQIcBAEBAgAGBQJTtY4GAAoJEIaOsuA1yqREm0YP/j/hpexePJe1EtVF2/Q9g595
-hLO3AT927yMX/kpxtzLrM53nOtJTtLRy2QTPKLZ/m/6TVhTteESAh7dCm+MFGQTt
-MUSKuvtZo2WSxruxLwLgG8JW4fspGv2dCWk30MYSXS8zq1YJsPT0dLV2ahWAz5c9
-sAnLI2n9DmSBFNRdEJ65VMg1x3lDlQEunq7/FEe6zXfiWKEEFsrYwbCMvGKqJmY6
-NzZVnPuv/aL2oR3ga3dL15EVBCyu1n/g+slELHHLnPwg1JzFGwdzoCZpM+q/o05u
-z09pRzqIA41ogjQIZrKw8UvBFdyc7hP2yq4oVpNu+OxkK2djgR9Q79OQJKlPygEU
-TbilykpkV2N4108UwYM6K5IQ28/QbQ8Fj8CPfkeXsRRYNYbPKjVL13YAnyOMsWIH
-YAEZSaiBKm+uES9dex78dL9XGb/iZuX3ZTE4obdxtKAZHo1z8ghCHXmoWhxwve0p
-vIV8s/DLorBG49yGZlR+Zyrt+uzghu2uIsLR3czmvIiHPafSVd0kEyflNl/fVGh/
-JN3uuXjXWviD/Sak58dPVw0cogk75Yil0fLciYDg1zeebiSPC12lHoot5nunbcwC
-F7GzPABNJOlJ7OL/p4/KqhoreulbzGlwQxF3a+/B+9O/3raITq4IBj113AcIP3Z+
-UsjOuPaDFoKFpx7HFAsA
-=1yn1
------END PGP SIGNATURE-----
+> Controllers with non standard lock indexing may use an xlate() method
+> if needed but frankly this is fictional right now. We can start
+> without this, and add it later when needed, as this doesn't affect the
+> DT data.
+> 
+> With the global lock id in hand, drivers could simply use the existing
+> hwspin_lock_request_specific API to obtain a specific lock, and then
+> we don't need this patch.
+> 
+> Thanks,
+> Ohad.
+> 
 
---tRjCiSMHexiP9I5N--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
