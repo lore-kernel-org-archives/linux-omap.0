@@ -1,62 +1,109 @@
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: Re: atmel_mxt_ts: defaulting irqflags to IRQF_TRIGGER_FALLING
-Date: Thu, 03 Jul 2014 15:16:06 +0100
-Message-ID: <53B565A6.9020306@itdev.co.uk>
-References: <53B284AE.3070302@ti.com>	<5995217832cc40f5bcf132ac5c6c2546@HQMAIL105.nvidia.com>	<53B3E3A8.4070605@ti.com>	<53B3F2F2.90707@itdev.co.uk> <CAKdAkRTueVK8ynFR7AJeeJL7SPK60U0EHESeONqqoBF_vXJQxA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/5] mfd: Add DT bindings for tps65218 PMIC
+Date: Thu, 3 Jul 2014 09:15:29 -0500
+Message-ID: <20140703141529.GG5814@saruman.home>
+References: <1404395102-21469-1-git-send-email-j-keerthy@ti.com>
+ <1404395102-21469-2-git-send-email-j-keerthy@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <CAKdAkRTueVK8ynFR7AJeeJL7SPK60U0EHESeONqqoBF_vXJQxA@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Stephen Warren <swarren@nvidia.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4ndw/alBWmZEhfcZ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1404395102-21469-2-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 02/07/14 18:25, Dmitry Torokhov wrote:
-> In this case board code should take care of setting up the interrupt
-> properly and the driver should simply use 0 as flags in request_irq().
-> By the way, doesn't generic DT infrastructure already allow specifying
-> interrupt triggers and sets them up properly?
+--4ndw/alBWmZEhfcZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes. I've checked and tested this behaviour today. If you don't specify a
-trigger type, then when you request the irq it trusts that the platform has
-already set it up correctly:
-http://lxr.free-electrons.com/source/kernel/irq/manage.c#L1208
+Hi,
 
-Stephen: you should be able to set up the interrupt config in the device
-tree. I believe this should be done by putting IRQ_TYPE_LEVEL_LOW or
-IRQ_TYPE_EDGE_FALLING in the third field in the "interrupts" definition,
-although I haven't a tegra DTS device to test on at the moment.
+On Thu, Jul 03, 2014 at 07:14:58PM +0530, Keerthy wrote:
+> Add DT bindings for tps65218 PMIC
+>=20
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  Documentation/devicetree/bindings/mfd/tps65218.txt |   57 ++++++++++++++=
+++++++
+>  1 file changed, 57 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/mfd/tps65218.txt b/Documen=
+tation/devicetree/bindings/mfd/tps65218.txt
+> new file mode 100644
+> index 0000000..38f48ef
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/tps65218.txt
+> @@ -0,0 +1,57 @@
+> +Texas Instruments TPS65218 family
+> +
+> +The TPS65218 are Integrated Power Management Chips.
+> +
+> +Required properties:
+> +- compatible : Must be "ti,tps65218";
+> +  For Integrated power-management used in AM437x based boards
+> +- interrupts : This i2c device has an IRQ line connected to the main SoC
+> +- interrupt-controller : Since the tps65218 supports several interrupts
+> +  internally, it is considered as an interrupt controller cascaded to the
+> +  SoC one.
+> +- #interrupt-cells =3D <2>;
+> +- interrupt-parent : The parent interrupt controller which is gic.
+> +
+> +Optional node:
+> +- TPS65218 PMIC has a number of child nodes. Mainly the regularors and S=
+MPSs.
+> +
+> +Example:
+> +/*
+> + * Integrated Power Management Chip
+> + */
+> +tps65218: tps65218@24 {
+> +	reg =3D <0x24>;
+> +	compatible =3D "ti,tps65218";
+> +	interrupts =3D <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
+> +	interrupt-parent =3D <&gic>;
+> +	interrupt-controller;
+> +	#interrupt-cells =3D <2>;
+> +
+> +	dcdc1: regulator-dcdc1 {
+> +		compatible =3D "ti,tps65218-dcdc1";
+> +		/* VDD_CORE voltage limits min of OPP50 and max of OPP100 */
 
-I've applied the patch below, which is basically what Sekhar had
-originally, with a minor extra fix.
+wonder if this comment really makes sense here as boards might have
+another regulator assignment. Likewise fro the other two regulators.
+Also, this device provides 7 regulated outputs according to [1], why
+only provide three here ?
 
-I've merged it into the appropriate parts of my for upstream series at
-https://github.com/ndyer/linux/commits/for-next
+[1] http://www.ti.com/product/tps65218
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c
-b/drivers/input/touchscree
-index dc46100..15efb3b 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -1453,7 +1453,7 @@ static int mxt_check_retrigen(struct mxt_data *data)
-        int error;
-        int val;
+--=20
+balbi
 
--       if (data->pdata->irqflags & IRQF_TRIGGER_LOW)
-+       if (irq_get_trigger_type(data->irq) & IRQF_TRIGGER_LOW)
-                return 0;
+--4ndw/alBWmZEhfcZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-        if (data->T18_address) {
-@@ -3155,9 +3155,6 @@ static struct mxt_platform_data *mxt_parse_dt(struct
-i2c_c
-        pdata->gpio_reset = of_get_named_gpio_flags(dev->of_node,
-                "atmel,reset-gpio", 0, NULL);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
--       /* Default to this. Properties can be added to configure it later */
--       pdata->irqflags = IRQF_TRIGGER_FALLING;
--
-        of_property_read_string(dev->of_node, "atmel,cfg_name",
-                                &pdata->cfg_name);
+iQIcBAEBAgAGBQJTtWWBAAoJEIaOsuA1yqREEbkQALHEmVoOSdIUH92puCjqBh5M
+iGdYVi4HMQtyBn8R3wJcrpINrSbBUoSAoTx+wJZ2DL40LX3XLzIiDqLtrCdLOd7/
+aV0TlXN4Xa6xaX6h1fvLbjeb+yvsMV1187/MB0xHAns5bHQFGX7G/b1yl5xrL2ma
+eITtCtV4792i1cfXD68hxYROuplCb4dF+rJ9xf2L9NSxUlZpMZXqP+aL17kjG34g
+AAhAL0xlqfaEipWB2CLPWMO5Umwx80vN23C87VFudoJWa+k/arFIDv+1Zfhc1CPT
+GQd6vkWLArAzhu8p/0a4+jsg5oT4wbQzZT6vkmADV47sKoO7neQMdhctwRnuEbDm
+2bbIVvVmVggiyfWJnD2p/qpcJbZFK6IFMYbL0j+269eBF1orc0KUW2rTihJTGGBi
+k3Ir54BUgQ8NVX7Gd7eGXmmGf+Yi6waLQ1RKbfbRzkGCMvg7Nj5AgZeXUaAP0+LF
+wOMb+DbZ30/G6H2LZzn+TW2Wmua0WKHuA29qvSdRviEBTyRSFjpVeOA5B5rfsq7v
+87xwyEBJYNi0PfUiIVR/ct3AfukQVQoB0gv/WTYfO8JHROO0vanJSwKDaEllQgCp
+KefXjFw697RIIopa0+y1vWvTJoW+PtruwSwdd0VCYssQxlhngocIXN2HZ80hlpdf
+cd4f1I6tcxqJntgu4jwD
+=vhW/
+-----END PGP SIGNATURE-----
 
+--4ndw/alBWmZEhfcZ--
