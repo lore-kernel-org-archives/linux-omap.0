@@ -1,28 +1,56 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv5 05/15] hwspinlock/omap: add support for dt nodes
-Date: Thu, 3 Jul 2014 10:25:01 +0300
-Message-ID: <CAK=WgbZL9XbMtHpsQz8zuo5mbqSUnQhtjDoWPi2M2mfVxjaFNw@mail.gmail.com>
-References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
- <1398904476-26200-6-git-send-email-s-anna@ti.com> <CAK=WgbamDPN9EmKUu3+c3RbsQn1uhz5MGGvpWSSUJSUKyoH8Cw@mail.gmail.com>
- <53B460B4.9010200@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
+Date: Thu, 3 Jul 2014 00:34:11 -0700
+Message-ID: <20140703073411.GX28884@atomide.com>
+References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
+ <20140702160932.GF5541@saruman.home>
+ <20140702190944.GA567@drone.musicnaut.iki.fi>
+ <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:40946 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755410AbaGCHZX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 03:25:23 -0400
-Received: by mail-lb0-f180.google.com with SMTP id w7so8892439lbi.11
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2014 00:25:21 -0700 (PDT)
-In-Reply-To: <53B460B4.9010200@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Jul 2, 2014 at 10:42 PM, Suman Anna <s-anna@ti.com> wrote:
-> Yeah, I did this since we only had 1 instance, and used the same value
-> as used in the non-DT legacy code. Once I fold back Patch 8 that adds
-> the hwlock-base-id property, this will be assigned by reading that property.
+* Robert Nelson <robertcnelson@gmail.com> [140702 12:27]:
+> On Wed, Jul 2, 2014 at 2:09 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+> > Hi,
+> >
+> > On Wed, Jul 02, 2014 at 11:09:32AM -0500, Felipe Balbi wrote:
+> >> > It has been only tested as console UART.
+> >> > The tty name is ttyS based instead of ttyO. How big is the pain here,
+> >> > what could be the easiest way to provide compatibility?
+> >>
+> >> have been considering that myself for months. You could pass an optional
+> >> argument to serial8250_register_8250_port() but that only solves part of
+> >> the problem :-(
 
-Sounds good, thanks!
+Some kind of compability layer sure would be nice.
+
+> > When ttyS -> ttyO change was done on OMAP, compatibility was not an issue.
+> > Why should we care about it now?
+> 
+> It would be a good opportunity to force everyone to update their bootloader. ;)
+> 
+> Besides the BeagleBoard forum is quiet now, no one is complaining
+> about that old (ttyS -> ttyO) transition anymore..
+
+How about a Kconfig option to provide ttyO by default? The not even
+do that if kernel has cmdline option nottyomap.
+ 
+> I'll just end up carrying a patch like, to support bb.org users over
+> the transition..
+> 
+> https://github.com/RobertCNelson/stable-kernel/blob/v3.7.x/patches/omap_beagle/0004-zeroMAP-Open-your-eyes.patch
+
+Heh. Just to summarize the reason ttyO needs to be a separate name
+and device entry from ttyS is because we also have external 8250
+devices on GPMC and hotplug busses.
+
+Regards,
+
+Tony
