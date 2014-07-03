@@ -1,101 +1,62 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Thu, 3 Jul 2014 09:07:36 -0500
-Message-ID: <20140703140736.GF5814@saruman.home>
-References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
- <20140702160932.GF5541@saruman.home>
- <20140702190944.GA567@drone.musicnaut.iki.fi>
- <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
- <20140703073411.GX28884@atomide.com>
- <20140703132509.GA5814@saruman.home>
- <CAOCHtYi0JwRO12gHa+KFGH1k7pPk4TL40igwhzRRxutw-tqf6A@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: Re: atmel_mxt_ts: defaulting irqflags to IRQF_TRIGGER_FALLING
+Date: Thu, 03 Jul 2014 15:16:06 +0100
+Message-ID: <53B565A6.9020306@itdev.co.uk>
+References: <53B284AE.3070302@ti.com>	<5995217832cc40f5bcf132ac5c6c2546@HQMAIL105.nvidia.com>	<53B3E3A8.4070605@ti.com>	<53B3F2F2.90707@itdev.co.uk> <CAKdAkRTueVK8ynFR7AJeeJL7SPK60U0EHESeONqqoBF_vXJQxA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y/WcH0a6A93yCHGr"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOCHtYi0JwRO12gHa+KFGH1k7pPk4TL40igwhzRRxutw-tqf6A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <CAKdAkRTueVK8ynFR7AJeeJL7SPK60U0EHESeONqqoBF_vXJQxA@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Stephen Warren <swarren@nvidia.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
---Y/WcH0a6A93yCHGr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 02/07/14 18:25, Dmitry Torokhov wrote:
+> In this case board code should take care of setting up the interrupt
+> properly and the driver should simply use 0 as flags in request_irq().
+> By the way, doesn't generic DT infrastructure already allow specifying
+> interrupt triggers and sets them up properly?
 
-On Thu, Jul 03, 2014 at 08:34:44AM -0500, Robert Nelson wrote:
-> On Thu, Jul 3, 2014 at 8:25 AM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Thu, Jul 03, 2014 at 12:34:11AM -0700, Tony Lindgren wrote:
-> >> * Robert Nelson <robertcnelson@gmail.com> [140702 12:27]:
-> >> > On Wed, Jul 2, 2014 at 2:09 PM, Aaro Koskinen <aaro.koskinen@iki.fi>=
- wrote:
-> >> > > Hi,
-> >> > >
-> >> > > On Wed, Jul 02, 2014 at 11:09:32AM -0500, Felipe Balbi wrote:
-> >> > >> > It has been only tested as console UART.
-> >> > >> > The tty name is ttyS based instead of ttyO. How big is the pain=
- here,
-> >> > >> > what could be the easiest way to provide compatibility?
-> >> > >>
-> >> > >> have been considering that myself for months. You could pass an o=
-ptional
-> >> > >> argument to serial8250_register_8250_port() but that only solves =
-part of
-> >> > >> the problem :-(
-> >>
-> >> Some kind of compability layer sure would be nice.
-> >>
-> >> > > When ttyS -> ttyO change was done on OMAP, compatibility was not a=
-n issue.
-> >> > > Why should we care about it now?
-> >> >
-> >> > It would be a good opportunity to force everyone to update their boo=
-tloader. ;)
-> >> >
-> >> > Besides the BeagleBoard forum is quiet now, no one is complaining
-> >> > about that old (ttyS -> ttyO) transition anymore..
-> >>
-> >> How about a Kconfig option to provide ttyO by default? The not even
-> >> do that if kernel has cmdline option nottyomap.
-> >
-> > what about single zImage ? I don't want to use ttyO on my
-> > Allwinner/Exynos/Snapdragon/whatever SoC just because OMAP is in the
-> > same image ;-)
->=20
-> What if we just kept it simple, leave the ttyO driver enabled and add
-> a warning (pr_info) that it's deprecated.  It's not like it's broken,
-> it just won't get later features or devices support added.
+Yes. I've checked and tested this behaviour today. If you don't specify a
+trigger type, then when you request the irq it trusts that the platform has
+already set it up correctly:
+http://lxr.free-electrons.com/source/kernel/irq/manage.c#L1208
 
-Fine by me, I'd switch to 8250 as soon as it's merged though :-) would
-be nice to get an example DTS change just so I can start testing on the
-boards I have around.
+Stephen: you should be able to set up the interrupt config in the device
+tree. I believe this should be done by putting IRQ_TYPE_LEVEL_LOW or
+IRQ_TYPE_EDGE_FALLING in the third field in the "interrupts" definition,
+although I haven't a tegra DTS device to test on at the moment.
 
---=20
-balbi
+I've applied the patch below, which is basically what Sekhar had
+originally, with a minor extra fix.
 
---Y/WcH0a6A93yCHGr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I've merged it into the appropriate parts of my for upstream series at
+https://github.com/ndyer/linux/commits/for-next
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c
+b/drivers/input/touchscree
+index dc46100..15efb3b 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -1453,7 +1453,7 @@ static int mxt_check_retrigen(struct mxt_data *data)
+        int error;
+        int val;
 
-iQIcBAEBAgAGBQJTtWOoAAoJEIaOsuA1yqREQmkQAKTtW2FusWULZTfVRTngk906
-z11o+d8+ryjq4kod+GZ3xuYkk/JsS51+B+g0Sr+yDTZ+ol2zf9/ikq2FaCrb5vwL
-eMrvADZ63tgQcbHjQFdfmdlzYew05p4AwOubFCH7wG0fXCMVNnt6xQx/N7fxsK/7
-Z08oI4J57payqOA0KE8Yz4vKQXRIUzf+8KjR6SPMHlYF908Hz9tnRVhadU9361AC
-JBQLJgScJgp3afR+ZrHOIIKsfxHqW1byZoFJwJfc+7t6WP6TuRpC1Ckwr7CKljmb
-Oih49AWGhfR9gmW9faz3XWugDo0RKncIedpvw2wyk0otgTtxsMIjO6MA/fv01++5
-HHbpY9PMMfGaR7dXljAnV/hYCz4oXj9NkMsORuReCufT8QwPlKdPGDo9Ja4AAD6t
-MYBbsRuPoaEewYVA5PgNBNT2HbUjyf7GXk/fzq/4CTkTXaiAL0TY1xtJKoOQK0X7
-Ogmtmrg8z3omQOVwuydk8X4rQNA2hFTg1AejUEom7kIz+gaio3oLNBoUW+MRtSQ5
-ZL/oYlX5pLeolLQvb/c6tLpisG9LBz8yTN+myDMsWKMSGcsC6Zy2hMg0wAuEUpzX
-YCl5VlQmD+WU7hRYLziVZjsjLs7YEo5deykCmp0R2uCYYi23rfeJVoMAchzXYqNF
-OpbtXHr08qKLULkNA6EA
-=WqE6
------END PGP SIGNATURE-----
+-       if (data->pdata->irqflags & IRQF_TRIGGER_LOW)
++       if (irq_get_trigger_type(data->irq) & IRQF_TRIGGER_LOW)
+                return 0;
 
---Y/WcH0a6A93yCHGr--
+        if (data->T18_address) {
+@@ -3155,9 +3155,6 @@ static struct mxt_platform_data *mxt_parse_dt(struct
+i2c_c
+        pdata->gpio_reset = of_get_named_gpio_flags(dev->of_node,
+                "atmel,reset-gpio", 0, NULL);
+
+-       /* Default to this. Properties can be added to configure it later */
+-       pdata->irqflags = IRQF_TRIGGER_FALLING;
+-
+        of_property_read_string(dev->of_node, "atmel,cfg_name",
+                                &pdata->cfg_name);
+
