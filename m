@@ -1,55 +1,111 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH 1/2] mmc: hsmmc: Add reset gpio configuration option.
-Date: Fri, 4 Jul 2014 00:01:14 +0100
-Message-ID: <20140703230113.GR3705@n2100.arm.linux.org.uk>
-References: <1404420564-30245-1-git-send-email-marek@goldelico.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Thu, 3 Jul 2014 18:33:21 -0500
+Message-ID: <20140703233321.GB3655@saruman.home>
+References: <1402676147-3711-1-git-send-email-balbi@ti.com>
+ <1402676147-3711-2-git-send-email-balbi@ti.com>
+ <20140613162323.GH8319@saruman.home>
+ <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
+ <20140702032249.GA26010@saruman.home>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39278 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752275AbaGCXd4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 19:33:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1404420564-30245-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, chris-OsFVWbfNK3isTnJN9+BGXg@public.gmane.org, ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20140702032249.GA26010@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, Jul 03, 2014 at 10:49:23PM +0200, Marek Belisko wrote:
-> From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-> 
-> If a 'gpio_reset' is specified, then hold it low while
-> turning the power regulator on.
-> This is needed for some wi2wi wireless modules, particularly
-> when the regulator is held active by some other client.
-> The wi2wi needs to be reset if power isn't actually removed, and
-> the gpio can be used to do this.
-> 
-> Signed-off-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+--4SFOXa2GPu3tIq4H
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Obvious statement knowing what's been going on elsewhere...
+On Tue, Jul 01, 2014 at 10:22:49PM -0500, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Fri, Jun 13, 2014 at 07:11:58PM +0000, Paul Walmsley wrote:
+> > Hi Felipe, Tomi,
+> >=20
+> > On Fri, 13 Jun 2014, Felipe Balbi wrote:
+> >=20
+> > > On Fri, Jun 13, 2014 at 11:15:46AM -0500, Felipe Balbi wrote:
+> > > > From: Sathya Prakash M R <sathyap@ti.com>
+> > > >=20
+> > > > Add DSS hwmod data for AM43xx.
+> > > >=20
+> > > > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > > > Acked-by: Rajendra Nayak <rnayak@ti.com>
+> > > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+> > > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > > ---
+> > > >=20
+> > > > Note that this patch was originally send on May 9th [1], changes we=
+re requested
+> > > > and a new version was sent on May 19th [2], then on May 27th [3] To=
+mi pinged
+> > > > maintainer again and go no response.
+> > > >=20
+> > > > Without this patch, we cannot get display working on any AM437x dev=
+ices.
+> > > >=20
+> > > > [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D139963677925227&w=3D2
+> > > > [2] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140049799425512&w=3D2
+> > > > [3] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140117232826754&w=3D2
+> > > >=20
+> > > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++=
+++++++++++++
+> > > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
+> > > >  2 files changed, 99 insertions(+)
+> >=20
+> > Sorry for the delay on this.  Have been corresponding with TI managemen=
+t=20
+> > to figure out what to do about patches for AM43xx.  I don't have boards=
+ or=20
+> > public documentation for these devices, so it's impossible for me to=20
+>=20
+> documentation is now available publicly
+>=20
+> http://www.ti.com/product/AM4379
 
-A while back, Olof produced a couple of patches to add /generic/ support
-to deal with power and reset controls for SDIO WIFI cards.  Patches
-were posted to linux-arm-kernel and other places around January time
-this year.
+at [1] you can find most (all?) board-related documentation. [2] will
+give you AM437x GP EVM schematics.
 
-No real conclusion came out of it, and it kind of died.  The point here
-is that this is not an OMAP problem.  We have this very same problem
-on different platforms and different SoCs.
+[1] http://processors.wiki.ti.com/index.php/AM437X_EVM_Boards
+[2] http://processors.wiki.ti.com/images/9/95/Am437x_gp_evm_3k0006_schemati=
+c_rev1_4a.pdf
 
-Why should we have N different solutions to the same problem.  Why can't
-we have one solution to fix this issue, rather than having every host
-driver implement some different solution to what's a common problem.
+--=20
+balbi
 
-If everyone is going to run away from generic problems and continue
-inventing their own private solutions to generic problems, the kernel
-is just going to become severely bloated and unmaintainable...
+--4SFOXa2GPu3tIq4H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Please, sort out generic problems with generic solutions.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJTtehBAAoJEIaOsuA1yqREZQoQAKvLvtUlxjmCttT6C49t1PJg
+BXi2mmR7x81OK8pg7m+XnK3hBCX6Rwi74NvWDckc/Du0hOCWpPO/0XlpmMrNvEhf
+l2sFn3xKiJPeBjzGRUNcDi98Vt7KSsm4ti2xxJiksbDRvFG0SjsoLYRL/MyTJpz7
+W7pZmd1caZzfzaO/AcMKdPIlkPp3TJ7/hg5GpAeZ1sPSEClGK5CXMqGNhhQSmR87
+b29e9iSYlOU50n5jIDvEuLWmBdUPIErep5NQn9yCwhl9StsEyP3O2MG4EghdzCVQ
+JzqM5r4MoV9OmplYMqxm74TVspzDe4+vKqorQ0B+UZ0mFFFfVqw8jfZvqzKI2SUj
+yeP6xhh0DCoovmRWUWHKC4lu1mw/pp6kZR5Bv1CPVA1xdGLQJyKKLm8MS14j0pnK
+bMwn7NCaFq3c35BV8zCQUkM80FeZFEN7LQzwbDAOJLfF7ZsB7RowvB7usYxbXF4r
+aE6/6qEDzgYLWVpT97ujOPwhDTpn56ALY0LkTwInEPq8LeGgbEWbtXUZgKMAbIRC
+XuxNHfkeen2fPyK6q+qWEdRpz9febk0AuEtmyTrVuKa+JgWF2gQWd0BL/A7JdkKw
+jXXRt+khhXhnmf7f5UKoaNCI7Yj2R7l7s/Wx1HQag/Pcxm1oZH8nRaI6zG/2qIKi
+I+h1DIn6k4+b+rs7HILp
+=oJFG
+-----END PGP SIGNATURE-----
+
+--4SFOXa2GPu3tIq4H--
