@@ -1,57 +1,59 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: atmel_mxt_ts: defaulting irqflags to IRQF_TRIGGER_FALLING
-Date: Thu, 3 Jul 2014 11:45:58 +0530
-Message-ID: <53B4F51E.5010004@ti.com>
-References: <53B284AE.3070302@ti.com> <5995217832cc40f5bcf132ac5c6c2546@HQMAIL105.nvidia.com> <53B3E3A8.4070605@ti.com> <53B3F2F2.90707@itdev.co.uk>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv5 03/15] hwspinlock/core: maintain a list of registered
+ hwspinlock banks
+Date: Thu, 3 Jul 2014 10:00:18 +0300
+Message-ID: <CAK=WgbYtJ7TGqvjG3VAPPD5tVXx9-jEJU3iKEStUMxOvD1v=LQ@mail.gmail.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
+ <1398904476-26200-4-git-send-email-s-anna@ti.com> <CAK=WgbakGbTaYz+4K24aT3vyRkDYwPKCm6XrcJvH667NMMfTTA@mail.gmail.com>
+ <53B47621.6090307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <53B3F2F2.90707@itdev.co.uk>
-Sender: linux-input-owner@vger.kernel.org
-To: Nick Dyer <nick.dyer@itdev.co.uk>, Stephen Warren <swarren@nvidia.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:41320 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755496AbaGCHAk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 03:00:40 -0400
+Received: by mail-la0-f45.google.com with SMTP id hr17so7728920lab.4
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2014 00:00:39 -0700 (PDT)
+In-Reply-To: <53B47621.6090307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday 02 July 2014 05:24 PM, Nick Dyer wrote:
-> On 02/07/14 11:49, Sekhar Nori wrote:
->> On Tuesday 01 July 2014 09:44 PM, Stephen Warren wrote:
->>> On the Tegra systems I have, IRQF_TRIGGER_FALLING is the correct (or at
->>> least a valid) choice. That's probably because the Atmel IRQ signal is
->>> routed to our GPIO controller, which is also an IRQ controller, and then
->>> "forwarded" up the chain to the GIC, with the polarity the GIC expects.
->>>
->>> If IRQ_TRIGGER_FALLING doesn't work everywhere, then we'll need to add
->>> some kind of DT property to configure the polarity of the IRQ output.
->>
->> Yeah, I think so too.
->>
->> Nick,
->>
->> If you are going to rebase your branch, will you be able to fold in the
->> patch in my previous e-mail? Else, I can send a more formal patch to you.
-> 
-> Either IRQF_TRIGGER_FALLING or IRQF_TRIGGER_LOW will work with these chips
-> (it isn't a question of polarity but whether it's edge- or level-
-> triggered). There isn't a sensible default. Atmel prefer IRQF_TRIGGER_LOW,
-> however I've seen some IRQ controllers will revert to a polled mode for
-> IRQF_TRIGGER_LOW, which kills performance.
-> 
-> So, the sensible course of action seems to be to remove the default
-> IRQF_TRIGGER_FALLING in the device tree parsing, and provide a device tree
-> parameter for the flags. If you agree, I will sort this out at my end, you
-> don't need to send a patch.
+Hi Suman,
 
-Sounds good.
+On Thu, Jul 3, 2014 at 12:14 AM, Suman Anna <s-anna@ti.com> wrote:
+>> I'm not sure we need this patch.
+>
+> This patch is needed if we use the controller-phandle + args specifier
+> for requesting hwlocks by a client, as we need to translate
+> controller-phandle to the corresponding hwspinlock_device.
+>
+> Looks like we still don't have a closure on the semantics of how
+> clients have to request a lock in DT. You are suggesting something like
+>     hwlocks = <global_lock1 global_lock2 ...>;
+>
+> whereas this patch is built to support based on comments from
+> DT-maintainers,
+>     hwlocks = <controller-phandle lock-specifier1>, <controller-phandle
+> lock-specifier2>...;
 
-> I have to leave it in in the case where there is neither static platform
-> data, or device tree node, because that is used for some systems, but that
-> shouldn't affect either of you.
-> 
-> BTW, I do have a set of patches ready to send, once this change is made.
+I'm actually ok with this suggestion and haven't suggested otherwise.
 
-It will be great if you could CC me on that posting so I could test and
-ack.
+All I propose is that we add the base_id property to the controller
+node (as you have done in the subsequent patches), and then drivers
+will be able to infer the global lock id from the DT data by adding
+the controller's base_id to the lock specifier.
 
-Regards,
-Sekhar
+Controllers with non standard lock indexing may use an xlate() method
+if needed but frankly this is fictional right now. We can start
+without this, and add it later when needed, as this doesn't affect the
+DT data.
+
+With the global lock id in hand, drivers could simply use the existing
+hwspin_lock_request_specific API to obtain a specific lock, and then
+we don't need this patch.
+
+Thanks,
+Ohad.
