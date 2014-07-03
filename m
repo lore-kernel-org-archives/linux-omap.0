@@ -1,141 +1,44 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 3/6] phy: core: Support regulator supply for PHY power
-Date: Thu, 3 Jul 2014 12:42:19 +0300
-Message-ID: <53B5257B.8040609@ti.com>
-References: <1404302638-3003-1-git-send-email-rogerq@ti.com> <1404302638-3003-4-git-send-email-rogerq@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 2/2] ARM: DTS: am335x-evmsk: Enable the McASP FIFO for audio
+Date: Thu, 3 Jul 2014 12:51:23 +0300
+Message-ID: <1404381083-27029-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1404381083-27029-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48182 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59434 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965218AbaGCJm2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jul 2014 05:42:28 -0400
-In-Reply-To: <1404302638-3003-4-git-send-email-rogerq@ti.com>
+	id S965008AbaGCJv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jul 2014 05:51:56 -0400
+In-Reply-To: <1404381083-27029-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, kishon@ti.com, balbi@ti.com
-Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-From: Roger Quadros <rogerq@ti.com>
+The use of FIFO in McASP can reduce the risk of audio under/overrun and
+lowers the load on the memories since the DMA will operate in bursts.
 
-Some PHYs can be powered by an external power regulator.
-e.g. USB_HS PHY on DRA7 SoC. Make the PHY core support a
-power regulator.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/phy/phy-core.c  | 27 +++++++++++++++++++++++++++
- include/linux/phy/phy.h |  2 ++
- 2 files changed, 29 insertions(+)
+ arch/arm/boot/dts/am335x-evmsk.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-index 49c4465..2add59c 100644
---- a/drivers/phy/phy-core.c
-+++ b/drivers/phy/phy-core.c
-@@ -21,6 +21,7 @@
- #include <linux/phy/phy.h>
- #include <linux/idr.h>
- #include <linux/pm_runtime.h>
-+#include <linux/regulator/consumer.h>
- 
- static struct class *phy_class;
- static DEFINE_MUTEX(phy_provider_mutex);
-@@ -226,6 +227,12 @@ int phy_power_on(struct phy *phy)
- 	if (!phy)
- 		return 0;
- 
-+	if (phy->pwr) {
-+		ret = regulator_enable(phy->pwr);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	ret = phy_pm_runtime_get_sync(phy);
- 	if (ret < 0 && ret != -ENOTSUPP)
- 		return ret;
-@@ -247,6 +254,8 @@ int phy_power_on(struct phy *phy)
- out:
- 	mutex_unlock(&phy->mutex);
- 	phy_pm_runtime_put_sync(phy);
-+	if (phy->pwr)
-+		regulator_disable(phy->pwr);
- 
- 	return ret;
- }
-@@ -272,6 +281,9 @@ int phy_power_off(struct phy *phy)
- 	mutex_unlock(&phy->mutex);
- 	phy_pm_runtime_put(phy);
- 
-+	if (phy->pwr)
-+		regulator_disable(phy->pwr);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(phy_power_off);
-@@ -588,6 +600,16 @@ struct phy *phy_create(struct device *dev, const struct phy_ops *ops,
- 		goto free_phy;
- 	}
- 
-+	/* phy-supply */
-+	phy->pwr = regulator_get_optional(dev, "phy");
-+	if (IS_ERR(phy->pwr)) {
-+		if (PTR_ERR(phy->pwr) == -EPROBE_DEFER) {
-+			ret = -EPROBE_DEFER;
-+			goto free_ida;
-+		}
-+		phy->pwr = NULL;
-+	}
-+
- 	device_initialize(&phy->dev);
- 	mutex_init(&phy->mutex);
- 
-@@ -617,6 +639,9 @@ put_dev:
- 	put_device(&phy->dev);  /* calls phy_release() which frees resources */
- 	return ERR_PTR(ret);
- 
-+free_ida:
-+	ida_simple_remove(&phy_ida, phy->id);
-+
- free_phy:
- 	kfree(phy);
- 	return ERR_PTR(ret);
-@@ -664,6 +689,7 @@ EXPORT_SYMBOL_GPL(devm_phy_create);
- void phy_destroy(struct phy *phy)
- {
- 	pm_runtime_disable(&phy->dev);
-+	regulator_put(phy->pwr);
- 	device_unregister(&phy->dev);
- }
- EXPORT_SYMBOL_GPL(phy_destroy);
-@@ -800,6 +826,7 @@ static void phy_release(struct device *dev)
- 
- 	phy = to_phy(dev);
- 	dev_vdbg(dev, "releasing '%s'\n", dev_name(dev));
-+	regulator_put(phy->pwr);
- 	ida_simple_remove(&phy_ida, phy->id);
- 	kfree(phy);
- }
-diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
-index 2760744..9a86945 100644
---- a/include/linux/phy/phy.h
-+++ b/include/linux/phy/phy.h
-@@ -18,6 +18,7 @@
- #include <linux/of.h>
- #include <linux/device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/regulator/consumer.h>
- 
- struct phy;
- 
-@@ -65,6 +66,7 @@ struct phy {
- 	int			init_count;
- 	int			power_count;
- 	struct phy_attrs	attrs;
-+	struct regulator	*pwr;
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index ab9a34ce524c..80a3b215e7d6 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -560,8 +560,8 @@
+ 		serial-dir = <  /* 0: INACTIVE, 1: TX, 2: RX */
+ 			0 0 1 2
+ 		>;
+-		tx-num-evt = <1>;
+-		rx-num-evt = <1>;
++		tx-num-evt = <32>;
++		rx-num-evt = <32>;
  };
  
- /**
+ &tscadc {
 -- 
-1.8.3.2
+2.0.0
 
