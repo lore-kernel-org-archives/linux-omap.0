@@ -1,68 +1,84 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7: hwmod: Fixup SATA hwmod
-Date: Thu, 3 Jul 2014 13:57:23 +0530
-Message-ID: <53B513EB.3040702@ti.com>
-References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-3-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH] arm: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
+Date: Thu, 3 Jul 2014 14:04:02 +0530
+Message-ID: <53B5157A.3020108@ti.com>
+References: <1401180943-14296-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403093816-10960-3-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45235 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751459AbaGCIg4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jul 2014 04:36:56 -0400
+In-Reply-To: <1401180943-14296-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 18 June 2014 05:46 PM, Roger Quadros wrote:
-> Get rid of optional clock as that is now managed by the
-> AHCI platform driver.
+On Tuesday 27 May 2014 02:25 PM, Rajendra Nayak wrote:
+> Without the patch:
+> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck # cat clk_rate
+> 532000000
+> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div # cat clk_rate
+> 532000000
+> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div/l4_root_clk_div # cat clk_rate
+> 532000000
+> 
+> With the patch:
+> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck # cat clk_rate
+> 532000000
+> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div # cat clk_rate
+> 266000000
+> /debug/.../dpll_core_x2_ck/dpll_core_h12x2_ck/l3_iclk_div/l4_root_clk_div # cat clk_rate
+> 133000000
+> 
+> The l3 clock derived from core DPLL is actually a divider clock,
+> with the default divider set to 2. l4 then derived from l3 is a fixed factor
+> clock, but the fixed divider is 2 and not 1. Which means the l3 clock is
+> half of core DPLLs h12x2 and l4 is half of l3 (as seen with this patch)
 
-The optional clock info in hwmod is actually unused for a lot of
-other modules too.
-http://www.spinics.net/lists/arm-kernel/msg333025.html
+Tero, this seems like is yet to be picked up. You see any issues with this that needs to be
+addressed?
+
+regards,
+Rajendra
 
 > 
-> Correct .mpu_rt_idx to 1 as the module register space (SYSCONFIG..)
-> is passed as the second memory resource in the device tree.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Tested-by: Roger Quadros <rogerq@ti.com>
-
-Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > ---
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
+>  arch/arm/boot/dts/dra7xx-clocks.dtsi |   10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index cedef6b..bc42eab 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1292,9 +1292,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
->  };
+> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> index cfb8fc7..a14c99b 100644
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -673,10 +673,12 @@
 >  
->  /* sata */
-> -static struct omap_hwmod_opt_clk sata_opt_clks[] = {
-> -	{ .role = "ref_clk", .clk = "sata_ref_clk" },
-> -};
+>  	l3_iclk_div: l3_iclk_div {
+>  		#clock-cells = <0>;
+> -		compatible = "fixed-factor-clock";
+> +		compatible = "ti,divider-clock";
+> +		ti,max-div = <2>;
+> +		ti,bit-shift = <4>;
+> +		reg = <0x0100>;
+>  		clocks = <&dpll_core_h12x2_ck>;
+> -		clock-mult = <1>;
+> -		clock-div = <1>;
+> +		ti,index-power-of-two;
+>  	};
 >  
->  static struct omap_hwmod dra7xx_sata_hwmod = {
->  	.name		= "sata",
-> @@ -1302,6 +1299,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->  	.clkdm_name	= "l3init_clkdm",
->  	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
->  	.main_clk	= "func_48m_fclk",
-> +	.mpu_rt_idx	= 1,
->  	.prcm = {
->  		.omap4 = {
->  			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
-> @@ -1309,8 +1307,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
->  			.modulemode   = MODULEMODE_SWCTRL,
->  		},
->  	},
-> -	.opt_clks	= sata_opt_clks,
-> -	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
->  };
+>  	l4_root_clk_div: l4_root_clk_div {
+> @@ -684,7 +686,7 @@
+>  		compatible = "fixed-factor-clock";
+>  		clocks = <&l3_iclk_div>;
+>  		clock-mult = <1>;
+> -		clock-div = <1>;
+> +		clock-div = <2>;
+>  	};
 >  
->  /*
+>  	video1_clk2_div: video1_clk2_div {
 > 
+
