@@ -1,60 +1,35 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 2/3] ARM: DRA7: hwmod: Fixup SATA hwmod
-Date: Thu, 3 Jul 2014 14:01:13 +0300
-Message-ID: <1404385274-5093-3-git-send-email-rogerq@ti.com>
-References: <1404385274-5093-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 0/3] OMAP: dra7: hwmod: Fixes for 3.16
+Date: Thu, 3 Jul 2014 14:01:11 +0300
+Message-ID: <1404385274-5093-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404385274-5093-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
 Cc: rnayak@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Get rid of optional clock as that is now managed by the
-AHCI platform driver.
+Hi,
 
-Correct .mpu_rt_idx to 1 as the module register space (SYSCONFIG..)
-is passed as the second memory resource in the device tree.
+For your convenience I have collected the 3 hwmod patches that were floating around
+and added the Reviewed-by and Tested-by tags.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-Tested-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+Please queue them for 3.16-rc. Thanks.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index c9daee4..5ea094a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1283,9 +1283,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
- };
- 
- /* sata */
--static struct omap_hwmod_opt_clk sata_opt_clks[] = {
--	{ .role = "ref_clk", .clk = "sata_ref_clk" },
--};
- 
- static struct omap_hwmod dra7xx_sata_hwmod = {
- 	.name		= "sata",
-@@ -1293,6 +1290,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
- 	.clkdm_name	= "l3init_clkdm",
- 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
- 	.main_clk	= "func_48m_fclk",
-+	.mpu_rt_idx	= 1,
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
-@@ -1300,8 +1298,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.opt_clks	= sata_opt_clks,
--	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
- };
- 
- /*
+Patches are also available in my git tree
+git@github.com:rogerq/linux.git		hwmod-v3.16-v2
+
+cheers,
+-roger
+
+Roger Quadros (3):
+  ARM: DRA7: hwmod: Add OCP2SCP3 module
+  ARM: DRA7: hwmod: Fixup SATA hwmod
+  ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 42 +++++++++++++++++++++++++++----
+ 1 file changed, 37 insertions(+), 5 deletions(-)
+
 -- 
 1.8.3.2
