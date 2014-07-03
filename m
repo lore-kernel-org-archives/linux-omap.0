@@ -1,20 +1,29 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
-Date: Thu, 3 Jul 2014 13:50:42 +0530
-Message-ID: <53B5125A.8080908@ti.com>
-References: <1403093816-10960-2-git-send-email-rogerq@ti.com> <1403121040-22523-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH 2/2] ARM: DRA7: hwmod: Fixup SATA hwmod
+Date: Thu, 3 Jul 2014 13:57:23 +0530
+Message-ID: <53B513EB.3040702@ti.com>
+References: <1403093816-10960-1-git-send-email-rogerq@ti.com> <1403093816-10960-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403121040-22523-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <1403093816-10960-3-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
 Cc: tony@atomide.com, paul@pwsan.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 19 June 2014 01:20 AM, Roger Quadros wrote:
-> This module is needed for the SATA and PCIe PHYs.
+On Wednesday 18 June 2014 05:46 PM, Roger Quadros wrote:
+> Get rid of optional clock as that is now managed by the
+> AHCI platform driver.
+
+The optional clock info in hwmod is actually unused for a lot of
+other modules too.
+http://www.spinics.net/lists/arm-kernel/msg333025.html
+
+> 
+> Correct .mpu_rt_idx to 1 as the module register space (SYSCONFIG..)
+> is passed as the second memory resource in the device tree.
 > 
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
 > Tested-by: Roger Quadros <rogerq@ti.com>
@@ -22,60 +31,38 @@ On Thursday 19 June 2014 01:20 AM, Roger Quadros wrote:
 Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 
 > ---
-> v2:
-> - added .main_clk to hwmod.
-> - moved interface structure to the right place.
-> 
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
 > 
 > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 20b4398..c9daee4 100644
+> index cedef6b..bc42eab 100644
 > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
 > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1215,6 +1215,21 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
+> @@ -1292,9 +1292,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
+>  };
+>  
+>  /* sata */
+> -static struct omap_hwmod_opt_clk sata_opt_clks[] = {
+> -	{ .role = "ref_clk", .clk = "sata_ref_clk" },
+> -};
+>  
+>  static struct omap_hwmod dra7xx_sata_hwmod = {
+>  	.name		= "sata",
+> @@ -1302,6 +1299,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+>  	.clkdm_name	= "l3init_clkdm",
+>  	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+>  	.main_clk	= "func_48m_fclk",
+> +	.mpu_rt_idx	= 1,
+>  	.prcm = {
+>  		.omap4 = {
+>  			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
+> @@ -1309,8 +1307,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+>  			.modulemode   = MODULEMODE_SWCTRL,
+>  		},
 >  	},
+> -	.opt_clks	= sata_opt_clks,
+> -	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
 >  };
 >  
-> +/* ocp2scp3 */
-> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
-> +	.name		= "ocp2scp3",
-> +	.class		= &dra7xx_ocp2scp_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.main_clk	= "l4_root_clk_div",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_HWCTRL,
-> +		},
-> +	},
-> +};
-> +
 >  /*
->   * 'qspi' class
->   *
-> @@ -2326,6 +2341,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* l4_cfg -> ocp2scp3 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
-> +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_ocp2scp3_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_addr_space dra7xx_qspi_addrs[] = {
->  	{
->  		.pa_start	= 0x4b300000,
-> @@ -2672,6 +2695,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_per1__mmc4,
->  	&dra7xx_l4_cfg__mpu,
->  	&dra7xx_l4_cfg__ocp2scp1,
-> +	&dra7xx_l4_cfg__ocp2scp3,
->  	&dra7xx_l3_main_1__qspi,
->  	&dra7xx_l4_cfg__sata,
->  	&dra7xx_l4_cfg__smartreflex_core,
 > 
