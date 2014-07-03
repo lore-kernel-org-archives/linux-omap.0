@@ -1,163 +1,86 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH] rpmsg: compute number of buffers to allocate from vrings
-Date: Thu, 3 Jul 2014 15:53:35 -0500
-Message-ID: <1404420815-42108-1-git-send-email-s-anna@ti.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for ti,mux-clock
+Date: Thu, 03 Jul 2014 15:06:51 -0700
+Message-ID: <20140703220651.11380.34140@quantum>
+References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com>
+ <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com>
+ <53A2CA7A.60206@ti.com> <20140701194833.GH13396@saruman.home>
+ <53B50922.7070402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:48644 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759586AbaGCWHF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 18:07:05 -0400
+Received: by mail-pd0-f171.google.com with SMTP id fp1so879968pdb.16
+        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2014 15:07:04 -0700 (PDT)
+In-Reply-To: <53B50922.7070402@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, balbi@ti.com
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-The buffers to be used for communication are allocated during
-the rpmsg virtio driver's probe, and the number of buffers is
-currently hard-coded to 512. Remove this hard-coded value, as
-this can vary from one platform to another or between different
-remote processors. Instead, rely on the number of buffers the
-virtqueue vring is setup with in the first place.
+Quoting Tero Kristo (2014-07-03 00:41:22)
+> On 07/01/2014 10:48 PM, Felipe Balbi wrote:
+> > Hi,
+> >
+> > On Thu, Jun 19, 2014 at 02:33:14PM +0300, Tero Kristo wrote:
+> >> On 06/17/2014 11:04 AM, Tomi Valkeinen wrote:
+> >>> When setting the rate of a clock, by default the clock framework will
+> >>> change the parent of the clock to the most suitable one in
+> >>> __clk_mux_determine_rate() (most suitable by looking at the clock rate).
+> >>>
+> >>> This is a rather dangerous default, and causes problems on AM43x when
+> >>> using display and ethernet. There are multiple ways to select the clock
+> >>> muxes on AM43x, and some of those clock paths have the same source
+> >>> clocks for display and ethernet. When changing the clock rate for the
+> >>> display subsystem, the clock framework decides to change the display mux
+> >> >from the dedicated display PLL to a shared PLL which is used by the
+> >>> ethernet, and then changes the rate of the shared PLL, breaking the
+> >>> ethernet.
+> >>>
+> >>> As I don't think there ever is a case where we want the clock framework
+> >>> to automatically change the parent clock of a clock mux, this patch sets
+> >>> the CLK_SET_RATE_NO_REPARENT for all ti,mux-clocks.
+> >>>
+> >>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >>> ---
+> >>>   drivers/clk/ti/mux.c | 2 +-
+> >>>   1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+> >>> index 0197a478720c..e9d650e51287 100644
+> >>> --- a/drivers/clk/ti/mux.c
+> >>> +++ b/drivers/clk/ti/mux.c
+> >>> @@ -160,7 +160,7 @@ static void of_mux_clk_setup(struct device_node *node)
+> >>>     u8 clk_mux_flags = 0;
+> >>>     u32 mask = 0;
+> >>>     u32 shift = 0;
+> >>> -   u32 flags = 0;
+> >>> +   u32 flags = CLK_SET_RATE_NO_REPARENT;
+> >>>
+> >>>     num_parents = of_clk_get_parent_count(node);
+> >>>     if (num_parents < 2) {
+> >>>
+> >>
+> >> Thanks, queued for 3.16-rc fixes.
+> >
+> > did you skip a few -rcs by any chance? Looks like this could've been
+> > merged on v3.16-rc3... Just checking.
+> 
+> This goes through Mike's clk tree, so there is extra latency there. Not 
+> sure when he plans to send next pull-req for clk-fixes to linux-master.
 
-This fixes the WARN_ON during the setup of the receive buffers
-for vrings with buffers less than 512.
+Expect it late next week as several new fixes pull requests have come
+in. I merge those into clk-fixes, which then gets merged into clk-next
+and all of that gets pulled into linux-next. After some cycles there and
+testing on my end I send the fixes PR to Linus. So expect it to go
+between -rc4 and -rc5.
 
-NOTE: The number of buffers is already assumed to be symmetrical
-in each direction, and that logic is not unchanged.
+Regards,
+Mike
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- drivers/rpmsg/virtio_rpmsg_bus.c | 41 +++++++++++++++++++++++++---------------
- 1 file changed, 26 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
-index b6135d4..e9866a6 100644
---- a/drivers/rpmsg/virtio_rpmsg_bus.c
-+++ b/drivers/rpmsg/virtio_rpmsg_bus.c
-@@ -41,6 +41,7 @@
-  * @svq:	tx virtqueue
-  * @rbufs:	kernel address of rx buffers
-  * @sbufs:	kernel address of tx buffers
-+ * @num_bufs:	total number of buffers for rx and tx
-  * @last_sbuf:	index of last tx buffer used
-  * @bufs_dma:	dma base addr of the buffers
-  * @tx_lock:	protects svq, sbufs and sleepers, to allow concurrent senders.
-@@ -60,6 +61,7 @@ struct virtproc_info {
- 	struct virtio_device *vdev;
- 	struct virtqueue *rvq, *svq;
- 	void *rbufs, *sbufs;
-+	unsigned int num_bufs;
- 	int last_sbuf;
- 	dma_addr_t bufs_dma;
- 	struct mutex tx_lock;
-@@ -86,14 +88,14 @@ struct rpmsg_channel_info {
- #define to_rpmsg_driver(d) container_of(d, struct rpmsg_driver, drv)
- 
- /*
-- * We're allocating 512 buffers of 512 bytes for communications, and then
-- * using the first 256 buffers for RX, and the last 256 buffers for TX.
-+ * We're allocating buffers of 512 bytes each for communications. The
-+ * number of buffers are computed from the number of buffers supported
-+ * by the virtqueue vring and then use the first half of those buffers
-+ * for RX, and the last half buffers for TX.
-  *
-  * Each buffer will have 16 bytes for the msg header and 496 bytes for
-  * the payload.
-  *
-- * This will require a total space of 256KB for the buffers.
-- *
-  * We might also want to add support for user-provided buffers in time.
-  * This will allow bigger buffer size flexibility, and can also be used
-  * to achieve zero-copy messaging.
-@@ -102,9 +104,7 @@ struct rpmsg_channel_info {
-  * can change this without changing anything in the firmware of the remote
-  * processor.
-  */
--#define RPMSG_NUM_BUFS		(512)
- #define RPMSG_BUF_SIZE		(512)
--#define RPMSG_TOTAL_BUF_SPACE	(RPMSG_NUM_BUFS * RPMSG_BUF_SIZE)
- 
- /*
-  * Local addresses are dynamically allocated on-demand.
-@@ -579,7 +579,7 @@ static void *get_a_tx_buf(struct virtproc_info *vrp)
- 	 * either pick the next unused tx buffer
- 	 * (half of our buffers are used for sending messages)
- 	 */
--	if (vrp->last_sbuf < RPMSG_NUM_BUFS / 2)
-+	if (vrp->last_sbuf < vrp->num_bufs / 2)
- 		ret = vrp->sbufs + RPMSG_BUF_SIZE * vrp->last_sbuf++;
- 	/* or recycle a used one */
- 	else
-@@ -948,6 +948,7 @@ static int rpmsg_probe(struct virtio_device *vdev)
- 	struct virtproc_info *vrp;
- 	void *bufs_va;
- 	int err = 0, i;
-+	size_t total_buf_space;
- 
- 	vrp = kzalloc(sizeof(*vrp), GFP_KERNEL);
- 	if (!vrp)
-@@ -968,10 +969,19 @@ static int rpmsg_probe(struct virtio_device *vdev)
- 	vrp->rvq = vqs[0];
- 	vrp->svq = vqs[1];
- 
-+	/*
-+	 * We expect equal number of buffers for each direction as per current
-+	 * code, so throw a warning if the configuration doesn't match. This can
-+	 * easily be adjusted if needed.
-+	 */
-+	vrp->num_bufs = virtqueue_get_vring_size(vrp->rvq) * 2;
-+	WARN_ON(virtqueue_get_vring_size(vrp->svq) != (vrp->num_bufs / 2));
-+	total_buf_space = vrp->num_bufs * RPMSG_BUF_SIZE;
-+
- 	/* allocate coherent memory for the buffers */
- 	bufs_va = dma_alloc_coherent(vdev->dev.parent->parent,
--				RPMSG_TOTAL_BUF_SPACE,
--				&vrp->bufs_dma, GFP_KERNEL);
-+				     total_buf_space, &vrp->bufs_dma,
-+				     GFP_KERNEL);
- 	if (!bufs_va) {
- 		err = -ENOMEM;
- 		goto vqs_del;
-@@ -984,10 +994,10 @@ static int rpmsg_probe(struct virtio_device *vdev)
- 	vrp->rbufs = bufs_va;
- 
- 	/* and half is dedicated for TX */
--	vrp->sbufs = bufs_va + RPMSG_TOTAL_BUF_SPACE / 2;
-+	vrp->sbufs = bufs_va + total_buf_space / 2;
- 
- 	/* set up the receive buffers */
--	for (i = 0; i < RPMSG_NUM_BUFS / 2; i++) {
-+	for (i = 0; i < vrp->num_bufs / 2; i++) {
- 		struct scatterlist sg;
- 		void *cpu_addr = vrp->rbufs + i * RPMSG_BUF_SIZE;
- 
-@@ -1023,8 +1033,8 @@ static int rpmsg_probe(struct virtio_device *vdev)
- 	return 0;
- 
- free_coherent:
--	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
--					bufs_va, vrp->bufs_dma);
-+	dma_free_coherent(vdev->dev.parent->parent, total_buf_space,
-+			  bufs_va, vrp->bufs_dma);
- vqs_del:
- 	vdev->config->del_vqs(vrp->vdev);
- free_vrp:
-@@ -1042,6 +1052,7 @@ static int rpmsg_remove_device(struct device *dev, void *data)
- static void rpmsg_remove(struct virtio_device *vdev)
- {
- 	struct virtproc_info *vrp = vdev->priv;
-+	size_t total_buf_space = vrp->num_bufs * RPMSG_BUF_SIZE;
- 	int ret;
- 
- 	vdev->config->reset(vdev);
-@@ -1057,8 +1068,8 @@ static void rpmsg_remove(struct virtio_device *vdev)
- 
- 	vdev->config->del_vqs(vrp->vdev);
- 
--	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
--					vrp->rbufs, vrp->bufs_dma);
-+	dma_free_coherent(vdev->dev.parent->parent, total_buf_space,
-+			  vrp->rbufs, vrp->bufs_dma);
- 
- 	kfree(vrp);
- }
--- 
-2.0.0
+> 
+> -Tero
