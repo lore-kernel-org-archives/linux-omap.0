@@ -1,121 +1,81 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/2] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
-Date: Thu, 3 Jul 2014 13:37:55 +0530
-Message-ID: <53B50F5B.7010505@ti.com>
-References: <1403719366-9656-1-git-send-email-kishon@ti.com> <1403719366-9656-3-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH v2 1/2] ARM: DRA7: hwmod: Add OCP2SCP3 module
+Date: Thu, 3 Jul 2014 13:50:42 +0530
+Message-ID: <53B5125A.8080908@ti.com>
+References: <1403093816-10960-2-git-send-email-rogerq@ti.com> <1403121040-22523-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1403719366-9656-3-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1403121040-22523-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, nm@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 25 June 2014 11:32 PM, Kishon Vijay Abraham I wrote:
-> Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
+On Thursday 19 June 2014 01:20 AM, Roger Quadros wrote:
+> This module is needed for the SATA and PCIe PHYs.
 > 
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Tested-by: Roger Quadros <rogerq@ti.com>
+
+Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+
 > ---
-> Please find the bootlog with these hwmod patches
-> http://paste.ubuntu.com/7701601/
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   55 +++++++++++++++++++++++++++++
->  1 file changed, 55 insertions(+)
+> v2:
+> - added .main_clk to hwmod.
+> - moved interface structure to the right place.
+> 
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
 > 
 > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 6ff40a6..934aa9d 100644
+> index 20b4398..c9daee4 100644
 > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
 > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1290,6 +1290,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+> @@ -1215,6 +1215,21 @@ static struct omap_hwmod dra7xx_ocp2scp1_hwmod = {
+>  	},
 >  };
 >  
+> +/* ocp2scp3 */
+> +static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+> +	.name		= "ocp2scp3",
+> +	.class		= &dra7xx_ocp2scp_hwmod_class,
+> +	.clkdm_name	= "l3init_clkdm",
+> +	.main_clk	= "l4_root_clk_div",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_offs = DRA7XX_CM_L3INIT_OCP2SCP3_CLKCTRL_OFFSET,
+> +			.context_offs = DRA7XX_RM_L3INIT_OCP2SCP3_CONTEXT_OFFSET,
+> +			.modulemode   = MODULEMODE_HWCTRL,
+> +		},
+> +	},
+> +};
+> +
 >  /*
-> + * 'PCIE' class
-> + *
-> + */
-> +
-> +static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
-> +	.name	= "pcie",
-> +};
-> +
-> +/* pcie1 */
-> +static struct omap_hwmod dra7xx_pcie1_hwmod = {
-> +	.name		= "pcie1",
-> +	.class		= &dra7xx_pcie_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-
-The TRM tells me it belongs to 'pcie_clkdm' instead. Can you please recheck?
-
-> +	.main_clk	= "l4_root_clk_div",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-> +			.modulemode	= MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/* pcie2 */
-> +static struct omap_hwmod dra7xx_pcie2_hwmod = {
-> +	.name		= "pcie2",
-> +	.class		= &dra7xx_pcie_hwmod_class,
-> +	.clkdm_name	= "l3init_clkdm",
-> +	.main_clk	= "l4_root_clk_div",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/*
->   * 'PCIE PHY' class
+>   * 'qspi' class
 >   *
->   */
-> @@ -2448,6 +2485,22 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
+> @@ -2326,6 +2341,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
 >  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 >  };
 >  
-> +/* l4_cfg -> pcie1 */
-
-There seems to be a slave port on l3_init as well which seems to be missing?
-
-Refer to 'Figure 24-157. PCIe Controllers Integration' of TRM version P.
-
-regards,
-Rajendra
-
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
+> +/* l4_cfg -> ocp2scp3 */
+> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp3 = {
 > +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_pcie1_hwmod,
+> +	.slave		= &dra7xx_ocp2scp3_hwmod,
 > +	.clk		= "l4_root_clk_div",
 > +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 > +};
 > +
-> +/* l4_cfg -> pcie2 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
-> +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_pcie2_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* l4_cfg -> pcie1 phy */
->  static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
->  	.master		= &dra7xx_l4_cfg_hwmod,
-> @@ -2813,6 +2866,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>  static struct omap_hwmod_addr_space dra7xx_qspi_addrs[] = {
+>  	{
+>  		.pa_start	= 0x4b300000,
+> @@ -2672,6 +2695,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>  	&dra7xx_l4_per1__mmc4,
 >  	&dra7xx_l4_cfg__mpu,
 >  	&dra7xx_l4_cfg__ocp2scp1,
->  	&dra7xx_l4_cfg__ocp2scp3,
-> +	&dra7xx_l4_cfg__pcie1,
-> +	&dra7xx_l4_cfg__pcie2,
->  	&dra7xx_l4_cfg__pcie1_phy,
->  	&dra7xx_l4_cfg__pcie2_phy,
+> +	&dra7xx_l4_cfg__ocp2scp3,
 >  	&dra7xx_l3_main_1__qspi,
+>  	&dra7xx_l4_cfg__sata,
+>  	&dra7xx_l4_cfg__smartreflex_core,
 > 
