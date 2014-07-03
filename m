@@ -1,56 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Thu, 3 Jul 2014 00:34:11 -0700
-Message-ID: <20140703073411.GX28884@atomide.com>
-References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
- <20140702160932.GF5541@saruman.home>
- <20140702190944.GA567@drone.musicnaut.iki.fi>
- <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RFC PATCH] clk: ti: set CLK_SET_RATE_NO_REPARENT for ti,mux-clock
+Date: Thu, 3 Jul 2014 10:41:22 +0300
+Message-ID: <53B50922.7070402@ti.com>
+References: <1402992272-21413-1-git-send-email-tomi.valkeinen@ti.com> <1402992272-21413-2-git-send-email-tomi.valkeinen@ti.com> <53A2CA7A.60206@ti.com> <20140701194833.GH13396@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42797 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755531AbaGCHkh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jul 2014 03:40:37 -0400
+In-Reply-To: <20140701194833.GH13396@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-* Robert Nelson <robertcnelson@gmail.com> [140702 12:27]:
-> On Wed, Jul 2, 2014 at 2:09 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> > Hi,
-> >
-> > On Wed, Jul 02, 2014 at 11:09:32AM -0500, Felipe Balbi wrote:
-> >> > It has been only tested as console UART.
-> >> > The tty name is ttyS based instead of ttyO. How big is the pain here,
-> >> > what could be the easiest way to provide compatibility?
-> >>
-> >> have been considering that myself for months. You could pass an optional
-> >> argument to serial8250_register_8250_port() but that only solves part of
-> >> the problem :-(
+On 07/01/2014 10:48 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Thu, Jun 19, 2014 at 02:33:14PM +0300, Tero Kristo wrote:
+>> On 06/17/2014 11:04 AM, Tomi Valkeinen wrote:
+>>> When setting the rate of a clock, by default the clock framework will
+>>> change the parent of the clock to the most suitable one in
+>>> __clk_mux_determine_rate() (most suitable by looking at the clock rate).
+>>>
+>>> This is a rather dangerous default, and causes problems on AM43x when
+>>> using display and ethernet. There are multiple ways to select the clock
+>>> muxes on AM43x, and some of those clock paths have the same source
+>>> clocks for display and ethernet. When changing the clock rate for the
+>>> display subsystem, the clock framework decides to change the display mux
+>> >from the dedicated display PLL to a shared PLL which is used by the
+>>> ethernet, and then changes the rate of the shared PLL, breaking the
+>>> ethernet.
+>>>
+>>> As I don't think there ever is a case where we want the clock framework
+>>> to automatically change the parent clock of a clock mux, this patch sets
+>>> the CLK_SET_RATE_NO_REPARENT for all ti,mux-clocks.
+>>>
+>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>> ---
+>>>   drivers/clk/ti/mux.c | 2 +-
+>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+>>> index 0197a478720c..e9d650e51287 100644
+>>> --- a/drivers/clk/ti/mux.c
+>>> +++ b/drivers/clk/ti/mux.c
+>>> @@ -160,7 +160,7 @@ static void of_mux_clk_setup(struct device_node *node)
+>>>   	u8 clk_mux_flags = 0;
+>>>   	u32 mask = 0;
+>>>   	u32 shift = 0;
+>>> -	u32 flags = 0;
+>>> +	u32 flags = CLK_SET_RATE_NO_REPARENT;
+>>>
+>>>   	num_parents = of_clk_get_parent_count(node);
+>>>   	if (num_parents < 2) {
+>>>
+>>
+>> Thanks, queued for 3.16-rc fixes.
+>
+> did you skip a few -rcs by any chance? Looks like this could've been
+> merged on v3.16-rc3... Just checking.
 
-Some kind of compability layer sure would be nice.
+This goes through Mike's clk tree, so there is extra latency there. Not 
+sure when he plans to send next pull-req for clk-fixes to linux-master.
 
-> > When ttyS -> ttyO change was done on OMAP, compatibility was not an issue.
-> > Why should we care about it now?
-> 
-> It would be a good opportunity to force everyone to update their bootloader. ;)
-> 
-> Besides the BeagleBoard forum is quiet now, no one is complaining
-> about that old (ttyS -> ttyO) transition anymore..
-
-How about a Kconfig option to provide ttyO by default? The not even
-do that if kernel has cmdline option nottyomap.
- 
-> I'll just end up carrying a patch like, to support bb.org users over
-> the transition..
-> 
-> https://github.com/RobertCNelson/stable-kernel/blob/v3.7.x/patches/omap_beagle/0004-zeroMAP-Open-your-eyes.patch
-
-Heh. Just to summarize the reason ttyO needs to be a separate name
-and device entry from ttyS is because we also have external 8250
-devices on GPMC and hotplug busses.
-
-Regards,
-
-Tony
+-Tero
