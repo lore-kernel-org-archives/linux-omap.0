@@ -1,97 +1,115 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/5] regulator: Add DT bindings for tps65218 PMIC
- regulators
-Date: Thu, 3 Jul 2014 09:16:59 -0500
-Message-ID: <20140703141653.GH5814@saruman.home>
+Subject: Re: [PATCH 3/5] ARM: dts: AM43x: Add TPS65218 device tree nodes
+Date: Thu, 3 Jul 2014 09:20:45 -0500
+Message-ID: <20140703142045.GI5814@saruman.home>
 References: <1404395102-21469-1-git-send-email-j-keerthy@ti.com>
- <1404395102-21469-3-git-send-email-j-keerthy@ti.com>
+ <1404395102-21469-4-git-send-email-j-keerthy@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="k9xkV0rc9XGsukaG"
+	protocol="application/pgp-signature"; boundary="fU0UwhtRbpo05rnG"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1404395102-21469-3-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1404395102-21469-4-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---k9xkV0rc9XGsukaG
+--fU0UwhtRbpo05rnG
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 03, 2014 at 07:14:59PM +0530, Keerthy wrote:
-> Add DT bindings for tps65218 PMIC regulators.
+On Thu, Jul 03, 2014 at 07:15:00PM +0530, Keerthy wrote:
+> Add TPS65218 device tree nodes.
 >=20
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->  .../devicetree/bindings/regulator/tps65218.txt     |   21 ++++++++++++++=
+>  arch/arm/boot/dts/am43x-epos-evm.dts |   38 ++++++++++++++++++++++++++++=
 ++++++
->  1 file changed, 21 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/regulator/tps65218.=
-txt
+>  1 file changed, 38 insertions(+)
 >=20
-> diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/D=
-ocumentation/devicetree/bindings/regulator/tps65218.txt
-> new file mode 100644
-> index 0000000..6272a73
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
-> @@ -0,0 +1,21 @@
-> +TPS65218 family of regulators
-> +
-> +Required properties:
-> +For tps65218 regulators/LDOs
-> +- compatible:
-> +  - "ti,tps65218-dcdc1" for DCDC1=20
-> +  - "ti,tps65218-dcdc2" for DCDC2
-> +  - "ti,tps65218-dcdc3" for DCDC3
-> +  - "ti,tps65218-dcdc4" for DCDC4
+> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am4=
+3x-epos-evm.dts
+> index 19f1f7e..749098b 100644
+> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
+> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+> @@ -323,6 +323,44 @@
+>  	status =3D "okay";
+>  	pinctrl-names =3D "default";
+>  	pinctrl-0 =3D <&i2c0_pins>;
+> +	clock-frequency =3D <400000>;
 
-"ti,tps65218-dcdc5" for DCDC5
-"ti,tps65218-dcdc6" for DCDC6
+looks unrelated but small enough that it should suffice to mention on
+commit log.
 
-> +  - "ti,tps65218-ldo1" for LDO1
+> +	tps65218: tps65218@24 {
+> +		reg =3D <0x24>;
+> +		compatible =3D "ti,tps65218";
+> +		interrupts =3D <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
+> +		interrupt-parent =3D <&gic>;
+> +		interrupt-controller;
+> +		#interrupt-cells =3D <2>;
 > +
-> +Optional properties:
-> +- Any optional property defined in bindings/regulator/regulator.txt
+> +		dcdc1: regulator-dcdc1 {
+> +			compatible =3D "ti,tps65218-dcdc1";
+> +			/* VDD_CORE voltage limits min of OPP50 and max of OPP100 */
+> +			regulator-name =3D "vdd_core";
+> +			regulator-min-microvolt =3D <912000>;
+> +			regulator-max-microvolt =3D <1144000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
 > +
-> +Example:
+> +		dcdc2: regulator-dcdc2 {
+> +			compatible =3D "ti,tps65218-dcdc2";
+> +			/* VDD_MPU voltage limits min of OPP50 and max of OPP_NITRO */
+> +			regulator-name =3D "vdd_mpu";
+> +			regulator-min-microvolt =3D <912000>;
+> +			regulator-max-microvolt =3D <1378000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+
+missing vdcdc3, vdcdc4, vdcdc5 and vdcdc6.
+
 > +
-> +	xyz: regulator@0 {
-> +		compatible =3D "ti,tps65218-dcdc1";
-> +		regulator-min-microvolt  =3D <1000000>;
-> +		regulator-max-microvolt  =3D <3000000>;
+> +		ldo1: regulator-ldo1 {
+> +			compatible =3D "ti,tps65218-ldo1";
+> +			regulator-min-microvolt =3D <1800000>;
+> +			regulator-max-microvolt =3D <1800000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
 > +	};
-> --=20
-> 1.7.9.5
->=20
+> =20
+>  	at24@50 {
+>  		compatible =3D "at24,24c256";
 
 --=20
 balbi
 
---k9xkV0rc9XGsukaG
+--fU0UwhtRbpo05rnG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTtWXbAAoJEIaOsuA1yqRElJ0QAIqGZiiOxf+7R7DkdtUhqatB
-5TeEHEmJ7hHZtpJip62gqr1B1SMDlDJASFqgbtfKwxBPjj2ti055eMbTq+vkQYvS
-VOyD7wHT1Hxjq47luT3LLbDqBYflH1mwG+DHXHEqmmmDtE5iG9tXQ5FCSH1cFB3x
-c4ute1dpdHS183DH52vmbEyC5I3aGaVFSMP8ZPd6uQPqZdKhmxxBl67YI/CatdT6
-wos5ZkMZqRmMp1YptHJzMBlADc975NLPoh0/sJoLe8OicHF6C4Zqbut1tyaPOWhK
-xoG7pSSV8SIWDt+9QOXEeJ4QBlbz0t4qBpnUJdO8kFjTsMGNRs2tTgQXr+IyAOr/
-ujqUwNyfQ59li9nfmaC7x1ZOI5NTg4iPjLqmn1FPVGkl9rg5tdQnsFVPybqUGH38
-xyAiwAtT4kZbrc7712bUFQfwVIn8FeqmPeEYubMvIBFv2xPdggLfjtW2hXSs2PI4
-VWYYUBIZtucpgOWj1Yjn396TTNt1onMZt0bEAptTQfd9SAg72K1wq0C+wewb80kv
-d4pBJySALNfsF7EE8zikWO1g6bN6TvSltj2pNKTT2cTlKCo8H6UWQx0KY2/ctC8L
-I+AAq1lLdW97Ro5GQsPClAICnub9CWgmC+YltRBopjHJ9hhpa13u01aETl+HkIlM
-+VY6K7AKxu1w7lUAu9pD
-=z7FY
+iQIcBAEBAgAGBQJTtWa9AAoJEIaOsuA1yqRENboQAKRyjHGvdnLDdnlwaTV2KoPC
+6giTcpVJksywCTSy3oe/0ZV5I0u3tBYTQGc+epj7bMweG0BiA4o8A04OXjgYkGwG
+SfiaTLee54h/OiseSLe3QhgQCkaaYF69YarU8xlWRCbXGnaVX+I0ucE2zD661zH1
+vOoIzFnJPfFzGGZ4EQW4pfVVT8zRAOGMcWMl24//U1Y6ESjATkXaSLN/TfNbs1/a
+kYt8jI01QLm1jZdrqHm6AFuy3q6EmwaNTXfWJYmyZ+OA5V631dO5bnfA0qdetSYK
+Xi7wcugi0TNMEGMUb2gCHlk81AmyoD+OA5NNkSIEPwk4P5Dd1OLXsqLZi+RMY7vE
+eL7nuaK+T93rZ0vRTLgqiumyaA4K5kPbdL6EK1NJjJZ+VEiWs+OFilnVBp0ok8+h
+rCOKN+JVa5cTmlSB6ROnwvaz02VE76OxJWeCHBmVaYJWtf7SlQHkvgetf6y/kPfJ
+YLSDY/0F0asywzUwtnNtJHleXp/IRGgn155CXWjZtgEa3fzo7hnSlFiIXCnFF4fH
+/B+ijVuQimymZKvefohHk+VBZHAAB0Dm91CxvJEVQGIT2iOOXcq4uGypp53oRPq2
+q+CLzPOrw0mMAHUybBnrErd4+5eniIAz32rmkwMBiTdqmfmY+0t49Bke81N/NtSB
+HkFmOkiDqZfiCvCeeZzz
+=ugrz
 -----END PGP SIGNATURE-----
 
---k9xkV0rc9XGsukaG--
+--fU0UwhtRbpo05rnG--
