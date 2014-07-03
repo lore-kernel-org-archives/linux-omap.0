@@ -1,46 +1,60 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v3 5/7] ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-Date: Thu, 3 Jul 2014 16:12:30 +0530
-Message-ID: <53B53396.7050804@ti.com>
-References: <1399283686-6127-1-git-send-email-rogerq@ti.com> <1399283686-6127-6-git-send-email-rogerq@ti.com> <53A173A5.7020509@ti.com> <53A175DC.8080709@ti.com> <53B3EC4B.9080202@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 2/3] ARM: DRA7: hwmod: Fixup SATA hwmod
+Date: Thu, 3 Jul 2014 14:01:13 +0300
+Message-ID: <1404385274-5093-3-git-send-email-rogerq@ti.com>
+References: <1404385274-5093-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36706 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757278AbaGCKmk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 06:42:40 -0400
-In-Reply-To: <53B3EC4B.9080202@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1404385274-5093-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: paul@pwsan.com, tony@atomide.com
+Cc: rnayak@ti.com, kishon@ti.com, george.cherian@ti.com, balbi@ti.com, balajitk@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, kishon@ti.com, tony@atomide.com, balbi@ti.com, bcousson@baylibre.com, "Menon, Nishanth" <nm@ti.com>, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-On Wednesday 02 July 2014 04:56 PM, Roger Quadros wrote:
-> Sekhar,
-> 
-> On 06/18/2014 02:19 PM, Rajendra Nayak wrote:
->> On Wednesday 18 June 2014 04:40 PM, Roger Quadros wrote:
->>> + Nishant and Rajendra for review.
->>>
->>> On 05/05/2014 12:54 PM, Roger Quadros wrote:
->>>> Add the sysconfig class bits for the Super Speed USB
->>>> controllers
->>>>
->>>> CC: Paul Walmsley <paul@pwsan.com>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>
->> verified against TRM version vP, looks good to me.
->> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-> 
-> Could you please give your Tested-by tag for this? Then we can take this into 3.16-rc.
+Get rid of optional clock as that is now managed by the
+AHCI platform driver.
 
-Boot tested on my DRA7x EVM.
+Correct .mpu_rt_idx to 1 as the module register space (SYSCONFIG..)
+is passed as the second memory resource in the device tree.
 
-Boot log here: http://paste.ubuntu.com/7741337/
-
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 Tested-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Thanks,
-Sekhar
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index c9daee4..5ea094a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1283,9 +1283,6 @@ static struct omap_hwmod_class dra7xx_sata_hwmod_class = {
+ };
+ 
+ /* sata */
+-static struct omap_hwmod_opt_clk sata_opt_clks[] = {
+-	{ .role = "ref_clk", .clk = "sata_ref_clk" },
+-};
+ 
+ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 	.name		= "sata",
+@@ -1293,6 +1290,7 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 	.clkdm_name	= "l3init_clkdm",
+ 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+ 	.main_clk	= "func_48m_fclk",
++	.mpu_rt_idx	= 1,
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = DRA7XX_CM_L3INIT_SATA_CLKCTRL_OFFSET,
+@@ -1300,8 +1298,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
+ 			.modulemode   = MODULEMODE_SWCTRL,
+ 		},
+ 	},
+-	.opt_clks	= sata_opt_clks,
+-	.opt_clks_cnt	= ARRAY_SIZE(sata_opt_clks),
+ };
+ 
+ /*
+-- 
+1.8.3.2
