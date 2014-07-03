@@ -1,21 +1,29 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [GIT PULL] ARM: DRA7: dts: clock data fixes
-Date: Thu, 3 Jul 2014 21:04:18 +0300
-Message-ID: <53B59B22.5050903@ti.com>
+Subject: [GIT PULL] ARM: OMAP2+: clock cleanup for v3.17 merge window
+Date: Thu, 3 Jul 2014 21:09:33 +0300
+Message-ID: <53B59C5D.7010405@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39171 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49957 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751912AbaGCSDe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Jul 2014 14:03:34 -0400
+	id S1752681AbaGCSIw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jul 2014 14:08:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi Tony,
+
+Posting this early, as I will be going for vacation from next week and 
+might miss the merge window myself. Small cleanup set for the clock 
+drivers residing under mach-omap2 folder to prepare their move under 
+drivers/clk. I'll leave it for your judgement whether you pull this or 
+not based on the potential feedback.
+
+----------------------------------------------------------------
 
 The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
 
@@ -23,19 +31,41 @@ The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
 
 are available in the git repository at:
 
-   git@github.com:t-kristo/linux-pm.git for-v3.16-rc/clk-dt-fixes
+   git@github.com:t-kristo/linux-pm.git for-v3.17/omap2-clk-cleanup
 
-for you to fetch changes up to dd94324b983afe114ba9e7ee3649313b451f63ce:
+for you to fetch changes up to 4eccc64a2bc25514754c30cdfc985207aee8b2fd:
 
-   ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates (2014-07-03 
-20:59:36 +0300)
-----------------------------------------------------------------
-
-One fix for 3.16-rc. Fixes wrong dividers for l3/l4 clock nodes on DRA7.
+   ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c 
+file (2014-07-01 17:46:27 +0300)
 
 ----------------------------------------------------------------
-Rajendra Nayak (1):
-       ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
+Tero Kristo (13):
+       ARM: OMAP2+: clock/dpll: fix _dpll_test_fint arithmetics overflow
+       ARM: OMAP4+: clock: remove DEFINE_CLK_OMAP_HSDIVIDER macro
+       ARM: OMAP4+: dpll: remove cpu_is_omap44xx checks
+       ARM: OMAP4+: dpll44xx: remove cm-regbits-44xx.h and clock44xx.h 
+includes
+       ARM: OMAP2+: clock: introduce ti_clk_features flags
+       ARM: OMAP2+: clock: add fint values to the ti_clk_features struct
+       ARM: OMAP2+: clock/dpll: add private API for checking if DPLL is 
+in bypass
+       ARM: OMAP2+: clock/dpll: convert bypass check to use clk_features
+       ARM: OMAP2+: clock/dpll: add jitter correction behind clk_features
+       ARM: OMAP2+: clock/interface: add a clk_features definition for 
+idlest value
+       ARM: OMAP2+: clock/dpll: remove unused header includes from 
+clkt_dpll.c
+       ARM: OMAP2+: clock/dpll: remove unused header includes from 
+dpll3xxx.c
+       ARM: OMAP2+: clock/interface: remove some headers from 
+clkt_iclk.c file
 
-  arch/arm/boot/dts/dra7xx-clocks.dtsi |   10 ++++++----
-  1 file changed, 6 insertions(+), 4 deletions(-)
+  arch/arm/mach-omap2/clkt_dpll.c |  100 
+++++++++++++++++++---------------------
+  arch/arm/mach-omap2/clkt_iclk.c |    8 ++--
+  arch/arm/mach-omap2/clock.c     |   76 ++++++++++++++++++++++++++---
+  arch/arm/mach-omap2/clock.h     |   44 ++++++++---------
+  arch/arm/mach-omap2/dpll3xxx.c  |    7 +--
+  arch/arm/mach-omap2/dpll44xx.c  |   19 +++++---
+  arch/arm/mach-omap2/io.c        |    2 +
+  7 files changed, 155 insertions(+), 101 deletions(-)
