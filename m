@@ -1,39 +1,163 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 2/2] Documentation: devicetree: mmc: Document reset-gpio property
-Date: Thu,  3 Jul 2014 22:49:24 +0200
-Message-ID: <1404420564-30245-2-git-send-email-marek@goldelico.com>
-References: <1404420564-30245-1-git-send-email-marek@goldelico.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH] rpmsg: compute number of buffers to allocate from vrings
+Date: Thu, 3 Jul 2014 15:53:35 -0500
+Message-ID: <1404420815-42108-1-git-send-email-s-anna@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404420564-30245-1-git-send-email-marek@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, tony@atomide.com, linux@arm.linux.org.uk, balajitk@ti.com, chris@printf.net, ulf.hansson@linaro.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, hns@goldelico.com, marek@goldelico.com
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Marek Belisko <marek@goldelico.com>
----
- Documentation/devicetree/bindings/mmc/mmc.txt | 2 ++
- 1 file changed, 2 insertions(+)
+The buffers to be used for communication are allocated during
+the rpmsg virtio driver's probe, and the number of buffers is
+currently hard-coded to 512. Remove this hard-coded value, as
+this can vary from one platform to another or between different
+remote processors. Instead, rely on the number of buffers the
+virtqueue vring is setup with in the first place.
 
-diff --git a/Documentation/devicetree/bindings/mmc/mmc.txt b/Documentation/devicetree/bindings/mmc/mmc.txt
-index 431716e..b094bd2 100644
---- a/Documentation/devicetree/bindings/mmc/mmc.txt
-+++ b/Documentation/devicetree/bindings/mmc/mmc.txt
-@@ -21,6 +21,7 @@ Optional properties:
-   below for the case, when a GPIO is used for the CD line
- - wp-inverted: when present, polarity on the WP line is inverted. See the note
-   below for the case, when a GPIO is used for the WP line
-+- reset-gpios: Specify GPIOs which will be hold down when turning power regulator
- - max-frequency: maximum operating clock frequency
- - no-1-8-v: when present, denotes that 1.8v card voltage is not supported on
-   this system, even if the controller claims it is.
-@@ -72,6 +73,7 @@ sdhci@ab000000 {
- 	cd-gpios = <&gpio 69 0>;
- 	cd-inverted;
- 	wp-gpios = <&gpio 70 0>;
-+	reset-gpios = <&gpio 71 0>;
- 	max-frequency = <50000000>;
- 	keep-power-in-suspend;
- 	enable-sdio-wakeup;
+This fixes the WARN_ON during the setup of the receive buffers
+for vrings with buffers less than 512.
+
+NOTE: The number of buffers is already assumed to be symmetrical
+in each direction, and that logic is not unchanged.
+
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ drivers/rpmsg/virtio_rpmsg_bus.c | 41 +++++++++++++++++++++++++---------------
+ 1 file changed, 26 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+index b6135d4..e9866a6 100644
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c
++++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -41,6 +41,7 @@
+  * @svq:	tx virtqueue
+  * @rbufs:	kernel address of rx buffers
+  * @sbufs:	kernel address of tx buffers
++ * @num_bufs:	total number of buffers for rx and tx
+  * @last_sbuf:	index of last tx buffer used
+  * @bufs_dma:	dma base addr of the buffers
+  * @tx_lock:	protects svq, sbufs and sleepers, to allow concurrent senders.
+@@ -60,6 +61,7 @@ struct virtproc_info {
+ 	struct virtio_device *vdev;
+ 	struct virtqueue *rvq, *svq;
+ 	void *rbufs, *sbufs;
++	unsigned int num_bufs;
+ 	int last_sbuf;
+ 	dma_addr_t bufs_dma;
+ 	struct mutex tx_lock;
+@@ -86,14 +88,14 @@ struct rpmsg_channel_info {
+ #define to_rpmsg_driver(d) container_of(d, struct rpmsg_driver, drv)
+ 
+ /*
+- * We're allocating 512 buffers of 512 bytes for communications, and then
+- * using the first 256 buffers for RX, and the last 256 buffers for TX.
++ * We're allocating buffers of 512 bytes each for communications. The
++ * number of buffers are computed from the number of buffers supported
++ * by the virtqueue vring and then use the first half of those buffers
++ * for RX, and the last half buffers for TX.
+  *
+  * Each buffer will have 16 bytes for the msg header and 496 bytes for
+  * the payload.
+  *
+- * This will require a total space of 256KB for the buffers.
+- *
+  * We might also want to add support for user-provided buffers in time.
+  * This will allow bigger buffer size flexibility, and can also be used
+  * to achieve zero-copy messaging.
+@@ -102,9 +104,7 @@ struct rpmsg_channel_info {
+  * can change this without changing anything in the firmware of the remote
+  * processor.
+  */
+-#define RPMSG_NUM_BUFS		(512)
+ #define RPMSG_BUF_SIZE		(512)
+-#define RPMSG_TOTAL_BUF_SPACE	(RPMSG_NUM_BUFS * RPMSG_BUF_SIZE)
+ 
+ /*
+  * Local addresses are dynamically allocated on-demand.
+@@ -579,7 +579,7 @@ static void *get_a_tx_buf(struct virtproc_info *vrp)
+ 	 * either pick the next unused tx buffer
+ 	 * (half of our buffers are used for sending messages)
+ 	 */
+-	if (vrp->last_sbuf < RPMSG_NUM_BUFS / 2)
++	if (vrp->last_sbuf < vrp->num_bufs / 2)
+ 		ret = vrp->sbufs + RPMSG_BUF_SIZE * vrp->last_sbuf++;
+ 	/* or recycle a used one */
+ 	else
+@@ -948,6 +948,7 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	struct virtproc_info *vrp;
+ 	void *bufs_va;
+ 	int err = 0, i;
++	size_t total_buf_space;
+ 
+ 	vrp = kzalloc(sizeof(*vrp), GFP_KERNEL);
+ 	if (!vrp)
+@@ -968,10 +969,19 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	vrp->rvq = vqs[0];
+ 	vrp->svq = vqs[1];
+ 
++	/*
++	 * We expect equal number of buffers for each direction as per current
++	 * code, so throw a warning if the configuration doesn't match. This can
++	 * easily be adjusted if needed.
++	 */
++	vrp->num_bufs = virtqueue_get_vring_size(vrp->rvq) * 2;
++	WARN_ON(virtqueue_get_vring_size(vrp->svq) != (vrp->num_bufs / 2));
++	total_buf_space = vrp->num_bufs * RPMSG_BUF_SIZE;
++
+ 	/* allocate coherent memory for the buffers */
+ 	bufs_va = dma_alloc_coherent(vdev->dev.parent->parent,
+-				RPMSG_TOTAL_BUF_SPACE,
+-				&vrp->bufs_dma, GFP_KERNEL);
++				     total_buf_space, &vrp->bufs_dma,
++				     GFP_KERNEL);
+ 	if (!bufs_va) {
+ 		err = -ENOMEM;
+ 		goto vqs_del;
+@@ -984,10 +994,10 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	vrp->rbufs = bufs_va;
+ 
+ 	/* and half is dedicated for TX */
+-	vrp->sbufs = bufs_va + RPMSG_TOTAL_BUF_SPACE / 2;
++	vrp->sbufs = bufs_va + total_buf_space / 2;
+ 
+ 	/* set up the receive buffers */
+-	for (i = 0; i < RPMSG_NUM_BUFS / 2; i++) {
++	for (i = 0; i < vrp->num_bufs / 2; i++) {
+ 		struct scatterlist sg;
+ 		void *cpu_addr = vrp->rbufs + i * RPMSG_BUF_SIZE;
+ 
+@@ -1023,8 +1033,8 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	return 0;
+ 
+ free_coherent:
+-	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
+-					bufs_va, vrp->bufs_dma);
++	dma_free_coherent(vdev->dev.parent->parent, total_buf_space,
++			  bufs_va, vrp->bufs_dma);
+ vqs_del:
+ 	vdev->config->del_vqs(vrp->vdev);
+ free_vrp:
+@@ -1042,6 +1052,7 @@ static int rpmsg_remove_device(struct device *dev, void *data)
+ static void rpmsg_remove(struct virtio_device *vdev)
+ {
+ 	struct virtproc_info *vrp = vdev->priv;
++	size_t total_buf_space = vrp->num_bufs * RPMSG_BUF_SIZE;
+ 	int ret;
+ 
+ 	vdev->config->reset(vdev);
+@@ -1057,8 +1068,8 @@ static void rpmsg_remove(struct virtio_device *vdev)
+ 
+ 	vdev->config->del_vqs(vrp->vdev);
+ 
+-	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
+-					vrp->rbufs, vrp->bufs_dma);
++	dma_free_coherent(vdev->dev.parent->parent, total_buf_space,
++			  vrp->rbufs, vrp->bufs_dma);
+ 
+ 	kfree(vrp);
+ }
 -- 
-1.9.1
+2.0.0
