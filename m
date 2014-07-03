@@ -1,69 +1,84 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 5/6] phy: omap-usb2: Balance pm_runtime_enable() on probe
- failure
-Date: Thu, 3 Jul 2014 19:50:25 +0300
-Message-ID: <53B589D1.1090209@ti.com>
-References: <1404302638-3003-1-git-send-email-rogerq@ti.com> <1404302638-3003-6-git-send-email-rogerq@ti.com> <53B55B4A.8020709@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
+Date: Thu, 3 Jul 2014 12:08:22 -0500
+Message-ID: <20140703170822.GB5814@saruman.home>
+References: <20140702190944.GA567@drone.musicnaut.iki.fi>
+ <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
+ <20140703073411.GX28884@atomide.com>
+ <20140703132509.GA5814@saruman.home>
+ <CAOCHtYi0JwRO12gHa+KFGH1k7pPk4TL40igwhzRRxutw-tqf6A@mail.gmail.com>
+ <20140703140736.GF5814@saruman.home>
+ <20140703154425.GC23309@earth.universe>
+ <20140703155240.GU5814@saruman.home>
+ <20140703160622.GE23309@earth.universe>
+ <CABxcv=nGPyK7SeQZ+W1ZEfBPQ-RraVTawyYuKOGz02df0g=6Qg@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53B55B4A.8020709@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, tony@atomide.com, balbi@ti.com
-Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tRjCiSMHexiP9I5N"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38376 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752324AbaGCRJQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Jul 2014 13:09:16 -0400
+Content-Disposition: inline
+In-Reply-To: <CABxcv=nGPyK7SeQZ+W1ZEfBPQ-RraVTawyYuKOGz02df0g=6Qg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Sebastian Reichel <sre@kernel.org>, Felipe Balbi <balbi@ti.com>, Robert Nelson <robertcnelson@gmail.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On 07/03/2014 04:31 PM, Kishon Vijay Abraham I wrote:
-> Hi Roger,
-> 
-> On Wednesday 02 July 2014 05:33 PM, Roger Quadros wrote:
->> If probe fails then we need to call pm_runtime_disable() to balance
->> out the previous pm_runtime_enable() call. Else it will cause
->> unbalanced pm_runtime_enable() call in the succeding probe call.
->>
->> This anomaly was observed when the call to devm_phy_create() failed
->> with -EPROBE_DEFER.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  drivers/phy/phy-omap-usb2.c | 8 ++++++--
->>  1 file changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->> index 7007c11..c6f9809 100644
->> --- a/drivers/phy/phy-omap-usb2.c
->> +++ b/drivers/phy/phy-omap-usb2.c
->> @@ -265,15 +265,19 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>  	pm_runtime_enable(phy->dev);
->>  
->>  	generic_phy = devm_phy_create(phy->dev, &ops, NULL);
->> -	if (IS_ERR(generic_phy))
->> +	if (IS_ERR(generic_phy)) {
->> +		pm_runtime_disable(phy->dev);
->>  		return PTR_ERR(generic_phy);
->> +	}
-> 
-> Maybe we can move pm_runtime_enable to just before phy_provider_register?
+--tRjCiSMHexiP9I5N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK. will try that.
+On Thu, Jul 03, 2014 at 06:19:47PM +0200, Javier Martinez Canillas wrote:
+> On Thu, Jul 3, 2014 at 6:06 PM, Sebastian Reichel <sre@kernel.org> wrote:
+> > Hi,
+> >
+> > On Thu, Jul 03, 2014 at 10:52:40AM -0500, Felipe Balbi wrote:
+> >> > DT is supposed to contain information about the hardware, so it
+> >> > should stay the same? I think there is no non-hackish way to decide
+> >>
+> >> compatible would change, at a minimum.
+> >
+> > why? I would expect it to stay the same (and the current patch uses
+> > the same compatible strings).
+> >
+>=20
+> Exactly, the new driver must support all the compatible strings
+> defined in Documentation/devicetree/bindings/serial/omap_serial.tx
+> (which already does as you pointed out).
+>=20
+> Otherwise the current drivers/tty/serial/omap-serial.c could never be
+> removed since that would mean breaking DT backward compatibility.
 
->>  
->>  	phy_set_drvdata(generic_phy, phy);
->>  
->>  	phy_provider = devm_of_phy_provider_register(phy->dev,
->>  			of_phy_simple_xlate);
->> -	if (IS_ERR(phy_provider))
->> +	if (IS_ERR(phy_provider)) {
->> +		pm_runtime_disable(phy->dev);
->>  		return PTR_ERR(phy_provider);
->> +	}
-> 
-> Noticed pm_runtime_disable was missing in omap_usb2_remove too. Would be good
-> to fix it here.
-> 
+that settles it then... good. I'll start testing this next week.
 
-Fine, I'll add it there.
+--=20
+balbi
 
-cheers,
--roger
+--tRjCiSMHexiP9I5N
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTtY4GAAoJEIaOsuA1yqREm0YP/j/hpexePJe1EtVF2/Q9g595
+hLO3AT927yMX/kpxtzLrM53nOtJTtLRy2QTPKLZ/m/6TVhTteESAh7dCm+MFGQTt
+MUSKuvtZo2WSxruxLwLgG8JW4fspGv2dCWk30MYSXS8zq1YJsPT0dLV2ahWAz5c9
+sAnLI2n9DmSBFNRdEJ65VMg1x3lDlQEunq7/FEe6zXfiWKEEFsrYwbCMvGKqJmY6
+NzZVnPuv/aL2oR3ga3dL15EVBCyu1n/g+slELHHLnPwg1JzFGwdzoCZpM+q/o05u
+z09pRzqIA41ogjQIZrKw8UvBFdyc7hP2yq4oVpNu+OxkK2djgR9Q79OQJKlPygEU
+TbilykpkV2N4108UwYM6K5IQ28/QbQ8Fj8CPfkeXsRRYNYbPKjVL13YAnyOMsWIH
+YAEZSaiBKm+uES9dex78dL9XGb/iZuX3ZTE4obdxtKAZHo1z8ghCHXmoWhxwve0p
+vIV8s/DLorBG49yGZlR+Zyrt+uzghu2uIsLR3czmvIiHPafSVd0kEyflNl/fVGh/
+JN3uuXjXWviD/Sak58dPVw0cogk75Yil0fLciYDg1zeebiSPC12lHoot5nunbcwC
+F7GzPABNJOlJ7OL/p4/KqhoreulbzGlwQxF3a+/B+9O/3raITq4IBj113AcIP3Z+
+UsjOuPaDFoKFpx7HFAsA
+=1yn1
+-----END PGP SIGNATURE-----
+
+--tRjCiSMHexiP9I5N--
