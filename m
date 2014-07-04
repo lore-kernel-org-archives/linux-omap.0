@@ -1,34 +1,35 @@
 From: Nicholas Krause <xerofoify@gmail.com>
-Subject: [PATCH] mach-omap1: Fix call to omap_cfg_reg
-Date: Fri,  4 Jul 2014 13:02:00 -0400
-Message-ID: <1404493320-5606-1-git-send-email-xerofoify@gmail.com>
+Subject: [PATCH] mach-omap2: Change if statement in omap2_dflt_clk_enable
+Date: Fri,  4 Jul 2014 17:04:03 -0400
+Message-ID: <1404507843-3648-1-git-send-email-xerofoify@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: paul@pwsan.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch fixes the call to ompa_cfg_reg(USB2_SPEED) in the case
-that the cpu is a omap16xx and the nwires are not equal to 3.
+This patch changes this function to check for if v is returning value from the
+called function. If not it does the else. Furthermore fixes the FIXME message above
+if statement for holding INVERT_ENABLE bit when not needing to be checked for
+in if statement by just checking for if v is not Null.
 
 Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
 ---
- arch/arm/mach-omap1/usb.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 4118db5..17e3139 100644
---- a/arch/arm/mach-omap1/usb.c
-+++ b/arch/arm/mach-omap1/usb.c
-@@ -504,8 +504,7 @@ static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
- 		omap_cfg_reg(W9_USB2_TXEN);
- 		omap_cfg_reg(W5_USB2_SE0);
- 		if (nwires != 3)
--			omap_cfg_reg(Y5_USB2_RCV);
--		// FIXME omap_cfg_reg(USB2_SPEED);
-+			omap_cfg_reg(USB2_SPEED)
- 	} else {
- 		pr_debug("usb%d cpu unrecognized\n", 1);
- 		return 0;
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 591581a..626363d 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -379,7 +379,7 @@ void omap2_dflt_clk_disable(struct clk_hw *hw)
+ 	}
+ 
+ 	v = omap2_clk_readl(clk, clk->enable_reg);
+-	if (clk->flags & INVERT_ENABLE)
++	if (v)
+ 		v |= (1 << clk->enable_bit);
+ 	else
+ 		v &= ~(1 << clk->enable_bit);
 -- 
 1.9.1
