@@ -1,54 +1,45 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 0/6] omap: phy: dra7-evm PHY fixes for 3.16
-Date: Fri, 4 Jul 2014 12:55:42 +0300
-Message-ID: <1404467748-12154-1-git-send-email-rogerq@ti.com>
+From: Christoffer Dall <christoffer.dall@linaro.org>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
+Date: Fri, 4 Jul 2014 03:11:18 -0700
+Message-ID: <20140704101118.GC20451@cbox>
+References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, kishon@ti.com, balbi@ti.com
-Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Andrew Lunn <andrew@lunn.ch>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, linux-tegra@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, kvmarm@lists.cs.columbia.edu, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Herbert Xu <herbert@gondor.apana.org.au>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Magnus Damm <magnus.damm@gmail.com>, Gleb Natapov <gleb@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Marc Zyngier <marc.zyngier@arm.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Simon Horman <horms@verge.net.>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Jul 01, 2014 at 04:58:24PM +0100, Russell King wrote:
+> ARMv6 and greater introduced a new instruction ("bx") which can be used
+> to return from function calls.  Recent CPUs perform better when the
+> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
+> and this sequence is strongly recommended to be used by the ARM
+> architecture manual (section A.4.1.1).
+> 
+> We provide a new macro "ret" with all its variants for the condition
+> code which will resolve to the appropriate instruction.
+> 
+> Rather than doing this piecemeal, and miss some instances, change all
+> the "mov pc" instances to use the new macro, with the exception of
+> the "movs" instruction and the kprobes code.  This allows us to detect
+> the "mov pc, lr" case and fix it up - and also gives us the possibility
+> of deploying this for other registers depending on the CPU selection.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-On DRA7-evm, the VDDA_1V8_PHY supply must be always-on for proper functioning
-of the PHYs on the SoC.
+For the kvm/hyp related changes:
 
-The 3.3V USB supply (ldousb_reg) can be turned OFF when the High Speed USB PHYs
-are not in use. We add regulator support in the PHY framework core to manage
-the PHY's regulator during PHY power on/off.
-
-Finally we add the 3.3V regulator information to the USB2 PHYs.
-
-This series should get the USB and SATA working again on 3.16 on DRA7-evm.
-
-cheers,
--roger
-
-Changelog:
-
-v2:
-- removed if (!NULL) check around regulator_put()
-- added more technical information in commit message about 1V8_PHY power line
-- added pm_runtime_disable in omap_usb2_remove()
-
----
-Roger Quadros (6):
-  ARM: dts: dra7-evm: Make VDDA_1V8_PHY supply always on
-  phy: core: Fix error path in phy_create()
-  phy: core: Support regulator supply for PHY power
-  phy: core: Add phy-supply to DT binding documentation
-  phy: omap-usb2: Balance pm_runtime_enable() on probe failure and
-    remove
-  ARM: dts: dra7-evm: Add regulator information to USB2 PHYs
-
- .../devicetree/bindings/phy/phy-bindings.txt       |  4 +++
- arch/arm/boot/dts/dra7-evm.dts                     |  9 ++++++
- drivers/phy/phy-core.c                             | 33 ++++++++++++++++++++--
- drivers/phy/phy-omap-usb2.c                        |  7 +++--
- include/linux/phy/phy.h                            |  2 ++
- 5 files changed, 50 insertions(+), 5 deletions(-)
-
--- 
-1.8.3.2
+Acked-by: Christoffer Dall <christoffer.dall@linaro.org>
