@@ -1,111 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND PATCH 1/2] ARM: AM43xx: hwmod: add DSS hwmod data
-Date: Thu, 3 Jul 2014 18:33:21 -0500
-Message-ID: <20140703233321.GB3655@saruman.home>
-References: <1402676147-3711-1-git-send-email-balbi@ti.com>
- <1402676147-3711-2-git-send-email-balbi@ti.com>
- <20140613162323.GH8319@saruman.home>
- <alpine.DEB.2.02.1406131910060.340@utopia.booyaka.com>
- <20140702032249.GA26010@saruman.home>
-Reply-To: <balbi@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv5 04/15] hwspinlock/core: add common OF helpers
+Date: Fri, 4 Jul 2014 07:58:56 +0300
+Message-ID: <CAK=WgbbZYwfOyeZuDTX2RXtEdYzsZc++crHZ-ZAqeiWds0BCcg@mail.gmail.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
+ <1398904476-26200-5-git-send-email-s-anna@ti.com> <CAK=WgbbZvBLT7U638fBfPjF7-MJaP=4WJcrT_fEg6Uu3cXRAyg@mail.gmail.com>
+ <53B47626.4040506@ti.com> <CAK=WgbbJ6a17wrsEcvNq6tPiaciQ=E+22QE06t9EA8RFqicNRg@mail.gmail.com>
+ <53B59471.30703@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39278 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275AbaGCXd4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Jul 2014 19:33:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20140702032249.GA26010@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53B59471.30703@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sathya Prakash M R <sathyap@ti.com>, Andrew Morton <akpm@linux-foundation.org>
 
---4SFOXa2GPu3tIq4H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Suman,
 
-On Tue, Jul 01, 2014 at 10:22:49PM -0500, Felipe Balbi wrote:
-> Hi,
->=20
-> On Fri, Jun 13, 2014 at 07:11:58PM +0000, Paul Walmsley wrote:
-> > Hi Felipe, Tomi,
-> >=20
-> > On Fri, 13 Jun 2014, Felipe Balbi wrote:
-> >=20
-> > > On Fri, Jun 13, 2014 at 11:15:46AM -0500, Felipe Balbi wrote:
-> > > > From: Sathya Prakash M R <sathyap@ti.com>
-> > > >=20
-> > > > Add DSS hwmod data for AM43xx.
-> > > >=20
-> > > > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > > > Acked-by: Rajendra Nayak <rnayak@ti.com>
-> > > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
-> > > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > ---
-> > > >=20
-> > > > Note that this patch was originally send on May 9th [1], changes we=
-re requested
-> > > > and a new version was sent on May 19th [2], then on May 27th [3] To=
-mi pinged
-> > > > maintainer again and go no response.
-> > > >=20
-> > > > Without this patch, we cannot get display working on any AM437x dev=
-ices.
-> > > >=20
-> > > > [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D139963677925227&w=3D2
-> > > > [2] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140049799425512&w=3D2
-> > > > [3] http://marc.info/?l=3Dlinux-arm-kernel&m=3D140117232826754&w=3D2
-> > > >=20
-> > > >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 98 ++++++++++++++++++=
-++++++++++++
-> > > >  arch/arm/mach-omap2/prcm43xx.h             |  1 +
-> > > >  2 files changed, 99 insertions(+)
-> >=20
-> > Sorry for the delay on this.  Have been corresponding with TI managemen=
-t=20
-> > to figure out what to do about patches for AM43xx.  I don't have boards=
- or=20
-> > public documentation for these devices, so it's impossible for me to=20
->=20
-> documentation is now available publicly
->=20
-> http://www.ti.com/product/AM4379
+On Thu, Jul 3, 2014 at 8:35 PM, Suman Anna <s-anna@ti.com> wrote:
+> Not at the moment, with the existing platform implementations. So, if I
+> understand you correctly, you are asking to leave out the xlate ops and
+> make the of_hwspin_lock_simple_xlate() internal until a need for an
+> xlate method arises.
 
-at [1] you can find most (all?) board-related documentation. [2] will
-give you AM437x GP EVM schematics.
+Yes, please. It seems to me this way we're reducing complexity without
+compromising anything.
 
-[1] http://processors.wiki.ti.com/index.php/AM437X_EVM_Boards
-[2] http://processors.wiki.ti.com/images/9/95/Am437x_gp_evm_3k0006_schemati=
-c_rev1_4a.pdf
+> This also means, we only support a value of 1 for #hwlock-cells.
 
---=20
-balbi
+When a different #hwlock-cells value shows up, someone would have to
+write a new xlate implementation anyway. At the same time, the xlate
+ops could be brought back quite easily.
 
---4SFOXa2GPu3tIq4H
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Since we're not imposing anything on the DT data, this doesn't affect
+our ability to support these scenarios in the future, but unless I'm
+missing a current use case, these scenarios right now seems somewhat
+fictional.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> But, that would mean DT-based client users would have to invoke two
+> function calls to request a hwspinlock. We already have an API to get
+> the lock id given a hwspinlock - hwspin_lock_get_id(), so I added the OF
+> API for requesting a lock directly rather than giving an OF API for
+> getting the lock id. This is in keeping in convention with what other
+> drivers do normally - a regular get and an OF get. I can modify it if
+> you still prefer the OF API for getting a global lock id, but I feel its
+> a burden for client users.
 
-iQIcBAEBAgAGBQJTtehBAAoJEIaOsuA1yqREZQoQAKvLvtUlxjmCttT6C49t1PJg
-BXi2mmR7x81OK8pg7m+XnK3hBCX6Rwi74NvWDckc/Du0hOCWpPO/0XlpmMrNvEhf
-l2sFn3xKiJPeBjzGRUNcDi98Vt7KSsm4ti2xxJiksbDRvFG0SjsoLYRL/MyTJpz7
-W7pZmd1caZzfzaO/AcMKdPIlkPp3TJ7/hg5GpAeZ1sPSEClGK5CXMqGNhhQSmR87
-b29e9iSYlOU50n5jIDvEuLWmBdUPIErep5NQn9yCwhl9StsEyP3O2MG4EghdzCVQ
-JzqM5r4MoV9OmplYMqxm74TVspzDe4+vKqorQ0B+UZ0mFFFfVqw8jfZvqzKI2SUj
-yeP6xhh0DCoovmRWUWHKC4lu1mw/pp6kZR5Bv1CPVA1xdGLQJyKKLm8MS14j0pnK
-bMwn7NCaFq3c35BV8zCQUkM80FeZFEN7LQzwbDAOJLfF7ZsB7RowvB7usYxbXF4r
-aE6/6qEDzgYLWVpT97ujOPwhDTpn56ALY0LkTwInEPq8LeGgbEWbtXUZgKMAbIRC
-XuxNHfkeen2fPyK6q+qWEdRpz9febk0AuEtmyTrVuKa+JgWF2gQWd0BL/A7JdkKw
-jXXRt+khhXhnmf7f5UKoaNCI7Yj2R7l7s/Wx1HQag/Pcxm1oZH8nRaI6zG/2qIKi
-I+h1DIn6k4+b+rs7HILp
-=oJFG
------END PGP SIGNATURE-----
+Let's discuss this.
 
---4SFOXa2GPu3tIq4H--
+I was actually thinking of the more general use case of an heterogenous system:
+
+- driver gets the global lock id from a remote processor
+- driver then requests the specific lock
+
+Looking at these cases, the OF scenario only differs in the small part
+of fetching the lock id, and if we keep the regular request_specific
+API we'll have more common code between drivers.
+
+What do you think?
+
+> Also, do you prefer an open property-name in client users (like I am
+> doing at the moment) or imposing a standard property name "hwlocks"?
+
+Good point - I think we can start with an imposed "hwlocks" name, and
+evolve in the future as needed (again, only because we're not really
+imposing anything on the DT data - this is just kernel code that we
+could always extend as needed).
+
+Thanks,
+Ohad.
