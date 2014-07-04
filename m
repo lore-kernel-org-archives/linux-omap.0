@@ -1,68 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: gpio-omap: wakeup mask
-Date: Fri, 4 Jul 2014 00:27:53 -0700
-Message-ID: <20140704072752.GC28884@atomide.com>
-References: <53B3F687.5050502@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53B3F687.5050502@gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Pascal Huerst <pascal.huerst@gmail.com>
-Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Subject: [PATCH] media:platform: OMAP3 camera support needs VIDEOBUF2_DMA_CONTIG
+Date: Fri,  4 Jul 2014 09:51:47 +0200
+Message-ID: <1404460307-6434-1-git-send-email-pmeerw@pmeerw.net>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Peter Meerwald <pmeerw@pmeerw.net>
 List-Id: linux-omap@vger.kernel.org
 
-* Pascal Huerst <pascal.huerst@gmail.com> [140702 05:12]:
-> Hi everyone,
-> 
-> we have a device with an am335x and are using some gpios on bank0 to
-> wake up the device from suspend to ram.
-> 
-> We have some user buttons which are configured in the devicetree as
-> gpio-keys and one power-key which should wake up the device:
-> 
-> &buttons {
->         power {
->                 label = "Power";
->                 gpios = <&gpio0 6 1>;
->                 linux,code = <116>;
->                 gpio-key,wakeup;
->         };
-> 
->         one {
->                 label = "One";
->                 gpios = <&gpio0 11 1>;
->                 linux,code = <2>;
->         };
-> 
->         : : :
-> }
-> 
-> The problem is, that the device wakes up on any trigger on bank 0. No
-> matter which button was pressed. "gpio-key,wakeup" seems not to have any
-> influence.
-> 
-> Now, if I comment the following lines out in drivers/gpio/gpio-omap.c :
-> set_gpio_trigger(...).
-> 
-> 321
-> 322 if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
-> 323    _gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
-> 324      bank->context.wake_en =
-> 325        readl_relaxed(bank->base + bank->regs->wkup_en);
-> 326 }
-> 327
-> 
-> Everything works as expected. But I don't really understand why? Is this
-> a bug, or does this break something else I have not discovered yet?
+drivers/built-in.o: In function `isp_video_open':
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1253: undefined reference to `vb2_dma_contig_memops'
+drivers/built-in.o: In function `omap3isp_video_init':
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1344: undefined reference to `vb2_dma_contig_init_ctx'
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1350: undefined reference to `vb2_dma_contig_cleanup_ctx'
+drivers/built-in.o: In function `omap3isp_video_cleanup':
+/src/linux/drivers/media/platform/omap3isp/ispvideo.c:1381: undefined reference to `vb2_dma_contig_cleanup_ctx'
+make: *** [vmlinux] Error 1
 
-The GPIO wake-up events are working from off-idle for omap3
-the last time I checked, so sounds like this is some am335x
-related issue.
+Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
+---
 
-What does your bank->context.wake_en mask get set to with this code?
+not sure if this is the right way to fix, at least my kernel compiles
 
-Regards,
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Tony
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 8108c69..e1ff228 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -95,6 +95,7 @@ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+ 	select ARM_DMA_USE_IOMMU
++	select VIDEOBUF2_DMA_CONTIG
+ 	select OMAP_IOMMU
+ 	---help---
+ 	  Driver for an OMAP 3 camera controller.
+-- 
+1.9.1
