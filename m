@@ -1,34 +1,57 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv5 03/15] hwspinlock/core: maintain a list of registered
- hwspinlock banks
-Date: Fri, 4 Jul 2014 08:01:29 +0300
-Message-ID: <CAK=WgbaahqdmWRDMKtRhco4y5B-WBFYDHYs2cLM7NL=QhnhK2Q@mail.gmail.com>
-References: <1398904476-26200-1-git-send-email-s-anna@ti.com>
- <1398904476-26200-4-git-send-email-s-anna@ti.com> <CAK=WgbakGbTaYz+4K24aT3vyRkDYwPKCm6XrcJvH667NMMfTTA@mail.gmail.com>
- <53B47621.6090307@ti.com> <CAK=WgbYtJ7TGqvjG3VAPPD5tVXx9-jEJU3iKEStUMxOvD1v=LQ@mail.gmail.com>
- <53B592CE.2010001@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
+Date: Thu, 3 Jul 2014 23:30:10 -0700
+Message-ID: <20140704063010.GY28884@atomide.com>
+References: <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
+ <20140703073411.GX28884@atomide.com>
+ <20140703132509.GA5814@saruman.home>
+ <CAOCHtYi0JwRO12gHa+KFGH1k7pPk4TL40igwhzRRxutw-tqf6A@mail.gmail.com>
+ <20140703140736.GF5814@saruman.home>
+ <20140703154425.GC23309@earth.universe>
+ <20140703155240.GU5814@saruman.home>
+ <20140703160622.GE23309@earth.universe>
+ <CABxcv=nGPyK7SeQZ+W1ZEfBPQ-RraVTawyYuKOGz02df0g=6Qg@mail.gmail.com>
+ <20140703170822.GB5814@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:40978 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090AbaGDFBu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 01:01:50 -0400
-Received: by mail-la0-f44.google.com with SMTP id ty20so813316lab.17
-        for <linux-omap@vger.kernel.org>; Thu, 03 Jul 2014 22:01:49 -0700 (PDT)
-In-Reply-To: <53B592CE.2010001@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140703170822.GB5814@saruman.home>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Sebastian Reichel <sre@kernel.org>, Robert Nelson <robertcnelson@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Suman,
+* Felipe Balbi <balbi@ti.com> [140703 10:10]:
+> On Thu, Jul 03, 2014 at 06:19:47PM +0200, Javier Martinez Canillas wrote:
+> > On Thu, Jul 3, 2014 at 6:06 PM, Sebastian Reichel <sre@kernel.org> wrote:
+> > > Hi,
+> > >
+> > > On Thu, Jul 03, 2014 at 10:52:40AM -0500, Felipe Balbi wrote:
+> > >> > DT is supposed to contain information about the hardware, so it
+> > >> > should stay the same? I think there is no non-hackish way to decide
+> > >>
+> > >> compatible would change, at a minimum.
+> > >
+> > > why? I would expect it to stay the same (and the current patch uses
+> > > the same compatible strings).
+> > >
+> > 
+> > Exactly, the new driver must support all the compatible strings
+> > defined in Documentation/devicetree/bindings/serial/omap_serial.tx
+> > (which already does as you pointed out).
+> > 
+> > Otherwise the current drivers/tty/serial/omap-serial.c could never be
+> > removed since that would mean breaking DT backward compatibility.
+> 
+> that settles it then... good. I'll start testing this next week.
 
-On Thu, Jul 3, 2014 at 8:28 PM, Suman Anna <s-anna@ti.com> wrote:
-> OK, but we would still require this function to lookup the registered
-> device from the controller-phandle to retrieve the base_id.
+Yeah full compability is the way to go here.
 
-Can we retrieve the base_id from the parent DT node itself?
+FYI we cannot switch over completely until runtime PM works as it
+will block the deeper idle states for omaps and make it impossible
+to debug PM features.
 
-Thanks,
-Ohad.
+Regards,
+
+Tony
