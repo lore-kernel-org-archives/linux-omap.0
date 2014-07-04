@@ -1,170 +1,88 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 02/10] ARM: OMAP3: PRM: move iva reset to PRM driver
-Date: Fri, 4 Jul 2014 17:10:27 +0300
-Message-ID: <1404483035-21666-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 05/10] ARM: OMAP3: PRM: add API for saving PRM scratchpad contents
+Date: Fri, 4 Jul 2014 17:10:30 +0300
+Message-ID: <1404483035-21666-6-git-send-email-t-kristo@ti.com>
 References: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55046 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753485AbaGDOKj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jul 2014 10:10:39 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:52124 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753485AbaGDOKl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 10:10:41 -0400
 In-Reply-To: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This is a more proper isolation of the code. Done in preparation of making
-PRM an individual driver.
+This isolates the PRM register access within the PRM driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c  |   49 +----------------------------------------
- arch/arm/mach-omap2/prm3xxx.c |   45 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.c |   11 ++---------
+ arch/arm/mach-omap2/prm3xxx.c |    9 +++++++++
  arch/arm/mach-omap2/prm3xxx.h |    1 +
- 3 files changed, 47 insertions(+), 48 deletions(-)
+ 3 files changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 74d03f2..6d02573 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -353,53 +353,6 @@ restore:
- #define omap3_pm_suspend NULL
- #endif /* CONFIG_SUSPEND */
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index f8eb3e4..8308094 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -44,8 +44,7 @@ struct omap3_scratchpad {
+ };
  
--
--/**
-- * omap3_iva_idle(): ensure IVA is in idle so it can be put into
-- *                   retention
-- *
-- * In cases where IVA2 is activated by bootcode, it may prevent
-- * full-chip retention or off-mode because it is not idle.  This
-- * function forces the IVA2 into idle state so it can go
-- * into retention/off and thus allow full-chip retention/off.
-- *
-- **/
--static void __init omap3_iva_idle(void)
--{
--	/* ensure IVA2 clock is disabled */
--	omap2_cm_write_mod_reg(0, OMAP3430_IVA2_MOD, CM_FCLKEN);
--
--	/* if no clock activity, nothing else to do */
--	if (!(omap2_cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSTST) &
--	      OMAP3430_CLKACTIVITY_IVA2_MASK))
--		return;
--
--	/* Reset IVA2 */
--	omap2_prm_write_mod_reg(OMAP3430_RST1_IVA2_MASK |
--			  OMAP3430_RST2_IVA2_MASK |
--			  OMAP3430_RST3_IVA2_MASK,
--			  OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
--
--	/* Enable IVA2 clock */
--	omap2_cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
--			 OMAP3430_IVA2_MOD, CM_FCLKEN);
--
--	/* Set IVA2 boot mode to 'idle' */
--	omap3_ctrl_set_iva_bootmode_idle();
--
--	/* Un-reset IVA2 */
--	omap2_prm_write_mod_reg(0, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
--
--	/* Disable IVA2 clock */
--	omap2_cm_write_mod_reg(0, OMAP3430_IVA2_MOD, CM_FCLKEN);
--
--	/* Reset IVA2 */
--	omap2_prm_write_mod_reg(OMAP3430_RST1_IVA2_MASK |
--			  OMAP3430_RST2_IVA2_MASK |
--			  OMAP3430_RST3_IVA2_MASK,
--			  OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
--}
--
- static void __init omap3_d2d_idle(void)
- {
- 	u16 mask, padconf;
-@@ -503,7 +456,7 @@ static void __init prcm_setup_regs(void)
- 	/*
- 	 * We need to idle iva2_pwrdm even on am3703 with no iva2.
- 	 */
--	omap3_iva_idle();
-+	omap3xxx_prm_iva_idle();
+ struct omap3_scratchpad_prcm_block {
+-	u32 prm_clksrc_ctrl;
+-	u32 prm_clksel;
++	u32 prm_contents[2];
+ 	u32 cm_contents[11];
+ 	u32 prcm_block_size;
+ };
+@@ -327,13 +326,7 @@ void omap3_save_scratchpad_contents(void)
+ 	scratchpad_contents.sdrc_block_offset = 0x64;
  
- 	omap3_d2d_idle();
- }
+ 	/* Populate the PRCM block contents */
+-	prcm_block_contents.prm_clksrc_ctrl =
+-		omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
+-				       OMAP3_PRM_CLKSRC_CTRL_OFFSET);
+-	prcm_block_contents.prm_clksel =
+-		omap2_prm_read_mod_reg(OMAP3430_CCR_MOD,
+-				       OMAP3_PRM_CLKSEL_OFFSET);
+-
++	omap3_prm_save_scratchpad_contents(prcm_block_contents.prm_contents);
+ 	omap3_cm_save_scratchpad_contents(prcm_block_contents.cm_contents);
+ 
+ 	prcm_block_contents.prcm_block_size = 0x0;
 diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 014ba70d..a575b69 100644
+index 4733c28..4d93b84 100644
 --- a/arch/arm/mach-omap2/prm3xxx.c
 +++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -28,6 +28,7 @@
- #include "prm-regbits-34xx.h"
- #include "cm3xxx.h"
- #include "cm-regbits-34xx.h"
-+#include "control.h"
- 
- static const struct omap_prcm_irq omap3_prcm_irqs[] = {
- 	OMAP_PRCM_IRQ("wkup",	0,	0),
-@@ -329,6 +330,50 @@ static u32 omap3xxx_prm_read_reset_sources(void)
- 	return r;
+@@ -409,6 +409,15 @@ int omap3xxx_prm_clear_global_cold_reset(void)
+ 	return 0;
  }
  
-+/**
-+ * omap3xxx_prm_iva_idle - ensure IVA is in idle so it can be put into retention
-+ *
-+ * In cases where IVA2 is activated by bootcode, it may prevent
-+ * full-chip retention or off-mode because it is not idle.  This
-+ * function forces the IVA2 into idle state so it can go
-+ * into retention/off and thus allow full-chip retention/off.
-+ */
-+void omap3xxx_prm_iva_idle(void)
++void omap3_prm_save_scratchpad_contents(u32 *ptr)
 +{
-+	/* ensure IVA2 clock is disabled */
-+	omap2_cm_write_mod_reg(0, OMAP3430_IVA2_MOD, CM_FCLKEN);
++	*ptr++ = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
++					OMAP3_PRM_CLKSRC_CTRL_OFFSET);
 +
-+	/* if no clock activity, nothing else to do */
-+	if (!(omap2_cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSTST) &
-+	      OMAP3430_CLKACTIVITY_IVA2_MASK))
-+		return;
-+
-+	/* Reset IVA2 */
-+	omap2_prm_write_mod_reg(OMAP3430_RST1_IVA2_MASK |
-+				OMAP3430_RST2_IVA2_MASK |
-+				OMAP3430_RST3_IVA2_MASK,
-+				OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
-+
-+	/* Enable IVA2 clock */
-+	omap2_cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
-+			       OMAP3430_IVA2_MOD, CM_FCLKEN);
-+
-+	/* Set IVA2 boot mode to 'idle' */
-+	omap3_ctrl_set_iva_bootmode_idle();
-+
-+	/* Un-reset IVA2 */
-+	omap2_prm_write_mod_reg(0, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
-+
-+	/* Disable IVA2 clock */
-+	omap2_cm_write_mod_reg(0, OMAP3430_IVA2_MOD, CM_FCLKEN);
-+
-+	/* Reset IVA2 */
-+	omap2_prm_write_mod_reg(OMAP3430_RST1_IVA2_MASK |
-+				OMAP3430_RST2_IVA2_MASK |
-+				OMAP3430_RST3_IVA2_MASK,
-+				OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
++	*ptr++ = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
++					OMAP3_PRM_CLKSEL_OFFSET);
 +}
 +
  /* Powerdomain low-level functions */
  
  static int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
 diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index 14a5fbc..007ff59 100644
+index 7548ae0..c5f9cba 100644
 --- a/arch/arm/mach-omap2/prm3xxx.h
 +++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -163,6 +163,7 @@ extern void omap3xxx_prm_dpll3_reset(void);
- extern int __init omap3xxx_prm_init(void);
- extern u32 omap3xxx_prm_get_reset_sources(void);
- int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
-+void omap3xxx_prm_iva_idle(void);
+@@ -166,6 +166,7 @@ int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
+ void omap3xxx_prm_iva_idle(void);
+ void omap3_prm_reset_modem(void);
+ int omap3xxx_prm_clear_global_cold_reset(void);
++void omap3_prm_save_scratchpad_contents(u32 *ptr);
  
  #endif /* __ASSEMBLER */
  
