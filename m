@@ -1,133 +1,67 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 10/10] ARM: OMAP3: control: isolate control module init to its own function
-Date: Fri, 4 Jul 2014 17:10:35 +0300
-Message-ID: <1404483035-21666-11-git-send-email-t-kristo@ti.com>
-References: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
+Date: Fri, 4 Jul 2014 16:24:38 +0200
+Message-ID: <20140704142438.GA7827@pengutronix.de>
+References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52195 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758899AbaGDOKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 10:10:50 -0400
-In-Reply-To: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Andrew Lunn <andrew@lunn.ch>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, linux-tegra@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, kvmarm@lists.cs.columbia.edu, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Herbert Xu <herbert@gondor.apana.org.au>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Magnus Damm <magnus.damm@gmail.com>, Gleb Natapov <gleb@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Marc Zyngier <marc.zyngier@arm.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Simon Horman <horms@verge.net.>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org
 
-Control module related PM initializations are now moved within control
-module driver. Done in preparation to isolate the code to its own driver.
+On Tue, Jul 01, 2014 at 04:58:24PM +0100, Russell King wrote:
+> ARMv6 and greater introduced a new instruction ("bx") which can be used
+> to return from function calls.  Recent CPUs perform better when the
+> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
+> and this sequence is strongly recommended to be used by the ARM
+> architecture manual (section A.4.1.1).
+> =
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/control.c |   19 +++++++++++++++++--
- arch/arm/mach-omap2/control.h |    3 +--
- arch/arm/mach-omap2/pm34xx.c  |    3 +--
- arch/arm/mach-omap2/prm3xxx.c |    6 ------
- 4 files changed, 19 insertions(+), 12 deletions(-)
+> We provide a new macro "ret" with all its variants for the condition
+> code which will resolve to the appropriate instruction.
+> =
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index f432ffc..f4796c0 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -564,7 +564,7 @@ int omap3_ctrl_save_padconf(void)
-  * Sets the bootmode for IVA2 to idle. This is needed by the PM code to
-  * force disable IVA2 so that it does not prevent any low-power states.
-  */
--void omap3_ctrl_set_iva_bootmode_idle(void)
-+static void __init omap3_ctrl_set_iva_bootmode_idle(void)
- {
- 	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
- 			 OMAP343X_CONTROL_IVA2_BOOTMOD);
-@@ -576,7 +576,7 @@ void omap3_ctrl_set_iva_bootmode_idle(void)
-  * Sets up the pads controlling the stacked modem in such way that the
-  * device can enter idle.
-  */
--void omap3_ctrl_setup_d2d_padconf(void)
-+static void __init omap3_ctrl_setup_d2d_padconf(void)
- {
- 	u16 mask, padconf;
- 
-@@ -595,4 +595,19 @@ void omap3_ctrl_setup_d2d_padconf(void)
- 	padconf |= mask;
- 	omap_ctrl_writew(padconf, OMAP3_PADCONF_SAD2D_IDLEACK);
- }
-+
-+/**
-+ * omap3_ctrl_init - does static initializations for control module
-+ *
-+ * Initializes system control module. This sets up the sysconfig autoidle,
-+ * and sets up modem and iva2 so that they can be idled properly.
-+ */
-+void __init omap3_ctrl_init(void)
-+{
-+	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
-+
-+	omap3_ctrl_set_iva_bootmode_idle();
-+
-+	omap3_ctrl_setup_d2d_padconf();
-+}
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index fc00158..ccbd70c 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -427,8 +427,7 @@ extern void omap_ctrl_write_dsp_boot_addr(u32 bootaddr);
- extern void omap_ctrl_write_dsp_boot_mode(u8 bootmode);
- extern void omap3630_ctrl_disable_rta(void);
- extern int omap3_ctrl_save_padconf(void);
--extern void omap3_ctrl_set_iva_bootmode_idle(void);
--void omap3_ctrl_setup_d2d_padconf(void);
-+void omap3_ctrl_init(void);
- extern void omap2_set_globals_control(void __iomem *ctrl,
- 				      void __iomem *ctrl_pad);
- #else
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 9410b4a..3f80929 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -355,8 +355,7 @@ restore:
- 
- static void __init prcm_setup_regs(void)
- {
--	/* XXX This should be handled by hwmod code or SCM init code */
--	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
-+	omap3_ctrl_init();
- 
- 	omap3_prm_init_pm(cpu_is_omap3630(), omap3_has_iva());
- }
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 75dfe8e..2458be6 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -28,7 +28,6 @@
- #include "prm-regbits-34xx.h"
- #include "cm3xxx.h"
- #include "cm-regbits-34xx.h"
--#include "control.h"
- 
- static const struct omap_prcm_irq omap3_prcm_irqs[] = {
- 	OMAP_PRCM_IRQ("wkup",	0,	0),
-@@ -366,8 +365,6 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
- 	/* We need to idle iva2_pwrdm even on am3703 with no iva2. */
- 	omap3xxx_prm_iva_idle();
- 
--	omap3_ctrl_setup_d2d_padconf();
--
- 	omap3_prm_reset_modem();
- }
- 
-@@ -470,9 +467,6 @@ void omap3xxx_prm_iva_idle(void)
- 	omap2_cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
- 			       OMAP3430_IVA2_MOD, CM_FCLKEN);
- 
--	/* Set IVA2 boot mode to 'idle' */
--	omap3_ctrl_set_iva_bootmode_idle();
--
- 	/* Un-reset IVA2 */
- 	omap2_prm_write_mod_reg(0, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
- 
--- 
-1.7.9.5
+> Rather than doing this piecemeal, and miss some instances, change all
+> the "mov pc" instances to use the new macro, with the exception of
+> the "movs" instruction and the kprobes code.  This allows us to detect
+> the "mov pc, lr" case and fix it up - and also gives us the possibility
+> of deploying this for other registers depending on the CPU selection.
+> =
 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Works fine on my ARM-v7M machine:
+
+$ objdump -d vmlinux | grep -E 'mov.*pc'
+8c000022:	46e7      	mov	pc, ip
+8c000028:	46ef      	mov	pc, sp
+8c000b26:	46af      	movne	pc, r5
+8c0037e0:	4687      	mov	pc, r0
+8c0828d2:	4697      	mov	pc, r2
+8c1213ee:	469f      	mov	pc, r3
+
+Also boots fine.
+
+Tested-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+
+but I wonder what is the reason to not use bx if \reg !=3D lr.
+
+Thanks
+Uwe
+
+-- =
+
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
