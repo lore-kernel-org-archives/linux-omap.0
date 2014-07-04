@@ -1,132 +1,103 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 06/10] ARM: OMAP24xx: PRM: add API for clearing wakeup status bits
-Date: Fri, 4 Jul 2014 17:10:31 +0300
-Message-ID: <1404483035-21666-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 08/10] ARM: OMAP3: control: add API for setting up the modem pads
+Date: Fri, 4 Jul 2014 17:10:33 +0300
+Message-ID: <1404483035-21666-9-git-send-email-t-kristo@ti.com>
 References: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55087 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756085AbaGDOKn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jul 2014 10:10:43 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:52163 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756085AbaGDOKp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 10:10:45 -0400
 In-Reply-To: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This helps to isolate the PRM into its own driver.
+This patch moves the functionality from PM core to control driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm24xx.c  |   31 +++++++++++++------------------
- arch/arm/mach-omap2/prm2xxx.c |   18 ++++++++++++++++++
- arch/arm/mach-omap2/prm2xxx.h |    1 +
- 3 files changed, 32 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/control.c |   26 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h |    1 +
+ arch/arm/mach-omap2/pm34xx.c  |   15 +--------------
+ 3 files changed, 28 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index a5ea988..d76694b 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -75,9 +75,9 @@ static int omap2_enter_full_retention(void)
- 
- 	/* Clear old wake-up events */
- 	/* REVISIT: These write to reserved bits? */
--	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
--	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
--	omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
-+	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
-+	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
-+	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
- 
- 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
- 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
-@@ -104,23 +104,18 @@ no_sleep:
- 	clk_enable(osc_ck);
- 
- 	/* clear CORE wake-up events */
--	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
--	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
-+	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
-+	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
- 
- 	/* wakeup domain events - bit 1: GPT1, bit5 GPIO */
--	omap2_prm_clear_mod_reg_bits(0x4 | 0x1, WKUP_MOD, PM_WKST);
-+	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, 0x4 | 0x1);
- 
- 	/* MPU domain wake events */
--	l = omap2_prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
--	if (l & 0x01)
--		omap2_prm_write_mod_reg(0x01, OCP_MOD,
--				  OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
--	if (l & 0x20)
--		omap2_prm_write_mod_reg(0x20, OCP_MOD,
--				  OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
-+	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
-+				    0x1);
- 
--	/* Mask future PRCM-to-MPU interrupts */
--	omap2_prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
-+	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
-+				    0x20);
- 
- 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
- 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
-@@ -148,9 +143,9 @@ static void omap2_enter_mpu_retention(void)
- 	 * it is in retention mode. */
- 	if (omap2_allow_mpu_retention()) {
- 		/* REVISIT: These write to reserved bits? */
--		omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
--		omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
--		omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
-+		omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
-+		omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
-+		omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
- 
- 		/* Try to enter MPU retention */
- 		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index a3a3cca..8695805 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -114,6 +114,24 @@ void omap2xxx_prm_dpll_reset(void)
- 	omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTCTRL);
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 8308094..f432ffc 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -569,4 +569,30 @@ void omap3_ctrl_set_iva_bootmode_idle(void)
+ 	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
+ 			 OMAP343X_CONTROL_IVA2_BOOTMOD);
  }
- 
++
 +/**
-+ * omap2xxx_prm_clear_mod_irqs - clear wakeup status bits for a module
-+ * @module: PRM module to clear wakeups from
-+ * @regs: register offset to clear
-+ * @wkst_mask: wakeup status mask to clear
++ * omap3_ctrl_setup_d2d_padconf - setup stacked modem pads for idle
 + *
-+ * Clears wakeup status bits for a given module, so that the device can
-+ * re-enter idle.
++ * Sets up the pads controlling the stacked modem in such way that the
++ * device can enter idle.
 + */
-+void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
++void omap3_ctrl_setup_d2d_padconf(void)
 +{
-+	u32 wkst;
++	u16 mask, padconf;
 +
-+	wkst = omap2_prm_read_mod_reg(module, regs);
-+	wkst &= wkst_mask;
-+	omap2_prm_write_mod_reg(wkst, module, regs);
++	/*
++	 * In a stand alone OMAP3430 where there is not a stacked
++	 * modem for the D2D Idle Ack and D2D MStandby must be pulled
++	 * high. S CONTROL_PADCONF_SAD2D_IDLEACK and
++	 * CONTROL_PADCONF_SAD2D_MSTDBY to have a pull up.
++	 */
++	mask = (1 << 4) | (1 << 3); /* pull-up, enabled */
++	padconf = omap_ctrl_readw(OMAP3_PADCONF_SAD2D_MSTANDBY);
++	padconf |= mask;
++	omap_ctrl_writew(padconf, OMAP3_PADCONF_SAD2D_MSTANDBY);
++
++	padconf = omap_ctrl_readw(OMAP3_PADCONF_SAD2D_IDLEACK);
++	padconf |= mask;
++	omap_ctrl_writew(padconf, OMAP3_PADCONF_SAD2D_IDLEACK);
 +}
-+
- int omap2xxx_clkdm_sleep(struct clockdomain *clkdm)
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index da05480..fc00158 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -428,6 +428,7 @@ extern void omap_ctrl_write_dsp_boot_mode(u8 bootmode);
+ extern void omap3630_ctrl_disable_rta(void);
+ extern int omap3_ctrl_save_padconf(void);
+ extern void omap3_ctrl_set_iva_bootmode_idle(void);
++void omap3_ctrl_setup_d2d_padconf(void);
+ extern void omap2_set_globals_control(void __iomem *ctrl,
+ 				      void __iomem *ctrl_pad);
+ #else
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 3ea04ac..126f3ec 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -355,20 +355,7 @@ restore:
+ 
+ static void __init omap3_d2d_idle(void)
  {
- 	omap2_prm_set_mod_reg_bits(OMAP24XX_FORCESTATE_MASK,
-diff --git a/arch/arm/mach-omap2/prm2xxx.h b/arch/arm/mach-omap2/prm2xxx.h
-index d2cb636..d734141 100644
---- a/arch/arm/mach-omap2/prm2xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx.h
-@@ -125,6 +125,7 @@ extern int omap2xxx_clkdm_sleep(struct clockdomain *clkdm);
- extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
+-	u16 mask, padconf;
+-
+-	/* In a stand alone OMAP3430 where there is not a stacked
+-	 * modem for the D2D Idle Ack and D2D MStandby must be pulled
+-	 * high. S CONTROL_PADCONF_SAD2D_IDLEACK and
+-	 * CONTROL_PADCONF_SAD2D_MSTDBY to have a pull up. */
+-	mask = (1 << 4) | (1 << 3); /* pull-up, enabled */
+-	padconf = omap_ctrl_readw(OMAP3_PADCONF_SAD2D_MSTANDBY);
+-	padconf |= mask;
+-	omap_ctrl_writew(padconf, OMAP3_PADCONF_SAD2D_MSTANDBY);
+-
+-	padconf = omap_ctrl_readw(OMAP3_PADCONF_SAD2D_IDLEACK);
+-	padconf |= mask;
+-	omap_ctrl_writew(padconf, OMAP3_PADCONF_SAD2D_IDLEACK);
++	omap3_ctrl_setup_d2d_padconf();
  
- extern void omap2xxx_prm_dpll_reset(void);
-+void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
- 
- extern int __init omap2xxx_prm_init(void);
- 
+ 	/* reset modem */
+ 	omap3_prm_reset_modem();
 -- 
 1.7.9.5
 
