@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 4/6] phy: core: Add phy-supply to DT binding documentation
-Date: Fri, 4 Jul 2014 12:55:46 +0300
-Message-ID: <1404467748-12154-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 6/6] ARM: dts: dra7-evm: Add regulator information to USB2 PHYs
+Date: Fri, 4 Jul 2014 12:55:48 +0300
+Message-ID: <1404467748-12154-7-git-send-email-rogerq@ti.com>
 References: <1404467748-12154-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,29 +12,29 @@ To: tony@atomide.com, kishon@ti.com, balbi@ti.com
 Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-phy-supply is a phandle to the regulator that provides power to the
-PHY. This regulator is managed during the PHY power on/off sequence
-by the phy core driver.
+The ldousb_reg regulator provides power to the USB1 and USB2
+High Speed PHYs.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- Documentation/devicetree/bindings/phy/phy-bindings.txt | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/dra7-evm.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt b/Documentation/devicetree/bindings/phy/phy-bindings.txt
-index 8ae844f..2aa1840 100644
---- a/Documentation/devicetree/bindings/phy/phy-bindings.txt
-+++ b/Documentation/devicetree/bindings/phy/phy-bindings.txt
-@@ -10,6 +10,10 @@ Required Properties:
- 		provider can use the values in cells to find the appropriate
- 		PHY.
- 
-+Optional Properties:
-+phy-supply:	Phandle to a regulator that provides power to the PHY. This
-+		regulator will be managed during the PHY power on/off sequence.
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 8308954..50f8022 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -496,3 +496,11 @@
+ 		};
+ 	};
+ };
 +
- For example:
- 
- phys: phy {
++&usb2_phy1 {
++	phy-supply = <&ldousb_reg>;
++};
++
++&usb2_phy2 {
++	phy-supply = <&ldousb_reg>;
++};
 -- 
 1.8.3.2
