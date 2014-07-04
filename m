@@ -1,32 +1,34 @@
-From: Peter Maydell <peter.maydell@linaro.org>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Fri, 4 Jul 2014 17:59:35 +0100
-Message-ID: <CAFEAcA-UyLWteuNUO1xa5cGvQQV-fscJtiaC7B6N=cdTam-UQA@mail.gmail.com>
-References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
- <20140702160932.GF5541@saruman.home> <20140702190944.GA567@drone.musicnaut.iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:42195 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232AbaGDQ75 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 12:59:57 -0400
-Received: by mail-lb0-f177.google.com with SMTP id u10so1291502lbd.8
-        for <linux-omap@vger.kernel.org>; Fri, 04 Jul 2014 09:59:55 -0700 (PDT)
-In-Reply-To: <20140702190944.GA567@drone.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: [PATCH] mach-omap1: Fix call to omap_cfg_reg
+Date: Fri,  4 Jul 2014 13:02:00 -0400
+Message-ID: <1404493320-5606-1-git-send-email-xerofoify@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On 2 July 2014 20:09, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> When ttyS -> ttyO change was done on OMAP, compatibility was not an issue.
-> Why should we care about it now?
+This patch fixes the call to ompa_cfg_reg(USB2_SPEED) in the case
+that the cpu is a omap16xx and the nwires are not equal to 3.
 
-You should have cared about it back then as well -- it was
-really annoying and required everybody running an OMAP
-based board to suddenly fix up their userland and command
-line configs when they got broken by a kernel upgrade.
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+---
+ arch/arm/mach-omap1/usb.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-thanks
--- PMM
+diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+index 4118db5..17e3139 100644
+--- a/arch/arm/mach-omap1/usb.c
++++ b/arch/arm/mach-omap1/usb.c
+@@ -504,8 +504,7 @@ static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
+ 		omap_cfg_reg(W9_USB2_TXEN);
+ 		omap_cfg_reg(W5_USB2_SE0);
+ 		if (nwires != 3)
+-			omap_cfg_reg(Y5_USB2_RCV);
+-		// FIXME omap_cfg_reg(USB2_SPEED);
++			omap_cfg_reg(USB2_SPEED)
+ 	} else {
+ 		pr_debug("usb%d cpu unrecognized\n", 1);
+ 		return 0;
+-- 
+1.9.1
