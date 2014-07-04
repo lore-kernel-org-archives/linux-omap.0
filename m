@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 5/6] phy: omap-usb2: Balance pm_runtime_enable() on probe failure and remove
-Date: Fri, 4 Jul 2014 12:55:47 +0300
-Message-ID: <1404467748-12154-6-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 3/6] phy: core: Support regulator supply for PHY power
+Date: Fri, 4 Jul 2014 12:55:45 +0300
+Message-ID: <1404467748-12154-4-git-send-email-rogerq@ti.com>
 References: <1404467748-12154-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,54 +12,114 @@ To: tony@atomide.com, kishon@ti.com, balbi@ti.com
 Cc: nsekhar@ti.com, nm@ti.com, george.cherian@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-If probe fails then we need to call pm_runtime_disable() to balance
-out the previous pm_runtime_enable() call. Else it will cause
-unbalanced pm_runtime_enable() call in the succeding probe call.
-
-This anomaly was observed when the call to devm_phy_create() failed
-with -EPROBE_DEFER.
-
-Balance out the pm_runtime_enable() call in .remove() as well.
+Some PHYs can be powered by an external power regulator.
+e.g. USB_HS PHY on DRA7 SoC. Make the PHY core support a
+power regulator.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/phy/phy-omap-usb2.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/phy/phy-core.c  | 26 ++++++++++++++++++++++++++
+ include/linux/phy/phy.h |  2 ++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index 7007c11..3a1d00e 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -262,7 +262,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 	otg->phy		= &phy->phy;
+diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+index 49c4465..75c9739 100644
+--- a/drivers/phy/phy-core.c
++++ b/drivers/phy/phy-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/phy/phy.h>
+ #include <linux/idr.h>
+ #include <linux/pm_runtime.h>
++#include <linux/regulator/consumer.h>
  
- 	platform_set_drvdata(pdev, phy);
--	pm_runtime_enable(phy->dev);
+ static struct class *phy_class;
+ static DEFINE_MUTEX(phy_provider_mutex);
+@@ -226,6 +227,12 @@ int phy_power_on(struct phy *phy)
+ 	if (!phy)
+ 		return 0;
  
- 	generic_phy = devm_phy_create(phy->dev, &ops, NULL);
- 	if (IS_ERR(generic_phy))
-@@ -270,10 +269,13 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 
- 	phy_set_drvdata(generic_phy, phy);
- 
-+	pm_runtime_enable(phy->dev);
- 	phy_provider = devm_of_phy_provider_register(phy->dev,
- 			of_phy_simple_xlate);
--	if (IS_ERR(phy_provider))
-+	if (IS_ERR(phy_provider)) {
-+		pm_runtime_disable(phy->dev);
- 		return PTR_ERR(phy_provider);
++	if (phy->pwr) {
++		ret = regulator_enable(phy->pwr);
++		if (ret)
++			return ret;
 +	}
++
+ 	ret = phy_pm_runtime_get_sync(phy);
+ 	if (ret < 0 && ret != -ENOTSUPP)
+ 		return ret;
+@@ -247,6 +254,8 @@ int phy_power_on(struct phy *phy)
+ out:
+ 	mutex_unlock(&phy->mutex);
+ 	phy_pm_runtime_put_sync(phy);
++	if (phy->pwr)
++		regulator_disable(phy->pwr);
  
- 	phy->wkupclk = devm_clk_get(phy->dev, "wkupclk");
- 	if (IS_ERR(phy->wkupclk)) {
-@@ -317,6 +319,7 @@ static int omap_usb2_remove(struct platform_device *pdev)
- 	if (!IS_ERR(phy->optclk))
- 		clk_unprepare(phy->optclk);
- 	usb_remove_phy(&phy->phy);
-+	pm_runtime_disable(phy->dev);
+ 	return ret;
+ }
+@@ -272,6 +281,9 @@ int phy_power_off(struct phy *phy)
+ 	mutex_unlock(&phy->mutex);
+ 	phy_pm_runtime_put(phy);
  
++	if (phy->pwr)
++		regulator_disable(phy->pwr);
++
  	return 0;
  }
+ EXPORT_SYMBOL_GPL(phy_power_off);
+@@ -588,6 +600,16 @@ struct phy *phy_create(struct device *dev, const struct phy_ops *ops,
+ 		goto free_phy;
+ 	}
+ 
++	/* phy-supply */
++	phy->pwr = regulator_get_optional(dev, "phy");
++	if (IS_ERR(phy->pwr)) {
++		if (PTR_ERR(phy->pwr) == -EPROBE_DEFER) {
++			ret = -EPROBE_DEFER;
++			goto free_ida;
++		}
++		phy->pwr = NULL;
++	}
++
+ 	device_initialize(&phy->dev);
+ 	mutex_init(&phy->mutex);
+ 
+@@ -617,6 +639,9 @@ put_dev:
+ 	put_device(&phy->dev);  /* calls phy_release() which frees resources */
+ 	return ERR_PTR(ret);
+ 
++free_ida:
++	ida_simple_remove(&phy_ida, phy->id);
++
+ free_phy:
+ 	kfree(phy);
+ 	return ERR_PTR(ret);
+@@ -800,6 +825,7 @@ static void phy_release(struct device *dev)
+ 
+ 	phy = to_phy(dev);
+ 	dev_vdbg(dev, "releasing '%s'\n", dev_name(dev));
++	regulator_put(phy->pwr);
+ 	ida_simple_remove(&phy_ida, phy->id);
+ 	kfree(phy);
+ }
+diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
+index 2760744..9a86945 100644
+--- a/include/linux/phy/phy.h
++++ b/include/linux/phy/phy.h
+@@ -18,6 +18,7 @@
+ #include <linux/of.h>
+ #include <linux/device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/regulator/consumer.h>
+ 
+ struct phy;
+ 
+@@ -65,6 +66,7 @@ struct phy {
+ 	int			init_count;
+ 	int			power_count;
+ 	struct phy_attrs	attrs;
++	struct regulator	*pwr;
+ };
+ 
+ /**
 -- 
 1.8.3.2
