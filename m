@@ -1,90 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: clock cleanup for v3.17 merge window
-Date: Fri, 4 Jul 2014 00:04:21 -0700
-Message-ID: <20140704070421.GB28884@atomide.com>
-References: <53B59C5D.7010405@ti.com>
- <20140704064813.GA28884@atomide.com>
- <53B65189.4070807@ti.com>
+Subject: Re: gpio-omap: wakeup mask
+Date: Fri, 4 Jul 2014 00:27:53 -0700
+Message-ID: <20140704072752.GC28884@atomide.com>
+References: <53B3F687.5050502@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53567 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750855AbaGDHEV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 03:04:21 -0400
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53B65189.4070807@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53B3F687.5050502@gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Pascal Huerst <pascal.huerst@gmail.com>
+Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tero Kristo <t-kristo@ti.com> [140704 00:03]:
-> On 07/04/2014 09:48 AM, Tony Lindgren wrote:
-> >* Tero Kristo <t-kristo@ti.com> [140703 11:10]:
-> >>Hi Tony,
-> >>
-> >>Posting this early, as I will be going for vacation from next week and might
-> >>miss the merge window myself. Small cleanup set for the clock drivers
-> >>residing under mach-omap2 folder to prepare their move under drivers/clk.
-> >>I'll leave it for your judgement whether you pull this or not based on the
-> >>potential feedback.
-> >>
-> >>----------------------------------------------------------------
-> >>
-> >>The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
-> >>
-> >>   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
-> >>
-> >>are available in the git repository at:
-> >>
-> >>   git@github.com:t-kristo/linux-pm.git for-v3.17/omap2-clk-cleanup
-> >>
-> >>for you to fetch changes up to 4eccc64a2bc25514754c30cdfc985207aee8b2fd:
-> >>
-> >>   ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c file
-> >>(2014-07-01 17:46:27 +0300)
-> >
-> >This would be best queued by Paul if OK. I'm assuming all these
-> >pull requests are independet of each other, right?
+* Pascal Huerst <pascal.huerst@gmail.com> [140702 05:12]:
+> Hi everyone,
 > 
-> Yea this is fine with me. All the pull-requests are independent.
+> we have a device with an am335x and are using some gpios on bank0 to
+> wake up the device from suspend to ram.
+> 
+> We have some user buttons which are configured in the devicetree as
+> gpio-keys and one power-key which should wake up the device:
+> 
+> &buttons {
+>         power {
+>                 label = "Power";
+>                 gpios = <&gpio0 6 1>;
+>                 linux,code = <116>;
+>                 gpio-key,wakeup;
+>         };
+> 
+>         one {
+>                 label = "One";
+>                 gpios = <&gpio0 11 1>;
+>                 linux,code = <2>;
+>         };
+> 
+>         : : :
+> }
+> 
+> The problem is, that the device wakes up on any trigger on bank 0. No
+> matter which button was pressed. "gpio-key,wakeup" seems not to have any
+> influence.
+> 
+> Now, if I comment the following lines out in drivers/gpio/gpio-omap.c :
+> set_gpio_trigger(...).
+> 
+> 321
+> 322 if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+> 323    _gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
+> 324      bank->context.wake_en =
+> 325        readl_relaxed(bank->base + bank->regs->wkup_en);
+> 326 }
+> 327
+> 
+> Everything works as expected. But I don't really understand why? Is this
+> a bug, or does this break something else I have not discovered yet?
 
-OK great.
+The GPIO wake-up events are working from off-idle for omap3
+the last time I checked, so sounds like this is some am335x
+related issue.
+
+What does your bank->context.wake_en mask get set to with this code?
 
 Regards,
 
 Tony
-
-
-> >>----------------------------------------------------------------
-> >>Tero Kristo (13):
-> >>       ARM: OMAP2+: clock/dpll: fix _dpll_test_fint arithmetics overflow
-> >>       ARM: OMAP4+: clock: remove DEFINE_CLK_OMAP_HSDIVIDER macro
-> >>       ARM: OMAP4+: dpll: remove cpu_is_omap44xx checks
-> >>       ARM: OMAP4+: dpll44xx: remove cm-regbits-44xx.h and clock44xx.h
-> >>includes
-> >>       ARM: OMAP2+: clock: introduce ti_clk_features flags
-> >>       ARM: OMAP2+: clock: add fint values to the ti_clk_features struct
-> >>       ARM: OMAP2+: clock/dpll: add private API for checking if DPLL is in
-> >>bypass
-> >>       ARM: OMAP2+: clock/dpll: convert bypass check to use clk_features
-> >>       ARM: OMAP2+: clock/dpll: add jitter correction behind clk_features
-> >>       ARM: OMAP2+: clock/interface: add a clk_features definition for idlest
-> >>value
-> >>       ARM: OMAP2+: clock/dpll: remove unused header includes from
-> >>clkt_dpll.c
-> >>       ARM: OMAP2+: clock/dpll: remove unused header includes from dpll3xxx.c
-> >>       ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c
-> >>file
-> >>
-> >>  arch/arm/mach-omap2/clkt_dpll.c |  100
-> >>++++++++++++++++++---------------------
-> >>  arch/arm/mach-omap2/clkt_iclk.c |    8 ++--
-> >>  arch/arm/mach-omap2/clock.c     |   76 ++++++++++++++++++++++++++---
-> >>  arch/arm/mach-omap2/clock.h     |   44 ++++++++---------
-> >>  arch/arm/mach-omap2/dpll3xxx.c  |    7 +--
-> >>  arch/arm/mach-omap2/dpll44xx.c  |   19 +++++---
-> >>  arch/arm/mach-omap2/io.c        |    2 +
-> >>  7 files changed, 155 insertions(+), 101 deletions(-)
-> 
