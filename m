@@ -1,227 +1,132 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 07/10] ARM: OMAP3: PRM: move PRM init code from PM core to the driver
-Date: Fri, 4 Jul 2014 17:10:32 +0300
-Message-ID: <1404483035-21666-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 10/10] ARM: OMAP3: control: isolate control module init to its own function
+Date: Fri, 4 Jul 2014 17:10:35 +0300
+Message-ID: <1404483035-21666-11-git-send-email-t-kristo@ti.com>
 References: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49236 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756085AbaGDOKt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Jul 2014 10:10:49 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:52195 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758899AbaGDOKu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 10:10:50 -0400
 In-Reply-To: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Helps to isolate the PRM driver.
+Control module related PM initializations are now moved within control
+module driver. Done in preparation to isolate the code to its own driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c  |   71 +-------------------------------
- arch/arm/mach-omap2/prm3xxx.c |   90 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm3xxx.h |    1 +
- 3 files changed, 92 insertions(+), 70 deletions(-)
+ arch/arm/mach-omap2/control.c |   19 +++++++++++++++++--
+ arch/arm/mach-omap2/control.h |    3 +--
+ arch/arm/mach-omap2/pm34xx.c  |    3 +--
+ arch/arm/mach-omap2/prm3xxx.c |    6 ------
+ 4 files changed, 19 insertions(+), 12 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index f432ffc..f4796c0 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -564,7 +564,7 @@ int omap3_ctrl_save_padconf(void)
+  * Sets the bootmode for IVA2 to idle. This is needed by the PM code to
+  * force disable IVA2 so that it does not prevent any low-power states.
+  */
+-void omap3_ctrl_set_iva_bootmode_idle(void)
++static void __init omap3_ctrl_set_iva_bootmode_idle(void)
+ {
+ 	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
+ 			 OMAP343X_CONTROL_IVA2_BOOTMOD);
+@@ -576,7 +576,7 @@ void omap3_ctrl_set_iva_bootmode_idle(void)
+  * Sets up the pads controlling the stacked modem in such way that the
+  * device can enter idle.
+  */
+-void omap3_ctrl_setup_d2d_padconf(void)
++static void __init omap3_ctrl_setup_d2d_padconf(void)
+ {
+ 	u16 mask, padconf;
+ 
+@@ -595,4 +595,19 @@ void omap3_ctrl_setup_d2d_padconf(void)
+ 	padconf |= mask;
+ 	omap_ctrl_writew(padconf, OMAP3_PADCONF_SAD2D_IDLEACK);
+ }
++
++/**
++ * omap3_ctrl_init - does static initializations for control module
++ *
++ * Initializes system control module. This sets up the sysconfig autoidle,
++ * and sets up modem and iva2 so that they can be idled properly.
++ */
++void __init omap3_ctrl_init(void)
++{
++	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
++
++	omap3_ctrl_set_iva_bootmode_idle();
++
++	omap3_ctrl_setup_d2d_padconf();
++}
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index fc00158..ccbd70c 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -427,8 +427,7 @@ extern void omap_ctrl_write_dsp_boot_addr(u32 bootaddr);
+ extern void omap_ctrl_write_dsp_boot_mode(u8 bootmode);
+ extern void omap3630_ctrl_disable_rta(void);
+ extern int omap3_ctrl_save_padconf(void);
+-extern void omap3_ctrl_set_iva_bootmode_idle(void);
+-void omap3_ctrl_setup_d2d_padconf(void);
++void omap3_ctrl_init(void);
+ extern void omap2_set_globals_control(void __iomem *ctrl,
+ 				      void __iomem *ctrl_pad);
+ #else
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index acb895d..3ea04ac 100644
+index 9410b4a..3f80929 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -376,79 +376,10 @@ static void __init omap3_d2d_idle(void)
+@@ -355,8 +355,7 @@ restore:
  
  static void __init prcm_setup_regs(void)
  {
--	u32 omap3630_en_uart4_mask = cpu_is_omap3630() ?
--					OMAP3630_EN_UART4_MASK : 0;
--	u32 omap3630_grpsel_uart4_mask = cpu_is_omap3630() ?
--					OMAP3630_GRPSEL_UART4_MASK : 0;
--
- 	/* XXX This should be handled by hwmod code or SCM init code */
- 	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
+-	/* XXX This should be handled by hwmod code or SCM init code */
+-	omap_ctrl_writel(OMAP3430_AUTOIDLE_MASK, OMAP2_CONTROL_SYSCONFIG);
++	omap3_ctrl_init();
  
--	/*
--	 * Enable control of expternal oscillator through
--	 * sys_clkreq. In the long run clock framework should
--	 * take care of this.
--	 */
--	omap2_prm_rmw_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK,
--			     1 << OMAP_AUTOEXTCLKMODE_SHIFT,
--			     OMAP3430_GR_MOD,
--			     OMAP3_PRM_CLKSRC_CTRL_OFFSET);
--
--	/* setup wakup source */
--	omap2_prm_write_mod_reg(OMAP3430_EN_IO_MASK | OMAP3430_EN_GPIO1_MASK |
--			  OMAP3430_EN_GPT1_MASK | OMAP3430_EN_GPT12_MASK,
--			  WKUP_MOD, PM_WKEN);
--	/* No need to write EN_IO, that is always enabled */
--	omap2_prm_write_mod_reg(OMAP3430_GRPSEL_GPIO1_MASK |
--			  OMAP3430_GRPSEL_GPT1_MASK |
--			  OMAP3430_GRPSEL_GPT12_MASK,
--			  WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
--
--	/* Enable PM_WKEN to support DSS LPR */
--	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
--				OMAP3430_DSS_MOD, PM_WKEN);
--
--	/* Enable wakeups in PER */
--	omap2_prm_write_mod_reg(omap3630_en_uart4_mask |
--			  OMAP3430_EN_GPIO2_MASK | OMAP3430_EN_GPIO3_MASK |
--			  OMAP3430_EN_GPIO4_MASK | OMAP3430_EN_GPIO5_MASK |
--			  OMAP3430_EN_GPIO6_MASK | OMAP3430_EN_UART3_MASK |
--			  OMAP3430_EN_MCBSP2_MASK | OMAP3430_EN_MCBSP3_MASK |
--			  OMAP3430_EN_MCBSP4_MASK,
--			  OMAP3430_PER_MOD, PM_WKEN);
--	/* and allow them to wake up MPU */
--	omap2_prm_write_mod_reg(omap3630_grpsel_uart4_mask |
--			  OMAP3430_GRPSEL_GPIO2_MASK |
--			  OMAP3430_GRPSEL_GPIO3_MASK |
--			  OMAP3430_GRPSEL_GPIO4_MASK |
--			  OMAP3430_GRPSEL_GPIO5_MASK |
--			  OMAP3430_GRPSEL_GPIO6_MASK |
--			  OMAP3430_GRPSEL_UART3_MASK |
--			  OMAP3430_GRPSEL_MCBSP2_MASK |
--			  OMAP3430_GRPSEL_MCBSP3_MASK |
--			  OMAP3430_GRPSEL_MCBSP4_MASK,
--			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
--
--	/* Don't attach IVA interrupts */
--	if (omap3_has_iva()) {
--		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
--		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
--		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
--		omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD,
--					OMAP3430_PM_IVAGRPSEL);
--	}
--
--	/* Clear any pending 'reset' flags */
--	omap2_prm_write_mod_reg(0xffffffff, MPU_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_PER_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_EMU_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_NEON_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_DSS_MOD, OMAP2_RM_RSTST);
--	omap2_prm_write_mod_reg(0xffffffff, OMAP3430ES2_USBHOST_MOD, OMAP2_RM_RSTST);
--
--	/* Clear any pending PRCM interrupts */
--	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+	omap3_prm_init_pm(cpu_is_omap3630(), omap3_has_iva());
- 
- 	/*
- 	 * We need to idle iva2_pwrdm even on am3703 with no iva2.
+ 	omap3_prm_init_pm(cpu_is_omap3630(), omap3_has_iva());
+ }
 diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 4d93b84..48218a4 100644
+index 75dfe8e..2458be6 100644
 --- a/arch/arm/mach-omap2/prm3xxx.c
 +++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -275,6 +275,96 @@ void __init omap3_prm_reset_modem(void)
+@@ -28,7 +28,6 @@
+ #include "prm-regbits-34xx.h"
+ #include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
+-#include "control.h"
+ 
+ static const struct omap_prcm_irq omap3_prcm_irqs[] = {
+ 	OMAP_PRCM_IRQ("wkup",	0,	0),
+@@ -366,8 +365,6 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
+ 	/* We need to idle iva2_pwrdm even on am3703 with no iva2. */
+ 	omap3xxx_prm_iva_idle();
+ 
+-	omap3_ctrl_setup_d2d_padconf();
+-
+ 	omap3_prm_reset_modem();
  }
  
- /**
-+ * omap3_prm_init_pm - initialize PM related registers for PRM
-+ * @has_uart4: SoC has UART4
-+ * @has_iva: SoC has IVA
-+ *
-+ * Initializes PRM registers for PM use. Called from PM init.
-+ */
-+void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
-+{
-+	u32 en_uart4_mask;
-+	u32 grpsel_uart4_mask;
-+
-+	/*
-+	 * Enable control of expternal oscillator through
-+	 * sys_clkreq. In the long run clock framework should
-+	 * take care of this.
-+	 */
-+	omap2_prm_rmw_mod_reg_bits(OMAP_AUTOEXTCLKMODE_MASK,
-+				   1 << OMAP_AUTOEXTCLKMODE_SHIFT,
-+				   OMAP3430_GR_MOD,
-+				   OMAP3_PRM_CLKSRC_CTRL_OFFSET);
-+
-+	/* setup wakup source */
-+	omap2_prm_write_mod_reg(OMAP3430_EN_IO_MASK | OMAP3430_EN_GPIO1_MASK |
-+				OMAP3430_EN_GPT1_MASK | OMAP3430_EN_GPT12_MASK,
-+				WKUP_MOD, PM_WKEN);
-+	/* No need to write EN_IO, that is always enabled */
-+	omap2_prm_write_mod_reg(OMAP3430_GRPSEL_GPIO1_MASK |
-+				OMAP3430_GRPSEL_GPT1_MASK |
-+				OMAP3430_GRPSEL_GPT12_MASK,
-+				WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
-+
-+	/* Enable PM_WKEN to support DSS LPR */
-+	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
-+				OMAP3430_DSS_MOD, PM_WKEN);
-+
-+	if (has_uart4) {
-+		en_uart4_mask = OMAP3630_EN_UART4_MASK;
-+		grpsel_uart4_mask = OMAP3630_GRPSEL_UART4_MASK;
-+	}
-+
-+	/* Enable wakeups in PER */
-+	omap2_prm_write_mod_reg(en_uart4_mask |
-+				OMAP3430_EN_GPIO2_MASK |
-+				OMAP3430_EN_GPIO3_MASK |
-+				OMAP3430_EN_GPIO4_MASK |
-+				OMAP3430_EN_GPIO5_MASK |
-+				OMAP3430_EN_GPIO6_MASK |
-+				OMAP3430_EN_UART3_MASK |
-+				OMAP3430_EN_MCBSP2_MASK |
-+				OMAP3430_EN_MCBSP3_MASK |
-+				OMAP3430_EN_MCBSP4_MASK,
-+				OMAP3430_PER_MOD, PM_WKEN);
-+
-+	/* and allow them to wake up MPU */
-+	omap2_prm_write_mod_reg(grpsel_uart4_mask |
-+				OMAP3430_GRPSEL_GPIO2_MASK |
-+				OMAP3430_GRPSEL_GPIO3_MASK |
-+				OMAP3430_GRPSEL_GPIO4_MASK |
-+				OMAP3430_GRPSEL_GPIO5_MASK |
-+				OMAP3430_GRPSEL_GPIO6_MASK |
-+				OMAP3430_GRPSEL_UART3_MASK |
-+				OMAP3430_GRPSEL_MCBSP2_MASK |
-+				OMAP3430_GRPSEL_MCBSP3_MASK |
-+				OMAP3430_GRPSEL_MCBSP4_MASK,
-+				OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
-+
-+	/* Don't attach IVA interrupts */
-+	if (has_iva) {
-+		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
-+		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
-+		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
-+		omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD,
-+					OMAP3430_PM_IVAGRPSEL);
-+	}
-+
-+	/* Clear any pending 'reset' flags */
-+	omap2_prm_write_mod_reg(0xffffffff, MPU_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_PER_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_EMU_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_NEON_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430_DSS_MOD, OMAP2_RM_RSTST);
-+	omap2_prm_write_mod_reg(0xffffffff, OMAP3430ES2_USBHOST_MOD,
-+				OMAP2_RM_RSTST);
-+
-+	/* Clear any pending PRCM interrupts */
-+	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+}
-+
-+/**
-  * omap3xxx_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
-  *
-  * Clear any previously-latched I/O wakeup events and ensure that the
-diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index c5f9cba..bc37d42 100644
---- a/arch/arm/mach-omap2/prm3xxx.h
-+++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -167,6 +167,7 @@ void omap3xxx_prm_iva_idle(void);
- void omap3_prm_reset_modem(void);
- int omap3xxx_prm_clear_global_cold_reset(void);
- void omap3_prm_save_scratchpad_contents(u32 *ptr);
-+void omap3_prm_init_pm(bool has_uart4, bool has_iva);
+@@ -470,9 +467,6 @@ void omap3xxx_prm_iva_idle(void)
+ 	omap2_cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2_MASK,
+ 			       OMAP3430_IVA2_MOD, CM_FCLKEN);
  
- #endif /* __ASSEMBLER */
+-	/* Set IVA2 boot mode to 'idle' */
+-	omap3_ctrl_set_iva_bootmode_idle();
+-
+ 	/* Un-reset IVA2 */
+ 	omap2_prm_write_mod_reg(0, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
  
 -- 
 1.7.9.5
