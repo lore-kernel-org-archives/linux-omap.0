@@ -1,90 +1,131 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 05/10] ARM: OMAP3: PRM: add API for saving PRM scratchpad contents
-Date: Fri, 4 Jul 2014 17:10:30 +0300
-Message-ID: <1404483035-21666-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 06/10] ARM: OMAP24xx: PRM: add API for clearing wakeup status bits
+Date: Fri, 4 Jul 2014 17:10:31 +0300
+Message-ID: <1404483035-21666-7-git-send-email-t-kristo@ti.com>
 References: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52124 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753485AbaGDOKl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 10:10:41 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55087 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756085AbaGDOKn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Jul 2014 10:10:43 -0400
 In-Reply-To: <1404483035-21666-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This isolates the PRM register access within the PRM driver.
+This helps to isolate the PRM into its own driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/control.c |   11 ++---------
- arch/arm/mach-omap2/prm3xxx.c |    9 +++++++++
- arch/arm/mach-omap2/prm3xxx.h |    1 +
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/pm24xx.c  |   31 +++++++++++++------------------
+ arch/arm/mach-omap2/prm2xxx.c |   18 ++++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx.h |    1 +
+ 3 files changed, 32 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index f8eb3e4..8308094 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -44,8 +44,7 @@ struct omap3_scratchpad {
- };
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index a5ea988..d76694b 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -75,9 +75,9 @@ static int omap2_enter_full_retention(void)
  
- struct omap3_scratchpad_prcm_block {
--	u32 prm_clksrc_ctrl;
--	u32 prm_clksel;
-+	u32 prm_contents[2];
- 	u32 cm_contents[11];
- 	u32 prcm_block_size;
- };
-@@ -327,13 +326,7 @@ void omap3_save_scratchpad_contents(void)
- 	scratchpad_contents.sdrc_block_offset = 0x64;
+ 	/* Clear old wake-up events */
+ 	/* REVISIT: These write to reserved bits? */
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+-	omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
++	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
  
- 	/* Populate the PRCM block contents */
--	prcm_block_contents.prm_clksrc_ctrl =
--		omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
--				       OMAP3_PRM_CLKSRC_CTRL_OFFSET);
--	prcm_block_contents.prm_clksel =
--		omap2_prm_read_mod_reg(OMAP3430_CCR_MOD,
--				       OMAP3_PRM_CLKSEL_OFFSET);
--
-+	omap3_prm_save_scratchpad_contents(prcm_block_contents.prm_contents);
- 	omap3_cm_save_scratchpad_contents(prcm_block_contents.cm_contents);
+ 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+@@ -104,23 +104,18 @@ no_sleep:
+ 	clk_enable(osc_ck);
  
- 	prcm_block_contents.prcm_block_size = 0x0;
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 4733c28..4d93b84 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -409,6 +409,15 @@ int omap3xxx_prm_clear_global_cold_reset(void)
- 	return 0;
+ 	/* clear CORE wake-up events */
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
+-	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++	omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
+ 
+ 	/* wakeup domain events - bit 1: GPT1, bit5 GPIO */
+-	omap2_prm_clear_mod_reg_bits(0x4 | 0x1, WKUP_MOD, PM_WKST);
++	omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, 0x4 | 0x1);
+ 
+ 	/* MPU domain wake events */
+-	l = omap2_prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+-	if (l & 0x01)
+-		omap2_prm_write_mod_reg(0x01, OCP_MOD,
+-				  OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+-	if (l & 0x20)
+-		omap2_prm_write_mod_reg(0x20, OCP_MOD,
+-				  OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
++	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
++				    0x1);
+ 
+-	/* Mask future PRCM-to-MPU interrupts */
+-	omap2_prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
++	omap2xxx_prm_clear_mod_irqs(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET,
++				    0x20);
+ 
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ 	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
+@@ -148,9 +143,9 @@ static void omap2_enter_mpu_retention(void)
+ 	 * it is in retention mode. */
+ 	if (omap2_allow_mpu_retention()) {
+ 		/* REVISIT: These write to reserved bits? */
+-		omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, PM_WKST1);
+-		omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+-		omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
++		omap2xxx_prm_clear_mod_irqs(CORE_MOD, PM_WKST1, ~0);
++		omap2xxx_prm_clear_mod_irqs(CORE_MOD, OMAP24XX_PM_WKST2, ~0);
++		omap2xxx_prm_clear_mod_irqs(WKUP_MOD, PM_WKST, ~0);
+ 
+ 		/* Try to enter MPU retention */
+ 		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
+index a3a3cca..8695805 100644
+--- a/arch/arm/mach-omap2/prm2xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx.c
+@@ -114,6 +114,24 @@ void omap2xxx_prm_dpll_reset(void)
+ 	omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTCTRL);
  }
  
-+void omap3_prm_save_scratchpad_contents(u32 *ptr)
++/**
++ * omap2xxx_prm_clear_mod_irqs - clear wakeup status bits for a module
++ * @module: PRM module to clear wakeups from
++ * @regs: register offset to clear
++ * @wkst_mask: wakeup status mask to clear
++ *
++ * Clears wakeup status bits for a given module, so that the device can
++ * re-enter idle.
++ */
++void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask)
 +{
-+	*ptr++ = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
-+					OMAP3_PRM_CLKSRC_CTRL_OFFSET);
++	u32 wkst;
 +
-+	*ptr++ = omap2_prm_read_mod_reg(OMAP3430_GR_MOD,
-+					OMAP3_PRM_CLKSEL_OFFSET);
++	wkst = omap2_prm_read_mod_reg(module, regs);
++	wkst &= wkst_mask;
++	omap2_prm_write_mod_reg(wkst, module, regs);
 +}
 +
- /* Powerdomain low-level functions */
+ int omap2xxx_clkdm_sleep(struct clockdomain *clkdm)
+ {
+ 	omap2_prm_set_mod_reg_bits(OMAP24XX_FORCESTATE_MASK,
+diff --git a/arch/arm/mach-omap2/prm2xxx.h b/arch/arm/mach-omap2/prm2xxx.h
+index d2cb636..d734141 100644
+--- a/arch/arm/mach-omap2/prm2xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx.h
+@@ -125,6 +125,7 @@ extern int omap2xxx_clkdm_sleep(struct clockdomain *clkdm);
+ extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
  
- static int omap3_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
-diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index 7548ae0..c5f9cba 100644
---- a/arch/arm/mach-omap2/prm3xxx.h
-+++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -166,6 +166,7 @@ int omap3xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits);
- void omap3xxx_prm_iva_idle(void);
- void omap3_prm_reset_modem(void);
- int omap3xxx_prm_clear_global_cold_reset(void);
-+void omap3_prm_save_scratchpad_contents(u32 *ptr);
+ extern void omap2xxx_prm_dpll_reset(void);
++void omap2xxx_prm_clear_mod_irqs(s16 module, u8 regs, u32 wkst_mask);
  
- #endif /* __ASSEMBLER */
+ extern int __init omap2xxx_prm_init(void);
  
 -- 
 1.7.9.5
