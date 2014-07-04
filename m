@@ -1,99 +1,81 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/6] mailbox/omap: add support for parsing dt devices
-Date: Thu, 3 Jul 2014 23:45:48 -0700
-Message-ID: <20140704064547.GZ28884@atomide.com>
-References: <1403660878-56350-1-git-send-email-s-anna@ti.com>
- <1403660878-56350-3-git-send-email-s-anna@ti.com>
- <20140628170709.GB23634@xo-6d-61-c0.localdomain>
- <53B18999.2020506@ti.com>
- <20140630185942.GA5410@amd.pavel.ucw.cz>
- <53B1BBA8.5090507@ti.com>
- <20140630203225.GA3893@amd.pavel.ucw.cz>
+Subject: Re: [GIT PULL] ARM: OMAP2+: clock cleanup for v3.17 merge window
+Date: Thu, 3 Jul 2014 23:48:14 -0700
+Message-ID: <20140704064813.GA28884@atomide.com>
+References: <53B59C5D.7010405@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31517 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751198AbaGDGsN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Jul 2014 02:48:13 -0400
 Content-Disposition: inline
-In-Reply-To: <20140630203225.GA3893@amd.pavel.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Suman Anna <s-anna@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
+In-Reply-To: <53B59C5D.7010405@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Pavel Machek <pavel@ucw.cz> [140630 13:34]:
-> Hi!
+* Tero Kristo <t-kristo@ti.com> [140703 11:10]:
+> Hi Tony,
 > 
-> > >>>> The non-DT support has to be maintained for now to not break
-> > >>>> OMAP3 legacy boot, and the legacy-style code will be cleaned
-> > >>>> up once OMAP3 is also converted to DT-boot only.
-> > >>>
-> > >>>> @@ -587,24 +606,157 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
-> > >>>>  	return 0;
-> > >>>>  }
-> > >>>>  
-> > >>>> +static const struct omap_mbox_device_data omap2_data = {
-> > >>>> +	.num_users	= 4,
-> > >>>> +	.num_fifos	= 6,
-> > >>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
-> > >>>> +};
-> > >>>> +
-> > >>>> +static const struct omap_mbox_device_data omap3_data = {
-> > >>>> +	.num_users	= 2,
-> > >>>> +	.num_fifos	= 2,
-> > >>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
-> > >>>> +};
-> > >>>> +
-> > >>>> +static const struct omap_mbox_device_data am335x_data = {
-> > >>>> +	.num_users	= 4,
-> > >>>> +	.num_fifos	= 8,
-> > >>>> +	.intr_type	= MBOX_INTR_CFG_TYPE2,
-> > >>>> +};
-> > >>>
-> > >>> So you use compatible strings to look up 3 integers. Would it be better to have
-> > >>> num_users/num_fifos/intr_type directly in the device tree? That should be cleaner
-> > >>> and more flexible...
-> > >>>
-> > >>> If you do that, would it be possible to have share compatible string?
-> > >>
-> > >> Yeah, I have actually encoded the .num_users and .num_fifos in DT in the
-> > >> previous version [1] with shared compatible strings, but dropped those
-> > >> properties in favour of adding minimal custom properties to DT based on
-> > >> some offline IRC comments. I have no objections either way, but there is
-> > >> really nothing to be gained from minimizing compatible strings.
-> > > 
-> > > Actually, I'd guess best solution would be to do both: have it encoded
-> > > in device tree _and_ have separate compatible string for each version
-> > > (in case there are other differences). You'd still get rid of the
-> > > table...
-> > 
-> > Do note that the .intr_type has to with the register layout rather than
-> > a physical property (mainly to distinguish the pre-OMAP4 IP register
-> > layout), so I am not convinced that belongs to DT. This is the reason
-> > why I didn't represent it in DT even in the previous version. The
-> > other
+> Posting this early, as I will be going for vacation from next week and might
+> miss the merge window myself. Small cleanup set for the clock drivers
+> residing under mach-omap2 folder to prepare their move under drivers/clk.
+> I'll leave it for your judgement whether you pull this or not based on the
+> potential feedback.
 > 
-> Aha, ok, then the intr_type should be derived from
-> compatible-string. Or rather... you should have three
-> compatible-strings for the three possibilities? (And then subtype,
-> currently unused, in case there are more hw differences).
-
-The compatible string can and should be separate for each revision
-unless they are the same exacat hardware revision.
- 
-> > two are HW IP design parameters, so in general putting them in DT isn't
-> > completely a bad idea, but I will wait to see if there are any further
-> > comments on this from Tony or DT maintainers before I make changes.
+> ----------------------------------------------------------------
 > 
-> Ok, right... I'd vote for putting them into DT.
+> The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+> 
+>   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+> 
+> are available in the git repository at:
+> 
+>   git@github.com:t-kristo/linux-pm.git for-v3.17/omap2-clk-cleanup
+> 
+> for you to fetch changes up to 4eccc64a2bc25514754c30cdfc985207aee8b2fd:
+> 
+>   ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c file
+> (2014-07-01 17:46:27 +0300)
 
-I would avoid adding custom DT properties where possible and let the
-driver just initialize the right data based on the compatible flag.
-
-That is as long as the amount of data built into the driver is minimal.
-
-If we wanted to have some fifo property in DT, it should be Linux
-generic property to avoid adding yet more custom driver specific
-properties.
+This would be best queued by Paul if OK. I'm assuming all these
+pull requests are independet of each other, right?
 
 Regards,
 
 Tony
+
+ 
+> ----------------------------------------------------------------
+> Tero Kristo (13):
+>       ARM: OMAP2+: clock/dpll: fix _dpll_test_fint arithmetics overflow
+>       ARM: OMAP4+: clock: remove DEFINE_CLK_OMAP_HSDIVIDER macro
+>       ARM: OMAP4+: dpll: remove cpu_is_omap44xx checks
+>       ARM: OMAP4+: dpll44xx: remove cm-regbits-44xx.h and clock44xx.h
+> includes
+>       ARM: OMAP2+: clock: introduce ti_clk_features flags
+>       ARM: OMAP2+: clock: add fint values to the ti_clk_features struct
+>       ARM: OMAP2+: clock/dpll: add private API for checking if DPLL is in
+> bypass
+>       ARM: OMAP2+: clock/dpll: convert bypass check to use clk_features
+>       ARM: OMAP2+: clock/dpll: add jitter correction behind clk_features
+>       ARM: OMAP2+: clock/interface: add a clk_features definition for idlest
+> value
+>       ARM: OMAP2+: clock/dpll: remove unused header includes from
+> clkt_dpll.c
+>       ARM: OMAP2+: clock/dpll: remove unused header includes from dpll3xxx.c
+>       ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c
+> file
+> 
+>  arch/arm/mach-omap2/clkt_dpll.c |  100
+> ++++++++++++++++++---------------------
+>  arch/arm/mach-omap2/clkt_iclk.c |    8 ++--
+>  arch/arm/mach-omap2/clock.c     |   76 ++++++++++++++++++++++++++---
+>  arch/arm/mach-omap2/clock.h     |   44 ++++++++---------
+>  arch/arm/mach-omap2/dpll3xxx.c  |    7 +--
+>  arch/arm/mach-omap2/dpll44xx.c  |   19 +++++---
+>  arch/arm/mach-omap2/io.c        |    2 +
+>  7 files changed, 155 insertions(+), 101 deletions(-)
