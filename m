@@ -1,35 +1,42 @@
-From: Nicholas Krause <xerofoify@gmail.com>
-Subject: [PATCH] mach-omap2: Change if statement in omap2_dflt_clk_enable
-Date: Fri,  4 Jul 2014 17:04:03 -0400
-Message-ID: <1404507843-3648-1-git-send-email-xerofoify@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: paul@pwsan.com
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
+ (part1)
+Date: Sat, 05 Jul 2014 03:06:39 +0200
+Message-ID: <53B74F9F.8030604@gmail.com>
+References: <E1X20mL-00083I-Sv@rmk-PC.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <E1X20mL-00083I-Sv@rmk-PC.arm.linux.org.uk>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, linux-samsung-soc@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, linux-crypto@vger.kernel.org, linux-tegra@vger.kernel.org, xen-devel@lists.xenproject.org, linux-omap@vger.kernel.org, kvmarm@lists.cs.columbia.edu
 List-Id: linux-omap@vger.kernel.org
 
-This patch changes this function to check for if v is returning value from the
-called function. If not it does the else. Furthermore fixes the FIXME message above
-if statement for holding INVERT_ENABLE bit when not needing to be checked for
-in if statement by just checking for if v is not Null.
+Hi Russell,
 
-Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
----
- arch/arm/mach-omap2/clock.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 01.07.2014 18:19, Russell King wrote:
+> ARMv6 and greater introduced a new instruction ("bx") which can be used
+> to return from function calls.  Recent CPUs perform better when the
+> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
+> and this sequence is strongly recommended to be used by the ARM
+> architecture manual (section A.4.1.1).
+> 
+> We provide a new macro "ret" with all its variants for the condition
+> code which will resolve to the appropriate instruction.
+> 
+> Rather than doing this piecemeal, and miss some instances, change all
+> the "mov pc" instances to use the new macro, with the exception of
+> the "movs" instruction and the kprobes code.  This allows us to detect
+> the "mov pc, lr" case and fix it up - and also gives us the possibility
+> of deploying this for other registers depending on the CPU selection.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 591581a..626363d 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -379,7 +379,7 @@ void omap2_dflt_clk_disable(struct clk_hw *hw)
- 	}
- 
- 	v = omap2_clk_readl(clk, clk->enable_reg);
--	if (clk->flags & INVERT_ENABLE)
-+	if (v)
- 		v |= (1 << clk->enable_bit);
- 	else
- 		v &= ~(1 << clk->enable_bit);
--- 
-1.9.1
+Build- and boot-tested on mach-s3c64xx.
+
+Tested-by: Tomasz Figa <tomasz.figa@gmail.com>
+
+Best regards,
+Tomasz
