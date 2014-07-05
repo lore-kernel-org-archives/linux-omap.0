@@ -1,42 +1,41 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
- (part1)
-Date: Sat, 05 Jul 2014 03:06:39 +0200
-Message-ID: <53B74F9F.8030604@gmail.com>
-References: <E1X20mL-00083I-Sv@rmk-PC.arm.linux.org.uk>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes against v3.16-rc1
+Date: Fri, 4 Jul 2014 21:47:03 -0700
+Message-ID: <20140705044703.GA5201@quad.lixom.net>
+References: <20140617145854.GT17845@atomide.com>
+ <20140630070857.GK28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <E1X20mL-00083I-Sv@rmk-PC.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
-Cc: davinci-linux-open-source@linux.davincidsp.com, linux-samsung-soc@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, linux-crypto@vger.kernel.org, linux-tegra@vger.kernel.org, xen-devel@lists.xenproject.org, linux-omap@vger.kernel.org, kvmarm@lists.cs.columbia.edu
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:54132 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754293AbaGEEql (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Jul 2014 00:46:41 -0400
+Received: by mail-pa0-f43.google.com with SMTP id lf10so2739054pab.2
+        for <linux-omap@vger.kernel.org>; Fri, 04 Jul 2014 21:46:40 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140630070857.GK28884@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Russell,
+On Mon, Jun 30, 2014 at 12:08:57AM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [140617 08:01]:
+> > The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+> > 
+> >   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-against-rc1
+> > 
+> > for you to fetch changes up to edc56f871eefbc56baf1fd981eeff35ef447925c:
+> > 
+> >   ARM: dts: dra7-evm: remove interrupt binding (2014-06-17 01:22:55 -0700)
 
-On 01.07.2014 18:19, Russell King wrote:
-> ARMv6 and greater introduced a new instruction ("bx") which can be used
-> to return from function calls.  Recent CPUs perform better when the
-> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
-> and this sequence is strongly recommended to be used by the ARM
-> architecture manual (section A.4.1.1).
-> 
-> We provide a new macro "ret" with all its variants for the condition
-> code which will resolve to the appropriate instruction.
-> 
-> Rather than doing this piecemeal, and miss some instances, change all
-> the "mov pc" instances to use the new macro, with the exception of
-> the "movs" instruction and the kprobes code.  This allows us to detect
-> the "mov pc, lr" case and fix it up - and also gives us the possibility
-> of deploying this for other registers depending on the CPU selection.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Merged. Apologies for the delay, I was planning on handling this earleir this
+week. I'll send this up tonight or tomorrow.
 
-Build- and boot-tested on mach-s3c64xx.
 
-Tested-by: Tomasz Figa <tomasz.figa@gmail.com>
-
-Best regards,
-Tomasz
+-Olof
