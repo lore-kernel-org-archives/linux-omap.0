@@ -1,49 +1,52 @@
-From: Manish Badarkhe <badarkhe.manish@gmail.com>
-Subject: [PATCH] ASoC: omap-dmic: Use devm_snd_soc_register_component
-Date: Sun,  6 Jul 2014 12:20:14 +0530
-Message-ID: <1404629414-3263-1-git-send-email-badarkhe.manish@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 01/13] ARM: OMAP2+: clock/dpll: fix _dpll_test_fint
+ arithmetics overflow
+Date: Sun, 6 Jul 2014 21:58:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1407062157220.15016@utopia.booyaka.com>
+References: <1404290867-6768-1-git-send-email-t-kristo@ti.com> <1404290867-6768-2-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:40001 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751610AbaGFGuk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jul 2014 02:50:40 -0400
-Received: by mail-pa0-f48.google.com with SMTP id et14so3751683pad.7
-        for <linux-omap@vger.kernel.org>; Sat, 05 Jul 2014 23:50:40 -0700 (PDT)
+Received: from utopia.booyaka.com ([74.50.51.50]:46276 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751239AbaGFV6Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Jul 2014 17:58:24 -0400
+In-Reply-To: <1404290867-6768-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: broonie@kernel.org, peter.ujfalusi@ti.com, badarkhe.manish@gmail.com
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
 
-Replaced snd_soc_register_component with its devres equivalent,
-devm_snd_soc_register_component.
+On Wed, 2 Jul 2014, Tero Kristo wrote:
 
-Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
----
-:100644 100644 6925d71... 011e30e... M	sound/soc/omap/omap-dmic.c
- sound/soc/omap/omap-dmic.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+> The divider value provided to the _dpll_test_fint can reach value of
+> 256 with J type DPLLs (USB etc.), which causes an overflow with the u8
+> datatype. Fix this by changing the parameter to be an int instead.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/clkt_dpll.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
+> index 332af92..5aa734a 100644
+> --- a/arch/arm/mach-omap2/clkt_dpll.c
+> +++ b/arch/arm/mach-omap2/clkt_dpll.c
+> @@ -76,7 +76,7 @@
+>   * (assuming that it is counting N upwards), or -2 if the enclosing loop
+>   * should skip to the next iteration (again assuming N is increasing).
+>   */
+> -static int _dpll_test_fint(struct clk_hw_omap *clk, u8 n)
+> +static int _dpll_test_fint(struct clk_hw_omap *clk, int n)
+>  {
+>  	struct dpll_data *dd;
+>  	long fint, fint_min, fint_max;
+> -- 
+> 1.7.9.5
+> 
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 6925d71..011e30e 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -490,7 +490,7 @@ static int asoc_dmic_probe(struct platform_device *pdev)
- 	}
- 
- 
--	ret = snd_soc_register_component(&pdev->dev, &omap_dmic_component,
-+	ret = devm_snd_soc_register_component(&pdev->dev, &omap_dmic_component,
- 					 &omap_dmic_dai, 1);
- 	if (ret)
- 		goto err_put_clk;
-@@ -510,7 +510,6 @@ static int asoc_dmic_remove(struct platform_device *pdev)
- {
- 	struct omap_dmic *dmic = platform_get_drvdata(pdev);
- 
--	snd_soc_unregister_component(&pdev->dev);
- 	clk_put(dmic->fclk);
- 
- 	return 0;
--- 
-1.7.10.4
+Queued for v3.16-rc fixes, but I've changed the type of 'n' to be unsigned 
+int rather than int, since a negative n is meaningless.
 
+
+- Paul
