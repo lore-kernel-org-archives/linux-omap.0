@@ -1,70 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap fixes against v3.16-rc1
-Date: Mon, 7 Jul 2014 01:10:11 -0700
-Message-ID: <20140707081011.GG28884@atomide.com>
-References: <20140617145854.GT17845@atomide.com>
- <20140630070857.GK28884@atomide.com>
- <20140705044703.GA5201@quad.lixom.net>
- <CAOesGMh5faPEA167hqDff=NU0Tk79wt6fhxZgiP5Q4xgsvO6oA@mail.gmail.com>
- <CAOesGMjT+Sk+EbV40GCtM5GryqbJ7mTYVZRVLc1iCksGYG=kSQ@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] mach-omap1: Fix call to omap_cfg_reg
+Date: Mon, 7 Jul 2014 01:14:56 -0700
+Message-ID: <20140707081456.GH28884@atomide.com>
+References: <1404493320-5606-1-git-send-email-xerofoify@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43241 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750855AbaGGIKM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 04:10:12 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAOesGMjT+Sk+EbV40GCtM5GryqbJ7mTYVZRVLc1iCksGYG=kSQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1404493320-5606-1-git-send-email-xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-* Olof Johansson <olof@lixom.net> [140705 12:46]:
-> On Fri, Jul 4, 2014 at 11:06 PM, Olof Johansson <olof@lixom.net> wrote:
-> > Hi,
-> >
-> > On Fri, Jul 4, 2014 at 9:47 PM, Olof Johansson <olof@lixom.net> wrote:
-> >> On Mon, Jun 30, 2014 at 12:08:57AM -0700, Tony Lindgren wrote:
-> >>> * Tony Lindgren <tony@atomide.com> [140617 08:01]:
-> >>> > The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
-> >>> >
-> >>> >   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
-> >>> >
-> >>> > are available in the git repository at:
-> >>> >
-> >>> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-against-rc1
-> >>> >
-> >>> > for you to fetch changes up to edc56f871eefbc56baf1fd981eeff35ef447925c:
-> >>> >
-> >>> >   ARM: dts: dra7-evm: remove interrupt binding (2014-06-17 01:22:55 -0700)
-> >>
-> >> Merged. Apologies for the delay, I was planning on handling this earleir this
-> >> week. I'll send this up tonight or tomorrow.
-> >
-> > Hmm. for-next with this merged in stopped omap5uevm from booting
-> > (Can't find mmcblk1 which I keep the rootfs on), see
-> > http://arm-soc.lixom.net/bootlogs/arm-soc/v3.16-rc1-76-gf5ee1b1/. One
-> > of the three configs had a DHCP timeout, I'm going to rebuild the
-> > network here to reduce the frequency of those.
-> >
-> > I'll try bisecting tomorrow. Not sending it up with this known
-> > breakage, hopefully it's something simple.
-> 
-> Hmm, this fixes branch + current mainline (or -rc3) seems fine, while
-> the -rc1 base we used to have does not. In other words, it seems OK to
-> send up for merge.
-> 
-> Note that the OMAP branch by itself doesn't boot on this machine, so
-> bisectability is lost for a bit. Not quite as worried about it since
-> it's not in the merge window, so we should be OK.
+* Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [140704 10:03]:
+> This patch fixes the call to ompa_cfg_reg(USB2_SPEED) in the case
+> that the cpu is a omap16xx and the nwires are not equal to 3.
 
-Sorry just saw these messages. The MMC regulator issue was a known
-problem with v3.16-rc1 unrelated to arm-soc tree that got fixed
-already in the mainline kernel but was not yet merged to the mainline
-kernel few weeks ago when I made this branch.
+This is most likely unsafe to do as the pin is probably
+shared with some other device and we have to rely for
+the bootloader to do the right thing for the board.
 
 Regards,
 
 Tony
+ 
+> Signed-off-by: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  arch/arm/mach-omap1/usb.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+> index 4118db5..17e3139 100644
+> --- a/arch/arm/mach-omap1/usb.c
+> +++ b/arch/arm/mach-omap1/usb.c
+> @@ -504,8 +504,7 @@ static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
+>  		omap_cfg_reg(W9_USB2_TXEN);
+>  		omap_cfg_reg(W5_USB2_SE0);
+>  		if (nwires != 3)
+> -			omap_cfg_reg(Y5_USB2_RCV);
+> -		// FIXME omap_cfg_reg(USB2_SPEED);
+> +			omap_cfg_reg(USB2_SPEED)
+>  	} else {
+>  		pr_debug("usb%d cpu unrecognized\n", 1);
+>  		return 0;
+> -- 
+> 1.9.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
