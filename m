@@ -1,33 +1,53 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power
-	control setting
-Date: Mon, 7 Jul 2014 11:49:44 +0100
-Message-ID: <20140707104944.GS3705@n2100.arm.linux.org.uk>
-References: <3c3a7a4861df01d0163787a9c18f7b7ac821c5b9.1403000372.git.nsekhar@ti.com> <20140617131935.GB9070@saruman.home> <20140701194704.GG13396@saruman.home> <20140702081142.GU28884@atomide.com> <20140707104727.GM28884@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP2+: Make GPMC skip disabled devices
+Date: Mon, 7 Jul 2014 03:51:02 -0700
+Message-ID: <20140707105101.GN28884@atomide.com>
+References: <20980858CB6D3A4BAE95CA194937D5E73EAF8D44@DBDE04.ent.ti.com>
+ <1404308118-14843-1-git-send-email-guido@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57027 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751913AbaGGKtt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 06:49:49 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140707104727.GM28884@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1404308118-14843-1-git-send-email-guido@vanguardiasur.com.ar>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guido =?utf-8?B?TWFydMOtbmV6?= <guido@vanguardiasur.com.ar>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ezequiel =?utf-8?Q?Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, pekon@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Sekhar Nori <nsekhar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-On Mon, Jul 07, 2014 at 03:47:27AM -0700, Tony Lindgren wrote:
-> That's now merged into v3.16-rc4, so applying this into
-> omap-for-v3.16/fixes.
+* Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar> [140702 06:34]:
+> Currently, child nodes of the gpmc node are iterated and probed
+> regardless of their 'status' property. This means adding 'status =3D
+> "disabled";' has no effect.
+>=20
+> This patch changes the iteration to only probe nodes marked as
+> available.
+>=20
+> Signed-off-by: Guido Mart=C3=ADnez <guido@vanguardiasur.com.ar>
+> ---
+> v2: Make patch title consistent with previous gpmc patches
 
-I intentionally left the warning in the hope that someone would update
-it to write to the register.
+Thanks applying into omap-for-v3.16/fixes.
 
->From the comments in the patch, it seems that firmware doesn't provide
-a method to do that, which is a tad annoying.
-
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+Tony
+=20
+>  arch/arm/mach-omap2/gpmc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 2c0c281..8bc1338 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1615,7 +1615,7 @@ static int gpmc_probe_dt(struct platform_device=
+ *pdev)
+>  		return ret;
+>  	}
+> =20
+> -	for_each_child_of_node(pdev->dev.of_node, child) {
+> +	for_each_available_child_of_node(pdev->dev.of_node, child) {
+> =20
+>  		if (!child->name)
+>  			continue;
+> --=20
+> 2.0.0
+>=20
