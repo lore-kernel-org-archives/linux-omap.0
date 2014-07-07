@@ -1,60 +1,52 @@
-From: Andre Heider <a.heider@gmail.com>
-Subject: Re: [PATCH 00/13] uio_pruss: add support for devicetree and am33xx
-Date: Mon, 7 Jul 2014 10:48:24 +0200
-Message-ID: <20140707084824.GA83417@localhost>
-References: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
+Date: Mon, 7 Jul 2014 11:21:42 +0200
+Message-ID: <20140707092142.GC3118@verge.net.au>
+References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:58444 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751706AbaGGIsc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 04:48:32 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1404058907-21112-1-git-send-email-a.heider@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Andrew Lunn <andrew@lunn.ch>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, linux-tegra@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, kvmarm@lists.cs.columbia.edu, Kukjin Kim <kgene.kim@samsung.com>, Herbert Xu <herbert@gondor.apana.org.au>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Magnus Damm <magnus.damm@gmail.com>, Gleb Natapov <gleb@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Marc Zyngier <marc.zyngier@arm.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.or>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: Matt Porter <mporter@linaro.org>, "Hans J . Koch" <hjk@hansjkoch.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Sun, Jun 29, 2014 at 06:21:34PM +0200, Andre Heider wrote:
-> Hi,
+On Tue, Jul 01, 2014 at 04:58:24PM +0100, Russell King wrote:
+> ARMv6 and greater introduced a new instruction ("bx") which can be used
+> to return from function calls.  Recent CPUs perform better when the
+> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
+> and this sequence is strongly recommended to be used by the ARM
+> architecture manual (section A.4.1.1).
 > 
-> this series adds PRUv2 support to uio_pruss through devicetree, makes the
-> device usable on am33xx and enables it on beaglebone black.
-> Inspired by old patches from Matt Porter found in a downstream tree.
+> We provide a new macro "ret" with all its variants for the condition
+> code which will resolve to the appropriate instruction.
 > 
-> To archieve that this series:
-> * adds a flag to omap_hwmod.c to get PRUSS out of hardreset (patch 5 and 6)
-> * adds devicetree support to uio_pruss (patch 7 and 9)
-> * adds the device to the am33xx dtsi and boneblack dts (patch 12 and 13)
+> Rather than doing this piecemeal, and miss some instances, change all
+> the "mov pc" instances to use the new macro, with the exception of
+> the "movs" instruction and the kprobes code.  This allows us to detect
+> the "mov pc, lr" case and fix it up - and also gives us the possibility
+> of deploying this for other registers depending on the CPU selection.
 > 
-> Bits and pieces:
-> * some cleanup (patch 1-4)
-> * take care of a fact that SRAM on am33xx is not exposed through UIO (patch 8)
-> * add runtime pm support to enable clocks (patch 10)
-> * allow the driver to be compiled on SOC_AM33XX (patch 11)
-> 
-> This is only tested on beaglebone black (as that's the only hardware of the
-> PRUSS enabled families I have) with some basic GPIO and IRQ tests.
-> 
-> Notes:
-> * I just got this hardware and I don't know if this UIO PRUSS business is
->   desired. Looking at the userspace driver I'd guess not so much ;), but this
->   interface is there for older generations anyway, and this small series lets
->   me use the device.
-> * is the hardreset thing I did there the right thing to do? I think the
->   proper way would be a reset controller (which apparently doesn't yet exist
->   for this SoC?) and let the driver deassert/assert on probe/remove?
-> * the platform device path has a clk_enable() / clk_put() calls. Are those
->   now redundant with the introduced pm_runtime_enable() pm_runtime_disable()
->   calls?
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-@OMAP guys: any comments? The series depends on patch 5 and 6; both touch
-common hwmod code.
+A conflict in next notification from Stephen Rothwell tells me that this
+has made it there but regardless I would like to note that I have
+successfully tested this on the following shmobile boards:
+Genmai, Koelsh, Lager, Marzen, Bockw, APE6EVM, KZM9D, KZM9G,
+Armadillo800 EVA and Mackerel. This covers all but one board (I do not
+have access to a Henninger) and all SoCs supported in mainline.
 
-I noticed that AM437x now comes with 4 PRUSS cores, maybe you had something
-different in mind on how to expose these?
+Accordingly, the shmobile portion:
 
-Thanks in advance,
-Andre
+Tested-by: Simon Horman <horms+renesas@verge.net.au>
