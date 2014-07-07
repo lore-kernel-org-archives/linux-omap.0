@@ -1,52 +1,69 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] ARM: convert all "mov.* pc, reg" to "bx reg" for ARMv6+
-Date: Mon, 7 Jul 2014 11:21:42 +0200
-Message-ID: <20140707092142.GC3118@verge.net.au>
-References: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: omap-mcbsp: Use devm_snd_soc_register_component
+Date: Mon, 7 Jul 2014 12:29:25 +0300
+Message-ID: <53BA6875.8060309@ti.com>
+References: <1404536979-5318-1-git-send-email-badarkhe.manish@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <E1X20Rs-00082S-KI@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Andrew Lunn <andrew@lunn.ch>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sekhar Nori <nsekhar@ti.com>, linux-tegra@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, kvmarm@lists.cs.columbia.edu, Kukjin Kim <kgene.kim@samsung.com>, Herbert Xu <herbert@gondor.apana.org.au>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Magnus Damm <magnus.damm@gmail.com>, Gleb Natapov <gleb@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Jason Cooper <jason@lakedaemon.net>, Stephen Warren <swarren@wwwdotorg.org>, Marc Zyngier <marc.zyngier@arm.com>, Hans Ulli Kroll <ulli.kroll@googlemail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.or>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40099 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752056AbaGGJ3d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Jul 2014 05:29:33 -0400
+In-Reply-To: <1404536979-5318-1-git-send-email-badarkhe.manish@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Manish Badarkhe <badarkhe.manish@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: broonie@kernel.org
 
-On Tue, Jul 01, 2014 at 04:58:24PM +0100, Russell King wrote:
-> ARMv6 and greater introduced a new instruction ("bx") which can be used
-> to return from function calls.  Recent CPUs perform better when the
-> "bx lr" instruction is used rather than the "mov pc, lr" instruction,
-> and this sequence is strongly recommended to be used by the ARM
-> architecture manual (section A.4.1.1).
-> 
-> We provide a new macro "ret" with all its variants for the condition
-> code which will resolve to the appropriate instruction.
-> 
-> Rather than doing this piecemeal, and miss some instances, change all
-> the "mov pc" instances to use the new macro, with the exception of
-> the "movs" instruction and the kprobes code.  This allows us to detect
-> the "mov pc, lr" case and fix it up - and also gives us the possibility
-> of deploying this for other registers depending on the CPU selection.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On 07/05/2014 08:09 AM, Manish Badarkhe wrote:
+> Replaced snd_soc_register_component with its devres equivalent,
+> devm_snd_soc_register_component.
+>=20
+> Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+> ---
+> :100644 100644 efe2cd6... bfc8f8e... M	sound/soc/omap/omap-mcbsp.c
+>  sound/soc/omap/omap-mcbsp.c |    4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+>=20
+> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.=
+c
+> index efe2cd6..bfc8f8e 100644
+> --- a/sound/soc/omap/omap-mcbsp.c
+> +++ b/sound/soc/omap/omap-mcbsp.c
+> @@ -805,7 +805,7 @@ static int asoc_mcbsp_probe(struct platform_devic=
+e *pdev)
+>  	if (ret)
+>  		return ret;
+> =20
+> -	ret =3D snd_soc_register_component(&pdev->dev, &omap_mcbsp_componen=
+t,
+> +	ret =3D devm_snd_soc_register_component(&pdev->dev, &omap_mcbsp_com=
+ponent,
+>  					 &omap_mcbsp_dai, 1);
 
-A conflict in next notification from Stephen Rothwell tells me that this
-has made it there but regardless I would like to note that I have
-successfully tested this on the following shmobile boards:
-Genmai, Koelsh, Lager, Marzen, Bockw, APE6EVM, KZM9D, KZM9G,
-Armadillo800 EVA and Mackerel. This covers all but one board (I do not
-have access to a Henninger) and all SoCs supported in mainline.
+Can you align the parameters as well?
 
-Accordingly, the shmobile portion:
+>  	if (ret)
+>  		return ret;
+> @@ -817,8 +817,6 @@ static int asoc_mcbsp_remove(struct platform_devi=
+ce *pdev)
+>  {
+>  	struct omap_mcbsp *mcbsp =3D platform_get_drvdata(pdev);
+> =20
+> -	snd_soc_unregister_component(&pdev->dev);
+> -
+>  	if (mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+>  		mcbsp->pdata->ops->free(mcbsp->id);
+> =20
+>=20
 
-Tested-by: Simon Horman <horms+renesas@verge.net.au>
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
