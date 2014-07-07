@@ -1,63 +1,94 @@
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Mon, 7 Jul 2014 14:26:34 +0100
-Message-ID: <20140707142634.0f5cb8c3@alan.etchedpixels.co.uk>
-References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
-	<20140702160932.GF5541@saruman.home>
-	<20140702190944.GA567@drone.musicnaut.iki.fi>
-	<CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
-	<20140703073411.GX28884@atomide.com>
-	<53B6DB74.2050401@linutronix.de>
-	<CAOCHtYhJODfoB10VXKtGC=_UaB4uVSZOtDwYG-XxL1wvcxi+fA@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power
+	control setting
+Date: Mon, 7 Jul 2014 14:40:08 +0100
+Message-ID: <20140707134008.GU3705@n2100.arm.linux.org.uk>
+References: <3c3a7a4861df01d0163787a9c18f7b7ac821c5b9.1403000372.git.nsekhar@ti.com> <20140617131935.GB9070@saruman.home> <20140701194704.GG13396@saruman.home> <20140702081142.GU28884@atomide.com> <20140707104727.GM28884@atomide.com> <20140707104944.GS3705@n2100.arm.linux.org.uk> <20140707110249.GO28884@atomide.com> <53BA8983.3030803@ti.com> <20140707121512.GT3705@n2100.arm.linux.org.uk> <20140707123925.GW28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAOCHtYhJODfoB10VXKtGC=_UaB4uVSZOtDwYG-XxL1wvcxi+fA@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57541 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752703AbaGGNkR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 09:40:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20140707123925.GW28884@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Fri, 4 Jul 2014 11:57:40 -0500
-Robert Nelson <robertcnelson@gmail.com> wrote:
+On Mon, Jul 07, 2014 at 05:39:26AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [140707 05:17]:
+> > On Mon, Jul 07, 2014 at 05:20:27PM +0530, Sekhar Nori wrote:
+> > > OMAP4430 had L2 cache controller version r2p0 (per the public TRM) which
+> > > does not have this register. So unless there is a ROM API that was
+> > > introduced after OMAP4430, this would not be there even for other
+> > > OMAP4s. Public TRM of OMAP4470 does not indicate an API for this.
+> > > 
+> > > Before creating the patch, I checked with ROM team handling AM437x and
+> > > they denied an API to write to this register was present in AM437x ROM.
+> > 
+> > Okay, so why are we trying to write to this register then...
+> > 
+> > Ah, we have a bug in cache-l2x0.c:
+> > 
+> > #define L2X0_CACHE_ID_PART_MASK         (0xf << 6)
+> > #define L2X0_CACHE_ID_RTL_MASK          0x3f
+> > #define L310_CACHE_ID_RTL_R3P0          0x05
+> > 
+> >         unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
+> > 
+> >         if (rev >= L310_CACHE_ID_RTL_R2P0) {
+> > ...
+> >         if (rev >= L310_CACHE_ID_RTL_R3P0) {
+> >                 l2c_write_sec(L310_DYNAMIC_CLK_GATING_EN | L310_STNDBY_MODE_EN,
+> >                               base, L310_POWER_CTRL);
+> > 
+> > So, because we're masking the wrong bits, we end up with these tests
+> > always succeeding.
+> > 
+> > So that's a NACK for the original patch, it's the wrong fix.  The
+> > right fix is to avoid writing this register by fixing the RTL masking.
+> 
+> Okie dokie, dropping the omap specific fix.
 
-> On Fri, Jul 4, 2014 at 11:51 AM, Sebastian Andrzej Siewior
-> <bigeasy@linutronix.de> wrote:
-> > On 07/03/2014 09:34 AM, Tony Lindgren wrote:
-> >> Heh. Just to summarize the reason ttyO needs to be a separate name
-> >> and device entry from ttyS is because we also have external 8250
-> >> devices on GPMC and hotplug busses.
-> >
-> > So the GPMC devices will first get a higher minor/device number. Th=
-e
-> > internal serial ports should show up first. I don't see the problem
-> > (yet).
-> >
-> > If you need a separate major number (and name) like we do have it n=
-ow
-> > (between ttySx and ttyOx) then one of requirements would be to tell
-> > Kconfig that one driver can be active at a time.
-> >
-> > For me the ttyS vs ttyO thing is purely cosmetic. I personally don'=
-t
-> > like that it is different on different platforms like ttymxc, ttySC=
-,
-> > ttyTHS, =E2=80=A6
->=20
-> Maybe it's time to migrate them all to one name? (ttyS)  Does the end
-> user really care if they have a soc with an omap/imx serial port
-> driver? Or do they just want to access /dev/ttySx and connect to thei=
-r
-> device?
+Here's the revision mask fix - with the existing code, the revision checks
+are all useless since they would all pass irrespective of the actual
+revision.  (Had the L2C series been better tested rather than being largely
+ignored, this may have been noticed before it was merged...)  Anyway, what
+isn't clear from Sekhar's message is which revision L2C310 is in the AM437x.
 
-Userspace question. Actual userspace visible device naming policy belon=
-gs
-to udev.
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] ARM: l2c: fix revision checking
 
-Alan
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The revision checking in l2c310_enable() was not correct; we were
+masking the part number rather than the revision number.  Fix this
+to use the correct macro.
+
+Fixes: 4374d64933b1 ("ARM: l2c: add automatic enable of early BRESP")
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mm/cache-l2x0.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index 948f12cf6180..0b5068256baf 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
+ 
+ static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
+ {
+-	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
++	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
+ 	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
+ 
+ 	if (rev >= L310_CACHE_ID_RTL_R2P0) {
+-- 
+1.8.3.1
+
+-- 
+FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
+improving, and getting towards what was expected from it.
