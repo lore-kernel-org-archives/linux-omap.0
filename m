@@ -1,66 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Mon, 7 Jul 2014 01:02:39 -0700
-Message-ID: <20140707080238.GF28884@atomide.com>
-References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
+Subject: Re: [GIT PULL] omap fixes against v3.16-rc1
+Date: Mon, 7 Jul 2014 01:10:11 -0700
+Message-ID: <20140707081011.GG28884@atomide.com>
+References: <20140617145854.GT17845@atomide.com>
+ <20140630070857.GK28884@atomide.com>
+ <20140705044703.GA5201@quad.lixom.net>
+ <CAOesGMh5faPEA167hqDff=NU0Tk79wt6fhxZgiP5Q4xgsvO6oA@mail.gmail.com>
+ <CAOesGMjT+Sk+EbV40GCtM5GryqbJ7mTYVZRVLc1iCksGYG=kSQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24603 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750855AbaGGICi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 04:02:38 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43241 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750855AbaGGIKM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 04:10:12 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
+In-Reply-To: <CAOesGMjT+Sk+EbV40GCtM5GryqbJ7mTYVZRVLc1iCksGYG=kSQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Olof Johansson <olof@lixom.net>
+Cc: "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [140706 16:43]:
+* Olof Johansson <olof@lixom.net> [140705 12:46]:
+> On Fri, Jul 4, 2014 at 11:06 PM, Olof Johansson <olof@lixom.net> wrote:
+> > Hi,
+> >
+> > On Fri, Jul 4, 2014 at 9:47 PM, Olof Johansson <olof@lixom.net> wrote:
+> >> On Mon, Jun 30, 2014 at 12:08:57AM -0700, Tony Lindgren wrote:
+> >>> * Tony Lindgren <tony@atomide.com> [140617 08:01]:
+> >>> > The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+> >>> >
+> >>> >   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+> >>> >
+> >>> > are available in the git repository at:
+> >>> >
+> >>> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-against-rc1
+> >>> >
+> >>> > for you to fetch changes up to edc56f871eefbc56baf1fd981eeff35ef447925c:
+> >>> >
+> >>> >   ARM: dts: dra7-evm: remove interrupt binding (2014-06-17 01:22:55 -0700)
+> >>
+> >> Merged. Apologies for the delay, I was planning on handling this earleir this
+> >> week. I'll send this up tonight or tomorrow.
+> >
+> > Hmm. for-next with this merged in stopped omap5uevm from booting
+> > (Can't find mmcblk1 which I keep the rootfs on), see
+> > http://arm-soc.lixom.net/bootlogs/arm-soc/v3.16-rc1-76-gf5ee1b1/. One
+> > of the three configs had a DHCP timeout, I'm going to rebuild the
+> > network here to reduce the frequency of those.
+> >
+> > I'll try bisecting tomorrow. Not sending it up with this known
+> > breakage, hopefully it's something simple.
 > 
-> Here are some basic OMAP test results for Linux v3.16-rc4.
-> Logs and other details at:
-...
- 
-> PM: chip retention via dynamic idle:
->     FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
-> 		  4430es2panda, 4460pandaes, 4460varsomom
+> Hmm, this fixes branch + current mainline (or -rc3) seems fine, while
+> the -rc1 base we used to have does not. In other words, it seems OK to
+> send up for merge.
 > 
-> PM: chip off except CORE via suspend:
->     FAIL ( 1/ 1): 3730beaglexm
-> 
-> PM: chip off except CORE via dynamic idle:
->     FAIL ( 1/ 1): 3730beaglexm
-> 
-> PM: chip off via suspend:
->     FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-> 		  4460varsomom
-> 
-> PM: chip off via dynamic idle:
->     FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-> 		  4460varsomom
+> Note that the OMAP branch by itself doesn't boot on this machine, so
+> bisectability is lost for a bit. Not quite as worried about it since
+> it's not in the merge window, so we should be OK.
 
-With v3.16-rc4 the PM features for omap3 should be working
-finally for device tree based booting. At lest beaglexm and
-3xxevm should work.
-
-Maybe you are using legacy booting path to idle the UARTs still?
-
-FYI, I'm doing this to find the UART entries:
-
-uarts=$(find /sys/class/tty/ttyO*/device/power/ -type d)
-for uart in $uarts; do
-        echo 3000 > $uart/autosuspend_delay_ms
-done
-
-uarts=$(find /sys/class/tty/ttyO*/power/ -type d)
-for uart in $uarts; do
-        echo enabled > $uart/wakeup
-        echo auto > $uart/control
-done
-
-echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
+Sorry just saw these messages. The MMC regulator issue was a known
+problem with v3.16-rc1 unrelated to arm-soc tree that got fixed
+already in the mainline kernel but was not yet merged to the mainline
+kernel few weeks ago when I made this branch.
 
 Regards,
 
