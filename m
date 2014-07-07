@@ -1,71 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] tty: serial: Add 8250-core based omap driver
-Date: Mon, 7 Jul 2014 00:26:21 -0700
-Message-ID: <20140707072621.GE28884@atomide.com>
-References: <1404316809-20637-1-git-send-email-bigeasy@linutronix.de>
- <20140702160932.GF5541@saruman.home>
- <20140702190944.GA567@drone.musicnaut.iki.fi>
- <CAOCHtYgxMeA+Arfe40XeFDEKuCJ8qo1RqNR0hYBGr_Wp6sRfdA@mail.gmail.com>
- <20140703073411.GX28884@atomide.com>
- <53B6DB74.2050401@linutronix.de>
- <CAOCHtYhJODfoB10VXKtGC=_UaB4uVSZOtDwYG-XxL1wvcxi+fA@mail.gmail.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Mon, 7 Jul 2014 01:02:39 -0700
+Message-ID: <20140707080238.GF28884@atomide.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24603 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750855AbaGGICi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 04:02:38 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOCHtYhJODfoB10VXKtGC=_UaB4uVSZOtDwYG-XxL1wvcxi+fA@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, linux kernel <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-* Robert Nelson <robertcnelson@gmail.com> [140704 09:59]:
-> On Fri, Jul 4, 2014 at 11:51 AM, Sebastian Andrzej Siewior
-> <bigeasy@linutronix.de> wrote:
-> > On 07/03/2014 09:34 AM, Tony Lindgren wrote:
-> >> Heh. Just to summarize the reason ttyO needs to be a separate name
-> >> and device entry from ttyS is because we also have external 8250
-> >> devices on GPMC and hotplug busses.
-> >
-> > So the GPMC devices will first get a higher minor/device number. Th=
-e
-> > internal serial ports should show up first. I don't see the problem
-> > (yet).
-> >
-> > If you need a separate major number (and name) like we do have it n=
-ow
-> > (between ttySx and ttyOx) then one of requirements would be to tell
-> > Kconfig that one driver can be active at a time.
-> >
-> > For me the ttyS vs ttyO thing is purely cosmetic. I personally don'=
-t
-> > like that it is different on different platforms like ttymxc, ttySC=
-,
-> > ttyTHS, =E2=80=A6
+* Paul Walmsley <paul@pwsan.com> [140706 16:43]:
+> 
+> Here are some basic OMAP test results for Linux v3.16-rc4.
+> Logs and other details at:
+...
+ 
+> PM: chip retention via dynamic idle:
+>     FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
+> 		  4430es2panda, 4460pandaes, 4460varsomom
+> 
+> PM: chip off except CORE via suspend:
+>     FAIL ( 1/ 1): 3730beaglexm
+> 
+> PM: chip off except CORE via dynamic idle:
+>     FAIL ( 1/ 1): 3730beaglexm
+> 
+> PM: chip off via suspend:
+>     FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
+> 		  4460varsomom
+> 
+> PM: chip off via dynamic idle:
+>     FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
+> 		  4460varsomom
 
-The dev entry had to be different with serial-omap as it was not
-using 8250 code. With the code moving back to using 8250 code
-there are no dev conflicts so ttyS is just fine as the 8250 code
-handles allocating the devices.
-=20
-> Maybe it's time to migrate them all to one name? (ttyS)  Does the end
-> user really care if they have a soc with an omap/imx serial port
-> driver? Or do they just want to access /dev/ttySx and connect to thei=
-r
-> device?
+With v3.16-rc4 the PM features for omap3 should be working
+finally for device tree based booting. At lest beaglexm and
+3xxevm should work.
 
-Yes the 8250 code should always use ttyS. Then maybe we could
-have also ttyO dev entries created by the driver for compability.
+Maybe you are using legacy booting path to idle the UARTs still?
 
-Earlier serial-omap could not provide the ttyS compability easily
-because they were separate drivers.
+FYI, I'm doing this to find the UART entries:
+
+uarts=$(find /sys/class/tty/ttyO*/device/power/ -type d)
+for uart in $uarts; do
+        echo 3000 > $uart/autosuspend_delay_ms
+done
+
+uarts=$(find /sys/class/tty/ttyO*/power/ -type d)
+for uart in $uarts; do
+        echo enabled > $uart/wakeup
+        echo auto > $uart/control
+done
+
+echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
