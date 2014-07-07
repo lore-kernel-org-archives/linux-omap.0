@@ -1,94 +1,45 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power
-	control setting
-Date: Mon, 7 Jul 2014 14:40:08 +0100
-Message-ID: <20140707134008.GU3705@n2100.arm.linux.org.uk>
-References: <3c3a7a4861df01d0163787a9c18f7b7ac821c5b9.1403000372.git.nsekhar@ti.com> <20140617131935.GB9070@saruman.home> <20140701194704.GG13396@saruman.home> <20140702081142.GU28884@atomide.com> <20140707104727.GM28884@atomide.com> <20140707104944.GS3705@n2100.arm.linux.org.uk> <20140707110249.GO28884@atomide.com> <53BA8983.3030803@ti.com> <20140707121512.GT3705@n2100.arm.linux.org.uk> <20140707123925.GW28884@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH V2] ARM: dts: OMAP5: Add device nodes for ABB
+Date: Mon, 7 Jul 2014 09:23:23 -0500
+Message-ID: <CAGo_u6peyH=VScObgLJxX5kS2J77y5WMsE0O71W4GPDpKaMV=g@mail.gmail.com>
+References: <1402017072-12599-1-git-send-email-nm@ti.com>
+	<20140707113220.GQ28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:57541 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752703AbaGGNkR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 09:40:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20140707123925.GW28884@atomide.com>
+Received: from mail-we0-f177.google.com ([74.125.82.177]:53021 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753253AbaGGOX0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 10:23:26 -0400
+In-Reply-To: <20140707113220.GQ28884@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: dt list <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>
 
-On Mon, Jul 07, 2014 at 05:39:26AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [140707 05:17]:
-> > On Mon, Jul 07, 2014 at 05:20:27PM +0530, Sekhar Nori wrote:
-> > > OMAP4430 had L2 cache controller version r2p0 (per the public TRM) which
-> > > does not have this register. So unless there is a ROM API that was
-> > > introduced after OMAP4430, this would not be there even for other
-> > > OMAP4s. Public TRM of OMAP4470 does not indicate an API for this.
-> > > 
-> > > Before creating the patch, I checked with ROM team handling AM437x and
-> > > they denied an API to write to this register was present in AM437x ROM.
-> > 
-> > Okay, so why are we trying to write to this register then...
-> > 
-> > Ah, we have a bug in cache-l2x0.c:
-> > 
-> > #define L2X0_CACHE_ID_PART_MASK         (0xf << 6)
-> > #define L2X0_CACHE_ID_RTL_MASK          0x3f
-> > #define L310_CACHE_ID_RTL_R3P0          0x05
-> > 
-> >         unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
-> > 
-> >         if (rev >= L310_CACHE_ID_RTL_R2P0) {
-> > ...
-> >         if (rev >= L310_CACHE_ID_RTL_R3P0) {
-> >                 l2c_write_sec(L310_DYNAMIC_CLK_GATING_EN | L310_STNDBY_MODE_EN,
-> >                               base, L310_POWER_CTRL);
-> > 
-> > So, because we're masking the wrong bits, we end up with these tests
-> > always succeeding.
-> > 
-> > So that's a NACK for the original patch, it's the wrong fix.  The
-> > right fix is to avoid writing this register by fixing the RTL masking.
-> 
-> Okie dokie, dropping the omap specific fix.
+On Mon, Jul 7, 2014 at 6:32 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Nishanth Menon <nm@ti.com> [140605 18:12]:
+>> From: "Andrii.Tseglytskyi" <andrii.tseglytskyi@ti.com>
+>>
+>> Add ABB device nodes for OMAP5 family of devices. Data is based on
+>> final production OMAP543x Technical Reference Manual revision Z (April 2013).
+>> Final production Data Manual for OMAP5432 SWPS050F(APRIL 2014).
+>>
+>> [nm@ti.com: co-developer and updates to latest documentation]
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Signed-off-by: Andrii.Tseglytskyi <andrii.tseglytskyi@ti.com>
+>> ---
+>> Original patch (v1): https://patchwork.kernel.org/patch/3555191/
+>>
+>> Rest of the series was accepted, however, I had to drop this
+>> previously to ensure that the data we introduce is compatible with
+>> production samples and existing pre-production samples on various
+>> OMAP5uEVMs already in circulation.
+>
+> Is this OK to queue for v3.17 or do we need it for the -rc cycle?
+>
 
-Here's the revision mask fix - with the existing code, the revision checks
-are all useless since they would all pass irrespective of the actual
-revision.  (Had the L2C series been better tested rather than being largely
-ignored, this may have been noticed before it was merged...)  Anyway, what
-isn't clear from Sekhar's message is which revision L2C310 is in the AM437x.
+.17 should be fine Tony. Thanks for following up.
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] ARM: l2c: fix revision checking
-
-The revision checking in l2c310_enable() was not correct; we were
-masking the part number rather than the revision number.  Fix this
-to use the correct macro.
-
-Fixes: 4374d64933b1 ("ARM: l2c: add automatic enable of early BRESP")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mm/cache-l2x0.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index 948f12cf6180..0b5068256baf 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
- 
- static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
- {
--	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
-+	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
- 	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
- 
- 	if (rev >= L310_CACHE_ID_RTL_R2P0) {
--- 
-1.8.3.1
-
--- 
-FTTC broadband for 0.8mile line: now at 9.7Mbps down 460kbps up... slowly
-improving, and getting towards what was expected from it.
+Regards,
+Nishanth Menon
