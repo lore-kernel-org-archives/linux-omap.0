@@ -1,75 +1,117 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 2/7] regulator: Add DT bindings for tps65218 PMIC
- regulators.
-Date: Tue, 8 Jul 2014 08:37:38 -0500
-Message-ID: <20140708133738.GD25811@saruman.home>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 3/7] ARM: dts: AM43x: Add TPS65218 device tree nodes
+Date: Tue, 8 Jul 2014 08:38:30 -0500
+Message-ID: <20140708133830.GE25811@saruman.home>
 References: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
- <1404814597-4404-3-git-send-email-j-keerthy@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1404814597-4404-4-git-send-email-j-keerthy@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="C1iGAkRnbeBonpVg"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Rgf3q3z9SdmXC6oT"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1404814597-4404-3-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+In-Reply-To: <1404814597-4404-4-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---C1iGAkRnbeBonpVg
+--Rgf3q3z9SdmXC6oT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 08, 2014 at 03:46:32PM +0530, Keerthy wrote:
-> Add DT bindings for tps65218 PMIC regulators.
+On Tue, Jul 08, 2014 at 03:46:33PM +0530, Keerthy wrote:
+> Add TPS65218 device tree nodes. i2c clock frequency setting
+> also added as part of tps65218 nodes addition. As i2c clock
+> enabling is required.
 >=20
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
 >=20
 > Changes in V2:
->   * Added dcdc3, dcdc5, dcdc6 compatible properties.
->=20
->  .../devicetree/bindings/regulator/tps65218.txt     |   23 ++++++++++++++=
+>   * Added dcdc3, dcdc5, dcdc6 nodes.
+
+It might be worth noting that dcdc4 is missing because of a possible
+PMIC bug you're dealing with. Other than that:
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+>  arch/arm/boot/dts/am43x-epos-evm.dts |   59 ++++++++++++++++++++++++++++=
 ++++++
->  1 file changed, 23 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/regulator/tps65218.=
-txt
+>  1 file changed, 59 insertions(+)
 >=20
-> diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/D=
-ocumentation/devicetree/bindings/regulator/tps65218.txt
-> new file mode 100644
-> index 0000000..fccc1d2
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
-> @@ -0,0 +1,23 @@
-> +TPS65218 family of regulators
+> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am4=
+3x-epos-evm.dts
+> index 90098f9..f1ee7495 100644
+> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
+> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+> @@ -327,6 +327,65 @@
+>  	status =3D "okay";
+>  	pinctrl-names =3D "default";
+>  	pinctrl-0 =3D <&i2c0_pins>;
+> +	clock-frequency =3D <400000>;
 > +
-> +Required properties:
-> +For tps65218 regulators/LDOs
-> +- compatible:
-> +  - "ti,tps65218-dcdc1" for DCDC1
-> +  - "ti,tps65218-dcdc2" for DCDC2
-> +  - "ti,tps65218-dcdc3" for DCDC3
-> +  - "ti,tps65218-dcdc4" for DCDC4
-> +  - "ti,tps65218-dcdc5" for DCDC5
-> +  - "ti,tps65218-dcdc6" for DCDC6
-> +  - "ti,tps65218-ldo1" for LDO1
+> +	tps65218: tps65218@24 {
+> +		reg =3D <0x24>;
+> +		compatible =3D "ti,tps65218";
+> +		interrupts =3D <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
+> +		interrupt-parent =3D <&gic>;
+> +		interrupt-controller;
+> +		#interrupt-cells =3D <2>;
 > +
-> +Optional properties:
-> +- Any optional property defined in bindings/regulator/regulator.txt
+> +		dcdc1: regulator-dcdc1 {
+> +			compatible =3D "ti,tps65218-dcdc1";
+> +			regulator-name =3D "vdd_core";
+> +			regulator-min-microvolt =3D <912000>;
+> +			regulator-max-microvolt =3D <1144000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
 > +
-> +Example:
+> +		dcdc2: regulator-dcdc2 {
+> +			compatible =3D "ti,tps65218-dcdc2";
+> +			regulator-name =3D "vdd_mpu";
+> +			regulator-min-microvolt =3D <912000>;
+> +			regulator-max-microvolt =3D <1378000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
 > +
-> +	xyz: regulator@0 {
-> +		compatible =3D "ti,tps65218-dcdc1";
-> +		regulator-min-microvolt  =3D <1000000>;
-> +		regulator-max-microvolt  =3D <3000000>;
+> +		dcdc3: regulator-dcdc3 {
+> +			compatible =3D "ti,tps65218-dcdc3";
+> +			regulator-name =3D "vdcdc3";
+> +			regulator-min-microvolt =3D <1350000>;
+> +			regulator-max-microvolt =3D <1350000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		dcdc5: regulator-dcdc5 {
+> +			compatible =3D "ti,tps65218-dcdc5";
+> +			regulator-name =3D "v1_0bat";
+> +			regulator-min-microvolt =3D <1000000>;
+> +			regulator-max-microvolt =3D <1000000>;
+> +		};
+> +
+> +		dcdc6: regulator-dcdc6 {
+> +			compatible =3D "ti,tps65218-dcdc6";
+> +			regulator-name =3D "v1_8bat";
+> +			regulator-min-microvolt =3D <1800000>;
+> +			regulator-max-microvolt =3D <1800000>;
+> +		};
+> +
+> +		ldo1: regulator-ldo1 {
+> +			compatible =3D "ti,tps65218-ldo1";
+> +			regulator-min-microvolt =3D <1800000>;
+> +			regulator-max-microvolt =3D <1800000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
 > +	};
+> =20
+>  	at24@50 {
+>  		compatible =3D "at24,24c256";
 > --=20
 > 1.7.9.5
 >=20
@@ -77,30 +119,26 @@ ocumentation/devicetree/bindings/regulator/tps65218.txt
 --=20
 balbi
 
---C1iGAkRnbeBonpVg
+--Rgf3q3z9SdmXC6oT
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTu/QiAAoJEIaOsuA1yqRErmgQAIe5s2Rb5VRYdMN1OiQacf+b
-PqPhc2y8SccaHlIMFKewDeIxdxfS/j2oabHRrvDolO+tNOOIACIz3YMlkSJRsMEU
-69C0NLtX+5sNuSz5gXPRnTDt1vbeowvW9DZzZoEwsbQWAlRlTvPNbDIIPN5jVj68
-wkbSVt4sjVkg+fKr0OOxwjo1dzy6Jxk8WhM+Ch0Xw2YucdrKj5LX3825+DsmUOVF
-VRup95GAr2HQSaMmCtDjHSPg29bvpEnGITiMhcPF5SVMmTlRh6gBdzSxId8twbc8
-xPgBOGHkloJNyL/hu/82DoRZNXJBFT0Aw6lcKDrv92ZBCNJ4FTzqXIHBeHA5DcmT
-2O/aHW94qqrN8CpCba5jaUXpkeBb4m7kmTIsPLqFzvfBK7pKz8LapRxWB8GahylD
-OlsyoCmWazuNErTwlCbmZSDXUwWazU1Mrpb2sQA3xlGEL3+6s1LPpgcXWbvgN5PA
-vatV9cZm71w0MiFuDjD99XBHSekU9TPG4MhO6mYuVqFreLFEm/+Yx5H7TQ+Xtkud
-PxyvFaIxWY3NDJsbVuvVszBMtLFMtMrrW5QbPfLCCUAnXTJFkZHX0H7/wNH5/dYg
-ve6Cv27dMod2ytLY7+cSBRsrA7fYJRB/x9V97GKpegGSjzP+WDTeeLEMmnSGTOUl
-uJNDfnbOdJ8tJ6mVPx8n
-=5hYv
+iQIcBAEBAgAGBQJTu/RWAAoJEIaOsuA1yqREeYYP/iIM4vzXyia0aftE5QyjOWnE
+4c0FMrR28RUQs2GnS3ucCg3fKqV6pjc2RdLbdPG69H1R0LEPB8uIRJs6AUGzYNlu
+UDbzNPqaw18JtQJu/frPn7wHmHAGN+bDbOvFEtJOO4f7dU2CfjHA614QjiKJVzuN
+KPfk8bSNEkND3q3j3yeWEDCd2YKSjUVSW3lSC9Bb2KIAbcrYoQ/jEVHJbgPo1BEb
+XTNaxaFCuai5fQwbbRA87e8X2m2IJBpln8RdEzmoOctPJn2ZFghnBttC2DyMY0tS
+kRrvWNUPQ8FEKz7p07H9UeGX9MIaEFBE+AmS7oakefj7M8trPpO40rV+2YEIpxe8
+PLN3Jok+b7F9QhTK+H/BJ0D3MQlTOvgGbXy6asTrgHb5JD4DEkjoGggy3Vj3vHV8
+iy2m3SHAotfuq2RlK0mTKj+zte5xI9F32TSJzosFfi7pHGAgSqIgqLJJnakCWuLu
+4hswJRTQ6cR+E3fvs6Tmmxt/8DSj3tLVG76sPoOp+dwzltT3X2zdHdrf7q8rLEsW
+bgxVpSKdWshsvb6fLdZrT+jGpXBRdttU+d9RhdLCn0r6QsMLubXOyT0zyDOYdCtO
++R/lLosk/+i00q4TPyovPsM6YE/dWG+0gJxAyHozsxGnh4MwGULw0FXgKZEEJu5J
+GRw19w8r7PwWYBavZ536
+=I00C
 -----END PGP SIGNATURE-----
 
---C1iGAkRnbeBonpVg--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Rgf3q3z9SdmXC6oT--
