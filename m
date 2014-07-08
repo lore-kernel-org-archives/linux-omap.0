@@ -1,51 +1,39 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: Anybody working on tidspbridge?
-Date: Tue, 8 Jul 2014 07:36:59 -0700
-Message-ID: <20140708143659.GB3104@kroah.com>
-References: <53A4569B.70604@gmail.com> <53A45BBD.4040201@gmail.com>
- <20140629164250.GA31625@kroah.com> <53BBE895.4020105@gmail.com>
- <alpine.DEB.2.01.1407081452580.5181@pmeerw.net>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv5 03/15] hwspinlock/core: maintain a list of registered
+ hwspinlock banks
+Date: Tue, 8 Jul 2014 10:22:38 -0500
+Message-ID: <53BC0CBE.4060608@ti.com>
+References: <1398904476-26200-1-git-send-email-s-anna@ti.com> <1398904476-26200-4-git-send-email-s-anna@ti.com> <CAK=WgbakGbTaYz+4K24aT3vyRkDYwPKCm6XrcJvH667NMMfTTA@mail.gmail.com> <53B47621.6090307@ti.com> <CAK=WgbYtJ7TGqvjG3VAPPD5tVXx9-jEJU3iKEStUMxOvD1v=LQ@mail.gmail.com> <53B592CE.2010001@ti.com> <CAK=WgbaahqdmWRDMKtRhco4y5B-WBFYDHYs2cLM7NL=QhnhK2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.01.1407081452580.5181@pmeerw.net>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: driverdev-devel-bounces@linuxdriverproject.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAK=WgbaahqdmWRDMKtRhco4y5B-WBFYDHYs2cLM7NL=QhnhK2Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 08, 2014 at 03:03:58PM +0200, Peter Meerwald wrote:
-> Hello,
+Hi Ohad,
+
+On 07/04/2014 12:01 AM, Ohad Ben-Cohen wrote:
+> Hi Suman,
 > 
-> > > Given the total lack of response here, I suggest just deleting the
-> > > driver.  No one has ever done the "real work" that is going to be
-> > > required to get this code out of staging.  It has had build errors
-> > > causing it to not even be usable for some kernel versions with no one
-> > > noticing, so I doubt anyone cares about it anymore here.
-> > 
-> > Cc'ing some more people who might be interested. If no one offers to
-> > work on the driver in the next couple of days, I'll send a patch to
-> > remove it.
+> On Thu, Jul 3, 2014 at 8:28 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+>> OK, but we would still require this function to lookup the registered
+>> device from the controller-phandle to retrieve the base_id.
 > 
-> I'm using the driver (with kernel 3.7) and it works reasonably well for 
-> me; removing it seems a bit harsh
+> Can we retrieve the base_id from the parent DT node itself?
 
-Using it is different from being able to maintain the code and move it
-out of the staging tree.  Also, 3.7 is really old and obsolete, not much
-we can do with that kernel version :)
+Yeah, it is possible using the of_hwspin_lock_get_base_id function added
+in Patch8, once we convert the phandle to a device node. The platform
+implementations would be using this function during the registration
+phase to register the base id, and we have to do the DT parse/lookup
+again in the core.
 
-Are you able to work on the code and do the effort needed to get it out
-of the staging tree?  If so, great, if not, we are going to have to
-delete it, sorry.
-
-greg k-h
+regards
+Suman
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
