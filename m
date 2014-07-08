@@ -1,147 +1,173 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 1/3] arm: dra7xx: Add hwmod data for MDIO and CPSW
-Date: Tue,  8 Jul 2014 20:40:50 +0200
-Message-ID: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 2/3] arm: dts: dra7: Enable CPSW and MDIO for dra7xx EVM
+Date: Tue,  8 Jul 2014 20:40:51 +0200
+Message-ID: <1404844852-19980-2-git-send-email-bigeasy@linutronix.de>
+References: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:34180 "EHLO
+Received: from www.linutronix.de ([62.245.132.108]:34183 "EHLO
 	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754956AbaGHSlO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 14:41:14 -0400
+	with ESMTP id S1755092AbaGHSlP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 14:41:15 -0400
+In-Reply-To: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, Praveen Rao <prao@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Adding hwmod data for CPSW and MDIO which is present in DRA7xx SoC
+From: Mugunthan V N <mugunthanvnm@ti.com>
+
+Adding CPSW phy-id, CPSW and MDIO pinmux configuration for active
+and sleep states and enable them in board evm dts file.
 
 Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+[Resolved merge conflict and rebased on 3.8 kernel.
+Update the pinmux configuration for CPSW and MDIO by removing the
+macro definitons to match the 3.8 implementation.]
 Signed-off-by: Praveen Rao <prao@ti.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 96 +++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
+ arch/arm/boot/dts/dra7-evm.dts | 61 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi    | 48 +++++++++++++++++++++++++++++++++
+ 2 files changed, 109 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 20b4398..0fa2c66 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1845,6 +1845,85 @@ static struct omap_hwmod dra7xx_vcp2_hwmod = {
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 4adc280..956a7bd 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -94,6 +94,46 @@
+ 		>;
+ 	};
+ 
++	cpsw_default_pins: pinmux_cpsw_default_pins {
++		pinctrl-single,pins = <
++			/* Slave 1 */
++			0x250	0x0 /* rgmii1_tclk PIN_OUTPUT | MUX_MODE0 */
++			0x254	0x0 /* rgmii1_tctl PIN_OUTPUT | MUX_MODE0 */
++			0x258	0x0 /* rgmii1_td3 PIN_OUTPUT | MUX_MODE0 */
++			0x25c	0x0 /* rgmii1_td2 PIN_OUTPUT | MUX_MODE0 */
++			0x260	0x0 /* rgmii1_td1 PIN_OUTPUT | MUX_MODE0 */
++			0x264	0x0 /* rgmii1_td0 PIN_OUTPUT | MUX_MODE0 */
++			0x268	0x00040000 /* rgmii1_rclk PIN_INPUT | MUX_MODE0 */
++			0x26c	0x00040000 /* rgmii1_rctl PIN_INPUT | MUX_MODE0 */
++			0x270	0x00040000 /* rgmii1_rd3 PIN_INPUT | MUX_MODE0 */
++			0x274	0x00040000 /* rgmii1_rd2 PIN_INPUT | MUX_MODE0 */
++			0x278	0x00040000 /* rgmii1_rd1 PIN_INPUT | MUX_MODE0 */
++			0x27c	0x00040000 /* rgmii1_rd0 PIN_INPUT | MUX_MODE0 */
++
++			/* Slave 2 */
++			0x198	0x4 /* rgmii2_tclk PIN_OUTPUT | MUX_MODE4 */
++			0x19c	0x4 /* rgmii2_tctl PIN_OUTPUT | MUX_MODE4 */
++			0x1a0	0x4 /* rgmii2_td3 PIN_OUTPUT | MUX_MODE4 */
++			0x1a4	0x4 /* rgmii2_td2 PIN_OUTPUT | MUX_MODE4 */
++			0x1a8	0x4 /* rgmii2_td1 PIN_OUTPUT | MUX_MODE4 */
++			0x1ac	0x4 /* rgmii2_td0 PIN_OUTPUT | MUX_MODE4 */
++			0x1b0	0x00040004 /* rgmii2_rclk PIN_INPUT | MUX_MODE4 */
++			0x1b4	0x00040004 /* rgmii2_rctl PIN_INPUT | MUX_MODE4 */
++			0x1b8	0x00040004 /* rgmii2_rd3 PIN_INPUT | MUX_MODE4 */
++			0x1bc	0x00040004 /* rgmii2_rd2 PIN_INPUT | MUX_MODE4 */
++			0x1c0	0x00040004 /* rgmii2_rd1 PIN_INPUT | MUX_MODE4 */
++			0x1c4	0x00040004 /* rgmii2_rd0 PIN_INPUT | MUX_MODE4 */
++		>;
++	};
++
++	davinci_mdio_default_pins: pinmux_davinci_mdio_default_pins {
++		pinctrl-single,pins = <
++			/* MDIO */
++			0x23c	0x30000 /* mdio_data PIN_OUTPUT_PULLUP | MUX_MODE0 */
++			0x240	0x70000 /* mdio_clk PIN_INPUT_PULLUP | MUX_MODE0 */
++			>;
++		};
++
+ 	qspi1_pins: pinmux_qspi1_pins {
+ 		pinctrl-single,pins = <
+ 			0x4c (PIN_INPUT | MUX_MODE1)  /* gpmc_a3.qspi1_cs2 */
+@@ -332,6 +372,27 @@
+ 	cpu0-supply = <&smps123_reg>;
  };
  
- /*
-+ * 'gmac' class
-+ * cpsw/gmac sub system
-+ */
-+static struct omap_hwmod_class_sysconfig dra7xx_gmac_sysc = {
-+	.rev_offs	= 0x0,
-+	.sysc_offs	= 0x8,
-+	.syss_offs	= 0x4,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
-+			SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | MSTANDBY_FORCE |
-+			MSTANDBY_NO),
-+	.sysc_fields	= &omap_hwmod_sysc_type3,
++&gmac {
++	status="okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&cpsw_default_pins>;
 +};
 +
-+static struct omap_hwmod_class dra7xx_gmac_hwmod_class = {
-+	.name	= "gmac",
-+	.sysc	= &dra7xx_gmac_sysc,
++&davinci_mdio {
++	pinctrl-names = "default";
++	pinctrl-0 = <&davinci_mdio_default_pins>;
 +};
 +
-+static struct omap_hwmod_irq_info dra7xx_gmac_irqs[] = {
-+	{ .name = "c0_rx_thresh_pend", .irq = 50 + DRA7XX_IRQ_GIC_START, },
-+	{ .name = "c0_rx_pend", .irq = 51 + DRA7XX_IRQ_GIC_START, },
-+	{ .name = "c0_tx_pend", .irq = 52 + DRA7XX_IRQ_GIC_START, },
-+	{ .name = "c0_misc_pend", .irq = 53 + DRA7XX_IRQ_GIC_START, },
-+	{ .irq = -1 },
-+};
-+static struct omap_hwmod_addr_space dra7xx_gmac_addr_space[] = {
-+	/* cpsw ss */
-+	{
-+		.pa_start	= 0x48484000,
-+		.pa_end	= 0x48484000 + SZ_2K - 1,
-+	},
-+	/* cpsw wr */
-+	{
-+		.pa_start	= 0x48485200,
-+		.pa_end	= 0x48485200 + SZ_256 - 1,
-+		.flags	= ADDR_TYPE_RT,
-+	},
-+	{ }
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <2>;
++	phy-mode = "rgmii-txid";
 +};
 +
-+static struct omap_hwmod dra7xx_gmac_hwmod = {
-+	.name		= "gmac",
-+	.class		= &dra7xx_gmac_hwmod_class,
-+	.clkdm_name	= "gmac_clkdm",
-+	.flags		= (HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY),
-+	.mpu_irqs	= dra7xx_gmac_irqs,
-+	.main_clk	= "dpll_gmac_ck",
-+	.prcm	= {
-+		.omap4	= {
-+			.clkctrl_offs	= DRA7XX_CM_GMAC_GMAC_CLKCTRL_OFFSET,
-+			.context_offs	= DRA7XX_RM_GMAC_GMAC_CONTEXT_OFFSET,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+		},
-+	},
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <3>;
++	phy-mode = "rgmii-txid";
 +};
 +
-+/*
-+ * 'mdio' class
-+ */
-+static struct omap_hwmod_class dra7xx_mdio_hwmod_class = {
-+	.name	= "davinci_mdio",
-+};
-+
-+static struct omap_hwmod_addr_space dra7xx_mdio_addr_space[] = {
-+	{
-+		.pa_start	= 0x48485000,
-+		.pa_end		= 0x48485000 + SZ_256 - 1,
-+	},
-+	{ }
-+};
-+static struct omap_hwmod dra7xx_mdio_hwmod = {
-+	.name		= "davinci_mdio",
-+	.class		= &dra7xx_mdio_hwmod_class,
-+	.clkdm_name	= "gmac_clkdm",
-+	.main_clk	= "dpll_gmac_ck",
-+};
-+
-+/*
-  * 'wd_timer' class
-  *
-  */
-@@ -2015,6 +2094,21 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__dcan2 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ &qspi {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index c29945e..daf7d36 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -763,6 +763,54 @@
+ 			status = "disabled";
+ 		};
  
-+static struct omap_hwmod_ocp_if dra7xx_l4_per2__gmac = {
-+	.master         = &dra7xx_l4_per2_hwmod,
-+	.slave          = &dra7xx_gmac_hwmod,
-+	.clk            = "dpll_gmac_ck",
-+	.addr           = dra7xx_gmac_addr_space,
-+	.user           = OCP_USER_MPU,
-+};
++		gmac: ethernet@48484000 {
++			compatible = "ti,cpsw";
++			ti,hwmods = "gmac";
++			cpdma_channels = <8>;
++			ale_entries = <1024>;
++			bd_ram_size = <0x2000>;
++			no_bd_ram = <0>;
++			rx_descs = <64>;
++			mac_control = <0x20>;
++			slaves = <2>;
++			active_slave = <0>;
++			cpts_clock_mult = <0x80000000>;
++			cpts_clock_shift = <29>;
++			reg = <0x48484000 0x800
++				0x48485200 0x100>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			/*
++			 * rx_thresh_pend
++			 * rx_pend
++			 * tx_pend
++			 * misc_pend
++			 */
++			interrupts = <0 50 0x4>,
++					<0 51 0x4>,
++					<0 52 0x4>,
++					<0 53 0x4>;
++			ranges;
++			status = "disabled";
 +
-+static struct omap_hwmod_ocp_if dra7xx_gmac__mdio = {
-+	.master         = &dra7xx_gmac_hwmod,
-+	.slave          = &dra7xx_mdio_hwmod,
-+	.addr           = dra7xx_mdio_addr_space,
-+	.user           = OCP_USER_MPU,
-+};
++			davinci_mdio: mdio@48485000 {
++				compatible = "ti,davinci_mdio";
++				#address-cells = <1>;
++				#size-cells = <0>;
++				ti,hwmods = "davinci_mdio";
++				bus_freq = <1000000>;
++				reg = <0x48485000 0x100>;
++			};
 +
- static struct omap_hwmod_addr_space dra7xx_dma_system_addrs[] = {
- 	{
- 		.pa_start	= 0x4a056000,
-@@ -2642,6 +2736,8 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_wkup__ctrl_module_wkup,
- 	&dra7xx_l4_wkup__dcan1,
- 	&dra7xx_l4_per2__dcan2,
-+	&dra7xx_l4_per2__gmac,
-+	&dra7xx_gmac__mdio,
- 	&dra7xx_l4_cfg__dma_system,
- 	&dra7xx_l3_main_1__dss,
- 	&dra7xx_l3_main_1__dispc,
++			cpsw_emac0: slave@48484200 {
++				mac-address = [ 00 00 00 00 00 00 ];
++			};
++
++			cpsw_emac1: slave@48484300 {
++				mac-address = [ 00 00 00 00 00 00 ];
++			};
++		};
++
+ 		qspi: qspi@4b300000 {
+ 			compatible = "ti,dra7xxx-qspi";
+ 			reg = <0x4b300000 0x100>;
 -- 
 2.0.1
 
