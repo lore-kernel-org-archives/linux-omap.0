@@ -1,47 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap16xx: Removes fixme no longer needed in ocpi_enable()
-Date: Tue, 8 Jul 2014 01:16:07 -0700
-Message-ID: <20140708081606.GC28884@atomide.com>
-References: <1404351079-5117-1-git-send-email-xerofoify@gmail.com>
+Subject: Re: [GIT PULL] ARM: DRA7: dts: clock data fixes
+Date: Tue, 8 Jul 2014 01:17:39 -0700
+Message-ID: <20140708081738.GD28884@atomide.com>
+References: <53B59B22.5050903@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26073 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbaGHIRh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 04:17:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1404351079-5117-1-git-send-email-xerofoify@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicholas Krause <xerofoify@gmail.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <53B59B22.5050903@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
 
-* Nicholas Krause <xerofoify@gmail.com> [140702 18:33]:
-> This removes the FIXME message above ocpi_enable being declared
-> for proper locking in this function. As of the current kernel
-> verisons there is no need for locking as only one driver uses
-> this function currently and therefore there is no need for real
-> locking requirements.
+* Tero Kristo <t-kristo@ti.com> [140703 11:05]:
+> Hi Tony,
 > 
-> Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+> The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+> 
+>   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+> 
+> are available in the git repository at:
+> 
+>   git@github.com:t-kristo/linux-pm.git for-v3.16-rc/clk-dt-fixes
+> 
+> for you to fetch changes up to dd94324b983afe114ba9e7ee3649313b451f63ce:
+> 
+>   ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates (2014-07-03
+> 20:59:36 +0300)
+> ----------------------------------------------------------------
+> 
+> One fix for 3.16-rc. Fixes wrong dividers for l3/l4 clock nodes on DRA7.
+> 
 
-Thanks applying into omap-for-v3.17/fixes-not-urgent.
+Pulling this into omap-for-v3.16/fixes thanks.
 
 Tony
 
-> ---
->  arch/arm/mach-omap1/ocpi.c | 1 -
->  1 file changed, 1 deletion(-)
+> ----------------------------------------------------------------
+> Rajendra Nayak (1):
+>       ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
 > 
-> diff --git a/arch/arm/mach-omap1/ocpi.c b/arch/arm/mach-omap1/ocpi.c
-> index 238170c..44a3d19 100644
-> --- a/arch/arm/mach-omap1/ocpi.c
-> +++ b/arch/arm/mach-omap1/ocpi.c
-> @@ -55,7 +55,6 @@ static struct clk *ocpi_ck;
->  
->  /*
->   * Enables device access to OMAP buses via the OCPI bridge
-> - * FIXME: Add locking
->   */
->  int ocpi_enable(void)
->  {
-> -- 
-> 1.9.1
+>  arch/arm/boot/dts/dra7xx-clocks.dtsi |   10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 > 
