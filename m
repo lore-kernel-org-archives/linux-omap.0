@@ -1,27 +1,31 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 3/7] ARM: dts: AM43x: Add TPS65218 device tree nodes
-Date: Tue, 8 Jul 2014 08:38:30 -0500
-Message-ID: <20140708133830.GE25811@saruman.home>
+Subject: Re: [PATCH v2 5/7] ARM: dts: AM437x: Add TPS65218 device tree nodes
+Date: Tue, 8 Jul 2014 08:39:05 -0500
+Message-ID: <20140708133905.GG25811@saruman.home>
 References: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
- <1404814597-4404-4-git-send-email-j-keerthy@ti.com>
+ <1404814597-4404-6-git-send-email-j-keerthy@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Rgf3q3z9SdmXC6oT"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="VACxsDaSTfeluoxK"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47378 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753459AbaGHNjU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Jul 2014 09:39:20 -0400
 Content-Disposition: inline
-In-Reply-To: <1404814597-4404-4-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1404814597-4404-6-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com, broonie@kernel.org
-List-Id: linux-omap@vger.kernel.org
 
---Rgf3q3z9SdmXC6oT
+--VACxsDaSTfeluoxK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 08, 2014 at 03:46:33PM +0530, Keerthy wrote:
+On Tue, Jul 08, 2014 at 03:46:35PM +0530, Keerthy wrote:
 > Add TPS65218 device tree nodes. i2c clock frequency setting
 > also added as part of tps65218 nodes addition. As i2c clock
 > enabling is required.
@@ -30,23 +34,21 @@ On Tue, Jul 08, 2014 at 03:46:33PM +0530, Keerthy wrote:
 > ---
 >=20
 > Changes in V2:
->   * Added dcdc3, dcdc5, dcdc6 nodes.
+>   *Added dcdc3, dcdc5, dcdc6 nodes
 
-It might be worth noting that dcdc4 is missing because of a possible
-PMIC bug you're dealing with. Other than that:
+same thing wrt dcdc4
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
->  arch/arm/boot/dts/am43x-epos-evm.dts |   59 ++++++++++++++++++++++++++++=
-++++++
->  1 file changed, 59 insertions(+)
 >=20
-> diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am4=
-3x-epos-evm.dts
-> index 90098f9..f1ee7495 100644
-> --- a/arch/arm/boot/dts/am43x-epos-evm.dts
-> +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-> @@ -327,6 +327,65 @@
+>  arch/arm/boot/dts/am437x-gp-evm.dts |   58 +++++++++++++++++++++++++++++=
+++++++
+>  1 file changed, 58 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am43=
+7x-gp-evm.dts
+> index 85ca430..f0422c2 100644
+> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
+> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+> @@ -260,6 +260,64 @@
 >  	status =3D "okay";
 >  	pinctrl-names =3D "default";
 >  	pinctrl-0 =3D <&i2c0_pins>;
@@ -86,7 +88,12 @@ Reviewed-by: Felipe Balbi <balbi@ti.com>
 > +			regulator-boot-on;
 > +			regulator-always-on;
 > +		};
-> +
+
+add a blank line here
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+
 > +		dcdc5: regulator-dcdc5 {
 > +			compatible =3D "ti,tps65218-dcdc5";
 > +			regulator-name =3D "v1_0bat";
@@ -109,9 +116,9 @@ Reviewed-by: Felipe Balbi <balbi@ti.com>
 > +			regulator-always-on;
 > +		};
 > +	};
+>  };
 > =20
->  	at24@50 {
->  		compatible =3D "at24,24c256";
+>  &i2c1 {
 > --=20
 > 1.7.9.5
 >=20
@@ -119,26 +126,26 @@ Reviewed-by: Felipe Balbi <balbi@ti.com>
 --=20
 balbi
 
---Rgf3q3z9SdmXC6oT
+--VACxsDaSTfeluoxK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJTu/RWAAoJEIaOsuA1yqREeYYP/iIM4vzXyia0aftE5QyjOWnE
-4c0FMrR28RUQs2GnS3ucCg3fKqV6pjc2RdLbdPG69H1R0LEPB8uIRJs6AUGzYNlu
-UDbzNPqaw18JtQJu/frPn7wHmHAGN+bDbOvFEtJOO4f7dU2CfjHA614QjiKJVzuN
-KPfk8bSNEkND3q3j3yeWEDCd2YKSjUVSW3lSC9Bb2KIAbcrYoQ/jEVHJbgPo1BEb
-XTNaxaFCuai5fQwbbRA87e8X2m2IJBpln8RdEzmoOctPJn2ZFghnBttC2DyMY0tS
-kRrvWNUPQ8FEKz7p07H9UeGX9MIaEFBE+AmS7oakefj7M8trPpO40rV+2YEIpxe8
-PLN3Jok+b7F9QhTK+H/BJ0D3MQlTOvgGbXy6asTrgHb5JD4DEkjoGggy3Vj3vHV8
-iy2m3SHAotfuq2RlK0mTKj+zte5xI9F32TSJzosFfi7pHGAgSqIgqLJJnakCWuLu
-4hswJRTQ6cR+E3fvs6Tmmxt/8DSj3tLVG76sPoOp+dwzltT3X2zdHdrf7q8rLEsW
-bgxVpSKdWshsvb6fLdZrT+jGpXBRdttU+d9RhdLCn0r6QsMLubXOyT0zyDOYdCtO
-+R/lLosk/+i00q4TPyovPsM6YE/dWG+0gJxAyHozsxGnh4MwGULw0FXgKZEEJu5J
-GRw19w8r7PwWYBavZ536
-=I00C
+iQIcBAEBAgAGBQJTu/R5AAoJEIaOsuA1yqREcbEP/jy18kqtYmwaQF0yW2T735uE
+eMi+Jtjj0uM6iMawYhjhyFXhFBDKGTVizf7qEbTtHqj8j2RJQG6stsF5eBFh/S8C
+7WOIs/0zJKbIZbSAfo3GcG4O6hrsBit+7bTRRJtTGVQdAevd0vuNK0ixKy5/PwZe
+Yae+CYXUHTcaa46SH5v8EpLn6+gel8Zm3FdXRQt4JLLC8ZN43kVrXHB6rzYQZWa2
+DxsUvc4XwqK/ZWE+fpPebLIxVVY94nPsAt5xUVNbRdKZKf8Bc3ZE62ZJ8imz2dpm
+4Vcrxqmk3On9wSghuoygcwfzEbAn0JfOeBObcYP+5BDlM3Ffz7j3+cT0SDftrq43
+ZRJof3udC8mVeqq4BtqsB7ZR01aybvdkY5a3qn17sglAIIg172N9qKJqIQMKF/0x
+5Ofs2UrD8fWld1gxLQpk3CcGwEbytj2iU83GykpTHbSp1XfISpJDf1Sa7o6kR1eo
+LxNm/ODvm98Mv5zwGhExJ6Day7jgFQE2tny8MR99nOQ7XqJmje1JJ1LirVQahydh
+Hac588ibMIr2fuhu080bh0pirbO/mP5A57sATzJZGpTfVhSOy4ZxWD465M8sslYs
+hZU8YqNXD+3r7kbPxRHjSQ9S0AmJ9FPiDbNXZc57etNzwEqlzIqcYJ/dhsrTTn6w
+qSLm6xiQ/YoZ3JBFCBJd
+=+8Y3
 -----END PGP SIGNATURE-----
 
---Rgf3q3z9SdmXC6oT--
+--VACxsDaSTfeluoxK--
