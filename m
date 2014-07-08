@@ -1,60 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/13] uio_pruss: add support for devicetree and am33xx
-Date: Mon, 7 Jul 2014 17:50:09 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407071733500.28318@utopia.booyaka.com>
-References: <1404058907-21112-1-git-send-email-a.heider@gmail.com> <20140707084824.GA83417@localhost>
+From: Dave Airlie <airlied@gmail.com>
+Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
+Date: Tue, 8 Jul 2014 11:32:12 +1000
+Message-ID: <CAPM=9tyfpewNYbAGw12Mkvc_6UhVgWxb+=pqfHr0hdOD_VHg7g@mail.gmail.com>
+References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+	<1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+	<53ADEB73.8090301@ti.com>
+	<20140701233958.GA31549@fox>
+	<53B36EF1.8060200@ti.com>
+	<CAPM=9tzQR446Xc2xnrSOGa+VetO44KskMFrkPqbatwsmv1dHXQ@mail.gmail.com>
+	<20140702203858.GA9576@arch.cereza>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54548 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278AbaGGRuK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 13:50:10 -0400
-In-Reply-To: <20140707084824.GA83417@localhost>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:34861 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874AbaGHBcN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 21:32:13 -0400
+Received: by mail-lb0-f181.google.com with SMTP id p9so3487550lbv.12
+        for <linux-omap@vger.kernel.org>; Mon, 07 Jul 2014 18:32:12 -0700 (PDT)
+In-Reply-To: <20140702203858.GA9576@arch.cereza>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andre Heider <a.heider@gmail.com>
-Cc: linux-omap@vger.kernel.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Matt Porter <mporter@linaro.org>, "Hans J . Koch" <hjk@hansjkoch.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+To: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
+Cc: Darren Etheridge <detheridge@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel <dri-devel@lists.freedesktop.org>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org
 
-On Mon, 7 Jul 2014, Andre Heider wrote:
+On 3 July 2014 06:38, Ezequiel Garc=C3=ADa <ezequiel@vanguardiasur.com.=
+ar> wrote:
+> On 02 Jul 02:08 PM, Dave Airlie wrote:
+>> On 2 July 2014 12:31, Darren Etheridge <detheridge@ti.com> wrote:
+>> > On 07/01/2014 06:39 PM, Guido Mart=C3=ADnez wrote:
+>> >>
+>> >> On Fri, Jun 27, 2014 at 05:08:51PM -0500, Darren Etheridge wrote:
+>> >>>
+>> >>> [snip]
+>> >>>
+>> >>> Otherwise I think this is a good and useful patch series.
+>> >>
+>> >> It that a Tested-by tag? :)
+>> >
+>> >
+>> > Sure - I would prefer that the WARN_ON was silenced when the tilcd=
+c module
+>> > is removed, but the series adds improvements over what is there no=
+w.  I have
+>> > tested it across a few variants of AM335x boards and attached disp=
+lay
+>> > hardware in both module form and built-in to the kernel, therefore=
+:
+>> >
+>> > Tested-by: Darren Etheridge <detheridge@ti.com>
+>>
+>> Has someone gathered that tags and put these in a git tree by any ch=
+ance?
+>>
+>
+> I don't think anyone has. Is that a problem?
+>
+> If you need a pull request with these, I can prepare something in bit=
+bucket.
+> Would that work you?
 
-> On Sun, Jun 29, 2014 at 06:21:34PM +0200, Andre Heider wrote:
-> > 
-> > this series adds PRUv2 support to uio_pruss through devicetree, makes the
-> > device usable on am33xx and enables it on beaglebone black.
-> > Inspired by old patches from Matt Porter found in a downstream tree.
-> > 
-> > To archieve that this series:
-> > * adds a flag to omap_hwmod.c to get PRUSS out of hardreset (patch 5 and 6)
+I've picked them up manually now, so should be all fine.
 
-...
-
-> > * is the hardreset thing I did there the right thing to do? I think the
-> >   proper way would be a reset controller (which apparently doesn't yet exist
-> >   for this SoC?) and let the driver deassert/assert on probe/remove?
-> > * the platform device path has a clk_enable() / clk_put() calls. Are those
-> >   now redundant with the introduced pm_runtime_enable() pm_runtime_disable()
-> >   calls?
-
-Probably you only need pm_runtime_{get,put}_*() calls, unless you're 
-changing clock parents or rates in your driver code.
-
-> @OMAP guys: any comments? The series depends on patch 5 and 6; both touch
-> common hwmod code.
-
-I'd suggest splitting the series into three independent pieces if 
-possible:
-
-1. UIO code, for the UIO maintainer(s)
-2. DT pieces for Tony
-3. hwmod pieces for me
-
-That way they can be cleanly merged by the respective maintainers.
-
-As far as the hwmod piece goes, I'd be willing to merge your code as a 
-temporary workaround for the issue, and marking it as such; but I'd be 
-concerned about power management-related interactions (i.e., does the 
-PRUSS need to be reset upon return from deep idle states, etc.)
-
-
-- Paul
+Thanks,
+Dave.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
