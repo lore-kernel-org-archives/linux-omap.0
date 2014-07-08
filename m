@@ -1,116 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 01/12] ARM: OMAP2+: Remove non working OMAP HDMI audio
- initialization
-Date: Tue, 8 Jul 2014 10:30:16 +0300
-Message-ID: <53BB9E08.7090802@ti.com>
-References: <cover.1403807781.git.jsarha@ti.com> <b0764a3af8181db55db046d6139119def363e8eb.1403807781.git.jsarha@ti.com> <20140707114625.GT28884@atomide.com>
+From: Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>
+Subject: Re: [PATCH v2 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI architecture
+Date: Tue, 8 Jul 2014 09:40:37 +0200
+Message-ID: <53BBA075.9040204@st.com>
+References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org> <1404541530-27856-4-git-send-email-peter.griffin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33094 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753335AbaGHHag (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Jul 2014 03:30:36 -0400
-In-Reply-To: <20140707114625.GT28884@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1404541530-27856-4-git-send-email-peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi
 
-Hi Tony,
+Hi Peter,
 
-On 07/07/2014 02:46 PM, Tony Lindgren wrote:
-> * Jyri Sarha <jsarha@ti.com> [140626 12:26]:
->> This code is not working currently and it can be removed. There is a
->> conflict in sharing resources with the actual HDMI driver and with
->> the ASoC HDMI audio DAI driver.
->=20
-> Is this OK to queue for v3.17 or do we need this for v3.16-rc series?
+On 07/05/2014 08:25 AM, Peter Griffin wrote:
+> Signed-off-by: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Jyri is away currently, but I think it would be great if this patch goe=
-s in
-for 3.16. The patch does not introduce regression since the OMAP4/5 HDM=
-I is in
-non working state in the kernel so removing the platform device right n=
-ow will
-ease up the merger of the new and working code.
+Acked-by: Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>
 
-Regards,
-P=E9ter
-
->=20
-> Regards,
->=20
-> Tony
-> =20
->> Signed-off-by: Jyri Sarha <jsarha@ti.com>
->> ---
->>  arch/arm/mach-omap2/devices.c |   28 ----------------------------
->>  1 file changed, 28 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/dev=
-ices.c
->> index 592ba0a..b6f8f34 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -297,33 +297,6 @@ static void omap_init_audio(void)
->>  static inline void omap_init_audio(void) {}
->>  #endif
->> =20
->> -#if defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI) || \
->> -		defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI_MODULE)
->> -
->> -static struct platform_device omap_hdmi_audio =3D {
->> -	.name	=3D "omap-hdmi-audio",
->> -	.id	=3D -1,
->> -};
->> -
->> -static void __init omap_init_hdmi_audio(void)
->> -{
->> -	struct omap_hwmod *oh;
->> -	struct platform_device *pdev;
->> -
->> -	oh =3D omap_hwmod_lookup("dss_hdmi");
->> -	if (!oh)
->> -		return;
->> -
->> -	pdev =3D omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0)=
-;
->> -	WARN(IS_ERR(pdev),
->> -	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
->> -
->> -	platform_device_register(&omap_hdmi_audio);
->> -}
->> -#else
->> -static inline void omap_init_hdmi_audio(void) {}
->> -#endif
->> -
->>  #if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MOD=
-ULE)
->> =20
->>  #include <linux/platform_data/spi-omap2-mcspi.h>
->> @@ -459,7 +432,6 @@ static int __init omap2_init_devices(void)
->>  	 */
->>  	omap_init_audio();
->>  	omap_init_camera();
->> -	omap_init_hdmi_audio();
->>  	omap_init_mbox();
->>  	/* If dtb is there, the devices will be created dynamically */
->>  	if (!of_have_populated_dt()) {
->> --=20
->> 1.7.9.5
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-
-
+Thanks,
+Maxime
+> ---
+>   MAINTAINERS | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 702ca10..269ad3b 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1325,6 +1325,7 @@ F:	drivers/pinctrl/pinctrl-st.c
+>   F:	drivers/media/rc/st_rc.c
+>   F:	drivers/i2c/busses/i2c-st.c
+>   F:	drivers/tty/serial/st-asc.c
+> +F:	drivers/usb/dwc3/dwc3-st.c
+>
+>   ARM/TECHNOLOGIC SYSTEMS TS7250 MACHINE SUPPORT
+>   M:	Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
