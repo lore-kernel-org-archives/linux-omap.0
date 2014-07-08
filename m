@@ -1,65 +1,96 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: am335x: linux 3.16-rc3: USB DMA issue
-Date: Tue, 8 Jul 2014 11:42:17 +0200
-Message-ID: <CAGm1_ktB8ZhEPDsCaGvtaOiG206D2xYzmVrNYHVXQQgN1TH3KQ@mail.gmail.com>
-References: <CAGm1_kuA8nYvqHXYbg5kULCujzOYEBW6AAijeQt3yzg_P9=EHg@mail.gmail.com>
- <CAGm1_ksYdfkiSBAsV6Rq2GZ5CBwNbO8An0bzKaknxrnkRLEAXQ@mail.gmail.com>
- <CAAEAJfDaEt0PGhFOs0-Q6W8ogu1aEGMGarnbuBVzZHnuHm4zZQ@mail.gmail.com> <CAGm1_kvTfPNcbp5M1OMWo-sfyBSd-tKm5wtqEVdTnswioajSBQ@mail.gmail.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
+Date: Tue, 8 Jul 2014 12:03:30 +0200
+Message-ID: <20140708100330.GU17271@phenom.ffwll.local>
+References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
+ <1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
+ <53ADEB73.8090301@ti.com>
+ <CAF6AEGvp+A7eKWXf8uBoqXHb0Dtnt_Wz_dgFZ7Ua=UaD7yKBDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:47733 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751842AbaGHJmi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 05:42:38 -0400
-In-Reply-To: <CAGm1_kvTfPNcbp5M1OMWo-sfyBSd-tKm5wtqEVdTnswioajSBQ@mail.gmail.com>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:56310 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041AbaGHKDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 06:03:21 -0400
+Received: by mail-wg0-f48.google.com with SMTP id x12so758175wgg.31
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jul 2014 03:03:20 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGvp+A7eKWXf8uBoqXHb0Dtnt_Wz_dgFZ7Ua=UaD7yKBDw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Roger Quadros <rogerq@ti.com>, George Cherian <george.cherian@ti.com>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Darren Etheridge <detheridge@ti.com>, Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Russell King <linux@arm.linux.org.uk>, Ezequiel =?iso-8859-1?Q?Garc=EDa?= <ezequiel@vanguardiasur.com.ar>, Daniel Mack <zonque@gmail.com>
 
-On Wed, Jul 2, 2014 at 3:28 PM, Yegor Yefremov
-<yegorslists@googlemail.com> wrote:
-> On Tue, Jul 1, 2014 at 5:37 PM, Ezequiel Garc=C3=ADa
-> <ezequiel@vanguardiasur.com.ar> wrote:
->> On 1 July 2014 12:07, Yegor Yefremov <yegorslists@googlemail.com> wr=
-ote:
->> [..]
->>>
->>> What can be done with these error messages:
->>>
->>> of_get_named_gpiod_flags: can't parse gpios property of node
->>> '/ocp/usb@47400000/usb-phy@47401300[0]'
->>> 47401300.usb-phy supply vcc not found, using dummy regulator
->>> musb-hdrc musb-hdrc.0.auto: Failed to request rx1.
->>> musb-hdrc musb-hdrc.0.auto: musb_init_controller failed with status=
- -517
->>> platform musb-hdrc.0.auto: Driver musb-hdrc requests probe deferral
->>> of_get_named_gpiod_flags: can't parse gpios property of node
->>> '/ocp/usb@47400000/usb-phy@47401b00[0]'
->>> 47401b00.usb-phy supply vcc not found, using dummy regulator
->>> musb-hdrc musb-hdrc.1.auto: Failed to request rx1.
->>> musb-hdrc musb-hdrc.1.auto: musb_init_controller failed with status=
- -517
->>> platform musb-hdrc.1.auto: Driver musb-hdrc requests probe deferral
->>> couldn't find an available UDC
->>>
->>
->> The above are typical deferal messages. Have you tried building
->> everything as a module or moving the DMA devicetree node so it's
->> probed earlier?
->>
->> But I'm not sure it's related to the problem you are seeing.
->
-> Compiling as a module helped. Thanks.
+On Sat, Jun 28, 2014 at 06:51:15AM -0400, Rob Clark wrote:
+> On Fri, Jun 27, 2014 at 6:08 PM, Darren Etheridge <detheridge@ti.com>=
+ wrote:
+> > Guido,
+> >
+> >
+> > On 06/17/2014 09:17 AM, Guido Mart=EDnez wrote:
+> >>
+> >> The tilcdc driver could be compiled as a module, but was severely =
+broken
+> >> and could not be used as such. This patchset attempts to fix the i=
+ssues
+> >> preventing a proper load/unload of the module.
+> >>
+> >> Issues included dangling sysfs nodes, dangling devices, memory lea=
+ks and
+> >> a double kfree.
+> >>
+> >> It now seems to be working ok. We have tested this by loading and
+> >> unloading the driver repeteadly, with both panel and slave connect=
+ors
+> >> and found no flaws.
+> >>
+> >> There is still one warning left on tilcdc_crtc_destroy, caused by
+> >> destroying the connector while still in an ON status. We don't kno=
+w why
+> >> this happens or why it's an issue, so we did not fix it.
+> >>
+> >
+> > Yes I see what you mean, it triggers the WARN_ON in tilcdc_crtc_des=
+troy
+> > because DRM_MODE_DPMS_ON is still set.  This WARN_ON does make some=
+ sense
+> > because DPMS_OFF would have the effect of turning off clocks and pu=
+tting the
+> > monitor to sleep which seems logical considering we have torn down =
+the
+> > display.  Adding a tilcdc_crtc_dpms(DPMS_OFF) right before the WARN=
+_ON
+> > confirms this, but it seems strange that this hasn't happened autom=
+atically
+> > (+ Russell doesn't need to do it in his Armada driver) - so I suspe=
+ct there
+> > is a better way.
+>=20
+> tbh, I'm not entirely sure offhand why drm_mode_config_cleanup()
+> doesn't remove the fb's first (which should have the effect of
+> shutting down any lit crtc/encoder/connector)..  that would seem like
+> the sensible way to shut down..
 
-I experience another issue, that happens either in monolithic kernel
-or as modules. In 2-4% of power cycles the hub chip connected to USB0
-won't be detected. So far I couldn't find any error messages. Any
-idea?
+All userspace fbs should be cleared already before going into the drive=
+r
+unload. Which only leaves you with driver internal fbs (usually just on=
+e
+for fbdev emulation). It's the driver's job to clean that up explicitly=
+=2E
+Then you can call mode_config_cleanup and the WARN_ON in there is a rea=
+lly
+nice space leak check.
 
-Yegor
+If we'd unconditionally clean up all fbs we'd have trouble with
+driver-private embedded fbs and their refcounting and would loose the
+space leak check.
+-Daniel
+--=20
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
