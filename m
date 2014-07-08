@@ -1,104 +1,123 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 3/7] ARM: dts: AM43x: Add TPS65218 device tree nodes
-Date: Tue, 8 Jul 2014 15:46:33 +0530
-Message-ID: <1404814597-4404-4-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2 1/7] mfd: Add DT bindings for tps65218 PMIC
+Date: Tue, 8 Jul 2014 15:46:31 +0530
+Message-ID: <1404814597-4404-2-git-send-email-j-keerthy@ti.com>
 References: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47417 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753322AbaGHKX3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 06:23:29 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com, broonie@kernel.org, Keerthy <j-keerthy@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Add TPS65218 device tree nodes. i2c clock frequency setting
-also added as part of tps65218 nodes addition. As i2c clock
-enabling is required.
+Add DT bindings for tps65218 PMIC
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
 Changes in V2:
-  * Added dcdc3, dcdc5, dcdc6 nodes.
+  * Added dcdc3, dcdc5, dcdc6 compatible properties.
 
- arch/arm/boot/dts/am43x-epos-evm.dts |   59 ++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ Documentation/devicetree/bindings/mfd/tps65218.txt |   89 ++++++++++++++++++++
+ 1 file changed, 89 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.txt
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 90098f9..f1ee7495 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -327,6 +327,65 @@
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c0_pins>;
-+	clock-frequency = <400000>;
+diff --git a/Documentation/devicetree/bindings/mfd/tps65218.txt b/Documentation/devicetree/bindings/mfd/tps65218.txt
+new file mode 100644
+index 0000000..01ac973
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mfd/tps65218.txt
+@@ -0,0 +1,89 @@
++Texas Instruments TPS65218 family
 +
-+	tps65218: tps65218@24 {
-+		reg = <0x24>;
-+		compatible = "ti,tps65218";
-+		interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
-+		interrupt-parent = <&gic>;
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
++The TPS65218 are Integrated Power Management Chips.
 +
-+		dcdc1: regulator-dcdc1 {
-+			compatible = "ti,tps65218-dcdc1";
-+			regulator-name = "vdd_core";
-+			regulator-min-microvolt = <912000>;
-+			regulator-max-microvolt = <1144000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
++Required properties:
++- compatible : Must be "ti,tps65218";
++  For Integrated power-management used in AM437x based boards
++- interrupts : This i2c device has an IRQ line connected to the main SoC
++- interrupt-controller : Since the tps65218 supports several interrupts
++  internally, it is considered as an interrupt controller cascaded to the
++  SoC one.
++- #interrupt-cells = <2>;
++- interrupt-parent : The parent interrupt controller which is gic.
 +
-+		dcdc2: regulator-dcdc2 {
-+			compatible = "ti,tps65218-dcdc2";
-+			regulator-name = "vdd_mpu";
-+			regulator-min-microvolt = <912000>;
-+			regulator-max-microvolt = <1378000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
++Optional node:
++- TPS65218 PMIC has a number of child nodes. Mainly the regularors and SMPSs.
 +
-+		dcdc3: regulator-dcdc3 {
-+			compatible = "ti,tps65218-dcdc3";
-+			regulator-name = "vdcdc3";
-+			regulator-min-microvolt = <1350000>;
-+			regulator-max-microvolt = <1350000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
++Example:
++/*
++ * Integrated Power Management Chip
++ */
++tps65218: tps65218@24 {
++	reg = <0x24>;
++	compatible = "ti,tps65218";
++	interrupts = <GIC_SPI 7 IRQ_TYPE_NONE>; /* NMIn */
++	interrupt-parent = <&gic>;
++	interrupt-controller;
++	#interrupt-cells = <2>;
 +
-+		dcdc5: regulator-dcdc5 {
-+			compatible = "ti,tps65218-dcdc5";
-+			regulator-name = "v1_0bat";
-+			regulator-min-microvolt = <1000000>;
-+			regulator-max-microvolt = <1000000>;
-+		};
-+
-+		dcdc6: regulator-dcdc6 {
-+			compatible = "ti,tps65218-dcdc6";
-+			regulator-name = "v1_8bat";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+		};
-+
-+		ldo1: regulator-ldo1 {
-+			compatible = "ti,tps65218-ldo1";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
++	dcdc1: regulator-dcdc1 {
++		compatible = "ti,tps65218-dcdc1";
++		/* VDD_CORE voltage limits min of OPP50 and max of OPP100 */
++		regulator-name = "vdd_core";
++		regulator-min-microvolt = <912000>;
++		regulator-max-microvolt = <1144000>;
++		regulator-boot-on;
++		regulator-always-on;
 +	};
- 
- 	at24@50 {
- 		compatible = "at24,24c256";
++
++	dcdc2: regulator-dcdc2 {
++		compatible = "ti,tps65218-dcdc2";
++		/* VDD_MPU voltage limits min of OPP50 and max of OPP_NITRO */
++		regulator-name = "vdd_mpu";
++		regulator-min-microvolt = <912000>;
++		regulator-max-microvolt = <1378000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc3: regulator-dcdc3 {
++		compatible = "ti,tps65218-dcdc3";
++		regulator-name = "vdcdc3";
++		regulator-min-microvolt = <1350000>;
++		regulator-max-microvolt = <1350000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc4: regulator-dcdc4 {
++		compatible = "ti,tps65218-dcdc4";
++		regulator-name = "v3_3d";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc5: regulator-dcdc5 {
++		compatible = "ti,tps65218-dcdc5";
++		regulator-name = "v1_0bat";
++		regulator-min-microvolt = <1000000>;
++		regulator-max-microvolt = <1000000>;
++	};
++
++	dcdc6: regulator-dcdc6 {
++		compatible = "ti,tps65218-dcdc6";
++		regulator-name = "v1_8vat";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++	};
++
++	ldo1: regulator-ldo1 {
++		compatible = "ti,tps65218-ldo1";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++};
 -- 
 1.7.9.5
-
