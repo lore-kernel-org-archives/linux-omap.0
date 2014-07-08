@@ -1,57 +1,44 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 2/7] regulator: Add DT bindings for tps65218 PMIC regulators.
-Date: Tue, 8 Jul 2014 15:46:32 +0530
-Message-ID: <1404814597-4404-3-git-send-email-j-keerthy@ti.com>
-References: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2 0/7] ARM: dts: AM43x: Add devcice tree nodes
+Date: Tue, 8 Jul 2014 15:46:30 +0530
+Message-ID: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51192 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753063AbaGHKXZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Jul 2014 06:23:25 -0400
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com, broonie@kernel.org, Keerthy <j-keerthy@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Add DT bindings for tps65218 PMIC regulators.
+The patch series adds the device tree nodes and the corresponding
+documentation. The series also enabled tps65218 config options
+in the omap2plus_defconfig.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+The series is boot tested on both AM43x-epos-evm and AM437x-gp-evm.
 
-Changes in V2:
-  * Added dcdc3, dcdc5, dcdc6 compatible properties.
+Keerthy (7):
+  mfd: Add DT bindings for tps65218 PMIC
+  regulator: Add DT bindings for tps65218 PMIC regulators.
+  ARM: dts: AM43x: Add TPS65218 device tree nodes
+  ARM: dts: AM437x: Fix i2c nodes indentation
+  ARM: dts: AM437x: Add TPS65218 device tree nodes
+  regulator: tps65218: Add get_voltage ops for dcdc5 and dcdc6
+  ARM: configs: omap2plus_defconfig: enable TPS65218 configs
 
- .../devicetree/bindings/regulator/tps65218.txt     |   23 ++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ Documentation/devicetree/bindings/mfd/tps65218.txt |   89 ++++++++++++++++++++
+ .../devicetree/bindings/regulator/tps65218.txt     |   23 +++++
+ arch/arm/boot/dts/am437x-gp-evm.dts                |   71 ++++++++++++++--
+ arch/arm/boot/dts/am43x-epos-evm.dts               |   59 +++++++++++++
+ arch/arm/configs/omap2plus_defconfig               |    2 +
+ drivers/regulator/tps65218-regulator.c             |    9 ++
+ 6 files changed, 246 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.txt
  create mode 100644 Documentation/devicetree/bindings/regulator/tps65218.txt
 
-diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
-new file mode 100644
-index 0000000..fccc1d2
---- /dev/null
-+++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
-@@ -0,0 +1,23 @@
-+TPS65218 family of regulators
-+
-+Required properties:
-+For tps65218 regulators/LDOs
-+- compatible:
-+  - "ti,tps65218-dcdc1" for DCDC1
-+  - "ti,tps65218-dcdc2" for DCDC2
-+  - "ti,tps65218-dcdc3" for DCDC3
-+  - "ti,tps65218-dcdc4" for DCDC4
-+  - "ti,tps65218-dcdc5" for DCDC5
-+  - "ti,tps65218-dcdc6" for DCDC6
-+  - "ti,tps65218-ldo1" for LDO1
-+
-+Optional properties:
-+- Any optional property defined in bindings/regulator/regulator.txt
-+
-+Example:
-+
-+	xyz: regulator@0 {
-+		compatible = "ti,tps65218-dcdc1";
-+		regulator-min-microvolt  = <1000000>;
-+		regulator-max-microvolt  = <3000000>;
-+	};
 -- 
 1.7.9.5
+
