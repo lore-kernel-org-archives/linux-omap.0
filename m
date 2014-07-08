@@ -1,59 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
- setting
-Date: Tue, 8 Jul 2014 01:29:48 -0700
-Message-ID: <20140708082948.GE28884@atomide.com>
-References: <20140702081142.GU28884@atomide.com>
- <20140707104727.GM28884@atomide.com>
- <20140707104944.GS3705@n2100.arm.linux.org.uk>
- <20140707110249.GO28884@atomide.com>
- <53BA8983.3030803@ti.com>
- <20140707121512.GT3705@n2100.arm.linux.org.uk>
- <20140707123925.GW28884@atomide.com>
- <20140707134008.GU3705@n2100.arm.linux.org.uk>
- <20140707151024.GJ5582@saruman.home>
- <53BB7980.2060909@ti.com>
+From: Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>
+Subject: Re: [PATCH v2 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI architecture
+Date: Tue, 8 Jul 2014 11:01:12 +0200
+Message-ID: <53BBB358.3040801@st.com>
+References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org> <1404541530-27856-4-git-send-email-peter.griffin@linaro.org> <53BBA075.9040204@st.com> <20140708075332.GM6407@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10679 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752936AbaGHI3t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 04:29:49 -0400
-Content-Disposition: inline
-In-Reply-To: <53BB7980.2060909@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140708075332.GM6407@lee--X1>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: balbi@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Sekhar Nori <nsekhar@ti.com> [140707 21:56]:
-> On Monday 07 July 2014 08:40 PM, Felipe Balbi wrote:
-> > On Mon, Jul 07, 2014 at 02:40:08PM +0100, Russell King - ARM Linux wrote:
-> >> --- a/arch/arm/mm/cache-l2x0.c
-> >> +++ b/arch/arm/mm/cache-l2x0.c
-> >> @@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
-> >>  
-> >>  static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
-> >>  {
-> >> -	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
-> >> +	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
-> >>  	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
-> > 
-> > even with this change, l2c still tries to write to power control
-> > register, at least on AM437x. Looking a little deeper here, AM437x
-> > identifies itself as l2c PL310 r3p3, which should have power control
-> > register, but aparentely there's no way to write that register. I'll
-> > file a bug to our ROM team, but we will certainly need a way to
-> > workaround this inside omap4-common.c
-> 
-> Looks like we need both my patch as well as Russell's patch. I can
-> respin my patch with the pr_info_once() dropped if it helps further
-> reduce boot noise.
 
-In that case I'm fine with the original patch in this series. Russell,
-got any better ideas?
 
-Regards,
+On 07/08/2014 09:53 AM, Lee Jones wrote:
+> On Tue, 08 Jul 2014, Maxime Coquelin wrote:
+>> On 07/05/2014 08:25 AM, Peter Griffin wrote:
+>>> Signed-off-by: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>
+>> Acked-by: Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>
+>
+> Maxime,
+>    Once Acked by Felipe, I think this should go in via your tree to
+> avoid conflicts with other ARM/STI ARCHITECTURE additions.
 
-Tony
+Ok
+
+>
+>>> ---
+>>>   MAINTAINERS | 1 +
+>>>   1 file changed, 1 insertion(+)
+>>>
+>>> diff --git a/MAINTAINERS b/MAINTAINERS
+>>> index 702ca10..269ad3b 100644
+>>> --- a/MAINTAINERS
+>>> +++ b/MAINTAINERS
+>>> @@ -1325,6 +1325,7 @@ F:	drivers/pinctrl/pinctrl-st.c
+>>>   F:	drivers/media/rc/st_rc.c
+>>>   F:	drivers/i2c/busses/i2c-st.c
+>>>   F:	drivers/tty/serial/st-asc.c
+>>> +F:	drivers/usb/dwc3/dwc3-st.c
+>>>
+>>>   ARM/TECHNOLOGIC SYSTEMS TS7250 MACHINE SUPPORT
+>>>   M:	Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>
+>>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
