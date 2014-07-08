@@ -1,72 +1,105 @@
-From: Dave Airlie <airlied@gmail.com>
-Subject: Re: [PATCH/RESEND 0/9] drm: tilcdc driver fixes
-Date: Tue, 8 Jul 2014 11:32:12 +1000
-Message-ID: <CAPM=9tyfpewNYbAGw12Mkvc_6UhVgWxb+=pqfHr0hdOD_VHg7g@mail.gmail.com>
-References: <1402110128-30471-1-git-send-email-guido@vanguardiasur.com.ar>
-	<1403014631-18072-1-git-send-email-guido@vanguardiasur.com.ar>
-	<53ADEB73.8090301@ti.com>
-	<20140701233958.GA31549@fox>
-	<53B36EF1.8060200@ti.com>
-	<CAPM=9tzQR446Xc2xnrSOGa+VetO44KskMFrkPqbatwsmv1dHXQ@mail.gmail.com>
-	<20140702203858.GA9576@arch.cereza>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
+ setting
+Date: Tue, 8 Jul 2014 10:24:24 +0530
+Message-ID: <53BB7980.2060909@ti.com>
+References: <20140617131935.GB9070@saruman.home> <20140701194704.GG13396@saruman.home> <20140702081142.GU28884@atomide.com> <20140707104727.GM28884@atomide.com> <20140707104944.GS3705@n2100.arm.linux.org.uk> <20140707110249.GO28884@atomide.com> <53BA8983.3030803@ti.com> <20140707121512.GT3705@n2100.arm.linux.org.uk> <20140707123925.GW28884@atomide.com> <20140707134008.GU3705@n2100.arm.linux.org.uk> <20140707151024.GJ5582@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:34861 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874AbaGHBcN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Jul 2014 21:32:13 -0400
-Received: by mail-lb0-f181.google.com with SMTP id p9so3487550lbv.12
-        for <linux-omap@vger.kernel.org>; Mon, 07 Jul 2014 18:32:12 -0700 (PDT)
-In-Reply-To: <20140702203858.GA9576@arch.cereza>
+Received: from devils.ext.ti.com ([198.47.26.153]:42308 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874AbaGHEy5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 00:54:57 -0400
+In-Reply-To: <20140707151024.GJ5582@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>
-Cc: Darren Etheridge <detheridge@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Daniel Vetter <daniel.vetter@ffwll.ch>, dri-devel <dri-devel@lists.freedesktop.org>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org
+To: balbi@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 3 July 2014 06:38, Ezequiel Garc=C3=ADa <ezequiel@vanguardiasur.com.=
-ar> wrote:
-> On 02 Jul 02:08 PM, Dave Airlie wrote:
->> On 2 July 2014 12:31, Darren Etheridge <detheridge@ti.com> wrote:
->> > On 07/01/2014 06:39 PM, Guido Mart=C3=ADnez wrote:
->> >>
->> >> On Fri, Jun 27, 2014 at 05:08:51PM -0500, Darren Etheridge wrote:
->> >>>
->> >>> [snip]
->> >>>
->> >>> Otherwise I think this is a good and useful patch series.
->> >>
->> >> It that a Tested-by tag? :)
->> >
->> >
->> > Sure - I would prefer that the WARN_ON was silenced when the tilcd=
-c module
->> > is removed, but the series adds improvements over what is there no=
-w.  I have
->> > tested it across a few variants of AM335x boards and attached disp=
-lay
->> > hardware in both module form and built-in to the kernel, therefore=
-:
->> >
->> > Tested-by: Darren Etheridge <detheridge@ti.com>
+On Monday 07 July 2014 08:40 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Jul 07, 2014 at 02:40:08PM +0100, Russell King - ARM Linux wrote:
+>> On Mon, Jul 07, 2014 at 05:39:26AM -0700, Tony Lindgren wrote:
+>>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [140707 05:17]:
+>>>> On Mon, Jul 07, 2014 at 05:20:27PM +0530, Sekhar Nori wrote:
+>>>>> OMAP4430 had L2 cache controller version r2p0 (per the public TRM) which
+>>>>> does not have this register. So unless there is a ROM API that was
+>>>>> introduced after OMAP4430, this would not be there even for other
+>>>>> OMAP4s. Public TRM of OMAP4470 does not indicate an API for this.
+>>>>>
+>>>>> Before creating the patch, I checked with ROM team handling AM437x and
+>>>>> they denied an API to write to this register was present in AM437x ROM.
+>>>>
+>>>> Okay, so why are we trying to write to this register then...
+>>>>
+>>>> Ah, we have a bug in cache-l2x0.c:
+>>>>
+>>>> #define L2X0_CACHE_ID_PART_MASK         (0xf << 6)
+>>>> #define L2X0_CACHE_ID_RTL_MASK          0x3f
+>>>> #define L310_CACHE_ID_RTL_R3P0          0x05
+>>>>
+>>>>         unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
+>>>>
+>>>>         if (rev >= L310_CACHE_ID_RTL_R2P0) {
+>>>> ...
+>>>>         if (rev >= L310_CACHE_ID_RTL_R3P0) {
+>>>>                 l2c_write_sec(L310_DYNAMIC_CLK_GATING_EN | L310_STNDBY_MODE_EN,
+>>>>                               base, L310_POWER_CTRL);
+>>>>
+>>>> So, because we're masking the wrong bits, we end up with these tests
+>>>> always succeeding.
+>>>>
+>>>> So that's a NACK for the original patch, it's the wrong fix.  The
+>>>> right fix is to avoid writing this register by fixing the RTL masking.
+>>>
+>>> Okie dokie, dropping the omap specific fix.
 >>
->> Has someone gathered that tags and put these in a git tree by any ch=
-ance?
+>> Here's the revision mask fix - with the existing code, the revision checks
+>> are all useless since they would all pass irrespective of the actual
+>> revision.  (Had the L2C series been better tested rather than being largely
+>> ignored, this may have been noticed before it was merged...)  Anyway, what
+>> isn't clear from Sekhar's message is which revision L2C310 is in the AM437x.
 >>
->
-> I don't think anyone has. Is that a problem?
->
-> If you need a pull request with these, I can prepare something in bit=
-bucket.
-> Would that work you?
+>> From: Russell King <rmk+kernel@arm.linux.org.uk>
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Subject: [PATCH] ARM: l2c: fix revision checking
+>>
+>> The revision checking in l2c310_enable() was not correct; we were
+>> masking the part number rather than the revision number.  Fix this
+>> to use the correct macro.
+>>
+>> Fixes: 4374d64933b1 ("ARM: l2c: add automatic enable of early BRESP")
+>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>> ---
+>>  arch/arm/mm/cache-l2x0.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+>> index 948f12cf6180..0b5068256baf 100644
+>> --- a/arch/arm/mm/cache-l2x0.c
+>> +++ b/arch/arm/mm/cache-l2x0.c
+>> @@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
+>>  
+>>  static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
+>>  {
+>> -	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
+>> +	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
+>>  	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
+> 
+> even with this change, l2c still tries to write to power control
+> register, at least on AM437x. Looking a little deeper here, AM437x
+> identifies itself as l2c PL310 r3p3, which should have power control
+> register, but aparentely there's no way to write that register. I'll
+> file a bug to our ROM team, but we will certainly need a way to
+> workaround this inside omap4-common.c
 
-I've picked them up manually now, so should be all fine.
+Looks like we need both my patch as well as Russell's patch. I can
+respin my patch with the pr_info_once() dropped if it helps further
+reduce boot noise.
 
 Thanks,
-Dave.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sekhar
+
