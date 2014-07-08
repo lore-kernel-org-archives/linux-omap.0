@@ -1,78 +1,53 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/3] ARM: edma: Add edma_assign_channel_eventq() to move channel to a give queue
-Date: Tue, 8 Jul 2014 13:46:37 +0300
-Message-ID: <1404816398-12338-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
+From: Manish Badarkhe <badarkhe.manish@gmail.com>
+Subject: Re: [PATCH] ASoC: omap-hdmi: Use devm_snd_soc_register_component
+Date: Tue, 8 Jul 2014 17:17:33 +0530
+Message-ID: <CAKDJKT5_AZD=EpPRsX7XL7eAEux5jGzx9+8M5hNvvuUKrAouxw@mail.gmail.com>
+References: <1404629383-3225-1-git-send-email-badarkhe.manish@gmail.com>
+	<53BA688B.3080901@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: nsekhar@ti.com, joelf@ti.com, vinod.koul@intel.com
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, dmaengine@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f181.google.com ([209.85.192.181]:56540 "EHLO
+	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753322AbaGHLre (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 07:47:34 -0400
+Received: by mail-pd0-f181.google.com with SMTP id v10so6979489pde.26
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jul 2014 04:47:33 -0700 (PDT)
+In-Reply-To: <53BA688B.3080901@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Mark Brown <broonie@kernel.org>
 
-In some cases it is desired to move a channel to a specific event queue.
-Such a use case is audio, where it is preferred that it is served with
-highest priority compared to other DMA clients.
+Hi Peter,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/common/edma.c             | 28 ++++++++++++++++++++++++++++
- include/linux/platform_data/edma.h |  2 ++
- 2 files changed, 30 insertions(+)
+On Mon, Jul 7, 2014 at 2:59 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> On 07/06/2014 09:49 AM, Manish Badarkhe wrote:
+>> Replaced snd_soc_register_component with its devres equivalent,
+>> devm_snd_soc_register_component.
+>>
+>> Signed-off-by: Manish Badarkhe <badarkhe.manish@gmail.com>
+>> ---
+>> :100644 100644 eb9c392... 1dc95b5... M        sound/soc/omap/omap-hdmi.c
+>>  sound/soc/omap/omap-hdmi.c |    4 +---
+>>  1 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
+>> index eb9c392..1dc95b5 100644
+>> --- a/sound/soc/omap/omap-hdmi.c
+>> +++ b/sound/soc/omap/omap-hdmi.c
+>> @@ -322,7 +322,7 @@ static int omap_hdmi_probe(struct platform_device *pdev)
+>>       }
+>>
+>>       dev_set_drvdata(&pdev->dev, hdmi_data);
+>> -     ret = snd_soc_register_component(&pdev->dev, &omap_hdmi_component,
+>> +     ret = devm_snd_soc_register_component(&pdev->dev, &omap_hdmi_component,
+>>                                        &omap_hdmi_dai, 1);
+>
+> As with the omap-mcbsp:
+> Can you align the parameters as well?
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index f834aae7720f..88099175fc56 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -1414,6 +1414,34 @@ void edma_clear_event(unsigned channel)
- }
- EXPORT_SYMBOL(edma_clear_event);
- 
-+/*
-+ * edma_assign_channel_eventq - move given channel to desired eventq
-+ * Arguments:
-+ *	channel - channel number
-+ *	eventq_no - queue to move the channel
-+ *
-+ * Can be used to move a channel to a selected event queue.
-+ */
-+void edma_assign_channel_eventq(unsigned channel, enum dma_event_q eventq_no)
-+{
-+	unsigned ctlr;
-+
-+	ctlr = EDMA_CTLR(channel);
-+	channel = EDMA_CHAN_SLOT(channel);
-+
-+	if (channel >= edma_cc[ctlr]->num_channels)
-+		return;
-+
-+	/* default to low priority queue */
-+	if (eventq_no == EVENTQ_DEFAULT)
-+		eventq_no = edma_cc[ctlr]->default_queue;
-+	if (eventq_no >= edma_cc[ctlr]->num_tc)
-+		return;
-+
-+	map_dmach_queue(ctlr, channel, eventq_no);
-+}
-+EXPORT_SYMBOL(edma_assign_channel_eventq);
-+
- static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
- 			      struct edma *edma_cc)
- {
-diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
-index eb8d5627d080..bdb2710e2aab 100644
---- a/include/linux/platform_data/edma.h
-+++ b/include/linux/platform_data/edma.h
-@@ -150,6 +150,8 @@ void edma_clear_event(unsigned channel);
- void edma_pause(unsigned channel);
- void edma_resume(unsigned channel);
- 
-+void edma_assign_channel_eventq(unsigned channel, enum dma_event_q eventq_no);
-+
- struct edma_rsv_info {
- 
- 	const s16	(*rsv_chans)[2];
--- 
-2.0.0
+Sure, will do it and send next version.
+
+Regards
+Manish Badarkhe
