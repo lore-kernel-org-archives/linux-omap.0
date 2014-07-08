@@ -1,44 +1,46 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 0/7] ARM: dts: AM43x: Add devcice tree nodes
-Date: Tue, 8 Jul 2014 15:46:30 +0530
-Message-ID: <1404814597-4404-1-git-send-email-j-keerthy@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3] ARM: edma: Set default queue to lowest priority
+Date: Tue, 8 Jul 2014 13:46:36 +0300
+Message-ID: <1404816398-12338-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51192 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753063AbaGHKXZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Jul 2014 06:23:25 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1404816398-12338-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: nsekhar-l0cyMroinI0@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com, broonie@kernel.org, Keerthy <j-keerthy@ti.com>
 
-The patch series adds the device tree nodes and the corresponding
-documentation. The series also enabled tps65218 config options
-in the omap2plus_defconfig.
+Use the lowest priority queue as default for clients.
 
-The series is boot tested on both AM43x-epos-evm and AM437x-gp-evm.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/common/edma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Keerthy (7):
-  mfd: Add DT bindings for tps65218 PMIC
-  regulator: Add DT bindings for tps65218 PMIC regulators.
-  ARM: dts: AM43x: Add TPS65218 device tree nodes
-  ARM: dts: AM437x: Fix i2c nodes indentation
-  ARM: dts: AM437x: Add TPS65218 device tree nodes
-  regulator: tps65218: Add get_voltage ops for dcdc5 and dcdc6
-  ARM: configs: omap2plus_defconfig: enable TPS65218 configs
-
- Documentation/devicetree/bindings/mfd/tps65218.txt |   89 ++++++++++++++++++++
- .../devicetree/bindings/regulator/tps65218.txt     |   23 +++++
- arch/arm/boot/dts/am437x-gp-evm.dts                |   71 ++++++++++++++--
- arch/arm/boot/dts/am43x-epos-evm.dts               |   59 +++++++++++++
- arch/arm/configs/omap2plus_defconfig               |    2 +
- drivers/regulator/tps65218-regulator.c             |    9 ++
- 6 files changed, 246 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mfd/tps65218.txt
- create mode 100644 Documentation/devicetree/bindings/regulator/tps65218.txt
-
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 485be42519b9..f834aae7720f 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1470,7 +1470,8 @@ static int edma_setup_from_hw(struct device *dev, struct edma_soc_info *pdata,
+ 	queue_priority_map[i][1] = -1;
+ 
+ 	pdata->queue_priority_mapping = queue_priority_map;
+-	pdata->default_queue = 0;
++	/* Default queue has the lowest priority */
++	pdata->default_queue = i - 1;
+ 
+ 	return 0;
+ }
 -- 
-1.7.9.5
-
+2.0.0
