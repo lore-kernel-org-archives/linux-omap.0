@@ -1,56 +1,38 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI
- architecture
-Date: Tue, 8 Jul 2014 08:53:32 +0100
-Message-ID: <20140708075332.GM6407@lee--X1>
-References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
- <1404541530-27856-4-git-send-email-peter.griffin@linaro.org>
- <53BBA075.9040204@st.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/3] gpio: omap: Remove unnecessary lockdep class
+Date: Tue, 8 Jul 2014 09:54:25 +0200
+Message-ID: <CACRpkdYpUJSXFUqJ76r9kQdBCAs4ZUSuNXDUEWOk6kZH0xmOLQ@mail.gmail.com>
+References: <1403900258-20717-1-git-send-email-jmartinez@softcrates.net>
+	<1403900258-20717-2-git-send-email-jmartinez@softcrates.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <53BBA075.9040204-qxv4g6HH51o@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>
-Cc: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:33994 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753134AbaGHHyZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 03:54:25 -0400
+Received: by mail-oa0-f44.google.com with SMTP id i7so5946108oag.3
+        for <linux-omap@vger.kernel.org>; Tue, 08 Jul 2014 00:54:25 -0700 (PDT)
+In-Reply-To: <1403900258-20717-2-git-send-email-jmartinez@softcrates.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Alexandre Courbot <acourbot@nvidia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Javier Martinez Canillas <jmartinez@softcrates.net>
 
-On Tue, 08 Jul 2014, Maxime Coquelin wrote:
-> On 07/05/2014 08:25 AM, Peter Griffin wrote:
-> >Signed-off-by: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->=20
-> Acked-by: Maxime Coquelin <maxime.coquelin-qxv4g6HH51o@public.gmane.org>
+On Fri, Jun 27, 2014 at 10:17 PM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
 
-Maxime,
-  Once Acked by Felipe, I think this should go in via your tree to
-avoid conflicts with other ARM/STI ARCHITECTURE additions.
+> GPIO irqchips assign to the cascaded IRQs their own lock class
+> in order to avoid warnings about lockdep recursions since that
+> allow the lockdep core to keep track of things.
+>
+> Since commit e45d1c80 ("gpio: put GPIO IRQs into their own lock class")
+> there is no need to do this in a driver if it's using the GPIO
+> irqchip helpers since gpiolib already assigns a lockdep class.
+>
+> Signed-off-by: Javier Martinez Canillas <jmartinez@softcrates.net>
 
-> >---
-> >  MAINTAINERS | 1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> >diff --git a/MAINTAINERS b/MAINTAINERS
-> >index 702ca10..269ad3b 100644
-> >--- a/MAINTAINERS
-> >+++ b/MAINTAINERS
-> >@@ -1325,6 +1325,7 @@ F:	drivers/pinctrl/pinctrl-st.c
-> >  F:	drivers/media/rc/st_rc.c
-> >  F:	drivers/i2c/busses/i2c-st.c
-> >  F:	drivers/tty/serial/st-asc.c
-> >+F:	drivers/usb/dwc3/dwc3-st.c
-> >
-> >  ARM/TECHNOLOGIC SYSTEMS TS7250 MACHINE SUPPORT
-> >  M:	Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>
-> >
+That's right. Patch applied.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
