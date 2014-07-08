@@ -1,50 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: DRA7: dts: clock data fixes
-Date: Tue, 8 Jul 2014 01:17:39 -0700
-Message-ID: <20140708081738.GD28884@atomide.com>
-References: <53B59B22.5050903@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
+ setting
+Date: Tue, 8 Jul 2014 01:29:48 -0700
+Message-ID: <20140708082948.GE28884@atomide.com>
+References: <20140702081142.GU28884@atomide.com>
+ <20140707104727.GM28884@atomide.com>
+ <20140707104944.GS3705@n2100.arm.linux.org.uk>
+ <20140707110249.GO28884@atomide.com>
+ <53BA8983.3030803@ti.com>
+ <20140707121512.GT3705@n2100.arm.linux.org.uk>
+ <20140707123925.GW28884@atomide.com>
+ <20140707134008.GU3705@n2100.arm.linux.org.uk>
+ <20140707151024.GJ5582@saruman.home>
+ <53BB7980.2060909@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26073 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbaGHIRh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 04:17:37 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10679 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752936AbaGHI3t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 04:29:49 -0400
 Content-Disposition: inline
-In-Reply-To: <53B59B22.5050903@ti.com>
+In-Reply-To: <53BB7980.2060909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: balbi@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Tero Kristo <t-kristo@ti.com> [140703 11:05]:
-> Hi Tony,
+* Sekhar Nori <nsekhar@ti.com> [140707 21:56]:
+> On Monday 07 July 2014 08:40 PM, Felipe Balbi wrote:
+> > On Mon, Jul 07, 2014 at 02:40:08PM +0100, Russell King - ARM Linux wrote:
+> >> --- a/arch/arm/mm/cache-l2x0.c
+> >> +++ b/arch/arm/mm/cache-l2x0.c
+> >> @@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
+> >>  
+> >>  static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
+> >>  {
+> >> -	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
+> >> +	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
+> >>  	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
+> > 
+> > even with this change, l2c still tries to write to power control
+> > register, at least on AM437x. Looking a little deeper here, AM437x
+> > identifies itself as l2c PL310 r3p3, which should have power control
+> > register, but aparentely there's no way to write that register. I'll
+> > file a bug to our ROM team, but we will certainly need a way to
+> > workaround this inside omap4-common.c
 > 
-> The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
-> 
->   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
-> 
-> are available in the git repository at:
-> 
->   git@github.com:t-kristo/linux-pm.git for-v3.16-rc/clk-dt-fixes
-> 
-> for you to fetch changes up to dd94324b983afe114ba9e7ee3649313b451f63ce:
-> 
->   ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates (2014-07-03
-> 20:59:36 +0300)
-> ----------------------------------------------------------------
-> 
-> One fix for 3.16-rc. Fixes wrong dividers for l3/l4 clock nodes on DRA7.
-> 
+> Looks like we need both my patch as well as Russell's patch. I can
+> respin my patch with the pr_info_once() dropped if it helps further
+> reduce boot noise.
 
-Pulling this into omap-for-v3.16/fixes thanks.
+In that case I'm fine with the original patch in this series. Russell,
+got any better ideas?
+
+Regards,
 
 Tony
-
-> ----------------------------------------------------------------
-> Rajendra Nayak (1):
->       ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
-> 
->  arch/arm/boot/dts/dra7xx-clocks.dtsi |   10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
