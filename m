@@ -1,143 +1,116 @@
-From: "Gupta, Pekon" <pekon@ti.com>
-Subject: RE: [PATCH 4/5] [RFC] ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable
-Date: Tue, 8 Jul 2014 06:25:13 +0000
-Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EAFC085@DBDE04.ent.ti.com>
-References: <1400799986-20043-1-git-send-email-chf.fritz@googlemail.com>
- <1400799986-20043-5-git-send-email-chf.fritz@googlemail.com>
- <20980858CB6D3A4BAE95CA194937D5E73EAEA346@DBDE04.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 01/12] ARM: OMAP2+: Remove non working OMAP HDMI audio
+ initialization
+Date: Tue, 8 Jul 2014 10:30:16 +0300
+Message-ID: <53BB9E08.7090802@ti.com>
+References: <cover.1403807781.git.jsarha@ti.com> <b0764a3af8181db55db046d6139119def363e8eb.1403807781.git.jsarha@ti.com> <20140707114625.GT28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39100 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33094 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751852AbaGHGZu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 02:25:50 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EAEA346@DBDE04.ent.ti.com>
-Content-Language: en-US
+	id S1753335AbaGHHag (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Jul 2014 03:30:36 -0400
+In-Reply-To: <20140707114625.GT28884@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christoph Fritz <chf.fritz@googlemail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Daniel Mack <zonque@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, "Javier Martinez Canillas (javier@dowhile0.org)" <javier@dowhile0.org>, "Ash Charles (ashcharles@gmail.com)" <ashcharles@gmail.com>
+To: Tony Lindgren <tony@atomide.com>, Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi
 
-Hi Cristoph,
+Hi Tony,
 
->From: Pekon Gupta <Pekon@ti.com>
->>From: Christoph Fritz [mailto:chf.fritz@googlemail.com]
->>
->>Most dt omap3 boards configure nand-ecc-opt as bch8. Due
->>to lack of hardware elm support, bch8 software implementation
->>gets set.
->>
->>Since commit 0611c41934ab35ce84dea "ARM: OMAP2+: gpmc: update
->>gpmc_hwecc_bch_capable() for new platforms and ECC schemes",
->>nand support stops working.
->>
->>This patch allows ecc software fallback.
->
->Pleas add following tag at top of commit message.
->
->Fixes: commit 0611c41934ab35ce84dea34ab291897ad3cbc7be
->ARM: OMAP2+: gpmc: update gpmc_hwecc_bch_capable() for new platforms and ECC schemes
->
->And please mark it for 3.15 stable if this gets accepted after 3.15-rcx.
->Cc: <stable@vger.kernel.org> # 3.15.x+
->
->
->>---
->> arch/arm/mach-omap2/gpmc-nand.c |   16 ++++++----------
->> 1 file changed, 6 insertions(+), 10 deletions(-)
->>
->>diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
->>index 4349e82..52c4834 100644
->>--- a/arch/arm/mach-omap2/gpmc-nand.c
->>+++ b/arch/arm/mach-omap2/gpmc-nand.c
->>@@ -43,13 +43,17 @@ static struct platform_device gpmc_nand_device = {
->> 	.resource	= gpmc_nand_resource,
->> };
->>
->>-static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
->>+static bool gpmc_ecc_bch_capable(enum omap_ecc ecc_opt)
->
->I don't think this renaming is really required with this fix, so please
->drop it and just keep it simple only for OMAP3 fix.
->
->
->> {
->> 	/* platforms which support all ECC schemes */
->> 	if (soc_is_am33xx() || cpu_is_omap44xx() ||
->> 		 soc_is_omap54xx() || soc_is_dra7xx())
->> 		return 1;
->>
->>+	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) ||
->>+		(ecc_opt == OMAP_ECC_BCH8_CODE_HW_DETECTION_SW))
->>+		return 1;
->>+
->
->Note: Some very old legacy platforms have initial version of GPMC engine
->which only supports Hamming ECC, and not BCH ECC scheme, so lets
->filter them out to maintain backward compatibility.
->
->(1) As per TRM, OMAP2 platform does not support BCH ECC schemes,
->      So please filter out OMAP2 devices from this check ...
->
->(2) I don't know the history but below comment says:
->"* For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1"
->
->if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) ||
->	 (ecc_opt == OMAP_ECC_BCH8_CODE_HW_DETECTION_SW))  {
->	if (cpu_is_omap24xx())
->		return 0;
->	else if (cpu_is_omap3630() && (GET_OMAP_REVISION() == 0))
->		return 0;
->	else
->		return 1;
->}
->
->
->> 	/* OMAP3xxx do not have ELM engine, so cannot support ECC schemes
->> 	 * which require H/W based ECC error detection */
->> 	if ((cpu_is_omap34xx() || cpu_is_omap3630()) &&
->>@@ -57,14 +61,6 @@ static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
->> 		 (ecc_opt == OMAP_ECC_BCH8_CODE_HW)))
->> 		return 0;
->>
->>-	/*
->>-	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
->>-	 * and AM33xx derivates. Other chips may be added if confirmed to work.
->>-	 */
->>-	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW_DETECTION_SW) &&
->>-	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)))
->>-		return 0;
->>-
->Thanks for removing this, I too wasn't confident of this either.
->
->
->> 	/* legacy platforms support only HAM1 (1-bit Hamming) ECC scheme */
->> 	if (ecc_opt == OMAP_ECC_HAM1_CODE_HW)
->> 		return 1;
->>@@ -140,7 +136,7 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->>
->> 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
->>
->>-	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
->>+	if (!gpmc_ecc_bch_capable(gpmc_nand_data->ecc_opt)) {
->
->Please drop this renaming from this patch.
->
->> 		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
->> 		return -EINVAL;
->> 	}
->>--
->>1.7.10.4
->
->You may send this patch separately apart from the series, so that
->this gets accepted in current 3.15-rcx.
->
->with regards, Pekon
+On 07/07/2014 02:46 PM, Tony Lindgren wrote:
+> * Jyri Sarha <jsarha@ti.com> [140626 12:26]:
+>> This code is not working currently and it can be removed. There is a
+>> conflict in sharing resources with the actual HDMI driver and with
+>> the ASoC HDMI audio DAI driver.
+>=20
+> Is this OK to queue for v3.17 or do we need this for v3.16-rc series?
 
-Do you plan to re-spin this patch with above comments, and mark it for stable?
-It would be helpful for all OMAP3 users.
+Jyri is away currently, but I think it would be great if this patch goe=
+s in
+for 3.16. The patch does not introduce regression since the OMAP4/5 HDM=
+I is in
+non working state in the kernel so removing the platform device right n=
+ow will
+ease up the merger of the new and working code.
+
+Regards,
+P=E9ter
+
+>=20
+> Regards,
+>=20
+> Tony
+> =20
+>> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/devices.c |   28 ----------------------------
+>>  1 file changed, 28 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/dev=
+ices.c
+>> index 592ba0a..b6f8f34 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+>> @@ -297,33 +297,6 @@ static void omap_init_audio(void)
+>>  static inline void omap_init_audio(void) {}
+>>  #endif
+>> =20
+>> -#if defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI) || \
+>> -		defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI_MODULE)
+>> -
+>> -static struct platform_device omap_hdmi_audio =3D {
+>> -	.name	=3D "omap-hdmi-audio",
+>> -	.id	=3D -1,
+>> -};
+>> -
+>> -static void __init omap_init_hdmi_audio(void)
+>> -{
+>> -	struct omap_hwmod *oh;
+>> -	struct platform_device *pdev;
+>> -
+>> -	oh =3D omap_hwmod_lookup("dss_hdmi");
+>> -	if (!oh)
+>> -		return;
+>> -
+>> -	pdev =3D omap_device_build("omap-hdmi-audio-dai", -1, oh, NULL, 0)=
+;
+>> -	WARN(IS_ERR(pdev),
+>> -	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
+>> -
+>> -	platform_device_register(&omap_hdmi_audio);
+>> -}
+>> -#else
+>> -static inline void omap_init_hdmi_audio(void) {}
+>> -#endif
+>> -
+>>  #if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MOD=
+ULE)
+>> =20
+>>  #include <linux/platform_data/spi-omap2-mcspi.h>
+>> @@ -459,7 +432,6 @@ static int __init omap2_init_devices(void)
+>>  	 */
+>>  	omap_init_audio();
+>>  	omap_init_camera();
+>> -	omap_init_hdmi_audio();
+>>  	omap_init_mbox();
+>>  	/* If dtb is there, the devices will be created dynamically */
+>>  	if (!of_have_populated_dt()) {
+>> --=20
+>> 1.7.9.5
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
 
-with regards, pekon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
