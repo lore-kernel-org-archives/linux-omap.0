@@ -1,8 +1,8 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 03/10] OMAP: GPMC: Introduce APIs to access NAND control
- registers
-Date: Wed, 9 Jul 2014 15:37:23 +0300
-Message-ID: <1404909450-11970-4-git-send-email-rogerq@ti.com>
+Subject: [RFC PATCH 05/10] OMAP: GPMC: Introduce APIs for accessing
+ Prefetch/Write-post engine
+Date: Wed, 9 Jul 2014 15:37:25 +0300
+Message-ID: <1404909450-11970-6-git-send-email-rogerq@ti.com>
 References: <1404909450-11970-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,187 +22,228 @@ To: tony@atomide.com, computersforpeace@gmail.com
 Cc: jg1.han@samsung.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Introduce omap_gpmc_read_reg() and omap_gpmc_write_reg() so that the
-NAND driver can access the required registers (only those specified in
-enum omap_gpmc_reg).
+Even though the Prefetch engine is meant for exclusive use by
+the OMAP NAND controller, itst registers belong to the GPMC controller's
+register space.
 
-The NAND driver must use these APIs instead of directly accesing the
-NAND control registers as they belong to the GPMC controller's register space.
+Introduce 4 APIs to access the Prefetch/Write-post engine.
+
+int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
+			     u32 count, int is_write);
+int omap_gpmc_prefetch_stop(int cs);
+u32 omap_gpmc_get_prefetch_count(void);
+u32 omap_gpmc_get_prefetch_fifo_count(void);
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c     | 88 +++++++++++++++++++++++++++++++++++++++++-
- include/linux/omap-gpmc-nand.h | 40 +++++++++++++++++++
- 2 files changed, 127 insertions(+), 1 deletion(-)
- create mode 100644 include/linux/omap-gpmc-nand.h
+ arch/arm/mach-omap2/gpmc.c     | 134 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/omap-gpmc-nand.h |  30 +++++++++
+ 2 files changed, 164 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 2c0c281..92bbada 100644
+index 92bbada..43e2a9d 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -31,7 +31,7 @@
- #include <linux/of_device.h>
- #include <linux/mtd/nand.h>
+@@ -33,6 +33,7 @@
  #include <linux/pm_runtime.h>
--
-+#include <linux/omap-gpmc-nand.h>
+ #include <linux/omap-gpmc-nand.h>
  #include <linux/platform_data/mtd-nand-omap2.h>
++#include <linux/bitops.h>
  
  #include <asm/mach-types.h>
-@@ -167,10 +167,32 @@ static resource_size_t phys_base, mem_size;
- static unsigned gpmc_capability;
- static void __iomem *gpmc_base;
  
-+struct gpmc_nand_reg {
-+	void __iomem *command;
-+	void __iomem *address;
-+	void __iomem *data;
-+};
+@@ -114,6 +115,20 @@
+ 
+ #define GPMC_NR_WAITPINS		4
+ 
++/* GPMC Prefetch/Write-post Engine */
++#define GPMC_PREFETCH_CONFIG1_ENABLE_PREFETCH	BIT(7)
++#define GPMC_PREFETCH_CONFIG1_DMAMODE		BIT(2)
++#define GPMC_PREFETCH_CONFIG1_ACCESSMODE	BIT(0)
++#define GPMC_PREFETCH_CONFIG1_CS_MASK		GENMASK(26, 24)
++#define GPMC_PREFETCH_CONFIG1_CS_SHIFT		24
++#define GPMC_PREFETCH_CONFIG1_FIFOTH_MASK	GENMASK(14, 8)
++#define GPMC_PREFETCH_CONFIG1_FIFOTH_SHIFT	8
 +
-+static struct gpmc_nand_reg gpmc_nand_reg_map[GPMC_CS_NUM];
++#define GPMC_PREFETCH_CONTROL_START		BIT(0)
 +
- static struct clk *gpmc_l3_clk;
- 
- static irqreturn_t gpmc_handle_irq(int irq, void *dev);
- 
-+static void gpmc_fill_nand_reg_map(void)
-+{
-+	int i;
++#define GPMC_PREFETCH_STATUS_COUNT(val)		(val & 0x00003fff)
++#define GPMC_PREFETCH_STATUS_FIFO_CNT(val)	((val >> 24) & 0x7F)
 +
-+	for (i = 0; i < gpmc_cs_num; i++) {
-+		gpmc_nand_reg_map[i].command = gpmc_base + GPMC_CS0_OFFSET +
-+				GPMC_CS_NAND_COMMAND + GPMC_CS_SIZE * i;
-+		gpmc_nand_reg_map[i].address = gpmc_base + GPMC_CS0_OFFSET +
-+				GPMC_CS_NAND_ADDRESS + GPMC_CS_SIZE * i;
-+		gpmc_nand_reg_map[i].data  = gpmc_base + GPMC_CS0_OFFSET +
-+				GPMC_CS_NAND_DATA + GPMC_CS_SIZE * i;
-+	}
-+}
-+
- static void gpmc_write_reg(int idx, u32 val)
- {
- 	writel_relaxed(val, gpmc_base + idx);
-@@ -1720,6 +1742,7 @@ static int gpmc_probe(struct platform_device *pdev)
- 		return rc;
- 	}
- 
-+	gpmc_fill_nand_reg_map();
- 	return 0;
- }
- 
-@@ -1885,3 +1908,66 @@ void omap3_gpmc_restore_context(void)
- 		}
+ /* XXX: Only NAND irq has been considered,currently these are the only ones used
+  */
+ #define	GPMC_NR_IRQ		2
+@@ -1971,3 +1986,122 @@ void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val)
+ 		break;
  	}
  }
 +
 +/**
-+ * omap_gpmc_read_reg - Read the specified GPMC register
-+ * @cs:		chip select number
-+ * @reg:	GPMC register id
++ * omap_gpmc_prefetch_start - configures and starts the prefetch engine
 + *
-+ * Reads the specified register from the appropriate chip select region
-+ * and returns the read value.
++ * @cs: cs (chip select) number
++ * @fifo_th: fifo threshold to be used for read/ write
++ * @dma: dma mode enable (1) or disable (0)
++ * @count: number of bytes to be transferred
++ * @is_write: prefetch read(0) or write post(1) mode
++ *
++ * As there is a single prefetch engine that must be shared between
++ * chip selects containing NAND flashes, the function returns -EBUSY if
++ * the engine is already in use. Returns 0 on success.
 + */
-+u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg)
++int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
++			     u32 count, int is_write)
 +{
++	u32 val;
++
 +	if (!gpmc_dev)
-+		return 0;
++		return -ENODEV;
 +
 +	if (cs >= gpmc_cs_num)
-+		return 0;
++		return -EINVAL;
 +
-+	switch (reg) {
-+	case OMAP_GPMC_STATUS:
-+		return gpmc_read_reg(GPMC_STATUS);
-+	case OMAP_GPMC_NAND_COMMAND:
-+	case OMAP_GPMC_NAND_ADDRESS:
-+		return 0;	/* command & address regs can't be read */
-+	case OMAP_GPMC_NAND_DATA:
-+		return readb_relaxed(gpmc_nand_reg_map[cs].data);
-+	default:
-+		return 0;
-+	}
++	if (fifo_th > GPMC_PREFETCH_FIFOTHRESHOLD_MAX)
++		return -EINVAL;
++
++	/* Check if engine is already in use */
++	if (gpmc_read_reg(GPMC_PREFETCH_CONTROL))
++		return -EBUSY;
++
++	/* Set the amount of bytes to be prefetched */
++	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, count);
++
++	/* Set dma/mpu mode, the prefetch read / post write and
++	 * enable the engine. Set which cs is has requested for.
++	 */
++	val = ((cs << GPMC_PREFETCH_CONFIG1_CS_SHIFT) |
++		GPMC_PREFETCH_CONFIG1_ENABLE_PREFETCH |
++		(GPMC_PREFETCH_CONFIG1_ACCESSMODE & is_write));
++
++	val |= (fifo_th << GPMC_PREFETCH_CONFIG1_FIFOTH_SHIFT) &
++		GPMC_PREFETCH_CONFIG1_FIFOTH_MASK;
++
++	if (dma)
++		val |= GPMC_PREFETCH_CONFIG1_DMAMODE;
++
++	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, val);
++
++	/*  Start the prefetch engine */
++	gpmc_write_reg(GPMC_PREFETCH_CONTROL, GPMC_PREFETCH_CONTROL_START);
++
++	return 0;
 +}
 +
 +/**
-+ * omap_gpmc_write_reg - Write into the specified GPMC register
-+ * @cs:		chip select number
-+ * @reg:	GPMC register id
-+ * @val:	value to write
++ * omap_gpmc_prefetch_stop - stops and disables the prefetch engine
 + *
-+ * Writes the value into the specified register in the appropriate
-+ * chip select region.
++ * @cs: Chip select number
 + */
-+void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val)
++int omap_gpmc_prefetch_stop(int cs)
 +{
++	u32 config1;
++
 +	if (!gpmc_dev)
-+		return;
++		return -ENODEV;
 +
 +	if (cs >= gpmc_cs_num)
-+		return;
++		return -EINVAL;
 +
-+	switch (reg) {
-+	case OMAP_GPMC_STATUS:
-+		gpmc_write_reg(GPMC_STATUS, val);
-+	case OMAP_GPMC_NAND_COMMAND:
-+		writeb_relaxed(val, gpmc_nand_reg_map[cs].command);
-+		break;
-+	case OMAP_GPMC_NAND_ADDRESS:
-+		writeb_relaxed(val, gpmc_nand_reg_map[cs].address);
-+		break;
-+	case OMAP_GPMC_NAND_DATA:
-+		writeb_relaxed(val, gpmc_nand_reg_map[cs].data);
-+		break;
-+	default:
-+		break;
-+	}
++	/* check if the same module/cs is trying to reset */
++	config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
++	config1 &= GPMC_PREFETCH_CONFIG1_CS_MASK;
++
++	if ((config1 >> GPMC_PREFETCH_CONFIG1_CS_SHIFT) != cs)
++		return -EINVAL;
++
++	/* Stop the engine */
++	gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0);
++
++	/* Reset/disable the engine */
++	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0);
++
++	return 0;
++}
++
++/**
++ * omap_gpmc_get_prefetch_count - Returns the number of bytes remaining to be
++ * read or written by the prefetch/write-post engine
++ */
++u32 omap_gpmc_get_prefetch_count(void)
++{
++	u32 count;
++
++	if (!gpmc_dev)
++		return 0;
++
++	count = gpmc_read_reg(GPMC_PREFETCH_STATUS);
++	count = GPMC_PREFETCH_STATUS_COUNT(count);
++	return count;
++}
++
++/**
++ * omap_gpmc_get_prefetch_fifo_count - Returns the number of bytes available
++ * to be read from the FIFO or free bytes available to be written to the FIFO
++ * by the CPU
++ */
++u32 omap_gpmc_get_prefetch_fifo_count(void)
++{
++	u32 count;
++
++	if (!gpmc_dev)
++		return 0;
++
++	count = gpmc_read_reg(GPMC_PREFETCH_STATUS);
++	count = GPMC_PREFETCH_STATUS_FIFO_CNT(count);
++	return count;
 +}
 diff --git a/include/linux/omap-gpmc-nand.h b/include/linux/omap-gpmc-nand.h
-new file mode 100644
-index 0000000..dcb2abe
---- /dev/null
+index dcb2abe..c445d89 100644
+--- a/include/linux/omap-gpmc-nand.h
 +++ b/include/linux/omap-gpmc-nand.h
-@@ -0,0 +1,40 @@
-+/*
-+ * OMAP NAND to GPMC custom API interface
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Inc. - http://www.ti.com
-+ *      Roger Quadros <rogerq@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ */
+@@ -26,6 +26,12 @@ enum omap_gpmc_reg {
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg);
+ void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val);
 +
-+#ifndef _OMAP_GPMC_NAND_H_
-+#define _OMAP_GPMC_NAND_H_
++int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
++			     u32 count, int is_write);
++int omap_gpmc_prefetch_stop(int cs);
++u32 omap_gpmc_get_prefetch_count(void);
++u32 omap_gpmc_get_prefetch_fifo_count(void);
+ #else
+ static inline u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg)
+ {
+@@ -35,6 +41,30 @@ static inline u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg)
+ static inline void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val)
+ {
+ }
 +
-+/**
-+ * Registers that need to be accessed by the OMAP NAND driver
-+ */
++static inline int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
++					   u32 count, int is_write)
++{
++	return -ENOSYS;
++}
 +
-+enum omap_gpmc_reg {
-+	OMAP_GPMC_STATUS,
-+	OMAP_GPMC_NAND_COMMAND,
-+	OMAP_GPMC_NAND_ADDRESS,
-+	OMAP_GPMC_NAND_DATA,
-+};
++static inline int omap_gpmc_prefetch_stop(int cs)
++{
++	return -ENOSYS;
++}
 +
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg);
-+void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val);
-+#else
-+static inline u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg)
++static inline u32 omap_gpmc_get_prefetch_count(void)
 +{
 +	return 0;
 +}
 +
-+static inline void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val)
++static inline u32 omap_gpmc_get_prefetch_fifo_count(void)
 +{
++	return 0;
 +}
-+#endif
+ #endif
+ 
++/* Prefetch/Write-post Engine */
++#define GPMC_PREFETCH_FIFOTHRESHOLD_MAX		0x40
 +
-+#endif /* _GPMC_OMAP_H_ */
+ #endif /* _GPMC_OMAP_H_ */
 -- 
 1.8.3.2
 
