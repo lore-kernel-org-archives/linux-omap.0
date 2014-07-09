@@ -1,29 +1,75 @@
-From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Subject: [RFC v3] 8250-core based serial driver for OMAP
-Date: Wed, 9 Jul 2014 19:58:25 +0200
-Message-ID: <20140709175825.GA26622@breakpoint.cc>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 5/6] tty: serial: 8250-core: add rs485 support
+Date: Wed, 9 Jul 2014 15:01:44 -0400
+Message-ID: <20140709190143.GF17769@csclub.uwaterloo.ca>
 References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de>
+ <1404928177-26554-6-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1404928177-26554-6-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-+Subject
-On 2014-07-09 19:49:31 [+0200], Sebastian Andrzej Siewior wrote:
-> This is version three of the patch set. Unless something serious come=
-s up
-> I would drop the RFC on the next post.
->=20
-> So far I should have everything covered up comparing to the omap-seri=
-al
-> driver except for the throttle callbacks. And now I would slowly star=
-t
-> looking into DMA support=E2=80=A6
->=20
-Sebastian
+On Wed, Jul 09, 2014 at 07:49:36PM +0200, Sebastian Andrzej Siewior wrote:
+> So after I stuffed the rs485 support from the omap-serial into
+> 8250-omap, I've been looking at it and the only omap specific part was
+> the OMAP_UART_SCR_TX_EMPTY part. The driver has always TX_EMPTY set
+> because the 8250 core expects an interrupt after the TX fifo + shift
+> register is empty. The rs485 parts seems to wait for half fifo and then
+> again for the empty fifo. With this change gone it fits fine as generic
+> code and here it is.
+> 
+> It is expected that the potential rs485 user invokes
+> serial_omap_probe_rs485() to configure atleast RTS gpio which is a must
+> have property. The code has been taken from omap-serial driver and
+> received limited tested due to -ENODEV (the compiler said it works).
+> 
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  drivers/tty/serial/8250/8250_core.c | 171 ++++++++++++++++++++++++++++++++++++
+>  include/linux/serial_8250.h         |   6 ++
+>  2 files changed, 177 insertions(+)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+> index c7c3bf7..bf06a4c 100644
+> --- a/drivers/tty/serial/8250/8250_core.c
+> +++ b/drivers/tty/serial/8250/8250_core.c
+> @@ -39,6 +39,8 @@
+>  #include <linux/mutex.h>
+>  #include <linux/slab.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/gpio.h>
+> +#include <linux/of_gpio.h>
+>  #ifdef CONFIG_SPARC
+>  #include <linux/sunserialcore.h>
+>  #endif
+> @@ -1281,10 +1283,34 @@ static void autoconfig_irq(struct uart_8250_port *up)
+>  
+>  static inline void __stop_tx(struct uart_8250_port *p)
+>  {
+> +	if (p->rs485.flags & SER_RS485_ENABLED) {
+> +		int ret;
+> +
+> +		ret = (p->rs485.flags & SER_RS485_RTS_AFTER_SEND) ? 1 : 0;
+> +		if (gpio_get_value(p->rts_gpio) != ret) {
+> +			if (p->rs485.delay_rts_after_send > 0)
+> +				mdelay(p->rs485.delay_rts_after_send);
+> +			gpio_set_value(p->rts_gpio, ret);
+
+Usually the delay for RS485 is done in bit times, not msec.  Not sure
+how you expect this to work.  Not sure doing it in software is precise
+enough either.  It probably should be calculated based on the current
+baudrate with a bit time rather than msec in the DT data.  No one wants
+to have to change the DT data to change the baud rate.  After all this
+is very often used with modbus and the modbus rules specify turn around
+times in bit times.
+
+I hope TI puts this into the UART in future designs where it belongs
+(similar to what Exar and many others already did).
+
+-- 
+Len Sorensen
