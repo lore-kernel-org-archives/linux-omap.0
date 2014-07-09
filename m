@@ -1,137 +1,129 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
-Date: Wed, 9 Jul 2014 08:12:42 -0700
-Message-ID: <20140709151242.GY28884@atomide.com>
-References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de>
- <1404491651-1388-3-git-send-email-bigeasy@linutronix.de>
- <20140707142056.46f61cf9@alan.etchedpixels.co.uk>
- <20140709111705.GR28884@atomide.com>
- <53BD291D.3040307@linutronix.de>
- <20140709114837.GU28884@atomide.com>
- <53BD38D3.2000204@linutronix.de>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 2/6] mailbox/omap: add support for parsing dt devices
+Date: Wed, 9 Jul 2014 10:15:52 -0500
+Message-ID: <53BD5CA8.1080504@ti.com>
+References: <1403660878-56350-3-git-send-email-s-anna@ti.com> <20140628170709.GB23634@xo-6d-61-c0.localdomain> <53B18999.2020506@ti.com> <20140630185942.GA5410@amd.pavel.ucw.cz> <53B1BBA8.5090507@ti.com> <20140630203225.GA3893@amd.pavel.ucw.cz> <20140704064547.GZ28884@atomide.com> <20140704080556.GA16274@amd.pavel.ucw.cz> <20140704082354.GD28884@atomide.com> <53BC3081.9010402@ti.com> <20140709082906.GG28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53BD38D3.2000204@linutronix.de>
+In-Reply-To: <20140709082906.GG28884@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140709 05:45]:
-> On 07/09/2014 01:48 PM, Tony Lindgren wrote:
-> >>> So we can certainly enable this in a generic way, however, this
-> >>> can only be done under the following conditions:
-> > 
-> > Sorry forgot to mention why I think this can now be done in a
-> > generic way, that's because we have now runtime PM in Linux.
+On 07/09/2014 03:29 AM, Tony Lindgren wrote:
+> * Suman Anna <s-anna@ti.com> [140708 10:57]:
+>> Hi Tony, Pavel,
+>>
+>> On 07/04/2014 03:23 AM, Tony Lindgren wrote:
+>>> * Pavel Machek <pavel@ucw.cz> [140704 01:07]:
+>>>> Hi!
+>>>>
+>>>>>>>>>>> The non-DT support has to be maintained for now to not break
+>>>>>>>>>>> OMAP3 legacy boot, and the legacy-style code will be cleaned
+>>>>>>>>>>> up once OMAP3 is also converted to DT-boot only.
+>>>>>>>>>>
+>>>>>>>>>>> @@ -587,24 +606,157 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
+>>>>>>>>>>>  	return 0;
+>>>>>>>>>>>  }
+>>>>>>>>>>>  
+>>>>>>>>>>> +static const struct omap_mbox_device_data omap2_data = {
+>>>>>>>>>>> +	.num_users	= 4,
+>>>>>>>>>>> +	.num_fifos	= 6,
+>>>>>>>>>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+>>>>>>>>>>> +};
+>>>>>>>>>>> +
+>>>>>>>>>>> +static const struct omap_mbox_device_data omap3_data = {
+>>>>>>>>>>> +	.num_users	= 2,
+>>>>>>>>>>> +	.num_fifos	= 2,
+>>>>>>>>>>> +	.intr_type	= MBOX_INTR_CFG_TYPE1,
+>>>>>>>>>>> +};
+>>>>>>>>>>> +
+>>>>>>>>>>> +static const struct omap_mbox_device_data am335x_data = {
+>>>>>>>>>>> +	.num_users	= 4,
+>>>>>>>>>>> +	.num_fifos	= 8,
+>>>>>>>>>>> +	.intr_type	= MBOX_INTR_CFG_TYPE2,
+>>>>>>>>>>> +};
+>>>>>>>>>>
+>>>>
+>>>>>> Aha, ok, then the intr_type should be derived from
+>>>>>> compatible-string. Or rather... you should have three
+>>>>>> compatible-strings for the three possibilities? (And then subtype,
+>>>>>> currently unused, in case there are more hw differences).
+>>>>>
+>>>>> The compatible string can and should be separate for each revision
+>>>>> unless they are the same exacat hardware revision.
+>>>>
+>>>> ACK.
+>>
+>> I checked the revision register from all SoCs. OMAP2 and OMAP3 have
+>> different revisions compared to OMAP4+. All of OMAP4, OMAP5, DRA7,
+>> AM335x and AM437x have the same version, but with different num-fifos
+>> and num-users.  So, I can switch back to using omap4-mailbox for all of
+>> these SoCs only if we encode the num-fifos and num-users in DT.
+>>
+>>>>
+>>>>>>> two are HW IP design parameters, so in general putting them in DT isn't
+>>>>>>> completely a bad idea, but I will wait to see if there are any further
+>>>>>>> comments on this from Tony or DT maintainers before I make changes.
+>>>>>>
+>>>>>> Ok, right... I'd vote for putting them into DT.
+>>>>>
+>>>>> I would avoid adding custom DT properties where possible and let the
+>>>>> driver just initialize the right data based on the compatible flag.
+>>>>
+>>>> If these are HW IP design parameters, we can expect to see many
+>>>> different combinations. Yet we know ahead of time how to handle
+>>>> different parameters HW people select.
+>>
+>> That's right, the above OMAP4+ SoCs already demonstrate this behavior.
+>>
+>>>>
+>>>> Thus IMO we should do it in the device tree.
+>>>
+>>> Oh you mean from supporting new hardware with just .dts changes?
+>>> From that point of view it makes sense to have them as DT properties,
+>>> so I'm fine with that.
+>>>
+>>> Let's just try to use something that's generic like fifosize. No idea
+>>> how the property for num_fifos should be handled though as that
+>>> implies some knowledge in the driver which num_users have fifos?
+>>
+>> The fifos are not per num_users, but rather the total number of fifos
+>> within the IP block. The num_users will be the number of targets the IP
+>> block can interrupt. I tried looking for generic properties, but there
+>> weren't any that seem to fit the description. If you want generic names,
+>> I can use num-fifos and num-users, otherwise will stick to the
+>> names defined in the previous series.
 > 
-> I have a problem to follow here. I need set SET_RUNTIME_PM_OPS in
-> .pm member of the driver. This is around for a while now maybe it
-> wasn't around by the omap-serial was written but this doesn't matter
-> now.
+> OK since we already have some .dts entries with ti,mbox-num-fifos and
+> ti,mbox-num-users I'd use those for now. Adding parsing for a generic
+> property can be done later on.
 
-Right, the lack of runtime PM was one of the reasons for doing
-omap-serial earlier.
- 
-> As for the dw driver (as one of the gnomes points out) it shouldn't
-> matter because it is enabled / disabled based on 8250's pm callback. So
-> while the device is active and the 8250 core grabs & puts the
-> reference, nothing should change. Still a double check from Mika
-> wouldn't hurt.
+Alright, will stick to the existing properties.
 
-OK
- 
-> If I understand the omap case correct (and please correct me if I don't)
-> the 8250-omap driver assumes that the device can go to sleep
-> after the probe function completes. This does not happen
-> because pm_runtime_set_autosuspend_delay() sets the delay to -1.
-
-Correct. And once the timeout is enabled, the serial driver
-autoidles itself using runtime PM based on the timeout value.
-
-And also please note that for runtime PM the wake-up events need
-to be always enabled, so the device_may_wakeup() checks should
-be only implemented for suspend and resume. I think I got that
-corrected for most part in omap-serial.c recently, but knowing
-that might reduce the confusion a bit :)
-
-> If the user changes this via sysfs, then the device might go to sleep
-> and the IP block switched of. Therefore we need the runtime pm
-> callbacks in 8250-core before the register access because we can't
-> access the it otherwise.
-
-Correct. And it's not just the 8250 idle state, it's the whole SoC
-getting powered down during idle and rebooted when waking to a
-timer interrupt or device interrupt.
-
-> The core should wake us up in case there is incoming RX action to be
-> handled so we can restore register's content. And for TX we have the
-> proper pm hooks.
-
-The piece of code that runs in that case is the interrupt handler
-for the serial port. That handler could be separate from the
-regular serial port handler if necessary though and do a callback
-to the serial core code. But I don't know if that's needed.
-
-> The dw driver also only disables / enables the clock. So they don't
-> lose the register's content like omap does. Thus they don't need the
-> one struct I exported.
-
-Right, enabling and disabling the clock is done too for omaps
-when the SoC hits retention idle.
- 
-> I don't think that it makes sense to make this restore/save part
-> generic if this what it is about. OMAP at least has a few registers
-> more to take care of and set-termios is already different.
-
-Yeah, and that can be done later on if others need it.
- 
-> >>> 1. We can save and restore the serial register context and detect
-> >>>    when context was lost in the serial driver. The context loss
-> >>>    can be detected by looking at some registers that are only
-> >>>    initialized during init.
-> >>
-> >> A register check on restore context? DLL+DLH might be a good hint here
-> >> since its value should be >0 in the running case.
-> > 
-> > OK yeah that would be a generic way to do it potentially ;)
-> > 
-> > Note that all the context_loss_cnt stuff in omap-serial.c can
-> > then be ignored, that's still only needed for the omap3 legacy
-> > mode booting case and won't be needed much longer.
 > 
-> Ah. The way the code reads, it is just an optimization in case the core
-> didn't go off after all so we don't have to restore the registers.
-
-Well the interconnect code knows when the context was lost on omaps,
-but there's currently no Linux generic API for that. And since we
-can do it by checking some registers, it's best to implement it that
-way.
- 
-> >>> 2. There's a way for the serial RX pin to wake the SoC. On some
-> >>>    omaps there's a separate pin specific wake-up interrupt that
-> >>>    can be used for that.
-> >>
-> >> That one would be handled by omap separately.
-> > 
-> > OK great.
-> >  
-> >>> 3. The serial PM features must be only enabled if requested by
-> >>>    the user via sysfs. Typically extra latency and loss of the
-> >>>    first RX character occur which is not acceptable to most
-> >>>    applications.
-> >>
-> >> Unless I'm mistaken the omap driver now initializes the timeout to -1.
-> >> So nothing happens unless this is enabled separately.
-> > 
-> > Yes that's the only safe approach so the serial port behaves in
-> > the standard Linux way unless specifically requested by the
-> > user.
-> > 
-> > Regards,
-> > 
-> > Tony
+>>> So unless that can be described clearly in a DT property as well,
+>>> the binding might be still unusable for new hardware :)
+>>>
+>>
+>> I don't expect the OMAP mailbox IP to change much in the future. There
+>> is a FIFO depth parameter as well, but that's constant in all the
+>> current versions, and even if they change it, I can already use the
+>> generic property for that.
 > 
-> Sebastian
+> OK
+>  
+>> Tony,
+>> Depending on the agreement here, I may have to respin the OMAP
+>> mailbox DT/hwmod cleanup series [1]
+> 
+> OK let me know.
+
+I will refresh both this series and the mailbox DT/hwmod cleanup with
+these changes, and post the patches tomorrow.
+
+regards
+Suman
