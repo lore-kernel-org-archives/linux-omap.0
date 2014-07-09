@@ -1,53 +1,64 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 1/7] regulator: tps65218: Add fixed_uV fields for
- dcdc5 and dcdc6
-Date: Wed, 9 Jul 2014 11:14:42 +0200
-Message-ID: <20140709091442.GN30458@sirena.org.uk>
-References: <1404884193-20580-1-git-send-email-j-keerthy@ti.com>
- <1404884193-20580-2-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
+ setting
+Date: Wed, 9 Jul 2014 02:25:31 -0700
+Message-ID: <20140709092531.GK28884@atomide.com>
+References: <20140707104727.GM28884@atomide.com>
+ <20140707104944.GS3705@n2100.arm.linux.org.uk>
+ <20140707110249.GO28884@atomide.com>
+ <53BA8983.3030803@ti.com>
+ <20140707121512.GT3705@n2100.arm.linux.org.uk>
+ <20140707123925.GW28884@atomide.com>
+ <20140707134008.GU3705@n2100.arm.linux.org.uk>
+ <20140707151024.GJ5582@saruman.home>
+ <53BB7980.2060909@ti.com>
+ <20140708082948.GE28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J/pvEKOcHgREgBce"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1404884193-20580-2-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
-List-Id: linux-omap@vger.kernel.org
-
-
---J/pvEKOcHgREgBce
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63389 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751313AbaGIJZb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 05:25:31 -0400
 Content-Disposition: inline
+In-Reply-To: <20140708082948.GE28884@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: balbi@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed, Jul 09, 2014 at 11:06:27AM +0530, Keerthy wrote:
-> Add fixed_uV fields for dcdc5 and dcdc6.
+* Tony Lindgren <tony@atomide.com> [140708 01:32]:
+> * Sekhar Nori <nsekhar@ti.com> [140707 21:56]:
+> > On Monday 07 July 2014 08:40 PM, Felipe Balbi wrote:
+> > > On Mon, Jul 07, 2014 at 02:40:08PM +0100, Russell King - ARM Linux wrote:
+> > >> --- a/arch/arm/mm/cache-l2x0.c
+> > >> +++ b/arch/arm/mm/cache-l2x0.c
+> > >> @@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
+> > >>  
+> > >>  static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
+> > >>  {
+> > >> -	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
+> > >> +	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
+> > >>  	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
+> > > 
+> > > even with this change, l2c still tries to write to power control
+> > > register, at least on AM437x. Looking a little deeper here, AM437x
+> > > identifies itself as l2c PL310 r3p3, which should have power control
+> > > register, but aparentely there's no way to write that register. I'll
+> > > file a bug to our ROM team, but we will certainly need a way to
+> > > workaround this inside omap4-common.c
+> > 
+> > Looks like we need both my patch as well as Russell's patch. I can
+> > respin my patch with the pr_info_once() dropped if it helps further
+> > reduce boot noise.
+> 
+> In that case I'm fine with the original patch in this series. Russell,
+> got any better ideas?
 
-This doesn't apply against current code, can you please check and
-resend?  There were some cleanups from Felipe that just went in, it
-looks like a collision with them.
+I guess no more comments. Took a look at the patch again, Sekhar, can
+you please update the description with what has been discovered in this
+thread and repost?
 
---J/pvEKOcHgREgBce
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTvQf+AAoJELSic+t+oim9rFYP/1U9OPrzNpZaVlB8ZxLMBw0P
-UsxVMF8sAOpr68FxKQn8cp6dvovCkRraTg7KNoRaPKkbZpIp+XRoC366wvZwipYd
-73QTVfpSTrjhc49UCc0H7B+780z0s5g1oAWgGZuMPyWs9RGM1mHBrUCRw1jP1yjH
-WX9wylkzcwDuAhFvskFyuWiZPcuxBW7ENLKSkb+X52lrmgBcZUct922ac5tJipvT
-T9l6CcabumZv1P+VLQM1MjL1xfoLXEOXYAfyG+N1XUUkmFhVahFbbN44KxCUif/T
-03bOdhb28pS0UeB1/4VD0khe5P/XECgK79AIRWjrU/8I7rSdbDeh2vY8FQDR8UeR
-4r9gDH4tOh3yOfxF8UfVbSXCxYHjGq7EmA7aD6uSXqoIrr3y9C7d4N5H4f1YtvNk
-CO3pgYz/lIcXk831+IVN/RpB1GcVo1Z+hTvXTuBM21LPb3V9sEHwvUkqzZ0MZANP
-Y+ksia8kM+NTYTx3p+1MAjZKOo/J7i1DTRIaqstotCkBrcT0FAqHXTgkM8GkYev+
-bLlghl0fEgsrAm2PrZVQ0Qjw+xxkC6KDcuqn03DYvK/M2avyXd4GHrWPyB+Vo/ec
-D74bvJYfgNNbdmOW1AhdAf/iRT9v0rpS/gG1010peDVbBLpG7hnrbQwpM5AnmRDw
-HCtbJVBgnuGSkue7dtYu
-=lflV
------END PGP SIGNATURE-----
-
---J/pvEKOcHgREgBce--
+Tony
