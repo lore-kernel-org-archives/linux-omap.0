@@ -1,165 +1,79 @@
-From: Rostislav Lisovy <lisovy@gmail.com>
-Subject: [PATCH RESEND] ARM: omap2+: gpmc-nand: Use dynamic platform_device_alloc()
-Date: Wed,  9 Jul 2014 14:21:19 +0200
-Message-ID: <1404908479-11196-1-git-send-email-lisovy@merica.cz>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
+ setting
+Date: Wed, 9 Jul 2014 17:56:37 +0530
+Message-ID: <53BD34FD.5070005@ti.com>
+References: <20140707104727.GM28884@atomide.com> <20140707104944.GS3705@n2100.arm.linux.org.uk> <20140707110249.GO28884@atomide.com> <53BA8983.3030803@ti.com> <20140707121512.GT3705@n2100.arm.linux.org.uk> <20140707123925.GW28884@atomide.com> <20140707134008.GU3705@n2100.arm.linux.org.uk> <20140707151024.GJ5582@saruman.home> <53BB7980.2060909@ti.com> <20140708082948.GE28884@atomide.com> <20140709092531.GK28884@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:50547 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507AbaGIMVh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 08:21:37 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:33443 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752726AbaGIM1M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jul 2014 08:27:12 -0400
+In-Reply-To: <20140709092531.GK28884@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Pekon Gupta <pekon@ti.com>, linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Michal Vokac <vokac.m@gmail.com>, Michal Sojka <sojkam1@fel.cvut.cz>, lisovy@gmail.com, Rostislav Lisovy <lisovy@merica.cz>
+To: Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-GPMC controller supports up to 8 memory devices connected to it.
-Since there is one statically allocated "struct platform_device
-gpmc_nand_device" it is not possible to configure the system to
-use more than one NAND device connected to the GPMC. This
-modification makes it possible to use up to 8 NAND devices
-connected to the GPMC controller.
+On Wednesday 09 July 2014 02:55 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [140708 01:32]:
+>> * Sekhar Nori <nsekhar@ti.com> [140707 21:56]:
+>>> On Monday 07 July 2014 08:40 PM, Felipe Balbi wrote:
+>>>> On Mon, Jul 07, 2014 at 02:40:08PM +0100, Russell King - ARM Linux wrote:
+>>>>> --- a/arch/arm/mm/cache-l2x0.c
+>>>>> +++ b/arch/arm/mm/cache-l2x0.c
+>>>>> @@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
+>>>>>  
+>>>>>  static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
+>>>>>  {
+>>>>> -	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
+>>>>> +	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
+>>>>>  	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
+>>>>
+>>>> even with this change, l2c still tries to write to power control
+>>>> register, at least on AM437x. Looking a little deeper here, AM437x
+>>>> identifies itself as l2c PL310 r3p3, which should have power control
+>>>> register, but aparentely there's no way to write that register. I'll
+>>>> file a bug to our ROM team, but we will certainly need a way to
+>>>> workaround this inside omap4-common.c
+>>>
+>>> Looks like we need both my patch as well as Russell's patch. I can
+>>> respin my patch with the pr_info_once() dropped if it helps further
+>>> reduce boot noise.
+>>
+>> In that case I'm fine with the original patch in this series. Russell,
+>> got any better ideas?
+> 
+> I guess no more comments. Took a look at the patch again, Sekhar, can
+> you please update the description with what has been discovered in this
+> thread and repost?
 
-Signed-off-by: Rostislav Lisovy <lisovy@merica.cz>
+How does the following sound:
+
+---
+AM437x has L2C-310 version r3p2 and ROM code on that device does not
+support writing to L2C-310 power control register. The L2C driver,
+however, tries writing to this register for all revisions >= r3p0.
+
+This leads to a warning dump on boot which leads most users to believe
+that L2 cache is non-functional.
+
+Since the problem is understood, and cannot be addressed through
+software, replace the warning with a pr_info() while maintaining the
+WARN_ON() for other truly unexpected scenarios.
+
+>From the public TRM available for OMAP4470, even on that device, ROM
+does not support writing to this register even though it uses a version
+of L2C-310 which has the register implemented. So this patch should take
+care of all variants of existing OMAPs.
 ---
 
-Tested on custom AM335x board with two different NAND chips
-(128 + 256 MiB) using GPMC configuration in FDT -- behaves
-correctly.
+Two things that I have added are the version of L2C on AM437x and the
+fact that OMAP4470 also has the same issue (at least from the public
+TRM). Let me know if you would like to see anything else mentioned.
 
-
- arch/arm/mach-omap2/gpmc-nand.c | 79 +++++++++++++++++++----------------------
- 1 file changed, 37 insertions(+), 42 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 4349e82..c5481a8 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -24,25 +24,6 @@
- /* minimum size for IO mapping */
- #define	NAND_IO_SIZE	4
- 
--static struct resource gpmc_nand_resource[] = {
--	{
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.flags		= IORESOURCE_IRQ,
--	},
--	{
--		.flags		= IORESOURCE_IRQ,
--	},
--};
--
--static struct platform_device gpmc_nand_device = {
--	.name		= "omap2-nand",
--	.id		= 0,
--	.num_resources	= ARRAY_SIZE(gpmc_nand_resource),
--	.resource	= gpmc_nand_resource,
--};
--
- static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
- {
- 	/* platforms which support all ECC schemes */
-@@ -93,43 +74,41 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- {
- 	int err	= 0;
- 	struct gpmc_settings s;
--	struct device *dev = &gpmc_nand_device.dev;
--
--	memset(&s, 0, sizeof(struct gpmc_settings));
-+	struct platform_device *pdev;
-+	struct resource gpmc_nand_res[] = {
-+		{ .flags = IORESOURCE_MEM, },
-+		{ .flags = IORESOURCE_IRQ, },
-+		{ .flags = IORESOURCE_IRQ, },
-+	};
- 
--	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
-+	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
- 
- 	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
--				(unsigned long *)&gpmc_nand_resource[0].start);
-+			      (unsigned long *)&gpmc_nand_res[0].start);
- 	if (err < 0) {
--		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
--			gpmc_nand_data->cs, err);
-+		pr_err("omap2-gpmc: Cannot request GPMC CS %d, error %d\n",
-+		       gpmc_nand_data->cs, err);
- 		return err;
- 	}
--
--	gpmc_nand_resource[0].end = gpmc_nand_resource[0].start +
--							NAND_IO_SIZE - 1;
--
--	gpmc_nand_resource[1].start =
--				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
--	gpmc_nand_resource[2].start =
--				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
-+	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
-+	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
-+	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
- 
- 	if (gpmc_t) {
- 		err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
- 		if (err < 0) {
--			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
-+			pr_err("omap2-gpmc: Unable to set gpmc timings: %d\n", err);
- 			return err;
- 		}
- 	}
- 
-+	memset(&s, 0, sizeof(struct gpmc_settings));
- 	if (gpmc_nand_data->of_node)
- 		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
- 	else
- 		gpmc_set_legacy(gpmc_nand_data, &s);
- 
- 	s.device_nand = true;
--
- 	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
- 	if (err < 0)
- 		goto out_free_cs;
-@@ -141,18 +120,34 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
- 
- 	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
--		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
--		return -EINVAL;
-+		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
-+		err = -EINVAL;
-+		goto out_free_cs;
- 	}
- 
--	err = platform_device_register(&gpmc_nand_device);
--	if (err < 0) {
--		dev_err(dev, "Unable to register NAND device\n");
--		goto out_free_cs;
-+
-+	pdev = platform_device_alloc("omap2-nand", gpmc_nand_data->cs);
-+	if (pdev) {
-+		err = platform_device_add_resources(pdev, gpmc_nand_res,
-+						    ARRAY_SIZE(gpmc_nand_res));
-+		if (!err)
-+			pdev->dev.platform_data = gpmc_nand_data;
-+	} else {
-+		err = -ENOMEM;
-+	}
-+	if (err)
-+		goto out_free_pdev;
-+
-+	err = platform_device_add(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "Unable to register NAND device\n");
-+		goto out_free_pdev;
- 	}
- 
- 	return 0;
- 
-+out_free_pdev:
-+	platform_device_put(pdev);
- out_free_cs:
- 	gpmc_cs_free(gpmc_nand_data->cs);
- 
--- 
-1.9.1
-
+Thanks,
+Sekhar
