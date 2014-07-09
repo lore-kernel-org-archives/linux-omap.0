@@ -1,90 +1,92 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
- setting
-Date: Wed, 9 Jul 2014 05:31:07 -0700
-Message-ID: <20140709123106.GX28884@atomide.com>
-References: <20140707110249.GO28884@atomide.com>
- <53BA8983.3030803@ti.com>
- <20140707121512.GT3705@n2100.arm.linux.org.uk>
- <20140707123925.GW28884@atomide.com>
- <20140707134008.GU3705@n2100.arm.linux.org.uk>
- <20140707151024.GJ5582@saruman.home>
- <53BB7980.2060909@ti.com>
- <20140708082948.GE28884@atomide.com>
- <20140709092531.GK28884@atomide.com>
- <53BD34FD.5070005@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [RFC PATCH 02/10] mtd: nand: omap: Always use chip->ecc.steps for BCH sector count
+Date: Wed, 9 Jul 2014 15:37:22 +0300
+Message-ID: <1404909450-11970-3-git-send-email-rogerq@ti.com>
+References: <1404909450-11970-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49103 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755590AbaGIMbL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 08:31:11 -0400
-Content-Disposition: inline
-In-Reply-To: <53BD34FD.5070005@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1404909450-11970-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, computersforpeace@gmail.com
+Cc: javier@dowhile0.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, dwmw2@infradead.org, jg1.han@samsung.com, nsekhar@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: balbi@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Sekhar Nori <nsekhar@ti.com> [140709 05:28]:
-> On Wednesday 09 July 2014 02:55 PM, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [140708 01:32]:
-> >> * Sekhar Nori <nsekhar@ti.com> [140707 21:56]:
-> >>> On Monday 07 July 2014 08:40 PM, Felipe Balbi wrote:
-> >>>> On Mon, Jul 07, 2014 at 02:40:08PM +0100, Russell King - ARM Linux wrote:
-> >>>>> --- a/arch/arm/mm/cache-l2x0.c
-> >>>>> +++ b/arch/arm/mm/cache-l2x0.c
-> >>>>> @@ -732,7 +732,7 @@ static int l2c310_cpu_enable_flz(struct notifier_block *nb, unsigned long act, v
-> >>>>>  
-> >>>>>  static void __init l2c310_enable(void __iomem *base, u32 aux, unsigned num_lock)
-> >>>>>  {
-> >>>>> -	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_PART_MASK;
-> >>>>> +	unsigned rev = readl_relaxed(base + L2X0_CACHE_ID) & L2X0_CACHE_ID_RTL_MASK;
-> >>>>>  	bool cortex_a9 = read_cpuid_part() == ARM_CPU_PART_CORTEX_A9;
-> >>>>
-> >>>> even with this change, l2c still tries to write to power control
-> >>>> register, at least on AM437x. Looking a little deeper here, AM437x
-> >>>> identifies itself as l2c PL310 r3p3, which should have power control
-> >>>> register, but aparentely there's no way to write that register. I'll
-> >>>> file a bug to our ROM team, but we will certainly need a way to
-> >>>> workaround this inside omap4-common.c
-> >>>
-> >>> Looks like we need both my patch as well as Russell's patch. I can
-> >>> respin my patch with the pr_info_once() dropped if it helps further
-> >>> reduce boot noise.
-> >>
-> >> In that case I'm fine with the original patch in this series. Russell,
-> >> got any better ideas?
-> > 
-> > I guess no more comments. Took a look at the patch again, Sekhar, can
-> > you please update the description with what has been discovered in this
-> > thread and repost?
-> 
-> How does the following sound:
-> 
-> ---
-> AM437x has L2C-310 version r3p2 and ROM code on that device does not
-> support writing to L2C-310 power control register. The L2C driver,
-> however, tries writing to this register for all revisions >= r3p0.
-> 
-> This leads to a warning dump on boot which leads most users to believe
-> that L2 cache is non-functional.
-> 
-> Since the problem is understood, and cannot be addressed through
-> software, replace the warning with a pr_info() while maintaining the
-> WARN_ON() for other truly unexpected scenarios.
-> 
-> From the public TRM available for OMAP4470, even on that device, ROM
-> does not support writing to this register even though it uses a version
-> of L2C-310 which has the register implemented. So this patch should take
-> care of all variants of existing OMAPs.
-> ---
-> 
-> Two things that I have added are the version of L2C on AM437x and the
-> fact that OMAP4470 also has the same issue (at least from the public
-> TRM). Let me know if you would like to see anything else mentioned.
+Instead of hardcoding use the pre-calculated chip->ecc.steps for
+configuring number of sectors to process with the BCH algorithm.
 
-Looks good to me thanks.
+This also avoids unnecessary access to the ECC_CONFIG register in
+omap_calculate_ecc_bch().
 
-Tony
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/mtd/nand/omap2.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 5b8739c..6f3d7cd 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1066,10 +1066,10 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 	unsigned int ecc_size1, ecc_size0;
+ 
+ 	/* GPMC configurations for calculating ECC */
++	nsectors = chip->ecc.steps;
+ 	switch (ecc_opt) {
+ 	case OMAP_ECC_BCH4_CODE_HW_DETECTION_SW:
+ 		bch_type = 0;
+-		nsectors = 1;
+ 		if (mode == NAND_ECC_READ) {
+ 			wr_mode	  = BCH_WRAPMODE_6;
+ 			ecc_size0 = BCH_ECC_SIZE0;
+@@ -1082,7 +1082,6 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 		break;
+ 	case OMAP_ECC_BCH4_CODE_HW:
+ 		bch_type = 0;
+-		nsectors = chip->ecc.steps;
+ 		if (mode == NAND_ECC_READ) {
+ 			wr_mode	  = BCH_WRAPMODE_1;
+ 			ecc_size0 = BCH4R_ECC_SIZE0;
+@@ -1095,7 +1094,6 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 		break;
+ 	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
+ 		bch_type = 1;
+-		nsectors = 1;
+ 		if (mode == NAND_ECC_READ) {
+ 			wr_mode	  = BCH_WRAPMODE_6;
+ 			ecc_size0 = BCH_ECC_SIZE0;
+@@ -1108,7 +1106,6 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 		break;
+ 	case OMAP_ECC_BCH8_CODE_HW:
+ 		bch_type = 1;
+-		nsectors = chip->ecc.steps;
+ 		if (mode == NAND_ECC_READ) {
+ 			wr_mode	  = BCH_WRAPMODE_1;
+ 			ecc_size0 = BCH8R_ECC_SIZE0;
+@@ -1121,7 +1118,6 @@ static void __maybe_unused omap_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 		break;
+ 	case OMAP_ECC_BCH16_CODE_HW:
+ 		bch_type = 0x2;
+-		nsectors = chip->ecc.steps;
+ 		if (mode == NAND_ECC_READ) {
+ 			wr_mode	  = 0x01;
+ 			ecc_size0 = 52; /* ECC bits in nibbles per sector */
+@@ -1176,6 +1172,7 @@ static int __maybe_unused omap_calculate_ecc_bch(struct mtd_info *mtd,
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 						   mtd);
++	struct nand_chip *chip = mtd->priv;
+ 	int eccbytes	= info->nand.ecc.bytes;
+ 	struct gpmc_nand_regs	*gpmc_regs = &info->reg;
+ 	u8 *ecc_code;
+@@ -1183,7 +1180,7 @@ static int __maybe_unused omap_calculate_ecc_bch(struct mtd_info *mtd,
+ 	u32 val;
+ 	int i, j;
+ 
+-	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
++	nsectors = chip->ecc.steps;
+ 	for (i = 0; i < nsectors; i++) {
+ 		ecc_code = ecc_calc;
+ 		switch (info->ecc_opt) {
+-- 
+1.8.3.2
