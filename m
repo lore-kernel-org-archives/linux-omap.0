@@ -1,94 +1,177 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
-Date: Wed, 09 Jul 2014 14:42:59 +0200
-Message-ID: <53BD38D3.2000204@linutronix.de>
-References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de> <1404491651-1388-3-git-send-email-bigeasy@linutronix.de> <20140707142056.46f61cf9@alan.etchedpixels.co.uk> <20140709111705.GR28884@atomide.com> <53BD291D.3040307@linutronix.de> <20140709114837.GU28884@atomide.com>
+From: Pascal Huerst <pascal.huerst@gmail.com>
+Subject: Re: gpio-omap: wakeup mask
+Date: Wed, 09 Jul 2014 14:45:04 +0200
+Message-ID: <53BD3950.60000@gmail.com>
+References: <53B3F687.5050502@gmail.com> <20140704072752.GC28884@atomide.com> <53BD1683.9030505@gmail.com> <20140709104142.GO28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140709114837.GU28884@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20140709104142.GO28884@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
+Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/09/2014 01:48 PM, Tony Lindgren wrote:
->>> So we can certainly enable this in a generic way, however, this
->>> can only be done under the following conditions:
-> 
-> Sorry forgot to mention why I think this can now be done in a
-> generic way, that's because we have now runtime PM in Linux.
 
-I have a problem to follow here. I need set SET_RUNTIME_PM_OPS in
-.pm member of the driver. This is around for a while now maybe it
-wasn't around by the omap-serial was written but this doesn't matter
-now.
 
-As for the dw driver (as one of the gnomes points out) it shouldn't
-matter because it is enabled / disabled based on 8250's pm callback. So
-while the device is active and the 8250 core grabs & puts the
-reference, nothing should change. Still a double check from Mika
-wouldn't hurt.
-
-If I understand the omap case correct (and please correct me if I don't)
-the 8250-omap driver assumes that the device can go to sleep
-after the probe function completes. This does not happen
-because pm_runtime_set_autosuspend_delay() sets the delay to -1.
-If the user changes this via sysfs, then the device might go to sleep
-and the IP block switched of. Therefore we need the runtime pm
-callbacks in 8250-core before the register access because we can't
-access the it otherwise.
-The core should wake us up in case there is incoming RX action to be
-handled so we can restore register's content. And for TX we have the
-proper pm hooks.
-The dw driver also only disables / enables the clock. So they don't
-lose the register's content like omap does. Thus they don't need the
-one struct I exported.
-
-I don't think that it makes sense to make this restore/save part
-generic if this what it is about. OMAP at least has a few registers
-more to take care of and set-termios is already different.
-
->>> 1. We can save and restore the serial register context and detect
->>>    when context was lost in the serial driver. The context loss
->>>    can be detected by looking at some registers that are only
->>>    initialized during init.
+On 09.07.2014 12:41, Tony Lindgren wrote:
+> * Pascal Huerst <pascal.huerst@gmail.com> [140709 03:18]:
+>> Hey Tony, all
 >>
->> A register check on restore context? DLL+DLH might be a good hint here
->> since its value should be >0 in the running case.
-> 
-> OK yeah that would be a generic way to do it potentially ;)
-> 
-> Note that all the context_loss_cnt stuff in omap-serial.c can
-> then be ignored, that's still only needed for the omap3 legacy
-> mode booting case and won't be needed much longer.
-
-Ah. The way the code reads, it is just an optimization in case the core
-didn't go off after all so we don't have to restore the registers.
-
->>> 2. There's a way for the serial RX pin to wake the SoC. On some
->>>    omaps there's a separate pin specific wake-up interrupt that
->>>    can be used for that.
+>> On 04.07.2014 09:27, Tony Lindgren wrote:
+>>> * Pascal Huerst <pascal.huerst@gmail.com> [140702 05:12]:
+>>>> Hi everyone,
+>>>>
+>>>> we have a device with an am335x and are using some gpios on bank0 to
+>>>> wake up the device from suspend to ram.
+>>>>
+>>>> We have some user buttons which are configured in the devicetree as
+>>>> gpio-keys and one power-key which should wake up the device:
+>>>>
+>>>> &buttons {
+>>>>         power {
+>>>>                 label = "Power";
+>>>>                 gpios = <&gpio0 6 1>;
+>>>>                 linux,code = <116>;
+>>>>                 gpio-key,wakeup;
+>>>>         };
+>>>>
+>>>>         one {
+>>>>                 label = "One";
+>>>>                 gpios = <&gpio0 11 1>;
+>>>>                 linux,code = <2>;
+>>>>         };
+>>>>
+>>>>         : : :
+>>>> }
+>>>>
+>>>> The problem is, that the device wakes up on any trigger on bank 0. No
+>>>> matter which button was pressed. "gpio-key,wakeup" seems not to have any
+>>>> influence.
+>>>>
+>>>> Now, if I comment the following lines out in drivers/gpio/gpio-omap.c :
+>>>> set_gpio_trigger(...).
+>>>>
+>>>> 321
+>>>> 322 if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+>>>> 323    _gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
+>>>> 324      bank->context.wake_en =
+>>>> 325        readl_relaxed(bank->base + bank->regs->wkup_en);
+>>>> 326 }
+>>>> 327
+>>>>
+>>>> Everything works as expected. But I don't really understand why? Is this
+>>>> a bug, or does this break something else I have not discovered yet?
+>>>
+>>> The GPIO wake-up events are working from off-idle for omap3
+>>> the last time I checked, so sounds like this is some am335x
+>>> related issue.
 >>
->> That one would be handled by omap separately.
-> 
-> OK great.
->  
->>> 3. The serial PM features must be only enabled if requested by
->>>    the user via sysfs. Typically extra latency and loss of the
->>>    first RX character occur which is not acceptable to most
->>>    applications.
+>> Ok, that sounds reasonable.
 >>
->> Unless I'm mistaken the omap driver now initializes the timeout to -1.
->> So nothing happens unless this is enabled separately.
+>>> What does your bank->context.wake_en mask get set to with this code?
+>>
+>> by calling 'echo mem > /sys/power/state' followed by a wakeup, I get the
+>> following:
+>>
+>> [   28.992866] bank->context->wake_en = 00080040
+>> [   29.020974] PM: noirq resume of devices complete after 22.439 msecs
 > 
-> Yes that's the only safe approach so the serial port behaves in
-> the standard Linux way unless specifically requested by the
-> user.
-> 
-> Regards,
-> 
-> Tony
+> I guess that's for gpio bank 0 with no bit 11 as your dts has it
+> configured. 
 
-Sebastian
+Yes that's right. I forgot to print the context, too. If I do so, it's:
+
+[   31.034972] bank->base = F9E07000 gpio = 6 bank->context->wake_en =
+00080040
+
+respectively:
+
+[   31.846992] bank->base = F9E07000 gpio = 11 bank->context->wake_en =
+00080040
+
+> If you just comment out the _gpio_rmw part above do
+> things work as expected?
+
+Yes. It only wakes up on gpio 6 not on gpio 11 anymore.
+
+> Then if that works as expected, maybe write only some unused bits
+> into wkup_en register and see if it still wakes to all events while
+> it should not?
+
+If I use the following testcode, everything works as expected:
+
+//WARN(true, "WARN: bank->base = %08X\n", bank->base);
+
+if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+  //_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
+  writel(0xABC00000, base + bank->regs->wkup_en);
+
+  bank->context.wake_en = readl_relaxed(bank->base +
+    bank->regs->wkup_en);
+  printk("bank->base = %08X gpio = %i bank->context->wake_en = %08X\n",
+    bank->base, gpio, bank->context.wake_en);
+}
+
+This produces the following output:
+
+[   35.319228] PM: Syncing filesystems ... done.
+[   35.358702] Freezing user space processes ... (elapsed 0.003 seconds)
+done.
+[   35.369754] Freezing remaining freezable tasks ... (elapsed 0.002
+seconds) done.
+[   35.380734] PM: Sending message for entering DeepSleep mode
+[   35.515932] bank->base = F9E07000 gpio = 19 bank->context->wake_en =
+ABC00000
+[   35.529319] PM: suspend of devices complete after 137.218 msecs
+[   35.544410] PM: late suspend of devices complete after 8.715 msecs
+[   35.562247] omap_hwmod: cpgmac0: _wait_target_disable failed
+[   35.569325] PM: noirq suspend of devices complete after 18.289 msecs
+[   35.576156] PM: GFX domain entered low power state
+[   35.576156] PM: Could not transition all powerdomains to target state
+[   35.576156] PM: Wakeup source GPIO0
+[   35.576156] PM Wakeup source extra: 00000840
+[   35.576329] bank->base = F9E07000 gpio = 6 bank->context->wake_en =
+ABC00000
+[   35.583710] bank->base = F9E07000 gpio = 11 bank->context->wake_en =
+ABC00000
+[   35.614846] PM: noirq resume of devices complete after 22.582 msecs
+[   35.622009] bank->base = F9E07000 gpio = 6 bank->context->wake_en =
+ABC00000
+[   35.631798] bank->base = F9E07000 gpio = 11 bank->context->wake_en =
+ABC00000
+[   35.639511] bank->base = F9E07000 gpio = 19 bank->context->wake_en =
+ABC00000
+[   35.647116] bank->base = FA04C000 gpio = 9 bank->context->wake_en =
+ABC00000
+[   35.654547] bank->base = FA04C000 gpio = 12 bank->context->wake_en =
+ABC00000
+[   35.662015] bank->base = FA04C000 gpio = 13 bank->context->wake_en =
+ABC00000
+[   35.669526] bank->base = FA04C000 gpio = 14 bank->context->wake_en =
+ABC00000
+[   35.677039] bank->base = FA04C000 gpio = 15 bank->context->wake_en =
+ABC00000
+[   35.685035] bank->base = FA1AC000 gpio = 17 bank->context->wake_en =
+ABC00000
+[   35.692507] bank->base = FA1AC000 gpio = 18 bank->context->wake_en =
+ABC00000
+[   35.706466] PM: early resume of devices complete after 6.235 msecs
+[   35.715010] net eth0: initializing cpsw version 1.12 (0)
+[   35.794388] net eth0: phy found : id is : 0x4dd076
+[   35.849941] mmc0: error -110 during resume (card was removed?)
+[   35.856164] dpm_run_callback(): mmc_bus_resume+0x0/0x74 returns -110
+[   35.862828] PM: Device mmc0:0001 failed to resume: error -110
+[   35.914573] PM: resume of devices complete after 201.604 msecs
+[   35.927336] PM: Sending message for resetting M3 state machine
+[   35.934236] Restarting tasks ... done.
+
+> It might be worth comparing the GPIO registers between am37xx and
+> am335x for the wkup_en register.
+
+I had a quick look, but did not find anything. May be I will have to
+look into that again.
+
+Thanks
+Pascal
