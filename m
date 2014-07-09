@@ -1,39 +1,111 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [Re-send PATCH 1/1] arm: dra7xx: Add hwmod data for MDIO and CPSW
-Date: Wed, 9 Jul 2014 03:11:16 -0700
-Message-ID: <20140709101116.GM28884@atomide.com>
-References: <1404825399-10330-1-git-send-email-mugunthanvnm@ti.com>
- <20140709095552.GA25154@breakpoint.cc>
- <20140709100147.GB25154@breakpoint.cc>
+From: Pascal Huerst <pascal.huerst@gmail.com>
+Subject: Re: gpio-omap: wakeup mask
+Date: Wed, 09 Jul 2014 12:16:35 +0200
+Message-ID: <53BD1683.9030505@gmail.com>
+References: <53B3F687.5050502@gmail.com> <20140704072752.GC28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140709100147.GB25154-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
-Cc: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140704072752.GC28884@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org> [140709 03:03]:
-> On 2014-07-09 11:55:52 [+0200], Sebastian Andrzej Siewior wrote:
-> > On 2014-07-08 18:46:39 [+0530], Mugunthan V N wrote:
-> > > Adding hwmod data for CPSW and MDIO which is present in DRA7xx So=
-C
-> >=20
-> > I reverted my patch, applied this one and after boot I got:
-> Oh me dum dum. I had --dry-run=E2=80=A6
->=20
-> Acked-by: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
->=20
-> This is basically what Tony hasked me to do: No IRQ numbers & iomem.
+Hey Tony, all
 
-OK great thanks for testing :)
+On 04.07.2014 09:27, Tony Lindgren wrote:
+> * Pascal Huerst <pascal.huerst@gmail.com> [140702 05:12]:
+>> Hi everyone,
+>>
+>> we have a device with an am335x and are using some gpios on bank0 to
+>> wake up the device from suspend to ram.
+>>
+>> We have some user buttons which are configured in the devicetree as
+>> gpio-keys and one power-key which should wake up the device:
+>>
+>> &buttons {
+>>         power {
+>>                 label = "Power";
+>>                 gpios = <&gpio0 6 1>;
+>>                 linux,code = <116>;
+>>                 gpio-key,wakeup;
+>>         };
+>>
+>>         one {
+>>                 label = "One";
+>>                 gpios = <&gpio0 11 1>;
+>>                 linux,code = <2>;
+>>         };
+>>
+>>         : : :
+>> }
+>>
+>> The problem is, that the device wakes up on any trigger on bank 0. No
+>> matter which button was pressed. "gpio-key,wakeup" seems not to have any
+>> influence.
+>>
+>> Now, if I comment the following lines out in drivers/gpio/gpio-omap.c :
+>> set_gpio_trigger(...).
+>>
+>> 321
+>> 322 if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+>> 323    _gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
+>> 324      bank->context.wake_en =
+>> 325        readl_relaxed(bank->base + bank->regs->wkup_en);
+>> 326 }
+>> 327
+>>
+>> Everything works as expected. But I don't really understand why? Is this
+>> a bug, or does this break something else I have not discovered yet?
+> 
+> The GPIO wake-up events are working from off-idle for omap3
+> the last time I checked, so sounds like this is some am335x
+> related issue.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, that sounds reasonable.
+
+> What does your bank->context.wake_en mask get set to with this code?
+
+by calling 'echo mem > /sys/power/state' followed by a wakeup, I get the
+following:
+
+[   28.738416] PM: Syncing filesystems ... done.
+[   28.779153] Freezing user space processes ... (elapsed 0.003 seconds)
+done.
+[   28.790236] Freezing remaining freezable tasks ... (elapsed 0.002
+seconds) done.
+[   28.801386] PM: Sending message for entering DeepSleep mode
+[   28.935412] bank->context->wake_en = 00080840
+[   28.945935] PM: suspend of devices complete after 133.156 msecs
+[   28.961008] PM: late suspend of devices complete after 8.834 msecs
+[   28.978874] omap_hwmod: cpgmac0: _wait_target_disable failed
+[   28.985940] PM: noirq suspend of devices complete after 18.324 msecs
+[   28.992697] PM: GFX domain entered low power state
+[   28.992697] PM: Could not transition all powerdomains to target state
+[   28.992697] PM: Wakeup source GPIO0
+[   28.992866] bank->context->wake_en = 00080040
+[   29.020974] PM: noirq resume of devices complete after 22.439 msecs
+[   29.028257] bank->context->wake_en = 00080040
+[   29.032840] bank->context->wake_en = 00080840
+[   29.039207] bank->context->wake_en = 00080840
+[   29.043961] bank->context->wake_en = 0000F200
+[   29.048534] bank->context->wake_en = 0000F200
+[   29.053093] bank->context->wake_en = 0000F200
+[   29.057704] bank->context->wake_en = 0000F200
+[   29.062266] bank->context->wake_en = 0000F200
+[   29.066992] bank->context->wake_en = 00060000
+[   29.071554] bank->context->wake_en = 00060000
+[   29.082499] PM: early resume of devices complete after 6.136 msecs
+[   29.091048] net eth0: initializing cpsw version 1.12 (0)
+[   29.173888] net eth0: phy found : id is : 0x4dd076
+[   29.229388] mmc0: error -110 during resume (card was removed?)
+[   29.235609] dpm_run_callback(): mmc_bus_resume+0x0/0x74 returns -110
+[   29.242272] PM: Device mmc0:0001 failed to resume: error -110
+[   29.293992] PM: resume of devices complete after 204.891 msecs
+[   29.306801] PM: Sending message for resetting M3 state machine
+[   29.313693] Restarting tasks ... done.
+
+Thanks
+Pascal
