@@ -1,136 +1,60 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
-Date: Wed, 9 Jul 2014 16:32:14 +0530
-Message-ID: <53BD2136.9030009@ti.com>
-References: <1403719366-9656-3-git-send-email-kishon@ti.com> <1404896567-32204-1-git-send-email-kishon@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
+Date: Wed, 9 Jul 2014 16:36:49 +0530
+Message-ID: <53BD2249.2080808@ti.com>
+References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-3-git-send-email-lokeshvutla@ti.com> <20140709091232.GJ28884@atomide.com> <53BD0C43.1090002@ti.com> <20140709100914.GL28884@atomide.com> <53BD1AF8.2060609@ti.com> <20140709105055.GP28884@atomide.com> <53BD1FC3.6050500@ti.com> <20140709110051.GQ28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1404896567-32204-1-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42655 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751469AbaGILJF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jul 2014 07:09:05 -0400
+In-Reply-To: <20140709110051.GQ28884@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-On Wednesday 09 July 2014 02:32 PM, Kishon Vijay Abraham I wrote:
-> Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
-> 
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
-> Changes from v1:
-> * changed the clock domain to "pcie_clkdm"
-> * Added PCIe as a slave port for l3_main.
+On Wednesday 09 July 2014 04:30 PM, Tony Lindgren wrote:
+> * Keerthy <a0393675@ti.com> [140709 03:59]:
+>> On Wednesday 09 July 2014 04:20 PM, Tony Lindgren wrote:
+>>> * Keerthy <a0393675@ti.com> [140709 03:39]:
+>>>> On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
+>>>>> * Keerthy <a0393675@ti.com> [140709 02:36]:
+>>>>>> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
+>>>>>>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
+>>>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>>> @@ -249,6 +249,7 @@
+>>>>>>>>   					regulator-min-microvolt = <1050000>;
+>>>>>>>>   					regulator-max-microvolt = <1050000>;
+>>>>>>>>   					regulator-boot-on;
+>>>>>>>> +					regulator-always-on;
+>>>>>>>>   				};
+>>>>>>> Is this regulator really always on?
+>>>>>> This feeds on to RTC which is a free running clock. So i guess always on is
+>>>>>> justified no?
+>>>>> Well the dts entries should describe the hardware. If the
+>>>>> regulator can be enabled and disabled, we should not claim it's
+>>>>> always on.
+>>>>  From the PMIC perspective every regulator can be enabled and
+>>>> disabled. From a Board perspective there are some which need
+>>>> to be always on. For Ex: SMPS123 which feeds on to the MPU.
+>>> Right, and we already have regulator-boot-on for those. Or are
+>>> you seeing some issue with that?
+>> regulator-boot-on describes that at boot a particular regulator is on.
+>> It does not guarantee that it will be on for the rest of the time. The
+>> regulator framework can go ahead and disable it if no one has requested
+>> for it. In case of RTC we do not want that to happen.
+> That's a bug in the RTC driver then. The driver should request a
+> regulator if it's specified.
 
-Looks good to me,
-Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+Okay.
 
-> 
-> Boot log for dra7xx can be found at http://paste.ubuntu.com/7769402/
-> 
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   73 +++++++++++++++++++++++++++++
->  1 file changed, 73 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 6ff40a6..2f37ca8 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1290,6 +1290,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
->  };
->  
->  /*
-> + * 'PCIE' class
-> + *
-> + */
-> +
-> +static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
-> +	.name	= "pcie",
-> +};
-> +
-> +/* pcie1 */
-> +static struct omap_hwmod dra7xx_pcie1_hwmod = {
-> +	.name		= "pcie1",
-> +	.class		= &dra7xx_pcie_hwmod_class,
-> +	.clkdm_name	= "pcie_clkdm",
-> +	.main_clk	= "l4_root_clk_div",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-> +			.modulemode	= MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/* pcie2 */
-> +static struct omap_hwmod dra7xx_pcie2_hwmod = {
-> +	.name		= "pcie2",
-> +	.class		= &dra7xx_pcie_hwmod_class,
-> +	.clkdm_name	= "pcie_clkdm",
-> +	.main_clk	= "l4_root_clk_div",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/*
->   * 'PCIE PHY' class
->   *
->   */
-> @@ -2448,6 +2485,38 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* l3_main_1 -> pcie1 */
-> +static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie1 = {
-> +	.master		= &dra7xx_l3_main_1_hwmod,
-> +	.slave		= &dra7xx_pcie1_hwmod,
-> +	.clk		= "l3_iclk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l4_cfg -> pcie1 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
-> +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_pcie1_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l3_main_1 -> pcie2 */
-> +static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie2 = {
-> +	.master		= &dra7xx_l3_main_1_hwmod,
-> +	.slave		= &dra7xx_pcie2_hwmod,
-> +	.clk		= "l3_iclk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* l4_cfg -> pcie2 */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
-> +	.master		= &dra7xx_l4_cfg_hwmod,
-> +	.slave		= &dra7xx_pcie2_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* l4_cfg -> pcie1 phy */
->  static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
->  	.master		= &dra7xx_l4_cfg_hwmod,
-> @@ -2813,6 +2882,10 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_cfg__mpu,
->  	&dra7xx_l4_cfg__ocp2scp1,
->  	&dra7xx_l4_cfg__ocp2scp3,
-> +	&dra7xx_l3_main_1__pcie1,
-> +	&dra7xx_l4_cfg__pcie1,
-> +	&dra7xx_l3_main_1__pcie2,
-> +	&dra7xx_l4_cfg__pcie2,
->  	&dra7xx_l4_cfg__pcie1_phy,
->  	&dra7xx_l4_cfg__pcie2_phy,
->  	&dra7xx_l3_main_1__qspi,
-> 
+>
+> Regards,
+>
+> Tony
+
