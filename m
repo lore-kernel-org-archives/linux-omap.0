@@ -1,47 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2: clock data migration to DT for 3.17 merge
- window
-Date: Wed, 9 Jul 2014 08:43:52 -0700
-Message-ID: <20140709154352.GB28884@atomide.com>
-References: <53B59E73.1020709@ti.com>
+Subject: Re: [PATCH V4 2/2] arm: dts: dra7: add crossbar device binding
+Date: Wed, 9 Jul 2014 08:44:17 -0700
+Message-ID: <20140709154417.GC28884@atomide.com>
+References: <1403767532-19290-1-git-send-email-r.sricharan@ti.com>
+ <1403767532-19290-3-git-send-email-r.sricharan@ti.com>
+ <20140626074417.GF28884@atomide.com>
+ <53ABDA9A.8000108@ti.com>
+ <20140626102650.GH28884@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52833 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755337AbaGIPnw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 11:43:52 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53B59E73.1020709@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140626102650.GH28884@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, aaro.koskinen@iki.fi
 
-* Tero Kristo <t-kristo@ti.com> [140703 11:19]:
-> Hi Tony,
+* Tony Lindgren <tony@atomide.com> [140626 03:28]:
+> * Sricharan R <r.sricharan@ti.com> [140626 01:36]:
+> > Hi Tony,
+> > 
+> > On Thursday 26 June 2014 01:14 PM, Tony Lindgren wrote:
+> > > * Sricharan R <r.sricharan@ti.com> [140626 00:29]:
+> > >> From: R Sricharan <r.sricharan@ti.com>
+> > >>
+> > >> There is a IRQ crossbar device in the soc, which
+> > >> maps the irq requests from the peripherals to the
+> > >> mpu interrupt controller's inputs. The Peripheral irq
+> > >> requests are connected to only one crossbar
+> > >> input and the output of the crossbar is connected to only one
+> > >> controller's input line. The crossbar device is used to map
+> > >> a peripheral input to a free mpu's interrupt controller line.
+> > >>
+> > >> Here, adding a new crossbar device node and replacing all the peripheral
+> > >> interrupt numbers with its fixed crossbar input lines.
+> > > 
+> > > I think these two patches need to be a single patch to avoid
+> > > breaking booting for git bisect inbetween these patches?
+> >   This does not cause booting issues. irq_desc gets allocated linearly,
+> >    but that does not create boot issues.
 > 
-> Posting this pull-request also early due to my holidays. Anyway, these
-> patches were supposed to go in already during 3.16 merge window, but they
-> missed it due to pending dependencies. Finalizes the move of OMAP24xx clock
-> data to the DT, and also removes the legacy clock data. Might be good to try
-> this branch out with n800 / 2420 hardware also as I don't have access to
-> those.
-> 
-> ---------------------------------------------------------------
-> 
-> The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
-> 
->   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
-> 
-> are available in the git repository at:
-> 
->   git@github.com:t-kristo/linux-pm.git for-v3.17/omap2-use-dt-clks
-> 
-> for you to fetch changes up to 6a194a6e2a8fa55e133936a124ed500aea434116:
-> 
->   ARM: OMAP24xx: clock: remove legacy clock data (2014-07-02 15:59:03 +0300)
+> OK
 
-OK thanks pulling this into omap-for-v3.17/dt.
+These are now applied on top of Jason's immutable irqchip branch
+and merged and pushed out into omap-for-v3.17/dt. Can you guys
+please test?
+
+Regards,
 
 Tony
