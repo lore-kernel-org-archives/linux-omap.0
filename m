@@ -1,52 +1,26 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V4 2/2] arm: dts: dra7: add crossbar device binding
-Date: Wed, 9 Jul 2014 08:44:17 -0700
-Message-ID: <20140709154417.GC28884@atomide.com>
-References: <1403767532-19290-1-git-send-email-r.sricharan@ti.com>
- <1403767532-19290-3-git-send-email-r.sricharan@ti.com>
- <20140626074417.GF28884@atomide.com>
- <53ABDA9A.8000108@ti.com>
- <20140626102650.GH28884@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
+Date: Wed, 09 Jul 2014 18:32:51 +0200
+Message-ID: <53BD6EB3.4020305@linutronix.de>
+References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de> <1404491651-1388-3-git-send-email-bigeasy@linutronix.de> <20140707142056.46f61cf9@alan.etchedpixels.co.uk> <20140709111705.GR28884@atomide.com> <53BD291D.3040307@linutronix.de> <20140709114837.GU28884@atomide.com> <53BD38D3.2000204@linutronix.de> <20140709151242.GY28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140626102650.GH28884@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com, Benoit Cousson <bcousson@baylibre.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140709151242.GY28884@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [140626 03:28]:
-> * Sricharan R <r.sricharan@ti.com> [140626 01:36]:
-> > Hi Tony,
-> > 
-> > On Thursday 26 June 2014 01:14 PM, Tony Lindgren wrote:
-> > > * Sricharan R <r.sricharan@ti.com> [140626 00:29]:
-> > >> From: R Sricharan <r.sricharan@ti.com>
-> > >>
-> > >> There is a IRQ crossbar device in the soc, which
-> > >> maps the irq requests from the peripherals to the
-> > >> mpu interrupt controller's inputs. The Peripheral irq
-> > >> requests are connected to only one crossbar
-> > >> input and the output of the crossbar is connected to only one
-> > >> controller's input line. The crossbar device is used to map
-> > >> a peripheral input to a free mpu's interrupt controller line.
-> > >>
-> > >> Here, adding a new crossbar device node and replacing all the peripheral
-> > >> interrupt numbers with its fixed crossbar input lines.
-> > > 
-> > > I think these two patches need to be a single patch to avoid
-> > > breaking booting for git bisect inbetween these patches?
-> >   This does not cause booting issues. irq_desc gets allocated linearly,
-> >    but that does not create boot issues.
-> 
-> OK
+On 07/09/2014 05:12 PM, Tony Lindgren wrote:
+> And also please note that for runtime PM the wake-up events need
+> to be always enabled, so the device_may_wakeup() checks should
+> be only implemented for suspend and resume. I think I got that
+> corrected for most part in omap-serial.c recently, but knowing
+> that might reduce the confusion a bit :)
 
-These are now applied on top of Jason's immutable irqchip branch
-and merged and pushed out into omap-for-v3.17/dt. Can you guys
-please test?
+Ehm. I also added it to omap_8250_pm() as it is done in omap-serial (in
+serial_omap_pm()). Should I get rid of it in the latter?
 
-Regards,
-
-Tony
+Sebastian
