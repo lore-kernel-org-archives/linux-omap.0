@@ -1,26 +1,35 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
-Date: Wed, 09 Jul 2014 18:32:51 +0200
-Message-ID: <53BD6EB3.4020305@linutronix.de>
-References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de> <1404491651-1388-3-git-send-email-bigeasy@linutronix.de> <20140707142056.46f61cf9@alan.etchedpixels.co.uk> <20140709111705.GR28884@atomide.com> <53BD291D.3040307@linutronix.de> <20140709114837.GU28884@atomide.com> <53BD38D3.2000204@linutronix.de> <20140709151242.GY28884@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20140709151242.GY28884@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: [PATCH] Removes FIXME message in usb.c
+Date: Wed,  9 Jul 2014 12:55:48 -0400
+Message-ID: <1404924948-3298-1-git-send-email-xerofoify@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/09/2014 05:12 PM, Tony Lindgren wrote:
-> And also please note that for runtime PM the wake-up events need
-> to be always enabled, so the device_may_wakeup() checks should
-> be only implemented for suspend and resume. I think I got that
-> corrected for most part in omap-serial.c recently, but knowing
-> that might reduce the confusion a bit :)
+This patch removes a fixme message in this file for setting the usb 2
+speed on the board to the correct level. We need to depend on the
+bootloader for doing this as the wires may be shared for the other
+things on the board with the usb chipset.
 
-Ehm. I also added it to omap_8250_pm() as it is done in omap-serial (in
-serial_omap_pm()). Should I get rid of it in the latter?
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+---
+ arch/arm/mach-omap1/usb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sebastian
+diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+index 4118db5..172245a 100644
+--- a/arch/arm/mach-omap1/usb.c
++++ b/arch/arm/mach-omap1/usb.c
+@@ -505,7 +505,7 @@ static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
+ 		omap_cfg_reg(W5_USB2_SE0);
+ 		if (nwires != 3)
+ 			omap_cfg_reg(Y5_USB2_RCV);
+-		// FIXME omap_cfg_reg(USB2_SPEED);
++		/* Depend on boatloader for USB speed to be stated for board */
+ 	} else {
+ 		pr_debug("usb%d cpu unrecognized\n", 1);
+ 		return 0;
+-- 
+1.9.1
