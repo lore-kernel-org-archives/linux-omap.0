@@ -1,253 +1,94 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [RFC PATCH 05/10] OMAP: GPMC: Introduce APIs for accessing
- Prefetch/Write-post engine
-Date: Wed, 9 Jul 2014 15:37:25 +0300
-Message-ID: <1404909450-11970-6-git-send-email-rogerq@ti.com>
-References: <1404909450-11970-1-git-send-email-rogerq@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
+Date: Wed, 09 Jul 2014 14:42:59 +0200
+Message-ID: <53BD38D3.2000204@linutronix.de>
+References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de> <1404491651-1388-3-git-send-email-bigeasy@linutronix.de> <20140707142056.46f61cf9@alan.etchedpixels.co.uk> <20140709111705.GR28884@atomide.com> <53BD291D.3040307@linutronix.de> <20140709114837.GU28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <1404909450-11970-1-git-send-email-rogerq@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: tony@atomide.com, computersforpeace@gmail.com
-Cc: jg1.han@samsung.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, pekon@ti.com, ezequiel.garcia@free-electrons.com, javier@dowhile0.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140709114837.GU28884@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Even though the Prefetch engine is meant for exclusive use by
-the OMAP NAND controller, itst registers belong to the GPMC controller's
-register space.
+On 07/09/2014 01:48 PM, Tony Lindgren wrote:
+>>> So we can certainly enable this in a generic way, however, this
+>>> can only be done under the following conditions:
+> 
+> Sorry forgot to mention why I think this can now be done in a
+> generic way, that's because we have now runtime PM in Linux.
 
-Introduce 4 APIs to access the Prefetch/Write-post engine.
+I have a problem to follow here. I need set SET_RUNTIME_PM_OPS in
+.pm member of the driver. This is around for a while now maybe it
+wasn't around by the omap-serial was written but this doesn't matter
+now.
 
-int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
-			     u32 count, int is_write);
-int omap_gpmc_prefetch_stop(int cs);
-u32 omap_gpmc_get_prefetch_count(void);
-u32 omap_gpmc_get_prefetch_fifo_count(void);
+As for the dw driver (as one of the gnomes points out) it shouldn't
+matter because it is enabled / disabled based on 8250's pm callback. So
+while the device is active and the 8250 core grabs & puts the
+reference, nothing should change. Still a double check from Mika
+wouldn't hurt.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/gpmc.c     | 134 +++++++++++++++++++++++++++++++++++++++++
- include/linux/omap-gpmc-nand.h |  30 +++++++++
- 2 files changed, 164 insertions(+)
+If I understand the omap case correct (and please correct me if I don't)
+the 8250-omap driver assumes that the device can go to sleep
+after the probe function completes. This does not happen
+because pm_runtime_set_autosuspend_delay() sets the delay to -1.
+If the user changes this via sysfs, then the device might go to sleep
+and the IP block switched of. Therefore we need the runtime pm
+callbacks in 8250-core before the register access because we can't
+access the it otherwise.
+The core should wake us up in case there is incoming RX action to be
+handled so we can restore register's content. And for TX we have the
+proper pm hooks.
+The dw driver also only disables / enables the clock. So they don't
+lose the register's content like omap does. Thus they don't need the
+one struct I exported.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 92bbada..43e2a9d 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -33,6 +33,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/omap-gpmc-nand.h>
- #include <linux/platform_data/mtd-nand-omap2.h>
-+#include <linux/bitops.h>
- 
- #include <asm/mach-types.h>
- 
-@@ -114,6 +115,20 @@
- 
- #define GPMC_NR_WAITPINS		4
- 
-+/* GPMC Prefetch/Write-post Engine */
-+#define GPMC_PREFETCH_CONFIG1_ENABLE_PREFETCH	BIT(7)
-+#define GPMC_PREFETCH_CONFIG1_DMAMODE		BIT(2)
-+#define GPMC_PREFETCH_CONFIG1_ACCESSMODE	BIT(0)
-+#define GPMC_PREFETCH_CONFIG1_CS_MASK		GENMASK(26, 24)
-+#define GPMC_PREFETCH_CONFIG1_CS_SHIFT		24
-+#define GPMC_PREFETCH_CONFIG1_FIFOTH_MASK	GENMASK(14, 8)
-+#define GPMC_PREFETCH_CONFIG1_FIFOTH_SHIFT	8
-+
-+#define GPMC_PREFETCH_CONTROL_START		BIT(0)
-+
-+#define GPMC_PREFETCH_STATUS_COUNT(val)		(val & 0x00003fff)
-+#define GPMC_PREFETCH_STATUS_FIFO_CNT(val)	((val >> 24) & 0x7F)
-+
- /* XXX: Only NAND irq has been considered,currently these are the only ones used
-  */
- #define	GPMC_NR_IRQ		2
-@@ -1971,3 +1986,122 @@ void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val)
- 		break;
- 	}
- }
-+
-+/**
-+ * omap_gpmc_prefetch_start - configures and starts the prefetch engine
-+ *
-+ * @cs: cs (chip select) number
-+ * @fifo_th: fifo threshold to be used for read/ write
-+ * @dma: dma mode enable (1) or disable (0)
-+ * @count: number of bytes to be transferred
-+ * @is_write: prefetch read(0) or write post(1) mode
-+ *
-+ * As there is a single prefetch engine that must be shared between
-+ * chip selects containing NAND flashes, the function returns -EBUSY if
-+ * the engine is already in use. Returns 0 on success.
-+ */
-+int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
-+			     u32 count, int is_write)
-+{
-+	u32 val;
-+
-+	if (!gpmc_dev)
-+		return -ENODEV;
-+
-+	if (cs >= gpmc_cs_num)
-+		return -EINVAL;
-+
-+	if (fifo_th > GPMC_PREFETCH_FIFOTHRESHOLD_MAX)
-+		return -EINVAL;
-+
-+	/* Check if engine is already in use */
-+	if (gpmc_read_reg(GPMC_PREFETCH_CONTROL))
-+		return -EBUSY;
-+
-+	/* Set the amount of bytes to be prefetched */
-+	gpmc_write_reg(GPMC_PREFETCH_CONFIG2, count);
-+
-+	/* Set dma/mpu mode, the prefetch read / post write and
-+	 * enable the engine. Set which cs is has requested for.
-+	 */
-+	val = ((cs << GPMC_PREFETCH_CONFIG1_CS_SHIFT) |
-+		GPMC_PREFETCH_CONFIG1_ENABLE_PREFETCH |
-+		(GPMC_PREFETCH_CONFIG1_ACCESSMODE & is_write));
-+
-+	val |= (fifo_th << GPMC_PREFETCH_CONFIG1_FIFOTH_SHIFT) &
-+		GPMC_PREFETCH_CONFIG1_FIFOTH_MASK;
-+
-+	if (dma)
-+		val |= GPMC_PREFETCH_CONFIG1_DMAMODE;
-+
-+	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, val);
-+
-+	/*  Start the prefetch engine */
-+	gpmc_write_reg(GPMC_PREFETCH_CONTROL, GPMC_PREFETCH_CONTROL_START);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_gpmc_prefetch_stop - stops and disables the prefetch engine
-+ *
-+ * @cs: Chip select number
-+ */
-+int omap_gpmc_prefetch_stop(int cs)
-+{
-+	u32 config1;
-+
-+	if (!gpmc_dev)
-+		return -ENODEV;
-+
-+	if (cs >= gpmc_cs_num)
-+		return -EINVAL;
-+
-+	/* check if the same module/cs is trying to reset */
-+	config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
-+	config1 &= GPMC_PREFETCH_CONFIG1_CS_MASK;
-+
-+	if ((config1 >> GPMC_PREFETCH_CONFIG1_CS_SHIFT) != cs)
-+		return -EINVAL;
-+
-+	/* Stop the engine */
-+	gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0);
-+
-+	/* Reset/disable the engine */
-+	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_gpmc_get_prefetch_count - Returns the number of bytes remaining to be
-+ * read or written by the prefetch/write-post engine
-+ */
-+u32 omap_gpmc_get_prefetch_count(void)
-+{
-+	u32 count;
-+
-+	if (!gpmc_dev)
-+		return 0;
-+
-+	count = gpmc_read_reg(GPMC_PREFETCH_STATUS);
-+	count = GPMC_PREFETCH_STATUS_COUNT(count);
-+	return count;
-+}
-+
-+/**
-+ * omap_gpmc_get_prefetch_fifo_count - Returns the number of bytes available
-+ * to be read from the FIFO or free bytes available to be written to the FIFO
-+ * by the CPU
-+ */
-+u32 omap_gpmc_get_prefetch_fifo_count(void)
-+{
-+	u32 count;
-+
-+	if (!gpmc_dev)
-+		return 0;
-+
-+	count = gpmc_read_reg(GPMC_PREFETCH_STATUS);
-+	count = GPMC_PREFETCH_STATUS_FIFO_CNT(count);
-+	return count;
-+}
-diff --git a/include/linux/omap-gpmc-nand.h b/include/linux/omap-gpmc-nand.h
-index dcb2abe..c445d89 100644
---- a/include/linux/omap-gpmc-nand.h
-+++ b/include/linux/omap-gpmc-nand.h
-@@ -26,6 +26,12 @@ enum omap_gpmc_reg {
- #ifdef CONFIG_ARCH_OMAP2PLUS
- u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg);
- void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val);
-+
-+int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
-+			     u32 count, int is_write);
-+int omap_gpmc_prefetch_stop(int cs);
-+u32 omap_gpmc_get_prefetch_count(void);
-+u32 omap_gpmc_get_prefetch_fifo_count(void);
- #else
- static inline u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg)
- {
-@@ -35,6 +41,30 @@ static inline u32 omap_gpmc_read_reg(int cs, enum omap_gpmc_reg reg)
- static inline void omap_gpmc_write_reg(int cs, enum omap_gpmc_reg reg, u32 val)
- {
- }
-+
-+static inline int omap_gpmc_prefetch_start(int cs, int fifo_th, bool dma,
-+					   u32 count, int is_write)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline int omap_gpmc_prefetch_stop(int cs)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline u32 omap_gpmc_get_prefetch_count(void)
-+{
-+	return 0;
-+}
-+
-+static inline u32 omap_gpmc_get_prefetch_fifo_count(void)
-+{
-+	return 0;
-+}
- #endif
- 
-+/* Prefetch/Write-post Engine */
-+#define GPMC_PREFETCH_FIFOTHRESHOLD_MAX		0x40
-+
- #endif /* _GPMC_OMAP_H_ */
--- 
-1.8.3.2
+I don't think that it makes sense to make this restore/save part
+generic if this what it is about. OMAP at least has a few registers
+more to take care of and set-termios is already different.
 
+>>> 1. We can save and restore the serial register context and detect
+>>>    when context was lost in the serial driver. The context loss
+>>>    can be detected by looking at some registers that are only
+>>>    initialized during init.
+>>
+>> A register check on restore context? DLL+DLH might be a good hint here
+>> since its value should be >0 in the running case.
+> 
+> OK yeah that would be a generic way to do it potentially ;)
+> 
+> Note that all the context_loss_cnt stuff in omap-serial.c can
+> then be ignored, that's still only needed for the omap3 legacy
+> mode booting case and won't be needed much longer.
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Ah. The way the code reads, it is just an optimization in case the core
+didn't go off after all so we don't have to restore the registers.
+
+>>> 2. There's a way for the serial RX pin to wake the SoC. On some
+>>>    omaps there's a separate pin specific wake-up interrupt that
+>>>    can be used for that.
+>>
+>> That one would be handled by omap separately.
+> 
+> OK great.
+>  
+>>> 3. The serial PM features must be only enabled if requested by
+>>>    the user via sysfs. Typically extra latency and loss of the
+>>>    first RX character occur which is not acceptable to most
+>>>    applications.
+>>
+>> Unless I'm mistaken the omap driver now initializes the timeout to -1.
+>> So nothing happens unless this is enabled separately.
+> 
+> Yes that's the only safe approach so the serial port behaves in
+> the standard Linux way unless specifically requested by the
+> user.
+> 
+> Regards,
+> 
+> Tony
+
+Sebastian
