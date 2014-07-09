@@ -1,69 +1,131 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
-Date: Wed, 9 Jul 2014 14:05:32 +0530
-Message-ID: <1404894932-26677-3-git-send-email-lokeshvutla@ti.com>
-References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com>
- <1404894932-26677-1-git-send-email-lokeshvutla@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
+Date: Wed, 9 Jul 2014 14:32:47 +0530
+Message-ID: <1404896567-32204-1-git-send-email-kishon@ti.com>
+References: <1403719366-9656-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60844 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751871AbaGIIgS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jul 2014 04:36:18 -0400
-In-Reply-To: <1404894932-26677-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1403719366-9656-3-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, rnayak@ti.com, tony@atomide.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com, lokeshvutla@ti.com
 
-Add node for RTC.
-And also making RTC regulator always-on, as RTC should be powered
-always.
+Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-[nm@ti.com: update with rtc crossbar number]
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
-This patch depends on the crossbar dt patch series by Sricharan:
-https://www.mail-archive.com/linux-omap@vger.kernel.org/msg106910.html
+Changes from v1:
+* changed the clock domain to "pcie_clkdm"
+* Added PCIe as a slave port for l3_main.
 
- arch/arm/boot/dts/dra7-evm.dts |    1 +
- arch/arm/boot/dts/dra7.dtsi    |    9 +++++++++
- 2 files changed, 10 insertions(+)
+Boot log for dra7xx can be found at http://paste.ubuntu.com/7769402/
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 4adc280..bca6d4a 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -249,6 +249,7 @@
- 					regulator-min-microvolt = <1050000>;
- 					regulator-max-microvolt = <1050000>;
- 					regulator-boot-on;
-+					regulator-always-on;
- 				};
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   73 +++++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 6ff40a6..2f37ca8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1290,6 +1290,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+ };
  
- 				ldoln_reg: ldoln {
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 55a6cd4..46779197 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -828,6 +828,15 @@
- 			ti,hwmods = "sata";
- 		};
- 
-+		rtcss@48838000 {
-+			compatible = "ti,am3352-rtc";
-+			reg = <0x48838000 0x100>;
-+			interrupts = <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "rtcss";
-+			clocks = <&sys_32k_ck>;
-+		};
+ /*
++ * 'PCIE' class
++ *
++ */
 +
- 		omap_control_usb2phy1: control-phy@4a002300 {
- 			compatible = "ti,control-phy-usb2";
- 			reg = <0x4a002300 0x4>;
++static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
++	.name	= "pcie",
++};
++
++/* pcie1 */
++static struct omap_hwmod dra7xx_pcie1_hwmod = {
++	.name		= "pcie1",
++	.class		= &dra7xx_pcie_hwmod_class,
++	.clkdm_name	= "pcie_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
++			.modulemode	= MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* pcie2 */
++static struct omap_hwmod dra7xx_pcie2_hwmod = {
++	.name		= "pcie2",
++	.class		= &dra7xx_pcie_hwmod_class,
++	.clkdm_name	= "pcie_clkdm",
++	.main_clk	= "l4_root_clk_div",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/*
+  * 'PCIE PHY' class
+  *
+  */
+@@ -2448,6 +2485,38 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l3_main_1 -> pcie1 */
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie1 = {
++	.master		= &dra7xx_l3_main_1_hwmod,
++	.slave		= &dra7xx_pcie1_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_cfg -> pcie1 */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_pcie1_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l3_main_1 -> pcie2 */
++static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie2 = {
++	.master		= &dra7xx_l3_main_1_hwmod,
++	.slave		= &dra7xx_pcie2_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_cfg -> pcie2 */
++static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
++	.master		= &dra7xx_l4_cfg_hwmod,
++	.slave		= &dra7xx_pcie2_hwmod,
++	.clk		= "l4_root_clk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_cfg -> pcie1 phy */
+ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
+ 	.master		= &dra7xx_l4_cfg_hwmod,
+@@ -2813,6 +2882,10 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_cfg__mpu,
+ 	&dra7xx_l4_cfg__ocp2scp1,
+ 	&dra7xx_l4_cfg__ocp2scp3,
++	&dra7xx_l3_main_1__pcie1,
++	&dra7xx_l4_cfg__pcie1,
++	&dra7xx_l3_main_1__pcie2,
++	&dra7xx_l4_cfg__pcie2,
+ 	&dra7xx_l4_cfg__pcie1_phy,
+ 	&dra7xx_l4_cfg__pcie2_phy,
+ 	&dra7xx_l3_main_1__qspi,
 -- 
 1.7.9.5
-
