@@ -1,50 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] arm: dts: dra7: fixup qspi entry
-Date: Wed, 9 Jul 2014 03:26:56 -0700
-Message-ID: <20140709102655.GN28884@atomide.com>
-References: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de>
- <1404844852-19980-3-git-send-email-bigeasy@linutronix.de>
- <53BD1444.6080603@ti.com>
- <53BD16F6.1030006@linutronix.de>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
+Date: Wed, 9 Jul 2014 16:05:36 +0530
+Message-ID: <53BD1AF8.2060609@ti.com>
+References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-3-git-send-email-lokeshvutla@ti.com> <20140709091232.GJ28884@atomide.com> <53BD0C43.1090002@ti.com> <20140709100914.GL28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53851 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755114AbaGIK0z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 06:26:55 -0400
-Content-Disposition: inline
-In-Reply-To: <53BD16F6.1030006@linutronix.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:48614 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754667AbaGIKhu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jul 2014 06:37:50 -0400
+In-Reply-To: <20140709100914.GL28884@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: sourav <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140709 03:20]:
-> On 07/09/2014 12:07 PM, sourav wrote:
-> > Hi,
-> 
-> Hello, Sourav,
-> 
-> > The number is correct and is complaining just because the crossbar stuff
-> > is not
-> > put in. I had already posted a patch[1] to remove interrupt binding as
-> > of now.
-> > 
-> > Hence, NAK for this patch.
-> 
-> Thank you for explanation. What is the status on the crossbar stuff? Is
-> this comming any time soon? It seems that it is also stalling the
-> networking pieces.
+On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
+> * Keerthy <a0393675@ti.com> [140709 02:36]:
+>> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
+>>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
+>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>>>> @@ -249,6 +249,7 @@
+>>>>   					regulator-min-microvolt = <1050000>;
+>>>>   					regulator-max-microvolt = <1050000>;
+>>>>   					regulator-boot-on;
+>>>> +					regulator-always-on;
+>>>>   				};
+>>> Is this regulator really always on?
+>> This feeds on to RTC which is a free running clock. So i guess always on is
+>> justified no?
+> Well the dts entries should describe the hardware. If the
+> regulator can be enabled and disabled, we should not claim it's
+> always on.
 
-The drivers/irqchip related fixes are queued into linux next,
-and I'm planning to queue the dts related changes for v3.17.
+ From the PMIC perspective every regulator can be enabled and
+disabled. From a Board perspective there are some which need
+to be always on. For Ex: SMPS123 which feeds on to the MPU.
 
-I might have the crossbar stuff in omap-for-v3.17/dt at some
-point today.
+I guess RTC also needs the supply to be on as long as we want
+the clock to be ticking.
+
+> Also adding temporary dts entries just causes more churn on the
+> dts files which is a PITA for everybody.
+>
+> Regards,
+>
+> Tony
 
 Regards,
-
-Tony
-
-> > [1]: https://patchwork.kernel.org/patch/4364341/
+Keerthy
