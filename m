@@ -1,177 +1,178 @@
-From: Pascal Huerst <pascal.huerst@gmail.com>
-Subject: Re: gpio-omap: wakeup mask
-Date: Wed, 09 Jul 2014 14:45:04 +0200
-Message-ID: <53BD3950.60000@gmail.com>
-References: <53B3F687.5050502@gmail.com> <20140704072752.GC28884@atomide.com> <53BD1683.9030505@gmail.com> <20140709104142.GO28884@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: omap2+: gpmc-nand: Use dynamic platform_device_alloc()
+Date: Wed, 9 Jul 2014 15:49:26 +0300
+Message-ID: <53BD3A56.9050302@ti.com>
+References: <1401891875-27843-1-git-send-email-lisovy@merica.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20140709104142.GO28884@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39294 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750922AbaGIMuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jul 2014 08:50:10 -0400
+In-Reply-To: <1401891875-27843-1-git-send-email-lisovy@merica.cz>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rostislav Lisovy <lisovy@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Pekon Gupta <pekon@ti.com>, Michal Vokac <vokac.m@gmail.com>, Michal Sojka <sojkam1@fel.cvut.cz>, Rostislav Lisovy <lisovy@merica.cz>
 
+Hi Rostislav,
 
-
-On 09.07.2014 12:41, Tony Lindgren wrote:
-> * Pascal Huerst <pascal.huerst@gmail.com> [140709 03:18]:
->> Hey Tony, all
->>
->> On 04.07.2014 09:27, Tony Lindgren wrote:
->>> * Pascal Huerst <pascal.huerst@gmail.com> [140702 05:12]:
->>>> Hi everyone,
->>>>
->>>> we have a device with an am335x and are using some gpios on bank0 to
->>>> wake up the device from suspend to ram.
->>>>
->>>> We have some user buttons which are configured in the devicetree as
->>>> gpio-keys and one power-key which should wake up the device:
->>>>
->>>> &buttons {
->>>>         power {
->>>>                 label = "Power";
->>>>                 gpios = <&gpio0 6 1>;
->>>>                 linux,code = <116>;
->>>>                 gpio-key,wakeup;
->>>>         };
->>>>
->>>>         one {
->>>>                 label = "One";
->>>>                 gpios = <&gpio0 11 1>;
->>>>                 linux,code = <2>;
->>>>         };
->>>>
->>>>         : : :
->>>> }
->>>>
->>>> The problem is, that the device wakes up on any trigger on bank 0. No
->>>> matter which button was pressed. "gpio-key,wakeup" seems not to have any
->>>> influence.
->>>>
->>>> Now, if I comment the following lines out in drivers/gpio/gpio-omap.c :
->>>> set_gpio_trigger(...).
->>>>
->>>> 321
->>>> 322 if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
->>>> 323    _gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
->>>> 324      bank->context.wake_en =
->>>> 325        readl_relaxed(bank->base + bank->regs->wkup_en);
->>>> 326 }
->>>> 327
->>>>
->>>> Everything works as expected. But I don't really understand why? Is this
->>>> a bug, or does this break something else I have not discovered yet?
->>>
->>> The GPIO wake-up events are working from off-idle for omap3
->>> the last time I checked, so sounds like this is some am335x
->>> related issue.
->>
->> Ok, that sounds reasonable.
->>
->>> What does your bank->context.wake_en mask get set to with this code?
->>
->> by calling 'echo mem > /sys/power/state' followed by a wakeup, I get the
->> following:
->>
->> [   28.992866] bank->context->wake_en = 00080040
->> [   29.020974] PM: noirq resume of devices complete after 22.439 msecs
+On 06/04/2014 05:24 PM, Rostislav Lisovy wrote:
+> GPMC controller supports up to 8 memory devices connected to it.
+> Since there is one statically allocated "struct platform_device
+> gpmc_nand_device" it is not possible to configure the system to
+> use more than one NAND device connected to the GPMC. This
+> modification makes it possible to use up to 8 NAND devices
+> connected to the GPMC controller.
 > 
-> I guess that's for gpio bank 0 with no bit 11 as your dts has it
-> configured. 
+> Signed-off-by: Rostislav Lisovy <lisovy@merica.cz>
+> ---
+> 
+> Tested on custom AM335x board with two different NAND chips
+> (128 + 256 MiB) using GPMC configuration in FDT -- behaves
+> correctly.
+> 
+> 
+>  arch/arm/mach-omap2/gpmc-nand.c | 79 +++++++++++++++++++----------------------
+>  1 file changed, 37 insertions(+), 42 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index 4349e82..c5481a8 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -24,25 +24,6 @@
+>  /* minimum size for IO mapping */
+>  #define	NAND_IO_SIZE	4
+>  
+> -static struct resource gpmc_nand_resource[] = {
+> -	{
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.flags		= IORESOURCE_IRQ,
+> -	},
+> -	{
+> -		.flags		= IORESOURCE_IRQ,
+> -	},
+> -};
+> -
+> -static struct platform_device gpmc_nand_device = {
+> -	.name		= "omap2-nand",
+> -	.id		= 0,
+> -	.num_resources	= ARRAY_SIZE(gpmc_nand_resource),
+> -	.resource	= gpmc_nand_resource,
+> -};
+> -
+>  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+>  {
+>  	/* platforms which support all ECC schemes */
+> @@ -93,43 +74,41 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>  {
+>  	int err	= 0;
+>  	struct gpmc_settings s;
+> -	struct device *dev = &gpmc_nand_device.dev;
+> -
+> -	memset(&s, 0, sizeof(struct gpmc_settings));
+> +	struct platform_device *pdev;
+> +	struct resource gpmc_nand_res[] = {
+> +		{ .flags = IORESOURCE_MEM, },
+> +		{ .flags = IORESOURCE_IRQ, },
+> +		{ .flags = IORESOURCE_IRQ, },
+> +	};
+>  
+> -	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
+> +	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
+>  
+>  	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
+> -				(unsigned long *)&gpmc_nand_resource[0].start);
+> +			      (unsigned long *)&gpmc_nand_res[0].start);
+>  	if (err < 0) {
+> -		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
+> -			gpmc_nand_data->cs, err);
+> +		pr_err("omap2-gpmc: Cannot request GPMC CS %d, error %d\n",
+> +		       gpmc_nand_data->cs, err);
+>  		return err;
+>  	}
+> -
+> -	gpmc_nand_resource[0].end = gpmc_nand_resource[0].start +
+> -							NAND_IO_SIZE - 1;
+> -
+> -	gpmc_nand_resource[1].start =
+> -				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
+> -	gpmc_nand_resource[2].start =
+> -				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
+> +	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
+> +	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
+> +	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
+>  
+>  	if (gpmc_t) {
+>  		err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
+>  		if (err < 0) {
+> -			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
+> +			pr_err("omap2-gpmc: Unable to set gpmc timings: %d\n", err);
+>  			return err;
+>  		}
+>  	}
+>  
+> +	memset(&s, 0, sizeof(struct gpmc_settings));
+>  	if (gpmc_nand_data->of_node)
+>  		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+>  	else
+>  		gpmc_set_legacy(gpmc_nand_data, &s);
+>  
+>  	s.device_nand = true;
+> -
+>  	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
+>  	if (err < 0)
+>  		goto out_free_cs;
+> @@ -141,18 +120,34 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>  	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+>  
+>  	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
+> -		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
+> -		return -EINVAL;
+> +		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
+> +		err = -EINVAL;
+> +		goto out_free_cs;
+>  	}
+>  
+> -	err = platform_device_register(&gpmc_nand_device);
+> -	if (err < 0) {
+> -		dev_err(dev, "Unable to register NAND device\n");
+> -		goto out_free_cs;
+> +
+> +	pdev = platform_device_alloc("omap2-nand", gpmc_nand_data->cs);
+> +	if (pdev) {
+> +		err = platform_device_add_resources(pdev, gpmc_nand_res,
+> +						    ARRAY_SIZE(gpmc_nand_res));
+> +		if (!err)
+> +			pdev->dev.platform_data = gpmc_nand_data;
+> +	} else {
+> +		err = -ENOMEM;
+> +	}
+> +	if (err)
+> +		goto out_free_pdev;
 
-Yes that's right. I forgot to print the context, too. If I do so, it's:
+There is a slight problem here. If platform_device_alloc() fails,
+we must jump to 'out_free_cs' and not 'out_free_pdev'.
 
-[   31.034972] bank->base = F9E07000 gpio = 6 bank->context->wake_en =
-00080040
+> +
+> +	err = platform_device_add(pdev);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "Unable to register NAND device\n");
+> +		goto out_free_pdev;
+>  	}
+>  
+>  	return 0;
+>  
+> +out_free_pdev:
+> +	platform_device_put(pdev);
+>  out_free_cs:
+>  	gpmc_cs_free(gpmc_nand_data->cs);
+>  
+> 
 
-respectively:
-
-[   31.846992] bank->base = F9E07000 gpio = 11 bank->context->wake_en =
-00080040
-
-> If you just comment out the _gpio_rmw part above do
-> things work as expected?
-
-Yes. It only wakes up on gpio 6 not on gpio 11 anymore.
-
-> Then if that works as expected, maybe write only some unused bits
-> into wkup_en register and see if it still wakes to all events while
-> it should not?
-
-If I use the following testcode, everything works as expected:
-
-//WARN(true, "WARN: bank->base = %08X\n", bank->base);
-
-if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
-  //_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
-  writel(0xABC00000, base + bank->regs->wkup_en);
-
-  bank->context.wake_en = readl_relaxed(bank->base +
-    bank->regs->wkup_en);
-  printk("bank->base = %08X gpio = %i bank->context->wake_en = %08X\n",
-    bank->base, gpio, bank->context.wake_en);
-}
-
-This produces the following output:
-
-[   35.319228] PM: Syncing filesystems ... done.
-[   35.358702] Freezing user space processes ... (elapsed 0.003 seconds)
-done.
-[   35.369754] Freezing remaining freezable tasks ... (elapsed 0.002
-seconds) done.
-[   35.380734] PM: Sending message for entering DeepSleep mode
-[   35.515932] bank->base = F9E07000 gpio = 19 bank->context->wake_en =
-ABC00000
-[   35.529319] PM: suspend of devices complete after 137.218 msecs
-[   35.544410] PM: late suspend of devices complete after 8.715 msecs
-[   35.562247] omap_hwmod: cpgmac0: _wait_target_disable failed
-[   35.569325] PM: noirq suspend of devices complete after 18.289 msecs
-[   35.576156] PM: GFX domain entered low power state
-[   35.576156] PM: Could not transition all powerdomains to target state
-[   35.576156] PM: Wakeup source GPIO0
-[   35.576156] PM Wakeup source extra: 00000840
-[   35.576329] bank->base = F9E07000 gpio = 6 bank->context->wake_en =
-ABC00000
-[   35.583710] bank->base = F9E07000 gpio = 11 bank->context->wake_en =
-ABC00000
-[   35.614846] PM: noirq resume of devices complete after 22.582 msecs
-[   35.622009] bank->base = F9E07000 gpio = 6 bank->context->wake_en =
-ABC00000
-[   35.631798] bank->base = F9E07000 gpio = 11 bank->context->wake_en =
-ABC00000
-[   35.639511] bank->base = F9E07000 gpio = 19 bank->context->wake_en =
-ABC00000
-[   35.647116] bank->base = FA04C000 gpio = 9 bank->context->wake_en =
-ABC00000
-[   35.654547] bank->base = FA04C000 gpio = 12 bank->context->wake_en =
-ABC00000
-[   35.662015] bank->base = FA04C000 gpio = 13 bank->context->wake_en =
-ABC00000
-[   35.669526] bank->base = FA04C000 gpio = 14 bank->context->wake_en =
-ABC00000
-[   35.677039] bank->base = FA04C000 gpio = 15 bank->context->wake_en =
-ABC00000
-[   35.685035] bank->base = FA1AC000 gpio = 17 bank->context->wake_en =
-ABC00000
-[   35.692507] bank->base = FA1AC000 gpio = 18 bank->context->wake_en =
-ABC00000
-[   35.706466] PM: early resume of devices complete after 6.235 msecs
-[   35.715010] net eth0: initializing cpsw version 1.12 (0)
-[   35.794388] net eth0: phy found : id is : 0x4dd076
-[   35.849941] mmc0: error -110 during resume (card was removed?)
-[   35.856164] dpm_run_callback(): mmc_bus_resume+0x0/0x74 returns -110
-[   35.862828] PM: Device mmc0:0001 failed to resume: error -110
-[   35.914573] PM: resume of devices complete after 201.604 msecs
-[   35.927336] PM: Sending message for resetting M3 state machine
-[   35.934236] Restarting tasks ... done.
-
-> It might be worth comparing the GPIO registers between am37xx and
-> am335x for the wkup_en register.
-
-I had a quick look, but did not find anything. May be I will have to
-look into that again.
-
-Thanks
-Pascal
+cheers,
+-roger
