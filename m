@@ -1,60 +1,102 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: gpio-omap: wakeup mask
-Date: Wed, 9 Jul 2014 08:24:42 -0700
-Message-ID: <20140709152441.GZ28884@atomide.com>
-References: <53B3F687.5050502@gmail.com>
- <20140704072752.GC28884@atomide.com>
- <53BD1683.9030505@gmail.com>
- <20140709104142.GO28884@atomide.com>
- <53BD3950.60000@gmail.com>
+Subject: [GIT PULL] omap fixes against v3.16-rc4
+Date: Wed, 9 Jul 2014 08:35:52 -0700
+Message-ID: <20140709153552.GA28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29053 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755939AbaGIPfx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 11:35:53 -0400
 Content-Disposition: inline
-In-Reply-To: <53BD3950.60000@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pascal Huerst <pascal.huerst@gmail.com>
-Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Pascal Huerst <pascal.huerst@gmail.com> [140709 05:47]:
-> On 09.07.2014 12:41, Tony Lindgren wrote:
-> 
-> > If you just comment out the _gpio_rmw part above do
-> > things work as expected?
-> 
-> Yes. It only wakes up on gpio 6 not on gpio 11 anymore.
-> 
-> > Then if that works as expected, maybe write only some unused bits
-> > into wkup_en register and see if it still wakes to all events while
-> > it should not?
-> 
-> If I use the following testcode, everything works as expected:
-> 
-> //WARN(true, "WARN: bank->base = %08X\n", bank->base);
-> 
-> if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
->   //_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
->   writel(0xABC00000, base + bank->regs->wkup_en);
-> 
->   bank->context.wake_en = readl_relaxed(bank->base +
->     bank->regs->wkup_en);
->   printk("bank->base = %08X gpio = %i bank->context->wake_en = %08X\n",
->     bank->base, gpio, bank->context.wake_en);
-> }
+The following changes since commit cd3de83f147601356395b57a8673e9c5ff1e=
+59d1:
 
-Hmm weird. It sounds like something like the following is happening:
+  Linux 3.16-rc4 (2014-07-06 12:37:51 -0700)
 
-1. The first GPIO bank is always powered, and does not need to set
-   wake-up events
+are available in the git repository at:
 
-2. When setting the GPIO wake-up events it seems that enabling any
-   wake-up event for the first (16?) bits wakes up the system
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/=
+omap-for-v3.16/fixes-rc4
 
-You might want to check this with some spare GPIOs not in the
-first bank and see if you need the wake-up events and if enabling
-some bits enables more than one GPIO for wake-up events.
+for you to fetch changes up to 1d29a0722f6c38f79785c9ffb911730598de84e2=
+:
 
-Regards,
+  ARM: OMAP2+: Remove non working OMAP HDMI audio initialization (2014-=
+07-08 01:08:44 -0700)
 
-Tony
+----------------------------------------------------------------
+=46ixes for omaps for the -rc series. It's mostly fixes for clock rates=
+,
+restart handling and phy regulators and SATA interconnect data.
+
+Also few build fixes related to the DSP driver in staging, and trivial
+stuff like removal of broken and soon to be unused platform data init
+for HDMI audio that would be good to get into the -rc series if not
+too late.
+
+----------------------------------------------------------------
+Enric Balletbo i Serra (1):
+      ARM: dts: Fix TI CPSW Phy mode selection on IGEP COM AQUILA.
+
+Guido Mart=C3=ADnez (1):
+      ARM: OMAP2+: Make GPMC skip disabled devices
+
+Jyri Sarha (1):
+      ARM: OMAP2+: Remove non working OMAP HDMI audio initialization
+
+Nishanth Menon (1):
+      ARM: DRA7/AM43XX: fix header definition for omap44xx_restart
+
+Peter Ujfalusi (2):
+      ARM: dts: am335x-evm: Enable the McASP FIFO for audio
+      ARM: dts: am335x-evmsk: Enable the McASP FIFO for audio
+
+Rajendra Nayak (1):
+      ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
+
+Roger Quadros (3):
+      ARM: DRA7: hwmod: Fixup SATA hwmod
+      ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+      ARM: dts: dra7-evm: Make VDDA_1V8_PHY supply always on
+
+Suman Anna (2):
+      ARM: OMAP3: PRM/CM: Add back macros used by TI DSP/Bridge driver
+      ARM: OMAP2+: create dsp device only on OMAP3 SoCs
+
+Tero Kristo (1):
+      ARM: OMAP2+: clock/dpll: fix _dpll_test_fint arithmetics overflow
+
+Tony Lindgren (2):
+      Merge branch 'for-v3.16-rc/clk-dt-fixes' of https://github.com/t-=
+kristo/linux-pm into fixes-rc4
+      Merge tag 'for-v3.16-rc/omap-fixes-b' of git://git.kernel.org/...=
+/pjw/omap-pending into omap-for-v3.16/fixes
+
+ arch/arm/boot/dts/am335x-evm.dts          |  4 ++--
+ arch/arm/boot/dts/am335x-evmsk.dts        |  4 ++--
+ arch/arm/boot/dts/am335x-igep0033.dtsi    |  6 ++++++
+ arch/arm/boot/dts/dra7-evm.dts            |  1 +
+ arch/arm/boot/dts/dra7xx-clocks.dtsi      | 10 ++++++----
+ arch/arm/mach-omap2/clkt_dpll.c           |  2 +-
+ arch/arm/mach-omap2/cm-regbits-34xx.h     |  3 +++
+ arch/arm/mach-omap2/common.h              |  3 ++-
+ arch/arm/mach-omap2/devices.c             | 28 -----------------------=
+-----
+ arch/arm/mach-omap2/dsp.c                 | 10 ++++++++++
+ arch/arm/mach-omap2/gpmc.c                |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 18 +++++++++++++-----
+ arch/arm/mach-omap2/prm-regbits-34xx.h    |  6 ++++++
+ 13 files changed, 53 insertions(+), 44 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
