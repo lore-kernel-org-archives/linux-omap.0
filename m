@@ -1,67 +1,137 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
- setting
-Date: Wed, 9 Jul 2014 10:15:54 -0400
-Message-ID: <53BD4E9A.7060903@ti.com>
-References: <20140707110249.GO28884@atomide.com> <53BA8983.3030803@ti.com> <20140707121512.GT3705@n2100.arm.linux.org.uk> <20140707123925.GW28884@atomide.com> <20140707134008.GU3705@n2100.arm.linux.org.uk> <20140707151024.GJ5582@saruman.home> <53BB7980.2060909@ti.com> <20140708082948.GE28884@atomide.com> <20140709092531.GK28884@atomide.com> <53BD34FD.5070005@ti.com> <20140709123950.GV3705@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
+Date: Wed, 9 Jul 2014 08:12:42 -0700
+Message-ID: <20140709151242.GY28884@atomide.com>
+References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de>
+ <1404491651-1388-3-git-send-email-bigeasy@linutronix.de>
+ <20140707142056.46f61cf9@alan.etchedpixels.co.uk>
+ <20140709111705.GR28884@atomide.com>
+ <53BD291D.3040307@linutronix.de>
+ <20140709114837.GU28884@atomide.com>
+ <53BD38D3.2000204@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33168 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756110AbaGIOQW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jul 2014 10:16:22 -0400
-In-Reply-To: <20140709123950.GV3705@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <53BD38D3.2000204@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, balbi@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-On Wednesday 09 July 2014 08:39 AM, Russell King - ARM Linux wrote:
-> On Wed, Jul 09, 2014 at 05:56:37PM +0530, Sekhar Nori wrote:
->> On Wednesday 09 July 2014 02:55 PM, Tony Lindgren wrote:
->>> I guess no more comments. Took a look at the patch again, Sekhar, can
->>> you please update the description with what has been discovered in this
->>> thread and repost?
->>
->> How does the following sound:
->>
->> ---
->> AM437x has L2C-310 version r3p2 and ROM code on that device does not
->> support writing to L2C-310 power control register. The L2C driver,
->> however, tries writing to this register for all revisions >= r3p0.
->>
->> This leads to a warning dump on boot which leads most users to believe
->> that L2 cache is non-functional.
->>
-Power controller register setting doesn't make cache controller
-functional but it is for really clock gating and standby.
-So please reword, the above statement accordingly.
-
->> Since the problem is understood, and cannot be addressed through
->> software, replace the warning with a pr_info() while maintaining the
->> WARN_ON() for other truly unexpected scenarios.
->>
-Instead of being vague here and below, I will just make it very simple as
-below.
-
-On OMAP SOCs using PL310 controllers, Power_ctrl register is not
-accessible from non-secure software on PL310 versions which supports
-it. The secure code takes care of setting it up correctly and the
-power transitions are proven on these devices.
-
-So lets add the ignore write check for PL310 Power_ctrl register
-write.
-
->> >From the public TRM available for OMAP4470, even on that device, ROM
->> does not support writing to this register even though it uses a version
->> of L2C-310 which has the register implemented. So this patch should take
->> care of all variants of existing OMAPs.
->> ---
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140709 05:45]:
+> On 07/09/2014 01:48 PM, Tony Lindgren wrote:
+> >>> So we can certainly enable this in a generic way, however, this
+> >>> can only be done under the following conditions:
+> > 
+> > Sorry forgot to mention why I think this can now be done in a
+> > generic way, that's because we have now runtime PM in Linux.
 > 
-> That sounds perfect, and explains why the change has to exist, and why
-> it can't be fixed elsewhere.  Thanks for providing the full reasoning in
-> the commit message.
-> 
+> I have a problem to follow here. I need set SET_RUNTIME_PM_OPS in
+> .pm member of the driver. This is around for a while now maybe it
+> wasn't around by the omap-serial was written but this doesn't matter
+> now.
 
+Right, the lack of runtime PM was one of the reasons for doing
+omap-serial earlier.
+ 
+> As for the dw driver (as one of the gnomes points out) it shouldn't
+> matter because it is enabled / disabled based on 8250's pm callback. So
+> while the device is active and the 8250 core grabs & puts the
+> reference, nothing should change. Still a double check from Mika
+> wouldn't hurt.
+
+OK
+ 
+> If I understand the omap case correct (and please correct me if I don't)
+> the 8250-omap driver assumes that the device can go to sleep
+> after the probe function completes. This does not happen
+> because pm_runtime_set_autosuspend_delay() sets the delay to -1.
+
+Correct. And once the timeout is enabled, the serial driver
+autoidles itself using runtime PM based on the timeout value.
+
+And also please note that for runtime PM the wake-up events need
+to be always enabled, so the device_may_wakeup() checks should
+be only implemented for suspend and resume. I think I got that
+corrected for most part in omap-serial.c recently, but knowing
+that might reduce the confusion a bit :)
+
+> If the user changes this via sysfs, then the device might go to sleep
+> and the IP block switched of. Therefore we need the runtime pm
+> callbacks in 8250-core before the register access because we can't
+> access the it otherwise.
+
+Correct. And it's not just the 8250 idle state, it's the whole SoC
+getting powered down during idle and rebooted when waking to a
+timer interrupt or device interrupt.
+
+> The core should wake us up in case there is incoming RX action to be
+> handled so we can restore register's content. And for TX we have the
+> proper pm hooks.
+
+The piece of code that runs in that case is the interrupt handler
+for the serial port. That handler could be separate from the
+regular serial port handler if necessary though and do a callback
+to the serial core code. But I don't know if that's needed.
+
+> The dw driver also only disables / enables the clock. So they don't
+> lose the register's content like omap does. Thus they don't need the
+> one struct I exported.
+
+Right, enabling and disabling the clock is done too for omaps
+when the SoC hits retention idle.
+ 
+> I don't think that it makes sense to make this restore/save part
+> generic if this what it is about. OMAP at least has a few registers
+> more to take care of and set-termios is already different.
+
+Yeah, and that can be done later on if others need it.
+ 
+> >>> 1. We can save and restore the serial register context and detect
+> >>>    when context was lost in the serial driver. The context loss
+> >>>    can be detected by looking at some registers that are only
+> >>>    initialized during init.
+> >>
+> >> A register check on restore context? DLL+DLH might be a good hint here
+> >> since its value should be >0 in the running case.
+> > 
+> > OK yeah that would be a generic way to do it potentially ;)
+> > 
+> > Note that all the context_loss_cnt stuff in omap-serial.c can
+> > then be ignored, that's still only needed for the omap3 legacy
+> > mode booting case and won't be needed much longer.
+> 
+> Ah. The way the code reads, it is just an optimization in case the core
+> didn't go off after all so we don't have to restore the registers.
+
+Well the interconnect code knows when the context was lost on omaps,
+but there's currently no Linux generic API for that. And since we
+can do it by checking some registers, it's best to implement it that
+way.
+ 
+> >>> 2. There's a way for the serial RX pin to wake the SoC. On some
+> >>>    omaps there's a separate pin specific wake-up interrupt that
+> >>>    can be used for that.
+> >>
+> >> That one would be handled by omap separately.
+> > 
+> > OK great.
+> >  
+> >>> 3. The serial PM features must be only enabled if requested by
+> >>>    the user via sysfs. Typically extra latency and loss of the
+> >>>    first RX character occur which is not acceptable to most
+> >>>    applications.
+> >>
+> >> Unless I'm mistaken the omap driver now initializes the timeout to -1.
+> >> So nothing happens unless this is enabled separately.
+> > 
+> > Yes that's the only safe approach so the serial port behaves in
+> > the standard Linux way unless specifically requested by the
+> > user.
+> > 
+> > Regards,
+> > 
+> > Tony
+> 
+> Sebastian
