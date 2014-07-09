@@ -1,29 +1,52 @@
-From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Subject: Re: [Re-send PATCH 1/1] arm: dra7xx: Add hwmod data for MDIO and CPSW
-Date: Wed, 9 Jul 2014 12:01:47 +0200
-Message-ID: <20140709100147.GB25154@breakpoint.cc>
-References: <1404825399-10330-1-git-send-email-mugunthanvnm@ti.com>
- <20140709095552.GA25154@breakpoint.cc>
+From: sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCH 3/3] arm: dts: dra7: fixup qspi entry
+Date: Wed, 9 Jul 2014 15:37:00 +0530
+Message-ID: <53BD1444.6080603@ti.com>
+References: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de> <1404844852-19980-3-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140709095552.GA25154@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55336 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751766AbaGIKHc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Jul 2014 06:07:32 -0400
+In-Reply-To: <1404844852-19980-3-git-send-email-bigeasy@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-On 2014-07-09 11:55:52 [+0200], Sebastian Andrzej Siewior wrote:
-> On 2014-07-08 18:46:39 [+0530], Mugunthan V N wrote:
-> > Adding hwmod data for CPSW and MDIO which is present in DRA7xx SoC
->=20
-> I reverted my patch, applied this one and after boot I got:
-Oh me dum dum. I had --dry-run=E2=80=A6
+Hi,
 
-Acked-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+On Wednesday 09 July 2014 12:10 AM, Sebastian Andrzej Siewior wrote:
+> The core complains that the number 343 is too large. The older code has
+> here 124. This avoids the warning, the driver hasn't been tested.
+>
+> Signed-off-by: Sebastian Andrzej Siewior<bigeasy@linutronix.de>
+> ---
+>   arch/arm/boot/dts/dra7.dtsi | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index daf7d36..1529bca 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -821,7 +821,7 @@
+>   			clocks =<&qspi_gfclk_div>;
+>   			clock-names = "fck";
+>   			num-cs =<4>;
+> -			interrupts =<0 343 0x4>;
+> +			interrupts =<0 124 0x4>;
+>   			status = "disabled";
+>   		};
+>
 
-This is basically what Tony hasked me to do: No IRQ numbers & iomem.
+The number is correct and is complaining just because the crossbar stuff 
+is not
+put in. I had already posted a patch[1] to remove interrupt binding as 
+of now.
 
-Sebastian
+Hence, NAK for this patch.
+
+[1]: https://patchwork.kernel.org/patch/4364341/
