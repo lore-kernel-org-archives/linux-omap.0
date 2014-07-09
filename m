@@ -1,54 +1,93 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
-Date: Wed, 9 Jul 2014 16:05:36 +0530
-Message-ID: <53BD1AF8.2060609@ti.com>
-References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-3-git-send-email-lokeshvutla@ti.com> <20140709091232.GJ28884@atomide.com> <53BD0C43.1090002@ti.com> <20140709100914.GL28884@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: gpio-omap: wakeup mask
+Date: Wed, 9 Jul 2014 03:41:42 -0700
+Message-ID: <20140709104142.GO28884@atomide.com>
+References: <53B3F687.5050502@gmail.com>
+ <20140704072752.GC28884@atomide.com>
+ <53BD1683.9030505@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48614 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754667AbaGIKhu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jul 2014 06:37:50 -0400
-In-Reply-To: <20140709100914.GL28884@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <53BD1683.9030505@gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Pascal Huerst <pascal.huerst@gmail.com>
+Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
-> * Keerthy <a0393675@ti.com> [140709 02:36]:
->> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
->>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
->>>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>>> @@ -249,6 +249,7 @@
->>>>   					regulator-min-microvolt = <1050000>;
->>>>   					regulator-max-microvolt = <1050000>;
->>>>   					regulator-boot-on;
->>>> +					regulator-always-on;
->>>>   				};
->>> Is this regulator really always on?
->> This feeds on to RTC which is a free running clock. So i guess always on is
->> justified no?
-> Well the dts entries should describe the hardware. If the
-> regulator can be enabled and disabled, we should not claim it's
-> always on.
+* Pascal Huerst <pascal.huerst@gmail.com> [140709 03:18]:
+> Hey Tony, all
+> 
+> On 04.07.2014 09:27, Tony Lindgren wrote:
+> > * Pascal Huerst <pascal.huerst@gmail.com> [140702 05:12]:
+> >> Hi everyone,
+> >>
+> >> we have a device with an am335x and are using some gpios on bank0 to
+> >> wake up the device from suspend to ram.
+> >>
+> >> We have some user buttons which are configured in the devicetree as
+> >> gpio-keys and one power-key which should wake up the device:
+> >>
+> >> &buttons {
+> >>         power {
+> >>                 label = "Power";
+> >>                 gpios = <&gpio0 6 1>;
+> >>                 linux,code = <116>;
+> >>                 gpio-key,wakeup;
+> >>         };
+> >>
+> >>         one {
+> >>                 label = "One";
+> >>                 gpios = <&gpio0 11 1>;
+> >>                 linux,code = <2>;
+> >>         };
+> >>
+> >>         : : :
+> >> }
+> >>
+> >> The problem is, that the device wakes up on any trigger on bank 0. No
+> >> matter which button was pressed. "gpio-key,wakeup" seems not to have any
+> >> influence.
+> >>
+> >> Now, if I comment the following lines out in drivers/gpio/gpio-omap.c :
+> >> set_gpio_trigger(...).
+> >>
+> >> 321
+> >> 322 if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+> >> 323    _gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
+> >> 324      bank->context.wake_en =
+> >> 325        readl_relaxed(bank->base + bank->regs->wkup_en);
+> >> 326 }
+> >> 327
+> >>
+> >> Everything works as expected. But I don't really understand why? Is this
+> >> a bug, or does this break something else I have not discovered yet?
+> > 
+> > The GPIO wake-up events are working from off-idle for omap3
+> > the last time I checked, so sounds like this is some am335x
+> > related issue.
+> 
+> Ok, that sounds reasonable.
+> 
+> > What does your bank->context.wake_en mask get set to with this code?
+> 
+> by calling 'echo mem > /sys/power/state' followed by a wakeup, I get the
+> following:
+> 
+> [   28.992866] bank->context->wake_en = 00080040
+> [   29.020974] PM: noirq resume of devices complete after 22.439 msecs
 
- From the PMIC perspective every regulator can be enabled and
-disabled. From a Board perspective there are some which need
-to be always on. For Ex: SMPS123 which feeds on to the MPU.
+I guess that's for gpio bank 0 with no bit 11 as your dts has it
+configured. If you just comment out the _gpio_rmw part above do
+things work as expected?
 
-I guess RTC also needs the supply to be on as long as we want
-the clock to be ticking.
+Then if that works as expected, maybe write only some unused bits
+into wkup_en register and see if it still wakes to all events while
+it should not?
 
-> Also adding temporary dts entries just causes more churn on the
-> dts files which is a PITA for everybody.
->
-> Regards,
->
-> Tony
+It might be worth comparing the GPIO registers between am37xx and
+am335x for the wkup_en register.
 
 Regards,
-Keerthy
+
+Tony
