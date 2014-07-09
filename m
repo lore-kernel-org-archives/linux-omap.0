@@ -1,32 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/7] ARM: dts: AM43x: Add devcice tree nodes
-Date: Wed, 9 Jul 2014 01:31:15 -0700
-Message-ID: <20140709083114.GH28884@atomide.com>
-References: <1404884193-20580-1-git-send-email-j-keerthy@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/3] regulators: tps65218: fix DCDC4 linear voltage range
+Date: Wed, 9 Jul 2014 10:32:02 +0200
+Message-ID: <20140709083202.GJ30458@sirena.org.uk>
+References: <1404846554-4095-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="a58rN+WbXIGauCK9"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31001 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751778AbaGIIbO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 04:31:14 -0400
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54434 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754846AbaGIIdp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 04:33:45 -0400
 Content-Disposition: inline
-In-Reply-To: <1404884193-20580-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1404846554-4095-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, kishon@ti.com, broonie@kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: lgirdwood@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>
 
-* Keerthy <j-keerthy@ti.com> [140708 22:40]:
-> The patch series adds the device tree nodes and the corresponding
-> documentation. The series also enabled tps65218 config options
-> in the omap2plus_defconfig.
-> 
-> The series is boot tested on both AM43x-epos-evm and AM437x-gp-evm.
 
-Are the .dts changes safe to apply separately without breaking
-anything?
+--a58rN+WbXIGauCK9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards,
+On Tue, Jul 08, 2014 at 02:09:12PM -0500, Felipe Balbi wrote:
+> The second range of this particular regulator,
+> starts at 1.60V, not as 1.55V as it was originally
+> implied by code.
 
-Tony
+Applied all, thanks.  Please use subject lines consistent with the style
+for the subsystem - these even vary within the series!
+
+--a58rN+WbXIGauCK9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTvP3/AAoJELSic+t+oim936MP/3UNZKcpCf3HzNWNRKmrrkVJ
+w5WB818zF2U5PG6ojVoLcmvhXlsHTzibMdIQF9kbm9SCwcXVNpASgx0e5dakyrEv
+rJfVpp/5QZrMyWjzjKUnd3KMwrlQIqDmczbtke1LaqG4TQXT9QVafeXtrGyKyGzG
+L8z4tMhwR29fJAstbMeuxf8cnSJe0x2Q2sT07i6olda0/9XJDbO/OuMqbq8wFOqK
+GpInLbAF4ThYJDRzxZexg9/Q2iDcZ4XUg9K5+gpjy3BbukWlquYOiddcSMYkb+g6
+CAf+ndYmgeRGtdEjHs0skaGhMp01JklaCg/oHhxBWq/2LmhM00OVY0bTvNetEfpJ
++9mrj0waNA5pRSKjtXvG6XeypSe8tMMZ/jfuLasec3k2XW2yuZnxnDQGoigw9jYZ
+ZIuXR8EesLgr2sscmE9RjUPD7615gJJvRFbWIvOzAQkxEeloLdYnSRkkt6UpoeR0
+/reEqpdXEWEf8qDajV+tDDOlwCUiFuokVpd9myYj2QOsXYs3pTeh+7pDCBr37yP4
+1pMlZ1e+jawOGtZM5lC7h81tdGhFRoIEKBGoFlAk2CH8a2YBl8DO8R5Xh4l1Iya8
+zjcVlPOpOO0ksuI6Gn6xrs47KPAotQxaYAWxEFnooDQ2CLmE8n1N0BdbGxLj7Kko
+ENbz3+3XRFob8ucHGBBN
+=EDVZ
+-----END PGP SIGNATURE-----
+
+--a58rN+WbXIGauCK9--
