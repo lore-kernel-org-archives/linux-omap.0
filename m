@@ -1,43 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: Ctrl module register define diet
-Date: Wed, 9 Jul 2014 04:28:48 -0700
-Message-ID: <20140709112848.GS28884@atomide.com>
-References: <1400687328-16913-1-git-send-email-manabian@gmail.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
+Date: Wed, 09 Jul 2014 13:35:57 +0200
+Message-ID: <53BD291D.3040307@linutronix.de>
+References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de> <1404491651-1388-3-git-send-email-bigeasy@linutronix.de> <20140707142056.46f61cf9@alan.etchedpixels.co.uk> <20140709111705.GR28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32819 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754748AbaGIL2p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 07:28:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1400687328-16913-1-git-send-email-manabian@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140709111705.GR28884@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Joachim Eastwood <manabian@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-* Joachim Eastwood <manabian@gmail.com> [140521 08:49]:
-> Signed-off-by: Joachim Eastwood <manabian@gmail.com>
-> ---
+On 07/09/2014 01:17 PM, Tony Lindgren wrote:
+> * One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> [140707 06:22]:
+>> On Fri,  4 Jul 2014 18:34:10 +0200
+>> Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+>>
+>>> While comparing the OMAP-serial and the 8250 part of this I noticed that
+>>> the the latter does not use runtime-pm.
+>>
+>> Yes it does, but 8250 parts (generally - omap presumably is special
+>> here ?) need to be powered on to transmit/receive not just for register
+>> access. The core uart layer implements a "pm" operation for this.
 > 
-> Hi,
+> At least for omaps the UARTs need to be idled for the SoC to
+> hit off-idle where the SoC is powered off and rebooted during
+> idle.
+>
+> So we can certainly enable this in a generic way, however, this
+> can only be done under the following conditions:
 > 
-> The mach-omap2 directory contains full register defines for OMAP4
-> control module but only around 27 of those are used. There are is
-> a total of 1795 register defines in four files with only 27 in use.
-> That is pretty low usefulness ratio...
-> 
-> I guess alot more was used when we had omap4 board files and
-> mach-omap2 contained more drivers but this has now changed.
-> 
-> So I propose we move just what we need to control.h, were other
-> OMAP parts have their minimal set of defines already. Patch has
-> been compile tested and I have also grepped the tree for users
-> outside the mach dir.
+> 1. We can save and restore the serial register context and detect
+>    when context was lost in the serial driver. The context loss
+>    can be detected by looking at some registers that are only
+>    initialized during init.
 
-Yeah great, applying this into omap-for-v3.17/soc finally.
+A register check on restore context? DLL+DLH might be a good hint here
+since its value should be >0 in the running case.
 
-Regards,
+> 
+> 2. There's a way for the serial RX pin to wake the SoC. On some
+>    omaps there's a separate pin specific wake-up interrupt that
+>    can be used for that.
 
-Tony
+That one would be handled by omap separately.
+
+> 3. The serial PM features must be only enabled if requested by
+>    the user via sysfs. Typically extra latency and loss of the
+>    first RX character occur which is not acceptable to most
+>    applications.
+
+Unless I'm mistaken the omap driver now initializes the timeout to -1.
+So nothing happens unless this is enabled separately.
+
+> Regards,
+> 
+> Tony
+> 
+
+Sebastian
