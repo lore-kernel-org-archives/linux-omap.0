@@ -1,54 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
-Date: Wed, 9 Jul 2014 02:12:32 -0700
-Message-ID: <20140709091232.GJ28884@atomide.com>
-References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com>
- <1404894932-26677-1-git-send-email-lokeshvutla@ti.com>
- <1404894932-26677-3-git-send-email-lokeshvutla@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 1/7] regulator: tps65218: Add fixed_uV fields for
+ dcdc5 and dcdc6
+Date: Wed, 9 Jul 2014 11:14:42 +0200
+Message-ID: <20140709091442.GN30458@sirena.org.uk>
+References: <1404884193-20580-1-git-send-email-j-keerthy@ti.com>
+ <1404884193-20580-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38487 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751268AbaGIJMd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 05:12:33 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J/pvEKOcHgREgBce"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1404894932-26677-3-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1404884193-20580-2-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-* Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
-> Add node for RTC.
-> And also making RTC regulator always-on, as RTC should be powered
-> always.
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> [nm@ti.com: update with rtc crossbar number]
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> This patch depends on the crossbar dt patch series by Sricharan:
-> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg106910.html
-> 
->  arch/arm/boot/dts/dra7-evm.dts |    1 +
->  arch/arm/boot/dts/dra7.dtsi    |    9 +++++++++
->  2 files changed, 10 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 4adc280..bca6d4a 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -249,6 +249,7 @@
->  					regulator-min-microvolt = <1050000>;
->  					regulator-max-microvolt = <1050000>;
->  					regulator-boot-on;
-> +					regulator-always-on;
->  				};
->  
 
-Is this regulator really always on?
+--J/pvEKOcHgREgBce
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards,
+On Wed, Jul 09, 2014 at 11:06:27AM +0530, Keerthy wrote:
+> Add fixed_uV fields for dcdc5 and dcdc6.
 
-Tony
+This doesn't apply against current code, can you please check and
+resend?  There were some cleanups from Felipe that just went in, it
+looks like a collision with them.
+
+--J/pvEKOcHgREgBce
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTvQf+AAoJELSic+t+oim9rFYP/1U9OPrzNpZaVlB8ZxLMBw0P
+UsxVMF8sAOpr68FxKQn8cp6dvovCkRraTg7KNoRaPKkbZpIp+XRoC366wvZwipYd
+73QTVfpSTrjhc49UCc0H7B+780z0s5g1oAWgGZuMPyWs9RGM1mHBrUCRw1jP1yjH
+WX9wylkzcwDuAhFvskFyuWiZPcuxBW7ENLKSkb+X52lrmgBcZUct922ac5tJipvT
+T9l6CcabumZv1P+VLQM1MjL1xfoLXEOXYAfyG+N1XUUkmFhVahFbbN44KxCUif/T
+03bOdhb28pS0UeB1/4VD0khe5P/XECgK79AIRWjrU/8I7rSdbDeh2vY8FQDR8UeR
+4r9gDH4tOh3yOfxF8UfVbSXCxYHjGq7EmA7aD6uSXqoIrr3y9C7d4N5H4f1YtvNk
+CO3pgYz/lIcXk831+IVN/RpB1GcVo1Z+hTvXTuBM21LPb3V9sEHwvUkqzZ0MZANP
+Y+ksia8kM+NTYTx3p+1MAjZKOo/J7i1DTRIaqstotCkBrcT0FAqHXTgkM8GkYev+
+bLlghl0fEgsrAm2PrZVQ0Qjw+xxkC6KDcuqn03DYvK/M2avyXd4GHrWPyB+Vo/ec
+D74bvJYfgNNbdmOW1AhdAf/iRT9v0rpS/gG1010peDVbBLpG7hnrbQwpM5AnmRDw
+HCtbJVBgnuGSkue7dtYu
+=lflV
+-----END PGP SIGNATURE-----
+
+--J/pvEKOcHgREgBce--
