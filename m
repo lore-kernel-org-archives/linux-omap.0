@@ -1,60 +1,52 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
-Date: Wed, 9 Jul 2014 16:36:49 +0530
-Message-ID: <53BD2249.2080808@ti.com>
-References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-3-git-send-email-lokeshvutla@ti.com> <20140709091232.GJ28884@atomide.com> <53BD0C43.1090002@ti.com> <20140709100914.GL28884@atomide.com> <53BD1AF8.2060609@ti.com> <20140709105055.GP28884@atomide.com> <53BD1FC3.6050500@ti.com> <20140709110051.GQ28884@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 3/4] tty: serial: 8250 core: add runtime pm
+Date: Wed, 9 Jul 2014 04:17:05 -0700
+Message-ID: <20140709111705.GR28884@atomide.com>
+References: <1404491651-1388-1-git-send-email-bigeasy@linutronix.de>
+ <1404491651-1388-3-git-send-email-bigeasy@linutronix.de>
+ <20140707142056.46f61cf9@alan.etchedpixels.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42655 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469AbaGILJF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jul 2014 07:09:05 -0400
-In-Reply-To: <20140709110051.GQ28884@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140707142056.46f61cf9@alan.etchedpixels.co.uk>
+Sender: linux-serial-owner@vger.kernel.org
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-On Wednesday 09 July 2014 04:30 PM, Tony Lindgren wrote:
-> * Keerthy <a0393675@ti.com> [140709 03:59]:
->> On Wednesday 09 July 2014 04:20 PM, Tony Lindgren wrote:
->>> * Keerthy <a0393675@ti.com> [140709 03:39]:
->>>> On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
->>>>> * Keerthy <a0393675@ti.com> [140709 02:36]:
->>>>>> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
->>>>>>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
->>>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>>>>>>> @@ -249,6 +249,7 @@
->>>>>>>>   					regulator-min-microvolt = <1050000>;
->>>>>>>>   					regulator-max-microvolt = <1050000>;
->>>>>>>>   					regulator-boot-on;
->>>>>>>> +					regulator-always-on;
->>>>>>>>   				};
->>>>>>> Is this regulator really always on?
->>>>>> This feeds on to RTC which is a free running clock. So i guess always on is
->>>>>> justified no?
->>>>> Well the dts entries should describe the hardware. If the
->>>>> regulator can be enabled and disabled, we should not claim it's
->>>>> always on.
->>>>  From the PMIC perspective every regulator can be enabled and
->>>> disabled. From a Board perspective there are some which need
->>>> to be always on. For Ex: SMPS123 which feeds on to the MPU.
->>> Right, and we already have regulator-boot-on for those. Or are
->>> you seeing some issue with that?
->> regulator-boot-on describes that at boot a particular regulator is on.
->> It does not guarantee that it will be on for the rest of the time. The
->> regulator framework can go ahead and disable it if no one has requested
->> for it. In case of RTC we do not want that to happen.
-> That's a bug in the RTC driver then. The driver should request a
-> regulator if it's specified.
+* One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> [140707 06:22]:
+> On Fri,  4 Jul 2014 18:34:10 +0200
+> Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+> 
+> > While comparing the OMAP-serial and the 8250 part of this I noticed that
+> > the the latter does not use runtime-pm.
+> 
+> Yes it does, but 8250 parts (generally - omap presumably is special
+> here ?) need to be powered on to transmit/receive not just for register
+> access. The core uart layer implements a "pm" operation for this.
 
-Okay.
+At least for omaps the UARTs need to be idled for the SoC to
+hit off-idle where the SoC is powered off and rebooted during
+idle.
 
->
-> Regards,
->
-> Tony
+So we can certainly enable this in a generic way, however, this
+can only be done under the following conditions:
 
+1. We can save and restore the serial register context and detect
+   when context was lost in the serial driver. The context loss
+   can be detected by looking at some registers that are only
+   initialized during init.
+
+2. There's a way for the serial RX pin to wake the SoC. On some
+   omaps there's a separate pin specific wake-up interrupt that
+   can be used for that.
+
+3. The serial PM features must be only enabled if requested by
+   the user via sysfs. Typically extra latency and loss of the
+   first RX character occur which is not acceptable to most
+   applications.
+
+Regards,
+
+Tony
