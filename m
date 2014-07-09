@@ -1,40 +1,35 @@
-From: Nicholas Krause <xerofoify@gmail.com>
-Subject: [PATCH] Removes FIXME message in usb.c
-Date: Tue,  8 Jul 2014 21:58:39 -0400
-Message-ID: <1404871119-4324-1-git-send-email-xerofoify@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:56841 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104AbaGIB6q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 21:58:46 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 6/7] regulator: tps65218: Add get_voltage ops for dcdc5
+ and dcdc6
+Date: Wed, 9 Jul 2014 09:10:22 +0530
+Message-ID: <53BCB9A6.7000500@ti.com>
+References: <1404814597-4404-1-git-send-email-j-keerthy@ti.com> <1404814597-4404-7-git-send-email-j-keerthy@ti.com> <20140708141126.GW30458@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140708141126.GW30458-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-This patch removes a fixme message in this file:wq for setting the usb 2
-speed on the board to the correct level. We need to depend on the
-bootloader for doing this as the wires may be shared for the other
-things on the board with the usb chipset.
+On Tuesday 08 July 2014 07:41 PM, Mark Brown wrote:
+> On Tue, Jul 08, 2014 at 03:46:36PM +0530, Keerthy wrote:
+>
+>> +static int tps65218_pmic_dcdc56_get_voltage(struct regulator_dev *dev)
+>> +{
+>> +	struct tps65218 *tps = rdev_get_drvdata(dev);
+>> +	unsigned int rid = rdev_get_id(dev);
+>> +
+>> +	return tps->info[rid]->min_uV;
+>> +}
+> Set fixed_uV in the descriptor.
+Okay. I will do that. Thanks for the review.
 
-Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
----
- arch/arm/mach-omap1/usb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-index 4118db5..172245a 100644
---- a/arch/arm/mach-omap1/usb.c
-+++ b/arch/arm/mach-omap1/usb.c
-@@ -505,7 +505,7 @@ static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
- 		omap_cfg_reg(W5_USB2_SE0);
- 		if (nwires != 3)
- 			omap_cfg_reg(Y5_USB2_RCV);
--		// FIXME omap_cfg_reg(USB2_SPEED);
-+		/* Depend on boatloader for USB speed to be stated for board */
- 	} else {
- 		pr_debug("usb%d cpu unrecognized\n", 1);
- 		return 0;
--- 
-1.9.1
-
+Regards,
+Keerthy
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
