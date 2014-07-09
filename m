@@ -1,52 +1,49 @@
-From: sourav <sourav.poddar@ti.com>
-Subject: Re: [PATCH 3/3] arm: dts: dra7: fixup qspi entry
-Date: Wed, 9 Jul 2014 15:37:00 +0530
-Message-ID: <53BD1444.6080603@ti.com>
-References: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de> <1404844852-19980-3-git-send-email-bigeasy@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
+Date: Wed, 9 Jul 2014 03:09:15 -0700
+Message-ID: <20140709100914.GL28884@atomide.com>
+References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com>
+ <1404894932-26677-1-git-send-email-lokeshvutla@ti.com>
+ <1404894932-26677-3-git-send-email-lokeshvutla@ti.com>
+ <20140709091232.GJ28884@atomide.com>
+ <53BD0C43.1090002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55336 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751766AbaGIKHc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Jul 2014 06:07:32 -0400
-In-Reply-To: <1404844852-19980-3-git-send-email-bigeasy@linutronix.de>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25629 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294AbaGIKJQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 06:09:16 -0400
+Content-Disposition: inline
+In-Reply-To: <53BD0C43.1090002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
+To: Keerthy <a0393675@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-Hi,
+* Keerthy <a0393675@ti.com> [140709 02:36]:
+> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
+> >* Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
+> >>--- a/arch/arm/boot/dts/dra7-evm.dts
+> >>+++ b/arch/arm/boot/dts/dra7-evm.dts
+> >>@@ -249,6 +249,7 @@
+> >>  					regulator-min-microvolt = <1050000>;
+> >>  					regulator-max-microvolt = <1050000>;
+> >>  					regulator-boot-on;
+> >>+					regulator-always-on;
+> >>  				};
+> >Is this regulator really always on?
+> 
+> This feeds on to RTC which is a free running clock. So i guess always on is
+> justified no?
 
-On Wednesday 09 July 2014 12:10 AM, Sebastian Andrzej Siewior wrote:
-> The core complains that the number 343 is too large. The older code has
-> here 124. This avoids the warning, the driver hasn't been tested.
->
-> Signed-off-by: Sebastian Andrzej Siewior<bigeasy@linutronix.de>
-> ---
->   arch/arm/boot/dts/dra7.dtsi | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-> index daf7d36..1529bca 100644
-> --- a/arch/arm/boot/dts/dra7.dtsi
-> +++ b/arch/arm/boot/dts/dra7.dtsi
-> @@ -821,7 +821,7 @@
->   			clocks =<&qspi_gfclk_div>;
->   			clock-names = "fck";
->   			num-cs =<4>;
-> -			interrupts =<0 343 0x4>;
-> +			interrupts =<0 124 0x4>;
->   			status = "disabled";
->   		};
->
+Well the dts entries should describe the hardware. If the
+regulator can be enabled and disabled, we should not claim it's
+always on.
 
-The number is correct and is complaining just because the crossbar stuff 
-is not
-put in. I had already posted a patch[1] to remove interrupt binding as 
-of now.
+Also adding temporary dts entries just causes more churn on the
+dts files which is a PITA for everybody.
 
-Hence, NAK for this patch.
+Regards,
 
-[1]: https://patchwork.kernel.org/patch/4364341/
+Tony
