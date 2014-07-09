@@ -1,131 +1,69 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
-Date: Wed, 9 Jul 2014 14:32:47 +0530
-Message-ID: <1404896567-32204-1-git-send-email-kishon@ti.com>
-References: <1403719366-9656-3-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] arm: dra7xx: Add hwmod data for MDIO and CPSW
+Date: Wed, 9 Jul 2014 02:08:51 -0700
+Message-ID: <20140709090851.GI28884@atomide.com>
+References: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1403719366-9656-3-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: kishon@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37554 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345AbaGIJIv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 05:08:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1404844852-19980-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>, Praveen Rao <prao@ti.com>
 
-Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
+Hi,
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v1:
-* changed the clock domain to "pcie_clkdm"
-* Added PCIe as a slave port for l3_main.
+Can you please check the comments below so we don't have to
+add duplicate data just to remove it later on.
 
-Boot log for dra7xx can be found at http://paste.ubuntu.com/7769402/
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140708 11:43]:
+> +
+> +static struct omap_hwmod_irq_info dra7xx_gmac_irqs[] = {
+> +	{ .name = "c0_rx_thresh_pend", .irq = 50 + DRA7XX_IRQ_GIC_START, },
+> +	{ .name = "c0_rx_pend", .irq = 51 + DRA7XX_IRQ_GIC_START, },
+> +	{ .name = "c0_tx_pend", .irq = 52 + DRA7XX_IRQ_GIC_START, },
+> +	{ .name = "c0_misc_pend", .irq = 53 + DRA7XX_IRQ_GIC_START, },
+> +	{ .irq = -1 },
+> +};
 
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   73 +++++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+Why do we need the interrupts here? They should be coming
+from the .dts files? Is this numbering with or without
+the crossbar?
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 6ff40a6..2f37ca8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1290,6 +1290,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
- };
- 
- /*
-+ * 'PCIE' class
-+ *
-+ */
-+
-+static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
-+	.name	= "pcie",
-+};
-+
-+/* pcie1 */
-+static struct omap_hwmod dra7xx_pcie1_hwmod = {
-+	.name		= "pcie1",
-+	.class		= &dra7xx_pcie_hwmod_class,
-+	.clkdm_name	= "pcie_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/* pcie2 */
-+static struct omap_hwmod dra7xx_pcie2_hwmod = {
-+	.name		= "pcie2",
-+	.class		= &dra7xx_pcie_hwmod_class,
-+	.clkdm_name	= "pcie_clkdm",
-+	.main_clk	= "l4_root_clk_div",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/*
-  * 'PCIE PHY' class
-  *
-  */
-@@ -2448,6 +2485,38 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* l3_main_1 -> pcie1 */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie1 = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_pcie1_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> pcie1 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
-+	.master		= &dra7xx_l4_cfg_hwmod,
-+	.slave		= &dra7xx_pcie1_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_1 -> pcie2 */
-+static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie2 = {
-+	.master		= &dra7xx_l3_main_1_hwmod,
-+	.slave		= &dra7xx_pcie2_hwmod,
-+	.clk		= "l3_iclk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> pcie2 */
-+static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
-+	.master		= &dra7xx_l4_cfg_hwmod,
-+	.slave		= &dra7xx_pcie2_hwmod,
-+	.clk		= "l4_root_clk_div",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_cfg -> pcie1 phy */
- static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
- 	.master		= &dra7xx_l4_cfg_hwmod,
-@@ -2813,6 +2882,10 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_cfg__mpu,
- 	&dra7xx_l4_cfg__ocp2scp1,
- 	&dra7xx_l4_cfg__ocp2scp3,
-+	&dra7xx_l3_main_1__pcie1,
-+	&dra7xx_l4_cfg__pcie1,
-+	&dra7xx_l3_main_1__pcie2,
-+	&dra7xx_l4_cfg__pcie2,
- 	&dra7xx_l4_cfg__pcie1_phy,
- 	&dra7xx_l4_cfg__pcie2_phy,
- 	&dra7xx_l3_main_1__qspi,
--- 
-1.7.9.5
+> +static struct omap_hwmod_addr_space dra7xx_gmac_addr_space[] = {
+> +	/* cpsw ss */
+> +	{
+> +		.pa_start	= 0x48484000,
+> +		.pa_end	= 0x48484000 + SZ_2K - 1,
+> +	},
+> +	/* cpsw wr */
+> +	{
+> +		.pa_start	= 0x48485200,
+> +		.pa_end	= 0x48485200 + SZ_256 - 1,
+> +		.flags	= ADDR_TYPE_RT,
+> +	},
+> +	{ }
+> +};
+
+Also for the IO range, this should be coming from the .dts
+files now?
+
+> +static struct omap_hwmod_addr_space dra7xx_mdio_addr_space[] = {
+> +	{
+> +		.pa_start	= 0x48485000,
+> +		.pa_end		= 0x48485000 + SZ_256 - 1,
+> +	},
+> +	{ }
+> +};
+
+Here too?
+
+Regards,
+
+Tony
