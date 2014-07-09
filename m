@@ -1,55 +1,54 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH] Removes FIXME message in usb.c
-Date: Wed, 9 Jul 2014 09:25:53 +0200
-Message-ID: <20140709072553.GJ7827@pengutronix.de>
-References: <1404871119-4324-1-git-send-email-xerofoify@gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH V2] ASoC: omap-mcbsp: Use devm_snd_soc_register_component
+Date: Wed, 9 Jul 2014 10:15:39 +0200
+Message-ID: <20140709081539.GH30458@sirena.org.uk>
+References: <1404836723-4779-1-git-send-email-badarkhe.manish@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XSfi1pJWPNAvuBPy"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54399 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574AbaGIIRq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Jul 2014 04:17:46 -0400
 Content-Disposition: inline
-In-Reply-To: <1404871119-4324-1-git-send-email-xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1404836723-4779-1-git-send-email-badarkhe.manish@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Manish Badarkhe <badarkhe.manish@gmail.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com
 
-On Tue, Jul 08, 2014 at 09:58:39PM -0400, Nicholas Krause wrote:
-> This patch removes a fixme message in this file:wq for setting the us=
-b 2
-:wq?
 
-> speed on the board to the correct level. We need to depend on the
-> bootloader for doing this as the wires may be shared for the other
-> things on the board with the usb chipset.
->=20
-> Signed-off-by: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  arch/arm/mach-omap1/usb.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
-> index 4118db5..172245a 100644
-> --- a/arch/arm/mach-omap1/usb.c
-> +++ b/arch/arm/mach-omap1/usb.c
-> @@ -505,7 +505,7 @@ static u32 __init omap1_usb2_init(unsigned nwires=
-, unsigned alt_pingroup)
->  		omap_cfg_reg(W5_USB2_SE0);
->  		if (nwires !=3D 3)
->  			omap_cfg_reg(Y5_USB2_RCV);
-> -		// FIXME omap_cfg_reg(USB2_SPEED);
-> +		/* Depend on boatloader for USB speed to be stated for board */
-bootloader?
+--XSfi1pJWPNAvuBPy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Uwe
+On Tue, Jul 08, 2014 at 09:55:23PM +0530, Manish Badarkhe wrote:
+> Replaced snd_soc_register_component with its devres equivalent,
+> devm_snd_soc_register_component.
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks.
+
+--XSfi1pJWPNAvuBPy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTvPooAAoJELSic+t+oim9h2gP/1nzcJjFzy3oL/pgM9tm60l9
+61M/XoZmE5bsUt4q4rsRUTzRduC874nml+ayYdIwIO5MeeacQjHFKWOZBSKsS89Y
+W4niD2zn2zP4yAPxgVDvviaffFVMwz7xGR8SwuZqQjZ/lwG1iH9akhNdm4Y2C2gl
+H3m9KOsGUXmZymJ8OziI6u8qLCON1NFpAyxwg7m3EAKU+sd1zM6YAbidsJA88Y//
+eVKZBupFmVxhQXuUjSdaUAMruBlguIcLe32V0nqNtpA+Bliqwtr7+EZpUkfRdAPA
+wh+R6mDpLd5LOttTe0gRGo8cn6PKnHXGAYtpdKjMpw9r9lx+/X8/m9w5+TekYWfS
+bYvn/DxQNUK+NjF0uwc+gTurD8UDWgITWZuWRkNPqF+NFSyvQsfdLRhw5daOJ6yS
+1MN4H5LzYXFZwMQu2GTkOZUGhJo/uXB4jqot2Eam2wzzNfx1aDE7/TXfqAiauhvw
+gXH0U1Jc89PFWvaZf4GyEfCIx44pmq+CJ992JPQ618z9/dFwyomGD7kbeInghfSL
+3H28FwHhg3vhlf02sbX0TEbnVviiI+stu8lZ5mXm5LmuSFyNLI1xc095b9Bb6Uxh
+wGKhTBoRamL7SV/CuwQl85SAfqVAcemcJgjDdpayPBnmUEujFW3kUQReciSiWQiO
+iK0WW735xw+xQXUdYdIR
+=l/Do
+-----END PGP SIGNATURE-----
+
+--XSfi1pJWPNAvuBPy--
