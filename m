@@ -1,59 +1,40 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 3/3] regulators: tps65218: drop order dependency
-Date: Tue, 8 Jul 2014 14:09:14 -0500
-Message-ID: <1404846554-4095-3-git-send-email-balbi@ti.com>
-References: <1404846554-4095-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1404846554-4095-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: broonie@kernel.org, lgirdwood@gmail.com
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Keerthy <j-keerthy@ti.com>, Felipe Balbi <balbi@ti.com>
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: [PATCH] Removes FIXME message in usb.c
+Date: Tue,  8 Jul 2014 21:58:39 -0400
+Message-ID: <1404871119-4324-1-git-send-email-xerofoify@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f178.google.com ([209.85.213.178]:56841 "EHLO
+	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104AbaGIB6q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Jul 2014 21:58:46 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-By just using GCC's array initialization extension, we
-can easily drop order dependency between tps65218_regulattors
-enumeration and tps65218_pmic_regs array.
+This patch removes a fixme message in this file:wq for setting the usb 2
+speed on the board to the correct level. We need to depend on the
+bootloader for doing this as the wires may be shared for the other
+things on the board with the usb chipset.
 
-Signed-of-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
 ---
- drivers/regulator/tps65218-regulator.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap1/usb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
-index 7fc8b3a..b5dc314 100644
---- a/drivers/regulator/tps65218-regulator.c
-+++ b/drivers/regulator/tps65218-regulator.c
-@@ -49,7 +49,7 @@ enum tps65218_regulators { DCDC1, DCDC2, DCDC3, DCDC4, DCDC5, DCDC6, LDO1 };
- 	}							\
- 
- #define TPS65218_INFO(_id, _nm, _min, _max)	\
--	{						\
-+	[_id] = {					\
- 		.id		= _id,			\
- 		.name		= _nm,			\
- 		.min_uV		= _min,			\
-@@ -72,13 +72,13 @@ static const struct regulator_linear_range dcdc4_ranges[] = {
- };
- 
- static struct tps_info tps65218_pmic_regs[] = {
--	TPS65218_INFO(0, "DCDC1", 850000, 167500),
--	TPS65218_INFO(1, "DCDC2", 850000, 1675000),
--	TPS65218_INFO(2, "DCDC3", 900000, 3400000),
--	TPS65218_INFO(3, "DCDC4", 1175000, 3400000),
--	TPS65218_INFO(4, "DCDC5", 1000000, 1000000),
--	TPS65218_INFO(5, "DCDC6", 1800000, 1800000),
--	TPS65218_INFO(6, "LDO1", 900000, 3400000),
-+	TPS65218_INFO(DCDC1, "DCDC1", 850000, 167500),
-+	TPS65218_INFO(DCDC2, "DCDC2", 850000, 1675000),
-+	TPS65218_INFO(DCDC3, "DCDC3", 900000, 3400000),
-+	TPS65218_INFO(DCDC4, "DCDC4", 1175000, 3400000),
-+	TPS65218_INFO(DCDC5, "DCDC5", 1000000, 1000000),
-+	TPS65218_INFO(DCDC6, "DCDC6", 1800000, 1800000),
-+	TPS65218_INFO(LDO1, "LDO1", 900000, 3400000),
- };
- 
- #define TPS65218_OF_MATCH(comp, label) \
+diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+index 4118db5..172245a 100644
+--- a/arch/arm/mach-omap1/usb.c
++++ b/arch/arm/mach-omap1/usb.c
+@@ -505,7 +505,7 @@ static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
+ 		omap_cfg_reg(W5_USB2_SE0);
+ 		if (nwires != 3)
+ 			omap_cfg_reg(Y5_USB2_RCV);
+-		// FIXME omap_cfg_reg(USB2_SPEED);
++		/* Depend on boatloader for USB speed to be stated for board */
+ 	} else {
+ 		pr_debug("usb%d cpu unrecognized\n", 1);
+ 		return 0;
 -- 
-2.0.0.390.gcb682f8
+1.9.1
+
