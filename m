@@ -1,100 +1,33 @@
 From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 5/6] tty: serial: 8250-core: add rs485 support
-Date: Thu, 10 Jul 2014 15:52:15 +0100
-Message-ID: <20140710155215.3e17ca08@alan.etchedpixels.co.uk>
+Subject: Re: [PATCH 2/6] tty: serial: 8250 core: allow to overwrite & export
+ serial8250_startup()
+Date: Thu, 10 Jul 2014 15:54:07 +0100
+Message-ID: <20140710155407.3affb663@alan.etchedpixels.co.uk>
 References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de>
-	<1404928177-26554-6-git-send-email-bigeasy@linutronix.de>
+	<1404928177-26554-3-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1404928177-26554-6-git-send-email-bigeasy@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1404928177-26554-3-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
->  static inline void __stop_tx(struct uart_8250_port *p)
->  {
-> +	if (p->rs485.flags & SER_RS485_ENABLED) {
-> +		int ret;
-> +
-> +		ret = (p->rs485.flags & SER_RS485_RTS_AFTER_SEND) ? 1 : 0;
-> +		if (gpio_get_value(p->rts_gpio) != ret) {
-> +			if (p->rs485.delay_rts_after_send > 0)
-> +				mdelay(p->rs485.delay_rts_after_send);
-> +			gpio_set_value(p->rts_gpio, ret);
-> +		}
+On Wed,  9 Jul 2014 19:49:33 +0200
+Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
 
-RTS is not normally a GPIO. We should be controlling the UART RTS here,
-and if the UART has a magic special case RTS wired to a GPIO then really
-the hardware specific part should handle that gunge. I don't care whether
-the drive does it via serial_out magic or a more explicit hook but it
-doesn't belong here in core code.
+> The OMAP version of the 8250 can actually use 1:1 serial8250_startup(=
+).
+> However it needs to be extended by a wakeup irq which should to be
+> requested & enabled at ->startup() time and disabled at ->shutdown() =
+time.
+>=20
+> v1=E2=80=A6v2: add shutdown callback
+>=20
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Likewise the mdelay probably should be in the device specific bits or
-controlled by a flag as not all hardware is so braindead.
+1,2 & 4
 
-> @@ -1330,6 +1356,20 @@ static void serial8250_start_tx(struct uart_port *port)
->  	if (up->dma && !serial8250_tx_dma(up)) {
-
-Ditto
-
-> +int serial8250_probe_rs485(struct uart_8250_port *up,
-> +		struct device *dev)
-> +{
-> +	struct serial_rs485 *rs485conf = &up->rs485;
-> +	struct device_node *np = dev->of_node;
-> +	u32 rs485_delay[2];
-> +	enum of_gpio_flags flags;
-> +	int ret;
-> +
-> +	rs485conf->flags = 0;
-> +	if (!np)
-> +		return 0;
-> +
-> +	/* check for tx enable gpio */
-> +	up->rts_gpio = of_get_named_gpio_flags(np, "rts-gpio", 0, &flags);
-
-No of_ dependencies in core 8250.c either please. That looks a perfectly
-good implementation of serial8250_of_probe_rs485 however, just belongs in
-the right place.
-
-> +static int serial8250_ioctl(struct uart_port *port, unsigned int cmd,
-> +		unsigned long arg)
-> +{
-> +	struct serial_rs485 rs485conf;
-> +	struct uart_8250_port *up;
-> +
-> +	up = container_of(port, struct uart_8250_port, port);
-> +	switch (cmd) {
-> +	case TIOCSRS485:
-> +		if (!gpio_is_valid(up->rts_gpio))
-> +			return -ENODEV;
-
-GPIO assumption again needs to go
-
-
-> diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
-> index 0ec21ec..056a73f 100644
-> --- a/include/linux/serial_8250.h
-> +++ b/include/linux/serial_8250.h
-> @@ -78,6 +78,7 @@ struct uart_8250_port {
->  	unsigned char		acr;
->  	unsigned char		ier;
->  	unsigned char		lcr;
-> +	unsigned char		fcr;
->  	unsigned char		mcr;
->  	unsigned char		mcr_mask;	/* mask of user bits */
->  	unsigned char		mcr_force;	/* mask of forced bits */
-> @@ -94,6 +95,9 @@ struct uart_8250_port {
->  	unsigned char		msr_saved_flags;
->  
->  	struct uart_8250_dma	*dma;
-> +	struct serial_rs485	rs485;
-> +	int			rts_gpio;
-> +	bool			rts_gpio_valid;
-
-Keeping the gpio here doesn't look unreasonable if one is in use.
-
-Alan
+Acked by: Alan Cox <alan@linux.intel.com>
