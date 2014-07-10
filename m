@@ -1,77 +1,50 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: [PATCH 00/16] i2c: drop class based instantiaion for selected drivers
-Date: Thu, 10 Jul 2014 13:46:20 +0200
-Message-ID: <1404992799-3705-1-git-send-email-wsa@the-dreams.de>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH 10/16] i2c: i2c-omap: Drop class based scanning to improve
+ bootup time
+Date: Thu, 10 Jul 2014 13:46:30 +0200
+Message-ID: <1404992799-3705-11-git-send-email-wsa@the-dreams.de>
+References: <1404992799-3705-1-git-send-email-wsa@the-dreams.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1404992799-3705-1-git-send-email-wsa@the-dreams.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-i2c@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
-Some drivers were flagged to remove class based instantiation soon to improve
-boot-up time. Originally, I was planning for a longer deprecation time so users
-could switch over to some other kind of instantiation. However, the demand for
-the speed up is high enough and class based instantiation is used rarely, so
-the removal takes place now. To make up for the deprecation time, another
-warning is added to the i2c core pointing out that the behaviour has now
-changed:
+This driver has been flagged to drop class based instantiation. The removal
+improves boot-up time and is unneeded for embedded controllers. Users have been
+warned to switch for some time now, so we can actually do the removal. Keep the
+DEPRECATED flag, so the core can inform users that the behaviour finally
+changed now. After another transition period, this flag can go, too.
 
-+	/* Warn that the adapter lost class based instantiation */
-+	if (adapter->class == I2C_CLASS_DEPRECATED) {
-+		dev_dbg(&adapter->dev,
-+			"This adapter dropped support for I2C classes and "
-+			"won't auto-detect %s devices anymore. If you need it, check "
-+			"'Documentation/i2c/instantiating-devices' for alternatives.\n",
-+			driver->driver.name);
-+		return 0;
-+	}
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
+ drivers/i2c/busses/i2c-omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-A branch can be found here (with two other cleanups -> driver removals):
-git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux.git i2c/deprecate_stuff
-
-I hope this meets all the needs. Please comment, ack, test...
-
-Thanks,
-
-   Wolfram
-
-
-Wolfram Sang (16):
-  i2c: add debug info when class instantiation was dropped
-  i2c: i2c-at91: Drop class based scanning to improve bootup time
-  i2c: i2c-bcm2835: Drop class based scanning to improve bootup time
-  i2c: i2c-bfin-twi: Drop class based scanning to improve bootup time
-  i2c: i2c-davinci: Drop class based scanning to improve bootup time
-  i2c: i2c-designware-platdrv: Drop class based scanning to improve
-    bootup time
-  i2c: i2c-mv64xxx: Drop class based scanning to improve bootup time
-  i2c: i2c-nomadik: Drop class based scanning to improve bootup time
-  i2c: i2c-ocores: Drop class based scanning to improve bootup time
-  i2c: i2c-omap: Drop class based scanning to improve bootup time
-  i2c: i2c-rcar: Drop class based scanning to improve bootup time
-  i2c: i2c-s3c2410: Drop class based scanning to improve bootup time
-  i2c: i2c-sirf: Drop class based scanning to improve bootup time
-  i2c: i2c-stu300: Drop class based scanning to improve bootup time
-  i2c: i2c-tegra: Drop class based scanning to improve bootup time
-  i2c: i2c-xiic: Drop class based scanning to improve bootup time
-
- drivers/i2c/busses/i2c-at91.c               |  2 +-
- drivers/i2c/busses/i2c-bcm2835.c            |  2 +-
- drivers/i2c/busses/i2c-bfin-twi.c           |  2 +-
- drivers/i2c/busses/i2c-davinci.c            |  2 +-
- drivers/i2c/busses/i2c-designware-platdrv.c |  2 +-
- drivers/i2c/busses/i2c-mv64xxx.c            |  2 +-
- drivers/i2c/busses/i2c-nomadik.c            |  8 ++++----
- drivers/i2c/busses/i2c-ocores.c             | 12 ++++++------
- drivers/i2c/busses/i2c-omap.c               |  2 +-
- drivers/i2c/busses/i2c-rcar.c               | 14 +++++++-------
- drivers/i2c/busses/i2c-s3c2410.c            |  8 ++++----
- drivers/i2c/busses/i2c-sirf.c               |  2 +-
- drivers/i2c/busses/i2c-stu300.c             |  2 +-
- drivers/i2c/busses/i2c-tegra.c              |  2 +-
- drivers/i2c/busses/i2c-xiic.c               | 12 ++++++------
- drivers/i2c/i2c-core.c                      | 10 ++++++++++
- 16 files changed, 47 insertions(+), 37 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b182793a4051..0dffb0e62c3b 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1236,7 +1236,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	adap = &dev->adapter;
+ 	i2c_set_adapdata(adap, dev);
+ 	adap->owner = THIS_MODULE;
+-	adap->class = I2C_CLASS_HWMON | I2C_CLASS_DEPRECATED;
++	adap->class = I2C_CLASS_DEPRECATED;
+ 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
+ 	adap->algo = &omap_i2c_algo;
+ 	adap->dev.parent = &pdev->dev;
 -- 
 2.0.0
