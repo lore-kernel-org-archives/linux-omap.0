@@ -1,91 +1,66 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: Anybody working on tidspbridge?
-Date: Thu, 10 Jul 2014 08:54:18 +0300
-Message-ID: <53BE2A8A.5080001@gmail.com>
-References: <53A4569B.70604@gmail.com> <53A45BBD.4040201@gmail.com>
- <20140629164250.GA31625@kroah.com> <53BBE895.4020105@gmail.com>
- <alpine.DEB.2.01.1407081452580.5181@pmeerw.net>
- <20140708143659.GB3104@kroah.com> <53BC3A94.4050208@ti.com>
- <20140709070726.GF28884@atomide.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH V4 2/2] arm: dts: dra7: add crossbar device binding
+Date: Thu, 10 Jul 2014 11:28:05 +0530
+Message-ID: <53BE2B6D.1090602@ti.com>
+References: <1403767532-19290-1-git-send-email-r.sricharan@ti.com> <1403767532-19290-3-git-send-email-r.sricharan@ti.com> <20140626074417.GF28884@atomide.com> <53ABDA9A.8000108@ti.com> <20140626102650.GH28884@atomide.com> <20140709154417.GC28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20140709070726.GF28884@atomide.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: driverdev-devel-bounces@linuxdriverproject.org
-To: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>
-Cc: "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, Greg KH <gregkh@linuxfoundation.org>, Peter Meerwald <pmeerw@pmeerw.net>, =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140709154417.GC28884@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sricharan R <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk, tglx@linutronix.de, jason@lakedaemon.net, joe@perches.com, Benoit Cousson <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On  9.07.2014 10:07, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [140708 11:40]:
->> Hi Peter,
->>
->> On 07/08/2014 09:36 AM, Greg KH wrote:
->>> On Tue, Jul 08, 2014 at 03:03:58PM +0200, Peter Meerwald wrote:
->>>> Hello,
->>>>
->>>>>> Given the total lack of response here, I suggest just deleting the
->>>>>> driver.  No one has ever done the "real work" that is going to be
->>>>>> required to get this code out of staging.  It has had build errors
->>>>>> causing it to not even be usable for some kernel versions with no one
->>>>>> noticing, so I doubt anyone cares about it anymore here.
+Hi Tony,
+On Wednesday 09 July 2014 09:14 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [140626 03:28]:
+>> * Sricharan R <r.sricharan@ti.com> [140626 01:36]:
+>>> Hi Tony,
+>>>
+>>> On Thursday 26 June 2014 01:14 PM, Tony Lindgren wrote:
+>>>> * Sricharan R <r.sricharan@ti.com> [140626 00:29]:
+>>>>> From: R Sricharan <r.sricharan@ti.com>
 >>>>>
->>>>> Cc'ing some more people who might be interested. If no one offers to
->>>>> work on the driver in the next couple of days, I'll send a patch to
->>>>> remove it.
+>>>>> There is a IRQ crossbar device in the soc, which
+>>>>> maps the irq requests from the peripherals to the
+>>>>> mpu interrupt controller's inputs. The Peripheral irq
+>>>>> requests are connected to only one crossbar
+>>>>> input and the output of the crossbar is connected to only one
+>>>>> controller's input line. The crossbar device is used to map
+>>>>> a peripheral input to a free mpu's interrupt controller line.
+>>>>>
+>>>>> Here, adding a new crossbar device node and replacing all the peripheral
+>>>>> interrupt numbers with its fixed crossbar input lines.
 >>>>
->>>> I'm using the driver (with kernel 3.7) and it works reasonably well for
->>>> me; removing it seems a bit harsh.
->>>
->>> Using it is different from being able to maintain the code and move it
->>> out of the staging tree.  Also, 3.7 is really old and obsolete, not much
->>> we can do with that kernel version :)
->>>
->>> Are you able to work on the code and do the effort needed to get it out
->>> of the staging tree?  If so, great, if not, we are going to have to
->>> delete it, sorry.
+>>>> I think these two patches need to be a single patch to avoid
+>>>> breaking booting for git bisect inbetween these patches?
+>>>   This does not cause booting issues. irq_desc gets allocated linearly,
+>>>    but that does not create boot issues.
 >>
->> I agree with Greg here. In fact, the current TODO does not do enough
->> justice to the amount of work required to make it even work on the
->> latest kernel. Most of the TIers who worked on this driver have moved on
->> as Kristina would have figured with her bounced emails. So I do suggest
->> that this driver be deleted from the kernel tree. If there are enough
->> number of folks using it (not sure how many are out there), it can be
->> worked on out-of-tree and brought back in a cleaner fashion rather than
->> keeping a broken stale driver in the kernel.
->
-> I agree, not much has improved with this driver since it got added into
-> staging except just compile fixes.
->
+>> OK
+> 
+> These are now applied on top of Jason's immutable irqchip branch
+> and merged and pushed out into omap-for-v3.17/dt. Can you guys
+> please test?
+I have tested omap-for-v3.17/dt on DRA7 EVM. Crossbar is working fine.
+Looks good to me.
+
+lokesh@a0131933lt:~/working/mainline/linux$ git describe 
+v3.16-rc1-34-g6464099
+
+Please find the logs here: http://paste.ubuntu.com/7773616/
+
+Thanks and regards,
+Lokesh
+
+> 
 > Regards,
->
+> 
 > Tony
-
-Well, recently I've sent a couple of patches which implement stuff from 
-TODO [1]. However, with the migration to DT, my focus now is to have a 
-kernel/userspace that boots at all and this leaves no free cycles for 
-DSP. Maybe tidspbridge can be left in staging until DT migration is 
-finished, that way me (and maybe other people) will have the time needed 
-to try to implement what remains in TODO. Also, keep in mind there will 
-(hopefully) be another omap3 end-user device released by the end of the 
-year (Neo900), which most probably will gain more developers interested 
-in fixing the DSP driver.
-
-Regards,
-Ivo
-
-[1] 
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/staging/tidspbridge?id=559c71fe5dc3bf2ecc55afb336145db7f0abf810
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/staging/tidspbridge?id=a3b22220a48bd14c9ba4ca8d051b0c92d5bc3866
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/staging/tidspbridge?id=d30555853052bbec8497260ba888b7d696bed9b8
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
