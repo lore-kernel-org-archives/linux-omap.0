@@ -1,53 +1,132 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] tty: serial: 8250 core: add runtime pm
-Date: Wed, 9 Jul 2014 23:28:12 -0700
-Message-ID: <20140710062812.GF28884@atomide.com>
-References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de>
- <1404928177-26554-4-git-send-email-bigeasy@linutronix.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ASoC: omap-dmic: use managed interfaces
+Date: Thu, 10 Jul 2014 09:30:23 +0300
+Message-ID: <53BE32FF.80601@ti.com>
+References: <20140709212112.GA11848@himangi-Dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1404928177-26554-4-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, mika.westerberg@linux.intel.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20140709212112.GA11848@himangi-Dell>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Himangi Saraogi <himangi774@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140709 10:52]:
-> While comparing the OMAP-serial and the 8250 part of this I noticed that
-> the the latter does not use runtime-pm. Here are the pieces. It is
-> basically a get before first register access and a last_busy + put after
-> last access.
-> If I understand this correct, it should do nothing as long as
-> pm_runtime_use_autosuspend() + pm_runtime_enable() isn't invoked on the
-> device.
-...
+On 07/10/2014 12:21 AM, Himangi Saraogi wrote:
+> This patch moves data allocated using clk_put and
+> snd_soc_register_component to the corresponding managed interfaces and
+> does away with the functions to free memory in the probe and remove
+> functions. The probe function is no longer required and is completely
+> removed.
 
-> --- a/drivers/tty/serial/8250/8250_core.c
-> +++ b/drivers/tty/serial/8250/8250_core.c
-> @@ -571,7 +573,17 @@ static void serial8250_set_sleep(struct uart_8250_port *p, int sleep)
->  			serial_out(p, UART_EFR, 0);
->  			serial_out(p, UART_LCR, 0);
->  		}
-> +
-> +		if (!device_may_wakeup(p->port.dev)) {
-> +			if (sleep)
-> +				pm_runtime_forbid(p->port.dev);
-> +			else
-> +				pm_runtime_allow(p->port.dev);
-> +		}
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> =
+
+> Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+> Acked-by: Julia Lawall <julia.lawall@lip6.fr>
+> ---
+>  sound/soc/omap/omap-dmic.c | 35 ++++++++---------------------------
+>  1 file changed, 8 insertions(+), 27 deletions(-)
+> =
+
+> diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
+> index 6925d71..b315b27 100644
+> --- a/sound/soc/omap/omap-dmic.c
+> +++ b/sound/soc/omap/omap-dmic.c
+> @@ -466,7 +466,7 @@ static int asoc_dmic_probe(struct platform_device *pd=
+ev)
+>  =
+
+>  	mutex_init(&dmic->mutex);
+>  =
+
+> -	dmic->fclk =3D clk_get(dmic->dev, "fck");
+> +	dmic->fclk =3D devm_clk_get(dmic->dev, "fck");
+>  	if (IS_ERR(dmic->fclk)) {
+>  		dev_err(dmic->dev, "cant get fck\n");
+>  		return -ENODEV;
+> @@ -475,8 +475,7 @@ static int asoc_dmic_probe(struct platform_device *pd=
+ev)
+>  	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
+>  	if (!res) {
+>  		dev_err(dmic->dev, "invalid dma memory resource\n");
+> -		ret =3D -ENODEV;
+> -		goto err_put_clk;
+> +		return -ENODEV;
 >  	}
-> +out:
-> +	pm_runtime_mark_last_busy(p->port.dev);
-> +	pm_runtime_put_autosuspend(p->port.dev);
+>  	dmic->dma_data.addr =3D res->start + OMAP_DMIC_DATA_REG;
+>  =
+
+> @@ -484,34 +483,17 @@ static int asoc_dmic_probe(struct platform_device *=
+pdev)
+>  =
+
+>  	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
+>  	dmic->io_base =3D devm_ioremap_resource(&pdev->dev, res);
+> -	if (IS_ERR(dmic->io_base)) {
+> -		ret =3D PTR_ERR(dmic->io_base);
+> -		goto err_put_clk;
+> -	}
+> -
+> +	if (IS_ERR(dmic->io_base))
+> +		return PTR_ERR(dmic->io_base);
+>  =
+
+> -	ret =3D snd_soc_register_component(&pdev->dev, &omap_dmic_component,
+> -					 &omap_dmic_dai, 1);
+> +	ret =3D devm_snd_soc_register_component(&pdev->dev, &omap_dmic_componen=
+t,
+> +					      &omap_dmic_dai, 1);
+>  	if (ret)
+> -		goto err_put_clk;
+> +		return ret;
+>  =
+
+>  	ret =3D omap_pcm_platform_register(&pdev->dev);
+>  	if (ret)
+> -		goto err_put_clk;
+> -
+> -	return 0;
+> -
+> -err_put_clk:
+> -	clk_put(dmic->fclk);
+> -	return ret;
+> -}
+> -
+> -static int asoc_dmic_remove(struct platform_device *pdev)
+> -{
+> -	struct omap_dmic *dmic =3D platform_get_drvdata(pdev);
+> -
+> -	snd_soc_unregister_component(&pdev->dev);
+> -	clk_put(dmic->fclk);
+> +		return ret;
+>  =
+
+>  	return 0;
 >  }
+> @@ -529,7 +511,6 @@ static struct platform_driver asoc_dmic_driver =3D {
+>  		.of_match_table =3D omap_dmic_of_match,
+>  	},
+>  	.probe =3D asoc_dmic_probe,
+> -	.remove =3D asoc_dmic_remove,
+>  };
+>  =
 
-The device_may_wakeup logic here is wrong as I described in the
-earlier thread. For runtime PM, the wake-up events should be
-always enabled. So the device_may_wakeup checks should be only
-done for suspend and resume.
+>  module_platform_driver(asoc_dmic_driver);
+> =
 
-Regards,
 
-Tony
+
+-- =
+
+P=E9ter
