@@ -1,57 +1,56 @@
-From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: [PATCH 00/16] i2c: drop class based instantiaion for selected
- drivers
-Date: Thu, 10 Jul 2014 14:38:37 +0200
-Message-ID: <20140710143837.558c1d07@ipc1.ka-ro>
-References: <1404992799-3705-1-git-send-email-wsa@the-dreams.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 07/14] cpufreq: cpu0: OPPs can be populated at runtime
+Date: Thu, 10 Jul 2014 07:39:08 -0500
+Message-ID: <CAGo_u6rBMGO9t87w1e4KCTA+ckF8aeFr+jMw00fks-=y+9JGdA@mail.gmail.com>
+References: <cover.1404231535.git.viresh.kumar@linaro.org>
+	<1ba7771e910084cd0820c19ca5994fe1b3d6451d.1404231535.git.viresh.kumar@linaro.org>
+	<53BD5564.2060704@ti.com>
+	<CAKohpo=KUktq8XJv7Ayis1Q3ik+Wh3wb8wN6VpRAtOsbbv9XCw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1404992799-3705-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAKohpo=KUktq8XJv7Ayis1Q3ik+Wh3wb8wN6VpRAtOsbbv9XCw@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Shawn Guo <shawn.guo@linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Tomasz Figa <t.figa@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas P Abraham <thomas.ab@samsung.com>, Arvind Chauhan <arvind.chauhan@arm.com>, Sachin Kamat <spk.linux@gmail.com>, Dave Gerlach <d-gerlach@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-Wolfram Sang wrote:
-> Some drivers were flagged to remove class based instantiation soon to=
- improve
-> boot-up time. Originally, I was planning for a longer deprecation tim=
-e so users
-> could switch over to some other kind of instantiation. However, the d=
-emand for
-> the speed up is high enough and class based instantiation is used rar=
-ely, so
-> the removal takes place now. To make up for the deprecation time, ano=
-ther
-> warning is added to the i2c core pointing out that the behaviour has =
-now
-> changed:
->=20
-> +	/* Warn that the adapter lost class based instantiation */
-> +	if (adapter->class =3D=3D I2C_CLASS_DEPRECATED) {
-> +		dev_dbg(&adapter->dev,
-> +			"This adapter dropped support for I2C classes and "
-> +			"won't auto-detect %s devices anymore. If you need it, check "
-> +			"'Documentation/i2c/instantiating-devices' for alternatives.\n",
+On Thu, Jul 10, 2014 at 6:19 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
+> On 9 July 2014 20:14, Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
+>> Assuming you are updating bidnings as suggested by Stephen,
+>> patch looks good to me.
+>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >
-It's usually a bad idea to split kernel messages across source lines
-because it makes searching for the corresponding source line for a
-message found in the log difficult.
-You could at least do the split at the sentence boundary.
+> Why do you still have a separate cpufreq driver for omap?
+> Would this patch help getting that out?
+>
+> I see this for omap:
+>
+> static inline void omap_init_cpufreq(void)
+> {
+>         struct platform_device_info devinfo = { };
+>
+>         if (!of_have_populated_dt())
+>                 devinfo.name = "omap-cpufreq";
+>         else
+>                 devinfo.name = "cpufreq-generic";
+>         platform_device_register_full(&devinfo);
+> }
+>
+> and it makes me believe that you were just waiting for this patch?
 
+Sorry, am away on vacation and slow on emails. The plan was to kill
+omap cpufreq once all platforms convert to device tree only boot. Only
+platform left is OMAP3 based platforms - though the date for removing
+non-dt support has changed a couple of kernel revisions - but we
+should be able to remove that entire file with this change.
 
-Lothar Wa=C3=9Fmann
---=20
-___________________________________________________________
+We will need this support to go with the solution recommended for opp
+modifier series[1] - where platform code will populate or add OPPs
+based on "speed grade" sample detection.
 
-Ka-Ro electronics GmbH | Pascalstra=C3=9Fe 22 | D - 52076 Aachen
-Phone: +49 2408 1402-0 | Fax: +49 2408 1402-10
-Gesch=C3=A4ftsf=C3=BChrer: Matthias Kaussen
-Handelsregistereintrag: Amtsgericht Aachen, HRB 4996
+[1]http://comments.gmane.org/gmane.linux.ports.arm.kernel/309466
 
-www.karo-electronics.de | info-AvR2QvxeiV7DiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org
-___________________________________________________________
+---
+Regards,
+Nishanth Menon
