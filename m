@@ -1,56 +1,27 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 07/14] cpufreq: cpu0: OPPs can be populated at runtime
-Date: Thu, 10 Jul 2014 07:39:08 -0500
-Message-ID: <CAGo_u6rBMGO9t87w1e4KCTA+ckF8aeFr+jMw00fks-=y+9JGdA@mail.gmail.com>
-References: <cover.1404231535.git.viresh.kumar@linaro.org>
-	<1ba7771e910084cd0820c19ca5994fe1b3d6451d.1404231535.git.viresh.kumar@linaro.org>
-	<53BD5564.2060704@ti.com>
-	<CAKohpo=KUktq8XJv7Ayis1Q3ik+Wh3wb8wN6VpRAtOsbbv9XCw@mail.gmail.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH v4] regulator: tps65218: Add fixed_uV fields for dcdc5
+ and dcdc6
+Date: Thu, 10 Jul 2014 18:40:39 +0530
+Message-ID: <53BE90CF.5060407@ti.com>
+References: <1404884193-20580-2-git-send-email-j-keerthy@ti.com> <1404901379-30135-1-git-send-email-j-keerthy@ti.com> <20140710121210.GF30458@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAKohpo=KUktq8XJv7Ayis1Q3ik+Wh3wb8wN6VpRAtOsbbv9XCw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Shawn Guo <shawn.guo@linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Tomasz Figa <t.figa@samsung.com>, Stephen Boyd <sboyd@codeaurora.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas P Abraham <thomas.ab@samsung.com>, Arvind Chauhan <arvind.chauhan@arm.com>, Sachin Kamat <spk.linux@gmail.com>, Dave Gerlach <d-gerlach@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140710121210.GF30458@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 10, 2014 at 6:19 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> On 9 July 2014 20:14, Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
->> Assuming you are updating bidnings as suggested by Stephen,
->> patch looks good to me.
->> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> Why do you still have a separate cpufreq driver for omap?
-> Would this patch help getting that out?
->
-> I see this for omap:
->
-> static inline void omap_init_cpufreq(void)
-> {
->         struct platform_device_info devinfo = { };
->
->         if (!of_have_populated_dt())
->                 devinfo.name = "omap-cpufreq";
->         else
->                 devinfo.name = "cpufreq-generic";
->         platform_device_register_full(&devinfo);
-> }
->
-> and it makes me believe that you were just waiting for this patch?
+On Thursday 10 July 2014 05:42 PM, Mark Brown wrote:
+> On Wed, Jul 09, 2014 at 03:52:59PM +0530, Keerthy wrote:
+>> Add fixed_uV fields for dcdc5 and dcdc6.
+> Applied, but don't bury new patches into the middle of old threads -
+> it's a good way to get your patch ignored.
 
-Sorry, am away on vacation and slow on emails. The plan was to kill
-omap cpufreq once all platforms convert to device tree only boot. Only
-platform left is OMAP3 based platforms - though the date for removing
-non-dt support has changed a couple of kernel revisions - but we
-should be able to remove that entire file with this change.
+Okay. I thought only one patch had to be redone on top of the other branch
+so did it this way. I will resend a new series next time onwards. Thanks.
 
-We will need this support to go with the solution recommended for opp
-modifier series[1] - where platform code will populate or add OPPs
-based on "speed grade" sample detection.
-
-[1]http://comments.gmane.org/gmane.linux.ports.arm.kernel/309466
-
----
 Regards,
-Nishanth Menon
+Keerthy
