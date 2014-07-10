@@ -1,111 +1,51 @@
-From: Jason Kridner <jkridner@beagleboard.org>
-Subject: Re: Anybody working on tidspbridge?
-Date: Thu, 10 Jul 2014 12:18:24 -0400
-Message-ID: <CA+T6QPm=qG+xUM7uaO9Qs2VKghccnPFcYnPYQVYXzDOemJJrEQ@mail.gmail.com>
-References: <53A4569B.70604@gmail.com>
-	<53A45BBD.4040201@gmail.com>
-	<20140629164250.GA31625@kroah.com>
-	<53BBE895.4020105@gmail.com>
-	<alpine.DEB.2.01.1407081452580.5181@pmeerw.net>
-	<20140708143659.GB3104@kroah.com>
-	<53BC3A94.4050208@ti.com>
-	<20140709070726.GF28884@atomide.com>
-	<53BE2A8A.5080001@gmail.com>
-	<20140710161118.GA20239@kroah.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes against v3.16-rc4
+Date: Thu, 10 Jul 2014 14:35:54 -0700
+Message-ID: <20140710213554.GA1313@quad.lixom.net>
+References: <20140709153552.GA28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:61414 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119AbaGJQSZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 12:18:25 -0400
-Received: by mail-ob0-f180.google.com with SMTP id vb8so9912569obc.25
-        for <linux-omap@vger.kernel.org>; Thu, 10 Jul 2014 09:18:24 -0700 (PDT)
-In-Reply-To: <20140710161118.GA20239@kroah.com>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:51370 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750791AbaGJVfb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 17:35:31 -0400
+Received: by mail-pd0-f179.google.com with SMTP id w10so202855pde.38
+        for <linux-omap@vger.kernel.org>; Thu, 10 Jul 2014 14:35:30 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140709153552.GA28884@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, Peter Meerwald <pmeerw@pmeerw.net>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, Jul 10, 2014 at 12:11 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->
-> On Thu, Jul 10, 2014 at 08:54:18AM +0300, Ivaylo Dimitrov wrote:
-> >
-> >
-> > On  9.07.2014 10:07, Tony Lindgren wrote:
-> > >* Suman Anna <s-anna@ti.com> [140708 11:40]:
-> > >>Hi Peter,
-> > >>
-> > >>On 07/08/2014 09:36 AM, Greg KH wrote:
-> > >>>On Tue, Jul 08, 2014 at 03:03:58PM +0200, Peter Meerwald wrote:
-> > >>>>Hello,
-> > >>>>
-> > >>>>>>Given the total lack of response here, I suggest just deleting the
-> > >>>>>>driver.  No one has ever done the "real work" that is going to be
-> > >>>>>>required to get this code out of staging.  It has had build errors
-> > >>>>>>causing it to not even be usable for some kernel versions with no one
-> > >>>>>>noticing, so I doubt anyone cares about it anymore here.
-> > >>>>>
-> > >>>>>Cc'ing some more people who might be interested. If no one offers to
-> > >>>>>work on the driver in the next couple of days, I'll send a patch to
-> > >>>>>remove it.
-> > >>>>
-> > >>>>I'm using the driver (with kernel 3.7) and it works reasonably well for
-> > >>>>me; removing it seems a bit harsh.
-> > >>>
-> > >>>Using it is different from being able to maintain the code and move it
-> > >>>out of the staging tree.  Also, 3.7 is really old and obsolete, not much
-> > >>>we can do with that kernel version :)
-> > >>>
-> > >>>Are you able to work on the code and do the effort needed to get it out
-> > >>>of the staging tree?  If so, great, if not, we are going to have to
-> > >>>delete it, sorry.
-> > >>
-> > >>I agree with Greg here. In fact, the current TODO does not do enough
-> > >>justice to the amount of work required to make it even work on the
-> > >>latest kernel. Most of the TIers who worked on this driver have moved on
-> > >>as Kristina would have figured with her bounced emails. So I do suggest
-> > >>that this driver be deleted from the kernel tree. If there are enough
-> > >>number of folks using it (not sure how many are out there), it can be
-> > >>worked on out-of-tree and brought back in a cleaner fashion rather than
-> > >>keeping a broken stale driver in the kernel.
-> > >
-> > >I agree, not much has improved with this driver since it got added into
-> > >staging except just compile fixes.
-> > >
-> > >Regards,
-> > >
-> > >Tony
-> >
-> > Well, recently I've sent a couple of patches which implement stuff from TODO
-> > [1]. However, with the migration to DT, my focus now is to have a
-> > kernel/userspace that boots at all and this leaves no free cycles for DSP.
-> > Maybe tidspbridge can be left in staging until DT migration is finished,
-> > that way me (and maybe other people) will have the time needed to try to
-> > implement what remains in TODO. Also, keep in mind there will (hopefully) be
-> > another omap3 end-user device released by the end of the year (Neo900),
-> > which most probably will gain more developers interested in fixing the DSP
-> > driver.
->
-> I'm really tired of people saying, "maybe sometime in the future we will
-> work on this" for this driver.  It's not the first time I've heard it,
-> and it has _never_ come true.  Honestly, I really don't believe it will
-> ever happen, given that TI doesn't care about this code at all.
->
-> If in the future, someone does want to work on this, a simple revert of
-> the patch that removes the driver will be all that is needed.  Let's do
-> that instead of hoping that sometime, someone, somewhere, will do this
-> work.
+On Wed, Jul 09, 2014 at 08:35:52AM -0700, Tony Lindgren wrote:
+> The following changes since commit cd3de83f147601356395b57a8673e9c5ff1e59d1:
+> 
+>   Linux 3.16-rc4 (2014-07-06 12:37:51 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-rc4
+> 
+> for you to fetch changes up to 1d29a0722f6c38f79785c9ffb911730598de84e2:
+> 
+>   ARM: OMAP2+: Remove non working OMAP HDMI audio initialization (2014-07-08 01:08:44 -0700)
+> 
+> ----------------------------------------------------------------
+> Fixes for omaps for the -rc series. It's mostly fixes for clock rates,
+> restart handling and phy regulators and SATA interconnect data.
 
-Makes sense to me. FYI, it will come back again on newer TI ARM+DSP
-devices. Those aren't going away, but I'm also not aware of anyone
-imminently pushing patches.
+It's a little surprising to see a SATA fix about a week after enablement
+went in during -rc -- enabling it that late should ideally have been
+better tested than this.
 
->
-> thanks,
->
-> greg k-h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Also few build fixes related to the DSP driver in staging, and trivial
+> stuff like removal of broken and soon to be unused platform data init
+> for HDMI audio that would be good to get into the -rc series if not
+> too late.
+
+Thanks, merged. Definitely time for regressions only from here on out though.
+
+
+-Olof
