@@ -1,33 +1,36 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 2/6] tty: serial: 8250 core: allow to overwrite & export
- serial8250_startup()
-Date: Thu, 10 Jul 2014 16:55:35 +0200
-Message-ID: <53BEA967.4070200@linutronix.de>
-References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de> <1404928177-26554-3-git-send-email-bigeasy@linutronix.de>
+From: Peter Griffin <peter.griffin@linaro.org>
+Subject: Re: [PATCH v2 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI
+ architecture
+Date: Thu, 10 Jul 2014 16:24:47 +0100
+Message-ID: <20140710152447.GA26886@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
+ <1404541530-27856-4-git-send-email-peter.griffin@linaro.org>
+ <53BBA075.9040204@st.com>
+ <20140708075332.GM6407@lee--X1>
+ <20140710132718.GH15340@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1404928177-26554-3-git-send-email-bigeasy@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140710132718.GH15340@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Maxime Coquelin <maxime.coquelin@st.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/09/2014 07:49 PM, Sebastian Andrzej Siewior wrote:
-> The OMAP version of the 8250 can actually use 1:1 serial8250_startup(=
-).
-> However it needs to be extended by a wakeup irq which should to be
-> requested & enabled at ->startup() time and disabled at ->shutdown() =
-time.
->=20
-> v1=E2=80=A6v2: add shutdown callback
+Hi Felipe,
 
-forgot to copy the callbacks in serial8250_register_8250_port().
+> > Maxime,
+> >   Once Acked by Felipe, I think this should go in via your tree to
+> > avoid conflicts with other ARM/STI ARCHITECTURE additions.
+> 
+> there are still many unresolved comments on patches 1 and 2.
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, sorry I've been a bit busy this week on other activities to send a V3.
+
+I will get this fixed up addressing the comments received so far, and sent out
+a V3 early next week.
+
+regards,
+
+Peter.
