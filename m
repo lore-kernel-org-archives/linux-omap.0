@@ -1,43 +1,65 @@
-From: Keerthy <a0393675@ti.com>
-Subject: Re: [PATCH v3 0/7] ARM: dts: AM43x: Add devcice tree nodes
-Date: Thu, 10 Jul 2014 18:55:22 +0530
-Message-ID: <53BE9442.4070101@ti.com>
-References: <1404884193-20580-1-git-send-email-j-keerthy@ti.com> <20140709083114.GH28884@atomide.com> <53BD208E.6000507@ti.com> <20140709115106.GV28884@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI
+ architecture
+Date: Thu, 10 Jul 2014 08:27:18 -0500
+Message-ID: <20140710132718.GH15340@saruman.home>
+References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
+ <1404541530-27856-4-git-send-email-peter.griffin@linaro.org>
+ <53BBA075.9040204@st.com>
+ <20140708075332.GM6407@lee--X1>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="U3BNvdZEnlJXqmh+"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140709115106.GV28884@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20140708075332.GM6407@lee--X1>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, broonie@kernel.org
-Cc: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, kishon@ti.com
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Maxime Coquelin <maxime.coquelin@st.com>, Peter Griffin <peter.griffin@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 09 July 2014 05:21 PM, Tony Lindgren wrote:
-> * Keerthy <a0393675@ti.com> [140709 04:03]:
->> On Wednesday 09 July 2014 02:01 PM, Tony Lindgren wrote:
->>> * Keerthy <j-keerthy@ti.com> [140708 22:40]:
->>>> The patch series adds the device tree nodes and the corresponding
->>>> documentation. The series also enabled tps65218 config options
->>>> in the omap2plus_defconfig.
->>>>
->>>> The series is boot tested on both AM43x-epos-evm and AM437x-gp-evm.
->>> Are the .dts changes safe to apply separately without breaking
->>> anything?
->> Tony,
->>
->> Patch 1/7 had to be re-based on Mark's latest branch for tps65218.
->> Other patches can be taken as is. These patches are boot tested on
->> both am437x-gp-evm and am43x-epos-evm.
-> OK thanks applying patches 4 - 7 into omap-for-v3.17/dt.
->
-> Tony
+--U3BNvdZEnlJXqmh+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks Tony.
+On Tue, Jul 08, 2014 at 08:53:32AM +0100, Lee Jones wrote:
+> On Tue, 08 Jul 2014, Maxime Coquelin wrote:
+> > On 07/05/2014 08:25 AM, Peter Griffin wrote:
+> > >Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+> >=20
+> > Acked-by: Maxime Coquelin <maxime.coquelin@st.com>
+>=20
+> Maxime,
+>   Once Acked by Felipe, I think this should go in via your tree to
+> avoid conflicts with other ARM/STI ARCHITECTURE additions.
 
-Mark,
+there are still many unresolved comments on patches 1 and 2.
 
-Could you please pull patch 2 and patch 3? The documentation is missing.
+--=20
+balbi
 
-Kind Regards,
-Keerthy
+--U3BNvdZEnlJXqmh+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTvpS2AAoJEIaOsuA1yqREjg4P/Anzg61IE9UUR90Jk6gwK1tM
+KmxiJwi1QHA5NzZKOp6ajVCyida1wneD09CKJx85Vkf+3Bu/PHG8rei3CbPUqNSl
+4DYa3rFP5oNO8SiGKqF+a6jbDOvt6WSA787G7o0Rol/t5zZYFqlXA9W7fMbZ39Xa
+zi389xpwt/46Nka2E5Ev2h5RPdA+Rkgf0thfXTWlfpvTpBtLrGbqOqhOPCtMx2kB
+P2W9TX6xOHSP+awiFwfC5aTq+sDrKh+4GGHXN+d7WnbwN3JoPk3UYhNOm2nNeZEG
+AyMBtTrbqHsj3vv26qhzkv0R8dTl44crCGk/QIoz+eyAaqjBFUPDdeFS3O195Vzu
+8AZiXvXWHVRA+1HhqbWEuBgs1yS8kLt5MIBBH7M7R7QRFWG9XD+E3B7QQ0L4wlNg
+FvPJZ8NPRWIdjY44uvnPHCiGxxRHY0EjS1jJwSAZ5+Oofgl+ir/VtrI3IURssmoD
+EyUHH/NC0plidTuEVBcBemiF6Zy//36Jt6eKfoPYUuXDbpSsOeP+T90KmhCa/IP2
+Fi7pi8BagyVrkEo7x2nRgEHGGzhM8qIcaKo7xYGalzbU0roGtkIEFQxIlxkIY1GK
+MdHSQYSyO3RzqkSccroxe0cwQjxHY1PIy38ec90uDtHSIGae9UPEurSxwnh5lG+z
+0uef/KJQvg/4ERVv/Jbk
+=u5zS
+-----END PGP SIGNATURE-----
+
+--U3BNvdZEnlJXqmh+--
