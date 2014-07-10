@@ -1,64 +1,100 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4] regulator: tps65218: Add fixed_uV fields for dcdc5
- and dcdc6
-Date: Thu, 10 Jul 2014 16:50:23 +0200
-Message-ID: <20140710145023.GH30458@sirena.org.uk>
-References: <1404884193-20580-2-git-send-email-j-keerthy@ti.com>
- <1404901379-30135-1-git-send-email-j-keerthy@ti.com>
- <20140710121210.GF30458@sirena.org.uk>
- <53BE90CF.5060407@ti.com>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 5/6] tty: serial: 8250-core: add rs485 support
+Date: Thu, 10 Jul 2014 15:52:15 +0100
+Message-ID: <20140710155215.3e17ca08@alan.etchedpixels.co.uk>
+References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de>
+	<1404928177-26554-6-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="U/fatWn3w9i48dtV"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57825 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945AbaGJOwW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 10:52:22 -0400
-Content-Disposition: inline
-In-Reply-To: <53BE90CF.5060407@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1404928177-26554-6-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
+
+>  static inline void __stop_tx(struct uart_8250_port *p)
+>  {
+> +	if (p->rs485.flags & SER_RS485_ENABLED) {
+> +		int ret;
+> +
+> +		ret = (p->rs485.flags & SER_RS485_RTS_AFTER_SEND) ? 1 : 0;
+> +		if (gpio_get_value(p->rts_gpio) != ret) {
+> +			if (p->rs485.delay_rts_after_send > 0)
+> +				mdelay(p->rs485.delay_rts_after_send);
+> +			gpio_set_value(p->rts_gpio, ret);
+> +		}
+
+RTS is not normally a GPIO. We should be controlling the UART RTS here,
+and if the UART has a magic special case RTS wired to a GPIO then really
+the hardware specific part should handle that gunge. I don't care whether
+the drive does it via serial_out magic or a more explicit hook but it
+doesn't belong here in core code.
+
+Likewise the mdelay probably should be in the device specific bits or
+controlled by a flag as not all hardware is so braindead.
+
+> @@ -1330,6 +1356,20 @@ static void serial8250_start_tx(struct uart_port *port)
+>  	if (up->dma && !serial8250_tx_dma(up)) {
+
+Ditto
+
+> +int serial8250_probe_rs485(struct uart_8250_port *up,
+> +		struct device *dev)
+> +{
+> +	struct serial_rs485 *rs485conf = &up->rs485;
+> +	struct device_node *np = dev->of_node;
+> +	u32 rs485_delay[2];
+> +	enum of_gpio_flags flags;
+> +	int ret;
+> +
+> +	rs485conf->flags = 0;
+> +	if (!np)
+> +		return 0;
+> +
+> +	/* check for tx enable gpio */
+> +	up->rts_gpio = of_get_named_gpio_flags(np, "rts-gpio", 0, &flags);
+
+No of_ dependencies in core 8250.c either please. That looks a perfectly
+good implementation of serial8250_of_probe_rs485 however, just belongs in
+the right place.
+
+> +static int serial8250_ioctl(struct uart_port *port, unsigned int cmd,
+> +		unsigned long arg)
+> +{
+> +	struct serial_rs485 rs485conf;
+> +	struct uart_8250_port *up;
+> +
+> +	up = container_of(port, struct uart_8250_port, port);
+> +	switch (cmd) {
+> +	case TIOCSRS485:
+> +		if (!gpio_is_valid(up->rts_gpio))
+> +			return -ENODEV;
+
+GPIO assumption again needs to go
 
 
---U/fatWn3w9i48dtV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
+> index 0ec21ec..056a73f 100644
+> --- a/include/linux/serial_8250.h
+> +++ b/include/linux/serial_8250.h
+> @@ -78,6 +78,7 @@ struct uart_8250_port {
+>  	unsigned char		acr;
+>  	unsigned char		ier;
+>  	unsigned char		lcr;
+> +	unsigned char		fcr;
+>  	unsigned char		mcr;
+>  	unsigned char		mcr_mask;	/* mask of user bits */
+>  	unsigned char		mcr_force;	/* mask of forced bits */
+> @@ -94,6 +95,9 @@ struct uart_8250_port {
+>  	unsigned char		msr_saved_flags;
+>  
+>  	struct uart_8250_dma	*dma;
+> +	struct serial_rs485	rs485;
+> +	int			rts_gpio;
+> +	bool			rts_gpio_valid;
 
-On Thu, Jul 10, 2014 at 06:40:39PM +0530, Keerthy wrote:
-> On Thursday 10 July 2014 05:42 PM, Mark Brown wrote:
+Keeping the gpio here doesn't look unreasonable if one is in use.
 
-> >Applied, but don't bury new patches into the middle of old threads -
-> >it's a good way to get your patch ignored.
-
-> Okay. I thought only one patch had to be redone on top of the other branch
-> so did it this way. I will resend a new series next time onwards. Thanks.
-
-For something like this where there's actually no dependencies it's OK
-to resend the patch as a standalone thing.
-
---U/fatWn3w9i48dtV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTvqglAAoJELSic+t+oim9WQQP/2onpD/UaN80vD+apvUOM1B7
-G+PRdRLnnMLy5IOXAaFOCYDMwHGHSUaZ2VoZNRrZG2IufR2gc3ME8WAht7oGkSMc
-/ZC8eEQCTb7tJ+sSTgg8d2IEeAe8pKoPSz0//zva0ThtrTW3I8gMtMkNnRohL8aZ
-JfmEIOeXOMaCjsdc3Obx/fzbil1gnua9Ks4pBda2UnOj5d5aMTIIGeQzP37hQeqm
-t6MrhyohYZB0yFHN5W2EmoeN3vr15Y3Gp58ljeA0ekZTKbH1VyWbPLUSYVqK2/BB
-qEdq1ON4lRjyVXTBZTvwQb1l+AwslWqNdkTf0VopHQQWpcT0CKuuwHQwJIpltMbq
-CShZafowYIItpdQ2ZIncR5PVw3FVexzyZO2FELBiFITnpyhxqzWS6zPh3uGAeS1j
-MnHTsyu/kCepe3mZh9/Lq8eCND1kw7BitS/dJ5MC1qya6jzmjlH9yCwYt3HNuK8/
-soZOG8k3MQx8jpdu/Wf7aKowXfuDLhlXIZKmq2fUprqMGTSAtvR6A5i8f5/Z0zKx
-ZtnInxRDlh7sAnv0VAYQr/O1xEWXDIKYExS23osbRoXHM9/O/E3nHHAi0YZH89Dd
-iT4me5gq7VvkCmr+M2Hrpqzu430DE3f/be7BujeNLw6K2iOUz0oxbH8mmWJ5mX70
-a/7UMczr4ve4BMLonQzc
-=DftR
------END PGP SIGNATURE-----
-
---U/fatWn3w9i48dtV--
+Alan
