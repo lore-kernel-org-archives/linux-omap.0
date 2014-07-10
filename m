@@ -1,56 +1,57 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4] regulator: tps65218: Add fixed_uV fields for dcdc5
- and dcdc6
-Date: Thu, 10 Jul 2014 14:12:10 +0200
-Message-ID: <20140710121210.GF30458@sirena.org.uk>
-References: <1404884193-20580-2-git-send-email-j-keerthy@ti.com>
- <1404901379-30135-1-git-send-email-j-keerthy@ti.com>
+From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: [PATCH 00/16] i2c: drop class based instantiaion for selected
+ drivers
+Date: Thu, 10 Jul 2014 14:38:37 +0200
+Message-ID: <20140710143837.558c1d07@ipc1.ka-ro>
+References: <1404992799-3705-1-git-send-email-wsa@the-dreams.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l+LxDeyHMCBjwres"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57438 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752173AbaGJMPs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 08:15:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1404901379-30135-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1404992799-3705-1-git-send-email-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
+
+Hi,
+
+Wolfram Sang wrote:
+> Some drivers were flagged to remove class based instantiation soon to=
+ improve
+> boot-up time. Originally, I was planning for a longer deprecation tim=
+e so users
+> could switch over to some other kind of instantiation. However, the d=
+emand for
+> the speed up is high enough and class based instantiation is used rar=
+ely, so
+> the removal takes place now. To make up for the deprecation time, ano=
+ther
+> warning is added to the i2c core pointing out that the behaviour has =
+now
+> changed:
+>=20
+> +	/* Warn that the adapter lost class based instantiation */
+> +	if (adapter->class =3D=3D I2C_CLASS_DEPRECATED) {
+> +		dev_dbg(&adapter->dev,
+> +			"This adapter dropped support for I2C classes and "
+> +			"won't auto-detect %s devices anymore. If you need it, check "
+> +			"'Documentation/i2c/instantiating-devices' for alternatives.\n",
+>
+It's usually a bad idea to split kernel messages across source lines
+because it makes searching for the corresponding source line for a
+message found in the log difficult.
+You could at least do the split at the sentence boundary.
 
 
---l+LxDeyHMCBjwres
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Lothar Wa=C3=9Fmann
+--=20
+___________________________________________________________
 
-On Wed, Jul 09, 2014 at 03:52:59PM +0530, Keerthy wrote:
-> Add fixed_uV fields for dcdc5 and dcdc6.
+Ka-Ro electronics GmbH | Pascalstra=C3=9Fe 22 | D - 52076 Aachen
+Phone: +49 2408 1402-0 | Fax: +49 2408 1402-10
+Gesch=C3=A4ftsf=C3=BChrer: Matthias Kaussen
+Handelsregistereintrag: Amtsgericht Aachen, HRB 4996
 
-Applied, but don't bury new patches into the middle of old threads -
-it's a good way to get your patch ignored.
-
---l+LxDeyHMCBjwres
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJTvoMXAAoJELSic+t+oim91KgP/3UuZL9YYznaM1SFatPN0ACe
-VVEO2KuB72o+u+MVDYoMYE3n7GDOcousFUoT0yFKhjVvnvRIihaleoxZNiBIXyaw
-FKqVp0zSSHLKPt4HyE/MZ9t0E14aLhgZ1EE8OyiEfBce+cGxnBnl9X+EGn8cXaqO
-x8EEv86Ozvvq0YaaF6VSrhG2ZFtLUZFikrTqui/8IWFEkiwtQmKOaqADQbLlnxNC
-M+Exa1ofxBAufd47+JGtkpdYf4e5GESlmY7dJDg7QemEpno1AiLzUEYIrrR5a7ta
-EB+pKUDfdstjt9NkJJKmh9iQkfU0vD4lCtgDT53MzuMigdHKamuabwx7TquYSzOY
-4I59+ailTITVUzcYgkKjBvUIa6H1txww/Vbct/I+hNHeydw44yeko+JjIYEyZ2U+
-/5FlR0x3lA2uPCVrfRDDp8zieqVba5S3+VF1zdUXww36uOW9oF99cQbDPHfrCSsi
-P19EjBd6wPsl++AuDNaKKsmgR+evdWh4rpPTnO+o2bqRuhwDI8Oy1Siz9i1UDEYg
-8drw4abiykPHTjCFKeCeF/yGZYZfiuzlzHJcywwjLsSGtGGxOFFvfN3EqwRyZcu5
-5F7V/7RyrJKW1bGPBdoBiuSlpuB+3UCszEN7FnZ3mgsI8BeD/PCN8cVESra/+FVe
-tDfbpL+scmBHSLkcxRc4
-=2YNl
------END PGP SIGNATURE-----
-
---l+LxDeyHMCBjwres--
+www.karo-electronics.de | info-AvR2QvxeiV7DiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org
+___________________________________________________________
