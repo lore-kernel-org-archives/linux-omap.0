@@ -1,50 +1,56 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: [PATCH 10/16] i2c: i2c-omap: Drop class based scanning to improve
- bootup time
-Date: Thu, 10 Jul 2014 13:46:30 +0200
-Message-ID: <1404992799-3705-11-git-send-email-wsa@the-dreams.de>
-References: <1404992799-3705-1-git-send-email-wsa@the-dreams.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4] regulator: tps65218: Add fixed_uV fields for dcdc5
+ and dcdc6
+Date: Thu, 10 Jul 2014 14:12:10 +0200
+Message-ID: <20140710121210.GF30458@sirena.org.uk>
+References: <1404884193-20580-2-git-send-email-j-keerthy@ti.com>
+ <1404901379-30135-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1404992799-3705-1-git-send-email-wsa@the-dreams.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-i2c@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wolfram Sang <wsa@the-dreams.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="l+LxDeyHMCBjwres"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57438 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752173AbaGJMPs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 08:15:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1404901379-30135-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, mark.rutland@arm.com, galak@codeaurora.org, robh+dt@kernel.org, linux@arm.linux.org.uk, balbi@ti.com, tony@atomide.com, kishon@ti.com
 
-This driver has been flagged to drop class based instantiation. The removal
-improves boot-up time and is unneeded for embedded controllers. Users have been
-warned to switch for some time now, so we can actually do the removal. Keep the
-DEPRECATED flag, so the core can inform users that the behaviour finally
-changed now. After another transition period, this flag can go, too.
 
-Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
----
- drivers/i2c/busses/i2c-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--l+LxDeyHMCBjwres
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b182793a4051..0dffb0e62c3b 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1236,7 +1236,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	adap = &dev->adapter;
- 	i2c_set_adapdata(adap, dev);
- 	adap->owner = THIS_MODULE;
--	adap->class = I2C_CLASS_HWMON | I2C_CLASS_DEPRECATED;
-+	adap->class = I2C_CLASS_DEPRECATED;
- 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
- 	adap->algo = &omap_i2c_algo;
- 	adap->dev.parent = &pdev->dev;
--- 
-2.0.0
+On Wed, Jul 09, 2014 at 03:52:59PM +0530, Keerthy wrote:
+> Add fixed_uV fields for dcdc5 and dcdc6.
+
+Applied, but don't bury new patches into the middle of old threads -
+it's a good way to get your patch ignored.
+
+--l+LxDeyHMCBjwres
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJTvoMXAAoJELSic+t+oim91KgP/3UuZL9YYznaM1SFatPN0ACe
+VVEO2KuB72o+u+MVDYoMYE3n7GDOcousFUoT0yFKhjVvnvRIihaleoxZNiBIXyaw
+FKqVp0zSSHLKPt4HyE/MZ9t0E14aLhgZ1EE8OyiEfBce+cGxnBnl9X+EGn8cXaqO
+x8EEv86Ozvvq0YaaF6VSrhG2ZFtLUZFikrTqui/8IWFEkiwtQmKOaqADQbLlnxNC
+M+Exa1ofxBAufd47+JGtkpdYf4e5GESlmY7dJDg7QemEpno1AiLzUEYIrrR5a7ta
+EB+pKUDfdstjt9NkJJKmh9iQkfU0vD4lCtgDT53MzuMigdHKamuabwx7TquYSzOY
+4I59+ailTITVUzcYgkKjBvUIa6H1txww/Vbct/I+hNHeydw44yeko+JjIYEyZ2U+
+/5FlR0x3lA2uPCVrfRDDp8zieqVba5S3+VF1zdUXww36uOW9oF99cQbDPHfrCSsi
+P19EjBd6wPsl++AuDNaKKsmgR+evdWh4rpPTnO+o2bqRuhwDI8Oy1Siz9i1UDEYg
+8drw4abiykPHTjCFKeCeF/yGZYZfiuzlzHJcywwjLsSGtGGxOFFvfN3EqwRyZcu5
+5F7V/7RyrJKW1bGPBdoBiuSlpuB+3UCszEN7FnZ3mgsI8BeD/PCN8cVESra/+FVe
+tDfbpL+scmBHSLkcxRc4
+=2YNl
+-----END PGP SIGNATURE-----
+
+--l+LxDeyHMCBjwres--
