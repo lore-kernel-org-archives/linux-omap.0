@@ -1,88 +1,81 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv2 01/10] ARM: dts: OMAP2+: Add mailbox fifo and user information
-Date: Fri, 11 Jul 2014 16:44:34 -0500
-Message-ID: <1405115083-52977-2-git-send-email-s-anna@ti.com>
-References: <1405115083-52977-1-git-send-email-s-anna@ti.com>
+Subject: [PATCHv2 00/10] OMAP Mailbox DT node/hwmod cleanup
+Date: Fri, 11 Jul 2014 16:44:33 -0500
+Message-ID: <1405115083-52977-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34955 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34954 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751771AbaGKVpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751800AbaGKVpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 11 Jul 2014 17:45:20 -0400
-In-Reply-To: <1405115083-52977-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The number of mailbox fifos and users (IP interrupts) are added
-to the Mailbox DT nodes on OMAP2420, OMAP2430, OMAP3, and OMAP5
-family of SoCs through the DT properties "ti,mbox-num-fifos" and
-"ti,mbox-num-users" properties. This data represents the same data
-that used to be represented in hwmod attribute data through the
-.num_fifos and .num_users fields previously.
+Hi Tony,
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/boot/dts/omap2420.dtsi | 2 ++
- arch/arm/boot/dts/omap2430.dtsi | 2 ++
- arch/arm/boot/dts/omap3.dtsi    | 2 ++
- arch/arm/boot/dts/omap5.dtsi    | 2 ++
- 4 files changed, 8 insertions(+)
+This is a refresh of the OMAP Mailbox DT node/hwmod cleanup series [1],
+addressing the review comments [2] from Pavel Machek about the Mailbox IP
+design parameters. The changes are limited to only the DTS patches, and
+mainly bring back the DT properties that were dropped in the previous
+series. The hwmod patches in the series are identical to v1 (I added the
+Acked-by responses from Paul Walmsley on 2 patches). I will refresh the
+OMAP Mailbox framework adoption and DT conversion series [3] as well,
+which builds on top of this cleanup series.
 
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-index e83b046..6d21994 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -157,6 +157,8 @@
- 			interrupts = <26>, <34>;
- 			interrupt-names = "dsp", "iva";
- 			ti,hwmods = "mailbox";
-+			ti,mbox-num-users = <4>;
-+			ti,mbox-num-fifos = <6>;
- 		};
- 
- 		timer1: timer@48028000 {
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-index c4e8013..aa6a354 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -247,6 +247,8 @@
- 			reg = <0x48094000 0x200>;
- 			interrupts = <26>;
- 			ti,hwmods = "mailbox";
-+			ti,mbox-num-users = <4>;
-+			ti,mbox-num-fifos = <6>;
- 		};
- 
- 		timer1: timer@49018000 {
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index b2891a9..575a49b 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -332,6 +332,8 @@
- 			ti,hwmods = "mailbox";
- 			reg = <0x48094000 0x200>;
- 			interrupts = <26>;
-+			ti,mbox-num-users = <2>;
-+			ti,mbox-num-fifos = <2>;
- 		};
- 
- 		mcspi1: spi@48098000 {
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 3bfda16..0e8336e 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -641,6 +641,8 @@
- 			reg = <0x4a0f4000 0x200>;
- 			interrupts = <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods = "mailbox";
-+			ti,mbox-num-users = <3>;
-+			ti,mbox-num-fifos = <8>;
- 		};
- 
- 		timer1: timer@4ae18000 {
+Changes in v2:
+- Add a new patch that adds the new DT properties: ti,mbox-num-users and
+  ti,mbox-num-fifos to existing DT nodes as of 3.16-rc2
+- Updated the other DTS patches from v1 to include the new DT properties
+- Updated the compatible properties on AM33xx and DRA7 to use the same
+  compatible string as OMAP4.
+
+The following shows the boot logs on various OMAP platforms with just
+these patches on top of 3.16-rc2:
+  OMAP3 (BeagleXM)          : http://slexy.org/view/s21MEzZ4bU
+  OMAP4 (PandaBoard)        : http://slexy.org/view/s2S5sxIjYw
+  OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s21siI3Vi2
+  DRA7  (DRA7 EVM)          : http://slexy.org/view/s21RVgqBeT
+  AM33xx (BeagleBone Black) : http://slexy.org/view/s20fcQqcOd
+  AM43xx (AM437x GP EVM)    : http://slexy.org/view/s2k3GzeZK1
+
+[1] http://marc.info/?l=linux-omap&m=140365833121612&w=2
+[2] https://patchwork.kernel.org/patch/4415881/
+[3] http://marc.info/?l=linux-omap&m=140366093024233&w=2
+
+Suman Anna (10):
+  ARM: dts: OMAP2+: Add mailbox fifo and user information
+  ARM: dts: OMAP4: Add mailbox node
+  ARM: dts: AM33xx: Add mailbox node
+  ARM: dts: AM4372: Correct mailbox node data
+  ARM: dts: DRA7: Add mailbox nodes
+  ARM: DRA7: hwmod_data: Add mailbox hwmod data
+  ARM: OMAP2+: Avoid mailbox legacy device creation for DT-boot
+  ARM: OMAP2: hwmod_data: Remove legacy mailbox data and addrs
+  ARM: OMAP4: hwmod_data: Remove legacy mailbox addrs
+  ARM: AM33xx: hwmod_data: Remove legacy mailbox addrs
+
+ arch/arm/boot/dts/am33xx.dtsi                      |   9 +
+ arch/arm/boot/dts/am4372.dtsi                      |   3 -
+ arch/arm/boot/dts/dra7.dtsi                        | 117 ++++++++
+ arch/arm/boot/dts/omap2420.dtsi                    |   2 +
+ arch/arm/boot/dts/omap2430.dtsi                    |   2 +
+ arch/arm/boot/dts/omap3.dtsi                       |   2 +
+ arch/arm/boot/dts/omap4.dtsi                       |   9 +
+ arch/arm/boot/dts/omap5.dtsi                       |   2 +
+ arch/arm/mach-omap2/devices.c                      |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  14 -
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  13 -
+ .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |   9 -
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       |  10 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  10 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 305 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   1 -
+ 16 files changed, 449 insertions(+), 61 deletions(-)
+
 -- 
 2.0.0
 
