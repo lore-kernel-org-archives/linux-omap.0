@@ -1,175 +1,86 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: omap2+: gpmc-nand: Use dynamic platform_device_alloc()
-Date: Fri, 11 Jul 2014 16:45:14 +0300
-Message-ID: <53BFEA6A.4020501@ti.com>
-References: <1401891875-27843-1-git-send-email-lisovy@merica.cz>
+From: Andre Heider <a.heider@gmail.com>
+Subject: Re: [PATCH v4 00/11] ARM: OMAP2+: AM33XX: Add suspend-resume support
+Date: Fri, 11 Jul 2014 17:30:19 +0200
+Message-ID: <20140711153019.GA75267@localhost>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1401891875-27843-1-git-send-email-lisovy@merica.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rostislav Lisovy <lisovy@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Pekon Gupta <pekon@ti.com>, Michal Vokac <vokac.m@gmail.com>, Michal Sojka <sojkam1@fel.cvut.cz>, Rostislav Lisovy <lisovy@merica.cz>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:41043 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753370AbaGKPab (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jul 2014 11:30:31 -0400
+Received: by mail-we0-f172.google.com with SMTP id u57so1297208wes.31
+        for <linux-omap@vger.kernel.org>; Fri, 11 Jul 2014 08:30:27 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 
-On 06/04/2014 05:24 PM, Rostislav Lisovy wrote:
-> GPMC controller supports up to 8 memory devices connected to it.
-> Since there is one statically allocated "struct platform_device
-> gpmc_nand_device" it is not possible to configure the system to
-> use more than one NAND device connected to the GPMC. This
-> modification makes it possible to use up to 8 NAND devices
-> connected to the GPMC controller.
-> 
-> Signed-off-by: Rostislav Lisovy <lisovy@merica.cz>
+Hi Dave,
 
-pushed to git@github.com:rogerq/linux.git	for-v3.17/gpmc-omap
+On Thu, Jul 10, 2014 at 09:55:38PM -0500, Dave Gerlach wrote:
+> Hello,
+> 
+> This series adds suspend/resume support for am335x. Version 3 of this
+> series can be found at [1]. I apologize for the large delay between this
+> and the previous revision. This code has been heavily refined
+> since the last version based on the various comments received for v3. The
+> major change from previous version is moving all wkup_m3 code into a
+> remoteproc based driver. The new driver handles all IPC and fw loading
+> and exposes a small API to be used by PM code to achieve low power states.
+> 
+> Firmware that can be used for testing this can be found at [2] on branch
+> pm-remote-proc-v3, using am335x-pm-firmware.elf found in bin directory.
+> Please note this has changed from all previous versions and is no longer
+> the .bin file. Firmware can be built into kernel or placed in /lib/firmware
+> in rootfs for automatic loading during boot.
+> 
+> This series has several dependencies. The wkup_m3_rproc utilizes a mailbox
+> to communicate with the cm3 and depends on Suman's series for omap mbox
+> support [3], which has several dependencies of it's own, listed in the
+> cover letter. Also, a few changes to remoteproc itself were needed and
+> have been provided by Suman here [4]. The edma patch included in this
+> series was previously submitted by Daniel Mack and after discussion with
+> him we agreed to include an updated version with this series as resume
+> has a direct dependency on it due to hangs in mmc without it.
+> 
+> Because of the high number of dependencies I have pushed a branch for
+> testing here [6] if anyone desires to try it out on branch pm-ds0-v3.16.
+> 
+> As is this series will only suspend and resume one time and then
+> fail to resume afterwards due to the removal of direct PM code control
+> of hwmods that do not properly assert their MSTANDBY signal after a context
+> loss, discussed here [7]. In particular it is due to the usb_otg_hs hwmod
+> that currently has no driver controlling it in the kernel. The main
+> cause of the issue is that the SYSCONFIG register present within
+> the IP must be reprogrammed after every suspend cycle and this
+> only happens at boot if no driver is present. Work is in progress to
+> allow suspend to function with or without drivers for the troublesome
+> hwmods (cpgmac, usb_otg_hs, and tptc1-3) and will be provided in a separate
+> future patch. The previous suggestion of allowing omap_device to handle
+> it proved to be too invasive into both omap_device and omap_hwmod and
+> the approach of allowing the firmware to handle it is not possible due
+> to the inability of the CM3 to access the IPs causing the issue. I'd
+> be happy to discuss this at length if anybody is interested.
 
-Tony,
+I gave this a quick spin on boneblack, and it works for me, thanks!
 
-You can please pull all omap-gpmc patches for 3.17 from there. Thanks.
+Tested with "echo mem > /sys/power/state" and uart0 input to resume.
 
-cheers,
--roger
+Contradictionary to the limits you mention, multiple suspend/resume cycles
+do work for me. Maybe because of the enabled drivers in my .config, or
+maybe something was messed up, but at first glance it looked fine.
 
-> ---
-> 
-> Tested on custom AM335x board with two different NAND chips
-> (128 + 256 MiB) using GPMC configuration in FDT -- behaves
-> correctly.
-> 
-> 
->  arch/arm/mach-omap2/gpmc-nand.c | 79 +++++++++++++++++++----------------------
->  1 file changed, 37 insertions(+), 42 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-> index 4349e82..c5481a8 100644
-> --- a/arch/arm/mach-omap2/gpmc-nand.c
-> +++ b/arch/arm/mach-omap2/gpmc-nand.c
-> @@ -24,25 +24,6 @@
->  /* minimum size for IO mapping */
->  #define	NAND_IO_SIZE	4
->  
-> -static struct resource gpmc_nand_resource[] = {
-> -	{
-> -		.flags		= IORESOURCE_MEM,
-> -	},
-> -	{
-> -		.flags		= IORESOURCE_IRQ,
-> -	},
-> -	{
-> -		.flags		= IORESOURCE_IRQ,
-> -	},
-> -};
-> -
-> -static struct platform_device gpmc_nand_device = {
-> -	.name		= "omap2-nand",
-> -	.id		= 0,
-> -	.num_resources	= ARRAY_SIZE(gpmc_nand_resource),
-> -	.resource	= gpmc_nand_resource,
-> -};
-> -
->  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
->  {
->  	/* platforms which support all ECC schemes */
-> @@ -93,43 +74,41 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->  {
->  	int err	= 0;
->  	struct gpmc_settings s;
-> -	struct device *dev = &gpmc_nand_device.dev;
-> -
-> -	memset(&s, 0, sizeof(struct gpmc_settings));
-> +	struct platform_device *pdev;
-> +	struct resource gpmc_nand_res[] = {
-> +		{ .flags = IORESOURCE_MEM, },
-> +		{ .flags = IORESOURCE_IRQ, },
-> +		{ .flags = IORESOURCE_IRQ, },
-> +	};
->  
-> -	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
-> +	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
->  
->  	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
-> -				(unsigned long *)&gpmc_nand_resource[0].start);
-> +			      (unsigned long *)&gpmc_nand_res[0].start);
->  	if (err < 0) {
-> -		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
-> -			gpmc_nand_data->cs, err);
-> +		pr_err("omap2-gpmc: Cannot request GPMC CS %d, error %d\n",
-> +		       gpmc_nand_data->cs, err);
->  		return err;
->  	}
-> -
-> -	gpmc_nand_resource[0].end = gpmc_nand_resource[0].start +
-> -							NAND_IO_SIZE - 1;
-> -
-> -	gpmc_nand_resource[1].start =
-> -				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
-> -	gpmc_nand_resource[2].start =
-> -				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
-> +	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
-> +	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
-> +	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
->  
->  	if (gpmc_t) {
->  		err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
->  		if (err < 0) {
-> -			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
-> +			pr_err("omap2-gpmc: Unable to set gpmc timings: %d\n", err);
->  			return err;
->  		}
->  	}
->  
-> +	memset(&s, 0, sizeof(struct gpmc_settings));
->  	if (gpmc_nand_data->of_node)
->  		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
->  	else
->  		gpmc_set_legacy(gpmc_nand_data, &s);
->  
->  	s.device_nand = true;
-> -
->  	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
->  	if (err < 0)
->  		goto out_free_cs;
-> @@ -141,18 +120,34 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
->  	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
->  
->  	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
-> -		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
-> -		return -EINVAL;
-> +		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
-> +		err = -EINVAL;
-> +		goto out_free_cs;
->  	}
->  
-> -	err = platform_device_register(&gpmc_nand_device);
-> -	if (err < 0) {
-> -		dev_err(dev, "Unable to register NAND device\n");
-> -		goto out_free_cs;
-> +
-> +	pdev = platform_device_alloc("omap2-nand", gpmc_nand_data->cs);
-> +	if (pdev) {
-> +		err = platform_device_add_resources(pdev, gpmc_nand_res,
-> +						    ARRAY_SIZE(gpmc_nand_res));
-> +		if (!err)
-> +			pdev->dev.platform_data = gpmc_nand_data;
-> +	} else {
-> +		err = -ENOMEM;
-> +	}
-> +	if (err)
-> +		goto out_free_pdev;
-> +
-> +	err = platform_device_add(pdev);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Unable to register NAND device\n");
-> +		goto out_free_pdev;
->  	}
->  
->  	return 0;
->  
-> +out_free_pdev:
-> +	platform_device_put(pdev);
->  out_free_cs:
->  	gpmc_cs_free(gpmc_nand_data->cs);
->  
-> 
+It fails to compile with CONFIG_THUMB2_KERNEL though:
+arch/arm/mach-omap2/sleep33xx.S:61: Error: cannot use register index
+with PC-relative addressing -- `str r1,emif_addr_virt'
+
+Then I noticed "freeze" in /sys/power/state, when triggered then crashes
+with a null pointer dereference in suspend_devices_and_enter(). That might
+be expected or even stupid though ;)
+
+Thanks,
+Andre
