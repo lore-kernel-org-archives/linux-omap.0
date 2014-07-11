@@ -1,130 +1,161 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 02/10] mtd: nand: omap: Always use chip->ecc.steps
- for BCH sector count
-Date: Fri, 11 Jul 2014 14:51:31 +0300
-Message-ID: <53BFCFC3.1090402@ti.com>
-References: <1404909450-11970-1-git-send-email-rogerq@ti.com> <1404909450-11970-3-git-send-email-rogerq@ti.com> <20980858CB6D3A4BAE95CA194937D5E73EB01DF7@DBDE04.ent.ti.com> <53BFBDFA.8040901@ti.com> <20980858CB6D3A4BAE95CA194937D5E73EB01F7E@DBDE04.ent.ti.com>
+Subject: Re: [PATCH] ARM: omap2+: gpmc-nand: Use dynamic platform_device_alloc()
+Date: Fri, 11 Jul 2014 15:02:52 +0300
+Message-ID: <53BFD26C.6080609@ti.com>
+References: <1401891875-27843-1-git-send-email-lisovy@merica.cz> <53BD3A56.9050302@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53611 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751667AbaGKLwF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Jul 2014 07:52:05 -0400
-In-Reply-To: <20980858CB6D3A4BAE95CA194937D5E73EB01F7E@DBDE04.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53BD3A56.9050302@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rostislav Lisovy <lisovy@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Pekon Gupta <pekon@ti.com>, Michal Vokac <vokac.m@gmail.com>, Michal Sojka <sojkam1@fel.cvut.cz>, Rostislav Lisovy <lisovy@merica.cz>
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Pekon" <pekon@ti.com>, "tony@atomide.com" <tony@atomide.com>, "computersforpeace@gmail.com" <computersforpeace@gmail.com>
-Cc: "javier@dowhile0.org" <javier@dowhile0.org>, "ezequiel.garcia@free-electrons.com" <ezequiel.garcia@free-electrons.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "jg1.han@samsung.com" <jg1.han@samsung.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 07/11/2014 02:27 PM, Gupta, Pekon wrote:
->> From: Quadros, Roger
->>> On 07/11/2014 10:43 AM, Gupta, Pekon wrote:
->>>> From: Quadros, Roger
-> [...]
+On 07/09/2014 03:49 PM, Roger Quadros wrote:
+> Hi Rostislav,
 > 
->>>> @@ -1176,6 +1172,7 @@ static int __maybe_unused omap_calculate_ecc_bch(struct mtd_info
->> *mtd,
->>>> {
->>>> 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
->>>> 						   mtd);
->>>> +	struct nand_chip *chip = mtd->priv;
->>>> 	int eccbytes	= info->nand.ecc.bytes;
->>>> 	struct gpmc_nand_regs	*gpmc_regs = &info->reg;
->>>> 	u8 *ecc_code;
->>>> @@ -1183,7 +1180,7 @@ static int __maybe_unused omap_calculate_ecc_bch(struct mtd_info
->> *mtd,
->>>> 	u32 val;
->>>> 	int i, j;
->>>>
->>>> -	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
->>>> +	nsectors = chip->ecc.steps;
->>>
->>> Sorry NAK.. I'm sure you are breaking something here :-)
->>>
->>> NAND driver supports multiple ECC schemes like;
->>> OMAP_ECC_CODE_HAM1_HW (support for legacy reasons)
->>> OMAP_ECC_CODE_BCH4_HW_DETECTION_SW (needed for OMAP3 and AM35xx)
->>> OMAP_ECC_CODE_BCH4_HW
->>> OMAP_ECC_CODE_BCH8_HW
->>> OMAP_ECC_CODE_BCH8_HW_DETECTION_SW  (needed for OMAP3 and AM35xx)
->>> OMAP_ECC_CODE_BCH16_HW
->>>
->>> IIRC ..
->>> - software based ecc-schemes OMAP_ECC_CODE_BCHx_HW_DETECTION_SW
->>>   Reads/Write in per-sector granularity. (here nsector != chip->ecc.steps)
+> On 06/04/2014 05:24 PM, Rostislav Lisovy wrote:
+>> GPMC controller supports up to 8 memory devices connected to it.
+>> Since there is one statically allocated "struct platform_device
+>> gpmc_nand_device" it is not possible to configure the system to
+>> use more than one NAND device connected to the GPMC. This
+>> modification makes it possible to use up to 8 NAND devices
+>> connected to the GPMC controller.
 >>
->> OK. I still don't have a full understanding about the ECC schemes so to ensure we
->> don't break anything I can just leave nsectors as it is and probably just store a
->> copy of it in omap_nand_info to avoid reading it back from gpmc_ecc_config.
+>> Signed-off-by: Rostislav Lisovy <lisovy@merica.cz>
+>> ---
 >>
->> I still have a few questions to clarify my understanding.
+>> Tested on custom AM335x board with two different NAND chips
+>> (128 + 256 MiB) using GPMC configuration in FDT -- behaves
+>> correctly.
 >>
->> The only difference between OMAP_ECC_CODE_BCHx_HW_DETECTION_SW and
->> OMAP_ECC_CODE_BCHx_HW is that in the former the _correction_ is done by software
->> and in the latter the _correction_ is done by hardware (i.e. ELM module).
->> In both cases the _detection_ is done by the same hardware IP via ecc.calculate(),
->> i.e. omap_calculate_ecc_bch().
 >>
->> so why should nsector be different for both in the _detection_ stage?
+>>  arch/arm/mach-omap2/gpmc-nand.c | 79 +++++++++++++++++++----------------------
+>>  1 file changed, 37 insertions(+), 42 deletions(-)
 >>
-> Again IIRC, That is because of ELM driver.
-> ELM hardware engine has 8 channels with each of them having 512Bytes capacity.
-> Now, there can be two approaches:
-> (1) SECTOR_MODE:  Process only one sector of 512 bytes at a time, and iterate
->       chip->ecc.steps times.
-> (2) PAGE_MODE: Process complete page at a time, enabling multiple channels
->     simultaneously. This improves some throughput, especially for large-page
->    NAND devices and MLC NAND where bit-flips are common.
+>> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+>> index 4349e82..c5481a8 100644
+>> --- a/arch/arm/mach-omap2/gpmc-nand.c
+>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+>> @@ -24,25 +24,6 @@
+>>  /* minimum size for IO mapping */
+>>  #define	NAND_IO_SIZE	4
+>>  
+>> -static struct resource gpmc_nand_resource[] = {
+>> -	{
+>> -		.flags		= IORESOURCE_MEM,
+>> -	},
+>> -	{
+>> -		.flags		= IORESOURCE_IRQ,
+>> -	},
+>> -	{
+>> -		.flags		= IORESOURCE_IRQ,
+>> -	},
+>> -};
+>> -
+>> -static struct platform_device gpmc_nand_device = {
+>> -	.name		= "omap2-nand",
+>> -	.id		= 0,
+>> -	.num_resources	= ARRAY_SIZE(gpmc_nand_resource),
+>> -	.resource	= gpmc_nand_resource,
+>> -};
+>> -
+>>  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+>>  {
+>>  	/* platforms which support all ECC schemes */
+>> @@ -93,43 +74,41 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>>  {
+>>  	int err	= 0;
+>>  	struct gpmc_settings s;
+>> -	struct device *dev = &gpmc_nand_device.dev;
+>> -
+>> -	memset(&s, 0, sizeof(struct gpmc_settings));
+>> +	struct platform_device *pdev;
+>> +	struct resource gpmc_nand_res[] = {
+>> +		{ .flags = IORESOURCE_MEM, },
+>> +		{ .flags = IORESOURCE_IRQ, },
+>> +		{ .flags = IORESOURCE_IRQ, },
+>> +	};
+>>  
+>> -	gpmc_nand_device.dev.platform_data = gpmc_nand_data;
+>> +	BUG_ON(gpmc_nand_data->cs >= GPMC_CS_NUM);
+>>  
+>>  	err = gpmc_cs_request(gpmc_nand_data->cs, NAND_IO_SIZE,
+>> -				(unsigned long *)&gpmc_nand_resource[0].start);
+>> +			      (unsigned long *)&gpmc_nand_res[0].start);
+>>  	if (err < 0) {
+>> -		dev_err(dev, "Cannot request GPMC CS %d, error %d\n",
+>> -			gpmc_nand_data->cs, err);
+>> +		pr_err("omap2-gpmc: Cannot request GPMC CS %d, error %d\n",
+>> +		       gpmc_nand_data->cs, err);
+>>  		return err;
+>>  	}
+>> -
+>> -	gpmc_nand_resource[0].end = gpmc_nand_resource[0].start +
+>> -							NAND_IO_SIZE - 1;
+>> -
+>> -	gpmc_nand_resource[1].start =
+>> -				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
+>> -	gpmc_nand_resource[2].start =
+>> -				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
+>> +	gpmc_nand_res[0].end = gpmc_nand_res[0].start + NAND_IO_SIZE - 1;
+>> +	gpmc_nand_res[1].start = gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
+>> +	gpmc_nand_res[2].start = gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
+>>  
+>>  	if (gpmc_t) {
+>>  		err = gpmc_cs_set_timings(gpmc_nand_data->cs, gpmc_t);
+>>  		if (err < 0) {
+>> -			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
+>> +			pr_err("omap2-gpmc: Unable to set gpmc timings: %d\n", err);
+>>  			return err;
+>>  		}
+>>  	}
+>>  
+>> +	memset(&s, 0, sizeof(struct gpmc_settings));
+>>  	if (gpmc_nand_data->of_node)
+>>  		gpmc_read_settings_dt(gpmc_nand_data->of_node, &s);
+>>  	else
+>>  		gpmc_set_legacy(gpmc_nand_data, &s);
+>>  
+>>  	s.device_nand = true;
+>> -
+>>  	err = gpmc_cs_program_settings(gpmc_nand_data->cs, &s);
+>>  	if (err < 0)
+>>  		goto out_free_cs;
+>> @@ -141,18 +120,34 @@ int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+>>  	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+>>  
+>>  	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt)) {
+>> -		dev_err(dev, "Unsupported NAND ECC scheme selected\n");
+>> -		return -EINVAL;
+>> +		pr_err("omap2-nand: Unsupported NAND ECC scheme selected\n");
+>> +		err = -EINVAL;
+>> +		goto out_free_cs;
+>>  	}
+>>  
+>> -	err = platform_device_register(&gpmc_nand_device);
+>> -	if (err < 0) {
+>> -		dev_err(dev, "Unable to register NAND device\n");
+>> -		goto out_free_cs;
+>> +
+>> +	pdev = platform_device_alloc("omap2-nand", gpmc_nand_data->cs);
+>> +	if (pdev) {
+>> +		err = platform_device_add_resources(pdev, gpmc_nand_res,
+>> +						    ARRAY_SIZE(gpmc_nand_res));
+>> +		if (!err)
+>> +			pdev->dev.platform_data = gpmc_nand_data;
+>> +	} else {
+>> +		err = -ENOMEM;
+>> +	}
+>> +	if (err)
+>> +		goto out_free_pdev;
 > 
-> As ELM uses (2)nd approach, so the GPMC also has to calculate and store
-> ECC for complete page at a time. That is why trace NAND driver you will find
-> -  OMAP_ECC_CODE_BCHx_HW_DETECTION_SW use generic implementation
->          chip->ecc.read_page= nand_read_page_hwecc() defined in nand_base.c
-> whereas,
-> -  OMAP_ECC_CODE_BCHx_HW use custom implementation
->          chip->ecc.read_page= omap_read_page_bch() defined in omap.c
-> 
-> 
->> An I right that ecc_steps is nothing but number of sub-blocks ECC calculation and correction
->> needs to be done for larger pages. This is a function of ECC hw capability (chip->ecc.size)
->> and NAND flash capability (mtd->writesize). i.e. ecc_steps = mtd->writesize / chip->ecc.size
->>
->> We hardcode chip->ecc.size to 512 for all the ECC schemes in omap_nand_probe() so
->> calculate and correct will always be called for 512 byte sized blocks. So when does
->> the usecase for nsector > 1 come in?
->>
-> Ok.. I'll try to explain above details again in probably simplified version
-> - OMAP_ECC_CODE_BCHx_HW_DETECTION_SW
->   uses lib/bch.c (via nand_bch.c) to correct ECC. And is generic implementation
->   so here each sector  (data chunk of ecc_size) is corrected independently.
->   So nsector = 1;
->   
-> - OMAP_ECC_CODE_BCHx_HW
->   Uses ELM to correct ECC. But the way ELM driver is written today. It corrects
->   the whole page in single go. Not individual sectors (ecc_size chunks).
+> There is a slight problem here. If platform_device_alloc() fails,
+> we must jump to 'out_free_cs' and not 'out_free_pdev'.
 
-Then shouldn't chip->ecc.size be equal page size and chip->ecc.steps be equal to 1 for upto 4KB pages?
-For larger pages it can be a multiple of 4KB page size. i.e. 2 for 8KB, 4 for 16KB and so on.
-
-So nsectors is not necessarily equal to ecc.steps but equal to how many 512 byte blocks are there in
-one step. i.e. [min(4096, page_size) / 512]. And it must be local to omap NAND driver.
-
-
->   So, its doable to make it same like OMAP_ECC_CODE_BCHx_HW_DETECTION_SW
->   But then you _may_ have performance penalty for new technology NAND and MLC
->   NAND on which bit-flips are very common.
->   So to keep ELM driver as it is (performance tweaked), we use different
->   configurations in GPMC to read complete page in single go. This is where
->    nsector = chip->ecc.steps;
-> 
-> Hope that clarifies the implementation..
-> 
-> Good to document this detail somewhere for OMAP drivers both (u-boot and kernel).
-> Any thoughts ?
-
-Sure. we have the processors wiki. That should be a good place.
+Nevermind. It shouldn't be a problem as platform_device_put() checks for NULL pdev.
 
 cheers,
 -roger
