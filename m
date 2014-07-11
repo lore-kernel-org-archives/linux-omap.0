@@ -1,449 +1,620 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v4 10/11] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Thu, 10 Jul 2014 21:55:48 -0500
-Message-ID: <1405047349-15101-11-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v4 06/11] remoteproc: wkup_m3: Add wkup_m3 remote proc driver
+Date: Thu, 10 Jul 2014 21:55:44 -0500
+Message-ID: <1405047349-15101-7-git-send-email-d-gerlach@ti.com>
 References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35360 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752344AbaGKC5w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Jul 2014 22:57:52 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:60122 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854AbaGKC5n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 22:57:43 -0400
 In-Reply-To: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Dave Gerlach <d-gerlach@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Dave Gerlach <d-gerlach@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-AM335x supports various low power modes as documented
-in section 8.1.4.3 of the AM335x Technical Reference Manual.
+Add a remoteproc driver to load the firmware for and boot the wkup_m3
+present on am33xx. The wkup_m3 is an integrated Cortex M3 that allows
+the SoC to enter the lowest possible power state by taking control from
+the MPU after it has gone into its own low power state and shutting off
+any additional peripherals.
 
-DeepSleep0 mode offers the lowest power mode with limited
-wakeup sources without a system reboot and is mapped as
-the suspend state in the kernel. In this state, MPU and
-PER domains are turned off with the internal RAM held in
-retention to facilitate the resume process. As part of
-the boot process, the assembly code is copied over to OCMCRAM
-using the OMAP SRAM code so it can be executed to turn of the
-EMIF.
+Communication between the MPU and CM3 is handled by several IPC
+registers in the control module and a mailbox. An API is exposed for
+programming the aforementioned IPC registers and notifying the wkup_m3
+of pending data using the mailbox. The wkup_m3 has the ability to
+trigger an interrupt back to the MPU to allow for bidirectional
+communication through these registers.
 
-AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
-in DeepSleep0 and Standby entry and exit. WKUP_M3 takes care
-of the clockdomain and powerdomain transitions based on the
-intended low power state. MPU needs to load the appropriate
-WKUP_M3 binary onto the WKUP_M3 memory space before it can
-leverage any of the PM features like DeepSleep.
+Two callbacks are provided. rproc_ready allows code to hook into the
+driver to see when firmware has been loaded and execute other code and
+txev_handler allows external code to run when the wkup_m3 triggers an
+interrupt back to the m3.
 
-The WKUP_M3 is managed by a remoteproc driver. The PM code hooks
-into the remoteproc driver through an rproc_ready callback to
-allow PM features to become available once the firmware for the
-wkup_m3 has been loaded. This code maintains its own state machine
-for the wkup_m3 so that it can be used in the manner intended for
-low power modes.
-
-In the current implementation when the suspend process
-is initiated, MPU interrupts the WKUP_M3 to let it know about
-the intent of entering DeepSleep0 and waits for an ACK. When
-the ACK is received MPU continues with its suspend process
-to suspend all the drivers and then jumps to assembly in
-OCMC RAM. The assembly code puts the external RAM in self-refresh
-mode, gates the MPU clock, and then finally executes the WFI
-instruction. Execution of the WFI instruction with MPU clock gated
-triggers another interrupt to the WKUP_M3 which then continues
-with the power down sequence wherein the clockdomain and
-powerdomain transition takes place. As part of the sleep sequence,
-WKUP_M3 unmasks the interrupt lines for the wakeup sources. WFI
-execution on WKUP_M3 causes the hardware to disable the main
-oscillator of the SoC and from here system remains in sleep state
-until a wake source brings the system into resume path.
-
-When a wakeup event occurs, WKUP_M3 starts the power-up
-sequence by switching on the power domains and finally
-enabling the clock to MPU. Since the MPU gets powered down
-as part of the sleep sequence in the resume path ROM code
-starts executing. The ROM code detects a wakeup from sleep
-and then jumps to the resume location in OCMC which was
-populated in one of the IPC registers as part of the suspend
-sequence.
-
-Code is based on work by Vaibhav Bedia.
+The driver expects a resource table to be present in the wkup_m3 to
+define the required memory resources needed by wkup_m3, at least the
+data memory so that the firmware can be copied for the proper place for
+execution.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+CC: Ohad Ben-Cohen <ohad@wizery.com>
 ---
-v3->v4:
-	Remove all direct wkup_m3 usage and moved to rproc driver introduced
-	in previous patch.
+ drivers/remoteproc/Kconfig         |  15 ++
+ drivers/remoteproc/Makefile        |   1 +
+ drivers/remoteproc/wkup_m3_rproc.c | 512 +++++++++++++++++++++++++++++++++++++
+ include/linux/wkup_m3.h            |  71 +++++
+ 4 files changed, 599 insertions(+)
+ create mode 100644 drivers/remoteproc/wkup_m3_rproc.c
+ create mode 100644 include/linux/wkup_m3.h
 
- arch/arm/mach-omap2/pm33xx.c | 346 +++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm33xx.h |  64 ++++++++
- 2 files changed, 410 insertions(+)
- create mode 100644 arch/arm/mach-omap2/pm33xx.c
- create mode 100644 arch/arm/mach-omap2/pm33xx.h
-
-diff --git a/arch/arm/mach-omap2/pm33xx.c b/arch/arm/mach-omap2/pm33xx.c
+diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
+index 5e343ba..4b00c21 100644
+--- a/drivers/remoteproc/Kconfig
++++ b/drivers/remoteproc/Kconfig
+@@ -41,6 +41,21 @@ config STE_MODEM_RPROC
+ 	  This can be either built-in or a loadable module.
+ 	  If unsure say N.
+ 
++config WKUP_M3_RPROC
++	bool "AM33xx wkup-m3 remoteproc support"
++        depends on SOC_AM33XX
++        select REMOTEPROC
++	select MAILBOX
++	select OMAP2PLUS_MBOX
++	default n
++	help
++	  Say y here to support AM33xx wkup-m3.
++
++	  Required for Suspend-to-ram and CPUIdle on AM33xx. Allows for
++	  loading of firmware and communication with CM3 PM coproccesor
++	  that is present on AM33xx family of SoCs
++	  If unsure say N.
++
+ config DA8XX_REMOTEPROC
+ 	tristate "DA8xx/OMAP-L13x remoteproc support"
+ 	depends on ARCH_DAVINCI_DA8XX
+diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
+index ac2ff75..81b04d1 100644
+--- a/drivers/remoteproc/Makefile
++++ b/drivers/remoteproc/Makefile
+@@ -9,4 +9,5 @@ remoteproc-y				+= remoteproc_virtio.o
+ remoteproc-y				+= remoteproc_elf_loader.o
+ obj-$(CONFIG_OMAP_REMOTEPROC)		+= omap_remoteproc.o
+ obj-$(CONFIG_STE_MODEM_RPROC)	 	+= ste_modem_rproc.o
++obj-$(CONFIG_WKUP_M3_RPROC)		+= wkup_m3_rproc.o
+ obj-$(CONFIG_DA8XX_REMOTEPROC)		+= da8xx_remoteproc.o
+diff --git a/drivers/remoteproc/wkup_m3_rproc.c b/drivers/remoteproc/wkup_m3_rproc.c
 new file mode 100644
-index 0000000..30d0f7d
+index 0000000..58aeaf2
 --- /dev/null
-+++ b/arch/arm/mach-omap2/pm33xx.c
-@@ -0,0 +1,346 @@
++++ b/drivers/remoteproc/wkup_m3_rproc.c
+@@ -0,0 +1,512 @@
 +/*
-+ * AM33XX Power Management Routines
++ * AMx3 Wkup M3 Remote Processor driver
 + *
-+ * Copyright (C) 2012-2014 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Vaibhav Bedia, Dave Gerlach
++ * Copyright (C) 2014 Texas Instruments, Inc.
++ *
++ * Dave Gerlach <d-gerlach@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
 + *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
 + */
 +
 +#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/cpu.h>
-+#include <linux/err.h>
-+#include <linux/firmware.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/sched.h>
-+#include <linux/suspend.h>
-+#include <linux/completion.h>
 +#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/irq.h>
 +#include <linux/interrupt.h>
-+#include <linux/ti_emif.h>
++#include <linux/elf.h>
++#include <linux/pm_runtime.h>
++#include <linux/firmware.h>
++#include <linux/remoteproc.h>
 +#include <linux/omap-mailbox.h>
-+#include <linux/sizes.h>
++#include <linux/mailbox_client.h>
++#include <linux/wkup_m3.h>
++#include <linux/kthread.h>
++#include "remoteproc_internal.h"
 +
-+#include <asm/suspend.h>
-+#include <asm/proc-fns.h>
-+#include <asm/fncpy.h>
-+#include <asm/system_misc.h>
++#include <linux/platform_data/wkup_m3.h>
 +
-+#include "pm.h"
-+#include "cm33xx.h"
-+#include "pm33xx.h"
-+#include "common.h"
-+#include "clockdomain.h"
-+#include "powerdomain.h"
-+#include "soc.h"
-+#include "sram.h"
++#define WKUP_M3_WAKE_SRC_MASK		0xFF
 +
-+static void __iomem *am33xx_emif_base;
-+static struct powerdomain *cefuse_pwrdm, *gfx_pwrdm, *per_pwrdm, *mpu_pwrdm;
-+static struct clockdomain *gfx_l4ls_clkdm;
++#define WKUP_M3_STATUS_RESP_SHIFT	16
++#define WKUP_M3_STATUS_RESP_MASK	(0xffff << 16)
 +
-+static struct am33xx_pm_context *am33xx_pm;
++#define WKUP_M3_FW_VERSION_SHIFT	0
++#define WKUP_M3_FW_VERSION_MASK		0xffff
 +
-+static DECLARE_COMPLETION(am33xx_pm_sync);
++/* AM33XX M3_TXEV_EOI register */
++#define AM33XX_CONTROL_M3_TXEV_EOI	0x00
 +
-+static void (*am33xx_do_wfi_sram)(struct am33xx_suspend_params *);
++#define AM33XX_M3_TXEV_ACK		(0x1 << 0)
++#define AM33XX_M3_TXEV_ENABLE		(0x0 << 0)
 +
-+static struct am33xx_suspend_params susp_params;
++/* AM33XX IPC message registers */
++#define AM33XX_CONTROL_IPC_MSG_REG0	0x04
++#define AM33XX_CONTROL_IPC_MSG_REG1	0x08
++#define AM33XX_CONTROL_IPC_MSG_REG2	0x0c
++#define AM33XX_CONTROL_IPC_MSG_REG3	0x10
++#define AM33XX_CONTROL_IPC_MSG_REG4	0x14
++#define AM33XX_CONTROL_IPC_MSG_REG5	0x18
++#define AM33XX_CONTROL_IPC_MSG_REG6	0x1c
++#define AM33XX_CONTROL_IPC_MSG_REG7	0x20
 +
-+#ifdef CONFIG_SUSPEND
++struct wkup_m3_rproc {
++	struct rproc *rproc;
 +
-+static int am33xx_do_sram_idle(long unsigned int unused)
-+{
-+	am33xx_do_wfi_sram(&susp_params);
-+	return 0;
-+}
++	void * __iomem dev_table_va;
++	void * __iomem ipc_mem_base;
++	struct platform_device *pdev;
 +
-+static int am33xx_pm_suspend(void)
-+{
-+	int i, ret = 0;
-+	int status = 0;
-+	struct wkup_m3_wakeup_src wakeup_src = {.irq_nr = 0,
-+						.src = "Unknown",};
++	struct mbox_client mbox_client;
++	struct mbox_chan *mbox;
++	struct wkup_m3_ops *ops;
 +
-+	/* Try to put GFX to sleep */
-+	omap_set_pwrdm_state(gfx_pwrdm, PWRDM_POWER_OFF);
-+
-+	ret = cpu_suspend(0, am33xx_do_sram_idle);
-+
-+	status = pwrdm_read_pwrst(gfx_pwrdm);
-+	if (status != PWRDM_POWER_OFF)
-+		pr_err("PM: GFX domain did not transition\n");
-+
-+	/*
-+	 * BUG: GFX_L4LS clock domain needs to be woken up to
-+	 * ensure thet L4LS clock domain does not get stuck in transition
-+	 * If that happens L3 module does not get disabled, thereby leading
-+	 * to PER power domain transition failing
-+	 */
-+	clkdm_wakeup(gfx_l4ls_clkdm);
-+	clkdm_sleep(gfx_l4ls_clkdm);
-+
-+	if (ret) {
-+		pr_err("PM: Kernel suspend failure\n");
-+	} else {
-+		i = wkup_m3_pm_status();
-+
-+		switch (i) {
-+		case 0:
-+			pr_info("PM: Successfully put all powerdomains to target state\n");
-+
-+			/*
-+			 * The PRCM registers on AM335x do not contain
-+			 * previous state information like those present on
-+			 * OMAP4 so we must manually indicate transition so
-+			 * state counters are properly incremented
-+			 */
-+			pwrdm_post_transition(mpu_pwrdm);
-+			pwrdm_post_transition(per_pwrdm);
-+			break;
-+		case 1:
-+			pr_err("PM: Could not transition all powerdomains to target state\n");
-+			ret = -1;
-+			break;
-+		default:
-+			pr_err("PM: CM3 returned unknown result = %d\n", i);
-+			ret = -1;
-+		}
-+		/* print the wakeup reason */
-+		wkup_m3_wake_src(&wakeup_src);
-+
-+		pr_info("PM: Wakeup source %s\n", wakeup_src.src);
-+	}
-+
-+	return ret;
-+}
-+
-+static int am33xx_pm_enter(suspend_state_t suspend_state)
-+{
-+	int ret = 0;
-+
-+	switch (suspend_state) {
-+	case PM_SUSPEND_MEM:
-+		ret = am33xx_pm_suspend();
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+
-+static void am33xx_m3_state_machine_reset(void)
-+{
-+	int i;
-+
-+	am33xx_pm->ipc.reg1 = IPC_CMD_RESET;
-+
-+	wkup_m3_set_cmd(&am33xx_pm->ipc);
-+
-+	am33xx_pm->state = M3_STATE_MSG_FOR_RESET;
-+
-+	if (!wkup_m3_ping()) {
-+		i = wait_for_completion_timeout(&am33xx_pm_sync,
-+						msecs_to_jiffies(500));
-+		if (!i) {
-+			WARN(1, "PM: MPU<->CM3 sync failure\n");
-+			am33xx_pm->state = M3_STATE_UNKNOWN;
-+		}
-+	} else {
-+		pr_warn("PM: Unable to ping CM3\n");
-+	}
-+}
-+
-+static int am33xx_pm_begin(suspend_state_t state)
-+{
-+	int i;
-+
-+
-+	switch (state) {
-+	case PM_SUSPEND_MEM:
-+		am33xx_pm->ipc.reg1	= IPC_CMD_DS0;
-+		break;
-+	}
-+
-+	am33xx_pm->ipc.reg2		= DS_IPC_DEFAULT;
-+	am33xx_pm->ipc.reg3		= DS_IPC_DEFAULT;
-+
-+	wkup_m3_set_cmd(&am33xx_pm->ipc);
-+
-+	am33xx_pm->state = M3_STATE_MSG_FOR_LP;
-+
-+	if (!wkup_m3_ping()) {
-+		i = wait_for_completion_timeout(&am33xx_pm_sync,
-+						msecs_to_jiffies(500));
-+		if (!i) {
-+			WARN(1, "PM: MPU<->CM3 sync failure\n");
-+			return -1;
-+		}
-+	} else {
-+		pr_warn("PM: Unable to ping CM3\n");
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void am33xx_pm_end(void)
-+{
-+	am33xx_m3_state_machine_reset();
-+}
-+
-+static int am33xx_pm_valid(suspend_state_t state)
-+{
-+	switch (state) {
-+	case PM_SUSPEND_MEM:
-+		return 1;
-+	default:
-+		return 0;
-+	}
-+}
-+
-+static const struct platform_suspend_ops am33xx_pm_ops = {
-+	.begin		= am33xx_pm_begin,
-+	.end		= am33xx_pm_end,
-+	.enter		= am33xx_pm_enter,
-+	.valid		= am33xx_pm_valid,
-+};
-+#endif /* CONFIG_SUSPEND */
-+
-+static void am33xx_txev_handler(void)
-+{
-+	switch (am33xx_pm->state) {
-+	case M3_STATE_RESET:
-+		am33xx_pm->state = M3_STATE_INITED;
-+		complete(&am33xx_pm_sync);
-+		break;
-+	case M3_STATE_MSG_FOR_RESET:
-+		am33xx_pm->state = M3_STATE_INITED;
-+		complete(&am33xx_pm_sync);
-+		break;
-+	case M3_STATE_MSG_FOR_LP:
-+		complete(&am33xx_pm_sync);
-+		break;
-+	case M3_STATE_UNKNOWN:
-+		pr_warn("PM: Unknown CM3 State\n");
-+	}
-+}
-+
-+static void am33xx_m3_ready_cb(void)
-+{
-+	am33xx_pm->ver = wkup_m3_fw_version_read();
-+
-+	if (am33xx_pm->ver == M3_VERSION_UNKNOWN ||
-+	    am33xx_pm->ver < M3_BASELINE_VERSION) {
-+		pr_warn("PM: CM3 Firmware Version %x not supported\n",
-+			am33xx_pm->ver);
-+		return;
-+	} else {
-+		pr_info("PM: CM3 Firmware Version = 0x%x\n",
-+			am33xx_pm->ver);
-+	}
-+
-+#ifdef CONFIG_SUSPEND
-+	suspend_set_ops(&am33xx_pm_ops);
-+#endif /* CONFIG_SUSPEND */
-+}
-+
-+static struct wkup_m3_ops am33xx_wkup_m3_ops = {
-+	.txev_handler = am33xx_txev_handler,
-+	.rproc_ready = am33xx_m3_ready_cb,
++	bool is_active;
 +};
 +
-+/*
-+ * Push the minimal suspend-resume code to SRAM
++static struct wkup_m3_rproc *m3_rproc_static;
++
++static struct wkup_m3_wakeup_src wakeups[] = {
++	{.irq_nr = 35,	.src = "USB0_PHY"},
++	{.irq_nr = 36,	.src = "USB1_PHY"},
++	{.irq_nr = 40,	.src = "I2C0"},
++	{.irq_nr = 41,	.src = "RTC Timer"},
++	{.irq_nr = 42,	.src = "RTC Alarm"},
++	{.irq_nr = 43,	.src = "Timer0"},
++	{.irq_nr = 44,	.src = "Timer1"},
++	{.irq_nr = 45,	.src = "UART"},
++	{.irq_nr = 46,	.src = "GPIO0"},
++	{.irq_nr = 48,	.src = "MPU_WAKE"},
++	{.irq_nr = 49,	.src = "WDT0"},
++	{.irq_nr = 50,	.src = "WDT1"},
++	{.irq_nr = 51,	.src = "ADC_TSC"},
++	{.irq_nr = 0,	.src = "Unknown"},
++};
++
++static void am33xx_txev_eoi(struct wkup_m3_rproc *m3_rproc)
++{
++	writel(AM33XX_M3_TXEV_ACK,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_M3_TXEV_EOI);
++}
++
++static void am33xx_txev_enable(struct wkup_m3_rproc *m3_rproc)
++{
++	writel(AM33XX_M3_TXEV_ENABLE,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_M3_TXEV_EOI);
++}
++
++static void wkup_m3_ctrl_ipc_write(struct wkup_m3_rproc *m3_rproc,
++				   struct wkup_m3_ipc_regs *ipc_regs)
++{
++	writel(ipc_regs->reg0,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG0);
++	writel(ipc_regs->reg1,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG1);
++	writel(ipc_regs->reg2,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG2);
++	writel(ipc_regs->reg3,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG3);
++	writel(ipc_regs->reg4,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG4);
++	writel(ipc_regs->reg5,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG5);
++	writel(ipc_regs->reg6,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG6);
++	writel(ipc_regs->reg7,
++	       m3_rproc->ipc_mem_base + AM33XX_CONTROL_IPC_MSG_REG7);
++}
++
++static void wkup_m3_ctrl_ipc_read(struct wkup_m3_rproc *m3_rproc,
++				  struct wkup_m3_ipc_regs *ipc_regs)
++{
++	ipc_regs->reg0 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG0);
++	ipc_regs->reg1 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG1);
++	ipc_regs->reg2 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG2);
++	ipc_regs->reg3 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG3);
++	ipc_regs->reg4 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG4);
++	ipc_regs->reg5 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG5);
++	ipc_regs->reg6 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG6);
++	ipc_regs->reg7 = readl(m3_rproc->ipc_mem_base
++			       + AM33XX_CONTROL_IPC_MSG_REG7);
++}
++
++static irqreturn_t wkup_m3_txev_handler(int irq, void *unused)
++{
++	am33xx_txev_eoi(m3_rproc_static);
++
++	if (m3_rproc_static->ops && m3_rproc_static->ops->txev_handler)
++		m3_rproc_static->ops->txev_handler();
++
++	am33xx_txev_enable(m3_rproc_static);
++
++	return IRQ_HANDLED;
++}
++
++/**
++ * wkup_m3_fw_version_clear - Clear FW version from ipc regs
++ *
++ * Invalidate M3 firmware version before hardreset.
++ * Write invalid version in lower 4 nibbles of parameter
++ * register (ipc_regs + 0x8).
 + */
-+void am33xx_push_sram_idle(void)
++
++static void wkup_m3_fw_version_clear(void)
 +{
-+	am33xx_do_wfi_sram = (void *)omap_sram_push
-+					(am33xx_do_wfi, am33xx_do_wfi_sz);
++	struct wkup_m3_ipc_regs ipc_regs;
++
++	wkup_m3_ctrl_ipc_read(m3_rproc_static, &ipc_regs);
++	ipc_regs.reg2 &= 0xFFFF0000;
++	wkup_m3_ctrl_ipc_write(m3_rproc_static, &ipc_regs);
 +}
 +
-+static int __init am33xx_map_emif(void)
++static void wkup_m3_mbox_callback(struct mbox_client *client, void *data)
 +{
-+	am33xx_emif_base = ioremap(AM33XX_EMIF_BASE, SZ_32K);
-+
-+	if (!am33xx_emif_base)
-+		return -ENOMEM;
-+
-+	return 0;
++	omap_mbox_disable_irq(m3_rproc_static->mbox, IRQ_RX);
 +}
 +
-+int __init am33xx_pm_init(void)
++static int wkup_m3_rproc_start(struct rproc *rproc)
 +{
++	struct wkup_m3_rproc *m3_rproc = rproc->priv;
++	struct platform_device *pdev = m3_rproc->pdev;
++	struct device *dev = &pdev->dev;
++	struct wkup_m3_platform_data *pdata = dev->platform_data;
 +	int ret;
-+	u32 temp;
 +
-+	if (!soc_is_am33xx())
++	wkup_m3_fw_version_clear();
++
++	if (pdata && pdata->deassert_reset) {
++		ret = pdata->deassert_reset(pdev, pdata->reset_name);
++		if (ret) {
++			dev_err(dev, "Unable to reset wkup_m3!\n");
++			return -ENODEV;
++		}
++	} else {
++		dev_err(dev, "Platform data missing deassert_reset!\n");
 +		return -ENODEV;
-+
-+	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
-+	per_pwrdm = pwrdm_lookup("per_pwrdm");
-+	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
-+
-+	gfx_l4ls_clkdm = clkdm_lookup("gfx_l4ls_gfx_clkdm");
-+
-+	if ((!gfx_pwrdm) || (!per_pwrdm) || (!mpu_pwrdm) || (!gfx_l4ls_clkdm)) {
-+		ret = -ENODEV;
-+		goto err;
 +	}
 +
-+	am33xx_pm = kzalloc(sizeof(*am33xx_pm), GFP_KERNEL);
-+	if (!am33xx_pm) {
-+		pr_err("Memory allocation failed\n");
-+		ret = -ENOMEM;
++	m3_rproc->mbox_client.dev = dev;
++	m3_rproc->mbox_client.tx_done = NULL;
++	m3_rproc->mbox_client.rx_callback = wkup_m3_mbox_callback;
++	m3_rproc->mbox_client.tx_block = false;
++	m3_rproc->mbox_client.knows_txdone = false;
++
++	m3_rproc->mbox = mbox_request_channel(&m3_rproc->mbox_client);
++
++	if (IS_ERR(m3_rproc->mbox)) {
++		dev_err(dev, "IPC Request for A8->M3 Channel failed!\n");
++		ret = PTR_ERR(m3_rproc->mbox);
++		m3_rproc->mbox = NULL;
 +		return ret;
 +	}
 +
-+	ret = am33xx_map_emif();
-+	if (ret) {
-+		pr_err("PM: Could not ioremap EMIF\n");
++	if (m3_rproc_static->ops && m3_rproc_static->ops->rproc_ready)
++		m3_rproc_static->ops->rproc_ready();
++
++	m3_rproc_static->is_active = 1;
++
++	return 0;
++}
++
++
++static int wkup_m3_rproc_stop(struct rproc *rproc)
++{
++	return 0;
++}
++
++static void wkup_m3_rproc_kick(struct rproc *rproc, int vqid)
++{
++}
++
++static struct rproc_ops wkup_m3_rproc_ops = {
++	.start		= wkup_m3_rproc_start,
++	.stop		= wkup_m3_rproc_stop,
++	.kick		= wkup_m3_rproc_kick,
++};
++
++/* Public Functions */
++
++/**
++ * wkup_m3_set_ops - Set callbacks for user of rproc
++ * @ops - struct wkup_m3_ops *
++ *
++ * Registers callbacks to wkup_m3 to be invoked after rproc is ready to use
++ * and after an interrupt is handled.
++ */
++void wkup_m3_set_ops(struct wkup_m3_ops *ops)
++{
++	m3_rproc_static->ops = ops;
++
++	if (m3_rproc_static->is_active && m3_rproc_static->ops &&
++	    m3_rproc_static->ops->rproc_ready)
++		m3_rproc_static->ops->rproc_ready();
++}
++
++/**
++ * wkup_m3_ping - Send a dummy msg to wkup_m3 to tell to to check IPC regs
++ *
++ * Returns the result of sending mbox msg or -EIO if no mbox handle is present
++ */
++int wkup_m3_ping(void)
++{
++	int ret;
++	mbox_msg_t dummy_msg = 0;
++
++	if (!m3_rproc_static->mbox) {
++		dev_err(&m3_rproc_static->pdev->dev,
++			"No IPC channel to communicate with wkup_m3!\n");
++		return -EIO;
++	}
++
++	/*
++	 * Write a dummy message to the mailbox in order to trigger the RX
++	 * interrupt to alert the M3 that data is available in the IPC
++	 * registers. We must enable the IRQ here and disable it after in
++	 * the RX callback to avoid multiple interrupts being received
++	 * by the CM3.
++	 */
++	omap_mbox_enable_irq(m3_rproc_static->mbox, IRQ_RX);
++	ret = mbox_send_message(m3_rproc_static->mbox, (void *)dummy_msg);
++
++	if (ret < 0) {
++		pr_err("%s: mbox_send_message() failed: %d\n", __func__, ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++/**
++ * wkup_m3_wake_src - Get the wakeup source info passed from wkup_m3
++ * @wkup_m3_wakeup: struct wkup_m3_wakeup_src * gets assigned the
++ *		    wakeup src value
++ */
++void wkup_m3_wake_src(struct wkup_m3_wakeup_src *wkup_m3_wakeup)
++{
++	struct wkup_m3_ipc_regs ipc_regs;
++	unsigned int wakeup_src_idx;
++	int j;
++
++	wkup_m3_ctrl_ipc_read(m3_rproc_static, &ipc_regs);
++
++	wakeup_src_idx = ipc_regs.reg6 & WKUP_M3_WAKE_SRC_MASK;
++
++	for (j = 0; j < ARRAY_SIZE(wakeups)-1; j++) {
++		if (wakeups[j].irq_nr == wakeup_src_idx) {
++			*wkup_m3_wakeup = wakeups[j];
++			return;
++		}
++	}
++	*wkup_m3_wakeup = wakeups[j];
++}
++
++/**
++ * wkup_m3_pm_status - Return the status code from wkup_m3 after sleep event
++ *
++ * Returns an error code that indicates whether or not the dsired sleep
++ * action was a success or not.
++ */
++int wkup_m3_pm_status(void)
++{
++	unsigned int i;
++	struct wkup_m3_ipc_regs ipc_regs;
++
++	wkup_m3_ctrl_ipc_read(m3_rproc_static, &ipc_regs);
++
++	i = WKUP_M3_STATUS_RESP_MASK & ipc_regs.reg1;
++	i >>= __ffs(WKUP_M3_STATUS_RESP_MASK);
++
++	return i;
++}
++
++/**
++ * wkup_m3_fw_version_read - Return the fw version given by the wkup_m3
++ *
++ * After boot the fw version should be read to ensure it is compatible.
++ */
++int wkup_m3_fw_version_read(void)
++{
++	struct wkup_m3_ipc_regs ipc_regs;
++
++	wkup_m3_ctrl_ipc_read(m3_rproc_static, &ipc_regs);
++
++	return ipc_regs.reg2 & WKUP_M3_FW_VERSION_MASK;
++}
++
++/**
++ * wkup_m3_set_cmd - write contents of struct to ipc regs
++ * @ipc_regs: struct wkup_m3_ipc_regs *
++ */
++void wkup_m3_set_cmd(struct wkup_m3_ipc_regs *ipc_regs)
++{
++	wkup_m3_ctrl_ipc_write(m3_rproc_static, ipc_regs);
++}
++
++static void wkup_m3_rproc_loader_thread(struct rproc *rproc)
++{
++	struct wkup_m3_rproc *m3_rproc = rproc->priv;
++	struct device *dev = &m3_rproc->pdev->dev;
++	int ret;
++
++	wait_for_completion(&rproc->firmware_loading_complete);
++
++	ret = rproc_boot(rproc);
++	if (ret)
++		dev_err(dev, "rproc_boot failed\n");
++
++	do_exit(0);
++}
++
++static int wkup_m3_rproc_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct device_node *np = pdev->dev.of_node;
++	struct wkup_m3_rproc *m3_rproc;
++	struct rproc *rproc;
++	int irq, ret;
++	struct resource *res;
++	struct task_struct *task;
++	const char *mbox_name;
++
++	pm_runtime_enable(&pdev->dev);
++
++	ret = pm_runtime_get_sync(&pdev->dev);
++	if (IS_ERR_VALUE(ret)) {
++		dev_err(&pdev->dev, "pm_runtime_get_sync() failed\n");
++		return ret;
++	}
++
++	rproc = rproc_alloc(dev, "wkup_m3", &wkup_m3_rproc_ops,
++			    "am335x-pm-firmware.elf", sizeof(*m3_rproc));
++	if (!rproc)
++		return -ENOMEM;
++
++	m3_rproc = rproc->priv;
++	m3_rproc->rproc = rproc;
++	m3_rproc->pdev = pdev;
++
++	m3_rproc_static = m3_rproc;
++
++	irq = platform_get_irq(pdev, 0);
++	if (!irq) {
++		dev_err(&pdev->dev, "no irq resource\n");
++		ret = -ENXIO;
 +		goto err;
 +	}
 +
-+	/* Determine Memory Type */
-+	temp = readl(am33xx_emif_base + EMIF_SDRAM_CONFIG);
-+	temp = (temp & SDRAM_TYPE_MASK) >> SDRAM_TYPE_SHIFT;
-+	/* Parameters to pass to aseembly code */
-+	susp_params.emif_addr_virt = am33xx_emif_base;
-+	susp_params.dram_sync = am33xx_dram_sync;
-+	susp_params.mem_type = temp;
-+	am33xx_pm->ipc.reg4 = temp;
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ipc_regs");
++	if (!res) {
++		dev_err(&pdev->dev, "no memory resource for ipc\n");
++		ret = -ENXIO;
++		goto err;
++	}
 +
-+	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
++	m3_rproc->ipc_mem_base = devm_request_and_ioremap(dev, res);
++	if (!m3_rproc->ipc_mem_base) {
++		dev_err(dev, "could not ioremap ipc_mem\n");
++		ret = -EADDRNOTAVAIL;
++		goto err;
++	}
 +
-+	/* CEFUSE domain can be turned off post bootup */
-+	cefuse_pwrdm = pwrdm_lookup("cefuse_pwrdm");
-+	if (cefuse_pwrdm)
-+		omap_set_pwrdm_state(cefuse_pwrdm, PWRDM_POWER_OFF);
-+	else
-+		pr_err("PM: Failed to get cefuse_pwrdm\n");
++	ret = devm_request_irq(dev, irq, wkup_m3_txev_handler,
++			       IRQF_DISABLED, "wkup_m3_txev", m3_rproc);
++	if (ret) {
++		dev_err(dev, "request_irq failed\n");
++		goto err;
++	}
 +
-+	am33xx_pm->state = M3_STATE_RESET;
++	/* Get mbox name from device tree node */
++	ret = of_property_read_string(np, "mbox-names", &mbox_name);
++	if (ret) {
++		dev_err(&pdev->dev, "Unable to get mbox name from dt node: %d\n",
++			ret);
++			goto err;
++	};
 +
-+	wkup_m3_set_ops(&am33xx_wkup_m3_ops);
++	m3_rproc->mbox_client.chan_name = mbox_name;
 +
-+	/* Physical resume address to be used by ROM code */
-+	am33xx_pm->ipc.reg0 = (AM33XX_OCMC_END -
-+		am33xx_do_wfi_sz + am33xx_resume_offset + 0x4);
++	/* Register as a remoteproc device */
++	ret = rproc_add(rproc);
++	if (ret) {
++		dev_err(dev, "rproc_add failed\n");
++		goto err;
++	}
++
++	/*
++	 * Wait for firmware loading completion in a thread so we
++	 * can boot the wkup_m3 as soon as it's ready without holding
++	 * up kernel boot
++	 */
++	task = kthread_run((void *)wkup_m3_rproc_loader_thread, rproc,
++			   "wkup_m3_rproc_loader");
++
++	if (IS_ERR(task)) {
++		dev_err(dev, "can't create rproc_loader thread\n");
++		goto err;
++	}
 +
 +	return 0;
 +
 +err:
-+	kfree(am33xx_pm);
++	rproc_put(rproc);
 +	return ret;
 +}
-diff --git a/arch/arm/mach-omap2/pm33xx.h b/arch/arm/mach-omap2/pm33xx.h
++
++static int wkup_m3_rproc_remove(struct platform_device *pdev)
++{
++	struct rproc *rproc = platform_get_drvdata(pdev);
++
++	rproc_del(rproc);
++	rproc_put(rproc);
++
++	return 0;
++}
++
++static int wkup_m3_rpm_suspend(struct device *dev)
++{
++	return -EBUSY;
++}
++
++static int wkup_m3_rpm_resume(struct device *dev)
++{
++	return 0;
++}
++
++static const struct dev_pm_ops wkup_m3_rproc_pm_ops = {
++	SET_RUNTIME_PM_OPS(wkup_m3_rpm_suspend, wkup_m3_rpm_resume, NULL)
++};
++
++static const struct of_device_id wkup_m3_rproc_of_match[] = {
++	{ .compatible = "ti,am3353-wkup-m3", .data = NULL, },
++	{},
++};
++
++static struct platform_driver wkup_m3_rproc_driver = {
++	.probe = wkup_m3_rproc_probe,
++	.remove = wkup_m3_rproc_remove,
++	.driver = {
++		.name = "wkup_m3",
++		.owner = THIS_MODULE,
++		.of_match_table = wkup_m3_rproc_of_match,
++		.pm = &wkup_m3_rproc_pm_ops,
++	},
++};
++
++module_platform_driver(wkup_m3_rproc_driver);
++
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("wkup m3 remote processor control driver");
+diff --git a/include/linux/wkup_m3.h b/include/linux/wkup_m3.h
 new file mode 100644
-index 0000000..309e65a
+index 0000000..1a2237f
 --- /dev/null
-+++ b/arch/arm/mach-omap2/pm33xx.h
-@@ -0,0 +1,64 @@
++++ b/include/linux/wkup_m3.h
+@@ -0,0 +1,71 @@
 +/*
-+ * AM33XX Power Management Routines
++ * TI Wakeup M3 Power Management Routines
 + *
-+ * Copyright (C) 2012-2014 Texas Instruments Inc.
-+ *	Vaibhav Bedia, Dave Gerlach
++ * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ * Dave Gerlach <d-gerlach@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License as
@@ -454,55 +625,62 @@ index 0000000..309e65a
 + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
 + */
-+#ifndef __ARCH_ARM_MACH_OMAP2_PM33XX_H
-+#define __ARCH_ARM_MACH_OMAP2_PM33XX_H
 +
-+#ifndef __ASSEMBLER__
++#ifndef _LINUX_WKUP_M3_H
++#define _LINUX_WKUP_M3_H
 +
-+#include <linux/wkup_m3.h>
-+
-+struct am33xx_pm_context {
-+	struct wkup_m3_ipc_regs	ipc;
-+	struct firmware		*firmware;
-+	struct omap_mbox	*mbox;
-+	u8			state;
-+	u32			ver;
-+};
-+
-+/*
-+ * Params passed to suspend routine
++/**
++ * struct wkup_m3_ops - Callbacks for allowing pm code to interact with wkup_m3.
 + *
-+ * These are used to load into registers by suspend code,
-+ * entries here must always be in sync with the suspend code
-+ * in arm/mach-omap2/sleep33xx.S
++ * @txev_handler: Callback to allow pm code to react to response from wkup_m3
++ *		  after pinging it using wkup_m3_ping.
++ *
++ * @firmware_loaded: Callback invoked when the firmware has been loaded to the
++ *		     m3 to allow the pm code to enable suspend/resume ops.
 + */
-+struct am33xx_suspend_params {
-+	void __iomem *emif_addr_virt;
-+	u32 mem_type;
-+	void __iomem *dram_sync;
++
++struct wkup_m3_ops {
++	void (*txev_handler)(void);
++	void (*rproc_ready)(void);
 +};
 +
-+#endif /*__ASSEMBLER__ */
++struct wkup_m3_wakeup_src {
++	int irq_nr;
++	char src[10];
++};
 +
-+#define	IPC_CMD_DS0			0x4
-+#define	IPC_CMD_STANDBY			0xc
-+#define IPC_CMD_RESET			0xe
-+#define DS_IPC_DEFAULT			0xffffffff
-+#define M3_VERSION_UNKNOWN		0x0000ffff
-+#define M3_BASELINE_VERSION		0x187
++struct wkup_m3_ipc_regs {
++	u32 reg0;
++	u32 reg1;
++	u32 reg2;
++	u32 reg3;
++	u32 reg4;
++	u32 reg5;
++	u32 reg6;
++	u32 reg7;
++};
 +
-+#define M3_STATE_UNKNOWN		0
-+#define M3_STATE_RESET			1
-+#define M3_STATE_INITED			2
-+#define M3_STATE_MSG_FOR_LP		3
-+#define M3_STATE_MSG_FOR_RESET		4
++#ifdef CONFIG_WKUP_M3_RPROC
++int wkup_m3_prepare(void);
++void wkup_m3_set_ops(struct wkup_m3_ops *ops);
++int wkup_m3_ping(void);
++void wkup_m3_wake_src(struct wkup_m3_wakeup_src *wakeup_src);
++int wkup_m3_pm_status(void);
++int wkup_m3_is_valid(void);
++int wkup_m3_fw_version_read(void);
++void wkup_m3_set_cmd(struct wkup_m3_ipc_regs *ipc_regs);
 +
-+#define AM33XX_OCMC_END			0x40310000
-+#define AM33XX_EMIF_BASE		0x4C000000
++#else
 +
-+#define MEM_TYPE_DDR2		2
-+
-+#endif /* __ARCH_ARM_MACH_OMAP2_PM33XX_H */
++int wkup_m3_prepare(void) { return -EINVAL; }
++void wkup_m3_set_ops(struct wkup_m3_ops *ops) { }
++int wkup_m3_ping(void) { return -EINVAL }
++void wkup_m3_wake_src(struct wkup_m3_wakeup_src *wakeup_src) { }
++int wkup_m3_pm_status(void) { return -1; }
++int wkup_m3_fw_version_read(void) { return -1; }
++void wkup_m3_set_cmd(struct wkup_m3_ipc_regs *ipc_regs) { }
++#endif /* CONFIG_WKUP_M3_RPROC */
++#endif /* _LINUX_WKUP_M3_H */
 -- 
 1.9.0
 
