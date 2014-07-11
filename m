@@ -1,98 +1,61 @@
-From: Himangi Saraogi <himangi774@gmail.com>
-Subject: [PATCH] ASoC: omap-dmic: Use devm_clk_get
-Date: Fri, 11 Jul 2014 09:44:06 +0530
-Message-ID: <20140711041406.GA4207@himangi-Dell>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes against v3.16-rc4
+Date: Thu, 10 Jul 2014 23:30:02 -0700
+Message-ID: <20140711063002.GI28884@atomide.com>
+References: <20140709153552.GA28884@atomide.com>
+ <20140710213554.GA1313@quad.lixom.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43618 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752172AbaGKGaF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Jul 2014 02:30:05 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr
+In-Reply-To: <20140710213554.GA1313@quad.lixom.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This patch introduces the use of managed interfaces like devm_clk_get
-and does away with the clk_puts in the probe and remove functions. A
-label is also done away with.
+* Olof Johansson <olof@lixom.net> [140710 14:37]:
+> On Wed, Jul 09, 2014 at 08:35:52AM -0700, Tony Lindgren wrote:
+> > The following changes since commit cd3de83f147601356395b57a8673e9c5ff1e59d1:
+> > 
+> >   Linux 3.16-rc4 (2014-07-06 12:37:51 -0700)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/fixes-rc4
+> > 
+> > for you to fetch changes up to 1d29a0722f6c38f79785c9ffb911730598de84e2:
+> > 
+> >   ARM: OMAP2+: Remove non working OMAP HDMI audio initialization (2014-07-08 01:08:44 -0700)
+> > 
+> > ----------------------------------------------------------------
+> > Fixes for omaps for the -rc series. It's mostly fixes for clock rates,
+> > restart handling and phy regulators and SATA interconnect data.
+> 
+> It's a little surprising to see a SATA fix about a week after enablement
+> went in during -rc -- enabling it that late should ideally have been
+> better tested than this.
 
-Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
----
-This is a follow up to ASoC: omap-dmic: use managed interfaces which
-failed to apply as the other devm_ functions were introduced by a patch
-ASoC: omap-dmic: Use devm_snd_soc_register_component.
+Yes sorry we are having a bit hard time getting things coordinated with
+driver + dts + hwmod changes. Ideally the hwmod changes for the interconnect
+would be all done when adding support for a new SoC instead of adding
+them one driver at a time. And those should be eventually just device
+tree properties.
+ 
+> > Also few build fixes related to the DSP driver in staging, and trivial
+> > stuff like removal of broken and soon to be unused platform data init
+> > for HDMI audio that would be good to get into the -rc series if not
+> > too late.
+> 
+> Thanks, merged. Definitely time for regressions only from here on out though.
 
- sound/soc/omap/omap-dmic.c | 29 ++++++-----------------------
- 1 file changed, 6 insertions(+), 23 deletions(-)
+Yes agreed. So far I'm not aware of any major regressions for the first
+time for a few merge cycles.
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index f125eb9..0f34e28 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -466,7 +466,7 @@ static int asoc_dmic_probe(struct platform_device *pdev)
- 
- 	mutex_init(&dmic->mutex);
- 
--	dmic->fclk = clk_get(dmic->dev, "fck");
-+	dmic->fclk = devm_clk_get(dmic->dev, "fck");
- 	if (IS_ERR(dmic->fclk)) {
- 		dev_err(dmic->dev, "cant get fck\n");
- 		return -ENODEV;
-@@ -475,8 +475,7 @@ static int asoc_dmic_probe(struct platform_device *pdev)
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
- 	if (!res) {
- 		dev_err(dmic->dev, "invalid dma memory resource\n");
--		ret = -ENODEV;
--		goto err_put_clk;
-+		return -ENODEV;
- 	}
- 	dmic->dma_data.addr = res->start + OMAP_DMIC_DATA_REG;
- 
-@@ -484,34 +483,19 @@ static int asoc_dmic_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
- 	dmic->io_base = devm_ioremap_resource(&pdev->dev, res);
--	if (IS_ERR(dmic->io_base)) {
--		ret = PTR_ERR(dmic->io_base);
--		goto err_put_clk;
--	}
-+	if (IS_ERR(dmic->io_base))
-+		return PTR_ERR(dmic->io_base);
- 
- 
- 	ret = devm_snd_soc_register_component(&pdev->dev,
- 					      &omap_dmic_component,
- 					      &omap_dmic_dai, 1);
- 	if (ret)
--		goto err_put_clk;
-+		return ret;
- 
- 	ret = omap_pcm_platform_register(&pdev->dev);
- 	if (ret)
--		goto err_put_clk;
--
--	return 0;
--
--err_put_clk:
--	clk_put(dmic->fclk);
--	return ret;
--}
--
--static int asoc_dmic_remove(struct platform_device *pdev)
--{
--	struct omap_dmic *dmic = platform_get_drvdata(pdev);
--
--	clk_put(dmic->fclk);
-+		return ret;
- 
- 	return 0;
- }
-@@ -529,7 +513,6 @@ static struct platform_driver asoc_dmic_driver = {
- 		.of_match_table = omap_dmic_of_match,
- 	},
- 	.probe = asoc_dmic_probe,
--	.remove = asoc_dmic_remove,
- };
- 
- module_platform_driver(asoc_dmic_driver);
--- 
-1.9.1
+Regards,
+
+Tony
