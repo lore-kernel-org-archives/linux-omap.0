@@ -1,90 +1,90 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume callbacks for clkevent device
-Date: Thu, 10 Jul 2014 21:55:41 -0500
-Message-ID: <1405047349-15101-4-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH v4 04/11] ARM: OMAP2+: Use pdata-quirks for wkup_m3 deassert_hardreset
+Date: Thu, 10 Jul 2014 21:55:42 -0500
+Message-ID: <1405047349-15101-5-git-send-email-d-gerlach@ti.com>
 References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35339 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751734AbaGKC5b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Jul 2014 22:57:31 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:60112 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840AbaGKC5b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 22:57:31 -0400
 In-Reply-To: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Dave Gerlach <d-gerlach@ti.com>
 
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Use pdata-quirks to reset the wkup_m3 during boot.
 
-OMAP timer code registers two timers - one as clocksource
-and one as clockevent. Since AM33XX has only one usable timer
-in the WKUP domain one of the timers needs suspend-resume
-support to restore the configuration to pre-suspend state.
-
-commit adc78e6 (timekeeping: Add suspend and resume
-of clock event devices) introduced .suspend and .resume
-callbacks for clock event devices. Leverages these
-callbacks to have AM33XX clockevent timer which is
-in not in WKUP domain to behave properly across system
-suspend.
-
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
-v3->v4:
-	Only use for am33xx soc now.
+ arch/arm/mach-omap2/pdata-quirks.c    | 12 ++++++++++++
+ include/linux/platform_data/wkup_m3.h | 17 +++++++++++++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100644 include/linux/platform_data/wkup_m3.h
 
- arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 43d03fb..6fc1748 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- 	}
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 90c88d4..8e4a541 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -17,6 +17,7 @@
+ 
+ #include <linux/platform_data/pinctrl-single.h>
+ #include <linux/platform_data/iommu-omap.h>
++#include <linux/platform_data/wkup_m3.h>
+ 
+ #include "am35xx.h"
+ #include "common.h"
+@@ -255,6 +256,13 @@ static void __init nokia_n900_legacy_init(void)
  }
+ #endif /* CONFIG_ARCH_OMAP3 */
  
-+static void omap_clkevt_suspend(struct clock_event_device *unused)
-+{
-+	struct omap_hwmod *oh;
++#ifdef CONFIG_SOC_AM33XX
++static struct wkup_m3_platform_data wkup_m3_data = {
++	.reset_name = "wkup_m3",
++	.deassert_reset = omap_device_deassert_hardreset,
++};
++#endif
 +
-+	oh = omap_hwmod_lookup(clockevent_gpt.name);
-+	if (!oh)
-+		return;
+ #ifdef CONFIG_ARCH_OMAP4
+ static void __init omap4_sdp_legacy_init(void)
+ {
+@@ -348,6 +356,10 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
+ 		       &am35xx_emac_pdata),
+ #endif
++#ifdef CONFIG_SOC_AM33XX
++	OF_DEV_AUXDATA("ti,am3353-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
++		       &wkup_m3_data),
++#endif
+ #ifdef CONFIG_ARCH_OMAP4
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
+ 	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
+diff --git a/include/linux/platform_data/wkup_m3.h b/include/linux/platform_data/wkup_m3.h
+new file mode 100644
+index 0000000..07282bd
+--- /dev/null
++++ b/include/linux/platform_data/wkup_m3.h
+@@ -0,0 +1,17 @@
++/*
++ * omap wkup_m3: platform data
++ *
++ * Copyright (C) 2014 Texas Instruments, Inc.
++ *
++ * Dave Gerlach <d-gerlach@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	omap_hwmod_idle(oh);
-+}
++struct wkup_m3_platform_data {
++	const char *reset_name;
 +
-+static void omap_clkevt_resume(struct clock_event_device *unused)
-+{
-+	struct omap_hwmod *oh;
-+
-+	oh = omap_hwmod_lookup(clockevent_gpt.name);
-+	if (!oh)
-+		return;
-+
-+	omap_hwmod_enable(oh);
-+	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
-+}
-+
- static struct clock_event_device clockevent_gpt = {
- 	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
- 	.rating		= 300,
-@@ -333,6 +356,11 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- 	clkev.id = gptimer_id;
- 	clkev.errata = omap_dm_timer_get_errata();
- 
-+	if (soc_is_am33xx()) {
-+		clockevent_gpt.suspend = omap_clkevt_suspend;
-+		clockevent_gpt.resume = omap_clkevt_resume;
-+	}
-+
- 	/*
- 	 * For clock-event timers we never read the timer counter and
- 	 * so we are not impacted by errata i103 and i767. Therefore,
++	int (*deassert_reset)(struct platform_device *pdev, const char *name);
++};
 -- 
 1.9.0
 
