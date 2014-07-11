@@ -1,54 +1,98 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v4 07/11] ARM: dts: am33xx: Update wkup_m3 node
-Date: Thu, 10 Jul 2014 21:55:45 -0500
-Message-ID: <1405047349-15101-8-git-send-email-d-gerlach@ti.com>
-References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+From: Himangi Saraogi <himangi774@gmail.com>
+Subject: [PATCH] ASoC: omap-dmic: Use devm_clk_get
+Date: Fri, 11 Jul 2014 09:44:06 +0530
+Message-ID: <20140711041406.GA4207@himangi-Dell>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60127 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752288AbaGKC5q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Jul 2014 22:57:46 -0400
-In-Reply-To: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Dave Gerlach <d-gerlach@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Allow interrupt for wkup_m3 to be set from DT, add regs for
-IPC regs to allow pm code to communicate with wkup_m3, and add data
-needed for mailbox channel.
+This patch introduces the use of managed interfaces like devm_clk_get
+and does away with the clk_puts in the probe and remove functions. A
+label is also done away with.
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-CC: Ohad Ben-Cohen <ohad@wizery.com>
-CC: Benoit Cousson <bcousson@baylibre.com>
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+This is a follow up to ASoC: omap-dmic: use managed interfaces which
+failed to apply as the other devm_ functions were introduced by a patch
+ASoC: omap-dmic: Use devm_snd_soc_register_component.
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 6f8f7cf..fe0cff5 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -736,10 +736,15 @@
+ sound/soc/omap/omap-dmic.c | 29 ++++++-----------------------
+ 1 file changed, 6 insertions(+), 23 deletions(-)
+
+diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
+index f125eb9..0f34e28 100644
+--- a/sound/soc/omap/omap-dmic.c
++++ b/sound/soc/omap/omap-dmic.c
+@@ -466,7 +466,7 @@ static int asoc_dmic_probe(struct platform_device *pdev)
  
- 		wkup_m3: wkup_m3@44d00000 {
- 			compatible = "ti,am3353-wkup-m3";
--			reg = <0x44d00000 0x4000	/* M3 UMEM */
--			       0x44d80000 0x2000>;	/* M3 DMEM */
-+			reg = <0x44d00000 0x4000
-+			       0x44d80000 0x2000
-+			       0x44e11324 0x0024>;
-+			reg-names = "m3_umem", "m3_dmem", "ipc_regs";
-+			interrupts = <78>;
- 			ti,hwmods = "wkup_m3";
- 			ti,no-reset-on-init;
-+			mbox-names = "wkup_m3";
-+			mbox = <&mailbox &mbox_wkupm3>;
- 		};
+ 	mutex_init(&dmic->mutex);
  
- 		elm: elm@48080000 {
+-	dmic->fclk = clk_get(dmic->dev, "fck");
++	dmic->fclk = devm_clk_get(dmic->dev, "fck");
+ 	if (IS_ERR(dmic->fclk)) {
+ 		dev_err(dmic->dev, "cant get fck\n");
+ 		return -ENODEV;
+@@ -475,8 +475,7 @@ static int asoc_dmic_probe(struct platform_device *pdev)
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
+ 	if (!res) {
+ 		dev_err(dmic->dev, "invalid dma memory resource\n");
+-		ret = -ENODEV;
+-		goto err_put_clk;
++		return -ENODEV;
+ 	}
+ 	dmic->dma_data.addr = res->start + OMAP_DMIC_DATA_REG;
+ 
+@@ -484,34 +483,19 @@ static int asoc_dmic_probe(struct platform_device *pdev)
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
+ 	dmic->io_base = devm_ioremap_resource(&pdev->dev, res);
+-	if (IS_ERR(dmic->io_base)) {
+-		ret = PTR_ERR(dmic->io_base);
+-		goto err_put_clk;
+-	}
++	if (IS_ERR(dmic->io_base))
++		return PTR_ERR(dmic->io_base);
+ 
+ 
+ 	ret = devm_snd_soc_register_component(&pdev->dev,
+ 					      &omap_dmic_component,
+ 					      &omap_dmic_dai, 1);
+ 	if (ret)
+-		goto err_put_clk;
++		return ret;
+ 
+ 	ret = omap_pcm_platform_register(&pdev->dev);
+ 	if (ret)
+-		goto err_put_clk;
+-
+-	return 0;
+-
+-err_put_clk:
+-	clk_put(dmic->fclk);
+-	return ret;
+-}
+-
+-static int asoc_dmic_remove(struct platform_device *pdev)
+-{
+-	struct omap_dmic *dmic = platform_get_drvdata(pdev);
+-
+-	clk_put(dmic->fclk);
++		return ret;
+ 
+ 	return 0;
+ }
+@@ -529,7 +513,6 @@ static struct platform_driver asoc_dmic_driver = {
+ 		.of_match_table = omap_dmic_of_match,
+ 	},
+ 	.probe = asoc_dmic_probe,
+-	.remove = asoc_dmic_remove,
+ };
+ 
+ module_platform_driver(asoc_dmic_driver);
 -- 
-1.9.0
-
+1.9.1
