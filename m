@@ -1,43 +1,59 @@
-From: Markus Mayer <markus.mayer-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv2 0/5] OMAP Mailbox framework adoption & DT support
-Date: Fri, 11 Jul 2014 16:15:41 -0700
-Message-ID: <CAPdLdq=ZnPBQiGVbKOk8G5soP=uPYpT7mEjigpR=W1Hc4btV3g@mail.gmail.com>
-References: <1405116252-53612-1-git-send-email-s-anna@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1405116252-53612-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Device Tree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH] ARM: OMAP: generic: add call to of_clk_init()
+Date: Sat, 12 Jul 2014 12:55:08 +0200
+Message-ID: <1405162508-9835-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f180.google.com ([74.125.82.180]:58793 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbaGLKzZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Jul 2014 06:55:25 -0400
+Received: by mail-we0-f180.google.com with SMTP id k48so1219933wev.11
+        for <linux-omap@vger.kernel.org>; Sat, 12 Jul 2014 03:55:24 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 
-On 11 July 2014 15:04, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
-> This is a refresh of the OMAP Mailbox framework adoption & DT support
-> series [1], to work with the revised OMAP mailbox DT/hwmod cleanup
-> series [2].
->
-> The series has one less patch than the previous series, with the patch
-> "mailbox/omap: add a custom of_xlate function" squashed into the OMAP
-> mailbox framework adaptation patch. The first 3 patches deal with the
-> OMAP DT bindings and parse support like previous series, and the last
-> 2 patches deal with the mailbox framework adaptation. The testing is
-> also done with the updated v8 version of mailbox framework [3] from
-> Jassi Brar, no changes are required for the v7 to v8 update.
->
-> The AM335 PM suspend series [4] which relies on this series also does
-> not require any changes.
+This is needed to instanciate fixed clocks in the DT.
 
-May I ask what branch this series is based upon? I tried a number of
-branches (3.16-rcX, 3.15, linux-next), and the series won't apply to
-any of them (other than patch 1/5, which does apply fine, but that
-also contains no code).
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+ arch/arm/mach-omap2/board-generic.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Thanks,
--Markus
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 5606fa2..39f154a 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -15,6 +15,7 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ #include <linux/irqdomain.h>
++#include <linux/clk-provider.h>
+ 
+ #include <asm/mach/arch.h>
+ 
+@@ -33,6 +34,11 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+ 	{ }
+ };
+ 
++static struct of_device_id clk_match[] __initdata = {
++	{ .compatible = "fixed-clock", .data = of_fixed_clk_setup, },
++	{ }
++};
++
+ static void __init omap_generic_init(void)
+ {
+ 	omapdss_early_init_of();
+@@ -40,6 +46,8 @@ static void __init omap_generic_init(void)
+ 	pdata_quirks_init(omap_dt_match_table);
+ 
+ 	omapdss_init_of();
++
++	of_clk_init(clk_match);
+ }
+ 
+ #ifdef CONFIG_SOC_OMAP2420
+-- 
+1.9.3
+
