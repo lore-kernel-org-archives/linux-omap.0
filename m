@@ -1,44 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv2 2/5] mailbox/omap: add support for parsing dt devices
-Date: Sun, 13 Jul 2014 00:16:12 +0200
-Message-ID: <20140712221612.GB17930@amd.pavel.ucw.cz>
-References: <1405116252-53612-1-git-send-email-s-anna@ti.com>
- <1405116252-53612-3-git-send-email-s-anna@ti.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH 00/13] ARM: OMAP2+: clock cleanup series for 3.17
+Date: Sun, 13 Jul 2014 06:53:31 -0700
+Message-ID: <20140713135331.9850.5226@quantum>
+References: <1404290867-6768-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37433 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845AbaGLWQP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Jul 2014 18:16:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1405116252-53612-3-git-send-email-s-anna@ti.com>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:62854 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642AbaGMNxi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Jul 2014 09:53:38 -0400
+Received: by mail-pd0-f180.google.com with SMTP id y13so1575390pdi.39
+        for <linux-omap@vger.kernel.org>; Sun, 13 Jul 2014 06:53:38 -0700 (PDT)
+In-Reply-To: <1404290867-6768-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Fri 2014-07-11 17:04:09, Suman Anna wrote:
-> Logic has been added to the OMAP2+ mailbox code to parse the
-> mailbox dt nodes and construct the different sub-mailboxes
-> associated with the instance. The DT representation of the
-> sub-mailbox devices is different from legacy platform data
-> representation to allow flexibility of interrupt configuration
-> between Tx and Rx fifos (to also possibly allow simplex devices
-> in the future). The DT representation gathers similar information
-> that was being passed previously through the platform data, except
-> for the number of fifos, interrupts and interrupt type information,
-> which are gathered through driver compatible match data.
+Quoting Tero Kristo (2014-07-02 01:47:34)
+> Hi,
 > 
-> The non-DT support has to be maintained for now to not break
-> OMAP3 legacy boot, and the legacy-style code will be cleaned
-> up once OMAP3 is also converted to DT-boot only.
-> 
-> Cc: Jassi Brar <jassisinghbrar@gmail.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Signed-off-by: Suman Anna <s-anna@ti.com>
+> This sets cleans up some of the omap specific clock drivers still residing
+> under arch/arm/mach-omap2. This set is done in preparation to migrate
+> these drivers eventually under drivers/clk/ti, where we don't have access
+> to certain board specific functionality. The basic idea of this set is to
+> introduce clk_features struct which contains any SoC specific data / flags
+> within it, and this is used runtime instead of the current cpu_is_? checks.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Reviewed-by: Mike Turquette <mturquette@linaro.org>
+
+> 
+> There are also a couple of bug fixes introduced in this set:
+> - Patch #1 : fix potential overflow in _dpll_test_fint
+> - Patch #8 : embeds a fix for checking omap5/dra7 for the bypass modes also
+> 
+> Set tested on following boards:
+> 
+> - omap2430-sdp : boot
+> - omap3-beagle : boot / suspend
+> - omap4-panda-es : boot / suspend
+> - omap5-uevm : boot
+> - dra7-evm : boot
+> 
+> Branch also available:
+> 
+> tree: https://github.com/t-kristo/linux-pm.git
+> branch: for-v3.17/omap2-clk-cleanup
+> 
+> -Tero
+> 
