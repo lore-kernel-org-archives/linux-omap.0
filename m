@@ -1,100 +1,145 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
-Date: Mon, 14 Jul 2014 13:10:28 +0300
-Message-ID: <53C3AC94.5050904@ti.com>
-References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com> <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com> <5358D534.2070205@ti.com> <535927DF.90404@ti.com> <5368E604.4040107@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
+Date: Mon, 14 Jul 2014 16:04:57 +0530
+Message-ID: <53C3B251.8000209@ti.com>
+References: <1403719366-9656-3-git-send-email-kishon@ti.com> <1404896567-32204-1-git-send-email-kishon@ti.com> <53BD2136.9030009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5368E604.4040107@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <53BD2136.9030009@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com
+Cc: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/06/2014 04:39 PM, Peter Ujfalusi wrote:
->>> Tero: can I have your ack for this patch or do you have further con=
-cerns?
+On Wednesday 09 July 2014 04:32 PM, Rajendra Nayak wrote:
+> On Wednesday 09 July 2014 02:32 PM, Kishon Vijay Abraham I wrote:
+>> Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
 >>
->> Yea looks good to me, except for the fact that there is some work on=
- getting
->> default rate/parent support through DT. I would like a comment from =
-Mike about
->> the estimate when this can get in, and whether we should merge inter=
-mediate
->> solutions still like this.
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>> Changes from v1:
+>> * changed the clock domain to "pcie_clkdm"
+>> * Added PCIe as a slave port for l3_main.
+> 
+> Looks good to me,
+> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+
+Paul,
+
+Can you pick this one?
+
+Thanks
+Kishon
+> 
 >>
->> Anyway, you can consider this patch acked by me, I'll let Mike to de=
-cide what
->> to do with it though.
->=20
-> Do you have anything against this patch? Since right now there is no =
-other
-> ways to fix the ABE DPLL for dra7 it would be great if we could have =
-this in
-> till we have the final solution. Also I'd like to point out that the =
-original
-> frequency the ABE DPLL was not correct and renders the audio to be no=
-t usable
-> on the platform.
-
-Mike: can we have this patch still pushed for 3.16? I can resend it rig=
-ht away
-if you  lost the original patch.
-
-Thanks,
-P=E9ter
-
-
->=20
->>>>
->>>>>
->>>>> -Tero
->>>>>
->>>>>>
->>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>>>>> ---
->>>>>>    drivers/clk/ti/clk-7xx.c | 7 ++++++-
->>>>>>    1 file changed, 6 insertions(+), 1 deletion(-)
->>>>>>
->>>>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
->>>>>> index f7e40734c819..19a55bf407dd 100644
->>>>>> --- a/drivers/clk/ti/clk-7xx.c
->>>>>> +++ b/drivers/clk/ti/clk-7xx.c
->>>>>> @@ -16,7 +16,7 @@
->>>>>>    #include <linux/clkdev.h>
->>>>>>    #include <linux/clk/ti.h>
->>>>>>
->>>>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
->>>>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
->>>>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
->>>>>>
->>>>>>
->>>>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
->>>>>>        if (rc)
->>>>>>            pr_err("%s: failed to configure ABE DPLL!\n", __func_=
-_);
->>>>>>
->>>>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
->>>>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
->>>>>> +    if (rc)
->>>>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __fu=
-nc__);
->>>>>> +
->>>>>>        dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
->>>>>>        rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
->>>>>>        if (rc)
->>>>>>
->>>>>
->>>>
->>>>
->>>
+>> Boot log for dra7xx can be found at http://paste.ubuntu.com/7769402/
 >>
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   73 +++++++++++++++++++++++++++++
+>>  1 file changed, 73 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> index 6ff40a6..2f37ca8 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> @@ -1290,6 +1290,43 @@ static struct omap_hwmod dra7xx_ocp2scp3_hwmod = {
+>>  };
+>>  
+>>  /*
+>> + * 'PCIE' class
+>> + *
+>> + */
+>> +
+>> +static struct omap_hwmod_class dra7xx_pcie_hwmod_class = {
+>> +	.name	= "pcie",
+>> +};
+>> +
+>> +/* pcie1 */
+>> +static struct omap_hwmod dra7xx_pcie1_hwmod = {
+>> +	.name		= "pcie1",
+>> +	.class		= &dra7xx_pcie_hwmod_class,
+>> +	.clkdm_name	= "pcie_clkdm",
+>> +	.main_clk	= "l4_root_clk_div",
+>> +	.prcm = {
+>> +		.omap4 = {
+>> +			.clkctrl_offs	= DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
+>> +			.modulemode	= MODULEMODE_SWCTRL,
+>> +		},
+>> +	},
+>> +};
+>> +
+>> +/* pcie2 */
+>> +static struct omap_hwmod dra7xx_pcie2_hwmod = {
+>> +	.name		= "pcie2",
+>> +	.class		= &dra7xx_pcie_hwmod_class,
+>> +	.clkdm_name	= "pcie_clkdm",
+>> +	.main_clk	= "l4_root_clk_div",
+>> +	.prcm = {
+>> +		.omap4 = {
+>> +			.clkctrl_offs = DRA7XX_CM_PCIE_CLKSTCTRL_OFFSET,
+>> +			.modulemode   = MODULEMODE_SWCTRL,
+>> +		},
+>> +	},
+>> +};
+>> +
+>> +/*
+>>   * 'PCIE PHY' class
+>>   *
+>>   */
+>> @@ -2448,6 +2485,38 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__ocp2scp1 = {
+>>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>>  };
+>>  
+>> +/* l3_main_1 -> pcie1 */
+>> +static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie1 = {
+>> +	.master		= &dra7xx_l3_main_1_hwmod,
+>> +	.slave		= &dra7xx_pcie1_hwmod,
+>> +	.clk		= "l3_iclk_div",
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>> +/* l4_cfg -> pcie1 */
+>> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1 = {
+>> +	.master		= &dra7xx_l4_cfg_hwmod,
+>> +	.slave		= &dra7xx_pcie1_hwmod,
+>> +	.clk		= "l4_root_clk_div",
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>> +/* l3_main_1 -> pcie2 */
+>> +static struct omap_hwmod_ocp_if dra7xx_l3_main_1__pcie2 = {
+>> +	.master		= &dra7xx_l3_main_1_hwmod,
+>> +	.slave		= &dra7xx_pcie2_hwmod,
+>> +	.clk		= "l3_iclk_div",
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>> +/* l4_cfg -> pcie2 */
+>> +static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie2 = {
+>> +	.master		= &dra7xx_l4_cfg_hwmod,
+>> +	.slave		= &dra7xx_pcie2_hwmod,
+>> +	.clk		= "l4_root_clk_div",
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>>  /* l4_cfg -> pcie1 phy */
+>>  static struct omap_hwmod_ocp_if dra7xx_l4_cfg__pcie1_phy = {
+>>  	.master		= &dra7xx_l4_cfg_hwmod,
+>> @@ -2813,6 +2882,10 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>>  	&dra7xx_l4_cfg__mpu,
+>>  	&dra7xx_l4_cfg__ocp2scp1,
+>>  	&dra7xx_l4_cfg__ocp2scp3,
+>> +	&dra7xx_l3_main_1__pcie1,
+>> +	&dra7xx_l4_cfg__pcie1,
+>> +	&dra7xx_l3_main_1__pcie2,
+>> +	&dra7xx_l4_cfg__pcie2,
+>>  	&dra7xx_l4_cfg__pcie1_phy,
+>>  	&dra7xx_l4_cfg__pcie2_phy,
+>>  	&dra7xx_l3_main_1__qspi,
+>>
+> 
