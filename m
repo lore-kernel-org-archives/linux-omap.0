@@ -1,48 +1,102 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP2+: l2c: squelch warning dump on power control
- setting
-Date: Mon, 14 Jul 2014 10:31:25 -0400
-Message-ID: <53C3E9BD.9010104@ti.com>
-References: <d081bdbeebec0e7f2a292a11513f96375aa35bd4.1405343188.git.nsekhar@ti.com>
+Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume callbacks
+ for clkevent device
+Date: Mon, 14 Jul 2014 10:37:19 -0400
+Message-ID: <53C3EB1F.2010109@ti.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+ <1405047349-15101-4-git-send-email-d-gerlach@ti.com>
+ <20140714111536.GC20068@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47818 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbaGNObz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 10:31:55 -0400
-In-Reply-To: <d081bdbeebec0e7f2a292a11513f96375aa35bd4.1405343188.git.nsekhar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20140714111536.GC20068@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Tero Kristo <t-kristo@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Benoit Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>
 
-On Monday 14 July 2014 09:13 AM, Sekhar Nori wrote:
-> On OMAP SOCs using PL310 controllers, power_ctrl register is not
-> accessible from non-secure software even on PL310 versions which
-> support it. The secure code takes care of setting it up correctly
-> and power transitions are proven on these devices.
+On Monday 14 July 2014 07:15 AM, Tony Lindgren wrote:
+> * Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
+>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>
+>> OMAP timer code registers two timers - one as clocksource
+>> and one as clockevent. Since AM33XX has only one usable timer
+>> in the WKUP domain one of the timers needs suspend-resume
+>> support to restore the configuration to pre-suspend state.
+>>
+>> commit adc78e6 (timekeeping: Add suspend and resume
+>> of clock event devices) introduced .suspend and .resume
+>> callbacks for clock event devices. Leverages these
+>> callbacks to have AM33XX clockevent timer which is
+>> in not in WKUP domain to behave properly across system
+>> suspend.
+>>
+>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>> ---
+>> v3->v4:
+>> 	Only use for am33xx soc now.
+>>
+>>  arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
+>>  1 file changed, 28 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>> index 43d03fb..6fc1748 100644
+>> --- a/arch/arm/mach-omap2/timer.c
+>> +++ b/arch/arm/mach-omap2/timer.c
+>> @@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+>>  	}
+>>  }
+>>  
+>> +static void omap_clkevt_suspend(struct clock_event_device *unused)
+>> +{
+>> +	struct omap_hwmod *oh;
+>> +
+>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
+>> +	if (!oh)
+>> +		return;
+>> +
+>> +	omap_hwmod_idle(oh);
+>> +}
+>> +
+>> +static void omap_clkevt_resume(struct clock_event_device *unused)
+>> +{
+>> +	struct omap_hwmod *oh;
+>> +
+>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
+>> +	if (!oh)
+>> +		return;
+>> +
+>> +	omap_hwmod_enable(oh);
+>> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+>> +}
+>> +
 > 
-> For example, AM437x has L2C-310 version r3p3 and ROM code on that
-> device does not support writing to L2C-310 power control register.
-> The L2C driver, however, tries writing to this register for all
-> revisions >= r3p0.
+> This is going to make moving the timer code into drivers one step
+> tougher to do. And you don't need to look up the hwmod entry every
+> time, just initialize it during the init.
 > 
-> This leads to a warning dump on boot which leads most users to believe
-> that L2 cache is non-functional.
+>> +	if (soc_is_am33xx()) {
+>> +		clockevent_gpt.suspend = omap_clkevt_suspend;
+>> +		clockevent_gpt.resume = omap_clkevt_resume;
+>> +	}
+>> +
 > 
-> Since the problem is understood, and cannot be addressed through
-> software, replace the warning with a pr_info() while maintaining the
-> WARN_ON() for other truly unexpected scenarios.
+> Maybe try to set up things so we initialize the SoC specific
+> timer suspend and resume functions in mach-omap2/timer.c
+> in a way where eventually the device driver can easily use
+> them?
 > 
-> Reported-by: Nishanth Menon <nm@ti.com>
-> Tested-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
-> Only description updated since v1
-> 
-Thanks for update.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
++1. I had similar comments on the previous version too.
 
-
+Regards,
+Santosh
