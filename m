@@ -1,53 +1,104 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: OMAP2+: l2c: squelch warning dump on power
- control setting
-Date: Mon, 14 Jul 2014 09:25:52 -0700
-Message-ID: <20140714162551.GG20068@atomide.com>
-References: <d081bdbeebec0e7f2a292a11513f96375aa35bd4.1405343188.git.nsekhar@ti.com>
- <53C3E9BD.9010104@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v4 05/11] Documentation: dt: add ti,am3353_wkup_m3 bindings
+Date: Mon, 14 Jul 2014 11:33:21 -0500
+Message-ID: <53C40651.6030401@ti.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-6-git-send-email-d-gerlach@ti.com> <53C3EC18.70506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48799 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755884AbaGNQ1Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 12:27:16 -0400
-Content-Disposition: inline
-In-Reply-To: <53C3E9BD.9010104@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47598 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756694AbaGNQds (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Jul 2014 12:33:48 -0400
+In-Reply-To: <53C3EC18.70506@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Benoit Cousson <bcousson@baylibre.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [140714 07:33]:
-> On Monday 14 July 2014 09:13 AM, Sekhar Nori wrote:
-> > On OMAP SOCs using PL310 controllers, power_ctrl register is not
-> > accessible from non-secure software even on PL310 versions which
-> > support it. The secure code takes care of setting it up correctly
-> > and power transitions are proven on these devices.
-> > 
-> > For example, AM437x has L2C-310 version r3p3 and ROM code on that
-> > device does not support writing to L2C-310 power control register.
-> > The L2C driver, however, tries writing to this register for all
-> > revisions >= r3p0.
-> > 
-> > This leads to a warning dump on boot which leads most users to believe
-> > that L2 cache is non-functional.
-> > 
-> > Since the problem is understood, and cannot be addressed through
-> > software, replace the warning with a pr_info() while maintaining the
-> > WARN_ON() for other truly unexpected scenarios.
-> > 
-> > Reported-by: Nishanth Menon <nm@ti.com>
-> > Tested-by: Felipe Balbi <balbi@ti.com>
-> > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> > ---
-> > Only description updated since v1
-> > 
-> Thanks for update.
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hi Dave,
+
+On 07/14/2014 09:41 AM, Santosh Shilimkar wrote:
+> On Thursday 10 July 2014 10:55 PM, Dave Gerlach wrote:
+>> Add the device tree bindings document for am3353 wkup_m3.
+>>
+>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>> CC: Ohad Ben-Cohen <ohad@wizery.com>
+>> CC: Benoit Cousson <bcousson@baylibre.com>
+>> ---
+> Looks like you missed to copy device tree list and maintainers.
+> As Tony suggested, split up the series and send the wkup_m3 related
+> patches separately along with bindings and mark the DT folks on email.
+> 
+>>  .../bindings/remoteproc/wkup_m3_rproc.txt          | 46 ++++++++++++++++++++++
+>>  1 file changed, 46 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+>> new file mode 100644
+>> index 0000000..e9dd909
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+>> @@ -0,0 +1,46 @@
+>> +Wakeup M3 Remote Proc Driver
+>> +=====================
+>> +
+>> +TI AMx3 Family devices use a Cortex M3 co-processor to help with various
+>> +low power tasks that cannot be controlled from the MPU. The CM3 requires
+>> +a firmware binary to accomplish this and communicates with the MPU through
+>> +IPC registers present in the SoCs control module. The wkup_m3 remoteproc
+>> +driver handles the loading of the firmware and exposes an API to
+>> +communicate with the wkup_m3 through the use of the IPC registers and a
+>> +mailbox.
+>> +
+>> +Wkup M3 Device Node:
+>> +====================
+>> +A wkup_m3 device node is used to represent a wakeup M3 IP instance within
+>> +a SoC. The sub-mailboxes are represented as child node of this parent node.
+>> +
+>> +Required properties:
+>> +--------------------
+>> +- compatible:		Should be "ti,am3353-wkup-m3" for AM33xx SoCs
+>> +- reg:			Contains the wkup_m3 register address ranges for
+>> +			umem, dmem, and ipc-regs.
+>> +- reg-names:		Names for reg addresses given above
+
+You should explicitly state the names here. Giving any different names
+will cause the driver to fail.
+
+>> +- interrupts:		Contains the interrupt information for the wkup_m3
+>> +			interrupt that signals the MPU.
+>> +- ti,hwmods:		Name of the hwmod associated with the mailbox
+
+hwmod is not associated with mailbox here, please fix the cut-copy-paste
+error.
+
+regards
+Suman
+
+
+>> +- ti,no-reset-on-init:	Reset is handled after fw has been loaded, not at
+>> +			init of hwmod.
+>> +- mbox-names:		Name of the mbox channel for the IPC framework
+>> +- mbox:			Phandle used by IPC framework to get correct mbox
+>> +			channel for communication.
+>> +
+>> +Example:
+>> +--------
+>> +/* AM33xx */
+>> +wkup_m3: wkup_m3@44d00000 {
+>> +	compatible = "ti,am3353-wkup-m3";
+>> +	reg = <0x44d00000 0x4000
+>> +	       0x44d80000 0x2000
+>> +	       0x44e11324 0x0024>;
+>> +	reg-names = "m3_umem", "m3_dmem", "ipc_regs";
+>> +	interrupts = <78>;
+>> +	ti,hwmods = "wkup_m3";
+>> +	ti,no-reset-on-init;
+>> +	mbox-names = "wkup_m3";
+>> +	mbox = <&mailbox &mbox_wkupm3>;
+>> +};
+>>
 > 
 
-Thanks applying into omap-for-v3.16/fixes.
-
-Tony 
