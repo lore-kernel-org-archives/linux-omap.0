@@ -1,121 +1,56 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: omap-dmic: Use devm_clk_get
-Date: Mon, 14 Jul 2014 08:40:56 +0300
-Message-ID: <53C36D68.8070600@ti.com>
-References: <20140711041406.GA4207@himangi-Dell>
+From: "Gupta, Pekon" <pekon@ti.com>
+Subject: RE: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable()
+Date: Mon, 14 Jul 2014 05:41:24 +0000
+Message-ID: <20980858CB6D3A4BAE95CA194937D5E73EB02569@DBDE04.ent.ti.com>
+References: <1405301778.29716.72.camel@mars>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58786 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49051 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552AbaGNFl0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Jul 2014 01:41:26 -0400
-In-Reply-To: <20140711041406.GA4207@himangi-Dell>
+	id S1752993AbaGNFl7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Jul 2014 01:41:59 -0400
+In-Reply-To: <1405301778.29716.72.camel@mars>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Himangi Saraogi <himangi774@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr
+To: Christoph Fritz <chf.fritz@googlemail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Daniel Mack <zonque@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Strashko, Grygorii" <grygorii.strashko@ti.com>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, "Javier Martinez Canillas (javier@dowhile0.org)" <javier@dowhile0.org>, "Ash Charles (ashcharles@gmail.com)" <ashcharles@gmail.com>
 
-On 07/11/2014 07:14 AM, Himangi Saraogi wrote:
-> This patch introduces the use of managed interfaces like devm_clk_get
-> and does away with the clk_puts in the probe and remove functions. A
-> label is also done away with.
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
->=20
-> Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
-> ---
-> This is a follow up to ASoC: omap-dmic: use managed interfaces which
-> failed to apply as the other devm_ functions were introduced by a pat=
-ch
-> ASoC: omap-dmic: Use devm_snd_soc_register_component.
->=20
->  sound/soc/omap/omap-dmic.c | 29 ++++++-----------------------
->  1 file changed, 6 insertions(+), 23 deletions(-)
->=20
-> diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-> index f125eb9..0f34e28 100644
-> --- a/sound/soc/omap/omap-dmic.c
-> +++ b/sound/soc/omap/omap-dmic.c
-> @@ -466,7 +466,7 @@ static int asoc_dmic_probe(struct platform_device=
- *pdev)
-> =20
->  	mutex_init(&dmic->mutex);
-> =20
-> -	dmic->fclk =3D clk_get(dmic->dev, "fck");
-> +	dmic->fclk =3D devm_clk_get(dmic->dev, "fck");
->  	if (IS_ERR(dmic->fclk)) {
->  		dev_err(dmic->dev, "cant get fck\n");
->  		return -ENODEV;
-> @@ -475,8 +475,7 @@ static int asoc_dmic_probe(struct platform_device=
- *pdev)
->  	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
->  	if (!res) {
->  		dev_err(dmic->dev, "invalid dma memory resource\n");
-> -		ret =3D -ENODEV;
-> -		goto err_put_clk;
-> +		return -ENODEV;
->  	}
->  	dmic->dma_data.addr =3D res->start + OMAP_DMIC_DATA_REG;
-> =20
-> @@ -484,34 +483,19 @@ static int asoc_dmic_probe(struct platform_devi=
-ce *pdev)
-> =20
->  	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
->  	dmic->io_base =3D devm_ioremap_resource(&pdev->dev, res);
-> -	if (IS_ERR(dmic->io_base)) {
-> -		ret =3D PTR_ERR(dmic->io_base);
-> -		goto err_put_clk;
-> -	}
-> +	if (IS_ERR(dmic->io_base))
-> +		return PTR_ERR(dmic->io_base);
-> =20
-> =20
->  	ret =3D devm_snd_soc_register_component(&pdev->dev,
->  					      &omap_dmic_component,
->  					      &omap_dmic_dai, 1);
->  	if (ret)
-> -		goto err_put_clk;
-> +		return ret;
-> =20
->  	ret =3D omap_pcm_platform_register(&pdev->dev);
->  	if (ret)
-> -		goto err_put_clk;
-> -
-> -	return 0;
-> -
-> -err_put_clk:
-> -	clk_put(dmic->fclk);
-> -	return ret;
-> -}
-> -
-> -static int asoc_dmic_remove(struct platform_device *pdev)
-> -{
-> -	struct omap_dmic *dmic =3D platform_get_drvdata(pdev);
-> -
-> -	clk_put(dmic->fclk);
-> +		return ret;
-> =20
->  	return 0;
->  }
-> @@ -529,7 +513,6 @@ static struct platform_driver asoc_dmic_driver =3D=
- {
->  		.of_match_table =3D omap_dmic_of_match,
->  	},
->  	.probe =3D asoc_dmic_probe,
-> -	.remove =3D asoc_dmic_remove,
->  };
-> =20
->  module_platform_driver(asoc_dmic_driver);
->=20
-
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PkZyb206IENocmlzdG9waCBGcml0eiBbbWFpbHRvOmNoZi5mcml0ekBnb29nbGVtYWlsLmNvbV0N
+Cj4NCj5UaGlzIHBhdGNoIGFkZHMgYmNoOCBlY2Mgc29mdHdhcmUgZmFsbGJhY2sgd2hpY2ggaXMg
+bW9zdGx5IHVzZWQgYnkNCj5vbWFwM3MgYmVjYXVzZSB0aGV5IGxhY2sgaGFyZHdhcmUgZWxtIHN1
+cHBvcnQuDQo+DQo+Rml4ZXM6IDA2MTFjNDE5MzRhYjM1Y2U4NGRlYTM0YWIyOTE4OTdhZDNjYmM3
+YmUgKEFSTTogT01BUDIrOiBncG1jOg0KPnVwZGF0ZSBncG1jX2h3ZWNjX2JjaF9jYXBhYmxlKCkg
+Zm9yIG5ldyBwbGF0Zm9ybXMgYW5kIEVDQyBzY2hlbWVzKQ0KPkNjOiA8c3RhYmxlQHZnZXIua2Vy
+bmVsLm9yZz4gIyAzLjE1LngrDQo+U2lnbmVkLW9mZi1ieTogQ2hyaXN0b3BoIEZyaXR6IDxjaGYu
+ZnJpdHpAZ29vZ2xlbWFpbC5jb20+DQo+LS0tDQo+IGFyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy1u
+YW5kLmMgfCAgIDE4ICsrKysrKysrKystLS0tLS0tLQ0KPiAxIGZpbGUgY2hhbmdlZCwgMTAgaW5z
+ZXJ0aW9ucygrKSwgOCBkZWxldGlvbnMoLSkNCj4NCj5kaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFj
+aC1vbWFwMi9ncG1jLW5hbmQuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy1uYW5kLmMNCj5p
+bmRleCAxN2NkMzkzLi45MzkxNGQyIDEwMDY0NA0KPi0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIv
+Z3BtYy1uYW5kLmMNCj4rKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2dwbWMtbmFuZC5jDQo+QEAg
+LTUwLDYgKzUwLDE2IEBAIHN0YXRpYyBib29sIGdwbWNfaHdlY2NfYmNoX2NhcGFibGUoZW51bSBv
+bWFwX2VjYyBlY2Nfb3B0KQ0KPiAJCSBzb2NfaXNfb21hcDU0eHgoKSB8fCBzb2NfaXNfZHJhN3h4
+KCkpDQo+IAkJcmV0dXJuIDE7DQo+DQo+KwlpZiAoZWNjX29wdCA9PSBPTUFQX0VDQ19CQ0g0X0NP
+REVfSFdfREVURUNUSU9OX1NXIHx8DQo+KwkJIGVjY19vcHQgPT0gT01BUF9FQ0NfQkNIOF9DT0RF
+X0hXX0RFVEVDVElPTl9TVykgew0KPisJCWlmIChjcHVfaXNfb21hcDI0eHgoKSkNCj4rCQkJcmV0
+dXJuIDA7DQo+KwkJZWxzZSBpZiAoY3B1X2lzX29tYXAzNjMwKCkgJiYgKEdFVF9PTUFQX1JFVklT
+SU9OKCkgPT0gMCkpDQo+KwkJCXJldHVybiAwOw0KPisJCWVsc2UNCj4rCQkJcmV0dXJuIDE7DQo+
+Kwl9DQo+Kw0KPiAJLyogT01BUDN4eHggZG8gbm90IGhhdmUgRUxNIGVuZ2luZSwgc28gY2Fubm90
+IHN1cHBvcnQgRUNDIHNjaGVtZXMNCj4gCSAqIHdoaWNoIHJlcXVpcmUgSC9XIGJhc2VkIEVDQyBl
+cnJvciBkZXRlY3Rpb24gKi8NCj4gCWlmICgoY3B1X2lzX29tYXAzNHh4KCkgfHwgY3B1X2lzX29t
+YXAzNjMwKCkpICYmDQo+QEAgLTU3LDE0ICs2Nyw2IEBAIHN0YXRpYyBib29sIGdwbWNfaHdlY2Nf
+YmNoX2NhcGFibGUoZW51bSBvbWFwX2VjYyBlY2Nfb3B0KQ0KPiAJCSAoZWNjX29wdCA9PSBPTUFQ
+X0VDQ19CQ0g4X0NPREVfSFcpKSkNCj4gCQlyZXR1cm4gMDsNCj4NCj4tCS8qDQo+LQkgKiBGb3Ig
+bm93LCBhc3N1bWUgNC1iaXQgbW9kZSBpcyBvbmx5IHN1cHBvcnRlZCBvbiBPTUFQMzYzMCBFUzEu
+eCwgeD49MQ0KPi0JICogYW5kIEFNMzN4eCBkZXJpdmF0ZXMuIE90aGVyIGNoaXBzIG1heSBiZSBh
+ZGRlZCBpZiBjb25maXJtZWQgdG8gd29yay4NCj4tCSAqLw0KPi0JaWYgKChlY2Nfb3B0ID09IE9N
+QVBfRUNDX0JDSDRfQ09ERV9IV19ERVRFQ1RJT05fU1cpICYmDQo+LQkgICAgKCFjcHVfaXNfb21h
+cDM2MzAoKSB8fCAoR0VUX09NQVBfUkVWSVNJT04oKSA9PSAwKSkpDQo+LQkJcmV0dXJuIDA7DQo+
+LQ0KPiAJLyogbGVnYWN5IHBsYXRmb3JtcyBzdXBwb3J0IG9ubHkgSEFNMSAoMS1iaXQgSGFtbWlu
+ZykgRUNDIHNjaGVtZSAqLw0KPiAJaWYgKGVjY19vcHQgPT0gT01BUF9FQ0NfSEFNMV9DT0RFX0hX
+KQ0KPiAJCXJldHVybiAxOw0KPi0tDQo+MS43LjEwLjQNCj4NClRoYW5rcyBtdWNoIGZvciB0aGlz
+IGZpeC4NClJldmlld2VkLWJ5OiBQZWtvbiBHdXB0YSA8cGVrb25AdGkuY29tPg0KDQoNCndpdGgg
+cmVnYXJkcywgcGVrb24NCg==
