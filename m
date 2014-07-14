@@ -1,61 +1,80 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 0/5] OMAP Mailbox framework adoption & DT support
-Date: Mon, 14 Jul 2014 10:58:04 -0500
-Message-ID: <53C3FE0C.4080502@ti.com>
-References: <1405116252-53612-1-git-send-email-s-anna@ti.com> <CAPdLdq=ZnPBQiGVbKOk8G5soP=uPYpT7mEjigpR=W1Hc4btV3g@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
+Date: Mon, 14 Jul 2014 09:23:24 -0700
+Message-ID: <20140714162324.GF20068@atomide.com>
+References: <1404894932-26677-3-git-send-email-lokeshvutla@ti.com>
+ <20140709091232.GJ28884@atomide.com>
+ <53BD0C43.1090002@ti.com>
+ <20140709100914.GL28884@atomide.com>
+ <53BD1AF8.2060609@ti.com>
+ <20140709105055.GP28884@atomide.com>
+ <53BD1FC3.6050500@ti.com>
+ <20140709110051.GQ28884@atomide.com>
+ <53BD2249.2080808@ti.com>
+ <53C3ED02.7020206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPdLdq=ZnPBQiGVbKOk8G5soP=uPYpT7mEjigpR=W1Hc4btV3g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Markus Mayer <markus.mayer-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Device Tree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42427 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755970AbaGNQYu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 12:24:50 -0400
+Content-Disposition: inline
+In-Reply-To: <53C3ED02.7020206@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Keerthy <a0393675@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-Hi Markus,
-
-On 07/11/2014 06:15 PM, Markus Mayer wrote:
-> On 11 July 2014 15:04, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
->> Hi,
->>
->> This is a refresh of the OMAP Mailbox framework adoption & DT support
->> series [1], to work with the revised OMAP mailbox DT/hwmod cleanup
->> series [2].
->>
->> The series has one less patch than the previous series, with the patch
->> "mailbox/omap: add a custom of_xlate function" squashed into the OMAP
->> mailbox framework adaptation patch. The first 3 patches deal with the
->> OMAP DT bindings and parse support like previous series, and the last
->> 2 patches deal with the mailbox framework adaptation. The testing is
->> also done with the updated v8 version of mailbox framework [3] from
->> Jassi Brar, no changes are required for the v7 to v8 update.
->>
->> The AM335 PM suspend series [4] which relies on this series also does
->> not require any changes.
+* Lokesh Vutla <lokeshvutla@ti.com> [140714 07:47]:
+> Hi Tony,
+> On Wednesday 09 July 2014 04:36 PM, Keerthy wrote:
+> > On Wednesday 09 July 2014 04:30 PM, Tony Lindgren wrote:
+> >> * Keerthy <a0393675@ti.com> [140709 03:59]:
+> >>> On Wednesday 09 July 2014 04:20 PM, Tony Lindgren wrote:
+> >>>> * Keerthy <a0393675@ti.com> [140709 03:39]:
+> >>>>> On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
+> >>>>>> * Keerthy <a0393675@ti.com> [140709 02:36]:
+> >>>>>>> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
+> >>>>>>>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
+> >>>>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+> >>>>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> >>>>>>>>> @@ -249,6 +249,7 @@
+> >>>>>>>>>                       regulator-min-microvolt = <1050000>;
+> >>>>>>>>>                       regulator-max-microvolt = <1050000>;
+> >>>>>>>>>                       regulator-boot-on;
+> >>>>>>>>> +                    regulator-always-on;
+> >>>>>>>>>                   };
+> >>>>>>>> Is this regulator really always on?
+> >>>>>>> This feeds on to RTC which is a free running clock. So i guess always on is
+> >>>>>>> justified no?
+> >>>>>> Well the dts entries should describe the hardware. If the
+> >>>>>> regulator can be enabled and disabled, we should not claim it's
+> >>>>>> always on.
+> >>>>>  From the PMIC perspective every regulator can be enabled and
+> >>>>> disabled. From a Board perspective there are some which need
+> >>>>> to be always on. For Ex: SMPS123 which feeds on to the MPU.
+> >>>> Right, and we already have regulator-boot-on for those. Or are
+> >>>> you seeing some issue with that?
+> >>> regulator-boot-on describes that at boot a particular regulator is on.
+> >>> It does not guarantee that it will be on for the rest of the time. The
+> >>> regulator framework can go ahead and disable it if no one has requested
+> >>> for it. In case of RTC we do not want that to happen.
+> >> That's a bug in the RTC driver then. The driver should request a
+> >> regulator if it's specified.
 > 
-> May I ask what branch this series is based upon? I tried a number of
-> branches (3.16-rcX, 3.15, linux-next), and the series won't apply to
-> any of them (other than patch 1/5, which does apply fine, but that
-> also contains no code).
+> In my experiments I observed that when RTC regulator is switched
+> off and switched on, there is an abort while accessing RTC registers.
 
-There are couple of dependent preparatory series. You probably missed
-the following in the cover letter.
-> The series depends on the OMAP mailbox cleanup series [5] and the
-> refreshed OMAP mailbox DT/hwmod cleanup series [2].
+Right, then you know you have the right regulator :)
 
-As long as you pick the two dependent series, they apply fine on any of
-the 3.16-rcs. I have posted all the series based on 3.16-rc2. Here's a
-merged branch for your reference (not for pulling though, it has one
-additional commit to allow me to test on OMAP2)
-https://github.com/sumananna/mailbox/commits/submit/3.16-rc2-omap-mbox-v8-fwk-v2
+> After discussing with hardware team, it is confirmed that this
+> LDO9 regulator powering RTC cannot be turned off when
+> SoC is active and expected to be always on.
 
-The last 2 patches in the series also depend on the mailbox framework
-patches from Jassi to not throw any build errors if enabled.
+Hmm but sounds like you already proved it can be idled? So
+the regulator really should be managed by the driver?
 
-regards
-Suman
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
