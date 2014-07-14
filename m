@@ -1,88 +1,72 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 05/11] Documentation: dt: add ti,am3353_wkup_m3 bindings
-Date: Mon, 14 Jul 2014 10:41:28 -0400
-Message-ID: <53C3EC18.70506@ti.com>
-References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-6-git-send-email-d-gerlach@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
+Date: Mon, 14 Jul 2014 20:15:22 +0530
+Message-ID: <53C3ED02.7020206@ti.com>
+References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-3-git-send-email-lokeshvutla@ti.com> <20140709091232.GJ28884@atomide.com> <53BD0C43.1090002@ti.com> <20140709100914.GL28884@atomide.com> <53BD1AF8.2060609@ti.com> <20140709105055.GP28884@atomide.com> <53BD1FC3.6050500@ti.com> <20140709110051.GQ28884@atomide.com> <53BD2249.2080808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52337 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52570 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754931AbaGNOlz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Jul 2014 10:41:55 -0400
-In-Reply-To: <1405047349-15101-6-git-send-email-d-gerlach@ti.com>
+	id S1754642AbaGNOp7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Jul 2014 10:45:59 -0400
+In-Reply-To: <53BD2249.2080808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Keerthy <a0393675@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-On Thursday 10 July 2014 10:55 PM, Dave Gerlach wrote:
-> Add the device tree bindings document for am3353 wkup_m3.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> CC: Ohad Ben-Cohen <ohad@wizery.com>
-> CC: Benoit Cousson <bcousson@baylibre.com>
-> ---
-Looks like you missed to copy device tree list and maintainers.
-As Tony suggested, split up the series and send the wkup_m3 related
-patches separately along with bindings and mark the DT folks on email.
+Hi Tony,
+On Wednesday 09 July 2014 04:36 PM, Keerthy wrote:
+> On Wednesday 09 July 2014 04:30 PM, Tony Lindgren wrote:
+>> * Keerthy <a0393675@ti.com> [140709 03:59]:
+>>> On Wednesday 09 July 2014 04:20 PM, Tony Lindgren wrote:
+>>>> * Keerthy <a0393675@ti.com> [140709 03:39]:
+>>>>> On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
+>>>>>> * Keerthy <a0393675@ti.com> [140709 02:36]:
+>>>>>>> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
+>>>>>>>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
+>>>>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>>>> @@ -249,6 +249,7 @@
+>>>>>>>>>                       regulator-min-microvolt = <1050000>;
+>>>>>>>>>                       regulator-max-microvolt = <1050000>;
+>>>>>>>>>                       regulator-boot-on;
+>>>>>>>>> +                    regulator-always-on;
+>>>>>>>>>                   };
+>>>>>>>> Is this regulator really always on?
+>>>>>>> This feeds on to RTC which is a free running clock. So i guess always on is
+>>>>>>> justified no?
+>>>>>> Well the dts entries should describe the hardware. If the
+>>>>>> regulator can be enabled and disabled, we should not claim it's
+>>>>>> always on.
+>>>>>  From the PMIC perspective every regulator can be enabled and
+>>>>> disabled. From a Board perspective there are some which need
+>>>>> to be always on. For Ex: SMPS123 which feeds on to the MPU.
+>>>> Right, and we already have regulator-boot-on for those. Or are
+>>>> you seeing some issue with that?
+>>> regulator-boot-on describes that at boot a particular regulator is on.
+>>> It does not guarantee that it will be on for the rest of the time. The
+>>> regulator framework can go ahead and disable it if no one has requested
+>>> for it. In case of RTC we do not want that to happen.
+>> That's a bug in the RTC driver then. The driver should request a
+>> regulator if it's specified.
 
->  .../bindings/remoteproc/wkup_m3_rproc.txt          | 46 ++++++++++++++++++++++
->  1 file changed, 46 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
+In my experiments I observed that when RTC regulator is switched off and switched on, there is an abort while
+accessing RTC registers.
+After discussing with hardware team, it is confirmed that this LDO9 regulator powering RTC cannot be turned off when
+SoC is active and expected to be always on.
+
+Thanks and regards,
+Lokesh
+
 > 
-> diff --git a/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
-> new file mode 100644
-> index 0000000..e9dd909
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/remoteproc/wkup_m3_rproc.txt
-> @@ -0,0 +1,46 @@
-> +Wakeup M3 Remote Proc Driver
-> +=====================
-> +
-> +TI AMx3 Family devices use a Cortex M3 co-processor to help with various
-> +low power tasks that cannot be controlled from the MPU. The CM3 requires
-> +a firmware binary to accomplish this and communicates with the MPU through
-> +IPC registers present in the SoCs control module. The wkup_m3 remoteproc
-> +driver handles the loading of the firmware and exposes an API to
-> +communicate with the wkup_m3 through the use of the IPC registers and a
-> +mailbox.
-> +
-> +Wkup M3 Device Node:
-> +====================
-> +A wkup_m3 device node is used to represent a wakeup M3 IP instance within
-> +a SoC. The sub-mailboxes are represented as child node of this parent node.
-> +
-> +Required properties:
-> +--------------------
-> +- compatible:		Should be "ti,am3353-wkup-m3" for AM33xx SoCs
-> +- reg:			Contains the wkup_m3 register address ranges for
-> +			umem, dmem, and ipc-regs.
-> +- reg-names:		Names for reg addresses given above
-> +- interrupts:		Contains the interrupt information for the wkup_m3
-> +			interrupt that signals the MPU.
-> +- ti,hwmods:		Name of the hwmod associated with the mailbox
-> +- ti,no-reset-on-init:	Reset is handled after fw has been loaded, not at
-> +			init of hwmod.
-> +- mbox-names:		Name of the mbox channel for the IPC framework
-> +- mbox:			Phandle used by IPC framework to get correct mbox
-> +			channel for communication.
-> +
-> +Example:
-> +--------
-> +/* AM33xx */
-> +wkup_m3: wkup_m3@44d00000 {
-> +	compatible = "ti,am3353-wkup-m3";
-> +	reg = <0x44d00000 0x4000
-> +	       0x44d80000 0x2000
-> +	       0x44e11324 0x0024>;
-> +	reg-names = "m3_umem", "m3_dmem", "ipc_regs";
-> +	interrupts = <78>;
-> +	ti,hwmods = "wkup_m3";
-> +	ti,no-reset-on-init;
-> +	mbox-names = "wkup_m3";
-> +	mbox = <&mailbox &mbox_wkupm3>;
-> +};
+> Okay.
+> 
+>>
+>> Regards,
+>>
+>> Tony
 > 
 
