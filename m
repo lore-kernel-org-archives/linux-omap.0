@@ -1,95 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume
- callbacks for clkevent device
-Date: Mon, 14 Jul 2014 04:15:36 -0700
-Message-ID: <20140714111536.GC20068@atomide.com>
+Subject: Re: [PATCH v4 11/11] ARM: OMAP2+: AM33XX: Hookup AM33XX PM code into
+ OMAP builds
+Date: Mon, 14 Jul 2014 04:21:21 -0700
+Message-ID: <20140714112121.GD20068@atomide.com>
 References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
- <1405047349-15101-4-git-send-email-d-gerlach@ti.com>
+ <1405047349-15101-12-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51588 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61101 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753894AbaGNLRC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 07:17:02 -0400
+	with ESMTP id S1753869AbaGNLWr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 07:22:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1405047349-15101-4-git-send-email-d-gerlach@ti.com>
+In-Reply-To: <1405047349-15101-12-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 
 * Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> With all the requisite changes in place we can now enable the basic
+> PM support for AM33xx. This patch updates the various OMAP files
+> to enable suspend-resume on AM33xx.
 > 
-> OMAP timer code registers two timers - one as clocksource
-> and one as clockevent. Since AM33XX has only one usable timer
-> in the WKUP domain one of the timers needs suspend-resume
-> support to restore the configuration to pre-suspend state.
+> Because the suspend resume functionality is different on AM33xx
+> than other OMAP platforms due to the need for M3 firmware and an
+> IPC channel to be in place, separate PM ops are used instead of
+> omap_pm_ops. These are now set using omap2_common_suspend_init
+> so the AM33xx can make a decision at runtime to enable suspend based
+> on the availabilty of aforementioned requirements.
 > 
-> commit adc78e6 (timekeeping: Add suspend and resume
-> of clock event devices) introduced .suspend and .resume
-> callbacks for clock event devices. Leverages these
-> callbacks to have AM33XX clockevent timer which is
-> in not in WKUP domain to behave properly across system
-> suspend.
-> 
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 > Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 > ---
 > v3->v4:
-> 	Only use for am33xx soc now.
+> 	Updated for rproc usage now.
 > 
->  arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
+>  arch/arm/mach-omap2/Kconfig  |  1 +
+>  arch/arm/mach-omap2/Makefile |  2 ++
+>  arch/arm/mach-omap2/common.h |  9 +++++++++
+>  arch/arm/mach-omap2/io.c     |  1 +
+>  arch/arm/mach-omap2/pm.h     |  5 +++++
+>  arch/arm/mach-omap2/sram.c   | 10 +++++++++-
+>  arch/arm/mach-omap2/sram.h   |  2 ++
+>  7 files changed, 29 insertions(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 43d03fb..6fc1748 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
->  	}
->  }
->  
-> +static void omap_clkevt_suspend(struct clock_event_device *unused)
-> +{
-> +	struct omap_hwmod *oh;
-> +
-> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
-> +	if (!oh)
-> +		return;
-> +
-> +	omap_hwmod_idle(oh);
-> +}
-> +
-> +static void omap_clkevt_resume(struct clock_event_device *unused)
-> +{
-> +	struct omap_hwmod *oh;
-> +
-> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
-> +	if (!oh)
-> +		return;
-> +
-> +	omap_hwmod_enable(oh);
-> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
-> +}
-> +
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 1c1ed73..f8a56e5 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -59,6 +59,7 @@ config SOC_AM33XX
+>  	select ARCH_OMAP2PLUS
+>  	select ARCH_HAS_OPP
+>  	select ARM_CPU_SUSPEND if PM
+> +	select WKUP_M3_RPROC if PM
 
-This is going to make moving the timer code into drivers one step
-tougher to do. And you don't need to look up the hwmod entry every
-time, just initialize it during the init.
-
-> +	if (soc_is_am33xx()) {
-> +		clockevent_gpt.suspend = omap_clkevt_suspend;
-> +		clockevent_gpt.resume = omap_clkevt_resume;
-> +	}
-> +
-
-Maybe try to set up things so we initialize the SoC specific
-timer suspend and resume functions in mach-omap2/timer.c
-in a way where eventually the device driver can easily use
-them?
+You should not do a select in Kconfig for a driver,
+that will lead into various randconfig build errors
+at some point. It's probably best to make the PM code
+depend on the WKUP_M3_RPROC driver instead.
 
 Regards,
 
-Tony
+Tony 
