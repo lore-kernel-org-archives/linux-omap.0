@@ -1,45 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 00/11] ARM: OMAP2+: AM33XX: Add suspend-resume support
-Date: Mon, 14 Jul 2014 04:24:12 -0700
-Message-ID: <20140714112412.GE20068@atomide.com>
-References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH v2] ARM: OMAP2+: l2c: squelch warning dump on power control setting
+Date: Mon, 14 Jul 2014 18:43:46 +0530
+Message-ID: <d081bdbeebec0e7f2a292a11513f96375aa35bd4.1405343188.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34662 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753680AbaGNLZi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 07:25:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56253 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755523AbaGNNOi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Jul 2014 09:14:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>
 
-* Dave Gerlach <d-gerlach@ti.com> [140710 19:58]:
-> Hello,
-> 
-> This series adds suspend/resume support for am335x. Version 3 of this
-> series can be found at [1]. I apologize for the large delay between this
-> and the previous revision. This code has been heavily refined
-> since the last version based on the various comments received for v3. The
-> major change from previous version is moving all wkup_m3 code into a
-> remoteproc based driver. The new driver handles all IPC and fw loading
-> and exposes a small API to be used by PM code to achieve low power states.
+On OMAP SOCs using PL310 controllers, power_ctrl register is not
+accessible from non-secure software even on PL310 versions which
+support it. The secure code takes care of setting it up correctly
+and power transitions are proven on these devices.
 
-Great, this is nice for all the am335x users. I made few comments
-on the series that should be quite simple to fix up.
+For example, AM437x has L2C-310 version r3p3 and ROM code on that
+device does not support writing to L2C-310 power control register.
+The L2C driver, however, tries writing to this register for all
+revisions >= r3p0.
 
-Then please split up your next version of this series into the
-following independet patches:
+This leads to a warning dump on boot which leads most users to believe
+that L2 cache is non-functional.
 
-1. Changes to the EDMA driver for suspend and resume support
+Since the problem is understood, and cannot be addressed through
+software, replace the warning with a pr_info() while maintaining the
+WARN_ON() for other truly unexpected scenarios.
 
-2. Patches to add the rproc driver
+Reported-by: Nishanth Menon <nm@ti.com>
+Tested-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+Only description updated since v1
 
-3. SoC related changes to enable PM support
+ arch/arm/mach-omap2/omap4-common.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Regards,
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 326cd98..9139729 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -188,6 +188,10 @@ static void omap4_l2c310_write_sec(unsigned long val, unsigned reg)
+ 		smc_op = OMAP4_MON_L2X0_PREFETCH_INDEX;
+ 		break;
+ 
++	case L310_POWER_CTRL:
++		pr_info_once("OMAP L2C310: ROM does not support power control setting\n");
++		return;
++
+ 	default:
+ 		WARN_ONCE(1, "OMAP L2C310: ignoring write to reg 0x%x\n", reg);
+ 		return;
+-- 
+1.7.10.1
 
-Tony
