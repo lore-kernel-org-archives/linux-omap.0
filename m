@@ -1,86 +1,52 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RESEND PATCH 5/8] ARM: dts: dra7xx-clocks: Add missing clocks for second PCIe PHY instance
-Date: Mon, 14 Jul 2014 16:12:20 +0530
-Message-ID: <1405334543-25509-6-git-send-email-kishon@ti.com>
-References: <1405334543-25509-1-git-send-email-kishon@ti.com>
+Subject: [RESEND PATCH 0/8] arm: dts: dra7: Add PCIe data and PCIe PHY data
+Date: Mon, 14 Jul 2014 16:12:15 +0530
+Message-ID: <1405334543-25509-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60781 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754494AbaGNKnd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Jul 2014 06:43:33 -0400
-In-Reply-To: <1405334543-25509-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org, tony@atomide.com, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: kishon@ti.com, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>
+Cc: kishon@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-Added missing clocks used by second instance of PCIe PHY.
-The documention for this nodes can be found @ ../bindings/clock/ti/gate.txt.
+[1] is split into separate series in order for individual subsystem
+Maintainers to pick up the patches. This series handles the PCIe
+dt data for DRA7.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Kumar Gala <galak@codeaurora.org>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/dra7xx-clocks.dtsi |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+This series has better commit logs than the previous one modified as
+suggested by Tero.
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index fe5db55..b48f18b 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1173,6 +1173,14 @@
- 		ti,bit-shift = <8>;
- 	};
- 
-+	optfclk_pciephy2_32khz: optfclk_pciephy2_32khz@4a0093b8 {
-+		compatible = "ti,gate-clock";
-+		clocks = <&sys_32k_ck>;
-+		#clock-cells = <0>;
-+		reg = <0x13b8>;
-+		ti,bit-shift = <8>;
-+	};
-+
- 	optfclk_pciephy_div: optfclk_pciephy_div@4a00821c {
- 		compatible = "ti,divider-clock";
- 		clocks = <&apll_pcie_ck>;
-@@ -1191,6 +1199,14 @@
- 		ti,bit-shift = <9>;
- 	};
- 
-+	optfclk_pciephy2_clk: optfclk_pciephy2_clk@4a0093b8 {
-+		compatible = "ti,gate-clock";
-+		clocks = <&apll_pcie_ck>;
-+		#clock-cells = <0>;
-+		reg = <0x13b8>;
-+		ti,bit-shift = <9>;
-+	};
-+
- 	optfclk_pciephy1_div_clk: optfclk_pciephy1_div_clk@4a0093b0 {
- 		compatible = "ti,gate-clock";
- 		clocks = <&optfclk_pciephy_div>;
-@@ -1199,6 +1215,14 @@
- 		ti,bit-shift = <10>;
- 	};
- 
-+	optfclk_pciephy2_div_clk: optfclk_pciephy2_div_clk@4a0093b8 {
-+		compatible = "ti,gate-clock";
-+		clocks = <&optfclk_pciephy_div>;
-+		#clock-cells = <0>;
-+		reg = <0x13b8>;
-+		ti,bit-shift = <10>;
-+	};
-+
- 	apll_pcie_clkvcoldo: apll_pcie_clkvcoldo {
- 		#clock-cells = <0>;
- 		compatible = "fixed-factor-clock";
+[1] -> https://lkml.org/lkml/2014/5/29/258
+
+Keerthy (2):
+  ARM: dts: dra7xx-clocks: Add divider table to optfclk_pciephy_div
+    clock
+  ARM: dts: dra7xx-clocks: Change the parent of apll_pcie_in_clk_mux to
+    dpll_pcie_ref_m2ldo_ck
+
+Kishon Vijay Abraham I (6):
+  ARM: dts: dra7xx-clocks: Add missing 32KHz clocks used for PHY
+  ARM: dts: dra7xx-clocks: rename pcie clocks to accommodate second PHY
+    instance
+  ARM: dts: dra7xx-clocks: Add missing clocks for second PCIe PHY
+    instance
+  ARM: dts: dra7: Add dt data for PCIe PHY control module
+  ARM: dts: dra7: Add dt data for PCIe PHY
+  ARM: dts: dra7: Add dt data for PCIe controller
+
+ arch/arm/boot/dts/dra7.dtsi          |  127 ++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |   39 ++++++++++-
+ 2 files changed, 163 insertions(+), 3 deletions(-)
+
 -- 
 1.7.9.5
-
