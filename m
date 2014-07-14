@@ -1,120 +1,90 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [RESEND PATCH 8/8] ARM: dts: dra7: Add dt data for PCIe controller
-Date: Mon, 14 Jul 2014 16:12:23 +0530
-Message-ID: <1405334543-25509-9-git-send-email-kishon@ti.com>
-References: <1405334543-25509-1-git-send-email-kishon@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: l2c: squelch warning dump on power control
+ setting
+Date: Mon, 14 Jul 2014 16:16:21 +0530
+Message-ID: <53C3B4FD.9040806@ti.com>
+References: <20140707110249.GO28884@atomide.com> <53BA8983.3030803@ti.com> <20140707121512.GT3705@n2100.arm.linux.org.uk> <20140707123925.GW28884@atomide.com> <20140707134008.GU3705@n2100.arm.linux.org.uk> <20140707151024.GJ5582@saruman.home> <53BB7980.2060909@ti.com> <20140708082948.GE28884@atomide.com> <20140709092531.GK28884@atomide.com> <53BD34FD.5070005@ti.com> <20140709123950.GV3705@n2100.arm.linux.org.uk> <53BD4E9A.7060903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1405334543-25509-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kishon-l0cyMroinI0@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39164 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752967AbaGNKqv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 06:46:51 -0400
+In-Reply-To: <53BD4E9A.7060903@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, balbi@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-Added dt data for PCIe controller. This node contains dt data for
-both the DRA7 part of designware controller and for the designware core.
-The documention for this node can be found @ ../bindings/pci/ti-pci.txt.
+On Wednesday 09 July 2014 07:45 PM, Santosh Shilimkar wrote:
+> On Wednesday 09 July 2014 08:39 AM, Russell King - ARM Linux wrote:
+>> On Wed, Jul 09, 2014 at 05:56:37PM +0530, Sekhar Nori wrote:
+>>> On Wednesday 09 July 2014 02:55 PM, Tony Lindgren wrote:
+>>>> I guess no more comments. Took a look at the patch again, Sekhar, can
+>>>> you please update the description with what has been discovered in this
+>>>> thread and repost?
+>>>
+>>> How does the following sound:
+>>>
+>>> ---
+>>> AM437x has L2C-310 version r3p2 and ROM code on that device does not
+>>> support writing to L2C-310 power control register. The L2C driver,
+>>> however, tries writing to this register for all revisions >= r3p0.
+>>>
+>>> This leads to a warning dump on boot which leads most users to believe
+>>> that L2 cache is non-functional.
+>>>
+> Power controller register setting doesn't make cache controller
+> functional but it is for really clock gating and standby.
+> So please reword, the above statement accordingly.
 
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+I think you misunderstood the context here. I am not claiming that power
+controller setting (or the absence of it) is  making the L2 cache
+non-functional. The line addresses the "Why?" part of why I am creating
+the patch - because the warning misleads people into thinking something
+went wrong with cache initialization when nothing is wrong really.
+
+> 
+>>> Since the problem is understood, and cannot be addressed through
+>>> software, replace the warning with a pr_info() while maintaining the
+>>> WARN_ON() for other truly unexpected scenarios.
+>>>
+> Instead of being vague here and below, I will just make it very simple as
+> below.
+> 
+> On OMAP SOCs using PL310 controllers, Power_ctrl register is not
+> accessible from non-secure software on PL310 versions which supports
+> it. The secure code takes care of setting it up correctly and the
+> power transitions are proven on these devices.
+> 
+> So lets add the ignore write check for PL310 Power_ctrl register
+> write.
+
+Since the description is already okayed by others, instead of changing
+it completely and starting a re-review, I just prepended your input into
+an opening paragraph and removed the last para on OMAP4. I will send out
+a v2 shortly with this description.
+
 ---
- arch/arm/boot/dts/dra7.dtsi |   69 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+On OMAP SOCs using PL310 controllers, power_ctrl register is not
+accessible from non-secure software on PL310 versions which supports
+it. The secure code takes care of setting it up correctly and the
+power transitions are proven on these devices.
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index cbaf47d..b6060d3 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -99,6 +99,75 @@
- 			};
- 		};
- 
-+		axi@0 {
-+			compatible = "simple-bus";
-+			#size-cells = <1>;
-+			#address-cells = <1>;
-+			ranges = <0x51000000 0x51000000 0x3000
-+				  0x0	     0x20000000 0x10000000>;
-+			pcie@51000000 {
-+				compatible = "ti,dra7-pcie";
-+				reg = <0x51000000 0x2000>, <0x51002000 0x14c>, <0x1000 0x2000>;
-+				reg-names = "rc_dbics", "ti_conf", "config";
-+				interrupts = <0 232 0x4>, <0 233 0x4>;
-+				#address-cells = <3>;
-+				#size-cells = <2>;
-+				device_type = "pci";
-+				ranges = <0x81000000 0 0          0x03000 0 0x00010000
-+					  0x82000000 0 0x20013000 0x13000 0 0xffed000>;
-+				#interrupt-cells = <1>;
-+				num-lanes = <1>;
-+				ti,hwmods = "pcie1";
-+				phys = <&pcie1_phy>;
-+				phy-names = "pcie-phy0";
-+				interrupt-map-mask = <0 0 0 7>;
-+				interrupt-map = <0 0 0 1 &pcie1_intc 1>,
-+						<0 0 0 2 &pcie1_intc 2>,
-+						<0 0 0 3 &pcie1_intc 3>,
-+						<0 0 0 4 &pcie1_intc 4>;
-+				pcie1_intc: interrupt-controller {
-+					interrupt-controller;
-+					#address-cells = <0>;
-+					#interrupt-cells = <1>;
-+				};
-+			};
-+		};
-+
-+		axi@1 {
-+			compatible = "simple-bus";
-+			#size-cells = <1>;
-+			#address-cells = <1>;
-+			ranges = <0x51800000 0x51800000 0x3000
-+				  0x0	     0x30000000 0x10000000>;
-+			status = "disabled";
-+			pcie@51000000 {
-+				compatible = "ti,dra7-pcie";
-+				reg = <0x51800000 0x2000>, <0x51802000 0x14c>, <0x1000 0x2000>;
-+				reg-names = "rc_dbics", "ti_conf", "config";
-+				interrupts = <0 355 0x4>, <0 356 0x4>;
-+				#address-cells = <3>;
-+				#size-cells = <2>;
-+				device_type = "pci";
-+				ranges = <0x81000000 0 0          0x03000 0 0x00010000
-+					  0x82000000 0 0x30013000 0x13000 0 0xffed000>;
-+				#interrupt-cells = <1>;
-+				num-lanes = <1>;
-+				ti,hwmods = "pcie2";
-+				phys = <&pcie2_phy>;
-+				phy-names = "pcie-phy0";
-+				interrupt-map-mask = <0 0 0 7>;
-+				interrupt-map = <0 0 0 1 &pcie2_intc 1>,
-+						<0 0 0 2 &pcie2_intc 2>,
-+						<0 0 0 3 &pcie2_intc 3>,
-+						<0 0 0 4 &pcie2_intc 4>;
-+				pcie2_intc: interrupt-controller {
-+					interrupt-controller;
-+					#address-cells = <0>;
-+					#interrupt-cells = <1>;
-+				};
-+			};
-+		};
-+
- 		cm_core_aon: cm_core_aon@4a005000 {
- 			compatible = "ti,dra7-cm-core-aon";
- 			reg = <0x4a005000 0x2000>;
--- 
-1.7.9.5
+For example, AM437x has L2C-310 version r3p3 and ROM code on that device
+does not support writing to L2C-310 power control register. The L2C
+driver, however, tries writing to this register for all revisions >= r3p0.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This leads to a warning dump on boot which leads most users to believe
+that L2 cache is non-functional.
+
+Since the problem is understood, and cannot be addressed through
+software, replace the warning with a pr_info() while maintaining the
+WARN_ON() for other truly unexpected scenarios.
+---
+
+Thanks,
+Sekhar
+
