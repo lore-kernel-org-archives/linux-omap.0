@@ -1,55 +1,102 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ASoC: omap-dmic: Use devm_clk_get
-Date: Mon, 14 Jul 2014 19:02:54 +0100
-Message-ID: <20140714180254.GK6800@sirena.org.uk>
-References: <20140711041406.GA4207@himangi-Dell>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v4 04/11] ARM: OMAP2+: Use pdata-quirks for wkup_m3 deassert_hardreset
+Date: Mon, 14 Jul 2014 13:48:47 -0500
+Message-ID: <53C4260F.6010202@ti.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-5-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qo8f1a4rgWw9S/zY"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:37240 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbaGNSDW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 14:03:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20140711041406.GA4207@himangi-Dell>
+Received: from bear.ext.ti.com ([192.94.94.41]:42221 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751943AbaGNStM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Jul 2014 14:49:12 -0400
+In-Reply-To: <1405047349-15101-5-git-send-email-d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Himangi Saraogi <himangi774@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
+To: Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Benoit Cousson <bcousson@baylibre.com>
 
+Hi Dave,
 
---Qo8f1a4rgWw9S/zY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 07/10/2014 09:55 PM, Dave Gerlach wrote:
+> Use pdata-quirks to reset the wkup_m3 during boot.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+>  arch/arm/mach-omap2/pdata-quirks.c    | 12 ++++++++++++
+>  include/linux/platform_data/wkup_m3.h | 17 +++++++++++++++++
+>  2 files changed, 29 insertions(+)
+>  create mode 100644 include/linux/platform_data/wkup_m3.h
+> 
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> index 90c88d4..8e4a541 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -17,6 +17,7 @@
+>  
+>  #include <linux/platform_data/pinctrl-single.h>
+>  #include <linux/platform_data/iommu-omap.h>
+> +#include <linux/platform_data/wkup_m3.h>
+>  
+>  #include "am35xx.h"
+>  #include "common.h"
+> @@ -255,6 +256,13 @@ static void __init nokia_n900_legacy_init(void)
+>  }
+>  #endif /* CONFIG_ARCH_OMAP3 */
+>  
+> +#ifdef CONFIG_SOC_AM33XX
+> +static struct wkup_m3_platform_data wkup_m3_data = {
+> +	.reset_name = "wkup_m3",
+> +	.deassert_reset = omap_device_deassert_hardreset,
 
-On Fri, Jul 11, 2014 at 09:44:06AM +0530, Himangi Saraogi wrote:
-> This patch introduces the use of managed interfaces like devm_clk_get
-> and does away with the clk_puts in the probe and remove functions. A
-> label is also done away with.
+Probably need to add assert_reset too
 
-Applied, thanks.
+> +};
+> +#endif
+> +
+>  #ifdef CONFIG_ARCH_OMAP4
+>  static void __init omap4_sdp_legacy_init(void)
+>  {
+> @@ -348,6 +356,10 @@ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+>  	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
+>  		       &am35xx_emac_pdata),
+>  #endif
+> +#ifdef CONFIG_SOC_AM33XX
+> +	OF_DEV_AUXDATA("ti,am3353-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
+> +		       &wkup_m3_data),
+> +#endif
+>  #ifdef CONFIG_ARCH_OMAP4
+>  	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a100040, "4a100040.pinmux", &pcs_pdata),
+>  	OF_DEV_AUXDATA("ti,omap4-padconf", 0x4a31e040, "4a31e040.pinmux", &pcs_pdata),
+> diff --git a/include/linux/platform_data/wkup_m3.h b/include/linux/platform_data/wkup_m3.h
+> new file mode 100644
+> index 0000000..07282bd
+> --- /dev/null
+> +++ b/include/linux/platform_data/wkup_m3.h
+> @@ -0,0 +1,17 @@
+> +/*
+> + * omap wkup_m3: platform data
+> + *
+> + * Copyright (C) 2014 Texas Instruments, Inc.
+> + *
+> + * Dave Gerlach <d-gerlach@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
 
---Qo8f1a4rgWw9S/zY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+protect against double inclusion..
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+regards
+Suman
 
-iQIcBAEBAgAGBQJTxBtLAAoJELSic+t+oim9lL4QAJQj1PO3rOsvvnoH3gbAfN45
-CD77ibMHnzFxhgmsIMux1jgfCf6A7DGWs/lu/+0S2Rkfq+jL3k3O/2WQf/J0iiR2
-LHwvXczSJONtFVO08/wNYvzFbRin89qBlitbWcyPi2v7670xIxOWDbQay9dF/tuq
-3vYJ3wUL2qB370zClrE1tSNHphTyUPR3GOSoi/I6MZKcObcUWYSxgQ5y4VZ3GdEi
-jMxwkASHOGTMZOpVq3e9ZSYD4yIml1Wdhar1xoA5alLfiwMIV9R0MD047iAq5Kv9
-y6aQrpfZUKTo25T6k+zhA2FQ1+evIb908iw/U2kiojvcHcpGjgkUkv64hdyWCB8e
-f+pZZRQTV7yrj0t0MmMQGeWe6kxdXjn3LRdRYek9jCZE89kb8Klc610/JC7xRBSy
-GBWUyjzIEOQuv6TtNScaqV2qgXWsVwBIcISjTXVSxyZ/cAyOIcEjVvFeYqcD7gjS
-+yjQz9KKki2wWYY+iJFoRoMokGRtsZ0tF4sIICJjPidnwPA2HQYTEg78P4iud0OM
-ENn40ps0dWW5GD81VelUWDjF01EBNsqkGdvvNUt7qr7q7HWcQzZBFzJvjmDkSiaI
-A6YhGkkWt1JnAEHMR0gAtLM0bgqODRvMwFJ4FRfBJCUSVK25HdgX2od3kQJ97eaS
-MQLgOdyZS3tSzhzpE2qG
-=46HW
------END PGP SIGNATURE-----
+> +struct wkup_m3_platform_data {
+> +	const char *reset_name;
+> +
+> +	int (*deassert_reset)(struct platform_device *pdev, const char *name);
+> +};
+> 
 
---Qo8f1a4rgWw9S/zY--
