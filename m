@@ -1,43 +1,59 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH 01/12] ARM: OMAP2+: Remove non working OMAP HDMI audio
- initialization
-Date: Tue, 15 Jul 2014 22:25:41 +0300
-Message-ID: <53C58035.4050709@ti.com>
-References: <cover.1403807781.git.jsarha@ti.com> <b0764a3af8181db55db046d6139119def363e8eb.1403807781.git.jsarha@ti.com> <20140707114625.GT28884@atomide.com> <53BB9E08.7090802@ti.com> <20140708080945.GZ28884@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Tue, 15 Jul 2014 19:56:10 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1407151919310.15869@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com> <20140707080238.GF28884@atomide.com> <alpine.DEB.2.02.1407141719560.22162@utopia.booyaka.com> <20140715060431.GH20068@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58167 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932850AbaGOTZ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jul 2014 15:25:59 -0400
-In-Reply-To: <20140708080945.GZ28884@atomide.com>
+Received: from [74.50.51.50] ([74.50.51.50]:59589 "EHLO utopia.booyaka.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S933253AbaGOT4L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Jul 2014 15:56:11 -0400
+In-Reply-To: <20140715060431.GH20068@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On 07/08/2014 11:09 AM, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [140708 00:32]:
->> Hi Tony,
->>
->> On 07/07/2014 02:46 PM, Tony Lindgren wrote:
->>> * Jyri Sarha <jsarha@ti.com> [140626 12:26]:
->>>> This code is not working currently and it can be removed. There is a
->>>> conflict in sharing resources with the actual HDMI driver and with
->>>> the ASoC HDMI audio DAI driver.
->>>
->>> Is this OK to queue for v3.17 or do we need this for v3.16-rc series?
->>
->> Jyri is away currently, but I think it would be great if this patch goes in
->> for 3.16. The patch does not introduce regression since the OMAP4/5 HDMI is in
->> non working state in the kernel so removing the platform device right now will
->> ease up the merger of the new and working code.
->
-> OK, will apply it into omap-for-v3.16/fixes as it just removes broken code.
->
+On Mon, 14 Jul 2014, Tony Lindgren wrote:
 
-Thanks Tony and Peter!
+> * Paul Walmsley <paul@pwsan.com> [140714 10:32]:
+> > On Mon, 7 Jul 2014, Tony Lindgren wrote:
+> > 
+> > > With v3.16-rc4 the PM features for omap3 should be working
+> > > finally for device tree based booting. At lest beaglexm and
+> > > 3xxevm should work.
+> > > 
+> > > Maybe you are using legacy booting path to idle the UARTs still?
+> > > 
+> > > FYI, I'm doing this to find the UART entries:
+> > > 
+> > > uarts=$(find /sys/class/tty/ttyO*/device/power/ -type d)
+> > > for uart in $uarts; do
+> > >         echo 3000 > $uart/autosuspend_delay_ms
+> > > done
+> > > 
+> > > uarts=$(find /sys/class/tty/ttyO*/power/ -type d)
+> > > for uart in $uarts; do
+> > >         echo enabled > $uart/wakeup
+> > >         echo auto > $uart/control
+> > > done
+> > > 
+> > > echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
+> > 
+> > OK thanks, I'll take a close look at it.  It's not using the legacy paths, 
+> > but based on a glance at the 37xxevm logs, it looks like the bus address 
+> > of the UART isn't right.
+> 
+> Hmm for which UART? I'm using ttyO2 on my 37xxevm FYI, it can be selected
+> on the board based on some switch settings. I may have patched my u-boot
+> for that too but don't remember for sure.
+
+Sorry, I should have been more specific.  The path name that the script 
+here was using to write to the 'wakeup' file contained the base address.  
+It's probably just best to set them via /sys/class/tty as you do.
 
 
+
+- Paul
