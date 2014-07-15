@@ -1,42 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] ARM: DTS: omap5-uevm: Enable audio (for 3.17)
-Date: Tue, 15 Jul 2014 00:21:51 -0700
-Message-ID: <20140715072151.GM20068@atomide.com>
-References: <1404991443-14239-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: omap2+: gpmc-nand: Use dynamic
+ platform_device_alloc()
+Date: Tue, 15 Jul 2014 00:25:45 -0700
+Message-ID: <20140715072544.GA28715@atomide.com>
+References: <1401891875-27843-1-git-send-email-lisovy@merica.cz>
+ <53BFEA6A.4020501@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44999 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52461 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757712AbaGOHXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 03:23:15 -0400
+	with ESMTP id S932436AbaGOH1L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 03:27:11 -0400
 Content-Disposition: inline
-In-Reply-To: <1404991443-14239-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <53BFEA6A.4020501@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Rostislav Lisovy <lisovy@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Pekon Gupta <pekon@ti.com>, Michal Vokac <vokac.m@gmail.com>, Michal Sojka <sojkam1@fel.cvut.cz>, Rostislav Lisovy <lisovy@merica.cz>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [140710 04:26]:
-> Hi,
+* Roger Quadros <rogerq@ti.com> [140711 06:47]:
+> On 06/04/2014 05:24 PM, Rostislav Lisovy wrote:
+> > GPMC controller supports up to 8 memory devices connected to it.
+> > Since there is one statically allocated "struct platform_device
+> > gpmc_nand_device" it is not possible to configure the system to
+> > use more than one NAND device connected to the GPMC. This
+> > modification makes it possible to use up to 8 NAND devices
+> > connected to the GPMC controller.
+> > 
+> > Signed-off-by: Rostislav Lisovy <lisovy@merica.cz>
 > 
-> This set is to enable audio (finally) on the omap5-uevm. We have been waiting
-> for the palmas 32K clock driver to make it to upstream, which it did and it is
-> already in linux-next.
+> pushed to git@github.com:rogerq/linux.git	for-v3.17/gpmc-omap
 > 
-> With the three patch we can have audio working on omap5-uevm with linux-next.
+> Tony,
 > 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (3):
->   ARM: DTS: omap5-uevm: Enable palmas clk32kgaudio clock
->   ARM: DTS: omap5-uevm: Add node for twl6040 audio codec
->   ARM: DTS: omap5-uevm: Enable basic audio (McPDM <-> twl6040)
-> 
->  arch/arm/boot/dts/omap5-uevm.dts | 68 ++++++++++++++++++++++++++++++++++++----
->  1 file changed, 62 insertions(+), 6 deletions(-)
+> You can please pull all omap-gpmc patches for 3.17 from there. Thanks.
 
-Applying into omap-for-v3.17/dt thanks.
+OK so just this one fix, merging into omap-for-v3.17/fixes-not-urgent.
+
+Regards,
 
 Tony
