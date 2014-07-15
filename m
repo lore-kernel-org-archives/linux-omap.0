@@ -1,81 +1,79 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv2 06/10] ARM: DRA7: hwmod_data: Add mailbox hwmod data
-Date: Tue, 15 Jul 2014 11:57:12 -0500
-Message-ID: <53C55D68.8050308@ti.com>
-References: <1405115083-52977-1-git-send-email-s-anna@ti.com> <1405115083-52977-7-git-send-email-s-anna@ti.com> <20140715133013.GA2605@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 0/5] Add Video Processing Front End Support
+Date: Tue, 15 Jul 2014 12:56:47 -0500
+Message-ID: <1405447012-5340-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56521 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753394AbaGOQ5n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 12:57:43 -0400
-In-Reply-To: <20140715133013.GA2605@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: hans.verkuil@cisco.com, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, robh+dt@kernel.org
+Cc: linux@arm.linux.org.uk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org, archit@ti.com, detheridge@ti.com, sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi Tony,
+Hi all,
 
-On 07/15/2014 08:30 AM, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [140711 14:47]:
->> Add the hwmod data for the 13 instances of the system mailbox
->> IP in DRA7 SoC. The patch is needed for performing a soft-reset
->> while configuring the respective mailbox instance, otherwise is
->> a non-essential change for functionality. The modules are smart
->> idled on reset, and the IP module mode is hardware controlled.
->>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 305 ++++++++++++++++++++++++++++++
->>  1 file changed, 305 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> index 20b4398..e35f5b1 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> @@ -939,6 +939,194 @@ static struct omap_hwmod dra7xx_i2c5_hwmod = {
->>  };
->>  
->>  /*
->> + * 'mailbox' class
->> + *
->> + */
->> +
->> +static struct omap_hwmod_class_sysconfig dra7xx_mailbox_sysc = {
->> +	.rev_offs	= 0x0000,
->> +	.sysc_offs	= 0x0010,
->> +	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
->> +			   SYSC_HAS_SOFTRESET),
->> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
->> +	.sysc_fields	= &omap_hwmod_sysc_type2,
->> +};
->> +
->> +static struct omap_hwmod_class dra7xx_mailbox_hwmod_class = {
->> +	.name	= "mailbox",
->> +	.sysc	= &dra7xx_mailbox_sysc,
->> +};
-> 
-> Hmm I'm seeing just the following MAILBOX_SYSCONFIG in at least
-> am57xx TRM:
-> 
-> 31:4	RESERVED
-> 3:2	SIDLEMODE	0 = force-idle 1 = no-idle, 2 = smart-idle, 3 = reserved
-> 1	RESERVED
-> 0	SOFTRESET
-> 
-> So it seems that SYSC_HAS_RESET_STATUS above is wrong? Can you guys
-> please check.
+the following patches add suport for AM43xx's Video Processing
+Front End (VPFE). Full documentation is available at [1] chapter 14.
 
-The same SOFTRESET bit is used for both triggering the softreset and
-reading the reset done status. Once you write a 1 to trigger a reset,
-the bit will be cleared once the reset is done. This is no different
-from OMAP4. The logic in _wait_softreset_complete in omap_hwmod.c was
-already designed to work with this properly.
+This driver has been tested with linux-next from yesterday, plus my
+(already queued) am437x starter kit patches, plus these patches, plus
+the sensor driver which, saddly enough, we're not allowed to release :-(
 
-regards
-Suman
+This driver has almost full v4l2-compliance with only 2 failures (I'll
+take hints on how to properly fix them) as below:
+
+		fail: v4l2-compliance.cpp(419): !doioctl(node2,
+			VIDIOC_S_PRIORITY, &prio)
+	test VIDIOC_G/S_PRIORITY: FAIL
+
+		fail: v4l2-test-formats.cpp(319): pixelformat !=
+				V4L2_PIX_FMT_JPEG && colorspace ==
+				V4L2_COLORSPACE_JPEG
+		fail: v4l2-test-formats.cpp(418):
+				testColorspace(pix.pixelformat, pix.colorspace)
+	test VIDIOC_G_FMT: FAIL
+
+I have also tested with gst-launch using fbdevsink and I can see my
+ugly mug just fine.
+
+Please give this a thorough review and let me know of any problems
+which need to be sorted out and I'll try to help out as time allows.
+
+cheers
+
+[1] http://www.ti.com/lit/pdf/spruhl7
+
+Benoit Parrot (4):
+  Media: platform: Add ti-vpfe driver for AM437x device
+  arm: omap: hwmod: add hwmod entries for AM437x VPFE
+  arm: boot: dts: am4372: add vpfe DTS entries
+  arm: dts: am43x-epos: Add VPFE DTS entries
+
+Darren Etheridge (1):
+  ARM: dts: am437x-sk-evm: add vpfe support and ov2659 sensor
+
+ arch/arm/boot/dts/am4372.dtsi                     |   16 +
+ arch/arm/boot/dts/am437x-sk-evm.dts               |   63 +
+ arch/arm/boot/dts/am43x-epos-evm.dts              |   54 +
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c        |   56 +
+ arch/arm/mach-omap2/prcm43xx.h                    |    3 +-
+ drivers/media/platform/Kconfig                    |    1 +
+ drivers/media/platform/Makefile                   |    2 +
+ drivers/media/platform/ti-vpfe/Kconfig            |   12 +
+ drivers/media/platform/ti-vpfe/Makefile           |    2 +
+ drivers/media/platform/ti-vpfe/am437x_isif.c      | 1053 +++++++++
+ drivers/media/platform/ti-vpfe/am437x_isif.h      |  355 +++
+ drivers/media/platform/ti-vpfe/am437x_isif_regs.h |  144 ++
+ drivers/media/platform/ti-vpfe/vpfe_capture.c     | 2478 +++++++++++++++++++++
+ drivers/media/platform/ti-vpfe/vpfe_capture.h     |  263 +++
+ 14 files changed, 4501 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/platform/ti-vpfe/Kconfig
+ create mode 100644 drivers/media/platform/ti-vpfe/Makefile
+ create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.c
+ create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.h
+ create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif_regs.h
+ create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.c
+ create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.h
+
+-- 
+2.0.0.390.gcb682f8
