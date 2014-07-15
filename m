@@ -1,65 +1,139 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 5/5] ARM: dts: am437x-sk-evm: add vpfe support and
- ov2659 sensor
-Date: Tue, 15 Jul 2014 13:02:04 -0500
-Message-ID: <20140715180204.GB5098@saruman.home>
-References: <1405447012-5340-1-git-send-email-balbi@ti.com>
- <1405447012-5340-6-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume callbacks
+ for clkevent device
+Date: Tue, 15 Jul 2014 14:10:55 -0500
+Message-ID: <53C57CBF.2090507@ti.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-4-git-send-email-d-gerlach@ti.com> <20140714111536.GC20068@atomide.com> <53C3EB1F.2010109@ti.com> <53C4166F.1050003@ti.com> <20140715064807.GJ20068@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s2ZSL+KKDSLx8OML"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54446 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41304 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755817AbaGOSCv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jul 2014 14:02:51 -0400
-Content-Disposition: inline
-In-Reply-To: <1405447012-5340-6-git-send-email-balbi@ti.com>
+	id S932850AbaGOTLZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Jul 2014 15:11:25 -0400
+In-Reply-To: <20140715064807.GJ20068@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: hans.verkuil@cisco.com, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, robh+dt@kernel.org, linux@arm.linux.org.uk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org, archit@ti.com, detheridge@ti.com, sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
---s2ZSL+KKDSLx8OML
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/15/2014 01:48 AM, Tony Lindgren wrote:
+> * Dave Gerlach <d-gerlach@ti.com> [140714 10:44]:
+>> Santosh, Tony,
+>>
+>> On 07/14/2014 09:37 AM, Santosh Shilimkar wrote:
+>>> On Monday 14 July 2014 07:15 AM, Tony Lindgren wrote:
+>>>> * Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
+>>>>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>>>>
+>>>>> OMAP timer code registers two timers - one as clocksource
+>>>>> and one as clockevent. Since AM33XX has only one usable timer
+>>>>> in the WKUP domain one of the timers needs suspend-resume
+>>>>> support to restore the configuration to pre-suspend state.
+>>>>>
+>>>>> commit adc78e6 (timekeeping: Add suspend and resume
+>>>>> of clock event devices) introduced .suspend and .resume
+>>>>> callbacks for clock event devices. Leverages these
+>>>>> callbacks to have AM33XX clockevent timer which is
+>>>>> in not in WKUP domain to behave properly across system
+>>>>> suspend.
+>>>>>
+>>>>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>>>> ---
+>>>>> v3->v4:
+>>>>> 	Only use for am33xx soc now.
+>>>>>
+>>>>>   arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
+>>>>>   1 file changed, 28 insertions(+)
+>>>>>
+>>>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>>>>> index 43d03fb..6fc1748 100644
+>>>>> --- a/arch/arm/mach-omap2/timer.c
+>>>>> +++ b/arch/arm/mach-omap2/timer.c
+>>>>> @@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+>>>>>   	}
+>>>>>   }
+>>>>>
+>>>>> +static void omap_clkevt_suspend(struct clock_event_device *unused)
+>>>>> +{
+>>>>> +	struct omap_hwmod *oh;
+>>>>> +
+>>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
+>>>>> +	if (!oh)
+>>>>> +		return;
+>>>>> +
+>>>>> +	omap_hwmod_idle(oh);
+>>>>> +}
+>>>>> +
+>>>>> +static void omap_clkevt_resume(struct clock_event_device *unused)
+>>>>> +{
+>>>>> +	struct omap_hwmod *oh;
+>>>>> +
+>>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
+>>>>> +	if (!oh)
+>>>>> +		return;
+>>>>> +
+>>>>> +	omap_hwmod_enable(oh);
+>>>>> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+>>>>> +}
+>>>>> +
+>>>>
+>>>> This is going to make moving the timer code into drivers one step
+>>>> tougher to do. And you don't need to look up the hwmod entry every
+>>>> time, just initialize it during the init.
+>>
+>> Yes you are right about looking up only at init I need to change that. I
+>> agree that this makes moving the timers harder but I'm not sure there's any
+>> way around this. I attempted to use the omap_device layer here but there is
+>> no device at all created here, it does not hook into the normal PM layer
+>> through omap_device. This clock must be shut off as it sits in the
+>> peripheral power domain and any active clock within the domain will prevent
+>> suspend from happening, so we end up with a platform specific issue here. It
+>> seems that the only way I can get to the clock is through the hwmod.
+>
+> It's best to register these kind of functions as platform_data
+> in pdata-quirks.c auxdata. That way when this moves to live
+> in drivers/clocksource the driver does not need to know anything
+> about the interconnect specific registers.
+>
+> Also, please don't use Linux generic names here.. Maybe use
+> omap_clkevt_idle/unidle? The linux suspend and resume hooks
+> and runtime PM could all use these functions then.
 
-Hi,
+Ok to both of the above, I definitely like your suggestion better.
 
-On Tue, Jul 15, 2014 at 12:56:52PM -0500, Felipe Balbi wrote:
-> From: Darren Etheridge <detheridge@ti.com>
->=20
-> Adding necessary dts nodes to enable vpfe and ov2659 sensor on the correc=
-t i2c
+Regards,
+Dave
 
-clearly this doesn't add ov2659 sensor support because we can't release
-the driver for it. I'll fix the patch subject and commit log locally.
+>
+>>>>> +	if (soc_is_am33xx()) {
+>>>>> +		clockevent_gpt.suspend = omap_clkevt_suspend;
+>>>>> +		clockevent_gpt.resume = omap_clkevt_resume;
+>>>>> +	}
+>>>>> +
+>>>>
+>>>> Maybe try to set up things so we initialize the SoC specific
+>>>> timer suspend and resume functions in mach-omap2/timer.c
+>>>> in a way where eventually the device driver can easily use
+>>>> them?
+>>>>
+>>> +1. I had similar comments on the previous version too.
+>>
+>> This was my attempt to make things specific to only am335x based on
+>> Santosh's previous comments as last time they were populated for every
+>> device even when unneeded. These are not standard suspend/resume handlers,
+>> they are specific to clock event. I know there will always need to be at
+>> least some code here for the early timer init based on previous timer
+>> cleanup series I've seen, so perhaps I could hook it in there when the time
+>> comes?
+>
+> Well just adding a minimal include/linux/platform_data/timer-omap.h
+> to pass those function pointers to the driver should do the trick.
+>
+> Regards,
+>
+> Tony
+>
 
---=20
-balbi
-
---s2ZSL+KKDSLx8OML
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTxWycAAoJEIaOsuA1yqREKS0QAIhBMunn466IygPdJGKyabKw
-OOPcUH5CYwX6LZIpEbYJSZOuOTpTvjroeElK0C+7/Z/czGNCv6ctGmzLzrk+/ixo
-tZJ8wkYHfUE+MIv9jo0A8Z8+8nINloCz/j0+E9F2ULSt+PGBiXIb0gTAVjgJhne+
-eWD+CISm7KPF98mBHoERsco/hfmSoB3U2R1V4BL5wsQkdtccaXCa09TsKV2F2EnA
-ZWDKXPEILE0r+zrIl5PJOyTVfhFAmM7JvOY3ThiLU7xjS3RMLM6W0OCYLCaYblAT
-QEtdQ3qZuisPB6kuFrZSIzhcC9vtOtybzzN//bOBKfz5AxWo19HlEFjDd7D0/PxZ
-PeLRWXR/T9IEgRbfWov4pIDwvCqzDI7gWMGWixQgJqC7ZgQuvSiM+CRDj/rJZhRI
-kcgi5xwEJWDu7gd5iLYfautM2zhl0vn9nTULmHLQtWdHyYGXef58EkaBWfAJM4lT
-QIPOfu5BugbfAgPZiDgIgG2d/fimlJb3r1/GuNBsy35UDvUzG7UHxVafUd2rnaE8
-pfF7zVIE5gCKjE33XlPkMZGE/bKJe3hc90AVwjt6hpjZIRoetYF4Cx8HczJ8OE8B
-LmFAjsGmodpq4IJ6BQbZeU3Xi+EJw42vSFhaO3iPQsLrLsILEa5dIOlqfcy7AIks
-hIEl/jC62g49I7iEh9fm
-=gaRx
------END PGP SIGNATURE-----
-
---s2ZSL+KKDSLx8OML--
