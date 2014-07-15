@@ -1,122 +1,106 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 2/5] arm: omap: hwmod: add hwmod entries for AM437x VPFE
-Date: Tue, 15 Jul 2014 12:56:49 -0500
-Message-ID: <1405447012-5340-3-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 5/5] ARM: dts: am437x-sk-evm: add vpfe support and ov2659 sensor
+Date: Tue, 15 Jul 2014 12:56:52 -0500
+Message-ID: <1405447012-5340-6-git-send-email-balbi@ti.com>
 References: <1405447012-5340-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59297 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757274AbaGOR5w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 13:57:52 -0400
 In-Reply-To: <1405447012-5340-1-git-send-email-balbi@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: hans.verkuil@cisco.com, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, robh+dt@kernel.org
-Cc: linux@arm.linux.org.uk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org, archit@ti.com, detheridge@ti.com, sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org, Benoit Parrot <bparrot@ti.com>, Felipe Balbi <balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: hans.verkuil@cisco.com, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, robh+dt@kernel.org
+Cc: linux@arm.linux.org.uk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org, archit@ti.com, detheridge@ti.com, sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-From: Benoit Parrot <bparrot@ti.com>
+From: Darren Etheridge <detheridge@ti.com>
 
-HWMOD entries support for TI Dual Video Processing Front
-End (VPFE) (aka Dual cam) of AM43xx platform.
+Adding necessary dts nodes to enable vpfe and ov2659 sensor on the correct i2c
+bus and correct vpfe instance.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
 Signed-off-by: Darren Etheridge <detheridge@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 56 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm43xx.h             |  3 +-
- 2 files changed, 58 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am437x-sk-evm.dts | 63 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 63 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index fea01aa..bd9067e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -483,6 +483,44 @@ static struct omap_hwmod am43xx_dss_rfbi_hwmod = {
- 	},
- };
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 859ff3d..ca6b4fe 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -184,6 +184,46 @@
+ 		>;
+ 	};
  
-+static struct omap_hwmod_class_sysconfig am43xx_vpfe_sysc = {
-+	.rev_offs       = 0x0,
-+	.sysc_offs      = 0x104,
-+	.sysc_flags     = SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE,
-+	.idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+				MSTANDBY_FORCE | MSTANDBY_SMART | MSTANDBY_NO),
-+	.sysc_fields    = &omap_hwmod_sysc_type2,
-+};
++	vpfe0_pins_default: vpfe0_pins_default {
++		pinctrl-single,pins = <
++			0x1b0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_hd mode 0*/
++			0x1b4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_vd mode 0*/
++			0x1b8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_field mode 0*/
++			0x1bc (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_wen mode 0*/
++			0x1c0 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_pclk mode 0*/
++			0x1c4 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data8 mode 0*/
++			0x1c8 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data9 mode 0*/
++			0x208 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data0 mode 0*/
++			0x20c (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data1 mode 0*/
++			0x210 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data2 mode 0*/
++			0x214 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data3 mode 0*/
++			0x218 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data4 mode 0*/
++			0x21c (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data5 mode 0*/
++			0x220 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data6 mode 0*/
++			0x224 (PIN_INPUT_PULLUP | MUX_MODE0)  /* cam0_data7 mode 0*/
++		>;
++	};
 +
-+static struct omap_hwmod_class am43xx_vpfe_hwmod_class = {
-+	.name           = "vpfe",
-+	.sysc           = &am43xx_vpfe_sysc,
-+};
++	vpfe0_pins_sleep: vpfe0_pins_sleep {
++		pinctrl-single,pins = <
++			0x1b0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x1b4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x1b8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x1bc (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x1c0 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x1c4 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x1c8 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x208 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x20c (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x210 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x214 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x218 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x21c (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x220 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++			0x224 (DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
++		>;
++	};
 +
-+static struct omap_hwmod am43xx_vpfe0_hwmod = {
-+	.name           = "vpfe0",
-+	.class          = &am43xx_vpfe_hwmod_class,
-+	.clkdm_name     = "l3s_clkdm",
-+	.prcm           = {
-+		.omap4  = {
-+			.modulemode     = MODULEMODE_SWCTRL,
-+			.clkctrl_offs   = AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET,
-+		},
-+	},
-+};
-+
-+static struct omap_hwmod am43xx_vpfe1_hwmod = {
-+	.name           = "vpfe1",
-+	.class          = &am43xx_vpfe_hwmod_class,
-+	.clkdm_name     = "l3s_clkdm",
-+	.prcm           = {
-+		.omap4  = {
-+			.modulemode     = MODULEMODE_SWCTRL,
-+			.clkctrl_offs   = AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET,
-+		},
-+	},
-+};
-+
- /* Interfaces */
- static struct omap_hwmod_ocp_if am43xx_l3_main__l4_hs = {
- 	.master		= &am33xx_l3_main_hwmod,
-@@ -750,6 +788,22 @@ static struct omap_hwmod_ocp_if am43xx_l4_ls__dss_rfbi = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ 	cpsw_default: cpsw_default {
+ 		pinctrl-single,pins = <
+ 			/* Slave 1 */
+@@ -611,3 +655,22 @@
+ &wdt {
+ 	status = "okay";
  };
- 
-+static struct omap_hwmod_ocp_if am43xx_l3__vpfe0 = {
-+	.master         = &am33xx_l3_main_hwmod,
-+	.slave          = &am43xx_vpfe0_hwmod,
-+	.clk            = "l3_gclk",
-+	.flags          = OCPIF_SWSUP_IDLE,
-+	.user           = OCP_USER_MPU,
-+};
 +
-+static struct omap_hwmod_ocp_if am43xx_l3__vpfe1 = {
-+	.master         = &am33xx_l3_main_hwmod,
-+	.slave          = &am43xx_vpfe1_hwmod,
-+	.clk            = "l3_gclk",
-+	.flags          = OCPIF_SWSUP_IDLE,
-+	.user           = OCP_USER_MPU,
-+};
 +
- static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_wkup__synctimer,
- 	&am43xx_l4_ls__timer8,
-@@ -848,6 +902,8 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am43xx_l4_ls__dss,
- 	&am43xx_l4_ls__dss_dispc,
- 	&am43xx_l4_ls__dss_rfbi,
-+	&am43xx_l3__vpfe0,
-+	&am43xx_l3__vpfe1,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/prcm43xx.h b/arch/arm/mach-omap2/prcm43xx.h
-index ad7b3e9..8aa4c2c 100644
---- a/arch/arm/mach-omap2/prcm43xx.h
-+++ b/arch/arm/mach-omap2/prcm43xx.h
-@@ -143,5 +143,6 @@
- #define AM43XX_CM_PER_USB_OTG_SS1_CLKCTRL_OFFSET        0x0268
- #define AM43XX_CM_PER_USBPHYOCP2SCP1_CLKCTRL_OFFSET	0x05C0
- #define AM43XX_CM_PER_DSS_CLKCTRL_OFFSET		0x0a20
--
-+#define AM43XX_CM_PER_VPFE0_CLKCTRL_OFFSET		0x0068
-+#define AM43XX_CM_PER_VPFE1_CLKCTRL_OFFSET		0x0070
- #endif
++&vpfe0 {
++	status = "okay";
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&vpfe0_pins_default>;
++	pinctrl-1 = <&vpfe0_pins_sleep>;
++
++	/* Camera port */
++	port {
++		vpfe0_ep: endpoint {
++			/* remote-endpoint = <&sensor>; add once we have it */
++			if_type = <2>;
++			bus_width = <8>;
++			hdpol = <0>;
++			vdpol = <0>;
++		};
++	};
++};
 -- 
 2.0.0.390.gcb682f8
+
