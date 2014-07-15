@@ -1,28 +1,73 @@
-From: Jessica DeJongh <jdejongh1@augustaschools.org>
-Subject: {SPAM?} [Spam] ALERT
-Date: Tue, 15 Jul 2014 02:19:12 +0000
-Message-ID: <8BFA9E864ED275449872ADBAD4FD3551B0A19985@asdmbx.augustaschools.org>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
+Date: Tue, 15 Jul 2014 09:21:38 +0530
+Message-ID: <53C4A54A.1070500@ti.com>
+References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-3-git-send-email-lokeshvutla@ti.com> <20140709091232.GJ28884@atomide.com> <53BD0C43.1090002@ti.com> <20140709100914.GL28884@atomide.com> <53BD1AF8.2060609@ti.com> <20140709105055.GP28884@atomide.com> <53BD1FC3.6050500@ti.com> <20140709110051.GQ28884@atomide.com> <53BD2249.2080808@ti.com> <53C3ED02.7020206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx-4.its.maine.edu ([130.111.32.22]:34777 "EHLO
-	mx-4.its.maine.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932483AbaGODsO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 23:48:14 -0400
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:33180 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753577AbaGODxz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Jul 2014 23:53:55 -0400
+In-Reply-To: <53C3ED02.7020206@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-Dear Account holder:
+On Monday 14 July 2014 08:15 PM, Lokesh Vutla wrote:
+> Hi Tony,
+> On Wednesday 09 July 2014 04:36 PM, Keerthy wrote:
+>> On Wednesday 09 July 2014 04:30 PM, Tony Lindgren wrote:
+>>> * Keerthy <a0393675@ti.com> [140709 03:59]:
+>>>> On Wednesday 09 July 2014 04:20 PM, Tony Lindgren wrote:
+>>>>> * Keerthy <a0393675@ti.com> [140709 03:39]:
+>>>>>> On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
+>>>>>>> * Keerthy <a0393675@ti.com> [140709 02:36]:
+>>>>>>>> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
+>>>>>>>>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
+>>>>>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
+>>>>>>>>>> @@ -249,6 +249,7 @@
+>>>>>>>>>>                        regulator-min-microvolt = <1050000>;
+>>>>>>>>>>                        regulator-max-microvolt = <1050000>;
+>>>>>>>>>>                        regulator-boot-on;
+>>>>>>>>>> +                    regulator-always-on;
+>>>>>>>>>>                    };
+>>>>>>>>> Is this regulator really always on?
+>>>>>>>> This feeds on to RTC which is a free running clock. So i guess always on is
+>>>>>>>> justified no?
+>>>>>>> Well the dts entries should describe the hardware. If the
+>>>>>>> regulator can be enabled and disabled, we should not claim it's
+>>>>>>> always on.
+>>>>>>   From the PMIC perspective every regulator can be enabled and
+>>>>>> disabled. From a Board perspective there are some which need
+>>>>>> to be always on. For Ex: SMPS123 which feeds on to the MPU.
+>>>>> Right, and we already have regulator-boot-on for those. Or are
+>>>>> you seeing some issue with that?
+>>>> regulator-boot-on describes that at boot a particular regulator is on.
+>>>> It does not guarantee that it will be on for the rest of the time. The
+>>>> regulator framework can go ahead and disable it if no one has requested
+>>>> for it. In case of RTC we do not want that to happen.
+>>> That's a bug in the RTC driver then. The driver should request a
+>>> regulator if it's specified.
+> In my experiments I observed that when RTC regulator is switched off and switched on, there is an abort while
+> accessing RTC registers.
+> After discussing with hardware team, it is confirmed that this LDO9 regulator powering RTC cannot be turned off when
+> SoC is active and expected to be always on.
+As confirmed by the PMIC hardware team this regulator should be an always-on
+regulator.
 
-An Attempt has been made to login your Account from a new computer. For the security of your account, we are poised to open a query.  Please click on the link below to verify your login details.
+Acked-by: Keerthy <j-keerthy@ti.com>
+>
+> Thanks and regards,
+> Lokesh
+>
+>> Okay.
+>>
+>>> Regards,
+>>>
+>>> Tony
 
-http://outlookwe.2fh.co
-
-If clicking the link above does not work, copy and paste the URL in a new browser window instead.
-
-If you have received this mail in error, you do not need to take any action. If you do not click on the link, the address will not be added to your account.
-
-Sincerely,
-The Technical Support Team
