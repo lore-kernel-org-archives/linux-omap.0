@@ -1,139 +1,43 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume callbacks
- for clkevent device
-Date: Tue, 15 Jul 2014 14:10:55 -0500
-Message-ID: <53C57CBF.2090507@ti.com>
-References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-4-git-send-email-d-gerlach@ti.com> <20140714111536.GC20068@atomide.com> <53C3EB1F.2010109@ti.com> <53C4166F.1050003@ti.com> <20140715064807.GJ20068@atomide.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH 01/12] ARM: OMAP2+: Remove non working OMAP HDMI audio
+ initialization
+Date: Tue, 15 Jul 2014 22:25:41 +0300
+Message-ID: <53C58035.4050709@ti.com>
+References: <cover.1403807781.git.jsarha@ti.com> <b0764a3af8181db55db046d6139119def363e8eb.1403807781.git.jsarha@ti.com> <20140707114625.GT28884@atomide.com> <53BB9E08.7090802@ti.com> <20140708080945.GZ28884@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41304 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58167 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932850AbaGOTLZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jul 2014 15:11:25 -0400
-In-Reply-To: <20140715064807.GJ20068@atomide.com>
+	id S932850AbaGOTZ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Jul 2014 15:25:59 -0400
+In-Reply-To: <20140708080945.GZ28884@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, jyri.sarha@iki.fi
 
-On 07/15/2014 01:48 AM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [140714 10:44]:
->> Santosh, Tony,
+On 07/08/2014 11:09 AM, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [140708 00:32]:
+>> Hi Tony,
 >>
->> On 07/14/2014 09:37 AM, Santosh Shilimkar wrote:
->>> On Monday 14 July 2014 07:15 AM, Tony Lindgren wrote:
->>>> * Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
->>>>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>>>>
->>>>> OMAP timer code registers two timers - one as clocksource
->>>>> and one as clockevent. Since AM33XX has only one usable timer
->>>>> in the WKUP domain one of the timers needs suspend-resume
->>>>> support to restore the configuration to pre-suspend state.
->>>>>
->>>>> commit adc78e6 (timekeeping: Add suspend and resume
->>>>> of clock event devices) introduced .suspend and .resume
->>>>> callbacks for clock event devices. Leverages these
->>>>> callbacks to have AM33XX clockevent timer which is
->>>>> in not in WKUP domain to behave properly across system
->>>>> suspend.
->>>>>
->>>>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->>>>> ---
->>>>> v3->v4:
->>>>> 	Only use for am33xx soc now.
->>>>>
->>>>>   arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
->>>>>   1 file changed, 28 insertions(+)
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->>>>> index 43d03fb..6fc1748 100644
->>>>> --- a/arch/arm/mach-omap2/timer.c
->>>>> +++ b/arch/arm/mach-omap2/timer.c
->>>>> @@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
->>>>>   	}
->>>>>   }
->>>>>
->>>>> +static void omap_clkevt_suspend(struct clock_event_device *unused)
->>>>> +{
->>>>> +	struct omap_hwmod *oh;
->>>>> +
->>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
->>>>> +	if (!oh)
->>>>> +		return;
->>>>> +
->>>>> +	omap_hwmod_idle(oh);
->>>>> +}
->>>>> +
->>>>> +static void omap_clkevt_resume(struct clock_event_device *unused)
->>>>> +{
->>>>> +	struct omap_hwmod *oh;
->>>>> +
->>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
->>>>> +	if (!oh)
->>>>> +		return;
->>>>> +
->>>>> +	omap_hwmod_enable(oh);
->>>>> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
->>>>> +}
->>>>> +
->>>>
->>>> This is going to make moving the timer code into drivers one step
->>>> tougher to do. And you don't need to look up the hwmod entry every
->>>> time, just initialize it during the init.
+>> On 07/07/2014 02:46 PM, Tony Lindgren wrote:
+>>> * Jyri Sarha <jsarha@ti.com> [140626 12:26]:
+>>>> This code is not working currently and it can be removed. There is a
+>>>> conflict in sharing resources with the actual HDMI driver and with
+>>>> the ASoC HDMI audio DAI driver.
+>>>
+>>> Is this OK to queue for v3.17 or do we need this for v3.16-rc series?
 >>
->> Yes you are right about looking up only at init I need to change that. I
->> agree that this makes moving the timers harder but I'm not sure there's any
->> way around this. I attempted to use the omap_device layer here but there is
->> no device at all created here, it does not hook into the normal PM layer
->> through omap_device. This clock must be shut off as it sits in the
->> peripheral power domain and any active clock within the domain will prevent
->> suspend from happening, so we end up with a platform specific issue here. It
->> seems that the only way I can get to the clock is through the hwmod.
+>> Jyri is away currently, but I think it would be great if this patch goes in
+>> for 3.16. The patch does not introduce regression since the OMAP4/5 HDMI is in
+>> non working state in the kernel so removing the platform device right now will
+>> ease up the merger of the new and working code.
 >
-> It's best to register these kind of functions as platform_data
-> in pdata-quirks.c auxdata. That way when this moves to live
-> in drivers/clocksource the driver does not need to know anything
-> about the interconnect specific registers.
+> OK, will apply it into omap-for-v3.16/fixes as it just removes broken code.
 >
-> Also, please don't use Linux generic names here.. Maybe use
-> omap_clkevt_idle/unidle? The linux suspend and resume hooks
-> and runtime PM could all use these functions then.
 
-Ok to both of the above, I definitely like your suggestion better.
+Thanks Tony and Peter!
 
-Regards,
-Dave
-
->
->>>>> +	if (soc_is_am33xx()) {
->>>>> +		clockevent_gpt.suspend = omap_clkevt_suspend;
->>>>> +		clockevent_gpt.resume = omap_clkevt_resume;
->>>>> +	}
->>>>> +
->>>>
->>>> Maybe try to set up things so we initialize the SoC specific
->>>> timer suspend and resume functions in mach-omap2/timer.c
->>>> in a way where eventually the device driver can easily use
->>>> them?
->>>>
->>> +1. I had similar comments on the previous version too.
->>
->> This was my attempt to make things specific to only am335x based on
->> Santosh's previous comments as last time they were populated for every
->> device even when unneeded. These are not standard suspend/resume handlers,
->> they are specific to clock event. I know there will always need to be at
->> least some code here for the early timer init based on previous timer
->> cleanup series I've seen, so perhaps I could hook it in there when the time
->> comes?
->
-> Well just adding a minimal include/linux/platform_data/timer-omap.h
-> to pass those function pointers to the driver should do the trick.
->
-> Regards,
->
-> Tony
->
 
