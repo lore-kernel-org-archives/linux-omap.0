@@ -1,81 +1,74 @@
-From: Pascal Huerst <pascal.huerst@gmail.com>
-Subject: Re: gpio-omap: wakeup mask
-Date: Tue, 15 Jul 2014 15:27:34 +0200
-Message-ID: <53C52C46.60207@gmail.com>
-References: <53B3F687.5050502@gmail.com> <20140704072752.GC28884@atomide.com> <53BD1683.9030505@gmail.com> <20140709104142.GO28884@atomide.com> <53BD3950.60000@gmail.com> <20140709152441.GZ28884@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 06/10] ARM: DRA7: hwmod_data: Add mailbox hwmod data
+Date: Tue, 15 Jul 2014 06:30:13 -0700
+Message-ID: <20140715133013.GA2605@atomide.com>
+References: <1405115083-52977-1-git-send-email-s-anna@ti.com>
+ <1405115083-52977-7-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:45844 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758881AbaGON1i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 09:27:38 -0400
-In-Reply-To: <20140709152441.GZ28884@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24665 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758652AbaGONbn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 09:31:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1405115083-52977-7-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: santosh.shilimkar@ti.com, khilman@deeprootsystems.com, linus.walleij@linaro.org, gnurou@gmail.com, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-
-
-On 09.07.2014 17:24, Tony Lindgren wrote:
-> * Pascal Huerst <pascal.huerst@gmail.com> [140709 05:47]:
->> On 09.07.2014 12:41, Tony Lindgren wrote:
->> 
->>> If you just comment out the _gpio_rmw part above do things work
->>> as expected?
->> 
->> Yes. It only wakes up on gpio 6 not on gpio 11 anymore.
->> 
->>> Then if that works as expected, maybe write only some unused
->>> bits into wkup_en register and see if it still wakes to all
->>> events while it should not?
->> 
->> If I use the following testcode, everything works as expected:
->> 
->> //WARN(true, "WARN: bank->base = %08X\n", bank->base);
->> 
->> if (likely(!(bank->non_wakeup_gpios & gpio_bit))) { 
->> //_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0); 
->> writel(0xABC00000, base + bank->regs->wkup_en);
->> 
->> bank->context.wake_en = readl_relaxed(bank->base + 
->> bank->regs->wkup_en); printk("bank->base = %08X gpio = %i
->> bank->context->wake_en = %08X\n", bank->base, gpio,
->> bank->context.wake_en); }
+* Suman Anna <s-anna@ti.com> [140711 14:47]:
+> Add the hwmod data for the 13 instances of the system mailbox
+> IP in DRA7 SoC. The patch is needed for performing a soft-reset
+> while configuring the respective mailbox instance, otherwise is
+> a non-essential change for functionality. The modules are smart
+> idled on reset, and the IP module mode is hardware controlled.
 > 
-> Hmm weird. It sounds like something like the following is
-> happening:
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 305 ++++++++++++++++++++++++++++++
+>  1 file changed, 305 insertions(+)
 > 
-> 1. The first GPIO bank is always powered, and does not need to set 
-> wake-up events
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> index 20b4398..e35f5b1 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -939,6 +939,194 @@ static struct omap_hwmod dra7xx_i2c5_hwmod = {
+>  };
+>  
+>  /*
+> + * 'mailbox' class
+> + *
+> + */
+> +
+> +static struct omap_hwmod_class_sysconfig dra7xx_mailbox_sysc = {
+> +	.rev_offs	= 0x0000,
+> +	.sysc_offs	= 0x0010,
+> +	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
+> +			   SYSC_HAS_SOFTRESET),
+> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields	= &omap_hwmod_sysc_type2,
+> +};
+> +
+> +static struct omap_hwmod_class dra7xx_mailbox_hwmod_class = {
+> +	.name	= "mailbox",
+> +	.sysc	= &dra7xx_mailbox_sysc,
+> +};
 
-I dont think so. If I apply my hack (commenting the _gpio_rmw() call)
-and don't have a wakeup source in the dt, I have to reboot the system,
-sonce im not able to wake it up anymore. Or did I miss something?
+Hmm I'm seeing just the following MAILBOX_SYSCONFIG in at least
+am57xx TRM:
 
-> 2. When setting the GPIO wake-up events it seems that enabling any 
-> wake-up event for the first (16?) bits wakes up the system
-> 
-> You might want to check this with some spare GPIOs not in the first
-> bank and see if you need the wake-up events and if enabling some
-> bits enables more than one GPIO for wake-up events.
+31:4	RESERVED
+3:2	SIDLEMODE	0 = force-idle 1 = no-idle, 2 = smart-idle, 3 = reserved
+1	RESERVED
+0	SOFTRESET
 
-Im not sure if this makes sense, since only the first gpio bank can
-act as a wakeup source. So it should not be possible.
+So it seems that SYSC_HAS_RESET_STATUS above is wrong? Can you guys
+please check.
 
+Regards,
 
-thanks!
-pascal
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iEYEARECAAYFAlPFLEYACgkQo7eFcXQQ8U1NcACbBzQiKoU5MO/MLSdrjeg5CaAc
-YJcAn3bSthD4ByFOQ31jjOFI1F/HP4Lr
-=o4r2
------END PGP SIGNATURE-----
+Tony
