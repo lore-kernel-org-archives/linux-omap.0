@@ -1,41 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] arm: dra7xx: Add hwmod data for pcie1 and pcie2
- subsystems
-Date: Tue, 15 Jul 2014 20:13:45 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407152013310.21432@utopia.booyaka.com>
-References: <1403719366-9656-3-git-send-email-kishon@ti.com> <1404896567-32204-1-git-send-email-kishon@ti.com> <53BD2136.9030009@ti.com> <53C3B251.8000209@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap: hwmod: drop unnecessary list initialization
+Date: Tue, 15 Jul 2014 15:18:12 -0500
+Message-ID: <1405455492-1087-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <53C3B251.8000209@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37136 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757627AbaGOUSq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 16:18:46 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-On Mon, 14 Jul 2014, Kishon Vijay Abraham I wrote:
+ml->node and sl->node are currently initialized
+by means of INIT_LIST_HEAD(). That initialiation
+is followed by a list_add() call.
 
-> On Wednesday 09 July 2014 04:32 PM, Rajendra Nayak wrote:
-> > On Wednesday 09 July 2014 02:32 PM, Kishon Vijay Abraham I wrote:
-> >> Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
-> >>
-> >> Cc: Tony Lindgren <tony@atomide.com>
-> >> Cc: Russell King <linux@arm.linux.org.uk>
-> >> Cc: Paul Walmsley <paul@pwsan.com>
-> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >> ---
-> >> Changes from v1:
-> >> * changed the clock domain to "pcie_clkdm"
-> >> * Added PCIe as a slave port for l3_main.
-> > 
-> > Looks good to me,
-> > Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-> 
-> Paul,
-> 
-> Can you pick this one?
+Looking at what both these functions do we will have:
 
-Yep, queued for 3.17.
+	ml->node.next = &ml->node;
+	ml->node.prev = &ml->node;
+	oi->master->master_ports.next.prev = &ml->node;
+	ml->node.next = &oi->master->master_ports.next;
+	ml->node.prev = &oi->master->master_ports;
+	oi->master->master_ports.next = &ml->node;
 
-- Paul
+from this, it's clear that both INIT_LIST_HEAD() calls
+are unnecessary and can be safely removed.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+
+found by code inspection, boot tested on am437x SK on today's
+linux-next + pending patches.
+
+ arch/arm/mach-omap2/omap_hwmod.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 6c074f3..8194990 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2828,12 +2828,10 @@ static int __init _add_link(struct omap_hwmod_ocp_if *oi)
+ 	_alloc_links(&ml, &sl);
+ 
+ 	ml->ocp_if = oi;
+-	INIT_LIST_HEAD(&ml->node);
+ 	list_add(&ml->node, &oi->master->master_ports);
+ 	oi->master->masters_cnt++;
+ 
+ 	sl->ocp_if = oi;
+-	INIT_LIST_HEAD(&sl->node);
+ 	list_add(&sl->node, &oi->slave->slave_ports);
+ 	oi->slave->slaves_cnt++;
+ 
+-- 
+2.0.1.563.g66f467c
+
