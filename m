@@ -1,55 +1,28 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv2 0/5] OMAP Mailbox framework adoption & DT support
-Date: Mon, 14 Jul 2014 16:53:41 -0500
-Message-ID: <53C45165.2030707@ti.com>
-References: <1405116252-53612-1-git-send-email-s-anna@ti.com>	<CAPdLdq=ZnPBQiGVbKOk8G5soP=uPYpT7mEjigpR=W1Hc4btV3g@mail.gmail.com>	<53C3FE0C.4080502@ti.com> <CAPdLdqnd36QQ5v9-owiSFptbdkDxyYXjfRW=PdvaXKUr3B6_pQ@mail.gmail.com>
+From: Jessica DeJongh <jdejongh1@augustaschools.org>
+Subject: {SPAM?} [Spam] ALERT
+Date: Tue, 15 Jul 2014 02:19:12 +0000
+Message-ID: <8BFA9E864ED275449872ADBAD4FD3551B0A19985@asdmbx.augustaschools.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPdLdqnd36QQ5v9-owiSFptbdkDxyYXjfRW=PdvaXKUr3B6_pQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Markus Mayer <markus.mayer@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Pavel Machek <pavel@ucw.cz>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Device Tree List <devicetree@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx-4.its.maine.edu ([130.111.32.22]:34777 "EHLO
+	mx-4.its.maine.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932483AbaGODsO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Jul 2014 23:48:14 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Markus,
+Dear Account holder:
 
->
->> There are couple of dependent preparatory series. You probably missed
->> the following in the cover letter.
->>> The series depends on the OMAP mailbox cleanup series [5] and the
->>> refreshed OMAP mailbox DT/hwmod cleanup series [2].
->>
->> As long as you pick the two dependent series, they apply fine on any of
->> the 3.16-rcs. I have posted all the series based on 3.16-rc2. Here's a
->> merged branch for your reference (not for pulling though, it has one
->> additional commit to allow me to test on OMAP2)
->> https://github.com/sumananna/mailbox/commits/submit/3.16-rc2-omap-mbox-v8-fwk-v2
->>
->> The last 2 patches in the series also depend on the mailbox framework
->> patches from Jassi to not throw any build errors if enabled.
-> 
-> That worked. Thanks for the pointer. FYI, there is a minor merge
-> conflict rebasing the series onto 3.16-rc5.
-> 
-> Applying: ARM: OMAP2+: Avoid mailbox legacy device creation for DT-boot
-> Using index info to reconstruct a base tree...
-> M arch/arm/mach-omap2/devices.c
-> Falling back to patching base and 3-way merge...
-> Auto-merging arch/arm/mach-omap2/devices.c
-> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/devices.c
-> Failed to merge in the changes.
-> Patch failed at 0029 ARM: OMAP2+: Avoid mailbox legacy device creation
-> for DT-boot
-> 
-> That's due to this commit:
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=1d29a0722f6c38f79785c9ffb911730598de84e2
+An Attempt has been made to login your Account from a new computer. For the security of your account, we are poised to open a query.  Please click on the link below to verify your login details.
 
-OK, thanks, that's because of the removal of the line immediately above
-the omap_init_mbox() deletion. Anyway, that should be a trivial rebase
-and the patch contents should remain the same. Once OMAP3 becomes
-DT-boot only, I will submit a patch to delete the omap_init_mbox().
+http://outlookwe.2fh.co
 
-regards
-Suman
+If clicking the link above does not work, copy and paste the URL in a new browser window instead.
+
+If you have received this mail in error, you do not need to take any action. If you do not click on the link, the address will not be added to your account.
+
+Sincerely,
+The Technical Support Team
