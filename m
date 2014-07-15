@@ -1,83 +1,56 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH V2 2/2] ARM: dts: DRA7: Add node for RTC
-Date: Tue, 15 Jul 2014 09:37:17 +0530
-Message-ID: <53C4A8F5.2000302@ti.com>
-References: <1404894932-26677-3-git-send-email-lokeshvutla@ti.com> <20140709091232.GJ28884@atomide.com> <53BD0C43.1090002@ti.com> <20140709100914.GL28884@atomide.com> <53BD1AF8.2060609@ti.com> <20140709105055.GP28884@atomide.com> <53BD1FC3.6050500@ti.com> <20140709110051.GQ28884@atomide.com> <53BD2249.2080808@ti.com> <53C3ED02.7020206@ti.com> <20140714162324.GF20068@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Mon, 14 Jul 2014 23:04:31 -0700
+Message-ID: <20140715060431.GH20068@atomide.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
+ <20140707080238.GF28884@atomide.com>
+ <alpine.DEB.2.02.1407141719560.22162@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33609 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750741AbaGOEHv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jul 2014 00:07:51 -0400
-In-Reply-To: <20140714162324.GF20068@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:21812 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750938AbaGOGF5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 02:05:57 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1407141719560.22162@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Keerthy <a0393675@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-Hi Tony,
-On Monday 14 July 2014 09:53 PM, Tony Lindgren wrote:
-> * Lokesh Vutla <lokeshvutla@ti.com> [140714 07:47]:
->> Hi Tony,
->> On Wednesday 09 July 2014 04:36 PM, Keerthy wrote:
->>> On Wednesday 09 July 2014 04:30 PM, Tony Lindgren wrote:
->>>> * Keerthy <a0393675@ti.com> [140709 03:59]:
->>>>> On Wednesday 09 July 2014 04:20 PM, Tony Lindgren wrote:
->>>>>> * Keerthy <a0393675@ti.com> [140709 03:39]:
->>>>>>> On Wednesday 09 July 2014 03:39 PM, Tony Lindgren wrote:
->>>>>>>> * Keerthy <a0393675@ti.com> [140709 02:36]:
->>>>>>>>> On Wednesday 09 July 2014 02:42 PM, Tony Lindgren wrote:
->>>>>>>>>> * Lokesh Vutla <lokeshvutla@ti.com> [140709 01:37]:
->>>>>>>>>>> --- a/arch/arm/boot/dts/dra7-evm.dts
->>>>>>>>>>> +++ b/arch/arm/boot/dts/dra7-evm.dts
->>>>>>>>>>> @@ -249,6 +249,7 @@
->>>>>>>>>>>                       regulator-min-microvolt = <1050000>;
->>>>>>>>>>>                       regulator-max-microvolt = <1050000>;
->>>>>>>>>>>                       regulator-boot-on;
->>>>>>>>>>> +                    regulator-always-on;
->>>>>>>>>>>                   };
->>>>>>>>>> Is this regulator really always on?
->>>>>>>>> This feeds on to RTC which is a free running clock. So i guess always on is
->>>>>>>>> justified no?
->>>>>>>> Well the dts entries should describe the hardware. If the
->>>>>>>> regulator can be enabled and disabled, we should not claim it's
->>>>>>>> always on.
->>>>>>>  From the PMIC perspective every regulator can be enabled and
->>>>>>> disabled. From a Board perspective there are some which need
->>>>>>> to be always on. For Ex: SMPS123 which feeds on to the MPU.
->>>>>> Right, and we already have regulator-boot-on for those. Or are
->>>>>> you seeing some issue with that?
->>>>> regulator-boot-on describes that at boot a particular regulator is on.
->>>>> It does not guarantee that it will be on for the rest of the time. The
->>>>> regulator framework can go ahead and disable it if no one has requested
->>>>> for it. In case of RTC we do not want that to happen.
->>>> That's a bug in the RTC driver then. The driver should request a
->>>> regulator if it's specified.
->>
->> In my experiments I observed that when RTC regulator is switched
->> off and switched on, there is an abort while accessing RTC registers.
+* Paul Walmsley <paul@pwsan.com> [140714 10:32]:
+> On Mon, 7 Jul 2014, Tony Lindgren wrote:
 > 
-> Right, then you know you have the right regulator :)
-Once we switch it off it is expected, but then if it is *switched on* it is expected that we should be able to access
-registers. Here there is an abort accessing these registers. 
+> > With v3.16-rc4 the PM features for omap3 should be working
+> > finally for device tree based booting. At lest beaglexm and
+> > 3xxevm should work.
+> > 
+> > Maybe you are using legacy booting path to idle the UARTs still?
+> > 
+> > FYI, I'm doing this to find the UART entries:
+> > 
+> > uarts=$(find /sys/class/tty/ttyO*/device/power/ -type d)
+> > for uart in $uarts; do
+> >         echo 3000 > $uart/autosuspend_delay_ms
+> > done
+> > 
+> > uarts=$(find /sys/class/tty/ttyO*/power/ -type d)
+> > for uart in $uarts; do
+> >         echo enabled > $uart/wakeup
+> >         echo auto > $uart/control
+> > done
+> > 
+> > echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
 > 
->> After discussing with hardware team, it is confirmed that this
->> LDO9 regulator powering RTC cannot be turned off when
->> SoC is active and expected to be always on.
-> 
-> Hmm but sounds like you already proved it can be idled? So
-> the regulator really should be managed by the driver?
-Actually I adapted the driver to support a power regulator. Then I observed that if rtc is loaded as  a module
-there is an abort(  which is happening because the regulator is disabled once and re-enabled). So when we checked
-with the hardware team, they confirmed that ldo9 should not be disabled. 
+> OK thanks, I'll take a close look at it.  It's not using the legacy paths, 
+> but based on a glance at the 37xxevm logs, it looks like the bus address 
+> of the UART isn't right.
 
-Thanks and regards,
-Lokesh
-> 
-> Regards,
-> 
-> Tony
-> 
+Hmm for which UART? I'm using ttyO2 on my 37xxevm FYI, it can be selected
+on the board based on some switch settings. I may have patched my u-boot
+for that too but don't remember for sure.
 
+Regards,
+
+Tony
