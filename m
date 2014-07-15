@@ -1,97 +1,133 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 02/11] memory: emif: Move EMIF register defines to
- include/linux/
-Date: Mon, 14 Jul 2014 23:38:30 -0700
-Message-ID: <20140715063830.GI20068@atomide.com>
+Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume
+ callbacks for clkevent device
+Date: Mon, 14 Jul 2014 23:48:08 -0700
+Message-ID: <20140715064807.GJ20068@atomide.com>
 References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
- <1405047349-15101-3-git-send-email-d-gerlach@ti.com>
- <20140714111222.GB20068@atomide.com>
- <53C41696.6020004@ti.com>
+ <1405047349-15101-4-git-send-email-d-gerlach@ti.com>
+ <20140714111536.GC20068@atomide.com>
+ <53C3EB1F.2010109@ti.com>
+ <53C4166F.1050003@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31684 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757714AbaGOGj6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 02:39:58 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44036 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757874AbaGOGth (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Jul 2014 02:49:37 -0400
 Content-Disposition: inline
-In-Reply-To: <53C41696.6020004@ti.com>
+In-Reply-To: <53C4166F.1050003@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
 * Dave Gerlach <d-gerlach@ti.com> [140714 10:44]:
-> On 07/14/2014 06:12 AM, Tony Lindgren wrote:
-> >* Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
-> >>OMAP4 and AM33XX share the same EMIF controller IP. Although there
-> >>are significant differences in the IP integration due to which
-> >>AM33XX can't reuse the EMIF driver DVFS similar to OMAP4,
-> >>it can definitely benefit by reusing the EMIF related macros
-> >>defined in drivers/memory/emif.h.
-> >>
-> >>In the current OMAP PM framework the PM code resides under
-> >>arch/arm/mach-omap2/. To enable reuse of the register defines move
-> >>the register defines in the emif header file to include/linux so that
-> >>both the EMIF driver and the AM33XX PM code can benefit.
-> >>
-> >>Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> >>Reviewed-by: Russ Dill <russ.dill@ti.com>
-> >>Acked-by: Santosh Shililmar <santosh.shilimkar@ti.com>
-> >>Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> >>---
-> >>v3->v4:
-> >>patch unchanged from original:
-> >>	http://www.spinics.net/lists/linux-omap/msg95314.html
-> >>
-> >>  drivers/memory/emif.h   | 543 +---------------------------------------------
-> >>  include/linux/ti_emif.h | 558 ++++++++++++++++++++++++++++++++++++++++++++++++
-> >
-> >So far we've seen that exposing hardware registers like this
-> >will lead into various drivers misusing them. I think a better
-> >solution is to implement few targeted functions that allow
-> >sharing code between the platform idle code and memory driver.
-> >
-> >Maybe you can have the shared functions in in something like
-> >drivers/memory/ti-emif.c that's always built in? The idle
-> >code won't need any of that early on.
+> Santosh, Tony,
 > 
-> Well the reason it was done this way was to utilize all of the addresses of
-> EMIF register in the ASM sleep code to do relative addressing from the EMIF
-> base address. The ASM sleep code (patch 9) needs to save and restore emif
-> context and set and unset self refresh in emif. The issues will come from
-> the ASM being copied to and running from SRAM without the ability to access
-> code in DDR (because we are shutting the EMIF off), so we would need to copy
-> these functions as well and have to worry about any issues we introduce by
-> relocating c code. Is it worth the added maintenance burden?
+> On 07/14/2014 09:37 AM, Santosh Shilimkar wrote:
+> >On Monday 14 July 2014 07:15 AM, Tony Lindgren wrote:
+> >>* Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
+> >>>From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> >>>
+> >>>OMAP timer code registers two timers - one as clocksource
+> >>>and one as clockevent. Since AM33XX has only one usable timer
+> >>>in the WKUP domain one of the timers needs suspend-resume
+> >>>support to restore the configuration to pre-suspend state.
+> >>>
+> >>>commit adc78e6 (timekeeping: Add suspend and resume
+> >>>of clock event devices) introduced .suspend and .resume
+> >>>callbacks for clock event devices. Leverages these
+> >>>callbacks to have AM33XX clockevent timer which is
+> >>>in not in WKUP domain to behave properly across system
+> >>>suspend.
+> >>>
+> >>>Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> >>>Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> >>>---
+> >>>v3->v4:
+> >>>	Only use for am33xx soc now.
+> >>>
+> >>>  arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
+> >>>  1 file changed, 28 insertions(+)
+> >>>
+> >>>diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> >>>index 43d03fb..6fc1748 100644
+> >>>--- a/arch/arm/mach-omap2/timer.c
+> >>>+++ b/arch/arm/mach-omap2/timer.c
+> >>>@@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+> >>>  	}
+> >>>  }
+> >>>
+> >>>+static void omap_clkevt_suspend(struct clock_event_device *unused)
+> >>>+{
+> >>>+	struct omap_hwmod *oh;
+> >>>+
+> >>>+	oh = omap_hwmod_lookup(clockevent_gpt.name);
+> >>>+	if (!oh)
+> >>>+		return;
+> >>>+
+> >>>+	omap_hwmod_idle(oh);
+> >>>+}
+> >>>+
+> >>>+static void omap_clkevt_resume(struct clock_event_device *unused)
+> >>>+{
+> >>>+	struct omap_hwmod *oh;
+> >>>+
+> >>>+	oh = omap_hwmod_lookup(clockevent_gpt.name);
+> >>>+	if (!oh)
+> >>>+		return;
+> >>>+
+> >>>+	omap_hwmod_enable(oh);
+> >>>+	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+> >>>+}
+> >>>+
+> >>
+> >>This is going to make moving the timer code into drivers one step
+> >>tougher to do. And you don't need to look up the hwmod entry every
+> >>time, just initialize it during the init.
+> 
+> Yes you are right about looking up only at init I need to change that. I
+> agree that this makes moving the timers harder but I'm not sure there's any
+> way around this. I attempted to use the omap_device layer here but there is
+> no device at all created here, it does not hook into the normal PM layer
+> through omap_device. This clock must be shut off as it sits in the
+> peripheral power domain and any active clock within the domain will prevent
+> suspend from happening, so we end up with a platform specific issue here. It
+> seems that the only way I can get to the clock is through the hwmod.
 
-Ah right it needs to run in SRAM. There were some relocatable
-c code patches posted a while back, so it might be worth
-revisiting that.
+It's best to register these kind of functions as platform_data
+in pdata-quirks.c auxdata. That way when this moves to live
+in drivers/clocksource the driver does not need to know anything
+about the interconnect specific registers.
 
-I think it can also be done with assembly with something like
-this:
+Also, please don't use Linux generic names here.. Maybe use
+omap_clkevt_idle/unidle? The linux suspend and resume hooks
+and runtime PM could all use these functions then.
 
-1. Make am335x idle code depends on TI_EMIF && WKUP_M3_RPROC
+> >>>+	if (soc_is_am33xx()) {
+> >>>+		clockevent_gpt.suspend = omap_clkevt_suspend;
+> >>>+		clockevent_gpt.resume = omap_clkevt_resume;
+> >>>+	}
+> >>>+
+> >>
+> >>Maybe try to set up things so we initialize the SoC specific
+> >>timer suspend and resume functions in mach-omap2/timer.c
+> >>in a way where eventually the device driver can easily use
+> >>them?
+> >>
+> >+1. I had similar comments on the previous version too.
+> 
+> This was my attempt to make things specific to only am335x based on
+> Santosh's previous comments as last time they were populated for every
+> device even when unneeded. These are not standard suspend/resume handlers,
+> they are specific to clock event. I know there will always need to be at
+> least some code here for the early timer init based on previous timer
+> cleanup series I've seen, so perhaps I could hook it in there when the time
+> comes?
 
-2. Add the memory save and restore assembly functions into
-   drivers/memory/ti-emif-sram.S
-
-3. Allocate the SRAM preferrably with drivers/misc/sram.c
-   instead of the legacy mach-omap2/sram.c
-
-4. Map the idle assembly code and EMIF save and restore
-   functions into SRAM
-
-5. Call the EMIF save and restore functions from the idle
-   assembly code at the SRAM locations and pass the save and
-   restore area in a register
-
-So basically we need to figure out a generic way to do driver
-hooks in the PM idle code even very late and early in the
-assembly code so we can keep most of the code in drivers.
-Eventually also the idle assembly code should be in the drivers
-too..
+Well just adding a minimal include/linux/platform_data/timer-omap.h
+to pass those function pointers to the driver should do the trick.
 
 Regards,
 
