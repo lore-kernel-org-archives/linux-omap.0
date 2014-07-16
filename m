@@ -1,80 +1,93 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 3/5] tty: serial: 8250 core: allow to set ->throttle / ->unthrottle callbacks
-Date: Wed, 16 Jul 2014 16:45:01 +0200
-Message-ID: <1405521903-5877-4-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 2/5] tty: serial: 8250 core: allow to overwrite & export
+ serial8250_startup()
+Date: Wed, 16 Jul 2014 16:45:00 +0200
+Message-ID: <1405521903-5877-3-git-send-email-bigeasy@linutronix.de>
 References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-serial-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The omap uart provides support for HW assisted flow control. What is
-missing is the support to throttle / unthrottle callbacks which are used
-by the omap-serial driver at the moment.
-This patch adds the callbacks. It should be safe to add them since they
-are only invovked from the serial_core (uart_throttle()) if the feature
-flags are set.
-
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/tty/serial/8250/8250_core.c | 14 ++++++++++++++
- include/linux/serial_core.h         |  2 ++
- 2 files changed, 16 insertions(+)
-
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index bd0e1897..714f954 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -1320,6 +1320,16 @@ static void serial8250_start_tx(struct uart_port *port)
- 	}
- }
- 
-+static void serial8250_throttle(struct uart_port *port)
-+{
-+	port->throttle(port);
-+}
-+
-+static void serial8250_unthrottle(struct uart_port *port)
-+{
-+	port->unthrottle(port);
-+}
-+
- static void serial8250_stop_rx(struct uart_port *port)
- {
- 	struct uart_8250_port *up =
-@@ -2752,6 +2762,8 @@ static struct uart_ops serial8250_pops = {
- 	.get_mctrl	= serial8250_get_mctrl,
- 	.stop_tx	= serial8250_stop_tx,
- 	.start_tx	= serial8250_start_tx,
-+	.throttle	= serial8250_throttle,
-+	.unthrottle	= serial8250_unthrottle,
- 	.stop_rx	= serial8250_stop_rx,
- 	.enable_ms	= serial8250_enable_ms,
- 	.break_ctl	= serial8250_break_ctl,
-@@ -3300,6 +3312,8 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
- 		uart->port.fifosize	= up->port.fifosize;
- 		uart->tx_loadsz		= up->tx_loadsz;
- 		uart->capabilities	= up->capabilities;
-+		uart->port.throttle	= up->port.throttle;
-+		uart->port.unthrottle	= up->port.unthrottle;
- 
- 		/* Take tx_loadsz from fifosize if it wasn't set separately */
- 		if (uart->port.fifosize && !uart->tx_loadsz)
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 6f20ff0..c380af2 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -124,6 +124,8 @@ struct uart_port {
- 				               struct ktermios *old);
- 	int			(*startup)(struct uart_port *port);
- 	void			(*shutdown)(struct uart_port *port);
-+	void			(*throttle)(struct uart_port *port);
-+	void			(*unthrottle)(struct uart_port *port);
- 	int			(*handle_irq)(struct uart_port *);
- 	void			(*pm)(struct uart_port *, unsigned int state,
- 				      unsigned int old);
--- 
-2.0.1
-
+VGhlIE9NQVAgdmVyc2lvbiBvZiB0aGUgODI1MCBjYW4gYWN0dWFsbHkgdXNlIDE6MSBzZXJpYWw4
+MjUwX3N0YXJ0dXAoKS4KSG93ZXZlciBpdCBuZWVkcyB0byBiZSBleHRlbmRlZCBieSBhIHdha2V1
+cCBpcnEgd2hpY2ggc2hvdWxkIHRvIGJlCnJlcXVlc3RlZCAmIGVuYWJsZWQgYXQgLT5zdGFydHVw
+KCkgdGltZSBhbmQgZGlzYWJsZWQgYXQgLT5zaHV0ZG93bigpIHRpbWUuCgp2MuKApnYzOiBwcm9w
+ZXJseSBjb3B5IGNhbGxiYWNrcwp2MeKApnYyOiBhZGQgc2h1dGRvd24gY2FsbGJhY2sKCkFja2Vk
+LWJ5OiBBbGFuIENveCA8YWxhbkBsaW51eC5pbnRlbC5jb20+ClNpZ25lZC1vZmYtYnk6IFNlYmFz
+dGlhbiBBbmRyemVqIFNpZXdpb3IgPGJpZ2Vhc3lAbGludXRyb25peC5kZT4KLS0tCiBkcml2ZXJz
+L3R0eS9zZXJpYWwvODI1MC84MjUwX2NvcmUuYyB8IDI2ICsrKysrKysrKysrKysrKysrKysrKysr
+Ky0tCiBpbmNsdWRlL2xpbnV4L3NlcmlhbF84MjUwLmggICAgICAgICB8ICAyICsrCiBpbmNsdWRl
+L2xpbnV4L3NlcmlhbF9jb3JlLmggICAgICAgICB8ICAyICsrCiAzIGZpbGVzIGNoYW5nZWQsIDI4
+IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy90dHkv
+c2VyaWFsLzgyNTAvODI1MF9jb3JlLmMgYi9kcml2ZXJzL3R0eS9zZXJpYWwvODI1MC84MjUwX2Nv
+cmUuYwppbmRleCA1YTZhZjE5Li5iZDBlMTg5NyAxMDA2NDQKLS0tIGEvZHJpdmVycy90dHkvc2Vy
+aWFsLzgyNTAvODI1MF9jb3JlLmMKKysrIGIvZHJpdmVycy90dHkvc2VyaWFsLzgyNTAvODI1MF9j
+b3JlLmMKQEAgLTE5MzksNyArMTkzOSw3IEBAIHN0YXRpYyB2b2lkIHNlcmlhbDgyNTBfcHV0X3Bv
+bGxfY2hhcihzdHJ1Y3QgdWFydF9wb3J0ICpwb3J0LAogCiAjZW5kaWYgLyogQ09ORklHX0NPTlNP
+TEVfUE9MTCAqLwogCi1zdGF0aWMgaW50IHNlcmlhbDgyNTBfc3RhcnR1cChzdHJ1Y3QgdWFydF9w
+b3J0ICpwb3J0KQoraW50IHNlcmlhbDgyNTBfZG9fc3RhcnR1cChzdHJ1Y3QgdWFydF9wb3J0ICpw
+b3J0KQogewogCXN0cnVjdCB1YXJ0XzgyNTBfcG9ydCAqdXAgPQogCQljb250YWluZXJfb2YocG9y
+dCwgc3RydWN0IHVhcnRfODI1MF9wb3J0LCBwb3J0KTsKQEAgLTIxOTEsOCArMjE5MSwxNyBAQCBz
+dGF0aWMgaW50IHNlcmlhbDgyNTBfc3RhcnR1cChzdHJ1Y3QgdWFydF9wb3J0ICpwb3J0KQogCiAJ
+cmV0dXJuIDA7CiB9CitFWFBPUlRfU1lNQk9MX0dQTChzZXJpYWw4MjUwX2RvX3N0YXJ0dXApOwog
+Ci1zdGF0aWMgdm9pZCBzZXJpYWw4MjUwX3NodXRkb3duKHN0cnVjdCB1YXJ0X3BvcnQgKnBvcnQp
+CitzdGF0aWMgaW50IHNlcmlhbDgyNTBfc3RhcnR1cChzdHJ1Y3QgdWFydF9wb3J0ICpwb3J0KQor
+eworCWlmIChwb3J0LT5zdGFydHVwKQorCQlyZXR1cm4gcG9ydC0+c3RhcnR1cChwb3J0KTsKKwll
+bHNlCisJCXJldHVybiBzZXJpYWw4MjUwX2RvX3N0YXJ0dXAocG9ydCk7Cit9CisKK3ZvaWQgc2Vy
+aWFsODI1MF9kb19zaHV0ZG93bihzdHJ1Y3QgdWFydF9wb3J0ICpwb3J0KQogewogCXN0cnVjdCB1
+YXJ0XzgyNTBfcG9ydCAqdXAgPQogCQljb250YWluZXJfb2YocG9ydCwgc3RydWN0IHVhcnRfODI1
+MF9wb3J0LCBwb3J0KTsKQEAgLTIyNDMsNiArMjI1MiwxNSBAQCBzdGF0aWMgdm9pZCBzZXJpYWw4
+MjUwX3NodXRkb3duKHN0cnVjdCB1YXJ0X3BvcnQgKnBvcnQpCiAJaWYgKHBvcnQtPmlycSkKIAkJ
+c2VyaWFsX3VubGlua19pcnFfY2hhaW4odXApOwogfQorRVhQT1JUX1NZTUJPTF9HUEwoc2VyaWFs
+ODI1MF9kb19zaHV0ZG93bik7CisKK3N0YXRpYyB2b2lkIHNlcmlhbDgyNTBfc2h1dGRvd24oc3Ry
+dWN0IHVhcnRfcG9ydCAqcG9ydCkKK3sKKwlpZiAocG9ydC0+c2h1dGRvd24pCisJCXBvcnQtPnNo
+dXRkb3duKHBvcnQpOworCWVsc2UKKwkJc2VyaWFsODI1MF9kb19zaHV0ZG93bihwb3J0KTsKK30K
+IAogc3RhdGljIHVuc2lnbmVkIGludCBzZXJpYWw4MjUwX2dldF9kaXZpc29yKHN0cnVjdCB1YXJ0
+X3BvcnQgKnBvcnQsIHVuc2lnbmVkIGludCBiYXVkKQogewpAQCAtMzMwNCw2ICszMzIyLDEwIEBA
+IGludCBzZXJpYWw4MjUwX3JlZ2lzdGVyXzgyNTBfcG9ydChzdHJ1Y3QgdWFydF84MjUwX3BvcnQg
+KnVwKQogCQkvKiAgUG9zc2libHkgb3ZlcnJpZGUgc2V0X3Rlcm1pb3MgY2FsbCAqLwogCQlpZiAo
+dXAtPnBvcnQuc2V0X3Rlcm1pb3MpCiAJCQl1YXJ0LT5wb3J0LnNldF90ZXJtaW9zID0gdXAtPnBv
+cnQuc2V0X3Rlcm1pb3M7CisJCWlmICh1cC0+cG9ydC5zdGFydHVwKQorCQkJdWFydC0+cG9ydC5z
+dGFydHVwID0gdXAtPnBvcnQuc3RhcnR1cDsKKwkJaWYgKHVwLT5wb3J0LnNodXRkb3duKQorCQkJ
+dWFydC0+cG9ydC5zaHV0ZG93biA9IHVwLT5wb3J0LnNodXRkb3duOwogCQlpZiAodXAtPnBvcnQu
+cG0pCiAJCQl1YXJ0LT5wb3J0LnBtID0gdXAtPnBvcnQucG07CiAJCWlmICh1cC0+cG9ydC5oYW5k
+bGVfYnJlYWspCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3NlcmlhbF84MjUwLmggYi9pbmNs
+dWRlL2xpbnV4L3NlcmlhbF84MjUwLmgKaW5kZXggYWY0N2E4YS4uMGVjMjFlYyAxMDA2NDQKLS0t
+IGEvaW5jbHVkZS9saW51eC9zZXJpYWxfODI1MC5oCisrKyBiL2luY2x1ZGUvbGludXgvc2VyaWFs
+XzgyNTAuaApAQCAtMTE0LDYgKzExNCw4IEBAIGV4dGVybiB2b2lkIHNlcmlhbDgyNTBfZWFybHlf
+b3V0KHN0cnVjdCB1YXJ0X3BvcnQgKnBvcnQsIGludCBvZmZzZXQsIGludCB2YWx1ZSk7CiBleHRl
+cm4gaW50IHNldHVwX2Vhcmx5X3NlcmlhbDgyNTBfY29uc29sZShjaGFyICpjbWRsaW5lKTsKIGV4
+dGVybiB2b2lkIHNlcmlhbDgyNTBfZG9fc2V0X3Rlcm1pb3Moc3RydWN0IHVhcnRfcG9ydCAqcG9y
+dCwKIAkJc3RydWN0IGt0ZXJtaW9zICp0ZXJtaW9zLCBzdHJ1Y3Qga3Rlcm1pb3MgKm9sZCk7Citl
+eHRlcm4gaW50IHNlcmlhbDgyNTBfZG9fc3RhcnR1cChzdHJ1Y3QgdWFydF9wb3J0ICpwb3J0KTsK
+K2V4dGVybiB2b2lkIHNlcmlhbDgyNTBfZG9fc2h1dGRvd24oc3RydWN0IHVhcnRfcG9ydCAqcG9y
+dCk7CiBleHRlcm4gdm9pZCBzZXJpYWw4MjUwX2RvX3BtKHN0cnVjdCB1YXJ0X3BvcnQgKnBvcnQs
+IHVuc2lnbmVkIGludCBzdGF0ZSwKIAkJCSAgICAgdW5zaWduZWQgaW50IG9sZHN0YXRlKTsKIGV4
+dGVybiBpbnQgZnNsODI1MF9oYW5kbGVfaXJxKHN0cnVjdCB1YXJ0X3BvcnQgKnBvcnQpOwpkaWZm
+IC0tZ2l0IGEvaW5jbHVkZS9saW51eC9zZXJpYWxfY29yZS5oIGIvaW5jbHVkZS9saW51eC9zZXJp
+YWxfY29yZS5oCmluZGV4IDViYmI4MDkuLjZmMjBmZjAgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGlu
+dXgvc2VyaWFsX2NvcmUuaAorKysgYi9pbmNsdWRlL2xpbnV4L3NlcmlhbF9jb3JlLmgKQEAgLTEy
+Miw2ICsxMjIsOCBAQCBzdHJ1Y3QgdWFydF9wb3J0IHsKIAl2b2lkCQkJKCpzZXRfdGVybWlvcyko
+c3RydWN0IHVhcnRfcG9ydCAqLAogCQkJCSAgICAgICAgICAgICAgIHN0cnVjdCBrdGVybWlvcyAq
+bmV3LAogCQkJCSAgICAgICAgICAgICAgIHN0cnVjdCBrdGVybWlvcyAqb2xkKTsKKwlpbnQJCQko
+KnN0YXJ0dXApKHN0cnVjdCB1YXJ0X3BvcnQgKnBvcnQpOworCXZvaWQJCQkoKnNodXRkb3duKShz
+dHJ1Y3QgdWFydF9wb3J0ICpwb3J0KTsKIAlpbnQJCQkoKmhhbmRsZV9pcnEpKHN0cnVjdCB1YXJ0
+X3BvcnQgKik7CiAJdm9pZAkJCSgqcG0pKHN0cnVjdCB1YXJ0X3BvcnQgKiwgdW5zaWduZWQgaW50
+IHN0YXRlLAogCQkJCSAgICAgIHVuc2lnbmVkIGludCBvbGQpOwotLSAKMi4wLjEKCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVs
+IG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDov
+L2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
