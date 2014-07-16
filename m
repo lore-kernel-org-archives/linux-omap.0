@@ -1,121 +1,143 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Function Profiler broken on today's linux-next
-Date: Wed, 16 Jul 2014 13:57:32 -0500
-Message-ID: <20140716185732.GN3016@saruman.home>
-References: <20140716162328.GJ1365@saruman.home>
- <20140716122921.71b118a9@gandalf.local.home>
- <20140716164141.GA3016@saruman.home>
- <20140716132413.1ede8e1d@gandalf.local.home>
- <20140716182944.GK3016@saruman.home>
- <20140716184152.GM3016@saruman.home>
- <20140716145442.15f25ec3@gandalf.local.home>
-Reply-To: <balbi@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume callbacks
+ for clkevent device
+Date: Wed, 16 Jul 2014 15:17:10 -0500
+Message-ID: <53C6DDC6.9060705@ti.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-4-git-send-email-d-gerlach@ti.com> <20140714111536.GC20068@atomide.com> <53C3EB1F.2010109@ti.com> <53C4166F.1050003@ti.com> <20140715064807.GJ20068@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5PFZVUeDPxlnBcQp"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140716145442.15f25ec3@gandalf.local.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: balbi@ti.com, will.deacon@arm.com, mingo@redhat.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39575 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750943AbaGPURk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Jul 2014 16:17:40 -0400
+In-Reply-To: <20140715064807.GJ20068@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
---5PFZVUeDPxlnBcQp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/15/2014 01:48 AM, Tony Lindgren wrote:
+> * Dave Gerlach <d-gerlach@ti.com> [140714 10:44]:
+>> Santosh, Tony,
+>>
+>> On 07/14/2014 09:37 AM, Santosh Shilimkar wrote:
+>>> On Monday 14 July 2014 07:15 AM, Tony Lindgren wrote:
+>>>> * Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
+>>>>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>>>>
+>>>>> OMAP timer code registers two timers - one as clocksource
+>>>>> and one as clockevent. Since AM33XX has only one usable timer
+>>>>> in the WKUP domain one of the timers needs suspend-resume
+>>>>> support to restore the configuration to pre-suspend state.
+>>>>>
+>>>>> commit adc78e6 (timekeeping: Add suspend and resume
+>>>>> of clock event devices) introduced .suspend and .resume
+>>>>> callbacks for clock event devices. Leverages these
+>>>>> callbacks to have AM33XX clockevent timer which is
+>>>>> in not in WKUP domain to behave properly across system
+>>>>> suspend.
+>>>>>
+>>>>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>>>> ---
+>>>>> v3->v4:
+>>>>> 	Only use for am33xx soc now.
+>>>>>
+>>>>>  arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
+>>>>>  1 file changed, 28 insertions(+)
+>>>>>
+>>>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>>>>> index 43d03fb..6fc1748 100644
+>>>>> --- a/arch/arm/mach-omap2/timer.c
+>>>>> +++ b/arch/arm/mach-omap2/timer.c
+>>>>> @@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+>>>>>  	}
+>>>>>  }
+>>>>>
+>>>>> +static void omap_clkevt_suspend(struct clock_event_device *unused)
+>>>>> +{
+>>>>> +	struct omap_hwmod *oh;
+>>>>> +
+>>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
+>>>>> +	if (!oh)
+>>>>> +		return;
+>>>>> +
+>>>>> +	omap_hwmod_idle(oh);
+>>>>> +}
+>>>>> +
+>>>>> +static void omap_clkevt_resume(struct clock_event_device *unused)
+>>>>> +{
+>>>>> +	struct omap_hwmod *oh;
+>>>>> +
+>>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
+>>>>> +	if (!oh)
+>>>>> +		return;
+>>>>> +
+>>>>> +	omap_hwmod_enable(oh);
+>>>>> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+>>>>> +}
+>>>>> +
+>>>>
+>>>> This is going to make moving the timer code into drivers one step
+>>>> tougher to do. And you don't need to look up the hwmod entry every
+>>>> time, just initialize it during the init.
+>>
+>> Yes you are right about looking up only at init I need to change that. I
+>> agree that this makes moving the timers harder but I'm not sure there's any
+>> way around this. I attempted to use the omap_device layer here but there is
+>> no device at all created here, it does not hook into the normal PM layer
+>> through omap_device. This clock must be shut off as it sits in the
+>> peripheral power domain and any active clock within the domain will prevent
+>> suspend from happening, so we end up with a platform specific issue here. It
+>> seems that the only way I can get to the clock is through the hwmod.
+> 
+> It's best to register these kind of functions as platform_data
+> in pdata-quirks.c auxdata. That way when this moves to live
+> in drivers/clocksource the driver does not need to know anything
+> about the interconnect specific registers.
 
-On Wed, Jul 16, 2014 at 02:54:42PM -0400, Steven Rostedt wrote:
-> On Wed, 16 Jul 2014 13:41:52 -0500
-> Felipe Balbi <balbi@ti.com> wrote:
->=20
-> > Hi,
-> >=20
-> > On Wed, Jul 16, 2014 at 01:29:44PM -0500, Felipe Balbi wrote:
-> > > On Wed, Jul 16, 2014 at 01:24:13PM -0400, Steven Rostedt wrote:
-> > > > On Wed, 16 Jul 2014 11:41:42 -0500
-> > > > Felipe Balbi <balbi@ti.com> wrote:
-> > > >=20
-> > > >=20
-> > > > > .config attached. It's actually an ARM platform, I can help out w=
-ith
-> > > > > testing anything you need.
-> > > >=20
-> > > > In that case, can you see if it works under my repo?
-> > > >=20
-> > > > git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-trace.g=
-it
-> > > > branch: ftrace/core
-> > >=20
-> > > works fine, thanks. FWIW
-> > >=20
-> > > Tested-by: Felipe Balbi <balbi@ti.com>
-> >=20
-> > Actually it seems like it's not counting time properly if I run my test
-> > multiple times in a row:
-> >=20
-> > # /root/testusb -t 1 -c 100000 -s 2048 -a
-> > # head -3 trace_stat/function0
-> >   Function                         Hit    Time                Avg      =
-     s^2
-> >   --------                         ---    ----                ---      =
-     ---
-> >   thread_interrupt               174876    166120839 us     949.935 us =
- 3048498 us
-> >=20
-> > # /root/testusb -t 1 -c 100000 -s 2048 -a
-> > # head -3 trace_stat/function0
-> >   Function                           Hit       Time                    =
-Avg          s^2
-> >   --------                           ---       ----                    =
----          ---
-> >   dwc3_thread_interrupt            286796    967267300 us         41905=
-45199 us     3241109 us=20
-> >=20
-> > # /root/testusb -t 1 -c 100000 -s 2048 -a
-> > # head -3 trace_stat/function0
-> >   Function                              Hit      Time                 A=
-vg               s^2
-> >     --------                            ---       ----                 =
----              ---
-> >   dwc3_thread_interrupt               401346    642632072 us       1601=
-=2E192 us     1194316 us=20
-> >=20
-> > and so on...
-> >=20
->=20
-> Did it use to work? In other words, is this a regression, or just some
-> another bug?
+Perhaps I spoke too soon on this, I can't use pdata-quirks right now to pass the
+idle/unidle functions. The clockevent source is special and reads the dt node
+itself and then marks it as disabled so nothing else can touch it. No device is
+created and no auxdata matched. I will gladly fix it up once the driver is ready
+to move but right now I can't use any existing functionality to do it.
 
-It used to work at least on v3.12... It seems like it's not always
-either. After I rebooted, then it took a little effort to trigger it
-again. But if I just run my test in a loop, eventually it'll start
-miscalculating.
+Regards,
+Dave
 
---=20
-balbi
+> 
+> Also, please don't use Linux generic names here.. Maybe use
+> omap_clkevt_idle/unidle? The linux suspend and resume hooks
+> and runtime PM could all use these functions then.
+> 
+>>>>> +	if (soc_is_am33xx()) {
+>>>>> +		clockevent_gpt.suspend = omap_clkevt_suspend;
+>>>>> +		clockevent_gpt.resume = omap_clkevt_resume;
+>>>>> +	}
+>>>>> +
+>>>>
+>>>> Maybe try to set up things so we initialize the SoC specific
+>>>> timer suspend and resume functions in mach-omap2/timer.c
+>>>> in a way where eventually the device driver can easily use
+>>>> them?
+>>>>
+>>> +1. I had similar comments on the previous version too.
+>>
+>> This was my attempt to make things specific to only am335x based on
+>> Santosh's previous comments as last time they were populated for every
+>> device even when unneeded. These are not standard suspend/resume handlers,
+>> they are specific to clock event. I know there will always need to be at
+>> least some code here for the early timer init based on previous timer
+>> cleanup series I've seen, so perhaps I could hook it in there when the time
+>> comes?
+> 
+> Well just adding a minimal include/linux/platform_data/timer-omap.h
+> to pass those function pointers to the driver should do the trick.
+> 
+> Regards,
+> 
+> Tony
+> 
 
---5PFZVUeDPxlnBcQp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTxsscAAoJEIaOsuA1yqREky8P/iLyrkNsNJxBnZdzkNPD86pP
-4106CNQR+4BSe/vOOXyoHmlZbp+DfEUytFd3N2hNg3vWWjpzHS0VQuG+6wdVBa5S
-qfdqZINmsjQhbylwaHjaf/OOQFvbfz5F0aAPQQaO6z0XdYFbBfR/h/Kp6o8YfuGB
-7GKyXecQ8Gy+PmHaWmnyXoQrMHQAzkKG7rqY5YxEPtygNs46ajvN8QzYBIRt0CrC
-nsI+IXtBLhc2yOQF5QnKqkOjJRchpa/gL0k2wPEB7j+eON1S1RZdd9W9iFCL2DW9
-jTZPJz3amNHqkM47N1g2wxcBdoKQ0e7kDmxkYNNWGgjDlZI+8H6KHLeyEyRapPs/
-9A5SwmZm9Okk+Lx0jGODkKqfgpXhYBaMISyDhWBlPd63w1o22iA/975gS6mVbqjd
-/U6yYKcbG59EMh0xhmkQxyuiq1Ey5knj0ElKFv3EtiKtdzUNcXnkaw+FQ/JdiwgO
-RoxTuVDYw7a3dC09BpFagxcNdA+36y5X8LrfoEutWz1T/ti909Dra1tU03iJ0xlm
-H3+ThJXOAZ/viHku97gIBYdMX9KJnEIf3v1rQ7esX2qV73I9rAJQtntlKCOG1/cE
-fC4CytxkJJNoMlS3M6OMGTjOD/Nc5hi0+eWmdQeDaCGC7tPWCQ8P8IfskMUHmeMd
-pAMC+lomHvUJ6OFu2R9T
-=TXhc
------END PGP SIGNATURE-----
-
---5PFZVUeDPxlnBcQp--
