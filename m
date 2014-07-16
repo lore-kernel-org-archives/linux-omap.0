@@ -1,143 +1,167 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume callbacks
- for clkevent device
-Date: Wed, 16 Jul 2014 15:17:10 -0500
-Message-ID: <53C6DDC6.9060705@ti.com>
-References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-4-git-send-email-d-gerlach@ti.com> <20140714111536.GC20068@atomide.com> <53C3EB1F.2010109@ti.com> <53C4166F.1050003@ti.com> <20140715064807.GJ20068@atomide.com>
+From: Markus Mayer <markus.mayer@linaro.org>
+Subject: Re: [PATCHv2 2/5] mailbox/omap: add support for parsing dt devices
+Date: Wed, 16 Jul 2014 13:50:03 -0700
+Message-ID: <CAPdLdqmA5HkRe9xLOUybOQQzpkmqX8Ot4aH9ZA7B_s3Zp90tPw@mail.gmail.com>
+References: <1405116252-53612-1-git-send-email-s-anna@ti.com>
+	<1405116252-53612-3-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39575 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750943AbaGPURk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Jul 2014 16:17:40 -0400
-In-Reply-To: <20140715064807.GJ20068@atomide.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:49293 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752017AbaGPUuF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2014 16:50:05 -0400
+Received: by mail-wi0-f172.google.com with SMTP id n3so6925844wiv.5
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2014 13:50:04 -0700 (PDT)
+In-Reply-To: <1405116252-53612-3-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Pavel Machek <pavel@ucw.cz>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Device Tree List <devicetree@vger.kernel.org>, ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
 
-On 07/15/2014 01:48 AM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [140714 10:44]:
->> Santosh, Tony,
->>
->> On 07/14/2014 09:37 AM, Santosh Shilimkar wrote:
->>> On Monday 14 July 2014 07:15 AM, Tony Lindgren wrote:
->>>> * Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
->>>>> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>>>>
->>>>> OMAP timer code registers two timers - one as clocksource
->>>>> and one as clockevent. Since AM33XX has only one usable timer
->>>>> in the WKUP domain one of the timers needs suspend-resume
->>>>> support to restore the configuration to pre-suspend state.
->>>>>
->>>>> commit adc78e6 (timekeeping: Add suspend and resume
->>>>> of clock event devices) introduced .suspend and .resume
->>>>> callbacks for clock event devices. Leverages these
->>>>> callbacks to have AM33XX clockevent timer which is
->>>>> in not in WKUP domain to behave properly across system
->>>>> suspend.
->>>>>
->>>>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->>>>> ---
->>>>> v3->v4:
->>>>> 	Only use for am33xx soc now.
->>>>>
->>>>>  arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
->>>>>  1 file changed, 28 insertions(+)
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->>>>> index 43d03fb..6fc1748 100644
->>>>> --- a/arch/arm/mach-omap2/timer.c
->>>>> +++ b/arch/arm/mach-omap2/timer.c
->>>>> @@ -128,6 +128,29 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
->>>>>  	}
->>>>>  }
->>>>>
->>>>> +static void omap_clkevt_suspend(struct clock_event_device *unused)
->>>>> +{
->>>>> +	struct omap_hwmod *oh;
->>>>> +
->>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
->>>>> +	if (!oh)
->>>>> +		return;
->>>>> +
->>>>> +	omap_hwmod_idle(oh);
->>>>> +}
->>>>> +
->>>>> +static void omap_clkevt_resume(struct clock_event_device *unused)
->>>>> +{
->>>>> +	struct omap_hwmod *oh;
->>>>> +
->>>>> +	oh = omap_hwmod_lookup(clockevent_gpt.name);
->>>>> +	if (!oh)
->>>>> +		return;
->>>>> +
->>>>> +	omap_hwmod_enable(oh);
->>>>> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
->>>>> +}
->>>>> +
->>>>
->>>> This is going to make moving the timer code into drivers one step
->>>> tougher to do. And you don't need to look up the hwmod entry every
->>>> time, just initialize it during the init.
->>
->> Yes you are right about looking up only at init I need to change that. I
->> agree that this makes moving the timers harder but I'm not sure there's any
->> way around this. I attempted to use the omap_device layer here but there is
->> no device at all created here, it does not hook into the normal PM layer
->> through omap_device. This clock must be shut off as it sits in the
->> peripheral power domain and any active clock within the domain will prevent
->> suspend from happening, so we end up with a platform specific issue here. It
->> seems that the only way I can get to the clock is through the hwmod.
-> 
-> It's best to register these kind of functions as platform_data
-> in pdata-quirks.c auxdata. That way when this moves to live
-> in drivers/clocksource the driver does not need to know anything
-> about the interconnect specific registers.
+If I may nit-pick here for a minute...
 
-Perhaps I spoke too soon on this, I can't use pdata-quirks right now to pass the
-idle/unidle functions. The clockevent source is special and reads the dt node
-itself and then marks it as disabled so nothing else can touch it. No device is
-created and no auxdata matched. I will gladly fix it up once the driver is ready
-to move but right now I can't use any existing functionality to do it.
+On 11 July 2014 15:04, Suman Anna <s-anna@ti.com> wrote:
+> Logic has been added to the OMAP2+ mailbox code to parse the
+> mailbox dt nodes and construct the different sub-mailboxes
+> associated with the instance. The DT representation of the
+> sub-mailbox devices is different from legacy platform data
+> representation to allow flexibility of interrupt configuration
+> between Tx and Rx fifos (to also possibly allow simplex devices
+> in the future). The DT representation gathers similar information
+> that was being passed previously through the platform data, except
+> for the number of fifos, interrupts and interrupt type information,
+> which are gathered through driver compatible match data.
+>
+> The non-DT support has to be maintained for now to not break
+> OMAP3 legacy boot, and the legacy-style code will be cleaned
+> up once OMAP3 is also converted to DT-boot only.
+>
+> Cc: Jassi Brar <jassisinghbrar@gmail.com>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+>  drivers/mailbox/omap-mailbox.c | 156 ++++++++++++++++++++++++++++++++++-------
+>  1 file changed, 132 insertions(+), 24 deletions(-)
+>
+> diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
 
-Regards,
-Dave
+[...]
 
-> 
-> Also, please don't use Linux generic names here.. Maybe use
-> omap_clkevt_idle/unidle? The linux suspend and resume hooks
-> and runtime PM could all use these functions then.
-> 
->>>>> +	if (soc_is_am33xx()) {
->>>>> +		clockevent_gpt.suspend = omap_clkevt_suspend;
->>>>> +		clockevent_gpt.resume = omap_clkevt_resume;
->>>>> +	}
->>>>> +
->>>>
->>>> Maybe try to set up things so we initialize the SoC specific
->>>> timer suspend and resume functions in mach-omap2/timer.c
->>>> in a way where eventually the device driver can easily use
->>>> them?
->>>>
->>> +1. I had similar comments on the previous version too.
->>
->> This was my attempt to make things specific to only am335x based on
->> Santosh's previous comments as last time they were populated for every
->> device even when unneeded. These are not standard suspend/resume handlers,
->> they are specific to clock event. I know there will always need to be at
->> least some code here for the early timer init based on previous timer
->> cleanup series I've seen, so perhaps I could hook it in there when the time
->> comes?
-> 
-> Well just adding a minimal include/linux/platform_data/timer-omap.h
-> to pass those function pointers to the driver should do the trick.
-> 
-> Regards,
-> 
-> Tony
-> 
+>  static int omap_mbox_probe(struct platform_device *pdev)
+>  {
+>         struct resource *mem;
+>         int ret;
+>         struct omap_mbox **list, *mbox, *mboxblk;
+>         struct omap_mbox_pdata *pdata = pdev->dev.platform_data;
+> -       struct omap_mbox_dev_info *info;
+> +       struct omap_mbox_dev_info *info = NULL;
+> +       struct omap_mbox_fifo_info *finfo, *finfoblk;
+>         struct omap_mbox_device *mdev;
+>         struct omap_mbox_fifo *fifo;
+> -       u32 intr_type;
+> +       struct device_node *node = pdev->dev.of_node;
+> +       struct device_node *child;
+> +       const struct of_device_id *match;
+> +       u32 intr_type, info_count;
+> +       u32 num_users, num_fifos;
+> +       u32 tmp[3];
+>         u32 l;
+>         int i;
+>
+> -       if (!pdata || !pdata->info_cnt || !pdata->info) {
+> +       if (!node && (!pdata || !pdata->info_cnt || !pdata->info)) {
+>                 pr_err("%s: platform not supported\n", __func__);
+>                 return -ENODEV;
+>         }
+>
+> +       if (node) {
 
+I noticed here you are using
+
+    if (node)
+        /* DT stuff goes here */
+    else
+        /* non-DT stuff goes here */
+
+but below the logic is reversed.
+
+> +               match = of_match_device(omap_mailbox_of_match, &pdev->dev);
+> +               if (!match)
+> +                       return -ENODEV;
+> +               intr_type = (u32)match->data;
+> +
+> +               if (of_property_read_u32(node, "ti,mbox-num-users",
+> +                                        &num_users))
+> +                       return -ENODEV;
+> +
+> +               if (of_property_read_u32(node, "ti,mbox-num-fifos",
+> +                                        &num_fifos))
+> +                       return -ENODEV;
+> +
+> +               info_count = of_get_available_child_count(node);
+> +               if (!info_count) {
+> +                       dev_err(&pdev->dev, "no available mbox devices found\n");
+> +                       return -ENODEV;
+> +               }
+> +       } else { /* non-DT device creation */
+> +               info_count = pdata->info_cnt;
+> +               info = pdata->info;
+> +               intr_type = pdata->intr_type;
+> +               num_users = pdata->num_users;
+> +               num_fifos = pdata->num_fifos;
+> +       }
+> +
+> +       finfoblk = devm_kzalloc(&pdev->dev, info_count * sizeof(*finfoblk),
+> +                               GFP_KERNEL);
+> +       if (!finfoblk)
+> +               return -ENOMEM;
+> +
+> +       finfo = finfoblk;
+> +       child = NULL;
+> +       for (i = 0; i < info_count; i++, finfo++) {
+> +               if (!node) {
+
+Here it's
+    if (!node)
+        /* non-DT stuff */
+    else
+        /* DT stuff */
+
+I think the "if (node) ..." version is a bit cleaner. Besides it's
+nice if code is consistent. Do you mind changing the if statement here
+so it matches the logic used above?
+
+> +                       finfo->tx_id = info->tx_id;
+> +                       finfo->rx_id = info->rx_id;
+> +                       finfo->tx_usr = info->usr_id;
+> +                       finfo->tx_irq = info->irq_id;
+> +                       finfo->rx_usr = info->usr_id;
+> +                       finfo->rx_irq = info->irq_id;
+> +                       finfo->name = info->name;
+> +                       info++;
+> +               } else {
+> +                       child = of_get_next_available_child(node, child);
+> +                       ret = of_property_read_u32_array(child, "ti,mbox-tx",
+> +                                                        tmp, ARRAY_SIZE(tmp));
+> +                       if (ret)
+> +                               return ret;
+> +                       finfo->tx_id = tmp[0];
+> +                       finfo->tx_irq = tmp[1];
+> +                       finfo->tx_usr = tmp[2];
+> +
+> +                       ret = of_property_read_u32_array(child, "ti,mbox-rx",
+> +                                                        tmp, ARRAY_SIZE(tmp));
+> +                       if (ret)
+> +                               return ret;
+> +                       finfo->rx_id = tmp[0];
+> +                       finfo->rx_irq = tmp[1];
+> +                       finfo->rx_usr = tmp[2];
+> +
+> +                       finfo->name = child->name;
+> +               }
+> +               if (finfo->tx_id >= num_fifos || finfo->rx_id >= num_fifos ||
+> +                   finfo->tx_usr >= num_users || finfo->rx_usr >= num_users)
+> +                       return -EINVAL;
+> +       }
+> +
