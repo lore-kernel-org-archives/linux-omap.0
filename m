@@ -1,43 +1,121 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Re-send PATCH 1/1] arm: dra7xx: Add hwmod data for MDIO and
- CPSW
-Date: Wed, 16 Jul 2014 18:57:04 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407161854360.23074@utopia.booyaka.com>
-References: <1404825399-10330-1-git-send-email-mugunthanvnm@ti.com> <20140709095552.GA25154@breakpoint.cc> <20140709100147.GB25154@breakpoint.cc> <alpine.DEB.2.02.1407152019020.21432@utopia.booyaka.com> <20140716070643.GC3378@breakpoint.cc>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Function Profiler broken on today's linux-next
+Date: Wed, 16 Jul 2014 13:57:32 -0500
+Message-ID: <20140716185732.GN3016@saruman.home>
+References: <20140716162328.GJ1365@saruman.home>
+ <20140716122921.71b118a9@gandalf.local.home>
+ <20140716164141.GA3016@saruman.home>
+ <20140716132413.1ede8e1d@gandalf.local.home>
+ <20140716182944.GK3016@saruman.home>
+ <20140716184152.GM3016@saruman.home>
+ <20140716145442.15f25ec3@gandalf.local.home>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140716070643.GC3378-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5PFZVUeDPxlnBcQp"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140716145442.15f25ec3@gandalf.local.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: balbi@ti.com, will.deacon@arm.com, mingo@redhat.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 16 Jul 2014, Sebastian Andrzej Siewior wrote:
+--5PFZVUeDPxlnBcQp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On 2014-07-15 20:21:21 [+0000], Paul Walmsley wrote:
-> 
-> > > Acked-by: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
-> > > 
-> > > This is basically what Tony hasked me to do: No IRQ numbers & iomem.
-> > 
-> > Sorry - I'm a bit confused - Sebastian, did you test this one?  If so, is 
-> > it okay to add a Tested-by from you?
-> 
-> Tested-by: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
+On Wed, Jul 16, 2014 at 02:54:42PM -0400, Steven Rostedt wrote:
+> On Wed, 16 Jul 2014 13:41:52 -0500
+> Felipe Balbi <balbi@ti.com> wrote:
+>=20
+> > Hi,
+> >=20
+> > On Wed, Jul 16, 2014 at 01:29:44PM -0500, Felipe Balbi wrote:
+> > > On Wed, Jul 16, 2014 at 01:24:13PM -0400, Steven Rostedt wrote:
+> > > > On Wed, 16 Jul 2014 11:41:42 -0500
+> > > > Felipe Balbi <balbi@ti.com> wrote:
+> > > >=20
+> > > >=20
+> > > > > .config attached. It's actually an ARM platform, I can help out w=
+ith
+> > > > > testing anything you need.
+> > > >=20
+> > > > In that case, can you see if it works under my repo?
+> > > >=20
+> > > > git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-trace.g=
+it
+> > > > branch: ftrace/core
+> > >=20
+> > > works fine, thanks. FWIW
+> > >=20
+> > > Tested-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > Actually it seems like it's not counting time properly if I run my test
+> > multiple times in a row:
+> >=20
+> > # /root/testusb -t 1 -c 100000 -s 2048 -a
+> > # head -3 trace_stat/function0
+> >   Function                         Hit    Time                Avg      =
+     s^2
+> >   --------                         ---    ----                ---      =
+     ---
+> >   thread_interrupt               174876    166120839 us     949.935 us =
+ 3048498 us
+> >=20
+> > # /root/testusb -t 1 -c 100000 -s 2048 -a
+> > # head -3 trace_stat/function0
+> >   Function                           Hit       Time                    =
+Avg          s^2
+> >   --------                           ---       ----                    =
+---          ---
+> >   dwc3_thread_interrupt            286796    967267300 us         41905=
+45199 us     3241109 us=20
+> >=20
+> > # /root/testusb -t 1 -c 100000 -s 2048 -a
+> > # head -3 trace_stat/function0
+> >   Function                              Hit      Time                 A=
+vg               s^2
+> >     --------                            ---       ----                 =
+---              ---
+> >   dwc3_thread_interrupt               401346    642632072 us       1601=
+=2E192 us     1194316 us=20
+> >=20
+> > and so on...
+> >=20
+>=20
+> Did it use to work? In other words, is this a regression, or just some
+> another bug?
 
-Thanks Sebastian.
+It used to work at least on v3.12... It seems like it's not always
+either. After I rebooted, then it took a little effort to trigger it
+again. But if I just run my test in a loop, eventually it'll start
+miscalculating.
 
-Mugunthan, next step would be for you to get a Reviewed-by: by someone who 
-has access to the (non-public) DRA7xx TRM, and can review for SoC 
-integration.  Since Rajendra is no longer at TI, the right person is 
-probably Tony.
+--=20
+balbi
 
-Then this patch should be mergeable.
+--5PFZVUeDPxlnBcQp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-- Paul
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJTxsscAAoJEIaOsuA1yqREky8P/iLyrkNsNJxBnZdzkNPD86pP
+4106CNQR+4BSe/vOOXyoHmlZbp+DfEUytFd3N2hNg3vWWjpzHS0VQuG+6wdVBa5S
+qfdqZINmsjQhbylwaHjaf/OOQFvbfz5F0aAPQQaO6z0XdYFbBfR/h/Kp6o8YfuGB
+7GKyXecQ8Gy+PmHaWmnyXoQrMHQAzkKG7rqY5YxEPtygNs46ajvN8QzYBIRt0CrC
+nsI+IXtBLhc2yOQF5QnKqkOjJRchpa/gL0k2wPEB7j+eON1S1RZdd9W9iFCL2DW9
+jTZPJz3amNHqkM47N1g2wxcBdoKQ0e7kDmxkYNNWGgjDlZI+8H6KHLeyEyRapPs/
+9A5SwmZm9Okk+Lx0jGODkKqfgpXhYBaMISyDhWBlPd63w1o22iA/975gS6mVbqjd
+/U6yYKcbG59EMh0xhmkQxyuiq1Ey5knj0ElKFv3EtiKtdzUNcXnkaw+FQ/JdiwgO
+RoxTuVDYw7a3dC09BpFagxcNdA+36y5X8LrfoEutWz1T/ti909Dra1tU03iJ0xlm
+H3+ThJXOAZ/viHku97gIBYdMX9KJnEIf3v1rQ7esX2qV73I9rAJQtntlKCOG1/cE
+fC4CytxkJJNoMlS3M6OMGTjOD/Nc5hi0+eWmdQeDaCGC7tPWCQ8P8IfskMUHmeMd
+pAMC+lomHvUJ6OFu2R9T
+=TXhc
+-----END PGP SIGNATURE-----
+
+--5PFZVUeDPxlnBcQp--
