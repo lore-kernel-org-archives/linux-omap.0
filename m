@@ -1,45 +1,47 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/2] dma: edma: Allow to disable eDMA IRQ during cyclic transfer
-Date: Wed, 16 Jul 2014 15:29:19 +0300
-Message-ID: <1405513761-23739-1-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/2] dma: edma: Update caps->residue_granularity to match with
+	reality
+Date: Wed, 16 Jul 2014 15:29:20 +0300
+Message-ID: <1405513761-23739-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1405513761-23739-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: nsekhar@ti.com, joelf@ti.com, vinod.koul@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, dmaengine@vger.kernel.org, tglx@linutronix.de
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1405513761-23739-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: nsekhar-l0cyMroinI0@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The edma can report accurate DMA position so update the residue_granularity
+to DMA_RESIDUE_GRANULARITY_BURST.
 
-After this series clients can ask to not receive notifications after each period.
-In this case we can disable the completion interrupt since the position reporting
-does not rely on it for cyclic mode.
-Patchset for ASoC part has been sent which allows users space to take adventage
-of SNDRV_PCM_INFO_NO_PERIOD_WAKEUP:
-[1] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-July/078993.html
-
-When both series applied on top of linux-next:
-
-# cache the audio file in memory
-cat some_music.mp3 > /dev/null
-# start PA
-pulseaudio -v
-# in another terminal, play the music via PA
-mplayer -ao pulse some_music.mp3
-# yet another terminal to monitor the interrupts
-watch cat /proc/interrupts
-# note the non increasing number of edma interrupts ;)
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
-Peter Ujfalusi (2):
-  dma: edma: Update caps->residue_granularity to match with reality
-  dma: edma: Support to suppress the period interrupts in cyclic mode
+ drivers/dma/edma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/dma/edma.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index fe55f78ea137..d5017abcf7cb 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -1001,7 +1001,7 @@ static int edma_dma_device_slave_caps(struct dma_chan *dchan,
+ 	caps->directions = BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
+ 	caps->cmd_pause = true;
+ 	caps->cmd_terminate = true;
+-	caps->residue_granularity = DMA_RESIDUE_GRANULARITY_DESCRIPTOR;
++	caps->residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
+ 
+ 	return 0;
+ }
 -- 
 2.0.0
