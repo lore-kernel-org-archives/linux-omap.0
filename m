@@ -1,65 +1,86 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH 1/5] [RFC-HACK] pinctrl-single: init by
- postcore_initcall()
-Date: Wed, 16 Jul 2014 08:45:58 -0300
-Message-ID: <20140716114558.GA1842@arch.cereza>
-References: <1400799986-20043-1-git-send-email-chf.fritz@googlemail.com>
- <1400799986-20043-2-git-send-email-chf.fritz@googlemail.com>
- <20140522233154.GE29577@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 6/6] tty: serial: Add 8250-core based omap driver
+Date: Wed, 16 Jul 2014 14:11:57 +0200
+Message-ID: <53C66C0D.5060501@linutronix.de>
+References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de> <1404928177-26554-7-git-send-email-bigeasy@linutronix.de> <20140710070948.GH28884@atomide.com> <53BEB5AF.7010604@linutronix.de> <20140711064151.GJ28884@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yk0-f182.google.com ([209.85.160.182]:43699 "EHLO
-	mail-yk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758279AbaGPLqw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2014 07:46:52 -0400
-Received: by mail-yk0-f182.google.com with SMTP id q9so367575ykb.13
-        for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2014 04:46:51 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140522233154.GE29577@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140711064151.GJ28884@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Christoph Fritz <chf.fritz@googlemail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pekon Gupta <pekon@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-On 22 May 04:31 PM, Tony Lindgren wrote:
-> * Christoph Fritz <chf.fritz@googlemail.com> [140522 16:07]:
-> > --- a/drivers/pinctrl/pinctrl-single.c
-> > +++ b/drivers/pinctrl/pinctrl-single.c
-> > @@ -2069,7 +2069,22 @@ static struct platform_driver pcs_driver = {
-> >  #endif
-> >  };
-> >  
-> > +#ifdef CONFIG_USE_OF
-> > +static int __init pcs_driver_drv_init(void)
-> > +{
-> > +       return platform_driver_register(&pcs_driver);
-> > +}
-> > +postcore_initcall(pcs_driver_drv_init);
-> > +
-> > +static void __exit pcs_driver_drv_exit(void)
-> > +{
-> > +       platform_driver_unregister(&pcs_driver);
-> > +}
-> > +module_exit(pcs_driver_drv_exit);
-> > +#else
-> >  module_platform_driver(pcs_driver);
-> > +#endif
-> > +
+On 07/11/2014 08:41 AM, Tony Lindgren wrote:
+>> I tried this with am335x-evm, dra7-evm and beaglebone (omap5-uevm and
+>> am335x-evmsk didn't want to boot a kernel and omap4-blaze didn't even
+>> want to show MLO/U-boot) with the same result.
 > 
-> I would prefer to initialize all the drivers with module_init
-> and and if necessary, selected frameworks with subsys_initcall. 
+> None of these SoCs support off-idle with mainline kernel so testing
+> with those is not enough :) Best to use some omap3 based device for
+> testing this.
 > 
-> In drivers/Makefile we do have painctrl before gpio, so this
-> too could be just module_init once the other drivers are fixed.
-> 
+> So far I have verified that beagleboard xm, n900, and omap3730-evm
+> all hit off-idle with v3.16-rc4.
 
-I've been using patches that change gpio and i2c initialization to module_init
-for some time now. However, I still see some non-DT boards using the GPIO API
-in early functions such as .init_machine.
+Unfortunately I don't have access to any of those devices.
 
-Only when these boards get converted and the legacy support is dropped, we'll
-be able to move all the drivers to module_init.
--- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+>> I had network up and configured. Was that okay? I also tried
+>> "ifconfig eth0 down; sleep 10; ifconfig eth0 up" to see if it works.
+> 
+> That's fine for GPMC connected devices, devices with Ethernet on
+> EHCI won't idle properly AFAIK.
+
+am33xx has proper ethernet (cpsw IP core on SoC and not something
+behind USB).
+
+>> That core_pwrdm shows only up on dra7. However with both drivers (mine
+>> and the current omap serial) the UART went down after three secs (as
+>> expected) and didn't accept any characters while writing on the
+>> console. If I wrote something on it via network (like echo a >
+>> /dev/ttyO0) it came back and was working as long as I kept it busy. The
+>> thing is that RX does not wake it up. Any idea?
+> 
+> If the RX pin does not wake it up, you need to configure the
+> pinctrl-single entry for it, and configure that pin as a wake-up
+> interrupt. See the interrupts-extended entry in omap3-beagle-xm.dts.
+
+This does not help. Checking the manual, there is not something like
+PIN_OFF_WAKEUPENABLE for am33xx. There is just INPUT/OUTPUT, pull
+up/down + enabled/disabled and the mux_mode. For the interrupt, the HW
+referenced as omap3_pmx_core touches some bits in the pinmux register
+which do not exists on am33xx.
+
+So I have nothing on HW around that could test wakeup scenario.
+
+>> Also, while it was I checked the core_pwrdm and I had ON:1 and OFF:0.
+>> So something is not right.
+>> Since Dra7 has some things missing I tried it on am335x with the same
+>> behavior. Should it work here?
+> 
+> Yes only omap3 currently has the pieces needed for off-idle in the
+> mainline kernel.
+>  
+
+Good to know.
+
+>> puh. So after staring a while at your backtrace I realized that
+>> shutdown & startup callbacks are not overwritten properly. Well, thanks
+>> for that. Anyway, even serial8250_do_startup() has
+>> pm_runtime_get_sync() before first register access so I have no idea
+>> where this is coming from.
+> 
+> Maybe because the console is enabled for that port?
+
+Maybe. But I would expect to explode around the console code. Anyway I
+fixed it up and prepare next batch.
+
+> 
+> Regards,
+> 
+> Tony
+
+
+Sebastian
