@@ -1,114 +1,49 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v4 02/11] memory: emif: Move EMIF register defines to
- include/linux/
-Date: Tue, 15 Jul 2014 21:44:20 -0500
-Message-ID: <53C5E704.5030605@ti.com>
-References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-3-git-send-email-d-gerlach@ti.com> <20140714111222.GB20068@atomide.com> <53C41696.6020004@ti.com> <20140715063830.GI20068@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2] arm: dra7xx: Add hwmod data for pcie1 and pcie2 subsystems
+Date: Wed, 16 Jul 2014 10:15:02 +0530
+Message-ID: <53C6034E.5000105@ti.com>
+References: <1403719366-9656-3-git-send-email-kishon@ti.com> <1404896567-32204-1-git-send-email-kishon@ti.com> <53BD2136.9030009@ti.com> <53C3B251.8000209@ti.com> <alpine.DEB.2.02.1407152013310.21432@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60503 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752911AbaGPCoy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Jul 2014 22:44:54 -0400
-In-Reply-To: <20140715063830.GI20068@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1407152013310.21432@utopia.booyaka.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>
 
-Tony,
-On 07/15/2014 01:38 AM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [140714 10:44]:
->> On 07/14/2014 06:12 AM, Tony Lindgren wrote:
->>> * Dave Gerlach <d-gerlach@ti.com> [140710 19:59]:
->>>> OMAP4 and AM33XX share the same EMIF controller IP. Although there
->>>> are significant differences in the IP integration due to which
->>>> AM33XX can't reuse the EMIF driver DVFS similar to OMAP4,
->>>> it can definitely benefit by reusing the EMIF related macros
->>>> defined in drivers/memory/emif.h.
+
+
+On Wednesday 16 July 2014 01:43 AM, Paul Walmsley wrote:
+> On Mon, 14 Jul 2014, Kishon Vijay Abraham I wrote:
+> 
+>> On Wednesday 09 July 2014 04:32 PM, Rajendra Nayak wrote:
+>>> On Wednesday 09 July 2014 02:32 PM, Kishon Vijay Abraham I wrote:
+>>>> Added hwmod data for pcie1 and pcie2 subsystem present in DRA7xx SOC.
 >>>>
->>>> In the current OMAP PM framework the PM code resides under
->>>> arch/arm/mach-omap2/. To enable reuse of the register defines move
->>>> the register defines in the emif header file to include/linux so that
->>>> both the EMIF driver and the AM33XX PM code can benefit.
->>>>
->>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->>>> Reviewed-by: Russ Dill <russ.dill@ti.com>
->>>> Acked-by: Santosh Shililmar <santosh.shilimkar@ti.com>
->>>> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>>> Cc: Tony Lindgren <tony@atomide.com>
+>>>> Cc: Russell King <linux@arm.linux.org.uk>
+>>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> Tested-by: Kishon Vijay Abraham I <kishon@ti.com>
 >>>> ---
->>>> v3->v4:
->>>> patch unchanged from original:
->>>> 	http://www.spinics.net/lists/linux-omap/msg95314.html
->>>>
->>>>   drivers/memory/emif.h   | 543 +---------------------------------------------
->>>>   include/linux/ti_emif.h | 558 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>>> Changes from v1:
+>>>> * changed the clock domain to "pcie_clkdm"
+>>>> * Added PCIe as a slave port for l3_main.
 >>>
->>> So far we've seen that exposing hardware registers like this
->>> will lead into various drivers misusing them. I think a better
->>> solution is to implement few targeted functions that allow
->>> sharing code between the platform idle code and memory driver.
->>>
->>> Maybe you can have the shared functions in in something like
->>> drivers/memory/ti-emif.c that's always built in? The idle
->>> code won't need any of that early on.
+>>> Looks good to me,
+>>> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 >>
->> Well the reason it was done this way was to utilize all of the addresses of
->> EMIF register in the ASM sleep code to do relative addressing from the EMIF
->> base address. The ASM sleep code (patch 9) needs to save and restore emif
->> context and set and unset self refresh in emif. The issues will come from
->> the ASM being copied to and running from SRAM without the ability to access
->> code in DDR (because we are shutting the EMIF off), so we would need to copy
->> these functions as well and have to worry about any issues we introduce by
->> relocating c code. Is it worth the added maintenance burden?
->
-> Ah right it needs to run in SRAM. There were some relocatable
-> c code patches posted a while back, so it might be worth
-> revisiting that.
->
-> I think it can also be done with assembly with something like
-> this:
->
-> 1. Make am335x idle code depends on TI_EMIF && WKUP_M3_RPROC
->
-> 2. Add the memory save and restore assembly functions into
->     drivers/memory/ti-emif-sram.S
->
-> 3. Allocate the SRAM preferrably with drivers/misc/sram.c
->     instead of the legacy mach-omap2/sram.c
->
+>> Paul,
+>>
+>> Can you pick this one?
+> 
+> Yep, queued for 3.17.
 
-This I can do, I will just need to make a change somewhere to make generic sram 
-driver provide sram allocations marked for exec.
+Thanks :-)
 
-> 4. Map the idle assembly code and EMIF save and restore
->     functions into SRAM
->
-> 5. Call the EMIF save and restore functions from the idle
->     assembly code at the SRAM locations and pass the save and
->     restore area in a register
->
-> So basically we need to figure out a generic way to do driver
-> hooks in the PM idle code even very late and early in the
-> assembly code so we can keep most of the code in drivers.
-> Eventually also the idle assembly code should be in the drivers
-> too..
-
-I did not consider this earlier but the cpuidle code will use the same path in 
-the assembly code. The cpuidle configures the suspend path to make the emif 
-actions optional (save and restore with shut off, and self refresh), so a 
-generic solution probably isn't possible here as we (will) need a certain level 
-of granularity of control over the emif actions, and that will be difficult to 
-maintain while keeping the pm functionality out of the EMIF code.
-
-Regards,
-Dave
-
->
-> Regards,
->
-> Tony
->
-
+-Kishon
+> 
+> - Paul
+> 
