@@ -1,39 +1,77 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 6/6] tty: serial: Add 8250-core based omap driver
-Date: Wed, 16 Jul 2014 18:30:30 +0530
-Message-ID: <53C6776E.9050804@ti.com>
-References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de> <1404928177-26554-7-git-send-email-bigeasy@linutronix.de> <20140710070948.GH28884@atomide.com> <53BEB5AF.7010604@linutronix.de> <20140711064151.GJ28884@atomide.com> <53C66C0D.5060501@linutronix.de> <20140716123208.GA18374@atomide.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH 1/5] [RFC-HACK] pinctrl-single: init by
+ postcore_initcall()
+Date: Wed, 16 Jul 2014 10:30:01 -0300
+Message-ID: <20140716133001.GA4033@arch.cereza>
+References: <1400799986-20043-1-git-send-email-chf.fritz@googlemail.com>
+ <1400799986-20043-2-git-send-email-chf.fritz@googlemail.com>
+ <20140522233154.GE29577@atomide.com>
+ <20140716114558.GA1842@arch.cereza>
+ <20140716123641.GB18374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140716123208.GA18374@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yh0-f45.google.com ([209.85.213.45]:43178 "EHLO
+	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932622AbaGPNa6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Jul 2014 09:30:58 -0400
+Received: by mail-yh0-f45.google.com with SMTP id 29so429354yhl.4
+        for <linux-omap@vger.kernel.org>; Wed, 16 Jul 2014 06:30:58 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140716123641.GB18374@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Christoph Fritz <chf.fritz@googlemail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Pekon Gupta <pekon@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 16 July 2014 06:02 PM, Tony Lindgren wrote:
-> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140716 05:14]:
->> On 07/11/2014 08:41 AM, Tony Lindgren wrote:
->>>
->>> If the RX pin does not wake it up, you need to configure the
->>> pinctrl-single entry for it, and configure that pin as a wake-up
->>> interrupt. See the interrupts-extended entry in omap3-beagle-xm.dts.
->>
->> This does not help. Checking the manual, there is not something like
->> PIN_OFF_WAKEUPENABLE for am33xx. There is just INPUT/OUTPUT, pull
->> up/down + enabled/disabled and the mux_mode. For the interrupt, the HW
->> referenced as omap3_pmx_core touches some bits in the pinmux register
->> which do not exists on am33xx.
+On 16 Jul 05:36 AM, Tony Lindgren wrote:
+> * Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> [140716 04:48]:
+> > On 22 May 04:31 PM, Tony Lindgren wrote:
+> > > * Christoph Fritz <chf.fritz@googlemail.com> [140522 16:07]:
+> > > > --- a/drivers/pinctrl/pinctrl-single.c
+> > > > +++ b/drivers/pinctrl/pinctrl-single.c
+> > > > @@ -2069,7 +2069,22 @@ static struct platform_driver pcs_driver = {
+> > > >  #endif
+> > > >  };
+> > > >  
+> > > > +#ifdef CONFIG_USE_OF
+> > > > +static int __init pcs_driver_drv_init(void)
+> > > > +{
+> > > > +       return platform_driver_register(&pcs_driver);
+> > > > +}
+> > > > +postcore_initcall(pcs_driver_drv_init);
+> > > > +
+> > > > +static void __exit pcs_driver_drv_exit(void)
+> > > > +{
+> > > > +       platform_driver_unregister(&pcs_driver);
+> > > > +}
+> > > > +module_exit(pcs_driver_drv_exit);
+> > > > +#else
+> > > >  module_platform_driver(pcs_driver);
+> > > > +#endif
+> > > > +
+> > > 
+> > > I would prefer to initialize all the drivers with module_init
+> > > and and if necessary, selected frameworks with subsys_initcall. 
+> > > 
+> > > In drivers/Makefile we do have painctrl before gpio, so this
+> > > too could be just module_init once the other drivers are fixed.
+> > > 
+> > 
+> > I've been using patches that change gpio and i2c initialization to module_init
+> > for some time now. However, I still see some non-DT boards using the GPIO API
+> > in early functions such as .init_machine.
+> > 
+> > Only when these boards get converted and the legacy support is dropped, we'll
+> > be able to move all the drivers to module_init.
 > 
-> Right, on am33xx there's no IO chain wake-up path. AFAIK the only way
-> to provide wake events on am33xx would be to mux the RX pin temporarily
-> to a GPIO input. And sounds like that may work only if the GPIO is
-> in the first GPIO bank that's always on. I don't know if the other
-> GPIO banks on am33xx can provide wake up events.
+> Hmm yeah tons of dependencies to dropping the legacy booting.. But to not
+> have that dependency maybe we can convert those .init_machine functions
+> easily to late_initcall.
+> 
 
-No, they cannot.
-
-Thanks,
-Sekhar
+Could be. I can drop a few patches and then wait for Acks from the maintainers.
+Although I'm not really sure this is worth the pain.
+-- 
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
