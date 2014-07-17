@@ -1,99 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 5/5] tty: serial: Add 8250-core based omap driver
-Date: Thu, 17 Jul 2014 11:04:21 -0500
-Message-ID: <20140717160421.GJ10459@saruman.home>
-References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de>
- <1405521903-5877-6-git-send-email-bigeasy@linutronix.de>
- <20140717145430.GF10459@saruman.home>
- <53C7E7BE.7030403@linutronix.de>
-Reply-To: <balbi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 4/5] tty: serial: 8250 core: add runtime pm
+Date: Thu, 17 Jul 2014 18:06:59 +0200
+Message-ID: <53C7F4A3.5080508@linutronix.de>
+References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de> <1405521903-5877-5-git-send-email-bigeasy@linutronix.de> <20140716151604.GG1365@saruman.home> <53C6A050.2050409@linutronix.de> <20140716160614.GI1365@saruman.home> <53C7EC6F.6060902@hurleysoftware.com> <20140717154300.GA16623@linutronix.de> <20140717160206.GI10459@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="j+MD90OnwjQyWNYt"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53C7E7BE.7030403@linutronix.de>
+In-Reply-To: <20140717160206.GI10459@saruman.home>
 Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: balbi@ti.com
+Cc: Peter Hurley <peter@hurleysoftware.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
---j+MD90OnwjQyWNYt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 07/17/2014 06:02 PM, Felipe Balbi wrote:
+>> diff --git a/drivers/tty/serial/8250/8250_core.c
+>> b/drivers/tty/serial/8250/8250_core.c index 2e4a93b..480a1c0
+>> 100644 --- a/drivers/tty/serial/8250/8250_core.c +++
+>> b/drivers/tty/serial/8250/8250_core.c @@ -1283,6 +1283,9 @@
+>> static inline void __stop_tx(struct uart_8250_port *p) if (p->ier
+>> & UART_IER_THRI) { p->ier &= ~UART_IER_THRI; serial_out(p,
+>> UART_IER, p->ier); + +		pm_runtime_mark_last_busy(p->port.dev); +
+>> pm_runtime_put_autosuspend(p->port.dev); } }
+>> 
+>> @@ -1310,12 +1313,12 @@ static void serial8250_start_tx(struct
+>> uart_port *port) struct uart_8250_port *up = container_of(port,
+>> struct uart_8250_port, port);
+>> 
+>> -	pm_runtime_get_sync(port->dev); if (up->dma &&
+>> !serial8250_tx_dma(up)) { goto out; } else if (!(up->ier &
+>> UART_IER_THRI)) { up->ier |= UART_IER_THRI; +
+>> pm_runtime_get_sync(port->dev); serial_port_out(port, UART_IER,
+>> up->ier);
+>> 
+>> if (up->bugs & UART_BUG_TXEN) { unsigned char lsr;
+> 
+> this looks better. So we get on start_tx() and put on stop_tx().
+> 
+>> @@ -1500,9 +1503,10 @@ void serial8250_tx_chars(struct
+>> uart_8250_port *up) uart_write_wakeup(port);
+>> 
+>> DEBUG_INTR("THRE..."); - +#if 0 if (uart_circ_empty(xmit)) 
+>> __stop_tx(up); +#endif } EXPORT_SYMBOL_GPL(serial8250_tx_chars);
+> 
+> is it so that start_tx() gets called one and stop_tx() might be
+> called N times ? That looks unbalanced to me. If the calls are
+> balanced, then you shouldn't need to care because pm_runtime will
+> handle reference counting for you, right?
 
-On Thu, Jul 17, 2014 at 05:11:58PM +0200, Sebastian Andrzej Siewior wrote:
-> On 07/17/2014 04:54 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Wed, Jul 16, 2014 at 04:45:03PM +0200, Sebastian Andrzej Siewior wro=
-te:
-> >> +static int omap_8250_startup(struct uart_port *port)
-> >> +{
-> >> +	struct uart_8250_port *up =3D
-> >> +		container_of(port, struct uart_8250_port, port);
-> >> +	struct omap8250_priv *priv =3D port->private_data;
-> >> +
-> >> +	int ret;
-> >> +
-> >> +	if (priv->wakeirq) {
-> >> +		ret =3D request_irq(priv->wakeirq, omap_wake_irq,
-> >> +				port->irqflags, "wakeup irq", port);
-> >> +		if (ret)
-> >> +			return ret;
-> >> +		disable_irq(priv->wakeirq);
-> >> +	}
-> >> +
-> >> +	ret =3D serial8250_do_startup(port);
-> >> +	if (ret)
-> >> +		goto err;
-> >> +
-> >> +	pm_runtime_get_sync(port->dev);
-> >=20
-> > should this pm_runtime_get_sync() be placed above
-> > serial8250_do_startup() call ?
->=20
-> I don't think it matters since serial8250_do_startup() has its own
-> pm_runtime_get_sync().
+No, this is okay. If you look, it checks for "up->ier &
+UART_IER_THRI". On the second invocation it will see that this bit is
+already set and therefore won't call get_sync() for the second time.
+That bit is removed in the _stop_tx() path.
 
-oh right, saw that now.
+>> and now I need to come up with something that is not if (port !=
+>> omap) for that #if 0 block. The code disables the TX FIFO empty
+>> interrupt once the transfer is complete. I want to call
+>> __stop_tx() once the tx fifo is empty. Felipe, Would a check for
+>> dev->power.use_autosuspend be the right thing to do?
+> 
+> probably not, as that's internal to the pm_runtime code. But I
+> wonder if start/stop tx calls are balanced, if they are then we're
+> good. Unless I'm missing something else.
 
-> ->startup(), ->shutdown() are called via omap callbacks so we could
-> spare in the 8250-core if we do it in the omap code before invoking the
-> function. The same goes for serial8250_set_termios() which is not used
-> by omap but has those runtime-pm stuff, too.
-> It would be wrong if someone would use the serial8250_do_startup()
-> without his own runtime-pm get but it is omap only which does this
-> things.
-> So it is not used by anyone else (right now) and if you want to keep it
-> to a minimum I could remove them from those places.
+Do you have other ideas? It doesn't look like this is exported at all.
+If we call _stop_tx() right away, then we have 64 bytes in the TX fifo
+in the worst case. They should be gone "soon" but the HW-flow control
+may delay it (in theory for a long time)).
 
-I don't think it matters as long as the calls are balanced.
-
---=20
-balbi
-
---j+MD90OnwjQyWNYt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJTx/QFAAoJEIaOsuA1yqRECxgP/j5ZgCwoXVdZQl8R5uuilUlf
-bnRvlHiA9nQ8pBma2/4MDWaDNKF0QpEGVNLn6qwG+CR93o+DtjtcZcCQRnW+iDSX
-1OX2Y98UY0yecnHZ15bUCivFv7ISGBFMuL4UVnionS0KIf74jVjWpkN4ZIRWYmmM
-s//OlMjvPlhiNCXl7w/4nljw1uSYV3TWdlsad3AWsYE5rVCKux3NLoUWZFvqONjP
-86sIzmEQv5vaC4ALVtutdcJwaOth9rpWQAFlrszOL+FI1lIYJPCMUesArDkEAHbK
-4Ak70I51dAhKBZlDLj5QtCm8BdwjnesEg+sWisVEyxI18McfTEaVP4i7lQH5PNLJ
-a3n5ErUcbvv0E5ieLTVsSjb+KNJmmmP/SoF5meIc5K6a+7/dtma05ekuSakrlEuK
-Txy+Zv6rhBvUtAK3fmkneySbNRsv1hNqtZ9b3KgP2NASB3JAQQUiZySJyFSmNwu8
-n8fJaNETlpcbOwdeMZfoVkQIN8OSim5hjKNpgsEHONgooBv5iebCxozOPb2p9wvk
-vXOxiIqXuJjMclLUW33pKCxYlv7/5x9FWtb2Cuwf3SXd4BEut/Jh8jAOt3siEg0k
-FgvBRiYzwxX4Ykv9oqTpqVT2ITWsF0FXysBBCKLthTMnmb+5L59kivKCdYrBHc0e
-h1GRJ5TWWOL8d/JkKyt8
-=B4+R
------END PGP SIGNATURE-----
-
---j+MD90OnwjQyWNYt--
+Sebastian
