@@ -1,8 +1,8 @@
 From: Tomasz Figa <t.figa@samsung.com>
-Subject: [PATCH v3 2/7] ARM: l2c: Add interface to ask hypervisor to configure
- L2C
-Date: Thu, 17 Jul 2014 18:38:57 +0200
-Message-ID: <1405615142-21426-3-git-send-email-t.figa@samsung.com>
+Subject: [PATCH v3 3/7] ARM: l2c: Get outer cache .write_sec callback from
+ mach_desc only if not NULL
+Date: Thu, 17 Jul 2014 18:38:58 +0200
+Message-ID: <1405615142-21426-4-git-send-email-t.figa@samsung.com>
 References: <1405615142-21426-1-git-send-email-t.figa@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,54 +22,31 @@ To: linux-samsung-soc@vger.kernel.org
 Cc: Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, tony@atomide.com, linus.walleij@linaro.org, linux-kernel@vger.kernel.org, drake@endlessm.com, loeliger@gmail.com, santosh.shilimkar@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Tomasz Figa <t.figa@samsung.com>, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-Because certain secure hypervisor do not allow writes to individual L2C
-registers, but rather expect set of parameters to be passed as argument
-to secure monitor calls, there is a need to provide an interface for the
-L2C driver to ask the firmware to configure the hardware according to
-specified parameters. This patch adds such.
+Certain platforms (i.e. Exynos) might need to set .write_sec callback
+from firmware initialization which is happenning in .init_early callback
+of machine descriptor. However current code will overwrite the pointer
+with whatever is present in machine descriptor, even though it can be
+already set earlier. This patch fixes this by making the assignment
+conditional, depending on whether current .write_sec callback is NULL.
 
 Signed-off-by: Tomasz Figa <t.figa@samsung.com>
 ---
- arch/arm/include/asm/outercache.h | 3 +++
- arch/arm/mm/cache-l2x0.c          | 5 +++++
- 2 files changed, 8 insertions(+)
+ arch/arm/kernel/irq.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
-index 891a56b..563b92f 100644
---- a/arch/arm/include/asm/outercache.h
-+++ b/arch/arm/include/asm/outercache.h
-@@ -23,6 +23,8 @@
+diff --git a/arch/arm/kernel/irq.c b/arch/arm/kernel/irq.c
+index 2c42576..e7383b9 100644
+--- a/arch/arm/kernel/irq.c
++++ b/arch/arm/kernel/irq.c
+@@ -125,7 +125,8 @@ void __init init_IRQ(void)
  
- #include <linux/types.h>
- 
-+struct l2x0_regs;
-+
- struct outer_cache_fns {
- 	void (*inv_range)(unsigned long, unsigned long);
- 	void (*clean_range)(unsigned long, unsigned long);
-@@ -36,6 +38,7 @@ struct outer_cache_fns {
- 
- 	/* This is an ARM L2C thing */
- 	void (*write_sec)(unsigned long, unsigned);
-+	void (*configure)(const struct l2x0_regs *);
- };
- 
- extern struct outer_cache_fns outer_cache;
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index 385c047..21a625a0 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -109,6 +109,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
- 
- static void l2c_configure(void __iomem *base)
- {
-+	if (outer_cache.configure) {
-+		outer_cache.configure(&l2x0_saved_regs);
-+		return;
-+	}
-+
- 	if (l2x0_data->configure)
- 		l2x0_data->configure(base);
- 
+ 	if (IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_CACHE_L2X0) &&
+ 	    (machine_desc->l2c_aux_mask || machine_desc->l2c_aux_val)) {
+-		outer_cache.write_sec = machine_desc->l2c_write_sec;
++		if (!outer_cache.write_sec)
++			outer_cache.write_sec = machine_desc->l2c_write_sec;
+ 		ret = l2x0_of_init(machine_desc->l2c_aux_val,
+ 				   machine_desc->l2c_aux_mask);
+ 		if (ret)
 -- 
 1.9.3
