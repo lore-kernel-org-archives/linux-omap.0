@@ -1,97 +1,62 @@
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [RFC/PATCH 0/5] Add Video Processing Front End Support
-Date: Thu, 17 Jul 2014 13:43:32 +0100
-Message-ID: <CA+V-a8sZF-M1Me0ZpVAkCGChQYYNcCopdW50fLZwPQ1uCLgx4Q@mail.gmail.com>
-References: <1405447012-5340-1-git-send-email-balbi@ti.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v4 0/6] Per-user clock constraints
+Date: Thu, 17 Jul 2014 16:13:13 +0200
+Message-ID: <1405606399-26608-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:60179 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932258AbaGQMoF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2014 08:44:05 -0400
-In-Reply-To: <1405447012-5340-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Andrew Lunn <andrew@lunn.ch>, Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@perex.cz>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, Vire
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-media <linux-media@vger.kernel.org>, archit@ti.com, "Etheridge, Darren" <detheridge@ti.com>, Sakari Ailus <sakari.ailus@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-On Tue, Jul 15, 2014 at 6:56 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi all,
->
-> the following patches add suport for AM43xx's Video Processing
-> Front End (VPFE). Full documentation is available at [1] chapter 14.
->
-> This driver has been tested with linux-next from yesterday, plus my
-> (already queued) am437x starter kit patches, plus these patches, plus
-> the sensor driver which, saddly enough, we're not allowed to release :-(
->
-> This driver has almost full v4l2-compliance with only 2 failures (I'll
-> take hints on how to properly fix them) as below:
->
->                 fail: v4l2-compliance.cpp(419): !doioctl(node2,
->                         VIDIOC_S_PRIORITY, &prio)
->         test VIDIOC_G/S_PRIORITY: FAIL
->
->                 fail: v4l2-test-formats.cpp(319): pixelformat !=
->                                 V4L2_PIX_FMT_JPEG && colorspace ==
->                                 V4L2_COLORSPACE_JPEG
->                 fail: v4l2-test-formats.cpp(418):
->                                 testColorspace(pix.pixelformat, pix.colorspace)
->         test VIDIOC_G_FMT: FAIL
->
-> I have also tested with gst-launch using fbdevsink and I can see my
-> ugly mug just fine.
->
-> Please give this a thorough review and let me know of any problems
-> which need to be sorted out and I'll try to help out as time allows.
->
-> cheers
->
-> [1] http://www.ti.com/lit/pdf/spruhl7
->
-> Benoit Parrot (4):
->   Media: platform: Add ti-vpfe driver for AM437x device
->   arm: omap: hwmod: add hwmod entries for AM437x VPFE
->   arm: boot: dts: am4372: add vpfe DTS entries
->   arm: dts: am43x-epos: Add VPFE DTS entries
->
-> Darren Etheridge (1):
->   ARM: dts: am437x-sk-evm: add vpfe support and ov2659 sensor
->
->  arch/arm/boot/dts/am4372.dtsi                     |   16 +
->  arch/arm/boot/dts/am437x-sk-evm.dts               |   63 +
->  arch/arm/boot/dts/am43x-epos-evm.dts              |   54 +
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c        |   56 +
->  arch/arm/mach-omap2/prcm43xx.h                    |    3 +-
->  drivers/media/platform/Kconfig                    |    1 +
->  drivers/media/platform/Makefile                   |    2 +
->  drivers/media/platform/ti-vpfe/Kconfig            |   12 +
->  drivers/media/platform/ti-vpfe/Makefile           |    2 +
->  drivers/media/platform/ti-vpfe/am437x_isif.c      | 1053 +++++++++
->  drivers/media/platform/ti-vpfe/am437x_isif.h      |  355 +++
->  drivers/media/platform/ti-vpfe/am437x_isif_regs.h |  144 ++
->  drivers/media/platform/ti-vpfe/vpfe_capture.c     | 2478 +++++++++++++++++++++
->  drivers/media/platform/ti-vpfe/vpfe_capture.h     |  263 +++
->  14 files changed, 4501 insertions(+), 1 deletion(-)
-
-Missing documentation for DT ?
-
-Thanks,
---Prabhakar Lad
-
->  create mode 100644 drivers/media/platform/ti-vpfe/Kconfig
->  create mode 100644 drivers/media/platform/ti-vpfe/Makefile
->  create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.c
->  create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif.h
->  create mode 100644 drivers/media/platform/ti-vpfe/am437x_isif_regs.h
->  create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.c
->  create mode 100644 drivers/media/platform/ti-vpfe/vpfe_capture.h
->
-> --
-> 2.0.0.390.gcb682f8
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksCgpJJ20gcmV0YWtpbmcgUmFiaW4ncyBwYXRjaGVzIFswXSBmb3Igc3BsaXR0aW5nIHRoZSBj
+bGsgQVBJIGluIHR3bzogb25lIEFQSSBmb3IKY2xrIGNvbnN1bWVycyBhbmQgYW5vdGhlciBmb3Ig
+cHJvdmlkZXJzLiBUaGUgY29uc3VtZXIgQVBJIHVzZXMgYSBjbGsgc3RydWN0dXJlCnRoYXQganVz
+dCBrZWVwcyB0cmFjayBvZiB0aGUgY29uc3VtZXIgYW5kIGhhcyBhIHJlZmVyZW5jZSB0byB0aGUg
+YWN0dWFsCmNsa19jb3JlIHN0cnVjdCwgd2hpY2ggaXMgdXNlZCBpbnRlcm5hbGx5LgoKSSBoYXZl
+IGtlcHQgYSBwYXRjaCBmcm9tIFJhYmluIHRoYXQgYWltcyB0byBhaWQgaW4gZGVidWdnaW5nIG5l
+c3RlZAplbmFibGUvZGlzYWJsZSBjYWxscywgdGhvdWdoIG15IHBlcnNvbmFsIGFpbSBpcyB0byBh
+bGxvdyBtb3JlIHRoYW4gb25lIGNvbnN1bWVyCnRvIGluZmx1ZW5jZSB0aGUgZmluYWwsIGVmZmVj
+dGl2ZSBmcmVxdWVuY3kgcmF0ZS4gRm9yIG5vdyB0aGlzIGlzIGxpbWl0ZWQgdG8Kc2V0dGluZyBm
+bG9vciBhbmQgY2VpbGluZyBjb25zdHJhaW50cywgd2l0aCB0aGUgc2hvcnQtdGVybSBhaW0gb2Yg
+YWxsb3dpbmcKZGV2ZnJlcSBhbmQgdGhlcm1hbCBkcml2ZXJzIHRvIHNldCBmbG9vciBhbmQgY2Vp
+bGluZyBmcmVxdWVuY2llcyBvbiB0aGUgbWVtb3J5CmNsb2NrLCByZXNwZWN0aXZlbHkuCgpGb3Ig
+dGhvc2UgZnVuY3Rpb25zIGluIHRoZSBjb25zdW1lciBjbGsgQVBJIHRoYXQgd2VyZSBjYWxsZWQg
+ZnJvbSBwcm92aWRlcnMsIEkKaGF2ZSBhZGRlZCB2YXJpYW50cyB0byBjbGstcHJvdmlkZXIuaCB0
+aGF0IGFyZSB0aGUgc2FtZSBvbmx5IHRoYXQgYWNjZXB0IGEKY2xrX2NvcmUgaW5zdGVhZC4gVGhl
+c2UgZnVuY3Rpb25zIGFyZSBwcmVmaXhlZCB3aXRoIGNsa19wcm92aWRlcl8uCgpQYXRjaCAxLzYg
+anVzdCBhZGRzIGEgYnVuY2ggb2YgZGVmaW5lcyB3aXRoIHRoZSBnb2FsIG9mIGhhdmluZyBhbGwg
+dGhlIHJlbmFtZXMKaW4gdGhlaXIgb3duIGNvbW1pdCB3aGlsZSBwcmVzZXJ2aW5nIGdpdC1iaXNl
+Y3RhYmlsaXR5LCB3aXRoIHBhdGNoIDMvNgpjb250YWluaW5nIHRoZSByZW5hbWUgaXRzZWxmIGFz
+IGdlbmVyYXRlZCBieSB0aGUgQ29jY2luZWxsZSBzY3JpcHQgaW4gWzFdLgpQYXRjaCAyLzYgaXMg
+bmVlZGVkIGJlY2F1c2Ugc291bmQvc29jL214cy9teHMtc2FpZi5jIGNhbGxzIGJvdGggdGhlIGNv
+bnN1bWVyCmFuZCB0aGUgcHJvdmlkZXIgQVBJLiBUaGUgYWN0dWFsIGltcGxlbWVudGF0aW9uIG9m
+IHRoZSBBUEkgc3BsaXQgY29tZXMgaW4gcGF0Y2gKNC82LiBJIHdpbGwgYmUgaGFwcHkgdG8gb3Jn
+YW5pemUgdGhlIHJlZmFjdG9yaW5nIGRpZmZlcmVudGx5IGlmIGFueWJvZHkgaGFzIGEKYmV0dGVy
+IGlkZWEuCgpQYXRjaCA1LzYgd2FybnMgd2hlbiB0aGVyZSdzIGFuIHVuYmFsYW5jZWQgdXNhZ2Ug
+b2YgdGhlIGVuYWJsZSBhbmQgZGlzYWJsZQpBUElzLCBhbmQgcGF0Y2ggNi82IGFkZHMgdGhlIEFQ
+SSBmb3Igc2V0dGluZyBmbG9vciBhbmQgY2VpbGluZyBmcmVxdWVuY2llcywgcGVyCmNvbnN1bWVy
+LgoKWzBdIGh0dHA6Ly90aHJlYWQuZ21hbmUub3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC8xNDAyMDA2
+ClsxXSBodHRwOi8vY2dpdC5jb2xsYWJvcmEuY29tL2dpdC91c2VyL3RvbWV1L2xpbnV4LmdpdC9j
+b21taXQvP2lkPWRhOWM3ZTM0ZDkKClRoYW5rcywKClRvbWV1CgpUb21ldSBWaXpvc28gKDYpOgog
+IGNsazogQWRkIHRlbXBvcmFyeSBtYXBwaW5nIHRvIHRoZSBleGlzdGluZyBBUEkKICBBU29DOiBt
+eHMtc2FpZjogZml4IG1peGVkIHVzZSBvZiBwdWJsaWMgYW5kIHByb3ZpZGVyIGNsayBBUEkKICBj
+bGs6IE1vdmUgYWxsIGRyaXZlcnMgdG8gdXNlIGludGVybmFsIEFQSQogIGNsazogdXNlIHN0cnVj
+dCBjbGsgb25seSBmb3IgZXh0ZXJuYWwgQVBJCiAgY2xrOiBwZXItdXNlciBjbG9jayBhY2NvdW50
+aW5nIGZvciBkZWJ1ZwogIGNsazogQWRkIGZsb29yIGFuZCBjZWlsaW5nIGNvbnN0cmFpbnRzIHRv
+IGNsb2NrIHJhdGVzCgpbZGV0YWlsZWQgZGlmZnN0YXQgb21pdHRlZCBmb3IgYnJldml0eSBzYWtl
+XQoKIDI0NCBmaWxlcyBjaGFuZ2VkLCAyMzQ1IGluc2VydGlvbnMoKyksIDE4MTIgZGVsZXRpb25z
+KC0pCgotLSAKMS45LjMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4cHBjLWRldiBtYWlsaW5nIGxpc3QKTGludXhwcGMtZGV2QGxpc3RzLm96bGFi
+cy5vcmcKaHR0cHM6Ly9saXN0cy5vemxhYnMub3JnL2xpc3RpbmZvL2xpbnV4cHBjLWRldg==
