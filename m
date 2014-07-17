@@ -1,55 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] tty: serial: Add 8250-core based omap driver
-Date: Thu, 17 Jul 2014 01:12:32 -0700
-Message-ID: <20140717081232.GH18374@atomide.com>
-References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de>
- <1405521903-5877-6-git-send-email-bigeasy@linutronix.de>
- <20140717070859.GD18374@atomide.com>
- <20140717074219.GA29193@linutronix.de>
+Subject: Re: [PATCH v4 03/11] ARM: OMAP2+: timer: Add suspend-resume
+ callbacks for clkevent device
+Date: Thu, 17 Jul 2014 01:16:05 -0700
+Message-ID: <20140717081605.GI18374@atomide.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+ <1405047349-15101-4-git-send-email-d-gerlach@ti.com>
+ <20140714111536.GC20068@atomide.com>
+ <53C3EB1F.2010109@ti.com>
+ <53C4166F.1050003@ti.com>
+ <20140715064807.GJ20068@atomide.com>
+ <53C6DDC6.9060705@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:24434 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754624AbaGQIRb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2014 04:17:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20140717074219.GA29193@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+In-Reply-To: <53C6DDC6.9060705@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140717 00:44]:
-> * Tony Lindgren | 2014-07-17 00:09:00 [-0700]:
+* Dave Gerlach <d-gerlach@ti.com> [140716 13:19]:
+> On 07/15/2014 01:48 AM, Tony Lindgren wrote:
+> > 
+> > It's best to register these kind of functions as platform_data
+> > in pdata-quirks.c auxdata. That way when this moves to live
+> > in drivers/clocksource the driver does not need to know anything
+> > about the interconnect specific registers.
 > 
-> >Seems to boot a bit further now with output from serial console
-> >initially, then I'm getting the following error again that's probably
-> >related to clocks not enabled when the registers are accessed:
-> 
-> It is (mostly) the same thing as before. We have additionally 
-> omap_8250_startup() in the backtrace but it is the same thing.
-> So you  say I miss a clock? Looking through serial8250_do_startup() I see:
-> - pm_runtime_get_sync(port->dev); which should get the clocks up
-> - serial8250_clear_fifos() which does a write at address + 8. Seems to 
->   work. 
-> - serial_port_in(port, UART_LSR); does a read at address + 0x14, seems 
->   to work.
-> - serial_port_in(port, UART_RX); does a read at address + 0. This is 
->   probably the bad one.
+> Perhaps I spoke too soon on this, I can't use pdata-quirks right now to pass the
+> idle/unidle functions. The clockevent source is special and reads the dt node
+> itself and then marks it as disabled so nothing else can touch it. No device is
+> created and no auxdata matched. I will gladly fix it up once the driver is ready
+> to move but right now I can't use any existing functionality to do it.
 
-Hmm it could be that it works for a while because the clocks are on
-from the bootloader and pm_runtime calls won't do anything. This
-could happen if the interconnect data based on the ti,hwmods entry
-is not getting matched to the new driver. This gets initialized when
-the device entry gets created in omap_device_build_from_dt().
+OK. So maybe just initialize the function pointers during init and
+use appropriate naming so the function pointers will stay usable
+later on too once it's a driver.
 
-Or maybe something now affects the clock aliases? It seems that we
-are still missing the clocks entries in the .dtsi files, see the
-mappings with $ git grep uart drivers/clk/ti/
- 
-> Now comparing with omap-serial I noticed that I do a 32bit access
-> instead a 16bit.
-> Could you please try the following hack:
-
-No change with that :) 
- 
 Regards,
 
 Tony
