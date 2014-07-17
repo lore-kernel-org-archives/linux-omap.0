@@ -1,50 +1,55 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [Re-send PATCH 1/1] arm: dra7xx: Add hwmod data for MDIO and CPSW
-Date: Thu, 17 Jul 2014 00:50:29 -0700
-Message-ID: <20140717075028.GG18374@atomide.com>
-References: <1404825399-10330-1-git-send-email-mugunthanvnm@ti.com>
- <20140709095552.GA25154@breakpoint.cc>
- <20140709100147.GB25154@breakpoint.cc>
- <alpine.DEB.2.02.1407152019020.21432@utopia.booyaka.com>
- <20140716070643.GC3378@breakpoint.cc>
- <alpine.DEB.2.02.1407161854360.23074@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/5] tty: serial: Add 8250-core based omap driver
+Date: Thu, 17 Jul 2014 01:12:32 -0700
+Message-ID: <20140717081232.GH18374@atomide.com>
+References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de>
+ <1405521903-5877-6-git-send-email-bigeasy@linutronix.de>
+ <20140717070859.GD18374@atomide.com>
+ <20140717074219.GA29193@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1407161854360.23074-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <20140717074219.GA29193@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org> [140716 11:59]:
-> On Wed, 16 Jul 2014, Sebastian Andrzej Siewior wrote:
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140717 00:44]:
+> * Tony Lindgren | 2014-07-17 00:09:00 [-0700]:
 > 
-> > On 2014-07-15 20:21:21 [+0000], Paul Walmsley wrote:
-> > 
-> > > > Acked-by: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
-> > > > 
-> > > > This is basically what Tony hasked me to do: No IRQ numbers & iomem.
-> > > 
-> > > Sorry - I'm a bit confused - Sebastian, did you test this one?  If so, is 
-> > > it okay to add a Tested-by from you?
-> > 
-> > Tested-by: Sebastian Andrzej Siewior <sebastian-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
+> >Seems to boot a bit further now with output from serial console
+> >initially, then I'm getting the following error again that's probably
+> >related to clocks not enabled when the registers are accessed:
 > 
-> Thanks Sebastian.
-> 
-> Mugunthan, next step would be for you to get a Reviewed-by: by someone who 
-> has access to the (non-public) DRA7xx TRM, and can review for SoC 
-> integration.  Since Rajendra is no longer at TI, the right person is 
-> probably Tony.
-> 
-> Then this patch should be mergeable.
+> It is (mostly) the same thing as before. We have additionally 
+> omap_8250_startup() in the backtrace but it is the same thing.
+> So you  say I miss a clock? Looking through serial8250_do_startup() I see:
+> - pm_runtime_get_sync(port->dev); which should get the clocks up
+> - serial8250_clear_fifos() which does a write at address + 8. Seems to 
+>   work. 
+> - serial_port_in(port, UART_LSR); does a read at address + 0x14, seems 
+>   to work.
+> - serial_port_in(port, UART_RX); does a read at address + 0. This is 
+>   probably the bad one.
 
-Yeah took a look at it and acked it.
+Hmm it could be that it works for a while because the clocks are on
+from the bootloader and pm_runtime calls won't do anything. This
+could happen if the interconnect data based on the ti,hwmods entry
+is not getting matched to the new driver. This gets initialized when
+the device entry gets created in omap_device_build_from_dt().
+
+Or maybe something now affects the clock aliases? It seems that we
+are still missing the clocks entries in the .dtsi files, see the
+mappings with $ git grep uart drivers/clk/ti/
+ 
+> Now comparing with omap-serial I noticed that I do a 32bit access
+> instead a 16bit.
+> Could you please try the following hack:
+
+No change with that :) 
+ 
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
