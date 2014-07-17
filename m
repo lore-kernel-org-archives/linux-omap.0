@@ -1,260 +1,142 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] iommu/omap: Remove virtual memory manager
-Date: Thu, 17 Jul 2014 10:53:03 -0500
-Message-ID: <53C7F15F.6030306@ti.com>
-References: <1405595355-7341-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/5] tty: serial: 8250 core: add runtime pm
+Date: Thu, 17 Jul 2014 11:02:06 -0500
+Message-ID: <20140717160206.GI10459@saruman.home>
+References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de>
+ <1405521903-5877-5-git-send-email-bigeasy@linutronix.de>
+ <20140716151604.GG1365@saruman.home>
+ <53C6A050.2050409@linutronix.de>
+ <20140716160614.GI1365@saruman.home>
+ <53C7EC6F.6060902@hurleysoftware.com>
+ <20140717154300.GA16623@linutronix.de>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40164 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933540AbaGQPxN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Jul 2014 11:53:13 -0400
-In-Reply-To: <1405595355-7341-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JIpyCmsTxyPLrmrM"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140717154300.GA16623@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Peter Hurley <peter@hurleysoftware.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Hi Laurent,
+--JIpyCmsTxyPLrmrM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 07/17/2014 06:09 AM, Laurent Pinchart wrote:
-> The OMAP3 ISP driver was the only user of the OMAP IOVMM API. Now that
-> is has been ported to the DMA API, remove the unused virtual memory
-> manager.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
-> 
-> Joerg, could you please pick this patch up for v3.17 if possible ?
+Hi,
 
-Need one minor change as below, otherwise patch is good.
-
-> 
->  drivers/iommu/Kconfig            |  10 +-
->  drivers/iommu/Makefile           |   1 -
->  drivers/iommu/omap-iommu-debug.c | 114 ------
->  drivers/iommu/omap-iommu.c       |   2 -
->  drivers/iommu/omap-iommu.h       |   6 +-
->  drivers/iommu/omap-iovmm.c       | 791 ---------------------------------------
->  include/linux/omap-iommu.h       |  37 +-
->  7 files changed, 8 insertions(+), 953 deletions(-)
->  delete mode 100644 drivers/iommu/omap-iovmm.c
-> 
-> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-> index d260605..a1f0fad 100644
-> --- a/drivers/iommu/Kconfig
-> +++ b/drivers/iommu/Kconfig
-> @@ -143,16 +143,12 @@ config OMAP_IOMMU
->  	depends on ARCH_OMAP2PLUS
->  	select IOMMU_API
->  
-> -config OMAP_IOVMM
-> -	tristate "OMAP IO Virtual Memory Manager Support"
-> -	depends on OMAP_IOMMU
-> -
->  config OMAP_IOMMU_DEBUG
-> -       tristate "Export OMAP IOMMU/IOVMM internals in DebugFS"
-> -       depends on OMAP_IOVMM && DEBUG_FS
-> +       tristate "Export OMAP IOMMU internals in DebugFS"
-> +       depends on DEBUG_FS
-
-This module is relevant only when OMAP_IOMMU is enabled, so this should
-be depends on OMAP_IOMMU && DEBUG_FS. The dependency is inherent before
-through OMAP_IOVMM. Otherwise, this module can be built by itself and
-results in some build errors.
-
->         help
->           Select this to see extensive information about
-> -         the internal state of OMAP IOMMU/IOVMM in debugfs.
-> +         the internal state of OMAP IOMMU in debugfs.
->  
->           Say N unless you know you need this.
->  
-> diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
-> index 8893bad..6a4a00e 100644
-> --- a/drivers/iommu/Makefile
-> +++ b/drivers/iommu/Makefile
-> @@ -11,7 +11,6 @@ obj-$(CONFIG_IPMMU_VMSA) += ipmmu-vmsa.o
->  obj-$(CONFIG_IRQ_REMAP) += intel_irq_remapping.o irq_remapping.o
->  obj-$(CONFIG_OMAP_IOMMU) += omap-iommu.o
->  obj-$(CONFIG_OMAP_IOMMU) += omap-iommu2.o
-> -obj-$(CONFIG_OMAP_IOVMM) += omap-iovmm.o
->  obj-$(CONFIG_OMAP_IOMMU_DEBUG) += omap-iommu-debug.o
->  obj-$(CONFIG_TEGRA_IOMMU_GART) += tegra-gart.o
->  obj-$(CONFIG_TEGRA_IOMMU_SMMU) += tegra-smmu.o
-> diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-> index 80fffba..531658d 100644
-> --- a/drivers/iommu/omap-iommu-debug.c
-> +++ b/drivers/iommu/omap-iommu-debug.c
-> @@ -213,116 +213,6 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
->  	return bytes;
+On Thu, Jul 17, 2014 at 05:43:00PM +0200, Sebastian Andrzej Siewior wrote:
+> * Peter Hurley | 2014-07-17 11:31:59 [-0400]:
+>=20
+> >On 07/16/2014 12:06 PM, Felipe Balbi wrote:
+> >>On Wed, Jul 16, 2014 at 05:54:56PM +0200, Sebastian Andrzej Siewior wro=
+te:
+> >>>On 07/16/2014 05:16 PM, Felipe Balbi wrote:
+> >
+> >>>>I wonder if you should get_sync() on start_tx() and only
+> >>>>put_autosuspend() at stop_tx(). I guess the outcome would be
+> >>>>largely the same, no ?
+> >>>
+> >>>I just opened minicom on ttyS0 and gave a try. start_tx() was invoked
+> >>>each time I pressed a key (sent a character). I haven't seen stop_tx()
+> >>>even after after I closed minicom. I guess stop_tx() is invoked if you
+> >>>switch half-duplex communication.
+> >>
+> >>that's bad, I expected stop to be called also after each character.
+> >
+> >The 8250 core auto-stops tx when the tx ring buffer is empty (except
+> >in the case of dma, where stopping tx isn't necessary).
+>=20
+> This is correct. So this is what I have now for the non-dma case:
+>=20
+> diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/825=
+0/8250_core.c
+> index 2e4a93b..480a1c0 100644
+> --- a/drivers/tty/serial/8250/8250_core.c
+> +++ b/drivers/tty/serial/8250/8250_core.c
+> @@ -1283,6 +1283,9 @@ static inline void __stop_tx(struct uart_8250_port =
+*p)
+>  	if (p->ier & UART_IER_THRI) {
+>  		p->ier &=3D ~UART_IER_THRI;
+>  		serial_out(p, UART_IER, p->ier);
+> +
+> +		pm_runtime_mark_last_busy(p->port.dev);
+> +		pm_runtime_put_autosuspend(p->port.dev);
+>  	}
 >  }
->  
-> -static ssize_t debug_read_mmap(struct file *file, char __user *userbuf,
-> -			       size_t count, loff_t *ppos)
-> -{
-> -	struct device *dev = file->private_data;
-> -	struct omap_iommu *obj = dev_to_omap_iommu(dev);
-> -	char *p, *buf;
-> -	struct iovm_struct *tmp;
-> -	int uninitialized_var(i);
-> -	ssize_t bytes;
-> -
-> -	buf = (char *)__get_free_page(GFP_KERNEL);
-> -	if (!buf)
-> -		return -ENOMEM;
-> -	p = buf;
-> -
-> -	p += sprintf(p, "%-3s %-8s %-8s %6s %8s\n",
-> -		     "No", "start", "end", "size", "flags");
-> -	p += sprintf(p, "-------------------------------------------------\n");
-> -
-> -	mutex_lock(&iommu_debug_lock);
-> -
-> -	list_for_each_entry(tmp, &obj->mmap, list) {
-> -		size_t len;
-> -		const char *str = "%3d %08x-%08x %6x %8x\n";
-> -		const int maxcol = 39;
-> -
-> -		len = tmp->da_end - tmp->da_start;
-> -		p += snprintf(p, maxcol, str,
-> -			      i, tmp->da_start, tmp->da_end, len, tmp->flags);
-> -
-> -		if (PAGE_SIZE - (p - buf) < maxcol)
-> -			break;
-> -		i++;
-> -	}
-> -
-> -	bytes = simple_read_from_buffer(userbuf, count, ppos, buf, p - buf);
-> -
-> -	mutex_unlock(&iommu_debug_lock);
-> -	free_page((unsigned long)buf);
-> -
-> -	return bytes;
-> -}
-> -
-> -static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
-> -			      size_t count, loff_t *ppos)
-> -{
-> -	struct device *dev = file->private_data;
-> -	char *p, *buf;
-> -	struct iovm_struct *area;
-> -	ssize_t bytes;
-> -
-> -	count = min_t(ssize_t, count, PAGE_SIZE);
-> -
-> -	buf = (char *)__get_free_page(GFP_KERNEL);
-> -	if (!buf)
-> -		return -ENOMEM;
-> -	p = buf;
-> -
-> -	mutex_lock(&iommu_debug_lock);
-> -
-> -	area = omap_find_iovm_area(dev, (u32)ppos);
-> -	if (!area) {
-> -		bytes = -EINVAL;
-> -		goto err_out;
-> -	}
-> -	memcpy(p, area->va, count);
-> -	p += count;
-> -
-> -	bytes = simple_read_from_buffer(userbuf, count, ppos, buf, p - buf);
-> -err_out:
-> -	mutex_unlock(&iommu_debug_lock);
-> -	free_page((unsigned long)buf);
-> -
-> -	return bytes;
-> -}
-> -
-> -static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
-> -			       size_t count, loff_t *ppos)
-> -{
-> -	struct device *dev = file->private_data;
-> -	struct iovm_struct *area;
-> -	char *p, *buf;
-> -
-> -	count = min_t(size_t, count, PAGE_SIZE);
-> -
-> -	buf = (char *)__get_free_page(GFP_KERNEL);
-> -	if (!buf)
-> -		return -ENOMEM;
-> -	p = buf;
-> -
-> -	mutex_lock(&iommu_debug_lock);
-> -
-> -	if (copy_from_user(p, userbuf, count)) {
-> -		count =  -EFAULT;
-> -		goto err_out;
-> -	}
-> -
-> -	area = omap_find_iovm_area(dev, (u32)ppos);
-> -	if (!area) {
-> -		count = -EINVAL;
-> -		goto err_out;
-> -	}
-> -	memcpy(area->va, p, count);
-> -err_out:
-> -	mutex_unlock(&iommu_debug_lock);
-> -	free_page((unsigned long)buf);
-> -
-> -	return count;
-> -}
-> -
->  #define DEBUG_FOPS(name)						\
->  	static const struct file_operations debug_##name##_fops = {	\
->  		.open = simple_open,					\
-> @@ -342,8 +232,6 @@ DEBUG_FOPS_RO(ver);
->  DEBUG_FOPS_RO(regs);
->  DEBUG_FOPS_RO(tlb);
->  DEBUG_FOPS(pagetable);
-> -DEBUG_FOPS_RO(mmap);
-> -DEBUG_FOPS(mem);
->  
->  #define __DEBUG_ADD_FILE(attr, mode)					\
->  	{								\
-> @@ -389,8 +277,6 @@ static int iommu_debug_register(struct device *dev, void *data)
->  	DEBUG_ADD_FILE_RO(regs);
->  	DEBUG_ADD_FILE_RO(tlb);
->  	DEBUG_ADD_FILE(pagetable);
-> -	DEBUG_ADD_FILE_RO(mmap);
-> -	DEBUG_ADD_FILE(mem);
->  
->  	return 0;
->  
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index 895af06..71d015b 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -981,9 +981,7 @@ static int omap_iommu_probe(struct platform_device *pdev)
->  	obj->ctx = (void *)obj + sizeof(*obj);
->  
->  	spin_lock_init(&obj->iommu_lock);
-> -	mutex_init(&obj->mmap_lock);
->  	spin_lock_init(&obj->page_table_lock);
-> -	INIT_LIST_HEAD(&obj->mmap);
->  
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	obj->regbase = devm_ioremap_resource(obj->dev, res);
-> diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-> index ea920c3..36a85f3 100644
-> --- a/drivers/iommu/omap-iommu.h
-> +++ b/drivers/iommu/omap-iommu.h
-> @@ -46,9 +46,6 @@ struct omap_iommu {
->  
->  	int		nr_tlb_entries;
->  
-> -	struct list_head	mmap;
-> -	struct mutex		mmap_lock; /* protect mmap */
-> -
->  	void *ctx; /* iommu context: registres saved area */
->  	u32 da_start;
->  	u32 da_end;
+> =20
+> @@ -1310,12 +1313,12 @@ static void serial8250_start_tx(struct uart_port =
+*port)
+>  	struct uart_8250_port *up =3D
+>  		container_of(port, struct uart_8250_port, port);
+> =20
+> -	pm_runtime_get_sync(port->dev);
+>  	if (up->dma && !serial8250_tx_dma(up)) {
+>  		goto out;
+>  	} else if (!(up->ier & UART_IER_THRI)) {
+>  		up->ier |=3D UART_IER_THRI;
+> +		pm_runtime_get_sync(port->dev);
+>  		serial_port_out(port, UART_IER, up->ier);
+> =20
+>  		if (up->bugs & UART_BUG_TXEN) {
+>  			unsigned char lsr;
 
-With the removal of omap-iovmm, the da_start and da_end can also be
-removed. No need to block this patch for that, it can be done in a
-separate patch.
+this looks better. So we get on start_tx() and put on stop_tx().
 
-regards
-Suman
+> @@ -1500,9 +1503,10 @@ void serial8250_tx_chars(struct uart_8250_port *up)
+>  		uart_write_wakeup(port);
+> =20
+>  	DEBUG_INTR("THRE...");
+> -
+> +#if 0
+>  	if (uart_circ_empty(xmit))
+>  		__stop_tx(up);
+> +#endif
+>  }
+>  EXPORT_SYMBOL_GPL(serial8250_tx_chars);
+
+is it so that start_tx() gets called one and stop_tx() might be called N
+times ? That looks unbalanced to me. If the calls are balanced, then you
+shouldn't need to care because pm_runtime will handle reference counting
+for you, right?
+
+> and now I need to come up with something that is not if (port !=3D omap)
+> for that #if 0 block. The code disables the TX FIFO empty interrupt once
+> the transfer is complete. I want to call __stop_tx() once the tx fifo is
+> empty.
+> Felipe, Would a check for dev->power.use_autosuspend be the right thing
+> to do?
+
+probably not, as that's internal to the pm_runtime code. But I wonder if
+start/stop tx calls are balanced, if they are then we're good. Unless
+I'm missing something else.
+
+--=20
+balbi
+
+--JIpyCmsTxyPLrmrM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTx/N+AAoJEIaOsuA1yqREkMYQAKPnCgOMNpTy/HStetWYOHVS
+jorSnDEvaCBriLW7ifDvsn2Y1mFqQBF21khHcXAiQEqhBZGGloOPiRnpUayvuplD
+w+TASW+NOoqSm00XrYtfVrJlK51tXUBFJzzWvKdNwsMv/lRCe8rBbzi5g/yWVDsZ
+NU3AL/kO2YrIQj7WmvhN2720XFzKn4HcwerFxQWtHn9xf86I/8iHNNaqMbLN/PNM
++XJUXEFFpf6a7qiqmAJXKb6VL1Yuyu8pB5D9BDdhsGlt8hE6Tgobz2IOtSbK+3oc
+vYugyV/BfHMVA06+gy+oJTvzMsxfrYGxVl961L6Is9wxBpkka9GZO3NhsbrU52hU
+OZ5/v2lamhGs5xmLY3+IKHKze27Umww0bmAXMSKg2MzQeuCl9558O1MZCG5YI7/x
+xKTS4wHgMsvprPrryJHMnGYmfTGlaNUJTPa+UPoRAdVALSGbnTM/cgrPADAX2ykg
+pdk9l/9AMpxRLsnnrplnBz1syed3a495Jm3DMDdi7bG+V7uvMP3gc6Mf/CDYd7nz
+FtRgdfs0geR/MFBXWD90R5woMKitkdkvihbwm1G/fsnisD5CmdfpHXEeXg15X/BN
+GVDrCjNIVST60o+tmOT3dJxTL3flBqWhm8l5EELuzsTzm/EVzDpMwVKyBN7bfzoK
+wSN0k3ooqJGvVvugG8yb
+=myhJ
+-----END PGP SIGNATURE-----
+
+--JIpyCmsTxyPLrmrM--
