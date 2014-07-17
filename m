@@ -1,62 +1,35 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 5/5] tty: serial: Add 8250-core based omap driver
-Date: Thu, 17 Jul 2014 17:11:58 +0200
-Message-ID: <53C7E7BE.7030403@linutronix.de>
-References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de> <1405521903-5877-6-git-send-email-bigeasy@linutronix.de> <20140717145430.GF10459@saruman.home>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 4/5] tty: serial: 8250 core: add runtime pm
+Date: Thu, 17 Jul 2014 11:31:59 -0400
+Message-ID: <53C7EC6F.6060902@hurleysoftware.com>
+References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de> <1405521903-5877-5-git-send-email-bigeasy@linutronix.de> <20140716151604.GG1365@saruman.home> <53C6A050.2050409@linutronix.de> <20140716160614.GI1365@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:36813 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932975AbaGQPMF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2014 11:12:05 -0400
-In-Reply-To: <20140717145430.GF10459@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140716160614.GI1365@saruman.home>
+Sender: linux-serial-owner@vger.kernel.org
+To: balbi@ti.com, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On 07/17/2014 04:54 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Jul 16, 2014 at 04:45:03PM +0200, Sebastian Andrzej Siewior wrote:
->> +static int omap_8250_startup(struct uart_port *port)
->> +{
->> +	struct uart_8250_port *up =
->> +		container_of(port, struct uart_8250_port, port);
->> +	struct omap8250_priv *priv = port->private_data;
->> +
->> +	int ret;
->> +
->> +	if (priv->wakeirq) {
->> +		ret = request_irq(priv->wakeirq, omap_wake_irq,
->> +				port->irqflags, "wakeup irq", port);
->> +		if (ret)
->> +			return ret;
->> +		disable_irq(priv->wakeirq);
->> +	}
->> +
->> +	ret = serial8250_do_startup(port);
->> +	if (ret)
->> +		goto err;
->> +
->> +	pm_runtime_get_sync(port->dev);
-> 
-> should this pm_runtime_get_sync() be placed above
-> serial8250_do_startup() call ?
+On 07/16/2014 12:06 PM, Felipe Balbi wrote:
+> On Wed, Jul 16, 2014 at 05:54:56PM +0200, Sebastian Andrzej Siewior wrote:
+>> On 07/16/2014 05:16 PM, Felipe Balbi wrote:
 
-I don't think it matters since serial8250_do_startup() has its own
-pm_runtime_get_sync().
+>>> I wonder if you should get_sync() on start_tx() and only
+>>> put_autosuspend() at stop_tx(). I guess the outcome would be
+>>> largely the same, no ?
+>>
+>> I just opened minicom on ttyS0 and gave a try. start_tx() was invoked
+>> each time I pressed a key (sent a character). I haven't seen stop_tx()
+>> even after after I closed minicom. I guess stop_tx() is invoked if you
+>> switch half-duplex communication.
+>
+> that's bad, I expected stop to be called also after each character.
 
-->startup(), ->shutdown() are called via omap callbacks so we could
-spare in the 8250-core if we do it in the omap code before invoking the
-function. The same goes for serial8250_set_termios() which is not used
-by omap but has those runtime-pm stuff, too.
-It would be wrong if someone would use the serial8250_do_startup()
-without his own runtime-pm get but it is omap only which does this
-things.
-So it is not used by anyone else (right now) and if you want to keep it
-to a minimum I could remove them from those places.
+The 8250 core auto-stops tx when the tx ring buffer is empty (except
+in the case of dma, where stopping tx isn't necessary).
 
-Sebastian
+Regards,
+Peter Hurley
