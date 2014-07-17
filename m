@@ -1,81 +1,127 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: clock cleanup for 3.17
-Date: Thu, 17 Jul 2014 18:18:34 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407171817440.22427@utopia.booyaka.com>
+Subject: OMAP baseline test results for v3.16-rc5
+Date: Thu, 17 Jul 2014 18:25:59 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1407171819540.22427@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:33910 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:34090 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339AbaGQSSf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2014 14:18:35 -0400
+	with ESMTP id S1751950AbaGQS0A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2014 14:26:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org, tony@atomide.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Here are some basic OMAP test results for Linux v3.16-rc5.
+Logs and other details at:
 
-Hi Tony,
+    http://www.pwsan.com/omap/testlogs/test_v3.16-rc5/20140716140950/
 
-The following changes since commit a497c3ba1d97fc69c1e78e7b96435ba8c2cb42ee:
 
-  Linux 3.16-rc2 (2014-06-21 19:02:54 -1000)
+Test summary
+------------
 
-are available in the git repository at:
+Build: zImage:
+    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
+		  omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.17/omap-clock-a
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-for you to fetch changes up to acd052bb8119dd9117e0af48ff0ac6e56e61b6b4:
+Build: uImage+dtb:
+    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap5-uevm
 
-  ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c file (2014-07-15 14:09:24 -0600)
+Boot to userspace:
+    FAIL ( 1/14): 2430sdp
+    skip ( 1/14): 5912osk
+    Pass (12/14): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
+		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
+		  am335xbonelt, cmt3517, 4460varsomom, 5430es2uevm
 
-- ----------------------------------------------------------------
-An OMAP clock cleanup series for 3.17 from Tero Kristo.
-This is in preparation for moving this code into drivers/clk/ti.
+PM: chip retention via suspend:
+    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
+    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
 
-Basic build, boot, and PM test logs are here:
+PM: chip retention via dynamic idle:
+    FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
+		  4430es2panda, 4460pandaes, 4460varsomom
 
-http://www.pwsan.com/omap/testlogs/clock-a-v3.17/20140717034329/
+PM: chip off except CORE via suspend:
+    Pass ( 1/ 1): 3730beaglexm
 
-- ----------------------------------------------------------------
-Tero Kristo (12):
-      ARM: OMAP4+: clock: remove DEFINE_CLK_OMAP_HSDIVIDER macro
-      ARM: OMAP4+: dpll: remove cpu_is_omap44xx checks
-      ARM: OMAP4+: dpll44xx: remove cm-regbits-44xx.h and clock44xx.h includes
-      ARM: OMAP2+: clock: introduce ti_clk_features flags
-      ARM: OMAP2+: clock: add fint values to the ti_clk_features struct
-      ARM: OMAP2+: clock/dpll: add private API for checking if DPLL is in bypass
-      ARM: OMAP2+: clock/dpll: convert bypass check to use clk_features
-      ARM: OMAP2+: clock/dpll: add jitter correction behind clk_features
-      ARM: OMAP2+: clock/interface: add a clk_features definition for idlest value
-      ARM: OMAP2+: clock/dpll: remove unused header includes from clkt_dpll.c
-      ARM: OMAP2+: clock/dpll: remove unused header includes from dpll3xxx.c
-      ARM: OMAP2+: clock/interface: remove some headers from clkt_iclk.c file
+PM: chip off except CORE via dynamic idle:
+    FAIL ( 1/ 1): 3730beaglexm
 
- arch/arm/mach-omap2/clkt_dpll.c | 98 +++++++++++++++++++----------------------
- arch/arm/mach-omap2/clkt_iclk.c |  8 ++--
- arch/arm/mach-omap2/clock.c     | 76 +++++++++++++++++++++++++++++---
- arch/arm/mach-omap2/clock.h     | 44 ++++++++----------
- arch/arm/mach-omap2/dpll3xxx.c  |  7 +--
- arch/arm/mach-omap2/dpll44xx.c  | 19 +++++---
- arch/arm/mach-omap2/io.c        |  2 +
- 7 files changed, 154 insertions(+), 100 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+PM: chip off via suspend:
+    FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
+		  4460varsomom
+    Pass ( 1/ 5): 37xxevm
 
-iQIcBAEBAgAGBQJTyBMxAAoJEMePsQ0LvSpLiIAQAJl7wHt44ZVVOwdeabNQppl3
-PjqUjgQaT60Kpz4utPg0lOd6pJzzmLQ2cHtbV39U4ZCyMnTFi7wArmOR5htir0gh
-zBDSBEXNJh4ZFyBBNTdlxhJcVjRnO+ar3HuuqdtQLEP19795IxY8Rk9X3ric+35W
-1oeFj9EcCs9Reet4l8FnY5GKcLJvL5KiKD8BIsBa8U1AlHu3Cw8RtfpdQX6zdNMO
-1THNKFsIt5PdTmbTuWA9c161DciNeN0QuXQVdqWYzepyOP1rS3zwKyZDEC3mE5Bl
-TEOuANaJy2IqLJVTSal0hounMPmOUOp/wXr06s2chZ/bGLKZ/riTZm746cSFUTuZ
-d8sGMxVJ2X9D2MexBzlO/3blg6503WCT1slIZwhEoiqQoDiWG6E/29ZrP752rFWy
-c/Sa5Ro10pL0wAmjaU4hNxIE7ekksJKXROiqcOiqNeI0egTRu5wn/dNArPAewj25
-K6T5sVes9getq98LfgCFdI+9QVr75gGkP7tWjuLhMnp+DSSdVfWlp3XPdazDFPdO
-qkN7LByiHPTQUsbM7yCUfnlRVPpZdPUDkTJ3VHmbw/VhzCs90kirMywtheXJMWwT
-carzv/FzdkZAhy1gfnH+GR/JaTm2JizUvA3xEb+V43JvPvgIzxiNhCM4eTYi7ElE
-svIdX6E2JPB4JeP3DTwo
-=z9Eq
------END PGP SIGNATURE-----
+PM: chip off via dynamic idle:
+    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
+		  4460varsomom
+
+
+vmlinux object size
+(delta in bytes from test_v3.16-rc4 (cd3de83f147601356395b57a8673e9c5ff1e59d1)):
+   text     data      bss    total  kernel
+   +160        0        0     +160  omap1_defconfig
+   +192        0        0     +192  omap1_defconfig_1510innovator_only
+   +160        0        0     +160  omap1_defconfig_5912osk_only
+  +1044     -160        0     +884  multi_v7_defconfig
+   +284      +16        0     +300  omap2plus_defconfig
+   +284       +8        0     +292  omap2plus_defconfig_2430sdp_only
+   +284       +8        0     +292  omap2plus_defconfig_am33xx_only
+   +524     +192        0     +716  omap2plus_defconfig_am43xx_only
+   +348      -16        0     +332  omap2plus_defconfig_cpupm
+   +284       +8        0     +292  omap2plus_defconfig_dra7xx_only
+   +172        0        0     +172  omap2plus_defconfig_n800_multi_omap2xxx
+   +140       -8        0     +132  omap2plus_defconfig_n800_only_a
+   +348      +16        0     +364  omap2plus_defconfig_no_pm
+   +348      -16        0     +332  omap2plus_defconfig_omap2_4_only
+   +348      +16        0     +364  omap2plus_defconfig_omap3_4_only
+   +284      +16        0     +300  omap2plus_defconfig_omap5_only
+   +216        0      -16     +200  rmk_omap3430_ldp_allnoconfig
+   +160        0        0     +160  rmk_omap3430_ldp_oldconfig
+   +184        0      -16     +168  rmk_omap4430_sdp_allnoconfig
+   +168       -8        0     +160  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.16-rc4 (cd3de83f147601356395b57a8673e9c5ff1e59d1))
+  avail  rsrvd   high  freed  board          kconfig
+  (no differences)
+
+
+Two bugs were fixed in the PM testing scripts for this test. One of them 
+prevented UART wakeups from being enabled.  The other caused off-mode test 
+results to not be reported if retention test results failed.  (Thanks to 
+Tony for prompting me to closely review the test scripts here and fix 
+them.)  After fixing these, suspend/resume power management, including 
+both retention and off-idle, now appears to be working for OMAP37xx-series 
+chips.  Dynamic PM idle entry still appears broken, as does PM for 
+OMAP35xx-series chips and OMAP4 chips.
+
