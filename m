@@ -1,77 +1,62 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4 2/6] ASoC: mxs-saif: fix mixed use of public and
- provider clk API
-Date: Thu, 17 Jul 2014 16:06:57 +0100
-Message-ID: <20140717150657.GY17528@sirena.org.uk>
-References: <1405606399-26608-1-git-send-email-tomeu.vizoso@collabora.com>
- <1405606399-26608-3-git-send-email-tomeu.vizoso@collabora.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 5/5] tty: serial: Add 8250-core based omap driver
+Date: Thu, 17 Jul 2014 17:11:58 +0200
+Message-ID: <53C7E7BE.7030403@linutronix.de>
+References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de> <1405521903-5877-6-git-send-email-bigeasy@linutronix.de> <20140717145430.GF10459@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4610133115762055383=="
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1405606399-26608-3-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@perex.cz>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>, Kukjin Kim <kgene.kim@samsung.com>, Mike Turquette <mturquette@linaro.org>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, Viresh Kumar <viresh.linux@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:36813 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932975AbaGQPMF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Jul 2014 11:12:05 -0400
+In-Reply-To: <20140717145430.GF10459@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
+On 07/17/2014 04:54 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Jul 16, 2014 at 04:45:03PM +0200, Sebastian Andrzej Siewior wrote:
+>> +static int omap_8250_startup(struct uart_port *port)
+>> +{
+>> +	struct uart_8250_port *up =
+>> +		container_of(port, struct uart_8250_port, port);
+>> +	struct omap8250_priv *priv = port->private_data;
+>> +
+>> +	int ret;
+>> +
+>> +	if (priv->wakeirq) {
+>> +		ret = request_irq(priv->wakeirq, omap_wake_irq,
+>> +				port->irqflags, "wakeup irq", port);
+>> +		if (ret)
+>> +			return ret;
+>> +		disable_irq(priv->wakeirq);
+>> +	}
+>> +
+>> +	ret = serial8250_do_startup(port);
+>> +	if (ret)
+>> +		goto err;
+>> +
+>> +	pm_runtime_get_sync(port->dev);
+> 
+> should this pm_runtime_get_sync() be placed above
+> serial8250_do_startup() call ?
 
---===============4610133115762055383==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8c7vHYlrYOebzgj6"
-Content-Disposition: inline
+I don't think it matters since serial8250_do_startup() has its own
+pm_runtime_get_sync().
 
+->startup(), ->shutdown() are called via omap callbacks so we could
+spare in the 8250-core if we do it in the omap code before invoking the
+function. The same goes for serial8250_set_termios() which is not used
+by omap but has those runtime-pm stuff, too.
+It would be wrong if someone would use the serial8250_do_startup()
+without his own runtime-pm get but it is omap only which does this
+things.
+So it is not used by anyone else (right now) and if you want to keep it
+to a minimum I could remove them from those places.
 
---8c7vHYlrYOebzgj6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Jul 17, 2014 at 04:13:15PM +0200, Tomeu Vizoso wrote:
-> In preparation to changing the clk provider API to use struct clk_core instead
-> of struct clk.
-
-Acked-by: Mark Brown <broonie@linaro.org>
-
---8c7vHYlrYOebzgj6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJTx+aOAAoJELSic+t+oim9kbYP/1XSKsTieBgyUHwsZVX4t8n8
-RCddHvCUUKM1bGm4/zJcI3EcCy6vjvbt3QkgHSv6JD6ot0jyRo9mzoWEZiUz9lDn
-D8JSITKut5tP1Th1bi+yla0Zm2wf56JModA9CBUT0B/BnOkqxgpTlIua5JmkWV6m
-x+8e98J/rY68uX69MD2RBhCEMfx8UkHlQ3/nWpFUigsHAOogELhIV+ChFSuVq070
-3qbLOzM9Hvbf8clKA0K2c1elyHlG6it+gtSk+6cQs3KH2YU23oi4Yd4b++mGxtsa
-MHVca5khElB8RM06cEsacgpB6QDj5ya17QBnEwZa2Y/FT15mKNCHKCDqWHyh8YEm
-K3phLMwcpdk2hoDeCt2WCSPpCQmRj2xFxG9BG6M6LEM4eHTx1HWb+Hu5uJvi2qQY
-XQi5+3bECfElzmZxgQjfJ867VKHefRiX1nabOE6qdoposm5GoUiga5VpiCYuDc13
-9hsCMpEpSg++Y2G6l7cDlvPDaLnIgGAQ2jLFn/Utfb6BRZtHkQ5zP9jKDecWH7C8
-I7uGjfwnxn7dRlof42mrkPHstNvWGX5hQfhcggQdIeCOiDRfW/Z9u0lZFRTH5h1R
-mKldh7ssgHvYFoMSsBq2tVHZmqAXHHw19OnFQBB2ZPBKJPgsiU1OF1cJQ5i3QJRM
-RF2NVRXsIgDlPYLdPWZE
-=S67s
------END PGP SIGNATURE-----
-
---8c7vHYlrYOebzgj6--
-
---===============4610133115762055383==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXhwcGMt
-ZGV2IG1haWxpbmcgbGlzdApMaW51eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwpodHRwczovL2xp
-c3RzLm96bGFicy5vcmcvbGlzdGluZm8vbGludXhwcGMtZGV2
-
---===============4610133115762055383==--
+Sebastian
