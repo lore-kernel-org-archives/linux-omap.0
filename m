@@ -1,83 +1,159 @@
-From: Michael Welling <mwelling@emacinc.com>
-Subject: Re: AM3517 fails to boot 3.16-rc5 device tree kernel
-Date: Fri, 18 Jul 2014 10:02:54 -0500
-Message-ID: <20140718150253.GA27360@sysresccd>
-References: <20140717234037.GA9660@sysresccd>
- <20140718063806.GK18374@atomide.com>
- <CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/5] tty: serial: 8250 core: add runtime pm
+Date: Fri, 18 Jul 2014 10:31:16 -0500
+Message-ID: <20140718153116.GN24914@saruman.home>
+References: <1405521903-5877-5-git-send-email-bigeasy@linutronix.de>
+ <20140716151604.GG1365@saruman.home>
+ <53C6A050.2050409@linutronix.de>
+ <20140716160614.GI1365@saruman.home>
+ <53C7EC6F.6060902@hurleysoftware.com>
+ <20140717154300.GA16623@linutronix.de>
+ <20140717160206.GI10459@saruman.home>
+ <53C7F4A3.5080508@linutronix.de>
+ <20140717161848.GK10459@saruman.home>
+ <53C8DC3E.3020701@linutronix.de>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:65158 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755944AbaGRPC4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2014 11:02:56 -0400
-Received: by mail-ig0-f172.google.com with SMTP id h15so693274igd.5
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2014 08:02:55 -0700 (PDT)
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LvAn5G4Ewe70kJ1i"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53C8DC3E.3020701@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: balbi@ti.com, Peter Hurley <peter@hurleysoftware.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mika.westerberg@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, paul@pwsan.com
 
-On Fri, Jul 18, 2014 at 09:40:48AM -0500, Michael Welling wrote:
-> On Fri, Jul 18, 2014 at 1:38 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * mwelling <mwelling@emacinc.com> [140717 16:42]:
-> >> I am in the process of porting a device tree compatible version of the
-> >> linux kernel to a AM3517 based device.
-> >>
-> >> First I tried 3.10.x and the device tree port appeared to be incomplete.
-> >> Neither the LCD or Ethernet were supported.
-> >>
-> >> Next I tried 3.14.x and the Ethernet driver appeared to work but still
-> >> no LCD support.
-> >>
-> >> Lastly I tried 3.16-rc5 and found that the kernel hangs in early boot
-> >> without any messages from the serial COM.
-> >
-> > For device tree based booting on omap3 I would user v.16-rc4 or later.
-> > There have been multiple issues fixed over past year and PM is working
-> > finally at least for 36xx/37xx. And we do have the DSS panels finally
-> > working too.
-> >
-> >> I was using the omap2plus_defconfig and the am3517-evm.dtb from each
-> >> kernel build. Is there any reason why the kernel would start hanging
-> >> with the newest release?
-> >
-> > No reason that I can think of. AFAIK 3517 has been booting in the test
-> > farms just fine?
-> >
-> > Can you please enable debug_ll + earlyprintk and pass also earlyprintk
-> > in the kernel cmdline?
-> I will try this.
+--LvAn5G4Ewe70kJ1i
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Adding the earlyprintk did not work. It still hangs without any
-messages.
+On Fri, Jul 18, 2014 at 10:35:10AM +0200, Sebastian Andrzej Siewior wrote:
+> On 07/17/2014 06:18 PM, Felipe Balbi wrote:
+>=20
+> >> No, this is okay. If you look, it checks for "up->ier &=20
+> >> UART_IER_THRI". On the second invocation it will see that this
+> >> bit is already set and therefore won't call get_sync() for the
+> >> second time. That bit is removed in the _stop_tx() path.
+> >=20
+> > oh, right. But that's actually unnecessary. Calling
+> > pm_runtime_get() multiple times will just increment the usage
+> > counter multiple times, which means you can call __stop_tx()
+> > multiple times too and everything gets balanced, right ?
+>=20
+> No. start_tx() will be called multiple times but only the first
+> invocation invoke pm_runtime_get(). Now I noticed that I forgot to
 
-> >
-> >> Are there any versions where the LCD output works?
-> >
-> > Starting with v3.16-rc1 you should get the LCD working for panel-dpi
-> > based devices. Most of them actually are actually ls037v3dw01, so
-> > see omap3-panel-sharp-ls037v7dw01.dtsi and omap3-evm-common.dtsi
-> > variants if you have similar setup.
-> >
-> >> Looking at the 3.16-rc5 test results just posted it is supposed to be working
-> >> but I have not been able to replicate this.
-> >>
-> >> Any suggestions would be greatly appreciated.
-> >
-> > Hmm maybe double check your're booting device tree based kernel
-> > instead of legacy machine ID based kernel? The legacy booting should
-> > still work just fine and no changes has been made to it, but it will
-> > get removed shortly.
+right, but that's unnecessary. You can pm_runtime_get() every time
+start_tx() is called. Just make sure to put everytime stop_tx() is
+called too.
 
-How do you determine which you are booting?
+> remove pm_runtime_put_autosuspend() at the bottom of it. But you get
+> the idea right?
+> pm_get() on the while the UART_IER_THRI is not yet set. pm_put() once
+> the fifo is completely empty.
+>=20
+> >> Do you have other ideas? It doesn't look like this is exported at
+> >> all. If we call _stop_tx() right away, then we have 64 bytes in
+> >> the TX fifo in the worst case. They should be gone "soon" but the
+> >> HW-flow control may delay it (in theory for a long time)).
+> >=20
+> > this can be problematic, specially for OMAP which can go into OFF
+> > while idle. Whatever is in the FIFO would get lost. It seems like
+> > omap-serial solved this within transmit_chars().
+>=20
+> No, it didn't.
+>=20
+> > See how transmit_chars() is called from within IRQ handler with
+> > clocks enabled then it conditionally calls serial_omap_stop_tx()
+> > which will pm_runtime_get_sync() -> do_the_harlem_shake() ->=20
+> > pm_runtime_put_autosuspend(). That leaves one unbalanced=20
+> > pm_runtime_get() which is balanced when we're exitting the IRQ
+> > handler.
+>=20
+> omap-serial and the 8250 do the following on tx path:
+> - start_tx()
+>   -> sets UART_IER_THRI. This will generate an interrupt once the FIFO
+>      is empty.
+> - interrupt, notices the empty fifo, invokes serial8250_start_tx()/
+>   transmit_chars().
+>   Both have a while loop that fills the FIFO. This loop is left once
+>   the tty-buffer is empty (uart_circ_empty() is true) or the FIFO full.
+>=20
+> Lets say you filled 64 bytes into the FIFO and then left because your
+> FIFO is full and tty-buffer is empty. That means you will invoke
+> serial_omap_stop_tx() and remove UART_IER_THRI bit.
+> This is okay because you are not interested in further FIFO empty
+> interrupts because you don't have any TX-bytes to be sent. However,
+> once you leave the transmit_chars() you leave serial_omap_irq() which
+> does the last pm_put(). That means you have data in the TX FIFO that is
+> about to be sent and the device is in auto-suspend.
+> This is "fine" as long as the timeout is greater then the time required
+> for the data be sent (plus assuming HW-float control does not stall it
+> for too long) so nobody notices a thing.
 
-> I downloaded the version from the test results and it did boot.
-> These are combining the uImage and dtb. How do you accomplish this?
-> >
-> > Regards,
-> >
-> > Tony
+the time is set to -1 by default. I guess this only works because nobody
+has ever tested long transfers with slow baud rates :-p
+
+> For that reason I added the hack / #if0 block in the 8250 driver. To
+> ensure we do not disable the TX-FIFO-empty interrupt even if there is
+> nothing to send. Instead we enter serial8250_tx_chars() once again with
+> empty FIFO and empty tty-buffer and will invoke _stop_tx() which also
+> finally does the pm_put().
+> That is the plan. The problem I have is how to figure out that the
+> device is using auto-suspend. If I don't then I would have to remove
+> the #if0 block and that would mean for everybody an extra interrupt
+> (which I wanted to avoid).
+
+looks like the closest you have is:
+
+if (pm_runtime_autosuspend_expiration(dev) > 0)
+	foo();
+
+Another possibility would be to implement the ->runtime_idle() callback
+and only return 0 if fifo is empty, otherwise return -EAGAIN ? then, if
+the autosuspend timer expires, ->runtime_idle gets called and you can do
+the right thing depending on fifo empty or not.
+
+Take a look at
+drivers/usb/core/driver.c::usb_runtime_{idle,resume,suspend} for
+examples. That seems to work pretty well.
+
+> > This seems work fine and dandy without DMA, but for DMA work, I
+> > think we need to make sure this IP stays powered until we get DMA
+> > completion callback. But that's future, I guess.
+>=20
+> Yes, probably. That means one get at dma start, one put at dma complete
+> callback. And I assume we get that callbacks once the DMA transfer is
+> complete, not when the FIFO is empty :) So lets leave it to the future
+> for now=E2=80=A6
+
+k
+
+--=20
+balbi
+
+--LvAn5G4Ewe70kJ1i
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJTyT3EAAoJEIaOsuA1yqREjngQAJp5ukOPmx++Ifn4cEsvb//g
+5FOEZEaQ56oyW6mWrPZAVY+zMXpBecGJ5wbW2JgP5y6D/co+fmcgcLCoDlX4ugto
+wsgg2LfUhMB4i0AsCy3Jp0W4H+LH5pvWWz1Z2kJhwCrhjCN5C8K5CITT3LNRmWsE
+l/diz6acIEkUUIS7iCfF1LbN4Qh/svLj4T8SsIkgyxUO9bG8nFQ/6XyRtV7MQ2D8
+xBPkcTyObLLNMZjSqF5/YGBiU7WzG1JC+2h3mv2RqOApqmKHz7JyQMN3A3B0t5t6
+KHqPS/okrrK7e/6kZWk3z0PGlRsTLOrC4k/RqU8IVnnqyPVv5hiqaqNhz1dzWr0a
+9/XYwWE9PwB90l/LSW7JoEwgGXp6nrA9IUv101pbrO4DYx9pok/P1tE3YqXwR7OU
+vO7XQDBIHw1eVioiLdkQ4jQLdlvy3Lo4PzoFmuwwDeU0xdQNzXy0TCXK62kN6URu
+xbnr+RuVScK9PE+nXK1kHv1XdeCxLrqf9iLLhu+U1fvi/lRB3z+9G/BE0VJHN8YO
+6bz6YpCu1ZmJ5hTyn5+exaYGrzmzjDrsdkJT5eohh1kt+vWcx7o5WC92SgRdtH3f
+ldYrf9rTJvIqsB50wDW3eIWxJZW4HCXCY/kf9XVtlQ7RdroidBOi6nGlRk//BKBY
+uXZ1aBRKMFUeZ0qSUsQ1
+=hzjS
+-----END PGP SIGNATURE-----
+
+--LvAn5G4Ewe70kJ1i--
