@@ -1,117 +1,109 @@
-From: Michael Welling <mwelling@emacinc.com>
-Subject: Re: AM3517 fails to boot 3.16-rc5 device tree kernel
-Date: Fri, 18 Jul 2014 11:13:02 -0500
-Message-ID: <20140718161302.GA14154@sysresccd>
-References: <20140717234037.GA9660@sysresccd>
- <20140718063806.GK18374@atomide.com>
- <CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH] iommu/omap: Remove virtual memory manager
+Date: Fri, 18 Jul 2014 11:45:29 -0500
+Message-ID: <53C94F29.9090403@ti.com>
+References: <1405595355-7341-1-git-send-email-laurent.pinchart@ideasonboard.com> <53C7F15F.6030306@ti.com> <1779106.6LTfJHCcQh@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:55111 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932384AbaGRQNF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2014 12:13:05 -0400
-Received: by mail-ig0-f174.google.com with SMTP id c1so772080igq.1
-        for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2014 09:13:04 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55357 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030383AbaGRQpj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Jul 2014 12:45:39 -0400
+In-Reply-To: <1779106.6LTfJHCcQh@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, paul@pwsan.com
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Fri, Jul 18, 2014 at 09:40:48AM -0500, Michael Welling wrote:
-> On Fri, Jul 18, 2014 at 1:38 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * mwelling <mwelling@emacinc.com> [140717 16:42]:
-> >> I am in the process of porting a device tree compatible version of the
-> >> linux kernel to a AM3517 based device.
-> >>
-> >> First I tried 3.10.x and the device tree port appeared to be incomplete.
-> >> Neither the LCD or Ethernet were supported.
-> >>
-> >> Next I tried 3.14.x and the Ethernet driver appeared to work but still
-> >> no LCD support.
-> >>
-> >> Lastly I tried 3.16-rc5 and found that the kernel hangs in early boot
-> >> without any messages from the serial COM.
-> >
-> > For device tree based booting on omap3 I would user v.16-rc4 or later.
-> > There have been multiple issues fixed over past year and PM is working
-> > finally at least for 36xx/37xx. And we do have the DSS panels finally
-> > working too.
-> >
-> >> I was using the omap2plus_defconfig and the am3517-evm.dtb from each
-> >> kernel build. Is there any reason why the kernel would start hanging
-> >> with the newest release?
-> >
-> > No reason that I can think of. AFAIK 3517 has been booting in the test
-> > farms just fine?
-> >
-> > Can you please enable debug_ll + earlyprintk and pass also earlyprintk
-> > in the kernel cmdline?
-> I will try this.
-> >
-> >> Are there any versions where the LCD output works?
-> >
-> > Starting with v3.16-rc1 you should get the LCD working for panel-dpi
-> > based devices. Most of them actually are actually ls037v3dw01, so
-> > see omap3-panel-sharp-ls037v7dw01.dtsi and omap3-evm-common.dtsi
-> > variants if you have similar setup.
-> >
-> >> Looking at the 3.16-rc5 test results just posted it is supposed to be working
-> >> but I have not been able to replicate this.
-> >>
-> >> Any suggestions would be greatly appreciated.
-> >
-> > Hmm maybe double check your're booting device tree based kernel
-> > instead of legacy machine ID based kernel? The legacy booting should
-> > still work just fine and no changes has been made to it, but it will
-> > get removed shortly.
-> I downloaded the version from the test results and it did boot.
-> These are combining the uImage and dtb. How do you accomplish this?
+On 07/18/2014 05:50 AM, Laurent Pinchart wrote:
+> Hi Suman,
+> 
+> Thank you for the review.
+> 
+> On Thursday 17 July 2014 10:53:03 Suman Anna wrote:
+>> On 07/17/2014 06:09 AM, Laurent Pinchart wrote:
+>>> The OMAP3 ISP driver was the only user of the OMAP IOVMM API. Now that
+>>> is has been ported to the DMA API, remove the unused virtual memory
+>>> manager.
+>>>
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>> Joerg, could you please pick this patch up for v3.17 if possible ?
+>>
+>> Need one minor change as below, otherwise patch is good.
+>>
+>>>  drivers/iommu/Kconfig            |  10 +-
+>>>  drivers/iommu/Makefile           |   1 -
+>>>  drivers/iommu/omap-iommu-debug.c | 114 ------
+>>>  drivers/iommu/omap-iommu.c       |   2 -
+>>>  drivers/iommu/omap-iommu.h       |   6 +-
+>>>  drivers/iommu/omap-iovmm.c       | 791 ----------------------------------
+>>>  include/linux/omap-iommu.h       |  37 +-
+>>>  7 files changed, 8 insertions(+), 953 deletions(-)
+>>>  delete mode 100644 drivers/iommu/omap-iovmm.c
+>>>
+>>> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+>>> index d260605..a1f0fad 100644
+>>> --- a/drivers/iommu/Kconfig
+>>> +++ b/drivers/iommu/Kconfig
+>>> @@ -143,16 +143,12 @@ config OMAP_IOMMU
+>>>  	depends on ARCH_OMAP2PLUS
+>>>  	select IOMMU_API
+>>>
+>>> -config OMAP_IOVMM
+>>> -	tristate "OMAP IO Virtual Memory Manager Support"
+>>> -	depends on OMAP_IOMMU
+>>> -
+>>>  config OMAP_IOMMU_DEBUG
+>>> -       tristate "Export OMAP IOMMU/IOVMM internals in DebugFS"
+>>> -       depends on OMAP_IOVMM && DEBUG_FS
+>>> +       tristate "Export OMAP IOMMU internals in DebugFS"
+>>> +       depends on DEBUG_FS
+>>
+>> This module is relevant only when OMAP_IOMMU is enabled, so this should
+>> be depends on OMAP_IOMMU && DEBUG_FS. The dependency is inherent before
+>> through OMAP_IOVMM. Otherwise, this module can be built by itself and
+>> results in some build errors.
+> 
+> Oops, my bad. I'll fix that in v2.
+> 
+>>>         help
+>>>           Select this to see extensive information about
+>>> -         the internal state of OMAP IOMMU/IOVMM in debugfs.
+>>> +         the internal state of OMAP IOMMU in debugfs.
+>>>
+>>>           Say N unless you know you need this.
+> 
+> [snip]
+> 
+>>> diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+>>> index ea920c3..36a85f3 100644
+>>> --- a/drivers/iommu/omap-iommu.h
+>>> +++ b/drivers/iommu/omap-iommu.h
+>>> @@ -46,9 +46,6 @@ struct omap_iommu {
+>>>
+>>>  	int		nr_tlb_entries;
+>>>
+>>> -	struct list_head	mmap;
+>>> -	struct mutex		mmap_lock; /* protect mmap */
+>>> -
+>>>  	void *ctx; /* iommu context: registres saved area */
+>>>  	u32 da_start;
+>>>  	u32 da_end;
+>>
+>> With the removal of omap-iovmm, the da_start and da_end can also be
+>> removed. No need to block this patch for that, it can be done in a
+>> separate patch.
+> 
+> I'll remove the fields from struct omap_iommu in v2. I'll also remove them 
+> from the platform data, but I'll need to do so in a separate patch, as arch/ 
+> code needs to be touched as well.
 
-It should be noted that when you try to boot the seperate zImage and dtb from
-the test build it fails. This replicates my issue.
+Yeah, that's the reason I said separate patch :)
 
-Here are the two binaries that I used:
-http://www.pwsan.com/omap/testlogs/test_v3.16-rc5/20140716140950/build_z/omap2plus_defconfig/zImage
-http://www.pwsan.com/omap/testlogs/test_v3.16-rc5/20140716140950/dtbs/am3517-evm.dtb
+regards
+Suman
 
-Here is the boot attempt:
-U-Boot> dhcp;set serverip 10.0.2.168;tftp 0x82000000 zImage; tftp 0x80000000 am3517-evm.dtb;bootz 0x82000000 - 0x80000000
-BOOTP broadcast 1
-DHCP client bound to address 10.0.3.33
-Using DaVinci-EMAC device
-TFTP from server 10.0.2.168; our IP address is 10.0.3.33
-Filename 'zImage'.
-Load address: 0x82000000
-Loading: #################################################################
-         #################################################################
-         #################################################################
-         #################################################################
-         ######################################
-         2 MiB/s
-done
-Bytes transferred = 4360800 (428a60 hex)
-Using DaVinci-EMAC device
-TFTP from server 10.0.2.168; our IP address is 10.0.3.33
-Filename 'am3517-evm.dtb'.
-Load address: 0x80000000
-Loading: ####
-         1.8 MiB/s
-done
-Bytes transferred = 50145 (c3e1 hex)
-Kernel image @ 0x82000000 [ 0x000000 - 0x428a60 ]
-## Flattened Device Tree blob at 80000000
-   Booting using the fdt blob at 0x80000000
-   Loading Device Tree to 9ff05000, end 9ff143e0 ... OK
-
-Starting kernel ...
-
-Using the exact same boot sequence worked for 3.10 and 3.14.
-
-> >
-> > Regards,
-> >
-> > Tony
