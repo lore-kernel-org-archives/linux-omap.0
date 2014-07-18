@@ -1,107 +1,86 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] iommu/omap: Remove virtual memory manager
-Date: Fri, 18 Jul 2014 12:50:04 +0200
-Message-ID: <1779106.6LTfJHCcQh@avalon>
-References: <1405595355-7341-1-git-send-email-laurent.pinchart@ideasonboard.com> <53C7F15F.6030306@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Subject: [PATCH v2 2/3] ARM: omap: Don't set iommu pdata da_start and da_end fields
+Date: Fri, 18 Jul 2014 12:49:56 +0200
+Message-ID: <1405680597-10012-3-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1405680597-10012-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from perceval.ideasonboard.com ([95.142.166.194]:42818 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761329AbaGRKt4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2014 06:49:56 -0400
-In-Reply-To: <53C7F15F.6030306@ti.com>
+	with ESMTP id S1761357AbaGRKtz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2014 06:49:55 -0400
+In-Reply-To: <1405680597-10012-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Joerg Roedel <joro@8bytes.org>, Florian Vaussard <florian.vaussard@epfl.ch>
+To: iommu@lists.linux-foundation.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>
 
-Hi Suman,
+The fields are not used by the driver and will be removed from platform
+data. Don't set them.
 
-Thank you for the review.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/omap-iommu.c           | 2 --
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 4 ----
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 4 ----
+ 3 files changed, 10 deletions(-)
 
-On Thursday 17 July 2014 10:53:03 Suman Anna wrote:
-> On 07/17/2014 06:09 AM, Laurent Pinchart wrote:
-> > The OMAP3 ISP driver was the only user of the OMAP IOVMM API. Now that
-> > is has been ported to the DMA API, remove the unused virtual memory
-> > manager.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> > Joerg, could you please pick this patch up for v3.17 if possible ?
-> 
-> Need one minor change as below, otherwise patch is good.
-> 
-> >  drivers/iommu/Kconfig            |  10 +-
-> >  drivers/iommu/Makefile           |   1 -
-> >  drivers/iommu/omap-iommu-debug.c | 114 ------
-> >  drivers/iommu/omap-iommu.c       |   2 -
-> >  drivers/iommu/omap-iommu.h       |   6 +-
-> >  drivers/iommu/omap-iovmm.c       | 791 ----------------------------------
-> >  include/linux/omap-iommu.h       |  37 +-
-> >  7 files changed, 8 insertions(+), 953 deletions(-)
-> >  delete mode 100644 drivers/iommu/omap-iovmm.c
-> > 
-> > diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-> > index d260605..a1f0fad 100644
-> > --- a/drivers/iommu/Kconfig
-> > +++ b/drivers/iommu/Kconfig
-> > @@ -143,16 +143,12 @@ config OMAP_IOMMU
-> >  	depends on ARCH_OMAP2PLUS
-> >  	select IOMMU_API
-> > 
-> > -config OMAP_IOVMM
-> > -	tristate "OMAP IO Virtual Memory Manager Support"
-> > -	depends on OMAP_IOMMU
-> > -
-> >  config OMAP_IOMMU_DEBUG
-> > -       tristate "Export OMAP IOMMU/IOVMM internals in DebugFS"
-> > -       depends on OMAP_IOVMM && DEBUG_FS
-> > +       tristate "Export OMAP IOMMU internals in DebugFS"
-> > +       depends on DEBUG_FS
-> 
-> This module is relevant only when OMAP_IOMMU is enabled, so this should
-> be depends on OMAP_IOMMU && DEBUG_FS. The dependency is inherent before
-> through OMAP_IOVMM. Otherwise, this module can be built by itself and
-> results in some build errors.
-
-Oops, my bad. I'll fix that in v2.
-
-> >         help
-> >           Select this to see extensive information about
-> > -         the internal state of OMAP IOMMU/IOVMM in debugfs.
-> > +         the internal state of OMAP IOMMU in debugfs.
-> > 
-> >           Say N unless you know you need this.
-
-[snip]
-
-> > diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-> > index ea920c3..36a85f3 100644
-> > --- a/drivers/iommu/omap-iommu.h
-> > +++ b/drivers/iommu/omap-iommu.h
-> > @@ -46,9 +46,6 @@ struct omap_iommu {
-> > 
-> >  	int		nr_tlb_entries;
-> > 
-> > -	struct list_head	mmap;
-> > -	struct mutex		mmap_lock; /* protect mmap */
-> > -
-> >  	void *ctx; /* iommu context: registres saved area */
-> >  	u32 da_start;
-> >  	u32 da_end;
-> 
-> With the removal of omap-iovmm, the da_start and da_end can also be
-> removed. No need to block this patch for that, it can be done in a
-> separate patch.
-
-I'll remove the fields from struct omap_iommu in v2. I'll also remove them 
-from the platform data, but I'll need to do so in a separate patch, as arch/ 
-code needs to be touched as well.
-
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index f1fab56..4068350 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -34,8 +34,6 @@ static int __init omap_iommu_dev_init(struct omap_hwmod *oh, void *unused)
+ 
+ 	pdata->name = oh->name;
+ 	pdata->nr_tlb_entries = a->nr_tlb_entries;
+-	pdata->da_start = a->da_start;
+-	pdata->da_end = a->da_end;
+ 
+ 	if (oh->rst_lines_cnt == 1) {
+ 		pdata->reset_name = oh->rst_lines->name;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 1cd0cfd..e9516b4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -2986,8 +2986,6 @@ static struct omap_hwmod_class omap3xxx_mmu_hwmod_class = {
+ /* mmu isp */
+ 
+ static struct omap_mmu_dev_attr mmu_isp_dev_attr = {
+-	.da_start	= 0x0,
+-	.da_end		= 0xfffff000,
+ 	.nr_tlb_entries = 8,
+ };
+ 
+@@ -3026,8 +3024,6 @@ static struct omap_hwmod omap3xxx_mmu_isp_hwmod = {
+ /* mmu iva */
+ 
+ static struct omap_mmu_dev_attr mmu_iva_dev_attr = {
+-	.da_start	= 0x11000000,
+-	.da_end		= 0xfffff000,
+ 	.nr_tlb_entries = 32,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 41e54f7..b4acc0a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2084,8 +2084,6 @@ static struct omap_hwmod_class omap44xx_mmu_hwmod_class = {
+ /* mmu ipu */
+ 
+ static struct omap_mmu_dev_attr mmu_ipu_dev_attr = {
+-	.da_start	= 0x0,
+-	.da_end		= 0xfffff000,
+ 	.nr_tlb_entries = 32,
+ };
+ 
+@@ -2133,8 +2131,6 @@ static struct omap_hwmod omap44xx_mmu_ipu_hwmod = {
+ /* mmu dsp */
+ 
+ static struct omap_mmu_dev_attr mmu_dsp_dev_attr = {
+-	.da_start	= 0x0,
+-	.da_end		= 0xfffff000,
+ 	.nr_tlb_entries = 32,
+ };
+ 
 -- 
-Regards,
+1.8.5.5
 
-Laurent Pinchart
