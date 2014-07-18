@@ -1,217 +1,102 @@
-From: Andreas Fenkart <afenkart@gmail.com>
-Subject: [PATCH 3/3] omap_hsmmc: reuse mmc/slot-gpio for card detect instead of open-coded version
-Date: Fri, 18 Jul 2014 09:22:03 +0200
-Message-ID: <1405668123-17073-4-git-send-email-afenkart@gmail.com>
-References: <1405668123-17073-1-git-send-email-afenkart@gmail.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 4/5] tty: serial: 8250 core: add runtime pm
+Date: Fri, 18 Jul 2014 10:35:10 +0200
+Message-ID: <53C8DC3E.3020701@linutronix.de>
+References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de> <1405521903-5877-5-git-send-email-bigeasy@linutronix.de> <20140716151604.GG1365@saruman.home> <53C6A050.2050409@linutronix.de> <20140716160614.GI1365@saruman.home> <53C7EC6F.6060902@hurleysoftware.com> <20140717154300.GA16623@linutronix.de> <20140717160206.GI10459@saruman.home> <53C7F4A3.5080508@linutronix.de> <20140717161848.GK10459@saruman.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f178.google.com ([74.125.82.178]:64143 "EHLO
-	mail-we0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750AbaGRHWV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2014 03:22:21 -0400
-In-Reply-To: <1405668123-17073-1-git-send-email-afenkart@gmail.com>
+Received: from www.linutronix.de ([62.245.132.108]:46087 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751084AbaGRIfS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Jul 2014 04:35:18 -0400
+In-Reply-To: <20140717161848.GK10459@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, ulf.hansson@linaro.org, daniel@zonque.org, Andreas Fenkart <afenkart@gmail.com>
+To: balbi@ti.com
+Cc: Peter Hurley <peter@hurleysoftware.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mika.westerberg@linux.intel.com
 
-Signed-off-by: Andreas Fenkart <afenkart@gmail.com>
+On 07/17/2014 06:18 PM, Felipe Balbi wrote:
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 1b9f279..25aafa6 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -231,15 +231,6 @@ struct omap_mmc_of_data {
- 
- static void omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host);
- 
--static int omap_hsmmc_card_detect(struct device *dev, int slot)
--{
--	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
--	struct omap_mmc_platform_data *mmc = host->pdata;
--
--	/* NOTE: assumes card detect signal is active-low */
--	return !gpio_get_value_cansleep(mmc->slots[0].switch_pin);
--}
--
- static int omap_hsmmc_get_cover_state(struct device *dev, int slot)
- {
- 	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
-@@ -256,7 +247,7 @@ static int omap_hsmmc_suspend_cdirq(struct device *dev, int slot)
- 	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
- 	struct omap_mmc_platform_data *mmc = host->pdata;
- 
--	disable_irq(mmc->slots[0].card_detect_irq);
-+	disable_irq(mmc->slots[0].cover_detect_irq);
- 	return 0;
- }
- 
-@@ -265,7 +256,7 @@ static int omap_hsmmc_resume_cdirq(struct device *dev, int slot)
- 	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
- 	struct omap_mmc_platform_data *mmc = host->pdata;
- 
--	enable_irq(mmc->slots[0].card_detect_irq);
-+	enable_irq(mmc->slots[0].cover_detect_irq);
- 	return 0;
- }
- 
-@@ -458,23 +449,26 @@ static int omap_hsmmc_gpio_init(struct mmc_host *mmc,
- 			if (ret)
- 				return ret;
- 			ret = gpio_direction_input(pdata->slots[0].switch_pin);
--			if (ret)
--				goto err_free_sp;
-+			if (ret) {
-+				gpio_free(pdata->slots[0].switch_pin);
-+				return ret;
-+			}
- 		} else {
--			pdata->slots[0].card_detect = omap_hsmmc_card_detect;
--			pdata->slots[0].card_detect_irq =
--				gpio_to_irq(pdata->slots[0].switch_pin);
--
--			ret = gpio_request(pdata->slots[0].switch_pin,
--					   "mmc_cd");
--			if (ret)
-+			/* copy & paste from from mmc_of_parse */
-+			ret = mmc_gpio_request_cd(mmc,
-+						  pdata->slots[0].switch_pin,
-+						  0);
-+			if (ret < 0) {
-+				dev_err(pdata->dev,
-+					"Failed to request CD GPIO #%d: %d!\n",
-+					pdata->slots[0].switch_pin, ret);
- 				return ret;
--			ret = gpio_direction_input(pdata->slots[0].switch_pin);
--			if (ret)
--				goto err_free_sp;
-+			} else {
-+				dev_info(pdata->dev, "Got CD GPIO #%d.\n",
-+					pdata->slots[0].switch_pin);
-+			}
- 		}
--	} else
--		pdata->slots[0].switch_pin = -EINVAL;
-+	}
- 
- 	if (gpio_is_valid(pdata->slots[0].gpio_wp)) {
- 		/* copy & paste from from mmc_of_parse */
-@@ -492,8 +486,9 @@ static int omap_hsmmc_gpio_init(struct mmc_host *mmc,
- 	return 0;
- 
- err:
--	if (gpio_is_valid(pdata->slots[0].switch_pin))
--err_free_sp:
-+	mmc_gpio_free_cd(mmc);
-+	if (gpio_is_valid(pdata->slots[0].switch_pin) &&
-+	    (pdata->slots[0].cover))
- 		gpio_free(pdata->slots[0].switch_pin);
- 	return ret;
- }
-@@ -501,8 +496,11 @@ err_free_sp:
- static void omap_hsmmc_gpio_free(struct mmc_host *mmc,
- 				 struct omap_mmc_platform_data *pdata)
- {
-+	mmc_gpio_free_cd(mmc);
- 	mmc_gpio_free_ro(mmc);
--	if (gpio_is_valid(pdata->slots[0].switch_pin))
-+
-+	if (gpio_is_valid(pdata->slots[0].switch_pin) &&
-+	    (pdata->slots[0].cover))
- 		gpio_free(pdata->slots[0].switch_pin);
- }
- 
-@@ -1289,24 +1287,13 @@ static void omap_hsmmc_protect_card(struct omap_hsmmc_host *host)
- /*
-  * irq handler to notify the core about card insertion/removal
-  */
--static irqreturn_t omap_hsmmc_detect(int irq, void *dev_id)
-+static irqreturn_t omap_hsmmc_cover_detect(int irq, void *dev_id)
- {
- 	struct omap_hsmmc_host *host = dev_id;
--	struct omap_mmc_slot_data *slot = &mmc_slot(host);
--	int carddetect;
--
--	if (slot->card_detect) {
--		carddetect = slot->card_detect(host->dev, host->slot_id);
--		if (carddetect)
--			mmc_detect_change(host->mmc, (HZ * 200) / 1000);
--		else
--			mmc_detect_change(host->mmc, (HZ * 50) / 1000);
--	} else {
--		sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
--		omap_hsmmc_protect_card(host);
--		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
--	}
- 
-+	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
-+	omap_hsmmc_protect_card(host);
-+	mmc_detect_change(host->mmc, (HZ * 200) / 1000);
- 	return IRQ_HANDLED;
- }
- 
-@@ -1669,15 +1656,6 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	pm_runtime_put_autosuspend(host->dev);
- }
- 
--static int omap_hsmmc_get_cd(struct mmc_host *mmc)
--{
--	struct omap_hsmmc_host *host = mmc_priv(mmc);
--
--	if (!mmc_slot(host).card_detect)
--		return -ENOSYS;
--	return mmc_slot(host).card_detect(host->dev, host->slot_id);
--}
--
- static void omap_hsmmc_init_card(struct mmc_host *mmc, struct mmc_card *card)
- {
- 	struct omap_hsmmc_host *host = mmc_priv(mmc);
-@@ -1832,7 +1810,7 @@ static const struct mmc_host_ops omap_hsmmc_ops = {
- 	.pre_req = omap_hsmmc_pre_req,
- 	.request = omap_hsmmc_request,
- 	.set_ios = omap_hsmmc_set_ios,
--	.get_cd = omap_hsmmc_get_cd,
-+	.get_cd = mmc_gpio_get_cd,
- 	.get_ro = mmc_gpio_get_ro,
- 	.init_card = omap_hsmmc_init_card,
- 	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
-@@ -2228,10 +2206,10 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	mmc->ocr_avail = mmc_slot(host).ocr_mask;
- 
- 	/* Request IRQ for card detect */
--	if ((mmc_slot(host).card_detect_irq)) {
-+	if ((mmc_slot(host).cover_detect_irq)) {
- 		ret = devm_request_threaded_irq(&pdev->dev,
--						mmc_slot(host).card_detect_irq,
--						NULL, omap_hsmmc_detect,
-+						mmc_slot(host).cover_detect_irq,
-+						NULL, omap_hsmmc_cover_detect,
- 					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
- 					   mmc_hostname(mmc), host);
- 		if (ret) {
-@@ -2266,7 +2244,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 		if (ret < 0)
- 			goto err_slot_name;
- 	}
--	if (mmc_slot(host).card_detect_irq && mmc_slot(host).get_cover_state) {
-+	if (mmc_slot(host).cover_detect_irq && mmc_slot(host).get_cover_state) {
- 		ret = device_create_file(&mmc->class_dev,
- 					&dev_attr_cover_switch);
- 		if (ret < 0)
-diff --git a/include/linux/platform_data/mmc-omap.h b/include/linux/platform_data/mmc-omap.h
-index d113005..250b437 100644
---- a/include/linux/platform_data/mmc-omap.h
-+++ b/include/linux/platform_data/mmc-omap.h
-@@ -142,10 +142,6 @@ struct omap_mmc_platform_data {
- 		const char *name;
- 		u32 ocr_mask;
- 
--		/* Card detection IRQs */
--		int card_detect_irq;
--		int (*card_detect)(struct device *dev, int slot);
--
- 		unsigned int ban_openended:1;
- 
- 	} slots[OMAP_MMC_MAX_SLOTS];
--- 
-2.0.0
+>> No, this is okay. If you look, it checks for "up->ier &=20
+>> UART_IER_THRI". On the second invocation it will see that this
+>> bit is already set and therefore won't call get_sync() for the
+>> second time. That bit is removed in the _stop_tx() path.
+>=20
+> oh, right. But that's actually unnecessary. Calling
+> pm_runtime_get() multiple times will just increment the usage
+> counter multiple times, which means you can call __stop_tx()
+> multiple times too and everything gets balanced, right ?
 
+No. start_tx() will be called multiple times but only the first
+invocation invoke pm_runtime_get(). Now I noticed that I forgot to
+remove pm_runtime_put_autosuspend() at the bottom of it. But you get
+the idea right?
+pm_get() on the while the UART_IER_THRI is not yet set. pm_put() once
+the fifo is completely empty.
+
+>> Do you have other ideas? It doesn't look like this is exported at
+>> all. If we call _stop_tx() right away, then we have 64 bytes in
+>> the TX fifo in the worst case. They should be gone "soon" but the
+>> HW-flow control may delay it (in theory for a long time)).
+>=20
+> this can be problematic, specially for OMAP which can go into OFF
+> while idle. Whatever is in the FIFO would get lost. It seems like
+> omap-serial solved this within transmit_chars().
+
+No, it didn't.
+
+> See how transmit_chars() is called from within IRQ handler with
+> clocks enabled then it conditionally calls serial_omap_stop_tx()
+> which will pm_runtime_get_sync() -> do_the_harlem_shake() ->=20
+> pm_runtime_put_autosuspend(). That leaves one unbalanced=20
+> pm_runtime_get() which is balanced when we're exitting the IRQ
+> handler.
+
+omap-serial and the 8250 do the following on tx path:
+- start_tx()
+  -> sets UART_IER_THRI. This will generate an interrupt once the FIFO
+     is empty.
+- interrupt, notices the empty fifo, invokes serial8250_start_tx()/
+  transmit_chars().
+  Both have a while loop that fills the FIFO. This loop is left once
+  the tty-buffer is empty (uart_circ_empty() is true) or the FIFO full.
+
+Lets say you filled 64 bytes into the FIFO and then left because your
+=46IFO is full and tty-buffer is empty. That means you will invoke
+serial_omap_stop_tx() and remove UART_IER_THRI bit.
+This is okay because you are not interested in further FIFO empty
+interrupts because you don't have any TX-bytes to be sent. However,
+once you leave the transmit_chars() you leave serial_omap_irq() which
+does the last pm_put(). That means you have data in the TX FIFO that is
+about to be sent and the device is in auto-suspend.
+This is "fine" as long as the timeout is greater then the time required
+for the data be sent (plus assuming HW-float control does not stall it
+for too long) so nobody notices a thing.
+
+=46or that reason I added the hack / #if0 block in the 8250 driver. To
+ensure we do not disable the TX-FIFO-empty interrupt even if there is
+nothing to send. Instead we enter serial8250_tx_chars() once again with
+empty FIFO and empty tty-buffer and will invoke _stop_tx() which also
+finally does the pm_put().
+That is the plan. The problem I have is how to figure out that the
+device is using auto-suspend. If I don't then I would have to remove
+the #if0 block and that would mean for everybody an extra interrupt
+(which I wanted to avoid).
+
+> This seems work fine and dandy without DMA, but for DMA work, I
+> think we need to make sure this IP stays powered until we get DMA
+> completion callback. But that's future, I guess.
+
+Yes, probably. That means one get at dma start, one put at dma complete
+callback. And I assume we get that callbacks once the DMA transfer is
+complete, not when the FIFO is empty :) So lets leave it to the future
+for now=85
+
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
