@@ -1,76 +1,68 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH v2 0/3] iommu: Remove OMAP IOVMM driver
-Date: Fri, 18 Jul 2014 11:53:56 -0500
-Message-ID: <53C95124.1010902@ti.com>
-References: <1405680597-10012-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap dts changes for v3.17 merge window, part1
+Date: Fri, 18 Jul 2014 22:15:52 -0700
+Message-ID: <20140719051552.GD20064@quad.lixom.net>
+References: <20140716125553.GC18374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40252 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755885AbaGRQy2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Jul 2014 12:54:28 -0400
-In-Reply-To: <1405680597-10012-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:42128 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124AbaGSFP1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Jul 2014 01:15:27 -0400
+Received: by mail-pd0-f169.google.com with SMTP id y10so6187285pdj.0
+        for <linux-omap@vger.kernel.org>; Fri, 18 Jul 2014 22:15:26 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140716125553.GC18374@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Joerg Roedel <joro@8bytes.org>, Tony Lindgren <tony@atomide.com>, Florian Vaussard <florian.vaussard@epfl.ch>
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Laurent,
+On Wed, Jul 16, 2014 at 05:55:58AM -0700, Tony Lindgren wrote:
+> The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+> 
+>   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/dt-part1
+> 
+> for you to fetch changes up to 3c9464ed75d6c15ee864da6d8f6a4cd3b0f2c934:
+> 
+>   ARM: DTS: omap5-uevm: Enable basic audio (McPDM <-> twl6040) (2014-07-15 00:21:25 -0700)
+> 
+> ----------------------------------------------------------------
+> First set of .dts changes for omaps for v3.17 merge
+> window:
+> 
+> - Enable irqchip crossbar interrupt mapping. These changes
+>   are based on an immutable irqchip branch set up by Jason
+>   Cooper to make it easier to merge the related .dts changes.
+> 
+> - Removal of omap2 related static clock data that now comes
+>   from device tree.
+> 
+> - Enabling of PHY regulators for various omaps
+> 
+> - Enabling of PCIe for dra7
+> 
+> - Add support for am437x starterkit
+> 
+> - Enable audio for for omap5
+> 
+> - Enable display and am335x-evmsk
 
-On 07/18/2014 05:49 AM, Laurent Pinchart wrote:
-> Hello,
-> 
-> The OMAP3 ISP driver was the only user of the OMAP IOVMM API. Now that is has
-> been ported to the DMA API, remove the unused virtual memory manager.
-> 
-> The removal is split in three patches to ease upstream merge. The first patch
-> removes the omap-iovmm driver, the second patch removes setting of now unused
-> platform data fields from arch code, and the last patch cleans up the platform
-> data structure.
+Merged, but:
 
-Thanks for the revised series, it looks good. I have also tested the
-series on OMAP3, OMAP4 and OMAP5.
+1) There was a conflict in the qspi node of dra7.dtsi due to a fix to
+   remove the interrupts property. It'd be nice to get these branches
+   based on the fixes so that we don't see these conflicts (or at least
+   get told about them). Besides, if we happen to have an older base in
+   our branch than what had the fix, it'll bubble all the way up to Linus.
 
-For the changes in the entire series,
-Acked-by: Suman Anna <s-anna@ti.com>
+2) There was an add/add conflict in the dra7.dtsi file, due to new
+   entries just being appended. Please keep these sorted on address to
+   avoid that.
 
-regards
-Suman
-
-> 
-> I'd like to get at least the first patch merged in v3.17. To avoid splitting
-> the series across three kernel versions, it would be nice to also merge at
-> least the second patch for v3.17. If there's no risk of conflict everything
-> could be merged in one go through the ARM SoC tree. Otherwise a stable branch
-> with patch 1/3 will be needed to base the arch change on.
-> 
-> Joerg, Tony, how would you like to proceed ?
-> 
-> Changes compared to v1:
-> 
-> - Fix OMAP_IOMMU_DEBUG dependency on OMAP_IOMMU
-> - Remove omap_iommu da_start and da_end fields
-> - Added patches 2/3 and 3/3
-> 
-> Laurent Pinchart (3):
->   iommu/omap: Remove virtual memory manager
->   ARM: omap: Don't set iommu pdata da_start and da_end fields
->   iommu/omap: Remove platform data da_start and da_end fields
-> 
->  arch/arm/mach-omap2/omap-iommu.c           |   2 -
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   4 -
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   4 -
->  drivers/iommu/Kconfig                      |  10 +-
->  drivers/iommu/Makefile                     |   1 -
->  drivers/iommu/omap-iommu-debug.c           | 114 -----
->  drivers/iommu/omap-iommu.c                 |  13 -
->  drivers/iommu/omap-iommu.h                 |   8 +-
->  drivers/iommu/omap-iovmm.c                 | 791 -----------------------------
->  include/linux/omap-iommu.h                 |  37 +-
->  include/linux/platform_data/iommu-omap.h   |   6 -
->  11 files changed, 8 insertions(+), 982 deletions(-)
->  delete mode 100644 drivers/iommu/omap-iovmm.c
-> 
-
+-Olof
