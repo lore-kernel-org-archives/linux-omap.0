@@ -1,90 +1,31 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] iommu: Remove OMAP IOVMM driver
-Date: Mon, 21 Jul 2014 20:15:45 +0200
-Message-ID: <5717663.qOZzl7syrN@avalon>
-References: <1405680597-10012-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<9251918.dhlInzvbvO@avalon> <20140721093336.GR18374@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20140721093336.GR18374-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH 0/7] arm: dts: oma3-gta04: Various updates
+Date: Mon, 21 Jul 2014 23:05:20 +0200
+Message-ID: <1405976727-15166-1-git-send-email-marek@goldelico.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:58809 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050AbaGUVFw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 17:05:52 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 
-Hi Tony and Joerg,
+Following patchset add various improvements to gta04 devicetree.
 
-On Monday 21 July 2014 02:33:36 Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [140721 02:16]:
-> > Hi Suman, Joerg and Tony,
-> > 
-> > On Friday 18 July 2014 11:53:56 Suman Anna wrote:
-> > > On 07/18/2014 05:49 AM, Laurent Pinchart wrote:
-> > > > Hello,
-> > > > 
-> > > > The OMAP3 ISP driver was the only user of the OMAP IOVMM API. Now that
-> > > > is has been ported to the DMA API, remove the unused virtual memory
-> > > > manager.
-> > > > 
-> > > > The removal is split in three patches to ease upstream merge. The
-> > > > first patch removes the omap-iovmm driver, the second patch removes
-> > > > setting of now unused platform data fields from arch code, and the
-> > > > last patch cleans up the platform data structure.
-> > > 
-> > > Thanks for the revised series, it looks good. I have also tested the
-> > > series on OMAP3, OMAP4 and OMAP5.
-> > > 
-> > > For the changes in the entire series,
-> > > Acked-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-> > 
-> > Thank you.
-> > 
-> > > > I'd like to get at least the first patch merged in v3.17. To avoid
-> > > > splitting the series across three kernel versions, it would be nice to
-> > > > also merge at least the second patch for v3.17. If there's no risk of
-> > > > conflict everything could be merged in one go through the ARM SoC
-> > > > tree. Otherwise a stable branch with patch 1/3 will be needed to base
-> > > > the arch change on.
-> > > > 
-> > > > Joerg, Tony, how would you like to proceed ?
-> > 
-> > The v3.17 merge window is getting close, it's probably too late to merge
-> > patch 2/3. Joerg, could you please take 1/3 in your tree for v3.17 ? 2/3
-> > and 3/3 would then get in v3.18. Tony, how would you like to proceed for
-> > those ?
->
-> How about Joerg maybe do an immutable branch against v3.16-rc1
-> with just these three patches and merge it into your tree?
-> 
-> That way I too can merge the minimal branch in if there are conflics.
-> If that works for Joerg, then for arch/arm/*omap* changes:
-> 
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Marek Belisko (7):
+  arm: dts: omap3-gta04: Add nand support
+  arm: dts: omap3-gta04: Fix magnetometer model
+  arm: dts: omap3-gta04: Add wifi reset node
+  arm: dts: omap3-gta04: Move spi gpio pins to pmx_core2
+  arm: dts: omap3-gta04: Add USB host support
+  arm: dts: omap3-gta04: Add display alias
+  arm: dts: omap3-gta04: Add twl4030 regulators parameters
 
-I've created an immutable branch (or, rather, immutable until the changes 
-reach mainline, at which point I will remove the branch) on top of v3.16-rc1 
-with just the three patches from this series. You can find it at.
-
-	git://linuxtv.org/pinchartl/media.git omap/iommu
-
-Tony, is there still time to get this (and especially patch 2/3, which touches 
-arch/ code) in v3.17 ?
-
-> If the above is too complicated, then how about Laurent resend patches
-> 2 - 3 once the dependencies have cleared so I can pick them up. This
-> is assuming nothing breaks with patchs 2 - 3 missing naturally :)
+ arch/arm/boot/dts/omap3-gta04.dts | 150 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 145 insertions(+), 5 deletions(-)
 
 -- 
-Regards,
+1.9.1
 
-Laurent Pinchart
