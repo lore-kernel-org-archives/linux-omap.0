@@ -1,27 +1,25 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/8] ARM: OMAP2+: timer: Add comment on timer clk
- parenting
-Date: Mon, 21 Jul 2014 04:07:31 -0700
-Message-ID: <20140721110730.GX18374@atomide.com>
+Subject: Re: [PATCH 6/8] ARM: OMAP2+: timer: Fix error message to not use
+ hwmod structure
+Date: Mon, 21 Jul 2014 04:09:02 -0700
+Message-ID: <20140721110902.GY18374@atomide.com>
 References: <1398216429-4681-1-git-send-email-joelf@ti.com>
- <1398216429-4681-4-git-send-email-joelf@ti.com>
+ <1398216429-4681-7-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1398216429-4681-4-git-send-email-joelf@ti.com>
+In-Reply-To: <1398216429-4681-7-git-send-email-joelf@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Joel Fernandes <joelf@ti.com>
 Cc: Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 * Joel Fernandes <joelf@ti.com> [140422 18:27]:
-> Add a comment describing the state of system timer clock parenting.  The code
-> following the comment should be deleted once all platforms can do DT boot, and
-> specially should not be executed for DT platforms once we can specify default
-> clock parents through DT.
+> oh->name is no longer used, correct the error message.
 
-I think we can do it already for DT based booting?
+I guess this error is created by one of the patchs in this
+series? So maybe fold it into the patch creating this error?
 
 Regards,
 
@@ -29,24 +27,24 @@ Tony
  
 > Signed-off-by: Joel Fernandes <joelf@ti.com>
 > ---
->  arch/arm/mach-omap2/timer.c |    4 ++++
->  1 file changed, 4 insertions(+)
+>  arch/arm/mach-omap2/timer.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
 > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index f192a41..9fdff5b 100644
+> index 4fcfd7a..519ccfd 100644
 > --- a/arch/arm/mach-omap2/timer.c
 > +++ b/arch/arm/mach-omap2/timer.c
-> @@ -313,6 +313,10 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->  	if (IS_ERR(timer->fclk))
->  		return PTR_ERR(timer->fclk);
->  
-> +	/*
-> +	 * Clock reparenting code, goes away for DT-boot atleast,
-> +	 * once clock layer can do it through DT.
-> +	 */
->  	src = clk_get(NULL, fck_source);
->  	if (IS_ERR(src))
->  		return PTR_ERR(src);
+> @@ -331,8 +331,8 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  	if (clk_get_parent(timer->fclk) != src) {
+>  		r = clk_set_parent(timer->fclk, src);
+>  		if (r < 0) {
+> -			pr_warn("%s: %s cannot set source\n", __func__,
+> -				oh->name);
+> +			pr_warn("%s: cannot set timer's source\n", __func__);
+> +			WARN_ON(1);
+>  			clk_put(src);
+>  			return r;
+>  		}
 > -- 
 > 1.7.9.5
 > 
