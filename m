@@ -1,94 +1,73 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 1/5] arm: dts: omap3-gta04: Add missing nodes to fully describe gta04 board
-Date: Sat, 19 Jul 2014 11:54:31 +0200
-Message-ID: <C50C18E2-6286-4DC0-8856-CEC3B2FA25B9@goldelico.com>
-References: <1405369228-27197-1-git-send-email-marek@goldelico.com> <1405369228-27197-2-git-send-email-marek@goldelico.com> <CAGhQ9Vx1gm9=vda9dUVYR25JK4VSUe9Qk5_xc_bo9ZPLFCtExA@mail.gmail.com> <0C2AB07A-C515-4D5E-A823-DDF7C871515A@goldelico.com> <CAGhQ9VwTXdCHe693PBtaVsv28-heEHY3=qbnn+mdgk3ea3u7qQ@mail.gmail.com> <CABxcv==sj5ZZ_f1gqgREFDNoiVv71k3rjQLPq6CpZbB-643Z4g@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap dts changes for v3.17 merge window, part1
+Date: Sun, 20 Jul 2014 23:54:33 -0700
+Message-ID: <20140721065432.GL18374@atomide.com>
+References: <20140716125553.GC18374@atomide.com>
+ <20140719051552.GD20064@quad.lixom.net>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABxcv==sj5ZZ_f1gqgREFDNoiVv71k3rjQLPq6CpZbB-643Z4g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Joachim Eastwood <manabian@gmail.com>, Marek Belisko <marek@goldelico.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48758 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816AbaGUGz7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 02:55:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20140719051552.GD20064@quad.lixom.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi all,
-
-Am 18.07.2014 um 11:21 schrieb Javier Martinez Canillas:
-
-> Hello Marek and Dr. H. Nikolaus,
+* Olof Johansson <olof@lixom.net> [140718 22:17]:
+> On Wed, Jul 16, 2014 at 05:55:58AM -0700, Tony Lindgren wrote:
+> > The following changes since commit 7171511eaec5bf23fb06078f59784a3a0626b38f:
+> > 
+> >   Linux 3.16-rc1 (2014-06-15 17:45:28 -1000)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/dt-part1
+> > 
+> > for you to fetch changes up to 3c9464ed75d6c15ee864da6d8f6a4cd3b0f2c934:
+> > 
+> >   ARM: DTS: omap5-uevm: Enable basic audio (McPDM <-> twl6040) (2014-07-15 00:21:25 -0700)
+> > 
+> > ----------------------------------------------------------------
+> > First set of .dts changes for omaps for v3.17 merge
+> > window:
+> > 
+> > - Enable irqchip crossbar interrupt mapping. These changes
+> >   are based on an immutable irqchip branch set up by Jason
+> >   Cooper to make it easier to merge the related .dts changes.
+> > 
+> > - Removal of omap2 related static clock data that now comes
+> >   from device tree.
+> > 
+> > - Enabling of PHY regulators for various omaps
+> > 
+> > - Enabling of PCIe for dra7
+> > 
+> > - Add support for am437x starterkit
+> > 
+> > - Enable audio for for omap5
+> > 
+> > - Enable display and am335x-evmsk
 > 
-> On Fri, Jul 18, 2014 at 8:55 AM, Joachim Eastwood <manabian@gmail.com> wrote:
->> On 16 July 2014 09:17, Dr. H. Nikolaus Schaller <hns@goldelico.com> wrote:
->>> Am 15.07.2014 um 14:45 schrieb Joachim Eastwood:
->>> 
->>>> Hi Marek,
->>>> 
->>>> You seem to add some DT nodes for hw that doesn't have drivers in
->>>> mainline. I think you should leave those out until the driver itself
->>>> is upstream and the bindings for it is documented.
->>> is there some policy for only having nodes for existing drivers in DT files?
->> 
+> Merged, but:
 > 
-> I strongly agree with Joachim on this regard.
+> 1) There was a conflict in the qspi node of dra7.dtsi due to a fix to
+>    remove the interrupts property. It'd be nice to get these branches
+>    based on the fixes so that we don't see these conflicts (or at least
+>    get told about them). Besides, if we happen to have an older base in
+>    our branch than what had the fix, it'll bubble all the way up to Linus.
 > 
->>> If I understand the device tree concept correctly, it should not describe drivers
->>> (and hence nothing about the state of them being mainlined), but it should statically
->>> describe the given hardware in a way that kernel and drivers can read it (or ignore).
->>> And even other kernels can use it (because they run on the same hardware).
->>> 
-> 
-> Yes, it should describe hardware but that description should be
-> previously agreed and properly documented as was mentioned before.
+> 2) There was an add/add conflict in the dra7.dtsi file, due to new
+>    entries just being appended. Please keep these sorted on address to
+>    avoid that.
 
-Ok, it is a little a hen and egg problem - who should start with the documentation.
-The device tree file, more or less describing what the hardware requirements
-are. Or the drivers which describe what they support.
+OK thanks. This was still based on -rc1, I'll use a later base
+in the future if needed to avoid pointless merge conflicts.
 
-And you are right - these two ends must match and that can only be resolved by
-discussions and negotiations between both ends.
+Regards,
 
-> 
->>> So unless there is an important reason not to have "currently unused" nodes
->>> in the DT source/binary (loading time is IMHO neglectable), I would ask that we
->>> can keep with the complete DT instead of splitting it up artificially and getting back
->>> to the same status (because the hardware does not change over time).
->> 
-> 
-> I understand your motivation since it will allow you to not have to
-> maintain a patch-set for your downstream DTS changes but I would like
-> to ask you the opposite question. What's the benefit for the kernel
-> community to keep in a mainline DTS a bunch of device nodes with DT
-> bindings that have not been neither discussed nor documented?
-
-Less patches to review individually. Just a single one instead.
-But this might be a weak benefit.
-
-> 
-> Developers doing a board bring-up usually use the DTS in mainline as a
-> reference for their boards and having non-documented/agreed DT binding
-> on the upstream DTS will only bring confusion and frustration to them
-> IMHO.
-
-Well, my experience (at least for the current status) is that in most times new
-boards need new drivers and DT nodes anyways. But this might change.
-
-> 
-> We already have some issues with Device Trees (bindings that broke
-> backward compatibility, drivers implementing custom DT binding instead
-> of using standard ones, bindings that don't really reflect the actual
-> H/W, etc), please don't make this even more complicated to developers.
-
-Ok, then I think we will do the way as suggested and only submit DT nodes
-for already existing drivers. Or submit new ones bundled with driver and
-documentation patches.
-
-Marek will update the patches anyways, so that they apply without errors.
-
-> 
-> Thanks a lot and best regards,
-> Javier
-
-BR,
-Nikolaus
+Tony
