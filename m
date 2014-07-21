@@ -1,39 +1,61 @@
-From: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH 6/7] arm: dts: omap3-gta04: Add display alias
-Date: Mon, 21 Jul 2014 23:05:26 +0200
-Message-ID: <1405976727-15166-7-git-send-email-marek@goldelico.com>
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH 7/7] arm: dts: omap3-gta04: Add twl4030 regulators parameters
+Date: Mon, 21 Jul 2014 23:05:27 +0200
+Message-ID: <1405976727-15166-8-git-send-email-marek@goldelico.com>
 References: <1405976727-15166-1-git-send-email-marek@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1405976727-15166-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1405976727-15166-1-git-send-email-marek@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Signed-off-by: Marek Belisko <marek@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-gta04.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/omap3-gta04.dts | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
 diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-index 370c08b..05fd4d2 100644
+index 05fd4d2..e39ede2 100644
 --- a/arch/arm/boot/dts/omap3-gta04.dts
 +++ b/arch/arm/boot/dts/omap3-gta04.dts
-@@ -26,6 +26,10 @@
- 		reg = <0x80000000 0x20000000>; /* 512 MB */
- 	};
+@@ -346,11 +346,37 @@
+ 	bb_uamp = <150>;
+ };
  
-+	aliases {
-+		display0 = &lcd;
-+	};
++/* spare */
++&vaux1 {
++	regulator-min-microvolt = <2500000>;
++	regulator-max-microvolt = <3000000>;
++};
 +
- 	gpio-keys {
- 		compatible = "gpio-keys";
++/* sensors */
++&vaux2 {
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <2800000>;
++	regulator-always-on;
++};
++
++/* camera */
++&vaux3 {
++	regulator-min-microvolt = <2500000>;
++	regulator-max-microvolt = <2500000>;
++};
++
++/* WLAN/BT */
+ &vaux4 {
+ 	regulator-min-microvolt = <2800000>;
+ 	regulator-max-microvolt = <3150000>;
+ };
  
++/* GPS LNA */
++&vsim {
++	regulator-min-microvolt = <2800000>;
++	regulator-max-microvolt = <3150000>;
++};
++
+ /* Needed to power the DPI pins */
+ &vpll2 {
+ 	regulator-always-on;
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
