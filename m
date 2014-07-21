@@ -1,72 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/8] ARM: OMAP2+: timer: Add a powerup function
-Date: Mon, 21 Jul 2014 04:00:57 -0700
-Message-ID: <20140721110057.GV18374@atomide.com>
+Subject: Re: [PATCH 2/8] ARM: OMAP2+: timer: Simplify clock event/source name
+ setting
+Date: Mon, 21 Jul 2014 04:05:56 -0700
+Message-ID: <20140721110556.GW18374@atomide.com>
 References: <1398216429-4681-1-git-send-email-joelf@ti.com>
- <1398216429-4681-2-git-send-email-joelf@ti.com>
+ <1398216429-4681-3-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1398216429-4681-2-git-send-email-joelf@ti.com>
+In-Reply-To: <1398216429-4681-3-git-send-email-joelf@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Joel Fernandes <joelf@ti.com>
 Cc: Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 * Joel Fernandes <joelf@ti.com> [140422 18:27]:
-> In an effort to isolate the time power initialization for future purposes, add
-> a function to do the same. This primarily involves a hwmod lookup, setup and
-> enable.
+> For the OMAPs, we're setting up only one clockevent and clocksource. Further,
+> for DT boot there's no easy way to get the timer name and currently this is
+> done in an ugly way by reading a hwmod entry. So let's just set it to a simpler
+> name like timer_clkev and timer_clksrc.
+> 
+> Signed-off-by: Joel Fernandes <joelf@ti.com>
+> ---
+>  arch/arm/mach-omap2/timer.c |   10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index ec427e6..f192a41 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -251,7 +251,6 @@ static u32 __init omap_dm_timer_get_errata(void)
+>  static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  					 const char *fck_source,
+>  					 const char *property,
+> -					 const char **timer_name,
+>  					 int posted)
+>  {
+>  	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
+> @@ -290,8 +289,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>  	if (!oh)
+>  		return -ENODEV;
+>  
+> -	*timer_name = oh->name;
+> -
+>  	if (!of_have_populated_dt()) {
+>  		r = omap_hwmod_get_resource_byname(oh, IORESOURCE_IRQ, NULL,
+>  						   &irq);
+> @@ -365,8 +362,10 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+>  	 */
+>  	__omap_dm_timer_override_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
+>  
+> +	clockevent_gpt.name = "timer_clkev";
+> +
+>  	res = omap_dm_timer_init_one(&clkev, fck_source, property,
+> -				     &clockevent_gpt.name, OMAP_TIMER_POSTED);
+> +				     OMAP_TIMER_POSTED);
+>  	BUG_ON(res);
+>  
+>  	omap2_gp_timer_irq.dev_id = &clkev;
+> @@ -489,10 +488,11 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+>  	clksrc.errata = omap_dm_timer_get_errata();
+>  
+>  	res = omap_dm_timer_init_one(&clksrc, fck_source, property,
+> -				     &clocksource_gpt.name,
+>  				     OMAP_TIMER_NONPOSTED);
+>  	BUG_ON(res);
+>  
+> +	clocksource_gpt.name = "timer_clksrc";
+> +
+>  	__omap_dm_timer_load_start(&clksrc,
+>  				   OMAP_TIMER_CTRL_AR, 0,
+>  				   OMAP_TIMER_NONPOSTED);
 
-No users yet for this function? Can you remove the same code from
-somewhere else in this patch?
+Hmm aren't we losing information now about which timer we are using?
+
+Might be worth checking if these new names are getting copied somewhere
+or what happens after init?
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> ---
->  arch/arm/mach-omap2/timer.c |   25 +++++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index dfb19df..ec427e6 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -210,6 +210,31 @@ static void __init omap_dmtimer_init(void)
->  	}
->  }
->  
-> +int __init omap_dmtimer_powerup(struct device_node *np)
-> +{
-> +	struct omap_hwmod *oh;
-> +	const char *oh_name = NULL;
-> +	int ret;
-> +
-> +	of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
-> +	if (!oh_name)
-> +		return -ENODEV;
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh)
-> +		return -ENODEV;
-> +
-> +	ret = omap_hwmod_setup_one(oh_name);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = omap_hwmod_enable(oh);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
->  /**
->   * omap_dm_timer_get_errata - get errata flags for a timer
->   *
-> -- 
-> 1.7.9.5
-> 
