@@ -1,357 +1,124 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 3/6] tty: serial: 8250 core: add runtime pm
-Date: Mon, 21 Jul 2014 16:34:44 +0300
-Message-ID: <20140721133444.GW1655@lahna.fi.intel.com>
-References: <1404928177-26554-1-git-send-email-bigeasy@linutronix.de>
- <1404928177-26554-4-git-send-email-bigeasy@linutronix.de>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3 0/2] usb: fix controller-PHY binding for OMAP3 platform
+Date: Mon, 21 Jul 2014 17:04:57 +0200
+Message-ID: <2288457.9ZfWAQMUao@avalon>
+References: <1387209225-11520-1-git-send-email-kishon@ti.com> <20131216223826.GG26293@atomide.com> <20131216234829.GC29284@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1404928177-26554-4-git-send-email-bigeasy@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Heikki Krogerus <heikki.krogerus@intel.com>
+Content-Type: multipart/signed; boundary="nextPart1568003.8yIXfBolcA"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20131216234829.GC29284@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, marek.belisko@gmail.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 09, 2014 at 07:49:34PM +0200, Sebastian Andrzej Siewior wrote:
-> While comparing the OMAP-serial and the 8250 part of this I noticed that
-> the the latter does not use runtime-pm. Here are the pieces. It is
-> basically a get before first register access and a last_busy + put after
-> last access.
-> If I understand this correct, it should do nothing as long as
-> pm_runtime_use_autosuspend() + pm_runtime_enable() isn't invoked on the
-> device.
-> 
-> Cc: mika.westerberg@linux.intel.com
 
-Sorry for the delay, just came back from vacation.
+--nextPart1568003.8yIXfBolcA
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-Adding Heikki, who knows the 8250_dw driver much better than me.
-Unfortunately he is still on vacation for next two weeks.
+Hi Felipe,
 
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  drivers/tty/serial/8250/8250_core.c | 101 +++++++++++++++++++++++++++++++-----
->  1 file changed, 88 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-> index d37eb08..1a91a89 100644
-> --- a/drivers/tty/serial/8250/8250_core.c
-> +++ b/drivers/tty/serial/8250/8250_core.c
-> @@ -38,6 +38,7 @@
->  #include <linux/nmi.h>
->  #include <linux/mutex.h>
->  #include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
->  #ifdef CONFIG_SPARC
->  #include <linux/sunserialcore.h>
->  #endif
-> @@ -553,10 +554,11 @@ static void serial8250_set_sleep(struct uart_8250_port *p, int sleep)
->  	 * offset but the UART channel may only write to the corresponding
->  	 * bit.
->  	 */
-> +	pm_runtime_get_sync(p->port.dev);
->  	if ((p->port.type == PORT_XR17V35X) ||
->  	   (p->port.type == PORT_XR17D15X)) {
->  		serial_out(p, UART_EXAR_SLEEP, sleep ? 0xff : 0);
-> -		return;
-> +		goto out;
->  	}
->  
->  	if (p->capabilities & UART_CAP_SLEEP) {
-> @@ -571,7 +573,17 @@ static void serial8250_set_sleep(struct uart_8250_port *p, int sleep)
->  			serial_out(p, UART_EFR, 0);
->  			serial_out(p, UART_LCR, 0);
->  		}
-> +
-> +		if (!device_may_wakeup(p->port.dev)) {
-> +			if (sleep)
-> +				pm_runtime_forbid(p->port.dev);
-> +			else
-> +				pm_runtime_allow(p->port.dev);
-> +		}
->  	}
-> +out:
-> +	pm_runtime_mark_last_busy(p->port.dev);
-> +	pm_runtime_put_autosuspend(p->port.dev);
->  }
->  
->  #ifdef CONFIG_SERIAL_8250_RSA
-> @@ -1280,6 +1292,7 @@ static void serial8250_stop_tx(struct uart_port *port)
->  	struct uart_8250_port *up =
->  		container_of(port, struct uart_8250_port, port);
->  
-> +	pm_runtime_get_sync(port->dev);
->  	__stop_tx(up);
->  
->  	/*
-> @@ -1289,6 +1302,8 @@ static void serial8250_stop_tx(struct uart_port *port)
->  		up->acr |= UART_ACR_TXDIS;
->  		serial_icr_write(up, UART_ACR, up->acr);
->  	}
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  }
->  
->  static void serial8250_start_tx(struct uart_port *port)
-> @@ -1296,8 +1311,9 @@ static void serial8250_start_tx(struct uart_port *port)
->  	struct uart_8250_port *up =
->  		container_of(port, struct uart_8250_port, port);
->  
-> +	pm_runtime_get_sync(port->dev);
->  	if (up->dma && !serial8250_tx_dma(up)) {
-> -		return;
-> +		goto out;
->  	} else if (!(up->ier & UART_IER_THRI)) {
->  		up->ier |= UART_IER_THRI;
->  		serial_port_out(port, UART_IER, up->ier);
-> @@ -1318,6 +1334,9 @@ static void serial8250_start_tx(struct uart_port *port)
->  		up->acr &= ~UART_ACR_TXDIS;
->  		serial_icr_write(up, UART_ACR, up->acr);
->  	}
-> +out:
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  }
->  
->  static void serial8250_stop_rx(struct uart_port *port)
-> @@ -1325,9 +1344,14 @@ static void serial8250_stop_rx(struct uart_port *port)
->  	struct uart_8250_port *up =
->  		container_of(port, struct uart_8250_port, port);
->  
-> +	pm_runtime_get_sync(port->dev);
-> +
->  	up->ier &= ~UART_IER_RLSI;
->  	up->port.read_status_mask &= ~UART_LSR_DR;
->  	serial_port_out(port, UART_IER, up->ier);
-> +
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  }
->  
->  static void serial8250_enable_ms(struct uart_port *port)
-> @@ -1340,7 +1364,10 @@ static void serial8250_enable_ms(struct uart_port *port)
->  		return;
->  
->  	up->ier |= UART_IER_MSI;
-> +	pm_runtime_get_sync(port->dev);
->  	serial_port_out(port, UART_IER, up->ier);
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  }
->  
->  /*
-> @@ -1530,9 +1557,17 @@ EXPORT_SYMBOL_GPL(serial8250_handle_irq);
->  
->  static int serial8250_default_handle_irq(struct uart_port *port)
->  {
-> -	unsigned int iir = serial_port_in(port, UART_IIR);
-> +	unsigned int iir;
-> +	int ret;
->  
-> -	return serial8250_handle_irq(port, iir);
-> +	pm_runtime_get_sync(port->dev);
+What happened to these two patches ?
 
-Is this function executed in interrupt context? Calling _sync() variant
-might sleep here. At least if the RTPM of the device is backed by ACPI
-methods.
+On Monday 16 December 2013 17:48:29 Felipe Balbi wrote:
+> On Mon, Dec 16, 2013 at 02:38:27PM -0800, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi@ti.com> [131216 13:31]:
+> > > On Mon, Dec 16, 2013 at 09:23:43PM +0530, Kishon Vijay Abraham I =
+wrote:
+> > > > After the platform devices are created using PLATFORM_DEVID_AUT=
+O, the
+> > > > device names given in usb_bind_phy (in board file) does not mat=
+ch with
+> > > > the actual device name causing the USB PHY library not to retur=
+n the
+> > > > PHY reference when the MUSB controller request for the PHY in t=
+he
+> > > > non-dt boot case.
+> > > > So removed creating platform devices using PLATFORM_DEVID_AUTO =
+in
+> > > > omap2430.c.
+> > > >=20
+> > > > Did enumeration testing in omap3 beagle.
+> > > >=20
+> > > > Changes from v2:
+> > > > * Fixed the commit log
+> > > >=20
+> > > > Changes from v1:
+> > > > * refreshed to the latested mainline kernel
+> > > > * added musb_put_id from omap2430 remove.
+> > >=20
+> > > Tony, how do you want to handle this ? You want me to provide you=
+ a
+> > > branch which we both merge ?
+> >=20
+> > Yes that would be great thanks. For the mach-omap2 touching parts:
+> >=20
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+>=20
+> Here it is, let me know if you prefer a signed tag:
+>=20
+> The following changes since commit 6ce4eac1f600b34f2f7f58f9cd8f0503d7=
+9e42ae:
+>=20
+>   Linux 3.13-rc1 (2013-11-22 11:30:55 -0800)
+>=20
+> are available in the git repository at:
+>=20
+>   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+> usb-phy-binding-omap3
+>=20
+> for you to fetch changes up to 23ada3130cf4e56acb86fdff4c26113188d52d=
+18:
+>=20
+>   arm: omap: remove *.auto* from device names given in usb_bind_phy
+> (2013-12-16 17:44:43 -0600)
+>=20
+> ----------------------------------------------------------------
+> Kishon Vijay Abraham I (2):
+>       usb: musb: omap: remove using PLATFORM_DEVID_AUTO in omap2430.c=
 
-> +
-> +	iir = serial_port_in(port, UART_IIR);
-> +	ret = serial8250_handle_irq(port, iir);
-> +
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
-> +	return ret;
->  }
->  
->  /*
-> @@ -1790,11 +1825,16 @@ static unsigned int serial8250_tx_empty(struct uart_port *port)
->  	unsigned long flags;
->  	unsigned int lsr;
->  
-> +	pm_runtime_get_sync(port->dev);
-> +
->  	spin_lock_irqsave(&port->lock, flags);
->  	lsr = serial_port_in(port, UART_LSR);
->  	up->lsr_saved_flags |= lsr & LSR_SAVE_FLAGS;
->  	spin_unlock_irqrestore(&port->lock, flags);
->  
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
-> +
->  	return (lsr & BOTH_EMPTY) == BOTH_EMPTY ? TIOCSER_TEMT : 0;
->  }
->  
-> @@ -1805,7 +1845,10 @@ static unsigned int serial8250_get_mctrl(struct uart_port *port)
->  	unsigned int status;
->  	unsigned int ret;
->  
-> +	pm_runtime_get_sync(port->dev);
->  	status = serial8250_modem_status(up);
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  
->  	ret = 0;
->  	if (status & UART_MSR_DCD)
-> @@ -1838,7 +1881,10 @@ static void serial8250_set_mctrl(struct uart_port *port, unsigned int mctrl)
->  
->  	mcr = (mcr & up->mcr_mask) | up->mcr_force | up->mcr;
->  
-> +	pm_runtime_get_sync(port->dev);
->  	serial_port_out(port, UART_MCR, mcr);
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  }
->  
->  static void serial8250_break_ctl(struct uart_port *port, int break_state)
-> @@ -1847,6 +1893,7 @@ static void serial8250_break_ctl(struct uart_port *port, int break_state)
->  		container_of(port, struct uart_8250_port, port);
->  	unsigned long flags;
->  
-> +	pm_runtime_get_sync(port->dev);
->  	spin_lock_irqsave(&port->lock, flags);
->  	if (break_state == -1)
->  		up->lcr |= UART_LCR_SBC;
-> @@ -1854,6 +1901,8 @@ static void serial8250_break_ctl(struct uart_port *port, int break_state)
->  		up->lcr &= ~UART_LCR_SBC;
->  	serial_port_out(port, UART_LCR, up->lcr);
->  	spin_unlock_irqrestore(&port->lock, flags);
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  }
->  
->  /*
-> @@ -1898,12 +1947,23 @@ static void wait_for_xmitr(struct uart_8250_port *up, int bits)
->  
->  static int serial8250_get_poll_char(struct uart_port *port)
->  {
-> -	unsigned char lsr = serial_port_in(port, UART_LSR);
-> +	unsigned char lsr;
-> +	int status;
-> +
-> +	pm_runtime_get_sync(port->dev);
->  
-> -	if (!(lsr & UART_LSR_DR))
-> -		return NO_POLL_CHAR;
-> +	lsr = serial_port_in(port, UART_LSR);
->  
-> -	return serial_port_in(port, UART_RX);
-> +	if (!(lsr & UART_LSR_DR)) {
-> +		status = NO_POLL_CHAR;
-> +		goto out;
-> +	}
-> +
-> +	status = serial_port_in(port, UART_RX);
-> +out:
-> +	pm_runtime_mark_last_busy(up->dev);
-> +	pm_runtime_put_autosuspend(up->dev);
-> +	return status;
->  }
->  
->  
-> @@ -1914,6 +1974,7 @@ static void serial8250_put_poll_char(struct uart_port *port,
->  	struct uart_8250_port *up =
->  		container_of(port, struct uart_8250_port, port);
->  
-> +	pm_runtime_get_sync(up->dev);
->  	/*
->  	 *	First save the IER then disable the interrupts
->  	 */
-> @@ -1935,6 +1996,9 @@ static void serial8250_put_poll_char(struct uart_port *port,
->  	 */
->  	wait_for_xmitr(up, BOTH_EMPTY);
->  	serial_port_out(port, UART_IER, ier);
-> +	pm_runtime_mark_last_busy(up->dev);
-> +	pm_runtime_put_autosuspend(up->dev);
-> +
->  }
->  
->  #endif /* CONFIG_CONSOLE_POLL */
-> @@ -1961,6 +2025,7 @@ int serial8250_do_startup(struct uart_port *port)
->  	if (port->iotype != up->cur_iotype)
->  		set_io_from_upio(port);
->  
-> +	pm_runtime_get_sync(port->dev);
->  	if (port->type == PORT_16C950) {
->  		/* Wake up and initialize UART */
->  		up->acr = 0;
-> @@ -1981,7 +2046,6 @@ int serial8250_do_startup(struct uart_port *port)
->  	 */
->  	enable_rsa(up);
->  #endif
-> -
->  	/*
->  	 * Clear the FIFO buffers and disable them.
->  	 * (they will be reenabled in set_termios())
-> @@ -2005,7 +2069,8 @@ int serial8250_do_startup(struct uart_port *port)
->  	    (serial_port_in(port, UART_LSR) == 0xff)) {
->  		printk_ratelimited(KERN_INFO "ttyS%d: LSR safety check engaged!\n",
->  				   serial_index(port));
-> -		return -ENODEV;
-> +		retval = -ENODEV;
-> +		goto out;
->  	}
->  
->  	/*
-> @@ -2090,7 +2155,7 @@ int serial8250_do_startup(struct uart_port *port)
->  	} else {
->  		retval = serial_link_irq_chain(up);
->  		if (retval)
-> -			return retval;
-> +			goto out;
->  	}
->  
->  	/*
-> @@ -2188,8 +2253,11 @@ int serial8250_do_startup(struct uart_port *port)
->  		outb_p(0x80, icp);
->  		inb_p(icp);
->  	}
-> -
-> -	return 0;
-> +	retval = 0;
-> +out:
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
-> +	return retval;
->  }
->  EXPORT_SYMBOL_GPL(serial8250_do_startup);
->  
-> @@ -2207,6 +2275,7 @@ void serial8250_do_shutdown(struct uart_port *port)
->  		container_of(port, struct uart_8250_port, port);
->  	unsigned long flags;
->  
-> +	pm_runtime_get_sync(port->dev);
->  	/*
->  	 * Disable interrupts from this port
->  	 */
-> @@ -2246,6 +2315,8 @@ void serial8250_do_shutdown(struct uart_port *port)
->  	 * the IRQ chain.
->  	 */
->  	serial_port_in(port, UART_RX);
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
->  
->  	del_timer_sync(&up->timer);
->  	up->timer.function = serial8250_timeout;
-> @@ -2365,6 +2436,7 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
->  	 * Ok, we're now changing the port state.  Do it with
->  	 * interrupts disabled.
->  	 */
-> +	pm_runtime_get_sync(port->dev);
->  	spin_lock_irqsave(&port->lock, flags);
->  
->  	/*
-> @@ -2486,6 +2558,9 @@ serial8250_do_set_termios(struct uart_port *port, struct ktermios *termios,
->  	}
->  	serial8250_set_mctrl(port, port->mctrl);
->  	spin_unlock_irqrestore(&port->lock, flags);
-> +	pm_runtime_mark_last_busy(port->dev);
-> +	pm_runtime_put_autosuspend(port->dev);
-> +
->  	/* Don't rewrite B0 */
->  	if (tty_termios_baud_rate(termios))
->  		tty_termios_encode_baud_rate(termios, baud, baud);
-> -- 
-> 2.0.1
+>       arm: omap: remove *.auto* from device names given in usb_bind_p=
+hy
+>=20
+>  arch/arm/mach-omap2/board-2430sdp.c        |  2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c        |  2 +-
+>  arch/arm/mach-omap2/board-cm-t35.c         |  2 +-
+>  arch/arm/mach-omap2/board-devkit8000.c     |  2 +-
+>  arch/arm/mach-omap2/board-ldp.c            |  2 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c    |  2 +-
+>  arch/arm/mach-omap2/board-omap3logic.c     |  2 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c   |  2 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c   |  2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c |  2 +-
+>  arch/arm/mach-omap2/board-overo.c          |  2 +-
+>  arch/arm/mach-omap2/board-rx51.c           |  2 +-
+>  drivers/usb/musb/musb_core.c               | 31 ++++++++++++++++++++=
+++++++-
+>  drivers/usb/musb/musb_core.h               |  2 ++
+>  drivers/usb/musb/omap2430.c                | 19 ++++++++++++++++--
+>  15 files changed, 61 insertions(+), 15 deletions(-)
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
+
+--nextPart1568003.8yIXfBolcA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAABAgAGBQJTzSwgAAoJEIkPb2GL7hl1mvoIALGOCOeGoY9cIxYPAbfayoQA
+gdkYM9tflc6aHA5aUKl9EKfNhpGLrfyVkaXURnY74Ha2qz3yIuIuV4v/YuABi+zB
+AHz2AmuXV3dAwFm3FsYFWFuSeyb90BH8UWfL36hm18wZcoMzvBIP+w642DV0Dfna
+wkIsSle8NVOfAUjQLfVBbkw95wl26DWkhcCiIewPP1UXFmKV25wewTt0U2rzLivf
+8f+gzeuH9+vFfYCHyd6YDaDHtHHNXK5dKEGvx2g5NfvI6Z/h104iZs4r6k0SElQL
++71zg4PZjLS0dbOv1dVTSqgg6NKKOwhXytNK4ycLo/j/A8KdXg+GRlC6PN/dPz4=
+=+8GO
+-----END PGP SIGNATURE-----
+
+--nextPart1568003.8yIXfBolcA--
