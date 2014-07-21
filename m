@@ -1,50 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/8] ARM: OMAP2+: timer: Fix error message to not use
- hwmod structure
-Date: Mon, 21 Jul 2014 04:09:02 -0700
-Message-ID: <20140721110902.GY18374@atomide.com>
+Subject: Re: [PATCH 7/8] ARM: OMAP2+: timer: Add fallback for of_clk_get
+Date: Mon, 21 Jul 2014 04:10:20 -0700
+Message-ID: <20140721111019.GZ18374@atomide.com>
 References: <1398216429-4681-1-git-send-email-joelf@ti.com>
- <1398216429-4681-7-git-send-email-joelf@ti.com>
+ <1398216429-4681-8-git-send-email-joelf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22149 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754967AbaGULLn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 07:11:43 -0400
 Content-Disposition: inline
-In-Reply-To: <1398216429-4681-7-git-send-email-joelf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1398216429-4681-8-git-send-email-joelf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Joel Fernandes <joelf@ti.com>
 Cc: Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-List-Id: linux-omap@vger.kernel.org
 
 * Joel Fernandes <joelf@ti.com> [140422 18:27]:
-> oh->name is no longer used, correct the error message.
+> Not all platforms currently will support of_clk_get on timer
+> because they may not have clock property in their DT nodes. Add
+> code to handle this case so that things are kept working. Finally
+> we can delete this code once all system timer nodes have a clock
+> property.
 
-I guess this error is created by one of the patchs in this
-series? So maybe fold it into the patch creating this error?
+I think this needs updating now too? Might be best to fix the
+platforms that don't have clocks available yet via DT instead :)
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Joel Fernandes <joelf@ti.com>
-> ---
->  arch/arm/mach-omap2/timer.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 4fcfd7a..519ccfd 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -331,8 +331,8 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->  	if (clk_get_parent(timer->fclk) != src) {
->  		r = clk_set_parent(timer->fclk, src);
->  		if (r < 0) {
-> -			pr_warn("%s: %s cannot set source\n", __func__,
-> -				oh->name);
-> +			pr_warn("%s: cannot set timer's source\n", __func__);
-> +			WARN_ON(1);
->  			clk_put(src);
->  			return r;
->  		}
-> -- 
-> 1.7.9.5
-> 
