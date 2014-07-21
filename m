@@ -1,68 +1,49 @@
-From: Michael Welling <mwelling@emacinc.com>
-Subject: Re: AM3517 fails to boot 3.16-rc5 device tree kernel
-Date: Mon, 21 Jul 2014 11:38:38 -0500
-Message-ID: <20140721163838.GB14362@sysresccd>
-References: <20140717234037.GA9660@sysresccd>
- <20140718063806.GK18374@atomide.com>
- <CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
- <20140721070913.GN18374@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap soc clean-up for v3.17 merge window
+Date: Mon, 21 Jul 2014 10:51:57 -0700
+Message-ID: <CAOesGMjpvJ5aYsw0ireWDEzYxKMQ3KOU6ofT9anc7dCZdC-3kQ@mail.gmail.com>
+References: <20140721123000.GB18374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:61297 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932412AbaGUQim (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 12:38:42 -0400
-Received: by mail-ie0-f176.google.com with SMTP id tr6so6788171ieb.7
-        for <linux-omap@vger.kernel.org>; Mon, 21 Jul 2014 09:38:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140721070913.GN18374@atomide.com>
+Received: from mail-vc0-f169.google.com ([209.85.220.169]:51152 "EHLO
+	mail-vc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932647AbaGURv6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 13:51:58 -0400
+Received: by mail-vc0-f169.google.com with SMTP id hu12so12935681vcb.14
+        for <linux-omap@vger.kernel.org>; Mon, 21 Jul 2014 10:51:57 -0700 (PDT)
+In-Reply-To: <20140721123000.GB18374@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, paul@pwsan.com
+Cc: "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 
-On Mon, Jul 21, 2014 at 12:09:13AM -0700, Tony Lindgren wrote:
-> * Michael Welling <mwelling@emacinc.com> [140718 07:42]:
-> > On Fri, Jul 18, 2014 at 1:38 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > >
-> > > Hmm maybe double check your're booting device tree based kernel
-> > > instead of legacy machine ID based kernel? The legacy booting should
-> > > still work just fine and no changes has been made to it, but it will
-> > > get removed shortly.
-> >
-> > I downloaded the version from the test results and it did boot.
-> 
-> OK that's good to hear.
-> 
-> > These are combining the uImage and dtb. How do you accomplish this?
-> 
-> You need to make sure you have the appended DTB support enabled like
-> we do in omap2plus_defconfig:
-> 
-> CONFIG_ARM_APPENDED_DTB=y
-> CONFIG_ARM_ATAG_DTB_COMPAT=y
-> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
-> 
-> Then just cat zImage board.dtb > /tmp/zImage-dtba and run
-> mkimage to convert it to a uImage:
-> 
-> $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
-> 	-n "Linux" -d /tmp/zImage-dtba /tmp/uImage
-> 
+On Mon, Jul 21, 2014 at 5:30 AM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit cd3de83f147601356395b57a8673e9c5ff1e59d1:
+>
+>   Linux 3.16-rc4 (2014-07-06 12:37:51 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/soc-cleanup
+>
+> for you to fetch changes up to 3db53918e306d3960bf9e12eea8b2fd3f7d0fd62:
+>
+>   Merge tag 'for-v3.17/omap-clock-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.17/soc (2014-07-21 00:35:38 -0700)
+>
+> ----------------------------------------------------------------
+>
+> SoC specific omap clean-up for v3.17 merge window:
+>
+> - Changes to PRM and clock related code to help move
+>   things to drivers
+>
+> - Removal of unused ctrl module defines that no longer
+>   are needed with things moving to .dts files and
+>   drivers
+>
 
-I actually discovered this and got LCD video working. Now USB host is
-not working. The only thing that registers is the OHCI/EHCI hosts.
+Merged, thanks.
 
-root@som3517:~# lsusb
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
 
-Not sure what the problem is. The USB devices that are plugged in are
-powered but never detected.
-
-Any hints?
-
-> Regards,
-> 
-> Tony
+-Olof
