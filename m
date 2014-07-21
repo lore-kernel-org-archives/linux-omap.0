@@ -1,33 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/8] ARM: OMAP2+: timer: Add fallback for of_clk_get
-Date: Mon, 21 Jul 2014 04:10:20 -0700
-Message-ID: <20140721111019.GZ18374@atomide.com>
-References: <1398216429-4681-1-git-send-email-joelf@ti.com>
- <1398216429-4681-8-git-send-email-joelf@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC PATCH 3/7] ARM: OMAP4+: PRM: remove "wkup" event
+Date: Mon, 21 Jul 2014 06:17:38 -0500
+Message-ID: <CAGo_u6ryytHiV1dnkPx-qFGa4ZB3KxVDrjmA+Ls5bakHVLunsQ@mail.gmail.com>
+References: <1402025761-16831-1-git-send-email-nm@ti.com>
+	<1402025761-16831-4-git-send-email-nm@ti.com>
+	<20140721104413.GT18374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22149 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754967AbaGULLn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 07:11:43 -0400
-Content-Disposition: inline
-In-Reply-To: <1398216429-4681-8-git-send-email-joelf@ti.com>
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:51226 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754157AbaGULRm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 07:17:42 -0400
+In-Reply-To: <20140721104413.GT18374@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel Fernandes <joelf@ti.com>
-Cc: Rob Herring <rob.herring@calxeda.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: dt list <devicetree@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Joel Fernandes <joelf@ti.com> [140422 18:27]:
-> Not all platforms currently will support of_clk_get on timer
-> because they may not have clock property in their DT nodes. Add
-> code to handle this case so that things are kept working. Finally
-> we can delete this code once all system timer nodes have a clock
-> property.
+On Mon, Jul 21, 2014 at 5:44 AM, Tony Lindgren <tony@atomide.com> wrote:
+>
+> Hmm so why was it added originally then?
+>
+> Do the PRM_IRQSTATUS line and the following line belong together
+> or is it missing something?
 
-I think this needs updating now too? Might be best to fix the
-platforms that don't have clocks available yet via DT instead :)
 
+Seems like to have been a copy paste from OMAP3 code which did have
+wakeup event at bit 0.
+
+-- 
+---
 Regards,
-
-Tony
+Nishanth Menon
