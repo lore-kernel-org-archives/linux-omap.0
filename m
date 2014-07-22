@@ -1,76 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] pinctrl: dra: dt-bindings: Fix pull enable/disable
-Date: Tue, 22 Jul 2014 10:39:54 -0500
-Message-ID: <1406043594-14181-1-git-send-email-nm@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
+ HC
+Date: Tue, 22 Jul 2014 16:45:03 +0100
+Message-ID: <20140722154503.GC23210@lee--X1>
+References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
+ <1404541530-27856-2-git-send-email-peter.griffin@linaro.org>
+ <20140707124627.GG6407@lee--X1>
+ <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
+ <20140722145711.GC20588@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140722145711.GC20588@saruman.home>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Nishanth Menon <nm@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Peter Griffin <peter.griffin@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
 List-Id: linux-omap@vger.kernel.org
 
-The DRA74/72 control module pins have a weak pull up and pull down.
-This is configured by bit offset 17. if BIT(17) is 1, a pull up is
-selected, else a pull down is selected.
+> > > > +static void st_dwc3_init(struct st_dwc3 *dwc3_data)
+> > > > +{
+> > > > +	u32 reg =3D st_dwc3_readl(dwc3_data->glue_base, USB2_CLKRST_C=
+TRL);
+> > > > +
+> > > > +	reg |=3D aux_clk_en(1) | ext_cfg_reset_n(1) | xhci_revision(1=
+);
+> > > > +	reg &=3D ~sw_pipew_reset_n(1);
+> > >=20
+> > > 1?  Better to add defines for these magic numbers.  What is 1 any=
+way?
+> >=20
+> > They are just bit setting macros, I've converted them over to use B=
+IT macro now,
+> > so it no longer takes a parameter.
+>=20
+> the macros are better, but make them upper case as everybody else.
 
-However, this pull resisstor is applied based on BIT(16) -
-PULLUDENABLE - if BIT(18) is *0*, then pull as defined in BIT(17) is
-applied, else no weak pulls are applied. We defined this in reverse.
+When you say that the macros are better, what do you mean?
 
-Reference: Table 18-5 (Description of the pad configuration register
-bits) in Technical Reference Manual Revision (DRA74x revision Q:
-SPRUHI2Q Revised June 2014 and DRA72x revision F: SPRUHP2F - Revised
-June 2014)
+Defines do the job in a manner which is a great deal cleaner:
 
-Fixes: 6e58b8f1daaf1a ("ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board")
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Patch based on v3.16-rc5 tag
+#define AUX_CLK_EN        BIT(0)
+#define SW_PIPEW_RESET_N  BIT(4)
+#define EXT_CFG_RESET_N   BIT(8)
+#define XHCI_REVISION     BIT(12)
 
-1: dra72x-evm:  Boot ok: http://slexy.org/raw/s20I6QXQa (needs MMC filesystem that current dts does not have.
-	- Fails in plain Vanilla 3.16-rc5 kernel due to missing patch to handle USB IP instance delta (between dra72x and dra74x) appropriately.
-	- Tested with fixes needed: https://patchwork.kernel.org/patch/4565431/ and https://patchwork.kernel.org/patch/4565461/
+reg =3D AUX_CLK_EN | SW_PIPEW_RESET_N | XHCI_REVISION;
+reg &=3D ~SW_PIPEW_RESET_N
 
-2: dra7xx-evm:  Boot PASS: http://slexy.org/raw/s21c6X2wOd
-
-Equivalent testing on 3.14 based product kernel:
- dra72x-evm:  Boot PASS: http://slexy.org/raw/s21yIgttJw
- dra7xx-evm:  Boot PASS: http://slexy.org/raw/s20w7OZaJJ
-
-It is obvious that current users of padconf have'nt had trouble with
-the wrong definitions. I think I might have been the first to discover
-this as emmc on beagleboard-X15 (an upcoming platform) exposed this problem.
-
- include/dt-bindings/pinctrl/dra.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
-index 002a285..3d33794 100644
---- a/include/dt-bindings/pinctrl/dra.h
-+++ b/include/dt-bindings/pinctrl/dra.h
-@@ -30,7 +30,8 @@
- #define MUX_MODE14	0xe
- #define MUX_MODE15	0xf
- 
--#define PULL_ENA		(1 << 16)
-+#define PULL_ENA		(0 << 16)
-+#define PULL_DIS		(1 << 16)
- #define PULL_UP			(1 << 17)
- #define INPUT_EN		(1 << 18)
- #define SLEWCONTROL		(1 << 19)
-@@ -38,10 +39,10 @@
- #define WAKEUP_EVENT		(1 << 25)
- 
- /* Active pin states */
--#define PIN_OUTPUT		0
-+#define PIN_OUTPUT		(0 | PULL_DIS)
- #define PIN_OUTPUT_PULLUP	(PIN_OUTPUT | PULL_ENA | PULL_UP)
- #define PIN_OUTPUT_PULLDOWN	(PIN_OUTPUT | PULL_ENA)
--#define PIN_INPUT		INPUT_EN
-+#define PIN_INPUT		(INPUT_EN | PULL_DIS)
- #define PIN_INPUT_SLEW		(INPUT_EN | SLEWCONTROL)
- #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
- #define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
--- 
-1.7.9.5
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
