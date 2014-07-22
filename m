@@ -1,92 +1,80 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 5/7] arm: dts: omap3-gta04: Add USB host support
-Date: Mon, 21 Jul 2014 23:05:25 +0200
-Message-ID: <1405976727-15166-6-git-send-email-marek@goldelico.com>
-References: <1405976727-15166-1-git-send-email-marek@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1405976727-15166-1-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
+From: Michael Welling <mwelling@emacinc.com>
+Subject: Re: AM3517 fails to boot 3.16-rc5 device tree kernel
+Date: Mon, 21 Jul 2014 19:15:04 -0500
+Message-ID: <CAO5Z=i2GcLXG1o6_xmgRgep3V+eoVE_+NgsNmPomYY8dmwf=cQ@mail.gmail.com>
+References: <20140717234037.GA9660@sysresccd>
+	<20140718063806.GK18374@atomide.com>
+	<CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
+	<20140721070913.GN18374@atomide.com>
+	<20140721163838.GB14362@sysresccd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:38527 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751497AbaGVAPH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 20:15:07 -0400
+Received: by mail-pd0-f175.google.com with SMTP id r10so8630254pdi.34
+        for <linux-omap@vger.kernel.org>; Mon, 21 Jul 2014 17:15:05 -0700 (PDT)
+In-Reply-To: <20140721163838.GB14362@sysresccd>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, paul@pwsan.com
 
-Signed-off-by: Marek Belisko <marek@goldelico.com>
----
- arch/arm/boot/dts/omap3-gta04.dts | 45 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+On Mon, Jul 21, 2014 at 11:38 AM, Michael Welling <mwelling@emacinc.com> wrote:
+> On Mon, Jul 21, 2014 at 12:09:13AM -0700, Tony Lindgren wrote:
+>> * Michael Welling <mwelling@emacinc.com> [140718 07:42]:
+>> > On Fri, Jul 18, 2014 at 1:38 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> > >
+>> > > Hmm maybe double check your're booting device tree based kernel
+>> > > instead of legacy machine ID based kernel? The legacy booting should
+>> > > still work just fine and no changes has been made to it, but it will
+>> > > get removed shortly.
+>> >
+>> > I downloaded the version from the test results and it did boot.
+>>
+>> OK that's good to hear.
+>>
+>> > These are combining the uImage and dtb. How do you accomplish this?
+>>
+>> You need to make sure you have the appended DTB support enabled like
+>> we do in omap2plus_defconfig:
+>>
+>> CONFIG_ARM_APPENDED_DTB=y
+>> CONFIG_ARM_ATAG_DTB_COMPAT=y
+>> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
+>>
+>> Then just cat zImage board.dtb > /tmp/zImage-dtba and run
+>> mkimage to convert it to a uImage:
+>>
+>> $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
+>>       -n "Linux" -d /tmp/zImage-dtba /tmp/uImage
+>>
+>
+> I actually discovered this and got LCD video working. Now USB host is
+> not working. The only thing that registers is the OHCI/EHCI hosts.
+>
+> root@som3517:~# lsusb
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+>
+> Not sure what the problem is. The USB devices that are plugged in are
+> powered but never detected.
+>
+> Any hints?
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-index 4ca1277..370c08b 100644
---- a/arch/arm/boot/dts/omap3-gta04.dts
-+++ b/arch/arm/boot/dts/omap3-gta04.dts
-@@ -74,9 +74,30 @@
- 			};
- 		};
- 	};
-+
-+	hsusb2_phy: hsusb2_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-gpios = <&gpio6 14 GPIO_ACTIVE_LOW>;
-+	};
- };
- 
- &omap3_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&hsusb2_pins
-+	>;
-+
-+	hsusb2_pins: pinmux_hsusb2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
-+			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
-+			OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
-+			OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
-+			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
-+			OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
-+		>;
-+	};
-+
- 	uart1_pins: pinmux_uart1_pins {
- 		pinctrl-single,pins = <
- 			0x152 (PIN_INPUT | MUX_MODE0)		/* uart1_rx.uart1_rx */
-@@ -144,6 +165,22 @@
- };
- 
- &omap3_pmx_core2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&hsusb2_2_pins
-+	>;
-+
-+	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
-+			OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
-+			OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
-+			OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
-+			OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
-+			OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
-+		>;
-+	};
-+
- 	spi_gpio_pins: spi_gpio_pinmux {
- 		pinctrl-single,pins = <
- 			OMAP3630_CORE2_IOPAD(0x25d8, PIN_OUTPUT | MUX_MODE4) /* clk */
-@@ -259,6 +296,14 @@
- 	power = <50>;
- };
- 
-+&usbhshost {
-+	port2-mode = "ehci-phy";
-+};
-+
-+&usbhsehci {
-+	phys = <0 &hsusb2_phy>;
-+};
-+
- &mmc1 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc1_pins>;
--- 
-1.9.1
+So I got the USB host to work on boot with additional entries in the devicetree.
+Documentation/devicetree/bindings/omap-usb-host.txt
+
+Though the devices work if plugged in at boot, any time a device is
+hotplugged then
+the device is not detected. It is powered very briefly and then off
+without any kernel messages.
+
+So hints from this point would be good.
+
+>
+>> Regards,
+>>
+>> Tony
