@@ -1,83 +1,28 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: AM3517 fails to boot 3.16-rc5 device tree kernel
-Date: Mon, 21 Jul 2014 23:20:50 -0700
-Message-ID: <20140722062050.GE18374@atomide.com>
-References: <20140717234037.GA9660@sysresccd>
- <20140718063806.GK18374@atomide.com>
- <CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
- <20140721070913.GN18374@atomide.com>
- <20140721163838.GB14362@sysresccd>
- <CAO5Z=i2GcLXG1o6_xmgRgep3V+eoVE_+NgsNmPomYY8dmwf=cQ@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/7] arm: dts: omap3-gta04: Add nand support
+Date: Mon, 21 Jul 2014 23:24:43 -0700
+Message-ID: <20140722062442.GF18374@atomide.com>
+References: <1405976727-15166-1-git-send-email-marek@goldelico.com>
+ <1405976727-15166-2-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15930 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751139AbaGVGWP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jul 2014 02:22:15 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAO5Z=i2GcLXG1o6_xmgRgep3V+eoVE_+NgsNmPomYY8dmwf=cQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1405976727-15166-2-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Welling <mwelling@emacinc.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, paul@pwsan.com
 
-* Michael Welling <mwelling@emacinc.com> [140721 17:17]:
-> On Mon, Jul 21, 2014 at 11:38 AM, Michael Welling <mwelling@emacinc.com> wrote:
-> > On Mon, Jul 21, 2014 at 12:09:13AM -0700, Tony Lindgren wrote:
-> >> * Michael Welling <mwelling@emacinc.com> [140718 07:42]:
-> >> > On Fri, Jul 18, 2014 at 1:38 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > >
-> >> > > Hmm maybe double check your're booting device tree based kernel
-> >> > > instead of legacy machine ID based kernel? The legacy booting should
-> >> > > still work just fine and no changes has been made to it, but it will
-> >> > > get removed shortly.
-> >> >
-> >> > I downloaded the version from the test results and it did boot.
-> >>
-> >> OK that's good to hear.
-> >>
-> >> > These are combining the uImage and dtb. How do you accomplish this?
-> >>
-> >> You need to make sure you have the appended DTB support enabled like
-> >> we do in omap2plus_defconfig:
-> >>
-> >> CONFIG_ARM_APPENDED_DTB=y
-> >> CONFIG_ARM_ATAG_DTB_COMPAT=y
-> >> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
-> >>
-> >> Then just cat zImage board.dtb > /tmp/zImage-dtba and run
-> >> mkimage to convert it to a uImage:
-> >>
-> >> $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
-> >>       -n "Linux" -d /tmp/zImage-dtba /tmp/uImage
-> >>
-> >
-> > I actually discovered this and got LCD video working. Now USB host is
-> > not working. The only thing that registers is the OHCI/EHCI hosts.
-> >
-> > root@som3517:~# lsusb
-> > Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-> > Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-> >
-> > Not sure what the problem is. The USB devices that are plugged in are
-> > powered but never detected.
-> >
-> > Any hints?
-> 
-> So I got the USB host to work on boot with additional entries in the devicetree.
-> Documentation/devicetree/bindings/omap-usb-host.txt
-> 
-> Though the devices work if plugged in at boot, any time a device is
-> hotplugged then
-> the device is not detected. It is powered very briefly and then off
-> without any kernel messages.
-> 
-> So hints from this point would be good.
+* Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [140721 14:08]:
 
-Sorry no idea on that, maybe send a separate email about that with
-the USB and PHY people in Cc.
+Can you please add the descriptions to all the patches?
+Other than that looks OK to me.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
