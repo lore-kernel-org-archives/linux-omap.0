@@ -1,111 +1,40 @@
-From: Peter Griffin <peter.griffin@linaro.org>
-Subject: Re: [PATCH v2 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Tue, 22 Jul 2014 10:38:15 +0100
-Message-ID: <20140722093815.GA6817@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
- <1404541530-27856-2-git-send-email-peter.griffin@linaro.org>
- <000d01cf99e6$602096b0$2061c410$%han@samsung.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [Re-send PATCH 1/1] arm: dra7xx: Add hwmod data for MDIO and
+ CPSW
+Date: Tue, 22 Jul 2014 15:41:43 +0530
+Message-ID: <53CE38DF.1060305@ti.com>
+References: <1404825399-10330-1-git-send-email-mugunthanvnm@ti.com> <20140717074948.GF18374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <000d01cf99e6$602096b0$2061c410$%han@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jingoo Han <jg1.han@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, 'Maxime Coquelin' <maxime.coquelin@st.com>, 'Patrice Chotard' <patrice.chotard@st.com>, 'Srinivas Kandagatla' <srinivas.kandagatla@gmail.com>, devicetree@vger.kernel.org, 'Felipe Balbi' <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, 'Lee Jones' <lee.jones@linaro.org>, 'Giuseppe Cavallaro' <peppe.cavallaro@st.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140717074948.GF18374-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jingoo,
+On Thursday 17 July 2014 01:19 PM, Tony Lindgren wrote:
+> We seem to have this layout WR_SOFT_RESET and WR_CONTROL in the TRM:
+>
+> WR_SOFT_RESET
+> [0]     SOFT_RESET
+>
+> WR_CONTROL
+> [3:2]   MMR_STDBYMODE   0 = force-idle, 1 = no-standby
+> [1:0]   MMR_IDLEMODE    0 = force-idle, 1 = no-idle
+>
+> And so it seems to match what am33xx also has for am33xx_cpgmac_sysc
+> and am33xx TRM for 14.5.9 CONTROL register. So as far as I'm concerned:
+>
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Paul,
 
-Sorry for the delay in replying. Thanks for reviewing, 
-see my comments inline below: -
+Can you pull this patch as Tony acked the patch.
 
-<snip>
-> > +#include <linux/module.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/interrupt.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/ioport.h>
-> > +#include <linux/io.h>
-> > +#include <linux/of.h>
-> > +#include <linux/of_platform.h>
-> > +#include <linux/mfd/syscon.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/regmap.h>
-> > +#include <linux/reset.h>
-> 
-> Would you re-order these headers alphabetically?
-> It enhances the readability.
-
-Ok fixed in V3
-
-> > +
-> > +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "reg-glue");
-> > +	if (!res)
-> > +		return -ENXIO;
-> > +
-> > +	dwc3_data->glue_base = devm_request_and_ioremap(dev, res);
-> 
-> Please don't use devm_request_and_ioremap() any more. It was deprecated
-> and will be removed from 3.17-rc1.
-> 
-> Please, use devm_ioremap_resource() instead.
-
-Ok changed over to use devm_ioremap_resource in V3.
-
-> 
-> +	dwc3_data->glue_base = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(dwc3_data->glue_base))
-> +		return PTR_ERR(dwc3_data->glue_base);
-> 
-> > +	if (!dwc3_data->glue_base)
-> > +		return -EADDRNOTAVAIL;
-> > +
-<snip>
-> > +
-> > +static const struct dev_pm_ops st_dwc3_dev_pm_ops = {
-> > +	SET_SYSTEM_SLEEP_PM_OPS(st_dwc3_suspend, st_dwc3_resume)
-> > +};
-> > +
-> > +static struct of_device_id st_dwc3_match[] = {
-> 
-> Please add 'const' as below. This is because all OF functions
-> handle of_device_id as const.
-> 
-> static const struct of_device_id st_dwc3_match[] = {
-
-Ok, fixed in V3
-
-> 
-> > +	{ .compatible = "st,stih407-dwc3" },
-> > +	{ /* sentinel */ },
-> > +};
-> > +
-> > +MODULE_DEVICE_TABLE(of, st_dwc3_match);
-> > +
-> > +static struct platform_driver st_dwc3_driver = {
-> > +	.probe = st_dwc3_probe,
-> > +	.remove = st_dwc3_remove,
-> > +	.driver = {
-> > +		.name = "usb-st-dwc3",
-> > +		.owner = THIS_MODULE,
-> > +		.of_match_table = of_match_ptr(st_dwc3_match),
-> 
-> You already use OF dependency as below. So, of_match_ptr() is
-> NOT necessary.
-> 
-> +config USB_DWC3_ST
-> +	tristate "STMicroelectronics Platforms"
-> +	depends on ARCH_STI && OF
-> 
-> Please remove of_match_ptr() as below.
-> 
-> +		.of_match_table = st_dwc3_match,
-
-Ok fixed in V3
-
-regards,
-
-Peter.
+Regards
+Mugunthan V N
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
