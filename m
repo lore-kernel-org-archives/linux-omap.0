@@ -1,40 +1,47 @@
-From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [Re-send PATCH 1/1] arm: dra7xx: Add hwmod data for MDIO and
- CPSW
-Date: Tue, 22 Jul 2014 15:41:43 +0530
-Message-ID: <53CE38DF.1060305@ti.com>
-References: <1404825399-10330-1-git-send-email-mugunthanvnm@ti.com> <20140717074948.GF18374@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
+ HC
+Date: Tue, 22 Jul 2014 11:15:44 +0100
+Message-ID: <20140722101544.GC8406@lee--X1>
+References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
+ <1404541530-27856-2-git-send-email-peter.griffin@linaro.org>
+ <20140707124627.GG6407@lee--X1>
+ <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140717074948.GF18374-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:63614 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391AbaGVKPv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jul 2014 06:15:51 -0400
+Received: by mail-ie0-f171.google.com with SMTP id at1so7887822iec.16
+        for <linux-omap@vger.kernel.org>; Tue, 22 Jul 2014 03:15:50 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
 
-On Thursday 17 July 2014 01:19 PM, Tony Lindgren wrote:
-> We seem to have this layout WR_SOFT_RESET and WR_CONTROL in the TRM:
->
-> WR_SOFT_RESET
-> [0]     SOFT_RESET
->
-> WR_CONTROL
-> [3:2]   MMR_STDBYMODE   0 = force-idle, 1 = no-standby
-> [1:0]   MMR_IDLEMODE    0 = force-idle, 1 = no-idle
->
-> And so it seems to match what am33xx also has for am33xx_cpgmac_sysc
-> and am33xx TRM for 14.5.9 CONTROL register. So as far as I'm concerned:
->
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Paul,
+> Thanks for reviewing, see my comments inline below: -
 
-Can you pull this patch as Tony acked the patch.
+In future, it's best to only reply to questions, or review comments
+that you disagree with.  Anything that you will action or agree with
+can be snipped along with any irrelevant code from your reply and
+replaced with "<snip>" or "[...]".  If you are planning on actioning
+everything and no not disagree with anything there's no need to reply
+at all.
 
-Regards
-Mugunthan V N
+[...]
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
