@@ -1,80 +1,86 @@
-From: Michael Welling <mwelling@emacinc.com>
-Subject: Re: AM3517 fails to boot 3.16-rc5 device tree kernel
-Date: Mon, 21 Jul 2014 19:15:04 -0500
-Message-ID: <CAO5Z=i2GcLXG1o6_xmgRgep3V+eoVE_+NgsNmPomYY8dmwf=cQ@mail.gmail.com>
-References: <20140717234037.GA9660@sysresccd>
-	<20140718063806.GK18374@atomide.com>
-	<CAO5Z=i1WdcrwWP2F6XZimUD5ts66AsV3RrvA31g71aUJewbNJA@mail.gmail.com>
-	<20140721070913.GN18374@atomide.com>
-	<20140721163838.GB14362@sysresccd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/3] iommu: Remove OMAP IOVMM driver
+Date: Mon, 21 Jul 2014 23:19:29 -0700
+Message-ID: <20140722061929.GD18374@atomide.com>
+References: <1405680597-10012-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <9251918.dhlInzvbvO@avalon>
+ <20140721093336.GR18374@atomide.com>
+ <5717663.qOZzl7syrN@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:38527 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbaGVAPH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Jul 2014 20:15:07 -0400
-Received: by mail-pd0-f175.google.com with SMTP id r10so8630254pdi.34
-        for <linux-omap@vger.kernel.org>; Mon, 21 Jul 2014 17:15:05 -0700 (PDT)
-In-Reply-To: <20140721163838.GB14362@sysresccd>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60224 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750798AbaGVGVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jul 2014 02:21:00 -0400
+Content-Disposition: inline
+In-Reply-To: <5717663.qOZzl7syrN@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, paul@pwsan.com
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Suman Anna <s-anna@ti.com>, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-On Mon, Jul 21, 2014 at 11:38 AM, Michael Welling <mwelling@emacinc.com> wrote:
-> On Mon, Jul 21, 2014 at 12:09:13AM -0700, Tony Lindgren wrote:
->> * Michael Welling <mwelling@emacinc.com> [140718 07:42]:
->> > On Fri, Jul 18, 2014 at 1:38 AM, Tony Lindgren <tony@atomide.com> wrote:
->> > >
->> > > Hmm maybe double check your're booting device tree based kernel
->> > > instead of legacy machine ID based kernel? The legacy booting should
->> > > still work just fine and no changes has been made to it, but it will
->> > > get removed shortly.
->> >
->> > I downloaded the version from the test results and it did boot.
->>
->> OK that's good to hear.
->>
->> > These are combining the uImage and dtb. How do you accomplish this?
->>
->> You need to make sure you have the appended DTB support enabled like
->> we do in omap2plus_defconfig:
->>
->> CONFIG_ARM_APPENDED_DTB=y
->> CONFIG_ARM_ATAG_DTB_COMPAT=y
->> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
->>
->> Then just cat zImage board.dtb > /tmp/zImage-dtba and run
->> mkimage to convert it to a uImage:
->>
->> $ mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
->>       -n "Linux" -d /tmp/zImage-dtba /tmp/uImage
->>
->
-> I actually discovered this and got LCD video working. Now USB host is
-> not working. The only thing that registers is the OHCI/EHCI hosts.
->
-> root@som3517:~# lsusb
-> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
->
-> Not sure what the problem is. The USB devices that are plugged in are
-> powered but never detected.
->
-> Any hints?
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140721 11:17]:
+> Hi Tony and Joerg,
+> 
+> On Monday 21 July 2014 02:33:36 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [140721 02:16]:
+> > > Hi Suman, Joerg and Tony,
+> > > 
+> > > On Friday 18 July 2014 11:53:56 Suman Anna wrote:
+> > > > On 07/18/2014 05:49 AM, Laurent Pinchart wrote:
+> > > > > Hello,
+> > > > > 
+> > > > > The OMAP3 ISP driver was the only user of the OMAP IOVMM API. Now that
+> > > > > is has been ported to the DMA API, remove the unused virtual memory
+> > > > > manager.
+> > > > > 
+> > > > > The removal is split in three patches to ease upstream merge. The
+> > > > > first patch removes the omap-iovmm driver, the second patch removes
+> > > > > setting of now unused platform data fields from arch code, and the
+> > > > > last patch cleans up the platform data structure.
+> > > > 
+> > > > Thanks for the revised series, it looks good. I have also tested the
+> > > > series on OMAP3, OMAP4 and OMAP5.
+> > > > 
+> > > > For the changes in the entire series,
+> > > > Acked-by: Suman Anna <s-anna@ti.com>
+> > > 
+> > > Thank you.
+> > > 
+> > > > > I'd like to get at least the first patch merged in v3.17. To avoid
+> > > > > splitting the series across three kernel versions, it would be nice to
+> > > > > also merge at least the second patch for v3.17. If there's no risk of
+> > > > > conflict everything could be merged in one go through the ARM SoC
+> > > > > tree. Otherwise a stable branch with patch 1/3 will be needed to base
+> > > > > the arch change on.
+> > > > > 
+> > > > > Joerg, Tony, how would you like to proceed ?
+> > > 
+> > > The v3.17 merge window is getting close, it's probably too late to merge
+> > > patch 2/3. Joerg, could you please take 1/3 in your tree for v3.17 ? 2/3
+> > > and 3/3 would then get in v3.18. Tony, how would you like to proceed for
+> > > those ?
+> >
+> > How about Joerg maybe do an immutable branch against v3.16-rc1
+> > with just these three patches and merge it into your tree?
+> > 
+> > That way I too can merge the minimal branch in if there are conflics.
+> > If that works for Joerg, then for arch/arm/*omap* changes:
+> > 
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> I've created an immutable branch (or, rather, immutable until the changes 
+> reach mainline, at which point I will remove the branch) on top of v3.16-rc1 
+> with just the three patches from this series. You can find it at.
+> 
+> 	git://linuxtv.org/pinchartl/media.git omap/iommu
+> 
+> Tony, is there still time to get this (and especially patch 2/3, which touches 
+> arch/ code) in v3.17 ?
 
-So I got the USB host to work on boot with additional entries in the devicetree.
-Documentation/devicetree/bindings/omap-usb-host.txt
+Yes as long as Joerg is OK to merge that branch in :)
 
-Though the devices work if plugged in at boot, any time a device is
-hotplugged then
-the device is not detected. It is powered very briefly and then off
-without any kernel messages.
+Regards,
 
-So hints from this point would be good.
-
->
->> Regards,
->>
->> Tony
+Tony
