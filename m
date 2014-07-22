@@ -1,47 +1,105 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v2 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Tue, 22 Jul 2014 11:15:44 +0100
-Message-ID: <20140722101544.GC8406@lee--X1>
-References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
- <1404541530-27856-2-git-send-email-peter.griffin@linaro.org>
- <20140707124627.GG6407@lee--X1>
- <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH V2 1/2] ARM: DRA7: hwmod: Add data for RTC
+Date: Tue, 22 Jul 2014 15:49:39 +0530
+Message-ID: <53CE3ABB.5010506@ti.com>
+References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-2-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:63614 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752391AbaGVKPv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jul 2014 06:15:51 -0400
-Received: by mail-ie0-f171.google.com with SMTP id at1so7887822iec.16
-        for <linux-omap@vger.kernel.org>; Tue, 22 Jul 2014 03:15:50 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
+Received: from bear.ext.ti.com ([192.94.94.41]:45547 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752403AbaGVKUR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Jul 2014 06:20:17 -0400
+In-Reply-To: <1404894932-26677-2-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
 
-> Thanks for reviewing, see my comments inline below: -
+Hi Paul,
+On Wednesday 09 July 2014 02:05 PM, Lokesh Vutla wrote:
+> Add hwmod data for RTC
+> 
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
+Can you take this patch. I have submitted logs also.
 
-In future, it's best to only reply to questions, or review comments
-that you disagree with.  Anything that you will action or agree with
-can be snipped along with any irrelevant code from your reply and
-replaced with "<snip>" or "[...]".  If you are planning on actioning
-everything and no not disagree with anything there's no need to reply
-at all.
+Thanks and regards,
+Lokesh
+> ---
+> Changes since V1:
+> Rebased on top of linux-next 20140708.
+> 
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   41 +++++++++++++++++++++++++++++
+>  1 file changed, 41 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> index 20b4398..d8032b9 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> @@ -1249,6 +1249,38 @@ static struct omap_hwmod dra7xx_qspi_hwmod = {
+>  };
+>  
+>  /*
+> + * 'rtcss' class
+> + *
+> + */
+> +static struct omap_hwmod_class_sysconfig dra7xx_rtcss_sysc = {
+> +	.sysc_offs	= 0x0078,
+> +	.sysc_flags	= SYSC_HAS_SIDLEMODE,
+> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+> +			   SIDLE_SMART_WKUP),
+> +	.sysc_fields	= &omap_hwmod_sysc_type3,
+> +};
+> +
+> +static struct omap_hwmod_class dra7xx_rtcss_hwmod_class = {
+> +	.name	= "rtcss",
+> +	.sysc	= &dra7xx_rtcss_sysc,
+> +};
+> +
+> +/* rtcss */
+> +static struct omap_hwmod dra7xx_rtcss_hwmod = {
+> +	.name		= "rtcss",
+> +	.class		= &dra7xx_rtcss_hwmod_class,
+> +	.clkdm_name	= "rtc_clkdm",
+> +	.main_clk	= "sys_32k_ck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_offs = DRA7XX_CM_RTC_RTCSS_CLKCTRL_OFFSET,
+> +			.context_offs = DRA7XX_RM_RTC_RTCSS_CONTEXT_OFFSET,
+> +			.modulemode   = MODULEMODE_SWCTRL,
+> +		},
+> +	},
+> +};
+> +
+> +/*
+>   * 'sata' class
+>   *
+>   */
+> @@ -2344,6 +2376,14 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__qspi = {
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+>  
+> +/* l4_per3 -> rtcss */
+> +static struct omap_hwmod_ocp_if dra7xx_l4_per3__rtcss = {
+> +	.master		= &dra7xx_l4_per3_hwmod,
+> +	.slave		= &dra7xx_rtcss_hwmod,
+> +	.clk		= "l4_root_clk_div",
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+>  static struct omap_hwmod_addr_space dra7xx_sata_addrs[] = {
+>  	{
+>  		.name		= "sysc",
+> @@ -2673,6 +2713,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>  	&dra7xx_l4_cfg__mpu,
+>  	&dra7xx_l4_cfg__ocp2scp1,
+>  	&dra7xx_l3_main_1__qspi,
+> +	&dra7xx_l4_per3__rtcss,
+>  	&dra7xx_l4_cfg__sata,
+>  	&dra7xx_l4_cfg__smartreflex_core,
+>  	&dra7xx_l4_cfg__smartreflex_mpu,
+> 
 
-[...]
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
