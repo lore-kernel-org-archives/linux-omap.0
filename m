@@ -1,120 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7: hwmod: Add dra74x and dra72x specific
- ocp interface lists
-Date: Tue, 22 Jul 2014 11:50:26 -0500
-Message-ID: <53CE9652.4080304@ti.com>
-References: <1405499774-19770-1-git-send-email-lokeshvutla@ti.com> <1405499774-19770-3-git-send-email-lokeshvutla@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH v4 6/6] clk: Add floor and ceiling constraints to clock
+ rates
+Date: Tue, 22 Jul 2014 11:50:59 -0600
+Message-ID: <53CEA483.6090704@wwwdotorg.org>
+References: <1405606399-26608-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1405606399-26608-7-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1405499774-19770-3-git-send-email-lokeshvutla@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux@arm.linux.org.uk, nsekhar@ti.com, j-keerthy@ti.com, rogerq@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <1405606399-26608-7-git-send-email-tomeu.vizoso@collabora.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Andrew Lunn <andrew@lunn.ch>, Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@perex.cz>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, Vire
 List-Id: linux-omap@vger.kernel.org
 
-On 07/16/2014 03:36 AM, Lokesh Vutla wrote:
-> From: Rajendra Nayak <rnayak@ti.com>
-> 
-> To deal with IPs which are specific to dra74x and dra72x, maintain seperate
-> ocp interface lists, while keeping the common list for all common IPs.
-> 
-> Move USB OTG SS4 to dra74x only list since its unavailable in
-> dra72x and is giving an abort during boot. The dra72x only list
-> is empty for now and a placeholder for future hwmod additions which
-> are specific to dra72x.
-> 
-> Fixes: d904b38 ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-
-please use a format as following:
-Fixes: d904b38df0db13 ("ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss")
-
-> Reported-by: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c          |    3 +++
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   22 ++++++++++++++++++++--
->  2 files changed, 23 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 6c074f3..14f8370 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -3345,6 +3345,9 @@ int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois)
->  	if (!ois)
->  		return 0;
->  
-> +	if (ois[0] == NULL) /*empty list*/
-/* Empty list */ ?
-> +		return 0;
-> +
-
-This change looks like a different patch?
-
->  	if (!linkspace) {
->  		if (_alloc_linkspace(ois)) {
->  			pr_err("omap_hwmod: could not allocate link space\n");
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 284324f..c95033c 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -35,6 +35,7 @@
->  #include "i2c.h"
->  #include "mmc.h"
->  #include "wd_timer.h"
-> +#include "soc.h"
->  
->  /* Base offset for all DRA7XX interrupts external to MPUSS */
->  #define DRA7XX_IRQ_GIC_START	32
-> @@ -2705,7 +2706,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_per3__usb_otg_ss1,
->  	&dra7xx_l4_per3__usb_otg_ss2,
->  	&dra7xx_l4_per3__usb_otg_ss3,
-> -	&dra7xx_l4_per3__usb_otg_ss4,
->  	&dra7xx_l3_main_1__vcp1,
->  	&dra7xx_l4_per2__vcp1,
->  	&dra7xx_l3_main_1__vcp2,
-> @@ -2714,8 +2714,26 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	NULL,
->  };
->  
-> +static struct omap_hwmod_ocp_if *dra74x_hwmod_ocp_ifs[] __initdata = {
-> +	&dra7xx_l4_per3__usb_otg_ss4,
-> +	NULL,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
-> +	NULL,
-> +};
-> +
->  int __init dra7xx_hwmod_init(void)
->  {
-> +	int ret;
-> +
->  	omap_hwmod_init();
-> -	return omap_hwmod_register_links(dra7xx_hwmod_ocp_ifs);
-> +	ret = omap_hwmod_register_links(dra7xx_hwmod_ocp_ifs);
-if (ret)
-	goto out;
-> +
-> +	if (!ret && soc_is_dra74x())
-no need of !ret
-> +		return omap_hwmod_register_links(dra74x_hwmod_ocp_ifs);
-ret = omap_hwmod_register_links(dra74x_hwmod_ocp_ifs);
-> +	else if (!ret && soc_is_dra72x())
-no need of else and !ret
-> +		return omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
-ret = omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
-> +
-
-out:
-> +	return ret;
->  }
-> 
-
-
--- 
-Regards,
-Nishanth Menon
+T24gMDcvMTcvMjAxNCAwODoxMyBBTSwgVG9tZXUgVml6b3NvIHdyb3RlOgo+IEFkZHMgYSB3YXkg
+Zm9yIGNsb2NrIGNvbnN1bWVycyB0byBzZXQgbWF4aW11bSBhbmQgbWluaW11bSByYXRlcy4gVGhp
+cyBjYW4gYmUKPiB1c2VkIGZvciB0aGVybWFsIGRyaXZlcnMgdG8gc2V0IGNlaWxpbmcgcmF0ZXMs
+IG9yIGJ5IG1pc2MuIGRyaXZlcnMgdG8gc2V0Cj4gZmxvb3IgcmF0ZXMgdG8gYXNzdXJlIGEgbWlu
+aW11bSBwZXJmb3JtYW5jZSBsZXZlbC4KCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2xrL2Nsay5j
+IGIvZHJpdmVycy9jbGsvY2xrLmMKCj4gK3N0cnVjdCByYXRlX2NvbnN0cmFpbnQgewo+ICsJc3Ry
+dWN0IGhsaXN0X25vZGUJbm9kZTsKPiArCWNvbnN0IGNoYXIJCSpkZXZfaWQ7Cj4gKwljb25zdCBj
+aGFyCQkqY29uX2lkOwo+ICsJZW51bSBjb25zdHJhaW50X3R5cGUJdHlwZTsKPiArCXVuc2lnbmVk
+IGxvbmcJCXJhdGU7Cj4gK307CgpJIHdvdWxkIHBlcnNvbmFsbHkgc3RpbGwgcHJlZmVyIGVpdGhl
+cjoKCmEpIFRoZSBzdHJ1Y3QgcmF0ZV9jb25zdHJhaW50cyBiZSBzdG9yZWQgaW4gc3RydWN0IGNs
+ayByYXRoZXIgdGhhbgpzdHJ1Y3QgY2xrX2NvcmUsIHNvIHRoZXkncmUgc3RvcmVkIGluIHRoZSBj
+b250YWluZXIgdGhhdCAic2V0IiB0aGUKY29uc3RyYWludHMuIFRoaXMgd291bGQgbWVhbiBpdGVy
+YXRpbmcgb3ZlciBhIHN0cnVjdCBjbGtfY29yZSdzCmFzc29jaWF0ZWQgc3RydWN0IGNsa3MsIHRo
+ZW4gaXRlcmF0aW5nIG92ZXIgdGhlIHN0cnVjdCByYXRlX2NvbnN0cmFpbnRzCndpdGhpbiBlYWNo
+IHN0cnVjdCBjbGsuCgpvcjoKCmIpIHN0cnVjdCByYXRlX2NvbnN0cmFpbnQgdG8gY29udGFpbiBh
+IHBvaW50ZXIgdG8gdGhlIHN0cnVjdCBjbGsgdGhhdApjcmVhdGVkIHRoZSBjb25zdHJhaW50LCBy
+YXRoZXIgdGhhbiBjb3B5aW5nIHRoZSBkZXZfaWQvY29uX2lkIGZyb20gdGhhdApzdHJ1Y3QgY2xr
+IGludG8gdGhlIHN0cnVjdCByYXRlX2NvbnN0cmFpbnQuCgpXaXRoIGVpdGhlciBvZiB0aG9zZSBj
+aGFuZ2VzLCB0aGUgY29uc3RyYWludHMgYXJlIGRpcmVjdGx5IGFzc29jaWF0ZWQKd2l0aCB0aGUg
+Y2xvY2sgY2xpZW50IG9iamVjdCB0aGF0IGNyZWF0ZWQgdGhlIGNvbnN0cmFpbnQgbXVjaCBiZXR0
+ZXIKdGhhbiByaWdodCBub3csIHdoZXJlIHRoZSBtYXRjaGluZyBpcyBvbmx5IGJlY2F1c2UgdGhl
+IHN0cnVjdCBjbGsgYW5kCnN0cnVjdCByYXRlX2NvbnN0cmFpbnQgImhhcHBlbiB0byIgaGF2ZSB0
+aGUgc2FtZSBkZXZfaWQvY29uX2lkIHZhbHVlcy4KClN0aWxsLCB0aGlzIGlzIGEgcHJldHR5IG1p
+bm9yIGlzc3VlLCBhbmQgb3ZlcmFsbCB0aGlzIHNlcmllcyBsb29rcwpyZWFzb25hYmxlIHRvIG1l
+IGF0IGEgcXVpY2sgbG9vay4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXhwcGMtZGV2IG1haWxpbmcgbGlzdApMaW51eHBwYy1kZXZAbGlzdHMub3ps
+YWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGluZm8vbGludXhwcGMtZGV2
