@@ -1,28 +1,47 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/7] arm: dts: omap3-gta04: Add nand support
-Date: Mon, 21 Jul 2014 23:24:43 -0700
-Message-ID: <20140722062442.GF18374@atomide.com>
-References: <1405976727-15166-1-git-send-email-marek@goldelico.com>
- <1405976727-15166-2-git-send-email-marek@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 1/2] ARM: OMAP2+: DMA: remove requirement of irq for
+ platform-dma driver
+Date: Mon, 21 Jul 2014 23:37:40 -0700
+Message-ID: <20140722063740.GG18374@atomide.com>
+References: <1402573523-13814-1-git-send-email-r.sricharan@ti.com>
+ <1402573523-13814-2-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47627 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751302AbaGVGjF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jul 2014 02:39:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1405976727-15166-2-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
+In-Reply-To: <1402573523-13814-2-git-send-email-r.sricharan@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, nm@ti.com, rnayak@ti.com, linux@arm.linux.org.uk
 
-* Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [140721 14:08]:
+* Sricharan R <r.sricharan@ti.com> [140612 04:48]:
+> From: Nishanth Menon <nm@ti.com>
+> 
+> we have currently 2 DMA drivers that try to co-exist.
+> drivers/dma/omap-dma.c which registers it's own IRQ and is device tree
+> aware and uses arch/arm/plat-omap/dma.c instance created by
+> arch/arm/mach-omap2/dma.c to maintain channel usage (omap_request_dma).
+> 
+> Currently both try to register interrupts and mach-omap2/plat-omap dma.c
+> attempts to use the IRQ number registered by hwmod to register it's own
+> interrupt handler.
+> 
+> Now, there is no reasonable way of static allocating DMA irq in GIC
+> SPI when we use crossbar. However, since the dma_chan structure is
+> freed as a result of IRQ not being present due to devm allocation,
+> maintaining information of channel by platform code fails at a later
+> point in time when that region of memory is reused.
+> 
+> So, if hwmod does not indicate an IRQ number, then, assume that
+> dma-engine will take care of the interrupt handling.
 
-Can you please add the descriptions to all the patches?
-Other than that looks OK to me.
+Looks OK to me, applying both into omap-for-v3.17/soc thanks.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
