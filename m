@@ -1,59 +1,48 @@
-From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v2 3/7] arm: dts: omap3-gta04: Add wifi reset node
-Date: Tue, 22 Jul 2014 21:30:16 +0200
-Message-ID: <1406057420-22269-4-git-send-email-marek@goldelico.com>
-References: <1406057420-22269-1-git-send-email-marek@goldelico.com>
+From: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Subject: Re: [PATCH v2 2/7] arm: dts: omap3-gta04: Fix magnetometer model
+Date: Tue, 22 Jul 2014 21:46:47 +0200 (CEST)
+Message-ID: <alpine.DEB.2.01.1407222145360.27558@pmeerw.net>
+References: <1406057420-22269-1-git-send-email-marek@goldelico.com> <1406057420-22269-3-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1406057420-22269-1-git-send-email-marek@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@arm.linux.org.uk, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, hns@goldelico.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, galak@codeaurora.org, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1406057420-22269-3-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Define gpio node in tca6507 which will be used as
-wifi reset pin.
 
-Signed-off-by: Marek Belisko <marek@goldelico.com>
----
- arch/arm/boot/dts/omap3-gta04.dts | 8 ++++++++
- 1 file changed, 8 insertions(+)
+> gta04 is using hmc5843l not hmc5843 so fix wrong compatible
+> entry.
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
-index 6d1a8d8..5b08d93 100644
---- a/arch/arm/boot/dts/omap3-gta04.dts
-+++ b/arch/arm/boot/dts/omap3-gta04.dts
-@@ -196,6 +196,9 @@
- 		#size-cells = <0>;
- 		reg = <0x45>;
+I guess you mean hmc5883l
  
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+
- 		gta04_led0: red_aux@0 {
- 			label = "gta04:red:aux";
- 			reg = <0x0>;
-@@ -216,6 +219,11 @@
- 			label = "gta04:green:power";
- 			reg = <0x4>;
- 		};
-+
-+		wifi_reset: wifi_reset@6 {
-+			reg = <0x6>;
-+			compatible = "gpio";
-+		};
- 	};
- 
- 	/* compass aka magnetometer */
+> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dts | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dts b/arch/arm/boot/dts/omap3-gta04.dts
+> index 7d7ddd7..6d1a8d8 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dts
+> +++ b/arch/arm/boot/dts/omap3-gta04.dts
+> @@ -220,7 +220,7 @@
+>  
+>  	/* compass aka magnetometer */
+>  	hmc5843@1e {
+> -		compatible = "honeywell,hmc5843";
+> +		compatible = "honeywell,hmc5843l";
+>  		reg = <0x1e>;
+>  	};
+>  
+> 
+
 -- 
-1.9.1
+
+Peter Meerwald
++43-664-2444418 (mobile)
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
