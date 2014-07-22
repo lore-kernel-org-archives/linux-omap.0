@@ -1,53 +1,53 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH v4 6/6] clk: Add floor and ceiling constraints to clock
- rates
-Date: Tue, 22 Jul 2014 11:50:59 -0600
-Message-ID: <53CEA483.6090704@wwwdotorg.org>
-References: <1405606399-26608-1-git-send-email-tomeu.vizoso@collabora.com>
- <1405606399-26608-7-git-send-email-tomeu.vizoso@collabora.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] pinctrl: dra: dt-bindings: Fix pull enable/disable
+Date: Tue, 22 Jul 2014 13:31:43 -0500
+Message-ID: <53CEAE0F.9080901@ti.com>
+References: <1406043594-14181-1-git-send-email-nm@ti.com> <20140722164752.GJ20588@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1405606399-26608-7-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@perex.cz>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Emilio_L=F3pez?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, Vire
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140722164752.GJ20588@saruman.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Benoit Cousson <bcousson@baylibre.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDcvMTcvMjAxNCAwODoxMyBBTSwgVG9tZXUgVml6b3NvIHdyb3RlOgo+IEFkZHMgYSB3YXkg
-Zm9yIGNsb2NrIGNvbnN1bWVycyB0byBzZXQgbWF4aW11bSBhbmQgbWluaW11bSByYXRlcy4gVGhp
-cyBjYW4gYmUKPiB1c2VkIGZvciB0aGVybWFsIGRyaXZlcnMgdG8gc2V0IGNlaWxpbmcgcmF0ZXMs
-IG9yIGJ5IG1pc2MuIGRyaXZlcnMgdG8gc2V0Cj4gZmxvb3IgcmF0ZXMgdG8gYXNzdXJlIGEgbWlu
-aW11bSBwZXJmb3JtYW5jZSBsZXZlbC4KCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2xrL2Nsay5j
-IGIvZHJpdmVycy9jbGsvY2xrLmMKCj4gK3N0cnVjdCByYXRlX2NvbnN0cmFpbnQgewo+ICsJc3Ry
-dWN0IGhsaXN0X25vZGUJbm9kZTsKPiArCWNvbnN0IGNoYXIJCSpkZXZfaWQ7Cj4gKwljb25zdCBj
-aGFyCQkqY29uX2lkOwo+ICsJZW51bSBjb25zdHJhaW50X3R5cGUJdHlwZTsKPiArCXVuc2lnbmVk
-IGxvbmcJCXJhdGU7Cj4gK307CgpJIHdvdWxkIHBlcnNvbmFsbHkgc3RpbGwgcHJlZmVyIGVpdGhl
-cjoKCmEpIFRoZSBzdHJ1Y3QgcmF0ZV9jb25zdHJhaW50cyBiZSBzdG9yZWQgaW4gc3RydWN0IGNs
-ayByYXRoZXIgdGhhbgpzdHJ1Y3QgY2xrX2NvcmUsIHNvIHRoZXkncmUgc3RvcmVkIGluIHRoZSBj
-b250YWluZXIgdGhhdCAic2V0IiB0aGUKY29uc3RyYWludHMuIFRoaXMgd291bGQgbWVhbiBpdGVy
-YXRpbmcgb3ZlciBhIHN0cnVjdCBjbGtfY29yZSdzCmFzc29jaWF0ZWQgc3RydWN0IGNsa3MsIHRo
-ZW4gaXRlcmF0aW5nIG92ZXIgdGhlIHN0cnVjdCByYXRlX2NvbnN0cmFpbnRzCndpdGhpbiBlYWNo
-IHN0cnVjdCBjbGsuCgpvcjoKCmIpIHN0cnVjdCByYXRlX2NvbnN0cmFpbnQgdG8gY29udGFpbiBh
-IHBvaW50ZXIgdG8gdGhlIHN0cnVjdCBjbGsgdGhhdApjcmVhdGVkIHRoZSBjb25zdHJhaW50LCBy
-YXRoZXIgdGhhbiBjb3B5aW5nIHRoZSBkZXZfaWQvY29uX2lkIGZyb20gdGhhdApzdHJ1Y3QgY2xr
-IGludG8gdGhlIHN0cnVjdCByYXRlX2NvbnN0cmFpbnQuCgpXaXRoIGVpdGhlciBvZiB0aG9zZSBj
-aGFuZ2VzLCB0aGUgY29uc3RyYWludHMgYXJlIGRpcmVjdGx5IGFzc29jaWF0ZWQKd2l0aCB0aGUg
-Y2xvY2sgY2xpZW50IG9iamVjdCB0aGF0IGNyZWF0ZWQgdGhlIGNvbnN0cmFpbnQgbXVjaCBiZXR0
-ZXIKdGhhbiByaWdodCBub3csIHdoZXJlIHRoZSBtYXRjaGluZyBpcyBvbmx5IGJlY2F1c2UgdGhl
-IHN0cnVjdCBjbGsgYW5kCnN0cnVjdCByYXRlX2NvbnN0cmFpbnQgImhhcHBlbiB0byIgaGF2ZSB0
-aGUgc2FtZSBkZXZfaWQvY29uX2lkIHZhbHVlcy4KClN0aWxsLCB0aGlzIGlzIGEgcHJldHR5IG1p
-bm9yIGlzc3VlLCBhbmQgb3ZlcmFsbCB0aGlzIHNlcmllcyBsb29rcwpyZWFzb25hYmxlIHRvIG1l
-IGF0IGEgcXVpY2sgbG9vay4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXhwcGMtZGV2IG1haWxpbmcgbGlzdApMaW51eHBwYy1kZXZAbGlzdHMub3ps
-YWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGluZm8vbGludXhwcGMtZGV2
+On 07/22/2014 11:47 AM, Felipe Balbi wrote:
+> On Tue, Jul 22, 2014 at 10:39:54AM -0500, Nishanth Menon wrote:
+>> The DRA74/72 control module pins have a weak pull up and pull down.
+>> This is configured by bit offset 17. if BIT(17) is 1, a pull up is
+>> selected, else a pull down is selected.
+>>
+>> However, this pull resisstor is applied based on BIT(16) -
+>> PULLUDENABLE - if BIT(18) is *0*, then pull as defined in BIT(17) is
+>> applied, else no weak pulls are applied. We defined this in reverse.
+>>
+>> Reference: Table 18-5 (Description of the pad configuration register
+>> bits) in Technical Reference Manual Revision (DRA74x revision Q:
+>> SPRUHI2Q Revised June 2014 and DRA72x revision F: SPRUHP2F - Revised
+>> June 2014)
+>>
+>> Fixes: 6e58b8f1daaf1a ("ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board")
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> ---
+> 
+> Tested on an upcoming board.
+> 
+> Tested-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> 
+> 
+Felipe,
+Thanks.
+
+Tony,
+
+If you could consider this for the rc cycle it might be great(as well
+as for stable). The pull direction error can cause all kinds of
+Pull-down Vs Pull-Up contention with severe risk for certain IP
+reliability.
+
+-- 
+Regards,
+Nishanth Menon
