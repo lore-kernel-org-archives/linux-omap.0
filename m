@@ -1,71 +1,54 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Tue, 22 Jul 2014 16:56:45 +0100
-Message-ID: <20140722155645.GD23210@lee--X1>
-References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
- <1404541530-27856-2-git-send-email-peter.griffin@linaro.org>
- <20140707124627.GG6407@lee--X1>
- <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
- <20140722145711.GC20588@saruman.home>
- <20140722154503.GC23210@lee--X1>
- <20140722155117.GF20588@saruman.home>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/2] ARM: DRA7: hwmod: Add dra74x and dra72x specific
+ ocp interface lists
+Date: Tue, 22 Jul 2014 11:45:33 -0500
+Message-ID: <53CE952D.6040705@ti.com>
+References: <1405499774-19770-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140722155117.GF20588-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1405499774-19770-1-git-send-email-lokeshvutla@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux@arm.linux.org.uk, nsekhar@ti.com, j-keerthy@ti.com, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 22 Jul 2014, Felipe Balbi wrote:
+On 07/16/2014 03:36 AM, Lokesh Vutla wrote:
+> This series add seperate ocp interface lists that are specific to dra74x
+> and dra72x, and moving USB OTG SS4 to dra74x only since its not present
+> in dra72x. Without this USB OTG SS4 hwmod gives an abort on dra72x.
+> 
+> Adding support for soc_is_dra74x() and soc_is_dra72x() in order to differentiate
+> between dra74x and dra72x and pass the respective ocp interface lists.
+> 
+> Verified on dra74x evm and dra72x evm using 3.16-rc5 based mainline kernel.
+> 
+> Before:
+> dra74x : http://paste.ubuntu.com/7802364/ 
+> dra72x : http://paste.ubuntu.com/7802334/ (Kernel panic)
+> 
+> After-
+> dra74x : http://paste.ubuntu.com/7802340/
+> dra72x : http://paste.ubuntu.com/7802338/ (booted)
+> 
+> Rajendra Nayak (2):
+>   ARM: DRA7: Add support for soc_is_dra74x() and soc_is_dra72x()
+>     varients
+>   ARM: DRA7: hwmod: Add dra74x and dra72x specific ocp interface lists
+> 
+>  arch/arm/mach-omap2/omap_hwmod.c          |    3 +++
+>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   22 ++++++++++++++++++++--
+>  arch/arm/mach-omap2/soc.h                 |    7 +++++++
+>  3 files changed, 30 insertions(+), 2 deletions(-)
+> 
+Tested-by: Nishanth Menon <nm@ti.com>
 
-> On Tue, Jul 22, 2014 at 04:45:03PM +0100, Lee Jones wrote:
-> > > > > > +static void st_dwc3_init(struct st_dwc3 *dwc3_data)
-> > > > > > +{
-> > > > > > +	u32 reg =3D st_dwc3_readl(dwc3_data->glue_base, USB2_CLKR=
-ST_CTRL);
-> > > > > > +
-> > > > > > +	reg |=3D aux_clk_en(1) | ext_cfg_reset_n(1) | xhci_revisi=
-on(1);
-> > > > > > +	reg &=3D ~sw_pipew_reset_n(1);
-> > > > >=20
-> > > > > 1?  Better to add defines for these magic numbers.  What is 1=
- anyway?
-> > > >=20
-> > > > They are just bit setting macros, I've converted them over to u=
-se BIT macro now,
-> > > > so it no longer takes a parameter.
-> > >=20
-> > > the macros are better, but make them upper case as everybody else=
-=2E
-> >=20
-> > When you say that the macros are better, what do you mean?
-> >=20
-> > Defines do the job in a manner which is a great deal cleaner:
-> >=20
-> > #define AUX_CLK_EN        BIT(0)
-> > #define SW_PIPEW_RESET_N  BIT(4)
-> > #define EXT_CFG_RESET_N   BIT(8)
-> > #define XHCI_REVISION     BIT(12)
-> >=20
-> > reg =3D AUX_CLK_EN | SW_PIPEW_RESET_N | XHCI_REVISION;
-> > reg &=3D ~SW_PIPEW_RESET_N
->=20
-> this is what I meant ;-) I see what I wrote can be very ambiguous :-p
+BUT, I suggest a follow up series to do exactly the same (moving stuff
+that are not common from dra7.dtsi to dra72x.dtsi and 74x.dtsi) as
+well to ensure that dts indicates exactly the same information (only
+the applicable IPs are present in dts).
 
-Okay great, thanks for clarifying. :)
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
