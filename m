@@ -1,105 +1,49 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH V2 1/2] ARM: DRA7: hwmod: Add data for RTC
-Date: Tue, 22 Jul 2014 15:49:39 +0530
-Message-ID: <53CE3ABB.5010506@ti.com>
-References: <alpine.DEB.2.02.1407060031120.23762@utopia.booyaka.com> <1404894932-26677-1-git-send-email-lokeshvutla@ti.com> <1404894932-26677-2-git-send-email-lokeshvutla@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Subject: [PATCH] drivers/misc/ti-st: Load firmware from ti-connectivity directory.
+Date: Tue, 22 Jul 2014 13:08:38 +0200
+Message-ID: <1406027318-26186-1-git-send-email-eballetbo@iseebcn.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45547 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752403AbaGVKUR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Jul 2014 06:20:17 -0400
-In-Reply-To: <1404894932-26677-2-git-send-email-lokeshvutla@ti.com>
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:56930 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514AbaGVLJD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Jul 2014 07:09:03 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, devicetree@vger.kernel.org, nm@ti.com, j-keerthy@ti.com, nsekhar@ti.com
+To: gregkh@linuxfoundation.org, pavan_savoy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Hi Paul,
-On Wednesday 09 July 2014 02:05 PM, Lokesh Vutla wrote:
-> Add hwmod data for RTC
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> Reviewed-by: Rajendra Nayak <rnayak@ti.com>
-Can you take this patch. I have submitted logs also.
+Looks like the default location for TI firmware is inside the ti-connectivity
+directory, to be coherent with other firmware request used by TI drivers, load
+the TIInit firmware from this directory instead of /lib/firmware directly.
 
-Thanks and regards,
-Lokesh
-> ---
-> Changes since V1:
-> Rebased on top of linux-next 20140708.
-> 
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   41 +++++++++++++++++++++++++++++
->  1 file changed, 41 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> index 20b4398..d8032b9 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> @@ -1249,6 +1249,38 @@ static struct omap_hwmod dra7xx_qspi_hwmod = {
->  };
->  
->  /*
-> + * 'rtcss' class
-> + *
-> + */
-> +static struct omap_hwmod_class_sysconfig dra7xx_rtcss_sysc = {
-> +	.sysc_offs	= 0x0078,
-> +	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   SIDLE_SMART_WKUP),
-> +	.sysc_fields	= &omap_hwmod_sysc_type3,
-> +};
-> +
-> +static struct omap_hwmod_class dra7xx_rtcss_hwmod_class = {
-> +	.name	= "rtcss",
-> +	.sysc	= &dra7xx_rtcss_sysc,
-> +};
-> +
-> +/* rtcss */
-> +static struct omap_hwmod dra7xx_rtcss_hwmod = {
-> +	.name		= "rtcss",
-> +	.class		= &dra7xx_rtcss_hwmod_class,
-> +	.clkdm_name	= "rtc_clkdm",
-> +	.main_clk	= "sys_32k_ck",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_offs = DRA7XX_CM_RTC_RTCSS_CLKCTRL_OFFSET,
-> +			.context_offs = DRA7XX_RM_RTC_RTCSS_CONTEXT_OFFSET,
-> +			.modulemode   = MODULEMODE_SWCTRL,
-> +		},
-> +	},
-> +};
-> +
-> +/*
->   * 'sata' class
->   *
->   */
-> @@ -2344,6 +2376,14 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__qspi = {
->  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->  };
->  
-> +/* l4_per3 -> rtcss */
-> +static struct omap_hwmod_ocp_if dra7xx_l4_per3__rtcss = {
-> +	.master		= &dra7xx_l4_per3_hwmod,
-> +	.slave		= &dra7xx_rtcss_hwmod,
-> +	.clk		= "l4_root_clk_div",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  static struct omap_hwmod_addr_space dra7xx_sata_addrs[] = {
->  	{
->  		.name		= "sysc",
-> @@ -2673,6 +2713,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->  	&dra7xx_l4_cfg__mpu,
->  	&dra7xx_l4_cfg__ocp2scp1,
->  	&dra7xx_l3_main_1__qspi,
-> +	&dra7xx_l4_per3__rtcss,
->  	&dra7xx_l4_cfg__sata,
->  	&dra7xx_l4_cfg__smartreflex_core,
->  	&dra7xx_l4_cfg__smartreflex_mpu,
-> 
+Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+---
+ drivers/misc/ti-st/st_kim.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/misc/ti-st/st_kim.c b/drivers/misc/ti-st/st_kim.c
+index 9d3dbb2..fa6a900 100644
+--- a/drivers/misc/ti-st/st_kim.c
++++ b/drivers/misc/ti-st/st_kim.c
+@@ -244,7 +244,8 @@ static long read_local_version(struct kim_data_s *kim_gdata, char *bts_scr_name)
+ 	if (version & 0x8000)
+ 		maj_ver |= 0x0008;
+ 
+-	sprintf(bts_scr_name, "TIInit_%d.%d.%d.bts", chip, maj_ver, min_ver);
++	sprintf(bts_scr_name, "ti-connectivity/TIInit_%d.%d.%d.bts",
++		chip, maj_ver, min_ver);
+ 
+ 	/* to be accessed later via sysfs entry */
+ 	kim_gdata->version.full = version;
+@@ -287,7 +288,7 @@ static long download_firmware(struct kim_data_s *kim_gdata)
+ 	long len = 0;
+ 	unsigned char *ptr = NULL;
+ 	unsigned char *action_ptr = NULL;
+-	unsigned char bts_scr_name[30] = { 0 };	/* 30 char long bts scr name? */
++	unsigned char bts_scr_name[40] = { 0 };	/* 40 char long bts scr name? */
+ 	int wr_room_space;
+ 	int cmd_size;
+ 	unsigned long timeout;
+-- 
+1.9.1
 
