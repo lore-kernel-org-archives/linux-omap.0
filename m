@@ -1,108 +1,89 @@
-From: Pekon Gupta <pekon@ti.com>
-Subject: [PATCH] ARM: OMAP2+: fix gpmc_cs_remap: re-allocating chip-select address space based on DT
-Date: Wed, 23 Jul 2014 23:47:38 +0530
-Message-ID: <1406139458-11676-1-git-send-email-pekon@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 0/2] ARM: DRA7: hwmod: Add dra74x and dra72x specific
+ ocp interface lists
+Date: Wed, 23 Jul 2014 17:43:31 -0500
+Message-ID: <53D03A93.90002@ti.com>
+References: <1405499774-19770-1-git-send-email-lokeshvutla@ti.com> <53CE952D.6040705@ti.com> <53CF34B8.6000602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37723 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:48698 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932503AbaGWSRw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 14:17:52 -0400
+	with ESMTP id S933646AbaGWWoC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 18:44:02 -0400
+In-Reply-To: <53CF34B8.6000602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Pekon Gupta <pekon@ti.com>
+To: "Vutla, Lokesh" <lokeshvutla@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Nori, Sekhar" <nsekhar@ti.com>, "J, KEERTHY" <j-keerthy@ti.com>, "Quadros, Roger" <rogerq@ti.com>
 
-Each GPMC chip-select needs to be configured for (base-address,CS-size) so that
-GPMC understands the address-space allocated to device connected externally.
-These chip-select configurations (base-address, CS-size) follow some basic
-mapping rules like:
-- The CS size is programmable from 256 MBytes to 16 MBytes (must be a power of 2)
-  and is defined by the mask field. Attached memory smaller than the programmed
-  CS region size is accessed through the entire CS region (aliasing).
-- The programmed 'base-address' must be aligned to the 'CS-size' boundary and
-  be a power of 2.
-- Valid CS-size values are {256MB(max), 128MB, 64MB, 32MB and 16MB (min)}
-  Any intermediate values creates holes in the chip-select memory-map.
+Hi Lokesh,
 
-This patch adds above checks in gpmc_cs_remap() so that any invalid value
-passed by DT <reg> property can be filtered before actually allocating the
-address space.
+On 07/22/2014 11:06 PM, Vutla, Lokesh wrote:
+> Hi Nishanth,
+> On Tuesday 22 July 2014 10:15 PM, Nishanth Menon wrote:
+>> On 07/16/2014 03:36 AM, Lokesh Vutla wrote:
+>>> This series add seperate ocp interface lists that are specific to dra74x
+>>> and dra72x, and moving USB OTG SS4 to dra74x only since its not present
+>>> in dra72x. Without this USB OTG SS4 hwmod gives an abort on dra72x.
+>>>
+>>> Adding support for soc_is_dra74x() and soc_is_dra72x() in order to differentiate
+>>> between dra74x and dra72x and pass the respective ocp interface lists.
+>>>
+>>> Verified on dra74x evm and dra72x evm using 3.16-rc5 based mainline kernel.
 
-Signed-off-by: Pekon Gupta <pekon@ti.com>
----
- arch/arm/mach-omap2/gpmc.c | 42 +++++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
+Thanks for the series. I also need this for the differences in DSPs
+present on both SoCs.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 8bc1338..4a4cc04 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -521,26 +521,42 @@ static int gpmc_cs_delete_mem(int cs)
-  * "base". Returns 0 on success and appropriate negative error code
-  * on failure.
-  */
--static int gpmc_cs_remap(int cs, u32 base)
-+static int gpmc_cs_remap(int cs, u32 base, u32 size)
- {
- 	int ret;
--	u32 old_base, size;
- 
- 	if (cs > gpmc_cs_num) {
- 		pr_err("%s: requested chip-select is disabled\n", __func__);
- 		return -ENODEV;
- 	}
- 
--	/*
--	 * Make sure we ignore any device offsets from the GPMC partition
--	 * allocated for the chip select and that the new base confirms
--	 * to the GPMC 16MB minimum granularity.
--	 */ 
--	base &= ~(SZ_16M - 1);
--
--	gpmc_cs_get_memconf(cs, &old_base, &size);
--	if (base == old_base)
--		return 0;
-+	/* allocate enough address-space under GPMC chip-select to device */
-+	if (size > SZ_256M) {
-+		pr_err("%s: memory device > 256MB not supported\n", __func__);
-+		return -ENODEV;
-+	} else if (size > SZ_128M) {
-+		WARN((size != SZ_256M), "cs=%d: allocating 256MB\n", cs);
-+		size = SZ_256M;
-+	} else if (size > SZ_64M) {
-+		WARN((size != SZ_128M), "cs=%d: allocating 128MB\n", cs);
-+		size = SZ_128M;
-+	} else if (size > SZ_32M) {
-+		WARN((size != SZ_64M), "cs=%d: allocating 64MB\n", cs);
-+		size = SZ_64M;
-+	} else if (size > SZ_16M) {
-+		WARN((size != SZ_32M), "cs=%d: allocating 64MB\n", cs);
-+		size = SZ_32M;
-+	} else {
-+		WARN((size != SZ_16M), "cs=%d: allocating 64MB\n", cs);
-+		size = SZ_16M;
-+	}
-+
-+	/* base address should be aligned with address-space size */
-+	if (base & (size - 1)) {
-+		pr_err("base-addr=%x should be aligned to size=%x", base, size);
-+		return -EINVAL;
-+	}
-+
- 	gpmc_cs_disable_mem(cs);
- 	ret = gpmc_cs_delete_mem(cs);
- 	if (ret < 0)
-@@ -1551,7 +1567,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 	 * CS to this location. Once DT migration is complete should
- 	 * just make gpmc_cs_request() map a specific address.
- 	 */
--	ret = gpmc_cs_remap(cs, res.start);
-+	ret = gpmc_cs_remap(cs, res.start, resource_size(&res));
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "cannot remap GPMC CS %d to %pa\n",
- 			cs, &res.start);
--- 
-1.8.5.1.163.gd7aced9
+>>>
+>>> Before:
+>>> dra74x : http://paste.ubuntu.com/7802364/ 
+>>> dra72x : http://paste.ubuntu.com/7802334/ (Kernel panic)
+>>>
+>>> After-
+>>> dra74x : http://paste.ubuntu.com/7802340/
+>>> dra72x : http://paste.ubuntu.com/7802338/ (booted)
+>>>
+>>> Rajendra Nayak (2):
+>>>   ARM: DRA7: Add support for soc_is_dra74x() and soc_is_dra72x()
+>>>     varients
+>>>   ARM: DRA7: hwmod: Add dra74x and dra72x specific ocp interface lists
+>>>
+>>>  arch/arm/mach-omap2/omap_hwmod.c          |    3 +++
+>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   22 ++++++++++++++++++++--
+>>>  arch/arm/mach-omap2/soc.h                 |    7 +++++++
+>>>  3 files changed, 30 insertions(+), 2 deletions(-)
+>>>
+>> Tested-by: Nishanth Menon <nm@ti.com>
+> Thanks..
+>>
+>> BUT, I suggest a follow up series to do exactly the same (moving stuff
+>> that are not common from dra7.dtsi to dra72x.dtsi and 74x.dtsi) as
+>> well to ensure that dts indicates exactly the same information (only
+>> the applicable IPs are present in dts).
+
+We also need a similar split for clockdomains, and possibly powerdomains
+(I haven't compared all of them myself).
+
+regards
+Suman
+
+> The separation of dra72x.dtsi and dra74x.dtsi is already happened and the patch is
+> already present in mainline[1].
+> Looks like usb_otg_ss4 is still present in dra7.dtsi, but this should go into dra74x.dtsi.
+> I ll take it up.
+> 
+> [1] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=38b248db60e32734417534b57f9ab687c445113a
+> 
+> Thanks and regards,
+> Lokesh
+> 
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
