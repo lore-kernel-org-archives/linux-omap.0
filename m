@@ -1,151 +1,96 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 1/2] power: twl4030_charger: detect battery presence
- prior to enabling charger
-Date: Wed, 23 Jul 2014 02:24:20 -0700
-Message-ID: <20140723092420.GE22006@atomide.com>
-References: <1401313610-14252-1-git-send-email-nm@ti.com>
- <1401313610-14252-2-git-send-email-nm@ti.com>
+Subject: Re: [PATCHv2 06/10] ARM: DRA7: hwmod_data: Add mailbox hwmod data
+Date: Wed, 23 Jul 2014 02:24:51 -0700
+Message-ID: <20140723092449.GF22006@atomide.com>
+References: <1405115083-52977-1-git-send-email-s-anna@ti.com>
+ <1405115083-52977-7-git-send-email-s-anna@ti.com>
+ <20140715133013.GA2605@atomide.com>
+ <53C55D68.8050308@ti.com>
+ <20140716070708.GC2605@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11275 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932201AbaGWJ0U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 05:26:20 -0400
 Content-Disposition: inline
-In-Reply-To: <1401313610-14252-2-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: dbaryshkov@gmail.com, balbi@ti.com, linux@arm.linux.org.uk, dwmw2@infradead.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20140716070708.GC2605@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-* Nishanth Menon <nm@ti.com> [140528 14:48]:
-> TWL4030's Battery Charger seems to be designed for non-hotpluggable
-> batteries.
+* Tony Lindgren <tony@atomide.com> [140716 00:10]:
+> * Suman Anna <s-anna@ti.com> [140715 09:59]:
+> > Hi Tony,
+> > 
+> > On 07/15/2014 08:30 AM, Tony Lindgren wrote:
+> > > * Suman Anna <s-anna@ti.com> [140711 14:47]:
+> > >> Add the hwmod data for the 13 instances of the system mailbox
+> > >> IP in DRA7 SoC. The patch is needed for performing a soft-reset
+> > >> while configuring the respective mailbox instance, otherwise is
+> > >> a non-essential change for functionality. The modules are smart
+> > >> idled on reset, and the IP module mode is hardware controlled.
+> > >>
+> > >> Cc: Rajendra Nayak <rnayak@ti.com>
+> > >> Cc: Paul Walmsley <paul@pwsan.com>
+> > >> Signed-off-by: Suman Anna <s-anna@ti.com>
+> > >> ---
+> > >>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 305 ++++++++++++++++++++++++++++++
+> > >>  1 file changed, 305 insertions(+)
+> > >>
+> > >> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > >> index 20b4398..e35f5b1 100644
+> > >> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > >> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > >> @@ -939,6 +939,194 @@ static struct omap_hwmod dra7xx_i2c5_hwmod = {
+> > >>  };
+> > >>  
+> > >>  /*
+> > >> + * 'mailbox' class
+> > >> + *
+> > >> + */
+> > >> +
+> > >> +static struct omap_hwmod_class_sysconfig dra7xx_mailbox_sysc = {
+> > >> +	.rev_offs	= 0x0000,
+> > >> +	.sysc_offs	= 0x0010,
+> > >> +	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
+> > >> +			   SYSC_HAS_SOFTRESET),
+> > >> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> > >> +	.sysc_fields	= &omap_hwmod_sysc_type2,
+> > >> +};
+> > >> +
+> > >> +static struct omap_hwmod_class dra7xx_mailbox_hwmod_class = {
+> > >> +	.name	= "mailbox",
+> > >> +	.sysc	= &dra7xx_mailbox_sysc,
+> > >> +};
+> > > 
+> > > Hmm I'm seeing just the following MAILBOX_SYSCONFIG in at least
+> > > am57xx TRM:
+> > > 
+> > > 31:4	RESERVED
+> > > 3:2	SIDLEMODE	0 = force-idle 1 = no-idle, 2 = smart-idle, 3 = reserved
+> > > 1	RESERVED
+> > > 0	SOFTRESET
+> > > 
+> > > So it seems that SYSC_HAS_RESET_STATUS above is wrong? Can you guys
+> > > please check.
+> > 
+> > The same SOFTRESET bit is used for both triggering the softreset and
+> > reading the reset done status. Once you write a 1 to trigger a reset,
+> > the bit will be cleared once the reset is done. This is no different
+> > from OMAP4. The logic in _wait_softreset_complete in omap_hwmod.c was
+> > already designed to work with this properly.
 > 
-> If battery is not present in the system, BATSTS is always set with the
-> expectation that software will take actions to move to a required safe
-> state (could be power down or disable various charger paths).
-> 
-> It does not seem possible even by manipulating the edge detection
-> of the event (using BCIEDR2 register) to have a consistent hotplug
-> handling. This seems to be the result of BATSTS interrupt generated
-> when the thermistor of the battery pack is disconnected from the
-> dedicated ADIN1 pin. Clearing the status just results in the status
-> being regenerated by the monitoring ADC(MADC) and disabling the
-> edges of event just makes hotplug no longer function. The only
-> other option is to disable the detection of the MADC by disabling
-> BCIMFEN4::BATSTSMCHGEN (battery presence detector) - but then, we can
-> never again detect battery reconnection.
-> 
-> So, detect battery presence based on precharge(which is hardware
-> automatic state) or default main charger configuration at the time of
-> probe and enable charger logic only if battery was present.
-> 
-> Reported-by: Russell King <linux@arm.linux.org.uk>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Oh OK, I guess I got it confused with SYSS_HAS_RESET_STATUS. Paul,
+> want to ack this one if no other issues? I can then set this series
+> into a branch against -rc1 that we can all merge in as needed as
+> it seems that the driver changes may need this branch as a base too.
 
-Dmitry, can we please get this first patch merged? This is needed
-on some omap3 platforms for DT based booting when no battery is
-present.
-
-Only the second patch in this series is still being discussed AFAIK.
+I have applied these into omap-for-v3.17/mailbox and merged also
+into omap-for-v3.17/soc.
 
 Regards,
 
 Tony
-
-> ---
-> V2: just a rebase, picked up tony's tested-by, minor formatting fix
-> V1: https://patchwork.kernel.org/patch/4124751/
->  drivers/power/twl4030_charger.c |   44 ++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 43 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-> index f141088..2598c58 100644
-> --- a/drivers/power/twl4030_charger.c
-> +++ b/drivers/power/twl4030_charger.c
-> @@ -28,10 +28,13 @@
->  #define TWL4030_BCIICHG		0x08
->  #define TWL4030_BCIVAC		0x0a
->  #define TWL4030_BCIVBUS		0x0c
-> +#define TWL4030_BCIMFSTS3	0x0F
->  #define TWL4030_BCIMFSTS4	0x10
->  #define TWL4030_BCICTL1		0x23
->  #define TWL4030_BB_CFG		0x12
->  
-> +#define TWL4030_BCIMFSTS1	0x01
-> +
->  #define TWL4030_BCIAUTOWEN	BIT(5)
->  #define TWL4030_CONFIG_DONE	BIT(4)
->  #define TWL4030_BCIAUTOUSB	BIT(1)
-> @@ -52,6 +55,9 @@
->  #define TWL4030_BBISEL_500uA	0x02
->  #define TWL4030_BBISEL_1000uA	0x03
->  
-> +#define TWL4030_BATSTSPCHG	BIT(2)
-> +#define TWL4030_BATSTSMCHG	BIT(6)
-> +
->  /* BCI interrupts */
->  #define TWL4030_WOVF		BIT(0) /* Watchdog overflow */
->  #define TWL4030_TMOVF		BIT(1) /* Timer overflow */
-> @@ -145,6 +151,35 @@ static int twl4030bci_read_adc_val(u8 reg)
->  }
->  
->  /*
-> + * Check if Battery Pack was present
-> + */
-> +static int twl4030_is_battery_present(struct twl4030_bci *bci)
-> +{
-> +	int ret;
-> +	u8 val = 0;
-> +
-> +	/* Battery presence in Main charge? */
-> +	ret = twl_i2c_read_u8(TWL_MODULE_MAIN_CHARGE, &val, TWL4030_BCIMFSTS3);
-> +	if (ret)
-> +		return ret;
-> +	if (val & TWL4030_BATSTSMCHG)
-> +		return 0;
-> +
-> +	/*
-> +	 * OK, It could be that bootloader did not enable main charger,
-> +	 * pre-charge is h/w auto. So, Battery presence in Pre-charge?
-> +	 */
-> +	ret = twl_i2c_read_u8(TWL4030_MODULE_PRECHARGE, &val,
-> +			      TWL4030_BCIMFSTS1);
-> +	if (ret)
-> +		return ret;
-> +	if (val & TWL4030_BATSTSPCHG)
-> +		return 0;
-> +
-> +	return -ENODEV;
-> +}
-> +
-> +/*
->   * Check if VBUS power is present
->   */
->  static int twl4030_bci_have_vbus(struct twl4030_bci *bci)
-> @@ -541,8 +576,14 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
->  	bci->irq_chg = platform_get_irq(pdev, 0);
->  	bci->irq_bci = platform_get_irq(pdev, 1);
->  
-> -	platform_set_drvdata(pdev, bci);
-> +	/* Only proceed further *IF* battery is physically present */
-> +	ret = twl4030_is_battery_present(bci);
-> +	if  (ret) {
-> +		dev_crit(&pdev->dev, "Battery was not detected:%d\n", ret);
-> +		goto fail_no_battery;
-> +	}
->  
-> +	platform_set_drvdata(pdev, bci);
->  	bci->ac.name = "twl4030_ac";
->  	bci->ac.type = POWER_SUPPLY_TYPE_MAINS;
->  	bci->ac.properties = twl4030_charger_props;
-> @@ -633,6 +674,7 @@ fail_chg_irq:
->  fail_register_usb:
->  	power_supply_unregister(&bci->ac);
->  fail_register_ac:
-> +fail_no_battery:
->  	kfree(bci);
->  
->  	return ret;
-> -- 
-> 1.7.9.5
-> 
