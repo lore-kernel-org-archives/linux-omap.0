@@ -1,101 +1,47 @@
 From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 2/3] arm/dts: dra7xx: Add CPSW and MDIO module nodes for dra7xx
-Date: Wed, 23 Jul 2014 18:54:41 +0530
-Message-ID: <1406121882-32658-3-git-send-email-mugunthanvnm@ti.com>
+Subject: [PATCH 1/3] pinctrl: dra7: dt-bindings: add pin off modes for dra7 SoC
+Date: Wed, 23 Jul 2014 18:54:40 +0530
+Message-ID: <1406121882-32658-2-git-send-email-mugunthanvnm@ti.com>
 References: <1406121882-32658-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51973 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751660AbaGWNYw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Jul 2014 09:24:52 -0400
 In-Reply-To: <1406121882-32658-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: bcousson@baylibre.com, tony@atomide.com
 Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Add CPSW and MDIO related device tree data for DRA7XX and made as status
-disabled. Phy-id, pinmux for active and sleep state needs to be added in
-board dts files and enable the CPSW device.
+Add pin off modes for dra7 SoC so that during module disable or suspend
+state it can help saving power
 
 Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 58 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ include/dt-bindings/pinctrl/dra.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 6563b98..d576b51 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -34,6 +34,8 @@
- 		serial3 = &uart4;
- 		serial4 = &uart5;
- 		serial5 = &uart6;
-+		ethernet0 = &cpsw_emac0;
-+		ethernet1 = &cpsw_emac1;
- 	};
+diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+index 002a285..a0ff2d0 100644
+--- a/include/dt-bindings/pinctrl/dra.h
++++ b/include/dt-bindings/pinctrl/dra.h
+@@ -46,5 +46,13 @@
+ #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
+ #define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
  
- 	timer {
-@@ -1145,6 +1147,62 @@
- 			ti,irqs-skip = <10 133 139 140>;
- 			ti,irqs-safe-map = <0>;
- 		};
++/* Off mode states */
++#define PIN_OFF_NONE		0
++#define PIN_OFF_OUTPUT_HIGH	(OFF_EN | OFFOUT_EN | OFFOUT_VAL)
++#define PIN_OFF_OUTPUT_LOW	(OFF_EN | OFFOUT_EN)
++#define PIN_OFF_INPUT_PULLUP	(OFF_EN | OFF_PULL_EN | OFF_PULL_UP)
++#define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
++#define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
 +
-+		mac: ethernet@4a100000 {
-+			compatible = "ti,cpsw";
-+			ti,hwmods = "gmac";
-+			cpdma_channels = <8>;
-+			ale_entries = <1024>;
-+			bd_ram_size = <0x2000>;
-+			no_bd_ram = <0>;
-+			rx_descs = <64>;
-+			mac_control = <0x20>;
-+			slaves = <2>;
-+			active_slave = <0>;
-+			cpts_clock_mult = <0x80000000>;
-+			cpts_clock_shift = <29>;
-+			reg = <0x48484000 0x1000
-+			       0x48485200 0xE00>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			/*
-+			 * rx_thresh_pend
-+			 * rx_pend
-+			 * tx_pend
-+			 * misc_pend
-+			 */
-+			interrupts = <GIC_SPI 334 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 335 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 336 IRQ_TYPE_LEVEL_HIGH>,
-+				     <GIC_SPI 337 IRQ_TYPE_LEVEL_HIGH>;
-+			ranges;
-+			status = "disabled";
-+
-+			davinci_mdio: mdio@48485000 {
-+				compatible = "ti,davinci_mdio";
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				ti,hwmods = "davinci_mdio";
-+				bus_freq = <1000000>;
-+				reg = <0x48485000 0x100>;
-+			};
-+
-+			cpsw_emac0: slave@48480200 {
-+				/* Filled in by U-Boot */
-+				mac-address = [ 00 00 00 00 00 00 ];
-+			};
-+
-+			cpsw_emac1: slave@48480300 {
-+				/* Filled in by U-Boot */
-+				mac-address = [ 00 00 00 00 00 00 ];
-+			};
-+
-+			phy_sel: cpsw-phy-sel@4a002554 {
-+				compatible = "ti,dra7xx-cpsw-phy-sel";
-+				reg= <0x4a002554 0x4>;
-+				reg-names = "gmii-sel";
-+			};
-+		};
- 	};
- };
+ #endif
  
 -- 
 2.0.2.673.g9ab0882
+
