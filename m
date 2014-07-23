@@ -1,139 +1,108 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Wed, 23 Jul 2014 16:50:16 +0100
-Message-ID: <20140723155016.GM23210@lee--X1>
-References: <1406126915-30601-1-git-send-email-peter.griffin@linaro.org>
- <1406126915-30601-2-git-send-email-peter.griffin@linaro.org>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH] ARM: OMAP2+: fix gpmc_cs_remap: re-allocating chip-select address space based on DT
+Date: Wed, 23 Jul 2014 23:47:38 +0530
+Message-ID: <1406139458-11676-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:41528 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757991AbaGWPuX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 11:50:23 -0400
-Received: by mail-ie0-f178.google.com with SMTP id rd18so1118071iec.9
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jul 2014 08:50:23 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1406126915-30601-2-git-send-email-peter.griffin@linaro.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37723 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932503AbaGWSRw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 14:17:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Pekon Gupta <pekon@ti.com>
 
-On Wed, 23 Jul 2014, Peter Griffin wrote:
+Each GPMC chip-select needs to be configured for (base-address,CS-size) so that
+GPMC understands the address-space allocated to device connected externally.
+These chip-select configurations (base-address, CS-size) follow some basic
+mapping rules like:
+- The CS size is programmable from 256 MBytes to 16 MBytes (must be a power of 2)
+  and is defined by the mask field. Attached memory smaller than the programmed
+  CS region size is accessed through the entire CS region (aliasing).
+- The programmed 'base-address' must be aligned to the 'CS-size' boundary and
+  be a power of 2.
+- Valid CS-size values are {256MB(max), 128MB, 64MB, 32MB and 16MB (min)}
+  Any intermediate values creates holes in the chip-select memory-map.
 
-> This patch adds the ST glue logic to manage the DWC3 HC
-> on STiH407 SoC family. It manages the powerdown signal,
-> and configures the internal glue logic and syscfg registers.
->=20
-> Signed-off-by: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-> ---
->  drivers/usb/dwc3/Kconfig   |   9 ++
->  drivers/usb/dwc3/Makefile  |   1 +
->  drivers/usb/dwc3/dwc3-st.c | 338 +++++++++++++++++++++++++++++++++++=
-++++++++++
->  3 files changed, 348 insertions(+)
->  create mode 100644 drivers/usb/dwc3/dwc3-st.c
+This patch adds above checks in gpmc_cs_remap() so that any invalid value
+passed by DT <reg> property can be filtered before actually allocating the
+address space.
 
-[...]
+Signed-off-by: Pekon Gupta <pekon@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
-> +/*
-> + * For all fields in USB2_VBUS_MNGMNT_SEL1
-> + * 2=E2=80=99b00 : Override value from Reg 0x30 is selected
-> + * 2=E2=80=99b01 : utmiotg_<signal_name> from usb3_top is selected
-> + * 2=E2=80=99b10 : pipew_<signal_name> from PIPEW instance is select=
-ed
-> + * 2=E2=80=99b11 : value is 1'b0
-> + */
-> +#define REG30	0x0
-> +#define UTMIOTG	0x1
-> +#define PIPEW	0x2
-> +#define ZERO	0x3
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 8bc1338..4a4cc04 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -521,26 +521,42 @@ static int gpmc_cs_delete_mem(int cs)
+  * "base". Returns 0 on success and appropriate negative error code
+  * on failure.
+  */
+-static int gpmc_cs_remap(int cs, u32 base)
++static int gpmc_cs_remap(int cs, u32 base, u32 size)
+ {
+ 	int ret;
+-	u32 old_base, size;
+ 
+ 	if (cs > gpmc_cs_num) {
+ 		pr_err("%s: requested chip-select is disabled\n", __func__);
+ 		return -ENODEV;
+ 	}
+ 
+-	/*
+-	 * Make sure we ignore any device offsets from the GPMC partition
+-	 * allocated for the chip select and that the new base confirms
+-	 * to the GPMC 16MB minimum granularity.
+-	 */ 
+-	base &= ~(SZ_16M - 1);
+-
+-	gpmc_cs_get_memconf(cs, &old_base, &size);
+-	if (base == old_base)
+-		return 0;
++	/* allocate enough address-space under GPMC chip-select to device */
++	if (size > SZ_256M) {
++		pr_err("%s: memory device > 256MB not supported\n", __func__);
++		return -ENODEV;
++	} else if (size > SZ_128M) {
++		WARN((size != SZ_256M), "cs=%d: allocating 256MB\n", cs);
++		size = SZ_256M;
++	} else if (size > SZ_64M) {
++		WARN((size != SZ_128M), "cs=%d: allocating 128MB\n", cs);
++		size = SZ_128M;
++	} else if (size > SZ_32M) {
++		WARN((size != SZ_64M), "cs=%d: allocating 64MB\n", cs);
++		size = SZ_64M;
++	} else if (size > SZ_16M) {
++		WARN((size != SZ_32M), "cs=%d: allocating 64MB\n", cs);
++		size = SZ_32M;
++	} else {
++		WARN((size != SZ_16M), "cs=%d: allocating 64MB\n", cs);
++		size = SZ_16M;
++	}
++
++	/* base address should be aligned with address-space size */
++	if (base & (size - 1)) {
++		pr_err("base-addr=%x should be aligned to size=%x", base, size);
++		return -EINVAL;
++	}
++
+ 	gpmc_cs_disable_mem(cs);
+ 	ret = gpmc_cs_delete_mem(cs);
+ 	if (ret < 0)
+@@ -1551,7 +1567,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	 * CS to this location. Once DT migration is complete should
+ 	 * just make gpmc_cs_request() map a specific address.
+ 	 */
+-	ret = gpmc_cs_remap(cs, res.start);
++	ret = gpmc_cs_remap(cs, res.start, resource_size(&res));
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "cannot remap GPMC CS %d to %pa\n",
+ 			cs, &res.start);
+-- 
+1.8.5.1.163.gd7aced9
 
-Possible register values are usually prefixed with something
-descriptive which identifies them.
-
-USB2_VBUS_ looks appropriate here.
-
-[...]
-
-> +/**
-> + * struct st_dwc3 - st-dwc3 driver private structure
-> + * @dwc3:		platform device pointer
-> + * @dev:		device pointer
-> + * @glue_base		ioaddr for the glue registers
-> + * @regmap		regmap pointer for getting syscfg
-> + * @syscfg_reg_off	usb syscfg control offset
-> + * @dr_mode		drd static host/device config
-> + * @rstc_pwrdn		rest controller for powerdown signal
-> + * @rstc_rst		reset controller for softreset signal
-
-Some of these have ':', some of them don't.  I suggest you standardise
-to 'all do'.
-
-> + *
-
-Superflous line in comment.
-
-> + */
-> +
-
-Superflous '\n'.
-
-Take a look how you did the function headers below.
-
-[...]
-
-> +static int st_dwc3_drd_init(struct st_dwc3 *dwc3_data)
-> +{
-> +	u32 val;
-> +	int err;
-> +
-> +	err =3D regmap_read(dwc3_data->regmap, dwc3_data->syscfg_reg_off, &=
-val);
-> +	if (err)
-> +		return err;
-> +
-> +	switch (dwc3_data->dr_mode) {
-> +	case USB_DR_MODE_PERIPHERAL:
-> +		val |=3D USB_SET_PORT_DEVICE;
-> +		dev_dbg(dwc3_data->dev, "Configuring as Device\n");
-> +		break;
-> +
-> +	case USB_DR_MODE_HOST:
-> +		val &=3D USB_HOST_DEFAULT_MASK;
-> +		dev_dbg(dwc3_data->dev, "Configuring as Host\n");
-> +		break;
-> +
-> +	default:
-> +		dev_err(dwc3_data->dev, "Unsupported mode of operation %d\n"
-> +			, dwc3_data->dr_mode);
-
-',' should be on the line above.
-
-> +		return -EINVAL;
-> +	}
-> +
-> +	return regmap_write(dwc3_data->regmap, dwc3_data->syscfg_reg_off, v=
-al);
-> +}
-
-All of this stuff is pretty minor.
-
-Once fixed apply my Ack on the next revision:
-
-Acked-by: Lee Jones <lee.jones@linaro.org>
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
