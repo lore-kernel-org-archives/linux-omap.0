@@ -1,95 +1,53 @@
 From: Peter Griffin <peter.griffin@linaro.org>
-Subject: Re: [PATCH v2 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Wed, 23 Jul 2014 15:33:23 +0100
-Message-ID: <20140723143323.GA26565@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
- <1404541530-27856-2-git-send-email-peter.griffin@linaro.org>
- <20140707124627.GG6407@lee--X1>
- <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
- <20140722145711.GC20588@saruman.home>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v3 0/3] Add ST dwc3 glue layer driver
+Date: Wed, 23 Jul 2014 15:48:32 +0100
+Message-ID: <1406126915-30601-1-git-send-email-peter.griffin@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:42567 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754AbaGWOd3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 10:33:29 -0400
-Received: by mail-wg0-f45.google.com with SMTP id x12so1273863wgg.4
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jul 2014 07:33:28 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140722145711.GC20588@saruman.home>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:36664 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757027AbaGWOsv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 10:48:51 -0400
+Received: by mail-we0-f182.google.com with SMTP id k48so1316076wev.41
+        for <linux-omap@vger.kernel.org>; Wed, 23 Jul 2014 07:48:50 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org
 
-Hi Felipe,
+This series adds support for the ST glue logic which wraps the DWC3 controller
+on STiH407 SoC family chipsets.
 
-Thanks for reviewing, see my comments inline: -
+Changes since v2
+ - Use dr_mode for host/device static configuration
+ - Manage shared reset signal to usbss to avoid hang if probing before usb3 phy
+ - Remove DT checks and make driver depend on OF
+ - Change some #define to use BIT macro
+ - Make some comments clearer
+ - Use kerneldoc for struct documentation
+ - Remove udelay
+ - Let DT create platform_devices, and remove legacy alloc
+ - Change some logging levels to dev_dbg
+ - Various whitespace and formatting cleanup
+ - Use SIMPLE_DEV_PM_OPS()
+ - Add const to of_device struct
+ - Reorder header files alphabetically
+ - Use devm_ioremap_resource instead of devm_request_and_ioremap
+ - Remove of_match_ptr()
 
-> > > Just use {read,write}l_relaxed() directly.
-> > 
-> > Ok, unabstracted in v3
-> 
-> no, no... all other glues add their own local helpers for register
-> access. This is good for tracing, it's very easy to add a tracepoint to
-> this sort of function and get very low overhead tracing of every
-> register access.
+Peter Griffin (3):
+  usb: dwc3: add ST dwc3 glue layer to manage dwc3 HC
+  usb: dwc3: dwc3-st: Add st-dwc3 devicetree bindings documentation
+  MAINTAINERS: Add dwc3-st.c file to ARCH/STI architecture
 
-I've put the IO accessors back in for V3
+ Documentation/devicetree/bindings/usb/dwc3-st.txt |  69 +++++
+ MAINTAINERS                                       |   1 +
+ drivers/usb/dwc3/Kconfig                          |   9 +
+ drivers/usb/dwc3/Makefile                         |   1 +
+ drivers/usb/dwc3/dwc3-st.c                        | 337 ++++++++++++++++++++++
+ 5 files changed, 417 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/dwc3-st.txt
+ create mode 100644 drivers/usb/dwc3/dwc3-st.c
 
-> > They are just bit setting macros, I've converted them over to use BIT macro now,
-> > so it no longer takes a parameter.
-> 
-> the macros are better, but make them upper case as everybody else.
+-- 
+1.9.1
 
-Fixed in v3.
-
-
-> > I've asked ST how this value was derirved and why. It came from validation. 
-> > The docs don't mention that it is necessary, and removing it
-> > seems to have no ill effects. So I've removed this udelay in v3.
-> 
-> make sure to test with many, many iterations just to make sure.
-
-Yes will do, I've been booting my board all day, and so far no failures.
-
-> > Ok. Do the DT folks have any comment on this?
-> 
-> look at the child's dr-mode property instead of adding your own.
-
-Thanks for the hint, now using dr-mode binding in V3 :-)
- 
-> 
-> > > > +	dwc3_data->glue_base = devm_request_and_ioremap(dev, res);
-> 
-> use devm_ioremap_resource()
-
-Fixed in V3
-
-> > Your right, this was wrong. It was some legacy code which is
-> > unnecessary and I've removed this in v3.
-> 
-> if you're going for DT, why don't you create the parent and the child
-> from DT as omap/exynos/qcom are doing ?
-
-Now creating parent and child from DT like OMAP in v3
-
-> > > > +	reset_control_assert(dwc3_data->rstc_pwrdn);
-> > > > +
-> > > > +	pinctrl_pm_select_sleep_state(dev);
-> 
-> pinctrl will select sleep and default states automatically for you.
-
-I've left this in v3, as greping around I couldn't see how that could happen automatically.
-
-Also I just double checked with linusw on irc who confirmed that the only state which is 
-ever auto-selected is "default". All other states, as well as going back to default
-state need to be explicitly called.
-
-Hope thats ok.
-
-regards,
-
-Peter.
