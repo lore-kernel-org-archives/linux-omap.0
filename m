@@ -1,96 +1,131 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 06/10] ARM: DRA7: hwmod_data: Add mailbox hwmod data
-Date: Wed, 23 Jul 2014 02:24:51 -0700
-Message-ID: <20140723092449.GF22006@atomide.com>
-References: <1405115083-52977-1-git-send-email-s-anna@ti.com>
- <1405115083-52977-7-git-send-email-s-anna@ti.com>
- <20140715133013.GA2605@atomide.com>
- <53C55D68.8050308@ti.com>
- <20140716070708.GC2605@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP2+: clock: allow omap2_dpll_round_rate() to round
+ to next-lowest rate
+Date: Wed, 23 Jul 2014 10:44:33 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1407231043230.32419@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11275 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932201AbaGWJ0U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 05:26:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20140716070708.GC2605@atomide.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:34075 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756014AbaGWKoe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 06:44:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tomi.valkeinen@ti.com, mturquette@linaro.org
 
-* Tony Lindgren <tony@atomide.com> [140716 00:10]:
-> * Suman Anna <s-anna@ti.com> [140715 09:59]:
-> > Hi Tony,
-> > 
-> > On 07/15/2014 08:30 AM, Tony Lindgren wrote:
-> > > * Suman Anna <s-anna@ti.com> [140711 14:47]:
-> > >> Add the hwmod data for the 13 instances of the system mailbox
-> > >> IP in DRA7 SoC. The patch is needed for performing a soft-reset
-> > >> while configuring the respective mailbox instance, otherwise is
-> > >> a non-essential change for functionality. The modules are smart
-> > >> idled on reset, and the IP module mode is hardware controlled.
-> > >>
-> > >> Cc: Rajendra Nayak <rnayak@ti.com>
-> > >> Cc: Paul Walmsley <paul@pwsan.com>
-> > >> Signed-off-by: Suman Anna <s-anna@ti.com>
-> > >> ---
-> > >>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 305 ++++++++++++++++++++++++++++++
-> > >>  1 file changed, 305 insertions(+)
-> > >>
-> > >> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > >> index 20b4398..e35f5b1 100644
-> > >> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > >> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > >> @@ -939,6 +939,194 @@ static struct omap_hwmod dra7xx_i2c5_hwmod = {
-> > >>  };
-> > >>  
-> > >>  /*
-> > >> + * 'mailbox' class
-> > >> + *
-> > >> + */
-> > >> +
-> > >> +static struct omap_hwmod_class_sysconfig dra7xx_mailbox_sysc = {
-> > >> +	.rev_offs	= 0x0000,
-> > >> +	.sysc_offs	= 0x0010,
-> > >> +	.sysc_flags	= (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
-> > >> +			   SYSC_HAS_SOFTRESET),
-> > >> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> > >> +	.sysc_fields	= &omap_hwmod_sysc_type2,
-> > >> +};
-> > >> +
-> > >> +static struct omap_hwmod_class dra7xx_mailbox_hwmod_class = {
-> > >> +	.name	= "mailbox",
-> > >> +	.sysc	= &dra7xx_mailbox_sysc,
-> > >> +};
-> > > 
-> > > Hmm I'm seeing just the following MAILBOX_SYSCONFIG in at least
-> > > am57xx TRM:
-> > > 
-> > > 31:4	RESERVED
-> > > 3:2	SIDLEMODE	0 = force-idle 1 = no-idle, 2 = smart-idle, 3 = reserved
-> > > 1	RESERVED
-> > > 0	SOFTRESET
-> > > 
-> > > So it seems that SYSC_HAS_RESET_STATUS above is wrong? Can you guys
-> > > please check.
-> > 
-> > The same SOFTRESET bit is used for both triggering the softreset and
-> > reading the reset done status. Once you write a 1 to trigger a reset,
-> > the bit will be cleared once the reset is done. This is no different
-> > from OMAP4. The logic in _wait_softreset_complete in omap_hwmod.c was
-> > already designed to work with this properly.
-> 
-> Oh OK, I guess I got it confused with SYSS_HAS_RESET_STATUS. Paul,
-> want to ack this one if no other issues? I can then set this series
-> into a branch against -rc1 that we can all merge in as needed as
-> it seems that the driver changes may need this branch as a base too.
 
-I have applied these into omap-for-v3.17/mailbox and merged also
-into omap-for-v3.17/soc.
+Change the behavior of omap2_dpll_round_rate() to round to either the
+exact rate requested, or the next lowest rate that the clock is able to
+provide.
 
-Regards,
+This is not an ideal fix, but is intended to provide a relatively safe
+way for drivers to set PLL rates, until a better solution can be
+implemented.
 
-Tony
+For the time being, omap3_noncore_dpll_set_rate() is still allowed to
+set its rate to something other than what the caller requested; but will
+warn when this occurs.
+
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clkt_dpll.c | 28 +++++++++++++++++++++-------
+ arch/arm/mach-omap2/dpll3xxx.c  | 12 ++++++++++--
+ 2 files changed, 31 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
+index 332af927f4d3..85701142c5fc 100644
+--- a/arch/arm/mach-omap2/clkt_dpll.c
++++ b/arch/arm/mach-omap2/clkt_dpll.c
+@@ -293,10 +293,13 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+ {
+ 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+ 	int m, n, r, scaled_max_m;
++	int min_delta_m = INT_MAX, min_delta_n = INT_MAX;
+ 	unsigned long scaled_rt_rp;
+ 	unsigned long new_rate = 0;
+ 	struct dpll_data *dd;
+ 	unsigned long ref_rate;
++	long delta;
++	long prev_min_delta = LONG_MAX;
+ 	const char *clk_name;
+ 
+ 	if (!clk || !clk->dpll_data)
+@@ -342,23 +345,34 @@ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
+ 		if (r == DPLL_MULT_UNDERFLOW)
+ 			continue;
+ 
++		/* skip rates above our target rate */
++		delta = target_rate - new_rate;
++		if (delta < 0)
++			continue;
++
++		if (delta < prev_min_delta) {
++			prev_min_delta = delta;
++			min_delta_m = m;
++			min_delta_n = n;
++		}
++
+ 		pr_debug("clock: %s: m = %d: n = %d: new_rate = %lu\n",
+ 			 clk_name, m, n, new_rate);
+ 
+-		if (target_rate == new_rate) {
+-			dd->last_rounded_m = m;
+-			dd->last_rounded_n = n;
+-			dd->last_rounded_rate = target_rate;
++		if (delta == 0)
+ 			break;
+-		}
+ 	}
+ 
+-	if (target_rate != new_rate) {
++	if (prev_min_delta == LONG_MAX) {
+ 		pr_debug("clock: %s: cannot round to rate %lu\n",
+ 			 clk_name, target_rate);
+ 		return ~0;
+ 	}
+ 
+-	return target_rate;
++	dd->last_rounded_m = min_delta_m;
++	dd->last_rounded_n = min_delta_n;
++	dd->last_rounded_rate = target_rate - prev_min_delta;
++
++	return dd->last_rounded_rate;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index fcd8036af910..839a13e1208b 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -469,6 +469,7 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+ {
+ 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+ 	struct clk *new_parent = NULL;
++	unsigned long rrate;
+ 	u16 freqsel = 0;
+ 	struct dpll_data *dd;
+ 	int ret;
+@@ -496,8 +497,15 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+ 		__clk_prepare(dd->clk_ref);
+ 		clk_enable(dd->clk_ref);
+ 
+-		if (dd->last_rounded_rate != rate)
+-			rate = __clk_round_rate(hw->clk, rate);
++		if (dd->last_rounded_rate != rate) {
++			rrate = __clk_round_rate(hw->clk, rate);
++			if (rrate != rate) {
++				pr_warn("%s: %s: final rate %lu does not match desired rate %lu\n",
++					__func__, __clk_get_name(hw->clk),
++					rrate, rate);
++				rate = rrate;
++			}
++		}
+ 
+ 		if (dd->last_rounded_rate == 0)
+ 			return -EINVAL;
+-- 
+2.0.1
+
