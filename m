@@ -1,47 +1,40 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 1/3] pinctrl: dra7: dt-bindings: add pin off modes for dra7 SoC
-Date: Wed, 23 Jul 2014 18:54:40 +0530
-Message-ID: <1406121882-32658-2-git-send-email-mugunthanvnm@ti.com>
-References: <1406121882-32658-1-git-send-email-mugunthanvnm@ti.com>
+From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] iommu: Remove OMAP IOVMM driver
+Date: Wed, 23 Jul 2014 15:52:17 +0200
+Message-ID: <20140723135217.GE31450@8bytes.org>
+References: <1405680597-10012-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<9251918.dhlInzvbvO@avalon> <20140721093336.GR18374@atomide.com>
+	<5717663.qOZzl7syrN@avalon> <20140722061929.GD18374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51973 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751660AbaGWNYw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Jul 2014 09:24:52 -0400
-In-Reply-To: <1406121882-32658-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140722061929.GD18374-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-Add pin off modes for dra7 SoC so that during module disable or suspend
-state it can help saving power
+On Mon, Jul 21, 2014 at 11:19:29PM -0700, Tony Lindgren wrote:
+> > Tony, is there still time to get this (and especially patch 2/3, which touches 
+> > arch/ code) in v3.17 ?
+> 
+> Yes as long as Joerg is OK to merge that branch in :)
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- include/dt-bindings/pinctrl/dra.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Fine with me, I can take only patch 1 or all 3 into my arm/omap branch,
+given Tony's Acked-by.
 
-diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
-index 002a285..a0ff2d0 100644
---- a/include/dt-bindings/pinctrl/dra.h
-+++ b/include/dt-bindings/pinctrl/dra.h
-@@ -46,5 +46,13 @@
- #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
- #define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
- 
-+/* Off mode states */
-+#define PIN_OFF_NONE		0
-+#define PIN_OFF_OUTPUT_HIGH	(OFF_EN | OFFOUT_EN | OFFOUT_VAL)
-+#define PIN_OFF_OUTPUT_LOW	(OFF_EN | OFFOUT_EN)
-+#define PIN_OFF_INPUT_PULLUP	(OFF_EN | OFF_PULL_EN | OFF_PULL_UP)
-+#define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
-+#define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
-+
- #endif
- 
--- 
-2.0.2.673.g9ab0882
+Then you guys can merge in this branch wherever you want :)
 
+Cheers,
+
+	Joerg
