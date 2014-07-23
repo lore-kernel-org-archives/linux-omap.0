@@ -1,70 +1,49 @@
-From: Nick Krause <xerofoify@gmail.com>
-Subject: Re: Nokia N900 FB regression?
-Date: Wed, 23 Jul 2014 11:22:57 -0400
-Message-ID: <CAPDOMVhgKSQ37vwfd=YpnrhzCjDn1gEeER=QWZRhTccOL-20NA@mail.gmail.com>
-References: <20140722212318.GC2615@drone.musicnaut.iki.fi>
-	<20140723073706.GH18374@atomide.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI
+ architecture
+Date: Wed, 23 Jul 2014 16:29:02 +0100
+Message-ID: <20140723152902.GK23210@lee--X1>
+References: <1406126915-30601-1-git-send-email-peter.griffin@linaro.org>
+ <1406126915-30601-4-git-send-email-peter.griffin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:57907 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756440AbaGWPW6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Jul 2014 11:22:58 -0400
-Received: by mail-vc0-f175.google.com with SMTP id hu12so2443100vcb.20
-        for <linux-omap@vger.kernel.org>; Wed, 23 Jul 2014 08:22:57 -0700 (PDT)
-In-Reply-To: <20140723073706.GH18374@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1406126915-30601-4-git-send-email-peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
 
-On Wed, Jul 23, 2014 at 3:37 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [140722 14:25]:
->> Hi,
->>
->> Somewhere between 3.16-rc2 and rc6 (I was on holidays...) I noticed
->> the framebuffer stopped working on N900 (nothing on screen).
->>
->> I bisected this to 9188883fd66e9809e93e06d5bbd49cf99a6cdbee (ARM: dts:
->> Enable twl4030 off-idle configuration for selected omaps).
->> With this commit reverted, I can see the Tux again with 3.16-rc6.
->>
->> Any ideas?
->
-> Hmm, OK yeah that enables the deeper idle states. I have tested
-> this on n900, but only have remote access to it so could not see
-> the framebuffer.
->
-> Sounds like there's some twl regulator that we cannot idle
-> by default on n900. Here are the steps to narrow it down:
->
-> 1. Try ti,twl4030-power-idle in omap3-n900.dts instead of
->    ti,twl4030-power-idle-osc-off. This probably won't help
->    unless you're enabling off-idle though, so if it does not
->    help, just keep on using ti,twl4030-power-idle-osc-off.
->
-> 2. Try commenting out one or more of the TWL_REMAP_SLEEP or
->    TWL_REMAP_OFF lines in omap3_idle_rconfig in file
->    drivers/mfd/twl4030-power.c. That's the recommended init
->    sequence like the comments in the code mention. Chances
->    are we're missing a regulator_get somewhere but finding
->    out which one in omap3_idle_rconfig will help narrow it
->    down :)
->
-> 3. If it looks like a more complicated fix, we can just use
->    compatible = "ti,twl4030-power-n900" to disable the twl
->    features for v3.16 and re-enable it for v3.17.
->
-> Regards,
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 23 Jul 2014, Peter Griffin wrote:
 
+> Signed-off-by: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> ---
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
 
-Thanks Tony for the help, seems that this will be fixed before the 3.17 and
-needs no more assist from me.
-Cheers Nick
+Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>=20
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 702ca10..269ad3b 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1325,6 +1325,7 @@ F:	drivers/pinctrl/pinctrl-st.c
+>  F:	drivers/media/rc/st_rc.c
+>  F:	drivers/i2c/busses/i2c-st.c
+>  F:	drivers/tty/serial/st-asc.c
+> +F:	drivers/usb/dwc3/dwc3-st.c
+> =20
+>  ARM/TECHNOLOGIC SYSTEMS TS7250 MACHINE SUPPORT
+>  M:	Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
