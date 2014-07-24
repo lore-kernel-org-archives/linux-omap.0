@@ -1,55 +1,40 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 1/2] hwspinlock/omap: enable module before reading SYSSTATUS
- register
-Date: Thu, 24 Jul 2014 10:13:37 -0500
-Message-ID: <53D122A1.4040204@ti.com>
-References: <1404342060-2919-1-git-send-email-s-anna@ti.com> <1404342060-2919-2-git-send-email-s-anna@ti.com> <CAK=Wgba3OOgZG_smj5=raE+ZXZ-F0ksn4pcGeDc1JDE34Q-wFg@mail.gmail.com>
+From: Fabian Frederick <fabf@skynet.be>
+Subject: Re: [PATCH 00/10 linux-next] drivers/usb: remove unnecessary break
+ after goto/return
+Date: Thu, 24 Jul 2014 17:46:42 +0200 (CEST)
+Message-ID: <2081121229.1044862.1406216802363.open-xchange@webmail.nmp.skynet.be>
+References: <1406189939-6433-1-git-send-email-fabf@skynet.be> <1406201840.729.4.camel@linux-fkkt.site>
+Reply-To: Fabian Frederick <fabf@skynet.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56914 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759184AbaGXPOj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Jul 2014 11:14:39 -0400
-In-Reply-To: <CAK=Wgba3OOgZG_smj5=raE+ZXZ-F0ksn4pcGeDc1JDE34Q-wFg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1406201840.729.4.camel@linux-fkkt.site>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Oliver Neukum <oneukum@suse.de>
+Cc: usb-storage@lists.one-eyed-alien.net, joe@perches.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Ohad,
 
-On 07/24/2014 08:45 AM, Ohad Ben-Cohen wrote:
-> Hi Suman,
-> 
-> On Thu, Jul 3, 2014 at 2:00 AM, Suman Anna <s-anna@ti.com> wrote:
->> The number of hwspinlocks are determined based on the value read
->> from the IP block's SYSSTATUS register. However, the module may
->> not be enabled and clocked, and the read may result in a bus error.
->>
->> This particular issue is seen rather easily on AM33XX, since the
->> module wakeup is software controlled, and it is disabled out of
->> reset. Make sure the module is enabled and clocked before reading
->> the SYSSTATUS register.
->>
->> Signed-off-by: Suman Anna <s-anna@ti.com>
-> ...
->> +       /*
->> +        * runtime PM will make sure the clock of this module is
->> +        * enabled again iff at least one lock is requested
->> +        */
->> +       ret = pm_runtime_put_sync(&pdev->dev);
-> 
-> Is there a specific reason for using the put_sync variant here? If
-> not, let's just use the regular put().
 
-There was no particular reason, you can change it.
+> On 24 July 2014 at 13:37 Oliver Neukum <oneukum@suse.de> wrote:
+>
+>
+> On Thu, 2014-07-24 at 10:18 +0200, Fabian Frederick wrote:
+> > Small patchset addressing break redundancy on drivers/usb branch
+> > (suggested by Joe Perches).
+>
+> Frankly, that is not a good idea. Somebody will remove a "goto"
+> and forget to readd the "break"
 
-> 
-> Let me know, and I can do the change while applying these two patches.
+No problem ; checkpatch would give a warning anyway. See "Possible swit=
+ch
+case/default not preceeded by break or fallthrough comment"
 
-Sure, thanks.
-
-regards
-Suman
+Regards,
+=46abian
+>
+>=C2=A0 =C2=A0 =C2=A0 =C2=A0Regards
+>=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0Oliver
+>
+>
