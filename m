@@ -1,34 +1,81 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 00/10 linux-next] drivers/usb: remove unnecessary break
- after goto/return
-Date: Thu, 24 Jul 2014 08:52:11 -0700
-Message-ID: <1406217131.27221.27.camel@joe-AO725>
-References: <1406189939-6433-1-git-send-email-fabf@skynet.be>
-	 <1406201840.729.4.camel@linux-fkkt.site>
-	 <2081121229.1044862.1406216802363.open-xchange@webmail.nmp.skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: matwey@sai.msu.ru
+Subject: [PATCH] gpu: drm: omapdrm: Use %pad format for values of the dma_addr_t type
+Date: Thu, 24 Jul 2014 21:58:06 +0400
+Message-ID: <1406224686-4857-1-git-send-email-matwey@sai.msu.ru>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2081121229.1044862.1406216802363.open-xchange@webmail.nmp.skynet.be>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Cc: Oliver Neukum <oneukum@suse.de>, usb-storage@lists.one-eyed-alien.net, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: airlied@linux.ie
+Cc: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, matwey.kornilov@gmail.com, "Matwey V. Kornilov" <matwey@sai.msu.ru>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2014-07-24 at 17:46 +0200, Fabian Frederick wrote:
-> 
-> > On 24 July 2014 at 13:37 Oliver Neukum <oneukum@suse.de> wrote:
-> >
-> >
-> > On Thu, 2014-07-24 at 10:18 +0200, Fabian Frederick wrote:
-> > > Small patchset addressing break redundancy on drivers/usb branch
-> > > (suggested by Joe Perches).
-> >
-> > Frankly, that is not a good idea. Somebody will remove a "goto"
-> > and forget to readd the "break"
-> 
-> No problem ; checkpatch would give a warning anyway. See "Possible switch
-> case/default not preceeded by break or fallthrough comment"
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
 
-Generally true, but not everyone uses checkpatch.
+The format change is to fix the following compilation issue:
+
+../drivers/gpu/drm/omapdrm/omap_plane.c: In function 'omap_plane_pre_apply':
+../drivers/gpu/drm/omapdrm/omap_plane.c:145:2: error: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Werror=format=]
+  DBG("%d,%d %08x %08x", info->pos_x, info->pos_y,
+  ^
+../drivers/gpu/drm/omapdrm/omap_plane.c:145:2: error: format '%x' expects argument of type 'unsigned int', but argument 6 has type 'dma_addr_t' [-Werror=format=]
+cc1: all warnings being treated as errors
+../scripts/Makefile.build:273: recipe for target 'drivers/gpu/drm/omapdrm/omap_plane.o' failed
+
+Signed-off-by: Matwey V. Kornilov <matwey@sai.msu.ru>
+---
+ drivers/gpu/drm/omapdrm/omap_gem.c   | 10 +++++-----
+ drivers/gpu/drm/omapdrm/omap_plane.c |  4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/drm/omapdrm/omap_gem.c b/drivers/gpu/drm/omapdrm/omap_gem.c
+index 95dbce2..44305c6 100644
+--- a/drivers/gpu/drm/omapdrm/omap_gem.c
++++ b/drivers/gpu/drm/omapdrm/omap_gem.c
+@@ -791,7 +791,7 @@ int omap_gem_get_paddr(struct drm_gem_object *obj,
+ 			omap_obj->paddr = tiler_ssptr(block);
+ 			omap_obj->block = block;
+ 
+-			DBG("got paddr: %08x", omap_obj->paddr);
++			DBG("got paddr: %pad", &(omap_obj->paddr));
+ 		}
+ 
+ 		omap_obj->paddr_cnt++;
+@@ -985,9 +985,9 @@ void omap_gem_describe(struct drm_gem_object *obj, struct seq_file *m)
+ 
+ 	off = drm_vma_node_start(&obj->vma_node);
+ 
+-	seq_printf(m, "%08x: %2d (%2d) %08llx %08Zx (%2d) %p %4d",
++	seq_printf(m, "%08x: %2d (%2d) %08llx %pad (%2d) %p %4d",
+ 			omap_obj->flags, obj->name, obj->refcount.refcount.counter,
+-			off, omap_obj->paddr, omap_obj->paddr_cnt,
++			off, &(omap_obj->paddr), omap_obj->paddr_cnt,
+ 			omap_obj->vaddr, omap_obj->roll);
+ 
+ 	if (omap_obj->flags & OMAP_BO_TILED) {
+@@ -1467,8 +1467,8 @@ void omap_gem_init(struct drm_device *dev)
+ 			entry->paddr = tiler_ssptr(block);
+ 			entry->block = block;
+ 
+-			DBG("%d:%d: %dx%d: paddr=%08x stride=%d", i, j, w, h,
+-					entry->paddr,
++			DBG("%d:%d: %dx%d: paddr=%pad stride=%d", i, j, w, h,
++					&(entry->paddr),
+ 					usergart[i].stride_pfn << PAGE_SHIFT);
+ 		}
+ 	}
+diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
+index 3cf31ee..aaa9a2c 100644
+--- a/drivers/gpu/drm/omapdrm/omap_plane.c
++++ b/drivers/gpu/drm/omapdrm/omap_plane.c
+@@ -142,8 +142,8 @@ static void omap_plane_pre_apply(struct omap_drm_apply *apply)
+ 	DBG("%dx%d -> %dx%d (%d)", info->width, info->height,
+ 			info->out_width, info->out_height,
+ 			info->screen_width);
+-	DBG("%d,%d %08x %08x", info->pos_x, info->pos_y,
+-			info->paddr, info->p_uv_addr);
++	DBG("%d,%d %pad %pad", info->pos_x, info->pos_y,
++			&(info->paddr), &(info->p_uv_addr));
+ 
+ 	/* TODO: */
+ 	ilace = false;
+-- 
+1.8.1.4
