@@ -1,39 +1,39 @@
 From: Fabian Frederick <fabf@skynet.be>
-Subject: [PATCH 00/10 linux-next] drivers/usb: remove unnecessary break after goto/return
-Date: Thu, 24 Jul 2014 10:18:48 +0200
-Message-ID: <1406189939-6433-1-git-send-email-fabf@skynet.be>
+Subject: [PATCH 03/10 linux-next] usb: dcw3: remove unnecessary break after return
+Date: Thu, 24 Jul 2014 10:18:51 +0200
+Message-ID: <1406189939-6433-4-git-send-email-fabf@skynet.be>
+References: <1406189939-6433-1-git-send-email-fabf@skynet.be>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1406189939-6433-1-git-send-email-fabf@skynet.be>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: joe@perches.com, gregkh@linuxfoundation.org, Fabian Frederick <fabf@skynet.be>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, usb-storage@lists.one-eyed-alien.net
+Cc: joe@perches.com, gregkh@linuxfoundation.org, Fabian Frederick <fabf@skynet.be>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Small patchset addressing break redundancy on drivers/usb branch
-(suggested by Joe Perches).
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/usb/dwc3/ep0.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Fabian Frederick (10):
-  USB: iowarrior: remove unnecessary break after goto
-  USB: usblcd: remove unnecessary break after return
-  usb: dcw3: remove unnecessary break after return
-  usb: gadget: remove unnecessary break after return
-  usb: gadget: remove unnecessary break after goto
-  xhci: remove unnecessary break after return
-  usb: storage: remove unnecessary break after return
-  USB: serial: remove unnecessary break after return
-  USB: ftdi_sio: remove unnecessary break after return
-  USB: microtek: remove unnecessary break after goto
-
- drivers/usb/dwc3/ep0.c                     | 2 --
- drivers/usb/gadget/function/f_hid.c        | 8 --------
- drivers/usb/gadget/legacy/tcm_usb_gadget.c | 2 --
- drivers/usb/host/xhci-mem.c                | 1 -
- drivers/usb/image/microtek.c               | 1 -
- drivers/usb/misc/iowarrior.c               | 3 ---
- drivers/usb/misc/usblcd.c                  | 1 -
- drivers/usb/serial/ftdi_sio.c              | 1 -
- drivers/usb/serial/iuu_phoenix.c           | 2 --
- drivers/usb/storage/freecom.c              | 1 -
- 10 files changed, 22 deletions(-)
-
+diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
+index 21a3520..927dad3 100644
+--- a/drivers/usb/dwc3/ep0.c
++++ b/drivers/usb/dwc3/ep0.c
+@@ -422,7 +422,6 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
+ 
+ 		case USB_DEVICE_LTM_ENABLE:
+ 			return -EINVAL;
+-			break;
+ 
+ 		case USB_DEVICE_TEST_MODE:
+ 			if ((wIndex & 0xff) != 0)
+@@ -530,7 +529,6 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
+ 	switch (state) {
+ 	case USB_STATE_DEFAULT:
+ 		return -EINVAL;
+-		break;
+ 
+ 	case USB_STATE_ADDRESS:
+ 		ret = dwc3_ep0_delegate_req(dwc, ctrl);
 -- 
 1.8.4.5
