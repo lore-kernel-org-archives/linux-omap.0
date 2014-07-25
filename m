@@ -1,72 +1,86 @@
-From: Alexandre Courbot <gnurou@gmail.com>
-Subject: Re: [PATCH] gpio: extend gpiod_get*() with flags parameter
-Date: Fri, 25 Jul 2014 10:32:45 +0900
-Message-ID: <CAAVeFuLK2qf1n6ipnW1tK_ur2_j7NOWLegMWYAQGwKw85fnwpA@mail.gmail.com>
-References: <1406214298-20062-1-git-send-email-acourbot@nvidia.com>
- <6059032.T3tqvLkWTo@wuerfel>
+From: Pekon Gupta <pekon@ti.com>
+Subject: [PATCH v2 0/3] ARM: dts: am335x-bone: Beaglebone cape DTS
+Date: Fri, 25 Jul 2014 16:04:01 +0530
+Message-ID: <1406284444-16733-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <6059032.T3tqvLkWTo@wuerfel>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-wireless <linux-wireless@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, linux-mmc <linux-mmc@vger.kernel.org>, Chris Ball <chris@printf.net>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, Jiri Slaby <jslaby@suse.cz>, Florian Fainelli <f.fainelli@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Alexander Shiyan <shc_work@mail.ru>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Paul Handrigan <Paul.Handrigan@cirrus.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Hans Verkuil <hans.verkuil@cisco.com>, linux-serial@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60174 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751848AbaGYKef (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Jul 2014 06:34:35 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>, Roger Quadros <rogerq@ti.com>, linux-mtd <linux-mtd@lists.infradead.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Pekon Gupta <pekon@ti.com>
 
-On Fri, Jul 25, 2014 at 1:10 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday 25 July 2014 00:04:58 Alexandre Courbot wrote:
->> I'm not sure how this could be applied harmlessly though - maybe through
->> a dedicated branch for -next? Problem is that a lot of new code is not
->> yet merged into mainline, and conflicts are very likely to occur. Linus,
->> do you have any suggestion as to how this can be done without blood being
->> spilled?
->
-> There is a trick that we sometime use in this situation,
-> though it has to be done carefully:
->
->> diff --git a/Documentation/gpio/consumer.txt b/Documentation/gpio/consumer.txt
->> index 7ff30d2..a3fb1d7 100644
->> --- a/Documentation/gpio/consumer.txt
->> +++ b/Documentation/gpio/consumer.txt
->> @@ -29,13 +29,24 @@ gpiod_get() functions. Like many other kernel subsystems, gpiod_get() takes the
->>  device that will use the GPIO and the function the requested GPIO is supposed to
->>  fulfill:
->>
->> -       struct gpio_desc *gpiod_get(struct device *dev, const char *con_id)
->> +       struct gpio_desc *gpiod_get(struct device *dev, const char *con_id,
->> +                                   enum gpio_flags flags)
->>
->>
->
->
-> -       struct gpio_desc *gpiod_get(struct device *dev, const char *con_id)
-> +       struct gpio_desc *__gpiod_get(struct device *dev, const char *con_id,
-> +                                       enum gpio_flags flags);
-> +
-> +#define __gpiod_get(dev, con_id, flags, ...) __gpiod_get(dev, con_id, flags)
-> +#define gpiod_get(varargs ...) __gpiod_get(varargs, 0)
->
-> This will allow both variants to be called, and any users of the three-argument
-> version will pass zero as the fourth argument (or whatever you choose there).
->
-> Once the conversion is complete, the macros can be removed.
+*changes v1->v2 *
+- fixed pin-ctrl property, as GPMC does not configure pin-mux for
+  individual sub-nodes.
+- fixed LCD pixed clock freq, and sync-ctrl
 
-Wow, that works great, thanks! Indeed, this will allow me to send more
-localized patches and to not spam half of the kernel developers. Sorry
-about the noise.
 
-Let's close this thread, I will submit the gpiolib update with this
-trick first, then update each user before eventually removing the
-macros.
+*Original v1*
+This series adds DTS for following Beaglebone capes:
 
-Thanks,
-Alex.
+Memory Cape: http://beagleboardtoys.info/index.php?title=BeagleBone_Memory_Expansion
+NAND Cape:   http://beagleboardtoys.info/index.php?title=BeagleBone_4Gb_16-Bit_NAND_Module
+NOR Cape:    http://elinux.org/Beagleboardtoys:BeagleBone_128Mb_16-Bit_NOR_Module
+LCD4 Cape:   http://elinux.org/CircuitCo:BeagleBone_LCD4
+
+Based on Tree: git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v3.16/dt-v2
+
+Acceptance of cape DTS in mainline is still under discussion [1], so multiple
+'Tested-by' would be helpful.
+Note: In order to avoid conflicts with existing DTS, device nodes added in these
+patches have status="disabled", and need to be "enabled" via u-boot.
+DT nodes can be selectively enabled | disabled via u-boot [2]
+
+Example: Below sequence works for NAND cape patch.
+---------------
+/* load DTB */
+u-boot> tftp 0x81000000 am335x-boneblack.dtb
+u-boot> fdt addr 0x81000000
+/* disable MMC2 node */
+u-boot> fdt list /ocp/mmc@481d8000
+u-boot> fdt set  /ocp/mmc@481d8000 status \d\i\s\a\b\l\e\d
+u-boot> fdt list /ocp/mmc@481d8000 status
+/* enable GPMC node */
+u-boot> fdt list /ocp/gpmc
+u-boot> fdt set  /ocp/gpmc status \o\k\a\y
+u-boot> fdt list /ocp/gpmc status
+/* enable ELM node */
+u-boot> fdt list /ocp/elm
+u-boot> fdt set  /ocp/elm status \o\k\a\y
+u-boot> fdt list /ocp/elm status
+/* boot uImage */
+tftp 0x82000000 uImage
+bootm 0x82000000 - 0x81000000
+
+Note: "fdt set" command does not accept string literals
+as binding values, it internally converts them to string, so
+escape sequenced characters were used here..
+"okay" == \o\k\a\y
+"disabled" == \d\i\s\a\b\l\e\d"
+---------------
+
+[1] http://www.spinics.net/lists/linux-omap/msg108505.html 
+[2] http://www.denx.de/wiki/view/DULG/UBootCmdFDT
+
+
+Pekon Gupta (3):
+  ARM: dts: am335x-bone: add support for beaglebone NAND cape
+  ARM: dts: am335x-bone: add support for beaglebone NOR cape
+  ARM: dts: am335x-bone: add support for beaglebone LCD4 cape
+
+ arch/arm/boot/dts/am335x-bone-display-cape.dts | 104 +++++++++++
+ arch/arm/boot/dts/am335x-bone-memory-cape.dts  | 243 +++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-bone.dts              |   2 +
+ arch/arm/boot/dts/am335x-boneblack.dts         |   2 +
+ 4 files changed, 351 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-bone-display-cape.dts
+ create mode 100644 arch/arm/boot/dts/am335x-bone-memory-cape.dts
+
+-- 
+1.8.5.1.163.gd7aced9
+
