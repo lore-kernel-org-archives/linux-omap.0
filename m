@@ -1,142 +1,97 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Fri, 25 Jul 2014 19:14:20 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com> <20140707080238.GF28884@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH CFT v2] arm: omap1: Migrate debug_ll macros to use 8250.S
+Date: Fri, 25 Jul 2014 22:45:54 +0300
+Message-ID: <20140725194554.GB5336@drone.musicnaut.iki.fi>
+References: <20140717171250.GC16324@ambient.musicnaut.iki.fi>
+ <1405694642-25024-1-git-send-email-daniel.thompson@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37823 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401AbaGYTOV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jul 2014 15:14:21 -0400
-In-Reply-To: <20140707080238.GF28884@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1405694642-25024-1-git-send-email-daniel.thompson@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Mon, 7 Jul 2014, Tony Lindgren wrote:
+Hi,
 
-> With v3.16-rc4 the PM features for omap3 should be working
-> finally for device tree based booting. At lest beaglexm and
-> 3xxevm should work.
+On Fri, Jul 18, 2014 at 03:44:02PM +0100, Daniel Thompson wrote:
+> The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
+> the 8520 code the omap1 macro automatically determines what UART to use
+> based on breadcrumbs left by the bootloader and automatically copes with
+> the eccentric register layout on OMAP7XX.
+> 
+> This patch drops both these features and relies instead on the generic
+> 8250 macros:
+> 
+> 1. Dropping support for the bootloader breadcrumbs is identical to the
+>    way the migration was handled for OMAP2 (see 808b7e07464d...).
+> 
+> 2. Support for OMAP7XX still exists but it must be configured by hand
+>    (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
+> 
+> Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
 
-Just to follow up briefly on this: there was indeed a bug in the OMAP3 
-test scripts here that resulted in the UART wakeup not being enabled.
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Once that was fixed, system suspend-based chip-retention and chip-off 
-modes work.
+I tested this on OMAP1510. The generic code works, though there will be
+some more work for the user. Maybe that's acceptable if we want to get
+rid of the asm file, since the use case is rare.
 
-However, scheduler-idle based chip-retention and chip-off still are not
-working.  Looking at the logs, it appears that some domains are not 
-dynamically going idle.  For example, looking at:
+The patch still has couple typos, see comments below.
 
-http://www.pwsan.com/omap/testlogs/test_v3.16-rc6/20140724142225/pm/37xxevm/37xxevm_log.txt
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
+> Cc: linux-omap@vger.kernel.org
+> ---
+> 
+> Notes:
+>     Changes since v1:
+>     
+>     * Removed !ARCH_OMAP7XX from the DEBUG_OMAP1UART1/2/3 options
+>       (thanks to Aaro Koskinen)
+> 
+>  arch/arm/Kconfig.debug                         |  57 +++++++++++++-
+>  arch/arm/mach-omap1/include/mach/debug-macro.S | 101 -------------------------
+>  2 files changed, 56 insertions(+), 102 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap1/include/mach/debug-macro.S
+> 
+> diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+> index 6f9664a..762b3ed 100644
+> --- a/arch/arm/Kconfig.debug
+> +++ b/arch/arm/Kconfig.debug
+> @@ -463,6 +463,30 @@ choice
+>  		  Say Y here if you want kernel low-level debugging support
+>  		  on TI-NSPIRE CX models.
+>  
+> +	config DEBUG_OMAP1UART1
+> +		bool "Kernel low-level debugging via OMAP1 UART1"
+> +		depends on ARCH_OMAP1
+> +		select DEBUG_UART_8250
+> +		help
+> +		  Say Y here if you want kernel low-level debugging support
+> +		  on OMAP1 based platforms (expect OMAP730) on the UART1.
+                                            ^^^^^^
 
-it can be seen that core_pwrdm's retention count doesn't increase between 
-the two PM debug dumps.  The important lines are:
+                       This should be "except", also repeated below for
+                       ports 2-3.
 
-core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+> +	config DEBUG_OMAP1UART2
+> +		bool "Kernel low-level debugging via OMAP1 UART2"
+> +		depends on ARCH_OMAP1
+> +		select DEBUG_UART_8250
+> +		help
+> +		  Say Y here if you want kernel low-level debugging support
+> +		  on OMAP1 based platforms (expect OMAP730) on the UART2.
+> +
+> +	config DEBUG_OMAP1UART3
+> +		bool "Kernel low-level debugging via OMAP1 UART3"
+> +		depends on ARCH_OMAP1
+> +		select DEBUG_UART_8250
+> +		help
+> +		  Say Y here if you want kernel low-level debugging support
+> +		  on OMAP1 based platforms (expect OMAP730) on the UART3.
 
-and 
-
-core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-
-That's why the test reports mark the dynamic PM modes as failing.
-
-...
-
-Here's an example where things worked:
-
-http://www.pwsan.com/omap/testlogs/test_v3.10/20130717134228/pm/3530es3beagle/3530es3beagle_log.txt
-
-In this one, it can be seen that the CORE counts transitioned from:
-
-core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-
-to
-
-core_pwrdm (ON),OFF:0,RET:10,INA:0,ON:11,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-
-between the retention suspend/resume test ending and the dynamic 
-retention idle test ending.
-
-
-- Paul
-
-
-
-# # cat /debug/pm_debug/count
-
-
-
-usbhost_pwrdm (ON),OFF:0,RET:333,INA:0,ON:334,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-per_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:0,RET:333,INA:0,ON:334,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-neon_pwrdm (ON),OFF:0,RET:297,INA:36,ON:334,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:0,RET:297,INA:36,ON:334,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-usbhost_clkdm->usbhost_pwrdm (1)
-sgx_clkdm->sgx_pwrdm (0)
-per_clkdm->per_pwrdm (15)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (1)
-d2d_clkdm->core_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-core_l4_clkdm->core_pwrdm (22)
-core_l3_clkdm->core_pwrdm (1)
-neon_clkdm->neon_pwrdm (0)
-# # # # ./test_rootfs_access_nonexistent_file__ret_susp
-
-/bin/sh: 32: ./test_rootfs_access_nonexistent_file__ret_susp: not found
-# # 
-%% End retention double suspend/resume UART wakeup test
-
-
-%% Start retention dynamic idle UART wakeup test
-
-for u in `ls -1d /sys/bus/platform/drivers/omap_uart/*.serial | paste -s 
--d' '`; do echo 3000 >  $u/power/autosuspend_delay_ms; done
-
-# # 
-
-# # 
-
-# # cat /debug/pm_debug/count
-
-usbhost_pwrdm (ON),OFF:0,RET:433,INA:0,ON:434,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-per_pwrdm (ON),OFF:0,RET:23,INA:0,ON:24,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:0,RET:433,INA:0,ON:434,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-neon_pwrdm (ON),OFF:0,RET:393,INA:40,ON:434,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:0,RET:393,INA:40,ON:434,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-usbhost_clkdm->usbhost_pwrdm (1)
-sgx_clkdm->sgx_pwrdm (0)
-per_clkdm->per_pwrdm (13)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (1)
-d2d_clkdm->core_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-core_l4_clkdm->core_pwrdm (21)
-core_l3_clkdm->core_pwrdm (1)
-neon_clkdm->neon_pwrdm (0)
-# # 
-
-# # ./test_rootfs_access_nonexistent_file__ret_dyn
-
-/bin/sh: 44: ./test_rootfs_access_nonexistent_file__ret_dyn: not found
-# # for u in `ls -1d /sys/bus/platform/drivers/omap_uart/*.serial | paste 
--s -d' '`; do echo -1 >  $u/power/autosuspend_delay_ms; done
-
-# # 
-%% End retention dynamic idle UART wakeup test
-
+A.
