@@ -1,130 +1,142 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.16-rc6 (corrected)
-Date: Fri, 25 Jul 2014 19:01:27 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407251900370.5875@utopia.booyaka.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Fri, 25 Jul 2014 19:14:20 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com> <20140707080238.GF28884@atomide.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37679 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:37823 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753480AbaGYTB2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jul 2014 15:01:28 -0400
+	with ESMTP id S1751401AbaGYTOV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jul 2014 15:14:21 -0400
+In-Reply-To: <20140707080238.GF28884@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+
+On Mon, 7 Jul 2014, Tony Lindgren wrote:
+
+> With v3.16-rc4 the PM features for omap3 should be working
+> finally for device tree based booting. At lest beaglexm and
+> 3xxevm should work.
+
+Just to follow up briefly on this: there was indeed a bug in the OMAP3 
+test scripts here that resulted in the UART wakeup not being enabled.
+
+Once that was fixed, system suspend-based chip-retention and chip-off 
+modes work.
+
+However, scheduler-idle based chip-retention and chip-off still are not
+working.  Looking at the logs, it appears that some domains are not 
+dynamically going idle.  For example, looking at:
+
+http://www.pwsan.com/omap/testlogs/test_v3.16-rc6/20140724142225/pm/37xxevm/37xxevm_log.txt
+
+it can be seen that core_pwrdm's retention count doesn't increase between 
+the two PM debug dumps.  The important lines are:
+
+core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+
+and 
+
+core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+
+That's why the test reports mark the dynamic PM modes as failing.
+
+...
+
+Here's an example where things worked:
+
+http://www.pwsan.com/omap/testlogs/test_v3.10/20130717134228/pm/3530es3beagle/3530es3beagle_log.txt
+
+In this one, it can be seen that the CORE counts transitioned from:
+
+core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+
+to
+
+core_pwrdm (ON),OFF:0,RET:10,INA:0,ON:11,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+
+between the retention suspend/resume test ending and the dynamic 
+retention idle test ending.
 
 
-Here are some basic OMAP test results for Linux v3.16-rc6.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v3.16-rc6/20140724142225/
+- Paul
 
 
-Test summary
-------------
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: zImage:
-    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
-		  omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Build: uImage+dtb:
-    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap5-uevm
-
-Boot to userspace:
-    FAIL ( 1/14): 2430sdp
-    skip ( 1/14): 5912osk
-    Pass (12/14): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
-		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-		  am335xbonelt, cmt3517, 4460varsomom, 5430es2uevm
-
-PM: chip retention via suspend:
-    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
-    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/ 7): 2430sdp, 3530es3beagle, 3730beaglexm, 37xxevm,
-		  4430es2panda, 4460pandaes, 4460varsomom
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    FAIL ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 1/ 5): 37xxevm
-
-PM: chip off via dynamic idle:
-    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
+# # cat /debug/pm_debug/count
 
 
-vmlinux object size
-(delta in bytes from test_v3.16-rc5 
-(1795cd9b3a91d4b5473c97f491d63892442212ab)):
-   text     data      bss    total  kernel
-  +2332      +16        0    +2348  omap1_defconfig
-  +2332      +40        0    +2372  omap1_defconfig_1510innovator_only
-  +2364      +16        0    +2380  omap1_defconfig_5912osk_only
-  +2201     +376        0    +2577  multi_v7_defconfig
-  +3173     +464        0    +3637  omap2plus_defconfig
-  +2465        0        0    +2465  omap2plus_defconfig_2430sdp_only
-  +7249       +8        0    +7257  omap2plus_defconfig_am33xx_only
-  +3153     +400        0    +3553  omap2plus_defconfig_am43xx_only
-  +3173     +400        0    +3573  omap2plus_defconfig_cpupm
-  +3153     +400        0    +3553  omap2plus_defconfig_dra7xx_only
-   +880        0        0     +880  omap2plus_defconfig_n800_multi_omap2xxx
-   +880      +32        0     +912  omap2plus_defconfig_n800_only_a
-  +3109     +400        0    +3509  omap2plus_defconfig_no_pm
-  +3109     +464        0    +3573  omap2plus_defconfig_omap2_4_only
-  +7253     +464        0    +7717  omap2plus_defconfig_omap3_4_only
-  +3153     +400        0    +3553  omap2plus_defconfig_omap5_only
-   +116        0      -56      +60  rmk_omap3430_ldp_allnoconfig
-  +1885       +8        0    +1893  rmk_omap3430_ldp_oldconfig
-   +164     +384      -72     +476  rmk_omap4430_sdp_allnoconfig
-  +2056     +424        0    +2480  rmk_omap4430_sdp_oldconfig
 
-Boot-time memory difference
-(delta in bytes from test_v3.16-rc5 (1795cd9b3a91d4b5473c97f491d63892442212ab))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -8k     8k      .      .  3517evm        omap2plus_defconfig
-    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .      .  37xxevm        omap2plus_defconfig
-    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
-    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
-    -8k     8k      .      .  4460varsomom   omap2plus_defconfig
-    -8k     8k      .      .  5430es2uevm    omap2plus_defconfig
-    -8k     8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
-    -8k     8k      .      .  am335xbonelt   omap2plus_defconfig
+usbhost_pwrdm (ON),OFF:0,RET:333,INA:0,ON:334,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+per_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+dss_pwrdm (ON),OFF:0,RET:333,INA:0,ON:334,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+neon_pwrdm (ON),OFF:0,RET:297,INA:36,ON:334,RET-LOGIC-OFF:0
+mpu_pwrdm (ON),OFF:0,RET:297,INA:36,ON:334,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
+usbhost_clkdm->usbhost_pwrdm (1)
+sgx_clkdm->sgx_pwrdm (0)
+per_clkdm->per_pwrdm (15)
+cam_clkdm->cam_pwrdm (0)
+dss_clkdm->dss_pwrdm (1)
+d2d_clkdm->core_pwrdm (0)
+iva2_clkdm->iva2_pwrdm (0)
+mpu_clkdm->mpu_pwrdm (0)
+core_l4_clkdm->core_pwrdm (22)
+core_l3_clkdm->core_pwrdm (1)
+neon_clkdm->neon_pwrdm (0)
+# # # # ./test_rootfs_access_nonexistent_file__ret_susp
 
+/bin/sh: 32: ./test_rootfs_access_nonexistent_file__ret_susp: not found
+# # 
+%% End retention double suspend/resume UART wakeup test
+
+
+%% Start retention dynamic idle UART wakeup test
+
+for u in `ls -1d /sys/bus/platform/drivers/omap_uart/*.serial | paste -s 
+-d' '`; do echo 3000 >  $u/power/autosuspend_delay_ms; done
+
+# # 
+
+# # 
+
+# # cat /debug/pm_debug/count
+
+usbhost_pwrdm (ON),OFF:0,RET:433,INA:0,ON:434,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+per_pwrdm (ON),OFF:0,RET:23,INA:0,ON:24,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+dss_pwrdm (ON),OFF:0,RET:433,INA:0,ON:434,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+neon_pwrdm (ON),OFF:0,RET:393,INA:40,ON:434,RET-LOGIC-OFF:0
+mpu_pwrdm (ON),OFF:0,RET:393,INA:40,ON:434,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
+usbhost_clkdm->usbhost_pwrdm (1)
+sgx_clkdm->sgx_pwrdm (0)
+per_clkdm->per_pwrdm (13)
+cam_clkdm->cam_pwrdm (0)
+dss_clkdm->dss_pwrdm (1)
+d2d_clkdm->core_pwrdm (0)
+iva2_clkdm->iva2_pwrdm (0)
+mpu_clkdm->mpu_pwrdm (0)
+core_l4_clkdm->core_pwrdm (21)
+core_l3_clkdm->core_pwrdm (1)
+neon_clkdm->neon_pwrdm (0)
+# # 
+
+# # ./test_rootfs_access_nonexistent_file__ret_dyn
+
+/bin/sh: 44: ./test_rootfs_access_nonexistent_file__ret_dyn: not found
+# # for u in `ls -1d /sys/bus/platform/drivers/omap_uart/*.serial | paste 
+-s -d' '`; do echo -1 >  $u/power/autosuspend_delay_ms; done
+
+# # 
+%% End retention dynamic idle UART wakeup test
 
