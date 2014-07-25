@@ -1,126 +1,36 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 2/2] ARM: DRA7: hwmod: Add dra74x and dra72x specific
- ocp interface lists
-Date: Fri, 25 Jul 2014 20:54:16 +0530
-Message-ID: <53D276A0.3070800@ti.com>
-References: <1405499774-19770-1-git-send-email-lokeshvutla@ti.com> <1405499774-19770-3-git-send-email-lokeshvutla@ti.com> <53CE9652.4080304@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/2] ARM: DRA7: hwmod: Add dra74x and dra72x specific ocp
+ interface lists
+Date: Fri, 25 Jul 2014 10:44:10 -0500
+Message-ID: <CAGo_u6qGYzndVDHxjkoBgfV+adw1FXbhBfRxVPQV2jYq5gt0gA@mail.gmail.com>
+References: <1405499774-19770-1-git-send-email-lokeshvutla@ti.com>
+	<1405499774-19770-3-git-send-email-lokeshvutla@ti.com>
+	<53CE9652.4080304@ti.com>
+	<53D276A0.3070800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53CE9652.4080304@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux@arm.linux.org.uk, nsekhar@ti.com, j-keerthy@ti.com, rogerq@ti.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f178.google.com ([209.85.213.178]:41140 "EHLO
+	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761122AbaGYPoL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Jul 2014 11:44:11 -0400
+In-Reply-To: <53D276A0.3070800@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, Sekhar Nori <nsekhar@ti.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Roger Quadros <rogerq@ti.com>
 
-Hi Nishanth,
-On Tuesday 22 July 2014 10:20 PM, Nishanth Menon wrote:
-> On 07/16/2014 03:36 AM, Lokesh Vutla wrote:
->> From: Rajendra Nayak <rnayak@ti.com>
->>
->> To deal with IPs which are specific to dra74x and dra72x, maintain seperate
->> ocp interface lists, while keeping the common list for all common IPs.
->>
->> Move USB OTG SS4 to dra74x only list since its unavailable in
->> dra72x and is giving an abort during boot. The dra72x only list
->> is empty for now and a placeholder for future hwmod additions which
->> are specific to dra72x.
->>
->> Fixes: d904b38 ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
-> 
-> please use a format as following:
-> Fixes: d904b38df0db13 ("ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss")
-> 
->> Reported-by: Keerthy <j-keerthy@ti.com>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod.c          |    3 +++
->>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   22 ++++++++++++++++++++--
->>  2 files changed, 23 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 6c074f3..14f8370 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -3345,6 +3345,9 @@ int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois)
->>  	if (!ois)
->>  		return 0;
->>  
->> +	if (ois[0] == NULL) /*empty list*/
-> /* Empty list */ ?
->> +		return 0;
->> +
-> 
-> This change looks like a different patch?
-> 
->>  	if (!linkspace) {
->>  		if (_alloc_linkspace(ois)) {
->>  			pr_err("omap_hwmod: could not allocate link space\n");
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> index 284324f..c95033c 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->> @@ -35,6 +35,7 @@
->>  #include "i2c.h"
->>  #include "mmc.h"
->>  #include "wd_timer.h"
->> +#include "soc.h"
->>  
->>  /* Base offset for all DRA7XX interrupts external to MPUSS */
->>  #define DRA7XX_IRQ_GIC_START	32
->> @@ -2705,7 +2706,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->>  	&dra7xx_l4_per3__usb_otg_ss1,
->>  	&dra7xx_l4_per3__usb_otg_ss2,
->>  	&dra7xx_l4_per3__usb_otg_ss3,
->> -	&dra7xx_l4_per3__usb_otg_ss4,
->>  	&dra7xx_l3_main_1__vcp1,
->>  	&dra7xx_l4_per2__vcp1,
->>  	&dra7xx_l3_main_1__vcp2,
->> @@ -2714,8 +2714,26 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
->>  	NULL,
->>  };
->>  
->> +static struct omap_hwmod_ocp_if *dra74x_hwmod_ocp_ifs[] __initdata = {
->> +	&dra7xx_l4_per3__usb_otg_ss4,
->> +	NULL,
->> +};
->> +
->> +static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
->> +	NULL,
->> +};
->> +
->>  int __init dra7xx_hwmod_init(void)
->>  {
->> +	int ret;
->> +
->>  	omap_hwmod_init();
->> -	return omap_hwmod_register_links(dra7xx_hwmod_ocp_ifs);
->> +	ret = omap_hwmod_register_links(dra7xx_hwmod_ocp_ifs);
-> if (ret)
-> 	goto out;
->> +
->> +	if (!ret && soc_is_dra74x())
-> no need of !ret
->> +		return omap_hwmod_register_links(dra74x_hwmod_ocp_ifs);
-> ret = omap_hwmod_register_links(dra74x_hwmod_ocp_ifs);
->> +	else if (!ret && soc_is_dra72x())
-> no need of else and !ret
->> +		return omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
-> ret = omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
->> +
-> 
-> out:
->> +	return ret;
-After looking closely into it, I realized that currently its the same logic of what you are
-suggesting.  If there is no error from registering common lists then only go for registering the
-Soc specific lists.
-Do you still want me to go ahead and make this change?
+On Fri, Jul 25, 2014 at 10:24 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
+>
+> After looking closely into it, I realized that currently its the same logic of what you are
+> suggesting.  If there is no error from registering common lists then only go for registering the
+> Soc specific lists.
+> Do you still want me to go ahead and make this change?
 
-Thanks and regards,
-Lokesh
->>  }
->>
-> 
-> 
+
+Sure. Ok with me at least.
+
+-- 
+---
+Regards,
+Nishanth Menon
