@@ -1,70 +1,126 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] gpio: extend gpiod_get*() with flags
-	parameter
-Date: Fri, 25 Jul 2014 07:52:50 +0100
-Message-ID: <20140725065250.GF7063@lee--X1>
-References: <1406214298-20062-1-git-send-email-acourbot@nvidia.com>
- <20140724161052.GA15615@kroah.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 2/2] ARM: DRA7: hwmod: Add dra74x and dra72x specific
+ ocp interface lists
+Date: Fri, 25 Jul 2014 20:54:16 +0530
+Message-ID: <53D276A0.3070800@ti.com>
+References: <1405499774-19770-1-git-send-email-lokeshvutla@ti.com> <1405499774-19770-3-git-send-email-lokeshvutla@ti.com> <53CE9652.4080304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20140724161052.GA15615@kroah.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-wireless@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Takashi Iwai <tiwai@suse.de>, linux-mmc@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Chris Ball <chris@printf.net>, dri-devel@lists.freedesktop.org, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Pavel Machek <pavel@ucw.cz>, Jiri Slaby <jslaby@suse.cz>, gnurou@gmail.com, Florian Fainelli <f.fainelli@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Alexander Shiyan <shc_work@mail.ru>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Jingoo Han <jg1.han@samsung.com>, Paul Handrigan <Paul.Handrigan@cirrus.com>, linux-iio@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Hans Verkuil <hans.verkuil@ci>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53CE9652.4080304@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux@arm.linux.org.uk, nsekhar@ti.com, j-keerthy@ti.com, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCAyNCBKdWwgMjAxNCwgR3JlZyBLcm9haC1IYXJ0bWFuIHdyb3RlOgoKPiBPbiBGcmks
-IEp1bCAyNSwgMjAxNCBhdCAxMjowNDo1OEFNICswOTAwLCBBbGV4YW5kcmUgQ291cmJvdCB3cm90
-ZToKPiA+IFRoZSBodWdlIG1ham9yaXR5IG9mIEdQSU9zIGhhdmUgdGhlaXIgZGlyZWN0aW9uIGFu
-ZCBpbml0aWFsIHZhbHVlIHNldAo+ID4gcmlnaHQgYWZ0ZXIgYmVpbmcgb2J0YWluZWQgYnkgb25l
-IG9mIHRoZSBncGlvZF9nZXQoKSBmdW5jdGlvbnMuIFRoZQo+ID4gaW50ZWdlciBHUElPIEFQSSBo
-YWQgZ3Bpb19yZXF1ZXN0X29uZSgpIHRoYXQgdG9vayBhIGNvbnZlbmllbmNlIGZsYWdzCj4gPiBw
-YXJhbWV0ZXIgYWxsb3dpbmcgdG8gc3BlY2lmeSBhbiBkaXJlY3Rpb24gYW5kIHZhbHVlIGFwcGxp
-ZWQgdG8gdGhlCj4gPiByZXR1cm5lZCBHUElPLiBUaGlzIGZlYXR1cmUgZ3JlYXRseSBzaW1wbGlm
-aWVzIGNsaWVudCBjb2RlIGFuZCBlbnN1cmVzCj4gPiBlcnJvcnMgYXJlIGFsd2F5cyBoYW5kbGVk
-IHByb3Blcmx5Lgo+ID4gCj4gPiBBIHNpbWlsYXIgZmVhdHVyZSBoYXMgYmVlbiByZXF1ZXN0ZWQg
-Zm9yIHRoZSBncGlvZCBBUEkuIFNpbmNlIEdQSU9zIG5lZWQKPiA+IGEgZGlyZWN0aW9uIHRvIGJl
-IHVzZWQgYW55d2F5LCB3ZSBwcmVmZXIgdG8gZXh0ZW5kIHRoZSBleGlzdGluZwo+ID4gZnVuY3Rp
-b25zIGluc3RlYWQgb2YgaW50cm9kdWNpbmcgbmV3IGZ1bmN0aW9ucyB0aGF0IHdvdWxkIHJhaXNl
-IHRoZQo+ID4gbnVtYmVyIG9mIGdwaW9kIGdldHRlcnMgdG8gMTYgKCEpLgo+ID4gCj4gPiBUaGUg
-ZHJhd2JhY2sgb2YgdGhpcyBhcHByb2FjaCBpcyB0aGF0IGFsbCBncGlvZCBjbGllbnRzIG5lZWQg
-dG8gYmUKPiA+IHVwZGF0ZWQsIGJ1dCB0aGVyZSBhcmVuJ3QgdGhhdCBtYW55IGFuZCB0aGUgbW9t
-ZW50IGFuZCB0aGlzIHJlc3VsdHMgaW4KPiA+IHNtYWxsZXIgKGFuZCBob3BlZnVsbHkgc2FmZXIp
-IGNvZGUuCj4gPiAKPiA+IFNpZ25lZC1vZmYtYnk6IEFsZXhhbmRyZSBDb3VyYm90IDxhY291cmJv
-dEBudmlkaWEuY29tPgo+ID4gLS0tCj4gPiBUaGlzIGNoYW5nZSB3aWxsIGJlIGRpZmZpY3VsdCB0
-byBhcHBseSB3aXRob3V0IGJyZWFraW5nIHRoaW5ncywgYnV0Cj4gPiBsZXQncyB0cnkgdG8gZG8g
-aXQgcmlnaHQuIEhvcGVmdWxseSB0aGUgYmVuZWZpdCB3aWxsIG91dHdlaWdodCB0aGUKPiA+IGRp
-c3R1cmJhbmNlLgo+ID4gCj4gPiBUaGlzIGlzIGEgcGF0Y2ggYWdhaW5zdCAtbmV4dCB0byBsaXN0
-IGFuZCB1cGRhdGUgYWxsIGN1cnJlbnQgZ3Bpb2QKPiA+IGNvbnN1bWVycy4gVXBkYXRlcyBhcmUg
-dHJpdmlhbCBhdCBmaXJzdCBzaWdodCwgYnV0IGl0IHdvdWxkIGJlIG5pY2UgdG8KPiA+IGdldCBh
-cyBtYW55IGFja3MgYXMgcG9zc2libGUgZnJvbSB0aGUgcmVzcGVjdGl2ZSBzdWJzeXN0ZW0gbWFp
-bnRhaW5lcnMuCj4gPiAKPiA+IEknbSBub3Qgc3VyZSBob3cgdGhpcyBjb3VsZCBiZSBhcHBsaWVk
-IGhhcm1sZXNzbHkgdGhvdWdoIC0gbWF5YmUgdGhyb3VnaAo+ID4gYSBkZWRpY2F0ZWQgYnJhbmNo
-IGZvciAtbmV4dD8gUHJvYmxlbSBpcyB0aGF0IGEgbG90IG9mIG5ldyBjb2RlIGlzIG5vdAo+ID4g
-eWV0IG1lcmdlZCBpbnRvIG1haW5saW5lLCBhbmQgY29uZmxpY3RzIGFyZSB2ZXJ5IGxpa2VseSB0
-byBvY2N1ci4gTGludXMsCj4gPiBkbyB5b3UgaGF2ZSBhbnkgc3VnZ2VzdGlvbiBhcyB0byBob3cg
-dGhpcyBjYW4gYmUgZG9uZSB3aXRob3V0IGJsb29kIGJlaW5nCj4gPiBzcGlsbGVkPwo+IAo+IERv
-IHRoaXMgaW4gMyBzdGVwcywgbm90IGFsbCBhdCBvbmNlLgo+IAo+IE1ha2UgYSBuZXcgZnVuY3Rp
-b24gdGhhdCB0YWtlcyB0aGUgbmV3IGFyZ3VtZW50LCBnZXQgdGhhdCBtZXJnZWQKPiAKPiBTdWJt
-aXQgcGF0Y2hlcyB0aGF0IGNvbnZlcnQgZHJpdmVycyBvdmVyIHRvIHVzZSB0aGUgbmV3IGZ1bmN0
-aW9uLgo+IAo+IE9uY2UgYWxsIG9mIHRob3NlIGFyZSBtZXJnZWQsIHJlbW92ZSB0aGUgb2xkIGZ1
-bmN0aW9uLgo+IAo+IFRoYXQgd2F5IHRoZXJlIGFyZSBubyAiZmxhZyBkYXlzIiBuZWVkZWQsIGFu
-ZCBldmVyeW9uZSBpcyBoYXBweSB5b3UKPiBkb24ndCBzZW5kIG91dCBlbWFpbHMgd2l0aCA0MCsg
-cGVvcGxlIGluIHRoZSBUbzogYW5kIENjOiBsaW5lcyA6KQoKKzk5OTk5CgotLSAKTGVlIEpvbmVz
-CkxpbmFybyBTVE1pY3JvZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFtIExlYWQKTGluYXJvLm9yZyDi
-lIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86IEZhY2Vi
-b29rIHwgVHdpdHRlciB8IEJsb2cKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2pl
-Y3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9h
-bHNhLWRldmVsCg==
+Hi Nishanth,
+On Tuesday 22 July 2014 10:20 PM, Nishanth Menon wrote:
+> On 07/16/2014 03:36 AM, Lokesh Vutla wrote:
+>> From: Rajendra Nayak <rnayak@ti.com>
+>>
+>> To deal with IPs which are specific to dra74x and dra72x, maintain seperate
+>> ocp interface lists, while keeping the common list for all common IPs.
+>>
+>> Move USB OTG SS4 to dra74x only list since its unavailable in
+>> dra72x and is giving an abort during boot. The dra72x only list
+>> is empty for now and a placeholder for future hwmod additions which
+>> are specific to dra72x.
+>>
+>> Fixes: d904b38 ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss
+> 
+> please use a format as following:
+> Fixes: d904b38df0db13 ("ARM: DRA7: hwmod: Add SYSCONFIG for usb_otg_ss")
+> 
+>> Reported-by: Keerthy <j-keerthy@ti.com>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod.c          |    3 +++
+>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |   22 ++++++++++++++++++++--
+>>  2 files changed, 23 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>> index 6c074f3..14f8370 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -3345,6 +3345,9 @@ int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois)
+>>  	if (!ois)
+>>  		return 0;
+>>  
+>> +	if (ois[0] == NULL) /*empty list*/
+> /* Empty list */ ?
+>> +		return 0;
+>> +
+> 
+> This change looks like a different patch?
+> 
+>>  	if (!linkspace) {
+>>  		if (_alloc_linkspace(ois)) {
+>>  			pr_err("omap_hwmod: could not allocate link space\n");
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> index 284324f..c95033c 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>> @@ -35,6 +35,7 @@
+>>  #include "i2c.h"
+>>  #include "mmc.h"
+>>  #include "wd_timer.h"
+>> +#include "soc.h"
+>>  
+>>  /* Base offset for all DRA7XX interrupts external to MPUSS */
+>>  #define DRA7XX_IRQ_GIC_START	32
+>> @@ -2705,7 +2706,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>>  	&dra7xx_l4_per3__usb_otg_ss1,
+>>  	&dra7xx_l4_per3__usb_otg_ss2,
+>>  	&dra7xx_l4_per3__usb_otg_ss3,
+>> -	&dra7xx_l4_per3__usb_otg_ss4,
+>>  	&dra7xx_l3_main_1__vcp1,
+>>  	&dra7xx_l4_per2__vcp1,
+>>  	&dra7xx_l3_main_1__vcp2,
+>> @@ -2714,8 +2714,26 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+>>  	NULL,
+>>  };
+>>  
+>> +static struct omap_hwmod_ocp_if *dra74x_hwmod_ocp_ifs[] __initdata = {
+>> +	&dra7xx_l4_per3__usb_otg_ss4,
+>> +	NULL,
+>> +};
+>> +
+>> +static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
+>> +	NULL,
+>> +};
+>> +
+>>  int __init dra7xx_hwmod_init(void)
+>>  {
+>> +	int ret;
+>> +
+>>  	omap_hwmod_init();
+>> -	return omap_hwmod_register_links(dra7xx_hwmod_ocp_ifs);
+>> +	ret = omap_hwmod_register_links(dra7xx_hwmod_ocp_ifs);
+> if (ret)
+> 	goto out;
+>> +
+>> +	if (!ret && soc_is_dra74x())
+> no need of !ret
+>> +		return omap_hwmod_register_links(dra74x_hwmod_ocp_ifs);
+> ret = omap_hwmod_register_links(dra74x_hwmod_ocp_ifs);
+>> +	else if (!ret && soc_is_dra72x())
+> no need of else and !ret
+>> +		return omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
+> ret = omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
+>> +
+> 
+> out:
+>> +	return ret;
+After looking closely into it, I realized that currently its the same logic of what you are
+suggesting.  If there is no error from registering common lists then only go for registering the
+Soc specific lists.
+Do you still want me to go ahead and make this change?
+
+Thanks and regards,
+Lokesh
+>>  }
+>>
+> 
+> 
