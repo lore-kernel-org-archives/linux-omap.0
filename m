@@ -1,42 +1,63 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] non-urgent omap fixes for v3.17 merge window
-Date: Sat, 26 Jul 2014 11:36:51 +0200
-Message-ID: <12011020.o5OKl07RKn@wuerfel>
-References: <20140724115140.GB29045@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:56056 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732AbaGZJhC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Jul 2014 05:37:02 -0400
-In-Reply-To: <20140724115140.GB29045@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Andreas Fenkart <afenkart@gmail.com>
+Subject: [PATCH 0/3 resend] omap_hsmmc: reuse mmc/slot-gpio functions
+Date: Sat, 26 Jul 2014 20:34:07 +0200
+Message-ID: <1406399650-671-1-git-send-email-afenkart@gmail.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Balaji T K <balajitk@ti.com>, daniel@zonque.org, Andreas Fenkart <afenkart@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thursday 24 July 2014 04:51:41 Tony Lindgren wrote:
-> The following changes since commit cd3de83f147601356395b57a8673e9c5ff1e59d1:
-> 
->   Linux 3.16-rc4 (2014-07-06 12:37:51 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/fixes-not-urgent-signed
-> 
-> for you to fetch changes up to 00e4e5b5b0339bde4b0ecb23d7d7969a3bebd44d:
-> 
->   Merge remote-tracking branch 'roger/for-v3.17/gpmc-omap' into omap-for-v3.17/fixes-not-urgent (2014-07-15 00:24:39 -0700)
-> 
-> ----------------------------------------------------------------
-> 
-> Fixes for omaps that were not considered urgent enough for the
-> rc series. Mostly a fix for GPMC allocation and omap5 ABB
-> (Adaptive Body Bias).
-> 
+Hi,
 
-Merged into next/fixes-non-critical, thanks!
+I would like to reuse mmc_of_parse for standard mmc features: 
+- cd-gpios / wp-gpios
+- bus-width 
+- max-frequency
+- keep-power-in-suspend
+- enable-sdio-wakeup
+- ti,non-removable, evtl.
 
-	Arnd
+Currently these are open-coded in of_get_hsmmc_pdata. I tried
+removing them from of_get_hsmmc_pdata and call mmc_of_parse
+at the end of the probe function:
+
+@@ -2241,8 +2264,6 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+        omap_hsmmc_protect_card(host);
++       mmc_of_parse(host->mmc);
+        mmc_add_host(mmc);
+
+This could work transparently for most features but definitely
+not for cd-gpios/wp-gpios. Pls can somebody have a look at the
+followup patches? I tried an intermediate step mapping card
+detect / read-only detect onto mmc/slot-gpio, that are used by
+mmc_of_parse. I don't have card detect/read-only detect pins, so
+patches are untested, :-( 
+
+Do we need cover_detect functionality or could it be merged with
+card detect?
+
+Another issue is 'ti,non-removable' which could be mappend to
+stanadard 'non-removable' if 'no_regulator_off_init' was handled
+in a different way.
+
+        if (of_find_property(np, "ti,non-removable", NULL)) {      
+                pdata->slots[0].nonremovable = true;                     
+                pdata->slots[0].no_regulator_off_init = true;              
+        }   
+
+/Andreas
+
+Andreas Fenkart (3):
+  omap_hsmmc: reuse mmc/slot-gpio for write protect detection
+  omap_hsmmc: separate card_detect/cover detect logic
+  omap_hsmmc: reuse mmc/slot-gpio for card detect instead of open-coded
+    version
+
+ drivers/mmc/host/omap_hsmmc.c          | 172 ++++++++++++++-------------------
+ include/linux/platform_data/mmc-omap.h |   6 +-
+ 2 files changed, 73 insertions(+), 105 deletions(-)
+
+-- 
+2.0.0
+
