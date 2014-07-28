@@ -1,51 +1,67 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 18/35] arm: boot: dts: am33xx/omap3: fix intc compatible flag
-Date: Mon, 28 Jul 2014 16:16:06 -0500
-Message-ID: <1406582183-696-19-git-send-email-balbi@ti.com>
+Subject: [PATCH 14/35] arm: omap: irq: use IRQCHIP_DECLARE macro
+Date: Mon, 28 Jul 2014 16:16:02 -0500
+Message-ID: <1406582183-696-15-git-send-email-balbi@ti.com>
 References: <1406582183-696-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1406582183-696-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, bcousson@baylibre.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tglx@linutronix.de, jason@lakedaemon.net, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, jason@lakedaemon.net, khilman@deeprootsystems.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, bcousson@baylibre.com, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-that way, our intc driver can figure out how
-many IRQ lines INTC has.
+IRQCHIP_DECLARE macro is used to declare the same
+of_device_id structure for irqchips, it's just
+a helper. No functional changes.
+
+Note that we're temporarily including irqchip.h
+with its full path, until we move this driver
+to drivers/irqchip/.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 2 +-
- arch/arm/boot/dts/omap3.dtsi  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/irq.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 4a4e02d..ddaa4ae 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -133,7 +133,7 @@
- 		};
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index e452411..2801243 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -26,6 +26,7 @@
+ #include "soc.h"
+ #include "iomap.h"
+ #include "common.h"
++#include "../../drivers/irqchip/irqchip.h"
  
- 		intc: interrupt-controller@48200000 {
--			compatible = "ti,omap2-intc";
-+			compatible = "ti,am33xx-intc";
- 			interrupt-controller;
- 			#interrupt-cells = <1>;
- 			ti,intc-size = <128>;
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index b2891a9..b693929 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -140,7 +140,7 @@
- 		};
+ /* selected INTC register offsets */
  
- 		intc: interrupt-controller@48200000 {
--			compatible = "ti,omap2-intc";
-+			compatible = "ti,omap3-intc";
- 			interrupt-controller;
- 			#interrupt-cells = <1>;
- 			ti,intc-size = <96>;
+@@ -319,14 +320,11 @@ static int __init intc_of_init(struct device_node *node,
+ 	return 0;
+ }
+ 
+-static struct of_device_id irq_match[] __initdata = {
+-	{ .compatible = "ti,omap2-intc", .data = intc_of_init, },
+-	{ }
+-};
++IRQCHIP_DECLARE(omap_intc, "ti,omap2-intc", intc_of_init);
+ 
+ void __init omap_intc_of_init(void)
+ {
+-	of_irq_init(irq_match);
++	of_irq_init(&irqchip_of_match_omap_intc);
+ }
+ 
+ asmlinkage void __exception_irq_entry omap3_intc_handle_irq(struct pt_regs *regs)
 -- 
 2.0.1.563.g66f467c
