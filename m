@@ -1,26 +1,70 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 0/2] ARM: dts: dra72-evm: Add i2c1 and tps65917 nodes
-Date: Mon, 28 Jul 2014 11:48:52 +0530
-Message-ID: <1406528334-4415-1-git-send-email-j-keerthy@ti.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/2] ARM: dts: dra72-evm: Enable I2C1 node
+Date: Mon, 28 Jul 2014 11:48:53 +0530
+Message-ID: <1406528334-4415-2-git-send-email-j-keerthy@ti.com>
+References: <1406528334-4415-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-patch-review@list.ti.com
-Cc: nm@ti.com, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, galak@codeaurora.org, lokeshvutla@ti.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1406528334-4415-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-patch-review-uAqBSO/uNfhBDgjK7y7TUQ@public.gmane.org
+Cc: nm-l0cyMroinI0@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, lokeshvutla-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The patch series adds i2c1 and tps65917 and related nodes.
-The patch series is boot tested on DRA72-EVM.
+From: Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>
 
-Thanks to Lokesh <lokeshvutla@ti.com> for testing the series.
+I2C1 bus is used for the following peripherals
+	P8 connector (MLB)
+	TLV320AIC3106 Audio codec
+	J15 LCD header
+	24WC256 eeprom
+	TMP102AIDRLT temperature sensor
+	PCF8575 GPIO expander
+	PCA9306 i2c voltage translator -> Goes to P9 for comm interface
+	P2 expansion connector
+	TPS65917 PMIC
 
-Keerthy J (2):
-  ARM: dts: dra72-evm: Enable I2C1 node
-  ARM: dts: dra72-evm: Add tps65917 PMIC node
+The slowest speed of all the peripherals seems to be 400KHz.
 
- arch/arm/boot/dts/dra72-evm.dts |  120 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 120 insertions(+)
+Tested-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra72-evm.dts |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 5147023..1e12862 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -19,6 +19,22 @@
+ 	};
+ };
+ 
++&dra7_pmx_core {
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			0x400 (PIN_INPUT | MUX_MODE0) /* i2c1_sda.i2c1_sda */
++			0x404 (PIN_INPUT | MUX_MODE0) /* i2c1_scl.i2c1_scl */
++		>;
++	};
++};
++
++&i2c1 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++	clock-frequency = <400000>;
++};
++
+ &uart1 {
+ 	status = "okay";
+ };
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
