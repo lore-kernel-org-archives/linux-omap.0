@@ -1,90 +1,123 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 27/35] arm: omap: irq: introduce omap_nr_pending
-Date: Mon, 28 Jul 2014 16:16:15 -0500
-Message-ID: <1406582183-696-28-git-send-email-balbi@ti.com>
+Subject: [PATCH 15/35] arm: omap: irq: drop .handle_irq and .init_irq fields
+Date: Mon, 28 Jul 2014 16:16:03 -0500
+Message-ID: <1406582183-696-16-git-send-email-balbi@ti.com>
 References: <1406582183-696-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1406582183-696-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, jason@lakedaemon.net, khilman@deeprootsystems.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, bcousson@baylibre.com, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, bcousson@baylibre.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tglx@linutronix.de, jason@lakedaemon.net, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-that variable will tell us how many INTC_PENDING_IRQn
-registers we have. It'll be used on a following patch
-to cleanup omap_intc_handle_irq() a bit.
+now we can safely drop those fields from our machine_desc.
+
+While at that, also drop the now unused omap_intc_of_init()
+definition.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/irq.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-generic.c | 14 --------------
+ arch/arm/mach-omap2/common.h        |  1 -
+ arch/arm/mach-omap2/irq.c           |  5 -----
+ 3 files changed, 20 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 9480997..2e32939 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -52,8 +52,6 @@ DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap242x_map_io,
+ 	.init_early	= omap2420_init_early,
+-	.init_irq	= omap_intc_of_init,
+-	.handle_irq	= omap2_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_time	= omap2_sync32k_timer_init,
+ 	.dt_compat	= omap242x_boards_compat,
+@@ -71,8 +69,6 @@ DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap243x_map_io,
+ 	.init_early	= omap2430_init_early,
+-	.init_irq	= omap_intc_of_init,
+-	.handle_irq	= omap2_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_time	= omap2_sync32k_timer_init,
+ 	.dt_compat	= omap243x_boards_compat,
+@@ -91,8 +87,6 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= omap3430_init_early,
+-	.init_irq	= omap_intc_of_init,
+-	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap3_init_late,
+ 	.init_time	= omap3_sync32k_timer_init,
+@@ -109,8 +103,6 @@ DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= omap3630_init_early,
+-	.init_irq	= omap_intc_of_init,
+-	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap3_init_late,
+ 	.init_time	= omap3_sync32k_timer_init,
+@@ -128,8 +120,6 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= omap3430_init_early,
+-	.init_irq	= omap_intc_of_init,
+-	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap3_init_late,
+ 	.init_time	= omap3_secure_sync32k_timer_init,
+@@ -146,8 +136,6 @@ DT_MACHINE_START(AM3517_DT, "Generic AM3517 (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= am35xx_init_early,
+-	.init_irq	= omap_intc_of_init,
+-	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap3_init_late,
+ 	.init_time	= omap3_gptimer_timer_init,
+@@ -166,8 +154,6 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.map_io		= am33xx_map_io,
+ 	.init_early	= am33xx_init_early,
+-	.init_irq	= omap_intc_of_init,
+-	.handle_irq	= omap3_intc_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= am33xx_init_late,
+ 	.init_time	= omap3_gptimer_timer_init,
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index bbb0623..d3a205d 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -221,7 +221,6 @@ void omap3_intc_prepare_idle(void);
+ void omap3_intc_resume_idle(void);
+ void omap2_intc_handle_irq(struct pt_regs *regs);
+ void omap3_intc_handle_irq(struct pt_regs *regs);
+-void omap_intc_of_init(void);
+ void omap_gic_of_init(void);
+ 
+ #ifdef CONFIG_CACHE_L2X0
 diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 44d9cf4..583a1c7 100644
+index 2801243..465d725 100644
 --- a/arch/arm/mach-omap2/irq.c
 +++ b/arch/arm/mach-omap2/irq.c
-@@ -70,6 +70,7 @@ static struct omap_intc_regs intc_context;
+@@ -322,11 +322,6 @@ static int __init intc_of_init(struct device_node *node,
  
- static struct irq_domain *domain;
- static void __iomem *omap_irq_base;
-+static int omap_nr_pending = 3;
- static int omap_nr_irqs = 96;
+ IRQCHIP_DECLARE(omap_intc, "ti,omap2-intc", intc_of_init);
  
- /* INTC bank register get/set */
-@@ -276,6 +277,7 @@ out:
- void __init omap2_init_irq(void)
+-void __init omap_intc_of_init(void)
+-{
+-	of_irq_init(&irqchip_of_match_omap_intc);
+-}
+-
+ asmlinkage void __exception_irq_entry omap3_intc_handle_irq(struct pt_regs *regs)
  {
- 	omap_nr_irqs = 96;
-+	omap_nr_pending = 3;
- 	omap_init_irq(OMAP24XX_IC_BASE, NULL);
- 	set_handle_irq(omap_intc_handle_irq);
- }
-@@ -283,6 +285,7 @@ void __init omap2_init_irq(void)
- void __init omap3_init_irq(void)
- {
- 	omap_nr_irqs = 96;
-+	omap_nr_pending = 3;
- 	omap_init_irq(OMAP34XX_IC_BASE, NULL);
- 	set_handle_irq(omap_intc_handle_irq);
- }
-@@ -290,6 +293,7 @@ void __init omap3_init_irq(void)
- void __init ti81xx_init_irq(void)
- {
- 	omap_nr_irqs = 96;
-+	omap_nr_pending = 4;
- 	omap_init_irq(OMAP34XX_IC_BASE, NULL);
- 	set_handle_irq(omap_intc_handle_irq);
- }
-@@ -299,6 +303,7 @@ static int __init intc_of_init(struct device_node *node,
- {
- 	struct resource res;
- 
-+	omap_nr_pending = 3;
- 	omap_nr_irqs = 96;
- 
- 	if (WARN_ON(!node))
-@@ -309,8 +314,10 @@ static int __init intc_of_init(struct device_node *node,
- 		return -EINVAL;
- 	}
- 
--	if (of_device_is_compatible(node, "ti,am33xx-intc"))
-+	if (of_device_is_compatible(node, "ti,am33xx-intc")) {
- 		omap_nr_irqs = 128;
-+		omap_nr_pending = 4;
-+	}
- 
- 	omap_init_irq(res.start, of_node_get(node));
- 
+ 	omap_intc_handle_irq(regs);
 -- 
 2.0.1.563.g66f467c
