@@ -1,103 +1,46 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v7 0/5] Input: pixcir_i2c_ts: Add Type-B Multi-touch and
- DT support
-Date: Mon, 28 Jul 2014 12:16:08 +0300
-Message-ID: <53D614D8.4070309@ti.com>
-References: <1402997507-9736-1-git-send-email-rogerq@ti.com> <53B523AE.70601@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 0/2] ARM: dts: dra72-evm: Add i2c1 and tps65917 nodes
+Date: Mon, 28 Jul 2014 14:52:11 +0530
+Message-ID: <53D61643.4070005@ti.com>
+References: <1406528334-4415-1-git-send-email-j-keerthy@ti.com> <53D5EE21.1040000@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36390 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbaG1JQU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jul 2014 05:16:20 -0400
-In-Reply-To: <53B523AE.70601@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57554 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751895AbaG1JYb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Jul 2014 05:24:31 -0400
+In-Reply-To: <53D5EE21.1040000@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dmitry.torokhov@gmail.com, tony@atomide.com
-Cc: rydberg@euromail.se, balbi@ti.com, dmurphy@ti.com, mugunthanvnm@ti.com, nsekhar@ti.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>, nm@ti.com, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, galak@codeaurora.org
 
-Hi Dmitry,
+On Monday 28 July 2014 12:00 PM, Lokesh Vutla wrote:
+> On Monday 28 July 2014 11:48 AM, Keerthy wrote:
+>> The patch series adds i2c1 and tps65917 and related nodes.
+>> The patch series is boot tested on DRA72-EVM.
+>>
+>> Thanks to Lokesh <lokeshvutla@ti.com> for testing the series.
 
-Gentle ping. Would be nice to get these into 3.17. Thanks :).
+Correcting the 'to' list.
 
-cheers,
--roger
+> For booting, this is dependent on recent hwmod fix patch series posted by me:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg108001.html
+>
+> Boot log for this series can be found here:
+> http://paste.ubuntu.com/7881545/
 
-On 07/03/2014 12:34 PM, Roger Quadros wrote:
-> Hi Dmitry,
-> 
-> Gentle reminder to pick this series for -next. Thanks :).
-> 
-> cheers,
-> -roger
-> 
-> On 06/17/2014 12:31 PM, Roger Quadros wrote:
->> Hi Dmitry,
+Thanks Lokesh!
+
+> Thanks and regards,
+> Lokesh
+>> Keerthy J (2):
+>>    ARM: dts: dra72-evm: Enable I2C1 node
+>>    ARM: dts: dra72-evm: Add tps65917 PMIC node
 >>
->> These are the pending patches that didn't go through in the 3.16 merge window.
->> Please queue them for -next. Thanks.
+>>   arch/arm/boot/dts/dra72-evm.dts |  120 +++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 120 insertions(+)
 >>
->> The series does the following
->> - convert to Type-B multi touch protocol
->> - support upto 5 fingers with hardware supplied tracking IDs
->> - device tree support
->>
->> Tony,
->>
->> The last 2 patches fix the touch screen size property in the device tree since
->> we now use the unified touch screen properties.
->>
->> cheers,
->> -roger
->>
->> Changelog:
->>
->> v7:
->> - Rebased on 3.16-rc1.
->>
->> v6:
->> - Use unified touchscreen bindings.
->> - Update pointer math i.e. bufptr += 4 instead of &bufptr[4];
->>
->> v5:
->> - Changed ts->exiting flag to ts->running in patch 2.
->> - Don't call pixcir_stop() from .suspend() if wakeup is required.
->>
->> v4:
->> - Imporved pixcir_stop() as per Dmitry's suggestion.
->> - Removed unnecessary input_unregister_device() from .remove().
->>
->> v3:
->> - Rebased to 3.15-rc3
->> - Fixed suspend while touchscreen in use
->> - Fixed module removal while touchscreen in use
->>
->> v2:
->> - Addressed review comments and re-arranged patch order
->>
->> v1:
->> - http://article.gmane.org/gmane.linux.kernel/1616417
->>
->> --
->>
->> Roger Quadros (5):
->>   Input: pixcir_i2c_ts: Use Type-B Multi-Touch protocol
->>   Input: pixcir_i2c_ts: support upto 5 fingers and hardware provided
->>     tracking IDs
->>   Input: pixcir_i2c_ts: Add device tree support
->>   ARM: dts: am43x-epos-evm: Update binding for touchscreen size
->>   ARM: dts: am437x-gp-evm: Update binding for touchscreen size
->>
->>  .../bindings/input/touchscreen/pixcir_i2c_ts.txt   |  26 +++
->>  .../devicetree/bindings/vendor-prefixes.txt        |   1 +
->>  arch/arm/boot/dts/am437x-gp-evm.dts                |   4 +-
->>  arch/arm/boot/dts/am43x-epos-evm.dts               |   4 +-
->>  drivers/input/touchscreen/pixcir_i2c_ts.c          | 251 ++++++++++++++++++---
->>  include/linux/input/pixcir_ts.h                    |  12 +
->>  6 files changed, 259 insertions(+), 39 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/pixcir_i2c_ts.txt
->>
-> 
 
