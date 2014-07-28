@@ -1,67 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 14/35] arm: omap: irq: use IRQCHIP_DECLARE macro
-Date: Mon, 28 Jul 2014 16:16:02 -0500
-Message-ID: <1406582183-696-15-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 16/35] arm: omap: irq: add specific compatibles for omap3 and am33xx devices
+Date: Mon, 28 Jul 2014 16:16:04 -0500
+Message-ID: <1406582183-696-17-git-send-email-balbi@ti.com>
 References: <1406582183-696-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1406582183-696-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, jason@lakedaemon.net, khilman@deeprootsystems.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, bcousson@baylibre.com, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1406582183-696-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-IRQCHIP_DECLARE macro is used to declare the same
-of_device_id structure for irqchips, it's just
-a helper. No functional changes.
+with this, we can use a compatible flag to figure
+out how many irq lines are wired up, no need for
+our TI-specific ti,intc-size binding.
 
-Note that we're temporarily including irqchip.h
-with its full path, until we move this driver
-to drivers/irqchip/.
-
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/irq.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/irq.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index e452411..2801243 100644
+index 465d725..97845df 100644
 --- a/arch/arm/mach-omap2/irq.c
 +++ b/arch/arm/mach-omap2/irq.c
-@@ -26,6 +26,7 @@
- #include "soc.h"
- #include "iomap.h"
- #include "common.h"
-+#include "../../drivers/irqchip/irqchip.h"
- 
- /* selected INTC register offsets */
- 
-@@ -319,14 +320,11 @@ static int __init intc_of_init(struct device_node *node,
+@@ -320,7 +320,9 @@ static int __init intc_of_init(struct device_node *node,
  	return 0;
  }
  
--static struct of_device_id irq_match[] __initdata = {
--	{ .compatible = "ti,omap2-intc", .data = intc_of_init, },
--	{ }
--};
-+IRQCHIP_DECLARE(omap_intc, "ti,omap2-intc", intc_of_init);
- 
- void __init omap_intc_of_init(void)
- {
--	of_irq_init(irq_match);
-+	of_irq_init(&irqchip_of_match_omap_intc);
- }
+-IRQCHIP_DECLARE(omap_intc, "ti,omap2-intc", intc_of_init);
++IRQCHIP_DECLARE(omap2_intc, "ti,omap2-intc", intc_of_init);
++IRQCHIP_DECLARE(omap3_intc, "ti,omap3-intc", intc_of_init);
++IRQCHIP_DECLARE(am33xx_intc, "ti,am33xx-intc", intc_of_init);
  
  asmlinkage void __exception_irq_entry omap3_intc_handle_irq(struct pt_regs *regs)
+ {
 -- 
 2.0.1.563.g66f467c
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
