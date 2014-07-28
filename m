@@ -1,118 +1,173 @@
-From: Dr. H. Nikolaus Schaller <hns@goldelico.com>
-Subject: Re: [PATCH 3/3] arm: dts: Add gta04a5 model
-Date: Mon, 28 Jul 2014 22:42:50 +0200
-Message-ID: <1FA8171E-1B7A-4684-887E-11593BB9C29E@goldelico.com>
-References: <1406577213-9642-1-git-send-email-marek@goldelico.com>
- <1406577213-9642-4-git-send-email-marek@goldelico.com>
- <CAOf5uwk=ctww=pP4Ae+1C6i-oOtiYTv2NJbj1GpuPwVSKXB4Hw@mail.gmail.com>
- <CAAfyv35jvhzvjCKMwrpa=RQ1JkfcmthCsGDzwLW9Y6bq3Ww_fg@mail.gmail.com>
- <CAOf5uw=Fm9FXEH5ESqDC8pGjMbn5VQ1+MyPJVXSqGh_9+JRLHw@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOf5uw=Fm9FXEH5ESqDC8pGjMbn5VQ1+MyPJVXSqGh_9+JRLHw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Michael Trimarchi <michael@amarulasolutions.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, pawel.moll@arm.com, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Tony Lindgren <tony@atomide.com>, Marek Belisko <marek.belisko@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 03/35] arm: omap: irq: start to remove irq_banks array
+Date: Mon, 28 Jul 2014 16:15:51 -0500
+Message-ID: <1406582183-696-4-git-send-email-balbi@ti.com>
+References: <1406582183-696-1-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1406582183-696-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+We have a single bank in that array, this patch
+is in preparation to remove that array. It just
+shifts everything to a new set of functions
+for register IO while also removing old ones.
 
-Am 28.07.2014 um 22:04 schrieb Michael Trimarchi:
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/irq.c | 64 ++++++++++++++++++++---------------------------
+ 1 file changed, 27 insertions(+), 37 deletions(-)
 
-> Hi
-> 
-> Il 28/lug/2014 22:02 "Belisko Marek" <marek.belisko@gmail.com> ha scritto:
-> >
-> > Hi Michael,
-> >
-> > On Mon, Jul 28, 2014 at 9:56 PM, Michael Trimarchi
-> > <michael@amarulasolutions.com> wrote:
-> > > Hi Marek
-> > >
-> > > Il 28/lug/2014 21:54 "Marek Belisko" <marek@goldelico.com> ha scritto:
-> > >
-> > >
-> > >>
-> > >> Add model a5 which have additional jack detection.
-> > >>
-> > >> Signed-off-by: Marek Belisko <marek@goldelico.com>
-> > >> ---
-> > >>  arch/arm/boot/dts/Makefile          |  1 +
-> > >>  arch/arm/boot/dts/omap3-gta04a5.dts | 17 +++++++++++++++++
-> > >>  2 files changed, 18 insertions(+)
-> > >>  create mode 100644 arch/arm/boot/dts/omap3-gta04a5.dts
-> > >>
-> > >> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> > >> index 7d45fde..576c595 100644
-> > >> --- a/arch/arm/boot/dts/Makefile
-> > >> +++ b/arch/arm/boot/dts/Makefile
-> > >> @@ -285,6 +285,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
-> > >>         omap3-evm-37xx.dtb \
-> > >>         omap3-gta04a3.dtb \
-> > >>         omap3-gta04a4.dtb \
-> > >> +       omap3-gta04a5.dtb \
-> > >>         omap3-igep0020.dtb \
-> > >>         omap3-igep0030.dtb \
-> > >>         omap3-ldp.dtb \
-> > >> diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts
-> > >> b/arch/arm/boot/dts/omap3-gta04a5.dts
-> > >> new file mode 100644
-> > >> index 0000000..210317c3
-> > >> --- /dev/null
-> > >> +++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-> > >> @@ -0,0 +1,17 @@
-> > >> +/*
-> > >> + * Copyright (C) 2014 H. Nikolaus Schaller <hns@goldelico.com>
-> > >> + *
-> > >> + * This program is free software; you can redistribute it and/or modify
-> > >> + * it under the terms of the GNU General Public License version 2 as
-> > >> + * published by the Free Software Foundation.
-> > >> + */
-> > >> +
-> > >> +#include "omap3-gta04.dtsi"
-> > >> +
-> > >> +/ {
-> > >> +       model = "Goldelico GTA04A5;
-> > >> +
-> > >> +       sound {
-> > >> +               ti,jack-det-gpio = <&twl_gpio 2 0>;    /* GTA04A5 only */
-> > >> +       };
-> > >> +};
-> > >> --
-> > >> 1.9.1
-> > >>
-> > >
-> > > Can we have only one dts with status enabled/disabled?
-> > Do you mean to define this node it gta04.dtsi disabled and enable only
-> > for a5 model?
-> > >
-> 
-> This should be possible in the bootloader
-> 
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 96073a2..83163d0 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -82,21 +82,20 @@ struct omap3_intc_regs {
+ };
+ 
+ /* INTC bank register get/set */
+-
+-static void intc_bank_write_reg(u32 val, struct omap_irq_bank *bank, u16 reg)
++static void intc_writel(u32 reg, u32 val)
+ {
+-	writel_relaxed(val, bank->base_reg + reg);
++	writel_relaxed(val, omap_irq_base + reg);
+ }
+ 
+-static u32 intc_bank_read_reg(struct omap_irq_bank *bank, u16 reg)
++static u32 intc_readl(u32 reg)
+ {
+-	return readl_relaxed(bank->base_reg + reg);
++	return readl_relaxed(omap_irq_base + reg);
+ }
+ 
+ /* XXX: FIQ and additional INTC support (only MPU at the moment) */
+ static void omap_ack_irq(struct irq_data *d)
+ {
+-	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
++	intc_writel(INTC_CONTROL, 0x1);
+ }
+ 
+ static void omap_mask_ack_irq(struct irq_data *d)
+@@ -109,19 +108,19 @@ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
+ {
+ 	unsigned long tmp;
+ 
+-	tmp = intc_bank_read_reg(bank, INTC_REVISION) & 0xff;
++	tmp = intc_readl(INTC_REVISION) & 0xff;
+ 	pr_info("IRQ: Found an INTC at 0x%p (revision %ld.%ld) with %d interrupts\n",
+ 		bank->base_reg, tmp >> 4, tmp & 0xf, bank->nr_irqs);
+ 
+-	tmp = intc_bank_read_reg(bank, INTC_SYSCONFIG);
++	tmp = intc_readl(INTC_SYSCONFIG);
+ 	tmp |= 1 << 1;	/* soft reset */
+-	intc_bank_write_reg(tmp, bank, INTC_SYSCONFIG);
++	intc_writel(INTC_SYSCONFIG, tmp);
+ 
+-	while (!(intc_bank_read_reg(bank, INTC_SYSSTATUS) & 0x1))
++	while (!(intc_readl(INTC_SYSSTATUS) & 0x1))
+ 		/* Wait for reset to complete */;
+ 
+ 	/* Enable autoidle */
+-	intc_bank_write_reg(1 << 0, bank, INTC_SYSCONFIG);
++	intc_writel(INTC_SYSCONFIG, 1 << 0);
+ }
+ 
+ int omap_irq_pending(void)
+@@ -133,7 +132,7 @@ int omap_irq_pending(void)
+ 		int irq;
+ 
+ 		for (irq = 0; irq < bank->nr_irqs; irq += 32)
+-			if (intc_bank_read_reg(bank, INTC_PENDING_IRQ0 +
++			if (intc_readl(INTC_PENDING_IRQ0 +
+ 					       ((irq >> 5) << 5)))
+ 				return 1;
+ 	}
+@@ -307,22 +306,20 @@ void omap_intc_save_context(void)
+ {
+ 	int ind = 0, i = 0;
+ 	for (ind = 0; ind < ARRAY_SIZE(irq_banks); ind++) {
+-		struct omap_irq_bank *bank = irq_banks + ind;
+ 		intc_context[ind].sysconfig =
+-			intc_bank_read_reg(bank, INTC_SYSCONFIG);
++			intc_readl(INTC_SYSCONFIG);
+ 		intc_context[ind].protection =
+-			intc_bank_read_reg(bank, INTC_PROTECTION);
++			intc_readl(INTC_PROTECTION);
+ 		intc_context[ind].idle =
+-			intc_bank_read_reg(bank, INTC_IDLE);
++			intc_readl(INTC_IDLE);
+ 		intc_context[ind].threshold =
+-			intc_bank_read_reg(bank, INTC_THRESHOLD);
++			intc_readl(INTC_THRESHOLD);
+ 		for (i = 0; i < INTCPS_NR_IRQS; i++)
+ 			intc_context[ind].ilr[i] =
+-				intc_bank_read_reg(bank, (0x100 + 0x4*i));
++				intc_readl((INTC_ILR0 + 0x4 * i));
+ 		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+ 			intc_context[ind].mir[i] =
+-				intc_bank_read_reg(&irq_banks[0], INTC_MIR0 +
+-				(0x20 * i));
++				intc_readl(INTC_MIR0 + (0x20 * i));
+ 	}
+ }
+ 
+@@ -331,23 +328,16 @@ void omap_intc_restore_context(void)
+ 	int ind = 0, i = 0;
+ 
+ 	for (ind = 0; ind < ARRAY_SIZE(irq_banks); ind++) {
+-		struct omap_irq_bank *bank = irq_banks + ind;
+-		intc_bank_write_reg(intc_context[ind].sysconfig,
+-					bank, INTC_SYSCONFIG);
+-		intc_bank_write_reg(intc_context[ind].sysconfig,
+-					bank, INTC_SYSCONFIG);
+-		intc_bank_write_reg(intc_context[ind].protection,
+-					bank, INTC_PROTECTION);
+-		intc_bank_write_reg(intc_context[ind].idle,
+-					bank, INTC_IDLE);
+-		intc_bank_write_reg(intc_context[ind].threshold,
+-					bank, INTC_THRESHOLD);
++		intc_writel(INTC_SYSCONFIG, intc_context[ind].sysconfig);
++		intc_writel(INTC_PROTECTION, intc_context[ind].protection);
++		intc_writel(INTC_IDLE, intc_context[ind].idle);
++		intc_writel(INTC_THRESHOLD, intc_context[ind].threshold);
+ 		for (i = 0; i < INTCPS_NR_IRQS; i++)
+-			intc_bank_write_reg(intc_context[ind].ilr[i],
+-				bank, (0x100 + 0x4*i));
++			intc_writel(INTC_ILR0 + 0x4 * i,
++					intc_context[ind].ilr[i]);
+ 		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+-			intc_bank_write_reg(intc_context[ind].mir[i],
+-				 &irq_banks[0], INTC_MIR0 + (0x20 * i));
++			intc_writel(INTC_MIR0 + 0x20 * i,
++				intc_context[ind].mir[i]);
+ 	}
+ 	/* MIRs are saved and restore with other PRCM registers */
+ }
+@@ -364,13 +354,13 @@ void omap3_intc_prepare_idle(void)
+ 	 * Disable autoidle as it can stall interrupt controller,
+ 	 * cf. errata ID i540 for 3430 (all revisions up to 3.1.x)
+ 	 */
+-	intc_bank_write_reg(0, &irq_banks[0], INTC_SYSCONFIG);
++	intc_writel(INTC_SYSCONFIG, 0);
+ }
+ 
+ void omap3_intc_resume_idle(void)
+ {
+ 	/* Re-enable autoidle */
+-	intc_bank_write_reg(1, &irq_banks[0], INTC_SYSCONFIG);
++	intc_writel(INTC_SYSCONFIG, 1);
+ }
+ 
+ asmlinkage void __exception_irq_entry omap3_intc_handle_irq(struct pt_regs *regs)
+-- 
+2.0.1.563.g66f467c
 
-Yes,
-the boot loader either loads gta04a3.dtb gta04.dtb or gta05.dtb
-depending on board revision.
-
-Therefore we have multiple device tree files to represent such hardware
-differences. Like Gumstix Overo variants (using a  omap3-overo-base.dtsi)
-
-And, this difference is not the only one. Other are to come later.
-
-Unfortunately we were recommend to submit only DT nodes that already
-have drivers. Therefore, the "big picture" of the device variants support
-may not yet be visible from this patch.
-
-I hope this gives a little background.
-
-BR,
-Nikolaus
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
