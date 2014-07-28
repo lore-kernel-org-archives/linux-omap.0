@@ -1,91 +1,115 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 24/35] arm: omap: irq: drop omap2_intc_handle_irq()
-Date: Mon, 28 Jul 2014 16:16:12 -0500
-Message-ID: <1406582183-696-25-git-send-email-balbi@ti.com>
-References: <1406582183-696-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 00/35] arm: omap: move intc to drivers/irqchip/
+Date: Mon, 28 Jul 2014 16:15:48 -0500
+Message-ID: <1406582183-696-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1406582183-696-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, bcousson@baylibre.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tglx@linutronix.de, jason@lakedaemon.net, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+Cc: devicetree@vger.kernel.org, linux@arm.linux.org.uk, jason@lakedaemon.net, khilman@deeprootsystems.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, bcousson@baylibre.com, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-that was just a no-op wrapper around omap_intc_handle_irq
-anyway.
+Hi folks,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/common.h |  1 -
- arch/arm/mach-omap2/irq.c    | 16 ++++++----------
- 2 files changed, 6 insertions(+), 11 deletions(-)
+here's another rebase of the original series moving INTC
+to drivers.
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index bc3208b..1dd0021 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -219,7 +219,6 @@ void omap_intc_restore_context(void);
- void omap3_intc_suspend(void);
- void omap3_intc_prepare_idle(void);
- void omap3_intc_resume_idle(void);
--void omap2_intc_handle_irq(struct pt_regs *regs);
- void omap_gic_of_init(void);
- 
- #ifdef CONFIG_CACHE_L2X0
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 4dfeac6..14716a8 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -234,7 +234,8 @@ static void __init omap_init_irq(u32 base, int nr_irqs,
- 		omap_alloc_gc(omap_irq_base + j, j + irq_base, 32);
- }
- 
--static inline void omap_intc_handle_irq(struct pt_regs *regs)
-+static asmlinkage void __exception_irq_entry
-+omap_intc_handle_irq(struct pt_regs *regs)
- {
- 	u32 irqnr;
- 	int handled_irq = 0;
-@@ -276,27 +277,22 @@ out:
- 		omap_ack_irq(NULL);
- }
- 
--asmlinkage void __exception_irq_entry omap2_intc_handle_irq(struct pt_regs *regs)
--{
--	omap_intc_handle_irq(regs);
--}
--
- void __init omap2_init_irq(void)
- {
- 	omap_init_irq(OMAP24XX_IC_BASE, 96, NULL);
--	set_handle_irq(omap2_intc_handle_irq);
-+	set_handle_irq(omap_intc_handle_irq);
- }
- 
- void __init omap3_init_irq(void)
- {
- 	omap_init_irq(OMAP34XX_IC_BASE, 96, NULL);
--	set_handle_irq(omap2_intc_handle_irq);
-+	set_handle_irq(omap_intc_handle_irq);
- }
- 
- void __init ti81xx_init_irq(void)
- {
- 	omap_init_irq(OMAP34XX_IC_BASE, 128, NULL);
--	set_handle_irq(omap2_intc_handle_irq);
-+	set_handle_irq(omap_intc_handle_irq);
- }
- 
- static int __init intc_of_init(struct device_node *node,
-@@ -318,7 +314,7 @@ static int __init intc_of_init(struct device_node *node,
- 
- 	omap_init_irq(res.start, nr_irq, of_node_get(node));
- 
--	set_handle_irq(omap2_intc_handle_irq);
-+	set_handle_irq(omap_intc_handle_irq);
- 
- 	return 0;
- }
+There aren't many changes, only some fixes here and there
+because of recent changes to irq_domain and irqchip.
+
+I have also added a patch to enable INTC address space
+protection so that only privileged modes can access
+INTC's address space.
+
+Patches tested on top of v3.17-rc7 with a beagle bone black,
+the only plataform I have which still uses INTC.
+
+Tony, if you can run your PM test cases on your side, I'd
+be really glad.
+
+cheers
+
+Felipe Balbi (35):
+  arm: omap: irq: make omap_irq_base global
+  arm: omap: irq: define INTC_ILR0 register
+  arm: omap: irq: start to remove irq_banks array
+  arm: omap: irq: add a global omap_nr_irqs variable
+  arm: omap: irq: remove rest of irq_banks usage
+  arm: omap: irq: remove unused macro
+  arm: omap: irq: switch over to intc_readl on omap_intc_handle_irq
+  arm: omap: irq: remove unnecessary base_addr argument
+  arm: omap: irq: rename omap3_intc_regs
+  arm: omap: irq: always define omap3 support
+  arm: omap: irq: reorganize code a little bit
+  arm: omap: irq: make intc_of_init static
+  arm: omap: irq: call set_handle_irq() from intc_of_init
+  arm: omap: irq: use IRQCHIP_DECLARE macro
+  arm: omap: irq: drop .handle_irq and .init_irq fields
+  arm: omap: irq: add specific compatibles for omap3 and am33xx devices
+  arm: omap: irq: use compatible flag to figure out number of IRQ lines
+  arm: boot: dts: am33xx/omap3: fix intc compatible flag
+  arm: omap: irq: drop ti,intc-size support
+  arm: boot: dts: omap2/3/am33xx: drop ti,intc-size
+  arm: omap: irq: move some more code around
+  arm: omap: irq: call set_handle_irq() from .init_irq
+  arm: omap: irq: drop omap3_intc_handle_irq()
+  arm: omap: irq: drop omap2_intc_handle_irq()
+  arm: omap: irq: remove unnecessary header
+  arm: omap: irq: remove nr_irqs argument
+  arm: omap: irq: introduce omap_nr_pending
+  arm: omap: irq: get rid of ifdef hack
+  arm: omap: intc: switch over to linear irq domain
+  irqchip: add irq-omap-intc.h header
+  arm: omap: irq: move irq.c to drivers/irqchip/
+  irq: intc: minor improvement to omap_irq_pending()
+  irq: intc: comment style cleanup
+  irq: intc: remove unnecesary of_address_to_resource() call
+  irq: intc: enable IP protection
+
+ arch/arm/boot/dts/am33xx.dtsi              |   3 +-
+ arch/arm/boot/dts/omap2.dtsi               |   1 -
+ arch/arm/boot/dts/omap3.dtsi               |   3 +-
+ arch/arm/mach-omap2/Kconfig                |   1 +
+ arch/arm/mach-omap2/Makefile               |   3 +-
+ arch/arm/mach-omap2/board-3430sdp.c        |   2 +-
+ arch/arm/mach-omap2/board-am3517crane.c    |   2 +-
+ arch/arm/mach-omap2/board-am3517evm.c      |   2 +-
+ arch/arm/mach-omap2/board-cm-t35.c         |   3 +-
+ arch/arm/mach-omap2/board-cm-t3517.c       |   2 +-
+ arch/arm/mach-omap2/board-devkit8000.c     |   2 +-
+ arch/arm/mach-omap2/board-generic.c        |  14 -
+ arch/arm/mach-omap2/board-ldp.c            |   2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c    |   2 +-
+ arch/arm/mach-omap2/board-omap3logic.c     |   3 +-
+ arch/arm/mach-omap2/board-omap3pandora.c   |   2 +-
+ arch/arm/mach-omap2/board-omap3stalker.c   |   2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c |   2 +-
+ arch/arm/mach-omap2/board-overo.c          |   2 +-
+ arch/arm/mach-omap2/board-rx51.c           |   2 +-
+ arch/arm/mach-omap2/board-ti8168evm.c      |   1 +
+ arch/arm/mach-omap2/common.h               |  22 --
+ arch/arm/mach-omap2/cpuidle34xx.c          |   1 +
+ arch/arm/mach-omap2/irq.c                  | 380 ---------------------------
+ arch/arm/mach-omap2/pm24xx.c               |   1 +
+ arch/arm/mach-omap2/pm34xx.c               |   1 +
+ drivers/irqchip/Kconfig                    |   5 +
+ drivers/irqchip/Makefile                   |   1 +
+ drivers/irqchip/irq-omap-intc.c            | 408 +++++++++++++++++++++++++++++
+ include/linux/irqchip/irq-omap-intc.h      |  32 +++
+ 30 files changed, 468 insertions(+), 439 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/irq.c
+ create mode 100644 drivers/irqchip/irq-omap-intc.c
+ create mode 100644 include/linux/irqchip/irq-omap-intc.h
+
 -- 
 2.0.1.563.g66f467c
