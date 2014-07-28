@@ -1,86 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: generic: add call to of_clk_init()
-Date: Mon, 28 Jul 2014 14:46:00 +0300
-Message-ID: <53D637F8.8080600@ti.com>
-References: <1405162508-9835-1-git-send-email-zonque@gmail.com> <20140723085444.GC22006@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32797 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752577AbaG1Lov (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Jul 2014 07:44:51 -0400
-In-Reply-To: <20140723085444.GC22006@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks
+ handled by clock_ops domain
+Date: Mon, 28 Jul 2014 08:05:33 -0600
+Message-ID: <20140728140533.6E916C4116F@trevor.secretlab.ca>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+	<1402592023-13416-1-git-send-email-grygorii.strashko@ti.com>
+	<1402592023-13416-3-git-send-email-grygorii.strashko@ti.com>
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1402592023-13416-3-git-send-email-grygorii.strashko@ti.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: geert+renesas@glider.be
+Cc: laurent.pinchart@ideasonboard.com, ulf.hansson@linaro.org, khilman@linaro.org, mturquette@linaro.org, tomasz.figa@gmail.com, ben.dooks@codethink.co.uk, horms@verge.net.au, magnus.damm@gmail.com, rjw@rjwysocki.net, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 07/23/2014 11:54 AM, Tony Lindgren wrote:
-> * Daniel Mack <zonque@gmail.com> [140712 03:57]:
->> This is needed to instanciate fixed clocks in the DT.
->
-> Makes sense to me. Does this fix some regression or hang
-> that's needed for the -rc series?
->
-> Also would like to get an ack from Tero on this as the other
-> clocks are initialized elsewhere.
+On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+> Use "clkops-clocks" property to specify clocks handled by
+> clock_ops domain PM domain. Only clocks defined in "clkops-clocks"
+> set of clocks will be handled by Runtime PM through clock_ops
+> Pm domain.
+> 
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  drivers/of/of_clk.c |    7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
+> index 35f5e9f..5f9b90e 100644
+> --- a/drivers/of/of_clk.c
+> +++ b/drivers/of/of_clk.c
+> @@ -86,11 +86,8 @@ int of_clk_register_runtime_pm_clocks(struct device_node *np,
+>  	struct clk *clk;
+>  	int error;
+>  
+> -	for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
+> -		if (!clk_may_runtime_pm(clk)) {
+> -			clk_put(clk);
+> -			continue;
+> -		}
+> +	for (i = 0; (clk = of_clk_get_from_set(np, "clkops", i)) &&
+> +		     !IS_ERR(clk); i++) {
 
-NAK.
+This really looks like an ABI break to me. What happens to all the
+existing platforms who don't have this new clkops-clocks in their device
+tree?
 
-Fixed-clocks are already supported through DT clock init. Doing this 
-from board-generic will result in duplicate init calls (out of which one 
-will fail silently.)
-
-What are you trying to accomplish with this patch anyway?
-
--Tero
-
->
-> Regards,
->
-> Tony
->
->> Signed-off-by: Daniel Mack <zonque@gmail.com>
->> ---
->>   arch/arm/mach-omap2/board-generic.c | 8 ++++++++
->>   1 file changed, 8 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->> index 5606fa2..39f154a 100644
->> --- a/arch/arm/mach-omap2/board-generic.c
->> +++ b/arch/arm/mach-omap2/board-generic.c
->> @@ -15,6 +15,7 @@
->>   #include <linux/of_irq.h>
->>   #include <linux/of_platform.h>
->>   #include <linux/irqdomain.h>
->> +#include <linux/clk-provider.h>
->>
->>   #include <asm/mach/arch.h>
->>
->> @@ -33,6 +34,11 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
->>   	{ }
->>   };
->>
->> +static struct of_device_id clk_match[] __initdata = {
->> +	{ .compatible = "fixed-clock", .data = of_fixed_clk_setup, },
->> +	{ }
->> +};
->> +
->>   static void __init omap_generic_init(void)
->>   {
->>   	omapdss_early_init_of();
->> @@ -40,6 +46,8 @@ static void __init omap_generic_init(void)
->>   	pdata_quirks_init(omap_dt_match_table);
->>
->>   	omapdss_init_of();
->> +
->> +	of_clk_init(clk_match);
->>   }
->>
->>   #ifdef CONFIG_SOC_OMAP2420
->> --
->> 1.9.3
->>
-
+g.
