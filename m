@@ -1,14 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/3] ARM/dma: edma: Serve cyclic clients via high priority
-	queue
-Date: Mon, 28 Jul 2014 09:12:31 +0300
-Message-ID: <53D5E9CF.10706@ti.com>
-References: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] dma: edma: Allow to disable eDMA IRQ during cyclic
+	transfer
+Date: Mon, 28 Jul 2014 09:13:12 +0300
+Message-ID: <53D5E9F8.4030401@ti.com>
+References: <1405513761-23739-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1404816398-12338-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1405513761-23739-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
 	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
@@ -19,44 +19,50 @@ List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open
 Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
 Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
 To: nsekhar-l0cyMroinI0@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/08/2014 01:46 PM, Peter Ujfalusi wrote:
+On 07/16/2014 03:29 PM, Peter Ujfalusi wrote:
 > Hi,
 > =
 
-> It is preferred that audio is served with the highest priority queue in o=
-rder to
-> avoid delays in data transfer between memory and audio IP.
+> After this series clients can ask to not receive notifications after each=
+ period.
+> In this case we can disable the completion interrupt since the position r=
+eporting
+> does not rely on it for cyclic mode.
+> Patchset for ASoC part has been sent which allows users space to take adv=
+entage
+> of SNDRV_PCM_INFO_NO_PERIOD_WAKEUP:
+> [1] http://mailman.alsa-project.org/pipermail/alsa-devel/2014-July/078993=
+.html
+
+ping.
+
+> When both series applied on top of linux-next:
 > =
 
-> The following series will add an API to arch code to assign a channel to =
-a given
-> queue.
-> The default queue is changed from 0 (highest priority) to lowest priority.
-> In the dmaengine driver we move the cyclic channel to queue0 (highest pri=
-ority)
-> and move it back to default queue when the channel is terminated.
-
-ping?
-
+> # cache the audio file in memory
+> cat some_music.mp3 > /dev/null
+> # start PA
+> pulseaudio -v
+> # in another terminal, play the music via PA
+> mplayer -ao pulse some_music.mp3
+> # yet another terminal to monitor the interrupts
+> watch cat /proc/interrupts
+> # note the non increasing number of edma interrupts ;)
 > =
 
 > Regards,
 > Peter
 > ---
-> Peter Ujfalusi (3):
->   ARM: edma: Set default queue to lowest priority
->   ARM: edma: Add edma_assign_channel_eventq() to move channel to a give
->     queue
->   dma: edma: Serve cyclic (audio) channels with high priority queue
+> Peter Ujfalusi (2):
+>   dma: edma: Update caps->residue_granularity to match with reality
+>   dma: edma: Support to suppress the period interrupts in cyclic mode
 > =
 
->  arch/arm/common/edma.c             | 31 ++++++++++++++++++++++++++++++-
->  drivers/dma/edma.c                 |  8 ++++++++
->  include/linux/platform_data/edma.h |  2 ++
->  3 files changed, 40 insertions(+), 1 deletion(-)
+>  drivers/dma/edma.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > =
 
 
