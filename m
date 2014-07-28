@@ -1,53 +1,86 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 0/3] ARM/dma: edma: Serve cyclic clients via high
- priority queue
-Date: Mon, 28 Jul 2014 17:04:46 +0530
-Message-ID: <20140728113446.GB8181@intel.com>
-References: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: generic: add call to of_clk_init()
+Date: Mon, 28 Jul 2014 14:46:00 +0300
+Message-ID: <53D637F8.8080600@ti.com>
+References: <1405162508-9835-1-git-send-email-zonque@gmail.com> <20140723085444.GC22006@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: nsekhar@ti.com, joelf@ti.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, dmaengine@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32797 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752577AbaG1Lov (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Jul 2014 07:44:51 -0400
+In-Reply-To: <20140723085444.GC22006@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>
+Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Jul 08, 2014 at 01:46:35PM +0300, Peter Ujfalusi wrote:
-> Hi,
-> 
-> It is preferred that audio is served with the highest priority queue in order to
-> avoid delays in data transfer between memory and audio IP.
-> 
-> The following series will add an API to arch code to assign a channel to a given
-> queue.
-> The default queue is changed from 0 (highest priority) to lowest priority.
-> In the dmaengine driver we move the cyclic channel to queue0 (highest priority)
-> and move it back to default queue when the channel is terminated.
+On 07/23/2014 11:54 AM, Tony Lindgren wrote:
+> * Daniel Mack <zonque@gmail.com> [140712 03:57]:
+>> This is needed to instanciate fixed clocks in the DT.
+>
+> Makes sense to me. Does this fix some regression or hang
+> that's needed for the -rc series?
+>
+> Also would like to get an ack from Tero on this as the other
+> clocks are initialized elsewhere.
 
-Applied, thanks
+NAK.
 
--- 
-~Vinod
+Fixed-clocks are already supported through DT clock init. Doing this 
+from board-generic will result in duplicate init calls (out of which one 
+will fail silently.)
 
-> 
+What are you trying to accomplish with this patch anyway?
+
+-Tero
+
+>
 > Regards,
-> Peter
-> ---
-> Peter Ujfalusi (3):
->   ARM: edma: Set default queue to lowest priority
->   ARM: edma: Add edma_assign_channel_eventq() to move channel to a give
->     queue
->   dma: edma: Serve cyclic (audio) channels with high priority queue
-> 
->  arch/arm/common/edma.c             | 31 ++++++++++++++++++++++++++++++-
->  drivers/dma/edma.c                 |  8 ++++++++
->  include/linux/platform_data/edma.h |  2 ++
->  3 files changed, 40 insertions(+), 1 deletion(-)
-> 
-> -- 
-> 2.0.0
-> 
+>
+> Tony
+>
+>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>> ---
+>>   arch/arm/mach-omap2/board-generic.c | 8 ++++++++
+>>   1 file changed, 8 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>> index 5606fa2..39f154a 100644
+>> --- a/arch/arm/mach-omap2/board-generic.c
+>> +++ b/arch/arm/mach-omap2/board-generic.c
+>> @@ -15,6 +15,7 @@
+>>   #include <linux/of_irq.h>
+>>   #include <linux/of_platform.h>
+>>   #include <linux/irqdomain.h>
+>> +#include <linux/clk-provider.h>
+>>
+>>   #include <asm/mach/arch.h>
+>>
+>> @@ -33,6 +34,11 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+>>   	{ }
+>>   };
+>>
+>> +static struct of_device_id clk_match[] __initdata = {
+>> +	{ .compatible = "fixed-clock", .data = of_fixed_clk_setup, },
+>> +	{ }
+>> +};
+>> +
+>>   static void __init omap_generic_init(void)
+>>   {
+>>   	omapdss_early_init_of();
+>> @@ -40,6 +46,8 @@ static void __init omap_generic_init(void)
+>>   	pdata_quirks_init(omap_dt_match_table);
+>>
+>>   	omapdss_init_of();
+>> +
+>> +	of_clk_init(clk_match);
+>>   }
+>>
+>>   #ifdef CONFIG_SOC_OMAP2420
+>> --
+>> 1.9.3
+>>
 
--- 
