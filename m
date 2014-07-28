@@ -1,42 +1,66 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: DRA7: Add support for soc_is_dra74x() and
- soc_is_dra72x() variants
-Date: Mon, 28 Jul 2014 11:04:44 +0530
-Message-ID: <53D5E0F4.3080607@ti.com>
-References: <1406523237-6905-1-git-send-email-lokeshvutla@ti.com> <1406523237-6905-2-git-send-email-lokeshvutla@ti.com> <alpine.DEB.2.02.1407280529320.24161@utopia.booyaka.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/3] ARM/dma: edma: Serve cyclic clients via high priority
+	queue
+Date: Mon, 28 Jul 2014 09:12:31 +0300
+Message-ID: <53D5E9CF.10706@ti.com>
+References: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47744 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751583AbaG1FfG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Jul 2014 01:35:06 -0400
-In-Reply-To: <alpine.DEB.2.02.1407280529320.24161@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1404816398-12338-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: nsekhar-l0cyMroinI0@public.gmane.org, joelf-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, nm@ti.com, nsekhar@ti.com, s-anna@ti.com
 
-On Monday 28 July 2014 10:59 AM, Paul Walmsley wrote:
-> On Mon, 28 Jul 2014, Lokesh Vutla wrote:
-> 
->> From: Rajendra Nayak <rnayak@ti.com>
->>
->> Use the corresponding compatibles to identify the devices.
->>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> Acked-by: Nishanth Menon <nm@ti.com>
->> Tested-by: Nishanth Menon <nm@ti.com>
-> 
-> Thanks, queued for (hopefully) early v3.17-rc.
-Thanks Paul.
+On 07/08/2014 01:46 PM, Peter Ujfalusi wrote:
+> Hi,
+> =
 
-Regards,
-Lokesh
-> 
-> 
-> - Paul
-> 
+> It is preferred that audio is served with the highest priority queue in o=
+rder to
+> avoid delays in data transfer between memory and audio IP.
+> =
 
+> The following series will add an API to arch code to assign a channel to =
+a given
+> queue.
+> The default queue is changed from 0 (highest priority) to lowest priority.
+> In the dmaengine driver we move the cyclic channel to queue0 (highest pri=
+ority)
+> and move it back to default queue when the channel is terminated.
+
+ping?
+
+> =
+
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (3):
+>   ARM: edma: Set default queue to lowest priority
+>   ARM: edma: Add edma_assign_channel_eventq() to move channel to a give
+>     queue
+>   dma: edma: Serve cyclic (audio) channels with high priority queue
+> =
+
+>  arch/arm/common/edma.c             | 31 ++++++++++++++++++++++++++++++-
+>  drivers/dma/edma.c                 |  8 ++++++++
+>  include/linux/platform_data/edma.h |  2 ++
+>  3 files changed, 40 insertions(+), 1 deletion(-)
+> =
+
+
+
+-- =
+
+P=E9ter
