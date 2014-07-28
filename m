@@ -1,41 +1,54 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/2] ARM: dts: dra72-evm: Add i2c1 and tps65917 nodes
-Date: Mon, 28 Jul 2014 12:00:57 +0530
-Message-ID: <53D5EE21.1040000@ti.com>
-References: <1406528334-4415-1-git-send-email-j-keerthy@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/3] ARM/dma: edma: Serve cyclic clients via high priority
+	queue
+Date: Mon, 28 Jul 2014 12:02:17 +0530
+Message-ID: <53D5EE71.3040707@ti.com>
+References: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
+	<53D5E9CF.10706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1406528334-4415-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-patch-review-uAqBSO/uNfhBDgjK7y7TUQ@public.gmane.org
-Cc: nm-l0cyMroinI0@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <53D5E9CF.10706-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 28 July 2014 11:48 AM, Keerthy wrote:
-> The patch series adds i2c1 and tps65917 and related nodes.
-> The patch series is boot tested on DRA72-EVM.
-> 
-> Thanks to Lokesh <lokeshvutla-l0cyMroinI0@public.gmane.org> for testing the series.
-For booting, this is dependent on recent hwmod fix patch series posted by me:
-http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg108001.html
+On Monday 28 July 2014 11:42 AM, Peter Ujfalusi wrote:
+> On 07/08/2014 01:46 PM, Peter Ujfalusi wrote:
+>> Hi,
+>>
+>> It is preferred that audio is served with the highest priority queue in order to
+>> avoid delays in data transfer between memory and audio IP.
+>>
+>> The following series will add an API to arch code to assign a channel to a given
+>> queue.
+>> The default queue is changed from 0 (highest priority) to lowest priority.
 
-Boot log for this series can be found here:
-http://paste.ubuntu.com/7881545/
+This should not really change any performance behavior as everything at
+highest priority is same as everything at lowest priority.
 
-Thanks and regards,
-Lokesh
+>> In the dmaengine driver we move the cyclic channel to queue0 (highest priority)
+>> and move it back to default queue when the channel is terminated.
 > 
-> Keerthy J (2):
->   ARM: dts: dra72-evm: Enable I2C1 node
->   ARM: dts: dra72-evm: Add tps65917 PMIC node
-> 
->  arch/arm/boot/dts/dra72-evm.dts |  120 +++++++++++++++++++++++++++++++++++++++
->  1 file changed, 120 insertions(+)
-> 
+> ping?
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For 1/3 and 2/3:
+
+Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+
+Vinod, can you take the series together with your tree (if you are happy
+with the series, that is)? I don't have anything else queued for this
+merge window.
+
+Thanks,
+Sekhar
