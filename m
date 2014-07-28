@@ -1,54 +1,103 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/3] ARM/dma: edma: Serve cyclic clients via high priority
-	queue
-Date: Mon, 28 Jul 2014 12:02:17 +0530
-Message-ID: <53D5EE71.3040707@ti.com>
-References: <1404816398-12338-1-git-send-email-peter.ujfalusi@ti.com>
-	<53D5E9CF.10706@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v7 0/5] Input: pixcir_i2c_ts: Add Type-B Multi-touch and
+ DT support
+Date: Mon, 28 Jul 2014 12:16:08 +0300
+Message-ID: <53D614D8.4070309@ti.com>
+References: <1402997507-9736-1-git-send-email-rogerq@ti.com> <53B523AE.70601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <53D5E9CF.10706-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, joelf-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36390 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989AbaG1JQU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Jul 2014 05:16:20 -0400
+In-Reply-To: <53B523AE.70601@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dmitry.torokhov@gmail.com, tony@atomide.com
+Cc: rydberg@euromail.se, balbi@ti.com, dmurphy@ti.com, mugunthanvnm@ti.com, nsekhar@ti.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Monday 28 July 2014 11:42 AM, Peter Ujfalusi wrote:
-> On 07/08/2014 01:46 PM, Peter Ujfalusi wrote:
->> Hi,
->>
->> It is preferred that audio is served with the highest priority queue in order to
->> avoid delays in data transfer between memory and audio IP.
->>
->> The following series will add an API to arch code to assign a channel to a given
->> queue.
->> The default queue is changed from 0 (highest priority) to lowest priority.
+Hi Dmitry,
 
-This should not really change any performance behavior as everything at
-highest priority is same as everything at lowest priority.
+Gentle ping. Would be nice to get these into 3.17. Thanks :).
 
->> In the dmaengine driver we move the cyclic channel to queue0 (highest priority)
->> and move it back to default queue when the channel is terminated.
+cheers,
+-roger
+
+On 07/03/2014 12:34 PM, Roger Quadros wrote:
+> Hi Dmitry,
 > 
-> ping?
+> Gentle reminder to pick this series for -next. Thanks :).
+> 
+> cheers,
+> -roger
+> 
+> On 06/17/2014 12:31 PM, Roger Quadros wrote:
+>> Hi Dmitry,
+>>
+>> These are the pending patches that didn't go through in the 3.16 merge window.
+>> Please queue them for -next. Thanks.
+>>
+>> The series does the following
+>> - convert to Type-B multi touch protocol
+>> - support upto 5 fingers with hardware supplied tracking IDs
+>> - device tree support
+>>
+>> Tony,
+>>
+>> The last 2 patches fix the touch screen size property in the device tree since
+>> we now use the unified touch screen properties.
+>>
+>> cheers,
+>> -roger
+>>
+>> Changelog:
+>>
+>> v7:
+>> - Rebased on 3.16-rc1.
+>>
+>> v6:
+>> - Use unified touchscreen bindings.
+>> - Update pointer math i.e. bufptr += 4 instead of &bufptr[4];
+>>
+>> v5:
+>> - Changed ts->exiting flag to ts->running in patch 2.
+>> - Don't call pixcir_stop() from .suspend() if wakeup is required.
+>>
+>> v4:
+>> - Imporved pixcir_stop() as per Dmitry's suggestion.
+>> - Removed unnecessary input_unregister_device() from .remove().
+>>
+>> v3:
+>> - Rebased to 3.15-rc3
+>> - Fixed suspend while touchscreen in use
+>> - Fixed module removal while touchscreen in use
+>>
+>> v2:
+>> - Addressed review comments and re-arranged patch order
+>>
+>> v1:
+>> - http://article.gmane.org/gmane.linux.kernel/1616417
+>>
+>> --
+>>
+>> Roger Quadros (5):
+>>   Input: pixcir_i2c_ts: Use Type-B Multi-Touch protocol
+>>   Input: pixcir_i2c_ts: support upto 5 fingers and hardware provided
+>>     tracking IDs
+>>   Input: pixcir_i2c_ts: Add device tree support
+>>   ARM: dts: am43x-epos-evm: Update binding for touchscreen size
+>>   ARM: dts: am437x-gp-evm: Update binding for touchscreen size
+>>
+>>  .../bindings/input/touchscreen/pixcir_i2c_ts.txt   |  26 +++
+>>  .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+>>  arch/arm/boot/dts/am437x-gp-evm.dts                |   4 +-
+>>  arch/arm/boot/dts/am43x-epos-evm.dts               |   4 +-
+>>  drivers/input/touchscreen/pixcir_i2c_ts.c          | 251 ++++++++++++++++++---
+>>  include/linux/input/pixcir_ts.h                    |  12 +
+>>  6 files changed, 259 insertions(+), 39 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/input/touchscreen/pixcir_i2c_ts.txt
+>>
+> 
 
-For 1/3 and 2/3:
-
-Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-
-Vinod, can you take the series together with your tree (if you are happy
-with the series, that is)? I don't have anything else queued for this
-merge window.
-
-Thanks,
-Sekhar
