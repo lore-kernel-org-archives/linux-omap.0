@@ -1,74 +1,179 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks
- handled by clock_ops domain
-Date: Mon, 28 Jul 2014 20:47:48 +0300
-Message-ID: <53D68CC4.1010704@ti.com>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>	<1402592023-13416-1-git-send-email-grygorii.strashko@ti.com>	<1402592023-13416-3-git-send-email-grygorii.strashko@ti.com> <20140728140533.6E916C4116F@trevor.secretlab.ca>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP3/AM3517 EHCI USB Issue
+Date: Mon, 28 Jul 2014 13:10:24 -0500
+Message-ID: <20140728181024.GI7667@saruman.home>
+References: <20140725200400.GB18127@sysresccd>
+ <Pine.LNX.4.44L0.1407281059060.1183-100000@iolanthe.rowland.org>
+ <20140728152948.GA28880@sysresccd>
+ <20140728155718.GF7667@saruman.home>
+ <20140728175739.GA29212@sysresccd>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140728140533.6E916C4116F-WNowdnHR2B42iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org
-Cc: laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ben.dooks-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org, horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3U8TY7m7wOx7RL1F"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48683 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750825AbaG1SLM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Jul 2014 14:11:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20140728175739.GA29212@sysresccd>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Welling <mwelling@emacinc.com>, Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, heikki.krogerus@linux.intel.com, chris.ruehl@gtsys.com.hk, Roger Quadros <rogerq@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi Grant.
+--3U8TY7m7wOx7RL1F
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 07/28/2014 05:05 PM, Grant Likely wrote:
-> On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> wrote:
->> Use "clkops-clocks" property to specify clocks handled by
->> clock_ops domain PM domain. Only clocks defined in "clkops-clocks"
->> set of clocks will be handled by Runtime PM through clock_ops
->> Pm domain.
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
->> ---
->>   drivers/of/of_clk.c |    7 ++-----
->>   1 file changed, 2 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
->> index 35f5e9f..5f9b90e 100644
->> --- a/drivers/of/of_clk.c
->> +++ b/drivers/of/of_clk.c
->> @@ -86,11 +86,8 @@ int of_clk_register_runtime_pm_clocks(struct device_node *np,
->>   	struct clk *clk;
->>   	int error;
->>   
->> -	for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
->> -		if (!clk_may_runtime_pm(clk)) {
->> -			clk_put(clk);
->> -			continue;
->> -		}
->> +	for (i = 0; (clk = of_clk_get_from_set(np, "clkops", i)) &&
->> +		     !IS_ERR(clk); i++) {
-> 
-> This really looks like an ABI break to me. What happens to all the
-> existing platforms who don't have this new clkops-clocks in their device
-> tree?
+On Mon, Jul 28, 2014 at 12:57:39PM -0500, Michael Welling wrote:
+> On Mon, Jul 28, 2014 at 10:57:18AM -0500, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Mon, Jul 28, 2014 at 10:29:49AM -0500, Michael Welling wrote:
+> > > On Mon, Jul 28, 2014 at 11:02:47AM -0400, Alan Stern wrote:
+> > > > On Fri, 25 Jul 2014, Michael Welling wrote:
+> > > >=20
+> > > > > The plot thickens....
+> > > > >=20
+> > > > > So if I run the above command before anything is plugged into the=
+ ports
+> > > > > the HUB disconnects.
+> > > > >=20
+> > > > > root@som3517:~# echo on > /sys/bus/usb/devices/1-1/power/control
+> > > > > [   63.068839] usb 1-1: USB disconnect, device number 2
+> > > > >=20
+> > > > > Here is the output of the usbmon output when running the above co=
+mmand:
+> > > > > root@som3517:/sys/kernel/debug/usb/usbmon# cat 1t
+> > > > > de382e40 3788886573 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de382e40 3788890604 C Ci:001:00 0 4 =3D 07050000
+> > > > > de382e40 3788892965 S Ci:001:00 s a3 00 0000 0002 0004 4 <
+> > > > > de382e40 3788893093 C Ci:001:00 0 4 =3D 00010000
+> > > > > de382e40 3788894834 S Ci:001:00 s a3 00 0000 0003 0004 4 <
+> > > > > de382e40 3788894958 C Ci:001:00 0 4 =3D 00010000
+> > > > > de7d92c0 3788896519 S Ii:001:01 -115 4 <
+> > > > > de382e40 3788898778 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de382e40 3788900188 C Ci:001:00 0 4 =3D 07050000
+> > > > > de382e40 3788902705 S Co:001:00 s 23 01 0002 0001 0000 0
+> > > > > de382e40 3788905793 C Co:001:00 0 0
+> > > > > de382e40 3788940998 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de7d92c0 3788942065 C Ii:001:01 0 1 =3D 02
+> > > > > de7d92c0 3788943013 S Ii:001:01 -115 4 <
+> > > > > de382e40 3788943145 C Ci:001:00 0 4 =3D 03050400
+> > > > > de382e40 3788961031 S Co:001:00 s 23 01 0012 0001 0000 0
+> > > > > de382e40 3788961175 C Co:001:00 0 0
+> > > > > de382e40 3788961304 S Ci:002:00 s 80 00 0000 0000 0002 2 <
+> > > > > de382e40 3788965395 C Ci:002:00 -71 0
+> > > > > de249040 3788966954 S Co:001:00 s 23 03 0004 0001 0000 0
+> > > > > de249040 3788968362 C Co:001:00 0 0
+> > > > > de249040 3789021103 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de7d92c0 3789022194 C Ii:001:01 0 1 =3D 02
+> > > > > de7d92c0 3789022226 S Ii:001:01 -115 4 <
+> > > > > de249040 3789023423 C Ci:001:00 0 4 =3D 01051200
+> > > > > de249040 3789025010 S Co:001:00 s 23 03 0004 0001 0000 0
+> > > > > de249040 3789026815 C Co:001:00 0 0
+> > > > > de249040 3789230980 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de249040 3789231111 C Ci:001:00 0 4 =3D 00010300
+> > > > > de249040 3789232280 S Co:001:00 s 23 01 0014 0001 0000 0
+> > > > > de249040 3789232404 C Co:001:00 0 0
+> > > > > de249040 3789233056 S Co:001:00 s 23 01 0001 0001 0000 0
+> > > > > de249040 3789235345 C Co:001:00 0 0
+> > > > > de249040 3789236820 S Co:001:00 s 23 01 0001 0001 0000 0
+> > > > > de249040 3789237201 C Co:001:00 0 0
+> > > > > de249040 3789238180 S Co:001:00 s 23 01 0001 0001 0000 0
+> > > > > de249040 3789238510 C Co:001:00 0 0
+> > > > > de249040 3789240602 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de249040 3789241661 C Ci:001:00 0 4 =3D 00010300
+> > > > > de249040 3789242264 S Co:001:00 s 23 01 0010 0001 0000 0
+> > > > > de249040 3789243921 C Co:001:00 0 0
+> > > > > de249040 3789246540 S Co:001:00 s 23 01 0011 0001 0000 0
+> > > > > de249040 3789246930 C Co:001:00 0 0
+> > > > > de2490c0 3789283096 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de2490c0 3789286255 C Ci:001:00 0 4 =3D 00010000
+> > > > > de2490c0 3789330975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de2490c0 3789332606 C Ci:001:00 0 4 =3D 00010000
+> > > > > de2490c0 3789371015 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de2490c0 3789371146 C Ci:001:00 0 4 =3D 00010000
+> > > > > de2490c0 3789410975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de2490c0 3789411097 C Ci:001:00 0 4 =3D 00010000
+> > > > > de2490c0 3789450972 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> > > > > de2490c0 3789451081 C Ci:001:00 0 4 =3D 00010000
+> > > > > de7d92c0 3789452462 C Ii:001:01 -2 0
+> > > > >=20
+> > > > > Not sure what any of it means.
+> > > >=20
+> > > > Basically it means what you said above: the hub disconnected.  I ca=
+n't=20
+> > > > tell why.  You'll have to ask someone who's familiar with the hardw=
+are=20
+> > > > on that board.
+> > >=20
+> > > Sadly, there is no one more familar with this specific hardware than =
+myself.
+> > >=20
+> > > I can however ellaborate the hardware setup of the USB subsystem in
+> > > case there is someone out there that has used a similar setup.
+> > >=20
+> > > The board uses the AM3517 SoC from TI. The SoC's USB host port (HSUSB=
+1) is
+> > > connected to a USB3320 PHY. The PHY is connected to a USB2512 switch =
+to
+> > > provide two downstream USB ports.
+> > >=20
+> > > The very same hardware worked with the 2.6.37 kernel that I am trying=
+ to
+> > > move away from.
+> > >=20
+> > > Today I am going to try using 3.10 and 3.14 kernels see if they exhib=
+it
+> > > the same behavior.
+> >=20
+>=20
+> It should be noted that the 3.10 kernel did not even detect the external
+> HUB and the 3.14 kernel exhibits the same failure as 3.16.
+>=20
+> > Do you have off-while-idle enabled ? This could be, as Alan suggested, a
+> > problem with remote wakeup. EHCI on TI parts is kinda awkward, if you
+> > will, and getting remote wakeup with PM working, is generally a
+> > challenge.
+>=20
+> How would one determine if off-while-idle is enabled? Is this a flag in an
+> entry in the devicetree?
 
-Agree. This patch as is will break such platforms.
-As possible solution for above problem - the NULL can be used as clock's prefix
-by default and platform code can configure new value of clock's prefix during
-initialization.
-In addition, to make this solution full the of_clk_get_by_name() will
-need to be modified too.
+there is a pm_debug file on debugfs which you can use. Set autosuspend
+delay to UART (it's set to -1 by default, IIRC), then leave the board
+idle for a couple minutes, then read /sys/kernel/debug/pm_debug and see
+if the OFF() counters are increasing.
 
-But note pls, this is pure RFC patches which I did to find out the answer on questions:
-- What is better: maintain Runtime PM clocks configuration in DT or in code?
+Adding linux-omap to Cc. Also Tony, who has a simple script to enable
+pm_runtime on UART.
 
-- Where and when to call of_clk_register_runtime_pm_clocks()?
-  Bus notifier/ platform core/ device drivers
+--=20
+balbi
 
-Also, May be platform dependent solution [1] can be acceptable for now?
+--3U8TY7m7wOx7RL1F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-[1] https://lkml.org/lkml/2014/7/25/630
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Best regards,
--grygorii
+iQIcBAEBAgAGBQJT1pIQAAoJEIaOsuA1yqRE238P/0vdaAyWEOuNnee9RjPJZgpr
+ltQb5Rk7ob3WcUfdPyv2jvZ8dKAMNSYaXKaGX5EXGm0/g66c5ZAQ0tORh0Dxnnm4
+TuS4qF88N3CPRN+wtjlxOxosxz3GmPuuIGsYIddAIDBGPgiIJBBmGLvgGfL4xnO+
++RmzrCnl7UI6IjCCJw2iB1Lq+n+pt2oshBar2LbkpjcQ4oegULFA8srqVHAU+Pq9
+Ryvp5aL/sz6VEySNUIAQnNDDb8iXRQYPju4tz5H4PK8rbu58QoCUTZhYMNPZF/0L
++vGAByMNt5p9Or/p4JeP70C9Y8PKYJkP1a6mrxmAuVm33xaVDjDiS7NCWkjXrZbz
+QMn3uNm/AYS+flHXfvWGeQS63bcolSvewGjEl2a3vgWOkDgnR6OEb4NKnH8ABXyT
+qDLzJtlJ9qHr/pv1f+fe7Ocy9GoPTApFt7jR7v+PNWZyBFrugestNEbYHSlggQ/f
+13Cgp/p1g4jfZFstDmP8Sco2hZgRgAG2SlqF1NmuDZJD6xlbv64DH3cbJ73jRvz1
+japRRlbJdh+bJsHeyJWRqQ25Mgliu3nG2htGSW19Jknb/g3BRmHDIGcmLyWowwzh
+hsXQ1f24ncl69VOdKKv7WN+LkBXwAi2DECXTNIsMfGh6ZSwxPk+94AMU/xH6tGaf
+CS0D0RuHHitnzWR0gYh9
+=RKzC
+-----END PGP SIGNATURE-----
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--3U8TY7m7wOx7RL1F--
