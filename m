@@ -1,79 +1,164 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 1/2] remoteproc: use a flag to detect the presence of
- IOMMU
-Date: Tue, 29 Jul 2014 11:10:17 -0500
-Message-ID: <53D7C769.6080500@ti.com>
-References: <1404836521-59637-1-git-send-email-s-anna@ti.com> <1404836521-59637-2-git-send-email-s-anna@ti.com> <CAK=Wgbawdik3ZB0Zbeaa7eXd7M+9ev9u713GcfOc4Gy0+O80Dg@mail.gmail.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
+Date: Tue, 29 Jul 2014 09:12:38 -0700
+Message-ID: <CAPtuhTjMAZcHecO0dr+3zDurCfQH32pmYUQ+zNXhRdS_+vJZsg@mail.gmail.com>
+References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com>
+ <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com> <5358D534.2070205@ti.com>
+ <535927DF.90404@ti.com> <5368E604.4040107@ti.com> <53C3AC94.5050904@ti.com>
+ <20140729062748.4906.1529@quantum> <53D759E6.3060607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=Wgbawdik3ZB0Zbeaa7eXd7M+9ev9u713GcfOc4Gy0+O80Dg@mail.gmail.com>
+In-Reply-To: <53D759E6.3060607@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Robert Tivy <rtivy@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
+On Tue, Jul 29, 2014 at 1:23 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> On 07/29/2014 09:27 AM, Mike Turquette wrote:
+>>
+>> Quoting Peter Ujfalusi (2014-07-14 03:10:28)
+>>>
+>>> On 05/06/2014 04:39 PM, Peter Ujfalusi wrote:
+>>>>>>
+>>>>>> Tero: can I have your ack for this patch or do you have further
+>>>>>> concerns?
+>>>>>
+>>>>>
+>>>>> Yea looks good to me, except for the fact that there is some work=
+ on
+>>>>> getting
+>>>>> default rate/parent support through DT. I would like a comment fr=
+om
+>>>>> Mike about
+>>>>> the estimate when this can get in, and whether we should merge
+>>>>> intermediate
+>>>>> solutions still like this.
+>>
+>>
+>> Tero,
+>>
+>> On May 19 you said, "Thanks, queued for 3.16/ti-clk-drv." but I neve=
+r
+>> received that as part of the TI clock fixes. :-(
+>>
+>> I've taken Sylwester's patch in for the DT-based assigned clock rate=
+s
+>> and parents. You can find it in clk-next. (maybe you are still on
+>> vacation? I don't know...)
+>>
+>>>>>
+>>>>> Anyway, you can consider this patch acked by me, I'll let Mike to
+>>>>> decide what
+>>>>> to do with it though.
+>>>>
+>>>>
+>>>> Do you have anything against this patch? Since right now there is =
+no
+>>>> other
+>>>> ways to fix the ABE DPLL for dra7 it would be great if we could ha=
+ve
+>>>> this in
+>>>> till we have the final solution. Also I'd like to point out that t=
+he
+>>>> original
+>>>> frequency the ABE DPLL was not correct and renders the audio to be=
+ not
+>>>> usable
+>>>> on the platform.
+>>>
+>>>
+>>> Mike: can we have this patch still pushed for 3.16? I can resend it=
+ right
+>>> away
+>>> if you  lost the original patch.
+>>
+>>
+>> Peter,
+>>
+>> I have your original patch. No need to resend. Let's see if Tero
+>> comments this week, otherwise I can take it with his previously supp=
+lied
+>> Ack and send it off. Probably needs to be sent by Thursday at the
+>> latest.
+>
+>
+> Oh yea, seems this got lost into the myriad of branches I have. I can=
+ push
+> this on top of my for-v3.17/ti-clk-drv if you like.
 
-On 07/29/2014 05:57 AM, Ohad Ben-Cohen wrote:
-> Hi Suman,
->=20
-> On Tue, Jul 8, 2014 at 7:22 PM, Suman Anna <s-anna@ti.com> wrote:
->> The remoteproc driver core currently relies on iommu_present() on
->> the bus the device is on, to perform MMU management. However, this
->> logic doesn't scale for multi-arch, especially for processors that
->> do not have an IOMMU.
->=20
-> Is there a specific hw/scenario where you need this? Can you please
-> provide more details about it?
+That is the easiest thing for me. I think that Peter wanted to take
+this as a fix for 3.16 though. Peter is that correct?
 
-We are trying to add a remoteproc driver for a small Cortex M3 called
-the WkupM3 used for suspend/resume management on TI AM335/AM437x SoCs.
-This processor does not have an MMU. Same is the case with another
-processor subsystem PRU-ICSS on AM335/AM437x. All these are platform
-devices, and the current iommu_present check will not scale for the sam=
-e
-kernel image to support OMAP4/OMAP5 and AM335/AM437x.
+Regards,
+Mike
 
-This patch mainly addresses the existing comments in the code,
--	 * This works for simple cases, but will easily fail with
--	 * platforms that do have an IOMMU, but not for this specific
--	 * rproc.
--	 *
--	 * This will be easily solved by introducing hw capabilities
--	 * that will be set by the remoteproc driver.
-
->=20
-> Ideally we should add them to the commit log as well.
->=20
->> The individual platform implementations are required to set this
->> flag appropriately. The default setting is to not have an MMU.
->=20
-> Let's explicitly set the default please so this would be clear for
-> users reading the code.
-
-OK, I can update the existing drivers to explicitly set this field.
-
->=20
->> Cc: Sjur Br=C3=A6ndeland <sjur.brandeland@stericsson.com>
->=20
-> Sjur is no longer with STE, so no point in cc'ing his old email addre=
-ss.
-
-Yeah, I wasn't aware until I got a bounced email.
-
->=20
->> +       /*
->> +        * All existing OMAP IPU and DSP processors do have an MMU, =
-and
->> +        * are expected to use MMU, so this statement suffices.
->> +        * XXX: Replace this logic if and when a need arises.
->=20
-> The last XXX comment is always true for any kernel code, so I'd drop =
-it.
-
-Sure.
-
-regards
-Suman
+>
+> -Tero
+>
+>
+>>
+>> Regards,
+>> Mike
+>>
+>>>
+>>> Thanks,
+>>> P=C3=A9ter
+>>>
+>>>
+>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>> -Tero
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>>>>>>>> ---
+>>>>>>>>>     drivers/clk/ti/clk-7xx.c | 7 ++++++-
+>>>>>>>>>     1 file changed, 6 insertions(+), 1 deletion(-)
+>>>>>>>>>
+>>>>>>>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7x=
+x.c
+>>>>>>>>> index f7e40734c819..19a55bf407dd 100644
+>>>>>>>>> --- a/drivers/clk/ti/clk-7xx.c
+>>>>>>>>> +++ b/drivers/clk/ti/clk-7xx.c
+>>>>>>>>> @@ -16,7 +16,7 @@
+>>>>>>>>>     #include <linux/clkdev.h>
+>>>>>>>>>     #include <linux/clk/ti.h>
+>>>>>>>>>
+>>>>>>>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
+>>>>>>>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
+>>>>>>>>>     #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
+>>>>>>>>>         if (rc)
+>>>>>>>>>             pr_err("%s: failed to configure ABE DPLL!\n",
+>>>>>>>>> __func__);
+>>>>>>>>>
+>>>>>>>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+>>>>>>>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
+>>>>>>>>> +    if (rc)
+>>>>>>>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n",
+>>>>>>>>> __func__);
+>>>>>>>>> +
+>>>>>>>>>         dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
+>>>>>>>>>         rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
+>>>>>>>>>         if (rc)
+>>>>>>>>>
+>>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>
+>>>>>
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-om=
+ap" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>
