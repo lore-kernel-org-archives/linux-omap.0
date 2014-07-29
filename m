@@ -1,128 +1,90 @@
-From: "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH 3/3] arm: dts: Add gta04a5 model
-Date: Tue, 29 Jul 2014 07:17:06 +0200
-Message-ID: <A0AA66B6-5D28-49D7-AF83-06F0D38DA96D@goldelico.com>
-References: <1406577213-9642-1-git-send-email-marek@goldelico.com> <1406577213-9642-4-git-send-email-marek@goldelico.com> <CAOf5uwk=ctww=pP4Ae+1C6i-oOtiYTv2NJbj1GpuPwVSKXB4Hw@mail.gmail.com> <CAAfyv35jvhzvjCKMwrpa=RQ1JkfcmthCsGDzwLW9Y6bq3Ww_fg@mail.gmail.com> <CAOf5uw=Fm9FXEH5ESqDC8pGjMbn5VQ1+MyPJVXSqGh_9+JRLHw@mail.gmail.com> <CAAfyv351g1R6TnmW+JKM1sDQsegEFExV6p9BEN=izOdR4n8zEQ@mail.gmail.com> <CAOf5uwmjznuK_1au1HnsnYh=BhqC=x+O_tpk6U71bqPv=hFe_A@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAOf5uwmjznuK_1au1HnsnYh=BhqC=x+O_tpk6U71bqPv=hFe_A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Cc: Marek Belisko <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, pawel.moll-5wv7dgnIgG8@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks
+ handled by clock_ops domain
+Date: Mon, 28 Jul 2014 23:52:34 -0600
+Message-ID: <CACxGe6uMke5vgzcNC9xUqjr2bHJ4QFHD6YjocSZWq8Ccx8Mm6A@mail.gmail.com>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
+ <1402592023-13416-1-git-send-email-grygorii.strashko@ti.com>
+ <1402592023-13416-3-git-send-email-grygorii.strashko@ti.com>
+ <20140728140533.6E916C4116F@trevor.secretlab.ca> <53D68CC4.1010704@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:44865 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752586AbaG2Fwz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 01:52:55 -0400
+Received: by mail-ie0-f181.google.com with SMTP id rp18so7998889iec.40
+        for <linux-omap@vger.kernel.org>; Mon, 28 Jul 2014 22:52:54 -0700 (PDT)
+In-Reply-To: <53D68CC4.1010704@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, ulf.hansson@linaro.org, Kevin Hilman <khilman@linaro.org>, Mike Turquette <mturquette@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+On Mon, Jul 28, 2014 at 11:47 AM, Grygorii Strashko
+<grygorii.strashko@ti.com> wrote:
+> Hi Grant.
+>
+> On 07/28/2014 05:05 PM, Grant Likely wrote:
+>> On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+>>> Use "clkops-clocks" property to specify clocks handled by
+>>> clock_ops domain PM domain. Only clocks defined in "clkops-clocks"
+>>> set of clocks will be handled by Runtime PM through clock_ops
+>>> Pm domain.
+>>>
+>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>> ---
+>>>   drivers/of/of_clk.c |    7 ++-----
+>>>   1 file changed, 2 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
+>>> index 35f5e9f..5f9b90e 100644
+>>> --- a/drivers/of/of_clk.c
+>>> +++ b/drivers/of/of_clk.c
+>>> @@ -86,11 +86,8 @@ int of_clk_register_runtime_pm_clocks(struct device_node *np,
+>>>      struct clk *clk;
+>>>      int error;
+>>>
+>>> -    for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
+>>> -            if (!clk_may_runtime_pm(clk)) {
+>>> -                    clk_put(clk);
+>>> -                    continue;
+>>> -            }
+>>> +    for (i = 0; (clk = of_clk_get_from_set(np, "clkops", i)) &&
+>>> +                 !IS_ERR(clk); i++) {
+>>
+>> This really looks like an ABI break to me. What happens to all the
+>> existing platforms who don't have this new clkops-clocks in their device
+>> tree?
+>
+> Agree. This patch as is will break such platforms.
+> As possible solution for above problem - the NULL can be used as clock's prefix
+> by default and platform code can configure new value of clock's prefix during
+> initialization.
+> In addition, to make this solution full the of_clk_get_by_name() will
+> need to be modified too.
+>
+> But note pls, this is pure RFC patches which I did to find out the answer on questions:
+> - What is better: maintain Runtime PM clocks configuration in DT or in code?
 
-Am 28.07.2014 um 22:12 schrieb Michael Trimarchi:
+In code. I don't think it is workable to embed runtime PM behaviour
+into the DT bindings. I think there will be too much variance in what
+hardware requires. We can create helpers to make this simpler, but I
+don't think it is a good idea to set it up automatically without any
+control from the driver itself.
 
-> Hi
-> 
-> Il 28/lug/2014 22:06 "Belisko Marek" <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> ha scritto:
-> >
-> > On Mon, Jul 28, 2014 at 10:04 PM, Michael Trimarchi
-> > <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-> > > Hi
-> > >
-> > > Il 28/lug/2014 22:02 "Belisko Marek" <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> ha scritto:
-> > >
-> > >
-> > >>
-> > >> Hi Michael,
-> > >>
-> > >> On Mon, Jul 28, 2014 at 9:56 PM, Michael Trimarchi
-> > >> <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
-> > >> > Hi Marek
-> > >> >
-> > >> > Il 28/lug/2014 21:54 "Marek Belisko" <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> ha scritto:
-> > >> >
-> > >> >
-> > >> >>
-> > >> >> Add model a5 which have additional jack detection.
-> > >> >>
-> > >> >> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> > >> >> ---
-> > >> >>  arch/arm/boot/dts/Makefile          |  1 +
-> > >> >>  arch/arm/boot/dts/omap3-gta04a5.dts | 17 +++++++++++++++++
-> > >> >>  2 files changed, 18 insertions(+)
-> > >> >>  create mode 100644 arch/arm/boot/dts/omap3-gta04a5.dts
-> > >> >>
-> > >> >> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> > >> >> index 7d45fde..576c595 100644
-> > >> >> --- a/arch/arm/boot/dts/Makefile
-> > >> >> +++ b/arch/arm/boot/dts/Makefile
-> > >> >> @@ -285,6 +285,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
-> > >> >>         omap3-evm-37xx.dtb \
-> > >> >>         omap3-gta04a3.dtb \
-> > >> >>         omap3-gta04a4.dtb \
-> > >> >> +       omap3-gta04a5.dtb \
-> > >> >>         omap3-igep0020.dtb \
-> > >> >>         omap3-igep0030.dtb \
-> > >> >>         omap3-ldp.dtb \
-> > >> >> diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts
-> > >> >> b/arch/arm/boot/dts/omap3-gta04a5.dts
-> > >> >> new file mode 100644
-> > >> >> index 0000000..210317c3
-> > >> >> --- /dev/null
-> > >> >> +++ b/arch/arm/boot/dts/omap3-gta04a5.dts
-> > >> >> @@ -0,0 +1,17 @@
-> > >> >> +/*
-> > >> >> + * Copyright (C) 2014 H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> > >> >> + *
-> > >> >> + * This program is free software; you can redistribute it and/or
-> > >> >> modify
-> > >> >> + * it under the terms of the GNU General Public License version 2 as
-> > >> >> + * published by the Free Software Foundation.
-> > >> >> + */
-> > >> >> +
-> > >> >> +#include "omap3-gta04.dtsi"
-> > >> >> +
-> > >> >> +/ {
-> > >> >> +       model = "Goldelico GTA04A5;
-> > >> >> +
-> > >> >> +       sound {
-> > >> >> +               ti,jack-det-gpio = <&twl_gpio 2 0>;    /* GTA04A5 only
-> > >> >> */
-> > >> >> +       };
-> > >> >> +};
-> > >> >> --
-> > >> >> 1.9.1
-> > >> >>
-> > >> >
-> > >> > Can we have only one dts with status enabled/disabled?
-> > >> Do you mean to define this node it gta04.dtsi disabled and enable only
-> > >> for a5 model?
-> > >> >
-> > >
-> > > This should be possible in the bootloader
-> > Sorry I didn't get that. Can you give me some short example (or
-> > existing board which using it)?
-> > Thanks.
-> > >
-> 
-> http://www.denx.de/wiki/view/DULG/UBootCmdFDT
-> 
-> I just suggest to not create a dts for each board revision but let it manage by the bootloader. I don't know if there are examples but make sense to me to avoid to add a lot of dts.
-> 
-> 
+>
+> - Where and when to call of_clk_register_runtime_pm_clocks()?
+>   Bus notifier/ platform core/ device drivers
 
-Hm. Why should we dynamically modify the dtb in memory through slow, interpreted FDT commands in u-boot, if the DTC can statically compile complete .dtb files by using an #include mechanism? It would slow down boot time for no other improvement. And debugging is more difficult that looking for compiler errors.
+I would say in device drivers.
 
-And our u-boot does not support the fdt command to avoid bloating it. IMHO boot loaders should be as small and fast as possible and contain only what is barely necessary. Everything more sophisticated should be done by the kernel and device drivers and some init user space process. I.e. boot loader should only tell the kernel only which board revision it is but not "manage" the board revisions.
+> Also, May be platform dependent solution [1] can be acceptable for now?
+>
+> [1] https://lkml.org/lkml/2014/7/25/630
 
-We also have a nice feature that a system on an SD card has the uImage in /boot and all existing and relevant .dtb files. U-Boot simply picks and loads the right one (by file name). This keeps the boot loader stable (people always have difficulties flashing new boot loaders). Therefore we need precompiled DTBs that completely and consistently describe each board variant. This mechanism allows that we can easily swap the SD card between different boards and variants. Implementing this feature using U-Boot scripts with FDT commands to patch the DT, appears to become a nightmare. If you are interested, the whole concept is described here:
+I need to look at the series before I comment. I've flagged it and
+will hopefully look at it tomorrow.
 
-http://projects.goldelico.com/p/gta04-main/downloads/55/
-
-Another aspect to consider: in my understanding, the main reason why DT is still maintained within the kernel is that the bindings are not yet stable. Therefore if bindings are patched, all device trees using them are also to be changed. I don't see how this can work if we have part of the board variations managed outside the kernel tree. Therefore each board revision is to be treated not differently from a completely new board. And similar parts are treated by a common .dtsi. This is how the concept IMHO should be. And the consequence is that we need a different .dts file for each board that has differences (even if they are or appear to be small).
-
-So I don't see that your suggestion is the right way to go.
-
-BR,
-Nikolaus
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+g.
