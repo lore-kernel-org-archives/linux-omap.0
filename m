@@ -1,133 +1,45 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
-Date: Tue, 29 Jul 2014 11:23:02 +0300
-Message-ID: <53D759E6.3060607@ti.com>
-References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com> <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com> <5358D534.2070205@ti.com> <535927DF.90404@ti.com> <5368E604.4040107@ti.com> <53C3AC94.5050904@ti.com> <20140729062748.4906.1529@quantum>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Tue, 29 Jul 2014 08:25:19 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1407290810160.22957@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com> <20140707080238.GF28884@atomide.com> <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com> <20140729064243.GF29045@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140729062748.4906.1529@quantum>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:36828 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038AbaG2IZU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 04:25:20 -0400
+In-Reply-To: <20140729064243.GF29045@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On 07/29/2014 09:27 AM, Mike Turquette wrote:
-> Quoting Peter Ujfalusi (2014-07-14 03:10:28)
->> On 05/06/2014 04:39 PM, Peter Ujfalusi wrote:
->>>>> Tero: can I have your ack for this patch or do you have further c=
-oncerns?
->>>>
->>>> Yea looks good to me, except for the fact that there is some work =
-on getting
->>>> default rate/parent support through DT. I would like a comment fro=
-m Mike about
->>>> the estimate when this can get in, and whether we should merge int=
-ermediate
->>>> solutions still like this.
->
-> Tero,
->
-> On May 19 you said, "Thanks, queued for 3.16/ti-clk-drv." but I never
-> received that as part of the TI clock fixes. :-(
->
-> I've taken Sylwester's patch in for the DT-based assigned clock rates
-> and parents. You can find it in clk-next. (maybe you are still on
-> vacation? I don't know...)
->
->>>>
->>>> Anyway, you can consider this patch acked by me, I'll let Mike to =
-decide what
->>>> to do with it though.
->>>
->>> Do you have anything against this patch? Since right now there is n=
-o other
->>> ways to fix the ABE DPLL for dra7 it would be great if we could hav=
-e this in
->>> till we have the final solution. Also I'd like to point out that th=
-e original
->>> frequency the ABE DPLL was not correct and renders the audio to be =
-not usable
->>> on the platform.
->>
->> Mike: can we have this patch still pushed for 3.16? I can resend it =
-right away
->> if you  lost the original patch.
->
-> Peter,
->
-> I have your original patch. No need to resend. Let's see if Tero
-> comments this week, otherwise I can take it with his previously suppl=
-ied
-> Ack and send it off. Probably needs to be sent by Thursday at the
-> latest.
+On Mon, 28 Jul 2014, Tony Lindgren wrote:
 
-Oh yea, seems this got lost into the myriad of branches I have. I can=20
-push this on top of my for-v3.17/ti-clk-drv if you like.
+> Hmm I think the difference with the working v3.10 one is that you have
+> root=/dev/mmcblk0p2 instead of root=/dev/nfs. As the Ethernet on beagle
+> is on the USB EHCI, this is still blocking the deeper idle states AFAIK.
 
--Tero
+Hmm?  There's no Ethernet on the 3530 Beagle.
 
->
-> Regards,
-> Mike
->
->>
->> Thanks,
->> P=C3=A9ter
->>
->>
->>>
->>>>>>
->>>>>>>
->>>>>>> -Tero
->>>>>>>
->>>>>>>>
->>>>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>>>>>>> ---
->>>>>>>>     drivers/clk/ti/clk-7xx.c | 7 ++++++-
->>>>>>>>     1 file changed, 6 insertions(+), 1 deletion(-)
->>>>>>>>
->>>>>>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx=
-=2Ec
->>>>>>>> index f7e40734c819..19a55bf407dd 100644
->>>>>>>> --- a/drivers/clk/ti/clk-7xx.c
->>>>>>>> +++ b/drivers/clk/ti/clk-7xx.c
->>>>>>>> @@ -16,7 +16,7 @@
->>>>>>>>     #include <linux/clkdev.h>
->>>>>>>>     #include <linux/clk/ti.h>
->>>>>>>>
->>>>>>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
->>>>>>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
->>>>>>>>     #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
->>>>>>>>
->>>>>>>>
->>>>>>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
->>>>>>>>         if (rc)
->>>>>>>>             pr_err("%s: failed to configure ABE DPLL!\n", __fu=
-nc__);
->>>>>>>>
->>>>>>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
->>>>>>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
->>>>>>>> +    if (rc)
->>>>>>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __=
-func__);
->>>>>>>> +
->>>>>>>>         dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
->>>>>>>>         rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
->>>>>>>>         if (rc)
->>>>>>>>
->>>>>>>
->>>>>>
->>>>>>
->>>>>
->>>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
+The hardware configuration on those two boards - the 37xxevm and 
+the 3530es3beagle - hasn't changed between the two test runs, AFAIK.
+
+Just to take the Beagle out of the equation, here's a test with the 
+37xxevm on 3.11 where it passes the dynamic idle tests:
+
+http://www.pwsan.com/omap/testlogs/test_v3.11/20130902150604/pm/37xxevm/37xxevm_log.txt
+
+And here's one on the 37xxevm on 3.16-rc7 where it fails:
+
+http://www.pwsan.com/omap/testlogs/test_v3.11/20130902150604/pm/37xxevm/37xxevm_log.txt
+
+I should probably read back those writes to autosuspend_delay_ms, just to 
+make sure they are reaching the right destinations.  But you might want to 
+confirm that you can see the CORE RET count increasing during dynamic idle 
+on your 37xxevm.
+
+
+- Paul
