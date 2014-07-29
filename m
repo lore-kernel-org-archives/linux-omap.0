@@ -1,139 +1,81 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
-Date: Mon, 28 Jul 2014 23:27:48 -0700
-Message-ID: <20140729062748.4906.1529@quantum>
-References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com>
- <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com>
- <5358D534.2070205@ti.com> <535927DF.90404@ti.com> <5368E604.4040107@ti.com>
- <53C3AC94.5050904@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Mon, 28 Jul 2014 23:42:43 -0700
+Message-ID: <20140729064243.GF29045@atomide.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
+ <20140707080238.GF28884@atomide.com>
+ <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:56526 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223AbaG2G1w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 02:27:52 -0400
-Received: by mail-pd0-f178.google.com with SMTP id w10so11146381pde.37
-        for <linux-omap@vger.kernel.org>; Mon, 28 Jul 2014 23:27:52 -0700 (PDT)
-In-Reply-To: <53C3AC94.5050904@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59146 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223AbaG2GoI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 02:44:08 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-Quoting Peter Ujfalusi (2014-07-14 03:10:28)
-> On 05/06/2014 04:39 PM, Peter Ujfalusi wrote:
-> >>> Tero: can I have your ack for this patch or do you have further c=
-oncerns?
-> >>
-> >> Yea looks good to me, except for the fact that there is some work =
-on getting
-> >> default rate/parent support through DT. I would like a comment fro=
-m Mike about
-> >> the estimate when this can get in, and whether we should merge int=
-ermediate
-> >> solutions still like this.
+* Paul Walmsley <paul@pwsan.com> [140725 12:16]:
+> On Mon, 7 Jul 2014, Tony Lindgren wrote:
+> 
+> > With v3.16-rc4 the PM features for omap3 should be working
+> > finally for device tree based booting. At lest beaglexm and
+> > 3xxevm should work.
+> 
+> Just to follow up briefly on this: there was indeed a bug in the OMAP3 
+> test scripts here that resulted in the UART wakeup not being enabled.
+> 
+> Once that was fixed, system suspend-based chip-retention and chip-off 
+> modes work.
 
-Tero,
+OK
+ 
+> However, scheduler-idle based chip-retention and chip-off still are not
+> working.  Looking at the logs, it appears that some domains are not 
+> dynamically going idle.  For example, looking at:
+> 
+> http://www.pwsan.com/omap/testlogs/test_v3.16-rc6/20140724142225/pm/37xxevm/37xxevm_log.txt
+> 
+> it can be seen that core_pwrdm's retention count doesn't increase between 
+> the two PM debug dumps.  The important lines are:
+> 
+> core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+> 
+> and 
+> 
+> core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+> 
+> That's why the test reports mark the dynamic PM modes as failing.
+> 
+> ...
+> 
+> Here's an example where things worked:
+> 
+> http://www.pwsan.com/omap/testlogs/test_v3.10/20130717134228/pm/3530es3beagle/3530es3beagle_log.txt
+> 
+> In this one, it can be seen that the CORE counts transitioned from:
+> 
+> core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+> 
+> to
+> 
+> core_pwrdm (ON),OFF:0,RET:10,INA:0,ON:11,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+> 
+> between the retention suspend/resume test ending and the dynamic 
+> retention idle test ending.
 
-On May 19 you said, "Thanks, queued for 3.16/ti-clk-drv." but I never
-received that as part of the TI clock fixes. :-(
+Hmm I think the difference with the working v3.10 one is that you have
+root=/dev/mmcblk0p2 instead of root=/dev/nfs. As the Ethernet on beagle
+is on the USB EHCI, this is still blocking the deeper idle states AFAIK.
 
-I've taken Sylwester's patch in for the DT-based assigned clock rates
-and parents. You can find it in clk-next. (maybe you are still on
-vacation? I don't know...)
+Care to test -rc7 with root=/dev/mmcblk0p2 to see if that works?
 
-> >>
-> >> Anyway, you can consider this patch acked by me, I'll let Mike to =
-decide what
-> >> to do with it though.
-> >=20
-> > Do you have anything against this patch? Since right now there is n=
-o other
-> > ways to fix the ABE DPLL for dra7 it would be great if we could hav=
-e this in
-> > till we have the final solution. Also I'd like to point out that th=
-e original
-> > frequency the ABE DPLL was not correct and renders the audio to be =
-not usable
-> > on the platform.
->=20
-> Mike: can we have this patch still pushed for 3.16? I can resend it r=
-ight away
-> if you  lost the original patch.
-
-Peter,
-
-I have your original patch. No need to resend. Let's see if Tero
-comments this week, otherwise I can take it with his previously supplie=
-d
-Ack and send it off. Probably needs to be sent by Thursday at the
-latest.
+On the am37xx-evm nfsroot will work as it's on the GPMC bus.
 
 Regards,
-Mike
 
->=20
-> Thanks,
-> P=C3=A9ter
->=20
->=20
-> >=20
-> >>>>
-> >>>>>
-> >>>>> -Tero
-> >>>>>
-> >>>>>>
-> >>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >>>>>> ---
-> >>>>>>    drivers/clk/ti/clk-7xx.c | 7 ++++++-
-> >>>>>>    1 file changed, 6 insertions(+), 1 deletion(-)
-> >>>>>>
-> >>>>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx=
-=2Ec
-> >>>>>> index f7e40734c819..19a55bf407dd 100644
-> >>>>>> --- a/drivers/clk/ti/clk-7xx.c
-> >>>>>> +++ b/drivers/clk/ti/clk-7xx.c
-> >>>>>> @@ -16,7 +16,7 @@
-> >>>>>>    #include <linux/clkdev.h>
-> >>>>>>    #include <linux/clk/ti.h>
-> >>>>>>
-> >>>>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
-> >>>>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
-> >>>>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
-> >>>>>>
-> >>>>>>
-> >>>>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
-> >>>>>>        if (rc)
-> >>>>>>            pr_err("%s: failed to configure ABE DPLL!\n", __fun=
-c__);
-> >>>>>>
-> >>>>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
-> >>>>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
-> >>>>>> +    if (rc)
-> >>>>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __=
-func__);
-> >>>>>> +
-> >>>>>>        dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
-> >>>>>>        rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
-> >>>>>>        if (rc)
-> >>>>>>
-> >>>>>
-> >>>>
-> >>>>
-> >>>
-> >>
-> >=20
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
