@@ -1,48 +1,50 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap n900 regression fix for v3.16 rc series
-Date: Tue, 29 Jul 2014 13:06:05 +0200
-Message-ID: <3734846.Lhxg9X6PO8@wuerfel>
-References: <20140729103223.GK29045@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: AM43xx: hwmod: add DSS hwmod data
+Date: Tue, 29 Jul 2014 04:07:54 -0700
+Message-ID: <20140729110754.GN29045@atomide.com>
+References: <1402994233-22599-1-git-send-email-tomi.valkeinen@ti.com>
+ <alpine.DEB.2.02.1407222110260.25593@utopia.booyaka.com>
+ <20140725165304.GD29132@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:51723 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859AbaG2LGh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 07:06:37 -0400
-In-Reply-To: <20140729103223.GK29045@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12250 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753224AbaG2LJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 07:09:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20140725165304.GD29132@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sathya Prakash M R <sathyap@ti.com>
 
-On Tuesday 29 July 2014 03:32:24 Tony Lindgren wrote:
-> The following changes since commit 33753cd2ba41c72a0756edc5dc094d91602deda5:
+* Felipe Balbi <balbi@ti.com> [140725 09:55]:
+> On Tue, Jul 22, 2014 at 09:14:20PM +0000, Paul Walmsley wrote:
+> > On Tue, 17 Jun 2014, Tomi Valkeinen wrote:
+> > 
+> > > From: Sathya Prakash M R <sathyap@ti.com>
+> > > 
+> > > Add DSS hwmod data for AM43xx.
+> > > 
+> > > Signed-off-by: Sathya Prakash M R <sathyap@ti.com>
+> > > [tomi.valkeinen@ti.com: added missing dispc flags]
+> > > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > > Acked-by: Rajendra Nayak <rnayak@ti.com>
+> > 
+> > This one didn't compile on an AM43xx-only build:
+> > 
+> > ----
+> > arch/arm/mach-omap2/built-in.o:(.data+0x3f2c): undefined reference to `omap2_dss_hwmod_class'
+> > arch/arm/mach-omap2/built-in.o:(.data+0x405c): undefined reference to `omap2_rfbi_hwmod_class'
+> > make: *** [vmlinux] Error 1
+> > test_build: Tue Jul 22 13:48:50 MDT 2014: FAILED on omap2plus_defconfig_am43xx_only hwmod-a-v3.17
+> > ----
+> > 
+> > Have queued the following patch instead.
 > 
->   ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable() (2014-07-23 01:48:24 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/n900-regression
-> 
-> for you to fetch changes up to d937678ab625b0f63ce54b2b9b3e1cbd1b4a1b15:
-> 
->   ARM: dts: Revert enabling of twl configuration for n900 (2014-07-29 00:16:25 -0700)
-> 
-> ----------------------------------------------------------------
-> Minimal regression fix for n900 display that got broken with
-> enabling of twl4030 PM features. Turns out more work is needed
-> before we can enable twl4030 PM on n900.
-> 
-> I did not notice this earlier as I have my n900 in a rack
-> and the display did not get enabled for device tree based booting
-> until for v3.16.
-> 
-> 
+> queued for v3.17, I assume. Still not available from linux-next though.
 
-Pulled into fixes branch, which I expect to send out later today.
+Should be in linux-next now.
 
-Thanks,
-
-	Arnd
+Tony
