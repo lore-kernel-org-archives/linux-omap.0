@@ -1,84 +1,100 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH 0/7] OMAP mailbox cleanup
-Date: Tue, 29 Jul 2014 10:53:52 -0500
-Message-ID: <53D7C390.10500@ti.com>
-References: <1403657023-53897-1-git-send-email-s-anna@ti.com> <20140729085947.GI29045@atomide.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 13/35] arm: omap: irq: call set_handle_irq() from
+ intc_of_init
+Date: Tue, 29 Jul 2014 18:00:23 +0200
+Message-ID: <20140729160022.GA21830@earth.universe>
+References: <1406582183-696-1-git-send-email-balbi@ti.com>
+ <1406582183-696-14-git-send-email-balbi@ti.com>
+ <20140729022019.GB4421@earth.universe>
+ <20140729153649.GD17808@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44883 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750852AbaG2PyS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jul 2014 11:54:18 -0400
-In-Reply-To: <20140729085947.GI29045@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140729153649.GD17808-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/29/2014 03:59 AM, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [140624 17:45]:
->> Hi,
->>
->> This patch series is mainly a cleanup of the current OMAP mailbox drivers
->> in preparation for adding DT support and adoption to the upcoming mailbox
->> framework from Jassi Brar [1]. It removes the OMAP1 mailbox driver as there
->> are no users for it in the kernel, and consolidates the previous OMAP
->> mailbox framework and the OMAP2+ mailbox driver into a single OMAP mailbox
->> driver. 
->>
->> The last patch also allows the OMAP mailbox driver to support multiple
->> instances of the IP (for DRA7xx, which is the first SoC in the OMAP family
->> to have more than one System Mailbox IP).
->>
->> The patches are based on 3.16-rc2 and do not change any of the functional
->> behavior on any OMAP2+ SoCs. The boot logs on various OMAP platforms with
->> these patches are at:
->>   OMAP2 (SDP2430)           : http://slexy.org/view/s20rOAReeS
->>   OMAP3 (BeagleXM)          : http://slexy.org/view/s2QITyvzH9
->>   OMAP4 (PandaBoard)        : http://slexy.org/view/s2X9jdZ9Wh
->>   OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s21hZUTYwm
->>   DRA7  (DRA7 EVM)          : http://slexy.org/view/s213K7f87s
->>   AM33xx (BeagleBone Black) : http://slexy.org/view/s2vB7oxbix
->>   AM43xx (AM437x GP EVM)    : http://slexy.org/view/s21rMlUWMg
->>
->> [1] https://lkml.org/lkml/2014/6/12/470
->>
->> Suman Anna (7):
->>   mailbox/omap: use devm_* interfaces
->>   mailbox/omap: remove OMAP1 mailbox driver
->>   mailbox/omap: remove omap_mbox_type_t from mailbox ops
->>   mailbox/omap: simplify the fifo assignment by using macros
->>   mailbox/omap: consolidate OMAP mailbox driver
->>   mailbox/omap: remove the private mailbox structure
->>   mailbox/omap: add a parent structure for every IP instance
->>
->>  arch/arm/configs/omap1_defconfig |   2 -
->>  drivers/mailbox/Kconfig          |  19 +-
->>  drivers/mailbox/Makefile         |   6 +-
->>  drivers/mailbox/mailbox-omap1.c  | 203 ------------------
->>  drivers/mailbox/mailbox-omap2.c  | 357 -------------------------------
->>  drivers/mailbox/omap-mailbox.c   | 444 +++++++++++++++++++++++++++++++--------
->>  drivers/mailbox/omap-mbox.h      |  67 ------
->>  7 files changed, 360 insertions(+), 738 deletions(-)
->>  delete mode 100644 drivers/mailbox/mailbox-omap1.c
->>  delete mode 100644 drivers/mailbox/mailbox-omap2.c
->>  delete mode 100644 drivers/mailbox/omap-mbox.h
-> 
-> I'll apply these on into omap-for-v3.17/mailbox. Might be a bit
-> too late for v3.17 so no guarantees these will get merged. 
 
-Understood. Thanks Tony. I will repost them once rc1 is out _if_ they
-don't make it.
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-regards
-Suman
+Hi,
 
-> But it removes some old dead code, so that's nice ;)
-> 
-> Regards,
-> 
-> Tony
-> 
+On Tue, Jul 29, 2014 at 10:36:49AM -0500, Felipe Balbi wrote:
+> On Tue, Jul 29, 2014 at 04:20:20AM +0200, Sebastian Reichel wrote:
+> > Hi,
+> >=20
+> > On Mon, Jul 28, 2014 at 04:16:01PM -0500, Felipe Balbi wrote:
+> > > this will let us drop .handle_irq and .init_irq fields
+> > > from our generic machine_descs.
+> > >=20
+> > > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > > ---
+> > >  arch/arm/mach-omap2/irq.c | 2 ++
+> > >  1 file changed, 2 insertions(+)
+> > >=20
+> > > diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> > > index e6997c5..e452411 100644
+> > > --- a/arch/arm/mach-omap2/irq.c
+> > > +++ b/arch/arm/mach-omap2/irq.c
+> > > @@ -314,6 +314,8 @@ static int __init intc_of_init(struct device_node=
+ *node,
+> > > =20
+> > >  	omap_init_irq(res.start, nr_irq, of_node_get(node));
+> > > =20
+> > > +	set_handle_irq(omap2_intc_handle_irq);
+> > > +
+> > >  	return 0;
+> > >  }
+> > >
+> >=20
+> > if you respin the patchset you may want to call omap_intc_handle_irq
+> > directly. It makes the review of the patchset less confusing.
+> >=20
+> > (I was wondering why omap3 can call omap2_intc_handle_irq until I
+> > noticed, that your previous changes made both functions simple
+> > wrapper functions for omap_intc_handle_irq)
+>=20
+> this is done later for a reason. At this point, omap_intc_handle_irq()
+> still misses proper annotations for asmlinkage and
+> __exception_irq_entry.
 
+I guess that could be solved by moving the annotations to
+omap_intc_handle_irq and just keeping omap{23}_intc_handle_irq as a
+#define. Probably not worth the extra work, though.
+
+-- Sebastian
+
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJT18UVAAoJENju1/PIO/qaziAP/3YU2twsXjL4kpqHg9kUN35/
+fm7I7whLY1ZqQRW2CcZv4QHE9JLHubqW4RcTFof+woFksDkLtUwbV4suyC5DJ/up
+3irrl0ZOO20XuNq7WnsOEZCng1SkH8EBso0jdw+QfSsKpy4Uvcvn3qBibORFldbZ
+IKsxtXZZNJmV9GLNaFprBPwp5+aKEuuHGAMWLYaz5E2WNW2pe+8V+5sQPeuQODwy
+FtnLCSOKY1QZE8dJGypLYq95q5G5cGgwhBi/IhTS2Y5OoKMYlDHBPtIZ+DqukvKT
+hkIfJvtRTA8R9PnO6Bq8B8XehNLpalm4wvvZroDXx3GrKtAADenoeX8wok77JdUE
+29ZOm6O+rBjU6WmwSiZDpicmqtmWkHimyv8QlJ6YWUZcsAs8QP03h/RRJdFmcxOA
+Uc//u3EAJs7x9StKKE/aYFJV7TFJkt2t5+yOmDLlTv5ivD8yLrKnlHNhNttPekKX
+MsDm/IA2A2oV51zSu7LokAHULE5iH6XqqozBHZROrti0eZ/sfgRLtE44m6ajoDpc
+Q3659JROOjcMZNiz+E8+5WVNeVBmhQ6gbGIJLHR6I+lB0C5x1NB27cAvSpFf6DXI
+dy1xubDewcWCNivMSQjqEAtHO0I/Cn/zZ3afLKqty0brnH0LT4OLqwgByG5E4S3a
+FDl2eDYj4CTpIhaKYTSq
+=qtyI
+-----END PGP SIGNATURE-----
+
+--C7zPtVaVf+AK4Oqc--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
