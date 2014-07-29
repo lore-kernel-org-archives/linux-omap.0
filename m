@@ -1,101 +1,87 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Tue, 29 Jul 2014 12:32:08 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407291225070.13035@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com> <20140707080238.GF28884@atomide.com> <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com> <20140729064243.GF29045@atomide.com> <alpine.DEB.2.02.1407290810160.22957@utopia.booyaka.com>
- <20140729084930.GH29045@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3 0/2] usb: fix controller-PHY binding for OMAP3 platform
+Date: Tue, 29 Jul 2014 14:38:24 +0200
+Message-ID: <14357891.vooz1N5zDC@avalon>
+References: <1387209225-11520-1-git-send-email-kishon@ti.com> <20140721151557.GH6852@saruman.home> <53CF7978.4090709@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39250 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753369AbaG2McJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 08:32:09 -0400
-In-Reply-To: <20140729084930.GH29045@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53CF7978.4090709@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, marek.belisko@gmail.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Tue, 29 Jul 2014, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [140729 01:27]:
-> > On Mon, 28 Jul 2014, Tony Lindgren wrote:
+On Wednesday 23 July 2014 14:29:36 Kishon Vijay Abraham I wrote:
+> On Monday 21 July 2014 08:45 PM, Felipe Balbi wrote:
+> > On Mon, Jul 21, 2014 at 05:04:57PM +0200, Laurent Pinchart wrote:
+> >> Hi Felipe,
+> >> 
+> >> What happened to these two patches ?
 > > 
-> > > Hmm I think the difference with the working v3.10 one is that you have
-> > > root=/dev/mmcblk0p2 instead of root=/dev/nfs. As the Ethernet on beagle
-> > > is on the USB EHCI, this is still blocking the deeper idle states AFAIK.
+> > looks like I lost them.
 > > 
-> > Hmm?  There's no Ethernet on the 3530 Beagle.
+> >> On Monday 16 December 2013 17:48:29 Felipe Balbi wrote:
+> >>> On Mon, Dec 16, 2013 at 02:38:27PM -0800, Tony Lindgren wrote:
+> >>>> * Felipe Balbi <balbi@ti.com> [131216 13:31]:
+> >>>>> On Mon, Dec 16, 2013 at 09:23:43PM +0530, Kishon Vijay Abraham I 
+wrote:
+> >>>>>> After the platform devices are created using PLATFORM_DEVID_AUTO, the
+> >>>>>> device names given in usb_bind_phy (in board file) does not match
+> >>>>>> with the actual device name causing the USB PHY library not to return
+> >>>>>> the PHY reference when the MUSB controller request for the PHY in the
+> >>>>>> non-dt boot case.
+> >>>>>> So removed creating platform devices using PLATFORM_DEVID_AUTO in
+> >>>>>> omap2430.c.
+> >>>>>> 
+> >>>>>> Did enumeration testing in omap3 beagle.
+> >>>>>> 
+> >>>>>> Changes from v2:
+> >>>>>> * Fixed the commit log
+> >>>>>> 
+> >>>>>> Changes from v1:
+> >>>>>> * refreshed to the latested mainline kernel
+> >>>>>> * added musb_put_id from omap2430 remove.
+> >>>>> 
+> >>>>> Tony, how do you want to handle this ? You want me to provide you a
+> >>>>> branch which we both merge ?
+> >>>> 
+> >>>> Yes that would be great thanks. For the mach-omap2 touching parts:
+> >>>> 
+> >>>> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>> 
+> >>> Here it is, let me know if you prefer a signed tag:
+> >>> 
+> >>> The following changes since commit 
+6ce4eac1f600b34f2f7f58f9cd8f0503d79e42ae:
+> >>>   Linux 3.13-rc1 (2013-11-22 11:30:55 -0800)
+> >>> 
+> >>> are available in the git repository at:
+> >>>   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+> >>> 
+> >>> usb-phy-binding-omap3
+> >>> 
+> >>> for you to fetch changes up to 23ada3130cf4e56acb86fdff4c26113188d52d18:
+> >>>   arm: omap: remove *.auto* from device names given in usb_bind_phy
+> >>> 
+> >>> (2013-12-16 17:44:43 -0600)
+> >>> 
+> >>> ----------------------------------------------------------------
+> >>> 
+> >>> Kishon Vijay Abraham I (2):
+> >>>       usb: musb: omap: remove using PLATFORM_DEVID_AUTO in omap2430.c
+> >>>       arm: omap: remove *.auto* from device names given in usb_bind_phy
 > > 
-> > The hardware configuration on those two boards - the 37xxevm and 
-> > the 3530es3beagle - hasn't changed between the two test runs, AFAIK.
+> > Kishon, are these still valid ?
 > 
-> Oh it's the original beagle, sorry. In that case the uart wake interrupts
-> need to be enabled for the serial wake to work. I did not do that as
-> I don't have one. I guess that might explain why it fails? Or are you
-> using RTC wake for your test?
+> Looks like board-2430sdp.c got removed. Apart from that the reset of the
+> patch series is still applicable for non-dt boot.
 
-Serial wake works fine.  But the chip never enters dynamic retention idle 
-as measured by the pm_debug/count differential for CORE powerdomain.
-Works OK with static suspend.
+Felipe, do you plan to apply the patch without the baord-2430sdp.c change, or 
+would you like Kishon to rebase and resubmit it ?
 
-> Wrong link here :) It should be:
-> 
-> http://www.pwsan.com/omap/testlogs/test_v3.16-rc7/20140727174803/pm/37xxevm/37xxevm_log.txt
+-- 
+Regards,
 
-Oops indeed :-)
-
-> > I should probably read back those writes to autosuspend_delay_ms, just to 
-> > make sure they are reaching the right destinations.  But you might want to 
-> > confirm that you can see the CORE RET count increasing during dynamic idle 
-> > on your 37xxevm.
-> 
-> Hmm seems to work on 37xxevm for me with my retention test script:
-> 
-> uarts=$(find /sys/class/tty/ttyO*/device/power/ -type d)
-> for uart in $uarts; do
->         echo 3000 > $uart/autosuspend_delay_ms
-> done
-> 
-> uarts=$(find /sys/class/tty/ttyO*/power/ -type d)
-> for uart in $uarts; do
->         echo enabled > $uart/wakeup
->         echo auto > $uart/control
-> done
-> 
-> echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode
-> 
-> Which produces:
-> 
-> core_pwrdm (ON),OFF:0,RET:7,INA:0,ON:8,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-> 
-> And then setting enable_off_mode:
-> 
-> core_pwrdm (ON),OFF:15,RET:100,INA:8,ON:124,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-
-OK thanks for the point of comparison.
-
-> And I'm using UART3 like I mentioned earlier, but I doubt that
-> makes a difference.
-> 
-> Are you maybe missing "echo auto > $uart/control"?
-
-It should be doing both of those things, according to the logs:
-
---------
-# # for u in `ls -1d /sys/class/tty/ttyO* | paste -s -d' '`; do echo 
-enabled >  $u/power/wakeup; done
-
-#
-%% Start retention double suspend/resume UART wakeup test
-
- # for u in `ls -1d /sys/class/tty/ttyO* | paste -s -d' '`; do echo auto >  
-$u/power/control; done
---------
-
-I will add code to read back the values from the sysfs files, just to make 
-sure they are being set.
-
-
-- Paul
+Laurent Pinchart
