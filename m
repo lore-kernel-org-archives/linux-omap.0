@@ -1,45 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: PLL rounding change for v3.17
-Date: Tue, 29 Jul 2014 04:04:50 -0700
-Message-ID: <20140729110449.GM29045@atomide.com>
-References: <alpine.DEB.2.02.1407251254540.18958@utopia.booyaka.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap n900 regression fix for v3.16 rc series
+Date: Tue, 29 Jul 2014 13:06:05 +0200
+Message-ID: <3734846.Lhxg9X6PO8@wuerfel>
+References: <20140729103223.GK29045@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62233 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752168AbaG2LGP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 07:06:15 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1407251254540.18958@utopia.booyaka.com>
+Received: from mout.kundenserver.de ([212.227.17.10]:51723 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859AbaG2LGh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 07:06:37 -0400
+In-Reply-To: <20140729103223.GK29045@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [140725 05:58]:
-> Hi Tony
+On Tuesday 29 July 2014 03:32:24 Tony Lindgren wrote:
+> The following changes since commit 33753cd2ba41c72a0756edc5dc094d91602deda5:
 > 
-> The following changes since commit a497c3ba1d97fc69c1e78e7b96435ba8c2cb42ee:
-> 
->   Linux 3.16-rc2 (2014-06-21 19:02:54 -1000)
+>   ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable() (2014-07-23 01:48:24 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.17/omap-clock-b
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/n900-regression
 > 
-> for you to fetch changes up to 0a26344440b5f9940c99112fdc3804f073b1f5a7:
+> for you to fetch changes up to d937678ab625b0f63ce54b2b9b3e1cbd1b4a1b15:
 > 
->   ARM: OMAP2+: clock: allow omap2_dpll_round_rate() to round to next-lowest rate (2014-07-25 06:11:15 -0600)
+>   ARM: dts: Revert enabling of twl configuration for n900 (2014-07-29 00:16:25 -0700)
 > 
 > ----------------------------------------------------------------
-> Modify OMAP PLL rate rounding function to round to the exact rate requested
-> or the next one below it.  This is intended to resolve some DSS problems.
+> Minimal regression fix for n900 display that got broken with
+> enabling of twl4030 PM features. Turns out more work is needed
+> before we can enable twl4030 PM on n900.
 > 
-> Basic build, boot, and PM test results are available here:
+> I did not notice this earlier as I have my n900 in a rack
+> and the display did not get enabled for device tree based booting
+> until for v3.16.
 > 
-> http://www.pwsan.com/omap/testlogs/clock-b-v3.17/20140725061121/
+> 
 
-Pulling into omap-for-v3.17/soc thanks.
+Pulled into fixes branch, which I expect to send out later today.
 
-Tony
+Thanks,
+
+	Arnd
