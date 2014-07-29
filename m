@@ -1,43 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: multi_v7_defconfig: Enable TI PIPE3 PHY driver
-Date: Tue, 29 Jul 2014 02:01:21 -0700
-Message-ID: <20140729090120.GJ29045@atomide.com>
-References: <1406540737-9493-1-git-send-email-rogerq@ti.com>
+Subject: [GIT PULL] omap n900 regression fix for v3.16 rc series
+Date: Tue, 29 Jul 2014 03:32:24 -0700
+Message-ID: <20140729103223.GK29045@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42938 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859AbaG2Kdy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 06:33:54 -0400
 Content-Disposition: inline
-In-Reply-To: <1406540737-9493-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: kishon@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [140728 02:48]:
-> This driver is needed by SATA, PCIe and USB modules on TI SoCs.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+The following changes since commit 33753cd2ba41c72a0756edc5dc094d91602deda5:
 
-You need to send this to arm@kernel.org to avoid conflicts.
+  ARM: OMAP2+: gpmc: fix gpmc_hwecc_bch_capable() (2014-07-23 01:48:24 -0700)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+are available in the git repository at:
 
-> ---
->  arch/arm/configs/multi_v7_defconfig | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-> index 5348364..e411a37 100644
-> --- a/arch/arm/configs/multi_v7_defconfig
-> +++ b/arch/arm/configs/multi_v7_defconfig
-> @@ -368,6 +368,7 @@ CONFIG_PWM=y
->  CONFIG_PWM_TEGRA=y
->  CONFIG_PWM_VT8500=y
->  CONFIG_OMAP_USB2=y
-> +CONFIG_TI_PIPE3=y
->  CONFIG_PHY_SUN4I_USB=y
->  CONFIG_EXT4_FS=y
->  CONFIG_VFAT_FS=y
-> -- 
-> 1.8.3.2
-> 
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.16/n900-regression
+
+for you to fetch changes up to d937678ab625b0f63ce54b2b9b3e1cbd1b4a1b15:
+
+  ARM: dts: Revert enabling of twl configuration for n900 (2014-07-29 00:16:25 -0700)
+
+----------------------------------------------------------------
+Minimal regression fix for n900 display that got broken with
+enabling of twl4030 PM features. Turns out more work is needed
+before we can enable twl4030 PM on n900.
+
+I did not notice this earlier as I have my n900 in a rack
+and the display did not get enabled for device tree based booting
+until for v3.16.
+
+----------------------------------------------------------------
+Tony Lindgren (1):
+      ARM: dts: Revert enabling of twl configuration for n900
+
+ arch/arm/boot/dts/omap3-n900.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
