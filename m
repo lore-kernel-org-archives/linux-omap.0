@@ -1,158 +1,147 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Tue, 29 Jul 2014 19:37:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com> <20140707080238.GF28884@atomide.com> <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com> <20140729064243.GF29045@atomide.com> <alpine.DEB.2.02.1407290810160.22957@utopia.booyaka.com>
- <20140729084930.GH29045@atomide.com> <alpine.DEB.2.02.1407291225070.13035@utopia.booyaka.com> <alpine.DEB.2.02.1407291256270.13035@utopia.booyaka.com> <20140729145312.GT29045@atomide.com>
+From: Michael Welling <mwelling@emacinc.com>
+Subject: Re: OMAP3/AM3517 EHCI USB Issue
+Date: Tue, 29 Jul 2014 14:55:44 -0500
+Message-ID: <20140729195544.GA20656@sysresccd>
+References: <20140725200400.GB18127@sysresccd>
+ <Pine.LNX.4.44L0.1407281059060.1183-100000@iolanthe.rowland.org>
+ <20140728152948.GA28880@sysresccd>
+ <20140728155718.GF7667@saruman.home>
+ <20140728175739.GA29212@sysresccd>
+ <20140728181024.GI7667@saruman.home>
+ <20140729075144.GG29045@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43883 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbaG2Thb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 15:37:31 -0400
-In-Reply-To: <20140729145312.GT29045@atomide.com>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:59865 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751234AbaG2Tzv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 15:55:51 -0400
+Received: by mail-ie0-f172.google.com with SMTP id lx4so166303iec.31
+        for <linux-omap@vger.kernel.org>; Tue, 29 Jul 2014 12:55:50 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140729075144.GG29045@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Cc: Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, heikki.krogerus@linux.intel.com, chris.ruehl@gtsys.com.hk, Roger Quadros <rogerq@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Tue, 29 Jul 2014, Tony Lindgren wrote:
-
-> Hmm maybe different u-boot version then? I'm using
-> 2014.04-00001-g5f09f5b.
->  
-> > Are you using NFS root on 37xxevm or MMC root?
+On Tue, Jul 29, 2014 at 12:51:45AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [140728 11:13]:
+> > On Mon, Jul 28, 2014 at 12:57:39PM -0500, Michael Welling wrote:
+> > > On Mon, Jul 28, 2014 at 10:57:18AM -0500, Felipe Balbi wrote:
+> > > > > > 
+> > > > > > Basically it means what you said above: the hub disconnected.  I can't 
+> > > > > > tell why.  You'll have to ask someone who's familiar with the hardware 
+> > > > > > on that board.
+> > > > > 
+> > > > > Sadly, there is no one more familar with this specific hardware than myself.
+> > > > > 
+> > > > > I can however ellaborate the hardware setup of the USB subsystem in
+> > > > > case there is someone out there that has used a similar setup.
+> > > > > 
+> > > > > The board uses the AM3517 SoC from TI. The SoC's USB host port (HSUSB1) is
+> > > > > connected to a USB3320 PHY. The PHY is connected to a USB2512 switch to
+> > > > > provide two downstream USB ports.
+> > > > > 
+> > > > > The very same hardware worked with the 2.6.37 kernel that I am trying to
+> > > > > move away from.
+> > > > > 
+> > > > > Today I am going to try using 3.10 and 3.14 kernels see if they exhibit
+> > > > > the same behavior.
+> > > > 
+> > > 
+> > > It should be noted that the 3.10 kernel did not even detect the external
+> > > HUB and the 3.14 kernel exhibits the same failure as 3.16.
+> > > 
+> > > > Do you have off-while-idle enabled ? This could be, as Alan suggested, a
+> > > > problem with remote wakeup. EHCI on TI parts is kinda awkward, if you
+> > > > will, and getting remote wakeup with PM working, is generally a
+> > > > challenge.
+> > > 
+> > > How would one determine if off-while-idle is enabled? Is this a flag in an
+> > > entry in the devicetree?
+> > 
+> > there is a pm_debug file on debugfs which you can use. Set autosuspend
+> > delay to UART (it's set to -1 by default, IIRC), then leave the board
+> > idle for a couple minutes, then read /sys/kernel/debug/pm_debug and see
+> > if the OFF() counters are increasing.
+> > 
+> > Adding linux-omap to Cc. Also Tony, who has a simple script to enable
+> > pm_runtime on UART.
 > 
-> Using nfsroot and omap2plus_defconfig. My dmesg attached
-> in case it provides some clues. I don't have console=ttyO
-> here, but I've verified that it works with that too.
+> I doubt that you have off-while-idle enabled as you need to manually
+> enable the timeouts for UARTs for it to trigger :) I would check the
+> related power and clock lines with a scope to see if there are glitches
+> on them.
+> 
+> In any case, would be nice to have this EHCI stuff be sorted out for
+> good in the mainline kernel as we do have things working pretty well
+> for other things.
 
-Walked through the PM test script by hand, and the proximal cause of the 
-problem became obvious...
+Today I enabled debugging in the core hub driver and found that
+once the external HUB suspends, the root HUB suspends.
 
-Turns out a five-second delay for a three-second autosuspend_delay_ms is 
-no longer sufficient time for kernels to enter idle.  A ten-second sleep 
-seems to be long enough.
+Once the root HUB suspends, it seems there is no way for the external
+HUB to wake the root HUB with the hardware setup that I have.
 
-Not sure what exactly is causing that weirdness yet, or when that started 
-happening.  Am suspecting it could be some of the RCU changes over the 
-past couple of years.  We don't have RCU_FAST_NO_HZ enabled in 
-omap2plus_defconfig; we should probably switch that on.
+root@som3517:~# dmesg | grep hub
+[    0.617964] usbcore: registered new interface driver hub
+[    2.818449] hub 1-0:1.0: USB hub found
+[    2.822980] hub 1-0:1.0: 3 ports detected
+[    2.827354] hub 1-0:1.0: standalone hub
+[    2.831402] hub 1-0:1.0: individual port power switching
+[    2.837067] hub 1-0:1.0: individual port over-current protection
+[    2.843400] hub 1-0:1.0: power on to power good time: 20ms
+[    2.851414] hub 1-0:1.0: local power source is good
+[    2.860133] hub 1-0:1.0: enabling power on all ports
+[    3.169607] hub 1-0:1.0: state 7 ports 3 chg 0002 evt 0000
+[    3.584251] hub 1-1:1.0: USB hub found
+[    3.592571] hub 1-1:1.0: 2 ports detected
+[    3.597095] hub 1-1:1.0: standalone hub
+[    3.601187] hub 1-1:1.0: individual port power switching
+[    3.606875] hub 1-1:1.0: individual port over-current protection
+[    3.614899] hub 1-1:1.0: TT per port
+[    3.618711] hub 1-1:1.0: TT requires at most 8 FS bit times (666 ns)
+[    3.625558] hub 1-1:1.0: power on to power good time: 100ms
+[    3.654652] hub 1-1:1.0: local power source is good
+[    3.662134] hub 1-1:1.0: enabling power on all ports
+[    3.766183] hub 1-1:1.0: state 7 ports 2 chg 0000 evt 0000
+[    3.772116] hub 1-1:1.0: hub_suspend
+[    3.804789] hub 1-0:1.0: hub_suspend
 
-Now 37xxevm and the 3730beaglexm are entering idle as they should be.  
-Test report below; logs etc. have been uploaded.  Thanks for the debug 
-discussion,
+Here is what happens when I echo on into the power control for the HUB
+afterwards:
 
+root@som3517:/# echo on > /sys/bus/usb/devices/1-1/power/control
+[ 1050.003689] hub 1-0:1.0: hub_resume
+[ 1050.011306] usb usb1-port1: status 0507 change 0000
+[ 1050.019975] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+[ 1050.028076] usb 1-1: usb auto-resume
+[ 1050.065904] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0002
+[ 1050.084623] usb 1-1: finish resume
+[ 1050.092469] usb 1-1: retry with reset-resume
+[ 1050.156167] hub 1-0:1.0: port_wait_reset: err = -16
+[ 1050.161331] usb usb1-port1: not enabled, trying reset again...
+[ 1050.376402] usb usb1-port1: logical disconnect
+[ 1050.381354] usb 1-1: gone after usb resume? status -19
+[ 1050.386941] usb 1-1: can't resume, status -19
+[ 1050.391537] usb usb1-port1: logical disconnect
+[ 1050.400203] usb usb1-port1: status 0100, change 0003, 12 Mb/s
+[ 1050.406410] usb 1-1: USB disconnect, device number 2
+[ 1050.411650] usb 1-1: unregistering device
+[ 1050.604563] usb usb1-port1: debounce total 100ms stable 100ms status 0x100
+[ 1050.611901] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+[ 1050.618428] hub 1-0:1.0: hub_suspend
 
-- Paul
+Further research led me to find multiple errata that may be causing this
+issue.
 
+www.ti.com/lit/pdf/sprz306
 
+Still does not explain why the same hardware works with the 2.6.37 and
+3.2 kernels.
 
-OMAP baseline test results for v3.16-rc7
-
-Here are some basic OMAP test results for Linux v3.16-rc7.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v3.16-rc7/20140729083516/
-
-
-Test summary
-------------
-
-Build: zImage:
-    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
-		  omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Build: uImage+dtb:
-    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap5-uevm
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Boot to userspace:
-    FAIL ( 1/14): 2430sdp
-    skip ( 1/14): 5912osk
-    Pass (12/14): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
-		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-		  am335xbonelt, cmt3517, 4460varsomom, 5430es2uevm
-
-PM: chip retention via suspend:
-    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
-    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
-
-PM: chip retention via dynamic idle:
-    FAIL ( 5/ 7): 2430sdp, 3530es3beagle, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 2/ 7): 3730beaglexm, 37xxevm
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 1/ 5): 37xxevm
-
-PM: chip off via dynamic idle:
-    FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 1/ 5): 37xxevm
-
-
-vmlinux object size
-(delta in bytes from test_v3.16-rc6 (9a3c4145af32125c5ee39c0272662b47307a8323)):
-   text     data      bss    total  kernel
-   +380      +24        0     +404  omap1_defconfig
-   +380        0        0     +380  omap1_defconfig_1510innovator_only
-   +348       -8        0     +340  omap1_defconfig_5912osk_only
-   +412      +16        0     +428  multi_v7_defconfig
-    +96      -16        0      +80  omap2plus_defconfig
-   +704      -16      +32     +720  omap2plus_defconfig_2430sdp_only
-    +96      -16        0      +80  omap2plus_defconfig_am33xx_only
-    +96      +16        0     +112  omap2plus_defconfig_am43xx_only
-    +96      +16        0     +112  omap2plus_defconfig_cpupm
-    +96      +16        0     +112  omap2plus_defconfig_dra7xx_only
-   +232       -8        0     +224  omap2plus_defconfig_n800_multi_omap2xxx
-   +232        0        0     +232  omap2plus_defconfig_n800_only_a
-    +96      +48        0     +144  omap2plus_defconfig_no_pm
-   +160      +16        0     +176  omap2plus_defconfig_omap2_4_only
-    +96      -16        0      +80  omap2plus_defconfig_omap3_4_only
-   +160      -16        0     +144  omap2plus_defconfig_omap5_only
-    +40        0      +12      +52  rmk_omap3430_ldp_allnoconfig
-   +256        0        0     +256  rmk_omap3430_ldp_oldconfig
-    +24        0      +28      +52  rmk_omap4430_sdp_allnoconfig
-   +288        0      +64     +352  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.16-rc6 (9a3c4145af32125c5ee39c0272662b47307a8323))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
-
-
-
+> 
+> Regards,
+> 
+> Tony
