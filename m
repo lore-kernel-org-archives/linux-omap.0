@@ -1,90 +1,139 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks
- handled by clock_ops domain
-Date: Mon, 28 Jul 2014 23:52:34 -0600
-Message-ID: <CACxGe6uMke5vgzcNC9xUqjr2bHJ4QFHD6YjocSZWq8Ccx8Mm6A@mail.gmail.com>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
- <1402592023-13416-1-git-send-email-grygorii.strashko@ti.com>
- <1402592023-13416-3-git-send-email-grygorii.strashko@ti.com>
- <20140728140533.6E916C4116F@trevor.secretlab.ca> <53D68CC4.1010704@ti.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
+Date: Mon, 28 Jul 2014 23:27:48 -0700
+Message-ID: <20140729062748.4906.1529@quantum>
+References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com>
+ <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com>
+ <5358D534.2070205@ti.com> <535927DF.90404@ti.com> <5368E604.4040107@ti.com>
+ <53C3AC94.5050904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:44865 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586AbaG2Fwz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 01:52:55 -0400
-Received: by mail-ie0-f181.google.com with SMTP id rp18so7998889iec.40
-        for <linux-omap@vger.kernel.org>; Mon, 28 Jul 2014 22:52:54 -0700 (PDT)
-In-Reply-To: <53D68CC4.1010704@ti.com>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:56526 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223AbaG2G1w convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 02:27:52 -0400
+Received: by mail-pd0-f178.google.com with SMTP id w10so11146381pde.37
+        for <linux-omap@vger.kernel.org>; Mon, 28 Jul 2014 23:27:52 -0700 (PDT)
+In-Reply-To: <53C3AC94.5050904@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, ulf.hansson@linaro.org, Kevin Hilman <khilman@linaro.org>, Mike Turquette <mturquette@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jul 28, 2014 at 11:47 AM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> Hi Grant.
->
-> On 07/28/2014 05:05 PM, Grant Likely wrote:
->> On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko <grygorii.strashko@ti.com> wrote:
->>> Use "clkops-clocks" property to specify clocks handled by
->>> clock_ops domain PM domain. Only clocks defined in "clkops-clocks"
->>> set of clocks will be handled by Runtime PM through clock_ops
->>> Pm domain.
->>>
->>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>> ---
->>>   drivers/of/of_clk.c |    7 ++-----
->>>   1 file changed, 2 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
->>> index 35f5e9f..5f9b90e 100644
->>> --- a/drivers/of/of_clk.c
->>> +++ b/drivers/of/of_clk.c
->>> @@ -86,11 +86,8 @@ int of_clk_register_runtime_pm_clocks(struct device_node *np,
->>>      struct clk *clk;
->>>      int error;
->>>
->>> -    for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
->>> -            if (!clk_may_runtime_pm(clk)) {
->>> -                    clk_put(clk);
->>> -                    continue;
->>> -            }
->>> +    for (i = 0; (clk = of_clk_get_from_set(np, "clkops", i)) &&
->>> +                 !IS_ERR(clk); i++) {
->>
->> This really looks like an ABI break to me. What happens to all the
->> existing platforms who don't have this new clkops-clocks in their device
->> tree?
->
-> Agree. This patch as is will break such platforms.
-> As possible solution for above problem - the NULL can be used as clock's prefix
-> by default and platform code can configure new value of clock's prefix during
-> initialization.
-> In addition, to make this solution full the of_clk_get_by_name() will
-> need to be modified too.
->
-> But note pls, this is pure RFC patches which I did to find out the answer on questions:
-> - What is better: maintain Runtime PM clocks configuration in DT or in code?
+Quoting Peter Ujfalusi (2014-07-14 03:10:28)
+> On 05/06/2014 04:39 PM, Peter Ujfalusi wrote:
+> >>> Tero: can I have your ack for this patch or do you have further c=
+oncerns?
+> >>
+> >> Yea looks good to me, except for the fact that there is some work =
+on getting
+> >> default rate/parent support through DT. I would like a comment fro=
+m Mike about
+> >> the estimate when this can get in, and whether we should merge int=
+ermediate
+> >> solutions still like this.
 
-In code. I don't think it is workable to embed runtime PM behaviour
-into the DT bindings. I think there will be too much variance in what
-hardware requires. We can create helpers to make this simpler, but I
-don't think it is a good idea to set it up automatically without any
-control from the driver itself.
+Tero,
 
->
-> - Where and when to call of_clk_register_runtime_pm_clocks()?
->   Bus notifier/ platform core/ device drivers
+On May 19 you said, "Thanks, queued for 3.16/ti-clk-drv." but I never
+received that as part of the TI clock fixes. :-(
 
-I would say in device drivers.
+I've taken Sylwester's patch in for the DT-based assigned clock rates
+and parents. You can find it in clk-next. (maybe you are still on
+vacation? I don't know...)
 
-> Also, May be platform dependent solution [1] can be acceptable for now?
->
-> [1] https://lkml.org/lkml/2014/7/25/630
+> >>
+> >> Anyway, you can consider this patch acked by me, I'll let Mike to =
+decide what
+> >> to do with it though.
+> >=20
+> > Do you have anything against this patch? Since right now there is n=
+o other
+> > ways to fix the ABE DPLL for dra7 it would be great if we could hav=
+e this in
+> > till we have the final solution. Also I'd like to point out that th=
+e original
+> > frequency the ABE DPLL was not correct and renders the audio to be =
+not usable
+> > on the platform.
+>=20
+> Mike: can we have this patch still pushed for 3.16? I can resend it r=
+ight away
+> if you  lost the original patch.
 
-I need to look at the series before I comment. I've flagged it and
-will hopefully look at it tomorrow.
+Peter,
 
-g.
+I have your original patch. No need to resend. Let's see if Tero
+comments this week, otherwise I can take it with his previously supplie=
+d
+Ack and send it off. Probably needs to be sent by Thursday at the
+latest.
+
+Regards,
+Mike
+
+>=20
+> Thanks,
+> P=C3=A9ter
+>=20
+>=20
+> >=20
+> >>>>
+> >>>>>
+> >>>>> -Tero
+> >>>>>
+> >>>>>>
+> >>>>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >>>>>> ---
+> >>>>>>    drivers/clk/ti/clk-7xx.c | 7 ++++++-
+> >>>>>>    1 file changed, 6 insertions(+), 1 deletion(-)
+> >>>>>>
+> >>>>>> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx=
+=2Ec
+> >>>>>> index f7e40734c819..19a55bf407dd 100644
+> >>>>>> --- a/drivers/clk/ti/clk-7xx.c
+> >>>>>> +++ b/drivers/clk/ti/clk-7xx.c
+> >>>>>> @@ -16,7 +16,7 @@
+> >>>>>>    #include <linux/clkdev.h>
+> >>>>>>    #include <linux/clk/ti.h>
+> >>>>>>
+> >>>>>> -#define DRA7_DPLL_ABE_DEFFREQ                361267200
+> >>>>>> +#define DRA7_DPLL_ABE_DEFFREQ                180633600
+> >>>>>>    #define DRA7_DPLL_GMAC_DEFFREQ                1000000000
+> >>>>>>
+> >>>>>>
+> >>>>>> @@ -322,6 +322,11 @@ int __init dra7xx_dt_clk_init(void)
+> >>>>>>        if (rc)
+> >>>>>>            pr_err("%s: failed to configure ABE DPLL!\n", __fun=
+c__);
+> >>>>>>
+> >>>>>> +    dpll_ck =3D clk_get_sys(NULL, "dpll_abe_m2x2_ck");
+> >>>>>> +    rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_ABE_DEFFREQ * 2);
+> >>>>>> +    if (rc)
+> >>>>>> +        pr_err("%s: failed to configure ABE DPLL m2x2!\n", __=
+func__);
+> >>>>>> +
+> >>>>>>        dpll_ck =3D clk_get_sys(NULL, "dpll_gmac_ck");
+> >>>>>>        rc =3D clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
+> >>>>>>        if (rc)
+> >>>>>>
+> >>>>>
+> >>>>
+> >>>>
+> >>>
+> >>
+> >=20
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >=20
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
