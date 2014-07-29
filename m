@@ -1,169 +1,143 @@
-From: Michael Welling <mwelling@emacinc.com>
-Subject: Re: OMAP3/AM3517 EHCI USB Issue
-Date: Tue, 29 Jul 2014 10:20:29 -0500
-Message-ID: <20140729152029.GA20542@sysresccd>
-References: <20140725200400.GB18127@sysresccd>
- <Pine.LNX.4.44L0.1407281059060.1183-100000@iolanthe.rowland.org>
- <20140728152948.GA28880@sysresccd>
- <20140728155718.GF7667@saruman.home>
- <20140728175739.GA29212@sysresccd>
- <20140728181024.GI7667@saruman.home>
- <53D7625B.3070301@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 30/35] irqchip: add irq-omap-intc.h header
+Date: Tue, 29 Jul 2014 10:19:36 -0500
+Message-ID: <20140729151936.GC17808@saruman.home>
+References: <1406582183-696-1-git-send-email-balbi@ti.com>
+ <1406582183-696-31-git-send-email-balbi@ti.com>
+ <20140729120133.GQ29045@atomide.com>
+ <20140729141045.GA17808@saruman.home>
+ <20140729150655.GU29045@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="dkEUBIird37B8yKS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:51118 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753927AbaG2PUg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 11:20:36 -0400
-Received: by mail-ie0-f178.google.com with SMTP id rd18so8874836iec.9
-        for <linux-omap@vger.kernel.org>; Tue, 29 Jul 2014 08:20:35 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:45694 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753992AbaG2PU5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 11:20:57 -0400
 Content-Disposition: inline
-In-Reply-To: <53D7625B.3070301@ti.com>
+In-Reply-To: <20140729150655.GU29045@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, heikki.krogerus@linux.intel.com, chris.ruehl@gtsys.com.hk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, bcousson@baylibre.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tglx@linutronix.de, jason@lakedaemon.net, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Jul 29, 2014 at 11:59:07AM +0300, Roger Quadros wrote:
-> Hi Michael,
-> 
-> On 07/28/2014 09:10 PM, Felipe Balbi wrote:
-> > On Mon, Jul 28, 2014 at 12:57:39PM -0500, Michael Welling wrote:
-> >> On Mon, Jul 28, 2014 at 10:57:18AM -0500, Felipe Balbi wrote:
-> >>> Hi,
-> >>>
-> >>> On Mon, Jul 28, 2014 at 10:29:49AM -0500, Michael Welling wrote:
-> >>>> On Mon, Jul 28, 2014 at 11:02:47AM -0400, Alan Stern wrote:
-> >>>>> On Fri, 25 Jul 2014, Michael Welling wrote:
-> >>>>>
-> >>>>>> The plot thickens....
-> >>>>>>
-> >>>>>> So if I run the above command before anything is plugged into the ports
-> >>>>>> the HUB disconnects.
-> >>>>>>
-> >>>>>> root@som3517:~# echo on > /sys/bus/usb/devices/1-1/power/control
-> >>>>>> [   63.068839] usb 1-1: USB disconnect, device number 2
-> >>>>>>
-> >>>>>> Here is the output of the usbmon output when running the above command:
-> >>>>>> root@som3517:/sys/kernel/debug/usb/usbmon# cat 1t
-> >>>>>> de382e40 3788886573 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de382e40 3788890604 C Ci:001:00 0 4 = 07050000
-> >>>>>> de382e40 3788892965 S Ci:001:00 s a3 00 0000 0002 0004 4 <
-> >>>>>> de382e40 3788893093 C Ci:001:00 0 4 = 00010000
-> >>>>>> de382e40 3788894834 S Ci:001:00 s a3 00 0000 0003 0004 4 <
-> >>>>>> de382e40 3788894958 C Ci:001:00 0 4 = 00010000
-> >>>>>> de7d92c0 3788896519 S Ii:001:01 -115 4 <
-> >>>>>> de382e40 3788898778 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de382e40 3788900188 C Ci:001:00 0 4 = 07050000
-> >>>>>> de382e40 3788902705 S Co:001:00 s 23 01 0002 0001 0000 0
-> >>>>>> de382e40 3788905793 C Co:001:00 0 0
-> >>>>>> de382e40 3788940998 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de7d92c0 3788942065 C Ii:001:01 0 1 = 02
-> >>>>>> de7d92c0 3788943013 S Ii:001:01 -115 4 <
-> >>>>>> de382e40 3788943145 C Ci:001:00 0 4 = 03050400
-> >>>>>> de382e40 3788961031 S Co:001:00 s 23 01 0012 0001 0000 0
-> >>>>>> de382e40 3788961175 C Co:001:00 0 0
-> >>>>>> de382e40 3788961304 S Ci:002:00 s 80 00 0000 0000 0002 2 <
-> >>>>>> de382e40 3788965395 C Ci:002:00 -71 0
-> >>>>>> de249040 3788966954 S Co:001:00 s 23 03 0004 0001 0000 0
-> >>>>>> de249040 3788968362 C Co:001:00 0 0
-> >>>>>> de249040 3789021103 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de7d92c0 3789022194 C Ii:001:01 0 1 = 02
-> >>>>>> de7d92c0 3789022226 S Ii:001:01 -115 4 <
-> >>>>>> de249040 3789023423 C Ci:001:00 0 4 = 01051200
-> >>>>>> de249040 3789025010 S Co:001:00 s 23 03 0004 0001 0000 0
-> >>>>>> de249040 3789026815 C Co:001:00 0 0
-> >>>>>> de249040 3789230980 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de249040 3789231111 C Ci:001:00 0 4 = 00010300
-> >>>>>> de249040 3789232280 S Co:001:00 s 23 01 0014 0001 0000 0
-> >>>>>> de249040 3789232404 C Co:001:00 0 0
-> >>>>>> de249040 3789233056 S Co:001:00 s 23 01 0001 0001 0000 0
-> >>>>>> de249040 3789235345 C Co:001:00 0 0
-> >>>>>> de249040 3789236820 S Co:001:00 s 23 01 0001 0001 0000 0
-> >>>>>> de249040 3789237201 C Co:001:00 0 0
-> >>>>>> de249040 3789238180 S Co:001:00 s 23 01 0001 0001 0000 0
-> >>>>>> de249040 3789238510 C Co:001:00 0 0
-> >>>>>> de249040 3789240602 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de249040 3789241661 C Ci:001:00 0 4 = 00010300
-> >>>>>> de249040 3789242264 S Co:001:00 s 23 01 0010 0001 0000 0
-> >>>>>> de249040 3789243921 C Co:001:00 0 0
-> >>>>>> de249040 3789246540 S Co:001:00 s 23 01 0011 0001 0000 0
-> >>>>>> de249040 3789246930 C Co:001:00 0 0
-> >>>>>> de2490c0 3789283096 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de2490c0 3789286255 C Ci:001:00 0 4 = 00010000
-> >>>>>> de2490c0 3789330975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de2490c0 3789332606 C Ci:001:00 0 4 = 00010000
-> >>>>>> de2490c0 3789371015 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de2490c0 3789371146 C Ci:001:00 0 4 = 00010000
-> >>>>>> de2490c0 3789410975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de2490c0 3789411097 C Ci:001:00 0 4 = 00010000
-> >>>>>> de2490c0 3789450972 S Ci:001:00 s a3 00 0000 0001 0004 4 <
-> >>>>>> de2490c0 3789451081 C Ci:001:00 0 4 = 00010000
-> >>>>>> de7d92c0 3789452462 C Ii:001:01 -2 0
-> >>>>>>
-> >>>>>> Not sure what any of it means.
-> >>>>>
-> >>>>> Basically it means what you said above: the hub disconnected.  I can't 
-> >>>>> tell why.  You'll have to ask someone who's familiar with the hardware 
-> >>>>> on that board.
-> >>>>
-> >>>> Sadly, there is no one more familar with this specific hardware than myself.
-> >>>>
-> >>>> I can however ellaborate the hardware setup of the USB subsystem in
-> >>>> case there is someone out there that has used a similar setup.
-> >>>>
-> >>>> The board uses the AM3517 SoC from TI. The SoC's USB host port (HSUSB1) is
-> >>>> connected to a USB3320 PHY. The PHY is connected to a USB2512 switch to
-> >>>> provide two downstream USB ports.
-> >>>>
-> >>>> The very same hardware worked with the 2.6.37 kernel that I am trying to
-> >>>> move away from.
+--dkEUBIird37B8yKS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It should be noted that the USB hardware work on the 3.2 kernel as well.
+On Tue, Jul 29, 2014 at 08:06:55AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [140729 07:13]:
+> > On Tue, Jul 29, 2014 at 05:01:33AM -0700, Tony Lindgren wrote:
+> > > * Felipe Balbi <balbi@ti.com> [140728 14:19]:
+> > > > OMAP INTC irqchip driver will be moved under
+> > > > drivers/irqchip/ soon but we still have a dependency
+> > > > with mach-omap2 when it comes to idle functions.
+> > > >=20
+> > > > In order to make it easy to share those function
+> > > > prototypes with OMAP PM code, we introduce this new
+> > > > header.
+> > > >=20
+> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/board-3430sdp.c        |  1 +
+> > > >  arch/arm/mach-omap2/board-am3517crane.c    |  1 +
+> > > >  arch/arm/mach-omap2/board-am3517evm.c      |  1 +
+> > > >  arch/arm/mach-omap2/board-cm-t35.c         |  1 +
+> > > >  arch/arm/mach-omap2/board-cm-t3517.c       |  1 +
+> > > >  arch/arm/mach-omap2/board-devkit8000.c     |  1 +
+> > > >  arch/arm/mach-omap2/board-ldp.c            |  1 +
+> > > >  arch/arm/mach-omap2/board-omap3beagle.c    |  1 +
+> > > >  arch/arm/mach-omap2/board-omap3logic.c     |  1 +
+> > > >  arch/arm/mach-omap2/board-omap3pandora.c   |  1 +
+> > > >  arch/arm/mach-omap2/board-omap3stalker.c   |  1 +
+> > > >  arch/arm/mach-omap2/board-omap3touchbook.c |  1 +
+> > > >  arch/arm/mach-omap2/board-overo.c          |  1 +
+> > > >  arch/arm/mach-omap2/board-rx51.c           |  1 +
+> > > >  arch/arm/mach-omap2/board-ti8168evm.c      |  1 +
+> > > >  arch/arm/mach-omap2/common.h               |  9 ---------
+> > > >  arch/arm/mach-omap2/cpuidle34xx.c          |  1 +
+> > > >  arch/arm/mach-omap2/irq.c                  |  1 +
+> > > >  arch/arm/mach-omap2/pm24xx.c               |  1 +
+> > > >  arch/arm/mach-omap2/pm34xx.c               |  1 +
+> > > >  include/linux/irqchip/irq-omap-intc.h      | 32 ++++++++++++++++++=
+++++++++++++
+> > > ...
+> > >=20
+> > > > +void omap2_init_irq(void);
+> > > > +void omap3_init_irq(void);
+> > > > +void ti81xx_init_irq(void);
+> > >=20
+> > > I think these will all go away with DT based booting?
+> > > So it might be worth waiting for that rather than churn
+> > > all these files, or..
+> >=20
+> > you just asked me to rebase this series because now we had OMAP3 idle
+> > working with DT. And now, you're asking me to hold on to this series
+> > because not everything is DT-based yet.
+>=20
+> I just don't like the idea of patching all these board files that
+> are going away anyways. If we need to do that, let's just add it
 
-> >>>>
-> >>>> Today I am going to try using 3.10 and 3.14 kernels see if they exhibit
-> >>>> the same behavior.
-> >>>
-> >>
-> >> It should be noted that the 3.10 kernel did not even detect the external
-> >> HUB and the 3.14 kernel exhibits the same failure as 3.16.
-> >>
-> >>> Do you have off-while-idle enabled ? This could be, as Alan suggested, a
-> >>> problem with remote wakeup. EHCI on TI parts is kinda awkward, if you
-> >>> will, and getting remote wakeup with PM working, is generally a
-> >>> challenge.
-> >>
-> >> How would one determine if off-while-idle is enabled? Is this a flag in an
-> >> entry in the devicetree?
-> > 
-> > there is a pm_debug file on debugfs which you can use. Set autosuspend
-> > delay to UART (it's set to -1 by default, IIRC), then leave the board
-> > idle for a couple minutes, then read /sys/kernel/debug/pm_debug and see
-> > if the OFF() counters are increasing.
-> > 
-> > Adding linux-omap to Cc. Also Tony, who has a simple script to enable
-> > pm_runtime on UART.
-> > 
-> 
-> The EHCI-omap driver when in use should prevent the USBHOST module from idling and this should in turn prevent the CORE from idling. So remote wakeup should work. It works fine in my setup with omap3beagle board OMAP3430/3530 ES3.1.
-> I'm using a recent u-boot v2014.07-rc4.
-> 
-> It seems you are using an older silicon which needs single_ulpi_bypass flag set in platform data.
-> Did your below patch fix the issue for you?
-> https://lkml.org/lkml/2014/7/28/745
+when are they going away ? Are we really gonna delay this series until
+those board-files eventually vanish ?
 
-Sadly, this did not fix the issue that I am having.
+> to common.h that's already included by all the remaining board-*.c
+> files. I know we should rather include the files directly, but in
+> this case that's just extra churn.
+>=20
+> The real problem is how to properly deal with the save and
+> restore calls that idle code needs.
 
-The problem seems to be the interaction between the PHY and the HUB on
-the hardware. The USB host works fine until the last device is removed
-from the HUB as long a device is plugged in during boot.
+well, for system sleep we have callbacks from irq generic itself. The
+real problem is just with runtime PM.
 
-The HUB can be forced to stay on if a device is installed during boot.
-But if you boot without a device plugged in the hardware never detects
-thereafter.
+> In any case, it seems we can merge quite a bit of this series
+> already and then deal with the problem parts.
 
-> 
-> cheers,
-> -roger
+sure, it at least some of those patches get merged, then it's less crap
+for me to rebase every now and again.
+
+> > This is the third time I rebase the series after a long hiatus and it
+> > always comes out to the same result -> "let's wait some more".
+>=20
+> Nope, it's always been "this series causes PM regressions"
+
+you just said that we haven't been in any position to really test this,
+so can it be that the status has always been "this series causes PM
+regressions". We couldn't test that before, right ?
+
+> and few other minor comments. And we have not been in any
+> position to really test that until with v3.16-rc4. And then
+> you always run out of time and nobody else does anything :)
+
+sure, I have other stuff to do as well.
+
+--=20
+balbi
+
+--dkEUBIird37B8yKS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT17uIAAoJEIaOsuA1yqREu+wQAKp0vxeRKSvIRWGcpFowY2QV
+9miirsvWCJjbs1y6PunDefjBDv22uej1kLs9xwPN1dUn2pUysKCCTTP4xDBXJxzS
+XSqfvNU4rEuaig0u5j5Net1mR/JdHWILCYLTdKz2KDKJ4fTBdkjw7KlSODGPbqL5
+/EJsmvbb485G4y0f3vuLuSyLBQUU+05LxHBvSeW1ffs2XQHe895ot/lsfB9oRKzp
+1F/mcZUx/UfjGhwzob/hRbMTlrFOER9ThsJZMETy9w/RYIWO+2Va9C+DFVt1rRNa
+0awNWwVIRExyV1Iz/nNjsndcpOhcnNLMV0DUbmBlWjeeXTpb5lTOflyd0Gf8N8NV
+eder4Rly2UI7utK5MwPUw6ps0Cy6cR6Sbt2eoLJCcUU6o6BRoTTWHT8TuTJEDwmy
+PggpPxmzpWWeEjUAdiHdvxbooQzv/Wlu0Yx6+D0u4Q70s4Bn2mlk2H0J2UaJKKNA
+sqrCOmSnxjCw5b8kCBPIvZcVLn4iLcUeD2VWOxI4umV2CXInkKKdUsXfHd7iqfWB
+Wrb51CSvOdI3opk0JOI8mQE1h8YdkafxniQEeSs9y2R7ESNDn9dFvUhrYdPWZqZg
+QgTskPOX08Py7bYnwo8pnOILC42cWKHY+PS40tkRVWr85uRMWQZqHO5zKYqWnmxI
+fwTUlKnk7nmjvUPqjBQR
+=EGxO
+-----END PGP SIGNATURE-----
+
+--dkEUBIird37B8yKS--
