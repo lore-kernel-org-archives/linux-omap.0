@@ -1,54 +1,46 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 30/35] irqchip: add irq-omap-intc.h header
-Date: Tue, 29 Jul 2014 08:28:38 -0700
-Message-ID: <20140729152838.GW29045@atomide.com>
-References: <1406582183-696-1-git-send-email-balbi@ti.com>
- <1406582183-696-31-git-send-email-balbi@ti.com>
- <20140729120133.GQ29045@atomide.com>
- <20140729141045.GA17808@saruman.home>
- <20140729150655.GU29045@atomide.com>
- <20140729151936.GC17808@saruman.home>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] late omap mailbox clean-up, driver parts
+Date: Tue, 29 Jul 2014 17:36:46 +0200
+Message-ID: <1420246.WMlB29KVsm@wuerfel>
+References: <20140729113917.GP29045@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140729151936.GC17808-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.187]:56179 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527AbaG2Phk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 11:37:40 -0400
+In-Reply-To: <20140729113917.GP29045@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 08:22]:
-> On Tue, Jul 29, 2014 at 08:06:55AM -0700, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 07:13]:
-> > > This is the third time I rebase the series after a long hiatus and it
-> > > always comes out to the same result -> "let's wait some more".
-> > 
-> > Nope, it's always been "this series causes PM regressions"
+On Tuesday 29 July 2014 04:39:18 Tony Lindgren wrote:
+> The following changes since commit cbf14f3ab9bd6295b345fc812f08ddd844fb183e:
 > 
-> you just said that we haven't been in any position to really test this,
-> so can it be that the status has always been "this series causes PM
-> regressions". We couldn't test that before, right ?
-
-It's been working for legacy booting for years with the mainline
-kernel, but not for device tree based booting until with v3.16-rc4.
-I believe I tested your earlier series with my pending DT patches
-though.
- 
-> > and few other minor comments. And we have not been in any
-> > position to really test that until with v3.16-rc4. And then
-> > you always run out of time and nobody else does anything :)
+>   ARM: AM33xx: hwmod_data: Remove legacy mailbox addrs (2014-07-15 05:08:56 -0700)
 > 
-> sure, I have other stuff to do as well.
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/mailbox-cleanup
+> 
+> for you to fetch changes up to 72c1c8179cdc5ba7208d375bd3f104659fc50ad0:
+> 
+>   mailbox/omap: add a parent structure for every IP instance (2014-07-29 01:57:25 -0700)
+> 
+> ----------------------------------------------------------------
+> Driver specific omap mailbox cleanup. Mostly to remove
+> broken legacy code for omap1 and move things towards
+> device tree.
+> 
+> These patches were posted a while back, but I did not
+> realize I was supposed to merge the driver related
+> parts too. So apologies for a late pull request on
+> these changes.
 
-Right :) I and others can provide some help here, but it's
-the mr. patch author that needs to follow up on this series
-too :p
+Ok, I see. I've merged them into next/drivers now, after first merging in the
+first half of the series that we have in the next/soc branch.
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
