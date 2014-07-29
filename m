@@ -1,100 +1,79 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 13/35] arm: omap: irq: call set_handle_irq() from
- intc_of_init
-Date: Tue, 29 Jul 2014 18:00:23 +0200
-Message-ID: <20140729160022.GA21830@earth.universe>
-References: <1406582183-696-1-git-send-email-balbi@ti.com>
- <1406582183-696-14-git-send-email-balbi@ti.com>
- <20140729022019.GB4421@earth.universe>
- <20140729153649.GD17808@saruman.home>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 1/2] remoteproc: use a flag to detect the presence of
+ IOMMU
+Date: Tue, 29 Jul 2014 11:10:17 -0500
+Message-ID: <53D7C769.6080500@ti.com>
+References: <1404836521-59637-1-git-send-email-s-anna@ti.com> <1404836521-59637-2-git-send-email-s-anna@ti.com> <CAK=Wgbawdik3ZB0Zbeaa7eXd7M+9ev9u713GcfOc4Gy0+O80Dg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140729153649.GD17808-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=Wgbawdik3ZB0Zbeaa7eXd7M+9ev9u713GcfOc4Gy0+O80Dg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Robert Tivy <rtivy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Ohad,
 
---C7zPtVaVf+AK4Oqc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, Jul 29, 2014 at 10:36:49AM -0500, Felipe Balbi wrote:
-> On Tue, Jul 29, 2014 at 04:20:20AM +0200, Sebastian Reichel wrote:
-> > Hi,
-> >=20
-> > On Mon, Jul 28, 2014 at 04:16:01PM -0500, Felipe Balbi wrote:
-> > > this will let us drop .handle_irq and .init_irq fields
-> > > from our generic machine_descs.
-> > >=20
-> > > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > > ---
-> > >  arch/arm/mach-omap2/irq.c | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > >=20
-> > > diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> > > index e6997c5..e452411 100644
-> > > --- a/arch/arm/mach-omap2/irq.c
-> > > +++ b/arch/arm/mach-omap2/irq.c
-> > > @@ -314,6 +314,8 @@ static int __init intc_of_init(struct device_node=
- *node,
-> > > =20
-> > >  	omap_init_irq(res.start, nr_irq, of_node_get(node));
-> > > =20
-> > > +	set_handle_irq(omap2_intc_handle_irq);
-> > > +
-> > >  	return 0;
-> > >  }
-> > >
-> >=20
-> > if you respin the patchset you may want to call omap_intc_handle_irq
-> > directly. It makes the review of the patchset less confusing.
-> >=20
-> > (I was wondering why omap3 can call omap2_intc_handle_irq until I
-> > noticed, that your previous changes made both functions simple
-> > wrapper functions for omap_intc_handle_irq)
+On 07/29/2014 05:57 AM, Ohad Ben-Cohen wrote:
+> Hi Suman,
 >=20
-> this is done later for a reason. At this point, omap_intc_handle_irq()
-> still misses proper annotations for asmlinkage and
-> __exception_irq_entry.
+> On Tue, Jul 8, 2014 at 7:22 PM, Suman Anna <s-anna@ti.com> wrote:
+>> The remoteproc driver core currently relies on iommu_present() on
+>> the bus the device is on, to perform MMU management. However, this
+>> logic doesn't scale for multi-arch, especially for processors that
+>> do not have an IOMMU.
+>=20
+> Is there a specific hw/scenario where you need this? Can you please
+> provide more details about it?
 
-I guess that could be solved by moving the annotations to
-omap_intc_handle_irq and just keeping omap{23}_intc_handle_irq as a
-#define. Probably not worth the extra work, though.
+We are trying to add a remoteproc driver for a small Cortex M3 called
+the WkupM3 used for suspend/resume management on TI AM335/AM437x SoCs.
+This processor does not have an MMU. Same is the case with another
+processor subsystem PRU-ICSS on AM335/AM437x. All these are platform
+devices, and the current iommu_present check will not scale for the sam=
+e
+kernel image to support OMAP4/OMAP5 and AM335/AM437x.
 
--- Sebastian
+This patch mainly addresses the existing comments in the code,
+-	 * This works for simple cases, but will easily fail with
+-	 * platforms that do have an IOMMU, but not for this specific
+-	 * rproc.
+-	 *
+-	 * This will be easily solved by introducing hw capabilities
+-	 * that will be set by the remoteproc driver.
 
---C7zPtVaVf+AK4Oqc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>=20
+> Ideally we should add them to the commit log as well.
+>=20
+>> The individual platform implementations are required to set this
+>> flag appropriately. The default setting is to not have an MMU.
+>=20
+> Let's explicitly set the default please so this would be clear for
+> users reading the code.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+OK, I can update the existing drivers to explicitly set this field.
 
-iQIcBAEBCgAGBQJT18UVAAoJENju1/PIO/qaziAP/3YU2twsXjL4kpqHg9kUN35/
-fm7I7whLY1ZqQRW2CcZv4QHE9JLHubqW4RcTFof+woFksDkLtUwbV4suyC5DJ/up
-3irrl0ZOO20XuNq7WnsOEZCng1SkH8EBso0jdw+QfSsKpy4Uvcvn3qBibORFldbZ
-IKsxtXZZNJmV9GLNaFprBPwp5+aKEuuHGAMWLYaz5E2WNW2pe+8V+5sQPeuQODwy
-FtnLCSOKY1QZE8dJGypLYq95q5G5cGgwhBi/IhTS2Y5OoKMYlDHBPtIZ+DqukvKT
-hkIfJvtRTA8R9PnO6Bq8B8XehNLpalm4wvvZroDXx3GrKtAADenoeX8wok77JdUE
-29ZOm6O+rBjU6WmwSiZDpicmqtmWkHimyv8QlJ6YWUZcsAs8QP03h/RRJdFmcxOA
-Uc//u3EAJs7x9StKKE/aYFJV7TFJkt2t5+yOmDLlTv5ivD8yLrKnlHNhNttPekKX
-MsDm/IA2A2oV51zSu7LokAHULE5iH6XqqozBHZROrti0eZ/sfgRLtE44m6ajoDpc
-Q3659JROOjcMZNiz+E8+5WVNeVBmhQ6gbGIJLHR6I+lB0C5x1NB27cAvSpFf6DXI
-dy1xubDewcWCNivMSQjqEAtHO0I/Cn/zZ3afLKqty0brnH0LT4OLqwgByG5E4S3a
-FDl2eDYj4CTpIhaKYTSq
-=qtyI
------END PGP SIGNATURE-----
+>=20
+>> Cc: Sjur Br=C3=A6ndeland <sjur.brandeland@stericsson.com>
+>=20
+> Sjur is no longer with STE, so no point in cc'ing his old email addre=
+ss.
 
---C7zPtVaVf+AK4Oqc--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah, I wasn't aware until I got a bounced email.
+
+>=20
+>> +       /*
+>> +        * All existing OMAP IPU and DSP processors do have an MMU, =
+and
+>> +        * are expected to use MMU, so this statement suffices.
+>> +        * XXX: Replace this logic if and when a need arises.
+>=20
+> The last XXX comment is always true for any kernel code, so I'd drop =
+it.
+
+Sure.
+
+regards
+Suman
