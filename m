@@ -1,76 +1,127 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 00/35] arm: omap: move intc to drivers/irqchip/
-Date: Tue, 29 Jul 2014 04:25:37 +0200
-Message-ID: <20140729022536.GC4421@earth.universe>
-References: <1406582183-696-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="t0UkRYy7tHLRMCai"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1406582183-696-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---t0UkRYy7tHLRMCai
+From: "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [PATCH 3/3] arm: dts: Add gta04a5 model
+Date: Tue, 29 Jul 2014 07:17:06 +0200
+Message-ID: <A0AA66B6-5D28-49D7-AF83-06F0D38DA96D@goldelico.com>
+References: <1406577213-9642-1-git-send-email-marek@goldelico.com> <1406577213-9642-4-git-send-email-marek@goldelico.com> <CAOf5uwk=ctww=pP4Ae+1C6i-oOtiYTv2NJbj1GpuPwVSKXB4Hw@mail.gmail.com> <CAAfyv35jvhzvjCKMwrpa=RQ1JkfcmthCsGDzwLW9Y6bq3Ww_fg@mail.gmail.com> <CAOf5uw=Fm9FXEH5ESqDC8pGjMbn5VQ1+MyPJVXSqGh_9+JRLHw@mail.gmail.com> <CAAfyv351g1R6TnmW+JKM1sDQsegEFExV6p9BEN=izOdR4n8zEQ@mail.gmail.com> <CAOf5uwmjznuK_1au1HnsnYh=BhqC=x+O_tpk6U71bqPv=hFe_A@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8BIT
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAOf5uwmjznuK_1au1HnsnYh=BhqC=x+O_tpk6U71bqPv=hFe_A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Cc: Marek Belisko <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, pawel.moll-5wv7dgnIgG8@public.gmane.org, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Mon, Jul 28, 2014 at 04:15:48PM -0500, Felipe Balbi wrote:
-> here's another rebase of the original series moving INTC
-> to drivers.
->=20
-> There aren't many changes, only some fixes here and there
-> because of recent changes to irq_domain and irqchip.
->=20
-> I have also added a patch to enable INTC address space
-> protection so that only privileged modes can access
-> INTC's address space.
->=20
-> Patches tested on top of v3.17-rc7 with a beagle bone black,
-> the only plataform I have which still uses INTC.
->=20
-> Tony, if you can run your PM test cases on your side, I'd
-> be really glad.
+Am 28.07.2014 um 22:12 schrieb Michael Trimarchi:
 
-Reviewed-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Hi
+> 
+> Il 28/lug/2014 22:06 "Belisko Marek" <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> ha scritto:
+> >
+> > On Mon, Jul 28, 2014 at 10:04 PM, Michael Trimarchi
+> > <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
+> > > Hi
+> > >
+> > > Il 28/lug/2014 22:02 "Belisko Marek" <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> ha scritto:
+> > >
+> > >
+> > >>
+> > >> Hi Michael,
+> > >>
+> > >> On Mon, Jul 28, 2014 at 9:56 PM, Michael Trimarchi
+> > >> <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
+> > >> > Hi Marek
+> > >> >
+> > >> > Il 28/lug/2014 21:54 "Marek Belisko" <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> ha scritto:
+> > >> >
+> > >> >
+> > >> >>
+> > >> >> Add model a5 which have additional jack detection.
+> > >> >>
+> > >> >> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> > >> >> ---
+> > >> >>  arch/arm/boot/dts/Makefile          |  1 +
+> > >> >>  arch/arm/boot/dts/omap3-gta04a5.dts | 17 +++++++++++++++++
+> > >> >>  2 files changed, 18 insertions(+)
+> > >> >>  create mode 100644 arch/arm/boot/dts/omap3-gta04a5.dts
+> > >> >>
+> > >> >> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> > >> >> index 7d45fde..576c595 100644
+> > >> >> --- a/arch/arm/boot/dts/Makefile
+> > >> >> +++ b/arch/arm/boot/dts/Makefile
+> > >> >> @@ -285,6 +285,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
+> > >> >>         omap3-evm-37xx.dtb \
+> > >> >>         omap3-gta04a3.dtb \
+> > >> >>         omap3-gta04a4.dtb \
+> > >> >> +       omap3-gta04a5.dtb \
+> > >> >>         omap3-igep0020.dtb \
+> > >> >>         omap3-igep0030.dtb \
+> > >> >>         omap3-ldp.dtb \
+> > >> >> diff --git a/arch/arm/boot/dts/omap3-gta04a5.dts
+> > >> >> b/arch/arm/boot/dts/omap3-gta04a5.dts
+> > >> >> new file mode 100644
+> > >> >> index 0000000..210317c3
+> > >> >> --- /dev/null
+> > >> >> +++ b/arch/arm/boot/dts/omap3-gta04a5.dts
+> > >> >> @@ -0,0 +1,17 @@
+> > >> >> +/*
+> > >> >> + * Copyright (C) 2014 H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> > >> >> + *
+> > >> >> + * This program is free software; you can redistribute it and/or
+> > >> >> modify
+> > >> >> + * it under the terms of the GNU General Public License version 2 as
+> > >> >> + * published by the Free Software Foundation.
+> > >> >> + */
+> > >> >> +
+> > >> >> +#include "omap3-gta04.dtsi"
+> > >> >> +
+> > >> >> +/ {
+> > >> >> +       model = "Goldelico GTA04A5;
+> > >> >> +
+> > >> >> +       sound {
+> > >> >> +               ti,jack-det-gpio = <&twl_gpio 2 0>;    /* GTA04A5 only
+> > >> >> */
+> > >> >> +       };
+> > >> >> +};
+> > >> >> --
+> > >> >> 1.9.1
+> > >> >>
+> > >> >
+> > >> > Can we have only one dts with status enabled/disabled?
+> > >> Do you mean to define this node it gta04.dtsi disabled and enable only
+> > >> for a5 model?
+> > >> >
+> > >
+> > > This should be possible in the bootloader
+> > Sorry I didn't get that. Can you give me some short example (or
+> > existing board which using it)?
+> > Thanks.
+> > >
+> 
+> http://www.denx.de/wiki/view/DULG/UBootCmdFDT
+> 
+> I just suggest to not create a dts for each board revision but let it manage by the bootloader. I don't know if there are examples but make sense to me to avoid to add a lot of dts.
+> 
+> 
 
-for the whole series except of "drop ti,intc-size support",
-which breaks the DT API.
+Hm. Why should we dynamically modify the dtb in memory through slow, interpreted FDT commands in u-boot, if the DTC can statically compile complete .dtb files by using an #include mechanism? It would slow down boot time for no other improvement. And debugging is more difficult that looking for compiler errors.
 
-I will give this a try on my N900 in the next days.
+And our u-boot does not support the fdt command to avoid bloating it. IMHO boot loaders should be as small and fast as possible and contain only what is barely necessary. Everything more sophisticated should be done by the kernel and device drivers and some init user space process. I.e. boot loader should only tell the kernel only which board revision it is but not "manage" the board revisions.
 
--- Sebastian
+We also have a nice feature that a system on an SD card has the uImage in /boot and all existing and relevant .dtb files. U-Boot simply picks and loads the right one (by file name). This keeps the boot loader stable (people always have difficulties flashing new boot loaders). Therefore we need precompiled DTBs that completely and consistently describe each board variant. This mechanism allows that we can easily swap the SD card between different boards and variants. Implementing this feature using U-Boot scripts with FDT commands to patch the DT, appears to become a nightmare. If you are interested, the whole concept is described here:
 
---t0UkRYy7tHLRMCai
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+http://projects.goldelico.com/p/gta04-main/downloads/55/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Another aspect to consider: in my understanding, the main reason why DT is still maintained within the kernel is that the bindings are not yet stable. Therefore if bindings are patched, all device trees using them are also to be changed. I don't see how this can work if we have part of the board variations managed outside the kernel tree. Therefore each board revision is to be treated not differently from a completely new board. And similar parts are treated by a common .dtsi. This is how the concept IMHO should be. And the consequence is that we need a different .dts file for each board that has differences (even if they are or appear to be small).
 
-iQIcBAEBCgAGBQJT1wYgAAoJENju1/PIO/qauI0QAIHmRdHvPeuA50WFg3RcNinL
-WV1xTheSeSb41Y6tUlbfFSvCQLwmzUmYVgjj+eUyPUv+MtZix27O6QLUsPHCqD9G
-ykZZxv1M+4olV8g3bX6IGt48ofKH50RdedcGaqYnNJj635pVHXRUu4X3PO/Q7XPd
-Wl17YxFTlduKEAoByFLGB4QAraPZFc+SCwj3yZdDOQnmqprDrF0Nlg/3xP6FP/bV
-EtCUiYkcfF9GuFFbOeFCHleXliBg0huDPWffzuT4dRBKkwnGHmbJydsMLO9mEos3
-oGVA6F/nqm+whfYrnX9asa7qU+66e2lnUgTdLVCnaWbDZ2QutVVRcQQ5U/vbteVV
-rBrmoEjk0yLAeSXhtUCp9/GOQFixgnYAt21rfcih55J8lQJrq8n/TvzL0xarE0o/
-D2tn3zmZWp0YUFUuQRmwRqLF7vQ0orx19AZJAeW/tpxmatkJzLpO8enT2B8gJvjW
-3m78WVN2DTGsj7YE0TSwifB1CzOJwh7Au4syreBbI8IgYWC4EGsgmMjmN5y/+b2x
-QKQHikNTGEzKsZeAArO6PXdlcguudeALTyLFemw/ppXY9I2+WKsjG4c8Qxq8YhAN
-Yq4LkD5Ef0jVryLYtWxO0r5u3iv40bTmi/1H1geVGY3mK3dS3C4y2SNNnpz5J+T5
-z9gaRyicE6y3kaAvLQFs
-=tS5m
------END PGP SIGNATURE-----
+So I don't see that your suggestion is the right way to go.
 
---t0UkRYy7tHLRMCai--
+BR,
+Nikolaus
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
