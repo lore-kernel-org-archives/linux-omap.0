@@ -1,66 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] late omap mailbox clean-up, driver parts
-Date: Tue, 29 Jul 2014 04:39:18 -0700
-Message-ID: <20140729113917.GP29045@atomide.com>
+Subject: Re: [PATCH 30/35] irqchip: add irq-omap-intc.h header
+Date: Tue, 29 Jul 2014 05:01:33 -0700
+Message-ID: <20140729120133.GQ29045@atomide.com>
+References: <1406582183-696-1-git-send-email-balbi@ti.com>
+ <1406582183-696-31-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29066 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752941AbaG2Lko (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 07:40:44 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1406582183-696-31-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, bcousson@baylibre.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tglx@linutronix.de, jason@lakedaemon.net, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit cbf14f3ab9bd6295b345fc812f08ddd844fb183e:
+* Felipe Balbi <balbi@ti.com> [140728 14:19]:
+> OMAP INTC irqchip driver will be moved under
+> drivers/irqchip/ soon but we still have a dependency
+> with mach-omap2 when it comes to idle functions.
+> 
+> In order to make it easy to share those function
+> prototypes with OMAP PM code, we introduce this new
+> header.
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-3430sdp.c        |  1 +
+>  arch/arm/mach-omap2/board-am3517crane.c    |  1 +
+>  arch/arm/mach-omap2/board-am3517evm.c      |  1 +
+>  arch/arm/mach-omap2/board-cm-t35.c         |  1 +
+>  arch/arm/mach-omap2/board-cm-t3517.c       |  1 +
+>  arch/arm/mach-omap2/board-devkit8000.c     |  1 +
+>  arch/arm/mach-omap2/board-ldp.c            |  1 +
+>  arch/arm/mach-omap2/board-omap3beagle.c    |  1 +
+>  arch/arm/mach-omap2/board-omap3logic.c     |  1 +
+>  arch/arm/mach-omap2/board-omap3pandora.c   |  1 +
+>  arch/arm/mach-omap2/board-omap3stalker.c   |  1 +
+>  arch/arm/mach-omap2/board-omap3touchbook.c |  1 +
+>  arch/arm/mach-omap2/board-overo.c          |  1 +
+>  arch/arm/mach-omap2/board-rx51.c           |  1 +
+>  arch/arm/mach-omap2/board-ti8168evm.c      |  1 +
+>  arch/arm/mach-omap2/common.h               |  9 ---------
+>  arch/arm/mach-omap2/cpuidle34xx.c          |  1 +
+>  arch/arm/mach-omap2/irq.c                  |  1 +
+>  arch/arm/mach-omap2/pm24xx.c               |  1 +
+>  arch/arm/mach-omap2/pm34xx.c               |  1 +
+>  include/linux/irqchip/irq-omap-intc.h      | 32 ++++++++++++++++++++++++++++++
+...
 
-  ARM: AM33xx: hwmod_data: Remove legacy mailbox addrs (2014-07-15 05:08:56 -0700)
+> +void omap2_init_irq(void);
+> +void omap3_init_irq(void);
+> +void ti81xx_init_irq(void);
 
-are available in the git repository at:
+I think these will all go away with DT based booting?
+So it might be worth waiting for that rather than churn
+all these files, or..
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/mailbox-cleanup
+> +int omap_irq_pending(void);
+> +void omap_intc_save_context(void);
+> +void omap_intc_restore_context(void);
+> +void omap3_intc_suspend(void);
+> +void omap3_intc_prepare_idle(void);
+> +void omap3_intc_resume_idle(void);
 
-for you to fetch changes up to 72c1c8179cdc5ba7208d375bd3f104659fc50ad0:
+..how about we pass something like struct omap_intc_data
+as pdata and let the intc driver populate function pointers
+for these if runtime PM calls are not enough here?
 
-  mailbox/omap: add a parent structure for every IP instance (2014-07-29 01:57:25 -0700)
+That way we could have just minimal pdata header file.
 
-----------------------------------------------------------------
-Driver specific omap mailbox cleanup. Mostly to remove
-broken legacy code for omap1 and move things towards
-device tree.
+Regards,
 
-These patches were posted a while back, but I did not
-realize I was supposed to merge the driver related
-parts too. So apologies for a late pull request on
-these changes.
-
-----------------------------------------------------------------
-
-Note that these are based on the SoC related changes already
-pulled.
-
-----------------------------------------------------------------
-
-Suman Anna (7):
-      mailbox/omap: use devm_* interfaces
-      mailbox/omap: remove OMAP1 mailbox driver
-      mailbox/omap: remove omap_mbox_type_t from mailbox ops
-      mailbox/omap: simplify the fifo assignment by using macros
-      mailbox/omap: consolidate OMAP mailbox driver
-      mailbox/omap: remove the private mailbox structure
-      mailbox/omap: add a parent structure for every IP instance
-
- arch/arm/configs/omap1_defconfig |   2 -
- drivers/mailbox/Kconfig          |  19 +-
- drivers/mailbox/Makefile         |   6 +-
- drivers/mailbox/mailbox-omap1.c  | 203 ------------------
- drivers/mailbox/mailbox-omap2.c  | 357 -------------------------------
- drivers/mailbox/omap-mailbox.c   | 444 +++++++++++++++++++++++++++++++--------
- drivers/mailbox/omap-mbox.h      |  67 ------
- 7 files changed, 360 insertions(+), 738 deletions(-)
- delete mode 100644 drivers/mailbox/mailbox-omap1.c
- delete mode 100644 drivers/mailbox/mailbox-omap2.c
- delete mode 100644 drivers/mailbox/omap-mbox.h
+Tony
