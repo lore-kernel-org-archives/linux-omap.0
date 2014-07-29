@@ -1,159 +1,133 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 29/35] arm: omap: intc: switch over to linear irq domain
-Date: Tue, 29 Jul 2014 11:33:45 -0500
-Message-ID: <20140729163345.GF17808@saruman.home>
-References: <1406582183-696-1-git-send-email-balbi@ti.com>
- <1406582183-696-30-git-send-email-balbi@ti.com>
- <20140729121425.GR29045@atomide.com>
- <20140729141522.GB17808@saruman.home>
- <20140729152052.GV29045@atomide.com>
- <20140729154057.GE17808@saruman.home>
+Subject: Re: [PATCH v3 0/2] usb: fix controller-PHY binding for OMAP3 platform
+Date: Tue, 29 Jul 2014 11:39:35 -0500
+Message-ID: <20140729163935.GH17808@saruman.home>
+References: <1387209225-11520-1-git-send-email-kishon@ti.com>
+ <20140721151557.GH6852@saruman.home>
+ <53CF7978.4090709@ti.com>
+ <14357891.vooz1N5zDC@avalon>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Pql/uPZNXIm1JCle"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49300 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321AbaG2Qe7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 12:34:59 -0400
+	protocol="application/pgp-signature"; boundary="RwGu8mu1E+uYXPWP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140729154057.GE17808@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <14357891.vooz1N5zDC@avalon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, marek.belisko@gmail.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, bcousson@baylibre.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tglx@linutronix.de, jason@lakedaemon.net, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
---Pql/uPZNXIm1JCle
+--RwGu8mu1E+uYXPWP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Jul 29, 2014 at 10:40:57AM -0500, Felipe Balbi wrote:
-> On Tue, Jul 29, 2014 at 08:20:52AM -0700, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi@ti.com> [140729 07:18]:
-> > > Hi,
+On Tue, Jul 29, 2014 at 02:38:24PM +0200, Laurent Pinchart wrote:
+> On Wednesday 23 July 2014 14:29:36 Kishon Vijay Abraham I wrote:
+> > On Monday 21 July 2014 08:45 PM, Felipe Balbi wrote:
+> > > On Mon, Jul 21, 2014 at 05:04:57PM +0200, Laurent Pinchart wrote:
+> > >> Hi Felipe,
+> > >>=20
+> > >> What happened to these two patches ?
 > > >=20
-> > > On Tue, Jul 29, 2014 at 05:14:25AM -0700, Tony Lindgren wrote:
-> > > > * Felipe Balbi <balbi@ti.com> [140728 14:19]:
-> > > > > now that we don't need to support legacy board-files,
-> > > > > we can completely switch over to a linear irq domain
-> > > > > and make use of irq_alloc_domain_generic_chips() to
-> > > > > allocate all generic irq chips for us.
-> > > >=20
-> > > > This patch seems to somehow break off-idle for omap3=20
-> > > > where it no longer wakes up.
+> > > looks like I lost them.
 > > >=20
-> > > Sure your bisection is correct ? This patch just switches from legacy
-> > > irq domain to linear irq domain.
+> > >> On Monday 16 December 2013 17:48:29 Felipe Balbi wrote:
+> > >>> On Mon, Dec 16, 2013 at 02:38:27PM -0800, Tony Lindgren wrote:
+> > >>>> * Felipe Balbi <balbi@ti.com> [131216 13:31]:
+> > >>>>> On Mon, Dec 16, 2013 at 09:23:43PM +0530, Kishon Vijay Abraham I=
+=20
+> wrote:
+> > >>>>>> After the platform devices are created using PLATFORM_DEVID_AUTO=
+, the
+> > >>>>>> device names given in usb_bind_phy (in board file) does not match
+> > >>>>>> with the actual device name causing the USB PHY library not to r=
+eturn
+> > >>>>>> the PHY reference when the MUSB controller request for the PHY i=
+n the
+> > >>>>>> non-dt boot case.
+> > >>>>>> So removed creating platform devices using PLATFORM_DEVID_AUTO in
+> > >>>>>> omap2430.c.
+> > >>>>>>=20
+> > >>>>>> Did enumeration testing in omap3 beagle.
+> > >>>>>>=20
+> > >>>>>> Changes from v2:
+> > >>>>>> * Fixed the commit log
+> > >>>>>>=20
+> > >>>>>> Changes from v1:
+> > >>>>>> * refreshed to the latested mainline kernel
+> > >>>>>> * added musb_put_id from omap2430 remove.
+> > >>>>>=20
+> > >>>>> Tony, how do you want to handle this ? You want me to provide you=
+ a
+> > >>>>> branch which we both merge ?
+> > >>>>=20
+> > >>>> Yes that would be great thanks. For the mach-omap2 touching parts:
+> > >>>>=20
+> > >>>> Acked-by: Tony Lindgren <tony@atomide.com>
+> > >>>=20
+> > >>> Here it is, let me know if you prefer a signed tag:
+> > >>>=20
+> > >>> The following changes since commit=20
+> 6ce4eac1f600b34f2f7f58f9cd8f0503d79e42ae:
+> > >>>   Linux 3.13-rc1 (2013-11-22 11:30:55 -0800)
+> > >>>=20
+> > >>> are available in the git repository at:
+> > >>>   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
+> > >>>=20
+> > >>> usb-phy-binding-omap3
+> > >>>=20
+> > >>> for you to fetch changes up to 23ada3130cf4e56acb86fdff4c26113188d5=
+2d18:
+> > >>>   arm: omap: remove *.auto* from device names given in usb_bind_phy
+> > >>>=20
+> > >>> (2013-12-16 17:44:43 -0600)
+> > >>>=20
+> > >>> ----------------------------------------------------------------
+> > >>>=20
+> > >>> Kishon Vijay Abraham I (2):
+> > >>>       usb: musb: omap: remove using PLATFORM_DEVID_AUTO in omap2430=
+=2Ec
+> > >>>       arm: omap: remove *.auto* from device names given in usb_bind=
+_phy
+> > >=20
+> > > Kishon, are these still valid ?
 > >=20
-> > Yes, I tried it a few times. Just enabling
-> > retention idle hangs too with this patch.
-> >=20
-> > Maybe it's omap3_prcm_irq_setup that relies on
-> > 11 + OMAP_INTC_START? There may be other such issues
+> > Looks like board-2430sdp.c got removed. Apart from that the reset of the
+> > patch series is still applicable for non-dt boot.
 >=20
-> lol.
->=20
-> OMAP4 has the same nonsense.
+> Felipe, do you plan to apply the patch without the baord-2430sdp.c change=
+, or=20
+> would you like Kishon to rebase and resubmit it ?
 
-made me think why (if) OMAP4 works with that same setup. Does wake from
-OFF work with OMAP4 ?
-
-Anyway, here's a quick little hack to check if that's the reason for the
-regression:
-
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index ff953c9..c234b98 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -97,6 +97,7 @@
- 		prm: prm@48306000 {
- 			compatible =3D "ti,omap3-prm";
- 			reg =3D <0x48306000 0x4000>;
-+			interrupts =3D <11>;
-=20
- 			prm_clocks: clocks {
- 				#address-cells =3D <1>;
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_com=
-mon.c
-index 25e8b82..3d11377 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -242,6 +242,11 @@ void omap_prcm_irq_complete(void)
- 	prcm_irq_setup->restore_irqen(prcm_irq_setup->saved_mask);
- }
-=20
-+static struct of_device_id tmp[] =3D {
-+	{ .compatible =3D "ti,omap3-prm" },
-+	{ }
-+};
-+
- /**
-  * omap_prcm_register_chain_handler - initializes the prcm chained interru=
-pt
-  * handler based on provided parameters
-@@ -254,17 +259,24 @@ void omap_prcm_irq_complete(void)
-  */
- int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- {
-+	struct device_node *node;
- 	int nr_regs;
- 	u32 mask[OMAP_PRCM_MAX_NR_PENDING_REG];
- 	int offset, i;
-+	int irq;
- 	struct irq_chip_generic *gc;
- 	struct irq_chip_type *ct;
-=20
- 	if (!irq_setup)
- 		return -EINVAL;
-=20
-+	irq =3D irq_setup->irq;
- 	nr_regs =3D irq_setup->nr_regs;
-=20
-+	node =3D of_find_matching_node(NULL, tmp);
-+	if (node)
-+		irq =3D of_irq_get(node, 0);
-+
- 	if (prcm_irq_setup) {
- 		pr_err("PRCM: already initialized; won't reinitialize\n");
- 		return -EINVAL;
-@@ -298,7 +310,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_i=
-rq_setup *irq_setup)
- 				1 << (offset & 0x1f);
- 	}
-=20
--	irq_set_chained_handler(irq_setup->irq, omap_prcm_irq_handler);
-+	irq_set_chained_handler(irq, omap_prcm_irq_handler);
-=20
- 	irq_setup->base_irq =3D irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
- 		0);
+Not sure if Tony still wants board-* modifications. Tony ?
 
 --=20
 balbi
 
---Pql/uPZNXIm1JCle
+--RwGu8mu1E+uYXPWP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJT18zpAAoJEIaOsuA1yqRE1+0P/0LBahhkxT97T8au3XIRSTw7
-E+riMUXLHJqgN7a6o6pg93FeFqhOPpm/4A4T1lVDp3uWhbexpbTbiSR+cj9ty+HP
-K6Uhf9nqB+B8KN0U2baXw0IeSM8c79riBeTxKo4Rt11qd8PZYeuRLbHaQTou3FW7
-HwD+1XxJpvjjV0qEIm4P86FPduHYPC3w1afsV2O2PVt+0/E0EtfolULzLwvlU7Je
-hTzvP2Kf0YHqbfLnxhAjKjv1kZINK/GCvx8VF9wPWrSa2967EyXzh98cW2SbiVEi
-IA0sZXLcU+I243suxOuFFcv3bZDclO2m1IqKg2er564gdCwAizE49xcvBF82ml0N
-nMR79mH1jgUQF+Zv7jwry08i6Ydb0aEvFPnITxGlO4x1IWOX6xi2FiQo2UQ4+PWo
-fCPED+Uy7LllL/prXoDDU9afqL3EVOPQIY1WYjdLqPcUs4BOLruzG0/E9GIvLxvo
-3iiBMMUVh4ju1K7PQzHOWGU9JIvXk5chFoHbeNe3lQh7J7msiRWAKOBvcGpFdh60
-eYOUW+sEa+VA4P4JZdTg0uEydMqgUETdyUjbYym8nA6JRTUzhQtraMHvE8LjWkjy
-tYBHHq/hWLYQchSOKQhNhL7Wfwd1QQo0+QMSYaHmF5nV0/vwnlh++pkJk1EsqHgJ
-QE/ca/4jxy8HkWboOEkR
-=HOWE
+iQIcBAEBAgAGBQJT185HAAoJEIaOsuA1yqREPqwP/3nMP0/R4gCQwbAoWuKtLAMN
+Nr7eG2TX1hqSY81DJ0ncsyc1x3DaUju+Vh2as3Th1hR+8I8d9k2RIfYPb+spW2NB
+Aolvy1wGBZIKdyGLgG2lZHyH9/Nh7SaA/zk7AqirgQRkJ5oDpx+aqhy3Mvp/FMZL
+ppLmTBQRSlErECeyiHQ0PNambRc/8QPfpz5CItYX7OKL7qNvklhLvLKeDByyI7wC
+wB8OgAspObrAKdFUsuocVWYWu1bvO34iwcKROERB1RVnuY6WqMybE67M7eAl8w70
+YXWERW8HBUo11XICrXNcO9ajBGgioR0QH0qUUgOWuMpklMLGZMyN9Qaa3flXYssj
+MpGoPoRjGYhci8cewtNMEl9IIH2YwvljNKYHvLyoARxJpxEbCWMlSgPi8f/tcV2k
+VDTVSrxMMuXoOoO6aJQ8B14k2jO1IQpx+xrfOb7K9c/OU7iSWaNL28BuYk+iPjpL
+MHlbd5Zw2cAM6ncJOEDbls4a7yp2ZYEUsrlFE0kNcyyjF7EaZ9cznVUvuvbIQjjG
+5FXLcPRql+okkQo7x8Gl9PPZXwW1Hj6CTKlPtmlKSb7fc2crf5pEc1eWNiG9n3bG
+wMgFQVPLRiGsF7RPVmmojEufPxs0gFPCs5ts+4zViZUoGJxn8NF44ZUuTXlw2srW
+rCPIRy6YasBC3KjSMu3m
+=jCEn
 -----END PGP SIGNATURE-----
 
---Pql/uPZNXIm1JCle--
+--RwGu8mu1E+uYXPWP--
