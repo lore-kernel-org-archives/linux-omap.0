@@ -1,146 +1,74 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: OMAP3/AM3517 EHCI USB Issue
-Date: Tue, 29 Jul 2014 11:59:07 +0300
-Message-ID: <53D7625B.3070301@ti.com>
-References: <20140725200400.GB18127@sysresccd> <Pine.LNX.4.44L0.1407281059060.1183-100000@iolanthe.rowland.org> <20140728152948.GA28880@sysresccd> <20140728155718.GF7667@saruman.home> <20140728175739.GA29212@sysresccd> <20140728181024.GI7667@saruman.home>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/7] OMAP mailbox cleanup
+Date: Tue, 29 Jul 2014 01:59:52 -0700
+Message-ID: <20140729085947.GI29045@atomide.com>
+References: <1403657023-53897-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54525 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752808AbaG2I7b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Jul 2014 04:59:31 -0400
-In-Reply-To: <20140728181024.GI7667@saruman.home>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:18443 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753052AbaG2JBR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 05:01:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1403657023-53897-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Welling <mwelling@emacinc.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, heikki.krogerus@linux.intel.com, chris.ruehl@gtsys.com.hk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Jassi Brar <jaswinder.singh@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Michael,
-
-On 07/28/2014 09:10 PM, Felipe Balbi wrote:
-> On Mon, Jul 28, 2014 at 12:57:39PM -0500, Michael Welling wrote:
->> On Mon, Jul 28, 2014 at 10:57:18AM -0500, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Mon, Jul 28, 2014 at 10:29:49AM -0500, Michael Welling wrote:
->>>> On Mon, Jul 28, 2014 at 11:02:47AM -0400, Alan Stern wrote:
->>>>> On Fri, 25 Jul 2014, Michael Welling wrote:
->>>>>
->>>>>> The plot thickens....
->>>>>>
->>>>>> So if I run the above command before anything is plugged into the ports
->>>>>> the HUB disconnects.
->>>>>>
->>>>>> root@som3517:~# echo on > /sys/bus/usb/devices/1-1/power/control
->>>>>> [   63.068839] usb 1-1: USB disconnect, device number 2
->>>>>>
->>>>>> Here is the output of the usbmon output when running the above command:
->>>>>> root@som3517:/sys/kernel/debug/usb/usbmon# cat 1t
->>>>>> de382e40 3788886573 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de382e40 3788890604 C Ci:001:00 0 4 = 07050000
->>>>>> de382e40 3788892965 S Ci:001:00 s a3 00 0000 0002 0004 4 <
->>>>>> de382e40 3788893093 C Ci:001:00 0 4 = 00010000
->>>>>> de382e40 3788894834 S Ci:001:00 s a3 00 0000 0003 0004 4 <
->>>>>> de382e40 3788894958 C Ci:001:00 0 4 = 00010000
->>>>>> de7d92c0 3788896519 S Ii:001:01 -115 4 <
->>>>>> de382e40 3788898778 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de382e40 3788900188 C Ci:001:00 0 4 = 07050000
->>>>>> de382e40 3788902705 S Co:001:00 s 23 01 0002 0001 0000 0
->>>>>> de382e40 3788905793 C Co:001:00 0 0
->>>>>> de382e40 3788940998 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de7d92c0 3788942065 C Ii:001:01 0 1 = 02
->>>>>> de7d92c0 3788943013 S Ii:001:01 -115 4 <
->>>>>> de382e40 3788943145 C Ci:001:00 0 4 = 03050400
->>>>>> de382e40 3788961031 S Co:001:00 s 23 01 0012 0001 0000 0
->>>>>> de382e40 3788961175 C Co:001:00 0 0
->>>>>> de382e40 3788961304 S Ci:002:00 s 80 00 0000 0000 0002 2 <
->>>>>> de382e40 3788965395 C Ci:002:00 -71 0
->>>>>> de249040 3788966954 S Co:001:00 s 23 03 0004 0001 0000 0
->>>>>> de249040 3788968362 C Co:001:00 0 0
->>>>>> de249040 3789021103 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de7d92c0 3789022194 C Ii:001:01 0 1 = 02
->>>>>> de7d92c0 3789022226 S Ii:001:01 -115 4 <
->>>>>> de249040 3789023423 C Ci:001:00 0 4 = 01051200
->>>>>> de249040 3789025010 S Co:001:00 s 23 03 0004 0001 0000 0
->>>>>> de249040 3789026815 C Co:001:00 0 0
->>>>>> de249040 3789230980 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de249040 3789231111 C Ci:001:00 0 4 = 00010300
->>>>>> de249040 3789232280 S Co:001:00 s 23 01 0014 0001 0000 0
->>>>>> de249040 3789232404 C Co:001:00 0 0
->>>>>> de249040 3789233056 S Co:001:00 s 23 01 0001 0001 0000 0
->>>>>> de249040 3789235345 C Co:001:00 0 0
->>>>>> de249040 3789236820 S Co:001:00 s 23 01 0001 0001 0000 0
->>>>>> de249040 3789237201 C Co:001:00 0 0
->>>>>> de249040 3789238180 S Co:001:00 s 23 01 0001 0001 0000 0
->>>>>> de249040 3789238510 C Co:001:00 0 0
->>>>>> de249040 3789240602 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de249040 3789241661 C Ci:001:00 0 4 = 00010300
->>>>>> de249040 3789242264 S Co:001:00 s 23 01 0010 0001 0000 0
->>>>>> de249040 3789243921 C Co:001:00 0 0
->>>>>> de249040 3789246540 S Co:001:00 s 23 01 0011 0001 0000 0
->>>>>> de249040 3789246930 C Co:001:00 0 0
->>>>>> de2490c0 3789283096 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de2490c0 3789286255 C Ci:001:00 0 4 = 00010000
->>>>>> de2490c0 3789330975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de2490c0 3789332606 C Ci:001:00 0 4 = 00010000
->>>>>> de2490c0 3789371015 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de2490c0 3789371146 C Ci:001:00 0 4 = 00010000
->>>>>> de2490c0 3789410975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de2490c0 3789411097 C Ci:001:00 0 4 = 00010000
->>>>>> de2490c0 3789450972 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>> de2490c0 3789451081 C Ci:001:00 0 4 = 00010000
->>>>>> de7d92c0 3789452462 C Ii:001:01 -2 0
->>>>>>
->>>>>> Not sure what any of it means.
->>>>>
->>>>> Basically it means what you said above: the hub disconnected.  I can't 
->>>>> tell why.  You'll have to ask someone who's familiar with the hardware 
->>>>> on that board.
->>>>
->>>> Sadly, there is no one more familar with this specific hardware than myself.
->>>>
->>>> I can however ellaborate the hardware setup of the USB subsystem in
->>>> case there is someone out there that has used a similar setup.
->>>>
->>>> The board uses the AM3517 SoC from TI. The SoC's USB host port (HSUSB1) is
->>>> connected to a USB3320 PHY. The PHY is connected to a USB2512 switch to
->>>> provide two downstream USB ports.
->>>>
->>>> The very same hardware worked with the 2.6.37 kernel that I am trying to
->>>> move away from.
->>>>
->>>> Today I am going to try using 3.10 and 3.14 kernels see if they exhibit
->>>> the same behavior.
->>>
->>
->> It should be noted that the 3.10 kernel did not even detect the external
->> HUB and the 3.14 kernel exhibits the same failure as 3.16.
->>
->>> Do you have off-while-idle enabled ? This could be, as Alan suggested, a
->>> problem with remote wakeup. EHCI on TI parts is kinda awkward, if you
->>> will, and getting remote wakeup with PM working, is generally a
->>> challenge.
->>
->> How would one determine if off-while-idle is enabled? Is this a flag in an
->> entry in the devicetree?
+* Suman Anna <s-anna@ti.com> [140624 17:45]:
+> Hi,
 > 
-> there is a pm_debug file on debugfs which you can use. Set autosuspend
-> delay to UART (it's set to -1 by default, IIRC), then leave the board
-> idle for a couple minutes, then read /sys/kernel/debug/pm_debug and see
-> if the OFF() counters are increasing.
+> This patch series is mainly a cleanup of the current OMAP mailbox drivers
+> in preparation for adding DT support and adoption to the upcoming mailbox
+> framework from Jassi Brar [1]. It removes the OMAP1 mailbox driver as there
+> are no users for it in the kernel, and consolidates the previous OMAP
+> mailbox framework and the OMAP2+ mailbox driver into a single OMAP mailbox
+> driver. 
 > 
-> Adding linux-omap to Cc. Also Tony, who has a simple script to enable
-> pm_runtime on UART.
+> The last patch also allows the OMAP mailbox driver to support multiple
+> instances of the IP (for DRA7xx, which is the first SoC in the OMAP family
+> to have more than one System Mailbox IP).
 > 
+> The patches are based on 3.16-rc2 and do not change any of the functional
+> behavior on any OMAP2+ SoCs. The boot logs on various OMAP platforms with
+> these patches are at:
+>   OMAP2 (SDP2430)           : http://slexy.org/view/s20rOAReeS
+>   OMAP3 (BeagleXM)          : http://slexy.org/view/s2QITyvzH9
+>   OMAP4 (PandaBoard)        : http://slexy.org/view/s2X9jdZ9Wh
+>   OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s21hZUTYwm
+>   DRA7  (DRA7 EVM)          : http://slexy.org/view/s213K7f87s
+>   AM33xx (BeagleBone Black) : http://slexy.org/view/s2vB7oxbix
+>   AM43xx (AM437x GP EVM)    : http://slexy.org/view/s21rMlUWMg
+> 
+> [1] https://lkml.org/lkml/2014/6/12/470
+> 
+> Suman Anna (7):
+>   mailbox/omap: use devm_* interfaces
+>   mailbox/omap: remove OMAP1 mailbox driver
+>   mailbox/omap: remove omap_mbox_type_t from mailbox ops
+>   mailbox/omap: simplify the fifo assignment by using macros
+>   mailbox/omap: consolidate OMAP mailbox driver
+>   mailbox/omap: remove the private mailbox structure
+>   mailbox/omap: add a parent structure for every IP instance
+> 
+>  arch/arm/configs/omap1_defconfig |   2 -
+>  drivers/mailbox/Kconfig          |  19 +-
+>  drivers/mailbox/Makefile         |   6 +-
+>  drivers/mailbox/mailbox-omap1.c  | 203 ------------------
+>  drivers/mailbox/mailbox-omap2.c  | 357 -------------------------------
+>  drivers/mailbox/omap-mailbox.c   | 444 +++++++++++++++++++++++++++++++--------
+>  drivers/mailbox/omap-mbox.h      |  67 ------
+>  7 files changed, 360 insertions(+), 738 deletions(-)
+>  delete mode 100644 drivers/mailbox/mailbox-omap1.c
+>  delete mode 100644 drivers/mailbox/mailbox-omap2.c
+>  delete mode 100644 drivers/mailbox/omap-mbox.h
 
-The EHCI-omap driver when in use should prevent the USBHOST module from idling and this should in turn prevent the CORE from idling. So remote wakeup should work. It works fine in my setup with omap3beagle board OMAP3430/3530 ES3.1.
-I'm using a recent u-boot v2014.07-rc4.
+I'll apply these on into omap-for-v3.17/mailbox. Might be a bit
+too late for v3.17 so no guarantees these will get merged. But
+it removes some old dead code, so that's nice ;)
 
-It seems you are using an older silicon which needs single_ulpi_bypass flag set in platform data.
-Did your below patch fix the issue for you?
-https://lkml.org/lkml/2014/7/28/745
+Regards,
 
-cheers,
--roger
+Tony
