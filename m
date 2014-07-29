@@ -1,89 +1,85 @@
 From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 19/35] arm: omap: irq: drop ti,intc-size support
-Date: Tue, 29 Jul 2014 04:12:51 +0200
-Message-ID: <20140729021251.GA4421@earth.universe>
+Subject: Re: [PATCH 13/35] arm: omap: irq: call set_handle_irq() from
+ intc_of_init
+Date: Tue, 29 Jul 2014 04:20:20 +0200
+Message-ID: <20140729022019.GB4421@earth.universe>
 References: <1406582183-696-1-git-send-email-balbi@ti.com>
- <1406582183-696-20-git-send-email-balbi@ti.com>
+ <1406582183-696-14-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="fUYQa+Pmc3FrFX/N"
+	protocol="application/pgp-signature"; boundary="V0207lvV8h4k8FAm"
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1406582183-696-20-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1406582183-696-14-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---fUYQa+Pmc3FrFX/N
+--V0207lvV8h4k8FAm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 28, 2014 at 04:16:07PM -0500, Felipe Balbi wrote:
-> we don't need that anymore since specific
-> devices are passing correct compatible flags.
+On Mon, Jul 28, 2014 at 04:16:01PM -0500, Felipe Balbi wrote:
+> this will let us drop .handle_irq and .init_irq fields
+> from our generic machine_descs.
 >=20
 > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 > ---
->  arch/arm/mach-omap2/irq.c | 3 ---
->  1 file changed, 3 deletions(-)
+>  arch/arm/mach-omap2/irq.c | 2 ++
+>  1 file changed, 2 insertions(+)
 >=20
 > diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index 7a4ead3..e70c26e 100644
+> index e6997c5..e452411 100644
 > --- a/arch/arm/mach-omap2/irq.c
 > +++ b/arch/arm/mach-omap2/irq.c
-> @@ -313,9 +313,6 @@ static int __init intc_of_init(struct device_node *no=
+> @@ -314,6 +314,8 @@ static int __init intc_of_init(struct device_node *no=
 de,
->  	if (of_device_is_compatible(node, "ti,am33xx-intc"))
->  		nr_irq =3D 128;
 > =20
-> -	if (of_property_read_u32(node, "ti,intc-size", &nr_irq))
-> -		pr_warn("unable to get intc-size, default to %d\n", nr_irq);
-> -
+>  	omap_init_irq(res.start, nr_irq, of_node_get(node));
+> =20
+> +	set_handle_irq(omap2_intc_handle_irq);
+> +
+>  	return 0;
+>  }
+>
 
-keeping this code would avoid breaking the DT API. I suggest to
-change it to something like the following:
+if you respin the patchset you may want to call omap_intc_handle_irq
+directly. It makes the review of the patchset less confusing.
 
-if (!of_property_read_u32(...))
-    dev_warn(dev, "ti,intc-size is deprecated, please update your DT file");
-
-Apart from that the Documentation [0] should be updated (add
-deprecation notice for ti,intc-size and add new compatible values)
-and maybe moved to [1] (where other SoCs put their irq controller
-binding docs).
-
-[0] Documentation/devicetree/bindings/arm/omap/intc.txt
-[1] Documentation/devicetree/bindings/interrupt-controller/
+(I was wondering why omap3 can call omap2_intc_handle_irq until I
+noticed, that your previous changes made both functions simple
+wrapper functions for omap_intc_handle_irq)
 
 -- Sebastian
 
---fUYQa+Pmc3FrFX/N
+--V0207lvV8h4k8FAm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJT1wMiAAoJENju1/PIO/qaRnMP/R+sSdbjQripBSGEtSUy2XP2
-iFwUEoO7CyxjYhcCOkc/Lnpa0X8z77WE3rxHCp/e0S/buu2xtY1W0Gp4MWWKrXov
-PvK4/P0QycWAZ7YhC8Tu9O0JHiuopYTEZmcCpa9KE6vdUpC0iY5tUUO4DzGkxXZK
-L/lN5Cjcvgkejt811QK7JPqRKjvAcoGwcOzELWCI9TcJTO9zRxn5RPmUYiwJr6AN
-d4nQdgNJgKfoZl8Po1ZiW3RTU4cpBOtj1VdKp8fQH6a2nGPmzQdcfxgQO1ConnwV
-W+3uxQBz0usZLee5l3kgC3AA7vrZ97Mtro/QcAJHvOH022kJVApNHYgX/ksAd87R
-ZQEvODFzmqXNQ4p2cHYcm9pqsahDSD574H2PKKRoD62hwG+xKrplEXG72l5R2zA/
-FKHW9olFVoxr3adWNqscHUXc3cS24Xy5kzamwlzT6TNWnnWglfhS0E4yRM86SgZf
-Rp4KNi53KrtOkGCh8O6Csqy0YQK1H6ldTrjhZwrYkT1sNv+znrj59WuvvpttMonV
-/UuYyP1HkAxQlRm7va0pMffKrd9p1QsIsj5RFimV9KjbxsN+u+wq/Hl6il/a71/E
-3/FyBTSu2lXgNvjRYW/zKEXY5rEDxJjj4wLjJLL80GYhy2yCaTgCw625hNovPZgb
-2dyeFuaZ3fFh6cjCU0Dg
-=adkY
+iQIcBAEBCgAGBQJT1wTjAAoJENju1/PIO/qa1OgP/jx26mJVpIDfor+3QG6ER8cI
+CI+pDLoC62c6vRnoPJgQfqLD/7yZ1VaeZMJtaUSGmj+DG6JVHJF3QD09JTcvb62f
+fI3FTu6Hp+wZ362HIfUyih+liT8fuy9DVP9MirQ4PTVBN6FO9xB/11Owu4n1FhSg
+s3JoML3NiNsgbg0J0pHPSXpt24EoyLfzp/7gSe4QxOK//pg1eoUzrSmTsISQGE9U
+GojrD6u/7ialr8pbq9f5wxuxsIBaUUcnFioOempWU3M24nwHs0meTIKWhLNSM7CM
+s/pSCwlFi7QRds69hAL60au1q+Mb2Dwy9tP8VB70gDpR2IsK5vROmpTiJy9++nzr
+EZ9l05fIny5VJ2j6YZ3ZPk1tXvC/wQGr9L9cfP+8pXIi6oY4bcAKhHfHvrBlT84C
+siswVV8cKElgjdAprt+igqDVOpWpin7vEqJ7NbU3/YAO2AD/L63VbDYQ+kGByYH8
+yjDbecym3ydtcLMVy5unqR+QPAA+yK5235+vz1KAVZ8iTfHmXNxrXNvzoZ3fqwYr
+mHhi6vz1yoJhXaFoLFvgVF9vPoRc80y8wZeMMkoXDJyyXopDCsZEyqb2L5MFuqv7
+ImPIXGb/Qr7eu9NKGKSwfcrBmas1I2tlS8RuF5dln50dT5f9hmC3viF0WonJb90H
+L81vBOMb3bU74joY+a3D
+=9sGy
 -----END PGP SIGNATURE-----
 
---fUYQa+Pmc3FrFX/N--
+--V0207lvV8h4k8FAm--
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
