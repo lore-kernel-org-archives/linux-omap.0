@@ -1,80 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Mon, 28 Jul 2014 23:42:43 -0700
-Message-ID: <20140729064243.GF29045@atomide.com>
-References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
- <20140707080238.GF28884@atomide.com>
- <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
+Subject: Re: OMAP3/AM3517 EHCI USB Issue
+Date: Tue, 29 Jul 2014 00:51:45 -0700
+Message-ID: <20140729075144.GG29045@atomide.com>
+References: <20140725200400.GB18127@sysresccd>
+ <Pine.LNX.4.44L0.1407281059060.1183-100000@iolanthe.rowland.org>
+ <20140728152948.GA28880@sysresccd>
+ <20140728155718.GF7667@saruman.home>
+ <20140728175739.GA29212@sysresccd>
+ <20140728181024.GI7667@saruman.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59146 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223AbaG2GoI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 02:44:08 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15041 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751038AbaG2HxN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Jul 2014 03:53:13 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
+In-Reply-To: <20140728181024.GI7667@saruman.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Michael Welling <mwelling@emacinc.com>, Alan Stern <stern@rowland.harvard.edu>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, heikki.krogerus@linux.intel.com, chris.ruehl@gtsys.com.hk, Roger Quadros <rogerq@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [140725 12:16]:
-> On Mon, 7 Jul 2014, Tony Lindgren wrote:
+* Felipe Balbi <balbi@ti.com> [140728 11:13]:
+> On Mon, Jul 28, 2014 at 12:57:39PM -0500, Michael Welling wrote:
+> > On Mon, Jul 28, 2014 at 10:57:18AM -0500, Felipe Balbi wrote:
+> > > > > 
+> > > > > Basically it means what you said above: the hub disconnected.  I can't 
+> > > > > tell why.  You'll have to ask someone who's familiar with the hardware 
+> > > > > on that board.
+> > > > 
+> > > > Sadly, there is no one more familar with this specific hardware than myself.
+> > > > 
+> > > > I can however ellaborate the hardware setup of the USB subsystem in
+> > > > case there is someone out there that has used a similar setup.
+> > > > 
+> > > > The board uses the AM3517 SoC from TI. The SoC's USB host port (HSUSB1) is
+> > > > connected to a USB3320 PHY. The PHY is connected to a USB2512 switch to
+> > > > provide two downstream USB ports.
+> > > > 
+> > > > The very same hardware worked with the 2.6.37 kernel that I am trying to
+> > > > move away from.
+> > > > 
+> > > > Today I am going to try using 3.10 and 3.14 kernels see if they exhibit
+> > > > the same behavior.
+> > > 
+> > 
+> > It should be noted that the 3.10 kernel did not even detect the external
+> > HUB and the 3.14 kernel exhibits the same failure as 3.16.
+> > 
+> > > Do you have off-while-idle enabled ? This could be, as Alan suggested, a
+> > > problem with remote wakeup. EHCI on TI parts is kinda awkward, if you
+> > > will, and getting remote wakeup with PM working, is generally a
+> > > challenge.
+> > 
+> > How would one determine if off-while-idle is enabled? Is this a flag in an
+> > entry in the devicetree?
 > 
-> > With v3.16-rc4 the PM features for omap3 should be working
-> > finally for device tree based booting. At lest beaglexm and
-> > 3xxevm should work.
+> there is a pm_debug file on debugfs which you can use. Set autosuspend
+> delay to UART (it's set to -1 by default, IIRC), then leave the board
+> idle for a couple minutes, then read /sys/kernel/debug/pm_debug and see
+> if the OFF() counters are increasing.
 > 
-> Just to follow up briefly on this: there was indeed a bug in the OMAP3 
-> test scripts here that resulted in the UART wakeup not being enabled.
-> 
-> Once that was fixed, system suspend-based chip-retention and chip-off 
-> modes work.
+> Adding linux-omap to Cc. Also Tony, who has a simple script to enable
+> pm_runtime on UART.
 
-OK
- 
-> However, scheduler-idle based chip-retention and chip-off still are not
-> working.  Looking at the logs, it appears that some domains are not 
-> dynamically going idle.  For example, looking at:
-> 
-> http://www.pwsan.com/omap/testlogs/test_v3.16-rc6/20140724142225/pm/37xxevm/37xxevm_log.txt
-> 
-> it can be seen that core_pwrdm's retention count doesn't increase between 
-> the two PM debug dumps.  The important lines are:
-> 
-> core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-> 
-> and 
-> 
-> core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-> 
-> That's why the test reports mark the dynamic PM modes as failing.
-> 
-> ...
-> 
-> Here's an example where things worked:
-> 
-> http://www.pwsan.com/omap/testlogs/test_v3.10/20130717134228/pm/3530es3beagle/3530es3beagle_log.txt
-> 
-> In this one, it can be seen that the CORE counts transitioned from:
-> 
-> core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-> 
-> to
-> 
-> core_pwrdm (ON),OFF:0,RET:10,INA:0,ON:11,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-> 
-> between the retention suspend/resume test ending and the dynamic 
-> retention idle test ending.
+I doubt that you have off-while-idle enabled as you need to manually
+enable the timeouts for UARTs for it to trigger :) I would check the
+related power and clock lines with a scope to see if there are glitches
+on them.
 
-Hmm I think the difference with the working v3.10 one is that you have
-root=/dev/mmcblk0p2 instead of root=/dev/nfs. As the Ethernet on beagle
-is on the USB EHCI, this is still blocking the deeper idle states AFAIK.
-
-Care to test -rc7 with root=/dev/mmcblk0p2 to see if that works?
-
-On the am37xx-evm nfsroot will work as it's on the GPMC bus.
+In any case, would be nice to have this EHCI stuff be sorted out for
+good in the mainline kernel as we do have things working pretty well
+for other things.
 
 Regards,
 
