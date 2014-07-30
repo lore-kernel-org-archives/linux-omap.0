@@ -1,237 +1,111 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv3 5/5] ARM: dts: OMAP2+: Add #mbox-cells property to all mailbox nodes
-Date: Tue, 29 Jul 2014 19:34:39 -0500
-Message-ID: <1406680479-18446-6-git-send-email-s-anna@ti.com>
-References: <1406680479-18446-1-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Tue, 29 Jul 2014 22:39:40 -0700
+Message-ID: <20140730053940.GX29045@atomide.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com>
+ <20140707080238.GF28884@atomide.com>
+ <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
+ <20140729064243.GF29045@atomide.com>
+ <alpine.DEB.2.02.1407290810160.22957@utopia.booyaka.com>
+ <20140729084930.GH29045@atomide.com>
+ <alpine.DEB.2.02.1407291225070.13035@utopia.booyaka.com>
+ <alpine.DEB.2.02.1407291256270.13035@utopia.booyaka.com>
+ <20140729145312.GT29045@atomide.com>
+ <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1406680479-18446-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Markus Mayer <markus.mayer@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32172 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbaG3FlH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jul 2014 01:41:07 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-The '#mbox-cells' property is added to all the OMAP mailbox
-nodes. This property is mandatory with the new mailbox framework.
+* Paul Walmsley <paul@pwsan.com> [140729 12:39]:
+> On Tue, 29 Jul 2014, Tony Lindgren wrote:
+> 
+> > Hmm maybe different u-boot version then? I'm using
+> > 2014.04-00001-g5f09f5b.
+> >  
+> > > Are you using NFS root on 37xxevm or MMC root?
+> > 
+> > Using nfsroot and omap2plus_defconfig. My dmesg attached
+> > in case it provides some clues. I don't have console=ttyO
+> > here, but I've verified that it works with that too.
+> 
+> Walked through the PM test script by hand, and the proximal cause of the 
+> problem became obvious...
+> 
+> Turns out a five-second delay for a three-second autosuspend_delay_ms is 
+> no longer sufficient time for kernels to enter idle.  A ten-second sleep 
+> seems to be long enough.
 
-Cc: "Beno=C3=AEt Cousson" <bcousson@baylibre.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- arch/arm/boot/dts/am33xx.dtsi   |  1 +
- arch/arm/boot/dts/am4372.dtsi   |  1 +
- arch/arm/boot/dts/dra7.dtsi     | 13 +++++++++++++
- arch/arm/boot/dts/omap2420.dtsi |  1 +
- arch/arm/boot/dts/omap2430.dtsi |  1 +
- arch/arm/boot/dts/omap3.dtsi    |  1 +
- arch/arm/boot/dts/omap4.dtsi    |  1 +
- arch/arm/boot/dts/omap5.dtsi    |  1 +
- 8 files changed, 20 insertions(+)
+Oh OK.
+ 
+> Not sure what exactly is causing that weirdness yet, or when that started 
+> happening.  Am suspecting it could be some of the RCU changes over the 
+> past couple of years.  We don't have RCU_FAST_NO_HZ enabled in 
+> omap2plus_defconfig; we should probably switch that on.
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.d=
-tsi
-index e4f165a..5663ff5 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -352,6 +352,7 @@
- 			reg =3D <0x480C8000 0x200>;
- 			interrupts =3D <77>;
- 			ti,hwmods =3D "mailbox";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <8>;
- 			mbox_wkupm3: wkup_m3 {
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.d=
-tsi
-index 3be2a87..8619519 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -166,6 +166,7 @@
- 			reg =3D <0x480C8000 0x200>;
- 			interrupts =3D <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "mailbox";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <8>;
- 			mbox_wkupm3: wkup_m3 {
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 99c40d4..626137f 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -342,6 +342,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x4a0f4000 0x200>;
- 			ti,hwmods =3D "mailbox1";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <3>;
- 			ti,mbox-num-fifos =3D <8>;
- 			status =3D "disabled";
-@@ -351,6 +352,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x4883a000 0x200>;
- 			ti,hwmods =3D "mailbox2";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -360,6 +362,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x4883c000 0x200>;
- 			ti,hwmods =3D "mailbox3";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -369,6 +372,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x4883e000 0x200>;
- 			ti,hwmods =3D "mailbox4";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -378,6 +382,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48840000 0x200>;
- 			ti,hwmods =3D "mailbox5";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -387,6 +392,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48842000 0x200>;
- 			ti,hwmods =3D "mailbox6";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -396,6 +402,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48844000 0x200>;
- 			ti,hwmods =3D "mailbox7";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -405,6 +412,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48846000 0x200>;
- 			ti,hwmods =3D "mailbox8";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -414,6 +422,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x4885e000 0x200>;
- 			ti,hwmods =3D "mailbox9";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -423,6 +432,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48860000 0x200>;
- 			ti,hwmods =3D "mailbox10";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -432,6 +442,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48862000 0x200>;
- 			ti,hwmods =3D "mailbox11";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -441,6 +452,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48864000 0x200>;
- 			ti,hwmods =3D "mailbox12";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-@@ -450,6 +462,7 @@
- 			compatible =3D "ti,omap4-mailbox";
- 			reg =3D <0x48802000 0x200>;
- 			ti,hwmods =3D "mailbox13";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <12>;
- 			status =3D "disabled";
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap24=
-20.dtsi
-index d14f16c..bea6f07 100644
---- a/arch/arm/boot/dts/omap2420.dtsi
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -157,6 +157,7 @@
- 			interrupts =3D <26>, <34>;
- 			interrupt-names =3D "dsp", "iva";
- 			ti,hwmods =3D "mailbox";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <6>;
- 			mbox_dsp: dsp {
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap24=
-30.dtsi
-index db02be2..689bd08 100644
---- a/arch/arm/boot/dts/omap2430.dtsi
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -247,6 +247,7 @@
- 			reg =3D <0x48094000 0x200>;
- 			interrupts =3D <26>;
- 			ti,hwmods =3D "mailbox";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <4>;
- 			ti,mbox-num-fifos =3D <6>;
- 			mbox_dsp: dsp {
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dts=
-i
-index b2ae8b8..75c290f 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -332,6 +332,7 @@
- 			ti,hwmods =3D "mailbox";
- 			reg =3D <0x48094000 0x200>;
- 			interrupts =3D <26>;
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <2>;
- 			ti,mbox-num-fifos =3D <2>;
- 			mbox_dsp: dsp {
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
-i
-index bc54d66..d08b98a 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -654,6 +654,7 @@
- 			reg =3D <0x4a0f4000 0x200>;
- 			interrupts =3D <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "mailbox";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <3>;
- 			ti,mbox-num-fifos =3D <8>;
- 			mbox_ipu: mbox_ipu {
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dts=
-i
-index f7ec4cd..0b8cf23 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -641,6 +641,7 @@
- 			reg =3D <0x4a0f4000 0x200>;
- 			interrupts =3D <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
- 			ti,hwmods =3D "mailbox";
-+			#mbox-cells =3D <1>;
- 			ti,mbox-num-users =3D <3>;
- 			ti,mbox-num-fifos =3D <8>;
- 			mbox_ipu: mbox_ipu {
---=20
-2.0.0
+OK
+ 
+> Now 37xxevm and the 3730beaglexm are entering idle as they should be.  
+> Test report below; logs etc. have been uploaded.  Thanks for the debug 
+> discussion,
+
+Great, good to hear you found what caused it :)
+ 
+> PM: chip retention via dynamic idle:
+>     FAIL ( 5/ 7): 2430sdp, 3530es3beagle, 4430es2panda, 4460pandaes,
+> 		  4460varsomom
+>     Pass ( 2/ 7): 3730beaglexm, 37xxevm
+> 
+> PM: chip off except CORE via suspend:
+>     Pass ( 1/ 1): 3730beaglexm
+> 
+> PM: chip off except CORE via dynamic idle:
+>     Pass ( 1/ 1): 3730beaglexm
+> 
+> PM: chip off via suspend:
+>     FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
+> 		  4460varsomom
+>     Pass ( 1/ 5): 37xxevm
+> 
+> PM: chip off via dynamic idle:
+>     FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
+> 		  4460varsomom
+>     Pass ( 1/ 5): 37xxevm
+
+The following patch should fix the tests above for 3530es3beagle.
+Care to test and ack as I don't have one?
+
+Regards,
+
+Tony
+
+8< -----------------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 29 Jul 2014 22:36:59 -0700
+Subject: [PATCH] ARM: dts: Enable UART wake-up events for beagleboard
+
+For device tree based booting, we need to use wake-up
+interrupts like we already do for some omaps. This fixes
+a PM regression on beagleboard compared to legacy booting.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -292,6 +292,7 @@
+ &uart3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart3_pins>;
++	interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
+ };
+ 
+ &gpio1 {
