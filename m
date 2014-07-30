@@ -1,98 +1,139 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH 29/35] arm: omap: intc: switch over to linear irq domain
-Date: Wed, 30 Jul 2014 10:45:41 -0500
-Message-ID: <CAGo_u6ou+MoKOE_tTTmjxyFNW=jTaN9vnTsHrxR6sQHsieJyLA@mail.gmail.com>
+Date: Wed, 30 Jul 2014 11:20:38 -0500
+Message-ID: <20140730162038.GH7272@saruman.home>
 References: <1406582183-696-1-git-send-email-balbi@ti.com>
-	<1406582183-696-30-git-send-email-balbi@ti.com>
-	<20140729121425.GR29045@atomide.com>
-	<20140729141522.GB17808@saruman.home>
-	<20140729152052.GV29045@atomide.com>
-	<20140729154057.GE17808@saruman.home>
-	<20140729163345.GF17808@saruman.home>
-	<20140730060420.GY29045@atomide.com>
-	<20140730144059.GA7272@saruman.home>
+ <1406582183-696-30-git-send-email-balbi@ti.com>
+ <20140729121425.GR29045@atomide.com>
+ <20140729141522.GB17808@saruman.home>
+ <20140729152052.GV29045@atomide.com>
+ <20140729154057.GE17808@saruman.home>
+ <20140729163345.GF17808@saruman.home>
+ <20140730060420.GY29045@atomide.com>
+ <20140730144059.GA7272@saruman.home>
+ <CAGo_u6ou+MoKOE_tTTmjxyFNW=jTaN9vnTsHrxR6sQHsieJyLA@mail.gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="e5bfZ/T2xnjpUIbw"
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140730144059.GA7272-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAGo_u6ou+MoKOE_tTTmjxyFNW=jTaN9vnTsHrxR6sQHsieJyLA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 30, 2014 at 9:40 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> HI,
->
-> On Tue, Jul 29, 2014 at 11:04:21PM -0700, Tony Lindgren wrote:
->> * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 09:36]:
->> > Hi,
->> >
->> > On Tue, Jul 29, 2014 at 10:40:57AM -0500, Felipe Balbi wrote:
->> > > On Tue, Jul 29, 2014 at 08:20:52AM -0700, Tony Lindgren wrote:
->> > > > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 07:18]:
->> > > > > Hi,
->> > > > >
->> > > > > On Tue, Jul 29, 2014 at 05:14:25AM -0700, Tony Lindgren wrote:
->> > > > > > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140728 14:19]:
->> > > > > > > now that we don't need to support legacy board-files,
->> > > > > > > we can completely switch over to a linear irq domain
->> > > > > > > and make use of irq_alloc_domain_generic_chips() to
->> > > > > > > allocate all generic irq chips for us.
->> > > > > >
->> > > > > > This patch seems to somehow break off-idle for omap3
->> > > > > > where it no longer wakes up.
->> > > > >
->> > > > > Sure your bisection is correct ? This patch just switches from legacy
->> > > > > irq domain to linear irq domain.
->> > > >
->> > > > Yes, I tried it a few times. Just enabling
->> > > > retention idle hangs too with this patch.
->> > > >
->> > > > Maybe it's omap3_prcm_irq_setup that relies on
->> > > > 11 + OMAP_INTC_START? There may be other such issues
->> > >
->> > > lol.
->> > >
->> > > OMAP4 has the same nonsense.
->> >
->> > made me think why (if) OMAP4 works with that same setup. Does wake from
->> > OFF work with OMAP4 ?
->>
->> Not without similar changes, omap4+ has the same issue.. There's a RFC
->> series from Nishant to fix some of this, and Tero is moving the PRCM
->> into a driver.
->>
->> > Anyway, here's a quick little hack to check if that's the reason for the
->> > regression:
->>
->> OK yeah that's along the same lines with Nishant's RFC series in thread
->> "[RFC PATCH 0/7] ARM: OMAP4+: PRM: minor cleanups and dt support of
->> interrupts"
->>
->> FYI, it did not compile, needs to include linux/of_irq.h. But yes,
->
-> I might have sent the wrong version as I had that same build error and
-> fixed it localy.
->
->> it fixes the regression for me, Also now the whole series works for
->> me :)
->
-> good to know.
->
-> What do you want to do now ? Wait for PRCM to become a driver ? Wait for
-> Nishanth's series to get accepted ? I guess the same thing could be done
-> for OMAP3 and AM33, then we would have a chance of having working wake
-> from idle with the new irqchip.
+--e5bfZ/T2xnjpUIbw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I can repost the current series as it stands now once 17-rc1 comes out
-(without the build failure ofcourse).. if that helps to move it out of
-RFC status.
+Hi,
 
+On Wed, Jul 30, 2014 at 10:45:41AM -0500, Nishanth Menon wrote:
+> On Wed, Jul 30, 2014 at 9:40 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> > HI,
+> >
+> > On Tue, Jul 29, 2014 at 11:04:21PM -0700, Tony Lindgren wrote:
+> >> * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 09:36]:
+> >> > Hi,
+> >> >
+> >> > On Tue, Jul 29, 2014 at 10:40:57AM -0500, Felipe Balbi wrote:
+> >> > > On Tue, Jul 29, 2014 at 08:20:52AM -0700, Tony Lindgren wrote:
+> >> > > > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 07:18]:
+> >> > > > > Hi,
+> >> > > > >
+> >> > > > > On Tue, Jul 29, 2014 at 05:14:25AM -0700, Tony Lindgren wrote:
+> >> > > > > > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140728 14:19]:
+> >> > > > > > > now that we don't need to support legacy board-files,
+> >> > > > > > > we can completely switch over to a linear irq domain
+> >> > > > > > > and make use of irq_alloc_domain_generic_chips() to
+> >> > > > > > > allocate all generic irq chips for us.
+> >> > > > > >
+> >> > > > > > This patch seems to somehow break off-idle for omap3
+> >> > > > > > where it no longer wakes up.
+> >> > > > >
+> >> > > > > Sure your bisection is correct ? This patch just switches from=
+ legacy
+> >> > > > > irq domain to linear irq domain.
+> >> > > >
+> >> > > > Yes, I tried it a few times. Just enabling
+> >> > > > retention idle hangs too with this patch.
+> >> > > >
+> >> > > > Maybe it's omap3_prcm_irq_setup that relies on
+> >> > > > 11 + OMAP_INTC_START? There may be other such issues
+> >> > >
+> >> > > lol.
+> >> > >
+> >> > > OMAP4 has the same nonsense.
+> >> >
+> >> > made me think why (if) OMAP4 works with that same setup. Does wake f=
+rom
+> >> > OFF work with OMAP4 ?
+> >>
+> >> Not without similar changes, omap4+ has the same issue.. There's a RFC
+> >> series from Nishant to fix some of this, and Tero is moving the PRCM
+> >> into a driver.
+> >>
+> >> > Anyway, here's a quick little hack to check if that's the reason for=
+ the
+> >> > regression:
+> >>
+> >> OK yeah that's along the same lines with Nishant's RFC series in thread
+> >> "[RFC PATCH 0/7] ARM: OMAP4+: PRM: minor cleanups and dt support of
+> >> interrupts"
+> >>
+> >> FYI, it did not compile, needs to include linux/of_irq.h. But yes,
+> >
+> > I might have sent the wrong version as I had that same build error and
+> > fixed it localy.
+> >
+> >> it fixes the regression for me, Also now the whole series works for
+> >> me :)
+> >
+> > good to know.
+> >
+> > What do you want to do now ? Wait for PRCM to become a driver ? Wait for
+> > Nishanth's series to get accepted ? I guess the same thing could be done
+> > for OMAP3 and AM33, then we would have a chance of having working wake
+> > from idle with the new irqchip.
+>=20
+> I can repost the current series as it stands now once 17-rc1 comes out
+> (without the build failure ofcourse).. if that helps to move it out of
+> RFC status.
 
--- 
----
-Regards,
-Nishanth Menon
+That'd be great. It would be ever greater if you could add support for
+OMAP3 on that too.
+
+cheers
+
+--=20
+balbi
+
+--e5bfZ/T2xnjpUIbw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT2RtWAAoJEIaOsuA1yqREaPUP/3E6rqd9KoIusXrp9A/la+68
+25ii+wRZQ6BmOorjxx1XKmwhvxuGE9rNv/TUXiBa51FY7WCfCMWmGU+XqfgyoKNC
+imChzFRjWwSCPjESYb4Esm/ShY/g3F5Ss7e7WxLu2KMYXbB0Q1xe8g4ZOHZAly2H
+/VeTzC5XI8OX8VxC0yQa+MAyXeYs1rS1B5dfikNh9PR+kYsyUptZ9gHBadI/Rj9j
+hocAAm63/VludPppdK07tMUnLSoMK2XF3GEy6AUw5YhnwWKa6TQmNUBTo3RXCCdg
+gpU5jKL1L/x6xHYs3Svt5TZkOuvjUwrBRKtBzJm7APgWBy6E3jYlUOJxYxk+u0cG
+6Qh1vE8eDRlsip4ELnEBAXNcylnp2mPIDc0VBvu8kvoN/2WqUyQIttHZcBRihNS9
+B9QPNxjpqkUmvzU91Sein5L7MpLXxhAqZUq524tPQwcLfQqeQHeGN04WsKqWpC1H
+TAMG2JBv0sDEoW2Vw4bkm+5ah4ksCI3sYFZ6A7c0g2Nr5c+4jEnWdgjxf3F8b3it
+Rx//d6uvC6YV08gpWnBoprpzbDgKQ0m4YnAIBnhU+0d8j6J7ug0H5//UR3KWx2lc
+PLBW8i5K0fy/rwjUeJVSB+xPJeTcQbcOjVPNxT1ttjTN6frmC64+bcXjRcnmHl52
+zihC2sA4BGII/MiEAcU6
+=yK6R
+-----END PGP SIGNATURE-----
+
+--e5bfZ/T2xnjpUIbw--
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
