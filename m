@@ -1,162 +1,106 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks handled by clock_ops domain
-Date: Wed, 30 Jul 2014 02:06:59 +0200
-Message-ID: <2717555.fiA6A86F65@avalon>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be> <53D68CC4.1010704@ti.com> <CACxGe6uMke5vgzcNC9xUqjr2bHJ4QFHD6YjocSZWq8Ccx8Mm6A@mail.gmail.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv3 0/5] OMAP Mailbox framework adoption & DT support
+Date: Tue, 29 Jul 2014 19:34:34 -0500
+Message-ID: <1406680479-18446-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6uMke5vgzcNC9xUqjr2bHJ4QFHD6YjocSZWq8Ccx8Mm6A@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Geert Uytterhoeven <geert+renesas@glider.be>, ulf.hansson@linaro.org, Kevin Hilman <khilman@linaro.org>, Mike Turquette <mturquette@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Markus Mayer <markus.mayer-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii and Grant,
+Hi,
 
-On Monday 28 July 2014 23:52:34 Grant Likely wrote:
-> On Mon, Jul 28, 2014 at 11:47 AM, Grygorii Strashko wrote:
-> > On 07/28/2014 05:05 PM, Grant Likely wrote:
-> >> On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko wrote:
-> >>> Use "clkops-clocks" property to specify clocks handled by
-> >>> clock_ops domain PM domain. Only clocks defined in "clkops-clocks"
-> >>> set of clocks will be handled by Runtime PM through clock_ops
-> >>> Pm domain.
-> >>> 
-> >>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> >>> ---
-> >>> 
-> >>>   drivers/of/of_clk.c |    7 ++-----
-> >>>   1 file changed, 2 insertions(+), 5 deletions(-)
-> >>> 
-> >>> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
-> >>> index 35f5e9f..5f9b90e 100644
-> >>> --- a/drivers/of/of_clk.c
-> >>> +++ b/drivers/of/of_clk.c
-> >>> @@ -86,11 +86,8 @@ int of_clk_register_runtime_pm_clocks(struct
-> >>> device_node *np,>>> 
-> >>>      struct clk *clk;
-> >>>      int error;
-> >>> 
-> >>> -    for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
-> >>> -            if (!clk_may_runtime_pm(clk)) {
-> >>> -                    clk_put(clk);
-> >>> -                    continue;
-> >>> -            }
-> >>> +    for (i = 0; (clk = of_clk_get_from_set(np, "clkops", i)) &&
-> >>> +                 !IS_ERR(clk); i++) {
-> >> 
-> >> This really looks like an ABI break to me. What happens to all the
-> >> existing platforms who don't have this new clkops-clocks in their device
-> >> tree?
-> > 
-> > Agree. This patch as is will break such platforms.
-> > As possible solution for above problem - the NULL can be used as clock's
-> > prefix by default and platform code can configure new value of clock's
-> > prefix during initialization.
-> > In addition, to make this solution full the of_clk_get_by_name() will
-> > need to be modified too.
-> > 
-> > But note pls, this is pure RFC patches which I did to find out the answer
-> > on questions: - What is better: maintain Runtime PM clocks configuration
-> > in DT or in code?
->
-> In code. I don't think it is workable to embed runtime PM behaviour
-> into the DT bindings. I think there will be too much variance in what
-> hardware requires. We can create helpers to make this simpler, but I
-> don't think it is a good idea to set it up automatically without any
-> control from the driver itself.
-> 
-> > - Where and when to call of_clk_register_runtime_pm_clocks()?
-> > 
-> >   Bus notifier/ platform core/ device drivers
-> 
-> I would say in device drivers.
+This is an updated version of the OMAP Mailbox framework adoption &
+DT support series, refreshed to work with the v9 version of the mailbox
+framework [1] from Jassi Brar while also addressing some minor review
+comments. Detailed changes are summarized below. Patches are based on
+3.16-rc2.
 
-I tend to agree with that.
+The series depends on the OMAP mailbox DT/hwmod cleanup series [2] and the
+OMAP mailbox cleanup series [3]. Both these series are staged to be merged
+for 3.17 [4]. The last 2 framework adaptation patches require the v9 framework
+patches to build successfully. The reference branch with all the patches is
+hosted (not for merging - includes an additional patch for dsp/bridge changes) at 
+https://github.com/sumananna/mailbox/commits/submit/3.16-rc2-omap-mbox-v9-fwk-v3
 
-It will help here to take a step back and remember what the problem we're 
-trying to solve is.
+The AM335 PM suspend series [5] which relies on this series needs to have
+the wkupm3 node updated to use the new property name "mboxes" instead of
+"mbox", and use the updated mbox_request_channel API.
 
-At the root is clock management. Our system comprise many clocks, and they 
-need to be handled. The Common Clock Framework nicely models the clocks, and 
-offers an API for drivers to retrieve device clocks and control them. Drivers 
-can thus implement clock management manually without much pain.
+Changes in v3:
+- Revised the OMAP mailbox bindings to reflect the updated compatible
+  strings (Patch 1) and the updated common mailbox properties in
+  the v9 framework (Patch 4)
+- Code rearrangement/flip of if code blocks in omap_mailbox probe to address
+  Markus Mayer's comments from v2 (Patch 2)
+- omap_mbox_of_xlate updated to add a missing of_node_put (Patch 4)
+- Adjust the added OMAP non-DT support API, omap_mbox_request_channel, to
+  handle the loss of the chan_name field in the mbox_client structure
+  from v8 to v9 of mailbox framework (Patch 4)
+- Dropped mailbox adaptation changes to TI DSP/Bridge driver, as it will be
+  deleted in 3.17 (Patch 4)
+- No changes to DTS patches (Patches 3 and 5)
+- Tested against v9 of mailbox framework
 
-A clock can be managed in roughly three different ways :
+v2:
+- http://www.spinics.net/lists/linux-omap/msg109379.html
+- Updated the OMAP DT bindings document for the added back DT properties:
+  "ti,mbox-num-users" and "ti,mbox-num-fifos". Also added information
+  regarding "#mbox-cells" and DT client usage.
+- Updated the OMAP DT adaptation patch to parse the added back DT properties
+  and clean up the previous match data structure.
+- Squashed custom xlate patch into the framework adaptation patch.
+- Tested against v8 of mailbox framework.
 
-- it can be enabled at probe time and disabled at remove time ;
+v1:
+- http://www.spinics.net/lists/linux-omap/msg108595.html
+- Tested against v7 of mailbox framework
 
-- it can be enabled right before the device leaves its idle state and disabled 
-when the device goes back to idle ; or
 
-- it can be enabled and disabled in a more fine-grained, device-specific 
-manner.
+The following shows the boot/validation logs on various OMAP platforms:
+  OMAP2 (SDP2430)           : http://slexy.org/view/s20ZcIovmA
+  OMAP3 (BeagleXM)          : http://slexy.org/view/s2jWS6RPDJ
+  OMAP4 (PandaBoard)        : http://slexy.org/view/s21Mxi3Z4v
+  OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s2EUjy49h9
+  DRA7  (DRA7 EVM)          : http://slexy.org/view/s29ehoRZWl
+  AM33xx (BeagleBone Black) : http://slexy.org/view/s20A8RDPRy
+  AM43xx (AM437x GP EVM)    : http://slexy.org/view/s21HMTnL2t
 
-The selected clock management granularity depends on constraints specific to 
-the device and on how aggressive power saving needs to be. Enabling the clocks 
-at probe time and disabling them at remove time is enough for most devices, 
-but leads to a high power consumption. For that reason the second clock 
-management scheme is often desired.
+[1] https://lkml.org/lkml/2014/7/22/613
+[2] http://marc.info/?l=linux-omap&m=140511512208519&w=2
+[3] http://www.spinics.net/lists/linux-omap/msg108574.html
+[4] https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.17/mailbox
+[5] http://www.spinics.net/lists/linux-omap/msg109331.html
 
-Managing clocks manually in the driver is a valid option. However, when adding 
-runtime PM to the equation, and realizing that the clocks need to be enabled 
-in the runtime PM resume handler and disabled in the suspend handler, the 
-clock management code starts looking very similar in most drivers. We're thus 
-tempted to factorize it away from the drivers into a shared location.
+Suman Anna (5):
+  Documentation: dt: add omap mailbox bindings
+  mailbox/omap: add support for parsing dt devices
+  ARM: dts: OMAP2+: Add sub mailboxes device node information
+  mailbox/omap: adapt to the new mailbox framework
+  ARM: dts: OMAP2+: Add #mbox-cells property to all mailbox nodes
 
-It's important to note at this point that the goal here is only to simplify 
-drivers. Moving clock management code out of the drivers doesn't (unless I'm 
-missing something) open the door to new possibilities, it just serves as a 
-simplification.
-
-Now, as Grygorii mentioned, differences between how a given IP core is 
-integrated in various SoCs can make clock management SoC-dependent. In the 
-vast majority of cases (which is really what we need to target, given that our 
-target is simplifying drivers) SoC integration can be described as a list of 
-clocks that must be managed. That list can be common to all devices in a given 
-SoC, or can be device-dependent as well.
-
-Few locations can be used to express a per-device list of per-SoC clocks. We 
-can have clocks lists in a per-SoC and per-device location, per-device clocks 
-lists in an SoC-specific location, or per-SoC clocks lists in a device-
-specific location.
-
-The first option would require listing clocks to be managed by runtime PM in 
-DT nodes, as proposed by this patch set. I don't think this is the best 
-option, as that information is a mix of hardware description and software 
-policy, with the hardware description part being already present in DT in the 
-clocks property.
-
-The second option calls for storing the lists in SoC code under arch/. As 
-we're trying to minimize the amount of SoC code there (and even remove SoC 
-code completely when possible) I don't think that's a good option.
-
-The third option would require storing the clocks lists in device drivers. I 
-believe this is our best option, as a trade-off between simplicity and 
-versatility. Drivers that use runtime PM already need to enable it explicitly 
-when probing devices. Passing a list of clock names to runtime PM at that 
-point wouldn't complicate drivers much. When the clocks list isn't SoC-
-dependent it could be stored as static information. Otherwise it could be 
-derived from DT (or any other source of hardware description) using C code, 
-offering all the versatility we need.
-
-The only drawback of this solution I can think of right now is that the 
-runtime PM core couldn't manage device clocks before probing the device. 
-Specifically device clocks couldn't be managed if no driver is loaded for that 
-device. I somehow recall that someone raised this as being a problem, but I 
-can't remember why.
-
-> > Also, May be platform dependent solution [1] can be acceptable for now?
-> > 
-> > [1] https://lkml.org/lkml/2014/7/25/630
-> 
-> I need to look at the series before I comment. I've flagged it and
-> will hopefully look at it tomorrow.
+ .../devicetree/bindings/mailbox/omap-mailbox.txt   | 132 ++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   5 +
+ arch/arm/boot/dts/am4372.dtsi                      |   5 +
+ arch/arm/boot/dts/dra7.dtsi                        |  13 +
+ arch/arm/boot/dts/omap2420.dtsi                    |   9 +
+ arch/arm/boot/dts/omap2430.dtsi                    |   5 +
+ arch/arm/boot/dts/omap3.dtsi                       |   5 +
+ arch/arm/boot/dts/omap4.dtsi                       |   9 +
+ arch/arm/boot/dts/omap5.dtsi                       |   9 +
+ drivers/mailbox/omap-mailbox.c                     | 502 ++++++++++++++-------
+ drivers/remoteproc/omap_remoteproc.c               |  51 ++-
+ include/linux/omap-mailbox.h                       |  16 +-
+ 12 files changed, 557 insertions(+), 204 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
 
 -- 
-Regards,
+2.0.0
 
-Laurent Pinchart
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
