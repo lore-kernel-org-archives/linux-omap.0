@@ -1,32 +1,65 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: clk-7xx: Correct ABE DPLL configuration
-Date: Wed, 30 Jul 2014 15:27:07 +0300
-Message-ID: <53D8E49B.3040600@ti.com>
-References: <1396446525-20302-1-git-send-email-peter.ujfalusi@ti.com> <533C1AC2.1000307@ti.com> <533CFFB3.9070201@ti.com> <5358D534.2070205@ti.com> <535927DF.90404@ti.com> <5368E604.4040107@ti.com> <53C3AC94.5050904@ti.com> <20140729062748.4906.1529@quantum> <53D759E6.3060607@ti.com> <CAPtuhTjMAZcHecO0dr+3zDurCfQH32pmYUQ+zNXhRdS_+vJZsg@mail.gmail.com> <53D8886A.5020600@ti.com>
+Subject: Re: [PATCH] ARM: dts: set 'ti,set-rate-parent' for dpll4_m5x2 clock
+Date: Wed, 30 Jul 2014 15:40:33 +0300
+Message-ID: <53D8E7C1.7010101@ti.com>
+References: <1405418556-7030-1-git-send-email-stefan@herbrechtsmeier.net> <3350943.lsAUHoxgP5@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53D8886A.5020600@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mike Turquette <mturquette@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37273 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754801AbaG3Mi5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jul 2014 08:38:57 -0400
+In-Reply-To: <3350943.lsAUHoxgP5@avalon>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 07/30/2014 08:53 AM, Peter Ujfalusi wrote:
-> On 07/29/2014 07:12 PM, Mike Turquette wrote:
->>> Oh yea, seems this got lost into the myriad of branches I have. I can push
->>> this on top of my for-v3.17/ti-clk-drv if you like.
+On 07/16/2014 03:29 AM, Laurent Pinchart wrote:
+> Hi Stefan,
+>
+> Thank you for the patch.
+>
+> On Tuesday 15 July 2014 12:02:35 Stefan Herbrechtsmeier wrote:
+>> Set 'ti,set-rate-parent' property for the dpll4_m5x2_ck clock, which
+>> is used for the ISP functional clock. This fixes the OMAP3 ISP driver's
+>> clock rate configuration on OMAP34xx, which needs the rate to be
+>> propagated properly to the divider node (dpll4_m5_ck).
 >>
->> That is the easiest thing for me. I think that Peter wanted to take
->> this as a fix for 3.16 though. Peter is that correct?
+>> Signed-off-by: Stefan Herbrechtsmeier <stefan@herbrechtsmeier.net>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Tero Kristo <t-kristo@ti.com>
+>> Cc: <linux-media@vger.kernel.org>
+>> Cc: <linux-omap@vger.kernel.org>
 >
-> Yes, it would have been better to have it in 3.16 along with the DRA7 ATL
-> clock driver. W/O this patch the ATL will not going to be usable since the ABE
-> DPLL is set too high to be usable for it's purpose.
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 >
+> Tero, could you please process it for v3.17 if time still permits ?
 
-Ok, this is now pushed on top of the for-v3.17/ti-clk-driver branch in 
-my git-repo. Mike, do you want a new pull-req for this just in case?
+This is too late for 3.17 merge window as I was on holiday last few 
+weeks. Queued for 3.17-rc early fixes though.
 
 -Tero
+
+>
+>> ---
+>>   arch/arm/boot/dts/omap3xxx-clocks.dtsi | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
+>> b/arch/arm/boot/dts/omap3xxx-clocks.dtsi index e47ff69..5c37500 100644
+>> --- a/arch/arm/boot/dts/omap3xxx-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/omap3xxx-clocks.dtsi
+>> @@ -467,6 +467,7 @@
+>>   		ti,bit-shift = <0x1e>;
+>>   		reg = <0x0d00>;
+>>   		ti,set-bit-to-disable;
+>> +		ti,set-rate-parent;
+>>   	};
+>>
+>>   	dpll4_m6_ck: dpll4_m6_ck {
+>
+
