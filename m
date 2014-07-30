@@ -1,140 +1,198 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 29/35] arm: omap: intc: switch over to linear irq domain
-Date: Wed, 30 Jul 2014 11:20:38 -0500
-Message-ID: <20140730162038.GH7272@saruman.home>
-References: <1406582183-696-1-git-send-email-balbi@ti.com>
- <1406582183-696-30-git-send-email-balbi@ti.com>
- <20140729121425.GR29045@atomide.com>
- <20140729141522.GB17808@saruman.home>
- <20140729152052.GV29045@atomide.com>
- <20140729154057.GE17808@saruman.home>
- <20140729163345.GF17808@saruman.home>
- <20140730060420.GY29045@atomide.com>
- <20140730144059.GA7272@saruman.home>
- <CAGo_u6ou+MoKOE_tTTmjxyFNW=jTaN9vnTsHrxR6sQHsieJyLA@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Michael Welling <mwelling@emacinc.com>
+Subject: Re: OMAP3/AM3517 EHCI USB Issue
+Date: Wed, 30 Jul 2014 13:59:11 -0500
+Message-ID: <20140730185911.GA19344@sysresccd>
+References: <20140725200400.GB18127@sysresccd>
+ <Pine.LNX.4.44L0.1407281059060.1183-100000@iolanthe.rowland.org>
+ <20140728152948.GA28880@sysresccd>
+ <20140728155718.GF7667@saruman.home>
+ <20140728175739.GA29212@sysresccd>
+ <20140728181024.GI7667@saruman.home>
+ <53D7625B.3070301@ti.com>
+ <20140729152029.GA20542@sysresccd>
+ <53D8B4DA.906@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e5bfZ/T2xnjpUIbw"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAGo_u6ou+MoKOE_tTTmjxyFNW=jTaN9vnTsHrxR6sQHsieJyLA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, dt list <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
---e5bfZ/T2xnjpUIbw
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f179.google.com ([209.85.213.179]:33398 "EHLO
+	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752501AbaG3S7T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Jul 2014 14:59:19 -0400
+Received: by mail-ig0-f179.google.com with SMTP id h18so3480756igc.6
+        for <linux-omap@vger.kernel.org>; Wed, 30 Jul 2014 11:59:18 -0700 (PDT)
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <53D8B4DA.906@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, heikki.krogerus@linux.intel.com, chris.ruehl@gtsys.com.hk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi,
-
-On Wed, Jul 30, 2014 at 10:45:41AM -0500, Nishanth Menon wrote:
-> On Wed, Jul 30, 2014 at 9:40 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> > HI,
-> >
-> > On Tue, Jul 29, 2014 at 11:04:21PM -0700, Tony Lindgren wrote:
-> >> * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 09:36]:
-> >> > Hi,
-> >> >
-> >> > On Tue, Jul 29, 2014 at 10:40:57AM -0500, Felipe Balbi wrote:
-> >> > > On Tue, Jul 29, 2014 at 08:20:52AM -0700, Tony Lindgren wrote:
-> >> > > > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140729 07:18]:
-> >> > > > > Hi,
-> >> > > > >
-> >> > > > > On Tue, Jul 29, 2014 at 05:14:25AM -0700, Tony Lindgren wrote:
-> >> > > > > > * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [140728 14:19]:
-> >> > > > > > > now that we don't need to support legacy board-files,
-> >> > > > > > > we can completely switch over to a linear irq domain
-> >> > > > > > > and make use of irq_alloc_domain_generic_chips() to
-> >> > > > > > > allocate all generic irq chips for us.
-> >> > > > > >
-> >> > > > > > This patch seems to somehow break off-idle for omap3
-> >> > > > > > where it no longer wakes up.
-> >> > > > >
-> >> > > > > Sure your bisection is correct ? This patch just switches from=
- legacy
-> >> > > > > irq domain to linear irq domain.
-> >> > > >
-> >> > > > Yes, I tried it a few times. Just enabling
-> >> > > > retention idle hangs too with this patch.
-> >> > > >
-> >> > > > Maybe it's omap3_prcm_irq_setup that relies on
-> >> > > > 11 + OMAP_INTC_START? There may be other such issues
-> >> > >
-> >> > > lol.
-> >> > >
-> >> > > OMAP4 has the same nonsense.
-> >> >
-> >> > made me think why (if) OMAP4 works with that same setup. Does wake f=
-rom
-> >> > OFF work with OMAP4 ?
+On Wed, Jul 30, 2014 at 12:03:22PM +0300, Roger Quadros wrote:
+> On 07/29/2014 06:20 PM, Michael Welling wrote:
+> > On Tue, Jul 29, 2014 at 11:59:07AM +0300, Roger Quadros wrote:
+> >> Hi Michael,
 > >>
-> >> Not without similar changes, omap4+ has the same issue.. There's a RFC
-> >> series from Nishant to fix some of this, and Tero is moving the PRCM
-> >> into a driver.
+> >> On 07/28/2014 09:10 PM, Felipe Balbi wrote:
+> >>> On Mon, Jul 28, 2014 at 12:57:39PM -0500, Michael Welling wrote:
+> >>>> On Mon, Jul 28, 2014 at 10:57:18AM -0500, Felipe Balbi wrote:
+> >>>>> Hi,
+> >>>>>
+> >>>>> On Mon, Jul 28, 2014 at 10:29:49AM -0500, Michael Welling wrote:
+> >>>>>> On Mon, Jul 28, 2014 at 11:02:47AM -0400, Alan Stern wrote:
+> >>>>>>> On Fri, 25 Jul 2014, Michael Welling wrote:
+> >>>>>>>
+> >>>>>>>> The plot thickens....
+> >>>>>>>>
+> >>>>>>>> So if I run the above command before anything is plugged into the ports
+> >>>>>>>> the HUB disconnects.
+> >>>>>>>>
+> >>>>>>>> root@som3517:~# echo on > /sys/bus/usb/devices/1-1/power/control
+> >>>>>>>> [   63.068839] usb 1-1: USB disconnect, device number 2
+> >>>>>>>>
+> >>>>>>>> Here is the output of the usbmon output when running the above command:
+> >>>>>>>> root@som3517:/sys/kernel/debug/usb/usbmon# cat 1t
+> >>>>>>>> de382e40 3788886573 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de382e40 3788890604 C Ci:001:00 0 4 = 07050000
+> >>>>>>>> de382e40 3788892965 S Ci:001:00 s a3 00 0000 0002 0004 4 <
+> >>>>>>>> de382e40 3788893093 C Ci:001:00 0 4 = 00010000
+> >>>>>>>> de382e40 3788894834 S Ci:001:00 s a3 00 0000 0003 0004 4 <
+> >>>>>>>> de382e40 3788894958 C Ci:001:00 0 4 = 00010000
+> >>>>>>>> de7d92c0 3788896519 S Ii:001:01 -115 4 <
+> >>>>>>>> de382e40 3788898778 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de382e40 3788900188 C Ci:001:00 0 4 = 07050000
+> >>>>>>>> de382e40 3788902705 S Co:001:00 s 23 01 0002 0001 0000 0
+> >>>>>>>> de382e40 3788905793 C Co:001:00 0 0
+> >>>>>>>> de382e40 3788940998 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de7d92c0 3788942065 C Ii:001:01 0 1 = 02
+> >>>>>>>> de7d92c0 3788943013 S Ii:001:01 -115 4 <
+> >>>>>>>> de382e40 3788943145 C Ci:001:00 0 4 = 03050400
+> >>>>>>>> de382e40 3788961031 S Co:001:00 s 23 01 0012 0001 0000 0
+> >>>>>>>> de382e40 3788961175 C Co:001:00 0 0
+> >>>>>>>> de382e40 3788961304 S Ci:002:00 s 80 00 0000 0000 0002 2 <
+> >>>>>>>> de382e40 3788965395 C Ci:002:00 -71 0
+> >>>>>>>> de249040 3788966954 S Co:001:00 s 23 03 0004 0001 0000 0
+> >>>>>>>> de249040 3788968362 C Co:001:00 0 0
+> >>>>>>>> de249040 3789021103 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de7d92c0 3789022194 C Ii:001:01 0 1 = 02
+> >>>>>>>> de7d92c0 3789022226 S Ii:001:01 -115 4 <
+> >>>>>>>> de249040 3789023423 C Ci:001:00 0 4 = 01051200
+> >>>>>>>> de249040 3789025010 S Co:001:00 s 23 03 0004 0001 0000 0
+> >>>>>>>> de249040 3789026815 C Co:001:00 0 0
+> >>>>>>>> de249040 3789230980 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de249040 3789231111 C Ci:001:00 0 4 = 00010300
+> >>>>>>>> de249040 3789232280 S Co:001:00 s 23 01 0014 0001 0000 0
+> >>>>>>>> de249040 3789232404 C Co:001:00 0 0
+> >>>>>>>> de249040 3789233056 S Co:001:00 s 23 01 0001 0001 0000 0
+> >>>>>>>> de249040 3789235345 C Co:001:00 0 0
+> >>>>>>>> de249040 3789236820 S Co:001:00 s 23 01 0001 0001 0000 0
+> >>>>>>>> de249040 3789237201 C Co:001:00 0 0
+> >>>>>>>> de249040 3789238180 S Co:001:00 s 23 01 0001 0001 0000 0
+> >>>>>>>> de249040 3789238510 C Co:001:00 0 0
+> >>>>>>>> de249040 3789240602 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de249040 3789241661 C Ci:001:00 0 4 = 00010300
+> >>>>>>>> de249040 3789242264 S Co:001:00 s 23 01 0010 0001 0000 0
+> >>>>>>>> de249040 3789243921 C Co:001:00 0 0
+> >>>>>>>> de249040 3789246540 S Co:001:00 s 23 01 0011 0001 0000 0
+> >>>>>>>> de249040 3789246930 C Co:001:00 0 0
+> >>>>>>>> de2490c0 3789283096 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de2490c0 3789286255 C Ci:001:00 0 4 = 00010000
+> >>>>>>>> de2490c0 3789330975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de2490c0 3789332606 C Ci:001:00 0 4 = 00010000
+> >>>>>>>> de2490c0 3789371015 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de2490c0 3789371146 C Ci:001:00 0 4 = 00010000
+> >>>>>>>> de2490c0 3789410975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de2490c0 3789411097 C Ci:001:00 0 4 = 00010000
+> >>>>>>>> de2490c0 3789450972 S Ci:001:00 s a3 00 0000 0001 0004 4 <
+> >>>>>>>> de2490c0 3789451081 C Ci:001:00 0 4 = 00010000
+> >>>>>>>> de7d92c0 3789452462 C Ii:001:01 -2 0
+> >>>>>>>>
+> >>>>>>>> Not sure what any of it means.
+> >>>>>>>
+> >>>>>>> Basically it means what you said above: the hub disconnected.  I can't 
+> >>>>>>> tell why.  You'll have to ask someone who's familiar with the hardware 
+> >>>>>>> on that board.
+> >>>>>>
+> >>>>>> Sadly, there is no one more familar with this specific hardware than myself.
+> >>>>>>
+> >>>>>> I can however ellaborate the hardware setup of the USB subsystem in
+> >>>>>> case there is someone out there that has used a similar setup.
+> >>>>>>
+> >>>>>> The board uses the AM3517 SoC from TI. The SoC's USB host port (HSUSB1) is
+> >>>>>> connected to a USB3320 PHY. The PHY is connected to a USB2512 switch to
+> >>>>>> provide two downstream USB ports.
+> >>>>>>
+> >>>>>> The very same hardware worked with the 2.6.37 kernel that I am trying to
+> >>>>>> move away from.
+> > 
+> > It should be noted that the USB hardware work on the 3.2 kernel as well.
+> > 
+> >>>>>>
+> >>>>>> Today I am going to try using 3.10 and 3.14 kernels see if they exhibit
+> >>>>>> the same behavior.
+> >>>>>
+> >>>>
+> >>>> It should be noted that the 3.10 kernel did not even detect the external
+> >>>> HUB and the 3.14 kernel exhibits the same failure as 3.16.
+> >>>>
+> >>>>> Do you have off-while-idle enabled ? This could be, as Alan suggested, a
+> >>>>> problem with remote wakeup. EHCI on TI parts is kinda awkward, if you
+> >>>>> will, and getting remote wakeup with PM working, is generally a
+> >>>>> challenge.
+> >>>>
+> >>>> How would one determine if off-while-idle is enabled? Is this a flag in an
+> >>>> entry in the devicetree?
+> >>>
+> >>> there is a pm_debug file on debugfs which you can use. Set autosuspend
+> >>> delay to UART (it's set to -1 by default, IIRC), then leave the board
+> >>> idle for a couple minutes, then read /sys/kernel/debug/pm_debug and see
+> >>> if the OFF() counters are increasing.
+> >>>
+> >>> Adding linux-omap to Cc. Also Tony, who has a simple script to enable
+> >>> pm_runtime on UART.
+> >>>
 > >>
-> >> > Anyway, here's a quick little hack to check if that's the reason for=
- the
-> >> > regression:
+> >> The EHCI-omap driver when in use should prevent the USBHOST module from idling and this should in turn prevent the CORE from idling. So remote wakeup should work. It works fine in my setup with omap3beagle board OMAP3430/3530 ES3.1.
+> >> I'm using a recent u-boot v2014.07-rc4.
 > >>
-> >> OK yeah that's along the same lines with Nishant's RFC series in thread
-> >> "[RFC PATCH 0/7] ARM: OMAP4+: PRM: minor cleanups and dt support of
-> >> interrupts"
-> >>
-> >> FYI, it did not compile, needs to include linux/of_irq.h. But yes,
-> >
-> > I might have sent the wrong version as I had that same build error and
-> > fixed it localy.
-> >
-> >> it fixes the regression for me, Also now the whole series works for
-> >> me :)
-> >
-> > good to know.
-> >
-> > What do you want to do now ? Wait for PRCM to become a driver ? Wait for
-> > Nishanth's series to get accepted ? I guess the same thing could be done
-> > for OMAP3 and AM33, then we would have a chance of having working wake
-> > from idle with the new irqchip.
->=20
-> I can repost the current series as it stands now once 17-rc1 comes out
-> (without the build failure ofcourse).. if that helps to move it out of
-> RFC status.
+> >> It seems you are using an older silicon which needs single_ulpi_bypass flag set in platform data.
+> >> Did your below patch fix the issue for you?
+> >> https://lkml.org/lkml/2014/7/28/745
+> > 
+> > Sadly, this did not fix the issue that I am having.
+> 
+> OK. what u-boot version you are on? I can try to test with the same version.
+>
 
-That'd be great. It would be ever greater if you could add support for
-OMAP3 on that too.
+2014.01-rc2-00028-gfef24f4-dirty
 
-cheers
+I used the Craneboard configuration and swapped in the pin multiplexing
+for our board.
 
---=20
-balbi
+The config 
 
---e5bfZ/T2xnjpUIbw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> > 
+> > The problem seems to be the interaction between the PHY and the HUB on
+> > the hardware. The USB host works fine until the last device is removed
+> > from the HUB as long a device is plugged in during boot.
+> 
+> OK. The ULPI link seems to be dead after the external hub and PHY suspends.
+> As 3.2 works for you it should be easy to find out what commit broke the functionality
+> for older silicon.
+> 
+> Could you please find out the latest kernel version works for you. e.g. v3.4 or v3.8.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+I will. Something tells me that the driver used to force the power on to
+avoid the suspend errata.
 
-iQIcBAEBAgAGBQJT2RtWAAoJEIaOsuA1yqREaPUP/3E6rqd9KoIusXrp9A/la+68
-25ii+wRZQ6BmOorjxx1XKmwhvxuGE9rNv/TUXiBa51FY7WCfCMWmGU+XqfgyoKNC
-imChzFRjWwSCPjESYb4Esm/ShY/g3F5Ss7e7WxLu2KMYXbB0Q1xe8g4ZOHZAly2H
-/VeTzC5XI8OX8VxC0yQa+MAyXeYs1rS1B5dfikNh9PR+kYsyUptZ9gHBadI/Rj9j
-hocAAm63/VludPppdK07tMUnLSoMK2XF3GEy6AUw5YhnwWKa6TQmNUBTo3RXCCdg
-gpU5jKL1L/x6xHYs3Svt5TZkOuvjUwrBRKtBzJm7APgWBy6E3jYlUOJxYxk+u0cG
-6Qh1vE8eDRlsip4ELnEBAXNcylnp2mPIDc0VBvu8kvoN/2WqUyQIttHZcBRihNS9
-B9QPNxjpqkUmvzU91Sein5L7MpLXxhAqZUq524tPQwcLfQqeQHeGN04WsKqWpC1H
-TAMG2JBv0sDEoW2Vw4bkm+5ah4ksCI3sYFZ6A7c0g2Nr5c+4jEnWdgjxf3F8b3it
-Rx//d6uvC6YV08gpWnBoprpzbDgKQ0m4YnAIBnhU+0d8j6J7ug0H5//UR3KWx2lc
-PLBW8i5K0fy/rwjUeJVSB+xPJeTcQbcOjVPNxT1ttjTN6frmC64+bcXjRcnmHl52
-zihC2sA4BGII/MiEAcU6
-=yK6R
------END PGP SIGNATURE-----
-
---e5bfZ/T2xnjpUIbw--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Then we can narrow down on the commits on the following files that are introduced in the next failing kernel version
+> drivers/mfd/omap-usb-host.c
+> drivers/mfd/omap-usb-tll.c
+> drivers/usb/host/ehci-omap.c
+> arch/arm/mach-omap2/usb-host.c
+> 
+> Much of the cleanup was introduced in 3.9 so my guess is that v3.8 will work.
+> If 3.8 doesn't work then you will have to check all versions from v3.3 to v3.9 till you find the first failing version.
+> 
+> cheers,
+> -roger
