@@ -1,85 +1,48 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 1/7] dmaengine: edma: fix two faults which happen with
- the 8250_dma user
-Date: Thu, 31 Jul 2014 15:06:49 +0200
-Message-ID: <53DA3F69.4000803@linutronix.de>
-References: <1406660344-25307-1-git-send-email-bigeasy@linutronix.de> <1406660344-25307-2-git-send-email-bigeasy@linutronix.de> <20140731121702.GU8181@intel.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Thu, 31 Jul 2014 16:12:03 +0300
+Message-ID: <53DA40A3.30102@ti.com>
+References: <alpine.DEB.2.02.1407062339420.15016@utopia.booyaka.com> <20140707080238.GF28884@atomide.com> <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com> <20140729064243.GF29045@atomide.com> <alpine.DEB.2.02.1407290810160.22957@utopia.booyaka.com> <20140729084930.GH29045@atomide.com> <alpine.DEB.2.02.1407291225070.13035@utopia.booyaka.com> <alpine.DEB.2.02.1407291256270.13035@utopia.booyaka.com> <20140729145312.GT29045@atomide.com> <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com> <20140730053940.GX29045@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140731121702.GU8181@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Joel Fernandes <joelf@ti.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38449 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907AbaGaNKt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jul 2014 09:10:49 -0400
+In-Reply-To: <20140730053940.GX29045@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On 07/31/2014 02:17 PM, Vinod Koul wrote:
-> On Tue, Jul 29, 2014 at 08:58:58PM +0200, Sebastian Andrzej Siewior wrote:
->> The rx path of the 8250_dma user in the RX-timeout case:
->> - it starts the RX transfer
->> - if the rx-timeout interrupt occures, it dmaengine_pause() the transfer
->> - step two is dmaengine_terminate_all() on this channel.
-> Okay after this whole channel needs to be reset, which means all the
-> descriptors are discared.
->> - based on dmaengine_tx_status() it learns the number of transfered
->>   bytes.
->> - the rx interrupt occures,
-> why, channel is terminated, so existing txn needs to be aborted too
+On 07/30/2014 08:39 AM, Tony Lindgren wrote:
+> 8< -----------------------------------
+> From: Tony Lindgren<tony@atomide.com>
+> Date: Tue, 29 Jul 2014 22:36:59 -0700
+> Subject: [PATCH] ARM: dts: Enable UART wake-up events for beagleboard
+>
+> For device tree based booting, we need to use wake-up
+> interrupts like we already do for some omaps. This fixes
+> a PM regression on beagleboard compared to legacy booting.
+>
+> Signed-off-by: Tony Lindgren<tony@atomide.com>
+>
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -292,6 +292,7 @@
+>   &uart3 {
+>   	pinctrl-names = "default";
+>   	pinctrl-0 = <&uart3_pins>;
+> +	interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
+>   };
+>
+>   &gpio1 {
+> --
 
-serial8250_rx_dma() is invoked on 8250' RX interrupt to move all the
-data from the FIFO to memory. This is when the dma transfer is
-programmed (on all platforms but omap because we need to program it
-before the data is in the FIFO but this detail shouldn't matter).
+The above patch works for me with ret/off-idle on beagle rev C4 on top 
+of 3.16-rc5. Without it, the board just seems to hang with ret, and with 
+off, it just doesn't respond to anything on uart but seems alive otherwise.
 
-On Omap (atleast) it happens that if there are not enough characters in
-the FIFO over a given time the UART triggers a RX-timeout and no bytes
-are moved by the DMA engine. This is when UART_IIR_RX_TIMEOUT is hit.
-At that point it invokes the completion hanlder
-(__dma_rx_do_complete()) to learn how much bytes were transfered and to
-cancel the transfer (so the remaining bytes can be fetched via PIO).
-
->>   it does not start the RX-transfer because
->>   according to dmaengine_tx_status() the status of the current transfer
->>   is still DMA_IN_PROGRESS because the earlier dmaengine_terminate_all()
->>   did not reset this.
-> there is no current transfer anymore
-
-That is correct but since we never completed that cookie,
-dmaengine_tx_status() returns DMA_IN_PROGRESS and the 8250_dma does no
-book keeping of its own.
-
->> - on rx-timeout it invokes dmaengine_pause() again. This time, it
->>   segfaults because the channel has no descriptor yet.
->>
->> To make the upper case work better, this patch adds dma_cookie_complete()
->> to complete the cookie. Also it adds is an additional check for echan->edesc
->> in case the channel has no descriptor assigned.
-> I think we are fixing the behvaiour rather than cause. terminate_all(()
-> needs to do a proper cleanup of the channel
-
-The channel is clean an can be reused. Since the cookie has never been
-completed / incremented, serial8250_rx_dma() never enqueues another
-transfer.
-
-Are you suggesting that the 8250_dma driver should have its own book
-keeping whether it started a transfer or not?
-
-Either way, it looks wrong that dmaengine_tx_status() reports
-DMA_IN_PROGRESS even that the transfer got aborted and the channel is
-properly cleaned up.
-
-> And this looks a series, without cover letter sent to all. Which makes it a
-> bit hard to see what is getting done
-
-What is getting done, is getting 8250_dma used on omap after the 8250
-based driver is used for uart. The UART is mostly the same on am335x
-(where edma is used) as on DRA7 (where omap-dma is used) that is why I
-made the two patches for the two dma engines. The cover letter is at
-[1]. I tried to cover the problem and all informations in the patch
-description so you have all the required informations.
-
-[0] drivers/tty/serial/8250/8250_dma.c
-[1] https://lkml.org/lkml/2014/7/29/513
-
-Sebastian
+Tested-by: Tero Kristo <t-kristo@ti.com>
