@@ -1,56 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Thu, 31 Jul 2014 06:11:08 -0700
-Message-ID: <20140731131107.GB29045@atomide.com>
-References: <alpine.DEB.2.02.1407251857480.5875@utopia.booyaka.com>
- <20140729064243.GF29045@atomide.com>
- <alpine.DEB.2.02.1407290810160.22957@utopia.booyaka.com>
- <20140729084930.GH29045@atomide.com>
- <alpine.DEB.2.02.1407291225070.13035@utopia.booyaka.com>
- <alpine.DEB.2.02.1407291256270.13035@utopia.booyaka.com>
- <20140729145312.GT29045@atomide.com>
- <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com>
- <20140730053940.GX29045@atomide.com>
- <alpine.DEB.2.02.1407300725290.4477@utopia.booyaka.com>
+From: Jeremy Vial <jvial@adeneo-embedded.com>
+Subject: [PATCH 2/2] ARM: OMAP3: Fix coding style problems in
+ arch/arm/mach-omap2/control.c
+Date: Thu, 31 Jul 2014 15:10:34 +0200
+Message-ID: <1406812234-23163-3-git-send-email-jvial@adeneo-embedded.com>
+References: <1406812234-23163-1-git-send-email-jvial@adeneo-embedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62726 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255AbaGaNMc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jul 2014 09:12:32 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1407300725290.4477@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1406812234-23163-1-git-send-email-jvial@adeneo-embedded.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-* Paul Walmsley <paul@pwsan.com> [140730 00:55]:
-> On Tue, 29 Jul 2014, Tony Lindgren wrote:
-> 
-> > The following patch should fix the tests above for 3530es3beagle.
-> > Care to test and ack as I don't have one?
-> 
-> 3530es3beagle retention dynamic idle tests hang on next-20140729.  (Maybe 
-> other boards fail too - haven't tested any others).  
 
-I just checked that today's linux next works for off-idle and
-wake-up events for at least 37xx evm.
+Signed-off-by: Jeremy Vial <jvial@adeneo-embedded.com>
+---
+ arch/arm/mach-omap2/control.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index acadac0..cc5d767 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -281,6 +281,7 @@ void omap3_clear_scratchpad_contents(void)
+ 	u32 max_offset = OMAP343X_SCRATCHPAD_ROM_OFFSET;
+ 	void __iomem *v_addr;
+ 	u32 offset = 0;
++
+ 	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
+ 	if (omap2_prm_read_mod_reg(OMAP3430_GR_MOD, OMAP3_PRM_RSTST_OFFSET) &
+ 	    OMAP3430_GLOBAL_COLD_RST_MASK) {
+@@ -475,7 +476,6 @@ void omap3_control_save_context(void)
+ 	control_context.csi = omap_ctrl_readl(OMAP343X_CONTROL_CSI);
+ 	control_context.padconf_sys_nirq =
+ 		omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_SYSNIRQ);
+-	return;
+ }
  
-> http://www.pwsan.com/omap/testlogs/next_20140729/20140730010841/pm/3530es3beagle/3530es3beagle_log.txt
-> 
-> Adding the patch you sent doesn't change that, but now some extra warning 
-> messages appear ("PRM: I/O chain clock line assertion timed out"):
-> 
-> http://www.pwsan.com/omap/testlogs/next_20140729_beagle_pm/20140730004856/pm/3530es3beagle/3530es3beagle_log.txt
-
-Weird it should just work. I don't know why the "PRM: I/O chain
-clock line assertion timed out" happens for you, I have not seen
-that. So far I've tested it on n900, beagle xm and 37xx-evm. None
-of those are 3530 though, but it should behave the same way as
-on n900.
-
-Regards,
-
-Tony
+ void omap3_control_restore_context(void)
+@@ -533,7 +533,6 @@ void omap3_control_restore_context(void)
+ 	omap_ctrl_writel(control_context.csi, OMAP343X_CONTROL_CSI);
+ 	omap_ctrl_writel(control_context.padconf_sys_nirq,
+ 			 OMAP343X_CONTROL_PADCONF_SYSNIRQ);
+-	return;
+ }
+ 
+ void omap3630_ctrl_disable_rta(void)
+-- 
+1.7.9.5
