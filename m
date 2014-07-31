@@ -1,88 +1,103 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH v4 6/6] clk: Add floor and ceiling constraints to clock
- rates
-Date: Thu, 31 Jul 2014 11:54:44 -0700
-Message-ID: <20140731185444.4463.35237@quantum>
-References: <1405606399-26608-1-git-send-email-tomeu.vizoso@collabora.com>
- <1405606399-26608-7-git-send-email-tomeu.vizoso@collabora.com>
- <53CEA483.6090704@wwwdotorg.org> <53DA2CCB.2080300@collabora.com>
- <53DA8218.7070300@wwwdotorg.org>
+From: Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH v3 0/7] Enable L2 cache support on Exynos4210/4x12 SoCs
+Date: Thu, 31 Jul 2014 21:08:53 +0200
+Message-ID: <53DA9445.1090201@gmail.com>
+References: <1405615142-21426-1-git-send-email-t.figa@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <53DA8218.7070300@wwwdotorg.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Stephen Warren <swarren@wwwdotorg.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, "Jason Cooper  <jason@lakedaemon.net>,
- Andrew Lunn  <andrew@lunn.ch>,
- Sebastian Hesselbarth  <sebastian.hesselbarth@gmail.com>,
- Russell King  <linux@arm.linux.org.uk>,
- Shawn Guo  <shawn.guo@freescale.com>,
- Sascha Hauer  <kernel@pengutronix.de>,
- David Brown  <davidb@codeaurora.org>,  Daniel Walker  <dwalker@fifo99.com>,
- Bryan Huntsman  <bryanh@codeaurora.org>,  Paul Walmsley  <paul@pwsan.com>,
- Tony Lindgren  <tony@atomide.com>,
- =?utf-8?q?=22_Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
- Kevin Hilman" <khilman@deeprootsystems.com>, Tomasz Figa <t.figa@samsung.com>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@perex.cz>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-arch@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:48162 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751111AbaGaTI6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Jul 2014 15:08:58 -0400
+In-Reply-To: <1405615142-21426-1-git-send-email-t.figa@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomasz Figa <t.figa@samsung.com>, linux-samsung-soc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kukjin Kim <kgene.kim@samsung.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, Marek Szyprowski <m.szyprowski@samsung.com>, loeliger@gmail.com
 
-UXVvdGluZyBTdGVwaGVuIFdhcnJlbiAoMjAxNC0wNy0zMSAxMDo1MToyMCkKPiBPbiAwNy8zMS8y
-MDE0IDA1OjQ3IEFNLCBUb21ldSBWaXpvc28gd3JvdGU6Cj4gPiBPbiAwNy8yMi8yMDE0IDA3OjUw
-IFBNLCBTdGVwaGVuIFdhcnJlbiB3cm90ZToKPiA+PiBPbiAwNy8xNy8yMDE0IDA4OjEzIEFNLCBU
-b21ldSBWaXpvc28gd3JvdGU6Cj4gPj4+IEFkZHMgYSB3YXkgZm9yIGNsb2NrIGNvbnN1bWVycyB0
-byBzZXQgbWF4aW11bSBhbmQgbWluaW11bSByYXRlcy4gVGhpcwo+ID4+PiBjYW4gYmUKPiA+Pj4g
-dXNlZCBmb3IgdGhlcm1hbCBkcml2ZXJzIHRvIHNldCBjZWlsaW5nIHJhdGVzLCBvciBieSBtaXNj
-LiBkcml2ZXJzIHRvCj4gPj4+IHNldAo+ID4+PiBmbG9vciByYXRlcyB0byBhc3N1cmUgYSBtaW5p
-bXVtIHBlcmZvcm1hbmNlIGxldmVsLgo+ID4+Cj4gPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2Ns
-ay9jbGsuYyBiL2RyaXZlcnMvY2xrL2Nsay5jCj4gPj4KPiA+Pj4gK3N0cnVjdCByYXRlX2NvbnN0
-cmFpbnQgewo+ID4+PiArICAgIHN0cnVjdCBobGlzdF9ub2RlICAgIG5vZGU7Cj4gPj4+ICsgICAg
-Y29uc3QgY2hhciAgICAgICAgKmRldl9pZDsKPiA+Pj4gKyAgICBjb25zdCBjaGFyICAgICAgICAq
-Y29uX2lkOwo+ID4+PiArICAgIGVudW0gY29uc3RyYWludF90eXBlICAgIHR5cGU7Cj4gPj4+ICsg
-ICAgdW5zaWduZWQgbG9uZyAgICAgICAgcmF0ZTsKPiA+Pj4gK307Cj4gPj4KPiA+PiBJIHdvdWxk
-IHBlcnNvbmFsbHkgc3RpbGwgcHJlZmVyIGVpdGhlcjoKPiA+Pgo+ID4+IGEpIFRoZSBzdHJ1Y3Qg
-cmF0ZV9jb25zdHJhaW50cyBiZSBzdG9yZWQgaW4gc3RydWN0IGNsayByYXRoZXIgdGhhbgo+ID4+
-IHN0cnVjdCBjbGtfY29yZSwgc28gdGhleSdyZSBzdG9yZWQgaW4gdGhlIGNvbnRhaW5lciB0aGF0
-ICJzZXQiIHRoZQo+ID4+IGNvbnN0cmFpbnRzLiBUaGlzIHdvdWxkIG1lYW4gaXRlcmF0aW5nIG92
-ZXIgYSBzdHJ1Y3QgY2xrX2NvcmUncwo+ID4+IGFzc29jaWF0ZWQgc3RydWN0IGNsa3MsIHRoZW4g
-aXRlcmF0aW5nIG92ZXIgdGhlIHN0cnVjdCByYXRlX2NvbnN0cmFpbnRzCj4gPj4gd2l0aGluIGVh
-Y2ggc3RydWN0IGNsay4KPiA+Pgo+ID4+IG9yOgo+ID4+Cj4gPj4gYikgc3RydWN0IHJhdGVfY29u
-c3RyYWludCB0byBjb250YWluIGEgcG9pbnRlciB0byB0aGUgc3RydWN0IGNsayB0aGF0Cj4gPj4g
-Y3JlYXRlZCB0aGUgY29uc3RyYWludCwgcmF0aGVyIHRoYW4gY29weWluZyB0aGUgZGV2X2lkL2Nv
-bl9pZCBmcm9tIHRoYXQKPiA+PiBzdHJ1Y3QgY2xrIGludG8gdGhlIHN0cnVjdCByYXRlX2NvbnN0
-cmFpbnQuCj4gPj4KPiA+PiBXaXRoIGVpdGhlciBvZiB0aG9zZSBjaGFuZ2VzLCB0aGUgY29uc3Ry
-YWludHMgYXJlIGRpcmVjdGx5IGFzc29jaWF0ZWQKPiA+PiB3aXRoIHRoZSBjbG9jayBjbGllbnQg
-b2JqZWN0IHRoYXQgY3JlYXRlZCB0aGUgY29uc3RyYWludCBtdWNoIGJldHRlcgo+ID4+IHRoYW4g
-cmlnaHQgbm93LCB3aGVyZSB0aGUgbWF0Y2hpbmcgaXMgb25seSBiZWNhdXNlIHRoZSBzdHJ1Y3Qg
-Y2xrIGFuZAo+ID4+IHN0cnVjdCByYXRlX2NvbnN0cmFpbnQgImhhcHBlbiB0byIgaGF2ZSB0aGUg
-c2FtZSBkZXZfaWQvY29uX2lkIHZhbHVlcy4KPiA+Pgo+ID4+IFN0aWxsLCB0aGlzIGlzIGEgcHJl
-dHR5IG1pbm9yIGlzc3VlLCBhbmQgb3ZlcmFsbCB0aGlzIHNlcmllcyBsb29rcwo+ID4+IHJlYXNv
-bmFibGUgdG8gbWUgYXQgYSBxdWljayBsb29rLgo+ID4KPiA+IFllYWgsIEkgYWdyZWUgYW5kIHBl
-cnNvbmFsbHkgcHJlZmVyIGEpLCBidXQgZ2l2ZW4gdGhlIGxpdHRsZSBmZWVkYmFjawo+ID4gdGhh
-dCBJIGhhdmUgZ290dGVuIHNvIGZhciBvbiB0aGUgcmVmYWN0b3JpbmcsIEknbSBzdGFydGluZyB0
-byBjb25zaWRlcgo+ID4gZm9yZ2V0dGluZyBhYm91dCB0aGUgcGVyLXVzZXIgY2xrIHN0cnVjdCBh
-bmQgZ28gaW5zdGVhZCB3aXRoIGEKPiA+IHJlcXVlc3QtYmFzZWQgQVBJIHNpbWlsYXIgdG8gdGhh
-dCBvZiBwbV9xb3MsIGZvciBzZXR0aW5nIGZsb29yIGFuZAo+ID4gY2VpbGluZyBmcmVxdWVuY2ll
-cy4KPiAKPiBJIHdvdWxkIG9idmlvdXNseSBlbmNvdXJhZ2UgeW91IHRvIGNvbnRpbnVlIHB1c2hp
-bmcgZm9yIHRoaXMgZmVhdHVyZSwgCj4gYWx0aG91Z2ggSSB1bmRlcnN0YW5kIGl0IGNhbiBiZSBk
-aWZmaWN1bHQgdG8gYmUgbW90aXZhdGVkIHdoZW4gdGhlIAo+IHBhdGNoZXMgZG9uJ3QgZ2V0IG11
-Y2ggZmVlZGJhY2suCgpTb3JyeSBmb3Igbm90IGdpdmluZyB0aGlzIG1vcmUgb2YgYSBsb29rLiBN
-eSBzZWNyZXQgcGxhbiB3YXMgdG8gcmV2aWV3CnRoaXMgaW4gbW9yZSBkZXRhaWwgb25jZSB3ZSdy
-ZSBjbG9zZXIgdG8gdGhlIG1lcmdlIHdpbmRvdyBhbmQsIGlmCmFwcHJvcHJpYXRlLCBhcHBseSBp
-dCBhcyBvbmUgb2YgdGhlIGZpcnN0IHRoaW5ncyBzaW5jZSB0aGlzIGlzIGJvdW5kIHRvCmNhdXNl
-IHNvbWUgYnJlYWthZ2UgZWFybHkgb24gd2hpY2ggbmVlZHMgdG8gYmUgY2F1Z2h0IGFuZCBmaXhl
-ZCB1cApxdWlja2x5LgoKV2UgYXJlIHZlcnkgY2xvc2UgdG8gdGhlIG1lcmdlIHdpbmRvdyBzbyBJ
-IHdpbGwgdHJ5IHRvIGdldCB0byB0aGlzIGxhdGVyCnRoaXMgd2Vlay4gSSBsaWtlIHRoZSBwZXIt
-dXNlciBzdHJ1Y3QgY2xrIG15c2VsZiBhbmQgSSBob3BlIHdlIGNhbiBnZXQKdGhpcyBpbiBmb3Ig
-My4xOC4KClJlZ2FyZHMsCk1pa2UKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KTGludXhwcGMtZGV2IG1haWxpbmcgbGlzdApMaW51eHBwYy1kZXZAbGlzdHMu
-b3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGluZm8vbGludXhwcGMtZGV2
+On 17.07.2014 18:38, Tomasz Figa wrote:
+> This series intends to add support for L2 cache on Exynos4 SoCs on boards
+> running under secure firmware, which requires certain initialization steps
+> to be done with help of firmware, as selected registers are writable only
+> from secure mode.
+> 
+> First four patches extend existing support for secure write in L2C driver
+> to account for design of secure firmware running on Exynos. Namely:
+>  1) direct read access to certain registers is needed on Exynos, because
+>     secure firmware calls set several registers at once,
+>  2) not all boards are running secure firmware, so .write_sec callback
+>     needs to be installed in Exynos firmware ops initialization code,
+>  3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
+>     is not allowed and so must use l2c_write_sec as well,
+>  4) on certain boards, default value of prefetch register is incorrect
+>     and must be overridden at L2C initialization.
+> For boards running with firmware that provides access to individual
+> L2C registers this series should introduce no functional changes. However
+> since the driver is widely used on other platforms I'd like to kindly ask
+> any interested people for testing.
+> 
+> Further two patches add impelmentation of .write_sec for Exynos secure
+> firmware and necessary DT nodes to enable L2 cache.
+> 
+> Tested on Exynos4210-based Universal C210 and Trats (both without secure
+> firmware) and Exynos4412-based TRATS2 and ODROID-U3 boards (both with secure
+> firmware).
+> 
+> Depends on:
+>  - [PATCH] ARM: make it easier to check the CPU part number correctly
+>    (http://thread.gmane.org/gmane.linux.ports.arm.kernel/335126
+>     already in linux-next)
+>  - [PATCH v2 0/2] Firmware-assisted suspend/resume of Exynos SoCs
+>    (https://lkml.org/lkml/2014/7/17/431)
+> 
+> Changes since v2:
+> (https://lkml.org/lkml/2014/6/25/416)
+>  - refactored L2C driver to use commit-like interface and make it no longer
+>    depend on availability of writes to individual registers,
+>  - moved L2C resume to assembly code, because doing it later makes some
+>    systems unstable - this is also needed for deeper cpuidle modes,
+>  - dropped unnecessary patch hacking around the .write_sec interface,
+>  - dropped patch making the driver use l2c_write_sec() for LATENCY_CTRL
+>    registers as Exynos is no longer affected and I'm not aware of any
+>    reports that this is also needed on other platforms (can be applied
+>    separately if it turns out to be so),
+>  - rebased onto next-20140717 tag of linux-next tree.
+> 
+> Changes since v1:
+> (https://www.mail-archive.com/linux-omap@vger.kernel.org/msg106323.html)
+>  - rebased onto for-next branch of linux-samsung tree,
+>  - changed argument order of outer_cache.write_sec() callback to match
+>    l2c_write_sec() function in cache-l2x0.c,
+>  - added support of overriding of prefetch settings to work around incorrect
+>    default settings on certain Exynos4x12-based boards,
+>  - added call to firmware to invalidate whole L2 cache before setting enable
+>    bit in L2C control register (required by Exynos secure firmware).
+> 
+> Tomasz Figa (7):
+>   ARM: l2c: Refactor the driver to use commit-like interface
+>   ARM: l2c: Add interface to ask hypervisor to configure L2C
+>   ARM: l2c: Get outer cache .write_sec callback from mach_desc only if
+>     not NULL
+>   ARM: l2c: Add support for overriding prefetch settings
+>   ARM: EXYNOS: Add .write_sec outer cache callback for L2C-310
+>   ARM: EXYNOS: Add support for non-secure L2X0 resume
+>   ARM: dts: exynos4: Add nodes for L2 cache controller
+> 
+>  Documentation/devicetree/bindings/arm/l2cc.txt |  10 +
+>  arch/arm/boot/dts/exynos4210.dtsi              |   9 +
+>  arch/arm/boot/dts/exynos4x12.dtsi              |  14 ++
+>  arch/arm/include/asm/outercache.h              |   3 +
+>  arch/arm/kernel/irq.c                          |   3 +-
+>  arch/arm/mach-exynos/common.h                  |   1 +
+>  arch/arm/mach-exynos/firmware.c                |  40 ++++
+>  arch/arm/mach-exynos/sleep.S                   |  41 +++++
+>  arch/arm/mm/cache-l2x0.c                       | 245 ++++++++++++++++---------
+>  9 files changed, 274 insertions(+), 92 deletions(-)
+> 
+
+Any comments for this series?
+
+Best regards,
+Tomasz
