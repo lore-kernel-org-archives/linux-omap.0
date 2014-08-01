@@ -1,109 +1,147 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 29/35] arm: omap: intc: switch over to linear irq domain
-Date: Fri, 1 Aug 2014 15:26:34 +0300
-Message-ID: <53DB877A.5000004@ti.com>
-References: <20140729141522.GB17808@saruman.home> <20140729152052.GV29045@atomide.com> <20140729154057.GE17808@saruman.home> <20140729163345.GF17808@saruman.home> <20140730060420.GY29045@atomide.com> <20140730144059.GA7272@saruman.home> <CAGo_u6ou+MoKOE_tTTmjxyFNW=jTaN9vnTsHrxR6sQHsieJyLA@mail.gmail.com> <20140730162038.GH7272@saruman.home> <20140731062843.GA29045@atomide.com> <53D9F6D5.1080307@ti.com> <20140731134945.GB19512@saruman.home>
+Subject: [PATCH 1/1] clk: ti: add support for external clock provider
+Date: Fri, 1 Aug 2014 16:15:48 +0300
+Message-ID: <1406898948-26113-2-git-send-email-t-kristo@ti.com>
+References: <1406898948-26113-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140731134945.GB19512@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, dt list <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, jason@lakedaemon.net, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42725 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754881AbaHANPG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Aug 2014 09:15:06 -0400
+In-Reply-To: <1406898948-26113-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mturquette@linaro.org, linux-omap@vger.kernel.org, sassmann@kpanic.de, peter.ujfalusi@ti.com, jsarha@ti.com
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/31/2014 04:49 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Thu, Jul 31, 2014 at 10:57:09AM +0300, Tero Kristo wrote:
->> On 07/31/2014 09:28 AM, Tony Lindgren wrote:
->>> * Felipe Balbi <balbi@ti.com> [140730 09:23]:
->>>> Hi,
->>>>
->>>> On Wed, Jul 30, 2014 at 10:45:41AM -0500, Nishanth Menon wrote:
->>>>> On Wed, Jul 30, 2014 at 9:40 AM, Felipe Balbi <balbi@ti.com> wrote:
->>>>>> HI,
->>>>>>
->>>>>> On Tue, Jul 29, 2014 at 11:04:21PM -0700, Tony Lindgren wrote:
->>>>>>> * Felipe Balbi <balbi@ti.com> [140729 09:36]:
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>> On Tue, Jul 29, 2014 at 10:40:57AM -0500, Felipe Balbi wrote:
->>>>>>>>> On Tue, Jul 29, 2014 at 08:20:52AM -0700, Tony Lindgren wrote:
->>>>>>>>>> * Felipe Balbi <balbi@ti.com> [140729 07:18]:
->>>>>>>>>>> Hi,
->>>>>>>>>>>
->>>>>>>>>>> On Tue, Jul 29, 2014 at 05:14:25AM -0700, Tony Lindgren wrote:
->>>>>>>>>>>> * Felipe Balbi <balbi@ti.com> [140728 14:19]:
->>>>>>>>>>>>> now that we don't need to support legacy board-files,
->>>>>>>>>>>>> we can completely switch over to a linear irq domain
->>>>>>>>>>>>> and make use of irq_alloc_domain_generic_chips() to
->>>>>>>>>>>>> allocate all generic irq chips for us.
->>>>>>>>>>>>
->>>>>>>>>>>> This patch seems to somehow break off-idle for omap3
->>>>>>>>>>>> where it no longer wakes up.
->>>>>>>>>>>
->>>>>>>>>>> Sure your bisection is correct ? This patch just switches from legacy
->>>>>>>>>>> irq domain to linear irq domain.
->>>>>>>>>>
->>>>>>>>>> Yes, I tried it a few times. Just enabling
->>>>>>>>>> retention idle hangs too with this patch.
->>>>>>>>>>
->>>>>>>>>> Maybe it's omap3_prcm_irq_setup that relies on
->>>>>>>>>> 11 + OMAP_INTC_START? There may be other such issues
->>>>>>>>>
->>>>>>>>> lol.
->>>>>>>>>
->>>>>>>>> OMAP4 has the same nonsense.
->>>>>>>>
->>>>>>>> made me think why (if) OMAP4 works with that same setup. Does wake from
->>>>>>>> OFF work with OMAP4 ?
->>>>>>>
->>>>>>> Not without similar changes, omap4+ has the same issue.. There's a RFC
->>>>>>> series from Nishant to fix some of this, and Tero is moving the PRCM
->>>>>>> into a driver.
->>>>>>>
->>>>>>>> Anyway, here's a quick little hack to check if that's the reason for the
->>>>>>>> regression:
->>>>>>>
->>>>>>> OK yeah that's along the same lines with Nishant's RFC series in thread
->>>>>>> "[RFC PATCH 0/7] ARM: OMAP4+: PRM: minor cleanups and dt support of
->>>>>>> interrupts"
->>>>>>>
->>>>>>> FYI, it did not compile, needs to include linux/of_irq.h. But yes,
->>>>>>
->>>>>> I might have sent the wrong version as I had that same build error and
->>>>>> fixed it localy.
->>>>>>
->>>>>>> it fixes the regression for me, Also now the whole series works for
->>>>>>> me :)
->>>>>>
->>>>>> good to know.
->>>>>>
->>>>>> What do you want to do now ? Wait for PRCM to become a driver ? Wait for
->>>>>> Nishanth's series to get accepted ? I guess the same thing could be done
->>>>>> for OMAP3 and AM33, then we would have a chance of having working wake
->>>>> >from idle with the new irqchip.
->>>>>
->>>>> I can repost the current series as it stands now once 17-rc1 comes out
->>>>> (without the build failure ofcourse).. if that helps to move it out of
->>>>> RFC status.
->>>>
->>>> That'd be great. It would be ever greater if you could add support for
->>>> OMAP3 on that too.
->>>
->>> Yeah sounds good to me. Tero, does that work OK for your PRCM changes?
->>
->> Well, this set seems to break PM. suspend-resume on omap3-beagle just hangs
->> after this set is applied. Works fine without it with 3.16-rc5 tag.
->
-> did you apply the quick little hack to prm3xxx.c ? prcm IRQ is hardcoded
-> to 11, once we switch to a linear irq domain, irq_base may change.
+External clock provider can now be used to register external clocks under
+it. This is needed as the TI clock driver only registers clocks
+hierarchically under clock providers, and external clocks do not belong
+under any of the current ones.
 
-Yea, with that hack it works. However, you should make that into a 
-proper patch and add it to this series, otherwise you will be causing 
-regressions. Just renaming that tmp into something meaningful for now 
-should be enough for me at least.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ .../devicetree/bindings/arm/omap/ext-clocks.txt    |   32 ++++++++++++++++++++
+ arch/arm/mach-omap2/io.c                           |   12 ++++++--
+ drivers/clk/ti/clk.c                               |   23 ++++++++++++++
+ include/linux/clk/ti.h                             |    2 ++
+ 4 files changed, 67 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
 
--Tero
+diff --git a/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt b/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+new file mode 100644
+index 0000000..8e784bb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+@@ -0,0 +1,32 @@
++TI external clock provider properties
++
++External clock provider is used to group SoC external board specific
++clock nodes. A separate provider node is required as the TI clock
++driver registers clocks hierarchically.
++
++Required properties:
++- compatible:		Shall be: "ti,external-clocks"
++- clocks:		Contains the external clocks for the board
++- clockdomains:		Contains the external clockdomains for the board
++
++Example:
++
++ext_clocks {
++	compatible = "ti,external-clocks";
++
++	ext_clocks: clocks {
++	};
++
++	ext_clockdomains: clockdomains {
++	};
++};
++
++...
++
++&ext_clocks {
++	gpio_test_clock {
++		compatible = "gpio-clock";
++		#clock-cells = <0>;
++		enable-gpios = <&gpio5 25 GPIO_ACTIVE_HIGH>;
++	};
++};
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 8f55945..77be18b 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -21,6 +21,8 @@
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/clk-provider.h>
++#include <linux/clk/ti.h>
+ 
+ #include <asm/tlb.h>
+ #include <asm/mach/map.h>
+@@ -729,8 +731,14 @@ int __init omap_clk_init(void)
+ 		return 0;
+ 
+ 	ret = of_prcm_init();
+-	if (!ret)
+-		ret = omap_clk_soc_init();
++	if (ret)
++		return ret;
++
++	ret = ti_dt_clk_ext_init();
++	if (ret)
++		return ret;
++
++	ret = omap_clk_soc_init();
+ 
+ 	return ret;
+ }
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index b1a6f71..c84ce4d 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -165,3 +165,26 @@ void ti_dt_clk_init_provider(struct device_node *parent, int index)
+ 		kfree(retry);
+ 	}
+ }
++
++static struct of_device_id ti_ext_clk_match_table[] = {
++	{ .compatible = "ti,external-clocks" },
++	{ }
++};
++
++/**
++ * ti_dt_clk_ext_init - initialize external clocks from DT
++ *
++ * Some clocks are provided from external chips outside the main SoC.
++ * The details for these are given under a special DT node, which will
++ * be parsed by this function.
++ */
++int ti_dt_clk_ext_init(void)
++{
++	struct device_node *np;
++
++	for_each_matching_node(np, ti_ext_clk_match_table) {
++		ti_dt_clk_init_provider(np, -1);
++	}
++
++	return 0;
++}
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index e8d8a35..188270c 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -310,6 +310,8 @@ int am43xx_dt_clk_init(void);
+ int omap2420_dt_clk_init(void);
+ int omap2430_dt_clk_init(void);
+ 
++int ti_dt_clk_ext_init(void);
++
+ #ifdef CONFIG_OF
+ void of_ti_clk_allow_autoidle_all(void);
+ void of_ti_clk_deny_autoidle_all(void);
+-- 
+1.7.9.5
+
