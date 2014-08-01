@@ -1,103 +1,58 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 29/35] arm: omap: intc: switch over to linear irq domain
-Date: Fri, 1 Aug 2014 08:54:07 -0500
-Message-ID: <20140801135407.GB9216@saruman.home>
-References: <20140729154057.GE17808@saruman.home>
- <20140729163345.GF17808@saruman.home>
- <20140730060420.GY29045@atomide.com>
- <20140730144059.GA7272@saruman.home>
- <CAGo_u6ou+MoKOE_tTTmjxyFNW=jTaN9vnTsHrxR6sQHsieJyLA@mail.gmail.com>
- <20140730162038.GH7272@saruman.home>
- <20140731062843.GA29045@atomide.com>
- <53D9F6D5.1080307@ti.com>
- <20140731134945.GB19512@saruman.home>
- <53DB877A.5000004@ti.com>
-Reply-To: <balbi@ti.com>
+From: Pekon Gupta <pekon.gupta@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: fix gpmc_cs_remap: re-allocating chip-select
+ address space based on DT
+Date: Fri, 1 Aug 2014 23:38:04 +0530
+Message-ID: <CAK1JQxr+YkWF76bFka+24GFScw2y9pQX+O=J=vg6eUHFFCwnoA@mail.gmail.com>
+References: <1406139458-11676-1-git-send-email-pekon@ti.com>
+	<53DB7349.4000105@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CdrF4e02JqNVZeln"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53DB877A.5000004@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, dt list <devicetree@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, jason@lakedaemon.net, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, tglx@linutronix.de, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:64140 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751460AbaHASIG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Aug 2014 14:08:06 -0400
+Received: by mail-we0-f174.google.com with SMTP id x48so4734871wes.33
+        for <linux-omap@vger.kernel.org>; Fri, 01 Aug 2014 11:08:04 -0700 (PDT)
+In-Reply-To: <53DB7349.4000105@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>
 
---CdrF4e02JqNVZeln
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Roger,
 
-Hi,
+On Fri, Aug 1, 2014 at 4:30 PM, Roger Quadros <rogerq@ti.com> wrote:
+> On 07/23/2014 09:17 PM, Pekon Gupta wrote:
+>> +     /* allocate enough address-space under GPMC chip-select to device */
+>> +     if (size > SZ_256M) {
+>> +             pr_err("%s: memory device > 256MB not supported\n", __func__);
+>> +             return -ENODEV;
+>> +     } else if (size > SZ_128M) {
+>> +             WARN((size != SZ_256M), "cs=%d: allocating 256MB\n", cs);
+>> +             size = SZ_256M;
+>> +     } else if (size > SZ_64M) {
+>> +             WARN((size != SZ_128M), "cs=%d: allocating 128MB\n", cs);
+>> +             size = SZ_128M;
+>> +     } else if (size > SZ_32M) {
+>> +             WARN((size != SZ_64M), "cs=%d: allocating 64MB\n", cs);
+>> +             size = SZ_64M;
+>> +     } else if (size > SZ_16M) {
+>> +             WARN((size != SZ_32M), "cs=%d: allocating 64MB\n", cs);
+>
+> Print message should be "allocating 32MB"
+>
+yes, my bad, copy-paste errors..
 
-On Fri, Aug 01, 2014 at 03:26:34PM +0300, Tero Kristo wrote:
-> >>>>>>I might have sent the wrong version as I had that same build error =
-and
-> >>>>>>fixed it localy.
-> >>>>>>
-> >>>>>>>it fixes the regression for me, Also now the whole series works for
-> >>>>>>>me :)
-> >>>>>>
-> >>>>>>good to know.
-> >>>>>>
-> >>>>>>What do you want to do now ? Wait for PRCM to become a driver ? Wai=
-t for
-> >>>>>>Nishanth's series to get accepted ? I guess the same thing could be=
- done
-> >>>>>>for OMAP3 and AM33, then we would have a chance of having working w=
-ake
-> >>>>>>from idle with the new irqchip.
-> >>>>>
-> >>>>>I can repost the current series as it stands now once 17-rc1 comes o=
-ut
-> >>>>>(without the build failure ofcourse).. if that helps to move it out =
-of
-> >>>>>RFC status.
-> >>>>
-> >>>>That'd be great. It would be ever greater if you could add support for
-> >>>>OMAP3 on that too.
-> >>>
-> >>>Yeah sounds good to me. Tero, does that work OK for your PRCM changes?
-> >>
-> >>Well, this set seems to break PM. suspend-resume on omap3-beagle just h=
-angs
-> >>after this set is applied. Works fine without it with 3.16-rc5 tag.
-> >
-> >did you apply the quick little hack to prm3xxx.c ? prcm IRQ is hardcoded
-> >to 11, once we switch to a linear irq domain, irq_base may change.
->=20
-> Yea, with that hack it works. However, you should make that into a proper
-> patch and add it to this series, otherwise you will be causing regression=
-s.
+[...]
 
-can you please read the thread ? Nishanth has a proper series properly
-doing that for OMAP4, I asking him to add OMAP3 and respin his series
-without RFC.
+>
+> Otherwise it is fine. I can make the changes and resend.
+>
+> cheers,
+> -roger
+>
+Yes please re-send. Thanks much.
 
---=20
-balbi
 
---CdrF4e02JqNVZeln
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJT25v/AAoJEIaOsuA1yqREiS0P/AoGDhuqicj/49uoLHq9d3L7
-88m2hoTIGMD5TM7xuYWCYK23YNnE/j8/gcDAGyctc73lbytzVU0Y12ZK7XOUji2u
-iz8GhMz2Q7fxjBCJYB56CbiZYCqA4mycezXgHNShuVXDQQJb/sqjLuoIih1Cdd2E
-nsoA2axA/IjbSPbH/VYEKroXIX7vvInZlH0oQVEegM1F/XRNcHoUq8ColWqkw9Hi
-7s6LgX3Zxv7zFJEOywElR659XZ9lbBMZeewGQoOOk3NcjTqWhXT8st/I/Mc1y8cq
-Vusaoj7av0DImJJTqGf8mRn92zR95RpIVUWT/Z/mEuyEC2zgjHV6XKxqpA77HWi0
-Tp5IsXA8ihkIfgco3PG5JPBrgUQ9muhT8tixGuXFur5OSK5ITVqJyOaj2Ixu1Iyp
-yYsvtPBzhqY4dHTcMHR2u3TB9zcrxZLKL24rOyvj7RHxTXli9srFN96l6wMz4dx2
-mozYkhimVqZjdOdRXvzD3gq0Efd/q56Y8U9EtQBhzNhq7llqNtoZyrpxJHW4co7t
-4Gxns5BLCx2C0ixDftKSnsZiFGO0VEvJ62fscEeGnSgBf2AucFBIkPcOdCrh2PSh
-Mh+3E7HD/btyfoMT7DcKPIJ4WMaDJsSpf8xLuPKLordwaPpoh3ZSiMio46Gp0jMV
-LKOANSX5dyXjmVMpuAR1
-=Mbkb
------END PGP SIGNATURE-----
-
---CdrF4e02JqNVZeln--
+with regards, pekon
