@@ -1,112 +1,125 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: dts: dra7-evm: add parallel NOR flash support
-Date: Fri, 1 Aug 2014 12:24:20 +0300
-Message-ID: <53DB5CC4.9090306@ti.com>
-References: <1406113130-23939-1-git-send-email-pekon@ti.com>	<53D7904C.20600@ti.com>	<CAK1JQxoJMAGqRCYxJBCLp0_0QN+t7COmxU01wSWVjPR0AY0LdQ@mail.gmail.com>	<53DA2BF1.3030008@ti.com>	<20140801063830.GC29045@atomide.com>	<53DB45DB.1020308@ti.com>	<20140801075436.GF29045@atomide.com> <CAK1JQxqheHvAx2RoM_=Go=2ReO93+DdaY-0mLL7bir0dGHctUA@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: fix gpmc_cs_remap: re-allocating chip-select
+ address space based on DT
+Date: Fri, 1 Aug 2014 14:00:25 +0300
+Message-ID: <53DB7349.4000105@ti.com>
+References: <1406139458-11676-1-git-send-email-pekon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42663 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47127 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754130AbaHAJYv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Aug 2014 05:24:51 -0400
-In-Reply-To: <CAK1JQxqheHvAx2RoM_=Go=2ReO93+DdaY-0mLL7bir0dGHctUA@mail.gmail.com>
+	id S1753060AbaHALBC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Aug 2014 07:01:02 -0400
+In-Reply-To: <1406139458-11676-1-git-send-email-pekon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Pekon Gupta <pekon.gupta@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, linux-mtd <linux-mtd@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>
 
-On 08/01/2014 11:22 AM, Pekon Gupta wrote:
-> On Fri, Aug 1, 2014 at 1:24 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * Roger Quadros <rogerq@ti.com> [140801 00:49]:
->>> On 08/01/2014 09:38 AM, Tony Lindgren wrote:
->>>> * Roger Quadros <rogerq@ti.com> [140731 04:46]:
->>>>> +Sourav for QSPI and Balaji for mmc
->>>>>
->>>>> On 07/30/2014 10:40 PM, Pekon Gupta wrote:
->>>>>> Hi Roger,
->>>>>>
->>>>>> On Tue, Jul 29, 2014 at 5:45 PM, Roger Quadros <rogerq@ti.com> wrote:
->>>>>>> On 07/23/2014 01:58 PM, Pekon Gupta wrote:
->>>>>>>> This patch adds support for parallel NOR device (S29GL512S10) present on J6-EVM.
->>>>>>>> The Flash device is connected to GPMC controller on chip-select[0] and accessed
->>>>>>>> as memory-mapped device. It has data-witdh=x16, capacity-64MBytes(512Mbits) and
->>>>>>>> is CFI compatible.
->>>>>>>> As multiple devices are share GPMC pins on this board, so following board
->>>>>>>> settings are required to detect NOR device:
->>>>>>>>      SW5.1 (NAND_BOOTn) = OFF (logic-1)
->>>>>>>>      SW5.2 (NOR_BOOTn)  = ON  (logic-0) /* Active-low */
->>>>>>>>      SW5.3 (eMMC_BOOTn) = OFF (logic-1)
->>>>>>>>      SW5.4 (QSPI_BOOTn) = OFF (logic-1)
->>>>>>>
->>>>>>> Why does NOR have any dependency on states of eMMC_BOOTn and QSPI_BOOTn?
->>>>>>>
->>>>>> If you see the schematics of J6-EVM, GPMC data and control lines are shared
->>>>>> between NAND, NOR, eMMC (and probably QSPI also).
->>>>>> I don't have access to TI's hardaware or board schematics anymore, so
->>>>>> please double check.
->>>>>
->>>>> I just took a deeper look in the schematics.
->>>>> It has nothing to do with GPMC Data and control lines but with the address lines.
->>>>> The GPMC address lines are muxed on the same pins of the SoC as QSPI and MMC2.
->>>>> i.e. A13-A18,CS2 for QSPI and A19-A27,CS1 for MMC2
->>>>>
->>>>> NAND can probably work simultaneously with QSPI and MMC2 but for NOR case, QSPI and MMC2
->>>>> need to be disabled.
->>>>>
->>>>> This is starting to look ugly where apart from changing the DIP switch the DTS has to be
->>>>> hand modified to support a certain case.
->>>>>
->>>>> Lets leave the most usable configuration for default case i.e. NAND, QSPI and MMC2 enabled and keep NOR information in the dts but keep it disabled with a note that if NOR is enabled then NAND, QSPI, and MMC2 nodes need to be disabled.
->>>>>
->>>>> I will resend this patch with the relevant changes.
->>>>
->>>> It might make sense for the gpmc driver to manage the pins in some
->>>> cases. That would allow dynamic muxing of the pins depending which
->>>> driver is loaded, or even during runtime if needed.
->>>
->>> It is more like a board configuration so something more generic than the gpmc driver has to manage.
->>> Also, QSPI and MMC don't fall under GPMC scope.
->>>
->>> There are 2 things that need to change to update the hardware configuration.
->>> 1) The pinmux via the enabling/disabling (or plugging in/out) of relevant nodes in the DT.
->>> 2) The I2C GPIOs which reconfigure the DIP Switch lines in order to reconfigure external Muxes.
->>
->> Oh OK, yeah gpmc should only manage gpmc pins, this would need
->> a separate driver for coordinating things.
->>
-> You need to also consider the case where multiple devices of different types
-> are connected to different chip-selects like;
-> - NAND on chip-select[0]
-> - NOR on chip-select[1]
+Hi Pekon,
 
-NOR and NAND are both on CS0 because GMPC boot only happens on CS0. So they cannot be used simultaneously on DRA7-EVM.
-
-> And with acceptance of 'Rostislav Lisovy''s patch [1] this
-> multi-device configuration
-> is possible on custom boards.
-
-Yep, as song as the devices are on different CS.
+On 07/23/2014 09:17 PM, Pekon Gupta wrote:
+> Each GPMC chip-select needs to be configured for (base-address,CS-size) so that
+> GPMC understands the address-space allocated to device connected externally.
+> These chip-select configurations (base-address, CS-size) follow some basic
+> mapping rules like:
+> - The CS size is programmable from 256 MBytes to 16 MBytes (must be a power of 2)
+>   and is defined by the mask field. Attached memory smaller than the programmed
+>   CS region size is accessed through the entire CS region (aliasing).
+> - The programmed 'base-address' must be aligned to the 'CS-size' boundary and
+>   be a power of 2.
+> - Valid CS-size values are {256MB(max), 128MB, 64MB, 32MB and 16MB (min)}
+>   Any intermediate values creates holes in the chip-select memory-map.
 > 
-> It would have been appropriate if pinctrl-probe was called from protocol drivers
-> (OMAP-NAND and NOR in this case). But I don't know if that's feasible even.
-> Also how drivers would handle probe conflicts arising with common pins.
-> Example: gpmc_ad[7:0] will be common to pin-mux of both NAND and NOR devices.
-
-GPMC devices always share Address, data and control lines. The Chip select line defines which chip is selected for GPMC access at any given moment. So there should be no conflict for multiple GPMC devices. And the pinmux conflict issue doesn't arise for them.
-
+> This patch adds above checks in gpmc_cs_remap() so that any invalid value
+> passed by DT <reg> property can be filtered before actually allocating the
+> address space.
 > 
-> Does pinctrl framework gives freedom to _ignore_ conflicts on already configured
-> pins, and continues with configuring remaining non-conflicting pins ?
+> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpmc.c | 42 +++++++++++++++++++++++++++++-------------
+>  1 file changed, 29 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 8bc1338..4a4cc04 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -521,26 +521,42 @@ static int gpmc_cs_delete_mem(int cs)
+>   * "base". Returns 0 on success and appropriate negative error code
+>   * on failure.
+>   */
+> -static int gpmc_cs_remap(int cs, u32 base)
+> +static int gpmc_cs_remap(int cs, u32 base, u32 size)
+>  {
+>  	int ret;
+> -	u32 old_base, size;
+>  
+>  	if (cs > gpmc_cs_num) {
+>  		pr_err("%s: requested chip-select is disabled\n", __func__);
+>  		return -ENODEV;
+>  	}
+>  
+> -	/*
+> -	 * Make sure we ignore any device offsets from the GPMC partition
+> -	 * allocated for the chip select and that the new base confirms
+> -	 * to the GPMC 16MB minimum granularity.
+> -	 */ 
+> -	base &= ~(SZ_16M - 1);
+> -
+> -	gpmc_cs_get_memconf(cs, &old_base, &size);
+> -	if (base == old_base)
+> -		return 0;
+> +	/* allocate enough address-space under GPMC chip-select to device */
+> +	if (size > SZ_256M) {
+> +		pr_err("%s: memory device > 256MB not supported\n", __func__);
+> +		return -ENODEV;
+> +	} else if (size > SZ_128M) {
+> +		WARN((size != SZ_256M), "cs=%d: allocating 256MB\n", cs);
+> +		size = SZ_256M;
+> +	} else if (size > SZ_64M) {
+> +		WARN((size != SZ_128M), "cs=%d: allocating 128MB\n", cs);
+> +		size = SZ_128M;
+> +	} else if (size > SZ_32M) {
+> +		WARN((size != SZ_64M), "cs=%d: allocating 64MB\n", cs);
+> +		size = SZ_64M;
+> +	} else if (size > SZ_16M) {
+> +		WARN((size != SZ_32M), "cs=%d: allocating 64MB\n", cs);
 
-I'm not sure. I think it just overrides the configuration if a new device uses the same pin configured by an earlier device.
+Print message should be "allocating 32MB"
 
-> If yes, then
-> moving pinctrl-probe to OMAP-NAND | NOR protocol driver should be more
-> appropriate.
+> +		size = SZ_32M;
+> +	} else {
+> +		WARN((size != SZ_16M), "cs=%d: allocating 64MB\n", cs);
 
-I don't think this is applicable now. 
+Print message should be "allocating 16MB"
+
+> +		size = SZ_16M;
+> +	}
+> +
+> +	/* base address should be aligned with address-space size */
+> +	if (base & (size - 1)) {
+> +		pr_err("base-addr=%x should be aligned to size=%x", base, size);
+> +		return -EINVAL;
+> +	}
+> +
+>  	gpmc_cs_disable_mem(cs);
+>  	ret = gpmc_cs_delete_mem(cs);
+>  	if (ret < 0)
+> @@ -1551,7 +1567,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+>  	 * CS to this location. Once DT migration is complete should
+>  	 * just make gpmc_cs_request() map a specific address.
+>  	 */
+> -	ret = gpmc_cs_remap(cs, res.start);
+> +	ret = gpmc_cs_remap(cs, res.start, resource_size(&res));
+>  	if (ret < 0) {
+>  		dev_err(&pdev->dev, "cannot remap GPMC CS %d to %pa\n",
+>  			cs, &res.start);
+> 
+
+Otherwise it is fine. I can make the changes and resend.
 
 cheers,
 -roger
+
