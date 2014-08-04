@@ -1,58 +1,31 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/1] ARM: OMAP: add external clock provider support
-Date: Mon, 4 Aug 2014 14:37:56 +0300
-Message-ID: <53DF7094.7050601@ti.com>
-References: <1406898948-26113-1-git-send-email-t-kristo@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 1/2] remoteproc: use a flag to detect the presence of IOMMU
+Date: Mon, 4 Aug 2014 14:50:47 +0300
+Message-ID: <CAK=Wgbbf5JNxzW16z=vXHi9D8Om1KnLEEr7hEw5T0oN7GuM=og@mail.gmail.com>
+References: <1404836521-59637-1-git-send-email-s-anna@ti.com>
+ <1404836521-59637-2-git-send-email-s-anna@ti.com> <CAK=Wgbawdik3ZB0Zbeaa7eXd7M+9ev9u713GcfOc4Gy0+O80Dg@mail.gmail.com>
+ <53D7C769.6080500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59593 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586AbaHDLjo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Aug 2014 07:39:44 -0400
-In-Reply-To: <1406898948-26113-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53D7C769.6080500@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Robert Tivy <rtivy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, sassmann@kpanic.de, jsarha@ti.com
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 08/01/2014 04:15 PM, Tero Kristo wrote:
-> Hi,
->=20
-> This patch adds possibility to register external clocks (outside the =
-main
-> SoC) on TI boards through device tree. Clock sources as such include =
-for
-> example twl-6030 / twl-6040 chips and variants which can be used to c=
-lock
-> for example audio / WLAN chips.
+On Tue, Jul 29, 2014 at 7:10 PM, Suman Anna <s-anna@ti.com> wrote:
+> We are trying to add a remoteproc driver for a small Cortex M3 called
+> the WkupM3 used for suspend/resume management on TI AM335/AM437x SoCs.
+> This processor does not have an MMU. Same is the case with another
+> processor subsystem PRU-ICSS on AM335/AM437x. All these are platform
+> devices, and the current iommu_present check will not scale for the same
+> kernel image to support OMAP4/OMAP5 and AM335/AM437x.
 
-Just one question to Mike and Tero:
-would it be possible to have generic binding for such an external clock=
-s?
-We have the palmas clock driver already upstream which handles the 32K =
-clocks
-from the PMIC. Palmas class of PMICs can be used with TI/nVidia(/Intel?=
-)
-platforms. We use Palmas on omap5-uevm, DRA7-EVM also uses Palmas compa=
-tible
-PMIC and some nVidia platform also uses this class of devices (and they=
- all
-need to have control over the 32K clock(s)).
+That's perfect, thanks. Can you please add this use case description
+to the commit log?
 
-> This patch can be queued once someone has a use-case + patches that r=
-equires
-> usage of such clocks.
->=20
-> -Tero
->=20
+This way we'll be able to recover it easily one day if needed.
 
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ohad.
