@@ -1,53 +1,58 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks
- handled by clock_ops domain
-Date: Mon, 4 Aug 2014 13:28:32 +0200
-Message-ID: <CAMuHMdVKDQz8q0b2UA7=1K8Qw4n3U0=M+mJyi5UQP7QZdC-JiQ@mail.gmail.com>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<53D68CC4.1010704@ti.com>
-	<CACxGe6uMke5vgzcNC9xUqjr2bHJ4QFHD6YjocSZWq8Ccx8Mm6A@mail.gmail.com>
-	<2717555.fiA6A86F65@avalon>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/1] ARM: OMAP: add external clock provider support
+Date: Mon, 4 Aug 2014 14:37:56 +0300
+Message-ID: <53DF7094.7050601@ti.com>
+References: <1406898948-26113-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <2717555.fiA6A86F65@avalon>
-Sender: linux-sh-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Grygorii Strashko <grygorii.strashko@ti.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Ulf Hansson <ulf.hansson@linaro.org>, Kevin Hilman <khilman@linaro.org>, Mike Turquette <mturquette@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59593 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751586AbaHDLjo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Aug 2014 07:39:44 -0400
+In-Reply-To: <1406898948-26113-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, mturquette@linaro.org, linux-omap@vger.kernel.org, sassmann@kpanic.de, jsarha@ti.com
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Laurent,
+On 08/01/2014 04:15 PM, Tero Kristo wrote:
+> Hi,
+>=20
+> This patch adds possibility to register external clocks (outside the =
+main
+> SoC) on TI boards through device tree. Clock sources as such include =
+for
+> example twl-6030 / twl-6040 chips and variants which can be used to c=
+lock
+> for example audio / WLAN chips.
 
-On Wed, Jul 30, 2014 at 2:06 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> The third option would require storing the clocks lists in device drivers. I
-> believe this is our best option, as a trade-off between simplicity and
-> versatility. Drivers that use runtime PM already need to enable it explicitly
-> when probing devices. Passing a list of clock names to runtime PM at that
-> point wouldn't complicate drivers much. When the clocks list isn't SoC-
-> dependent it could be stored as static information. Otherwise it could be
-> derived from DT (or any other source of hardware description) using C code,
-> offering all the versatility we need.
->
-> The only drawback of this solution I can think of right now is that the
-> runtime PM core couldn't manage device clocks before probing the device.
-> Specifically device clocks couldn't be managed if no driver is loaded for that
-> device. I somehow recall that someone raised this as being a problem, but I
-> can't remember why.
+Just one question to Mike and Tero:
+would it be possible to have generic binding for such an external clock=
+s?
+We have the palmas clock driver already upstream which handles the 32K =
+clocks
+from the PMIC. Palmas class of PMICs can be used with TI/nVidia(/Intel?=
+)
+platforms. We use Palmas on omap5-uevm, DRA7-EVM also uses Palmas compa=
+tible
+PMIC and some nVidia platform also uses this class of devices (and they=
+ all
+need to have control over the 32K clock(s)).
 
-Perhaps you're thinking of clocks that were enabled (by the boot loader or
-implicit reset state) before running Linux, and aren't disabled?
+> This patch can be queued once someone has a use-case + patches that r=
+equires
+> usage of such clocks.
+>=20
+> -Tero
+>=20
 
-That was fixed by commit bb178da701382a230e26d90cf94e8a24b280e0d9
-("clk: shmobile: mstp: Fix the is_enabled() operation").
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
+--=20
+P=E9ter
 --
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
