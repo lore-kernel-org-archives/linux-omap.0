@@ -1,54 +1,30 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH v3 1/7] ARM: l2c: Refactor the driver to use commit-like
- interface
-Date: Sun, 03 Aug 2014 00:16:13 +0200
-Message-ID: <53DD632D.6070308@gmail.com>
-References: <1405615142-21426-1-git-send-email-t.figa@samsung.com> <1405615142-21426-2-git-send-email-t.figa@samsung.com> <20140802220940.GW3705@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Hans Wennborg <hans@hanshq.net>
+Subject: [PATCH 01/19] ARM: OMAP: fix %d confusingly prefixed with 0x in format string
+Date: Sun,  3 Aug 2014 17:18:03 -0700
+Message-ID: <1407111483-14512-1-git-send-email-hans@hanshq.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140802220940.GW3705@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tomasz Figa <t.figa@samsung.com>
-Cc: linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, Marek Szyprowski <m.szyprowski@samsung.com>, loeliger@gmail.com
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Hans Wennborg <hans@hanshq.net>
 List-Id: linux-omap@vger.kernel.org
 
-On 03.08.2014 00:09, Russell King - ARM Linux wrote:
-> On Thu, Jul 17, 2014 at 06:38:56PM +0200, Tomasz Figa wrote:
->> Certain implementations of secure hypervisors (namely the one found on
->> Samsung Exynos-based boards) do not provide access to individual L2C
->> registers. This makes the .write_sec()-based interface insufficient and
->> provoking ugly hacks.
->>
->> This patch is first step to make the driver not rely on availability of
->> writes to individual registers. This is achieved by refactoring the
->> driver to use a commit-like operation scheme: all register values are
->> prepared first and stored in an instance of l2x0_regs struct and then a
->> single callback is responsible to flush those values to the hardware.
-> 
-> This isn't going to work very well...
-> 
->> +static const struct l2c_init_data *l2x0_data;
-> 
-> So you keep a pointer to the init data...
-> 
->> +static void l2c_resume(void)
->> +{
->> +	l2x0_data->enable(l2x0_base, l2x0_saved_regs.aux_ctrl,
->> +				l2x0_data->num_lock);
-> 
-> which you dereference at resume time...
-> 
->>  static const struct l2c_init_data l2c210_data __initconst = {
-> 
-> but the structures which get assigned to the pointer are marked __initconst.
+Signed-off-by: Hans Wennborg <hans@hanshq.net>
+---
+ arch/arm/mach-omap2/id.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Good catch. The code was tested on Exynos which requires the cache to be
-resumed from early assembly code and so I did not hit issues caused by this.
-
-Proposed solution: kmemdup() in init, so that only used data remain in
-memory and the structures can be kept __initconst.
-
-Best regards,
-Tomasz
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index d42022f..53841de 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -663,7 +663,7 @@ void __init dra7xxx_check_revision(void)
+ 
+ 	default:
+ 		/* Unknown default to latest silicon rev as default*/
+-		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%d)\n",
++		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%x)\n",
+ 			__func__, idcode, hawkeye, rev);
+ 		omap_revision = DRA752_REV_ES1_1;
+ 	}
+-- 
+2.0.0.526.g5318336
