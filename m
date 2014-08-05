@@ -1,41 +1,59 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 1/2] remoteproc: use a flag to detect the presence of IOMMU
-Date: Tue, 5 Aug 2014 10:05:13 +0300
-Message-ID: <CAK=WgbY5GGngd57=EBp+8_4djzMb5gZSOq0aQ9=vcpm-E9YQww@mail.gmail.com>
-References: <1404836521-59637-1-git-send-email-s-anna@ti.com>
- <1404836521-59637-2-git-send-email-s-anna@ti.com> <CAK=Wgbawdik3ZB0Zbeaa7eXd7M+9ev9u713GcfOc4Gy0+O80Dg@mail.gmail.com>
- <53D7C769.6080500@ti.com> <CAK=Wgbbf5JNxzW16z=vXHi9D8Om1KnLEEr7hEw5T0oN7GuM=og@mail.gmail.com>
- <53DFAB68.6020903@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/3] [PATCH 0/3] mtd: nand: omap: Use Software ECC by default
+Date: Tue, 5 Aug 2014 13:11:19 +0300
+Message-ID: <1407233482-11642-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:46995 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756021AbaHEHFd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2014 03:05:33 -0400
-Received: by mail-ie0-f182.google.com with SMTP id y20so575418ier.41
-        for <linux-omap@vger.kernel.org>; Tue, 05 Aug 2014 00:05:33 -0700 (PDT)
-In-Reply-To: <53DFAB68.6020903@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51606 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933145AbaHEKMl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Aug 2014 06:12:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Robert Tivy <rtivy@ti.com>
+To: computersforpeace@gmail.com, tony@atomide.com
+Cc: balbi@ti.com, ezequiel.garcia@free-electrons.com, pekon.gupta@gmail.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-On Mon, Aug 4, 2014 at 6:48 PM, Suman Anna <s-anna@ti.com> wrote:
-> On 08/04/2014 06:50 AM, Ohad Ben-Cohen wrote:
->> On Tue, Jul 29, 2014 at 7:10 PM, Suman Anna <s-anna@ti.com> wrote:
->>> We are trying to add a remoteproc driver for a small Cortex M3 called
->>> the WkupM3 used for suspend/resume management on TI AM335/AM437x SoCs.
->>> This processor does not have an MMU. Same is the case with another
->>> processor subsystem PRU-ICSS on AM335/AM437x. All these are platform
->>> devices, and the current iommu_present check will not scale for the same
->>> kernel image to support OMAP4/OMAP5 and AM335/AM437x.
->>
->> That's perfect, thanks. Can you please add this use case description
->> to the commit log?
->
-> I kept the current description generic, but sure, I can add this
-> specific usecase examples to the commit log. I will post the revised
-> patches once rc1 is out.
+Hi,
 
-Thanks!
+In Linux v3.12 and earlier some boards [1] used Software based ECC as
+the NAND ECC scheme. In 3.13 commit c66d039197e4 changed that to
+Hardware ECC using ROM code ECC layout. This will cause NAND filesystems
+created in 3.12 and earlier to be unreadable in v3.13 and later till
+they are erased and re-created.
+
+This series fixes this issue by using Software ECC as the default ECC
+scheme for the affected boards.
+
+Tested on omap3beagle.
+
+[1] - Affected boards
+-omap3beagle
+-omap3touchbook
+-overo
+-am3517crane
+-devkit8000
+-ldp
+-3430sdp
+
+cheers,
+-roger
+
+---
+Roger Quadros (3):
+  mtd: nand: omap: Revert to using software ECC by default
+  ARM: OMAP2+: GPMC: Support Software ECC scheme via DT
+  ARM: dts: omap3430-sdp: Revert to using software ECC for NAND
+
+ Documentation/devicetree/bindings/mtd/gpmc-nand.txt |  2 +-
+ arch/arm/boot/dts/omap3430-sdp.dts                  |  2 +-
+ arch/arm/mach-omap2/board-flash.c                   |  2 +-
+ arch/arm/mach-omap2/gpmc-nand.c                     |  3 ++-
+ arch/arm/mach-omap2/gpmc.c                          |  7 +++++--
+ drivers/mtd/nand/omap2.c                            | 14 +++++++++++---
+ include/linux/platform_data/mtd-nand-omap2.h        | 13 +++++++++++--
+ 7 files changed, 32 insertions(+), 11 deletions(-)
+
+-- 
+1.8.3.2
+
