@@ -1,50 +1,32 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 1/3] mtd: nand: omap: Revert to using software ECC by default
-Date: Tue, 5 Aug 2014 19:15:31 +0300
-Message-ID: <CANOLnOM-Q4b8N5T522Vc_gXTSj2C-mxV6GV0hRTDPscpPgXO6A@mail.gmail.com>
-References: <1407233482-11642-1-git-send-email-rogerq@ti.com>
-	<1407233482-11642-2-git-send-email-rogerq@ti.com>
+From: Michael Welling <mwelling@emacinc.com>
+Subject: TSC2004 driver
+Date: Tue, 5 Aug 2014 12:06:40 -0500
+Message-ID: <20140805170640.GA8830@sysresccd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1407233482-11642-2-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, pekon.gupta@gmail.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:33997 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754829AbaHERGr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Aug 2014 13:06:47 -0400
+Received: by mail-ie0-f176.google.com with SMTP id tr6so1418550ieb.35
+        for <linux-omap@vger.kernel.org>; Tue, 05 Aug 2014 10:06:47 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, hvaibhav@ti.com
 
-On Tue, Aug 5, 2014 at 1:11 PM, Roger Quadros <rogerq@ti.com> wrote:
-> For v3.12 and prior, 1-bit Hamming code ECC via software was the
-> default choice. Commit c66d039197e4 in v3.13 changed the behaviour
-> to use 1-bit Hamming code via Hardware using a different ECC layout
-> i.e. (ROM code layout) than what is used by software ECC.
->
-> This ECC layout change causes NAND filesystems created in v3.12
-> and prior to be unusable in v3.13 and later. So revert back to
-> using software ECC by default if an ECC scheme is not explicitely
-> specified.
->
-> This defect can be observed on the following boards during legacy boo=
-t
->
-> -omap3beagle
-> -omap3touchbook
-> -overo
-> -am3517crane
-> -devkit8000
-> -ldp
-> -3430sdp
+The TSC2004 driver has yet to appear in the mainline kernel. We have
+been using the driver referenced here as provided by TI:
 
-omap3pandora is also using sw ecc, with ubifs. Some time ago I tried
-booting mainline (I think it was 3.14) with rootfs on NAND, and while
-it did boot and reached a shell, there were lots of ubifs errors, fs
-got corrupted and I lost all my data. I used to be able to boot
-mainline this way fine sometime ~3.8 release. It's interesting that
-3.14 was able to read the data, even with wrong ecc setup.
+https://www.mail-archive.com/linux-omap@vger.kernel.org/msg22018.html
 
-Do you think it's safe again to boot ubifs created on 3.2 after
-applying this series?
+Are there any plans of supporting this device in the mainline kernel?
 
---=20
-Gra=C5=BEvydas
+Mysteriously a device tree entry was found in the following file:
+arch/arm/boot/dts/omap4-var-som-om44.dtsi
+
+This is obviously pointing to an out of tree driver that is not easily
+obtained.
+
+Suggestions?
