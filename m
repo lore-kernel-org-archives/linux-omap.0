@@ -1,59 +1,44 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/3] [PATCH 0/3] mtd: nand: omap: Use Software ECC by default
-Date: Tue, 5 Aug 2014 13:11:19 +0300
-Message-ID: <1407233482-11642-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 3/3] ARM: dts: omap3430-sdp: Revert to using software ECC for NAND
+Date: Tue, 5 Aug 2014 13:11:22 +0300
+Message-ID: <1407233482-11642-4-git-send-email-rogerq@ti.com>
+References: <1407233482-11642-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51606 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933145AbaHEKMl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Aug 2014 06:12:41 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1407233482-11642-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: computersforpeace@gmail.com, tony@atomide.com
 Cc: balbi@ti.com, ezequiel.garcia@free-electrons.com, pekon.gupta@gmail.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+For v3.14 and prior, 1-bit Hamming code ECC via software was used
+for NAND on this board.
+Commit c06c52701695 in v3.15 changed the behaviour
+to use 1-bit Hamming code via Hardware using a different ECC layout
+i.e. (ROM code layout) than what is used by software ECC.
 
-In Linux v3.12 and earlier some boards [1] used Software based ECC as
-the NAND ECC scheme. In 3.13 commit c66d039197e4 changed that to
-Hardware ECC using ROM code ECC layout. This will cause NAND filesystems
-created in 3.12 and earlier to be unreadable in v3.13 and later till
-they are erased and re-created.
+This ECC layout change causes NAND filesystems created in v3.14
+and prior to be unusable in v3.15 and later. So revert back to
+using software ECC scheme.
 
-This series fixes this issue by using Software ECC as the default ECC
-scheme for the affected boards.
-
-Tested on omap3beagle.
-
-[1] - Affected boards
--omap3beagle
--omap3touchbook
--overo
--am3517crane
--devkit8000
--ldp
--3430sdp
-
-cheers,
--roger
-
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
-Roger Quadros (3):
-  mtd: nand: omap: Revert to using software ECC by default
-  ARM: OMAP2+: GPMC: Support Software ECC scheme via DT
-  ARM: dts: omap3430-sdp: Revert to using software ECC for NAND
+ arch/arm/boot/dts/omap3430-sdp.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- Documentation/devicetree/bindings/mtd/gpmc-nand.txt |  2 +-
- arch/arm/boot/dts/omap3430-sdp.dts                  |  2 +-
- arch/arm/mach-omap2/board-flash.c                   |  2 +-
- arch/arm/mach-omap2/gpmc-nand.c                     |  3 ++-
- arch/arm/mach-omap2/gpmc.c                          |  7 +++++--
- drivers/mtd/nand/omap2.c                            | 14 +++++++++++---
- include/linux/platform_data/mtd-nand-omap2.h        | 13 +++++++++++--
- 7 files changed, 32 insertions(+), 11 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
+index 02f69f4..9bad94e 100644
+--- a/arch/arm/boot/dts/omap3430-sdp.dts
++++ b/arch/arm/boot/dts/omap3430-sdp.dts
+@@ -107,7 +107,7 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		reg = <1 0 0x08000000>;
+-		ti,nand-ecc-opt = "ham1";
++		ti,nand-ecc-opt = "sw";
+ 		nand-bus-width = <8>;
+ 		gpmc,cs-on-ns = <0>;
+ 		gpmc,cs-rd-off-ns = <36>;
 -- 
 1.8.3.2
-
