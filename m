@@ -1,73 +1,38 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 3/9] drm/tilcdc: Add I2S HDMI audio config for tda998x
-Date: Wed, 6 Aug 2014 16:47:18 +0300
-Message-ID: <6809e37af0cd57f89e5f9103ae616d51f3b06e12.1407332062.git.jsarha@ti.com>
+Subject: [PATCH 9/9] ARM: OMAP2+: omap2plus_defconfig: Enable BeagleBone Black HDMI audio support
+Date: Wed, 6 Aug 2014 16:47:24 +0300
+Message-ID: <4258f2c0f4bf3decf18ae01349fbcdc2261db995.1407332062.git.jsarha@ti.com>
 References: <cover.1407332062.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57011 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753451AbaHFNrh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Aug 2014 09:47:37 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1407332062.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, mturquette@linaro.org, dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com
 Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, zonque@gmail.com, t-kristo@ti.com, Jyri Sarha <jsarha@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The configuration is needed for HDMI audio. The "swap" and "mirr"
-parameters have to be correctly set in the configuration in order to
-have proper colors in the HDMI picture.
+Select CONFIG_SND_EDMA_SOC=m and CONFIG_SND_AM335X_SOC_NXPTDA_EVM=m
+for BBB HDMI audio.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_slave.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ arch/arm/configs/omap2plus_defconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-index 595068b..e43240a 100644
---- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-@@ -19,6 +19,7 @@
- #include <linux/pinctrl/pinmux.h>
- #include <linux/pinctrl/consumer.h>
- #include <drm/drm_encoder_slave.h>
-+#include <drm/i2c/tda998x.h>
- 
- #include "tilcdc_drv.h"
- 
-@@ -111,8 +112,29 @@ static const struct drm_encoder_helper_funcs slave_encoder_helper_funcs = {
- 		.restore        = drm_i2c_encoder_restore,
- };
- 
-+static struct tda998x_encoder_params tda998x_pdata = {
-+	.swap_b = 0x3,
-+	.mirr_b = 0x0,
-+	.swap_a = 0x2,
-+	.mirr_a = 0x0,
-+	.swap_d = 0x1,
-+	.mirr_d = 0x0,
-+	.swap_c = 0x0,
-+	.mirr_c = 0x0,
-+	.swap_f = 0x5,
-+	.mirr_f = 0x0,
-+	.swap_e = 0x4,
-+	.mirr_e = 0x0,
-+	.audio_cfg = 0x3,	/* I2S mode */
-+	.audio_clk_cfg = 1,	/* select clock pin */
-+	.audio_frame[1] = 1,	/* channels - 1 */
-+	.audio_format = AFMT_I2S,
-+	.audio_sample_rate = 48000,
-+};
-+
- static const struct i2c_board_info info = {
--		I2C_BOARD_INFO("tda998x", 0x70)
-+		I2C_BOARD_INFO("tda998x", 0x70),
-+		.platform_data = &tda998x_pdata,
- };
- 
- static struct drm_encoder *slave_encoder_create(struct drm_device *dev,
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 8b07fda..73dbfad 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -222,7 +222,9 @@ CONFIG_SND_DEBUG=y
+ CONFIG_SND_USB_AUDIO=m
+ CONFIG_SND_SOC=m
+ CONFIG_SND_OMAP_SOC=m
++CONFIG_SND_EDMA_SOC=m
+ CONFIG_SND_AM33XX_SOC_EVM=m
++CONFIG_SND_AM335X_SOC_NXPTDA_EVM=m
+ CONFIG_SND_DAVINCI_SOC=m
+ CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+ CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
 -- 
 1.7.9.5
-
