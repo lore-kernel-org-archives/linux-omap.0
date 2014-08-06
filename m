@@ -1,64 +1,54 @@
-From: Joachim Eastwood <manabian@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Subject: Re: TSC2004 driver
-Date: Wed, 6 Aug 2014 22:33:18 +0200
-Message-ID: <CAGhQ9Vy7AhWkAR3ZMxoWnbZ_zpOPvqcL93fqQ=YkpuULO3MVzQ@mail.gmail.com>
+Date: Wed, 6 Aug 2014 14:16:26 -0700
+Message-ID: <20140806211626.GC22889@core.coreip.homeip.net>
 References: <20140805170640.GA8830@sysresccd>
-	<20140806193727.GB24718@core.coreip.homeip.net>
+ <20140806193727.GB24718@core.coreip.homeip.net>
+ <CAGhQ9Vy7AhWkAR3ZMxoWnbZ_zpOPvqcL93fqQ=YkpuULO3MVzQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20140806193727.GB24718@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Michael Welling <mwelling@emacinc.com>, linux-omap <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:60914 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753608AbaHFVQa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Aug 2014 17:16:30 -0400
+Content-Disposition: inline
+In-Reply-To: <CAGhQ9Vy7AhWkAR3ZMxoWnbZ_zpOPvqcL93fqQ=YkpuULO3MVzQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joachim Eastwood <manabian@gmail.com>
+Cc: Michael Welling <mwelling@emacinc.com>, linux-omap <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On 6 August 2014 21:37, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
-> Hi Michael,
->
-> On Tue, Aug 05, 2014 at 12:06:40PM -0500, Michael Welling wrote:
->> The TSC2004 driver has yet to appear in the mainline kernel. We have
->> been using the driver referenced here as provided by TI:
->>
->> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg22018.html
->>
->> Are there any plans of supporting this device in the mainline kernel?
->
-> I still believe that support for TSC2004 should be added 5to tsc2007, they are
-> too much alike to be separate drivers.
+On Wed, Aug 06, 2014 at 10:33:18PM +0200, Joachim Eastwood wrote:
+> On 6 August 2014 21:37, Dmitry Torokhov <dmitry.torokhov@gmail.com> wrote:
+> > Hi Michael,
+> >
+> > On Tue, Aug 05, 2014 at 12:06:40PM -0500, Michael Welling wrote:
+> >> The TSC2004 driver has yet to appear in the mainline kernel. We have
+> >> been using the driver referenced here as provided by TI:
+> >>
+> >> https://www.mail-archive.com/linux-omap@vger.kernel.org/msg22018.html
+> >>
+> >> Are there any plans of supporting this device in the mainline kernel?
+> >
+> > I still believe that support for TSC2004 should be added 5to tsc2007, they are
+> > too much alike to be separate drivers.
+> 
+> I tried to add tsc2004 support to the tsc2007 driver but I didn't
+> really get it to work properly because the tsc2007 interrupt handling
+> differs from what tsc2004 needs.
 
-I tried to add tsc2004 support to the tsc2007 driver but I didn't
-really get it to work properly because the tsc2007 interrupt handling
-differs from what tsc2004 needs.
+OK.
 
-I think it would be better to add tsc2004 support to the tsc2005
-driver. They only difference between those two chips is the interface
-(i2c vs spi). If regmap was added to tsc2005 I think it should be easy
-to support tsc2004.
+> 
+> I think it would be better to add tsc2004 support to the tsc2005
+> driver. They only difference between those two chips is the interface
+> (i2c vs spi). If regmap was added to tsc2005 I think it should be easy
+> to support tsc2004.
 
->>
->> Mysteriously a device tree entry was found in the following file:
->> arch/arm/boot/dts/omap4-var-som-om44.dtsi
->>
->> This is obviously pointing to an out of tree driver that is not easily
->> obtained.
+That would also be acceptable.
 
-I have patches that add tsc2004 support to the tsc2007 driver, but I
-really can't recommend them. The interrupt handling is broken so for
-each touch event the chip needs to be software reset...
+Thanks.
 
-The driver you posted a link to above also has flaw btw.
-
-regards
-Joachim Eastwood
-
->> Suggestions?
->
-> Thanks.
->
-> --
-> Dmitry
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Dmitry
