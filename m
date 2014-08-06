@@ -1,168 +1,71 @@
-From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: Re: [PATCH v14 0/6] mmc: omap_hsmmc: Enable SDIO IRQ
-Date: Wed, 06 Aug 2014 09:18:39 +0300
-Message-ID: <53E1C8BF.8020209@compulab.co.il>
-References: <1401352085-22781-1-git-send-email-afenkart@gmail.com> <CAPDyKFrFoDabt=2eC_p7SsDB1x+DNKdAY4V9xTTJ4XNnAaQ4oA@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/3] mtd: nand: omap: Revert to using software ECC by
+ default
+Date: Wed, 6 Aug 2014 11:02:42 +0300
+Message-ID: <53E1E122.4050308@ti.com>
+References: <1407233482-11642-1-git-send-email-rogerq@ti.com>	<1407233482-11642-2-git-send-email-rogerq@ti.com> <CANOLnOM-Q4b8N5T522Vc_gXTSj2C-mxV6GV0hRTDPscpPgXO6A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFrFoDabt=2eC_p7SsDB1x+DNKdAY4V9xTTJ4XNnAaQ4oA@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Andreas Fenkart <afenkart@gmail.com>, Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANOLnOM-Q4b8N5T522Vc_gXTSj2C-mxV6GV0hRTDPscpPgXO6A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, pekon.gupta@gmail.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Gra=C5=BEvydas,
 
-I did not find this patch set in Chris MMC tree.
-I did succeed to locate it in Linaro repo only.
+On 08/05/2014 07:15 PM, Grazvydas Ignotas wrote:
+> On Tue, Aug 5, 2014 at 1:11 PM, Roger Quadros <rogerq@ti.com> wrote:
+>> For v3.12 and prior, 1-bit Hamming code ECC via software was the
+>> default choice. Commit c66d039197e4 in v3.13 changed the behaviour
+>> to use 1-bit Hamming code via Hardware using a different ECC layout
+>> i.e. (ROM code layout) than what is used by software ECC.
+>>
+>> This ECC layout change causes NAND filesystems created in v3.12
+>> and prior to be unusable in v3.13 and later. So revert back to
+>> using software ECC by default if an ECC scheme is not explicitely
+>> specified.
+>>
+>> This defect can be observed on the following boards during legacy bo=
+ot
+>>
+>> -omap3beagle
+>> -omap3touchbook
+>> -overo
+>> -am3517crane
+>> -devkit8000
+>> -ldp
+>> -3430sdp
+>=20
+> omap3pandora is also using sw ecc, with ubifs. Some time ago I tried
+> booting mainline (I think it was 3.14) with rootfs on NAND, and while
+> it did boot and reached a shell, there were lots of ubifs errors, fs
+> got corrupted and I lost all my data. I used to be able to boot
+> mainline this way fine sometime ~3.8 release. It's interesting that
+> 3.14 was able to read the data, even with wrong ecc setup.
 
-When it will be merged in the mainline?
+This is due to another bug introduced in 3.7 by commit 65b97cf6b8deca3a=
+d7a3e00e8316bb89617190fb.
+Because of that bug (i.e. inverted CS_MASK in omap_calculate_ecc), omap=
+_calculate_ecc() always fails with -EINVAL and calculated ECC bytes are=
+ always 0. I'll be sending a patch to fix that as well. But that will o=
+nly affect the cases where OMAP_ECC_HAM1_CODE_HW is used which happened=
+ for pandora from 3.13 onwards.
 
-We are using SDIO IRQ patch with OMAP5 board and it is really useful.
+>=20
+> Do you think it's safe again to boot ubifs created on 3.2 after
+> applying this series?
+>=20
 
-Andreas, thank you.
+Yes. If you boot pandora using legacy boot (non DT method), it passes 0=
+ for .ecc_opt in pandora_nand_data. This used to mean OMAP_ECC_HAMMING_=
+CODE_DEFAULT which is software ecc. i.e. NAND_ECC_SOFT with default ECC=
+ layout. Until the above mentioned commits changed the meaning. We now =
+call that option OMAP_ECC_HAM1_CODE_SW.
 
-Regards,
+Please let me know if it works for you. Thanks.
 
-Dmitry
-
-
-On 06/16/2014 12:26 PM, Ulf Hansson wrote:
-> On 29 May 2014 10:27, Andreas Fenkart <afenkart@gmail.com> wrote:
->> Hi Balaji, Tony, Ulf, all
->>
->> v14
->> - drop all ifdef/endif introduced by v13
->> -- rely on pinctrl_lookup_state to prevent ifdef CONFIG_PM
->> -- benefit: all code is compile tested no matter the configuration
->> -- drawback: require wake_irq/pinctrl configuration even when
->>     runtime suspend is not configured
->> - drop runtime state from debugfs output
->> - rebased onto current mmc-next 06732b84b4cf
->
-> Thanks! Applied for next.
->
-> Kind regards
-> Ulf Hansson
->
->>
->> v13
->> - fix compile breaks if !CONFIG_PM
->> - additional patch: install dummy pm runtime hooks if !CONFIG_PM_RUN=
-TIME
->>
->> v12
->> - drop !CONFIG_OF compile break only exists when
->>    #undef CONFIG_OF after include headers 1/7(Sebastian Reichel)
->> - do not emit "falling back to polling" if wake_irq not specified
->>    since MMC does not need it, and it might confuse users
->>    only emit if pinmux default/idle is not present or claiming
->>    the irq failed 2/7(Balaji)
->> - dropped out-of-tree patches 6/7(Balaji)
->> - mention "ti,am33xx-hsmmc" compatible section in bindings
->>    documentation 1/5
->>
->> v11
->> - split !CONFIG_OF compile break into separate patch
->> - enable IWE/CLKEXTFREE in CON/HCTL register needed for omap4
->> - '&' vs '&&' in omap_hsmmc_resume, 1/5 (Andreas M=C3=BCller)
->> - #define DLEV_DAT instead of BIT(21) 2/5 (Balaji)
->> - pinctrl_pm_select_default_state() removed, 4/5 (Balaji)
->> - drop _irqsave/_irqrestore from omap_hsmmc_wake_irq handler since i=
-t
->>    can't be preempted by same priority omap_hsmmc_irq handler 1/5(Jo=
-el Fernandes)
->> - replace devres_open_group by explicit devm_free calls 1/5 (Balaji)
->> - disable_irq_nosync wake_irq since we handle it thread safe 1/5 (Ba=
-laji)
->> - drop 'gpio_dat1' pinctrl states and rework documentation 5/5 (Bala=
-ji)
->>
->> v10
->> - bug fix on multi-core, untested
->> - incorporated changes from Balaji
->> - use devres / RAII mechanism to configure wake_up /
->>    sdio irq capabilities
->> - drop pinctrl state 'active'
->>    rely on driver-model states 'default', 'idle'
->> - add specific 'gpio_dat1' state for am335x SWAKEUP hack
->> - reorganized patches; +1 patch multi-core bugfix / +1 for pinctrl
->> - rebased 455c6fdbd21916 / cherry-picks from mmc-next
->>
->> v9
->> - extended comment about why wake-irq is needed
->> - drop double '(' ')' around card_detect_irq
->> - drop final '.' in in subject line of patch
->>
->> v8
->> - rebased on top of Tony Lindgren<tony@atomide.com> changes
->>    - improved changelog describing the earlier work
->>    - improved wakeup irq setup
->>    - works for am3730 es platform now
->> - my changes on top:
->>    - compile tested with #undef CONFIG_OF
->>    - disable wake_irq in handler to prevent infinite loop
->>    - fixed typo and added comment about wake-irq
->>
->> v7
->> - rebase on 3.14.0-rc3-49726-g77e15ec
->> - split omap_hsmmc_pin_init due to regression on omap-3730 platform
->>
->> v6
->> - rebase on Linux 3.13-rc3
->> - reformatting debugfs
->>
->> v5
->> - fix compile error introduced by last minute one line fix
->>
->> v4:
->> - switch to interrupts-extended format
->> - drop ti,swakeup-missing flag convert to comaptible section
->>
->> v3:
->> - removed gpio_irq from platform_data
->>
->> v2:
->> - incorparated changes as suggested by reviewers
->> - simplified workaround for am335x, gpio will now only wake
->>    the module from runtime suspend, not handle the sdio irq
->>    itself
->>
->> Andreas Fenkart (6):
->>    mmc: omap_hsmmc: Enable SDIO interrupt
->>    mmc: omap_hsmmc: Extend debugfs by SDIO IRQ handling, runtime sta=
-te
->>    mmc: omap_hsmmc: enable wakeup event for sdio OMAP4
->>    mmc: omap_hsmmc: abort runtime suspend if pending sdio irq detect=
-ed
->>    mmc: omap_hsmmc: switch default/idle pinctrl states in runtime ho=
-oks
->>    mmc: omap_hsmmc: Pin remux workaround to support SDIO interrupt o=
-n
->>      AM335x
->>
->>   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   54 ++++
->>   drivers/mmc/host/omap_hsmmc.c                      |  283 ++++++++=
-++++++++++--
->>   include/linux/platform_data/mmc-omap.h             |    1 +
->>   3 files changed, 317 insertions(+), 21 deletions(-)
->>
->> --
->> 1.7.10.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-mmc"=
- in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-
+cheers,
+-roger
