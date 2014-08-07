@@ -1,89 +1,62 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 1/3] mtd: nand: omap: Revert to using software ECC by default
-Date: Thu, 7 Aug 2014 01:55:06 +0300
-Message-ID: <CANOLnOOA5c-B9rn5LR2HGyfUW+D1UzjRE7EAL-cYsZ4NYuCaXg@mail.gmail.com>
-References: <1407233482-11642-1-git-send-email-rogerq@ti.com>
-	<1407233482-11642-2-git-send-email-rogerq@ti.com>
-	<CANOLnOM-Q4b8N5T522Vc_gXTSj2C-mxV6GV0hRTDPscpPgXO6A@mail.gmail.com>
-	<53E1E122.4050308@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 04/13] OMAPDSS: hdmi: Make hdmi structure public
+Date: Thu, 7 Aug 2014 10:04:27 +0300
+Message-ID: <53E324FB.7060000@ti.com>
+References: <cover.1403894190.git.jsarha@ti.com> <536afa4069bd73195b05aee3097c86d7e517ae7e.1403894190.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53E1E122.4050308@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, pekon.gupta@gmail.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="mO8tOErt0ND4aRjh2qJqpRa9U8GsXWd2F"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53619 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753799AbaHGHEq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2014 03:04:46 -0400
+In-Reply-To: <536afa4069bd73195b05aee3097c86d7e517ae7e.1403894190.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, detheridge@ti.com, jyri.sarha@iki.fi
 
-On Wed, Aug 6, 2014 at 11:02 AM, Roger Quadros <rogerq@ti.com> wrote:
-> Hi Gra=C5=BEvydas,
->
-> On 08/05/2014 07:15 PM, Grazvydas Ignotas wrote:
->> On Tue, Aug 5, 2014 at 1:11 PM, Roger Quadros <rogerq@ti.com> wrote:
->>> For v3.12 and prior, 1-bit Hamming code ECC via software was the
->>> default choice. Commit c66d039197e4 in v3.13 changed the behaviour
->>> to use 1-bit Hamming code via Hardware using a different ECC layout
->>> i.e. (ROM code layout) than what is used by software ECC.
->>>
->>> This ECC layout change causes NAND filesystems created in v3.12
->>> and prior to be unusable in v3.13 and later. So revert back to
->>> using software ECC by default if an ECC scheme is not explicitely
->>> specified.
->>>
->>> This defect can be observed on the following boards during legacy b=
-oot
->>>
->>> -omap3beagle
->>> -omap3touchbook
->>> -overo
->>> -am3517crane
->>> -devkit8000
->>> -ldp
->>> -3430sdp
->>
->> omap3pandora is also using sw ecc, with ubifs. Some time ago I tried
->> booting mainline (I think it was 3.14) with rootfs on NAND, and whil=
-e
->> it did boot and reached a shell, there were lots of ubifs errors, fs
->> got corrupted and I lost all my data. I used to be able to boot
->> mainline this way fine sometime ~3.8 release. It's interesting that
->> 3.14 was able to read the data, even with wrong ecc setup.
->
-> This is due to another bug introduced in 3.7 by commit 65b97cf6b8deca=
-3ad7a3e00e8316bb89617190fb.
-> Because of that bug (i.e. inverted CS_MASK in omap_calculate_ecc), om=
-ap_calculate_ecc() always fails with -EINVAL and calculated ECC bytes a=
-re always 0. I'll be sending a patch to fix that as well. But that will=
- only affect the cases where OMAP_ECC_HAM1_CODE_HW is used which happen=
-ed for pandora from 3.13 onwards.
->
->>
->> Do you think it's safe again to boot ubifs created on 3.2 after
->> applying this series?
->>
->
-> Yes. If you boot pandora using legacy boot (non DT method), it passes=
- 0 for .ecc_opt in pandora_nand_data. This used to mean OMAP_ECC_HAMMIN=
-G_CODE_DEFAULT which is software ecc. i.e. NAND_ECC_SOFT with default E=
-CC layout. Until the above mentioned commits changed the meaning. We no=
-w call that option OMAP_ECC_HAM1_CODE_SW.
->
-> Please let me know if it works for you. Thanks.
+--mO8tOErt0ND4aRjh2qJqpRa9U8GsXWd2F
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Yes it does, thank you.
-Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+On 27/06/14 21:38, Jyri Sarha wrote:
+> Name the anonymous hdmi struct as omap_hdmi. Move the struct definition=
+ to
+> hdmi.h and turn core member into a pointer to deal with it's different
+> definitions for omap4 and omap5. Make associated changes to hdmi4.c
+> and hdmi5.c.
 
-=46ound something new in dmesg though:
-[    1.542755] nand: device found, Manufacturer ID: 0x2c, Chip ID: 0xbc
-[    1.549621] nand: Micron MT29F4G16ABBDA3W
-[    1.553894] nand: 512MiB, SLC, page size: 2048, OOB size: 64
-[    1.560058] nand: WARNING: omap2-nand.0: the ECC used on your
-system is too weak compared to the one required by the NAND chip
+I didn't understand this one. Why did you make struct hdmi_core_data a
+pointer?
 
-Do you think it's best to migrate to different ECC scheme? It would be
-better to avoid that so that users can freely change kernels and the
-bootloader wouldn't have to be changed..
+ Tomi
 
---=20
-Gra=C5=BEvydas
+
+
+--mO8tOErt0ND4aRjh2qJqpRa9U8GsXWd2F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT4yT7AAoJEPo9qoy8lh71I28P/jaUn4Q8HixcB++Q12K80hmM
+XLDcy5LKMAvXf7E+1evvwiZN4nG8d7/lnd7bqoQ2JXldESDw4UdKiJjevhPY8DBx
+2tN5roZvb1TMDUovyl9uDiofiv+lFi9nOPVQ6Rss738x8+t+ncug3tss0Pf+zYJt
+oSHtNuCEfLSghqjFPuROW3alNFk8lKBng+z1/DP/mEIPon/oOwSRPkQBTP74UIpV
+9NzSYYp8ITILMS7PCwmTQdvswSgNaZjAQmzFrqP6gXEQpKcaZHXKt27Ni6Ocfe6+
+Ud5vtAjgBjh8umownRTMJcB4HUdMRW8VLyeld6LEpYku2yLbFyseevFMOTmQdBgZ
+p/zi6urX3HKWM7+Q6EH6z7c15ejqQhvJ1r/F+/Aax8c/tR8hlSJzji7pqGC3c+0K
+mhMbK5yrsv+UTsvZLGrImpF4hsZcggc6yHlfKYD9VgFqdv28rLhB5TNPM/lGXzOF
+pGequeCW88JYlhicyh7IF208oaqOXnSJYazEXAhBdlymo4gEG9YHBjB7vRYcKhrv
+SMRPA85d9ItWR0/B0yk+r/3jSfoAVp6Kdz/IluC/llQuG5C7RAfQNM2TKZmKxYbf
+lq6Su7pE5T59+rjA6jgdMbNFMg48JM9hipl56NiGmTcux4NQpdc4TmSW9omcUOJS
+UY4ZFuqBD3fRucfQSCri
+=xkXO
+-----END PGP SIGNATURE-----
+
+--mO8tOErt0ND4aRjh2qJqpRa9U8GsXWd2F--
