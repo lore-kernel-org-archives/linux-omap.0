@@ -1,133 +1,80 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.16
-Date: Thu, 7 Aug 2014 21:33:58 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1408072131470.5770@utopia.booyaka.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Thu, 7 Aug 2014 22:21:23 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1408072210300.5770@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1407290810160.22957@utopia.booyaka.com> <20140729084930.GH29045@atomide.com> <alpine.DEB.2.02.1407291225070.13035@utopia.booyaka.com> <alpine.DEB.2.02.1407291256270.13035@utopia.booyaka.com> <20140729145312.GT29045@atomide.com>
+ <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com> <20140730053940.GX29045@atomide.com> <alpine.DEB.2.02.1407300725290.4477@utopia.booyaka.com> <20140731131107.GB29045@atomide.com> <alpine.DEB.2.02.1407311922350.1845@utopia.booyaka.com>
+ <20140801071056.GD29045@atomide.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:44131 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:44581 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbaHGVeA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2014 17:34:00 -0400
+	with ESMTP id S1751197AbaHGWVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Aug 2014 18:21:24 -0400
+In-Reply-To: <20140801071056.GD29045@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+
+On Fri, 1 Aug 2014, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [140731 12:29]:
+> > On Thu, 31 Jul 2014, Tony Lindgren wrote:
+> > 
+> > > * Paul Walmsley <paul@pwsan.com> [140730 00:55]:
+> > > > On Tue, 29 Jul 2014, Tony Lindgren wrote:
+> > > > 
+> > > > > The following patch should fix the tests above for 3530es3beagle.
+> > > > > Care to test and ack as I don't have one?
+> > > > 
+> > > > 3530es3beagle retention dynamic idle tests hang on next-20140729.  (Maybe 
+> > > > other boards fail too - haven't tested any others).  
+> > > 
+> > > I just checked that today's linux next works for off-idle and
+> > > wake-up events for at least 37xx evm.
+> > 
+> > I ran the full set of tests across all boards.  The only board that passed 
+> > the dynamic idle testing on next-20140729 was the 3730beaglexm.
+> > 
+> > http://www.pwsan.com/omap/testlogs/next_20140729/20140730124836/README.txt
+> > 
+> > 37xxevm hangs on the first suspend entry:
+> > 
+> > http://www.pwsan.com/omap/testlogs/next_20140729/20140730124836/pm/37xxevm/37xxevm_log.txt
+> > 
+> > If I find some extra time, I'll set up a bisection run.
+> 
+> OK that sounds like some driver suspend regression that needs
+> to be tracked down. I'm seeing it on my 37xx evm also with
+> linux next too.
+
+It's commit a71e3c37960ce5f9c6a519bc1215e3ba9fa83e75:
+
+Author: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Date:   Wed Jul 23 16:47:31 2014 -0300
+
+    net: phy: Set the driver when registering an MDIO bus device
+    
+    mdiobus_register() registers a device which is already bound to a driver.
+    Hence, the driver pointer should be set properly in order to track down
+    the driver associated to the MDIO bus.
+    
+    This will be used to allow ethernet driver to pin down a MDIO bus driver,
+    preventing it from being unloaded while the PHY device is running.
+    
+    Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
+    Tested-by: Florian Fainelli <f.fainelli@gmail.com>
+    Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
 
-Here are some basic OMAP test results for Linux v3.16.
-Logs and other details at:
+What's bad is that this went in late during v3.16-rc fixes.  So now v3.16 
+itself is broken, and there's no way to fix it.
 
-    http://www.pwsan.com/omap/testlogs/test_v3.16/20140804182520/
-
-
-Test summary
-------------
-
-Build: zImage:
-    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
-		  omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap5-uevm
-
-Boot to userspace:
-    FAIL ( 1/14): 2430sdp
-    skip ( 1/14): 5912osk
-    Pass (12/14): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
-		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-		  am335xbonelt, cmt3517, 4460varsomom, 5430es2uevm
-
-PM: chip retention via suspend:
-    FAIL ( 5/ 7): 2430sdp, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 2/ 7): 3530es3beagle, 3730beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/ 7): 2430sdp, 3530es3beagle, 37xxevm, 4430es2panda,
-		  4460pandaes, 4460varsomom
-    Pass ( 1/ 7): 3730beaglexm
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
-
-PM: chip off via dynamic idle:
-    FAIL ( 5/ 5): 3530es3beagle, 37xxevm, 4430es2panda, 4460pandaes,
-		  4460varsomom
+As far as I can tell, this patch doesn't fix a regression.  So no way it 
+should have gone in during late -rc kernels.
 
 
-vmlinux object size
-(delta in bytes from test_v3.16-rc7 (64aa90f26c06e1cb2aacfb98a7d0eccfbd6c1a91)):
-   text     data      bss    total  kernel
-   +456        0        0     +456  omap1_defconfig
-   +400      -16        0     +384  omap1_defconfig_1510innovator_only
-   +400      +24        0     +424  omap1_defconfig_5912osk_only
-  +4720       -8        0    +4712  multi_v7_defconfig
-  +4600      +16        0    +4616  omap2plus_defconfig
-  +9228        0        0    +9228  omap2plus_defconfig_2430sdp_only
-  +4372       -8        0    +4364  omap2plus_defconfig_am33xx_only
-  +4436       -8        0    +4428  omap2plus_defconfig_am43xx_only
-  +8696      -16        0    +8680  omap2plus_defconfig_cpupm
-  +4492        0        0    +4492  omap2plus_defconfig_dra7xx_only
-  +3696      -16        0    +3680  omap2plus_defconfig_n800_multi_omap2xxx
-  +7788      -16        0    +7772  omap2plus_defconfig_n800_only_a
-  +4600      +16        0    +4616  omap2plus_defconfig_no_pm
-  +4380      -16        0    +4364  omap2plus_defconfig_omap2_4_only
-  +4448       +8        0    +4456  omap2plus_defconfig_omap3_4_only
-  +4372      +24        0    +4396  omap2plus_defconfig_omap5_only
-  +4100       +8    +3784    +7892  rmk_omap3430_ldp_allnoconfig
-  +4060        0        0    +4060  rmk_omap3430_ldp_oldconfig
-  +4228       -8     -456    +3764  rmk_omap4430_sdp_allnoconfig
-  +7996        0        0    +7996  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.16-rc7 (64aa90f26c06e1cb2aacfb98a7d0eccfbd6c1a91))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2420n800       omap2plus_defconfig_n800_only_a
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -8k     8k      .      .  3517evm        omap2plus_defconfig
-    -8k     8k      .      .  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .      .  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .      .  37xxevm        omap2plus_defconfig
-    -8k     8k      .      .  4430es2panda   omap2plus_defconfig
-    -8k     8k      .      .  4460pandaes    omap2plus_defconfig
-    -8k     8k      .      .  4460varsomom   omap2plus_defconfig
-    -8k     8k      .      .  5430es2uevm    omap2plus_defconfig
-    -8k     8k      .      .  am335xbonelt   omap2plus_defconfig
-
-
-Someone snuck a patch in between v3.16-rc7 and v3.16 that breaks suspend 
-and resume on 37xxevm.
-
+- Paul
