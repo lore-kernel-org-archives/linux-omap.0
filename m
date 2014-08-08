@@ -1,31 +1,58 @@
-From: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 6/9] ARM: dts: am33xx: Add external clock provider
-Date: Fri, 8 Aug 2014 14:26:47 -0300
-Message-ID: <20140808172646.GA28938@arch.cereza>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Subject: Re: [PATCH 0/9] Beaglebone-Black HDMI audio
+Date: Fri, 8 Aug 2014 15:16:54 -0300
+Message-ID: <20140808181654.GB16575@arch.cereza>
 References: <cover.1407332062.git.jsarha@ti.com>
- <a6888259f9508e0cc4be720a5f17a487d1d6cd0c.1407332062.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <a6888259f9508e0cc4be720a5f17a487d1d6cd0c.1407332062.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+In-Reply-To: <cover.1407332062.git.jsarha@ti.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: devicetree@vger.kernel.org, mturquette@linaro.org, peter.ujfalusi@ti.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, zonque@gmail.com, liam.r.girdwood@linux.intel.com, tony@atomide.com, broonie@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello Jyri,
+
 On 06 Aug 04:47 PM, Jyri Sarha wrote:
-> Add external clock provaider for am33xx devices.
+> The code has a functional dependency to:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg108199.html
+> =
 
-Typo: s/provaider/provider
+> Without the above patch the audio card does not probe.
+> =
 
---=20
+> The code has been rebased on top of Linux 3.16 merged with =
+
+> git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-next
+> with http://www.mail-archive.com/linux-omap@vger.kernel.org/msg108199.html
+> cherry-picked on top.
+> =
+
+> All patches have gone trough some cleaning up since the RFC version of
+> these patches over half a year ago.
+> =
+
+
+To my surprise, this worked out of the box. Did some simple tests with mpg1=
+23
+and mplayer.
+
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+
+Thanks a lot!
+-- =
+
 Ezequiel Garc=EDa, Free Electrons
 Embedded Linux, Kernel and Android Engineering
 http://free-electrons.com
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
