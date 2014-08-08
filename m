@@ -1,50 +1,71 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] mtd: nand: omap: Fix 1-bit Hamming code scheme, omap_calculate_ecc()
-Date: Fri, 8 Aug 2014 17:27:08 +0300
-Message-ID: <1407508028-12973-1-git-send-email-rogerq@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.16-rc4
+Date: Fri, 8 Aug 2014 09:34:12 -0500
+Message-ID: <20140808143411.GA2288@saruman.home>
+References: <20140729145312.GT29045@atomide.com>
+ <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com>
+ <20140730053940.GX29045@atomide.com>
+ <alpine.DEB.2.02.1407300725290.4477@utopia.booyaka.com>
+ <20140731131107.GB29045@atomide.com>
+ <alpine.DEB.2.02.1407311922350.1845@utopia.booyaka.com>
+ <20140801071056.GD29045@atomide.com>
+ <alpine.DEB.2.02.1408072210300.5770@utopia.booyaka.com>
+ <20140808021442.GA22811@saruman.home>
+ <alpine.DEB.2.02.1408080610290.8332@utopia.booyaka.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: computersforpeace@gmail.com, tony@atomide.com, gregkh@linuxfoundation.org
-Cc: nsekhar@ti.com, ezequiel.garcia@free-electrons.com, pekon@pek-sem.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="M9NhX3UHpAaciwkO"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45195 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756925AbaHHOfK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Aug 2014 10:35:10 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1408080610290.8332@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-commit 65b97cf6b8de introduced in v3.7 caused a regression
-by using a reversed CS_MASK thus causing omap_calculate_ecc to
-always fail. As the NAND base driver never checks for .calculate()'s
-return value, the zeroed ECC values are used as is without showing
-any error to the user. However, this won't work and the NAND device
-won't be guarded by any error code.
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fix the issue by using the correct mask.
+On Fri, Aug 08, 2014 at 06:11:54AM +0000, Paul Walmsley wrote:
+> On Thu, 7 Aug 2014, Felipe Balbi wrote:
+>=20
+> > we have stable releases for that.
+>=20
+> Stable releases aren't a fix for process failures.
 
-Code was tested on omap3beagle using the following procedure
-- flash the primary bootloader (MLO) from the kernel to the first
-NAND partition using nandwrite.
-- boot the board from NAND. This utilizes OMAP ROM loader that
-relies on 1-bit Hamming code ECC.
+of course not, but your claim that there's no way to fix v3.16 is
+nonsense. And mistakes occur as well.
 
-Fixes: 65b97cf6b8de (mtd: nand: omap2: handle nand on gpmc)
+--=20
+balbi
 
-Cc: <stable@vger.kernel.org>	[3.7+]
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/mtd/nand/omap2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+--M9NhX3UHpAaciwkO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index f0ed92e..e2b9b34 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -931,7 +931,7 @@ static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
- 	u32 val;
- 
- 	val = readl(info->reg.gpmc_ecc_config);
--	if (((val >> ECC_CONFIG_CS_SHIFT)  & ~CS_MASK) != info->gpmc_cs)
-+	if (((val >> ECC_CONFIG_CS_SHIFT) & CS_MASK) != info->gpmc_cs)
- 		return -EINVAL;
- 
- 	/* read ecc result */
--- 
-1.8.3.2
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT5N/jAAoJEIaOsuA1yqREEQsP/AzUvB/Pt3vTkOauizbZ4cRa
+ICfRx32wiX/8My9M3XqaQqKlxb5fW9xCmnZzC0eORn6O5izTbaCXy0EQzuhBLH25
+1KBAMVCTZml3n1+rwejMvtUjZAKtArNNKw4LDtIaT0tlBrYstUBPOlauLfGtMnKD
+F0id9kmffpqMgzLefmU4VPKXWNrhkg4PkiwKaQusQAG83LeyVxxamAJwJSRhvLuU
+fYDpBJOUj4n0l84XWKGoo3YpVnJAB0tG5bZwPzwEg55PfOThyG/jV0B3wAtPJ1Sc
+tSi3bG8fqf2CTkUN2MGhqoROasNKC2tF2cqL13ANEC7dLr8gxVBj6wb7niCOiT9R
+SaFOZGT3LbpOciOpbQG7piTFrB9rLDrqF1xLjNoCz7tWpK36t383F+M19FDnKlXH
+qVih2/McDH08ErEjGqxaIsO3Upm12Pu1YCVA9AKGfq83K+mpdOLHoSVavtuD6qah
+c0VOMtAy0udSbDOBVAGab6Fjtshqpa+NVJrk5xXIrcRVQgPmUUPXXYrCrO3200EH
+wjm6xe19iAchS5IcorIJM8fXA94NlQorPaHi/txEn7iYcBjBTnG8/Y6eEDtQRndT
+cRJG5sxvxUJ/ZHqVUsgvWcsb9DKVrs8mQhM/MRc3v1RIe3msbnPq5U+m93PV5ft+
+wykHWwMP4BDEcNOsNl6W
+=GhcD
+-----END PGP SIGNATURE-----
+
+--M9NhX3UHpAaciwkO--
