@@ -1,185 +1,160 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3 05/14] OMAPDSS: hdmi: Make hdmi structure public
-Date: Fri, 8 Aug 2014 16:23:46 +0300
-Message-ID: <d5c2563a7d49e000db6eafff1ba4cf637fa7043b.1407503813.git.jsarha@ti.com>
+Subject: [PATCH v3 13/14] OMAPDSS: hdmi5: Remove callbacks for an external ASoC DAI driver
+Date: Fri, 8 Aug 2014 16:23:54 +0300
+Message-ID: <d44c88c50daa4835e22f4d689ffeaa908912698c.1407503813.git.jsarha@ti.com>
 References: <cover.1407503813.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38924 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:38928 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756699AbaHHNYS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2014 09:24:18 -0400
+	with ESMTP id S1756649AbaHHNYW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Aug 2014 09:24:22 -0400
 In-Reply-To: <cover.1407503813.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Unify the private anonymous struct in hdmi4.c and hdmi5.c, name it as
-struct omap_hdmi, and make it public in hdmi.h.
+Removes the OMAP5 HDMI audio callbacks for an external audio driver and
+the old external DAI driver does not work anymore after this patch.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi.h  |   21 +++++++++++++++++++++
- drivers/video/fbdev/omap2/dss/hdmi4.c |   31 ++++++++-----------------------
- drivers/video/fbdev/omap2/dss/hdmi5.c |   20 ++------------------
- 3 files changed, 31 insertions(+), 41 deletions(-)
+ drivers/video/fbdev/omap2/dss/hdmi5.c |  113 ---------------------------------
+ 1 file changed, 113 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
-index 9e85b86..f5ae8ae 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi.h
-+++ b/drivers/video/fbdev/omap2/dss/hdmi.h
-@@ -349,5 +349,26 @@ static inline bool hdmi_mode_has_audio(int mode)
- {
- 	return mode == HDMI_HDMI ? true : false;
- }
-+
-+/* HDMI DRV data */
-+struct omap_hdmi {
-+	struct mutex lock;
-+	struct platform_device *pdev;
-+
-+	struct hdmi_wp_data	wp;
-+	struct hdmi_pll_data	pll;
-+	struct hdmi_phy_data	phy;
-+	struct hdmi_core_data	core;
-+
-+	struct hdmi_config cfg;
-+
-+	struct clk *sys_clk;
-+	struct regulator *vdda_reg;
-+
-+	bool core_enabled;
-+
-+	struct omap_dss_device output;
-+};
-+
- #endif
- #endif
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi4.c b/drivers/video/fbdev/omap2/dss/hdmi4.c
-index 6a8550c..b98186e 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi4.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi4.c
-@@ -37,25 +37,9 @@
- #include "hdmi4_core.h"
- #include "dss.h"
- #include "dss_features.h"
-+#include "hdmi.h"
- 
--static struct {
--	struct mutex lock;
--	struct platform_device *pdev;
--
--	struct hdmi_wp_data	wp;
--	struct hdmi_pll_data	pll;
--	struct hdmi_phy_data	phy;
--	struct hdmi_core_data	core;
--
--	struct hdmi_config cfg;
--
--	struct clk *sys_clk;
--	struct regulator *vdda_hdmi_dac_reg;
--
--	bool core_enabled;
--
--	struct omap_dss_device output;
--} hdmi;
-+static struct omap_hdmi hdmi;
- 
- static int hdmi_runtime_get(void)
- {
-@@ -117,7 +101,7 @@ static int hdmi_init_regulator(void)
- 	int r;
- 	struct regulator *reg;
- 
--	if (hdmi.vdda_hdmi_dac_reg != NULL)
-+	if (hdmi.vdda_reg != NULL)
- 		return 0;
- 
- 	reg = devm_regulator_get(&hdmi.pdev->dev, "vdda");
-@@ -137,7 +121,7 @@ static int hdmi_init_regulator(void)
- 		}
- 	}
- 
--	hdmi.vdda_hdmi_dac_reg = reg;
-+	hdmi.vdda_reg = reg;
- 
- 	return 0;
- }
-@@ -146,7 +130,7 @@ static int hdmi_power_on_core(struct omap_dss_device *dssdev)
- {
- 	int r;
- 
--	r = regulator_enable(hdmi.vdda_hdmi_dac_reg);
-+	r = regulator_enable(hdmi.vdda_reg);
- 	if (r)
- 		return r;
- 
-@@ -162,7 +146,7 @@ static int hdmi_power_on_core(struct omap_dss_device *dssdev)
- 	return 0;
- 
- err_runtime_get:
--	regulator_disable(hdmi.vdda_hdmi_dac_reg);
-+	regulator_disable(hdmi.vdda_reg);
- 
- 	return r;
- }
-@@ -172,7 +156,7 @@ static void hdmi_power_off_core(struct omap_dss_device *dssdev)
- 	hdmi.core_enabled = false;
- 
- 	hdmi_runtime_put();
--	regulator_disable(hdmi.vdda_hdmi_dac_reg);
-+	regulator_disable(hdmi.vdda_reg);
- }
- 
- static int hdmi_power_on_full(struct omap_dss_device *dssdev)
-@@ -678,6 +662,7 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
- 	int irq;
- 
- 	hdmi.pdev = pdev;
-+	dev_set_drvdata(&pdev->dev, &hdmi);
- 
- 	mutex_init(&hdmi.lock);
- 
 diff --git a/drivers/video/fbdev/omap2/dss/hdmi5.c b/drivers/video/fbdev/omap2/dss/hdmi5.c
-index 32d02ec..90410f5 100644
+index d796071..d91ea36 100644
 --- a/drivers/video/fbdev/omap2/dss/hdmi5.c
 +++ b/drivers/video/fbdev/omap2/dss/hdmi5.c
-@@ -43,24 +43,7 @@
- #include "dss.h"
- #include "dss_features.h"
+@@ -495,112 +495,6 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
+ 	return r;
+ }
  
--static struct {
--	struct mutex lock;
--	struct platform_device *pdev;
+-#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
+-static int hdmi_audio_enable(struct omap_dss_device *dssdev)
+-{
+-	int r;
 -
--	struct hdmi_wp_data	wp;
--	struct hdmi_pll_data	pll;
--	struct hdmi_phy_data	phy;
--	struct hdmi_core_data	core;
+-	mutex_lock(&hdmi.lock);
 -
--	struct hdmi_config cfg;
+-	if (!hdmi_mode_has_audio(hdmi.cfg.hdmi_dvi_mode)) {
+-		r = -EPERM;
+-		goto err;
+-	}
 -
--	struct clk *sys_clk;
--	struct regulator *vdda_reg;
+-	r = hdmi_wp_audio_enable(&hdmi.wp, true);
+-	if (r)
+-		goto err;
 -
--	bool core_enabled;
+-	mutex_unlock(&hdmi.lock);
+-	return 0;
 -
--	struct omap_dss_device output;
--} hdmi;
-+static struct omap_hdmi hdmi;
- 
- static int hdmi_runtime_get(void)
+-err:
+-	mutex_unlock(&hdmi.lock);
+-	return r;
+-}
+-
+-static void hdmi_audio_disable(struct omap_dss_device *dssdev)
+-{
+-	hdmi_wp_audio_enable(&hdmi.wp, false);
+-}
+-
+-static int hdmi_audio_start(struct omap_dss_device *dssdev)
+-{
+-	return hdmi_wp_audio_core_req_enable(&hdmi.wp, true);
+-}
+-
+-static void hdmi_audio_stop(struct omap_dss_device *dssdev)
+-{
+-	hdmi_wp_audio_core_req_enable(&hdmi.wp, false);
+-}
+-
+-static bool hdmi_audio_supported(struct omap_dss_device *dssdev)
+-{
+-	bool r;
+-
+-	mutex_lock(&hdmi.lock);
+-
+-	r = hdmi_mode_has_audio(hdmi.cfg.hdmi_dvi_mode);
+-
+-	mutex_unlock(&hdmi.lock);
+-	return r;
+-}
+-
+-static int hdmi_audio_config(struct omap_dss_device *dssdev,
+-		struct omap_dss_audio *audio)
+-{
+-	int r;
+-	u32 pclk = hdmi.cfg.timings.pixelclock;
+-
+-	mutex_lock(&hdmi.lock);
+-
+-	if (!hdmi_mode_has_audio(hdmi.cfg.hdmi_dvi_mode)) {
+-		r = -EPERM;
+-		goto err;
+-	}
+-
+-	r = hdmi5_audio_config(&hdmi.core, &hdmi.wp, audio, pclk);
+-	if (r)
+-		goto err;
+-
+-	mutex_unlock(&hdmi.lock);
+-	return 0;
+-
+-err:
+-	mutex_unlock(&hdmi.lock);
+-	return r;
+-}
+-#else
+-static int hdmi_audio_enable(struct omap_dss_device *dssdev)
+-{
+-	return -EPERM;
+-}
+-
+-static void hdmi_audio_disable(struct omap_dss_device *dssdev)
+-{
+-}
+-
+-static int hdmi_audio_start(struct omap_dss_device *dssdev)
+-{
+-	return -EPERM;
+-}
+-
+-static void hdmi_audio_stop(struct omap_dss_device *dssdev)
+-{
+-}
+-
+-static bool hdmi_audio_supported(struct omap_dss_device *dssdev)
+-{
+-	return false;
+-}
+-
+-static int hdmi_audio_config(struct omap_dss_device *dssdev,
+-		struct omap_dss_audio *audio)
+-{
+-	return -EPERM;
+-}
+-#endif
+-
+ static int hdmi_set_infoframe(struct omap_dss_device *dssdev,
+ 		const struct hdmi_avi_infoframe *avi)
  {
-@@ -703,6 +686,7 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
- 	int irq;
+@@ -629,13 +523,6 @@ static const struct omapdss_hdmi_ops hdmi_ops = {
+ 	.read_edid		= hdmi_read_edid,
+ 	.set_infoframe		= hdmi_set_infoframe,
+ 	.set_hdmi_mode		= hdmi_set_hdmi_mode,
+-
+-	.audio_enable		= hdmi_audio_enable,
+-	.audio_disable		= hdmi_audio_disable,
+-	.audio_start		= hdmi_audio_start,
+-	.audio_stop		= hdmi_audio_stop,
+-	.audio_supported	= hdmi_audio_supported,
+-	.audio_config		= hdmi_audio_config,
+ };
  
- 	hdmi.pdev = pdev;
-+	dev_set_drvdata(&pdev->dev, &hdmi);
- 
- 	mutex_init(&hdmi.lock);
- 
+ static void hdmi_init_output(struct platform_device *pdev)
 -- 
 1.7.9.5
 
