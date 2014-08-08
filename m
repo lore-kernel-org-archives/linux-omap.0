@@ -1,71 +1,70 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Fri, 8 Aug 2014 09:34:12 -0500
-Message-ID: <20140808143411.GA2288@saruman.home>
-References: <20140729145312.GT29045@atomide.com>
- <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com>
- <20140730053940.GX29045@atomide.com>
- <alpine.DEB.2.02.1407300725290.4477@utopia.booyaka.com>
- <20140731131107.GB29045@atomide.com>
- <alpine.DEB.2.02.1407311922350.1845@utopia.booyaka.com>
- <20140801071056.GD29045@atomide.com>
- <alpine.DEB.2.02.1408072210300.5770@utopia.booyaka.com>
- <20140808021442.GA22811@saruman.home>
- <alpine.DEB.2.02.1408080610290.8332@utopia.booyaka.com>
-Reply-To: <balbi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 1/7] dmaengine: edma: fix two faults which happen with
+ the 8250_dma user
+Date: Fri, 8 Aug 2014 18:29:50 +0200
+Message-ID: <20140808162950.GA12080@linutronix.de>
+References: <1406660344-25307-1-git-send-email-bigeasy@linutronix.de>
+ <1406660344-25307-2-git-send-email-bigeasy@linutronix.de>
+ <20140731121702.GU8181@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="M9NhX3UHpAaciwkO"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45195 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756925AbaHHOfK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Aug 2014 10:35:10 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1408080610290.8332@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140731121702.GU8181@intel.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Joel Fernandes <joelf@ti.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
---M9NhX3UHpAaciwkO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Vinod Koul | 2014-07-31 17:47:02 [+0530]:
 
-On Fri, Aug 08, 2014 at 06:11:54AM +0000, Paul Walmsley wrote:
-> On Thu, 7 Aug 2014, Felipe Balbi wrote:
->=20
-> > we have stable releases for that.
->=20
-> Stable releases aren't a fix for process failures.
+>On Tue, Jul 29, 2014 at 08:58:58PM +0200, Sebastian Andrzej Siewior wr=
+ote:
+>> The rx path of the 8250_dma user in the RX-timeout case:
+>> - it starts the RX transfer
+>> - if the rx-timeout interrupt occures, it dmaengine_pause() the tran=
+sfer
+>> - step two is dmaengine_terminate_all() on this channel.
+>Okay after this whole channel needs to be reset, which means all the
+>descriptors are discared.
 
-of course not, but your claim that there's no way to fix v3.16 is
-nonsense. And mistakes occur as well.
+>> To make the upper case work better, this patch adds dma_cookie_compl=
+ete()
+>> to complete the cookie. Also it adds is an additional check for echa=
+n->edesc
+>> in case the channel has no descriptor assigned.
+>I think we are fixing the behvaiour rather than cause. terminate_all((=
+)
+>needs to do a proper cleanup of the channel
 
---=20
-balbi
+In case you are not ignoring me but $reason here is an example that doe=
+s
+not work (with both drivers);
 
---M9NhX3UHpAaciwkO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+    desc =3D dmaengine_prep_slave_single(rxchan, =E2=80=A6);
+    rx_cookie =3D dmaengine_submit(desc);
+    dma_async_issue_pending(rxchan);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+    ssleep(2);
+    /* Now assume that the transfer did not start */
+    st =3D dmaengine_tx_status(rxchan, rx_cookie, NULL);
+    /* st is now DMA_IN_PROGRESS as expected */
 
-iQIcBAEBAgAGBQJT5N/jAAoJEIaOsuA1yqREEQsP/AzUvB/Pt3vTkOauizbZ4cRa
-ICfRx32wiX/8My9M3XqaQqKlxb5fW9xCmnZzC0eORn6O5izTbaCXy0EQzuhBLH25
-1KBAMVCTZml3n1+rwejMvtUjZAKtArNNKw4LDtIaT0tlBrYstUBPOlauLfGtMnKD
-F0id9kmffpqMgzLefmU4VPKXWNrhkg4PkiwKaQusQAG83LeyVxxamAJwJSRhvLuU
-fYDpBJOUj4n0l84XWKGoo3YpVnJAB0tG5bZwPzwEg55PfOThyG/jV0B3wAtPJ1Sc
-tSi3bG8fqf2CTkUN2MGhqoROasNKC2tF2cqL13ANEC7dLr8gxVBj6wb7niCOiT9R
-SaFOZGT3LbpOciOpbQG7piTFrB9rLDrqF1xLjNoCz7tWpK36t383F+M19FDnKlXH
-qVih2/McDH08ErEjGqxaIsO3Upm12Pu1YCVA9AKGfq83K+mpdOLHoSVavtuD6qah
-c0VOMtAy0udSbDOBVAGab6Fjtshqpa+NVJrk5xXIrcRVQgPmUUPXXYrCrO3200EH
-wjm6xe19iAchS5IcorIJM8fXA94NlQorPaHi/txEn7iYcBjBTnG8/Y6eEDtQRndT
-cRJG5sxvxUJ/ZHqVUsgvWcsb9DKVrs8mQhM/MRc3v1RIe3msbnPq5U+m93PV5ft+
-wykHWwMP4BDEcNOsNl6W
-=GhcD
------END PGP SIGNATURE-----
+    dmaengine_terminate_all(rxchan);
+    st =3D dmaengine_tx_status(rxchan, rx_cookie, NULL);
+    /* st is still DMA_IN_PROGRESS but _I_ expect DMA_COMPLETE because
+     * it has been terminated / canceled
+     */
 
---M9NhX3UHpAaciwkO--
+Both dma driver clean up all / terminate all descriptors as required bu=
+t
+_none_ of them completes the cookie. As a result dma_cookie_status()
+still thinks that the transfer is in progress.
+
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
