@@ -1,91 +1,115 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 Subject: Re: OMAP baseline test results for v3.16-rc4
-Date: Fri, 8 Aug 2014 21:49:52 -0500
-Message-ID: <20140809024952.GA31064@saruman.home>
-References: <20140730053940.GX29045@atomide.com>
+Date: Sat, 9 Aug 2014 09:41:24 -0300
+Message-ID: <20140809124124.GA1201@arch.cereza>
+References: <alpine.DEB.2.02.1407291225070.13035@utopia.booyaka.com>
+ <alpine.DEB.2.02.1407291256270.13035@utopia.booyaka.com>
+ <20140729145312.GT29045@atomide.com>
+ <alpine.DEB.2.02.1407291922370.13035@utopia.booyaka.com>
+ <20140730053940.GX29045@atomide.com>
  <alpine.DEB.2.02.1407300725290.4477@utopia.booyaka.com>
  <20140731131107.GB29045@atomide.com>
  <alpine.DEB.2.02.1407311922350.1845@utopia.booyaka.com>
  <20140801071056.GD29045@atomide.com>
  <alpine.DEB.2.02.1408072210300.5770@utopia.booyaka.com>
- <20140808021442.GA22811@saruman.home>
- <alpine.DEB.2.02.1408080610290.8332@utopia.booyaka.com>
- <20140808143411.GA2288@saruman.home>
- <alpine.DEB.2.02.1408082338380.30868@utopia.booyaka.com>
-Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41378 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332AbaHICvC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Aug 2014 22:51:02 -0400
+Received: from top.free-electrons.com ([176.31.233.9]:43238 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750900AbaHIMm0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Aug 2014 08:42:26 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1408082338380.30868@utopia.booyaka.com>
+In-Reply-To: <alpine.DEB.2.02.1408072210300.5770@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org, Felipe Balbi <balbi@ti.com>
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Fri, Aug 08, 2014 at 11:39:08PM +0000, Paul Walmsley wrote:
-> On Fri, 8 Aug 2014, Felipe Balbi wrote:
+On 07 Aug 10:21 PM, Paul Walmsley wrote:
+> On Fri, 1 Aug 2014, Tony Lindgren wrote:
 >=20
-> > On Fri, Aug 08, 2014 at 06:11:54AM +0000, Paul Walmsley wrote:
-> > > On Thu, 7 Aug 2014, Felipe Balbi wrote:
+> > * Paul Walmsley <paul@pwsan.com> [140731 12:29]:
+> > > On Thu, 31 Jul 2014, Tony Lindgren wrote:
 > > >=20
-> > > > we have stable releases for that.
+> > > > * Paul Walmsley <paul@pwsan.com> [140730 00:55]:
+> > > > > On Tue, 29 Jul 2014, Tony Lindgren wrote:
+> > > > >=20
+> > > > > > The following patch should fix the tests above for 3530es3b=
+eagle.
+> > > > > > Care to test and ack as I don't have one?
+> > > > >=20
+> > > > > 3530es3beagle retention dynamic idle tests hang on next-20140=
+729.  (Maybe=20
+> > > > > other boards fail too - haven't tested any others). =20
+> > > >=20
+> > > > I just checked that today's linux next works for off-idle and
+> > > > wake-up events for at least 37xx evm.
 > > >=20
-> > > Stable releases aren't a fix for process failures.
+> > > I ran the full set of tests across all boards.  The only board th=
+at passed=20
+> > > the dynamic idle testing on next-20140729 was the 3730beaglexm.
+> > >=20
+> > > http://www.pwsan.com/omap/testlogs/next_20140729/20140730124836/R=
+EADME.txt
+> > >=20
+> > > 37xxevm hangs on the first suspend entry:
+> > >=20
+> > > http://www.pwsan.com/omap/testlogs/next_20140729/20140730124836/p=
+m/37xxevm/37xxevm_log.txt
+> > >=20
+> > > If I find some extra time, I'll set up a bisection run.
 > >=20
-> > of course not, but your claim that there's no way to fix v3.16 is
-> > nonsense. And mistakes occur as well.
+> > OK that sounds like some driver suspend regression that needs
+> > to be tracked down. I'm seeing it on my 37xx evm also with
+> > linux next too.
 >=20
-> There is no way to fix v3.16.=20
+> It's commit a71e3c37960ce5f9c6a519bc1215e3ba9fa83e75:
+>=20
+> Author: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> Date:   Wed Jul 23 16:47:31 2014 -0300
+>=20
+>     net: phy: Set the driver when registering an MDIO bus device
+>    =20
+>     mdiobus_register() registers a device which is already bound to a=
+ driver.
+>     Hence, the driver pointer should be set properly in order to trac=
+k down
+>     the driver associated to the MDIO bus.
+>    =20
+>     This will be used to allow ethernet driver to pin down a MDIO bus=
+ driver,
+>     preventing it from being unloaded while the PHY device is running=
+=2E
+>    =20
+>     Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
+>     Tested-by: Florian Fainelli <f.fainelli@gmail.com>
+>     Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.co=
+m>
+>     Signed-off-by: David S. Miller <davem@davemloft.net>
+>=20
+>=20
+> What's bad is that this went in late during v3.16-rc fixes.  So now v=
+3.16=20
+> itself is broken, and there's no way to fix it.
+>=20
+> As far as I can tell, this patch doesn't fix a regression.  So no way=
+ it=20
+> should have gone in during late -rc kernels.
+>=20
 
-There is no way to fix *any* commit.
-
-We can go back a few major releases and we will hit a point when ARM
-multiplatform was enabled and the tree doesn't even build. There is no
-way to fix that either, but I'm sure the patches fixing the build breaks
-have been back ported to stable.
-
-> The point of the -rc cycle is to stabilize the final, non-rc releases.
-
-Well, stable release are *not* -rc releases and they exist in order to
-fix bugs that were found after the final release has been tagged;
-otherwise what would be the point of even having -stable ?
-
+Indeed, the commit shouldn't have landed as a v3.16-rc fix. FWIW, it wa=
+s
+originally intended for v3.17, but I wasn't clear enough about this whe=
+n it
+was submitted.
 --=20
-balbi
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJT5YxQAAoJEIaOsuA1yqREvhMQAJ9p0rZf/5AiNokYxDJ5QEKt
-R6buZT944iR2fMPrzLH49wtXZYiHWQq+yqe6ljfTzjYMn2PeOfVs11+lIymwxCN3
-Ecv3pWbW4Gd6qjw/Uz1RtuwNmxDWaPy765PPdJsZEFCJHo6pfkonlObL8u0chYCO
-K83sHnQXl5xUSUC52FOIhx4tTH1q0h8my9+infSgW4nZR9VW2EqUC0Wk+3t+XUQO
-ZMU/oKWGHsOeh+vuFICVdUv7uU0d970odH0txrzRxcsXw/GMb72l9oWoSPFacnmx
-Jibo+uVMezk6jYAPDpJFW6qx/gHGcMIwPdr0VH8cHea8aNLavmmmO++xrW9V3sUO
-RCiBhGZiewDi5tXlh0MQEjCOpwRGvXTjg1eVohhy65z/z4CF0N0QOGRIRHo3caVV
-zhXGLjV3to9ThiF+WCcsRXqkiTLeEjjaFSJG/pe3jNrACGgYeIneX0zMcTTk1ZDh
-ZGb53XFfCsVEWRyv8y9rN8EnKTL1D0Dl5aFwoPWCCefFhFMxswUwrXgmhG7QAvil
-fTCRt3MFCYPSJWZBJzFwH3MZ10aasEZVFAFfy9Z3x2KSe8eRmXeMBEXc/4bVvwZy
-5XyMPFMMRQODO7PKTEr5lMNCwqDFGnoOUKvPSx0TrVWTE9YlXAePFpFDeu0AiJWW
-Gqk6iWmJ0E8rS7QNQxo3
-=/2pp
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
+Ezequiel Garc=EDa, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
