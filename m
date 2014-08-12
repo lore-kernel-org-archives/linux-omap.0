@@ -1,43 +1,54 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: [PATCH] ARM: dts: Remove twl6030 clk32g "regulator"
-Date: Tue, 12 Aug 2014 18:49:20 +0100
-Message-ID: <1407865760-15448-1-git-send-email-broonie@kernel.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60242 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753451AbaHLRtc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2014 13:49:32 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCH 1/9] ASoC: mcasp: Fix implicit BLCK divider setting
+Date: Tue, 12 Aug 2014 23:04:48 +0100
+Message-ID: <20140812220448.GG17528@sirena.org.uk>
+References: <cover.1407332062.git.jsarha@ti.com>
+ <5e5987c830439e39d26a44580ebe01de631c10cc.1407332062.git.jsarha@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VZ4xAPYFtuHTmUjI"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5e5987c830439e39d26a44580ebe01de631c10cc.1407332062.git.jsarha@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: linux-kernel@vger.kernel.org, mturquette@linaro.org, dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, zonque@gmail.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@linaro.org>
 
-From: Mark Brown <broonie@linaro.org>
 
-The kernel has never supported clk32g as a regulator since it is a clock
-and not a regulator. Fortunately nothing actually references this node so
-we can just remove it.
+--VZ4xAPYFtuHTmUjI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Mark Brown <broonie@linaro.org>
----
- arch/arm/boot/dts/twl6030.dtsi | 4 ----
- 1 file changed, 4 deletions(-)
+On Wed, Aug 06, 2014 at 04:47:16PM +0300, Jyri Sarha wrote:
+> The implicit BLCK divider setting was broken by "ASoC: mcasp: don't
+> override bclk divider if it was provided by the machine"-patch. After
+> the BCLK divider is implicitly set for the first time the
+> mcasp->bclk_div gets a non zero value and the implicit setting is
+> "turned off".
 
-diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-index 2e3bd3172b23..55eb35f068fb 100644
---- a/arch/arm/boot/dts/twl6030.dtsi
-+++ b/arch/arm/boot/dts/twl6030.dtsi
-@@ -83,10 +83,6 @@
- 		regulator-always-on;
- 	};
- 
--	clk32kg: regulator-clk32kg {
--		compatible = "ti,twl6030-clk32kg";
--	};
--
- 	twl_usb_comparator: usb-comparator {
- 		compatible = "ti,twl6030-usb";
- 		interrupts = <4>, <10>;
--- 
-2.0.1
+Applied, thanks.
 
+--VZ4xAPYFtuHTmUjI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJT6o99AAoJELSic+t+oim9ZiUP/3ZKLuAEGdJVdEDSJe5+eQ12
+ZEToqUdQ90TXh9h3wLE3Y8zW6R+Al/Gm8uOR3XnLe78eKlmHO5DqepLJsjfG6CEe
+VaveBkg4PQxiT9rvXgQG8r4WG4WmdcIp8Qel5Gx5jKfiIhLYpv78kfOpe/Mn6KdV
+cnDUzpqc2u461papufww8nOzxay95jNv4SrYPlytYikFtwZ45/BEkWLCdjqF41tk
+v34s8Sduzgu7sdr7odDDs2rc03BaI+B8M0jYMIWznZbZToPCi5+gMCqnCqXGYol8
+sre+0OBBGXZUawUZDHWWdV/77wPbS8eve3Uulzl7GIZPi3r6rWS5eeKpf4QhVjW6
+INqiIqsmiHX61Rwnx6d+nX+t8fks3r5TwbzD/v6U1Y77lXYt1pm5xNpxC/WPmVyB
+KrW+dDTnINDISFdapJzFzffkb2SIzz4C29CCeZudS9KjXuvse0l+BCXa39Kn8hVn
+iodcA9hKhV0YBTZeA0bp5W3xzgdb8vXX0ktBV/BfKCXNS3oSXIdRrjoKzN0Tq/H2
+Z9KUxuYLIpDCHHJktTZqD9kV2HSwZ15f/skG7k3Vj4pn4ZJrFjV92autDF+CVymf
+5Hi9UEBXPODaG0GbQKkDA4ifABV38TGnb41lMYqRUgv9iGNJkPKKBQPeqoWNagut
+FtuCUMfWtz07+ceJ6lvt
+=xopG
+-----END PGP SIGNATURE-----
+
+--VZ4xAPYFtuHTmUjI--
