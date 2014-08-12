@@ -1,44 +1,39 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] hwspinlock for 3.17
-Date: Tue, 12 Aug 2014 17:32:10 +0300
-Message-ID: <CAK=WgbaQcv22Ch64LSSOw7onwnkuGNfJGxmfzAOFffv=8qLLfw@mail.gmail.com>
+Subject: Re: [PATCH] rpmsg: compute number of buffers to allocate from vrings
+Date: Tue, 12 Aug 2014 18:30:42 +0300
+Message-ID: <CAK=WgbaRJNVXqbM+MyY+UtUYYCnR2t3CP5UdTXSpLJy=MTJKJQ@mail.gmail.com>
+References: <1404420815-42108-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:37392 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752625AbaHLOca (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2014 10:32:30 -0400
-Received: by mail-ig0-f180.google.com with SMTP id l13so6870394iga.13
-        for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2014 07:32:30 -0700 (PDT)
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:36801 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753374AbaHLPbD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Aug 2014 11:31:03 -0400
+Received: by mail-ig0-f175.google.com with SMTP id uq10so7129901igb.14
+        for <linux-omap@vger.kernel.org>; Tue, 12 Aug 2014 08:31:02 -0700 (PDT)
+In-Reply-To: <1404420815-42108-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Anna, Suman" <s-anna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Suman Anna <s-anna@ti.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The following changes since commit 9a3c4145af32125c5ee39c0272662b47307a8323:
+Hi Suman,
 
-  Linux 3.16-rc6 (2014-07-20 21:04:16 -0700)
+On Thu, Jul 3, 2014 at 11:53 PM, Suman Anna <s-anna@ti.com> wrote:
+> The buffers to be used for communication are allocated during
+> the rpmsg virtio driver's probe, and the number of buffers is
+> currently hard-coded to 512. Remove this hard-coded value, as
+> this can vary from one platform to another or between different
+> remote processors. Instead, rely on the number of buffers the
+> virtqueue vring is setup with in the first place.
 
-are available in the git repository at:
+Is there a specific problem you bumped into which you are fixing with
+this approach? Can you please describe it?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
-tags/hwspinlock-3.17
+I'm concerned that coupling the vring size with coherent memory
+allocated by rpmsg may not be safe. It'd also be an implicit side
+effect that may surprise users, so let's consider our alternatives.
 
-for you to fetch changes up to ceca89e89ee21a3af050c3ea4c634b3be0e34d51:
-
-  hwspinlock: enable OMAP build for AM33xx, AM43xx & DRA7xx
-(2014-07-29 11:46:28 +0300)
-
-----------------------------------------------------------------
-Two small hwspinlock changes for better OMAP support, coming
-from Suman Anna.
-
-----------------------------------------------------------------
-Suman Anna (2):
-      hwspinlock/omap: enable module before reading SYSSTATUS register
-      hwspinlock: enable OMAP build for AM33xx, AM43xx & DRA7xx
-
- drivers/hwspinlock/Kconfig           |  2 +-
- drivers/hwspinlock/omap_hwspinlock.c | 27 ++++++++++++++++++++-------
- 2 files changed, 21 insertions(+), 8 deletions(-)
+Thanks,
+Ohad.
