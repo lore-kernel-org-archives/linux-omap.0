@@ -1,54 +1,42 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/9] ASoC: mcasp: Fix implicit BLCK divider setting
-Date: Tue, 12 Aug 2014 23:04:48 +0100
-Message-ID: <20140812220448.GG17528@sirena.org.uk>
-References: <cover.1407332062.git.jsarha@ti.com>
- <5e5987c830439e39d26a44580ebe01de631c10cc.1407332062.git.jsarha@ti.com>
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v5 3/6] clk: Move all drivers to use internal API
+Date: Wed, 13 Aug 2014 11:50:56 +0200
+Message-ID: <20140813115056.0bd5ead7@bbrezillon>
+References: <1407333468-32180-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VZ4xAPYFtuHTmUjI"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5e5987c830439e39d26a44580ebe01de631c10cc.1407332062.git.jsarha@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: linux-kernel@vger.kernel.org, mturquette@linaro.org, dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, tony@atomide.com, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, zonque@gmail.com, t-kristo@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <1407333468-32180-1-git-send-email-tomeu.vizoso@collabora.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Mike Turquette <mturquette@linaro.org>, Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, Viresh Kumar <viresh.linux@gmai>
 List-Id: linux-omap@vger.kernel.org
 
-
---VZ4xAPYFtuHTmUjI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Aug 06, 2014 at 04:47:16PM +0300, Jyri Sarha wrote:
-> The implicit BLCK divider setting was broken by "ASoC: mcasp: don't
-> override bclk divider if it was provided by the machine"-patch. After
-> the BCLK divider is implicitly set for the first time the
-> mcasp->bclk_div gets a non zero value and the implicit setting is
-> "turned off".
-
-Applied, thanks.
-
---VZ4xAPYFtuHTmUjI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJT6o99AAoJELSic+t+oim9ZiUP/3ZKLuAEGdJVdEDSJe5+eQ12
-ZEToqUdQ90TXh9h3wLE3Y8zW6R+Al/Gm8uOR3XnLe78eKlmHO5DqepLJsjfG6CEe
-VaveBkg4PQxiT9rvXgQG8r4WG4WmdcIp8Qel5Gx5jKfiIhLYpv78kfOpe/Mn6KdV
-cnDUzpqc2u461papufww8nOzxay95jNv4SrYPlytYikFtwZ45/BEkWLCdjqF41tk
-v34s8Sduzgu7sdr7odDDs2rc03BaI+B8M0jYMIWznZbZToPCi5+gMCqnCqXGYol8
-sre+0OBBGXZUawUZDHWWdV/77wPbS8eve3Uulzl7GIZPi3r6rWS5eeKpf4QhVjW6
-INqiIqsmiHX61Rwnx6d+nX+t8fks3r5TwbzD/v6U1Y77lXYt1pm5xNpxC/WPmVyB
-KrW+dDTnINDISFdapJzFzffkb2SIzz4C29CCeZudS9KjXuvse0l+BCXa39Kn8hVn
-iodcA9hKhV0YBTZeA0bp5W3xzgdb8vXX0ktBV/BfKCXNS3oSXIdRrjoKzN0Tq/H2
-Z9KUxuYLIpDCHHJktTZqD9kV2HSwZ15f/skG7k3Vj4pn4ZJrFjV92autDF+CVymf
-5Hi9UEBXPODaG0GbQKkDA4ifABV38TGnb41lMYqRUgv9iGNJkPKKBQPeqoWNagut
-FtuCUMfWtz07+ceJ6lvt
-=xopG
------END PGP SIGNATURE-----
-
---VZ4xAPYFtuHTmUjI--
+SGkgVG9tZXUsCgpPbiBXZWQsICA2IEF1ZyAyMDE0IDE1OjU3OjQ4ICswMjAwClRvbWV1IFZpem9z
+byA8dG9tZXUudml6b3NvQGNvbGxhYm9yYS5jb20+IHdyb3RlOgoKPiBJbiBwcmVwYXJhdGlvbiB0
+byBjaGFuZ2UgdGhlIHB1YmxpYyBBUEkgdG8gcmV0dXJuIGEgcGVyLXVzZXIgY2xrIHN0cnVjdHVy
+ZSwKPiByZW1vdmUgYW55IHVzYWdlIG9mIHRoaXMgcHVibGljIEFQSSBmcm9tIHRoZSBjbG9jayBp
+bXBsZW1lbnRhdGlvbnMuCj4gCj4gVGhlIHJlYXNvbiBmb3IgaGF2aW5nIHRoaXMgaW4gYSBzZXBh
+cmF0ZSBjb21taXQgZnJvbSB0aGUgb25lIHRoYXQgaW50cm9kdWNlcwo+IHRoZSBpbXBsZW1lbnRh
+dGlvbiBvZiB0aGUgbmV3IGZ1bmN0aW9ucyBpcyB0byBzZXBhcmF0ZSB0aGUgY2hhbmdlcyBnZW5l
+cmF0ZWQKPiB3aXRoIENvY2NpbmVsbGUgZnJvbSB0aGUgcmVzdCwgYW5kIGtlZXAgdGhlIHBhdGNo
+ZXMnIHNpemUgcmVhc29uYWJsZS4KPiAKCllvdSBjYW4gYWRkIG15OgoKVGVzdGVkLWJ5OiBCb3Jp
+cyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+CgphbmQKCkFj
+a2VkLWJ5OiBCb3JpcyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5j
+b20+Cgpmb3IgdGhlIGF0OTEgcGFydC4KCj4gU2lnbmVkLW9mZi1ieTogVG9tZXUgVml6b3NvIDx0
+b21ldS52aXpvc29AY29sbGFib3JhLmNvbT4KCkJlc3QgUmVnYXJkcywKCkJvcmlzCgotLSAKQm9y
+aXMgQnJlemlsbG9uLCBGcmVlIEVsZWN0cm9ucwpFbWJlZGRlZCBMaW51eCBhbmQgS2VybmVsIGVu
+Z2luZWVyaW5nCmh0dHA6Ly9mcmVlLWVsZWN0cm9ucy5jb20KX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXhwcGMtZGV2IG1haWxpbmcgbGlzdApMaW51
+eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGlu
+Zm8vbGludXhwcGMtZGV2
