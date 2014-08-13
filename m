@@ -1,42 +1,56 @@
-From: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v5 3/6] clk: Move all drivers to use internal API
-Date: Wed, 13 Aug 2014 11:50:56 +0200
-Message-ID: <20140813115056.0bd5ead7@bbrezillon>
-References: <1407333468-32180-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 00/14] Rework OMAP4+ HDMI audio support
+Date: Wed, 13 Aug 2014 12:04:25 +0100
+Message-ID: <20140813110425.GL17528@sirena.org.uk>
+References: <cover.1407503813.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1407333468-32180-1-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Mike Turquette <mturquette@linaro.org>, Emilio =?UTF-8?B?TMOzcGV6?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@opensource.wolfsonmicro.com, Viresh Kumar <viresh.linux@gmai>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gTWbk+XkjVo/nqZ0"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33184 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757AbaHMLEo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2014 07:04:44 -0400
+Content-Disposition: inline
+In-Reply-To: <cover.1407503813.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com
 
-SGkgVG9tZXUsCgpPbiBXZWQsICA2IEF1ZyAyMDE0IDE1OjU3OjQ4ICswMjAwClRvbWV1IFZpem9z
-byA8dG9tZXUudml6b3NvQGNvbGxhYm9yYS5jb20+IHdyb3RlOgoKPiBJbiBwcmVwYXJhdGlvbiB0
-byBjaGFuZ2UgdGhlIHB1YmxpYyBBUEkgdG8gcmV0dXJuIGEgcGVyLXVzZXIgY2xrIHN0cnVjdHVy
-ZSwKPiByZW1vdmUgYW55IHVzYWdlIG9mIHRoaXMgcHVibGljIEFQSSBmcm9tIHRoZSBjbG9jayBp
-bXBsZW1lbnRhdGlvbnMuCj4gCj4gVGhlIHJlYXNvbiBmb3IgaGF2aW5nIHRoaXMgaW4gYSBzZXBh
-cmF0ZSBjb21taXQgZnJvbSB0aGUgb25lIHRoYXQgaW50cm9kdWNlcwo+IHRoZSBpbXBsZW1lbnRh
-dGlvbiBvZiB0aGUgbmV3IGZ1bmN0aW9ucyBpcyB0byBzZXBhcmF0ZSB0aGUgY2hhbmdlcyBnZW5l
-cmF0ZWQKPiB3aXRoIENvY2NpbmVsbGUgZnJvbSB0aGUgcmVzdCwgYW5kIGtlZXAgdGhlIHBhdGNo
-ZXMnIHNpemUgcmVhc29uYWJsZS4KPiAKCllvdSBjYW4gYWRkIG15OgoKVGVzdGVkLWJ5OiBCb3Jp
-cyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+CgphbmQKCkFj
-a2VkLWJ5OiBCb3JpcyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5j
-b20+Cgpmb3IgdGhlIGF0OTEgcGFydC4KCj4gU2lnbmVkLW9mZi1ieTogVG9tZXUgVml6b3NvIDx0
-b21ldS52aXpvc29AY29sbGFib3JhLmNvbT4KCkJlc3QgUmVnYXJkcywKCkJvcmlzCgotLSAKQm9y
-aXMgQnJlemlsbG9uLCBGcmVlIEVsZWN0cm9ucwpFbWJlZGRlZCBMaW51eCBhbmQgS2VybmVsIGVu
-Z2luZWVyaW5nCmh0dHA6Ly9mcmVlLWVsZWN0cm9ucy5jb20KX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXhwcGMtZGV2IG1haWxpbmcgbGlzdApMaW51
-eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96bGFicy5vcmcvbGlzdGlu
-Zm8vbGludXhwcGMtZGV2
+
+--gTWbk+XkjVo/nqZ0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Aug 08, 2014 at 04:23:41PM +0300, Jyri Sarha wrote:
+> Question to ASoC maintainers:
+>   Do feel it is Ok to put ASoC code outside sound/soc the way I do
+>   in these patches (in patch 0006 particularly)?
+
+I'm not thrilled about the idea, it's going to result in breakage during
+API updates and more cross tree coordination needs.
+
+--gTWbk+XkjVo/nqZ0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJT60Y1AAoJELSic+t+oim9ZWkP/AoVhZIk/vqI9FXmsyAnnZ6i
+PrExq/+VdcFOe36gIXgSZwOxJ9565EqBCo3Z6kUP0mHKBMOaDJOGmClfr0AqXDRV
+3YcL+jsK8JEgak/Ho8B+Rm4s9KXQ/pTy1BWmWxpi1Fg0qy5XD+I7QxizAC6PyXnF
+t6x37a95zXUtLkeLNsARRa1pi5x1NY14okLduFK9Wi5Ls5aL2NsjGy30D+/vPP8y
+xwsG79GnBdE71HcTgV59UHWBRDBrWAZubLwr6BOuhtOEgJLC+KbXDuENQsOILewU
+j0i2bETdCotIXPTjZO2pEUwVvGXldG/FUg42T7ChzVM3qtEyt6DDM+A3MxFLbhkO
+ouN9A0fHkdp3wfOSQ0/jyNC93v2NssYE1C8CH42omkAAwUzTkTxz3rRMM3UFQxCd
+XKQbLTogK81BB2Jvjs24unUHv0LvU1TBD+h7ibJqLj6aK8sx8hAqkEvvkKoPS1j5
+JgYTrHZW1cC1acIkkuaLZJrL/Uh8X2RriqTwOj5ncFlAZ/xYfarZ88SpcmOlAI9C
+QlFwEE/jL0Cg/tget4aWqBHtpLbGaQ8ktMNVNF3L7lkXexVdNW+lkyNK4rXinhBf
+XXJycvxb0F5itNWHzesG4VUr+xF3nj7CcYbPqdV6gvxTugW8wMa7mteG5V7aOwpa
+16U7+XIR3AXBQCMDnlRe
+=jtWO
+-----END PGP SIGNATURE-----
+
+--gTWbk+XkjVo/nqZ0--
