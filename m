@@ -1,50 +1,47 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCH] rpmsg: compute number of buffers to allocate from vrings
-Date: Wed, 13 Aug 2014 10:47:46 -0500
-Message-ID: <53EB88A2.1070408@ti.com>
-References: <1404420815-42108-1-git-send-email-s-anna@ti.com> <CAK=WgbaRJNVXqbM+MyY+UtUYYCnR2t3CP5UdTXSpLJy=MTJKJQ@mail.gmail.com> <53EA3E78.6000304@ti.com> <CAK=WgbYLUcnK1p0qUkfONavk+W1eXg5fcaTNcU4W3ova6wySuQ@mail.gmail.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 5/5] tty: serial: Add 8250-core based omap driver
+Date: Wed, 13 Aug 2014 18:20:54 +0200
+Message-ID: <53EB9066.3060208@linutronix.de>
+References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de> <1405521903-5877-6-git-send-email-bigeasy@linutronix.de> <20140717070859.GD18374@atomide.com> <20140717074219.GA29193@linutronix.de> <20140717081232.GH18374@atomide.com> <53C7A01C.50107@linutronix.de> <20140718062456.GJ18374@atomide.com> <20140721093528.GS18374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbYLUcnK1p0qUkfONavk+W1eXg5fcaTNcU4W3ova6wySuQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:46923 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752705AbaHMQVD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2014 12:21:03 -0400
+In-Reply-To: <20140721093528.GS18374@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Hi Ohad,
+On 07/21/2014 11:35 AM, Tony Lindgren wrote:
 
-On 08/13/2014 08:40 AM, Ohad Ben-Cohen wrote:
-> Hi Suman,
-> 
-> On Tue, Aug 12, 2014 at 7:19 PM, Suman Anna <s-anna@ti.com> wrote:
->> Yes, I was playing around with using less buffers in the remoteproc
->> resource table for the vrings. The remoteproc virtio code creates the
->> vrings using the number of buffers based on .num field value of struct
->> fw_rsc_vdev_vring in the resource table. The virtio rpmsg probe code
->> though tries to set up the receive buffers for the same virtqueue based
->> on the current hard-coded value of 512 buffers and virtqueue_add_inbuf
->> would fail as the virtqueue is created with less number of buffers and
->> throws a WARN_ON.
-> 
-> Gotcha - thanks for the details.
-> 
-> Limiting the number of buffers in case the vrings are too small makes
-> sense, but let's use RPMSG_NUM_BUFS as an upper bound, so wacky
-> resource tables won't trigger unreasonable memory waste.
-> 
-> Something in the lines of:
-> 
-> vrp->num_bufs = min(PMSG_NUM_BUFS, virtqueue_get_vring_size(vrp->rvq) * 2);
-> 
-> Should probably do the trick.
-> 
-> Does this satisfy your requirement?
+> Looks like the following is needed to avoid the error, no idea why..
+> But this is what we also do in omap-serial.c. It may be needed in
+> other places too?
 
-Yeah, this will work for me. I will go ahead and add a WARN_ON as well
-to detect above wacky condition, and if someone really needs more
-buffers in the future, we can revisit this.
+Yes, there was a third one on shutdown.
 
-regards
-Suman
+> Also, no luck yet on runtime PM. If the console is enabled omap won't
+> idle, and if no serial console is enabled, it just hangs. Will try
+> to debug this part further, it may be also related to the above.
+
+My beaglebone xm won't do idle:
+
+| omap3_pm_off_mode_enable: Core OFF disabled due to errata i583
+
+but it would if it could, right? That means that I can't test the wake
+via UART on this one?
+
+So I will try to fix the tx-pm, fold patches and then prepare another
+batch.
+And I could verify that DMA works on that omap3 :)
+
+> Regards,
+> 
+> Tony
+
+Sebastian
