@@ -1,51 +1,43 @@
-From: Deepa Raj <draj187@hotmail.com>
-Subject: Questions about enabling dps(dynamic power switching) and SLM
-Date: Wed, 13 Aug 2014 13:08:45 +0000
-Message-ID: <BLU185-W2233E35F6629F6D4F137D6ECEB0@phx.gbl>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] rpmsg: compute number of buffers to allocate from vrings
+Date: Wed, 13 Aug 2014 16:40:50 +0300
+Message-ID: <CAK=WgbYLUcnK1p0qUkfONavk+W1eXg5fcaTNcU4W3ova6wySuQ@mail.gmail.com>
+References: <1404420815-42108-1-git-send-email-s-anna@ti.com>
+ <CAK=WgbaRJNVXqbM+MyY+UtUYYCnR2t3CP5UdTXSpLJy=MTJKJQ@mail.gmail.com> <53EA3E78.6000304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from blu004-omc1s37.hotmail.com ([65.55.116.48]:62902 "EHLO
-	BLU004-OMC1S37.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751145AbaHMNNx convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Aug 2014 09:13:53 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <53EA3E78.6000304@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Suman,
 
-I am working on OMAP3 and OMaP4. I know we can do AVS by smartreflex. T=
-he Questions are as follows:
+On Tue, Aug 12, 2014 at 7:19 PM, Suman Anna <s-anna@ti.com> wrote:
+> Yes, I was playing around with using less buffers in the remoteproc
+> resource table for the vrings. The remoteproc virtio code creates the
+> vrings using the number of buffers based on .num field value of struct
+> fw_rsc_vdev_vring in the resource table. The virtio rpmsg probe code
+> though tries to set up the receive buffers for the same virtqueue based
+> on the current hard-coded value of 512 buffers and virtqueue_add_inbuf
+> would fail as the virtqueue is created with less number of buffers and
+> throws a WARN_ON.
 
-1) I have gone through TRM but could not find how can we enable/disable=
- dps and slm. Can you please point out how can we do that?=A0
+Gotcha - thanks for the details.
 
-2) Does DPS and SLM only applies to MPU,IVA and core domains or it appl=
-ies to all devices?
+Limiting the number of buffers in case the vrings are too small makes
+sense, but let's use RPMSG_NUM_BUFS as an upper bound, so wacky
+resource tables won't trigger unreasonable memory waste.
 
-3) According to OMAP ppt, DPS (similar like run time power management a=
-nd having wakeup latency in micro seconds). If we enable DPS, does hard=
-ware take care of switching on/off power domains means there is no need=
- of powering on/off devices through software?
+Something in the lines of:
 
-4) Will DPS only triggers to retention state only or off state also?
+vrp->num_bufs = min(PMSG_NUM_BUFS, virtqueue_get_vring_size(vrp->rvq) * 2);
 
-5) If we enable SLM (according to omap ppt, suspend to ram) but wakeup =
-latencies in milliseconds, if we enable this feature, does the hardware=
- be able to power off all the devices when system is idle or it only ap=
-plies to VDD1 (MPU-IVA) or VDD2 (Core domain)?
+Should probably do the trick.
 
-Hope to see answers from experts.
+Does this satisfy your requirement?
 
-Regards
-d raj.
-
-
- 		 	   		  --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ohad.
