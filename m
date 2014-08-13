@@ -1,62 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] tty: serial: Add 8250-core based omap driver
-Date: Wed, 13 Aug 2014 09:37:23 -0700
-Message-ID: <20140813163722.GA9239@atomide.com>
-References: <1405521903-5877-1-git-send-email-bigeasy@linutronix.de>
- <1405521903-5877-6-git-send-email-bigeasy@linutronix.de>
- <20140717070859.GD18374@atomide.com>
- <20140717074219.GA29193@linutronix.de>
- <20140717081232.GH18374@atomide.com>
- <53C7A01C.50107@linutronix.de>
- <20140718062456.GJ18374@atomide.com>
- <20140721093528.GS18374@atomide.com>
- <53EB9066.3060208@linutronix.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 00/14] Rework OMAP4+ HDMI audio support
+Date: Wed, 13 Aug 2014 18:26:32 +0100
+Message-ID: <20140813172632.GE17528@sirena.org.uk>
+References: <cover.1407503813.git.jsarha@ti.com>
+ <20140813110425.GL17528@sirena.org.uk>
+ <53EB5F6A.9060308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KsIYMYvOvXaGWzg6"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33691 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752607AbaHMR0s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Aug 2014 13:26:48 -0400
 Content-Disposition: inline
-In-Reply-To: <53EB9066.3060208@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+In-Reply-To: <53EB5F6A.9060308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140813 09:23]:
-> On 07/21/2014 11:35 AM, Tony Lindgren wrote:
-> 
-> > Looks like the following is needed to avoid the error, no idea why..
-> > But this is what we also do in omap-serial.c. It may be needed in
-> > other places too?
-> 
-> Yes, there was a third one on shutdown.
 
-OK
- 
-> > Also, no luck yet on runtime PM. If the console is enabled omap won't
-> > idle, and if no serial console is enabled, it just hangs. Will try
-> > to debug this part further, it may be also related to the above.
-> 
-> My beaglebone xm won't do idle:
-> 
-> | omap3_pm_off_mode_enable: Core OFF disabled due to errata i583
-> 
-> but it would if it could, right? That means that I can't test the wake
-> via UART on this one?
+--KsIYMYvOvXaGWzg6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Hmm OK yes that's disabled for some earlier ES revisions. I guess you
-could comment out the limitations for PM_SDRC_WAKEUP_ERRATUM_i583
-in both cpuidle34xx.c and pm34xx.c and see if off-idle is usable for
-your tests :) It might be flakey but still usable for testing.
- 
-> So I will try to fix the tx-pm, fold patches and then prepare another
-> batch.
+On Wed, Aug 13, 2014 at 03:51:54PM +0300, Jyri Sarha wrote:
 
-OK great, let me know if you need more help.
+> I guess then the least bad alternative would be cutting the cpu-dai driver
+> away from drivers/video/fbdev/omap2/dss/hdmi_audio.c and placing it under
+> sound/soc/omap and registering it from hdmi_audio.c the same way as
+> hdmi-audio-codec and asoc-simple-card is now registered.
 
-> And I could verify that DMA works on that omap3 :)
+> There would be two devices for a single ip, but at least the ASoC side
+> driver would receive its resources directly from the HDMI video driver with
+> necessary tools to synchronize the access.
 
-OK
+Just a MFD really.
 
-Regards,
+> This approach would work for other HDMI audio situation too, where there
+> would usually (for tda998x and SiI9022 at least) be a need to register an
+> i2s codec driver associated with the HDMI encoder. It would probably be
+> possible to make a single codec driver to work with multiple HDMI encoders
+> if the API between the codec and endcoder drivers is designed that in mind.
 
-Tony
+> How does this sound?
+
+This sounds like a way forward, I definitely think it's a good idea to
+standardise the interfaces as much as we can.
+
+--KsIYMYvOvXaGWzg6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJT65/FAAoJELSic+t+oim9+8gP/Antp/nkv1/bPsS9DXA2tgHM
+pcZqD6ZwciTZEgoy26rw6DQC99hE/qL1nQr6i41DHL56LRv78/pmx5DTzDrl3uGA
+BSFSGniJQ2SjjdZWHTN1b0HKecH9LUWpM1OCwm4HJWczR5tgNZzyFf1qzmzqNx/u
+QJ8pauFCbm5YSbY05DKTZ3cycrVvYViQisRoHcNAct7ckJnGS2pyoHuOVSLqz8o0
+e08CtKlte3mYQCPChbiv3g/CBDEKG4Og8gFP308xD33SHMUZ9Hv6UJnvoYR3w4kd
+t7avmNfA1mpa8SrN8lypmDfytzX0le2xdahEAgAvarHEzxGihlMvJFhYtyUgJiSR
+nnO6V/GpTLU0/sUJxWUjTZpUA+guRFnEtxKlmbOjG8ncYzGFp9XtWWRlp0t5UujR
+DoEFMb4J/5kDpEdP7n17IX/ng0UvnjlmeOe0dGy3g4+MoFl7ltARHy/M+RiPhmkr
+6dOBawKsfUJDftAvQS134/6qtpRWdTyNx2OsRHUqfwTHfRd4N8g1xIF8nNPZVG2k
+gSt1mVL2GKq1AqRY9mGXPsHXK58vBBpJQ3mCFyirBOTnFwOEsQiLwrc7QmHnKjN4
+w5d3jI0otMpBj9H6V/5QyYFAbHUMWtuo0NKHScpDVfG5yn2JwyTlo8l4hkCiVR4e
+Nth2Xzcn6Kzm7444hyrJ
+=8jcY
+-----END PGP SIGNATURE-----
+
+--KsIYMYvOvXaGWzg6--
