@@ -1,49 +1,51 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v3 00/14] Rework OMAP4+ HDMI audio support
-Date: Wed, 13 Aug 2014 15:51:54 +0300
-Message-ID: <53EB5F6A.9060308@ti.com>
-References: <cover.1407503813.git.jsarha@ti.com> <20140813110425.GL17528@sirena.org.uk>
+From: Deepa Raj <draj187@hotmail.com>
+Subject: Questions about enabling dps(dynamic power switching) and SLM
+Date: Wed, 13 Aug 2014 13:08:45 +0000
+Message-ID: <BLU185-W2233E35F6629F6D4F137D6ECEB0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38507 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750751AbaHMMwE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Aug 2014 08:52:04 -0400
-In-Reply-To: <20140813110425.GL17528@sirena.org.uk>
+Received: from blu004-omc1s37.hotmail.com ([65.55.116.48]:62902 "EHLO
+	BLU004-OMC1S37.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751145AbaHMNNx convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Aug 2014 09:13:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 08/13/2014 02:04 PM, Mark Brown wrote:
-> On Fri, Aug 08, 2014 at 04:23:41PM +0300, Jyri Sarha wrote:
->> Question to ASoC maintainers:
->>    Do feel it is Ok to put ASoC code outside sound/soc the way I do
->>    in these patches (in patch 0006 particularly)?
->
-> I'm not thrilled about the idea, it's going to result in breakage during
-> API updates and more cross tree coordination needs.
->
+Hi,
 
-I guess then the least bad alternative would be cutting the cpu-dai 
-driver away from drivers/video/fbdev/omap2/dss/hdmi_audio.c and placing 
-it under sound/soc/omap and registering it from hdmi_audio.c the same 
-way as hdmi-audio-codec and asoc-simple-card is now registered.
+I am working on OMAP3 and OMaP4. I know we can do AVS by smartreflex. T=
+he Questions are as follows:
 
-There would be two devices for a single ip, but at least the ASoC side 
-driver would receive its resources directly from the HDMI video driver 
-with necessary tools to synchronize the access.
+1) I have gone through TRM but could not find how can we enable/disable=
+ dps and slm. Can you please point out how can we do that?=A0
 
-This approach would work for other HDMI audio situation too, where there 
-would usually (for tda998x and SiI9022 at least) be a need to register 
-an i2s codec driver associated with the HDMI encoder. It would probably 
-be possible to make a single codec driver to work with multiple HDMI 
-encoders if the API between the codec and endcoder drivers is designed 
-that in mind.
+2) Does DPS and SLM only applies to MPU,IVA and core domains or it appl=
+ies to all devices?
 
-How does this sound?
+3) According to OMAP ppt, DPS (similar like run time power management a=
+nd having wakeup latency in micro seconds). If we enable DPS, does hard=
+ware take care of switching on/off power domains means there is no need=
+ of powering on/off devices through software?
 
-Best regards,
-Jyri
+4) Will DPS only triggers to retention state only or off state also?
+
+5) If we enable SLM (according to omap ppt, suspend to ram) but wakeup =
+latencies in milliseconds, if we enable this feature, does the hardware=
+ be able to power off all the devices when system is idle or it only ap=
+plies to VDD1 (MPU-IVA) or VDD2 (Core domain)?
+
+Hope to see answers from experts.
+
+Regards
+d raj.
+
+
+ 		 	   		  --
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
