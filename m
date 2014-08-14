@@ -1,67 +1,68 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 00/14] Rework OMAP4+ HDMI audio support
-Date: Thu, 14 Aug 2014 20:10:08 +0100
-Message-ID: <20140814191008.GE17528@sirena.org.uk>
-References: <cover.1407503813.git.jsarha@ti.com>
- <20140813110425.GL17528@sirena.org.uk>
- <53EB5F6A.9060308@ti.com>
- <20140813172632.GE17528@sirena.org.uk>
- <53EC8127.7090405@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: DTR gpio handling removed by
+ 985bfd54c826c0ba873ca0adfd5589263e0c6ee2
+Date: Thu, 14 Aug 2014 17:58:02 -0500
+Message-ID: <20140814225802.GA12109@saruman.home>
+References: <CAAfyv36aMkE5e6Bo1hy1md+Z5EjrZjP+foZTyncp5GFtnaL_sg@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hKlCbHbSDGogBfqt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35533 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879AbaHNTKN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Aug 2014 15:10:13 -0400
+	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53EC8127.7090405@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAAfyv36aMkE5e6Bo1hy1md+Z5EjrZjP+foZTyncp5GFtnaL_sg@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Belisko Marek <marek.belisko@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com
 
-
---hKlCbHbSDGogBfqt
+--J/dobhs11T7y2rNN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 14, 2014 at 12:28:07PM +0300, Jyri Sarha wrote:
+Hi,
 
-> After discussing with Peter and Tomi I decided to change the approach a bit.
-> There should not be any new device registered, just ASoC components that are
-> implemented under sound/soc as a library rather than a device driver.
+On Thu, Aug 14, 2014 at 11:04:58PM +0200, Belisko Marek wrote:
+> during 3.15 release was removed by commit
+> 985bfd54c826c0ba873ca0adfd5589263e0c6ee2 code which was added by
+> 9574f36fb801035f6ab0fbb1b53ce2c12c17d100 by Neil Brown. We're using
+> DTR gpio in gta04 device. I plan to post DT binding for DTR gpio +
+> documentation and find out that Neil's code was removed by Felipe.
+> Greg can you please revert mentioned commit? We're using DTR gpio in
+> gta04 device. Or is there other way how to proceed? Thanks.
 
-> The library would export a register and unregister functions to be called
-> from video driver directory. The functions will then register the necessary
-> ASoC components under the video device.
+there are *NO* users of that in tree, if you're using it, then please
+add a proper DTS for your device and figure out a way of passing DTR
+gpio through DT.
 
-> If there are no objections I'll go ahead implementing this approach, first
-> for OMAP HDMI audio, and later for SiI9022 driver we are cooking.
+Keep in mind, also, that we might be switching back to 8250 driver (see
+thread from Sebastian Siewior) so you might want to look into a way of
+adding *generic* gpio-based DTR handling.
 
-That also sounds perfectly sensible.
+--=20
+balbi
 
---hKlCbHbSDGogBfqt
+--J/dobhs11T7y2rNN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBAgAGBQJT7QmMAAoJELSic+t+oim9VikP/3b0/Vli9SYeaan6A7lPeUnW
-366oz6KwXmJPOLEcjFsmhXpMj+RJlVw2aMvu6wH/dUzJsN1QeKD+nvhTi8wrgBmU
-8Z+uYkOLs2Q6fapTV6LlU7Ek+tNHLoIz6bn2AsAd4m+HEqKyRgEsydU5Lteh3ih6
-YLPI6NhDqbH7Y/MbwY7Uo7GD8pnkuKDUEwKdAHymXn47kvNpVEsvtNpQ2oiZRwKM
-OIAr3RkOrg0udYf+lTOTQnk1cXFM7UUq4q/JSOVfRUx+cMYz8woLkUl0VyZXt0Eq
-RQoRHrwaC4mPBBxtlQVYTmD9nHyCPs3SuTEvp6yVzZYKppyqeWPUOYYdN8AtD/Pn
-8l9jJmkldW1lrICIhYvtfDVH7zDLYoJpI8QrATrH5Ck4dxaspmRDxeFbGmOieAYa
-kNOISmqZ3WcE0KvbSL83HK0Fq/QJG1vTgGmRt9jwI44kJ8YoGcYFc/WvXllTsxsP
-XgafrPmLiqu4XfLec63pTTt+atSQorFYH2YxT4DqrGlbtI9BuO7DIakOpOXqqTg+
-DaN12zI12DgjCkvqTOXS3TMHEZQnV4Bv5U6HGOOiY+DWo1jzCMYhuAQHN9NSuJOz
-i12YLLY34hSj6EZdQmgU0hbkHCCYsxxxtQNQ08T+8ES4IQLj+CqXnodilhm9NGah
-qSXp8h+UgYXYeUG3l4TL
-=Mrqw
+iQIcBAEBAgAGBQJT7T76AAoJEIaOsuA1yqREiLgP/ik3RdwQbiZBZqukv02rGKQz
+pNsQrbf9kch4rheqyWpoEpbcoRqnTPPiYB/PtvQ+2F3OGFQuf6QfDDptg9l11fN7
+MIoSSS8vk9jY9Zp2PMkzc/L6dUtLPWKCvO1+HXQ3yhtzcWDtbaATbsT2bz/niA1t
+2mHfEr4gzHegaMYn4stAhy0xxHIW+ID68J4xB7fu3NUVRTuAfUFbvMrn3rJDHQbf
+kXBg9ZaSadRUMEPiw+7TLGQZAt2mNe7f4CWJxKRhHbE3PlfwJzQDde6kEW9C3B7I
+W8mjYHPRrNgPyEJ/cYCRfvSZrzriyaOANhupF/MI6zXLVzp8wK1yO3FUXmW3z5Gq
+XT/gXtDCAbkU6phvdvE1sxOvTcouLpQFEfp4Jb+xiNxGw8l+PA8+aVOmyVrQYb60
+y5ZOvT2Z+f9BY1XxjRDHSfjJg1bZVa4Quwbx722c4IYJ+UevgPJEDP1WjA4cFrhw
++zfXFY2bwJAioDzXsGH3g74tqDFM49B41n7S6afiPlJNVOBGjv9BglvXV/+xtJn8
+Pds9nnqeZSMG1cSDw1ZFwCS1JlceKnGg9xp4WZLr+KdccqESWz2/GUnOrrnypcWN
+KFjUG8H+WGEEhGBA15abg2IGHQdNC9G27pSyw0QndxNV/q36I4LQtpW3YjpL3gRW
+Chw52HfJGvVkkraD451E
+=bD0J
 -----END PGP SIGNATURE-----
 
---hKlCbHbSDGogBfqt--
+--J/dobhs11T7y2rNN--
