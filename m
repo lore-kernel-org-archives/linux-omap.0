@@ -1,132 +1,58 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 01/15] tty: serial: 8250_core: allow to overwrite & export serial8250_startup()
-Date: Fri, 15 Aug 2014 19:42:29 +0200
-Message-ID: <1408124563-31541-2-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 09/15] dmaengine: omap-dma: complete the transfer on terminate_all
+Date: Fri, 15 Aug 2014 19:42:37 +0200
+Message-ID: <1408124563-31541-10-git-send-email-bigeasy@linutronix.de>
 References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-serial-owner@vger.kernel.org
 To: linux-serial@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP version of the 8250 can actually use 1:1 serial8250_startup().
-However it needs to be extended by a wake up irq which should to be
-requested & enabled at ->startup() time and disabled at ->shutdown() ti=
-me.
+The rx path of the 8250_dma user in the RX-timeout case:
+- it starts the RX transfer
+- if the rx-timeout interrupt occurs, it dmaengine_pause() the transfer
+- step two is dmaengine_terminate_all() on this channel.
+- the rx interrupt occurs, it does not start the RX-transfer because
+  according to dmaengine_tx_status() the status of the current transfer
+  is still DMA_IN_PROGRESS because the earlier dmaengine_terminate_all()
+  did not reset this.
 
-v2=E2=80=A6v3: properly copy callbacks
-v1=E2=80=A6v2: add shutdown callback
+To fix this problem, the patch adds dma_cookie_complete() "complete" the
+current cookie.
 
-Acked-by: Alan Cox <alan@linux.intel.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_core.c | 26 ++++++++++++++++++++++++--
- include/linux/serial_8250.h         |  2 ++
- include/linux/serial_core.h         |  2 ++
- 3 files changed, 28 insertions(+), 2 deletions(-)
+ drivers/dma/omap-dma.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8=
-250/8250_core.c
-index e2ad13a..dde1331 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -1929,7 +1929,7 @@ static void serial8250_put_poll_char(struct uart_=
-port *port,
-=20
- #endif /* CONFIG_CONSOLE_POLL */
-=20
--static int serial8250_startup(struct uart_port *port)
-+int serial8250_do_startup(struct uart_port *port)
- {
- 	struct uart_8250_port *up =3D up_to_u8250p(port);
- 	unsigned long flags;
-@@ -2180,8 +2180,17 @@ static int serial8250_startup(struct uart_port *=
-port)
-=20
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(serial8250_do_startup);
-=20
--static void serial8250_shutdown(struct uart_port *port)
-+static int serial8250_startup(struct uart_port *port)
-+{
-+	if (port->startup)
-+		return port->startup(port);
-+	else
-+		return serial8250_do_startup(port);
-+}
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index b19f04f..81ede01 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -970,6 +970,12 @@ static int omap_dma_terminate_all(struct omap_chan *c)
+ 
+ 	/* Prevent this channel being scheduled */
+ 	spin_lock(&d->lock);
++	if (!c->desc && !list_empty(&c->node)) {
++		struct virt_dma_desc *vd = vchan_next_desc(&c->vc);
 +
-+void serial8250_do_shutdown(struct uart_port *port)
- {
- 	struct uart_8250_port *up =3D up_to_u8250p(port);
- 	unsigned long flags;
-@@ -2231,6 +2240,15 @@ static void serial8250_shutdown(struct uart_port=
- *port)
- 	if (port->irq)
- 		serial_unlink_irq_chain(up);
- }
-+EXPORT_SYMBOL_GPL(serial8250_do_shutdown);
-+
-+static void serial8250_shutdown(struct uart_port *port)
-+{
-+	if (port->shutdown)
-+		port->shutdown(port);
-+	else
-+		serial8250_do_shutdown(port);
-+}
-=20
- static unsigned int serial8250_get_divisor(struct uart_port *port, uns=
-igned int baud)
- {
-@@ -3428,6 +3446,10 @@ int serial8250_register_8250_port(struct uart_82=
-50_port *up)
- 		/*  Possibly override set_termios call */
- 		if (up->port.set_termios)
- 			uart->port.set_termios =3D up->port.set_termios;
-+		if (up->port.startup)
-+			uart->port.startup =3D up->port.startup;
-+		if (up->port.shutdown)
-+			uart->port.shutdown =3D up->port.shutdown;
- 		if (up->port.pm)
- 			uart->port.pm =3D up->port.pm;
- 		if (up->port.handle_break)
-diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
-index f93649e..c3aa004 100644
---- a/include/linux/serial_8250.h
-+++ b/include/linux/serial_8250.h
-@@ -121,6 +121,8 @@ extern void serial8250_early_out(struct uart_port *=
-port, int offset, int value);
- extern int setup_early_serial8250_console(char *cmdline);
- extern void serial8250_do_set_termios(struct uart_port *port,
- 		struct ktermios *termios, struct ktermios *old);
-+extern int serial8250_do_startup(struct uart_port *port);
-+extern void serial8250_do_shutdown(struct uart_port *port);
- extern void serial8250_do_pm(struct uart_port *port, unsigned int stat=
-e,
- 			     unsigned int oldstate);
- extern int fsl8250_handle_irq(struct uart_port *port);
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index cf3a1e7..f3ea531 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -122,6 +122,8 @@ struct uart_port {
- 	void			(*set_termios)(struct uart_port *,
- 				               struct ktermios *new,
- 				               struct ktermios *old);
-+	int			(*startup)(struct uart_port *port);
-+	void			(*shutdown)(struct uart_port *port);
- 	int			(*handle_irq)(struct uart_port *);
- 	void			(*pm)(struct uart_port *, unsigned int state,
- 				      unsigned int old);
---=20
++		if (vd)
++			dma_cookie_complete(&vd->tx);
++	}
+ 	list_del_init(&c->node);
+ 	spin_unlock(&d->lock);
+ 
+@@ -979,6 +985,7 @@ static int omap_dma_terminate_all(struct omap_chan *c)
+ 	 * c->desc is NULL and exit.)
+ 	 */
+ 	if (c->desc) {
++		dma_cookie_complete(&c->desc->vd.tx);
+ 		c->desc = NULL;
+ 		/* Avoid stopping the dma twice */
+ 		if (!c->paused)
+-- 
 2.0.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
