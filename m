@@ -1,110 +1,132 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: DTR gpio handling removed by
- 985bfd54c826c0ba873ca0adfd5589263e0c6ee2
-Date: Fri, 15 Aug 2014 08:24:44 -0500
-Message-ID: <20140815132444.GA11781@saruman.home>
-References: <CAAfyv36aMkE5e6Bo1hy1md+Z5EjrZjP+foZTyncp5GFtnaL_sg@mail.gmail.com>
- <20140814225802.GA12109@saruman.home>
- <B18DC75F-EA0E-456F-996E-2F4BF496B68B@goldelico.com>
-Reply-To: <balbi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 01/15] tty: serial: 8250_core: allow to overwrite & export serial8250_startup()
+Date: Fri, 15 Aug 2014 19:42:29 +0200
+Message-ID: <1408124563-31541-2-git-send-email-bigeasy@linutronix.de>
+References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <B18DC75F-EA0E-456F-996E-2F4BF496B68B@goldelico.com>
+In-Reply-To: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-serial-owner@vger.kernel.org
-To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: balbi@ti.com, Belisko Marek <marek.belisko@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, NeilBrown <neilb@suse.de>
+To: linux-serial@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
---wRRV7LY7NUeQGEoC
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The OMAP version of the 8250 can actually use 1:1 serial8250_startup().
+However it needs to be extended by a wake up irq which should to be
+requested & enabled at ->startup() time and disabled at ->shutdown() ti=
+me.
 
-Hi,
+v2=E2=80=A6v3: properly copy callbacks
+v1=E2=80=A6v2: add shutdown callback
 
-On Fri, Aug 15, 2014 at 08:08:44AM +0200, Dr. H. Nikolaus Schaller wrote:
-> Hi Felipe,
->=20
-> Am 15.08.2014 um 00:58 schrieb Felipe Balbi <balbi@ti.com>:
->=20
-> > Hi,
-> >=20
-> > On Thu, Aug 14, 2014 at 11:04:58PM +0200, Belisko Marek wrote:
-> >> during 3.15 release was removed by commit
-> >> 985bfd54c826c0ba873ca0adfd5589263e0c6ee2 code which was added by
-> >> 9574f36fb801035f6ab0fbb1b53ce2c12c17d100 by Neil Brown. We're using
-> >> DTR gpio in gta04 device. I plan to post DT binding for DTR gpio +
-> >> documentation and find out that Neil's code was removed by Felipe.
-> >> Greg can you please revert mentioned commit? We're using DTR gpio in
-> >> gta04 device. Or is there other way how to proceed? Thanks.
-> >=20
-> > there are *NO* users of that in tree, if you're using it, then please
-> > add a proper DTS for your device and figure out a way of passing DTR
-> > gpio through DT.
->=20
-> In fact we are in the middle of preparing DT and driver patches for
-> upstreaming the out of tree drivers Neil is mentioning. So there are
-> no users *yet* and maybe we are the first one.
+Acked-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/tty/serial/8250/8250_core.c | 26 ++++++++++++++++++++++++--
+ include/linux/serial_8250.h         |  2 ++
+ include/linux/serial_core.h         |  2 ++
+ 3 files changed, 28 insertions(+), 2 deletions(-)
 
-right, and that's why it was removed. How would we even know that the
-code works when there are no users for it ?
-
-> Neil has already completely argued and commented on that topic:
->=20
-> https://lkml.org/lkml/2014/4/23/736
->=20
-> Unfortunately he acked the removal with a completely non-technical
-> argument:
->=20
-> > Just at the moment I'm finding it hard to care.
-> > So
-> >  Acked-by: NeilBrown <neilb@suse.de>
->=20
-> Now we have the problem that it got kicked out while we were preparing
-> the other parts :(
->=20
-> On the other hand, please consider that we don=E2=80=99t have the manpowe=
-r and
-> knowledge to modify bigger parts of Linux besides plumbing together
-> parts that already exist and add drivers and DT nodes.
->=20
-> So please consider again to re-add
-> 9574f36fb801035f6ab0fbb1b53ce2c12c17d100.
->=20
-> Or should we resubmit it together with our DT/drivers where we use it?
-
-submit it together with your patches but it would be a lot better to see
-that turned into something generic, which was commented on the same
-thread IIRC.
-
-cheers
-
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8=
+250/8250_core.c
+index e2ad13a..dde1331 100644
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -1929,7 +1929,7 @@ static void serial8250_put_poll_char(struct uart_=
+port *port,
+=20
+ #endif /* CONFIG_CONSOLE_POLL */
+=20
+-static int serial8250_startup(struct uart_port *port)
++int serial8250_do_startup(struct uart_port *port)
+ {
+ 	struct uart_8250_port *up =3D up_to_u8250p(port);
+ 	unsigned long flags;
+@@ -2180,8 +2180,17 @@ static int serial8250_startup(struct uart_port *=
+port)
+=20
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(serial8250_do_startup);
+=20
+-static void serial8250_shutdown(struct uart_port *port)
++static int serial8250_startup(struct uart_port *port)
++{
++	if (port->startup)
++		return port->startup(port);
++	else
++		return serial8250_do_startup(port);
++}
++
++void serial8250_do_shutdown(struct uart_port *port)
+ {
+ 	struct uart_8250_port *up =3D up_to_u8250p(port);
+ 	unsigned long flags;
+@@ -2231,6 +2240,15 @@ static void serial8250_shutdown(struct uart_port=
+ *port)
+ 	if (port->irq)
+ 		serial_unlink_irq_chain(up);
+ }
++EXPORT_SYMBOL_GPL(serial8250_do_shutdown);
++
++static void serial8250_shutdown(struct uart_port *port)
++{
++	if (port->shutdown)
++		port->shutdown(port);
++	else
++		serial8250_do_shutdown(port);
++}
+=20
+ static unsigned int serial8250_get_divisor(struct uart_port *port, uns=
+igned int baud)
+ {
+@@ -3428,6 +3446,10 @@ int serial8250_register_8250_port(struct uart_82=
+50_port *up)
+ 		/*  Possibly override set_termios call */
+ 		if (up->port.set_termios)
+ 			uart->port.set_termios =3D up->port.set_termios;
++		if (up->port.startup)
++			uart->port.startup =3D up->port.startup;
++		if (up->port.shutdown)
++			uart->port.shutdown =3D up->port.shutdown;
+ 		if (up->port.pm)
+ 			uart->port.pm =3D up->port.pm;
+ 		if (up->port.handle_break)
+diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
+index f93649e..c3aa004 100644
+--- a/include/linux/serial_8250.h
++++ b/include/linux/serial_8250.h
+@@ -121,6 +121,8 @@ extern void serial8250_early_out(struct uart_port *=
+port, int offset, int value);
+ extern int setup_early_serial8250_console(char *cmdline);
+ extern void serial8250_do_set_termios(struct uart_port *port,
+ 		struct ktermios *termios, struct ktermios *old);
++extern int serial8250_do_startup(struct uart_port *port);
++extern void serial8250_do_shutdown(struct uart_port *port);
+ extern void serial8250_do_pm(struct uart_port *port, unsigned int stat=
+e,
+ 			     unsigned int oldstate);
+ extern int fsl8250_handle_irq(struct uart_port *port);
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index cf3a1e7..f3ea531 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -122,6 +122,8 @@ struct uart_port {
+ 	void			(*set_termios)(struct uart_port *,
+ 				               struct ktermios *new,
+ 				               struct ktermios *old);
++	int			(*startup)(struct uart_port *port);
++	void			(*shutdown)(struct uart_port *port);
+ 	int			(*handle_irq)(struct uart_port *);
+ 	void			(*pm)(struct uart_port *, unsigned int state,
+ 				      unsigned int old);
 --=20
-balbi
+2.0.1
 
---wRRV7LY7NUeQGEoC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJT7gocAAoJEIaOsuA1yqREFM8P/2GGVsNuDDIuMWDyv7iX7Kwp
-KoKSYHD/qkWrPu00E2NYhFUebMNbLe9gHoK3Sb5LPd1JdfS3weWA7U6e37RzT6kb
-MbBeZR6ZljnJ/Cly2tvmZMji4TXJGnIPWmjD8Yvm64vzsQ9+M7McNazz3swb1QoR
-0DWe2XOIDkUV+T7HBl9ncjbYPSNTNhRUtRiZeanEqhY8xk0nnHeuF1DEZ2ASpaa+
-oxWR8rZxZGGM7pIM0LtNZsC7E3jaSTgupieExKGwog3mm9RaDjrD67MCytFBXLFH
-MMfc6P0+34Xh7ijuUI3/3MZ1bY4GgmioyZhGf5nNU3cUHnUjhiAagCTpQc7PzK43
-tNqvRXmEzWO7KTsMKBrR3najqKEYthspT5q8ZDpah9U6PZ2Zgt+JOI0SYTar32mR
-vLjJpPPF+ThycJut7Pc6pXzd/ebnZcFLZUEHmqeIGryMblv2biuVkpp6XXSwiAlR
-QdoVUOy9Wa0ygZaocg1oXevKCfUQJgIq3ItM9JO36H+kEMHZPxGJk+QYCoBjhVIQ
-SeopbvfBch//nHYKbiFqdbWfhbmcjo2X1pUo4B0x3G3rZ5wFqo8lvOaKohvt8GEY
-7WaJUT1j5lh0Cz7vfrMSeP1JjptSdq/DHVrlLgNOeX2riJAqCvUhCyds6TqLIxOa
-twg2IWQkgwb+o3A7bbgS
-=r6ji
------END PGP SIGNATURE-----
-
---wRRV7LY7NUeQGEoC--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
