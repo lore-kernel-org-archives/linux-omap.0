@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 02/15] tty: serial: 8250_core: allow to set ->throttle / ->unthrottle callbacks
-Date: Fri, 15 Aug 2014 19:42:30 +0200
-Message-ID: <1408124563-31541-3-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 07/15] tty: serial: 8250_dma: enqueue RX dma again on completion.
+Date: Fri, 15 Aug 2014 19:42:35 +0200
+Message-ID: <1408124563-31541-8-git-send-email-bigeasy@linutronix.de>
 References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
@@ -10,70 +10,74 @@ To: linux-serial@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP UART provides support for HW assisted flow control. What is
-missing is the support to throttle / unthrottle callbacks which are used
-by the omap-serial driver at the moment.
-This patch adds the callbacks. It should be safe to add them since they
-are only invoked from the serial_core (uart_throttle()) if the feature
-flags are set.
+The omap needs a DMA request pending right away. If it is enqueued once
+the bytes are in the FIFO then nothing will happen and the FIFO will be
+later purged via RX-timeout interrupt.
+This patch enqueues RX-DMA request on completion but not if it was
+aborted on error. The first enqueue will happen in the driver in
+startup.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_core.c | 14 ++++++++++++++
- include/linux/serial_core.h         |  2 ++
- 2 files changed, 16 insertions(+)
+ drivers/tty/serial/8250/8250_core.c |  3 +++
+ drivers/tty/serial/8250/8250_dma.c  | 12 +++++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index dde1331..35fe96e 100644
+index 7498ce1..ab2de27 100644
 --- a/drivers/tty/serial/8250/8250_core.c
 +++ b/drivers/tty/serial/8250/8250_core.c
-@@ -1318,6 +1318,16 @@ static void serial8250_start_tx(struct uart_port *port)
+@@ -1598,6 +1598,9 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+ 
+ 		if (!up->dma || dma_err)
+ 			status = serial8250_rx_chars(up, status);
++
++		if (dma_err && port->type == PORT_OMAP_16750)
++			serial8250_rx_dma(up, 0);
  	}
+ 	serial8250_modem_status(up);
+ 	if ((!up->dma || up->dma_tx_err) && (status & UART_LSR_THRE))
+diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
+index 5c59b15..7417ed5 100644
+--- a/drivers/tty/serial/8250/8250_dma.c
++++ b/drivers/tty/serial/8250/8250_dma.c
+@@ -50,9 +50,8 @@ static void __dma_tx_complete(void *param)
+ 	spin_unlock_irqrestore(&p->port.lock, flags);
  }
  
-+static void serial8250_throttle(struct uart_port *port)
-+{
-+	port->throttle(port);
-+}
-+
-+static void serial8250_unthrottle(struct uart_port *port)
-+{
-+	port->unthrottle(port);
-+}
-+
- static void serial8250_stop_rx(struct uart_port *port)
+-static void __dma_rx_complete(void *param)
++static void __dma_rx_do_complete(struct uart_8250_port *p, bool error)
  {
- 	struct uart_8250_port *up = up_to_u8250p(port);
-@@ -2877,6 +2887,8 @@ static struct uart_ops serial8250_pops = {
- 	.get_mctrl	= serial8250_get_mctrl,
- 	.stop_tx	= serial8250_stop_tx,
- 	.start_tx	= serial8250_start_tx,
-+	.throttle	= serial8250_throttle,
-+	.unthrottle	= serial8250_unthrottle,
- 	.stop_rx	= serial8250_stop_rx,
- 	.enable_ms	= serial8250_enable_ms,
- 	.break_ctl	= serial8250_break_ctl,
-@@ -3424,6 +3436,8 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
- 		uart->port.fifosize	= up->port.fifosize;
- 		uart->tx_loadsz		= up->tx_loadsz;
- 		uart->capabilities	= up->capabilities;
-+		uart->port.throttle	= up->port.throttle;
-+		uart->port.unthrottle	= up->port.unthrottle;
+-	struct uart_8250_port	*p = param;
+ 	struct uart_8250_dma	*dma = p->dma;
+ 	struct tty_port		*tty_port = &p->port.state->port;
+ 	struct dma_tx_state	state;
+@@ -68,10 +67,17 @@ static void __dma_rx_complete(void *param)
  
- 		/* Take tx_loadsz from fifosize if it wasn't set separately */
- 		if (uart->port.fifosize && !uart->tx_loadsz)
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index f3ea531..edaaaa0 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -124,6 +124,8 @@ struct uart_port {
- 				               struct ktermios *old);
- 	int			(*startup)(struct uart_port *port);
- 	void			(*shutdown)(struct uart_port *port);
-+	void			(*throttle)(struct uart_port *port);
-+	void			(*unthrottle)(struct uart_port *port);
- 	int			(*handle_irq)(struct uart_port *);
- 	void			(*pm)(struct uart_port *, unsigned int state,
- 				      unsigned int old);
+ 	tty_insert_flip_string(tty_port, dma->rx_buf, count);
+ 	p->port.icount.rx += count;
++	if (!error && p->port.type == PORT_OMAP_16750)
++		serial8250_rx_dma(p, 0);
+ 
+ 	tty_flip_buffer_push(tty_port);
+ }
+ 
++static void __dma_rx_complete(void *param)
++{
++	__dma_rx_do_complete(param, false);
++}
++
+ int serial8250_tx_dma(struct uart_8250_port *p)
+ {
+ 	struct uart_8250_dma		*dma = p->dma;
+@@ -139,7 +145,7 @@ int serial8250_rx_dma(struct uart_8250_port *p, unsigned int iir)
+ 		 */
+ 		if (dma_status == DMA_IN_PROGRESS) {
+ 			dmaengine_pause(dma->rxchan);
+-			__dma_rx_complete(p);
++			__dma_rx_do_complete(p, true);
+ 		}
+ 		return -ETIMEDOUT;
+ 	default:
 -- 
 2.0.1
