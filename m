@@ -1,7 +1,8 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 06/15] tty: serial: 8250_dma: handle error on TX submit
-Date: Fri, 15 Aug 2014 19:42:34 +0200
-Message-ID: <1408124563-31541-7-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 08/15] dmaengine: edma: fix two faults which happen with the
+ 8250_dma user
+Date: Fri, 15 Aug 2014 19:42:36 +0200
+Message-ID: <1408124563-31541-9-git-send-email-bigeasy@linutronix.de>
 References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,117 +19,52 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-serial@vger.kernel.org
-Cc: tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Joel Fernandes <joelf@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Right now it is possible that serial8250_tx_dma() fails and returns
--EBUSY. The caller (serial8250_start_tx()) will then enable
-UART_IER_THRI which will generate an interrupt once the TX FIFO is
-empty.
-In serial8250_handle_irq() nothing will happen because up->dma is set
-and so serial8250_tx_chars() won't be invoked. We end up with plenty of
-interrupts and some "too much work for irq" output.
+The rx path of the 8250_dma user in the RX-timeout case:
+- it starts the RX transfer
+  if the rx-timeout interrupt occurs, it dmaengine_pause() the transfer
+- step two is dmaengine_terminate_all() on this channel.
+- based on dmaengine_tx_status() it learns the number of transferred
+  bytes.
+- the rx interrupt occurs, it does not start the RX-transfer because
+  according to dmaengine_tx_status() the status of the current transfer
+  is still DMA_IN_PROGRESS because the earlier dmaengine_terminate_all()
+  did not reset this.
+- on rx-timeout it invokes dmaengine_pause() again. This time, it
+  segfaults because the channel has no descriptor yet.
 
-This patch introduces dma_tx_err in struct uart_8250_port to signal that
-the last invocation of serial8250_tx_dma() failed so we can fill the TX
-FIFO manually. Should the next invocation of serial8250_start_tx()
-succeed then the dma_tx_err flag along with the THRI bit is removed and
-DMA only usage may continue.
+To make the upper case work better, this patch adds dma_cookie_complete()
+to complete the cookie. Also it adds is an additional check for echan->edesc
+in case the channel has no descriptor assigned.
 
+Cc: Joel Fernandes <joelf@ti.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_core.c |  2 +-
- drivers/tty/serial/8250/8250_dma.c  | 30 +++++++++++++++++++++++++-----
- include/linux/serial_8250.h         |  1 +
- 3 files changed, 27 insertions(+), 6 deletions(-)
+ drivers/dma/edma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index ab003b6..7498ce1 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -1600,7 +1600,7 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
- 			status = serial8250_rx_chars(up, status);
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index d08c4de..ff05dd4 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -256,6 +256,7 @@ static int edma_terminate_all(struct edma_chan *echan)
+ 	 * echan->edesc is NULL and exit.)
+ 	 */
+ 	if (echan->edesc) {
++		dma_cookie_complete(&echan->edesc->vdesc.tx);
+ 		echan->edesc = NULL;
+ 		edma_stop(echan->ch_num);
  	}
- 	serial8250_modem_status(up);
--	if (!up->dma && (status & UART_LSR_THRE))
-+	if ((!up->dma || up->dma_tx_err) && (status & UART_LSR_THRE))
- 		serial8250_tx_chars(up);
+@@ -282,7 +283,7 @@ static int edma_slave_config(struct edma_chan *echan,
+ static int edma_dma_pause(struct edma_chan *echan)
+ {
+ 	/* Pause/Resume only allowed with cyclic mode */
+-	if (!echan->edesc->cyclic)
++	if (!echan->edesc || !echan->edesc->cyclic)
+ 		return -EINVAL;
  
- 	spin_unlock_irqrestore(&port->lock, flags);
-diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
-index 148ffe4..5c59b15 100644
---- a/drivers/tty/serial/8250/8250_dma.c
-+++ b/drivers/tty/serial/8250/8250_dma.c
-@@ -36,8 +36,16 @@ static void __dma_tx_complete(void *param)
- 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
- 		uart_write_wakeup(&p->port);
- 
--	if (!uart_circ_empty(xmit) && !uart_tx_stopped(&p->port))
--		serial8250_tx_dma(p);
-+	if (!uart_circ_empty(xmit) && !uart_tx_stopped(&p->port)) {
-+		int ret;
-+
-+		ret = serial8250_tx_dma(p);
-+		if (ret) {
-+			p->dma_tx_err = 1;
-+			p->ier |= UART_IER_THRI;
-+			serial_port_out(&p->port, UART_IER, p->ier);
-+		}
-+	}
- 
- 	spin_unlock_irqrestore(&p->port.lock, flags);
- }
-@@ -69,6 +77,7 @@ int serial8250_tx_dma(struct uart_8250_port *p)
- 	struct uart_8250_dma		*dma = p->dma;
- 	struct circ_buf			*xmit = &p->port.state->xmit;
- 	struct dma_async_tx_descriptor	*desc;
-+	int ret;
- 
- 	if (uart_tx_stopped(&p->port) || dma->tx_running ||
- 	    uart_circ_empty(xmit))
-@@ -80,8 +89,10 @@ int serial8250_tx_dma(struct uart_8250_port *p)
- 					   dma->tx_addr + xmit->tail,
- 					   dma->tx_size, DMA_MEM_TO_DEV,
- 					   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
--	if (!desc)
--		return -EBUSY;
-+	if (!desc) {
-+		ret = -EBUSY;
-+		goto err;
-+	}
- 
- 	dma->tx_running = 1;
- 
-@@ -94,8 +105,17 @@ int serial8250_tx_dma(struct uart_8250_port *p)
- 				   UART_XMIT_SIZE, DMA_TO_DEVICE);
- 
- 	dma_async_issue_pending(dma->txchan);
--
-+	if (p->dma_tx_err) {
-+		p->dma_tx_err = 0;
-+		if (p->ier & UART_IER_THRI) {
-+			p->ier &= ~UART_IER_THRI;
-+			serial_out(p, UART_IER, p->ier);
-+		}
-+	}
- 	return 0;
-+err:
-+	p->dma_tx_err = 1;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(serial8250_tx_dma);
- 
-diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
-index b161eee..02e82dc 100644
---- a/include/linux/serial_8250.h
-+++ b/include/linux/serial_8250.h
-@@ -85,6 +85,7 @@ struct uart_8250_port {
- 	unsigned char		mcr_force;	/* mask of forced bits */
- 	unsigned char		cur_iotype;	/* Running I/O type */
- 	unsigned char		rpm_tx_active;
-+	unsigned char		dma_tx_err;
- 
- 	/*
- 	 * Some bits in registers are cleared on a read, so they must
+ 	edma_pause(echan->ch_num);
 -- 
 2.0.1
