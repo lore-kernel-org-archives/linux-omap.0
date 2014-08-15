@@ -1,90 +1,88 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 04/15] tty: serial: 8250_core: read only RX if there is
- something in the FIFO
-Date: Fri, 15 Aug 2014 19:42:32 +0200
-Message-ID: <1408124563-31541-5-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 10/15] tty: serial: 8250_dma: Add a TX trigger workaround for AM33xx
+Date: Fri, 15 Aug 2014 19:42:38 +0200
+Message-ID: <1408124563-31541-11-git-send-email-bigeasy@linutronix.de>
 References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-serial@vger.kernel.org
-Cc: tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-The serial8250_do_startup() function unconditionally clears the
-interrupts and for that it reads from the RX-FIFO without checking if
-there is a byte in the FIFO or not. This works fine on OMAP4+ HW like
-AM335x or DRA7.
-OMAP3630 ES1.1 (which means probably all OMAP3 and earlier) does not like
-this:
+At least on AM335x the following problem exists: Even if the TX FIFO is
+empty and a TX transfer is programmed (and started) the UART does not
+trigger the DMA transfer.
+After $TRESHOLD number of bytes have been written to the FIFO manually the
+UART reevaluates the whole situation and decides that now there is enough
+room in the FIFO and so the transfer begins.
+This problem has not been seen on DRA7 or beaglebone (OMAP3).
 
-|Unhandled fault: external abort on non-linefetch (0x1028) at 0xfb020000
-|Internal error: : 1028 [#1] ARM
-|Modules linked in:
-|CPU: 0 PID: 1 Comm: swapper Not tainted 3.16.0-00022-g7edcb57-dirty #1213
-|task: de0572c0 ti: de058000 task.ti: de058000
-|PC is at mem32_serial_in+0xc/0x1c
-|LR is at serial8250_do_startup+0x220/0x85c
-|Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-|Control: 10c5387d  Table: 80004019  DAC: 00000015
-|[<c03051d4>] (mem32_serial_in) from [<c0307fe8>] (serial8250_do_startup+0x220/0x85c)
-|[<c0307fe8>] (serial8250_do_startup) from [<c0309e00>] (omap_8250_startup+0x5c/0xe0)
-|[<c0309e00>] (omap_8250_startup) from [<c030863c>] (serial8250_startup+0x18/0x2c)
-|[<c030863c>] (serial8250_startup) from [<c030394c>] (uart_startup+0x78/0x1d8)
-|[<c030394c>] (uart_startup) from [<c0304678>] (uart_open+0xe8/0x114)
-|[<c0304678>] (uart_open) from [<c02e9e10>] (tty_open+0x1a8/0x5a4)
+The workaround is to use a threshold of one byte, program the DMA
+transfer minus one byte and then to put the first byte into the FIFO to
+kick start the transfer.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_core.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/tty/serial/8250/8250.h     |  1 +
+ drivers/tty/serial/8250/8250_dma.c | 18 +++++++++++++++---
+ 2 files changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index ae268e3..cc90c19 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -2087,8 +2087,8 @@ int serial8250_do_startup(struct uart_port *port)
- 	/*
- 	 * Clear the interrupt registers.
- 	 */
--	serial_port_in(port, UART_LSR);
--	serial_port_in(port, UART_RX);
-+	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
-+		serial_port_in(port, UART_RX);
- 	serial_port_in(port, UART_IIR);
- 	serial_port_in(port, UART_MSR);
+diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/8250/8250.h
+index 1bcb4b2..d6a3f5c 100644
+--- a/drivers/tty/serial/8250/8250.h
++++ b/drivers/tty/serial/8250/8250.h
+@@ -79,6 +79,7 @@ struct serial8250_config {
+ #define UART_BUG_NOMSR	(1 << 2)	/* UART has buggy MSR status bits (Au1x00) */
+ #define UART_BUG_THRE	(1 << 3)	/* UART has buggy THRE reassertion */
+ #define UART_BUG_PARITY	(1 << 4)	/* UART mishandles parity if FIFO enabled */
++#define UART_BUG_DMATX	(1 << 5)	/* UART needs one byte in FIFO for kickstart */
  
-@@ -2249,8 +2249,8 @@ int serial8250_do_startup(struct uart_port *port)
- 	 * saved flags to avoid getting false values from polling
- 	 * routines or the previous session.
- 	 */
--	serial_port_in(port, UART_LSR);
--	serial_port_in(port, UART_RX);
-+	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
-+		serial_port_in(port, UART_RX);
- 	serial_port_in(port, UART_IIR);
- 	serial_port_in(port, UART_MSR);
- 	up->lsr_saved_flags = 0;
-@@ -2344,7 +2344,8 @@ void serial8250_do_shutdown(struct uart_port *port)
- 	 * Read data port to reset things, and then unlink from
- 	 * the IRQ chain.
- 	 */
--	serial_port_in(port, UART_RX);
-+	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
-+		serial_port_in(port, UART_RX);
- 	serial8250_rpm_put(up);
+ #define PROBE_RSA	(1 << 0)
+ #define PROBE_ANY	(~0)
+diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
+index 7417ed5..dc1294b 100644
+--- a/drivers/tty/serial/8250/8250_dma.c
++++ b/drivers/tty/serial/8250/8250_dma.c
+@@ -83,6 +83,7 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+ 	struct uart_8250_dma		*dma = p->dma;
+ 	struct circ_buf			*xmit = &p->port.state->xmit;
+ 	struct dma_async_tx_descriptor	*desc;
++	unsigned int			skip_byte = 0;
+ 	int ret;
  
- 	del_timer_sync(&up->timer);
+ 	if (uart_tx_stopped(&p->port) || dma->tx_running ||
+@@ -91,10 +92,18 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+ 
+ 	dma->tx_size = CIRC_CNT_TO_END(xmit->head, xmit->tail, UART_XMIT_SIZE);
+ 
++	if (p->bugs & UART_BUG_DMATX) {
++		if (dma->tx_size < 4) {
++			ret = -EINVAL;
++			goto err;
++		}
++		skip_byte = 1;
++	}
++
+ 	desc = dmaengine_prep_slave_single(dma->txchan,
+-					   dma->tx_addr + xmit->tail,
+-					   dma->tx_size, DMA_MEM_TO_DEV,
+-					   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++			dma->tx_addr + xmit->tail + skip_byte,
++			dma->tx_size - skip_byte, DMA_MEM_TO_DEV,
++			DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+ 	if (!desc) {
+ 		ret = -EBUSY;
+ 		goto err;
+@@ -118,6 +127,9 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+ 			serial_out(p, UART_IER, p->ier);
+ 		}
+ 	}
++	if (skip_byte)
++		serial_out(p, UART_TX, xmit->buf[xmit->tail]);
++
+ 	return 0;
+ err:
+ 	p->dma_tx_err = 1;
 -- 
 2.0.1
