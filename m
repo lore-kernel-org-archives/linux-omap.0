@@ -1,40 +1,43 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 05/15] tty: serial: Add 8250-core based omap driver
-Date: Fri, 15 Aug 2014 22:20:53 +0200
-Message-ID: <53EE6BA5.2060101@linutronix.de>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de> <1408124563-31541-6-git-send-email-bigeasy@linutronix.de> <20140815183731.GI17769@csclub.uwaterloo.ca> <53EE5F3F.2000707@linutronix.de> <20140815193352.GC17765@csclub.uwaterloo.ca>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v7] 8250-core based serial driver for OMAP + DMA
+Date: Fri, 15 Aug 2014 13:28:27 -0700
+Message-ID: <20140815202826.GC9239@atomide.com>
+References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
+ <20140815181704.GH17769@csclub.uwaterloo.ca>
+ <53EE5BF8.3010007@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140815193352.GC17765@csclub.uwaterloo.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <53EE5BF8.3010007@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/15/2014 09:33 PM, Lennart Sorensen wrote:
->> On the other hand if you use DMA then it can handle transfers > 64by=
-tes
->> in one go and you can start transfers while the FIFO is not complete=
-ly
->> empty.
->=20
-> You can dma more than the fifo size?
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140815 12:16]:
+> On 08/15/2014 08:17 PM, Lennart Sorensen wrote:
+> 
+> > Are you saying that with the new driver you have to respond to the RX
+> > irq faster than before to avoid overflows?  It is not quite clear.
+> 
+> Yes. The irq fires 46 bytes giving you 16 bytes buffer before overflow
+> vs 63 bytes buffer the old one had.
+> 
+> > I do think 40000 interrupts to handle 40000 bytes of date does seem a
+> > tad inefficient, so dropping to 854 looks a lot nicer.  Was the omap
+> > driver not using the fifo trigger levels at all?
+> 
+> It configured the trigger levels to 1 for RX and 16 for TX.
 
-Yes. The UART asserts the DMA line as long as there is room for
-$TRESHOLD number of bytes. So we never overflow the FIFO. That is why w=
-e
-can't take any DMA channel but only *the* one.
+Hmm that weird RX trigger level is a workaround for lost characters.
 
->> There is patch in Greg's tty tree already where you are able to
->> configure the RX trigger level. We could wire this up once we agree
->> which levels we want support. The OMAP supports all levels from 1=E2=
-=80=A663.
->=20
-> All? or just every 4 (that's what I just read in the DRA7xx docs).
+See commit 0ba5f66836 (tty: serial: OMAP: use a 1-byte RX FIFO
+threshold in PIO mode :)
 
-All. Take a look at the RX_TRIGGER constant while comparing source vs
-manual :)
+There's paste test in that commit, I wonder if the 8250 drivers
+can deal with it any better?
 
-Sebastian
+Regards,
+
+Tony
