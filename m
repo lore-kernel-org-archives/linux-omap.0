@@ -1,98 +1,96 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/2 v2] ASoC: Add HA (HEAD acoustics) DSP codec driver
- template
-Date: Sat, 16 Aug 2014 15:49:58 +0100
-Message-ID: <20140816144958.GQ28623@sirena.org.uk>
+Subject: Re: [PATCH 2/2 v2] ASoC: omap: Add HA (HEAD acoustics) DSP add-on
+ card audio driver for TAO3530
+Date: Sat, 16 Aug 2014 15:40:24 +0100
+Message-ID: <20140816144024.GP28623@sirena.org.uk>
 References: <1399372596-10744-1-git-send-email-sr@denx.de>
+ <1399372596-10744-2-git-send-email-sr@denx.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A7FgPGrDEcSmmdo/"
+	protocol="application/pgp-signature"; boundary="FRaepaAnLTQkJ4tS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:38916 "EHLO
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:38971 "EHLO
 	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbaHPVhg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Aug 2014 17:37:36 -0400
+	with ESMTP id S1752041AbaHPViG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Aug 2014 17:38:06 -0400
 Content-Disposition: inline
-In-Reply-To: <1399372596-10744-1-git-send-email-sr@denx.de>
+In-Reply-To: <1399372596-10744-2-git-send-email-sr@denx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Stefan Roese <sr@denx.de>
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>, Lars-Peter Clausen <lars@metafoo.de>
 
 
---A7FgPGrDEcSmmdo/
+--FRaepaAnLTQkJ4tS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, May 06, 2014 at 12:36:35PM +0200, Stefan Roese wrote:
+On Tue, May 06, 2014 at 12:36:36PM +0200, Stefan Roese wrote:
 
-> This codec driver template represents an I2C controlled multichannel audio
+> HA DSP card which features a HA DSP audio codec is intended to be connected
+> to TAO-3530 (or BeagleBoard) using McBSP3 for digital audio and I2C bus for
+> codec control. A GPIO signal from CPU to codec is used to request clock
+> signals active.
 
-It's not really a template, it's a driver for a specific device.
+So, it's been a while.  In part this is because I'm still really not
+happy with the exceptionally generic name here - there must be some kind
+of name that's more specific than the entire company here?  It seems
+awfully generic.
 
-Again, naming is the biggest issue here - it's going to get confusing
-with a second product.  While the code is pretty clean the template
-comment and the really generic name make this seem like it's more of a
-placeholder for something that people will hack on to deploy than an
-actual driver that someone can pick up and use.
-
-I'm also missing any real management of the actual DSP, this appears to
-only control some analogue around the DSP and a single mode switch which
-is a bit odd.
-
-> codec that has many typical ASoC codec driver features like volume controls,
-> mixer stages, mux selection, output power control, in-codec audio routings,
-> codec bias management and DAI link configuration.
-
-> +static int ha_dsp_probe(struct snd_soc_codec *codec)
-> +{
-> +	int ret;
+> +	/* Set CODEC as master */
+> +	fmt |= SND_SOC_DAIFMT_CBM_CFM;
 > +
-> +	codec->control_data = dev_get_regmap(codec->dev, NULL);
-> +	ret = snd_soc_codec_set_cache_io(codec, codec->control_data);
-> +	if (ret != 0) {
-> +		dev_err(codec->dev, "Failed to set cache I/O: %d\n", ret);
+> +	/* Set codec DAI configuration */
+> +	ret = snd_soc_dai_set_fmt(codec_dai, fmt);
+> +	if (ret < 0) {
+> +		pr_err("Can't set codec DAI configuration\n");
+> +		return ret;
+> +	}
+> +
+> +	/* Set cpu DAI configuration */
+> +	ret = snd_soc_dai_set_fmt(cpu_dai, fmt);
+> +	if (ret < 0) {
+> +		pr_err("Can't set cpu DAI configuration\n");
 > +		return ret;
 > +	}
 
-This will be done automatically by the core.
+Just initialise the format in the DAI link and leave the error checking
+for the number of channels as the only code here.
 
-> +	snd_soc_write(codec, HA_DSP_CTRL, HA_DSP_SW_RESET);
+> +	ret = devm_gpio_request(&pdev->dev, priv->gpio,	"HA-DSP clock request");
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "Failed to request GPIO %u\n", priv->gpio);
+> +		return ret;
+> +	}
+> +
+> +	ret = gpio_direction_output(priv->gpio, 0);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "failed to set pin direction\n");
+> +		return -EINVAL;
+> +	}
 
-I'd expect this to be done in the I2C level probe.
+devm_gpio_request_one()
 
-> +/*
-> + * This name/ID is neded to match the DT node for the codec
-> + */
-> +static const struct i2c_device_id ha_dsp_i2c_id[] = {
-> +	{ "ha-dsp-audio", 0 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, ha_dsp_i2c_id);
-
-For use with DT you should have an explicit compatible string.  There's
-also no binding document here that I can see.
-
---A7FgPGrDEcSmmdo/
+--FRaepaAnLTQkJ4tS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBAgAGBQJT72+TAAoJELSic+t+oim9DK0P/0sCCIiuJedj4ybqqX25cFiZ
-9FQlJO7BsmkqfhnM1BzDUX6mHPpR6raqYOG9JzLIYLpaS2X4A5nROSxB4KO8ime/
-XkjygtPFyfSCY7rXN34WlZVJNGaw+KaaXV4MAITIOCV02KqUQULaIYlBUNxynKk8
-phC00s9NhL7zSn6V8Zw3YIJlABhObakMWc+oqLgDcXPWXfTa4oErh6yst1CDUr2F
-i6fEqaMUtTXYfyiQEGCczpxdJVd4Vstf+tKNMSVztNKeVUVTwSehtjkOPSZKOYEV
-9V41r6WZ4R1n2ebD3YfarxdXHo/VCdlFMG+Sfn8S0uA4ptx1Eo5taXalxUB1WnRq
-PyrZ653lsX3T44MlcaBnjPEo1aXkk4cxHXkD+t5adSxK3lpOGCnF+IjIbYrh9KD+
-x8KQmaHJSW3riUHxn5/haPCRgIbSjbWiENPUZPrFIpEM6t6LglW4WRNhp0yv9LQv
-xwllMU5JKp7G+cHfH42bkq/QWAh6wO6KQ3VYHGJI00cIpSJIgo/8HosNDG2Ysg9c
-rMP3HOOTQn8gq3BHWbxIh5ClSDhaqICkfQEZOb4ekg8hVvOwYWDI7xRexzbfGjXp
-E/mzuDqkMjp6m0upAp8rcTYTNqciSpBZDsQVgJPoi8ptBvTQtb4kDKHiNj3CvF89
-XhERCKMewVR9yHOKEHOt
-=yp7g
+iQIcBAEBAgAGBQJT721VAAoJELSic+t+oim99/EP/2Y4gfhyRnvIT3tA94ZlfgV+
+BpBIdki1e6fIuRC1l/OlkNS+jUQtPOceZpVGT07PoF8u+XpMGvj3MSIoMZChCsmq
+rztwZ0DGMp+5Lif+0NiDURYlFJLS4v8Zt3xjcGYCAcg1eWOzh6XinJmdlirDda53
+UDxPW1xnXJ8vnxEP70Hx//AcWZ9sEifBpx5UNMuAPmy6UyC81uoiZ8WBV6D6aU98
+ptO4rpUGxacWpV8oYpUm01cswrZ5cK7r8jnblBa37gAadY33QuUDvl97fLyZDdSh
+VKsnxnCK5dyGdpuYmFNiR7dJxacY25+//+GMuD5iM3vyxF9pVj1IWbeuPuXr4htT
+mMrJVBGrp60fMVGMJ1IcNdMW0IVOoMnyPCKecDn1PFlvOFxdrnVTjN+c2wK5P6P6
+4YBfRR7wx9M34xfBiMZZwclYHO2YNlnk7GdKBXK+ANgVmeQ/kZhDBi+YJW1TolJA
+XLlDLmEf0F8rH3vts7af1RXpowAPv0pC3bkh2jWqau2n/tG/EXoi4OKZ1k2rtw0C
+FvRvrMWV4sBGZTOPYek0UbA9czZzIXNFntNZwbAUxERpNI+lx2fnk8A4cLVCxfad
+m++tyqHWM2fIru6H11KB6RiitIW7Aa/WFfZhRbunIEW09b+PPwPiPnSA1vb6g5ik
+6seXC9NpJ4tg2iS9jW5J
+=snBK
 -----END PGP SIGNATURE-----
 
---A7FgPGrDEcSmmdo/--
+--FRaepaAnLTQkJ4tS--
