@@ -1,60 +1,74 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 5/7] net: cpsw: Add am33xx MACID readout
-Date: Sat, 16 Aug 2014 11:53:18 -0500
-Message-ID: <20140816165316.GB2858@katana>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH v3 0/7] net: cpsw: Support for am335x chip MACIDs
+Date: Sat, 16 Aug 2014 11:55:53 -0500
+Message-ID: <20140816165549.GC2858@katana>
 References: <1408202315-20006-1-git-send-email-mpa@pengutronix.de>
- <1408202315-20006-6-git-send-email-mpa@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cvVnyQ+4j833TQvp"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:34883 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbaHPQyS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 16 Aug 2014 12:54:18 -0400
+	protocol="application/pgp-signature"; boundary="0vzXIDBeUiKkjNJl"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1408202315-20006-6-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1408202315-20006-1-git-send-email-mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: "David S. Miller" <davem@davemloft.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
 
---cvVnyQ+4j833TQvp
+--0vzXIDBeUiKkjNJl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, Aug 16, 2014 at 05:18:28PM +0200, Markus Pargmann wrote:
+> Hi,
+>=20
+> This series adds support to the cpsw driver to read the MACIDs of the am3=
+35x
+> chip and use them as fallback. These addresses are only used if there are=
+ no
+> mac addresses in the devicetree, for example set by a bootloader.
+>=20
+> In v3 I removed the previously seperate driver and included the changes i=
+nto
+> the main cpsw driver. I now check for a am33xx machine to not make this
+> operation when running on davinci.
+>=20
+> Patches 1-4 are some minor fixes for the cpsw driver.
+> Patch 5 adds the readout support.
+> Patches 6 and 7 are for am33xx.dtsi to actually enable this feature.
+
+Minor comments, but in general, looks good to me:
+
+Reviewed-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+
+Tests on real HW need to wait another 9 days...
 
 
-> +	mac_addr[5] = (macid_lo >> 8) & 0xff;
-> +	mac_addr[4] = macid_lo & 0xff;
-> +	mac_addr[3] = (macid_hi >> 24) & 0xff;
-> +	mac_addr[2] = (macid_hi >> 16) & 0xff;
-> +	mac_addr[1] = (macid_hi >> 8) & 0xff;
-> +	mac_addr[0] = macid_hi & 0xff;
-
-That looks twisted, but I assume that you tested it is correct.
-
-
---cvVnyQ+4j833TQvp
+--0vzXIDBeUiKkjNJl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJT74x8AAoJEBQN5MwUoCm2AKYP/3kkXziwaXuBCeyyjT1G9zgR
-0HNglOeLpPBm5ml8QJMiCv1ihBM1rD5kU9fS8O768X0xKKi0eAMkMoHyCAL/12qH
-e/pqwEG9RJq1whUO6KW0fRjV/Wv/pTjrnjk0icAz83juDDyy/7/zZlRYh+xWQuXo
-zripJxojf5XBKC6G+FnVmKIzl5TppF9kSdAx7Li49JL/i/uAFGZpdFzlF2CzDoRj
-2KJJ5jNlRlGmoLn6In8Ouc8GTfL4d8BZ4IH0brekBSYJC7f6m+IJShA+vGcW5XET
-yDQapz5XoNEjVI3zqeTyxuIp4Oxd4F7UakKq+73O+SG+jOtwqbRf0v6Ejj9IGjDV
-K6Edd88wdUzNjQYP1/cB+NVfxr7rmaI4zdqnMcBZPBSV0IUILoJlZTvu/KY7VdHR
-5YUQ1R183jZMZ9Wbw9UxibN0M7c81ZfteYswd7Is5iLjISEf4viWfoWb6IFZHIKQ
-cntcCEMZxboXbj655WhrPQtgIunRv6fGds64aPjzG/53ZQ+F2LZb1bZeiMrzrFLw
-1bdlO16Bofhw1igsIHQ9h45bi/xJTMQ3t5j8GaqP140LTw3qcb+xIBsKENM+KQrS
-PtD/7XaNc3NedossUY6Y0Pxr+pNW+jY89IyXYMHpUSsMeqw5vbBDV4Ggz3JADZQi
-hAgVpJQd1zqSdnfYM5+F
-=gFoN
+iQIcBAEBAgAGBQJT740VAAoJEBQN5MwUoCm2LtUP/iuOzxyMeSGHsiefUhPo8dNp
+K5CfVwAI/WOav7nVcl4xKLXYr0hFuOdgKxDYPncwmXUUIPofkmzzaGXVu5ySSEPb
+zfp2wfrNrcvHdveRc+/eqRaejrApRF2cN4Fs3vyDUJ5mjFt7hC1tKIrudHLHUVN9
+woYYYiCwfO8MkrmBQWB38pnlRGk8KI5qnA+mdfEGSxxHG7gR9lYoa6xhQ57WXo/C
+Lu42BATYFs9yOB44iX/ROxKh6mueEpQvf2wmRojlpuPakHbUCF0ZwQ9jKAcZJmV0
+GDt5K3FcZi4vdO5VPlXX9OncpKrwfbx8lf9+MmQqeUWWiCmmcwBfUYEOCcB+D2fo
+qCcnFoWQUCSrDkJZ5zE/9GkunY+cc0HbSg3QD8z+HGd0Zb+WK1Df6YwZe+K77fyJ
+fWNULmhDOWXghWrUWUeVKjAV/e7QQPBcb667wdTy06bqEl8e1YZFP3Rjq69GhIBz
+Cc7Cbk2w5if3SLv6bqlC44sR9klsJUwa3Ob4FRSZfgbVaYnOhz6HKkxDU0VgVpUG
++6OzgZ8mAD0jpoYMcE5s48/QilTuMtVV9T8Ru2pXuSmulfQ1uwUMmXNJv6pA87SN
+lu3V3S3ALwjjP6B+fM+mnmyyQT4CvYmfqearQXv34+R52zmzbzmu/sp2vW/761rx
+TRJH37EX/MiiIAMVW8gl
+=PR/y
 -----END PGP SIGNATURE-----
 
---cvVnyQ+4j833TQvp--
+--0vzXIDBeUiKkjNJl--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
