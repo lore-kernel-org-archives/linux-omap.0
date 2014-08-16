@@ -1,68 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/15] tty: serial: Add 8250-core based omap driver
-Date: Fri, 15 Aug 2014 15:44:47 -0700
-Message-ID: <20140815224446.GF9239@atomide.com>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
- <1408124563-31541-6-git-send-email-bigeasy@linutronix.de>
- <20140815210716.GE9239@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140815210716.GE9239@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: [PATCH v3 1/7] DT doc: net: cpsw mac-address is optional
+Date: Sat, 16 Aug 2014 17:18:29 +0200
+Message-ID: <1408202315-20006-2-git-send-email-mpa@pengutronix.de>
+References: <1408202315-20006-1-git-send-email-mpa@pengutronix.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44735 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493AbaHPPTP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 Aug 2014 11:19:15 -0400
+In-Reply-To: <1408202315-20006-1-git-send-email-mpa@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-* Tony Lindgren <tony@atomide.com> [140815 14:10]:
-> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140815 10:46]:
-> > This patch provides a 8250-core based UART driver for the internal OMAP
-> > UART. The long term goal is to provide the same functionality as the
-> > current OMAP uart driver and DMA support.
-> > I tried to merge omap-serial code together with the 8250-core code.
-> > There should should be hardly a noticable difference. The trigger levels
-> > are different compared to omap-serial:
-> 
-> Nice, now it mostly works for me with off-idle too :) That is as long
-> as I have the DMA channels commented out in the .dts file.
-> 
-> And I'm still seeing an occasional hang with pstore console just
-> showing:
-> 
-> [  289.076538] In-band Error seen by MPU  at address 0
-> [  289.076538] ------------[ cut here ]------------
-> [  289.076568] WARNING: CPU: 0 PID: 99 at drivers/bus/omap_l3_smx.c:162 omap3_l3_app_irq+0xdc/0x134()
-> [  289.076599] Modules linked in:
-> [  289.076599] CPU: 0 PID: 99 Comm: test-idle-off-8 Tainted: G        W      3.16.0+ #510
-> [  289.076629] [<c0016c44>] (unwind_backtrace) from [<c00129c8>] (show_stack+0x20/0x24)
-> [  289.076660] [<c00129c8>] (show_stack) from [<c0714cd4>] (dump_stack+0x88/0xa4)
-> 
-> Which most likely means there's still some glitch with the
-> runtime PM somewhere and registers are being accessed when
-> not clocked. I _think_ I did not see it when I did not have
-> console=ttyS2,115200 in my cmdline but was using just pstore
-> console.
+mac-address is an optional property. If no mac-address is set, a random
+mac-address will be generated.
 
-Oh and echo mem > /sys/power/state and then hitting a key on the serial
-console won't wake the system. Does that need to be manually configured
-for device_may_wakeup()?
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+---
+ Documentation/devicetree/bindings/net/cpsw.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+index ae2b8b7f9c38..107caf174a0e 100644
+--- a/Documentation/devicetree/bindings/net/cpsw.txt
++++ b/Documentation/devicetree/bindings/net/cpsw.txt
+@@ -29,10 +29,10 @@ Slave Properties:
+ Required properties:
+ - phy_id		: Specifies slave phy id
+ - phy-mode		: See ethernet.txt file in the same directory
+-- mac-address		: See ethernet.txt file in the same directory
  
-> > The device name is ttyS based instead of ttyO. If a ttyO based node name
-> > is required please ask udev for it. If both driver are activated (this
-> > and omap-serial) then this serial driver will take control over the
-> > device due to the link order
-> 
-> That's still not going to help with the existing kernel cmdlines
-> and existing installs.. I wonder if we can just do a minimal
-> dummy serial-omap.c that just proxies all the ttyO read/write
-> access to ttyS?
-> 
-> Regards,
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+ Optional properties:
+ - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
++- mac-address		: See ethernet.txt file in the same directory
+ 
+ Note: "ti,hwmods" field is used to fetch the base address and irq
+ resources from TI, omap hwmod data base during device registration.
+-- 
+2.0.1
+
