@@ -1,40 +1,126 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v3 5/7] net: cpsw: Add am33xx MACID readout
-Date: Mon, 18 Aug 2014 23:54:26 +0530
-Message-ID: <53F244DA.3070803@ti.com>
-References: <1408202315-20006-1-git-send-email-mpa@pengutronix.de> <1408202315-20006-6-git-send-email-mpa@pengutronix.de>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: DRA7: fix interrupt-cells for GPIO
+Date: Mon, 18 Aug 2014 13:46:11 -0500
+Message-ID: <53F249F3.9070402@ti.com>
+References: <1406748032-19417-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55206 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676AbaHRSZd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Aug 2014 14:25:33 -0400
-In-Reply-To: <1408202315-20006-6-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1406748032-19417-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, inux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>, "David S. Miller" <davem@davemloft.net>
-Cc: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-On Saturday 16 August 2014 08:48 PM, Markus Pargmann wrote:
-> +	mac_addr[5] = (macid_lo >> 8) & 0xff;
-> +	mac_addr[4] = macid_lo & 0xff;
-> +	mac_addr[3] = (macid_hi >> 24) & 0xff;
-> +	mac_addr[2] = (macid_hi >> 16) & 0xff;
-> +	mac_addr[1] = (macid_hi >> 8) & 0xff;
-> +	mac_addr[0] = macid_hi & 0xff;
-> +
-This will fail incase of DRA74x and DRA72x platforms, please check for
-u-boot src for parsing logic as TRM is not out yet. Below is the actual
-code for DRA7 platforms for MAC address parsing
+On 07/30/2014 02:20 PM, Nishanth Menon wrote:
+> GPIO modules are also interrupt sources. However, they require both the
+> GPIO number and IRQ type to function properly.
+> 
+> By declaring that GPIO uses interrupt-cells=<1>, we essentially do not
+> allow users of the nodes to use the interrupt property appropritely.
+> 
+> With this change, the following now works:
+> 
+> interrupt-parent = <&gpio6>;
+> interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+> 
+> Fixes: 6e58b8f1daaf ('ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board')
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> ---
+> Based on v3.16-rc7
+> 
+>  arch/arm/boot/dts/dra7.dtsi |   16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
 
-mac_addr[0] = (mac_hi & 0xFF0000) >> 16;
-mac_addr[1] = (mac_hi & 0xFF00) >> 8;
-mac_addr[2] = mac_hi & 0xFF;
-mac_addr[3] = (mac_lo & 0xFF0000) >> 16;
-mac_addr[4] = (mac_lo & 0xFF00) >> 8;
-mac_addr[5] = mac_lo & 0xFF;
+Tony,
+Gentle ping. we still have this issue on 3.17-rc1. any suggestions on
+if we can pick this up during RC?
 
-Regards
-Mugunthan V N
+> 
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index 8012763..f21ef39 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -172,7 +172,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		gpio2: gpio@48055000 {
+> @@ -183,7 +183,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		gpio3: gpio@48057000 {
+> @@ -194,7 +194,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		gpio4: gpio@48059000 {
+> @@ -205,7 +205,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		gpio5: gpio@4805b000 {
+> @@ -216,7 +216,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		gpio6: gpio@4805d000 {
+> @@ -227,7 +227,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		gpio7: gpio@48051000 {
+> @@ -238,7 +238,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		gpio8: gpio@48053000 {
+> @@ -249,7 +249,7 @@
+>  			gpio-controller;
+>  			#gpio-cells = <2>;
+>  			interrupt-controller;
+> -			#interrupt-cells = <1>;
+> +			#interrupt-cells = <2>;
+>  		};
+>  
+>  		uart1: serial@4806a000 {
+> 
+
+
+-- 
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
