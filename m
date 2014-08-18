@@ -1,53 +1,43 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v2 4/8] ASoC: davinci: HDMI audio build for AM33XX and TDA998x
-Date: Tue, 19 Aug 2014 00:46:42 +0300
-Message-ID: <9d5e86da05e200a506a71b226b3936cd59395534.1408397864.git.jsarha@ti.com>
+Subject: [PATCH v2 8/8] ARM: OMAP2+: omap2plus_defconfig: Enable BeagleBone Black HDMI audio support
+Date: Tue, 19 Aug 2014 00:46:46 +0300
+Message-ID: <175cce7b9e804d64309efb9c4f98d1daecfbbafd.1408397864.git.jsarha@ti.com>
 References: <cover.1408397864.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34960 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234AbaHRVrF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Aug 2014 17:47:05 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:36277 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026AbaHRVrf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Aug 2014 17:47:35 -0400
 In-Reply-To: <cover.1408397864.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
 Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, ezequiel.garcia@free-electrons.com, t-kristo@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Adds configuration option for HDMI audio support for AM33XX based
-boards with NXP TDA998x HDMI transmitter. The audio is connected to
-NXP TDA998x trough McASP running in i2s mode.
+Select CONFIG_SND_EDMA_SOC=m and CONFIG_SND_AM335X_SOC_NXPTDA_EVM=m
+for BBB HDMI audio.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- sound/soc/davinci/Kconfig |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/configs/omap2plus_defconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/sound/soc/davinci/Kconfig b/sound/soc/davinci/Kconfig
-index d69510c..0c8f143 100644
---- a/sound/soc/davinci/Kconfig
-+++ b/sound/soc/davinci/Kconfig
-@@ -43,6 +43,18 @@ config SND_AM33XX_SOC_EVM
- 	  AM335X-EVMSK, and BeagelBone with AudioCape boards have this
- 	  setup.
- 
-+config SND_AM335X_SOC_NXPTDA_EVM
-+	tristate "HDMI Audio for the AM33XX chip based boards with TDA998x"
-+	depends on SND_EDMA_SOC && SOC_AM33XX && DRM_I2C_NXP_TDA998X
-+	select SND_SOC_HDMI_CODEC
-+	select SND_DAVINCI_SOC_MCASP
-+	select SND_DAVINCI_SOC_GENERIC_EVM
-+	help
-+	  Say Y or M if you want to add support for HDMI SoC audio on
-+	  AM33XX boards with NXP TDA998x HDMI transmitter. For example
-+	  BeagleBoneBack. The audio is connected to NXP TDA998x trough
-+	  McASP running in i2s mode.
-+
- config SND_DAVINCI_SOC_EVM
- 	tristate "SoC Audio support for DaVinci DM6446, DM355 or DM365 EVM"
- 	depends on SND_DAVINCI_SOC && I2C
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 97eade2..3b3d73c 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -224,7 +224,9 @@ CONFIG_SND_DEBUG=y
+ CONFIG_SND_USB_AUDIO=m
+ CONFIG_SND_SOC=m
+ CONFIG_SND_OMAP_SOC=m
++CONFIG_SND_EDMA_SOC=m
+ CONFIG_SND_AM33XX_SOC_EVM=m
++CONFIG_SND_AM335X_SOC_NXPTDA_EVM=m
+ CONFIG_SND_DAVINCI_SOC=m
+ CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+ CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
 -- 
 1.7.9.5
 
