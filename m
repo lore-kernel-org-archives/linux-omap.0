@@ -1,79 +1,103 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: OMAP2+: board-generic: add support for AM57xx family
-Date: Mon, 18 Aug 2014 14:07:55 -0500
-Message-ID: <1408388875-7360-1-git-send-email-nm@ti.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH v3 5/7] net: cpsw: Add am33xx MACID readout
+Date: Mon, 18 Aug 2014 15:41:12 -0400
+Message-ID: <20140818154112.6601cbff@gandalf.local.home>
+References: <1408202315-20006-1-git-send-email-mpa@pengutronix.de>
+	<1408202315-20006-6-git-send-email-mpa@pengutronix.de>
+	<53F244DA.3070803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.225]:64591 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750915AbaHRTlP convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Aug 2014 15:41:15 -0400
+In-Reply-To: <53F244DA.3070803@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Markus Pargmann <mpa@pengutronix.de>, "David S. Miller" <davem@davemloft.net>, =?ISO-8859-1?B?QmVub+50?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-AM57xx processor family are variants of DRA7 family of processors and
-targetted at industrial and non-automotive applications.
+On Mon, 18 Aug 2014 23:54:26 +0530
+Mugunthan V N <mugunthanvnm@ti.com> wrote:
 
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
----
+> On Saturday 16 August 2014 08:48 PM, Markus Pargmann wrote:
+> > +	mac_addr[5] = (macid_lo >> 8) & 0xff;
+> > +	mac_addr[4] = macid_lo & 0xff;
+> > +	mac_addr[3] = (macid_hi >> 24) & 0xff;
+> > +	mac_addr[2] = (macid_hi >> 16) & 0xff;
+> > +	mac_addr[1] = (macid_hi >> 8) & 0xff;
+> > +	mac_addr[0] = macid_hi & 0xff;
+> > +
+> This will fail incase of DRA74x and DRA72x platforms, please check for
+> u-boot src for parsing logic as TRM is not out yet. Below is the actual
+> code for DRA7 platforms for MAC address parsing
+> 
+> mac_addr[0] = (mac_hi & 0xFF0000) >> 16;
+> mac_addr[1] = (mac_hi & 0xFF00) >> 8;
+> mac_addr[2] = mac_hi & 0xFF;
+> mac_addr[3] = (mac_lo & 0xFF0000) >> 16;
+> mac_addr[4] = (mac_lo & 0xFF00) >> 8;
+> mac_addr[5] = mac_lo & 0xFF;
+> 
 
-NOTE: there is no discrenable features yet defined in register set at
-this point in time.
+But this fails with my beaglebone white.
 
-Tested on AM5728 compatible platform and based on v3.17-rc1
+I tested Markus's patches and it came up with the same ethaddr that
+U-Boot had.
 
- .../devicetree/bindings/arm/omap/omap.txt          |   12 ++++++++++++
- arch/arm/mach-omap2/board-generic.c                |    4 ++++
- 2 files changed, 16 insertions(+)
+>From U-Boot:
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index 0edc903..ddd9bcd 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -85,6 +85,18 @@ SoCs:
- - DRA722
-   compatible = "ti,dra722", "ti,dra72", "ti,dra7"
- 
-+- AM5728
-+  compatible = "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"
-+
-+- AM5726
-+  compatible = "ti,am5726", "ti,dra742", "ti,dra74", "ti,dra7"
-+
-+- AM5718
-+  compatible = "ti,am5718", "ti,dra722", "ti,dra72", "ti,dra7"
-+
-+- AM5716
-+  compatible = "ti,am5716", "ti,dra722", "ti,dra72", "ti,dra7"
-+
- - AM4372
-   compatible = "ti,am4372", "ti,am43"
- 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 9480997..bdb5194 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -241,6 +241,8 @@ MACHINE_END
- 
- #ifdef CONFIG_SOC_DRA7XX
- static const char *dra74x_boards_compat[] __initconst = {
-+	"ti,am5728",
-+	"ti,am5726",
- 	"ti,dra742",
- 	"ti,dra7",
- 	NULL,
-@@ -260,6 +262,8 @@ DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flattened Device Tree)")
- MACHINE_END
- 
- static const char *dra72x_boards_compat[] __initconst = {
-+	"ti,am5718",
-+	"ti,am5716",
- 	"ti,dra722",
- 	NULL,
- };
--- 
-1.7.9.5
+ethaddr=d4:94:a1:8b:ec:78
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With Markus's changes:
+
+ eth0      Link encap:Ethernet  HWaddr D4:94:A1:8B:EC:78
+
+But when I changed the code to match what you wrote, I got this:
+
+ eth0      Link encap:Ethernet  HWaddr CE:5A:8B:0E:44:45
+
+but it also gave me:
+
+cpsw 4a100000.ethernet: Random MACID = ce:5a:8b:0e:44:45
+
+which means it failed the valid mac test.
+
+Here's how I implemented your change:
+
+#if 1
+        mac_addr[0] = (macid_hi & 0xFF0000) >> 16;
+        mac_addr[1] = (macid_hi & 0xFF00) >> 8;
+        mac_addr[2] = macid_hi & 0xFF;
+        mac_addr[3] = (macid_lo & 0xFF0000) >> 16;
+        mac_addr[4] = (macid_lo & 0xFF00) >> 8;
+        mac_addr[5] = macid_lo & 0xFF;
+
+#else   
+        mac_addr[5] = (macid_lo >> 8) & 0xff;
+        mac_addr[4] = macid_lo & 0xff;
+        mac_addr[3] = (macid_hi >> 24) & 0xff;
+        mac_addr[2] = (macid_hi >> 16) & 0xff;
+        mac_addr[1] = (macid_hi >> 8) & 0xff;
+        mac_addr[0] = macid_hi & 0xff;
+#endif  
+
+Just to be consistent, I updated the code as this too:
+
+        mac_addr[0] = (macid_hi >> 16) & 0xFF;
+        mac_addr[1] = (macid_hi >> 8) & 0xFF;
+        mac_addr[2] = macid_hi & 0xFF;
+        mac_addr[3] = (macid_lo >> 16) & 0xFF;
+        mac_addr[4] = (macid_lo >> 8) & 0xFF;
+        mac_addr[5] = macid_lo & 0xFF;
+
+With the same affect.
+
+Thus, for this patchset, as is:
+
+Tested-by: Steven Rostedt <rostedt@goodmis.org>
+
+-- Steve
