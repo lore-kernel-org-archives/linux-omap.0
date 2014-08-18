@@ -1,105 +1,73 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v2 6/8] ARM: dts: am335x-boneblack: Add HDMI audio support
-Date: Tue, 19 Aug 2014 00:46:44 +0300
-Message-ID: <9bac9db7ac3a7d6bde6fd84dce836804f3599e4b.1408397864.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 2/8] drm/tilcdc: Add I2S HDMI audio config for tda998x
+Date: Tue, 19 Aug 2014 00:46:40 +0300
+Message-ID: <6e3745f51bf20304e6c7d2d4636968cc543b6f64.1408397864.git.jsarha@ti.com>
 References: <cover.1408397864.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40735 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752455AbaHRVrK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Aug 2014 17:47:10 -0400
-In-Reply-To: <cover.1408397864.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1408397864.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, ezequiel.garcia@free-electrons.com, t-kristo@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Adds mcasp0_pins, clk_mcasp0_fixed, clk_mcasp0, mcasp0, hdmi_audio,
-and sound nodes.
+The configuration is needed for HDMI audio. The "swap" and "mirr"
+parameters have to be correctly set in the configuration in order to
+have proper colors in the HDMI picture.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am335x-boneblack.dts |   54 ++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 305975d..e815fee 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -59,12 +59,50 @@
- 			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
- 		>;
- 	};
-+
-+	mcasp0_pins: mcasp0_pins {
-+		pinctrl-single,pins = <
-+			0x1ac (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_ahclkx.mcasp0_ahclkx */
-+			0x19c (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2 */
-+			0x194 (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* mcasp0_fsx.mcasp0_fsx */
-+			0x190 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mcasp0_aclkx.mcasp0_aclkx */
-+			0x06c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a11.GPIO1_27 */
-+		>;
-+	};
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+index 3775fd4..5dd8d78 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
+@@ -19,6 +19,7 @@
+ #include <linux/pinctrl/pinmux.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <drm/drm_encoder_slave.h>
++#include <drm/i2c/tda998x.h>
+ 
+ #include "tilcdc_drv.h"
+ 
+@@ -111,8 +112,29 @@ static const struct drm_encoder_helper_funcs slave_encoder_helper_funcs = {
+ 		.restore        = drm_i2c_encoder_restore,
  };
  
- &lcdc {
- 	status = "okay";
++static struct tda998x_encoder_params tda998x_pdata = {
++	.swap_b = 0x3,
++	.mirr_b = 0x0,
++	.swap_a = 0x2,
++	.mirr_a = 0x0,
++	.swap_d = 0x1,
++	.mirr_d = 0x0,
++	.swap_c = 0x0,
++	.mirr_c = 0x0,
++	.swap_f = 0x5,
++	.mirr_f = 0x0,
++	.swap_e = 0x4,
++	.mirr_e = 0x0,
++	.audio_cfg = 0x3,	/* I2S mode */
++	.audio_clk_cfg = 1,	/* select clock pin */
++	.audio_frame[1] = 1,	/* channels - 1 */
++	.audio_format = AFMT_I2S,
++	.audio_sample_rate = 48000,
++};
++
+ static const struct i2c_board_info info = {
+-		I2C_BOARD_INFO("tda998x", 0x70)
++		I2C_BOARD_INFO("tda998x", 0x70),
++		.platform_data = &tda998x_pdata,
  };
  
-+&mcasp0	{
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcasp0_pins>;
-+	status = "okay";
-+	op-mode = <0>;	/* MCASP_IIS_MODE */
-+	tdm-slots = <2>;
-+	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 0
-+		>;
-+	tx-num-evt = <1>;
-+	rx-num-evt = <1>;
-+};
-+
-+&ext_clocks {
-+	clk_mcasp0_fixed: clk_mcasp0_fixed {
-+	      #clock-cells = <0>;
-+	      compatible = "fixed-clock";
-+	      clock-frequency = <24576000>;
-+	};
-+
-+	clk_mcasp0: clk_mcasp0 {
-+	      #clock-cells = <0>;
-+	      compatible = "ti,gpio-clock";
-+	      clocks = <&clk_mcasp0_fixed>;
-+	      enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
-+	};
-+};
-+
- / {
- 	hdmi {
- 		compatible = "ti,tilcdc,slave";
-@@ -74,4 +112,20 @@
- 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
- 		status = "okay";
- 	};
-+
-+	hdmi_audio: hdmi_audio@0 {
-+	       compatible = "linux,hdmi-audio";
-+	       status = "okay";
-+	};
-+
-+	sound {
-+		compatible = "ti,am335x-beaglebone-black-audio";
-+		ti,model = "TI BeagleBone Black";
-+		ti,audio-codec = <&hdmi_audio>;
-+		ti,mcasp-controller = <&mcasp0>;
-+		ti,audio-routing =
-+			"HDMI Out",	"TX";
-+		clocks = <&clk_mcasp0>;
-+		clock-names = "mclk";
-+	};
- };
+ static struct drm_encoder *slave_encoder_create(struct drm_device *dev,
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
