@@ -1,283 +1,65 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v2 1/8] clk: ti: add gpio controlled clock
-Date: Tue, 19 Aug 2014 00:46:39 +0300
-Message-ID: <f080a02691e0f1b45607d7a1afe89698b7f911da.1408397864.git.jsarha@ti.com>
-References: <cover.1408397864.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/8] Beaglebone-Black HDMI audio
+Date: Tue, 19 Aug 2014 00:46:38 +0300
+Message-ID: <cover.1408397864.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34961 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752196AbaHRVrF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Aug 2014 17:47:05 -0400
-In-Reply-To: <cover.1408397864.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, ezequiel.garcia@free-electrons.com, t-kristo@ti.com, Jyri Sarha <jsarha@ti.com>
 
-The added ti,gpio-clock is a basic clock that can be enabled and
-disabled trough a gpio output. The DT binding document for the clock
-is also added. For EPROBE_DEFER handling the registering of the clock
-has to be delayed until of_clk_get() call time.
+Changes since v1 of the patch set:
+- Move gpio-clock under drivers drivers/clk/ti/ and change compatible
+  string to "ti,gpio-clock" to get it accepted
+- Drop already applied "ASoC: mcasp: Fix implicit BLCK divider setting"
+- Fix typo from "ARM: dts: am33xx: Add external clock provider" commit
+  message
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
+The code has a functional dependency to:
+http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg108199.html
+
+Without the above patch the audio card does not probe.
+
+The code has been rebased on top of Linux 3.17-rc1 merged with 
+git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-next
+with http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg108199.html
+cherry-picked on top.
+
+Cheers,
+Jyri
+
+Jyri Sarha (8):
+  clk: ti: add gpio controlled clock
+  drm/tilcdc: Add I2S HDMI audio config for tda998x
+  ASoC: davinci-evm: HDMI audio support for TDA998x trough McASP I2S
+    bus
+  ASoC: davinci: HDMI audio build for AM33XX and TDA998x
+  ARM: dts: am33xx: Add external clock provider
+  ARM: dts: am335x-boneblack: Add HDMI audio support
+  ARM: OMAP2+: omap2plus_defconfig: TDA998X HDMI trough tilcdc,slave
+  ARM: OMAP2+: omap2plus_defconfig: Enable BeagleBone Black HDMI audio
+    support
+
  .../devicetree/bindings/clock/ti/gpio-clock.txt    |   21 ++
+ .../bindings/sound/davinci-evm-audio.txt           |    4 +-
+ arch/arm/boot/dts/am335x-boneblack.dts             |   54 ++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   10 +
+ arch/arm/configs/omap2plus_defconfig               |    5 +
  drivers/clk/ti/Makefile                            |    2 +-
  drivers/clk/ti/gpio.c                              |  202 ++++++++++++++++++++
- 3 files changed, 224 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/tilcdc/tilcdc_slave.c              |   24 ++-
+ sound/soc/davinci/Kconfig                          |   12 ++
+ sound/soc/davinci/davinci-evm.c                    |   82 +++++++-
+ 10 files changed, 411 insertions(+), 5 deletions(-)
  create mode 100644 Documentation/devicetree/bindings/clock/ti/gpio-clock.txt
  create mode 100644 drivers/clk/ti/gpio.c
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/gpio-clock.txt b/Documentation/devicetree/bindings/clock/ti/gpio-clock.txt
-new file mode 100644
-index 0000000..2eb854d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/gpio-clock.txt
-@@ -0,0 +1,21 @@
-+Binding for simple gpio controlled clock.
-+
-+This binding uses the common clock binding[1].
-+
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+
-+Required properties:
-+- compatible : shall be "ti,gpio-clock".
-+- #clock-cells : from common clock binding; shall be set to 0.
-+- enable-gpios : GPIO reference for enabling and disabling the clock.
-+
-+Optional properties:
-+- clocks: Maximum of one parent clock is supported.
-+
-+Example:
-+	clock {
-+		compatible = "ti,gpio-clock";
-+		clocks = <&parentclk>;
-+		#clock-cells = <0>;
-+		enable-gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
-+	};
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index ed4d0aa..88074d3 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,7 +1,7 @@
- ifneq ($(CONFIG_OF),)
- obj-y					+= clk.o autoidle.o clockdomain.o
- clk-common				= dpll.o composite.o divider.o gate.o \
--					  fixed-factor.o mux.o apll.o
-+					  fixed-factor.o mux.o apll.o gpio.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o clk-3xxx.o
-diff --git a/drivers/clk/ti/gpio.c b/drivers/clk/ti/gpio.c
-new file mode 100644
-index 0000000..f4c668e
---- /dev/null
-+++ b/drivers/clk/ti/gpio.c
-@@ -0,0 +1,202 @@
-+/*
-+ * Copyright (C) 2012 - 2014 Texas Instruments Incorporated - http://www.ti.com
-+ * Author: Jyri Sarha <jsarha@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Gpio controlled clock implementation
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
-+#include <linux/err.h>
-+#include <linux/device.h>
-+
-+struct clk_gpio {
-+	struct clk_hw	hw;
-+	struct gpio_desc *gpiod;
-+};
-+
-+/**
-+ * DOC: basic gpio controlled clock which can be enabled and disabled
-+ *      with gpio output
-+ * Traits of this clock:
-+ * prepare - clk_(un)prepare only ensures parent is (un)prepared
-+ * enable - clk_enable and clk_disable are functional & control gpio
-+ * rate - inherits rate from parent.  No clk_set_rate support
-+ * parent - fixed parent.  No clk_set_parent support
-+ */
-+
-+#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
-+
-+static int clk_gpio_enable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *clk = to_clk_gpio(hw);
-+
-+	gpiod_set_value(clk->gpiod, 1);
-+
-+	return 0;
-+}
-+
-+static void clk_gpio_disable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *clk = to_clk_gpio(hw);
-+
-+	gpiod_set_value(clk->gpiod, 0);
-+}
-+
-+static int clk_gpio_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_gpio *clk = to_clk_gpio(hw);
-+
-+	return gpiod_get_value(clk->gpiod);
-+}
-+
-+static const struct clk_ops clk_gpio_ops = {
-+	.enable = clk_gpio_enable,
-+	.disable = clk_gpio_disable,
-+	.is_enabled = clk_gpio_is_enabled,
-+};
-+
-+/**
-+ * clk_register_gpio - register a gpip clock with the clock framework
-+ * @dev: device that is registering this clock
-+ * @name: name of this clock
-+ * @parent_name: name of this clock's parent
-+ * @gpiod: gpio descriptor to control this clock
-+ */
-+static struct clk *clk_register_gpio(struct device *dev, const char *name,
-+		const char *parent_name, struct gpio_desc *gpiod,
-+		unsigned long flags)
-+{
-+	struct clk_gpio *clk_gpio = NULL;
-+	struct clk *clk = ERR_PTR(-EINVAL);
-+	struct clk_init_data init = { NULL };
-+	unsigned long gpio_flags;
-+	int err;
-+
-+	if (gpiod_is_active_low(gpiod))
-+		gpio_flags = GPIOF_OUT_INIT_HIGH;
-+	else
-+		gpio_flags = GPIOF_OUT_INIT_LOW;
-+
-+	if (dev)
-+		err = devm_gpio_request_one(dev, desc_to_gpio(gpiod),
-+					    gpio_flags, name);
-+	else
-+		err = gpio_request_one(desc_to_gpio(gpiod), gpio_flags, name);
-+
-+	if (err) {
-+		pr_err("%s: %s: Error requesting clock control gpio %u\n",
-+		       __func__, name, desc_to_gpio(gpiod));
-+		return ERR_PTR(err);
-+	}
-+
-+	if (dev)
-+		clk_gpio = devm_kzalloc(dev, sizeof(struct clk_gpio),
-+					GFP_KERNEL);
-+	else
-+		clk_gpio = kzalloc(sizeof(struct clk_gpio), GFP_KERNEL);
-+
-+	if (!clk_gpio)
-+		goto clk_register_gpio_err;
-+
-+	init.name = name;
-+	init.ops = &clk_gpio_ops;
-+	init.flags = flags | CLK_IS_BASIC;
-+	init.parent_names = (parent_name ? &parent_name : NULL);
-+	init.num_parents = (parent_name ? 1 : 0);
-+
-+	clk_gpio->gpiod = gpiod;
-+	clk_gpio->hw.init = &init;
-+
-+	clk = clk_register(dev, &clk_gpio->hw);
-+
-+	if (!IS_ERR(clk))
-+		return clk;
-+
-+	if (!dev)
-+		kfree(clk_gpio);
-+
-+clk_register_gpio_err:
-+	gpiod_put(gpiod);
-+
-+	return clk;
-+}
-+
-+/**
-+ * The clk_register_gpio has to be delayed, because the EPROBE_DEFER
-+ * can not be handled properly at of_clk_init() call time.
-+ */
-+
-+struct clk_gpio_delayed_register_data {
-+	struct device_node *node;
-+	struct mutex lock;
-+	struct clk *clk;
-+};
-+
-+static
-+struct clk *of_clk_gpio_delayed_register_get(struct of_phandle_args *clkspec,
-+					     void *_data)
-+{
-+	struct clk_gpio_delayed_register_data *data = _data;
-+	struct clk *clk;
-+	const char *clk_name = data->node->name;
-+	const char *parent_name;
-+	struct gpio_desc *gpiod;
-+	int gpio;
-+
-+	mutex_lock(&data->lock);
-+
-+	if (data->clk) {
-+		mutex_unlock(&data->lock);
-+		return data->clk;
-+	}
-+
-+	gpio = of_get_named_gpio_flags(data->node, "enable-gpios", 0, NULL);
-+	if (gpio < 0) {
-+		mutex_unlock(&data->lock);
-+		if (gpio != -EPROBE_DEFER)
-+			pr_err("%s: %s: Can't get 'enable-gpios' DT property\n",
-+			       __func__, clk_name);
-+		return ERR_PTR(gpio);
-+	}
-+	gpiod = gpio_to_desc(gpio);
-+
-+	parent_name = of_clk_get_parent_name(data->node, 0);
-+
-+	clk = clk_register_gpio(NULL, clk_name, parent_name, gpiod, 0);
-+	if (IS_ERR(clk)) {
-+		mutex_unlock(&data->lock);
-+		return clk;
-+	}
-+
-+	data->clk = clk;
-+	mutex_unlock(&data->lock);
-+
-+	return clk;
-+}
-+
-+/**
-+ * of_gpio_clk_setup() - Setup function for gpio controlled clock
-+ */
-+static void __init of_gpio_clk_setup(struct device_node *node)
-+{
-+	struct clk_gpio_delayed_register_data *data;
-+
-+	data = kzalloc(sizeof(struct clk_gpio_delayed_register_data),
-+		       GFP_KERNEL);
-+	if (!data)
-+		return;
-+
-+	data->node = node;
-+	mutex_init(&data->lock);
-+
-+	of_clk_add_provider(node, of_clk_gpio_delayed_register_get, data);
-+}
-+CLK_OF_DECLARE(gpio_clk, "ti,gpio-clock", of_gpio_clk_setup);
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
