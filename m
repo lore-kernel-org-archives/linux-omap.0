@@ -1,74 +1,207 @@
-From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/5] MMC cleanup of dev_pm_ops and .owner
-Date: Mon, 18 Aug 2014 14:38:06 +0200
-Message-ID: <CAPDyKFr5ESzjEd3DUO7aMKN9K_Ytuw8GY-fgEyCM4sCGJAX3NQ@mail.gmail.com>
-References: <1407860069-12706-1-git-send-email-peter.griffin@linaro.org>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 05/15] tty: serial: Add 8250-core based omap driver
+Date: Mon, 18 Aug 2014 16:46:43 +0300
+Message-ID: <20140818134643.GA32400@xps8300>
+References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
+ <1408124563-31541-6-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1407860069-12706-1-git-send-email-peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tgih.jun-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <tgih.jun-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Jaehoon Chung <jh80.chung-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Chris Ball <chris-OsFVWbfNK3isTnJN9+BGXg@public.gmane.org>, jarkko.lavinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, balajitk <balajitk-l0cyMroinI0@public.gmane.org>, Barry Song <baohua-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Viresh Kumar <viresh.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ian Molton <ian.molton-4yDnlxn2s6sWdaTGBSpHTA@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-mmc <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Patch Tracking <patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1408124563-31541-6-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 12 August 2014 18:14, Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> This series cleans up a few platform drivers in how they are declaring there
-> dev_pm_ops structs, and gets rid of a few now redundant #else conditions.
->
-> Also it removes the .owner field of drivers which use module_platform_driver
-> api to register themselves, as this field gets overwritten.
->
-> Peter Griffin (5):
->   mmc: remove .owner field for drivers using module_platform_driver
->   mmc: dw_mmc-pci: Remove superflous #else condition on CONFIG_PM_SLEEP
->   mmc: dw_mmc-pltfm: Remove superflous #else condition on
->     CONFIG_PM_SLEEP
->   mmc: sdhci-pci: Use SET_RUNTIME_PM_OPS macro to set runtime pm
->     callbacks
->   mmc: sdhci-acpi.c: Use SET_RUNTIME_PM_OPS macro to set runtime pm
->     callbacks
+Hi,
 
-Thanks! Applied for next!
+On Fri, Aug 15, 2014 at 07:42:33PM +0200, Sebastian Andrzej Siewior wrote:
+> diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+> index cc90c19..ab003b6 100644
+> --- a/drivers/tty/serial/8250/8250_core.c
+> +++ b/drivers/tty/serial/8250/8250_core.c
+> @@ -264,6 +264,12 @@ static const struct serial8250_config uart_config[] = {
+>  		.fcr		= UART_FCR_ENABLE_FIFO | UART_FCR_R_TRIG_10,
+>  		.flags		= UART_CAP_FIFO | UART_CAP_AFE,
+>  	},
+> +	[PORT_OMAP_16750] = {
+> +		.name		= "OMAP",
+> +		.fifo_size	= 64,
+> +		.tx_loadsz	= 64,
+> +		.flags		= UART_CAP_FIFO | UART_CAP_EFR | UART_CAP_SLEEP,
+> +	},
 
-Kind regards
-Uffe
+I don't think you need this. Reasons below...
 
->
->  drivers/mmc/host/dw_mmc-pci.c      |  3 ---
->  drivers/mmc/host/dw_mmc-pltfm.c    |  3 ---
->  drivers/mmc/host/jz4740_mmc.c      |  1 -
->  drivers/mmc/host/moxart-mmc.c      |  1 -
->  drivers/mmc/host/mxcmmc.c          |  1 -
->  drivers/mmc/host/mxs-mmc.c         |  1 -
->  drivers/mmc/host/omap.c            |  1 -
->  drivers/mmc/host/omap_hsmmc.c      |  1 -
->  drivers/mmc/host/pxamci.c          |  1 -
->  drivers/mmc/host/rtsx_pci_sdmmc.c  |  1 -
->  drivers/mmc/host/rtsx_usb_sdmmc.c  |  1 -
->  drivers/mmc/host/s3cmci.c          |  1 -
->  drivers/mmc/host/sdhci-acpi.c      | 11 ++---------
->  drivers/mmc/host/sdhci-bcm-kona.c  |  1 -
->  drivers/mmc/host/sdhci-bcm2835.c   |  1 -
->  drivers/mmc/host/sdhci-cns3xxx.c   |  1 -
->  drivers/mmc/host/sdhci-dove.c      |  1 -
->  drivers/mmc/host/sdhci-esdhc-imx.c |  1 -
->  drivers/mmc/host/sdhci-msm.c       |  1 -
->  drivers/mmc/host/sdhci-of-arasan.c |  1 -
->  drivers/mmc/host/sdhci-of-esdhc.c  |  1 -
->  drivers/mmc/host/sdhci-of-hlwd.c   |  1 -
->  drivers/mmc/host/sdhci-pci.c       | 11 ++---------
->  drivers/mmc/host/sdhci-pxav2.c     |  1 -
->  drivers/mmc/host/sdhci-pxav3.c     |  1 -
->  drivers/mmc/host/sdhci-s3c.c       |  1 -
->  drivers/mmc/host/sdhci-sirf.c      |  1 -
->  drivers/mmc/host/sdhci-spear.c     |  1 -
->  drivers/mmc/host/sdhci-tegra.c     |  1 -
->  drivers/mmc/host/sh_mmcif.c        |  1 -
->  drivers/mmc/host/sh_mobile_sdhi.c  |  1 -
->  drivers/mmc/host/sunxi-mmc.c       |  1 -
->  32 files changed, 4 insertions(+), 52 deletions(-)
->
-> --
-> 1.9.1
->
+>  	[PORT_TEGRA] = {
+>  		.name		= "Tegra",
+>  		.fifo_size	= 32,
+> @@ -1390,6 +1396,8 @@ static void serial8250_stop_rx(struct uart_port *port)
+>  	serial8250_rpm_get(up);
+>  
+>  	up->ier &= ~UART_IER_RLSI;
+> +	if (port->type == PORT_OMAP_16750)
+> +		up->ier &= ~UART_IER_RDI;
+
+I don't see any reason why this could not be always cleared regardless
+of the type:
+
+        up->ier &= ~(UART_IER_RLSI | UART_IRE_RDI);
+
+>  	up->port.read_status_mask &= ~UART_LSR_DR;
+>  	serial_port_out(port, UART_IER, up->ier);
+>  
+> diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+> new file mode 100644
+> index 0000000..368e9d8
+> --- /dev/null
+> +++ b/drivers/tty/serial/8250/8250_omap.c
+> @@ -0,0 +1,911 @@
+> +/*
+> + * 8250-core based driver for the OMAP internal UART
+> + *
+> + *  Copyright (C) 2014 Sebastian Andrzej Siewior
+> + *
+> + */
+
+[cut]
+
+> +static int omap8250_probe(struct platform_device *pdev)
+> +{
+> +	struct resource *regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	struct resource *irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> +	struct omap8250_priv *priv;
+> +	struct uart_8250_port up;
+> +	int ret;
+> +	void __iomem *membase;
+> +
+> +	if (!regs || !irq) {
+> +		dev_err(&pdev->dev, "missing registers or irq\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+> +	if (!priv) {
+> +		dev_err(&pdev->dev, "unable to allocate private data\n");
+> +		return -ENOMEM;
+> +	}
+> +	membase = devm_ioremap_nocache(&pdev->dev, regs->start,
+> +			resource_size(regs));
+> +	if (!membase)
+> +		return -ENODEV;
+> +
+> +	memset(&up, 0, sizeof(up));
+> +	up.port.dev = &pdev->dev;
+> +	up.port.mapbase = regs->start;
+> +	up.port.membase = membase;
+> +	up.port.irq = irq->start;
+> +	/*
+> +	 * It claims to be 16C750 compatible however it is a little different.
+> +	 * It has EFR and has no FCR7_64byte bit. The AFE which it claims to
+> +	 * have is enabled via EFR instead of MCR.
+> +	 */
+> +	up.port.type = PORT_OMAP_16750;
+
+Since you are not calling serial8250_do_set_termios, 8250_core.c newer
+overrides the FCR set in this driver. However, if the FCR is a
+problem, since Yoshihiro added the member for it to struct
+uart_8250_port (commit aef9a7bd9), just make it possible for the probe
+drivers to provide also it's value:
+
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -2829,7 +2829,9 @@ static void serial8250_config_port(struct uart_port *port, int flags)
+                port->handle_irq = exar_handle_irq;
+ 
+        register_dev_spec_attr_grp(up);
+-       up->fcr = uart_config[up->port.type].fcr;
++
++       if (!up->fcr)
++               up->fcr = uart_config[up->port.type].fcr;
+ }
+ 
+ static int
+
+So instead of using PORT_OMAP_16750:
+        up.port.type = PORT_16750;
+        up.capabilities = UART_CAP_FIFO | UART_CAP_EFR | UART_CAP_SLEEP;
+
+and the fcr if needed.
+        up.fcr = ...
+
+> +	up.port.iotype = UPIO_MEM32;
+> +	up.port.flags = UPF_BOOT_AUTOCONF | UPF_FIXED_PORT | UPF_FIXED_TYPE |
+> +		UPF_SOFT_FLOW | UPF_HARD_FLOW;
+> +	up.port.private_data = priv;
+> +
+> +	up.port.regshift = 2;
+> +	up.port.fifosize = 64;
+
+You don't need to set the fifosize unless you want to replace the
+value you get from uart_config array.
+
+> +	up.port.set_termios = omap_8250_set_termios;
+> +	up.port.pm = omap_8250_pm;
+> +	up.port.startup = omap_8250_startup;
+> +	up.port.shutdown = omap_8250_shutdown;
+> +	up.port.throttle = omap_8250_throttle;
+> +	up.port.unthrottle = omap_8250_unthrottle;
+> +
+> +	if (pdev->dev.of_node) {
+> +		up.port.line = of_alias_get_id(pdev->dev.of_node, "serial");
+> +		of_property_read_u32(pdev->dev.of_node, "clock-frequency",
+> +				&up.port.uartclk);
+> +		priv->wakeirq = irq_of_parse_and_map(pdev->dev.of_node, 1);
+> +	} else {
+> +		up.port.line = pdev->id;
+> +	}
+> +
+> +	if (up.port.line < 0) {
+> +		dev_err(&pdev->dev, "failed to get alias/pdev id, errno %d\n",
+> +				up.port.line);
+> +		return -ENODEV;
+> +	}
+> +	if (!up.port.uartclk) {
+> +		up.port.uartclk = DEFAULT_CLK_SPEED;
+> +		dev_warn(&pdev->dev,
+> +				"No clock speed specified: using default: %d\n",
+> +				DEFAULT_CLK_SPEED);
+> +	}
+> +
+> +#ifdef CONFIG_PM_RUNTIME
+> +	up.capabilities |= UART_CAP_RPM;
+> +#endif
+
+By setting this here, you will not get the capabilities from the
+uart_config[type].flags if runtime PM is enabled in any case, right?
+
+[cut]
+
+> diff --git a/drivers/tty/serial/8250/Makefile b/drivers/tty/serial/8250/Makefile
+> index 36d68d0..4bac392 100644
+> --- a/drivers/tty/serial/8250/Makefile
+> +++ b/drivers/tty/serial/8250/Makefile
+> @@ -20,3 +20,4 @@ obj-$(CONFIG_SERIAL_8250_HUB6)		+= 8250_hub6.o
+>  obj-$(CONFIG_SERIAL_8250_FSL)		+= 8250_fsl.o
+>  obj-$(CONFIG_SERIAL_8250_DW)		+= 8250_dw.o
+>  obj-$(CONFIG_SERIAL_8250_EM)		+= 8250_em.o
+> +obj-$(CONFIG_SERIAL_8250_OMAP)		+= 8250_omap.o
+> diff --git a/include/uapi/linux/serial_core.h b/include/uapi/linux/serial_core.h
+> index 5820269..74f9b11 100644
+> --- a/include/uapi/linux/serial_core.h
+> +++ b/include/uapi/linux/serial_core.h
+> @@ -54,7 +54,8 @@
+>  #define PORT_ALTR_16550_F32 26	/* Altera 16550 UART with 32 FIFOs */
+>  #define PORT_ALTR_16550_F64 27	/* Altera 16550 UART with 64 FIFOs */
+>  #define PORT_ALTR_16550_F128 28 /* Altera 16550 UART with 128 FIFOs */
+> -#define PORT_MAX_8250	28	/* max port ID */
+> +#define PORT_OMAP_16750	29	/* TI's OMAP internal 16C750 compatible UART */
+> +#define PORT_MAX_8250	29	/* max port ID */
+
+So in this case I see no reason for new type.
+
+Cheers,
+
+-- 
+heikki
