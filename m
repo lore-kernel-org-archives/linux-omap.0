@@ -1,99 +1,302 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/2] doc: dt/bindings: input: introduce palmas power button
- description
-Date: Tue, 19 Aug 2014 05:23:35 -0500
-Message-ID: <53F325A7.4020806@ti.com>
-References: <1408392810-16011-1-git-send-email-nm@ti.com> <1408392810-16011-2-git-send-email-nm@ti.com> <20140819052842.GB21199@core.coreip.homeip.net>
-Reply-To: nm@ti.com
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v2 1/8] clk: ti: add gpio controlled clock
+Date: Tue, 19 Aug 2014 12:32:00 +0100
+Message-ID: <20140819113200.GJ3302@leverpostej>
+References: <cover.1408397864.git.jsarha@ti.com>
+ <f080a02691e0f1b45607d7a1afe89698b7f911da.1408397864.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20140819052842.GB21199@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:61814 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752476AbaHSLcH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Aug 2014 07:32:07 -0400
+Content-Disposition: inline
+In-Reply-To: <f080a02691e0f1b45607d7a1afe89698b7f911da.1408397864.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "airlied@linux.ie" <airlied@linux.ie>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "detheridge@ti.com" <detheridge@ti.com>, "ezequiel.garcia@free-electrons.com" <ezequiel.garcia@free-electrons.com>, "t-kristo@ti.com" <t-kristo@ti.com>
 
-On 08/19/2014 12:28 AM, Dmitry Torokhov wrote:
-> On Mon, Aug 18, 2014 at 03:13:29PM -0500, Nishanth Menon wrote:
->> Many palmas family of PMICs have support for interrupt based power
->> button. This allows the device to notify the processor of external
->> push button events over the shared palmas interrupt.
->>
->> Document the hardware support for the same.
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->>   .../bindings/input/ti,palmas-pwrbutton.txt         |   32 ++++++++++++++++++++
->>   1 file changed, 32 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt
->>
->> diff --git a/Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt b/Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt
->> new file mode 100644
->> index 0000000..6a89bcd
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt
->> @@ -0,0 +1,32 @@
->> +Texas Instruments Palmas family power button module
->> +
->> +This module is part of the Palmas family of PMICs. For more details
->> +about the whole chip see:
->> +Documentation/devicetree/bindings/mfd/palmas.txt.
->> +
->> +This module provides a simple power button event via an Interrupt.
->> +
->> +Required properties:
->> +- compatible: should be one of the following
->> +   - "ti,palmas-pwrbutton": For Palmas compatible power on button
->> +- interrupt-parent: Parent interrupt device, must be handle of palmas node.
->> +- interrupts: Interrupt number of power button submodule on device.
->> +
->> +Optional Properties:
->> +
->> +- ti,palmas-long-press-seconds: Duration in seconds which the power
->> +  button should be kept pressed for Palmas to power off automatically.
->> +  NOTE: This depends on OTP support and POWERHOLD signal configuration
->> +  on platform.
->
-> Only a few values are valid for this property, I think you should mention that.
+On Mon, Aug 18, 2014 at 10:46:39PM +0100, Jyri Sarha wrote:
+> The added ti,gpio-clock is a basic clock that can be enabled and
+> disabled trough a gpio output. The DT binding document for the clock
+> is also added. For EPROBE_DEFER handling the registering of the clock
+> has to be delayed until of_clk_get() call time.
 
-Agreed. Will do so.
->
->> +
->> +Example:
->> +
->> +&palmas {
->> +	palmas_pwr_button: pwrbutton {
->> +		compatible = "ti,palmas-pwrbutton";
->> +		interrupt-parent = <&tps659038>;
->> +		interrupts = <1 IRQ_TYPE_NONE>;
->
-> Why none? Can we specify appropriate trigger here instead of hard-coding in the
-> driver?
+I guess this is basically an AND gate with the GPIO and parent clock as
+inputs? Or is this something more complex that we might want to do more
+things with later?
 
-Following the convention as in 
-Documentation/devicetree/bindings/mfd/palmas.txt - for whatever reason 
-we went with interrupt-cells = <2> when palmas interrupt configuration 
-was hardcoded in the chip(not reconfigurable). I believe it was level, 
-will check and update the example here.
->
->> +		wakeup-source;
->
-> What handles this attribute? I do not see it handled in the driver.
+If it's the former it sounds like this could be a completely generic
+"gpio-gate-clock".
 
-we dont explicitly need to in the driver, it was meant to indicate that 
-this is a wakeup source, but in reality, it is a palmas PMIC which is 
-the wakeup source.. so, will drop this.
+Thanks,
+Mark.
 
->
->> +		ti,palmas-long-press-seconds = <12>;
->> +	};
->> +};
->> --
->> 1.7.9.5
->>
->
-> Thanks.
->
-
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  .../devicetree/bindings/clock/ti/gpio-clock.txt    |   21 ++
+>  drivers/clk/ti/Makefile                            |    2 +-
+>  drivers/clk/ti/gpio.c                              |  202 ++++++++++++++++++++
+>  3 files changed, 224 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti/gpio-clock.txt
+>  create mode 100644 drivers/clk/ti/gpio.c
+> 
+> diff --git a/Documentation/devicetree/bindings/clock/ti/gpio-clock.txt b/Documentation/devicetree/bindings/clock/ti/gpio-clock.txt
+> new file mode 100644
+> index 0000000..2eb854d
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/ti/gpio-clock.txt
+> @@ -0,0 +1,21 @@
+> +Binding for simple gpio controlled clock.
+> +
+> +This binding uses the common clock binding[1].
+> +
+> +[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
+> +
+> +Required properties:
+> +- compatible : shall be "ti,gpio-clock".
+> +- #clock-cells : from common clock binding; shall be set to 0.
+> +- enable-gpios : GPIO reference for enabling and disabling the clock.
+> +
+> +Optional properties:
+> +- clocks: Maximum of one parent clock is supported.
+> +
+> +Example:
+> +	clock {
+> +		compatible = "ti,gpio-clock";
+> +		clocks = <&parentclk>;
+> +		#clock-cells = <0>;
+> +		enable-gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
+> +	};
+> diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
+> index ed4d0aa..88074d3 100644
+> --- a/drivers/clk/ti/Makefile
+> +++ b/drivers/clk/ti/Makefile
+> @@ -1,7 +1,7 @@
+>  ifneq ($(CONFIG_OF),)
+>  obj-y					+= clk.o autoidle.o clockdomain.o
+>  clk-common				= dpll.o composite.o divider.o gate.o \
+> -					  fixed-factor.o mux.o apll.o
+> +					  fixed-factor.o mux.o apll.o gpio.o
+>  obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
+>  obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o clk-3xxx.o
+> diff --git a/drivers/clk/ti/gpio.c b/drivers/clk/ti/gpio.c
+> new file mode 100644
+> index 0000000..f4c668e
+> --- /dev/null
+> +++ b/drivers/clk/ti/gpio.c
+> @@ -0,0 +1,202 @@
+> +/*
+> + * Copyright (C) 2012 - 2014 Texas Instruments Incorporated - http://www.ti.com
+> + * Author: Jyri Sarha <jsarha@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * Gpio controlled clock implementation
+> + */
+> +
+> +#include <linux/clk-provider.h>
+> +#include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/gpio.h>
+> +#include <linux/of_gpio.h>
+> +#include <linux/err.h>
+> +#include <linux/device.h>
+> +
+> +struct clk_gpio {
+> +	struct clk_hw	hw;
+> +	struct gpio_desc *gpiod;
+> +};
+> +
+> +/**
+> + * DOC: basic gpio controlled clock which can be enabled and disabled
+> + *      with gpio output
+> + * Traits of this clock:
+> + * prepare - clk_(un)prepare only ensures parent is (un)prepared
+> + * enable - clk_enable and clk_disable are functional & control gpio
+> + * rate - inherits rate from parent.  No clk_set_rate support
+> + * parent - fixed parent.  No clk_set_parent support
+> + */
+> +
+> +#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
+> +
+> +static int clk_gpio_enable(struct clk_hw *hw)
+> +{
+> +	struct clk_gpio *clk = to_clk_gpio(hw);
+> +
+> +	gpiod_set_value(clk->gpiod, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +static void clk_gpio_disable(struct clk_hw *hw)
+> +{
+> +	struct clk_gpio *clk = to_clk_gpio(hw);
+> +
+> +	gpiod_set_value(clk->gpiod, 0);
+> +}
+> +
+> +static int clk_gpio_is_enabled(struct clk_hw *hw)
+> +{
+> +	struct clk_gpio *clk = to_clk_gpio(hw);
+> +
+> +	return gpiod_get_value(clk->gpiod);
+> +}
+> +
+> +static const struct clk_ops clk_gpio_ops = {
+> +	.enable = clk_gpio_enable,
+> +	.disable = clk_gpio_disable,
+> +	.is_enabled = clk_gpio_is_enabled,
+> +};
+> +
+> +/**
+> + * clk_register_gpio - register a gpip clock with the clock framework
+> + * @dev: device that is registering this clock
+> + * @name: name of this clock
+> + * @parent_name: name of this clock's parent
+> + * @gpiod: gpio descriptor to control this clock
+> + */
+> +static struct clk *clk_register_gpio(struct device *dev, const char *name,
+> +		const char *parent_name, struct gpio_desc *gpiod,
+> +		unsigned long flags)
+> +{
+> +	struct clk_gpio *clk_gpio = NULL;
+> +	struct clk *clk = ERR_PTR(-EINVAL);
+> +	struct clk_init_data init = { NULL };
+> +	unsigned long gpio_flags;
+> +	int err;
+> +
+> +	if (gpiod_is_active_low(gpiod))
+> +		gpio_flags = GPIOF_OUT_INIT_HIGH;
+> +	else
+> +		gpio_flags = GPIOF_OUT_INIT_LOW;
+> +
+> +	if (dev)
+> +		err = devm_gpio_request_one(dev, desc_to_gpio(gpiod),
+> +					    gpio_flags, name);
+> +	else
+> +		err = gpio_request_one(desc_to_gpio(gpiod), gpio_flags, name);
+> +
+> +	if (err) {
+> +		pr_err("%s: %s: Error requesting clock control gpio %u\n",
+> +		       __func__, name, desc_to_gpio(gpiod));
+> +		return ERR_PTR(err);
+> +	}
+> +
+> +	if (dev)
+> +		clk_gpio = devm_kzalloc(dev, sizeof(struct clk_gpio),
+> +					GFP_KERNEL);
+> +	else
+> +		clk_gpio = kzalloc(sizeof(struct clk_gpio), GFP_KERNEL);
+> +
+> +	if (!clk_gpio)
+> +		goto clk_register_gpio_err;
+> +
+> +	init.name = name;
+> +	init.ops = &clk_gpio_ops;
+> +	init.flags = flags | CLK_IS_BASIC;
+> +	init.parent_names = (parent_name ? &parent_name : NULL);
+> +	init.num_parents = (parent_name ? 1 : 0);
+> +
+> +	clk_gpio->gpiod = gpiod;
+> +	clk_gpio->hw.init = &init;
+> +
+> +	clk = clk_register(dev, &clk_gpio->hw);
+> +
+> +	if (!IS_ERR(clk))
+> +		return clk;
+> +
+> +	if (!dev)
+> +		kfree(clk_gpio);
+> +
+> +clk_register_gpio_err:
+> +	gpiod_put(gpiod);
+> +
+> +	return clk;
+> +}
+> +
+> +/**
+> + * The clk_register_gpio has to be delayed, because the EPROBE_DEFER
+> + * can not be handled properly at of_clk_init() call time.
+> + */
+> +
+> +struct clk_gpio_delayed_register_data {
+> +	struct device_node *node;
+> +	struct mutex lock;
+> +	struct clk *clk;
+> +};
+> +
+> +static
+> +struct clk *of_clk_gpio_delayed_register_get(struct of_phandle_args *clkspec,
+> +					     void *_data)
+> +{
+> +	struct clk_gpio_delayed_register_data *data = _data;
+> +	struct clk *clk;
+> +	const char *clk_name = data->node->name;
+> +	const char *parent_name;
+> +	struct gpio_desc *gpiod;
+> +	int gpio;
+> +
+> +	mutex_lock(&data->lock);
+> +
+> +	if (data->clk) {
+> +		mutex_unlock(&data->lock);
+> +		return data->clk;
+> +	}
+> +
+> +	gpio = of_get_named_gpio_flags(data->node, "enable-gpios", 0, NULL);
+> +	if (gpio < 0) {
+> +		mutex_unlock(&data->lock);
+> +		if (gpio != -EPROBE_DEFER)
+> +			pr_err("%s: %s: Can't get 'enable-gpios' DT property\n",
+> +			       __func__, clk_name);
+> +		return ERR_PTR(gpio);
+> +	}
+> +	gpiod = gpio_to_desc(gpio);
+> +
+> +	parent_name = of_clk_get_parent_name(data->node, 0);
+> +
+> +	clk = clk_register_gpio(NULL, clk_name, parent_name, gpiod, 0);
+> +	if (IS_ERR(clk)) {
+> +		mutex_unlock(&data->lock);
+> +		return clk;
+> +	}
+> +
+> +	data->clk = clk;
+> +	mutex_unlock(&data->lock);
+> +
+> +	return clk;
+> +}
+> +
+> +/**
+> + * of_gpio_clk_setup() - Setup function for gpio controlled clock
+> + */
+> +static void __init of_gpio_clk_setup(struct device_node *node)
+> +{
+> +	struct clk_gpio_delayed_register_data *data;
+> +
+> +	data = kzalloc(sizeof(struct clk_gpio_delayed_register_data),
+> +		       GFP_KERNEL);
+> +	if (!data)
+> +		return;
+> +
+> +	data->node = node;
+> +	mutex_init(&data->lock);
+> +
+> +	of_clk_add_provider(node, of_clk_gpio_delayed_register_get, data);
+> +}
+> +CLK_OF_DECLARE(gpio_clk, "ti,gpio-clock", of_gpio_clk_setup);
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
