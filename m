@@ -1,86 +1,89 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] doc: dt/bindings: input: introduce palmas power
- button description
-Date: Mon, 18 Aug 2014 22:28:42 -0700
-Message-ID: <20140819052842.GB21199@core.coreip.homeip.net>
-References: <1408392810-16011-1-git-send-email-nm@ti.com>
- <1408392810-16011-2-git-send-email-nm@ti.com>
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: Re: [PATCH v3 5/7] net: cpsw: Add am33xx MACID readout
+Date: Tue, 19 Aug 2014 10:50:02 +0200
+Message-ID: <20140819085002.GE12930@pengutronix.de>
+References: <1408202315-20006-1-git-send-email-mpa@pengutronix.de>
+ <1408202315-20006-6-git-send-email-mpa@pengutronix.de>
+ <53F244DA.3070803@ti.com>
+ <20140818154112.6601cbff@gandalf.local.home>
+ <53F25AD1.8040504@ti.com>
+ <CABxcv=npv6bRq=VF8RT5trNxUzDj3bAm-PkvDEhcLVJ+uf8hCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VdOwlNaOFKGAtAAV"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44701 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492AbaHSIuV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2014 04:50:21 -0400
 Content-Disposition: inline
-In-Reply-To: <1408392810-16011-2-git-send-email-nm@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CABxcv=npv6bRq=VF8RT5trNxUzDj3bAm-PkvDEhcLVJ+uf8hCg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, Steven Rostedt <rostedt@goodmis.org>, "David S. Miller" <davem@davemloft.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, kernel@pengutronix.de
 
-On Mon, Aug 18, 2014 at 03:13:29PM -0500, Nishanth Menon wrote:
-> Many palmas family of PMICs have support for interrupt based power
-> button. This allows the device to notify the processor of external
-> push button events over the shared palmas interrupt.
-> 
-> Document the hardware support for the same.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  .../bindings/input/ti,palmas-pwrbutton.txt         |   32 ++++++++++++++++++++
->  1 file changed, 32 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt b/Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt
-> new file mode 100644
-> index 0000000..6a89bcd
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/input/ti,palmas-pwrbutton.txt
-> @@ -0,0 +1,32 @@
-> +Texas Instruments Palmas family power button module
-> +
-> +This module is part of the Palmas family of PMICs. For more details
-> +about the whole chip see:
-> +Documentation/devicetree/bindings/mfd/palmas.txt.
-> +
-> +This module provides a simple power button event via an Interrupt.
-> +
-> +Required properties:
-> +- compatible: should be one of the following
-> +   - "ti,palmas-pwrbutton": For Palmas compatible power on button
-> +- interrupt-parent: Parent interrupt device, must be handle of palmas node.
-> +- interrupts: Interrupt number of power button submodule on device.
-> +
-> +Optional Properties:
-> +
-> +- ti,palmas-long-press-seconds: Duration in seconds which the power
-> +  button should be kept pressed for Palmas to power off automatically.
-> +  NOTE: This depends on OTP support and POWERHOLD signal configuration
-> +  on platform.
 
-Only a few values are valid for this property, I think you should mention that.
+--VdOwlNaOFKGAtAAV
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +
-> +Example:
-> +
-> +&palmas {
-> +	palmas_pwr_button: pwrbutton {
-> +		compatible = "ti,palmas-pwrbutton";
-> +		interrupt-parent = <&tps659038>;
-> +		interrupts = <1 IRQ_TYPE_NONE>;
+Hi,
 
-Why none? Can we specify appropriate trigger here instead of hard-coding in the
-driver?
+On Tue, Aug 19, 2014 at 12:50:59AM +0200, Javier Martinez Canillas wrote:
+> Hello Mugunthan,
+>=20
+> On Mon, Aug 18, 2014 at 9:58 PM, Mugunthan V N <mugunthanvnm@ti.com> wrot=
+e:
+> >>
+> >> Thus, for this patchset, as is:
+> >>
+> >> Tested-by: Steven Rostedt <rostedt@goodmis.org>
+> >
+> > This will fail for DRA7xx not in AM33xx
+> >
+>=20
+> cpsw_am33xx_cm_get_macid() checks for
+> of_machine_is_compatible("ti,am33xx") and returns 0 if the machine is
+> not an am33xx. cpsw_probe_dt() only propagates the return value if is
+> not 0 so this patch does not change the semantics for other SoCs
+> besides am33xx.
 
-> +		wakeup-source;
+Yes, this patch is only about the am33xx. I don't have the DRA7xx
+hardware so I am not able to test on that hardware. Mugunthan, perhaps
+you can supply some followup patches for DRA7xx.
 
-What handles this attribute? I do not see it handled in the driver.
+Best regards,
 
-> +		ti,palmas-long-press-seconds = <12>;
-> +	};
-> +};
-> -- 
-> 1.7.9.5
-> 
+Markus
 
-Thanks.
+--=20
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
--- 
-Dmitry
+--VdOwlNaOFKGAtAAV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJT8w+5AAoJEEpcgKtcEGQQjCcP/0hoofAuP32DcnajtPwClKLz
+mXUDwGG4mysydUB6XV3q/DjEUwRZS5AxpTU15UyHM/vKEX5A4eVP99YhaUh4dQlg
+IPGjLNxOYqWg+ZOSIsSYjXV7I8+zf0QaleN3Hq/zKCMQoFJwM2RyWeryGGXFAfEv
+O3NApJmWqdQe2TyH70NYm61d/KSGhanMmbdX2dHEtBHpEJ9Vx7Mjc1tNlZfqcbdD
+XbD52OhYM0MwDxo30bl33Q/D4MsJrbsfr+3/UPiGUNQiWG93ZTYVjsfsVgfEvM9I
+PEGqm4ueHX1bqU9cV8G267egI9UAwvnhN4QRelk26SRdgkYdTYZ49HS8c6HcCamh
+g4vM7zFBPJha9V/lZC550+NyyKzLojglREYNVzfmnDJGP+Mki3E/8sYsFPuKl1xY
+NKwD+d2oSHrh4wU/0/SeMTaLfGBCJDoyw5k1yd+hVPsaQlbB7hgRrZjSufz7nwSx
+m8ZLFCal1wk3VnUSaEHtoPoVKwkaM3+LQq7JzJFuW/nJYmiZu3KJwktQ49mWFijK
+R4k/LSYMMeGLd8OaDJUp37vKkY7u0Ivo47QwxCS6lXmLtFxQ1jwp8bV2zwMejEQh
+PkfCtCNBgqJMON3Zv1tnOZqKgKIrEjuS4FbojmqWfR2tl12icMWq4hdII67BSB/5
+RFvpS5h9vXfvFDxY1q0N
+=1F8K
+-----END PGP SIGNATURE-----
+
+--VdOwlNaOFKGAtAAV--
