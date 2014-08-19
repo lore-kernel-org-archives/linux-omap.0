@@ -1,199 +1,92 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] mfd: palmas: Add support for optional wakeup
-Date: Tue, 19 Aug 2014 09:06:37 -0500
-Message-ID: <1408457197-30487-1-git-send-email-nm@ti.com>
+From: laura wintour <laura_wintour@hotmail.com>
+Subject: hello
+Date: Tue, 19 Aug 2014 16:38:52 +0200 (CEST)
+Message-ID: <14154255.1897981408459132809.JavaMail.httpd@webmail-39.iol.local>
+Reply-To: laura wintour <laura_wintour@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from outrelay02.libero.it ([212.52.84.102]:38014 "EHLO
+	outrelay02.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752648AbaHSOjA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2014 10:39:00 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With the recent pinctrl-single changes, omaps can treat wake-up events
-from deeper idle states as interrupts.
-
-Let's add support for the optional second interrupt for wake-up
-events. And then SoC can wakeup and handle the event using it's
-regular handler.
-
-Finally, to pass the wake-up interrupt in the dts file,
-interrupts-extended property needs to be passed.
-
-This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
-support for optional wake-up")
-
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
----
- Documentation/devicetree/bindings/mfd/palmas.txt |   20 ++++++++
- drivers/mfd/palmas.c                             |   59 ++++++++++++++++++++++
- include/linux/mfd/palmas.h                       |    2 +
- 3 files changed, 81 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/mfd/palmas.txt b/Documentation/devicetree/bindings/mfd/palmas.txt
-index eda8989..2627842 100644
---- a/Documentation/devicetree/bindings/mfd/palmas.txt
-+++ b/Documentation/devicetree/bindings/mfd/palmas.txt
-@@ -51,3 +51,23 @@ palmas {
- 		....
- 	};
- }
-+
-+Example: with interrupts extended
-+ See Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
-+ Use pinmux 0x418 as wakeup interrupt and gpio1_0 as interrupt source
-+
-+palmas {
-+	compatible = "ti,twl6035", "ti,palmas";
-+	reg = <0x48>
-+	interrupt-parent = <&intc>;
-+	interrupt-controller;
-+	#interrupt-cells = <2>;
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	interrupts-extended = <&gpio1 0 IRQ_TYPE_LEVEL_HIGH
-+			       &pinmux 0x418>;
-+	pmic {
-+		compatible = "ti,twl6035-pmic", "ti,palmas-pmic";
-+		....
-+	};
-+}
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 28cb048..11186ab 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -24,6 +24,7 @@
- #include <linux/mfd/core.h>
- #include <linux/mfd/palmas.h>
- #include <linux/of_device.h>
-+#include <linux/of_irq.h>
- 
- static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
- 	{
-@@ -326,6 +327,16 @@ static struct regmap_irq_chip tps65917_irq_chip = {
- 			PALMAS_INT1_MASK),
- };
- 
-+static irqreturn_t palmas_wake_irq(int irq, void *_palmas)
-+{
-+	/*
-+	 * Return Not handled so that interrupt is disabled.
-+	 * Level event ensures that the event is eventually handled
-+	 * by the appropriate chip handler already registered
-+	 */
-+	return IRQ_NONE;
-+}
-+
- int palmas_ext_control_req_config(struct palmas *palmas,
- 	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
- {
-@@ -409,6 +420,7 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
- 		pdata->mux_from_pdata = 1;
- 		pdata->pad2 = prop;
- 	}
-+	pdata->wakeirq = irq_of_parse_and_map(node, 1);
- 
- 	/* The default for this register is all masked */
- 	ret = of_property_read_u32(node, "ti,power-ctrl", &prop);
-@@ -521,6 +533,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 	i2c_set_clientdata(i2c, palmas);
- 	palmas->dev = &i2c->dev;
- 	palmas->irq = i2c->irq;
-+	palmas->wakeirq = pdata->wakeirq;
- 
- 	match = of_match_device(of_palmas_match_tbl, &i2c->dev);
- 
-@@ -587,6 +600,22 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 	if (ret < 0)
- 		goto err_i2c;
- 
-+	if (!palmas->wakeirq)
-+		goto no_wake_irq;
-+
-+	ret = devm_request_irq(palmas->dev, palmas->wakeirq,
-+			       palmas_wake_irq,
-+			       IRQF_ONESHOT | pdata->irq_flags,
-+			       dev_name(palmas->dev),
-+			       &palmas);
-+	if (ret < 0)
-+		goto err_i2c;
-+
-+	/* We use wakeirq only during suspend-resume path */
-+	device_set_wakeup_capable(palmas->dev, true);
-+	disable_irq_nosync(palmas->wakeirq);
-+
-+no_wake_irq:
- no_irq:
- 	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
- 	addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
-@@ -706,6 +735,34 @@ static int palmas_i2c_remove(struct i2c_client *i2c)
- 	return 0;
- }
- 
-+static int palmas_i2c_suspend(struct i2c_client *i2c,  pm_message_t mesg)
-+{
-+	struct palmas *palmas = i2c_get_clientdata(i2c);
-+	struct device *dev = &i2c->dev;
-+
-+	if (!palmas->wakeirq)
-+		return 0;
-+
-+	if (device_may_wakeup(dev))
-+		enable_irq(palmas->wakeirq);
-+
-+	return 0;
-+}
-+
-+static int palmas_i2c_resume(struct i2c_client *i2c)
-+{
-+	struct palmas *palmas = i2c_get_clientdata(i2c);
-+	struct device *dev = &i2c->dev;
-+
-+	if (!palmas->wakeirq)
-+		return 0;
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_nosync(palmas->wakeirq);
-+
-+	return 0;
-+}
-+
- static const struct i2c_device_id palmas_i2c_id[] = {
- 	{ "palmas", },
- 	{ "twl6035", },
-@@ -721,6 +778,8 @@ static struct i2c_driver palmas_i2c_driver = {
- 		   .of_match_table = of_palmas_match_tbl,
- 		   .owner = THIS_MODULE,
- 	},
-+	.suspend = palmas_i2c_suspend,
-+	.resume = palmas_i2c_resume,
- 	.probe = palmas_i2c_probe,
- 	.remove = palmas_i2c_remove,
- 	.id_table = palmas_i2c_id,
-diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-index fb0390a..e8cf4c2 100644
---- a/include/linux/mfd/palmas.h
-+++ b/include/linux/mfd/palmas.h
-@@ -75,6 +75,7 @@ struct palmas {
- 	/* IRQ Data */
- 	int irq;
- 	u32 irq_mask;
-+	int wakeirq;
- 	struct mutex irq_lock;
- 	struct regmap_irq_chip_data *irq_data;
- 
-@@ -377,6 +378,7 @@ struct palmas_clk_platform_data {
- 
- struct palmas_platform_data {
- 	int irq_flags;
-+	int wakeirq;
- 	int gpio_base;
- 
- 	/* bit value to be loaded to the POWER_CTRL register */
--- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+0JzQvtC10YLQviDQodC60YrQv9C4INCV0LTQvdC+LArQn9GA0LjRj9GC0L3QviDQvNC4INC1INC0
+0LAg0YHQtSDQt9Cw0L/QvtC30L3QsNC10Lwg0LDQtyDQstC40LTRj9GFINCyINC/0L7RidCw0YLQ
+sCDRgdC4INC00L3QtdGBLCDQutC+0LPQsNGC0L4g0LDQtyDQsdGP0YUg0YLRitGA0YHRj9GCINC4
+IArRgdC1INC40L3RgtC10YDQtdGB0YPQstCw0YIg0L7RgiDQt9C90LDQtdC50LrQuCwg0YfQtSDQ
+v9C+0LLQtdGH0LUg0LDQtyDQvdCw0LjRgdGC0LjQvdCwINCx0LjRhdCwINC40YHQutCw0LvQuCDQ
+tNCwINC40LzQsNGCINC00L7QsdGA0LggCtC+0YLQvdC+0YjQtdC90LjRjyDRgSDQstCw0YEsINC4
+INCw0Lcg0LjQvNCw0Lwg0YHQv9C10YbQuNCw0LvQvdC4INC/0YDQuNGH0LjQvdC4LCDQv9C+0YDQ
+sNC00Lgg0LrQvtC40YLQviDRgNC10YjQuNGFINC00LAg0YHQtSDRgdCy0YrRgNC20LXQvCAK0YEg
+0LLQsNGBCgrQoNC10YjQuNGFINC00LAg0LLQuCDQv9C40YjQsCwg0L/QvtGA0LDQtNC4INC90LXQ
+vtGC0LvQvtC20L3QvtGB0YLRgtCwINC90LAg0L/QvtC70L7QttC10L3QuNC10YLQviDQvNC4INGC
+0YPQuiDQsNC3INGB0YrQvCDQnNC40YEgTGF1cmEsIArQvdCwIDI1INCz0L7QtNC40L3QuCDQvNC+
+0LzQuNGH0LUg0L7RgiDQmtC+0YIg0LQn0JjQstC+0LDRgCwg0LXQtNC40L3RgdGC0LLQtdC90LDR
+gtCwINC00YrRidC10YDRjyDQvdCwINC60YDQsNGPIFdpbnRvdXIgU2lybGVhZiAK0LfQsNC80LXR
+gdGC0L3QuNC6LdC80LjQvdC40YHRgtGK0YAg0L3QsCDQvdCw0YbQuNC+0L3QsNC70L3QsNGC0LAg
+0YHQuNCz0YPRgNC90L7RgdGCLCDQv9C+0LQg0YDRitC60L7QstC+0LTRgdGC0LLQvtGC0L4g0L3Q
+sCDQv9GA0LXQt9C40LTQtdC90YLQsCAKTGF1cmVudCBHYmFnYm8sINC60L7QudGC0L4g0LIg0LzQ
+vtC80LXQvdGC0LAg0LUg0LIg0LjQt9Cz0L3QsNC90LjQtSDRgdC70LXQtCDQvNC90L7Qs9C+INC9
+0LXQstC40L3QvdC4INC00YPRiNC4INCx0Y/RhdCwIArRg9Cx0LjRgtC4LCDQsdCw0YnQsCDQvNC4
+INCx0LXRiNC1INGD0LHQuNGCINC+0YIgTGF1cmVudCBHYmFnYm8ncyDQv9GA0LDQstC40YLQtdC7
+0YHRgtCy0L4sINC+0LHQstC40L3Rj9Cy0LDQudC60Lgg0YLQviDQvdCwIArQsdCw0YnQsCDQvNC4
+INGB0LUg0L7Qv9C40YLQsCDQt9CwINC/0YDQtdCy0YDQsNGCCgrQotGA0Y/QsdCy0LAg0LTQsCDR
+gdC1INGB0LLRitGA0LbQtdC8INGBINCy0LDRgSwg0LfQsNGJ0L7RgtC+INC90LAg0LzQsNC70YLR
+gNC10YLQuNGA0LDQvdC1LCDQutC+0LXRgtC+INC/0L7Qu9GD0YfQuNGFINC+0YIg0LzQvtGPIArR
+gdGC0YrQv9C60LAg0LzQsNC50LrQsCwg0LzQsNGJ0LXRhdCw0YLQsCDQvNC4LCDQv9C70LDQvdC+
+0LLQtSDQtSDQtNCwINGB0LUg0LLQt9C10LzQsNGCINCy0YHQuNGH0LrQuCDRhdCw0LfQvdCw0YLQ
+sCDQuCDQuNC80YPRidC10YHRgtCy0L7RgtC+IArQvdCwINC/0L7QutC+0LnQvdC40Y8g0LzQuCDQ
+sdCw0YnQsCDQvtGCINC80LXQvSwg0YHQu9C10LQg0L3QtdC+0YfQsNC60LLQsNC90LDRgtCwINGB
+0LzRitGA0YIg0L3QsCDQu9GO0LHQuNC80LjRjyDRgdC4INCx0LDRidCwCgrQkdC40YUg0LjRgdC6
+0LDQuyDQtNCwINC40LfQsdGP0LPQsCDQvtGCINGB0YLRgNCw0L3QsCDQvdCwINCQ0YTRgNC40LrQ
+sCwg0L3QviDRgtGPINGB0LUg0YHQutGA0LjRjyDQv9Cw0YHQv9C+0YDRgtCwINC80Lgg0Lgg0LTR
+gNGD0LPQuCAK0YbQtdC90L3QuCDQtNC+0LrRg9C80LXQvdGC0Lgg0LfQsCDQv9GK0YLRg9Cy0LDQ
+vdC1LCDQl9CwINGJ0LDRgdGC0LjQtSwg0YLRjyDQvdC1INGB0LUg0L3QsNC80LXRgNGP0YIsINC6
+0L7Qs9Cw0YLQviDRgdC4INGC0YDRitCz0L3QsNGFIArRhNCw0LnQuyDQvdCwINCx0LDRidCwINC8
+0LgsINC60L7QudGC0L4g0YHRitC00YrRgNC20LAg0LLQsNC20L3QuCDQtNC+0LrRg9C80LXQvdGC
+0Lgg0JfQsNGC0L7QstCwINGA0LXRiNC40YUg0LTQsCDRgtC40YfQsNC8INC00L4gCtCx0LXQttCw
+0L3RgdC60Lgg0LvQsNCz0LXRgCwg0LrRitC00LXRgtC+INGB0YrQvCDQsiDQvNC+0LzQtdC90YLQ
+sCDRgtGK0YDRgdC4INGD0LHQtdC20LjRidC1INC/0L7QtCDQtdCz0LjQtNCw0YLQsCDQvdCwINCy
+0YrRgNGF0L7QstC90LjRjyAK0LrQvtC80LjRgdCw0YAg0L3QsCDQntCe0J0g0LfQsCDQsdC10LbQ
+sNC90YbQuNGC0LUg0YLRg9C6INCyINCb0L7QvNC1LCDQoNC10L/Rg9Cx0LvQuNC60LAg0KLQvtCz
+0L4uINCY0YHQutCw0Lwg0LTQsCDQstC4INC/0LjRiNCwINC70LjRh9C90L4gCtC30LAg0LTRitC7
+0LPQvtCz0L7QtNC40YjQtdC9INCx0LjQt9C90LXRgSDQvtGC0L3QvtGI0LXQvdC40Y8g0Lgg0LjQ
+vdCy0LXRgdGC0LjRhtC40Lgg0LLRitCyINCy0LDRiNCw0YLQsCDRgdGC0YDQsNC90LAKCtCR0LDR
+idCwINC80Lgg0LTQtdC/0L7Qt9C40YDQsCDRgdGD0LzQsCDQvtGCIFVTICQgNiA1MDAsIDAwMCww
+MCDQvNC40LvQuNC+0L3QsCDQtNC+0LvQsNGA0LAg0LIg0LHQsNC90LrQsNGC0LAsINGBINC80L7Q
+tdGC0L4gCtC40LzQtSDQutCw0YLQviDQvdCw0Lkt0LHQu9C40LfRitC6INGA0L7QtNC90LjQvdCw
+LiDQndC10LfQsNCy0LjRgdC40LzQviDQvtGCINGC0L7QstCwLCDQuNGB0LrQsNC8INC00LAg0YHQ
+tSDQutCw0L3QtNC40LTQsNGC0LjRgNCw0YIg0LfQsCAK0LzQtdC9INC60LDRgtC+INC/0L7Qv9C1
+0YfQuNGC0LXQuywg0LAg0YHRitGJ0L4g0Lgg0LTQsCDQvNC4INC/0L7QvNC+0LPQvdC1INC00LAg
+0L/RgNC10LLQtdC00LUg0L/QsNGA0LjRgtC1INC/0L4g0YHQvNC10YLQutCw0YLQsCDRgdC4INC4
+IArQstC40LUg0YHRitGJ0L4g0YnQtSDQvNC4INC/0L7QvNC+0LPQvdC1INC00LAg0LjQvdCy0LXR
+gdGC0LjRgNCw0YIg0L/QsNGA0LjRgtC1INCy0YrQsiDQstCw0YjQsNGC0LAg0YHRgtGA0LDQvdCw
+LCDQsNC60L4g0L/RgNC40LXQvNC10YLQtSDQtNCwIArQvNC4INC/0L7QvNC+0LPQvdC1INCw0Lcg
+0YnQtSDQv9GA0LXQtNCw0LTQtSDQvdCwINCy0LDRgSDQvdC10L7QsdGF0L7QtNC40LzQuNGC0LUg
+0LTQvtC60YPQvNC10L3RgtC4INC4INCw0Lcg0YnQtSDQv9GA0L7QtNGK0LvQttCwINGBIArQvtCx
+0YPRh9C10L3QuNC10YLQviDRgdC4LCDQutC+0LPQsNGC0L4g0LDQtyDQtNC+0LnQtNCwINCy0YrQ
+siDQstCw0YjQsNGC0LAg0YHRgtGA0LDQvdCwLCDQsNC3INCx0Y/RhSDQsiDQvNC+0Y8g0LzQuNC7
+0LjQvtC9INCz0L7QtNC40L3QuCDQsiAK0YPQvdC40LLQtdGA0YHQuNGC0LXRgtCwLCDQutC+0LPQ
+sNGC0L4g0LrRgNC40LfQsNGC0LAg0LfQsNC/0L7Rh9C90LAKCtCc0L7QtdGC0L4g0L3QsNC80LXR
+gNC10L3QuNC1INC1INC00LAg0LLQuCDQutC+0LzQv9C10L3RgdC40YDQsCAyMCUg0L7RgiDQvtCx
+0YnQsNGC0LAg0YHRg9C80LAg0L3QsCDQv9Cw0YDQuCDQt9CwINGD0YHQu9GD0LPQuNGC0LUg0YHQ
+uCDQuCAK0LHQsNC70LDQvdGB0YrRgiDRidC1INCx0YrQtNC1INC80L7QuSDQuNC90LLQtdGB0YLQ
+uNGG0LjQvtC90LXQvSDQutCw0L/QuNGC0LDQuy4g0KLQvtCy0LAg0LUg0L/RgNC40YfQuNC90LDR
+gtCwLCDQv9C+0YDQsNC00Lgg0LrQvtGP0YLQviAK0YDQtdGI0LjRhSDQtNCwINGB0LUg0YHQstGK
+0YDQttC10Lwg0YEg0LLQsNGBINCSINC+0YfQsNC60LLQsNC90LUg0L3QsCDQstCw0YjQuNGPINGB
+0L/QtdGI0L3QuCDQuCDQv9C+0LvQvtC20LjRgtC10LvQtdC9INC+0YLQs9C+0LLQvtGALiAK0JzQ
+vtC70Y8g0YLQtSwg0L3QtSDQs9C+INC+0YHRgtCw0LLRj9C50YLQtSDRgdCw0LzQviDQt9CwINGB
+0LXQsdC1INGB0LgsINC80L7Qu9GPLCDQsNC3INC90LUg0L/QuNGC0LDQvCDQt9CwINC00LAg0LPQ
+viDRgNCw0LfQutGA0LjQtSDQvdCwIArQstGB0Y/QutC+INC00YDRg9Cz0L4g0LvQuNGG0LUsINC0
+0L7QutCw0YLQviDRgdC1INC/0YDQsNCy0Lgg0L/RgNC10YXQstGK0YDQu9GP0L3QtdGC0L4g0JzQ
+vtC70Y8sINC90LXQutCwINC80L7QtdGC0L4g0L/QvtC70L7QttC10L3QuNC1IArQtNC+0LrQvtGB
+0L3QtSDRgdGK0YDRhtC10YLQviDRgdC4LCDQsNC3INCy0Lgg0LzQvtC70Y8g0LTQsCDQtNC+0LnQ
+tNC10YLQtSDQt9CwINC80L7QtdGC0L4g0L7Qt9C00YDQsNCy0Y/QstCw0L3QtSDQsNC3INGB0YLR
+gNCw0LTQsNC8IArRgtC+0LvQutC+0LLQsCDQvNC90L7Qs9C+INGC0YPQuiAsINCw0Lcg0L3QuNC6
+0L7Qs9CwINC90LUg0YHRitC8INCx0LjQuyDQsiDRgtC+0LfQuCDQstC40LQg0L3QsCDRgdC40YLR
+g9Cw0YbQuNGP0YLQsCDQv9GA0LXQtNC4LCDQvNC+0LvRjyAK0LTQsCDQvNC4INC/0L7QvNC+0LPQ
+vdC1CkJlc3Qg0YDQtdCzLgpMYXVyYQ==
