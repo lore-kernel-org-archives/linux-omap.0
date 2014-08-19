@@ -1,50 +1,50 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: [PATCH 4/4] tty: omap-serial: support setting of hardware flow control in dts
-Date: Tue, 19 Aug 2014 14:14:48 +0200
-Message-ID: <1408450488-4083-5-git-send-email-frans.klaver@xsens.com>
+From: Frans Klaver <frans.klaver-MHHw4NDrbWwAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/4] tty: omap-serial: prevent division by zero
+Date: Tue, 19 Aug 2014 14:14:46 +0200
+Message-ID: <1408450488-4083-3-git-send-email-frans.klaver@xsens.com>
 References: <1406645577-18620-1-git-send-email-frans.klaver@xsens.com>
  <1408450488-4083-1-git-send-email-frans.klaver@xsens.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1408450488-4083-1-git-send-email-frans.klaver@xsens.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Frans Klaver <frans.klaver@xsens.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>, Jiri Slaby <jslaby@suse.cz>, Frans Klaver <fransklaver@gmail.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1408450488-4083-1-git-send-email-frans.klaver-MHHw4NDrbWwAvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Frans Klaver <frans.klaver-MHHw4NDrbWwAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alexey Pelykh <alexey.pelykh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jiri Slaby <jslaby-AlSwsSmVLrQ@public.gmane.org>, Frans Klaver <fransklaver-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This makes hardware flow control availability configurable from the
-device tree.
+If the chosen baud rate is large enough (e.g. 3.5 megabaud), the
+calculated n values in calculate_baud_abs_diff may become 0. This causes
+a division by zero when calculating the difference between calculated
+and desired baud rates. To prevent this, cap n on 1.
 
-Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
+Signed-off-by: Frans Klaver <frans.klaver-MHHw4NDrbWwAvxtiuMwx3w@public.gmane.org>
 ---
- Documentation/devicetree/bindings/serial/omap_serial.txt | 1 +
- drivers/tty/serial/omap-serial.c                         | 4 ++++
- 2 files changed, 5 insertions(+)
+ drivers/tty/serial/omap-serial.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
-index 342eedd..1b629e9 100644
---- a/Documentation/devicetree/bindings/serial/omap_serial.txt
-+++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
-@@ -8,3 +8,4 @@ Required properties:
- 
- Optional properties:
- - clock-frequency : frequency of the clock input to the UART
-+- has-hw-flow-control : the hardware has flow control capability
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 57664b9..7d3b3d2 100644
+index ae935ce..14a0167 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1598,6 +1598,10 @@ static struct omap_uart_port_info *of_get_uart_port_info(struct device *dev)
+@@ -246,8 +246,12 @@ static inline int calculate_baud_abs_diff(struct uart_port *port,
+ 				unsigned int baud, unsigned int mode)
+ {
+ 	unsigned int n = port->uartclk / (mode * baud);
+-	int abs_diff = baud - (port->uartclk / (mode * n));
++	int abs_diff;
  
- 	of_property_read_u32(dev->of_node, "clock-frequency",
- 					 &omap_up_info->uartclk);
++	if (n == 0)
++		n = 1;
 +
-+	if (of_property_read_bool(dev->of_node, "has-hw-flow-control"))
-+		omap_up_info->flags |= UPF_HARD_FLOW;
-+
- 	return omap_up_info;
- }
++	abs_diff = baud - (uartclk / (mode * n));
+ 	if (abs_diff < 0)
+ 		abs_diff = -abs_diff;
  
 -- 
 1.9.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
