@@ -1,92 +1,245 @@
-From: laura wintour <laura_wintour@hotmail.com>
-Subject: hello
-Date: Tue, 19 Aug 2014 16:38:52 +0200 (CEST)
-Message-ID: <14154255.1897981408459132809.JavaMail.httpd@webmail-39.iol.local>
-Reply-To: laura wintour <laura_wintour@hotmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from outrelay02.libero.it ([212.52.84.102]:38014 "EHLO
-	outrelay02.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752648AbaHSOjA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2014 10:39:00 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: [PATCH v8 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S
+Date: Tue, 19 Aug 2014 15:48:31 +0100
+Message-ID: <1408459715-10151-6-git-send-email-daniel.thompson@linaro.org>
+References: <1404127855-30459-1-git-send-email-daniel.thompson@linaro.org>
+ <1408459715-10151-1-git-send-email-daniel.thompson@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1408459715-10151-1-git-send-email-daniel.thompson@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, patches@linaro.org, linaro-kernel@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-0JzQvtC10YLQviDQodC60YrQv9C4INCV0LTQvdC+LArQn9GA0LjRj9GC0L3QviDQvNC4INC1INC0
-0LAg0YHQtSDQt9Cw0L/QvtC30L3QsNC10Lwg0LDQtyDQstC40LTRj9GFINCyINC/0L7RidCw0YLQ
-sCDRgdC4INC00L3QtdGBLCDQutC+0LPQsNGC0L4g0LDQtyDQsdGP0YUg0YLRitGA0YHRj9GCINC4
-IArRgdC1INC40L3RgtC10YDQtdGB0YPQstCw0YIg0L7RgiDQt9C90LDQtdC50LrQuCwg0YfQtSDQ
-v9C+0LLQtdGH0LUg0LDQtyDQvdCw0LjRgdGC0LjQvdCwINCx0LjRhdCwINC40YHQutCw0LvQuCDQ
-tNCwINC40LzQsNGCINC00L7QsdGA0LggCtC+0YLQvdC+0YjQtdC90LjRjyDRgSDQstCw0YEsINC4
-INCw0Lcg0LjQvNCw0Lwg0YHQv9C10YbQuNCw0LvQvdC4INC/0YDQuNGH0LjQvdC4LCDQv9C+0YDQ
-sNC00Lgg0LrQvtC40YLQviDRgNC10YjQuNGFINC00LAg0YHQtSDRgdCy0YrRgNC20LXQvCAK0YEg
-0LLQsNGBCgrQoNC10YjQuNGFINC00LAg0LLQuCDQv9C40YjQsCwg0L/QvtGA0LDQtNC4INC90LXQ
-vtGC0LvQvtC20L3QvtGB0YLRgtCwINC90LAg0L/QvtC70L7QttC10L3QuNC10YLQviDQvNC4INGC
-0YPQuiDQsNC3INGB0YrQvCDQnNC40YEgTGF1cmEsIArQvdCwIDI1INCz0L7QtNC40L3QuCDQvNC+
-0LzQuNGH0LUg0L7RgiDQmtC+0YIg0LQn0JjQstC+0LDRgCwg0LXQtNC40L3RgdGC0LLQtdC90LDR
-gtCwINC00YrRidC10YDRjyDQvdCwINC60YDQsNGPIFdpbnRvdXIgU2lybGVhZiAK0LfQsNC80LXR
-gdGC0L3QuNC6LdC80LjQvdC40YHRgtGK0YAg0L3QsCDQvdCw0YbQuNC+0L3QsNC70L3QsNGC0LAg
-0YHQuNCz0YPRgNC90L7RgdGCLCDQv9C+0LQg0YDRitC60L7QstC+0LTRgdGC0LLQvtGC0L4g0L3Q
-sCDQv9GA0LXQt9C40LTQtdC90YLQsCAKTGF1cmVudCBHYmFnYm8sINC60L7QudGC0L4g0LIg0LzQ
-vtC80LXQvdGC0LAg0LUg0LIg0LjQt9Cz0L3QsNC90LjQtSDRgdC70LXQtCDQvNC90L7Qs9C+INC9
-0LXQstC40L3QvdC4INC00YPRiNC4INCx0Y/RhdCwIArRg9Cx0LjRgtC4LCDQsdCw0YnQsCDQvNC4
-INCx0LXRiNC1INGD0LHQuNGCINC+0YIgTGF1cmVudCBHYmFnYm8ncyDQv9GA0LDQstC40YLQtdC7
-0YHRgtCy0L4sINC+0LHQstC40L3Rj9Cy0LDQudC60Lgg0YLQviDQvdCwIArQsdCw0YnQsCDQvNC4
-INGB0LUg0L7Qv9C40YLQsCDQt9CwINC/0YDQtdCy0YDQsNGCCgrQotGA0Y/QsdCy0LAg0LTQsCDR
-gdC1INGB0LLRitGA0LbQtdC8INGBINCy0LDRgSwg0LfQsNGJ0L7RgtC+INC90LAg0LzQsNC70YLR
-gNC10YLQuNGA0LDQvdC1LCDQutC+0LXRgtC+INC/0L7Qu9GD0YfQuNGFINC+0YIg0LzQvtGPIArR
-gdGC0YrQv9C60LAg0LzQsNC50LrQsCwg0LzQsNGJ0LXRhdCw0YLQsCDQvNC4LCDQv9C70LDQvdC+
-0LLQtSDQtSDQtNCwINGB0LUg0LLQt9C10LzQsNGCINCy0YHQuNGH0LrQuCDRhdCw0LfQvdCw0YLQ
-sCDQuCDQuNC80YPRidC10YHRgtCy0L7RgtC+IArQvdCwINC/0L7QutC+0LnQvdC40Y8g0LzQuCDQ
-sdCw0YnQsCDQvtGCINC80LXQvSwg0YHQu9C10LQg0L3QtdC+0YfQsNC60LLQsNC90LDRgtCwINGB
-0LzRitGA0YIg0L3QsCDQu9GO0LHQuNC80LjRjyDRgdC4INCx0LDRidCwCgrQkdC40YUg0LjRgdC6
-0LDQuyDQtNCwINC40LfQsdGP0LPQsCDQvtGCINGB0YLRgNCw0L3QsCDQvdCwINCQ0YTRgNC40LrQ
-sCwg0L3QviDRgtGPINGB0LUg0YHQutGA0LjRjyDQv9Cw0YHQv9C+0YDRgtCwINC80Lgg0Lgg0LTR
-gNGD0LPQuCAK0YbQtdC90L3QuCDQtNC+0LrRg9C80LXQvdGC0Lgg0LfQsCDQv9GK0YLRg9Cy0LDQ
-vdC1LCDQl9CwINGJ0LDRgdGC0LjQtSwg0YLRjyDQvdC1INGB0LUg0L3QsNC80LXRgNGP0YIsINC6
-0L7Qs9Cw0YLQviDRgdC4INGC0YDRitCz0L3QsNGFIArRhNCw0LnQuyDQvdCwINCx0LDRidCwINC8
-0LgsINC60L7QudGC0L4g0YHRitC00YrRgNC20LAg0LLQsNC20L3QuCDQtNC+0LrRg9C80LXQvdGC
-0Lgg0JfQsNGC0L7QstCwINGA0LXRiNC40YUg0LTQsCDRgtC40YfQsNC8INC00L4gCtCx0LXQttCw
-0L3RgdC60Lgg0LvQsNCz0LXRgCwg0LrRitC00LXRgtC+INGB0YrQvCDQsiDQvNC+0LzQtdC90YLQ
-sCDRgtGK0YDRgdC4INGD0LHQtdC20LjRidC1INC/0L7QtCDQtdCz0LjQtNCw0YLQsCDQvdCwINCy
-0YrRgNGF0L7QstC90LjRjyAK0LrQvtC80LjRgdCw0YAg0L3QsCDQntCe0J0g0LfQsCDQsdC10LbQ
-sNC90YbQuNGC0LUg0YLRg9C6INCyINCb0L7QvNC1LCDQoNC10L/Rg9Cx0LvQuNC60LAg0KLQvtCz
-0L4uINCY0YHQutCw0Lwg0LTQsCDQstC4INC/0LjRiNCwINC70LjRh9C90L4gCtC30LAg0LTRitC7
-0LPQvtCz0L7QtNC40YjQtdC9INCx0LjQt9C90LXRgSDQvtGC0L3QvtGI0LXQvdC40Y8g0Lgg0LjQ
-vdCy0LXRgdGC0LjRhtC40Lgg0LLRitCyINCy0LDRiNCw0YLQsCDRgdGC0YDQsNC90LAKCtCR0LDR
-idCwINC80Lgg0LTQtdC/0L7Qt9C40YDQsCDRgdGD0LzQsCDQvtGCIFVTICQgNiA1MDAsIDAwMCww
-MCDQvNC40LvQuNC+0L3QsCDQtNC+0LvQsNGA0LAg0LIg0LHQsNC90LrQsNGC0LAsINGBINC80L7Q
-tdGC0L4gCtC40LzQtSDQutCw0YLQviDQvdCw0Lkt0LHQu9C40LfRitC6INGA0L7QtNC90LjQvdCw
-LiDQndC10LfQsNCy0LjRgdC40LzQviDQvtGCINGC0L7QstCwLCDQuNGB0LrQsNC8INC00LAg0YHQ
-tSDQutCw0L3QtNC40LTQsNGC0LjRgNCw0YIg0LfQsCAK0LzQtdC9INC60LDRgtC+INC/0L7Qv9C1
-0YfQuNGC0LXQuywg0LAg0YHRitGJ0L4g0Lgg0LTQsCDQvNC4INC/0L7QvNC+0LPQvdC1INC00LAg
-0L/RgNC10LLQtdC00LUg0L/QsNGA0LjRgtC1INC/0L4g0YHQvNC10YLQutCw0YLQsCDRgdC4INC4
-IArQstC40LUg0YHRitGJ0L4g0YnQtSDQvNC4INC/0L7QvNC+0LPQvdC1INC00LAg0LjQvdCy0LXR
-gdGC0LjRgNCw0YIg0L/QsNGA0LjRgtC1INCy0YrQsiDQstCw0YjQsNGC0LAg0YHRgtGA0LDQvdCw
-LCDQsNC60L4g0L/RgNC40LXQvNC10YLQtSDQtNCwIArQvNC4INC/0L7QvNC+0LPQvdC1INCw0Lcg
-0YnQtSDQv9GA0LXQtNCw0LTQtSDQvdCwINCy0LDRgSDQvdC10L7QsdGF0L7QtNC40LzQuNGC0LUg
-0LTQvtC60YPQvNC10L3RgtC4INC4INCw0Lcg0YnQtSDQv9GA0L7QtNGK0LvQttCwINGBIArQvtCx
-0YPRh9C10L3QuNC10YLQviDRgdC4LCDQutC+0LPQsNGC0L4g0LDQtyDQtNC+0LnQtNCwINCy0YrQ
-siDQstCw0YjQsNGC0LAg0YHRgtGA0LDQvdCwLCDQsNC3INCx0Y/RhSDQsiDQvNC+0Y8g0LzQuNC7
-0LjQvtC9INCz0L7QtNC40L3QuCDQsiAK0YPQvdC40LLQtdGA0YHQuNGC0LXRgtCwLCDQutC+0LPQ
-sNGC0L4g0LrRgNC40LfQsNGC0LAg0LfQsNC/0L7Rh9C90LAKCtCc0L7QtdGC0L4g0L3QsNC80LXR
-gNC10L3QuNC1INC1INC00LAg0LLQuCDQutC+0LzQv9C10L3RgdC40YDQsCAyMCUg0L7RgiDQvtCx
-0YnQsNGC0LAg0YHRg9C80LAg0L3QsCDQv9Cw0YDQuCDQt9CwINGD0YHQu9GD0LPQuNGC0LUg0YHQ
-uCDQuCAK0LHQsNC70LDQvdGB0YrRgiDRidC1INCx0YrQtNC1INC80L7QuSDQuNC90LLQtdGB0YLQ
-uNGG0LjQvtC90LXQvSDQutCw0L/QuNGC0LDQuy4g0KLQvtCy0LAg0LUg0L/RgNC40YfQuNC90LDR
-gtCwLCDQv9C+0YDQsNC00Lgg0LrQvtGP0YLQviAK0YDQtdGI0LjRhSDQtNCwINGB0LUg0YHQstGK
-0YDQttC10Lwg0YEg0LLQsNGBINCSINC+0YfQsNC60LLQsNC90LUg0L3QsCDQstCw0YjQuNGPINGB
-0L/QtdGI0L3QuCDQuCDQv9C+0LvQvtC20LjRgtC10LvQtdC9INC+0YLQs9C+0LLQvtGALiAK0JzQ
-vtC70Y8g0YLQtSwg0L3QtSDQs9C+INC+0YHRgtCw0LLRj9C50YLQtSDRgdCw0LzQviDQt9CwINGB
-0LXQsdC1INGB0LgsINC80L7Qu9GPLCDQsNC3INC90LUg0L/QuNGC0LDQvCDQt9CwINC00LAg0LPQ
-viDRgNCw0LfQutGA0LjQtSDQvdCwIArQstGB0Y/QutC+INC00YDRg9Cz0L4g0LvQuNGG0LUsINC0
-0L7QutCw0YLQviDRgdC1INC/0YDQsNCy0Lgg0L/RgNC10YXQstGK0YDQu9GP0L3QtdGC0L4g0JzQ
-vtC70Y8sINC90LXQutCwINC80L7QtdGC0L4g0L/QvtC70L7QttC10L3QuNC1IArQtNC+0LrQvtGB
-0L3QtSDRgdGK0YDRhtC10YLQviDRgdC4LCDQsNC3INCy0Lgg0LzQvtC70Y8g0LTQsCDQtNC+0LnQ
-tNC10YLQtSDQt9CwINC80L7QtdGC0L4g0L7Qt9C00YDQsNCy0Y/QstCw0L3QtSDQsNC3INGB0YLR
-gNCw0LTQsNC8IArRgtC+0LvQutC+0LLQsCDQvNC90L7Qs9C+INGC0YPQuiAsINCw0Lcg0L3QuNC6
-0L7Qs9CwINC90LUg0YHRitC8INCx0LjQuyDQsiDRgtC+0LfQuCDQstC40LQg0L3QsCDRgdC40YLR
-g9Cw0YbQuNGP0YLQsCDQv9GA0LXQtNC4LCDQvNC+0LvRjyAK0LTQsCDQvNC4INC/0L7QvNC+0LPQ
-vdC1CkJlc3Qg0YDQtdCzLgpMYXVyYQ==
+The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
+the 8520 code the omap1 macro automatically determines what UART to use
+based on breadcrumbs left by the bootloader and automatically copes with
+the eccentric register layout on OMAP7XX.
+
+This patch drops both these features and relies instead on the generic
+8250 macros:
+
+1. Dropping support for the bootloader breadcrumbs is identical to the
+   way the migration was handled for OMAP2 (see 808b7e07464d...).
+
+2. Support for OMAP7XX still exists but it must be configured by hand
+   (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
+
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ arch/arm/Kconfig.debug                         |  57 +++++++++++++-
+ arch/arm/mach-omap1/include/mach/debug-macro.S | 101 -------------------------
+ 2 files changed, 56 insertions(+), 102 deletions(-)
+ delete mode 100644 arch/arm/mach-omap1/include/mach/debug-macro.S
+
+diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+index 97c3058..01f4ee2 100644
+--- a/arch/arm/Kconfig.debug
++++ b/arch/arm/Kconfig.debug
+@@ -471,6 +471,30 @@ choice
+ 		  Say Y here if you want kernel low-level debugging support
+ 		  on TI-NSPIRE CX models.
+ 
++	config DEBUG_OMAP1UART1
++		bool "Kernel low-level debugging via OMAP1 UART1"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (expect OMAP730) on the UART1.
++
++	config DEBUG_OMAP1UART2
++		bool "Kernel low-level debugging via OMAP1 UART2"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (expect OMAP730) on the UART2.
++
++	config DEBUG_OMAP1UART3
++		bool "Kernel low-level debugging via OMAP1 UART3"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (expect OMAP730) on the UART3.
++
+ 	config DEBUG_OMAP2UART1
+ 		bool "OMAP2/3/4 UART1 (omap2/3 sdp boards and some omap3 boards)"
+ 		depends on ARCH_OMAP2PLUS
+@@ -513,6 +537,30 @@ choice
+ 		depends on ARCH_OMAP2PLUS
+ 		select DEBUG_OMAP2PLUS_UART
+ 
++	config DEBUG_OMAP7XXUART1
++		bool "Kernel low-level debugging via OMAP730 UART1"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART1.
++
++	config DEBUG_OMAP7XXUART2
++		bool "Kernel low-level debugging via OMAP730 UART2"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART2.
++
++	config DEBUG_OMAP7XXUART3
++		bool "Kernel low-level debugging via OMAP730 UART3"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART3.
++
+ 	config DEBUG_TI81XXUART1
+ 		bool "Kernel low-level debugging messages via TI81XX UART1 (ti8148evm)"
+ 		depends on ARCH_OMAP2PLUS
+@@ -1120,6 +1168,9 @@ config DEBUG_UART_PHYS
+ 	default 0xff690000 if DEBUG_RK32_UART2
+ 	default 0xffc02000 if DEBUG_SOCFPGA_UART
+ 	default 0xffd82340 if ARCH_IOP13XX
++	default 0xfffb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
++	default 0xfffb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
++	default 0xfffb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
+ 	default 0xfff36000 if DEBUG_HIGHBANK_UART
+ 	default 0xfffff700 if ARCH_IOP33X
+ 	depends on DEBUG_LL_UART_8250 || DEBUG_LL_UART_PL01X || \
+@@ -1188,6 +1239,9 @@ config DEBUG_UART_VIRT
+ 	default 0xfef00000 if ARCH_IXP4XX && !CPU_BIG_ENDIAN
+ 	default 0xfef00003 if ARCH_IXP4XX && CPU_BIG_ENDIAN
+ 	default 0xfef36000 if DEBUG_HIGHBANK_UART
++	default 0xfefb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
++	default 0xfefb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
++	default 0xfefb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
+ 	default 0xfefff700 if ARCH_IOP33X
+ 	default 0xff003000 if DEBUG_U300_UART
+ 	default DEBUG_UART_PHYS if !MMU
+@@ -1198,7 +1252,8 @@ config DEBUG_UART_VIRT
+ config DEBUG_UART_8250_SHIFT
+ 	int "Register offset shift for the 8250 debug UART"
+ 	depends on DEBUG_LL_UART_8250 || DEBUG_UART_8250
+-	default 0 if FOOTBRIDGE || ARCH_IOP32X
++	default 0 if FOOTBRIDGE || ARCH_IOP32X || \
++		DEBUG_OMAP7XXUART1 || DEBUG_OMAP7XXUART2 || DEBUG_OMAP7XXUART3
+ 	default 2
+ 
+ config DEBUG_UART_8250_WORD
+diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
+deleted file mode 100644
+index 5c1a26c..0000000
+--- a/arch/arm/mach-omap1/include/mach/debug-macro.S
++++ /dev/null
+@@ -1,101 +0,0 @@
+-/* arch/arm/mach-omap1/include/mach/debug-macro.S
+- *
+- * Debugging macro include header
+- *
+- *  Copyright (C) 1994-1999 Russell King
+- *  Moved from linux/arch/arm/kernel/debug.S by Ben Dooks
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+-*/
+-
+-#include <linux/serial_reg.h>
+-
+-#include "serial.h"
+-
+-		.pushsection .data
+-omap_uart_phys:	.word	0x0
+-omap_uart_virt:	.word	0x0
+-		.popsection
+-
+-		/*
+-		 * Note that this code won't work if the bootloader passes
+-		 * a wrong machine ID number in r1. To debug, just hardcode
+-		 * the desired UART phys and virt addresses temporarily into
+-		 * the omap_uart_phys and omap_uart_virt above.
+-		 */
+-		.macro	addruart, rp, rv, tmp
+-
+-		/* Use omap_uart_phys/virt if already configured */
+-9:		adr	\rp, 99f		@ get effective addr of 99f
+-		ldr	\rv, [\rp]		@ get absolute addr of 99f
+-		sub	\rv, \rv, \rp		@ offset between the two
+-		ldr	\rp, [\rp, #4]		@ abs addr of omap_uart_phys
+-		sub	\tmp, \rp, \rv		@ make it effective
+-		ldr	\rp, [\tmp, #0]		@ omap_uart_phys
+-		ldr	\rv, [\tmp, #4]		@ omap_uart_virt
+-		cmp	\rp, #0			@ is port configured?
+-		cmpne	\rv, #0
+-		bne	100f			@ already configured
+-
+-		/* Check the debug UART configuration set in uncompress.h */
+-		and	\rp, pc, #0xff000000
+-		ldr	\rv, =OMAP_UART_INFO_OFS
+-		ldr	\rp, [\rp, \rv]
+-
+-		/* Select the UART to use based on the UART1 scratchpad value */
+-10:		cmp	\rp, #0			@ no port configured?
+-		beq	11f			@ if none, try to use UART1
+-		cmp	\rp, #OMAP1UART1
+-		beq	11f			@ configure OMAP1UART1
+-		cmp	\rp, #OMAP1UART2
+-		beq	12f			@ configure OMAP1UART2
+-		cmp	\rp, #OMAP1UART3
+-		beq	13f			@ configure OMAP2UART3
+-
+-		/* Configure the UART offset from the phys/virt base */
+-11:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		b	98f
+-12:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
+-		b	98f
+-13:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
+-		orr	\rp, \rp, #0x00009000	@ OMAP1UART3
+-
+-		/* Store both phys and virt address for the uart */
+-98:		add	\rp, \rp, #0xff000000	@ phys base
+-		str	\rp, [\tmp, #0]		@ omap_uart_phys
+-		sub	\rp, \rp, #0xff000000	@ phys base
+-		add	\rp, \rp, #0xfe000000	@ virt base
+-		str	\rp, [\tmp, #4]		@ omap_uart_virt
+-		b	9b
+-
+-		.align
+-99:		.word	.
+-		.word	omap_uart_phys
+-		.ltorg
+-
+-100:
+-		.endm
+-
+-		.macro	senduart,rd,rx
+-		strb	\rd, [\rx]
+-		.endm
+-
+-		.macro	busyuart,rd,rx
+-1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
+-		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		beq	1002f
+-		ldrb	\rd, [\rx, #(UART_LSR << OMAP7XX_PORT_SHIFT)]
+-		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		bne	1001b
+-1002:
+-		.endm
+-
+-		.macro	waituart,rd,rx
+-		.endm
+-- 
+1.9.3
