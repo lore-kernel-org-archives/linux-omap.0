@@ -1,62 +1,171 @@
 From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v2 3/8] ASoC: davinci-evm: HDMI audio support for TDA998x
- trough McASP I2S bus
-Date: Tue, 19 Aug 2014 14:16:22 +0100
-Message-ID: <20140819131621.GL3302@leverpostej>
-References: <cover.1408397864.git.jsarha@ti.com>
- <a92cd9257efb58711b2d5d3de2abff9c8a1052d2.1408397864.git.jsarha@ti.com>
+Subject: Re: [PATCH 1/1] clk: ti: add support for external clock provider
+Date: Tue, 19 Aug 2014 14:22:33 +0100
+Message-ID: <20140819132232.GM3302@leverpostej>
+References: <1406898948-26113-1-git-send-email-t-kristo@ti.com>
+ <1406898948-26113-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:63516 "EHLO
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:63584 "EHLO
 	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751492AbaHSNQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1750870AbaHSNXm (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Aug 2014 09:16:29 -0400
+	Tue, 19 Aug 2014 09:23:42 -0400
 Content-Disposition: inline
-In-Reply-To: <a92cd9257efb58711b2d5d3de2abff9c8a1052d2.1408397864.git.jsarha@ti.com>
+In-Reply-To: <1406898948-26113-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "airlied@linux.ie" <airlied@linux.ie>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@kernel.org" <broonie@kernel.org>, "liam.r.girdwood@linux.intel.com" <liam.r.girdwood@linux.intel.com>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "detheridge@ti.com" <detheridge@ti.com>, "ezequiel.garcia@free-electrons.com" <ezequiel.garcia@free-electrons.com>, "t-kristo@ti.com" <t-kristo@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: "mturquette@linaro.org" <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sassmann@kpanic.de" <sassmann@kpanic.de>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "jsarha@ti.com" <jsarha@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Aug 18, 2014 at 10:46:41PM +0100, Jyri Sarha wrote:
-> Add machine driver support for BeagleBone-Black HDMI audio. BBB has
-> NXP TDA998X HDMI transmitter connected to McASP port in I2S mode. The
-> 44100 Hz sample-rate and it's multiples can not be accurately produced
-> on BBB. The only supported sample format is SNDRV_PCM_FORMAT_S32_LE.
-> The 8 least significant bits are ignored.
-> 
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  .../bindings/sound/davinci-evm-audio.txt           |    4 +-
->  sound/soc/davinci/davinci-evm.c                    |   82 +++++++++++++++++++-
->  2 files changed, 83 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-> index 963e100..c137436 100644
-> --- a/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-> +++ b/Documentation/devicetree/bindings/sound/davinci-evm-audio.txt
-> @@ -1,7 +1,9 @@
->  * Texas Instruments SoC audio setups with TLV320AIC3X Codec
->  
->  Required properties:
-> -- compatible : "ti,da830-evm-audio" : forDM365/DA8xx/OMAPL1x/AM33xx
-> +- compatible : "ti,da830-evm-audio" : for DM365/DA8xx/OMAPL1x/AM33xx
-> +               "ti,am335x-beaglebone-black-audio" : for Beaglebone-black HDMI
-> +                                                    audio
+Hi Tero,
 
-To keep this legible I'd recommend reorganising this like:
+On Fri, Aug 01, 2014 at 02:15:48PM +0100, Tero Kristo wrote:
+> External clock provider can now be used to register external clocks under
+> it. This is needed as the TI clock driver only registers clocks
+> hierarchically under clock providers, and external clocks do not belong
+> under any of the current ones.
 
-- compatible: should contain one of:
-   * "ti,da830-evm-audio" for DM365/DA8xx/OMAPL1x/AM33xx
-   * "ti,am335x-beaglebone-black-audio" for Beaglebone-black HDMI audio
+I must admit that I don't understand the justification for this binding.
 
-For the BBB case, do you expect both strings or just the BBB-specific
-string?
+Why can't these clocks be descrbied elsewhere and wired up as usual? Why
+must they be under the TI clock provide node?
 
-Is the 'x' in the BBB string a wildcard? If we know the particular
-number for BBB we should use that.
+>From the limited description above it sounds like the only reason this
+exists is to work around a deficiency in the TI clock driver. That does
+not sound like a very good reason for having this.
 
-Cheers,
+Thanks,
 Mark.
+
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  .../devicetree/bindings/arm/omap/ext-clocks.txt    |   32 ++++++++++++++++++++
+>  arch/arm/mach-omap2/io.c                           |   12 ++++++--
+>  drivers/clk/ti/clk.c                               |   23 ++++++++++++++
+>  include/linux/clk/ti.h                             |    2 ++
+>  4 files changed, 67 insertions(+), 2 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt b/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+> new file mode 100644
+> index 0000000..8e784bb
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+> @@ -0,0 +1,32 @@
+> +TI external clock provider properties
+> +
+> +External clock provider is used to group SoC external board specific
+> +clock nodes. A separate provider node is required as the TI clock
+> +driver registers clocks hierarchically.
+> +
+> +Required properties:
+> +- compatible:		Shall be: "ti,external-clocks"
+> +- clocks:		Contains the external clocks for the board
+> +- clockdomains:		Contains the external clockdomains for the board
+> +
+> +Example:
+> +
+> +ext_clocks {
+> +	compatible = "ti,external-clocks";
+> +
+> +	ext_clocks: clocks {
+> +	};
+> +
+> +	ext_clockdomains: clockdomains {
+> +	};
+> +};
+> +
+> +...
+> +
+> +&ext_clocks {
+> +	gpio_test_clock {
+> +		compatible = "gpio-clock";
+> +		#clock-cells = <0>;
+> +		enable-gpios = <&gpio5 25 GPIO_ACTIVE_HIGH>;
+> +	};
+> +};
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 8f55945..77be18b 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -21,6 +21,8 @@
+>  #include <linux/init.h>
+>  #include <linux/io.h>
+>  #include <linux/clk.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/clk/ti.h>
+>  
+>  #include <asm/tlb.h>
+>  #include <asm/mach/map.h>
+> @@ -729,8 +731,14 @@ int __init omap_clk_init(void)
+>  		return 0;
+>  
+>  	ret = of_prcm_init();
+> -	if (!ret)
+> -		ret = omap_clk_soc_init();
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = ti_dt_clk_ext_init();
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = omap_clk_soc_init();
+>  
+>  	return ret;
+>  }
+> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+> index b1a6f71..c84ce4d 100644
+> --- a/drivers/clk/ti/clk.c
+> +++ b/drivers/clk/ti/clk.c
+> @@ -165,3 +165,26 @@ void ti_dt_clk_init_provider(struct device_node *parent, int index)
+>  		kfree(retry);
+>  	}
+>  }
+> +
+> +static struct of_device_id ti_ext_clk_match_table[] = {
+> +	{ .compatible = "ti,external-clocks" },
+> +	{ }
+> +};
+> +
+> +/**
+> + * ti_dt_clk_ext_init - initialize external clocks from DT
+> + *
+> + * Some clocks are provided from external chips outside the main SoC.
+> + * The details for these are given under a special DT node, which will
+> + * be parsed by this function.
+> + */
+> +int ti_dt_clk_ext_init(void)
+> +{
+> +	struct device_node *np;
+> +
+> +	for_each_matching_node(np, ti_ext_clk_match_table) {
+> +		ti_dt_clk_init_provider(np, -1);
+> +	}
+> +
+> +	return 0;
+> +}
+> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+> index e8d8a35..188270c 100644
+> --- a/include/linux/clk/ti.h
+> +++ b/include/linux/clk/ti.h
+> @@ -310,6 +310,8 @@ int am43xx_dt_clk_init(void);
+>  int omap2420_dt_clk_init(void);
+>  int omap2430_dt_clk_init(void);
+>  
+> +int ti_dt_clk_ext_init(void);
+> +
+>  #ifdef CONFIG_OF
+>  void of_ti_clk_allow_autoidle_all(void);
+>  void of_ti_clk_deny_autoidle_all(void);
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
