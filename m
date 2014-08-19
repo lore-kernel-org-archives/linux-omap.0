@@ -1,47 +1,189 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 2/2] remoteproc: add support to handle internal memories
-Date: Tue, 19 Aug 2014 12:10:32 +0300
-Message-ID: <CAK=WgbZ+NhA5AAhURUOojwnCbi2wYkJ11i-C5e7-kpZL5vD_3g@mail.gmail.com>
-References: <1404836521-59637-1-git-send-email-s-anna@ti.com>
- <1404836521-59637-3-git-send-email-s-anna@ti.com> <CAK=WgbY-WmcJdnLHDf1CSkJqNBUeUMPTLcEZyLGKnECbxH1OAQ@mail.gmail.com>
- <53D7F6F3.9020804@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/2] Input: misc: introduce palmas-pwrbutton
+Date: Tue, 19 Aug 2014 05:17:52 -0500
+Message-ID: <53F32450.5070809@ti.com>
+References: <1408392810-16011-1-git-send-email-nm@ti.com> <1408392810-16011-3-git-send-email-nm@ti.com> <20140819052344.GA21199@core.coreip.homeip.net>
+Reply-To: nm@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:37382 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217AbaHSJKy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Aug 2014 05:10:54 -0400
-Received: by mail-ie0-f176.google.com with SMTP id tr6so737201ieb.21
-        for <linux-omap@vger.kernel.org>; Tue, 19 Aug 2014 02:10:53 -0700 (PDT)
-In-Reply-To: <53D7F6F3.9020804@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140819052344.GA21199@core.coreip.homeip.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Robert Tivy <rtivy@ti.com>
 
-Hi Suman,
+Hi Dmitry
+On 08/19/2014 12:23 AM, Dmitry Torokhov wrote:
+Thanks for the review.
 
-On Tue, Jul 29, 2014 at 10:33 PM, Suman Anna <s-anna@ti.com> wrote:
-> We currently have two usecases. The primary usecase is the WkupM3
-> processor on TI Sitara AM335x/AM437x SoCs used for suspend/resume
-> management. This series is a dependency for the WkupM3 remoteproc driver
-> that Dave posted [1]. More details are in section 8.1.4.6 of the AM335x
-> TRM [2]. The program/data sections for this processor all _needs_ to be
-> in the two internal memory RAMS (16K Unified RAM and 8K Data RAM), and
-> there is no MMU for this processor. The current RSC_CARVEOUT and
-> RSC_DEVMEM do not fit to describe this type of memory (we neither
-> allocate memory through dma api nor do we need to map these into an MMU).
+[...]
+>> +
+>> +/**
+>> + * pwron_irq() - button press isr
+>> + * @irq:		irq
+>> + * @palmas_pwron:	pwron struct
+>> + */
+>> +static irqreturn_t pwron_irq(int irq, void *palmas_pwron)
+>> +{
+>> +	struct palmas_pwron *pwron = palmas_pwron;
+>> +	struct input_dev *input_dev = pwron->input_dev;
+>> +
+>> +	cancel_delayed_work_sync(&pwron->input_work);
+>> +
+>> +	pwron->current_state = PALMAS_PWR_KEY_PRESS;
+>> +
+>> +	input_report_key(input_dev, KEY_POWER, pwron->current_state);
+>> +	pm_wakeup_event(input_dev->dev.parent, 0);
+>> +	input_sync(input_dev);
+>> +
+>> +	schedule_delayed_work(&pwron->input_work, 0);
+>
+> Instead of cancel/schedule use mod_delayed_work. BTW, why do you need to
+> schedule immediately instead of waiting key_recheck_ms? Also, are there any
 
-Thanks for the details.
+Good point, I had missed these. Will fix.
 
-Can we define a CMA block for these regions, and then just use
-carveout resource entries instead of the ioremap approach?
+> concerns about need to debounce?
 
-This may require some changes in remoteproc which we'll need to think
-about, but it sounds like it may fit the problem better instead of
-forcing ioremap to provide a regular pointer (we're supposed to use
-ioremaped memory only with memory primitives such as readl/writel/..).
+I believe PMIC already takes care of debounce, let me see if there are 
+configuration registers possible. if yes, I think it might be nice to 
+add in.
 
-Thanks,
-Ohad.
+[...]
+
+>> +
+>> +	irq = platform_get_irq(pdev, 0);
+>> +
+>> +	device_init_wakeup(dev, 1);
+>> +
+>> +	ret = devm_request_threaded_irq(dev, irq, NULL, pwron_irq,
+>> +					IRQF_TRIGGER_HIGH |
+>> +					IRQF_TRIGGER_LOW,
+>> +					dev_name(dev),
+>> +					pwron);
+>
+> I am confused about this code sequence. Why do we get IRQ, then set up wakeup,
+> and then request irq? Normally you get irq number, and then you request it, and
+> then do other stuff.
+
+Uggh.. right.. will fix.
+
+>
+>> +	if (ret < 0) {
+>> +		dev_err(dev, "Can't get IRQ for pwron: %d\n", ret);
+>> +		return ret;
+>> +	}
+>> +
+>> +	enable_irq_wake(irq);
+>
+> Shouldn't this be in suspend callback?
+
+yes, it should have been.. my bad.. :( thanks for catching it.
+
+>> +
+>> +	ret = input_register_device(input_dev);
+>> +	if (ret) {
+>> +		dev_dbg(dev, "Can't register power button: %d\n", ret);
+>> +		goto out_irq_wake;
+>> +	}
+>> +	pwron->irq = irq;
+>> +
+>> +	pwron->key_recheck_ms = PALMAS_PWR_KEY_Q_TIME_MS;
+>> +
+>> +	platform_set_drvdata(pdev, pwron);
+>> +
+>> +	return 0;
+>> +
+>> +out_irq_wake:
+>> +	disable_irq_wake(irq);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int palmas_pwron_remove(struct platform_device *pdev)
+>> +{
+>> +	struct palmas_pwron *pwron = platform_get_drvdata(pdev);
+>> +
+>> +	disable_irq_wake(pwron->irq);
+>
+> Should be in resume callback().
+
+yep.
+
+>
+>> +	input_unregister_device(pwron->input_dev);
+>
+> With devm you do not need to unregister input device. However this has problem:
+> what will happen if interrupt arrives here and we schedule workqueue? You need
+> free interrupt then cancel work and then free input device. Similar needs to be
+> done in probe(). I'd recommend not use devm_* here as you need to manually
+> unwind anyway.
+
+True. I will fix these as well.
+
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM
+>> +/**
+>> + * palmas_pwron_suspend() - suspend handler
+>> + * @dev:	power button device
+>> + *
+>> + * Cancel all pending work items for the power button
+>> + */
+>> +static int palmas_pwron_suspend(struct device *dev)
+>> +{
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	struct palmas_pwron *pwron = platform_get_drvdata(pdev);
+>> +
+>> +	cancel_delayed_work_sync(&pwron->input_work);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static UNIVERSAL_DEV_PM_OPS(palmas_pwron_pm, palmas_pwron_suspend, NULL, NULL);
+>
+> Why universal? Do they make sense for runtime pm?
+>
+>> +
+>> +#else
+>> +static UNIVERSAL_DEV_PM_OPS(palmas_pwron_pm, NULL, NULL, NULL);
+>> +#endif
+>
+> You do not need to protect these with #ifdef and have 2 versions, just pull
+> UNIVERSAL_DEV_PM_OPS (and change to SIMPLE_DEV_PM_OPS) out of #idef code.
+
+I will just switch over to SIMPLE_DEV_PM_OPS here.. it is better here. 
+Thanks for the suggestion.
+
+>> +
+>> +#ifdef CONFIG_OF
+>> +static struct of_device_id of_palmas_pwr_match[] = {
+>> +	{.compatible = "ti,palmas-pwrbutton"},
+>> +	{},
+>> +};
+>> +
+>> +MODULE_DEVICE_TABLE(of, of_palmas_pwr_match);
+>> +#endif
+>> +
+>> +static struct platform_driver palmas_pwron_driver = {
+>> +	.probe = palmas_pwron_probe,
+>> +	.remove = palmas_pwron_remove,
+>> +	.driver = {
+>> +		   .name = "palmas_pwrbutton",
+>> +		   .owner = THIS_MODULE,
+>> +		   .of_match_table = of_match_ptr(of_palmas_pwr_match),
+>> +		   .pm = &palmas_pwron_pm,
+>> +		   },
+>
+> Weird indentation here.
+
+Ugggh.. Lindent.. :(
+
+
+---
+Regards,
+Nishanth Menon
