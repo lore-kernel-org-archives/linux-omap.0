@@ -1,156 +1,423 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 2/3] usb: dwc3: dwc3-st: Add st-dwc3 devicetree
- bindings documentation
-Date: Wed, 20 Aug 2014 13:00:05 -0500
-Message-ID: <20140820180005.GU24500@saruman.home>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
+ HC
+Date: Wed, 20 Aug 2014 13:08:50 -0500
+Message-ID: <20140820180850.GV24500@saruman.home>
 References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
- <1406734091-16202-3-git-send-email-peter.griffin@linaro.org>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1406734091-16202-2-git-send-email-peter.griffin@linaro.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="V4yrq4dHtCqH+JvC"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="BcZrms9gUsdgyR6a"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1406734091-16202-3-git-send-email-peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
+In-Reply-To: <1406734091-16202-2-git-send-email-peter.griffin@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, balbi@ti.com, lee.jones@linaro.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
 List-Id: linux-omap@vger.kernel.org
 
---V4yrq4dHtCqH+JvC
-Content-Type: text/plain; charset=us-ascii
+--BcZrms9gUsdgyR6a
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 30, 2014 at 04:28:10PM +0100, Peter Griffin wrote:
-> This patch documents the device tree documentation required for
-> the ST usb3 controller glue layer found in STiH407 devices.
+Hi,
+
+On Wed, Jul 30, 2014 at 04:28:09PM +0100, Peter Griffin wrote:
+> This patch adds the ST glue logic to manage the DWC3 HC
+> on STiH407 SoC family. It manages the powerdown signal,
+> and configures the internal glue logic and syscfg registers.
 >=20
-> Signed-off-by: Giuseppe Cavallaro <peppe.cavallaro-qxv4g6HH51o@public.gmane.org>
-> Signed-off-by: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Giuseppe Cavallaro <peppe.cavallaro@st.com>
+> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+> Acked-by: Lee Jones <lee.jones@linaro.org>
 > ---
->  Documentation/devicetree/bindings/usb/dwc3-st.txt | 69 +++++++++++++++++=
+>  drivers/usb/dwc3/Kconfig   |   9 ++
+>  drivers/usb/dwc3/Makefile  |   1 +
+>  drivers/usb/dwc3/dwc3-st.c | 336 +++++++++++++++++++++++++++++++++++++++=
 ++++++
->  1 file changed, 69 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/usb/dwc3-st.txt
+>  3 files changed, 346 insertions(+)
+>  create mode 100644 drivers/usb/dwc3/dwc3-st.c
 >=20
-> diff --git a/Documentation/devicetree/bindings/usb/dwc3-st.txt b/Document=
-ation/devicetree/bindings/usb/dwc3-st.txt
+> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+> index 8eb996e..6c85c43 100644
+> --- a/drivers/usb/dwc3/Kconfig
+> +++ b/drivers/usb/dwc3/Kconfig
+> @@ -79,6 +79,15 @@ config USB_DWC3_KEYSTONE
+>  	  Support of USB2/3 functionality in TI Keystone2 platforms.
+>  	  Say 'Y' or 'M' here if you have one such device
+> =20
+> +config USB_DWC3_ST
+> +	tristate "STMicroelectronics Platforms"
+> +	depends on ARCH_STI && OF
+> +	default USB_DWC3_HOST
+
+this seems wrong as USB_DWC3_{HOST,GADGET,DUAL_ROLE} are booleans and
+USB_DWC3_ST is a tristate. Better to stick with defaulting to USB_DWC3
+instead like all the others.
+
+> +	help
+> +	  STMicroelectronics SoCs with one DesignWare Core USB3 IP
+> +	  inside (i.e. STiH407).
+> +	  Say 'Y' or 'M' if you have one such device.
+> +
+>  comment "Debugging features"
+> =20
+>  config USB_DWC3_DEBUG
+> diff --git a/drivers/usb/dwc3/Makefile b/drivers/usb/dwc3/Makefile
+> index 10ac3e7..11c9f54 100644
+> --- a/drivers/usb/dwc3/Makefile
+> +++ b/drivers/usb/dwc3/Makefile
+> @@ -33,3 +33,4 @@ obj-$(CONFIG_USB_DWC3_OMAP)		+=3D dwc3-omap.o
+>  obj-$(CONFIG_USB_DWC3_EXYNOS)		+=3D dwc3-exynos.o
+>  obj-$(CONFIG_USB_DWC3_PCI)		+=3D dwc3-pci.o
+>  obj-$(CONFIG_USB_DWC3_KEYSTONE)		+=3D dwc3-keystone.o
+> +obj-$(CONFIG_USB_DWC3_ST)		+=3D dwc3-st.o
+> diff --git a/drivers/usb/dwc3/dwc3-st.c b/drivers/usb/dwc3/dwc3-st.c
 > new file mode 100644
-> index 0000000..de3fea3
+> index 0000000..227698f
 > --- /dev/null
-> +++ b/Documentation/devicetree/bindings/usb/dwc3-st.txt
-> @@ -0,0 +1,69 @@
-> +ST DWC3 glue logic
+> +++ b/drivers/usb/dwc3/dwc3-st.c
+> @@ -0,0 +1,336 @@
+> +/**
+> + * dwc3-st.c Support for dwc3 platform devices on ST Microelectronics pl=
+atforms
+> + *
+> + * This is a small driver for the dwc3 to provide the glue logic
+> + * to configure the controller. Tested on STi platforms.
+> + *
+> + * Copyright (C) 2014 Stmicroelectronics
+> + *
+> + * Author: Giuseppe Cavallaro <peppe.cavallaro@st.com>
+> + * Contributors: Aymen Bouattay <aymen.bouattay@st.com>
+> + *               Peter Griffin <peter.griffin@linaro.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * Inspired by dwc3-omap.c and dwc3-exynos.c.
+> + */
 > +
-> +This file documents the parameters for the dwc3-st driver.
-> +This driver controls the glue logic used to configure the dwc3 core on
-> +STiH407 based platforms.
+> +#include <linux/delay.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
+> +#include <linux/ioport.h>
+> +#include <linux/kernel.h>
+> +#include <linux/mfd/syscon.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/regmap.h>
+> +#include <linux/reset.h>
+> +#include <linux/usb/of.h>
 > +
-> +Required properties:
-> + - compatible	: must be "st,stih407-dwc3"
-> + - reg		: glue logic base address and USB syscfg ctrl register offset
-> + - reg-names	: should be "reg-glue" and "syscfg-reg"
-> + - st,syscon	: should be phandle to system configuration node which
-> +		  encompasses the glue registers
-> + - resets	: list of phandle and reset specifier pairs. There should be t=
-wo entries, one
-> +		  for the powerdown and softreset lines of the usb3 IP
-> + - reset-names	: list of reset signal names. Names should be "powerdown"=
- and "softreset"
-> +See: Documentation/devicetree/bindings/reset/st,sti-powerdown.txt
-> +See: Documentation/devicetree/bindings/reset/reset.txt
+> +#include "core.h"
+> +#include "io.h"
 > +
-> + - #address-cells, #size-cells : should be '1' if the device has sub-nod=
-es
-> +                                 with 'reg' property
+> +/* glue registers */
+> +#define CLKRST_CTRL		0x00
+> +#define AUX_CLK_EN		BIT(0)
+> +#define SW_PIPEW_RESET_N	BIT(4)
+> +#define EXT_CFG_RESET_N		BIT(8)
+> +/*
+> + * 1'b0 : The host controller complies with the xHCI revision 0.96
+> + * 1'b1 : The host controller complies with the xHCI revision 1.0
+> + */
+> +#define XHCI_REVISION		BIT(12)
 > +
-> + - pinctl-names	: A pinctrl state named "default" must be defined
-> +See: Documentation/devicetree/bindings/pinctrl/pinctrl-binding.txt
+> +#define USB2_VBUS_MNGMNT_SEL1	0x2C
+> +/*
+> + * For all fields in USB2_VBUS_MNGMNT_SEL1
+> + * 2=E2=80=99b00 : Override value from Reg 0x30 is selected
+> + * 2=E2=80=99b01 : utmiotg_<signal_name> from usb3_top is selected
+> + * 2=E2=80=99b10 : pipew_<signal_name> from PIPEW instance is selected
+> + * 2=E2=80=99b11 : value is 1'b0
+> + */
+> +#define USB2_VBUS_REG30		0x0
+> +#define USB2_VBUS_UTMIOTG	0x1
+> +#define USB2_VBUS_PIPEW		0x2
+> +#define USB2_VBUS_ZERO		0x3
 > +
-> + - pinctrl-0	: Pin control group
-> +See: Documentation/devicetree/bindings/pinctrl/pinctrl-binding.txt
+> +#define SEL_OVERRIDE_VBUSVALID(n)	(n << 0)
+> +#define SEL_OVERRIDE_POWERPRESENT(n)	(n << 4)
+> +#define SEL_OVERRIDE_BVALID(n)		(n << 8)
 > +
-> + - ranges	: allows valid 1:1 translation between child's address space a=
-nd
-> +		  parent's address space
+> +/* Static DRD configuration */
+> +#define USB_HOST_DEFAULT_MASK	0xffe
+> +#define USB_SET_PORT_DEVICE	0x1
 > +
-> +Sub-nodes:
-> +The dwc3 core should be added as subnode to ST DWC3 glue as shown in the
-> +example below. The DT binding details of dwc3 can be found in:
-> +Documentation/devicetree/bindings/usb/dwc3.txt
+> +/**
+> + * struct st_dwc3 - dwc3-st driver private structure
+> + * @dev:		device pointer
+> + * @glue_base:		ioaddr for the glue registers
+> + * @regmap:		regmap pointer for getting syscfg
+> + * @syscfg_reg_off:	usb syscfg control offset
+> + * @dr_mode:		drd static host/device config
+> + * @rstc_pwrdn:		rest controller for powerdown signal
+> + * @rstc_rst:		reset controller for softreset signal
+> + */
 > +
-> +NB: The dr_mode property described in [1] is NOT optional for this drive=
-r, as the default value
-> +is "otg", which isn't supported by this SoC. Valid dr_mode values for dw=
-c3-st are either "host"
-> +or "device".
+> +struct st_dwc3 {
+> +	struct device *dev;
+> +	void __iomem *glue_base;
+> +	struct regmap *regmap;
+> +	int syscfg_reg_off;
+> +	enum usb_dr_mode dr_mode;
+> +	struct reset_control *rstc_pwrdn;
+> +	struct reset_control *rstc_rst;
+> +};
 > +
-> +[1] Documentation/devicetree/bindings/usb/generic.txt
+> +static inline u32 st_dwc3_readl(void __iomem *base, u32 offset)
+> +{
+> +	return readl_relaxed(base + offset);
+> +}
 > +
-> +Example:
-> +
-> +st_dwc3: dwc3@8f94000 {
-> +	status		=3D "disabled";
-> +	compatible	=3D "st,stih407-dwc3";
-> +	reg		=3D <0x08f94000 0x1000>, <0x110 0x4>;
-> +	reg-names	=3D "reg-glue", "syscfg-reg";
-> +	st,syscfg	=3D <&syscfg_core>;
-> +	resets		=3D <&powerdown STIH407_USB3_POWERDOWN>;
-> +			  <&softreset STIH407_MIPHY2_SOFTRESET>;
-> +	reset-names	=3D "powerdown",
-> +			  "softreset";
-> +	#address-cells	=3D <1>;
-> +	#size-cells	=3D <1>;
-> +	pinctrl-names	=3D "default";
-> +	pinctrl-0	=3D <&pinctrl_usb3>;
-> +	ranges;
-> +
-> +	dwc3: dwc3@9900000 {
-> +		compatible	=3D "snps,dwc3";
-> +		reg		=3D <0x09900000 0x100000>;
-> +		interrupts	=3D <GIC_SPI 155 IRQ_TYPE_NONE>;
-> +		dr_mode		=3D "host"
-> +		usb-phy		=3D <&usb3_phy>;
-> +		phy-names	=3D "usb2-phy";
-> +		phys		=3D <&usb2_picophy2>;
+> +static inline void st_dwc3_writel(void __iomem *base, u32 offset, u32 va=
+lue)
+> +{
+> +	writel_relaxed(value, base + offset);
 
-why are you using different binding for usb2 and usb3 phys ? Why can't
-you just:
+why relaxed ?
 
-	phys-names	=3D "usb2-phy", "usb3-phy";
-	phys		=3D <&usb2_picophy2>, <&usb3_phy>;
+> +}
+> +
+> +/**
+> + * st_dwc3_drd_init: program the port
+> + * @dwc3_data: driver private structure
+> + * Description: this function is to program the port as either host or d=
+evice
+> + * according to the static configuration passed from devicetree.
+> + * OTG and dual role are not yet supported!
+> + */
+> +static int st_dwc3_drd_init(struct st_dwc3 *dwc3_data)
+> +{
+> +	u32 val;
+> +	int err;
+> +
+> +	err =3D regmap_read(dwc3_data->regmap, dwc3_data->syscfg_reg_off, &val);
+> +	if (err)
+> +		return err;
+> +
+> +	switch (dwc3_data->dr_mode) {
+> +	case USB_DR_MODE_PERIPHERAL:
+> +		val |=3D USB_SET_PORT_DEVICE;
+> +		dev_dbg(dwc3_data->dev, "Configuring as Device\n");
+> +		break;
+> +
+> +	case USB_DR_MODE_HOST:
+> +		val &=3D USB_HOST_DEFAULT_MASK;
 
-??
+are you missing a ~ here ? Also, shouldn't you mask off the bits before
+this switch ?
+
+> +		dev_dbg(dwc3_data->dev, "Configuring as Host\n");
+> +		break;
+> +
+> +	default:
+> +		dev_err(dwc3_data->dev, "Unsupported mode of operation %d\n",
+> +			dwc3_data->dr_mode);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return regmap_write(dwc3_data->regmap, dwc3_data->syscfg_reg_off, val);
+> +}
+> +
+> +/**
+> + * st_dwc3_init: init the controller via glue logic
+> + * @dwc3_data: driver private structure
+> + */
+> +static void st_dwc3_init(struct st_dwc3 *dwc3_data)
+> +{
+> +
+
+this blank line isn't necessary.
+
+> +	u32 reg =3D st_dwc3_readl(dwc3_data->glue_base, CLKRST_CTRL);
+> +
+> +	reg |=3D AUX_CLK_EN | EXT_CFG_RESET_N | XHCI_REVISION;
+> +	reg &=3D ~SW_PIPEW_RESET_N;
+> +	st_dwc3_writel(dwc3_data->glue_base, CLKRST_CTRL, reg);
+> +
+> +	/* configure mux for vbus, powerpresent and bvalid signals */
+> +	reg =3D st_dwc3_readl(dwc3_data->glue_base, USB2_VBUS_MNGMNT_SEL1);
+> +
+> +	reg |=3D SEL_OVERRIDE_VBUSVALID(USB2_VBUS_UTMIOTG) |
+> +		SEL_OVERRIDE_POWERPRESENT(USB2_VBUS_UTMIOTG) |
+> +		SEL_OVERRIDE_BVALID(USB2_VBUS_UTMIOTG);
+> +
+> +	st_dwc3_writel(dwc3_data->glue_base, USB2_VBUS_MNGMNT_SEL1, reg);
+> +
+> +	reg =3D st_dwc3_readl(dwc3_data->glue_base, CLKRST_CTRL);
+> +	reg |=3D SW_PIPEW_RESET_N;
+> +	st_dwc3_writel(dwc3_data->glue_base, CLKRST_CTRL, reg);
+> +}
+> +
+> +static int st_dwc3_probe(struct platform_device *pdev)
+> +{
+> +	struct st_dwc3 *dwc3_data;
+> +	struct resource *res;
+> +	struct device *dev =3D &pdev->dev;
+> +	struct device_node *node =3D dev->of_node, *child;
+> +	struct regmap *regmap;
+> +	int ret;
+> +
+> +	dwc3_data =3D devm_kzalloc(dev, sizeof(*dwc3_data), GFP_KERNEL);
+> +	if (!dwc3_data)
+> +		return -ENOMEM;
+> +
+> +	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "reg-glue");
+> +	dwc3_data->glue_base =3D devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(dwc3_data->glue_base))
+> +		return PTR_ERR(dwc3_data->glue_base);
+> +
+> +	regmap =3D syscon_regmap_lookup_by_phandle(node, "st,syscfg");
+> +	if (IS_ERR(regmap))
+> +		return PTR_ERR(regmap);
+> +
+> +	dma_set_coherent_mask(dev, dev->coherent_dma_mask);
+> +	dwc3_data->dev =3D dev;
+> +	dwc3_data->regmap =3D regmap;
+> +
+> +	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "syscfg-reg"=
+);
+> +	if (!res) {
+> +		ret =3D -ENXIO;
+> +		goto undo_platform_dev_alloc;
+> +	}
+> +
+> +	dwc3_data->syscfg_reg_off =3D res->start;
+> +
+> +	dev_dbg(&pdev->dev, "glue-logic addr 0x%p, syscfg-reg offset 0x%x\n",
+> +		dwc3_data->glue_base, dwc3_data->syscfg_reg_off);
+
+looks like this message would be more of a dev_vdbg().
+
+> +	dwc3_data->rstc_pwrdn =3D devm_reset_control_get(dev, "powerdown");
+> +	if (IS_ERR(dwc3_data->rstc_pwrdn)) {
+> +		dev_err(&pdev->dev, "could not get power controller\n");
+> +		ret =3D PTR_ERR(dwc3_data->rstc_pwrdn);
+> +		goto undo_platform_dev_alloc;
+> +	}
+> +
+> +	/* Manage PowerDown */
+> +	reset_control_deassert(dwc3_data->rstc_pwrdn);
+> +
+> +	dwc3_data->rstc_rst =3D devm_reset_control_get(dev, "softreset");
+> +	if (IS_ERR(dwc3_data->rstc_rst)) {
+> +		dev_err(&pdev->dev, "could not get reset controller\n");
+> +		ret =3D PTR_ERR(dwc3_data->rstc_pwrdn);
+> +		goto undo_powerdown;
+> +	}
+> +
+> +	/* Manage SoftReset */
+> +	reset_control_deassert(dwc3_data->rstc_rst);
+> +
+> +	child =3D of_get_child_by_name(node, "dwc3");
+> +	if (!child) {
+> +		dev_err(&pdev->dev, "failed to find dwc3 core node\n");
+> +		ret =3D -ENODEV;
+> +		goto undo_softreset;
+> +	}
+> +
+> +	dwc3_data->dr_mode =3D of_usb_get_dr_mode(child);
+> +
+> +	/* Allocate and initialize the core */
+> +	ret =3D of_platform_populate(node, NULL, NULL, dev);
+> +	if (ret) {
+> +		dev_err(dev, "failed to add dwc3 core\n");
+> +		goto undo_softreset;
+> +	}
+> +
+> +	/*
+> +	 * Configure the USB port as device or host according to the static
+> +	 * configuration passed from DT.
+> +	 * DRD is the only mode currently supported so this will be enhanced
+> +	 * as soon as OTG is available.
+> +	 */
+> +	ret =3D st_dwc3_drd_init(dwc3_data);
+> +	if (ret) {
+> +		dev_err(dev, "drd initialisation failed\n");
+> +		goto undo_softreset;
+> +	}
+> +
+> +	/* ST glue logic init */
+> +	st_dwc3_init(dwc3_data);
+> +
+> +	platform_set_drvdata(pdev, dwc3_data);
+> +	return 0;
+> +
+> +undo_softreset:
+> +	reset_control_assert(dwc3_data->rstc_rst);
+> +undo_powerdown:
+> +	reset_control_assert(dwc3_data->rstc_pwrdn);
+> +undo_platform_dev_alloc:
+> +	platform_device_put(pdev);
+> +	return ret;
+> +}
+> +
+> +
+> +static int st_dwc3_remove_child(struct device *dev, void *c)
+> +{
+> +	struct platform_device *pdev =3D to_platform_device(dev);
+> +
+> +	of_device_unregister(pdev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int st_dwc3_remove(struct platform_device *pdev)
+> +{
+> +	struct st_dwc3 *dwc3_data =3D platform_get_drvdata(pdev);
+> +
+> +	device_for_each_child(&pdev->dev, NULL, st_dwc3_remove_child);
+> +
+> +	reset_control_assert(dwc3_data->rstc_pwrdn);
+> +	reset_control_assert(dwc3_data->rstc_rst);
+> +
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +static int st_dwc3_suspend(struct device *dev)
+> +{
+> +	struct st_dwc3 *dwc3_data =3D dev_get_drvdata(dev);
+> +
+> +	reset_control_assert(dwc3_data->rstc_pwrdn);
+> +	reset_control_assert(dwc3_data->rstc_rst);
+
+Two questions:
+
+1) how would you handle the case when this device is a wakeup source ?
+2) when resuming, wouldn't you have to reinitialize the entire core ?
 
 --=20
 balbi
 
---V4yrq4dHtCqH+JvC
+--BcZrms9gUsdgyR6a
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJT9OIlAAoJEIaOsuA1yqRE+v8P/AtsnJUARlKiU9RBWK0rvQ6N
-JSaI0n2VgXVvFX2XWKujp95+ZU2Ytks6MM5rhLt2yZtqP44T//4mmhuSnQoUeE0K
-PGjnCz0r1ebU2G3aEat8OQB7jq4AN/Q458Ak214YCQh985EoMAEkc9ZXIyvXOeDi
-krJIdU3eZ3avrsWlCWMNC79EzRN12/z8wRXeOm54Y/WN0BrqK6zyvumfT0ZueDDV
-uUODPxNMdkNqHS1CAJNMsN2uo9KT10AY57IWGqHghnvBkRhMC18MI9CZNnnuI2qV
-N639eIzxNpF+BmSPd6sGbNiq+Wx9VGnoaqK/EcwTOApTP/8Mt18qgPivvC9h4HSb
-FYXtDfGp28ZA//R3Fv9Y3lT3UGYGLaZuc2GLw8Q6PQA5Iu7QObX7UnCoOtyYqefe
-/c2mkNzd/xzB4W3yIwJZK1gr/4k1dyLQVzc2qYfTgBGYlu+zDrVOjvfiyv0TZuDN
-f932rJvt1vadcKs3w6ZSWzFJBPEPhcwGfO7YB7limvfUuyXAkLOLzyIzoiyz4Jfq
-tRV1fjRmcuL/c4rHMW1Xasp0jeYv+hVjz7COQMHhlO6FeHiqfvaNtiSKY8hy4lNU
-4ZOiaJXpcLGRF1ds+ckQlmy/GfsKUYbqopxmMwcciGw11n4h4T+n4mOC5MZkffWA
-CYFA/v+cvRvINq2/l1wN
-=VvSM
+iQIcBAEBAgAGBQJT9OQyAAoJEIaOsuA1yqREGCQP/1U0rvFShKhH/zlVgjIIYfwG
+Z8HW34NIOoiWCKDGPgGRiWPy97BN7Nalz20mZuhRuClVojILmoD4qFb34Lxbn5uy
+6Yc+aUB+O032voo5yvCMgI1p8D3fFtNfpX4/fvHqvjypHQxoyKTLU+Rwuz9XKg7I
+vT5EYz6GUzByAPvwR6yUIF60tVVfCNnmMuFc6NFV8WJzurjLpkd4ls1PVgwHBGGQ
+SZnxJjt4p+WQhiFCalG8eVhIuq5pqGmq8FmJSgY04sw3A6a1x7CCZm/yaZJP9lFv
+8wgOUrZ9LKae+wCOjsuvAWO5G53dbjw34PZgOYx3g47BuaSFl6tdEVwbGSYBj9aJ
+nfPIPbf/IrApgq8WXtG9HXVAzzFxBlYf5HQ+sbadzqg7gWv4WhmyzAmbwd5FbwXY
+thRSq8TZnKlhOYImMq0guBci6edgHIMsQQ76hMVjFXtB+9eAoTUBv67HrqhmUEFH
+W0n19dhgsctDH9JU32BmVT5zTUo2IHrxljQuZkuxytJiWCbcp4gdDFA/BSLUYaO3
+g7DCdoLihAb97A5iIs0NeiAvvqiAGw4+J/KmxUs/H9Bse+8DoAEcI3+U1DgW90z5
+UC0T9haT21mLS//cOvPDUfJRfy6QN17m/e00aOfQndknnvMjUXr8Tv/aJ5nm+9k4
+BehEeVNi/Wjpxz5uQDqy
+=XmDO
 -----END PGP SIGNATURE-----
 
---V4yrq4dHtCqH+JvC--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--BcZrms9gUsdgyR6a--
