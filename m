@@ -1,59 +1,54 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 03/15] tty: serial: 8250_core: add run time pm
-Date: Wed, 20 Aug 2014 11:39:37 +0200
-Message-ID: <20140820093936.GB20775@ci00147.xsens-tech.local>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
- <1408124563-31541-4-git-send-email-bigeasy@linutronix.de>
- <20140820092319.GA20775@ci00147.xsens-tech.local>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix PM idle pin configuration to not
+ conflict with regulators
+Date: Wed, 20 Aug 2014 13:30:30 +0100
+Message-ID: <20140820123030.GL4266@lee--X1>
+References: <20140819152405.GA12002@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20140820092319.GA20775@ci00147.xsens-tech.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mika.westerberg@linux.intel.com
+In-Reply-To: <20140819152405.GA12002@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 20, 2014 at 11:23:21AM +0200, Frans Klaver wrote:
-> Hi,
-> 
-> On Fri, Aug 15, 2014 at 07:42:31PM +0200, Sebastian Andrzej Siewior wrote:
-> > --- a/drivers/tty/serial/8250/8250_core.c
-> > +++ b/drivers/tty/serial/8250/8250_core.c
-> > @@ -1899,12 +1984,22 @@ static void wait_for_xmitr(struct uart_8250_port *up, int bits)
-> >  
-> >  static int serial8250_get_poll_char(struct uart_port *port)
-> >  {
-> > -	unsigned char lsr = serial_port_in(port, UART_LSR);
-> > +	unsigned char lsr;
-> > +	int status;
-> > +
-> > +	serial8250_rpm_get(up);
-> 
-> or up won't be defined below. You probably need 
-
-Obviously I meant to say that 'up' won't be defined here.
-
-
-> +	struct uart_8250_port *up = up_to_u8250p(port);
-> somewhere in there.
-> 
-> > -	if (!(lsr & UART_LSR_DR))
-> > -		return NO_POLL_CHAR;
-> > +	lsr = serial_port_in(port, UART_LSR);
-> >  
-> > -	return serial_port_in(port, UART_RX);
-> > +	if (!(lsr & UART_LSR_DR)) {
-> > +		status = NO_POLL_CHAR;
-> > +		goto out;
-> > +	}
-> > +
-> > +	status = serial_port_in(port, UART_RX);
-> > +out:
-> > +	serial8250_rpm_put(up);
-> > +	return status;
-> >  }
-> 
-> Cheers,
-> Frans
+T24gVHVlLCAxOSBBdWcgMjAxNCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKCj4gQ29tbWl0IDQzZmVm
+NDdmOTRhMSAobWZkOiB0d2w0MDMwLXBvd2VyOiBBZGQgYSBjb25maWd1cmF0aW9uIHRvIHR1cm4K
+PiBvZmYgb3NjaWxsYXRvciBkdXJpbmcgb2ZmLWlkbGUpIGFkZGVkIHN1cHBvcnQgZm9yIGNvbmZp
+Z3VyaW5nIHRoZSBQTUlDCj4gdG8gY3V0IG9mZiByZXNvdXJjZXMgZHVyaW5nIGRlZXBlciBpZGxl
+IHN0YXRlcyB0byBzYXZlIHBvd2VyLgo+IAo+IFRoaXMgaG93ZXZlciBjYXVzZWQgcmVncmVzc2lv
+biBmb3IgbjkwMCBkaXNwbGF5IHBvd2VyIHRoYXQgbmVlZGVkIHRoZQo+IFBNSUMgY29uZmlndXJh
+dGlvbiB0byBiZSBkaXNhYmxlZCB3aXRoIGNvbW1pdCBkOTM3Njc4YWI2MjUgKEFSTTogZHRzOgo+
+IFJldmVydCBlbmFibGluZyBvZiB0d2wgY29uZmlndXJhdGlvbiBmb3IgbjkwMCkuCj4gCj4gVHVy
+bnMgb3V0IHRoZSByb290IGNhdXNlIG9mIHRoZSBwcm9ibGVtIGlzIHRoYXQgd2UgbXVzdCB1c2UK
+PiBUV0w0MDMwX1JFU0NPTkZJR19VTkRFRiBpbnN0ZWFkIG9mIERFVl9HUlBfTlVMTCB0byBhdm9p
+ZCBkaXNhYmxpbmcKPiByZWd1bGF0b3JzIHRoYXQgbWF5IGhhdmUgYmVlbiBlbmFibGVkIGJlZm9y
+ZSB0aGUgaW5pdCBmdW5jdGlvbgo+IGZvciB0d2w0MDMwLXBvd2VyLmMgcnVucy4gV2l0aCBUV0w0
+MDMwX1JFU0NPTkZJR19VTkRFRiB3ZSBsZXQgdGhlCj4gcmVndWxhdG9yIGZyYW1ld29yayBjb250
+cm9sIHRoZSByZWd1bGF0b3JzIGxpa2UgaXQgc2hvdWxkLiBIZXJlIHdlCj4gbmVlZCB0byBvbmx5
+IGNvbmZpZ3VyZSB0aGUgc3lzX2Nsa2VuIGFuZCBzeXNfb2ZmX21vZGUgdHJpZ2dlcnMgZm9yCj4g
+dGhlIHJlZ3VsYXRvcnMgdGhhdCBjYW5ub3QgYmUgZG9uZSBieSB0aGUgcmVndWxhdG9yIGZyYW1l
+d29yayBhcwo+IGl0J3Mgbm90IHJ1bm5pbmcgYXQgdGhhdCBwb2ludC4KPiAKPiBUaGlzIGFsbG93
+cyB1cyB0byBlbmFibGUgdGhlIFBNSUMgY29uZmlndXJhdGlvbiBmb3IgbjkwMC4KPiAKPiBGaXhl
+czogNDNmZWY0N2Y5NGExIChtZmQ6IHR3bDQwMzAtcG93ZXI6IEFkZCBhIGNvbmZpZ3VyYXRpb24g
+dG8gdHVybiBvZmYgb3NjaWxsYXRvciBkdXJpbmcgb2ZmLWlkbGUpCj4gQ2M6IHN0YWJsZUB2Z2Vy
+Lmtlcm5lbC5vcmcgIyB2My4xNgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlA
+YXRvbWlkZS5jb20+Cj4gCj4gLS0tCj4gCj4gTGVlLCBjYW4geW91IHBsZWFzZSBwaWNrIHRoaXMg
+b25lIGZvciB0aGUgdjMuMTctcmMgc2VyaWVzPwoKQXBwbGllZCB3aXRoIEFhcm8ncyBUZXN0ZWQt
+YnkuCgotLSAKTGVlIEpvbmVzCkxpbmFybyBTVE1pY3JvZWxlY3Ryb25pY3MgTGFuZGluZyBUZWFt
+IExlYWQKTGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCkZv
+bGxvdyBMaW5hcm86IEZhY2Vib29rIHwgVHdpdHRlciB8IEJsb2cKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBs
+aXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5m
+cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
