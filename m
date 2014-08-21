@@ -1,31 +1,121 @@
-From: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI
- architecture
-Date: Thu, 21 Aug 2014 14:15:30 +0100
-Message-ID: <20140821131530.GB17487@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
- <1406734091-16202-4-git-send-email-peter.griffin@linaro.org>
- <20140820175824.GT24500@saruman.home>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] gpio: omap: Fix interrupt names
+Date: Thu, 21 Aug 2014 08:19:55 -0500
+Message-ID: <1408627195-18421-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140820175824.GT24500-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+When viewing the /proc/interrupts, there is no information about which
+GPIO bank a specific gpio interrupt is hooked on to. This is more than a
+bit irritating as such information can esily be provided back to the
+user and at times, can be crucial for debug.
 
-Will fix the commit log and rebase onto 3.17-rc1 for the next iteration.
+So, instead of displaying something like:
+31:	0	0  GPIO   0  palmas
+32:	0	0  GPIO  27  mmc0
 
-regards,
+Display the following with appropriate device name:
+31:	0	0  4ae10000.gpio   0  palmas
+32:	0	0  4805d000.gpio  27  mmc0
 
-Peter.
+This requires that we create irq_chip instance specific for each GPIO
+bank which is trivial to achieve.
 
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+based on v3.17-rc1
+ drivers/gpio/gpio-omap.c |   31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 1749321..aee25fa 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -857,16 +857,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ }
+ 
+-static struct irq_chip gpio_irq_chip = {
+-	.name		= "GPIO",
+-	.irq_shutdown	= omap_gpio_irq_shutdown,
+-	.irq_ack	= omap_gpio_ack_irq,
+-	.irq_mask	= omap_gpio_mask_irq,
+-	.irq_unmask	= omap_gpio_unmask_irq,
+-	.irq_set_type	= omap_gpio_irq_type,
+-	.irq_set_wake	= omap_gpio_wake_enable,
+-};
+-
+ /*---------------------------------------------------------------------*/
+ 
+ static int omap_mpuio_suspend_noirq(struct device *dev)
+@@ -1088,7 +1078,7 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
+ 			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+ }
+ 
+-static int omap_gpio_chip_init(struct gpio_bank *bank)
++static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ {
+ 	int j;
+ 	static int gpio;
+@@ -1137,7 +1127,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
+ 	}
+ #endif
+ 
+-	ret = gpiochip_irqchip_add(&bank->chip, &gpio_irq_chip,
++	ret = gpiochip_irqchip_add(&bank->chip, irqc,
+ 				   irq_base, omap_gpio_irq_handler,
+ 				   IRQ_TYPE_NONE);
+ 
+@@ -1147,7 +1137,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
+ 		return -ENODEV;
+ 	}
+ 
+-	gpiochip_set_chained_irqchip(&bank->chip, &gpio_irq_chip,
++	gpiochip_set_chained_irqchip(&bank->chip, irqc,
+ 				     bank->irq, omap_gpio_irq_handler);
+ 
+ 	for (j = 0; j < bank->width; j++) {
+@@ -1172,6 +1162,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 	const struct omap_gpio_platform_data *pdata;
+ 	struct resource *res;
+ 	struct gpio_bank *bank;
++	struct irq_chip *irqc;
+ 	int ret;
+ 
+ 	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
+@@ -1186,6 +1177,18 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
++	irqc = devm_kzalloc(dev, sizeof(*irqc), GFP_KERNEL);
++	if (!irqc)
++		return -ENOMEM;
++
++	irqc->irq_shutdown = omap_gpio_irq_shutdown,
++	irqc->irq_ack = omap_gpio_ack_irq,
++	irqc->irq_mask = omap_gpio_mask_irq,
++	irqc->irq_unmask = omap_gpio_unmask_irq,
++	irqc->irq_set_type = omap_gpio_irq_type,
++	irqc->irq_set_wake = omap_gpio_wake_enable,
++	irqc->name = dev_name(&pdev->dev);
++
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (unlikely(!res)) {
+ 		dev_err(dev, "Invalid IRQ resource\n");
+@@ -1241,7 +1244,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
+ 
+ 	omap_gpio_mod_init(bank);
+ 
+-	ret = omap_gpio_chip_init(bank);
++	ret = omap_gpio_chip_init(bank, irqc);
+ 	if (ret)
+ 		return ret;
+ 
+-- 
+1.7.9.5
+
