@@ -1,127 +1,195 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] gpio: omap: Fix interrupt names
-Date: Thu, 21 Aug 2014 09:37:04 -0400
-Message-ID: <53F5F600.4040803@ti.com>
-References: <1408627195-18421-1-git-send-email-nm@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 1/1] clk: ti: add support for external clock provider
+Date: Thu, 21 Aug 2014 16:42:26 +0300
+Message-ID: <53F5F742.6080506@ti.com>
+References: <1406898948-26113-1-git-send-email-t-kristo@ti.com> <1406898948-26113-2-git-send-email-t-kristo@ti.com> <20140819132232.GM3302@leverpostej> <53F450A2.2030609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1408627195-18421-1-git-send-email-nm@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:56006 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754291AbaHUNnH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2014 09:43:07 -0400
+In-Reply-To: <53F450A2.2030609@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "mturquette@linaro.org" <mturquette@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sassmann@kpanic.de" <sassmann@kpanic.de>, "peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>, "jsarha@ti.com" <jsarha@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 21 August 2014 09:19 AM, Nishanth Menon wrote:
-> When viewing the /proc/interrupts, there is no information about which
-> GPIO bank a specific gpio interrupt is hooked on to. This is more than a
-> bit irritating as such information can esily be provided back to the
-> user and at times, can be crucial for debug.
-> 
-> So, instead of displaying something like:
-> 31:	0	0  GPIO   0  palmas
-> 32:	0	0  GPIO  27  mmc0
-> 
-> Display the following with appropriate device name:
-> 31:	0	0  4ae10000.gpio   0  palmas
-> 32:	0	0  4805d000.gpio  27  mmc0
-> 
-> This requires that we create irq_chip instance specific for each GPIO
-> bank which is trivial to achieve.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> based on v3.17-rc1
-Looks good..
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On 08/20/2014 10:39 AM, Tero Kristo wrote:
+> On 08/19/2014 04:22 PM, Mark Rutland wrote:
+>> Hi Tero,
+>>
+>> On Fri, Aug 01, 2014 at 02:15:48PM +0100, Tero Kristo wrote:
+>>> External clock provider can now be used to register external clocks
+>>> under
+>>> it. This is needed as the TI clock driver only registers clocks
+>>> hierarchically under clock providers, and external clocks do not belong
+>>> under any of the current ones.
+>>
+>> I must admit that I don't understand the justification for this binding.
+>>
+>> Why can't these clocks be descrbied elsewhere and wired up as usual? Why
+>> must they be under the TI clock provide node?
+>>
+>>  From the limited description above it sounds like the only reason this
+>> exists is to work around a deficiency in the TI clock driver. That does
+>> not sound like a very good reason for having this.
+>
+> I wouldn't call it a deficiency, but its by design due to need for
+> registering clocks and clock providers hierarchically.
+>
+> I guess it might be possible to re-work the TI clock init to check for
+> the parent node, and if it is a clock provider, see if it has been
+> initialized or not. The clock provider maps the IO range so it must be
+> initialized before any clocks under it are initialized. I'll experiment
+> with this a bit and see how it works out.
 
->  drivers/gpio/gpio-omap.c |   31 +++++++++++++++++--------------
->  1 file changed, 17 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 1749321..aee25fa 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -857,16 +857,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
->  	spin_unlock_irqrestore(&bank->lock, flags);
->  }
->  
-> -static struct irq_chip gpio_irq_chip = {
-> -	.name		= "GPIO",
-> -	.irq_shutdown	= omap_gpio_irq_shutdown,
-> -	.irq_ack	= omap_gpio_ack_irq,
-> -	.irq_mask	= omap_gpio_mask_irq,
-> -	.irq_unmask	= omap_gpio_unmask_irq,
-> -	.irq_set_type	= omap_gpio_irq_type,
-> -	.irq_set_wake	= omap_gpio_wake_enable,
-> -};
-> -
->  /*---------------------------------------------------------------------*/
->  
->  static int omap_mpuio_suspend_noirq(struct device *dev)
-> @@ -1088,7 +1078,7 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
->  			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
->  }
->  
-> -static int omap_gpio_chip_init(struct gpio_bank *bank)
-> +static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
->  {
->  	int j;
->  	static int gpio;
-> @@ -1137,7 +1127,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
->  	}
->  #endif
->  
-> -	ret = gpiochip_irqchip_add(&bank->chip, &gpio_irq_chip,
-> +	ret = gpiochip_irqchip_add(&bank->chip, irqc,
->  				   irq_base, omap_gpio_irq_handler,
->  				   IRQ_TYPE_NONE);
->  
-> @@ -1147,7 +1137,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
->  		return -ENODEV;
->  	}
->  
-> -	gpiochip_set_chained_irqchip(&bank->chip, &gpio_irq_chip,
-> +	gpiochip_set_chained_irqchip(&bank->chip, irqc,
->  				     bank->irq, omap_gpio_irq_handler);
->  
->  	for (j = 0; j < bank->width; j++) {
-> @@ -1172,6 +1162,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
->  	const struct omap_gpio_platform_data *pdata;
->  	struct resource *res;
->  	struct gpio_bank *bank;
-> +	struct irq_chip *irqc;
->  	int ret;
->  
->  	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
-> @@ -1186,6 +1177,18 @@ static int omap_gpio_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  	}
->  
-> +	irqc = devm_kzalloc(dev, sizeof(*irqc), GFP_KERNEL);
-> +	if (!irqc)
-> +		return -ENOMEM;
-> +
-> +	irqc->irq_shutdown = omap_gpio_irq_shutdown,
-> +	irqc->irq_ack = omap_gpio_ack_irq,
-> +	irqc->irq_mask = omap_gpio_mask_irq,
-> +	irqc->irq_unmask = omap_gpio_unmask_irq,
-> +	irqc->irq_set_type = omap_gpio_irq_type,
-> +	irqc->irq_set_wake = omap_gpio_wake_enable,
-> +	irqc->name = dev_name(&pdev->dev);
-> +
->  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->  	if (unlikely(!res)) {
->  		dev_err(dev, "Invalid IRQ resource\n");
-> @@ -1241,7 +1244,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
->  
->  	omap_gpio_mod_init(bank);
->  
-> -	ret = omap_gpio_chip_init(bank);
-> +	ret = omap_gpio_chip_init(bank, irqc);
->  	if (ret)
->  		return ret;
->  
-> 
+I have an alternative approach for this now, posting a patch in a bit.
+
+-Tero
+
+>
+>>
+>> Thanks,
+>> Mark.
+>>
+>>>
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> ---
+>>>   .../devicetree/bindings/arm/omap/ext-clocks.txt    |   32
+>>> ++++++++++++++++++++
+>>>   arch/arm/mach-omap2/io.c                           |   12 ++++++--
+>>>   drivers/clk/ti/clk.c                               |   23
+>>> ++++++++++++++
+>>>   include/linux/clk/ti.h                             |    2 ++
+>>>   4 files changed, 67 insertions(+), 2 deletions(-)
+>>>   create mode 100644
+>>> Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+>>>
+>>> diff --git
+>>> a/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+>>> b/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+>>> new file mode 100644
+>>> index 0000000..8e784bb
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/arm/omap/ext-clocks.txt
+>>> @@ -0,0 +1,32 @@
+>>> +TI external clock provider properties
+>>> +
+>>> +External clock provider is used to group SoC external board specific
+>>> +clock nodes. A separate provider node is required as the TI clock
+>>> +driver registers clocks hierarchically.
+>>> +
+>>> +Required properties:
+>>> +- compatible:        Shall be: "ti,external-clocks"
+>>> +- clocks:        Contains the external clocks for the board
+>>> +- clockdomains:        Contains the external clockdomains for the board
+>>> +
+>>> +Example:
+>>> +
+>>> +ext_clocks {
+>>> +    compatible = "ti,external-clocks";
+>>> +
+>>> +    ext_clocks: clocks {
+>>> +    };
+>>> +
+>>> +    ext_clockdomains: clockdomains {
+>>> +    };
+>>> +};
+>>> +
+>>> +...
+>>> +
+>>> +&ext_clocks {
+>>> +    gpio_test_clock {
+>>> +        compatible = "gpio-clock";
+>>> +        #clock-cells = <0>;
+>>> +        enable-gpios = <&gpio5 25 GPIO_ACTIVE_HIGH>;
+>>> +    };
+>>> +};
+>>> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+>>> index 8f55945..77be18b 100644
+>>> --- a/arch/arm/mach-omap2/io.c
+>>> +++ b/arch/arm/mach-omap2/io.c
+>>> @@ -21,6 +21,8 @@
+>>>   #include <linux/init.h>
+>>>   #include <linux/io.h>
+>>>   #include <linux/clk.h>
+>>> +#include <linux/clk-provider.h>
+>>> +#include <linux/clk/ti.h>
+>>>
+>>>   #include <asm/tlb.h>
+>>>   #include <asm/mach/map.h>
+>>> @@ -729,8 +731,14 @@ int __init omap_clk_init(void)
+>>>           return 0;
+>>>
+>>>       ret = of_prcm_init();
+>>> -    if (!ret)
+>>> -        ret = omap_clk_soc_init();
+>>> +    if (ret)
+>>> +        return ret;
+>>> +
+>>> +    ret = ti_dt_clk_ext_init();
+>>> +    if (ret)
+>>> +        return ret;
+>>> +
+>>> +    ret = omap_clk_soc_init();
+>>>
+>>>       return ret;
+>>>   }
+>>> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+>>> index b1a6f71..c84ce4d 100644
+>>> --- a/drivers/clk/ti/clk.c
+>>> +++ b/drivers/clk/ti/clk.c
+>>> @@ -165,3 +165,26 @@ void ti_dt_clk_init_provider(struct device_node
+>>> *parent, int index)
+>>>           kfree(retry);
+>>>       }
+>>>   }
+>>> +
+>>> +static struct of_device_id ti_ext_clk_match_table[] = {
+>>> +    { .compatible = "ti,external-clocks" },
+>>> +    { }
+>>> +};
+>>> +
+>>> +/**
+>>> + * ti_dt_clk_ext_init - initialize external clocks from DT
+>>> + *
+>>> + * Some clocks are provided from external chips outside the main SoC.
+>>> + * The details for these are given under a special DT node, which will
+>>> + * be parsed by this function.
+>>> + */
+>>> +int ti_dt_clk_ext_init(void)
+>>> +{
+>>> +    struct device_node *np;
+>>> +
+>>> +    for_each_matching_node(np, ti_ext_clk_match_table) {
+>>> +        ti_dt_clk_init_provider(np, -1);
+>>> +    }
+>>> +
+>>> +    return 0;
+>>> +}
+>>> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+>>> index e8d8a35..188270c 100644
+>>> --- a/include/linux/clk/ti.h
+>>> +++ b/include/linux/clk/ti.h
+>>> @@ -310,6 +310,8 @@ int am43xx_dt_clk_init(void);
+>>>   int omap2420_dt_clk_init(void);
+>>>   int omap2430_dt_clk_init(void);
+>>>
+>>> +int ti_dt_clk_ext_init(void);
+>>> +
+>>>   #ifdef CONFIG_OF
+>>>   void of_ti_clk_allow_autoidle_all(void);
+>>>   void of_ti_clk_deny_autoidle_all(void);
+>>> --
+>>> 1.7.9.5
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>
 
