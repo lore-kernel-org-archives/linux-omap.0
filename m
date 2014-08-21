@@ -1,82 +1,83 @@
-From: Frans Klaver <frans.klaver@xsens.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [RFC PATCH 3/4] tty: omap-serial: use threaded interrupt handler
-Date: Thu, 21 Aug 2014 23:41:17 +0200
-Message-ID: <20140821214117.GA7076@ci00147.xsens-tech.local>
+Date: Thu, 21 Aug 2014 16:48:40 -0500
+Message-ID: <20140821214840.GU11146@saruman.home>
 References: <1406645577-18620-1-git-send-email-frans.klaver@xsens.com>
  <1408450488-4083-1-git-send-email-frans.klaver@xsens.com>
  <1408450488-4083-4-git-send-email-frans.klaver@xsens.com>
  <20140819185701.GC22003@saruman.home>
  <20140820064028.GC9319@ci00147.xsens-tech.local>
  <20140820160604.GH24500@saruman.home>
+ <20140821214117.GA7076@ci00147.xsens-tech.local>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OFtM20PmL5gDcvsL"
 Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140820160604.GH24500@saruman.home>
+In-Reply-To: <20140821214117.GA7076@ci00147.xsens-tech.local>
 Sender: linux-serial-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>, Jiri Slaby <jslaby@suse.cz>, Frans Klaver <fransklaver@gmail.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Frans Klaver <frans.klaver@xsens.com>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>, Jiri Slaby <jslaby@suse.cz>, Frans Klaver <fransklaver@gmail.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 20, 2014 at 11:06:05AM -0500, Felipe Balbi wrote:
-> On Wed, Aug 20, 2014 at 08:40:28AM +0200, Frans Klaver wrote:
-> > On Tue, Aug 19, 2014 at 01:57:02PM -0500, Felipe Balbi wrote:
-> > > On Tue, Aug 19, 2014 at 02:14:47PM +0200, Frans Klaver wrote:
-> > > > At 3.6Mbaud, with slightly over 2Mbit/s data coming in, we see 1600 uart
-> > > > rx buffer overflows within 30 seconds. Threading the interrupt handling reduces
-> > > > this to about 170 overflows in 10 minutes.
-> > > 
-> > > Can you try Sebastian Siewior's patches for 8250_omap and 8250 dma
-> > > support ? That should help you a lot.
-> > 
-> > I'll have a look at that series. Thanks for pointing it out.
+--OFtM20PmL5gDcvsL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I have had a look at Sebastian's series, but I'm not convinced
-yet that we should use it. So far the serial console seems to be
-missing data every now and then. I haven't gotten around to testing our
-high traffic application yet.
+Hi,
 
+On Thu, Aug 21, 2014 at 11:41:17PM +0200, Frans Klaver wrote:
+> On Wed, Aug 20, 2014 at 11:06:05AM -0500, Felipe Balbi wrote:
+> > On Wed, Aug 20, 2014 at 08:40:28AM +0200, Frans Klaver wrote:
+> > > On Tue, Aug 19, 2014 at 01:57:02PM -0500, Felipe Balbi wrote:
+> > > > On Tue, Aug 19, 2014 at 02:14:47PM +0200, Frans Klaver wrote:
+> > > > > At 3.6Mbaud, with slightly over 2Mbit/s data coming in, we see 16=
+00 uart
+> > > > > rx buffer overflows within 30 seconds. Threading the interrupt ha=
+ndling reduces
+> > > > > this to about 170 overflows in 10 minutes.
+> > > >=20
+> > > > Can you try Sebastian Siewior's patches for 8250_omap and 8250 dma
+> > > > support ? That should help you a lot.
+> > >=20
+> > > I'll have a look at that series. Thanks for pointing it out.
+>=20
+> I have had a look at Sebastian's series, but I'm not convinced
+> yet that we should use it. So far the serial console seems to be
+> missing data every now and then. I haven't gotten around to testing our
+> high traffic application yet.
 
-> > > >  drivers/tty/serial/omap-serial.c | 31 ++++++++++++++++++++++++-------
-> > > >  1 file changed, 24 insertions(+), 7 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> > > > index 14a0167..57664b9 100644
-> > > > --- a/drivers/tty/serial/omap-serial.c
-> > > > +++ b/drivers/tty/serial/omap-serial.c
-> > > > @@ -575,6 +575,21 @@ static void serial_omap_rdi(struct uart_omap_port *up, unsigned int lsr)
-> > > >  }
-> > > >  
-> > > >  /**
-> > > > + * serial_omap_fast_irq() - schedule interrupt handling
-> > > > + */
-> > > > +static irqreturn_t serial_omap_fast_irq(int irq, void *dev_id)
-> > > > +{
-> > > > +	struct uart_omap_port *up = dev_id;
-> > > > +	unsigned int iir = serial_in(up, UART_IIR);
-> > > > +
-> > > > +	if (iir & UART_IIR_NO_INT)
-> > > > +		return IRQ_NONE;
-> > > > +
-> > > > +	disable_irq_nosync(up->port.irq);
-> > > 
-> > > NAK. Either use IRQF_ONESHOT or actually mask the IRQs at the device's
-> > > registers (basically clearing IER).
-> > 
-> > Given the work that's been done on the 8250 based driver, what are the
-> > short-term chances omap-serial will be dropped? I'd be happy to improve
-> > here if it makes sense to do so. If the 8250 based driver is going to
-> > replace omap-serial anyway on the short term, I don't see the point of
-> > further developing this patch. The others would still make sense in my
-> > opinion.
-> 
-> if we find a way to maintain the same ttyO* naming scheme and make it
-> coexist with ttyS* naming, then we could drop as soon as 8250_omap is
-> ready for prime time.
+as any new driver, there are bugs to be fixed. How about reporting the
+ones you found together with a way of reproducing them so they can be
+fixed ?
 
-With that in mind, for now I'll be betting on two horses.
+cheers
 
-I'll cook up a new version using oneshot.
+--=20
+balbi
 
-Thanks,
-Frans
+--OFtM20PmL5gDcvsL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT9mk4AAoJEIaOsuA1yqREHVMP/1Da6QLV+OxT2cDkntSGLpWl
++bK8eDxazQMJMru7oH67z1Rc2ABUymwQkAuv5ohi8Qsi5svBQaiF4HsGmlxR39UN
+C/zp6T5KkVCL1kJPbRVrw7maHJN71Ugm7MRUJF23cgklXjLhcvkmIje8f4oCbYCA
+07MQvEEEf8zcqiRXz+6grBi4CVQONxBDcy+61srDNbXqkDekoRmT3ihfFujqw8hM
+DXlvBb+FI4f2IxwLN5h29PPrwuino1A623PRtbqiDu2nIwEaLwjFw9N60h2+cI22
+lgJZXSIAouxy6M99vbOHNJTfvs6bJ+B8tlN/GFwVRUxxzb+8vK5DJ+nIkFnXA3mu
+mz6CETc8YArlxrTmvXTEx4P67kunGCXtO34FfLJ3H57yKpb4LMo+cHouN12W1RkY
+U6Bim8ByUwqReN+W5kuZfrRyn24V6lHdq9YNXh564bpIdzZhtm1bSU/9eVNzK5p6
+iMBW9xrA/QYJ0f9AUOu3Pw7XoHIC2PLUb0PIhOtw8B+RIydbDUtdrpgSAPSUNtVO
+WH9PjlaBh1kL3JUV0ZNTjFvmHLKNqOCXZrCplZtCXs2K9QuGyONwRmdXxojcSuG7
+i2i8zxd8/g2uuN4/Wfq6T6gXeS/vJAED8/A8SO3uBnmHoTOtZHblG56D/d5Q2apX
+yOmbT0Vzb5CkLxCtSX2S
+=XFUR
+-----END PGP SIGNATURE-----
+
+--OFtM20PmL5gDcvsL--
