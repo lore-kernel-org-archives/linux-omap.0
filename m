@@ -1,39 +1,57 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 0/2] clk: ti: Fix up error checks in set_rate (and div
- 0 error)
-Date: Thu, 21 Aug 2014 16:44:31 +0300
-Message-ID: <53F5F7BF.6040809@ti.com>
-References: <1408381015-16042-1-git-send-email-nm@ti.com>
+Subject: [PATCH] clk: prevent erronous parsing of children during rate change
+Date: Thu, 21 Aug 2014 16:47:45 +0300
+Message-ID: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1408381015-16042-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Mike Turquette <mturquette@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/18/2014 07:56 PM, Nishanth Menon wrote:
-> Hi,
-> The following patches are based on v3.17-rc1
-> Prior to this series: http://slexy.org/view/s20QH6PW4x (notice the /0 div error spam at initial boot log)
-> After this series: http://slexy.org/view/s20tPNXPf4
+In some cases, clocks can switch their parent with clk_set_rate, for
+example clk_mux can do this in some cases. Current implementation of
+clk_change_rate uses un-safe list iteration on the clock children, which
+will cause wrong clocks to be parsed in case any of the clock children
+change their parents during the change rate operation. Fixed by using
+the safe list iterator instead.
 
-Yeah, valid findings. However, you did not root-cause the problem, just 
-added a bandaid for the most obvious errors. I will queue these patches 
-for 3.17-rc fixes anyway, but will post an actual fix in a bit.
+The problem was detected due to some divide by zero errors generated
+by clock init on dra7-evm board, see discussion under
+http://article.gmane.org/gmane.linux.ports.arm.kernel/349180 for details.
 
--Tero
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+To: Mike Turquette <mturquette@linaro.org>
+Reported-by: Nishanth Menon <nm@ti.com>
+---
+ drivers/clk/clk.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
->
-> Nishanth Menon (2):
->    clk: ti: divider: Provide error check for incoming parameters in
->      set_rate
->    clk: ti: dra7-atl: Provide error check for incoming parameters in
->      set_rate
->
->   drivers/clk/ti/clk-dra7-atl.c |    6 +++++-
->   drivers/clk/ti/divider.c      |    7 ++++++-
->   2 files changed, 11 insertions(+), 2 deletions(-)
->
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index b76fa69..bacc06f 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -1467,6 +1467,7 @@ static struct clk *clk_propagate_rate_change(struct clk *clk, unsigned long even
+ static void clk_change_rate(struct clk *clk)
+ {
+ 	struct clk *child;
++	struct hlist_node *tmp;
+ 	unsigned long old_rate;
+ 	unsigned long best_parent_rate = 0;
+ 	bool skip_set_rate = false;
+@@ -1502,7 +1503,11 @@ static void clk_change_rate(struct clk *clk)
+ 	if (clk->notifier_count && old_rate != clk->rate)
+ 		__clk_notify(clk, POST_RATE_CHANGE, old_rate, clk->rate);
+ 
+-	hlist_for_each_entry(child, &clk->children, child_node) {
++	/*
++	 * Use safe iteration, as change_rate can actually swap parents
++	 * for certain clock types.
++	 */
++	hlist_for_each_entry_safe(child, tmp, &clk->children, child_node) {
+ 		/* Skip children who will be reparented to another clock */
+ 		if (child->new_parent && child->new_parent != clk)
+ 			continue;
+-- 
+1.7.9.5
