@@ -1,73 +1,59 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate
- change
-Date: Thu, 21 Aug 2014 08:59:16 -0500
-Message-ID: <20140821135916.GA29906@kahuna>
-References: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
+From: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 2/3] usb: dwc3: dwc3-st: Add st-dwc3 devicetree
+ bindings documentation
+Date: Thu, 21 Aug 2014 15:03:47 +0100
+Message-ID: <20140821140347.GA21073@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
+ <1406734091-16202-3-git-send-email-peter.griffin@linaro.org>
+ <20140820180005.GU24500@saruman.home>
+ <20140821133340.GC17487@griffinp-ThinkPad-X1-Carbon-2nd>
+ <20140821135620.GD9608@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20140821135620.GD9608-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 16:47-20140821, Tero Kristo wrote:
-> In some cases, clocks can switch their parent with clk_set_rate, for
-> example clk_mux can do this in some cases. Current implementation of
-> clk_change_rate uses un-safe list iteration on the clock children, which
-> will cause wrong clocks to be parsed in case any of the clock children
-> change their parents during the change rate operation. Fixed by using
-> the safe list iterator instead.
+Hi Felipe,
+
+On Thu, 21 Aug 2014, Felipe Balbi wrote:
+
+> > Currently (in the vendor tree) one of the phys lives in
+> > drivers/usb/phy and the other in drivers/phy.
+> > I believe that is because one is only a usb phy and the other is a
+> > multi function phy which can drive PCI-E or USB3.
 > 
-> The problem was detected due to some divide by zero errors generated
-> by clock init on dra7-evm board, see discussion under
-> http://article.gmane.org/gmane.linux.ports.arm.kernel/349180 for details.
->
+> right, but for mainline, we can have both PHYs in drivers/phy only.
 
-Fixes: 71472c0c06cf ("clk: add support for clock reparent on set_rate")
-?
-
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> To: Mike Turquette <mturquette@linaro.org>
-> Reported-by: Nishanth Menon <nm@ti.com>
-
-Tested-by: Nishanth Menon <nm@ti.com>
-> ---
->  drivers/clk/clk.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
+Ah ok, I didn't know that, so thanks for that info.
 > 
-> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-> index b76fa69..bacc06f 100644
-> --- a/drivers/clk/clk.c
-> +++ b/drivers/clk/clk.c
-> @@ -1467,6 +1467,7 @@ static struct clk *clk_propagate_rate_change(struct clk *clk, unsigned long even
->  static void clk_change_rate(struct clk *clk)
->  {
->  	struct clk *child;
-> +	struct hlist_node *tmp;
->  	unsigned long old_rate;
->  	unsigned long best_parent_rate = 0;
->  	bool skip_set_rate = false;
-> @@ -1502,7 +1503,11 @@ static void clk_change_rate(struct clk *clk)
->  	if (clk->notifier_count && old_rate != clk->rate)
->  		__clk_notify(clk, POST_RATE_CHANGE, old_rate, clk->rate);
->  
-> -	hlist_for_each_entry(child, &clk->children, child_node) {
-> +	/*
-> +	 * Use safe iteration, as change_rate can actually swap parents
-> +	 * for certain clock types.
-> +	 */
-> +	hlist_for_each_entry_safe(child, tmp, &clk->children, child_node) {
->  		/* Skip children who will be reparented to another clock */
->  		if (child->new_parent && child->new_parent != clk)
->  			continue;
-> -- 
-> 1.7.9.5
+> > So to make that work, when dwc3/core.c gets the PHYS in
+> > dwc3_core_get_phy() we need to use the different bindings.
+> > 
+> > I think we are the only platform using "one of each", but luckily
+> > dwc3_core_get_phy() has been written generically enough that it "just
+> > works" :-).
 > 
+> true, but I want to drop support for the legacy drivers/usb/phy layer
+> from dwc3. I'll try to move all PHYs to drivers/phy for v3.18.
 
--- 
-Regards,
-Nishanth Menon
+Ok, so for the next re-spin I will change this to just use the generic phy binding
+for both usb2 & usb3 phys.
+
+In parallel I will also migrate over the drivers/usb/phy driver to be just a generic phy
+before I attempt to upstream it.
+
+regards,
+
+Peter
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
