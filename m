@@ -1,72 +1,40 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Wed, 20 Aug 2014 13:24:06 -0500
-Message-ID: <20140820182405.GD6023@saruman.home>
-References: <1404541530-27856-1-git-send-email-peter.griffin@linaro.org>
- <1404541530-27856-2-git-send-email-peter.griffin@linaro.org>
- <20140707124627.GG6407@lee--X1>
- <20140722091800.GB8233@griffinp-ThinkPad-X1-Carbon-2nd>
- <20140722145711.GC20588@saruman.home>
- <20140723143323.GA26565@griffinp-ThinkPad-X1-Carbon-2nd>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UfEAyuTBtIjiZzX6"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140723143323.GA26565@griffinp-ThinkPad-X1-Carbon-2nd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: [PATCH v4 4/7] net: cpsw: Replace pr_err by dev_err
+Date: Thu, 21 Aug 2014 07:51:51 +0200
+Message-ID: <1408600314-19824-5-git-send-email-mpa@pengutronix.de>
+References: <1408600314-19824-1-git-send-email-mpa@pengutronix.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51528 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750769AbaHUFxs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2014 01:53:48 -0400
+In-Reply-To: <1408600314-19824-1-git-send-email-mpa@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
---UfEAyuTBtIjiZzX6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use dev_err instead of pr_err.
 
-On Wed, Jul 23, 2014 at 03:33:23PM +0100, Peter Griffin wrote:
-> > > > > +	reset_control_assert(dwc3_data->rstc_pwrdn);
-> > > > > +
-> > > > > +	pinctrl_pm_select_sleep_state(dev);
-> >=20
-> > pinctrl will select sleep and default states automatically for you.
->=20
-> I've left this in v3, as greping around I couldn't see how that could
-> happen automatically.
->=20
-> Also I just double checked with linusw on irc who confirmed that the
-> only state which is ever auto-selected is "default". All other states,
-> as well as going back to default state need to be explicitly called.
->=20
-> Hope thats ok.
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+Reviewed-by: Wolfram Sang <wsa@the-dreams.de>
+---
+ drivers/net/ethernet/ti/cpsw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-yeah, that's fine. Thanks :-)
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index f09b4639ad31..0bc2c2a2c236 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1921,7 +1921,7 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
+ 		mdio = of_find_device_by_node(mdio_node);
+ 		of_node_put(mdio_node);
+ 		if (!mdio) {
+-			pr_err("Missing mdio platform device\n");
++			dev_err(&pdev->dev, "Missing mdio platform device\n");
+ 			return -EINVAL;
+ 		}
+ 		snprintf(slave_data->phy_id, sizeof(slave_data->phy_id),
+-- 
+2.1.0.rc1
 
---=20
-balbi
-
---UfEAyuTBtIjiZzX6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJT9OfFAAoJEIaOsuA1yqRE7ZMP+QFujkPZLmG7pVG6EUWoixnW
-83+89d+QhI7lUlofX9cKV51O+xpsk/8bn28KyGwBfpYeKsv29ViSlDP29kBYLSQt
-DH1E3v4jgbGhgoHqqJGC+r1CIxGMtfWXo9onIPzpEJublS1tir+YdoGrHWd7nHW4
-lQvwLZ5k8MWKmPCjcJQCVBZU8C8SP9sZdf8CXqDsY/aTdnZETX2tvfve3IfMYper
-Ap5X4q3HYtSyrPWvbn+abpUWllJWv4yy2exMhKMR1IYD8gFcpEEoHZxK7mmwsdAV
-Yx0Gq//MC0lSFTQJvGzewEfNqmIhMWDLGcg/oJOYLnl32u0kuQva/xd67TAZTnAt
-QS64OKUoux/gkxhXrggHym+NTXZ9O/s4OQh5m9Y6pe1tLeB+grS23U8eYQBVmYo8
-xO96rVPkemgCJB+SR2PPOwvmO23WszkcJvdqtbzyXQ/6SLx2qd2RxTz8DnExfsd7
-xcmzduFXEofoM83kIaa4yOQSXGVH1UL+ijqFssK7UVxYe2hWvjxHS4CpxG7BQy9v
-N13Ia4mVgfyj76TTldGAiN2fUCuBxI1aW0+U0GX/aexZCyy7h/Bvzn49sjpfMU0h
-L++iNPeIsWwKUDjwYq5slEgSF5h7dZmz7Fp4xqfcjO4FVJY1m8+IQQAO3TZzwMQx
-r9bPL5oyUM5l9qWnW7Sz
-=bvi4
------END PGP SIGNATURE-----
-
---UfEAyuTBtIjiZzX6--
