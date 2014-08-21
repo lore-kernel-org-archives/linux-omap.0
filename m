@@ -1,146 +1,99 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH] clk: ti: change clock init to use generic of_clk_init
-Date: Thu, 21 Aug 2014 16:49:19 +0300
-Message-ID: <1408628959-32442-1-git-send-email-t-kristo@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 2/3] usb: dwc3: dwc3-st: Add st-dwc3 devicetree
+ bindings documentation
+Date: Thu, 21 Aug 2014 08:56:21 -0500
+Message-ID: <20140821135620.GD9608@saruman.home>
+References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
+ <1406734091-16202-3-git-send-email-peter.griffin@linaro.org>
+ <20140820180005.GU24500@saruman.home>
+ <20140821133340.GC17487@griffinp-ThinkPad-X1-Carbon-2nd>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60196 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755098AbaHUNuN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Aug 2014 09:50:13 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jCrbxBqMcLqd4mOl"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20140821133340.GC17487@griffinp-ThinkPad-X1-Carbon-2nd>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Stefan Assmann <sassmann@kpanic.de>
 
-Previously, the TI clock driver initialized all the clocks hierarchically
-under each separate clock provider node. Now, each clock that requires
-IO access will instead check their parent node to find out which IO range
-to use.
+--jCrbxBqMcLqd4mOl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch allows the TI clock driver to use a few new features provided
-by the generic of_clk_init, and also allows registration of clock nodes
-outside the clock hierarchy (for example, any external clocks.)
+On Thu, Aug 21, 2014 at 02:33:40PM +0100, Peter Griffin wrote:
+> Hi Felipe,
+>=20
+> Thanks for reviewing, see my comments below: -
+>=20
+> On Wed, 20 Aug 2014, Felipe Balbi wrote:
+>=20
+> > > +	dwc3: dwc3@9900000 {
+> > > +		compatible	=3D "snps,dwc3";
+> > > +		reg		=3D <0x09900000 0x100000>;
+> > > +		interrupts	=3D <GIC_SPI 155 IRQ_TYPE_NONE>;
+> > > +		dr_mode		=3D "host"
+> > > +		usb-phy		=3D <&usb3_phy>;
+> > > +		phy-names	=3D "usb2-phy";
+> > > +		phys		=3D <&usb2_picophy2>;
+> >=20
+> > why are you using different binding for usb2 and usb3 phys ? Why can't
+> > you just:
+> >=20
+> > 	phys-names	=3D "usb2-phy", "usb3-phy";
+> > 	phys		=3D <&usb2_picophy2>, <&usb3_phy>;
+> >=20
+> > ??
+>=20
+> Currently (in the vendor tree) one of the phys lives in
+> drivers/usb/phy and the other in drivers/phy.
+> I believe that is because one is only a usb phy and the other is a
+> multi function phy which can drive PCI-E or USB3.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jyri Sarha <jsarha@ti.com>
-Cc: Stefan Assmann <sassmann@kpanic.de>
----
- arch/arm/mach-omap2/io.c         |   10 ++++++++--
- arch/arm/mach-omap2/prm_common.c |    2 --
- drivers/clk/ti/clk.c             |   31 ++++++++++++++++---------------
- 3 files changed, 24 insertions(+), 19 deletions(-)
+right, but for mainline, we can have both PHYs in drivers/phy only.
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 5d0667c..3325df6 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -734,8 +734,14 @@ int __init omap_clk_init(void)
- 	ti_clk_init_features();
- 
- 	ret = of_prcm_init();
--	if (!ret)
--		ret = omap_clk_soc_init();
-+	if (ret)
-+		return ret;
-+
-+	of_clk_init(NULL);
-+
-+	ti_dt_clockdomains_setup();
-+
-+	ret = omap_clk_soc_init();
- 
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 76ca320..3b89080 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -525,8 +525,6 @@ int __init of_prcm_init(void)
- 		memmap_index++;
- 	}
- 
--	ti_dt_clockdomains_setup();
--
- 	return 0;
- }
- 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index b1a6f71..f7201d0 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -25,8 +25,8 @@
- #undef pr_fmt
- #define pr_fmt(fmt) "%s: " fmt, __func__
- 
--static int ti_dt_clk_memmap_index;
- struct ti_clk_ll_ops *ti_clk_ll_ops;
-+static struct device_node *clocks_node_ptr[CLK_MAX_MEMMAPS];
- 
- /**
-  * ti_dt_clocks_register - register DT alias clocks during boot
-@@ -108,9 +108,21 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
- 	struct clk_omap_reg *reg;
- 	u32 val;
- 	u32 tmp;
-+	int i;
- 
- 	reg = (struct clk_omap_reg *)&tmp;
--	reg->index = ti_dt_clk_memmap_index;
-+
-+	for (i = 0; i < CLK_MAX_MEMMAPS; i++) {
-+		if (clocks_node_ptr[i] == node->parent)
-+			break;
-+	}
-+
-+	if (i == CLK_MAX_MEMMAPS) {
-+		pr_err("clk-provider not found for %s!\n", node->name);
-+		return NULL;
-+	}
-+
-+	reg->index = i;
- 
- 	if (of_property_read_u32_index(node, "reg", index, &val)) {
- 		pr_err("%s must have reg[%d]!\n", node->name, index);
-@@ -133,15 +145,10 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
-  */
- void ti_dt_clk_init_provider(struct device_node *parent, int index)
- {
--	const struct of_device_id *match;
--	struct device_node *np;
- 	struct device_node *clocks;
--	of_clk_init_cb_t clk_init_cb;
- 	struct clk_init_item *retry;
- 	struct clk_init_item *tmp;
- 
--	ti_dt_clk_memmap_index = index;
--
- 	/* get clocks for this parent */
- 	clocks = of_get_child_by_name(parent, "clocks");
- 	if (!clocks) {
-@@ -149,14 +156,8 @@ void ti_dt_clk_init_provider(struct device_node *parent, int index)
- 		return;
- 	}
- 
--	for_each_child_of_node(clocks, np) {
--		match = of_match_node(&__clk_of_table, np);
--		if (!match)
--			continue;
--		clk_init_cb = (of_clk_init_cb_t)match->data;
--		pr_debug("%s: initializing: %s\n", __func__, np->name);
--		clk_init_cb(np);
--	}
-+	/* add clocks node info */
-+	clocks_node_ptr[index] = clocks;
- 
- 	list_for_each_entry_safe(retry, tmp, &retry_list, link) {
- 		pr_debug("retry-init: %s\n", retry->node->name);
--- 
-1.7.9.5
+> So to make that work, when dwc3/core.c gets the PHYS in
+> dwc3_core_get_phy() we need to use the different bindings.
+>=20
+> I think we are the only platform using "one of each", but luckily
+> dwc3_core_get_phy() has been written generically enough that it "just
+> works" :-).
 
+true, but I want to drop support for the legacy drivers/usb/phy layer
+=66rom dwc3. I'll try to move all PHYs to drivers/phy for v3.18.
+
+cheers
+
+--=20
+balbi
+
+--jCrbxBqMcLqd4mOl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT9fqEAAoJEIaOsuA1yqREOKQP/0KFTFCvTtlcv5iiMGx5d+Wz
+LK4xUha5vJ1khKD7OYkHj3IvNsllwwBUp8zU+Qek25V+3CCrMn9kYJFTsaYDInrm
+/6PxMhy9iXmIUW5pk4gIUGmBc+kLKZeqZxuYr2u/uSC2OQ+ANpI/fA865kFr6o6k
+Rl0sWvEV78xC1e1uWvh7nPSKWIxGDwIQfqjji5BbnvCXuih9MER8MiUaVKVJO8J9
+voj1xGsxRbKAil6AnbUAGzVOgoYJwCztLEonNLc5cwsm+WcoNgnSqNI2sZGJJxUV
+w922WkTn3Da/ZU9b/BXNm33SaXRISYrZtLHQGO7tAlIP/Bax00EF79MOpb8aEFQ3
+iS06mwWDLEWRrh/9Jthay1lxSNauTDy3Lc04AFv/oPILyfX9qdsCcpeXVoE3UbiT
+7vfAmfAY2NfRJ84W27R5DERa93inzrTCzWP+BzNQZiCWgA74vHvYhEMLGYZThLTY
+1CmN30grdJNTk8qTWrv4Q5AsXs+52kBTO407Liy3vMtn2eKryULghSx9ttiHn4VR
+dOWFSGEclrsBOhbKNgSXP1vpM6ZyJZ0e3b8NTbFiZcySsjH2vWo0acPRAYvkrbK6
+kyE1+vjNtETeVvbIIOmAc5NMqISXyEgBibyrg8fHIJLwsJmEucBANjZNAsmW92EA
+OHl0lAflys3AAS/AYDb3
+=QkHf
+-----END PGP SIGNATURE-----
+
+--jCrbxBqMcLqd4mOl--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
