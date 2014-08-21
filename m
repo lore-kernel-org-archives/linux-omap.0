@@ -1,38 +1,146 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/2] clk: ti: Fix up error checks in set_rate (and div 0 error)
-Date: Thu, 21 Aug 2014 08:49:49 -0500
-Message-ID: <CAGo_u6onBbuNC9sLvBE5nFA7wMLkrsmbS3k2rgR1o6f1bYWvdg@mail.gmail.com>
-References: <1408381015-16042-1-git-send-email-nm@ti.com>
-	<53F5F7BF.6040809@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] clk: ti: change clock init to use generic of_clk_init
+Date: Thu, 21 Aug 2014 16:49:19 +0300
+Message-ID: <1408628959-32442-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53F5F7BF.6040809@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60196 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755098AbaHUNuN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Aug 2014 09:50:13 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Stefan Assmann <sassmann@kpanic.de>
 
-On Thu, Aug 21, 2014 at 8:44 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> On 08/18/2014 07:56 PM, Nishanth Menon wrote:
->>
->> Hi,
->> The following patches are based on v3.17-rc1
->> Prior to this series: http://slexy.org/view/s20QH6PW4x (notice the /0 div
->> error spam at initial boot log)
->> After this series: http://slexy.org/view/s20tPNXPf4
->
->
-> Yeah, valid findings. However, you did not root-cause the problem, just
-> added a bandaid for the most obvious errors.
+Previously, the TI clock driver initialized all the clocks hierarchically
+under each separate clock provider node. Now, each clock that requires
+IO access will instead check their parent node to find out which IO range
+to use.
 
-Yep, it does seem that omap3_noncore_dpll_set_rate had the same
-bandaid as well :).. but checks did make sense..
+This patch allows the TI clock driver to use a few new features provided
+by the generic of_clk_init, and also allows registration of clock nodes
+outside the clock hierarchy (for example, any external clocks.)
 
-> I will queue these patches for 3.17-rc fixes anyway, but will post an actual fix in a bit.
-
-Thanks for rootcausing.
-
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jyri Sarha <jsarha@ti.com>
+Cc: Stefan Assmann <sassmann@kpanic.de>
 ---
-Regards,
-Nishanth Menon
+ arch/arm/mach-omap2/io.c         |   10 ++++++++--
+ arch/arm/mach-omap2/prm_common.c |    2 --
+ drivers/clk/ti/clk.c             |   31 ++++++++++++++++---------------
+ 3 files changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 5d0667c..3325df6 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -734,8 +734,14 @@ int __init omap_clk_init(void)
+ 	ti_clk_init_features();
+ 
+ 	ret = of_prcm_init();
+-	if (!ret)
+-		ret = omap_clk_soc_init();
++	if (ret)
++		return ret;
++
++	of_clk_init(NULL);
++
++	ti_dt_clockdomains_setup();
++
++	ret = omap_clk_soc_init();
+ 
+ 	return ret;
+ }
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 76ca320..3b89080 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -525,8 +525,6 @@ int __init of_prcm_init(void)
+ 		memmap_index++;
+ 	}
+ 
+-	ti_dt_clockdomains_setup();
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index b1a6f71..f7201d0 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -25,8 +25,8 @@
+ #undef pr_fmt
+ #define pr_fmt(fmt) "%s: " fmt, __func__
+ 
+-static int ti_dt_clk_memmap_index;
+ struct ti_clk_ll_ops *ti_clk_ll_ops;
++static struct device_node *clocks_node_ptr[CLK_MAX_MEMMAPS];
+ 
+ /**
+  * ti_dt_clocks_register - register DT alias clocks during boot
+@@ -108,9 +108,21 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
+ 	struct clk_omap_reg *reg;
+ 	u32 val;
+ 	u32 tmp;
++	int i;
+ 
+ 	reg = (struct clk_omap_reg *)&tmp;
+-	reg->index = ti_dt_clk_memmap_index;
++
++	for (i = 0; i < CLK_MAX_MEMMAPS; i++) {
++		if (clocks_node_ptr[i] == node->parent)
++			break;
++	}
++
++	if (i == CLK_MAX_MEMMAPS) {
++		pr_err("clk-provider not found for %s!\n", node->name);
++		return NULL;
++	}
++
++	reg->index = i;
+ 
+ 	if (of_property_read_u32_index(node, "reg", index, &val)) {
+ 		pr_err("%s must have reg[%d]!\n", node->name, index);
+@@ -133,15 +145,10 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
+  */
+ void ti_dt_clk_init_provider(struct device_node *parent, int index)
+ {
+-	const struct of_device_id *match;
+-	struct device_node *np;
+ 	struct device_node *clocks;
+-	of_clk_init_cb_t clk_init_cb;
+ 	struct clk_init_item *retry;
+ 	struct clk_init_item *tmp;
+ 
+-	ti_dt_clk_memmap_index = index;
+-
+ 	/* get clocks for this parent */
+ 	clocks = of_get_child_by_name(parent, "clocks");
+ 	if (!clocks) {
+@@ -149,14 +156,8 @@ void ti_dt_clk_init_provider(struct device_node *parent, int index)
+ 		return;
+ 	}
+ 
+-	for_each_child_of_node(clocks, np) {
+-		match = of_match_node(&__clk_of_table, np);
+-		if (!match)
+-			continue;
+-		clk_init_cb = (of_clk_init_cb_t)match->data;
+-		pr_debug("%s: initializing: %s\n", __func__, np->name);
+-		clk_init_cb(np);
+-	}
++	/* add clocks node info */
++	clocks_node_ptr[index] = clocks;
+ 
+ 	list_for_each_entry_safe(retry, tmp, &retry_list, link) {
+ 		pr_debug("retry-init: %s\n", retry->node->name);
+-- 
+1.7.9.5
+
