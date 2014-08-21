@@ -1,44 +1,41 @@
 From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH v4 1/7] DT doc: net: cpsw mac-address is optional
-Date: Thu, 21 Aug 2014 07:51:48 +0200
-Message-ID: <1408600314-19824-2-git-send-email-mpa@pengutronix.de>
+Subject: [PATCH v4 2/7] net: cpsw: Add missing return value
+Date: Thu, 21 Aug 2014 07:51:49 +0200
+Message-ID: <1408600314-19824-3-git-send-email-mpa@pengutronix.de>
 References: <1408600314-19824-1-git-send-email-mpa@pengutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51557 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51577 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007AbaHUFxz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2014 01:53:55 -0400
+	with ESMTP id S1751007AbaHUFyC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2014 01:54:02 -0400
 In-Reply-To: <1408600314-19824-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>
 Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-mac-address is an optional property. If no mac-address is set, a random
-mac-address will be generated.
+ret is set 0 at this point, so jumping to that error label would result
+in a return value of 0. Set ret to -ENOMEM to return a proper error
+value.
 
 Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
 Reviewed-by: Wolfram Sang <wsa@the-dreams.de>
 ---
- Documentation/devicetree/bindings/net/cpsw.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/ti/cpsw.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index ae2b8b7f9c38..107caf174a0e 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -29,10 +29,10 @@ Slave Properties:
- Required properties:
- - phy_id		: Specifies slave phy id
- - phy-mode		: See ethernet.txt file in the same directory
--- mac-address		: See ethernet.txt file in the same directory
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 999fb72688d2..f09b4639ad31 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2063,6 +2063,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	priv->irq_enabled = true;
+ 	if (!priv->cpts) {
+ 		dev_err(&pdev->dev, "error allocating cpts\n");
++		ret = -ENOMEM;
+ 		goto clean_ndev_ret;
+ 	}
  
- Optional properties:
- - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
-+- mac-address		: See ethernet.txt file in the same directory
- 
- Note: "ti,hwmods" field is used to fetch the base address and irq
- resources from TI, omap hwmod data base during device registration.
 -- 
 2.1.0.rc1
 
