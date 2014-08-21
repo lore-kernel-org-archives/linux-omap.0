@@ -1,40 +1,66 @@
-From: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH v4 3/7] net: cpsw: header, Add missing include
-Date: Thu, 21 Aug 2014 07:51:50 +0200
-Message-ID: <1408600314-19824-4-git-send-email-mpa@pengutronix.de>
-References: <1408600314-19824-1-git-send-email-mpa@pengutronix.de>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1408600314-19824-1-git-send-email-mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Thu, 21 Aug 2014 10:34:21 +0200
+Message-ID: <53F5AF0D.5060409@linutronix.de>
+References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de> <1408124563-31541-16-git-send-email-bigeasy@linutronix.de> <20140815210211.GD9239@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140815210211.GD9239@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-"MII_BUS_ID_SIZE" is defined in linux/phy.h which is not included in the
-cpsw.h file.
+On 08/15/2014 11:02 PM, Tony Lindgren wrote:
+> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140815 11:13]:
+>> +#ifdef CONFIG_SERIAL_8250_DMA
+>> +	if (pdev->dev.of_node) {
+>> +		/*
+>> +		 * Oh DMA support. If there are no DMA properties in the DT then
+>> +		 * we will fall back to a generic DMA channel which does not
+>> +		 * really work here. To ensure that we do not get a generic DMA
+>> +		 * channel assigned, we have the the_no_dma_filter_fn() here.
+>> +		 * To avoid "failed to request DMA" messages we check for DMA
+>> +		 * properties in DT.
+>> +		 */
+>> +		ret = of_property_count_strings(pdev->dev.of_node, "dma-names");
+>> +		if (ret == 2) {
+>> +			up.dma = &priv->omap8250_dma;
+>> +			priv->omap8250_dma.fn = the_no_dma_filter_fn;
+>> +			priv->omap8250_dma.rx_size = RX_TRIGGER;
+>> +			priv->omap8250_dma.rxconf.src_maxburst = RX_TRIGGER;
+>> +			priv->omap8250_dma.txconf.dst_maxburst = TX_TRIGGER;
+>> +
+>> +			if (of_machine_is_compatible("ti,am33xx"))
+>> +				up.bugs |= UART_BUG_DMATX;
+>> +		}
+>> +	}
+>> +#endif
+> 
+> Hmm I wonder if there's a more generic solution to this?
 
-Signed-off-by: Markus Pargmann <mpa-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Reviewed-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
----
- drivers/net/ethernet/ti/cpsw.h | 1 +
- 1 file changed, 1 insertion(+)
+To what exactly? The trigger level, the TX-bug or using DMA in the
+first place?
 
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index 574f49da693f..1b710674630c 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -15,6 +15,7 @@
- #define __CPSW_H__
- 
- #include <linux/if_ether.h>
-+#include <linux/phy.h>
- 
- struct cpsw_slave_data {
- 	char		phy_id[MII_BUS_ID_SIZE];
--- 
-2.1.0.rc1
+> It would be also nice to be able to specify the use of DMA from
+> the board specific .dts file.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Really? I don't see this requirement for MMC for instance. However you
+still could provide an empty "dma-names" property in your board .dts
+file if you do not want use DMA. Would this work?
+
+> Also, with DMA enabled, looks like omap deeper idle states are
+> blocked as the DMA stays reserved. After I commented out the
+> DMA info for my console UART, PM started working.
+
+Hmm. This would explain something. This would mean that I should cancel
+the RX DMA transfer in the PM-suspend routine. Let me see how that
+works.
+
+> Regards,
+> 
+> Tony
+
+Sebastian
