@@ -1,39 +1,31 @@
-From: Peter Griffin <peter.griffin@linaro.org>
-Subject: Re: [PATCH 1/5] mmc: remove .owner field for drivers using
- module_platform_driver
-Date: Thu, 21 Aug 2014 14:11:07 +0100
-Message-ID: <20140821131107.GA17487@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1407860069-12706-1-git-send-email-peter.griffin@linaro.org>
- <1407860069-12706-2-git-send-email-peter.griffin@linaro.org>
- <3815db00-4b32-4484-b97e-2144dc5abb45@BY2FFO11FD040.protection.gbl>
+From: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI
+ architecture
+Date: Thu, 21 Aug 2014 14:15:30 +0100
+Message-ID: <20140821131530.GB17487@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
+ <1406734091-16202-4-git-send-email-peter.griffin@linaro.org>
+ <20140820175824.GT24500@saruman.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3815db00-4b32-4484-b97e-2144dc5abb45@BY2FFO11FD040.protection.gbl>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Michal Simek <michal.simek@xilinx.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tgih.jun@samsung.com, jh80.chung@samsung.com, chris@printf.net, ulf.hansson@linaro.org, jarkko.lavinen@nokia.com, balajitk@ti.com, baohua@kernel.org, viresh.linux@gmail.com, ian.molton@codethink.co.uk, maxime.ripard@free-electrons.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, spear-devel@list.st.com, linux-tegra@vger.kernel.org, swarren@wwwdotorg.org, patches@linaro.org, lee.jones@linaro.org
+In-Reply-To: <20140820175824.GT24500-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Michal,
+Hi Felipe,
 
-On Mon, 18 Aug 2014, Michal Simek wrote:
-
-> I have checked this for all xilinx drivers we have in the tree
-> and I have sent similar patches.
-> This problem is probably in all subsystems.
-
-Yep
-
-> With communication with Mark Brown. Don't you have
-> cocinelle script for fixing this everywhere?
-
-Nope. Never really looked at cocinelle until now, but it looks like
-a useful tool for these sort of mass updates.
+Will fix the commit log and rebase onto 3.17-rc1 for the next iteration.
 
 regards,
 
 Peter.
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
