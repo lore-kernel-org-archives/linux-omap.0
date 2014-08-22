@@ -1,61 +1,51 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/6] ARM: dts: OMAP5: switch to compatible pinctrl
-Date: Fri, 22 Aug 2014 09:03:51 -0500
-Message-ID: <1408716235-26164-3-git-send-email-nm@ti.com>
-References: <1408716235-26164-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/6] ARM: dts: OMAP5+: Fixes for pinctrl support
+Date: Fri, 22 Aug 2014 09:03:49 -0500
+Message-ID: <1408716235-26164-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1408716235-26164-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that ti,omap5-padconf is available, switch over to that compatible
-property. Retain pinctrl-single for legacy support.
+The following series add the missing dts changes needed for pinctrl to
+finally work on OMAP5/DRA7.
 
-While at it, mark pinctrl as interrupt controller so that it can be
-used with interrupts-extended property for wakeup events.
+This is part 6/6 series which eventually enables framework for
+suspend-to-ram and cpuidle for OMAP5 and DRA7.
 
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/omap5.dtsi |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Depends on previous series for pinctrl and PRM fixes for
+functionality, but is capable of continuing to provide older
+functionality with older zImage
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index df0a09b..04acda6 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -188,18 +188,22 @@
- 		};
- 
- 		omap5_pmx_core: pinmux@4a002840 {
--			compatible = "ti,omap4-padconf", "pinctrl-single";
-+			compatible = "ti,omap5-padconf", "pinctrl-single";
- 			reg = <0x4a002840 0x01b6>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
-+			#interrupt-cells = <1>;
-+			interrupt-controller;
- 			pinctrl-single,register-width = <16>;
- 			pinctrl-single,function-mask = <0x7fff>;
- 		};
- 		omap5_pmx_wkup: pinmux@4ae0c840 {
--			compatible = "ti,omap4-padconf", "pinctrl-single";
-+			compatible = "ti,omap5-padconf", "pinctrl-single";
- 			reg = <0x4ae0c840 0x0038>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
-+			#interrupt-cells = <1>;
-+			interrupt-controller;
- 			pinctrl-single,register-width = <16>;
- 			pinctrl-single,function-mask = <0x7fff>;
- 		};
+NOTE: Various hwmod and dts fixes for various other IP blocks are
+still pending for complete suspend functionality.
+
+Each of series is based on v3.17-rc1 and this specific series is available:
+weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/v3.17/dts-fixes
+
+git repo: https://github.com/nmenon/linux-2.6-playground.git push/v3.17/dts-fixes
+
+An complete integrated branch is available here: https://github.com/nmenon/linux-2.6-playground/commits/testing/v3.17/cpu-idle-suspend-dra7-omap5-framework
+
+Nishanth Menon (6):
+  ARM: dts: OMAP3+: Add PRM interrupt
+  ARM: dts: OMAP5: switch to compatible pinctrl
+  ARM: dts: DRA7: switch to compatible pinctrl
+  ARM: dts: AM437x: switch to compatible pinctrl
+  ARM: dts: OMAP5/DRA7: switch over to interrupts-extended property for
+    UART
+  ARM: dts: dra7-evm: Mark uart1 rxd as wakeup capable
+
+ arch/arm/boot/dts/am4372.dtsi  |    4 +++-
+ arch/arm/boot/dts/dra7-evm.dts |    2 ++
+ arch/arm/boot/dts/dra7.dtsi    |   25 ++++++++++++++-----------
+ arch/arm/boot/dts/omap3.dtsi   |    1 +
+ arch/arm/boot/dts/omap4.dtsi   |    1 +
+ arch/arm/boot/dts/omap5.dtsi   |   21 +++++++++++++--------
+ 6 files changed, 34 insertions(+), 20 deletions(-)
+
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
