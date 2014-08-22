@@ -1,193 +1,75 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
-Date: Fri, 22 Aug 2014 09:02:32 -0500
-Message-ID: <1408716154-26101-9-git-send-email-nm@ti.com>
+Subject: [PATCH 10/10] ARM: DRA7: Add hook in SoC initcalls to enable pm
+ initialization
+Date: Fri, 22 Aug 2014 09:02:34 -0500
+Message-ID: <1408716154-26101-11-git-send-email-nm@ti.com>
 References: <1408716154-26101-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1408716154-26101-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
-Add OMAP5/DRA74/72 CPUIDLE support.
+With consolidated code, now we can add the required hooks for
+DRA7 to enable power management.
 
-This patch adds MPUSS low power states in cpuidle.
-
-        C1 - CPU0 WFI + CPU1 WFI + MPU ON
-        C2 - CPU0 RET + CPU1 RET + MPU CSWR
-
-Tested on DRA74/72-EVM for C1 and C2 states.
-
-NOTE: DRA7 does not do voltage scaling as part of retention transition
-and has Mercury which speeds up transition paths - Latency numbers are
-based on measurements done by toggling GPIOs.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[ j-keerthy@ti.com rework on 3.14]
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-[nm@ti.com: updates based on profiling, OMAP5 squashed]
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[nm@ti.com: minor modifications]
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c |   82 ++++++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/pm44xx.c      |    2 +-
- 2 files changed, 82 insertions(+), 2 deletions(-)
+Note: Minor checkpatch warning exists for 80 char limit that was ignored.
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 2498ab0..8ad4f44 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -22,6 +22,7 @@
- #include "common.h"
- #include "pm.h"
- #include "prm.h"
-+#include "soc.h"
- #include "clockdomain.h"
- 
- #define MAX_CPUS	2
-@@ -31,6 +32,7 @@ struct idle_statedata {
- 	u32 cpu_state;
- 	u32 mpu_logic_state;
- 	u32 mpu_state;
-+	u32 mpu_state_vote;
- };
- 
- static struct idle_statedata omap4_idle_data[] = {
-@@ -51,12 +53,26 @@ static struct idle_statedata omap4_idle_data[] = {
- 	},
- };
- 
-+static struct idle_statedata dra7_idle_data[] = {
-+	{
-+		.cpu_state = PWRDM_POWER_ON,
-+		.mpu_state = PWRDM_POWER_ON,
-+		.mpu_logic_state = PWRDM_POWER_ON,
-+	},
-+	{
-+		.cpu_state = PWRDM_POWER_RET,
-+		.mpu_state = PWRDM_POWER_RET,
-+		.mpu_logic_state = PWRDM_POWER_RET,
-+	},
-+};
-+
- static struct powerdomain *mpu_pd, *cpu_pd[MAX_CPUS];
- static struct clockdomain *cpu_clkdm[MAX_CPUS];
- 
- static atomic_t abort_barrier;
- static bool cpu_done[MAX_CPUS];
- static struct idle_statedata *state_ptr = &omap4_idle_data[0];
-+static DEFINE_RAW_SPINLOCK(mpu_lock);
- 
- /* Private functions */
- 
-@@ -78,6 +94,32 @@ static int omap_enter_idle_simple(struct cpuidle_device *dev,
- 	return index;
+ arch/arm/mach-omap2/common.h |    2 +-
+ arch/arm/mach-omap2/io.c     |    3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 5bb1592..b6d2989 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -60,7 +60,7 @@ static inline int omap3_pm_init(void)
  }
+ #endif
  
-+static int omap_enter_idle_smp(struct cpuidle_device *dev,
-+			       struct cpuidle_driver *drv,
-+			       int index)
-+{
-+	struct idle_statedata *cx = state_ptr + index;
-+	unsigned long flag;
-+
-+	raw_spin_lock_irqsave(&mpu_lock, flag);
-+	cx->mpu_state_vote++;
-+	if (cx->mpu_state_vote == num_online_cpus()) {
-+		pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
-+		omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
-+	}
-+	raw_spin_unlock_irqrestore(&mpu_lock, flag);
-+
-+	omap4_enter_lowpower(dev->cpu, cx->cpu_state);
-+
-+	raw_spin_lock_irqsave(&mpu_lock, flag);
-+	if (cx->mpu_state_vote == num_online_cpus())
-+		omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
-+	cx->mpu_state_vote--;
-+	raw_spin_unlock_irqrestore(&mpu_lock, flag);
-+
-+	return index;
-+}
-+
- static int omap_enter_idle_coupled(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
- 			int index)
-@@ -224,6 +266,34 @@ static struct cpuidle_driver omap4_idle_driver = {
- 	.safe_state_index = 0,
- };
- 
-+static struct cpuidle_driver dra7_idle_driver = {
-+	.name				= "dra7_idle",
-+	.owner				= THIS_MODULE,
-+	.states = {
-+		{
-+			/* C1 - CPU0 ON + CPU1 ON + MPU ON */
-+			.exit_latency = 2 + 2,
-+			.target_residency = 5,
-+			.flags = CPUIDLE_FLAG_TIME_VALID,
-+			.enter = omap_enter_idle_simple,
-+			.name = "C1",
-+			.desc = "CPUx WFI, MPUSS ON"
-+		},
-+		{
-+			/* C2 - CPU0 RET + CPU1 RET + MPU CSWR */
-+			.exit_latency = 48 + 60,
-+			.target_residency = 100,
-+			.flags = CPUIDLE_FLAG_TIME_VALID
-+					| CPUIDLE_FLAG_TIMER_STOP,
-+			.enter = omap_enter_idle_smp,
-+			.name = "C2",
-+			.desc = "CPUx CSWR, MPUSS CSWR",
-+		},
-+	},
-+	.state_count = ARRAY_SIZE(dra7_idle_data),
-+	.safe_state_index = 0,
-+};
-+
- /* Public functions */
- 
- /**
-@@ -234,6 +304,16 @@ static struct cpuidle_driver omap4_idle_driver = {
-  */
- int __init omap4_idle_init(void)
+-#if defined(CONFIG_PM) && (defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5))
++#if defined(CONFIG_PM) && (defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX))
+ int omap4_pm_init(void);
+ int omap4_pm_init_early(void);
+ #else
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 2890c2d..831805e 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -698,6 +698,7 @@ void __init dra7xx_init_early(void)
+ 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(DRA7XX_CM_CORE_AON_BASE),
+ 			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
+ 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
++	omap4_pm_init_early();
+ 	omap_prm_base_init();
+ 	omap_cm_base_init();
+ 	omap44xx_prm_init();
+@@ -712,6 +713,8 @@ void __init dra7xx_init_early(void)
+ void __init dra7xx_init_late(void)
  {
-+	struct cpuidle_driver *idle_driver;
-+
-+	if (soc_is_dra7xx() || soc_is_omap54xx()) {
-+		state_ptr = &dra7_idle_data[0];
-+		idle_driver = &dra7_idle_driver;
-+	} else {
-+		state_ptr = &omap4_idle_data[0];
-+		idle_driver = &omap4_idle_driver;
-+	}
-+
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
- 	cpu_pd[0] = pwrdm_lookup("cpu0_pwrdm");
- 	cpu_pd[1] = pwrdm_lookup("cpu1_pwrdm");
-@@ -248,5 +328,5 @@ int __init omap4_idle_init(void)
- 	/* Configure the broadcast timer on each cpu */
- 	on_each_cpu(omap_setup_broadcast_timer, NULL, 1);
- 
--	return cpuidle_register(&omap4_idle_driver, cpu_online_mask);
-+	return cpuidle_register(idle_driver, cpu_online_mask);
+ 	omap_common_late_init();
++	omap4_pm_init();
++	omap2_clk_enable_autoidle_all();
  }
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index c063833..1d22162 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -293,7 +293,7 @@ int __init omap4_pm_init(void)
- 	/* Overwrite the default cpu_do_idle() */
- 	arm_pm_idle = omap_default_idle;
+ #endif
  
--	if (cpu_is_omap44xx())
-+	if (cpu_is_omap44xx() || soc_is_dra7xx() || soc_is_omap54xx())
- 		omap4_idle_init();
- 
- err2:
 -- 
 1.7.9.5
