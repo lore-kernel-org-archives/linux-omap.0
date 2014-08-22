@@ -1,55 +1,251 @@
-From: Frans Klaver <fransklaver@gmail.com>
-Subject: Re: [RFC PATCH 3/4] tty: omap-serial: use threaded interrupt handler
-Date: Fri, 22 Aug 2014 00:07:22 +0200
-Message-ID: <c5a0e820-cd57-43d0-85db-1297a83861c5@email.android.com>
-References: <1406645577-18620-1-git-send-email-frans.klaver@xsens.com> <1408450488-4083-1-git-send-email-frans.klaver@xsens.com> <1408450488-4083-4-git-send-email-frans.klaver@xsens.com> <20140819185701.GC22003@saruman.home> <20140820064028.GC9319@ci00147.xsens-tech.local> <20140820160604.GH24500@saruman.home> <20140821214117.GA7076@ci00147.xsens-tech.local> <20140821214840.GU11146@saruman.home>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] usb: phy: twl4030-usb: Fix regressions to runtime PM
+ on omaps
+Date: Fri, 22 Aug 2014 10:18:45 +0530
+Message-ID: <53F6CBAD.8040803@ti.com>
+References: <20140821164346.GA10066@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:37311 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754988AbaHUWHc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Aug 2014 18:07:32 -0400
-In-Reply-To: <20140821214840.GU11146@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140821164346.GA10066-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, Frans Klaver <frans.klaver@xsens.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On August 21, 2014 11:48:40 PM CEST, Felipe Balbi <balbi@ti.com> wrote:
->Hi,
->
->On Thu, Aug 21, 2014 at 11:41:17PM +0200, Frans Klaver wrote:
->> On Wed, Aug 20, 2014 at 11:06:05AM -0500, Felipe Balbi wrote:
->> > On Wed, Aug 20, 2014 at 08:40:28AM +0200, Frans Klaver wrote:
->> > > On Tue, Aug 19, 2014 at 01:57:02PM -0500, Felipe Balbi wrote:
->> > > > On Tue, Aug 19, 2014 at 02:14:47PM +0200, Frans Klaver wrote:
->> > > > > At 3.6Mbaud, with slightly over 2Mbit/s data coming in, we
->see 1600 uart
->> > > > > rx buffer overflows within 30 seconds. Threading the
->interrupt handling reduces
->> > > > > this to about 170 overflows in 10 minutes.
->> > > > 
->> > > > Can you try Sebastian Siewior's patches for 8250_omap and 8250
->dma
->> > > > support ? That should help you a lot.
->> > > 
->> > > I'll have a look at that series. Thanks for pointing it out.
->> 
->> I have had a look at Sebastian's series, but I'm not convinced
->> yet that we should use it. So far the serial console seems to be
->> missing data every now and then. I haven't gotten around to testing
->our
->> high traffic application yet.
->
->as any new driver, there are bugs to be fixed. How about reporting the
->ones you found together with a way of reproducing them so they can be
->fixed ?
+Hi,
 
-Yes, definitely.
+On Thursday 21 August 2014 10:13 PM, Tony Lindgren wrote:
+> Commit 30a70b026b4cd ("usb: musb: fix obex in g_nokia.ko causing kernel
+> panic") attempted to fix runtime PM handling for PHYs that are on the
+> I2C bus. Commit 3063a12be2b0 (usb: musb: fix PHY power on/off) then
+> changed things around to enable of PHYs that rely on runtime PM.
+> 
+> These changes however broke idling of the PHY and causes at least
+> 100 mW extra power consumption on omaps, which is a lot with
+> the idle power consumption being below 10 mW range on many devices.
+> 
+> As calling phy_power_on/off from runtime PM calls in the USB
+> causes complicated issues with I2C connected PHYs, let's just let
+> the PHY do it's own runtime PM as needed. This leaves out the
+> dependency between PHYs and USB controller drivers for runtime
+> PM.
+> 
+> Let's fix the regression for twl4030-usb by adding minimal runtime
+> PM support. This allows idling the PHY on disconnect.
+> 
+> Note that we are changing to use standard runtime PM handling
+> for twl4030_phy_init() as that function just checks the state
+> and does not initialize the PHY. The PHY won't get initialized
+> until in twl4030_phy_power_on().
+> 
+> Fixes: 30a70b026b4cd ("usb: musb: fix obex in g_nokia.ko causing kernel panic")
+> Fixes: 3063a12be2b0 ("usb: musb: fix PHY power on/off")
+> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v3.15+
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> ---
+> 
+> Kishon, this regression fix would be nice to get into the v3.17-rc
+> series if no objections. If you don't have other fixes, I can also
+> queue via arm-soc with proper acks.
 
-Cheers, 
-Frans
+I can queue this one up once put_autosuspend() is used.
 
+Thanks
+Kishon
+> 
+> It probably does not make sense to try to fix this without using
+> runtime PM without complicating the code further.
+> 
+> --- a/drivers/phy/phy-twl4030-usb.c
+> +++ b/drivers/phy/phy-twl4030-usb.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/usb/otg.h>
+>  #include <linux/phy/phy.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/usb/musb-omap.h>
+>  #include <linux/usb/ulpi.h>
+>  #include <linux/i2c/twl.h>
+> @@ -422,37 +423,55 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+>  	}
+>  }
+>  
+> -static int twl4030_phy_power_off(struct phy *phy)
+> +static int twl4030_usb_runtime_suspend(struct device *dev)
+>  {
+> -	struct twl4030_usb *twl = phy_get_drvdata(phy);
+> +	struct twl4030_usb *twl = dev_get_drvdata(dev);
+>  
+> +	dev_dbg(twl->dev, "%s\n", __func__);
+>  	if (twl->asleep)
+>  		return 0;
+>  
+>  	twl4030_phy_power(twl, 0);
+>  	twl->asleep = 1;
+> -	dev_dbg(twl->dev, "%s\n", __func__);
+> +
+>  	return 0;
+>  }
+>  
+> -static void __twl4030_phy_power_on(struct twl4030_usb *twl)
+> +static int twl4030_usb_runtime_resume(struct device *dev)
+>  {
+> +	struct twl4030_usb *twl = dev_get_drvdata(dev);
+> +
+> +	dev_dbg(twl->dev, "%s\n", __func__);
+> +	if (!twl->asleep)
+> +		return 0;
+> +
+>  	twl4030_phy_power(twl, 1);
+> -	twl4030_i2c_access(twl, 1);
+> -	twl4030_usb_set_mode(twl, twl->usb_mode);
+> -	if (twl->usb_mode == T2_USB_MODE_ULPI)
+> -		twl4030_i2c_access(twl, 0);
+> +	twl->asleep = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +static int twl4030_phy_power_off(struct phy *phy)
+> +{
+> +	struct twl4030_usb *twl = phy_get_drvdata(phy);
+> +
+> +	dev_dbg(twl->dev, "%s\n", __func__);
+> +	pm_runtime_mark_last_busy(twl->dev);
+> +	pm_runtime_put_autosuspend(twl->dev);
+> +
+> +	return 0;
+>  }
+>  
+>  static int twl4030_phy_power_on(struct phy *phy)
+>  {
+>  	struct twl4030_usb *twl = phy_get_drvdata(phy);
+>  
+> -	if (!twl->asleep)
+> -		return 0;
+> -	__twl4030_phy_power_on(twl);
+> -	twl->asleep = 0;
+>  	dev_dbg(twl->dev, "%s\n", __func__);
+> +	pm_runtime_get_sync(twl->dev);
+> +	twl4030_i2c_access(twl, 1);
+> +	twl4030_usb_set_mode(twl, twl->usb_mode);
+> +	if (twl->usb_mode == T2_USB_MODE_ULPI)
+> +		twl4030_i2c_access(twl, 0);
+>  
+>  	/*
+>  	 * XXX When VBUS gets driven after musb goes to A mode,
+> @@ -558,6 +577,16 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+>  		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
+>  		 * starts to handle softconnect right.
+>  		 */
+> +		if ((status == OMAP_MUSB_VBUS_VALID) ||
+> +		    (status == OMAP_MUSB_ID_GROUND)) {
+> +			if (twl->asleep)
+> +				pm_runtime_get_sync(twl->dev);
+> +		} else {
+> +			if (!twl->asleep) {
+> +				pm_runtime_mark_last_busy(twl->dev);
+> +				pm_runtime_put_autosuspend(twl->dev);
+> +			}
+> +		}
+>  		omap_musb_mailbox(status);
+>  	}
+>  	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+> @@ -599,22 +628,17 @@ static int twl4030_phy_init(struct phy *phy)
+>  	struct twl4030_usb *twl = phy_get_drvdata(phy);
+>  	enum omap_musb_vbus_id_status status;
+>  
+> -	/*
+> -	 * Start in sleep state, we'll get called through set_suspend()
+> -	 * callback when musb is runtime resumed and it's time to start.
+> -	 */
+> -	__twl4030_phy_power(twl, 0);
+> -	twl->asleep = 1;
+> -
+> +	pm_runtime_get_sync(twl->dev);
+>  	status = twl4030_usb_linkstat(twl);
+>  	twl->linkstat = status;
+>  
+> -	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
+> +	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
+>  		omap_musb_mailbox(twl->linkstat);
+> -		twl4030_phy_power_on(phy);
+> -	}
+>  
+>  	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+> +	pm_runtime_mark_last_busy(twl->dev);
+> +	pm_runtime_put_autosuspend(twl->dev);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -650,6 +674,11 @@ static const struct phy_ops ops = {
+>  	.owner		= THIS_MODULE,
+>  };
+>  
+> +static const struct dev_pm_ops twl4030_usb_pm_ops = {
+> +	SET_RUNTIME_PM_OPS(twl4030_usb_runtime_suspend,
+> +			   twl4030_usb_runtime_resume, NULL)
+> +};
+> +
+>  static int twl4030_usb_probe(struct platform_device *pdev)
+>  {
+>  	struct twl4030_usb_data *pdata = dev_get_platdata(&pdev->dev);
+> @@ -726,6 +755,11 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+>  
+>  	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+>  
+> +	pm_runtime_use_autosuspend(&pdev->dev);
+> +	pm_runtime_set_autosuspend_delay(&pdev->dev, 2000);
+> +	pm_runtime_enable(&pdev->dev);
+> +	pm_runtime_get_sync(&pdev->dev);
+> +
+>  	/* Our job is to use irqs and status from the power module
+>  	 * to keep the transceiver disabled when nothing's connected.
+>  	 *
+> @@ -744,6 +778,9 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+>  		return status;
+>  	}
+>  
+> +	pm_runtime_mark_last_busy(&pdev->dev);
+> +	pm_runtime_put(&pdev->dev);
+> +
+>  	dev_info(&pdev->dev, "Initialized TWL4030 USB module\n");
+>  	return 0;
+>  }
+> @@ -753,6 +790,7 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+>  	struct twl4030_usb *twl = platform_get_drvdata(pdev);
+>  	int val;
+>  
+> +	pm_runtime_get_sync(twl->dev);
+>  	cancel_delayed_work(&twl->id_workaround_work);
+>  	device_remove_file(twl->dev, &dev_attr_vbus);
+>  
+> @@ -772,9 +810,8 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+>  
+>  	/* disable complete OTG block */
+>  	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
+> -
+> -	if (!twl->asleep)
+> -		twl4030_phy_power(twl, 0);
+> +	pm_runtime_mark_last_busy(twl->dev);
+> +	pm_runtime_put(twl->dev);
+>  
+>  	return 0;
+>  }
+> @@ -792,6 +829,7 @@ static struct platform_driver twl4030_usb_driver = {
+>  	.remove		= twl4030_usb_remove,
+>  	.driver		= {
+>  		.name	= "twl4030_usb",
+> +		.pm	= &twl4030_usb_pm_ops,
+>  		.owner	= THIS_MODULE,
+>  		.of_match_table = of_match_ptr(twl4030_usb_id_table),
+>  	},
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
