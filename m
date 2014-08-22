@@ -1,8 +1,8 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 10/10] ARM: DRA7: Add hook in SoC initcalls to enable pm
- initialization
-Date: Fri, 22 Aug 2014 09:02:34 -0500
-Message-ID: <1408716154-26101-11-git-send-email-nm@ti.com>
+Subject: [PATCH 01/10] ARM: OMAP5 / DRA7: PM: Update CPU context register
+ offset
+Date: Fri, 22 Aug 2014 09:02:25 -0500
+Message-ID: <1408716154-26101-2-git-send-email-nm@ti.com>
 References: <1408716154-26101-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,54 +22,69 @@ To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.co
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-With consolidated code, now we can add the required hooks for
-DRA7 to enable power management.
+On OMAP5, RM_CPUi_CPUi_CONTEXT offset has changed. Update the code
+so that same code works for OMAP4+ devices. DRA7 and OMAP5 have the same
+context offset as well.
 
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+[rnayak@ti.com: for DRA7]
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-[nm@ti.com: minor modifications]
+[nm@ti.com: rebase, split/merge etc..]
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
-Note: Minor checkpatch warning exists for 80 char limit that was ignored.
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
- arch/arm/mach-omap2/common.h |    2 +-
- arch/arm/mach-omap2/io.c     |    3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 5bb1592..b6d2989 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -60,7 +60,7 @@ static inline int omap3_pm_init(void)
- }
- #endif
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 4001325..63a1dd7 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -56,6 +56,7 @@
+ #include "omap4-sar-layout.h"
+ #include "pm.h"
+ #include "prcm_mpu44xx.h"
++#include "prcm_mpu54xx.h"
+ #include "prminst44xx.h"
+ #include "prcm44xx.h"
+ #include "prm44xx.h"
+@@ -89,6 +90,7 @@ struct cpu_pm_ops {
+ static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
+ static struct powerdomain *mpuss_pd;
+ static void __iomem *sar_base;
++static u32 cpu_context_offset;
  
--#if defined(CONFIG_PM) && (defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5))
-+#if defined(CONFIG_PM) && (defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || defined(CONFIG_SOC_DRA7XX))
- int omap4_pm_init(void);
- int omap4_pm_init_early(void);
- #else
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2890c2d..831805e 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -698,6 +698,7 @@ void __init dra7xx_init_early(void)
- 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(DRA7XX_CM_CORE_AON_BASE),
- 			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
- 	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
-+	omap4_pm_init_early();
- 	omap_prm_base_init();
- 	omap_cm_base_init();
- 	omap44xx_prm_init();
-@@ -712,6 +713,8 @@ void __init dra7xx_init_early(void)
- void __init dra7xx_init_late(void)
+ static int default_finish_suspend(unsigned long cpu_state)
  {
- 	omap_common_late_init();
-+	omap4_pm_init();
-+	omap2_clk_enable_autoidle_all();
- }
- #endif
+@@ -161,14 +163,14 @@ static inline void cpu_clear_prev_logic_pwrst(unsigned int cpu_id)
  
+ 	if (cpu_id) {
+ 		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU1_INST,
+-					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
++					cpu_context_offset);
+ 		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU1_INST,
+-					OMAP4_RM_CPU1_CPU1_CONTEXT_OFFSET);
++					cpu_context_offset);
+ 	} else {
+ 		reg = omap4_prcm_mpu_read_inst_reg(OMAP4430_PRCM_MPU_CPU0_INST,
+-					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
++					cpu_context_offset);
+ 		omap4_prcm_mpu_write_inst_reg(reg, OMAP4430_PRCM_MPU_CPU0_INST,
+-					OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET);
++					cpu_context_offset);
+ 	}
+ }
+ 
+@@ -392,6 +394,9 @@ int __init omap4_mpuss_init(void)
+ 		omap_pm_ops.finish_suspend = omap4_finish_suspend;
+ 		omap_pm_ops.resume = omap4_cpu_resume;
+ 		omap_pm_ops.scu_prepare = scu_pwrst_prepare;
++		cpu_context_offset = OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET;
++	} else if (soc_is_omap54xx() || soc_is_dra7xx()) {
++		cpu_context_offset = OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET;
+ 	}
+ 
+ 	return 0;
 -- 
 1.7.9.5
