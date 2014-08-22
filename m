@@ -1,172 +1,52 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v7 RESEND] ARM: omap: edma: add suspend suspend/resume hooks
-Date: Fri, 22 Aug 2014 02:46:02 -0500
-Message-ID: <1408693562-18068-1-git-send-email-d-gerlach@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] usb: phy: twl4030-usb: Fix lost interrupts after ID pin
+ goes down
+Date: Fri, 22 Aug 2014 16:18:40 +0300
+Message-ID: <CANOLnOM_5VXDAstbQN45wRyYq9k26PWM0z9uZ+C2VmhOqzCuEw@mail.gmail.com>
+References: <20140821164803.GB10066@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45770 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755212AbaHVHqh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2014 03:46:37 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140821164803.GB10066@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 
-From: Daniel Mack <zonque@gmail.com>
+Hi,
 
-This patch makes the edma driver resume correctly after suspend. Tested
-on an AM33xx platform with cyclic audio streams and omap_hsmmc.
+On Thu, Aug 21, 2014 at 7:48 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> Commit 249751f22380 ("usb: phy: twl4030-usb: poll for ID disconnect")
+> added twl4030_id_workaround_work() to deal with lost interrupts
+> after ID pin goes down. However, this currently only works for the
+> insertion. The PHY interrupts are not working after disconnecting
+> an USB-A device from the board, and the deeper idle states for
+> omap are blocked as the USB controller stays busy.
+>
+> The issue can be solved by calling delayed work from twl4030_usb_irq(=
+)
+> when ID pin is down and the PHY is not asleep like we already do
+> in twl4030_id_workaround_work().
 
-All information can be reconstructed by already known runtime
-information.
+The way it is supposed to work is that after plugging in the cable
+twl4030_phy_power_on() sees ID_GROUND and kicks off id_workaround_work
+every second. When cable is unplugged, twl4030_id_workaround_work()
+sees changes in STS_HW_CONDITIONS register and triggers events.
+Doesn't that work for you, why do you need to trigger it from
+twl4030_usb_irq() too?
 
-As we now use some functions that were previously only used from __init
-context, annotations had to be dropped.
+> But as both twl4030_usb_irq() and twl4030_id_workaround_work()
+> already do pretty much the same thing, let's call twl4030_usb_irq()
+> from twl4030_id_workaround_work() instead of adding some more
+> duplicate code.
 
-[nm@ti.com: added error handling for runtime + suspend_late/early_resume]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Tested-by: Joel Fernandes <joelf@ti.com>
-Acked-by: Joel Fernandes <joelf@ti.com>
-[d-gerlach@ti.com: updated to remove queue_tc_mapping use]
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
+The difference is the sysfs_notify() call, so now every time
+id_workaround_work triggers (around once per second while the cable is
+plugged) userspace will now get useless uevent. Haven't actually
+checked if it really happens though, so I might be wrong.
 
-Needed for am335x suspend, but never got picked up. Previously
-sent here: http://marc.info/?l=linux-arm-kernel&m=138556067416051&w=2
 
- arch/arm/common/edma.c | 86 ++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 84 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 8809917..ece1e3d 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -244,6 +244,8 @@ struct edma {
- 	/* list of channels with no even trigger; terminated by "-1" */
- 	const s8	*noevent;
- 
-+	struct edma_soc_info *info;
-+
- 	/* The edma_inuse bit for each PaRAM slot is clear unless the
- 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
- 	 */
-@@ -295,7 +297,7 @@ static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
- 			~(0x7 << bit), queue_no << bit);
- }
- 
--static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
-+static void assign_priority_to_queue(unsigned ctlr, int queue_no,
- 		int priority)
- {
- 	int bit = queue_no * 4;
-@@ -314,7 +316,7 @@ static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
-  * included in that particular EDMA variant (Eg : dm646x)
-  *
-  */
--static void __init map_dmach_param(unsigned ctlr)
-+static void map_dmach_param(unsigned ctlr)
- {
- 	int i;
- 	for (i = 0; i < EDMA_MAX_DMACH; i++)
-@@ -1791,15 +1793,95 @@ static int edma_probe(struct platform_device *pdev)
- 			edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
- 			edma_write_array(j, EDMA_QRAE, i, 0x0);
- 		}
-+		edma_cc[j]->info = info[j];
- 		arch_num_cc++;
- 	}
- 
- 	return 0;
- }
- 
-+static int edma_pm_suspend(struct device *dev)
-+{
-+	int j, r;
-+
-+	r = pm_runtime_get_sync(dev);
-+	if (r < 0) {
-+		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
-+		return r;
-+	}
-+
-+	for (j = 0; j < arch_num_cc; j++) {
-+		struct edma *ecc = edma_cc[j];
-+
-+		disable_irq(ecc->irq_res_start);
-+		disable_irq(ecc->irq_res_end);
-+	}
-+
-+	pm_runtime_put_sync(dev);
-+
-+	return 0;
-+}
-+
-+static int edma_pm_resume(struct device *dev)
-+{
-+	int i, j, r;
-+
-+	r = pm_runtime_get_sync(dev);
-+	if (r < 0) {
-+		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
-+		return r;
-+	}
-+
-+	for (j = 0; j < arch_num_cc; j++) {
-+		struct edma *cc = edma_cc[j];
-+
-+		s8 (*queue_priority_mapping)[2];
-+
-+		queue_priority_mapping = cc->info->queue_priority_mapping;
-+
-+		/* Event queue priority mapping */
-+		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
-+			assign_priority_to_queue(j,
-+						 queue_priority_mapping[i][0],
-+						 queue_priority_mapping[i][1]);
-+
-+		/*
-+		 * Map the channel to param entry if channel mapping logic
-+		 * exist
-+		 */
-+		if (edma_read(j, EDMA_CCCFG) & CHMAP_EXIST)
-+			map_dmach_param(j);
-+
-+		for (i = 0; i < cc->num_channels; i++) {
-+			if (test_bit(i, cc->edma_inuse)) {
-+				/* ensure access through shadow region 0 */
-+				edma_or_array2(j, EDMA_DRAE, 0, i >> 5,
-+					       BIT(i & 0x1f));
-+
-+				setup_dma_interrupt(i,
-+						    cc->intr_data[i].callback,
-+						    cc->intr_data[i].data);
-+			}
-+		}
-+
-+		enable_irq(cc->irq_res_start);
-+		enable_irq(cc->irq_res_end);
-+	}
-+
-+	pm_runtime_put_sync(dev);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops edma_pm_ops = {
-+	.suspend_late	= edma_pm_suspend,
-+	.resume_early	= edma_pm_resume,
-+};
-+
- static struct platform_driver edma_driver = {
- 	.driver = {
- 		.name	= "edma",
-+		.pm	= &edma_pm_ops,
- 		.of_match_table = edma_of_ids,
- 	},
- 	.probe = edma_probe,
--- 
-1.9.0
-
+--=20
+Gra=C5=BEvydas
