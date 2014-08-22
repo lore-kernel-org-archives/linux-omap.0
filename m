@@ -1,55 +1,47 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 5/7] ARM: OMAP4+: PM: Make logic state programmable
-Date: Fri, 22 Aug 2014 08:49:31 -0500
-Message-ID: <1408715373-25791-6-git-send-email-nm@ti.com>
+Subject: [PATCH 3/7] ARM: OMAP2+: powerdomain: pwrdm_for_each_clkdm iterate
+ only valid clkdms
+Date: Fri, 22 Aug 2014 08:49:29 -0500
+Message-ID: <1408715373-25791-4-git-send-email-nm@ti.com>
 References: <1408715373-25791-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1408715373-25791-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Move the logic state as different for each power domain. This allows us
-to customize the deepest power state we should target over all for each
-powerdomain in the follow on patches.
+No need to invoke callback when the clkdm pointer is NULL.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/pm44xx.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/powerdomain.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 0dda6cf..b377b03 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -29,6 +29,7 @@ u16 pm44xx_errata;
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-+	u32 next_logic_state;
- #ifdef CONFIG_SUSPEND
- 	u32 saved_state;
- 	u32 saved_logic_state;
-@@ -54,7 +55,7 @@ static int omap4_pm_suspend(void)
- 	/* Set targeted power domain states by suspend */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
--		pwrdm_set_logic_retst(pwrst->pwrdm, PWRDM_POWER_OFF);
-+		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->next_logic_state);
- 	}
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index faebd5f..f391948 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -546,7 +546,8 @@ int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
+ 		return -EINVAL;
  
- 	/*
-@@ -121,6 +122,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
+-		ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
++		if (pwrdm->pwrdm_clkdms[i])
++			ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
  
- 	pwrst->pwrdm = pwrdm;
- 	pwrst->next_state = PWRDM_POWER_RET;
-+	pwrst->next_logic_state = PWRDM_POWER_OFF;
-+
- 	list_add(&pwrst->node, &pwrst_list);
- 
- 	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ 	return ret;
+ }
 -- 
 1.7.9.5
