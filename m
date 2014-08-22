@@ -1,68 +1,55 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/7] ARM: OMAP5: powerdomain data: fix powerdomain powerstate
-Date: Fri, 22 Aug 2014 08:49:28 -0500
-Message-ID: <1408715373-25791-3-git-send-email-nm@ti.com>
+Subject: [PATCH 6/7] ARM: OMAP4+: PM: use only valid low power state for
+ suspend
+Date: Fri, 22 Aug 2014 08:49:32 -0500
+Message-ID: <1408715373-25791-7-git-send-email-nm@ti.com>
 References: <1408715373-25791-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1408715373-25791-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Update the power domain power states for final production chip
-capability. OFF mode, OSWR etc have been descoped for various domains.
+We are using power domain state as RET and logic state as OFF. This
+state is OSWR. This may not always be supported on ALL power domains. In
+fact, on certain power domains, this might result in a hang on certain
+platforms. Instead, depend on powerdomain data to provide accurate
+information about the supported powerdomain states and use the
+appropriate function to query and use it as part of suspend path.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/powerdomains54xx_data.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/pm44xx.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains54xx_data.c b/arch/arm/mach-omap2/powerdomains54xx_data.c
-index ce1d752..60d7ed8 100644
---- a/arch/arm/mach-omap2/powerdomains54xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains54xx_data.c
-@@ -35,7 +35,7 @@ static struct powerdomain core_54xx_pwrdm = {
- 	.prcm_offs	  = OMAP54XX_PRM_CORE_INST,
- 	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
- 	.pwrsts		  = PWRSTS_RET_ON,
--	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.pwrsts_logic_ret = PWRSTS_RET,
- 	.banks		  = 5,
- 	.pwrsts_mem_ret	= {
- 		[0] = PWRSTS_OFF_RET,	/* core_nret_bank */
-@@ -107,8 +107,8 @@ static struct powerdomain cpu0_54xx_pwrdm = {
- 	.voltdm		  = { .name = "mpu" },
- 	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C0_INST,
- 	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
--	.pwrsts		  = PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.pwrsts		  = PWRSTS_RET_ON,
-+	.pwrsts_logic_ret = PWRSTS_RET,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	= {
- 		[0] = PWRSTS_OFF_RET,	/* cpu0_l1 */
-@@ -124,8 +124,8 @@ static struct powerdomain cpu1_54xx_pwrdm = {
- 	.voltdm		  = { .name = "mpu" },
- 	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C1_INST,
- 	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
--	.pwrsts		  = PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.pwrsts		  = PWRSTS_RET_ON,
-+	.pwrsts_logic_ret = PWRSTS_RET,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	= {
- 		[0] = PWRSTS_OFF_RET,	/* cpu1_l1 */
-@@ -158,7 +158,7 @@ static struct powerdomain mpu_54xx_pwrdm = {
- 	.prcm_offs	  = OMAP54XX_PRM_MPU_INST,
- 	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
- 	.pwrsts		  = PWRSTS_RET_ON,
--	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.pwrsts_logic_ret = PWRSTS_RET,
- 	.banks		  = 2,
- 	.pwrsts_mem_ret	= {
- 		[0] = PWRSTS_OFF_RET,	/* mpu_l2 */
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index b377b03..0bfce38 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -121,8 +121,10 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 		return -ENOMEM;
+ 
+ 	pwrst->pwrdm = pwrdm;
+-	pwrst->next_state = PWRDM_POWER_RET;
+-	pwrst->next_logic_state = PWRDM_POWER_OFF;
++	pwrst->next_state = pwrdm_get_valid_lp_state(pwrdm, false,
++						     PWRDM_POWER_RET);
++	pwrst->next_logic_state = pwrdm_get_valid_lp_state(pwrdm, true,
++							   PWRDM_POWER_OFF);
+ 
+ 	list_add(&pwrst->node, &pwrst_list);
+ 
 -- 
 1.7.9.5
