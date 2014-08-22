@@ -1,76 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 04/10] ARM: OMAP5 / DRA7: PM: Enable Mercury retention mode on CPUx powerdomains
-Date: Fri, 22 Aug 2014 09:02:28 -0500
-Message-ID: <1408716154-26101-5-git-send-email-nm@ti.com>
-References: <1408716154-26101-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/6] ARM: dts: OMAP5: switch to compatible pinctrl
+Date: Fri, 22 Aug 2014 09:03:51 -0500
+Message-ID: <1408716235-26164-3-git-send-email-nm@ti.com>
+References: <1408716235-26164-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33382 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932446AbaHVODB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2014 10:03:01 -0400
-In-Reply-To: <1408716154-26101-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1408716235-26164-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Nishanth Menon <nm@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Now that ti,omap5-padconf is available, switch over to that compatible
+property. Retain pinctrl-single for legacy support.
 
-In addition to the standard power-management technique, the OMAP5 / DRA7
-MPU subsystem also employs an SR3-APG (mercury) power management
-technology to reduce leakage.
+While at it, mark pinctrl as interrupt controller so that it can be
+used with interrupts-extended property for wakeup events.
 
-It allows for full logic and memories retention on MPU_C0 and MPU_C1 and
-is controlled by the PRCM_MPU. Only "Fast-mode" is supported on the
-OMAP5 and DRA7 family of processors.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[nm@ti.com: minor consolidation]
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 ---
+ arch/arm/boot/dts/omap5.dtsi |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-This has a minor checkpatch warning for aligning with '(', but that
-when fixed results in over 80 char warning. So choose '(' check instead :D.
-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 63a1dd7..fad6e8c 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -321,6 +321,21 @@ int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index df0a09b..04acda6 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -188,18 +188,22 @@
+ 		};
  
- 
- /*
-+ * Enable Mercury Fast HG retention mode by default.
-+ */
-+static void enable_mercury_retention_mode(void)
-+{
-+	u32 reg;
-+
-+	reg = omap4_prcm_mpu_read_inst_reg(OMAP54XX_PRCM_MPU_DEVICE_INST,
-+				  OMAP54XX_PRCM_MPU_PRM_PSCON_COUNT_OFFSET);
-+	/* Enable HG_EN, HG_RAMPUP = fast mode */
-+	reg |= BIT(24) | BIT(25);
-+	omap4_prcm_mpu_write_inst_reg(reg, OMAP54XX_PRCM_MPU_DEVICE_INST,
-+				      OMAP54XX_PRCM_MPU_PRM_PSCON_COUNT_OFFSET);
-+}
-+
-+/*
-  * Initialise OMAP4 MPUSS
-  */
- int __init omap4_mpuss_init(void)
-@@ -397,6 +412,7 @@ int __init omap4_mpuss_init(void)
- 		cpu_context_offset = OMAP4_RM_CPU0_CPU0_CONTEXT_OFFSET;
- 	} else if (soc_is_omap54xx() || soc_is_dra7xx()) {
- 		cpu_context_offset = OMAP54XX_RM_CPU0_CPU0_CONTEXT_OFFSET;
-+		enable_mercury_retention_mode();
- 	}
- 
- 	return 0;
+ 		omap5_pmx_core: pinmux@4a002840 {
+-			compatible = "ti,omap4-padconf", "pinctrl-single";
++			compatible = "ti,omap5-padconf", "pinctrl-single";
+ 			reg = <0x4a002840 0x01b6>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0x7fff>;
+ 		};
+ 		omap5_pmx_wkup: pinmux@4ae0c840 {
+-			compatible = "ti,omap4-padconf", "pinctrl-single";
++			compatible = "ti,omap5-padconf", "pinctrl-single";
+ 			reg = <0x4ae0c840 0x0038>;
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++			#interrupt-cells = <1>;
++			interrupt-controller;
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0x7fff>;
+ 		};
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
