@@ -1,52 +1,45 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 0/3] pinctrl: Add DRA7/AM437x pinctrl compatibility
-Date: Fri, 22 Aug 2014 09:00:59 -0500
-Message-ID: <1408716062-26055-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3] pinctrl: bindings: Add OMAP pinctrl binding
+Date: Fri, 22 Aug 2014 09:01:00 -0500
+Message-ID: <1408716062-26055-2-git-send-email-nm@ti.com>
+References: <1408716062-26055-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1408716062-26055-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following series are various fixes and improvements for pinctrl
-for AM437x and DRA7. It also tries to add documentation for existing
-pinctrl bindings for Texas Instruments' OMAP SoCs.
+Add basic skeleton of OMAP pinctrl bindings. This is compatible with
+pinctrl,single bindings and is meant purely as a reference point.
 
-Functionality depends on the dts update (in series 6), PRM fixes and
-the pdata quirk changes
-
-This is part 4/6 series which eventually enables framework for
-suspend-to-ram and cpuidle for OMAP5 and DRA7
-
-Each of series is based on v3.17-rc1 and this specific series is available:
-weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/v3.17/pinctrl-compat
-
-git repo: https://github.com/nmenon/linux-2.6-playground.git push/v3.17/pinctrl-compat
-
-An complete integrated branch is available here: https://github.com/nmenon/linux-2.6-playground/commits/testing/v3.17/cpu-idle-suspend-dra7-omap5-framework
-
-Keerthy (1):
-  pinctrl: single: AM437x: Add pinctrl compatibility
-
-Nishanth Menon (2):
-  pinctrl: bindings: Add OMAP pinctrl binding
-  pinctrl: single: Add DRA7 pinctrl compatibility
-
- .../bindings/pinctrl/ti,omap-pinctrl.txt           |   11 +++++++++++
- drivers/pinctrl/pinctrl-single.c                   |   14 ++++++++++++++
- 2 files changed, 25 insertions(+)
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+ .../bindings/pinctrl/ti,omap-pinctrl.txt           |    9 +++++++++
+ 1 file changed, 9 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/pinctrl/ti,omap-pinctrl.txt
 
+diff --git a/Documentation/devicetree/bindings/pinctrl/ti,omap-pinctrl.txt b/Documentation/devicetree/bindings/pinctrl/ti,omap-pinctrl.txt
+new file mode 100644
+index 0000000..156d964
+--- /dev/null
++++ b/Documentation/devicetree/bindings/pinctrl/ti,omap-pinctrl.txt
+@@ -0,0 +1,9 @@
++OMAP Pinctrl definitions
++
++Required properties:
++- compatible : Should be one of:
++  "ti,omap3-padconf" - OMAP3 compatible pinctrl
++  "ti,omap4-padconf" - OMAP4 compatible pinctrl
++  "ti,omap5-padconf" - OMAP5 compatible pinctrl
++
++See Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt for further details.
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
