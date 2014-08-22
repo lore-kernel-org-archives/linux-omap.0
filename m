@@ -1,143 +1,250 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] usb: phy: twl4030-usb: Fix lost interrupts after ID pin
- goes down
-Date: Fri, 22 Aug 2014 09:39:18 -0700
-Message-ID: <20140822163918.GG10066@atomide.com>
-References: <20140821164803.GB10066@atomide.com>
- <CANOLnOM_5VXDAstbQN45wRyYq9k26PWM0z9uZ+C2VmhOqzCuEw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] usb: phy: twl4030-usb: Fix regressions to runtime PM on
+ omaps
+Date: Fri, 22 Aug 2014 09:51:13 -0700
+Message-ID: <20140822165112.GH10066@atomide.com>
+References: <20140821164346.GA10066@atomide.com>
+ <53F6CBAD.8040803@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CANOLnOM_5VXDAstbQN45wRyYq9k26PWM0z9uZ+C2VmhOqzCuEw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53F6CBAD.8040803@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [140822 06:21]:
-> Hi,
+* Kishon Vijay Abraham I <kishon@ti.com> [140821 21:52]:
+> > 
+> > Kishon, this regression fix would be nice to get into the v3.17-rc
+> > series if no objections. If you don't have other fixes, I can also
+> > queue via arm-soc with proper acks.
 > 
-> On Thu, Aug 21, 2014 at 7:48 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > Commit 249751f22380 ("usb: phy: twl4030-usb: poll for ID disconnect")
-> > added twl4030_id_workaround_work() to deal with lost interrupts
-> > after ID pin goes down. However, this currently only works for the
-> > insertion. The PHY interrupts are not working after disconnecting
-> > an USB-A device from the board, and the deeper idle states for
-> > omap are blocked as the USB controller stays busy.
-> >
-> > The issue can be solved by calling delayed work from twl4030_usb_irq()
-> > when ID pin is down and the PHY is not asleep like we already do
-> > in twl4030_id_workaround_work().
-> 
-> The way it is supposed to work is that after plugging in the cable
-> twl4030_phy_power_on() sees ID_GROUND and kicks off id_workaround_work
-> every second. When cable is unplugged, twl4030_id_workaround_work()
-> sees changes in STS_HW_CONDITIONS register and triggers events.
-> Doesn't that work for you, why do you need to trigger it from
-> twl4030_usb_irq() too?
+> I can queue this one up once put_autosuspend() is used.
 
-Not any longer because we are currently call schedule_delayed_work()
-only from twl4030_phy_power_on(). That function got renamed, it used
-to be twl4030_phy_resume() before the generic phy framework
-changes.
-
-So looking at the v3.12 code, you're right, it seems to behave as
-you describe. That however changed with the generic phy framework
-changes for v3.13, and looks like the correct breaking commit is
-f1ddc24c9e33 ("usb: phy: twl4030-usb: remove *set_suspend* and
-*phy_init* ops") instead.
-
-So it won't currently work after unplugging and replugging as all
-connect and disconnect interrupts go unnoticed after ID_GROUND.
-So we need to poll whenever ID_GROUND and PHY is not asleep.
-
-> > But as both twl4030_usb_irq() and twl4030_id_workaround_work()
-> > already do pretty much the same thing, let's call twl4030_usb_irq()
-> > from twl4030_id_workaround_work() instead of adding some more
-> > duplicate code.
-> 
-> The difference is the sysfs_notify() call, so now every time
-> id_workaround_work triggers (around once per second while the cable is
-> plugged) userspace will now get useless uevent. Haven't actually
-> checked if it really happens though, so I might be wrong.
-
-Good point. That can be avoided by doing calling it only if we have
-an irq and not from delayed work. Updated patch below, I've updated
-the description for the proper regression causing commit and
-added a check when to call the sysfs_notify. Kept Felipe's ack,
-hope that works.
+Great, thanks, here's the updated version.
 
 Regards,
 
 Tony
 
-8< ---------------------
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Thu, 21 Aug 2014 08:59:43 -0700
-Subject: [PATCH] usb: phy: twl4030-usb: Fix lost interrupts after ID pin goes down
+8< --------------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 20 Aug 2014 12:07:00 -0700
+Subject: [PATCH] usb: phy: twl4030-usb: Fix regressions to runtime PM on omaps
 
-Commit 249751f22380 ("usb: phy: twl4030-usb: poll for ID disconnect")
-added twl4030_id_workaround_work() to deal with lost interrupts
-after ID pin goes down. Looks like commit f1ddc24c9e33 ("usb: phy:
-twl4030-usb: remove *set_suspend* and *phy_init* ops") changed
-things around for the generic phy framework, and delayed work no
-longer got called except initially during boot.
+Commit 30a70b026b4cd ("usb: musb: fix obex in g_nokia.ko causing kernel
+panic") attempted to fix runtime PM handling for PHYs that are on the
+I2C bus. Commit 3063a12be2b0 (usb: musb: fix PHY power on/off) then
+changed things around to enable of PHYs that rely on runtime PM.
 
-The PHY connect and disconnect interrupts for twl4030-usb are not
-working after disconnecting a USB-A cable from the board, and the
-deeper idle states for omap are blocked as the USB controller
-stays busy.
+These changes however broke idling of the PHY and causes at least
+100 mW extra power consumption on omaps, which is a lot with
+the idle power consumption being below 10 mW range on many devices.
 
-The issue can be solved by calling delayed work from twl4030_usb_irq()
-when ID pin is down and the PHY is not asleep like we already do
-in twl4030_id_workaround_work().
+As calling phy_power_on/off from runtime PM calls in the USB
+causes complicated issues with I2C connected PHYs, let's just let
+the PHY do it's own runtime PM as needed. This leaves out the
+dependency between PHYs and USB controller drivers for runtime
+PM.
 
-But as both twl4030_usb_irq() and twl4030_id_workaround_work()
-already do pretty much the same thing, let's call twl4030_usb_irq()
-from twl4030_id_workaround_work() instead of adding some more
-duplicate code. We also must call sysfs_notify() only when we have
-an interrupt and not from the delayed work as notified by
-Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>.
+Let's fix the regression for twl4030-usb by adding minimal runtime
+PM support. This allows idling the PHY on disconnect.
 
-Fixes: f1ddc24c9e33 ("usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops")
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v3.13+
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Note that we are changing to use standard runtime PM handling
+for twl4030_phy_init() as that function just checks the state
+and does not initialize the PHY. The PHY won't get initialized
+until in twl4030_phy_power_on().
+
+Fixes: 30a70b026b4cd ("usb: musb: fix obex in g_nokia.ko causing kernel panic")
+Fixes: 3063a12be2b0 ("usb: musb: fix PHY power on/off")
+Cc: stable@vger.kernel.org # v3.15+
+Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
 --- a/drivers/phy/phy-twl4030-usb.c
 +++ b/drivers/phy/phy-twl4030-usb.c
-@@ -560,7 +560,15 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+@@ -34,6 +34,7 @@
+ #include <linux/delay.h>
+ #include <linux/usb/otg.h>
+ #include <linux/phy/phy.h>
++#include <linux/pm_runtime.h>
+ #include <linux/usb/musb-omap.h>
+ #include <linux/usb/ulpi.h>
+ #include <linux/i2c/twl.h>
+@@ -422,37 +423,55 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 	}
+ }
+ 
+-static int twl4030_phy_power_off(struct phy *phy)
++static int twl4030_usb_runtime_suspend(struct device *dev)
+ {
+-	struct twl4030_usb *twl = phy_get_drvdata(phy);
++	struct twl4030_usb *twl = dev_get_drvdata(dev);
+ 
++	dev_dbg(twl->dev, "%s\n", __func__);
+ 	if (twl->asleep)
+ 		return 0;
+ 
+ 	twl4030_phy_power(twl, 0);
+ 	twl->asleep = 1;
+-	dev_dbg(twl->dev, "%s\n", __func__);
++
+ 	return 0;
+ }
+ 
+-static void __twl4030_phy_power_on(struct twl4030_usb *twl)
++static int twl4030_usb_runtime_resume(struct device *dev)
+ {
++	struct twl4030_usb *twl = dev_get_drvdata(dev);
++
++	dev_dbg(twl->dev, "%s\n", __func__);
++	if (!twl->asleep)
++		return 0;
++
+ 	twl4030_phy_power(twl, 1);
+-	twl4030_i2c_access(twl, 1);
+-	twl4030_usb_set_mode(twl, twl->usb_mode);
+-	if (twl->usb_mode == T2_USB_MODE_ULPI)
+-		twl4030_i2c_access(twl, 0);
++	twl->asleep = 0;
++
++	return 0;
++}
++
++static int twl4030_phy_power_off(struct phy *phy)
++{
++	struct twl4030_usb *twl = phy_get_drvdata(phy);
++
++	dev_dbg(twl->dev, "%s\n", __func__);
++	pm_runtime_mark_last_busy(twl->dev);
++	pm_runtime_put_autosuspend(twl->dev);
++
++	return 0;
+ }
+ 
+ static int twl4030_phy_power_on(struct phy *phy)
+ {
+ 	struct twl4030_usb *twl = phy_get_drvdata(phy);
+ 
+-	if (!twl->asleep)
+-		return 0;
+-	__twl4030_phy_power_on(twl);
+-	twl->asleep = 0;
+ 	dev_dbg(twl->dev, "%s\n", __func__);
++	pm_runtime_get_sync(twl->dev);
++	twl4030_i2c_access(twl, 1);
++	twl4030_usb_set_mode(twl, twl->usb_mode);
++	if (twl->usb_mode == T2_USB_MODE_ULPI)
++		twl4030_i2c_access(twl, 0);
+ 
+ 	/*
+ 	 * XXX When VBUS gets driven after musb goes to A mode,
+@@ -558,6 +577,16 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
+ 		 * starts to handle softconnect right.
  		 */
++		if ((status == OMAP_MUSB_VBUS_VALID) ||
++		    (status == OMAP_MUSB_ID_GROUND)) {
++			if (twl->asleep)
++				pm_runtime_get_sync(twl->dev);
++		} else {
++			if (!twl->asleep) {
++				pm_runtime_mark_last_busy(twl->dev);
++				pm_runtime_put_autosuspend(twl->dev);
++			}
++		}
  		omap_musb_mailbox(status);
  	}
--	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
-+
-+	/* don't schedule during sleep - irq works right then */
-+	if (status == OMAP_MUSB_ID_GROUND && !twl->asleep) {
-+		cancel_delayed_work(&twl->id_workaround_work);
-+		schedule_delayed_work(&twl->id_workaround_work, HZ);
-+	}
-+
-+	if (irq)
-+		sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+@@ -599,22 +628,17 @@ static int twl4030_phy_init(struct phy *phy)
+ 	struct twl4030_usb *twl = phy_get_drvdata(phy);
+ 	enum omap_musb_vbus_id_status status;
  
- 	return IRQ_HANDLED;
- }
-@@ -569,29 +577,8 @@ static void twl4030_id_workaround_work(struct work_struct *work)
- {
- 	struct twl4030_usb *twl = container_of(work, struct twl4030_usb,
- 		id_workaround_work.work);
--	enum omap_musb_vbus_id_status status;
--	bool status_changed = false;
+-	/*
+-	 * Start in sleep state, we'll get called through set_suspend()
+-	 * callback when musb is runtime resumed and it's time to start.
+-	 */
+-	__twl4030_phy_power(twl, 0);
+-	twl->asleep = 1;
 -
--	status = twl4030_usb_linkstat(twl);
--
--	spin_lock_irq(&twl->lock);
--	if (status >= 0 && status != twl->linkstat) {
--		twl->linkstat = status;
--		status_changed = true;
++	pm_runtime_get_sync(twl->dev);
+ 	status = twl4030_usb_linkstat(twl);
+ 	twl->linkstat = status;
+ 
+-	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
++	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
+ 		omap_musb_mailbox(twl->linkstat);
+-		twl4030_phy_power_on(phy);
 -	}
--	spin_unlock_irq(&twl->lock);
+ 
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
++	pm_runtime_mark_last_busy(twl->dev);
++	pm_runtime_put_autosuspend(twl->dev);
++
+ 	return 0;
+ }
+ 
+@@ -650,6 +674,11 @@ static const struct phy_ops ops = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static const struct dev_pm_ops twl4030_usb_pm_ops = {
++	SET_RUNTIME_PM_OPS(twl4030_usb_runtime_suspend,
++			   twl4030_usb_runtime_resume, NULL)
++};
++
+ static int twl4030_usb_probe(struct platform_device *pdev)
+ {
+ 	struct twl4030_usb_data *pdata = dev_get_platdata(&pdev->dev);
+@@ -726,6 +755,11 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 
+ 	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
+ 
++	pm_runtime_use_autosuspend(&pdev->dev);
++	pm_runtime_set_autosuspend_delay(&pdev->dev, 2000);
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_get_sync(&pdev->dev);
++
+ 	/* Our job is to use irqs and status from the power module
+ 	 * to keep the transceiver disabled when nothing's connected.
+ 	 *
+@@ -744,6 +778,9 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 		return status;
+ 	}
+ 
++	pm_runtime_mark_last_busy(&pdev->dev);
++	pm_runtime_put_autosuspend(twl->dev);
++
+ 	dev_info(&pdev->dev, "Initialized TWL4030 USB module\n");
+ 	return 0;
+ }
+@@ -753,6 +790,7 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+ 	struct twl4030_usb *twl = platform_get_drvdata(pdev);
+ 	int val;
+ 
++	pm_runtime_get_sync(twl->dev);
+ 	cancel_delayed_work(&twl->id_workaround_work);
+ 	device_remove_file(twl->dev, &dev_attr_vbus);
+ 
+@@ -772,9 +810,8 @@ static int twl4030_usb_remove(struct platform_device *pdev)
+ 
+ 	/* disable complete OTG block */
+ 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
+-
+-	if (!twl->asleep)
+-		twl4030_phy_power(twl, 0);
++	pm_runtime_mark_last_busy(twl->dev);
++	pm_runtime_put(twl->dev);
+ 
+ 	return 0;
+ }
+@@ -792,6 +829,7 @@ static struct platform_driver twl4030_usb_driver = {
+ 	.remove		= twl4030_usb_remove,
+ 	.driver		= {
+ 		.name	= "twl4030_usb",
++		.pm	= &twl4030_usb_pm_ops,
+ 		.owner	= THIS_MODULE,
+ 		.of_match_table = of_match_ptr(twl4030_usb_id_table),
+ 	},
