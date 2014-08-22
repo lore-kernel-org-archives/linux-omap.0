@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 3/6] ARM: dts: DRA7: switch to compatible pinctrl
-Date: Fri, 22 Aug 2014 09:03:52 -0500
-Message-ID: <1408716235-26164-4-git-send-email-nm@ti.com>
+Subject: [PATCH 1/6] ARM: dts: OMAP3+: Add PRM interrupt
+Date: Fri, 22 Aug 2014 09:03:50 -0500
+Message-ID: <1408716235-26164-2-git-send-email-nm@ti.com>
 References: <1408716235-26164-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,34 +12,65 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsl
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now that ti,dra7-padconf is available, switch over to that compatible
-property. Retain pinctrl-single for legacy support.
+Provide OMAP3, 4 and OMAP5 with interrupt number for PRM
 
-While at it, mark pinctrl as interrupt controller so that it can be used
-with interrupts-extended property for wakeup events.
+And for DRA7, provide crossbar number for prm interrupt.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7.dtsi  |    1 +
+ arch/arm/boot/dts/omap3.dtsi |    1 +
+ arch/arm/boot/dts/omap4.dtsi |    1 +
+ arch/arm/boot/dts/omap5.dtsi |    1 +
+ 4 files changed, 4 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 7a3e011..4e4ce96 100644
+index 97f603c..7a3e011 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -218,10 +218,12 @@
- 		};
+@@ -89,6 +89,7 @@
+ 		prm: prm@4ae06000 {
+ 			compatible = "ti,dra7-prm";
+ 			reg = <0x4ae06000 0x3000>;
++			interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
  
- 		dra7_pmx_core: pinmux@4a003400 {
--			compatible = "pinctrl-single";
-+			compatible = "ti,dra7-padconf", "pinctrl-single";
- 			reg = <0x4a003400 0x0464>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
-+			#interrupt-cells = <1>;
-+			interrupt-controller;
- 			pinctrl-single,register-width = <32>;
- 			pinctrl-single,function-mask = <0x3fffffff>;
- 		};
+ 			prm_clocks: clocks {
+ 				#address-cells = <1>;
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 575a49b..3136ed1 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -97,6 +97,7 @@
+ 		prm: prm@48306000 {
+ 			compatible = "ti,omap3-prm";
+ 			reg = <0x48306000 0x4000>;
++			interrupts = <11>;
+ 
+ 			prm_clocks: clocks {
+ 				#address-cells = <1>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 69408b5..7375d44 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -129,6 +129,7 @@
+ 		prm: prm@4a306000 {
+ 			compatible = "ti,omap4-prm";
+ 			reg = <0x4a306000 0x3000>;
++			interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
+ 
+ 			prm_clocks: clocks {
+ 				#address-cells = <1>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index fc8df17..df0a09b 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -131,6 +131,7 @@
+ 		prm: prm@4ae06000 {
+ 			compatible = "ti,omap5-prm";
+ 			reg = <0x4ae06000 0x3000>;
++			interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
+ 
+ 			prm_clocks: clocks {
+ 				#address-cells = <1>;
 -- 
 1.7.9.5
