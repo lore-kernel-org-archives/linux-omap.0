@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 5/6] ARM: OMAP4+: PRM: Enable wakeup capability for OMAP5, DRA7
-Date: Fri, 22 Aug 2014 08:51:52 -0500
-Message-ID: <1408715513-25851-6-git-send-email-nm@ti.com>
+Subject: [PATCH 6/6] ARM: OMAP3+: PRM: register interrupt information from DT
+Date: Fri, 22 Aug 2014 08:51:53 -0500
+Message-ID: <1408715513-25851-7-git-send-email-nm@ti.com>
 References: <1408715513-25851-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,26 +21,58 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsl
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-OMAP5 and DRA7 can now use pinctrl based I/O daisychain wakeup
-capability. So, enable the support.
+Allow the PRM interrupt information to be picked up from device tree.
+OMAP3 may use legacy boot and needs to be compatible with old dtbs
+(without interrupt populated), for these, we use the value which is
+pre-populated.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/prm44xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/prm3xxx.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index b6bfa6f..0958d07 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -693,7 +693,7 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index 2458be6..e0088e0 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -17,6 +17,7 @@
+ #include <linux/err.h>
+ #include <linux/io.h>
+ #include <linux/irq.h>
++#include <linux/of_irq.h>
  
- int __init omap44xx_prm_init(void)
+ #include "soc.h"
+ #include "common.h"
+@@ -649,6 +650,11 @@ int __init omap3xxx_prm_init(void)
+ 	return prm_register(&omap3xxx_prm_ll_data);
+ }
+ 
++static struct of_device_id omap3_prm_dt_match_table[] = {
++	{ .compatible = "ti,omap3-prm" },
++	{ }
++};
++
+ static int omap3xxx_prm_late_init(void)
  {
--	if (cpu_is_omap44xx())
-+	if (cpu_is_omap44xx() || soc_is_omap54xx() || soc_is_dra7xx())
- 		prm_features |= PRM_HAS_IO_WAKEUP;
+ 	int ret;
+@@ -656,6 +662,18 @@ static int omap3xxx_prm_late_init(void)
+ 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
+ 		return 0;
  
- 	return prm_register(&omap44xx_prm_ll_data);
++	if (of_have_populated_dt()) {
++		struct device_node *np;
++		int irq_num;
++
++		np = of_find_matching_node(NULL, omap3_prm_dt_match_table);
++		if (np) {
++			irq_num = of_irq_get(np, 0);
++			if (irq_num >= 0)
++				omap3_prcm_irq_setup.irq = irq_num;
++		}
++	}
++
+ 	omap3xxx_prm_enable_io_wakeup();
+ 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+ 	if (!ret)
 -- 
 1.7.9.5
