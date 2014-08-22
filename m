@@ -1,58 +1,98 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: remove warning that clk alias
- already exists
-Date: Fri, 22 Aug 2014 16:07:00 -0700
-Message-ID: <20140822230700.GA17254@atomide.com>
-References: <1407156844-21548-1-git-send-email-mpa@pengutronix.de>
+Subject: Re: [PATCH 1/3] mtd: nand: omap: Revert to using software ECC by
+ default
+Date: Fri, 22 Aug 2014 16:11:30 -0700
+Message-ID: <20140822231129.GB17254@atomide.com>
+References: <1407233482-11642-1-git-send-email-rogerq@ti.com>
+ <1407233482-11642-2-git-send-email-rogerq@ti.com>
+ <CANOLnOM-Q4b8N5T522Vc_gXTSj2C-mxV6GV0hRTDPscpPgXO6A@mail.gmail.com>
+ <53E1E122.4050308@ti.com>
+ <CANOLnOOA5c-B9rn5LR2HGyfUW+D1UzjRE7EAL-cYsZ4NYuCaXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38421 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44871 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752138AbaHVXHL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2014 19:07:11 -0400
+	with ESMTP id S1752448AbaHVXLj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2014 19:11:39 -0400
 Content-Disposition: inline
-In-Reply-To: <1407156844-21548-1-git-send-email-mpa@pengutronix.de>
+In-Reply-To: <CANOLnOOA5c-B9rn5LR2HGyfUW+D1UzjRE7EAL-cYsZ4NYuCaXg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, kernel@pengutronix.de
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Roger Quadros <rogerq@ti.com>, Brian Norris <computersforpeace@gmail.com>, Felipe Balbi <balbi@ti.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, pekon.gupta@gmail.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-* Markus Pargmann <mpa@pengutronix.de> [140804 05:56]:
-> When an alias for a clock already exists the warning is printed. For
-> every module with a main_clk defined, a clk alias for fck is added.
-> There are some components that have the same main_clk defined, so this
-> is a really normal situation.
-> 
-> For example the am33xx edma device has 4 components using the same main
-> clock. So there are three warnings in the boot log for this already
-> existing clock alias:
-> 	platform 49000000.edma: alias fck already exists
-> 	platform 49000000.edma: alias fck already exists
-> 	platform 49000000.edma: alias fck already exists
-> 
-> As this is only interesting for developers, this patch changes the
-> message to a debug message.
-> 
-> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-> ---
->  arch/arm/mach-omap2/omap_device.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index 01ef59def44b..d22c30d3ccfa 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -56,7 +56,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
->  
->  	r = clk_get_sys(dev_name(&od->pdev->dev), clk_alias);
->  	if (!IS_ERR(r)) {
-> -		dev_warn(&od->pdev->dev,
-> +		dev_dbg(&od->pdev->dev,
->  			 "alias %s already exists\n", clk_alias);
->  		clk_put(r);
->  		return;
+* Grazvydas Ignotas <notasas@gmail.com> [140806 15:57]:
+> On Wed, Aug 6, 2014 at 11:02 AM, Roger Quadros <rogerq@ti.com> wrote:
+> > Hi Gra=C5=BEvydas,
+> >
+> > On 08/05/2014 07:15 PM, Grazvydas Ignotas wrote:
+> >> On Tue, Aug 5, 2014 at 1:11 PM, Roger Quadros <rogerq@ti.com> wrot=
+e:
+> >>> For v3.12 and prior, 1-bit Hamming code ECC via software was the
+> >>> default choice. Commit c66d039197e4 in v3.13 changed the behaviou=
+r
+> >>> to use 1-bit Hamming code via Hardware using a different ECC layo=
+ut
+> >>> i.e. (ROM code layout) than what is used by software ECC.
+> >>>
+> >>> This ECC layout change causes NAND filesystems created in v3.12
+> >>> and prior to be unusable in v3.13 and later. So revert back to
+> >>> using software ECC by default if an ECC scheme is not explicitely
+> >>> specified.
+> >>>
+> >>> This defect can be observed on the following boards during legacy=
+ boot
+> >>>
+> >>> -omap3beagle
+> >>> -omap3touchbook
+> >>> -overo
+> >>> -am3517crane
+> >>> -devkit8000
+> >>> -ldp
+> >>> -3430sdp
+> >>
+> >> omap3pandora is also using sw ecc, with ubifs. Some time ago I tri=
+ed
+> >> booting mainline (I think it was 3.14) with rootfs on NAND, and wh=
+ile
+> >> it did boot and reached a shell, there were lots of ubifs errors, =
+fs
+> >> got corrupted and I lost all my data. I used to be able to boot
+> >> mainline this way fine sometime ~3.8 release. It's interesting tha=
+t
+> >> 3.14 was able to read the data, even with wrong ecc setup.
+> >
+> > This is due to another bug introduced in 3.7 by commit 65b97cf6b8de=
+ca3ad7a3e00e8316bb89617190fb.
+> > Because of that bug (i.e. inverted CS_MASK in omap_calculate_ecc), =
+omap_calculate_ecc() always fails with -EINVAL and calculated ECC bytes=
+ are always 0. I'll be sending a patch to fix that as well. But that wi=
+ll only affect the cases where OMAP_ECC_HAM1_CODE_HW is used which happ=
+ened for pandora from 3.13 onwards.
+> >
+> >>
+> >> Do you think it's safe again to boot ubifs created on 3.2 after
+> >> applying this series?
+> >>
+> >
+> > Yes. If you boot pandora using legacy boot (non DT method), it pass=
+es 0 for .ecc_opt in pandora_nand_data. This used to mean OMAP_ECC_HAMM=
+ING_CODE_DEFAULT which is software ecc. i.e. NAND_ECC_SOFT with default=
+ ECC layout. Until the above mentioned commits changed the meaning. We =
+now call that option OMAP_ECC_HAM1_CODE_SW.
+> >
+> > Please let me know if it works for you. Thanks.
+>=20
+> Yes it does, thank you.
+> Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 
-Thanks applying into omap-for-v3.17/fixes.
+OK thanks applying the whole series into omap-for-v3.17/fixes.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
