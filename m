@@ -1,251 +1,172 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: phy: twl4030-usb: Fix regressions to runtime PM
- on omaps
-Date: Fri, 22 Aug 2014 10:18:45 +0530
-Message-ID: <53F6CBAD.8040803@ti.com>
-References: <20140821164346.GA10066@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v7 RESEND] ARM: omap: edma: add suspend suspend/resume hooks
+Date: Fri, 22 Aug 2014 02:46:02 -0500
+Message-ID: <1408693562-18068-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140821164346.GA10066-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45770 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755212AbaHVHqh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2014 03:46:37 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 
-Hi,
+From: Daniel Mack <zonque@gmail.com>
 
-On Thursday 21 August 2014 10:13 PM, Tony Lindgren wrote:
-> Commit 30a70b026b4cd ("usb: musb: fix obex in g_nokia.ko causing kernel
-> panic") attempted to fix runtime PM handling for PHYs that are on the
-> I2C bus. Commit 3063a12be2b0 (usb: musb: fix PHY power on/off) then
-> changed things around to enable of PHYs that rely on runtime PM.
-> 
-> These changes however broke idling of the PHY and causes at least
-> 100 mW extra power consumption on omaps, which is a lot with
-> the idle power consumption being below 10 mW range on many devices.
-> 
-> As calling phy_power_on/off from runtime PM calls in the USB
-> causes complicated issues with I2C connected PHYs, let's just let
-> the PHY do it's own runtime PM as needed. This leaves out the
-> dependency between PHYs and USB controller drivers for runtime
-> PM.
-> 
-> Let's fix the regression for twl4030-usb by adding minimal runtime
-> PM support. This allows idling the PHY on disconnect.
-> 
-> Note that we are changing to use standard runtime PM handling
-> for twl4030_phy_init() as that function just checks the state
-> and does not initialize the PHY. The PHY won't get initialized
-> until in twl4030_phy_power_on().
-> 
-> Fixes: 30a70b026b4cd ("usb: musb: fix obex in g_nokia.ko causing kernel panic")
-> Fixes: 3063a12be2b0 ("usb: musb: fix PHY power on/off")
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v3.15+
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> 
-> ---
-> 
-> Kishon, this regression fix would be nice to get into the v3.17-rc
-> series if no objections. If you don't have other fixes, I can also
-> queue via arm-soc with proper acks.
+This patch makes the edma driver resume correctly after suspend. Tested
+on an AM33xx platform with cyclic audio streams and omap_hsmmc.
 
-I can queue this one up once put_autosuspend() is used.
+All information can be reconstructed by already known runtime
+information.
 
-Thanks
-Kishon
-> 
-> It probably does not make sense to try to fix this without using
-> runtime PM without complicating the code further.
-> 
-> --- a/drivers/phy/phy-twl4030-usb.c
-> +++ b/drivers/phy/phy-twl4030-usb.c
-> @@ -34,6 +34,7 @@
->  #include <linux/delay.h>
->  #include <linux/usb/otg.h>
->  #include <linux/phy/phy.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/usb/musb-omap.h>
->  #include <linux/usb/ulpi.h>
->  #include <linux/i2c/twl.h>
-> @@ -422,37 +423,55 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
->  	}
->  }
->  
-> -static int twl4030_phy_power_off(struct phy *phy)
-> +static int twl4030_usb_runtime_suspend(struct device *dev)
->  {
-> -	struct twl4030_usb *twl = phy_get_drvdata(phy);
-> +	struct twl4030_usb *twl = dev_get_drvdata(dev);
->  
-> +	dev_dbg(twl->dev, "%s\n", __func__);
->  	if (twl->asleep)
->  		return 0;
->  
->  	twl4030_phy_power(twl, 0);
->  	twl->asleep = 1;
-> -	dev_dbg(twl->dev, "%s\n", __func__);
-> +
->  	return 0;
->  }
->  
-> -static void __twl4030_phy_power_on(struct twl4030_usb *twl)
-> +static int twl4030_usb_runtime_resume(struct device *dev)
->  {
-> +	struct twl4030_usb *twl = dev_get_drvdata(dev);
-> +
-> +	dev_dbg(twl->dev, "%s\n", __func__);
-> +	if (!twl->asleep)
-> +		return 0;
-> +
->  	twl4030_phy_power(twl, 1);
-> -	twl4030_i2c_access(twl, 1);
-> -	twl4030_usb_set_mode(twl, twl->usb_mode);
-> -	if (twl->usb_mode == T2_USB_MODE_ULPI)
-> -		twl4030_i2c_access(twl, 0);
-> +	twl->asleep = 0;
-> +
-> +	return 0;
-> +}
-> +
-> +static int twl4030_phy_power_off(struct phy *phy)
-> +{
-> +	struct twl4030_usb *twl = phy_get_drvdata(phy);
-> +
-> +	dev_dbg(twl->dev, "%s\n", __func__);
-> +	pm_runtime_mark_last_busy(twl->dev);
-> +	pm_runtime_put_autosuspend(twl->dev);
-> +
-> +	return 0;
->  }
->  
->  static int twl4030_phy_power_on(struct phy *phy)
->  {
->  	struct twl4030_usb *twl = phy_get_drvdata(phy);
->  
-> -	if (!twl->asleep)
-> -		return 0;
-> -	__twl4030_phy_power_on(twl);
-> -	twl->asleep = 0;
->  	dev_dbg(twl->dev, "%s\n", __func__);
-> +	pm_runtime_get_sync(twl->dev);
-> +	twl4030_i2c_access(twl, 1);
-> +	twl4030_usb_set_mode(twl, twl->usb_mode);
-> +	if (twl->usb_mode == T2_USB_MODE_ULPI)
-> +		twl4030_i2c_access(twl, 0);
->  
->  	/*
->  	 * XXX When VBUS gets driven after musb goes to A mode,
-> @@ -558,6 +577,16 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
->  		 * USB_LINK_VBUS state.  musb_hdrc won't care until it
->  		 * starts to handle softconnect right.
->  		 */
-> +		if ((status == OMAP_MUSB_VBUS_VALID) ||
-> +		    (status == OMAP_MUSB_ID_GROUND)) {
-> +			if (twl->asleep)
-> +				pm_runtime_get_sync(twl->dev);
-> +		} else {
-> +			if (!twl->asleep) {
-> +				pm_runtime_mark_last_busy(twl->dev);
-> +				pm_runtime_put_autosuspend(twl->dev);
-> +			}
-> +		}
->  		omap_musb_mailbox(status);
->  	}
->  	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
-> @@ -599,22 +628,17 @@ static int twl4030_phy_init(struct phy *phy)
->  	struct twl4030_usb *twl = phy_get_drvdata(phy);
->  	enum omap_musb_vbus_id_status status;
->  
-> -	/*
-> -	 * Start in sleep state, we'll get called through set_suspend()
-> -	 * callback when musb is runtime resumed and it's time to start.
-> -	 */
-> -	__twl4030_phy_power(twl, 0);
-> -	twl->asleep = 1;
-> -
-> +	pm_runtime_get_sync(twl->dev);
->  	status = twl4030_usb_linkstat(twl);
->  	twl->linkstat = status;
->  
-> -	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
-> +	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
->  		omap_musb_mailbox(twl->linkstat);
-> -		twl4030_phy_power_on(phy);
-> -	}
->  
->  	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
-> +	pm_runtime_mark_last_busy(twl->dev);
-> +	pm_runtime_put_autosuspend(twl->dev);
-> +
->  	return 0;
->  }
->  
-> @@ -650,6 +674,11 @@ static const struct phy_ops ops = {
->  	.owner		= THIS_MODULE,
->  };
->  
-> +static const struct dev_pm_ops twl4030_usb_pm_ops = {
-> +	SET_RUNTIME_PM_OPS(twl4030_usb_runtime_suspend,
-> +			   twl4030_usb_runtime_resume, NULL)
-> +};
-> +
->  static int twl4030_usb_probe(struct platform_device *pdev)
->  {
->  	struct twl4030_usb_data *pdata = dev_get_platdata(&pdev->dev);
-> @@ -726,6 +755,11 @@ static int twl4030_usb_probe(struct platform_device *pdev)
->  
->  	ATOMIC_INIT_NOTIFIER_HEAD(&twl->phy.notifier);
->  
-> +	pm_runtime_use_autosuspend(&pdev->dev);
-> +	pm_runtime_set_autosuspend_delay(&pdev->dev, 2000);
-> +	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_get_sync(&pdev->dev);
-> +
->  	/* Our job is to use irqs and status from the power module
->  	 * to keep the transceiver disabled when nothing's connected.
->  	 *
-> @@ -744,6 +778,9 @@ static int twl4030_usb_probe(struct platform_device *pdev)
->  		return status;
->  	}
->  
-> +	pm_runtime_mark_last_busy(&pdev->dev);
-> +	pm_runtime_put(&pdev->dev);
-> +
->  	dev_info(&pdev->dev, "Initialized TWL4030 USB module\n");
->  	return 0;
->  }
-> @@ -753,6 +790,7 @@ static int twl4030_usb_remove(struct platform_device *pdev)
->  	struct twl4030_usb *twl = platform_get_drvdata(pdev);
->  	int val;
->  
-> +	pm_runtime_get_sync(twl->dev);
->  	cancel_delayed_work(&twl->id_workaround_work);
->  	device_remove_file(twl->dev, &dev_attr_vbus);
->  
-> @@ -772,9 +810,8 @@ static int twl4030_usb_remove(struct platform_device *pdev)
->  
->  	/* disable complete OTG block */
->  	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
-> -
-> -	if (!twl->asleep)
-> -		twl4030_phy_power(twl, 0);
-> +	pm_runtime_mark_last_busy(twl->dev);
-> +	pm_runtime_put(twl->dev);
->  
->  	return 0;
->  }
-> @@ -792,6 +829,7 @@ static struct platform_driver twl4030_usb_driver = {
->  	.remove		= twl4030_usb_remove,
->  	.driver		= {
->  		.name	= "twl4030_usb",
-> +		.pm	= &twl4030_usb_pm_ops,
->  		.owner	= THIS_MODULE,
->  		.of_match_table = of_match_ptr(twl4030_usb_id_table),
->  	},
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As we now use some functions that were previously only used from __init
+context, annotations had to be dropped.
+
+[nm@ti.com: added error handling for runtime + suspend_late/early_resume]
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Tested-by: Joel Fernandes <joelf@ti.com>
+Acked-by: Joel Fernandes <joelf@ti.com>
+[d-gerlach@ti.com: updated to remove queue_tc_mapping use]
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+
+Needed for am335x suspend, but never got picked up. Previously
+sent here: http://marc.info/?l=linux-arm-kernel&m=138556067416051&w=2
+
+ arch/arm/common/edma.c | 86 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 84 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index 8809917..ece1e3d 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -244,6 +244,8 @@ struct edma {
+ 	/* list of channels with no even trigger; terminated by "-1" */
+ 	const s8	*noevent;
+ 
++	struct edma_soc_info *info;
++
+ 	/* The edma_inuse bit for each PaRAM slot is clear unless the
+ 	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
+ 	 */
+@@ -295,7 +297,7 @@ static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
+ 			~(0x7 << bit), queue_no << bit);
+ }
+ 
+-static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
++static void assign_priority_to_queue(unsigned ctlr, int queue_no,
+ 		int priority)
+ {
+ 	int bit = queue_no * 4;
+@@ -314,7 +316,7 @@ static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
+  * included in that particular EDMA variant (Eg : dm646x)
+  *
+  */
+-static void __init map_dmach_param(unsigned ctlr)
++static void map_dmach_param(unsigned ctlr)
+ {
+ 	int i;
+ 	for (i = 0; i < EDMA_MAX_DMACH; i++)
+@@ -1791,15 +1793,95 @@ static int edma_probe(struct platform_device *pdev)
+ 			edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
+ 			edma_write_array(j, EDMA_QRAE, i, 0x0);
+ 		}
++		edma_cc[j]->info = info[j];
+ 		arch_num_cc++;
+ 	}
+ 
+ 	return 0;
+ }
+ 
++static int edma_pm_suspend(struct device *dev)
++{
++	int j, r;
++
++	r = pm_runtime_get_sync(dev);
++	if (r < 0) {
++		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
++		return r;
++	}
++
++	for (j = 0; j < arch_num_cc; j++) {
++		struct edma *ecc = edma_cc[j];
++
++		disable_irq(ecc->irq_res_start);
++		disable_irq(ecc->irq_res_end);
++	}
++
++	pm_runtime_put_sync(dev);
++
++	return 0;
++}
++
++static int edma_pm_resume(struct device *dev)
++{
++	int i, j, r;
++
++	r = pm_runtime_get_sync(dev);
++	if (r < 0) {
++		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
++		return r;
++	}
++
++	for (j = 0; j < arch_num_cc; j++) {
++		struct edma *cc = edma_cc[j];
++
++		s8 (*queue_priority_mapping)[2];
++
++		queue_priority_mapping = cc->info->queue_priority_mapping;
++
++		/* Event queue priority mapping */
++		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
++			assign_priority_to_queue(j,
++						 queue_priority_mapping[i][0],
++						 queue_priority_mapping[i][1]);
++
++		/*
++		 * Map the channel to param entry if channel mapping logic
++		 * exist
++		 */
++		if (edma_read(j, EDMA_CCCFG) & CHMAP_EXIST)
++			map_dmach_param(j);
++
++		for (i = 0; i < cc->num_channels; i++) {
++			if (test_bit(i, cc->edma_inuse)) {
++				/* ensure access through shadow region 0 */
++				edma_or_array2(j, EDMA_DRAE, 0, i >> 5,
++					       BIT(i & 0x1f));
++
++				setup_dma_interrupt(i,
++						    cc->intr_data[i].callback,
++						    cc->intr_data[i].data);
++			}
++		}
++
++		enable_irq(cc->irq_res_start);
++		enable_irq(cc->irq_res_end);
++	}
++
++	pm_runtime_put_sync(dev);
++
++	return 0;
++}
++
++static const struct dev_pm_ops edma_pm_ops = {
++	.suspend_late	= edma_pm_suspend,
++	.resume_early	= edma_pm_resume,
++};
++
+ static struct platform_driver edma_driver = {
+ 	.driver = {
+ 		.name	= "edma",
++		.pm	= &edma_pm_ops,
+ 		.of_match_table = edma_of_ids,
+ 	},
+ 	.probe = edma_probe,
+-- 
+1.9.0
+
