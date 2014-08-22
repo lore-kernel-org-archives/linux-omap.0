@@ -1,119 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: fix gpmc_cs_remap: re-allocating
- chip-select address space based on DT
-Date: Fri, 22 Aug 2014 16:01:33 -0700
-Message-ID: <20140822230132.GI10066@atomide.com>
-References: <1406139458-11676-1-git-send-email-pekon@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: DRA7: fix interrupt-cells for GPIO
+Date: Fri, 22 Aug 2014 16:02:54 -0700
+Message-ID: <20140822230253.GJ10066@atomide.com>
+References: <1406748032-19417-1-git-send-email-nm@ti.com>
+ <53F249F3.9070402@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30706 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752138AbaHVXBh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2014 19:01:37 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1406139458-11676-1-git-send-email-pekon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <53F249F3.9070402-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, inux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Pekon Gupta <pekon@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <rogerq@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
-* Pekon Gupta <pekon@ti.com> [140723 11:20]:
-> Each GPMC chip-select needs to be configured for (base-address,CS-size) so that
-> GPMC understands the address-space allocated to device connected externally.
-> These chip-select configurations (base-address, CS-size) follow some basic
-> mapping rules like:
-> - The CS size is programmable from 256 MBytes to 16 MBytes (must be a power of 2)
->   and is defined by the mask field. Attached memory smaller than the programmed
->   CS region size is accessed through the entire CS region (aliasing).
-> - The programmed 'base-address' must be aligned to the 'CS-size' boundary and
->   be a power of 2.
-> - Valid CS-size values are {256MB(max), 128MB, 64MB, 32MB and 16MB (min)}
->   Any intermediate values creates holes in the chip-select memory-map.
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [140818 11:49]:
+> On 07/30/2014 02:20 PM, Nishanth Menon wrote:
+> > GPIO modules are also interrupt sources. However, they require both the
+> > GPIO number and IRQ type to function properly.
+> > 
+> > By declaring that GPIO uses interrupt-cells=<1>, we essentially do not
+> > allow users of the nodes to use the interrupt property appropritely.
+> > 
+> > With this change, the following now works:
+> > 
+> > interrupt-parent = <&gpio6>;
+> > interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+> > 
+> > Fixes: 6e58b8f1daaf ('ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board')
+> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> > ---
+> > Based on v3.16-rc7
+> > 
+> >  arch/arm/boot/dts/dra7.dtsi |   16 ++++++++--------
+> >  1 file changed, 8 insertions(+), 8 deletions(-)
 > 
-> This patch adds above checks in gpmc_cs_remap() so that any invalid value
-> passed by DT <reg> property can be filtered before actually allocating the
-> address space.
-> 
-> Signed-off-by: Pekon Gupta <pekon@ti.com>
+> Tony,
+> Gentle ping. we still have this issue on 3.17-rc1. any suggestions on
+> if we can pick this up during RC?
 
-Looks like size typos Roger mentioned are fixed in this one, so
-applying into omap-for-v3.17/fixes thanks.
+Yes thanks applying into omap-for-v3.17/fixes.
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/gpmc.c | 42 +++++++++++++++++++++++++++++-------------
->  1 file changed, 29 insertions(+), 13 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 8bc1338..4a4cc04 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -521,26 +521,42 @@ static int gpmc_cs_delete_mem(int cs)
->   * "base". Returns 0 on success and appropriate negative error code
->   * on failure.
->   */
-> -static int gpmc_cs_remap(int cs, u32 base)
-> +static int gpmc_cs_remap(int cs, u32 base, u32 size)
->  {
->  	int ret;
-> -	u32 old_base, size;
->  
->  	if (cs > gpmc_cs_num) {
->  		pr_err("%s: requested chip-select is disabled\n", __func__);
->  		return -ENODEV;
->  	}
->  
-> -	/*
-> -	 * Make sure we ignore any device offsets from the GPMC partition
-> -	 * allocated for the chip select and that the new base confirms
-> -	 * to the GPMC 16MB minimum granularity.
-> -	 */ 
-> -	base &= ~(SZ_16M - 1);
-> -
-> -	gpmc_cs_get_memconf(cs, &old_base, &size);
-> -	if (base == old_base)
-> -		return 0;
-> +	/* allocate enough address-space under GPMC chip-select to device */
-> +	if (size > SZ_256M) {
-> +		pr_err("%s: memory device > 256MB not supported\n", __func__);
-> +		return -ENODEV;
-> +	} else if (size > SZ_128M) {
-> +		WARN((size != SZ_256M), "cs=%d: allocating 256MB\n", cs);
-> +		size = SZ_256M;
-> +	} else if (size > SZ_64M) {
-> +		WARN((size != SZ_128M), "cs=%d: allocating 128MB\n", cs);
-> +		size = SZ_128M;
-> +	} else if (size > SZ_32M) {
-> +		WARN((size != SZ_64M), "cs=%d: allocating 64MB\n", cs);
-> +		size = SZ_64M;
-> +	} else if (size > SZ_16M) {
-> +		WARN((size != SZ_32M), "cs=%d: allocating 64MB\n", cs);
-> +		size = SZ_32M;
-> +	} else {
-> +		WARN((size != SZ_16M), "cs=%d: allocating 64MB\n", cs);
-> +		size = SZ_16M;
-> +	}
-> +
-> +	/* base address should be aligned with address-space size */
-> +	if (base & (size - 1)) {
-> +		pr_err("base-addr=%x should be aligned to size=%x", base, size);
-> +		return -EINVAL;
-> +	}
-> +
->  	gpmc_cs_disable_mem(cs);
->  	ret = gpmc_cs_delete_mem(cs);
->  	if (ret < 0)
-> @@ -1551,7 +1567,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
->  	 * CS to this location. Once DT migration is complete should
->  	 * just make gpmc_cs_request() map a specific address.
->  	 */
-> -	ret = gpmc_cs_remap(cs, res.start);
-> +	ret = gpmc_cs_remap(cs, res.start, resource_size(&res));
->  	if (ret < 0) {
->  		dev_err(&pdev->dev, "cannot remap GPMC CS %d to %pa\n",
->  			cs, &res.start);
-> -- 
-> 1.8.5.1.163.gd7aced9
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
