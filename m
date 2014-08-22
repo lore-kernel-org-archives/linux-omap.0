@@ -1,13 +1,11 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 6/6] ARM: OMAP3+: PRM: register interrupt information from DT
-Date: Fri, 22 Aug 2014 08:51:53 -0500
-Message-ID: <1408715513-25851-7-git-send-email-nm@ti.com>
-References: <1408715513-25851-1-git-send-email-nm@ti.com>
+Subject: [PATCH 0/6] ARM: OMAP3+: PRM: fix up prm_handling
+Date: Fri, 22 Aug 2014 08:51:47 -0500
+Message-ID: <1408715513-25851-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1408715513-25851-1-git-send-email-nm@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,58 +19,35 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsl
 Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Allow the PRM interrupt information to be picked up from device tree.
-OMAP3 may use legacy boot and needs to be compatible with old dtbs
-(without interrupt populated), for these, we use the value which is
-pre-populated.
+The following series are various fixes and improvements for
+PRM for I/O Daisy chain support in OMAP4+ with device tree.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/prm3xxx.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+This is part 2/6 series which eventually enables framework for
+suspend-to-ram and cpuidle for OMAP5 and DRA7
 
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 2458be6..e0088e0 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -17,6 +17,7 @@
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/irq.h>
-+#include <linux/of_irq.h>
- 
- #include "soc.h"
- #include "common.h"
-@@ -649,6 +650,11 @@ int __init omap3xxx_prm_init(void)
- 	return prm_register(&omap3xxx_prm_ll_data);
- }
- 
-+static struct of_device_id omap3_prm_dt_match_table[] = {
-+	{ .compatible = "ti,omap3-prm" },
-+	{ }
-+};
-+
- static int omap3xxx_prm_late_init(void)
- {
- 	int ret;
-@@ -656,6 +662,18 @@ static int omap3xxx_prm_late_init(void)
- 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
- 		return 0;
- 
-+	if (of_have_populated_dt()) {
-+		struct device_node *np;
-+		int irq_num;
-+
-+		np = of_find_matching_node(NULL, omap3_prm_dt_match_table);
-+		if (np) {
-+			irq_num = of_irq_get(np, 0);
-+			if (irq_num >= 0)
-+				omap3_prcm_irq_setup.irq = irq_num;
-+		}
-+	}
-+
- 	omap3xxx_prm_enable_io_wakeup();
- 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
- 	if (!ret)
+Each of series is based on v3.17-rc1 and this specific series is available:
+weblink: https://github.com/nmenon/linux-2.6-playground/commits/push/v3.17/prm-fixes
+
+git repo: https://github.com/nmenon/linux-2.6-playground.git push/v3.17/prm-fixes
+
+An complete integrated branch is available here: https://github.com/nmenon/linux-2.6-playground/commits/testing/v3.17/cpu-idle-suspend-dra7-omap5-framework
+
+
+Nishanth Menon (6):
+  ARM: OMAP4+: prminst: provide function to find prm_dev instance
+    offset
+  ARM: OMAP4: PRM: use the generic prm_inst to allow logic to be
+    abstracted
+  ARM: OMAP4+: PRM: register interrupt information from DT
+  ARM: OMAP4+: PRM: remove "wkup" event
+  ARM: OMAP4+: PRM: Enable wakeup capability for OMAP5, DRA7
+  ARM: OMAP3+: PRM: register interrupt information from DT
+
+ arch/arm/mach-omap2/prm3xxx.c     |   18 ++++++++
+ arch/arm/mach-omap2/prm44xx.c     |   90 ++++++++++++++++++++++++++++++++-----
+ arch/arm/mach-omap2/prminst44xx.c |   40 ++++++++++-------
+ arch/arm/mach-omap2/prminst44xx.h |    3 ++
+ 4 files changed, 125 insertions(+), 26 deletions(-)
+
 -- 
 1.7.9.5
