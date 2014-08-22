@@ -1,48 +1,39 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: DRA7: fix interrupt-cells for GPIO
-Date: Fri, 22 Aug 2014 16:02:54 -0700
-Message-ID: <20140822230253.GJ10066@atomide.com>
-References: <1406748032-19417-1-git-send-email-nm@ti.com>
- <53F249F3.9070402@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/19] ARM: OMAP: fix %d confusingly prefixed with 0x in
+ format string
+Date: Fri, 22 Aug 2014 16:04:56 -0700
+Message-ID: <20140822230456.GK10066@atomide.com>
+References: <1407111483-14512-1-git-send-email-hans@hanshq.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53F249F3.9070402-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, inux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1407111483-14512-1-git-send-email-hans@hanshq.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hans Wennborg <hans@hanshq.net>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [140818 11:49]:
-> On 07/30/2014 02:20 PM, Nishanth Menon wrote:
-> > GPIO modules are also interrupt sources. However, they require both the
-> > GPIO number and IRQ type to function properly.
-> > 
-> > By declaring that GPIO uses interrupt-cells=<1>, we essentially do not
-> > allow users of the nodes to use the interrupt property appropritely.
-> > 
-> > With this change, the following now works:
-> > 
-> > interrupt-parent = <&gpio6>;
-> > interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
-> > 
-> > Fixes: 6e58b8f1daaf ('ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board')
-> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> > ---
-> > Based on v3.16-rc7
-> > 
-> >  arch/arm/boot/dts/dra7.dtsi |   16 ++++++++--------
-> >  1 file changed, 8 insertions(+), 8 deletions(-)
+* Hans Wennborg <hans@hanshq.net> [140803 17:21]:
+> Signed-off-by: Hans Wennborg <hans@hanshq.net>
+> ---
+>  arch/arm/mach-omap2/id.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> Tony,
-> Gentle ping. we still have this issue on 3.17-rc1. any suggestions on
-> if we can pick this up during RC?
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index d42022f..53841de 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -663,7 +663,7 @@ void __init dra7xxx_check_revision(void)
+>  
+>  	default:
+>  		/* Unknown default to latest silicon rev as default*/
+> -		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%d)\n",
+> +		pr_warn("%s: unknown idcode=0x%08x (hawkeye=0x%08x,rev=0x%x)\n",
+>  			__func__, idcode, hawkeye, rev);
+>  		omap_revision = DRA752_REV_ES1_1;
+>  	}
 
-Yes thanks applying into omap-for-v3.17/fixes.
+Thanks applying into omap-for-v3.17/fixes.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
