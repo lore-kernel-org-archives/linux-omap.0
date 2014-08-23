@@ -1,62 +1,42 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ARM: dts: Remove twl6030 clk32g "regulator"
-Date: Fri, 22 Aug 2014 22:27:40 -0500
-Message-ID: <20140823032740.GH24407@sirena.org.uk>
-References: <1407865760-15448-1-git-send-email-broonie@kernel.org>
- <20140822231259.GC17254@atomide.com>
- <20140823000403.GG24407@sirena.org.uk>
- <20140823002024.GD17254@atomide.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH] gpio: omap: Fix interrupt names
+Date: Fri, 22 Aug 2014 21:00:27 -0700
+Message-ID: <7hvbpj6ejo.fsf@paris.lan>
+References: <1408627195-18421-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Er1ntMVhQcukqcwj"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:56353 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbaHWD15 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Aug 2014 23:27:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20140823002024.GD17254@atomide.com>
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:64081 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751296AbaHWEAa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Aug 2014 00:00:30 -0400
+Received: by mail-pd0-f182.google.com with SMTP id fp1so16894001pdb.41
+        for <linux-omap@vger.kernel.org>; Fri, 22 Aug 2014 21:00:29 -0700 (PDT)
+In-Reply-To: <1408627195-18421-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Thu, 21 Aug 2014 08:19:55 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Nishanth Menon <nm@ti.com> writes:
 
---Er1ntMVhQcukqcwj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> When viewing the /proc/interrupts, there is no information about which
+> GPIO bank a specific gpio interrupt is hooked on to. This is more than a
+> bit irritating as such information can esily be provided back to the
+> user and at times, can be crucial for debug.
+>
+> So, instead of displaying something like:
+> 31:	0	0  GPIO   0  palmas
+> 32:	0	0  GPIO  27  mmc0
+>
+> Display the following with appropriate device name:
+> 31:	0	0  4ae10000.gpio   0  palmas
+> 32:	0	0  4805d000.gpio  27  mmc0
+>
+> This requires that we create irq_chip instance specific for each GPIO
+> bank which is trivial to achieve.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-On Fri, Aug 22, 2014 at 05:20:24PM -0700, Tony Lindgren wrote:
-> * Mark Brown <broonie@kernel.org> [140822 17:07]:
-
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-
-> > Definitely not too late - indeed I'd have expected you to apply this.
-
-> Sure, let me know if you prefer me to pick it up.
-
-Yes, please.
-
---Er1ntMVhQcukqcwj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJT+AojAAoJELSic+t+oim9TiUP/i7jJgCiVYSmOzgbBgqAENi6
-LAQpb3kj34r1Ju+rC0jjz8XBoWQJPD9lNxJnaw4c2av6U9TmlH9SMvT4fBuLxZtr
-ANfRse5fdm0YozurixpEHuwxrml/F2IZ2R+rbLTstTKOXed5OwxwYhCvx4W8airH
-CAYjQsfw67i/+F2f3DKPmE0ZYbZlLXcXPkmJgN8GF3xDOBwBxPAr3Z3Ihqi0yuwf
-hHuMhCyu7JOqoOFUMnHUYIJ6VMhfNa5Z61pVAnGvDECqu68Fr9qXsQIcVRqqspT0
-wZupR4y415wWpwQpNEANUglYOAZgrT96lp+SxuHlo29AsNPGjb+9woSb06MwhtDd
-JIWQomlhuSOubo/vrgrwuctm4gtR1HMN8c2OWkd6mXlg5/nQw35/vBzAT2jXZO4t
-AXPKjjzRUC7fTA0bWE8UdcyRsWPg+MYF2dRKHwIr4Qaq9LkPGHc0Qa5PgO5V1hvD
-u5CKtcSr+rxwdDan2iBQ3DdTjHpOgAAr3Lhu6MGkYfzVMfnnuEhwP2k50kUTrZhy
-0GOxEZFNHYRX3ek+AAuA67LWK90GWh5T98Zto9lF7sSREnfBsEe/aWUl0QeuZSff
-uT2T8oQXu+bp8D5IpIrDkcybfGqFmpDo5u7fYfT7U57OaKR8JZq91Y2p+UcSmQdg
-3qcAggQycvxoLCd8K5mA
-=9BuA
------END PGP SIGNATURE-----
-
---Er1ntMVhQcukqcwj--
+Acked-by: Kevin Hilman <khilman@linaro.org>
