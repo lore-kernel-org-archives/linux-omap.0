@@ -1,24 +1,38 @@
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Re: [PATCH 0/9] use c99 initializers in structures
-Date: Sat, 23 Aug 2014 08:21:04 -0700
-Message-ID: <20140823152104.GC2074@thin>
-References: <1408792831-25615-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Remove twl6030 clk32g "regulator"
+Date: Sat, 23 Aug 2014 10:57:25 -0700
+Message-ID: <20140823175724.GE17254@atomide.com>
+References: <1407865760-15448-1-git-send-email-broonie@kernel.org>
+ <20140822231259.GC17254@atomide.com>
+ <20140823000403.GG24407@sirena.org.uk>
+ <20140823002024.GD17254@atomide.com>
+ <20140823032740.GH24407@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pwm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20045 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751372AbaHWR52 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Aug 2014 13:57:28 -0400
 Content-Disposition: inline
-In-Reply-To: <1408792831-25615-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: dri-devel@lists.freedesktop.org, kernel-janitors@vger.kernel.org, linux-nfc@lists.01.org, linux-wireless@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-pwm@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, rtc-linux@googlegroups.com
+In-Reply-To: <20140823032740.GH24407@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-omap@vger.kernel.org, linaro-kernel@lists.linaro.org
 
-On Sat, Aug 23, 2014 at 01:20:22PM +0200, Julia Lawall wrote:
-> These patches add labels in the initializations of structure fields (c99
-> initializers).  The complete semantic patch thta makes this change is shown
-> below.  This rule ignores cases where the initialization is just 0 or NULL,
-> where some of the fields already use labels, and where there are nested
-> structures.
+* Mark Brown <broonie@kernel.org> [140822 20:30]:
+> On Fri, Aug 22, 2014 at 05:20:24PM -0700, Tony Lindgren wrote:
+> > * Mark Brown <broonie@kernel.org> [140822 17:07]:
+> 
+> > > > Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> > > Definitely not too late - indeed I'd have expected you to apply this.
+> 
+> > Sure, let me know if you prefer me to pick it up.
+> 
+> Yes, please.
 
-I responded to patches 6 and 8 with comments; for the rest (1-5, 7, 9):
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+OK applied into omap-for-v3.17/fixes thanks.
+
+Tony
