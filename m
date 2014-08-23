@@ -1,53 +1,23 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 0/9] use c99 initializers in structures
-Date: Sat, 23 Aug 2014 13:20:22 +0200
-Message-ID: <1408792831-25615-1-git-send-email-Julia.Lawall@lip6.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: driverdev-devel-bounces@linuxdriverproject.org
-To: dri-devel@lists.freedesktop.org
-Cc: devel@driverdev.osuosl.org, linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org, rtc-linux@googlegroups.com, linux-nfc@lists.01.org, kernel-janitors@vger.kernel.org, linux-wireless@vger.kernel.org, josh@joshtriplett.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 7/9] OMAPDSS: DSI: use c99 initializers in structures
+Date: Sat, 23 Aug 2014 13:20:29 +0200
+Message-ID: <1408792831-25615-8-git-send-email-Julia.Lawall@lip6.fr>
+References: <1408792831-25615-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1408792831-25615-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: josh@joshtriplett.org, kernel-janitors@vger.kernel.org, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-These patches add labels in the initializations of structure fields (c99
-initializers).  The complete semantic patch thta makes this change is shown
-below.  This rule ignores cases where the initialization is just 0 or NULL,
-where some of the fields already use labels, and where there are nested
-structures.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+
+Use c99 initializers for structures.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
 // <smpl>
-@ok1@
-identifier i1,i2;
-position p;
-@@
-
-struct i1 i2@p = { \(0\|NULL\) };
-
-@ok2@
-identifier i1,i2,i3;
-position p;
-expression e;
-@@
-
-struct i1 i2@p = { ..., .i3 = e, ... };
-
-@ok3@
-identifier i1,i2;
-position p;
-@@
-
-struct i1 i2@p = { ..., { ... }, ... };
-
 @decl@
 identifier i1,fld;
 type T;
@@ -62,28 +32,50 @@ struct i1 {
 @bad@
 identifier decl.i1,i2;
 expression e;
-position p != {ok1.p,ok2.p,ok3.p};
-constant nm;
 initializer list[decl.n] is;
-position fix;
 @@
 
-struct i1 i2@p = { is,
-(
- nm(...)
-|
- e@fix
-)
- ,...};
-
-@@
-identifier decl.i1,i2,decl.fld;
-expression e;
-position bad.p, bad.fix;
-@@
-
-struct i1 i2@p = { ...,
+struct i1 i2 = { is,
 + .fld = e
-- e@fix
+- e
  ,...};
 // </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+The patches in this series do not depend on each other.
+
+Not compiled.
+
+ drivers/video/fbdev/omap2/dss/dsi.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/fbdev/omap2/dss/dsi.c b/drivers/video/fbdev/omap2/dss/dsi.c
+index 56b9244..b6f6ae1 100644
+--- a/drivers/video/fbdev/omap2/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/dss/dsi.c
+@@ -2571,7 +2571,10 @@ static int dsi_sync_vc_vp(struct platform_device *dsidev, int channel)
+ {
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+ 	DECLARE_COMPLETION_ONSTACK(completion);
+-	struct dsi_packet_sent_handler_data vp_data = { dsidev, &completion };
++	struct dsi_packet_sent_handler_data vp_data = {
++		.dsidev = dsidev,
++		.completion = &completion
++	};
+ 	int r = 0;
+ 	u8 bit;
+ 
+@@ -2617,7 +2620,10 @@ static void dsi_packet_sent_handler_l4(void *data, u32 mask)
+ static int dsi_sync_vc_l4(struct platform_device *dsidev, int channel)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(completion);
+-	struct dsi_packet_sent_handler_data l4_data = { dsidev, &completion };
++	struct dsi_packet_sent_handler_data l4_data = {
++		.dsidev = dsidev,
++		.completion = &completion
++	};
+ 	int r = 0;
+ 
+ 	r = dsi_register_isr_vc(dsidev, channel, dsi_packet_sent_handler_l4,
