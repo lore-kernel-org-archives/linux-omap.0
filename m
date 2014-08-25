@@ -1,56 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: fix gpmc_cs_remap: re-allocating
- chip-select address space based on DT
-Date: Mon, 25 Aug 2014 09:45:32 -0700
-Message-ID: <20140825164532.GJ17254@atomide.com>
-References: <1406139458-11676-1-git-send-email-pekon@ti.com>
- <20140822230132.GI10066@atomide.com>
- <53FB124F.5000408@ti.com>
+Subject: Re: [PATCH] mtd: nand: omap: Fix 1-bit Hamming code scheme,
+ omap_calculate_ecc()
+Date: Mon, 25 Aug 2014 09:47:07 -0700
+Message-ID: <20140825164706.GK17254@atomide.com>
+References: <1407508028-12973-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29850 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbaHYQph (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Aug 2014 12:45:37 -0400
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53FB124F.5000408@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1407508028-12973-1-git-send-email-rogerq@ti.com>
+Sender: stable-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: pekon <pekon@pek-sem.com>, linux-omap <linux-omap@vger.kernel.org>, Javier Martinez Canillas <javier@dowhile0.org>
+Cc: computersforpeace@gmail.com, gregkh@linuxfoundation.org, nsekhar@ti.com, ezequiel.garcia@free-electrons.com, pekon@pek-sem.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [140825 03:39]:
-> Hi Tony,
+* Roger Quadros <rogerq@ti.com> [140808 07:29]:
+> commit 65b97cf6b8de introduced in v3.7 caused a regression
+> by using a reversed CS_MASK thus causing omap_calculate_ecc to
+> always fail. As the NAND base driver never checks for .calculate()'s
+> return value, the zeroed ECC values are used as is without showing
+> any error to the user. However, this won't work and the NAND device
+> won't be guarded by any error code.
 > 
-> On 08/23/2014 02:01 AM, Tony Lindgren wrote:
-> > * Pekon Gupta <pekon@ti.com> [140723 11:20]:
-> >> Each GPMC chip-select needs to be configured for (base-address,CS-size) so that
-> >> GPMC understands the address-space allocated to device connected externally.
-> >> These chip-select configurations (base-address, CS-size) follow some basic
-> >> mapping rules like:
-> >> - The CS size is programmable from 256 MBytes to 16 MBytes (must be a power of 2)
-> >>   and is defined by the mask field. Attached memory smaller than the programmed
-> >>   CS region size is accessed through the entire CS region (aliasing).
-> >> - The programmed 'base-address' must be aligned to the 'CS-size' boundary and
-> >>   be a power of 2.
-> >> - Valid CS-size values are {256MB(max), 128MB, 64MB, 32MB and 16MB (min)}
-> >>   Any intermediate values creates holes in the chip-select memory-map.
-> >>
-> >> This patch adds above checks in gpmc_cs_remap() so that any invalid value
-> >> passed by DT <reg> property can be filtered before actually allocating the
-> >> address space.
-> >>
-> >> Signed-off-by: Pekon Gupta <pekon@ti.com>
-> > 
-> > Looks like size typos Roger mentioned are fixed in this one, so
-> > applying into omap-for-v3.17/fixes thanks.
+> Fix the issue by using the correct mask.
 > 
-> I don't see the typos fixed here. I'll reply with a v2 patch.
+> Code was tested on omap3beagle using the following procedure
+> - flash the primary bootloader (MLO) from the kernel to the first
+> NAND partition using nandwrite.
+> - boot the board from NAND. This utilizes OMAP ROM loader that
+> relies on 1-bit Hamming code ECC.
+> 
+> Fixes: 65b97cf6b8de (mtd: nand: omap2: handle nand on gpmc)
+> 
+> Cc: <stable@vger.kernel.org>	[3.7+]
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-Oops indeed. I'll redo the fixes branch to avoid extra churn
-and apply your updated version into omap-for-v3.17/fixes-v2.
+I'll apply this into omap-for-v3.17/fixes thanks.
 
 Regards,
 
 Tony
+
+> ---
+>  drivers/mtd/nand/omap2.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index f0ed92e..e2b9b34 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -931,7 +931,7 @@ static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
+>  	u32 val;
+>  
+>  	val = readl(info->reg.gpmc_ecc_config);
+> -	if (((val >> ECC_CONFIG_CS_SHIFT)  & ~CS_MASK) != info->gpmc_cs)
+> +	if (((val >> ECC_CONFIG_CS_SHIFT) & CS_MASK) != info->gpmc_cs)
+>  		return -EINVAL;
+>  
+>  	/* read ecc result */
+> -- 
+> 1.8.3.2
+> 
