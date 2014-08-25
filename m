@@ -1,63 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mtd: nand: omap: Fix 1-bit Hamming code scheme,
- omap_calculate_ecc()
-Date: Mon, 25 Aug 2014 09:47:07 -0700
-Message-ID: <20140825164706.GK17254@atomide.com>
-References: <1407508028-12973-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: Rearm wake-up interrupts for DT when
+ MUSB is idled
+Date: Mon, 25 Aug 2014 10:14:47 -0700
+Message-ID: <20140825171446.GL17254@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16600 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932253AbaHYROy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Aug 2014 13:14:54 -0400
 Content-Disposition: inline
-In-Reply-To: <1407508028-12973-1-git-send-email-rogerq@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: computersforpeace@gmail.com, gregkh@linuxfoundation.org, nsekhar@ti.com, ezequiel.garcia@free-electrons.com, pekon@pek-sem.com, artem.bityutskiy@linux.intel.com, dwmw2@infradead.org, jg1.han@samsung.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 
-* Roger Quadros <rogerq@ti.com> [140808 07:29]:
-> commit 65b97cf6b8de introduced in v3.7 caused a regression
-> by using a reversed CS_MASK thus causing omap_calculate_ecc to
-> always fail. As the NAND base driver never checks for .calculate()'s
-> return value, the zeroed ECC values are used as is without showing
-> any error to the user. However, this won't work and the NAND device
-> won't be guarded by any error code.
-> 
-> Fix the issue by using the correct mask.
-> 
-> Code was tested on omap3beagle using the following procedure
-> - flash the primary bootloader (MLO) from the kernel to the first
-> NAND partition using nandwrite.
-> - boot the board from NAND. This utilizes OMAP ROM loader that
-> relies on 1-bit Hamming code ECC.
-> 
-> Fixes: 65b97cf6b8de (mtd: nand: omap2: handle nand on gpmc)
-> 
-> Cc: <stable@vger.kernel.org>	[3.7+]
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+Looks like MUSB cable removal can cause wake-up interrupts to
+stop working for device tree based booting at least for UART3
+even as nothing is dynamically remuxed. This can be fixed by
+calling reconfigure_io_chain() for device tree based booting
+in hwmod code. Note that we already do that for legacy booting
+if the legacy mux is configured.
 
-I'll apply this into omap-for-v3.17/fixes thanks.
+My guess is that this is related to UART3 and MUSB ULPI
+hsusb0_data0 and hsusb0_data1 support for Carkit mode that
+somehow affect the configured IO chain for UART3 and require
+rearming the wake-up interrupts.
 
-Regards,
+In general, for device tree based booting, pinctrl-single
+calls the rearm hook that in turn calls reconfigure_io_chain
+so calling reconfigure_io_chain should not be needed from the
+hwmod code for other events.
 
-Tony
+So let's limit the hwmod rearming of iochain only to
+HWMOD_FORCE_MSTANDBY where MUSB is currently the only user
+of it. If we see other devices needing similar changes we can
+add more checks for it.
 
-> ---
->  drivers/mtd/nand/omap2.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index f0ed92e..e2b9b34 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -931,7 +931,7 @@ static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
->  	u32 val;
->  
->  	val = readl(info->reg.gpmc_ecc_config);
-> -	if (((val >> ECC_CONFIG_CS_SHIFT)  & ~CS_MASK) != info->gpmc_cs)
-> +	if (((val >> ECC_CONFIG_CS_SHIFT) & CS_MASK) != info->gpmc_cs)
->  		return -EINVAL;
->  
->  	/* read ecc result */
-> -- 
-> 1.8.3.2
-> 
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2185,6 +2185,8 @@ static int _enable(struct omap_hwmod *oh)
+ 			 oh->mux->pads_dynamic))) {
+ 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
+ 		_reconfigure_io_chain();
++	} else if (oh->flags & HWMOD_FORCE_MSTANDBY) {
++		_reconfigure_io_chain();
+ 	}
+ 
+ 	_add_initiator_dep(oh, mpu_oh);
+@@ -2291,6 +2293,8 @@ static int _idle(struct omap_hwmod *oh)
+ 	if (oh->mux && oh->mux->pads_dynamic) {
+ 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_IDLE);
+ 		_reconfigure_io_chain();
++	} else if (oh->flags & HWMOD_FORCE_MSTANDBY) {
++		_reconfigure_io_chain();
+ 	}
+ 
+ 	oh->_state = _HWMOD_STATE_IDLE;
