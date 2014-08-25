@@ -1,49 +1,221 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PROBLEM: bindings for drivers/mfd/twl4030-power.c
-Date: Mon, 25 Aug 2014 14:26:54 -0700
-Message-ID: <20140825212652.GR17254@atomide.com>
-References: <FAC7D7E5-1D05-4D63-821F-C56D3AAA8FF9@goldelico.com>
+Subject: [PATCH] pstore/ram_core: Fix hang on ARMs because of pgprot_noncached
+Date: Mon, 25 Aug 2014 16:14:50 -0700
+Message-ID: <20140825231449.GS17254@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <FAC7D7E5-1D05-4D63-821F-C56D3AAA8FF9@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org
+To: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>, Rob Herring <robherring2@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dr. H. Nikolaus Schaller <hns@goldelico.com> [140817 08:46]:
-> I am trying to make ti,use_poweroff work on 3.17-rc1 for the GTA04 board.
-> Poweroff was broken for a while and I found that the driver isn't loaded at all.
-> 
-> It appears to me that commit e7cd1d1eb16fcdf53001b926187a82f1f3e1a7e6
-> did rename the compatible entry from "ti,twl4030-power" to "ti,twl4030-power-reset"
-> but this was not documented in the bindings and of course our DT does not
-> match.
-> 
-> Even your commit message talks about "ti,twl4030-power" although I can't find it
-> in the code.
+Currently trying to use pstore on ARMs can hang as we're mapping the
+peristent RAM with pgprot_noncached(). On ARMs, this will actually
+make the memory strongly ordered, and as the atomic operations pstore
+uses are implementation defined for strongly ordered memory, they
+may not work.
 
-Hmm sorry did I accidentally remove ti,twl4030-power? If so, that should
-be added back for sure. Do you have a patch for that already?
+An earlier fix was done by Rob Herring <robherring2@gmail.com> to
+change the mapping to be pgprot_writecombine() instead as that's often
+defined as pgprot_noncached() anyways. However, as pointed out by
+Colin Cross <ccross@android.com>, in some cases you do want to use
+pgprot_noncached() on ARMs if the SoC supports it to see a debug
+printk just before a write hanging the system.
+
+So let's fix this issue by adding a module parameter for mem_cached,
+and default to having it set. This fixes pstore at least for omaps,
+and does not change the default for x86. And people debugging system
+hangs can set the mem_cached to zero as needed.
+
+Cc: Rob Herring <robherring2@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/Documentation/ramoops.txt
++++ b/Documentation/ramoops.txt
+@@ -14,11 +14,18 @@ survive after a restart.
  
-> Are "ti,twl4030-power" and "ti,twl4030-power-reset" doing the same?
-
-No, they are separate where ti,twl4030-power does not configure the
-twl4030 in any way where ti,twl4030-power-reset configures the warm
-reset sequence.
-
-For gta04, what you really want is to use ti,twl4030-power-idle or
-even ti,twl4030-power-idle-osc-off if the board is wired to support
-cutting off the oscillator.
-
-And you probably also want to configure some wake-up interrupts at least
-for the the UARTs in the board specific .dts file, see for example the
-UART3 in the existing board files that have:
-
-interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
-
-Regards,
-
-Tony
+ 1. Ramoops concepts
+ 
+-Ramoops uses a predefined memory area to store the dump. The start and size of
+-the memory area are set using two variables:
++Ramoops uses a predefined memory area to store the dump. The start and size
++and type of the memory area are set using three variables:
+   * "mem_address" for the start
+   * "mem_size" for the size. The memory size will be rounded down to a
+   power of two.
++  * "mem_cached" to specifiy if the memory is cached or not.
++
++Note disabling "mem_cached" may not be supported on all architectures as
++pstore depends on atomic operations. At least on ARM, clearing "mem_cached"
++will cause the memory to be mapped strongly ordered. And atomic operations
++on strongly ordered memory are implementation defined, and won't work on
++many ARMs such as omap.
+ 
+ The memory area is divided into "record_size" chunks (also rounded down to
+ power of two) and each oops/panic writes a "record_size" chunk of
+@@ -55,6 +62,7 @@ Setting the ramoops parameters can be done in 2 different manners:
+ static struct ramoops_platform_data ramoops_data = {
+         .mem_size               = <...>,
+         .mem_address            = <...>,
++        .mem_cached             = <...>,
+         .record_size            = <...>,
+         .dump_oops              = <...>,
+         .ecc                    = <...>,
+--- a/fs/pstore/ram.c
++++ b/fs/pstore/ram.c
+@@ -61,6 +61,11 @@ module_param(mem_size, ulong, 0400);
+ MODULE_PARM_DESC(mem_size,
+ 		"size of reserved RAM used to store oops/panic logs");
+ 
++static unsigned int mem_cached = 1;
++module_param(mem_cached, uint, 0600);
++MODULE_PARM_DESC(mem_cached,
++		"set to 1 to use cached memory, 0 to use uncached (default 1)");
++
+ static int dump_oops = 1;
+ module_param(dump_oops, int, 0600);
+ MODULE_PARM_DESC(dump_oops,
+@@ -79,6 +84,7 @@ struct ramoops_context {
+ 	struct persistent_ram_zone *fprz;
+ 	phys_addr_t phys_addr;
+ 	unsigned long size;
++	unsigned int cached;
+ 	size_t record_size;
+ 	size_t console_size;
+ 	size_t ftrace_size;
+@@ -358,7 +364,8 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
+ 		size_t sz = cxt->record_size;
+ 
+ 		cxt->przs[i] = persistent_ram_new(*paddr, sz, 0,
+-						  &cxt->ecc_info);
++						  &cxt->ecc_info,
++						  cxt->cached);
+ 		if (IS_ERR(cxt->przs[i])) {
+ 			err = PTR_ERR(cxt->przs[i]);
+ 			dev_err(dev, "failed to request mem region (0x%zx@0x%llx): %d\n",
+@@ -388,7 +395,7 @@ static int ramoops_init_prz(struct device *dev, struct ramoops_context *cxt,
+ 		return -ENOMEM;
+ 	}
+ 
+-	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info);
++	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info, cxt->cached);
+ 	if (IS_ERR(*prz)) {
+ 		int err = PTR_ERR(*prz);
+ 
+@@ -435,6 +442,7 @@ static int ramoops_probe(struct platform_device *pdev)
+ 
+ 	cxt->size = pdata->mem_size;
+ 	cxt->phys_addr = pdata->mem_address;
++	cxt->cached = pdata->mem_cached;
+ 	cxt->record_size = pdata->record_size;
+ 	cxt->console_size = pdata->console_size;
+ 	cxt->ftrace_size = pdata->ftrace_size;
+--- a/fs/pstore/ram_core.c
++++ b/fs/pstore/ram_core.c
+@@ -380,7 +380,8 @@ void persistent_ram_zap(struct persistent_ram_zone *prz)
+ 	persistent_ram_update_header_ecc(prz);
+ }
+ 
+-static void *persistent_ram_vmap(phys_addr_t start, size_t size)
++static void *persistent_ram_vmap(phys_addr_t start, size_t size,
++		unsigned int cached)
+ {
+ 	struct page **pages;
+ 	phys_addr_t page_start;
+@@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+ 	page_start = start - offset_in_page(start);
+ 	page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
+ 
+-	prot = pgprot_noncached(PAGE_KERNEL);
++	if (cached)
++		prot = pgprot_writecombine(PAGE_KERNEL);
++	else
++		prot = pgprot_noncached(PAGE_KERNEL);
+ 
+ 	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages) {
+@@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+ 	return vaddr;
+ }
+ 
+-static void *persistent_ram_iomap(phys_addr_t start, size_t size)
++static void *persistent_ram_iomap(phys_addr_t start, size_t size,
++		unsigned int cached)
+ {
++	void *va;
++
+ 	if (!request_mem_region(start, size, "persistent_ram")) {
+ 		pr_err("request mem region (0x%llx@0x%llx) failed\n",
+ 			(unsigned long long)size, (unsigned long long)start);
+@@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
+ 	buffer_start_add = buffer_start_add_locked;
+ 	buffer_size_add = buffer_size_add_locked;
+ 
+-	return ioremap(start, size);
++	if (cached)
++		va = ioremap(start, size);
++	else
++		va = ioremap_wc(start, size);
++
++	return va;
+ }
+ 
+ static int persistent_ram_buffer_map(phys_addr_t start, phys_addr_t size,
+-		struct persistent_ram_zone *prz)
++		struct persistent_ram_zone *prz, int cached)
+ {
+ 	prz->paddr = start;
+ 	prz->size = size;
+ 
+ 	if (pfn_valid(start >> PAGE_SHIFT))
+-		prz->vaddr = persistent_ram_vmap(start, size);
++		prz->vaddr = persistent_ram_vmap(start, size, cached);
+ 	else
+-		prz->vaddr = persistent_ram_iomap(start, size);
++		prz->vaddr = persistent_ram_iomap(start, size, cached);
+ 
+ 	if (!prz->vaddr) {
+ 		pr_err("%s: Failed to map 0x%llx pages at 0x%llx\n", __func__,
+@@ -500,7 +512,8 @@ void persistent_ram_free(struct persistent_ram_zone *prz)
+ }
+ 
+ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
+-			u32 sig, struct persistent_ram_ecc_info *ecc_info)
++			u32 sig, struct persistent_ram_ecc_info *ecc_info,
++			unsigned int cached)
+ {
+ 	struct persistent_ram_zone *prz;
+ 	int ret = -ENOMEM;
+@@ -511,7 +524,7 @@ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
+ 		goto err;
+ 	}
+ 
+-	ret = persistent_ram_buffer_map(start, size, prz);
++	ret = persistent_ram_buffer_map(start, size, prz, cached);
+ 	if (ret)
+ 		goto err;
+ 
+--- a/include/linux/pstore_ram.h
++++ b/include/linux/pstore_ram.h
+@@ -53,7 +53,8 @@ struct persistent_ram_zone {
+ };
+ 
+ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
+-			u32 sig, struct persistent_ram_ecc_info *ecc_info);
++			u32 sig, struct persistent_ram_ecc_info *ecc_info,
++			unsigned int cached);
+ void persistent_ram_free(struct persistent_ram_zone *prz);
+ void persistent_ram_zap(struct persistent_ram_zone *prz);
+ 
+@@ -76,6 +77,7 @@ ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
+ struct ramoops_platform_data {
+ 	unsigned long	mem_size;
+ 	unsigned long	mem_address;
++	unsigned int	mem_cached;
+ 	unsigned long	record_size;
+ 	unsigned long	console_size;
+ 	unsigned long	ftrace_size;
