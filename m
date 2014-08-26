@@ -1,83 +1,112 @@
-From: Tomasz Figa <t.figa@samsung.com>
-Subject: [PATCH v4 2/7] ARM: l2c: Add interface to ask hypervisor to configure
- L2C
-Date: Tue, 26 Aug 2014 16:17:55 +0200
-Message-ID: <1409062680-15906-3-git-send-email-t.figa@samsung.com>
-References: <1409062680-15906-1-git-send-email-t.figa@samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] pstore/ram_core: Fix hang on ARMs because of
+ pgprot_noncached
+Date: Tue, 26 Aug 2014 07:53:11 -0700
+Message-ID: <20140826145311.GT17254@atomide.com>
+References: <20140825231449.GS17254@atomide.com>
+ <4959575.hJIGzK9yj7@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <1409062680-15906-1-git-send-email-t.figa@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-samsung-soc@vger.kernel.org
-Cc: Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, tony@atomide.com, linus.walleij@linaro.org, linux-kernel@vger.kernel.org, drake@endlessm.com, loeliger@gmail.com, santosh.shilimkar@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Tomasz Figa <t.figa@samsung.com>, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4959575.hJIGzK9yj7@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Russell King <linux@arm.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Because certain secure hypervisor do not allow writes to individual L2C
-registers, but rather expect set of parameters to be passed as argument
-to secure monitor calls, there is a need to provide an interface for the
-L2C driver to ask the firmware to configure the hardware according to
-specified parameters. This patch adds such.
+* Arnd Bergmann <arnd@arndb.de> [140826 02:16]:
+> On Monday 25 August 2014 16:14:50 Tony Lindgren wrote:
+> > -static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+> > +static void *persistent_ram_vmap(phys_addr_t start, size_t size,
+> > +               unsigned int cached)
+> >  {
+> >         struct page **pages;
+> >         phys_addr_t page_start;
+> > @@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+> >         page_start = start - offset_in_page(start);
+> >         page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
+> >  
+> > -       prot = pgprot_noncached(PAGE_KERNEL);
+> > +       if (cached)
+> > +               prot = pgprot_writecombine(PAGE_KERNEL);
+> > +       else
+> > +               prot = pgprot_noncached(PAGE_KERNEL);
+> >  
+> >         pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
+> >         if (!pages) {
+> 
+> If you have a 'struct page', you also have a cacheable mapping in the kernel already,
+> so you are not really supposed to add another uncached mapping. On some architectures
+> (e.g. powerpc) that will cause the CPU to checkstop, on others it is undefined
+> behavior. What is the reason for using an uncached mapping here in the first place?
 
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
----
- arch/arm/include/asm/outercache.h | 3 +++
- arch/arm/mm/cache-l2x0.c          | 6 ++++++
- 2 files changed, 9 insertions(+)
+The reason for using uncached mapping (really strongly ordered for ARM)
+here is because Colin observed lost debug prints just before hanging register
+writes because of the write buffer.
 
-diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
-index 891a56b..563b92f 100644
---- a/arch/arm/include/asm/outercache.h
-+++ b/arch/arm/include/asm/outercache.h
-@@ -23,6 +23,8 @@
+But it also sounds like pstore is broken for powerpc in addition to a bunch of
+ARMs, and possibly other architectures too.
  
- #include <linux/types.h>
+> > @@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+> >         return vaddr;
+> >  }
+> >  
+> > -static void *persistent_ram_iomap(phys_addr_t start, size_t size)
+> > +static void *persistent_ram_iomap(phys_addr_t start, size_t size,
+> > +               unsigned int cached)
+> >  {
+> > +       void *va;
+> > +
+> >         if (!request_mem_region(start, size, "persistent_ram")) {
+> >                 pr_err("request mem region (0x%llx@0x%llx) failed\n",
+> >                         (unsigned long long)size, (unsigned long long)start);
+> > @@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
+> >         buffer_start_add = buffer_start_add_locked;
+> >         buffer_size_add = buffer_size_add_locked;
+> >  
+> > -       return ioremap(start, size);
+> > +       if (cached)
+> > +               va = ioremap(start, size);
+> > +       else
+> > +               va = ioremap_wc(start, size);
+> > +
+> > +       return va;
+> >  }
+> 
+> This seems confusing at best, but is probably just wrong: so you use
+> an uncached mapping if someone asks for cached, but use a (more relaxed)
+> write-combining mapping if someone asked for a stricter mapping?
+> It's also the other way round for persistent_ram_vmap above.
+
+Indeed, the cached test for the ioremap is the wrong way around here.
  
-+struct l2x0_regs;
-+
- struct outer_cache_fns {
- 	void (*inv_range)(unsigned long, unsigned long);
- 	void (*clean_range)(unsigned long, unsigned long);
-@@ -36,6 +38,7 @@ struct outer_cache_fns {
- 
- 	/* This is an ARM L2C thing */
- 	void (*write_sec)(unsigned long, unsigned);
-+	void (*configure)(const struct l2x0_regs *);
- };
- 
- extern struct outer_cache_fns outer_cache;
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index b073563..84c6c55 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -109,6 +109,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
- 
- static void l2c_configure(void __iomem *base)
- {
-+	if (outer_cache.configure) {
-+		outer_cache.configure(&l2x0_saved_regs);
-+		return;
-+	}
-+
- 	if (l2x0_data->configure)
- 		l2x0_data->configure(base);
- 
-@@ -909,6 +914,7 @@ static int __init __l2c_init(const struct l2c_init_data *data,
- 
- 	fns = data->outer_cache;
- 	fns.write_sec = outer_cache.write_sec;
-+	fns.configure = outer_cache.configure;
- 	if (data->fixup)
- 		data->fixup(l2x0_base, cache_id, &fns);
- 
--- 
-2.0.4
+> According to your description, the intention is to make atomic operations
+> work, however most architectures don't allow atomics on either type of
+> uncached mapping, since atomicity is a feature of the cache coherency
+> fabric.
+> 
+> The only way I see to actually make atomics work here is to use a cached
+> mapping and explicit dcache flushes to actually force the data into
+> persistent storage.
+
+Right, that's what Rob attempted to patch a while back:
+
+https://lkml.org/lkml/2013/4/9/831
+
+See also the comments from Colin in that thread:
+
+https://lkml.org/lkml/2013/4/9/854
+
+The reason why I added the module_param is because Rob's fix did not
+go anywhere for over a year now. And adding the module_param seemed to
+help with the concerns Colin had. Personally I don't need the strongly
+ordered option though, I just need pgprot_writecombine :)
+
+It's starting to sound that we should first apply Rob's original fix
+to get pstore working. Then we can figure out how to deal with the
+unbuffered mapping for architectures and SoCs that support it.
+
+Regards,
+
+Tony
