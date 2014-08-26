@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 09/26] irqchip: mxs: convert to handle_domain_irq
-Date: Tue, 26 Aug 2014 11:03:24 +0100
-Message-ID: <1409047421-27649-10-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 21/26] irqchip: or1k-pic: convert to handle_domain_irq
+Date: Tue, 26 Aug 2014 11:03:36 +0100
+Message-ID: <1409047421-27649-22-git-send-email-marc.zyngier@arm.com>
 References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
@@ -14,22 +14,30 @@ Use the new handle_domain_irq method to handle interrupts.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-mxs.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/irqchip/irq-or1k-pic.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/irqchip/irq-mxs.c b/drivers/irqchip/irq-mxs.c
-index 4044ff2..e4acf1e 100644
---- a/drivers/irqchip/irq-mxs.c
-+++ b/drivers/irqchip/irq-mxs.c
-@@ -78,8 +78,7 @@ asmlinkage void __exception_irq_entry icoll_handle_irq(struct pt_regs *regs)
+diff --git a/drivers/irqchip/irq-or1k-pic.c b/drivers/irqchip/irq-or1k-pic.c
+index 17ff033..e93d079 100644
+--- a/drivers/irqchip/irq-or1k-pic.c
++++ b/drivers/irqchip/irq-or1k-pic.c
+@@ -113,7 +113,7 @@ static inline int pic_get_irq(int first)
+ 	else
+ 		hwirq = hwirq + first - 1;
  
- 	irqnr = __raw_readl(icoll_base + HW_ICOLL_STAT_OFFSET);
- 	__raw_writel(irqnr, icoll_base + HW_ICOLL_VECTOR);
--	irqnr = irq_find_mapping(icoll_domain, irqnr);
--	handle_IRQ(irqnr, regs);
-+	handle_domain_irq(icoll_domain, irqnr, regs);
+-	return irq_find_mapping(root_domain, hwirq);
++	return hwirq;
  }
  
- static int icoll_irq_domain_map(struct irq_domain *d, unsigned int virq,
+ static void or1k_pic_handle_irq(struct pt_regs *regs)
+@@ -121,7 +121,7 @@ static void or1k_pic_handle_irq(struct pt_regs *regs)
+ 	int irq = -1;
+ 
+ 	while ((irq = pic_get_irq(irq + 1)) != NO_IRQ)
+-		handle_IRQ(irq, regs);
++		handle_domain_irq(root_domain, irq, regs);
+ }
+ 
+ static int or1k_map(struct irq_domain *d, unsigned int irq, irq_hw_number_t hw)
 -- 
 2.0.4
