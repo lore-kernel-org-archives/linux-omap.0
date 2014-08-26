@@ -1,112 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pstore/ram_core: Fix hang on ARMs because of
- pgprot_noncached
-Date: Tue, 26 Aug 2014 07:53:11 -0700
-Message-ID: <20140826145311.GT17254@atomide.com>
-References: <20140825231449.GS17254@atomide.com>
- <4959575.hJIGzK9yj7@wuerfel>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2 02/26] arm64: convert handle_IRQ to use
+ __handle_domain_irq
+Date: Tue, 26 Aug 2014 17:51:38 +0100
+Message-ID: <20140826165138.GM16482@arm.com>
+References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
+	<1409047421-27649-3-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-bounces@lists.openrisc.net>
 Content-Disposition: inline
-In-Reply-To: <4959575.hJIGzK9yj7@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Russell King <linux@arm.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1409047421-27649-3-git-send-email-marc.zyngier@arm.com>
+List-Unsubscribe: <http://lists.openrisc.net/options/linux>,
+	<mailto:linux-request@lists.openrisc.net?subject=unsubscribe>
+List-Archive: <http://lists.openrisc.net/pipermail/linux>
+List-Post: <mailto:linux@lists.openrisc.net>
+List-Help: <mailto:linux-request@lists.openrisc.net?subject=help>
+List-Subscribe: <http://lists.openrisc.net/listinfo/linux>,
+	<mailto:linux-request@lists.openrisc.net?subject=subscribe>
+Sender: linux-bounces@lists.openrisc.net
+Errors-To: linux-bounces@lists.openrisc.net
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, "tony@atomide.com" <tony@atomide.com>, "linux@openrisc.net" <linux@openrisc.net>, Will Deacon <Will.Deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "shc_work@mail.ru" <shc_work@mail.ru>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "khilman@linaro.org" <khilman@linaro.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "larry.bassel@linaro.org" <larry.bassel@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "baohua@kernel.org" <baohua@kernel.org>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Sudeep
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [140826 02:16]:
-> On Monday 25 August 2014 16:14:50 Tony Lindgren wrote:
-> > -static void *persistent_ram_vmap(phys_addr_t start, size_t size)
-> > +static void *persistent_ram_vmap(phys_addr_t start, size_t size,
-> > +               unsigned int cached)
-> >  {
-> >         struct page **pages;
-> >         phys_addr_t page_start;
-> > @@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
-> >         page_start = start - offset_in_page(start);
-> >         page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
-> >  
-> > -       prot = pgprot_noncached(PAGE_KERNEL);
-> > +       if (cached)
-> > +               prot = pgprot_writecombine(PAGE_KERNEL);
-> > +       else
-> > +               prot = pgprot_noncached(PAGE_KERNEL);
-> >  
-> >         pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
-> >         if (!pages) {
+On Tue, Aug 26, 2014 at 11:03:17AM +0100, Marc Zyngier wrote:
+> In order to limit code duplication, convert the architecture specific
+> handle_IRQ to use the generic __handle_domain_irq function.
 > 
-> If you have a 'struct page', you also have a cacheable mapping in the kernel already,
-> so you are not really supposed to add another uncached mapping. On some architectures
-> (e.g. powerpc) that will cause the CPU to checkstop, on others it is undefined
-> behavior. What is the reason for using an uncached mapping here in the first place?
-
-The reason for using uncached mapping (really strongly ordered for ARM)
-here is because Colin observed lost debug prints just before hanging register
-writes because of the write buffer.
-
-But it also sounds like pstore is broken for powerpc in addition to a bunch of
-ARMs, and possibly other architectures too.
- 
-> > @@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
-> >         return vaddr;
-> >  }
-> >  
-> > -static void *persistent_ram_iomap(phys_addr_t start, size_t size)
-> > +static void *persistent_ram_iomap(phys_addr_t start, size_t size,
-> > +               unsigned int cached)
-> >  {
-> > +       void *va;
-> > +
-> >         if (!request_mem_region(start, size, "persistent_ram")) {
-> >                 pr_err("request mem region (0x%llx@0x%llx) failed\n",
-> >                         (unsigned long long)size, (unsigned long long)start);
-> > @@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
-> >         buffer_start_add = buffer_start_add_locked;
-> >         buffer_size_add = buffer_size_add_locked;
-> >  
-> > -       return ioremap(start, size);
-> > +       if (cached)
-> > +               va = ioremap(start, size);
-> > +       else
-> > +               va = ioremap_wc(start, size);
-> > +
-> > +       return va;
-> >  }
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  arch/arm64/Kconfig      |  1 +
+>  arch/arm64/kernel/irq.c | 18 +-----------------
+>  2 files changed, 2 insertions(+), 17 deletions(-)
 > 
-> This seems confusing at best, but is probably just wrong: so you use
-> an uncached mapping if someone asks for cached, but use a (more relaxed)
-> write-combining mapping if someone asked for a stricter mapping?
-> It's also the other way round for persistent_ram_vmap above.
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index fd4e81a..1f16ed9 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -30,6 +30,7 @@ config ARM64
+>  	select GENERIC_STRNCPY_FROM_USER
+>  	select GENERIC_STRNLEN_USER
+>  	select GENERIC_TIME_VSYSCALL
+> +	select HANDLE_DOMAIN_IRQ
+>  	select HARDIRQS_SW_RESEND
+>  	select HAVE_ARCH_AUDITSYSCALL
+>  	select HAVE_ARCH_JUMP_LABEL
+> diff --git a/arch/arm64/kernel/irq.c b/arch/arm64/kernel/irq.c
+> index 0f08dfd..2c0e2a7 100644
+> --- a/arch/arm64/kernel/irq.c
+> +++ b/arch/arm64/kernel/irq.c
+> @@ -48,23 +48,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
+>   */
+>  void handle_IRQ(unsigned int irq, struct pt_regs *regs)
+>  {
+> -	struct pt_regs *old_regs = set_irq_regs(regs);
+> -
+> -	irq_enter();
+> -
+> -	/*
+> -	 * Some hardware gives randomly wrong interrupts.  Rather
+> -	 * than crashing, do something sensible.
+> -	 */
+> -	if (unlikely(irq >= nr_irqs)) {
+> -		pr_warn_ratelimited("Bad IRQ%u\n", irq);
+> -		ack_bad_irq(irq);
+> -	} else {
+> -		generic_handle_irq(irq);
+> -	}
+> -
+> -	irq_exit();
+> -	set_irq_regs(old_regs);
+> +	__handle_domain_irq(NULL, irq, false, regs);
+>  }
 
-Indeed, the cached test for the ioremap is the wrong way around here.
- 
-> According to your description, the intention is to make atomic operations
-> work, however most architectures don't allow atomics on either type of
-> uncached mapping, since atomicity is a feature of the cache coherency
-> fabric.
-> 
-> The only way I see to actually make atomics work here is to use a cached
-> mapping and explicit dcache flushes to actually force the data into
-> persistent storage.
+The only thing that's missing is a pr_warn_ratelimited(). Do we still
+need it? We could add it to ack_bad_irq() though.
 
-Right, that's what Rob attempted to patch a while back:
+Either way:
 
-https://lkml.org/lkml/2013/4/9/831
-
-See also the comments from Colin in that thread:
-
-https://lkml.org/lkml/2013/4/9/854
-
-The reason why I added the module_param is because Rob's fix did not
-go anywhere for over a year now. And adding the module_param seemed to
-help with the concerns Colin had. Personally I don't need the strongly
-ordered option though, I just need pgprot_writecombine :)
-
-It's starting to sound that we should first apply Rob's original fix
-to get pstore working. Then we can figure out how to deal with the
-unbuffered mapping for architectures and SoCs that support it.
-
-Regards,
-
-Tony
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
