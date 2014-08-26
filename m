@@ -1,78 +1,81 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v7 RESEND] ARM: omap: edma: add suspend suspend/resume
- hooks
-Date: Tue, 26 Aug 2014 14:32:28 +0530
-Message-ID: <53FC4D24.3020108@ti.com>
-References: <1408693562-18068-1-git-send-email-d-gerlach@ti.com> <53FC2AD4.4070400@ti.com> <53FC4980.1070606@zonque.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] pstore/ram_core: Fix hang on ARMs because of pgprot_noncached
+Date: Tue, 26 Aug 2014 11:16:13 +0200
+Message-ID: <4959575.hJIGzK9yj7@wuerfel>
+References: <20140825231449.GS17254@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54255 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932362AbaHZJCz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Aug 2014 05:02:55 -0400
-In-Reply-To: <53FC4980.1070606@zonque.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140825231449.GS17254@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Russell King <linux@arm.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <daniel@zonque.org>, Dave Gerlach <d-gerlach@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-On Tuesday 26 August 2014 02:16 PM, Daniel Mack wrote:
-> Hi,
-> 
-> On 08/26/2014 08:36 AM, Sekhar Nori wrote:
->> On Friday 22 August 2014 01:16 PM, Dave Gerlach wrote:
-> 
-> Thanks for pushing that forward!
-> 
->>> +static int edma_pm_suspend(struct device *dev)
->>> +{
->>> +	int j, r;
->>> +
->>> +	r = pm_runtime_get_sync(dev);
->>> +	if (r < 0) {
->>> +		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
->>> +		return r;
->>> +	}
->>
->> The driver currently does a pm_runtime_get_sync() once during probe. And
->> does not do a put(). So this should actually be not required. In fact
->> looks like this additional get() call will prevent the clock from
->> getting disabled which is probably not what you intend.
-> 
-> Well, the pm runtime is put again ...
-> 
->>> +
->>> +	for (j = 0; j < arch_num_cc; j++) {
->>> +		struct edma *ecc = edma_cc[j];
->>> +
->>> +		disable_irq(ecc->irq_res_start);
->>> +		disable_irq(ecc->irq_res_end);
->>
->> Do we really need to disable these irqs?
->>
->>> +	}
->>> +
->>> +	pm_runtime_put_sync(dev);
-> 
-> ... here, so it's in sync and should be fine.
+On Monday 25 August 2014 16:14:50 Tony Lindgren wrote:
+> -static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+> +static void *persistent_ram_vmap(phys_addr_t start, size_t size,
+> +               unsigned int cached)
+>  {
+>         struct page **pages;
+>         phys_addr_t page_start;
+> @@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+>         page_start = start - offset_in_page(start);
+>         page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
+>  
+> -       prot = pgprot_noncached(PAGE_KERNEL);
+> +       if (cached)
+> +               prot = pgprot_writecombine(PAGE_KERNEL);
+> +       else
+> +               prot = pgprot_noncached(PAGE_KERNEL);
+>  
+>         pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
+>         if (!pages) {
 
-May be I am missing something but because of the pm_runtime_get_sync()
-in probe() usage count is already 1 when suspend() is called. The
-pm_runtime_get_sync() in this function makes it 2 and therefore
-pm_runtime_put_sync() returns immediately because the usage count is
-greater that 0 after decrementing by 1. That means the module's clocks
-is not disabled after suspend() is finished.
+If you have a 'struct page', you also have a cacheable mapping in the kernel already,
+so you are not really supposed to add another uncached mapping. On some architectures
+(e.g. powerpc) that will cause the CPU to checkstop, on others it is undefined
+behavior. What is the reason for using an uncached mapping here in the first place?
 
-> 
-> I was also sure than when I wrote the code, disabling the interrupts
-> during suspend was necessary, and even the only thing that has to be
-> done at suspend time. Now that I address this again, my tests show that
-> in can in fact be omitted.
+> @@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+>         return vaddr;
+>  }
+>  
+> -static void *persistent_ram_iomap(phys_addr_t start, size_t size)
+> +static void *persistent_ram_iomap(phys_addr_t start, size_t size,
+> +               unsigned int cached)
+>  {
+> +       void *va;
+> +
+>         if (!request_mem_region(start, size, "persistent_ram")) {
+>                 pr_err("request mem region (0x%llx@0x%llx) failed\n",
+>                         (unsigned long long)size, (unsigned long long)start);
+> @@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
+>         buffer_start_add = buffer_start_add_locked;
+>         buffer_size_add = buffer_size_add_locked;
+>  
+> -       return ioremap(start, size);
+> +       if (cached)
+> +               va = ioremap(start, size);
+> +       else
+> +               va = ioremap_wc(start, size);
+> +
+> +       return va;
+>  }
 
-Thanks!
+This seems confusing at best, but is probably just wrong: so you use
+an uncached mapping if someone asks for cached, but use a (more relaxed)
+write-combining mapping if someone asked for a stricter mapping?
+It's also the other way round for persistent_ram_vmap above.
 
-Regards,
-Sekhar
+According to your description, the intention is to make atomic operations
+work, however most architectures don't allow atomics on either type of
+uncached mapping, since atomicity is a feature of the cache coherency
+fabric.
 
+The only way I see to actually make atomics work here is to use a cached
+mapping and explicit dcache flushes to actually force the data into
+persistent storage.
+
+	Arnd
