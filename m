@@ -1,81 +1,65 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] pstore/ram_core: Fix hang on ARMs because of pgprot_noncached
-Date: Tue, 26 Aug 2014 11:16:13 +0200
-Message-ID: <4959575.hJIGzK9yj7@wuerfel>
-References: <20140825231449.GS17254@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap54xx-clocks: Fix the l3 and l4 clock rates
+Date: Tue, 26 Aug 2014 12:47:22 +0300
+Message-ID: <53FC57AA.5040906@ti.com>
+References: <1409043098-12510-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140825231449.GS17254@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, Russell King <linux@arm.linux.org.uk>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="XetwPSgwVReXc9XvUKGq1AB05RcT32cpx"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52133 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755778AbaHZJrx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Aug 2014 05:47:53 -0400
+In-Reply-To: <1409043098-12510-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Monday 25 August 2014 16:14:50 Tony Lindgren wrote:
-> -static void *persistent_ram_vmap(phys_addr_t start, size_t size)
-> +static void *persistent_ram_vmap(phys_addr_t start, size_t size,
-> +               unsigned int cached)
->  {
->         struct page **pages;
->         phys_addr_t page_start;
-> @@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
->         page_start = start - offset_in_page(start);
->         page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
->  
-> -       prot = pgprot_noncached(PAGE_KERNEL);
-> +       if (cached)
-> +               prot = pgprot_writecombine(PAGE_KERNEL);
-> +       else
-> +               prot = pgprot_noncached(PAGE_KERNEL);
->  
->         pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
->         if (!pages) {
+--XetwPSgwVReXc9XvUKGq1AB05RcT32cpx
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-If you have a 'struct page', you also have a cacheable mapping in the kernel already,
-so you are not really supposed to add another uncached mapping. On some architectures
-(e.g. powerpc) that will cause the CPU to checkstop, on others it is undefined
-behavior. What is the reason for using an uncached mapping here in the first place?
+On 26/08/14 11:51, Tero Kristo wrote:
+> Similarly to DRA7, OMAP5 has l3 and l4 clock rates incorrectly calculat=
+ed.
+> Fixed by using proper divider clock types for the clock nodes.
+>=20
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/boot/dts/omap54xx-clocks.dtsi |   16 ++++++++++------
+>  1 file changed, 10 insertions(+), 6 deletions(-)
 
-> @@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
->         return vaddr;
->  }
->  
-> -static void *persistent_ram_iomap(phys_addr_t start, size_t size)
-> +static void *persistent_ram_iomap(phys_addr_t start, size_t size,
-> +               unsigned int cached)
->  {
-> +       void *va;
-> +
->         if (!request_mem_region(start, size, "persistent_ram")) {
->                 pr_err("request mem region (0x%llx@0x%llx) failed\n",
->                         (unsigned long long)size, (unsigned long long)start);
-> @@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
->         buffer_start_add = buffer_start_add_locked;
->         buffer_size_add = buffer_size_add_locked;
->  
-> -       return ioremap(start, size);
-> +       if (cached)
-> +               va = ioremap(start, size);
-> +       else
-> +               va = ioremap_wc(start, size);
-> +
-> +       return va;
->  }
+Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-This seems confusing at best, but is probably just wrong: so you use
-an uncached mapping if someone asks for cached, but use a (more relaxed)
-write-combining mapping if someone asked for a stricter mapping?
-It's also the other way round for persistent_ram_vmap above.
+ Tomi
 
-According to your description, the intention is to make atomic operations
-work, however most architectures don't allow atomics on either type of
-uncached mapping, since atomicity is a feature of the cache coherency
-fabric.
 
-The only way I see to actually make atomics work here is to use a cached
-mapping and explicit dcache flushes to actually force the data into
-persistent storage.
 
-	Arnd
+--XetwPSgwVReXc9XvUKGq1AB05RcT32cpx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT/FeqAAoJEPo9qoy8lh71ttAQAJRW1HBxu5braFqCZgPAufhC
+WaHC/Yk4M/K/iA4a7dmeja0CFILJBrXUyjkJuUzo8vpnQe3yNvQz0vTs4xFdIerZ
+S6A7mgK/OtAbESvkTZej5uIRza+ox27e7qtkLN7S513V60ZbmDP6w5RuBuftbr2p
+LkA5+SxhnU+KNa3AKNgLKoKgg9jh6vsVj4B8eG2gg9ANg2cRGiCr6Rjimi2rlvTR
+kae5PhS9/VbD8LUAGn+qCZvbf33QX0DivLDvLumva0W2cQva5tLN1Au4nWCOQFUZ
+kNOmmTmaCP+7edctRxJcROM9Tf9pg1hCRFzlypOUCAmtdGbWOgPbGh+OcoCEmQSf
+r06FlcNe+gxh8bUQO+25mf9sAjLT2VkvVAZ6AiDMmc2aujyw14O6n5qgqMWvjaN5
+5vrb9WmFNHKZk5icjMCV7u/NEVAWBrPB1wOFnJXhzb5T0ny1wzoXe3RMLyiOjBFc
+TKfKzr9rz1pQHF2SlnFkk0FqxRgYU+uOU+7uk4S/Z31HnrjlrPQPRmph0EG9r+xn
++zg5kVzxwlwxik1AdDFNuB0YGf4+bKeMrS4zTgzimRLNQrwOJzZxlxhYpT9nvVPv
+rjt6WXriwUMrw6omn2Ll6RPqTDhkSeUWqhesf0r4vwkdjbTzLoJ/D1JWMjG5zZHL
+MFPfntD+teUijE+/IrD3
+=dg3o
+-----END PGP SIGNATURE-----
+
+--XetwPSgwVReXc9XvUKGq1AB05RcT32cpx--
