@@ -1,44 +1,65 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
 Subject: Re: [PATCH v2 01/26] genirq: add irq_domain-aware core IRQ handler
-Date: Tue, 26 Aug 2014 10:42:44 -0700
-Message-ID: <53FCC714.3090206@codeaurora.org>
-References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com> <1409047421-27649-2-git-send-email-marc.zyngier@arm.com>
+Date: Tue, 26 Aug 2014 19:07:03 +0100
+Message-ID: <53FCCCC7.9070801@arm.com>
+References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com> <1409047421-27649-2-git-send-email-marc.zyngier@arm.com> <53FCC714.3090206@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1409047421-27649-2-git-send-email-marc.zyngier@arm.com>
+In-Reply-To: <53FCC714.3090206@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux@lists.openrisc.net, linux@arm.linux.org.uk, shawn.guo@freescale.com, kernel@pengutronix.de, tony@atomide.com, catalin.marinas@arm.com, will.deacon@arm.com, jonas@southpole.se, tglx@linutronix.de, jason@lakedaemon.net, shc_work@mail.ru, baohua@kernel.org, maxime.ripard@free-electrons.com, khilman@linaro.org, lorenzo.pieralisi@arm.com, larry.bassel@linaro.org, mark.rutland@arm.com, sudeep.holla@arm.com, stefan.kristiansson@saunalahti.fi, vkale@apm.com, schwidefsky@de.ibm.com, Vladimir Murzin <vladimir.murzin@arm.com>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@openrisc.net" <linux@openrisc.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "tony@atomide.com" <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "jonas@southpole.se" <jonas@southpole.se>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "shc_work@mail.ru" <shc_work@mail.ru>, "baohua@kernel.org" <baohua@kernel.org>, "maxime.ripard@free-electrons.com" <maxime.ripard@free-electrons.com>, "khilman@linaro.org" <khilman@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/26/14 03:03, Marc Zyngier wrote:
-> Calling irq_find_mapping from outside a irq_{enter,exit} section is
-> unsafe and produces ugly messages if CONFIG_PROVE_RCU is enabled:
-> If coming from the idle state, the rcu_read_lock call in irq_find_mapping
-> will generate an unpleasant warning:
->
-> <quote>
-> ===============================
-> [ INFO: suspicious RCU usage. ]
-> 3.16.0-rc1+ #135 Not tainted
-> -------------------------------
-> include/linux/rcupdate.h:871 rcu_read_lock() used illegally while idle!
->
-> other info that might help us debug this:
->
-> RCU used illegally from idle CPU!
-> rcu_scheduler_active = 1, debug_locks = 0
-> RCU used illegally from extended quiescent state!
-> 1 lock held by swapper/0/0:
->  #0:  (rcu_read_lock){......}, at: [<ffffffc00010206c>]
-> irq_find_mapping+0x4c/0x198
+On 26/08/14 18:42, Stephen Boyd wrote:
+> On 08/26/14 03:03, Marc Zyngier wrote:
+>> Calling irq_find_mapping from outside a irq_{enter,exit} section is
+>> unsafe and produces ugly messages if CONFIG_PROVE_RCU is enabled:
+>> If coming from the idle state, the rcu_read_lock call in irq_find_mapping
+>> will generate an unpleasant warning:
+>>
+>> <quote>
+>> ===============================
+>> [ INFO: suspicious RCU usage. ]
+>> 3.16.0-rc1+ #135 Not tainted
+>> -------------------------------
+>> include/linux/rcupdate.h:871 rcu_read_lock() used illegally while idle!
+>>
+>> other info that might help us debug this:
+>>
+>> RCU used illegally from idle CPU!
+>> rcu_scheduler_active = 1, debug_locks = 0
+>> RCU used illegally from extended quiescent state!
+>> 1 lock held by swapper/0/0:
+>>  #0:  (rcu_read_lock){......}, at: [<ffffffc00010206c>]
+>> irq_find_mapping+0x4c/0x198
+> 
+> Do you have the whole stacktrace? I don't see where this is called
+> outside of irq_enter() from within the idle loop, but maybe I missed
+> something.
+> 
 
-Do you have the whole stacktrace? I don't see where this is called
-outside of irq_enter() from within the idle loop, but maybe I missed
-something.
+Hi Stephen,
 
+Digging into my email, one of the traces looked like this:
+
+stack backtrace:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.16.0-rc1+ #135
+Call trace:
+[<ffffffc0000882cc>] dump_backtrace+0x0/0x12c
+[<ffffffc000088408>] show_stack+0x10/0x1c
+[<ffffffc0004ee5f0>] dump_stack+0x74/0xc4
+[<ffffffc0000edfbc>] lockdep_rcu_suspicious+0xe8/0x124
+[<ffffffc00010218c>] irq_find_mapping+0x16c/0x198
+[<ffffffc00008130c>] gic_handle_irq+0x38/0xcc
+
+Most drivers call irq_find_mapping outside of irq_enter()/irq_exit(), as
+this is in handle_IRQ().
+
+Thanks,
+
+	M.
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+Jazz is not dead. It just smells funny...
