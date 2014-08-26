@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 06/26] irqchip: armada-370-xp: convert to handle_domain_irq
-Date: Tue, 26 Aug 2014 11:03:21 +0100
-Message-ID: <1409047421-27649-7-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 08/26] irqchip: mmp: convert to handle_domain_irq
+Date: Tue, 26 Aug 2014 11:03:23 +0100
+Message-ID: <1409047421-27649-9-git-send-email-marc.zyngier@arm.com>
 References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
@@ -14,46 +14,43 @@ Use the new handle_domain_irq method to handle interrupts.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-armada-370-xp.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/irqchip/irq-mmp.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/irqchip/irq-armada-370-xp.c b/drivers/irqchip/irq-armada-370-xp.c
-index 574aba0..fa75a29 100644
---- a/drivers/irqchip/irq-armada-370-xp.c
-+++ b/drivers/irqchip/irq-armada-370-xp.c
-@@ -393,13 +393,15 @@ static void armada_370_xp_handle_msi_irq(struct pt_regs *regs, bool is_chained)
- 		if (!(msimask & BIT(msinr)))
- 			continue;
+diff --git a/drivers/irqchip/irq-mmp.c b/drivers/irqchip/irq-mmp.c
+index 1c3e2c9..c0da57b 100644
+--- a/drivers/irqchip/irq-mmp.c
++++ b/drivers/irqchip/irq-mmp.c
+@@ -196,26 +196,24 @@ static struct mmp_intc_conf mmp2_conf = {
  
--		irq = irq_find_mapping(armada_370_xp_msi_domain,
--				       msinr - 16);
--
--		if (is_chained)
-+		if (is_chained) {
-+			irq = irq_find_mapping(armada_370_xp_msi_domain,
-+					       msinr - 16);
- 			generic_handle_irq(irq);
--		else
--			handle_IRQ(irq, regs);
-+		} else {
-+			irq = msinr - 16;
-+			handle_domain_irq(armada_370_xp_msi_domain,
-+					  irq, regs);
-+		}
- 	}
+ static void __exception_irq_entry mmp_handle_irq(struct pt_regs *regs)
+ {
+-	int irq, hwirq;
++	int hwirq;
+ 
+ 	hwirq = readl_relaxed(mmp_icu_base + PJ1_INT_SEL);
+ 	if (!(hwirq & SEL_INT_PENDING))
+ 		return;
+ 	hwirq &= SEL_INT_NUM_MASK;
+-	irq = irq_find_mapping(icu_data[0].domain, hwirq);
+-	handle_IRQ(irq, regs);
++	handle_domain_irq(icu_data[0].domain, hwirq, regs);
  }
- #else
-@@ -444,9 +446,8 @@ armada_370_xp_handle_irq(struct pt_regs *regs)
- 			break;
  
- 		if (irqnr > 1) {
--			irqnr =	irq_find_mapping(armada_370_xp_mpic_domain,
--					irqnr);
--			handle_IRQ(irqnr, regs);
-+			handle_domain_irq(armada_370_xp_mpic_domain,
-+					  irqnr, regs);
- 			continue;
- 		}
+ static void __exception_irq_entry mmp2_handle_irq(struct pt_regs *regs)
+ {
+-	int irq, hwirq;
++	int hwirq;
  
+ 	hwirq = readl_relaxed(mmp_icu_base + PJ4_INT_SEL);
+ 	if (!(hwirq & SEL_INT_PENDING))
+ 		return;
+ 	hwirq &= SEL_INT_NUM_MASK;
+-	irq = irq_find_mapping(icu_data[0].domain, hwirq);
+-	handle_IRQ(irq, regs);
++	handle_domain_irq(icu_data[0].domain, hwirq, regs);
+ }
+ 
+ /* MMP (ARMv5) */
 -- 
 2.0.4
