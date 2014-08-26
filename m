@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 07/26] irqchip: clps711x: convert to handle_domain_irq
-Date: Tue, 26 Aug 2014 11:03:22 +0100
-Message-ID: <1409047421-27649-8-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 12/26] irqchip: sirfsoc: convert to handle_domain_irq
+Date: Tue, 26 Aug 2014 11:03:27 +0100
+Message-ID: <1409047421-27649-13-git-send-email-marc.zyngier@arm.com>
 References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,44 +25,27 @@ Use the new handle_domain_irq method to handle interrupts.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-clps711x.c | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ drivers/irqchip/irq-sirfsoc.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/irqchip/irq-clps711x.c b/drivers/irqchip/irq-clps711x.c
-index 33340dc..33127f1 100644
---- a/drivers/irqchip/irq-clps711x.c
-+++ b/drivers/irqchip/irq-clps711x.c
-@@ -76,24 +76,20 @@ static struct {
- 
- static asmlinkage void __exception_irq_entry clps711x_irqh(struct pt_regs *regs)
+diff --git a/drivers/irqchip/irq-sirfsoc.c b/drivers/irqchip/irq-sirfsoc.c
+index 5e54f6d..a469355 100644
+--- a/drivers/irqchip/irq-sirfsoc.c
++++ b/drivers/irqchip/irq-sirfsoc.c
+@@ -50,12 +50,10 @@ sirfsoc_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
+ static void __exception_irq_entry sirfsoc_handle_irq(struct pt_regs *regs)
  {
--	u32 irqnr, irqstat;
+ 	void __iomem *base = sirfsoc_irqdomain->host_data;
+-	u32 irqstat, irqnr;
 +	u32 irqstat;
  
- 	do {
- 		irqstat = readw_relaxed(clps711x_intc->intmr[0]) &
- 			  readw_relaxed(clps711x_intc->intsr[0]);
--		if (irqstat) {
--			irqnr =	irq_find_mapping(clps711x_intc->domain,
--						 fls(irqstat) - 1);
--			handle_IRQ(irqnr, regs);
--		}
-+		if (irqstat)
-+			handle_domain_irq(clps711x_intc->domain,
-+					  fls(irqstat) - 1, regs);
- 
- 		irqstat = readw_relaxed(clps711x_intc->intmr[1]) &
- 			  readw_relaxed(clps711x_intc->intsr[1]);
--		if (irqstat) {
--			irqnr =	irq_find_mapping(clps711x_intc->domain,
--						 fls(irqstat) - 1 + 16);
--			handle_IRQ(irqnr, regs);
--		}
-+		if (irqstat)
-+			handle_domain_irq(clps711x_intc->domain,
-+					  fls(irqstat) - 1 + 16, regs);
- 	} while (irqstat);
+ 	irqstat = readl_relaxed(base + SIRFSOC_INIT_IRQ_ID);
+-	irqnr = irq_find_mapping(sirfsoc_irqdomain, irqstat & 0xff);
+-
+-	handle_IRQ(irqnr, regs);
++	handle_domain_irq(sirfsoc_irqdomain, irqstat & 0xff, regs);
  }
  
+ static int __init sirfsoc_irq_init(struct device_node *np,
 -- 
 2.0.4
