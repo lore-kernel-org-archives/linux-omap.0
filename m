@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 19/26] irqchip: atmel-aic: convert to handle_domain_irq
-Date: Tue, 26 Aug 2014 11:03:34 +0100
-Message-ID: <1409047421-27649-20-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 14/26] irqchip: versatile-fpga: convert to handle_domain_irq
+Date: Tue, 26 Aug 2014 11:03:29 +0100
+Message-ID: <1409047421-27649-15-git-send-email-marc.zyngier@arm.com>
 References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
@@ -14,26 +14,21 @@ Use the new handle_domain_irq method to handle interrupts.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-atmel-aic.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/irqchip/irq-versatile-fpga.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-atmel-aic.c b/drivers/irqchip/irq-atmel-aic.c
-index a82869e..9a2cf3c 100644
---- a/drivers/irqchip/irq-atmel-aic.c
-+++ b/drivers/irqchip/irq-atmel-aic.c
-@@ -68,12 +68,10 @@ aic_handle(struct pt_regs *regs)
- 	irqnr = irq_reg_readl(gc->reg_base + AT91_AIC_IVR);
- 	irqstat = irq_reg_readl(gc->reg_base + AT91_AIC_ISR);
+diff --git a/drivers/irqchip/irq-versatile-fpga.c b/drivers/irqchip/irq-versatile-fpga.c
+index ccf5854..1ab4517 100644
+--- a/drivers/irqchip/irq-versatile-fpga.c
++++ b/drivers/irqchip/irq-versatile-fpga.c
+@@ -96,7 +96,7 @@ static int handle_one_fpga(struct fpga_irq_data *f, struct pt_regs *regs)
  
--	irqnr = irq_find_mapping(aic_domain, irqnr);
--
- 	if (!irqstat)
- 		irq_reg_writel(0, gc->reg_base + AT91_AIC_EOICR);
- 	else
--		handle_IRQ(irqnr, regs);
-+		handle_domain_irq(aic_domain, irqnr, regs);
- }
+ 	while ((status  = readl(f->base + IRQ_STATUS))) {
+ 		irq = ffs(status) - 1;
+-		handle_IRQ(irq_find_mapping(f->domain, irq), regs);
++		handle_domain_irq(f->domain, irq, regs);
+ 		handled = 1;
+ 	}
  
- static int aic_retrigger(struct irq_data *d)
 -- 
 2.0.4
