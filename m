@@ -1,221 +1,160 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] pstore/ram_core: Fix hang on ARMs because of pgprot_noncached
-Date: Mon, 25 Aug 2014 16:14:50 -0700
-Message-ID: <20140825231449.GS17254@atomide.com>
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: Re: [PATCH v5 5/7] net: cpsw: Add am33xx MACID readout
+Date: Tue, 26 Aug 2014 07:55:09 +0200
+Message-ID: <20140826055509.GB21770@pengutronix.de>
+References: <1408947828-22316-1-git-send-email-mpa@pengutronix.de>
+ <1408947828-22316-6-git-send-email-mpa@pengutronix.de>
+ <20140825160118.GG17254@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44348 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755535AbaHZFz2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Aug 2014 01:55:28 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>, Rob Herring <robherring2@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <20140825160118.GG17254@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "David S. Miller" <davem@davemloft.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-Currently trying to use pstore on ARMs can hang as we're mapping the
-peristent RAM with pgprot_noncached(). On ARMs, this will actually
-make the memory strongly ordered, and as the atomic operations pstore
-uses are implementation defined for strongly ordered memory, they
-may not work.
 
-An earlier fix was done by Rob Herring <robherring2@gmail.com> to
-change the mapping to be pgprot_writecombine() instead as that's often
-defined as pgprot_noncached() anyways. However, as pointed out by
-Colin Cross <ccross@android.com>, in some cases you do want to use
-pgprot_noncached() on ARMs if the SoC supports it to see a debug
-printk just before a write hanging the system.
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So let's fix this issue by adding a module parameter for mem_cached,
-and default to having it set. This fixes pstore at least for omaps,
-and does not change the default for x86. And people debugging system
-hangs can set the mem_cached to zero as needed.
+Hi,
 
-Cc: Rob Herring <robherring2@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+On Mon, Aug 25, 2014 at 09:01:19AM -0700, Tony Lindgren wrote:
+> > diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/c=
+psw.c
+> > index 0bc2c2a2c236..7c94a0fb24bc 100644
+> > --- a/drivers/net/ethernet/ti/cpsw.c
+> > +++ b/drivers/net/ethernet/ti/cpsw.c
+> > @@ -33,6 +33,8 @@
+> >  #include <linux/of_net.h>
+> >  #include <linux/of_device.h>
+> >  #include <linux/if_vlan.h>
+> > +#include <linux/mfd/syscon.h>
+> > +#include <linux/regmap.h>
+> > =20
+> >  #include <linux/pinctrl/consumer.h>
+> > =20
+> > @@ -1816,6 +1818,39 @@ static void cpsw_slave_init(struct cpsw_slave *s=
+lave, struct cpsw_priv *priv,
+> >  	slave->port_vlan =3D data->dual_emac_res_vlan;
+> >  }
+> > =20
+> > +#define AM33XX_CTRL_MAC_LO_REG(id) (0x630 + 0x8 * id)
+> > +#define AM33XX_CTRL_MAC_HI_REG(id) (0x630 + 0x8 * id + 0x4)
+> > +
+> > +static int cpsw_am33xx_cm_get_macid(struct device *dev, int slave,
+> > +		u8 *mac_addr)
+> > +{
+> > +	u32 macid_lo;
+> > +	u32 macid_hi;
+> > +	struct regmap *syscon;
+> > +
+> > +	if (!of_machine_is_compatible("ti,am33xx"))
+> > +		return 0;
+> > +
+> > +	syscon =3D syscon_regmap_lookup_by_phandle(dev->of_node, "syscon");
+> > +	if (IS_ERR(syscon)) {
+> > +		if (PTR_ERR(syscon) =3D=3D -ENODEV)
+> > +			return 0;
+> > +		return PTR_ERR(syscon);
+> > +	}
+> > +
+> > +	regmap_read(syscon, AM33XX_CTRL_MAC_LO_REG(slave), &macid_lo);
+> > +	regmap_read(syscon, AM33XX_CTRL_MAC_HI_REG(slave), &macid_hi);
+> > +
+> > +	mac_addr[5] =3D (macid_lo >> 8) & 0xff;
+> > +	mac_addr[4] =3D macid_lo & 0xff;
+> > +	mac_addr[3] =3D (macid_hi >> 24) & 0xff;
+> > +	mac_addr[2] =3D (macid_hi >> 16) & 0xff;
+> > +	mac_addr[1] =3D (macid_hi >> 8) & 0xff;
+> > +	mac_addr[0] =3D macid_hi & 0xff;
+> > +
+> > +	return 0;
+> > +}
+>=20
+> I think this only works for the first instance of the cpsw?
 
---- a/Documentation/ramoops.txt
-+++ b/Documentation/ramoops.txt
-@@ -14,11 +14,18 @@ survive after a restart.
- 
- 1. Ramoops concepts
- 
--Ramoops uses a predefined memory area to store the dump. The start and size of
--the memory area are set using two variables:
-+Ramoops uses a predefined memory area to store the dump. The start and size
-+and type of the memory area are set using three variables:
-   * "mem_address" for the start
-   * "mem_size" for the size. The memory size will be rounded down to a
-   power of two.
-+  * "mem_cached" to specifiy if the memory is cached or not.
-+
-+Note disabling "mem_cached" may not be supported on all architectures as
-+pstore depends on atomic operations. At least on ARM, clearing "mem_cached"
-+will cause the memory to be mapped strongly ordered. And atomic operations
-+on strongly ordered memory are implementation defined, and won't work on
-+many ARMs such as omap.
- 
- The memory area is divided into "record_size" chunks (also rounded down to
- power of two) and each oops/panic writes a "record_size" chunk of
-@@ -55,6 +62,7 @@ Setting the ramoops parameters can be done in 2 different manners:
- static struct ramoops_platform_data ramoops_data = {
-         .mem_size               = <...>,
-         .mem_address            = <...>,
-+        .mem_cached             = <...>,
-         .record_size            = <...>,
-         .dump_oops              = <...>,
-         .ecc                    = <...>,
---- a/fs/pstore/ram.c
-+++ b/fs/pstore/ram.c
-@@ -61,6 +61,11 @@ module_param(mem_size, ulong, 0400);
- MODULE_PARM_DESC(mem_size,
- 		"size of reserved RAM used to store oops/panic logs");
- 
-+static unsigned int mem_cached = 1;
-+module_param(mem_cached, uint, 0600);
-+MODULE_PARM_DESC(mem_cached,
-+		"set to 1 to use cached memory, 0 to use uncached (default 1)");
-+
- static int dump_oops = 1;
- module_param(dump_oops, int, 0600);
- MODULE_PARM_DESC(dump_oops,
-@@ -79,6 +84,7 @@ struct ramoops_context {
- 	struct persistent_ram_zone *fprz;
- 	phys_addr_t phys_addr;
- 	unsigned long size;
-+	unsigned int cached;
- 	size_t record_size;
- 	size_t console_size;
- 	size_t ftrace_size;
-@@ -358,7 +364,8 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
- 		size_t sz = cxt->record_size;
- 
- 		cxt->przs[i] = persistent_ram_new(*paddr, sz, 0,
--						  &cxt->ecc_info);
-+						  &cxt->ecc_info,
-+						  cxt->cached);
- 		if (IS_ERR(cxt->przs[i])) {
- 			err = PTR_ERR(cxt->przs[i]);
- 			dev_err(dev, "failed to request mem region (0x%zx@0x%llx): %d\n",
-@@ -388,7 +395,7 @@ static int ramoops_init_prz(struct device *dev, struct ramoops_context *cxt,
- 		return -ENOMEM;
- 	}
- 
--	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info);
-+	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info, cxt->cached);
- 	if (IS_ERR(*prz)) {
- 		int err = PTR_ERR(*prz);
- 
-@@ -435,6 +442,7 @@ static int ramoops_probe(struct platform_device *pdev)
- 
- 	cxt->size = pdata->mem_size;
- 	cxt->phys_addr = pdata->mem_address;
-+	cxt->cached = pdata->mem_cached;
- 	cxt->record_size = pdata->record_size;
- 	cxt->console_size = pdata->console_size;
- 	cxt->ftrace_size = pdata->ftrace_size;
---- a/fs/pstore/ram_core.c
-+++ b/fs/pstore/ram_core.c
-@@ -380,7 +380,8 @@ void persistent_ram_zap(struct persistent_ram_zone *prz)
- 	persistent_ram_update_header_ecc(prz);
- }
- 
--static void *persistent_ram_vmap(phys_addr_t start, size_t size)
-+static void *persistent_ram_vmap(phys_addr_t start, size_t size,
-+		unsigned int cached)
- {
- 	struct page **pages;
- 	phys_addr_t page_start;
-@@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
- 	page_start = start - offset_in_page(start);
- 	page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
- 
--	prot = pgprot_noncached(PAGE_KERNEL);
-+	if (cached)
-+		prot = pgprot_writecombine(PAGE_KERNEL);
-+	else
-+		prot = pgprot_noncached(PAGE_KERNEL);
- 
- 	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
- 	if (!pages) {
-@@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
- 	return vaddr;
- }
- 
--static void *persistent_ram_iomap(phys_addr_t start, size_t size)
-+static void *persistent_ram_iomap(phys_addr_t start, size_t size,
-+		unsigned int cached)
- {
-+	void *va;
-+
- 	if (!request_mem_region(start, size, "persistent_ram")) {
- 		pr_err("request mem region (0x%llx@0x%llx) failed\n",
- 			(unsigned long long)size, (unsigned long long)start);
-@@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
- 	buffer_start_add = buffer_start_add_locked;
- 	buffer_size_add = buffer_size_add_locked;
- 
--	return ioremap(start, size);
-+	if (cached)
-+		va = ioremap(start, size);
-+	else
-+		va = ioremap_wc(start, size);
-+
-+	return va;
- }
- 
- static int persistent_ram_buffer_map(phys_addr_t start, phys_addr_t size,
--		struct persistent_ram_zone *prz)
-+		struct persistent_ram_zone *prz, int cached)
- {
- 	prz->paddr = start;
- 	prz->size = size;
- 
- 	if (pfn_valid(start >> PAGE_SHIFT))
--		prz->vaddr = persistent_ram_vmap(start, size);
-+		prz->vaddr = persistent_ram_vmap(start, size, cached);
- 	else
--		prz->vaddr = persistent_ram_iomap(start, size);
-+		prz->vaddr = persistent_ram_iomap(start, size, cached);
- 
- 	if (!prz->vaddr) {
- 		pr_err("%s: Failed to map 0x%llx pages at 0x%llx\n", __func__,
-@@ -500,7 +512,8 @@ void persistent_ram_free(struct persistent_ram_zone *prz)
- }
- 
- struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
--			u32 sig, struct persistent_ram_ecc_info *ecc_info)
-+			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-+			unsigned int cached)
- {
- 	struct persistent_ram_zone *prz;
- 	int ret = -ENOMEM;
-@@ -511,7 +524,7 @@ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
- 		goto err;
- 	}
- 
--	ret = persistent_ram_buffer_map(start, size, prz);
-+	ret = persistent_ram_buffer_map(start, size, prz, cached);
- 	if (ret)
- 		goto err;
- 
---- a/include/linux/pstore_ram.h
-+++ b/include/linux/pstore_ram.h
-@@ -53,7 +53,8 @@ struct persistent_ram_zone {
- };
- 
- struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
--			u32 sig, struct persistent_ram_ecc_info *ecc_info);
-+			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-+			unsigned int cached);
- void persistent_ram_free(struct persistent_ram_zone *prz);
- void persistent_ram_zap(struct persistent_ram_zone *prz);
- 
-@@ -76,6 +77,7 @@ ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
- struct ramoops_platform_data {
- 	unsigned long	mem_size;
- 	unsigned long	mem_address;
-+	unsigned int	mem_cached;
- 	unsigned long	record_size;
- 	unsigned long	console_size;
- 	unsigned long	ftrace_size;
+This works for both cpsw slaves on am335x. It does not work for multiple
+cpsw drivers. But we don't have them on am335x. For other platforms this
+function may be used in case they have the same register layout.
+
+>=20
+> Can the other instances of cpsw use this too and just increment
+> some value in it?
+>=20
+> >  static int cpsw_probe_dt(struct cpsw_platform_data *data,
+> >  			 struct platform_device *pdev)
+> >  {
+> > @@ -1928,8 +1963,14 @@ static int cpsw_probe_dt(struct cpsw_platform_da=
+ta *data,
+> >  			 PHY_ID_FMT, mdio->name, phyid);
+> > =20
+> >  		mac_addr =3D of_get_mac_address(slave_node);
+> > -		if (mac_addr)
+> > +		if (mac_addr) {
+> >  			memcpy(slave_data->mac_addr, mac_addr, ETH_ALEN);
+> > +		} else {
+> > +			ret =3D cpsw_am33xx_cm_get_macid(&pdev->dev, i,
+> > +						       slave_data->mac_addr);
+> > +			if (ret)
+> > +				return ret;
+> > +		}
+> > =20
+> >  		slave_data->phy_if =3D of_get_phy_mode(slave_node);
+> >  		if (slave_data->phy_if < 0) {
+>=20
+> The cpsw_am33xx_cm_get_macid() should only get called based on the
+> compatible flag to avoid random register access on other SoCs.
+>=20
+> So how about add the of_machine_is_compatible("ti,am33xx")
+> check here instead and skip calling cpsw_am33xx_cm_get_macid()
+> otherwise?
+>=20
+> That allows adding support for other omaps as we already have
+> ti,am4372-cpsw and people have pointed out issues with dra7xx
+> already.
+
+Okay, I will move the machine check here instead.
+
+Thanks,
+
+Markus
+
+--=20
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJT/CE8AAoJEEpcgKtcEGQQA7wQAKK33DwcAGuWq8GyMy2eNoDG
+Y5R2DohaXGNUpylW/Tr7VTQnw4RxixRKVlN71DJdhmgegFw6OenNkmqutG6PZeex
+S3DvNsjg3KlOiQGvhHjyDEkHAiOPCKrc0ixD/XFELSLAB3bZ7OMrAhBccCF2+jTc
+eW/sfAqYgZeN++ernWuCydwDYH/mTeUsia+A3PDvgRWtpwfqrW0TnKrNrkbhsdCM
+zIs8+z+fH0622kZGKRo5AbMqC1jj+W1z8GP0kfCLe7ci46uff8epI5zGWk0nywqD
+K+J5HB7jhvIu2YYoA+NO90ReCqcigZZTo4EoEk0jVXVlB1y5La/rmhv3BDVPQBJr
+7i+OJRh8lS2VhxUC7Onk0748yxm9ifw5pGdWWQX/Ohxt9s8/4vSjtbMFKtfDS7xO
+6JEh8504zdtXuX9fWAa9sTeDbDd7Ric2f6nTYAqoAaQVmvt7saaFqQx3ms+ABwH9
+68K/qFcoPjGaAfT7xEJ91EUOdgOVjL/ZJyYQe+e8v7/bexy6f+EqhltwMF7A/uLu
+N0gXb7wE2L/lpdylqOguNHS8Z7WgaCSXMwgbTsSL79O2kgRIQfZK0cWTwNtt2lPd
+8ge+34hHSJ1aCpASqbj6k2nHYugqPLZayguNevlbRZApOGf8K8plCzXRyN61o9/Z
+1RtKh5vwZCs4w/NcH+Uo
+=ziG9
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
