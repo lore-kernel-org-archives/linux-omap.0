@@ -1,41 +1,76 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 17/26] irqchip: zevio: convert to handle_domain_irq
-Date: Tue, 26 Aug 2014 11:03:32 +0100
-Message-ID: <1409047421-27649-18-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 03/26] ARM: convert handle_IRQ to use __handle_domain_irq
+Date: Tue, 26 Aug 2014 11:03:18 +0100
+Message-ID: <1409047421-27649-4-git-send-email-marc.zyngier@arm.com>
 References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fw-tnat.austin.arm.com ([217.140.110.23]:21003 "EHLO
-	collaborate-mta1.arm.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S934615AbaHZKEr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Aug 2014 06:04:47 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux@lists.openrisc.net
-Cc: linux@arm.linux.org.uk, shawn.guo@freescale.com, kernel@pengutronix.de, tony@atomide.com, catalin.marinas@arm.com, will.deacon@arm.com, jonas@southpole.se, tglx@linutronix.de, jason@lakedaemon.net, shc_work@mail.ru, baohua@kernel.org, maxime.ripard@free-electrons.com, marc.zyngier@arm.com, khilman@linaro.org, sboyd@codeaurora.org, lorenzo.pieralisi@arm.com, larry.bassel@linaro.org, mark.rutland@arm.com, sudeep.holla@arm.com, stefan.kristiansson@saunalahti.fi, vkale@apm.com, schwidefsky@de.ibm.com
+Cc: mark.rutland@arm.com, tony@atomide.com, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jonas@southpole.se, lorenzo.pieralisi@arm.com, linux@arm.linux.org.uk, shc_work@mail.ru, khilman@linaro.org, jason@lakedaemon.net, marc.zyngier@arm.com, stefan.kristiansson@saunalahti.fi, larry.bassel@linaro.org, shawn.guo@freescale.com, baohua@kernel.org, sboyd@codeaurora.org, kernel@pengutronix.de, sudeep.holla@arm.com, schwidefsky@de.ibm.com, maxime.ripard@free-electrons.com, vkale@apm.com
+List-Id: linux-omap@vger.kernel.org
 
-Use the new handle_domain_irq method to handle interrupts.
+In order to limit code duplication, convert the architecture specific
+handle_IRQ to use the generic __handle_domain_irq function.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-zevio.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm/Kconfig      |  1 +
+ arch/arm/kernel/irq.c | 19 +------------------
+ 2 files changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/irqchip/irq-zevio.c b/drivers/irqchip/irq-zevio.c
-index ceb3a43..e4ef74e 100644
---- a/drivers/irqchip/irq-zevio.c
-+++ b/drivers/irqchip/irq-zevio.c
-@@ -56,8 +56,7 @@ static void __exception_irq_entry zevio_handle_irq(struct pt_regs *regs)
- 
- 	while (readl(zevio_irq_io + IO_STATUS)) {
- 		irqnr = readl(zevio_irq_io + IO_CURRENT);
--		irqnr = irq_find_mapping(zevio_irq_domain, irqnr);
--		handle_IRQ(irqnr, regs);
-+		handle_domain_irq(zevio_irq_domain, irqnr, regs);
- 	};
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index c49a775..5918d40 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -24,6 +24,7 @@ config ARM
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_STRNCPY_FROM_USER
+ 	select GENERIC_STRNLEN_USER
++	select HANDLE_DOMAIN_IRQ
+ 	select HARDIRQS_SW_RESEND
+ 	select HAVE_ARCH_AUDITSYSCALL if (AEABI && !OABI_COMPAT)
+ 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL
+diff --git a/arch/arm/kernel/irq.c b/arch/arm/kernel/irq.c
+index 2c42576..0509d07 100644
+--- a/arch/arm/kernel/irq.c
++++ b/arch/arm/kernel/irq.c
+@@ -65,24 +65,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
+  */
+ void handle_IRQ(unsigned int irq, struct pt_regs *regs)
+ {
+-	struct pt_regs *old_regs = set_irq_regs(regs);
+-
+-	irq_enter();
+-
+-	/*
+-	 * Some hardware gives randomly wrong interrupts.  Rather
+-	 * than crashing, do something sensible.
+-	 */
+-	if (unlikely(irq >= nr_irqs)) {
+-		if (printk_ratelimit())
+-			printk(KERN_WARNING "Bad IRQ%u\n", irq);
+-		ack_bad_irq(irq);
+-	} else {
+-		generic_handle_irq(irq);
+-	}
+-
+-	irq_exit();
+-	set_irq_regs(old_regs);
++	__handle_domain_irq(NULL, irq, false, regs);
  }
  
+ /*
 -- 
 2.0.4
-
