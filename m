@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 13/26] irqchip: sun4i: convert to handle_domain_irq
-Date: Tue, 26 Aug 2014 11:03:28 +0100
-Message-ID: <1409047421-27649-14-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 11/26] irqchip: s3c24xx: convert to handle_domain_irq
+Date: Tue, 26 Aug 2014 11:03:26 +0100
+Message-ID: <1409047421-27649-12-git-send-email-marc.zyngier@arm.com>
 References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
@@ -14,31 +14,30 @@ Use the new handle_domain_irq method to handle interrupts.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-sun4i.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/irqchip/irq-s3c24xx.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/irqchip/irq-sun4i.c b/drivers/irqchip/irq-sun4i.c
-index 6fcef4a..64155b6 100644
---- a/drivers/irqchip/irq-sun4i.c
-+++ b/drivers/irqchip/irq-sun4i.c
-@@ -136,7 +136,7 @@ IRQCHIP_DECLARE(allwinner_sun4i_ic, "allwinner,sun4i-a10-ic", sun4i_of_init);
- 
- static void __exception_irq_entry sun4i_handle_irq(struct pt_regs *regs)
+diff --git a/drivers/irqchip/irq-s3c24xx.c b/drivers/irqchip/irq-s3c24xx.c
+index 78a6acc..c8d373f 100644
+--- a/drivers/irqchip/irq-s3c24xx.c
++++ b/drivers/irqchip/irq-s3c24xx.c
+@@ -339,7 +339,6 @@ static inline int s3c24xx_handle_intc(struct s3c_irq_intc *intc,
  {
--	u32 irq, hwirq;
-+	u32 hwirq;
+ 	int pnd;
+ 	int offset;
+-	int irq;
  
- 	/*
- 	 * hwirq == 0 can mean one of 3 things:
-@@ -154,8 +154,7 @@ static void __exception_irq_entry sun4i_handle_irq(struct pt_regs *regs)
- 		return;
+ 	pnd = __raw_readl(intc->reg_intpnd);
+ 	if (!pnd)
+@@ -365,8 +364,7 @@ static inline int s3c24xx_handle_intc(struct s3c_irq_intc *intc,
+ 	if (!(pnd & (1 << offset)))
+ 		offset =  __ffs(pnd);
  
- 	do {
--		irq = irq_find_mapping(sun4i_irq_domain, hwirq);
--		handle_IRQ(irq, regs);
-+		handle_domain_irq(sun4i_irq_domain, hwirq, regs);
- 		hwirq = readl(sun4i_irq_base + SUN4I_IRQ_VECTOR_REG) >> 2;
- 	} while (hwirq != 0);
+-	irq = irq_find_mapping(intc->domain, intc_offset + offset);
+-	handle_IRQ(irq, regs);
++	handle_domain_irq(intc->domain, intc_offset + offset, regs);
+ 	return true;
  }
+ 
 -- 
 2.0.4
