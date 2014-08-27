@@ -1,94 +1,96 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
-Date: Wed, 27 Aug 2014 13:22:43 -0700
-Message-ID: <7hegw1bs30.fsf@paris.lan>
-References: <1408716154-26101-1-git-send-email-nm@ti.com>
-	<1408716154-26101-9-git-send-email-nm@ti.com>
-	<7hvbpdbvb1.fsf@paris.lan>
-	<CAGo_u6o7vAf=syzDTyxh0-kOhmzAmtdG_ardgFgoPQofrGdxUQ@mail.gmail.com>
-	<53FE3477.2020207@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Wed, 27 Aug 2014 13:23:14 -0700
+Message-ID: <20140827202313.GF16006@atomide.com>
+References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
+ <1408124563-31541-16-git-send-email-bigeasy@linutronix.de>
+ <20140815210211.GD9239@atomide.com>
+ <53F5AF0D.5060409@linutronix.de>
+ <20140821184416.GF10066@atomide.com>
+ <53FE3779.5090908@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53FE3477.2020207@ti.com> (Santosh Shilimkar's message of "Wed,
-	27 Aug 2014 15:41:43 -0400")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, lkml <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <53FE3779.5090908@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140827 12:54]:
+> On 08/21/2014 08:44 PM, Tony Lindgren wrote:
+> >>> Also, with DMA enabled, looks like omap deeper idle states are
+> >>> blocked as the DMA stays reserved. After I commented out the
+> >>> DMA info for my console UART, PM started working.
+> >>
+> >> Hmm. This would explain something. This would mean that I should cancel
+> >> the RX DMA transfer in the PM-suspend routine. Let me see how that
+> >> works.
+> > 
+> > OK and if the DMA works with PM, then I don't see why we would not
+> > want to have it automatically enabled.
+> 
+> I re-did that part where the registers are restored. Mostly for that
+> reason to use function in runtime_resume() as in set_termios(). I think
+> that is cute :) _And_ if somebody changes here something and breaks it
+> then it doesn't work with and without runtime-pm. It looks like the
+> omap-serial doesn't restore the XON1 & XOFF1 registers.
+> 
+> While at it I made sure that it works as good as I could and that means:
+> 
+> core_pwrdm
+> (ON),OFF:182,RET:21,INA:131,ON:335,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
 
-> On Wednesday 27 August 2014 03:35 PM, Nishanth Menon wrote:
->> On Wed, Aug 27, 2014 at 2:13 PM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->>> + Daniel (cpuidle maintainer)
->> [...]
->>>> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
->>>> +                            struct cpuidle_driver *drv,
->>>> +                            int index)
->>>> +{
->>>> +     struct idle_statedata *cx = state_ptr + index;
->>>> +     unsigned long flag;
->>>> +
->>>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
->>>> +     cx->mpu_state_vote++;
->>>> +     if (cx->mpu_state_vote == num_online_cpus()) {
->>>> +             pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
->>>> +             omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
->>>> +     }
->>>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
->>>> +
->>>> +     omap4_enter_lowpower(dev->cpu, cx->cpu_state);
->>>> +
->>>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
->>>> +     if (cx->mpu_state_vote == num_online_cpus())
->>>> +             omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
->>>> +     cx->mpu_state_vote--;
->>>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
->>>> +
->>>> +     return index;
->>>> +}
->>>
->>> Hmm, maybe OMAP5/DRA7 CPUidle driver should be a new one based on MCPM?
->> 
->> Trying to understand benefit of MCPM here - at least without a deeper
->> understanding of mcpm infrastructure benefits (first look seemed a
->> little heavy for OMAP5/DRA7 needs).
->> 
->> Neither DRA7/OMAP5 are multi-cluster, the SoCs are not targetted for
->> "OFF" of CPU1/0, we have mercury hardware to help with context and
->> sync issues.
->> 
->> Being able to reuse most of existing OMAP4 infrastructure code is
->> useful as well to leave the existing omap4 framework as being lighter
->> in complexity -esp in a cpuidle like hot path?
->> 
->> The spin_lock is only for the programming of MPU power domain in a
->> consistent manner - I suppose might have been the trigger for
->> proposing mcpm?
->> 
-> Mostly not....
->
-> I think this is coming because last time Nicolas Pitre tried to convert
-> the OMAP CPUIdle into MCPM but because of various ordering requirements,
-> OMAP wasn't suitable and then the plan was dropped later.
->
-> Just to make clear, OMAP OMAP5/DRA7 as well the ordering requirement
-> remains the same for deeper states. Its just the mercury retention state
-> which we are able to enter without ordering requirements and hence
-> the voting scheme.
+Hey that's great, that's the ultimate torture test here!
+There's nothing like rebooting the system every time you hit
+idle and still have drivers working :)
+ 
+> The core off part with DMA looks like a no no:
+> I #if 0 the block in where it assigned up.dma. With this I hit
+> core-off. Step two was
+> 
+> |static void omap8250_update_scr(struct uart_8250_port *up,
+> |                 struct omap8250_priv *priv)
+> |{
+> |serial_out(up, UART_OMAP_SCR, priv->scr | OMAP_UART_SCR_DMAMODE_CTL);
+> |serial_out(up, UART_OMAP_SCR, priv->scr | OMAP_UART_SCR_DMAMODE_CTL |
+> OMAP_UART_SCR_DMAMODE_1);
+> |serial_out(up, UART_OMAP_SCR, priv->scr | |OMAP_UART_SCR_DMAMODE_CTL);
+> |serial_out(up, UART_OMAP_SCR, priv->scr);
+> |}
+> 
+> which means I just enable DMA mode in UART and disable it. No DMA
+> operations were performed.
+> With this change I see a lost character now and then which means the
+> UART-IP goes into off and loses its context. Good. However I don't see
+> core off anymore. This looks like a bug beyond my responsibilities :)
 
-Ah, OK.  This is the part that I'm missing.  So for deeper states you'll
-need to be using omap_enter_idle_coupled()
+OK, that sounds like a bug still lurking around somewhere. The core
+domain won't hit idle if there are any hardware pieces blocking.
 
-> Hope this clarifies to you as well as Kevin just in case he missed the
-> part of the deeper C-states requirements.
+> I added code to cancel & and start DMA transfers in runtime suspend
+> callbacks.
 
-Yes, thanks for clarifying.
+Do you mean just the OMAP_UART_SCR_DMAMODE_CTL related code, or
+also the dmaengine calls?
 
-That being said, I think MCPM can now do essentially what the coupled
-states code is doing. Even so, that's probably not a reason to hold up
-this patch, but Daniel gets to make that call.
+> However core-off with DMA won't work. I think we could document this in
+> the binding document. What do you think?
 
-Kevin
+There should not be such a limitation though. Maybe dump out the values
+of cm_idlest_per and cm_idlest1_core for working and failing off idle
+cases and see what the difference is?
+
+It could be the either the dma or the uart hardware blocking. I guess
+it could be also an issue with runtime pm use somewhere.
+
+> > BTW, looks like the ports move around now though. If set a port
+> > to disabled with status = "disabled"; in the .dts file, you'll get
+> > a different console which does not happen with omap-serial I believe.
+> 
+> You a right. I fixed it in the 8250-core code.
+
+OK thanks.
+
+Tony
