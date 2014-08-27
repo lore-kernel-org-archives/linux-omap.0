@@ -1,56 +1,38 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH V2 4/7] ARM: OMAP2+: powerdomain: introduce logic for finding valid power domain
-Date: Wed, 27 Aug 2014 13:25:43 -0700
-Message-ID: <7h1ts1bry0.fsf@paris.lan>
-References: <1408715373-25791-1-git-send-email-nm@ti.com>
-	<1409165694-26568-1-git-send-email-nm@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes against v3.17-rc2
+Date: Wed, 27 Aug 2014 15:11:45 -0700
+Message-ID: <20140827221145.GB13392@localhost>
+References: <20140826221412.GC16006@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:64892 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935735AbaH0UZq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2014 16:25:46 -0400
-Received: by mail-pa0-f49.google.com with SMTP id hz1so1208064pad.36
-        for <linux-omap@vger.kernel.org>; Wed, 27 Aug 2014 13:25:45 -0700 (PDT)
-In-Reply-To: <1409165694-26568-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Wed, 27 Aug 2014 13:54:54 -0500")
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:44830 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935682AbaH0XC2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2014 19:02:28 -0400
+Received: by mail-pa0-f46.google.com with SMTP id eu11so99250pac.33
+        for <linux-omap@vger.kernel.org>; Wed, 27 Aug 2014 16:02:27 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20140826221412.GC16006@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com, bcousson@baylibre.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+On Tue, Aug 26, 2014 at 03:14:13PM -0700, Tony Lindgren wrote:
+> The following changes since commit 52addcf9d6669fa439387610bc65c92fa0980cef:
+> 
+>   Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/fixes-against-rc2
+> 
+> for you to fetch changes up to 8fd46439e1f5a7f86d76a08733459b74debd9468:
+> 
+>   ARM: dts: omap54xx-clocks: Fix the l3 and l4 clock rates (2014-08-26 13:04:00 -0700)
 
-> powerdomain configuration in OMAP is done using PWRSTCTRL register for
-> each power domain. However, PRCM lets us write any value we'd like to
-> the logic and power domain target states, however the SoC integration
-> tends to actually function only at a few discrete states. These valid
-> states are already in our powerdomains_xxx_data.c file.
->
-> So, provide a function to easily query valid low power state that the
-> power domain is allowed to go to.
->
-> Based on work originally done by Jean Pihet <j-pihet@ti.com>
-> https://patchwork.kernel.org/patch/1325091/ . There is no attempt to
-> create a new powerdomain solution here, except fixing issues seen
-> attempting invalid programming attempts. Future consolidation to the
-> generic powerdomain framework should consider this requirement as
-> well.
->
-> Similar solutions have been done in product kernels in the past such
-> as:
-> https://android.googlesource.com/kernel/omap.git/+blame/android-omap-panda-3.0/arch/arm/mach-omap2/pm44xx.c
->
-> Reviewed-by: Kevin Hilman <khilman@linaro.org>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->
-> Not posting the entire series again and updating just this patch..
->
-> V2: drop BUG in favor of WARN, picked up Santosh and Kevin's acks.
+Pulled, thanks.
 
-Looks good, thanks,
 
-Kevin
+-Olof
