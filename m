@@ -1,64 +1,50 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v14 1/6] mmc: omap_hsmmc: Enable SDIO interrupt
-Date: Wed, 27 Aug 2014 09:57:11 +0200
-Message-ID: <53FD8F57.8030401@epfl.ch>
-References: <1401352085-22781-1-git-send-email-afenkart@gmail.com>	<1401352085-22781-2-git-send-email-afenkart@gmail.com>	<53F9A1B5.2080409@epfl.ch> <CALtMJEC0z2AGnO=uYxQ4_0GjU7LQNxkH7DP5+rhfr0=DNo6Wkw@mail.gmail.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 00/26] genirq: fix use of irq_find_mapping outside of legal RCU context
+Date: Wed, 27 Aug 2014 10:33:44 +0100
+Message-ID: <87y4uap98n.fsf@approximate.cambridge.arm.com>
+References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
+	<alpine.DEB.2.10.1408262333420.3323@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CALtMJEC0z2AGnO=uYxQ4_0GjU7LQNxkH7DP5+rhfr0=DNo6Wkw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Chris Ball <chris@printf.net>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Balaji T K <balajitk@ti.com>, Andreas Mueller <schnitzeltony@googlemail.com>, Sebastian Reichel <sre@kernel.org>, Daniel Mack <zonque@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-doc@vger.kernel.org, linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1408262333420.3323@nanos> (Thomas Gleixner's
+	message of "Tue, 26 Aug 2014 22:34:51 +0100")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@openrisc.net" <linux@openrisc.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "tony@atomide.com" <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "jonas@southpole.se" <jonas@southpole.se>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "shc_work@mail.ru" <shc_work@mail.ru>, "baohua@kernel.org" <baohua@kernel.org>, "maxime.ripard@free-electrons.com" <maxime.ripard@free-electrons.com>, "khilman@linaro.org" <khilman@linaro.org>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, Lorenzo
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andreas,
+Hi Thomas,
 
-On 08/24/2014 07:46 PM, Andreas Fenkart wrote:
-> Hi Florian
-> 
-> 2014-08-24 10:26 GMT+02:00 Florian Vaussard <florian.vaussard@epfl.ch>:
->> Hi Andreas,
->>
->> On 05/29/2014 10:28 AM, Andreas Fenkart wrote:
->>> There have been various patches floating around for enabling
->>> the SDIO IRQ for hsmmc, but none of them ever got merged.
->>>
->>
->> [...]
->>
->>> For now, only support SDIO interrupt if we are booted with
->>> a separate wake-irq configued via device tree. This is
->>> because omaps need the wake-irq for idle states, and some
->>> omaps need special quirks. And we don't want to add new
->>> legacy mux platform init code callbacks any longer as we
->>> are moving to DT based booting anyways.
->>>
->>> To use it, you need to specify the wake-irq using the
->>> interrupts-extended property.
->>>
->>
->> First, thanks a lot for your tenacity on this patchset, this was a long
->> needed feature. I enabled the SDIO interrupt, and got the throughput of
->> my 88W8686-based chip multiplied by 15. Nice! I just have an issue with
->> the wake-up path, and maybe you could help me.
->>
->> According to the DM3730 TRM, the MMC2 has the SWAKEUP path. So first I
->> tried to give the same wake-irq as the MMC's one, but
->> omap_hsmmc_configure_wake_irq() fails to request it, as they are not
->> IRQF_SHARED.
-> 
-> Why can't it be shared?
-> 
+On Tue, Aug 26 2014 at 10:34:51 pm BST, Thomas Gleixner <tglx@linutronix.de> wrote:
+> On Tue, 26 Aug 2014, Marc Zyngier wrote:
+>
+>> A number of irqchip drivers are directly calling irq_find_mapping,
+>> which may use a rcu_read_lock call when walking the radix tree.
+>> 
+>> Turns out that if you hit that point with CONFIG_PROVE_RCU enabled,
+>> the kernel will shout at you, as using RCU in this context may be
+>> illegal (specially if coming from the idle state, where RCU would be
+>> in a quiescent state).
+>> 
+>> A possible fix would be to wrap calls to irq_find_mapping into a
+>> RCU_NONIDLE macro, but that really looks ugly.
+>> 
+>> This patch series introduce another generic IRQ entry point
+>> (handle_domain_irq), which has the exact same behaviour as handle_IRQ
+>> (as defined on arm, arm64 and openrisc), except that it also takes a
+>> irq_domain pointer. This allows the logical IRQ lookup to be done
+>> inside the irq_{enter,exit} section, which contains a
+>> rcu_irq_{enter,exit}, making it safe.
+>
+> Looks good. Should this be routed to the genirq tree?
 
-I first tried
+I'm happy for you to take this series, provided the architecture
+maintainers agree on it (I'm still to hear from the openrisc guys, and
+their mailing-list seems to positively hate my guts).
 
-interrupts-extended = <&intc 86 &intc 86>;
+Thanks,
 
-but devm_request_irq() in omap_hsmmc_configure_wake_irq() fails.
-But this is probably not the good approach, as Tony pointed out.
-
-Regards,
-Florian
+	M.
+-- 
+Jazz is not dead. It just smells funny.
