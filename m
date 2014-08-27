@@ -1,31 +1,71 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/10] ARM: OMAP5 / DRA7: Add framework for suspend and cpuidle
-Date: Wed, 27 Aug 2014 12:15:06 -0700
-Message-ID: <7htx4xbv7p.fsf@paris.lan>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
+Date: Wed, 27 Aug 2014 14:35:01 -0500
+Message-ID: <CAGo_u6o7vAf=syzDTyxh0-kOhmzAmtdG_ardgFgoPQofrGdxUQ@mail.gmail.com>
 References: <1408716154-26101-1-git-send-email-nm@ti.com>
+	<1408716154-26101-9-git-send-email-nm@ti.com>
+	<7hvbpdbvb1.fsf@paris.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1408716154-26101-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Fri, 22 Aug 2014 09:02:24 -0500")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, daniel.lezcano@linaro.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ig0-f176.google.com ([209.85.213.176]:34771 "EHLO
+	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935458AbaH0TfC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2014 15:35:02 -0400
+In-Reply-To: <7hvbpdbvb1.fsf@paris.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, lkml <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Nishanth Menon <nm@ti.com> writes:
+On Wed, Aug 27, 2014 at 2:13 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> + Daniel (cpuidle maintainer)
+[...]
+>> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
+>> +                            struct cpuidle_driver *drv,
+>> +                            int index)
+>> +{
+>> +     struct idle_statedata *cx = state_ptr + index;
+>> +     unsigned long flag;
+>> +
+>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
+>> +     cx->mpu_state_vote++;
+>> +     if (cx->mpu_state_vote == num_online_cpus()) {
+>> +             pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
+>> +             omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
+>> +     }
+>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
+>> +
+>> +     omap4_enter_lowpower(dev->cpu, cx->cpu_state);
+>> +
+>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
+>> +     if (cx->mpu_state_vote == num_online_cpus())
+>> +             omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
+>> +     cx->mpu_state_vote--;
+>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
+>> +
+>> +     return index;
+>> +}
+>
+> Hmm, maybe OMAP5/DRA7 CPUidle driver should be a new one based on MCPM?
 
-> The following series are various fixes and improvements for
-> supporting suspend-to-ram. This depends on the following for basic functionality:
-> series 1/6 where powerdomain fixes were involved.
+Trying to understand benefit of MCPM here - at least without a deeper
+understanding of mcpm infrastructure benefits (first look seemed a
+little heavy for OMAP5/DRA7 needs).
 
-I had a look through this series, and it looks good overall.  I think Daniel
-needs to weigh in on the CPUidle driver, otherwise.
+Neither DRA7/OMAP5 are multi-cluster, the SoCs are not targetted for
+"OFF" of CPU1/0, we have mercury hardware to help with context and
+sync issues.
 
-Reviewed-by: Kevin Hilman <khilman@linaro.org>
+Being able to reuse most of existing OMAP4 infrastructure code is
+useful as well to leave the existing omap4 framework as being lighter
+in complexity -esp in a cpuidle like hot path?
 
-I also tested on omap5uevm with the pm_debug/wakeup_timer_seconds patch.
+The spin_lock is only for the programming of MPU power domain in a
+consistent manner - I suppose might have been the trigger for
+proposing mcpm?
 
-Tested-by: Kevin Hilman <khilman@linaro.org>
-
-Kevin
+---
+Regards,
+Nishanth Menon
