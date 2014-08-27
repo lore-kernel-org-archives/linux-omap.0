@@ -1,38 +1,126 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes against v3.17-rc2
-Date: Wed, 27 Aug 2014 15:11:45 -0700
-Message-ID: <20140827221145.GB13392@localhost>
-References: <20140826221412.GC16006@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:44830 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935682AbaH0XC2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2014 19:02:28 -0400
-Received: by mail-pa0-f46.google.com with SMTP id eu11so99250pac.33
-        for <linux-omap@vger.kernel.org>; Wed, 27 Aug 2014 16:02:27 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140826221412.GC16006@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 3/5] usb: phy: twl4030-usb: Move code from twl4030_phy_power to the runtime PM calls
+Date: Wed, 27 Aug 2014 16:28:09 -0700
+Message-ID: <1409182091-31191-4-git-send-email-tony@atomide.com>
+References: <1409182091-31191-1-git-send-email-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1409182091-31191-1-git-send-email-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kishon@ti.com
+Cc: balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Aug 26, 2014 at 03:14:13PM -0700, Tony Lindgren wrote:
-> The following changes since commit 52addcf9d6669fa439387610bc65c92fa0980cef:
-> 
->   Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.17/fixes-against-rc2
-> 
-> for you to fetch changes up to 8fd46439e1f5a7f86d76a08733459b74debd9468:
-> 
->   ARM: dts: omap54xx-clocks: Fix the l3 and l4 clock rates (2014-08-26 13:04:00 -0700)
+We don't need twl4030_phy_power() any longer now that we have
+the runtime PM calls. Let's get rid of it as it's confusing.
+No functional changes, just move the code and use res instead
+of ret as we are not returning that value.
 
-Pulled, thanks.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/phy/phy-twl4030-usb.c | 72 +++++++++++++++++++------------------------
+ 1 file changed, 31 insertions(+), 41 deletions(-)
 
-
--Olof
+diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+index a292db0..519cc90 100644
+--- a/drivers/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -383,45 +383,6 @@ static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 	WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+ }
+ 
+-static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+-{
+-	int ret;
+-
+-	if (on) {
+-		ret = regulator_enable(twl->usb3v1);
+-		if (ret)
+-			dev_err(twl->dev, "Failed to enable usb3v1\n");
+-
+-		ret = regulator_enable(twl->usb1v8);
+-		if (ret)
+-			dev_err(twl->dev, "Failed to enable usb1v8\n");
+-
+-		/*
+-		 * Disabling usb3v1 regulator (= writing 0 to VUSB3V1_DEV_GRP
+-		 * in twl4030) resets the VUSB_DEDICATED2 register. This reset
+-		 * enables VUSB3V1_SLEEP bit that remaps usb3v1 ACTIVE state to
+-		 * SLEEP. We work around this by clearing the bit after usv3v1
+-		 * is re-activated. This ensures that VUSB3V1 is really active.
+-		 */
+-		twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB_DEDICATED2);
+-
+-		ret = regulator_enable(twl->usb1v5);
+-		if (ret)
+-			dev_err(twl->dev, "Failed to enable usb1v5\n");
+-
+-		__twl4030_phy_power(twl, 1);
+-		twl4030_usb_write(twl, PHY_CLK_CTRL,
+-				  twl4030_usb_read(twl, PHY_CLK_CTRL) |
+-					(PHY_CLK_CTRL_CLOCKGATING_EN |
+-						PHY_CLK_CTRL_CLK32K_EN));
+-	} else {
+-		__twl4030_phy_power(twl, 0);
+-		regulator_disable(twl->usb1v5);
+-		regulator_disable(twl->usb1v8);
+-		regulator_disable(twl->usb3v1);
+-	}
+-}
+-
+ static int twl4030_usb_runtime_suspend(struct device *dev)
+ {
+ 	struct twl4030_usb *twl = dev_get_drvdata(dev);
+@@ -430,7 +391,10 @@ static int twl4030_usb_runtime_suspend(struct device *dev)
+ 	if (twl->asleep)
+ 		return 0;
+ 
+-	twl4030_phy_power(twl, 0);
++	__twl4030_phy_power(twl, 0);
++	regulator_disable(twl->usb1v5);
++	regulator_disable(twl->usb1v8);
++	regulator_disable(twl->usb3v1);
+ 	twl->asleep = 1;
+ 
+ 	return 0;
+@@ -439,12 +403,38 @@ static int twl4030_usb_runtime_suspend(struct device *dev)
+ static int twl4030_usb_runtime_resume(struct device *dev)
+ {
+ 	struct twl4030_usb *twl = dev_get_drvdata(dev);
++	int res;
+ 
+ 	dev_dbg(twl->dev, "%s\n", __func__);
+ 	if (!twl->asleep)
+ 		return 0;
+ 
+-	twl4030_phy_power(twl, 1);
++	res = regulator_enable(twl->usb3v1);
++	if (res)
++		dev_err(twl->dev, "Failed to enable usb3v1\n");
++
++	res = regulator_enable(twl->usb1v8);
++	if (res)
++		dev_err(twl->dev, "Failed to enable usb1v8\n");
++
++	/*
++	 * Disabling usb3v1 regulator (= writing 0 to VUSB3V1_DEV_GRP
++	 * in twl4030) resets the VUSB_DEDICATED2 register. This reset
++	 * enables VUSB3V1_SLEEP bit that remaps usb3v1 ACTIVE state to
++	 * SLEEP. We work around this by clearing the bit after usv3v1
++	 * is re-activated. This ensures that VUSB3V1 is really active.
++	 */
++	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB_DEDICATED2);
++
++	res = regulator_enable(twl->usb1v5);
++	if (res)
++		dev_err(twl->dev, "Failed to enable usb1v5\n");
++
++	__twl4030_phy_power(twl, 1);
++	twl4030_usb_write(twl, PHY_CLK_CTRL,
++			  twl4030_usb_read(twl, PHY_CLK_CTRL) |
++			  (PHY_CLK_CTRL_CLOCKGATING_EN |
++			   PHY_CLK_CTRL_CLK32K_EN));
+ 	twl->asleep = 0;
+ 
+ 	return 0;
+-- 
+1.8.1.1
