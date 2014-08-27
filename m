@@ -1,53 +1,55 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: DRA7: Add support for soc_is_dra74x() and
- soc_is_dra72x() variants
-Date: Wed, 27 Aug 2014 12:16:38 -0500
-Message-ID: <CAGo_u6pZiyJ8574YUXvg_Pz_P=LDeot-kFh7NQJBUqgwsR+Fmw@mail.gmail.com>
-References: <1406523237-6905-1-git-send-email-lokeshvutla@ti.com>
-	<1406523237-6905-2-git-send-email-lokeshvutla@ti.com>
-	<alpine.DEB.2.02.1407280529320.24161@utopia.booyaka.com>
-	<53D5E0F4.3080607@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 4/7] ARM: OMAP2+: powerdomain: introduce logic for finding valid power domain
+Date: Wed, 27 Aug 2014 11:27:38 -0700
+Message-ID: <7h1ts1eqjp.fsf@paris.lan>
+References: <1408715373-25791-1-git-send-email-nm@ti.com>
+	<1408715373-25791-5-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:49002 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935287AbaH0RQj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Aug 2014 13:16:39 -0400
-Received: by mail-ie0-f177.google.com with SMTP id at20so654613iec.22
-        for <linux-omap@vger.kernel.org>; Wed, 27 Aug 2014 10:16:39 -0700 (PDT)
-In-Reply-To: <53D5E0F4.3080607@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1408715373-25791-5-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Fri, 22 Aug 2014 08:49:30 -0500")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Jul 28, 2014 at 12:34 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
-> On Monday 28 July 2014 10:59 AM, Paul Walmsley wrote:
->> On Mon, 28 Jul 2014, Lokesh Vutla wrote:
->>
->>> From: Rajendra Nayak <rnayak@ti.com>
->>>
->>> Use the corresponding compatibles to identify the devices.
->>>
->>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> Acked-by: Nishanth Menon <nm@ti.com>
->>> Tested-by: Nishanth Menon <nm@ti.com>
->>
->> Thanks, queued for (hopefully) early v3.17-rc.
-> Thanks Paul.
+Nishanth Menon <nm@ti.com> writes:
+
+> powerdomain configuration in OMAP is done using PWRSTCTRL register for
+> each power domain. However, PRCM lets us write any value we'd like to
+> the logic and power domain target states, however the SoC integration
+> tends to actually function only at a few discrete states. These valid
+> states are already in our powerdomains_xxx_data.c file.
 >
-Paul, Tony,
+> So, provide a function to easily query valid low power state that the
+> power domain is allowed to go to.
+>
+> Based on work originally done by Jean Pihet <j-pihet@ti.com>
+> https://patchwork.kernel.org/patch/1325091/ . There is no attempt to
+> create a new powerdomain solution here, except fixing issues seen
+> attempting invalid programming attempts. Future consolidation to the
+> generic powerdomain framework should consider this requirement as
+> well.
+>
+> Similar solutions have been done in product kernels in the past such
+> as:
+> https://android.googlesource.com/kernel/omap.git/+blame/android-omap-panda-3.0/arch/arm/mach-omap2/pm44xx.c
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
 
-we are at 3.17-rc2 today, unfortunately..
-http://slexy.org/view/s20MbRgipa dra72-evm is still broken due to
-this. Needs:
-https://patchwork.kernel.org/patch/4632161/ and
-https://patchwork.kernel.org/patch/4632171/
+nit: this is part of a fixes series, but it's more of a new feature.
 
-What can we do to help speed this along?
--- 
----
-Regards,
-Nishanth Menon
+That being said, the feature is needed and looks OK, except for...
+
+> +up_search:
+> +	/* OK, no deeper ones, can we get a higher match? */
+> +	new_pwrst = req_state + 1;
+> +	while (!(pwrdm_states & BIT(new_pwrst))) {
+> +		/* BUG if we have messed up database */
+> +		BUG_ON(new_pwrst > PWRDM_POWER_ON);
+
+I don't think this is BUG() worthy, and should have a saner way to recover.
+
+Kevin
