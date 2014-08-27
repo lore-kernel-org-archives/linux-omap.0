@@ -1,70 +1,74 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 07/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
-Date: Wed, 27 Aug 2014 14:45:21 -0500
-Message-ID: <53FE3551.2080806@ti.com>
-References: <1408716154-26101-1-git-send-email-nm@ti.com> <1408716154-26101-8-git-send-email-nm@ti.com> <7hbnr5dake.fsf@paris.lan> <53FE2BF2.3020006@ti.com> <20140827194156.GE16006@atomide.com> <53FE34D7.7040004@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Wed, 27 Aug 2014 21:54:33 +0200
+Message-ID: <53FE3779.5090908@linutronix.de>
+References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de> <1408124563-31541-16-git-send-email-bigeasy@linutronix.de> <20140815210211.GD9239@atomide.com> <53F5AF0D.5060409@linutronix.de> <20140821184416.GF10066@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <53FE34D7.7040004@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140821184416.GF10066@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/27/2014 02:43 PM, Santosh Shilimkar wrote:
-> On Wednesday 27 August 2014 03:41 PM, Tony Lindgren wrote:
->> * Nishanth Menon <nm@ti.com> [140827 12:05]:
->>> On 08/27/2014 01:58 PM, Kevin Hilman wrote:
->>>> Nishanth Menon <nm@ti.com> writes:
->>>>
->>>>> From: Rajendra Nayak <rnayak@ti.com>
->>>>>
->>>>> On OMAP5 / DRA7, prevent a CPU powerdomain OFF and resulting MPU OSWR
->>>>> and instead attempt a CPU RET and side effect, MPU RET in suspend.
->>>>>
->>>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->>>>> [nm@ti.com: update to do save_state only on DRA7]
->>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>>>> ---
->>>>>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++++
->>>>>  arch/arm/mach-omap2/omap-wakeupgen.c      |    2 +-
->>>>>  arch/arm/mach-omap2/pm44xx.c              |    9 +++++++--
->>>>>  3 files changed, 12 insertions(+), 3 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->>>>> index 207fce2..0d640eb 100644
->>>>> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->>>>> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
->>>>> @@ -242,6 +242,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
->>>>>  		save_state = 1;
->>>>>  		break;
->>>>>  	case PWRDM_POWER_RET:
->>>>> +		if (soc_is_omap54xx() || soc_is_dra7xx()) {
->>>>
->>>> Aren't we trying to get away from these soc_* checks for anything other
->>>> than init code?
->>>
->>> I would expect that to take place in stages as part of which the next
->>> level of cleanup is to move PRM into drivers. Currently our wakeupgen,
->>> prm code does have quiet a few needs of dealing with soc_is checks
->>> primarily from having to re-architect code in two different directions
->>> - we want to move into just one direction eventually - to prm drivers
->>> and as less code in mach-omap2 which is already in the works.
+On 08/21/2014 08:44 PM, Tony Lindgren wrote:
+>>> Also, with DMA enabled, looks like omap deeper idle states are
+>>> blocked as the DMA stays reserved. After I commented out the
+>>> DMA info for my console UART, PM started working.
 >>
->> Why don't you just set some flag at init time based on the
->> soc_is check and then test that here? That limits the use of
->> soc_is to init code only which makes it easier to phase it
->> out completely eventually.
->>
-> Indeed. Infact the version of the code I tried posting last year was
-> using a flag which was initialised during init. Same can be
-> done her.
+>> Hmm. This would explain something. This would mean that I should cancel
+>> the RX DMA transfer in the PM-suspend routine. Let me see how that
+>> works.
+> 
+> OK and if the DMA works with PM, then I don't see why we would not
+> want to have it automatically enabled.
 
-OK. will try something along that line in the next rev.
+I re-did that part where the registers are restored. Mostly for that
+reason to use function in runtime_resume() as in set_termios(). I think
+that is cute :) _And_ if somebody changes here something and breaks it
+then it doesn't work with and without runtime-pm. It looks like the
+omap-serial doesn't restore the XON1 & XOFF1 registers.
 
+While at it I made sure that it works as good as I could and that means:
 
--- 
-Regards,
-Nishanth Menon
+core_pwrdm
+(ON),OFF:182,RET:21,INA:131,ON:335,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+
+The core off part with DMA looks like a no no:
+I #if 0 the block in where it assigned up.dma. With this I hit
+core-off. Step two was
+
+|static void omap8250_update_scr(struct uart_8250_port *up,
+|                 struct omap8250_priv *priv)
+|{
+|serial_out(up, UART_OMAP_SCR, priv->scr | OMAP_UART_SCR_DMAMODE_CTL);
+|serial_out(up, UART_OMAP_SCR, priv->scr | OMAP_UART_SCR_DMAMODE_CTL |
+OMAP_UART_SCR_DMAMODE_1);
+|serial_out(up, UART_OMAP_SCR, priv->scr | |OMAP_UART_SCR_DMAMODE_CTL);
+|serial_out(up, UART_OMAP_SCR, priv->scr);
+|}
+
+which means I just enable DMA mode in UART and disable it. No DMA
+operations were performed.
+With this change I see a lost character now and then which means the
+UART-IP goes into off and loses its context. Good. However I don't see
+core off anymore. This looks like a bug beyond my responsibilities :)
+
+I added code to cancel & and start DMA transfers in runtime suspend
+callbacks.
+However core-off with DMA won't work. I think we could document this in
+the binding document. What do you think?
+
+> BTW, looks like the ports move around now though. If set a port
+> to disabled with status = "disabled"; in the .dts file, you'll get
+> a different console which does not happen with omap-serial I believe.
+
+You a right. I fixed it in the 8250-core code.
+
+> Regards,
+> 
+> Tony
+
+Sebastian
