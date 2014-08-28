@@ -1,70 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/5] usb: phy: twl4030-usb: Simplify phy init to use runtime PM
-Date: Wed, 27 Aug 2014 16:28:08 -0700
-Message-ID: <1409182091-31191-3-git-send-email-tony@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/5] usb: phy: twl4030-usb: Remove unused irq_enabled
+Date: Wed, 27 Aug 2014 21:20:53 -0500
+Message-ID: <20140828022051.GB5273@saruman.home>
 References: <1409182091-31191-1-git-send-email-tony@atomide.com>
+ <1409182091-31191-2-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Clx92ZfkiYIKRjnr"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1409182091-31191-1-git-send-email-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <1409182091-31191-2-git-send-email-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com
-Cc: balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kishon@ti.com, balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We can now let the interrupt and delayed work do all that's
-needed with runtime PM.
+--Clx92ZfkiYIKRjnr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/phy/phy-twl4030-usb.c | 20 +++-----------------
- 1 file changed, 3 insertions(+), 17 deletions(-)
+Hi,
 
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index bc28ecc..a292db0 100644
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -471,16 +471,8 @@ static int twl4030_phy_power_on(struct phy *phy)
- 	twl4030_usb_set_mode(twl, twl->usb_mode);
- 	if (twl->usb_mode == T2_USB_MODE_ULPI)
- 		twl4030_i2c_access(twl, 0);
-+	schedule_delayed_work(&twl->id_workaround_work, 0);
- 
--	/*
--	 * XXX When VBUS gets driven after musb goes to A mode,
--	 * ID_PRES related interrupts no longer arrive, why?
--	 * Register itself is updated fine though, so we must poll.
--	 */
--	if (twl->linkstat == OMAP_MUSB_ID_GROUND) {
--		cancel_delayed_work(&twl->id_workaround_work);
--		schedule_delayed_work(&twl->id_workaround_work, HZ);
--	}
- 	return 0;
- }
- 
-@@ -612,16 +604,9 @@ static void twl4030_id_workaround_work(struct work_struct *work)
- static int twl4030_phy_init(struct phy *phy)
- {
- 	struct twl4030_usb *twl = phy_get_drvdata(phy);
--	enum omap_musb_vbus_id_status status;
- 
- 	pm_runtime_get_sync(twl->dev);
--	status = twl4030_usb_linkstat(twl);
--	twl->linkstat = status;
--
--	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
--		omap_musb_mailbox(twl->linkstat);
--
--	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
-+	schedule_delayed_work(&twl->id_workaround_work, 0);
- 	pm_runtime_mark_last_busy(twl->dev);
- 	pm_runtime_put_autosuspend(twl->dev);
- 
-@@ -698,6 +683,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	twl->dev		= &pdev->dev;
- 	twl->irq		= platform_get_irq(pdev, 0);
- 	twl->vbus_supplied	= false;
-+	twl->linkstat		= -EINVAL;
- 	twl->asleep		= 1;
- 	twl->linkstat		= OMAP_MUSB_UNKNOWN;
- 
--- 
-1.8.1.1
+On Wed, Aug 27, 2014 at 04:28:07PM -0700, Tony Lindgren wrote:
+> It's not being used any longer.
+>=20
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/phy/phy-twl4030-usb.c     | 2 --
+>  drivers/usb/phy/phy-twl6030-usb.c | 2 --
+>  2 files changed, 4 deletions(-)
+>=20
+> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+> index 9cd33a4..bc28ecc 100644
+> --- a/drivers/phy/phy-twl4030-usb.c
+> +++ b/drivers/phy/phy-twl4030-usb.c
+> @@ -164,7 +164,6 @@ struct twl4030_usb {
+>  	enum omap_musb_vbus_id_status linkstat;
+>  	bool			vbus_supplied;
+>  	u8			asleep;
+> -	bool			irq_enabled;
+> =20
+>  	struct delayed_work	id_workaround_work;
+>  };
+> @@ -755,7 +754,6 @@ static int twl4030_usb_probe(struct platform_device *=
+pdev)
+>  	 * set_host() and/or set_peripheral() ... OTG_capable boards
+>  	 * need both handles, otherwise just one suffices.
+>  	 */
+> -	twl->irq_enabled =3D true;
+>  	status =3D devm_request_threaded_irq(twl->dev, twl->irq, NULL,
+>  			twl4030_usb_irq, IRQF_TRIGGER_FALLING |
+>  			IRQF_TRIGGER_RISING | IRQF_ONESHOT, "twl4030_usb", twl);
+
+can you split this into two patches ? drivers/phy will be taken by
+Kishon and drivers/usb/phy by me. another possibility is that I get an
+Acked-by from Kishon and I can take $subject as is.
+
+--=20
+balbi
+
+--Clx92ZfkiYIKRjnr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT/pIDAAoJEIaOsuA1yqRErO0P/RoHxd35SH6to1xRaFl5V4wq
+FiOuPtTmWtls0W7lVm4dvfU+FETILmdMgQz/EPSGtofKq9hEGYzvcOnp0pL5JIRx
+HP1MlaO3gkUomwy9Ejehvw2oX48HYsPrs2GNcLIvjqFCxHYJjtVeOWpffn11I3MR
+Y5CyjlBEgcQqZKfxmcrAZAHqSpxCe3YDBilUGlK+iSaiCBr61mhc7HfNFcv9BA+E
+VQVbBu0En+vtuSjiwp/VJOPgMMFQPZ1jSEYLN8R+neHYyG6jlzp8mTEUCxYfD7Pk
+LNkNoQdBx4YiOIHmjQ3QliMI8AbT6fdn3Cja3ItRDAmtJASaQK8K4vABFYP/+TkO
+cnJ4MdRdcAmO6eBx3d4Jl+C2r/2Uf6tpUKbstzkhARnADYvO7r9EvXhMaqarz+Jr
+4gMnMkES0yoIpSuxgHtgaah5TlbaKIsx2hmcDu0kBe8JHa5yeebOYlbidbrG+8VY
+I64REtAfVr3WIZno+QUq7atN0OAyB6K4995X5amCwiCQQh3YDePw8trcg7bQtV0H
+FfwapPn+uHCdWkPJWFKMiJEZLuFXw6Y2vmvuZfkdXkx9+EEzWQQKruI/ZJHDrHOh
+58ukG5BCtkqnSyLtdqOW241d2mC7C05rtHpZPaHIaqZHCDqJvLJqOHK/DfNikLjF
+b7iWpws1zDsQPULeh73P
+=PWJi
+-----END PGP SIGNATURE-----
+
+--Clx92ZfkiYIKRjnr--
