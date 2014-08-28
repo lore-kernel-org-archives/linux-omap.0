@@ -1,86 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5] usb: phy: twl4030-usb: Remove unused irq_enabled
-Date: Wed, 27 Aug 2014 21:20:53 -0500
-Message-ID: <20140828022051.GB5273@saruman.home>
-References: <1409182091-31191-1-git-send-email-tony@atomide.com>
- <1409182091-31191-2-git-send-email-tony@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: DRA72x/DRA74x basic support
+Date: Thu, 28 Aug 2014 06:18:30 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1408280617360.21985@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Clx92ZfkiYIKRjnr"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1409182091-31191-2-git-send-email-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kishon@ti.com, balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:53198 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934150AbaH1GSb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2014 02:18:31 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---Clx92ZfkiYIKRjnr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hi,
+Hi Tony,
 
-On Wed, Aug 27, 2014 at 04:28:07PM -0700, Tony Lindgren wrote:
-> It's not being used any longer.
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/phy/phy-twl4030-usb.c     | 2 --
->  drivers/usb/phy/phy-twl6030-usb.c | 2 --
->  2 files changed, 4 deletions(-)
->=20
-> diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-> index 9cd33a4..bc28ecc 100644
-> --- a/drivers/phy/phy-twl4030-usb.c
-> +++ b/drivers/phy/phy-twl4030-usb.c
-> @@ -164,7 +164,6 @@ struct twl4030_usb {
->  	enum omap_musb_vbus_id_status linkstat;
->  	bool			vbus_supplied;
->  	u8			asleep;
-> -	bool			irq_enabled;
-> =20
->  	struct delayed_work	id_workaround_work;
->  };
-> @@ -755,7 +754,6 @@ static int twl4030_usb_probe(struct platform_device *=
-pdev)
->  	 * set_host() and/or set_peripheral() ... OTG_capable boards
->  	 * need both handles, otherwise just one suffices.
->  	 */
-> -	twl->irq_enabled =3D true;
->  	status =3D devm_request_threaded_irq(twl->dev, twl->irq, NULL,
->  			twl4030_usb_irq, IRQF_TRIGGER_FALLING |
->  			IRQF_TRIGGER_RISING | IRQF_ONESHOT, "twl4030_usb", twl);
+The following changes since commit 52addcf9d6669fa439387610bc65c92fa0980cef:
 
-can you split this into two patches ? drivers/phy will be taken by
-Kishon and drivers/usb/phy by me. another possibility is that I get an
-Acked-by from Kishon and I can take $subject as is.
+  Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
 
---=20
-balbi
+are available in the git repository at:
 
---Clx92ZfkiYIKRjnr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.17-rc/omap-dra72x-d74x-support-a
 
+for you to fetch changes up to f7f7a29bf0cf25af23f37e5b5bf1368b85705286:
+
+  ARM: DRA7: hwmod: Add dra74x and dra72x specific ocp interface lists (2014-08-27 19:38:23 -0600)
+
+- ----------------------------------------------------------------
+Add basic subarchitecture support for the DRA72x and DRA74x.  These
+are OMAP2+ derivative SoCs.  This should be low-risk to existing OMAP
+platforms.
+
+Basic build, boot, and PM test logs are available here:
+
+http://www.pwsan.com/omap/testlogs/hwmod-a-early-v3.17-rc/20140827194314/
+
+- ----------------------------------------------------------------
+Rajendra Nayak (2):
+      ARM: DRA7: Add support for soc_is_dra74x() and soc_is_dra72x() variants
+      ARM: DRA7: hwmod: Add dra74x and dra72x specific ocp interface lists
+
+ arch/arm/mach-omap2/omap_hwmod.c          |  3 +++
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 22 ++++++++++++++++++++--
+ arch/arm/mach-omap2/soc.h                 |  6 ++++++
+ 3 files changed, 29 insertions(+), 2 deletions(-)
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJT/pIDAAoJEIaOsuA1yqRErO0P/RoHxd35SH6to1xRaFl5V4wq
-FiOuPtTmWtls0W7lVm4dvfU+FETILmdMgQz/EPSGtofKq9hEGYzvcOnp0pL5JIRx
-HP1MlaO3gkUomwy9Ejehvw2oX48HYsPrs2GNcLIvjqFCxHYJjtVeOWpffn11I3MR
-Y5CyjlBEgcQqZKfxmcrAZAHqSpxCe3YDBilUGlK+iSaiCBr61mhc7HfNFcv9BA+E
-VQVbBu0En+vtuSjiwp/VJOPgMMFQPZ1jSEYLN8R+neHYyG6jlzp8mTEUCxYfD7Pk
-LNkNoQdBx4YiOIHmjQ3QliMI8AbT6fdn3Cja3ItRDAmtJASaQK8K4vABFYP/+TkO
-cnJ4MdRdcAmO6eBx3d4Jl+C2r/2Uf6tpUKbstzkhARnADYvO7r9EvXhMaqarz+Jr
-4gMnMkES0yoIpSuxgHtgaah5TlbaKIsx2hmcDu0kBe8JHa5yeebOYlbidbrG+8VY
-I64REtAfVr3WIZno+QUq7atN0OAyB6K4995X5amCwiCQQh3YDePw8trcg7bQtV0H
-FfwapPn+uHCdWkPJWFKMiJEZLuFXw6Y2vmvuZfkdXkx9+EEzWQQKruI/ZJHDrHOh
-58ukG5BCtkqnSyLtdqOW241d2mC7C05rtHpZPaHIaqZHCDqJvLJqOHK/DfNikLjF
-b7iWpws1zDsQPULeh73P
-=PWJi
+iQIcBAEBAgAGBQJT/skvAAoJEMePsQ0LvSpLZWkP/2LP+AHHHCSplaxupssu3xSq
+zoArdXixL3fRsYBjjbcCqnaECsw5FmfMObupeJWCUxkPTT/UQtPLYqGmkMSrynG7
+SR3zRsdkoPcAODE1zTuDyXkuVA2vYA/cV3dmE4Is4ZzgX/r5YGOgxAqE6efh6ieW
+aq3m3tBuOWAXII4ehHVdUrWIMDU+G+/8M2sKXyWcHxdYr2NmhieosmssZ6DGL0WL
+HWhYQJSFlM19wknQm2QtGCjcNphJuL/qS1LZlykT1LcxfmKpWmZPVacs4cSjGPkE
+6s9nLyitTDJTmAw/n0fDo86Vf8gBiXnVTOA8QVUb1TYePxzP1QyVhdi/tp3jNbNz
+U1VTlCWlWxHgKk8mlpvfhScFBg3KF4S4B8jqyV4OkRWcX8WYnrAArIs6cg4F6hYo
+xRXhLkpk2ylxL0KQ275kO7RcZHkxsolAEAR+QwZi8pUwURhwZRgHD/FAsMuJ/rGI
+51mGwJ3ruRhYol8GxOUg1vwvGuQUoU5JzqlWXj+1LskwErtX+GTQVb+BrTXwI3lC
+dlzJMxtPlUtUVUG/PZTbm6R0GkB9jSi6SRtFg/dAv1lvr0LaCPfBIGiE049qN7Rs
+8T+BZyiSO/Jj3ZSZ7FYOyLeVbC1g8OeENIrkey3UEEnsOh+Sl3gKxlysXRcqnBUn
+aKH/agcqFBHlIQ1CdW4t
+=JXkb
 -----END PGP SIGNATURE-----
-
---Clx92ZfkiYIKRjnr--
