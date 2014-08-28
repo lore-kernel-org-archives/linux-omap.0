@@ -1,127 +1,187 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Thu, 28 Aug 2014 10:23:48 +0200
-Message-ID: <20140828082348.GA5413@linutronix.de>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
- <1408124563-31541-16-git-send-email-bigeasy@linutronix.de>
- <20140815210211.GD9239@atomide.com>
- <53F5AF0D.5060409@linutronix.de>
- <20140821184416.GF10066@atomide.com>
- <53FE3779.5090908@linutronix.de>
- <20140827202313.GF16006@atomide.com>
+Subject: Re: [PATCH 1/7] dmaengine: edma: fix two faults which happen with
+ the 8250_dma user
+Date: Thu, 28 Aug 2014 11:06:30 +0200
+Message-ID: <53FEF116.5080304@linutronix.de>
+References: <1406660344-25307-1-git-send-email-bigeasy@linutronix.de> <1406660344-25307-2-git-send-email-bigeasy@linutronix.de> <20140731121702.GU8181@intel.com> <20140808162950.GA12080@linutronix.de> <20140819151216.GO13288@intel.com> <53F5EF78.2050800@linutronix.de> <20140828070611.GI13288@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140827202313.GF16006@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, balbi@ti.com
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:38582 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936274AbaH1JGi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2014 05:06:38 -0400
+In-Reply-To: <20140828070611.GI13288@intel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Joel Fernandes <joelf@ti.com>, Dan Williams <dan.j.williams@intel.com>, dmaengine@vger.kernel.org
 
-* Tony Lindgren | 2014-08-27 13:23:14 [-0700]:
+On 08/28/2014 09:06 AM, Vinod Koul wrote:
+> On Thu, Aug 21, 2014 at 03:09:12PM +0200, Sebastian Andrzej Siewior w=
+rote:
+>> On 08/19/2014 05:12 PM, Vinod Koul wrote:
+>>>>
+>>>>     desc =3D dmaengine_prep_slave_single(rxchan, =E2=80=A6);
+>>>>     rx_cookie =3D dmaengine_submit(desc);
+>>>>     dma_async_issue_pending(rxchan);
+>>>>
+>>>>     ssleep(2);
+>>>>     /* Now assume that the transfer did not start */
+>>>>     st =3D dmaengine_tx_status(rxchan, rx_cookie, NULL);
+>>>>     /* st is now DMA_IN_PROGRESS as expected */
+>>>>
+>>>>     dmaengine_terminate_all(rxchan);
+>>>>     st =3D dmaengine_tx_status(rxchan, rx_cookie, NULL);
+>>> and here is the culprit. You have terminated the channel. This mean=
+s that
+>>> dmaengine driver is free to clean up all the allocated descriptors =
+on the
+>>> channels and do whatever it decides to do with them.
+>>
+>> descriptors, yes.
+> and by that logic when you query the driver would have freed up!
 
->> which means I just enable DMA mode in UART and disable it. No DMA
->> operations were performed.
->> With this change I see a lost character now and then which means the
->> UART-IP goes into off and loses its context. Good. However I don't see
->> core off anymore. This looks like a bug beyond my responsibilities :)
->
->OK, that sounds like a bug still lurking around somewhere. The core
->domain won't hit idle if there are any hardware pieces blocking.
+I don't understand. What "would have freed up"?
 
-Yes.
+>>> You have already terminated the channel so what is the point in que=
+rying the
+>>> status of the cookie, which you shouldn't use anyway after invoking
+>>> terminate_all() as its result is not correct.
+>>
+>> The point is to check (later, after terminate_all()) if there is an
+>> outstanding DMA transfer or not _and_ how much data was really
+>> transfered. Looking at edma it does not really support the latter if
+>> the transfer is already completed. On the plus side the HW does not
+>> support partly transfers :)
+> well that can be achieved properly and differently!
 
->> I added code to cancel & and start DMA transfers in runtime suspend
->> callbacks.
->
->Do you mean just the OMAP_UART_SCR_DMAMODE_CTL related code, or
->also the dmaengine calls?
+I am all yours.
 
-dmaengine calls are unused because up.dma is not assigned. It is 
-basically like you wouldn't have the dma properties in the devicetree.
-And while in that non-DMA mode I just set and unset the DMAMODE_CTL + 
-DMAMODE_1 bits in the SCR register. Nothing else. Based on some testing
-I just did, DMAMODE_CTL does not make the difference. DMAMODE_CTL +
-DMAMODE_1 does.
+> Why don't we pause the channel, get the residue, status and then
+> terminate.
 
->> However core-off with DMA won't work. I think we could document this in
->> the binding document. What do you think?
->
->There should not be such a limitation though. Maybe dump out the values
->of cm_idlest_per and cm_idlest1_core for working and failing off idle
->cases and see what the difference is?
+This is done that way. For the protocol: pause is not supported by
+driver (edma and omap-dma) unless the channel is used in "continuous"
+mode. But this does not matter here.
+The root problems remains: You get DMA_IN_PROGRESS returned as long as
+the cookie has not been completed _even_ after the invocation of
+terminate_all(). So that part that knows it terminates the thing for
+the first time does everything correct.
+The other part that only enqueues a transfer if there is not another
+one pending does never do anything.
 
-I can't follow here. This is the working case:
+>> But where is it written that the life time of the cookie is limited?
+>> Looking at the "cooking check" code there is no such thing. It is
+>> simply compare of completed vs passed number but okay, this is an
+>> implementation detail.
+>> From [0] it says under "4. Submit the transaction":
+>>
+>> | This returns a cookie can be used to check the progress of DMA eng=
+ine
+>> | activity via other DMA engine calls not covered in this document.
+>>
+>> no life time limit mentioned here. Which brings to the question: Why=
+ is
+>> it okay to use the cookie after the transaction "terminated" normall=
+y
+>> but not if it has been canceled?
+> Due to the special nature of terminate. The point here is that you do=
+n't
+> terminate a transaction but channel operation
 
-usbhost_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:109,RET:22,INA:71,ON:203,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-per_pwrdm (ON),OFF:137,RET:126,INA:0,ON:264,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:383,RET:861,INA:0,ON:1245,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-neon_pwrdm (ON),OFF:311,RET:889,INA:44,ON:1245,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:311,RET:889,INA:44,ON:1245,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-usbhost_clkdm->usbhost_pwrdm (0)
-sgx_clkdm->sgx_pwrdm (0)
-per_clkdm->per_pwrdm (15)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (1)
-d2d_clkdm->core_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-core_l4_clkdm->core_pwrdm (20)
-core_l3_clkdm->core_pwrdm (1)
-neon_clkdm->neon_pwrdm (0)
+So the channel is terminated and the transaction is still in progress.
+Is this what you are telling me? And why should a transaction remain in
+progress after the channel has been terminated? I mean once you
+terminate a bridge crossing point there are no cars going over that
+bridge. It is closed. Their trip has been terminated as well.
 
-non-working:
+The question that remains is which of those cars passed the bridge
+before it was terminated. I understand that you want first to pause
+that channel looking at the bytes and then terminate. Totally
+understand. Otherwise the number of bytes transfered (reside) can no
+longer be queried because the driver cleaned up. Fine.
 
-usbhost_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-per_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:253,RET:159,INA:0,ON:413,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-neon_pwrdm (ON),OFF:135,RET:242,INA:35,ON:413,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:135,RET:242,INA:35,ON:413,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-usbhost_clkdm->usbhost_pwrdm (0)
-sgx_clkdm->sgx_pwrdm (0)
-per_clkdm->per_pwrdm (15)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (1)
-d2d_clkdm->core_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-core_l4_clkdm->core_pwrdm (21)
-core_l3_clkdm->core_pwrdm (1)
-neon_clkdm->neon_pwrdm (0)
+But it should be reported that this transaction is no longer in
+movement. It won't happen. Never. And this is what bugs me.
 
-so per_pwrdm and core_pwrdm remain on and I guess the former is where
-the UART sits.
+>> And from [0] the API explanation  "4. =E2=80=A6 dma_async_is_tx_comp=
+lete()":
+>=20
+>=20
+>>
+>> |Note:
+>> |    Not all DMA engine drivers can return reliable information for
+>> |    a running DMA channel.  It is recommended that DMA engine users
+>> |    pause or stop (via dmaengine_terminate_all) the channel before
+>> |    using this API.
+>>
+>> So the documentation says to use the cookie with
+>> dma_async_is_tx_complete() and before doing so it is recommended tha=
+t
+>> the transfer should be paused or stopped. _Exactly_ what is done her=
+e.
+>>
+>>>>     /* st is still DMA_IN_PROGRESS but _I_ expect DMA_COMPLETE bec=
+ause
+>>>>      * it has been terminated / canceled
+>>>>      */
+>>>>
+>>>> Both dma driver clean up all / terminate all descriptors as requir=
+ed but
+>>>> _none_ of them completes the cookie. As a result dma_cookie_status=
+()
+>>>> still thinks that the transfer is in progress.
+>>>
+>>> Btw how does it matter in the driver here if the transaction comple=
+ted or
+>>> not after terminate_all() was invoked. What is the purpose of query=
+ing
+>>> status.
+>>
+>> In the RX interrupt (of the 8250 unit), the code checks if the trans=
+fer
+>> has been already started or not via querying the status. So if it
+>> returns DMA_COMPLETE then a new transfer will be started. If it retu=
+rns
+>> DMA_IN_PROGRESS then the code returns doing nothing because the DMA
+>> engine should start moving data anytime now so the RX interrupt goes
+>> away.
+>>
+>> That means: If the transfer is canceled then it won't be started aga=
+in.
+>>
+>> Btw: the current (probably only) dma driver that is used by 8250-dma=
+ is
+>> dw/core.c. That one does cookie complete on terminate:
+>>  dwc_control(DMA_TERMINATE_ALL) -> dwc_descriptor_complete() ->
+>>  dma_cookie_complete().
+> Yes but would above flow work for you :)
 
->It could be the either the dma or the uart hardware blocking. I guess
->it could be also an issue with runtime pm use somewhere.
+No, it wont. I ask you to accept the two patches since now the behavior
+of dma_async_is_tx_complete() is different depending on whether a
+transaction completed on its own or got terminated. And reporting
+in_progress does not reflect the reality. I can even add a patch on top
+updating the documentation where it state that you must not trust the
+dma_tx_state struct once the request is completed (or aborted).
 
-So I just toggle the two DMA bits in SCR and the UART seems to block
-since the DMA hw is not involved. Reading SCR back says that those bits
-are not set.
-To use DMA you don't have to enable it in SCR register you can also use
-the FCR register. The manual says that you can only write this DMA
-enable bit in the FCR register if the baud clock is not running. And
-guess what: same thing: I only *toggle* the DMA enable bit here (it
-remains 0 later) and the core won't hit idle.
-Same effect if I toggle this bit while the baud clock is running (the
-manual says that this bit can only be written if the baud clock is not
-running). Seems like the UART is following its own specification and it
-remains blocking once the DMA was enabled.
-It would be nice if someone from the UART-IP team could ACK this.
+Or we can trade :) I send you a patch which removes the "cookie
+complete" part from the dwc-dma driver with a CC stable tag.
+And you explain it to the intel folks that merged that part of the 8250
+dma code that rely on the fact (that a aborted transaction reports
+complete) that what they do is wrong.
 
-Bah. Does it make sense to use runtime-PM if we can't hit core-off? I'm
-thinking to add a printk once dma is enabled says that runtime-pm is
-switched off.
-
->Tony
+but I think it will end up with this: I will change the 8250-dma code t=
+o
+keep track whether or not it enqueued a DMA transfer and rely on this
+information instead of dma_async_is_tx_complete(). I will update the
+documentation stating that dma_async_is_tx_complete() may report bogus
+information on completed and terminated transaction.
 
 Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
