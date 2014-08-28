@@ -1,81 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/5] phy: exynos5-usbdrd: Add facility for VBUS-BOOST-5V
- supply
-Date: Thu, 28 Aug 2014 14:16:25 -0500
-Message-ID: <20140828191625.GQ16689@saruman.home>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/5] usb: dwc3: Adding Kconfig dependency for Exynos7
+Date: Thu, 28 Aug 2014 14:28:39 -0500
+Message-ID: <20140828192824.GR16689@saruman.home>
 References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
- <1409212920-28526-4-git-send-email-gautam.vivek@samsung.com>
-Reply-To: <balbi@ti.com>
+ <1409212920-28526-5-git-send-email-gautam.vivek@samsung.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IpljlC28XhFjURzf"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="AonAANj1daC6QcQu"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1409212920-28526-4-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kishon@ti.com, kgene.kim@samsung.com
+In-Reply-To: <1409212920-28526-5-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---IpljlC28XhFjURzf
+--AonAANj1daC6QcQu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-hi,
-
-On Thu, Aug 28, 2014 at 01:31:58PM +0530, Vivek Gautam wrote:
-> @@ -457,11 +458,19 @@ static int exynos5_usbdrd_phy_power_on(struct phy *=
-phy)
->  	clk_prepare_enable(phy_drd->ref_clk);
+On Thu, Aug 28, 2014 at 01:31:59PM +0530, Vivek Gautam wrote:
+> The Exynos-DWC3 USB 3.0 DRD controller is also present on
+> Exynos7 platform, so adding the dependency on ARCH_EXYNOS7
+> for this driver.
+>=20
+> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/dwc3/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
+> index 785510a..e235894 100644
+> --- a/drivers/usb/dwc3/Kconfig
+> +++ b/drivers/usb/dwc3/Kconfig
+> @@ -55,7 +55,7 @@ config USB_DWC3_OMAP
 > =20
->  	/* Enable VBUS supply */
-> +	if (phy_drd->vbus_boost) {
-> +		ret =3D regulator_enable(phy_drd->vbus_boost);
-> +		if (ret) {
-> +			dev_err(phy_drd->dev,
-> +				"Failed to enable VBUS boost supply\n");
-> +			goto fail_vbus;
-> +		}
-> +	}
+>  config USB_DWC3_EXYNOS
+>  	tristate "Samsung Exynos Platform"
+> -	depends on ARCH_EXYNOS || COMPILE_TEST
+> +	depends on (ARCH_EXYNOS || ARCH_EXYNOS7) || COMPILE_TEST
 
-really this is nitpicking, but can you add a blank line here just make
-my inner child happy ? :-)
-
-> @@ -470,6 +479,9 @@ static int exynos5_usbdrd_phy_power_on(struct phy *ph=
-y)
-> =20
->  	return 0;
-> =20
-> +fail_vbus_boost:
-> +	if (phy_drd->vbus_boost)
-> +		regulator_disable(phy_drd->vbus_boost);
-
-same here
+wait when building for ARCH_EXYNOS7 you don't get ARCH_EXYNOS ?
 
 --=20
 balbi
 
---IpljlC28XhFjURzf
+--AonAANj1daC6QcQu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJT/4AJAAoJEIaOsuA1yqRESDoQAIBd5UzXO5RFWx3ewB1JM+b+
-m6d6PPK1YgdkQxbzfV/I+Pz2BHPMteUcIibYgcvfLGY1V7l6UCvIc7riWQOR97b0
-o/5WM4BzMzHk3I4iZu58iPRNGmK/c/w9M28ZCRjdII2bpvswawv4QtSuVRqS0pab
-UF5OgF5X7of+JtiWbpa0NqQxv7lGFR+bSElIwPGK6ETEXZ+JWlbIUZ5J7k6MTdY8
-b3A4NsSqfPAncV+hsCebCKB/6S7k+pdPpcFTPAd1sC7twd3zNQv2qAuC2+01FKTd
-h2lR47F2Cflnbyt0hA9lmVmZWbGMEWk0GxWJdJ0fC1FGe8xKYqEq7CdaYAuj/QrI
-2SCf3Z8RQJ4fuKWaf+4P64+WZKTutOJY4oVciQaVpthNPOtdvX2csvSP5ZFVgOs/
-DfHhZLfMzOXStWOcjoaZAO14so8SxqrTZn4cIt/e7WCGvss8Hlesp1zRdURxvS6k
-7TsYF3IA7LyZTQk8ExqV6xMNPRPdF8shmeIgT7M2CXPPoe0JsWVOBDwmZrsASXiQ
-6fvUh2VxbbbSAhgbLr/AxyAPU2Ej94RTr4wwWi3TH5jcNA/DDOLJGLvVZmKDpTkV
-slIjmvmhwrnS/Mw/C9z4SyKfgMN2zfWFvd4+NAODHy/9Mm7xHJ31ccLmzGRppDMZ
-R+OU4wlqmt746TR1DkGK
-=hW2+
+iQIcBAEBAgAGBQJT/4LYAAoJEIaOsuA1yqRE8D8P/0x6TC8uZM5+NMPlJeCa1R+t
+yRV5KHQibRTl9idBNyoIFZjim70TLGTqGrSAlFr5zT5esgHjuqW5pcKzFWncW4vm
+ABDbsTc+feZPYUUqQLvp6oxJiAkmhWUzjXqPsAXEC0NqhqJbvXhFjgiQHyRyeOd1
+af0x8JR0gZoCupzu6kb6RiX2G5Gk/b8144YdBt2kKO2VvF70UJGTBx8y5eLtawg2
+6esK6yOegPsoUILf9zODwFb1Dhp6L0rFmvPpT6SdPTzaMEhQdC8Z5MVjwwdGj7vf
+oJthXNzF66B2P6MFRp1/kEcTbXjYjE3pDo4gqrOJ4dkPDbC02O8hAMnftSZfCmgE
+wazv1fCvntDh/UponwC5aB8GRRcKiLRaD7YXtRpT1qEu/8nwhi9WggUt3v7NsBfl
+qX75K95iKQlducc2PGnq8pCD1JqOjqliHGsit3kQsYOcILrUVHHzvGGVOTlnpgx4
+66tZLXdLyFBevYpSiihAkYr7Vj3o6igTKhemVatl7u5FAoIKjvpPJxLvGVLJ8090
+FBV/cfO6I5IhiPrmA1C+EVvpIpdFPCK/VbkpAfuXZ8dXgIEW/BtcHHf88HzxJ1Sq
+7aSrnD7fBNZnp7gLHqjl31Z13JsDNB51IZUcba3iP0N1qvoRp/81+8U9+JfZHBu8
+MZy6TVrQuNYo7Kh+FOmD
+=QabP
 -----END PGP SIGNATURE-----
 
---IpljlC28XhFjURzf--
+--AonAANj1daC6QcQu--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
