@@ -1,110 +1,125 @@
 From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 1/5] usb: dwc3: exynos: Add support for SCLK present on
- Exynos7
-Date: Thu, 28 Aug 2014 19:48:47 +0100
-Message-ID: <20140828184847.GA18464@leverpostej>
+Subject: Re: [PATCH 2/5] phy: exynos5-usbdrd: Add pipe-clk and utmi-clk
+ support
+Date: Thu, 28 Aug 2014 19:50:39 +0100
+Message-ID: <20140828185039.GB18464@leverpostej>
 References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
- <1409212920-28526-2-git-send-email-gautam.vivek@samsung.com>
+ <1409212920-28526-3-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:39871 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753516AbaH1Sv0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Aug 2014 14:51:26 -0400
 Content-Disposition: inline
-In-Reply-To: <1409212920-28526-2-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1409212920-28526-3-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Vivek Gautam <gautam.vivek@samsung.com>
 Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "balbi@ti.com" <balbi@ti.com>, "kishon@ti.com" <kishon@ti.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>
-List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 28, 2014 at 09:01:56AM +0100, Vivek Gautam wrote:
-> Exynos7 also has a separate special gate clock going to the IP
-> apart from the usual AHB clock. So add support for the same.
+On Thu, Aug 28, 2014 at 09:01:57AM +0100, Vivek Gautam wrote:
+> Exynos7 SoC has now separate gate control for 125MHz pipe3 phy
+> clock, as well as 60MHz utmi phy clock.
+> So get the same and control in the phy-exynos5-usbdrd driver.
 > 
 > Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
 > ---
->  drivers/usb/dwc3/dwc3-exynos.c |   16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
+>  .../devicetree/bindings/phy/samsung-phy.txt        |    4 ++++
+>  drivers/phy/phy-exynos5-usbdrd.c                   |   24 ++++++++++++++++++++
+>  2 files changed, 28 insertions(+)
 > 
-> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-> index f9fb8ad..bab6395 100644
-> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> @@ -35,6 +35,7 @@ struct dwc3_exynos {
->  	struct device		*dev;
+> diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> index 7a6feea..b64d616 100644
+> --- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> +++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> @@ -135,6 +135,10 @@ Required properties:
+>  	       PHY operations, associated by phy name. It is used to
+>  	       determine bit values for clock settings register.
+>  	       For Exynos5420 this is given as 'sclk_usbphy30' in CMU.
+> +	- optional clocks: Next gen Exynos SoCs have following additional
+
+It's not going to be 'Next gen' for long...
+
+> +			   gate clocks available:
+> +			   - phy_pipe: for PIPE3 phy
+> +			   - phy_utmi: for UTMI+ phy
+>  - samsung,pmu-syscon: phandle for PMU system controller interface, used to
+>  		      control pmu registers for power isolation.
+>  - #phy-cells : from the generic PHY bindings, must be 1;
+> diff --git a/drivers/phy/phy-exynos5-usbdrd.c b/drivers/phy/phy-exynos5-usbdrd.c
+> index b05302b..685c108 100644
+> --- a/drivers/phy/phy-exynos5-usbdrd.c
+> +++ b/drivers/phy/phy-exynos5-usbdrd.c
+> @@ -148,6 +148,8 @@ struct exynos5_usbdrd_phy_drvdata {
+>   * @dev: pointer to device instance of this platform device
+>   * @reg_phy: usb phy controller register memory base
+>   * @clk: phy clock for register access
+> + * @pipeclk: clock for pipe3 phy
+> + * @utmiclk: clock for utmi+ phy
+>   * @drv_data: pointer to SoC level driver data structure
+>   * @phys[]: array for 'EXYNOS5_DRDPHYS_NUM' number of PHY
+>   *	    instances each with its 'phy' and 'phy_cfg'.
+> @@ -161,6 +163,8 @@ struct exynos5_usbdrd_phy {
+>  	struct device *dev;
+>  	void __iomem *reg_phy;
+>  	struct clk *clk;
+> +	struct clk *pipeclk;
+> +	struct clk *utmiclk;
+>  	const struct exynos5_usbdrd_phy_drvdata *drv_data;
+>  	struct phy_usb_instance {
+>  		struct phy *phy;
+> @@ -446,6 +450,10 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
 >  
->  	struct clk		*clk;
-> +	struct clk		*sclk;
->  	struct regulator	*vdd33;
->  	struct regulator	*vdd10;
->  };
-> @@ -141,10 +142,17 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
->  		return -EINVAL;
->  	}
+>  	dev_dbg(phy_drd->dev, "Request to power_on usbdrd_phy phy\n");
 >  
-> +	/* Exynos7 has a special gate clock going to this IP */
-> +	exynos->sclk = devm_clk_get(dev, "usbdrd30_sclk");
-> +	if (IS_ERR(exynos->sclk))
-> +		dev_warn(dev, "couldn't get sclk\n");
-
-Doesn't this introduce a pointless warning for Exynos SoCs other than
-Exynos7?
-
-> +
->  	exynos->dev	= dev;
->  	exynos->clk	= clk;
+> +	if (!IS_ERR(phy_drd->utmiclk))
+> +		clk_prepare_enable(phy_drd->utmiclk);
+> +	if (!IS_ERR(phy_drd->pipeclk))
+> +		clk_prepare_enable(phy_drd->pipeclk);
+>  	clk_prepare_enable(phy_drd->ref_clk);
 >  
->  	clk_prepare_enable(exynos->clk);
-> +	if (!IS_ERR(exynos->sclk))
-> +		clk_prepare_enable(exynos->sclk);
-
-If you replaced the returned err value with NULL you could avoid these
-IS_ERR cases.
-
-Mark.
-
+>  	/* Enable VBUS supply */
+> @@ -464,6 +472,10 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
 >  
->  	exynos->vdd33 = devm_regulator_get(dev, "vdd33");
->  	if (IS_ERR(exynos->vdd33)) {
-> @@ -187,6 +195,8 @@ err4:
->  err3:
->  	regulator_disable(exynos->vdd33);
->  err2:
-> +	if (!IS_ERR(exynos->sclk))
-> +		clk_disable_unprepare(exynos->sclk);
->  	clk_disable_unprepare(clk);
+>  fail_vbus:
+>  	clk_disable_unprepare(phy_drd->ref_clk);
+> +	if (!IS_ERR(phy_drd->pipeclk))
+> +		clk_disable_unprepare(phy_drd->pipeclk);
+> +	if (!IS_ERR(phy_drd->utmiclk))
+> +		clk_disable_unprepare(phy_drd->utmiclk);
+>  
 >  	return ret;
 >  }
-> @@ -199,6 +209,8 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
->  	platform_device_unregister(exynos->usb2_phy);
->  	platform_device_unregister(exynos->usb3_phy);
+> @@ -483,6 +495,10 @@ static int exynos5_usbdrd_phy_power_off(struct phy *phy)
+>  		regulator_disable(phy_drd->vbus);
 >  
-> +	if (!IS_ERR(exynos->sclk))
-> +		clk_disable_unprepare(exynos->sclk);
->  	clk_disable_unprepare(exynos->clk);
+>  	clk_disable_unprepare(phy_drd->ref_clk);
+> +	if (!IS_ERR(phy_drd->pipeclk))
+> +		clk_disable_unprepare(phy_drd->pipeclk);
+> +	if (!IS_ERR(phy_drd->utmiclk))
+> +		clk_disable_unprepare(phy_drd->utmiclk);
 >  
->  	regulator_disable(exynos->vdd33);
-> @@ -220,6 +232,8 @@ static int dwc3_exynos_suspend(struct device *dev)
->  {
->  	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
->  
-> +	if (!IS_ERR(exynos->sclk))
-> +		clk_disable(exynos->sclk);
->  	clk_disable(exynos->clk);
->  
->  	regulator_disable(exynos->vdd33);
-> @@ -245,6 +259,8 @@ static int dwc3_exynos_resume(struct device *dev)
+>  	return 0;
+>  }
+> @@ -581,6 +597,14 @@ static int exynos5_usbdrd_phy_probe(struct platform_device *pdev)
+>  		return PTR_ERR(phy_drd->clk);
 >  	}
 >  
->  	clk_enable(exynos->clk);
-> +	if (!IS_ERR(exynos->sclk))
-> +		clk_enable(exynos->sclk);
->  
->  	/* runtime set active to reflect active state. */
->  	pm_runtime_disable(dev);
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> +	phy_drd->pipeclk = devm_clk_get(dev, "phy_pipe");
+> +	if (IS_ERR(phy_drd->pipeclk))
+> +		dev_warn(dev, "Failed to get pipe3 phy operational clock\n");
+> +
+> +	phy_drd->utmiclk = devm_clk_get(dev, "phy_utmi");
+> +	if (IS_ERR(phy_drd->utmiclk))
+> +		dev_warn(dev, "Failed to get utmi phy operational clock\n");
+> +
+
+Pointless warnings for !Exynos7?
+
+Would it not be better to set these to NULL and not litter the code with
+IS_ERR checks?
+
+Mark.
