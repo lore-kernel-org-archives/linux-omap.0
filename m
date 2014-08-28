@@ -1,125 +1,81 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 2/5] phy: exynos5-usbdrd: Add pipe-clk and utmi-clk
- support
-Date: Thu, 28 Aug 2014 19:50:39 +0100
-Message-ID: <20140828185039.GB18464@leverpostej>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/5] phy: exynos5-usbdrd: Add facility for VBUS-BOOST-5V
+ supply
+Date: Thu, 28 Aug 2014 14:16:25 -0500
+Message-ID: <20140828191625.GQ16689@saruman.home>
 References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
- <1409212920-28526-3-git-send-email-gautam.vivek@samsung.com>
+ <1409212920-28526-4-git-send-email-gautam.vivek@samsung.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:39871 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753516AbaH1Sv0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Aug 2014 14:51:26 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IpljlC28XhFjURzf"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1409212920-28526-3-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1409212920-28526-4-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "balbi@ti.com" <balbi@ti.com>, "kishon@ti.com" <kishon@ti.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>
+Cc: linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kishon@ti.com, kgene.kim@samsung.com
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 28, 2014 at 09:01:57AM +0100, Vivek Gautam wrote:
-> Exynos7 SoC has now separate gate control for 125MHz pipe3 phy
-> clock, as well as 60MHz utmi phy clock.
-> So get the same and control in the phy-exynos5-usbdrd driver.
-> 
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> ---
->  .../devicetree/bindings/phy/samsung-phy.txt        |    4 ++++
->  drivers/phy/phy-exynos5-usbdrd.c                   |   24 ++++++++++++++++++++
->  2 files changed, 28 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-> index 7a6feea..b64d616 100644
-> --- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
-> +++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
-> @@ -135,6 +135,10 @@ Required properties:
->  	       PHY operations, associated by phy name. It is used to
->  	       determine bit values for clock settings register.
->  	       For Exynos5420 this is given as 'sclk_usbphy30' in CMU.
-> +	- optional clocks: Next gen Exynos SoCs have following additional
+--IpljlC28XhFjURzf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It's not going to be 'Next gen' for long...
+hi,
 
-> +			   gate clocks available:
-> +			   - phy_pipe: for PIPE3 phy
-> +			   - phy_utmi: for UTMI+ phy
->  - samsung,pmu-syscon: phandle for PMU system controller interface, used to
->  		      control pmu registers for power isolation.
->  - #phy-cells : from the generic PHY bindings, must be 1;
-> diff --git a/drivers/phy/phy-exynos5-usbdrd.c b/drivers/phy/phy-exynos5-usbdrd.c
-> index b05302b..685c108 100644
-> --- a/drivers/phy/phy-exynos5-usbdrd.c
-> +++ b/drivers/phy/phy-exynos5-usbdrd.c
-> @@ -148,6 +148,8 @@ struct exynos5_usbdrd_phy_drvdata {
->   * @dev: pointer to device instance of this platform device
->   * @reg_phy: usb phy controller register memory base
->   * @clk: phy clock for register access
-> + * @pipeclk: clock for pipe3 phy
-> + * @utmiclk: clock for utmi+ phy
->   * @drv_data: pointer to SoC level driver data structure
->   * @phys[]: array for 'EXYNOS5_DRDPHYS_NUM' number of PHY
->   *	    instances each with its 'phy' and 'phy_cfg'.
-> @@ -161,6 +163,8 @@ struct exynos5_usbdrd_phy {
->  	struct device *dev;
->  	void __iomem *reg_phy;
->  	struct clk *clk;
-> +	struct clk *pipeclk;
-> +	struct clk *utmiclk;
->  	const struct exynos5_usbdrd_phy_drvdata *drv_data;
->  	struct phy_usb_instance {
->  		struct phy *phy;
-> @@ -446,6 +450,10 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
->  
->  	dev_dbg(phy_drd->dev, "Request to power_on usbdrd_phy phy\n");
->  
-> +	if (!IS_ERR(phy_drd->utmiclk))
-> +		clk_prepare_enable(phy_drd->utmiclk);
-> +	if (!IS_ERR(phy_drd->pipeclk))
-> +		clk_prepare_enable(phy_drd->pipeclk);
+On Thu, Aug 28, 2014 at 01:31:58PM +0530, Vivek Gautam wrote:
+> @@ -457,11 +458,19 @@ static int exynos5_usbdrd_phy_power_on(struct phy *=
+phy)
 >  	clk_prepare_enable(phy_drd->ref_clk);
->  
+> =20
 >  	/* Enable VBUS supply */
-> @@ -464,6 +472,10 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
->  
->  fail_vbus:
->  	clk_disable_unprepare(phy_drd->ref_clk);
-> +	if (!IS_ERR(phy_drd->pipeclk))
-> +		clk_disable_unprepare(phy_drd->pipeclk);
-> +	if (!IS_ERR(phy_drd->utmiclk))
-> +		clk_disable_unprepare(phy_drd->utmiclk);
->  
->  	return ret;
->  }
-> @@ -483,6 +495,10 @@ static int exynos5_usbdrd_phy_power_off(struct phy *phy)
->  		regulator_disable(phy_drd->vbus);
->  
->  	clk_disable_unprepare(phy_drd->ref_clk);
-> +	if (!IS_ERR(phy_drd->pipeclk))
-> +		clk_disable_unprepare(phy_drd->pipeclk);
-> +	if (!IS_ERR(phy_drd->utmiclk))
-> +		clk_disable_unprepare(phy_drd->utmiclk);
->  
+> +	if (phy_drd->vbus_boost) {
+> +		ret =3D regulator_enable(phy_drd->vbus_boost);
+> +		if (ret) {
+> +			dev_err(phy_drd->dev,
+> +				"Failed to enable VBUS boost supply\n");
+> +			goto fail_vbus;
+> +		}
+> +	}
+
+really this is nitpicking, but can you add a blank line here just make
+my inner child happy ? :-)
+
+> @@ -470,6 +479,9 @@ static int exynos5_usbdrd_phy_power_on(struct phy *ph=
+y)
+> =20
 >  	return 0;
->  }
-> @@ -581,6 +597,14 @@ static int exynos5_usbdrd_phy_probe(struct platform_device *pdev)
->  		return PTR_ERR(phy_drd->clk);
->  	}
->  
-> +	phy_drd->pipeclk = devm_clk_get(dev, "phy_pipe");
-> +	if (IS_ERR(phy_drd->pipeclk))
-> +		dev_warn(dev, "Failed to get pipe3 phy operational clock\n");
-> +
-> +	phy_drd->utmiclk = devm_clk_get(dev, "phy_utmi");
-> +	if (IS_ERR(phy_drd->utmiclk))
-> +		dev_warn(dev, "Failed to get utmi phy operational clock\n");
-> +
+> =20
+> +fail_vbus_boost:
+> +	if (phy_drd->vbus_boost)
+> +		regulator_disable(phy_drd->vbus_boost);
 
-Pointless warnings for !Exynos7?
+same here
 
-Would it not be better to set these to NULL and not litter the code with
-IS_ERR checks?
+--=20
+balbi
 
-Mark.
+--IpljlC28XhFjURzf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJT/4AJAAoJEIaOsuA1yqRESDoQAIBd5UzXO5RFWx3ewB1JM+b+
+m6d6PPK1YgdkQxbzfV/I+Pz2BHPMteUcIibYgcvfLGY1V7l6UCvIc7riWQOR97b0
+o/5WM4BzMzHk3I4iZu58iPRNGmK/c/w9M28ZCRjdII2bpvswawv4QtSuVRqS0pab
+UF5OgF5X7of+JtiWbpa0NqQxv7lGFR+bSElIwPGK6ETEXZ+JWlbIUZ5J7k6MTdY8
+b3A4NsSqfPAncV+hsCebCKB/6S7k+pdPpcFTPAd1sC7twd3zNQv2qAuC2+01FKTd
+h2lR47F2Cflnbyt0hA9lmVmZWbGMEWk0GxWJdJ0fC1FGe8xKYqEq7CdaYAuj/QrI
+2SCf3Z8RQJ4fuKWaf+4P64+WZKTutOJY4oVciQaVpthNPOtdvX2csvSP5ZFVgOs/
+DfHhZLfMzOXStWOcjoaZAO14so8SxqrTZn4cIt/e7WCGvss8Hlesp1zRdURxvS6k
+7TsYF3IA7LyZTQk8ExqV6xMNPRPdF8shmeIgT7M2CXPPoe0JsWVOBDwmZrsASXiQ
+6fvUh2VxbbbSAhgbLr/AxyAPU2Ej94RTr4wwWi3TH5jcNA/DDOLJGLvVZmKDpTkV
+slIjmvmhwrnS/Mw/C9z4SyKfgMN2zfWFvd4+NAODHy/9Mm7xHJ31ccLmzGRppDMZ
+R+OU4wlqmt746TR1DkGK
+=hW2+
+-----END PGP SIGNATURE-----
+
+--IpljlC28XhFjURzf--
