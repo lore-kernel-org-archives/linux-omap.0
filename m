@@ -1,83 +1,89 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Thu, 28 Aug 2014 21:37:03 +0200
-Message-ID: <53FF84DF.7080406@linutronix.de>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de> <1408124563-31541-16-git-send-email-bigeasy@linutronix.de> <20140815210211.GD9239@atomide.com> <53F5AF0D.5060409@linutronix.de> <20140821184416.GF10066@atomide.com> <53FE3779.5090908@linutronix.de> <20140827202313.GF16006@atomide.com> <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: omap4-panda: Fix model and SoC family details
+Date: Thu, 28 Aug 2014 15:45:03 -0500
+Message-ID: <1409258703-21188-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:42580 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752995AbaH1ThK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2014 15:37:10 -0400
-In-Reply-To: <20140828164645.GG16006@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On 08/28/2014 06:46 PM, Tony Lindgren wrote:
->> To use DMA you don't have to enable it in SCR register you can also use
->> the FCR register. The manual says that you can only write this DMA
->> enable bit in the FCR register if the baud clock is not running. And
->> guess what: same thing: I only *toggle* the DMA enable bit here (it
->> remains 0 later) and the core won't hit idle.
->> Same effect if I toggle this bit while the baud clock is running (the
->> manual says that this bit can only be written if the baud clock is not
->> running). Seems like the UART is following its own specification and it
->> remains blocking once the DMA was enabled.
->> It would be nice if someone from the UART-IP team could ACK this.
-> 
-> Sounds like there should be some way to clear that state.. I wonder
-> if omap-serial.c had something before it's DMA support was removed?
+Currently we claim that omap4-panda and omap4-panda-es are essentially
+the same, but they are not since PandaBoard-ES uses OMAP4460 and
+PandaBoard uses OMAP4430.
 
-Its DMA was removed? Like there was DMA support?
+So, split the common definition and make the model name available.
 
-> I'd assume when the UART is powered down by runtime PM it's state
-> is completetely reset and we could restore the non-DMA state?
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+Based on v3.17-rc2
 
-I tried that by canceling the RX-DMA request and removing the DMA-enable
-bits from UART but it didn't help. Then I noticed that once that DMA en
-bit is set, the UART won't do any idle.
+Testing logs: (boot test):
+Before Patch(v3.17-rc2)
+1: pandaboard-es:  Boot PASS: http://slexy.org/raw/s209HfpVTs
+2: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s21YNmOhQL
 
-> Maybe post your current patches and a test patch to try to toggle
-> the DMA on and off?
+After Patch
+1: pandaboard-es:  Boot PASS: http://slexy.org/raw/s20FH76BTn
+2: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2vFLcfkBu
 
-Oh. I pushed my dirty tree to
- git://git.breakpoint.cc/bigeasy/linux.git uart_v8_wip
+Note: 'ti,omap4-panda-es' is not documented in bindings, not entirely
+sure if we should be doing the same for every board compatibility.
 
-The top most commit does not setup dma at all and adds commented out
-code how to enable DMA via SCR or FCR register. With this I hit
-core-off. Once _one_ of the modes are enabled, it doesn't work anymore.
+ arch/arm/boot/dts/omap4-panda-common.dtsi |    3 ---
+ arch/arm/boot/dts/omap4-panda-es.dts      |    5 +++++
+ arch/arm/boot/dts/omap4-panda.dts         |    5 +++++
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-I will try to address review comments tomorrow and hopefully post a v8
-based on -rc2. The same goes for your patch (which I will try tomorrow).
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+index 8cfa3c8..1505135 100644
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -8,9 +8,6 @@
+ #include "elpida_ecb240abacn.dtsi"
+ 
+ / {
+-	model = "TI OMAP4 PandaBoard";
+-	compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4";
+-
+ 	memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index 816d1c9..2f1dabc 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -10,6 +10,11 @@
+ #include "omap4460.dtsi"
+ #include "omap4-panda-common.dtsi"
+ 
++/ {
++	model = "TI OMAP4 PandaBoard-ES";
++	compatible = "ti,omap4-panda-es", "ti,omap4-panda", "ti,omap4460", "ti,omap4430", "ti,omap4";
++};
++
+ /* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
+ &sound {
+ 	ti,model = "PandaBoardES";
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 6189a8b..a0e28b2 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -9,3 +9,8 @@
+ 
+ #include "omap443x.dtsi"
+ #include "omap4-panda-common.dtsi"
++
++/ {
++	model = "TI OMAP4 PandaBoard";
++	compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4";
++};
+-- 
+1.7.9.5
 
->> Bah. Does it make sense to use runtime-PM if we can't hit core-off? I'm
->> thinking to add a printk once dma is enabled says that runtime-pm is
->> switched off.
-> 
-> Well if we can't find a way to unset the DMA registers in the UART,
-> how about only enable it if a kernel cmdline option is specified?
-
-Hmmm. So removing DMA properties from DT is not an option? Currently I
-added a message that DMA might forbid low power mode so people might
-remove "dma-names" from DT (or assign "") and DMA is off. However if
-this is no good, then I guess I could add kernel module which enables
-DMA.
-
-> 
-> We do have runtime PM working without it, and the serial console
-> super important for any kind of debugging no matter what idle
-> mode the SoC hits.. So let's not break that.
-
-Yeah, I know. I've been debugging while I broke something which means
-uart wasn't working :)
-
-> 
-> Regards,
-> 
-> Tony
-
-Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
