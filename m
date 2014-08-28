@@ -1,76 +1,83 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/5] usb: dwc3: Adding Kconfig dependency for Exynos7
-Date: Thu, 28 Aug 2014 14:28:39 -0500
-Message-ID: <20140828192824.GR16689@saruman.home>
-References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
- <1409212920-28526-5-git-send-email-gautam.vivek@samsung.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Thu, 28 Aug 2014 21:37:03 +0200
+Message-ID: <53FF84DF.7080406@linutronix.de>
+References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de> <1408124563-31541-16-git-send-email-bigeasy@linutronix.de> <20140815210211.GD9239@atomide.com> <53F5AF0D.5060409@linutronix.de> <20140821184416.GF10066@atomide.com> <53FE3779.5090908@linutronix.de> <20140827202313.GF16006@atomide.com> <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AonAANj1daC6QcQu"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1409212920-28526-5-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:42580 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752995AbaH1ThK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2014 15:37:10 -0400
+In-Reply-To: <20140828164645.GG16006@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
---AonAANj1daC6QcQu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 08/28/2014 06:46 PM, Tony Lindgren wrote:
+>> To use DMA you don't have to enable it in SCR register you can also use
+>> the FCR register. The manual says that you can only write this DMA
+>> enable bit in the FCR register if the baud clock is not running. And
+>> guess what: same thing: I only *toggle* the DMA enable bit here (it
+>> remains 0 later) and the core won't hit idle.
+>> Same effect if I toggle this bit while the baud clock is running (the
+>> manual says that this bit can only be written if the baud clock is not
+>> running). Seems like the UART is following its own specification and it
+>> remains blocking once the DMA was enabled.
+>> It would be nice if someone from the UART-IP team could ACK this.
+> 
+> Sounds like there should be some way to clear that state.. I wonder
+> if omap-serial.c had something before it's DMA support was removed?
 
-On Thu, Aug 28, 2014 at 01:31:59PM +0530, Vivek Gautam wrote:
-> The Exynos-DWC3 USB 3.0 DRD controller is also present on
-> Exynos7 platform, so adding the dependency on ARCH_EXYNOS7
-> for this driver.
->=20
-> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/usb/dwc3/Kconfig |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
-> index 785510a..e235894 100644
-> --- a/drivers/usb/dwc3/Kconfig
-> +++ b/drivers/usb/dwc3/Kconfig
-> @@ -55,7 +55,7 @@ config USB_DWC3_OMAP
-> =20
->  config USB_DWC3_EXYNOS
->  	tristate "Samsung Exynos Platform"
-> -	depends on ARCH_EXYNOS || COMPILE_TEST
-> +	depends on (ARCH_EXYNOS || ARCH_EXYNOS7) || COMPILE_TEST
+Its DMA was removed? Like there was DMA support?
 
-wait when building for ARCH_EXYNOS7 you don't get ARCH_EXYNOS ?
+> I'd assume when the UART is powered down by runtime PM it's state
+> is completetely reset and we could restore the non-DMA state?
 
---=20
-balbi
+I tried that by canceling the RX-DMA request and removing the DMA-enable
+bits from UART but it didn't help. Then I noticed that once that DMA en
+bit is set, the UART won't do any idle.
 
---AonAANj1daC6QcQu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Maybe post your current patches and a test patch to try to toggle
+> the DMA on and off?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Oh. I pushed my dirty tree to
+ git://git.breakpoint.cc/bigeasy/linux.git uart_v8_wip
 
-iQIcBAEBAgAGBQJT/4LYAAoJEIaOsuA1yqRE8D8P/0x6TC8uZM5+NMPlJeCa1R+t
-yRV5KHQibRTl9idBNyoIFZjim70TLGTqGrSAlFr5zT5esgHjuqW5pcKzFWncW4vm
-ABDbsTc+feZPYUUqQLvp6oxJiAkmhWUzjXqPsAXEC0NqhqJbvXhFjgiQHyRyeOd1
-af0x8JR0gZoCupzu6kb6RiX2G5Gk/b8144YdBt2kKO2VvF70UJGTBx8y5eLtawg2
-6esK6yOegPsoUILf9zODwFb1Dhp6L0rFmvPpT6SdPTzaMEhQdC8Z5MVjwwdGj7vf
-oJthXNzF66B2P6MFRp1/kEcTbXjYjE3pDo4gqrOJ4dkPDbC02O8hAMnftSZfCmgE
-wazv1fCvntDh/UponwC5aB8GRRcKiLRaD7YXtRpT1qEu/8nwhi9WggUt3v7NsBfl
-qX75K95iKQlducc2PGnq8pCD1JqOjqliHGsit3kQsYOcILrUVHHzvGGVOTlnpgx4
-66tZLXdLyFBevYpSiihAkYr7Vj3o6igTKhemVatl7u5FAoIKjvpPJxLvGVLJ8090
-FBV/cfO6I5IhiPrmA1C+EVvpIpdFPCK/VbkpAfuXZ8dXgIEW/BtcHHf88HzxJ1Sq
-7aSrnD7fBNZnp7gLHqjl31Z13JsDNB51IZUcba3iP0N1qvoRp/81+8U9+JfZHBu8
-MZy6TVrQuNYo7Kh+FOmD
-=QabP
------END PGP SIGNATURE-----
+The top most commit does not setup dma at all and adds commented out
+code how to enable DMA via SCR or FCR register. With this I hit
+core-off. Once _one_ of the modes are enabled, it doesn't work anymore.
 
---AonAANj1daC6QcQu--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I will try to address review comments tomorrow and hopefully post a v8
+based on -rc2. The same goes for your patch (which I will try tomorrow).
+
+>> Bah. Does it make sense to use runtime-PM if we can't hit core-off? I'm
+>> thinking to add a printk once dma is enabled says that runtime-pm is
+>> switched off.
+> 
+> Well if we can't find a way to unset the DMA registers in the UART,
+> how about only enable it if a kernel cmdline option is specified?
+
+Hmmm. So removing DMA properties from DT is not an option? Currently I
+added a message that DMA might forbid low power mode so people might
+remove "dma-names" from DT (or assign "") and DMA is off. However if
+this is no good, then I guess I could add kernel module which enables
+DMA.
+
+> 
+> We do have runtime PM working without it, and the serial console
+> super important for any kind of debugging no matter what idle
+> mode the SoC hits.. So let's not break that.
+
+Yeah, I know. I've been debugging while I broke something which means
+uart wasn't working :)
+
+> 
+> Regards,
+> 
+> Tony
+
+Sebastian
