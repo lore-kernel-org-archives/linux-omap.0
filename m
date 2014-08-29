@@ -1,61 +1,382 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Fri, 29 Aug 2014 11:32:36 +0200
-Message-ID: <540048B4.7010807@linutronix.de>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de> <1408124563-31541-16-git-send-email-bigeasy@linutronix.de> <20140815210211.GD9239@atomide.com> <53F5AF0D.5060409@linutronix.de> <20140821184416.GF10066@atomide.com> <53FE3779.5090908@linutronix.de> <20140827202313.GF16006@atomide.com> <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com> <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140828225454.GM16006@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
+From: Stefan Roese <sr@denx.de>
+Subject: [PATCH 2/4 v2] arm: omap3: Add Technexion TAO3530 SOM omap3-tao3530.dtsi
+Date: Fri, 29 Aug 2014 12:40:04 +0200
+Message-ID: <1409308806-27036-2-git-send-email-sr@denx.de>
+References: <1409308806-27036-1-git-send-email-sr@denx.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.182]:22469 "EHLO
+	mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528AbaH2KkQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2014 06:40:16 -0400
+In-Reply-To: <1409308806-27036-1-git-send-email-sr@denx.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>, Tapani Utriainen <tapani@technexion.com>, Tony Lindgren <tony@atomide.com>
 
-On 08/29/2014 12:54 AM, Tony Lindgren wrote:
-> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140828 12:37]:
->> On 08/28/2014 06:46 PM, Tony Lindgren wrote:
->>>
->>> Sounds like there should be some way to clear that state.. I wonder
->>> if omap-serial.c had something before it's DMA support was removed?
->>
->> Its DMA was removed? Like there was DMA support?
->=20
-> Yeah see commit 494574304711a333386e7dd5fd3ebbc3b7024994...
+The Technexion TAO3530 is a OMAP3530 based SOM. This patch adds the
+basic support for it as an dtsi file which can be included by
+baseboard equipped with this SOM. E.g. the Technexion Thunder
+baseboard.
 
-Interesting. I've been browsing that file and checking other trees and
-never noticed that it was there at some point. I only saw the pieces
-which looked it was there.
+Signed-off-by: Stefan Roese <sr@denx.de>
+Cc: Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>
+Cc: Tapani Utriainen <tapani@technexion.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+v2:
+- Used OMAP3_CORE1_IOPAD macros for all mux entries
+- Added ranges entry to gpmc node
+- Added gpmc,device-width = <2> to nand dt node. Otherwise NAND probing
+  would not work
 
-> OK thanks, I'm seeing the same issue as you. And the idlest registers
-> don't show any blockers. Looking at the errata docs, seems like
-> "Usage Note 2.7" in sprz318f.pdf says:
->=20
->  Details When configured for DMA operations using smartidle mode (SYS=
-C[4:3].IDLEMODE =3D
->  0x2), the UART module will not acknowledge incoming idle requests. A=
-s a consequence,
->  it can prevent L4 from going to idle.
->  When there are additional expected transfers, the UART should be pla=
-ced in force-idle
->  mode.
+ arch/arm/boot/dts/omap3-tao3530.dtsi | 337 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 337 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-tao3530.dtsi
 
-Ehm. So I haven't found an errata document for omap3630, there is
-nothing like that in that one I have for am335x or dra7. The document
-you mentioned is for AM3715. Interesting=85
+diff --git a/arch/arm/boot/dts/omap3-tao3530.dtsi b/arch/arm/boot/dts/omap3-tao3530.dtsi
+new file mode 100644
+index 0000000..b30f387
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-tao3530.dtsi
+@@ -0,0 +1,337 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2014 Stefan Roese <sr@denx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "omap34xx-hs.dtsi"
++
++/ {
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vcc>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	/* HS USB Port 2 Power */
++	hsusb2_power: hsusb2_power_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "hsusb2_vbus";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		gpio = <&twl_gpio 18 0>;	/* GPIO LEDA */
++		startup-delay-us = <70000>;
++	};
++
++	/* HS USB Host PHY on PORT 2 */
++	hsusb2_phy: hsusb2_phy {
++		compatible = "usb-nop-xceiv";
++		reset-gpios = <&gpio6 2 GPIO_ACTIVE_LOW>;	/* gpio_162 */
++		vcc-supply = <&hsusb2_power>;
++	};
++
++	sound {
++		compatible = "ti,omap-twl4030";
++		ti,model = "omap3beagle";
++
++		/* McBSP2 is used for onboard sound, same as on beagle */
++		ti,mcbsp = <&mcbsp2>;
++		ti,codec = <&twl_audio>;
++	};
++
++	/* Regulator to enable/switch the vcc of the Wifi module */
++	mmc2_sdio_poweron: regulator-mmc2-sdio-poweron {
++		compatible = "regulator-fixed";
++		regulator-name = "regulator-mmc2-sdio-poweron";
++		regulator-min-microvolt = <3150000>;
++		regulator-max-microvolt = <3150000>;
++		gpio = <&gpio5 29 GPIO_ACTIVE_LOW>;		/* gpio_157 */
++		enable-active-low;
++		startup-delay-us = <10000>;
++	};
++};
++
++&omap3_pmx_core {
++	hsusbb2_pins: pinmux_hsusbb2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)		/* etk_d10.hsusb2_clk */
++			OMAP3_CORE1_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)		/* etk_d11.hsusb2_stp */
++			OMAP3_CORE1_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d12.hsusb2_dir */
++			OMAP3_CORE1_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d13.hsusb2_nxt */
++			OMAP3_CORE1_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d14.hsusb2_data0 */
++			OMAP3_CORE1_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* etk_d15.hsusb2_data1 */
++			OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi1_cs3.hsusb2_data2 */
++			OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_clk.hsusb2_data7 */
++			OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_simo.hsusb2_data4 */
++			OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_somi.hsusb2_data5 */
++			OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs0.hsusb2_data6 */
++			OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)	/* mcspi2_cs1.hsusb2_data3 */
++		>;
++	};
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2144, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
++			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd.sdmmc1_cmd */
++			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat0.sdmmc1_dat0 */
++			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat1.sdmmc1_dat1 */
++			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat2.sdmmc1_dat2 */
++			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
++			OMAP3_CORE1_IOPAD(0x2150, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc1_dat4.sdmmc1_dat4 */
++			OMAP3_CORE1_IOPAD(0x2152, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc1_dat5.sdmmc1_dat5 */
++			OMAP3_CORE1_IOPAD(0x2154, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc1_dat6.sdmmc1_dat6 */
++			OMAP3_CORE1_IOPAD(0x2156, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc1_dat7.sdmmc1_dat7 */
++		>;
++	};
++
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
++			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
++			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
++			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat1.sdmmc2_dat1 */
++			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
++			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
++		>;
++	};
++
++	/* wlan GPIO output for WLAN_EN */
++	wlan_gpio: pinmux_wlan_gpio {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x218e, PIN_OUTPUT | MUX_MODE4)	/* mcbsp1_fsr gpio_157 */
++		>;
++	};
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x219e, PIN_INPUT | PIN_OFF_WAKEUPENABLE | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
++			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)	/* uart3_tx_irtx.uart3_tx_irtx */
++		>;
++	};
++
++	i2c3_pins: pinmux_i2c3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21c2, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_scl.i2c3_scl */
++			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c3_sda.i2c3_sda */
++		>;
++	};
++
++	mcspi1_pins: pinmux_mcspi1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21c8, PIN_INPUT | MUX_MODE0)	/* mcspi1_clk.mcspi1_clk */
++			OMAP3_CORE1_IOPAD(0x21ca, PIN_OUTPUT | MUX_MODE0)	/* mcspi1_simo.mcspi1_simo */
++			OMAP3_CORE1_IOPAD(0x21cc, PIN_INPUT_PULLUP | MUX_MODE0)	/* mcspi1_somi.mcspi1_somi */
++			OMAP3_CORE1_IOPAD(0x21ce, PIN_OUTPUT | MUX_MODE0)	/* mcspi1_cs0.mcspi1_cs0 */
++		>;
++	};
++
++	mcspi3_pins: pinmux_mcspi3_pins {
++		pinctrl-single,pins = <
++                        OMAP3_CORE1_IOPAD(0x25dc, PIN_OUTPUT | MUX_MODE1)	/* etk_d0.mcspi3_simo gpio14 INPUT | MODE1 */
++                        OMAP3_CORE1_IOPAD(0x25de, PIN_INPUT_PULLUP | MUX_MODE1)	/* etk_d1.mcspi3_somi gpio15 INPUT | MODE1 */
++                        OMAP3_CORE1_IOPAD(0x25e0, PIN_OUTPUT | MUX_MODE1)	/* etk_d2.mcspi3_cs0 gpio16 INPUT | MODE1 */
++                        OMAP3_CORE1_IOPAD(0x25e2, PIN_INPUT | MUX_MODE1)	/* etk_d3.mcspi3_clk gpio17 INPUT | MODE1 */
++		>;
++	};
++
++	mcbsp3_pins: pinmux_mcbsp3_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x216c, PIN_OUTPUT | MUX_MODE0)	/* mcbsp3_dx.uart2_cts */
++			OMAP3_CORE1_IOPAD(0x216e, PIN_INPUT | MUX_MODE0)	/* mcbsp3_dr.uart2_rts */
++			OMAP3_CORE1_IOPAD(0x2170, PIN_INPUT | MUX_MODE0)	/* mcbsp3_clk.uart2_tx */
++			OMAP3_CORE1_IOPAD(0x2172, PIN_INPUT | MUX_MODE0)	/* mcbsp3_fsx.uart2_rx */
++		>;
++	};
++};
++
++/* McBSP1: mux'ed with GPIO158 as clock for HA-DSP */
++&mcbsp1 {
++	status = "disabled";
++};
++
++&mcbsp2 {
++	status = "okay";
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
++		};
++	};
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++};
++
++&mcspi1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcspi1_pins>;
++
++	spidev@0 {
++		compatible = "spidev";
++		spi-max-frequency = <48000000>;
++		reg = <0>;
++		spi-cpha;
++	};
++};
++
++&mcspi3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcspi3_pins>;
++
++	spidev@0 {
++		compatible = "spidev";
++		spi-max-frequency = <48000000>;
++		reg = <0>;
++		spi-cpha;
++	};
++};
++
++#include "twl4030.dtsi"
++#include "twl4030_omap3.dtsi"
++
++&mmc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	vmmc-supply = <&vmmc1>;
++	vmmc_aux-supply = <&vsim>;
++	cd-gpios = <&twl_gpio 0 0>;
++	bus-width = <8>;
++};
++
++// WiFi (Marvell 88W8686) on MMC2/SDIO
++&mmc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++	vmmc-supply = <&mmc2_sdio_poweron>;
++	non-removable;
++	bus-width = <4>;
++	cap-power-off-card;
++};
++
++&mmc3 {
++	status = "disabled";
++};
++
++&usbhshost {
++	port2-mode = "ehci-phy";
++};
++
++&usbhsehci {
++	phys = <0 &hsusb2_phy>;
++};
++
++&twl_gpio {
++	ti,use-leds;
++	/* pullups: BIT(1) */
++	ti,pullups = <0x000002>;
++	/*
++	 * pulldowns:
++	 * BIT(2), BIT(6), BIT(7), BIT(8), BIT(13)
++	 * BIT(15), BIT(16), BIT(17)
++	 */
++	ti,pulldowns = <0x03a1c4>;
++};
++
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins>;
++};
++
++&mcbsp3 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcbsp3_pins>;
++};
++
++&gpmc {
++	ranges = <0 0 0x00000000 0x01000000>;
++
++	nand@0,0 {
++		reg = <0 0 0>; /* CS0, offset 0 */
++		nand-bus-width = <16>;
++		gpmc,device-width = <2>;	/* GPMC_DEVWIDTH_16BIT */
++		ti,nand-ecc-opt = "sw";
++
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <36>;
++		gpmc,cs-wr-off-ns = <36>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <24>;
++		gpmc,adv-wr-off-ns = <36>;
++		gpmc,oe-on-ns = <6>;
++		gpmc,oe-off-ns = <48>;
++		gpmc,we-on-ns = <6>;
++		gpmc,we-off-ns = <30>;
++		gpmc,rd-cycle-ns = <72>;
++		gpmc,wr-cycle-ns = <72>;
++		gpmc,access-ns = <54>;
++		gpmc,wr-access-ns = <30>;
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++
++		x-loader@0 {
++			label = "X-Loader";
++			reg = <0 0x80000>;
++		};
++
++		bootloaders@80000 {
++			label = "U-Boot";
++			reg = <0x80000 0x1e0000>;
++		};
++
++		bootloaders_env@260000 {
++			label = "U-Boot Env";
++			reg = <0x260000 0x20000>;
++		};
++
++		kernel@280000 {
++			label = "Kernel";
++			reg = <0x280000 0x400000>;
++		};
++
++		filesystem@680000 {
++			label = "File System";
++			reg = <0x680000 0xf980000>;
++		};
++	};
++};
++
++&usb_otg_hs {
++	interface-type = <0>;
++	usb-phy = <&usb2_phy>;
++	phys = <&usb2_phy>;
++	phy-names = "usb2-phy";
++	mode = <3>;
++	power = <50>;
++};
++
++&vaux2 {
++	regulator-name = "vdd_ehci";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-always-on;
++};
+-- 
+2.1.0
 
-> So I've added also Paul to Cc, he may have better suggestions for the
-> hwmod flags to use. The experimental patch below seems to allow idlin=
-g
-> for me, care to give it a try?
-
-Yep, this one works. And I see DMA transfers (for RX side) after the
-core hit idle so it seems to look good :)
-
->=20
-> Regards,
->=20
-> Tony
-
-Sebastian
