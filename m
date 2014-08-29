@@ -1,52 +1,66 @@
 From: Stefan Roese <sr@denx.de>
-Subject: [PATCH 3/4 v2] arm: omap3: Add Technexion Thunder support (TAO3530 SOM based)
-Date: Fri, 29 Aug 2014 12:40:05 +0200
-Message-ID: <1409308806-27036-3-git-send-email-sr@denx.de>
+Subject: [PATCH 4/4 v2] arm: omap3: Add HEAD acoustics omap3-ha.dts and omap3-ha-lcd.dts (TAO3530 based)
+Date: Fri, 29 Aug 2014 12:40:06 +0200
+Message-ID: <1409308806-27036-4-git-send-email-sr@denx.de>
 References: <1409308806-27036-1-git-send-email-sr@denx.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.181]:38059 "EHLO
+Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.183]:30698 "EHLO
 	mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752594AbaH2KkU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2014 06:40:20 -0400
+	with ESMTP id S1752509AbaH2KkQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2014 06:40:16 -0400
 In-Reply-To: <1409308806-27036-1-git-send-email-sr@denx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org, Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>, Tapani Utriainen <tapani@technexion.com>, Tony Lindgren <tony@atomide.com>
 
-This baseboard is equipped with the Technexion TAO35030 SOM. So
-includes this dtsi. Some Thunder specific features are:
+These baseboards are equipped with the Technexion TAO35030 SOM. So
+they include this dtsi. The common parts are extracted into an "common"
+dtsi file. The main difference between both boards is, that the *lcd
+has DSS support enabled for the LCD.
 
-- LCD panel
+Some HEAD acoustics specific features are:
+
+- LED handling
+- Special FPGA/DSP audio driver (not included in this series)
+- powerdown GPIO
 
 Signed-off-by: Stefan Roese <sr@denx.de>
 Cc: Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>
 Cc: Tapani Utriainen <tapani@technexion.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/Makefile          |   1 +
- arch/arm/boot/dts/omap3-thunder.dts | 129 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 130 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap3-thunder.dts
+v2:
+- Used OMAP3_CORE1_IOPAD macros for all mux entries
+
+ arch/arm/boot/dts/Makefile             |   2 +
+ arch/arm/boot/dts/omap3-ha-common.dtsi |  88 ++++++++++++++++++
+ arch/arm/boot/dts/omap3-ha-lcd.dts     | 165 +++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-ha.dts         |  28 ++++++
+ 4 files changed, 283 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap3-ha-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-ha-lcd.dts
+ create mode 100644 arch/arm/boot/dts/omap3-ha.dts
 
 diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index b8c5cd3..e00c889 100644
+index e00c889..892b7d2 100644
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
-@@ -309,6 +309,7 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
- 	omap3-sbc-t3517.dtb \
- 	omap3-sbc-t3530.dtb \
- 	omap3-sbc-t3730.dtb \
-+	omap3-thunder.dtb \
- 	omap3-zoom3.dtb
- dtb-$(CONFIG_SOC_AM33XX) += am335x-base0033.dtb \
- 	am335x-bone.dtb \
-diff --git a/arch/arm/boot/dts/omap3-thunder.dts b/arch/arm/boot/dts/omap3-thunder.dts
+@@ -287,6 +287,8 @@ dtb-$(CONFIG_ARCH_OMAP3) += am3517-craneboard.dtb \
+ 	omap3-evm.dtb \
+ 	omap3-evm-37xx.dtb \
+ 	omap3-gta04.dtb \
++	omap3-ha.dtb \
++	omap3-ha-lcd.dtb \
+ 	omap3-igep0020.dtb \
+ 	omap3-igep0030.dtb \
+ 	omap3-ldp.dtb \
+diff --git a/arch/arm/boot/dts/omap3-ha-common.dtsi b/arch/arm/boot/dts/omap3-ha-common.dtsi
 new file mode 100644
-index 0000000..d659515
+index 0000000..bd66545
 --- /dev/null
-+++ b/arch/arm/boot/dts/omap3-thunder.dts
-@@ -0,0 +1,129 @@
++++ b/arch/arm/boot/dts/omap3-ha-common.dtsi
+@@ -0,0 +1,88 @@
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
 + * Copyright (C) 2014 Stefan Roese <sr@denx.de>
@@ -59,11 +73,129 @@ index 0000000..d659515
 +#include "omap3-tao3530.dtsi"
 +
 +/ {
-+	model = "TI OMAP3 Thunder baseboard with TAO3530 SOM";
-+	compatible = "technexion,omap3-thunder", "technexion,omap3-tao3530", "ti,omap34xx", "ti,omap3";
++	gpio_poweroff {
++		pinctrl-names = "default";
++		pinctrl-0 = <&poweroff_pins>;
++
++		compatible = "gpio-poweroff";
++		gpios = <&gpio6 8 GPIO_ACTIVE_LOW>;	/* GPIO 168 */
++	};
 +};
 +
 +&omap3_pmx_core {
++	sound2_pins: pinmux_sound2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x209e, PIN_OUTPUT | MUX_MODE4)	/* gpmc_d8 gpio_44 */
++		>;
++	};
++
++	led_blue_pins: pinmux_led_blue_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2110, PIN_OUTPUT | MUX_MODE4)	/* cam_xclka gpio_96, LED blue */
++		>;
++	};
++
++	led_green_pins: pinmux_led_green_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2126, PIN_OUTPUT | MUX_MODE4)	/* cam_d8 gpio_107, LED green */
++		>;
++	};
++
++	led_red_pins: pinmux_led_red_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x212e, PIN_OUTPUT_PULLUP | MUX_MODE4)	/* cam_xclkb gpio_111, LED red */
++		>;
++	};
++
++	poweroff_pins: pinmux_poweroff_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21be, PIN_OUTPUT_PULLUP | MUX_MODE4)	/* i2c2_scl gpio_168 */
++		>;
++	};
++
++	powerdown_input_pins: pinmux_powerdown_input_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x21c0, PIN_INPUT_PULLUP | MUX_MODE4)	/* i2c2_sda gpio_183 */
++		>;
++	};
++
++	fpga_boot0_pins: fpga_boot0_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x211a, PIN_INPUT | MUX_MODE4)	/* cam_d2 gpio_101 */
++			OMAP3_CORE1_IOPAD(0x211c, PIN_OUTPUT | MUX_MODE4)	/* cam_d3 gpio_102 */
++			OMAP3_CORE1_IOPAD(0x211e, PIN_OUTPUT | MUX_MODE4)	/* cam_d4 gpio_103 */
++			OMAP3_CORE1_IOPAD(0x2120, PIN_INPUT_PULLUP | MUX_MODE4)	/* cam_d5 gpio_104 */
++		>;
++	};
++
++	fpga_boot1_pins: fpga_boot1_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20a2, PIN_INPUT | MUX_MODE4)	/* gpmc_d10 gpio_46 */
++			OMAP3_CORE1_IOPAD(0x20a4, PIN_OUTPUT | MUX_MODE4)	/* gpmc_d11 gpio_47 */
++			OMAP3_CORE1_IOPAD(0x20a6, PIN_OUTPUT | MUX_MODE4)	/* gpmc_d12 gpio_48 */
++			OMAP3_CORE1_IOPAD(0x20a8, PIN_INPUT_PULLUP | MUX_MODE4)	/* gpmc_d13 gpio_49 */
++		>;
++	};
++};
++
++/* I2C2: mux'ed with GPIO168 which is connected to nKILL_POWER */
++&i2c2 {
++	status = "disabled";
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++};
+diff --git a/arch/arm/boot/dts/omap3-ha-lcd.dts b/arch/arm/boot/dts/omap3-ha-lcd.dts
+new file mode 100644
+index 0000000..11aa28d
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-ha-lcd.dts
+@@ -0,0 +1,165 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2014 Stefan Roese <sr@denx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "omap3-ha-common.dtsi"
++
++/ {
++	model = "TI OMAP3 HEAD acoustics LCD-baseboard with TAO3530 SOM";
++	compatible = "headacoustics,omap3-ha-lcd", "technexion,omap3-tao3530", "ti,omap34xx", "ti,omap3";
++};
++
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&hsusbb2_pins
++		&powerdown_input_pins
++		&fpga_boot0_pins
++		&fpga_boot1_pins
++		&led_blue_pins
++		&led_green_pins
++		&led_red_pins
++		&touchscreen_wake_pins
++	>;
++
++	touchscreen_irq_pins: pinmux_touchscreen_irq_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x2164, PIN_INPUT_PULLUP | MUX_MODE4)	/* gpio_136, Touchscreen IRQ */
++		>;
++	};
++
++	touchscreen_wake_pins: pinmux_touchscreen_wake_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x212c, PIN_OUTPUT_PULLUP | MUX_MODE4)	/* gpio_110, Touchscreen Wake */
++		>;
++	};
++
 +	dss_dpi_pins: pinmux_dss_dpi_pins {
 +		pinctrl-single,pins = <
 +			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)	/* dss_pclk.dss_pclk */
@@ -110,6 +242,18 @@ index 0000000..d659515
 +	};
 +};
 +
++/* I2C2: mux'ed with GPIO168 which is connected to nKILL_POWER */
++&i2c2 {
++	status = "disabled";
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c3_pins>;
++};
++
 +/* Needed to power the DPI pins */
 +&vpll2 {
 +	regulator-always-on;
@@ -135,7 +279,7 @@ index 0000000..d659515
 +	};
 +
 +	lcd0: display@0 {
-+		compatible = "samsung,lte430wq-f0c", "panel-dpi";
++		compatible = "panel-dpi";
 +		label = "lcd";
 +
 +		pinctrl-names = "default";
@@ -149,15 +293,15 @@ index 0000000..d659515
 +		};
 +
 +		panel-timing {
-+			clock-frequency = <9000000>;
-+			hactive = <480>;
-+			vactive = <272>;
-+			hfront-porch = <3>;
-+			hback-porch = <2>;
-+			hsync-len = <42>;
-+			vback-porch = <2>;
-+			vfront-porch = <3>;
-+			vsync-len = <11>;
++			clock-frequency = <31250000>;
++			hactive = <800>;
++			vactive = <480>;
++			hfront-porch = <40>;
++			hback-porch = <86>;
++			hsync-len = <1>;
++			vback-porch = <30>;
++			vfront-porch = <13>;
++			vsync-len = <3>;
 +
 +			hsync-active = <0>;
 +			vsync-active = <0>;
@@ -175,6 +319,40 @@ index 0000000..d659515
 +
 +		default-on;
 +	};
++};
+diff --git a/arch/arm/boot/dts/omap3-ha.dts b/arch/arm/boot/dts/omap3-ha.dts
+new file mode 100644
+index 0000000..fde3256
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-ha.dts
+@@ -0,0 +1,28 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2014 Stefan Roese <sr@denx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "omap3-ha-common.dtsi"
++
++/ {
++	model = "TI OMAP3 HEAD acoustics baseboard with TAO3530 SOM";
++	compatible = "headacoustics,omap3-ha", "technexion,omap3-tao3530", "ti,omap34xx", "ti,omap3";
++};
++
++&omap3_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&hsusbb2_pins
++		&powerdown_input_pins
++		&fpga_boot0_pins
++		&fpga_boot1_pins
++		&led_blue_pins
++		&led_green_pins
++		&led_red_pins
++	>;
 +};
 -- 
 2.1.0
