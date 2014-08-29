@@ -1,131 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Thu, 28 Aug 2014 15:54:54 -0700
-Message-ID: <20140828225454.GM16006@atomide.com>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de>
- <1408124563-31541-16-git-send-email-bigeasy@linutronix.de>
- <20140815210211.GD9239@atomide.com>
- <53F5AF0D.5060409@linutronix.de>
- <20140821184416.GF10066@atomide.com>
- <53FE3779.5090908@linutronix.de>
- <20140827202313.GF16006@atomide.com>
- <20140828082348.GA5413@linutronix.de>
- <20140828164645.GG16006@atomide.com>
- <53FF84DF.7080406@linutronix.de>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/3] pinctrl: bindings: Add OMAP pinctrl binding
+Date: Fri, 29 Aug 2014 09:27:01 +0200
+Message-ID: <CACRpkdaiNQncQBr22rePLU29McEoj776U+YqcQBNw5AoDjOxUA@mail.gmail.com>
+References: <1408716062-26055-1-git-send-email-nm@ti.com>
+	<1408716062-26055-2-git-send-email-nm@ti.com>
+	<20140825172506.GM17254@atomide.com>
+	<20140825190311.GA21871@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56732 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849AbaH1WzD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Aug 2014 18:55:03 -0400
-Content-Disposition: inline
-In-Reply-To: <53FF84DF.7080406@linutronix.de>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:62177 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952AbaH2H1C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Aug 2014 03:27:02 -0400
+Received: by mail-ob0-f175.google.com with SMTP id wp4so1521849obc.6
+        for <linux-omap@vger.kernel.org>; Fri, 29 Aug 2014 00:27:01 -0700 (PDT)
+In-Reply-To: <20140825190311.GA21871@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Keerthy <j-keerthy@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140828 12:37]:
-> On 08/28/2014 06:46 PM, Tony Lindgren wrote:
-> > 
-> > Sounds like there should be some way to clear that state.. I wonder
-> > if omap-serial.c had something before it's DMA support was removed?
-> 
-> Its DMA was removed? Like there was DMA support?
+On Mon, Aug 25, 2014 at 9:03 PM, Nishanth Menon <nm@ti.com> wrote:
 
-Yeah see commit 494574304711a333386e7dd5fd3ebbc3b7024994...
- 
-> > I'd assume when the UART is powered down by runtime PM it's state
-> > is completetely reset and we could restore the non-DMA state?
-> 
-> I tried that by canceling the RX-DMA request and removing the DMA-enable
-> bits from UART but it didn't help. Then I noticed that once that DMA en
-> bit is set, the UART won't do any idle.
-> 
-> > Maybe post your current patches and a test patch to try to toggle
-> > the DMA on and off?
-> 
-> Oh. I pushed my dirty tree to
->  git://git.breakpoint.cc/bigeasy/linux.git uart_v8_wip
-> 
-> The top most commit does not setup dma at all and adds commented out
-> code how to enable DMA via SCR or FCR register. With this I hit
-> core-off. Once _one_ of the modes are enabled, it doesn't work anymore.
-> 
-> I will try to address review comments tomorrow and hopefully post a v8
-> based on -rc2. The same goes for your patch (which I will try tomorrow).
+> ---8<---
+> From 74121c6a2524048eb02c3b33a25e13261edd2e99 Mon Sep 17 00:00:00 2001
+> From: Nishanth Menon <nm@ti.com>
+> Date: Thu, 22 May 2014 23:32:09 -0500
+> Subject: [PATCH V2] pinctrl: bindings: Add OMAP pinctrl binding
+>
+> Add basic skeleton of OMAP pinctrl bindings. This is compatible with
+> pinctrl,single bindings and is meant purely as a reference point.
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-OK thanks, I'm seeing the same issue as you. And the idlest registers
-don't show any blockers. Looking at the errata docs, seems like
-"Usage Note 2.7" in sprz318f.pdf says:
+Applied this inline v2 version.
 
- Details When configured for DMA operations using smartidle mode (SYSC[4:3].IDLEMODE =
- 0x2), the UART module will not acknowledge incoming idle requests. As a consequence,
- it can prevent L4 from going to idle.
- When there are additional expected transfers, the UART should be placed in force-idle
- mode.
-
-So I've added also Paul to Cc, he may have better suggestions for the
-hwmod flags to use. The experimental patch below seems to allow idling
-for me, care to give it a try?
-
-Regards,
-
-Tony
-
-8< --------------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 28 Aug 2014 15:41:21 -0700
-Subject: [PATCH] ARM: OMAP3: Use force-idle for UARTs because of DMA errata
-
-In sprz318f.pdf Usage Note 2.7 says that UARTs cannot acknowledge
-idle requests in smartidle mode when configure for DMA operations.
-This prevents L4 from going idle. Sol et's use force-idle mode
-instead.
-
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -490,7 +490,9 @@ static struct omap_hwmod omap3xxx_uart1_hwmod = {
- 	.mpu_irqs	= omap2_uart1_mpu_irqs,
- 	.sdma_reqs	= omap2_uart1_sdma_reqs,
- 	.main_clk	= "uart1_fck",
--	.flags		= DEBUG_TI81XXUART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_TI81XXUART1_FLAGS |
-+				HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE |
-+				HWMOD_FORCE_MSTANDBY,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -509,7 +511,9 @@ static struct omap_hwmod omap3xxx_uart2_hwmod = {
- 	.mpu_irqs	= omap2_uart2_mpu_irqs,
- 	.sdma_reqs	= omap2_uart2_sdma_reqs,
- 	.main_clk	= "uart2_fck",
--	.flags		= DEBUG_TI81XXUART2_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_TI81XXUART2_FLAGS |
-+				HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE |
-+				HWMOD_FORCE_MSTANDBY,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -529,7 +533,8 @@ static struct omap_hwmod omap3xxx_uart3_hwmod = {
- 	.sdma_reqs	= omap2_uart3_sdma_reqs,
- 	.main_clk	= "uart3_fck",
- 	.flags		= DEBUG_OMAP3UART3_FLAGS | DEBUG_TI81XXUART3_FLAGS |
--				HWMOD_SWSUP_SIDLE_ACT,
-+				HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE |
-+				HWMOD_FORCE_MSTANDBY,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
-@@ -559,7 +564,9 @@ static struct omap_hwmod omap36xx_uart4_hwmod = {
- 	.mpu_irqs	= uart4_mpu_irqs,
- 	.sdma_reqs	= uart4_sdma_reqs,
- 	.main_clk	= "uart4_fck",
--	.flags		= DEBUG_OMAP3UART4_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP3UART4_FLAGS |
-+				HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE |
-+				HWMOD_FORCE_MSTANDBY,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
+Yours,
+Linus Walleij
