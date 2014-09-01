@@ -1,41 +1,34 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 03/15] tty: serial: 8250_core: add run time pm
-Date: Mon, 01 Sep 2014 16:48:00 +0200
-Message-ID: <54048720.9000003@linutronix.de>
-References: <1408124563-31541-1-git-send-email-bigeasy@linutronix.de> <1408124563-31541-4-git-send-email-bigeasy@linutronix.de> <20140820092319.GA20775@ci00147.xsens-tech.local> <20140820093936.GB20775@ci00147.xsens-tech.local>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 01/26] genirq: add irq_domain-aware core IRQ handler
+Date: Mon, 1 Sep 2014 16:22:48 +0100
+Message-ID: <20140901152248.GA30405@n2100.arm.linux.org.uk>
+References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com> <1409047421-27649-2-git-send-email-marc.zyngier@arm.com> <53FCC714.3090206@codeaurora.org> <53FCCCC7.9070801@arm.com> <53FCD60E.1030009@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20140820093936.GB20775@ci00147.xsens-tech.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: Frans Klaver <frans.klaver@xsens.com>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mika.westerberg@linux.intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <53FCD60E.1030009@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@openrisc.net" <linux@openrisc.net>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "tony@atomide.com" <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "jonas@southpole.se" <jonas@southpole.se>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "shc_work@mail.ru" <shc_work@mail.ru>, "baohua@kernel.org" <baohua@kernel.org>, "maxime.ripard@free-electrons.com" <maxime.ripard@free-electrons.com>, "khilman@linaro.org" <khilman@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>l
 List-Id: linux-omap@vger.kernel.org
 
-On 08/20/2014 11:39 AM, Frans Klaver wrote:
-
->>>  static int serial8250_get_poll_char(struct uart_port *port)
->>>  {
->>> -	unsigned char lsr = serial_port_in(port, UART_LSR);
->>> +	unsigned char lsr;
->>> +	int status;
->>> +
->>> +	serial8250_rpm_get(up);
->>
->> or up won't be defined below. You probably need 
+On Tue, Aug 26, 2014 at 11:46:38AM -0700, Stephen Boyd wrote:
+> Ah ok. This is the multi-irq handler case? Has this been broken since
+> v3.2 at least for the gic users? Now that we call irq_enter()/irq_exit()
+> a lot more code runs, including things like updating jiffies when
+> interrupts arrive and invoking softirq? Do we only call irq_exit() on
+> the IPI path otherwise?
 > 
-> Obviously I meant to say that 'up' won't be defined here.
+> Are there any plans to send this back to stable trees? Not calling
+> irq_enter()/irq_exit() when we get an interrupt seems like a big problem.
 
-Good catch, thanks. However I wouldn't bet my money it that won't be
-defined here. The semaphore code provides up() and down() so it is
-makes it kind of defined :) But it doesn't compile due to wrong pointer
-types which is good (I run into this myself and looked confused at
-first).
-I didn't notice this at all because only kgdb uses this
-CONFIG_CONSOLE_POLL which I had off. Once again, thank you.
+gic_handle_irq() calls handle_IRQ() which has the irq_enter()..irq_exit()
+wrappers.
 
->> +	struct uart_8250_port *up = up_to_u8250p(port);
->> somewhere in there.
+If we didn't have irq_exit(), then softirq's would be totally broken on
+all gic-based platforms.
 
-Sebastian
+-- 
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
