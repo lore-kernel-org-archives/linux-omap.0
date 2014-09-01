@@ -1,260 +1,168 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 16/26] ARM: OMAP2+: PRM: add generic API for checking hardreset status
-Date: Mon, 1 Sep 2014 21:09:05 +0300
-Message-ID: <1409594955-1476-17-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 25/26] ARM: OMAP3+: PRM: add generic API for reconfiguring I/O chain
+Date: Mon, 1 Sep 2014 21:09:14 +0300
+Message-ID: <1409594955-1476-26-git-send-email-t-kristo@ti.com>
 References: <1409594955-1476-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37244 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44852 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754686AbaIASKN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Sep 2014 14:10:13 -0400
+	id S1754716AbaIASKZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Sep 2014 14:10:25 -0400
 In-Reply-To: <1409594955-1476-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-PRM driver now has a generic API for checking hardreset status. SoC
-specific support functions are registered through the prm_ll_data.
+This adds a generic API for reconfiguring the I/O chain. The implementation
+will call the SoC specific function registered during init time. The SoC
+specific reconfigure functions are also made static, as they don't need
+to be accessed outside the PRM driver itself.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c   |   18 +++++++++---------
- arch/arm/mach-omap2/prm.h          |    3 +++
- arch/arm/mach-omap2/prm2xxx.c      |    1 +
- arch/arm/mach-omap2/prm2xxx_3xxx.c |    6 ++++--
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    2 +-
- arch/arm/mach-omap2/prm33xx.c      |    9 ++++++---
- arch/arm/mach-omap2/prm33xx.h      |    2 --
- arch/arm/mach-omap2/prm3xxx.c      |    1 +
- arch/arm/mach-omap2/prm44xx.c      |    1 +
- arch/arm/mach-omap2/prm_common.c   |   20 ++++++++++++++++++++
- 10 files changed, 46 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c   |    5 +----
+ arch/arm/mach-omap2/prm.h          |    2 ++
+ arch/arm/mach-omap2/prm3xxx.c      |    3 ++-
+ arch/arm/mach-omap2/prm3xxx.h      |    8 --------
+ arch/arm/mach-omap2/prm44xx.c      |    3 ++-
+ arch/arm/mach-omap2/prm44xx_54xx.h |    9 ---------
+ arch/arm/mach-omap2/prm_common.c   |   16 ++++++++++++++++
+ 7 files changed, 23 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 57ff628..24d9599 100644
+index 1de87a7..1bfc504 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2946,8 +2946,8 @@ static int _omap2_deassert_hardreset(struct omap_hwmod *oh,
- static int _omap2_is_hardreset_asserted(struct omap_hwmod *oh,
- 					struct omap_hwmod_rst_info *ohri)
- {
--	return omap2_prm_is_hardreset_asserted(oh->prcm.omap2.module_offs,
--					       ohri->st_shift);
-+	return prm_is_hardreset_asserted(ohri->st_shift, 0,
-+					 oh->prcm.omap2.module_offs, 0);
+@@ -1983,10 +1983,7 @@ static void _reconfigure_io_chain(void)
+ 
+ 	spin_lock_irqsave(&io_chain_lock, flags);
+ 
+-	if (cpu_is_omap34xx() && omap3_has_io_chain_ctrl())
+-		omap3xxx_prm_reconfigure_io_chain();
+-	else if (cpu_is_omap44xx())
+-		omap44xx_prm_reconfigure_io_chain();
++	prm_reconfigure_io_chain();
+ 
+ 	spin_unlock_irqrestore(&io_chain_lock, flags);
  }
- 
- /**
-@@ -3019,10 +3019,10 @@ static int _omap4_is_hardreset_asserted(struct omap_hwmod *oh,
- 	if (!oh->clkdm)
- 		return -EINVAL;
- 
--	return omap4_prminst_is_hardreset_asserted(ohri->rst_shift,
--				oh->clkdm->pwrdm.ptr->prcm_partition,
--				oh->clkdm->pwrdm.ptr->prcm_offs,
--				oh->prcm.omap4.rstctrl_offs);
-+	return prm_is_hardreset_asserted(ohri->rst_shift,
-+					 oh->clkdm->pwrdm.ptr->prcm_partition,
-+					 oh->clkdm->pwrdm.ptr->prcm_offs,
-+					 oh->prcm.omap4.rstctrl_offs);
- }
- 
- /**
-@@ -3082,9 +3082,9 @@ static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
- static int _am33xx_is_hardreset_asserted(struct omap_hwmod *oh,
- 					struct omap_hwmod_rst_info *ohri)
- {
--	return am33xx_prm_is_hardreset_asserted(ohri->rst_shift,
--				oh->clkdm->pwrdm.ptr->prcm_offs,
--				oh->prcm.omap4.rstctrl_offs);
-+	return prm_is_hardreset_asserted(ohri->rst_shift, 0,
-+					 oh->clkdm->pwrdm.ptr->prcm_offs,
-+					 oh->prcm.omap4.rstctrl_offs);
- }
- 
- /* Public functions */
 diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 790bb22..0dd8d83 100644
+index 0dd8d83..7efe14c 100644
 --- a/arch/arm/mach-omap2/prm.h
 +++ b/arch/arm/mach-omap2/prm.h
-@@ -142,6 +142,8 @@ struct prm_ll_data {
- 	int (*assert_hardreset)(u8 shift, u8 part, s16 prm_mod, u16 offset);
- 	int (*deassert_hardreset)(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
- 				  u16 offset, u16 st_offset);
-+	int (*is_hardreset_asserted)(u8 shift, u8 part, s16 prm_mod,
-+				     u16 offset);
- };
- 
- extern int prm_register(struct prm_ll_data *pld);
-@@ -150,6 +152,7 @@ extern int prm_unregister(struct prm_ll_data *pld);
- int prm_assert_hardreset(u8 shift, u8 part, s16 prm_mod, u16 offset);
- int prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
- 			   u16 offset, u16 st_offset);
-+int prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset);
- extern u32 prm_read_reset_sources(void);
+@@ -157,6 +157,8 @@ extern u32 prm_read_reset_sources(void);
  extern bool prm_was_any_context_lost_old(u8 part, s16 inst, u16 idx);
  extern void prm_clear_context_loss_flags_old(u8 part, s16 inst, u16 idx);
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index 343fc73..54ae555 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -214,6 +214,7 @@ static struct prm_ll_data omap2xxx_prm_ll_data = {
- 	.read_reset_sources = &omap2xxx_prm_read_reset_sources,
- 	.assert_hardreset = &omap2_prm_assert_hardreset,
- 	.deassert_hardreset = &omap2_prm_deassert_hardreset,
-+	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
- };
  
- int __init omap2xxx_prm_init(void)
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index 9466b1e..cc3341f 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -24,14 +24,16 @@
- /**
-  * omap2_prm_is_hardreset_asserted - read the HW reset line state of
-  * submodules contained in the hwmod module
-- * @prm_mod: PRM submodule base (e.g. CORE_MOD)
-  * @shift: register bit shift corresponding to the reset line to check
-+ * @part: PRM partition, ignored for OMAP2
-+ * @prm_mod: PRM submodule base (e.g. CORE_MOD)
-+ * @offset: register offset, ignored for OMAP2
-  *
-  * Returns 1 if the (sub)module hardreset line is currently asserted,
-  * 0 if the (sub)module hardreset line is not currently asserted, or
-  * -EINVAL if called while running on a non-OMAP2/3 chip.
-  */
--int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift)
-+int omap2_prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset)
- {
- 	return omap2_prm_read_mod_bits_shift(prm_mod, OMAP2_RM_RSTCTRL,
- 				       (1 << shift));
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index 253d414..f57e29b 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -100,7 +100,7 @@ static inline u32 omap2_prm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
- }
++void prm_reconfigure_io_chain(void);
++
+ #endif
  
- /* These omap2_ PRM functions apply to both OMAP2 and 3 */
--extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
-+int omap2_prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset);
- int omap2_prm_assert_hardreset(u8 shift, u8 part, s16 prm_mod,
- 			       u16 offset);
- int omap2_prm_deassert_hardreset(u8 rst_shift, u8 st_shift, u8 part,
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index ea0fea6..3cbfb78 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -52,6 +52,7 @@ u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx)
-  * am33xx_prm_is_hardreset_asserted - read the HW reset line state of
-  * submodules contained in the hwmod module
-  * @shift: register bit shift corresponding to the reset line to check
-+ * @part: PRM partition, ignored for AM33xx
-  * @inst: CM instance register offset (*_INST macro)
-  * @rstctrl_offs: RM_RSTCTRL register address offset for this module
-  *
-@@ -59,7 +60,8 @@ u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx)
-  * 0 if the (sub)module hardreset line is not currently asserted, or
-  * -EINVAL upon parameter error.
-  */
--int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst, u16 rstctrl_offs)
-+static int am33xx_prm_is_hardreset_asserted(u8 shift, u8 part, s16 inst,
-+					    u16 rstctrl_offs)
- {
- 	u32 v;
  
-@@ -121,7 +123,7 @@ static int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part,
- 	u32 mask = 1 << st_shift;
- 
- 	/* Check the current status to avoid  de-asserting the line twice */
--	if (am33xx_prm_is_hardreset_asserted(shift, inst, rstctrl_offs) == 0)
-+	if (am33xx_prm_is_hardreset_asserted(shift, 0, inst, rstctrl_offs) == 0)
- 		return -EEXIST;
- 
- 	/* Clear the reset status by writing 1 to the status bit */
-@@ -133,7 +135,7 @@ static int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part,
- 	am33xx_prm_rmw_reg_bits(mask, 0, inst, rstctrl_offs);
- 
- 	/* wait the status to be set */
--	omap_test_timeout(am33xx_prm_is_hardreset_asserted(st_shift, inst,
-+	omap_test_timeout(am33xx_prm_is_hardreset_asserted(st_shift, 0, inst,
- 							   rstst_offs),
- 			  MAX_MODULE_HARDRESET_WAIT, c);
- 
-@@ -351,6 +353,7 @@ struct pwrdm_ops am33xx_pwrdm_operations = {
- static struct prm_ll_data am33xx_prm_ll_data = {
- 	.assert_hardreset		= am33xx_prm_assert_hardreset,
- 	.deassert_hardreset		= am33xx_prm_deassert_hardreset,
-+	.is_hardreset_asserted		= am33xx_prm_is_hardreset_asserted,
- };
- 
- int __init am33xx_prm_init(void)
-diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
-index 6d483e0..49ad5b8 100644
---- a/arch/arm/mach-omap2/prm33xx.h
-+++ b/arch/arm/mach-omap2/prm33xx.h
-@@ -122,8 +122,6 @@ extern u32 am33xx_prm_read_reg(s16 inst, u16 idx);
- extern void am33xx_prm_write_reg(u32 val, s16 inst, u16 idx);
- extern u32 am33xx_prm_rmw_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
- extern void am33xx_prm_global_warm_sw_reset(void);
--extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
--		u16 rstctrl_offs);
- int am33xx_prm_init(void);
- 
- #endif /* ASSEMBLER */
 diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index e954195..5c1bb25 100644
+index f21fd76..1a739de 100644
 --- a/arch/arm/mach-omap2/prm3xxx.c
 +++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -642,6 +642,7 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
- 	.late_init = &omap3xxx_prm_late_init,
- 	.assert_hardreset = &omap2_prm_assert_hardreset,
- 	.deassert_hardreset = &omap2_prm_deassert_hardreset,
-+	.is_hardreset_asserted = &omap2_prm_is_hardreset_asserted,
- };
+@@ -34,6 +34,7 @@ static void omap3xxx_prm_read_pending_irqs(unsigned long *events);
+ static void omap3xxx_prm_ocp_barrier(void);
+ static void omap3xxx_prm_save_and_clear_irqen(u32 *saved_mask);
+ static void omap3xxx_prm_restore_irqen(u32 *saved_mask);
++static void omap3xxx_prm_reconfigure_io_chain(void);
  
- int __init omap3xxx_prm_init(void)
+ static const struct omap_prcm_irq omap3_prcm_irqs[] = {
+ 	OMAP_PRCM_IRQ("wkup",	0,	0),
+@@ -383,7 +384,7 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
+  * deasserting WUCLKIN and clearing the ST_IO_CHAIN WKST bit.  No
+  * return value.
+  */
+-void omap3xxx_prm_reconfigure_io_chain(void)
++static void omap3xxx_prm_reconfigure_io_chain(void)
+ {
+ 	int i = 0;
+ 
+diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
+index 5d993d2..321568b 100644
+--- a/arch/arm/mach-omap2/prm3xxx.h
++++ b/arch/arm/mach-omap2/prm3xxx.h
+@@ -144,14 +144,6 @@ extern u32 omap3_prm_vcvp_read(u8 offset);
+ extern void omap3_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap3_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ 
+-#ifdef CONFIG_ARCH_OMAP3
+-void omap3xxx_prm_reconfigure_io_chain(void);
+-#else
+-static inline void omap3xxx_prm_reconfigure_io_chain(void)
+-{
+-}
+-#endif
+-
+ extern void omap3xxx_prm_dpll3_reset(void);
+ 
+ extern int __init omap3xxx_prm_init(void);
 diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 0da2ba8..d357ca9 100644
+index bfcc356..e7ac7e2 100644
 --- a/arch/arm/mach-omap2/prm44xx.c
 +++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -690,6 +690,7 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 	.late_init = &omap44xx_prm_late_init,
- 	.assert_hardreset	= omap4_prminst_assert_hardreset,
- 	.deassert_hardreset	= omap4_prminst_deassert_hardreset,
-+	.is_hardreset_asserted	= omap4_prminst_is_hardreset_asserted,
- };
+@@ -36,6 +36,7 @@ static void omap44xx_prm_read_pending_irqs(unsigned long *events);
+ static void omap44xx_prm_ocp_barrier(void);
+ static void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
+ static void omap44xx_prm_restore_irqen(u32 *saved_mask);
++static void omap44xx_prm_reconfigure_io_chain(void);
  
- int __init omap44xx_prm_init(void)
+ static const struct omap_prcm_irq omap4_prcm_irqs[] = {
+ 	OMAP_PRCM_IRQ("io",     9,      1),
+@@ -292,7 +293,7 @@ static void omap44xx_prm_restore_irqen(u32 *saved_mask)
+  * deasserting WUCLKIN and waiting for WUCLKOUT to be deasserted.
+  * No return value. XXX Are the final two steps necessary?
+  */
+-void omap44xx_prm_reconfigure_io_chain(void)
++static void omap44xx_prm_reconfigure_io_chain(void)
+ {
+ 	int i = 0;
+ 	s32 inst = omap4_prmst_get_prm_dev_inst();
+diff --git a/arch/arm/mach-omap2/prm44xx_54xx.h b/arch/arm/mach-omap2/prm44xx_54xx.h
+index faa7411..f751251 100644
+--- a/arch/arm/mach-omap2/prm44xx_54xx.h
++++ b/arch/arm/mach-omap2/prm44xx_54xx.h
+@@ -38,15 +38,6 @@ extern u32 omap4_prm_vcvp_read(u8 offset);
+ extern void omap4_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
+ 
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
+-	defined(CONFIG_SOC_DRA7XX) || defined(CONFIG_SOC_AM43XX)
+-void omap44xx_prm_reconfigure_io_chain(void);
+-#else
+-static inline void omap44xx_prm_reconfigure_io_chain(void)
+-{
+-}
+-#endif
+-
+ extern int __init omap44xx_prm_init(void);
+ extern u32 omap44xx_prm_get_reset_sources(void);
+ 
 diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index f5fa06e..f246bb4 100644
+index f246bb4..582ed6a 100644
 --- a/arch/arm/mach-omap2/prm_common.c
 +++ b/arch/arm/mach-omap2/prm_common.c
-@@ -467,6 +467,26 @@ int prm_deassert_hardreset(u8 shift, u8 st_shift, u8 part, s16 prm_mod,
+@@ -487,6 +487,22 @@ int prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset)
  }
  
  /**
-+ * prm_is_hardreset_asserted - check the hardreset status for an IP block
-+ * @shift: register bit shift corresponding to the reset line
-+ * @part: PRM partition
-+ * @prm_mod: PRM submodule base or instance offset
-+ * @offset: register offset
++ * prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
 + *
-+ * Checks if a hardware reset line for an IP block is enabled or not.
++ * Clear any previously-latched I/O wakeup events and ensure that the
++ * I/O wakeup gaes are aligned with the current mux settings.
++ * Calls SoC specific I/O chain reconfigure function if available,
++ * otherwise does nothing.
 + */
-+int prm_is_hardreset_asserted(u8 shift, u8 part, s16 prm_mod, u16 offset)
++void prm_reconfigure_io_chain(void)
 +{
-+	if (!prm_ll_data->is_hardreset_asserted) {
-+		WARN_ONCE(1, "prm: %s: no mapping function defined\n",
-+			  __func__);
-+		return -EINVAL;
-+	}
++	if (!prcm_irq_setup || !prcm_irq_setup->reconfigure_io_chain)
++		return;
 +
-+	return prm_ll_data->is_hardreset_asserted(shift, part, prm_mod, offset);
++	prcm_irq_setup->reconfigure_io_chain();
 +}
 +
 +/**
