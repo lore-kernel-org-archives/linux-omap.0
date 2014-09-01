@@ -1,135 +1,51 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: palmas: Add support for optional wakeup
-Date: Mon, 1 Sep 2014 10:32:06 +0100
-Message-ID: <20140901093206.GJ7374@lee--X1>
-References: <1408457197-30487-1-git-send-email-nm@ti.com>
- <20140829105619.GH24579@lee--X1>
- <54007515.5080506@ti.com>
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: Re: [PATCH v2 19/26] irqchip: atmel-aic: convert to handle_domain_irq
+Date: Mon, 1 Sep 2014 11:32:47 +0200
+Message-ID: <54043D3F.5000108@atmel.com>
+References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com> <1409047421-27649-20-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54007515.5080506@ti.com>
+In-Reply-To: <1409047421-27649-20-git-send-email-marc.zyngier@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@linaro.org>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux@lists.openrisc.net
+Cc: mark.rutland@arm.com, tony@atomide.com, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jonas@southpole.se, lorenzo.pieralisi@arm.com, linux@arm.linux.org.uk, shc_work@mail.ru, khilman@linaro.org, jason@lakedaemon.net, stefan.kristiansson@saunalahti.fi, larry.bassel@linaro.org, shawn.guo@freescale.com, baohua@kernel.org, sboyd@codeaurora.org, kernel@pengutronix.de, sudeep.holla@arm.com, schwidefsky@de.ibm.com, maxime.ripard@free-electrons.com, vkale@apm.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 29 Aug 2014, Nishanth Menon wrote:
-> On 08/29/2014 05:56 AM, Lee Jones wrote:
-> > On Tue, 19 Aug 2014, Nishanth Menon wrote:
-> >=20
-> >> With the recent pinctrl-single changes, omaps can treat wake-up ev=
-ents
-> >> from deeper idle states as interrupts.
-> >>
-> >> Let's add support for the optional second interrupt for wake-up
-> >> events. And then SoC can wakeup and handle the event using it's
-> >> regular handler.
-> >>
-> >> Finally, to pass the wake-up interrupt in the dts file,
-> >> interrupts-extended property needs to be passed.
-> >>
-> >> This is similar in approach to commit 2a0b965cfb6e ("serial: omap:=
- Add
-> >> support for optional wake-up")
-> >>
-> >> Signed-off-by: Nishanth Menon <nm@ti.com>
-> >> ---
-> >>  Documentation/devicetree/bindings/mfd/palmas.txt |   20 ++++++++
-> >=20
-> > DT Ack please.
+On 26/08/2014 12:03, Marc Zyngier :
+> Use the new handle_domain_irq method to handle interrupts.
+> 
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 
-Please read Documentation/devicetree/bindings/submittingpatches.txt
+Booting okay:
 
-> >>  drivers/mfd/palmas.c                             |   59 +++++++++=
-+++++++++++++
-> >>  include/linux/mfd/palmas.h                       |    2 +
-> >>  3 files changed, 81 insertions(+)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/mfd/palmas.txt b/Do=
-cumentation/devicetree/bindings/mfd/palmas.txt
-> >> index eda8989..2627842 100644
-> >> --- a/Documentation/devicetree/bindings/mfd/palmas.txt
-> >> +++ b/Documentation/devicetree/bindings/mfd/palmas.txt
-> >> @@ -51,3 +51,23 @@ palmas {
-> >>  		....
-> >>  	};
-> >>  }
-> >> +
-> >> +Example: with interrupts extended
-> >> + See Documentation/devicetree/bindings/interrupt-controller/inter=
-rupts.txt
-> >> + Use pinmux 0x418 as wakeup interrupt and gpio1_0 as interrupt so=
-urce
-> >> +
-> >> +palmas {
-> >=20
-> > Should this be 'palmas@40 {'?
->=20
-> I might have preferred that as well.. I kept the existing style in th=
-e
-> documentation. Would you like me to change existing doc style too?
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-Yes please.  Although you can do this subseqently.
+> ---
+>  drivers/irqchip/irq-atmel-aic.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-atmel-aic.c b/drivers/irqchip/irq-atmel-aic.c
+> index a82869e..9a2cf3c 100644
+> --- a/drivers/irqchip/irq-atmel-aic.c
+> +++ b/drivers/irqchip/irq-atmel-aic.c
+> @@ -68,12 +68,10 @@ aic_handle(struct pt_regs *regs)
+>  	irqnr = irq_reg_readl(gc->reg_base + AT91_AIC_IVR);
+>  	irqstat = irq_reg_readl(gc->reg_base + AT91_AIC_ISR);
+>  
+> -	irqnr = irq_find_mapping(aic_domain, irqnr);
+> -
+>  	if (!irqstat)
+>  		irq_reg_writel(0, gc->reg_base + AT91_AIC_EOICR);
+>  	else
+> -		handle_IRQ(irqnr, regs);
+> +		handle_domain_irq(aic_domain, irqnr, regs);
+>  }
+>  
+>  static int aic_retrigger(struct irq_data *d)
+> 
 
-[...]
 
-> >> +static irqreturn_t palmas_wake_irq(int irq, void *_palmas)
-> >> +{
-> >> +	/*
-> >> +	 * Return Not handled so that interrupt is disabled.
-> >> +	 * Level event ensures that the event is eventually handled
-> >> +	 * by the appropriate chip handler already registered
-> >> +	 */
-> >=20
-> > This looks okay to me, but could do with a second opinion from some=
-one
-> > who is a little more familier with this kind of h/w.
-> >=20
-> > How does this differ from threading IRQs?
->=20
-> I could try with an example:
-> consider a GPIO block 7 gpio 4 connected to a pinctrl pin 234 as the
-> interrupt source for palmas.
->=20
-> When the system is active, the GPIO block 7, gpio 4 happily functions
-> as the interrupt source. However, the SoC might not capable of
-> achieving SoC wide deepsleep when GPIO block 7 is active, So we have
-> to power off GPIO block 7. However on achieving low power, the system
-> needs to be capable of waking backup, for this, SoC uses the hardware
-> at the pin itself(TI calls it control module, others have other names=
-,
-> lets for the discussion, call it pinctrl), on going to sleep the
-> action of enabling the pinctrl irq - enables the wakeup capability of
-> the pin, and disabling it disabled the wakeup capability. when the
-> wakeup event does take place, in some cases, it might be a edge event=
-,
-> where by the time we have recofigured GPIO block, the interrupt event
-> is long gone - to support this, pinctrl invokes the driver interrupt
-> handler to ensure this functions. in our case(palmas), we are level
-> event and can depend on GPIO block to handle it when it is configured=
-=2E
->=20
-> Basically two interrupt sources when SoC is in deep sleep(1 to exit
-> from deepsleep, and other from the module handling the actual event) =
--
-> Example: powerbutton press OR palmas RTC wakeup OR Palmas GPIO
-> generated wakeup.
->=20
-> However, this is not the same as threading IRQ as the wakeup event is
-> involved only during suspend path.
->=20
-> commit 2a0b965cfb6e ("serial: omap: Add support for optional wake-up"=
-)
->=20
-> is a good reference from serial port handling perspective.
-
-Thanks for the explanation.  This makes sense now.
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+-- 
+Nicolas Ferre
