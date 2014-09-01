@@ -1,45 +1,53 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Mon, 01 Sep 2014 19:47:53 +0200
-Message-ID: <5404B149.6010400@linutronix.de>
-References: <20140815210211.GD9239@atomide.com> <53F5AF0D.5060409@linutronix.de> <20140821184416.GF10066@atomide.com> <53FE3779.5090908@linutronix.de> <20140827202313.GF16006@atomide.com> <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com> <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com> <540048B4.7010807@linutronix.de> <20140829161221.GO16006@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/26] ARM: OMAP2+: PRCM cleanups for 3.18 merge window
+Date: Mon, 1 Sep 2014 21:08:49 +0300
+Message-ID: <1409594955-1476-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140829161221.GO16006@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37227 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754537AbaIASJu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Sep 2014 14:09:50 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On 08/29/2014 06:12 PM, Tony Lindgren wrote:
-> Looks like the paste bug is there for sure, doing off idle and pasting
-> 240 characters to the console can hang the UART RX after few attempts,
-> and pasting 16 charactes won't show up at all if the system is idling.
-> So you may want to play with that too a bit :)
+Hi,
 
-One character wakes it up. After that you can send 16, 64 and you see
-them. Right away. No delay.
+This set contains PRCM related cleanups meant for 3.18 merge window.
+These are based on top of 3.17-rc1 + the PRM set from Nishanth Menon
+(http://article.gmane.org/gmane.linux.ports.arm.kernel/350305.) Nishanth's
+set is used as basis to avoid merge issues.
 
-If you send "a lot" data in one-go it takes approx 152 characters until
-the first one is displayed properly at 115200,8N1. That is approx 13ms.
-Could it take that long to get up and be ready?
+Purpose of this work is to eventually convert the PRCM code into a
+separate driver, but this is done in incremental parts as the amount
+of changes is substantial. Expected conclusion of this work is 3.19
+if everything goes fine.
 
-Comparing it with serial-omap I see the same thing: I takes approx the
-same amount of data until the first one is displayed. After a lot of
-"long" writes which wake the chip up from idle I manage to freeze both,
-the serial-omap driver and mine driver.
+This part of the work mostly moves some of the SoC specific PRCM driver
+calls under generic version of the same, and adds SoC-ops to support
+these on the driver level.
 
-One thing that is probably a dumb idea is that printk in
-omap_8250_mdr1_errataset().
-Would it be possible that when I hit a printk in the resume path that I
-may deadlock and box will freeze?
+Working branch posted here:
 
-> 
-> Regards,
-> 
-> Tony
-> 
+tree: https://github.com/t-kristo/linux-pm.git
+branch: for-v3.18/prcm-cleanup
 
-Sebastian
+Testing done:
+am335x-evm: boot
+am335x-bone: boot
+am335x-boneblack: boot
+am3517-evm: boot
+am437x-gp-evm: boot
+omap3-beagle-xm: boot
+omap3-beagle: boot suspend/resume (ret/off)
+dra7-evm: boot (with additional clock patches to fix boot issues)
+omap3-n900: boot
+omap5-uevm: boot
+omap4-panda-es: boot suspend/resume (ret)
+omap2430-sdp: boot
+
+-Tero
+
