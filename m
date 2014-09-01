@@ -1,72 +1,45 @@
-From: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: PROBLEM: bindings for drivers/mfd/twl4030-power.c
-Date: Mon, 1 Sep 2014 18:54:16 +0200
-Message-ID: <EBD1E2E6-E596-4B3D-B093-144ABDD7DEDE@goldelico.com>
-References: <FAC7D7E5-1D05-4D63-821F-C56D3AAA8FF9@goldelico.com> <20140825212652.GR17254@atomide.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Mon, 01 Sep 2014 19:47:53 +0200
+Message-ID: <5404B149.6010400@linutronix.de>
+References: <20140815210211.GD9239@atomide.com> <53F5AF0D.5060409@linutronix.de> <20140821184416.GF10066@atomide.com> <53FE3779.5090908@linutronix.de> <20140827202313.GF16006@atomide.com> <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com> <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com> <540048B4.7010807@linutronix.de> <20140829161221.GO16006@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140825212652.GR17254@atomide.com>
+In-Reply-To: <20140829161221.GO16006@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 08/29/2014 06:12 PM, Tony Lindgren wrote:
+> Looks like the paste bug is there for sure, doing off idle and pasting
+> 240 characters to the console can hang the UART RX after few attempts,
+> and pasting 16 charactes won't show up at all if the system is idling.
+> So you may want to play with that too a bit :)
 
-Am 25.08.2014 um 23:26 schrieb Tony Lindgren:
+One character wakes it up. After that you can send 16, 64 and you see
+them. Right away. No delay.
 
-> * Dr. H. Nikolaus Schaller <hns@goldelico.com> [140817 08:46]:
->> I am trying to make ti,use_poweroff work on 3.17-rc1 for the GTA04 board.
->> Poweroff was broken for a while and I found that the driver isn't loaded at all.
->> 
->> It appears to me that commit e7cd1d1eb16fcdf53001b926187a82f1f3e1a7e6
->> did rename the compatible entry from "ti,twl4030-power" to "ti,twl4030-power-reset"
->> but this was not documented in the bindings and of course our DT does not
->> match.
->> 
->> Even your commit message talks about "ti,twl4030-power" although I can't find it
->> in the code.
-> 
-> Hmm sorry did I accidentally remove ti,twl4030-power? If so, that should
-> be added back for sure. Do you have a patch for that already?
+If you send "a lot" data in one-go it takes approx 152 characters until
+the first one is displayed properly at 115200,8N1. That is approx 13ms.
+Could it take that long to get up and be ready?
 
-No, I have only updated our device tree because I don't know if it really should
-be added back or not.
+Comparing it with serial-omap I see the same thing: I takes approx the
+same amount of data until the first one is displayed. After a lot of
+"long" writes which wake the chip up from idle I manage to freeze both,
+the serial-omap driver and mine driver.
 
-As you say the "ti,twl4030-power" does not configure anything. So what
-is it good for?
+One thing that is probably a dumb idea is that printk in
+omap_8250_mdr1_errataset().
+Would it be possible that when I hit a printk in the resume path that I
+may deadlock and box will freeze?
 
 > 
->> Are "ti,twl4030-power" and "ti,twl4030-power-reset" doing the same?
+> Regards,
 > 
-> No, they are separate where ti,twl4030-power does not configure the
-> twl4030 in any way where ti,twl4030-power-reset configures the warm
-> reset sequence.
-
-Yes, that is what I deduced because our old setting of "ti,twl4030-power" did
-no longer configure the power-off and not even load the driver.
-
+> Tony
 > 
-> For gta04, what you really want is to use ti,twl4030-power-idle or
-> even ti,twl4030-power-idle-osc-off if the board is wired to support
-> cutting off the oscillator.
 
-Ok, I see (but must admit that I don't understand the details even after
-reading the bindings.txt).
-
-Currently we develop without taking care of suspend (the DT migration was
-much more troublesome work than anticipated) but that should be changed soon.
-
-> 
-> And you probably also want to configure some wake-up interrupts at least
-> for the the UARTs in the board specific .dts file, see for example the
-> UART3 in the existing board files that have:
-> 
-> interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
-
-thanks for the hint!
-
-BR,
-Nikolaus
+Sebastian
