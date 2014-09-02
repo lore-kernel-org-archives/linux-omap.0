@@ -1,89 +1,76 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: palmas: Add support for optional wakeup
-Date: Tue, 2 Sep 2014 08:28:46 +0100
-Message-ID: <20140902072846.GC17117@lee--X1>
-References: <1408457197-30487-1-git-send-email-nm@ti.com>
- <20140829105619.GH24579@lee--X1>
- <54007515.5080506@ti.com>
- <20140901093206.GJ7374@lee--X1>
- <5404BB31.3060001@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH] video: fix composite video connector compatible string
+Date: Tue, 2 Sep 2014 10:35:46 +0300
+Message-ID: <1409643346-8656-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:47179 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299AbaIBH2x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2014 03:28:53 -0400
-Received: by mail-ie0-f181.google.com with SMTP id rp18so6873286iec.26
-        for <linux-omap@vger.kernel.org>; Tue, 02 Sep 2014 00:28:52 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <5404BB31.3060001@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39139 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750722AbaIBHf7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Sep 2014 03:35:59 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@linaro.org>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Mon, 01 Sep 2014, Nishanth Menon wrote:
+The quite-recently-added analog-tv-connector bindings say that the
+compatible string for composite video connector is
+"composite-connector". That string is also used in the omap3-n900.dts
+file. However, the connector driver uses "composite-video-connector", so
+this has never worked.
 
-> On 09/01/2014 04:32 AM, Lee Jones wrote:
-> >On Fri, 29 Aug 2014, Nishanth Menon wrote:
-> >>On 08/29/2014 05:56 AM, Lee Jones wrote:
-> >>>On Tue, 19 Aug 2014, Nishanth Menon wrote:
-> >>>
-> >>>>With the recent pinctrl-single changes, omaps can treat wake-up e=
-vents
-> >>>>from deeper idle states as interrupts.
-> >>>>
-> >>>>Let's add support for the optional second interrupt for wake-up
-> >>>>events. And then SoC can wakeup and handle the event using it's
-> >>>>regular handler.
-> >>>>
-> >>>>Finally, to pass the wake-up interrupt in the dts file,
-> >>>>interrupts-extended property needs to be passed.
-> >>>>
-> >>>>This is similar in approach to commit 2a0b965cfb6e ("serial: omap=
-: Add
-> >>>>support for optional wake-up")
-> >>>>
-> >>>>Signed-off-by: Nishanth Menon <nm@ti.com>
-> >>>>---
-> >>>>  Documentation/devicetree/bindings/mfd/palmas.txt |   20 +++++++=
-+
-> >>>
-> >>>DT Ack please.
-> >
-> >Please read Documentation/devicetree/bindings/submittingpatches.txt
->=20
-> I assume you wanted me to note the following:
-> "
-> The Documentation/ portion of the patch should be a separate patch.
-> "
->=20
-> Many maintainers prefer that when the bindings for the device is
-> new, and when additional properties are added, they prefer it part
-> of same patch.. Anyways.. if the above is what you prefer, I can
-> follow that.
+While changing the driver's compatible string to "composite-connector"
+would be safer, as published DT bindings should not be changed, I'd
+rather fix the bindings in this case for two reasons:
 
-I tend to like it done properly please.
+* composite-connector is a bit too generic name, as it doesn't even hint
+  at video.
+* it's clear that this has never worked, which means no one has used
+  those bindings, which should make it safe to change this.
 
-> In short, I assume you'd like three patches:
-> a) fix up style of current documentation - palmas to palmas@40
-> b) Split documentation for interrupt-extended from the current patch
-> into it's own patch.
-> c) remainder of this patch as is..
->=20
-> Does that sound right?
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/devicetree/bindings/video/analog-tv-connector.txt | 4 ++--
+ arch/arm/boot/dts/omap3-n900.dts                                | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-That does, thanks.
+diff --git a/Documentation/devicetree/bindings/video/analog-tv-connector.txt b/Documentation/devicetree/bindings/video/analog-tv-connector.txt
+index 0218fcdc1299..0c0970c210ab 100644
+--- a/Documentation/devicetree/bindings/video/analog-tv-connector.txt
++++ b/Documentation/devicetree/bindings/video/analog-tv-connector.txt
+@@ -2,7 +2,7 @@ Analog TV Connector
+ ===================
+ 
+ Required properties:
+-- compatible: "composite-connector" or "svideo-connector"
++- compatible: "composite-video-connector" or "svideo-connector"
+ 
+ Optional properties:
+ - label: a symbolic name for the connector
+@@ -14,7 +14,7 @@ Example
+ -------
+ 
+ tv: connector {
+-	compatible = "composite-connector";
++	compatible = "composite-video-connector";
+ 	label = "tv";
+ 
+ 	port {
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 1fe45d1f75ec..4361777a08d8 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -93,7 +93,7 @@
+ 	};
+ 
+ 	tv: connector {
+-		compatible = "composite-connector";
++		compatible = "composite-video-connector";
+ 		label = "tv";
+ 
+ 		port {
+-- 
+1.9.1
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
