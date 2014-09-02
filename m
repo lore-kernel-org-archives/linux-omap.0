@@ -1,86 +1,47 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Tue, 2 Sep 2014 05:05:46 +0200
-Message-ID: <20140902030546.GB6724@earth.universe>
-References: <20140821184416.GF10066@atomide.com>
- <53FE3779.5090908@linutronix.de>
- <20140827202313.GF16006@atomide.com>
- <20140828082348.GA5413@linutronix.de>
- <20140828164645.GG16006@atomide.com>
- <53FF84DF.7080406@linutronix.de>
- <20140828225454.GM16006@atomide.com>
- <540048B4.7010807@linutronix.de>
- <20140829161221.GO16006@atomide.com>
- <5404B149.6010400@linutronix.de>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v8 3/7] clk: Move all drivers to use internal API
+Date: Tue, 2 Sep 2014 09:13:14 +0200
+Message-ID: <CAPDyKFq2vzUT+NSkC8ZTau=sbFW_frpQ+paLM_EsYLyp_5ivag@mail.gmail.com>
+References: <1409585377-26091-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1409585574-26673-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5404B149.6010400@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <1409585574-26673-1-git-send-email-tomeu.vizoso@collabora.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, alsa-devel@alsa-project.org, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, Liam Girdwood <lgirdwood@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Mike Turquette <mturquette@linaro.org>, =?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kern>
 List-Id: linux-omap@vger.kernel.org
 
-
---tsOsTdHNUZQcU9Ye
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Sep 01, 2014 at 07:47:53PM +0200, Sebastian Andrzej Siewior wrote:
-> On 08/29/2014 06:12 PM, Tony Lindgren wrote:
-> > Looks like the paste bug is there for sure, doing off idle and pasting
-> > 240 characters to the console can hang the UART RX after few attempts,
-> > and pasting 16 charactes won't show up at all if the system is idling.
-> > So you may want to play with that too a bit :)
->=20
-> One character wakes it up. After that you can send 16, 64 and you see
-> them. Right away. No delay.
->=20
-> If you send "a lot" data in one-go it takes approx 152 characters until
-> the first one is displayed properly at 115200,8N1. That is approx 13ms.
-> Could it take that long to get up and be ready?
-
-I noticed the same behaviour when I tested the runtime PM stuff on
-my N900 with the existing serial-omap driver and I also assumed,
-that the chip needs that long to get up.
-
-> Comparing it with serial-omap I see the same thing: I takes approx the
-> same amount of data until the first one is displayed. After a lot of
-> "long" writes which wake the chip up from idle I manage to freeze both,
-> the serial-omap driver and mine driver.
->=20
-> One thing that is probably a dumb idea is that printk in
-> omap_8250_mdr1_errataset().
-> Would it be possible that when I hit a printk in the resume path that I
-> may deadlock and box will freeze?
-
--- Sebastian
-
---tsOsTdHNUZQcU9Ye
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUBTQJAAoJENju1/PIO/qaw4YP/355aewztKTr/5ipq84jfF60
-dAuWXommZrw1dnC1IsOkXpwSiBgb9RErN6mjquWuAaz0ZQ8ZziwuTrGgnsO48lNr
-81rx746iCB4AYKR/NBc0hjE5he8B7d+bcNDmAV+FN3tsaKVHcxsJzaDQC0w98lLy
-+4RKLYufJ7O9wr+0EjmX1wpwhvuVgaVBIXOnbb8FvuvU5vbJqJ6qjRQ41cUke5IE
-NkkzfNiLJU5R6Is4N1AIsrzTRyt5xxj+3P9z5F38MAbezEzlg5TTWsmDsrUaAi+j
-gtzz0U6dDztS4yBAFr3a2bEeCnQwbOMgXHtTn6YJxa9atzDcEIz0IYPAYPhBQFQX
-FUUSHvLBiNYkhgZfjkIsx12bXnSwFu/uXohP95gKoUHNDPJ9CffL9v+nND4sgmeq
-3uDUviUiBfTuXNG1mg661F8DuRIITkQx/gKbkR+OblmvCSBoKT8nRGnfxx7Ik/ZS
-PH5vMi3wAMXyX/UVXI9IuAY6ThyA/rvO1zQeCb+odblMQGJo8HMF1lsXL2BUuEXy
-SdhTZzsVjrI5tcvNfgG+MlbnuxPO9gw7URvtFgI4QDCJbPVDcn1FQ+8P4DiNOrzU
-58VBU0yeElYTp3+DGHNbA6k/RhcjNTiOPRcckBvjuqQak+5H6RU/by2fHjhEbDr3
-peSg7DHVMxq5lnsTYQrD
-=nVOC
------END PGP SIGNATURE-----
-
---tsOsTdHNUZQcU9Ye--
+T24gMSBTZXB0ZW1iZXIgMjAxNCAxNzozMiwgVG9tZXUgVml6b3NvIDx0b21ldS52aXpvc29AY29s
+bGFib3JhLmNvbT4gd3JvdGU6Cj4gSW4gcHJlcGFyYXRpb24gdG8gY2hhbmdlIHRoZSBwdWJsaWMg
+QVBJIHRvIHJldHVybiBhIHBlci11c2VyIGNsayBzdHJ1Y3R1cmUsCj4gcmVtb3ZlIGFueSB1c2Fn
+ZSBvZiB0aGlzIHB1YmxpYyBBUEkgZnJvbSB0aGUgY2xvY2sgaW1wbGVtZW50YXRpb25zLgo+Cj4g
+VGhlIHJlYXNvbiBmb3IgaGF2aW5nIHRoaXMgaW4gYSBzZXBhcmF0ZSBjb21taXQgZnJvbSB0aGUg
+b25lIHRoYXQgaW50cm9kdWNlcwo+IHRoZSBpbXBsZW1lbnRhdGlvbiBvZiB0aGUgbmV3IGZ1bmN0
+aW9ucyBpcyB0byBzZXBhcmF0ZSB0aGUgY2hhbmdlcyBnZW5lcmF0ZWQKPiB3aXRoIENvY2NpbmVs
+bGUgZnJvbSB0aGUgcmVzdCwgYW5kIGtlZXAgdGhlIHBhdGNoZXMnIHNpemUgcmVhc29uYWJsZS4K
+Pgo+IFNpZ25lZC1vZmYtYnk6IFRvbWV1IFZpem9zbyA8dG9tZXUudml6b3NvQGNvbGxhYm9yYS5j
+b20+Cj4gVGVzdGVkLWJ5OiBCb3JpcyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVs
+ZWN0cm9ucy5jb20+Cj4gVGVzdGVkLWJ5OiBIZWlrbyBTdHVlYm5lciA8aGVpa29Ac250ZWNoLmRl
+Pgo+IEFja2VkLWJ5OiBCb3JpcyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0
+cm9ucy5jb20+CgpIaSBUb21ldSwKCkh1aCwgd2hhdCBhIHBhdGNoLiA6LSkgR3JlYXQgd29yayB5
+b3UgYXJlIGRvaW5nIGhlcmUhCgpCeSBqdXN0IGxvb2tpbmcgYXQgdGhlIHV4NTAwIGNoYW5nZXMs
+IEkgcmVhbGl6ZSB0aGF0IHlvdSBub3cgaGF2ZQpyZW1vdmVkIHRoZSBkZXBlbmRlbmN5IHRvICJz
+dHJ1Y3QgY2xrIiwgdGh1cyB3ZSBzaG91bGRuJ3QgaW5jbHVkZSB0aGUKaGVhZGVyIGZpbGUgbGlu
+dXgvY2xrLmggaW4gYW55IGZpbGUgbG9jYXRlZCBpbiBkcml2ZXIvY2xrL3V4NTAwLyosCnJpZ2h0
+IT8KCkkgc3VwcG9zZSB0aGlzIGNvbW1lbnQgbWF5IGFsc28gYXBwbGljYWJsZSBmb3Igb3RoZXJz
+IHRoYW4gdGhlIHV4NTAwCmNsayBkcml2ZXIsIGJ1dCBoYXZlbid0IGNoZWNrZWQuCgpLaW5kIHJl
+Z2FyZHMKVWZmZQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eHBwYy1kZXYgbWFpbGluZyBsaXN0CkxpbnV4cHBjLWRldkBsaXN0cy5vemxhYnMub3Jn
+Cmh0dHBzOi8vbGlzdHMub3psYWJzLm9yZy9saXN0aW5mby9saW51eHBwYy1kZXY=
