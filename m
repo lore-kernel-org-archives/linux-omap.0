@@ -1,233 +1,207 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Tue, 2 Sep 2014 10:12:11 -0500
-Message-ID: <20140902151211.GG16872@saruman.home>
-References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
- <1406734091-16202-2-git-send-email-peter.griffin@linaro.org>
- <20140820180850.GV24500@saruman.home>
- <20140902111812.GA28857@griffinp-ThinkPad-X1-Carbon-2nd>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2] ARM: debug: uncompress debug support for omap2plus
+Date: Tue, 2 Sep 2014 09:37:18 -0700
+Message-ID: <20140902163718.GA11766@atomide.com>
+References: <1409041717-8673-1-git-send-email-kpark3469@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JkW1gnuWHDypiMFO"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140902111812.GA28857@griffinp-ThinkPad-X1-Carbon-2nd>
+In-Reply-To: <1409041717-8673-1-git-send-email-kpark3469@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, lee.jones@linaro.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+To: kpark3469@gmail.com
+Cc: linux@arm.linux.org.uk, keun-o.park@windriver.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, afzal.mohd.ma@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---JkW1gnuWHDypiMFO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* kpark3469@gmail.com <kpark3469@gmail.com> [140826 01:29]:
+> From: Sahara <keun-o.park@windriver.com>
+> 
+> Since OMAP low-level debug code places data in the .data section,
+> The symbol DEBUG_UNCOMPRESS was defined with !DEBUG_OMAP2PLUS_UART.
+> This patch removes the part using data section in debug/omap2plus.S,
+> so DEBUG_UNCOMPRESS is now available on OMAP system.
 
-Hi,
+Hmm the plan is to switch over to using the standard
+DEBUG_LL_UART_8250 code and remove the runtime detection.
 
-On Tue, Sep 02, 2014 at 12:18:12PM +0100, Peter Griffin wrote:
-> Hi Felipe,
->=20
-> Sorry for the delay in replying to this mail, I've been trying to get
-> answers to the suspend/resume questions you had.
+That will simplify things quite a bit and probably means this
+patch won't be needed AFAIK.
 
-np
+Care to take a look at doing that instead? See for example
+"[PATCH v9 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S".
 
-> > > +config USB_DWC3_ST
-> > > +	tristate "STMicroelectronics Platforms"
-> > > +	depends on ARCH_STI && OF
-> > > +	default USB_DWC3_HOST
-> >=20
-> > this seems wrong as USB_DWC3_{HOST,GADGET,DUAL_ROLE} are booleans and
-> > USB_DWC3_ST is a tristate. Better to stick with defaulting to USB_DWC3
-> > instead like all the others.
->=20
-> Ok will fix.
+Regards,
 
-tks
-
-> > > +static inline void st_dwc3_writel(void __iomem *base, u32 offset, u3=
-2 value)
-> > > +{
-> > > +	writel_relaxed(value, base + offset);
-> >=20
-> > why relaxed ?
->=20
-> The writel and readl implementations on ARM are quite expensive.
->=20
-> The writel, does a memory barrier, and also a outer_sync(), which
-> involves taking a spinlock, and draining the cache store buffers.
-> The readl also does a memory barrier.
->=20
-> These barriers / cache operations are unnecessary here as the
-> peripheral memory has been ioremap'ed as device memory, and it is only
-> one device we are writing to, so the writel/readl_relaxed variants are
-> good enough as the ARM arch guarentees they will arrive in program
-> order.
-
-good point :-)
-
-> There is some more info about this here
-> http://permalink.gmane.org/gmane.linux.ports.arm.kernel/117658
->=20
-> Note: It's only possible when we know the driver is not being used on
-> other architectures which may have different constraints.
-> However for this driver, we know this IP (st glue logic) has only been
-> used on ARM based SoC's.
-
-alright :-)
-
-> > > +}
-> > > +
-> > > +/**
-> > > + * st_dwc3_drd_init: program the port
-> > > + * @dwc3_data: driver private structure
-> > > + * Description: this function is to program the port as either host =
-or device
-> > > + * according to the static configuration passed from devicetree.
-> > > + * OTG and dual role are not yet supported!
-> > > + */
-> > > +static int st_dwc3_drd_init(struct st_dwc3 *dwc3_data)
-> > > +{
-> > > +	u32 val;
-> > > +	int err;
-> > > +
-> > > +	err =3D regmap_read(dwc3_data->regmap, dwc3_data->syscfg_reg_off, &=
-val);
-> > > +	if (err)
-> > > +		return err;
-> > > +
-> > > +	switch (dwc3_data->dr_mode) {
-> > > +	case USB_DR_MODE_PERIPHERAL:
-> > > +		val |=3D USB_SET_PORT_DEVICE;
-> > > +		dev_dbg(dwc3_data->dev, "Configuring as Device\n");
-> > > +		break;
-> > > +
-> > > +	case USB_DR_MODE_HOST:
-> > > +		val &=3D USB_HOST_DEFAULT_MASK;
-> >=20
-> > are you missing a ~ here ? Also, shouldn't you mask off the bits before
-> > this switch ?
->=20
-> Yes your right, good spot! In the next iteration I've defined macros
-> for the bits in this control register and explitcitly set/clear them
-> for both cases, also adding a comment regarding the
-> USB3_DELAY_VBUSVALID bit.
-
-ok, cool.
-
-> By chance host mode still worked with this bug present as the reset
-> value of the register on this SoC is OK to have working host mode.
-
-heh :-)
-
-> > > +		dev_dbg(dwc3_data->dev, "Configuring as Host\n");
-> > > +		break;
-> > > +
-> > > +	default:
-> > > +		dev_err(dwc3_data->dev, "Unsupported mode of operation %d\n",
-> > > +			dwc3_data->dr_mode);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	return regmap_write(dwc3_data->regmap, dwc3_data->syscfg_reg_off, v=
-al);
-> > > +}
-> > > +
-> > > +/**
-> > > + * st_dwc3_init: init the controller via glue logic
-> > > + * @dwc3_data: driver private structure
-> > > + */
-> > > +static void st_dwc3_init(struct st_dwc3 *dwc3_data)
-> > > +{
-> > > +
-> >=20
-> > this blank line isn't necessary.
->=20
-> Ok, removed in next iteration
->=20
-> <snip>
->=20
-> > > +
-> > > +	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "syscfg-=
-reg");
-> > > +	if (!res) {
-> > > +		ret =3D -ENXIO;
-> > > +		goto undo_platform_dev_alloc;
-> > > +	}
-> > > +
-> > > +	dwc3_data->syscfg_reg_off =3D res->start;
-> > > +
-> > > +	dev_dbg(&pdev->dev, "glue-logic addr 0x%p, syscfg-reg offset 0x%x\n=
-",
-> > > +		dwc3_data->glue_base, dwc3_data->syscfg_reg_off);
-> >=20
-> > looks like this message would be more of a dev_vdbg().
->=20
-> Ok, changed to dev_vdbg in next iteration
->=20
-> <snip>
->=20
-> > > +
-> > > +#ifdef CONFIG_PM_SLEEP
-> > > +static int st_dwc3_suspend(struct device *dev)
-> > > +{
-> > > +	struct st_dwc3 *dwc3_data =3D dev_get_drvdata(dev);
-> > > +
-> > > +	reset_control_assert(dwc3_data->rstc_pwrdn);
-> > > +	reset_control_assert(dwc3_data->rstc_rst);
-> >=20
-> > Two questions:
-> >=20
-> > 1) how would you handle the case when this device is a wakeup source ?
->=20
-> I've confirmed with ST the usb3 IP can't be a wakeup source on this SoC.
->=20
-> > 2) when resuming, wouldn't you have to reinitialize the entire core ?
->=20
-> I asked ST to test this, as a full working suspend / resume setup
-> involves some firmware for the standby controller which I don't
-> currently have access to (and it is only with the SBC running that all
-> power will be removed from this part of the SoC). They have confirmed
-> that the usb3 port works after a suspend / resume and devices are
-> correctly enumerated etc after a resume with the code as it was
-> submitted.
->=20
-> What I did notice though after re-reading it, is that we are not
-> re-configuring the ST glue logic registers on a resume. So the
-> controller could end up with the vbus mux configured differently. So
-> in the next iteration I've fixed this, and call st_dwc3_drd_init and
-> st_dwc3_init in the resume path.
->=20
-> Although ST confirmed that suspend / resume works with or without this
-> change applied.
-
-alright, thanks a lot for confirming.
-
---=20
-balbi
-
---JkW1gnuWHDypiMFO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUBd5LAAoJEIaOsuA1yqRE4xgQALXNvkeO2+e/FtRB37LfOfqt
-vQnEuIEKIYHjG+MuFP4B7bF4l6aP1TH8CHpMEQVc/4iupc5P6hu+IsgN1FtXwW8p
-apyt4MGkCpYhkW/Nk+UplNWHQSpz7DAo1RhCQBjri9+HOAVc1Qda6TmvB/L9A1hU
-skohs+WoBJXxw5SZV2m472em6dXra990c/KlcnMemDTrJY/ZD2oxA5hOcEj3tSdQ
-p2+x04aM7YOOEF+vs+apZR80K9Dm00wyUgWXAzdBUrZi47N6XWPRdsmmgAs+GEyA
-rJVK09oiNihWapm7826ck7TROsPDOJyV3lynR9BYwbZ/vh9Wp9iYuZ0lK+OkEPd3
-p2KeHNw5bpJEbZaMBEywR0vABZJhrBi9XLXVOuBILXNvGEplk8YT3aOeHv/bJ6wI
-qdBXYQJhLsagW5Wn3Pz7/57MF2tWTUI2LxYTXeRKteQ7FxVeEN1g0RwkVPYaaUj0
-pgSsY5PEBChJMZziIOnMtvb6dFYNEEAjueeOcc7VSsh8o8tYgnYfAhd7G94KdCJ2
-cXAsHTmGl1UYYaMP8ES5Ql5Y3H9Fk+76eSw4C432KRuloEtPKgCh+5DBFEJD63ft
-G1YYyBFKBKHRKBgHfPOb29HH/XemDodP9w1wXy9G9WrIdN9ccMuwE0Fv7okbXwV1
-2E9JbXtH4El6SD0IqRaI
-=ifqe
------END PGP SIGNATURE-----
-
---JkW1gnuWHDypiMFO--
+Tony
+ 
+> Signed-off-by: Sahara <keun-o.park@windriver.com>
+> Tested-by: Afzal Mohammed <afzal.mohd.ma@gmail.com> (on am335x beagle
+> bone white)
+> ---
+>  arch/arm/Kconfig.debug             |    3 +-
+>  arch/arm/include/debug/omap2plus.S |   96 ++++++++++--------------------------
+>  2 files changed, 27 insertions(+), 72 deletions(-)
+> 
+> diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+> index b11ad54..c0ad3e4 100644
+> --- a/arch/arm/Kconfig.debug
+> +++ b/arch/arm/Kconfig.debug
+> @@ -1220,8 +1220,7 @@ config DEBUG_UART_8250_FLOW_CONTROL
+>  config DEBUG_UNCOMPRESS
+>  	bool
+>  	depends on ARCH_MULTIPLATFORM || ARCH_MSM || PLAT_SAMSUNG
+> -	default y if DEBUG_LL && !DEBUG_OMAP2PLUS_UART && \
+> -		     (!DEBUG_TEGRA_UART || !ZBOOT_ROM)
+> +	default y if DEBUG_LL && (!DEBUG_TEGRA_UART || !ZBOOT_ROM)
+>  	help
+>  	  This option influences the normal decompressor output for
+>  	  multiplatform kernels.  Normally, multiplatform kernels disable
+> diff --git a/arch/arm/include/debug/omap2plus.S b/arch/arm/include/debug/omap2plus.S
+> index 6d867ae..0b7ec89 100644
+> --- a/arch/arm/include/debug/omap2plus.S
+> +++ b/arch/arm/include/debug/omap2plus.S
+> @@ -58,115 +58,71 @@
+>  
+>  #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
+>  
+> -		.pushsection .data
+> -omap_uart_phys:	.word	0
+> -omap_uart_virt:	.word	0
+> -omap_uart_lsr:	.word	0
+> -		.popsection
+> -
+>  		.macro	addruart, rp, rv, tmp
+>  
+> -		/* Use omap_uart_phys/virt if already configured */
+> -10:		adr	\rp, 99f		@ get effective addr of 99f
+> -		ldr	\rv, [\rp]		@ get absolute addr of 99f
+> -		sub	\rv, \rv, \rp		@ offset between the two
+> -		ldr	\rp, [\rp, #4]		@ abs addr of omap_uart_phys
+> -		sub	\tmp, \rp, \rv		@ make it effective
+> -		ldr	\rp, [\tmp, #0]		@ omap_uart_phys
+> -		ldr	\rv, [\tmp, #4]		@ omap_uart_virt
+> -		cmp	\rp, #0			@ is port configured?
+> -		cmpne	\rv, #0
+> -		bne	100f			@ already configured
+> -
+>  		/* Configure the UART offset from the phys/virt base */
+> -#ifdef CONFIG_DEBUG_OMAP2UART1
+> +#if defined(CONFIG_DEBUG_OMAP2UART1)
+>  		mov	\rp, #UART_OFFSET(OMAP2_UART1_BASE)	@ omap2/3/4
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_OMAP2UART2
+> +#elif defined(CONFIG_DEBUG_OMAP2UART2)
+>  		mov	\rp, #UART_OFFSET(OMAP2_UART2_BASE)	@ omap2/3/4
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_OMAP2UART3
+> +#elif defined(CONFIG_DEBUG_OMAP2UART3)
+>  		mov	\rp, #UART_OFFSET(OMAP2_UART3_BASE)
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_OMAP3UART3
+> +#elif defined(CONFIG_DEBUG_OMAP3UART3)
+>  		mov	\rp, #UART_OFFSET(OMAP3_UART1_BASE)
+>  		add	\rp, \rp, #0x00fb0000
+>  		add	\rp, \rp, #0x00006000		@ OMAP3_UART3_BASE
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_OMAP4UART3
+> +#elif defined(CONFIG_DEBUG_OMAP4UART3)
+>  		mov	\rp, #UART_OFFSET(OMAP4_UART3_BASE)
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_OMAP3UART4
+> +#elif defined(CONFIG_DEBUG_OMAP3UART4)
+>  		mov	\rp, #UART_OFFSET(OMAP3_UART1_BASE)
+>  		add	\rp, \rp, #0x00fb0000
+>  		add	\rp, \rp, #0x00028000		@ OMAP3_UART4_BASE
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_OMAP4UART4
+> +#elif defined(CONFIG_DEBUG_OMAP4UART4)
+>  		mov	\rp, #UART_OFFSET(OMAP4_UART4_BASE)
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_TI81XXUART1
+> +#elif defined(CONFIG_DEBUG_TI81XXUART1)
+>  		mov	\rp, #UART_OFFSET(TI81XX_UART1_BASE)
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_TI81XXUART2
+> +#elif defined(CONFIG_DEBUG_TI81XXUART2)
+>  		mov	\rp, #UART_OFFSET(TI81XX_UART2_BASE)
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_TI81XXUART3
+> +#elif defined(CONFIG_DEBUG_TI81XXUART3)
+>  		mov	\rp, #UART_OFFSET(TI81XX_UART3_BASE)
+>  		b	98f
+> -#endif
+> -#ifdef CONFIG_DEBUG_AM33XXUART1
+> +#elif defined(CONFIG_DEBUG_AM33XXUART1)
+>  		ldr	\rp, =AM33XX_UART1_BASE
+>  		and	\rp, \rp, #0x00ffffff
+>  		b	97f
+> -#endif
+> -#ifdef CONFIG_DEBUG_ZOOM_UART
+> +#elif defined(CONFIG_DEBUG_ZOOM_UART)
+>  		ldr	\rp, =ZOOM_UART_BASE
+> -		str	\rp, [\tmp, #0]		@ omap_uart_phys
+> -		ldr	\rp, =ZOOM_UART_VIRT
+> -		str	\rp, [\tmp, #4]		@ omap_uart_virt
+> -		mov	\rp, #(UART_LSR << ZOOM_PORT_SHIFT)
+> -		str	\rp, [\tmp, #8]		@ omap_uart_lsr
+> +		ldr	\rv, =ZOOM_UART_VIRT
+> +		mov	\tmp, #(UART_LSR << ZOOM_PORT_SHIFT)
+> +		b	100f
+> +#else
+> +#error "Error! No proper debug option is defined."
+>  #endif
+> -		b	10b
+>  
+>  		/* AM33XX: Store both phys and virt address for the uart */
+>  97:		add	\rp, \rp, #0x44000000	@ phys base
+> -		str	\rp, [\tmp, #0]		@ omap_uart_phys
+> -		sub	\rp, \rp, #0x44000000	@ phys base
+> -		add	\rp, \rp, #0xf9000000	@ virt base
+> -		str	\rp, [\tmp, #4]		@ omap_uart_virt
+> -		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
+> -		str	\rp, [\tmp, #8]		@ omap_uart_lsr
+> +		sub	\rv, \rp, #0x44000000	@ phys base
+> +		add	\rv, \rv, #0xf9000000	@ virt base
+> +		mov	\tmp, #(UART_LSR << OMAP_PORT_SHIFT)
+>  
+> -		b	10b
+> +		b	100f
+>  
+>  		/* Store both phys and virt address for the uart */
+>  98:		add	\rp, \rp, #0x48000000	@ phys base
+> -		str	\rp, [\tmp, #0]		@ omap_uart_phys
+> -		sub	\rp, \rp, #0x48000000	@ phys base
+> -		add	\rp, \rp, #0xfa000000	@ virt base
+> -		str	\rp, [\tmp, #4]		@ omap_uart_virt
+> -		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
+> -		str	\rp, [\tmp, #8]		@ omap_uart_lsr
+> -
+> -		b	10b
+> -
+> -		.align
+> -99:		.word	.
+> -		.word	omap_uart_phys
+> -		.ltorg
+> -
+> -100:		/* Pass the UART_LSR reg address */
+> -		ldr	\tmp, [\tmp, #8]	@ omap_uart_lsr
+> +		sub	\rv, \rp, #0x48000000	@ phys base
+> +		add	\rv, \rv, #0xfa000000	@ virt base
+> +		mov	\tmp, #(UART_LSR << OMAP_PORT_SHIFT)
+> +
+> +100:		/* Add the UART_LSR reg address */
+>  		add	\rp, \rp, \tmp
+>  		add	\rv, \rv, \tmp
+>  		.endm
+> -- 
+> 1.7.9.5
+> 
