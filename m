@@ -1,207 +1,95 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] ARM: debug: uncompress debug support for omap2plus
-Date: Tue, 2 Sep 2014 09:37:18 -0700
-Message-ID: <20140902163718.GA11766@atomide.com>
-References: <1409041717-8673-1-git-send-email-kpark3469@gmail.com>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Tue, 2 Sep 2014 09:55:18 -0700
+Message-ID: <20140902165518.GB11766@atomide.com>
+References: <53FE3779.5090908@linutronix.de>
+ <20140827202313.GF16006@atomide.com>
+ <20140828082348.GA5413@linutronix.de>
+ <20140828164645.GG16006@atomide.com>
+ <53FF84DF.7080406@linutronix.de>
+ <20140828225454.GM16006@atomide.com>
+ <540048B4.7010807@linutronix.de>
+ <20140829161221.GO16006@atomide.com>
+ <5404B149.6010400@linutronix.de>
+ <20140902030546.GB6724@earth.universe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1409041717-8673-1-git-send-email-kpark3469@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kpark3469@gmail.com
-Cc: linux@arm.linux.org.uk, keun-o.park@windriver.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, afzal.mohd.ma@gmail.com, linux-omap@vger.kernel.org
+In-Reply-To: <20140902030546.GB6724@earth.universe>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-* kpark3469@gmail.com <kpark3469@gmail.com> [140826 01:29]:
-> From: Sahara <keun-o.park@windriver.com>
+* Sebastian Reichel <sre@kernel.org> [140901 20:06]:
+> Hi,
 > 
-> Since OMAP low-level debug code places data in the .data section,
-> The symbol DEBUG_UNCOMPRESS was defined with !DEBUG_OMAP2PLUS_UART.
-> This patch removes the part using data section in debug/omap2plus.S,
-> so DEBUG_UNCOMPRESS is now available on OMAP system.
+> On Mon, Sep 01, 2014 at 07:47:53PM +0200, Sebastian Andrzej Siewior wrote:
+> > On 08/29/2014 06:12 PM, Tony Lindgren wrote:
+> > > Looks like the paste bug is there for sure, doing off idle and pasting
+> > > 240 characters to the console can hang the UART RX after few attempts,
+> > > and pasting 16 charactes won't show up at all if the system is idling.
+> > > So you may want to play with that too a bit :)
+> > 
+> > One character wakes it up. After that you can send 16, 64 and you see
+> > them. Right away. No delay.
+> > 
+> > If you send "a lot" data in one-go it takes approx 152 characters until
+> > the first one is displayed properly at 115200,8N1. That is approx 13ms.
+> > Could it take that long to get up and be ready?
+> 
+> I noticed the same behaviour when I tested the runtime PM stuff on
+> my N900 with the existing serial-omap driver and I also assumed,
+> that the chip needs that long to get up.
 
-Hmm the plan is to switch over to using the standard
-DEBUG_LL_UART_8250 code and remove the runtime detection.
+OK yeah I've confirmed that serial-omap also won't do anything with the
+pasted data until woken up. It takes some time to get things powered up
+again, there's nothing we can do beyond having the autoidle disabled by
+default.
+ 
+> > Comparing it with serial-omap I see the same thing: I takes approx the
+> > same amount of data until the first one is displayed. After a lot of
+> > "long" writes which wake the chip up from idle I manage to freeze both,
+> > the serial-omap driver and mine driver.
 
-That will simplify things quite a bit and probably means this
-patch won't be needed AFAIK.
+Hmm I have not seen the RX hang with serial-omap when pasting data to
+the console to wake it up.
+ 
+> > One thing that is probably a dumb idea is that printk in
+> > omap_8250_mdr1_errataset().
+> > Would it be possible that when I hit a printk in the resume path that I
+> > may deadlock and box will freeze?
 
-Care to take a look at doing that instead? See for example
-"[PATCH v9 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S".
+I guess yeah. You may want to use pstore as console to debug that. You
+need to use this patch to prevent pstore from hanging:
+
+https://lkml.org/lkml/2013/4/9/831
+
+Then enable:
+
+CONFIG_PSTORE=y
+CONFIG_PSTORE_CONSOLE=y
+CONFIG_PSTORE_RAM=y
+CONFIG_FUNCTION_TRACER=y
+CONFIG_DEBUG_FS=y
+CONFIG_PSTORE_FTRACE=y
+
+Then at kernel cmdline, specify something like this:
+
+memmap=2M$0x88000000 ramoops.mem_address=0x88000000 ramoops.mem_size=0x200000 ramoops.record_size=0x40000
+
+And leave out console=ttyS line and spin up a getty on the serial
+line.
+
+After booting, you should just need to do:
+
+# mount -t pstore - /sys/fs/pstore
+
+And then you see dmesg in /sys/fs/pstore. To debug hangs, set up the
+PMIC watchdog and do not set up omap watchdog, and you should see the
+last dmesg in /sys/fs/pstore after a warm reset.
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Sahara <keun-o.park@windriver.com>
-> Tested-by: Afzal Mohammed <afzal.mohd.ma@gmail.com> (on am335x beagle
-> bone white)
-> ---
->  arch/arm/Kconfig.debug             |    3 +-
->  arch/arm/include/debug/omap2plus.S |   96 ++++++++++--------------------------
->  2 files changed, 27 insertions(+), 72 deletions(-)
-> 
-> diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
-> index b11ad54..c0ad3e4 100644
-> --- a/arch/arm/Kconfig.debug
-> +++ b/arch/arm/Kconfig.debug
-> @@ -1220,8 +1220,7 @@ config DEBUG_UART_8250_FLOW_CONTROL
->  config DEBUG_UNCOMPRESS
->  	bool
->  	depends on ARCH_MULTIPLATFORM || ARCH_MSM || PLAT_SAMSUNG
-> -	default y if DEBUG_LL && !DEBUG_OMAP2PLUS_UART && \
-> -		     (!DEBUG_TEGRA_UART || !ZBOOT_ROM)
-> +	default y if DEBUG_LL && (!DEBUG_TEGRA_UART || !ZBOOT_ROM)
->  	help
->  	  This option influences the normal decompressor output for
->  	  multiplatform kernels.  Normally, multiplatform kernels disable
-> diff --git a/arch/arm/include/debug/omap2plus.S b/arch/arm/include/debug/omap2plus.S
-> index 6d867ae..0b7ec89 100644
-> --- a/arch/arm/include/debug/omap2plus.S
-> +++ b/arch/arm/include/debug/omap2plus.S
-> @@ -58,115 +58,71 @@
->  
->  #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
->  
-> -		.pushsection .data
-> -omap_uart_phys:	.word	0
-> -omap_uart_virt:	.word	0
-> -omap_uart_lsr:	.word	0
-> -		.popsection
-> -
->  		.macro	addruart, rp, rv, tmp
->  
-> -		/* Use omap_uart_phys/virt if already configured */
-> -10:		adr	\rp, 99f		@ get effective addr of 99f
-> -		ldr	\rv, [\rp]		@ get absolute addr of 99f
-> -		sub	\rv, \rv, \rp		@ offset between the two
-> -		ldr	\rp, [\rp, #4]		@ abs addr of omap_uart_phys
-> -		sub	\tmp, \rp, \rv		@ make it effective
-> -		ldr	\rp, [\tmp, #0]		@ omap_uart_phys
-> -		ldr	\rv, [\tmp, #4]		@ omap_uart_virt
-> -		cmp	\rp, #0			@ is port configured?
-> -		cmpne	\rv, #0
-> -		bne	100f			@ already configured
-> -
->  		/* Configure the UART offset from the phys/virt base */
-> -#ifdef CONFIG_DEBUG_OMAP2UART1
-> +#if defined(CONFIG_DEBUG_OMAP2UART1)
->  		mov	\rp, #UART_OFFSET(OMAP2_UART1_BASE)	@ omap2/3/4
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_OMAP2UART2
-> +#elif defined(CONFIG_DEBUG_OMAP2UART2)
->  		mov	\rp, #UART_OFFSET(OMAP2_UART2_BASE)	@ omap2/3/4
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_OMAP2UART3
-> +#elif defined(CONFIG_DEBUG_OMAP2UART3)
->  		mov	\rp, #UART_OFFSET(OMAP2_UART3_BASE)
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_OMAP3UART3
-> +#elif defined(CONFIG_DEBUG_OMAP3UART3)
->  		mov	\rp, #UART_OFFSET(OMAP3_UART1_BASE)
->  		add	\rp, \rp, #0x00fb0000
->  		add	\rp, \rp, #0x00006000		@ OMAP3_UART3_BASE
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_OMAP4UART3
-> +#elif defined(CONFIG_DEBUG_OMAP4UART3)
->  		mov	\rp, #UART_OFFSET(OMAP4_UART3_BASE)
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_OMAP3UART4
-> +#elif defined(CONFIG_DEBUG_OMAP3UART4)
->  		mov	\rp, #UART_OFFSET(OMAP3_UART1_BASE)
->  		add	\rp, \rp, #0x00fb0000
->  		add	\rp, \rp, #0x00028000		@ OMAP3_UART4_BASE
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_OMAP4UART4
-> +#elif defined(CONFIG_DEBUG_OMAP4UART4)
->  		mov	\rp, #UART_OFFSET(OMAP4_UART4_BASE)
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_TI81XXUART1
-> +#elif defined(CONFIG_DEBUG_TI81XXUART1)
->  		mov	\rp, #UART_OFFSET(TI81XX_UART1_BASE)
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_TI81XXUART2
-> +#elif defined(CONFIG_DEBUG_TI81XXUART2)
->  		mov	\rp, #UART_OFFSET(TI81XX_UART2_BASE)
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_TI81XXUART3
-> +#elif defined(CONFIG_DEBUG_TI81XXUART3)
->  		mov	\rp, #UART_OFFSET(TI81XX_UART3_BASE)
->  		b	98f
-> -#endif
-> -#ifdef CONFIG_DEBUG_AM33XXUART1
-> +#elif defined(CONFIG_DEBUG_AM33XXUART1)
->  		ldr	\rp, =AM33XX_UART1_BASE
->  		and	\rp, \rp, #0x00ffffff
->  		b	97f
-> -#endif
-> -#ifdef CONFIG_DEBUG_ZOOM_UART
-> +#elif defined(CONFIG_DEBUG_ZOOM_UART)
->  		ldr	\rp, =ZOOM_UART_BASE
-> -		str	\rp, [\tmp, #0]		@ omap_uart_phys
-> -		ldr	\rp, =ZOOM_UART_VIRT
-> -		str	\rp, [\tmp, #4]		@ omap_uart_virt
-> -		mov	\rp, #(UART_LSR << ZOOM_PORT_SHIFT)
-> -		str	\rp, [\tmp, #8]		@ omap_uart_lsr
-> +		ldr	\rv, =ZOOM_UART_VIRT
-> +		mov	\tmp, #(UART_LSR << ZOOM_PORT_SHIFT)
-> +		b	100f
-> +#else
-> +#error "Error! No proper debug option is defined."
->  #endif
-> -		b	10b
->  
->  		/* AM33XX: Store both phys and virt address for the uart */
->  97:		add	\rp, \rp, #0x44000000	@ phys base
-> -		str	\rp, [\tmp, #0]		@ omap_uart_phys
-> -		sub	\rp, \rp, #0x44000000	@ phys base
-> -		add	\rp, \rp, #0xf9000000	@ virt base
-> -		str	\rp, [\tmp, #4]		@ omap_uart_virt
-> -		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
-> -		str	\rp, [\tmp, #8]		@ omap_uart_lsr
-> +		sub	\rv, \rp, #0x44000000	@ phys base
-> +		add	\rv, \rv, #0xf9000000	@ virt base
-> +		mov	\tmp, #(UART_LSR << OMAP_PORT_SHIFT)
->  
-> -		b	10b
-> +		b	100f
->  
->  		/* Store both phys and virt address for the uart */
->  98:		add	\rp, \rp, #0x48000000	@ phys base
-> -		str	\rp, [\tmp, #0]		@ omap_uart_phys
-> -		sub	\rp, \rp, #0x48000000	@ phys base
-> -		add	\rp, \rp, #0xfa000000	@ virt base
-> -		str	\rp, [\tmp, #4]		@ omap_uart_virt
-> -		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
-> -		str	\rp, [\tmp, #8]		@ omap_uart_lsr
-> -
-> -		b	10b
-> -
-> -		.align
-> -99:		.word	.
-> -		.word	omap_uart_phys
-> -		.ltorg
-> -
-> -100:		/* Pass the UART_LSR reg address */
-> -		ldr	\tmp, [\tmp, #8]	@ omap_uart_lsr
-> +		sub	\rv, \rp, #0x48000000	@ phys base
-> +		add	\rv, \rv, #0xfa000000	@ virt base
-> +		mov	\tmp, #(UART_LSR << OMAP_PORT_SHIFT)
-> +
-> +100:		/* Add the UART_LSR reg address */
->  		add	\rp, \rp, \tmp
->  		add	\rv, \rv, \tmp
->  		.endm
-> -- 
-> 1.7.9.5
-> 
