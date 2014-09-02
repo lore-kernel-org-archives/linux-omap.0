@@ -1,105 +1,84 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5] usb: dwc3: exynos: Add support for SCLK present on
+Subject: Re: [PATCH 5/5] phy: exynos5-usbdrd: Adding Kconfig dependency for
  Exynos7
-Date: Tue, 2 Sep 2014 09:35:39 -0500
-Message-ID: <20140902143539.GC16872@saruman.home>
+Date: Tue, 2 Sep 2014 09:37:11 -0500
+Message-ID: <20140902143711.GD16872@saruman.home>
 References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
- <1409212920-28526-2-git-send-email-gautam.vivek@samsung.com>
- <20140828184847.GA18464@leverpostej>
- <CAFp+6iHLSaUjHqaKXXX0QLiRd3h+O67DRSQdExag-KUH0dnpag@mail.gmail.com>
+ <1409212920-28526-6-git-send-email-gautam.vivek@samsung.com>
+ <CAN_we7MQAqEsRaQc_pkRE_KXx9zZNLDBR2aHUrazM30Nv3udmQ@mail.gmail.com>
+ <CAFp+6iHsfg6Ru0LBN=JviV=-mSdmuSo9Te3EXYF+X8jssD_BYQ@mail.gmail.com>
 Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="32u276st3Jlj2kUU"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="2Z2K0IlrPCVsbNpk"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAFp+6iHLSaUjHqaKXXX0QLiRd3h+O67DRSQdExag-KUH0dnpag-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CAFp+6iHsfg6Ru0LBN=JviV=-mSdmuSo9Te3EXYF+X8jssD_BYQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "kishon-l0cyMroinI0@public.gmane.org" <kishon-l0cyMroinI0@public.gmane.org>, "kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Daniele Forsi <dforsi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---32u276st3Jlj2kUU
+--2Z2K0IlrPCVsbNpk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 02, 2014 at 04:09:08PM +0530, Vivek Gautam wrote:
-> Hi,
->=20
->=20
-> On Fri, Aug 29, 2014 at 12:18 AM, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> wro=
-te:
-> > On Thu, Aug 28, 2014 at 09:01:56AM +0100, Vivek Gautam wrote:
-> >> Exynos7 also has a separate special gate clock going to the IP
-> >> apart from the usual AHB clock. So add support for the same.
-> >>
-> >> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> >> ---
-> >>  drivers/usb/dwc3/dwc3-exynos.c |   16 ++++++++++++++++
-> >>  1 file changed, 16 insertions(+)
-> >>
-> >> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-ex=
-ynos.c
-> >> index f9fb8ad..bab6395 100644
-> >> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> >> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> >> @@ -35,6 +35,7 @@ struct dwc3_exynos {
-> >>       struct device           *dev;
-> >>
-> >>       struct clk              *clk;
-> >> +     struct clk              *sclk;
-> >>       struct regulator        *vdd33;
-> >>       struct regulator        *vdd10;
-> >>  };
-> >> @@ -141,10 +142,17 @@ static int dwc3_exynos_probe(struct platform_dev=
-ice *pdev)
-> >>               return -EINVAL;
-> >>       }
-> >>
-> >> +     /* Exynos7 has a special gate clock going to this IP */
-> >> +     exynos->sclk =3D devm_clk_get(dev, "usbdrd30_sclk");
-> >> +     if (IS_ERR(exynos->sclk))
-> >> +             dev_warn(dev, "couldn't get sclk\n");
+On Mon, Sep 01, 2014 at 01:30:21PM +0530, Vivek Gautam wrote:
+> On Thu, Aug 28, 2014 at 8:36 PM, Daniele Forsi <dforsi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > 2014-08-28 10:02 GMT+02:00 Vivek Gautam:
 > >
-> > Doesn't this introduce a pointless warning for Exynos SoCs other than
-> > Exynos7?
+> >> This USB 3.0 PHY controller is also present on Exynos7
+> >> platform, so adding the dependency on ARCH_EXYNOS7 for this driver.
+> >
+> >> +++ b/drivers/phy/Kconfig
+> >> @@ -186,7 +186,7 @@ config PHY_EXYNOS5250_USB2
+> >>
+> >>  config PHY_EXYNOS5_USBDRD
+> >>         tristate "Exynos5 SoC series USB DRD PHY driver"
+> >> -       depends on ARCH_EXYNOS5 && OF
+> >> +       depends on (ARCH_EXYNOS5 || ARCH_EXYNOS7) && OF
+> >
+> > shouldn't that prompt and its help text be updated to mention also Exyn=
+os7?
 >=20
-> True, it will introduce an unnecessary warning for non-Exynos7 systems.
-> I initially thought of introducing a compatible check for Exynos7-dwc3, b=
-ut that
-> way we may end up adding such checks for future SoCs which have similar
-> controller but have some clock difference or some other small change, no ?
+> Right, even that has to be updated accordingly. Will update the same in n=
+ext
+> version of the patch. Thanks for pointing this.
 
-maybe dev_dbg() is what you want ? :-)
+I would rather change that to ARCH_EXYNOS, unless Kishon doesn't like
+that idea. The thing is that this will likely need to be patches for
+exynos8, 9, 10, 11...
+
+cheers
 
 --=20
 balbi
 
---32u276st3Jlj2kUU
+--2Z2K0IlrPCVsbNpk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUBdW7AAoJEIaOsuA1yqRER9MP/Rfxiw14D8S0v1u0+6i+UUp0
-EHmL8AcwmVDX+BVPIr9sE9NsA+odnmE3YlZ8Bt599lEcqj/CZVMe0A2pWrWY/c7D
-R2iUgZsXj0GIuptziznCEqDV9uzkdHK7sAqbExk2TSBGhq2CIC8O25jneRr7cblr
-dHkTh/i/6hr0+2wY7RHWR4K7OUAlDF0CCcsRbAvibWd07r6E8sIkS9+5rTFtCALJ
-tQF45y5RdRYBdt+kxelpVwCbO4Rp1Dr6Wbz2aJLHCs4Ea1HZKWaTIYe2JP77gUb1
-WYzL6qfIHTeHvrXO58HsVA1tUrCE2BqmxW/Q4f4E0wltcGHWl82KxPeEULHYBiuM
-1bvyrx5jT7qeul4Aqz2Ojm6D9rZpkr2rhZFjnAK94ivbQMsmgqlsXBZqzLiDakZg
-rkExqDVqddKucfrrJpPj0vgo3/1FQFR1fvvyGUntEj0UcnhkFpFprz8nu6vPUGoZ
-r0cFdPS4v9QqSJxGi/G2zdAOBma6ZWFvN7I3tmh8IKfHvS+W3F/M/qQpmgG6VllP
-1KYfboLLwwZIRS9Wk72n77CWYaZTUgXMI7lhZKroeFrzkBwixjTZsHuyUrdZdSf2
-UbRWpXbRg8mPi9mS5UId580ljB01qw3yCpoc0bdmhlKosomDVH8ZB9r0GPw+K9QF
-lEjoMXx/Z3dYwAKXmCIf
-=klBf
+iQIcBAEBAgAGBQJUBdYXAAoJEIaOsuA1yqREy/kP+gL2LlhK87Z2C3Yj98QNTCm7
+5eWyPXvWu4qFCUb/bS/XyZKZ1fILcTUEN6U/OJsreTwLZv5Bz1CR/vUYRMyenBj2
+UKqoqHgzUZXCVC8XpUwm5G7LcNnoZfT5f7KarxT7FrXKQ7Yc8SLZm2xXkxySk8Gq
+4ts1cfj1NdGIGX8S9vv5+OH3+Go05SILNxsmSkedvH4lfHW4F5LRQnKkgLWmOaoK
+2P3+t7jjepTw5tRbR2KYaovRUlRkjzh+gDUUInxIYW26ajigMl2aMcuFf4Y/6Mpa
+AQUbX7IoIhjdgNBRIBSf+is2LtVm2fVzmLy3sz2RgMEV02UNfYpYoJpIkLzNcMB1
+cYTGlpJ6jIZleEXJU31RoSYXse1sR/K/APM8TM8F0susxyOH37PndRcNr5hhU6oE
+vlhftuQVXEtgx3t+zsa3azebGqxW5GZLp8w2lwyFTQtzAAmm/J8V3JgnFe4ku54m
+GTk2+SJNfBwP/ERj43xjikcajXpOSaqe89XAyUtTzQ+OLMl7/p+ax3QV/gxlooj1
+RYNOZMWL3hjwXBv1rdSxuIHk/hebeKCaoVy5SOfynR4hrEZ0lNK+x5GqwMxC5UUn
+C5XN5icdY9HttNpkOhwXfy1B8JyR6hmftnGsKkMCQs3v6L7LDPTYtbPAIivaMIIj
+X23IO7W19CzHqpFN/jpl
+=DSEq
 -----END PGP SIGNATURE-----
 
---32u276st3Jlj2kUU--
+--2Z2K0IlrPCVsbNpk--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
