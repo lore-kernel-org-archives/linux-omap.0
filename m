@@ -1,175 +1,53 @@
-From: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Tue, 2 Sep 2014 12:18:12 +0100
-Message-ID: <20140902111812.GA28857@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
- <1406734091-16202-2-git-send-email-peter.griffin@linaro.org>
- <20140820180850.GV24500@saruman.home>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/6] OMAP2+: GPMC: NAND fixes for 3.17
+Date: Tue, 2 Sep 2014 16:57:01 +0300
+Message-ID: <1409666227-20622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140820180850.GV24500-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54087 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753439AbaIBN5O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Sep 2014 09:57:14 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: pekon@pek-sem.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Hi Felipe,
+Hi Tony,
 
-Sorry for the delay in replying to this mail, I've been trying to get answers to the suspend/resume
-questions you had.
+These are some of the issues I found while testing v3.17-rc3.
 
-> > +config USB_DWC3_ST
-> > +	tristate "STMicroelectronics Platforms"
-> > +	depends on ARCH_STI && OF
-> > +	default USB_DWC3_HOST
-> 
-> this seems wrong as USB_DWC3_{HOST,GADGET,DUAL_ROLE} are booleans and
-> USB_DWC3_ST is a tristate. Better to stick with defaulting to USB_DWC3
-> instead like all the others.
+- Wrong ECC scheme used for am43x GP and EPOS evm. We need to use
+BCH16 instead of BCH8.
 
-Ok will fix.
+- Wrong read/write wait pin monitoring setting used for NAND
+resulting in "L3 application error" debug message on console.
 
-> > +static inline void st_dwc3_writel(void __iomem *base, u32 offset, u32 value)
-> > +{
-> > +	writel_relaxed(value, base + offset);
-> 
-> why relaxed ?
+- Pin conflict issue on am43x EPOS evm with QSPI and NAND.
 
-The writel and readl implementations on ARM are quite expensive.
+Patches are available at
+git@github.com:rogerq/linux.git
+* [new branch]      for-v3.17/gpmc-fixes
 
-The writel, does a memory barrier, and also a outer_sync(), which involves taking a spinlock, and draining the cache store buffers.
-The readl also does a memory barrier.
+cheers,
+-roger
 
-These barriers / cache operations are unnecessary here as the peripheral memory has been ioremap'ed as device memory, and
-it is only one device we are writing to, so the writel/readl_relaxed variants are good enough as the ARM arch guarentees they
-will arrive in program order.
+Roger Quadros (6):
+  ARM: dts: am43x-epos-evm: Use BCH16 ECC scheme instead of BCH8
+  ARM: dts: am437x-gp-evm: Use BCH16 ECC scheme instead of BCH8
+  ARM: dts: am437x-gp-evm: Don't use read/write wait monitoring
+  ARM: dts: am43xx-epos-evm: Don't use read/write wait monitoring
+  ARM: OMAP2+: gpmc: Don't complain if wait pin is used without r/w
+    monitoring
+  ARM: dts: am43x-epos-evm: Disable QSPI to prevent conflict with
+    GPMC-NAND
 
-There is some more info about this here http://permalink.gmane.org/gmane.linux.ports.arm.kernel/117658
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 4 +---
+ arch/arm/boot/dts/am43x-epos-evm.dts | 9 ++++-----
+ arch/arm/mach-omap2/gpmc.c           | 7 +++----
+ 3 files changed, 8 insertions(+), 12 deletions(-)
 
-Note: It's only possible when we know the driver is not being used on other architectures which may have different constraints.
-However for this driver, we know this IP (st glue logic) has only been used on ARM based SoC's.
+-- 
+1.8.3.2
 
-> 
-> > +}
-> > +
-> > +/**
-> > + * st_dwc3_drd_init: program the port
-> > + * @dwc3_data: driver private structure
-> > + * Description: this function is to program the port as either host or device
-> > + * according to the static configuration passed from devicetree.
-> > + * OTG and dual role are not yet supported!
-> > + */
-> > +static int st_dwc3_drd_init(struct st_dwc3 *dwc3_data)
-> > +{
-> > +	u32 val;
-> > +	int err;
-> > +
-> > +	err = regmap_read(dwc3_data->regmap, dwc3_data->syscfg_reg_off, &val);
-> > +	if (err)
-> > +		return err;
-> > +
-> > +	switch (dwc3_data->dr_mode) {
-> > +	case USB_DR_MODE_PERIPHERAL:
-> > +		val |= USB_SET_PORT_DEVICE;
-> > +		dev_dbg(dwc3_data->dev, "Configuring as Device\n");
-> > +		break;
-> > +
-> > +	case USB_DR_MODE_HOST:
-> > +		val &= USB_HOST_DEFAULT_MASK;
-> 
-> are you missing a ~ here ? Also, shouldn't you mask off the bits before
-> this switch ?
-
-Yes your right, good spot! In the next iteration I've defined macros for the bits in
-this control register and explitcitly set/clear them for both cases, also adding a comment regarding
-the USB3_DELAY_VBUSVALID bit.
-
-By chance host mode still worked with this bug present as the reset value of the register on 
-this SoC is OK to have working host mode.
-
-> 
-> > +		dev_dbg(dwc3_data->dev, "Configuring as Host\n");
-> > +		break;
-> > +
-> > +	default:
-> > +		dev_err(dwc3_data->dev, "Unsupported mode of operation %d\n",
-> > +			dwc3_data->dr_mode);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	return regmap_write(dwc3_data->regmap, dwc3_data->syscfg_reg_off, val);
-> > +}
-> > +
-> > +/**
-> > + * st_dwc3_init: init the controller via glue logic
-> > + * @dwc3_data: driver private structure
-> > + */
-> > +static void st_dwc3_init(struct st_dwc3 *dwc3_data)
-> > +{
-> > +
-> 
-> this blank line isn't necessary.
-
-Ok, removed in next iteration
-
-<snip>
-
-> > +
-> > +	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "syscfg-reg");
-> > +	if (!res) {
-> > +		ret = -ENXIO;
-> > +		goto undo_platform_dev_alloc;
-> > +	}
-> > +
-> > +	dwc3_data->syscfg_reg_off = res->start;
-> > +
-> > +	dev_dbg(&pdev->dev, "glue-logic addr 0x%p, syscfg-reg offset 0x%x\n",
-> > +		dwc3_data->glue_base, dwc3_data->syscfg_reg_off);
-> 
-> looks like this message would be more of a dev_vdbg().
-
-Ok, changed to dev_vdbg in next iteration
-
-<snip>
-
-> > +
-> > +#ifdef CONFIG_PM_SLEEP
-> > +static int st_dwc3_suspend(struct device *dev)
-> > +{
-> > +	struct st_dwc3 *dwc3_data = dev_get_drvdata(dev);
-> > +
-> > +	reset_control_assert(dwc3_data->rstc_pwrdn);
-> > +	reset_control_assert(dwc3_data->rstc_rst);
-> 
-> Two questions:
-> 
-> 1) how would you handle the case when this device is a wakeup source ?
-
-I've confirmed with ST the usb3 IP can't be a wakeup source on this SoC.
-
-> 2) when resuming, wouldn't you have to reinitialize the entire core ?
-
-I asked ST to test this, as a full working suspend / resume setup involves some firmware for the
-standby controller which I don't currently have access to (and it is only with the SBC running that all
-power will be removed from this part of the SoC). They have confirmed that the usb3 port works after a suspend / resume
-and devices are correctly enumerated etc after a resume with the code as it was submitted.
-
-What I did notice though after re-reading it, is that we are not re-configuring the ST glue logic registers
-on a resume. So the controller could end up with the vbus mux configured differently. So in the next iteration I've
-fixed this, and call st_dwc3_drd_init and st_dwc3_init in the resume path.
-
-Although ST confirmed that suspend / resume works with or without this change applied.
-
-regards,
-
-Peter.
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
