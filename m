@@ -1,84 +1,233 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/5] phy: exynos5-usbdrd: Adding Kconfig dependency for
- Exynos7
-Date: Tue, 2 Sep 2014 09:37:11 -0500
-Message-ID: <20140902143711.GD16872@saruman.home>
-References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
- <1409212920-28526-6-git-send-email-gautam.vivek@samsung.com>
- <CAN_we7MQAqEsRaQc_pkRE_KXx9zZNLDBR2aHUrazM30Nv3udmQ@mail.gmail.com>
- <CAFp+6iHsfg6Ru0LBN=JviV=-mSdmuSo9Te3EXYF+X8jssD_BYQ@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
+ HC
+Date: Tue, 2 Sep 2014 10:12:11 -0500
+Message-ID: <20140902151211.GG16872@saruman.home>
+References: <1406734091-16202-1-git-send-email-peter.griffin@linaro.org>
+ <1406734091-16202-2-git-send-email-peter.griffin@linaro.org>
+ <20140820180850.GV24500@saruman.home>
+ <20140902111812.GA28857@griffinp-ThinkPad-X1-Carbon-2nd>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2Z2K0IlrPCVsbNpk"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="JkW1gnuWHDypiMFO"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAFp+6iHsfg6Ru0LBN=JviV=-mSdmuSo9Te3EXYF+X8jssD_BYQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Daniele Forsi <dforsi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, kishon <kishon-l0cyMroinI0@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20140902111812.GA28857@griffinp-ThinkPad-X1-Carbon-2nd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, lee.jones@linaro.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
 List-Id: linux-omap@vger.kernel.org
 
---2Z2K0IlrPCVsbNpk
+--JkW1gnuWHDypiMFO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 01, 2014 at 01:30:21PM +0530, Vivek Gautam wrote:
-> On Thu, Aug 28, 2014 at 8:36 PM, Daniele Forsi <dforsi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > 2014-08-28 10:02 GMT+02:00 Vivek Gautam:
-> >
-> >> This USB 3.0 PHY controller is also present on Exynos7
-> >> platform, so adding the dependency on ARCH_EXYNOS7 for this driver.
-> >
-> >> +++ b/drivers/phy/Kconfig
-> >> @@ -186,7 +186,7 @@ config PHY_EXYNOS5250_USB2
-> >>
-> >>  config PHY_EXYNOS5_USBDRD
-> >>         tristate "Exynos5 SoC series USB DRD PHY driver"
-> >> -       depends on ARCH_EXYNOS5 && OF
-> >> +       depends on (ARCH_EXYNOS5 || ARCH_EXYNOS7) && OF
-> >
-> > shouldn't that prompt and its help text be updated to mention also Exyn=
-os7?
+Hi,
+
+On Tue, Sep 02, 2014 at 12:18:12PM +0100, Peter Griffin wrote:
+> Hi Felipe,
 >=20
-> Right, even that has to be updated accordingly. Will update the same in n=
-ext
-> version of the patch. Thanks for pointing this.
+> Sorry for the delay in replying to this mail, I've been trying to get
+> answers to the suspend/resume questions you had.
 
-I would rather change that to ARCH_EXYNOS, unless Kishon doesn't like
-that idea. The thing is that this will likely need to be patches for
-exynos8, 9, 10, 11...
+np
 
-cheers
+> > > +config USB_DWC3_ST
+> > > +	tristate "STMicroelectronics Platforms"
+> > > +	depends on ARCH_STI && OF
+> > > +	default USB_DWC3_HOST
+> >=20
+> > this seems wrong as USB_DWC3_{HOST,GADGET,DUAL_ROLE} are booleans and
+> > USB_DWC3_ST is a tristate. Better to stick with defaulting to USB_DWC3
+> > instead like all the others.
+>=20
+> Ok will fix.
+
+tks
+
+> > > +static inline void st_dwc3_writel(void __iomem *base, u32 offset, u3=
+2 value)
+> > > +{
+> > > +	writel_relaxed(value, base + offset);
+> >=20
+> > why relaxed ?
+>=20
+> The writel and readl implementations on ARM are quite expensive.
+>=20
+> The writel, does a memory barrier, and also a outer_sync(), which
+> involves taking a spinlock, and draining the cache store buffers.
+> The readl also does a memory barrier.
+>=20
+> These barriers / cache operations are unnecessary here as the
+> peripheral memory has been ioremap'ed as device memory, and it is only
+> one device we are writing to, so the writel/readl_relaxed variants are
+> good enough as the ARM arch guarentees they will arrive in program
+> order.
+
+good point :-)
+
+> There is some more info about this here
+> http://permalink.gmane.org/gmane.linux.ports.arm.kernel/117658
+>=20
+> Note: It's only possible when we know the driver is not being used on
+> other architectures which may have different constraints.
+> However for this driver, we know this IP (st glue logic) has only been
+> used on ARM based SoC's.
+
+alright :-)
+
+> > > +}
+> > > +
+> > > +/**
+> > > + * st_dwc3_drd_init: program the port
+> > > + * @dwc3_data: driver private structure
+> > > + * Description: this function is to program the port as either host =
+or device
+> > > + * according to the static configuration passed from devicetree.
+> > > + * OTG and dual role are not yet supported!
+> > > + */
+> > > +static int st_dwc3_drd_init(struct st_dwc3 *dwc3_data)
+> > > +{
+> > > +	u32 val;
+> > > +	int err;
+> > > +
+> > > +	err =3D regmap_read(dwc3_data->regmap, dwc3_data->syscfg_reg_off, &=
+val);
+> > > +	if (err)
+> > > +		return err;
+> > > +
+> > > +	switch (dwc3_data->dr_mode) {
+> > > +	case USB_DR_MODE_PERIPHERAL:
+> > > +		val |=3D USB_SET_PORT_DEVICE;
+> > > +		dev_dbg(dwc3_data->dev, "Configuring as Device\n");
+> > > +		break;
+> > > +
+> > > +	case USB_DR_MODE_HOST:
+> > > +		val &=3D USB_HOST_DEFAULT_MASK;
+> >=20
+> > are you missing a ~ here ? Also, shouldn't you mask off the bits before
+> > this switch ?
+>=20
+> Yes your right, good spot! In the next iteration I've defined macros
+> for the bits in this control register and explitcitly set/clear them
+> for both cases, also adding a comment regarding the
+> USB3_DELAY_VBUSVALID bit.
+
+ok, cool.
+
+> By chance host mode still worked with this bug present as the reset
+> value of the register on this SoC is OK to have working host mode.
+
+heh :-)
+
+> > > +		dev_dbg(dwc3_data->dev, "Configuring as Host\n");
+> > > +		break;
+> > > +
+> > > +	default:
+> > > +		dev_err(dwc3_data->dev, "Unsupported mode of operation %d\n",
+> > > +			dwc3_data->dr_mode);
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	return regmap_write(dwc3_data->regmap, dwc3_data->syscfg_reg_off, v=
+al);
+> > > +}
+> > > +
+> > > +/**
+> > > + * st_dwc3_init: init the controller via glue logic
+> > > + * @dwc3_data: driver private structure
+> > > + */
+> > > +static void st_dwc3_init(struct st_dwc3 *dwc3_data)
+> > > +{
+> > > +
+> >=20
+> > this blank line isn't necessary.
+>=20
+> Ok, removed in next iteration
+>=20
+> <snip>
+>=20
+> > > +
+> > > +	res =3D platform_get_resource_byname(pdev, IORESOURCE_MEM, "syscfg-=
+reg");
+> > > +	if (!res) {
+> > > +		ret =3D -ENXIO;
+> > > +		goto undo_platform_dev_alloc;
+> > > +	}
+> > > +
+> > > +	dwc3_data->syscfg_reg_off =3D res->start;
+> > > +
+> > > +	dev_dbg(&pdev->dev, "glue-logic addr 0x%p, syscfg-reg offset 0x%x\n=
+",
+> > > +		dwc3_data->glue_base, dwc3_data->syscfg_reg_off);
+> >=20
+> > looks like this message would be more of a dev_vdbg().
+>=20
+> Ok, changed to dev_vdbg in next iteration
+>=20
+> <snip>
+>=20
+> > > +
+> > > +#ifdef CONFIG_PM_SLEEP
+> > > +static int st_dwc3_suspend(struct device *dev)
+> > > +{
+> > > +	struct st_dwc3 *dwc3_data =3D dev_get_drvdata(dev);
+> > > +
+> > > +	reset_control_assert(dwc3_data->rstc_pwrdn);
+> > > +	reset_control_assert(dwc3_data->rstc_rst);
+> >=20
+> > Two questions:
+> >=20
+> > 1) how would you handle the case when this device is a wakeup source ?
+>=20
+> I've confirmed with ST the usb3 IP can't be a wakeup source on this SoC.
+>=20
+> > 2) when resuming, wouldn't you have to reinitialize the entire core ?
+>=20
+> I asked ST to test this, as a full working suspend / resume setup
+> involves some firmware for the standby controller which I don't
+> currently have access to (and it is only with the SBC running that all
+> power will be removed from this part of the SoC). They have confirmed
+> that the usb3 port works after a suspend / resume and devices are
+> correctly enumerated etc after a resume with the code as it was
+> submitted.
+>=20
+> What I did notice though after re-reading it, is that we are not
+> re-configuring the ST glue logic registers on a resume. So the
+> controller could end up with the vbus mux configured differently. So
+> in the next iteration I've fixed this, and call st_dwc3_drd_init and
+> st_dwc3_init in the resume path.
+>=20
+> Although ST confirmed that suspend / resume works with or without this
+> change applied.
+
+alright, thanks a lot for confirming.
 
 --=20
 balbi
 
---2Z2K0IlrPCVsbNpk
+--JkW1gnuWHDypiMFO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUBdYXAAoJEIaOsuA1yqREy/kP+gL2LlhK87Z2C3Yj98QNTCm7
-5eWyPXvWu4qFCUb/bS/XyZKZ1fILcTUEN6U/OJsreTwLZv5Bz1CR/vUYRMyenBj2
-UKqoqHgzUZXCVC8XpUwm5G7LcNnoZfT5f7KarxT7FrXKQ7Yc8SLZm2xXkxySk8Gq
-4ts1cfj1NdGIGX8S9vv5+OH3+Go05SILNxsmSkedvH4lfHW4F5LRQnKkgLWmOaoK
-2P3+t7jjepTw5tRbR2KYaovRUlRkjzh+gDUUInxIYW26ajigMl2aMcuFf4Y/6Mpa
-AQUbX7IoIhjdgNBRIBSf+is2LtVm2fVzmLy3sz2RgMEV02UNfYpYoJpIkLzNcMB1
-cYTGlpJ6jIZleEXJU31RoSYXse1sR/K/APM8TM8F0susxyOH37PndRcNr5hhU6oE
-vlhftuQVXEtgx3t+zsa3azebGqxW5GZLp8w2lwyFTQtzAAmm/J8V3JgnFe4ku54m
-GTk2+SJNfBwP/ERj43xjikcajXpOSaqe89XAyUtTzQ+OLMl7/p+ax3QV/gxlooj1
-RYNOZMWL3hjwXBv1rdSxuIHk/hebeKCaoVy5SOfynR4hrEZ0lNK+x5GqwMxC5UUn
-C5XN5icdY9HttNpkOhwXfy1B8JyR6hmftnGsKkMCQs3v6L7LDPTYtbPAIivaMIIj
-X23IO7W19CzHqpFN/jpl
-=DSEq
+iQIcBAEBAgAGBQJUBd5LAAoJEIaOsuA1yqRE4xgQALXNvkeO2+e/FtRB37LfOfqt
+vQnEuIEKIYHjG+MuFP4B7bF4l6aP1TH8CHpMEQVc/4iupc5P6hu+IsgN1FtXwW8p
+apyt4MGkCpYhkW/Nk+UplNWHQSpz7DAo1RhCQBjri9+HOAVc1Qda6TmvB/L9A1hU
+skohs+WoBJXxw5SZV2m472em6dXra990c/KlcnMemDTrJY/ZD2oxA5hOcEj3tSdQ
+p2+x04aM7YOOEF+vs+apZR80K9Dm00wyUgWXAzdBUrZi47N6XWPRdsmmgAs+GEyA
+rJVK09oiNihWapm7826ck7TROsPDOJyV3lynR9BYwbZ/vh9Wp9iYuZ0lK+OkEPd3
+p2KeHNw5bpJEbZaMBEywR0vABZJhrBi9XLXVOuBILXNvGEplk8YT3aOeHv/bJ6wI
+qdBXYQJhLsagW5Wn3Pz7/57MF2tWTUI2LxYTXeRKteQ7FxVeEN1g0RwkVPYaaUj0
+pgSsY5PEBChJMZziIOnMtvb6dFYNEEAjueeOcc7VSsh8o8tYgnYfAhd7G94KdCJ2
+cXAsHTmGl1UYYaMP8ES5Ql5Y3H9Fk+76eSw4C432KRuloEtPKgCh+5DBFEJD63ft
+G1YYyBFKBKHRKBgHfPOb29HH/XemDodP9w1wXy9G9WrIdN9ccMuwE0Fv7okbXwV1
+2E9JbXtH4El6SD0IqRaI
+=ifqe
 -----END PGP SIGNATURE-----
 
---2Z2K0IlrPCVsbNpk--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--JkW1gnuWHDypiMFO--
