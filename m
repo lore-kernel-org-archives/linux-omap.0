@@ -1,62 +1,86 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] mfd: palmas: Add support for optional wakeup
-Date: Mon, 01 Sep 2014 13:30:09 -0500
-Message-ID: <5404BB31.3060001@ti.com>
-References: <1408457197-30487-1-git-send-email-nm@ti.com> <20140829105619.GH24579@lee--X1> <54007515.5080506@ti.com> <20140901093206.GJ7374@lee--X1>
-Reply-To: nm@ti.com
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Tue, 2 Sep 2014 05:05:46 +0200
+Message-ID: <20140902030546.GB6724@earth.universe>
+References: <20140821184416.GF10066@atomide.com>
+ <53FE3779.5090908@linutronix.de>
+ <20140827202313.GF16006@atomide.com>
+ <20140828082348.GA5413@linutronix.de>
+ <20140828164645.GG16006@atomide.com>
+ <53FF84DF.7080406@linutronix.de>
+ <20140828225454.GM16006@atomide.com>
+ <540048B4.7010807@linutronix.de>
+ <20140829161221.GO16006@atomide.com>
+ <5404B149.6010400@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140901093206.GJ7374@lee--X1>
+Content-Disposition: inline
+In-Reply-To: <5404B149.6010400@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@linaro.org>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>, balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/01/2014 04:32 AM, Lee Jones wrote:
-> On Fri, 29 Aug 2014, Nishanth Menon wrote:
->> On 08/29/2014 05:56 AM, Lee Jones wrote:
->>> On Tue, 19 Aug 2014, Nishanth Menon wrote:
->>>
->>>> With the recent pinctrl-single changes, omaps can treat wake-up events
->>>> from deeper idle states as interrupts.
->>>>
->>>> Let's add support for the optional second interrupt for wake-up
->>>> events. And then SoC can wakeup and handle the event using it's
->>>> regular handler.
->>>>
->>>> Finally, to pass the wake-up interrupt in the dts file,
->>>> interrupts-extended property needs to be passed.
->>>>
->>>> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
->>>> support for optional wake-up")
->>>>
->>>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>>> ---
->>>>   Documentation/devicetree/bindings/mfd/palmas.txt |   20 ++++++++
->>>
->>> DT Ack please.
->
-> Please read Documentation/devicetree/bindings/submittingpatches.txt
 
-I assume you wanted me to note the following:
-"
-The Documentation/ portion of the patch should be a separate patch.
-"
+--tsOsTdHNUZQcU9Ye
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Many maintainers prefer that when the bindings for the device is new, 
-and when additional properties are added, they prefer it part of same 
-patch.. Anyways.. if the above is what you prefer, I can follow that.
+Hi,
 
-In short, I assume you'd like three patches:
-a) fix up style of current documentation - palmas to palmas@40
-b) Split documentation for interrupt-extended from the current patch 
-into it's own patch.
-c) remainder of this patch as is..
+On Mon, Sep 01, 2014 at 07:47:53PM +0200, Sebastian Andrzej Siewior wrote:
+> On 08/29/2014 06:12 PM, Tony Lindgren wrote:
+> > Looks like the paste bug is there for sure, doing off idle and pasting
+> > 240 characters to the console can hang the UART RX after few attempts,
+> > and pasting 16 charactes won't show up at all if the system is idling.
+> > So you may want to play with that too a bit :)
+>=20
+> One character wakes it up. After that you can send 16, 64 and you see
+> them. Right away. No delay.
+>=20
+> If you send "a lot" data in one-go it takes approx 152 characters until
+> the first one is displayed properly at 115200,8N1. That is approx 13ms.
+> Could it take that long to get up and be ready?
 
-Does that sound right?
+I noticed the same behaviour when I tested the runtime PM stuff on
+my N900 with the existing serial-omap driver and I also assumed,
+that the chip needs that long to get up.
 
----
-Regards,
-Nishanth Menon
+> Comparing it with serial-omap I see the same thing: I takes approx the
+> same amount of data until the first one is displayed. After a lot of
+> "long" writes which wake the chip up from idle I manage to freeze both,
+> the serial-omap driver and mine driver.
+>=20
+> One thing that is probably a dumb idea is that printk in
+> omap_8250_mdr1_errataset().
+> Would it be possible that when I hit a printk in the resume path that I
+> may deadlock and box will freeze?
+
+-- Sebastian
+
+--tsOsTdHNUZQcU9Ye
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUBTQJAAoJENju1/PIO/qaw4YP/355aewztKTr/5ipq84jfF60
+dAuWXommZrw1dnC1IsOkXpwSiBgb9RErN6mjquWuAaz0ZQ8ZziwuTrGgnsO48lNr
+81rx746iCB4AYKR/NBc0hjE5he8B7d+bcNDmAV+FN3tsaKVHcxsJzaDQC0w98lLy
++4RKLYufJ7O9wr+0EjmX1wpwhvuVgaVBIXOnbb8FvuvU5vbJqJ6qjRQ41cUke5IE
+NkkzfNiLJU5R6Is4N1AIsrzTRyt5xxj+3P9z5F38MAbezEzlg5TTWsmDsrUaAi+j
+gtzz0U6dDztS4yBAFr3a2bEeCnQwbOMgXHtTn6YJxa9atzDcEIz0IYPAYPhBQFQX
+FUUSHvLBiNYkhgZfjkIsx12bXnSwFu/uXohP95gKoUHNDPJ9CffL9v+nND4sgmeq
+3uDUviUiBfTuXNG1mg661F8DuRIITkQx/gKbkR+OblmvCSBoKT8nRGnfxx7Ik/ZS
+PH5vMi3wAMXyX/UVXI9IuAY6ThyA/rvO1zQeCb+odblMQGJo8HMF1lsXL2BUuEXy
+SdhTZzsVjrI5tcvNfgG+MlbnuxPO9gw7URvtFgI4QDCJbPVDcn1FQ+8P4DiNOrzU
+58VBU0yeElYTp3+DGHNbA6k/RhcjNTiOPRcckBvjuqQak+5H6RU/by2fHjhEbDr3
+peSg7DHVMxq5lnsTYQrD
+=nVOC
+-----END PGP SIGNATURE-----
+
+--tsOsTdHNUZQcU9Ye--
