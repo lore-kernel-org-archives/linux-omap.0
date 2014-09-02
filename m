@@ -1,8 +1,8 @@
 From: Peter Griffin <peter.griffin@linaro.org>
-Subject: [PATCH v5 2/3] usb: dwc3: dwc3-st: Add st-dwc3 devicetree bindings
- documentation
-Date: Tue,  2 Sep 2014 18:08:48 +0100
-Message-ID: <1409677729-6922-3-git-send-email-peter.griffin@linaro.org>
+Subject: [PATCH v5 3/3] MAINTAINERS: Add dwc3-st.c file to ARCH/STI
+ architecture
+Date: Tue,  2 Sep 2014 18:08:49 +0100
+Message-ID: <1409677729-6922-4-git-send-email-peter.griffin@linaro.org>
 References: <1409677729-6922-1-git-send-email-peter.griffin@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,90 +22,27 @@ To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti
 Cc: peter.griffin@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch documents the device tree documentation required for
-the ST usb3 controller glue layer found in STiH407 devices.
+This patch adds the new dwc3-st.c glue driver found on
+STMicroelectronics stih407 consumer electronics SoC's into the STI
+arch section of the maintainers file.
 
-Signed-off-by: Giuseppe Cavallaro <peppe.cavallaro@st.com>
 Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
 Acked-by: Lee Jones <lee.jones@linaro.org>
 ---
- Documentation/devicetree/bindings/usb/dwc3-st.txt | 68 +++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/usb/dwc3-st.txt
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/devicetree/bindings/usb/dwc3-st.txt b/Documentation/devicetree/bindings/usb/dwc3-st.txt
-new file mode 100644
-index 0000000..f9d7025
---- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/dwc3-st.txt
-@@ -0,0 +1,68 @@
-+ST DWC3 glue logic
-+
-+This file documents the parameters for the dwc3-st driver.
-+This driver controls the glue logic used to configure the dwc3 core on
-+STiH407 based platforms.
-+
-+Required properties:
-+ - compatible	: must be "st,stih407-dwc3"
-+ - reg		: glue logic base address and USB syscfg ctrl register offset
-+ - reg-names	: should be "reg-glue" and "syscfg-reg"
-+ - st,syscon	: should be phandle to system configuration node which
-+		  encompasses the glue registers
-+ - resets	: list of phandle and reset specifier pairs. There should be two entries, one
-+		  for the powerdown and softreset lines of the usb3 IP
-+ - reset-names	: list of reset signal names. Names should be "powerdown" and "softreset"
-+See: Documentation/devicetree/bindings/reset/st,sti-powerdown.txt
-+See: Documentation/devicetree/bindings/reset/reset.txt
-+
-+ - #address-cells, #size-cells : should be '1' if the device has sub-nodes
-+   with 'reg' property
-+
-+ - pinctl-names	: A pinctrl state named "default" must be defined
-+See: Documentation/devicetree/bindings/pinctrl/pinctrl-binding.txt
-+
-+ - pinctrl-0	: Pin control group
-+See: Documentation/devicetree/bindings/pinctrl/pinctrl-binding.txt
-+
-+ - ranges	: allows valid 1:1 translation between child's address space and
-+		  parent's address space
-+
-+Sub-nodes:
-+The dwc3 core should be added as subnode to ST DWC3 glue as shown in the
-+example below. The DT binding details of dwc3 can be found in:
-+Documentation/devicetree/bindings/usb/dwc3.txt
-+
-+NB: The dr_mode property described in [1] is NOT optional for this driver, as the default value
-+is "otg", which isn't supported by this SoC. Valid dr_mode values for dwc3-st are either "host"
-+or "device".
-+
-+[1] Documentation/devicetree/bindings/usb/generic.txt
-+
-+Example:
-+
-+st_dwc3: dwc3@8f94000 {
-+	status		= "disabled";
-+	compatible	= "st,stih407-dwc3";
-+	reg		= <0x08f94000 0x1000>, <0x110 0x4>;
-+	reg-names	= "reg-glue", "syscfg-reg";
-+	st,syscfg	= <&syscfg_core>;
-+	resets		= <&powerdown STIH407_USB3_POWERDOWN>,
-+			  <&softreset STIH407_MIPHY2_SOFTRESET>;
-+	reset-names	= "powerdown",
-+			  "softreset";
-+	#address-cells	= <1>;
-+	#size-cells	= <1>;
-+	pinctrl-names	= "default";
-+	pinctrl-0	= <&pinctrl_usb3>;
-+	ranges;
-+
-+	dwc3: dwc3@9900000 {
-+		compatible	= "snps,dwc3";
-+		reg		= <0x09900000 0x100000>;
-+		interrupts	= <GIC_SPI 155 IRQ_TYPE_NONE>;
-+		dr_mode		= "host";
-+		phys-names      = "usb2-phy", "usb3-phy";
-+		phys            = <&usb2_picophy2>, <&phy_port2 MIPHY_TYPE_USB>;
-+	};
-+};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index cf24bb5..55381955 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1398,6 +1398,7 @@ F:	drivers/media/rc/st_rc.c
+ F:	drivers/i2c/busses/i2c-st.c
+ F:	drivers/tty/serial/st-asc.c
+ F:	drivers/mmc/host/sdhci-st.c
++F:	drivers/usb/dwc3/dwc3-st.c
+ 
+ ARM/TECHNOLOGIC SYSTEMS TS7250 MACHINE SUPPORT
+ M:	Lennert Buytenhek <kernel@wantstofly.org>
 -- 
 1.9.1
