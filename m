@@ -1,76 +1,66 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH] video: fix composite video connector compatible string
-Date: Tue, 2 Sep 2014 10:35:46 +0300
-Message-ID: <1409643346-8656-1-git-send-email-tomi.valkeinen@ti.com>
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix PM idle pin configuration to not
+ conflict with regulators
+Date: Tue, 2 Sep 2014 10:29:31 +0200
+Message-ID: <20140902082931.GA32460@breakpoint.cc>
+References: <20140819152405.GA12002@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39139 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750722AbaIBHf7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 2 Sep 2014 03:35:59 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48016 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750903AbaIBI3n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2014 04:29:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20140819152405.GA12002@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bigeasy@linutronix.de
 
-The quite-recently-added analog-tv-connector bindings say that the
-compatible string for composite video connector is
-"composite-connector". That string is also used in the omap3-n900.dts
-file. However, the connector driver uses "composite-video-connector", so
-this has never worked.
+On 2014-08-19 08:24:05 [-0700], Tony Lindgren wrote:
+> 
+> This allows us to enable the PMIC configuration for n900.
+> 
+> Fixes: 43fef47f94a1 (mfd: twl4030-power: Add a configuration to turn off oscillator during off-idle)
 
-While changing the driver's compatible string to "composite-connector"
-would be safer, as published DT bindings should not be changed, I'd
-rather fix the bindings in this case for two reasons:
+My beaglebone-ab does not like this. With this patch applied I end up
+with:
+[    2.437316] Waiting for root device /dev/mmcblk0p2...
+[    4.428192] mmc0: card never left busy state
+[    4.432647] mmc0: error -110 whilst initialising SD card
 
-* composite-connector is a bit too generic name, as it doesn't even hint
-  at video.
-* it's clear that this has never worked, which means no one has used
-  those bindings, which should make it safe to change this.
+I noticed this after I disabled lock debugging and tracing (syscall tracing
+was enabled). Enabling both again makes the error go away.
+With debugging + tracing disabled (so the error pops up) and git bisect
+I get this commit (daebabd57) reported.
+A diff between a good/bad bootlog (with lock-debug + tracing switched
+off):
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/devicetree/bindings/video/analog-tv-connector.txt | 4 ++--
- arch/arm/boot/dts/omap3-n900.dts                                | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+| smartreflex smartreflex.0: omap_sr_probe: SmartReflex driver initialized
+| smartreflex smartreflex.1: omap_sr_probe: SmartReflex driver initialized
+| hsusb2_vbus: disabling
+| VPLL2: disabling
+| VUSB3V1: disabling
+|+VDAC: disabling
+|+VAUX3: disabling
+| Waiting for root device /dev/mmcblk0p2...
+|-mmc0: host does not support reading read-only switch. assuming write-enable.
+|-mmc0: new high speed SDHC card at address 1234
+|-mmcblk0: mmc0:1234 SA04G 3.63 GiB 
+|- mmcblk0: p1 p2 p3
+|-BTRFS: device fsid 2e050bbb-1520-425e-a215-1e5bf865c7dc devid 1 transid 496 /dev/root
+|-BTRFS info (device mmcblk0p2): disk space caching is enabled
+|-BTRFS: detected SSD devices, enabling SSD mode
+|-VFS: Mounted root (btrfs filesystem) readonly on device 0:13.
+|-devtmpfs: mounted
+|-Freeing unused kernel memory: 216K (c051a000 - c0550000)
+|-BTRFS info (device mmcblk0p2): disk space caching is enabled
+|-
+|-Please press Enter to activate this console. 
+|+mmc0: card never left busy state
+|+mmc0: error -110 whilst initialising SD card
 
-diff --git a/Documentation/devicetree/bindings/video/analog-tv-connector.txt b/Documentation/devicetree/bindings/video/analog-tv-connector.txt
-index 0218fcdc1299..0c0970c210ab 100644
---- a/Documentation/devicetree/bindings/video/analog-tv-connector.txt
-+++ b/Documentation/devicetree/bindings/video/analog-tv-connector.txt
-@@ -2,7 +2,7 @@ Analog TV Connector
- ===================
- 
- Required properties:
--- compatible: "composite-connector" or "svideo-connector"
-+- compatible: "composite-video-connector" or "svideo-connector"
- 
- Optional properties:
- - label: a symbolic name for the connector
-@@ -14,7 +14,7 @@ Example
- -------
- 
- tv: connector {
--	compatible = "composite-connector";
-+	compatible = "composite-video-connector";
- 	label = "tv";
- 
- 	port {
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 1fe45d1f75ec..4361777a08d8 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -93,7 +93,7 @@
- 	};
- 
- 	tv: connector {
--		compatible = "composite-connector";
-+		compatible = "composite-video-connector";
- 		label = "tv";
- 
- 		port {
--- 
-1.9.1
+reverting this commit on top of -rc3 makes mmc0 work again.
 
+Sebastian
