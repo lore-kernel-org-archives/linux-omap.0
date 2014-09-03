@@ -1,57 +1,58 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 1/2] ARM: dts: dra7-evm: Fix i2c3 pinmux and frequency
-Date: Wed, 3 Sep 2014 14:17:31 +0300
-Message-ID: <1409743052-632-2-git-send-email-rogerq@ti.com>
-References: <1409743052-632-1-git-send-email-rogerq@ti.com>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH v2 00/26] genirq: fix use of irq_find_mapping outside
+ of legal RCU context
+Date: Wed, 3 Sep 2014 08:04:06 -0400
+Message-ID: <20140903120406.GK30467@titan.lakedaemon.net>
+References: <1409047421-27649-1-git-send-email-marc.zyngier@arm.com>
+ <alpine.DEB.2.10.1408262333420.3323@nanos>
+ <87y4uap98n.fsf@approximate.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50922 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756160AbaICLSK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 07:18:10 -0400
-In-Reply-To: <1409743052-632-1-git-send-email-rogerq@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40736 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755478AbaICMFA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 08:05:00 -0400
+Content-Disposition: inline
+In-Reply-To: <87y4uap98n.fsf@approximate.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: nm@ti.com, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@openrisc.net" <linux@openrisc.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "tony@atomide.com" <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "jonas@southpole.se" <jonas@southpole.se>, "shc_work@mail.ru" <shc_work@mail.ru>, "baohua@kernel.org" <baohua@kernel.org>, "maxime.ripard@free-electrons.com" <maxime.ripard@free-electrons.com>, "khilman@linaro.org" <khilman@linaro.org>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.>
 
-The I2C3 pins are taken from pads E21 (GPIO6_14) and
-F20 (GPIO6_15). Use the right pinmux register and mode.
+On Wed, Aug 27, 2014 at 10:33:44AM +0100, Marc Zyngier wrote:
+> Hi Thomas,
+> 
+> On Tue, Aug 26 2014 at 10:34:51 pm BST, Thomas Gleixner <tglx@linutronix.de> wrote:
+> > On Tue, 26 Aug 2014, Marc Zyngier wrote:
+> >
+> >> A number of irqchip drivers are directly calling irq_find_mapping,
+> >> which may use a rcu_read_lock call when walking the radix tree.
+> >> 
+> >> Turns out that if you hit that point with CONFIG_PROVE_RCU enabled,
+> >> the kernel will shout at you, as using RCU in this context may be
+> >> illegal (specially if coming from the idle state, where RCU would be
+> >> in a quiescent state).
+> >> 
+> >> A possible fix would be to wrap calls to irq_find_mapping into a
+> >> RCU_NONIDLE macro, but that really looks ugly.
+> >> 
+> >> This patch series introduce another generic IRQ entry point
+> >> (handle_domain_irq), which has the exact same behaviour as handle_IRQ
+> >> (as defined on arm, arm64 and openrisc), except that it also takes a
+> >> irq_domain pointer. This allows the logical IRQ lookup to be done
+> >> inside the irq_{enter,exit} section, which contains a
+> >> rcu_irq_{enter,exit}, making it safe.
+> >
+> > Looks good. Should this be routed to the genirq tree?
+> 
+> I'm happy for you to take this series, provided the architecture
+> maintainers agree on it (I'm still to hear from the openrisc guys, and
+> their mailing-list seems to positively hate my guts).
 
-Also set the I2C3 bus frequency to a safer 400KHz than
-3.4Mhz.
+I think everyone's had a chance to look over it by now.  Thomas, shall I
+take the series?
 
-CC: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+thx,
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 50f8022..42f5bc9 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -43,8 +43,8 @@
- 
- 	i2c3_pins: pinmux_i2c3_pins {
- 		pinctrl-single,pins = <
--			0x410 (PIN_INPUT | MUX_MODE0) /* i2c3_sda */
--			0x414 (PIN_INPUT | MUX_MODE0) /* i2c3_scl */
-+			0x288 (PIN_INPUT | MUX_MODE9) /* gpio6_14.i2c3_sda */
-+			0x28c (PIN_INPUT | MUX_MODE9) /* gpio6_15.i2c3_scl */
- 		>;
- 	};
- 
-@@ -284,7 +284,7 @@
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c3_pins>;
--	clock-frequency = <3400000>;
-+	clock-frequency = <400000>;
- };
- 
- &mcspi1 {
--- 
-1.8.3.2
-
+Jason.
