@@ -1,60 +1,80 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 5/6] ARM: OMAP2+: gpmc: Don't complain if wait pin is
- used without r/w monitoring
-Date: Wed, 3 Sep 2014 11:34:38 +0300
-Message-ID: <5406D29E.3040102@ti.com>
-References: <1409666227-20622-1-git-send-email-rogerq@ti.com> <1409666227-20622-6-git-send-email-rogerq@ti.com> <540616A0.9040900@pek-sem.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix PM idle pin configuration to
+ not conflict with regulators
+Date: Wed, 03 Sep 2014 10:38:32 +0200
+Message-ID: <5406D388.5050104@linutronix.de>
+References: <20140819152405.GA12002@atomide.com> <20140902082931.GA32460@breakpoint.cc> <20140903002445.GD11766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59617 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755141AbaICIel (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Sep 2014 04:34:41 -0400
-In-Reply-To: <540616A0.9040900@pek-sem.com>
+Received: from www.linutronix.de ([62.245.132.108]:42198 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752045AbaICIik (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 04:38:40 -0400
+In-Reply-To: <20140903002445.GD11766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: pekon <pekon@pek-sem.com>, tony@atomide.com
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Cc: Lee Jones <lee.jones@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 09/02/2014 10:12 PM, pekon wrote:
-> On Tuesday 02 September 2014 07:27 PM, Roger Quadros wrote:
->> For NAND read & write wait pin monitoring must be kept disabled as the
->> wait pin is only used to indicate NAND device ready status and not to
->> extend each read/write cycle.
->>
-> I think this description, does not fit in this patch.
+On 09/03/2014 02:24 AM, Tony Lindgren wrote:
+> I assume you mean beagleboard-ab, not beaglebone-ab :)
 
-It fits the description because it gives the reason why wait monitoring is optional.
+you assume correct.
 
-> And is incorrect as explained in previous patch review.
+>> reverting this commit on top of -rc3 makes mmc0 work again.
+> 
+> Again, I assume you're talking about reverting daebabd57,
+> not 43fef47f94a1. Anyways, here's a debug hack I used earlier to
 
-It is correct. I've pointed you to the relevant TRM sections where it is said
-that GPMC read/write monitoring must be disabled for NAND case.
+Yes, I reverted daebabd57 which was pointed to me by git bisect.
 
-cheers,
--roger
+> dump out the twl configuration in late_initcall and via sysfs
+> so maybe try that and see what the values are with working
+> and non-working case?
+
+good.txt and bad.txt are from the late_initcall.
+
+ $ diff -u good.txt bad.txt
+--- good.txt    2014-09-03 10:29:58.920317368 +0200
++++ bad.txt     2014-09-03 10:28:57.064313222 +0200
+@@ -1,13 +1,13 @@
+  1: addr: 0x0017 grp: 0x0000 type: 0x0000 remap: 0x0008
+- 2: addr: 0x001b grp: 0x0000 type: 0x0000 remap: 0x0008
+- 3: addr: 0x001f grp: 0x0000 type: 0x0000 remap: 0x0008
++ 2: addr: 0x001b grp: 0x002e type: 0x0000 remap: 0x0008
++ 3: addr: 0x001f grp: 0x002e type: 0x0000 remap: 0x0008
+  4: addr: 0x0023 grp: 0x0000 type: 0x0000 remap: 0x0008
+  5: addr: 0x0027 grp: 0x002e type: 0x0000 remap: 0x0008
+  6: addr: 0x002b grp: 0x0000 type: 0x0000 remap: 0x0008
+  7: addr: 0x002f grp: 0x002e type: 0x000b remap: 0x0000
+  8: addr: 0x0033 grp: 0x002e type: 0x0000 remap: 0x0008
+  9: addr: 0x0037 grp: 0x002e type: 0x0000 remap: 0x0008
+-10: addr: 0x003b grp: 0x0000 type: 0x0000 remap: 0x0008
++10: addr: 0x003b grp: 0x002e type: 0x0000 remap: 0x0008
+ 11: addr: 0x003f grp: 0x00ef type: 0x0011 remap: 0x0008
+ 12: addr: 0x0043 grp: 0x00ef type: 0x0010 remap: 0x0008
+ 13: addr: 0x0047 grp: 0x00ef type: 0x0011 remap: 0x0008
+@@ -17,12 +17,8 @@
+ 17: addr: 0x0071 grp: 0x0000 type: 0x0000 remap: 0x0008
+ 18: addr: 0x0074 grp: 0x0000 type: 0x0000 remap: 0x0008
+ 19: addr: 0x0077 grp: 0x00ef type: 0x0000 remap: 0x0008
+-mmc0: host does not support reading read-only switch. assuming
+write-enable.
+ 20: addr: 0x007a grp: 0x0000 type: 0x0000 remap: 0x0000
+-mmc0: new high speed SDHC card at address 1234
+-mmcblk0: mmc0:1234 SA04G 3.63 GiB
+ 21: addr: 0x007f grp: 0x00ef type: 0x000a remap: 0x0008
+- mmcblk0: p1 p2 p3
+ 22: addr: 0x0082 grp: 0x00ee type: 0x0008 remap: 0x0008
+ 23: addr: 0x0085 grp: 0x00af type: 0x0013 remap: 0x0000
+ 24: addr: 0x0088 grp: 0x00ef type: 0x000e remap: 0x0008
+
 
 > 
+> Regards,
 > 
->> So don't print a warning if wait pin is specified while read/write
->> monitoring is not in the device tree.
->>
->> Sanity check wait pin number irrespective if read/write monitoring is
->> set or not.
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
-> But below mentioned checks and clean-up makes sense. So
-> apart from first 3 lines of commit log ..
-> 
-> Reviewed-by: Pekon Gupta <pekon@pek-sem.com>
-> 
-> 
-> with regards, pekon
-> 
-> ------------------------
-> Powered by BigRock.com
-> 
+> Tony
 
+Sebastian
