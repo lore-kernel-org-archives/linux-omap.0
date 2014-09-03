@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] iommu/omap: Check for valid archdata in attach_dev
-Date: Wed, 3 Sep 2014 18:58:31 -0500
-Message-ID: <1409788712-10741-2-git-send-email-s-anna@ti.com>
+Subject: [PATCH 2/2] iommu/omap: Fix iommu archdata name for DT-based devices
+Date: Wed, 3 Sep 2014 18:58:32 -0500
+Message-ID: <1409788712-10741-3-git-send-email-s-anna@ti.com>
 References: <1409788712-10741-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,34 +21,58 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Any device requiring to be attached to an iommu_domain must have
-valid archdata containing the necessary iommu information, which
-is SoC-specific. Add a check in the omap_iommu_attach_dev to make
-sure that the device has non-NULL archdata before accessing
-different SoC-specific fields of the archdata. This prevents a
-NULL pointer dereference on any misconfigured devices.
+A device is tied to an iommu through its archdata field. The archdata
+is allocated on the fly for DT-based devices automatically through the
+.add_device iommu ops. The current logic incorrectly assigned the name
+of the IOMMU user device, instead of the name of the IOMMU device as
+required by the attach logic. Fix this issue so that DT-based devices
+can attach successfully to an IOMMU domain.
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/iommu/omap-iommu.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 02ef0ac..f245d51 100644
+index f245d51..f47ac03 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -1092,6 +1092,12 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
+@@ -26,6 +26,7 @@
+ #include <linux/of.h>
+ #include <linux/of_iommu.h>
+ #include <linux/of_irq.h>
++#include <linux/of_platform.h>
  
- 	spin_lock(&omap_domain->lock);
+ #include <asm/cacheflush.h>
  
-+	if (!arch_data) {
-+		dev_err(dev, "device doesn't have an associated iommu\n");
-+		ret = -EINVAL;
-+		goto out;
+@@ -1244,6 +1245,7 @@ static int omap_iommu_add_device(struct device *dev)
+ {
+ 	struct omap_iommu_arch_data *arch_data;
+ 	struct device_node *np;
++	struct platform_device *pdev;
+ 
+ 	/*
+ 	 * Allocate the archdata iommu structure for DT-based devices.
+@@ -1258,13 +1260,19 @@ static int omap_iommu_add_device(struct device *dev)
+ 	if (!np)
+ 		return 0;
+ 
++	pdev = of_find_device_by_node(np);
++	if (WARN_ON(!pdev)) {
++		of_node_put(np);
++		return -EINVAL;
 +	}
 +
- 	/* only a single device is supported per domain for now */
- 	if (omap_domain->iommu_dev) {
- 		dev_err(dev, "iommu domain is already attached\n");
+ 	arch_data = kzalloc(sizeof(*arch_data), GFP_KERNEL);
+ 	if (!arch_data) {
+ 		of_node_put(np);
+ 		return -ENOMEM;
+ 	}
+ 
+-	arch_data->name = kstrdup(dev_name(dev), GFP_KERNEL);
++	arch_data->name = kstrdup(dev_name(&pdev->dev), GFP_KERNEL);
+ 	dev->archdata.iommu = arch_data;
+ 
+ 	of_node_put(np);
 -- 
 2.0.4
