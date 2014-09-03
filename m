@@ -1,54 +1,53 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: Re: [PATCH 5/5] phy: exynos5-usbdrd: Adding Kconfig dependency for Exynos7
-Date: Wed, 3 Sep 2014 09:32:14 +0530
-Message-ID: <CAFp+6iE4V4bWHGasr2qNC14mGNAfjQbgerCDMLLatnQQJ86NuA@mail.gmail.com>
-References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
-	<1409212920-28526-6-git-send-email-gautam.vivek@samsung.com>
-	<CAN_we7MQAqEsRaQc_pkRE_KXx9zZNLDBR2aHUrazM30Nv3udmQ@mail.gmail.com>
-	<CAFp+6iHsfg6Ru0LBN=JviV=-mSdmuSo9Te3EXYF+X8jssD_BYQ@mail.gmail.com>
-	<20140902143711.GD16872@saruman.home>
+From: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Subject: [PATCH] usb: dwc3: gadget: Fix desc NULL pointer in
+ dwc3_gadget_ep_queue()
+Date: Wed, 3 Sep 2014 14:26:34 +0800
+Message-ID: <20140903062634.GA27870@intel.com>
+Reply-To: jin.can.zhuang@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20140902143711.GD16872@saruman.home>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Daniele Forsi <dforsi@gmail.com>, USB list <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kishon <kishon@ti.com>, Kukjin Kim <kgene.kim@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: david.a.cohen@intel.com, jiebing.li@intel.com, hang.yuan@intel.com, hao.wu@intel.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 2, 2014 at 8:07 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Mon, Sep 01, 2014 at 01:30:21PM +0530, Vivek Gautam wrote:
->> On Thu, Aug 28, 2014 at 8:36 PM, Daniele Forsi <dforsi@gmail.com> wrote:
->> > 2014-08-28 10:02 GMT+02:00 Vivek Gautam:
->> >
->> >> This USB 3.0 PHY controller is also present on Exynos7
->> >> platform, so adding the dependency on ARCH_EXYNOS7 for this driver.
->> >
->> >> +++ b/drivers/phy/Kconfig
->> >> @@ -186,7 +186,7 @@ config PHY_EXYNOS5250_USB2
->> >>
->> >>  config PHY_EXYNOS5_USBDRD
->> >>         tristate "Exynos5 SoC series USB DRD PHY driver"
->> >> -       depends on ARCH_EXYNOS5 && OF
->> >> +       depends on (ARCH_EXYNOS5 || ARCH_EXYNOS7) && OF
->> >
->> > shouldn't that prompt and its help text be updated to mention also Exynos7?
->>
->> Right, even that has to be updated accordingly. Will update the same in next
->> version of the patch. Thanks for pointing this.
->
-> I would rather change that to ARCH_EXYNOS, unless Kishon doesn't like
-> that idea. The thing is that this will likely need to be patches for
-> exynos8, 9, 10, 11...
+dep->endpoint.desc is checked at the beginning of
+dwc3_gadget_ep_queue(), but after that it may be set to NULL
+by another thread and then accessed again in dwc3_gadget_ep_queue().
+This will lead to kernel oops.
 
-Yes, after we have the 2nd version of Exynos7 support patches, it makes
-more sense to keep dependency on ARCH_EXYNOS.
+Expand spinlock protection area to aviod race condition.
 
+Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
+Signed-off-by: Jiebing Li <jiebing.li@intel.com>
+---
+ drivers/usb/dwc3/gadget.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-
-
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 349cacc..e8fb231 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1225,16 +1225,17 @@ static int dwc3_gadget_ep_queue(struct usb_ep *ep, struct usb_request *request,
+ 
+ 	int				ret;
+ 
++	spin_lock_irqsave(&dwc->lock, flags);
+ 	if (!dep->endpoint.desc) {
+ 		dev_dbg(dwc->dev, "trying to queue request %p to disabled %s\n",
+ 				request, ep->name);
++		spin_unlock_irqrestore(&dwc->lock, flags);
+ 		return -ESHUTDOWN;
+ 	}
+ 
+ 	dev_vdbg(dwc->dev, "queing request %p to %s length %d\n",
+ 			request, ep->name, request->length);
+ 
+-	spin_lock_irqsave(&dwc->lock, flags);
+ 	ret = __dwc3_gadget_ep_queue(dep, req);
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
+ 
 -- 
-Best Regards
-Vivek Gautam
-Samsung R&D Institute, Bangalore
-India
+1.7.9.5
