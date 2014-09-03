@@ -1,76 +1,74 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: PROBLEM: bindings for drivers/mfd/twl4030-power.c
-Date: Wed, 3 Sep 2014 14:13:10 -0500
-Message-ID: <CAGo_u6r1UvbUMf2WC8=-CudXDCZ69KSUbBSOAiPWWLehotj36Q@mail.gmail.com>
-References: <FAC7D7E5-1D05-4D63-821F-C56D3AAA8FF9@goldelico.com>
-	<20140825212652.GR17254@atomide.com>
-	<EBD1E2E6-E596-4B3D-B093-144ABDD7DEDE@goldelico.com>
-	<20140903184527.GG11766@atomide.com>
-	<54076311.2030306@ti.com>
-	<20140903190234.GH11766@atomide.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate change
+Date: Wed, 03 Sep 2014 12:22:03 -0700
+Message-ID: <20140903192203.11368.5520@quantum>
+References: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f181.google.com ([209.85.213.181]:56921 "EHLO
-	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549AbaICTNL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 15:13:11 -0400
-In-Reply-To: <20140903190234.GH11766@atomide.com>
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:43718 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755889AbaICTWU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 15:22:20 -0400
+Received: by mail-pd0-f174.google.com with SMTP id ft15so11761491pdb.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Sep 2014 12:22:18 -0700 (PDT)
+In-Reply-To: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Wed, Sep 3, 2014 at 2:02 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Nishanth Menon <nm@ti.com> [140903 11:51]:
->> On 09/03/2014 01:45 PM, Tony Lindgren wrote:
->> > * Dr. H. Nikolaus Schaller <hns@goldelico.com> [140901 09:54]:
->> >> Hi,
->> >>
->> >> Am 25.08.2014 um 23:26 schrieb Tony Lindgren:
->> >>
->> >>> * Dr. H. Nikolaus Schaller <hns@goldelico.com> [140817 08:46]:
->> >>>> I am trying to make ti,use_poweroff work on 3.17-rc1 for the GTA04 board.
->> >>>> Poweroff was broken for a while and I found that the driver isn't loaded at all.
->> >>>>
->> >>>> It appears to me that commit e7cd1d1eb16fcdf53001b926187a82f1f3e1a7e6
->> >>>> did rename the compatible entry from "ti,twl4030-power" to "ti,twl4030-power-reset"
->> >>>> but this was not documented in the bindings and of course our DT does not
->> >>>> match.
->> >>>>
->> >>>> Even your commit message talks about "ti,twl4030-power" although I can't find it
->> >>>> in the code.
->> >>>
->> >>> Hmm sorry did I accidentally remove ti,twl4030-power? If so, that should
->> >>> be added back for sure. Do you have a patch for that already?
->> >>
->> >> No, I have only updated our device tree because I don't know if it really should
->> >> be added back or not.
->> >>
->> >> As you say the "ti,twl4030-power" does not configure anything. So what
->> >> is it good for?
->> >
->> > Only for the poweroff if "ti,use_poweroff" is set. Care to do a patch
->> > as you clearly have a use case to test it with?
->>
->> Tony, we were talking about supporting ti,system-power-controller as
->> the standard way of stating poweroff control is by the PMIC. this
->> seems to be standard in various SoCs. use_poweroff seems to predate
->> that standardization. Should'nt we start using
->> ti,system-power-controller instead?
->
-> Sure we can add that. But need to keep also parsing "ti,use_poweroff"
-> as it's already in use.
->
+Quoting Tero Kristo (2014-08-21 06:47:45)
+> In some cases, clocks can switch their parent with clk_set_rate, for
+> example clk_mux can do this in some cases. Current implementation of
+> clk_change_rate uses un-safe list iteration on the clock children, which
+> will cause wrong clocks to be parsed in case any of the clock children
+> change their parents during the change rate operation. Fixed by using
+> the safe list iterator instead.
+> 
+> The problem was detected due to some divide by zero errors generated
+> by clock init on dra7-evm board, see discussion under
+> http://article.gmane.org/gmane.linux.ports.arm.kernel/349180 for details.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> To: Mike Turquette <mturquette@linaro.org>
+> Reported-by: Nishanth Menon <nm@ti.com>
 
-Yep.
-https://patchwork.kernel.org/patch/4836381/
-https://patchwork.kernel.org/patch/4836371/
+Applied to clk-fixes.
 
-Split documentation out (based on discussion in
-https://patchwork.kernel.org/patch/4743321/).
+Thanks!
+Mike
 
--- 
----
-Regards,
-Nishanth Menon
+> ---
+>  drivers/clk/clk.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index b76fa69..bacc06f 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -1467,6 +1467,7 @@ static struct clk *clk_propagate_rate_change(struct clk *clk, unsigned long even
+>  static void clk_change_rate(struct clk *clk)
+>  {
+>         struct clk *child;
+> +       struct hlist_node *tmp;
+>         unsigned long old_rate;
+>         unsigned long best_parent_rate = 0;
+>         bool skip_set_rate = false;
+> @@ -1502,7 +1503,11 @@ static void clk_change_rate(struct clk *clk)
+>         if (clk->notifier_count && old_rate != clk->rate)
+>                 __clk_notify(clk, POST_RATE_CHANGE, old_rate, clk->rate);
+>  
+> -       hlist_for_each_entry(child, &clk->children, child_node) {
+> +       /*
+> +        * Use safe iteration, as change_rate can actually swap parents
+> +        * for certain clock types.
+> +        */
+> +       hlist_for_each_entry_safe(child, tmp, &clk->children, child_node) {
+>                 /* Skip children who will be reparented to another clock */
+>                 if (child->new_parent && child->new_parent != clk)
+>                         continue;
+> -- 
+> 1.7.9.5
+> 
