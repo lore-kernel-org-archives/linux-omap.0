@@ -1,49 +1,49 @@
 From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: Re: [PATCH 4/5] usb: dwc3: Adding Kconfig dependency for Exynos7
-Date: Wed, 3 Sep 2014 09:23:55 +0530
-Message-ID: <CAFp+6iExPJf8bfzG9DjXo1Jwr4maqj0C9x_WNwXiSyTcubDAZg@mail.gmail.com>
+Subject: Re: [PATCH 5/5] phy: exynos5-usbdrd: Adding Kconfig dependency for Exynos7
+Date: Wed, 3 Sep 2014 09:32:14 +0530
+Message-ID: <CAFp+6iE4V4bWHGasr2qNC14mGNAfjQbgerCDMLLatnQQJ86NuA@mail.gmail.com>
 References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
-	<1409212920-28526-5-git-send-email-gautam.vivek@samsung.com>
-	<20140828192824.GR16689@saruman.home>
+	<1409212920-28526-6-git-send-email-gautam.vivek@samsung.com>
+	<CAN_we7MQAqEsRaQc_pkRE_KXx9zZNLDBR2aHUrazM30Nv3udmQ@mail.gmail.com>
+	<CAFp+6iHsfg6Ru0LBN=JviV=-mSdmuSo9Te3EXYF+X8jssD_BYQ@mail.gmail.com>
+	<20140902143711.GD16872@saruman.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140828192824.GR16689@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20140902143711.GD16872@saruman.home>
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, kishon <kishon@ti.com>, Kukjin Kim <kgene.kim@samsung.com>
+Cc: Daniele Forsi <dforsi@gmail.com>, USB list <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kishon <kishon@ti.com>, Kukjin Kim <kgene.kim@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 29, 2014 at 12:58 AM, Felipe Balbi <balbi@ti.com> wrote:
-> On Thu, Aug 28, 2014 at 01:31:59PM +0530, Vivek Gautam wrote:
->> The Exynos-DWC3 USB 3.0 DRD controller is also present on
->> Exynos7 platform, so adding the dependency on ARCH_EXYNOS7
->> for this driver.
+On Tue, Sep 2, 2014 at 8:07 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Sep 01, 2014 at 01:30:21PM +0530, Vivek Gautam wrote:
+>> On Thu, Aug 28, 2014 at 8:36 PM, Daniele Forsi <dforsi@gmail.com> wrote:
+>> > 2014-08-28 10:02 GMT+02:00 Vivek Gautam:
+>> >
+>> >> This USB 3.0 PHY controller is also present on Exynos7
+>> >> platform, so adding the dependency on ARCH_EXYNOS7 for this driver.
+>> >
+>> >> +++ b/drivers/phy/Kconfig
+>> >> @@ -186,7 +186,7 @@ config PHY_EXYNOS5250_USB2
+>> >>
+>> >>  config PHY_EXYNOS5_USBDRD
+>> >>         tristate "Exynos5 SoC series USB DRD PHY driver"
+>> >> -       depends on ARCH_EXYNOS5 && OF
+>> >> +       depends on (ARCH_EXYNOS5 || ARCH_EXYNOS7) && OF
+>> >
+>> > shouldn't that prompt and its help text be updated to mention also Exynos7?
 >>
->> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->> ---
->>  drivers/usb/dwc3/Kconfig |    2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/usb/dwc3/Kconfig b/drivers/usb/dwc3/Kconfig
->> index 785510a..e235894 100644
->> --- a/drivers/usb/dwc3/Kconfig
->> +++ b/drivers/usb/dwc3/Kconfig
->> @@ -55,7 +55,7 @@ config USB_DWC3_OMAP
->>
->>  config USB_DWC3_EXYNOS
->>       tristate "Samsung Exynos Platform"
->> -     depends on ARCH_EXYNOS || COMPILE_TEST
->> +     depends on (ARCH_EXYNOS || ARCH_EXYNOS7) || COMPILE_TEST
+>> Right, even that has to be updated accordingly. Will update the same in next
+>> version of the patch. Thanks for pointing this.
 >
-> wait when building for ARCH_EXYNOS7 you don't get ARCH_EXYNOS ?
+> I would rather change that to ARCH_EXYNOS, unless Kishon doesn't like
+> that idea. The thing is that this will likely need to be patches for
+> exynos8, 9, 10, 11...
 
-Right, we do get it now in V2 patch series for Exynos7 [1],
-but it wasn't available in the first series [2].
-Will drop this patch now.
+Yes, after we have the 2nd version of Exynos7 support patches, it makes
+more sense to keep dependency on ARCH_EXYNOS.
 
-[1] http://www.spinics.net/lists/linux-samsung-soc/msg36378.html
-[2] http://www.spinics.net/lists/arm-kernel/msg357382.html
 
 
 
