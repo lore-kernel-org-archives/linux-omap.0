@@ -1,92 +1,93 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 5/5] phy: exynos5-usbdrd: Adding Kconfig dependency for
- Exynos7
-Date: Wed, 3 Sep 2014 09:46:11 -0500
-Message-ID: <20140903144611.GE31855@saruman.home>
-References: <1409212920-28526-1-git-send-email-gautam.vivek@samsung.com>
- <1409212920-28526-6-git-send-email-gautam.vivek@samsung.com>
- <CAN_we7MQAqEsRaQc_pkRE_KXx9zZNLDBR2aHUrazM30Nv3udmQ@mail.gmail.com>
- <CAFp+6iHsfg6Ru0LBN=JviV=-mSdmuSo9Te3EXYF+X8jssD_BYQ@mail.gmail.com>
- <20140902143711.GD16872@saruman.home>
- <CAFp+6iE4V4bWHGasr2qNC14mGNAfjQbgerCDMLLatnQQJ86NuA@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: dts: am335x-bone*: Fix model name and update compatibility information
+Date: Wed, 3 Sep 2014 11:03:10 -0500
+Message-ID: <1409760190-17275-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SNIs70sCzqvszXB4"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33781 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53643 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753751AbaICOqn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Sep 2014 10:46:43 -0400
-Content-Disposition: inline
-In-Reply-To: <CAFp+6iE4V4bWHGasr2qNC14mGNAfjQbgerCDMLLatnQQJ86NuA@mail.gmail.com>
+	id S932547AbaICQDi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Sep 2014 12:03:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: Felipe Balbi <balbi@ti.com>, Daniele Forsi <dforsi@gmail.com>, USB list <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kishon <kishon@ti.com>, Kukjin Kim <kgene.kim@samsung.com>
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: Tom Rini <trini@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
---SNIs70sCzqvszXB4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Beaglebone white and beaglebone black differ in tiny little aspects.
+This is the reason why we maintain seperate dts for these platforms.
+However, there is no real way to decode from dtb which platform it is
+since compatible and model name are the same for both platforms.
 
-On Wed, Sep 03, 2014 at 09:32:14AM +0530, Vivek Gautam wrote:
-> On Tue, Sep 2, 2014 at 8:07 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Mon, Sep 01, 2014 at 01:30:21PM +0530, Vivek Gautam wrote:
-> >> On Thu, Aug 28, 2014 at 8:36 PM, Daniele Forsi <dforsi@gmail.com> wrot=
-e:
-> >> > 2014-08-28 10:02 GMT+02:00 Vivek Gautam:
-> >> >
-> >> >> This USB 3.0 PHY controller is also present on Exynos7
-> >> >> platform, so adding the dependency on ARCH_EXYNOS7 for this driver.
-> >> >
-> >> >> +++ b/drivers/phy/Kconfig
-> >> >> @@ -186,7 +186,7 @@ config PHY_EXYNOS5250_USB2
-> >> >>
-> >> >>  config PHY_EXYNOS5_USBDRD
-> >> >>         tristate "Exynos5 SoC series USB DRD PHY driver"
-> >> >> -       depends on ARCH_EXYNOS5 && OF
-> >> >> +       depends on (ARCH_EXYNOS5 || ARCH_EXYNOS7) && OF
-> >> >
-> >> > shouldn't that prompt and its help text be updated to mention also E=
-xynos7?
-> >>
-> >> Right, even that has to be updated accordingly. Will update the same i=
-n next
-> >> version of the patch. Thanks for pointing this.
-> >
-> > I would rather change that to ARCH_EXYNOS, unless Kishon doesn't like
-> > that idea. The thing is that this will likely need to be patches for
-> > exynos8, 9, 10, 11...
->=20
-> Yes, after we have the 2nd version of Exynos7 support patches, it makes
-> more sense to keep dependency on ARCH_EXYNOS.
+Fix this so that beaglebone black and beaglebone are identifiable,
+while maintaining compatibility for older zImages which might use old
+beaglebone compatible flag for black as well.
 
-thank you, that'll help new silicon wakeup; one less thing to patch :-p
+Reported-by: Tom Rini <trini@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+Based on v3.17-rc1:
+Before:
+beaglebone-black:  Boot PASS: http://paste.ubuntu.org.cn/1473558
+beaglebone:  Boot PASS: http://paste.ubuntu.org.cn/1473559
 
---=20
-balbi
+After:
+beaglebone-black:  Boot PASS: http://paste.ubuntu.org.cn/1473480
+beaglebone:  Boot PASS: http://paste.ubuntu.org.cn/1473481
 
---SNIs70sCzqvszXB4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Side notes: Sorry, new IT policies, new paste website needed :(
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+ arch/arm/boot/dts/am335x-bone-common.dtsi |    3 ---
+ arch/arm/boot/dts/am335x-bone.dts         |    5 +++++
+ arch/arm/boot/dts/am335x-boneblack.dts    |    5 +++++
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-iQIcBAEBAgAGBQJUBymzAAoJEIaOsuA1yqREYaEQAJ9dKi8ErbHY2N98fpeo3a3W
-pqe496n8nmczlK3x1mCcEYwqPQcX95mDI11iKArSfCnaSQA5shMoGel3tjWFS6yQ
-3nCVpoi78PLvgwCu6HDPOuCCa74HRnW1eRS+gnnnEoVA2oufxU76G/f8WkYJFQkm
-EyMUZ+4nn1XrdXyudpaf8hWzVu7Ru2TvUx4HTe0QLRmFr1uxpfN/sAKAcjmx+Kn1
-zITKZ22qYt1RlN+mB3YqpENZzF9LV57AWHvy+RtJarFbMtHBJsbYruXKoxLbHbHK
-Q9qtDHNNq27cNAWlLsjFVAXMgAfUNkVfX/9qsH0NCidGVf4yD/SlM8QALaH5fKHX
-/JjBvjWU9qTScXCa3IcQxv8uOcgQdAioePEHQ7cvU2aVZzvRC3rbbXgsW46AtJqO
-0niicdNmkhv2E0ImlSWgc3ZvG9z440AaeMKJuqH22utUNUR6I0hngf1jlyJUa59P
-m5yrWXkYJVnSwKkW9I/KhDPGWYbygAcMVsS9ReN0p5I+fXAiqi0BfQlcNgrCyJfs
-QPQ6snXCFdQJMkz5xDC0rumxgdLELMNuMd83HeHuOfRZaurHkXswS76rsI8yVRQ5
-+eIuSDB2/XGrrWlTo5YThB32dd+Ak54g0rtpl1Yqg13gSbmnmQif7fByGJ7RxHIp
-eqrAfEoXvlxElVLR6bSu
-=ASkT
------END PGP SIGNATURE-----
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index bde1777..d9d9869 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -7,9 +7,6 @@
+  */
+ 
+ / {
+-	model = "TI AM335x BeagleBone";
+-	compatible = "ti,am335x-bone", "ti,am33xx";
+-
+ 	cpus {
+ 		cpu@0 {
+ 			cpu0-supply = <&dcdc2_reg>;
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 94ee427..83d40f7 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -10,6 +10,11 @@
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
+ 
++/ {
++	model = "TI AM335x BeagleBone";
++	compatible = "ti,am335x-bone", "ti,am33xx";
++};
++
+ &ldo3_reg {
+ 	regulator-min-microvolt = <1800000>;
+ 	regulator-max-microvolt = <3300000>;
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 305975d..901739f 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -10,6 +10,11 @@
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
+ 
++/ {
++	model = "TI AM335x BeagleBone Black";
++	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
++};
++
+ &ldo3_reg {
+ 	regulator-min-microvolt = <1800000>;
+ 	regulator-max-microvolt = <1800000>;
+-- 
+1.7.9.5
 
---SNIs70sCzqvszXB4--
