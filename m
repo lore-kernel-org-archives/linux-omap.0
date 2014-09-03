@@ -1,93 +1,102 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: am335x-bone*: Fix model name and update compatibility information
-Date: Wed, 3 Sep 2014 11:03:10 -0500
-Message-ID: <1409760190-17275-1-git-send-email-nm@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Wed, 03 Sep 2014 18:46:04 +0200
+Message-ID: <540745CC.2090901@linutronix.de>
+References: <53FE3779.5090908@linutronix.de> <20140827202313.GF16006@atomide.com> <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com> <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com> <540048B4.7010807@linutronix.de> <20140829161221.GO16006@atomide.com> <5404B149.6010400@linutronix.de> <54060EDA.6060204@linutronix.de> <20140902201536.GC11766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53643 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932547AbaICQDi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Sep 2014 12:03:38 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140902201536.GC11766@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: Tom Rini <trini@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-Beaglebone white and beaglebone black differ in tiny little aspects.
-This is the reason why we maintain seperate dts for these platforms.
-However, there is no real way to decode from dtb which platform it is
-since compatible and model name are the same for both platforms.
+On 09/02/2014 10:15 PM, Tony Lindgren wrote:
+>> - I see to face two kind of "deaths":
+>>   - the LED still goes on and off and the uart just does not respond
+>>     even if I tell the button print something on the screen (the button
+>>     also changes the frequency of the LED so I know that the button is
+>>     doing something).
+>>     Also from dumping the content of /proc/interrupts it seems that a
+>>     wake up is made, the uart should have restored the registers.
+> 
+> OK yeah this is the case I was seeing too. So do you just set the
+> LED triggers to none in sysfs to make it easier to reproduce?
 
-Fix this so that beaglebone black and beaglebone are identifiable,
-while maintaining compatibility for older zImages which might use old
-beaglebone compatible flag for black as well.
+Yes.
 
-Reported-by: Tom Rini <trini@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-Based on v3.17-rc1:
-Before:
-beaglebone-black:  Boot PASS: http://paste.ubuntu.org.cn/1473558
-beaglebone:  Boot PASS: http://paste.ubuntu.org.cn/1473559
+>>   - one where the system is dead and the LED does not blink anymore.
+>>     Also my button is dead.
+> 
+> This I don't think I've seen. This could also be the errata issue on
+> your earlier rev beagleboard-xm with off-idle.
 
-After:
-beaglebone-black:  Boot PASS: http://paste.ubuntu.org.cn/1473480
-beaglebone:  Boot PASS: http://paste.ubuntu.org.cn/1473481
+might be.
 
-Side notes: Sorry, new IT policies, new paste website needed :(
+Your pstore hint gave me something. I tried that earlier but somehow
+assumed that dram content was killed on init. But the content is even
+there are pressing the reset button :)
 
- arch/arm/boot/dts/am335x-bone-common.dtsi |    3 ---
- arch/arm/boot/dts/am335x-bone.dts         |    5 +++++
- arch/arm/boot/dts/am335x-boneblack.dts    |    5 +++++
- 3 files changed, 10 insertions(+), 3 deletions(-)
+However, I was able to capture the case where the LED was not blinking:
+The IIR register says 0xc6 (=> line status error). That is okay. At the
+same time LSR register says 0xe0. This is not okay. It means that there
+is some kind of error and at least one error bit is set in this
+register which is not the case. Also those bits are cleared on read
+which does not happen here. And we loop forever so the LED does blink
+anymore.
 
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index bde1777..d9d9869 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -7,9 +7,6 @@
-  */
- 
- / {
--	model = "TI AM335x BeagleBone";
--	compatible = "ti,am335x-bone", "ti,am33xx";
--
- 	cpus {
- 		cpu@0 {
- 			cpu0-supply = <&dcdc2_reg>;
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 94ee427..83d40f7 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -10,6 +10,11 @@
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
- 
-+/ {
-+	model = "TI AM335x BeagleBone";
-+	compatible = "ti,am335x-bone", "ti,am33xx";
-+};
-+
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <3300000>;
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 305975d..901739f 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -10,6 +10,11 @@
- #include "am33xx.dtsi"
- #include "am335x-bone-common.dtsi"
- 
-+/ {
-+	model = "TI AM335x BeagleBone Black";
-+	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
-+};
-+
- &ldo3_reg {
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
--- 
-1.7.9.5
+The RX-count register says that it is empty which sense because bit 0
+is not set (in LSR). However I can read multiple times from the RX FIFO
+until I get the "unhandled bus access" error which usually happens
+right away if the empty FIFO is read on omap3 HW. In the last test I
+mange to read 91 times before the crash. I hoped that this FIFO read
+would make the interrupt go away but it did not.
 
+The HW seems to be in a strange state. It might be either the errata
+or something else. I even took the resume routine from omap-serial in
+case I did something wrong. In my last test it worked for 10minues
+before the interrupt storm came.
+
+This is probably the same thing I see on the omap-serial driver where I
+got from pstore:
+
+[   32.659271] random: nonblocking pool is initialized
+[  212.170623] NMI watchdog: BUG: soft lockup - CPU#0 stuck for 22s!
+[swapper:0]
+
+So I *guess* the interrupt routine is looping. This is problem one, no
+idea what is going on (the register status captured on 8250-omap makes
+no sense).
+
+Problem two, where the UART does not wakeup:
+What I observed is that sometimes the UART does not wake up properly
+i.e. it does not write anything on the console, even where it should. I
+can't tell if the read is working properly, the write does not.
+>From my capture I see that the resume routine was running and the
+register should have been written. That means the UART should be up and
+running but nothing happens.
+It often works again after the system comes out of resume again (i.e.
+RPM suspens and resumes the UART). So it is okay on the next wakeup. Or
+the wakeup after next.
+>From the script:
+
+| while ((1))
+| do
+|
+|         echo -n 409-chars >/dev/ttyUSB0
+|
+|         sleep 1
+|         a=$(date)
+|         echo -e "\n#$a" >/dev/ttyUSB0
+|         echo $a
+|         sleep 13;
+| done
+
+I see that sometimes one or two sequential timestamps are missing. And
+the it continues like nothing happened.
+
+> Tony
+
+Sebastian
