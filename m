@@ -1,68 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v5 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
- HC
-Date: Wed, 3 Sep 2014 15:15:49 -0500
-Message-ID: <20140903201549.GJ31855@saruman.home>
-References: <1409677729-6922-1-git-send-email-peter.griffin@linaro.org>
- <1409677729-6922-2-git-send-email-peter.griffin@linaro.org>
-Reply-To: <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] Documentation: devicetree: mfd: twl4030-power: Use
+ the standard 'ti,system-power-controller' to mark power control
+Date: Wed, 3 Sep 2014 15:31:44 -0500
+Message-ID: <CAGo_u6qkjb0N05XYGHrR6ag8eBCG=b+5NtSeA8E9SdgTw07A1A@mail.gmail.com>
+References: <1409771208-21867-1-git-send-email-nm@ti.com>
+	<1409771208-21867-2-git-send-email-nm@ti.com>
+	<20140903195317.GA678@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9aCKuHbn5v2q3RVc"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44479 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754174AbaICUQW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Sep 2014 16:16:22 -0400
-Content-Disposition: inline
-In-Reply-To: <1409677729-6922-2-git-send-email-peter.griffin@linaro.org>
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:46387 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753978AbaICUbp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 16:31:45 -0400
+In-Reply-To: <20140903195317.GA678@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, devicetree@vger.kernel.org, lee.jones@linaro.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 
---9aCKuHbn5v2q3RVc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Sep 3, 2014 at 2:53 PM, Sebastian Reichel <sre@kernel.org> wrote:
+> On Wed, Sep 03, 2014 at 02:06:47PM -0500, Nishanth Menon wrote:
 
-Hi,
+>>  Optional properties:
+>> -- ti,use_poweroff: With this flag, the chip will initiates an ACTIVE-to-OFF or
+>> -                SLEEP-to-OFF transition when the system poweroffs.
+>> +
+>> +- ti,system-power-controller OR ti,use_poweroff: This indicates that
+>> +  TWL4030 is the power supply master of the system. With this flag, the
+>> +  chip will initiates an ACTIVE-to-OFF or SLEEP-to-OFF transition when
+>> +  the system poweroffs.
+>
+> I suggest the following wording:
+>
+> - ti,system-power-controller: This indicates that TWL4030 is the
+>   power supply master of the system. With this flag, the chip will
+>   initiates an ACTIVE-to-OFF or SLEEP-to-OFF transition when the
+>   system poweroffs.
+>
+> - ti,use_poweroff: Deprecated name for ti,system-power-controller
 
-On Tue, Sep 02, 2014 at 06:08:47PM +0100, Peter Griffin wrote:
-> +static int st_dwc3_remove(struct platform_device *pdev)
-> +{
-> +	struct st_dwc3 *dwc3_data =3D platform_get_drvdata(pdev);
-> +
-> +	device_for_each_child(&pdev->dev, NULL, st_dwc3_remove_child);
+Yes, this does indeed sound better. if no one has a different opinion
+or further comments, will update this patch tomorrow.
 
-you might want to use of_platform_depopulate() instead :-) Sorry I
-didn't notice this earlier.
-
-cheers
-
---=20
-balbi
-
---9aCKuHbn5v2q3RVc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUB3b1AAoJEIaOsuA1yqRE/+UP/AnPsc+pruNisjSsb8g8F8oL
-lDLGUsYtcNn7c/TwtTlkkUiAjAptL13CuhJgBccj9pVpW9sCWJfx3Um826hxh8Ii
-rYK8jFzl4GnePb1sYxGaLisD5Kq05QP+4RLi9Ef0+DGpOI/BoSCstKD82svmA5t6
-LyWXCPxfDXqr7srCuN5LWsWz7VAkrJBqFPWRVBhLxm7RoB6DyK110HQ/eVl7XRCX
-5yloHaI69XbKQbGQyaWMY/20HY1SCHlzSItRLc/d/SCV25asMncb46MZ1DuFB4sA
-NDfaERixsuV/bAqY0rzloZfVFvfasJPfnA5OvI1IZ9j9ip9FxKj+UAP8LCz8hFDq
-fQ0b8kgB+08C1kHreD2xueT/98XEx6lunJkp2K0Za95Ll4T3b1+DVaFh7B9AhRxM
-lJNBg1QNOmt+N+XxG5WpzP9b7CFO8g5CIaKHaCTHL7kIiJYnZm/ey4hcYupjEj2X
-nlKGFYOqz2OIUIhLBpUpxXsxedzgfrW4/7d5+DwcSV9WEeBmhlf3pEBjhgZzoRq5
-ha2Pw4Z6HMTrAZyZLWde14Bl48eMNJBgu7+tFU2xYmftFqg/owYH1bq3/Njwvy68
-yA1l0Ngi2+MjB7/z5VRA/zVOTQOeIBtomJqIH+YHoI/GdQe4UIRdYhd65G1UnXIm
-CzYDvWQ6tvH2tSOzOV+T
-=kPQu
------END PGP SIGNATURE-----
-
---9aCKuHbn5v2q3RVc--
+-- 
+---
+Regards,
+Nishanth Menon
