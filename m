@@ -1,53 +1,47 @@
-From: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Subject: [PATCH] usb: dwc3: gadget: Fix desc NULL pointer in
- dwc3_gadget_ep_queue()
-Date: Wed, 3 Sep 2014 14:26:34 +0800
-Message-ID: <20140903062634.GA27870@intel.com>
-Reply-To: jin.can.zhuang@intel.com
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [GIT PULL] clk: ti: dra7xx: fixes for early 3.17-rc
+Date: Wed, 3 Sep 2014 11:14:12 +0300
+Message-ID: <5406CDD4.8000103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: david.a.cohen@intel.com, jiebing.li@intel.com, hang.yuan@intel.com, hao.wu@intel.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58568 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755137AbaICIOZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Sep 2014 04:14:25 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-dep->endpoint.desc is checked at the beginning of
-dwc3_gadget_ep_queue(), but after that it may be set to NULL
-by another thread and then accessed again in dwc3_gadget_ep_queue().
-This will lead to kernel oops.
+Hi Mike,
 
-Expand spinlock protection area to aviod race condition.
+The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
 
-Signed-off-by: Zhuang Jin Can <jin.can.zhuang@intel.com>
-Signed-off-by: Jiebing Li <jiebing.li@intel.com>
----
- drivers/usb/dwc3/gadget.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+   Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 349cacc..e8fb231 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -1225,16 +1225,17 @@ static int dwc3_gadget_ep_queue(struct usb_ep *ep, struct usb_request *request,
- 
- 	int				ret;
- 
-+	spin_lock_irqsave(&dwc->lock, flags);
- 	if (!dep->endpoint.desc) {
- 		dev_dbg(dwc->dev, "trying to queue request %p to disabled %s\n",
- 				request, ep->name);
-+		spin_unlock_irqrestore(&dwc->lock, flags);
- 		return -ESHUTDOWN;
- 	}
- 
- 	dev_vdbg(dwc->dev, "queing request %p to %s length %d\n",
- 			request, ep->name, request->length);
- 
--	spin_lock_irqsave(&dwc->lock, flags);
- 	ret = __dwc3_gadget_ep_queue(dep, req);
- 	spin_unlock_irqrestore(&dwc->lock, flags);
- 
--- 
-1.7.9.5
+are available in the git repository at:
+
+   git@github.com:t-kristo/linux-pm.git for-v3.17-rc/ti-clk-driver
+
+for you to fetch changes up to 20411dad75ece9a613af715df4489e60990c4017:
+
+   clk: ti: dra7-atl: Provide error check for incoming parameters in 
+set_rate (2014-08-21 18:04:16 +0300)
+
+----------------------------------------------------------------
+Just a couple of quick error check fixes for dra7 boards. Proper fix 
+would be required for the generic clock driver as well (see 
+https://www.mail-archive.com/linux-omap@vger.kernel.org/msg108454.html.)
+
+----------------------------------------------------------------
+Nishanth Menon (2):
+       clk: ti: divider: Provide error check for incoming parameters in 
+set_rate
+       clk: ti: dra7-atl: Provide error check for incoming parameters in 
+set_rate
+
+  drivers/clk/ti/clk-dra7-atl.c |    6 +++++-
+  drivers/clk/ti/divider.c      |    7 ++++++-
+  2 files changed, 11 insertions(+), 2 deletions(-)
