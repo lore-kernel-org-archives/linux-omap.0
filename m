@@ -1,77 +1,155 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: DRA7: Add PMU nodes
-Date: Wed, 3 Sep 2014 08:39:08 -0500
-Message-ID: <540719FC.5070803@ti.com>
-References: <1408456440-30171-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt
+ source
+Date: Wed, 3 Sep 2014 08:38:39 -0500
+Message-ID: <540719DF.9020509@ti.com>
+References: <1408637521-6764-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1408456440-30171-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44847 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756105AbaICNju (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Sep 2014 09:39:50 -0400
+In-Reply-To: <1408637521-6764-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alessandro Zummo <a.zummo@towertech.it>
+Cc: rtc-linux@googlegroups.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 08/19/2014 08:54 AM, Nishanth Menon wrote:
-> From: Lucas Weaver <l-weaver-l0cyMroinI0@public.gmane.org>
+On 08/21/2014 11:12 AM, Nishanth Menon wrote:
+> With the recent pinctrl-single changes, SoCs such as Texas
+> Instrument's OMAP processors can treat wake-up events from deeper idle
+> states as interrupts.
 > 
-> DRA74x and DRA72x family of processors vary slightly in the number
-> of CPUs. So, add different instances of PMU for each of these processor
-> groups. Further, since the interrupts bypass crossbar and are directly
-> connected to GIC, mark the dts nodes with relevant information.
+> Let's add support for the optional second interrupt for wake-up
+> events. And then SoC can wakeup and handle the event using it's
+> regular handler.
 > 
-> Tested with perf utility.
+> Finally, to pass the wake-up interrupt in the dts file,
+> interrupts-extended property needs to be passed.
 > 
-> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Lucas Weaver <l-weaver-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
+> support for optional wake-up")
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 > ---
+
 Hi,
-Gentle ping..
+Gentle Ping.
 
 Regards,
 Nishanth Menon
->  arch/arm/boot/dts/dra72x.dtsi |    5 +++++
->  arch/arm/boot/dts/dra74x.dtsi |    6 ++++++
->  2 files changed, 11 insertions(+)
+>  drivers/rtc/rtc-ds1307.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 57 insertions(+)
 > 
-> diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
-> index f1ec22f..e5a3d23 100644
-> --- a/arch/arm/boot/dts/dra72x.dtsi
-> +++ b/arch/arm/boot/dts/dra72x.dtsi
-> @@ -22,4 +22,9 @@
->  			reg = <0>;
->  		};
->  	};
+> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
+> index f03d5ba..5feedfc 100644
+> --- a/drivers/rtc/rtc-ds1307.c
+> +++ b/drivers/rtc/rtc-ds1307.c
+> @@ -15,6 +15,8 @@
+>  #include <linux/init.h>
+>  #include <linux/slab.h>
+>  #include <linux/i2c.h>
+> +#include <linux/of_device.h>
+> +#include <linux/of_irq.h>
+>  #include <linux/string.h>
+>  #include <linux/rtc.h>
+>  #include <linux/bcd.h>
+> @@ -115,6 +117,7 @@ struct ds1307 {
+>  	struct i2c_client	*client;
+>  	struct rtc_device	*rtc;
+>  	struct work_struct	work;
+> +	int			wakeirq;
+>  	s32 (*read_block_data)(const struct i2c_client *client, u8 command,
+>  			       u8 length, u8 *values);
+>  	s32 (*write_block_data)(const struct i2c_client *client, u8 command,
+> @@ -835,6 +838,34 @@ ds1307_nvram_write(struct file *filp, struct kobject *kobj,
+>  
+>  /*----------------------------------------------------------------------*/
+>  
+> +static int ds1307_i2c_suspend(struct i2c_client *client,  pm_message_t mesg)
+> +{
+> +	struct ds1307 *ds1307 = i2c_get_clientdata(client);
+> +	struct device *dev = &client->dev;
 > +
-> +	pmu {
-> +		compatible = "arm,cortex-a15-pmu";
-> +		interrupts = <GIC_SPI DIRECT_IRQ(131) IRQ_TYPE_LEVEL_HIGH>;
-> +	};
->  };
-> diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
-> index a4e8bb9..3be544c 100644
-> --- a/arch/arm/boot/dts/dra74x.dtsi
-> +++ b/arch/arm/boot/dts/dra74x.dtsi
-> @@ -38,4 +38,10 @@
->  			reg = <1>;
->  		};
->  	};
+> +	if (!ds1307->wakeirq)
+> +		return 0;
 > +
-> +	pmu {
-> +		compatible = "arm,cortex-a15-pmu";
-> +		interrupts = <GIC_SPI DIRECT_IRQ(131) IRQ_TYPE_LEVEL_HIGH>,
-> +			     <GIC_SPI DIRECT_IRQ(132) IRQ_TYPE_LEVEL_HIGH>;
-> +	};
+> +	if (device_may_wakeup(dev))
+> +		enable_irq(ds1307->wakeirq);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ds1307_i2c_resume(struct i2c_client *client)
+> +{
+> +	struct ds1307 *ds1307 = i2c_get_clientdata(client);
+> +	struct device *dev = &client->dev;
+> +
+> +	if (!ds1307->wakeirq)
+> +		return 0;
+> +
+> +	if (device_may_wakeup(dev))
+> +		disable_irq_nosync(ds1307->wakeirq);
+> +
+> +	return 0;
+> +}
+> +
+>  static int ds1307_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *id)
+>  {
+> @@ -1116,6 +1147,8 @@ read_rtc:
+>  	}
+>  
+>  	if (want_irq) {
+> +		struct device_node *node = client->dev.of_node;
+> +
+>  		err = request_irq(client->irq, ds1307_irq, IRQF_SHARED,
+>  			  ds1307->rtc->name, client);
+>  		if (err) {
+> @@ -1125,6 +1158,28 @@ read_rtc:
+>  
+>  			set_bit(HAS_ALARM, &ds1307->flags);
+>  			dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
+> +			if (node)
+> +				ds1307->wakeirq = irq_of_parse_and_map(node, 1);
+> +
+> +			if (ds1307->wakeirq <= 0)
+> +				ds1307->wakeirq = 0;
+> +			else
+> +				err = devm_request_irq(&client->dev,
+> +						       ds1307->wakeirq,
+> +						       ds1307_irq,
+> +						       IRQF_ONESHOT,
+> +						       ds1307->rtc->name,
+> +						       client);
+> +			if (err) {
+> +				dev_err(&client->dev, "unable to get wakeIRQ %d\n",
+> +					err);
+> +				free_irq(client->irq, client);
+> +				goto exit;
+> +			}
+> +
+> +			/* We enable the interrupt only during suspend path */
+> +			if (ds1307->wakeirq)
+> +				disable_irq_nosync(ds1307->wakeirq);
+>  		}
+>  	}
+>  
+> @@ -1189,6 +1244,8 @@ static struct i2c_driver ds1307_driver = {
+>  	},
+>  	.probe		= ds1307_probe,
+>  	.remove		= ds1307_remove,
+> +	.suspend	= ds1307_i2c_suspend,
+> +	.resume		= ds1307_i2c_resume,
+>  	.id_table	= ds1307_id,
 >  };
+>  
 > 
 
 
 -- 
 Regards,
 Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
