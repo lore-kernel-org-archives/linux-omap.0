@@ -1,155 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] drivers/rtc/rtc-ds1307.c: Support optional wakeup interrupt
- source
-Date: Wed, 3 Sep 2014 08:38:39 -0500
-Message-ID: <540719DF.9020509@ti.com>
-References: <1408637521-6764-1-git-send-email-nm@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 0/2] tlv320aic31xx PLL programming fix and cleanup
+Date: Wed, 3 Sep 2014 15:26:05 +0100
+Message-ID: <20140903142605.GO29327@sirena.org.uk>
+References: <cover.1409747234.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JIgDBBEDRU2Tt5Ar"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44847 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756105AbaICNju (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Sep 2014 09:39:50 -0400
-In-Reply-To: <1408637521-6764-1-git-send-email-nm@ti.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:48237 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932377AbaICO0Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 10:26:16 -0400
+Content-Disposition: inline
+In-Reply-To: <cover.1409747234.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alessandro Zummo <a.zummo@towertech.it>
-Cc: rtc-linux@googlegroups.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-
-On 08/21/2014 11:12 AM, Nishanth Menon wrote:
-> With the recent pinctrl-single changes, SoCs such as Texas
-> Instrument's OMAP processors can treat wake-up events from deeper idle
-> states as interrupts.
-> 
-> Let's add support for the optional second interrupt for wake-up
-> events. And then SoC can wakeup and handle the event using it's
-> regular handler.
-> 
-> Finally, to pass the wake-up interrupt in the dts file,
-> interrupts-extended property needs to be passed.
-> 
-> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
-> support for optional wake-up")
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-
-Hi,
-Gentle Ping.
-
-Regards,
-Nishanth Menon
->  drivers/rtc/rtc-ds1307.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 57 insertions(+)
-> 
-> diff --git a/drivers/rtc/rtc-ds1307.c b/drivers/rtc/rtc-ds1307.c
-> index f03d5ba..5feedfc 100644
-> --- a/drivers/rtc/rtc-ds1307.c
-> +++ b/drivers/rtc/rtc-ds1307.c
-> @@ -15,6 +15,8 @@
->  #include <linux/init.h>
->  #include <linux/slab.h>
->  #include <linux/i2c.h>
-> +#include <linux/of_device.h>
-> +#include <linux/of_irq.h>
->  #include <linux/string.h>
->  #include <linux/rtc.h>
->  #include <linux/bcd.h>
-> @@ -115,6 +117,7 @@ struct ds1307 {
->  	struct i2c_client	*client;
->  	struct rtc_device	*rtc;
->  	struct work_struct	work;
-> +	int			wakeirq;
->  	s32 (*read_block_data)(const struct i2c_client *client, u8 command,
->  			       u8 length, u8 *values);
->  	s32 (*write_block_data)(const struct i2c_client *client, u8 command,
-> @@ -835,6 +838,34 @@ ds1307_nvram_write(struct file *filp, struct kobject *kobj,
->  
->  /*----------------------------------------------------------------------*/
->  
-> +static int ds1307_i2c_suspend(struct i2c_client *client,  pm_message_t mesg)
-> +{
-> +	struct ds1307 *ds1307 = i2c_get_clientdata(client);
-> +	struct device *dev = &client->dev;
-> +
-> +	if (!ds1307->wakeirq)
-> +		return 0;
-> +
-> +	if (device_may_wakeup(dev))
-> +		enable_irq(ds1307->wakeirq);
-> +
-> +	return 0;
-> +}
-> +
-> +static int ds1307_i2c_resume(struct i2c_client *client)
-> +{
-> +	struct ds1307 *ds1307 = i2c_get_clientdata(client);
-> +	struct device *dev = &client->dev;
-> +
-> +	if (!ds1307->wakeirq)
-> +		return 0;
-> +
-> +	if (device_may_wakeup(dev))
-> +		disable_irq_nosync(ds1307->wakeirq);
-> +
-> +	return 0;
-> +}
-> +
->  static int ds1307_probe(struct i2c_client *client,
->  			const struct i2c_device_id *id)
->  {
-> @@ -1116,6 +1147,8 @@ read_rtc:
->  	}
->  
->  	if (want_irq) {
-> +		struct device_node *node = client->dev.of_node;
-> +
->  		err = request_irq(client->irq, ds1307_irq, IRQF_SHARED,
->  			  ds1307->rtc->name, client);
->  		if (err) {
-> @@ -1125,6 +1158,28 @@ read_rtc:
->  
->  			set_bit(HAS_ALARM, &ds1307->flags);
->  			dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
-> +			if (node)
-> +				ds1307->wakeirq = irq_of_parse_and_map(node, 1);
-> +
-> +			if (ds1307->wakeirq <= 0)
-> +				ds1307->wakeirq = 0;
-> +			else
-> +				err = devm_request_irq(&client->dev,
-> +						       ds1307->wakeirq,
-> +						       ds1307_irq,
-> +						       IRQF_ONESHOT,
-> +						       ds1307->rtc->name,
-> +						       client);
-> +			if (err) {
-> +				dev_err(&client->dev, "unable to get wakeIRQ %d\n",
-> +					err);
-> +				free_irq(client->irq, client);
-> +				goto exit;
-> +			}
-> +
-> +			/* We enable the interrupt only during suspend path */
-> +			if (ds1307->wakeirq)
-> +				disable_irq_nosync(ds1307->wakeirq);
->  		}
->  	}
->  
-> @@ -1189,6 +1244,8 @@ static struct i2c_driver ds1307_driver = {
->  	},
->  	.probe		= ds1307_probe,
->  	.remove		= ds1307_remove,
-> +	.suspend	= ds1307_i2c_suspend,
-> +	.resume		= ds1307_i2c_resume,
->  	.id_table	= ds1307_id,
->  };
->  
-> 
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com
 
 
--- 
-Regards,
-Nishanth Menon
+--JIgDBBEDRU2Tt5Ar
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Sep 03, 2014 at 03:52:32PM +0300, Jyri Sarha wrote:
+> The first patch is the fix and the second is only a cleanup.
+
+Applied, thanks.
+
+--JIgDBBEDRU2Tt5Ar
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUByT6AAoJELSic+t+oim9jQ4P/A4hOQbDELtkeRPigDQcqV45
+LCSt6YKeoOs8puXPZmVyBvV68l/J/tZA6lAWmKe9bo8UOYTap2hnrfdgl49G9euf
+HhzQ9WGC3CV6rXYm89TNMFGdf/VsIa9bkGpO4biEmnZWx1zWf99K6yimtNOAFCt2
+ZsHA5I8Xr1pz73n8K3O8UrCr7OJsvwr1Q8IYzgZrv2a+pj59Poqdxf4pJh25/G7G
+3AE6avRgB5pYPjeU/orTZiPgJGz/XbLNUdl8iR+D4cr5HdwNN9eb9aAiJjzLvfn6
+qD38oHrvcSYZknVPyG3x/AmSWZ5Fv+sme0yNED5GkNS24SoWbzPfeok934pCEG/v
+tYw+vgMboRNtdmCmeFoiS/y+Aol+8+Gm4JKVhQNqh+tKoNu5YKjsn3IEychb/IeB
+/3Edn1owablJG6zivneyzLDBAuQqvkPwwcpCUzu9OR6KlxG0FsZucq1zN43uV1Gr
+RnXPoZXTgld9BXMhsm8IFFfYnQlqTvhGQ+esemJhiRFRUWIIMHxr3RYiMHjdXoQ2
++3qITE/bGKlmnUtDQ65gQwjkaBYVTdXsE8+CU+ADCDZ/KDob9MQ1aVEHWUT6kpIl
+3SEFjWlFnW/2INZPe4xhuvD63ql7gGXUMkJ01C5rwetafo7LOVi9uPkMqo8K21t6
+WeE2bwPFXvW93dOLRyNm
+=1Zju
+-----END PGP SIGNATURE-----
+
+--JIgDBBEDRU2Tt5Ar--
