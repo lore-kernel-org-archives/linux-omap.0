@@ -1,46 +1,58 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: am437x-gp: switch i2c0 to 100KHz
-Date: Wed, 3 Sep 2014 13:46:21 -0500
-Message-ID: <1409769981-17669-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: PROBLEM: bindings for drivers/mfd/twl4030-power.c
+Date: Wed, 3 Sep 2014 13:50:57 -0500
+Message-ID: <54076311.2030306@ti.com>
+References: <FAC7D7E5-1D05-4D63-821F-C56D3AAA8FF9@goldelico.com> <20140825212652.GR17254@atomide.com> <EBD1E2E6-E596-4B3D-B093-144ABDD7DEDE@goldelico.com> <20140903184527.GG11766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45575 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877AbaICSvI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 14:51:08 -0400
+In-Reply-To: <20140903184527.GG11766@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org
 
-On the GP EVM, the ambient light sensor is limited to 100KHz on the
-I2C bus.
+On 09/03/2014 01:45 PM, Tony Lindgren wrote:
+> * Dr. H. Nikolaus Schaller <hns@goldelico.com> [140901 09:54]:
+>> Hi,
+>>
+>> Am 25.08.2014 um 23:26 schrieb Tony Lindgren:
+>>
+>>> * Dr. H. Nikolaus Schaller <hns@goldelico.com> [140817 08:46]:
+>>>> I am trying to make ti,use_poweroff work on 3.17-rc1 for the GTA04 board.
+>>>> Poweroff was broken for a while and I found that the driver isn't loaded at all.
+>>>>
+>>>> It appears to me that commit e7cd1d1eb16fcdf53001b926187a82f1f3e1a7e6
+>>>> did rename the compatible entry from "ti,twl4030-power" to "ti,twl4030-power-reset"
+>>>> but this was not documented in the bindings and of course our DT does not
+>>>> match.
+>>>>
+>>>> Even your commit message talks about "ti,twl4030-power" although I can't find it
+>>>> in the code.
+>>>
+>>> Hmm sorry did I accidentally remove ti,twl4030-power? If so, that should
+>>> be added back for sure. Do you have a patch for that already?
+>>
+>> No, I have only updated our device tree because I don't know if it really should
+>> be added back or not.
+>>
+>> As you say the "ti,twl4030-power" does not configure anything. So what
+>> is it good for?
+> 
+> Only for the poweroff if "ti,use_poweroff" is set. Care to do a patch
+> as you clearly have a use case to test it with?
 
-So use 100kHz for I2C on the GP EVM due to this limitation on the
-ambient light sensor.
+Tony, we were talking about supporting ti,system-power-controller as
+the standard way of stating poweroff control is by the PMIC. this
+seems to be standard in various SoCs. use_poweroff seems to predate
+that standardization. Should'nt we start using
+ti,system-power-controller instead?
 
-Reported-by: Aparna Balasubramanian <aparnab-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
----
-based on v3.17-rc1
-
- arch/arm/boot/dts/am437x-gp-evm.dts |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 646a6ea..9559c19 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -260,7 +260,7 @@
- 	status = "okay";
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&i2c0_pins>;
--	clock-frequency = <400000>;
-+	clock-frequency = <100000>;
- 
- 	tps65218: tps65218@24 {
- 		reg = <0x24>;
 -- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
