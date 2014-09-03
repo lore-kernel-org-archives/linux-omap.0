@@ -1,42 +1,92 @@
-From: Husam Al Sayed <oscar55-azLpJcbXd5U@public.gmane.org>
-Subject: FROM: Husam Al Sayed.
-Date: Wed, 3 Sep 2014 20:39:32 +0200 (CEST)
-Message-ID: <898332341.347172.1409769572535.JavaMail.root@mbox05>
-Reply-To: "alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org" <alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PROBLEM: bindings for drivers/mfd/twl4030-power.c
+Date: Wed, 3 Sep 2014 11:45:28 -0700
+Message-ID: <20140903184527.GG11766@atomide.com>
+References: <FAC7D7E5-1D05-4D63-821F-C56D3AAA8FF9@goldelico.com>
+ <20140825212652.GR17254@atomide.com>
+ <EBD1E2E6-E596-4B3D-B093-144ABDD7DEDE@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nilfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nilfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-nfc-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, konishi.ryusuke-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gotom-8fiUuRrzOP3bmG5+kqVDhQ@public.gmane.org, yokota-clLcdqhGaiqhL56FKahb/Dp3QUdN9ktZ@public.gmane.org, jon.mason-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, anton-yrGDUoBaLx3QT0dZR+AlfA@public.gmane.org, linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, jarkko.lavinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, dsaxena-k7pgMgclrJvR7s880joybQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, mpfj-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, me-aXfl/3sk2vNUbtYUoyoikg@public.gmane.org, linux-karma-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, osst-BKTAy3DeTVvYtjvyW6yDsg@public.gmane.org, osst-users-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47832 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751389AbaICSph (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 14:45:37 -0400
+Content-Disposition: inline
+In-Reply-To: <EBD1E2E6-E596-4B3D-B093-144ABDD7DEDE@goldelico.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Lee Jones <lee.jones@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Marek Belisko <marek@goldelico.com>, linux-omap@vger.kernel.org
 
-FROM: Husam Al Sayed.
+* Dr. H. Nikolaus Schaller <hns@goldelico.com> [140901 09:54]:
+> Hi,
+> 
+> Am 25.08.2014 um 23:26 schrieb Tony Lindgren:
+> 
+> > * Dr. H. Nikolaus Schaller <hns@goldelico.com> [140817 08:46]:
+> >> I am trying to make ti,use_poweroff work on 3.17-rc1 for the GTA04 board.
+> >> Poweroff was broken for a while and I found that the driver isn't loaded at all.
+> >> 
+> >> It appears to me that commit e7cd1d1eb16fcdf53001b926187a82f1f3e1a7e6
+> >> did rename the compatible entry from "ti,twl4030-power" to "ti,twl4030-power-reset"
+> >> but this was not documented in the bindings and of course our DT does not
+> >> match.
+> >> 
+> >> Even your commit message talks about "ti,twl4030-power" although I can't find it
+> >> in the code.
+> > 
+> > Hmm sorry did I accidentally remove ti,twl4030-power? If so, that should
+> > be added back for sure. Do you have a patch for that already?
+> 
+> No, I have only updated our device tree because I don't know if it really should
+> be added back or not.
+> 
+> As you say the "ti,twl4030-power" does not configure anything. So what
+> is it good for?
 
-EMAIL:alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+Only for the poweroff if "ti,use_poweroff" is set. Care to do a patch
+as you clearly have a use case to test it with?
+
+> >> Are "ti,twl4030-power" and "ti,twl4030-power-reset" doing the same?
+> > 
+> > No, they are separate where ti,twl4030-power does not configure the
+> > twl4030 in any way where ti,twl4030-power-reset configures the warm
+> > reset sequence.
+> 
+> Yes, that is what I deduced because our old setting of "ti,twl4030-power" did
+> no longer configure the power-off and not even load the driver.
+> 
+> > 
+> > For gta04, what you really want is to use ti,twl4030-power-idle or
+> > even ti,twl4030-power-idle-osc-off if the board is wired to support
+> > cutting off the oscillator.
+> 
+> Ok, I see (but must admit that I don't understand the details even after
+> reading the bindings.txt).
+
+Well the twl4030 has resources such as GPIO pins and regulators that can
+be configured to automatically change state for retention and off-idle.
+That's how we can cut off the core voltage for idle.
  
-Hello,
+> Currently we develop without taking care of suspend (the DT migration was
+> much more troublesome work than anticipated) but that should be changed soon.
+
+OK, yeah the PM features should be finally working now with mainline
+and DT :)
  
-I decided to write you this proposal in good faith, believing that you will
-not betray me. I am Mr. Husam Al Sayed, a Bank officer here in U.A.E.
- 
-One Mr. Peter Adams, a citizen of your country and Crude Oil dealer made a fixed deposit with my bank in 2005 for 108 calendar months, valued at US$30,000,000.00 (Thirty Million United State Dollars) the due date for this deposit contract was last 22nd of January 2014. Sadly Peter was among the death victims in the May 27 2006 Earthquake disaster in Java, Indonesia that killed over 5,000 people. He was in Indonesia on a business trip and that was how he met his untimely end. My bank management is yet to know about his death, I knew about it because he was my friend and I am his Account Officer. Peter did not mention any Next of Kin/ Heir when the account was opened, he was not married and no children. Last week my Bank Management requested that Peter should give instructions on what to do 
- about his funds, if to renew the contract.
- 
-I know this will happen and that is why I have been looking for a means to handle the situation, because if my Bank Directors happens to know that Peter is dead and do not have any Heir, they will take the funds for their personal use, so I don't want such to happen. That is why I am seeking your co-operation to present you as the Next of Kin/ Heir to the account, since you are a foreigner and my bank head quarters will release the account to you. There is no risk involved; the transaction will be executed under a legitimate arrangement that will protect us from any breach of law. It is better that we claim the money, than allowing the Bank Directors to take it, they are rich already. I am not a greedy person, so I am suggesting we share the funds in this ratio, 50/50%, equal sharing. Let 
- me know your mind on this and please do treat this information highly confidential. We shall go over the details once I receive your urgent response. Please Urgently get back to me through this email address as soon as possible:
- 
- 
- 
-Have a nice day and God bless. Anticipating your communication.
- 
+> > And you probably also want to configure some wake-up interrupts at least
+> > for the the UARTs in the board specific .dts file, see for example the
+> > UART3 in the existing board files that have:
+> > 
+> > interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
+> 
+> thanks for the hint!
+
+No problem. And FYI, the reason why we can't add that automatically is
+because there are alternate pins for UART3 pins depending on the
+packaging and which pin is actually wired up.
+
 Regards,
-FROM: Husam Al Sayed.
-EMAIL: alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
-_____________________________________________________________________
 
-http://ad.sme.sk/ Reklama na Sme.sk vam prinasa viac. Sledujte Novinky o inzercii na Sme.sk.
---
-To unsubscribe from this list: send the line "unsubscribe linux-nilfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
