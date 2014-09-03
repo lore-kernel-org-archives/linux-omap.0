@@ -1,120 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix PM idle pin configuration to not
- conflict with regulators
-Date: Wed, 3 Sep 2014 11:39:02 -0700
-Message-ID: <20140903183901.GF11766@atomide.com>
-References: <20140819152405.GA12002@atomide.com>
- <20140902082931.GA32460@breakpoint.cc>
- <20140903002445.GD11766@atomide.com>
- <5406D388.5050104@linutronix.de>
+From: Husam Al Sayed <oscar55-azLpJcbXd5U@public.gmane.org>
+Subject: FROM: Husam Al Sayed.
+Date: Wed, 3 Sep 2014 20:39:32 +0200 (CEST)
+Message-ID: <898332341.347172.1409769572535.JavaMail.root@mbox05>
+Reply-To: "alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org" <alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33261 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753242AbaICSjb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 14:39:31 -0400
-Content-Disposition: inline
-In-Reply-To: <5406D388.5050104@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nilfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nilfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-nfc-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, konishi.ryusuke-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gotom-8fiUuRrzOP3bmG5+kqVDhQ@public.gmane.org, yokota-clLcdqhGaiqhL56FKahb/Dp3QUdN9ktZ@public.gmane.org, jon.mason-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, anton-yrGDUoBaLx3QT0dZR+AlfA@public.gmane.org, linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org, tomi.valkeinen-l0cyMroinI0@public.gmane.org, jarkko.lavinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, dsaxena-k7pgMgclrJvR7s880joybQ@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, mpfj-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, me-aXfl/3sk2vNUbtYUoyoikg@public.gmane.org, linux-karma-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, osst-BKTAy3DeTVvYtjvyW6yDsg@public.gmane.org, osst-users-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Lee Jones <lee.jones@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140903 01:39]:
-> On 09/03/2014 02:24 AM, Tony Lindgren wrote:
-> 
-> > dump out the twl configuration in late_initcall and via sysfs
-> > so maybe try that and see what the values are with working
-> > and non-working case?
-> 
-> good.txt and bad.txt are from the late_initcall.
-> 
->  $ diff -u good.txt bad.txt
-> --- good.txt    2014-09-03 10:29:58.920317368 +0200
-> +++ bad.txt     2014-09-03 10:28:57.064313222 +0200
+FROM: Husam Al Sayed.
 
-Hmm can you check that you have good.txt and bad.txt the
-right way? I'd assume you need VAUX2 or VAUX3 enabled
-not disabled for the MMC to work?
-
-> @@ -1,13 +1,13 @@
->   1: addr: 0x0017 grp: 0x0000 type: 0x0000 remap: 0x0008
-> - 2: addr: 0x001b grp: 0x0000 type: 0x0000 remap: 0x0008
-> - 3: addr: 0x001f grp: 0x0000 type: 0x0000 remap: 0x0008
-> + 2: addr: 0x001b grp: 0x002e type: 0x0000 remap: 0x0008
-> + 3: addr: 0x001f grp: 0x002e type: 0x0000 remap: 0x0008
-
-OK so looking at res_config_addrs[], we have RES_VAUX2 at
-0x1b and RES_VAUX3 at 0x1f. The value for the group register
-0x2e means that bit5 is set and it's used by the p1 device
-group. So when the group register is 0x2e, the resource is
-enabled. Those got most likely enabled by twl-regulator.c
-as twl4030-power.c has TWL4030_RESCONFIG_UNDEF for VAUX2 and
-VAUX3.
-
->   4: addr: 0x0023 grp: 0x0000 type: 0x0000 remap: 0x0008
->   5: addr: 0x0027 grp: 0x002e type: 0x0000 remap: 0x0008
->   6: addr: 0x002b grp: 0x0000 type: 0x0000 remap: 0x0008
->   7: addr: 0x002f grp: 0x002e type: 0x000b remap: 0x0000
->   8: addr: 0x0033 grp: 0x002e type: 0x0000 remap: 0x0008
->   9: addr: 0x0037 grp: 0x002e type: 0x0000 remap: 0x0008
-> -10: addr: 0x003b grp: 0x0000 type: 0x0000 remap: 0x0008
-> +10: addr: 0x003b grp: 0x002e type: 0x0000 remap: 0x0008
-
-And that's RES_VDAC at 0x3b with the same story, it's also
-marked TWL4030_RESCONFIG_UNDEF and only modified by the
-twl4030-power.c.
-
-I think the use on beaglboard for these are:
-
-VAUX2	USB_1V8
-VAUX3	CAM_CORE
-VDAC	VDAC_1V8
-
-Not quite seeing the connection.. But I'm assuming you have
-good.txt and bad.txt the wrong way around, and you need
-VAUX2, VAUX3 or VDAC _enabled_ to get MMC working :)
-
-So this seems to hint we have issue in one of these:
-
-1. We are not claiming VAUX2, VAUX3 or VDAC for beagleboard,
-   and there's now a timing issue where the regulator
-   framework disables the unused regulators before MMC.
-
-2. We may have a bug that causes register access to
-   DEV_GRP_OFFSET in twl4030-power.c even with those
-   resources marked as TWL4030_RESCONFIG_UNDEF.
-
-3. There's a I2C race somewhere accessing twl registers.
-
-Guessing #1 above, maybe give the following patch a try
-and see if that helps? If that works, try commenting out
-vaux3 or vdac and see which one is needed. I'm guessing
-it's the vdac.
-
-Regards,
-
-Tony
-
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -331,6 +331,18 @@
- 	regulator-always-on;
- };
+EMAIL:alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
  
-+&vaux3 {
-+	regulator-name = "cam_core";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
-+
-+&vdac {
-+	regulator-name = "vdac_1v8";
-+	regulator-always-on;
-+};
-+
- &mcbsp2 {
- 	status = "okay";
- };
+Hello,
+ 
+I decided to write you this proposal in good faith, believing that you will
+not betray me. I am Mr. Husam Al Sayed, a Bank officer here in U.A.E.
+ 
+One Mr. Peter Adams, a citizen of your country and Crude Oil dealer made a fixed deposit with my bank in 2005 for 108 calendar months, valued at US$30,000,000.00 (Thirty Million United State Dollars) the due date for this deposit contract was last 22nd of January 2014. Sadly Peter was among the death victims in the May 27 2006 Earthquake disaster in Java, Indonesia that killed over 5,000 people. He was in Indonesia on a business trip and that was how he met his untimely end. My bank management is yet to know about his death, I knew about it because he was my friend and I am his Account Officer. Peter did not mention any Next of Kin/ Heir when the account was opened, he was not married and no children. Last week my Bank Management requested that Peter should give instructions on what to do 
+ about his funds, if to renew the contract.
+ 
+I know this will happen and that is why I have been looking for a means to handle the situation, because if my Bank Directors happens to know that Peter is dead and do not have any Heir, they will take the funds for their personal use, so I don't want such to happen. That is why I am seeking your co-operation to present you as the Next of Kin/ Heir to the account, since you are a foreigner and my bank head quarters will release the account to you. There is no risk involved; the transaction will be executed under a legitimate arrangement that will protect us from any breach of law. It is better that we claim the money, than allowing the Bank Directors to take it, they are rich already. I am not a greedy person, so I am suggesting we share the funds in this ratio, 50/50%, equal sharing. Let 
+ me know your mind on this and please do treat this information highly confidential. We shall go over the details once I receive your urgent response. Please Urgently get back to me through this email address as soon as possible:
+ 
+ 
+ 
+Have a nice day and God bless. Anticipating your communication.
+ 
+Regards,
+FROM: Husam Al Sayed.
+EMAIL: alsayedhusa-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+_____________________________________________________________________
+
+http://ad.sme.sk/ Reklama na Sme.sk vam prinasa viac. Sledujte Novinky o inzercii na Sme.sk.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nilfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
