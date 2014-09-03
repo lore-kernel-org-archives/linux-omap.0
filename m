@@ -1,14 +1,14 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 1/2] ASoC: tlv320aic31xx: Fix 24bit samples with I2S format and 12MHz mclk
-Date: Wed, 3 Sep 2014 15:52:33 +0300
-Message-ID: <f5a11fb9fe28bb44ba30708a569f2f85f6d20dc3.1409747234.git.jsarha@ti.com>
+Subject: [PATCH 2/2] ASoC: tlv320aic31xx: Choose PLL p divider automatically
+Date: Wed, 3 Sep 2014 15:52:34 +0300
+Message-ID: <7615158ab393c4dff1b7d2447e72b5b0ee3ab1cc.1409747234.git.jsarha@ti.com>
 References: <cover.1409747234.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50542 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56295 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933012AbaICMwq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S932663AbaICMwq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 3 Sep 2014 08:52:46 -0400
 In-Reply-To: <cover.1409747234.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,148 +16,184 @@ List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org
 Cc: linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-I2S format requires bitclock to have an exact amount of cycles in a
-frame for audio to work cleanly. With dsp formats that is not so
-important.
-
-Updates aic31xx_setup_pll() to look for a line in aic31xx_divs table
-that produces the best match for the bitclock and adds lines to
-aic31xx_divs for 12MHz mclk and 24bit samples.
+This simplifies aic31xx_divs table. There is no more need for p_val or
+separate lines for 12 and 24 MHz mclks.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- sound/soc/codecs/tlv320aic31xx.c |   51 +++++++++++++++++++++++++++++---------
- 1 file changed, 39 insertions(+), 12 deletions(-)
+ sound/soc/codecs/tlv320aic31xx.c |  101 +++++++++++++++++++-------------------
+ 1 file changed, 50 insertions(+), 51 deletions(-)
 
 diff --git a/sound/soc/codecs/tlv320aic31xx.c b/sound/soc/codecs/tlv320aic31xx.c
-index 0f64c78..aea9e1f 100644
+index aea9e1f..733da78 100644
 --- a/sound/soc/codecs/tlv320aic31xx.c
 +++ b/sound/soc/codecs/tlv320aic31xx.c
-@@ -189,46 +189,57 @@ static const struct aic31xx_rate_divs aic31xx_divs[] = {
- 	/* mclk      rate  pll: p  j	 d     dosr ndac mdac  aors nadc madc */
- 	/* 8k rate */
- 	{12000000,   8000,	1, 8, 1920,	128,  48,  2,	128,  48,  2},
-+	{12000000,   8000,	1, 8, 1920,	128,  32,  3,	128,  32,  3},
- 	{24000000,   8000,	2, 8, 1920,	128,  48,  2,	128,  48,  2},
- 	{25000000,   8000,	2, 7, 8643,	128,  48,  2,	128,  48,  2},
- 	/* 11.025k rate */
- 	{12000000,  11025,	1, 7, 5264,	128,  32,  2,	128,  32,  2},
-+	{12000000,  11025,	1, 8, 4672,	128,  24,  3,	128,  24,  3},
- 	{24000000,  11025,	2, 7, 5264,	128,  32,  2,	128,  32,  2},
- 	{25000000,  11025,	2, 7, 2253,	128,  32,  2,	128,  32,  2},
- 	/* 16k rate */
- 	{12000000,  16000,	1, 8, 1920,	128,  24,  2,	128,  24,  2},
-+	{12000000,  16000,	1, 8, 1920,	128,  16,  3,	128,  16,  3},
- 	{24000000,  16000,	2, 8, 1920,	128,  24,  2,	128,  24,  2},
- 	{25000000,  16000,	2, 7, 8643,	128,  24,  2,	128,  24,  2},
- 	/* 22.05k rate */
- 	{12000000,  22050,	1, 7, 5264,	128,  16,  2,	128,  16,  2},
-+	{12000000,  22050,	1, 8, 4672,	128,  12,  3,	128,  12,  3},
- 	{24000000,  22050,	2, 7, 5264,	128,  16,  2,	128,  16,  2},
- 	{25000000,  22050,	2, 7, 2253,	128,  16,  2,	128,  16,  2},
- 	/* 32k rate */
- 	{12000000,  32000,	1, 8, 1920,	128,  12,  2,	128,  12,  2},
-+	{12000000,  32000,	1, 8, 1920,	128,   8,  3,	128,   8,  3},
- 	{24000000,  32000,	2, 8, 1920,	128,  12,  2,	128,  12,  2},
- 	{25000000,  32000,	2, 7, 8643,	128,  12,  2,	128,  12,  2},
- 	/* 44.1k rate */
- 	{12000000,  44100,	1, 7, 5264,	128,   8,  2,	128,   8,  2},
-+	{12000000,  44100,	1, 8, 4672,	128,   6,  3,	128,   6,  3},
- 	{24000000,  44100,	2, 7, 5264,	128,   8,  2,	128,   8,  2},
- 	{25000000,  44100,	2, 7, 2253,	128,   8,  2,	128,   8,  2},
- 	/* 48k rate */
- 	{12000000,  48000,	1, 8, 1920,	128,   8,  2,	128,   8,  2},
-+	{12000000,  48000,	1, 7, 6800,	 96,   5,  4,	 96,   5,  4},
- 	{24000000,  48000,	2, 8, 1920,	128,   8,  2,	128,   8,  2},
- 	{25000000,  48000,	2, 7, 8643,	128,   8,  2,	128,   8,  2},
- 	/* 88.2k rate */
- 	{12000000,  88200,	1, 7, 5264,	 64,   8,  2,	 64,   8,  2},
-+	{12000000,  88200,	1, 8, 4672,	 64,   6,  3,	 64,   6,  3},
- 	{24000000,  88200,	2, 7, 5264,	 64,   8,  2,	 64,   8,  2},
- 	{25000000,  88200,	2, 7, 2253,	 64,   8,  2,	 64,   8,  2},
- 	/* 96k rate */
- 	{12000000,  96000,	1, 8, 1920,	 64,   8,  2,	 64,   8,  2},
-+	{12000000,  96000,	1, 7, 6800,	 48,   5,  4,	 48,   5,  4},
- 	{24000000,  96000,	2, 8, 1920,	 64,   8,  2,	 64,   8,  2},
- 	{25000000,  96000,	2, 7, 8643,	 64,   8,  2,	 64,   8,  2},
- 	/* 176.4k rate */
- 	{12000000, 176400,	1, 7, 5264,	 32,   8,  2,	 32,   8,  2},
-+	{12000000, 176400,	1, 8, 4672,	 32,   6,  3,	 32,   6,  3},
- 	{24000000, 176400,	2, 7, 5264,	 32,   8,  2,	 32,   8,  2},
- 	{25000000, 176400,	2, 7, 2253,	 32,   8,  2,	 32,   8,  2},
- 	/* 192k rate */
- 	{12000000, 192000,	1, 8, 1920,	 32,   8,  2,	 32,   8,  2},
-+	{12000000, 192000,	1, 7, 6800,	 24,   5,  4,	 24,   5,  4},
- 	{24000000, 192000,	2, 8, 1920,	 32,   8,  2,	 32,   8,  2},
- 	{25000000, 192000,	2, 7, 8643,	 32,   8,  2,	 32,   8,  2},
+@@ -167,13 +167,13 @@ struct aic31xx_priv {
+ 	struct regulator_bulk_data supplies[AIC31XX_NUM_SUPPLIES];
+ 	struct aic31xx_disable_nb disable_nb[AIC31XX_NUM_SUPPLIES];
+ 	unsigned int sysclk;
++	u8 p_div;
+ 	int rate_div_line;
  };
-@@ -680,7 +691,9 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
- 			     struct snd_pcm_hw_params *params)
+ 
+ struct aic31xx_rate_divs {
+-	u32 mclk;
++	u32 mclk_p;
+ 	u32 rate;
+-	u8 p_val;
+ 	u8 pll_j;
+ 	u16 pll_d;
+ 	u16 dosr;
+@@ -186,62 +186,51 @@ struct aic31xx_rate_divs {
+ 
+ /* ADC dividers can be disabled by cofiguring them to 0 */
+ static const struct aic31xx_rate_divs aic31xx_divs[] = {
+-	/* mclk      rate  pll: p  j	 d     dosr ndac mdac  aors nadc madc */
++	/* mclk/p    rate  pll: j     d        dosr ndac mdac  aors nadc madc */
+ 	/* 8k rate */
+-	{12000000,   8000,	1, 8, 1920,	128,  48,  2,	128,  48,  2},
+-	{12000000,   8000,	1, 8, 1920,	128,  32,  3,	128,  32,  3},
+-	{24000000,   8000,	2, 8, 1920,	128,  48,  2,	128,  48,  2},
+-	{25000000,   8000,	2, 7, 8643,	128,  48,  2,	128,  48,  2},
++	{12000000,   8000,	8, 1920,	128,  48,  2,	128,  48,  2},
++	{12000000,   8000,	8, 1920,	128,  32,  3,	128,  32,  3},
++	{12500000,   8000,	7, 8643,	128,  48,  2,	128,  48,  2},
+ 	/* 11.025k rate */
+-	{12000000,  11025,	1, 7, 5264,	128,  32,  2,	128,  32,  2},
+-	{12000000,  11025,	1, 8, 4672,	128,  24,  3,	128,  24,  3},
+-	{24000000,  11025,	2, 7, 5264,	128,  32,  2,	128,  32,  2},
+-	{25000000,  11025,	2, 7, 2253,	128,  32,  2,	128,  32,  2},
++	{12000000,  11025,	7, 5264,	128,  32,  2,	128,  32,  2},
++	{12000000,  11025,	8, 4672,	128,  24,  3,	128,  24,  3},
++	{12500000,  11025,	7, 2253,	128,  32,  2,	128,  32,  2},
+ 	/* 16k rate */
+-	{12000000,  16000,	1, 8, 1920,	128,  24,  2,	128,  24,  2},
+-	{12000000,  16000,	1, 8, 1920,	128,  16,  3,	128,  16,  3},
+-	{24000000,  16000,	2, 8, 1920,	128,  24,  2,	128,  24,  2},
+-	{25000000,  16000,	2, 7, 8643,	128,  24,  2,	128,  24,  2},
++	{12000000,  16000,	8, 1920,	128,  24,  2,	128,  24,  2},
++	{12000000,  16000,	8, 1920,	128,  16,  3,	128,  16,  3},
++	{12500000,  16000,	7, 8643,	128,  24,  2,	128,  24,  2},
+ 	/* 22.05k rate */
+-	{12000000,  22050,	1, 7, 5264,	128,  16,  2,	128,  16,  2},
+-	{12000000,  22050,	1, 8, 4672,	128,  12,  3,	128,  12,  3},
+-	{24000000,  22050,	2, 7, 5264,	128,  16,  2,	128,  16,  2},
+-	{25000000,  22050,	2, 7, 2253,	128,  16,  2,	128,  16,  2},
++	{12000000,  22050,	7, 5264,	128,  16,  2,	128,  16,  2},
++	{12000000,  22050,	8, 4672,	128,  12,  3,	128,  12,  3},
++	{12500000,  22050,	7, 2253,	128,  16,  2,	128,  16,  2},
+ 	/* 32k rate */
+-	{12000000,  32000,	1, 8, 1920,	128,  12,  2,	128,  12,  2},
+-	{12000000,  32000,	1, 8, 1920,	128,   8,  3,	128,   8,  3},
+-	{24000000,  32000,	2, 8, 1920,	128,  12,  2,	128,  12,  2},
+-	{25000000,  32000,	2, 7, 8643,	128,  12,  2,	128,  12,  2},
++	{12000000,  32000,	8, 1920,	128,  12,  2,	128,  12,  2},
++	{12000000,  32000,	8, 1920,	128,   8,  3,	128,   8,  3},
++	{12500000,  32000,	7, 8643,	128,  12,  2,	128,  12,  2},
+ 	/* 44.1k rate */
+-	{12000000,  44100,	1, 7, 5264,	128,   8,  2,	128,   8,  2},
+-	{12000000,  44100,	1, 8, 4672,	128,   6,  3,	128,   6,  3},
+-	{24000000,  44100,	2, 7, 5264,	128,   8,  2,	128,   8,  2},
+-	{25000000,  44100,	2, 7, 2253,	128,   8,  2,	128,   8,  2},
++	{12000000,  44100,	7, 5264,	128,   8,  2,	128,   8,  2},
++	{12000000,  44100,	8, 4672,	128,   6,  3,	128,   6,  3},
++	{12500000,  44100,	7, 2253,	128,   8,  2,	128,   8,  2},
+ 	/* 48k rate */
+-	{12000000,  48000,	1, 8, 1920,	128,   8,  2,	128,   8,  2},
+-	{12000000,  48000,	1, 7, 6800,	 96,   5,  4,	 96,   5,  4},
+-	{24000000,  48000,	2, 8, 1920,	128,   8,  2,	128,   8,  2},
+-	{25000000,  48000,	2, 7, 8643,	128,   8,  2,	128,   8,  2},
++	{12000000,  48000,	8, 1920,	128,   8,  2,	128,   8,  2},
++	{12000000,  48000,	7, 6800,	 96,   5,  4,	 96,   5,  4},
++	{12500000,  48000,	7, 8643,	128,   8,  2,	128,   8,  2},
+ 	/* 88.2k rate */
+-	{12000000,  88200,	1, 7, 5264,	 64,   8,  2,	 64,   8,  2},
+-	{12000000,  88200,	1, 8, 4672,	 64,   6,  3,	 64,   6,  3},
+-	{24000000,  88200,	2, 7, 5264,	 64,   8,  2,	 64,   8,  2},
+-	{25000000,  88200,	2, 7, 2253,	 64,   8,  2,	 64,   8,  2},
++	{12000000,  88200,	7, 5264,	 64,   8,  2,	 64,   8,  2},
++	{12000000,  88200,	8, 4672,	 64,   6,  3,	 64,   6,  3},
++	{12500000,  88200,	7, 2253,	 64,   8,  2,	 64,   8,  2},
+ 	/* 96k rate */
+-	{12000000,  96000,	1, 8, 1920,	 64,   8,  2,	 64,   8,  2},
+-	{12000000,  96000,	1, 7, 6800,	 48,   5,  4,	 48,   5,  4},
+-	{24000000,  96000,	2, 8, 1920,	 64,   8,  2,	 64,   8,  2},
+-	{25000000,  96000,	2, 7, 8643,	 64,   8,  2,	 64,   8,  2},
++	{12000000,  96000,	8, 1920,	 64,   8,  2,	 64,   8,  2},
++	{12000000,  96000,	7, 6800,	 48,   5,  4,	 48,   5,  4},
++	{12500000,  96000,	7, 8643,	 64,   8,  2,	 64,   8,  2},
+ 	/* 176.4k rate */
+-	{12000000, 176400,	1, 7, 5264,	 32,   8,  2,	 32,   8,  2},
+-	{12000000, 176400,	1, 8, 4672,	 32,   6,  3,	 32,   6,  3},
+-	{24000000, 176400,	2, 7, 5264,	 32,   8,  2,	 32,   8,  2},
+-	{25000000, 176400,	2, 7, 2253,	 32,   8,  2,	 32,   8,  2},
++	{12000000, 176400,	7, 5264,	 32,   8,  2,	 32,   8,  2},
++	{12000000, 176400,	8, 4672,	 32,   6,  3,	 32,   6,  3},
++	{12500000, 176400,	7, 2253,	 32,   8,  2,	 32,   8,  2},
+ 	/* 192k rate */
+-	{12000000, 192000,	1, 8, 1920,	 32,   8,  2,	 32,   8,  2},
+-	{12000000, 192000,	1, 7, 6800,	 24,   5,  4,	 24,   5,  4},
+-	{24000000, 192000,	2, 8, 1920,	 32,   8,  2,	 32,   8,  2},
+-	{25000000, 192000,	2, 7, 8643,	 32,   8,  2,	 32,   8,  2},
++	{12000000, 192000,	8, 1920,	 32,   8,  2,	 32,   8,  2},
++	{12000000, 192000,	7, 6800,	 24,   5,  4,	 24,   5,  4},
++	{12500000, 192000,	7, 8643,	 32,   8,  2,	 32,   8,  2},
+ };
+ 
+ static const char * const ldac_in_text[] = {
+@@ -692,6 +681,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
  {
  	struct aic31xx_priv *aic31xx = snd_soc_codec_get_drvdata(codec);
-+	int bclk_score = snd_soc_params_to_frame_size(params);
+ 	int bclk_score = snd_soc_params_to_frame_size(params);
++	int mclk_p = aic31xx->sysclk / aic31xx->p_div;
  	int bclk_n = 0;
-+	int match = -1;
+ 	int match = -1;
  	int i;
- 
- 	/* Use PLL as CODEC_CLKIN and DAC_CLK as BDIV_CLKIN */
-@@ -691,15 +704,37 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
+@@ -704,7 +694,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
  
  	for (i = 0; i < ARRAY_SIZE(aic31xx_divs); i++) {
  		if (aic31xx_divs[i].rate == params_rate(params) &&
--		    aic31xx_divs[i].mclk == aic31xx->sysclk)
--			break;
-+		    aic31xx_divs[i].mclk == aic31xx->sysclk) {
-+			int s =	(aic31xx_divs[i].dosr * aic31xx_divs[i].mdac) %
-+				snd_soc_params_to_frame_size(params);
-+			int bn = (aic31xx_divs[i].dosr * aic31xx_divs[i].mdac) /
-+				snd_soc_params_to_frame_size(params);
-+			if (s < bclk_score && bn > 0) {
-+				match = i;
-+				bclk_n = bn;
-+				bclk_score = s;
-+			}
-+		}
- 	}
- 
--	if (i == ARRAY_SIZE(aic31xx_divs)) {
--		dev_err(codec->dev, "%s: Sampling rate %u not supported\n",
-+	if (match == -1) {
-+		dev_err(codec->dev,
-+			"%s: Sample rate (%u) and format not supported\n",
- 			__func__, params_rate(params));
-+		/* See bellow for details how fix this. */
- 		return -EINVAL;
- 	}
-+	if (bclk_score != 0) {
-+		dev_warn(codec->dev, "Can not produce exact bitclock");
-+		/* This is fine if using dsp format, but if using i2s
-+		   there may be trouble. To fix the issue edit the
-+		   aic31xx_divs table for your mclk and sample
-+		   rate. Details can be found from:
-+		   http://www.ti.com/lit/ds/symlink/tlv320aic3100.pdf
-+		   Section: 5.6 CLOCK Generation and PLL
-+		*/
-+	}
-+	i = match;
+-		    aic31xx_divs[i].mclk == aic31xx->sysclk) {
++		    aic31xx_divs[i].mclk_p == mclk_p) {
+ 			int s =	(aic31xx_divs[i].dosr * aic31xx_divs[i].mdac) %
+ 				snd_soc_params_to_frame_size(params);
+ 			int bn = (aic31xx_divs[i].dosr * aic31xx_divs[i].mdac) /
+@@ -738,7 +728,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
  
  	/* PLL configuration */
  	snd_soc_update_bits(codec, AIC31XX_PLLPR, AIC31XX_PLL_MASK,
-@@ -729,14 +764,6 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
- 	snd_soc_write(codec, AIC31XX_AOSR, aic31xx_divs[i].aosr);
+-			    (aic31xx_divs[i].p_val << 4) | 0x01);
++			    (aic31xx->p_div << 4) | 0x01);
+ 	snd_soc_write(codec, AIC31XX_PLLJ, aic31xx_divs[i].pll_j);
  
- 	/* Bit clock divider configuration. */
--	bclk_n = (aic31xx_divs[i].dosr * aic31xx_divs[i].mdac)
--		/ snd_soc_params_to_frame_size(params);
--	if (bclk_n == 0) {
--		dev_err(codec->dev, "%s: Not enough BLCK bandwidth\n",
--			__func__);
--		return -EINVAL;
--	}
--
- 	snd_soc_update_bits(codec, AIC31XX_BCLKN,
- 			    AIC31XX_PLL_MASK, bclk_n);
+ 	snd_soc_write(codec, AIC31XX_PLLDMSB,
+@@ -772,7 +762,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
+ 	dev_dbg(codec->dev,
+ 		"pll %d.%04d/%d dosr %d n %d m %d aosr %d n %d m %d bclk_n %d\n",
+ 		aic31xx_divs[i].pll_j, aic31xx_divs[i].pll_d,
+-		aic31xx_divs[i].p_val, aic31xx_divs[i].dosr,
++		aic31xx->p_div, aic31xx_divs[i].dosr,
+ 		aic31xx_divs[i].ndac, aic31xx_divs[i].mdac,
+ 		aic31xx_divs[i].aosr, aic31xx_divs[i].nadc,
+ 		aic31xx_divs[i].madc, bclk_n);
+@@ -912,7 +902,16 @@ static int aic31xx_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+ 	dev_dbg(codec->dev, "## %s: clk_id = %d, freq = %d, dir = %d\n",
+ 		__func__, clk_id, freq, dir);
  
+-	for (i = 0; aic31xx_divs[i].mclk != freq; i++) {
++	for (i = 1; freq/i > 20000000 && i < 8; i++)
++		;
++	if (freq/i > 20000000) {
++		dev_err(aic31xx->dev, "%s: Too high mclk frequency %u\n",
++			__func__, freq);
++			return -EINVAL;
++	}
++	aic31xx->p_div = i;
++
++	for (i = 0; aic31xx_divs[i].mclk_p != freq/aic31xx->p_div; i++) {
+ 		if (i == ARRAY_SIZE(aic31xx_divs)) {
+ 			dev_err(aic31xx->dev, "%s: Unsupported frequency %d\n",
+ 				__func__, freq);
 -- 
 1.7.9.5
 
