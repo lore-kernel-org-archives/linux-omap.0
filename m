@@ -1,184 +1,132 @@
-From: pekon <pekon@pek-sem.com>
-Subject: Re: [PATCH 3/6] ARM: dts: am437x-gp-evm: Don't use read/write wait
- monitoring
-Date: Wed, 03 Sep 2014 22:59:30 +0530
-Message-ID: <54074FFA.2020406@pek-sem.com>
-References: <1409666227-20622-1-git-send-email-rogerq@ti.com> <1409666227-20622-4-git-send-email-rogerq@ti.com> <54061439.1030909@pek-sem.com> <5406D213.6020603@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Wed, 3 Sep 2014 10:48:46 -0700
+Message-ID: <20140903174845.GE11766@atomide.com>
+References: <20140828082348.GA5413@linutronix.de>
+ <20140828164645.GG16006@atomide.com>
+ <53FF84DF.7080406@linutronix.de>
+ <20140828225454.GM16006@atomide.com>
+ <540048B4.7010807@linutronix.de>
+ <20140829161221.GO16006@atomide.com>
+ <5404B149.6010400@linutronix.de>
+ <54060EDA.6060204@linutronix.de>
+ <20140902201536.GC11766@atomide.com>
+ <540745CC.2090901@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from us2.outbound.mailhostbox.com ([162.210.70.53]:57041 "EHLO
-	us2.outbound.mailhostbox.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932711AbaICR3q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 13:29:46 -0400
-In-Reply-To: <5406D213.6020603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <540745CC.2090901@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-mtd <linux-mtd@lists.infradead.org>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-Hi Roger,
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140903 09:46]:
+> On 09/02/2014 10:15 PM, Tony Lindgren wrote:
+> >> - I see to face two kind of "deaths":
+> >>   - the LED still goes on and off and the uart just does not respond
+> >>     even if I tell the button print something on the screen (the button
+> >>     also changes the frequency of the LED so I know that the button is
+> >>     doing something).
+> >>     Also from dumping the content of /proc/interrupts it seems that a
+> >>     wake up is made, the uart should have restored the registers.
+> > 
+> > OK yeah this is the case I was seeing too. So do you just set the
+> > LED triggers to none in sysfs to make it easier to reproduce?
+> 
+> Yes.
+> 
+> >>   - one where the system is dead and the LED does not blink anymore.
+> >>     Also my button is dead.
+> > 
+> > This I don't think I've seen. This could also be the errata issue on
+> > your earlier rev beagleboard-xm with off-idle.
+> 
+> might be.
+> 
+> Your pstore hint gave me something. I tried that earlier but somehow
+> assumed that dram content was killed on init. But the content is even
+> there are pressing the reset button :)
 
-On Wednesday 03 September 2014 02:02 PM, Roger Quadros wrote:
-> Hi Pekon,
->
-> On 09/02/2014 10:02 PM, pekon wrote:
->> Hi Roger,
->>
->>
->> On Tuesday 02 September 2014 07:27 PM, Roger Quadros wrote:
->>> NAND uses wait pin only to indicate device readiness after
->>> a block/page operation. It is not use to extend individual
->>> read/write cycle and so read/write wait pin monitoring must
->>> be disabled for NAND.
->>>
->> I think this is incorrect assumption. NAND framework allows
->> wait-pin monitoring at end of each read/write cycle. Please
->> refer following code in drivers/mtd/nand/nand_base.c
->>      @@ void nand_wait_ready(...)
->>
->> - nand_wait_ready() calls controller-driver specific call-back
->>    for chip->dev_ready().
->
-> It is important to note that this NAND device ready mechanism is diff=
-erent from
-> GPMC inter cycle wait state mechanism controlled by the read/write mo=
-nitoring
-> bits. The same WAIT pin is used in both the cases.
->
-> For more details about NAND use case refer to
->
-> AM437x TRM:
-> Section: 9.1.3.3.12.2 NAND Device-Ready Pin
->
-> below excerpt from there
-> "To avoid a time-out caused by a block/page opening delay in NAND fla=
-sh, disable the wait pin monitoring
-> for read and write accesses (that is, set the GPMC_CONFIG1_i[[21] WAI=
-TWRITEMONITORING and
-> GPMC_CONFIG1_i[[22] WAITREADMONITORING bits to 0):
->
+Yeah pstore is very nice for debugging mystery hangs :)
+ 
+> However, I was able to capture the case where the LED was not blinking:
+> The IIR register says 0xc6 (=> line status error). That is okay. At the
+> same time LSR register says 0xe0. This is not okay. It means that there
+> is some kind of error and at least one error bit is set in this
+> register which is not the case. Also those bits are cleared on read
+> which does not happen here. And we loop forever so the LED does blink
+> anymore.
 
-I re-read the AM437x TRM, and the section you mentioned above.
+OK
+ 
+> The RX-count register says that it is empty which sense because bit 0
+> is not set (in LSR). However I can read multiple times from the RX FIFO
+> until I get the "unhandled bus access" error which usually happens
+> right away if the empty FIFO is read on omap3 HW. In the last test I
+> mange to read 91 times before the crash. I hoped that this FIFO read
+> would make the interrupt go away but it did not.
+> 
+> The HW seems to be in a strange state. It might be either the errata
+> or something else. I even took the resume routine from omap-serial in
+> case I did something wrong. In my last test it worked for 10minues
+> before the interrupt storm came.
+> 
+> This is probably the same thing I see on the omap-serial driver where I
+> got from pstore:
+> 
+> [   32.659271] random: nonblocking pool is initialized
+> [  212.170623] NMI watchdog: BUG: soft lockup - CPU#0 stuck for 22s!
+> [swapper:0]
+> 
+> So I *guess* the interrupt routine is looping. This is problem one, no
+> idea what is going on (the register status captured on 8250-omap makes
+> no sense).
 
------------------
-*9.1.3.3.12.2 NAND Device-Ready Pin*
-The NAND memory device provides a ready pin to indicate data=20
-availability after a block/page opening and to indicate that data=20
-programming is complete. The ready pin can be connected to one of the=20
-WAIT GPMC input pins; data read accesses must not be tried when the=20
-ready pin is sampled inactive (device is not ready) even if the=20
-associated chip-select WAITREADMONITORING bit field is set. The duratio=
-n=20
-of the NAND device busy state after the block/page opening is so long=20
-(up to 50 =CE=BCs) that accesses occurring when the ready pin is sample=
-d=20
-inactive can stall GPMC access and eventually cause a system time-out.
-If a read access to a NAND flash is done using the wait monitoring mode=
-,=20
-the device is blocked during a page opening, and so is the GPMC. If the=
-=20
-correct settings are used, other chip-selects can be used while
-the memory processes the page opening command.
-=2E..
------------------
+See recent commit cc824534d4fe, and try commenting out the check for
+HWMOD_FORCE_MSTANDBY in omap_hwmod.c so _reconfigure_io_chain() is always
+called. If that changes something, we at least have some idea.
 
-It's clearly written that wait-pin monitoring is used for read/write=20
-(programs) access, and GPMC is blocked till wait signal is asserted=20
-during reads.
-Also, on NAND there can be no read/write access except at page-level
-so wait-pin monitoring is implicitly related to read/write accesses.
-However, whether you use it or not is purely user's choice, but it
-has performance impact.
+It could be also the wake-up interrupt looping. So you may also want to
+try adding some printks (pstore only) into omap_prcm_irq_handler() and
+omap3xxx_prm_clear_mod_irqs() as that's handling the wake-up event
+interrupts.
+ 
+> Problem two, where the UART does not wakeup:
+> What I observed is that sometimes the UART does not wake up properly
+> i.e. it does not write anything on the console, even where it should. I
+> can't tell if the read is working properly, the write does not.
+> From my capture I see that the resume routine was running and the
+> register should have been written. That means the UART should be up and
+> running but nothing happens.
 
-You are probably seeing timeout condition when enabling wait-pin
-monitoring, and this can be due to multiple reasons like;
-(1) incorrect pin-mux configuration (like directions, pull-up etc)
-(2) incorrect board-level pull-up
-(3) incorrect driver setting, like though wait-pin is enabled but
-     wrong wait-pin is being monitored.
+This seems also be hinting to something needing _reconfigure_io_chain()
+to be called along the lines of commit cc824534d4fe.
 
-I request you to fix this instead of disabling it completely,
-as you should see significant NAND throughput increase once this
-feature works correctly.
+> It often works again after the system comes out of resume again (i.e.
+> RPM suspens and resumes the UART). So it is okay on the next wakeup. Or
+> the wakeup after next.
+> From the script:
+> 
+> | while ((1))
+> | do
+> |
+> |         echo -n 409-chars >/dev/ttyUSB0
+> |
+> |         sleep 1
+> |         a=$(date)
+> |         echo -e "\n#$a" >/dev/ttyUSB0
+> |         echo $a
+> |         sleep 13;
+> | done
+> 
+> I see that sometimes one or two sequential timestamps are missing. And
+> the it continues like nothing happened.
 
->>
->> - chip->dev_ready in-case of OMAP NAND drivers is set in
->>    drivers/mtd/nand/omap2.c  during probe.
->>      if (pdata->dev_ready) {
->>          nand_chip->dev_ready =3D omap_dev_ready;
->>          nand_chip->chip_delay =3D 0;
->>      }
->>
->> Problem is we don't set pdata->dev_ready correctly as part
->> of platform-data dring GPMC initialization. This was what my
->> earlier patch for wait-pin monitoring about. But it was a
->> quick fix for NAND devices.
->>
->> So, I suggest to fix wait-pin monitoring instead of de-scoping
->> it from DTS as wait-pin monitoring should boast the NAND
->> performance significantly.
->> (please see if you can find an old mail thread which had some
->> good feedbacks from Ezequiel and Javier about wait-pin monitoring).
->
-> This is to get the device ready mechanism work and has nothing to do =
-with
-> GPMC wait monitoring. Instead the WAIT pin is used to generate the GP=
-MC
-> interrupt based on the WAIT pin polarity.
->
-> To monitor NAND device ready status
-> from TRM
-> "-Use software to poll the WAITnSTS bit (n =3D 0 to 1) of the GPMC_ST=
-S register.
-> OR
-> -Configure an interrupt that is generated on the WAIT signal change (=
-through the GPMC_IRQEN [11-8] bits)"
->
->>
->> [...]
->>
->>> This patch also gets rid of the below warning when NAND is
->>> accessed for the first time.
->>>
->>> omap_l3_noc 44000000.ocp: L3 application error: target 13 mod:1 (un=
-clearable)
->>>
->> Can you debug this further.
->> This warning probably comes when driver tries to access some
->> "reserved" addresses. Or violate read/write bits.
->
-> It is caused because of incorrectly enabled the GPMC wait monitoring.=
- Disabling the
-> wait monitoring gets rid of this error. I don't understand what else =
-I should debug
+OK. At least it's starting to now sound that the bugs are pretty much
+the same with 8250 and serial-omap :)
 
-I'm not sure how a NAND or GPMC feature can cause omap_l3_noc: L3=20
-application error ?
-But now as I re-read the text, its probably the L3 interconnect timeout
-error due to no response from GPMC. There is a timer in L3 which=20
-monitors if the L3 interconnect is stalled/blocked waiting for response
-from a target. I think it's that timer which is getting timeout. (but=20
-just my guess).
+Regards,
 
-
- > and why.
- >
-As there were number of users on linux-mtd list wanted to use
-NAND wait-pin monitoring on OMAP devices, so I have just looped
-them if they see any concerns.
-Otherwise, no further concerns from me.
-
-
-with regards, pekon
-
-------------------------
-Powered by BigRock.com
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
