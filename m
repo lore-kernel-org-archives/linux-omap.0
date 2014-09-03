@@ -1,199 +1,53 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 2/2] ASoC: tlv320aic31xx: Choose PLL p divider automatically
-Date: Wed, 3 Sep 2014 15:52:34 +0300
-Message-ID: <7615158ab393c4dff1b7d2447e72b5b0ee3ab1cc.1409747234.git.jsarha@ti.com>
-References: <cover.1409747234.git.jsarha@ti.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v8 3/7] clk: Move all drivers to use internal API
+Date: Wed, 03 Sep 2014 14:59:38 +0200
+Message-ID: <540710BA.60108@collabora.com>
+References: <1409585377-26091-1-git-send-email-tomeu.vizoso@collabora.com>	<1409585574-26673-1-git-send-email-tomeu.vizoso@collabora.com>
+ <CAPDyKFq2vzUT+NSkC8ZTau=sbFW_frpQ+paLM_EsYLyp_5ivag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56295 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932663AbaICMwq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Sep 2014 08:52:46 -0400
-In-Reply-To: <cover.1409747234.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <CAPDyKFq2vzUT+NSkC8ZTau=sbFW_frpQ+paLM_EsYLyp_5ivag@mail.gmail.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Andrew Lunn <andrew@lunn.ch>, alsa-devel@alsa-project.org, Prashant Gaikwad <pgaikwad@nvidia.com>, Tony Lindgren <tony@atomide.com>, Tomasz Figa <t.figa@samsung.com>, Liam Girdwood <lgirdwood@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Daniel Walker <dwalker@fifo99.com>, linux-arch@vger.kernel.org, Boris Brezillon <boris.brezillon@free-electrons.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, Mike Turquette <mturquette@linaro.org>, =?UTF-8?B?RW1pbGlvIEzDs3Bleg==?= <emilio@elopez.com.ar>, Takashi Iwai <tiwai@suse.de>, Michal Simek <michal.simek@xilinx.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-k>
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-This simplifies aic31xx_divs table. There is no more need for p_val or
-separate lines for 12 and 24 MHz mclks.
-
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- sound/soc/codecs/tlv320aic31xx.c |  101 +++++++++++++++++++-------------------
- 1 file changed, 50 insertions(+), 51 deletions(-)
-
-diff --git a/sound/soc/codecs/tlv320aic31xx.c b/sound/soc/codecs/tlv320aic31xx.c
-index aea9e1f..733da78 100644
---- a/sound/soc/codecs/tlv320aic31xx.c
-+++ b/sound/soc/codecs/tlv320aic31xx.c
-@@ -167,13 +167,13 @@ struct aic31xx_priv {
- 	struct regulator_bulk_data supplies[AIC31XX_NUM_SUPPLIES];
- 	struct aic31xx_disable_nb disable_nb[AIC31XX_NUM_SUPPLIES];
- 	unsigned int sysclk;
-+	u8 p_div;
- 	int rate_div_line;
- };
- 
- struct aic31xx_rate_divs {
--	u32 mclk;
-+	u32 mclk_p;
- 	u32 rate;
--	u8 p_val;
- 	u8 pll_j;
- 	u16 pll_d;
- 	u16 dosr;
-@@ -186,62 +186,51 @@ struct aic31xx_rate_divs {
- 
- /* ADC dividers can be disabled by cofiguring them to 0 */
- static const struct aic31xx_rate_divs aic31xx_divs[] = {
--	/* mclk      rate  pll: p  j	 d     dosr ndac mdac  aors nadc madc */
-+	/* mclk/p    rate  pll: j     d        dosr ndac mdac  aors nadc madc */
- 	/* 8k rate */
--	{12000000,   8000,	1, 8, 1920,	128,  48,  2,	128,  48,  2},
--	{12000000,   8000,	1, 8, 1920,	128,  32,  3,	128,  32,  3},
--	{24000000,   8000,	2, 8, 1920,	128,  48,  2,	128,  48,  2},
--	{25000000,   8000,	2, 7, 8643,	128,  48,  2,	128,  48,  2},
-+	{12000000,   8000,	8, 1920,	128,  48,  2,	128,  48,  2},
-+	{12000000,   8000,	8, 1920,	128,  32,  3,	128,  32,  3},
-+	{12500000,   8000,	7, 8643,	128,  48,  2,	128,  48,  2},
- 	/* 11.025k rate */
--	{12000000,  11025,	1, 7, 5264,	128,  32,  2,	128,  32,  2},
--	{12000000,  11025,	1, 8, 4672,	128,  24,  3,	128,  24,  3},
--	{24000000,  11025,	2, 7, 5264,	128,  32,  2,	128,  32,  2},
--	{25000000,  11025,	2, 7, 2253,	128,  32,  2,	128,  32,  2},
-+	{12000000,  11025,	7, 5264,	128,  32,  2,	128,  32,  2},
-+	{12000000,  11025,	8, 4672,	128,  24,  3,	128,  24,  3},
-+	{12500000,  11025,	7, 2253,	128,  32,  2,	128,  32,  2},
- 	/* 16k rate */
--	{12000000,  16000,	1, 8, 1920,	128,  24,  2,	128,  24,  2},
--	{12000000,  16000,	1, 8, 1920,	128,  16,  3,	128,  16,  3},
--	{24000000,  16000,	2, 8, 1920,	128,  24,  2,	128,  24,  2},
--	{25000000,  16000,	2, 7, 8643,	128,  24,  2,	128,  24,  2},
-+	{12000000,  16000,	8, 1920,	128,  24,  2,	128,  24,  2},
-+	{12000000,  16000,	8, 1920,	128,  16,  3,	128,  16,  3},
-+	{12500000,  16000,	7, 8643,	128,  24,  2,	128,  24,  2},
- 	/* 22.05k rate */
--	{12000000,  22050,	1, 7, 5264,	128,  16,  2,	128,  16,  2},
--	{12000000,  22050,	1, 8, 4672,	128,  12,  3,	128,  12,  3},
--	{24000000,  22050,	2, 7, 5264,	128,  16,  2,	128,  16,  2},
--	{25000000,  22050,	2, 7, 2253,	128,  16,  2,	128,  16,  2},
-+	{12000000,  22050,	7, 5264,	128,  16,  2,	128,  16,  2},
-+	{12000000,  22050,	8, 4672,	128,  12,  3,	128,  12,  3},
-+	{12500000,  22050,	7, 2253,	128,  16,  2,	128,  16,  2},
- 	/* 32k rate */
--	{12000000,  32000,	1, 8, 1920,	128,  12,  2,	128,  12,  2},
--	{12000000,  32000,	1, 8, 1920,	128,   8,  3,	128,   8,  3},
--	{24000000,  32000,	2, 8, 1920,	128,  12,  2,	128,  12,  2},
--	{25000000,  32000,	2, 7, 8643,	128,  12,  2,	128,  12,  2},
-+	{12000000,  32000,	8, 1920,	128,  12,  2,	128,  12,  2},
-+	{12000000,  32000,	8, 1920,	128,   8,  3,	128,   8,  3},
-+	{12500000,  32000,	7, 8643,	128,  12,  2,	128,  12,  2},
- 	/* 44.1k rate */
--	{12000000,  44100,	1, 7, 5264,	128,   8,  2,	128,   8,  2},
--	{12000000,  44100,	1, 8, 4672,	128,   6,  3,	128,   6,  3},
--	{24000000,  44100,	2, 7, 5264,	128,   8,  2,	128,   8,  2},
--	{25000000,  44100,	2, 7, 2253,	128,   8,  2,	128,   8,  2},
-+	{12000000,  44100,	7, 5264,	128,   8,  2,	128,   8,  2},
-+	{12000000,  44100,	8, 4672,	128,   6,  3,	128,   6,  3},
-+	{12500000,  44100,	7, 2253,	128,   8,  2,	128,   8,  2},
- 	/* 48k rate */
--	{12000000,  48000,	1, 8, 1920,	128,   8,  2,	128,   8,  2},
--	{12000000,  48000,	1, 7, 6800,	 96,   5,  4,	 96,   5,  4},
--	{24000000,  48000,	2, 8, 1920,	128,   8,  2,	128,   8,  2},
--	{25000000,  48000,	2, 7, 8643,	128,   8,  2,	128,   8,  2},
-+	{12000000,  48000,	8, 1920,	128,   8,  2,	128,   8,  2},
-+	{12000000,  48000,	7, 6800,	 96,   5,  4,	 96,   5,  4},
-+	{12500000,  48000,	7, 8643,	128,   8,  2,	128,   8,  2},
- 	/* 88.2k rate */
--	{12000000,  88200,	1, 7, 5264,	 64,   8,  2,	 64,   8,  2},
--	{12000000,  88200,	1, 8, 4672,	 64,   6,  3,	 64,   6,  3},
--	{24000000,  88200,	2, 7, 5264,	 64,   8,  2,	 64,   8,  2},
--	{25000000,  88200,	2, 7, 2253,	 64,   8,  2,	 64,   8,  2},
-+	{12000000,  88200,	7, 5264,	 64,   8,  2,	 64,   8,  2},
-+	{12000000,  88200,	8, 4672,	 64,   6,  3,	 64,   6,  3},
-+	{12500000,  88200,	7, 2253,	 64,   8,  2,	 64,   8,  2},
- 	/* 96k rate */
--	{12000000,  96000,	1, 8, 1920,	 64,   8,  2,	 64,   8,  2},
--	{12000000,  96000,	1, 7, 6800,	 48,   5,  4,	 48,   5,  4},
--	{24000000,  96000,	2, 8, 1920,	 64,   8,  2,	 64,   8,  2},
--	{25000000,  96000,	2, 7, 8643,	 64,   8,  2,	 64,   8,  2},
-+	{12000000,  96000,	8, 1920,	 64,   8,  2,	 64,   8,  2},
-+	{12000000,  96000,	7, 6800,	 48,   5,  4,	 48,   5,  4},
-+	{12500000,  96000,	7, 8643,	 64,   8,  2,	 64,   8,  2},
- 	/* 176.4k rate */
--	{12000000, 176400,	1, 7, 5264,	 32,   8,  2,	 32,   8,  2},
--	{12000000, 176400,	1, 8, 4672,	 32,   6,  3,	 32,   6,  3},
--	{24000000, 176400,	2, 7, 5264,	 32,   8,  2,	 32,   8,  2},
--	{25000000, 176400,	2, 7, 2253,	 32,   8,  2,	 32,   8,  2},
-+	{12000000, 176400,	7, 5264,	 32,   8,  2,	 32,   8,  2},
-+	{12000000, 176400,	8, 4672,	 32,   6,  3,	 32,   6,  3},
-+	{12500000, 176400,	7, 2253,	 32,   8,  2,	 32,   8,  2},
- 	/* 192k rate */
--	{12000000, 192000,	1, 8, 1920,	 32,   8,  2,	 32,   8,  2},
--	{12000000, 192000,	1, 7, 6800,	 24,   5,  4,	 24,   5,  4},
--	{24000000, 192000,	2, 8, 1920,	 32,   8,  2,	 32,   8,  2},
--	{25000000, 192000,	2, 7, 8643,	 32,   8,  2,	 32,   8,  2},
-+	{12000000, 192000,	8, 1920,	 32,   8,  2,	 32,   8,  2},
-+	{12000000, 192000,	7, 6800,	 24,   5,  4,	 24,   5,  4},
-+	{12500000, 192000,	7, 8643,	 32,   8,  2,	 32,   8,  2},
- };
- 
- static const char * const ldac_in_text[] = {
-@@ -692,6 +681,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
- {
- 	struct aic31xx_priv *aic31xx = snd_soc_codec_get_drvdata(codec);
- 	int bclk_score = snd_soc_params_to_frame_size(params);
-+	int mclk_p = aic31xx->sysclk / aic31xx->p_div;
- 	int bclk_n = 0;
- 	int match = -1;
- 	int i;
-@@ -704,7 +694,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
- 
- 	for (i = 0; i < ARRAY_SIZE(aic31xx_divs); i++) {
- 		if (aic31xx_divs[i].rate == params_rate(params) &&
--		    aic31xx_divs[i].mclk == aic31xx->sysclk) {
-+		    aic31xx_divs[i].mclk_p == mclk_p) {
- 			int s =	(aic31xx_divs[i].dosr * aic31xx_divs[i].mdac) %
- 				snd_soc_params_to_frame_size(params);
- 			int bn = (aic31xx_divs[i].dosr * aic31xx_divs[i].mdac) /
-@@ -738,7 +728,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
- 
- 	/* PLL configuration */
- 	snd_soc_update_bits(codec, AIC31XX_PLLPR, AIC31XX_PLL_MASK,
--			    (aic31xx_divs[i].p_val << 4) | 0x01);
-+			    (aic31xx->p_div << 4) | 0x01);
- 	snd_soc_write(codec, AIC31XX_PLLJ, aic31xx_divs[i].pll_j);
- 
- 	snd_soc_write(codec, AIC31XX_PLLDMSB,
-@@ -772,7 +762,7 @@ static int aic31xx_setup_pll(struct snd_soc_codec *codec,
- 	dev_dbg(codec->dev,
- 		"pll %d.%04d/%d dosr %d n %d m %d aosr %d n %d m %d bclk_n %d\n",
- 		aic31xx_divs[i].pll_j, aic31xx_divs[i].pll_d,
--		aic31xx_divs[i].p_val, aic31xx_divs[i].dosr,
-+		aic31xx->p_div, aic31xx_divs[i].dosr,
- 		aic31xx_divs[i].ndac, aic31xx_divs[i].mdac,
- 		aic31xx_divs[i].aosr, aic31xx_divs[i].nadc,
- 		aic31xx_divs[i].madc, bclk_n);
-@@ -912,7 +902,16 @@ static int aic31xx_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- 	dev_dbg(codec->dev, "## %s: clk_id = %d, freq = %d, dir = %d\n",
- 		__func__, clk_id, freq, dir);
- 
--	for (i = 0; aic31xx_divs[i].mclk != freq; i++) {
-+	for (i = 1; freq/i > 20000000 && i < 8; i++)
-+		;
-+	if (freq/i > 20000000) {
-+		dev_err(aic31xx->dev, "%s: Too high mclk frequency %u\n",
-+			__func__, freq);
-+			return -EINVAL;
-+	}
-+	aic31xx->p_div = i;
-+
-+	for (i = 0; aic31xx_divs[i].mclk_p != freq/aic31xx->p_div; i++) {
- 		if (i == ARRAY_SIZE(aic31xx_divs)) {
- 			dev_err(aic31xx->dev, "%s: Unsupported frequency %d\n",
- 				__func__, freq);
--- 
-1.7.9.5
-
+T24gMDkvMDIvMjAxNCAwOToxMyBBTSwgVWxmIEhhbnNzb24gd3JvdGU6Cj4gT24gMSBTZXB0ZW1i
+ZXIgMjAxNCAxNzozMiwgVG9tZXUgVml6b3NvIDx0b21ldS52aXpvc29AY29sbGFib3JhLmNvbT4g
+d3JvdGU6Cj4+IEluIHByZXBhcmF0aW9uIHRvIGNoYW5nZSB0aGUgcHVibGljIEFQSSB0byByZXR1
+cm4gYSBwZXItdXNlciBjbGsgc3RydWN0dXJlLAo+PiByZW1vdmUgYW55IHVzYWdlIG9mIHRoaXMg
+cHVibGljIEFQSSBmcm9tIHRoZSBjbG9jayBpbXBsZW1lbnRhdGlvbnMuCj4+Cj4+IFRoZSByZWFz
+b24gZm9yIGhhdmluZyB0aGlzIGluIGEgc2VwYXJhdGUgY29tbWl0IGZyb20gdGhlIG9uZSB0aGF0
+IGludHJvZHVjZXMKPj4gdGhlIGltcGxlbWVudGF0aW9uIG9mIHRoZSBuZXcgZnVuY3Rpb25zIGlz
+IHRvIHNlcGFyYXRlIHRoZSBjaGFuZ2VzIGdlbmVyYXRlZAo+PiB3aXRoIENvY2NpbmVsbGUgZnJv
+bSB0aGUgcmVzdCwgYW5kIGtlZXAgdGhlIHBhdGNoZXMnIHNpemUgcmVhc29uYWJsZS4KPj4KPj4g
+U2lnbmVkLW9mZi1ieTogVG9tZXUgVml6b3NvIDx0b21ldS52aXpvc29AY29sbGFib3JhLmNvbT4K
+Pj4gVGVzdGVkLWJ5OiBCb3JpcyBCcmV6aWxsb24gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0
+cm9ucy5jb20+Cj4+IFRlc3RlZC1ieTogSGVpa28gU3R1ZWJuZXIgPGhlaWtvQHNudGVjaC5kZT4K
+Pj4gQWNrZWQtYnk6IEJvcmlzIEJyZXppbGxvbiA8Ym9yaXMuYnJlemlsbG9uQGZyZWUtZWxlY3Ry
+b25zLmNvbT4KPgo+IEhpIFRvbWV1LAo+Cj4gSHVoLCB3aGF0IGEgcGF0Y2guIDotKSBHcmVhdCB3
+b3JrIHlvdSBhcmUgZG9pbmcgaGVyZSEKClRoYW5rcyEKCj4gQnkganVzdCBsb29raW5nIGF0IHRo
+ZSB1eDUwMCBjaGFuZ2VzLCBJIHJlYWxpemUgdGhhdCB5b3Ugbm93IGhhdmUKPiByZW1vdmVkIHRo
+ZSBkZXBlbmRlbmN5IHRvICJzdHJ1Y3QgY2xrIiwgdGh1cyB3ZSBzaG91bGRuJ3QgaW5jbHVkZSB0
+aGUKPiBoZWFkZXIgZmlsZSBsaW51eC9jbGsuaCBpbiBhbnkgZmlsZSBsb2NhdGVkIGluIGRyaXZl
+ci9jbGsvdXg1MDAvKiwKPiByaWdodCE/Cj4KPiBJIHN1cHBvc2UgdGhpcyBjb21tZW50IG1heSBh
+bHNvIGFwcGxpY2FibGUgZm9yIG90aGVycyB0aGFuIHRoZSB1eDUwMAo+IGNsayBkcml2ZXIsIGJ1
+dCBoYXZlbid0IGNoZWNrZWQuCgpZb3UgYXJlIHJpZ2h0LiBJIGhhdmUgZ29uZSBhaGVhZCBhbmQg
+cmVtb3ZlZCB0aGUgaW5jbHVkZSBmcm9tIGFsbCBmaWxlcyAKdGhhdCBhcmUgZmVkIHRvIHRoZSBj
+b2NjaW5lbGxlIHNjcmlwdC4gRXZlcnl0aGluZyBidWlsZHMgZmluZSBpbiBhbGwgCmNvbmZpZ3Vy
+YXRpb25zIEkgaGF2ZSB0ZXN0ZWQsIHNvIEkgd2lsbCBiZSBhZGRpbmcgaXQgdG8gdjkuCgpUaGFu
+a3MgZm9yIHRoZSBpZGVhLAoKVG9tZXUKCgo+IEtpbmQgcmVnYXJkcwo+IFVmZmUKPgoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXhwcGMtZGV2IG1h
+aWxpbmcgbGlzdApMaW51eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwpodHRwczovL2xpc3RzLm96
+bGFicy5vcmcvbGlzdGluZm8vbGludXhwcGMtZGV2
