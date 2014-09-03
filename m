@@ -1,49 +1,48 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/2] Documentation: devicetree: mfd: twl4030-power: Use
- the standard 'ti,system-power-controller' to mark power control
-Date: Wed, 3 Sep 2014 15:31:44 -0500
-Message-ID: <CAGo_u6qkjb0N05XYGHrR6ag8eBCG=b+5NtSeA8E9SdgTw07A1A@mail.gmail.com>
-References: <1409771208-21867-1-git-send-email-nm@ti.com>
-	<1409771208-21867-2-git-send-email-nm@ti.com>
-	<20140903195317.GA678@earth.universe>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: boot: dts: am4372: fix USB regs size
+Date: Wed, 3 Sep 2014 16:22:24 -0500
+Message-ID: <1409779344-27823-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f182.google.com ([209.85.213.182]:46387 "EHLO
-	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753978AbaICUbp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 16:31:45 -0400
-In-Reply-To: <20140903195317.GA678@earth.universe>
+Received: from comal.ext.ti.com ([198.47.26.152]:42385 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756778AbaICVW7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Sep 2014 17:22:59 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-On Wed, Sep 3, 2014 at 2:53 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> On Wed, Sep 03, 2014 at 02:06:47PM -0500, Nishanth Menon wrote:
+Size should be 64KiB instead of 92KiB.
 
->>  Optional properties:
->> -- ti,use_poweroff: With this flag, the chip will initiates an ACTIVE-to-OFF or
->> -                SLEEP-to-OFF transition when the system poweroffs.
->> +
->> +- ti,system-power-controller OR ti,use_poweroff: This indicates that
->> +  TWL4030 is the power supply master of the system. With this flag, the
->> +  chip will initiates an ACTIVE-to-OFF or SLEEP-to-OFF transition when
->> +  the system poweroffs.
->
-> I suggest the following wording:
->
-> - ti,system-power-controller: This indicates that TWL4030 is the
->   power supply master of the system. With this flag, the chip will
->   initiates an ACTIVE-to-OFF or SLEEP-to-OFF transition when the
->   system poweroffs.
->
-> - ti,use_poweroff: Deprecated name for ti,system-power-controller
-
-Yes, this does indeed sound better. if no one has a different opinion
-or further comments, will update this patch tomorrow.
-
--- 
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
-Regards,
-Nishanth Menon
+ arch/arm/boot/dts/am4372.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 9b3d2ba..8689949 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -804,7 +804,7 @@
+ 
+ 			usb1: usb@48390000 {
+ 				compatible = "synopsys,dwc3";
+-				reg = <0x48390000 0x17000>;
++				reg = <0x48390000 0x10000>;
+ 				interrupts = <GIC_SPI 168 IRQ_TYPE_LEVEL_HIGH>;
+ 				phys = <&usb2_phy1>;
+ 				phy-names = "usb2-phy";
+@@ -826,7 +826,7 @@
+ 
+ 			usb2: usb@483d0000 {
+ 				compatible = "synopsys,dwc3";
+-				reg = <0x483d0000 0x17000>;
++				reg = <0x483d0000 0x10000>;
+ 				interrupts = <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
+ 				phys = <&usb2_phy2>;
+ 				phy-names = "usb2-phy";
+-- 
+2.0.1.563.g66f467c
+
