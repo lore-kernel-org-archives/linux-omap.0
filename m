@@ -1,45 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP3: quick clock dts fix for 3.17-rc
-Date: Wed, 3 Sep 2014 14:38:36 -0700
-Message-ID: <20140903213835.GJ11766@atomide.com>
-References: <5406CEC3.5000601@ti.com>
+Subject: Re: [PATCH 0/6] OMAP2+: GPMC: NAND fixes for 3.17
+Date: Wed, 3 Sep 2014 14:40:45 -0700
+Message-ID: <20140903214045.GK11766@atomide.com>
+References: <1409666227-20622-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33502 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37762 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755510AbaICVin (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 17:38:43 -0400
+	with ESMTP id S1752553AbaICVkt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Sep 2014 17:40:49 -0400
 Content-Disposition: inline
-In-Reply-To: <5406CEC3.5000601@ti.com>
+In-Reply-To: <1409666227-20622-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Roger Quadros <rogerq@ti.com>
+Cc: pekon@pek-sem.com, linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [140903 01:18]:
+* Roger Quadros <rogerq@ti.com> [140902 06:57]:
 > Hi Tony,
 > 
-> The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
+> These are some of the issues I found while testing v3.17-rc3.
 > 
->   Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
+> - Wrong ECC scheme used for am43x GP and EPOS evm. We need to use
+> BCH16 instead of BCH8.
 > 
-> are available in the git repository at:
+> - Wrong read/write wait pin monitoring setting used for NAND
+> resulting in "L3 application error" debug message on console.
 > 
->   git@github.com:t-kristo/linux-pm.git for-v3.17-rc/ti-clk-dt
-> 
-> for you to fetch changes up to adf5b4dcc0cf50715f74f49f3c7af0c80467f55f:
-> 
->   ARM: dts: set 'ti,set-rate-parent' for dpll4_m5x2 clock (2014-08-21
-> 18:01:35 +0300)
-> 
-> ----------------------------------------------------------------
-> Stefan Herbrechtsmeier (1):
->       ARM: dts: set 'ti,set-rate-parent' for dpll4_m5x2 clock
-> 
->  arch/arm/boot/dts/omap3xxx-clocks.dtsi |    1 +
->  1 file changed, 1 insertion(+)
+> - Pin conflict issue on am43x EPOS evm with QSPI and NAND.
 
 Thanks applying into omap-for-v3.17/fixes-v2.
 
-Tony 
+Tony
+ 
+> Patches are available at
+> git@github.com:rogerq/linux.git
+> * [new branch]      for-v3.17/gpmc-fixes
+> 
+> cheers,
+> -roger
+> 
+> Roger Quadros (6):
+>   ARM: dts: am43x-epos-evm: Use BCH16 ECC scheme instead of BCH8
+>   ARM: dts: am437x-gp-evm: Use BCH16 ECC scheme instead of BCH8
+>   ARM: dts: am437x-gp-evm: Don't use read/write wait monitoring
+>   ARM: dts: am43xx-epos-evm: Don't use read/write wait monitoring
+>   ARM: OMAP2+: gpmc: Don't complain if wait pin is used without r/w
+>     monitoring
+>   ARM: dts: am43x-epos-evm: Disable QSPI to prevent conflict with
+>     GPMC-NAND
+> 
+>  arch/arm/boot/dts/am437x-gp-evm.dts  | 4 +---
+>  arch/arm/boot/dts/am43x-epos-evm.dts | 9 ++++-----
+>  arch/arm/mach-omap2/gpmc.c           | 7 +++----
+>  3 files changed, 8 insertions(+), 12 deletions(-)
+> 
+> -- 
+> 1.8.3.2
+> 
