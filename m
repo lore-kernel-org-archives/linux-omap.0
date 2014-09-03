@@ -1,126 +1,230 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.17-rc3
-Date: Tue, 2 Sep 2014 23:52:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1409022346440.1546@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix PM idle pin configuration to not
+ conflict with regulators
+Date: Tue, 2 Sep 2014 17:24:45 -0700
+Message-ID: <20140903002445.GD11766@atomide.com>
+References: <20140819152405.GA12002@atomide.com>
+ <20140902082931.GA32460@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47643 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753217AbaIBXwd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2014 19:52:33 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30453 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751130AbaICAZF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Sep 2014 20:25:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20140902082931.GA32460@breakpoint.cc>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org, grinberg@compulab.co.il
+To: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Cc: Lee Jones <lee.jones@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bigeasy@linutronix.de
 
+* Sebastian Andrzej Siewior <sebastian@breakpoint.cc> [140902 01:29]:
+> On 2014-08-19 08:24:05 [-0700], Tony Lindgren wrote:
+> > 
+> > This allows us to enable the PMIC configuration for n900.
+> > 
+> > Fixes: 43fef47f94a1 (mfd: twl4030-power: Add a configuration to turn off oscillator during off-idle)
+> 
+> My beaglebone-ab does not like this. With this patch applied I end up
+> with:
+> [    2.437316] Waiting for root device /dev/mmcblk0p2...
+> [    4.428192] mmc0: card never left busy state
+> [    4.432647] mmc0: error -110 whilst initialising SD card
 
-Here are some basic OMAP test results for Linux v3.17-rc3.
-Logs and other details at:
+I assume you mean beagleboard-ab, not beaglebone-ab :)
+ 
+> I noticed this after I disabled lock debugging and tracing (syscall tracing
+> was enabled). Enabling both again makes the error go away.
+> With debugging + tracing disabled (so the error pops up) and git bisect
+> I get this commit (daebabd57) reported.
 
-    http://www.pwsan.com/omap/testlogs/test_v3.17-rc3/20140902165525/
+OK. Sounds like we still have a race between the regulator code
+and twl4030-power.c for accessing some twl registers.
 
+> A diff between a good/bad bootlog (with lock-debug + tracing switched
+> off):
+> 
+> | smartreflex smartreflex.0: omap_sr_probe: SmartReflex driver initialized
+> | smartreflex smartreflex.1: omap_sr_probe: SmartReflex driver initialized
+> | hsusb2_vbus: disabling
+> | VPLL2: disabling
+> | VUSB3V1: disabling
+> |+VDAC: disabling
+> |+VAUX3: disabling
 
-Test summary
-------------
+This seems to be the reason. Seems you're on v3.17-rc3, but with
+commit daebabd57 we are not even touching the group registers that
+twl-regulator.c accesses for VDAC and VAUX3 as they are set to
+TWL4030_RESCONFIG_UNDEF. So I'm a bit baffled what's going on.
 
-Build: zImage:
-    Pass (16/16): multi_v7_defconfig, omap2plus_defconfig,
-		  omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig
+> reverting this commit on top of -rc3 makes mmc0 work again.
 
-Build: uImage+dtb:
-    Pass (10/10): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap5-uevm
+Again, I assume you're talking about reverting daebabd57,
+not 43fef47f94a1. Anyways, here's a debug hack I used earlier to
+dump out the twl configuration in late_initcall and via sysfs
+so maybe try that and see what the values are with working
+and non-working case?
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+Regards,
 
-Boot to userspace:
-    FAIL ( 2/15): 2430sdp, 5430es2sbct54
-    skip ( 1/15): 5912osk
-    Pass (12/15): 2420n800, 3517evm, 3530es3beagle, 3730beaglexm,
-		  37xxevm, 4430es2panda, 4460pandaes, am335xbone,
-		  am335xbonelt, cmt3517, 4460varsomom, 5430es2uevm
+Tony
 
-PM: chip retention via suspend:
-    FAIL ( 3/ 7): 2430sdp, 4430es2panda, 4460varsomom
-    Pass ( 4/ 7): 3530es3beagle, 3730beaglexm, 37xxevm, 4460pandaes
-
-PM: chip retention via dynamic idle:
-    FAIL ( 5/ 7): 2430sdp, 3530es3beagle, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 2/ 7): 3730beaglexm, 37xxevm
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 1/ 5): 37xxevm
-
-PM: chip off via dynamic idle:
-    FAIL ( 4/ 5): 3530es3beagle, 4430es2panda, 4460pandaes,
-		  4460varsomom
-    Pass ( 1/ 5): 37xxevm
-
-
-vmlinux object size
-(delta in bytes from test_v3.17-rc2 (52addcf9d6669fa439387610bc65c92fa0980cef)):
-   text     data      bss    total  kernel
-   +120      +32        0     +152  omap1_defconfig
-    +88      +64        0     +152  omap1_defconfig_1510innovator_only
-    +88      +32      +32     +152  omap1_defconfig_5912osk_only
-  -4992      -24        0    -5016  multi_v7_defconfig
-  -4376        0      +64    -4312  omap2plus_defconfig
-  -3896      +32        0    -3864  omap2plus_defconfig_2430sdp_only
-  -4448       -8        0    -4456  omap2plus_defconfig_am33xx_only
-  -4448       -8        0    -4456  omap2plus_defconfig_am43xx_only
-  -4376      +64      +64    -4248  omap2plus_defconfig_cpupm
-  -4320      +64        0    -4256  omap2plus_defconfig_dra7xx_only
- -15337     -552        0   -15889  omap2plus_defconfig_n800_multi_omap2xxx
- -11241     -504        0   -11745  omap2plus_defconfig_n800_only_a
-   +640      +96        0     +736  omap2plus_defconfig_no_pm
-  -4448      +80        0    -4368  omap2plus_defconfig_omap2_4_only
-  -4384       -8        0    -4392  omap2plus_defconfig_omap3_4_only
-  -4384      +80        0    -4304  omap2plus_defconfig_omap5_only
-   +108      -16      +24     +116  rmk_omap3430_ldp_allnoconfig
-   +172      -16        0     +156  rmk_omap3430_ldp_oldconfig
-    +76      -12      +56     +120  rmk_omap4430_sdp_allnoconfig
-   +140      +16        0     +156  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.17-rc2 (52addcf9d6669fa439387610bc65c92fa0980cef))
-  avail  rsrvd   high  freed  board          kconfig
-     8k    -8k      .      .  2420n800       omap2plus_defconfig_n800_only_a
-     8k    -8k      .      .  am335xbone     omap2plus_defconfig_am33xx_only
-
-
-A Compulab SBC-T54 (OMAP5432) has been added to the testbed, graciously 
-donated by Compulab and Igor Grinberg.  It currently isn't booting to 
-userspace in the current mainline kernel, but if the 'ldo8' regulator is 
-modified to be always-on in the omap5-sbc-t54.dts file, it will.
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -358,6 +358,146 @@ out:
+ 	return err;
+ }
+ 
++#ifdef CONFIG_DEBUG_FS
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++static void twl4030_dump_resource(unsigned index, struct seq_file *s)
++{
++	int addr;
++	int err;
++	u8 type;
++	u8 grp;
++	u8 remap;
++
++	addr = res_config_addrs[index];
++
++	err = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &grp,
++			      addr + DEV_GRP_OFFSET);
++	if (err) {
++		pr_err("TWL4030 Resource group 0x%02x could not be read\n",
++			addr);
++		return;
++	}
++
++	err = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &type,
++				addr + TYPE_OFFSET);
++	if (err < 0) {
++		pr_err("TWL4030 Resource type 0x%02x could not be read\n",
++			addr);
++		return;
++	}
++
++	err = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &remap,
++			      addr + REMAP_OFFSET);
++	if (err < 0) {
++		pr_err("TWL4030 Resource 0x%02x remap could not be read\n",
++			addr);
++		return;
++	}
++
++	if (s)
++		seq_printf(s, "%i: addr: 0x%04x grp: 0x%04x type: 0x%04x remap: 0x%04x\n",
++			   index, addr, grp, type, remap);
++	else
++		printk("%i: addr: 0x%04x grp: 0x%04x type: 0x%04x remap: 0x%04x\n",
++		       index, addr, grp, type, remap);
++}
++
++static void twl4030_dump_resources(void)
++{
++	int i;
++
++	for (i = 1; i <= RES_MAIN_REF; i++)
++		twl4030_dump_resource(i, NULL);
++}
++
++static struct dentry *dbg_root;
++
++static int dbg_show(struct seq_file *s, void *unused)
++{
++	unsigned long offset = (unsigned long)s->private;
++
++	twl4030_dump_resource(offset, s);
++
++	return 0;
++}
++
++static ssize_t dbg_write(struct file *file,
++			 const char __user *user_buf,
++			 size_t count, loff_t *ppos)
++{
++	struct seq_file *seqf;
++	unsigned long offset;
++	u8 val;
++	int res;
++
++	res = kstrtou8_from_user(user_buf, count, 0x10, &val);
++        if (res < 0)
++                return res;
++
++	seqf = file->private_data;
++	offset = (unsigned long)seqf->private;
++	offset = res_config_addrs[offset];
++
++	res = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER,
++			       val, offset + DEV_GRP_OFFSET);
++	if (res < 0) {
++		pr_err("TWL4030 failed to program devgroup\n");
++		return res;
++	}
++
++	*ppos += count;
++
++	return count;
++}
++
++static int dbg_open(struct inode *inode, struct file *file)
++{
++        return single_open(file, dbg_show, inode->i_private);
++}
++
++static const struct file_operations dbg_fops = {
++        .open           = dbg_open,
++        .read           = seq_read,
++        .write          = dbg_write,
++        .llseek         = seq_lseek,
++        .release        = single_release,
++};
++
++static void __init dbg_init(struct twl4030_resconfig *rconfig)
++{
++	int i;
++
++	dbg_root = debugfs_create_dir("twl4030-power", NULL);
++	if (IS_ERR(dbg_root) || !dbg_root)
++		return;
++
++	for (i = 1; i <= RES_MAIN_REF; i++) {
++		u8 name[16];
++
++		sprintf(name, "0x%02x", res_config_addrs[i]);
++		(void)debugfs_create_file(name, S_IRUGO,
++					  dbg_root,
++					  (void *)i,
++					  &dbg_fops);
++	}
++}
++
++static int __init dbg_initcall(void)
++{
++	twl4030_dump_resources();
++
++	return 0;
++}
++late_initcall(dbg_initcall);
++
++#else
++static inline void dbg_init(struct twl4030_resconfig *rconfig)
++{
++}
++#endif
++
+ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+ {
+ 	int rconfig_addr;
+@@ -864,6 +1004,8 @@ relock:
+ 		return err2;
+ 	}
+ 
++	dbg_init(pdata->resource_config);
++
+ 	return err;
+ }
+ 
