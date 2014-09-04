@@ -1,93 +1,38 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: dra7-evm: Fix spi1 mux documentation
-Date: Thu, 4 Sep 2014 08:33:37 -0500
-Message-ID: <20140904133337.GA4215@kahuna>
-References: <1409837008-32144-1-git-send-email-nm@ti.com>
- <1409837008-32144-2-git-send-email-nm@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
+Date: Thu, 04 Sep 2014 15:44:07 +0200
+Message-ID: <54086CA7.8020507@linutronix.de>
+References: <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com> <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com> <540048B4.7010807@linutronix.de> <20140829161221.GO16006@atomide.com> <5404B149.6010400@linutronix.de> <54060EDA.6060204@linutronix.de> <20140902201536.GC11766@atomide.com> <540745CC.2090901@linutronix.de> <20140903174845.GE11766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35132 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750832AbaIDNeB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Sep 2014 09:34:01 -0400
-Content-Disposition: inline
-In-Reply-To: <1409837008-32144-2-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140903174845.GE11766@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, rogerq@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
+List-Id: linux-omap@vger.kernel.org
 
-On 08:23-20140904, Nishanth Menon wrote:
-> While auditing the various pin ctrl configurations using the following
-> command:
-> grep PIN_ arch/arm/boot/dts/dra7-evm.dts|(while read line;
-> do
-> 	v=`echo "$line" | sed -e "s/\s\s*/|/g" | cut -d '|' -f1 |
-> 		cut -d 'x' -f2|tr [a-z] [A-Z]`;
-> 	HEX=`echo "obase=16;ibase=16;4A003400+$v"| bc`;
-> 	echo "$HEX ===> $line";
-> done)
-> against DRA75x/74x NDA TRM revision S(SPRUHI2S August 2014),
-> documentation errors were found for spi1 pinctrl. Fix the same.
-> 
-> Fixes: 6e58b8f1daaf1af340fb9309907e5ffa473c7aff ("ARM: dts: DRA7: Add
-> the dts files for dra7 SoC and dra7-evm board")
-^^^ uggh... apologies.. checkpatch slipped this one.. updated rev below
-(wont repost unless requested), Apologies on the spam..
-----8<----
->From db595b941663f634f5f5106cf0092c7c8e998bb4 Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Thu, 4 Sep 2014 08:06:27 -0500
-Subject: [PATCH V2 1/2] ARM: dts: dra7-evm: Fix spi1 mux documentation
+On 09/03/2014 07:48 PM, Tony Lindgren wrote:
 
-While auditing the various pin ctrl configurations using the following
-command:
-grep PIN_ arch/arm/boot/dts/dra7-evm.dts|(while read line;
-do
-	v=`echo "$line" | sed -e "s/\s\s*/|/g" | cut -d '|' -f1 |
-		cut -d 'x' -f2|tr [a-z] [A-Z]`;
-	HEX=`echo "obase=16;ibase=16;4A003400+$v"| bc`;
-	echo "$HEX ===> $line";
-done)
-against DRA75x/74x NDA TRM revision S(SPRUHI2S August 2014),
-documentation errors were found for spi1 pinctrl. Fix the same.
+I will check this upper part of this email soon=85
 
-Fixes: 6e58b8f1daaf1af ("ARM: dts: DRA7: Add the dts files for dra7 SoC and dra7-evm board")
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/boot/dts/dra7-evm.dts |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+> OK. At least it's starting to now sound that the bugs are pretty much
+> the same with 8250 and serial-omap :)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 50f8022..e120fca 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -50,13 +50,13 @@
- 
- 	mcspi1_pins: pinmux_mcspi1_pins {
- 		pinctrl-single,pins = <
--			0x3a4 (PIN_INPUT | MUX_MODE0) /* spi2_clk */
--			0x3a8 (PIN_INPUT | MUX_MODE0) /* spi2_d1 */
--			0x3ac (PIN_INPUT | MUX_MODE0) /* spi2_d0 */
--			0x3b0 (PIN_INPUT_SLEW | MUX_MODE0) /* spi2_cs0 */
--			0x3b4 (PIN_INPUT_SLEW | MUX_MODE0) /* spi2_cs1 */
--			0x3b8 (PIN_INPUT_SLEW | MUX_MODE6) /* spi2_cs2 */
--			0x3bc (PIN_INPUT_SLEW | MUX_MODE6) /* spi2_cs3 */
-+			0x3a4 (PIN_INPUT | MUX_MODE0) /* spi1_sclk */
-+			0x3a8 (PIN_INPUT | MUX_MODE0) /* spi1_d1 */
-+			0x3ac (PIN_INPUT | MUX_MODE0) /* spi1_d0 */
-+			0x3b0 (PIN_INPUT_SLEW | MUX_MODE0) /* spi1_cs0 */
-+			0x3b4 (PIN_INPUT_SLEW | MUX_MODE0) /* spi1_cs1 */
-+			0x3b8 (PIN_INPUT_SLEW | MUX_MODE6) /* spi1_cs2.hdmi1_hpd */
-+			0x3bc (PIN_INPUT_SLEW | MUX_MODE6) /* spi1_cs3.hdmi1_cec */
- 		>;
- 	};
- 
--- 
-1.7.9.5
+Do you see a reason for not posting the entire series again since now I
+am bug compatible in the pm-runtime part? We have -rc3 and I would like
+to get this merge the series I have now and this seems to be the only
+problem I am aware of.
 
+>=20
+> Regards,
+>=20
+> Tony
 
--- 
-Regards,
-Nishanth Menon
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
