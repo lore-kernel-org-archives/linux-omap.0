@@ -1,70 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix PM idle pin configuration to not
- conflict with regulators
-Date: Thu, 4 Sep 2014 09:39:01 -0700
-Message-ID: <20140904163900.GT11766@atomide.com>
-References: <20140819152405.GA12002@atomide.com>
- <20140902082931.GA32460@breakpoint.cc>
- <20140903002445.GD11766@atomide.com>
- <5406D388.5050104@linutronix.de>
- <20140903183901.GF11766@atomide.com>
- <5408269F.7030400@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17248 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751523AbaIDQjX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2014 12:39:23 -0400
-Content-Disposition: inline
-In-Reply-To: <5408269F.7030400@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH] mfd: ti_am335x_tscadc: Update logic in CTRL register for 5-wire TS
+Date: Thu,  4 Sep 2014 19:01:57 +0200
+Message-ID: <1409850117-5156-1-git-send-email-bigeasy@linutronix.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Jeff Lance <j-lance1@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Lee Jones <lee.jones@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140904 01:46]:
-> On 09/03/2014 08:39 PM, Tony Lindgren wrote:
-> >> good.txt and bad.txt are from the late_initcall.
-> >>
-> >>  $ diff -u good.txt bad.txt
-> >> --- good.txt    2014-09-03 10:29:58.920317368 +0200
-> >> +++ bad.txt     2014-09-03 10:28:57.064313222 +0200
-> > 
-> > Hmm can you check that you have good.txt and bad.txt the
-> > right way? I'd assume you need VAUX2 or VAUX3 enabled
-> > not disabled for the MMC to work?
-> 
-> No, it was correct. If you look at the complete file you will notice
-> the - which removes the mmc detect/mount in the bad case and + which
-> adds the -110 error
-...
+From: Jeff Lance <j-lance1@ti.com>
+
+The logic in AFE_Pen_Ctrl bitmask in the CTRL register is different for five
+wire versus four or eight wire touschscreens. This patch should fix this for
+five-wire touch screens. There should be no change needed here for four and
+eight wire tousch screens.
+
+Signed-off-by: Jeff Lance <j-lance1@ti.com>
+[bigeasy: keep the change mfd only]
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+I've been looking at moving this piece and the idle mode setting into the
+TSC driver. Kinda odd that I have to patch within the MFD driver for this
+TSC related change.
+Anyone disagrees?
+
+ drivers/mfd/ti_am335x_tscadc.c       | 30 +++++++++++++++++-------------
+ include/linux/mfd/ti_am335x_tscadc.h |  1 +
+ 2 files changed, 18 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index dd4bf5816221..6c9cfb8c1d01 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -241,18 +241,20 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+ 	tscadc_writel(tscadc, REG_CLKDIV, tscadc->clk_div);
  
-> With that patch it seems it is a little harder to trigger. It is
-> usually every other boot that fails. Here a diff between two that
-> worked (say good-v1 vs good-v2):
-...
+ 	/* Set the control register bits */
+-	ctrl = CNTRLREG_STEPCONFIGWRT |
+-			CNTRLREG_STEPID;
+-	if (tsc_wires > 0)
+-		ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
++	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
+ 	tscadc_writel(tscadc, REG_CTRL, ctrl);
  
-> It took mmc a little longer to detect but it worked. And the content of
-> the three registers seem not to matter _or_ it was dumped before MMC
-> got active.
-...
+ 	/* Set register bits for Idle Config Mode */
+-	if (tsc_wires > 0)
++	if (tsc_wires > 0) {
++		tscadc->tsc_wires = tsc_wires;
++		if (tsc_wires == 5)
++			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
++		else
++			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
+ 		tscadc_idle_config(tscadc);
++	}
  
-> I didn't change a thing, I just pressed reset. As you see the content
-> of the TWL registers don't seem to be that important since it was the
-> same at the time of the dump. And the mmc didn't came back.
-
-OK. I guess that means that it's most likely some timing related issue,
-or an issue with some regulator not being ready by the time the MMC
-probes. Or it's a bug somewhere that I'm not figuring out.
-
-Looking at the twl-regulator.c, twl4030reg_enable just sets the group
-bit and we're not checking any status and don't have startup-delay-us
-for them.
-
-At least phy-twl4030-usb.c has twl4030_i2c_write_u8_verify(), I wonder
-if adding a read back of the register to twl-regulator.c would help?
-
-Regards,
-
-Tony
+ 	/* Enable the TSC module enable bit */
+-	ctrl = tscadc_readl(tscadc, REG_CTRL);
+ 	ctrl |= CNTRLREG_TSCSSENB;
+ 	tscadc_writel(tscadc, REG_CTRL, ctrl);
+ 
+@@ -324,21 +326,23 @@ static int tscadc_suspend(struct device *dev)
+ static int tscadc_resume(struct device *dev)
+ {
+ 	struct ti_tscadc_dev	*tscadc_dev = dev_get_drvdata(dev);
+-	unsigned int restore, ctrl;
++	u32 ctrl;
+ 
+ 	pm_runtime_get_sync(dev);
+ 
+ 	/* context restore */
+ 	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
+-	if (tscadc_dev->tsc_cell != -1)
+-		ctrl |= CNTRLREG_TSCENB | CNTRLREG_4WIRE;
+ 	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
+ 
+-	if (tscadc_dev->tsc_cell != -1)
++	if (tscadc_dev->tsc_cell != -1) {
++		if (tscadc_dev->tsc_wires == 5)
++			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
++		else
++			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
+ 		tscadc_idle_config(tscadc_dev);
+-	restore = tscadc_readl(tscadc_dev, REG_CTRL);
+-	tscadc_writel(tscadc_dev, REG_CTRL,
+-			(restore | CNTRLREG_TSCSSENB));
++	}
++	ctrl |= CNTRLREG_TSCSSENB;
++	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
+ 
+ 	tscadc_writel(tscadc_dev, REG_CLKDIV, tscadc_dev->clk_div);
+ 
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index fb96c84dada5..e2e70053470e 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -155,6 +155,7 @@ struct ti_tscadc_dev {
+ 	void __iomem *tscadc_base;
+ 	int irq;
+ 	int used_cells;	/* 1-2 */
++	int tsc_wires;
+ 	int tsc_cell;	/* -1 if not used */
+ 	int adc_cell;	/* -1 if not used */
+ 	struct mfd_cell cells[TSCADC_CELLS];
+-- 
+2.1.0
