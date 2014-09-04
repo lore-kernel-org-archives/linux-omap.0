@@ -1,75 +1,37 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap5.dtsi: add DSS RFBI node
-Date: Thu, 4 Sep 2014 08:44:48 -0500
-Message-ID: <54086CD0.7000203@ti.com>
-References: <1409812112-19194-1-git-send-email-tomi.valkeinen@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 3/5] usb: phy: twl4030-usb: Move code from twl4030_phy_power
+ to the runtime PM calls
+Date: Thu, 4 Sep 2014 19:20:53 +0530
+Message-ID: <54086E3D.4000200@ti.com>
+References: <1409182091-31191-1-git-send-email-tony@atomide.com> <1409182091-31191-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35598 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752895AbaIDNpN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Sep 2014 09:45:13 -0400
-In-Reply-To: <1409812112-19194-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1409182091-31191-4-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-$subject: ARM: dts: OMAP5: Add DSS RFBI node
+Hi Tony,
 
-On 09/04/2014 01:28 AM, Tomi Valkeinen wrote:
-> The RFBI node for OMAP DSS was left out when adding the rest of the DSS
-> nodes, because it was not clear how to set up the clocks for the RFBI.
-> 
-> However, it seems that if there is a HWMOD for a device, we also need a
-> DT node for it. Otherwise, at boot, we get:
-> 
-> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2542 _init+0x464/0x4e0()
-> omap_hwmod: dss_rfbi: doesn't have mpu register target base
-> 
-> Now that v3.17-rc3 contains a fix
-> (8fd46439e1f5a7f86d76a08733459b74debd9468) for the L3 ICLK required by
-> the RFBI, let's add the RFBI node to get rid of the warning.
-The usual style is to use the following style:
-Commit 8fd46439e1f5 ("ARM: dts: omap54xx-clocks: Fix the l3 and l4
-clock rates")
+On Thursday 28 August 2014 04:58 AM, Tony Lindgren wrote:
+> We don't need twl4030_phy_power() any longer now that we have
+> the runtime PM calls. Let's get rid of it as it's confusing.
+> No functional changes, just move the code and use res instead
+> of ret as we are not returning that value.
 
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  arch/arm/boot/dts/omap5.dtsi | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index fc8df1739f39..1e6ff61a7f12 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -945,6 +945,15 @@
->  				clock-names = "fck";
->  			};
->  
-> +			rfbi: encoder@58002000  {
-> +				compatible = "ti,omap5-rfbi";
-> +				reg = <0x58002000 0x100>;
-> +				status = "disabled";
-> +				ti,hwmods = "dss_rfbi";
-> +				clocks = <&dss_dss_clk>, <&l3_iclk_div>;
-> +				clock-names = "fck", "ick";
-> +			};
-> +
->  			dsi1: encoder@58004000 {
->  				compatible = "ti,omap5-dsi";
->  				reg = <0x58004000 0x200>,
-> 
+Now that you are doing pm_runtime_get_sync in twl4030_phy_init, won't it power
+on the phy even before initializing it (since runtime_resume will be invoked
+even before doing phy_init)?
 
-before-omap5-evm: http://paste.ubuntu.org.cn/1477659
+Even if pm_runtime_get_sync in not done in twl4030_phy_init, phy-core itself
+does pm_runtime_get_sync in phy_init().
 
-after-omap5-evm:  http://paste.ubuntu.org.cn/1477658
-
-So, yep, no more warning.
-
-
--- 
-Regards,
-Nishanth Menon
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
