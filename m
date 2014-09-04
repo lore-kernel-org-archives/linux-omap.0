@@ -1,56 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] OMAP2+: GPMC: NAND fixes for 3.17
-Date: Thu, 4 Sep 2014 12:40:28 -0700
-Message-ID: <20140904194027.GA14698@atomide.com>
-References: <1409666227-20622-1-git-send-email-rogerq@ti.com>
- <20140903214045.GK11766@atomide.com>
- <20140903214232.GL11766@atomide.com>
- <5408B6E0.2090806@pek-sem.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: dts: dra7-evm: fixes for mux and VTT control
+Date: Thu, 4 Sep 2014 12:49:52 -0700
+Message-ID: <20140904194951.GB14698@atomide.com>
+References: <1409837008-32144-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59298 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754376AbaIDTkf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2014 15:40:35 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5408B6E0.2090806@pek-sem.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1409837008-32144-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: pekon <pekon@pek-sem.com>
-Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org
 
-* pekon <pekon@pek-sem.com> [140904 12:01]:
-> Hi Tony,
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [140904 06:24]:
+> Hi,
 > 
-> On Thursday 04 September 2014 03:12 AM, Tony Lindgren wrote:
-> >* Tony Lindgren <tony@atomide.com> [140903 14:41]:
-> >>* Roger Quadros <rogerq@ti.com> [140902 06:57]:
-> >>>Hi Tony,
-> >>>
-> >>>These are some of the issues I found while testing v3.17-rc3.
-> >>>
-> >>>- Wrong ECC scheme used for am43x GP and EPOS evm. We need to use
-> >>>BCH16 instead of BCH8.
-> >>>
-> >>>- Wrong read/write wait pin monitoring setting used for NAND
-> >>>resulting in "L3 application error" debug message on console.
-> >>>
-> >>>- Pin conflict issue on am43x EPOS evm with QSPI and NAND.
-> >>
-> >>Thanks applying into omap-for-v3.17/fixes-v2.
-> >
-> >Sorry replied to the wrong thread, this series still seems
-> >to have some pending comments so not applying this one.
-> >
-> Only [Patch 3/6] had some pending comments, but after Roger's
-> clarification there are no further comments from me. So for
-> entire series ..
+> The following series was inspired in part by http://marc.info/?l=linux-omap&m=140974309205295&w=2
+> causing me to try and do an audit of pinctrl configurations on the platform.
 > 
-> Reviewed-by: Pekon Gupta <pekon@pek-sem.com>
+> Further, failures on latest board updates in the automated farm also
+> caused identification of a fix which was yet to be send to upstream
+> from product kernel. Slightly unrelated patches in this series.
+> 
+> So here they are..
+> based on v3.17-rc1:
+> before-dra7xx-evm:  Boot FAIL: http://paste.ubuntu.org.cn/1477597
+> (fails can be at different times though.. random crashes without VTT is usual)..
+> after-dra7xx-evm:  Boot PASS: http://paste.ubuntu.org.cn/1477596
 
-OK thanks will apply all into omap-for-v3.17/fixes-v2.
+Thanks applying both into omap-for-v3.17/fixes-v2.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
