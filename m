@@ -1,38 +1,75 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Thu, 04 Sep 2014 15:44:07 +0200
-Message-ID: <54086CA7.8020507@linutronix.de>
-References: <20140828082348.GA5413@linutronix.de> <20140828164645.GG16006@atomide.com> <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com> <540048B4.7010807@linutronix.de> <20140829161221.GO16006@atomide.com> <5404B149.6010400@linutronix.de> <54060EDA.6060204@linutronix.de> <20140902201536.GC11766@atomide.com> <540745CC.2090901@linutronix.de> <20140903174845.GE11766@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: dts: omap5.dtsi: add DSS RFBI node
+Date: Thu, 4 Sep 2014 08:44:48 -0500
+Message-ID: <54086CD0.7000203@ti.com>
+References: <1409812112-19194-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20140903174845.GE11766@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35598 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752895AbaIDNpN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Sep 2014 09:45:13 -0400
+In-Reply-To: <1409812112-19194-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-On 09/03/2014 07:48 PM, Tony Lindgren wrote:
+$subject: ARM: dts: OMAP5: Add DSS RFBI node
 
-I will check this upper part of this email soon=85
+On 09/04/2014 01:28 AM, Tomi Valkeinen wrote:
+> The RFBI node for OMAP DSS was left out when adding the rest of the DSS
+> nodes, because it was not clear how to set up the clocks for the RFBI.
+> 
+> However, it seems that if there is a HWMOD for a device, we also need a
+> DT node for it. Otherwise, at boot, we get:
+> 
+> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2542 _init+0x464/0x4e0()
+> omap_hwmod: dss_rfbi: doesn't have mpu register target base
+> 
+> Now that v3.17-rc3 contains a fix
+> (8fd46439e1f5a7f86d76a08733459b74debd9468) for the L3 ICLK required by
+> the RFBI, let's add the RFBI node to get rid of the warning.
+The usual style is to use the following style:
+Commit 8fd46439e1f5 ("ARM: dts: omap54xx-clocks: Fix the l3 and l4
+clock rates")
 
-> OK. At least it's starting to now sound that the bugs are pretty much
-> the same with 8250 and serial-omap :)
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/boot/dts/omap5.dtsi | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index fc8df1739f39..1e6ff61a7f12 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -945,6 +945,15 @@
+>  				clock-names = "fck";
+>  			};
+>  
+> +			rfbi: encoder@58002000  {
+> +				compatible = "ti,omap5-rfbi";
+> +				reg = <0x58002000 0x100>;
+> +				status = "disabled";
+> +				ti,hwmods = "dss_rfbi";
+> +				clocks = <&dss_dss_clk>, <&l3_iclk_div>;
+> +				clock-names = "fck", "ick";
+> +			};
+> +
+>  			dsi1: encoder@58004000 {
+>  				compatible = "ti,omap5-dsi";
+>  				reg = <0x58004000 0x200>,
+> 
 
-Do you see a reason for not posting the entire series again since now I
-am bug compatible in the pm-runtime part? We have -rc3 and I would like
-to get this merge the series I have now and this seems to be the only
-problem I am aware of.
+before-omap5-evm: http://paste.ubuntu.org.cn/1477659
 
->=20
-> Regards,
->=20
-> Tony
+after-omap5-evm:  http://paste.ubuntu.org.cn/1477658
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So, yep, no more warning.
+
+
+-- 
+Regards,
+Nishanth Menon
