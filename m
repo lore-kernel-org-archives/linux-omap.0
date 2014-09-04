@@ -1,59 +1,70 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Thu, 4 Sep 2014 09:25:43 -0700
-Message-ID: <20140904162542.GS11766@atomide.com>
-References: <540048B4.7010807@linutronix.de>
- <20140829161221.GO16006@atomide.com>
- <5404B149.6010400@linutronix.de>
- <54060EDA.6060204@linutronix.de>
- <20140902201536.GC11766@atomide.com>
- <540745CC.2090901@linutronix.de>
- <20140903174845.GE11766@atomide.com>
- <54086CA7.8020507@linutronix.de>
- <20140904145203.GR11766@atomide.com>
- <54087D94.7000208@linutronix.de>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix PM idle pin configuration to not
+ conflict with regulators
+Date: Thu, 4 Sep 2014 09:39:01 -0700
+Message-ID: <20140904163900.GT11766@atomide.com>
+References: <20140819152405.GA12002@atomide.com>
+ <20140902082931.GA32460@breakpoint.cc>
+ <20140903002445.GD11766@atomide.com>
+ <5406D388.5050104@linutronix.de>
+ <20140903183901.GF11766@atomide.com>
+ <5408269F.7030400@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55208 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753683AbaIDQZy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2014 12:25:54 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17248 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751523AbaIDQjX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2014 12:39:23 -0400
 Content-Disposition: inline
-In-Reply-To: <54087D94.7000208@linutronix.de>
+In-Reply-To: <5408269F.7030400@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>, Lee Jones <lee.jones@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140904 07:56]:
-> On 09/04/2014 04:52 PM, Tony Lindgren wrote:
-> > Yeah makes sense to me. Thanks for ensuring the bug
-> > compability :)
->=20
-> Thanks. What about the ttyOx vs ttySx. Do you want me to add kernel
-> line fixup somewhere arch/arm or we ignore this for now? Greg didn't
-> say anything=E2=80=A6
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140904 01:46]:
+> On 09/03/2014 08:39 PM, Tony Lindgren wrote:
+> >> good.txt and bad.txt are from the late_initcall.
+> >>
+> >>  $ diff -u good.txt bad.txt
+> >> --- good.txt    2014-09-03 10:29:58.920317368 +0200
+> >> +++ bad.txt     2014-09-03 10:28:57.064313222 +0200
+> > 
+> > Hmm can you check that you have good.txt and bad.txt the
+> > right way? I'd assume you need VAUX2 or VAUX3 enabled
+> > not disabled for the MMC to work?
+> 
+> No, it was correct. If you look at the complete file you will notice
+> the - which removes the mmc detect/mount in the bad case and + which
+> adds the -110 error
+...
+ 
+> With that patch it seems it is a little harder to trigger. It is
+> usually every other boot that fails. Here a diff between two that
+> worked (say good-v1 vs good-v2):
+...
+ 
+> It took mmc a little longer to detect but it worked. And the content of
+> the three registers seem not to matter _or_ it was dumped before MMC
+> got active.
+...
+ 
+> I didn't change a thing, I just pressed reset. As you see the content
+> of the TWL registers don't seem to be that important since it was the
+> same at the time of the dump. And the mmc didn't came back.
 
-I suggest we have both drivers just available first and then attempt
-to deal with the removal of most of omap-serial later on.
+OK. I guess that means that it's most likely some timing related issue,
+or an issue with some regulator not being ready by the time the MMC
+probes. Or it's a bug somewhere that I'm not figuring out.
 
-If both drivers are present, we should try to ensure 8250 gets probed
-first which I believe it already does based on the Makefile order.
+Looking at the twl-regulator.c, twl4030reg_enable just sets the group
+bit and we're not checking any status and don't have startup-delay-us
+for them.
 
-Once the 8250 based driver is known to work, it might make sense to
-remove most of the functions in omap-serial and have it use the 8250
-functions too to remove duplicate code.
-
-That might be already enough and no proxying is needed and we get
-rid of the duplicate code :)
+At least phy-twl4030-usb.c has twl4030_i2c_write_u8_verify(), I wonder
+if adding a read back of the register to twl-regulator.c would help?
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
