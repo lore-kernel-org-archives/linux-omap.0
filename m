@@ -1,35 +1,34 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Thu, 04 Sep 2014 16:56:20 +0200
-Message-ID: <54087D94.7000208@linutronix.de>
-References: <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com> <540048B4.7010807@linutronix.de> <20140829161221.GO16006@atomide.com> <5404B149.6010400@linutronix.de> <54060EDA.6060204@linutronix.de> <20140902201536.GC11766@atomide.com> <540745CC.2090901@linutronix.de> <20140903174845.GE11766@atomide.com> <54086CA7.8020507@linutronix.de> <20140904145203.GR11766@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] ARM: dts: cm-t54: fix serial console power supply.
+Date: Thu, 4 Sep 2014 15:40:23 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1409041539540.23951@utopia.booyaka.com>
+References: <1409835773-22782-1-git-send-email-lifshitz@compulab.co.il> <1409835773-22782-2-git-send-email-lifshitz@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20140904145203.GR11766@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:42587 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882AbaIDPkY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2014 11:40:24 -0400
+In-Reply-To: <1409835773-22782-2-git-send-email-lifshitz@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: =?ISO-8859-15?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 09/04/2014 04:52 PM, Tony Lindgren wrote:
-> Yeah makes sense to me. Thanks for ensuring the bug
-> compability :)
+On Thu, 4 Sep 2014, Dmitry Lifshitz wrote:
 
-Thanks. What about the ttyOx vs ttySx. Do you want me to add kernel
-line fixup somewhere arch/arm or we ignore this for now? Greg didn't
-say anything=E2=80=A6
+> LDO8 regulator is used for act led and serial cosole power supply.
+> 
+> Its DT status is declared as "disabled", however the serial console was
+> functional until Commit 318dbb02b ("regulator: palmas: Fix SMPS
+> enable/disable/is_enabled") wich properly turns off LDO8 on boot.
+> 
+> Fix serial cosole power supply (and act led) on boot by turning LDO8 on.
+> 
+> Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
 
->=20
-> Regards,
->=20
-> Tony
->=20
+Tested-by: Paul Walmsley <paul@pwsan.com>
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
