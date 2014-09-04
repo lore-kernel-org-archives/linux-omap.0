@@ -1,74 +1,53 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv2 2/2] iommu/omap: Fix iommu archdata name for DT-based devices
-Date: Thu, 4 Sep 2014 17:27:30 -0500
-Message-ID: <1409869650-26115-3-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 1/2] iommu/omap: Check for valid archdata in attach_dev
+Date: Thu, 4 Sep 2014 17:27:29 -0500
+Message-ID: <1409869650-26115-2-git-send-email-s-anna@ti.com>
 References: <1409869650-26115-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51278 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755755AbaIDW2u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Sep 2014 18:28:50 -0400
-In-Reply-To: <1409869650-26115-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1409869650-26115-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Florian Vaussard <florian.vaussard@epfl.ch>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-A device is tied to an iommu through its archdata field. The archdata
-is allocated on the fly for DT-based devices automatically through the
-.add_device iommu ops. The current logic incorrectly assigned the name
-of the IOMMU user device, instead of the name of the IOMMU device as
-required by the attach logic. Fix this issue so that DT-based devices
-can attach successfully to an IOMMU domain.
+Any device requiring to be attached to an iommu_domain must have
+valid archdata containing the necessary iommu information, which
+is SoC-specific. Add a check in the omap_iommu_attach_dev to make
+sure that the device has valid archdata before accessing
+different SoC-specific fields of the archdata. This prevents a
+NULL pointer dereference on any misconfigured devices.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/iommu/omap-iommu.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index ea6e59d..8cf8bf1 100644
+index 02ef0ac..ea6e59d 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -26,6 +26,7 @@
- #include <linux/of.h>
- #include <linux/of_iommu.h>
- #include <linux/of_irq.h>
-+#include <linux/of_platform.h>
+@@ -1090,6 +1090,11 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
+ 	int ret = 0;
  
- #include <asm/cacheflush.h>
- 
-@@ -1243,6 +1244,7 @@ static int omap_iommu_add_device(struct device *dev)
- {
- 	struct omap_iommu_arch_data *arch_data;
- 	struct device_node *np;
-+	struct platform_device *pdev;
- 
- 	/*
- 	 * Allocate the archdata iommu structure for DT-based devices.
-@@ -1257,13 +1259,19 @@ static int omap_iommu_add_device(struct device *dev)
- 	if (!np)
- 		return 0;
- 
-+	pdev = of_find_device_by_node(np);
-+	if (WARN_ON(!pdev)) {
-+		of_node_put(np);
++	if (!arch_data || !arch_data->name) {
++		dev_err(dev, "device doesn't have an associated iommu\n");
 +		return -EINVAL;
 +	}
 +
- 	arch_data = kzalloc(sizeof(*arch_data), GFP_KERNEL);
- 	if (!arch_data) {
- 		of_node_put(np);
- 		return -ENOMEM;
- 	}
+ 	spin_lock(&omap_domain->lock);
  
--	arch_data->name = kstrdup(dev_name(dev), GFP_KERNEL);
-+	arch_data->name = kstrdup(dev_name(&pdev->dev), GFP_KERNEL);
- 	dev->archdata.iommu = arch_data;
- 
- 	of_node_put(np);
+ 	/* only a single device is supported per domain for now */
 -- 
 2.0.4
-
