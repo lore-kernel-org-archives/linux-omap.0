@@ -1,92 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/5] usb: phy: twl4030-usb: Move code from
- twl4030_phy_power to the runtime PM calls
-Date: Thu, 4 Sep 2014 10:07:24 -0700
-Message-ID: <20140904170723.GA14282@atomide.com>
-References: <1409182091-31191-1-git-send-email-tony@atomide.com>
- <1409182091-31191-4-git-send-email-tony@atomide.com>
- <54086E3D.4000200@ti.com>
+From: pekon <pekon@pek-sem.com>
+Subject: Re: [PATCH 3/6] ARM: dts: am437x-gp-evm: Don't use read/write wait
+ monitoring
+Date: Fri, 05 Sep 2014 00:27:45 +0530
+Message-ID: <5408B629.4030404@pek-sem.com>
+References: <1409666227-20622-1-git-send-email-rogerq@ti.com>
+ <1409666227-20622-4-git-send-email-rogerq@ti.com>
+ <54061439.1030909@pek-sem.com> <5406D213.6020603@ti.com>
+ <54074FFA.2020406@pek-sem.com> <540834F9.8080902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20593 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754972AbaIDRH2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2014 13:07:28 -0400
-Content-Disposition: inline
-In-Reply-To: <54086E3D.4000200@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <540834F9.8080902@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, linux-mtd <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, "Nori, Sekhar" <nsekhar@ti.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [140904 06:51]:
-> Hi Tony,
-> 
-> On Thursday 28 August 2014 04:58 AM, Tony Lindgren wrote:
-> > We don't need twl4030_phy_power() any longer now that we have
-> > the runtime PM calls. Let's get rid of it as it's confusing.
-> > No functional changes, just move the code and use res instead
-> > of ret as we are not returning that value.
-> 
-> Now that you are doing pm_runtime_get_sync in twl4030_phy_init, won't it power
-> on the phy even before initializing it (since runtime_resume will be invoked
-> even before doing phy_init)?
+On Thursday 04 September 2014 03:16 PM, Roger Quadros wrote:
 
-Yes. The logic being that it should not matter as we are not
-configuring the phy until in twl4030_phy_power_on(). Maybe we
-should add code to make sure the phy is deconfigured initially
-though :)
+[...]
 
-In twl4030_phy_init() we just want to check the ID pin state to get
-things right initially. In the twl4030-usb case the I2C chip is
-always on, but let's try to get the runtime PM set up like any
-standard Linux driver would do it to avoid confusion.
+>
+> This patch is for the 3.17 bug fix cycle. Implementing NAND device ready mechanism
+> is a new feature (for DT case) and I will work on it for future versions.
+>
+> Also I'm not de-scoping wait-pin (or more correctly device ready) mechanism for NAND.
+> The dts file still contains "wait-pin = <0>" property. This will be used to
+> monitor the NAND device ready status via GPMC status or GPMC interrupt.
+> But this is not for 3.17 bug fix cycle.
+>
 
-> Even if pm_runtime_get_sync in not done in twl4030_phy_init, phy-core itself
-> does pm_runtime_get_sync in phy_init().
+Ok Thanks, that good to know. So for this whole series
 
-Hmm OK. Looking at that, looks like we don't neeed any of these
-custom exports though:
+Reviewed-by: Pekon Gupta <pekon@pek-sem.com>
 
-$ git grep phy_pm_runtime | grep EXPORT_SYMBOL
-drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_get);
-drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_get_sync);
-drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_put);
-drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_put_sync);
-drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_allow);
-drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_forbid);
 
-The reasons why I think we don't need the above at all is:
+with regards, pekon
 
-1. We already have a framework for that in Linux runtime PM and we
-   can follow the standard Linux runtime PM calls and not proxy
-   them in phy-core.c
+------------------------
+Powered by BigRock.com
 
-2. We can allow idling the phy properly on the bus it's connected
-   to, in this case I2C, even if USB driver is not loaded. We
-   eventually should idle the phy even if usb_add_phy_dev()
-   failed
 
-3. There's no actual need for phy-core.c to proxy the runtime
-   PM calls
-
-So we can and should just let the phy drivers do their own runtime PM
-as needed based on just the phy init, power_on and power_off calls.
-
-Probably the same goes for the regulator_enable in phy-core.c. That
-should be handled in the phy driver as phy-core is already unable
-to handle it properly. For example, for phy-twl4030-usb.c we have
-three regulators to deal with and the phy framework won't have any
-idea how to deal with those.
-
-And the phy-core won't be able to deal with the phy driver interrupts
-anyways, so any attempt of doing finer grained runtime PM in phy-core
-or handling of separate wake-up interrupts will be doomed to fail.
-
-I think the changes above would simplify the phy handling quite
-a bit, what do you think?
-
-Regards,
-
-Tony
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
