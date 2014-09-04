@@ -1,45 +1,47 @@
 From: pekon <pekon@pek-sem.com>
-Subject: Re: [PATCH 3/6] ARM: dts: am437x-gp-evm: Don't use read/write wait
- monitoring
-Date: Fri, 05 Sep 2014 00:27:45 +0530
-Message-ID: <5408B629.4030404@pek-sem.com>
-References: <1409666227-20622-1-git-send-email-rogerq@ti.com>
- <1409666227-20622-4-git-send-email-rogerq@ti.com>
- <54061439.1030909@pek-sem.com> <5406D213.6020603@ti.com>
- <54074FFA.2020406@pek-sem.com> <540834F9.8080902@ti.com>
+Subject: Re: [PATCH 0/6] OMAP2+: GPMC: NAND fixes for 3.17
+Date: Fri, 05 Sep 2014 00:30:48 +0530
+Message-ID: <5408B6E0.2090806@pek-sem.com>
+References: <1409666227-20622-1-git-send-email-rogerq@ti.com> <20140903214045.GK11766@atomide.com> <20140903214232.GL11766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <540834F9.8080902@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, linux-mtd <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org, "Nori, Sekhar" <nsekhar@ti.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from us2.outbound.mailhostbox.com ([208.91.199.217]:36048 "EHLO
+	us2.outbound.mailhostbox.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751661AbaIDTA4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Sep 2014 15:00:56 -0400
+In-Reply-To: <20140903214232.GL11766@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thursday 04 September 2014 03:16 PM, Roger Quadros wrote:
+Hi Tony,
 
-[...]
-
+On Thursday 04 September 2014 03:12 AM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [140903 14:41]:
+>> * Roger Quadros <rogerq@ti.com> [140902 06:57]:
+>>> Hi Tony,
+>>>
+>>> These are some of the issues I found while testing v3.17-rc3.
+>>>
+>>> - Wrong ECC scheme used for am43x GP and EPOS evm. We need to use
+>>> BCH16 instead of BCH8.
+>>>
+>>> - Wrong read/write wait pin monitoring setting used for NAND
+>>> resulting in "L3 application error" debug message on console.
+>>>
+>>> - Pin conflict issue on am43x EPOS evm with QSPI and NAND.
+>>
+>> Thanks applying into omap-for-v3.17/fixes-v2.
 >
-> This patch is for the 3.17 bug fix cycle. Implementing NAND device ready mechanism
-> is a new feature (for DT case) and I will work on it for future versions.
+> Sorry replied to the wrong thread, this series still seems
+> to have some pending comments so not applying this one.
 >
-> Also I'm not de-scoping wait-pin (or more correctly device ready) mechanism for NAND.
-> The dts file still contains "wait-pin = <0>" property. This will be used to
-> monitor the NAND device ready status via GPMC status or GPMC interrupt.
-> But this is not for 3.17 bug fix cycle.
->
-
-Ok Thanks, that good to know. So for this whole series
+Only [Patch 3/6] had some pending comments, but after Roger's
+clarification there are no further comments from me. So for
+entire series ..
 
 Reviewed-by: Pekon Gupta <pekon@pek-sem.com>
 
@@ -49,7 +51,3 @@ with regards, pekon
 ------------------------
 Powered by BigRock.com
 
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
