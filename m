@@ -1,50 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Subject: Re: [PATCH 15/15] tty: serial: 8250: omap: add dma support
-Date: Thu, 4 Sep 2014 07:52:04 -0700
-Message-ID: <20140904145203.GR11766@atomide.com>
-References: <53FF84DF.7080406@linutronix.de>
- <20140828225454.GM16006@atomide.com>
- <540048B4.7010807@linutronix.de>
- <20140829161221.GO16006@atomide.com>
- <5404B149.6010400@linutronix.de>
- <54060EDA.6060204@linutronix.de>
- <20140902201536.GC11766@atomide.com>
- <540745CC.2090901@linutronix.de>
- <20140903174845.GE11766@atomide.com>
- <54086CA7.8020507@linutronix.de>
+Date: Thu, 04 Sep 2014 16:56:20 +0200
+Message-ID: <54087D94.7000208@linutronix.de>
+References: <53FF84DF.7080406@linutronix.de> <20140828225454.GM16006@atomide.com> <540048B4.7010807@linutronix.de> <20140829161221.GO16006@atomide.com> <5404B149.6010400@linutronix.de> <54060EDA.6060204@linutronix.de> <20140902201536.GC11766@atomide.com> <540745CC.2090901@linutronix.de> <20140903174845.GE11766@atomide.com> <54086CA7.8020507@linutronix.de> <20140904145203.GR11766@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54086CA7.8020507@linutronix.de>
+In-Reply-To: <20140904145203.GR11766@atomide.com>
 Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: balbi@ti.com, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140904 06:46]:
-> On 09/03/2014 07:48 PM, Tony Lindgren wrote:
->=20
-> I will check this upper part of this email soon=E2=80=A6
->=20
-> > OK. At least it's starting to now sound that the bugs are pretty mu=
-ch
-> > the same with 8250 and serial-omap :)
->=20
-> Do you see a reason for not posting the entire series again since now=
- I
-> am bug compatible in the pm-runtime part? We have -rc3 and I would li=
-ke
-> to get this merge the series I have now and this seems to be the only
-> problem I am aware of.
+On 09/04/2014 04:52 PM, Tony Lindgren wrote:
+> Yeah makes sense to me. Thanks for ensuring the bug
+> compability :)
 
-Yeah makes sense to me. Thanks for ensuring the bug
-compability :)
+Thanks. What about the ttyOx vs ttySx. Do you want me to add kernel
+line fixup somewhere arch/arm or we ignore this for now? Greg didn't
+say anything=E2=80=A6
 
-Regards,
+>=20
+> Regards,
+>=20
+> Tony
+>=20
 
-Tony
+Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-serial"=
  in
