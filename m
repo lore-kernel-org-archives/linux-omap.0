@@ -1,139 +1,63 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [RESEND PATCH] gpio: omap: Fix interrupt names
-Date: Fri, 5 Sep 2014 14:52:55 -0500
-Message-ID: <1409946775-24076-1-git-send-email-nm@ti.com>
+Subject: [PATCH V2 2/3] Documentation: dt-bindings: mfd: palmas: document optional wakeup IRQ
+Date: Fri, 5 Sep 2014 15:51:50 -0500
+Message-ID: <1409950311-25236-3-git-send-email-nm@ti.com>
+References: <1409950311-25236-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50061 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750906AbaIETxJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Sep 2014 15:53:09 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1409950311-25236-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@linaro.org>, Nishanth Menon <nm@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexandre Courbot <gnurou@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>
-Cc: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 
-When viewing the /proc/interrupts, there is no information about which
-GPIO bank a specific gpio interrupt is hooked on to. This is more than a
-bit irritating as such information can esily be provided back to the
-user and at times, can be crucial for debug.
+With the recent pinctrl-single changes, SoCs such as OMAP family can
+treat wake-up events from deeper low power states as interrupts.
 
-So, instead of displaying something like:
-31:	0	0  GPIO   0  palmas
-32:	0	0  GPIO  27  mmc0
+This is usable when the wakeup from deeper low power states is
+triggered by a different hardware mechanism tied to pinctrl compared
+to the routine interrupt handling generating the reqular interrupt
+events. This is usually done on SoCs where the routine interrupt
+sources such as GPIO need to be disabled to be actually achieve low
+power state and wakeup is triggered from pinctrl interrupt source.
 
-Display the following with appropriate device name:
-31:	0	0  4ae10000.gpio   0  palmas
-32:	0	0  4805d000.gpio  27  mmc0
-
-This requires that we create irq_chip instance specific for each GPIO
-bank which is trivial to achieve.
+Provide documentation example for the case where the system needs two
+interrupt sources when SoC is in deep sleep(1 to exit from deep sleep,
+and other from the module handling the actual event).
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Acked-by: Kevin Hilman <khilman@linaro.org>
 ---
-Requested to be resend by Javier with linux-gpio maintainers in CC.
+ Documentation/devicetree/bindings/mfd/palmas.txt |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-Original V1 of the patch: https://patchwork.kernel.org/patch/4757891/
-
-Probably belongs to 3.18 kernel series at this point in time.
-
-Changes since v1: just picked up Acks.
-
-V1: https://patchwork.kernel.org/patch/4757891/
-
-based on v3.17-rc1
-
- drivers/gpio/gpio-omap.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 1749321..aee25fa 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -857,16 +857,6 @@ static void omap_gpio_unmask_irq(struct irq_data *d)
- 	spin_unlock_irqrestore(&bank->lock, flags);
+diff --git a/Documentation/devicetree/bindings/mfd/palmas.txt b/Documentation/devicetree/bindings/mfd/palmas.txt
+index d193859..1c821d6 100644
+--- a/Documentation/devicetree/bindings/mfd/palmas.txt
++++ b/Documentation/devicetree/bindings/mfd/palmas.txt
+@@ -51,3 +51,23 @@ palmas@48 {
+ 		....
+ 	};
  }
- 
--static struct irq_chip gpio_irq_chip = {
--	.name		= "GPIO",
--	.irq_shutdown	= omap_gpio_irq_shutdown,
--	.irq_ack	= omap_gpio_ack_irq,
--	.irq_mask	= omap_gpio_mask_irq,
--	.irq_unmask	= omap_gpio_unmask_irq,
--	.irq_set_type	= omap_gpio_irq_type,
--	.irq_set_wake	= omap_gpio_wake_enable,
--};
--
- /*---------------------------------------------------------------------*/
- 
- static int omap_mpuio_suspend_noirq(struct device *dev)
-@@ -1088,7 +1078,7 @@ omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
- 			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
- }
- 
--static int omap_gpio_chip_init(struct gpio_bank *bank)
-+static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
- {
- 	int j;
- 	static int gpio;
-@@ -1137,7 +1127,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
- 	}
- #endif
- 
--	ret = gpiochip_irqchip_add(&bank->chip, &gpio_irq_chip,
-+	ret = gpiochip_irqchip_add(&bank->chip, irqc,
- 				   irq_base, omap_gpio_irq_handler,
- 				   IRQ_TYPE_NONE);
- 
-@@ -1147,7 +1137,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank)
- 		return -ENODEV;
- 	}
- 
--	gpiochip_set_chained_irqchip(&bank->chip, &gpio_irq_chip,
-+	gpiochip_set_chained_irqchip(&bank->chip, irqc,
- 				     bank->irq, omap_gpio_irq_handler);
- 
- 	for (j = 0; j < bank->width; j++) {
-@@ -1172,6 +1162,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 	const struct omap_gpio_platform_data *pdata;
- 	struct resource *res;
- 	struct gpio_bank *bank;
-+	struct irq_chip *irqc;
- 	int ret;
- 
- 	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
-@@ -1186,6 +1177,18 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
-+	irqc = devm_kzalloc(dev, sizeof(*irqc), GFP_KERNEL);
-+	if (!irqc)
-+		return -ENOMEM;
 +
-+	irqc->irq_shutdown = omap_gpio_irq_shutdown,
-+	irqc->irq_ack = omap_gpio_ack_irq,
-+	irqc->irq_mask = omap_gpio_mask_irq,
-+	irqc->irq_unmask = omap_gpio_unmask_irq,
-+	irqc->irq_set_type = omap_gpio_irq_type,
-+	irqc->irq_set_wake = omap_gpio_wake_enable,
-+	irqc->name = dev_name(&pdev->dev);
++Example: With interrupts extended
++ See Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
++ Use pinmux 0x418 as wakeup interrupt and gpio1_0 as interrupt source
 +
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (unlikely(!res)) {
- 		dev_err(dev, "Invalid IRQ resource\n");
-@@ -1241,7 +1244,7 @@ static int omap_gpio_probe(struct platform_device *pdev)
- 
- 	omap_gpio_mod_init(bank);
- 
--	ret = omap_gpio_chip_init(bank);
-+	ret = omap_gpio_chip_init(bank, irqc);
- 	if (ret)
- 		return ret;
- 
++palmas@48 {
++	compatible = "ti,twl6035", "ti,palmas";
++	reg = <0x48>
++	interrupt-parent = <&intc>;
++	interrupt-controller;
++	#interrupt-cells = <2>;
++	#address-cells = <1>;
++	#size-cells = <0>;
++	interrupts-extended = <&gpio1 0 IRQ_TYPE_LEVEL_HIGH>,
++			      <&pinmux 0x418>;
++	pmic {
++		compatible = "ti,twl6035-pmic", "ti,palmas-pmic";
++		....
++	};
++}
 -- 
 1.7.9.5
-
