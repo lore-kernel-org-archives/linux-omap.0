@@ -1,180 +1,61 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH V2 3/3] mfd: palmas: Add support for optional wakeup
-Date: Fri, 5 Sep 2014 15:51:51 -0500
-Message-ID: <1409950311-25236-4-git-send-email-nm@ti.com>
-References: <1409950311-25236-1-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1409950311-25236-1-git-send-email-nm@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@linaro.org>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Mark Brown <broonie@kernel.org>
+Subject: [PATCH] ARM: dts: am335x-boneblack: Add names for remaining regulators
+Date: Fri,  5 Sep 2014 22:12:05 +0100
+Message-ID: <1409951525-30035-1-git-send-email-broonie@kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52190 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752032AbaIEVMV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2014 17:12:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@kernel.org>
 
-With the recent pinctrl-single changes, omaps can treat wake-up events
-from deeper power  states as interrupts.
+Add regulator-name properties for the regulators that don't have them,
+allowing the kernel to display the name from the schematic rather than
+the name of the regulator on the PMIC in order to improve diagnostics.
 
-This is to handle the case where the system needs two interrupt
-sources when SoC is in deep sleep(1 to exit from deep power mode such
-as sleep, and other from the module handling the actual event during
-system active state). This is not the same as threaded interrupts as the
-wakeup interrupt source is used only as part of deeper power saving
-mode.
-
-Let's add support for the optional second interrupt for wake-up
-events. And then SoC can wakeup and handle the event using it's
-regular handler.
-
-This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
-support for optional wake-up")
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- drivers/mfd/palmas.c       |   59 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mfd/palmas.h |    2 ++
- 2 files changed, 61 insertions(+)
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-index 28cb048..11186ab 100644
---- a/drivers/mfd/palmas.c
-+++ b/drivers/mfd/palmas.c
-@@ -24,6 +24,7 @@
- #include <linux/mfd/core.h>
- #include <linux/mfd/palmas.h>
- #include <linux/of_device.h>
-+#include <linux/of_irq.h>
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index bde1777b62be..fe983d204b2b 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -227,6 +227,7 @@
+ &tps {
+ 	regulators {
+ 		dcdc1_reg: regulator@0 {
++			regulator-name = "vdds_dpr";
+ 			regulator-always-on;
+ 		};
  
- static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
- 	{
-@@ -326,6 +327,16 @@ static struct regmap_irq_chip tps65917_irq_chip = {
- 			PALMAS_INT1_MASK),
- };
+@@ -249,18 +250,22 @@
+ 		};
  
-+static irqreturn_t palmas_wake_irq(int irq, void *_palmas)
-+{
-+	/*
-+	 * Return Not handled so that interrupt is disabled.
-+	 * Level event ensures that the event is eventually handled
-+	 * by the appropriate chip handler already registered
-+	 */
-+	return IRQ_NONE;
-+}
-+
- int palmas_ext_control_req_config(struct palmas *palmas,
- 	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
- {
-@@ -409,6 +420,7 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
- 		pdata->mux_from_pdata = 1;
- 		pdata->pad2 = prop;
- 	}
-+	pdata->wakeirq = irq_of_parse_and_map(node, 1);
+ 		ldo1_reg: regulator@3 {
++			regulator-name = "vio,vrtc,vdds";
+ 			regulator-always-on;
+ 		};
  
- 	/* The default for this register is all masked */
- 	ret = of_property_read_u32(node, "ti,power-ctrl", &prop);
-@@ -521,6 +533,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 	i2c_set_clientdata(i2c, palmas);
- 	palmas->dev = &i2c->dev;
- 	palmas->irq = i2c->irq;
-+	palmas->wakeirq = pdata->wakeirq;
+ 		ldo2_reg: regulator@4 {
++			regulator-name = "vdd_3v3aux";
+ 			regulator-always-on;
+ 		};
  
- 	match = of_match_device(of_palmas_match_tbl, &i2c->dev);
+ 		ldo3_reg: regulator@5 {
++			regulator-name = "vdd_1v8";
+ 			regulator-always-on;
+ 		};
  
-@@ -587,6 +600,22 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
- 	if (ret < 0)
- 		goto err_i2c;
- 
-+	if (!palmas->wakeirq)
-+		goto no_wake_irq;
-+
-+	ret = devm_request_irq(palmas->dev, palmas->wakeirq,
-+			       palmas_wake_irq,
-+			       IRQF_ONESHOT | pdata->irq_flags,
-+			       dev_name(palmas->dev),
-+			       &palmas);
-+	if (ret < 0)
-+		goto err_i2c;
-+
-+	/* We use wakeirq only during suspend-resume path */
-+	device_set_wakeup_capable(palmas->dev, true);
-+	disable_irq_nosync(palmas->wakeirq);
-+
-+no_wake_irq:
- no_irq:
- 	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
- 	addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
-@@ -706,6 +735,34 @@ static int palmas_i2c_remove(struct i2c_client *i2c)
- 	return 0;
- }
- 
-+static int palmas_i2c_suspend(struct i2c_client *i2c,  pm_message_t mesg)
-+{
-+	struct palmas *palmas = i2c_get_clientdata(i2c);
-+	struct device *dev = &i2c->dev;
-+
-+	if (!palmas->wakeirq)
-+		return 0;
-+
-+	if (device_may_wakeup(dev))
-+		enable_irq(palmas->wakeirq);
-+
-+	return 0;
-+}
-+
-+static int palmas_i2c_resume(struct i2c_client *i2c)
-+{
-+	struct palmas *palmas = i2c_get_clientdata(i2c);
-+	struct device *dev = &i2c->dev;
-+
-+	if (!palmas->wakeirq)
-+		return 0;
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_nosync(palmas->wakeirq);
-+
-+	return 0;
-+}
-+
- static const struct i2c_device_id palmas_i2c_id[] = {
- 	{ "palmas", },
- 	{ "twl6035", },
-@@ -721,6 +778,8 @@ static struct i2c_driver palmas_i2c_driver = {
- 		   .of_match_table = of_palmas_match_tbl,
- 		   .owner = THIS_MODULE,
- 	},
-+	.suspend = palmas_i2c_suspend,
-+	.resume = palmas_i2c_resume,
- 	.probe = palmas_i2c_probe,
- 	.remove = palmas_i2c_remove,
- 	.id_table = palmas_i2c_id,
-diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
-index fb0390a..e8cf4c2 100644
---- a/include/linux/mfd/palmas.h
-+++ b/include/linux/mfd/palmas.h
-@@ -75,6 +75,7 @@ struct palmas {
- 	/* IRQ Data */
- 	int irq;
- 	u32 irq_mask;
-+	int wakeirq;
- 	struct mutex irq_lock;
- 	struct regmap_irq_chip_data *irq_data;
- 
-@@ -377,6 +378,7 @@ struct palmas_clk_platform_data {
- 
- struct palmas_platform_data {
- 	int irq_flags;
-+	int wakeirq;
- 	int gpio_base;
- 
- 	/* bit value to be loaded to the POWER_CTRL register */
+ 		ldo4_reg: regulator@6 {
++			regulator-name = "vdd_3v3a";
+ 			regulator-always-on;
+ 		};
+ 	};
 -- 
-1.7.9.5
+2.1.0
+
