@@ -1,75 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH v6 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
  HC
-Date: Fri, 5 Sep 2014 10:53:21 -0500
-Message-ID: <20140905155321.GF24449@saruman.home>
+Date: Fri, 5 Sep 2014 17:55:20 +0100
+Message-ID: <20140905165520.GA25253@griffinp-ThinkPad-X1-Carbon-2nd>
 References: <1409931392-22340-1-git-send-email-peter.griffin@linaro.org>
  <1409931392-22340-2-git-send-email-peter.griffin@linaro.org>
  <20140905154700.GE24449@saruman.home>
-Reply-To: <balbi@ti.com>
+ <20140905155321.GF24449@saruman.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y1L3PTX8QE8cb2T+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140905154700.GE24449@saruman.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Peter Griffin <peter.griffin@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com, lee.jones@linaro.org, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, peppe.cavallaro@st.com
+In-Reply-To: <20140905155321.GF24449-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---Y1L3PTX8QE8cb2T+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Felipe,
 
-On Fri, Sep 05, 2014 at 10:47:01AM -0500, Felipe Balbi wrote:
-> Hi,
->=20
-> On Fri, Sep 05, 2014 at 04:36:30PM +0100, Peter Griffin wrote:
-> > +static int st_dwc3_remove_child(struct device *dev, void *c)
-> > +{
-> > +	struct platform_device *pdev =3D to_platform_device(dev);
-> > +
-> > +	of_device_unregister(pdev);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int st_dwc3_remove(struct platform_device *pdev)
-> > +{
-> > +	struct st_dwc3 *dwc3_data =3D platform_get_drvdata(pdev);
-> > +
-> > +	device_for_each_child(&pdev->dev, NULL, st_dwc3_remove_child);
->=20
-> same as before, of_platform_depopulate(). I can fix this one myself this
-> time.
+On Fri, 05 Sep 2014, Felipe Balbi wrote:
+> > > +
+> > > +	device_for_each_child(&pdev->dev, NULL, st_dwc3_remove_child);
+> > 
+> > same as before, of_platform_depopulate(). I can fix this one myself this
+> > time.
 
-it's in my testign/next branch, please make sure it looks alright.
+Oh sorry, not sure what happened there, thanks for fixing it up:-)
+> 
+> it's in my testign/next branch, please make sure it looks alright.
 
---=20
-balbi
+Just checked and it looks good.
 
---Y1L3PTX8QE8cb2T+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Peter.
 
-iQIcBAEBAgAGBQJUCdxxAAoJEIaOsuA1yqRETUsP/0a6P2X0Emj5opvf9JPRjxHN
-ADZyrZuaGJWaPZtElplAdVYmpWzqPJ/XsO+V6WRhOSQO0BqW2zJPQ02Ao8N4rw3s
-7ar7+T5TkOnNmctfTg+rA7a9snXuuK/IJWm+4URGgeaQJmqai6/rMnFOdiBd71ft
-grE5mhbjIM+TrwEfzW3prctNdYbhakB5yDSczxa7NPK0IDt9Ic0N6BkieBhcTWqj
-JU5FteTeKfZgweJLqRdfwFgmEEwoeF/EZF73oCIMjV/9FHYz79MmhV8DYV/deeBc
-CGGKWVCglUhAfUAoQiLadSnBcvB7mTklRYnEkysje2Q3zPwXyt7wEzVsW7blQFk1
-7bxHTslyH8D6HBkcY//jydDyVzVHCT/fWHt86ZFSy9x+O9a7f6q6DsI7cqqVQXSC
-qDplebSC1AiXFKdwCDiLGgyKg5sl4z05JQPGEvLfK5xlTA91mZM5kSDh/sZtcpXM
-r273ejeHFyX8dTfVt8CdZ+Xc0VCVOvirBNGxTceaT4Z1bZpwgpDVGtjaWpIDFwx/
-VCEWEs7A2KByahYNlIYTBpxZJdph5YmTAGvgihQVEJTZLK/0+07KX+dTiGuAIXR6
-gVzBK21M7tUFAc99l7kzliueRA4odfJQwNDjP+IVlUz6ahFZwEghL9RAOJZmL4cW
-M8aLD07H8U9Uaj10g1mb
-=b7D2
------END PGP SIGNATURE-----
 
---Y1L3PTX8QE8cb2T+--
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
