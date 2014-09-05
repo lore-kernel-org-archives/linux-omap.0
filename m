@@ -1,111 +1,75 @@
-From: Peter Griffin <peter.griffin@linaro.org>
-Subject: [PATCH v6 2/3] usb: dwc3: dwc3-st: Add st-dwc3 devicetree bindings
- documentation
-Date: Fri,  5 Sep 2014 16:36:31 +0100
-Message-ID: <1409931392-22340-3-git-send-email-peter.griffin@linaro.org>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v6 1/3] usb: dwc3: add ST dwc3 glue layer to manage dwc3
+ HC
+Date: Fri, 5 Sep 2014 10:47:01 -0500
+Message-ID: <20140905154700.GE24449@saruman.home>
 References: <1409931392-22340-1-git-send-email-peter.griffin@linaro.org>
+ <1409931392-22340-2-git-send-email-peter.griffin@linaro.org>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1409931392-22340-1-git-send-email-peter.griffin@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com, maxime.coquelin@st.com, patrice.chotard@st.com, srinivas.kandagatla@gmail.com
-Cc: devicetree@vger.kernel.org, linux-usb@vger.kernel.org, peter.griffin@linaro.org, peppe.cavallaro@st.com, linux-omap@vger.kernel.org, lee.jones@linaro.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VdOwlNaOFKGAtAAV"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1409931392-22340-2-git-send-email-peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Griffin <peter.griffin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, maxime.coquelin-qxv4g6HH51o@public.gmane.org, patrice.chotard-qxv4g6HH51o@public.gmane.org, srinivas.kandagatla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peppe.cavallaro-qxv4g6HH51o@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch documents the device tree documentation required for
-the ST usb3 controller glue layer found in STiH407 devices.
+--VdOwlNaOFKGAtAAV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- Documentation/devicetree/bindings/usb/dwc3-st.txt | 68 +++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/usb/dwc3-st.txt
+Hi,
 
-diff --git a/Documentation/devicetree/bindings/usb/dwc3-st.txt b/Documentation/devicetree/bindings/usb/dwc3-st.txt
-new file mode 100644
-index 0000000..f9d7025
---- /dev/null
-+++ b/Documentation/devicetree/bindings/usb/dwc3-st.txt
-@@ -0,0 +1,68 @@
-+ST DWC3 glue logic
-+
-+This file documents the parameters for the dwc3-st driver.
-+This driver controls the glue logic used to configure the dwc3 core on
-+STiH407 based platforms.
-+
-+Required properties:
-+ - compatible	: must be "st,stih407-dwc3"
-+ - reg		: glue logic base address and USB syscfg ctrl register offset
-+ - reg-names	: should be "reg-glue" and "syscfg-reg"
-+ - st,syscon	: should be phandle to system configuration node which
-+		  encompasses the glue registers
-+ - resets	: list of phandle and reset specifier pairs. There should be two entries, one
-+		  for the powerdown and softreset lines of the usb3 IP
-+ - reset-names	: list of reset signal names. Names should be "powerdown" and "softreset"
-+See: Documentation/devicetree/bindings/reset/st,sti-powerdown.txt
-+See: Documentation/devicetree/bindings/reset/reset.txt
-+
-+ - #address-cells, #size-cells : should be '1' if the device has sub-nodes
-+   with 'reg' property
-+
-+ - pinctl-names	: A pinctrl state named "default" must be defined
-+See: Documentation/devicetree/bindings/pinctrl/pinctrl-binding.txt
-+
-+ - pinctrl-0	: Pin control group
-+See: Documentation/devicetree/bindings/pinctrl/pinctrl-binding.txt
-+
-+ - ranges	: allows valid 1:1 translation between child's address space and
-+		  parent's address space
-+
-+Sub-nodes:
-+The dwc3 core should be added as subnode to ST DWC3 glue as shown in the
-+example below. The DT binding details of dwc3 can be found in:
-+Documentation/devicetree/bindings/usb/dwc3.txt
-+
-+NB: The dr_mode property described in [1] is NOT optional for this driver, as the default value
-+is "otg", which isn't supported by this SoC. Valid dr_mode values for dwc3-st are either "host"
-+or "device".
-+
-+[1] Documentation/devicetree/bindings/usb/generic.txt
-+
-+Example:
-+
-+st_dwc3: dwc3@8f94000 {
-+	status		= "disabled";
-+	compatible	= "st,stih407-dwc3";
-+	reg		= <0x08f94000 0x1000>, <0x110 0x4>;
-+	reg-names	= "reg-glue", "syscfg-reg";
-+	st,syscfg	= <&syscfg_core>;
-+	resets		= <&powerdown STIH407_USB3_POWERDOWN>,
-+			  <&softreset STIH407_MIPHY2_SOFTRESET>;
-+	reset-names	= "powerdown",
-+			  "softreset";
-+	#address-cells	= <1>;
-+	#size-cells	= <1>;
-+	pinctrl-names	= "default";
-+	pinctrl-0	= <&pinctrl_usb3>;
-+	ranges;
-+
-+	dwc3: dwc3@9900000 {
-+		compatible	= "snps,dwc3";
-+		reg		= <0x09900000 0x100000>;
-+		interrupts	= <GIC_SPI 155 IRQ_TYPE_NONE>;
-+		dr_mode		= "host";
-+		phys-names      = "usb2-phy", "usb3-phy";
-+		phys            = <&usb2_picophy2>, <&phy_port2 MIPHY_TYPE_USB>;
-+	};
-+};
--- 
-1.9.1
+On Fri, Sep 05, 2014 at 04:36:30PM +0100, Peter Griffin wrote:
+> +static int st_dwc3_remove_child(struct device *dev, void *c)
+> +{
+> +	struct platform_device *pdev =3D to_platform_device(dev);
+> +
+> +	of_device_unregister(pdev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int st_dwc3_remove(struct platform_device *pdev)
+> +{
+> +	struct st_dwc3 *dwc3_data =3D platform_get_drvdata(pdev);
+> +
+> +	device_for_each_child(&pdev->dev, NULL, st_dwc3_remove_child);
+
+same as before, of_platform_depopulate(). I can fix this one myself this
+time.
+
+--=20
+balbi
+
+--VdOwlNaOFKGAtAAV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUCdr0AAoJEIaOsuA1yqREyvAP/2XzSmWXusr9Z4vccu9UKdEO
+HyN/HGFAcIzXevRVsh73xmi3LnZdyGWJJQoxHy3MiMJC18FaAJEb0HKblAfuYwld
+yVPZLkYa/xnnQ/ru6rf15hXSLVVIDNmoAvLwVPKCAfAG+yBwUcd2rbOM4QVZHR5+
+3iyP8aXJxb4shaGyopV3/k1ZrWrXJXizy8sDgI209xQi7yHmUObAHyN04DBhpO/2
+bzj3Dbn7e61Z2AHBUxxpbSd5ewpG7viKlIEaehyEnNHCXgs+adEdeFD/CEsx3T06
+uSzjwdBIJmzW03dMwAMzjxab18KxHh4JbDUAyo51SITNTTSqaXHKqhLqh/bx/THs
+7YECetoskIGH3jvg0ZK48JCSzEDatzab/i7+Zj59jgYP7stoE3+kvTYzDP+o/+DD
+Rwfn41WAUqwMYooa04rCjVjHqf2OO7zRteODJ7Vy5uSgFCRwxxFhxnY7y4B5DsXi
+t0HlzXUBjDeLasG+KTS7ygFGUPUMbkP6IKuNZyox2IXczznbygRiG6+jo37Jx/zJ
+l3CIxTzNBTXscY0Nn124bfOFxqsbOexHRFpA7Bur+umWXJUaBkC9RofZW9C+/eK6
+zCCZKhRwl+WUAbJuRT4wgpqRwwssR+vcVwF8GFGdK4tBr6FAfvFzW8vDz+cZTLdb
+juyyy070QMxMleRBr17k
+=1CKY
+-----END PGP SIGNATURE-----
+
+--VdOwlNaOFKGAtAAV--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
