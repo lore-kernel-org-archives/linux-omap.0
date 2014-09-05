@@ -1,21 +1,131 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH v8 00/18] 8250-core based serial driver for OMAP + DMA
-Date: Fri,  5 Sep 2014 21:02:35 +0200
-Message-ID: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 02/18] tty: serial: 8250_core: allow to overwrite & export serial8250_startup()
+Date: Fri,  5 Sep 2014 21:02:37 +0200
+Message-ID: <1409943773-7874-3-git-send-email-bigeasy@linutronix.de>
+References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
 To: linux-serial@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-This is my complete queue fo the omap serial driver based on the 8250 core
-code. I played with it on beagle bone, am335x-evm and dra7xx including DMA.
-The runtime-pm pieces look now bug-compatible with the omap-serial driver.
-Besides the runtime-om improvement I also fixed a few corner cases for the
-TX-DMA problem. The DMA fixes (in edma and omap-dma) were dropped and the
-problem has been in 8250-dma via patch #13.
+The OMAP version of the 8250 can actually use 1:1 serial8250_startup().
+However it needs to be extended by a wake up irq which should to be
+requested & enabled at ->startup() time and disabled at ->shutdown() ti=
+me.
 
-The whole queue is available at
-  git://git.breakpoint.cc/bigeasy/linux.git uart_v8
+v2=E2=80=A6v3: properly copy callbacks
+v1=E2=80=A6v2: add shutdown callback
 
-Sebastian
+Acked-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/tty/serial/8250/8250_core.c | 25 +++++++++++++++++++++++--
+ include/linux/serial_8250.h         |  2 ++
+ include/linux/serial_core.h         |  2 ++
+ 3 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8=
+250/8250_core.c
+index e2ad13a9aea4..54fd42f0e6f0 100644
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -1929,7 +1929,7 @@ static void serial8250_put_poll_char(struct uart_=
+port *port,
+=20
+ #endif /* CONFIG_CONSOLE_POLL */
+=20
+-static int serial8250_startup(struct uart_port *port)
++int serial8250_do_startup(struct uart_port *port)
+ {
+ 	struct uart_8250_port *up =3D up_to_u8250p(port);
+ 	unsigned long flags;
+@@ -2180,8 +2180,16 @@ static int serial8250_startup(struct uart_port *=
+port)
+=20
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(serial8250_do_startup);
+=20
+-static void serial8250_shutdown(struct uart_port *port)
++static int serial8250_startup(struct uart_port *port)
++{
++	if (port->startup)
++		return port->startup(port);
++	return serial8250_do_startup(port);
++}
++
++void serial8250_do_shutdown(struct uart_port *port)
+ {
+ 	struct uart_8250_port *up =3D up_to_u8250p(port);
+ 	unsigned long flags;
+@@ -2231,6 +2239,15 @@ static void serial8250_shutdown(struct uart_port=
+ *port)
+ 	if (port->irq)
+ 		serial_unlink_irq_chain(up);
+ }
++EXPORT_SYMBOL_GPL(serial8250_do_shutdown);
++
++static void serial8250_shutdown(struct uart_port *port)
++{
++	if (port->shutdown)
++		port->shutdown(port);
++	else
++		serial8250_do_shutdown(port);
++}
+=20
+ static unsigned int serial8250_get_divisor(struct uart_port *port, uns=
+igned int baud)
+ {
+@@ -3428,6 +3445,10 @@ int serial8250_register_8250_port(struct uart_82=
+50_port *up)
+ 		/*  Possibly override set_termios call */
+ 		if (up->port.set_termios)
+ 			uart->port.set_termios =3D up->port.set_termios;
++		if (up->port.startup)
++			uart->port.startup =3D up->port.startup;
++		if (up->port.shutdown)
++			uart->port.shutdown =3D up->port.shutdown;
+ 		if (up->port.pm)
+ 			uart->port.pm =3D up->port.pm;
+ 		if (up->port.handle_break)
+diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
+index f93649e22c43..c3aa0040c72e 100644
+--- a/include/linux/serial_8250.h
++++ b/include/linux/serial_8250.h
+@@ -121,6 +121,8 @@ extern void serial8250_early_out(struct uart_port *=
+port, int offset, int value);
+ extern int setup_early_serial8250_console(char *cmdline);
+ extern void serial8250_do_set_termios(struct uart_port *port,
+ 		struct ktermios *termios, struct ktermios *old);
++extern int serial8250_do_startup(struct uart_port *port);
++extern void serial8250_do_shutdown(struct uart_port *port);
+ extern void serial8250_do_pm(struct uart_port *port, unsigned int stat=
+e,
+ 			     unsigned int oldstate);
+ extern int fsl8250_handle_irq(struct uart_port *port);
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index cf3a1e789bf5..f3ea5312d89f 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -122,6 +122,8 @@ struct uart_port {
+ 	void			(*set_termios)(struct uart_port *,
+ 				               struct ktermios *new,
+ 				               struct ktermios *old);
++	int			(*startup)(struct uart_port *port);
++	void			(*shutdown)(struct uart_port *port);
+ 	int			(*handle_irq)(struct uart_port *);
+ 	void			(*pm)(struct uart_port *, unsigned int state,
+ 				      unsigned int old);
+--=20
+2.1.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
