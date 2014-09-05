@@ -1,201 +1,103 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 07/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
-Date: Fri, 5 Sep 2014 16:15:58 -0500
-Message-ID: <20140905211558.GA31011@kahuna>
+Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
+Date: Fri, 5 Sep 2014 16:18:47 -0500
+Message-ID: <20140905211847.GB31011@kahuna>
 References: <1408716154-26101-1-git-send-email-nm@ti.com>
- <1408716154-26101-8-git-send-email-nm@ti.com>
- <7hbnr5dake.fsf@paris.lan>
- <53FE2BF2.3020006@ti.com>
- <20140827194156.GE16006@atomide.com>
- <53FE34D7.7040004@ti.com>
- <53FE3551.2080806@ti.com>
+ <1408716154-26101-9-git-send-email-nm@ti.com>
+ <7hvbpdbvb1.fsf@paris.lan>
+ <CAGo_u6o7vAf=syzDTyxh0-kOhmzAmtdG_ardgFgoPQofrGdxUQ@mail.gmail.com>
+ <53FE3477.2020207@ti.com>
+ <7hegw1bs30.fsf@paris.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <53FE3551.2080806@ti.com>
+In-Reply-To: <7hegw1bs30.fsf@paris.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>
+To: daniel.lezcano@linaro.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, lkml <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 14:45-20140827, Nishanth Menon wrote:
-> On 08/27/2014 02:43 PM, Santosh Shilimkar wrote:
-> > On Wednesday 27 August 2014 03:41 PM, Tony Lindgren wrote:
-> >> * Nishanth Menon <nm@ti.com> [140827 12:05]:
-> >>> On 08/27/2014 01:58 PM, Kevin Hilman wrote:
-> >>>> Nishanth Menon <nm@ti.com> writes:
-> >>>>
-> >>>>> From: Rajendra Nayak <rnayak@ti.com>
-> >>>>>
-> >>>>> On OMAP5 / DRA7, prevent a CPU powerdomain OFF and resulting MPU OSWR
-> >>>>> and instead attempt a CPU RET and side effect, MPU RET in suspend.
-> >>>>>
-> >>>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> >>>>> [nm@ti.com: update to do save_state only on DRA7]
-> >>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
-> >>>>> ---
-> >>>>>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++++
-> >>>>>  arch/arm/mach-omap2/omap-wakeupgen.c      |    2 +-
-> >>>>>  arch/arm/mach-omap2/pm44xx.c              |    9 +++++++--
-> >>>>>  3 files changed, 12 insertions(+), 3 deletions(-)
-> >>>>>
-> >>>>> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> >>>>> index 207fce2..0d640eb 100644
-> >>>>> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> >>>>> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> >>>>> @@ -242,6 +242,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
-> >>>>>  		save_state = 1;
-> >>>>>  		break;
-> >>>>>  	case PWRDM_POWER_RET:
-> >>>>> +		if (soc_is_omap54xx() || soc_is_dra7xx()) {
-> >>>>
-> >>>> Aren't we trying to get away from these soc_* checks for anything other
-> >>>> than init code?
-> >>>
-> >>> I would expect that to take place in stages as part of which the next
-> >>> level of cleanup is to move PRM into drivers. Currently our wakeupgen,
-> >>> prm code does have quiet a few needs of dealing with soc_is checks
-> >>> primarily from having to re-architect code in two different directions
-> >>> - we want to move into just one direction eventually - to prm drivers
-> >>> and as less code in mach-omap2 which is already in the works.
-> >>
-> >> Why don't you just set some flag at init time based on the
-> >> soc_is check and then test that here? That limits the use of
-> >> soc_is to init code only which makes it easier to phase it
-> >> out completely eventually.
-> >>
-> > Indeed. Infact the version of the code I tried posting last year was
-> > using a flag which was initialised during init. Same can be
-> > done her.
+Daniel,
+
+On 13:22-20140827, Kevin Hilman wrote:
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 > 
-> OK. will try something along that line in the next rev.
+> > On Wednesday 27 August 2014 03:35 PM, Nishanth Menon wrote:
+> >> On Wed, Aug 27, 2014 at 2:13 PM, Kevin Hilman
+> >> <khilman@deeprootsystems.com> wrote:
+> >>> + Daniel (cpuidle maintainer)
+> >> [...]
+> >>>> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
+> >>>> +                            struct cpuidle_driver *drv,
+> >>>> +                            int index)
+> >>>> +{
+> >>>> +     struct idle_statedata *cx = state_ptr + index;
+> >>>> +     unsigned long flag;
+> >>>> +
+> >>>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
+> >>>> +     cx->mpu_state_vote++;
+> >>>> +     if (cx->mpu_state_vote == num_online_cpus()) {
+> >>>> +             pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
+> >>>> +             omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
+> >>>> +     }
+> >>>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
+> >>>> +
+> >>>> +     omap4_enter_lowpower(dev->cpu, cx->cpu_state);
+> >>>> +
+> >>>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
+> >>>> +     if (cx->mpu_state_vote == num_online_cpus())
+> >>>> +             omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
+> >>>> +     cx->mpu_state_vote--;
+> >>>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
+> >>>> +
+> >>>> +     return index;
+> >>>> +}
+> >>>
+> >>> Hmm, maybe OMAP5/DRA7 CPUidle driver should be a new one based on MCPM?
+> >> 
+> >> Trying to understand benefit of MCPM here - at least without a deeper
+> >> understanding of mcpm infrastructure benefits (first look seemed a
+> >> little heavy for OMAP5/DRA7 needs).
+> >> 
+> >> Neither DRA7/OMAP5 are multi-cluster, the SoCs are not targetted for
+> >> "OFF" of CPU1/0, we have mercury hardware to help with context and
+> >> sync issues.
+> >> 
+> >> Being able to reuse most of existing OMAP4 infrastructure code is
+> >> useful as well to leave the existing omap4 framework as being lighter
+> >> in complexity -esp in a cpuidle like hot path?
+> >> 
+> >> The spin_lock is only for the programming of MPU power domain in a
+> >> consistent manner - I suppose might have been the trigger for
+> >> proposing mcpm?
+> >> 
+> > Mostly not....
+> >
+> > I think this is coming because last time Nicolas Pitre tried to convert
+> > the OMAP CPUIdle into MCPM but because of various ordering requirements,
+> > OMAP wasn't suitable and then the plan was dropped later.
+> >
+> > Just to make clear, OMAP OMAP5/DRA7 as well the ordering requirement
+> > remains the same for deeper states. Its just the mercury retention state
+> > which we are able to enter without ordering requirements and hence
+> > the voting scheme.
+> 
+> Ah, OK.  This is the part that I'm missing.  So for deeper states you'll
+> need to be using omap_enter_idle_coupled()
+> 
+> > Hope this clarifies to you as well as Kevin just in case he missed the
+> > part of the deeper C-states requirements.
+> 
+> Yes, thanks for clarifying.
+> 
+> That being said, I think MCPM can now do essentially what the coupled
+> states code is doing. Even so, that's probably not a reason to hold up
+> this patch, but Daniel gets to make that call.
 
 
-Hi,
-
-Updated patch below:
-Do let me know if this is ok with folks.
-
----8<----
->From 1b9e11834dac2bd75c396aa7495c806b027653fe Mon Sep 17 00:00:00 2001
-From: Rajendra Nayak <rnayak@ti.com>
-Date: Mon, 27 May 2013 15:46:44 +0530
-Subject: [PATCH V2 7/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
-
-On OMAP5 / DRA7, prevent a CPU powerdomain OFF and resulting MPU OSWR
-and instead attempt a CPU RET and side effect, MPU RET in suspend.
-
-NOTE: the hardware was originally designed to be capable of achieving
-deep power states such as OFF and OSWR, however due to various issues
-and risks, deepest valid state was determined to be CSWR - hence we use
-the errata framework to handle this case.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-[nm@ti.com: updates]
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++++
- arch/arm/mach-omap2/omap-wakeupgen.c      |    3 ++-
- arch/arm/mach-omap2/pm.h                  |    1 +
- arch/arm/mach-omap2/pm44xx.c              |   12 ++++++++++--
- 4 files changed, 17 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 207fce2..297352f 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -242,6 +242,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 		save_state = 1;
- 		break;
- 	case PWRDM_POWER_RET:
-+		if (IS_PM44XX_ERRATUM(PM_OMAP4_CPU_OSWR_DISABLE)) {
-+			save_state = 0;
-+			break;
-+		}
- 	default:
- 		/*
- 		 * CPUx CSWR is invalid hardware state. Also CPUx OSWR
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index e844e16..f961c46 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -32,6 +32,7 @@
- #include "soc.h"
- #include "omap4-sar-layout.h"
- #include "common.h"
-+#include "pm.h"
- 
- #define AM43XX_NR_REG_BANKS	7
- #define AM43XX_IRQS		224
-@@ -381,7 +382,7 @@ static struct notifier_block irq_notifier_block = {
- static void __init irq_pm_init(void)
- {
- 	/* FIXME: Remove this when MPU OSWR support is added */
--	if (!soc_is_omap54xx())
-+	if (!IS_PM44XX_ERRATUM(PM_OMAP4_CPU_OSWR_DISABLE))
- 		cpu_pm_register_notifier(&irq_notifier_block);
- }
- #else
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index e150102..425bfcd 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -101,6 +101,7 @@ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
- #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
- 
- #define PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD	(1 << 0)
-+#define PM_OMAP4_CPU_OSWR_DISABLE		(1 << 1)
- 
- #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP4)
- extern u16 pm44xx_errata;
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index b6f243d..64df620 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -36,6 +36,8 @@ struct power_state {
- 	struct list_head node;
- };
- 
-+static u32 cpu_suspend_state = PWRDM_POWER_OFF;
-+
- static LIST_HEAD(pwrst_list);
- 
- #ifdef CONFIG_SUSPEND
-@@ -66,7 +68,7 @@ static int omap4_pm_suspend(void)
- 	 * domain CSWR is not supported by hardware.
- 	 * More details can be found in OMAP4430 TRM section 4.3.4.2.
- 	 */
--	omap4_enter_lowpower(cpu_id, PWRDM_POWER_OFF);
-+	omap4_enter_lowpower(cpu_id, cpu_suspend_state);
- 
- 	/* Restore next powerdomain state */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
-@@ -112,8 +114,11 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	 * through hotplug path and CPU0 explicitly programmed
- 	 * further down in the code path
- 	 */
--	if (!strncmp(pwrdm->name, "cpu", 3))
-+	if (!strncmp(pwrdm->name, "cpu", 3)) {
-+		if (IS_PM44XX_ERRATUM(PM_OMAP4_CPU_OSWR_DISABLE))
-+			cpu_suspend_state = PWRDM_POWER_RET;
- 		return 0;
-+	}
- 
- 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
- 	if (!pwrst)
-@@ -238,6 +243,9 @@ int __init omap4_pm_init_early(void)
- 	if (cpu_is_omap446x())
- 		pm44xx_errata |= PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD;
- 
-+	if (soc_is_omap54xx() || soc_is_dra7xx())
-+		pm44xx_errata |= PM_OMAP4_CPU_OSWR_DISABLE;
-+
- 	return 0;
- }
- 
--- 
-1.7.9.5
+Gentle ping.. You can find the discussion and the patch here:
+https://patchwork.kernel.org/patch/4764661/
 
 -- 
 Regards,
