@@ -1,79 +1,50 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 03/18] tty: serial: 8250_core: allow to set ->throttle / ->unthrottle callbacks
-Date: Fri,  5 Sep 2014 21:02:38 +0200
-Message-ID: <1409943773-7874-4-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 07/18] tty: serial: 8250_core: remove UART_IER_RDI in
+ serial8250_stop_rx()
+Date: Fri,  5 Sep 2014 21:02:42 +0200
+Message-ID: <1409943773-7874-8-git-send-email-bigeasy@linutronix.de>
 References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-serial@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: heikki.krogerus@linux.intel.com, tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP UART provides support for HW assisted flow control. What is
-missing is the support to throttle / unthrottle callbacks which are used
-by the omap-serial driver at the moment.
-This patch adds the callbacks. It should be safe to add them since they
-are only invoked from the serial_core (uart_throttle()) if the feature
-flags are set.
+serial8250_do_startup() adds UART_IER_RDI and UART_IER_RLSI to ier.
+serial8250_stop_rx() should remove both.
+This is what the serial-omap driver has been doing and is now moved to
+the 8250-core since it does no look to be *that* omap specific.
 
+Cc: heikki.krogerus@linux.intel.com
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_core.c | 14 ++++++++++++++
- include/linux/serial_core.h         |  2 ++
- 2 files changed, 16 insertions(+)
+ drivers/tty/serial/8250/8250_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index 54fd42f0e6f0..e2703e8d4b87 100644
+index 8f5fb81d5fad..e8df7cd85ba7 100644
 --- a/drivers/tty/serial/8250/8250_core.c
 +++ b/drivers/tty/serial/8250/8250_core.c
-@@ -1318,6 +1318,16 @@ static void serial8250_start_tx(struct uart_port *port)
- 	}
- }
+@@ -1389,7 +1389,7 @@ static void serial8250_stop_rx(struct uart_port *port)
  
-+static void serial8250_throttle(struct uart_port *port)
-+{
-+	port->throttle(port);
-+}
-+
-+static void serial8250_unthrottle(struct uart_port *port)
-+{
-+	port->unthrottle(port);
-+}
-+
- static void serial8250_stop_rx(struct uart_port *port)
- {
- 	struct uart_8250_port *up = up_to_u8250p(port);
-@@ -2876,6 +2886,8 @@ static struct uart_ops serial8250_pops = {
- 	.get_mctrl	= serial8250_get_mctrl,
- 	.stop_tx	= serial8250_stop_tx,
- 	.start_tx	= serial8250_start_tx,
-+	.throttle	= serial8250_throttle,
-+	.unthrottle	= serial8250_unthrottle,
- 	.stop_rx	= serial8250_stop_rx,
- 	.enable_ms	= serial8250_enable_ms,
- 	.break_ctl	= serial8250_break_ctl,
-@@ -3423,6 +3435,8 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
- 		uart->port.fifosize	= up->port.fifosize;
- 		uart->tx_loadsz		= up->tx_loadsz;
- 		uart->capabilities	= up->capabilities;
-+		uart->port.throttle	= up->port.throttle;
-+		uart->port.unthrottle	= up->port.unthrottle;
+ 	serial8250_rpm_get(up);
  
- 		/* Take tx_loadsz from fifosize if it wasn't set separately */
- 		if (uart->port.fifosize && !uart->tx_loadsz)
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index f3ea5312d89f..edaaaa036c0b 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -124,6 +124,8 @@ struct uart_port {
- 				               struct ktermios *old);
- 	int			(*startup)(struct uart_port *port);
- 	void			(*shutdown)(struct uart_port *port);
-+	void			(*throttle)(struct uart_port *port);
-+	void			(*unthrottle)(struct uart_port *port);
- 	int			(*handle_irq)(struct uart_port *);
- 	void			(*pm)(struct uart_port *, unsigned int state,
- 				      unsigned int old);
+-	up->ier &= ~UART_IER_RLSI;
++	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
+ 	up->port.read_status_mask &= ~UART_LSR_DR;
+ 	serial_port_out(port, UART_IER, up->ier);
+ 
 -- 
 2.1.0
