@@ -1,7 +1,7 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 15/18] tty: serial: 8250_dma: add pm runtime
-Date: Fri,  5 Sep 2014 21:02:50 +0200
-Message-ID: <1409943773-7874-16-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 12/18] tty: serial: 8250_dma: optimize the xmit path due to UART_BUG_DMA_TX
+Date: Fri,  5 Sep 2014 21:02:47 +0200
+Message-ID: <1409943773-7874-13-git-send-email-bigeasy@linutronix.de>
 References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
@@ -10,59 +10,47 @@ To: linux-serial@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-There is nothing to do for RPM in the RX path. If the HW goes off then it
-won't assert the DMA line and the transfer won't happen. So we hope that
-the HW does not go off for RX to work (DMA or PIO makes no difference
-here).
-
-For TX the situation is slightly different. RPM is enabled on
-start_tx(). We can't disable RPM on DMA complete callback because there
-is still data in the FIFO which is being sent. We have to wait until
-the FIFO is empty before we disable it.
-For this to happen we fake a TX sent error and enable THRI. Once the
-FIFO is empty we receive an interrupt and since the TTY-buffer is still
-empty we "put RPM" via __stop_tx(). Should it been filed then in the
-start_tx() path we should program the DMA transfer and remove the error
-flag and the THRI bit.
+Due to UART_BUG_DMA_TX the am335x has to put the first one byte into the
+TX FIFO to get things going. If we get to serial8250_tx_dma() via
+__dma_tx_complete() then the DMA engine just finished and the FIFO is
+full and we can't put the first byte into the TX FIFO as kick start so
+we leave with THRI enabled.
+The result is that we end up manually filling the FIFO. We could be a
+little better at this and try DMA once again. If it works, it works and
+if not we do it manually.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_dma.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/tty/serial/8250/8250_core.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
-index f0fce8236279..1b4a8e02e844 100644
---- a/drivers/tty/serial/8250/8250_dma.c
-+++ b/drivers/tty/serial/8250/8250_dma.c
-@@ -21,6 +21,7 @@ static void __dma_tx_complete(void *param)
- 	struct uart_8250_dma	*dma = p->dma;
- 	struct circ_buf		*xmit = &p->port.state->xmit;
- 	unsigned long	flags;
-+	bool en_thri = false;
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+index 079048db8c81..7111b22de000 100644
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -1597,9 +1597,21 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+ 	serial8250_modem_status(up);
+ 	if ((!up->dma || (up->dma && up->dma->tx_err)) &&
+ 			(status & UART_LSR_THRE)) {
+-		serial8250_tx_chars(up);
+-	}
++		if (!up->dma) {
++			serial8250_tx_chars(up);
++		} else {
++			if (uart_tx_stopped(&up->port) ||
++				uart_circ_empty(&up->port.state->xmit)) {
++				serial8250_tx_chars(up);
  
- 	dma_sync_single_for_cpu(dma->txchan->device->dev, dma->tx_addr,
- 				UART_XMIT_SIZE, DMA_TO_DEVICE);
-@@ -40,11 +41,16 @@ static void __dma_tx_complete(void *param)
- 		int ret;
- 
- 		ret = serial8250_tx_dma(p);
--		if (ret) {
--			dma->tx_err = 1;
--			p->ier |= UART_IER_THRI;
--			serial_port_out(&p->port, UART_IER, p->ier);
--		}
-+		if (ret)
-+			en_thri = true;
-+
-+	} else if (p->capabilities & UART_CAP_RPM)
-+		en_thri = true;
-+
-+	if (en_thri) {
-+		dma->tx_err = 1;
-+		p->ier |= UART_IER_THRI;
-+		serial_port_out(&p->port, UART_IER, p->ier);
- 	}
- 
- 	spin_unlock_irqrestore(&p->port.lock, flags);
++			} else  {
++				/* try again due to UART_BUG_DMA_TX+full fifo */
++				dma_err = serial8250_tx_dma(up);
++				if (dma_err)
++					serial8250_tx_chars(up);
++			}
++		}
++	}
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ 	return 1;
+ }
 -- 
 2.1.0
