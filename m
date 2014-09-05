@@ -1,52 +1,95 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/6] OMAP2+: GPMC: NAND fixes for 3.17
-Date: Fri, 5 Sep 2014 10:57:19 +0300
-Message-ID: <54096CDF.1040906@ti.com>
-References: <1409666227-20622-1-git-send-email-rogerq@ti.com> <20140903214045.GK11766@atomide.com> <20140903214232.GL11766@atomide.com> <5408B6E0.2090806@pek-sem.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] iommu/omap: Fix iommu archdata name for DT-based devices
+Date: Fri, 05 Sep 2014 14:11:59 +0300
+Message-ID: <2047677.moNByOyTBi@avalon>
+References: <1409788712-10741-1-git-send-email-s-anna@ti.com> <2755871.jyTSgisx8z@avalon> <5408D701.7070609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43092 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756022AbaIEH5X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Sep 2014 03:57:23 -0400
-In-Reply-To: <5408B6E0.2090806@pek-sem.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58301 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756675AbaIELMB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2014 07:12:01 -0400
+In-Reply-To: <5408D701.7070609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: pekon <pekon@pek-sem.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Joerg Roedel <joro@8bytes.org>, Florian Vaussard <florian.vaussard@epfl.ch>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-On 09/04/2014 10:00 PM, pekon wrote:
-> Hi Tony,
+Hi Suman,
+
+On Thursday 04 September 2014 16:17:53 Suman Anna wrote:
+> Hi Laurent,
 > 
-> On Thursday 04 September 2014 03:12 AM, Tony Lindgren wrote:
->> * Tony Lindgren <tony@atomide.com> [140903 14:41]:
->>> * Roger Quadros <rogerq@ti.com> [140902 06:57]:
->>>> Hi Tony,
->>>>
->>>> These are some of the issues I found while testing v3.17-rc3.
->>>>
->>>> - Wrong ECC scheme used for am43x GP and EPOS evm. We need to use
->>>> BCH16 instead of BCH8.
->>>>
->>>> - Wrong read/write wait pin monitoring setting used for NAND
->>>> resulting in "L3 application error" debug message on console.
->>>>
->>>> - Pin conflict issue on am43x EPOS evm with QSPI and NAND.
->>>
->>> Thanks applying into omap-for-v3.17/fixes-v2.
->>
->> Sorry replied to the wrong thread, this series still seems
->> to have some pending comments so not applying this one.
->>
-> Only [Patch 3/6] had some pending comments, but after Roger's
-> clarification there are no further comments from me. So for
-> entire series ..
+> > On Wednesday 03 September 2014 18:58:32 Suman Anna wrote:
+> >> A device is tied to an iommu through its archdata field. The archdata
+> >> is allocated on the fly for DT-based devices automatically through the
+> >> .add_device iommu ops. The current logic incorrectly assigned the name
+> >> of the IOMMU user device, instead of the name of the IOMMU device as
+> >> required by the attach logic. Fix this issue so that DT-based devices
+> >> can attach successfully to an IOMMU domain.
+> >> 
+> >> Signed-off-by: Suman Anna <s-anna@ti.com>
+> >> ---
+> >> 
+> >>  drivers/iommu/omap-iommu.c | 10 +++++++++-
+> >>  1 file changed, 9 insertions(+), 1 deletion(-)
+> >> 
+> >> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> >> index f245d51..f47ac03 100644
+> >> --- a/drivers/iommu/omap-iommu.c
+> >> +++ b/drivers/iommu/omap-iommu.c
+> >> @@ -26,6 +26,7 @@
+> >>  #include <linux/of.h>
+> >>  #include <linux/of_iommu.h>
+> >>  #include <linux/of_irq.h>
+> >> +#include <linux/of_platform.h>
+> >> 
+> >>  #include <asm/cacheflush.h>
+> >> 
+> >> @@ -1244,6 +1245,7 @@ static int omap_iommu_add_device(struct device
+> >> *dev)
+> >>  {
+> >>  	struct omap_iommu_arch_data *arch_data;
+> >>  	struct device_node *np;
+> >> +	struct platform_device *pdev;
+> >> 
+> >>  	/*
+> >>  	 * Allocate the archdata iommu structure for DT-based devices.
+> >> @@ -1258,13 +1260,19 @@ static int omap_iommu_add_device(struct device
+> >> *dev)
+> >> 	if (!np)
+> >>  		return 0;
+> >> 
+> >> +	pdev = of_find_device_by_node(np);
+> >> +	if (WARN_ON(!pdev)) {
+> >> +		of_node_put(np);
+> >> +		return -EINVAL;
+> >> +	}
+> > 
+> > I might be wrong, but I don't think there's a guarantee at this point that
+> > the IOMMU device is already instantiated :-/
 > 
-> Reviewed-by: Pekon Gupta <pekon@pek-sem.com>
+> The omap_iommu_init which registers the iommu_ops is a subsys_initcall,
+> so the platform devices are guaranteed to be created by this point.
 
-Thanks for the review Pekon.
+OK, no worries then.
 
-cheers,
--roger
+> My test on OMAP4 in fact has the dsp node created before the IOMMU node,
+> and this is not an issue. I have added the WARN_ON in case some one has
+> the IOMMU node disabled, but try to use it.
+> 
+> > Will Deacon has posted patches that rework the IOMMU core for better DT
+> > integration, have you seen them ?
+> 
+> Can you point out the thread? Are you talking about
+> http://marc.info/?l=linux-arm-kernel&m=140968072117851&w=2?
+
+Yes that's the one.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
