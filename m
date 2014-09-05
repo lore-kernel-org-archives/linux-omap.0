@@ -1,59 +1,126 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 06/18] tty: serial: 8250_core: user the ->line argument as a
- hint in serial8250_find_match_or_unused()
-Date: Fri,  5 Sep 2014 21:02:41 +0200
-Message-ID: <1409943773-7874-7-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 09/18] tty: serial: 8250_dma: handle error on TX submit
+Date: Fri,  5 Sep 2014 21:02:44 +0200
+Message-ID: <1409943773-7874-10-git-send-email-bigeasy@linutronix.de>
 References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-serial@vger.kernel.org
-Cc: tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-Tony noticed that the old omap-serial driver picked the uart "number"
-based on the hint given from device tree or platform device's id.
-The 8250 based omap driver doesn't do this because the core code does
-not honour the ->line argument which is passed by the driver.
+Right now it is possible that serial8250_tx_dma() fails and returns
+-EBUSY. The caller (serial8250_start_tx()) will then enable
+UART_IER_THRI which will generate an interrupt once the TX FIFO is
+empty.
+In serial8250_handle_irq() nothing will happen because up->dma is set
+and so serial8250_tx_chars() won't be invoked. We end up with plenty of
+interrupts and some "too much work for irq" output.
 
-This patch aims to keep the same behaviour as with omap-serial. The
-function will first try to use the line suggested ->line argument and
-then fallback to the old strategy in case the port is taken.
-
-That means the the third uart will always be ttyS2 even if the previous
-two have not been enabled in DT.
+This patch introduces dma_tx_err in struct uart_8250_port to signal that
+the last invocation of serial8250_tx_dma() failed so we can fill the TX
+FIFO manually. Should the next invocation of serial8250_start_tx()
+succeed then the dma_tx_err flag along with the THRI bit is removed and
+DMA only usage may continue.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_core.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/tty/serial/8250/8250.h      |  1 +
+ drivers/tty/serial/8250/8250_core.c |  4 +++-
+ drivers/tty/serial/8250/8250_dma.c  | 30 +++++++++++++++++++++++++-----
+ 3 files changed, 29 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/8250/8250.h
+index 1bcb4b2141a6..a63d198f8d03 100644
+--- a/drivers/tty/serial/8250/8250.h
++++ b/drivers/tty/serial/8250/8250.h
+@@ -41,6 +41,7 @@ struct uart_8250_dma {
+ 	size_t			tx_size;
+ 
+ 	unsigned char		tx_running:1;
++	unsigned char		tx_err: 1;
+ };
+ 
+ struct old_serial_port {
 diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index eaab8974a456..8f5fb81d5fad 100644
+index e8df7cd85ba7..2101134e5031 100644
 --- a/drivers/tty/serial/8250/8250_core.c
 +++ b/drivers/tty/serial/8250/8250_core.c
-@@ -3479,6 +3479,11 @@ static struct uart_8250_port *serial8250_find_match_or_unused(struct uart_port *
- 		if (uart_match_port(&serial8250_ports[i].port, port))
- 			return &serial8250_ports[i];
+@@ -1592,8 +1592,10 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
+ 			status = serial8250_rx_chars(up, status);
+ 	}
+ 	serial8250_modem_status(up);
+-	if (!up->dma && (status & UART_LSR_THRE))
++	if ((!up->dma || (up->dma && up->dma->tx_err)) &&
++			(status & UART_LSR_THRE)) {
+ 		serial8250_tx_chars(up);
++	}
  
-+	/* try line number first if still available */
-+	i = port->line;
-+	if (i < nr_uarts && serial8250_ports[i].port.type == PORT_UNKNOWN &&
-+			serial8250_ports[i].port.iobase == 0)
-+		return &serial8250_ports[i];
- 	/*
- 	 * We didn't find a matching entry, so look for the first
- 	 * free entry.  We look for one which hasn't been previously
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ 	return 1;
+diff --git a/drivers/tty/serial/8250/8250_dma.c b/drivers/tty/serial/8250/8250_dma.c
+index 148ffe4c232f..69e54abb6e71 100644
+--- a/drivers/tty/serial/8250/8250_dma.c
++++ b/drivers/tty/serial/8250/8250_dma.c
+@@ -36,8 +36,16 @@ static void __dma_tx_complete(void *param)
+ 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+ 		uart_write_wakeup(&p->port);
+ 
+-	if (!uart_circ_empty(xmit) && !uart_tx_stopped(&p->port))
+-		serial8250_tx_dma(p);
++	if (!uart_circ_empty(xmit) && !uart_tx_stopped(&p->port)) {
++		int ret;
++
++		ret = serial8250_tx_dma(p);
++		if (ret) {
++			dma->tx_err = 1;
++			p->ier |= UART_IER_THRI;
++			serial_port_out(&p->port, UART_IER, p->ier);
++		}
++	}
+ 
+ 	spin_unlock_irqrestore(&p->port.lock, flags);
+ }
+@@ -69,6 +77,7 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+ 	struct uart_8250_dma		*dma = p->dma;
+ 	struct circ_buf			*xmit = &p->port.state->xmit;
+ 	struct dma_async_tx_descriptor	*desc;
++	int ret;
+ 
+ 	if (uart_tx_stopped(&p->port) || dma->tx_running ||
+ 	    uart_circ_empty(xmit))
+@@ -80,8 +89,10 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+ 					   dma->tx_addr + xmit->tail,
+ 					   dma->tx_size, DMA_MEM_TO_DEV,
+ 					   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+-	if (!desc)
+-		return -EBUSY;
++	if (!desc) {
++		ret = -EBUSY;
++		goto err;
++	}
+ 
+ 	dma->tx_running = 1;
+ 
+@@ -94,8 +105,17 @@ int serial8250_tx_dma(struct uart_8250_port *p)
+ 				   UART_XMIT_SIZE, DMA_TO_DEVICE);
+ 
+ 	dma_async_issue_pending(dma->txchan);
+-
++	if (dma->tx_err) {
++		dma->tx_err = 0;
++		if (p->ier & UART_IER_THRI) {
++			p->ier &= ~UART_IER_THRI;
++			serial_out(p, UART_IER, p->ier);
++		}
++	}
+ 	return 0;
++err:
++	dma->tx_err = 1;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(serial8250_tx_dma);
+ 
 -- 
 2.1.0
