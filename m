@@ -1,88 +1,74 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: DRA72x/DRA74x basic support
-Date: Fri, 5 Sep 2014 18:03:07 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1409051759530.9444@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1408280617360.21985@utopia.booyaka.com> <20140828170258.GH16006@atomide.com> <CAOesGMiudDK71Pzo+k9iiKJAcJzobc5z4+cpcomeJyM1KzbvgQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] ARM: DRA7: Add support for soc_is_dra74x() and
+ soc_is_dra72x() variants
+Date: Fri, 5 Sep 2014 18:08:41 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1409051803190.9444@utopia.booyaka.com>
+References: <1406523237-6905-1-git-send-email-lokeshvutla@ti.com> <1406523237-6905-2-git-send-email-lokeshvutla@ti.com> <alpine.DEB.2.02.1407280529320.24161@utopia.booyaka.com> <53D5E0F4.3080607@ti.com> <CAGo_u6pZiyJ8574YUXvg_Pz_P=LDeot-kFh7NQJBUqgwsR+Fmw@mail.gmail.com>
+ <alpine.DEB.2.02.1408280618480.21985@utopia.booyaka.com> <CAGo_u6qLJdrHw-FosDvhdvMQxQntf=ujZdRW+MrCdqbHZruU4A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57329 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:57362 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874AbaIESDI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2014 14:03:08 -0400
-In-Reply-To: <CAOesGMiudDK71Pzo+k9iiKJAcJzobc5z4+cpcomeJyM1KzbvgQ@mail.gmail.com>
+	with ESMTP id S1750712AbaIESIm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Sep 2014 14:08:42 -0400
+In-Reply-To: <CAGo_u6qLJdrHw-FosDvhdvMQxQntf=ujZdRW+MrCdqbHZruU4A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, "arm@kernel.org" <arm@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hello Olof,
+On Thu, 28 Aug 2014, Nishanth Menon wrote:
 
-Sorry for the confusion, and thanks for the clarification.  
-
-TI folks: no new platform support will be accepted through me for any 
-future -rc series patchsets.
-
-
-- Paul
-
-On Sun, 31 Aug 2014, Olof Johansson wrote:
-
-> This one clearly falls into the category of new platform support, not
-> bugfixes. But it's pretty small so I'll pick it up this time.
-> 
-> 
-> -Olof
-> 
-> On Thu, Aug 28, 2014 at 10:02 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > Arnd & Olof,
+> On Thu, Aug 28, 2014 at 1:19 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Wed, 27 Aug 2014, Nishanth Menon wrote:
 > >
-> > Can you please pick this one up for the -rc cycle so the TI guys
-> > can boot test dra7 with mainline properly?
+> >> On Mon, Jul 28, 2014 at 12:34 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
+> >> > On Monday 28 July 2014 10:59 AM, Paul Walmsley wrote:
+> >> >> On Mon, 28 Jul 2014, Lokesh Vutla wrote:
+> >> >>
+> >> >>> From: Rajendra Nayak <rnayak@ti.com>
+> >> >>>
+> >> >>> Use the corresponding compatibles to identify the devices.
+> >> >>>
+> >> >>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> >> >>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> >> >>> Acked-by: Nishanth Menon <nm@ti.com>
+> >> >>> Tested-by: Nishanth Menon <nm@ti.com>
+> >> >>
+> >> >> Thanks, queued for (hopefully) early v3.17-rc.
+> >> > Thanks Paul.
+> >> >
+> >> Paul, Tony,
+> >>
+> >> we are at 3.17-rc2 today, unfortunately..
+> >> http://slexy.org/view/s20MbRgipa dra72-evm is still broken due to
+> >> this. Needs:
+> >> https://patchwork.kernel.org/patch/4632161/ and
+> >> https://patchwork.kernel.org/patch/4632171/
+> >>
+> >> What can we do to help speed this along?
 > >
-> > Regards,
-> >
-> > Tony
-> >
-> > * Paul Walmsley <paul@pwsan.com> [140827 23:18]:
-> >> Hi Tony,
-> >>
-> >> The following changes since commit 52addcf9d6669fa439387610bc65c92fa0980cef:
-> >>
-> >>   Linux 3.17-rc2 (2014-08-25 15:36:20 -0700)
-> >>
-> >> are available in the git repository at:
-> >>
-> >>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.17-rc/omap-dra72x-d74x-support-a
-> >>
-> >> for you to fetch changes up to f7f7a29bf0cf25af23f37e5b5bf1368b85705286:
-> >>
-> >>   ARM: DRA7: hwmod: Add dra74x and dra72x specific ocp interface lists (2014-08-27 19:38:23 -0600)
-> >>
-> >> ----------------------------------------------------------------
-> >> Add basic subarchitecture support for the DRA72x and DRA74x.  These
-> >> are OMAP2+ derivative SoCs.  This should be low-risk to existing OMAP
-> >> platforms.
-> >>
-> >> Basic build, boot, and PM test logs are available here:
-> >>
-> >> http://www.pwsan.com/omap/testlogs/hwmod-a-early-v3.17-rc/20140827194314/
-> >>
-> >> ----------------------------------------------------------------
-> >> Rajendra Nayak (2):
-> >>       ARM: DRA7: Add support for soc_is_dra74x() and soc_is_dra72x() variants
-> >>       ARM: DRA7: hwmod: Add dra74x and dra72x specific ocp interface lists
-> >>
-> >>  arch/arm/mach-omap2/omap_hwmod.c          |  3 +++
-> >>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 22 ++++++++++++++++++++--
-> >>  arch/arm/mach-omap2/soc.h                 |  6 ++++++
-> >>  3 files changed, 29 insertions(+), 2 deletions(-)
-> >>
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > A simple reminder, like this one, is good.  Also providing boards and
+> > documentation generally helps, so the patches can be tested and reviewed.
 > 
+> TI is working diligently towards a public TRM and potentially a
+> related platform as well for all.
+> 
+> Unfortunately, I am not yet aware of a official finalized release
+> date.. hopefully this year..
+
+OK
+
+> In the meanwhile, we will try to provide test logs that you may desire 
+> for at least the platforms we have functioning and access to. please 
+> feel free to request specific test vectors if you feel our coverage is 
+> not good enough.
+
+Thanks.  You've been showing a lot of great leadership in proactively 
+posting test logs.  What I'd suggest doing is to keep that up, and if 
+possible, post one of the test reports for each patch series that's 
+posted, if possible. 
 
 
 - Paul
