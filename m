@@ -1,83 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
-Date: Fri, 5 Sep 2014 14:30:09 -0700
-Message-ID: <20140905213009.GB3238@atomide.com>
-References: <1408716154-26101-1-git-send-email-nm@ti.com>
- <1408716154-26101-8-git-send-email-nm@ti.com>
- <7hbnr5dake.fsf@paris.lan>
- <53FE2BF2.3020006@ti.com>
- <20140827194156.GE16006@atomide.com>
- <53FE34D7.7040004@ti.com>
- <53FE3551.2080806@ti.com>
- <20140905211558.GA31011@kahuna>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140905211558.GA31011@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy <j-keerthy@ti.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: [PATCH] ARM: omap: Remove stray ARCH_HAS_OPP references
+Date: Sat,  6 Sep 2014 11:14:16 +0100
+Message-ID: <1409998456-28066-1-git-send-email-broonie@kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52935 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871AbaIFKOc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Sep 2014 06:14:32 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, Mark Brown <broonie@kernel.org>
 
-* Nishanth Menon <nm@ti.com> [140905 14:16]:
-> On 14:45-20140827, Nishanth Menon wrote:
-> > On 08/27/2014 02:43 PM, Santosh Shilimkar wrote:
-> > > On Wednesday 27 August 2014 03:41 PM, Tony Lindgren wrote:
-> > >> * Nishanth Menon <nm@ti.com> [140827 12:05]:
-> > >>> On 08/27/2014 01:58 PM, Kevin Hilman wrote:
-> > >>>> Nishanth Menon <nm@ti.com> writes:
-> > >>>>
-> > >>>>> From: Rajendra Nayak <rnayak@ti.com>
-> > >>>>>
-> > >>>>> On OMAP5 / DRA7, prevent a CPU powerdomain OFF and resulting MPU OSWR
-> > >>>>> and instead attempt a CPU RET and side effect, MPU RET in suspend.
-> > >>>>>
-> > >>>>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> > >>>>> [nm@ti.com: update to do save_state only on DRA7]
-> > >>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
-> > >>>>> ---
-> > >>>>>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++++
-> > >>>>>  arch/arm/mach-omap2/omap-wakeupgen.c      |    2 +-
-> > >>>>>  arch/arm/mach-omap2/pm44xx.c              |    9 +++++++--
-> > >>>>>  3 files changed, 12 insertions(+), 3 deletions(-)
-> > >>>>>
-> > >>>>> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > >>>>> index 207fce2..0d640eb 100644
-> > >>>>> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > >>>>> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > >>>>> @@ -242,6 +242,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
-> > >>>>>  		save_state = 1;
-> > >>>>>  		break;
-> > >>>>>  	case PWRDM_POWER_RET:
-> > >>>>> +		if (soc_is_omap54xx() || soc_is_dra7xx()) {
-> > >>>>
-> > >>>> Aren't we trying to get away from these soc_* checks for anything other
-> > >>>> than init code?
-> > >>>
-> > >>> I would expect that to take place in stages as part of which the next
-> > >>> level of cleanup is to move PRM into drivers. Currently our wakeupgen,
-> > >>> prm code does have quiet a few needs of dealing with soc_is checks
-> > >>> primarily from having to re-architect code in two different directions
-> > >>> - we want to move into just one direction eventually - to prm drivers
-> > >>> and as less code in mach-omap2 which is already in the works.
-> > >>
-> > >> Why don't you just set some flag at init time based on the
-> > >> soc_is check and then test that here? That limits the use of
-> > >> soc_is to init code only which makes it easier to phase it
-> > >> out completely eventually.
-> > >>
-> > > Indeed. Infact the version of the code I tried posting last year was
-> > > using a flag which was initialised during init. Same can be
-> > > done her.
-> > 
-> > OK. will try something along that line in the next rev.
-> 
-> 
-> Hi,
-> 
-> Updated patch below:
+OPP is now a normal kernel library selected by its users rather than a
+feature that architectures need to enable so ARCH_HAS_OPP serves no
+function any more - remove the selects.
 
-Looks OK to me thanks.
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ arch/arm/mach-omap2/Kconfig | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index e7189dcc9309..11ccf0b4e5c2 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -25,7 +25,6 @@ config ARCH_OMAP4
+ 	bool "TI OMAP4"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
+-	select ARCH_HAS_OPP
+ 	select ARCH_NEEDS_CPU_IDLE_COUPLED if SMP
+ 	select ARM_CPU_SUSPEND if PM
+ 	select ARM_ERRATA_720789
+@@ -44,7 +43,6 @@ config SOC_OMAP5
+ 	bool "TI OMAP5"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
+-	select ARCH_HAS_OPP
+ 	select ARM_CPU_SUSPEND if PM
+ 	select ARM_GIC
+ 	select HAVE_ARM_SCU if SMP
+@@ -56,14 +54,12 @@ config SOC_AM33XX
+ 	bool "TI AM33XX"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
+-	select ARCH_HAS_OPP
+ 	select ARM_CPU_SUSPEND if PM
+ 
+ config SOC_AM43XX
+ 	bool "TI AM43x"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
+-	select ARCH_HAS_OPP
+ 	select ARM_GIC
+ 	select MACH_OMAP_GENERIC
+ 	select MIGHT_HAVE_CACHE_L2X0
+@@ -72,7 +68,6 @@ config SOC_DRA7XX
+ 	bool "TI DRA7XX"
+ 	depends on ARCH_MULTI_V7
+ 	select ARCH_OMAP2PLUS
+-	select ARCH_HAS_OPP
+ 	select ARM_CPU_SUSPEND if PM
+ 	select ARM_GIC
+ 	select HAVE_ARM_ARCH_TIMER
+-- 
+2.1.0
+
