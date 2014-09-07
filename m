@@ -1,45 +1,44 @@
 From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH v6 0/7] DT doc: net: cpsw mac-address is optional
-Date: Sun,  7 Sep 2014 19:19:28 +0200
-Message-ID: <1410110375-3570-1-git-send-email-mpa@pengutronix.de>
+Subject: [PATCH v6 1/7] DT doc: net: cpsw mac-address is optional
+Date: Sun,  7 Sep 2014 19:19:29 +0200
+Message-ID: <1410110375-3570-2-git-send-email-mpa@pengutronix.de>
+References: <1410110375-3570-1-git-send-email-mpa@pengutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58144 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58122 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752605AbaIGRUf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2014 13:20:35 -0400
+	with ESMTP id S1752620AbaIGRU3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2014 13:20:29 -0400
+In-Reply-To: <1410110375-3570-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>
 Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-This series adds support to the cpsw driver to read the MACIDs of the am335x
-chip and use them as fallback. These addresses are only used if there are no
-mac addresses in the devicetree, for example set by a bootloader.
+mac-address is an optional property. If no mac-address is set, a random
+mac-address will be generated.
 
-v6 moves the machine check in patch 5 out of cpsw_am33xx_cm_get_macid() so that
-this function is only called for am33xx.
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+Reviewed-by: Wolfram Sang <wsa@the-dreams.de>
+---
+ Documentation/devicetree/bindings/net/cpsw.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Best regards,
-
-Markus
-
-
-Markus Pargmann (7):
-  DT doc: net: cpsw mac-address is optional
-  net: cpsw: Add missing return value
-  net: cpsw: header, Add missing include
-  net: cpsw: Replace pr_err by dev_err
-  net: cpsw: Add am33xx MACID readout
-  am33xx: define syscon control module device node
-  arm: dts: am33xx, Add syscon phandle to cpsw node
-
- Documentation/devicetree/bindings/net/cpsw.txt |  6 +++-
- arch/arm/boot/dts/am33xx.dtsi                  |  6 ++++
- drivers/net/ethernet/ti/Kconfig                |  2 ++
- drivers/net/ethernet/ti/cpsw.c                 | 45 ++++++++++++++++++++++++--
- drivers/net/ethernet/ti/cpsw.h                 |  1 +
- 5 files changed, 57 insertions(+), 3 deletions(-)
-
+diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
+index ae2b8b7f9c38..107caf174a0e 100644
+--- a/Documentation/devicetree/bindings/net/cpsw.txt
++++ b/Documentation/devicetree/bindings/net/cpsw.txt
+@@ -29,10 +29,10 @@ Slave Properties:
+ Required properties:
+ - phy_id		: Specifies slave phy id
+ - phy-mode		: See ethernet.txt file in the same directory
+-- mac-address		: See ethernet.txt file in the same directory
+ 
+ Optional properties:
+ - dual_emac_res_vlan	: Specifies VID to be used to segregate the ports
++- mac-address		: See ethernet.txt file in the same directory
+ 
+ Note: "ti,hwmods" field is used to fetch the base address and irq
+ resources from TI, omap hwmod data base during device registration.
 -- 
 2.1.0
 
