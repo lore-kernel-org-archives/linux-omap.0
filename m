@@ -1,54 +1,118 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: dts: dra72-evm: Add i2c1 and tps65917 nodes
-Date: Mon, 8 Sep 2014 16:12:01 -0700
-Message-ID: <20140908231200.GR3238@atomide.com>
-References: <1406528334-4415-1-git-send-email-j-keerthy@ti.com>
- <53D5EE21.1040000@ti.com>
- <53D61643.4070005@ti.com>
- <53EA0A26.1050301@ti.com>
- <20140908200443.GA24258@kahuna>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv3 0/5] OMAP Mailbox framework adoption & DT support
+Date: Mon, 8 Sep 2014 16:20:54 -0700
+Message-ID: <20140908232053.GS3238@atomide.com>
+References: <1406680479-18446-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140908200443.GA24258@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Keerthy <a0393675@ti.com>, Keerthy <j-keerthy@ti.com>, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, galak@codeaurora.org, Lokesh Vutla <lokeshvutla@ti.com>
+In-Reply-To: <1406680479-18446-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Markus Mayer <markus.mayer-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [140908 13:05]:
-> On 18:05-20140812, Keerthy wrote:
-> > On Monday 28 July 2014 02:52 PM, Keerthy wrote:
-> > >On Monday 28 July 2014 12:00 PM, Lokesh Vutla wrote:
-> > >>On Monday 28 July 2014 11:48 AM, Keerthy wrote:
-> > >>>The patch series adds i2c1 and tps65917 and related nodes.
-> > >>>The patch series is boot tested on DRA72-EVM.
-> > >>>
-> > >>>Thanks to Lokesh <lokeshvutla@ti.com> for testing the series.
-> > >
-> > >Correcting the 'to' list.
-> > 
-> > Hi Tony,
-> > 
-> > If there are no comments could you please pull these two patches?
+* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140729 17:37]:
+> Hi,
 > 
-> With 3.17-rc4, I tested this series:
-> dra72-evm-before: http://paste.ubuntu.org.cn/1496342
-> dra72-evm-after: http://paste.ubuntu.org.cn/1496341
-> 
-> Patches:
-> https://patchwork.kernel.org/patch/4632391/
-> https://patchwork.kernel.org/patch/4632421/
-> 
-> Could we pick these with 3.18?
-> 
-> Please free to add:
-> 
-> Tested-by: Nishanth Menon <nm@ti.com>
+> This is an updated version of the OMAP Mailbox framework adoption &
+> DT support series, refreshed to work with the v9 version of the mailbox
+> framework [1] from Jassi Brar while also addressing some minor review
+> comments. Detailed changes are summarized below. Patches are based on
+> 3.16-rc2.
 
-OK applying into omap-for-v3.18/dt thanks.
+Sorry for the delay, just noticed that I'm supposed to queue
+these too. I'll queue these into omap-for-v3.18/mailbox against
+v3.17-rc1 and will probably also merge it into omap-for-v3.18/dt
+as well.
 
 Regards,
 
 Tony
+ 
+> The series depends on the OMAP mailbox DT/hwmod cleanup series [2] and the
+> OMAP mailbox cleanup series [3]. Both these series are staged to be merged
+> for 3.17 [4]. The last 2 framework adaptation patches require the v9 framework
+> patches to build successfully. The reference branch with all the patches is
+> hosted (not for merging - includes an additional patch for dsp/bridge changes) at 
+> https://github.com/sumananna/mailbox/commits/submit/3.16-rc2-omap-mbox-v9-fwk-v3
+> 
+> The AM335 PM suspend series [5] which relies on this series needs to have
+> the wkupm3 node updated to use the new property name "mboxes" instead of
+> "mbox", and use the updated mbox_request_channel API.
+> 
+> Changes in v3:
+> - Revised the OMAP mailbox bindings to reflect the updated compatible
+>   strings (Patch 1) and the updated common mailbox properties in
+>   the v9 framework (Patch 4)
+> - Code rearrangement/flip of if code blocks in omap_mailbox probe to address
+>   Markus Mayer's comments from v2 (Patch 2)
+> - omap_mbox_of_xlate updated to add a missing of_node_put (Patch 4)
+> - Adjust the added OMAP non-DT support API, omap_mbox_request_channel, to
+>   handle the loss of the chan_name field in the mbox_client structure
+>   from v8 to v9 of mailbox framework (Patch 4)
+> - Dropped mailbox adaptation changes to TI DSP/Bridge driver, as it will be
+>   deleted in 3.17 (Patch 4)
+> - No changes to DTS patches (Patches 3 and 5)
+> - Tested against v9 of mailbox framework
+> 
+> v2:
+> - http://www.spinics.net/lists/linux-omap/msg109379.html
+> - Updated the OMAP DT bindings document for the added back DT properties:
+>   "ti,mbox-num-users" and "ti,mbox-num-fifos". Also added information
+>   regarding "#mbox-cells" and DT client usage.
+> - Updated the OMAP DT adaptation patch to parse the added back DT properties
+>   and clean up the previous match data structure.
+> - Squashed custom xlate patch into the framework adaptation patch.
+> - Tested against v8 of mailbox framework.
+> 
+> v1:
+> - http://www.spinics.net/lists/linux-omap/msg108595.html
+> - Tested against v7 of mailbox framework
+> 
+> 
+> The following shows the boot/validation logs on various OMAP platforms:
+>   OMAP2 (SDP2430)           : http://slexy.org/view/s20ZcIovmA
+>   OMAP3 (BeagleXM)          : http://slexy.org/view/s2jWS6RPDJ
+>   OMAP4 (PandaBoard)        : http://slexy.org/view/s21Mxi3Z4v
+>   OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s2EUjy49h9
+>   DRA7  (DRA7 EVM)          : http://slexy.org/view/s29ehoRZWl
+>   AM33xx (BeagleBone Black) : http://slexy.org/view/s20A8RDPRy
+>   AM43xx (AM437x GP EVM)    : http://slexy.org/view/s21HMTnL2t
+> 
+> [1] https://lkml.org/lkml/2014/7/22/613
+> [2] http://marc.info/?l=linux-omap&m=140511512208519&w=2
+> [3] http://www.spinics.net/lists/linux-omap/msg108574.html
+> [4] https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.17/mailbox
+> [5] http://www.spinics.net/lists/linux-omap/msg109331.html
+> 
+> Suman Anna (5):
+>   Documentation: dt: add omap mailbox bindings
+>   mailbox/omap: add support for parsing dt devices
+>   ARM: dts: OMAP2+: Add sub mailboxes device node information
+>   mailbox/omap: adapt to the new mailbox framework
+>   ARM: dts: OMAP2+: Add #mbox-cells property to all mailbox nodes
+> 
+>  .../devicetree/bindings/mailbox/omap-mailbox.txt   | 132 ++++++
+>  arch/arm/boot/dts/am33xx.dtsi                      |   5 +
+>  arch/arm/boot/dts/am4372.dtsi                      |   5 +
+>  arch/arm/boot/dts/dra7.dtsi                        |  13 +
+>  arch/arm/boot/dts/omap2420.dtsi                    |   9 +
+>  arch/arm/boot/dts/omap2430.dtsi                    |   5 +
+>  arch/arm/boot/dts/omap3.dtsi                       |   5 +
+>  arch/arm/boot/dts/omap4.dtsi                       |   9 +
+>  arch/arm/boot/dts/omap5.dtsi                       |   9 +
+>  drivers/mailbox/omap-mailbox.c                     | 502 ++++++++++++++-------
+>  drivers/remoteproc/omap_remoteproc.c               |  51 ++-
+>  include/linux/omap-mailbox.h                       |  16 +-
+>  12 files changed, 557 insertions(+), 204 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
+> 
+> -- 
+> 2.0.0
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
