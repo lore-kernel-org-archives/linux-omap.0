@@ -1,52 +1,34 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 07/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
-Date: Mon, 8 Sep 2014 20:23:13 +0300
-Message-ID: <CANOLnONWPdO80XWOYQatmOh+Ek107fBXDiqD3DpMXeazjLcdMg@mail.gmail.com>
-References: <1408716154-26101-1-git-send-email-nm@ti.com>
-	<1408716154-26101-8-git-send-email-nm@ti.com>
-	<7hbnr5dake.fsf@paris.lan>
-	<53FE2BF2.3020006@ti.com>
-	<20140827194156.GE16006@atomide.com>
-	<53FE34D7.7040004@ti.com>
-	<53FE3551.2080806@ti.com>
-	<20140905211558.GA31011@kahuna>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v8 00/18] 8250-core based serial driver for OMAP + DMA
+Date: Mon, 8 Sep 2014 10:40:21 -0700
+Message-ID: <20140908174020.GI3238@atomide.com>
+References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140905211558.GA31011@kahuna>
+Content-Disposition: inline
+In-Reply-To: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140905 12:03]:
+> This is my complete queue fo the omap serial driver based on the 8250 core
+> code. I played with it on beagle bone, am335x-evm and dra7xx including DMA.
+> The runtime-pm pieces look now bug-compatible with the omap-serial driver.
+> Besides the runtime-om improvement I also fixed a few corner cases for the
+> TX-DMA problem. The DMA fixes (in edma and omap-dma) were dropped and the
+> problem has been in 8250-dma via patch #13.
+> 
+> The whole queue is available at
+>   git://git.breakpoint.cc/bigeasy/linux.git uart_v8
 
-On Sat, Sep 6, 2014 at 12:15 AM, Nishanth Menon <nm@ti.com> wrote:
->
-> Hi,
->
-> Updated patch below:
-> Do let me know if this is ok with folks.
->
-> ---8<----
-> From 1b9e11834dac2bd75c396aa7495c806b027653fe Mon Sep 17 00:00:00 200=
-1
-> From: Rajendra Nayak <rnayak@ti.com>
-> Date: Mon, 27 May 2013 15:46:44 +0530
-> Subject: [PATCH V2 7/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
->
-> On OMAP5 / DRA7, prevent a CPU powerdomain OFF and resulting MPU OSWR
-> and instead attempt a CPU RET and side effect, MPU RET in suspend.
->
-> NOTE: the hardware was originally designed to be capable of achieving
-> deep power states such as OFF and OSWR, however due to various issues
-> and risks, deepest valid state was determined to be CSWR - hence we u=
-se
+Gave the above branch a quick try, but it again does not idle for
+my omap3 test cases. It seems that now the cm_idlest1_core sdma
+bit is blocking deeper idle states. Is that the correct branch
+to use?
 
-Would be great to have some more details here..
-So there is no hope for OFF mode on OMAP5?
+Regards,
 
-
---=20
-Gra=C5=BEvydas
+Tony
