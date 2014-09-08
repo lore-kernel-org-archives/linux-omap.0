@@ -1,108 +1,101 @@
-From: Kevin Hilman <khilman@linaro.org>
-Subject: Re: [PATCH v4 10/11] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Mon, 08 Sep 2014 15:30:28 -0700
-Message-ID: <7h7g1dlp8b.fsf@linaro.org>
-References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
-	<1405047349-15101-11-git-send-email-d-gerlach@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 2/2] ARM: OMAP4+: PRM fixes, DRA7 suspend-to-ram
+ support
+Date: Mon, 8 Sep 2014 15:32:05 -0700
+Message-ID: <20140908223204.GN3238@atomide.com>
+References: <1410195620-6347-1-git-send-email-nm@ti.com>
+ <1410195620-6347-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:54506 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754881AbaIHWaa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 18:30:30 -0400
-Received: by mail-pa0-f44.google.com with SMTP id kx10so4002097pab.17
-        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2014 15:30:30 -0700 (PDT)
-In-Reply-To: <1405047349-15101-11-git-send-email-d-gerlach@ti.com> (Dave
-	Gerlach's message of "Thu, 10 Jul 2014 21:55:48 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1410195620-6347-2-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-+Ohad
+* Nishanth Menon <nm@ti.com> [140908 10:02]:
+> Hi Tony,
+> Please pull the following changes.
+> 
+> part 2: "ARM: OMAP3+: PRM: fix up prm_handling"
+> http://marc.info/?l=linux-kernel&m=140871580806186&w=2
+> Status: Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+> part 3: "ARM: OMAP5+: pdata quirks for pinctrl"
+> http://marc.info/?l=linux-kernel&m=140871598306262&w=2
+> Status: Sending pull based on http://marc.info/?l=linux-kernel&m=140871666506706&w=2 (Acked by Tony, Pulled by Linus W)
+> 
+> part 5: "ARM: OMAP5 / DRA7: Add framework for suspend and cpuidle"
+> http://marc.info/?l=linux-kernel&m=140871637106555&w=2
+> Status: picked up kevin's tested and reviewed-by, dropped cpuidle for this pull
+> 
+> These could go into your tree for the branch  omap-for-v3.18/soc
+> 
+> The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
+> 
+>   Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
+> 
+> are available in the git repository at:
+> 
+>   https://github.com/nmenon/linux-2.6-playground.git pull/v3.18/for-omap-soc
 
-Dave Gerlach <d-gerlach@ti.com> writes:
+Thanks pulling into omap-for-v3.18/soc.
 
-> AM335x supports various low power modes as documented
-> in section 8.1.4.3 of the AM335x Technical Reference Manual.
->
-> DeepSleep0 mode offers the lowest power mode with limited
-> wakeup sources without a system reboot and is mapped as
-> the suspend state in the kernel. In this state, MPU and
-> PER domains are turned off with the internal RAM held in
-> retention to facilitate the resume process. As part of
-> the boot process, the assembly code is copied over to OCMCRAM
-> using the OMAP SRAM code so it can be executed to turn of the
-> EMIF.
->
-> AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
-> in DeepSleep0 and Standby entry and exit. WKUP_M3 takes care
-> of the clockdomain and powerdomain transitions based on the
-> intended low power state. MPU needs to load the appropriate
-> WKUP_M3 binary onto the WKUP_M3 memory space before it can
-> leverage any of the PM features like DeepSleep.
->
-> The WKUP_M3 is managed by a remoteproc driver. The PM code hooks
-> into the remoteproc driver through an rproc_ready callback to
-> allow PM features to become available once the firmware for the
-> wkup_m3 has been loaded. This code maintains its own state machine
-> for the wkup_m3 so that it can be used in the manner intended for
-> low power modes.
->
-> In the current implementation when the suspend process
-> is initiated, MPU interrupts the WKUP_M3 to let it know about
-> the intent of entering DeepSleep0 and waits for an ACK. When
-> the ACK is received MPU continues with its suspend process
-> to suspend all the drivers and then jumps to assembly in
-> OCMC RAM. The assembly code puts the external RAM in self-refresh
-> mode, gates the MPU clock, and then finally executes the WFI
-> instruction. Execution of the WFI instruction with MPU clock gated
-> triggers another interrupt to the WKUP_M3 which then continues
-> with the power down sequence wherein the clockdomain and
-> powerdomain transition takes place. As part of the sleep sequence,
-> WKUP_M3 unmasks the interrupt lines for the wakeup sources. WFI
-> execution on WKUP_M3 causes the hardware to disable the main
-> oscillator of the SoC and from here system remains in sleep state
-> until a wake source brings the system into resume path.
->
-> When a wakeup event occurs, WKUP_M3 starts the power-up
-> sequence by switching on the power domains and finally
-> enabling the clock to MPU. Since the MPU gets powered down
-> as part of the sleep sequence in the resume path ROM code
-> starts executing. The ROM code detects a wakeup from sleep
-> and then jumps to the resume location in OCMC which was
-> populated in one of the IPC registers as part of the suspend
-> sequence.
->
-> Code is based on work by Vaibhav Bedia.
->
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
-> v3->v4:
-> 	Remove all direct wkup_m3 usage and moved to rproc driver introduced
-> 	in previous patch.
+Regards,
 
-This statement is rather confusing as there's still quite a bit of
-direct wkup_m3 usage, including the guts of the protocal for message
-passing.  I thought you had agreed based on earilier reviews to split
-out the wkup_m3 into it's on little driver with a clear/clean API which
-could be called from here?
-
-To me, it's not terribly clear how you made the split between this PM
-core code an the remoteproc code.  In the changelog for the remoteproc
-patch, it states it's to "load the firmware for and boot the wkup_m3".
-But, while parts of the IPC are here in pm33xx.c, parts of the IPC are
-also inside the remoteproc driver, so I'm quite curious if that's OK
-with the remoteproc maintainers.  Either way, please make it clearer how
-and why you made the split, and please isolate the wkup_m3 IPC/protocol
-from this code.  Think of people wanting to rework/extend the wkup_m3
-firmware.  They shouldn't be messing around in here, but rather inside a
-driver specificaly for the wkup_m3.
-
-Also, I'll beat this drum again even though nobody is listening: it's
-still very fuzzy to me how this approach is going to be used to manage
-low-power idle?  Is low-power idle just being completely ignored for
-this SoC?
-
-Kevin
+Tony
+ 
+> for you to fetch changes up to 628ed4717000789bff827c5799d1aac4c1008541:
+> 
+>   ARM: OMAP5: Add hook in SoC initcalls to enable pm initialization (2014-09-08 11:38:43 -0500)
+> 
+> ----------------------------------------------------------------
+> Keerthy (1):
+>       ARM: AM437x: use pdata quirks for pinctrl information
+> 
+> Nishanth Menon (8):
+>       ARM: OMAP4+: prminst: provide function to find prm_dev instance offset
+>       ARM: OMAP4: PRM: use the generic prm_inst to allow logic to be abstracted
+>       ARM: OMAP4+: PRM: register interrupt information from DT
+>       ARM: OMAP4+: PRM: remove "wkup" event
+>       ARM: OMAP4+: PRM: Enable wakeup capability for OMAP5, DRA7
+>       ARM: OMAP3+: PRM: register interrupt information from DT
+>       ARM: OMAP5: use pdata quirks for pinctrl information
+>       ARM: DRA7: use pdata quirks for pinctrl information
+> 
+> Rajendra Nayak (2):
+>       ARM: OMAP5 / DRA7: PM: Avoid all SAR saves
+>       ARM: OMAP5 / DRA7: Enable CPU RET on suspend
+> 
+> Santosh Shilimkar (6):
+>       ARM: OMAP5 / DRA7: PM: Update CPU context register offset
+>       ARM: OMAP5 / DRA7: PM: Set MPUSS-EMIF clock-domain static dependency
+>       ARM: OMAP5 / DRA7: PM / wakeupgen: Enables ES2 PM mode by default
+>       ARM: OMAP5 / DRA7: PM: Enable Mercury retention mode on CPUx powerdomains
+>       ARM: OMAP5 / DRA7: PM: Provide a dummy startup function for CPU hotplug
+>       ARM: OMAP5: Add hook in SoC initcalls to enable pm initialization
+> 
+>  arch/arm/mach-omap2/common.h              |    2 +-
+>  arch/arm/mach-omap2/io.c                  |    3 +
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |  102 ++++++++++++++++++++---------
+>  arch/arm/mach-omap2/omap-secure.h         |    1 +
+>  arch/arm/mach-omap2/omap-wakeupgen.c      |   20 +++++-
+>  arch/arm/mach-omap2/omap-wakeupgen.h      |    1 +
+>  arch/arm/mach-omap2/pdata-quirks.c        |   10 +++
+>  arch/arm/mach-omap2/pm.h                  |    1 +
+>  arch/arm/mach-omap2/pm44xx.c              |   48 ++++++++++++--
+>  arch/arm/mach-omap2/prm3xxx.c             |   18 +++++
+>  arch/arm/mach-omap2/prm44xx.c             |   90 +++++++++++++++++++++----
+>  arch/arm/mach-omap2/prminst44xx.c         |   40 ++++++-----
+>  arch/arm/mach-omap2/prminst44xx.h         |    3 +
+>  13 files changed, 275 insertions(+), 64 deletions(-)
+> 
+> Regards,
+> Nishanth Menon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
