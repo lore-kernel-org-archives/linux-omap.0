@@ -1,62 +1,108 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/2] ARM: OMAP 4+: powerdomain fixes
-Date: Mon, 8 Sep 2014 15:19:48 -0700
-Message-ID: <20140908221947.GM3238@atomide.com>
-References: <1410195620-6347-1-git-send-email-nm@ti.com>
+From: Kevin Hilman <khilman@linaro.org>
+Subject: Re: [PATCH v4 10/11] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Mon, 08 Sep 2014 15:30:28 -0700
+Message-ID: <7h7g1dlp8b.fsf@linaro.org>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+	<1405047349-15101-11-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1410195620-6347-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:54506 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754881AbaIHWaa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 18:30:30 -0400
+Received: by mail-pa0-f44.google.com with SMTP id kx10so4002097pab.17
+        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2014 15:30:30 -0700 (PDT)
+In-Reply-To: <1405047349-15101-11-git-send-email-d-gerlach@ti.com> (Dave
+	Gerlach's message of "Thu, 10 Jul 2014 21:55:48 -0500")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Suman Anna <s-anna@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-* Nishanth Menon <nm@ti.com> [140908 10:00]:
-> Hi Tony,
-> Please pull the following changes.
-> Series discussed in:
-> http://marc.info/?l=linux-kernel&m=140871554106082&w=2
-> Includes (v2 patch) https://patchwork.kernel.org/patch/4790541/
-> Status: Acked by Santosh and Reviewed-by Kevin	
-> 
-> These could go into your tree for the branch omap-for-v3.18/fixes-not-urgent
++Ohad
 
-Thanks pulling them there.
+Dave Gerlach <d-gerlach@ti.com> writes:
 
-Tony
- 
-> The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
-> 
->   Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
-> 
-> are available in the git repository at:
-> 
->   https://github.com/nmenon/linux-2.6-playground.git pull/v3.18/powerdomain-fixes
-> 
-> for you to fetch changes up to 3e6a1c945950140926dd6e2cc667893de0a7fe3b:
-> 
->   ARM: OMAP4+: PM: Use only valid low power state for CPU hotplug (2014-09-08 11:22:43 -0500)
-> 
-> ----------------------------------------------------------------
-> Nishanth Menon (7):
->       ARM: OMAP: DRA7: powerdomain data: fix powerdomain powerstate
->       ARM: OMAP5: powerdomain data: fix powerdomain powerstate
->       ARM: OMAP2+: powerdomain: pwrdm_for_each_clkdm iterate only valid clkdms
->       ARM: OMAP2+: powerdomain: introduce logic for finding valid power domain
->       ARM: OMAP4+: PM: Make logic state programmable
->       ARM: OMAP4+: PM: use only valid low power state for suspend
->       ARM: OMAP4+: PM: Use only valid low power state for CPU hotplug
-> 
->  arch/arm/mach-omap2/omap-mpuss-lowpower.c   |    4 ++
->  arch/arm/mach-omap2/pm44xx.c                |    9 ++-
->  arch/arm/mach-omap2/powerdomain.c           |   79 ++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/powerdomain.h           |    4 ++
->  arch/arm/mach-omap2/powerdomains54xx_data.c |   12 ++--
->  arch/arm/mach-omap2/powerdomains7xx_data.c  |   14 ++---
->  6 files changed, 106 insertions(+), 16 deletions(-)
-> 
-> Regards,
-> Nishanth Menon
-> 
+> AM335x supports various low power modes as documented
+> in section 8.1.4.3 of the AM335x Technical Reference Manual.
+>
+> DeepSleep0 mode offers the lowest power mode with limited
+> wakeup sources without a system reboot and is mapped as
+> the suspend state in the kernel. In this state, MPU and
+> PER domains are turned off with the internal RAM held in
+> retention to facilitate the resume process. As part of
+> the boot process, the assembly code is copied over to OCMCRAM
+> using the OMAP SRAM code so it can be executed to turn of the
+> EMIF.
+>
+> AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
+> in DeepSleep0 and Standby entry and exit. WKUP_M3 takes care
+> of the clockdomain and powerdomain transitions based on the
+> intended low power state. MPU needs to load the appropriate
+> WKUP_M3 binary onto the WKUP_M3 memory space before it can
+> leverage any of the PM features like DeepSleep.
+>
+> The WKUP_M3 is managed by a remoteproc driver. The PM code hooks
+> into the remoteproc driver through an rproc_ready callback to
+> allow PM features to become available once the firmware for the
+> wkup_m3 has been loaded. This code maintains its own state machine
+> for the wkup_m3 so that it can be used in the manner intended for
+> low power modes.
+>
+> In the current implementation when the suspend process
+> is initiated, MPU interrupts the WKUP_M3 to let it know about
+> the intent of entering DeepSleep0 and waits for an ACK. When
+> the ACK is received MPU continues with its suspend process
+> to suspend all the drivers and then jumps to assembly in
+> OCMC RAM. The assembly code puts the external RAM in self-refresh
+> mode, gates the MPU clock, and then finally executes the WFI
+> instruction. Execution of the WFI instruction with MPU clock gated
+> triggers another interrupt to the WKUP_M3 which then continues
+> with the power down sequence wherein the clockdomain and
+> powerdomain transition takes place. As part of the sleep sequence,
+> WKUP_M3 unmasks the interrupt lines for the wakeup sources. WFI
+> execution on WKUP_M3 causes the hardware to disable the main
+> oscillator of the SoC and from here system remains in sleep state
+> until a wake source brings the system into resume path.
+>
+> When a wakeup event occurs, WKUP_M3 starts the power-up
+> sequence by switching on the power domains and finally
+> enabling the clock to MPU. Since the MPU gets powered down
+> as part of the sleep sequence in the resume path ROM code
+> starts executing. The ROM code detects a wakeup from sleep
+> and then jumps to the resume location in OCMC which was
+> populated in one of the IPC registers as part of the suspend
+> sequence.
+>
+> Code is based on work by Vaibhav Bedia.
+>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+> v3->v4:
+> 	Remove all direct wkup_m3 usage and moved to rproc driver introduced
+> 	in previous patch.
+
+This statement is rather confusing as there's still quite a bit of
+direct wkup_m3 usage, including the guts of the protocal for message
+passing.  I thought you had agreed based on earilier reviews to split
+out the wkup_m3 into it's on little driver with a clear/clean API which
+could be called from here?
+
+To me, it's not terribly clear how you made the split between this PM
+core code an the remoteproc code.  In the changelog for the remoteproc
+patch, it states it's to "load the firmware for and boot the wkup_m3".
+But, while parts of the IPC are here in pm33xx.c, parts of the IPC are
+also inside the remoteproc driver, so I'm quite curious if that's OK
+with the remoteproc maintainers.  Either way, please make it clearer how
+and why you made the split, and please isolate the wkup_m3 IPC/protocol
+from this code.  Think of people wanting to rework/extend the wkup_m3
+firmware.  They shouldn't be messing around in here, but rather inside a
+driver specificaly for the wkup_m3.
+
+Also, I'll beat this drum again even though nobody is listening: it's
+still very fuzzy to me how this approach is going to be used to manage
+low-power idle?  Is low-power idle just being completely ignored for
+this SoC?
+
+Kevin
