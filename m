@@ -1,41 +1,44 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 12/13] ARM: dts: am4372: Add control module syscon node
-Date: Mon, 8 Sep 2014 17:10:41 +0300
-Message-ID: <1410185442-907-13-git-send-email-rogerq@ti.com>
+Subject: [PATCH 09/13] ARM: dts: AM43xx: Add aliases to d_can nodes
+Date: Mon, 8 Sep 2014 17:10:38 +0300
+Message-ID: <1410185442-907-10-git-send-email-rogerq@ti.com>
 References: <1410185442-907-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-can-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1410185442-907-1-git-send-email-rogerq@ti.com>
-Sender: linux-can-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: wg@grandegger.com, mkl@pengutronix.de, tony@atomide.com
 Cc: tglx@linutronix.de, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use syscon regmap to expose the Control module register space.
-This register space is shared between many users e.g. DCAN, USB, display, etc.
+The d_can driver expects appropriately named aliases for
+the d_can nodes for the RAMINIT control register access.
+
+Provide those, otherwise RAMINIT register won't be configured.
+Get's rid of the following messages during boot.
+
+[   16.419354] c_can_platform 481cc000.can: control memory is not used for raminit
+[   16.449142] c_can_platform 481d0000.can: control memory is not used for raminit
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/boot/dts/am4372.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index a705e50..d38a0ed 100644
+index 3514d0a..a705e50 100644
 --- a/arch/arm/boot/dts/am4372.dtsi
 +++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -59,6 +59,11 @@
- 		cache-level = <2>;
+@@ -25,6 +25,8 @@
+ 		serial0 = &uart0;
+ 		ethernet0 = &cpsw_emac0;
+ 		ethernet1 = &cpsw_emac1;
++		d_can0 = &dcan0;
++		d_can1 = &dcan1;
  	};
  
-+	am43xx_control_module: control_module@4a002000 {
-+		compatible = "syscon";
-+		reg = <0x44e10000 0x7f4>;
-+	};
-+
- 	am43xx_pinmux: pinmux@44e10800 {
- 		compatible = "pinctrl-single";
- 		reg = <0x44e10800 0x31c>;
+ 	cpus {
 -- 
 1.8.3.2
-
