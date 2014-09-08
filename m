@@ -1,49 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v9 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S
-Date: Mon, 8 Sep 2014 16:04:11 -0700
-Message-ID: <20140908230411.GQ3238@atomide.com>
-References: <1408459715-10151-1-git-send-email-daniel.thompson@linaro.org>
- <1408461407-10429-1-git-send-email-daniel.thompson@linaro.org>
- <1408461407-10429-6-git-send-email-daniel.thompson@linaro.org>
+Subject: Re: [PATCH 0/2] ARM: dts: dra72-evm: Add i2c1 and tps65917 nodes
+Date: Mon, 8 Sep 2014 16:12:01 -0700
+Message-ID: <20140908231200.GR3238@atomide.com>
+References: <1406528334-4415-1-git-send-email-j-keerthy@ti.com>
+ <53D5EE21.1040000@ti.com>
+ <53D61643.4070005@ti.com>
+ <53EA0A26.1050301@ti.com>
+ <20140908200443.GA24258@kahuna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1408461407-10429-6-git-send-email-daniel.thompson@linaro.org>
+In-Reply-To: <20140908200443.GA24258@kahuna>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, patches@linaro.org, linaro-kernel@lists.linaro.org, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Keerthy <a0393675@ti.com>, Keerthy <j-keerthy@ti.com>, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, galak@codeaurora.org, Lokesh Vutla <lokeshvutla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Thompson <daniel.thompson@linaro.org> [140819 08:19]:
-> The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
-> the 8520 code the omap1 macro automatically determines what UART to use
-> based on breadcrumbs left by the bootloader and automatically copes with
-> the eccentric register layout on OMAP7XX.
+* Nishanth Menon <nm@ti.com> [140908 13:05]:
+> On 18:05-20140812, Keerthy wrote:
+> > On Monday 28 July 2014 02:52 PM, Keerthy wrote:
+> > >On Monday 28 July 2014 12:00 PM, Lokesh Vutla wrote:
+> > >>On Monday 28 July 2014 11:48 AM, Keerthy wrote:
+> > >>>The patch series adds i2c1 and tps65917 and related nodes.
+> > >>>The patch series is boot tested on DRA72-EVM.
+> > >>>
+> > >>>Thanks to Lokesh <lokeshvutla@ti.com> for testing the series.
+> > >
+> > >Correcting the 'to' list.
+> > 
+> > Hi Tony,
+> > 
+> > If there are no comments could you please pull these two patches?
 > 
-> This patch drops both these features and relies instead on the generic
-> 8250 macros:
+> With 3.17-rc4, I tested this series:
+> dra72-evm-before: http://paste.ubuntu.org.cn/1496342
+> dra72-evm-after: http://paste.ubuntu.org.cn/1496341
 > 
-> 1. Dropping support for the bootloader breadcrumbs is identical to the
->    way the migration was handled for OMAP2 (see 808b7e07464d...).
+> Patches:
+> https://patchwork.kernel.org/patch/4632391/
+> https://patchwork.kernel.org/patch/4632421/
 > 
-> 2. Support for OMAP7XX still exists but it must be configured by hand
->    (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
+> Could we pick these with 3.18?
 > 
-> Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
-> Cc: linux-omap@vger.kernel.org
-> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Please free to add:
+> 
+> Tested-by: Nishanth Menon <nm@ti.com>
 
-This should be safe to queue together with your other debug_ll
-patches, so:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-If you want me to queue this one instead, please let me know.
+OK applying into omap-for-v3.18/dt thanks.
 
 Regards,
 
