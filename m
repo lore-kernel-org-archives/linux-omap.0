@@ -1,60 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 5/8] ARM: dts: am33xx: Add external clock provider
-Date: Mon, 8 Sep 2014 16:30:38 -0700
-Message-ID: <20140908233037.GT3238@atomide.com>
-References: <cover.1408397864.git.jsarha@ti.com>
- <9d4974b949b9b3bc1b08d73b1ec2d9cdd7a8e5da.1408397864.git.jsarha@ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 03/18] tty: serial: 8250_core: allow to set ->throttle /
+ ->unthrottle callbacks
+Date: Mon, 8 Sep 2014 16:33:29 -0700
+Message-ID: <20140908233329.GA32144@kroah.com>
+References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
+ <1409943773-7874-4-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43507 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755009AbaIHXaq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 19:30:46 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9d4974b949b9b3bc1b08d73b1ec2d9cdd7a8e5da.1408397864.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1409943773-7874-4-git-send-email-bigeasy@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, ezequiel.garcia@free-electrons.com, t-kristo@ti.com
 
-* Jyri Sarha <jsarha@ti.com> [140818 14:49]:
-> Add external clock provider for am33xx devices.
-
-Please send all the .dts and defconfig changes separately
-so I can pick them up and we don't get pointless merge
-conflicts.
-
-Regards,
-
-TOny
- 
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-> ---
->  arch/arm/boot/dts/am33xx.dtsi |   10 ++++++++++
->  1 file changed, 10 insertions(+)
+On Fri, Sep 05, 2014 at 09:02:38PM +0200, Sebastian Andrzej Siewior wrote:
+> The OMAP UART provides support for HW assisted flow control. What is
+> missing is the support to throttle / unthrottle callbacks which are used
+> by the omap-serial driver at the moment.
+> This patch adds the callbacks. It should be safe to add them since they
+> are only invoked from the serial_core (uart_throttle()) if the feature
+> flags are set.
 > 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 3a0a161..d2cc397 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -92,6 +92,16 @@
->  		pinctrl-single,function-mask = <0x7f>;
->  	};
->  
-> +	ext_clocks {
-> +		compatible = "ti,external-clocks";
-> +
-> +		ext_clocks: clocks {
-> +		};
-> +
-> +		ext_clockdomains: clockdomains {
-> +		};
-> +	};
-> +
->  	/*
->  	 * XXX: Use a flat representation of the AM33XX interconnect.
->  	 * The real AM33XX interconnect network is quite complex. Since
-> -- 
-> 1.7.9.5
-> 
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+
+Due to other recent changes, this patch fails to apply :(
+
+I've applied your first two, can you respin the rest and resend as a new
+series?
+
+thanks,
+
+greg k-h
