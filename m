@@ -1,138 +1,168 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 3/3] nand: omap2: Replace pr_err with dev_err
-Date: Mon, 8 Sep 2014 14:57:48 +0300
-Message-ID: <540D99BC.5040209@ti.com>
-References: <1410175636-4036-1-git-send-email-ezequiel@vanguardiasur.com.ar> <1410175636-4036-4-git-send-email-ezequiel@vanguardiasur.com.ar>
+From: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Subject: Re: [PATCH 2/2] ARM: dts: omap5: Add dr_mode for dwc3
+Date: Mon, 08 Sep 2014 15:32:37 +0300
+Message-ID: <540DA1E5.1060701@compulab.co.il>
+References: <1381402195-29257-1-git-send-email-kishon@ti.com> <1381402195-29257-2-git-send-email-kishon@ti.com> <52580F34.8030809@ti.com> <20140416161619.GH28035@saruman.home> <540D9449.3090008@compulab.co.il> <540D955C.6060602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44828 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753646AbaIHL6R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Sep 2014 07:58:17 -0400
-In-Reply-To: <1410175636-4036-4-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:50618 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753851AbaIHMdD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Sep 2014 08:33:03 -0400
+In-Reply-To: <540D955C.6060602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, Brian Norris <computersforpeace@gmail.com>
-Cc: linux-mtd@lists.infradead.org, =?ISO-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, George Cherian <george.cherian@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Ezequiel,
+Hi Roger,
 
-On 09/08/2014 02:27 PM, Ezequiel Garcia wrote:
-> Usage of pr_err is frowned upon, so replace it with dev_err.
-> Aditionally, the message on nand_bch_init() error is redundant,
-> since proper error is showed if the function fails.
-> 
-> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> ---
->  drivers/mtd/nand/omap2.c | 26 ++++++++++++++------------
->  1 file changed, 14 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index f97a4ff..eb5e898 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1375,7 +1375,7 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
->  		erased_ecc_vec = bch16_vector;
->  		break;
->  	default:
-> -		pr_err("invalid driver configuration\n");
-> +		dev_err(&info->pdev->dev, "invalid driver configuration\n");
->  		return -EINVAL;
->  	}
->  
-> @@ -1446,7 +1446,8 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
->  	err = 0;
->  	for (i = 0; i < eccsteps; i++) {
->  		if (err_vec[i].error_uncorrectable) {
-> -			pr_err("nand: uncorrectable bit-flips found\n");
-> +			dev_err(&info->pdev->dev,
-> +				"uncorrectable bit-flips found\n");
->  			err = -EBADMSG;
->  		} else if (err_vec[i].error_reported) {
->  			for (j = 0; j < err_vec[i].error_count; j++) {
-> @@ -1483,8 +1484,9 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
->  							1 << bit_pos;
->  					}
->  				} else {
-> -					pr_err("invalid bit-flip @ %d:%d\n",
-> -							 byte_pos, bit_pos);
-> +					dev_err(&info->pdev->dev,
-> +						"invalid bit-flip @ %d:%d\n",
-> +						byte_pos, bit_pos);
->  					err = -EBADMSG;
->  				}
->  			}
-> @@ -1598,13 +1600,13 @@ static bool is_elm_present(struct omap_nand_info *info,
->  
->  	/* check whether elm-id is passed via DT */
->  	if (!elm_node) {
-> -		pr_err("nand: error: ELM DT node not found\n");
-> +		dev_err(&info->pdev->dev, "ELM devicetree node not found\n");
->  		return false;
->  	}
->  	pdev = of_find_device_by_node(elm_node);
->  	/* check whether ELM device is registered */
->  	if (!pdev) {
-> -		pr_err("nand: error: ELM device not found\n");
-> +		dev_err(&info->pdev->dev, "ELM device not found\n");
->  		return false;
->  	}
->  	/* ELM module available, now configure it */
-> @@ -1734,14 +1736,14 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	/* scan NAND device connected to chip controller */
->  	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
->  	if (nand_scan_ident(mtd, 1, NULL)) {
-> -		pr_err("nand device scan failed, may be bus-width mismatch\n");
-> +		dev_err(&info->pdev->dev, "scan failed, may be bus-width mismatch\n");
->  		err = -ENXIO;
->  		goto return_error;
->  	}
->  
->  	/* check for small page devices */
->  	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW)) {
-> -		pr_err("small page devices are not supported\n");
-> +		dev_err(&info->pdev->dev, "small page devices are not supported\n");
->  		err = -EINVAL;
->  		goto return_error;
->  	}
-> @@ -1959,7 +1961,6 @@ static int omap_nand_probe(struct platform_device *pdev)
->  							nand_chip->ecc.bytes,
->  							&ecclayout);
->  		if (!nand_chip->ecc.priv) {
-> -			pr_err("nand: error: unable to use s/w BCH library\n");
+Thank you for a quick reply. See, my reply below.
 
-Where would the error be printed in this case?
+On 09/08/2014 02:39 PM, Roger Quadros wrote:
+> On 09/08/2014 02:34 PM, Dmitry Lifshitz wrote:
+>> Hi Felipe, Roger
+>>
+>> On 04/16/2014 07:16 PM, Felipe Balbi wrote:
+>>> On Fri, Oct 11, 2013 at 05:46:12PM +0300, Roger Quadros wrote:
+>>>> Hi,
+>>>>
+>>>> On 10/10/2013 01:49 PM, Kishon Vijay Abraham I wrote:
+>>>>> From: George Cherian <george.cherian@ti.com>
+>>>>>
+>>>>> Added dr_mode property in dwc3 and set its default mode to device.
+>>>>
+>>>> If there is a specific reason why this is not set to "otg", we need
+>>>> to explain it here.
+>>>>
+>>>> AFAIK the port is meant to be used as OTG port.
+>>>
+>>> we still don't have the workaround for dual role ports, I've been
+>>> working on it but still need to retest and make sure it's working fine
+>>> before merging upstream.
+>>>
+>>
+>>
+>> Does the OTG port suppose to work with OMAP5? I mean role switching mechanism?
+>>
+>> I'm testing kernel v3.16 with OMAP5 based board (CM-T54).
+>>
+>> If I set CONFIG_USB_DWC3_DUAL_ROLE, than nothing is going on when I plug some device/host cable into micro USB3.0 port (VBUS/ID detection with extcon events works fine).
+>>
+>> CONFIG_USB_DWC3_HOST/CONFIG_USB_DWC3_GADGET bring port to appropriate mode and it works.
+>>
+>> What is the purpose of setting dr_mode = "peripheral" in omap5.dtsi, since it is overridden by config options in dwc3_probe()?
+>
+> If dual role works it should be "otg" then. I'm not sure why it was set to peripheral. Maybe the role switching mechanism
+> was not in place earlier.
 
-I also noticed a similar message in the OMAP_ECC_BCH4_CODE_HW_DETECTION_SW case.
-And it seems to be missing a "goto return_error" there.
 
->  			err = -EINVAL;
->  			goto return_error;
->  		}
-> @@ -2026,7 +2027,7 @@ static int omap_nand_probe(struct platform_device *pdev)
->  				ecclayout->eccpos[ecclayout->eccbytes - 1] + 1;
->  		break;
->  	default:
-> -		pr_err("nand: error: invalid or unsupported ECC scheme\n");
-> +		dev_err(&info->pdev->dev, "invalid or unsupported ECC scheme\n");
->  		err = -EINVAL;
->  		goto return_error;
->  	}
-> @@ -2038,8 +2039,9 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	ecclayout->oobfree->length = mtd->oobsize - ecclayout->oobfree->offset;
->  	/* check if NAND device's OOB is enough to store ECC signatures */
->  	if (mtd->oobsize < (ecclayout->eccbytes + BADBLOCK_MARKER_LENGTH)) {
-> -		pr_err("not enough OOB bytes required = %d, available=%d\n",
-> -					   ecclayout->eccbytes, mtd->oobsize);
-> +		dev_err(&info->pdev->dev,
-> +			"not enough OOB bytes required = %d, available=%d\n",
-> +			ecclayout->eccbytes, mtd->oobsize);
->  		err = -EINVAL;
->  		goto return_error;
->  	}
-> 
+This is what I have when setting dr_mode = "otg" (and compiling with 
+CONFIG_USB_DWC3_DUAL_ROLE):
 
-cheers,
--roger
+when load gadget driver and plugging host PC cable:
+
+root@cm-debian:~# modprobe g_ether
+using random self ethernet address
+using random host ethernet address
+usb0: HOST MAC fa:db:52:7f:95:c5
+usb0: MAC be:75:8d:71:6d:02
+using random self ethernet address
+using random host ethernet address
+g_ether gadget: Ethernet Gadget, version: Memorial Day 2008
+g_ether gadget: g_ether ready
+root@cm-debian:~# ------------[ cut here ]------------
+WARNING: CPU: 0 PID: 65 at 
+/home/lifshitz/workroot/git-repo/OMAP5/omap5-kernel/drivers/bus/omap_l3_noc.c:147 
+l3_handle_target.isra.2+0x230/0x27c()
+44000000.ocp:L3 Standard Error: MASTER UN IDENTIFIED TARGET OCMRAM 
+(Read): At Address: 0x00000000 : Data Access in User mode during 
+Functional access
+Modules linked in: usb_f_eem g_ether usb_f_rndis libcomposite u_ether 
+configfs rfcomm ecb btmrvl_sdio btmrvl bluetooth mwifiex_sdio mwifiex 
+dwc3 ahci_platform libahci_platform libahci libata snd_soc_cm_t54 
+ads7846 dwc3_omap extcon_palmas rtc_palmas extcon_class at24 
+snd_soc_wm8731 snd_soc_omap_mcbsp
+CPU: 0 PID: 65 Comm: irq/39-palmas Tainted: G        W 
+3.16.0-cm-t54+ #99
+[<c00156d0>] (unwind_backtrace) from [<c00124ac>] (show_stack+0x10/0x14)
+[<c00124ac>] (show_stack) from [<c05e29dc>] (dump_stack+0x74/0x8c)
+[<c05e29dc>] (dump_stack) from [<c0037dbc>] (warn_slowpath_common+0x70/0x88)
+[<c0037dbc>] (warn_slowpath_common) from [<c0037e68>] 
+(warn_slowpath_fmt+0x30/0x40)
+[<c0037e68>] (warn_slowpath_fmt) from [<c02d88b8>] 
+(l3_handle_target.isra.2+0x230/0x27c)
+[<c02d88b8>] (l3_handle_target.isra.2) from [<c02d89b0>] 
+(l3_interrupt_handler+0xac/0x13c)
+[<c02d89b0>] (l3_interrupt_handler) from [<c007ea00>] 
+(handle_irq_event_percpu+0x7c/0x230)
+[<c007ea00>] (handle_irq_event_percpu) from [<c007ebf8>] 
+(handle_irq_event+0x44/0x64)
+[<c007ebf8>] (handle_irq_event) from [<c0081b78>] 
+(handle_fasteoi_irq+0xa8/0x134)
+[<c0081b78>] (handle_fasteoi_irq) from [<c007e398>] 
+(generic_handle_irq+0x20/0x30)
+[<c007e398>] (generic_handle_irq) from [<c000f4ac>] (handle_IRQ+0x40/0x90)
+[<c000f4ac>] (handle_IRQ) from [<c0008620>] (gic_handle_irq+0x2c/0x60)
+[<c0008620>] (gic_handle_irq) from [<c05eacc0>] (__irq_svc+0x40/0x50)
+Exception stack(0xec939d80 to 0xec939dc8)
+9d80: ecb729b0 20000013 00000000 00000001 ecb72800 eca1e000 00000000 
+ec939e44
+9da0: ec939ed0 20000013 ecb72818 ed005e14 ec939ec8 ec939dc8 bf015f54 
+c05ea548
+9dc0: 80000013 ffffffff
+[<c05eacc0>] (__irq_svc) from [<c05ea548>] 
+(_raw_spin_unlock_irqrestore+0x1c/0x20)
+[<c05ea548>] (_raw_spin_unlock_irqrestore) from [<bf015f54>] 
+(extcon_update_state+0x144/0x1c4 [extcon_class])
+[<bf015f54>] (extcon_update_state [extcon_class]) from [<bf023288>] 
+(palmas_vbus_irq_handler+0x64/0xa0 [extcon_palmas])
+[<bf023288>] (palmas_vbus_irq_handler [extcon_palmas]) from [<c00815a8>] 
+(handle_nested_irq+0xa0/0x10c)
+[<c00815a8>] (handle_nested_irq) from [<c03ab85c>] 
+(regmap_irq_thread+0x184/0x300)
+[<c03ab85c>] (regmap_irq_thread) from [<c007f8b8>] (irq_thread_fn+0x1c/0x40)
+[<c007f8b8>] (irq_thread_fn) from [<c007f6a4>] (irq_thread+0x120/0x15c)
+[<c007f6a4>] (irq_thread) from [<c0056434>] (kthread+0xdc/0xf0)
+[<c0056434>] (kthread) from [<c000eb98>] (ret_from_fork+0x14/0x3c)
+---[ end trace 3b365a734f7f3202 ]---
+palmas-usb 48070000.i2c:palmas@48:palmas_usb: USB cable is attached
+
+
+
+when plugging storage device:
+
+root@cm-debian:~# dmesg | tail -n20
+...
+omap-dwc3 4a020000.omap_dwc3: ID GND
+palmas-usb 48070000.i2c:palmas@48:palmas_usb: USB-HOST cable is attached
+palmas-usb 48070000.i2c:palmas@48:palmas_usb: USB cable is attached
+
+and nothing is going on.
+
+Once again, when compiling with predefined role 
+(CONFIG_USB_DWC3_HOST/CONFIG_USB_DWC3_GADGET) the port is functional in 
+both modes.
+
+I'm wondering, if dwc3_probe() calls
+dwc3_core_init_mode() -> dwc3_set_mode() than why it is not required in 
+dwc3_omap_set_mailbox()?
+
+
+>
+> George any objections for "otg"?
+>
+> cheers,
+> -roger
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+
+Thanks,
+
+Dmitry
