@@ -1,46 +1,45 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH v8 00/18] 8250-core based serial driver for OMAP + DMA
-Date: Mon, 8 Sep 2014 16:46:18 +0200
-Message-ID: <20140908144616.GA22315@ci00147.xsens-tech.local>
-References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ARM: omap: fix Kconfig warning
+Date: Mon, 08 Sep 2014 17:00:49 +0200
+Message-ID: <3763111.OttSKCMuxb@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([212.227.126.131]:60554 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753550AbaIHPAw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 11:00:52 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+A small mistake during the recent Kconfig cleanup has led
+to a harmless warning for OMAP1:
 
-On Fri, Sep 05, 2014 at 09:02:35PM +0200, Sebastian Andrzej Siewior wrote:
-> This is my complete queue fo the omap serial driver based on the 8250 core
-> code. I played with it on beagle bone, am335x-evm and dra7xx including DMA.
-> The runtime-pm pieces look now bug-compatible with the omap-serial driver.
-> Besides the runtime-om improvement I also fixed a few corner cases for the
-> TX-DMA problem. The DMA fixes (in edma and omap-dma) were dropped and the
-> problem has been in 8250-dma via patch #13.
+warning: (ARCH_OMAP1) selects ARCH_OMAP which has unmet direct dependencies (ARCH_MULTI_V6 || ARCH_MULTI_V7)
 
-Thanks for the respin. I've just tested the series a bit. Here's some
-things I ran into.
+We can easily avoid that by moving the ARCH_OMAP symbol outside of the
+OMAP2 submenu.
 
-- Basic console use is better than the previous series. It behaves
-  pretty much like the omap-serial implementation.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-- ncurses based applications (vi, less) don't play nice for me on the
-  console with this series. less doesn't show me anything. vi doesn't
-  return to console properly.
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index e7189dcc9309..30d787e99e1a 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -1,9 +1,9 @@
+-menu "TI OMAP/AM/DM/DRA Family"
+-	depends on ARCH_MULTI_V6 || ARCH_MULTI_V7
+-
+ config ARCH_OMAP
+ 	bool
+ 
++menu "TI OMAP/AM/DM/DRA Family"
++	depends on ARCH_MULTI_V6 || ARCH_MULTI_V7
++
+ config ARCH_OMAP2
+ 	bool "TI OMAP2"
+ 	depends on ARCH_MULTI_V6
 
-- I seem seem to get stuck in a "serial8250: too much work for irq%d"
-  loop somewhat reliably. We have a rather demanding application with
-  typically somewhere between 600 and 1000 byte packets being sent at
-  240Hz (roughly somewhere between 1.5 and 2 Mb/s). We run at baudrate
-  3500k. I get into this "too much work" thing already when running at
-  300 bytes per packet.
-
-I hope this is of some use to you. I'll do more testing later.
-
-Thanks,
-Frans
