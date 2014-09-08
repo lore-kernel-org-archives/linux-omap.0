@@ -1,7 +1,7 @@
 From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
 Subject: [resend PATCH 0/3] Add DRA7xx CPSW Ethernet support in Device Tree
-Date: Tue, 9 Sep 2014 00:40:54 +0530
-Message-ID: <1410203454-8293-1-git-send-email-mugunthanvnm@ti.com>
+Date: Tue, 9 Sep 2014 00:49:55 +0530
+Message-ID: <1410203998-8700-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
