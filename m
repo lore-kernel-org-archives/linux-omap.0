@@ -1,56 +1,106 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [resend PATCH 1/3] pinctrl: dra7: dt-bindings: add pin off modes
- for dra7 SoC
-Date: Mon, 8 Sep 2014 14:32:35 -0500
-Message-ID: <20140908193235.GA12150@kahuna>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [resend PATCH 3/3] arm/dts: dra7xx: Enable CPSW and MDIO for
+ dra7xx EVM
+Date: Mon, 8 Sep 2014 14:33:20 -0500
+Message-ID: <20140908193320.GB12150@kahuna>
 References: <1410203998-8700-1-git-send-email-mugunthanvnm@ti.com>
- <1410203998-8700-2-git-send-email-mugunthanvnm@ti.com>
+ <1410203998-8700-4-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1410203998-8700-2-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1410203998-8700-4-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 On 00:49-20140909, Mugunthan V N wrote:
-> Add pin off modes for dra7 SoC so that during module disable or suspend
-> state it can help saving power
+> Adding CPSW phy-id, CPSW and MDIO pinmux configuration for active and
+> sleep states and enable them in board evm dts file.
 > 
-> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 > ---
->  include/dt-bindings/pinctrl/dra.h | 8 ++++++++
->  1 file changed, 8 insertions(+)
+>  arch/arm/boot/dts/dra7-evm.dts | 107 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 107 insertions(+)
 > 
-> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
-> index 002a285..a0ff2d0 100644
-> --- a/include/dt-bindings/pinctrl/dra.h
-> +++ b/include/dt-bindings/pinctrl/dra.h
-> @@ -46,5 +46,13 @@
->  #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
->  #define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
->  
-> +/* Off mode states */
-> +#define PIN_OFF_NONE		0
-> +#define PIN_OFF_OUTPUT_HIGH	(OFF_EN | OFFOUT_EN | OFFOUT_VAL)
-> +#define PIN_OFF_OUTPUT_LOW	(OFF_EN | OFFOUT_EN)
-> +#define PIN_OFF_INPUT_PULLUP	(OFF_EN | OFF_PULL_EN | OFF_PULL_UP)
-> +#define PIN_OFF_INPUT_PULLDOWN	(OFF_EN | OFF_PULL_EN)
-> +#define PIN_OFF_WAKEUPENABLE	WAKEUP_EN
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index fd96ced..57e69c4 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -151,6 +151,87 @@
+>  			0xd0	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_be0n_cle */
+>  		>;
+>  	};
 > +
->  #endif
+> +	cpsw_default: cpsw_default {
+> +		pinctrl-single,pins = <
+> +			/* Slave 1 */
+> +			0x250 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_tclk */
+> +			0x254 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_tctl */
+> +			0x258 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td3 */
+> +			0x25c (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td2 */
+> +			0x260 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td1 */
+> +			0x264 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td0 */
+> +			0x268 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rclk */
+> +			0x26c (PIN_INPUT | MUX_MODE0)	/* rgmii1_rctl */
+> +			0x270 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd3 */
+> +			0x274 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd2 */
+> +			0x278 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd1 */
+> +			0x27c (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd0 */
+> +
+> +			/* Slave 2 */
+> +			0x198 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_tclk */
+> +			0x19c (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_tctl */
+> +			0x1a0 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td3 */
+> +			0x1a4 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td2 */
+> +			0x1a8 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td1 */
+> +			0x1ac (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td0 */
+> +			0x1b0 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rclk */
+> +			0x1b4 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rctl */
+> +			0x1b8 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd3 */
+> +			0x1bc (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd2 */
+> +			0x1c0 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd1 */
+> +			0x1c4 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd0 */
+> +		>;
+> +
+> +	};
+> +
+> +	cpsw_sleep: cpsw_sleep {
+> +		pinctrl-single,pins = <
+> +			/* Slave 1 */
+> +			0x250 (PIN_OFF_NONE)
+> +			0x254 (PIN_OFF_NONE)
+> +			0x258 (PIN_OFF_NONE)
+> +			0x25c (PIN_OFF_NONE)
+> +			0x260 (PIN_OFF_NONE)
+> +			0x264 (PIN_OFF_NONE)
+> +			0x268 (PIN_OFF_NONE)
+> +			0x26c (PIN_OFF_NONE)
+> +			0x270 (PIN_OFF_NONE)
+> +			0x274 (PIN_OFF_NONE)
+> +			0x278 (PIN_OFF_NONE)
+> +			0x27c (PIN_OFF_NONE)
+> +
+> +			/* Slave 1 */
+> +			0x198 (PIN_OFF_NONE)
+> +			0x19c (PIN_OFF_NONE)
+> +			0x1a0 (PIN_OFF_NONE)
+> +			0x1a4 (PIN_OFF_NONE)
+> +			0x1a8 (PIN_OFF_NONE)
+> +			0x1ac (PIN_OFF_NONE)
+> +			0x1b0 (PIN_OFF_NONE)
+> +			0x1b4 (PIN_OFF_NONE)
+> +			0x1b8 (PIN_OFF_NONE)
+> +			0x1bc (PIN_OFF_NONE)
+> +			0x1c0 (PIN_OFF_NONE)
+> +			0x1c4 (PIN_OFF_NONE)
+> +		>;
+> +	};
 
-NAK for OFF_NONE, OFF_xyz etc.
+NAK to sleep states -> you should be using mode 15 if you really want to
+save power.
 
-A) There is no OFF mode on DRA7. in sleep state use mode 15 (gated).
-B) when using this for wakeup - use pinctrl wakeup handling to do the
-wakeup.
-
+-- 
 Regards,
 Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
