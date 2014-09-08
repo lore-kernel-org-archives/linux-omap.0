@@ -1,40 +1,19 @@
-From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH v6 3/7] net: cpsw: header, Add missing include
-Date: Sun,  7 Sep 2014 19:19:31 +0200
-Message-ID: <1410110375-3570-4-git-send-email-mpa@pengutronix.de>
-References: <1410110375-3570-1-git-send-email-mpa@pengutronix.de>
+From: <info23@outlook.com>
+Subject: Financing
+Date: Sun, 07 Sep 2014 21:26:11 -1200
+Message-ID: <20140907173305.26F921B3035C__36594.4031779238$1410113679$gmane$org@mail.isquareit.edu.in>
+Reply-To: spainfofinev@libero.it
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58176 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752605AbaIGRUx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2014 13:20:53 -0400
-In-Reply-To: <1410110375-3570-1-git-send-email-mpa@pengutronix.de>
+Received: from mail.isquareit.edu.in ([115.254.72.43]:49236 "EHLO
+	mail.isquareit.edu.in" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010AbaIGSOQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Sep 2014 14:14:16 -0400
+Content-Description: Mail message body
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
+To: Recipients <info23@outlook.com>
 
-"MII_BUS_ID_SIZE" is defined in linux/phy.h which is not included in the
-cpsw.h file.
-
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-Reviewed-by: Wolfram Sang <wsa@the-dreams.de>
----
- drivers/net/ethernet/ti/cpsw.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index 574f49da693f..1b710674630c 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -15,6 +15,7 @@
- #define __CPSW_H__
- 
- #include <linux/if_ether.h>
-+#include <linux/phy.h>
- 
- struct cpsw_slave_data {
- 	char		phy_id[MII_BUS_ID_SIZE];
--- 
-2.1.0
-
+We give out loan to any individual and company at 3% interest rate yearly. Our Investors also fund projects . For more information, Contact Us via Email: asp.omfinan@contractor.net
