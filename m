@@ -1,173 +1,89 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks handled by clock_ops domain
-Date: Mon, 08 Sep 2014 13:13:25 -0700
-Message-ID: <7hegvlq3a2.fsf@linaro.org>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be>
-	<53D68CC4.1010704@ti.com>
-	<CACxGe6uMke5vgzcNC9xUqjr2bHJ4QFHD6YjocSZWq8Ccx8Mm6A@mail.gmail.com>
-	<2717555.fiA6A86F65@avalon>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap: fix Kconfig warning
+Date: Mon, 8 Sep 2014 14:29:25 -0700
+Message-ID: <20140908212924.GL3238@atomide.com>
+References: <3763111.OttSKCMuxb@wuerfel>
+ <20140908153400.GC3238@atomide.com>
+ <2797284.2mFcuQ0Ias@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2717555.fiA6A86F65@avalon> (Laurent Pinchart's message of "Wed,
-	30 Jul 2014 02:06:59 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Grygorii Strashko <grygorii.strashko@ti.com>, Geert Uytterhoeven <geert+renesas@glider.be>, ulf.hansson@linaro.org, Mike Turquette <mturquette@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42135 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754905AbaIHV3a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 17:29:30 -0400
+Content-Disposition: inline
+In-Reply-To: <2797284.2mFcuQ0Ias@wuerfel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andreas Ruprecht <rupran@einserver.de>
 
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
+* Arnd Bergmann <arnd@arndb.de> [140908 11:17]:
+> On Monday 08 September 2014 08:34:00 Tony Lindgren wrote:
+> > * Arnd Bergmann <arnd@arndb.de> [140908 08:01]:
+> > > A small mistake during the recent Kconfig cleanup has led
+> > > to a harmless warning for OMAP1:
+> > > 
+> > > warning: (ARCH_OMAP1) selects ARCH_OMAP which has unmet direct dependencies (ARCH_MULTI_V6 || ARCH_MULTI_V7)
+> > > 
+> > > We can easily avoid that by moving the ARCH_OMAP symbol outside of the
+> > > OMAP2 submenu.
+> > 
+> > OK I made a similar patch, but I moved it into plat-omap/Kconfig
+> > as it's also used by omap1. The regression was probably caused by
+> > commit 21278aeafbfa (ARM: use menuconfig for sub-arch menus).
+> > 
+> > If that works for you, I'll verify the regression causing commit
+> > and post it with a description.
+> 
+> Yes, sounds good. Your version is better than mind.
 
-> Hi Grygorii and Grant,
->
-> On Monday 28 July 2014 23:52:34 Grant Likely wrote:
->> On Mon, Jul 28, 2014 at 11:47 AM, Grygorii Strashko wrote:
->> > On 07/28/2014 05:05 PM, Grant Likely wrote:
->> >> On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko wrote:
+OK here's the patch again with breaking commit and reported by.
 
-[...]
+Regards,
 
->> 
->> > - Where and when to call of_clk_register_runtime_pm_clocks()?
->> > 
->> >   Bus notifier/ platform core/ device drivers
->> 
->> I would say in device drivers.
->
-> I tend to agree with that.
->
-> It will help here to take a step back and remember what the problem we're 
-> trying to solve is.
+Tony
 
-[jumping in late, after Grygorii ping'd me about looking at this]
 
-Laurent, thanks for summarizing the problem so well.  It helped me
-catchup on the discussion.
+8< -------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 8 Sep 2014 07:52:11 -0700
+Subject: [PATCH] ARM: OMAP: Fix Kconfig warning for omap1
 
-> At the root is clock management. Our system comprise many clocks, and they 
-> need to be handled. The Common Clock Framework nicely models the clocks, and 
-> offers an API for drivers to retrieve device clocks and control them. Drivers 
-> can thus implement clock management manually without much pain.
->
-> A clock can be managed in roughly three different ways :
->
-> - it can be enabled at probe time and disabled at remove time ;
->
-> - it can be enabled right before the device leaves its idle state and disabled 
-> when the device goes back to idle ; or
->
-> - it can be enabled and disabled in a more fine-grained, device-specific 
-> manner.
->
-> The selected clock management granularity depends on constraints specific to 
-> the device and on how aggressive power saving needs to be. Enabling the clocks 
-> at probe time and disabling them at remove time is enough for most devices, 
-> but leads to a high power consumption. For that reason the second clock 
-> management scheme is often desired.
->
-> Managing clocks manually in the driver is a valid option. However, when adding 
-> runtime PM to the equation, and realizing that the clocks need to be enabled 
-> in the runtime PM resume handler and disabled in the suspend handler, the 
-> clock management code starts looking very similar in most drivers. We're thus 
-> tempted to factorize it away from the drivers into a shared location.
->
-> It's important to note at this point that the goal here is only to simplify 
-> drivers. Moving clock management code out of the drivers doesn't (unless I'm 
-> missing something) open the door to new possibilities, it just serves as a 
-> simplification.
+Commit 21278aeafbfa ("ARM: use menuconfig for sub-arch menus") improved
+the sub-arch menus, but accidentally caused new warnings for omap1.
+This was because the commit added a menu entry around config ARCH_OMAP
+bool entry where the menu had depends on ARCH_MULTI_V6 || ARCH_MULTI_V7.
 
-I disagree. Actually, it opens up the door to lots of new possibilities
-that are crucial for fine-grained PM with QoS.  It is not just
-simplification.  There are many good reasons that some SoCs have moved
-all the management of PM-related clocks *out* of device drivers.  More
-on that below...
+As ARCH_OMAP is shared between omap1 and omap2plus, let's fix the
+issue by defining ARCH_OMAP in the shared plat-omap/Kconfig.
 
-> Now, as Grygorii mentioned, differences between how a given IP core is 
-> integrated in various SoCs can make clock management SoC-dependent. In the 
-> vast majority of cases (which is really what we need to target, given that our 
-> target is simplifying drivers) SoC integration can be described as a list of 
-> clocks that must be managed. That list can be common to all devices in a given 
-> SoC, or can be device-dependent as well.
+Fixes: 21278aeafbfa ("ARM: use menuconfig for sub-arch menus")
+Reported-by: Andreas Ruprecht <rupran@einserver.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-If we care about fine-grained PM, this is a way-too oversimplified
-version of what SoC integragion means.
-
-There are lots of pieces which fall under "SoC integration", for
-example: clock domains, power domains, voltage domains, SoC-specific
-wakeup capabilities, etc. etc.  Then, for fun throw in QoS constraints,
-and things get really exciting.
-
-IOW, if you care about fine-grained PM and QoS, you simply can't reduce
-SoC integration down to "a list of clocks to be managed."
-
-QoS makes this interesting as well because a device driver's decision to
-gate its own clocks may have serious repercussions on the wakeup latency
-of *other* devices in the same power domain.  For example, the clock
-gating of the last active device in a powerdomain may cause the
-enclosing power-domain to be power gated, having a major impact on the
-wakup latency of *all* devices in that power domain.
-
-So if we're going to manage the list of PM-related clocks in the device
-driver, we'll also keep track of all the other devices in the same power
-domain, whether or not they're active, whether or not they have QoS
-constraints, etc. etc.  Hopefully you can see that we're quickly way
-outside the scope of the IP block that the device driver is intended to
-manage.
-
-All of this is "SoC integration" knowledge, and IMO doen't belong in the
-device drivers.  It belongs at the SoC integration level, and in todays
-kernel frameworks that means pm_domain/genpd.
-
-> Few locations can be used to express a per-device list of per-SoC clocks. We 
-> can have clocks lists in a per-SoC and per-device location, per-device clocks 
-> lists in an SoC-specific location, or per-SoC clocks lists in a device-
-> specific location.
->
-> The first option would require listing clocks to be managed by runtime PM in 
-> DT nodes, as proposed by this patch set. I don't think this is the best 
-> option, as that information is a mix of hardware description and software 
-> policy, with the hardware description part being already present in DT in the 
-> clocks property.
-
-I'm not seeing which part you think is software policy here?  Which
-clocks are driving which IP blocks is a hardware description.
-
-Which clocks are actually gated, and if/when is software policy and
-should be decided by the SoC-specific runtime PM and genpd
-implementations, but describing which clocks are wired to which IP
-blocks is certainly hardware description IMO.
-
-> The second option calls for storing the lists in SoC code under arch/. As 
-> we're trying to minimize the amount of SoC code there (and even remove SoC 
-> code completely when possible) I don't think that's a good option.
->
-> The third option would require storing the clocks lists in device drivers. I 
-> believe this is our best option, as a trade-off between simplicity and 
-> versatility. Drivers that use runtime PM already need to enable it explicitly 
-> when probing devices. Passing a list of clock names to runtime PM at that 
-> point wouldn't complicate drivers much. When the clocks list isn't SoC-
-> dependent it could be stored as static information. Otherwise it could be 
-> derived from DT (or any other source of hardware description) using C code, 
-> offering all the versatility we need.
-
-As is probably clear from above, I don't like this approach at all.
-
-> The only drawback of this solution I can think of right now is that the 
-> runtime PM core couldn't manage device clocks before probing the device. 
-> Specifically device clocks couldn't be managed if no driver is loaded for that 
-> device. I somehow recall that someone raised this as being a problem, but I 
-> can't remember why.
-
-The bigger drawback of this approach is that the device-drivers become a
-repository for SoC integration details that IMO don't belong in a device
-driver for a specific IP block.
-
-Over the last few years, we've created abstractions for this kind of SoC
-integration information (pm_domains) as well as frameworks for handling
-much of the common parts (genpd) and in doing so, have been able to
-remove PM-related clock management from device drivers altogether.
-
-I think managing this stuff back in device drivers would be a major step
-backwards.
-
-Kevin
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -1,9 +1,6 @@
+ menu "TI OMAP/AM/DM/DRA Family"
+ 	depends on ARCH_MULTI_V6 || ARCH_MULTI_V7
+ 
+-config ARCH_OMAP
+-	bool
+-
+ config ARCH_OMAP2
+ 	bool "TI OMAP2"
+ 	depends on ARCH_MULTI_V6
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 02fc10d..d055db3 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -1,3 +1,6 @@
++config ARCH_OMAP
++	bool
++
+ if ARCH_OMAP
+ 
+ menu "TI OMAP Common Features"
