@@ -1,118 +1,60 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv3 0/5] OMAP Mailbox framework adoption & DT support
-Date: Mon, 8 Sep 2014 16:20:54 -0700
-Message-ID: <20140908232053.GS3238@atomide.com>
-References: <1406680479-18446-1-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 5/8] ARM: dts: am33xx: Add external clock provider
+Date: Mon, 8 Sep 2014 16:30:38 -0700
+Message-ID: <20140908233037.GT3238@atomide.com>
+References: <cover.1408397864.git.jsarha@ti.com>
+ <9d4974b949b9b3bc1b08d73b1ec2d9cdd7a8e5da.1408397864.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43507 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755009AbaIHXaq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 19:30:46 -0400
 Content-Disposition: inline
-In-Reply-To: <1406680479-18446-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Markus Mayer <markus.mayer-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <9d4974b949b9b3bc1b08d73b1ec2d9cdd7a8e5da.1408397864.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, ezequiel.garcia@free-electrons.com, t-kristo@ti.com
 
-* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [140729 17:37]:
-> Hi,
-> 
-> This is an updated version of the OMAP Mailbox framework adoption &
-> DT support series, refreshed to work with the v9 version of the mailbox
-> framework [1] from Jassi Brar while also addressing some minor review
-> comments. Detailed changes are summarized below. Patches are based on
-> 3.16-rc2.
+* Jyri Sarha <jsarha@ti.com> [140818 14:49]:
+> Add external clock provider for am33xx devices.
 
-Sorry for the delay, just noticed that I'm supposed to queue
-these too. I'll queue these into omap-for-v3.18/mailbox against
-v3.17-rc1 and will probably also merge it into omap-for-v3.18/dt
-as well.
+Please send all the .dts and defconfig changes separately
+so I can pick them up and we don't get pointless merge
+conflicts.
 
 Regards,
 
-Tony
+TOny
  
-> The series depends on the OMAP mailbox DT/hwmod cleanup series [2] and the
-> OMAP mailbox cleanup series [3]. Both these series are staged to be merged
-> for 3.17 [4]. The last 2 framework adaptation patches require the v9 framework
-> patches to build successfully. The reference branch with all the patches is
-> hosted (not for merging - includes an additional patch for dsp/bridge changes) at 
-> https://github.com/sumananna/mailbox/commits/submit/3.16-rc2-omap-mbox-v9-fwk-v3
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
 > 
-> The AM335 PM suspend series [5] which relies on this series needs to have
-> the wkupm3 node updated to use the new property name "mboxes" instead of
-> "mbox", and use the updated mbox_request_channel API.
-> 
-> Changes in v3:
-> - Revised the OMAP mailbox bindings to reflect the updated compatible
->   strings (Patch 1) and the updated common mailbox properties in
->   the v9 framework (Patch 4)
-> - Code rearrangement/flip of if code blocks in omap_mailbox probe to address
->   Markus Mayer's comments from v2 (Patch 2)
-> - omap_mbox_of_xlate updated to add a missing of_node_put (Patch 4)
-> - Adjust the added OMAP non-DT support API, omap_mbox_request_channel, to
->   handle the loss of the chan_name field in the mbox_client structure
->   from v8 to v9 of mailbox framework (Patch 4)
-> - Dropped mailbox adaptation changes to TI DSP/Bridge driver, as it will be
->   deleted in 3.17 (Patch 4)
-> - No changes to DTS patches (Patches 3 and 5)
-> - Tested against v9 of mailbox framework
-> 
-> v2:
-> - http://www.spinics.net/lists/linux-omap/msg109379.html
-> - Updated the OMAP DT bindings document for the added back DT properties:
->   "ti,mbox-num-users" and "ti,mbox-num-fifos". Also added information
->   regarding "#mbox-cells" and DT client usage.
-> - Updated the OMAP DT adaptation patch to parse the added back DT properties
->   and clean up the previous match data structure.
-> - Squashed custom xlate patch into the framework adaptation patch.
-> - Tested against v8 of mailbox framework.
-> 
-> v1:
-> - http://www.spinics.net/lists/linux-omap/msg108595.html
-> - Tested against v7 of mailbox framework
-> 
-> 
-> The following shows the boot/validation logs on various OMAP platforms:
->   OMAP2 (SDP2430)           : http://slexy.org/view/s20ZcIovmA
->   OMAP3 (BeagleXM)          : http://slexy.org/view/s2jWS6RPDJ
->   OMAP4 (PandaBoard)        : http://slexy.org/view/s21Mxi3Z4v
->   OMAP5 (OMAP5 uEVM)        : http://slexy.org/view/s2EUjy49h9
->   DRA7  (DRA7 EVM)          : http://slexy.org/view/s29ehoRZWl
->   AM33xx (BeagleBone Black) : http://slexy.org/view/s20A8RDPRy
->   AM43xx (AM437x GP EVM)    : http://slexy.org/view/s21HMTnL2t
-> 
-> [1] https://lkml.org/lkml/2014/7/22/613
-> [2] http://marc.info/?l=linux-omap&m=140511512208519&w=2
-> [3] http://www.spinics.net/lists/linux-omap/msg108574.html
-> [4] https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.17/mailbox
-> [5] http://www.spinics.net/lists/linux-omap/msg109331.html
-> 
-> Suman Anna (5):
->   Documentation: dt: add omap mailbox bindings
->   mailbox/omap: add support for parsing dt devices
->   ARM: dts: OMAP2+: Add sub mailboxes device node information
->   mailbox/omap: adapt to the new mailbox framework
->   ARM: dts: OMAP2+: Add #mbox-cells property to all mailbox nodes
-> 
->  .../devicetree/bindings/mailbox/omap-mailbox.txt   | 132 ++++++
->  arch/arm/boot/dts/am33xx.dtsi                      |   5 +
->  arch/arm/boot/dts/am4372.dtsi                      |   5 +
->  arch/arm/boot/dts/dra7.dtsi                        |  13 +
->  arch/arm/boot/dts/omap2420.dtsi                    |   9 +
->  arch/arm/boot/dts/omap2430.dtsi                    |   5 +
->  arch/arm/boot/dts/omap3.dtsi                       |   5 +
->  arch/arm/boot/dts/omap4.dtsi                       |   9 +
->  arch/arm/boot/dts/omap5.dtsi                       |   9 +
->  drivers/mailbox/omap-mailbox.c                     | 502 ++++++++++++++-------
->  drivers/remoteproc/omap_remoteproc.c               |  51 ++-
->  include/linux/omap-mailbox.h                       |  16 +-
->  12 files changed, 557 insertions(+), 204 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 3a0a161..d2cc397 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -92,6 +92,16 @@
+>  		pinctrl-single,function-mask = <0x7f>;
+>  	};
+>  
+> +	ext_clocks {
+> +		compatible = "ti,external-clocks";
+> +
+> +		ext_clocks: clocks {
+> +		};
+> +
+> +		ext_clockdomains: clockdomains {
+> +		};
+> +	};
+> +
+>  	/*
+>  	 * XXX: Use a flat representation of the AM33XX interconnect.
+>  	 * The real AM33XX interconnect network is quite complex. Since
 > -- 
-> 2.0.0
+> 1.7.9.5
 > 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
