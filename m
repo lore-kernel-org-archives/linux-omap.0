@@ -1,28 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 04/13] ARM: dts: dra7: Add syscon regmap for CORE CONTROL
- area
-Date: Mon, 8 Sep 2014 10:47:03 -0700
-Message-ID: <20140908174702.GJ3238@atomide.com>
-References: <1410185442-907-1-git-send-email-rogerq@ti.com>
- <1410185442-907-5-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v8 00/18] 8250-core based serial driver for OMAP + DMA
+Date: Mon, 8 Sep 2014 10:55:10 -0700
+Message-ID: <20140908175510.GK3238@atomide.com>
+References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de>
+ <20140908174020.GI3238@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-can-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22413 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753593AbaIHRzR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 13:55:17 -0400
 Content-Disposition: inline
-In-Reply-To: <1410185442-907-5-git-send-email-rogerq@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: wg@grandegger.com, mkl@pengutronix.de, tglx@linutronix.de, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+In-Reply-To: <20140908174020.GI3238@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-* Roger Quadros <rogerq@ti.com> [140908 07:11]:
-> Display and DCAN drivers use syscon regmap to access some registers
-> in the CORE control area. Add the syscon regmap node for this
-> area.
+* Tony Lindgren <tony@atomide.com> [140908 10:41]:
+> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140905 12:03]:
+> > This is my complete queue fo the omap serial driver based on the 8250 core
+> > code. I played with it on beagle bone, am335x-evm and dra7xx including DMA.
+> > The runtime-pm pieces look now bug-compatible with the omap-serial driver.
+> > Besides the runtime-om improvement I also fixed a few corner cases for the
+> > TX-DMA problem. The DMA fixes (in edma and omap-dma) were dropped and the
+> > problem has been in 8250-dma via patch #13.
+> > 
+> > The whole queue is available at
+> >   git://git.breakpoint.cc/bigeasy/linux.git uart_v8
+> 
+> Gave the above branch a quick try, but it again does not idle for
+> my omap3 test cases. It seems that now the cm_idlest1_core sdma
+> bit is blocking deeper idle states. Is that the correct branch
+> to use?
 
-Please repost the .dts changes in a separate series to avoid
-conflicts.
+Never mind. User error. I forgot to apply my own patch for force
+idling the UARTs for the omap hwmod. And the sdma bit clears if
+I do sleep 5 before attempting to read the sysfs entry..
 
-Thanks,
+Regards,
 
 Tony
