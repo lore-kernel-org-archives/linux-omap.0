@@ -1,81 +1,50 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: dts: dra7-evm: Fix NAND GPMC timings (for 3.17)
-Date: Mon, 8 Sep 2014 11:08:07 +0300
-Message-ID: <540D63E7.7000907@ti.com>
-References: <1409918662-20547-1-git-send-email-rogerq@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1409918662-20547-1-git-send-email-rogerq@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: pekon@pek-sem.com, linux-omap@vger.kernel.org, stable@vger.kernel.org
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH v2 0/3] nand: omap2: Two and a half improvements
+Date: Mon,  8 Sep 2014 08:27:13 -0300
+Message-ID: <1410175636-4036-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qg0-f45.google.com ([209.85.192.45]:45212 "EHLO
+	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751404AbaIHL2i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 07:28:38 -0400
+Received: by mail-qg0-f45.google.com with SMTP id j107so2053731qga.18
+        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2014 04:28:37 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>, Roger Quadros <rogerq@ti.com>
+Cc: linux-mtd@lists.infradead.org, =?UTF-8?q?Guido=20Mart=C3=ADnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-Hi Tony,
+Changes from v1:
 
-This is needed for 3.17 otherwise NAND is broken on dra7-evm. Thanks.
+  * Rebased on v3.14-rc2.
 
-cheers,
--roger
+  * Removed a few s/pr_err/dev_err change from patch two, and added it
+    to patch three. This was some git-rebase leftover.
 
-On 09/05/2014 03:04 PM, Roger Quadros wrote:
-> The nand timings were scaled down by 2 to account for
-> the 2x rate returned by clk_get_rate(gpmc_fclk).
-> 
-> As the clock data got fixed by [1], revert back to actual
-> timings (i.e. scale them up by 2).
-> 
-> Without this NAND doesn't work on dra7-evm.
-> 
-> [1] - commit dd94324b983afe114ba9e7ee3649313b451f63ce
->     ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
-> 
-> Fixes: ff66a3c86e00 ("ARM: dts: dra7: add support for parallel NAND flash")
-> Cc: <stable@vger.kernel.org>        [3.16]
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/boot/dts/dra7-evm.dts | 27 ++++++++++++---------------
->  1 file changed, 12 insertions(+), 15 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 990ee6a..a120d8f 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -427,22 +427,19 @@
->  		gpmc,device-width = <2>;
->  		gpmc,sync-clk-ps = <0>;
->  		gpmc,cs-on-ns = <0>;
-> -		gpmc,cs-rd-off-ns = <40>;
-> -		gpmc,cs-wr-off-ns = <40>;
-> +		gpmc,cs-rd-off-ns = <80>;
-> +		gpmc,cs-wr-off-ns = <80>;
->  		gpmc,adv-on-ns = <0>;
-> -		gpmc,adv-rd-off-ns = <30>;
-> -		gpmc,adv-wr-off-ns = <30>;
-> -		gpmc,we-on-ns = <5>;
-> -		gpmc,we-off-ns = <25>;
-> -		gpmc,oe-on-ns = <2>;
-> -		gpmc,oe-off-ns = <20>;
-> -		gpmc,access-ns = <20>;
-> -		gpmc,wr-access-ns = <40>;
-> -		gpmc,rd-cycle-ns = <40>;
-> -		gpmc,wr-cycle-ns = <40>;
-> -		gpmc,wait-pin = <0>;
-> -		gpmc,wait-on-read;
-> -		gpmc,wait-on-write;
-> +		gpmc,adv-rd-off-ns = <60>;
-> +		gpmc,adv-wr-off-ns = <60>;
-> +		gpmc,we-on-ns = <10>;
-> +		gpmc,we-off-ns = <50>;
-> +		gpmc,oe-on-ns = <4>;
-> +		gpmc,oe-off-ns = <40>;
-> +		gpmc,access-ns = <40>;
-> +		gpmc,wr-access-ns = <80>;
-> +		gpmc,rd-cycle-ns = <80>;
-> +		gpmc,wr-cycle-ns = <80>;
->  		gpmc,bus-turnaround-ns = <0>;
->  		gpmc,cycle2cycle-delay-ns = <0>;
->  		gpmc,clk-activation-ns = <0>;
-> 
+Pekon's attempt to add flash BBT support for this driver made me realise
+the addition made sense and there were good reasons for it. The first patch
+adds support for enabling a flash BBT either from legacy board files or
+from devicetree.
+
+While testing this, I noticed how the driver relied on a whole bunch of
+horrible #ifdefs, which prevented me from loading the driver as a module.
+The second patch attempts to fix that.
+
+The third patch is just a dummy cleanup replacing pr_errs with dev_errs.
+This driver is abusing from user messages, but I'm not sure fixing them
+worths the trouble.
+
+Ezequiel Garcia (3):
+  nand: omap2: Add support for flash-based bad block table
+  nand: omap2: Remove horrible ifdefs to fix module probe
+  nand: omap2: Replace pr_err with dev_err
+
+ arch/arm/mach-omap2/gpmc.c                   |   2 +
+ drivers/mtd/nand/omap2.c                     | 162 +++++++++++++++------------
+ include/linux/platform_data/elm.h            |  14 +++
+ include/linux/platform_data/mtd-nand-omap2.h |   1 +
+ 4 files changed, 107 insertions(+), 72 deletions(-)
+
+-- 
+2.0.1
+
