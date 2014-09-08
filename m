@@ -1,92 +1,125 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 3/5] usb: phy: twl4030-usb: Move code from twl4030_phy_power
- to the runtime PM calls
-Date: Mon, 8 Sep 2014 19:55:44 +0530
-Message-ID: <540DBC68.7040905@ti.com>
-References: <1409182091-31191-1-git-send-email-tony@atomide.com> <1409182091-31191-4-git-send-email-tony@atomide.com> <54086E3D.4000200@ti.com> <20140904170723.GA14282@atomide.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH v2 3/3] nand: omap2: Replace pr_err with dev_err
+Date: Mon, 8 Sep 2014 11:35:50 -0300
+Message-ID: <20140908143550.GA4306@arch.hh.imgtec.org>
+References: <1410175636-4036-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <1410175636-4036-4-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <540D99BC.5040209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140904170723.GA14282@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:63466 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753060AbaIHOhD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 10:37:03 -0400
+Received: by mail-qc0-f174.google.com with SMTP id i17so15525043qcy.5
+        for <linux-omap@vger.kernel.org>; Mon, 08 Sep 2014 07:37:02 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <540D99BC.5040209@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi Tony,
+On 08 Sep 02:57 PM, Roger Quadros wrote:
+> Hi Ezequiel,
+> 
+> On 09/08/2014 02:27 PM, Ezequiel Garcia wrote:
+> > Usage of pr_err is frowned upon, so replace it with dev_err.
+> > Aditionally, the message on nand_bch_init() error is redundant,
+> > since proper error is showed if the function fails.
+> > 
+> > Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+> > ---
+> >  drivers/mtd/nand/omap2.c | 26 ++++++++++++++------------
+> >  1 file changed, 14 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> > index f97a4ff..eb5e898 100644
+> > --- a/drivers/mtd/nand/omap2.c
+> > +++ b/drivers/mtd/nand/omap2.c
+> > @@ -1375,7 +1375,7 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
+> >  		erased_ecc_vec = bch16_vector;
+> >  		break;
+> >  	default:
+> > -		pr_err("invalid driver configuration\n");
+> > +		dev_err(&info->pdev->dev, "invalid driver configuration\n");
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > @@ -1446,7 +1446,8 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
+> >  	err = 0;
+> >  	for (i = 0; i < eccsteps; i++) {
+> >  		if (err_vec[i].error_uncorrectable) {
+> > -			pr_err("nand: uncorrectable bit-flips found\n");
+> > +			dev_err(&info->pdev->dev,
+> > +				"uncorrectable bit-flips found\n");
+> >  			err = -EBADMSG;
+> >  		} else if (err_vec[i].error_reported) {
+> >  			for (j = 0; j < err_vec[i].error_count; j++) {
+> > @@ -1483,8 +1484,9 @@ static int omap_elm_correct_data(struct mtd_info *mtd, u_char *data,
+> >  							1 << bit_pos;
+> >  					}
+> >  				} else {
+> > -					pr_err("invalid bit-flip @ %d:%d\n",
+> > -							 byte_pos, bit_pos);
+> > +					dev_err(&info->pdev->dev,
+> > +						"invalid bit-flip @ %d:%d\n",
+> > +						byte_pos, bit_pos);
+> >  					err = -EBADMSG;
+> >  				}
+> >  			}
+> > @@ -1598,13 +1600,13 @@ static bool is_elm_present(struct omap_nand_info *info,
+> >  
+> >  	/* check whether elm-id is passed via DT */
+> >  	if (!elm_node) {
+> > -		pr_err("nand: error: ELM DT node not found\n");
+> > +		dev_err(&info->pdev->dev, "ELM devicetree node not found\n");
+> >  		return false;
+> >  	}
+> >  	pdev = of_find_device_by_node(elm_node);
+> >  	/* check whether ELM device is registered */
+> >  	if (!pdev) {
+> > -		pr_err("nand: error: ELM device not found\n");
+> > +		dev_err(&info->pdev->dev, "ELM device not found\n");
+> >  		return false;
+> >  	}
+> >  	/* ELM module available, now configure it */
+> > @@ -1734,14 +1736,14 @@ static int omap_nand_probe(struct platform_device *pdev)
+> >  	/* scan NAND device connected to chip controller */
+> >  	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
+> >  	if (nand_scan_ident(mtd, 1, NULL)) {
+> > -		pr_err("nand device scan failed, may be bus-width mismatch\n");
+> > +		dev_err(&info->pdev->dev, "scan failed, may be bus-width mismatch\n");
+> >  		err = -ENXIO;
+> >  		goto return_error;
+> >  	}
+> >  
+> >  	/* check for small page devices */
+> >  	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW)) {
+> > -		pr_err("small page devices are not supported\n");
+> > +		dev_err(&info->pdev->dev, "small page devices are not supported\n");
+> >  		err = -EINVAL;
+> >  		goto return_error;
+> >  	}
+> > @@ -1959,7 +1961,6 @@ static int omap_nand_probe(struct platform_device *pdev)
+> >  							nand_chip->ecc.bytes,
+> >  							&ecclayout);
+> >  		if (!nand_chip->ecc.priv) {
+> > -			pr_err("nand: error: unable to use s/w BCH library\n");
+> 
+> Where would the error be printed in this case?
+> 
 
-On Thursday 04 September 2014 10:37 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [140904 06:51]:
->> Hi Tony,
->>
->> On Thursday 28 August 2014 04:58 AM, Tony Lindgren wrote:
->>> We don't need twl4030_phy_power() any longer now that we have
->>> the runtime PM calls. Let's get rid of it as it's confusing.
->>> No functional changes, just move the code and use res instead
->>> of ret as we are not returning that value.
->>
->> Now that you are doing pm_runtime_get_sync in twl4030_phy_init, won't it power
->> on the phy even before initializing it (since runtime_resume will be invoked
->> even before doing phy_init)?
-> 
-> Yes. The logic being that it should not matter as we are not
-> configuring the phy until in twl4030_phy_power_on(). Maybe we
-> should add code to make sure the phy is deconfigured initially
-> though :)
-> 
-> In twl4030_phy_init() we just want to check the ID pin state to get
-> things right initially. In the twl4030-usb case the I2C chip is
-> always on, but let's try to get the runtime PM set up like any
-> standard Linux driver would do it to avoid confusion.
-> 
->> Even if pm_runtime_get_sync in not done in twl4030_phy_init, phy-core itself
->> does pm_runtime_get_sync in phy_init().
-> 
-> Hmm OK. Looking at that, looks like we don't neeed any of these
-> custom exports though:
-> 
-> $ git grep phy_pm_runtime | grep EXPORT_SYMBOL
-> drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_get);
-> drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_get_sync);
-> drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_put);
-> drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_put_sync);
-> drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_allow);
-> drivers/phy/phy-core.c:EXPORT_SYMBOL_GPL(phy_pm_runtime_forbid);
-> 
-> The reasons why I think we don't need the above at all is:
-> 
-> 1. We already have a framework for that in Linux runtime PM and we
->    can follow the standard Linux runtime PM calls and not proxy
->    them in phy-core.c
+Well, nand_bch_init() has a lot of messages for the errors, but I just noticed
+some cases where there's no message printed. Would you prefer to leave these
+untouched?
 
-The reason for adding these are for providing fine grained control of the PHY
-by the controller drivers. In most cases the controller driver determines when
-the PHY should be active or idle.
+> I also noticed a similar message in the OMAP_ECC_BCH4_CODE_HW_DETECTION_SW case.
+> And it seems to be missing a "goto return_error" there.
 > 
-> 2. We can allow idling the phy properly on the bus it's connected
->    to, in this case I2C, even if USB driver is not loaded. We
->    eventually should idle the phy even if usb_add_phy_dev()
->    failed
 
-yes.. that's why we have ops like phy_power_on to tell when the PHY should be
-active. So these PHYs can be idled in probe.
-> 
-> 3. There's no actual need for phy-core.c to proxy the runtime
->    PM calls
-> 
-> So we can and should just let the phy drivers do their own runtime PM
-> as needed based on just the phy init, power_on and power_off calls.
-> 
-> Probably the same goes for the regulator_enable in phy-core.c. That
-> should be handled in the phy driver as phy-core is already unable
-> to handle it properly. For example, for phy-twl4030-usb.c we have
-> three regulators to deal with and the phy framework won't have any
-> idea how to deal with those.
-
-hmm.. It was modelled for basic PHY drivers that have a single regulator (e.g.,
-TI PIPE3 PHY). The idea is not to duplicate getting and enabling regulator in
-each of the PHY drivers when it can be abstracted in phy-core.
-
-Thanks
-Kishon
+Argh, right. I'll have to resend this one.
+-- 
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
