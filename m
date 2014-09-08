@@ -1,86 +1,52 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [GIT PULL 2/2] ARM: OMAP4+: PRM fixes, DRA7 suspend-to-ram support
-Date: Mon, 8 Sep 2014 12:00:20 -0500
-Message-ID: <1410195620-6347-2-git-send-email-nm@ti.com>
-References: <1410195620-6347-1-git-send-email-nm@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 07/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
+Date: Mon, 8 Sep 2014 20:23:13 +0300
+Message-ID: <CANOLnONWPdO80XWOYQatmOh+Ek107fBXDiqD3DpMXeazjLcdMg@mail.gmail.com>
+References: <1408716154-26101-1-git-send-email-nm@ti.com>
+	<1408716154-26101-8-git-send-email-nm@ti.com>
+	<7hbnr5dake.fsf@paris.lan>
+	<53FE2BF2.3020006@ti.com>
+	<20140827194156.GE16006@atomide.com>
+	<53FE34D7.7040004@ti.com>
+	<53FE3551.2080806@ti.com>
+	<20140905211558.GA31011@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410195620-6347-1-git-send-email-nm@ti.com>
+In-Reply-To: <20140905211558.GA31011@kahuna>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Keerthy <j-keerthy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-Please pull the following changes.
+Hi,
 
-part 2: "ARM: OMAP3+: PRM: fix up prm_handling"
-http://marc.info/?l=linux-kernel&m=140871580806186&w=2
-Status: Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Sat, Sep 6, 2014 at 12:15 AM, Nishanth Menon <nm@ti.com> wrote:
+>
+> Hi,
+>
+> Updated patch below:
+> Do let me know if this is ok with folks.
+>
+> ---8<----
+> From 1b9e11834dac2bd75c396aa7495c806b027653fe Mon Sep 17 00:00:00 200=
+1
+> From: Rajendra Nayak <rnayak@ti.com>
+> Date: Mon, 27 May 2013 15:46:44 +0530
+> Subject: [PATCH V2 7/10] ARM: OMAP5 / DRA7: Enable CPU RET on suspend
+>
+> On OMAP5 / DRA7, prevent a CPU powerdomain OFF and resulting MPU OSWR
+> and instead attempt a CPU RET and side effect, MPU RET in suspend.
+>
+> NOTE: the hardware was originally designed to be capable of achieving
+> deep power states such as OFF and OSWR, however due to various issues
+> and risks, deepest valid state was determined to be CSWR - hence we u=
+se
 
-part 3: "ARM: OMAP5+: pdata quirks for pinctrl"
-http://marc.info/?l=linux-kernel&m=140871598306262&w=2
-Status: Sending pull based on http://marc.info/?l=linux-kernel&m=140871666506706&w=2 (Acked by Tony, Pulled by Linus W)
+Would be great to have some more details here..
+So there is no hope for OFF mode on OMAP5?
 
-part 5: "ARM: OMAP5 / DRA7: Add framework for suspend and cpuidle"
-http://marc.info/?l=linux-kernel&m=140871637106555&w=2
-Status: picked up kevin's tested and reviewed-by, dropped cpuidle for this pull
 
-These could go into your tree for the branch  omap-for-v3.18/soc
-
-The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
-
-  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
-
-are available in the git repository at:
-
-  https://github.com/nmenon/linux-2.6-playground.git pull/v3.18/for-omap-soc
-
-for you to fetch changes up to 628ed4717000789bff827c5799d1aac4c1008541:
-
-  ARM: OMAP5: Add hook in SoC initcalls to enable pm initialization (2014-09-08 11:38:43 -0500)
-
-----------------------------------------------------------------
-Keerthy (1):
-      ARM: AM437x: use pdata quirks for pinctrl information
-
-Nishanth Menon (8):
-      ARM: OMAP4+: prminst: provide function to find prm_dev instance offset
-      ARM: OMAP4: PRM: use the generic prm_inst to allow logic to be abstracted
-      ARM: OMAP4+: PRM: register interrupt information from DT
-      ARM: OMAP4+: PRM: remove "wkup" event
-      ARM: OMAP4+: PRM: Enable wakeup capability for OMAP5, DRA7
-      ARM: OMAP3+: PRM: register interrupt information from DT
-      ARM: OMAP5: use pdata quirks for pinctrl information
-      ARM: DRA7: use pdata quirks for pinctrl information
-
-Rajendra Nayak (2):
-      ARM: OMAP5 / DRA7: PM: Avoid all SAR saves
-      ARM: OMAP5 / DRA7: Enable CPU RET on suspend
-
-Santosh Shilimkar (6):
-      ARM: OMAP5 / DRA7: PM: Update CPU context register offset
-      ARM: OMAP5 / DRA7: PM: Set MPUSS-EMIF clock-domain static dependency
-      ARM: OMAP5 / DRA7: PM / wakeupgen: Enables ES2 PM mode by default
-      ARM: OMAP5 / DRA7: PM: Enable Mercury retention mode on CPUx powerdomains
-      ARM: OMAP5 / DRA7: PM: Provide a dummy startup function for CPU hotplug
-      ARM: OMAP5: Add hook in SoC initcalls to enable pm initialization
-
- arch/arm/mach-omap2/common.h              |    2 +-
- arch/arm/mach-omap2/io.c                  |    3 +
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |  102 ++++++++++++++++++++---------
- arch/arm/mach-omap2/omap-secure.h         |    1 +
- arch/arm/mach-omap2/omap-wakeupgen.c      |   20 +++++-
- arch/arm/mach-omap2/omap-wakeupgen.h      |    1 +
- arch/arm/mach-omap2/pdata-quirks.c        |   10 +++
- arch/arm/mach-omap2/pm.h                  |    1 +
- arch/arm/mach-omap2/pm44xx.c              |   48 ++++++++++++--
- arch/arm/mach-omap2/prm3xxx.c             |   18 +++++
- arch/arm/mach-omap2/prm44xx.c             |   90 +++++++++++++++++++++----
- arch/arm/mach-omap2/prminst44xx.c         |   40 ++++++-----
- arch/arm/mach-omap2/prminst44xx.h         |    3 +
- 13 files changed, 275 insertions(+), 64 deletions(-)
-
-Regards,
-Nishanth Menon
+--=20
+Gra=C5=BEvydas
