@@ -1,89 +1,62 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap: fix Kconfig warning
-Date: Mon, 8 Sep 2014 14:29:25 -0700
-Message-ID: <20140908212924.GL3238@atomide.com>
-References: <3763111.OttSKCMuxb@wuerfel>
- <20140908153400.GC3238@atomide.com>
- <2797284.2mFcuQ0Ias@wuerfel>
+Subject: Re: [GIT PULL 1/2] ARM: OMAP 4+: powerdomain fixes
+Date: Mon, 8 Sep 2014 15:19:48 -0700
+Message-ID: <20140908221947.GM3238@atomide.com>
+References: <1410195620-6347-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42135 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754905AbaIHV3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 17:29:30 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2797284.2mFcuQ0Ias@wuerfel>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1410195620-6347-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andreas Ruprecht <rupran@einserver.de>
 
-* Arnd Bergmann <arnd@arndb.de> [140908 11:17]:
-> On Monday 08 September 2014 08:34:00 Tony Lindgren wrote:
-> > * Arnd Bergmann <arnd@arndb.de> [140908 08:01]:
-> > > A small mistake during the recent Kconfig cleanup has led
-> > > to a harmless warning for OMAP1:
-> > > 
-> > > warning: (ARCH_OMAP1) selects ARCH_OMAP which has unmet direct dependencies (ARCH_MULTI_V6 || ARCH_MULTI_V7)
-> > > 
-> > > We can easily avoid that by moving the ARCH_OMAP symbol outside of the
-> > > OMAP2 submenu.
-> > 
-> > OK I made a similar patch, but I moved it into plat-omap/Kconfig
-> > as it's also used by omap1. The regression was probably caused by
-> > commit 21278aeafbfa (ARM: use menuconfig for sub-arch menus).
-> > 
-> > If that works for you, I'll verify the regression causing commit
-> > and post it with a description.
+* Nishanth Menon <nm@ti.com> [140908 10:00]:
+> Hi Tony,
+> Please pull the following changes.
+> Series discussed in:
+> http://marc.info/?l=linux-kernel&m=140871554106082&w=2
+> Includes (v2 patch) https://patchwork.kernel.org/patch/4790541/
+> Status: Acked by Santosh and Reviewed-by Kevin	
 > 
-> Yes, sounds good. Your version is better than mind.
+> These could go into your tree for the branch omap-for-v3.18/fixes-not-urgent
 
-OK here's the patch again with breaking commit and reported by.
-
-Regards,
+Thanks pulling them there.
 
 Tony
-
-
-8< -------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 8 Sep 2014 07:52:11 -0700
-Subject: [PATCH] ARM: OMAP: Fix Kconfig warning for omap1
-
-Commit 21278aeafbfa ("ARM: use menuconfig for sub-arch menus") improved
-the sub-arch menus, but accidentally caused new warnings for omap1.
-This was because the commit added a menu entry around config ARCH_OMAP
-bool entry where the menu had depends on ARCH_MULTI_V6 || ARCH_MULTI_V7.
-
-As ARCH_OMAP is shared between omap1 and omap2plus, let's fix the
-issue by defining ARCH_OMAP in the shared plat-omap/Kconfig.
-
-Fixes: 21278aeafbfa ("ARM: use menuconfig for sub-arch menus")
-Reported-by: Andreas Ruprecht <rupran@einserver.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -1,9 +1,6 @@
- menu "TI OMAP/AM/DM/DRA Family"
- 	depends on ARCH_MULTI_V6 || ARCH_MULTI_V7
  
--config ARCH_OMAP
--	bool
--
- config ARCH_OMAP2
- 	bool "TI OMAP2"
- 	depends on ARCH_MULTI_V6
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 02fc10d..d055db3 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -1,3 +1,6 @@
-+config ARCH_OMAP
-+	bool
-+
- if ARCH_OMAP
- 
- menu "TI OMAP Common Features"
+> The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
+> 
+>   Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
+> 
+> are available in the git repository at:
+> 
+>   https://github.com/nmenon/linux-2.6-playground.git pull/v3.18/powerdomain-fixes
+> 
+> for you to fetch changes up to 3e6a1c945950140926dd6e2cc667893de0a7fe3b:
+> 
+>   ARM: OMAP4+: PM: Use only valid low power state for CPU hotplug (2014-09-08 11:22:43 -0500)
+> 
+> ----------------------------------------------------------------
+> Nishanth Menon (7):
+>       ARM: OMAP: DRA7: powerdomain data: fix powerdomain powerstate
+>       ARM: OMAP5: powerdomain data: fix powerdomain powerstate
+>       ARM: OMAP2+: powerdomain: pwrdm_for_each_clkdm iterate only valid clkdms
+>       ARM: OMAP2+: powerdomain: introduce logic for finding valid power domain
+>       ARM: OMAP4+: PM: Make logic state programmable
+>       ARM: OMAP4+: PM: use only valid low power state for suspend
+>       ARM: OMAP4+: PM: Use only valid low power state for CPU hotplug
+> 
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c   |    4 ++
+>  arch/arm/mach-omap2/pm44xx.c                |    9 ++-
+>  arch/arm/mach-omap2/powerdomain.c           |   79 ++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/powerdomain.h           |    4 ++
+>  arch/arm/mach-omap2/powerdomains54xx_data.c |   12 ++--
+>  arch/arm/mach-omap2/powerdomains7xx_data.c  |   14 ++---
+>  6 files changed, 106 insertions(+), 16 deletions(-)
+> 
+> Regards,
+> Nishanth Menon
+> 
