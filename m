@@ -1,61 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 5/7] net: cpsw: Add am33xx MACID readout
-Date: Mon, 8 Sep 2014 09:51:17 -0700
-Message-ID: <20140908165116.GH3238@atomide.com>
-References: <1410110375-3570-1-git-send-email-mpa@pengutronix.de>
- <1410110375-3570-6-git-send-email-mpa@pengutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: [GIT PULL 1/2] ARM: OMAP 4+: powerdomain fixes
+Date: Mon, 8 Sep 2014 12:00:19 -0500
+Message-ID: <1410195620-6347-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14165 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754575AbaIHQv2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 12:51:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1410110375-3570-6-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: "David S. Miller" <davem@davemloft.net>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de
 
-* Markus Pargmann <mpa@pengutronix.de> [140907 10:20]:
-> This patch adds a function to get the MACIDs from the am33xx SoC
-> control module registers which hold unique vendor MACIDs. This is only
-> used if of_get_mac_address() fails to get a valid mac address.
-...
+Hi Tony,
+Please pull the following changes.
+Series discussed in:
+http://marc.info/?l=linux-kernel&m=140871554106082&w=2
+Includes (v2 patch) https://patchwork.kernel.org/patch/4790541/
+Status: Acked by Santosh and Reviewed-by Kevin	
 
-> @@ -1928,8 +1960,16 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
->  			 PHY_ID_FMT, mdio->name, phyid);
->  
->  		mac_addr = of_get_mac_address(slave_node);
-> -		if (mac_addr)
-> +		if (mac_addr) {
->  			memcpy(slave_data->mac_addr, mac_addr, ETH_ALEN);
-> +		} else {
-> +			if (of_machine_is_compatible("ti,am33xx")) {
-> +				ret = cpsw_am33xx_cm_get_macid(&pdev->dev, i,
-> +							slave_data->mac_addr);
-> +				if (ret)
-> +					return ret;
-> +			}
-> +		}
->  
->  		slave_data->phy_if = of_get_phy_mode(slave_node);
->  		if (slave_data->phy_if < 0) {
+These could go into your tree for the branch omap-for-v3.18/fixes-not-urgent
 
-Thanks for updating this, this looks more future proof for adding
-the dra7 related patch.
+The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
 
-For the long run, it probably makes sense to add SoC specific
-compatible values such as "ti,cpsw-am3350" and so on. Then the
-mac address functions can be initialized based on the of_device_id
-entry for .data. The wiring is cleary SoC specific here.
+  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
 
-So for the purpose of this series, I'm fine with this series,
-please feel free to add for this patch:
+are available in the git repository at:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+  https://github.com/nmenon/linux-2.6-playground.git pull/v3.18/powerdomain-fixes
+
+for you to fetch changes up to 3e6a1c945950140926dd6e2cc667893de0a7fe3b:
+
+  ARM: OMAP4+: PM: Use only valid low power state for CPU hotplug (2014-09-08 11:22:43 -0500)
+
+----------------------------------------------------------------
+Nishanth Menon (7):
+      ARM: OMAP: DRA7: powerdomain data: fix powerdomain powerstate
+      ARM: OMAP5: powerdomain data: fix powerdomain powerstate
+      ARM: OMAP2+: powerdomain: pwrdm_for_each_clkdm iterate only valid clkdms
+      ARM: OMAP2+: powerdomain: introduce logic for finding valid power domain
+      ARM: OMAP4+: PM: Make logic state programmable
+      ARM: OMAP4+: PM: use only valid low power state for suspend
+      ARM: OMAP4+: PM: Use only valid low power state for CPU hotplug
+
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c   |    4 ++
+ arch/arm/mach-omap2/pm44xx.c                |    9 ++-
+ arch/arm/mach-omap2/powerdomain.c           |   79 ++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/powerdomain.h           |    4 ++
+ arch/arm/mach-omap2/powerdomains54xx_data.c |   12 ++--
+ arch/arm/mach-omap2/powerdomains7xx_data.c  |   14 ++---
+ 6 files changed, 106 insertions(+), 16 deletions(-)
 
 Regards,
-
-Tony
+Nishanth Menon
