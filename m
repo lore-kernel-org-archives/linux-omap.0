@@ -1,69 +1,81 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH v9 2/6] clk: Move all drivers to use internal API
-Date: Sun, 07 Sep 2014 23:13:55 -0700
-Message-ID: <20140908061355.19023.47997@quantum>
-References: <1409758148-20104-2-git-send-email-tomeu.vizoso@collabora.com>
- <1409758317-20564-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] ARM: dts: dra7-evm: Fix NAND GPMC timings (for 3.17)
+Date: Mon, 8 Sep 2014 11:08:07 +0300
+Message-ID: <540D63E7.7000907@ti.com>
+References: <1409918662-20547-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1409758317-20564-1-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, "Stephen Warren  <swarren@wwwdotorg.org>,
- Thierry Reding  <thierry.reding@gmail.com>, tomasz.figa@gmail.com,
- Peter De Schrijver  <pdeschrijver@nvidia.com>, rabin@rab.in,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- Jason Cooper  <jason@lakedaemon.net>,  Andrew Lunn  <andrew@lunn.ch>,
- Sebastian Hesselbarth  <sebastian.hesselbarth@gmail.com>,
- Russell King  <linux@arm.linux.org.uk>,
- Shawn Guo  <shawn.guo@freescale.com>,
- Sascha Hauer  <kernel@pengutronix.de>,
- David Brown  <davidb@codeaurora.org>,  Daniel Walker  <dwalker@fifo99.com>,
- Bryan Huntsman  <bryanh@codeaurora.org>,  Paul Walmsley  <paul@pwsan.com>,
- Tony Lindgren  <tony@atomide.com>,
- =?utf-8?q?=22_Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>,
- Kevin Hilman" <khilman@deeprootsystems.com>, alsa-devel@alsa-project.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1409918662-20547-1-git-send-email-rogerq@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: pekon@pek-sem.com, linux-omap@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-UXVvdGluZyBUb21ldSBWaXpvc28gKDIwMTQtMDktMDMgMDg6MzE6NTcpCj4gSW4gcHJlcGFyYXRp
-b24gdG8gY2hhbmdlIHRoZSBwdWJsaWMgQVBJIHRvIHJldHVybiBhIHBlci11c2VyIGNsayBzdHJ1
-Y3R1cmUsCj4gcmVtb3ZlIGFueSB1c2FnZSBvZiB0aGlzIHB1YmxpYyBBUEkgZnJvbSB0aGUgY2xv
-Y2sgaW1wbGVtZW50YXRpb25zLgo+IAo+IFRoZSByZWFzb24gZm9yIGhhdmluZyB0aGlzIGluIGEg
-c2VwYXJhdGUgY29tbWl0IGZyb20gdGhlIG9uZSB0aGF0IGludHJvZHVjZXMKPiB0aGUgaW1wbGVt
-ZW50YXRpb24gb2YgdGhlIG5ldyBmdW5jdGlvbnMgaXMgdG8gc2VwYXJhdGUgdGhlIGNoYW5nZXMg
-Z2VuZXJhdGVkCj4gd2l0aCBDb2NjaW5lbGxlIGZyb20gdGhlIHJlc3QsIGFuZCBrZWVwIHRoZSBw
-YXRjaGVzJyBzaXplIHJlYXNvbmFibGUuCj4gCj4gU2lnbmVkLW9mZi1ieTogVG9tZXUgVml6b3Nv
-IDx0b21ldS52aXpvc29AY29sbGFib3JhLmNvbT4KPiBUZXN0ZWQtYnk6IEJvcmlzIEJyZXppbGxv
-biA8Ym9yaXMuYnJlemlsbG9uQGZyZWUtZWxlY3Ryb25zLmNvbT4KPiBUZXN0ZWQtYnk6IEhlaWtv
-IFN0dWVibmVyIDxoZWlrb0BzbnRlY2guZGU+Cj4gQWNrZWQtYnk6IEJvcmlzIEJyZXppbGxvbiA8
-Ym9yaXMuYnJlemlsbG9uQGZyZWUtZWxlY3Ryb25zLmNvbT4KCkhpIFRvbWV1LAoKTG9va3MgbGlr
-ZSB0aGUgQ29jY2luZWxsZSBzY3JpcHQgaGFkIGEgZmFsc2UtcG9zaXRpdmUuCmFzbS1nZW5lcmlj
-L2Nsa2Rldi5oIHdhcyBjb252ZXJ0ZWQgZnJvbSBjbGstPmNsa19jb3JlIGFuZCB0aGlzIGJsb3dl
-ZCB1cApjbG9jayBkcml2ZXJzIGZvciBhcmNoaXRlY3R1cmVzIHRoYXQgZG9uJ3QgcHJvdmlkZSBh
-biBhc20tc3BlY2lmaWMKY2xrZGV2LmggaW1wbGVtZW50YXRpb24uIFRoaXMgZml4ZXMgeDg2J3Mg
-TFBTUyBhbmQgYSBNaWNyb2JsYXplIGRyaXZlci4KCkkndmUgcm9sbGVkIHRoZSBmb2xsb3dpbmcg
-Zml4IGludG8geW91ciAyLzkgcGF0Y2guIE5vIGFjdGlvbiBpcwpuZWNlc3NhcnkuCgpSZWdhcmRz
-LApNaWtlCgoKCmRpZmYgLS1naXQgYS9pbmNsdWRlL2FzbS1nZW5lcmljL2Nsa2Rldi5oIGIvaW5j
-bHVkZS9hc20tZ2VuZXJpYy9jbGtkZXYuaAppbmRleCA0MzIwMjI1Li45MGEzMmE2IDEwMDY0NAot
-LS0gYS9pbmNsdWRlL2FzbS1nZW5lcmljL2Nsa2Rldi5oCisrKyBiL2luY2x1ZGUvYXNtLWdlbmVy
-aWMvY2xrZGV2LmgKQEAgLTE1LDEwICsxNSwxMCBAQAoKICNpbmNsdWRlIDxsaW51eC9zbGFiLmg+
-Cgotc3RydWN0IGNsa19jb3JlOworc3RydWN0IGNsazsKCi1zdGF0aWMgaW5saW5lIGludCBfX2Ns
-a19nZXQoc3RydWN0IGNsa19jb3JlICpjbGspIHsgcmV0dXJuIDE7IH0KLXN0YXRpYyBpbmxpbmUg
-dm9pZCBfX2Nsa19wdXQoc3RydWN0IGNsa19jb3JlICpjbGspIHsgfQorc3RhdGljIGlubGluZSBp
-bnQgX19jbGtfZ2V0KHN0cnVjdCBjbGsgKmNsaykgeyByZXR1cm4gMTsgfQorc3RhdGljIGlubGlu
-ZSB2b2lkIF9fY2xrX3B1dChzdHJ1Y3QgY2xrICpjbGspIHsgfQoKIHN0YXRpYyBpbmxpbmUgc3Ry
-dWN0IGNsa19sb29rdXBfYWxsb2MgKl9fY2xrZGV2X2FsbG9jKHNpemVfdCBzaXplKQogewpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eHBwYy1kZXYg
-bWFpbGluZyBsaXN0CkxpbnV4cHBjLWRldkBsaXN0cy5vemxhYnMub3JnCmh0dHBzOi8vbGlzdHMu
-b3psYWJzLm9yZy9saXN0aW5mby9saW51eHBwYy1kZXY=
+Hi Tony,
+
+This is needed for 3.17 otherwise NAND is broken on dra7-evm. Thanks.
+
+cheers,
+-roger
+
+On 09/05/2014 03:04 PM, Roger Quadros wrote:
+> The nand timings were scaled down by 2 to account for
+> the 2x rate returned by clk_get_rate(gpmc_fclk).
+> 
+> As the clock data got fixed by [1], revert back to actual
+> timings (i.e. scale them up by 2).
+> 
+> Without this NAND doesn't work on dra7-evm.
+> 
+> [1] - commit dd94324b983afe114ba9e7ee3649313b451f63ce
+>     ARM: dts: dra7xx-clocks: Fix the l3 and l4 clock rates
+> 
+> Fixes: ff66a3c86e00 ("ARM: dts: dra7: add support for parallel NAND flash")
+> Cc: <stable@vger.kernel.org>        [3.16]
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  arch/arm/boot/dts/dra7-evm.dts | 27 ++++++++++++---------------
+>  1 file changed, 12 insertions(+), 15 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index 990ee6a..a120d8f 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -427,22 +427,19 @@
+>  		gpmc,device-width = <2>;
+>  		gpmc,sync-clk-ps = <0>;
+>  		gpmc,cs-on-ns = <0>;
+> -		gpmc,cs-rd-off-ns = <40>;
+> -		gpmc,cs-wr-off-ns = <40>;
+> +		gpmc,cs-rd-off-ns = <80>;
+> +		gpmc,cs-wr-off-ns = <80>;
+>  		gpmc,adv-on-ns = <0>;
+> -		gpmc,adv-rd-off-ns = <30>;
+> -		gpmc,adv-wr-off-ns = <30>;
+> -		gpmc,we-on-ns = <5>;
+> -		gpmc,we-off-ns = <25>;
+> -		gpmc,oe-on-ns = <2>;
+> -		gpmc,oe-off-ns = <20>;
+> -		gpmc,access-ns = <20>;
+> -		gpmc,wr-access-ns = <40>;
+> -		gpmc,rd-cycle-ns = <40>;
+> -		gpmc,wr-cycle-ns = <40>;
+> -		gpmc,wait-pin = <0>;
+> -		gpmc,wait-on-read;
+> -		gpmc,wait-on-write;
+> +		gpmc,adv-rd-off-ns = <60>;
+> +		gpmc,adv-wr-off-ns = <60>;
+> +		gpmc,we-on-ns = <10>;
+> +		gpmc,we-off-ns = <50>;
+> +		gpmc,oe-on-ns = <4>;
+> +		gpmc,oe-off-ns = <40>;
+> +		gpmc,access-ns = <40>;
+> +		gpmc,wr-access-ns = <80>;
+> +		gpmc,rd-cycle-ns = <80>;
+> +		gpmc,wr-cycle-ns = <80>;
+>  		gpmc,bus-turnaround-ns = <0>;
+>  		gpmc,cycle2cycle-delay-ns = <0>;
+>  		gpmc,clk-activation-ns = <0>;
+> 
