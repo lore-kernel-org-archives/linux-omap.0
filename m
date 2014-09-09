@@ -1,53 +1,59 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 1/3] nand: omap2: Add support for flash-based bad block
- table
-Date: Tue, 9 Sep 2014 16:33:21 +0300
-Message-ID: <540F01A1.3050903@ti.com>
-References: <1410175636-4036-1-git-send-email-ezequiel@vanguardiasur.com.ar> <1410175636-4036-2-git-send-email-ezequiel@vanguardiasur.com.ar> <540EBBEC.0@ti.com> <20140909132708.GA3315@arch.hh.imgtec.org>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [GIT PULL] ARM: dts: OMAP5 / DRA7: pinctrl updates
+Date: Tue, 9 Sep 2014 08:59:38 -0500
+Message-ID: <1410271178-28336-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51645 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750784AbaIINdz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Sep 2014 09:33:55 -0400
-In-Reply-To: <20140909132708.GA3315@arch.hh.imgtec.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, =?ISO-8859-1?Q?Guido_Mart=EDnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 09/09/2014 04:27 PM, Ezequiel Garcia wrote:
-> On 09 Sep 11:35 AM, Roger Quadros wrote:
->> Ezequiel,
->>
->> On 09/08/2014 02:27 PM, Ezequiel Garcia wrote:
->>> This commit adds a new platform-data boolean property that enables use
->>> of a flash-based bad block table. This can also be enabled by setting
->>> the 'nand-on-flash-bbt' devicetree property.
->>
->> I'm not much aware of how on-flash-BBT works internally, but will it break things if
->> we keep on-flash-BBT "enabled" as the default option and add a DT property only to
->> explicitly disable the on-flash-BBT?
->>
-> 
-> No, that wouldn't work because the DT property already exists and it works to
-> enable the flash BBT when it's present.
-> 
-> Documentation/devicetree/bindings/mtd/nand.txt
-> 
-> Of course, we can add a new no-nand-on-flash-bbt, but I really don't see the
-> point. Users can just put the property in all the devicetree board files where
-> it's needed.
-> 
-> And moreover, I don't want to change the default behavior of the driver; it's
-> better to allow to *add* a new feature, if such feature is desired.
-> Otherwise, users with some data in a flash's last blocks would be wiped and
-> replaced with the BBT.
-> 
 
-OK. Let's stick with your patch then.
+Hi Tony,
 
-cheers,
--roger
+Please pull this series was posted[1] and based on the previous pulls
+[2] [3], updating the dts to enable the relevant feature.
+
+NOTE: I have dropped patch #1 of the series based on [4].
+
+These could go to your branch omap-for-v3.18/dt
+
+The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
+
+  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
+
+are available in the git repository at:
+
+  https://github.com/nmenon/linux-2.6-playground.git pull/v3.18/for-dt-pinctrl-updates
+
+for you to fetch changes up to 66b0436977e2c62388d48836ff784f1fedb49c4f:
+
+  ARM: dts: dra7-evm: Mark uart1 rxd as wakeup capable (2014-09-09 08:33:29 -0500)
+
+----------------------------------------------------------------
+Nishanth Menon (5):
+      ARM: dts: OMAP5: switch to compatible pinctrl
+      ARM: dts: DRA7: switch to compatible pinctrl
+      ARM: dts: AM437x: switch to compatible pinctrl
+      ARM: dts: OMAP5 / DRA7: switch over to interrupts-extended property for UART
+      ARM: dts: dra7-evm: Mark uart1 rxd as wakeup capable
+
+ arch/arm/boot/dts/am4372.dtsi  |    4 +++-
+ arch/arm/boot/dts/dra7-evm.dts |    2 ++
+ arch/arm/boot/dts/dra7.dtsi    |   24 +++++++++++++-----------
+ arch/arm/boot/dts/omap5.dtsi   |   20 ++++++++++++--------
+ 4 files changed, 30 insertions(+), 20 deletions(-)
+
+[1] http://marc.info/?l=linux-kernel&m=140871681606779&w=2
+[2] http://marc.info/?l=linux-kernel&m=141019565513129&w=2
+[3] http://marc.info/?l=linux-kernel&m=141019566913133&w=2
+[4] http://marc.info/?l=linux-omap&m=141022429924564&w=2
+
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
