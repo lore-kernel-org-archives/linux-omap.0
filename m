@@ -1,65 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4 v2] arm: omap: tao3530: Add pdata-quirk for the mmc2
- internal clock
-Date: Mon, 8 Sep 2014 17:09:59 -0700
-Message-ID: <20140909000959.GA10785@atomide.com>
-References: <1409308806-27036-1-git-send-email-sr@denx.de>
+Subject: Re: [PATCH] ARM: dts: omap5.dtsi: add DSS RFBI node
+Date: Mon, 8 Sep 2014 17:14:06 -0700
+Message-ID: <20140909001406.GB10785@atomide.com>
+References: <1409812112-19194-1-git-send-email-tomi.valkeinen@ti.com>
+ <54086CD0.7000203@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20164 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506AbaIIAKJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 20:10:09 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47814 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753533AbaIIAOL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Sep 2014 20:14:11 -0400
 Content-Disposition: inline
-In-Reply-To: <1409308806-27036-1-git-send-email-sr@denx.de>
+In-Reply-To: <54086CD0.7000203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefan Roese <sr@denx.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>, Tapani Utriainen <tapani@technexion.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Stefan Roese <sr@denx.de> [140829 03:40]:
-> Set internal clock source for MMC2 on tao3530.
+* Nishanth Menon <nm@ti.com> [140904 06:45]:
+> $subject: ARM: dts: OMAP5: Add DSS RFBI node
 > 
-> Signed-off-by: Stefan Roese <sr@denx.de>
-> Cc: Thorsten Eisbein <thorsten.eisbein@head-acoustics.de>
-> Cc: Tapani Utriainen <tapani@technexion.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
-> v2:
-> - Patch description added to commit text
+> On 09/04/2014 01:28 AM, Tomi Valkeinen wrote:
+> > The RFBI node for OMAP DSS was left out when adding the rest of the DSS
+> > nodes, because it was not clear how to set up the clocks for the RFBI.
+> > 
+> > However, it seems that if there is a HWMOD for a device, we also need a
+> > DT node for it. Otherwise, at boot, we get:
+> > 
+> > WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2542 _init+0x464/0x4e0()
+> > omap_hwmod: dss_rfbi: doesn't have mpu register target base
+> > 
+> > Now that v3.17-rc3 contains a fix
+> > (8fd46439e1f5a7f86d76a08733459b74debd9468) for the L3 ICLK required by
+> > the RFBI, let's add the RFBI node to get rid of the warning.
+> The usual style is to use the following style:
+> Commit 8fd46439e1f5 ("ARM: dts: omap54xx-clocks: Fix the l3 and l4
+> clock rates")
 
-Applying all into omap-for-v3.18/dt thanks.
+Applying into omap-for-v3.18/dt with the above part of the
+changelog updated.
 
-Tony
+Regards,
+
+Tony 
  
->  arch/arm/mach-omap2/pdata-quirks.c | 6 ++++++
->  1 file changed, 6 insertions(+)
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > ---
+> >  arch/arm/boot/dts/omap5.dtsi | 9 +++++++++
+> >  1 file changed, 9 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> > index fc8df1739f39..1e6ff61a7f12 100644
+> > --- a/arch/arm/boot/dts/omap5.dtsi
+> > +++ b/arch/arm/boot/dts/omap5.dtsi
+> > @@ -945,6 +945,15 @@
+> >  				clock-names = "fck";
+> >  			};
+> >  
+> > +			rfbi: encoder@58002000  {
+> > +				compatible = "ti,omap5-rfbi";
+> > +				reg = <0x58002000 0x100>;
+> > +				status = "disabled";
+> > +				ti,hwmods = "dss_rfbi";
+> > +				clocks = <&dss_dss_clk>, <&l3_iclk_div>;
+> > +				clock-names = "fck", "ick";
+> > +			};
+> > +
+> >  			dsi1: encoder@58004000 {
+> >  				compatible = "ti,omap5-dsi";
+> >  				reg = <0x58004000 0x200>,
+> > 
 > 
-> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-> index 90c88d4..b9d091b 100644
-> --- a/arch/arm/mach-omap2/pdata-quirks.c
-> +++ b/arch/arm/mach-omap2/pdata-quirks.c
-> @@ -253,6 +253,11 @@ static void __init nokia_n900_legacy_init(void)
->  
->  	}
->  }
-> +
-> +static void __init omap3_tao3530_legacy_init(void)
-> +{
-> +	hsmmc2_internal_input_clk();
-> +}
->  #endif /* CONFIG_ARCH_OMAP3 */
->  
->  #ifdef CONFIG_ARCH_OMAP4
-> @@ -377,6 +382,7 @@ static struct pdata_init pdata_quirks[] __initdata = {
->  	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
->  	{ "ti,omap3-zoom3", omap3_zoom_legacy_init, },
->  	{ "ti,am3517-evm", am3517_evm_legacy_init, },
-> +	{ "technexion,omap3-tao3530", omap3_tao3530_legacy_init, },
->  #endif
->  #ifdef CONFIG_ARCH_OMAP4
->  	{ "ti,omap4-sdp", omap4_sdp_legacy_init, },
+> before-omap5-evm: http://paste.ubuntu.org.cn/1477659
+> 
+> after-omap5-evm:  http://paste.ubuntu.org.cn/1477658
+> 
+> So, yep, no more warning.
+> 
+> 
 > -- 
-> 2.1.0
-> 
+> Regards,
+> Nishanth Menon
