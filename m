@@ -1,47 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v2 1/3] can: c_can_platform: Fix c_can_hw_raminit_ti()
  and add timeout
-Date: Tue, 9 Sep 2014 09:51:16 -0500
-Message-ID: <540F13E4.7020907@ti.com>
-References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-2-git-send-email-rogerq@ti.com> <540F0FEE.2040202@ti.com> <540F1294.9080107@ti.com>
+Date: Tue, 9 Sep 2014 17:54:26 +0300
+Message-ID: <540F14A2.6000904@ti.com>
+References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-2-git-send-email-rogerq@ti.com> <540F0FEE.2040202@ti.com> <540F1294.9080107@ti.com> <540F13E4.7020907@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <540F1294.9080107@ti.com>
+In-Reply-To: <540F13E4.7020907@ti.com>
 Sender: netdev-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, mkl@pengutronix.de
+To: wg@grandegger.com, mkl@pengutronix.de
 Cc: tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/09/2014 09:45 AM, Roger Quadros wrote:
-[...]
->>>  	/* We look only at the bits of our instance. */
->>>  	val &= mask;
->>> -	while ((readl(priv->raminit_ctrlreg) & mask) != val)
->>> +	while ((readl(priv->raminit_ctrlreg) & mask) != val) {
->>>  		udelay(1);
->>> +		timeout++;
->>> +
->>> +		if (timeout == 1000) {
+On 09/09/2014 05:51 PM, Nishanth Menon wrote:
+> On 09/09/2014 09:45 AM, Roger Quadros wrote:
+> [...]
+>>>>  	/* We look only at the bits of our instance. */
+>>>>  	val &= mask;
+>>>> -	while ((readl(priv->raminit_ctrlreg) & mask) != val)
+>>>> +	while ((readl(priv->raminit_ctrlreg) & mask) != val) {
+>>>>  		udelay(1);
+>>>> +		timeout++;
+>>>> +
+>>>> +		if (timeout == 1000) {
+>>>
+>>> How did we come up with this number?
 >>
->> How did we come up with this number?
+>> wild guess ;), that it should be set in a few microseconds and the delay is not too
+>> large.
+>>
+>> Till I don't hear from hardware guys, it will remain a guess.
+>>
 > 
-> wild guess ;), that it should be set in a few microseconds and the delay is not too
-> large.
+> in cases like these, I suggest using emperical data as point ->
+> example doing some 10,000 iterations of the operation and picking up
+> the worse case number and double it.
+
+In my tests the bit was either set immediately or never at all.
+Not sure if we should increase it further.
+
 > 
-> Till I don't hear from hardware guys, it will remain a guess.
+> Either way, you need to document the same, else a few years down the
+> line, when that number is in question, no one will know what it's
+> basis was..
 > 
 
-in cases like these, I suggest using emperical data as point ->
-example doing some 10,000 iterations of the operation and picking up
-the worse case number and double it.
+OK. I'll add a comment there.
 
-Either way, you need to document the same, else a few years down the
-line, when that number is in question, no one will know what it's
-basis was..
-
-
--- 
-Regards,
-Nishanth Menon
+cheers,
+-roger
