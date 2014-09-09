@@ -1,55 +1,53 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [resend PATCH 0/3] Add DRA7xx CPSW Ethernet support in Device
- Tree
-Date: Tue, 9 Sep 2014 08:04:49 -0500
-Message-ID: <540EFAF1.40703@ti.com>
-References: <1410203998-8700-1-git-send-email-mugunthanvnm@ti.com>	<20140908193440.GC12150@kahuna>	<540EE4B0.70207@ti.com> <CAGo_u6riiMVTW2y1qZWdJ2QUVdxX7uZyaTO3tRTGivX8Pjni1w@mail.gmail.com> <540EF904.5070701@ti.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH v2 1/3] nand: omap2: Add support for flash-based bad
+ block table
+Date: Tue, 9 Sep 2014 10:27:08 -0300
+Message-ID: <20140909132708.GA3315@arch.hh.imgtec.org>
+References: <1410175636-4036-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <1410175636-4036-2-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <540EBBEC.0@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <540EF904.5070701@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, dt list <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f41.google.com ([209.85.216.41]:52771 "EHLO
+	mail-qa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751547AbaIIN2X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2014 09:28:23 -0400
+Received: by mail-qa0-f41.google.com with SMTP id f12so327472qad.28
+        for <linux-omap@vger.kernel.org>; Tue, 09 Sep 2014 06:28:22 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <540EBBEC.0@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, Guido =?iso-8859-1?Q?Mart=EDnez?= <guido@vanguardiasur.com.ar>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 09/09/2014 07:56 AM, Mugunthan V N wrote:
-> On Tuesday 09 September 2014 05:45 PM, Nishanth Menon wrote:
->> On Tue, Sep 9, 2014 at 6:29 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
->>>
->>>> Sorry this is now blocked inside TI. could you explain the testing done
->>>> for sleep state? did you attempt sleep mode before testing this?
->>>>
->>>
->>> I have not tested sleep mode, just tested boot and ping test.
->>
->> I must NAK then for the reason that this is a patch that is just build
->> tested and is not tested for the feature it claims to introduce.
->>
->>
+On 09 Sep 11:35 AM, Roger Quadros wrote:
+> Ezequiel,
 > 
-> Is suspend/resume supported in mainline, i was not able to test it.
+> On 09/08/2014 02:27 PM, Ezequiel Garcia wrote:
+> > This commit adds a new platform-data boolean property that enables use
+> > of a flash-based bad block table. This can also be enabled by setting
+> > the 'nand-on-flash-bbt' devicetree property.
 > 
-> root@dra7xx-evm:~# echo mem > /sys/power/state
-> -sh: echo: write error: Invalid argument
+> I'm not much aware of how on-flash-BBT works internally, but will it break things if
+> we keep on-flash-BBT "enabled" as the default option and add a DT property only to
+> explicitly disable the on-flash-BBT?
 > 
-> I was not able to use rtc wake also as the rtc device is not created.
 
-Right.. that is why I was curious how you posted a patch that
-supposedly supports sleep pin configurations in a kernel that does not
-support suspend-resume?
+No, that wouldn't work because the DT property already exists and it works to
+enable the flash BBT when it's present.
 
-Hopefully we will have it supported in 3.18 kernel[1] - still need out
-of tree wakeup timer patch[2] for testing though..
+Documentation/devicetree/bindings/mtd/nand.txt
 
-If you have at least tested on relevant branch which has the feature
-expected for 3.18, I might still be OK with the patch.
+Of course, we can add a new no-nand-on-flash-bbt, but I really don't see the
+point. Users can just put the property in all the devicetree board files where
+it's needed.
 
-[1]http://marc.info/?l=linux-kernel&m=141019565513129&w=2 and
-http://marc.info/?l=linux-kernel&m=141019566913133&w=2
-[2] details in http://marc.info/?l=linux-kernel&m=140871637106555&w=2
-
+And moreover, I don't want to change the default behavior of the driver; it's
+better to allow to *add* a new feature, if such feature is desired.
+Otherwise, users with some data in a flash's last blocks would be wiped and
+replaced with the BBT.
 -- 
-Regards,
-Nishanth Menon
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
