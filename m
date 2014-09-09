@@ -1,68 +1,69 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 03/12] ARM: dts: dra7-evm: Add CAN support
-Date: Tue, 9 Sep 2014 17:55:25 +0300
-Message-ID: <1410274534-22826-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 07/12] arm: dts: am437x-gp: Add dcan support
+Date: Tue, 9 Sep 2014 17:55:29 +0300
+Message-ID: <1410274534-22826-8-git-send-email-rogerq@ti.com>
 References: <1410274534-22826-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57654 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932668AbaIIO4H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Sep 2014 10:56:07 -0400
+Return-path: <linux-can-owner@vger.kernel.org>
 In-Reply-To: <1410274534-22826-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-can-owner@vger.kernel.org
 To: tony@atomide.com
 Cc: wg@grandegger.com, mkl@pengutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The board has 2 CAN ports but only the first one can be used.
-Enable the first CAN port.
+From: Mugunthan V N <mugunthanvnm@ti.com>
 
-The second one cannot be used without hardware modification
-so we don't enable the second port.
+Add DCAN support for AM437x GP EVM with both DCAN instances.
 
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Signed-off-by: George Cherian <george.cherian@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ arch/arm/boot/dts/am437x-gp-evm.dts | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index e03fbf3..d6b9b27 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -171,6 +171,20 @@
- 			0xd0	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_be0n_cle */
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index e7ac47f..6d03baa 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -254,6 +254,20 @@
+ 			0x238 (PIN_OUTPUT_PULLUP | MUX_MODE7)
  		>;
  	};
 +
-+	dcan1_pins_default: dcan1_pins_default {
++	dcan0_default: dcan0_default_pins {
 +		pinctrl-single,pins = <
-+			0x3d4	(PIN_INPUT | MUX_MODE0)		/* dcan1_tx */
-+			0x3d8	(PIN_INPUT | MUX_MODE0)		/* dcan1_rx */
++			0x178 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* uart1_ctsn.d_can0_tx */
++			0x17c (PIN_INPUT_PULLUP | MUX_MODE2) /* uart1_rtsn.d_can0_rx */
 +		>;
 +	};
 +
-+	dcan1_pins_sleep: dcan1_pins_sleep {
++	dcan1_default: dcan1_default_pins {
 +		pinctrl-single,pins = <
-+			0x3d4	(PIN_INPUT | MUX_MODE15)	/* dcan1_tx */
-+			0x3d8	(PIN_INPUT | MUX_MODE15)	/* dcan1_rx */
++			0x180 (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* uart1_rxd.d_can1_tx */
++			0x184 (PIN_INPUT_PULLUP | MUX_MODE2) /* uart1_txd.d_can1_rx */
 +		>;
 +	};
  };
  
- &i2c1 {
-@@ -529,3 +543,10 @@
- 	ti,no-reset-on-init;
- 	ti,no-idle-on-init;
+ &i2c0 {
+@@ -511,3 +525,15 @@
+ 		};
+ 	};
  };
 +
++&dcan0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&dcan0_default>;
++	status = "okay";
++};
++
 +&dcan1 {
-+	status = "ok";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&dcan1_pins_default>;
-+	pinctrl-1 = <&dcan1_pins_sleep>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&dcan1_default>;
++	status = "okay";
 +};
 -- 
 1.8.3.2
