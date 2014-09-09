@@ -1,15 +1,15 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 04/12] ARM: dts: dra72-evm: Add CAN support
-Date: Tue, 9 Sep 2014 17:55:26 +0300
-Message-ID: <1410274534-22826-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v2 03/12] ARM: dts: dra7-evm: Add CAN support
+Date: Tue, 9 Sep 2014 17:55:25 +0300
+Message-ID: <1410274534-22826-4-git-send-email-rogerq@ti.com>
 References: <1410274534-22826-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58403 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703AbaIIO4M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Sep 2014 10:56:12 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57654 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932668AbaIIO4H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Sep 2014 10:56:07 -0400
 In-Reply-To: <1410274534-22826-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -23,36 +23,39 @@ The second one cannot be used without hardware modification
 so we don't enable the second port.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/dra72-evm.dts | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/arm/boot/dts/dra7-evm.dts | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 5147023..e5b7172 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -19,6 +19,29 @@
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index e03fbf3..d6b9b27 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -171,6 +171,20 @@
+ 			0xd0	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_be0n_cle */
+ 		>;
  	};
- };
- 
-+&dra7_pmx_core {
++
 +	dcan1_pins_default: dcan1_pins_default {
 +		pinctrl-single,pins = <
 +			0x3d4	(PIN_INPUT | MUX_MODE0)		/* dcan1_tx */
-+			0x418	(PIN_INPUT | MUX_MODE1)		/* wakeup0.dcan1_rx */
++			0x3d8	(PIN_INPUT | MUX_MODE0)		/* dcan1_rx */
 +		>;
 +	};
 +
 +	dcan1_pins_sleep: dcan1_pins_sleep {
 +		pinctrl-single,pins = <
-+			0x3d4	(PIN_INPUT | MUX_MODE15)	/* dcan1_tx.off */
-+			0x418	(PIN_INPUT | MUX_MODE15)	/* wakeup0.off */
++			0x3d4	(PIN_INPUT | MUX_MODE15)	/* dcan1_tx */
++			0x3d8	(PIN_INPUT | MUX_MODE15)	/* dcan1_rx */
 +		>;
 +	};
-+};
-+
- &uart1 {
- 	status = "okay";
+ };
+ 
+ &i2c1 {
+@@ -529,3 +543,10 @@
+ 	ti,no-reset-on-init;
+ 	ti,no-idle-on-init;
  };
 +
 +&dcan1 {
