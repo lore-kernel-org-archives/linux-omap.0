@@ -1,53 +1,48 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 1/3] can: c_can_platform: Fix c_can_hw_raminit_ti()
- and add timeout
-Date: Tue, 9 Sep 2014 17:54:26 +0300
-Message-ID: <540F14A2.6000904@ti.com>
-References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-2-git-send-email-rogerq@ti.com> <540F0FEE.2040202@ti.com> <540F1294.9080107@ti.com> <540F13E4.7020907@ti.com>
+Subject: [PATCH v2 01/12] ARM: dts: dra7: Add syscon regmap for CORE CONTROL area
+Date: Tue, 9 Sep 2014 17:55:23 +0300
+Message-ID: <1410274534-22826-2-git-send-email-rogerq@ti.com>
+References: <1410274534-22826-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <540F13E4.7020907@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de
-Cc: tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58664 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932668AbaIIOz4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Sep 2014 10:55:56 -0400
+In-Reply-To: <1410274534-22826-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: wg@grandegger.com, mkl@pengutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 09/09/2014 05:51 PM, Nishanth Menon wrote:
-> On 09/09/2014 09:45 AM, Roger Quadros wrote:
-> [...]
->>>>  	/* We look only at the bits of our instance. */
->>>>  	val &= mask;
->>>> -	while ((readl(priv->raminit_ctrlreg) & mask) != val)
->>>> +	while ((readl(priv->raminit_ctrlreg) & mask) != val) {
->>>>  		udelay(1);
->>>> +		timeout++;
->>>> +
->>>> +		if (timeout == 1000) {
->>>
->>> How did we come up with this number?
->>
->> wild guess ;), that it should be set in a few microseconds and the delay is not too
->> large.
->>
->> Till I don't hear from hardware guys, it will remain a guess.
->>
-> 
-> in cases like these, I suggest using emperical data as point ->
-> example doing some 10,000 iterations of the operation and picking up
-> the worse case number and double it.
+Display and DCAN drivers use syscon regmap to access some registers
+in the CORE control area. Add the syscon regmap node for this
+area.
 
-In my tests the bit was either set immediately or never at all.
-Not sure if we should increase it further.
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-> 
-> Either way, you need to document the same, else a few years down the
-> line, when that number is in question, no one will know what it's
-> basis was..
-> 
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index d678152..370009e 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -200,6 +200,11 @@
+ 			ti,hwmods = "counter_32k";
+ 		};
+ 
++		dra7_ctrl_core: ctrl_core@4a002000 {
++			compatible = "syscon";
++			reg = <0x4a002000 0x6d0>;
++		};
++
+ 		dra7_ctrl_general: tisyscon@4a002e00 {
+ 			compatible = "syscon";
+ 			reg = <0x4a002e00 0x7c>;
+-- 
+1.8.3.2
 
-OK. I'll add a comment there.
-
-cheers,
--roger
