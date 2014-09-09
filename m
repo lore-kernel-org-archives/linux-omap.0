@@ -1,27 +1,69 @@
-From: Peter Foley <pefoley2@pefoley.com>
-Subject: Re: [PATCH 2/3] kbuild: remove unnecessary variable initializaions
-Date: Tue, 9 Sep 2014 12:23:45 -0400
-Message-ID: <CAOFdcFOxDSJfT2J382c6X9ryWhtYdfZdBmhxDxrhEkxkiUwx4w@mail.gmail.com>
-References: <1410258381-7088-1-git-send-email-yamada.m@jp.panasonic.com> <1410258381-7088-3-git-send-email-yamada.m@jp.panasonic.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7
+Date: Tue, 9 Sep 2014 12:15:33 -0500
+Message-ID: <1410282933-30131-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1410258381-7088-3-git-send-email-yamada.m@jp.panasonic.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.m@jp.panasonic.com>
-Cc: linux-kbuild@vger.kernel.org, Andrew Victor <linux@maxim.org.za>, Nicolas Ferre <nicolas.ferre@atmel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Hartley Sweeten <hsweeten@visionengravers.com>, Ryan Mallon <rmallon@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Greg Ungerer <gerg@uclinux.org>, Ben Dooks <ben-linux@fluff.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, LKML <linux-kernel@vger.kernel.org>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 9, 2014 at 6:26 AM, Masahiro Yamada
-<yamada.m@jp.panasonic.com> wrote:
-> Clearing obj-y, obj-m, obj-n, obj- in each Makefile is
-> a useless habit.
->
-> They are non-exported variables; therefore they are always empty
-> whenever descending into each subdirectory.
-> (Moreorver, obj-y and obj-m are also set to empty at the beginning
-> of scripts/Makefile.build)
->
-> Signed-off-by: Masahiro Yamada <yamada.m@jp.panasonic.com>
+OMAP4, OMAP5 and DRA7 share a lot of common logic and data structures.
+These have been enabled in the previous patches, however, this also
+means that OMAP5 or DRA7 only builds also need to build OMAP4 logic.
+Update to reuse OMAP4 logic.
 
-Acked-by: Peter Foley <pefoley2@pefoley.com>
+This fixes the 'undefined reference to 'omap4_pm_init_early'' in
+OMAP5 or DRA7 only builds.
+
+Fixes: 6af16a1dac5465c ("ARM: DRA7: Add hook in SoC initcalls to enable pm initialization")
+Fixes: 628ed4717000789 ("ARM: OMAP5: Add hook in SoC initcalls to enable pm initialization")
+Reported-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+
+This fixes the regression with randconfig that Tony reported with
+omap-for-v3.18/soc branch.
+
+Tested with CONFIG_ARCH_OMAP2, CONFIG_ARCH_OMAP3, CONFIG_ARCH_OMAP4,
+CONFIG_SOC_OMAP5, CONFIG_SOC_AM33XX, CONFIG_SOC_AM43XX, CONFIG_SOC_DRA7XX
+only builds.
+
+
+ arch/arm/mach-omap2/Makefile |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 69bbcba..d9dd99c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -87,9 +87,10 @@ ifeq ($(CONFIG_PM),y)
+ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
+-obj-$(CONFIG_SOC_OMAP5)			+= omap-mpuss-lowpower.o
+-obj-$(CONFIG_SOC_DRA7XX)		+= omap-mpuss-lowpower.o
++omap-4-5-pm-common			=  pm44xx.o omap-mpuss-lowpower.o
++obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-pm-common)
++obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-pm-common)
++obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-4-5-pm-common)
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ 
+ obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
+@@ -102,7 +103,10 @@ endif
+ 
+ ifeq ($(CONFIG_CPU_IDLE),y)
+ obj-$(CONFIG_ARCH_OMAP3)                += cpuidle34xx.o
+-obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
++omap-4-5-idle-common			=  cpuidle44xx.o
++obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-idle-common)
++obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-idle-common)
++obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-4-5-idle-common)
+ endif
+ 
+ # PRCM
+-- 
+1.7.9.5
