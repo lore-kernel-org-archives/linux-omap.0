@@ -1,40 +1,60 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: [PATCH 0/2] OMAP IOMMU cleanups
-Date: Tue,  9 Sep 2014 18:45:43 +0300
-Message-ID: <1410277545-32157-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCHv3 0/5] OMAP Mailbox framework adoption & DT support
+Date: Tue, 9 Sep 2014 11:15:22 -0500
+Message-ID: <540F279A.1080700@ti.com>
+References: <1406680479-18446-1-git-send-email-s-anna@ti.com> <20140908232053.GS3238@atomide.com> <20140909025225.GI10785@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41470 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753443AbaIIQPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Sep 2014 12:15:50 -0400
+In-Reply-To: <20140909025225.GI10785@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Markus Mayer <markus.mayer@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello,
+Hi Tony,
 
-Those two patches clean up the OMAP IOMMU driver. Please see individual commit
-messages for more information.
+On 09/08/2014 09:52 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [140908 16:21]:
+>> * Suman Anna <s-anna@ti.com> [140729 17:37]:
+>>> Hi,
+>>>
+>>> This is an updated version of the OMAP Mailbox framework adoption &
+>>> DT support series, refreshed to work with the v9 version of the mailbox
+>>> framework [1] from Jassi Brar while also addressing some minor review
+>>> comments. Detailed changes are summarized below. Patches are based on
+>>> 3.16-rc2.
+>>
+>> Sorry for the delay, just noticed that I'm supposed to queue
+>> these too. I'll queue these into omap-for-v3.18/mailbox against
+>> v3.17-rc1 and will probably also merge it into omap-for-v3.18/dt
+>> as well.
+> 
+> Actually this is not compiling and seems to probably miss
+> the dependencies from Jassi, so dropping the branch.
 
-Laurent Pinchart (2):
-  iommu/omap: Reverse dependency between omap-iommu and omap-iommu2
-  iommu/omap: Remove omap_iommu unused owner field
+The last 2 patches which is the framework adoption portion needs the
+framework patches from Jassi (as stated in the cover letter). I will
+ping on the framework thread to see if it is making it into 3.18. In any
+case, we should be able to take the first three patches (2 in drivers
+and 1 for DT) - they are independent of the framework and also are
+dependencies for the framework adoption patches.
 
- drivers/iommu/omap-iommu-debug.c |   6 ++-
- drivers/iommu/omap-iommu.c       | 103 ++++++++++++---------------------------
- drivers/iommu/omap-iommu.h       |  11 +++--
- drivers/iommu/omap-iommu2.c      |  18 +------
- 4 files changed, 44 insertions(+), 94 deletions(-)
+> Anyways, since it seems you need to repost this again, please
+> repost the DT changes separately from the driver changes.
 
--- 
-Regards,
+Yeah, the other two dependent series are merged for 3.17, so these are
+the only patches remaining. I just need to repost them on a 3.17-rc, but
+there are no changes required (even with v10 of the framework). So given
+above, do you want me to split the first 3 (there is one DT patch) and
+post them so that they can be merged for 3.18?
 
-Laurent Pinchart
+regards
+Suman
+
+
