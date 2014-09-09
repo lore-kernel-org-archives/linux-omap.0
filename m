@@ -1,71 +1,85 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 5/8] ARM: dts: am33xx: Add external clock provider
-Date: Tue, 9 Sep 2014 10:57:51 +0300
-Message-ID: <540EB2FF.7000105@ti.com>
-References: <cover.1408397864.git.jsarha@ti.com> <9d4974b949b9b3bc1b08d73b1ec2d9cdd7a8e5da.1408397864.git.jsarha@ti.com> <20140908233037.GT3238@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 05/13] ARM: dts: DRA7: Add DCAN nodes
+Date: Tue, 9 Sep 2014 11:30:50 +0300
+Message-ID: <540EBABA.9090009@ti.com>
+References: <1410185442-907-1-git-send-email-rogerq@ti.com> <1410185442-907-6-git-send-email-rogerq@ti.com> <540DDBE0.5090004@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140908233037.GT3238-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <540DDBE0.5090004@cogentembedded.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, wg@grandegger.com, mkl@pengutronix.de, tony@atomide.com
+Cc: tglx@linutronix.de, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 09/09/2014 02:30 AM, Tony Lindgren wrote:
-> * Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org> [140818 14:49]:
->> Add external clock provider for am33xx devices.
->
-> Please send all the .dts and defconfig changes separately
-> so I can pick them up and we don't get pointless merge
-> conflicts.
+Hi,
 
-Moreover, this patch is obsolete now, given I have posted this:
-
-http://www.spinics.net/lists/arm-kernel/msg355992.html
-
-There will be v2 of my patch coming in though this week, but the 
-functionality will be the same.
-
--Tero
-
->
-> Regards,
->
-> TOny
->
->> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+On 09/08/2014 07:40 PM, Sergei Shtylyov wrote:
+> Hello.
+>=20
+> On 9/8/2014 6:10 PM, Roger Quadros wrote:
+>=20
+>> The SoC supports 2 DCAN nodes. Add them.
+>=20
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
 >> ---
->>   arch/arm/boot/dts/am33xx.dtsi |   10 ++++++++++
->>   1 file changed, 10 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->> index 3a0a161..d2cc397 100644
->> --- a/arch/arm/boot/dts/am33xx.dtsi
->> +++ b/arch/arm/boot/dts/am33xx.dtsi
->> @@ -92,6 +92,16 @@
->>   		pinctrl-single,function-mask = <0x7f>;
->>   	};
->>
->> +	ext_clocks {
->> +		compatible = "ti,external-clocks";
+>>   arch/arm/boot/dts/dra7.dtsi | 30 ++++++++++++++++++++++++++++++
+>>   1 file changed, 30 insertions(+)
+>=20
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dt=
+si
+>> index 370009e..4ce1a4f 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+> [...]
+>> @@ -1267,6 +1269,34 @@
+>>               ti,irqs-skip =3D <10 133 139 140>;
+>>               ti,irqs-safe-map =3D <0>;
+>>           };
 >> +
->> +		ext_clocks: clocks {
->> +		};
->> +
->> +		ext_clockdomains: clockdomains {
->> +		};
->> +	};
->> +
->>   	/*
->>   	 * XXX: Use a flat representation of the AM33XX interconnect.
->>   	 * The real AM33XX interconnect network is quite complex. Since
->> --
->> 1.7.9.5
->>
+>> +        dcan1: d_can@481cc000 {
+>=20
+>    The ePAPR standard has something to say here:
+>=20
+>>>
+> The name of a node should be somewhat generic, reflecting the functio=
+n of the device and not its precise programming model. If appropriate, =
+the name should be one of the following choices:
+>=20
+>     =95 can
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Right. I'll fix it up.
+
+>>>
+>=20
+>> +            compatible =3D "bosch,d_can";
+>> +            ti,hwmods =3D "dcan1";
+>> +            reg =3D <0x4ae3c000 0x2000>,
+>> +                  <0x558 0x4>; /* index to RAMINIT reg within sysco=
+n */
+>> +            raminit-syscon =3D <&dra7_ctrl_core>;
+>> +            raminit-start-bit =3D <3>;
+>> +            raminit-done-bit =3D <1>;
+>> +            raminit-pulse;
+>=20
+>    Hm, aren't the above 4 properties vendor specific? If so, they sho=
+uld start with a vendor prefix and comma.
+
+At least for now I don't know about any other platform other than TI us=
+ing a RAMINIT register outside the
+CAN register space. However the mechanism is generic enough and not lim=
+ited to TI platforms.
+
+I don't mind vendor prefix or not, but would like to hear the opinion o=
+f the CAN maintainers as to what they would prefer.
+
+>=20
+>> +            interrupts =3D <GIC_SPI 222 IRQ_TYPE_LEVEL_HIGH>;
+>> +            clocks =3D <&dcan1_sys_clk_mux>;
+>> +            status =3D "disabled";
+>> +        };
+>=20
+
+cheers,
+-roger
