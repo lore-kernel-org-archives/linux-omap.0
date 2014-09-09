@@ -1,85 +1,41 @@
-From: Nishanth Menon <nm@ti.com>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v2 1/3] can: c_can_platform: Fix c_can_hw_raminit_ti()
  and add timeout
-Date: Tue, 9 Sep 2014 09:34:22 -0500
-Message-ID: <540F0FEE.2040202@ti.com>
-References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-2-git-send-email-rogerq@ti.com>
+Date: Tue, 9 Sep 2014 17:39:52 +0300
+Message-ID: <540F1138.3090502@ti.com>
+References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-2-git-send-email-rogerq@ti.com> <540F0FDD.60201@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1410273070-22485-2-git-send-email-rogerq@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, mkl@pengutronix.de
-Cc: tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56334 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751484AbaIIOkP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Sep 2014 10:40:15 -0400
+In-Reply-To: <540F0FDD.60201@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com
+Cc: tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
-On 09/09/2014 09:31 AM, Roger Quadros wrote:
-> Pass the correct 'mask' and 'value' bits to c_can_hw_raminit_wait_ti().
-> They seem to have been swapped in the usage instances.
+On 09/09/2014 05:34 PM, Marc Kleine-Budde wrote:
+> On 09/09/2014 04:31 PM, Roger Quadros wrote:
+>> Pass the correct 'mask' and 'value' bits to c_can_hw_raminit_wait_ti().
+>> They seem to have been swapped in the usage instances.
 > 
-> TI's RAMINIT DONE mechanism is buggy and may not always be
-> set after the START bit is set. So add a timeout mechanism to
-> c_can_hw_raminit_wait_ti().
+> Can you split this fix into a seperate patch, please.
+
+OK.
+
 > 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/net/can/c_can/c_can_platform.c | 14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
+>> TI's RAMINIT DONE mechanism is buggy and may not always be
+>> set after the START bit is set. So add a timeout mechanism to
+>> c_can_hw_raminit_wait_ti().
 > 
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-> index 109cb44..b144e71 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -75,10 +75,18 @@ static void c_can_plat_write_reg_aligned_to_32bit(const struct c_can_priv *priv,
->  static void c_can_hw_raminit_wait_ti(const struct c_can_priv *priv, u32 mask,
->  				  u32 val)
->  {
-> +	int timeout = 0;
->  	/* We look only at the bits of our instance. */
->  	val &= mask;
-> -	while ((readl(priv->raminit_ctrlreg) & mask) != val)
-> +	while ((readl(priv->raminit_ctrlreg) & mask) != val) {
->  		udelay(1);
-> +		timeout++;
-> +
-> +		if (timeout == 1000) {
+> What should happen if the timeout occurs?
 
-How did we come up with this number?
+I'm not sure yet. I will verify if the hardware still works or not in that case.
+If it doesn't work then we should fail.
 
-> +			dev_err(&priv->dev->dev, "%s: time out\n", __func__);
-> +			break;
-lets say we did timeout..
-see below:
-> +		}
-> +	}
->  }
->  
->  static void c_can_hw_raminit_ti(const struct c_can_priv *priv, bool enable)
-> @@ -97,14 +105,14 @@ static void c_can_hw_raminit_ti(const struct c_can_priv *priv, bool enable)
->  	ctrl |= CAN_RAMINIT_DONE_MASK(priv->instance);
->  	writel(ctrl, priv->raminit_ctrlreg);
->  	ctrl &= ~CAN_RAMINIT_DONE_MASK(priv->instance);
-> -	c_can_hw_raminit_wait_ti(priv, ctrl, mask);
-> +	c_can_hw_raminit_wait_ti(priv, mask, ctrl);
->  
->  	if (enable) {
->  		/* Set start bit and wait for the done bit. */
->  		ctrl |= CAN_RAMINIT_START_MASK(priv->instance);
->  		writel(ctrl, priv->raminit_ctrlreg);
->  		ctrl |= CAN_RAMINIT_DONE_MASK(priv->instance);
-> -		c_can_hw_raminit_wait_ti(priv, ctrl, mask);
-> +		c_can_hw_raminit_wait_ti(priv, mask, ctrl);
-
-is it possible for us to continue? does it make sense for us to change
-that void to a int and handle error cascading?
-
->  	}
->  	spin_unlock(&raminit_lock);
->  }
-> 
-
-
--- 
-Regards,
-Nishanth Menon
+cheers,
+-roger
