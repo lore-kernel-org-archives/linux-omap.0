@@ -1,33 +1,59 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH v8 00/18] 8250-core based serial driver for OMAP + DMA
-Date: Tue, 09 Sep 2014 21:41:20 +0200
-Message-ID: <540F57E0.8030404@linutronix.de>
-References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de> <20140908144616.GA22315@ci00147.xsens-tech.local> <20140908151501.GA22584@linutronix.de> <20140908183353.GB4686@ci00147.xsens-tech.local>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH v4 10/11] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Tue, 9 Sep 2014 14:59:53 -0500
+Message-ID: <540F5C39.7040201@ti.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-11-git-send-email-d-gerlach@ti.com> <7h7g1dlp8b.fsf@linaro.org> <CAK=WgbYwGcSCxHfa880up1qKTroS=mi8UAf_Qh6Wz9n5x4D9rw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20140908183353.GB4686@ci00147.xsens-tech.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: Frans Klaver <frans.klaver@xsens.com>
-Cc: linux-serial@vger.kernel.org, tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50906 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752296AbaIIUAU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Sep 2014 16:00:20 -0400
+In-Reply-To: <CAK=WgbYwGcSCxHfa880up1qKTroS=mi8UAf_Qh6Wz9n5x4D9rw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@linaro.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Benoit Cousson <bcousson@baylibre.com>
 
-On 09/08/2014 08:33 PM, Frans Klaver wrote:
-> Thanks. I'll give it a spin on Wednesday.
+Hi Ohad,
 
-Could you please pull the upcoming v9 first?
-
- git://git.breakpoint.cc/bigeasy/linux.git uart_v9_pre1
-
-This solves a few of my am335x related issues.
-
-The problem that the uart freezes on beagle board xm is still there.
->From what I can say is that the DMA transfer is started but not
-completed and I can't reproduce it on dra7xx
-
-> Thanks,
-> Frans
+On 09/09/2014 05:31 AM, Ohad Ben-Cohen wrote:
+> On Tue, Sep 9, 2014 at 1:30 AM, Kevin Hilman <khilman@linaro.org> wrote:
+>> To me, it's not terribly clear how you made the split between this PM
+>> core code an the remoteproc code.  In the changelog for the remoteproc
+>> patch, it states it's to "load the firmware for and boot the wkup_m3".
+>> But, while parts of the IPC are here in pm33xx.c, parts of the IPC are
+>> also inside the remoteproc driver, so I'm quite curious if that's OK
+>> with the remoteproc maintainers.  Either way, please make it clearer how
+>> and why you made the split, and please isolate the wkup_m3 IPC/protocol
+>> from this code.  Think of people wanting to rework/extend the wkup_m3
+>> firmware.  They shouldn't be messing around in here, but rather inside a
+>> driver specificaly for the wkup_m3.
 > 
+> I haven't looked at the code very thoroughly yet, but generally a
+> remoteproc driver should only implement the three start/stop/kick
+> rproc_ops, and then register them via the remoteproc framework.
+> Exposing additional API directly from that driver isn't something we
+> immediately want to accept.
+> 
+> If relevant, we would generally prefer to extend remoteproc instead,
+> so other platform-specific drivers could utilize that functionality as
+> well. Or rpmsg - if we're missing some IPC functionality.
 
-Sebastian
+The WkupM3 cannot access DDR, and so we don't intend to use rpmsg. The
+IPC with wkup_m3 is usually one of the last steps for putting the SoC
+into a desired low-power state either during suspend or cpuidle, and the
+communication uses a bank of fixed registers. The .kick is specific
+to virtio-based communication, and so this is not gonna be used.
+
+If you can take a closer look at the wkup_m3 remoteproc driver and give
+your comments, then we can plan on the next steps. Especially as there
+are also pieces pertaining to the PM layer knowing the WkupM3 has been
+loaded and booted. There are already some pending comments on code
+fragments from Santosh and myself, but let us know your inputs on the
+integration aspects on PM, remoteproc and IPC with WkupM3.
+
+regards
+Suman
