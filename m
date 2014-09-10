@@ -1,61 +1,141 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [RFC] ARM: edma: unconditionally ack the error interrupt
-Date: Wed, 10 Sep 2014 21:39:20 +0200
-Message-ID: <1410377960-26921-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Joel Fernandes <joelf@ti.com>, Sekhar Nori <nsekhar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-kernel@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH 16/16] tty: serial: 8250: omap: add dma support
+Date: Wed, 10 Sep 2014 21:30:11 +0200
+Message-ID: <1410377411-26656-17-git-send-email-bigeasy@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-With 8250-dma, 8250-omap and am335x I observe the following:
+This patch adds the required pieces to 8250-OMAP UART driver for DMA
+support. The TX burst size is set to 1 so we can send an arbitrary
+amount of bytes.
 
-- start a RX transfer which will finish once the FIFO has enough data
-- The TX side starts a large TX transfer, say 1244 bytes. It takes approx
-  102ms for the transfer to complete
-- cancel the RX transfer & start the RX transfer a few times
-- the TX transfer completes. dma_irq_handler() notices this and
-  schedules the completion callback
-- dma_ccerr_handler() is invoked. It returns IRQ_NONE because all four
-  checked registers return 0.
-- the last irq handler is repeated a few times until the irq core shuts it
-  down.
+The RX burst is currently set to 48 which means we receive an DMA
+interrupt every 48 bytes and have to reprogram everything. Less bytes in
+the RX-FIFO mean that no DMA transfer will happen and the UART will send a
+RX-timeout _or_ RDI event at which point the FIFO will be manually purged.
+There is a workaround for TX-DMA on AM33xx where we put the first byte
+into the FIFO to kick start the DMA process. Haven't seen this problem on
+OMAP36xx (beagle board xm) or DRA7xx.
 
-I see the above describes pattern also without dma_ccerr_handler()
-beeing invoked. But if it is invoked, it always _after_ the dma interrupt
-handler for the TX handler was handled. If I disable TX-DMA for the UART
-then I don't see this dma_ccerr_handler() at all.
+On AM375x there is "Usage Note 2.7: UART: Cannot Acknowledge Idle
+Requests in Smartidle Mode When Configured for DMA Operations" in the
+errata document. This problem persists even after disabling DMA in the
+UART and will be addressed in the HWMOD.
 
-Testing longer I see two addition scenarios of dma_ccerr_handler():
-- EDMA_EMR0 reports 0x04000000 (the channel used by TX-UART).
-  edma_callback() reports "looks like slot is null". Looks harmless.
-- EDMA_EMR0 reports the same values but later in the loop where a match
-  search again EDMA_EMR0 reports 0 and so thing is done.
-
-Since it looks like the EDMA_EMR0 is loosing its content before the
-dma_ccerr_handler() is invoked, I suggest to unconditionally ack the
-interrupt so the irq core does not shut it down.
-
+Reviewed-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- arch/arm/common/edma.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/tty/serial/8250/8250_omap.c | 49 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index 88099175fc56..b31f3b7b3851 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -432,8 +432,10 @@ static irqreturn_t dma_ccerr_handler(int irq, void *data)
- 	if ((edma_read_array(ctlr, EDMA_EMR, 0) == 0) &&
- 	    (edma_read_array(ctlr, EDMA_EMR, 1) == 0) &&
- 	    (edma_read(ctlr, EDMA_QEMR) == 0) &&
--	    (edma_read(ctlr, EDMA_CCERR) == 0))
-+	    (edma_read(ctlr, EDMA_CCERR) == 0)) {
-+		edma_write(ctlr, EDMA_EEVAL, 1);
- 		return IRQ_NONE;
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 2a187b00ed0a..5312c9e7ab15 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -366,6 +366,10 @@ static void omap_8250_set_termios(struct uart_port *port,
+ 	priv->scr = OMAP_UART_SCR_RX_TRIG_GRANU1_MASK | OMAP_UART_SCR_TX_EMPTY |
+ 		OMAP_UART_SCR_TX_TRIG_GRANU1_MASK;
+ 
++	if (up->dma)
++		priv->scr |= OMAP_UART_SCR_DMAMODE_1 |
++			OMAP_UART_SCR_DMAMODE_CTL;
++
+ 	priv->xon = termios->c_cc[VSTART];
+ 	priv->xoff = termios->c_cc[VSTOP];
+ 
+@@ -548,6 +552,11 @@ static int omap_8250_startup(struct uart_port *port)
+ 		priv->wer |= OMAP_UART_TX_WAKEUP_EN;
+ 	serial_out(up, UART_OMAP_WER, priv->wer);
+ 
++	if (up->dma) {
++		serial8250_rx_dma(up, 0);
++		priv->dma_active = true;
++	}
++
+ 	pm_runtime_mark_last_busy(port->dev);
+ 	pm_runtime_put_autosuspend(port->dev);
+ 	return 0;
+@@ -566,6 +575,10 @@ static void omap_8250_shutdown(struct uart_port *port)
+ 	struct omap8250_priv *priv = port->private_data;
+ 
+ 	flush_work(&priv->qos_work);
++	if (up->dma) {
++		serial8250_rx_dma(up, UART_IIR_RX_TIMEOUT);
++		priv->dma_active = false;
 +	}
  
- 	while (1) {
- 		int j = -1;
+ 	pm_runtime_get_sync(port->dev);
+ 
+@@ -613,6 +626,13 @@ static void omap_8250_unthrottle(struct uart_port *port)
+ 	pm_runtime_put_autosuspend(port->dev);
+ }
+ 
++#ifdef CONFIG_SERIAL_8250_DMA
++static bool the_no_dma_filter_fn(struct dma_chan *chan, void *param)
++{
++	return false;
++}
++#endif
++
+ static int omap8250_probe(struct platform_device *pdev)
+ {
+ 	struct resource *regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -712,6 +732,30 @@ static int omap8250_probe(struct platform_device *pdev)
+ 	pm_runtime_get_sync(&pdev->dev);
+ 
+ 	omap_serial_fill_features_erratas(&up, priv);
++#ifdef CONFIG_SERIAL_8250_DMA
++	if (pdev->dev.of_node) {
++		/*
++		 * Oh DMA support. If there are no DMA properties in the DT then
++		 * we will fall back to a generic DMA channel which does not
++		 * really work here. To ensure that we do not get a generic DMA
++		 * channel assigned, we have the the_no_dma_filter_fn() here.
++		 * To avoid "failed to request DMA" messages we check for DMA
++		 * properties in DT.
++		 */
++		ret = of_property_count_strings(pdev->dev.of_node, "dma-names");
++		if (ret == 2) {
++			up.dma = &priv->omap8250_dma;
++			priv->omap8250_dma.fn = the_no_dma_filter_fn;
++			priv->omap8250_dma.rx_size = RX_TRIGGER;
++			priv->omap8250_dma.rxconf.src_maxburst = RX_TRIGGER;
++			priv->omap8250_dma.txconf.dst_maxburst = TX_TRIGGER;
++
++			if (of_machine_is_compatible("ti,am33xx"))
++				up.bugs |= UART_BUG_DMA_TX;
++			up.bugs |= UART_BUG_DMA_RX;
++		}
++	}
++#endif
+ 	ret = serial8250_register_8250_port(&up);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "unable to register 8250 port\n");
+@@ -848,6 +892,8 @@ static int omap8250_runtime_suspend(struct device *dev)
+ 	}
+ 
+ 	omap8250_enable_wakeup(priv, true);
++	if (priv->dma_active)
++		serial8250_rx_dma(up, UART_IIR_RX_TIMEOUT);
+ 
+ 	priv->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+ 	schedule_work(&priv->qos_work);
+@@ -872,6 +918,9 @@ static int omap8250_runtime_resume(struct device *dev)
+ 	if (loss_cntx)
+ 		omap8250_restore_regs(up);
+ 
++	if (priv->dma_active)
++		serial8250_rx_dma(up, 0);
++
+ 	priv->latency = priv->calc_latency;
+ 	schedule_work(&priv->qos_work);
+ 	return 0;
 -- 
 2.1.0
+
