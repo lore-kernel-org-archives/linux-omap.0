@@ -1,38 +1,56 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: 3.15+: omap4: mmc: multi_v7: can't boot off mmc
-Date: Wed, 10 Sep 2014 11:50:01 -0500
-Message-ID: <20140910165000.GA3026@splat>
-References: <20140910153316.GA12169@luxor.wired.org>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH v8 00/18] 8250-core based serial driver for OMAP + DMA
+Date: Wed, 10 Sep 2014 18:56:37 +0200
+Message-ID: <541082C5.7040608@linutronix.de>
+References: <1409943773-7874-1-git-send-email-bigeasy@linutronix.de> <20140908144616.GA22315@ci00147.xsens-tech.local> <20140908151501.GA22584@linutronix.de> <20140908183353.GB4686@ci00147.xsens-tech.local> <540F57E0.8030404@linutronix.de> <20140910141554.GC22315@ci00147.xsens-tech.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140910153316.GA12169@luxor.wired.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Paolo Pisati <p.pisati@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mmc' <linux-mmc@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140910141554.GC22315@ci00147.xsens-tech.local>
+Sender: linux-serial-owner@vger.kernel.org
+To: Frans Klaver <frans.klaver@xsens.com>
+Cc: linux-serial@vger.kernel.org, tony@atomide.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 17:33-20140910, Paolo Pisati wrote:
-> I'm having an hard time making the vanilla v7_defconfig boot off the mmc on my
-> pandaboard:
+On 09/10/2014 04:15 PM, Frans Klaver wrote:
+> On Tue, Sep 09, 2014 at 09:41:20PM +0200, Sebastian Andrzej Siewior wrote:
+>> On 09/08/2014 08:33 PM, Frans Klaver wrote:
+>>> Thanks. I'll give it a spin on Wednesday.
+>>
+>> Could you please pull the upcoming v9 first?
+>>
+>>  git://git.breakpoint.cc/bigeasy/linux.git uart_v9_pre1
+>>
+>> This solves a few of my am335x related issues.
+> 
+> Using v9_pre1, I get a kernel panic in edma_dma_pause() on echan->edesc
+> being NULL. I do get data before this happens. This is at high speed,
+> high rate. No mention of the irq having too much to do, though. The more
+> data I transmit, the more likely this is to occur.
 
-V3.15:
-https://github.com/nmenon/kernel-test-logs/blob/v3.15/multi_v7_defconfig/pandaboard-vanilla.txt
-https://github.com/nmenon/kernel-test-logs/blob/v3.15/multi_v7_defconfig/pandaboard-es.txt
+Hmm. This shouldn't happen because if dma->rx_running is set, then
+there should be a descriptor to pause.
+Could check how this could happen? (and which event tries to do so)
 
-v3.16:
-https://github.com/nmenon/kernel-test-logs/blob/v3.16/multi_v7_defconfig/pandaboard-es.txt
-https://github.com/nmenon/kernel-test-logs/blob/v3.16/multi_v7_defconfig/pandaboard-vanilla.txt
+In the meantime, the lower part of [0] should fix the NULL bug.
 
-Latest tag: v3.17-rc4
-https://github.com/nmenon/kernel-test-logs/blob/v3.17-rc4/multi_v7_defconfig/pandaboard-es.txt
-https://github.com/nmenon/kernel-test-logs/blob/v3.17-rc4/multi_v7_defconfig/pandaboard-vanilla.txt
+[0] https://lkml.org/lkml/2014/7/29/506
 
+> I don't currently have the setup to lower the baudrate. I would probably
+> need to reproduce this on a beaglebone, instead of our custom board.
+> I'll see if I can do that.
+> 
+> If you need more info, just let me know.
 
-You might be interested in using partuuid to be careful about the probe
-order deltas that may take place.
+I just pushed uart_v9_pre2 and I will post it once I rebased it on top
+Greg's latest.
+There was a bug where THRE could be active longer than needed caused a
+few not needed interrupts until the FIFO was empty again.
 
--- 
-Regards,
-Nishanth Menon
+My "less on file" test case did not fail anymore with this.
+
+> Thanks,
+> Frans
+
+Sebastian
