@@ -1,56 +1,284 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [REPOST PATCHv3 0/2] OMAP Mailbox DT support for 3.18
-Date: Wed, 10 Sep 2014 14:20:57 -0500
-Message-ID: <1410376859-7297-1-git-send-email-s-anna@ti.com>
+Subject: [REPOST PATCHv3 2/2] mailbox/omap: add support for parsing dt devices
+Date: Wed, 10 Sep 2014 14:20:59 -0500
+Message-ID: <1410376859-7297-3-git-send-email-s-anna@ti.com>
+References: <1410376859-7297-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55052 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750967AbaIJTV0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Sep 2014 15:21:26 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:60131 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752967AbaIJTVb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Sep 2014 15:21:31 -0400
+In-Reply-To: <1410376859-7297-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>, Jassi Brar <jassisinghbrar@gmail.com>, Rob Herring <robh+dt@kernel.org>
 
-Hi Tony,
+Logic has been added to the OMAP2+ mailbox code to parse the
+mailbox dt nodes and construct the different sub-mailboxes
+associated with the instance. The DT representation of the
+sub-mailbox devices is different from legacy platform data
+representation to allow flexibility of interrupt configuration
+between Tx and Rx fifos (to also possibly allow simplex devices
+in the future). The DT representation gathers similar information
+that was being passed previously through the platform data, except
+for the interrupt type information, which is gathered through driver
+compatible match data.
 
-This is a repost of just the DT support patches (first 2 patches out
-of 5) from the OMAP Mailbox framework adoption and DT support series [1],
-so that they can be picked up for 3.18. The only change is an Acked-by
-picked up on the second patch. I will repost the third patch separately,
-and the last 2 patches once a framework branch is published (no changes
-on those as well).
+The non-DT support has to be maintained for now to not break
+OMAP3 legacy boot, and the legacy-style code will be cleaned
+up once OMAP3 is also converted to DT-boot only.
 
-The patches are rebased onto 3.17-rc3. The previous dependencies - the
-OMAP mailbox DT/hwmod cleanup series [2] and the OMAP mailbox cleanup
-series [3] have already been merged in 3.17-rc1, so there are no more
-pending dependencies for these patches.
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+---
+ drivers/mailbox/omap-mailbox.c | 156 ++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 132 insertions(+), 24 deletions(-)
 
-The following shows the boot logs on various OMAP platforms with just these
-patches:
-  OMAP2 (SDP2430)           : http://pastebin.ubuntu.com/8311033
-  OMAP3 (BeagleXM)          : http://pastebin.ubuntu.com/8310760
-  OMAP4 (PandaBoard)        : http://pastebin.ubuntu.com/8310633 
-  OMAP5 (OMAP5 uEVM)        : http://pastebin.ubuntu.com/8310650
-  DRA7  (DRA7 EVM)          : http://pastebin.ubuntu.com/8310700
-  AM33xx (BeagleBone Black) : http://pastebin.ubuntu.com/8310732
-  AM43xx (AM437x GP EVM)    : http://pastebin.ubuntu.com/8310824
-
-[1] http://marc.info/?l=linux-omap&m=140668054422693&w=2
-[2] http://marc.info/?l=linux-omap&m=140511512208519&w=2
-[3] http://www.spinics.net/lists/linux-omap/msg108574.html
-
-Suman Anna (2):
-  Documentation: dt: add omap mailbox bindings
-  mailbox/omap: add support for parsing dt devices
-
- .../devicetree/bindings/mailbox/omap-mailbox.txt   | 108 ++++++++++++++
- drivers/mailbox/omap-mailbox.c                     | 156 +++++++++++++++++----
- 2 files changed, 240 insertions(+), 24 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
-
+diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
+index a27e00e..bcc7ee1 100644
+--- a/drivers/mailbox/omap-mailbox.c
++++ b/drivers/mailbox/omap-mailbox.c
+@@ -31,6 +31,7 @@
+ #include <linux/err.h>
+ #include <linux/notifier.h>
+ #include <linux/module.h>
++#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/platform_data/mailbox-omap.h>
+@@ -94,6 +95,18 @@ struct omap_mbox_device {
+ 	struct list_head elem;
+ };
+ 
++struct omap_mbox_fifo_info {
++	int tx_id;
++	int tx_usr;
++	int tx_irq;
++
++	int rx_id;
++	int rx_usr;
++	int rx_irq;
++
++	const char *name;
++};
++
+ struct omap_mbox {
+ 	const char		*name;
+ 	int			irq;
+@@ -587,24 +600,118 @@ static int omap_mbox_unregister(struct omap_mbox_device *mdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id omap_mailbox_of_match[] = {
++	{
++		.compatible	= "ti,omap2-mailbox",
++		.data		= (void *)MBOX_INTR_CFG_TYPE1,
++	},
++	{
++		.compatible	= "ti,omap3-mailbox",
++		.data		= (void *)MBOX_INTR_CFG_TYPE1,
++	},
++	{
++		.compatible	= "ti,omap4-mailbox",
++		.data		= (void *)MBOX_INTR_CFG_TYPE2,
++	},
++	{
++		/* end */
++	},
++};
++MODULE_DEVICE_TABLE(of, omap_mailbox_of_match);
++
+ static int omap_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *mem;
+ 	int ret;
+ 	struct omap_mbox **list, *mbox, *mboxblk;
+ 	struct omap_mbox_pdata *pdata = pdev->dev.platform_data;
+-	struct omap_mbox_dev_info *info;
++	struct omap_mbox_dev_info *info = NULL;
++	struct omap_mbox_fifo_info *finfo, *finfoblk;
+ 	struct omap_mbox_device *mdev;
+ 	struct omap_mbox_fifo *fifo;
+-	u32 intr_type;
++	struct device_node *node = pdev->dev.of_node;
++	struct device_node *child;
++	const struct of_device_id *match;
++	u32 intr_type, info_count;
++	u32 num_users, num_fifos;
++	u32 tmp[3];
+ 	u32 l;
+ 	int i;
+ 
+-	if (!pdata || !pdata->info_cnt || !pdata->info) {
++	if (!node && (!pdata || !pdata->info_cnt || !pdata->info)) {
+ 		pr_err("%s: platform not supported\n", __func__);
+ 		return -ENODEV;
+ 	}
+ 
++	if (node) {
++		match = of_match_device(omap_mailbox_of_match, &pdev->dev);
++		if (!match)
++			return -ENODEV;
++		intr_type = (u32)match->data;
++
++		if (of_property_read_u32(node, "ti,mbox-num-users",
++					 &num_users))
++			return -ENODEV;
++
++		if (of_property_read_u32(node, "ti,mbox-num-fifos",
++					 &num_fifos))
++			return -ENODEV;
++
++		info_count = of_get_available_child_count(node);
++		if (!info_count) {
++			dev_err(&pdev->dev, "no available mbox devices found\n");
++			return -ENODEV;
++		}
++	} else { /* non-DT device creation */
++		info_count = pdata->info_cnt;
++		info = pdata->info;
++		intr_type = pdata->intr_type;
++		num_users = pdata->num_users;
++		num_fifos = pdata->num_fifos;
++	}
++
++	finfoblk = devm_kzalloc(&pdev->dev, info_count * sizeof(*finfoblk),
++				GFP_KERNEL);
++	if (!finfoblk)
++		return -ENOMEM;
++
++	finfo = finfoblk;
++	child = NULL;
++	for (i = 0; i < info_count; i++, finfo++) {
++		if (node) {
++			child = of_get_next_available_child(node, child);
++			ret = of_property_read_u32_array(child, "ti,mbox-tx",
++							 tmp, ARRAY_SIZE(tmp));
++			if (ret)
++				return ret;
++			finfo->tx_id = tmp[0];
++			finfo->tx_irq = tmp[1];
++			finfo->tx_usr = tmp[2];
++
++			ret = of_property_read_u32_array(child, "ti,mbox-rx",
++							 tmp, ARRAY_SIZE(tmp));
++			if (ret)
++				return ret;
++			finfo->rx_id = tmp[0];
++			finfo->rx_irq = tmp[1];
++			finfo->rx_usr = tmp[2];
++
++			finfo->name = child->name;
++		} else {
++			finfo->tx_id = info->tx_id;
++			finfo->rx_id = info->rx_id;
++			finfo->tx_usr = info->usr_id;
++			finfo->tx_irq = info->irq_id;
++			finfo->rx_usr = info->usr_id;
++			finfo->rx_irq = info->irq_id;
++			finfo->name = info->name;
++			info++;
++		}
++		if (finfo->tx_id >= num_fifos || finfo->rx_id >= num_fifos ||
++		    finfo->tx_usr >= num_users || finfo->rx_usr >= num_users)
++			return -EINVAL;
++	}
++
+ 	mdev = devm_kzalloc(&pdev->dev, sizeof(*mdev), GFP_KERNEL);
+ 	if (!mdev)
+ 		return -ENOMEM;
+@@ -615,41 +722,40 @@ static int omap_mbox_probe(struct platform_device *pdev)
+ 		return PTR_ERR(mdev->mbox_base);
+ 
+ 	/* allocate one extra for marking end of list */
+-	list = devm_kzalloc(&pdev->dev, (pdata->info_cnt + 1) * sizeof(*list),
++	list = devm_kzalloc(&pdev->dev, (info_count + 1) * sizeof(*list),
+ 			    GFP_KERNEL);
+ 	if (!list)
+ 		return -ENOMEM;
+ 
+-	mboxblk = devm_kzalloc(&pdev->dev, pdata->info_cnt * sizeof(*mbox),
++	mboxblk = devm_kzalloc(&pdev->dev, info_count * sizeof(*mbox),
+ 			       GFP_KERNEL);
+ 	if (!mboxblk)
+ 		return -ENOMEM;
+ 
+-	info = pdata->info;
+-	intr_type = pdata->intr_type;
+ 	mbox = mboxblk;
+-	for (i = 0; i < pdata->info_cnt; i++, info++) {
++	finfo = finfoblk;
++	for (i = 0; i < info_count; i++, finfo++) {
+ 		fifo = &mbox->tx_fifo;
+-		fifo->msg = MAILBOX_MESSAGE(info->tx_id);
+-		fifo->fifo_stat = MAILBOX_FIFOSTATUS(info->tx_id);
+-		fifo->intr_bit = MAILBOX_IRQ_NOTFULL(info->tx_id);
+-		fifo->irqenable = MAILBOX_IRQENABLE(intr_type, info->usr_id);
+-		fifo->irqstatus = MAILBOX_IRQSTATUS(intr_type, info->usr_id);
+-		fifo->irqdisable = MAILBOX_IRQDISABLE(intr_type, info->usr_id);
++		fifo->msg = MAILBOX_MESSAGE(finfo->tx_id);
++		fifo->fifo_stat = MAILBOX_FIFOSTATUS(finfo->tx_id);
++		fifo->intr_bit = MAILBOX_IRQ_NOTFULL(finfo->tx_id);
++		fifo->irqenable = MAILBOX_IRQENABLE(intr_type, finfo->tx_usr);
++		fifo->irqstatus = MAILBOX_IRQSTATUS(intr_type, finfo->tx_usr);
++		fifo->irqdisable = MAILBOX_IRQDISABLE(intr_type, finfo->tx_usr);
+ 
+ 		fifo = &mbox->rx_fifo;
+-		fifo->msg =  MAILBOX_MESSAGE(info->rx_id);
+-		fifo->msg_stat =  MAILBOX_MSGSTATUS(info->rx_id);
+-		fifo->intr_bit = MAILBOX_IRQ_NEWMSG(info->rx_id);
+-		fifo->irqenable = MAILBOX_IRQENABLE(intr_type, info->usr_id);
+-		fifo->irqstatus = MAILBOX_IRQSTATUS(intr_type, info->usr_id);
+-		fifo->irqdisable = MAILBOX_IRQDISABLE(intr_type, info->usr_id);
++		fifo->msg = MAILBOX_MESSAGE(finfo->rx_id);
++		fifo->msg_stat =  MAILBOX_MSGSTATUS(finfo->rx_id);
++		fifo->intr_bit = MAILBOX_IRQ_NEWMSG(finfo->rx_id);
++		fifo->irqenable = MAILBOX_IRQENABLE(intr_type, finfo->rx_usr);
++		fifo->irqstatus = MAILBOX_IRQSTATUS(intr_type, finfo->rx_usr);
++		fifo->irqdisable = MAILBOX_IRQDISABLE(intr_type, finfo->rx_usr);
+ 
+ 		mbox->intr_type = intr_type;
+ 
+ 		mbox->parent = mdev;
+-		mbox->name = info->name;
+-		mbox->irq = platform_get_irq(pdev, info->irq_id);
++		mbox->name = finfo->name;
++		mbox->irq = platform_get_irq(pdev, finfo->tx_irq);
+ 		if (mbox->irq < 0)
+ 			return mbox->irq;
+ 		list[i] = mbox++;
+@@ -657,8 +763,8 @@ static int omap_mbox_probe(struct platform_device *pdev)
+ 
+ 	mutex_init(&mdev->cfg_lock);
+ 	mdev->dev = &pdev->dev;
+-	mdev->num_users = pdata->num_users;
+-	mdev->num_fifos = pdata->num_fifos;
++	mdev->num_users = num_users;
++	mdev->num_fifos = num_fifos;
+ 	mdev->mboxes = list;
+ 	ret = omap_mbox_register(mdev);
+ 	if (ret)
+@@ -684,6 +790,7 @@ static int omap_mbox_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto unregister;
+ 
++	devm_kfree(&pdev->dev, finfoblk);
+ 	return 0;
+ 
+ unregister:
+@@ -708,6 +815,7 @@ static struct platform_driver omap_mbox_driver = {
+ 	.driver	= {
+ 		.name = "omap-mailbox",
+ 		.owner = THIS_MODULE,
++		.of_match_table = of_match_ptr(omap_mailbox_of_match),
+ 	},
+ };
+ 
 -- 
 2.0.4
 
