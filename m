@@ -1,81 +1,81 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 03/16] tty: serial: 8250_core: read only RX if there is something in the FIFO
-Date: Wed, 10 Sep 2014 21:29:58 +0200
-Message-ID: <1410377411-26656-4-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 01/16] tty: serial: 8250_core: allow to set ->throttle / ->unthrottle callbacks
+Date: Wed, 10 Sep 2014 21:29:56 +0200
+Message-ID: <1410377411-26656-2-git-send-email-bigeasy@linutronix.de>
 References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-serial@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-The serial8250_do_startup() function unconditionally clears the
-interrupts and for that it reads from the RX-FIFO without checking if
-there is a byte in the FIFO or not. This works fine on OMAP4+ HW like
-AM335x or DRA7.
-OMAP3630 ES1.1 (which means probably all OMAP3 and earlier) does not like
-this:
-
-|Unhandled fault: external abort on non-linefetch (0x1028) at 0xfb020000
-|Internal error: : 1028 [#1] ARM
-|Modules linked in:
-|CPU: 0 PID: 1 Comm: swapper Not tainted 3.16.0-00022-g7edcb57-dirty #1213
-|task: de0572c0 ti: de058000 task.ti: de058000
-|PC is at mem32_serial_in+0xc/0x1c
-|LR is at serial8250_do_startup+0x220/0x85c
-|Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-|Control: 10c5387d  Table: 80004019  DAC: 00000015
-|[<c03051d4>] (mem32_serial_in) from [<c0307fe8>] (serial8250_do_startup+0x220/0x85c)
-|[<c0307fe8>] (serial8250_do_startup) from [<c0309e00>] (omap_8250_startup+0x5c/0xe0)
-|[<c0309e00>] (omap_8250_startup) from [<c030863c>] (serial8250_startup+0x18/0x2c)
-|[<c030863c>] (serial8250_startup) from [<c030394c>] (uart_startup+0x78/0x1d8)
-|[<c030394c>] (uart_startup) from [<c0304678>] (uart_open+0xe8/0x114)
-|[<c0304678>] (uart_open) from [<c02e9e10>] (tty_open+0x1a8/0x5a4)
+The OMAP UART provides support for HW assisted flow control. What is
+missing is the support to throttle / unthrottle callbacks which are used
+by the omap-serial driver at the moment.
+This patch adds the callbacks. It should be safe to add them since they
+are only invoked from the serial_core (uart_throttle()) if the feature
+flags are set.
 
 Reviewed-by: Tony Lindgren <tony@atomide.com>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- drivers/tty/serial/8250/8250_core.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/tty/serial/8250/8250_core.c | 14 ++++++++++++++
+ include/linux/serial_core.h         |  2 ++
+ 2 files changed, 16 insertions(+)
 
 diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index 3cf5c98013e4..547afde9fdda 100644
+index a0c1d64f34c5..68c44d97091b 100644
 --- a/drivers/tty/serial/8250/8250_core.c
 +++ b/drivers/tty/serial/8250/8250_core.c
-@@ -2088,8 +2088,8 @@ int serial8250_do_startup(struct uart_port *port)
- 	/*
- 	 * Clear the interrupt registers.
- 	 */
--	serial_port_in(port, UART_LSR);
--	serial_port_in(port, UART_RX);
-+	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
-+		serial_port_in(port, UART_RX);
- 	serial_port_in(port, UART_IIR);
- 	serial_port_in(port, UART_MSR);
+@@ -1319,6 +1319,16 @@ static void serial8250_start_tx(struct uart_port *port)
+ 	}
+ }
  
-@@ -2250,8 +2250,8 @@ int serial8250_do_startup(struct uart_port *port)
- 	 * saved flags to avoid getting false values from polling
- 	 * routines or the previous session.
- 	 */
--	serial_port_in(port, UART_LSR);
--	serial_port_in(port, UART_RX);
-+	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
-+		serial_port_in(port, UART_RX);
- 	serial_port_in(port, UART_IIR);
- 	serial_port_in(port, UART_MSR);
- 	up->lsr_saved_flags = 0;
-@@ -2344,7 +2344,8 @@ void serial8250_do_shutdown(struct uart_port *port)
- 	 * Read data port to reset things, and then unlink from
- 	 * the IRQ chain.
- 	 */
--	serial_port_in(port, UART_RX);
-+	if (serial_port_in(port, UART_LSR) & UART_LSR_DR)
-+		serial_port_in(port, UART_RX);
- 	serial8250_rpm_put(up);
++static void serial8250_throttle(struct uart_port *port)
++{
++	port->throttle(port);
++}
++
++static void serial8250_unthrottle(struct uart_port *port)
++{
++	port->unthrottle(port);
++}
++
+ static void serial8250_stop_rx(struct uart_port *port)
+ {
+ 	struct uart_8250_port *up = up_to_u8250p(port);
+@@ -2912,6 +2922,8 @@ static struct uart_ops serial8250_pops = {
+ 	.get_mctrl	= serial8250_get_mctrl,
+ 	.stop_tx	= serial8250_stop_tx,
+ 	.start_tx	= serial8250_start_tx,
++	.throttle	= serial8250_throttle,
++	.unthrottle	= serial8250_unthrottle,
+ 	.stop_rx	= serial8250_stop_rx,
+ 	.enable_ms	= serial8250_enable_ms,
+ 	.break_ctl	= serial8250_break_ctl,
+@@ -3462,6 +3474,8 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
+ 		uart->capabilities	= up->capabilities;
+ 		uart->rs485_config	= up->rs485_config;
+ 		uart->rs485		= up->rs485;
++		uart->port.throttle	= up->port.throttle;
++		uart->port.unthrottle	= up->port.unthrottle;
  
- 	del_timer_sync(&up->timer);
+ 		/* Take tx_loadsz from fifosize if it wasn't set separately */
+ 		if (uart->port.fifosize && !uart->tx_loadsz)
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index 3bd7d55eebce..80936c68a7d3 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -124,6 +124,8 @@ struct uart_port {
+ 				               struct ktermios *old);
+ 	int			(*startup)(struct uart_port *port);
+ 	void			(*shutdown)(struct uart_port *port);
++	void			(*throttle)(struct uart_port *port);
++	void			(*unthrottle)(struct uart_port *port);
+ 	int			(*handle_irq)(struct uart_port *);
+ 	void			(*pm)(struct uart_port *, unsigned int state,
+ 				      unsigned int old);
 -- 
 2.1.0
-
