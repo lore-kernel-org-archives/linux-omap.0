@@ -1,103 +1,71 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] bus: omap_l3_noc: Fix connID for OMAP4
-Date: Wed, 10 Sep 2014 05:20:27 -0500
-Message-ID: <1410344427-26006-1-git-send-email-nm@ti.com>
+From: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: omap5: Add dr_mode for dwc3
+Date: Wed, 10 Sep 2014 15:03:33 +0300
+Message-ID: <54103E15.3090406@compulab.co.il>
+References: <1381402195-29257-1-git-send-email-kishon@ti.com> <1381402195-29257-2-git-send-email-kishon@ti.com> <52580F34.8030809@ti.com> <20140416161619.GH28035@saruman.home> <540D9449.3090008@compulab.co.il> <20140908132403.GA22409@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kristian Otnes <kotnes@cisco.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140908132403.GA22409-HgARHv6XitL9zxVx7UNMDg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit d4d8819e205854c ("bus: omap_l3_noc: fix masterid detection")
-did the right thing in dropping the LSB 2 bits which is not part
-of the ConnID for NTTP master address. However, as part of that
-change, we should also have ensured that existing list of OMAP4 connID
-codes are also shifted by 2 bits to ensure that connIDs map to "Table
-13-18. ConnID Values" as provided in Technical Reference Manuals for
-OMAP4430(Rev AP, April 2014, SWPU220AP) and OMAP4460(Rev AB, April
-2014, SWPU234AB)
+Hi,
 
-Fixes: d4d8819e205854c ("bus: omap_l3_noc: fix masterid detection")
-Reported-by: Kristian Otnes <kotnes@cisco.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+On 09/08/2014 04:24 PM, Felipe Balbi wrote:
+> Hi,
+>
+> On Mon, Sep 08, 2014 at 02:34:33PM +0300, Dmitry Lifshitz wrote:
+>> Hi Felipe, Roger
+>>
+>> On 04/16/2014 07:16 PM, Felipe Balbi wrote:
+>>> On Fri, Oct 11, 2013 at 05:46:12PM +0300, Roger Quadros wrote:
+>>>> Hi,
+>>>>
+>>>> On 10/10/2013 01:49 PM, Kishon Vijay Abraham I wrote:
+>>>>> From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+>>>>>
+>>>>> Added dr_mode property in dwc3 and set its default mode to device.
+>>>>
+>>>> If there is a specific reason why this is not set to "otg", we need
+>>>> to explain it here.
+>>>>
+>>>> AFAIK the port is meant to be used as OTG port.
+>>>
+>>> we still don't have the workaround for dual role ports, I've been
+>>> working on it but still need to retest and make sure it's working fine
+>>> before merging upstream.
+>>>
+>>
+>>
+>> Does the OTG port suppose to work with OMAP5? I mean role switching
+>> mechanism?
+>>
+>> I'm testing kernel v3.16 with OMAP5 based board (CM-T54).
+>>
+>> If I set CONFIG_USB_DWC3_DUAL_ROLE, than nothing is going on when I plug
+>> some device/host cable into micro USB3.0 port (VBUS/ID detection with extcon
+>> events works fine).
+>
+> Dual role does not work. We allow the driver to the built with both Host
+> and Peripheral support because some platforms have more than one port
+> and building the driver with dual role allows us to make one port host
+> and one peripheral.
+>
 
-Based on v3.17-rc1 - but might be 3.17 rc material
+Please, can you provide some detail about platforms with several ports.
+How do that ports are connected to DWC3?
 
-Quick links (seems to work on firefox):
-4430:
-http://www.ti.com/lit/ug/swpu231ap/swpu231ap.pdf#page=3030&zoom=auto,0,699.5
-4460:
-http://www.ti.com/lit/ug/swpu235ab/swpu235ab.pdf#page=3073&zoom=auto,0,699.5
 
-NOTE: there are a few more cleanup patches that can follow these..
-will leave those out for now.
+Thanks,
 
- drivers/bus/omap_l3_noc.h |   50 ++++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+Dmitry
 
-diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-index 551e010..9525458 100644
---- a/drivers/bus/omap_l3_noc.h
-+++ b/drivers/bus/omap_l3_noc.h
-@@ -188,31 +188,31 @@ static struct l3_flagmux_data omap_l3_flagmux_clk3 = {
- };
- 
- static struct l3_masters_data omap_l3_masters[] = {
--	{ 0x0 , "MPU"},
--	{ 0x10, "CS_ADP"},
--	{ 0x14, "xxx"},
--	{ 0x20, "DSP"},
--	{ 0x30, "IVAHD"},
--	{ 0x40, "ISS"},
--	{ 0x44, "DucatiM3"},
--	{ 0x48, "FaceDetect"},
--	{ 0x50, "SDMA_Rd"},
--	{ 0x54, "SDMA_Wr"},
--	{ 0x58, "xxx"},
--	{ 0x5C, "xxx"},
--	{ 0x60, "SGX"},
--	{ 0x70, "DSS"},
--	{ 0x80, "C2C"},
--	{ 0x88, "xxx"},
--	{ 0x8C, "xxx"},
--	{ 0x90, "HSI"},
--	{ 0xA0, "MMC1"},
--	{ 0xA4, "MMC2"},
--	{ 0xA8, "MMC6"},
--	{ 0xB0, "UNIPRO1"},
--	{ 0xC0, "USBHOSTHS"},
--	{ 0xC4, "USBOTGHS"},
--	{ 0xC8, "USBHOSTFS"}
-+	{ 0x00, "MPU"},
-+	{ 0x04, "CS_ADP"},
-+	{ 0x05, "xxx"},
-+	{ 0x08, "DSP"},
-+	{ 0x0C, "IVAHD"},
-+	{ 0x10, "ISS"},
-+	{ 0x11, "DucatiM3"},
-+	{ 0x12, "FaceDetect"},
-+	{ 0x14, "SDMA_Rd"},
-+	{ 0x15, "SDMA_Wr"},
-+	{ 0x16, "xxx"},
-+	{ 0x17, "xxx"},
-+	{ 0x18, "SGX"},
-+	{ 0x1C, "DSS"},
-+	{ 0x20, "C2C"},
-+	{ 0x22, "xxx"},
-+	{ 0x23, "xxx"},
-+	{ 0x24, "HSI"},
-+	{ 0x28, "MMC1"},
-+	{ 0x29, "MMC2"},
-+	{ 0x2A, "MMC6"},
-+	{ 0x2C, "UNIPRO1"},
-+	{ 0x30, "USBHOSTHS"},
-+	{ 0x31, "USBOTGHS"},
-+	{ 0x32, "USBHOSTFS"}
- };
- 
- static struct l3_flagmux_data *omap_l3_flagmux[] = {
--- 
-1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
