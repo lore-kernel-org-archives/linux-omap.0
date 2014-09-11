@@ -1,75 +1,43 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH] clk: add gpio gated clock
-Date: Thu, 11 Sep 2014 11:44:24 +0300
-Message-ID: <541160E8.5070701@ti.com>
-References: <1409919694-26941-1-git-send-email-jsarha@ti.com> <20140909221408.19023.12081@quantum>
+From: Paolo Pisati <p.pisati@gmail.com>
+Subject: Re: 3.15+: omap4: mmc: multi_v7: can't boot off mmc
+Date: Thu, 11 Sep 2014 12:18:17 +0200
+Message-ID: <20140911101817.GB7482@luxor.wired.org>
+References: <20140910153316.GA12169@luxor.wired.org>
+ <20140910165000.GA3026@splat>
+ <20140911080132.GA7482@luxor.wired.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140909221408.19023.12081@quantum>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com
-Cc: t-kristo@ti.com, mark.rutland@arm.com, detheridge@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f173.google.com ([74.125.82.173]:53045 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753776AbaIKKSV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 06:18:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20140911080132.GA7482@luxor.wired.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Paolo Pisati <p.pisati@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc' <linux-mmc@vger.kernel.org>
 
-On 09/10/2014 01:14 AM, Mike Turquette wrote:
-> Quoting Jyri Sarha (2014-09-05 05:21:34)
->> The added gpio-gate-clock is a basic clock that can be enabled and
->> disabled trough a gpio output. The DT binding document for the clock
->> is also added. For EPROBE_DEFER handling the registering of the clock
->> has to be delayed until of_clk_get() call time.
->>
->> Signed-off-by: Jyri Sarha <jsarha@ti.com>
->> ---
->>
->> This is my final attempt to get this generic gpio controlled basic
->> clock into mainline. Of course I gladly fix any issues that the patch
->> may have. However, if there is no response, I give up and move it to TI
->> specific clocks.
->>
->
-> I searched through my archives and found a post from January. You Cc'd
-> me as "<mturquette@linaro.org>". Note that the address is wrapped in
-> chevrons but there is no name string (e.g. "Mike Turquette").
->
-> My mailer doesn't parse this well it was not flagged as to:me in my
-> filters. Maybe other mailers handle this better? If you leave out the
-> name string in the future then it would probably be best to drop the
-> chevrons.
->
+On Thu, Sep 11, 2014 at 10:01:32AM +0200, Paolo Pisati wrote:
+> On Wed, Sep 10, 2014 at 11:50:01AM -0500, Nishanth Menon wrote:
+> > On 17:33-20140910, Paolo Pisati wrote:
+> > > I'm having an hard time making the vanilla v7_defconfig boot off the mmc on my
+> > > pandaboard:
+> > 
+> > V3.15:
+> > https://github.com/nmenon/kernel-test-logs/blob/v3.15/multi_v7_defconfig/pandaboard-vanilla.txt
+> > https://github.com/nmenon/kernel-test-logs/blob/v3.15/multi_v7_defconfig/pandaboard-es.txt
+> 
+> are you 100% sure that this is a pure multi_v7_defconfig? because, by default, 
+> REGULATOR_PBIAS is off.
+> 
+> > You might be interested in using partuuid to be careful about the probe
+> > order deltas that may take place.
+> 
+> i'm not sure i understood what you mean here.
 
-Then git send-email adds the chevrons, but in the future I'll put the 
-name string there too.
-
->> I've been sending this patch as a part of Beaglebone-Black HDMI audio
->> patch series since last autumn. Since the previous version I have done
->> some minor cleanups and changed the clock's compatible property from
->> "gpio-clock" to "gpio-gate-clock". All the file names, comments,
->> etc. have also been changed accordingly.
->
-> Is your platform the only one to take advantage of this clock type so
-> far? I feel that it is esoteric enough that it shouldn't be made
-> generic.
->
-> The main reason is that all of the generic clock types needs to be
-> overhauled at some point. E.g. the clk-gate should have its
-> machine-specific logic separated from its machine-independent logic. If
-> the gate clock were to populate .enable and .disable callbacks and then
-> leave the actual register banging, or regmap'ing, or gpio'ing up to your
-> backend driver then that would be a big improvement and would avoid the
-> need to create this new clock type outright.
->
-> So that's on my todo list, but it's not done yet. For your patch I think
-> that putting this code into drivers/clk/ti would probably be best,
-> unless other folks could use it as-is. Even if others could use it today
-> I would want to remove it eventually for the reasons stated in the
-> paragraph above.
->
-
-Ok, I see. I do not know of anybody else needing a gpio gate clock at 
-the moment. I'll put the driver under drivers/clk/ti unless someone 
-comes forward soon.
-
-Thanks,
-Jyri
+ok, nevermind, i found the problem, i forgot the "rootwait" parameter in bootargs.
+-- 
+bye,
+p.
