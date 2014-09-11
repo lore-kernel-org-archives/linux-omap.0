@@ -1,46 +1,29 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH] CLK: TI: consider the fact that of_clk_get() might return an error
-Date: Thu, 11 Sep 2014 18:01:12 +0200
-Message-ID: <1410451272-31068-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:41667 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756854AbaIKQBQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 12:01:16 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Thu, 11 Sep 2014 18:04:32 +0200
+Message-ID: <5411C810.7070906@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5411967A.6090406@hurleysoftware.com> <54119AAA.9080907@linutronix.de> <20140911151114.GD28458@ci00147.xsens-tech.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140911151114.GD28458@ci00147.xsens-tech.local>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Frans Klaver <frans.klaver@xsens.com>
+Cc: Peter Hurley <peter@hurleysoftware.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-I "forgot" to update the dtb and the kernel crashed:
-|Unable to handle kernel NULL pointer dereference at virtual address 0000002e
-|PC is at __clk_get_flags+0x4/0xc
-|LR is at ti_dt_clockdomains_setup+0x70/0xe8
+On 09/11/2014 05:11 PM, Frans Klaver wrote:
 
-because I did not have the clock nodes. of_clk_get() returns an error
-pointer which is not checked here.
+> I can still reproduce it on am335x. I can get out of it as soon as
+> something else gets written to the console though.
+> 
+> # echo "<3>something" >/dev/kmsg
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/clk/ti/clockdomain.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Is this to stall it or to get out of it?
 
-diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.c
-index f1e0038d76ac..fdd458600c2c 100644
---- a/drivers/clk/ti/clockdomain.c
-+++ b/drivers/clk/ti/clockdomain.c
-@@ -36,6 +36,11 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
- 
- 	for (i = 0; i < num_clks; i++) {
- 		clk = of_clk_get(node, i);
-+		if (IS_ERR(clk)) {
-+			pr_err("Failed get %s' clock nr %d (%ld)\n",
-+					node->full_name, i, PTR_ERR(clk));
-+			continue;
-+		}
- 		if (__clk_get_flags(clk) & CLK_IS_BASIC) {
- 			pr_warn("can't setup clkdm for basic clk %s\n",
- 				__clk_get_name(clk));
--- 
-2.1.0
+> 
+> Frans
 
+Sebastian
