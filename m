@@ -1,95 +1,170 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: make of_device_ids const
-Date: Thu, 11 Sep 2014 21:14:57 +0200
-Message-ID: <20140911191457.GN3755@pengutronix.de>
-References: <1410337579-23466-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1410337579-23466-2-git-send-email-u.kleine-koenig@pengutronix.de>
- <20140911173943.GB18849@atomide.com>
- <20140911190136.GM3755@pengutronix.de>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: [PATCH] ARM: omap2: make arrays containing machine compatible strings const
+Date: Thu, 11 Sep 2014 21:29:01 +0200
+Message-ID: <1410463741-29202-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20140911190136.GM3755-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47261 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755767AbaIKT3S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 15:29:18 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: kernel@pengutronix.de, linux-omap@vger.kernel.org
 
-Hello,
+The definition
 
-On Thu, Sep 11, 2014 at 09:01:36PM +0200, Uwe Kleine-K=C3=B6nig wrote:
-> On Thu, Sep 11, 2014 at 10:39:43AM -0700, Tony Lindgren wrote:
-> > * Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> [140910 01=
-:27]:
-> > > of_device_ids (i.e. compatible strings and the respective data) a=
-re not
-> > > supposed to change at runtime. All functions working with of_devi=
-ce_ids
-> > > provided by <linux/of.h> work with const of_device_ids. So mark t=
-he
-> > > non-const function parameters and structs for OMAP2+ as const, to=
-o.
-> >=20
-> > Hmm this does not seem to compile with omap2plus_defconfig because
-> > of section type conflicts. Looks like there's some issue now with t=
-he
-> > use of __initconst:
-> >=20
-> > arch/arm/mach-omap2/board-generic.c:262:20: error: dra72x_boards_co=
-mpat causes a section type conflict with omap_dt_match_table
-> > arch/arm/mach-omap2/board-generic.c:30:34: note: =E2=80=98omap_dt_m=
-atch_table=E2=80=99 was declared here
-> > scripts/Makefile.build:257: recipe for target 'arch/arm/mach-omap2/=
-board-generic.o' failed
-> The problem is dra74x_boards_compat though:
->=20
-> 	static const char *dra74x_boards_compat[] __initconst =3D {
-> 		...
->=20
-> *dra74x_boards_compat is const, but dra74x_boards_compat isn't, so
-> either the variable must go into __initdata or it must be declared as=
-:
->=20
-> 	static const char * const dra74x_boards_compat[] __initconst =3D {
-> 		...
->=20
-> (but then I guess you get another warning because struct machine_desc=
-'s
-> dt_compat is declared as
->=20
-> 	const char **dt_compat;
->=20
-> .)
->=20
-> With the patch below, arch/arm/mach-omap2/board-generic.c compiles ju=
-st
-> fine. Don't know yet if the additional const in <asm/mach_desc.h> is
-> problematic ...
->=20
-> diff --git a/arch/arc/include/asm/mach_desc.h b/arch/arc/include/asm/=
-mach_desc.h
-> index e8993a2be6c2..f4a7bc8d8967 100644
-> --- a/arch/arc/include/asm/mach_desc.h
-> +++ b/arch/arc/include/asm/mach_desc.h
-this is obviously non-sense. The definition for arm already has the
-const I added here for arc.
+	static const char *omap3_boards_compat[] __initconst =3D {
 
-So the patch for board-generic.c below is fine. I will create a proper
-patch for it.
+defines a changable array of constant strings. That is you must not do:
 
-Best regards
-Uwe
+	*omap3_boards_compat[0] =3D 'f';
 
+but
+
+	omap3_boards_compat[0] =3D "another string";
+
+is fine. So the annotation __initconst is wrong and yields a compiler
+error when other really const variables are added with __initconst.
+
+As the struct machine_desc member dt_compat is declared as
+
+	const char *const *dt_compat;
+
+making the arrays const is the better alternative over changing all
+annotations to __initdata.
+
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+---
+ arch/arm/mach-omap2/board-generic.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/=
+board-generic.c
+index 5827abb080e4..0b311d51425f 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -43,7 +43,7 @@ static void __init omap_generic_init(void)
+ }
+=20
+ #ifdef CONFIG_SOC_OMAP2420
+-static const char *omap242x_boards_compat[] __initconst =3D {
++static const char *const omap242x_boards_compat[] __initconst =3D {
+ 	"ti,omap2420",
+ 	NULL,
+ };
+@@ -62,7 +62,7 @@ MACHINE_END
+ #endif
+=20
+ #ifdef CONFIG_SOC_OMAP2430
+-static const char *omap243x_boards_compat[] __initconst =3D {
++static const char *const omap243x_boards_compat[] __initconst =3D {
+ 	"ti,omap2430",
+ 	NULL,
+ };
+@@ -81,7 +81,7 @@ MACHINE_END
+ #endif
+=20
+ #ifdef CONFIG_ARCH_OMAP3
+-static const char *omap3_boards_compat[] __initconst =3D {
++static const char *const omap3_boards_compat[] __initconst =3D {
+ 	"ti,omap3430",
+ 	"ti,omap3",
+ 	NULL,
+@@ -100,7 +100,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattene=
+d Device Tree)")
+ 	.restart	=3D omap3xxx_restart,
+ MACHINE_END
+=20
+-static const char *omap36xx_boards_compat[] __initconst =3D {
++static const char *const omap36xx_boards_compat[] __initconst =3D {
+ 	"ti,omap36xx",
+ 	NULL,
+ };
+@@ -118,7 +118,7 @@ DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Fl=
+attened Device Tree)")
+ 	.restart	=3D omap3xxx_restart,
+ MACHINE_END
+=20
+-static const char *omap3_gp_boards_compat[] __initconst =3D {
++static const char *const omap3_gp_boards_compat[] __initconst =3D {
+ 	"ti,omap3-beagle",
+ 	"timll,omap3-devkit8000",
+ 	NULL,
+@@ -137,7 +137,7 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Fl=
+attened Device Tree)")
+ 	.restart	=3D omap3xxx_restart,
+ MACHINE_END
+=20
+-static const char *am3517_boards_compat[] __initconst =3D {
++static const char *const am3517_boards_compat[] __initconst =3D {
+ 	"ti,am3517",
+ 	NULL,
+ };
+@@ -157,7 +157,7 @@ MACHINE_END
+ #endif
+=20
+ #ifdef CONFIG_SOC_AM33XX
+-static const char *am33xx_boards_compat[] __initconst =3D {
++static const char *const am33xx_boards_compat[] __initconst =3D {
+ 	"ti,am33xx",
+ 	NULL,
+ };
+@@ -177,7 +177,7 @@ MACHINE_END
+ #endif
+=20
+ #ifdef CONFIG_ARCH_OMAP4
+-static const char *omap4_boards_compat[] __initconst =3D {
++static const char *const omap4_boards_compat[] __initconst =3D {
+ 	"ti,omap4460",
+ 	"ti,omap4430",
+ 	"ti,omap4",
+@@ -199,7 +199,7 @@ MACHINE_END
+ #endif
+=20
+ #ifdef CONFIG_SOC_OMAP5
+-static const char *omap5_boards_compat[] __initconst =3D {
++static const char *const omap5_boards_compat[] __initconst =3D {
+ 	"ti,omap5432",
+ 	"ti,omap5430",
+ 	"ti,omap5",
+@@ -221,7 +221,7 @@ MACHINE_END
+ #endif
+=20
+ #ifdef CONFIG_SOC_AM43XX
+-static const char *am43_boards_compat[] __initconst =3D {
++static const char *const am43_boards_compat[] __initconst =3D {
+ 	"ti,am4372",
+ 	"ti,am43",
+ 	NULL,
+@@ -240,7 +240,7 @@ MACHINE_END
+ #endif
+=20
+ #ifdef CONFIG_SOC_DRA7XX
+-static const char *dra74x_boards_compat[] __initconst =3D {
++static const char *const dra74x_boards_compat[] __initconst =3D {
+ 	"ti,dra742",
+ 	"ti,dra7",
+ 	NULL,
+@@ -259,7 +259,7 @@ DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flatte=
+ned Device Tree)")
+ 	.restart	=3D omap44xx_restart,
+ MACHINE_END
+=20
+-static const char *dra72x_boards_compat[] __initconst =3D {
++static const char *const dra72x_boards_compat[] __initconst =3D {
+ 	"ti,dra722",
+ 	NULL,
+ };
 --=20
-Pengutronix e.K.                           | Uwe Kleine-K=C3=B6nig     =
-       |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+2.1.0
+
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
