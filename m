@@ -1,7 +1,8 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 Subject: Re: [PATCH 1/3] ARM: OMAP2+: make of_device_ids const
-Date: Thu, 11 Sep 2014 12:14:50 -0700
-Message-ID: <20140911191449.GF18849@atomide.com>
+Date: Thu, 11 Sep 2014 21:14:57 +0200
+Message-ID: <20140911191457.GN3755@pengutronix.de>
 References: <1410337579-23466-1-git-send-email-u.kleine-koenig@pengutronix.de>
  <1410337579-23466-2-git-send-email-u.kleine-koenig@pengutronix.de>
  <20140911173943.GB18849@atomide.com>
@@ -9,22 +10,19 @@ References: <1410337579-23466-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60615 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753112AbaIKTO4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 15:14:56 -0400
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20140911190136.GM3755@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140911190136.GM3755-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: devicetree@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Rob Herring <robh+dt@kernel.org>, kernel@pengutronix.de, Grant Likely <grant.likely@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [140911 12:02]=
-:
+Hello,
+
+On Thu, Sep 11, 2014 at 09:01:36PM +0200, Uwe Kleine-K=C3=B6nig wrote:
 > On Thu, Sep 11, 2014 at 10:39:43AM -0700, Tony Lindgren wrote:
-> > * Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [140910 01=
+> > * Uwe Kleine-K=C3=B6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> [140910 01=
 :27]:
 > > > of_device_ids (i.e. compatible strings and the respective data) a=
 re not
@@ -57,9 +55,7 @@ board-generic.o' failed
 >=20
 > 	static const char * const dra74x_boards_compat[] __initconst =3D {
 > 		...
-
-Ah OK.
-=20
+>=20
 > (but then I guess you get another warning because struct machine_desc=
 's
 > dt_compat is declared as
@@ -72,15 +68,28 @@ Ah OK.
 st
 > fine. Don't know yet if the additional const in <asm/mach_desc.h> is
 > problematic ...
+>=20
+> diff --git a/arch/arc/include/asm/mach_desc.h b/arch/arc/include/asm/=
+mach_desc.h
+> index e8993a2be6c2..f4a7bc8d8967 100644
+> --- a/arch/arc/include/asm/mach_desc.h
+> +++ b/arch/arc/include/asm/mach_desc.h
+this is obviously non-sense. The definition for arm already has the
+const I added here for arc.
 
-Yes OK thanks. It Would be nice to have those as __initconst to discard
-the unused ones.
+So the patch for board-generic.c below is fine. I will create a proper
+patch for it.
 
-Regards,
+Best regards
+Uwe
 
-Tony
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=C3=B6nig     =
+       |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
 n
-the body of a message to majordomo@vger.kernel.org
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
