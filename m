@@ -1,55 +1,55 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
 Subject: Re: [PATCH] clk: don't use __initconst for non-const arrays
-Date: Thu, 11 Sep 2014 23:48:12 +0200
-Message-ID: <5412189C.2040802@gmail.com>
+Date: Fri, 12 Sep 2014 00:04:45 +0200
+Message-ID: <20140911220445.GQ3755@pengutronix.de>
 References: <1410469471-31027-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1410469471-31027-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Sender: linux-samsung-soc-owner@vger.kernel.org
-To: =?UTF-8?B?VXdlIEtsZWluZS1Lw7ZuaWc=?= <u.kleine-koenig@pengutronix.de>, Mike Turquette <mturquette@linaro.org>
-Cc: linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tero Kristo <t-kristo@ti.com>, linux-rockchip@lists.infradead.org, kernel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Heiko Stuebner <heiko@sntech.de>, Tomasz Figa <tomasz.figa@gmail.com>, Sylwester Nawrocki <s.nawrocki@samsung.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org, linux-rockchip@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-[adding Sylwester and removing my samsung.com e-mail which is no longer
-valid]
+Hello,
 
-On 11.09.2014 23:04, Uwe Kleine-K=C3=B6nig wrote:
-> The statement
->=20
-> 	static const char *name[];
->=20
-> defines a modifiable array of pointers to constant chars. That is
->=20
-> 	*name[0] =3D 'f';
->=20
-> is forbidden, but
->=20
-> 	name[0] =3D "f";
->=20
-> is not. So marking an array that is defined as above with __initconst=
- is
-> wrong. Either an additional const must be added such that the whole
-> definition reads:
->=20
-> 	static const char *const name[] __initconst;
->=20
-> or where this is not possible __initdata must be used.
->=20
-> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
-> ---
->  drivers/clk/hisilicon/clk-hix5hd2.c |  6 ++--
->  drivers/clk/mxs/clk-imx23.c         | 12 ++++----
->  drivers/clk/mxs/clk-imx28.c         | 18 ++++++------
->  drivers/clk/rockchip/clk.h          |  2 +-
->  drivers/clk/samsung/clk-s5pv210.c   | 56 ++++++++++++++++++---------=
-----------
+On Thu, Sep 11, 2014 at 11:04:31PM +0200, Uwe Kleine-K=F6nig wrote:
+>  /* Mux parent lists. */
+> -static const char *fin_pll_p[] __initconst =3D {
+> +static const char *fin_pll_p[] __initdata =3D {
+>  	"xxti",
+>  	"xusbxti"
+>  };
+As discussed with Tomasz on irc: The sad thing here is that for this
+array only 8 bytes are freed when .init.rodata is thrown away (that is
+two pointers). The actual data---5 + 8 bytes + maybe aligning---isn't
+freed though.
 
-=46or drivers/clk/samsung/*
+We wondered if there is a nice and easy way to throw away the
+characters, too.
 
-Acked-by: Tomasz Figa <tomasz.figa@gmail.com>
+The only way I currently see is:
 
-Best regards,
-Tomasz
+	const char xxti[] __initconst =3D "xxti";
+	...
+
+	static const char *fin_pll_p[] __initdata =3D {
+		xxti,
+		...
+	};
+
+but this definitively doesn't qualify as "nice and easy". Is there an
+alternative?
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
