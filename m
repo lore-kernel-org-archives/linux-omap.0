@@ -1,43 +1,59 @@
-From: Paolo Pisati <p.pisati@gmail.com>
-Subject: Re: 3.15+: omap4: mmc: multi_v7: can't boot off mmc
-Date: Thu, 11 Sep 2014 12:18:17 +0200
-Message-ID: <20140911101817.GB7482@luxor.wired.org>
-References: <20140910153316.GA12169@luxor.wired.org>
- <20140910165000.GA3026@splat>
- <20140911080132.GA7482@luxor.wired.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/3] omap-dma: Allow compile-testing omap1_camera driver
+Date: Thu, 11 Sep 2014 11:45:18 +0100
+Message-ID: <20140911104518.GA12379@n2100.arm.linux.org.uk>
+References: <20140909124306.2d5a0d76@canb.auug.org.au> <6cbd00c5f2d342b573aaf9c0e533778374dd2e1e.1410273306.git.m.chehab@samsung.com> <20140909144157.GF12361@n2100.arm.linux.org.uk> <20140909123654.37d60f38.m.chehab@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:53045 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776AbaIKKSV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 06:18:21 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140911080132.GA7482@luxor.wired.org>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20140909123654.37d60f38.m.chehab@samsung.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Arnd Bergmann <arnd@arndb.de>, Peter Griffin <peter.griffin@linaro.org>, Balaji T K <balajitk@ti.com>, Nishanth Menon <nm@ti.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Paolo Pisati <p.pisati@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc' <linux-mmc@vger.kernel.org>
 
-On Thu, Sep 11, 2014 at 10:01:32AM +0200, Paolo Pisati wrote:
-> On Wed, Sep 10, 2014 at 11:50:01AM -0500, Nishanth Menon wrote:
-> > On 17:33-20140910, Paolo Pisati wrote:
-> > > I'm having an hard time making the vanilla v7_defconfig boot off the mmc on my
-> > > pandaboard:
-> > 
-> > V3.15:
-> > https://github.com/nmenon/kernel-test-logs/blob/v3.15/multi_v7_defconfig/pandaboard-vanilla.txt
-> > https://github.com/nmenon/kernel-test-logs/blob/v3.15/multi_v7_defconfig/pandaboard-es.txt
+On Tue, Sep 09, 2014 at 12:36:54PM -0300, Mauro Carvalho Chehab wrote:
+> Hmm... it seems that there are still several drivers still relying on
+> the functions declared at: omap-dma.h:
 > 
-> are you 100% sure that this is a pure multi_v7_defconfig? because, by default, 
-> REGULATOR_PBIAS is off.
+> $ grep extern include/linux/omap-dma.h |perl -ne 'print "$1\n" if (m/extern\s\S+\s(.*)\(/)' >funcs && git grep -f funcs -l
+> arch/arm/mach-omap1/pm.c
+> arch/arm/mach-omap2/pm24xx.c
+> arch/arm/plat-omap/dma.c
+> drivers/dma/omap-dma.c
+> drivers/media/platform/omap/omap_vout_vrfb.c
+> drivers/media/platform/omap3isp/isphist.c
+> drivers/media/platform/soc_camera/omap1_camera.c
+> drivers/mtd/onenand/omap2.c
+> drivers/usb/gadget/udc/omap_udc.c
+> drivers/usb/musb/tusb6010_omap.c
+> drivers/video/fbdev/omap/omapfb_main.c
+> include/linux/omap-dma.h
 > 
-> > You might be interested in using partuuid to be careful about the probe
-> > order deltas that may take place.
-> 
-> i'm not sure i understood what you mean here.
+> Perhaps we can remove the header and mark all the above as BROKEN.
 
-ok, nevermind, i found the problem, i forgot the "rootwait" parameter in bootargs.
+Not quite.  You'll notice that drivers/dma/omap-dma.c appears in that
+list.  That is because right now, the new code has to co-operate with
+the old legacy code to ensure that both do not try and operate on the
+same hardware channel simultaneously.
+
+Right now, when anyone tries to use any of the drivers using the legacy
+APIs, they will get a warning printed in their kernel message log.  This
+is part of my attempt to try and find out:
+
+(a) whether anyone is using these drivers
+(b) whether we can delete these drivers
+
+That warning has not been in the kernel long enough to be certain of
+anything - it was merged during the last merge window (despite me
+having it ready to go since the previous merge window, it would not
+have been correct to introduce a new warning during the -rc period.)
+
+What I recommend is that you just don't mark the OMAP drivers for
+compile testing right now, especially as their future is rather
+uncertain.
+
 -- 
-bye,
-p.
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
