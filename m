@@ -1,59 +1,104 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 0/5] OMAP Mailbox framework adoption & DT support
-Date: Thu, 11 Sep 2014 10:09:55 -0700
-Message-ID: <20140911170955.GA18849@atomide.com>
-References: <1406680479-18446-1-git-send-email-s-anna@ti.com>
- <20140908232053.GS3238@atomide.com>
- <20140909025225.GI10785@atomide.com>
- <540F279A.1080700@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: omap5: Add dr_mode for dwc3
+Date: Thu, 11 Sep 2014 12:14:39 -0500
+Message-ID: <20140911171439.GG1840@saruman.home>
+References: <1381402195-29257-1-git-send-email-kishon@ti.com>
+ <1381402195-29257-2-git-send-email-kishon@ti.com>
+ <52580F34.8030809@ti.com>
+ <20140416161619.GH28035@saruman.home>
+ <540D9449.3090008@compulab.co.il>
+ <20140908132403.GA22409@saruman.home>
+ <54103E15.3090406@compulab.co.il>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3ecMC0kzqsE2ddMN"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <540F279A.1080700@ti.com>
+In-Reply-To: <54103E15.3090406@compulab.co.il>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Markus Mayer <markus.mayer@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Cc: balbi@ti.com, Roger Quadros <rogerq@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna@ti.com> [140909 09:16]:
-> Hi Tony,
-> 
-> On 09/08/2014 09:52 PM, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [140908 16:21]:
-> >> * Suman Anna <s-anna@ti.com> [140729 17:37]:
-> >>> Hi,
-> >>>
-> >>> This is an updated version of the OMAP Mailbox framework adoption &
-> >>> DT support series, refreshed to work with the v9 version of the mailbox
-> >>> framework [1] from Jassi Brar while also addressing some minor review
-> >>> comments. Detailed changes are summarized below. Patches are based on
-> >>> 3.16-rc2.
+--3ecMC0kzqsE2ddMN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Sep 10, 2014 at 03:03:33PM +0300, Dmitry Lifshitz wrote:
+> Hi,
+>=20
+> On 09/08/2014 04:24 PM, Felipe Balbi wrote:
+> >Hi,
+> >
+> >On Mon, Sep 08, 2014 at 02:34:33PM +0300, Dmitry Lifshitz wrote:
+> >>Hi Felipe, Roger
 > >>
-> >> Sorry for the delay, just noticed that I'm supposed to queue
-> >> these too. I'll queue these into omap-for-v3.18/mailbox against
-> >> v3.17-rc1 and will probably also merge it into omap-for-v3.18/dt
-> >> as well.
-> > 
-> > Actually this is not compiling and seems to probably miss
-> > the dependencies from Jassi, so dropping the branch.
-> 
-> The last 2 patches which is the framework adoption portion needs the
-> framework patches from Jassi (as stated in the cover letter). I will
-> ping on the framework thread to see if it is making it into 3.18. In any
-> case, we should be able to take the first three patches (2 in drivers
-> and 1 for DT) - they are independent of the framework and also are
-> dependencies for the framework adoption patches.
-> 
-> > Anyways, since it seems you need to repost this again, please
-> > repost the DT changes separately from the driver changes.
-> 
-> Yeah, the other two dependent series are merged for 3.17, so these are
-> the only patches remaining. I just need to repost them on a 3.17-rc, but
-> there are no changes required (even with v10 of the framework). So given
-> above, do you want me to split the first 3 (there is one DT patch) and
-> post them so that they can be merged for 3.18?
+> >>On 04/16/2014 07:16 PM, Felipe Balbi wrote:
+> >>>On Fri, Oct 11, 2013 at 05:46:12PM +0300, Roger Quadros wrote:
+> >>>>Hi,
+> >>>>
+> >>>>On 10/10/2013 01:49 PM, Kishon Vijay Abraham I wrote:
+> >>>>>From: George Cherian <george.cherian@ti.com>
+> >>>>>
+> >>>>>Added dr_mode property in dwc3 and set its default mode to device.
+> >>>>
+> >>>>If there is a specific reason why this is not set to "otg", we need
+> >>>>to explain it here.
+> >>>>
+> >>>>AFAIK the port is meant to be used as OTG port.
+> >>>
+> >>>we still don't have the workaround for dual role ports, I've been
+> >>>working on it but still need to retest and make sure it's working fine
+> >>>before merging upstream.
+> >>>
+> >>
+> >>
+> >>Does the OTG port suppose to work with OMAP5? I mean role switching
+> >>mechanism?
+> >>
+> >>I'm testing kernel v3.16 with OMAP5 based board (CM-T54).
+> >>
+> >>If I set CONFIG_USB_DWC3_DUAL_ROLE, than nothing is going on when I plug
+> >>some device/host cable into micro USB3.0 port (VBUS/ID detection with e=
+xtcon
+> >>events works fine).
+> >
+> >Dual role does not work. We allow the driver to the built with both Host
+> >and Peripheral support because some platforms have more than one port
+> >and building the driver with dual role allows us to make one port host
+> >and one peripheral.
+> >
+>=20
+> Please, can you provide some detail about platforms with several ports.
+> How do that ports are connected to DWC3?
 
-Yes please and looks like you already did thanks :)
+you have several dwc3 instances.
 
-Tony
+--=20
+balbi
+
+--3ecMC0kzqsE2ddMN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUEdh/AAoJEIaOsuA1yqREQu8P/RQfq8OkOmKPlgsQZWQmintm
+kKmh52dCZgzzDjCKyoj3ADsth+W3lTpYOTFadgBFy3dSKx4vQqHYjwpfosUDO3+O
+Z9E4SZpgOUHuik8B9H3Y6K8j4Aj/KQw0TqP9fNqGOO/RR4DRyqnRJWLryDp3LJau
+HkJWuMnjLQ5sIwLeQnMvPAvtBTH/45o2CI48d1X7evN4cyNpi+BO6kK38/ceu0kv
+CCxpKQaZw+MsEaqOgIIjNFkeCebkOhN+aKVkRtn4Asq2uw7uJDlLjMMerB7sd949
+ViiNopJ9ntJC+OsSRW31Q0Zuj9P4D7md+JmmUMc8y/bY5equ19hZfegplToiX+10
+O6gsehDD/Ghtg53BP8fApn65G/yHlXB8SkVILuw/ef/ISNZqZ4traNUkucZ8EjL5
+MpB3rTIwZkDlwmcXgzMf15zZenSh6c5vIsl7CEhVAxCJnxSO8invothcmFbAyD4s
+YoQeUDfPqIAg8steS88klM4qhmOvQwcxry+0lTY8Nj6VOpRV3cn0CRYzXWdgK0x8
+dhrtsqBFgj0yL9CRkcSFPmhP6MOhhheEdL4LNkl++156KeeMkREiYaGm8yYLgPWc
+yWeLbj8peHgedb6smvFJGdu80Gsml3o00eCh2hnX3k5Hu2NmyPf66VeBEjklpuVr
+E9JKLdHD0o+Pz2CmRJVR
+=Ch2r
+-----END PGP SIGNATURE-----
+
+--3ecMC0kzqsE2ddMN--
