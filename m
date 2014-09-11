@@ -1,79 +1,51 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 3/3] mtd: nand: Force omap_elm to be built as a module if omap2_nand is a module
-Date: Thu, 11 Sep 2014 10:47:04 -0300
-Message-ID: <1410443224-18477-4-git-send-email-ezequiel@vanguardiasur.com.ar>
-References: <1410443224-18477-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+From: Stefan Roese <sr@denx.de>
+Subject: [PATCH] mmc: omap_hsmmc: Add small delay after enabling power
+Date: Thu, 11 Sep 2014 16:11:05 +0200
+Message-ID: <1410444665-24492-1-git-send-email-sr@denx.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:45915 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbaIKNsv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 09:48:51 -0400
-Received: by mail-qa0-f53.google.com with SMTP id n8so1872382qaq.26
-        for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2014 06:48:50 -0700 (PDT)
-In-Reply-To: <1410443224-18477-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from mo4-p05-ob.smtp.rzone.de ([81.169.146.183]:9580 "EHLO
+	mo4-p05-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751873AbaIKOKw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 10:10:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Brian Norris <computersforpeace@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: linux-mmc@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Thorsten Einsbein <thorsten.eisbein@head-acoustics.de>, Ulf Hansson <ulf.hansson@linaro.org>, Balaji T K <balajitk@ti.com>
 
-This commit adds a hidden option to build the omap_elm as a module, if
-omap2_nand is a module (and similarly in the built-in case).
+From: Thorsten Einsbein <thorsten.eisbein@head-acoustics.de>
 
-This fixes the following build error when omap2_nand is chosen built-in,
-and omap_elm is chosen as a module:
+On the TAO3530 (OMAP3530 based) we noticed that some SD cards are not
+detected reliably upon bootup (timeout). Especially the SanDisk Ultra
+8GiB seems to be problematic here. The SanDisk Extreme also has this
+problem on this platform, but not that often. A Samsung 8 GiB type 6
+doesn't show this problem at all.
 
-drivers/built-in.o: In function `omap_nand_probe':
-/work/linux-2.6/drivers/mtd/nand/omap2.c:2010: undefined reference to `elm_config'
-/work/linux-2.6/drivers/mtd/nand/omap2.c:1980: undefined reference to `elm_config'
-/work/linux-2.6/drivers/mtd/nand/omap2.c:1927: undefined reference to `elm_config'
-drivers/built-in.o: In function `omap_elm_correct_data':
-/work/linux-2.6/drivers/mtd/nand/omap2.c:1444: undefined reference to `elm_decode_bch_error_page'
+This patch now adds a short delay after enabling the power on the slot.
+With this delay all cards are detected reliably.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Signed-off-by: Thorsten Einsbein <thorsten.eisbein@head-acoustics.de>
+Signed-off-by: Stefan Roese <sr@denx.de>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Balaji T K <balajitk@ti.com>
 ---
- drivers/mtd/nand/Kconfig  | 8 +++++++-
- drivers/mtd/nand/Makefile | 2 +-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-index f1cf503..12e8ee8 100644
---- a/drivers/mtd/nand/Kconfig
-+++ b/drivers/mtd/nand/Kconfig
-@@ -96,7 +96,7 @@ config MTD_NAND_OMAP2
- 
- config MTD_NAND_OMAP_BCH
- 	depends on MTD_NAND_OMAP2
--	tristate "Support hardware based BCH error correction"
-+	bool "Support hardware based BCH error correction"
- 	default n
- 	select BCH
- 	help
-@@ -106,6 +106,12 @@ config MTD_NAND_OMAP_BCH
- 	  legacy OMAP families like OMAP2xxx, OMAP3xxx do not have ELM engine
- 	  so they should not enable this config symbol.
- 
-+config MTD_NAND_OMAP_BCH_BUILD
-+	tristate
-+	depends on MTD_NAND_OMAP2
-+	default m if MTD_NAND_OMAP2=m && MTD_NAND_OMAP_BCH
-+	default y if MTD_NAND_OMAP2=y && MTD_NAND_OMAP_BCH
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 9656726..62ff0a7 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -335,6 +335,10 @@ static int omap_hsmmc_set_power(struct device *dev, int slot, int power_on,
+ 				ret = mmc_regulator_set_ocr(host->mmc,
+ 							host->vcc, 0);
+ 		}
 +
- config MTD_NAND_IDS
- 	tristate
- 
-diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
-index 4bcdeb0..3580188 100644
---- a/drivers/mtd/nand/Makefile
-+++ b/drivers/mtd/nand/Makefile
-@@ -27,7 +27,7 @@ obj-$(CONFIG_MTD_NAND_NDFC)		+= ndfc.o
- obj-$(CONFIG_MTD_NAND_ATMEL)		+= atmel_nand.o
- obj-$(CONFIG_MTD_NAND_GPIO)		+= gpio.o
- obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2_nand.o
--obj-$(CONFIG_MTD_NAND_OMAP_BCH)		+= omap_elm.o
-+obj-$(CONFIG_MTD_NAND_OMAP_BCH_BUILD)	+= omap_elm.o
- obj-$(CONFIG_MTD_NAND_CM_X270)		+= cmx270_nand.o
- obj-$(CONFIG_MTD_NAND_PXA3xx)		+= pxa3xx_nand.o
- obj-$(CONFIG_MTD_NAND_TMIO)		+= tmio_nand.o
++		dev_dbg(host->dev, "omap_hsmmc_set_power: wait a little (slot %d)\n",
++			slot);
++		msleep(5);
+ 	} else {
+ 		/* Shut down the rail */
+ 		if (host->vcc_aux)
 -- 
 2.1.0
 
