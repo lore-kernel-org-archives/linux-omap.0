@@ -1,170 +1,67 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: [PATCH] ARM: omap2: make arrays containing machine compatible strings const
-Date: Thu, 11 Sep 2014 21:29:01 +0200
-Message-ID: <1410463741-29202-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: OMAP4: suspend-resume broken when CPU_IDLE is disabled
+Date: Thu, 11 Sep 2014 14:37:17 -0500
+Message-ID: <5411F9ED.3000205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47261 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755767AbaIKT3S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 15:29:18 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:35600 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752346AbaIKThX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Sep 2014 15:37:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: kernel@pengutronix.de, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, tero kristo <t-kristo@ti.com>
 
-The definition
+Hi,
 
-	static const char *omap3_boards_compat[] __initconst =3D {
 
-defines a changable array of constant strings. That is you must not do:
+This one is a little weird.. Thought I'd share before digging in case
+someone knew about this..
 
-	*omap3_boards_compat[0] =3D 'f';
+test scenario: use internal wakeup source like gptimer[1].
 
-but
+git checkout (tag)
 
-	omap3_boards_compat[0] =3D "another string";
+make distclean
+make omap2plus_defconfig
+sed -i -e "s/CONFIG_CPU_IDLE=y/# CONFIG_CPU_IDLE is not set/g" .config
+make oldconfig
+make zImage dtbs
 
-is fine. So the annotation __initconst is wrong and yields a compiler
-error when other really const variables are added with __initconst.
+3.17-rc4: (hangs on resume) (omap2plus CPUIDLE)
+pandaboard-es:   http://paste.ubuntu.org.cn/1509229
+pandaboard-vanilla:  http://paste.ubuntu.org.cn/1509230
 
-As the struct machine_desc member dt_compat is declared as
+Purely with omap2plus_defconfig: (omap2plus no modification - works)
+pandaboard-es:  http://paste.ubuntu.org.cn/1509613
+pandaboard-vanilla: http://paste.ubuntu.org.cn/1509614
 
-	const char *const *dt_compat;
+v3.16:
+pandaboard-es:  http://paste.ubuntu.org.cn/1509291
+pandaboard-vanilla: http://paste.ubuntu.org.cn/1509292
+TOTAL = 2 boards, Booted Boards = 0, No Boot boards = 2
 
-making the arrays const is the better alternative over changing all
-annotations to __initdata.
 
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
----
- arch/arm/mach-omap2/board-generic.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+v3.16-rc1: (first time CONFIG_CPU_IDLE was enabled by default in
+omapplus_defconfig):
+v3.15:
+same behavior.
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/=
-board-generic.c
-index 5827abb080e4..0b311d51425f 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -43,7 +43,7 @@ static void __init omap_generic_init(void)
- }
-=20
- #ifdef CONFIG_SOC_OMAP2420
--static const char *omap242x_boards_compat[] __initconst =3D {
-+static const char *const omap242x_boards_compat[] __initconst =3D {
- 	"ti,omap2420",
- 	NULL,
- };
-@@ -62,7 +62,7 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_SOC_OMAP2430
--static const char *omap243x_boards_compat[] __initconst =3D {
-+static const char *const omap243x_boards_compat[] __initconst =3D {
- 	"ti,omap2430",
- 	NULL,
- };
-@@ -81,7 +81,7 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_ARCH_OMAP3
--static const char *omap3_boards_compat[] __initconst =3D {
-+static const char *const omap3_boards_compat[] __initconst =3D {
- 	"ti,omap3430",
- 	"ti,omap3",
- 	NULL,
-@@ -100,7 +100,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattene=
-d Device Tree)")
- 	.restart	=3D omap3xxx_restart,
- MACHINE_END
-=20
--static const char *omap36xx_boards_compat[] __initconst =3D {
-+static const char *const omap36xx_boards_compat[] __initconst =3D {
- 	"ti,omap36xx",
- 	NULL,
- };
-@@ -118,7 +118,7 @@ DT_MACHINE_START(OMAP36XX_DT, "Generic OMAP36xx (Fl=
-attened Device Tree)")
- 	.restart	=3D omap3xxx_restart,
- MACHINE_END
-=20
--static const char *omap3_gp_boards_compat[] __initconst =3D {
-+static const char *const omap3_gp_boards_compat[] __initconst =3D {
- 	"ti,omap3-beagle",
- 	"timll,omap3-devkit8000",
- 	NULL,
-@@ -137,7 +137,7 @@ DT_MACHINE_START(OMAP3_GP_DT, "Generic OMAP3-GP (Fl=
-attened Device Tree)")
- 	.restart	=3D omap3xxx_restart,
- MACHINE_END
-=20
--static const char *am3517_boards_compat[] __initconst =3D {
-+static const char *const am3517_boards_compat[] __initconst =3D {
- 	"ti,am3517",
- 	NULL,
- };
-@@ -157,7 +157,7 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_SOC_AM33XX
--static const char *am33xx_boards_compat[] __initconst =3D {
-+static const char *const am33xx_boards_compat[] __initconst =3D {
- 	"ti,am33xx",
- 	NULL,
- };
-@@ -177,7 +177,7 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_ARCH_OMAP4
--static const char *omap4_boards_compat[] __initconst =3D {
-+static const char *const omap4_boards_compat[] __initconst =3D {
- 	"ti,omap4460",
- 	"ti,omap4430",
- 	"ti,omap4",
-@@ -199,7 +199,7 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_SOC_OMAP5
--static const char *omap5_boards_compat[] __initconst =3D {
-+static const char *const omap5_boards_compat[] __initconst =3D {
- 	"ti,omap5432",
- 	"ti,omap5430",
- 	"ti,omap5",
-@@ -221,7 +221,7 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_SOC_AM43XX
--static const char *am43_boards_compat[] __initconst =3D {
-+static const char *const am43_boards_compat[] __initconst =3D {
- 	"ti,am4372",
- 	"ti,am43",
- 	NULL,
-@@ -240,7 +240,7 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_SOC_DRA7XX
--static const char *dra74x_boards_compat[] __initconst =3D {
-+static const char *const dra74x_boards_compat[] __initconst =3D {
- 	"ti,dra742",
- 	"ti,dra7",
- 	NULL,
-@@ -259,7 +259,7 @@ DT_MACHINE_START(DRA74X_DT, "Generic DRA74X (Flatte=
-ned Device Tree)")
- 	.restart	=3D omap44xx_restart,
- MACHINE_END
-=20
--static const char *dra72x_boards_compat[] __initconst =3D {
-+static const char *const dra72x_boards_compat[] __initconst =3D {
- 	"ti,dra722",
- 	NULL,
- };
---=20
-2.1.0
+Have'nt stepped all the way to previous tags.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I believe I see (I have to reconfirm) connecting once with JTAG while
+in suspend and letting the CPUs run lets the further runs work fine..
+
+Did anyone see similar behavior or able to reproduce the behavior (and
+not just me)?
+
+[1] wget -O a.patch
+'https://github.com/nmenon/linux-2.6-playground/commit/92e5e7407aa707ad6be8ae3b5bf21cfc741daab6.patch'
+; git am a.patch
+
+-- 
+Regards,
+Nishanth Menon
