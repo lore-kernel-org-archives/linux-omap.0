@@ -1,104 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] ARM: dts: omap5: Add dr_mode for dwc3
-Date: Thu, 11 Sep 2014 12:14:39 -0500
-Message-ID: <20140911171439.GG1840@saruman.home>
-References: <1381402195-29257-1-git-send-email-kishon@ti.com>
- <1381402195-29257-2-git-send-email-kishon@ti.com>
- <52580F34.8030809@ti.com>
- <20140416161619.GH28035@saruman.home>
- <540D9449.3090008@compulab.co.il>
- <20140908132403.GA22409@saruman.home>
- <54103E15.3090406@compulab.co.il>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: make of_device_ids const
+Date: Thu, 11 Sep 2014 10:39:43 -0700
+Message-ID: <20140911173943.GB18849@atomide.com>
+References: <1410337579-23466-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1410337579-23466-2-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3ecMC0kzqsE2ddMN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52650 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899AbaIKRkH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 13:40:07 -0400
 Content-Disposition: inline
-In-Reply-To: <54103E15.3090406@compulab.co.il>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Cc: balbi@ti.com, Roger Quadros <rogerq@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, bcousson@baylibre.com, tony@atomide.com, rob.herring@calxeda.com, pawel.moll@arm.com, mark.rutland@arm.com, swarren@wwwdotorg.org, ijc+devicetree@hellion.org.uk, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, George Cherian <george.cherian@ti.com>
+In-Reply-To: <1410337579-23466-2-git-send-email-u.kleine-koenig@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, devicetree@vger.kernel.org, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, kernel@pengutronix.de, linux-omap@vger.kernel.org
 
---3ecMC0kzqsE2ddMN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [140910 01:27]=
+:
+> of_device_ids (i.e. compatible strings and the respective data) are n=
+ot
+> supposed to change at runtime. All functions working with of_device_i=
+ds
+> provided by <linux/of.h> work with const of_device_ids. So mark the
+> non-const function parameters and structs for OMAP2+ as const, too.
 
-On Wed, Sep 10, 2014 at 03:03:33PM +0300, Dmitry Lifshitz wrote:
-> Hi,
->=20
-> On 09/08/2014 04:24 PM, Felipe Balbi wrote:
-> >Hi,
-> >
-> >On Mon, Sep 08, 2014 at 02:34:33PM +0300, Dmitry Lifshitz wrote:
-> >>Hi Felipe, Roger
-> >>
-> >>On 04/16/2014 07:16 PM, Felipe Balbi wrote:
-> >>>On Fri, Oct 11, 2013 at 05:46:12PM +0300, Roger Quadros wrote:
-> >>>>Hi,
-> >>>>
-> >>>>On 10/10/2013 01:49 PM, Kishon Vijay Abraham I wrote:
-> >>>>>From: George Cherian <george.cherian@ti.com>
-> >>>>>
-> >>>>>Added dr_mode property in dwc3 and set its default mode to device.
-> >>>>
-> >>>>If there is a specific reason why this is not set to "otg", we need
-> >>>>to explain it here.
-> >>>>
-> >>>>AFAIK the port is meant to be used as OTG port.
-> >>>
-> >>>we still don't have the workaround for dual role ports, I've been
-> >>>working on it but still need to retest and make sure it's working fine
-> >>>before merging upstream.
-> >>>
-> >>
-> >>
-> >>Does the OTG port suppose to work with OMAP5? I mean role switching
-> >>mechanism?
-> >>
-> >>I'm testing kernel v3.16 with OMAP5 based board (CM-T54).
-> >>
-> >>If I set CONFIG_USB_DWC3_DUAL_ROLE, than nothing is going on when I plug
-> >>some device/host cable into micro USB3.0 port (VBUS/ID detection with e=
-xtcon
-> >>events works fine).
-> >
-> >Dual role does not work. We allow the driver to the built with both Host
-> >and Peripheral support because some platforms have more than one port
-> >and building the driver with dual role allows us to make one port host
-> >and one peripheral.
-> >
->=20
-> Please, can you provide some detail about platforms with several ports.
-> How do that ports are connected to DWC3?
+Hmm this does not seem to compile with omap2plus_defconfig because
+of section type conflicts. Looks like there's some issue now with the
+use of __initconst:
 
-you have several dwc3 instances.
+arch/arm/mach-omap2/board-generic.c:262:20: error: dra72x_boards_compat=
+ causes a section type conflict with omap_dt_match_table
+arch/arm/mach-omap2/board-generic.c:30:34: note: =E2=80=98omap_dt_match=
+_table=E2=80=99 was declared here
+scripts/Makefile.build:257: recipe for target 'arch/arm/mach-omap2/boar=
+d-generic.o' failed
 
---=20
-balbi
+Regards,
 
---3ecMC0kzqsE2ddMN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUEdh/AAoJEIaOsuA1yqREQu8P/RQfq8OkOmKPlgsQZWQmintm
-kKmh52dCZgzzDjCKyoj3ADsth+W3lTpYOTFadgBFy3dSKx4vQqHYjwpfosUDO3+O
-Z9E4SZpgOUHuik8B9H3Y6K8j4Aj/KQw0TqP9fNqGOO/RR4DRyqnRJWLryDp3LJau
-HkJWuMnjLQ5sIwLeQnMvPAvtBTH/45o2CI48d1X7evN4cyNpi+BO6kK38/ceu0kv
-CCxpKQaZw+MsEaqOgIIjNFkeCebkOhN+aKVkRtn4Asq2uw7uJDlLjMMerB7sd949
-ViiNopJ9ntJC+OsSRW31Q0Zuj9P4D7md+JmmUMc8y/bY5equ19hZfegplToiX+10
-O6gsehDD/Ghtg53BP8fApn65G/yHlXB8SkVILuw/ef/ISNZqZ4traNUkucZ8EjL5
-MpB3rTIwZkDlwmcXgzMf15zZenSh6c5vIsl7CEhVAxCJnxSO8invothcmFbAyD4s
-YoQeUDfPqIAg8steS88klM4qhmOvQwcxry+0lTY8Nj6VOpRV3cn0CRYzXWdgK0x8
-dhrtsqBFgj0yL9CRkcSFPmhP6MOhhheEdL4LNkl++156KeeMkREiYaGm8yYLgPWc
-yWeLbj8peHgedb6smvFJGdu80Gsml3o00eCh2hnX3k5Hu2NmyPf66VeBEjklpuVr
-E9JKLdHD0o+Pz2CmRJVR
-=Ch2r
------END PGP SIGNATURE-----
-
---3ecMC0kzqsE2ddMN--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
