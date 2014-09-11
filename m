@@ -1,56 +1,62 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH 05/16] tty: serial: 8250_core: remove UART_IER_RDI in
- serial8250_stop_rx()
-Date: Thu, 11 Sep 2014 14:19:31 +0300
-Message-ID: <20140911111931.GC17476@xps8300>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
- <1410377411-26656-6-git-send-email-bigeasy@linutronix.de>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Thu, 11 Sep 2014 13:42:35 +0200
+Message-ID: <54118AAB.2010205@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1410377411-26656-6-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <20140911111721.GB17476@xps8300>
 Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 10, 2014 at 09:30:00PM +0200, Sebastian Andrzej Siewior wrote:
-> serial8250_do_startup() adds UART_IER_RDI and UART_IER_RLSI to ier.
-> serial8250_stop_rx() should remove both.
-> This is what the serial-omap driver has been doing and is now moved to
-> the 8250-core since it does no look to be *that* omap specific.
-> 
-> Cc: heikki.krogerus@linux.intel.com
+On 09/11/2014 01:17 PM, Heikki Krogerus wrote:
+>> diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/825=
+0/8250.h
+>> index fbed1636e9c4..09489b391568 100644
+>> --- a/drivers/tty/serial/8250/8250.h
+>> +++ b/drivers/tty/serial/8250/8250.h
+>> @@ -82,6 +82,9 @@ struct serial8250_config {
+>>  #define UART_BUG_PARITY	(1 << 4)	/* UART mishandles parity if FIFO =
+enabled */
+>>  #define UART_BUG_DMA_RX	(1 << 5)	/* UART needs DMA RX req before th=
+ere is
+>>  					   data in FIFO */
+>> +#define UART_BUG_DMA_TX	(1 << 6)	/* UART needs one byte in FIFO for
+>> +					   kickstart */
+>=20
+> I don't think we should go ahead with this patch. I'm pretty sure
+> this is AM335 specific problem, or at least limited to only few
+> platforms. And I don't think we should take any more "BUG" flags.
+>=20
+> We should add hooks like tx_dma and rx_dma to struct uart_8250_dma so
+> that the probe drivers can replace serial8250_tx_dma and
+> seria8250_rx_dma, like I think Alan already suggested.
 
-Looks good to me. FWIW...
+Okay. Wasn't aware that Alan already suggested that.
+I also need a watchdog timer for TX since it seems that on omap3 the
+DMA engine suddenly forgets to continue with DMA=E2=80=A6
 
-Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+If this is really what we want, I would need to refactor a few things=E2=
+=80=A6
 
-> Reviewed-by: Tony Lindgren <tony@atomide.com>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  drivers/tty/serial/8250/8250_core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-> index ac88e66df65d..139f3d2b8aa9 100644
-> --- a/drivers/tty/serial/8250/8250_core.c
-> +++ b/drivers/tty/serial/8250/8250_core.c
-> @@ -1390,7 +1390,7 @@ static void serial8250_stop_rx(struct uart_port *port)
->  
->  	serial8250_rpm_get(up);
->  
-> -	up->ier &= ~UART_IER_RLSI;
-> +	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
->  	up->port.read_status_mask &= ~UART_LSR_DR;
->  	serial_port_out(port, UART_IER, up->ier);
->  
-> -- 
-> 2.1.0
+> Let's keep serial8250_tx_dma/rx_dma as the default, and not add any
+> quirks to them. Only if there is a very common case should it be
+> handled in those. The case of RX req needing to be sent before data i=
+n
+> FIFO maybe one of those, but I'm no sure.
 
-Thanks,
+keep in mind that both (RX & TX bugs/hacks) need also a bit of handling
+in the 8250-core so it works together (like the tx_err member so we
+fall back to manual xmit)
 
--- 
-heikki
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
