@@ -1,38 +1,41 @@
-From: "Lennart Sorensen" <lsorense-1wCw9BSqJbv44Nm34jS7GywD8/FfD2ys@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] ARM: dts: dra7: Add CPSW and MDIO module nodes
- for dra7
-Date: Thu, 11 Sep 2014 08:22:19 -0400
-Message-ID: <20140911122219.GD17690@csclub.uwaterloo.ca>
-References: <1410356247-25925-1-git-send-email-mugunthanvnm@ti.com>
- <1410356247-25925-2-git-send-email-mugunthanvnm@ti.com>
- <20140911013811.GB17692@csclub.uwaterloo.ca>
- <541141E3.8030101@ti.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Thu, 11 Sep 2014 08:32:58 -0400
+Message-ID: <5411967A.6090406@hurleysoftware.com>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <541141E3.8030101-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54118AAB.2010205@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 11, 2014 at 12:02:03PM +0530, Mugunthan V N wrote:
-> slaves = <1>;
+On 09/11/2014 07:42 AM, Sebastian Andrzej Siewior wrote:
+> I also need a watchdog timer for TX since it seems that on omap3 the
+> DMA engine suddenly forgets to continue with DMA=E2=80=A6
 
-OK, works for me.
+One difference I noticed between the omap driver and the 8250 driver is
+the way modem status interrupts are handled.
 
-> overall disable takes care of this
+The omap driver only checks modem status for the UART_IIR_MSI interrupt=
+ type.
+The 8250 driver checks modem status at every interrupt (other than NO_I=
+NT).
 
-Although once I enable cpsw I would need to leave the second port disabled
-I suppose, although perhaps settings slaves to 1 would essentially
-disable it.
+I think the UART_MSR_DCTS bit always reflects that the CTS input has ch=
+anged
+between reads of the MSR _even if auto CTS is on_. So perhaps the hardw=
+are
+is being stopped by uart_handle_cts_change() when auto CTS is on?
 
-> Will add disabled in next version.
+Regards,
+Peter Hurley
 
--- 
-Len Sorensen
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[The UPF_HARD_FLOW thing was pretty much just done for omap even though
+8250 already had auto CTS/auto RTS. Serial core hardware flow control s=
+upport
+needs a redo as drivers have pretty much tacked stuff on randomly.]
