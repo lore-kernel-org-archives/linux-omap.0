@@ -1,39 +1,59 @@
-From: Frans Klaver <fransklaver@gmail.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround for AM33xx
-Date: Thu, 11 Sep 2014 19:04:03 +0200
-Message-ID: <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5411967A.6090406@hurleysoftware.com> <54119AAA.9080907@linutronix.de> <20140911151114.GD28458@ci00147.xsens-tech.local> <5411C810.7070906@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 0/5] OMAP Mailbox framework adoption & DT support
+Date: Thu, 11 Sep 2014 10:09:55 -0700
+Message-ID: <20140911170955.GA18849@atomide.com>
+References: <1406680479-18446-1-git-send-email-s-anna@ti.com>
+ <20140908232053.GS3238@atomide.com>
+ <20140909025225.GI10785@atomide.com>
+ <540F279A.1080700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5411C810.7070906@linutronix.de>
+Content-Disposition: inline
+In-Reply-To: <540F279A.1080700@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Frans Klaver <frans.klaver@xsens.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+To: Suman Anna <s-anna@ti.com>
+Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, Markus Mayer <markus.mayer@linaro.org>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11 September 2014 18:04:32 CEST, Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
->On 09/11/2014 05:11 PM, Frans Klaver wrote:
->
->> I can still reproduce it on am335x. I can get out of it as soon as
->> something else gets written to the console though.
->> 
->> # echo "<3>something" >/dev/kmsg
->
->Is this to stall it or to get out of it?
+* Suman Anna <s-anna@ti.com> [140909 09:16]:
+> Hi Tony,
+> 
+> On 09/08/2014 09:52 PM, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [140908 16:21]:
+> >> * Suman Anna <s-anna@ti.com> [140729 17:37]:
+> >>> Hi,
+> >>>
+> >>> This is an updated version of the OMAP Mailbox framework adoption &
+> >>> DT support series, refreshed to work with the v9 version of the mailbox
+> >>> framework [1] from Jassi Brar while also addressing some minor review
+> >>> comments. Detailed changes are summarized below. Patches are based on
+> >>> 3.16-rc2.
+> >>
+> >> Sorry for the delay, just noticed that I'm supposed to queue
+> >> these too. I'll queue these into omap-for-v3.18/mailbox against
+> >> v3.17-rc1 and will probably also merge it into omap-for-v3.18/dt
+> >> as well.
+> > 
+> > Actually this is not compiling and seems to probably miss
+> > the dependencies from Jassi, so dropping the branch.
+> 
+> The last 2 patches which is the framework adoption portion needs the
+> framework patches from Jassi (as stated in the cover letter). I will
+> ping on the framework thread to see if it is making it into 3.18. In any
+> case, we should be able to take the first three patches (2 in drivers
+> and 1 for DT) - they are independent of the framework and also are
+> dependencies for the framework adoption patches.
+> 
+> > Anyways, since it seems you need to repost this again, please
+> > repost the DT changes separately from the driver changes.
+> 
+> Yeah, the other two dependent series are merged for 3.17, so these are
+> the only patches remaining. I just need to repost them on a 3.17-rc, but
+> there are no changes required (even with v10 of the framework). So given
+> above, do you want me to split the first 3 (there is one DT patch) and
+> post them so that they can be merged for 3.18?
 
-This is to get out of it. I do this from an ssh connection after the console got stuck. The 3 kind of ensures the message is actually sent to ttyS0.
+Yes please and looks like you already did thanks :)
 
-
->
->> 
->> Frans
->
->Sebastian
->
->_______________________________________________
->linux-arm-kernel mailing list
->linux-arm-kernel@lists.infradead.org
->http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Tony
