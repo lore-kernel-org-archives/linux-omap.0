@@ -1,108 +1,55 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Thu, 11 Sep 2014 10:35:43 -0400
-Message-ID: <5411B33F.10405@hurleysoftware.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5411967A.6090406@hurleysoftware.com> <54119AAA.9080907@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <54119AAA.9080907@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH v3 0/3] nand: omap2: Two and a half improvements
+Date: Thu, 11 Sep 2014 12:02:07 -0300
+Message-ID: <1410447730-16087-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:37850 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751649AbaIKPES (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 11:04:18 -0400
+Received: by mail-qc0-f179.google.com with SMTP id o8so5113426qcw.24
+        for <linux-omap@vger.kernel.org>; Thu, 11 Sep 2014 08:04:17 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Brian Norris <computersforpeace@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-On 09/11/2014 08:50 AM, Sebastian Andrzej Siewior wrote:
-> On 09/11/2014 02:32 PM, Peter Hurley wrote:
->> On 09/11/2014 07:42 AM, Sebastian Andrzej Siewior wrote:
->>> I also need a watchdog timer for TX since it seems that on omap3 th=
-e
->>> DMA engine suddenly forgets to continue with DMA=E2=80=A6
->>
->> One difference I noticed between the omap driver and the 8250 driver=
- is
->> the way modem status interrupts are handled.
->>
->> The omap driver only checks modem status for the UART_IIR_MSI interr=
-upt type.
->> The 8250 driver checks modem status at every interrupt (other than N=
-O_INT).
->>
->> I think the UART_MSR_DCTS bit always reflects that the CTS input has=
- changed
->> between reads of the MSR _even if auto CTS is on_. So perhaps the ha=
-rdware
->> is being stopped by uart_handle_cts_change() when auto CTS is on?
->=20
-> I doubt that. What I see from a timer debug is that the TX-FIFO level
-> is at 0, the DMA transfer for say 1024 bytes start.
-> The FIFO is filled to 64bytes and refilled so it doesn't drop below 5=
-0.
-> At the time of the stall I see that the DMA engine has outstanding
-> bytes which it should transfer and the TX FIFO is empty. If hardware
-> flow control stops the transfer, I would expect that the DMA engine
-> still fills the TX-FIFO until 64 and then waits. But it doesn't.
-> Writing bytes into the FIFO leads to bytes beeing sent (and I see the=
-m
-> on the other side) but the DMA transfer is still on hold. Canceling t=
-he
-> DMA transfer and re-programming the remaining bytes transfers the
-> remaining bytes.
->=20
-> The odd thing is that I only triggered it with "less file". It doesn'=
-t
-> happen on regular console interaction or "cat large-file". And it onl=
-y
-> triggers on beagle board xm (omap34xx) and I wasn't able to reproduce
-> it on am335x or dra7. The latter shares the same DMA engine as beagle
-> board xm.
->=20
-> I remember also that I disabled the HW/SW float control just to make
-> sure it is not it.
+Changes from v2:
 
-Ok.
+  * Fixed some silly mistakes in patch 3, and reverted the removed
+    error messages when nand_bch_init fails.
 
-I do need to find out if omap hardware sets UART_MSR_DCTS when auto CTS
-is on. Would you mind running the debug patch below with HW flow contro=
-l on?
+Changes from v1:
 
-Regards,
-Peter Hurley
+  * Rebased on v3.14-rc2.
 
---- >% ---
-Subject: [DEBUG] serial: does OMAP set UART_LSR_DCTS while autoCTS is o=
-n?
+  * Removed a few s/pr_err/dev_err change from patch two, and added it
+    to patch three. This was some git-rebase leftover.
 
-** debug patch only **
+Pekon's attempt to add flash BBT support for this driver made me realise
+the addition made sense and there were good reasons for it. The first patch
+adds support for enabling a flash BBT either from legacy board files or
+from devicetree.
 
-Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
----
- drivers/tty/serial/serial_core.c | 3 +++
- 1 file changed, 3 insertions(+)
+While testing this, I noticed how the driver relied on a whole bunch of
+horrible #ifdefs, which prevented me from loading the driver as a module.
+The second patch attempts to fix that.
 
-diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/seri=
-al_core.c
-index 5a78f69..1579a20 100644
---- a/drivers/tty/serial/serial_core.c
-+++ b/drivers/tty/serial/serial_core.c
-@@ -2783,6 +2783,9 @@ void uart_handle_cts_change(struct uart_port *upo=
-rt, unsigned int status)
- 	uport->icount.cts++;
-=20
- 	if (tty_port_cts_enabled(port)) {
-+
-+		WARN_ON_ONCE(uport->flags & UPF_HARD_FLOW);
-+
- 		if (tty->hw_stopped) {
- 			if (status) {
- 				tty->hw_stopped =3D 0;
---=20
+The third patch is just a dummy cleanup replacing pr_errs with dev_errs.
+This driver is abusing from user messages, but I'm not sure fixing them
+worths the trouble.
+
+Ezequiel Garcia (3):
+  nand: omap2: Add support for flash-based bad block table
+  nand: omap2: Remove horrible ifdefs to fix module probe
+  nand: omap2: Replace pr_err with dev_err
+
+ arch/arm/mach-omap2/gpmc.c                   |   2 +
+ drivers/mtd/nand/omap2.c                     | 166 +++++++++++++++------------
+ include/linux/platform_data/elm.h            |  14 +++
+ include/linux/platform_data/mtd-nand-omap2.h |   1 +
+ 4 files changed, 110 insertions(+), 73 deletions(-)
+
+-- 
 2.1.0
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
