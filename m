@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/5] omap soc changes for v3.18 merge window
-Date: Thu, 11 Sep 2014 16:28:55 -0700
-Message-ID: <3188.88370316035$1410478223@news.gmane.org>
+Subject: [GIT PULL 3/5] omap intc changes for v3.18 merge window
+Date: Thu, 11 Sep 2014 16:28:56 -0700
+Message-ID: <33595.3942420476$1410478223@news.gmane.org>
 References: <pull-1410478051-378788>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,80 +22,78 @@ To: arm@kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit d7eb67f7fef9c046f27a975118da2324de65a90c:
+The following changes since commit 176da6c766ce3d5d8c88a7afdaefcc5fd6d8afac:
 
-  Merge branch 'pull/v3.18/powerdomain-fixes' of https://github.com/nmenon/linux-2.6-playground into omap-for-v3.18/fixes-not-urgent (2014-09-08 15:04:24 -0700)
+  arm: omap: irq: make omap_irq_base global (2014-09-11 13:03:30 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/soc-for-v3.18
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/intc-for-v3.18
 
-for you to fetch changes up to 377fb3f5d9a34b2913939e0620c1c585b5913bab:
+for you to fetch changes up to 55601c9f24670ba926ebdd4d712ac3b177232330:
 
-  ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7 (2014-09-09 19:13:41 -0700)
-
-----------------------------------------------------------------
-SoC related changes for omaps for v3.18 merge window:
-
-- PM changes to make the code easier to use on newer SoCs
-- PM changes for newer SoCs suspend and resume and wake-up events
-- Minor clean-up to remove dead Kconfig options
-
-Note that these have a dependency to the fixes-v3.18-not-urgent
-tag and is based on a commit in that series.
+  arm: omap: intc: switch over to linear irq domain (2014-09-11 13:05:50 -0700)
 
 ----------------------------------------------------------------
-Keerthy (1):
-      ARM: AM437x: use pdata quirks for pinctrl information
+Interrupt code related clean-up for omap2 and 3 to make
+it ready to move to drivers/irqchip. Note that this series
+does not yet move the interrupt code to drivers, that will
+be posted separately as a follow-up series.
 
-Mark Brown (1):
-      ARM: omap: Remove stray ARCH_HAS_OPP references
+Note that this branch has a dependency to patches both
+in fixes-v3.18-not-urgent and soc-for-v3.18 and is based on
+a merge. Without doing the merge, off-idle would not work
+properly for git bisect.
 
-Nishanth Menon (10):
-      ARM: OMAP4+: prminst: provide function to find prm_dev instance offset
-      ARM: OMAP4: PRM: use the generic prm_inst to allow logic to be abstracted
-      ARM: OMAP4+: PRM: register interrupt information from DT
-      ARM: OMAP4+: PRM: remove "wkup" event
-      ARM: OMAP4+: PRM: Enable wakeup capability for OMAP5, DRA7
-      ARM: OMAP3+: PRM: register interrupt information from DT
-      ARM: OMAP5: use pdata quirks for pinctrl information
-      ARM: DRA7: use pdata quirks for pinctrl information
-      ARM: dts: OMAP3+: Add PRM interrupt
-      ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7
+----------------------------------------------------------------
+Felipe Balbi (28):
+      arm: omap: irq: define INTC_ILR0 register
+      arm: omap: irq: start to remove irq_banks array
+      arm: omap: irq: add a global omap_nr_irqs variable
+      arm: omap: irq: remove rest of irq_banks usage
+      arm: omap: irq: remove unused macro
+      arm: omap: irq: switch over to intc_readl on omap_intc_handle_irq
+      arm: omap: irq: remove unnecessary base_addr argument
+      arm: omap: irq: rename omap3_intc_regs
+      arm: omap: irq: always define omap3 support
+      arm: omap: irq: reorganize code a little bit
+      arm: omap: irq: make intc_of_init static
+      arm: omap: irq: call set_handle_irq() from intc_of_init
+      arm: omap: irq: use IRQCHIP_DECLARE macro
+      arm: omap: irq: drop .handle_irq and .init_irq fields
+      arm: omap: irq: add specific compatibles for omap3 and am33xx devices
+      arm: omap: irq: use compatible flag to figure out number of IRQ lines
+      arm: boot: dts: am33xx/omap3: fix intc compatible flag
+      arm: omap: irq: drop ti,intc-size support
+      arm: boot: dts: omap2/3/am33xx: drop ti,intc-size
+      arm: omap: irq: move some more code around
+      arm: omap: irq: call set_handle_irq() from .init_irq
+      arm: omap: irq: drop omap3_intc_handle_irq()
+      arm: omap: irq: drop omap2_intc_handle_irq()
+      arm: omap: irq: remove unnecessary header
+      arm: omap: irq: remove nr_irqs argument
+      arm: omap: irq: introduce omap_nr_pending
+      arm: omap: irq: get rid of ifdef hack
+      arm: omap: intc: switch over to linear irq domain
 
-Rajendra Nayak (3):
-      ARM: OMAP5 / DRA7: PM: Avoid all SAR saves
-      ARM: OMAP5 / DRA7: Enable CPU RET on suspend
-      ARM: DRA7: Add hook in SoC initcalls to enable pm initialization
-
-Santosh Shilimkar (6):
-      ARM: OMAP5 / DRA7: PM: Update CPU context register offset
-      ARM: OMAP5 / DRA7: PM: Set MPUSS-EMIF clock-domain static dependency
-      ARM: OMAP5 / DRA7: PM / wakeupgen: Enables ES2 PM mode by default
-      ARM: OMAP5 / DRA7: PM: Enable Mercury retention mode on CPUx powerdomains
-      ARM: OMAP5 / DRA7: PM: Provide a dummy startup function for CPU hotplug
-      ARM: OMAP5: Add hook in SoC initcalls to enable pm initialization
-
-Tony Lindgren (1):
-      Merge branch 'pull/v3.18/for-omap-soc' of https://github.com/nmenon/linux-2.6-playground into omap-for-v3.18/soc
-
- arch/arm/boot/dts/dra7.dtsi               |   1 +
- arch/arm/boot/dts/omap3.dtsi              |   1 +
- arch/arm/boot/dts/omap4.dtsi              |   1 +
- arch/arm/boot/dts/omap5.dtsi              |   1 +
- arch/arm/mach-omap2/Kconfig               |   5 --
- arch/arm/mach-omap2/Makefile              |  12 ++--
- arch/arm/mach-omap2/common.h              |   2 +-
- arch/arm/mach-omap2/io.c                  |   6 ++
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 102 +++++++++++++++++++++---------
- arch/arm/mach-omap2/omap-secure.h         |   1 +
- arch/arm/mach-omap2/omap-wakeupgen.c      |  20 +++++-
- arch/arm/mach-omap2/omap-wakeupgen.h      |   1 +
- arch/arm/mach-omap2/pdata-quirks.c        |  10 +++
- arch/arm/mach-omap2/pm.h                  |   1 +
- arch/arm/mach-omap2/pm44xx.c              |  48 ++++++++++++--
- arch/arm/mach-omap2/prm3xxx.c             |  18 ++++++
- arch/arm/mach-omap2/prm44xx.c             |  90 ++++++++++++++++++++++----
- arch/arm/mach-omap2/prminst44xx.c         |  40 +++++++-----
- arch/arm/mach-omap2/prminst44xx.h         |   3 +
- 19 files changed, 290 insertions(+), 73 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi              |   3 +-
+ arch/arm/boot/dts/omap2.dtsi               |   1 -
+ arch/arm/boot/dts/omap3.dtsi               |   3 +-
+ arch/arm/mach-omap2/board-3430sdp.c        |   1 -
+ arch/arm/mach-omap2/board-am3517crane.c    |   1 -
+ arch/arm/mach-omap2/board-am3517evm.c      |   1 -
+ arch/arm/mach-omap2/board-cm-t35.c         |   2 -
+ arch/arm/mach-omap2/board-cm-t3517.c       |   1 -
+ arch/arm/mach-omap2/board-devkit8000.c     |   1 -
+ arch/arm/mach-omap2/board-generic.c        |  14 -
+ arch/arm/mach-omap2/board-ldp.c            |   1 -
+ arch/arm/mach-omap2/board-omap3beagle.c    |   1 -
+ arch/arm/mach-omap2/board-omap3logic.c     |   2 -
+ arch/arm/mach-omap2/board-omap3pandora.c   |   1 -
+ arch/arm/mach-omap2/board-omap3stalker.c   |   1 -
+ arch/arm/mach-omap2/board-omap3touchbook.c |   1 -
+ arch/arm/mach-omap2/board-overo.c          |   1 -
+ arch/arm/mach-omap2/board-rx51.c           |   1 -
+ arch/arm/mach-omap2/common.h               |  13 -
+ arch/arm/mach-omap2/irq.c                  | 409 +++++++++++++++--------------
+ 20 files changed, 213 insertions(+), 246 deletions(-)
