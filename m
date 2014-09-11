@@ -1,116 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] bus: omap_l3_noc: Fix connID for OMAP4
-Date: Thu, 11 Sep 2014 10:44:28 -0700
-Message-ID: <20140911174428.GC18849@atomide.com>
-References: <1410344427-26006-1-git-send-email-nm@ti.com>
+Subject: Re: [REPOST PATCHv3 0/2] OMAP Mailbox DT support for 3.18
+Date: Thu, 11 Sep 2014 11:45:38 -0700
+Message-ID: <20140911184537.GD18849@atomide.com>
+References: <1410376859-7297-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61449 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366AbaIKRod (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 13:44:33 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56223 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751148AbaIKSpp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Sep 2014 14:45:45 -0400
 Content-Disposition: inline
-In-Reply-To: <1410344427-26006-1-git-send-email-nm@ti.com>
+In-Reply-To: <1410376859-7297-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kristian Otnes <kotnes@cisco.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Jassi Brar <jaswinder.singh@linaro.org>, Dave Gerlach <d-gerlach@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Nishanth Menon <nm@ti.com> [140910 03:21]:
-> Commit d4d8819e205854c ("bus: omap_l3_noc: fix masterid detection")
-> did the right thing in dropping the LSB 2 bits which is not part
-> of the ConnID for NTTP master address. However, as part of that
-> change, we should also have ensured that existing list of OMAP4 connID
-> codes are also shifted by 2 bits to ensure that connIDs map to "Table
-> 13-18. ConnID Values" as provided in Technical Reference Manuals for
-> OMAP4430(Rev AP, April 2014, SWPU220AP) and OMAP4460(Rev AB, April
-> 2014, SWPU234AB)
+* Suman Anna <s-anna@ti.com> [140910 12:21]:
+> Hi Tony,
 > 
-> Fixes: d4d8819e205854c ("bus: omap_l3_noc: fix masterid detection")
-> Reported-by: Kristian Otnes <kotnes@cisco.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
+> This is a repost of just the DT support patches (first 2 patches out
+> of 5) from the OMAP Mailbox framework adoption and DT support series [1],
+> so that they can be picked up for 3.18. The only change is an Acked-by
+> picked up on the second patch. I will repost the third patch separately,
+> and the last 2 patches once a framework branch is published (no changes
+> on those as well).
 > 
-> Based on v3.17-rc1 - but might be 3.17 rc material
+> The patches are rebased onto 3.17-rc3. The previous dependencies - the
+> OMAP mailbox DT/hwmod cleanup series [2] and the OMAP mailbox cleanup
+> series [3] have already been merged in 3.17-rc1, so there are no more
+> pending dependencies for these patches.
+> 
+> The following shows the boot logs on various OMAP platforms with just these
+> patches:
+>   OMAP2 (SDP2430)           : http://pastebin.ubuntu.com/8311033
+>   OMAP3 (BeagleXM)          : http://pastebin.ubuntu.com/8310760
+>   OMAP4 (PandaBoard)        : http://pastebin.ubuntu.com/8310633 
+>   OMAP5 (OMAP5 uEVM)        : http://pastebin.ubuntu.com/8310650
+>   DRA7  (DRA7 EVM)          : http://pastebin.ubuntu.com/8310700
+>   AM33xx (BeagleBone Black) : http://pastebin.ubuntu.com/8310732
+>   AM43xx (AM437x GP EVM)    : http://pastebin.ubuntu.com/8310824
+> 
+> [1] http://marc.info/?l=linux-omap&m=140668054422693&w=2
+> [2] http://marc.info/?l=linux-omap&m=140511512208519&w=2
+> [3] http://www.spinics.net/lists/linux-omap/msg108574.html
 
-Yes as it's a regression. Applying into omap-for-v3.17/fixes-v3.
+Thanks applying into omap-for-v3.18/mailbox.
+
+Regards,
 
 Tony
  
-> Quick links (seems to work on firefox):
-> 4430:
-> http://www.ti.com/lit/ug/swpu231ap/swpu231ap.pdf#page=3030&zoom=auto,0,699.5
-> 4460:
-> http://www.ti.com/lit/ug/swpu235ab/swpu235ab.pdf#page=3073&zoom=auto,0,699.5
+> Suman Anna (2):
+>   Documentation: dt: add omap mailbox bindings
+>   mailbox/omap: add support for parsing dt devices
 > 
-> NOTE: there are a few more cleanup patches that can follow these..
-> will leave those out for now.
+>  .../devicetree/bindings/mailbox/omap-mailbox.txt   | 108 ++++++++++++++
+>  drivers/mailbox/omap-mailbox.c                     | 156 +++++++++++++++++----
+>  2 files changed, 240 insertions(+), 24 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
 > 
->  drivers/bus/omap_l3_noc.h |   50 ++++++++++++++++++++++-----------------------
->  1 file changed, 25 insertions(+), 25 deletions(-)
-> 
-> diff --git a/drivers/bus/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-> index 551e010..9525458 100644
-> --- a/drivers/bus/omap_l3_noc.h
-> +++ b/drivers/bus/omap_l3_noc.h
-> @@ -188,31 +188,31 @@ static struct l3_flagmux_data omap_l3_flagmux_clk3 = {
->  };
->  
->  static struct l3_masters_data omap_l3_masters[] = {
-> -	{ 0x0 , "MPU"},
-> -	{ 0x10, "CS_ADP"},
-> -	{ 0x14, "xxx"},
-> -	{ 0x20, "DSP"},
-> -	{ 0x30, "IVAHD"},
-> -	{ 0x40, "ISS"},
-> -	{ 0x44, "DucatiM3"},
-> -	{ 0x48, "FaceDetect"},
-> -	{ 0x50, "SDMA_Rd"},
-> -	{ 0x54, "SDMA_Wr"},
-> -	{ 0x58, "xxx"},
-> -	{ 0x5C, "xxx"},
-> -	{ 0x60, "SGX"},
-> -	{ 0x70, "DSS"},
-> -	{ 0x80, "C2C"},
-> -	{ 0x88, "xxx"},
-> -	{ 0x8C, "xxx"},
-> -	{ 0x90, "HSI"},
-> -	{ 0xA0, "MMC1"},
-> -	{ 0xA4, "MMC2"},
-> -	{ 0xA8, "MMC6"},
-> -	{ 0xB0, "UNIPRO1"},
-> -	{ 0xC0, "USBHOSTHS"},
-> -	{ 0xC4, "USBOTGHS"},
-> -	{ 0xC8, "USBHOSTFS"}
-> +	{ 0x00, "MPU"},
-> +	{ 0x04, "CS_ADP"},
-> +	{ 0x05, "xxx"},
-> +	{ 0x08, "DSP"},
-> +	{ 0x0C, "IVAHD"},
-> +	{ 0x10, "ISS"},
-> +	{ 0x11, "DucatiM3"},
-> +	{ 0x12, "FaceDetect"},
-> +	{ 0x14, "SDMA_Rd"},
-> +	{ 0x15, "SDMA_Wr"},
-> +	{ 0x16, "xxx"},
-> +	{ 0x17, "xxx"},
-> +	{ 0x18, "SGX"},
-> +	{ 0x1C, "DSS"},
-> +	{ 0x20, "C2C"},
-> +	{ 0x22, "xxx"},
-> +	{ 0x23, "xxx"},
-> +	{ 0x24, "HSI"},
-> +	{ 0x28, "MMC1"},
-> +	{ 0x29, "MMC2"},
-> +	{ 0x2A, "MMC6"},
-> +	{ 0x2C, "UNIPRO1"},
-> +	{ 0x30, "USBHOSTHS"},
-> +	{ 0x31, "USBOTGHS"},
-> +	{ 0x32, "USBHOSTFS"}
->  };
->  
->  static struct l3_flagmux_data *omap_l3_flagmux[] = {
 > -- 
-> 1.7.9.5
+> 2.0.4
 > 
