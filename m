@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/5] non-urgent omap fixes for v3.18 merge window
-Date: Thu, 11 Sep 2014 16:28:54 -0700
-Message-ID: <42910.9570490711$1410478223@news.gmane.org>
+Subject: [GIT PULL 2/5] omap soc changes for v3.18 merge window
+Date: Thu, 11 Sep 2014 16:28:55 -0700
+Message-ID: <3188.88370316035$1410478223@news.gmane.org>
+References: <pull-1410478051-378788>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1410478051-378788>
+In-Reply-To: <pull-1410478051-378788>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,56 +22,80 @@ To: arm@kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA2OWUyNzNjMGIwYTNjMzM3YTUyMWQw
-ODMzNzRjOTE4ZGM1MmM2NjZmOgoKICBMaW51eCAzLjE3LXJjMyAoMjAxNC0wOC0zMSAxODoyMzow
-NCAtMDcwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0OgoKICBnaXQ6
-Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9t
-YXAgdGFncy9maXhlcy12My4xOC1ub3QtdXJnZW50Cgpmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMg
-dXAgdG8gMzE5NTc2MDlkYjUyOWQ0MDE2NThhZGMyZTkxZWY3ZGY3ZWE0MjY5OToKCiAgQVJNOiBP
-TUFQMis6IG1ha2Ugb2ZfZGV2aWNlX2lkcyBjb25zdCAoMjAxNC0wOS0xMSAxMjozNzoyMyAtMDcw
-MCkKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0KRml4ZXMgZm9yIG9tYXBzIHRoYXQgd2VyZSBub3QgY29uc2lkZXJlZCB1cmdl
-bnQgZW5vdWdoCmZvciB0aGUgLXJjIGN5Y2xlOgoKLSBGaXhlcyBmb3IgLmR0cyBmaWxlcyB0byBk
-aWZmZXJlbnRpYXRlIHBhbmRhIGFuZCBiZWFnbGVib25lIHZlcnNpb25zCi0gUG93ZXJkb21haW4g
-Zml4ZXMgZnJvbSBOaXNoYW50IE1lbm9uIG1vc3RseSBmb3IgbmV3ZXIgb21hcHMKLSBGaXhlcyBm
-b3IgX19pbml0Y29uc3QgYW5kIG9mX2RldmljZV9pZHMgY29uc3QgdXNhZ2UKCi0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KTmlz
-aGFudGggTWVub24gKDkpOgogICAgICBBUk06IGR0czogb21hcDQtcGFuZGE6IEZpeCBtb2RlbCBh
-bmQgU29DIGZhbWlseSBkZXRhaWxzCiAgICAgIEFSTTogZHRzOiBhbTMzNXgtYm9uZSo6IEZpeCBt
-b2RlbCBuYW1lIGFuZCB1cGRhdGUgY29tcGF0aWJpbGl0eSBpbmZvcm1hdGlvbgogICAgICBBUk06
-IE9NQVA6IERSQTc6IHBvd2VyZG9tYWluIGRhdGE6IGZpeCBwb3dlcmRvbWFpbiBwb3dlcnN0YXRl
-CiAgICAgIEFSTTogT01BUDU6IHBvd2VyZG9tYWluIGRhdGE6IGZpeCBwb3dlcmRvbWFpbiBwb3dl
-cnN0YXRlCiAgICAgIEFSTTogT01BUDIrOiBwb3dlcmRvbWFpbjogcHdyZG1fZm9yX2VhY2hfY2xr
-ZG0gaXRlcmF0ZSBvbmx5IHZhbGlkIGNsa2RtcwogICAgICBBUk06IE9NQVAyKzogcG93ZXJkb21h
-aW46IGludHJvZHVjZSBsb2dpYyBmb3IgZmluZGluZyB2YWxpZCBwb3dlciBkb21haW4KICAgICAg
-QVJNOiBPTUFQNCs6IFBNOiBNYWtlIGxvZ2ljIHN0YXRlIHByb2dyYW1tYWJsZQogICAgICBBUk06
-IE9NQVA0KzogUE06IHVzZSBvbmx5IHZhbGlkIGxvdyBwb3dlciBzdGF0ZSBmb3Igc3VzcGVuZAog
-ICAgICBBUk06IE9NQVA0KzogUE06IFVzZSBvbmx5IHZhbGlkIGxvdyBwb3dlciBzdGF0ZSBmb3Ig
-Q1BVIGhvdHBsdWcKClRvbnkgTGluZGdyZW4gKDEpOgogICAgICBNZXJnZSBicmFuY2ggJ3B1bGwv
-djMuMTgvcG93ZXJkb21haW4tZml4ZXMnIG9mIGh0dHBzOi8vZ2l0aHViLmNvbS9ubWVub24vbGlu
-dXgtMi42LXBsYXlncm91bmQgaW50byBvbWFwLWZvci12My4xOC9maXhlcy1ub3QtdXJnZW50CgpV
-d2UgS2xlaW5lLUvDg8K2bmlnICgyKToKICAgICAgQVJNOiBvbWFwMjogbWFrZSBhcnJheXMgY29u
-dGFpbmluZyBtYWNoaW5lIGNvbXBhdGlibGUgc3RyaW5ncyBjb25zdAogICAgICBBUk06IE9NQVAy
-KzogbWFrZSBvZl9kZXZpY2VfaWRzIGNvbnN0CgogYXJjaC9hcm0vYm9vdC9kdHMvYW0zMzV4LWJv
-bmUtY29tbW9uLmR0c2kgICB8ICAzIC0tCiBhcmNoL2FybS9ib290L2R0cy9hbTMzNXgtYm9uZS5k
-dHMgICAgICAgICAgIHwgIDUgKysKIGFyY2gvYXJtL2Jvb3QvZHRzL2FtMzM1eC1ib25lYmxhY2su
-ZHRzICAgICAgfCAgNSArKwogYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtcGFuZGEtY29tbW9uLmR0
-c2kgICB8ICAzIC0tCiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1wYW5kYS1lcy5kdHMgICAgICAg
-IHwgIDUgKysKIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LXBhbmRhLmR0cyAgICAgICAgICAgfCAg
-NSArKwogYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1nZW5lcmljLmMgICAgICAgICB8IDI2ICsr
-KysrLS0tLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvY29tbW9uLmggICAgICAgICAgICAgICAgfCAg
-MiArLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9ncG1jLmMgICAgICAgICAgICAgICAgICB8ICAyICst
-CiBhcmNoL2FybS9tYWNoLW9tYXAyL2lycS5jICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFy
-Y2gvYXJtL21hY2gtb21hcDIvb21hcC1tcHVzcy1sb3dwb3dlci5jICAgfCAgNCArKwogYXJjaC9h
-cm0vbWFjaC1vbWFwMi9wZGF0YS1xdWlya3MuYyAgICAgICAgICB8ICAyICstCiBhcmNoL2FybS9t
-YWNoLW9tYXAyL3BtNDR4eC5jICAgICAgICAgICAgICAgIHwgIDkgKysrLQogYXJjaC9hcm0vbWFj
-aC1vbWFwMi9wb3dlcmRvbWFpbi5jICAgICAgICAgICB8IDc5ICsrKysrKysrKysrKysrKysrKysr
-KysrKysrKystCiBhcmNoL2FybS9tYWNoLW9tYXAyL3Bvd2VyZG9tYWluLmggICAgICAgICAgIHwg
-IDQgKysKIGFyY2gvYXJtL21hY2gtb21hcDIvcG93ZXJkb21haW5zNTR4eF9kYXRhLmMgfCAxMiAr
-Ky0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9wb3dlcmRvbWFpbnM3eHhfZGF0YS5jICB8IDE0ICsr
-LS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL3BybV9jb21tb24uYyAgICAgICAgICAgIHwgIDIgKy0K
-IGFyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYyAgICAgICAgICAgICAgICAgfCAgNiArLS0KIDE5
-IGZpbGVzIGNoYW5nZWQsIDE0NyBpbnNlcnRpb25zKCspLCA0MyBkZWxldGlvbnMoLSkKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
-ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
-Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+The following changes since commit d7eb67f7fef9c046f27a975118da2324de65a90c:
+
+  Merge branch 'pull/v3.18/powerdomain-fixes' of https://github.com/nmenon/linux-2.6-playground into omap-for-v3.18/fixes-not-urgent (2014-09-08 15:04:24 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/soc-for-v3.18
+
+for you to fetch changes up to 377fb3f5d9a34b2913939e0620c1c585b5913bab:
+
+  ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7 (2014-09-09 19:13:41 -0700)
+
+----------------------------------------------------------------
+SoC related changes for omaps for v3.18 merge window:
+
+- PM changes to make the code easier to use on newer SoCs
+- PM changes for newer SoCs suspend and resume and wake-up events
+- Minor clean-up to remove dead Kconfig options
+
+Note that these have a dependency to the fixes-v3.18-not-urgent
+tag and is based on a commit in that series.
+
+----------------------------------------------------------------
+Keerthy (1):
+      ARM: AM437x: use pdata quirks for pinctrl information
+
+Mark Brown (1):
+      ARM: omap: Remove stray ARCH_HAS_OPP references
+
+Nishanth Menon (10):
+      ARM: OMAP4+: prminst: provide function to find prm_dev instance offset
+      ARM: OMAP4: PRM: use the generic prm_inst to allow logic to be abstracted
+      ARM: OMAP4+: PRM: register interrupt information from DT
+      ARM: OMAP4+: PRM: remove "wkup" event
+      ARM: OMAP4+: PRM: Enable wakeup capability for OMAP5, DRA7
+      ARM: OMAP3+: PRM: register interrupt information from DT
+      ARM: OMAP5: use pdata quirks for pinctrl information
+      ARM: DRA7: use pdata quirks for pinctrl information
+      ARM: dts: OMAP3+: Add PRM interrupt
+      ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7
+
+Rajendra Nayak (3):
+      ARM: OMAP5 / DRA7: PM: Avoid all SAR saves
+      ARM: OMAP5 / DRA7: Enable CPU RET on suspend
+      ARM: DRA7: Add hook in SoC initcalls to enable pm initialization
+
+Santosh Shilimkar (6):
+      ARM: OMAP5 / DRA7: PM: Update CPU context register offset
+      ARM: OMAP5 / DRA7: PM: Set MPUSS-EMIF clock-domain static dependency
+      ARM: OMAP5 / DRA7: PM / wakeupgen: Enables ES2 PM mode by default
+      ARM: OMAP5 / DRA7: PM: Enable Mercury retention mode on CPUx powerdomains
+      ARM: OMAP5 / DRA7: PM: Provide a dummy startup function for CPU hotplug
+      ARM: OMAP5: Add hook in SoC initcalls to enable pm initialization
+
+Tony Lindgren (1):
+      Merge branch 'pull/v3.18/for-omap-soc' of https://github.com/nmenon/linux-2.6-playground into omap-for-v3.18/soc
+
+ arch/arm/boot/dts/dra7.dtsi               |   1 +
+ arch/arm/boot/dts/omap3.dtsi              |   1 +
+ arch/arm/boot/dts/omap4.dtsi              |   1 +
+ arch/arm/boot/dts/omap5.dtsi              |   1 +
+ arch/arm/mach-omap2/Kconfig               |   5 --
+ arch/arm/mach-omap2/Makefile              |  12 ++--
+ arch/arm/mach-omap2/common.h              |   2 +-
+ arch/arm/mach-omap2/io.c                  |   6 ++
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 102 +++++++++++++++++++++---------
+ arch/arm/mach-omap2/omap-secure.h         |   1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c      |  20 +++++-
+ arch/arm/mach-omap2/omap-wakeupgen.h      |   1 +
+ arch/arm/mach-omap2/pdata-quirks.c        |  10 +++
+ arch/arm/mach-omap2/pm.h                  |   1 +
+ arch/arm/mach-omap2/pm44xx.c              |  48 ++++++++++++--
+ arch/arm/mach-omap2/prm3xxx.c             |  18 ++++++
+ arch/arm/mach-omap2/prm44xx.c             |  90 ++++++++++++++++++++++----
+ arch/arm/mach-omap2/prminst44xx.c         |  40 +++++++-----
+ arch/arm/mach-omap2/prminst44xx.h         |   3 +
+ 19 files changed, 290 insertions(+), 73 deletions(-)
