@@ -1,135 +1,45 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [RFC PATCHv2 3/3] hwspinlock/core: add support for reserved locks
-Date: Fri, 12 Sep 2014 15:56:48 -0500
-Message-ID: <1410555408-56954-4-git-send-email-s-anna@ti.com>
-References: <1410555408-56954-1-git-send-email-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/16 v9] omap 8250 based uart + DMA
+Date: Fri, 12 Sep 2014 15:43:25 -0700
+Message-ID: <20140912224324.GK18849@atomide.com>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1410555408-56954-1-git-send-email-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, Kumar Gala <galak@codeaurora.org>
-Cc: devicetree@vger.kernel.org, Josh Cartwright <joshc@codeaurora.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Bjorn Andersson <bjorn@kryo.se>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-The HwSpinlock core allows requesting either a specific lock or an
-available normal lock. The specific locks are usually reserved during
-board init time, while the normal available locks are intended to be
-assigned at runtime for clients that do not care about a specific
-lock.
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140910 12:30]:
+> the diff of v8=E2=80=A6v9 is small:
+> - rebased on top's of Greg's tty-next branch
+> - fixed #10 where we might have THRE interrupt enabled for longer tha=
+n
+>   needed
+> - re-did register setup in #10. Before this "less file" could freeze =
+the
+>   am335x-evm.
 
-The HwSpinlock core has been enhanced to:
-  1. mark certain locks as 'reserved' by parsing the DT blob for any
-     locks used by client nodes.
-  2. restrict the anonymous hwspin_lock_request() API to allocate only
-     from non-reserved locks for DT boots.
-  3. limit these reserved locks to be allocated only using the
-     hwspin_lock_request_specific() API for DT boots.
+=46YI, looks like merging in your uart_v9 branch for testing
+with my hwmod changes now fails to produce RX characters on omap3.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
- drivers/hwspinlock/hwspinlock_core.c | 61 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 59 insertions(+), 2 deletions(-)
+The device wakes up just fine to the wake-up interrupt, and then
+serial8250_handle_irq() gets called, but I'm not seeing anything
+in the console getting printed out. It's like all the RX characters
+are getting lost instead of just the first one. The RX characters
+work fine when the system is running.
 
-diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-index f0d8475..d49a077 100644
---- a/drivers/hwspinlock/hwspinlock_core.c
-+++ b/drivers/hwspinlock/hwspinlock_core.c
-@@ -474,6 +474,53 @@ static int hwspinlock_device_add(struct hwspinlock_device *bank)
- }
- 
- /**
-+ * hwspin_mark_reserved_locks() - mark reserved locks
-+ *
-+ * This is an internal function that mark all the reserved locks within
-+ * a hwspinlock device during the registration phase, and is applicable
-+ * only for device-tree boots. The locks are marked by browsing through
-+ * all the user nodes with the property "hwlocks", so that a separate
-+ * property is not needed in the hwspinlock device itself. Note that it
-+ * also marks locks used on disabled user nodes.
-+ */
-+static void hwspin_mark_reserved_locks(struct hwspinlock_device *bank)
-+{
-+	struct device_node *np = bank->dev->of_node;
-+	const char *prop_name = "hwlocks";
-+	const char *cells_name = "#hwlock-cells";
-+	struct device_node *node = NULL;
-+	struct of_phandle_args args;
-+	struct hwspinlock *hwlock;
-+	int i, id, count, ret;
-+
-+	for_each_node_with_property(node, prop_name) {
-+		count = of_count_phandle_with_args(node, prop_name, cells_name);
-+		if (count <= 0)
-+			continue;
-+
-+		for (i = 0; i < count; i++, of_node_put(args.np)) {
-+			args.np = NULL;
-+			ret = of_parse_phandle_with_args(node, prop_name,
-+							 cells_name, i, &args);
-+			if (ret || np != args.np)
-+				continue;
-+
-+			id = of_hwspin_lock_simple_xlate(bank, &args);
-+			if (id < 0 || id >= bank->num_locks)
-+				continue;
-+
-+			hwlock = &bank->lock[id];
-+			if (hwlock->type == HWSPINLOCK_RESERVED) {
-+				dev_err(bank->dev, "potential reuse of hwspinlock %d between multiple clients on %s\n",
-+					id, np->full_name);
-+				continue;
-+			}
-+			hwlock->type = HWSPINLOCK_RESERVED;
-+		}
-+	}
-+}
-+
-+/**
-  * hwspin_lock_register() - register a new hw spinlock device
-  * @bank: the hwspinlock device, which usually provides numerous hw locks
-  * @dev: the backing device
-@@ -511,12 +558,16 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
- 	if (ret)
- 		return ret;
- 
-+	if (dev->of_node)
-+		hwspin_mark_reserved_locks(bank);
-+
- 	for (i = 0; i < num_locks; i++) {
- 		hwlock = &bank->lock[i];
- 
- 		spin_lock_init(&hwlock->lock);
- 		hwlock->bank = bank;
--		hwlock->type = HWSPINLOCK_UNUSED;
-+		if (hwlock->type != HWSPINLOCK_RESERVED)
-+			hwlock->type = HWSPINLOCK_UNUSED;
- 
- 		ret = hwspin_lock_register_single(hwlock, base_id + i);
- 		if (ret)
-@@ -699,7 +750,13 @@ struct hwspinlock *hwspin_lock_request_specific(unsigned int id)
- 	/* sanity check (this shouldn't happen) */
- 	WARN_ON(hwlock_to_id(hwlock) != id);
- 
--	/* make sure this hwspinlock is unused */
-+	if (hwlock->bank->dev->of_node && hwlock->type != HWSPINLOCK_RESERVED) {
-+		pr_warn("hwspinlock %u is not a reserved lock\n", id);
-+		hwlock = NULL;
-+		goto out;
-+	}
-+
-+	/* make sure this hwspinlock is an unused reserved lock */
- 	ret = radix_tree_tag_get(&hwspinlock_tree, id, hwlock->type);
- 	if (ret == 0) {
- 		pr_warn("hwspinlock %u is already in use\n", id);
--- 
-2.0.4
+So it seems there's been some kind of regression since v8?
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
