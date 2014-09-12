@@ -1,62 +1,103 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix I/O chain clock line assertion timed out
- error
-Date: Fri, 12 Sep 2014 13:39:41 -0500
-Message-ID: <20140912183941.GA15272@kahuna>
-References: <1410544222-25913-1-git-send-email-tony@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v3 0/3] OMAP4+: Get rid of internal SRAM handling
+Date: Fri, 12 Sep 2014 13:47:55 -0500
+Message-ID: <54133FDB.9030706@ti.com>
+References: <cover.1410362895.git.d-gerlach@ti.com> <20140910165643.GA3118@splat>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36867 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751092AbaILSkI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Sep 2014 14:40:08 -0400
-Content-Disposition: inline
-In-Reply-To: <1410544222-25913-1-git-send-email-tony@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47357 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150AbaILSsW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2014 14:48:22 -0400
+In-Reply-To: <20140910165643.GA3118@splat>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 10:50-20140912, Tony Lindgren wrote:
-> We are getting "PRM: I/O chain clock line assertion timed out" errors
-> on early omaps for device tree based booting. This is because we are
-> unconditionally calling reconfigure_io_chain while legacy booting
-> has omap3_has_io_chain_ctrl() checks in place in omap_hwmod.c.
+On 09/10/2014 11:56 AM, Nishanth Menon wrote:
+> On 11:04-20140910, Dave Gerlach wrote:
+>> v3:
+>> Fix minor issue in last patch to check for null sram_pool if no sram
+>> phandle is given in DT.
+>>
+>> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
+>> use drivers/misc/sram.c driver instead of the omap internal
+>> implementation for SRAM handling.
+>>
+>> Previous discussion can be found at [1].
+>>
+>> Regards,
+>> Dave
+>>
+>> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-August/195588.html
+>>
+>> Rajendra Nayak (3):
+>>   ARM: AM335x: Get rid of unused sram init function
+>>   ARM: OMAP4+: Move SRAM data to DT
+>>   ARM: OMAP4+: Remove static iotable mappings for SRAM
+>>
+>>  Documentation/devicetree/bindings/arm/omap/mpu.txt |  3 ++
+>>  arch/arm/boot/dts/am33xx.dtsi                      |  5 ++-
+>>  arch/arm/boot/dts/am4372.dtsi                      |  5 +++
+>>  arch/arm/boot/dts/omap4.dtsi                       |  6 ++++
+>>  arch/arm/boot/dts/omap5.dtsi                       |  8 ++++-
+>>  arch/arm/configs/omap2plus_defconfig               |  1 +
+>>  arch/arm/mach-omap2/io.c                           | 17 ----------
+>>  arch/arm/mach-omap2/omap4-common.c                 | 22 +++++++++++-
+>>  arch/arm/mach-omap2/sram.c                         | 39 +---------------------
+>>  arch/arm/mach-omap2/sram.h                         |  7 ----
+>>  10 files changed, 46 insertions(+), 67 deletions(-)
+>>
 > 
-> For device tree based booting, we are calling reconfigure_io_chain
-> unconditionally from pinctrl framework. So we need to add a check for
-> omap3_has_io_chain_ctrl() to avoid the errors for trying to access
-> a register that does not exist.
+> Could you please provide logs for the following:
+> a) Low power transition tests for OMAP3,4 on all available platforms as
+> well?
+> b) provide bootlogs on all omap2plus platforms to ensure we have no
+> regressions.
 > 
-> For es3.0, the documentation in "4.11.2 Device Off-Mode Configuration"
-> just mentions PM_WKEN_WKUP[8] bit. For es3.1, there's a new chapter in
-> documentation for "4.11.2.2 I/O Wake-Up Mechanism" that describes the
-> PM_WKEN_WKUP[16] ST_IO_CHAIN bit. So PM_WKEN_WKUP[16] bit did not get
-> added until in es3.1 probaly to fix issues with flakey wake-up events.
-> 
-> We are doing proper checks for ST_IO_CHAIN already in id.c and with
-> omap3_has_io_chain_ctrl(). For more information, see also commit
-> b02b917211d5 ("ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock
-> control detection").
-> 
-> Let's fix the issue by selecting the right function during init for
-> reconfigure_io_chain depending on the omap revision. For es3.0 and
-> earlier we need to just toggle EN_IO. By doing this, we can move the
-> check for omap3_has_io_chain_ctrl() from omap_hwmod.c to the init code
-> in prm_3xxx.c. And then we can unconditionally call reconfigure_io_chain.
-> 
-> Thanks to Paul Walmsley and Nishanth Menon for help with debugging the
-> issue.
-> 
-> Fixes: 30a69ef785e8 ("ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap")
-> Cc: Kevin Hilman <khilman@kernel.org>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-Reviewed-by: Nishanth Menon <nm@ti.com>
 
--- 
+Here are logs for low power transition, all platforms passed, properly
+transitioned power domains with mem sleep using wakeup_timer to wake.
+
+Low Power transition on v3.17-rc4 with patches applied, omap2plus_defconfig
+(OMAP3 and OMAP4):
+
+ 1: BeagleBoard-XM: http://fpaste.org/133215/
+ 2: OMAP3430-Labrador(LDP): http://fpaste.org/133225/
+ 3: n900: http://fpaste.org/133244/
+ 4: pandaboard-es:  http://fpaste.org/133213/
+ 5: pandaboard-vanilla: http://fpaste.org/133214/
+ 6: sdp3430: http://fpaste.org/133246/
+
+Boot on v3.17-rc4 with patches applied, omap2plus_defconfig:
+
+ 1: am335x-evm:  Boot PASS: http://fpaste.org/133179/
+ 2:  am335x-sk:  Boot PASS: http://fpaste.org/133180/
+ 3: am3517-evm:  Boot PASS: http://fpaste.org/133181/
+ 4:  am37x-evm:  Boot PASS: http://fpaste.org/133182/
+ 5: am43xx-epos:  Boot PASS: http://fpaste.org/133183/
+ 6: am43xx-gpevm:  Boot PASS: http://fpaste.org/133184/
+ 7: BeagleBoard-XM:  Boot PASS: http://fpaste.org/133191/
+ 8: beagleboard-vanilla:  Boot PASS: http://fpaste.org/133192/
+ 9: beaglebone-black:  Boot PASS: http://fpaste.org/133193/
+10: beaglebone:  Boot PASS: http://fpaste.org/133194/
+11: craneboard:  Boot PASS: http://fpaste.org/133186/
+12: dra7xx-evm:  Boot PASS: http://fpaste.org/131396/
+13: OMAP3430-Labrador(LDP):  Boot PASS: http://fpaste.org/133206/
+14:       n900:  Boot PASS: http://fpaste.org/133207/
+15:  omap5-evm:  Boot PASS: http://fpaste.org/133208/
+16: pandaboard-es:  Boot PASS: http://fpaste.org/133187/
+17: pandaboard-vanilla:  Boot PASS: http://fpaste.org/133188/
+18:    sdp2430:  Boot PASS: http://fpaste.org/133189/
+19:    sdp3430:  Boot PASS: http://fpaste.org/133212/
+TOTAL = 19 boards, Booted Boards = 19, No Boot boards = 0
+
+Again, all pass. I have also tested with next AM335x Suspend/Resume
+implementation, next version will use generic sram driver to allocate for
+low-level assembly code, and that works fine as well.
+
 Regards,
-Nishanth Menon
+Dave
