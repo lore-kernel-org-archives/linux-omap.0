@@ -1,243 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] pstore-ram: Allow optional mapping with pgprot_noncached
-Date: Fri, 12 Sep 2014 11:32:25 -0700
-Message-ID: <1410546745-919-2-git-send-email-tony@atomide.com>
-References: <1410546745-919-1-git-send-email-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410546745-919-1-git-send-email-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robherring2@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Olof Johansson <olof@lixom.net>, Tony Luck <tony.luck@intel.com>, Russell King <linux@arm.linux.org.uk>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: Fix I/O chain clock line assertion timed out
+ error
+Date: Fri, 12 Sep 2014 13:39:41 -0500
+Message-ID: <20140912183941.GA15272@kahuna>
+References: <1410544222-25913-1-git-send-email-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:36867 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751092AbaILSkI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Sep 2014 14:40:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1410544222-25913-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-On some ARMs at least the memory can be mapped pgprot_noncached()
-and still be working for atomic operations. As pointed out by
-Colin Cross <ccross@android.com>, in some cases you do want to use
-pgprot_noncached() if the SoC supports it to see a debug printk
-just before a write hanging the system.
+On 10:50-20140912, Tony Lindgren wrote:
+> We are getting "PRM: I/O chain clock line assertion timed out" errors
+> on early omaps for device tree based booting. This is because we are
+> unconditionally calling reconfigure_io_chain while legacy booting
+> has omap3_has_io_chain_ctrl() checks in place in omap_hwmod.c.
+> 
+> For device tree based booting, we are calling reconfigure_io_chain
+> unconditionally from pinctrl framework. So we need to add a check for
+> omap3_has_io_chain_ctrl() to avoid the errors for trying to access
+> a register that does not exist.
+> 
+> For es3.0, the documentation in "4.11.2 Device Off-Mode Configuration"
+> just mentions PM_WKEN_WKUP[8] bit. For es3.1, there's a new chapter in
+> documentation for "4.11.2.2 I/O Wake-Up Mechanism" that describes the
+> PM_WKEN_WKUP[16] ST_IO_CHAIN bit. So PM_WKEN_WKUP[16] bit did not get
+> added until in es3.1 probaly to fix issues with flakey wake-up events.
+> 
+> We are doing proper checks for ST_IO_CHAIN already in id.c and with
+> omap3_has_io_chain_ctrl(). For more information, see also commit
+> b02b917211d5 ("ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock
+> control detection").
+> 
+> Let's fix the issue by selecting the right function during init for
+> reconfigure_io_chain depending on the omap revision. For es3.0 and
+> earlier we need to just toggle EN_IO. By doing this, we can move the
+> check for omap3_has_io_chain_ctrl() from omap_hwmod.c to the init code
+> in prm_3xxx.c. And then we can unconditionally call reconfigure_io_chain.
+> 
+> Thanks to Paul Walmsley and Nishanth Menon for help with debugging the
+> issue.
+> 
+> Fixes: 30a69ef785e8 ("ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap")
+> Cc: Kevin Hilman <khilman@kernel.org>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Reviewed-by: Nishanth Menon <nm@ti.com>
 
-On ARMs, the atomic operations on strongly ordered memory are
-implementation defined. So let's provide an optional kernel parameter
-for configuring noncached memory, and use pgprot_writecombine() by
-default.
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Rob Herring <robherring2@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- Documentation/ramoops.txt  | 12 ++++++++++--
- fs/pstore/ram.c            | 13 +++++++++++--
- fs/pstore/ram_core.c       | 31 ++++++++++++++++++++++---------
- include/linux/pstore_ram.h |  4 +++-
- 4 files changed, 46 insertions(+), 14 deletions(-)
-
-diff --git a/Documentation/ramoops.txt b/Documentation/ramoops.txt
-index 69b3cac..2dab135 100644
---- a/Documentation/ramoops.txt
-+++ b/Documentation/ramoops.txt
-@@ -14,11 +14,18 @@ survive after a restart.
- 
- 1. Ramoops concepts
- 
--Ramoops uses a predefined memory area to store the dump. The start and size of
--the memory area are set using two variables:
-+Ramoops uses a predefined memory area to store the dump. The start and size
-+and type of the memory area are set using three variables:
-   * "mem_address" for the start
-   * "mem_size" for the size. The memory size will be rounded down to a
-   power of two.
-+  * "mem_cached" to specifiy if the memory is cached or not.
-+
-+Note disabling "mem_cached" may not be supported on all architectures as
-+pstore depends on atomic operations. At least on ARM, clearing "mem_cached"
-+will cause the memory to be mapped strongly ordered. And atomic operations
-+on strongly ordered memory are implementation defined, and won't work on
-+many ARMs such as omap.
- 
- The memory area is divided into "record_size" chunks (also rounded down to
- power of two) and each oops/panic writes a "record_size" chunk of
-@@ -55,6 +62,7 @@ Setting the ramoops parameters can be done in 2 different manners:
- static struct ramoops_platform_data ramoops_data = {
-         .mem_size               = <...>,
-         .mem_address            = <...>,
-+        .mem_cached             = <...>,
-         .record_size            = <...>,
-         .dump_oops              = <...>,
-         .ecc                    = <...>,
-diff --git a/fs/pstore/ram.c b/fs/pstore/ram.c
-index 3b57443..53ddcb2 100644
---- a/fs/pstore/ram.c
-+++ b/fs/pstore/ram.c
-@@ -61,6 +61,11 @@ module_param(mem_size, ulong, 0400);
- MODULE_PARM_DESC(mem_size,
- 		"size of reserved RAM used to store oops/panic logs");
- 
-+static unsigned int mem_cached = 1;
-+module_param(mem_cached, uint, 0600);
-+MODULE_PARM_DESC(mem_cached,
-+		"set to 1 to use cached memory, 0 to use uncached (default 1)");
-+
- static int dump_oops = 1;
- module_param(dump_oops, int, 0600);
- MODULE_PARM_DESC(dump_oops,
-@@ -79,6 +84,7 @@ struct ramoops_context {
- 	struct persistent_ram_zone *fprz;
- 	phys_addr_t phys_addr;
- 	unsigned long size;
-+	unsigned int cached;
- 	size_t record_size;
- 	size_t console_size;
- 	size_t ftrace_size;
-@@ -358,7 +364,8 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
- 		size_t sz = cxt->record_size;
- 
- 		cxt->przs[i] = persistent_ram_new(*paddr, sz, 0,
--						  &cxt->ecc_info);
-+						  &cxt->ecc_info,
-+						  cxt->cached);
- 		if (IS_ERR(cxt->przs[i])) {
- 			err = PTR_ERR(cxt->przs[i]);
- 			dev_err(dev, "failed to request mem region (0x%zx@0x%llx): %d\n",
-@@ -388,7 +395,7 @@ static int ramoops_init_prz(struct device *dev, struct ramoops_context *cxt,
- 		return -ENOMEM;
- 	}
- 
--	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info);
-+	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info, cxt->cached);
- 	if (IS_ERR(*prz)) {
- 		int err = PTR_ERR(*prz);
- 
-@@ -435,6 +442,7 @@ static int ramoops_probe(struct platform_device *pdev)
- 
- 	cxt->size = pdata->mem_size;
- 	cxt->phys_addr = pdata->mem_address;
-+	cxt->cached = pdata->mem_cached;
- 	cxt->record_size = pdata->record_size;
- 	cxt->console_size = pdata->console_size;
- 	cxt->ftrace_size = pdata->ftrace_size;
-@@ -564,6 +572,7 @@ static void ramoops_register_dummy(void)
- 
- 	dummy_data->mem_size = mem_size;
- 	dummy_data->mem_address = mem_address;
-+	dummy_data->mem_cached = 1;
- 	dummy_data->record_size = record_size;
- 	dummy_data->console_size = ramoops_console_size;
- 	dummy_data->ftrace_size = ramoops_ftrace_size;
-diff --git a/fs/pstore/ram_core.c b/fs/pstore/ram_core.c
-index 24f94b0..ae34cf6 100644
---- a/fs/pstore/ram_core.c
-+++ b/fs/pstore/ram_core.c
-@@ -380,7 +380,8 @@ void persistent_ram_zap(struct persistent_ram_zone *prz)
- 	persistent_ram_update_header_ecc(prz);
- }
- 
--static void *persistent_ram_vmap(phys_addr_t start, size_t size)
-+static void *persistent_ram_vmap(phys_addr_t start, size_t size,
-+		unsigned int cached)
- {
- 	struct page **pages;
- 	phys_addr_t page_start;
-@@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
- 	page_start = start - offset_in_page(start);
- 	page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
- 
--	prot = pgprot_writecombine(PAGE_KERNEL);
-+	if (cached)
-+		prot = pgprot_writecombine(PAGE_KERNEL);
-+	else
-+		prot = pgprot_noncached(PAGE_KERNEL);
- 
- 	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
- 	if (!pages) {
-@@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
- 	return vaddr;
- }
- 
--static void *persistent_ram_iomap(phys_addr_t start, size_t size)
-+static void *persistent_ram_iomap(phys_addr_t start, size_t size,
-+		unsigned int cached)
- {
-+	void *va;
-+
- 	if (!request_mem_region(start, size, "persistent_ram")) {
- 		pr_err("request mem region (0x%llx@0x%llx) failed\n",
- 			(unsigned long long)size, (unsigned long long)start);
-@@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
- 	buffer_start_add = buffer_start_add_locked;
- 	buffer_size_add = buffer_size_add_locked;
- 
--	return ioremap_wc(start, size);
-+	if (cached)
-+		va = ioremap_wc(start, size);
-+	else
-+		va = ioremap(start, size);
-+
-+	return va;
- }
- 
- static int persistent_ram_buffer_map(phys_addr_t start, phys_addr_t size,
--		struct persistent_ram_zone *prz)
-+		struct persistent_ram_zone *prz, int cached)
- {
- 	prz->paddr = start;
- 	prz->size = size;
- 
- 	if (pfn_valid(start >> PAGE_SHIFT))
--		prz->vaddr = persistent_ram_vmap(start, size);
-+		prz->vaddr = persistent_ram_vmap(start, size, cached);
- 	else
--		prz->vaddr = persistent_ram_iomap(start, size);
-+		prz->vaddr = persistent_ram_iomap(start, size, cached);
- 
- 	if (!prz->vaddr) {
- 		pr_err("%s: Failed to map 0x%llx pages at 0x%llx\n", __func__,
-@@ -500,7 +512,8 @@ void persistent_ram_free(struct persistent_ram_zone *prz)
- }
- 
- struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
--			u32 sig, struct persistent_ram_ecc_info *ecc_info)
-+			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-+			unsigned int cached)
- {
- 	struct persistent_ram_zone *prz;
- 	int ret = -ENOMEM;
-@@ -511,7 +524,7 @@ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
- 		goto err;
- 	}
- 
--	ret = persistent_ram_buffer_map(start, size, prz);
-+	ret = persistent_ram_buffer_map(start, size, prz, cached);
- 	if (ret)
- 		goto err;
- 
-diff --git a/include/linux/pstore_ram.h b/include/linux/pstore_ram.h
-index 9974975..5cbbae6 100644
---- a/include/linux/pstore_ram.h
-+++ b/include/linux/pstore_ram.h
-@@ -53,7 +53,8 @@ struct persistent_ram_zone {
- };
- 
- struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
--			u32 sig, struct persistent_ram_ecc_info *ecc_info);
-+			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-+			unsigned int cached);
- void persistent_ram_free(struct persistent_ram_zone *prz);
- void persistent_ram_zap(struct persistent_ram_zone *prz);
- 
-@@ -76,6 +77,7 @@ ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
- struct ramoops_platform_data {
- 	unsigned long	mem_size;
- 	unsigned long	mem_address;
-+	unsigned int	mem_cached;
- 	unsigned long	record_size;
- 	unsigned long	console_size;
- 	unsigned long	ftrace_size;
 -- 
-2.1.0
+Regards,
+Nishanth Menon
