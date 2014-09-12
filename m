@@ -1,123 +1,64 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] PM / OPP: Remove ARCH_HAS_OPP completely
-Date: Fri, 12 Sep 2014 05:20:52 -0500
-Message-ID: <CAGo_u6r3jXX2FS-PO5_-+zhHM3i3pVzGYumSYLh7YPNXGV98eg@mail.gmail.com>
-References: <1406551632.5397.17.camel@x220>
-	<1410511111.31130.4.camel@x220>
+From: Frans Klaver <frans.klaver@xsens.com>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Fri, 12 Sep 2014 12:28:16 +0200
+Message-ID: <20140912102816.GF28458@ci00147.xsens-tech.local>
+References: <20140911111721.GB17476@xps8300>
+ <54118AAB.2010205@linutronix.de>
+ <5411967A.6090406@hurleysoftware.com>
+ <54119AAA.9080907@linutronix.de>
+ <20140911151114.GD28458@ci00147.xsens-tech.local>
+ <5411C810.7070906@linutronix.de>
+ <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
+ <54129F6C.7040508@linutronix.de>
+ <20140912094010.GE28458@ci00147.xsens-tech.local>
+ <5412C21A.8020203@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410511111.31130.4.camel@x220>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Mark Brown <broonie@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Rob Herring <robh@kernel.org>, Shawn Guo <shawn.guo@freescale.com>, Simon Horman <horms+renesas@verge.net.au>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Magnus Damm <magnus.damm@gmail.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-sh list <linux-sh@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5412C21A.8020203@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 12, 2014 at 3:38 AM, Paul Bolle <pebolle@tiscali.nl> wrote:
-> The Kconfig symbol ARCH_HAS_OPP became redundant in v3.16: commit
-> 049d595a4db3 ("PM / OPP: Make OPP invisible to users in Kconfig")
-> removed the only dependency that used it. Setting it had no effect
-> anymore.
->
-> So commit 78c5e0bb145d ("PM / OPP: Remove ARCH_HAS_OPP") removed it. For
-> some reason that commit did not remove all select statements for that
-> symbol. These statements are useless. Remove them too.
->
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> Done on top of next-20140912. Tested with git grep only!
->
->  arch/arm/mach-omap2/Kconfig    | 5 -----
+On Fri, Sep 12, 2014 at 11:51:22AM +0200, Sebastian Andrzej Siewior wrote:
+> On 09/12/2014 11:40 AM, Frans Klaver wrote:
+> 
+> > I'm not sure. I just reproduced this on a boneblack, using your uart_v9
+> > branch.
+> > 
+> >> This problem only pops-up if you use DMA. With disabled DMA you don't
+> >> see this, right?
+> > 
+> > I get the lockup both with and without DMA enabled. Here's the 8250
+> > config I use. Our full .config is attached in case it may provide
+> > something relevant.
+> 
+> Hmm. I have a bone black here. Can you tell what you did to get this
+> lockup? The port configuration (unless 115200 8N1) and what you did to
+> get this lockup.
 
-there can be conflict here:
-https://patchwork.kernel.org/patch/4857231/
-
-http://marc.info/?l=linux-omap&m=141047815520894&w=2
-
-
->  arch/arm/mach-shmobile/Kconfig | 1 -
->  drivers/devfreq/Kconfig        | 1 -
->  3 files changed, 7 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 5b103099626d..f138bd33a463 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -22,7 +22,6 @@ config ARCH_OMAP4
->         bool "TI OMAP4"
->         depends on ARCH_MULTI_V7
->         select ARCH_OMAP2PLUS
-> -       select ARCH_HAS_OPP
->         select ARCH_NEEDS_CPU_IDLE_COUPLED if SMP
->         select ARM_CPU_SUSPEND if PM
->         select ARM_ERRATA_720789
-> @@ -41,7 +40,6 @@ config SOC_OMAP5
->         bool "TI OMAP5"
->         depends on ARCH_MULTI_V7
->         select ARCH_OMAP2PLUS
-> -       select ARCH_HAS_OPP
->         select ARM_CPU_SUSPEND if PM
->         select ARM_GIC
->         select HAVE_ARM_SCU if SMP
-> @@ -53,14 +51,12 @@ config SOC_AM33XX
->         bool "TI AM33XX"
->         depends on ARCH_MULTI_V7
->         select ARCH_OMAP2PLUS
-> -       select ARCH_HAS_OPP
->         select ARM_CPU_SUSPEND if PM
->
->  config SOC_AM43XX
->         bool "TI AM43x"
->         depends on ARCH_MULTI_V7
->         select ARCH_OMAP2PLUS
-> -       select ARCH_HAS_OPP
->         select ARM_GIC
->         select MACH_OMAP_GENERIC
->         select MIGHT_HAVE_CACHE_L2X0
-> @@ -69,7 +65,6 @@ config SOC_DRA7XX
->         bool "TI DRA7XX"
->         depends on ARCH_MULTI_V7
->         select ARCH_OMAP2PLUS
-> -       select ARCH_HAS_OPP
->         select ARM_CPU_SUSPEND if PM
->         select ARM_GIC
->         select HAVE_ARM_ARCH_TIMER
-> diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
-> index 21f457b56c01..f59019dd986e 100644
-> --- a/arch/arm/mach-shmobile/Kconfig
-> +++ b/arch/arm/mach-shmobile/Kconfig
-> @@ -36,7 +36,6 @@ menuconfig ARCH_SHMOBILE_MULTI
->         select NO_IOPORT_MAP
->         select PINCTRL
->         select ARCH_REQUIRE_GPIOLIB
-> -       select ARCH_HAS_OPP
->
->  if ARCH_SHMOBILE_MULTI
->
-> diff --git a/drivers/devfreq/Kconfig b/drivers/devfreq/Kconfig
-> index 3dced0a9eae3..2227e9bf3884 100644
-> --- a/drivers/devfreq/Kconfig
-> +++ b/drivers/devfreq/Kconfig
-> @@ -80,7 +80,6 @@ config ARM_EXYNOS4_BUS_DEVFREQ
->  config ARM_EXYNOS5_BUS_DEVFREQ
->         bool "ARM Exynos5250 Bus DEVFREQ Driver"
->         depends on SOC_EXYNOS5250
-> -       select ARCH_HAS_OPP
->         select DEVFREQ_GOV_SIMPLE_ONDEMAND
->         select PM_OPP
->         help
-> --
-> 1.9.3
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+port config is 115200 8N1. I don't recall doing anything special. I
+boot, login, less file and get a lock.
 
 
+> > Something that may also help: when I have a lockup on the boneblack, dma
+> > is enabled and something is written to console like I described earlier,
+> > I get the following bad irq:
+> 
+> > Full dmesg is also attached.
+> 
+> This one should be stuffed by this:
+> 	"[RFC] ARM: edma: unconditionally ack the error interrupt"
+> 	https://lkml.org/lkml/2014/9/10/714
 
--- 
----
-Regards,
-Nishanth Menon
+OK, that makes the console usable again after I write something to kmsg.
+
+> > Hope you find something useful in there.
+> 
+> > Thanks,
+> > Frans
+> 
+> Sebastian
