@@ -1,118 +1,148 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH 3/3] mtd: nand: Force omap_elm to be built as a module if
- omap2_nand is a module
-Date: Fri, 12 Sep 2014 17:56:36 +0100
-Message-ID: <20140912165636.GA7276@arch>
-References: <1410443224-18477-1-git-send-email-ezequiel@vanguardiasur.com.ar>
- <1410443224-18477-4-git-send-email-ezequiel@vanguardiasur.com.ar>
- <5412B66F.8050505@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP3: Fix I/O chain clock line assertion timed out error
+Date: Fri, 12 Sep 2014 10:50:22 -0700
+Message-ID: <1410544222-25913-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:35992 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883AbaILQ5t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2014 12:57:49 -0400
-Received: by mail-we0-f176.google.com with SMTP id q58so1017512wes.35
-        for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2014 09:57:48 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <5412B66F.8050505@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17180 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751092AbaILRuk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2014 13:50:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, pekon <pekon@pek-sem.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-On 12 Sep 12:01 PM, Roger Quadros wrote:
-> On 09/11/2014 04:47 PM, Ezequiel Garcia wrote:
-> > This commit adds a hidden option to build the omap_elm as a module, if
-> > omap2_nand is a module (and similarly in the built-in case).
-> > 
-> > This fixes the following build error when omap2_nand is chosen built-in,
-> > and omap_elm is chosen as a module:
-> > 
-> > drivers/built-in.o: In function `omap_nand_probe':
-> > /work/linux-2.6/drivers/mtd/nand/omap2.c:2010: undefined reference to `elm_config'
-> > /work/linux-2.6/drivers/mtd/nand/omap2.c:1980: undefined reference to `elm_config'
-> > /work/linux-2.6/drivers/mtd/nand/omap2.c:1927: undefined reference to `elm_config'
-> > drivers/built-in.o: In function `omap_elm_correct_data':
-> > /work/linux-2.6/drivers/mtd/nand/omap2.c:1444: undefined reference to `elm_decode_bch_error_page'
-> > 
-> > Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> > ---
-> >  drivers/mtd/nand/Kconfig  | 8 +++++++-
-> >  drivers/mtd/nand/Makefile | 2 +-
-> >  2 files changed, 8 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-> > index f1cf503..12e8ee8 100644
-> > --- a/drivers/mtd/nand/Kconfig
-> > +++ b/drivers/mtd/nand/Kconfig
-> > @@ -96,7 +96,7 @@ config MTD_NAND_OMAP2
-> >  
-> >  config MTD_NAND_OMAP_BCH
-> >  	depends on MTD_NAND_OMAP2
-> > -	tristate "Support hardware based BCH error correction"
-> > +	bool "Support hardware based BCH error correction"
-> >  	default n
-> >  	select BCH
-> >  	help
-> > @@ -106,6 +106,12 @@ config MTD_NAND_OMAP_BCH
-> >  	  legacy OMAP families like OMAP2xxx, OMAP3xxx do not have ELM engine
-> >  	  so they should not enable this config symbol.
-> >  
-> > +config MTD_NAND_OMAP_BCH_BUILD
-> > +	tristate
-> > +	depends on MTD_NAND_OMAP2
-> > +	default m if MTD_NAND_OMAP2=m && MTD_NAND_OMAP_BCH
-> > +	default y if MTD_NAND_OMAP2=y && MTD_NAND_OMAP_BCH
-> > +
-> >  config MTD_NAND_IDS
-> >  	tristate
-> >  
-> > diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
-> > index 4bcdeb0..3580188 100644
-> > --- a/drivers/mtd/nand/Makefile
-> > +++ b/drivers/mtd/nand/Makefile
-> > @@ -27,7 +27,7 @@ obj-$(CONFIG_MTD_NAND_NDFC)		+= ndfc.o
-> >  obj-$(CONFIG_MTD_NAND_ATMEL)		+= atmel_nand.o
-> >  obj-$(CONFIG_MTD_NAND_GPIO)		+= gpio.o
-> >  obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2_nand.o
-> > -obj-$(CONFIG_MTD_NAND_OMAP_BCH)		+= omap_elm.o
-> > +obj-$(CONFIG_MTD_NAND_OMAP_BCH_BUILD)	+= omap_elm.o
-> >  obj-$(CONFIG_MTD_NAND_CM_X270)		+= cmx270_nand.o
-> >  obj-$(CONFIG_MTD_NAND_PXA3xx)		+= pxa3xx_nand.o
-> >  obj-$(CONFIG_MTD_NAND_TMIO)		+= tmio_nand.o
-> > 
-> 
-> The overall logic seems to work but I still see the following issue.
-> 
-> In menuconfig, the OMAP_BCH option is still visible as a boolean even though
-> the ELM module finally gets built as a module.
-> This can be confusing to the user and I'd avoid that behaviour.
-> 
+We are getting "PRM: I/O chain clock line assertion timed out" errors
+on early omaps for device tree based booting. This is because we are
+unconditionally calling reconfigure_io_chain while legacy booting
+has omap3_has_io_chain_ctrl() checks in place in omap_hwmod.c.
 
-Yes, I know. But it's either this solution or no solution at all, I think.
+For device tree based booting, we are calling reconfigure_io_chain
+unconditionally from pinctrl framework. So we need to add a check for
+omap3_has_io_chain_ctrl() to avoid the errors for trying to access
+a register that does not exist.
 
-Let me give some further context about this patch, so we can have more
-information to decide.
+For es3.0, the documentation in "4.11.2 Device Off-Mode Configuration"
+just mentions PM_WKEN_WKUP[8] bit. For es3.1, there's a new chapter in
+documentation for "4.11.2.2 I/O Wake-Up Mechanism" that describes the
+PM_WKEN_WKUP[16] ST_IO_CHAIN bit. So PM_WKEN_WKUP[16] bit did not get
+added until in es3.1 probaly to fix issues with flakey wake-up events.
 
-First of all (and IMO) the user doesn't have to know about the ELM being
-a module or not, because modprobe will load it (since omap2_nand depends
-on omap_elm's symbols).
+We are doing proper checks for ST_IO_CHAIN already in id.c and with
+omap3_has_io_chain_ctrl(). For more information, see also commit
+b02b917211d5 ("ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock
+control detection").
 
-So, the new way seems a bit more intuitive for me. The user choses if he
-wants to have hardware BCH support, and such support gets built the right
-way.
+Let's fix the issue by selecting the right function during init for
+reconfigure_io_chain depending on the omap revision. For es3.0 and
+earlier we need to just toggle EN_IO. By doing this, we can move the
+check for omap3_has_io_chain_ctrl() from omap_hwmod.c to the init code
+in prm_3xxx.c. And then we can unconditionally call reconfigure_io_chain.
 
-If we still consider this highly confusing, and we want to avoid it,
-then it seems we can only make omap_elm a boolean, which means it'll always
-be built-in. I crafted this patch in an effort to avoid making it boolean.
+Thanks to Paul Walmsley and Nishanth Menon for help with debugging the
+issue.
 
-Finally, the solution is taken from media/usb/stk1160. For good or for bad,
-we have a precedent in doing things this way.
+Fixes: 30a69ef785e8 ("ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap")
+Cc: Kevin Hilman <khilman@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |  2 +-
+ arch/arm/mach-omap2/prm3xxx.c    | 39 +++++++++++++++++++++++++++++++++++----
+ 2 files changed, 36 insertions(+), 5 deletions(-)
 
-Ultimately, I don't care much as I don't think anyone will build it as a module,
-except maybe for testing the driver under probe/remove cycles.
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 8fd87a3..9e91a4e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2065,7 +2065,7 @@ static void _reconfigure_io_chain(void)
+ 
+ 	spin_lock_irqsave(&io_chain_lock, flags);
+ 
+-	if (cpu_is_omap34xx() && omap3_has_io_chain_ctrl())
++	if (cpu_is_omap34xx())
+ 		omap3xxx_prm_reconfigure_io_chain();
+ 	else if (cpu_is_omap44xx())
+ 		omap44xx_prm_reconfigure_io_chain();
+diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+index e0088e0..1c24693 100644
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@ -46,7 +46,7 @@ static struct omap_prcm_irq_setup omap3_prcm_irq_setup = {
+ 	.ocp_barrier		= &omap3xxx_prm_ocp_barrier,
+ 	.save_and_clear_irqen	= &omap3xxx_prm_save_and_clear_irqen,
+ 	.restore_irqen		= &omap3xxx_prm_restore_irqen,
+-	.reconfigure_io_chain	= &omap3xxx_prm_reconfigure_io_chain,
++	.reconfigure_io_chain	= NULL,
+ };
+ 
+ /*
+@@ -370,15 +370,30 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
+ }
+ 
+ /**
+- * omap3xxx_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
++ * omap3430_pre_es3_1_reconfigure_io_chain - restart wake-up daisy chain
++ *
++ * The ST_IO_CHAIN bit does not exist in 3430 before es3.1. The only
++ * thing we can do is toggle EN_IO bit for earlier omaps.
++ */
++void omap3430_pre_es3_1_reconfigure_io_chain(void)
++{
++	omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
++				     PM_WKEN);
++	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
++				   PM_WKEN);
++	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
++}
++
++/**
++ * omap3_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
+  *
+  * Clear any previously-latched I/O wakeup events and ensure that the
+  * I/O wakeup gates are aligned with the current mux settings.  Works
+  * by asserting WUCLKIN, waiting for WUCLKOUT to be asserted, and then
+  * deasserting WUCLKIN and clearing the ST_IO_CHAIN WKST bit.  No
+- * return value.
++ * return value. These registers are only available in 3430 es3.1 and later.
+  */
+-void omap3xxx_prm_reconfigure_io_chain(void)
++void omap3_prm_reconfigure_io_chain(void)
+ {
+ 	int i = 0;
+ 
+@@ -401,6 +416,15 @@ void omap3xxx_prm_reconfigure_io_chain(void)
+ }
+ 
+ /**
++ * omap3xxx_prm_reconfigure_io_chain - reconfigure I/O chain
++ */
++void omap3xxx_prm_reconfigure_io_chain(void)
++{
++	if (omap3_prcm_irq_setup.reconfigure_io_chain)
++		omap3_prcm_irq_setup.reconfigure_io_chain();
++}
++
++/**
+  * omap3xxx_prm_enable_io_wakeup - enable wakeup events from I/O wakeup latches
+  *
+  * Activates the I/O wakeup event latches and allows events logged by
+@@ -674,6 +698,13 @@ static int omap3xxx_prm_late_init(void)
+ 		}
+ 	}
+ 
++	if (omap3_has_io_chain_ctrl())
++		omap3_prcm_irq_setup.reconfigure_io_chain =
++			omap3_prm_reconfigure_io_chain;
++	else
++		omap3_prcm_irq_setup.reconfigure_io_chain =
++			omap3430_pre_es3_1_reconfigure_io_chain;
++
+ 	omap3xxx_prm_enable_io_wakeup();
+ 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+ 	if (!ret)
 -- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+2.1.0
+
