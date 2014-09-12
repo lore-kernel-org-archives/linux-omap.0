@@ -1,39 +1,68 @@
-From: Stefan Roese <sr@denx.de>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Add small delay after enabling power
-Date: Fri, 12 Sep 2014 09:26:54 +0200
-Message-ID: <5412A03E.8060307@denx.de>
-References: <1410444665-24492-1-git-send-email-sr@denx.de> <CAPDyKFp9JKb=XOo5m7YQEQFbF4Rtn_DKP2ia3jCBMhRa6aJVZQ@mail.gmail.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] clk: don't use __initconst for non-const arrays
+Date: Fri, 12 Sep 2014 09:42:29 +0200
+Message-ID: <CAKv+Gu9LubyPHoYJsRfRoqgONAApb3nEoXAxUa9g6tecP=McOw@mail.gmail.com>
+References: <1410469471-31027-1-git-send-email-u.kleine-koenig@pengutronix.de>
+	<20140911220445.GQ3755@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFp9JKb=XOo5m7YQEQFbF4Rtn_DKP2ia3jCBMhRa6aJVZQ@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Thorsten Einsbein <thorsten.eisbein@head-acoustics.de>, Balaji T K <balajitk@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:41675 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752815AbaILHmc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2014 03:42:32 -0400
+Received: by mail-lb0-f175.google.com with SMTP id v6so386855lbi.6
+        for <linux-omap@vger.kernel.org>; Fri, 12 Sep 2014 00:42:29 -0700 (PDT)
+In-Reply-To: <20140911220445.GQ3755@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Mike Turquette <mturquette@linaro.org>, linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Tomasz Figa <tomasz.figa@gmail.com>, Tero Kristo <t-kristo@ti.com>, linux-rockchip@lists.infradead.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, kernel@pengutronix.de, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 11.09.2014 16:15, Ulf Hansson wrote:
-> On 11 September 2014 16:11, Stefan Roese <sr@denx.de> wrote:
->> From: Thorsten Einsbein <thorsten.eisbein@head-acoustics.de>
->>
->> On the TAO3530 (OMAP3530 based) we noticed that some SD cards are not
->> detected reliably upon bootup (timeout). Especially the SanDisk Ultra
->> 8GiB seems to be problematic here. The SanDisk Extreme also has this
->> problem on this platform, but not that often. A Samsung 8 GiB type 6
->> doesn't show this problem at all.
->>
->> This patch now adds a short delay after enabling the power on the slot.
->> With this delay all cards are detected reliably.
+On 12 September 2014 00:04, Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig@pengutronix.de> wrote:
+> Hello,
 >
-> Is this delay related to regulator ramp up/down time? Then I think it
-> maybe should be a part of the regulator code/DT.
+> On Thu, Sep 11, 2014 at 11:04:31PM +0200, Uwe Kleine-K=C3=B6nig wrote=
+:
+>>  /* Mux parent lists. */
+>> -static const char *fin_pll_p[] __initconst =3D {
+>> +static const char *fin_pll_p[] __initdata =3D {
+>>       "xxti",
+>>       "xusbxti"
+>>  };
+> As discussed with Tomasz on irc: The sad thing here is that for this
+> array only 8 bytes are freed when .init.rodata is thrown away (that i=
+s
+> two pointers). The actual data---5 + 8 bytes + maybe aligning---isn't
+> freed though.
+>
+> We wondered if there is a nice and easy way to throw away the
+> characters, too.
+>
+> The only way I currently see is:
+>
+>         const char xxti[] __initconst =3D "xxti";
+>         ...
+>
+>         static const char *fin_pll_p[] __initdata =3D {
+>                 xxti,
+>                 ...
+>         };
+>
+> but this definitively doesn't qualify as "nice and easy". Is there an
+> alternative?
+>
 
-Thanks for this feedback. Yes, adding "regulator-enable-ramp-delay" to 
-the regulator(s) solves this issue too. I wasn't aware of that one.
+What about doing
 
-The patch can be dropped.
-
-Thanks,
-Stefan
-
+static const char fin_pll_p[][8] __initconst =3D {
+     "xxti",
+     "xusbxti"
+};
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
