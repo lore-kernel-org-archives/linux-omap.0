@@ -1,53 +1,30 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH V2 2/2] Input: misc: introduce palmas-pwrbutton
-Date: Thu, 11 Sep 2014 23:44:41 -0700
-Message-ID: <20140912064441.GC31165@core.coreip.homeip.net>
-References: <1408636935-29515-1-git-send-email-nm@ti.com>
- <1408636935-29515-3-git-send-email-nm@ti.com>
- <00FC9A978A94B7418C33AFAE8A35ED49DF0662@DFLE09.ent.ti.com>
- <53F62A2B.6010208@ti.com>
- <00FC9A978A94B7418C33AFAE8A35ED49DF07A2@DFLE09.ent.ti.com>
- <20140821173715.GA23419@kahuna>
- <20140821180300.GA5854@core.coreip.homeip.net>
- <53F64217.5020303@ti.com>
- <20140910211353.GE38736@core.coreip.homeip.net>
- <20140911120119.GA17602@kahuna>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] ARM: dts: dra7: Add CPSW and MDIO module nodes
+ for dra7
+Date: Fri, 12 Sep 2014 12:48:10 +0530
+Message-ID: <54129E32.2080703@ti.com>
+References: <1410356247-25925-1-git-send-email-mugunthanvnm@ti.com> <1410356247-25925-2-git-send-email-mugunthanvnm@ti.com> <5410573B.5010907@ti.com> <54114339.5070404@ti.com> <20140911212956.GC17692@csclub.uwaterloo.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140911120119.GA17602@kahuna>
-Sender: linux-input-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Murphy, Dan" <dmurphy@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140911212956.GC17692-1wCw9BSqJbv44Nm34jS7GywD8/FfD2ys@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lennart Sorensen <lsorense-1wCw9BSqJbv44Nm34jS7GywD8/FfD2ys@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 11, 2014 at 07:01:19AM -0500, Nishanth Menon wrote:
-> Hi Dimtry,
-> 
-> On 14:13-20140910, Dmitry Torokhov wrote:
-> > On Thu, Aug 21, 2014 at 02:01:43PM -0500, Nishanth Menon wrote:
-> > > On 08/21/2014 01:03 PM, Dmitry Torokhov wrote:
-> > > 
-> > > I believe I have taken care of other concerns on v2, but..Arrgh.. I
-> > > did not reply to this comment..
-> > > > BTW, I do not think you need to use of_node_get/put here, it's not going anywhere.
-> > > It has been mentioned as a good practice to ensure we use get_put in
-> > > to ensure reference count is appropriately maintained. So, I have'nt
-> > > changed that in v3.
-> > 
-> > You only need to maintain reference count if you pass the handle on.
-> > Otherwise you'd have to do get/put every time you dereference something.
-> > 
-> > Anyway, I did a few changes to the driver (no need to store current
-> > state, do not fre einput device after unregister, etc.), could you
-> > please tell me if the version below still works for you?
-> [...]
-> Thanks for taking the time to do all the changes - they are awesome and
-> the resultant driver does work.
+On Friday 12 September 2014 02:59 AM, Lennart Sorensen wrote:
+> I have the mac but I don't want to use both ports on the 2 port switch.
+> In fact in our case ethernet1 is a pru_eth interface.  Can a board dts
+> override the alias for ethernet1 or is that a syntax error?  I don't
+> think I tried that yet.
 
-Thank you for [re]testing. I queued the driver for the next merge
-window.
+You can override it in board dts file
 
--- 
-Dmitry
+Regards
+Mugunthan V N
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
