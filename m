@@ -1,103 +1,278 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v3 0/3] OMAP4+: Get rid of internal SRAM handling
-Date: Fri, 12 Sep 2014 13:47:55 -0500
-Message-ID: <54133FDB.9030706@ti.com>
-References: <cover.1410362895.git.d-gerlach@ti.com> <20140910165643.GA3118@splat>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv6 4/5] hwspinlock/core: add common OF helpers
+Date: Fri, 12 Sep 2014 15:24:58 -0500
+Message-ID: <1410553499-55951-5-git-send-email-s-anna@ti.com>
+References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47357 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbaILSsW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2014 14:48:22 -0400
-In-Reply-To: <20140910165643.GA3118@splat>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1410553499-55951-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 09/10/2014 11:56 AM, Nishanth Menon wrote:
-> On 11:04-20140910, Dave Gerlach wrote:
->> v3:
->> Fix minor issue in last patch to check for null sram_pool if no sram
->> phandle is given in DT.
->>
->> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
->> use drivers/misc/sram.c driver instead of the omap internal
->> implementation for SRAM handling.
->>
->> Previous discussion can be found at [1].
->>
->> Regards,
->> Dave
->>
->> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-August/195588.html
->>
->> Rajendra Nayak (3):
->>   ARM: AM335x: Get rid of unused sram init function
->>   ARM: OMAP4+: Move SRAM data to DT
->>   ARM: OMAP4+: Remove static iotable mappings for SRAM
->>
->>  Documentation/devicetree/bindings/arm/omap/mpu.txt |  3 ++
->>  arch/arm/boot/dts/am33xx.dtsi                      |  5 ++-
->>  arch/arm/boot/dts/am4372.dtsi                      |  5 +++
->>  arch/arm/boot/dts/omap4.dtsi                       |  6 ++++
->>  arch/arm/boot/dts/omap5.dtsi                       |  8 ++++-
->>  arch/arm/configs/omap2plus_defconfig               |  1 +
->>  arch/arm/mach-omap2/io.c                           | 17 ----------
->>  arch/arm/mach-omap2/omap4-common.c                 | 22 +++++++++++-
->>  arch/arm/mach-omap2/sram.c                         | 39 +---------------------
->>  arch/arm/mach-omap2/sram.h                         |  7 ----
->>  10 files changed, 46 insertions(+), 67 deletions(-)
->>
-> 
-> Could you please provide logs for the following:
-> a) Low power transition tests for OMAP3,4 on all available platforms as
-> well?
-> b) provide bootlogs on all omap2plus platforms to ensure we have no
-> regressions.
-> 
+This patch adds three new OF helper functions to use/request
+locks from a hwspinlock device instantiated through a
+device-tree blob.
 
-Here are logs for low power transition, all platforms passed, properly
-transitioned power domains with mem sleep using wakeup_timer to wake.
+1. The of_hwspin_lock_get_num_locks() is a common OF helper
+   function to read the 'hwlock-num-locks' property.
+2. The of_hwspin_lock_get_base_id() is a common OF helper
+   function to read the 'hwlock-base-id' property.
+3. The of_hwspin_lock_get_id() API can be used by hwspinlock
+   clients to get the id for a specific lock using the phandle
+   + args specifier, so that it can be requested using the
+   available hwspin_lock_request_specific() API.
 
-Low Power transition on v3.17-rc4 with patches applied, omap2plus_defconfig
-(OMAP3 and OMAP4):
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ Documentation/hwspinlock.txt         |  26 ++++++++
+ drivers/hwspinlock/hwspinlock_core.c | 122 +++++++++++++++++++++++++++++++++++
+ include/linux/hwspinlock.h           |  15 ++++-
+ 3 files changed, 160 insertions(+), 3 deletions(-)
 
- 1: BeagleBoard-XM: http://fpaste.org/133215/
- 2: OMAP3430-Labrador(LDP): http://fpaste.org/133225/
- 3: n900: http://fpaste.org/133244/
- 4: pandaboard-es:  http://fpaste.org/133213/
- 5: pandaboard-vanilla: http://fpaste.org/133214/
- 6: sdp3430: http://fpaste.org/133246/
+diff --git a/Documentation/hwspinlock.txt b/Documentation/hwspinlock.txt
+index 640ae47..c15dc9f 100644
+--- a/Documentation/hwspinlock.txt
++++ b/Documentation/hwspinlock.txt
+@@ -48,6 +48,16 @@ independent, drivers.
+      ids for predefined purposes.
+      Should be called from a process context (might sleep).
+ 
++  int of_hwspin_lock_get_id(struct device_node *np, int index);
++   - retrieve the global lock id for an OF phandle-based specific lock.
++     This function provides a means for DT users of a hwspinlock module
++     to get the global lock id of a specific hwspinlock, so that it can
++     be requested using the normal hwspin_lock_request_specific() API.
++     The function returns a valid lock id number on success, -EPROBE_DEFER
++     if the hwspinlock device is not yet registered with the core, or other
++     error values.
++     Should be called from a process context (might sleep).
++
+   int hwspin_lock_free(struct hwspinlock *hwlock);
+    - free a previously-assigned hwspinlock; returns 0 on success, or an
+      appropriate error code on failure (e.g. -EINVAL if the hwspinlock
+@@ -243,6 +253,22 @@ int hwspinlock_example2(void)
+      Returns the address of hwspinlock on success, or NULL on error (e.g.
+      if the hwspinlock is still in use).
+ 
++  int of_hwspin_lock_get_num_locks(struct device_node *dn);
++   - is a common OF helper function that can be used by some underlying
++     vendor-specific implementations. This can be used by implementations
++     that require and define the number of locks supported within a hwspinlock
++     bank as a device tree node property. This function should be called by
++     needed implementations before registering a hwspinlock device with the
++     core.
++
++  int of_hwspin_lock_get_base_id(struct device_node *dn);
++   - is a common OF helper function that can be used by some underlying
++     vendor-specific implementations. This can be used by implementations
++     that require and define the base index for a block of locks present
++     within a hwspinlock bank as a device tree node property. This function
++     should be called by needed implementations before registering a hwspinlock
++     device with the core.
++
+ 5. Important structs
+ 
+ struct hwspinlock_device is a device which usually contains a bank
+diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
+index 48f7866..7d9f749 100644
+--- a/drivers/hwspinlock/hwspinlock_core.c
++++ b/drivers/hwspinlock/hwspinlock_core.c
+@@ -27,6 +27,7 @@
+ #include <linux/hwspinlock.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ 
+ #include "hwspinlock_internal.h"
+ 
+@@ -262,6 +263,127 @@ void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
+ }
+ EXPORT_SYMBOL_GPL(__hwspin_unlock);
+ 
++/**
++ * of_hwspin_lock_simple_xlate - translate hwlock_spec to return a lock id
++ * @bank: the hwspinlock device bank
++ * @hwlock_spec: hwlock specifier as found in the device tree
++ *
++ * This is a simple translation function, suitable for hwspinlock platform
++ * drivers that only has a lock specifier length of 1.
++ *
++ * Returns a negative value on error, and a relative index of the lock within
++ * a specified bank on success.
++ */
++static int of_hwspin_lock_simple_xlate(struct hwspinlock_device *bank,
++				const struct of_phandle_args *hwlock_spec)
++{
++	/* sanity check (these shouldn't happen) */
++	if (WARN_ON(!bank->dev->of_node))
++		return -EINVAL;
++
++	if (WARN_ON(hwlock_spec->args_count != 1))
++		return -EINVAL;
++
++	return hwlock_spec->args[0];
++}
++
++/**
++ * of_hwspin_lock_get_id() - get lock id for an OF phandle-based specific lock
++ * @np: device node from which to request the specific hwlock
++ * @index: index of the hwlock in the list of values
++ *
++ * This function provides a means for DT users of the hwspinlock module to
++ * get the global lock id of a specific hwspinlock using the phandle of the
++ * hwspinlock device, so that it can be requested using the normal
++ * hwspin_lock_request_specific() API.
++ *
++ * Returns the global lock id number on success, -EPROBE_DEFER if the hwspinlock
++ * device is not yet registered, -EINVAL on invalid args specifier value or an
++ * appropriate error as returned from the OF parsing of the DT user node.
++ */
++int of_hwspin_lock_get_id(struct device_node *np, int index)
++{
++	struct hwspinlock_device *bank;
++	struct of_phandle_args args;
++	int id;
++	int ret;
++
++	ret = of_parse_phandle_with_args(np, "hwlocks", "#hwlock-cells", index,
++					 &args);
++	if (ret)
++		return ret;
++
++	mutex_lock(&hwspinlock_tree_lock);
++	list_for_each_entry(bank, &hwspinlock_devices, list)
++		if (bank->dev->of_node == args.np)
++			break;
++	mutex_unlock(&hwspinlock_tree_lock);
++	if (&bank->list == &hwspinlock_devices) {
++		ret = -EPROBE_DEFER;
++		goto out;
++	}
++
++	id = of_hwspin_lock_simple_xlate(bank, &args);
++	if (id < 0 || id >= bank->num_locks) {
++		ret = -EINVAL;
++		goto out;
++	}
++	id += bank->base_id;
++
++out:
++	of_node_put(args.np);
++	return ret ? ret : id;
++}
++EXPORT_SYMBOL_GPL(of_hwspin_lock_get_id);
++
++/**
++ * of_hwspin_lock_get_base_id() - OF helper to retrieve base id
++ * @dn: device node pointer
++ *
++ * This is an OF helper function that can be called by the underlying
++ * platform-specific implementations, to retrieve the base id for the
++ * set of locks present within a hwspinlock device instance.
++ *
++ * Returns the base id value on success, or an appropriate error code
++ * as returned by the OF layer
++ */
++int of_hwspin_lock_get_base_id(struct device_node *dn)
++{
++	unsigned int val;
++	int ret;
++
++	ret = of_property_read_u32(dn, "hwlock-base-id", &val);
++	return ret ? ret : val;
++}
++EXPORT_SYMBOL_GPL(of_hwspin_lock_get_base_id);
++
++/**
++ * of_hwspin_lock_get_num_locks() - OF helper to retrieve number of locks
++ * @dn: device node pointer
++ *
++ * This is an OF helper function that can be called by the underlying
++ * platform-specific implementations, to retrieve the number of locks
++ * present within a hwspinlock device instance. The hwlock-num-locks
++ * DT property may be optional for some platforms, while mandatory for
++ * some others, so this function is typically called only by needed
++ * platform-specific implementations.
++ *
++ * Returns a positive number of locks on success, -ENODEV on generic
++ * failure or an appropriate error code as returned by the OF layer
++ */
++int of_hwspin_lock_get_num_locks(struct device_node *dn)
++{
++	unsigned int val;
++	int ret = -ENODEV;
++
++	ret = of_property_read_u32(dn, "hwlock-num-locks", &val);
++	if (!ret)
++		ret = val ? val : -ENODEV;
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(of_hwspin_lock_get_num_locks);
++
+ static int hwspin_lock_register_single(struct hwspinlock *hwlock, int id)
+ {
+ 	struct hwspinlock *tmp;
+diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
+index 3343298..a9eeb4f 100644
+--- a/include/linux/hwspinlock.h
++++ b/include/linux/hwspinlock.h
+@@ -26,6 +26,7 @@
+ #define HWLOCK_IRQ	0x02	/* Disable interrupts, don't save state */
+ 
+ struct device;
++struct device_node;
+ struct hwspinlock;
+ struct hwspinlock_device;
+ struct hwspinlock_ops;
+@@ -60,12 +61,15 @@ struct hwspinlock_pdata {
+ 
+ #if defined(CONFIG_HWSPINLOCK) || defined(CONFIG_HWSPINLOCK_MODULE)
+ 
++int of_hwspin_lock_get_base_id(struct device_node *dn);
++int of_hwspin_lock_get_num_locks(struct device_node *dn);
+ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
+ 		const struct hwspinlock_ops *ops, int base_id, int num_locks);
+ int hwspin_lock_unregister(struct hwspinlock_device *bank);
+ struct hwspinlock *hwspin_lock_request(void);
+ struct hwspinlock *hwspin_lock_request_specific(unsigned int id);
+ int hwspin_lock_free(struct hwspinlock *hwlock);
++int of_hwspin_lock_get_id(struct device_node *np, int index);
+ int hwspin_lock_get_id(struct hwspinlock *hwlock);
+ int __hwspin_lock_timeout(struct hwspinlock *, unsigned int, int,
+ 							unsigned long *);
+@@ -80,9 +84,9 @@ void __hwspin_unlock(struct hwspinlock *, int, unsigned long *);
+  * code path get compiled away. This way, if CONFIG_HWSPINLOCK is not
+  * required on a given setup, users will still work.
+  *
+- * The only exception is hwspin_lock_register/hwspin_lock_unregister, with which
+- * we _do_ want users to fail (no point in registering hwspinlock instances if
+- * the framework is not available).
++ * The only exception is hwspin_lock_register/hwspin_lock_unregister and
++ * associated OF helpers, with which we _do_ want users to fail (no point
++ * in registering hwspinlock instances if the framework is not available).
+  *
+  * Note: ERR_PTR(-ENODEV) will still be considered a success for NULL-checking
+  * users. Others, which care, can still check this with IS_ERR.
+@@ -120,6 +124,11 @@ void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
+ {
+ }
+ 
++static inline int of_hwspin_lock_get_id(struct device_node *np, int index)
++{
++	return 0;
++}
++
+ static inline int hwspin_lock_get_id(struct hwspinlock *hwlock)
+ {
+ 	return 0;
+-- 
+2.0.4
 
-Boot on v3.17-rc4 with patches applied, omap2plus_defconfig:
-
- 1: am335x-evm:  Boot PASS: http://fpaste.org/133179/
- 2:  am335x-sk:  Boot PASS: http://fpaste.org/133180/
- 3: am3517-evm:  Boot PASS: http://fpaste.org/133181/
- 4:  am37x-evm:  Boot PASS: http://fpaste.org/133182/
- 5: am43xx-epos:  Boot PASS: http://fpaste.org/133183/
- 6: am43xx-gpevm:  Boot PASS: http://fpaste.org/133184/
- 7: BeagleBoard-XM:  Boot PASS: http://fpaste.org/133191/
- 8: beagleboard-vanilla:  Boot PASS: http://fpaste.org/133192/
- 9: beaglebone-black:  Boot PASS: http://fpaste.org/133193/
-10: beaglebone:  Boot PASS: http://fpaste.org/133194/
-11: craneboard:  Boot PASS: http://fpaste.org/133186/
-12: dra7xx-evm:  Boot PASS: http://fpaste.org/131396/
-13: OMAP3430-Labrador(LDP):  Boot PASS: http://fpaste.org/133206/
-14:       n900:  Boot PASS: http://fpaste.org/133207/
-15:  omap5-evm:  Boot PASS: http://fpaste.org/133208/
-16: pandaboard-es:  Boot PASS: http://fpaste.org/133187/
-17: pandaboard-vanilla:  Boot PASS: http://fpaste.org/133188/
-18:    sdp2430:  Boot PASS: http://fpaste.org/133189/
-19:    sdp3430:  Boot PASS: http://fpaste.org/133212/
-TOTAL = 19 boards, Booted Boards = 19, No Boot boards = 0
-
-Again, all pass. I have also tested with next AM335x Suspend/Resume
-implementation, next version will use generic sram driver to allocate for
-low-level assembly code, and that works fine as well.
-
-Regards,
-Dave
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
