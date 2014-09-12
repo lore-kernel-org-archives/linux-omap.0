@@ -1,104 +1,74 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: [PATCH] PM / OPP: Remove ARCH_HAS_OPP completely
-Date: Fri, 12 Sep 2014 10:38:31 +0200
-Message-ID: <1410511111.31130.4.camel@x220>
-References: <1406551632.5397.17.camel@x220>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 0/3] nand: Renaming, moving and fixing NAND and ELM drivers
+Date: Fri, 12 Sep 2014 11:54:24 +0300
+Message-ID: <5412B4C0.505@ti.com>
+References: <1410443224-18477-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1406551632.5397.17.camel@x220>
-Sender: linux-pm-owner@vger.kernel.org
-To: Mark Brown <broonie@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Nishanth Menon <nm@ti.com>, Rob Herring <robh@kernel.org>, Shawn Guo <shawn.guo@freescale.com>, Simon Horman <horms+renesas@verge.net.au>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Magnus Damm <magnus.damm@gmail.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38358 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751038AbaILIyz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Sep 2014 04:54:55 -0400
+In-Reply-To: <1410443224-18477-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, Brian Norris <computersforpeace@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-The Kconfig symbol ARCH_HAS_OPP became redundant in v3.16: commit
-049d595a4db3 ("PM / OPP: Make OPP invisible to users in Kconfig")
-removed the only dependency that used it. Setting it had no effect
-anymore.
+Hi Ezequiel,
 
-So commit 78c5e0bb145d ("PM / OPP: Remove ARCH_HAS_OPP") removed it. For
-some reason that commit did not remove all select statements for that
-symbol. These statements are useless. Remove them too.
+On 09/11/2014 04:47 PM, Ezequiel Garcia wrote:
+> Following the recent discussion with Roger, here's a few patches that
+> (hopefully) fix all the issues.
+> 
+> The first patches rename the OMAP NAND drivers, so they are now called
+> omap2_nand and omap_elm.
+> 
+> The last patch picks an idea from Yann E. Morin and fixes the build issue
+> reported by Roger. Quoting Roger:
+> 
+> ""
+> I still get the following error if I set CONFIG_MTD_NAND_OMAP2 to y and
+> CONFIG_MTD_NAND_OMAP_BCH to m.
+> 
+> CONFIG_MTD_NAND_OMAP_BCH is used to select the ELM driver and it must be limited to
+> be built-in if CONFIG_MTD_NAND_OMAP2 is built-in.
+> 
+> Maybe it should be a sub option of CONFIG_MTD_NAND_OMAP2.
+> IMHO the elm.c file must be moved from mtd/devices to mtd/nand and renamed to omap_elm.c
+> 
+> drivers/built-in.o: In function `omap_nand_probe':
+> /work/linux-2.6/drivers/mtd/nand/omap2.c:2010: undefined reference to `elm_config'
+> /work/linux-2.6/drivers/mtd/nand/omap2.c:1980: undefined reference to `elm_config'
+> /work/linux-2.6/drivers/mtd/nand/omap2.c:1927: undefined reference to `elm_config'
+> drivers/built-in.o: In function `omap_elm_correct_data':
+> /work/linux-2.6/drivers/mtd/nand/omap2.c:1444: undefined reference to `elm_decode_bch_error_page'
+> make: *** [vmlinux] Error 1
+> ""
+> 
+> [1] https://lkml.org/lkml/2013/5/4/84
+> 
+> Ezequiel Garcia (3):
+>   mtd: nand: Move ELM driver and rename as omap_elm
+>   mtd: nand: Rename OMAP NAND driver
+>   mtd: nand: Force omap_elm to be built as a module if omap2_nand is a
+>     module
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-Done on top of next-20140912. Tested with git grep only!
+Thanks for the patches. I see a lot of errors reported by checkpatch.pl which need fixing.
 
- arch/arm/mach-omap2/Kconfig    | 5 -----
- arch/arm/mach-shmobile/Kconfig | 1 -
- drivers/devfreq/Kconfig        | 1 -
- 3 files changed, 7 deletions(-)
+cheers,
+-roger
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 5b103099626d..f138bd33a463 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -22,7 +22,6 @@ config ARCH_OMAP4
- 	bool "TI OMAP4"
- 	depends on ARCH_MULTI_V7
- 	select ARCH_OMAP2PLUS
--	select ARCH_HAS_OPP
- 	select ARCH_NEEDS_CPU_IDLE_COUPLED if SMP
- 	select ARM_CPU_SUSPEND if PM
- 	select ARM_ERRATA_720789
-@@ -41,7 +40,6 @@ config SOC_OMAP5
- 	bool "TI OMAP5"
- 	depends on ARCH_MULTI_V7
- 	select ARCH_OMAP2PLUS
--	select ARCH_HAS_OPP
- 	select ARM_CPU_SUSPEND if PM
- 	select ARM_GIC
- 	select HAVE_ARM_SCU if SMP
-@@ -53,14 +51,12 @@ config SOC_AM33XX
- 	bool "TI AM33XX"
- 	depends on ARCH_MULTI_V7
- 	select ARCH_OMAP2PLUS
--	select ARCH_HAS_OPP
- 	select ARM_CPU_SUSPEND if PM
- 
- config SOC_AM43XX
- 	bool "TI AM43x"
- 	depends on ARCH_MULTI_V7
- 	select ARCH_OMAP2PLUS
--	select ARCH_HAS_OPP
- 	select ARM_GIC
- 	select MACH_OMAP_GENERIC
- 	select MIGHT_HAVE_CACHE_L2X0
-@@ -69,7 +65,6 @@ config SOC_DRA7XX
- 	bool "TI DRA7XX"
- 	depends on ARCH_MULTI_V7
- 	select ARCH_OMAP2PLUS
--	select ARCH_HAS_OPP
- 	select ARM_CPU_SUSPEND if PM
- 	select ARM_GIC
- 	select HAVE_ARM_ARCH_TIMER
-diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
-index 21f457b56c01..f59019dd986e 100644
---- a/arch/arm/mach-shmobile/Kconfig
-+++ b/arch/arm/mach-shmobile/Kconfig
-@@ -36,7 +36,6 @@ menuconfig ARCH_SHMOBILE_MULTI
- 	select NO_IOPORT_MAP
- 	select PINCTRL
- 	select ARCH_REQUIRE_GPIOLIB
--	select ARCH_HAS_OPP
- 
- if ARCH_SHMOBILE_MULTI
- 
-diff --git a/drivers/devfreq/Kconfig b/drivers/devfreq/Kconfig
-index 3dced0a9eae3..2227e9bf3884 100644
---- a/drivers/devfreq/Kconfig
-+++ b/drivers/devfreq/Kconfig
-@@ -80,7 +80,6 @@ config ARM_EXYNOS4_BUS_DEVFREQ
- config ARM_EXYNOS5_BUS_DEVFREQ
- 	bool "ARM Exynos5250 Bus DEVFREQ Driver"
- 	depends on SOC_EXYNOS5250
--	select ARCH_HAS_OPP
- 	select DEVFREQ_GOV_SIMPLE_ONDEMAND
- 	select PM_OPP
- 	help
--- 
-1.9.3
-
+> 
+>  drivers/mtd/devices/Makefile                   | 1 -
+>  drivers/mtd/nand/Kconfig                       | 8 +++++++-
+>  drivers/mtd/nand/Makefile                      | 3 ++-
+>  drivers/mtd/nand/{omap2.c => omap2_nand.c}     | 0
+>  drivers/mtd/{devices/elm.c => nand/omap_elm.c} | 0
+>  5 files changed, 9 insertions(+), 3 deletions(-)
+>  rename drivers/mtd/nand/{omap2.c => omap2_nand.c} (100%)
+>  rename drivers/mtd/{devices/elm.c => nand/omap_elm.c} (100%)
+> 
 
