@@ -1,148 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP3: Fix I/O chain clock line assertion timed out error
-Date: Fri, 12 Sep 2014 10:50:22 -0700
-Message-ID: <1410544222-25913-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17180 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751092AbaILRuk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Sep 2014 13:50:40 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH 1/2] pstore-ram: Fix hangs by using write-combine mappings
+Date: Fri, 12 Sep 2014 11:32:24 -0700
+Message-ID: <1410546745-919-1-git-send-email-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robherring2@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Anton Vorontsov <cbouatmailru@gmail.com>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Olof Johansson <olof@lixom.net>, Tony Luck <tony.luck@intel.com>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
 
-We are getting "PRM: I/O chain clock line assertion timed out" errors
-on early omaps for device tree based booting. This is because we are
-unconditionally calling reconfigure_io_chain while legacy booting
-has omap3_has_io_chain_ctrl() checks in place in omap_hwmod.c.
+From: Rob Herring <robherring2@gmail.com>
 
-For device tree based booting, we are calling reconfigure_io_chain
-unconditionally from pinctrl framework. So we need to add a check for
-omap3_has_io_chain_ctrl() to avoid the errors for trying to access
-a register that does not exist.
+Currently trying to use pstore on at least ARMs can hang as we're
+mapping the peristent RAM with pgprot_noncached().
 
-For es3.0, the documentation in "4.11.2 Device Off-Mode Configuration"
-just mentions PM_WKEN_WKUP[8] bit. For es3.1, there's a new chapter in
-documentation for "4.11.2.2 I/O Wake-Up Mechanism" that describes the
-PM_WKEN_WKUP[16] ST_IO_CHAIN bit. So PM_WKEN_WKUP[16] bit did not get
-added until in es3.1 probaly to fix issues with flakey wake-up events.
+On ARMs, pgprot_noncached() will actually make the memory strongly
+ordered, and as the atomic operations pstore uses are implementation
+defined for strongly ordered memory, they may not work. So basically
+atomic operations have undefined behavior on ARM for device or strongly
+ordered memory types.
 
-We are doing proper checks for ST_IO_CHAIN already in id.c and with
-omap3_has_io_chain_ctrl(). For more information, see also commit
-b02b917211d5 ("ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock
-control detection").
+Let's fix the issue by using write-combine variants for mappings. This
+corresponds to normal, non-cacheable memory on ARM. For many other
+architectures, this change does not change the mapping type as by
+default we have:
 
-Let's fix the issue by selecting the right function during init for
-reconfigure_io_chain depending on the omap revision. For es3.0 and
-earlier we need to just toggle EN_IO. By doing this, we can move the
-check for omap3_has_io_chain_ctrl() from omap_hwmod.c to the init code
-in prm_3xxx.c. And then we can unconditionally call reconfigure_io_chain.
+#define pgprot_writecombine pgprot_noncached
 
-Thanks to Paul Walmsley and Nishanth Menon for help with debugging the
-issue.
+The reason why pgprot_noncached() was originaly used for pstore
+is because Colin Cross <ccross@android.com> had observed lost
+debug prints right before a device hanging write operation on some
+systems. For the platforms supporting pgprot_noncached(), we can
+add a an optional configuration option to support that. But let's
+get pstore working first before adding new features.
 
-Fixes: 30a69ef785e8 ("ARM: OMAP: Move DT wake-up event handling over to use pinctrl-single-omap")
-Cc: Kevin Hilman <khilman@kernel.org>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Rob Herring <rob.herring@calxeda.com>
+[tony@atomide.com: updated description]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |  2 +-
- arch/arm/mach-omap2/prm3xxx.c    | 39 +++++++++++++++++++++++++++++++++++----
- 2 files changed, 36 insertions(+), 5 deletions(-)
+ fs/pstore/ram_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 8fd87a3..9e91a4e 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2065,7 +2065,7 @@ static void _reconfigure_io_chain(void)
+diff --git a/fs/pstore/ram_core.c b/fs/pstore/ram_core.c
+index 9d7b9a8..24f94b0 100644
+--- a/fs/pstore/ram_core.c
++++ b/fs/pstore/ram_core.c
+@@ -392,7 +392,7 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+ 	page_start = start - offset_in_page(start);
+ 	page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
  
- 	spin_lock_irqsave(&io_chain_lock, flags);
+-	prot = pgprot_noncached(PAGE_KERNEL);
++	prot = pgprot_writecombine(PAGE_KERNEL);
  
--	if (cpu_is_omap34xx() && omap3_has_io_chain_ctrl())
-+	if (cpu_is_omap34xx())
- 		omap3xxx_prm_reconfigure_io_chain();
- 	else if (cpu_is_omap44xx())
- 		omap44xx_prm_reconfigure_io_chain();
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index e0088e0..1c24693 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -46,7 +46,7 @@ static struct omap_prcm_irq_setup omap3_prcm_irq_setup = {
- 	.ocp_barrier		= &omap3xxx_prm_ocp_barrier,
- 	.save_and_clear_irqen	= &omap3xxx_prm_save_and_clear_irqen,
- 	.restore_irqen		= &omap3xxx_prm_restore_irqen,
--	.reconfigure_io_chain	= &omap3xxx_prm_reconfigure_io_chain,
-+	.reconfigure_io_chain	= NULL,
- };
+ 	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages) {
+@@ -422,7 +422,7 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
+ 	buffer_start_add = buffer_start_add_locked;
+ 	buffer_size_add = buffer_size_add_locked;
  
- /*
-@@ -370,15 +370,30 @@ void __init omap3_prm_init_pm(bool has_uart4, bool has_iva)
+-	return ioremap(start, size);
++	return ioremap_wc(start, size);
  }
  
- /**
-- * omap3xxx_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
-+ * omap3430_pre_es3_1_reconfigure_io_chain - restart wake-up daisy chain
-+ *
-+ * The ST_IO_CHAIN bit does not exist in 3430 before es3.1. The only
-+ * thing we can do is toggle EN_IO bit for earlier omaps.
-+ */
-+void omap3430_pre_es3_1_reconfigure_io_chain(void)
-+{
-+	omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
-+				     PM_WKEN);
-+	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
-+				   PM_WKEN);
-+	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
-+}
-+
-+/**
-+ * omap3_prm_reconfigure_io_chain - clear latches and reconfigure I/O chain
-  *
-  * Clear any previously-latched I/O wakeup events and ensure that the
-  * I/O wakeup gates are aligned with the current mux settings.  Works
-  * by asserting WUCLKIN, waiting for WUCLKOUT to be asserted, and then
-  * deasserting WUCLKIN and clearing the ST_IO_CHAIN WKST bit.  No
-- * return value.
-+ * return value. These registers are only available in 3430 es3.1 and later.
-  */
--void omap3xxx_prm_reconfigure_io_chain(void)
-+void omap3_prm_reconfigure_io_chain(void)
- {
- 	int i = 0;
- 
-@@ -401,6 +416,15 @@ void omap3xxx_prm_reconfigure_io_chain(void)
- }
- 
- /**
-+ * omap3xxx_prm_reconfigure_io_chain - reconfigure I/O chain
-+ */
-+void omap3xxx_prm_reconfigure_io_chain(void)
-+{
-+	if (omap3_prcm_irq_setup.reconfigure_io_chain)
-+		omap3_prcm_irq_setup.reconfigure_io_chain();
-+}
-+
-+/**
-  * omap3xxx_prm_enable_io_wakeup - enable wakeup events from I/O wakeup latches
-  *
-  * Activates the I/O wakeup event latches and allows events logged by
-@@ -674,6 +698,13 @@ static int omap3xxx_prm_late_init(void)
- 		}
- 	}
- 
-+	if (omap3_has_io_chain_ctrl())
-+		omap3_prcm_irq_setup.reconfigure_io_chain =
-+			omap3_prm_reconfigure_io_chain;
-+	else
-+		omap3_prcm_irq_setup.reconfigure_io_chain =
-+			omap3430_pre_es3_1_reconfigure_io_chain;
-+
- 	omap3xxx_prm_enable_io_wakeup();
- 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
- 	if (!ret)
+ static int persistent_ram_buffer_map(phys_addr_t start, phys_addr_t size,
 -- 
 2.1.0
-
