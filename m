@@ -1,53 +1,82 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/2] pstore-ram: Allow optional mapping with
-	pgprot_noncached
-Date: Sat, 13 Sep 2014 00:15:14 +0100
-Message-ID: <20140912231514.GB12379@n2100.arm.linux.org.uk>
-References: <1410546745-919-1-git-send-email-tony@atomide.com> <1410546745-919-2-git-send-email-tony@atomide.com>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/8] arm: Convert pr_warning to pr_warn
+Date: Sat, 13 Sep 2014 11:31:11 -0700
+Message-ID: <cover.1410632834.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1410546745-919-2-git-send-email-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robherring2@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Olof Johansson <olof@lixom.net>, Tony Luck <tony.luck@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 12, 2014 at 11:32:25AM -0700, Tony Lindgren wrote:
-> On some ARMs at least the memory can be mapped pgprot_noncached()
-> and still be working for atomic operations. As pointed out by
-> Colin Cross <ccross@android.com>, in some cases you do want to use
-> pgprot_noncached() if the SoC supports it to see a debug printk
-> just before a write hanging the system.
-> 
-> On ARMs, the atomic operations on strongly ordered memory are
-> implementation defined. So let's provide an optional kernel parameter
-> for configuring noncached memory, and use pgprot_writecombine() by
-> default.
+pr_warn is used about 3:1 over pr_warning and is mixed use
+in arch/arm.  Standardize on pr_warn.
 
-Can we clean up this terminology please?
+Joe Perches (8):
+  arm: Convert pr_warning to pr_warn
+  arm: mach-davinci: Convert pr_warning to pr_warn
+  arm: mach-ep93xx: Convert pr_warning to pr_warn
+  arm: mach-imx: Convert pr_warning to pr_warn
+  arm: mach-omap2: Convert pr_warning to pr_warn
+  arm: mach-orion5x: Convert pr_warning to pr_warn
+  arm: mach-pxa: Convert pr_warning to pr_warn
+  arm: mach-u300: Convert pr_warning to pr_warn
 
-Writecombine memory is not cached - write combine memory bypasses the
-caches entirely.  What it doesn't bypass are store buffers, which may
-combine two writes together.  So, calling it "cached" is misleading.
-
-Secondly, memory returned by ioremap() is not strongly ordered, it is
-device memory.  There's three main classifications of memory on ARM:
-strongly ordered, device and normal memory.  Normal memory has attributes
-which define whether it is write combining, or cacheable in some way (and
-if so, how it's cacheable.)
-
-Exclusives are always permitted to normal memory.  The other two are
-implementation defined.  While an implementation may offer it on
-strongly ordered, that doesn't mean that it also supports it on device
-memory.
-
-Lastly, aliased mappings are something that ARM has always strongly
-discouraged on ARMv6+ (it was plain down-right unpredictable, but it's
-now "strongly discouraged") and remapping memory with different memory
-type should be avoided.
+ arch/arm/include/asm/syscall.h                 |  8 +--
+ arch/arm/kernel/atags_parse.c                  |  2 +-
+ arch/arm/kernel/hw_breakpoint.c                | 18 +++---
+ arch/arm/kernel/irq.c                          |  4 +-
+ arch/arm/kernel/perf_event_cpu.c               |  4 +-
+ arch/arm/kernel/smp.c                          |  2 +-
+ arch/arm/kernel/unwind.c                       | 24 ++++----
+ arch/arm/mach-davinci/board-da830-evm.c        | 76 +++++++++++---------------
+ arch/arm/mach-davinci/board-dm644x-evm.c       |  6 +-
+ arch/arm/mach-davinci/board-mityomapl138.c     | 38 ++++++-------
+ arch/arm/mach-davinci/board-neuros-osd2.c      |  3 +-
+ arch/arm/mach-davinci/time.c                   |  6 +-
+ arch/arm/mach-ep93xx/core.c                    |  4 +-
+ arch/arm/mach-imx/mach-armadillo5x0.c          |  2 +-
+ arch/arm/mach-imx/mach-mx31_3ds.c              |  4 +-
+ arch/arm/mach-imx/mach-mx31lite.c              |  2 +-
+ arch/arm/mach-imx/mach-pcm037.c                |  4 +-
+ arch/arm/mach-omap2/display.c                  |  2 +-
+ arch/arm/mach-omap2/hdq1w.c                    |  4 +-
+ arch/arm/mach-omap2/i2c.c                      |  2 +-
+ arch/arm/mach-omap2/msdi.c                     |  4 +-
+ arch/arm/mach-omap2/mux.c                      |  2 +-
+ arch/arm/mach-omap2/omap_hwmod.c               | 26 ++++-----
+ arch/arm/mach-omap2/pdata-quirks.c             |  4 +-
+ arch/arm/mach-omap2/pm34xx.c                   |  2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c       |  4 +-
+ arch/arm/mach-omap2/sr_device.c                |  2 +-
+ arch/arm/mach-omap2/vc.c                       |  2 +-
+ arch/arm/mach-omap2/voltage.c                  | 22 ++++----
+ arch/arm/mach-omap2/wd_timer.c                 |  4 +-
+ arch/arm/mach-orion5x/dns323-setup.c           |  8 +--
+ arch/arm/mach-orion5x/terastation_pro2-setup.c |  2 +-
+ arch/arm/mach-orion5x/ts209-setup.c            |  2 +-
+ arch/arm/mach-orion5x/ts409-setup.c            |  2 +-
+ arch/arm/mach-orion5x/ts78xx-setup.c           |  4 +-
+ arch/arm/mach-pxa/em-x270.c                    |  4 +-
+ arch/arm/mach-pxa/gumstix.c                    |  3 +-
+ arch/arm/mach-pxa/mfp-pxa2xx.c                 | 12 ++--
+ arch/arm/mach-pxa/poodle.c                     |  2 +-
+ arch/arm/mach-pxa/pxa3xx-ulpi.c                |  6 +-
+ arch/arm/mach-pxa/raumfeld.c                   | 26 ++++-----
+ arch/arm/mach-u300/dummyspichip.c              | 65 ++++++++++------------
+ arch/arm/mm/idmap.c                            |  2 +-
+ arch/arm/mm/mmu.c                              |  4 +-
+ 44 files changed, 200 insertions(+), 229 deletions(-)
 
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+1.8.1.2.459.gbcd45b4.dirty
