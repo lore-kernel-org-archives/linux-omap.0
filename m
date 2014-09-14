@@ -1,369 +1,123 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 5/8] arm: mach-omap2: Convert pr_warning to pr_warn
-Date: Sat, 13 Sep 2014 11:31:16 -0700
-Message-ID: <1f7bd81d1a391defa61327143d258e6cda23ead6.1410632835.git.joe@perches.com>
-References: <cover.1410632834.git.joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1410632834.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH 00/35] arm: omap: move intc to drivers/irqchip/
+Date: Sun, 14 Sep 2014 01:18:58 -0400
+Message-ID: <20140914051858.GF21986@titan.lakedaemon.net>
+References: <1406582183-696-1-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34014 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751731AbaINFTO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Sep 2014 01:19:14 -0400
+Content-Disposition: inline
+In-Reply-To: <1406582183-696-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, bcousson@baylibre.com, linux@arm.linux.org.uk, khilman@deeprootsystems.com, tglx@linutronix.de, devicetree@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Use the more common pr_warn.
+On Mon, Jul 28, 2014 at 04:15:48PM -0500, Felipe Balbi wrote:
+> Hi folks,
+> 
+> here's another rebase of the original series moving INTC
+> to drivers.
+> 
+> There aren't many changes, only some fixes here and there
+> because of recent changes to irq_domain and irqchip.
+> 
+> I have also added a patch to enable INTC address space
+> protection so that only privileged modes can access
+> INTC's address space.
+> 
+> Patches tested on top of v3.17-rc7 with a beagle bone black,
+> the only plataform I have which still uses INTC.
+> 
+> Tony, if you can run your PM test cases on your side, I'd
+> be really glad.
+> 
+> cheers
+> 
+> Felipe Balbi (35):
+>   arm: omap: irq: make omap_irq_base global
+>   arm: omap: irq: define INTC_ILR0 register
+>   arm: omap: irq: start to remove irq_banks array
+>   arm: omap: irq: add a global omap_nr_irqs variable
+>   arm: omap: irq: remove rest of irq_banks usage
+>   arm: omap: irq: remove unused macro
+>   arm: omap: irq: switch over to intc_readl on omap_intc_handle_irq
+>   arm: omap: irq: remove unnecessary base_addr argument
+>   arm: omap: irq: rename omap3_intc_regs
+>   arm: omap: irq: always define omap3 support
+>   arm: omap: irq: reorganize code a little bit
+>   arm: omap: irq: make intc_of_init static
+>   arm: omap: irq: call set_handle_irq() from intc_of_init
+>   arm: omap: irq: use IRQCHIP_DECLARE macro
+>   arm: omap: irq: drop .handle_irq and .init_irq fields
+>   arm: omap: irq: add specific compatibles for omap3 and am33xx devices
+>   arm: omap: irq: use compatible flag to figure out number of IRQ lines
+>   arm: boot: dts: am33xx/omap3: fix intc compatible flag
+>   arm: omap: irq: drop ti,intc-size support
+>   arm: boot: dts: omap2/3/am33xx: drop ti,intc-size
+>   arm: omap: irq: move some more code around
+>   arm: omap: irq: call set_handle_irq() from .init_irq
+>   arm: omap: irq: drop omap3_intc_handle_irq()
+>   arm: omap: irq: drop omap2_intc_handle_irq()
+>   arm: omap: irq: remove unnecessary header
+>   arm: omap: irq: remove nr_irqs argument
+>   arm: omap: irq: introduce omap_nr_pending
+>   arm: omap: irq: get rid of ifdef hack
+>   arm: omap: intc: switch over to linear irq domain
+>   irqchip: add irq-omap-intc.h header
+>   arm: omap: irq: move irq.c to drivers/irqchip/
+>   irq: intc: minor improvement to omap_irq_pending()
+>   irq: intc: comment style cleanup
+>   irq: intc: remove unnecesary of_address_to_resource() call
+>   irq: intc: enable IP protection
+> 
+>  arch/arm/boot/dts/am33xx.dtsi              |   3 +-
+>  arch/arm/boot/dts/omap2.dtsi               |   1 -
+>  arch/arm/boot/dts/omap3.dtsi               |   3 +-
+>  arch/arm/mach-omap2/Kconfig                |   1 +
+>  arch/arm/mach-omap2/Makefile               |   3 +-
+>  arch/arm/mach-omap2/board-3430sdp.c        |   2 +-
+>  arch/arm/mach-omap2/board-am3517crane.c    |   2 +-
+>  arch/arm/mach-omap2/board-am3517evm.c      |   2 +-
+>  arch/arm/mach-omap2/board-cm-t35.c         |   3 +-
+>  arch/arm/mach-omap2/board-cm-t3517.c       |   2 +-
+>  arch/arm/mach-omap2/board-devkit8000.c     |   2 +-
+>  arch/arm/mach-omap2/board-generic.c        |  14 -
+>  arch/arm/mach-omap2/board-ldp.c            |   2 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c    |   2 +-
+>  arch/arm/mach-omap2/board-omap3logic.c     |   3 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c   |   2 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c   |   2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c |   2 +-
+>  arch/arm/mach-omap2/board-overo.c          |   2 +-
+>  arch/arm/mach-omap2/board-rx51.c           |   2 +-
+>  arch/arm/mach-omap2/board-ti8168evm.c      |   1 +
+>  arch/arm/mach-omap2/common.h               |  22 --
+>  arch/arm/mach-omap2/cpuidle34xx.c          |   1 +
+>  arch/arm/mach-omap2/irq.c                  | 380 ---------------------------
+>  arch/arm/mach-omap2/pm24xx.c               |   1 +
+>  arch/arm/mach-omap2/pm34xx.c               |   1 +
+>  drivers/irqchip/Kconfig                    |   5 +
+>  drivers/irqchip/Makefile                   |   1 +
+>  drivers/irqchip/irq-omap-intc.c            | 408 +++++++++++++++++++++++++++++
+>  include/linux/irqchip/irq-omap-intc.h      |  32 +++
+>  30 files changed, 468 insertions(+), 439 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/irq.c
+>  create mode 100644 drivers/irqchip/irq-omap-intc.c
+>  create mode 100644 include/linux/irqchip/irq-omap-intc.h
 
-Other miscellanea:
+For patches 32-35, please fix the subject line to:
 
-o Realign arguments
+  irqchip: omap-intc: C...
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- arch/arm/mach-omap2/display.c            |  2 +-
- arch/arm/mach-omap2/hdq1w.c              |  4 ++--
- arch/arm/mach-omap2/i2c.c                |  2 +-
- arch/arm/mach-omap2/msdi.c               |  4 ++--
- arch/arm/mach-omap2/mux.c                |  2 +-
- arch/arm/mach-omap2/omap_hwmod.c         | 26 +++++++++++++-------------
- arch/arm/mach-omap2/pdata-quirks.c       |  4 ++--
- arch/arm/mach-omap2/pm34xx.c             |  2 +-
- arch/arm/mach-omap2/smartreflex-class3.c |  4 ++--
- arch/arm/mach-omap2/sr_device.c          |  2 +-
- arch/arm/mach-omap2/vc.c                 |  2 +-
- arch/arm/mach-omap2/voltage.c            | 22 +++++++++++-----------
- arch/arm/mach-omap2/wd_timer.c           |  4 ++--
- 13 files changed, 40 insertions(+), 40 deletions(-)
+With that changed, patches 30-35 are:
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index bf852d7..7a050f9 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -544,7 +544,7 @@ int omap_dss_reset(struct omap_hwmod *oh)
- 			MAX_MODULE_SOFTRESET_WAIT, c);
- 
- 	if (c == MAX_MODULE_SOFTRESET_WAIT)
--		pr_warning("dss_core: waiting for reset to finish failed\n");
-+		pr_warn("dss_core: waiting for reset to finish failed\n");
- 	else
- 		pr_debug("dss_core: softreset done\n");
- 
-diff --git a/arch/arm/mach-omap2/hdq1w.c b/arch/arm/mach-omap2/hdq1w.c
-index f78b4a1..f3897d8 100644
---- a/arch/arm/mach-omap2/hdq1w.c
-+++ b/arch/arm/mach-omap2/hdq1w.c
-@@ -67,8 +67,8 @@ int omap_hdq1w_reset(struct omap_hwmod *oh)
- 			  MAX_MODULE_SOFTRESET_WAIT, c);
- 
- 	if (c == MAX_MODULE_SOFTRESET_WAIT)
--		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
--			   __func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+		pr_warn("%s: %s: softreset failed (waited %d usec)\n",
-+			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
- 	else
- 		pr_debug("%s: %s: softreset in %d usec\n", __func__,
- 			 oh->name, c);
-diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
-index b456b44..b9d8e47 100644
---- a/arch/arm/mach-omap2/i2c.c
-+++ b/arch/arm/mach-omap2/i2c.c
-@@ -99,7 +99,7 @@ int omap_i2c_reset(struct omap_hwmod *oh)
- 				MAX_MODULE_SOFTRESET_WAIT, c);
- 
- 	if (c == MAX_MODULE_SOFTRESET_WAIT)
--		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
-+		pr_warn("%s: %s: softreset failed (waited %d usec)\n",
- 			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
- 	else
- 		pr_debug("%s: %s: softreset in %d usec\n", __func__,
-diff --git a/arch/arm/mach-omap2/msdi.c b/arch/arm/mach-omap2/msdi.c
-index 828e0db..8bdf182 100644
---- a/arch/arm/mach-omap2/msdi.c
-+++ b/arch/arm/mach-omap2/msdi.c
-@@ -76,8 +76,8 @@ int omap_msdi_reset(struct omap_hwmod *oh)
- 			  MAX_MODULE_SOFTRESET_WAIT, c);
- 
- 	if (c == MAX_MODULE_SOFTRESET_WAIT)
--		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
--			   __func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+		pr_warn("%s: %s: softreset failed (waited %d usec)\n",
-+			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
- 	else
- 		pr_debug("%s: %s: softreset in %d usec\n", __func__,
- 			 oh->name, c);
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index ac8a249..78064b0 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -814,7 +814,7 @@ int __init omap_mux_late_init(void)
- 			"hwmod_io", omap_mux_late_init);
- 
- 	if (ret)
--		pr_warning("mux: Failed to setup hwmod io irq %d\n", ret);
-+		pr_warn("mux: Failed to setup hwmod io irq %d\n", ret);
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 8fd87a3..98f8ec0 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -769,8 +769,8 @@ static int _init_main_clk(struct omap_hwmod *oh)
- 
- 	oh->_clk = clk_get(NULL, oh->main_clk);
- 	if (IS_ERR(oh->_clk)) {
--		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
--			   oh->name, oh->main_clk);
-+		pr_warn("omap_hwmod: %s: cannot clk_get main_clk %s\n",
-+			oh->name, oh->main_clk);
- 		return -EINVAL;
- 	}
- 	/*
-@@ -814,8 +814,8 @@ static int _init_interface_clks(struct omap_hwmod *oh)
- 
- 		c = clk_get(NULL, os->clk);
- 		if (IS_ERR(c)) {
--			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
--				   oh->name, os->clk);
-+			pr_warn("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
-+				oh->name, os->clk);
- 			ret = -EINVAL;
- 			continue;
- 		}
-@@ -851,8 +851,8 @@ static int _init_opt_clks(struct omap_hwmod *oh)
- 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
- 		c = clk_get(NULL, oc->clk);
- 		if (IS_ERR(c)) {
--			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
--				   oh->name, oc->clk);
-+			pr_warn("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
-+				oh->name, oc->clk);
- 			ret = -EINVAL;
- 			continue;
- 		}
-@@ -1576,7 +1576,7 @@ static int _init_clkdm(struct omap_hwmod *oh)
- 
- 	oh->clkdm = clkdm_lookup(oh->clkdm_name);
- 	if (!oh->clkdm) {
--		pr_warning("omap_hwmod: %s: could not associate to clkdm %s\n",
-+		pr_warn("omap_hwmod: %s: could not associate to clkdm %s\n",
- 			oh->name, oh->clkdm_name);
- 		return 0;
- 	}
-@@ -1616,7 +1616,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
- 	if (!ret)
- 		oh->_state = _HWMOD_STATE_CLKS_INITED;
- 	else
--		pr_warning("omap_hwmod: %s: cannot _init_clocks\n", oh->name);
-+		pr_warn("omap_hwmod: %s: cannot _init_clocks\n", oh->name);
- 
- 	return ret;
- }
-@@ -1739,7 +1739,7 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- 	_disable_clocks(oh);
- 
- 	if (ret == -EBUSY)
--		pr_warning("omap_hwmod: %s: failed to hardreset\n", oh->name);
-+		pr_warn("omap_hwmod: %s: failed to hardreset\n", oh->name);
- 
- 	if (!ret) {
- 		/*
-@@ -1953,8 +1953,8 @@ static int _ocp_softreset(struct omap_hwmod *oh)
- 
- 	c = _wait_softreset_complete(oh);
- 	if (c == MAX_MODULE_SOFTRESET_WAIT) {
--		pr_warning("omap_hwmod: %s: softreset failed (waited %d usec)\n",
--			   oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+		pr_warn("omap_hwmod: %s: softreset failed (waited %d usec)\n",
-+			oh->name, MAX_MODULE_SOFTRESET_WAIT);
- 		ret = -ETIMEDOUT;
- 		goto dis_opt_clks;
- 	} else {
-@@ -2618,8 +2618,8 @@ static int __init _setup_reset(struct omap_hwmod *oh)
- 	if (oh->rst_lines_cnt == 0) {
- 		r = _enable(oh);
- 		if (r) {
--			pr_warning("omap_hwmod: %s: cannot be enabled for reset (%d)\n",
--				   oh->name, oh->_state);
-+			pr_warn("omap_hwmod: %s: cannot be enabled for reset (%d)\n",
-+				oh->name, oh->_state);
- 			return -EINVAL;
- 		}
- 	}
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index 90c88d4..73b333f 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -244,8 +244,8 @@ static void __init nokia_n900_legacy_init(void)
- 			/* set IBE to 1 */
- 			rx51_secure_update_aux_cr(BIT(6), 0);
- 		} else {
--			pr_warning("RX-51: Not enabling ARM errata 430973 workaround\n");
--			pr_warning("Thumb binaries may crash randomly without this workaround\n");
-+			pr_warn("RX-51: Not enabling ARM errata 430973 workaround\n");
-+			pr_warn("Thumb binaries may crash randomly without this workaround\n");
- 		}
- 
- 		pr_info("RX-51: Registring OMAP3 HWRNG device\n");
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 3f80929..175564c 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -465,7 +465,7 @@ int __init omap3_pm_init(void)
- 	int ret;
- 
- 	if (!omap3_has_io_chain_ctrl())
--		pr_warning("PM: no software I/O chain control; some wakeups may be lost\n");
-+		pr_warn("PM: no software I/O chain control; some wakeups may be lost\n");
- 
- 	pm_errata_configure();
- 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 7a42e19..d3a588c 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -20,8 +20,8 @@ static int sr_class3_enable(struct omap_sr *sr)
- 	unsigned long volt = voltdm_get_voltage(sr->voltdm);
- 
- 	if (!volt) {
--		pr_warning("%s: Curr voltage unknown. Cannot enable %s\n",
--				__func__, sr->name);
-+		pr_warn("%s: Curr voltage unknown. Cannot enable %s\n",
-+			__func__, sr->name);
- 		return -ENODATA;
- 	}
- 
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index 1b91ef0..d7cff26 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -154,7 +154,7 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 
- 	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data));
- 	if (IS_ERR(pdev))
--		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
-+		pr_warn("%s: Could not build omap_device for %s: %s\n",
- 			__func__, name, oh->name);
- exit:
- 	i++;
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index a4628a9..be9ef83 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -198,7 +198,7 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
- 		loop_cnt++;
- 
- 		if (retries_cnt > 10) {
--			pr_warning("%s: Retry count exceeded\n", __func__);
-+			pr_warn("%s: Retry count exceeded\n", __func__);
- 			return -ETIMEDOUT;
- 		}
- 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 3ac8fe1..3783b86 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -55,7 +55,7 @@ static LIST_HEAD(voltdm_list);
- unsigned long voltdm_get_voltage(struct voltagedomain *voltdm)
- {
- 	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		pr_warn("%s: VDD specified does not exist!\n", __func__);
- 		return 0;
- 	}
- 
-@@ -77,7 +77,7 @@ int voltdm_scale(struct voltagedomain *voltdm,
- 	unsigned long volt = 0;
- 
- 	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		pr_warn("%s: VDD specified does not exist!\n", __func__);
- 		return -EINVAL;
- 	}
- 
-@@ -96,8 +96,8 @@ int voltdm_scale(struct voltagedomain *voltdm,
- 	}
- 
- 	if (!volt) {
--		pr_warning("%s: not scaling. OPP voltage for %lu, not found.\n",
--			   __func__, target_volt);
-+		pr_warn("%s: not scaling. OPP voltage for %lu, not found.\n",
-+			__func__, target_volt);
- 		return -EINVAL;
- 	}
- 
-@@ -122,7 +122,7 @@ void voltdm_reset(struct voltagedomain *voltdm)
- 	unsigned long target_volt;
- 
- 	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		pr_warn("%s: VDD specified does not exist!\n", __func__);
- 		return;
- 	}
- 
-@@ -152,7 +152,7 @@ void omap_voltage_get_volttable(struct voltagedomain *voltdm,
- 				struct omap_volt_data **volt_data)
- {
- 	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		pr_warn("%s: VDD specified does not exist!\n", __func__);
- 		return;
- 	}
- 
-@@ -180,12 +180,12 @@ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
- 	int i;
- 
- 	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		pr_warn("%s: VDD specified does not exist!\n", __func__);
- 		return ERR_PTR(-EINVAL);
- 	}
- 
- 	if (!voltdm->volt_data) {
--		pr_warning("%s: voltage table does not exist for vdd_%s\n",
-+		pr_warn("%s: voltage table does not exist for vdd_%s\n",
- 			__func__, voltdm->name);
- 		return ERR_PTR(-ENODATA);
- 	}
-@@ -214,7 +214,7 @@ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
- 			       struct omap_voltdm_pmic *pmic)
- {
- 	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		pr_warn("%s: VDD specified does not exist!\n", __func__);
- 		return -EINVAL;
- 	}
- 
-@@ -237,7 +237,7 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
- 				  int voltscale_method)
- {
- 	if (!voltdm || IS_ERR(voltdm)) {
--		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		pr_warn("%s: VDD specified does not exist!\n", __func__);
- 		return;
- 	}
- 
-@@ -279,7 +279,7 @@ int __init omap_voltage_late_init(void)
- 
- 		sys_ck = clk_get(NULL, voltdm->sys_clk.name);
- 		if (IS_ERR(sys_ck)) {
--			pr_warning("%s: Could not get sys clk.\n", __func__);
-+			pr_warn("%s: Could not get sys clk.\n", __func__);
- 			return -EINVAL;
- 		}
- 		voltdm->sys_clk.rate = clk_get_rate(sys_ck);
-diff --git a/arch/arm/mach-omap2/wd_timer.c b/arch/arm/mach-omap2/wd_timer.c
-index 97d6607..ff0a68c 100644
---- a/arch/arm/mach-omap2/wd_timer.c
-+++ b/arch/arm/mach-omap2/wd_timer.c
-@@ -93,8 +93,8 @@ int omap2_wd_timer_reset(struct omap_hwmod *oh)
- 		udelay(oh->class->sysc->srst_udelay);
- 
- 	if (c == MAX_MODULE_SOFTRESET_WAIT)
--		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
--			   __func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+		pr_warn("%s: %s: softreset failed (waited %d usec)\n",
-+			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
- 	else
- 		pr_debug("%s: %s: softreset in %d usec\n", __func__,
- 			 oh->name, c);
--- 
-1.8.1.2.459.gbcd45b4.dirty
+Acked-by: Jason Cooper <jason@lakedaemon.net>
+
+thx,
+
+Jason.
