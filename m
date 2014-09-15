@@ -1,62 +1,61 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v4 6/7] ARM: EXYNOS: Add support for non-secure L2X0
-	resume
-Date: Mon, 15 Sep 2014 10:03:53 +0100
-Message-ID: <20140915090353.GD12379@n2100.arm.linux.org.uk>
-References: <1409062680-15906-1-git-send-email-t.figa@samsung.com> <1409062680-15906-7-git-send-email-t.figa@samsung.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] clk: ti: dra7-atl-clock: fix a memory leak
+Date: Mon, 15 Sep 2014 12:05:28 +0300
+Message-ID: <5416ABD8.4040906@ti.com>
+References: <1410529147-19950-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1409062680-15906-7-git-send-email-t.figa@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, loeliger@gmail.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45320 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753413AbaIOJFz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2014 05:05:55 -0400
+In-Reply-To: <1410529147-19950-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-On Tue, Aug 26, 2014 at 04:17:59PM +0200, Tomasz Figa wrote:
-> On Exynos SoCs it is necessary to resume operation of L2C early in
-> assembly code, because otherwise certain systems will crash. This patch
-> adds necessary code to non-secure resume handler.
-> 
-> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+On 09/12/2014 04:39 PM, Tero Kristo wrote:
+> of_clk_add_provider makes an internal copy of the parent_names proper=
+ty
+> while its called, thus it is no longer needed after this call and can
+> be freed.
+
+Thanks Tero, indeed this was overlooked in the original driver.
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Mike Turquette <mturquette@linaro.org>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
->  arch/arm/mach-exynos/common.h   |  1 +
->  arch/arm/mach-exynos/firmware.c |  4 +++-
->  arch/arm/mach-exynos/sleep.S    | 41 +++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 45 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-exynos/common.h b/arch/arm/mach-exynos/common.h
-> index c218200..e88c0f9 100644
-> --- a/arch/arm/mach-exynos/common.h
-> +++ b/arch/arm/mach-exynos/common.h
-> @@ -113,6 +113,7 @@ IS_SAMSUNG_CPU(exynos5800, EXYNOS5800_SOC_ID, EXYNOS5_SOC_MASK)
->  
->  extern u32 cp15_save_diag;
->  extern u32 cp15_save_power;
-> +extern unsigned long l2x0_regs_phys;
->  
->  extern void __iomem *sysram_ns_base_addr;
->  extern void __iomem *sysram_base_addr;
-> diff --git a/arch/arm/mach-exynos/firmware.c b/arch/arm/mach-exynos/firmware.c
-> index 554b350..71bcfbd 100644
-> --- a/arch/arm/mach-exynos/firmware.c
-> +++ b/arch/arm/mach-exynos/firmware.c
-> @@ -102,7 +102,9 @@ static int exynos_suspend(void)
->  	writel(EXYNOS_SLEEP_MAGIC, sysram_ns_base_addr + EXYNOS_BOOT_FLAG);
->  	writel(virt_to_phys(exynos_cpu_resume_ns),
->  		sysram_ns_base_addr + EXYNOS_BOOT_ADDR);
-> -
-> +#ifdef CONFIG_CACHE_L2X0
-> +	l2x0_regs_phys = virt_to_phys(&l2x0_saved_regs);
-> +#endif
+>  drivers/clk/ti/clk-dra7-atl.c |    1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-=
+atl.c
+> index 4a65b41..3f9308a 100644
+> --- a/drivers/clk/ti/clk-dra7-atl.c
+> +++ b/drivers/clk/ti/clk-dra7-atl.c
+> @@ -199,6 +199,7 @@ static void __init of_dra7_atl_clock_setup(struct=
+ device_node *node)
+> =20
+>  	if (!IS_ERR(clk)) {
+>  		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+> +		kfree(parent_names);
+>  		return;
+>  	}
+>  cleanup:
+>=20
 
-NAK.  Please look at how arch/arm/mm/l2c-l2x0-resume.S gets the address
-of this structure in assembly code.  The name of this variable is crap
-in any case.  It's not the registers, it's the saved registers.  So even
-more reason to kill this abomination, which incidentally, I've already
-killed off once before in the exynos code.
 
--- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
