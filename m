@@ -1,61 +1,51 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] clk: ti: dra7-atl-clock: fix a memory leak
-Date: Mon, 15 Sep 2014 12:05:28 +0300
-Message-ID: <5416ABD8.4040906@ti.com>
-References: <1410529147-19950-1-git-send-email-t-kristo@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 00/16 v9] omap 8250 based uart + DMA
+Date: Mon, 15 Sep 2014 13:50:56 +0200
+Message-ID: <5416D2A0.5020407@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <20140912224324.GK18849@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45320 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413AbaIOJFz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2014 05:05:55 -0400
-In-Reply-To: <1410529147-19950-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20140912224324.GK18849@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-On 09/12/2014 04:39 PM, Tero Kristo wrote:
-> of_clk_add_provider makes an internal copy of the parent_names proper=
-ty
-> while its called, thus it is no longer needed after this call and can
-> be freed.
-
-Thanks Tero, indeed this was overlooked in the original driver.
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Mike Turquette <mturquette@linaro.org>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/clk/ti/clk-dra7-atl.c |    1 +
->  1 file changed, 1 insertion(+)
+On 09/13/2014 12:43 AM, Tony Lindgren wrote:
+> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140910 12:30]:
+>> the diff of v8=E2=80=A6v9 is small:
+>> - rebased on top's of Greg's tty-next branch
+>> - fixed #10 where we might have THRE interrupt enabled for longer th=
+an
+>>   needed
+>> - re-did register setup in #10. Before this "less file" could freeze=
+ the
+>>   am335x-evm.
 >=20
-> diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-=
-atl.c
-> index 4a65b41..3f9308a 100644
-> --- a/drivers/clk/ti/clk-dra7-atl.c
-> +++ b/drivers/clk/ti/clk-dra7-atl.c
-> @@ -199,6 +199,7 @@ static void __init of_dra7_atl_clock_setup(struct=
- device_node *node)
-> =20
->  	if (!IS_ERR(clk)) {
->  		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-> +		kfree(parent_names);
->  		return;
->  	}
->  cleanup:
+> FYI, looks like merging in your uart_v9 branch for testing
+> with my hwmod changes now fails to produce RX characters on omap3.
+>=20
+> The device wakes up just fine to the wake-up interrupt, and then
+> serial8250_handle_irq() gets called, but I'm not seeing anything
+> in the console getting printed out. It's like all the RX characters
+> are getting lost instead of just the first one. The RX characters
+> work fine when the system is running.
+>=20
+> So it seems there's been some kind of regression since v8?
+
+I changed the restore function the fix the am335x-evm + less "freeze".
+And now we have this. So let me search=E2=80=A6
+
+> Regards,
+>=20
+> Tony
 >=20
 
-
---=20
-P=E9ter
+Sebastian
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
