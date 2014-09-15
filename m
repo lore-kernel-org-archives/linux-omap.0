@@ -1,41 +1,59 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [PATCH v4 6/7] ARM: EXYNOS: Add support for non-secure L2X0 resume
-Date: Mon, 15 Sep 2014 23:31:18 +0200
-Message-ID: <54175AA6.3050702@gmail.com>
-References: <1409062680-15906-1-git-send-email-t.figa@samsung.com> <1409062680-15906-7-git-send-email-t.figa@samsung.com> <20140915090353.GD12379@n2100.arm.linux.org.uk>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] Input: palmas-pwrbutton: Fix typo in License
+Date: Mon, 15 Sep 2014 14:35:26 -0700
+Message-ID: <20140915213525.GA13468@core.coreip.homeip.net>
+References: <1410803937-27022-1-git-send-email-nm@ti.com>
+ <5417294C.2010506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20140915090353.GD12379@n2100.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, Marek Szyprowski <m.szyprowski@samsung.com>, loeliger@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5417294C.2010506@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Jim Davis <jim.epost@gmail.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Rothwell <sfr@canb.auug.org.au>
 List-Id: linux-omap@vger.kernel.org
 
-On 15.09.2014 11:03, Russell King - ARM Linux wrote:
->> diff --git a/arch/arm/mach-exynos/firmware.c b/arch/arm/mach-exynos/firmware.c
->> index 554b350..71bcfbd 100644
->> --- a/arch/arm/mach-exynos/firmware.c
->> +++ b/arch/arm/mach-exynos/firmware.c
->> @@ -102,7 +102,9 @@ static int exynos_suspend(void)
->>  	writel(EXYNOS_SLEEP_MAGIC, sysram_ns_base_addr + EXYNOS_BOOT_FLAG);
->>  	writel(virt_to_phys(exynos_cpu_resume_ns),
->>  		sysram_ns_base_addr + EXYNOS_BOOT_ADDR);
->> -
->> +#ifdef CONFIG_CACHE_L2X0
->> +	l2x0_regs_phys = virt_to_phys(&l2x0_saved_regs);
->> +#endif
+On Mon, Sep 15, 2014 at 01:00:44PM -0500, Nishanth Menon wrote:
+> On 09/15/2014 12:58 PM, Nishanth Menon wrote:
+> > Follow the license string convention indicated in include/linux/module.h
+> > (don't capitalize v).
+> > 
+> > This fixes following randconfig warning:
+> > FATAL: modpost: GPL-incompatible module palmas-pwrbutton.ko uses GPL-only symbol 'platform_driver_unregister'
+> > 
+> Uggh.. forgot to add:
 > 
-> NAK.  Please look at how arch/arm/mm/l2c-l2x0-resume.S gets the address
-> of this structure in assembly code.  The name of this variable is crap
-> in any case.  It's not the registers, it's the saved registers.  So even
-> more reason to kill this abomination, which incidentally, I've already
-> killed off once before in the exynos code.
+> Fixes: adff5962fdd2 ("Input: introduce palmas-pwrbutton")
+
+Applied both, thank you.
+
 > 
+> > Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+> > Reported-by: Jim Davis <jim.epost@gmail.com>
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > ---
+> > Reported thread http://marc.info/?l=linux-input&m=141080223209150&w=2
+> > 
+> >  drivers/input/misc/palmas-pwrbutton.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/input/misc/palmas-pwrbutton.c b/drivers/input/misc/palmas-pwrbutton.c
+> > index 3f90211..4ed6f78 100644
+> > --- a/drivers/input/misc/palmas-pwrbutton.c
+> > +++ b/drivers/input/misc/palmas-pwrbutton.c
+> > @@ -326,5 +326,5 @@ module_platform_driver(palmas_pwron_driver);
+> >  
+> >  MODULE_ALIAS("platform:palmas-pwrbutton");
+> >  MODULE_DESCRIPTION("Palmas Power Button");
+> > -MODULE_LICENSE("GPL V2");
+> > +MODULE_LICENSE("GPL v2");
+> >  MODULE_AUTHOR("Texas Instruments Inc.");
+> > 
+> 
+> -- 
+> Regards,
+> Nishanth Menon
 
-Right. The way l2c-l2x0-resume.S does this is much better. Somehow I
-overlooked it when implementing this.
-
-Best regards,
-Tomasz
+-- 
+Dmitry
