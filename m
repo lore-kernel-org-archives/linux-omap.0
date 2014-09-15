@@ -1,37 +1,29 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
  for AM33xx
-Date: Mon, 15 Sep 2014 18:42:04 +0200
-Message-ID: <541716DC.9020904@linutronix.de>
-References: <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5411967A.6090406@hurleysoftware.com> <54119AAA.9080907@linutronix.de> <20140911151114.GD28458@ci00147.xsens-tech.local> <5411C810.7070906@linutronix.de> <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com> <54129F6C.7040508@linutronix.de> <20140912094010.GE28458@ci00147.xsens-tech.local> <5412C21A.8020203@linutronix.de> <20140912102816.GF28458@ci00147.xsens-tech.local>
+Date: Mon, 15 Sep 2014 19:01:57 +0200
+Message-ID: <54171B85.5060209@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5411967A.6090406@hurleysoftware.com> <54119AAA.9080907@linutronix.de> <5411B33F.10405@hurleysoftware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20140912102816.GF28458@ci00147.xsens-tech.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: Frans Klaver <frans.klaver@xsens.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5411B33F.10405@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/12/2014 12:28 PM, Frans Klaver wrote:
-> port config is 115200 8N1. I don't recall doing anything special. I
-> boot, login, less file and get a lock.
+On 09/11/2014 04:35 PM, Peter Hurley wrote:
+> I do need to find out if omap hardware sets UART_MSR_DCTS when auto CTS
+> is on. Would you mind running the debug patch below with HW flow control on?
 
-So I booted my mini Debian 7.6 (basic system + openssh) on my beagle
-bone black which is:
+I didn't forget about this. However I told minicom to use hardware flow
+control (and I see the driver set the HW bit) but I haven't seen that
+uart_handle_cts_change() has been invoked at all. I'm going to check
+two other boards and report then.
 
-[    0.000000] AM335X ES2.0 (neon )
-
-configured a console, login, invoked "less file". The file was shown, I
-hit on the space key so less shows me more of the file. No lock-up.
-I tried booting via NFS and MMC. I tried various files with less.
-
-My dot config is here
-	https://breakpoint.cc/config-am335x-bb.txt.xz
-
-If there is nothing specific to the file you do less on I have no idea
-what else it could if it is not the config.
+> Regards,
+> Peter Hurley
 
 Sebastian
-
