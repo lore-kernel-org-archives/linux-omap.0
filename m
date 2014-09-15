@@ -1,43 +1,51 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 8/9] irqchip: omap-intc: correct maximum number or MIR registers
-Date: Mon, 15 Sep 2014 16:15:08 -0500
-Message-ID: <1410815709-462-9-git-send-email-balbi@ti.com>
-References: <1410815709-462-1-git-send-email-balbi@ti.com>
+From: Tomasz Figa <tomasz.figa@gmail.com>
+Subject: Re: [PATCH v4 5/7] ARM: EXYNOS: Add .write_sec outer cache callback
+ for L2C-310
+Date: Mon, 15 Sep 2014 23:27:55 +0200
+Message-ID: <541759DB.8090408@gmail.com>
+References: <1409062680-15906-1-git-send-email-t.figa@samsung.com> <1409062680-15906-6-git-send-email-t.figa@samsung.com> <20140915085845.GC12379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49968 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754553AbaIOVQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Sep 2014 17:16:09 -0400
-In-Reply-To: <1410815709-462-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140915085845.GC12379@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tomasz Figa <t.figa@samsung.com>
+Cc: linux-samsung-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, Marek Szyprowski <m.szyprowski@samsung.com>, loeliger@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jason Cooper <jason@lakedaemon.net>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-maximum number of MIR register is 4, rather than 3.
-Fix that.
+>> +static void exynos_l2_write_sec(unsigned long val, unsigned reg)
+>> +{
+>> +	switch (reg) {
+>> +	case L2X0_CTRL:
+>> +		if (val & L2X0_CTRL_EN)
+>> +			exynos_smc(SMC_CMD_L2X0INVALL, 0, 0, 0);
+> 
+> If we're calling this with the cache already enabled, presumably you're
+> doing this to cover the case where we're disabling the cache.
 
-Acked-by: Jason Cooper <jason@lakedaemon.net>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/irqchip/irq-omap-intc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Can we ever call this with L2X0_CTRL_EN set in val, while the cache is
+already enabled?
 
-diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
-index dfa2d9d..976d4c1 100644
---- a/drivers/irqchip/irq-omap-intc.c
-+++ b/drivers/irqchip/irq-omap-intc.c
-@@ -49,7 +49,7 @@
- 
- #define ACTIVEIRQ_MASK		0x7f	/* omap2/3 active interrupt bits */
- #define INTCPS_NR_ILR_REGS	128
--#define INTCPS_NR_MIR_REGS	3
-+#define INTCPS_NR_MIR_REGS	4
- 
- #define INTC_IDLE_FUNCIDLE	(1 << 0)
- #define INTC_IDLE_TURBO		(1 << 1)
--- 
-2.0.1.563.g66f467c
+Anyway, calling of this firmware operation is necessary before enabling
+the cache and this code is here to cover this requirement. Whether this
+function simply invalidates the cache or does something else is unknown
+to me, as all the information I got is that this needs to be done.
 
+> 
+> 1. Do you really want to *invalidate* the L2 cache, discarding its
+>    contents?
+> 2. Don't you think that... if you needed something like this here, then
+>    it could be a defficiency in the common code?
+> 
+> If (2) doesn't apply, then should be a comment here why this is needed.
+> 
+
+This is a quirk specific to Exynos firmware and I suspect it doesn't
+even have anything to do with cache invalidation, but rather some
+internal logic inside the firmware.
+
+I agree, though, that a comment might be useful here.
+
+Best regards,
+Tomasz
