@@ -1,51 +1,21 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] Input: palmas-pwrbutton: Fix typo in License
-Date: Mon, 15 Sep 2014 13:00:44 -0500
-Message-ID: <5417294C.2010506@ti.com>
-References: <1410803937-27022-1-git-send-email-nm@ti.com>
+From: Diana <dede.bahtiar@lrs.co.id>
+Subject: H
+Date: Mon, 15 Sep 2014 23:56:18 +0700 (WIT)
+Message-ID: <1991533393.28113.1410800178698.JavaMail.root__20164.438620168$1410804448$gmane$org@lrs.co.id>
+Reply-To: "Diana " <krk@netzero.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1410803937-27022-1-git-send-email-nm@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Jim Davis <jim.epost@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Rothwell <sfr@canb.auug.org.au>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ip-27-50-27-180.cepat.net.id ([27.50.27.180]:35515 "EHLO
+	lrs.co.id" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753046AbaIOSHG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Sep 2014 14:07:06 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/15/2014 12:58 PM, Nishanth Menon wrote:
-> Follow the license string convention indicated in include/linux/module.h
-> (don't capitalize v).
-> 
-> This fixes following randconfig warning:
-> FATAL: modpost: GPL-incompatible module palmas-pwrbutton.ko uses GPL-only symbol 'platform_driver_unregister'
-> 
-Uggh.. forgot to add:
-
-Fixes: adff5962fdd2 ("Input: introduce palmas-pwrbutton")
-
-> Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-> Reported-by: Jim Davis <jim.epost@gmail.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> Reported thread http://marc.info/?l=linux-input&m=141080223209150&w=2
-> 
->  drivers/input/misc/palmas-pwrbutton.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/input/misc/palmas-pwrbutton.c b/drivers/input/misc/palmas-pwrbutton.c
-> index 3f90211..4ed6f78 100644
-> --- a/drivers/input/misc/palmas-pwrbutton.c
-> +++ b/drivers/input/misc/palmas-pwrbutton.c
-> @@ -326,5 +326,5 @@ module_platform_driver(palmas_pwron_driver);
->  
->  MODULE_ALIAS("platform:palmas-pwrbutton");
->  MODULE_DESCRIPTION("Palmas Power Button");
-> -MODULE_LICENSE("GPL V2");
-> +MODULE_LICENSE("GPL v2");
->  MODULE_AUTHOR("Texas Instruments Inc.");
-> 
-
--- 
-Regards,
-Nishanth Menon
+Please Revert back, your assistance is needed.
+---------------------------------------
+The Exhibitor at innoTrans, Berlin 2014
+Hall : 15.1 / Stand no : 109 
+http://www.virtualmarket.innotrans.de/?Action=showCompany&id=346242
