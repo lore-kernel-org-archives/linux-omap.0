@@ -1,7 +1,7 @@
 From: Frans Klaver <frans.klaver@xsens.com>
-Subject: [PATCH 1/4] tty: omap-serial: pull out calculation from baud_is_mode16
-Date: Mon, 15 Sep 2014 16:00:07 +0200
-Message-ID: <1410789610-23059-2-git-send-email-frans.klaver@xsens.com>
+Subject: [PATCH 4/4] tty: omap-serial: support setting of hardware flow control in dts
+Date: Mon, 15 Sep 2014 16:00:10 +0200
+Message-ID: <1410789610-23059-5-git-send-email-frans.klaver@xsens.com>
 References: <1410789610-23059-1-git-send-email-frans.klaver@xsens.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,59 +12,38 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Frans Klaver <frans.klaver@xsens.com>, Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-To determine the correct divisor, we need to know the difference between
-the desired baud rate and the actual baud rate. The calculation for this
-difference is implemented twice within omap_serial_baud_is_mode16().
-Pull out the calculation for easier maintenance.
+This makes hardware flow control availability configurable from the
+device tree.
 
 Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
 ---
- drivers/tty/serial/omap-serial.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ Documentation/devicetree/bindings/serial/omap_serial.txt | 1 +
+ drivers/tty/serial/omap-serial.c                         | 4 ++++
+ 2 files changed, 5 insertions(+)
 
+diff --git a/Documentation/devicetree/bindings/serial/omap_serial.txt b/Documentation/devicetree/bindings/serial/omap_serial.txt
+index 342eedd..1b629e9 100644
+--- a/Documentation/devicetree/bindings/serial/omap_serial.txt
++++ b/Documentation/devicetree/bindings/serial/omap_serial.txt
+@@ -8,3 +8,4 @@ Required properties:
+ 
+ Optional properties:
+ - clock-frequency : frequency of the clock input to the UART
++- has-hw-flow-control : the hardware has flow control capability
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index d017cec..ae935ce 100644
+index 398139a..bff6874 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -239,6 +239,22 @@ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+@@ -1597,6 +1597,10 @@ static struct omap_uart_port_info *of_get_uart_port_info(struct device *dev)
+ 
+ 	of_property_read_u32(dev->of_node, "clock-frequency",
+ 					 &omap_up_info->uartclk);
++
++	if (of_property_read_bool(dev->of_node, "has-hw-flow-control"))
++		omap_up_info->flags |= UPF_HARD_FLOW;
++
+ 	return omap_up_info;
  }
  
- /*
-+ * Calculate the absolute difference between the desired and actual baud
-+ * rate for the given mode.
-+ */
-+static inline int calculate_baud_abs_diff(struct uart_port *port,
-+				unsigned int baud, unsigned int mode)
-+{
-+	unsigned int n = port->uartclk / (mode * baud);
-+	int abs_diff = baud - (port->uartclk / (mode * n));
-+
-+	if (abs_diff < 0)
-+		abs_diff = -abs_diff;
-+
-+	return abs_diff;
-+}
-+
-+/*
-  * serial_omap_baud_is_mode16 - check if baud rate is MODE16X
-  * @port: uart port info
-  * @baud: baudrate for which mode needs to be determined
-@@ -252,14 +268,8 @@ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
- static bool
- serial_omap_baud_is_mode16(struct uart_port *port, unsigned int baud)
- {
--	unsigned int n13 = port->uartclk / (13 * baud);
--	unsigned int n16 = port->uartclk / (16 * baud);
--	int baudAbsDiff13 = baud - (port->uartclk / (13 * n13));
--	int baudAbsDiff16 = baud - (port->uartclk / (16 * n16));
--	if (baudAbsDiff13 < 0)
--		baudAbsDiff13 = -baudAbsDiff13;
--	if (baudAbsDiff16 < 0)
--		baudAbsDiff16 = -baudAbsDiff16;
-+	int baudAbsDiff13 = calculate_baud_abs_diff(port, baud, 13);
-+	int baudAbsDiff16 = calculate_baud_abs_diff(port, baud, 16);
- 
- 	return (baudAbsDiff13 >= baudAbsDiff16);
- }
 -- 
 2.1.0
