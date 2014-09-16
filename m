@@ -1,58 +1,37 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2 1/3] can: c_can_platform: Fix c_can_hw_raminit_ti()
- and add timeout
-Date: Tue, 16 Sep 2014 16:13:33 +0200
-Message-ID: <5418458D.7030709@pengutronix.de>
-References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-2-git-send-email-rogerq@ti.com> <540F0FDD.60201@pengutronix.de> <540F1138.3090502@ti.com>
+From: Frans Klaver <frans.klaver@xsens.com>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Tue, 16 Sep 2014 16:23:11 +0200
+Message-ID: <20140916142311.GL28458@ci00147.xsens-tech.local>
+References: <20140911151114.GD28458@ci00147.xsens-tech.local>
+ <5411C810.7070906@linutronix.de>
+ <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
+ <54129F6C.7040508@linutronix.de>
+ <20140912094010.GE28458@ci00147.xsens-tech.local>
+ <5412C21A.8020203@linutronix.de>
+ <20140912102816.GF28458@ci00147.xsens-tech.local>
+ <541716DC.9020904@linutronix.de>
+ <20140916090540.GJ28458@ci00147.xsens-tech.local>
+ <20140916124200.GK28458@ci00147.xsens-tech.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="jeCUGKnIeamVp0AimWKQlWEeWO9TrROtv"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <540F1138.3090502@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
-Cc: tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140916124200.GK28458@ci00147.xsens-tech.local>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---jeCUGKnIeamVp0AimWKQlWEeWO9TrROtv
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Tue, Sep 16, 2014 at 02:42:00PM +0200, Frans Klaver wrote:
+> On Tue, Sep 16, 2014 at 11:05:40AM +0200, Frans Klaver wrote:
+> > On Mon, Sep 15, 2014 at 06:42:04PM +0200, Sebastian Andrzej Siewior wrote:
+> > > If there is nothing specific to the file you do less on I have no idea
+> > > what else it could if it is not the config.
+> > 
+> > I'll test your config and go through the differences.
+> 
+> So far it looks like it isn't in the config. I've tested both your and
+> my config on debian wheezy on a boneblack. No lock ups.
 
-On 09/09/2014 04:39 PM, Roger Quadros wrote:
-> On 09/09/2014 05:34 PM, Marc Kleine-Budde wrote:
->> On 09/09/2014 04:31 PM, Roger Quadros wrote:
->>> Pass the correct 'mask' and 'value' bits to c_can_hw_raminit_wait_ti(=
-).
->>> They seem to have been swapped in the usage instances.
->>
->> Can you split this fix into a seperate patch, please.
->=20
-> OK.
-
-I've added this fix only to the can-tree.
-
-Thanks,
-Marc
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---jeCUGKnIeamVp0AimWKQlWEeWO9TrROtv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlQYRY0ACgkQjTAFq1RaXHNLNgCgglm8Nlr1Dz8eIERnpbhGpONq
-+2QAn2LC1qLeWewCPFuDgpjs/GzMywjN
-=ISeT
------END PGP SIGNATURE-----
-
---jeCUGKnIeamVp0AimWKQlWEeWO9TrROtv--
+No, skip that. It is in the config. I'll hunt it down.
