@@ -1,43 +1,57 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Daniel Thompson <daniel.thompson@linaro.org>
 Subject: Re: [PATCH v10 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S
-Date: Wed, 17 Sep 2014 01:58:10 +0300
-Message-ID: <20140916225810.GA1273@drone.musicnaut.iki.fi>
-References: <1410907588-19957-1-git-send-email-daniel.thompson@linaro.org>
- <1410907588-19957-6-git-send-email-daniel.thompson@linaro.org>
+Date: Tue, 16 Sep 2014 16:05:08 -0700
+Message-ID: <5418C224.8050504@linaro.org>
+References: <1410907588-19957-1-git-send-email-daniel.thompson@linaro.org> <1410907588-19957-6-git-send-email-daniel.thompson@linaro.org> <20140916225810.GA1273@drone.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1410907588-19957-6-git-send-email-daniel.thompson@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, patches@linaro.org, linaro-kernel@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:57503 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512AbaIPXFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 19:05:08 -0400
+Received: by mail-pa0-f41.google.com with SMTP id bj1so761427pad.28
+        for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2014 16:05:07 -0700 (PDT)
+In-Reply-To: <20140916225810.GA1273@drone.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, patches@linaro.org, linaro-kernel@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
 
-Hi,
+On 16/09/14 15:58, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Tue, Sep 16, 2014 at 11:46:24PM +0100, Daniel Thompson wrote:
+>> +	config DEBUG_OMAP1UART1
+>> +		bool "Kernel low-level debugging via OMAP1 UART1"
+>> +		depends on ARCH_OMAP1
+>> +		select DEBUG_UART_8250
+>> +		help
+>> +		  Say Y here if you want kernel low-level debugging support
+>> +		  on OMAP1 based platforms (expect OMAP730) on the UART1.
+>                                             ^^^^^^
+> 
+>> +		select DEBUG_UART_8250
+>> +		help
+>> +		  Say Y here if you want kernel low-level debugging support
+>> +		  on OMAP1 based platforms (expect OMAP730) on the UART2.
+>                                             ^^^^^^
+> 
+>> +		select DEBUG_UART_8250
+>> +		help
+>> +		  Say Y here if you want kernel low-level debugging support
+>> +		  on OMAP1 based platforms (expect OMAP730) on the UART3.
+>                                             ^^^^^^
+> 
+> I already commented earlier, that "expect" here is probably a typo?
 
-On Tue, Sep 16, 2014 at 11:46:24PM +0100, Daniel Thompson wrote:
-> +	config DEBUG_OMAP1UART1
-> +		bool "Kernel low-level debugging via OMAP1 UART1"
-> +		depends on ARCH_OMAP1
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP1 based platforms (expect OMAP730) on the UART1.
-                                            ^^^^^^
+I'm extremely sorry to have overlooked your previous comment. There's
+certainly no question I read your previous e-mail because because I
+copied your Tested-by: from it.
 
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP1 based platforms (expect OMAP730) on the UART2.
-                                            ^^^^^^
+I will fix this (and also grep all other patches in the set to make sure
+I haven't copied the typo anywhere else).
 
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP1 based platforms (expect OMAP730) on the UART3.
-                                            ^^^^^^
 
-I already commented earlier, that "expect" here is probably a typo?
-
-A.
+Daniel.
