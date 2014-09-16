@@ -1,41 +1,62 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 00/16 v9] omap 8250 based uart + DMA
-Date: Tue, 16 Sep 2014 14:57:36 +0200
-Message-ID: <541833C0.5020106@linutronix.de>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <20140912224324.GK18849@atomide.com> <5416D2A0.5020407@linutronix.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: omap-dma: Fix cyclic suspend/resume
+Date: Tue, 16 Sep 2014 16:06:25 +0300
+Message-ID: <1410872785-14523-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:41794 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753206AbaIPM5m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 08:57:42 -0400
-In-Reply-To: <5416D2A0.5020407@linutronix.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:52066 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753383AbaIPNGp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Sep 2014 09:06:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 09/15/2014 01:50 PM, Sebastian Andrzej Siewior wrote:
-> I changed the restore function the fix the am335x-evm + less "freeze"=
-=2E
-> And now we have this. So let me search=E2=80=A6
+When the audio stream is paused or suspended we stop the sDMA and when it
+is unpsues/resumed we start the channel without reconfiguring it.
+The omap_dma_stop() clears the link configuration when we pause the dma, but
+it is not setting it back on start. This will result only one audio buffer
+to be played back and the DMA will stop, since the linking is disabled.
+The link need to be enabled in omap_dma_start() to make sure that cyclic
+transfer can continue.
 
-IER was 0 by accident. It fixed in TX path.
-I pushed uart_v10_pre1 which should have it fixed aport from other
-things=E2=80=A6
-I am going to address the review comments, to split the DMA callbacks
-as requested and if nobody comes up with something fancy we will have a
-v10 :)
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/dma/omap-dma.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
->> Regards,
->>
->> Tony
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 4cf7d9a950d7..13a02ff87f28 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -280,6 +280,7 @@ static void omap_dma_assign(struct omap_dmadev *od, struct omap_chan *c,
+ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+ {
+ 	struct omap_dmadev *od = to_omap_dma_dev(c->vc.chan.device);
++	uint32_t val;
+ 
+ 	if (__dma_omap15xx(od->plat->dma_attr))
+ 		omap_dma_chan_write(c, CPC, 0);
+@@ -288,6 +289,17 @@ static void omap_dma_start(struct omap_chan *c, struct omap_desc *d)
+ 
+ 	omap_dma_clear_csr(c);
+ 
++	if (!__dma_omap15xx(od->plat->dma_attr) && c->cyclic) {
++		val = omap_dma_chan_read(c, CLNK_CTRL);
++
++		if (dma_omap1())
++			val &= ~(1 << 14); /* clear the STOP_LNK bit */
++		else
++			val |= CLNK_CTRL_ENABLE_LNK;
++
++		omap_dma_chan_write(c, CLNK_CTRL, val);
++	}
++
+ 	/* Enable interrupts */
+ 	omap_dma_chan_write(c, CICR, d->cicr);
+ 
+-- 
+2.1.0
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
