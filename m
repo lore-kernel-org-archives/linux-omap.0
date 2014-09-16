@@ -1,43 +1,213 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 2/2] dmaengine: omap-dma: Restore the CLINK_CTRL in resume path
-Date: Tue, 16 Sep 2014 22:45:57 +0300
-Message-ID: <1410896757-3848-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1410896757-3848-1-git-send-email-peter.ujfalusi@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCHv2 2/2] remoteproc: add support to handle internal memories
+Date: Tue, 16 Sep 2014 15:18:38 -0500
+Message-ID: <1410898718-10828-3-git-send-email-s-anna@ti.com>
+References: <1410898718-10828-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410896757-3848-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1410898718-10828-1-git-send-email-s-anna@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-When the audio stream is paused or suspended we stop the sDMA and when it
-is unpaused/resumed we start the channel without reconfiguring it.
-The omap_dma_stop() clears the link configuration when we pause the dma, but
-it is not setting it back on start. This will result only one audio buffer
-to be played back and the DMA will stop, since the linking is disabled.
-We need to restore the CLINK_CTRL register in case of resume.
+A remote processor may need to load certain firmware sections into
+internal memories (eg: RAM at L1 or L2 levels) for performance or
+other reasons. Introduce a new resource type (RSC_INTMEM) and add
+an associated handler function to handle such memories. The handler
+creates a kernel mapping for the resource's 'pa' (physical address).
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Note that no iommu mapping is performed for this resource, as the
+resource is primarily used to represent physical internal memories.
+If the internal memory region can only be accessed through an iommu,
+a devmem resource entry should be used instead.
+
+Signed-off-by: Robert Tivy <rtivy@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/dma/omap-dma.c | 3 +++
- 1 file changed, 3 insertions(+)
+v2:
+- fixed a minor checkpatch warning
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index c01ea505ee7c..bbea8243f9e8 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -1019,6 +1019,9 @@ static int omap_dma_resume(struct omap_chan *c)
- 	if (c->paused) {
- 		mb();
+ drivers/remoteproc/remoteproc_core.c | 83 +++++++++++++++++++++++++++++++++++-
+ include/linux/remoteproc.h           | 43 ++++++++++++++++++-
+ 2 files changed, 124 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index 11cdb11..1d668e5 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -664,6 +664,82 @@ free_carv:
+ 	return ret;
+ }
  
-+		/* Restore channel link register */
-+		omap_dma_chan_write(c, CLNK_CTRL, c->desc->clnk_ctrl);
++/**
++ * rproc_handle_intmem() - handle internal memory resource entry
++ * @rproc: rproc handle
++ * @rsc: the intmem resource entry
++ * @offset: offset of the resource data in resource table
++ * @avail: size of available data (for image validation)
++ *
++ * This function will handle firmware requests for mapping a memory region
++ * internal to a remote processor into kernel. It neither allocates any
++ * physical pages, nor performs any iommu mapping, as this resource entry
++ * is primarily used for representing physical internal memories. If the
++ * internal memory region can only be accessed through an iommu, please
++ * use a devmem resource entry.
++ *
++ * These resource entries should be grouped near the carveout entries in
++ * the firmware's resource table, as other firmware entries might request
++ * placing other data objects inside these memory regions (e.g. data/code
++ * segments, trace resource entries, ...).
++ */
++static int rproc_handle_intmem(struct rproc *rproc, struct fw_rsc_intmem *rsc,
++			       int offset, int avail)
++{
++	struct rproc_mem_entry *intmem;
++	struct device *dev = &rproc->dev;
++	void *va;
++	int ret;
 +
- 		omap_dma_start(c, c->desc);
- 		c->paused = false;
++	if (sizeof(*rsc) > avail) {
++		dev_err(dev, "intmem rsc is truncated\n");
++		return -EINVAL;
++	}
++
++	if (rsc->version != 1) {
++		dev_err(dev, "intmem rsc version %d is not supported\n",
++			rsc->version);
++		return -EINVAL;
++	}
++
++	if (rsc->reserved) {
++		dev_err(dev, "intmem rsc has non zero reserved bytes\n");
++		return -EINVAL;
++	}
++
++	dev_dbg(dev, "intmem rsc: da 0x%x, pa 0x%x, len 0x%x\n",
++		rsc->da, rsc->pa, rsc->len);
++
++	intmem = kzalloc(sizeof(*intmem), GFP_KERNEL);
++	if (!intmem)
++		return -ENOMEM;
++
++	va = (__force void *)ioremap_nocache(rsc->pa, rsc->len);
++	if (!va) {
++		dev_err(dev, "ioremap_nocache err: %d\n", rsc->len);
++		ret = -ENOMEM;
++		goto free_intmem;
++	}
++
++	dev_dbg(dev, "intmem mapped pa 0x%x of len 0x%x into kernel va %p\n",
++		rsc->pa, rsc->len, va);
++
++	intmem->va = va;
++	intmem->len = rsc->len;
++	intmem->dma = rsc->pa;
++	intmem->da = rsc->da;
++	intmem->priv = (void *)1;    /* prevents freeing */
++
++	/* reuse the rproc->carveouts list, so that loading is automatic */
++	list_add_tail(&intmem->node, &rproc->carveouts);
++
++	return 0;
++
++free_intmem:
++	kfree(intmem);
++	return ret;
++}
++
+ static int rproc_count_vrings(struct rproc *rproc, struct fw_rsc_vdev *rsc,
+ 			      int offset, int avail)
+ {
+@@ -681,6 +757,7 @@ static rproc_handle_resource_t rproc_loading_handlers[RSC_LAST] = {
+ 	[RSC_CARVEOUT] = (rproc_handle_resource_t)rproc_handle_carveout,
+ 	[RSC_DEVMEM] = (rproc_handle_resource_t)rproc_handle_devmem,
+ 	[RSC_TRACE] = (rproc_handle_resource_t)rproc_handle_trace,
++	[RSC_INTMEM] = (rproc_handle_resource_t)rproc_handle_intmem,
+ 	[RSC_VDEV] = NULL, /* VDEVs were handled upon registrarion */
+ };
+ 
+@@ -768,7 +845,11 @@ static void rproc_resource_cleanup(struct rproc *rproc)
+ 
+ 	/* clean up carveout allocations */
+ 	list_for_each_entry_safe(entry, tmp, &rproc->carveouts, node) {
+-		dma_free_coherent(dev->parent, entry->len, entry->va, entry->dma);
++		if (!entry->priv)
++			dma_free_coherent(dev->parent, entry->len, entry->va,
++					  entry->dma);
++		else
++			iounmap((__force void __iomem *)entry->va);
+ 		list_del(&entry->node);
+ 		kfree(entry);
  	}
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index 78b8a9b..2a25ee8 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -100,6 +100,7 @@ struct fw_rsc_hdr {
+  *		    the remote processor will be writing logs.
+  * @RSC_VDEV:       declare support for a virtio device, and serve as its
+  *		    virtio header.
++ * @RSC_INTMEM:     request to map into kernel an internal memory region.
+  * @RSC_LAST:       just keep this one at the end
+  *
+  * For more details regarding a specific resource type, please see its
+@@ -115,7 +116,8 @@ enum fw_resource_type {
+ 	RSC_DEVMEM	= 1,
+ 	RSC_TRACE	= 2,
+ 	RSC_VDEV	= 3,
+-	RSC_LAST	= 4,
++	RSC_INTMEM	= 4,
++	RSC_LAST	= 5,
+ };
+ 
+ #define FW_RSC_ADDR_ANY (0xFFFFFFFFFFFFFFFF)
+@@ -306,6 +308,45 @@ struct fw_rsc_vdev {
+ } __packed;
+ 
+ /**
++ * struct fw_rsc_intmem - internal memory publishing request
++ * @version: version for this resource type (must be one)
++ * @da: device address
++ * @pa: physical address
++ * @len: length (in bytes)
++ * @reserved: reserved (must be zero)
++ * @name: human-readable name of the region being published
++ *
++ * This resource entry allows a remote processor to publish an internal
++ * memory region to the host. This resource type allows a remote processor
++ * to publish the whole or just a portion of certain internal memories,
++ * while it owns and manages any unpublished portion (eg: a shared L1
++ * memory that can be split configured as RAM and/or cache). This is
++ * primarily provided to allow a host to load code/data into internal
++ * memories, the memory for which is neither allocated nor required to
++ * be mapped into an iommu.
++ *
++ * @da should specify the required address as accessible by the device
++ * without going through an iommu, @pa should specify the physical address
++ * for the region as seen on the bus, @len should specify the size of the
++ * memory region. As always, @name may (optionally) contain a human readable
++ * name of this mapping (mainly for debugging purposes). The @version field
++ * is added for future scalability, and should be 1 for now.
++ *
++ * Note: at this point we just "trust" these intmem entries to contain valid
++ * physical bus addresses. these are not currently intended to be managed
++ * as host-controlled heaps, as it is much better to do that from the remote
++ * processor side.
++ */
++struct fw_rsc_intmem {
++	u32 version;
++	u32 da;
++	u32 pa;
++	u32 len;
++	u32 reserved;
++	u8 name[32];
++} __packed;
++
++/**
+  * struct rproc_mem_entry - memory entry descriptor
+  * @va:	virtual address
+  * @dma: dma address
 -- 
-2.1.0
+2.0.4
