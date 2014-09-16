@@ -1,290 +1,123 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pstore-ram: Allow optional mapping with
- pgprot_noncached
-Date: Tue, 16 Sep 2014 13:50:01 -0700
-Message-ID: <20140916205000.GA6672@atomide.com>
-References: <1410546745-919-1-git-send-email-tony@atomide.com>
- <1410546745-919-2-git-send-email-tony@atomide.com>
- <20140912231514.GB12379@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 00/16 v9] omap 8250 based uart + DMA
+Date: Tue, 16 Sep 2014 14:30:43 -0700
+Message-ID: <20140916213043.GB6672@atomide.com>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+ <20140912224324.GK18849@atomide.com>
+ <5416D2A0.5020407@linutronix.de>
+ <541833C0.5020106@linutronix.de>
+ <20140916164858.GA1580@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140912231514.GB12379@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robherring2@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Olof Johansson <olof@lixom.net>, Tony Luck <tony.luck@intel.com>
+In-Reply-To: <20140916164858.GA1580@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [140912 16:16]:
-> On Fri, Sep 12, 2014 at 11:32:25AM -0700, Tony Lindgren wrote:
-> > On some ARMs at least the memory can be mapped pgprot_noncached()
-> > and still be working for atomic operations. As pointed out by
-> > Colin Cross <ccross@android.com>, in some cases you do want to use
-> > pgprot_noncached() if the SoC supports it to see a debug printk
-> > just before a write hanging the system.
-> > 
-> > On ARMs, the atomic operations on strongly ordered memory are
-> > implementation defined. So let's provide an optional kernel parameter
-> > for configuring noncached memory, and use pgprot_writecombine() by
-> > default.
-> 
-> Can we clean up this terminology please?
-> 
-> Writecombine memory is not cached - write combine memory bypasses the
-> caches entirely.  What it doesn't bypass are store buffers, which may
-> combine two writes together.  So, calling it "cached" is misleading.
+* Tony Lindgren <tony@atomide.com> [140916 09:49]:
+> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140916 05:58]:
+> > On 09/15/2014 01:50 PM, Sebastian Andrzej Siewior wrote:
+> > > I changed the restore function the fix the am335x-evm + less "fre=
+eze".
+> > > And now we have this. So let me search=E2=80=A6
+> >=20
+> > IER was 0 by accident. It fixed in TX path.
+> > I pushed uart_v10_pre1 which should have it fixed aport from other
+> > things=E2=80=A6
+>=20
+> Just verified that works for my off-idle test case thanks.
+>=20
+> > I am going to address the review comments, to split the DMA callbac=
+ks
+> > as requested and if nobody comes up with something fancy we will ha=
+ve a
+> > v10 :)
+>=20
+> OK
 
-Good point. I've pretty much s/cached/memtype/ and updated the
-description too in the patch below.
- 
-> Secondly, memory returned by ioremap() is not strongly ordered, it is
-> device memory.  There's three main classifications of memory on ARM:
-> strongly ordered, device and normal memory.  Normal memory has attributes
-> which define whether it is write combining, or cacheable in some way (and
-> if so, how it's cacheable.)
-> 
-> Exclusives are always permitted to normal memory.  The other two are
-> implementation defined.  While an implementation may offer it on
-> strongly ordered, that doesn't mean that it also supports it on device
-> memory.
-> 
-> Lastly, aliased mappings are something that ARM has always strongly
-> discouraged on ARMv6+ (it was plain down-right unpredictable, but it's
-> now "strongly discouraged") and remapping memory with different memory
-> type should be avoided.
-
-Yes thanks for the summary again. Maybe let's let this second patch float
-on the lists for a while until we have somebody actually test it on
-unbuffered memory.
-
-Andrew, if no comments on 1/2 in this series, can you please pick it up
-for fixes so we get pstore working?
-
-Here's the updated version of the second patch for reference.
+=46ound one more issue when booting on 2420 n8x0, maybe something to do
+with runtime PM?
 
 Regards,
 
 Tony
 
-8< -----------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 11 Sep 2014 15:02:37 -0700
-Subject: [PATCH] pstore-ram: Allow optional mapping with pgprot_noncached
+[    4.770507] Internal error: Oops - undefined instruction: 0 [#1] SMP=
+ ARM
+[    4.777343] Modules linked in:
+[    4.780487] CPU: 0 PID: 1 Comm: init Not tainted 3.17.0-rc5-00211-gc=
+2182d0-dirty #1408
+[    4.788482] task: c5842b80 ti: c5850000 task.ti: c5850000
+[    4.793945] PC is at serial8250_start_tx+0x124/0x154
+[    4.798980] LR is at uart_start+0x4c/0x5c
+[    4.803039] pc : [<c03d7340>]    lr : [<c03d1ee4>]    psr: a0000093
+[    4.803039] sp : c5851e10  ip : c5851e28  fp : c5851e24
+[    4.814605] r10: 00000007  r9 : 00000000  r8 : c134d554
+[    4.819885] r7 : c5cb7800  r6 : 20000013  r5 : c134d554  r4 : c134d5=
+54
+[    4.826477] r3 : c134d690  r2 : 00000000  r1 : 00000001  r0 : c134d5=
+54
+[    4.833068] Flags: NzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Se=
+gment user
+[    4.840332] Control: 00c5387d  Table: 85cd8000  DAC: 00000015
+[    4.846130] Process init (pid: 1, stack limit =3D 0xc5850248)
+[    4.851776] Stack: (0xc5851e10 to 0xc5852000)
+[    4.856201] 1e00:                                     c5cb7800 c134d=
+554 c5851e44 c5851e28
+[    4.864440] 1e20: c03d1ee4 c03d7228 c5842b80 00000000 c5b00408 c5cf3=
+c07 c5851e7c c5851e48
+[    4.872711] 1e40: c03d2da0 c03d1ea4 c5851e6c a0000013 c03d1fe0 c5cb7=
+800 00000007 0000224c
+[    4.880981] 1e60: c88cc2a0 00002250 c5cf3c00 c88ca000 c5851edc c5851=
+e80 c03b9474 c03d2cd4
+[    4.889251] 1e80: c5851e9c c5cb7ab4 c5cf3c00 c5cb793c c5a5ae00 c5850=
+000 c0158e1c 00000000
+[    4.897491] 1ea0: c5842b80 c007152c c5cb7ad4 c5cb7ad4 c5cb7800 0000e=
+0cc 00000007 c5cb7800
+[    4.905761] 1ec0: 00000000 c5850000 00000400 c5a5ae00 c5851f1c c5851=
+ee0 c03b61c0 c03b92d0
+[    4.914031] 1ee0: 00000007 00000007 c5cb18c0 c03b92c4 c0b19f20 00000=
+000 00000007 0000e0cc
+[    4.922271] 1f00: c5851f78 c5a5ae00 c5850000 0000e0cc c5851f44 c5851=
+f20 c03b63c4 c03b60c0
+[    4.930541] 1f20: c5851f78 c5a5ae00 00000007 0000e0cc c5851f78 00000=
+007 c5851f74 c5851f48
+[    4.938812] 1f40: c0168f38 c03b632c c0185718 c0185688 00000000 00000=
+000 c5a5ae00 c5a5ae00
+[    4.947052] 1f60: 00000007 0000e0cc c5851fa4 c5851f78 c0169380 c0168=
+e90 00000000 00000000
+[    4.955322] 1f80: 00000000 0000e0cc 00000001 00000004 c000f164 00000=
+000 00000000 c5851fa8
+[    4.963592] 1fa0: c000eee0 c0169340 00000000 0000e0cc 00000000 0000e=
+0cc 00000007 00000000
+[    4.971862] 1fc0: 00000000 0000e0cc 00000001 00000004 0000a24c 00017=
+504 10000000 00000000
+[    4.980102] 1fe0: bef5aa40 bef5aa30 0000a474 b6e801ec 60000010 00000=
+000 ffffffff ffffffff
+[    4.988372] [<c03d7340>] (serial8250_start_tx) from [<c03d1ee4>] (ua=
+rt_start+0x4c/0x5c)
+[    4.996490] [<c03d1ee4>] (uart_start) from [<c03d2da0>] (uart_write+=
+0xd8/0x100)
+[    5.003875] [<c03d2da0>] (uart_write) from [<c03b9474>] (n_tty_write=
++0x1b0/0x510)
+[    5.011474] [<c03b9474>] (n_tty_write) from [<c03b61c0>] (tty_write+=
+0x10c/0x26c)
+[    5.018951] [<c03b61c0>] (tty_write) from [<c03b63c4>] (redirected_t=
+ty_write+0xa4/0xb8)
+[    5.027038] [<c03b63c4>] (redirected_tty_write) from [<c0168f38>] (v=
+fs_write+0xb4/0x1bc)
+[    5.035217] [<c0168f38>] (vfs_write) from [<c0169380>] (SyS_write+0x=
+4c/0x98)
+[    5.042358] [<c0169380>] (SyS_write) from [<c000eee0>] (ret_fast_sys=
+call+0x0/0x48)
+[    5.050018] Code: e3a02000 ee072fba e3a01001 f5d3f000 (e1d30f9f)=20
 
-On some ARMs the memory can be mapped pgprot_noncached() and still
-be working for atomic operations. As pointed out by Colin Cross
-<ccross@android.com>, in some cases you do want to use
-pgprot_noncached() if the SoC supports it to see a debug printk
-just before a write hanging the system.
-
-On ARMs, the atomic operations on strongly ordered memory are
-implementation defined. So let's provide an optional kernel parameter
-for configuring pgprot_noncached(), and use pgprot_writecombine() by
-default.
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Rob Herring <robherring2@gmail.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/Documentation/ramoops.txt
-+++ b/Documentation/ramoops.txt
-@@ -14,11 +14,19 @@ survive after a restart.
- 
- 1. Ramoops concepts
- 
--Ramoops uses a predefined memory area to store the dump. The start and size of
--the memory area are set using two variables:
-+Ramoops uses a predefined memory area to store the dump. The start and size
-+and type of the memory area are set using three variables:
-   * "mem_address" for the start
-   * "mem_size" for the size. The memory size will be rounded down to a
-   power of two.
-+  * "mem_type" to specifiy if the memory type (default is pgprot_writecombine).
-+
-+Typically the default value of mem_type=0 should be used as that sets the pstore
-+mapping to pgprot_writecombine. Setting mem_type=1 attempts to use
-+pgprot_noncached, which only works on some platforms. This is because pstore
-+depends on atomic operations. At least on ARM, pgprot_noncached causes the
-+memory to be mapped strongly ordered, and atomic operations on strongly ordered
-+memory are implementation defined, and won't work on many ARMs such as omaps.
- 
- The memory area is divided into "record_size" chunks (also rounded down to
- power of two) and each oops/panic writes a "record_size" chunk of
-@@ -55,6 +63,7 @@ Setting the ramoops parameters can be done in 2 different manners:
- static struct ramoops_platform_data ramoops_data = {
-         .mem_size               = <...>,
-         .mem_address            = <...>,
-+        .mem_type               = <...>,
-         .record_size            = <...>,
-         .dump_oops              = <...>,
-         .ecc                    = <...>,
---- a/fs/pstore/ram.c
-+++ b/fs/pstore/ram.c
-@@ -61,6 +61,11 @@ module_param(mem_size, ulong, 0400);
- MODULE_PARM_DESC(mem_size,
- 		"size of reserved RAM used to store oops/panic logs");
- 
-+static unsigned int mem_type;
-+module_param(mem_type, uint, 0600);
-+MODULE_PARM_DESC(mem_type,
-+		"set to 1 to try to use unbuffered memory (default 0)");
-+
- static int dump_oops = 1;
- module_param(dump_oops, int, 0600);
- MODULE_PARM_DESC(dump_oops,
-@@ -79,6 +84,7 @@ struct ramoops_context {
- 	struct persistent_ram_zone *fprz;
- 	phys_addr_t phys_addr;
- 	unsigned long size;
-+	unsigned int memtype;
- 	size_t record_size;
- 	size_t console_size;
- 	size_t ftrace_size;
-@@ -358,7 +364,8 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
- 		size_t sz = cxt->record_size;
- 
- 		cxt->przs[i] = persistent_ram_new(*paddr, sz, 0,
--						  &cxt->ecc_info);
-+						  &cxt->ecc_info,
-+						  cxt->memtype);
- 		if (IS_ERR(cxt->przs[i])) {
- 			err = PTR_ERR(cxt->przs[i]);
- 			dev_err(dev, "failed to request mem region (0x%zx@0x%llx): %d\n",
-@@ -388,7 +395,7 @@ static int ramoops_init_prz(struct device *dev, struct ramoops_context *cxt,
- 		return -ENOMEM;
- 	}
- 
--	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info);
-+	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info, cxt->memtype);
- 	if (IS_ERR(*prz)) {
- 		int err = PTR_ERR(*prz);
- 
-@@ -435,6 +442,7 @@ static int ramoops_probe(struct platform_device *pdev)
- 
- 	cxt->size = pdata->mem_size;
- 	cxt->phys_addr = pdata->mem_address;
-+	cxt->memtype = pdata->mem_type;
- 	cxt->record_size = pdata->record_size;
- 	cxt->console_size = pdata->console_size;
- 	cxt->ftrace_size = pdata->ftrace_size;
-@@ -564,6 +572,7 @@ static void ramoops_register_dummy(void)
- 
- 	dummy_data->mem_size = mem_size;
- 	dummy_data->mem_address = mem_address;
-+	dummy_data->mem_type = 0;
- 	dummy_data->record_size = record_size;
- 	dummy_data->console_size = ramoops_console_size;
- 	dummy_data->ftrace_size = ramoops_ftrace_size;
---- a/fs/pstore/ram_core.c
-+++ b/fs/pstore/ram_core.c
-@@ -380,7 +380,8 @@ void persistent_ram_zap(struct persistent_ram_zone *prz)
- 	persistent_ram_update_header_ecc(prz);
- }
- 
--static void *persistent_ram_vmap(phys_addr_t start, size_t size)
-+static void *persistent_ram_vmap(phys_addr_t start, size_t size,
-+		unsigned int memtype)
- {
- 	struct page **pages;
- 	phys_addr_t page_start;
-@@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
- 	page_start = start - offset_in_page(start);
- 	page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
- 
--	prot = pgprot_writecombine(PAGE_KERNEL);
-+	if (memtype)
-+		prot = pgprot_noncached(PAGE_KERNEL);
-+	else
-+		prot = pgprot_writecombine(PAGE_KERNEL);
- 
- 	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
- 	if (!pages) {
-@@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
- 	return vaddr;
- }
- 
--static void *persistent_ram_iomap(phys_addr_t start, size_t size)
-+static void *persistent_ram_iomap(phys_addr_t start, size_t size,
-+		unsigned int memtype)
- {
-+	void *va;
-+
- 	if (!request_mem_region(start, size, "persistent_ram")) {
- 		pr_err("request mem region (0x%llx@0x%llx) failed\n",
- 			(unsigned long long)size, (unsigned long long)start);
-@@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
- 	buffer_start_add = buffer_start_add_locked;
- 	buffer_size_add = buffer_size_add_locked;
- 
--	return ioremap_wc(start, size);
-+	if (memtype)
-+		va = ioremap(start, size);
-+	else
-+		va = ioremap_wc(start, size);
-+
-+	return va;
- }
- 
- static int persistent_ram_buffer_map(phys_addr_t start, phys_addr_t size,
--		struct persistent_ram_zone *prz)
-+		struct persistent_ram_zone *prz, int memtype)
- {
- 	prz->paddr = start;
- 	prz->size = size;
- 
- 	if (pfn_valid(start >> PAGE_SHIFT))
--		prz->vaddr = persistent_ram_vmap(start, size);
-+		prz->vaddr = persistent_ram_vmap(start, size, memtype);
- 	else
--		prz->vaddr = persistent_ram_iomap(start, size);
-+		prz->vaddr = persistent_ram_iomap(start, size, memtype);
- 
- 	if (!prz->vaddr) {
- 		pr_err("%s: Failed to map 0x%llx pages at 0x%llx\n", __func__,
-@@ -500,7 +512,8 @@ void persistent_ram_free(struct persistent_ram_zone *prz)
- }
- 
- struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
--			u32 sig, struct persistent_ram_ecc_info *ecc_info)
-+			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-+			unsigned int memtype)
- {
- 	struct persistent_ram_zone *prz;
- 	int ret = -ENOMEM;
-@@ -511,7 +524,7 @@ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
- 		goto err;
- 	}
- 
--	ret = persistent_ram_buffer_map(start, size, prz);
-+	ret = persistent_ram_buffer_map(start, size, prz, memtype);
- 	if (ret)
- 		goto err;
- 
---- a/include/linux/pstore_ram.h
-+++ b/include/linux/pstore_ram.h
-@@ -53,7 +53,8 @@ struct persistent_ram_zone {
- };
- 
- struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
--			u32 sig, struct persistent_ram_ecc_info *ecc_info);
-+			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-+			unsigned int memtype);
- void persistent_ram_free(struct persistent_ram_zone *prz);
- void persistent_ram_zap(struct persistent_ram_zone *prz);
- 
-@@ -76,6 +77,7 @@ ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
- struct ramoops_platform_data {
- 	unsigned long	mem_size;
- 	unsigned long	mem_address;
-+	unsigned int	mem_type;
- 	unsigned long	record_size;
- 	unsigned long	console_size;
- 	unsigned long	ftrace_size;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
