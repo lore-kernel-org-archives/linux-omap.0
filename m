@@ -1,49 +1,44 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Tue, 16 Sep 2014 11:05:40 +0200
-Message-ID: <20140916090540.GJ28458@ci00147.xsens-tech.local>
-References: <5411967A.6090406@hurleysoftware.com>
- <54119AAA.9080907@linutronix.de>
- <20140911151114.GD28458@ci00147.xsens-tech.local>
- <5411C810.7070906@linutronix.de>
- <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
- <54129F6C.7040508@linutronix.de>
- <20140912094010.GE28458@ci00147.xsens-tech.local>
- <5412C21A.8020203@linutronix.de>
- <20140912102816.GF28458@ci00147.xsens-tech.local>
- <541716DC.9020904@linutronix.de>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v5 01/15] OMAPDSS: hdmi.h: Add HDMI_AUDIO_LAYOUT_6CH enum value
+Date: Tue, 16 Sep 2014 13:04:15 +0300
+Message-ID: <c8325a85e768204fcffbcf748f1f29fda959873f.1410860765.git.jsarha@ti.com>
+References: <cover.1410860765.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <541716DC.9020904@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44817 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753113AbaIPKEm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Sep 2014 06:04:42 -0400
+In-Reply-To: <cover.1410860765.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-On Mon, Sep 15, 2014 at 06:42:04PM +0200, Sebastian Andrzej Siewior wrote:
-> On 09/12/2014 12:28 PM, Frans Klaver wrote:
-> > port config is 115200 8N1. I don't recall doing anything special. I
-> > boot, login, less file and get a lock.
-> 
-> So I booted my mini Debian 7.6 (basic system + openssh) on my beagle
-> bone black which is:
-> 
-> [    0.000000] AM335X ES2.0 (neon )
-> 
-> configured a console, login, invoked "less file". The file was shown, I
-> hit on the space key so less shows me more of the file. No lock-up.
-> I tried booting via NFS and MMC. I tried various files with less.
-> 
-> My dot config is here
-> 	https://breakpoint.cc/config-am335x-bb.txt.xz
-> 
-> If there is nothing specific to the file you do less on I have no idea
-> what else it could if it is not the config.
+The OMAP5 HDMI audio implementation needs HDMI_AUDIO_LAYOUT_6CH in
+hdmi_core_audio_layout enum. I found the correct value from ti-linux
+3.8 tree.
 
-I'll test your config and go through the differences.
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
+---
+ drivers/video/fbdev/omap2/dss/hdmi.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks,
-Frans
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index 262771b..1f01068 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -160,7 +160,8 @@ enum hdmi_audio_blk_strt_end_sig {
+ 
+ enum hdmi_core_audio_layout {
+ 	HDMI_AUDIO_LAYOUT_2CH = 0,
+-	HDMI_AUDIO_LAYOUT_8CH = 1
++	HDMI_AUDIO_LAYOUT_8CH = 1,
++	HDMI_AUDIO_LAYOUT_6CH = 2
+ };
+ 
+ enum hdmi_core_cts_mode {
+-- 
+1.7.9.5
+
