@@ -1,79 +1,255 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/2] mfd: twl4030-power: use 'ti,system-power-controller'
- as alternative way to support system power off
-Date: Tue, 16 Sep 2014 16:05:37 -0700
-Message-ID: <20140916230537.GU25162@lee--X1>
-References: <1409771208-21867-1-git-send-email-nm@ti.com>
- <1409771208-21867-3-git-send-email-nm@ti.com>
- <20140909000126.GU3238@atomide.com>
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: [PATCH v11 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S
+Date: Tue, 16 Sep 2014 16:57:53 -0700
+Message-ID: <1410911877-24903-6-git-send-email-daniel.thompson@linaro.org>
+References: <1410911877-24903-1-git-send-email-daniel.thompson@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:32843 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244AbaIPXFy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 19:05:54 -0400
-Received: by mail-pd0-f171.google.com with SMTP id p10so745782pdj.16
-        for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2014 16:05:54 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20140909000126.GU3238@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1410911877-24903-1-git-send-email-daniel.thompson@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Paul Bolle <pebolle@tiscali.nl>, linaro-kernel@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, patches@linaro.org, Tony Lindgren <tony@atomide.com>, spear-devel@list.st.com, Daniel Thompson <daniel.thompson@linaro.org>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 08 Sep 2014, Tony Lindgren wrote:
+The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
+the 8520 code the omap1 macro automatically determines what UART to use
+based on breadcrumbs left by the bootloader and automatically copes with
+the eccentric register layout on OMAP7XX.
 
-> * Nishanth Menon <nm@ti.com> [140903 12:07]:
-> > ti,system-power-controller is more or less the standard way of
-> > indicating that the PMIC is the system wide power controller and he=
-nce
-> > may be used to switch off the system. Almost ALL TI PMIC drivers an=
-d
-> > many Maxim PMIC drivers follow the same style.
-> >=20
-> > So support 'ti,system-power-controller' in addition to the usual
-> > 'ti,use_poweroff' to indicate that the PMIC instance has control fo=
-r
-> > switching off the system.
-> >=20
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
->=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
+This patch drops both these features and relies instead on the generic
+8250 macros:
 
-I assume you're going to resend this with the document modifications?
-When you do, don't forget to apply Tony's Ack, as it will ensure a
-faster merge.
+1. Dropping support for the bootloader breadcrumbs is identical to the
+   way the migration was handled for OMAP2 (see 808b7e07464d...).
 
-> > ---
-> >  drivers/mfd/twl4030-power.c |    3 +++
-> >  1 file changed, 3 insertions(+)
-> >=20
-> > diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-powe=
-r.c
-> > index 3bc969a..1c129ba 100644
-> > --- a/drivers/mfd/twl4030-power.c
-> > +++ b/drivers/mfd/twl4030-power.c
-> > @@ -627,6 +627,9 @@ static bool twl4030_power_use_poweroff(const st=
-ruct twl4030_power_data *pdata,
-> >  	if (pdata && pdata->use_poweroff)
-> >  		return true;
-> > =20
-> > +	if (of_property_read_bool(node, "ti,system-power-controller"))
-> > +		return true;
-> > +
-> >  	if (of_property_read_bool(node, "ti,use_poweroff"))
-> >  		return true;
-> > =20
+2. Support for OMAP7XX still exists but it must be configured by hand
+   (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ arch/arm/Kconfig.debug                         |  57 +++++++++++++-
+ arch/arm/mach-omap1/include/mach/debug-macro.S | 101 -------------------------
+ 2 files changed, 56 insertions(+), 102 deletions(-)
+ delete mode 100644 arch/arm/mach-omap1/include/mach/debug-macro.S
+
+diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+index 97c3058..6540036 100644
+--- a/arch/arm/Kconfig.debug
++++ b/arch/arm/Kconfig.debug
+@@ -471,6 +471,30 @@ choice
+ 		  Say Y here if you want kernel low-level debugging support
+ 		  on TI-NSPIRE CX models.
+ 
++	config DEBUG_OMAP1UART1
++		bool "Kernel low-level debugging via OMAP1 UART1"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (except OMAP730) on the UART1.
++
++	config DEBUG_OMAP1UART2
++		bool "Kernel low-level debugging via OMAP1 UART2"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (except OMAP730) on the UART2.
++
++	config DEBUG_OMAP1UART3
++		bool "Kernel low-level debugging via OMAP1 UART3"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (except OMAP730) on the UART3.
++
+ 	config DEBUG_OMAP2UART1
+ 		bool "OMAP2/3/4 UART1 (omap2/3 sdp boards and some omap3 boards)"
+ 		depends on ARCH_OMAP2PLUS
+@@ -513,6 +537,30 @@ choice
+ 		depends on ARCH_OMAP2PLUS
+ 		select DEBUG_OMAP2PLUS_UART
+ 
++	config DEBUG_OMAP7XXUART1
++		bool "Kernel low-level debugging via OMAP730 UART1"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART1.
++
++	config DEBUG_OMAP7XXUART2
++		bool "Kernel low-level debugging via OMAP730 UART2"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART2.
++
++	config DEBUG_OMAP7XXUART3
++		bool "Kernel low-level debugging via OMAP730 UART3"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART3.
++
+ 	config DEBUG_TI81XXUART1
+ 		bool "Kernel low-level debugging messages via TI81XX UART1 (ti8148evm)"
+ 		depends on ARCH_OMAP2PLUS
+@@ -1120,6 +1168,9 @@ config DEBUG_UART_PHYS
+ 	default 0xff690000 if DEBUG_RK32_UART2
+ 	default 0xffc02000 if DEBUG_SOCFPGA_UART
+ 	default 0xffd82340 if ARCH_IOP13XX
++	default 0xfffb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
++	default 0xfffb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
++	default 0xfffb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
+ 	default 0xfff36000 if DEBUG_HIGHBANK_UART
+ 	default 0xfffff700 if ARCH_IOP33X
+ 	depends on DEBUG_LL_UART_8250 || DEBUG_LL_UART_PL01X || \
+@@ -1188,6 +1239,9 @@ config DEBUG_UART_VIRT
+ 	default 0xfef00000 if ARCH_IXP4XX && !CPU_BIG_ENDIAN
+ 	default 0xfef00003 if ARCH_IXP4XX && CPU_BIG_ENDIAN
+ 	default 0xfef36000 if DEBUG_HIGHBANK_UART
++	default 0xfefb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
++	default 0xfefb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
++	default 0xfefb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
+ 	default 0xfefff700 if ARCH_IOP33X
+ 	default 0xff003000 if DEBUG_U300_UART
+ 	default DEBUG_UART_PHYS if !MMU
+@@ -1198,7 +1252,8 @@ config DEBUG_UART_VIRT
+ config DEBUG_UART_8250_SHIFT
+ 	int "Register offset shift for the 8250 debug UART"
+ 	depends on DEBUG_LL_UART_8250 || DEBUG_UART_8250
+-	default 0 if FOOTBRIDGE || ARCH_IOP32X
++	default 0 if FOOTBRIDGE || ARCH_IOP32X || \
++		DEBUG_OMAP7XXUART1 || DEBUG_OMAP7XXUART2 || DEBUG_OMAP7XXUART3
+ 	default 2
+ 
+ config DEBUG_UART_8250_WORD
+diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
+deleted file mode 100644
+index 5c1a26c..0000000
+--- a/arch/arm/mach-omap1/include/mach/debug-macro.S
++++ /dev/null
+@@ -1,101 +0,0 @@
+-/* arch/arm/mach-omap1/include/mach/debug-macro.S
+- *
+- * Debugging macro include header
+- *
+- *  Copyright (C) 1994-1999 Russell King
+- *  Moved from linux/arch/arm/kernel/debug.S by Ben Dooks
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+-*/
+-
+-#include <linux/serial_reg.h>
+-
+-#include "serial.h"
+-
+-		.pushsection .data
+-omap_uart_phys:	.word	0x0
+-omap_uart_virt:	.word	0x0
+-		.popsection
+-
+-		/*
+-		 * Note that this code won't work if the bootloader passes
+-		 * a wrong machine ID number in r1. To debug, just hardcode
+-		 * the desired UART phys and virt addresses temporarily into
+-		 * the omap_uart_phys and omap_uart_virt above.
+-		 */
+-		.macro	addruart, rp, rv, tmp
+-
+-		/* Use omap_uart_phys/virt if already configured */
+-9:		adr	\rp, 99f		@ get effective addr of 99f
+-		ldr	\rv, [\rp]		@ get absolute addr of 99f
+-		sub	\rv, \rv, \rp		@ offset between the two
+-		ldr	\rp, [\rp, #4]		@ abs addr of omap_uart_phys
+-		sub	\tmp, \rp, \rv		@ make it effective
+-		ldr	\rp, [\tmp, #0]		@ omap_uart_phys
+-		ldr	\rv, [\tmp, #4]		@ omap_uart_virt
+-		cmp	\rp, #0			@ is port configured?
+-		cmpne	\rv, #0
+-		bne	100f			@ already configured
+-
+-		/* Check the debug UART configuration set in uncompress.h */
+-		and	\rp, pc, #0xff000000
+-		ldr	\rv, =OMAP_UART_INFO_OFS
+-		ldr	\rp, [\rp, \rv]
+-
+-		/* Select the UART to use based on the UART1 scratchpad value */
+-10:		cmp	\rp, #0			@ no port configured?
+-		beq	11f			@ if none, try to use UART1
+-		cmp	\rp, #OMAP1UART1
+-		beq	11f			@ configure OMAP1UART1
+-		cmp	\rp, #OMAP1UART2
+-		beq	12f			@ configure OMAP1UART2
+-		cmp	\rp, #OMAP1UART3
+-		beq	13f			@ configure OMAP2UART3
+-
+-		/* Configure the UART offset from the phys/virt base */
+-11:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		b	98f
+-12:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
+-		b	98f
+-13:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
+-		orr	\rp, \rp, #0x00009000	@ OMAP1UART3
+-
+-		/* Store both phys and virt address for the uart */
+-98:		add	\rp, \rp, #0xff000000	@ phys base
+-		str	\rp, [\tmp, #0]		@ omap_uart_phys
+-		sub	\rp, \rp, #0xff000000	@ phys base
+-		add	\rp, \rp, #0xfe000000	@ virt base
+-		str	\rp, [\tmp, #4]		@ omap_uart_virt
+-		b	9b
+-
+-		.align
+-99:		.word	.
+-		.word	omap_uart_phys
+-		.ltorg
+-
+-100:
+-		.endm
+-
+-		.macro	senduart,rd,rx
+-		strb	\rd, [\rx]
+-		.endm
+-
+-		.macro	busyuart,rd,rx
+-1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
+-		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		beq	1002f
+-		ldrb	\rd, [\rx, #(UART_LSR << OMAP7XX_PORT_SHIFT)]
+-		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		bne	1001b
+-1002:
+-		.endm
+-
+-		.macro	waituart,rd,rx
+-		.endm
+-- 
+1.9.3
