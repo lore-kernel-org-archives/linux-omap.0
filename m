@@ -1,123 +1,244 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/16 v9] omap 8250 based uart + DMA
-Date: Tue, 16 Sep 2014 14:30:43 -0700
-Message-ID: <20140916213043.GB6672@atomide.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
- <20140912224324.GK18849@atomide.com>
- <5416D2A0.5020407@linutronix.de>
- <541833C0.5020106@linutronix.de>
- <20140916164858.GA1580@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140916164858.GA1580@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: [PATCH v10 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S
+Date: Tue, 16 Sep 2014 23:46:24 +0100
+Message-ID: <1410907588-19957-6-git-send-email-daniel.thompson@linaro.org>
+References: <1410907588-19957-1-git-send-email-daniel.thompson@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1410907588-19957-1-git-send-email-daniel.thompson@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, patches@linaro.org, linaro-kernel@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [140916 09:49]:
-> * Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140916 05:58]:
-> > On 09/15/2014 01:50 PM, Sebastian Andrzej Siewior wrote:
-> > > I changed the restore function the fix the am335x-evm + less "fre=
-eze".
-> > > And now we have this. So let me search=E2=80=A6
-> >=20
-> > IER was 0 by accident. It fixed in TX path.
-> > I pushed uart_v10_pre1 which should have it fixed aport from other
-> > things=E2=80=A6
->=20
-> Just verified that works for my off-idle test case thanks.
->=20
-> > I am going to address the review comments, to split the DMA callbac=
-ks
-> > as requested and if nobody comes up with something fancy we will ha=
-ve a
-> > v10 :)
->=20
-> OK
+The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
+the 8520 code the omap1 macro automatically determines what UART to use
+based on breadcrumbs left by the bootloader and automatically copes with
+the eccentric register layout on OMAP7XX.
 
-=46ound one more issue when booting on 2420 n8x0, maybe something to do
-with runtime PM?
+This patch drops both these features and relies instead on the generic
+8250 macros:
 
-Regards,
+1. Dropping support for the bootloader breadcrumbs is identical to the
+   way the migration was handled for OMAP2 (see 808b7e07464d...).
 
-Tony
+2. Support for OMAP7XX still exists but it must be configured by hand
+   (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
 
-[    4.770507] Internal error: Oops - undefined instruction: 0 [#1] SMP=
- ARM
-[    4.777343] Modules linked in:
-[    4.780487] CPU: 0 PID: 1 Comm: init Not tainted 3.17.0-rc5-00211-gc=
-2182d0-dirty #1408
-[    4.788482] task: c5842b80 ti: c5850000 task.ti: c5850000
-[    4.793945] PC is at serial8250_start_tx+0x124/0x154
-[    4.798980] LR is at uart_start+0x4c/0x5c
-[    4.803039] pc : [<c03d7340>]    lr : [<c03d1ee4>]    psr: a0000093
-[    4.803039] sp : c5851e10  ip : c5851e28  fp : c5851e24
-[    4.814605] r10: 00000007  r9 : 00000000  r8 : c134d554
-[    4.819885] r7 : c5cb7800  r6 : 20000013  r5 : c134d554  r4 : c134d5=
-54
-[    4.826477] r3 : c134d690  r2 : 00000000  r1 : 00000001  r0 : c134d5=
-54
-[    4.833068] Flags: NzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Se=
-gment user
-[    4.840332] Control: 00c5387d  Table: 85cd8000  DAC: 00000015
-[    4.846130] Process init (pid: 1, stack limit =3D 0xc5850248)
-[    4.851776] Stack: (0xc5851e10 to 0xc5852000)
-[    4.856201] 1e00:                                     c5cb7800 c134d=
-554 c5851e44 c5851e28
-[    4.864440] 1e20: c03d1ee4 c03d7228 c5842b80 00000000 c5b00408 c5cf3=
-c07 c5851e7c c5851e48
-[    4.872711] 1e40: c03d2da0 c03d1ea4 c5851e6c a0000013 c03d1fe0 c5cb7=
-800 00000007 0000224c
-[    4.880981] 1e60: c88cc2a0 00002250 c5cf3c00 c88ca000 c5851edc c5851=
-e80 c03b9474 c03d2cd4
-[    4.889251] 1e80: c5851e9c c5cb7ab4 c5cf3c00 c5cb793c c5a5ae00 c5850=
-000 c0158e1c 00000000
-[    4.897491] 1ea0: c5842b80 c007152c c5cb7ad4 c5cb7ad4 c5cb7800 0000e=
-0cc 00000007 c5cb7800
-[    4.905761] 1ec0: 00000000 c5850000 00000400 c5a5ae00 c5851f1c c5851=
-ee0 c03b61c0 c03b92d0
-[    4.914031] 1ee0: 00000007 00000007 c5cb18c0 c03b92c4 c0b19f20 00000=
-000 00000007 0000e0cc
-[    4.922271] 1f00: c5851f78 c5a5ae00 c5850000 0000e0cc c5851f44 c5851=
-f20 c03b63c4 c03b60c0
-[    4.930541] 1f20: c5851f78 c5a5ae00 00000007 0000e0cc c5851f78 00000=
-007 c5851f74 c5851f48
-[    4.938812] 1f40: c0168f38 c03b632c c0185718 c0185688 00000000 00000=
-000 c5a5ae00 c5a5ae00
-[    4.947052] 1f60: 00000007 0000e0cc c5851fa4 c5851f78 c0169380 c0168=
-e90 00000000 00000000
-[    4.955322] 1f80: 00000000 0000e0cc 00000001 00000004 c000f164 00000=
-000 00000000 c5851fa8
-[    4.963592] 1fa0: c000eee0 c0169340 00000000 0000e0cc 00000000 0000e=
-0cc 00000007 00000000
-[    4.971862] 1fc0: 00000000 0000e0cc 00000001 00000004 0000a24c 00017=
-504 10000000 00000000
-[    4.980102] 1fe0: bef5aa40 bef5aa30 0000a474 b6e801ec 60000010 00000=
-000 ffffffff ffffffff
-[    4.988372] [<c03d7340>] (serial8250_start_tx) from [<c03d1ee4>] (ua=
-rt_start+0x4c/0x5c)
-[    4.996490] [<c03d1ee4>] (uart_start) from [<c03d2da0>] (uart_write+=
-0xd8/0x100)
-[    5.003875] [<c03d2da0>] (uart_write) from [<c03b9474>] (n_tty_write=
-+0x1b0/0x510)
-[    5.011474] [<c03b9474>] (n_tty_write) from [<c03b61c0>] (tty_write+=
-0x10c/0x26c)
-[    5.018951] [<c03b61c0>] (tty_write) from [<c03b63c4>] (redirected_t=
-ty_write+0xa4/0xb8)
-[    5.027038] [<c03b63c4>] (redirected_tty_write) from [<c0168f38>] (v=
-fs_write+0xb4/0x1bc)
-[    5.035217] [<c0168f38>] (vfs_write) from [<c0169380>] (SyS_write+0x=
-4c/0x98)
-[    5.042358] [<c0169380>] (SyS_write) from [<c000eee0>] (ret_fast_sys=
-call+0x0/0x48)
-[    5.050018] Code: e3a02000 ee072fba e3a01001 f5d3f000 (e1d30f9f)=20
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ arch/arm/Kconfig.debug                         |  57 +++++++++++++-
+ arch/arm/mach-omap1/include/mach/debug-macro.S | 101 -------------------------
+ 2 files changed, 56 insertions(+), 102 deletions(-)
+ delete mode 100644 arch/arm/mach-omap1/include/mach/debug-macro.S
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
+index 97c3058..01f4ee2 100644
+--- a/arch/arm/Kconfig.debug
++++ b/arch/arm/Kconfig.debug
+@@ -471,6 +471,30 @@ choice
+ 		  Say Y here if you want kernel low-level debugging support
+ 		  on TI-NSPIRE CX models.
+ 
++	config DEBUG_OMAP1UART1
++		bool "Kernel low-level debugging via OMAP1 UART1"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (expect OMAP730) on the UART1.
++
++	config DEBUG_OMAP1UART2
++		bool "Kernel low-level debugging via OMAP1 UART2"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (expect OMAP730) on the UART2.
++
++	config DEBUG_OMAP1UART3
++		bool "Kernel low-level debugging via OMAP1 UART3"
++		depends on ARCH_OMAP1
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP1 based platforms (expect OMAP730) on the UART3.
++
+ 	config DEBUG_OMAP2UART1
+ 		bool "OMAP2/3/4 UART1 (omap2/3 sdp boards and some omap3 boards)"
+ 		depends on ARCH_OMAP2PLUS
+@@ -513,6 +537,30 @@ choice
+ 		depends on ARCH_OMAP2PLUS
+ 		select DEBUG_OMAP2PLUS_UART
+ 
++	config DEBUG_OMAP7XXUART1
++		bool "Kernel low-level debugging via OMAP730 UART1"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART1.
++
++	config DEBUG_OMAP7XXUART2
++		bool "Kernel low-level debugging via OMAP730 UART2"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART2.
++
++	config DEBUG_OMAP7XXUART3
++		bool "Kernel low-level debugging via OMAP730 UART3"
++		depends on ARCH_OMAP730
++		select DEBUG_UART_8250
++		help
++		  Say Y here if you want kernel low-level debugging support
++		  on OMAP730 based platforms on the UART3.
++
+ 	config DEBUG_TI81XXUART1
+ 		bool "Kernel low-level debugging messages via TI81XX UART1 (ti8148evm)"
+ 		depends on ARCH_OMAP2PLUS
+@@ -1120,6 +1168,9 @@ config DEBUG_UART_PHYS
+ 	default 0xff690000 if DEBUG_RK32_UART2
+ 	default 0xffc02000 if DEBUG_SOCFPGA_UART
+ 	default 0xffd82340 if ARCH_IOP13XX
++	default 0xfffb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
++	default 0xfffb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
++	default 0xfffb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
+ 	default 0xfff36000 if DEBUG_HIGHBANK_UART
+ 	default 0xfffff700 if ARCH_IOP33X
+ 	depends on DEBUG_LL_UART_8250 || DEBUG_LL_UART_PL01X || \
+@@ -1188,6 +1239,9 @@ config DEBUG_UART_VIRT
+ 	default 0xfef00000 if ARCH_IXP4XX && !CPU_BIG_ENDIAN
+ 	default 0xfef00003 if ARCH_IXP4XX && CPU_BIG_ENDIAN
+ 	default 0xfef36000 if DEBUG_HIGHBANK_UART
++	default 0xfefb0000 if DEBUG_OMAP1UART1 || DEBUG_OMAP7XXUART1
++	default 0xfefb0800 if DEBUG_OMAP1UART2 || DEBUG_OMAP7XXUART2
++	default 0xfefb9800 if DEBUG_OMAP1UART3 || DEBUG_OMAP7XXUART3
+ 	default 0xfefff700 if ARCH_IOP33X
+ 	default 0xff003000 if DEBUG_U300_UART
+ 	default DEBUG_UART_PHYS if !MMU
+@@ -1198,7 +1252,8 @@ config DEBUG_UART_VIRT
+ config DEBUG_UART_8250_SHIFT
+ 	int "Register offset shift for the 8250 debug UART"
+ 	depends on DEBUG_LL_UART_8250 || DEBUG_UART_8250
+-	default 0 if FOOTBRIDGE || ARCH_IOP32X
++	default 0 if FOOTBRIDGE || ARCH_IOP32X || \
++		DEBUG_OMAP7XXUART1 || DEBUG_OMAP7XXUART2 || DEBUG_OMAP7XXUART3
+ 	default 2
+ 
+ config DEBUG_UART_8250_WORD
+diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
+deleted file mode 100644
+index 5c1a26c..0000000
+--- a/arch/arm/mach-omap1/include/mach/debug-macro.S
++++ /dev/null
+@@ -1,101 +0,0 @@
+-/* arch/arm/mach-omap1/include/mach/debug-macro.S
+- *
+- * Debugging macro include header
+- *
+- *  Copyright (C) 1994-1999 Russell King
+- *  Moved from linux/arch/arm/kernel/debug.S by Ben Dooks
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+-*/
+-
+-#include <linux/serial_reg.h>
+-
+-#include "serial.h"
+-
+-		.pushsection .data
+-omap_uart_phys:	.word	0x0
+-omap_uart_virt:	.word	0x0
+-		.popsection
+-
+-		/*
+-		 * Note that this code won't work if the bootloader passes
+-		 * a wrong machine ID number in r1. To debug, just hardcode
+-		 * the desired UART phys and virt addresses temporarily into
+-		 * the omap_uart_phys and omap_uart_virt above.
+-		 */
+-		.macro	addruart, rp, rv, tmp
+-
+-		/* Use omap_uart_phys/virt if already configured */
+-9:		adr	\rp, 99f		@ get effective addr of 99f
+-		ldr	\rv, [\rp]		@ get absolute addr of 99f
+-		sub	\rv, \rv, \rp		@ offset between the two
+-		ldr	\rp, [\rp, #4]		@ abs addr of omap_uart_phys
+-		sub	\tmp, \rp, \rv		@ make it effective
+-		ldr	\rp, [\tmp, #0]		@ omap_uart_phys
+-		ldr	\rv, [\tmp, #4]		@ omap_uart_virt
+-		cmp	\rp, #0			@ is port configured?
+-		cmpne	\rv, #0
+-		bne	100f			@ already configured
+-
+-		/* Check the debug UART configuration set in uncompress.h */
+-		and	\rp, pc, #0xff000000
+-		ldr	\rv, =OMAP_UART_INFO_OFS
+-		ldr	\rp, [\rp, \rv]
+-
+-		/* Select the UART to use based on the UART1 scratchpad value */
+-10:		cmp	\rp, #0			@ no port configured?
+-		beq	11f			@ if none, try to use UART1
+-		cmp	\rp, #OMAP1UART1
+-		beq	11f			@ configure OMAP1UART1
+-		cmp	\rp, #OMAP1UART2
+-		beq	12f			@ configure OMAP1UART2
+-		cmp	\rp, #OMAP1UART3
+-		beq	13f			@ configure OMAP2UART3
+-
+-		/* Configure the UART offset from the phys/virt base */
+-11:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		b	98f
+-12:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
+-		b	98f
+-13:		mov	\rp, #0x00fb0000	@ OMAP1UART1
+-		orr	\rp, \rp, #0x00000800	@ OMAP1UART2
+-		orr	\rp, \rp, #0x00009000	@ OMAP1UART3
+-
+-		/* Store both phys and virt address for the uart */
+-98:		add	\rp, \rp, #0xff000000	@ phys base
+-		str	\rp, [\tmp, #0]		@ omap_uart_phys
+-		sub	\rp, \rp, #0xff000000	@ phys base
+-		add	\rp, \rp, #0xfe000000	@ virt base
+-		str	\rp, [\tmp, #4]		@ omap_uart_virt
+-		b	9b
+-
+-		.align
+-99:		.word	.
+-		.word	omap_uart_phys
+-		.ltorg
+-
+-100:
+-		.endm
+-
+-		.macro	senduart,rd,rx
+-		strb	\rd, [\rx]
+-		.endm
+-
+-		.macro	busyuart,rd,rx
+-1001:		ldrb	\rd, [\rx, #(UART_LSR << OMAP_PORT_SHIFT)]
+-		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		beq	1002f
+-		ldrb	\rd, [\rx, #(UART_LSR << OMAP7XX_PORT_SHIFT)]
+-		and	\rd, \rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		teq	\rd, #(UART_LSR_TEMT | UART_LSR_THRE)
+-		bne	1001b
+-1002:
+-		.endm
+-
+-		.macro	waituart,rd,rx
+-		.endm
+-- 
+1.9.3
