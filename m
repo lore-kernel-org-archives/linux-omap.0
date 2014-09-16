@@ -1,73 +1,103 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3 2/5] drm/tilcdc: Add I2S HDMI audio config for tda998x
-Date: Tue, 16 Sep 2014 23:40:15 +0300
-Message-ID: <5580c70666076104fbc7ece7ddd0f035d0c9d5a3.1410898073.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 5/5] ARM: dts: am335x-boneblack: Add HDMI audio support
+Date: Tue, 16 Sep 2014 23:40:18 +0300
+Message-ID: <1af922a485e8084aff33eaeafa30d4698d1cc886.1410898073.git.jsarha@ti.com>
 References: <cover.1410898073.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49292 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754875AbaIPUkc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Sep 2014 16:40:32 -0400
-In-Reply-To: <cover.1410898073.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1410898073.git.jsarha-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com, Jyri Sarha <jsarha@ti.com>
 
-The configuration is needed for HDMI audio. The "swap" and "mirr"
-parameters have to be correctly set in the configuration in order to
-have proper colors in the HDMI picture.
+Adds mcasp0_pins, clk_mcasp0_fixed, clk_mcasp0, mcasp0, hdmi_audio,
+and sound nodes.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
 ---
- drivers/gpu/drm/tilcdc/tilcdc_slave.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am335x-boneblack.dts |   52 ++++++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-diff --git a/drivers/gpu/drm/tilcdc/tilcdc_slave.c b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-index 3775fd4..5dd8d78 100644
---- a/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-+++ b/drivers/gpu/drm/tilcdc/tilcdc_slave.c
-@@ -19,6 +19,7 @@
- #include <linux/pinctrl/pinmux.h>
- #include <linux/pinctrl/consumer.h>
- #include <drm/drm_encoder_slave.h>
-+#include <drm/i2c/tda998x.h>
- 
- #include "tilcdc_drv.h"
- 
-@@ -111,8 +112,29 @@ static const struct drm_encoder_helper_funcs slave_encoder_helper_funcs = {
- 		.restore        = drm_i2c_encoder_restore,
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 305975d..1487f7c 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -59,12 +59,35 @@
+ 			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
+ 		>;
+ 	};
++
++	mcasp0_pins: mcasp0_pins {
++		pinctrl-single,pins = <
++			0x1ac (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_ahclkx.mcasp0_ahclkx */
++			0x19c (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2 */
++			0x194 (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* mcasp0_fsx.mcasp0_fsx */
++			0x190 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mcasp0_aclkx.mcasp0_aclkx */
++			0x06c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a11.GPIO1_27 */
++		>;
++	};
  };
  
-+static struct tda998x_encoder_params tda998x_pdata = {
-+	.swap_b = 0x3,
-+	.mirr_b = 0x0,
-+	.swap_a = 0x2,
-+	.mirr_a = 0x0,
-+	.swap_d = 0x1,
-+	.mirr_d = 0x0,
-+	.swap_c = 0x0,
-+	.mirr_c = 0x0,
-+	.swap_f = 0x5,
-+	.mirr_f = 0x0,
-+	.swap_e = 0x4,
-+	.mirr_e = 0x0,
-+	.audio_cfg = 0x3,	/* I2S mode */
-+	.audio_clk_cfg = 1,	/* select clock pin */
-+	.audio_frame[1] = 1,	/* channels - 1 */
-+	.audio_format = AFMT_I2S,
-+	.audio_sample_rate = 48000,
+ &lcdc {
+ 	status = "okay";
+ };
+ 
++&mcasp0	{
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcasp0_pins>;
++	status = "okay";
++	op-mode = <0>;	/* MCASP_IIS_MODE */
++	tdm-slots = <2>;
++	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
++			0 0 1 0
++		>;
++	tx-num-evt = <1>;
++	rx-num-evt = <1>;
 +};
 +
- static const struct i2c_board_info info = {
--		I2C_BOARD_INFO("tda998x", 0x70)
-+		I2C_BOARD_INFO("tda998x", 0x70),
-+		.platform_data = &tda998x_pdata,
+ / {
+ 	hdmi {
+ 		compatible = "ti,tilcdc,slave";
+@@ -74,4 +97,33 @@
+ 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
+ 		status = "okay";
+ 	};
++
++	clk_mcasp0_fixed: clk_mcasp0_fixed {
++	      #clock-cells = <0>;
++	      compatible = "fixed-clock";
++	      clock-frequency = <24576000>;
++	};
++
++	clk_mcasp0: clk_mcasp0 {
++	      #clock-cells = <0>;
++	      compatible = "ti,gpio-gate-clock";
++	      clocks = <&clk_mcasp0_fixed>;
++	      enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
++	};
++
++	hdmi_audio: hdmi_audio@0 {
++	       compatible = "linux,hdmi-audio";
++	       status = "okay";
++	};
++
++	sound {
++		compatible = "ti,beaglebone-black-audio";
++		ti,model = "TI BeagleBone Black";
++		ti,audio-codec = <&hdmi_audio>;
++		ti,mcasp-controller = <&mcasp0>;
++		ti,audio-routing =
++			"HDMI Out",	"TX";
++		clocks = <&clk_mcasp0>;
++		clock-names = "mclk";
++	};
  };
- 
- static struct drm_encoder *slave_encoder_create(struct drm_device *dev,
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
