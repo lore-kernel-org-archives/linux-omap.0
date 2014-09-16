@@ -1,103 +1,53 @@
-From: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 5/5] ARM: dts: am335x-boneblack: Add HDMI audio support
-Date: Tue, 16 Sep 2014 23:40:18 +0300
-Message-ID: <1af922a485e8084aff33eaeafa30d4698d1cc886.1410898073.git.jsarha@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH v3 4/5] ASoC: davinci: HDMI audio build for AM33XX and TDA998x
+Date: Tue, 16 Sep 2014 23:40:17 +0300
+Message-ID: <270f1e048d9a5a17a7f367ecabc509475b8c1145.1410898073.git.jsarha@ti.com>
 References: <cover.1410898073.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1410898073.git.jsarha-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, liam.r.girdwood-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, peter.ujfalusi-l0cyMroinI0@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49302 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754929AbaIPUke (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Sep 2014 16:40:34 -0400
+In-Reply-To: <cover.1410898073.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
+Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Adds mcasp0_pins, clk_mcasp0_fixed, clk_mcasp0, mcasp0, hdmi_audio,
-and sound nodes.
+Adds configuration option for HDMI audio support for AM33XX based
+boards with NXP TDA998x HDMI transmitter. The audio is connected to
+NXP TDA998x trough McASP running in i2s mode.
 
-Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- arch/arm/boot/dts/am335x-boneblack.dts |   52 ++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ sound/soc/davinci/Kconfig |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 305975d..1487f7c 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -59,12 +59,35 @@
- 			0x1b0 0x03      /* xdma_event_intr0, OMAP_MUX_MODE3 | AM33XX_PIN_OUTPUT */
- 		>;
- 	};
-+
-+	mcasp0_pins: mcasp0_pins {
-+		pinctrl-single,pins = <
-+			0x1ac (PIN_INPUT_PULLUP | MUX_MODE0)	/* mcasp0_ahclkx.mcasp0_ahclkx */
-+			0x19c (PIN_OUTPUT_PULLDOWN | MUX_MODE2) /* mcasp0_ahclkr.mcasp0_axr2 */
-+			0x194 (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* mcasp0_fsx.mcasp0_fsx */
-+			0x190 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* mcasp0_aclkx.mcasp0_aclkx */
-+			0x06c (PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a11.GPIO1_27 */
-+		>;
-+	};
- };
+diff --git a/sound/soc/davinci/Kconfig b/sound/soc/davinci/Kconfig
+index d69510c..0c8f143 100644
+--- a/sound/soc/davinci/Kconfig
++++ b/sound/soc/davinci/Kconfig
+@@ -43,6 +43,18 @@ config SND_AM33XX_SOC_EVM
+ 	  AM335X-EVMSK, and BeagelBone with AudioCape boards have this
+ 	  setup.
  
- &lcdc {
- 	status = "okay";
- };
- 
-+&mcasp0	{
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcasp0_pins>;
-+	status = "okay";
-+	op-mode = <0>;	/* MCASP_IIS_MODE */
-+	tdm-slots = <2>;
-+	serial-dir = <	/* 0: INACTIVE, 1: TX, 2: RX */
-+			0 0 1 0
-+		>;
-+	tx-num-evt = <1>;
-+	rx-num-evt = <1>;
-+};
++config SND_AM335X_SOC_NXPTDA_EVM
++	tristate "HDMI Audio for the AM33XX chip based boards with TDA998x"
++	depends on SND_EDMA_SOC && SOC_AM33XX && DRM_I2C_NXP_TDA998X
++	select SND_SOC_HDMI_CODEC
++	select SND_DAVINCI_SOC_MCASP
++	select SND_DAVINCI_SOC_GENERIC_EVM
++	help
++	  Say Y or M if you want to add support for HDMI SoC audio on
++	  AM33XX boards with NXP TDA998x HDMI transmitter. For example
++	  BeagleBoneBack. The audio is connected to NXP TDA998x trough
++	  McASP running in i2s mode.
 +
- / {
- 	hdmi {
- 		compatible = "ti,tilcdc,slave";
-@@ -74,4 +97,33 @@
- 		pinctrl-1 = <&nxp_hdmi_bonelt_off_pins>;
- 		status = "okay";
- 	};
-+
-+	clk_mcasp0_fixed: clk_mcasp0_fixed {
-+	      #clock-cells = <0>;
-+	      compatible = "fixed-clock";
-+	      clock-frequency = <24576000>;
-+	};
-+
-+	clk_mcasp0: clk_mcasp0 {
-+	      #clock-cells = <0>;
-+	      compatible = "ti,gpio-gate-clock";
-+	      clocks = <&clk_mcasp0_fixed>;
-+	      enable-gpios = <&gpio1 27 0>; /* BeagleBone Black Clk enable on GPIO1_27 */
-+	};
-+
-+	hdmi_audio: hdmi_audio@0 {
-+	       compatible = "linux,hdmi-audio";
-+	       status = "okay";
-+	};
-+
-+	sound {
-+		compatible = "ti,beaglebone-black-audio";
-+		ti,model = "TI BeagleBone Black";
-+		ti,audio-codec = <&hdmi_audio>;
-+		ti,mcasp-controller = <&mcasp0>;
-+		ti,audio-routing =
-+			"HDMI Out",	"TX";
-+		clocks = <&clk_mcasp0>;
-+		clock-names = "mclk";
-+	};
- };
+ config SND_DAVINCI_SOC_EVM
+ 	tristate "SoC Audio support for DaVinci DM6446, DM355 or DM365 EVM"
+ 	depends on SND_DAVINCI_SOC && I2C
 -- 
 1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
