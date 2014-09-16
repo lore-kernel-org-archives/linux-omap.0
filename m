@@ -1,35 +1,55 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 3/3] nand: omap2: Replace pr_err with dev_err
-Date: Tue, 16 Sep 2014 11:48:13 +0300
-Message-ID: <5417F94D.40902@ti.com>
-References: <1410447730-16087-1-git-send-email-ezequiel@vanguardiasur.com.ar> <1410447730-16087-4-git-send-email-ezequiel@vanguardiasur.com.ar>
+From: Frans Klaver <frans.klaver@xsens.com>
+Subject: Re: [PATCH 3/4] tty: omap-serial: use threaded interrupt handler
+Date: Tue, 16 Sep 2014 10:50:37 +0200
+Message-ID: <20140916085037.GI28458@ci00147.xsens-tech.local>
+References: <1410789610-23059-1-git-send-email-frans.klaver@xsens.com>
+ <1410789610-23059-4-git-send-email-frans.klaver@xsens.com>
+ <54170823.7040801@hurleysoftware.com>
+ <5417228C.5070503@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50571 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752770AbaIPIsz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Sep 2014 04:48:55 -0400
-In-Reply-To: <1410447730-16087-4-git-send-email-ezequiel@vanguardiasur.com.ar>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5417228C.5070503@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, Brian Norris <computersforpeace@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-On 09/11/2014 06:02 PM, Ezequiel Garcia wrote:
-> Usage of pr_err is frowned upon, so replace it with dev_err.
-> Aditionally, the message on nand_bch_init() error is redundant,
-> since proper error is showed if the function fails.
-
-You could have omitted the details about nand_bch_init() in the commit
-message.
-
+On Mon, Sep 15, 2014 at 01:31:56PM -0400, Peter Hurley wrote:
+> On 09/15/2014 11:39 AM, Peter Hurley wrote:
+> > On 09/15/2014 10:00 AM, Frans Klaver wrote:
+> >> At 3.6Mbaud, with slightly over 2Mbit/s data coming in, we see 1600 uart
+> >> rx buffer overflows within 30 seconds. Threading the interrupt handling reduces
+> >> this to about 170 overflows in 10 minutes.
+> > 
+> > Why is the threadirqs kernel boot option not sufficient?
+> > Or conversely, shouldn't this be selectable?
 > 
-> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-Acked-by: Roger Quadros <rogerq@ti.com>
+I wasn't aware of the threadirqs boot option. I also wouldn't know if
+this should be selectable. What would be a reason to favor the
+non-threaded irq over the threaded irq?
 
-cheers,
--roger
+> Also, do you see the same performance differential when you implement this
+> in the 8250 driver (that is, on top of Sebastian's omap->8250 conversion)?
+> 
 
+I haven't gotten Sebastian's driver to work properly yet on the console.
+There was no reason for me yet to throw my omap changes on top of
+Sebastian's queue.
+
+> > PS - To overflow the 64 byte RX FIFO at those data rates means interrupt
+> > latency in excess of 250us?
+
+At 3686400 baud it should take about 174 us to fill a 64 byte buffer. I
+haven't done any measurements on the interrupt latency though. If you
+consider that we're sending about 1kB of data, 240 times a second, we're
+spending a lot of time reading data from the uart. I can imagine the
+system has other work to do as well.
+
+This doesn't mean that we're not interested in Sebastian's driver
+anymore though. We really want that dma support.
+
+Thanks,
+Frans
