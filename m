@@ -1,92 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/12] ARM: omap2plus_defconfig: Enable some display features
-Date: Mon, 15 Sep 2014 20:12:06 -0700
-Message-ID: <1410837126-31553-12-git-send-email-tony@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 08/12] ARM: omap2plus_defconfig: Shrink with savedefconfig
+Date: Mon, 15 Sep 2014 23:56:03 -0500
+Message-ID: <20140916045603.GA10498@saruman.home>
 References: <1410837126-31553-1-git-send-email-tony@atomide.com>
+ <1410837126-31553-8-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20397 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754369AbaIPDN3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2014 23:13:29 -0400
-In-Reply-To: <1410837126-31553-1-git-send-email-tony@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44954 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbaIPE4r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 00:56:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1410837126-31553-8-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Now that we have panel support for DT based booting,
-let's make it usable and enable most things as modules.
+--1yeeQ81UyVL57Vl7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Note that omap3 boards need also the ads7847 module for
-the panel that we're now changing to a loadable module.
-And n900 seems to require setting the brightness via
-sysfs for acx565akm/brightness after modprobe of
-panel_sony_acx565akm and omapfb.
+Hi,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap2plus_defconfig | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+On Mon, Sep 15, 2014 at 08:12:02PM -0700, Tony Lindgren wrote:
+> This saves few lines and makes it easier to make patches
+> against omap2plus_defconfig.
+>=20
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 113f104..c029e5e 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -157,7 +157,9 @@ CONFIG_KEYBOARD_GPIO=y
- CONFIG_KEYBOARD_MATRIX=m
- CONFIG_KEYBOARD_TWL4030=y
- CONFIG_INPUT_TOUCHSCREEN=y
--CONFIG_TOUCHSCREEN_ADS7846=y
-+CONFIG_TOUCHSCREEN_ADS7846=m
-+CONFIG_TOUCHSCREEN_TSC2005=m
-+CONFIG_TOUCHSCREEN_TSC2007=m
- CONFIG_INPUT_MISC=y
- CONFIG_INPUT_TWL4030_PWRBUTTON=y
- # CONFIG_LEGACY_PTYS is not set
-@@ -220,6 +222,7 @@ CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
- CONFIG_FB_TILEBLITTING=y
- CONFIG_OMAP2_DSS=m
-+CONFIG_OMAP5_DSS_HDMI=y
- CONFIG_OMAP2_DSS_SDI=y
- CONFIG_OMAP2_DSS_DSI=y
- CONFIG_FB_OMAP2=m
-@@ -227,11 +230,25 @@ CONFIG_DISPLAY_ENCODER_TFP410=m
- CONFIG_DISPLAY_ENCODER_TPD12S015=m
- CONFIG_DISPLAY_CONNECTOR_DVI=m
- CONFIG_DISPLAY_CONNECTOR_HDMI=m
-+CONFIG_DISPLAY_CONNECTOR_ANALOG_TV=m
- CONFIG_DISPLAY_PANEL_DPI=m
-+CONFIG_DISPLAY_PANEL_DSI_CM=m
-+CONFIG_DISPLAY_PANEL_SONY_ACX565AKM=m
-+CONFIG_DISPLAY_PANEL_LGPHILIPS_LB035Q02=m
-+CONFIG_DISPLAY_PANEL_SHARP_LS037V7DW01=m
-+CONFIG_DISPLAY_PANEL_TPO_TD028TTEC1=m
-+CONFIG_DISPLAY_PANEL_TPO_TD043MTEA1=m
-+CONFIG_DISPLAY_PANEL_NEC_NL8048HL11=m
- CONFIG_BACKLIGHT_LCD_SUPPORT=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_PLATFORM=y
-+CONFIG_BACKLIGHT_CLASS_DEVICE=y
-+CONFIG_BACKLIGHT_GENERIC=m
-+CONFIG_BACKLIGHT_PWM=m
-+CONFIG_BACKLIGHT_PANDORA=m
-+CONFIG_BACKLIGHT_GPIO=m
- CONFIG_FRAMEBUFFER_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
- CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
- CONFIG_LOGO=y
- CONFIG_SOUND=m
-@@ -283,6 +300,9 @@ CONFIG_TI_EDMA=y
- CONFIG_DMA_OMAP=y
- CONFIG_EXTCON=y
- CONFIG_EXTCON_PALMAS=y
-+CONFIG_PWM=y
-+CONFIG_PWM_TWL=y
-+CONFIG_PWM_TWL_LED=y
- CONFIG_OMAP_USB2=y
- CONFIG_TI_PIPE3=y
- CONFIG_EXT2_FS=y
--- 
-2.1.0
+while at that, can you enable voluntary preemption ?
 
+--=20
+balbi
+
+--1yeeQ81UyVL57Vl7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUF8LjAAoJEIaOsuA1yqREx64P/3cQ1xI2VhQcn6kbNnLJHLCm
+MFE1Ms6gdn56vLgiy+R1XNjzxcjuSeoM/HuBzd2eNwPAuK1mtlFadCPuullwRAhc
+NvWRtnDhYCn27MXYFpfjGZDG8Whq2jNpxJxYO3Rc4ODldjMm9/6R4zBGA+gg6LF3
+9iJLWMSpQGGEzo5V+W8XaQjGI4633wPyM20h3Sa8vz9DhjIjQ/9KyS+EFRZd5xdI
+oaINtxY/ucKkMCoujpb2lZ9pcIE6Oke8TNs1WgEgMdngYrVNMl1Or/yTpf1dluu0
+q/g67UTT9Ow5wKGR7OmYddIzE3oZ0QpaCeMEEutKS2JKmQfdTl0fHQsjrOVbMT/H
+GtIGDIik/1EbHv6jTHsn07Z7oNEllnDLwWagnqKijgOpogd3RsfAwZ4MZXRSccux
+62Lo7st1SWCqBHTHFGEJjFL7TxMo4+OIYzvF39qBQ/wIvcSMoLHWJdAV1rBwEIUW
+bC1vJFF62pJgQClfq4ISNF0b4EfbmKSKTCzswyx2IRXqgYG79xyaZUOuNWds4ACB
+HyKeFw4Y8bh5dJIVV/8w2XoGoQcc0NPJyXkp2mF+277rbd+1qPn7AbMRA+MZEWmD
+qEjSMolZ1OSZs1pOrFmo5JKslHJnXlZyOtp4TPf2NyX+axaneLPDpF0WqSnuR0g0
+gTAJ8tHwYagzAkz6BXSJ
+=AfnP
+-----END PGP SIGNATURE-----
+
+--1yeeQ81UyVL57Vl7--
