@@ -1,283 +1,290 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v3 1/5] clk: ti: add "ti,gpio-gate-clock" controlled clock
-Date: Tue, 16 Sep 2014 23:40:14 +0300
-Message-ID: <71e8bdf16f8a3bff5db6ba80dcab9d21de05e939.1410898073.git.jsarha@ti.com>
-References: <cover.1410898073.git.jsarha@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] pstore-ram: Allow optional mapping with
+ pgprot_noncached
+Date: Tue, 16 Sep 2014 13:50:01 -0700
+Message-ID: <20140916205000.GA6672@atomide.com>
+References: <1410546745-919-1-git-send-email-tony@atomide.com>
+ <1410546745-919-2-git-send-email-tony@atomide.com>
+ <20140912231514.GB12379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49296 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754892AbaIPUkd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Sep 2014 16:40:33 -0400
-In-Reply-To: <cover.1410898073.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140912231514.GB12379@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robherring2@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Olof Johansson <olof@lixom.net>, Tony Luck <tony.luck@intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org
-Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com, Jyri Sarha <jsarha@ti.com>
 
-The added ti,gpio-gate-clock is a basic clock that can be enabled and
-disabled trough a gpio output. The DT binding document for the clock
-is also added. For EPROBE_DEFER handling the registering of the clock
-has to be delayed until of_clk_get() call time.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [140912 16:16]:
+> On Fri, Sep 12, 2014 at 11:32:25AM -0700, Tony Lindgren wrote:
+> > On some ARMs at least the memory can be mapped pgprot_noncached()
+> > and still be working for atomic operations. As pointed out by
+> > Colin Cross <ccross@android.com>, in some cases you do want to use
+> > pgprot_noncached() if the SoC supports it to see a debug printk
+> > just before a write hanging the system.
+> > 
+> > On ARMs, the atomic operations on strongly ordered memory are
+> > implementation defined. So let's provide an optional kernel parameter
+> > for configuring noncached memory, and use pgprot_writecombine() by
+> > default.
+> 
+> Can we clean up this terminology please?
+> 
+> Writecombine memory is not cached - write combine memory bypasses the
+> caches entirely.  What it doesn't bypass are store buffers, which may
+> combine two writes together.  So, calling it "cached" is misleading.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- .../bindings/clock/ti/gpio-gate-clock.txt          |   21 ++
- drivers/clk/ti/Makefile                            |    2 +-
- drivers/clk/ti/gpio.c                              |  202 ++++++++++++++++++++
- 3 files changed, 224 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/clock/ti/gpio-gate-clock.txt
- create mode 100644 drivers/clk/ti/gpio.c
+Good point. I've pretty much s/cached/memtype/ and updated the
+description too in the patch below.
+ 
+> Secondly, memory returned by ioremap() is not strongly ordered, it is
+> device memory.  There's three main classifications of memory on ARM:
+> strongly ordered, device and normal memory.  Normal memory has attributes
+> which define whether it is write combining, or cacheable in some way (and
+> if so, how it's cacheable.)
+> 
+> Exclusives are always permitted to normal memory.  The other two are
+> implementation defined.  While an implementation may offer it on
+> strongly ordered, that doesn't mean that it also supports it on device
+> memory.
+> 
+> Lastly, aliased mappings are something that ARM has always strongly
+> discouraged on ARMv6+ (it was plain down-right unpredictable, but it's
+> now "strongly discouraged") and remapping memory with different memory
+> type should be avoided.
 
-diff --git a/Documentation/devicetree/bindings/clock/ti/gpio-gate-clock.txt b/Documentation/devicetree/bindings/clock/ti/gpio-gate-clock.txt
-new file mode 100644
-index 0000000..6156f82
---- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti/gpio-gate-clock.txt
-@@ -0,0 +1,21 @@
-+Binding for simple gpio controlled clock.
+Yes thanks for the summary again. Maybe let's let this second patch float
+on the lists for a while until we have somebody actually test it on
+unbuffered memory.
+
+Andrew, if no comments on 1/2 in this series, can you please pick it up
+for fixes so we get pstore working?
+
+Here's the updated version of the second patch for reference.
+
+Regards,
+
+Tony
+
+8< -----------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 11 Sep 2014 15:02:37 -0700
+Subject: [PATCH] pstore-ram: Allow optional mapping with pgprot_noncached
+
+On some ARMs the memory can be mapped pgprot_noncached() and still
+be working for atomic operations. As pointed out by Colin Cross
+<ccross@android.com>, in some cases you do want to use
+pgprot_noncached() if the SoC supports it to see a debug printk
+just before a write hanging the system.
+
+On ARMs, the atomic operations on strongly ordered memory are
+implementation defined. So let's provide an optional kernel parameter
+for configuring pgprot_noncached(), and use pgprot_writecombine() by
+default.
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Rob Herring <robherring2@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/Documentation/ramoops.txt
++++ b/Documentation/ramoops.txt
+@@ -14,11 +14,19 @@ survive after a restart.
+ 
+ 1. Ramoops concepts
+ 
+-Ramoops uses a predefined memory area to store the dump. The start and size of
+-the memory area are set using two variables:
++Ramoops uses a predefined memory area to store the dump. The start and size
++and type of the memory area are set using three variables:
+   * "mem_address" for the start
+   * "mem_size" for the size. The memory size will be rounded down to a
+   power of two.
++  * "mem_type" to specifiy if the memory type (default is pgprot_writecombine).
 +
-+This binding uses the common clock binding[1].
++Typically the default value of mem_type=0 should be used as that sets the pstore
++mapping to pgprot_writecombine. Setting mem_type=1 attempts to use
++pgprot_noncached, which only works on some platforms. This is because pstore
++depends on atomic operations. At least on ARM, pgprot_noncached causes the
++memory to be mapped strongly ordered, and atomic operations on strongly ordered
++memory are implementation defined, and won't work on many ARMs such as omaps.
+ 
+ The memory area is divided into "record_size" chunks (also rounded down to
+ power of two) and each oops/panic writes a "record_size" chunk of
+@@ -55,6 +63,7 @@ Setting the ramoops parameters can be done in 2 different manners:
+ static struct ramoops_platform_data ramoops_data = {
+         .mem_size               = <...>,
+         .mem_address            = <...>,
++        .mem_type               = <...>,
+         .record_size            = <...>,
+         .dump_oops              = <...>,
+         .ecc                    = <...>,
+--- a/fs/pstore/ram.c
++++ b/fs/pstore/ram.c
+@@ -61,6 +61,11 @@ module_param(mem_size, ulong, 0400);
+ MODULE_PARM_DESC(mem_size,
+ 		"size of reserved RAM used to store oops/panic logs");
+ 
++static unsigned int mem_type;
++module_param(mem_type, uint, 0600);
++MODULE_PARM_DESC(mem_type,
++		"set to 1 to try to use unbuffered memory (default 0)");
 +
-+[1] Documentation/devicetree/bindings/clock/clock-bindings.txt
-+
-+Required properties:
-+- compatible : shall be "ti,gpio-gate-clock".
-+- #clock-cells : from common clock binding; shall be set to 0.
-+- enable-gpios : GPIO reference for enabling and disabling the clock.
-+
-+Optional properties:
-+- clocks: Maximum of one parent clock is supported.
-+
-+Example:
-+	clock {
-+		compatible = "ti,gpio-gate-clock";
-+		clocks = <&parentclk>;
-+		#clock-cells = <0>;
-+		enable-gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
-+	};
-diff --git a/drivers/clk/ti/Makefile b/drivers/clk/ti/Makefile
-index ed4d0aa..88074d3 100644
---- a/drivers/clk/ti/Makefile
-+++ b/drivers/clk/ti/Makefile
-@@ -1,7 +1,7 @@
- ifneq ($(CONFIG_OF),)
- obj-y					+= clk.o autoidle.o clockdomain.o
- clk-common				= dpll.o composite.o divider.o gate.o \
--					  fixed-factor.o mux.o apll.o
-+					  fixed-factor.o mux.o apll.o gpio.o
- obj-$(CONFIG_SOC_AM33XX)		+= $(clk-common) clk-33xx.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(clk-common) interface.o clk-2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(clk-common) interface.o clk-3xxx.o
-diff --git a/drivers/clk/ti/gpio.c b/drivers/clk/ti/gpio.c
-new file mode 100644
-index 0000000..b973801
---- /dev/null
-+++ b/drivers/clk/ti/gpio.c
-@@ -0,0 +1,202 @@
-+/*
-+ * Copyright (C) 2012 - 2014 Texas Instruments Incorporated - http://www.ti.com
-+ * Author: Jyri Sarha <jsarha@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Gpio controlled clock implementation
-+ */
-+
-+#include <linux/clk-provider.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/gpio.h>
-+#include <linux/of_gpio.h>
-+#include <linux/err.h>
-+#include <linux/device.h>
-+
-+struct clk_gpio {
-+	struct clk_hw	hw;
-+	struct gpio_desc *gpiod;
-+};
-+
-+/**
-+ * DOC: basic gpio controlled clock which can be enabled and disabled
-+ *      with gpio output
-+ * Traits of this clock:
-+ * prepare - clk_(un)prepare only ensures parent is (un)prepared
-+ * enable - clk_enable and clk_disable are functional & control gpio
-+ * rate - inherits rate from parent.  No clk_set_rate support
-+ * parent - fixed parent.  No clk_set_parent support
-+ */
-+
-+#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
-+
-+static int clk_gpio_enable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *clk = to_clk_gpio(hw);
-+
-+	gpiod_set_value(clk->gpiod, 1);
-+
-+	return 0;
-+}
-+
-+static void clk_gpio_disable(struct clk_hw *hw)
-+{
-+	struct clk_gpio *clk = to_clk_gpio(hw);
-+
-+	gpiod_set_value(clk->gpiod, 0);
-+}
-+
-+static int clk_gpio_is_enabled(struct clk_hw *hw)
-+{
-+	struct clk_gpio *clk = to_clk_gpio(hw);
-+
-+	return gpiod_get_value(clk->gpiod);
-+}
-+
-+static const struct clk_ops clk_gpio_ops = {
-+	.enable = clk_gpio_enable,
-+	.disable = clk_gpio_disable,
-+	.is_enabled = clk_gpio_is_enabled,
-+};
-+
-+/**
-+ * clk_register_gpio - register a gpip clock with the clock framework
-+ * @dev: device that is registering this clock
-+ * @name: name of this clock
-+ * @parent_name: name of this clock's parent
-+ * @gpiod: gpio descriptor to control this clock
-+ */
-+static struct clk *clk_register_gpio(struct device *dev, const char *name,
-+		const char *parent_name, struct gpio_desc *gpiod,
-+		unsigned long flags)
-+{
-+	struct clk_gpio *clk_gpio = NULL;
-+	struct clk *clk = ERR_PTR(-EINVAL);
-+	struct clk_init_data init = { NULL };
-+	unsigned long gpio_flags;
-+	int err;
-+
-+	if (gpiod_is_active_low(gpiod))
-+		gpio_flags = GPIOF_OUT_INIT_HIGH;
+ static int dump_oops = 1;
+ module_param(dump_oops, int, 0600);
+ MODULE_PARM_DESC(dump_oops,
+@@ -79,6 +84,7 @@ struct ramoops_context {
+ 	struct persistent_ram_zone *fprz;
+ 	phys_addr_t phys_addr;
+ 	unsigned long size;
++	unsigned int memtype;
+ 	size_t record_size;
+ 	size_t console_size;
+ 	size_t ftrace_size;
+@@ -358,7 +364,8 @@ static int ramoops_init_przs(struct device *dev, struct ramoops_context *cxt,
+ 		size_t sz = cxt->record_size;
+ 
+ 		cxt->przs[i] = persistent_ram_new(*paddr, sz, 0,
+-						  &cxt->ecc_info);
++						  &cxt->ecc_info,
++						  cxt->memtype);
+ 		if (IS_ERR(cxt->przs[i])) {
+ 			err = PTR_ERR(cxt->przs[i]);
+ 			dev_err(dev, "failed to request mem region (0x%zx@0x%llx): %d\n",
+@@ -388,7 +395,7 @@ static int ramoops_init_prz(struct device *dev, struct ramoops_context *cxt,
+ 		return -ENOMEM;
+ 	}
+ 
+-	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info);
++	*prz = persistent_ram_new(*paddr, sz, sig, &cxt->ecc_info, cxt->memtype);
+ 	if (IS_ERR(*prz)) {
+ 		int err = PTR_ERR(*prz);
+ 
+@@ -435,6 +442,7 @@ static int ramoops_probe(struct platform_device *pdev)
+ 
+ 	cxt->size = pdata->mem_size;
+ 	cxt->phys_addr = pdata->mem_address;
++	cxt->memtype = pdata->mem_type;
+ 	cxt->record_size = pdata->record_size;
+ 	cxt->console_size = pdata->console_size;
+ 	cxt->ftrace_size = pdata->ftrace_size;
+@@ -564,6 +572,7 @@ static void ramoops_register_dummy(void)
+ 
+ 	dummy_data->mem_size = mem_size;
+ 	dummy_data->mem_address = mem_address;
++	dummy_data->mem_type = 0;
+ 	dummy_data->record_size = record_size;
+ 	dummy_data->console_size = ramoops_console_size;
+ 	dummy_data->ftrace_size = ramoops_ftrace_size;
+--- a/fs/pstore/ram_core.c
++++ b/fs/pstore/ram_core.c
+@@ -380,7 +380,8 @@ void persistent_ram_zap(struct persistent_ram_zone *prz)
+ 	persistent_ram_update_header_ecc(prz);
+ }
+ 
+-static void *persistent_ram_vmap(phys_addr_t start, size_t size)
++static void *persistent_ram_vmap(phys_addr_t start, size_t size,
++		unsigned int memtype)
+ {
+ 	struct page **pages;
+ 	phys_addr_t page_start;
+@@ -392,7 +393,10 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+ 	page_start = start - offset_in_page(start);
+ 	page_count = DIV_ROUND_UP(size + offset_in_page(start), PAGE_SIZE);
+ 
+-	prot = pgprot_writecombine(PAGE_KERNEL);
++	if (memtype)
++		prot = pgprot_noncached(PAGE_KERNEL);
 +	else
-+		gpio_flags = GPIOF_OUT_INIT_LOW;
++		prot = pgprot_writecombine(PAGE_KERNEL);
+ 
+ 	pages = kmalloc_array(page_count, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages) {
+@@ -411,8 +415,11 @@ static void *persistent_ram_vmap(phys_addr_t start, size_t size)
+ 	return vaddr;
+ }
+ 
+-static void *persistent_ram_iomap(phys_addr_t start, size_t size)
++static void *persistent_ram_iomap(phys_addr_t start, size_t size,
++		unsigned int memtype)
+ {
++	void *va;
 +
-+	if (dev)
-+		err = devm_gpio_request_one(dev, desc_to_gpio(gpiod),
-+					    gpio_flags, name);
+ 	if (!request_mem_region(start, size, "persistent_ram")) {
+ 		pr_err("request mem region (0x%llx@0x%llx) failed\n",
+ 			(unsigned long long)size, (unsigned long long)start);
+@@ -422,19 +429,24 @@ static void *persistent_ram_iomap(phys_addr_t start, size_t size)
+ 	buffer_start_add = buffer_start_add_locked;
+ 	buffer_size_add = buffer_size_add_locked;
+ 
+-	return ioremap_wc(start, size);
++	if (memtype)
++		va = ioremap(start, size);
 +	else
-+		err = gpio_request_one(desc_to_gpio(gpiod), gpio_flags, name);
++		va = ioremap_wc(start, size);
 +
-+	if (err) {
-+		pr_err("%s: %s: Error requesting clock control gpio %u\n",
-+		       __func__, name, desc_to_gpio(gpiod));
-+		return ERR_PTR(err);
-+	}
-+
-+	if (dev)
-+		clk_gpio = devm_kzalloc(dev, sizeof(struct clk_gpio),
-+					GFP_KERNEL);
-+	else
-+		clk_gpio = kzalloc(sizeof(struct clk_gpio), GFP_KERNEL);
-+
-+	if (!clk_gpio)
-+		goto clk_register_gpio_err;
-+
-+	init.name = name;
-+	init.ops = &clk_gpio_ops;
-+	init.flags = flags | CLK_IS_BASIC;
-+	init.parent_names = (parent_name ? &parent_name : NULL);
-+	init.num_parents = (parent_name ? 1 : 0);
-+
-+	clk_gpio->gpiod = gpiod;
-+	clk_gpio->hw.init = &init;
-+
-+	clk = clk_register(dev, &clk_gpio->hw);
-+
-+	if (!IS_ERR(clk))
-+		return clk;
-+
-+	if (!dev)
-+		kfree(clk_gpio);
-+
-+clk_register_gpio_err:
-+	gpiod_put(gpiod);
-+
-+	return clk;
-+}
-+
-+/**
-+ * The clk_register_gpio has to be delayed, because the EPROBE_DEFER
-+ * can not be handled properly at of_clk_init() call time.
-+ */
-+
-+struct clk_gpio_delayed_register_data {
-+	struct device_node *node;
-+	struct mutex lock;
-+	struct clk *clk;
-+};
-+
-+static
-+struct clk *of_clk_gpio_delayed_register_get(struct of_phandle_args *clkspec,
-+					     void *_data)
-+{
-+	struct clk_gpio_delayed_register_data *data = _data;
-+	struct clk *clk;
-+	const char *clk_name = data->node->name;
-+	const char *parent_name;
-+	struct gpio_desc *gpiod;
-+	int gpio;
-+
-+	mutex_lock(&data->lock);
-+
-+	if (data->clk) {
-+		mutex_unlock(&data->lock);
-+		return data->clk;
-+	}
-+
-+	gpio = of_get_named_gpio_flags(data->node, "enable-gpios", 0, NULL);
-+	if (gpio < 0) {
-+		mutex_unlock(&data->lock);
-+		if (gpio != -EPROBE_DEFER)
-+			pr_err("%s: %s: Can't get 'enable-gpios' DT property\n",
-+			       __func__, clk_name);
-+		return ERR_PTR(gpio);
-+	}
-+	gpiod = gpio_to_desc(gpio);
-+
-+	parent_name = of_clk_get_parent_name(data->node, 0);
-+
-+	clk = clk_register_gpio(NULL, clk_name, parent_name, gpiod, 0);
-+	if (IS_ERR(clk)) {
-+		mutex_unlock(&data->lock);
-+		return clk;
-+	}
-+
-+	data->clk = clk;
-+	mutex_unlock(&data->lock);
-+
-+	return clk;
-+}
-+
-+/**
-+ * of_gpio_clk_setup() - Setup function for gpio controlled clock
-+ */
-+static void __init of_gpio_clk_setup(struct device_node *node)
-+{
-+	struct clk_gpio_delayed_register_data *data;
-+
-+	data = kzalloc(sizeof(struct clk_gpio_delayed_register_data),
-+		       GFP_KERNEL);
-+	if (!data)
-+		return;
-+
-+	data->node = node;
-+	mutex_init(&data->lock);
-+
-+	of_clk_add_provider(node, of_clk_gpio_delayed_register_get, data);
-+}
-+CLK_OF_DECLARE(gpio_clk, "ti,gpio-gate-clock", of_gpio_clk_setup);
--- 
-1.7.9.5
-
++	return va;
+ }
+ 
+ static int persistent_ram_buffer_map(phys_addr_t start, phys_addr_t size,
+-		struct persistent_ram_zone *prz)
++		struct persistent_ram_zone *prz, int memtype)
+ {
+ 	prz->paddr = start;
+ 	prz->size = size;
+ 
+ 	if (pfn_valid(start >> PAGE_SHIFT))
+-		prz->vaddr = persistent_ram_vmap(start, size);
++		prz->vaddr = persistent_ram_vmap(start, size, memtype);
+ 	else
+-		prz->vaddr = persistent_ram_iomap(start, size);
++		prz->vaddr = persistent_ram_iomap(start, size, memtype);
+ 
+ 	if (!prz->vaddr) {
+ 		pr_err("%s: Failed to map 0x%llx pages at 0x%llx\n", __func__,
+@@ -500,7 +512,8 @@ void persistent_ram_free(struct persistent_ram_zone *prz)
+ }
+ 
+ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
+-			u32 sig, struct persistent_ram_ecc_info *ecc_info)
++			u32 sig, struct persistent_ram_ecc_info *ecc_info,
++			unsigned int memtype)
+ {
+ 	struct persistent_ram_zone *prz;
+ 	int ret = -ENOMEM;
+@@ -511,7 +524,7 @@ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
+ 		goto err;
+ 	}
+ 
+-	ret = persistent_ram_buffer_map(start, size, prz);
++	ret = persistent_ram_buffer_map(start, size, prz, memtype);
+ 	if (ret)
+ 		goto err;
+ 
+--- a/include/linux/pstore_ram.h
++++ b/include/linux/pstore_ram.h
+@@ -53,7 +53,8 @@ struct persistent_ram_zone {
+ };
+ 
+ struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
+-			u32 sig, struct persistent_ram_ecc_info *ecc_info);
++			u32 sig, struct persistent_ram_ecc_info *ecc_info,
++			unsigned int memtype);
+ void persistent_ram_free(struct persistent_ram_zone *prz);
+ void persistent_ram_zap(struct persistent_ram_zone *prz);
+ 
+@@ -76,6 +77,7 @@ ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
+ struct ramoops_platform_data {
+ 	unsigned long	mem_size;
+ 	unsigned long	mem_address;
++	unsigned int	mem_type;
+ 	unsigned long	record_size;
+ 	unsigned long	console_size;
+ 	unsigned long	ftrace_size;
