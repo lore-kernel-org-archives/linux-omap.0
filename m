@@ -1,83 +1,34 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] dmaengine: omap-dma: Fix cyclic suspend/resume
-Date: Tue, 16 Sep 2014 16:38:17 +0300
-Message-ID: <54183D49.2070804@ti.com>
-References: <1410872785-14523-1-git-send-email-peter.ujfalusi@ti.com> <20140916132259.GE12379@n2100.arm.linux.org.uk>
+Subject: [PATCH v2 0/2] dmaengine: omap-dma: Fix cyclic suspend/resume
+Date: Tue, 16 Sep 2014 16:53:47 +0300
+Message-ID: <1410875629-1540-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140916132259.GE12379@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: vinod.koul@intel.com, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/16/2014 04:22 PM, Russell King - ARM Linux wrote:
-> On Tue, Sep 16, 2014 at 04:06:25PM +0300, Peter Ujfalusi wrote:
->> When the audio stream is paused or suspended we stop the sDMA and wh=
-en it
->> is unpsues/resumed we start the channel without reconfiguring it.
->> The omap_dma_stop() clears the link configuration when we pause the =
-dma, but
->> it is not setting it back on start. This will result only one audio =
-buffer
->> to be played back and the DMA will stop, since the linking is disabl=
-ed.
->> The link need to be enabled in omap_dma_start() to make sure that cy=
-clic
->> transfer can continue.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->>  drivers/dma/omap-dma.c | 12 ++++++++++++
->>  1 file changed, 12 insertions(+)
->>
->> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
->> index 4cf7d9a950d7..13a02ff87f28 100644
->> --- a/drivers/dma/omap-dma.c
->> +++ b/drivers/dma/omap-dma.c
->> @@ -280,6 +280,7 @@ static void omap_dma_assign(struct omap_dmadev *=
-od, struct omap_chan *c,
->>  static void omap_dma_start(struct omap_chan *c, struct omap_desc *d=
-)
->>  {
->>  	struct omap_dmadev *od =3D to_omap_dma_dev(c->vc.chan.device);
->> +	uint32_t val;
->> =20
->>  	if (__dma_omap15xx(od->plat->dma_attr))
->>  		omap_dma_chan_write(c, CPC, 0);
->> @@ -288,6 +289,17 @@ static void omap_dma_start(struct omap_chan *c,=
- struct omap_desc *d)
->> =20
->>  	omap_dma_clear_csr(c);
->> =20
->> +	if (!__dma_omap15xx(od->plat->dma_attr) && c->cyclic) {
->> +		val =3D omap_dma_chan_read(c, CLNK_CTRL);
->> +
->> +		if (dma_omap1())
->> +			val &=3D ~(1 << 14); /* clear the STOP_LNK bit */
->> +		else
->> +			val |=3D CLNK_CTRL_ENABLE_LNK;
->> +
->> +		omap_dma_chan_write(c, CLNK_CTRL, val);
->> +	}
->> +
->=20
-> Why is this soo complicated?  What's wrong with simply writing the
-> stored value back from the omap_desc:
->=20
-> 	omap_dma_chan_write(c, CLNK_CTRL, d->clnk_ctrl);
+Hi,
 
-Oh, I have overlooked this. Thanks.
+When the audio is paused/resumed (application paused the sream or board suspend)
+the audio was only playing back one period worth of data and then stops because
+the omap_dam_stop() clears the link configuration and it is not restored in
+start.
 
-> In fact, rather than loading up the above fast path with stuff which
-> it really doesn't need, why not do this in the resume path?  The
-> other thing which should be placed in the resume path is a mb() call,
-> since calling omap_dma_start() won't have a barrier in that path.
+Also add memory barrier call to resume path since this could happen right after
+coming out from suspend.
 
-Do you want it as a separate patch (adding the mb() and to restore the
-CLNK_CTRL register) or is it OK if I send it as one patch?
+Regards,
+Peter
+---
+Peter Ujfalusi (2):
+  dmaengine: omap-dma: Add memory barrier to dma_resume path
+  dmaengine: omap-dma: Restore the CLINK_CTRL in resume path
 
---=20
-P=E9ter
+ drivers/dma/omap-dma.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+-- 
+2.1.0
