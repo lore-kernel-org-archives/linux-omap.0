@@ -1,47 +1,134 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/12] ARM: dts: Enable PMIC idle configuration for LDP
-Date: Mon, 15 Sep 2014 20:12:01 -0700
-Message-ID: <1410837126-31553-7-git-send-email-tony@atomide.com>
+Subject: [PATCH 08/12] ARM: omap2plus_defconfig: Shrink with savedefconfig
+Date: Mon, 15 Sep 2014 20:12:02 -0700
+Message-ID: <1410837126-31553-8-git-send-email-tony@atomide.com>
 References: <1410837126-31553-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20036 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20102 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754369AbaIPDNM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2014 23:13:12 -0400
+	with ESMTP id S1754369AbaIPDNP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Sep 2014 23:13:15 -0400
 In-Reply-To: <1410837126-31553-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-With the IO chain reconfigure fixed, we can now enable the PMIC
-scripts for LDP.
-
-Note that at least on my es3.0 based LDP, the UART seems to be
-flakey after wake-up events from off-idle and hangs but eventually
-continues.
+This saves few lines and makes it easier to make patches
+against omap2plus_defconfig.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap3-ldp.dts | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/configs/omap2plus_defconfig | 19 +++----------------
+ 1 file changed, 3 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-ldp.dts b/arch/arm/boot/dts/omap3-ldp.dts
-index af272c1..72dca0b 100644
---- a/arch/arm/boot/dts/omap3-ldp.dts
-+++ b/arch/arm/boot/dts/omap3-ldp.dts
-@@ -159,6 +159,11 @@
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
- 		interrupt-parent = <&intc>;
-+
-+		twl_power: power {
-+			compatible = "ti,twl4030-power-idle";
-+			ti,use_poweroff;
-+		};
- 	};
- };
- 
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index f650f00..fc63855 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -32,7 +32,6 @@ CONFIG_SOC_OMAP5=y
+ CONFIG_SOC_AM33XX=y
+ CONFIG_SOC_AM43XX=y
+ CONFIG_SOC_DRA7XX=y
+-CONFIG_CACHE_L2X0=y
+ CONFIG_ARM_THUMBEE=y
+ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_SMP=y
+@@ -44,7 +43,6 @@ CONFIG_ARM_APPENDED_DTB=y
+ CONFIG_ARM_ATAG_DTB_COMPAT=y
+ CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
+ CONFIG_KEXEC=y
+-CONFIG_FPE_NWFPE=y
+ CONFIG_CPU_IDLE=y
+ CONFIG_BINFMT_MISC=y
+ CONFIG_PM_DEBUG=y
+@@ -75,8 +73,6 @@ CONFIG_BT_HCIBCM203X=m
+ CONFIG_BT_HCIBPA10X=m
+ CONFIG_CFG80211=m
+ CONFIG_MAC80211=m
+-CONFIG_MAC80211_RC_PID=y
+-CONFIG_MAC80211_RC_DEFAULT_PID=y
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
+@@ -103,7 +99,6 @@ CONFIG_BMP085_I2C=m
+ CONFIG_SENSORS_LIS3_I2C=m
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+-CONFIG_SCSI_MULTI_LUN=y
+ CONFIG_SCSI_SCAN_ASYNC=y
+ CONFIG_MD=y
+ CONFIG_NETDEVICES=y
+@@ -162,15 +157,12 @@ CONFIG_DEBUG_GPIO=y
+ CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_TWL4030=y
+ CONFIG_W1=y
+-CONFIG_POWER_SUPPLY=y
+ CONFIG_POWER_AVS=y
+ CONFIG_SENSORS_LM75=m
+ CONFIG_THERMAL=y
+ CONFIG_THERMAL_GOV_FAIR_SHARE=y
+ CONFIG_THERMAL_GOV_USER_SPACE=y
+-CONFIG_CPU_THERMAL=y
+ CONFIG_TI_SOC_THERMAL=y
+-CONFIG_TI_THERMAL=y
+ CONFIG_OMAP4_THERMAL=y
+ CONFIG_OMAP5_THERMAL=y
+ CONFIG_DRA752_THERMAL=y
+@@ -183,8 +175,8 @@ CONFIG_MFD_TPS65217=y
+ CONFIG_MFD_TPS65218=y
+ CONFIG_MFD_TPS65910=y
+ CONFIG_TWL6040_CORE=y
+-CONFIG_REGULATOR_FIXED_VOLTAGE=y
+ CONFIG_REGULATOR_PALMAS=y
++CONFIG_REGULATOR_PBIAS=y
+ CONFIG_REGULATOR_TI_ABB=y
+ CONFIG_REGULATOR_TPS65023=y
+ CONFIG_REGULATOR_TPS6507X=y
+@@ -192,7 +184,6 @@ CONFIG_REGULATOR_TPS65217=y
+ CONFIG_REGULATOR_TPS65218=y
+ CONFIG_REGULATOR_TPS65910=y
+ CONFIG_REGULATOR_TWL4030=y
+-CONFIG_REGULATOR_PBIAS=y
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
+@@ -221,8 +212,6 @@ CONFIG_SND_DEBUG=y
+ CONFIG_SND_USB_AUDIO=m
+ CONFIG_SND_SOC=m
+ CONFIG_SND_OMAP_SOC=m
+-CONFIG_SND_AM33XX_SOC_EVM=m
+-CONFIG_SND_DAVINCI_SOC=m
+ CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+ CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+ CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+@@ -233,9 +222,6 @@ CONFIG_USB_WDM=y
+ CONFIG_USB_STORAGE=y
+ CONFIG_USB_DWC3=m
+ CONFIG_USB_TEST=y
+-CONFIG_NOP_USB_XCEIV=y
+-CONFIG_OMAP_USB2=y
+-CONFIG_TI_PIPE3=y
+ CONFIG_AM335X_PHY_USB=y
+ CONFIG_USB_GADGET=y
+ CONFIG_USB_GADGET_DEBUG=y
+@@ -243,7 +229,6 @@ CONFIG_USB_GADGET_DEBUG_FILES=y
+ CONFIG_USB_GADGET_DEBUG_FS=y
+ CONFIG_USB_ZERO=m
+ CONFIG_MMC=y
+-CONFIG_MMC_UNSAFE_RESUME=y
+ CONFIG_SDIO_UART=y
+ CONFIG_MMC_OMAP=y
+ CONFIG_MMC_OMAP_HS=y
+@@ -267,6 +252,8 @@ CONFIG_TI_EDMA=y
+ CONFIG_DMA_OMAP=y
+ CONFIG_EXTCON=y
+ CONFIG_EXTCON_PALMAS=y
++CONFIG_OMAP_USB2=y
++CONFIG_TI_PIPE3=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
 -- 
 2.1.0
 
