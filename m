@@ -1,174 +1,173 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/12] ARM: OMAP3: Use force-idle for UARTs because of
- DMA errata
-Date: Tue, 16 Sep 2014 10:44:34 -0700
-Message-ID: <20140916174434.GB1580@atomide.com>
-References: <1410837126-31553-1-git-send-email-tony@atomide.com>
- <1410837126-31553-2-git-send-email-tony@atomide.com>
- <alpine.DEB.2.02.1409161605200.23518@utopia.booyaka.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCHv2] rpmsg: compute number of buffers to allocate from vrings
+Date: Tue, 16 Sep 2014 13:33:07 -0500
+Message-ID: <1410892387-30596-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41163 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754520AbaIPRou (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 13:44:50 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1409161605200.23518@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-* Paul Walmsley <paul@pwsan.com> [140916 10:01]:
-> On Mon, 15 Sep 2014, Tony Lindgren wrote:
-> 
-> > In sprz318f.pdf "Usage Note 2.7" says that UARTs cannot acknowledge
-> > idle requests in smartidle mode when configured for DMA operations.
-> 
-> I don't have Rev. F here.  But reading between the typos in Rev. E, all it 
-> says that the UART should be placed into force-idle mode when there are no 
-> DMA transfers scheduled, otherwise CORE won't go idle.  However, this 
-> patch does a lot more than that...
+The buffers to be used for communication are allocated during the
+rpmsg virtio driver's probe, and the total number of buffers is
+currently hard-coded to 512. The vring configuration can vary from
+one platform to another or between different remote processors. The
+setup of the receive buffers will throw a WARN_ON if the associated
+vrings are configured with less than 256 buffers (in each direction).
+So, adjust this hard-coded value to rely on the number of buffers the
+virtqueue vring is setup with, but also limit to use 256 buffers at
+most in each direction to avoid wacky resource tables consuming up
+unreasonable memory.
 
-OK. The errata above seems to have a bit more info on that.
+NOTE: The number of buffers is already assumed to be symmetrical
+in each direction, and that logic is not unchanged.
 
-> > @@ -490,7 +490,9 @@ static struct omap_hwmod omap3xxx_uart1_hwmod = {
-> >  	.mpu_irqs	= omap2_uart1_mpu_irqs,
-> >  	.sdma_reqs	= omap2_uart1_sdma_reqs,
-> >  	.main_clk	= "uart1_fck",
-> > -	.flags		= DEBUG_TI81XXUART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-> > +	.flags		= DEBUG_TI81XXUART1_FLAGS |
-> > +				HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE |
-> > +				HWMOD_FORCE_MSTANDBY | HWMOD_RECONFIG_IO_CHAIN,
-> 
-> ... this patch makes four significant changes to the hwmod flags:
-> 
-> 1. It changes HWMOD_SWSUP_SIDLE_ACT to HWMOD_SWSUP_SIDLE
-> 
-> 2. It adds HWMOD_NO_OCP_AUTOIDLE
-> 
-> 3. It adds HWMOD_FORCE_MSTANDBY
-> 
-> 4. It adds HWMOD_RECONFIG_IO_CHAIN 
-> 
-> As far as I can tell, the only change that actually matches the erratum 
-> usage note is #1.  And even that should only be activated when the UART is 
-> in DMA mode.. PIO mode shouldn't need it.  (We used to have a DMA-specific 
-> workaround in the driver code for this years ago, which was only enabled 
-> when DMA was used, but it got ripped out in the rush to get rid of the 
-> platform_data function pointers.)
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+v2 changes:
+- add upper limit on buffers and update comments
+- revise patch description
 
-Indeed that's the case. Only #1 above is needed.
+ drivers/rpmsg/virtio_rpmsg_bus.c | 46 ++++++++++++++++++++++++++++------------
+ 1 file changed, 32 insertions(+), 14 deletions(-)
 
-It seems I intially just blindly copied the MUSB related changes for
-UART to get Sebastian's series going with DMA, then just rebased those
-changes blindly on the HWMOD_RECONFIG_IO_CHAIN patch.
-
-For toggling the DMA vs PIO mode, that should be done with some Linux
-generic API from the driver. But since we don't have that, I don't think
-there's much overhead for always configuring for DMA mode. Or do you
-see some issues with that?
+diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+index b6135d4..9ea6c43 100644
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c
++++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -41,6 +41,7 @@
+  * @svq:	tx virtqueue
+  * @rbufs:	kernel address of rx buffers
+  * @sbufs:	kernel address of tx buffers
++ * @num_bufs:	total number of buffers for rx and tx
+  * @last_sbuf:	index of last tx buffer used
+  * @bufs_dma:	dma base addr of the buffers
+  * @tx_lock:	protects svq, sbufs and sleepers, to allow concurrent senders.
+@@ -60,6 +61,7 @@ struct virtproc_info {
+ 	struct virtio_device *vdev;
+ 	struct virtqueue *rvq, *svq;
+ 	void *rbufs, *sbufs;
++	unsigned int num_bufs;
+ 	int last_sbuf;
+ 	dma_addr_t bufs_dma;
+ 	struct mutex tx_lock;
+@@ -86,13 +88,14 @@ struct rpmsg_channel_info {
+ #define to_rpmsg_driver(d) container_of(d, struct rpmsg_driver, drv)
  
-> So that leaves the other three flag changes.  Of those three, adding 
-> HWMOD_FORCE_MSTANDBY is definitely not correct according to the 34xx 
-> public TRM Rev. ZV, since the UART IP blocks:
-> 
-> a) have no master port, 
-> 
-> b) do not contain DMA controllers (they rely on the SDMA), and 
-> 
-> c) according to the SYSC_REG register documentation in Table 17-112 of the 
-> above TRM, have no MIDLEMODE bit field.
-> 
-> So adding HWMOD_FORCE_MSTANDBY should have zero effect and it most likely 
-> should be dropped.
-
-OK. That's left over from blind copy-paste from MUSB related changes and
-not needed.
+ /*
+- * We're allocating 512 buffers of 512 bytes for communications, and then
+- * using the first 256 buffers for RX, and the last 256 buffers for TX.
++ * We're allocating buffers of 512 bytes each for communications. The
++ * number of buffers are computed from the number of buffers supported by
++ * the virtqueue vring (upto a maximum of 256 buffers in each direction).
+  *
+  * Each buffer will have 16 bytes for the msg header and 496 bytes for
+  * the payload.
+  *
+- * This will require a total space of 256KB for the buffers.
++ * This will utilize a maximum total space of 256KB for the buffers.
+  *
+  * We might also want to add support for user-provided buffers in time.
+  * This will allow bigger buffer size flexibility, and can also be used
+@@ -102,9 +105,8 @@ struct rpmsg_channel_info {
+  * can change this without changing anything in the firmware of the remote
+  * processor.
+  */
+-#define RPMSG_NUM_BUFS		(512)
++#define MAX_RPMSG_NUM_BUFS	(256)
+ #define RPMSG_BUF_SIZE		(512)
+-#define RPMSG_TOTAL_BUF_SPACE	(RPMSG_NUM_BUFS * RPMSG_BUF_SIZE)
  
-> Regarding the rest: 
-> 
-> I'd be pretty surprised if HWMOD_RECONFIG_IO_CHAIN is needed.  If that was 
-> needed, I'd think we would have seen wakeup failures in this path a long 
-> time ago, since the console serial port is the primary debug tool we used
-> for waking the chip up from deep idle states on demand.
-
-OK. Does not seem to be needed.
+ /*
+  * Local addresses are dynamically allocated on-demand.
+@@ -579,7 +581,7 @@ static void *get_a_tx_buf(struct virtproc_info *vrp)
+ 	 * either pick the next unused tx buffer
+ 	 * (half of our buffers are used for sending messages)
+ 	 */
+-	if (vrp->last_sbuf < RPMSG_NUM_BUFS / 2)
++	if (vrp->last_sbuf < vrp->num_bufs / 2)
+ 		ret = vrp->sbufs + RPMSG_BUF_SIZE * vrp->last_sbuf++;
+ 	/* or recycle a used one */
+ 	else
+@@ -948,6 +950,7 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	struct virtproc_info *vrp;
+ 	void *bufs_va;
+ 	int err = 0, i;
++	size_t total_buf_space;
  
-> As far as HWMOD_NO_OCP_AUTOIDLE goes: does adding this flag have an effect 
-> when HWMOD_SWSUP_SIDLE is used?  If so then this should probably go in as 
-> a separate patch, because it's probably a separate bug than the one 
-> described in the commit message.
-
-That does not seem to be needed either. 
+ 	vrp = kzalloc(sizeof(*vrp), GFP_KERNEL);
+ 	if (!vrp)
+@@ -968,10 +971,24 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	vrp->rvq = vqs[0];
+ 	vrp->svq = vqs[1];
  
-> So I'd suggest restricting this patch to simply change 
-> HWMOD_SWSUP_SIDLE_ACT to HWMOD_SWSUP_SIDLE.  Then if the other flags are 
-> needed, would suggest adding them in separate patches, describing what 
-> problems are fixed by adding them.
-
-Yes great. I've verified that's enough to make it work properly with off-idle
-and dma when tested against Sebastian's uart_v10_pre1 branch.
-
-Updated patch below, thanks for catching the bogus configuration.
-
-Regards,
-
-Tony
-
-8< --------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 10 Sep 2014 16:22:31 -0700
-Subject: [PATCH] ARM: OMAP3: Use manual idle for UARTs because of DMA errata
-
-In sprz318f.pdf "Usage Note 2.7" says that UARTs cannot acknowledge
-idle requests in smartidle mode when configured for DMA operations.
-This prevents L4 from going idle. So let's use manual idle mode
-instead.
-
-Otherwise systems using Sebastian's 8250 patches with DMA will
-never enter deeper idle states because of the errata above.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -490,7 +490,7 @@ static struct omap_hwmod omap3xxx_uart1_hwmod = {
- 	.mpu_irqs	= omap2_uart1_mpu_irqs,
- 	.sdma_reqs	= omap2_uart1_sdma_reqs,
- 	.main_clk	= "uart1_fck",
--	.flags		= DEBUG_TI81XXUART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_TI81XXUART1_FLAGS | HWMOD_SWSUP_SIDLE,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -509,7 +509,7 @@ static struct omap_hwmod omap3xxx_uart2_hwmod = {
- 	.mpu_irqs	= omap2_uart2_mpu_irqs,
- 	.sdma_reqs	= omap2_uart2_sdma_reqs,
- 	.main_clk	= "uart2_fck",
--	.flags		= DEBUG_TI81XXUART2_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_TI81XXUART2_FLAGS | HWMOD_SWSUP_SIDLE,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
-@@ -529,7 +529,7 @@ static struct omap_hwmod omap3xxx_uart3_hwmod = {
- 	.sdma_reqs	= omap2_uart3_sdma_reqs,
- 	.main_clk	= "uart3_fck",
- 	.flags		= DEBUG_OMAP3UART3_FLAGS | DEBUG_TI81XXUART3_FLAGS |
--				HWMOD_SWSUP_SIDLE_ACT,
-+				HWMOD_SWSUP_SIDLE,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
-@@ -559,7 +559,7 @@ static struct omap_hwmod omap36xx_uart4_hwmod = {
- 	.mpu_irqs	= uart4_mpu_irqs,
- 	.sdma_reqs	= uart4_sdma_reqs,
- 	.main_clk	= "uart4_fck",
--	.flags		= DEBUG_OMAP3UART4_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-+	.flags		= DEBUG_OMAP3UART4_FLAGS | HWMOD_SWSUP_SIDLE,
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = OMAP3430_PER_MOD,
++	vrp->num_bufs = MAX_RPMSG_NUM_BUFS * 2;
++	if (virtqueue_get_vring_size(vrp->rvq) < MAX_RPMSG_NUM_BUFS) {
++		/*
++		 * Override if the virtqueues are configured with less number of
++		 * buffers. We expect equal number of buffers for each direction
++		 * as per current code, so throw a warning if the configuration
++		 * doesn't match.
++		 */
++		vrp->num_bufs = virtqueue_get_vring_size(vrp->rvq) * 2;
++		WARN_ON(virtqueue_get_vring_size(vrp->svq) !=
++			(vrp->num_bufs / 2));
++	}
++	total_buf_space = vrp->num_bufs * RPMSG_BUF_SIZE;
++
+ 	/* allocate coherent memory for the buffers */
+ 	bufs_va = dma_alloc_coherent(vdev->dev.parent->parent,
+-				RPMSG_TOTAL_BUF_SPACE,
+-				&vrp->bufs_dma, GFP_KERNEL);
++				     total_buf_space, &vrp->bufs_dma,
++				     GFP_KERNEL);
+ 	if (!bufs_va) {
+ 		err = -ENOMEM;
+ 		goto vqs_del;
+@@ -984,10 +1001,10 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	vrp->rbufs = bufs_va;
+ 
+ 	/* and half is dedicated for TX */
+-	vrp->sbufs = bufs_va + RPMSG_TOTAL_BUF_SPACE / 2;
++	vrp->sbufs = bufs_va + total_buf_space / 2;
+ 
+ 	/* set up the receive buffers */
+-	for (i = 0; i < RPMSG_NUM_BUFS / 2; i++) {
++	for (i = 0; i < vrp->num_bufs / 2; i++) {
+ 		struct scatterlist sg;
+ 		void *cpu_addr = vrp->rbufs + i * RPMSG_BUF_SIZE;
+ 
+@@ -1023,8 +1040,8 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	return 0;
+ 
+ free_coherent:
+-	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
+-					bufs_va, vrp->bufs_dma);
++	dma_free_coherent(vdev->dev.parent->parent, total_buf_space,
++			  bufs_va, vrp->bufs_dma);
+ vqs_del:
+ 	vdev->config->del_vqs(vrp->vdev);
+ free_vrp:
+@@ -1042,6 +1059,7 @@ static int rpmsg_remove_device(struct device *dev, void *data)
+ static void rpmsg_remove(struct virtio_device *vdev)
+ {
+ 	struct virtproc_info *vrp = vdev->priv;
++	size_t total_buf_space = vrp->num_bufs * RPMSG_BUF_SIZE;
+ 	int ret;
+ 
+ 	vdev->config->reset(vdev);
+@@ -1057,8 +1075,8 @@ static void rpmsg_remove(struct virtio_device *vdev)
+ 
+ 	vdev->config->del_vqs(vrp->vdev);
+ 
+-	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
+-					vrp->rbufs, vrp->bufs_dma);
++	dma_free_coherent(vdev->dev.parent->parent, total_buf_space,
++			  vrp->rbufs, vrp->bufs_dma);
+ 
+ 	kfree(vrp);
+ }
+-- 
+2.0.4
