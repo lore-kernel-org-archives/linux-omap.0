@@ -1,187 +1,70 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v5 02/15] OMAPDSS: hdmi: Remove most of OMAP[45]_DSS_HDMI_AUDIO ifdefs
-Date: Tue, 16 Sep 2014 13:04:16 +0300
-Message-ID: <ebbea42832a5daa91fe759830997e84453af2133.1410860765.git.jsarha@ti.com>
+Subject: [PATCH v5 04/15] OMAPDSS: hdmi_wp: Add function for getting audio dma address
+Date: Tue, 16 Sep 2014 13:04:18 +0300
+Message-ID: <6a32977df30e0100e58b4f8c1cb4e9da8029df98.1410860765.git.jsarha@ti.com>
 References: <cover.1410860765.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32944 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753350AbaIPKEs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 06:04:48 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:44110 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753709AbaIPKEv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Sep 2014 06:04:51 -0400
 In-Reply-To: <cover.1410860765.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-It does not waste too many bytes to compile all audio related core
-functions always in with HDMI support. It should help readability and
-in keeping the audio code in working shape. Leave the options just for
-disabling and enabling the functionality in hdmi[45].c.
+The audio dma port is found in the hdmi_wp physical address space.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi.h        |    3 +--
- drivers/video/fbdev/omap2/dss/hdmi4_core.c  |    5 -----
- drivers/video/fbdev/omap2/dss/hdmi4_core.h  |    2 --
- drivers/video/fbdev/omap2/dss/hdmi5_core.c  |    6 ------
- drivers/video/fbdev/omap2/dss/hdmi5_core.h  |    2 --
- drivers/video/fbdev/omap2/dss/hdmi_common.c |    2 --
- drivers/video/fbdev/omap2/dss/hdmi_wp.c     |    2 --
- 7 files changed, 1 insertion(+), 21 deletions(-)
+ drivers/video/fbdev/omap2/dss/hdmi.h    |    2 ++
+ drivers/video/fbdev/omap2/dss/hdmi_wp.c |    6 ++++++
+ 2 files changed, 8 insertions(+)
 
 diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
-index 1f01068..03726b5 100644
+index 03726b5..9ba7c1a 100644
 --- a/drivers/video/fbdev/omap2/dss/hdmi.h
 +++ b/drivers/video/fbdev/omap2/dss/hdmi.h
-@@ -335,7 +335,7 @@ int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes);
- int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_node *ep,
- 	struct hdmi_phy_data *phy);
+@@ -250,6 +250,7 @@ struct hdmi_core_audio_config {
  
--#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO) || defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
-+/* Audio funcs */
- int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts);
- int hdmi_wp_audio_enable(struct hdmi_wp_data *wp, bool enable);
- int hdmi_wp_audio_core_req_enable(struct hdmi_wp_data *wp, bool enable);
-@@ -348,4 +348,3 @@ static inline bool hdmi_mode_has_audio(int mode)
- 	return mode == HDMI_HDMI ? true : false;
- }
- #endif
--#endif
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi4_core.c b/drivers/video/fbdev/omap2/dss/hdmi4_core.c
-index 4ad39cf..3b448d9 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi4_core.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi4_core.c
-@@ -31,10 +31,8 @@
- #include <linux/platform_device.h>
- #include <linux/string.h>
- #include <linux/seq_file.h>
--#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
- #include <sound/asound.h>
- #include <sound/asoundef.h>
--#endif
+ struct hdmi_wp_data {
+ 	void __iomem *base;
++	phys_addr_t phys_base;
+ };
  
- #include "hdmi4_core.h"
- #include "dss_features.h"
-@@ -530,7 +528,6 @@ void hdmi4_core_dump(struct hdmi_core_data *core, struct seq_file *s)
- 	DUMPCOREAV(HDMI_CORE_AV_CEC_ADDR_ID);
- }
+ struct hdmi_pll_data {
+@@ -317,6 +318,7 @@ void hdmi_wp_video_config_timing(struct hdmi_wp_data *wp,
+ void hdmi_wp_init_vid_fmt_timings(struct hdmi_video_format *video_fmt,
+ 		struct omap_video_timings *timings, struct hdmi_config *param);
+ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp);
++phys_addr_t hdmi_wp_get_audio_dma_addr(struct hdmi_wp_data *wp);
  
--#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
- static void hdmi_core_audio_config(struct hdmi_core_data *core,
- 					struct hdmi_core_audio_config *cfg)
- {
-@@ -886,8 +883,6 @@ int hdmi4_audio_get_dma_port(u32 *offset, u32 *size)
- 	return 0;
- }
- 
--#endif
--
- int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core)
- {
- 	struct resource *res;
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi4_core.h b/drivers/video/fbdev/omap2/dss/hdmi4_core.h
-index 827909e..c1959f7 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi4_core.h
-+++ b/drivers/video/fbdev/omap2/dss/hdmi4_core.h
-@@ -266,12 +266,10 @@ void hdmi4_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
- void hdmi4_core_dump(struct hdmi_core_data *core, struct seq_file *s);
- int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core);
- 
--#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
- int hdmi4_audio_start(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
- void hdmi4_audio_stop(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
- int hdmi4_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
- 		struct omap_dss_audio *audio, u32 pclk);
- int hdmi4_audio_get_dma_port(u32 *offset, u32 *size);
--#endif
- 
- #endif
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi5_core.c b/drivers/video/fbdev/omap2/dss/hdmi5_core.c
-index 83acbf7..8eab25b 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi5_core.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi5_core.c
-@@ -30,10 +30,8 @@
- #include <linux/string.h>
- #include <linux/seq_file.h>
- #include <drm/drm_edid.h>
--#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
- #include <sound/asound.h>
- #include <sound/asoundef.h>
--#endif
- 
- #include "hdmi5_core.h"
- 
-@@ -644,9 +642,6 @@ void hdmi5_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
- 	hdmi_core_enable_interrupts(core);
- }
- 
--
--#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
--
- static void hdmi5_core_audio_config(struct hdmi_core_data *core,
- 			struct hdmi_core_audio_config *cfg)
- {
-@@ -894,7 +889,6 @@ int hdmi5_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
- 
- 	return 0;
- }
--#endif
- 
- int hdmi5_core_init(struct platform_device *pdev, struct hdmi_core_data *core)
- {
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi5_core.h b/drivers/video/fbdev/omap2/dss/hdmi5_core.h
-index ce7e9f3..f2f1022 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi5_core.h
-+++ b/drivers/video/fbdev/omap2/dss/hdmi5_core.h
-@@ -299,8 +299,6 @@ void hdmi5_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
- 			struct hdmi_config *cfg);
- int hdmi5_core_init(struct platform_device *pdev, struct hdmi_core_data *core);
- 
--#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
- int hdmi5_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
- 			struct omap_dss_audio *audio, u32 pclk);
- #endif
--#endif
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi_common.c b/drivers/video/fbdev/omap2/dss/hdmi_common.c
-index 7d5f103..1b8fcc6 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi_common.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi_common.c
-@@ -48,7 +48,6 @@ int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_node *ep,
- 	return 0;
- }
- 
--#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
- int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts)
- {
- 	u32 deep_color;
-@@ -147,4 +146,3 @@ int hdmi_compute_acr(u32 pclk, u32 sample_freq, u32 *n, u32 *cts)
- 
- 	return 0;
- }
--#endif
+ /* HDMI PLL funcs */
+ int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp);
 diff --git a/drivers/video/fbdev/omap2/dss/hdmi_wp.c b/drivers/video/fbdev/omap2/dss/hdmi_wp.c
-index 496327e..f1b53de 100644
+index f1b53de..5154120 100644
 --- a/drivers/video/fbdev/omap2/dss/hdmi_wp.c
 +++ b/drivers/video/fbdev/omap2/dss/hdmi_wp.c
-@@ -185,7 +185,6 @@ void hdmi_wp_init_vid_fmt_timings(struct hdmi_video_format *video_fmt,
- 	timings->interlace = param->timings.interlace;
- }
+@@ -245,6 +245,7 @@ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp)
+ 		DSSERR("can't get WP mem resource\n");
+ 		return -EINVAL;
+ 	}
++	wp->phys_base = res->start;
  
--#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO) || defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
- void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
- 		struct hdmi_audio_format *aud_fmt)
- {
-@@ -236,7 +235,6 @@ int hdmi_wp_audio_core_req_enable(struct hdmi_wp_data *wp, bool enable)
+ 	wp->base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(wp->base)) {
+@@ -254,3 +255,8 @@ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp)
  
  	return 0;
  }
--#endif
- 
- int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp)
- {
++
++phys_addr_t hdmi_wp_get_audio_dma_addr(struct hdmi_wp_data *wp)
++{
++	return wp->phys_base + HDMI_WP_AUDIO_DATA;
++}
 -- 
 1.7.9.5
 
