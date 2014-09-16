@@ -1,63 +1,41 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Tue, 16 Sep 2014 14:42:01 +0200
-Message-ID: <20140916124200.GK28458@ci00147.xsens-tech.local>
-References: <54119AAA.9080907@linutronix.de>
- <20140911151114.GD28458@ci00147.xsens-tech.local>
- <5411C810.7070906@linutronix.de>
- <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
- <54129F6C.7040508@linutronix.de>
- <20140912094010.GE28458@ci00147.xsens-tech.local>
- <5412C21A.8020203@linutronix.de>
- <20140912102816.GF28458@ci00147.xsens-tech.local>
- <541716DC.9020904@linutronix.de>
- <20140916090540.GJ28458@ci00147.xsens-tech.local>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 00/16 v9] omap 8250 based uart + DMA
+Date: Tue, 16 Sep 2014 14:57:36 +0200
+Message-ID: <541833C0.5020106@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <20140912224324.GK18849@atomide.com> <5416D2A0.5020407@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140916090540.GJ28458@ci00147.xsens-tech.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:41794 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753206AbaIPM5m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 08:57:42 -0400
+In-Reply-To: <5416D2A0.5020407@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
 
-On Tue, Sep 16, 2014 at 11:05:40AM +0200, Frans Klaver wrote:
-> On Mon, Sep 15, 2014 at 06:42:04PM +0200, Sebastian Andrzej Siewior wrote:
-> > On 09/12/2014 12:28 PM, Frans Klaver wrote:
-> > > port config is 115200 8N1. I don't recall doing anything special. I
-> > > boot, login, less file and get a lock.
-> > 
-> > So I booted my mini Debian 7.6 (basic system + openssh) on my beagle
-> > bone black which is:
-> > 
-> > [    0.000000] AM335X ES2.0 (neon )
-> > 
-> > configured a console, login, invoked "less file". The file was shown, I
-> > hit on the space key so less shows me more of the file. No lock-up.
-> > I tried booting via NFS and MMC. I tried various files with less.
-> > 
-> > My dot config is here
-> > 	https://breakpoint.cc/config-am335x-bb.txt.xz
-> > 
-> > If there is nothing specific to the file you do less on I have no idea
-> > what else it could if it is not the config.
-> 
-> I'll test your config and go through the differences.
+On 09/15/2014 01:50 PM, Sebastian Andrzej Siewior wrote:
+> I changed the restore function the fix the am335x-evm + less "freeze"=
+=2E
+> And now we have this. So let me search=E2=80=A6
 
-So far it looks like it isn't in the config. I've tested both your and
-my config on debian wheezy on a boneblack. No lock ups.
+IER was 0 by accident. It fixed in TX path.
+I pushed uart_v10_pre1 which should have it fixed aport from other
+things=E2=80=A6
+I am going to address the review comments, to split the DMA callbacks
+as requested and if nobody comes up with something fancy we will have a
+v10 :)
 
-Less doesn't fill my entire screen, so it looks a bit funky when
-scrolling, but I'm not sure if that's related to the driver.
+>> Regards,
+>>
+>> Tony
 
-I'll have to look further for things we did that may have impact here.
-
-> Thanks,
-> Frans
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
