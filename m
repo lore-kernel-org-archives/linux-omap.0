@@ -1,213 +1,58 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv2 2/2] remoteproc: add support to handle internal memories
-Date: Tue, 16 Sep 2014 15:18:38 -0500
-Message-ID: <1410898718-10828-3-git-send-email-s-anna@ti.com>
-References: <1410898718-10828-1-git-send-email-s-anna@ti.com>
+Subject: [PATCHv2 0/2] couple of generic remoteproc enhancements
+Date: Tue, 16 Sep 2014 15:18:36 -0500
+Message-ID: <1410898718-10828-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1410898718-10828-1-git-send-email-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Robert Tivy <rtivy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suman Anna <s-anna@ti.com>
+Cc: linux-omap@vger.kernel.org, Robert Tivy <rtivy@ti.com>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-A remote processor may need to load certain firmware sections into
-internal memories (eg: RAM at L1 or L2 levels) for performance or
-other reasons. Introduce a new resource type (RSC_INTMEM) and add
-an associated handler function to handle such memories. The handler
-creates a kernel mapping for the resource's 'pa' (physical address).
+Hi Ohad,
 
-Note that no iommu mapping is performed for this resource, as the
-resource is primarily used to represent physical internal memories.
-If the internal memory region can only be accessed through an iommu,
-a devmem resource entry should be used instead.
+The following is an updated patchset addressing the review comments on v1.
+The patches are mainly developed to support the WkupM3 remote processor
+driver on TI AM335x/AM437x SoCs. The patches are rebased onto 3.17-rc3
+(rc independent actually).
 
-Signed-off-by: Robert Tivy <rtivy@ti.com>
-Signed-off-by: Suman Anna <s-anna@ti.com>
----
-v2:
-- fixed a minor checkpatch warning
+I haven't made any major updates to Patch2 with respect to the ioremap
+vs defining a CMA region, as the latter is irrelevant for mapping these
+internal RAMs.
 
- drivers/remoteproc/remoteproc_core.c | 83 +++++++++++++++++++++++++++++++++++-
- include/linux/remoteproc.h           | 43 ++++++++++++++++++-
- 2 files changed, 124 insertions(+), 2 deletions(-)
+Following are the main changes in v2:
+- Add explicit setting of the .has_iommu field in each of the existing
+  remoteproc platform drivers (Patch 1)
+- Update patch description to add the usecase details for the change
+  summary (Patch1)
+- Fixed a minor checkpatch warning (Patch 2).
 
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 11cdb11..1d668e5 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -664,6 +664,82 @@ free_carv:
- 	return ret;
- }
- 
-+/**
-+ * rproc_handle_intmem() - handle internal memory resource entry
-+ * @rproc: rproc handle
-+ * @rsc: the intmem resource entry
-+ * @offset: offset of the resource data in resource table
-+ * @avail: size of available data (for image validation)
-+ *
-+ * This function will handle firmware requests for mapping a memory region
-+ * internal to a remote processor into kernel. It neither allocates any
-+ * physical pages, nor performs any iommu mapping, as this resource entry
-+ * is primarily used for representing physical internal memories. If the
-+ * internal memory region can only be accessed through an iommu, please
-+ * use a devmem resource entry.
-+ *
-+ * These resource entries should be grouped near the carveout entries in
-+ * the firmware's resource table, as other firmware entries might request
-+ * placing other data objects inside these memory regions (e.g. data/code
-+ * segments, trace resource entries, ...).
-+ */
-+static int rproc_handle_intmem(struct rproc *rproc, struct fw_rsc_intmem *rsc,
-+			       int offset, int avail)
-+{
-+	struct rproc_mem_entry *intmem;
-+	struct device *dev = &rproc->dev;
-+	void *va;
-+	int ret;
-+
-+	if (sizeof(*rsc) > avail) {
-+		dev_err(dev, "intmem rsc is truncated\n");
-+		return -EINVAL;
-+	}
-+
-+	if (rsc->version != 1) {
-+		dev_err(dev, "intmem rsc version %d is not supported\n",
-+			rsc->version);
-+		return -EINVAL;
-+	}
-+
-+	if (rsc->reserved) {
-+		dev_err(dev, "intmem rsc has non zero reserved bytes\n");
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(dev, "intmem rsc: da 0x%x, pa 0x%x, len 0x%x\n",
-+		rsc->da, rsc->pa, rsc->len);
-+
-+	intmem = kzalloc(sizeof(*intmem), GFP_KERNEL);
-+	if (!intmem)
-+		return -ENOMEM;
-+
-+	va = (__force void *)ioremap_nocache(rsc->pa, rsc->len);
-+	if (!va) {
-+		dev_err(dev, "ioremap_nocache err: %d\n", rsc->len);
-+		ret = -ENOMEM;
-+		goto free_intmem;
-+	}
-+
-+	dev_dbg(dev, "intmem mapped pa 0x%x of len 0x%x into kernel va %p\n",
-+		rsc->pa, rsc->len, va);
-+
-+	intmem->va = va;
-+	intmem->len = rsc->len;
-+	intmem->dma = rsc->pa;
-+	intmem->da = rsc->da;
-+	intmem->priv = (void *)1;    /* prevents freeing */
-+
-+	/* reuse the rproc->carveouts list, so that loading is automatic */
-+	list_add_tail(&intmem->node, &rproc->carveouts);
-+
-+	return 0;
-+
-+free_intmem:
-+	kfree(intmem);
-+	return ret;
-+}
-+
- static int rproc_count_vrings(struct rproc *rproc, struct fw_rsc_vdev *rsc,
- 			      int offset, int avail)
- {
-@@ -681,6 +757,7 @@ static rproc_handle_resource_t rproc_loading_handlers[RSC_LAST] = {
- 	[RSC_CARVEOUT] = (rproc_handle_resource_t)rproc_handle_carveout,
- 	[RSC_DEVMEM] = (rproc_handle_resource_t)rproc_handle_devmem,
- 	[RSC_TRACE] = (rproc_handle_resource_t)rproc_handle_trace,
-+	[RSC_INTMEM] = (rproc_handle_resource_t)rproc_handle_intmem,
- 	[RSC_VDEV] = NULL, /* VDEVs were handled upon registrarion */
- };
- 
-@@ -768,7 +845,11 @@ static void rproc_resource_cleanup(struct rproc *rproc)
- 
- 	/* clean up carveout allocations */
- 	list_for_each_entry_safe(entry, tmp, &rproc->carveouts, node) {
--		dma_free_coherent(dev->parent, entry->len, entry->va, entry->dma);
-+		if (!entry->priv)
-+			dma_free_coherent(dev->parent, entry->len, entry->va,
-+					  entry->dma);
-+		else
-+			iounmap((__force void __iomem *)entry->va);
- 		list_del(&entry->node);
- 		kfree(entry);
- 	}
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 78b8a9b..2a25ee8 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -100,6 +100,7 @@ struct fw_rsc_hdr {
-  *		    the remote processor will be writing logs.
-  * @RSC_VDEV:       declare support for a virtio device, and serve as its
-  *		    virtio header.
-+ * @RSC_INTMEM:     request to map into kernel an internal memory region.
-  * @RSC_LAST:       just keep this one at the end
-  *
-  * For more details regarding a specific resource type, please see its
-@@ -115,7 +116,8 @@ enum fw_resource_type {
- 	RSC_DEVMEM	= 1,
- 	RSC_TRACE	= 2,
- 	RSC_VDEV	= 3,
--	RSC_LAST	= 4,
-+	RSC_INTMEM	= 4,
-+	RSC_LAST	= 5,
- };
- 
- #define FW_RSC_ADDR_ANY (0xFFFFFFFFFFFFFFFF)
-@@ -306,6 +308,45 @@ struct fw_rsc_vdev {
- } __packed;
- 
- /**
-+ * struct fw_rsc_intmem - internal memory publishing request
-+ * @version: version for this resource type (must be one)
-+ * @da: device address
-+ * @pa: physical address
-+ * @len: length (in bytes)
-+ * @reserved: reserved (must be zero)
-+ * @name: human-readable name of the region being published
-+ *
-+ * This resource entry allows a remote processor to publish an internal
-+ * memory region to the host. This resource type allows a remote processor
-+ * to publish the whole or just a portion of certain internal memories,
-+ * while it owns and manages any unpublished portion (eg: a shared L1
-+ * memory that can be split configured as RAM and/or cache). This is
-+ * primarily provided to allow a host to load code/data into internal
-+ * memories, the memory for which is neither allocated nor required to
-+ * be mapped into an iommu.
-+ *
-+ * @da should specify the required address as accessible by the device
-+ * without going through an iommu, @pa should specify the physical address
-+ * for the region as seen on the bus, @len should specify the size of the
-+ * memory region. As always, @name may (optionally) contain a human readable
-+ * name of this mapping (mainly for debugging purposes). The @version field
-+ * is added for future scalability, and should be 1 for now.
-+ *
-+ * Note: at this point we just "trust" these intmem entries to contain valid
-+ * physical bus addresses. these are not currently intended to be managed
-+ * as host-controlled heaps, as it is much better to do that from the remote
-+ * processor side.
-+ */
-+struct fw_rsc_intmem {
-+	u32 version;
-+	u32 da;
-+	u32 pa;
-+	u32 len;
-+	u32 reserved;
-+	u8 name[32];
-+} __packed;
-+
-+/**
-  * struct rproc_mem_entry - memory entry descriptor
-  * @va:	virtual address
-  * @dma: dma address
+regards
+Suman
+
+v1:
+http://marc.info/?l=linux-omap&m=140483657604924&w=2
+
+Suman Anna (2):
+  remoteproc: use a flag to detect the presence of IOMMU
+  remoteproc: add support to handle internal memories
+
+ drivers/remoteproc/da8xx_remoteproc.c |  1 +
+ drivers/remoteproc/omap_remoteproc.c  |  5 ++
+ drivers/remoteproc/remoteproc_core.c  | 98 ++++++++++++++++++++++++++++++-----
+ drivers/remoteproc/ste_modem_rproc.c  |  1 +
+ include/linux/remoteproc.h            | 45 +++++++++++++++-
+ 5 files changed, 135 insertions(+), 15 deletions(-)
+
 -- 
 2.0.4
