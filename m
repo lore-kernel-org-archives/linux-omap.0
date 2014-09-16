@@ -1,111 +1,131 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 02/12] ARM: OMAP3: Use force-idle for UARTs because of
- DMA errata
-Date: Tue, 16 Sep 2014 17:00:52 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1409161605200.23518@utopia.booyaka.com>
-References: <1410837126-31553-1-git-send-email-tony@atomide.com> <1410837126-31553-2-git-send-email-tony@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 06/16] tty: serial: Add 8250-core based omap driver
+Date: Tue, 16 Sep 2014 19:01:29 +0200
+Message-ID: <54186CE9.5030303@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-7-git-send-email-bigeasy@linutronix.de> <54118E1B.5070706@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53802 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754075AbaIPRAx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 13:00:53 -0400
-In-Reply-To: <1410837126-31553-2-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <54118E1B.5070706@hurleysoftware.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>, linux-serial@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Hi
+On 09/11/2014 01:57 PM, Peter Hurley wrote:
+> Hi Sebastian,
 
-A few comments
+Hi Peter,
 
-On Mon, 15 Sep 2014, Tony Lindgren wrote:
+> Nice work. Minor comments within.
 
-> In sprz318f.pdf "Usage Note 2.7" says that UARTs cannot acknowledge
-> idle requests in smartidle mode when configured for DMA operations.
+Thanks.
 
-I don't have Rev. F here.  But reading between the typos in Rev. E, all it 
-says that the UART should be placed into force-idle mode when there are no 
-DMA transfers scheduled, otherwise CORE won't go idle.  However, this 
-patch does a lot more than that...
+> After this is merged, it may be worth investigating how to use Yoshih=
+iro's
+> newly-added 8250-based tunable RX trigger interface for omap.
 
-> This prevents L4 from going idle. So let's use force-idle mode
-> instead and also force reconfiguring of the IO chain wake-up events.
-> 
-> Otherwise systems using Sebastian's 8250 patches with DMA will
-> never enter deeper idle states because of the errata above.
-> 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 61cd49d..55f088c 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -490,7 +490,9 @@ static struct omap_hwmod omap3xxx_uart1_hwmod = {
->  	.mpu_irqs	= omap2_uart1_mpu_irqs,
->  	.sdma_reqs	= omap2_uart1_sdma_reqs,
->  	.main_clk	= "uart1_fck",
-> -	.flags		= DEBUG_TI81XXUART1_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
-> +	.flags		= DEBUG_TI81XXUART1_FLAGS |
-> +				HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE |
-> +				HWMOD_FORCE_MSTANDBY | HWMOD_RECONFIG_IO_CHAIN,
+We need to overwrite the FCR callback. First because we can support
+trigger levels 1=8564 and it it split across two registers and second
+because a change here results also in different DMA attributes.
 
-... this patch makes four significant changes to the hwmod flags:
+>> +++ b/drivers/tty/serial/8250/8250_omap.c
+>> @@ -0,0 +1,911 @@
+>> +/*
+>> + * 8250-core based driver for the OMAP internal UART
+>> + *
+>> + *  Copyright (C) 2014 Sebastian Andrzej Siewior
+>=20
+> + * based on omap-serial.c, Copyright (C) 2010 Texas Instruments.
+>=20
+> or something like that, since this is (partly) based on omap-serial.c
 
-1. It changes HWMOD_SWSUP_SIDLE_ACT to HWMOD_SWSUP_SIDLE
+of course.
 
-2. It adds HWMOD_NO_OCP_AUTOIDLE
+>> + *
+>> + */
+>> +
+=85
+>> +	/*
+>> +	 * Ask the core to calculate the divisor for us.
+>> +	 */
+>> +	baud =3D uart_get_baud_rate(port, termios, old,
+>> +			port->uartclk / 16 / 0xffff,
+>> +			port->uartclk / 13);
+>> +	omap_8250_get_divisor(port, baud, priv);
+>> +
+>> +	/*
+>> +	 * Ok, we're now changing the port state. Do it with
+>> +	 * interrupts disabled.
+>> +	 */
+>> +	pm_runtime_get_sync(port->dev);
+>> +	spin_lock_irqsave(&port->lock, flags);
+>                    ^^^
+>         spin_lock_irq(&port->lock);
+>=20
+> The serial core calls the ->set_termios() method with interrupts enab=
+led.
 
-3. It adds HWMOD_FORCE_MSTANDBY
+Okay, this could work.
 
-4. It adds HWMOD_RECONFIG_IO_CHAIN 
+>> +
+>> +	/*
+>> +	 * Update the per-port timeout.
+>> +	 */
+>> +	uart_update_timeout(port, termios->c_cflag, baud);
+>> +
+>> +	up->port.read_status_mask =3D UART_LSR_OE | UART_LSR_THRE | UART_L=
+SR_DR;
+>> +	if (termios->c_iflag & INPCK)
+>> +		up->port.read_status_mask |=3D UART_LSR_FE | UART_LSR_PE;
+>> +	if (termios->c_iflag & (BRKINT | PARMRK))
+>                                 ^
+>                               IGNBRK |
+>=20
+> Otherwise, the read_status_mask will mask out the BI condition, so
+> uart_insert_char() will send '\0' byte as TTY_NORMAL.
+>=20
+> The 8250 and omap RX path differed so the omap driver didn't need thi=
+s
+> change, whereas the 8250 driver does.
 
-As far as I can tell, the only change that actually matches the erratum 
-usage note is #1.  And even that should only be activated when the UART is 
-in DMA mode.. PIO mode shouldn't need it.  (We used to have a DMA-specific 
-workaround in the driver code for this years ago, which was only enabled 
-when DMA was used, but it got ripped out in the rush to get rid of the 
-platform_data function pointers.)
+Updated.
 
-So that leaves the other three flag changes.  Of those three, adding 
-HWMOD_FORCE_MSTANDBY is definitely not correct according to the 34xx 
-public TRM Rev. ZV, since the UART IP blocks:
+>> +		up->port.read_status_mask |=3D UART_LSR_BI;
+>> +
+>> +	/*
+=85
+>> +
+>> +	priv->efr =3D 0;
+>> +	if (termios->c_cflag & CRTSCTS && up->port.flags & UPF_HARD_FLOW) =
+{
+>> +		/* Enable AUTORTS and AUTOCTS */
+>> +		priv->efr |=3D UART_EFR_CTS | UART_EFR_RTS;
+>> +
+>> +		/* Ensure MCR RTS is asserted */
+>> +		up->mcr |=3D UART_MCR_RTS;
+>> +	}
+>> +
+>> +	if (up->port.flags & UPF_SOFT_FLOW) {
+>=20
+> I'm aware that this is basically from the omap driver but can someone=
+ clear
+> up if omap hardware can actually do UPF_HARD_FLOW and UPF_SOFT_FLOW
+> simultaneously? The datasheets that I've looked at say no.
 
-a) have no master port, 
+The one that I have here for am335x says:
+"The UART module can use hardware or software flow control to manage
+transmission and reception".
+So yes, you are right about this. I changed this to do UPF_HARD_FLOW if
+possible + else UPF_SOFT_FLOW.
 
-b) do not contain DMA controllers (they rely on the SDMA), and 
+> Regards,
+> Peter Hurley
 
-c) according to the SYSC_REG register documentation in Table 17-112 of the 
-above TRM, have no MIDLEMODE bit field.
-
-So adding HWMOD_FORCE_MSTANDBY should have zero effect and it most likely 
-should be dropped.
-
-Regarding the rest: 
-
-I'd be pretty surprised if HWMOD_RECONFIG_IO_CHAIN is needed.  If that was 
-needed, I'd think we would have seen wakeup failures in this path a long 
-time ago, since the console serial port is the primary debug tool we used
-for waking the chip up from deep idle states on demand.
-
-As far as HWMOD_NO_OCP_AUTOIDLE goes: does adding this flag have an effect 
-when HWMOD_SWSUP_SIDLE is used?  If so then this should probably go in as 
-a separate patch, because it's probably a separate bug than the one 
-described in the commit message.
-
-...
-
-So I'd suggest restricting this patch to simply change 
-HWMOD_SWSUP_SIDLE_ACT to HWMOD_SWSUP_SIDLE.  Then if the other flags are 
-needed, would suggest adding them in separate patches, describing what 
-problems are fixed by adding them.
-
-
-- Paul
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
