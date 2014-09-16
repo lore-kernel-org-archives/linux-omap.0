@@ -1,144 +1,156 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCHv2 1/2] remoteproc: use a flag to detect the presence of IOMMU
-Date: Tue, 16 Sep 2014 15:18:37 -0500
-Message-ID: <1410898718-10828-2-git-send-email-s-anna@ti.com>
-References: <1410898718-10828-1-git-send-email-s-anna@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap2: n8x0: move i2c devices to DT
+Date: Tue, 16 Sep 2014 15:31:40 -0500
+Message-ID: <1410899500-21323-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1410898718-10828-1-git-send-email-s-anna@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Robert Tivy <rtivy@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45349 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751817AbaIPUcj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Sep 2014 16:32:39 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-The remoteproc driver core currently relies on iommu_present() on
-the bus the device is on, to perform MMU management. However, this
-logic doesn't scale for multi-arch, especially for processors that
-do not have an IOMMU. Replace this logic instead by using a h/w
-capability flag for the presence of IOMMU in the rproc structure.
+By moving i2c devices to DT we can clean up
+i2c_board_info and fix a problem with moving
+INTC to irq domain where IRQs can be renumbered
+on each boot.
 
-This issue is seen on OMAP platforms when trying to add a remoteproc
-driver for a small Cortex M3 called the WkupM3 used for suspend /
-resume management on TI AM335/AM437x SoCs. This processor does not
-have an MMU. Same is the case with another processor subsystem
-PRU-ICSS on AM335/AM437x. All these are platform devices, and the
-current iommu_present check will not scale for the same kernel image
-to support OMAP4/OMAP5 and AM335/AM437x.
-
-The existing platform implementation drivers - OMAP remoteproc, STE
-Modem remoteproc and DA8xx remoteproc, are updated as well to properly
-configure the newly added rproc field.
-
-Cc: Robert Tivy <rtivy@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
-v2:
-- set the field explicitly in all existing remoteproc platform drivers
-- update patch description
+ arch/arm/boot/dts/omap2420-n810.dts         |  7 +++++++
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi |  6 ++++++
+ arch/arm/mach-omap2/board-n8x0.c            | 26 +++-----------------------
+ arch/arm/mach-omap2/common-board-devices.h  |  5 +++++
+ arch/arm/mach-omap2/pdata-quirks.c          |  2 ++
+ 5 files changed, 23 insertions(+), 23 deletions(-)
 
- drivers/remoteproc/da8xx_remoteproc.c |  1 +
- drivers/remoteproc/omap_remoteproc.c  |  5 +++++
- drivers/remoteproc/remoteproc_core.c  | 15 ++-------------
- drivers/remoteproc/ste_modem_rproc.c  |  1 +
- include/linux/remoteproc.h            |  2 ++
- 5 files changed, 11 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/remoteproc/da8xx_remoteproc.c b/drivers/remoteproc/da8xx_remoteproc.c
-index 3841b98..9fdc0af 100644
---- a/drivers/remoteproc/da8xx_remoteproc.c
-+++ b/drivers/remoteproc/da8xx_remoteproc.c
-@@ -224,6 +224,7 @@ static int da8xx_rproc_probe(struct platform_device *pdev)
+diff --git a/arch/arm/boot/dts/omap2420-n810.dts b/arch/arm/boot/dts/omap2420-n810.dts
+index 21baec1..b604d26 100644
+--- a/arch/arm/boot/dts/omap2420-n810.dts
++++ b/arch/arm/boot/dts/omap2420-n810.dts
+@@ -6,3 +6,10 @@
+ 	model = "Nokia N810";
+ 	compatible = "nokia,n810", "nokia,n8x0", "ti,omap2420", "ti,omap2";
+ };
++
++&i2c2 {
++	aic3x@18 {
++		compatible = "tlv320aic3x";
++		reg = <0x18>;
++	};
++};
+diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
+index 89608b2..24c50db 100644
+--- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
++++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
+@@ -27,6 +27,12 @@
  
- 	drproc = rproc->priv;
- 	drproc->rproc = rproc;
-+	rproc->has_iommu = false;
- 
- 	platform_set_drvdata(pdev, rproc);
- 
-diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
-index 5168972..b21ce95 100644
---- a/drivers/remoteproc/omap_remoteproc.c
-+++ b/drivers/remoteproc/omap_remoteproc.c
-@@ -199,6 +199,11 @@ static int omap_rproc_probe(struct platform_device *pdev)
- 
- 	oproc = rproc->priv;
- 	oproc->rproc = rproc;
-+	/*
-+	 * All existing OMAP IPU and DSP processors do have an MMU, and
-+	 * are expected to use MMU, so this statement suffices.
-+	 */
-+	rproc->has_iommu = true;
- 
- 	platform_set_drvdata(pdev, rproc);
- 
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index 3cd85a6..11cdb11 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -94,19 +94,8 @@ static int rproc_enable_iommu(struct rproc *rproc)
- 	struct device *dev = rproc->dev.parent;
- 	int ret;
- 
--	/*
--	 * We currently use iommu_present() to decide if an IOMMU
--	 * setup is needed.
--	 *
--	 * This works for simple cases, but will easily fail with
--	 * platforms that do have an IOMMU, but not for this specific
--	 * rproc.
--	 *
--	 * This will be easily solved by introducing hw capabilities
--	 * that will be set by the remoteproc driver.
--	 */
--	if (!iommu_present(dev->bus)) {
--		dev_dbg(dev, "iommu not found\n");
-+	if (!rproc->has_iommu) {
-+		dev_dbg(dev, "iommu not present\n");
- 		return 0;
- 	}
- 
-diff --git a/drivers/remoteproc/ste_modem_rproc.c b/drivers/remoteproc/ste_modem_rproc.c
-index c4ac910..c42a32e 100644
---- a/drivers/remoteproc/ste_modem_rproc.c
-+++ b/drivers/remoteproc/ste_modem_rproc.c
-@@ -289,6 +289,7 @@ static int sproc_probe(struct platform_device *pdev)
- 	sproc = rproc->priv;
- 	sproc->mdev = mdev;
- 	sproc->rproc = rproc;
-+	rproc->has_iommu = false;
- 	mdev->drv_data = sproc;
- 
- 	/* Provide callback functions to modem device */
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 9e7e745..78b8a9b 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -404,6 +404,7 @@ enum rproc_crash_type {
-  * @table_ptr: pointer to the resource table in effect
-  * @cached_table: copy of the resource table
-  * @table_csum: checksum of the resource table
-+ * @has_iommu: flag to indicate if remote processor is behind an MMU
-  */
- struct rproc {
- 	struct klist_node node;
-@@ -435,6 +436,7 @@ struct rproc {
- 	struct resource_table *table_ptr;
- 	struct resource_table *cached_table;
- 	u32 table_csum;
-+	bool has_iommu;
+ &i2c1 {
+ 	clock-frequency = <400000>;
++
++	pmic@72 {
++		compatible = "menelaus";
++		reg = <0x72>;
++		interrupts = <7 IRQ_TYPE_EDGE_RISING>;
++	};
  };
  
- /* we currently support only two vrings per rvdev */
+ &i2c2 {
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index aead77a..97767a2 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -33,6 +33,7 @@
+ #include "mmc.h"
+ #include "soc.h"
+ #include "gpmc-onenand.h"
++#include "common-board-devices.h"
+ 
+ #define TUSB6010_ASYNC_CS	1
+ #define TUSB6010_SYNC_CS	4
+@@ -568,29 +569,14 @@ static int n8x0_menelaus_late_init(struct device *dev)
+ }
+ #endif
+ 
+-static struct menelaus_platform_data n8x0_menelaus_platform_data __initdata = {
++struct menelaus_platform_data n8x0_menelaus_platform_data __initdata = {
+ 	.late_init = n8x0_menelaus_late_init,
+ };
+ 
+-static struct i2c_board_info __initdata n8x0_i2c_board_info_1[] __initdata = {
+-	{
+-		I2C_BOARD_INFO("menelaus", 0x72),
+-		.irq = 7 + OMAP_INTC_START,
+-		.platform_data = &n8x0_menelaus_platform_data,
+-	},
+-};
+-
+-static struct aic3x_pdata n810_aic33_data __initdata = {
++struct aic3x_pdata n810_aic33_data __initdata = {
+ 	.gpio_reset = 118,
+ };
+ 
+-static struct i2c_board_info n810_i2c_board_info_2[] __initdata = {
+-	{
+-		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+-		.platform_data = &n810_aic33_data,
+-	},
+-};
+-
+ static int __init n8x0_late_initcall(void)
+ {
+ 	if (!board_caps)
+@@ -612,11 +598,5 @@ void * __init n8x0_legacy_init(void)
+ 	board_check_revision();
+ 	spi_register_board_info(n800_spi_board_info,
+ 				ARRAY_SIZE(n800_spi_board_info));
+-	i2c_register_board_info(0, n8x0_i2c_board_info_1,
+-				ARRAY_SIZE(n8x0_i2c_board_info_1));
+-	if (board_is_n810())
+-		i2c_register_board_info(1, n810_i2c_board_info_2,
+-					ARRAY_SIZE(n810_i2c_board_info_2));
+-
+ 	return &mmc1_data;
+ }
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+index f338177..07c88ae 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -1,6 +1,8 @@
+ #ifndef __OMAP_COMMON_BOARD_DEVICES__
+ #define __OMAP_COMMON_BOARD_DEVICES__
+ 
++#include <sound/tlv320aic3x.h>
++#include <linux/mfd/menelaus.h>
+ #include "twl-common.h"
+ 
+ #define NAND_BLOCK_SIZE	SZ_128K
+@@ -12,4 +14,7 @@ void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ 		       struct ads7846_platform_data *board_pdata);
+ void *n8x0_legacy_init(void);
+ 
++extern struct menelaus_platform_data n8x0_menelaus_platform_data;
++extern struct aic3x_pdata n810_aic33_data;
++
+ #endif /* __OMAP_COMMON_BOARD_DEVICES__ */
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 8695fd4..06a0ccf 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -336,6 +336,8 @@ static struct pdata_init auxdata_quirks[] __initdata = {
+ struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
+ #ifdef CONFIG_MACH_NOKIA_N8X0
+ 	OF_DEV_AUXDATA("ti,omap2420-mmc", 0x4809c000, "mmci-omap.0", NULL),
++	OF_DEV_AUXDATA("menelaus", 0x72, "1-0072", &n8x0_menelaus_platform_data),
++	OF_DEV_AUXDATA("tlv320aic3x", 0x18, "2-0018", &n810_aic33_data),
+ #endif
+ #ifdef CONFIG_ARCH_OMAP3
+ 	OF_DEV_AUXDATA("ti,omap3-padconf", 0x48002030, "48002030.pinmux", &pcs_pdata),
 -- 
-2.0.4
+2.0.1.563.g66f467c
+
