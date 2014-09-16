@@ -1,107 +1,97 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
-Date: Tue, 16 Sep 2014 11:34:42 -0500
-Message-ID: <541866A2.70007@ti.com>
-References: <1408716154-26101-1-git-send-email-nm@ti.com> <1408716154-26101-9-git-send-email-nm@ti.com> <7hvbpdbvb1.fsf@paris.lan> <CAGo_u6o7vAf=syzDTyxh0-kOhmzAmtdG_ardgFgoPQofrGdxUQ@mail.gmail.com> <53FE3477.2020207@ti.com> <7hegw1bs30.fsf@paris.lan> <20140905211847.GB31011@kahuna>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140905211847.GB31011@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: daniel.lezcano@linaro.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, lkml <linux-kernel@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@linaro.org>, linux-pm <linux-pm@vger.kernel.org>
+From: Dmitry Lifshitz <lifshitz@compulab.co.il>
+Subject: [PATCH 2/4] ARM: dts: cm-t54: add Startek LCD support
+Date: Tue, 16 Sep 2014 19:35:20 +0300
+Message-ID: <1410885322-5928-3-git-send-email-lifshitz@compulab.co.il>
+References: <1410885322-5928-1-git-send-email-lifshitz@compulab.co.il>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:48897 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754706AbaIPQfg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Sep 2014 12:35:36 -0400
+In-Reply-To: <1410885322-5928-1-git-send-email-lifshitz@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
 
+Add DT support for Startek KD050C LCD 800x480 panel.
 
-Daniel,
+Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
+---
+ arch/arm/boot/dts/omap5-cm-t54.dts |   44 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 44 insertions(+), 0 deletions(-)
 
-On 09/05/2014 04:18 PM, Nishanth Menon wrote:
-> Daniel,
-> 
-> On 13:22-20140827, Kevin Hilman wrote:
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>
->>> On Wednesday 27 August 2014 03:35 PM, Nishanth Menon wrote:
->>>> On Wed, Aug 27, 2014 at 2:13 PM, Kevin Hilman
->>>> <khilman@deeprootsystems.com> wrote:
->>>>> + Daniel (cpuidle maintainer)
->>>> [...]
->>>>>> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
->>>>>> +                            struct cpuidle_driver *drv,
->>>>>> +                            int index)
->>>>>> +{
->>>>>> +     struct idle_statedata *cx = state_ptr + index;
->>>>>> +     unsigned long flag;
->>>>>> +
->>>>>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
->>>>>> +     cx->mpu_state_vote++;
->>>>>> +     if (cx->mpu_state_vote == num_online_cpus()) {
->>>>>> +             pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
->>>>>> +             omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
->>>>>> +     }
->>>>>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
->>>>>> +
->>>>>> +     omap4_enter_lowpower(dev->cpu, cx->cpu_state);
->>>>>> +
->>>>>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
->>>>>> +     if (cx->mpu_state_vote == num_online_cpus())
->>>>>> +             omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
->>>>>> +     cx->mpu_state_vote--;
->>>>>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
->>>>>> +
->>>>>> +     return index;
->>>>>> +}
->>>>>
->>>>> Hmm, maybe OMAP5/DRA7 CPUidle driver should be a new one based on MCPM?
->>>>
->>>> Trying to understand benefit of MCPM here - at least without a deeper
->>>> understanding of mcpm infrastructure benefits (first look seemed a
->>>> little heavy for OMAP5/DRA7 needs).
->>>>
->>>> Neither DRA7/OMAP5 are multi-cluster, the SoCs are not targetted for
->>>> "OFF" of CPU1/0, we have mercury hardware to help with context and
->>>> sync issues.
->>>>
->>>> Being able to reuse most of existing OMAP4 infrastructure code is
->>>> useful as well to leave the existing omap4 framework as being lighter
->>>> in complexity -esp in a cpuidle like hot path?
->>>>
->>>> The spin_lock is only for the programming of MPU power domain in a
->>>> consistent manner - I suppose might have been the trigger for
->>>> proposing mcpm?
->>>>
->>> Mostly not....
->>>
->>> I think this is coming because last time Nicolas Pitre tried to convert
->>> the OMAP CPUIdle into MCPM but because of various ordering requirements,
->>> OMAP wasn't suitable and then the plan was dropped later.
->>>
->>> Just to make clear, OMAP OMAP5/DRA7 as well the ordering requirement
->>> remains the same for deeper states. Its just the mercury retention state
->>> which we are able to enter without ordering requirements and hence
->>> the voting scheme.
->>
->> Ah, OK.  This is the part that I'm missing.  So for deeper states you'll
->> need to be using omap_enter_idle_coupled()
->>
->>> Hope this clarifies to you as well as Kevin just in case he missed the
->>> part of the deeper C-states requirements.
->>
->> Yes, thanks for clarifying.
->>
->> That being said, I think MCPM can now do essentially what the coupled
->> states code is doing. Even so, that's probably not a reason to hold up
->> this patch, but Daniel gets to make that call.
-> 
-> 
-> Gentle ping.. You can find the discussion and the patch here:
-> https://patchwork.kernel.org/patch/4764661/
-> 
-
-Ping on this again.. we are pretty close to approaching v3.18 merge
-window and this discussion has'nt gotten further.
-
+diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
+index 9cb40d6..588cc2a 100644
+--- a/arch/arm/boot/dts/omap5-cm-t54.dts
++++ b/arch/arm/boot/dts/omap5-cm-t54.dts
+@@ -70,8 +70,41 @@
+ 	aliases {
+ 		display0 = &hdmi0;
+ 		display1 = &dvi0;
++		display2 = &lcd0;
+ 	};
+ 
++	lcd0: display {
++                compatible = "startek,startek-kd050c", "panel-dpi";
++                label = "lcd";
++
++                pinctrl-names = "default";
++                pinctrl-0 = <&lcd_pins>;
++
++                enable-gpios = <&gpio8 3 GPIO_ACTIVE_HIGH>;
++
++                panel-timing {
++                        clock-frequency = <33000000>;
++                        hactive = <800>;
++                        vactive = <480>;
++                        hfront-porch = <40>;
++                        hback-porch = <40>;
++                        hsync-len = <43>;
++                        vback-porch = <29>;
++                        vfront-porch = <13>;
++                        vsync-len = <3>;
++                        hsync-active = <0>;
++                        vsync-active = <0>;
++                        de-active = <1>;
++                        pixelclk-active = <1>;
++                };
++
++                port {
++                        lcd_in: endpoint {
++                                remote-endpoint = <&dpi_lcd_out>;
++                        };
++                };
++        };
++
+ 	hdmi0: connector@0 {
+ 		compatible = "hdmi-connector";
+ 		label = "hdmi";
+@@ -223,6 +256,12 @@
+ 		>;
+ 	};
+ 
++	lcd_pins: pinmux_lcd_pins {
++		pinctrl-single,pins = <
++			OMAP5_IOPAD(0x0172, PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* timer11_pwm_evt.gpio8_227 */
++		>;
++	};
++
+ 	hdmi_conn_pins: pinmux_hdmi_conn_pins {
+ 		pinctrl-single,pins = <
+ 			OMAP5_IOPAD(0x013e, PIN_INPUT | MUX_MODE6) /* hdmi_hpd.gpio7_193 */
+@@ -546,6 +585,11 @@
+ 			remote-endpoint = <&tfp410_in>;
+ 			data-lines = <24>;
+ 		};
++
++		dpi_lcd_out: endpoint@1 {
++			remote-endpoint = <&lcd_in>;
++			data-lines = <24>;
++		};
+ 	};
+ };
+ 
 -- 
-Regards,
-Nishanth Menon
+1.7.5.4
+
