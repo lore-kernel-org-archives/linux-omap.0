@@ -1,37 +1,56 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Tue, 16 Sep 2014 16:23:11 +0200
-Message-ID: <20140916142311.GL28458@ci00147.xsens-tech.local>
-References: <20140911151114.GD28458@ci00147.xsens-tech.local>
- <5411C810.7070906@linutronix.de>
- <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
- <54129F6C.7040508@linutronix.de>
- <20140912094010.GE28458@ci00147.xsens-tech.local>
- <5412C21A.8020203@linutronix.de>
- <20140912102816.GF28458@ci00147.xsens-tech.local>
- <541716DC.9020904@linutronix.de>
- <20140916090540.GJ28458@ci00147.xsens-tech.local>
- <20140916124200.GK28458@ci00147.xsens-tech.local>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v4 10/11] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Tue, 16 Sep 2014 18:08:47 +0300
+Message-ID: <CAK=Wgbas+CqgYJ35Sao8eCkMPujpVNbWW-aikUQExScaqYfETw@mail.gmail.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com>
+ <1405047349-15101-11-git-send-email-d-gerlach@ti.com> <7h7g1dlp8b.fsf@linaro.org>
+ <CAK=WgbYwGcSCxHfa880up1qKTroS=mi8UAf_Qh6Wz9n5x4D9rw@mail.gmail.com>
+ <540F5C39.7040201@ti.com> <540F62E3.6080804@ti.com> <7hr3zk7b5z.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140916124200.GK28458@ci00147.xsens-tech.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qg0-f44.google.com ([209.85.192.44]:58083 "EHLO
+	mail-qg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753881AbaIPPJO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Sep 2014 11:09:14 -0400
+Received: by mail-qg0-f44.google.com with SMTP id f51so5715864qge.17
+        for <linux-omap@vger.kernel.org>; Tue, 16 Sep 2014 08:09:13 -0700 (PDT)
+In-Reply-To: <7hr3zk7b5z.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Suman Anna <s-anna@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Benoit Cousson <bcousson@baylibre.com>
 
-On Tue, Sep 16, 2014 at 02:42:00PM +0200, Frans Klaver wrote:
-> On Tue, Sep 16, 2014 at 11:05:40AM +0200, Frans Klaver wrote:
-> > On Mon, Sep 15, 2014 at 06:42:04PM +0200, Sebastian Andrzej Siewior wrote:
-> > > If there is nothing specific to the file you do less on I have no idea
-> > > what else it could if it is not the config.
-> > 
-> > I'll test your config and go through the differences.
-> 
-> So far it looks like it isn't in the config. I've tested both your and
-> my config on debian wheezy on a boneblack. No lock ups.
+On Wed, Sep 10, 2014 at 12:10 AM, Kevin Hilman <khilman@kernel.org> wrote:
+> What I think you need to do (and what I've recommended at least once in
+> earlier reviews) put all the (non-rproc) wkup_m3 IPC into into one
+> driver and create a well-described, well-documented API that the
+> platform PM code will use.
+>
+> IMO, the current "split" is very difficult to read/understand, which
+> means it will even more difficult to maintain.
 
-No, skip that. It is in the config. I'll hunt it down.
+I strongly agree.
+
+A remoteproc driver should generally only register its
+hardware-specific implementation of the rproc_ops via the remoteproc
+framework. It is not expected to expose public API of its own - that's
+why we have the generic remoteproc layer for. It makes perfect sense
+not to use rpmsg for communications if it's not lightweight enough,
+but exposing a new set of IPC API should take place in a separate
+well-documented driver.
+
+In addition, the suggested remoteproc driver seems to act both as a
+low-level hardware-specific driver that plugs into remoteproc (by
+registering rproc_ops via the remoteproc framework), and also as a
+high-level driver that utilizes the remoteproc public API (by calling
+rproc_boot). This alone calls for scrutinizing the design as this is
+not very intuitive.
+
+At least for the remoteproc part: if you could provide a simple and
+straight-forward remoteproc driver that just implements the rproc_ops,
+this could be merged very quickly. The rest of the code most probably
+belongs in a different entity, just like Kevin suggested.
+
+Thanks,
+Ohad.
