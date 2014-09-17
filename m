@@ -1,96 +1,39 @@
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: DRA7: Add PMU nodes
-Date: Wed, 17 Sep 2014 09:25:03 -0500
-Message-ID: <20140917142503.GA11856@kahuna>
-References: <1408456440-30171-1-git-send-email-nm@ti.com>
- <540719FC.5070803@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: omap2: n8x0: move i2c devices to DT
+Date: Wed, 17 Sep 2014 07:51:32 -0700
+Message-ID: <20140917145131.GB7987@atomide.com>
+References: <1410899500-21323-1-git-send-email-balbi@ti.com>
+ <20140916203337.GI19010@saruman.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51384 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755304AbaIQOvv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 10:51:51 -0400
 Content-Disposition: inline
-In-Reply-To: <540719FC.5070803-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20140916203337.GI19010@saruman.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-On 08:39-20140903, Nishanth Menon wrote:
-> On 08/19/2014 08:54 AM, Nishanth Menon wrote:
-> > From: Lucas Weaver <l-weaver-l0cyMroinI0@public.gmane.org>
+* Felipe Balbi <balbi@ti.com> [140916 13:34]:
+> On Tue, Sep 16, 2014 at 03:31:40PM -0500, Felipe Balbi wrote:
+> > By moving i2c devices to DT we can clean up
+> > i2c_board_info and fix a problem with moving
+> > INTC to irq domain where IRQs can be renumbered
+> > on each boot.
 > > 
-> > DRA74x and DRA72x family of processors vary slightly in the number
-> > of CPUs. So, add different instances of PMU for each of these processor
-> > groups. Further, since the interrupts bypass crossbar and are directly
-> > connected to GIC, mark the dts nodes with relevant information.
-> > 
-> > Tested with perf utility.
-> > 
-> > Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Lucas Weaver <l-weaver-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> > ---
-> Hi,
-> Gentle ping..
-
-Tony,
-I dont see this patch in omap-for-v3.18/dt
-
-Is there anyway you might consider pulling this for 3.18?
-
-Patchworks link:
-https://patchwork.kernel.org/patch/4743121/
-
+> > Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
 > 
-> Regards,
-> Nishanth Menon
-> >  arch/arm/boot/dts/dra72x.dtsi |    5 +++++
-> >  arch/arm/boot/dts/dra74x.dtsi |    6 ++++++
-> >  2 files changed, 11 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
-> > index f1ec22f..e5a3d23 100644
-> > --- a/arch/arm/boot/dts/dra72x.dtsi
-> > +++ b/arch/arm/boot/dts/dra72x.dtsi
-> > @@ -22,4 +22,9 @@
-> >  			reg = <0>;
-> >  		};
-> >  	};
-> > +
-> > +	pmu {
-> > +		compatible = "arm,cortex-a15-pmu";
-> > +		interrupts = <GIC_SPI DIRECT_IRQ(131) IRQ_TYPE_LEVEL_HIGH>;
-> > +	};
-> >  };
-> > diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
-> > index a4e8bb9..3be544c 100644
-> > --- a/arch/arm/boot/dts/dra74x.dtsi
-> > +++ b/arch/arm/boot/dts/dra74x.dtsi
-> > @@ -38,4 +38,10 @@
-> >  			reg = <1>;
-> >  		};
-> >  	};
-> > +
-> > +	pmu {
-> > +		compatible = "arm,cortex-a15-pmu";
-> > +		interrupts = <GIC_SPI DIRECT_IRQ(131) IRQ_TYPE_LEVEL_HIGH>,
-> > +			     <GIC_SPI DIRECT_IRQ(132) IRQ_TYPE_LEVEL_HIGH>;
-> > +	};
-> >  };
-> > 
-> 
-> 
-> -- 
-> Regards,
-> Nishanth Menon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> note that this only causes problem for N8x0 because it boots in kinda of
+> a hybrid way, where it uses DT but not all peripherals are created
+> through DT.
 
--- 
+Thanks applying this into omap-for-v3.18/intc-v2.
+
 Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Tony
