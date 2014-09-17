@@ -1,171 +1,79 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
-Date: Wed, 17 Sep 2014 23:20:09 +0000
-Message-ID: <448912EABC71F84BBCADFD3C67C4BE52CAC748@DBDE04.ent.ti.com>
-References: <1408716154-26101-1-git-send-email-nm@ti.com>
- <1408716154-26101-9-git-send-email-nm@ti.com>,<5419D7BD.30003@linaro.org>
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: Re: [PATCH] arm: arm: fiq: fix build breakage with CONFIG_FIQ
+Date: Wed, 17 Sep 2014 16:29:03 -0700
+Message-ID: <541A193F.2060503@linaro.org>
+References: <1410984101-16762-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5419D7BD.30003@linaro.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "Kristo, Tero" <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "J, KEERTHY" <j-keerthy@ti.com>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:37968 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752208AbaIQX3H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 19:29:07 -0400
+Received: by mail-pd0-f171.google.com with SMTP id p10so110267pdj.2
+        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2014 16:29:06 -0700 (PDT)
+In-Reply-To: <1410984101-16762-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Nicolas Pitre <nico@linaro.org>
 
-Sorry for the format. Emailing from webmail.
-________________________________________
-=46rom: Daniel Lezcano [daniel.lezcano@linaro.org]
-Sent: Wednesday, September 17, 2014 2:49 PM
-To: Menon, Nishanth; Shilimkar, Santosh; Tony Lindgren; Kristo, Tero; P=
-aul Walmsley
-Cc: Kevin Hilman; linux-arm-kernel@lists.infradead.org; linux-omap@vger=
-=2Ekernel.org; linux-kernel@vger.kernel.org; J, KEERTHY; Beno=EEt Couss=
-on
-Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR suppor=
-t
+On 17/09/14 13:01, Felipe Balbi wrote:
+> commit e1add97 (ARM: 8150/2: fiq: Replace default FIQ handler)
+> has a typo which causes build breakage whenever CONFIG_FIQ is
+> set.
+> 
+> The bug is very clear as can be noted that a new struct pt_regs
+> def_fiq_regs was defined but code uses dfl_fiq_regs.
 
-On 08/22/2014 07:02 AM, Nishanth Menon wrote:
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> Add OMAP5/DRA74/72 CPUIDLE support.
->
-> This patch adds MPUSS low power states in cpuidle.
->
->          C1 - CPU0 WFI + CPU1 WFI + MPU ON
->          C2 - CPU0 RET + CPU1 RET + MPU CSWR
->
-> Tested on DRA74/72-EVM for C1 and C2 states.
->
-> NOTE: DRA7 does not do voltage scaling as part of retention transitio=
-n
-> and has Mercury which speeds up transition paths - Latency numbers ar=
-e
-> based on measurements done by toggling GPIOs.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> [ j-keerthy@ti.com rework on 3.14]
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> [nm@ti.com: updates based on profiling, OMAP5 squashed]
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+Quite so. My fault.
+
+This error was picked up by Olof's autobuilder and I have offered
+a fix as 8150/3 (posted to mailing list in this thread
+http://thread.gmane.org/gmane.linux.kernel/1789554 ).
+
+Your fix and mine are slightly different (I standardised on
+dfl_fiq_regs) but both approaches should be functionally identical.
+
+
+Daniel.
+
+
+> Cc: Daniel Thompson <daniel.thompson@linaro.org>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Nicolas Pitre <nico@linaro.org>
+> Fixes: e1add97 (ARM: 8150/2: fiq: Replace default FIQ handler)
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 > ---
->   arch/arm/mach-omap2/cpuidle44xx.c |   82 ++++++++++++++++++++++++++=
-++++++++++-
->   arch/arm/mach-omap2/pm44xx.c      |    2 +-
->   2 files changed, 82 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/=
-cpuidle44xx.c
-> index 2498ab0..8ad4f44 100644
-> --- a/arch/arm/mach-omap2/cpuidle44xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-> @@ -22,6 +22,7 @@
->   #include "common.h"
->   #include "pm.h"
->   #include "prm.h"
-> +#include "soc.h"
->   #include "clockdomain.h"
->
->   #define MAX_CPUS    2
-> @@ -31,6 +32,7 @@ struct idle_statedata {
->       u32 cpu_state;
->       u32 mpu_logic_state;
->       u32 mpu_state;
-> +     u32 mpu_state_vote;
->   };
->
->   static struct idle_statedata omap4_idle_data[] =3D {
-> @@ -51,12 +53,26 @@ static struct idle_statedata omap4_idle_data[] =3D=
- {
->       },
->   };
->
-> +static struct idle_statedata dra7_idle_data[] =3D {
-> +     {
-> +             .cpu_state =3D PWRDM_POWER_ON,
-> +             .mpu_state =3D PWRDM_POWER_ON,
-> +             .mpu_logic_state =3D PWRDM_POWER_ON,
-> +     },
-> +     {
-> +             .cpu_state =3D PWRDM_POWER_RET,
-> +             .mpu_state =3D PWRDM_POWER_RET,
-> +             .mpu_logic_state =3D PWRDM_POWER_RET,
-> +     },
-> +};
-> +
->   static struct powerdomain *mpu_pd, *cpu_pd[MAX_CPUS];
->   static struct clockdomain *cpu_clkdm[MAX_CPUS];
->
->   static atomic_t abort_barrier;
->   static bool cpu_done[MAX_CPUS];
->   static struct idle_statedata *state_ptr =3D &omap4_idle_data[0];
-> +static DEFINE_RAW_SPINLOCK(mpu_lock);
->
->   /* Private functions */
->
-> @@ -78,6 +94,32 @@ static int omap_enter_idle_simple(struct cpuidle_d=
-evice *dev,
->       return index;
->   }
->
-> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
-> +                            struct cpuidle_driver *drv,
-> +                            int index)
-> +{
-> +     struct idle_statedata *cx =3D state_ptr + index;
-> +     unsigned long flag;
-> +
-> +     raw_spin_lock_irqsave(&mpu_lock, flag);
+> 
+> KernelVersion: next-20140917
+> 
+> Russell, let me know if this is the correct KernelVersion tag you want/need
+> 
+>  arch/arm/kernel/fiq.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/kernel/fiq.c b/arch/arm/kernel/fiq.c
+> index 1743049..b6ab4c7 100644
+> --- a/arch/arm/kernel/fiq.c
+> +++ b/arch/arm/kernel/fiq.c
+> @@ -64,7 +64,7 @@ static int fiq_def_op(void *ref, int relinquish)
+>  	if (!relinquish) {
+>  		/* Restore default handler and registers */
+>  		local_fiq_disable();
+> -		set_fiq_regs(&dfl_fiq_regs);
+> +		set_fiq_regs(&def_fiq_regs);
+>  		set_fiq_handler(&no_fiq_insn, sizeof(no_fiq_insn));
+>  		local_fiq_enable();
+>  
+> @@ -159,6 +159,6 @@ void __init init_FIQ(int start)
+>  {
+>  	unsigned offset = FIQ_OFFSET;
+>  	no_fiq_insn = *(unsigned long *)(0xffff0000 + offset);
+> -	get_fiq_regs(&dfl_fiq_regs);
+> +	get_fiq_regs(&def_fiq_regs);
+>  	fiq_start = start;
+>  }
+> 
 
-Why do you need this spin_lock_irqsave ? Aren't the local irqs already
-disabled ?
-
-[Santosh] Actually at one point of time before the idle consolidation t=
-he local
-irq disable was inside the idle drivers. Now with that moved to core la=
-yer,
-I think plain spin_lock/unlock() should work.
-
-> +     cx->mpu_state_vote++;
-> +     if (cx->mpu_state_vote =3D=3D num_online_cpus()) {
-> +             pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
-> +             omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
-> +     }
-> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
-> +
-> +     omap4_enter_lowpower(dev->cpu, cx->cpu_state);
-> +
-> +     raw_spin_lock_irqsave(&mpu_lock, flag);
-> +     if (cx->mpu_state_vote =3D=3D num_online_cpus())
-> +             omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
-> +     cx->mpu_state_vote--;
-> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
-
-I am not sure that will work. What happens if a cpu exits idle and then
-re-enter idle immediately ?
-
-[Santosh] It works and that case is already taken care. CPU exist the i=
-dle and then votes
-out for cluster state and if it reenters with the right targeted state,=
- the cluster state would
-be picked.
-
-
-Could you try a long run of this little program:
-
-https://git.linaro.org/power/pm-qa.git/blob/HEAD:/cpuidle/cpuidle_kille=
-r.c
-
-[Santosh] I am sure there will not be any issue with the long run test =
-case here.
-Lets see if Nishant sees anything otherwise
-
-Regards,
-Santosh--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
