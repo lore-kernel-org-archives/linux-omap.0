@@ -1,59 +1,90 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Wed, 17 Sep 2014 18:34:45 +0200
-Message-ID: <5419B825.5000201@linutronix.de>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] CLK: TI: consider the fact that of_clk_get() might
+ return an error
+Date: Wed, 17 Sep 2014 11:35:59 -0500
+Message-ID: <20140917163559.GA25790@kahuna>
+References: <1410451272-31068-1-git-send-email-bigeasy@linutronix.de>
+ <54198411.1080706@ti.com>
+ <20140917155623.GA28043@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:49928 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755744AbaIQQeu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 12:34:50 -0400
-In-Reply-To: <54118AAB.2010205@linutronix.de>
+Received: from devils.ext.ti.com ([198.47.26.153]:52350 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755879AbaIQQgI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 12:36:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20140917155623.GA28043@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org
 
-On 09/11/2014 01:42 PM, Sebastian Andrzej Siewior wrote:
->> We should add hooks like tx_dma and rx_dma to struct uart_8250_dma s=
-o
->> that the probe drivers can replace serial8250_tx_dma and
->> seria8250_rx_dma, like I think Alan already suggested.
+On 17:56-20140917, Sebastian Andrzej Siewior wrote:
+> I "forgot" to update the dtb and the kernel crashed:
+> |Unable to handle kernel NULL pointer dereference at virtual address =
+0000002e
+> |PC is at __clk_get_flags+0x4/0xc
+> |LR is at ti_dt_clockdomains_setup+0x70/0xe8
 >=20
-> Okay. Wasn't aware that Alan already suggested that.
-> I also need a watchdog timer for TX since it seems that on omap3 the
-> DMA engine suddenly forgets to continue with DMA=E2=80=A6
+> because I did not have the clock nodes. of_clk_get() returns an error
+> pointer which is not checked here.
 >=20
-> If this is really what we want, I would need to refactor a few things=
-=E2=80=A6
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+> v1=E2=80=A6v2:
+>     add "%s __func__" to the added pr_err
 >=20
->> Let's keep serial8250_tx_dma/rx_dma as the default, and not add any
->> quirks to them. Only if there is a very common case should it be
->> handled in those. The case of RX req needing to be sent before data =
-in
->> FIFO maybe one of those, but I'm no sure.
+> * Nishanth Menon | 2014-09-17 07:52:33 [-0500]:
+> >
+> >Could you add %s: __func__ as well - it kinda helps understand this
+> >is part of clockdomain setup and not some driver cribbing that it di=
+d
+> >not get some clock.
 >=20
-> keep in mind that both (RX & TX bugs/hacks) need also a bit of handli=
-ng
-> in the 8250-core so it works together (like the tx_err member so we
-> fall back to manual xmit)
+> As you wish.
+>=20
+>  drivers/clk/ti/clockdomain.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+>=20
+> diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomai=
+n.c
+> index f1e0038d76ac..446481166ce9 100644
+> --- a/drivers/clk/ti/clockdomain.c
+> +++ b/drivers/clk/ti/clockdomain.c
+> @@ -36,6 +36,12 @@ static void __init of_ti_clockdomain_setup(struct =
+device_node *node)
+> =20
+>  	for (i =3D 0; i < num_clks; i++) {
+>  		clk =3D of_clk_get(node, i);
+> +		if (IS_ERR(clk)) {
+> +			pr_err("%s: Failed get %s' clock nr %d (%ld)\n",
+> +					__func__, node->full_name, i,
+> +					PTR_ERR(clk));
+> +			continue;
+> +		}
 
-Done. I've kept the RX workarounds in the 8250_dma and moved the TX
-part into the omap driver.
-I needed to add the 8250_core pieces of patch #10 [0]. Now If you say,
-couldn't this done in an other way then I could move the RX workarounds
-pieces to the omap driver as well as the interrupt routine. Any
-preferences?
+Once the following is fixed (checkpatch --strict) feel free to add:
+Acked-by: Nishanth Menon <nm@ti.com>
 
-[0] [PATCH 10/16] tty: serial: 8250_dma: optimize the xmit path due to
-    UART_BUG_DMA_TX
+#65: FILE: drivers/clk/ti/clockdomain.c:35:
+_node *node)
 
-Sebastian
+CHECK: Alignment should match open parenthesis
+#71: FILE: drivers/clk/ti/clockdomain.c:40:
++			pr_err("%s: Failed get %s' clock nr %d (%ld)\n",
++					__func__, node->full_name, i,
 
+total: 1 errors, 0 warnings, 1 checks, 16 lines checked
+
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+--=20
+Regards,
+Nishanth Menon
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
