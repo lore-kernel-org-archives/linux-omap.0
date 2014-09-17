@@ -1,53 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap2: n8x0: move i2c devices to DT
-Date: Wed, 17 Sep 2014 08:08:18 -0700
-Message-ID: <20140917150818.GB14505@atomide.com>
-References: <1410899500-21323-1-git-send-email-balbi@ti.com>
- <20140916203337.GI19010@saruman.home>
- <20140917145131.GB7987@atomide.com>
- <20140917150205.GB6903@saruman.home>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [RESEND PATCH] gpio: omap: Fix interrupt names
+Date: Wed, 17 Sep 2014 17:36:15 +0200
+Message-ID: <CABxcv=k1vz2-hi34mGBGNjuYorrppW1Zez0xmASWDAdKgN4Dhg@mail.gmail.com>
+References: <1409946775-24076-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33735 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754363AbaIQPIh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 11:08:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20140917150205.GB6903@saruman.home>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1409946775-24076-1-git-send-email-nm@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, Alexandre Courbot <gnurou@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-* Felipe Balbi <balbi@ti.com> [140917 08:03]:
-> On Wed, Sep 17, 2014 at 07:51:32AM -0700, Tony Lindgren wrote:
-> > * Felipe Balbi <balbi@ti.com> [140916 13:34]:
-> > > On Tue, Sep 16, 2014 at 03:31:40PM -0500, Felipe Balbi wrote:
-> > > > By moving i2c devices to DT we can clean up
-> > > > i2c_board_info and fix a problem with moving
-> > > > INTC to irq domain where IRQs can be renumbered
-> > > > on each boot.
-> > > > 
-> > > > Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > 
-> > > note that this only causes problem for N8x0 because it boots in kinda of
-> > > a hybrid way, where it uses DT but not all peripherals are created
-> > > through DT.
-> > 
-> > Thanks applying this into omap-for-v3.18/intc-v2.
-> 
-> it might be better to apply this on your DT branch and merge DT before
-> intc-v2, that might avoid a bisection problem.
+Hello Linus,
 
-Yes it would have been nice to have this as a patch before preparing
-for intc-v2, but I did not have my n8x0 booting reliably because of
-xhci vs ehci issues on my PC and did not notice it early enough.
+On Fri, Sep 5, 2014 at 9:52 PM, Nishanth Menon <nm@ti.com> wrote:
+> When viewing the /proc/interrupts, there is no information about which
+> GPIO bank a specific gpio interrupt is hooked on to. This is more than a
+> bit irritating as such information can esily be provided back to the
+> user and at times, can be crucial for debug.
+>
+> So, instead of displaying something like:
+> 31:     0       0  GPIO   0  palmas
+> 32:     0       0  GPIO  27  mmc0
+>
+> Display the following with appropriate device name:
+> 31:     0       0  4ae10000.gpio   0  palmas
+> 32:     0       0  4805d000.gpio  27  mmc0
+>
+> This requires that we create irq_chip instance specific for each GPIO
+> bank which is trivial to achieve.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> Acked-by: Kevin Hilman <khilman@linaro.org>
+> ---
+> Requested to be resend by Javier with linux-gpio maintainers in CC.
+>
+> Original V1 of the patch: https://patchwork.kernel.org/patch/4757891/
+>
+> Probably belongs to 3.18 kernel series at this point in time.
+>
 
-I've already sent a pull request for the first part of intc-v2, so
-best to keep the related changes together in this case.
+I've no other patches for the GPIO OMAP driver for 3.18, could you
+please pick this patch?
 
-Regards,
-
-Tony
+Thanks a lot and best regards,
+Javier
