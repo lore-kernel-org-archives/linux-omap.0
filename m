@@ -1,71 +1,46 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 3/4] tty: omap-serial: use threaded interrupt handler
-Date: Wed, 17 Sep 2014 14:13:03 +0200
-Message-ID: <20140917121303.GB20438@ci00147.xsens-tech.local>
-References: <1410789610-23059-1-git-send-email-frans.klaver@xsens.com>
- <1410789610-23059-4-git-send-email-frans.klaver@xsens.com>
- <54170823.7040801@hurleysoftware.com>
- <5417228C.5070503@hurleysoftware.com>
- <20140916085037.GI28458@ci00147.xsens-tech.local>
- <54197804.3020302@hurleysoftware.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/2] mfd: twl4030-power: use 'ti,system-power-controller'
+ as alternative way to support system power off
+Date: Wed, 17 Sep 2014 07:17:06 -0500
+Message-ID: <20140917121705.GA2939@splat>
+References: <1409771208-21867-1-git-send-email-nm@ti.com>
+ <1409771208-21867-3-git-send-email-nm@ti.com>
+ <20140909000126.GU3238@atomide.com>
+ <20140916230537.GU25162@lee--X1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54197804.3020302@hurleysoftware.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexey Pelykh <alexey.pelykh@gmail.com>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20140916230537.GU25162@lee--X1>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 17, 2014 at 08:01:08AM -0400, Peter Hurley wrote:
-> On 09/16/2014 04:50 AM, Frans Klaver wrote:
-> > On Mon, Sep 15, 2014 at 01:31:56PM -0400, Peter Hurley wrote:
-> >> On 09/15/2014 11:39 AM, Peter Hurley wrote:
-> >>> On 09/15/2014 10:00 AM, Frans Klaver wrote:
-> >>>> At 3.6Mbaud, with slightly over 2Mbit/s data coming in, we see 1600 uart
-> >>>> rx buffer overflows within 30 seconds. Threading the interrupt handling reduces
-> >>>> this to about 170 overflows in 10 minutes.
-> >>>
-> >>> Why is the threadirqs kernel boot option not sufficient?
-> >>> Or conversely, shouldn't this be selectable?
-> >>
-> > 
-> > I wasn't aware of the threadirqs boot option. I also wouldn't know if
-> > this should be selectable. What would be a reason to favor the
-> > non-threaded irq over the threaded irq?
+On 16:05-20140916, Lee Jones wrote:
+> On Mon, 08 Sep 2014, Tony Lindgren wrote:
 > 
-> Not everyone cares enough about serial to dedicate kthreads to it :)
-
-Fair enough. In that light, we might not care enough about other
-subsystems to dedicate kthreads to it :). Selectable seems reasonable in
-that case.
-
-
-> >> Also, do you see the same performance differential when you implement this
-> >> in the 8250 driver (that is, on top of Sebastian's omap->8250 conversion)?
-> >>
+> > * Nishanth Menon <nm@ti.com> [140903 12:07]:
+> > > ti,system-power-controller is more or less the standard way of
+> > > indicating that the PMIC is the system wide power controller and hence
+> > > may be used to switch off the system. Almost ALL TI PMIC drivers and
+> > > many Maxim PMIC drivers follow the same style.
+> > > 
+> > > So support 'ti,system-power-controller' in addition to the usual
+> > > 'ti,use_poweroff' to indicate that the PMIC instance has control for
+> > > switching off the system.
+> > > 
+> > > Signed-off-by: Nishanth Menon <nm@ti.com>
 > > 
-> > I haven't gotten Sebastian's driver to work properly yet on the console.
-> > There was no reason for me yet to throw my omap changes on top of
-> > Sebastian's queue.
-> > 
-> >>> PS - To overflow the 64 byte RX FIFO at those data rates means interrupt
-> >>> latency in excess of 250us?
-> > 
-> > At 3686400 baud it should take about 174 us to fill a 64 byte buffer. I
-> > haven't done any measurements on the interrupt latency though. If you
-> > consider that we're sending about 1kB of data, 240 times a second, we're
-> > spending a lot of time reading data from the uart. I can imagine the
-> > system has other work to do as well.
+> > Acked-by: Tony Lindgren <tony@atomide.com>
 > 
-> System work should not keep irqs from being serviced. Even 174us is a long
-> time not to service an interrupt. Maybe console writes are keeping the isr
-> from running?
+> I assume you're going to resend this with the document modifications?
+> When you do, don't forget to apply Tony's Ack, as it will ensure a
+> faster merge.
+> 
 
-That's quite possible. I'll have to redo the test setup I had for this to
-give you a decent answer. I'll have to do that anyway as Sebastian's
-8250 conversion improves.
-
-Thanks for the comments,
-Frans
+Thanks for the reminder, This did indeed slip through the cracks.
+Posting updated rev in a few mins..
+-- 
+Regards,
+Nishanth Menon
