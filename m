@@ -1,88 +1,73 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap2: n8x0: move i2c devices to DT
-Date: Wed, 17 Sep 2014 10:45:14 -0500
-Message-ID: <20140917154514.GB8140@saruman.home>
-References: <1410899500-21323-1-git-send-email-balbi@ti.com>
- <20140916203337.GI19010@saruman.home>
- <20140917145131.GB7987@atomide.com>
- <20140917150205.GB6903@saruman.home>
- <20140917150818.GB14505@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH v2] CLK: TI: consider the fact that of_clk_get() might return
+ an error
+Date: Wed, 17 Sep 2014 17:56:23 +0200
+Message-ID: <20140917155623.GA28043@linutronix.de>
+References: <1410451272-31068-1-git-send-email-bigeasy@linutronix.de>
+ <54198411.1080706@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rS8CxjVDS/+yyDmU"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60652 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754786AbaIQPqJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Sep 2014 11:46:09 -0400
+Received: from www.linutronix.de ([62.245.132.108]:49688 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755698AbaIQP4Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 11:56:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20140917150818.GB14505@atomide.com>
+In-Reply-To: <54198411.1080706@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org
 
---rS8CxjVDS/+yyDmU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I "forgot" to update the dtb and the kernel crashed:
+|Unable to handle kernel NULL pointer dereference at virtual address 00=
+00002e
+|PC is at __clk_get_flags+0x4/0xc
+|LR is at ti_dt_clockdomains_setup+0x70/0xe8
 
-On Wed, Sep 17, 2014 at 08:08:18AM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [140917 08:03]:
-> > On Wed, Sep 17, 2014 at 07:51:32AM -0700, Tony Lindgren wrote:
-> > > * Felipe Balbi <balbi@ti.com> [140916 13:34]:
-> > > > On Tue, Sep 16, 2014 at 03:31:40PM -0500, Felipe Balbi wrote:
-> > > > > By moving i2c devices to DT we can clean up
-> > > > > i2c_board_info and fix a problem with moving
-> > > > > INTC to irq domain where IRQs can be renumbered
-> > > > > on each boot.
-> > > > >=20
-> > > > > Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > >=20
-> > > > note that this only causes problem for N8x0 because it boots in kin=
-da of
-> > > > a hybrid way, where it uses DT but not all peripherals are created
-> > > > through DT.
-> > >=20
-> > > Thanks applying this into omap-for-v3.18/intc-v2.
-> >=20
-> > it might be better to apply this on your DT branch and merge DT before
-> > intc-v2, that might avoid a bisection problem.
->=20
-> Yes it would have been nice to have this as a patch before preparing
-> for intc-v2, but I did not have my n8x0 booting reliably because of
-> xhci vs ehci issues on my PC and did not notice it early enough.
->=20
-> I've already sent a pull request for the first part of intc-v2, so
-> best to keep the related changes together in this case.
+because I did not have the clock nodes. of_clk_get() returns an error
+pointer which is not checked here.
 
-alright, no problems then.
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+v1=E2=80=A6v2:
+    add "%s __func__" to the added pr_err
 
+* Nishanth Menon | 2014-09-17 07:52:33 [-0500]:
+>
+>Could you add %s: __func__ as well - it kinda helps understand this
+>is part of clockdomain setup and not some driver cribbing that it did
+>not get some clock.
+
+As you wish.
+
+ drivers/clk/ti/clockdomain.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/clk/ti/clockdomain.c b/drivers/clk/ti/clockdomain.=
+c
+index f1e0038d76ac..446481166ce9 100644
+--- a/drivers/clk/ti/clockdomain.c
++++ b/drivers/clk/ti/clockdomain.c
+@@ -36,6 +36,12 @@ static void __init of_ti_clockdomain_setup(struct de=
+vice_node *node)
+=20
+ 	for (i =3D 0; i < num_clks; i++) {
+ 		clk =3D of_clk_get(node, i);
++		if (IS_ERR(clk)) {
++			pr_err("%s: Failed get %s' clock nr %d (%ld)\n",
++					__func__, node->full_name, i,
++					PTR_ERR(clk));
++			continue;
++		}
+ 		if (__clk_get_flags(clk) & CLK_IS_BASIC) {
+ 			pr_warn("can't setup clkdm for basic clk %s\n",
+ 				__clk_get_name(clk));
 --=20
-balbi
-
---rS8CxjVDS/+yyDmU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUGayKAAoJEIaOsuA1yqREHwQQAJsuxDyI82y0DR0uyQ/mCwZW
-LdqVzXHNK6XldWeDJZTYqSjXDQxPH0+wB/dAe2/EJ72O0oolJHGZB1KTJ+SdzUmA
-LMhMe+TKJh2clEM32xvel2ag6t8gznDOFF3+sb5LQA4OVmv+Ju83DWhQJIKvqD/T
-tfdxn5ufLLKYrX8JVWDUAPQ+zBhuQVacVBaQL7QuUvPKu4q55eZO9TKTL04hrHeq
-urziv3MVlD3FhafgmGm18HSyRM6Mi8RitPH9oOAq1Ceej0VpbJh5maAKozciw1gZ
-9nTvjM3B6Kg1zesgeEZ0HnPjzEd+YhXZoxfoGSl9KesjeWtuSSGvPqvv5VHN3lY1
-V7kxPSw4qgivKeXiF38I7eIlbzDaP87yNUPVKePZ1H214mWQDKgMWY535OKc1ERM
-kmek5h0tUxdVJuAS91tKDFuXzOHQ0uaR72hb+chB5jVNPOojmHUSyQ1M0bkrhjWi
-SAkq4fCFQO57+LAqY0oGgnt3Oz2OYsXWe78/90Fs+CWrYlU946c7cpmFGwabXhyO
-M4mqLLnfKdN+kYMAxcC47hDUHHoAA04B/aRlE+mrusDOSeE7QMsWmCoYtq3QBOt1
-ggiGyteSVv01lBGLzH6uIWRPREn5ra10pMOP+u501xvJ0x+dEXjSraJNmOLqA7hB
-O49Y2JJbNAG0RVpUW4tT
-=b645
------END PGP SIGNATURE-----
-
---rS8CxjVDS/+yyDmU--
+2.1.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
