@@ -1,54 +1,68 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v3 4/5] ASoC: davinci: HDMI audio build for AM33XX and
- TDA998x
-Date: Thu, 18 Sep 2014 00:13:09 +0300
-Message-ID: <5419F965.9060209@ti.com>
-References: <cover.1410898073.git.jsarha@ti.com> <270f1e048d9a5a17a7f367ecabc509475b8c1145.1410898073.git.jsarha@ti.com> <20140917194126.GV7960@sirena.org.uk>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V2 2/2] mfd: twl4030-power: use
+ 'ti,system-power-controller' as alternative way to support system power off
+Date: Wed, 17 Sep 2014 14:39:23 -0700
+Message-ID: <20140917213923.GT30918@lee--X1>
+References: <1410957252-764-1-git-send-email-nm@ti.com>
+ <1410957252-764-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51982 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756625AbaIQVNd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Sep 2014 17:13:33 -0400
-In-Reply-To: <20140917194126.GV7960@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1410957252-764-3-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, tony@atomide.com, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com, Jean-Francois Moine <moinejf@free.fr>
 
-On 09/17/2014 10:41 PM, Mark Brown wrote:
-> On Tue, Sep 16, 2014 at 11:40:17PM +0300, Jyri Sarha wrote:
->> Adds configuration option for HDMI audio support for AM33XX based
->> boards with NXP TDA998x HDMI transmitter. The audio is connected to
->> NXP TDA998x trough McASP running in i2s mode.
->
-> So, Jean-Francois is also trying to do things with the TDA998x - what's
-> the story with that, is this joined up at all?
->
+On Wed, 17 Sep 2014, Nishanth Menon wrote:
 
-Not really. This basic functionality does not touch tda998x at all on 
-the fly, but just sets i2s configuation in the beginning and bangs the 
-bits trough McASP. But as long as the old platform data for tda998x 
-still works after Jean-Francois' patches I should be safe.
+> ti,system-power-controller is more or less the standard way of
+> indicating that the PMIC is the system wide power controller and henc=
+e
+> may be used to switch off the system. Almost ALL TI PMIC drivers and
+> many Maxim PMIC drivers follow the same style.
+>=20
+> So support 'ti,system-power-controller' in addition to the usual
+> 'ti,use_poweroff' to indicate that the PMIC instance has control for
+> switching off the system.
+>=20
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>=20
+> V2: no change, picked up Tony's ack.
+> V1: https://patchwork.kernel.org/patch/4836371/
+>  drivers/mfd/twl4030-power.c |    3 +++
+>  1 file changed, 3 insertions(+)
 
-The problem with the Jean-Francois' patches is the DT support. The BBB 
-HDMI video is implemented trough tilcdc-slave mechanism without a DT 
-node for the tda encoder, which renders Jean-Francois' approach unusable 
-for BBB.
+Applied, thanks.
 
-The whole tilcdc slave approach may not be the most elegant way to use 
-the tda driver, but it does not look like it is going to change any time 
-soon.
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.=
+c
+> index 3bc969a..1c129ba 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -627,6 +627,9 @@ static bool twl4030_power_use_poweroff(const stru=
+ct twl4030_power_data *pdata,
+>  	if (pdata && pdata->use_poweroff)
+>  		return true;
+> =20
+> +	if (of_property_read_bool(node, "ti,system-power-controller"))
+> +		return true;
+> +
+>  	if (of_property_read_bool(node, "ti,use_poweroff"))
+>  		return true;
+> =20
 
-Best regards,
-Jyri
-
-ps. I have been thinking on something similar to Jean-Francois' patch 
-for SiI9022 which I have been working on lately. Also I have been 
-wondering if it would be possible to come up with a generic ASoC codec 
-component driver or library that could be used with any HDMI encoder to 
-produce the ASoC codec component. Unfortunately I am in too early stage 
-to produce anything more concrete.
-
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
