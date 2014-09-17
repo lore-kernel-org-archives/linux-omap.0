@@ -1,106 +1,46 @@
 From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: [PATCH v2 4/6] ARM: dts: cm-t54: add Startek LCD support
-Date: Wed, 17 Sep 2014 15:10:06 +0300
-Message-ID: <1410955808-2174-5-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH v2 1/6] ARM: dts: sbc-t54: fix mux mode comment style
+Date: Wed, 17 Sep 2014 15:10:03 +0300
+Message-ID: <1410955808-2174-2-git-send-email-lifshitz@compulab.co.il>
 References: <1410885322-5928-1-git-send-email-lifshitz@compulab.co.il>
  <1410955808-2174-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:45132 "EHLO
+Received: from softlayer.compulab.co.il ([50.23.254.55]:46080 "EHLO
 	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754904AbaIQMKU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Sep 2014 08:10:20 -0400
+	id S1754363AbaIQMKT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Sep 2014 08:10:19 -0400
 In-Reply-To: <1410955808-2174-1-git-send-email-lifshitz@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Add DT support for Startek KD050C LCD 800x480 panel.
+Follow the comment style of mode0_name.modeX_name for pins
+which mux mode differs from MUX_MODE0.
 
 Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
 ---
- 
- v2: Rebased on top of the previous patch changes
 
- arch/arm/boot/dts/omap5-cm-t54.dts |   44 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 44 insertions(+), 0 deletions(-)
+ v2: New patch
 
-diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
-index d2f241d..e7afeb4 100644
---- a/arch/arm/boot/dts/omap5-cm-t54.dts
-+++ b/arch/arm/boot/dts/omap5-cm-t54.dts
-@@ -19,6 +19,7 @@
- 	aliases {
- 		display0 = &hdmi0;
- 		display1 = &dvi0;
-+		display2 = &lcd0;
- 	};
+ arch/arm/boot/dts/omap5-sbc-t54.dts |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap5-sbc-t54.dts b/arch/arm/boot/dts/omap5-sbc-t54.dts
+index 8e89793..337bbbc 100644
+--- a/arch/arm/boot/dts/omap5-sbc-t54.dts
++++ b/arch/arm/boot/dts/omap5-sbc-t54.dts
+@@ -19,8 +19,8 @@
  
- 	vmmcsd_fixed: fixed-regulator-mmcsd {
-@@ -72,6 +73,38 @@
- 		};
- 	};
- 
-+	lcd0: display {
-+                compatible = "startek,startek-kd050c", "panel-dpi";
-+                label = "lcd";
-+
-+                pinctrl-names = "default";
-+                pinctrl-0 = <&lcd_pins>;
-+
-+                enable-gpios = <&gpio8 3 GPIO_ACTIVE_HIGH>;
-+
-+                panel-timing {
-+                        clock-frequency = <33000000>;
-+                        hactive = <800>;
-+                        vactive = <480>;
-+                        hfront-porch = <40>;
-+                        hback-porch = <40>;
-+                        hsync-len = <43>;
-+                        vback-porch = <29>;
-+                        vfront-porch = <13>;
-+                        vsync-len = <3>;
-+                        hsync-active = <0>;
-+                        vsync-active = <0>;
-+                        de-active = <1>;
-+                        pixelclk-active = <1>;
-+                };
-+
-+                port {
-+                        lcd_in: endpoint {
-+                                remote-endpoint = <&dpi_lcd_out>;
-+                        };
-+                };
-+        };
-+
- 	hdmi0: connector@0 {
- 		compatible = "hdmi-connector";
- 		label = "hdmi";
-@@ -223,6 +256,12 @@
+ 	mmc1_aux_pins: pinmux_mmc1_aux_pins {
+ 		pinctrl-single,pins = <
+-			OMAP5_IOPAD(0x0174, PIN_INPUT_PULLUP | MUX_MODE6) /* gpio8_228 */
+-			OMAP5_IOPAD(0x0176, PIN_INPUT_PULLUP | MUX_MODE6) /* gpio8_229 */
++			OMAP5_IOPAD(0x0174, PIN_INPUT_PULLUP | MUX_MODE6) /* timer5_pwm_evt.gpio8_228 */
++			OMAP5_IOPAD(0x0176, PIN_INPUT_PULLUP | MUX_MODE6) /* timer6_pwm_evt.gpio8_229 */
  		>;
  	};
- 
-+	lcd_pins: pinmux_lcd_pins {
-+		pinctrl-single,pins = <
-+			OMAP5_IOPAD(0x0172, PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* timer11_pwm_evt.gpio8_227 */
-+		>;
-+	};
-+
- 	hdmi_conn_pins: pinmux_hdmi_conn_pins {
- 		pinctrl-single,pins = <
- 			OMAP5_IOPAD(0x013e, PIN_INPUT | MUX_MODE6) /* hdmi_hpd.gpio7_193 */
-@@ -546,6 +585,11 @@
- 			remote-endpoint = <&tfp410_in>;
- 			data-lines = <24>;
- 		};
-+
-+		dpi_lcd_out: endpoint@1 {
-+			remote-endpoint = <&lcd_in>;
-+			data-lines = <24>;
-+		};
- 	};
  };
- 
 -- 
 1.7.5.4
 
