@@ -1,46 +1,49 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] mfd: twl4030-power: use 'ti,system-power-controller'
- as alternative way to support system power off
-Date: Wed, 17 Sep 2014 07:17:06 -0500
-Message-ID: <20140917121705.GA2939@splat>
-References: <1409771208-21867-1-git-send-email-nm@ti.com>
- <1409771208-21867-3-git-send-email-nm@ti.com>
- <20140909000126.GU3238@atomide.com>
- <20140916230537.GU25162@lee--X1>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Wed, 17 Sep 2014 08:20:41 -0400
+Message-ID: <54197C99.8030601@hurleysoftware.com>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5411967A.6090406@hurleysoftware.com> <54119AAA.9080907@linutronix.de> <5411B33F.10405@hurleysoftware.com> <54171B85.5060209@linutronix.de> <54186B89.8050505@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140916230537.GU25162@lee--X1>
+In-Reply-To: <54186B89.8050505@linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 16:05-20140916, Lee Jones wrote:
-> On Mon, 08 Sep 2014, Tony Lindgren wrote:
-> 
-> > * Nishanth Menon <nm@ti.com> [140903 12:07]:
-> > > ti,system-power-controller is more or less the standard way of
-> > > indicating that the PMIC is the system wide power controller and hence
-> > > may be used to switch off the system. Almost ALL TI PMIC drivers and
-> > > many Maxim PMIC drivers follow the same style.
-> > > 
-> > > So support 'ti,system-power-controller' in addition to the usual
-> > > 'ti,use_poweroff' to indicate that the PMIC instance has control for
-> > > switching off the system.
-> > > 
-> > > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> I assume you're going to resend this with the document modifications?
-> When you do, don't forget to apply Tony's Ack, as it will ensure a
-> faster merge.
-> 
+On 09/16/2014 12:55 PM, Sebastian Andrzej Siewior wrote:
+> On 09/15/2014 07:01 PM, Sebastian Andrzej Siewior wrote:
+>> On 09/11/2014 04:35 PM, Peter Hurley wrote:
+>>> I do need to find out if omap hardware sets UART_MSR_DCTS when auto=
+ CTS
+>>> is on. Would you mind running the debug patch below with HW flow co=
+ntrol on?
+>>
+>> I didn't forget about this. However I told minicom to use hardware f=
+low
+>> control (and I see the driver set the HW bit) but I haven't seen tha=
+t
+>> uart_handle_cts_change() has been invoked at all. I'm going to check
+>> two other boards and report then.
+>=20
+> No, I don't get into this at all function.
 
-Thanks for the reminder, This did indeed slip through the cracks.
-Posting updated rev in a few mins..
--- 
+Ok, good to know. Thanks for testing that.
+
+> So I connected my am335x-evm
+> with beagle board xm because both of them have an old fashion UART
+> connector (instead those uart-to-usb). Both configured with HW-Flow a=
+nd
+> I haven't seen the function invoked but I saw "port->icount.overrun"
+> being incremented. This shouldn't happen. So I am a little puzzled he=
+re=E2=80=A6
+
+Yeah, that's weird. Do you have a break-out box to confirm that RTS/CTS=
+ are
+being driven?
+
 Regards,
-Nishanth Menon
+Peter Hurley
