@@ -1,52 +1,61 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 4/5] ASoC: davinci: HDMI audio build for AM33XX and
- TDA998x
-Date: Wed, 17 Sep 2014 12:41:26 -0700
-Message-ID: <20140917194126.GV7960@sirena.org.uk>
-References: <cover.1410898073.git.jsarha@ti.com>
- <270f1e048d9a5a17a7f367ecabc509475b8c1145.1410898073.git.jsarha@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: arm: fiq: fix build breakage with CONFIG_FIQ
+Date: Wed, 17 Sep 2014 15:01:41 -0500
+Message-ID: <1410984101-16762-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Pi1ad4bzbEMsC2x1"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:48717 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755339AbaIQTll (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 15:41:41 -0400
-Content-Disposition: inline
-In-Reply-To: <270f1e048d9a5a17a7f367ecabc509475b8c1145.1410898073.git.jsarha@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36897 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757181AbaIQUCp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Sep 2014 16:02:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, tony@atomide.com, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com, Jean-Francois Moine <moinejf@free.fr>
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Daniel Thompson <daniel.thompson@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Nicolas Pitre <nico@linaro.org>
 
+commit e1add97 (ARM: 8150/2: fiq: Replace default FIQ handler)
+has a typo which causes build breakage whenever CONFIG_FIQ is
+set.
 
---Pi1ad4bzbEMsC2x1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The bug is very clear as can be noted that a new struct pt_regs
+def_fiq_regs was defined but code uses dfl_fiq_regs.
 
-On Tue, Sep 16, 2014 at 11:40:17PM +0300, Jyri Sarha wrote:
-> Adds configuration option for HDMI audio support for AM33XX based
-> boards with NXP TDA998x HDMI transmitter. The audio is connected to
-> NXP TDA998x trough McASP running in i2s mode.
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Nicolas Pitre <nico@linaro.org>
+Fixes: e1add97 (ARM: 8150/2: fiq: Replace default FIQ handler)
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-So, Jean-Francois is also trying to do things with the TDA998x - what's
-the story with that, is this joined up at all?
+KernelVersion: next-20140917
 
---Pi1ad4bzbEMsC2x1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Russell, let me know if this is the correct KernelVersion tag you want/need
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+ arch/arm/kernel/fiq.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-iQEcBAEBAgAGBQJUGePmAAoJECTWi3JdVIfQHGoH/2jKqvJC4Kj9x3EzOyIoRvEM
-u4yZ1gT3++3BkCYZh2+cYn+nIjECDL/OvLg5UvYv9B1G1aopvUtAgzhUu8R5PT2W
-f+KU87DUbnru81Xow74eiXhtPLpjswQr8kHWrhyey5IkKqKO2jp+suwXzDTRahzj
-rKCNbkCo3uvnzztnYxWtbwYz9ShMo4n/bNu2/KUZcalXvxKv9ZgtRlhCg3Oiq+nK
-aFN5zXigyQp4ixSw7kJ8BP2+C7RKwSKJHNTYGtoq8XjvTSMDETicXMzvQCenfMjF
-uwZXaq88ZTL9MfhwRrdShRBfQx0wIam52j/pH6BIqQe1DG8KS9yG1XVUHlt2lOk=
-=cLAs
------END PGP SIGNATURE-----
+diff --git a/arch/arm/kernel/fiq.c b/arch/arm/kernel/fiq.c
+index 1743049..b6ab4c7 100644
+--- a/arch/arm/kernel/fiq.c
++++ b/arch/arm/kernel/fiq.c
+@@ -64,7 +64,7 @@ static int fiq_def_op(void *ref, int relinquish)
+ 	if (!relinquish) {
+ 		/* Restore default handler and registers */
+ 		local_fiq_disable();
+-		set_fiq_regs(&dfl_fiq_regs);
++		set_fiq_regs(&def_fiq_regs);
+ 		set_fiq_handler(&no_fiq_insn, sizeof(no_fiq_insn));
+ 		local_fiq_enable();
+ 
+@@ -159,6 +159,6 @@ void __init init_FIQ(int start)
+ {
+ 	unsigned offset = FIQ_OFFSET;
+ 	no_fiq_insn = *(unsigned long *)(0xffff0000 + offset);
+-	get_fiq_regs(&dfl_fiq_regs);
++	get_fiq_regs(&def_fiq_regs);
+ 	fiq_start = start;
+ }
+-- 
+2.1.0.243.g30d45f7
 
---Pi1ad4bzbEMsC2x1--
