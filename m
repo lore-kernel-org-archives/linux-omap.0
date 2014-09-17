@@ -1,75 +1,56 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate
- change
-Date: Wed, 17 Sep 2014 13:27:37 -0500
-Message-ID: <20140917182737.GF8140@saruman.home>
-References: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
- <20140903192203.11368.5520@quantum>
-Reply-To: <balbi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 0/2] dmaengine: omap-dma: Fix cyclic suspend/resume
+Date: Wed, 17 Sep 2014 21:38:09 +0300
+Message-ID: <5419D511.5010801@ti.com>
+References: <1410896757-3848-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1Y7d0dPL928TPQbc"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140903192203.11368.5520@quantum>
+In-Reply-To: <1410896757-3848-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, linux-arm-kernel@lists.infradead.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---1Y7d0dPL928TPQbc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Vinod,
 
-Hi Mike,
-
-On Wed, Sep 03, 2014 at 12:22:03PM -0700, Mike Turquette wrote:
-> Quoting Tero Kristo (2014-08-21 06:47:45)
-> > In some cases, clocks can switch their parent with clk_set_rate, for
-> > example clk_mux can do this in some cases. Current implementation of
-> > clk_change_rate uses un-safe list iteration on the clock children, which
-> > will cause wrong clocks to be parsed in case any of the clock children
-> > change their parents during the change rate operation. Fixed by using
-> > the safe list iterator instead.
-> >=20
-> > The problem was detected due to some divide by zero errors generated
-> > by clock init on dra7-evm board, see discussion under
-> > http://article.gmane.org/gmane.linux.ports.arm.kernel/349180 for detail=
-s.
-> >=20
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > To: Mike Turquette <mturquette@linaro.org>
-> > Reported-by: Nishanth Menon <nm@ti.com>
+On 09/16/2014 10:45 PM, Peter Ujfalusi wrote:
+> Hi,
 >=20
-> Applied to clk-fixes.
+> Changes since v2:
+> - fix typo in patch two
+> - Acked-by added from Russell
+>=20
+> When the audio is paused/resumed (application paused the sream or boa=
+rd suspend)
+> the audio was only playing back one period worth of data and then sto=
+ps because
+> the omap_dam_stop() clears the link configuration and it is not resto=
+red in
+> start.
+>=20
+> Also add memory barrier call to resume path since this could happen r=
+ight after
+> coming out from suspend.
 
-v3.17-rc5 and today's next still exhibit the same bug. Any chance we can
-this fix into v3.17-final ?
+Would it be possible to queue this two patch for 3.17?
+This stop/start issue affects not only board suspend/resume, but in all=
+ cases
+when application pauses the stream as well when we have underrun in ALS=
+A
+which would not trigger a full stop and start of audio.
 
---=20
-balbi
+Thanks,
+P=E9ter
 
---1Y7d0dPL928TPQbc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUGdKZAAoJEIaOsuA1yqREqOcQAKZGG5v2Dwc0K9lysU0ROfyJ
-VxkFSS9AsOvh0diT+vWZAoLV6cdz/RiX81LzDZpOzmnInJlOidXUV8u7NjJsTIev
-fN0rnVDy8ifDznOCnYX9ToUMC3SkTdFgWwTuY+JfI3kfcXcx+vSgj9c8RBwPzzjd
-7LcJvfiR9H6HRpW/OtLyYaiGtlf9Si2p0/NTaUqYFVHxRHP3Hgp1y/M14QlvqPiq
-2y5sJc0nAE27eiJFqpMaMFGOvnWJcBbUoF6wJLSSBazuIsO8AiChPU/IcIhgYmC1
-iTUR5G915DChXgwEtHIB0WRX8U8yajuYWF2wnAolld4Ht6YwZwdbpvovwPsl4Kt2
-39k2pwGi+7Dx5YXvfnc6RdrDogPwcGuerxLyIGdYISALsq6iK41y5engfloAHwbm
-l1TSKZl04X9nNzJFY2aoLXwMjOdRWgy0Gjw4ZR+Ykk6ibWJBMSCA2lu3qaI3c+ze
-N9NyBHEwa7Z/uTGP0PJrj50XRXCmH+NzIhZDKEmvKdxOvh/RMT/WtqPisSN2Tqbt
-XVy4ffFMIBg+mjykP2bX3FuGOGp1zF/0t9wP8nOVGmyJ78GVsGziZw7idLq5OuAy
-C+t6WKivJfPhNlkuAlxclnh1qNW2LK005N+dMBWOX+6gAWzViQc7gwrLz4v/sLP4
-zKH528Mq112Kviy3YjDI
-=OStr
------END PGP SIGNATURE-----
-
---1Y7d0dPL928TPQbc--
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (2):
+>   dmaengine: omap-dma: Add memory barrier to dma_resume path
+>   dmaengine: omap-dma: Restore the CLINK_CTRL in resume path
+>=20
+>  drivers/dma/omap-dma.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+>=20
