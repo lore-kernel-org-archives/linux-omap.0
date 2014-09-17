@@ -1,49 +1,38 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Wed, 17 Sep 2014 08:20:41 -0400
-Message-ID: <54197C99.8030601@hurleysoftware.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5411967A.6090406@hurleysoftware.com> <54119AAA.9080907@linutronix.de> <5411B33F.10405@hurleysoftware.com> <54171B85.5060209@linutronix.de> <54186B89.8050505@linutronix.de>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V2 0/2] mfd: twl4030-power: support ti,system-power-controller
+Date: Wed, 17 Sep 2014 07:34:10 -0500
+Message-ID: <1410957252-764-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54186B89.8050505@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/16/2014 12:55 PM, Sebastian Andrzej Siewior wrote:
-> On 09/15/2014 07:01 PM, Sebastian Andrzej Siewior wrote:
->> On 09/11/2014 04:35 PM, Peter Hurley wrote:
->>> I do need to find out if omap hardware sets UART_MSR_DCTS when auto=
- CTS
->>> is on. Would you mind running the debug patch below with HW flow co=
-ntrol on?
->>
->> I didn't forget about this. However I told minicom to use hardware f=
-low
->> control (and I see the driver set the HW bit) but I haven't seen tha=
-t
->> uart_handle_cts_change() has been invoked at all. I'm going to check
->> two other boards and report then.
->=20
-> No, I don't get into this at all function.
+This series adds ti,system-power-controller to Documentation and the
+driver seperately as per maintainer preference.
 
-Ok, good to know. Thanks for testing that.
+Based on v3.17-rc1
 
-> So I connected my am335x-evm
-> with beagle board xm because both of them have an old fashion UART
-> connector (instead those uart-to-usb). Both configured with HW-Flow a=
-nd
-> I haven't seen the function invoked but I saw "port->icount.overrun"
-> being incremented. This shouldn't happen. So I am a little puzzled he=
-re=E2=80=A6
+Changes since V1: update in documentation, picked up Tony's ack for patch #2.
 
-Yeah, that's weird. Do you have a break-out box to confirm that RTS/CTS=
- are
-being driven?
+V1: http://marc.info/?l=devicetree&m=140977126218800&w=2
 
-Regards,
-Peter Hurley
+Nishanth Menon (2):
+  Documentation: devicetree: mfd: twl4030-power: Use the standard
+    'ti,system-power-controller' to mark power control
+  mfd: twl4030-power: use 'ti,system-power-controller' as alternative
+    way to support system power off
+
+ .../devicetree/bindings/mfd/twl4030-power.txt      |    9 +++++++--
+ drivers/mfd/twl4030-power.c                        |    3 +++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
