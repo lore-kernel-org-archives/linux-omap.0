@@ -1,43 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap wake-up regression fix for v3.17
-Date: Wed, 17 Sep 2014 07:59:06 -0700
-Message-ID: <20140917145906.GA14505@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: omap2: n8x0: move i2c devices to DT
+Date: Wed, 17 Sep 2014 10:02:05 -0500
+Message-ID: <20140917150205.GB6903@saruman.home>
+References: <1410899500-21323-1-git-send-email-balbi@ti.com>
+ <20140916203337.GI19010@saruman.home>
+ <20140917145131.GB7987@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47978 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754786AbaIQO7Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 10:59:25 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:48598 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754363AbaIQPDA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Sep 2014 11:03:00 -0400
 Content-Disposition: inline
+In-Reply-To: <20140917145131.GB7987@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-The following changes since commit 69e273c0b0a3c337a521d083374c918dc52c666f:
+--p4qYPpj5QlsIQJ0K
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  Linux 3.17-rc3 (2014-08-31 18:23:04 -0700)
+On Wed, Sep 17, 2014 at 07:51:32AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [140916 13:34]:
+> > On Tue, Sep 16, 2014 at 03:31:40PM -0500, Felipe Balbi wrote:
+> > > By moving i2c devices to DT we can clean up
+> > > i2c_board_info and fix a problem with moving
+> > > INTC to irq domain where IRQs can be renumbered
+> > > on each boot.
+> > >=20
+> > > Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >=20
+> > note that this only causes problem for N8x0 because it boots in kinda of
+> > a hybrid way, where it uses DT but not all peripherals are created
+> > through DT.
+>=20
+> Thanks applying this into omap-for-v3.18/intc-v2.
 
-are available in the git repository at:
+it might be better to apply this on your DT branch and merge DT before
+intc-v2, that might avoid a bisection problem.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/fix-v3.17-io-chain-v3
+--=20
+balbi
 
-for you to fetch changes up to 7db143b89137de06ed289cf8b302f3bbbc5baa1f:
+--p4qYPpj5QlsIQJ0K
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-  ARM: OMAP3: Fix I/O chain clock line assertion timed out error (2014-09-16 15:09:44 -0700)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-----------------------------------------------------------------
-Regression fix for early omap3 revisions for wake-up events that
-too some time to narrow down. Although a bit intrusive, this would
-be good to get into the -rc cycle as there are quite a few boards
-out there with omap3 es2.1 and es3.0, and we have those in at least
-three boot test systems too that show errors without this patch.
+iQIcBAEBAgAGBQJUGaJtAAoJEIaOsuA1yqRErGwP+gJp1m4TNZjltzIQ+rkLaPoa
+bFw94hf8RuwMMu6TgmnrmYCeoL3gWALVHQLwmfYfCLkZqrU8OBktSBNSfZSrSayk
+gRxdDsE7kuhD/nKoVdiQOrzAKhxbfvF4q6ZnhvC5RVoKE9hOw5PSVN/4eztbh8va
+CgbSBLF5eDiWD37OfgC4m6+zWBpFLbbmiYy7V4bYFZypy/IPGnC4UqCvdTYv1ODy
+NMbY6vDRRLqzaI+pqo+CzeOdLFMc0FdPr97Jm0c/9xZPCAo/Qqoz02dh8ewdOSdQ
+ytQxplrhkil//cdK36a4iEohQF8738tUMoJ2ByuyEALH92jCddBVBHQmEd17san3
+2Ubzg00GixmEttXbH+ziywuVpgpLE7A5Nz5F0MGz5vJqtorOOoksKUY0zsKMidBx
+6z88zIzLXrwSMpsygpl2epfbUhFQk5my0vTdHl24KNx+Il/IOsG8XRFh0fH3mpgw
+VIv5CJW2Wpn8JISYfEyZLdEthfcFcuL2AXTdQI5mQUhIWI/zdCj4TH3DdL98tH00
+iEYKFKFbKT4hNfwM/FTTbf5/mLBTg3dcLKtW74pDjJXAFx77ncIx3H5N6RdA12ma
+WWedhOYzoWhSatjfc3CmO/eLxtw0ynedWWeq2hOXeAZGXwvD4hjIUA4HX2awP3Ak
+Xa+fha33P4gGSQNyqr1h
+=/X9O
+-----END PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Tony Lindgren (1):
-      ARM: OMAP3: Fix I/O chain clock line assertion timed out error
-
- arch/arm/mach-omap2/omap_hwmod.c |  2 +-
- arch/arm/mach-omap2/prm3xxx.c    | 39 +++++++++++++++++++++++++++++++++++----
- 2 files changed, 36 insertions(+), 5 deletions(-)
+--p4qYPpj5QlsIQJ0K--
