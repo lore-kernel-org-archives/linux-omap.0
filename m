@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/4] part 2 of omap dts changes for v3.18 merge window
-Date: Thu, 18 Sep 2014 13:11:02 -0700
-Message-ID: <43795.8904928111$1411071173@news.gmane.org>
+Subject: [GIT PULL 2/4] part 2 of omap SoC changes for v3.18 merge window
+Date: Thu, 18 Sep 2014 13:11:01 -0700
+Message-ID: <28495.4325216406$1411071181@news.gmane.org>
 References: <pull-1411070912-460910>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,48 +22,49 @@ To: linux-omap@vger.kernel.org, arm@kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit d27704d1ec2f9ba06247b402c58a6f2febecef78:
+The following changes since commit 377fb3f5d9a34b2913939e0620c1c585b5913bab:
 
-  ARM: dts: OMAP2+: Add sub mailboxes device node information (2014-09-11 11:46:30 -0700)
+  ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7 (2014-09-09 19:13:41 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/dt-part2-v2-for-v3.18
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/soc-part2-for-v3.18
 
-for you to fetch changes up to f53e3c538da314913e5d3d82c9610f8da42bd894:
+for you to fetch changes up to 1306c08a7cd7e6136490ab2bc728d2c39741003e:
 
-  ARM: dts: DRA7: Add PMU nodes (2014-09-18 09:58:10 -0700)
-
-----------------------------------------------------------------
-Changes to add dra7 PMU, display support for cm-t54, misc
-changes needed for omap3 boards for device tree support.
+  ARM: OMAP4+: Remove static iotable mappings for SRAM (2014-09-18 09:47:35 -0700)
 
 ----------------------------------------------------------------
-Dmitry Lifshitz (6):
-      ARM: dts: sbc-t54: fix mux mode comment style
-      ARM: dts: cm-t54: fix mux mode comment style
-      ARM: dts: cm-t54: add HDMI/DVI display data
-      ARM: dts: cm-t54: add Startek LCD support
-      ARM: dts: cm-t54: add ADS7846 touchscreen support
-      ARM: dts: cm-t54: setup omap_dwc3
+Few hwmod changes to support upcoming 8250 driver with DMA,
+start using the SRAM driver for some omaps, and update the
+defconfig.
 
-Lucas Weaver (1):
-      ARM: dts: DRA7: Add PMU nodes
+----------------------------------------------------------------
+Rajendra Nayak (3):
+      ARM: AM335x: Get rid of unused sram init function
+      ARM: OMAP4+: Move SRAM data to DT
+      ARM: OMAP4+: Remove static iotable mappings for SRAM
 
-Tony Lindgren (5):
-      ARM: dts: omap3-overo: Fix UART wake-up events
-      ARM: dts: omap: Remove WAKEUPENABLE mux options for UARTs
-      ARM: dts: Do not set pulls for I2C lines
-      ARM: dts: Add support for Ethernet on some N900 macro boards
-      ARM: dts: Enable PMIC idle configuration for LDP
+Tony Lindgren (7):
+      ARM: OMAP2+: Add hwmod flag for HWMOD_RECONFIG_IO_CHAIN
+      ARM: OMAP3: Use manual idle for UARTs because of DMA errata
+      ARM: omap2plus_defconfig: Shrink with savedefconfig
+      ARM: omap2plus_defconfig: Add cpufreq to defconfig
+      ARM: omap2plus_defconfig: Add support for distros with systemd
+      ARM: omap2plus_defconfig: Enable battery and reset drivers
+      ARM: omap2plus_defconfig: Enable some display features
 
- arch/arm/boot/dts/dra72x.dtsi                      |   5 +
- arch/arm/boot/dts/dra74x.dtsi                      |   6 +
- arch/arm/boot/dts/omap3-beagle-xm.dts              |   4 +-
- arch/arm/boot/dts/omap3-ldp.dts                    |   5 +
- arch/arm/boot/dts/omap3-n900.dts                   |  54 +++-
- .../boot/dts/omap3-overo-common-peripherals.dtsi   |   5 +-
- arch/arm/boot/dts/omap5-cm-t54.dts                 | 272 ++++++++++++++++++++-
- arch/arm/boot/dts/omap5-sbc-t54.dts                |   4 +-
- arch/arm/mach-omap2/pdata-quirks.c                 |   3 +
- 9 files changed, 344 insertions(+), 14 deletions(-)
+ Documentation/devicetree/bindings/arm/omap/mpu.txt |  3 +
+ arch/arm/boot/dts/am33xx.dtsi                      |  5 +-
+ arch/arm/boot/dts/am4372.dtsi                      |  5 ++
+ arch/arm/boot/dts/omap4.dtsi                       |  6 ++
+ arch/arm/boot/dts/omap5.dtsi                       |  8 ++-
+ arch/arm/configs/omap2plus_defconfig               | 79 +++++++++++++++++-----
+ arch/arm/mach-omap2/io.c                           | 17 -----
+ arch/arm/mach-omap2/omap4-common.c                 | 22 +++++-
+ arch/arm/mach-omap2/omap_hwmod.c                   |  4 +-
+ arch/arm/mach-omap2/omap_hwmod.h                   |  4 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 12 ++--
+ arch/arm/mach-omap2/sram.c                         | 39 +----------
+ arch/arm/mach-omap2/sram.h                         |  7 --
+ 13 files changed, 119 insertions(+), 92 deletions(-)
