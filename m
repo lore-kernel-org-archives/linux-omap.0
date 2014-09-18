@@ -1,63 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/4] omap clean-up for v3.18 merge window
-Date: Thu, 18 Sep 2014 13:11:03 -0700
-Message-ID: <46275.3902109855$1411071129@news.gmane.org>
-References: <pull-1411070912-460910>
+Subject: [GIT PULL 1/4] part 2 of omap intc changes for v3.18 merge window
+Date: Thu, 18 Sep 2014 13:11:00 -0700
+Message-ID: <21836.9065587924$1411071172@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25582 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756171AbaIRUL6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 16:11:58 -0400
-In-Reply-To: <pull-1411070912-460910>
-In-Reply-To: <pull-1411070912-460910>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, arm@kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
+The following changes since commit 55601c9f24670ba926ebdd4d712ac3b177232330:
 
-  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
+  arm: omap: intc: switch over to linear irq domain (2014-09-11 13:05:50 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/cleanup-for-v3.18
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/intc-part2-for-v3.18
 
-for you to fetch changes up to 3d0cb73e9c85e60206ea9d5191bc0b9a0c4c8a99:
+for you to fetch changes up to 64d5947b9ee1284b38b8e212e7c94024452b2bb4:
 
-  arm: mach-omap2: Convert pr_warning to pr_warn (2014-09-18 09:53:57 -0700)
-
-----------------------------------------------------------------
-Clean-up for omaps for v3.18 merge window:
-
-- Remove unused pieces of the legacy DMA API as we're moving to
-  dmaengine API
-
-- Search and replace to standardize on pr_warn instead of pr_warning
+  irqchip: omap-intc: remove unnecessary comments (2014-09-16 14:45:01 -0700)
 
 ----------------------------------------------------------------
-Joe Perches (1):
-      arm: mach-omap2: Convert pr_warning to pr_warn
+Second part of omap intc interrupt controller changes to
+move it to drivers.
 
-Tony Lindgren (1):
-      ARM: OMAP: Remove unused pieces of legacy DMA API
+----------------------------------------------------------------
+Felipe Balbi (10):
+      arm: omap2: n8x0: move i2c devices to DT
+      irqchip: add irq-omap-intc.h header
+      arm: omap: irq: move irq.c to drivers/irqchip/
+      irqchip: omap-intc: minor improvement to omap_irq_pending()
+      irqchip: omap-intc: comment style cleanup
+      irqchip: omap-intc: remove unnecesary of_address_to_resource() call
+      irqchip: omap-intc: enable IP protection
+      irqchip: omap-intc: enable TURBO idle mode
+      irqchip: omap-intc: correct maximum number or MIR registers
+      irqchip: omap-intc: remove unnecessary comments
 
- arch/arm/mach-omap2/display.c            |   2 +-
- arch/arm/mach-omap2/hdq1w.c              |   4 +-
- arch/arm/mach-omap2/i2c.c                |   2 +-
- arch/arm/mach-omap2/msdi.c               |   4 +-
- arch/arm/mach-omap2/mux.c                |   2 +-
- arch/arm/mach-omap2/omap_hwmod.c         |  26 +-
- arch/arm/mach-omap2/pdata-quirks.c       |   4 +-
- arch/arm/mach-omap2/pm34xx.c             |   2 +-
- arch/arm/mach-omap2/smartreflex-class3.c |   4 +-
- arch/arm/mach-omap2/sr_device.c          |   2 +-
- arch/arm/mach-omap2/vc.c                 |   2 +-
- arch/arm/mach-omap2/voltage.c            |  22 +-
- arch/arm/mach-omap2/wd_timer.c           |   4 +-
- arch/arm/plat-omap/dma.c                 | 737 +------------------------------
- include/linux/omap-dma.h                 |  37 --
- 15 files changed, 46 insertions(+), 808 deletions(-)
+ arch/arm/boot/dts/omap2420-n810.dts                |  7 +++
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |  6 ++
+ arch/arm/mach-omap2/Kconfig                        |  1 +
+ arch/arm/mach-omap2/Makefile                       |  3 +-
+ arch/arm/mach-omap2/board-n8x0.c                   | 26 +--------
+ arch/arm/mach-omap2/common-board-devices.h         |  5 ++
+ arch/arm/mach-omap2/common.h                       | 10 +---
+ arch/arm/mach-omap2/pdata-quirks.c                 |  2 +
+ drivers/irqchip/Kconfig                            |  5 ++
+ drivers/irqchip/Makefile                           |  1 +
+ .../irq.c => drivers/irqchip/irq-omap-intc.c       | 64 +++++++++++++---------
+ include/linux/irqchip/irq-omap-intc.h              | 32 +++++++++++
+ 12 files changed, 101 insertions(+), 61 deletions(-)
+ rename arch/arm/mach-omap2/irq.c => drivers/irqchip/irq-omap-intc.c (89%)
+ create mode 100644 include/linux/irqchip/irq-omap-intc.h
