@@ -1,51 +1,51 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: DRA7: Add PMU nodes
-Date: Thu, 18 Sep 2014 09:58:18 -0700
-Message-ID: <20140918165817.GI14505@atomide.com>
-References: <1408456440-30171-1-git-send-email-nm@ti.com>
- <540719FC.5070803@ti.com>
- <20140917142503.GA11856@kahuna>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Questions about enabling dps(dynamic power switching) and SLM
+Date: Thu, 18 Sep 2014 10:06:36 -0700
+Message-ID: <20140918170635.GJ14505@atomide.com>
+References: <BLU185-W2233E35F6629F6D4F137D6ECEB0@phx.gbl>
+ <20140814140943.GB9239@atomide.com>
+ <BLU185-W41F1B3F381C31F1C3B8266ECD40@phx.gbl>
+ <BLU185-W16CBCC06A88D78F300AE9AECD40@phx.gbl>
+ <20140819150110.GG9239@atomide.com>
+ <BLU185-W41D02CD4B210AFAA8F36ECECC50@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50559 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932117AbaIRRGt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 13:06:49 -0400
 Content-Disposition: inline
-In-Reply-To: <20140917142503.GA11856@kahuna>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <BLU185-W41D02CD4B210AFAA8F36ECECC50@phx.gbl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Deepa Raj <draj187@hotmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [140917 07:26]:
-> On 08:39-20140903, Nishanth Menon wrote:
-> > On 08/19/2014 08:54 AM, Nishanth Menon wrote:
-> > > From: Lucas Weaver <l-weaver-l0cyMroinI0@public.gmane.org>
-> > > 
-> > > DRA74x and DRA72x family of processors vary slightly in the number
-> > > of CPUs. So, add different instances of PMU for each of these processor
-> > > groups. Further, since the interrupts bypass crossbar and are directly
-> > > connected to GIC, mark the dts nodes with relevant information.
-> > > 
-> > > Tested with perf utility.
-> > > 
-> > > Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > > Signed-off-by: Lucas Weaver <l-weaver-l0cyMroinI0@public.gmane.org>
-> > > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> > > ---
-> > Hi,
-> > Gentle ping..
-> 
-> Tony,
-> I dont see this patch in omap-for-v3.18/dt
-> 
-> Is there anyway you might consider pulling this for 3.18?
-> 
-> Patchworks link:
-> https://patchwork.kernel.org/patch/4743121/
+Hi,
 
-Thanks applying into omap-for-v3.18/dt.
+* Deepa Raj <draj187@hotmail.com> [140904 08:59]:
+>
+> 1) Which register in omap3 (as you said dps works in OMAP3) that will
+>  be configured to enable dps and slm?
+
+Hardware enters deeper idle states automatically when configured
+properly, see commits 3b8c4ebb7630, 9eca2837dd69 and c46f601cc2a0.
+Also see the recent changes to drivers/mfd/twl4030-power.c.
+
+> 2) I was working on OMAP3, I disabled TIDSP bridge driver mpu side as
+> we do not need IVA2. IVA2 powerdomain was always on during boot and
+> if the system is idle, it keeps on always on where I was expecting it
+> will move to low power state (checked the transitions from pm_dbg/count).
+> During suspend to RAM also , IVA2 was always on (hundred %s  sure no
+> body is using it as mputidspbridge driver is always disabled). Why is
+> it always on or do it needs some configuration. Since it was not going
+> low power state, so I manually powered it off.Is there register
+> configuration that i am missing so it will enter into low power state
+> automatically, otherwise why it is always on even it is not being used?
+
+IVA2 needs to be idled always, see commit 2d403f7b1981.
+
+Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
