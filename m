@@ -1,118 +1,129 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 10/12] ARM: omap2plus_defconfig: Add support for distros
- with systemd
-Date: Thu, 18 Sep 2014 09:01:27 +0200
-Message-ID: <CABxcv=k9wEf31ojc7b4o19Hk1oU6dKNinqxgLS5qZMrHSVb1FQ@mail.gmail.com>
-References: <1410837126-31553-1-git-send-email-tony@atomide.com>
-	<1410837126-31553-10-git-send-email-tony@atomide.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH v3 1/3] nand: omap2: Add support for flash-based bad block table
+Date: Thu, 18 Sep 2014 08:46:15 +0100
+Message-ID: <CAAEAJfDsht+-LU+ASX2fcsj2j=VKhkFzbhubMbrT5PMcOvQC8A@mail.gmail.com>
+References: <1410447730-16087-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<1410447730-16087-2-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<20140918055948.GD7362@norris-Latitude-E6410>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:34033 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149AbaIRHB3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 03:01:29 -0400
-Received: by mail-wg0-f44.google.com with SMTP id b13so390713wgh.27
-        for <linux-omap@vger.kernel.org>; Thu, 18 Sep 2014 00:01:27 -0700 (PDT)
-In-Reply-To: <1410837126-31553-10-git-send-email-tony@atomide.com>
+Received: from mail-qa0-f48.google.com ([209.85.216.48]:48257 "EHLO
+	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751277AbaIRHqR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 03:46:17 -0400
+Received: by mail-qa0-f48.google.com with SMTP id v10so605731qac.35
+        for <linux-omap@vger.kernel.org>; Thu, 18 Sep 2014 00:46:16 -0700 (PDT)
+In-Reply-To: <20140918055948.GD7362@norris-Latitude-E6410>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-Hello Tony,
-
-On Tue, Sep 16, 2014 at 5:12 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Some distros are now using systemd, so let's enable most of
-> what's recommended at:
+On 18 September 2014 06:59, Brian Norris <computersforpeace@gmail.com> =
+wrote:
+> On Thu, Sep 11, 2014 at 12:02:08PM -0300, Ezequiel Garcia wrote:
+>> This commit adds a new platform-data boolean property that enables u=
+se
+>> of a flash-based bad block table. This can also be enabled by settin=
+g
+>> the 'nand-on-flash-bbt' devicetree property.
+>>
+>> If the flash BBT is not enabled, the driver falls back to use OOB
+>> bad block markers only, as before. If the flash BBT is enabled the
+>> kernel will keep track of bad blocks using a BBT, in addition to
+>> the OOB markers.
+>>
+>> As explained by Brian Norris the reasons for using a BBT are:
+>>
+>> ""
+>> The primary reason would be that NAND datasheets specify it these da=
+ys.
+>> A better argument is that nobody guarantees that you can write a
+>> bad block marker to a worn out block; you may just get program failu=
+res.
+>>
+>> This has been acknowledged by several developers over the last sever=
+al
+>> years.
+>>
+>> Additionally, you get a boot-time performance improvement if you onl=
+y
+>> have to read a few pages, instead of a page or two from every block =
+on
+>> the flash.
+>> ""
+>>
+>> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 >
-> http://cgit.freedesktop.org/systemd/systemd/tree/README
+> Pushed this one to l2-mtd.git. Thanks!
 >
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/configs/omap2plus_defconfig | 24 ++++++++++++++++++++++--
->  1 file changed, 22 insertions(+), 2 deletions(-)
+> But I do have one question below, and I have comments for patch 2.
 >
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 9d232a5..8e6c363 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -1,11 +1,28 @@
->  CONFIG_SYSVIPC=y
->  CONFIG_POSIX_MQUEUE=y
-> +CONFIG_FHANDLE=y
-> +CONFIG_AUDIT=y
->  CONFIG_NO_HZ=y
->  CONFIG_HIGH_RES_TIMERS=y
->  CONFIG_BSD_PROCESS_ACCT=y
->  CONFIG_IKCONFIG=y
->  CONFIG_IKCONFIG_PROC=y
->  CONFIG_LOG_BUF_SHIFT=16
-> +CONFIG_CGROUPS=y
-> +CONFIG_CGROUP_FREEZER=y
-> +CONFIG_CGROUP_DEVICE=y
-> +CONFIG_CPUSETS=y
-> +CONFIG_CGROUP_CPUACCT=y
-> +CONFIG_RESOURCE_COUNTERS=y
-> +CONFIG_MEMCG=y
-> +CONFIG_MEMCG_SWAP=y
-> +CONFIG_MEMCG_KMEM=y
-> +CONFIG_CGROUP_PERF=y
-> +CONFIG_CGROUP_SCHED=y
-> +CONFIG_CFS_BANDWIDTH=y
-> +CONFIG_RT_GROUP_SCHED=y
-> +CONFIG_BLK_CGROUP=y
-> +CONFIG_NAMESPACES=y
->  CONFIG_BLK_DEV_INITRD=y
->  CONFIG_EXPERT=y
->  CONFIG_SLAB=y
-> @@ -37,6 +54,7 @@ CONFIG_ARM_ERRATA_411920=y
->  CONFIG_SMP=y
->  CONFIG_NR_CPUS=2
->  CONFIG_CMA=y
-> +CONFIG_SECCOMP=y
->  CONFIG_ZBOOT_ROM_TEXT=0x0
->  CONFIG_ZBOOT_ROM_BSS=0x0
->  CONFIG_ARM_APPENDED_DTB=y
-> @@ -66,7 +84,7 @@ CONFIG_IP_PNP_DHCP=y
->  CONFIG_IP_PNP_BOOTP=y
->  CONFIG_IP_PNP_RARP=y
->  # CONFIG_INET_LRO is not set
-> -# CONFIG_IPV6 is not set
-> +CONFIG_IPV6=y
->  CONFIG_NETFILTER=y
->  CONFIG_CAN=m
->  CONFIG_CAN_C_CAN=m
-> @@ -80,7 +98,6 @@ CONFIG_BT_HCIBCM203X=m
->  CONFIG_BT_HCIBPA10X=m
->  CONFIG_CFG80211=m
->  CONFIG_MAC80211=m
-> -CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
->  CONFIG_DEVTMPFS=y
->  CONFIG_DEVTMPFS_MOUNT=y
->  CONFIG_DMA_CMA=y
-> @@ -265,11 +282,14 @@ CONFIG_EXT2_FS=y
->  CONFIG_EXT3_FS=y
->  # CONFIG_EXT3_FS_XATTR is not set
->  CONFIG_EXT4_FS=y
-> +CONFIG_FANOTIFY=y
->  CONFIG_QUOTA=y
->  CONFIG_QFMT_V2=y
-> +CONFIG_AUTOFS4_FS=y
->  CONFIG_MSDOS_FS=y
->  CONFIG_VFAT_FS=y
->  CONFIG_TMPFS=y
-> +CONFIG_TMPFS_POSIX_ACL=y
->  CONFIG_JFFS2_FS=y
->  CONFIG_JFFS2_SUMMARY=y
->  CONFIG_JFFS2_FS_XATTR=y
-> --
+>> ---
+>>  arch/arm/mach-omap2/gpmc.c                   | 2 ++
+>>  drivers/mtd/nand/omap2.c                     | 6 +++++-
+>>  include/linux/platform_data/mtd-nand-omap2.h | 1 +
+>>  3 files changed, 8 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+>> index 2f97228..b55a225 100644
+>> --- a/arch/arm/mach-omap2/gpmc.c
+>> +++ b/arch/arm/mach-omap2/gpmc.c
+>> @@ -1440,6 +1440,8 @@ static int gpmc_probe_nand_child(struct platfo=
+rm_device *pdev,
+>>                               break;
+>>                       }
+>>
+>> +     gpmc_nand_data->flash_bbt =3D of_get_nand_on_flash_bbt(child);
+>> +
+>>       val =3D of_get_nand_bus_width(child);
+>>       if (val =3D=3D 16)
+>>               gpmc_nand_data->devsize =3D NAND_BUSWIDTH_16;
+>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+>> index 5967b38..e1a9b31 100644
+>> --- a/drivers/mtd/nand/omap2.c
+>> +++ b/drivers/mtd/nand/omap2.c
+>> @@ -1663,7 +1663,6 @@ static int omap_nand_probe(struct platform_dev=
+ice *pdev)
+>>       mtd->owner              =3D THIS_MODULE;
+>>       nand_chip               =3D &info->nand;
+>>       nand_chip->ecc.priv     =3D NULL;
+>> -     nand_chip->options      |=3D NAND_SKIP_BBTSCAN;
+>>
+>>       res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>       nand_chip->IO_ADDR_R =3D devm_ioremap_resource(&pdev->dev, res=
+);
+>> @@ -1692,6 +1691,11 @@ static int omap_nand_probe(struct platform_de=
+vice *pdev)
+>>               nand_chip->chip_delay =3D 50;
+>>       }
+>>
+>> +     if (pdata->flash_bbt)
+>> +             nand_chip->bbt_options |=3D NAND_BBT_USE_FLASH | NAND_=
+BBT_NO_OOB;
+>> +     else
+>> +             nand_chip->options |=3D NAND_SKIP_BBTSCAN;
+>
+> Can you remind me: why do you use SKIP_BBTSCAN? Doesn't that mean you=
+'re
+> skipping all boot-time scanning for bad blocks, and resorting to
+> on-demand scanning (chip->block_bad()) every time you need to check f=
+or
+> bad blocks?
+>
 
-Looks good to me, so:
+Honestly, I have *no* idea, I just retained the previous flag, so to
+keep the exact same behavior.
 
-Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-
-I think that the same options should be enabled in multi_v7_defconfig BTW.
-
-Best regards,
-Javier
+Roger, any ideas? If I have to guess, I'd say this is an attempt to
+save some boot time.
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
