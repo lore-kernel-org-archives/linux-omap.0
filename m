@@ -1,142 +1,117 @@
 From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH 3/3] mtd: nand: Force omap_elm to be built as a module if
- omap2_nand is a module
-Date: Wed, 17 Sep 2014 20:00:49 -0700
-Message-ID: <20140918030049.GB8127@brian-ubuntu>
-References: <1410443224-18477-1-git-send-email-ezequiel@vanguardiasur.com.ar>
- <1410443224-18477-4-git-send-email-ezequiel@vanguardiasur.com.ar>
- <5412B66F.8050505@ti.com>
- <20140912165636.GA7276@arch>
- <5416A2FF.3050503@ti.com>
+Subject: Re: [PATCH v3 1/3] nand: omap2: Add support for flash-based bad
+ block table
+Date: Wed, 17 Sep 2014 22:59:48 -0700
+Message-ID: <20140918055948.GD7362@norris-Latitude-E6410>
+References: <1410447730-16087-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+ <1410447730-16087-2-git-send-email-ezequiel@vanguardiasur.com.ar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:55140 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756421AbaIRDAx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 23:00:53 -0400
-Received: by mail-pd0-f178.google.com with SMTP id p10so415949pdj.37
-        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2014 20:00:53 -0700 (PDT)
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:60668 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757432AbaIRF7w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 01:59:52 -0400
+Received: by mail-pa0-f54.google.com with SMTP id lj1so741958pab.41
+        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2014 22:59:51 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <5416A2FF.3050503@ti.com>
+In-Reply-To: <1410447730-16087-2-git-send-email-ezequiel@vanguardiasur.com.ar>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, David Woodhouse <dwmw2@infradead.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, pekon <pekon@pek-sem.com>
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-On Mon, Sep 15, 2014 at 11:27:43AM +0300, Roger Quadros wrote:
-> On 09/12/2014 07:56 PM, Ezequiel Garcia wrote:
-> > On 12 Sep 12:01 PM, Roger Quadros wrote:
-> >> On 09/11/2014 04:47 PM, Ezequiel Garcia wrote:
-> >>> This commit adds a hidden option to build the omap_elm as a module, if
-> >>> omap2_nand is a module (and similarly in the built-in case).
-> >>>
-> >>> This fixes the following build error when omap2_nand is chosen built-in,
-> >>> and omap_elm is chosen as a module:
-> >>>
-> >>> drivers/built-in.o: In function `omap_nand_probe':
-> >>> /work/linux-2.6/drivers/mtd/nand/omap2.c:2010: undefined reference to `elm_config'
-> >>> /work/linux-2.6/drivers/mtd/nand/omap2.c:1980: undefined reference to `elm_config'
-> >>> /work/linux-2.6/drivers/mtd/nand/omap2.c:1927: undefined reference to `elm_config'
-> >>> drivers/built-in.o: In function `omap_elm_correct_data':
-> >>> /work/linux-2.6/drivers/mtd/nand/omap2.c:1444: undefined reference to `elm_decode_bch_error_page'
-> >>>
-> >>> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> >>> ---
-> >>>  drivers/mtd/nand/Kconfig  | 8 +++++++-
-> >>>  drivers/mtd/nand/Makefile | 2 +-
-> >>>  2 files changed, 8 insertions(+), 2 deletions(-)
-> >>>
-> >>> diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
-> >>> index f1cf503..12e8ee8 100644
-> >>> --- a/drivers/mtd/nand/Kconfig
-> >>> +++ b/drivers/mtd/nand/Kconfig
-> >>> @@ -96,7 +96,7 @@ config MTD_NAND_OMAP2
-> >>>  
-> >>>  config MTD_NAND_OMAP_BCH
-> >>>  	depends on MTD_NAND_OMAP2
-> >>> -	tristate "Support hardware based BCH error correction"
-> >>> +	bool "Support hardware based BCH error correction"
-> >>>  	default n
-> >>>  	select BCH
-> >>>  	help
-> >>> @@ -106,6 +106,12 @@ config MTD_NAND_OMAP_BCH
-> >>>  	  legacy OMAP families like OMAP2xxx, OMAP3xxx do not have ELM engine
-> >>>  	  so they should not enable this config symbol.
-> >>>  
-> >>> +config MTD_NAND_OMAP_BCH_BUILD
-> >>> +	tristate
-> >>> +	depends on MTD_NAND_OMAP2
-> >>> +	default m if MTD_NAND_OMAP2=m && MTD_NAND_OMAP_BCH
-> >>> +	default y if MTD_NAND_OMAP2=y && MTD_NAND_OMAP_BCH
-
-I think the last 2 lines could be combined:
-
-	default MTD_NAND_OMAP2 if MTD_NAND_OMAP_BCH
-
-> >>> +
-> >>>  config MTD_NAND_IDS
-> >>>  	tristate
-> >>>  
-> >>> diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
-> >>> index 4bcdeb0..3580188 100644
-> >>> --- a/drivers/mtd/nand/Makefile
-> >>> +++ b/drivers/mtd/nand/Makefile
-> >>> @@ -27,7 +27,7 @@ obj-$(CONFIG_MTD_NAND_NDFC)		+= ndfc.o
-> >>>  obj-$(CONFIG_MTD_NAND_ATMEL)		+= atmel_nand.o
-> >>>  obj-$(CONFIG_MTD_NAND_GPIO)		+= gpio.o
-> >>>  obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2_nand.o
-> >>> -obj-$(CONFIG_MTD_NAND_OMAP_BCH)		+= omap_elm.o
-> >>> +obj-$(CONFIG_MTD_NAND_OMAP_BCH_BUILD)	+= omap_elm.o
-> >>>  obj-$(CONFIG_MTD_NAND_CM_X270)		+= cmx270_nand.o
-> >>>  obj-$(CONFIG_MTD_NAND_PXA3xx)		+= pxa3xx_nand.o
-> >>>  obj-$(CONFIG_MTD_NAND_TMIO)		+= tmio_nand.o
-
-Apparently I came up with a nearly identical solution, so it must be
-good! ;)
-
-> >> The overall logic seems to work but I still see the following issue.
-> >>
-> >> In menuconfig, the OMAP_BCH option is still visible as a boolean even though
-> >> the ELM module finally gets built as a module.
-> >> This can be confusing to the user and I'd avoid that behaviour.
-> >>
-> > 
-> > Yes, I know. But it's either this solution or no solution at all, I think.
-> > 
-> > Let me give some further context about this patch, so we can have more
-> > information to decide.
-> > 
-> > First of all (and IMO) the user doesn't have to know about the ELM being
-> > a module or not, because modprobe will load it (since omap2_nand depends
-> > on omap_elm's symbols).
-> > 
-> > So, the new way seems a bit more intuitive for me. The user choses if he
-> > wants to have hardware BCH support, and such support gets built the right
-> > way.
-> > 
-> > If we still consider this highly confusing, and we want to avoid it,
-> > then it seems we can only make omap_elm a boolean, which means it'll always
-> > be built-in. I crafted this patch in an effort to avoid making it boolean.
-> > 
-> > Finally, the solution is taken from media/usb/stk1160. For good or for bad,
-> > we have a precedent in doing things this way.
-> > 
-> > Ultimately, I don't care much as I don't think anyone will build it as a module,
-> > except maybe for testing the driver under probe/remove cycles.
-> > 
-> OK. I personally prefer boolean than the Kconfig magic as it makes my life a bit
-> easier and less confusing to the user i.e. wysiwyg ;).
+On Thu, Sep 11, 2014 at 12:02:08PM -0300, Ezequiel Garcia wrote:
+> This commit adds a new platform-data boolean property that enables use
+> of a flash-based bad block table. This can also be enabled by setting
+> the 'nand-on-flash-bbt' devicetree property.
 > 
-> Let's see what the MTD maintainers prefer.
-> Brian and David, any insights on this problem?
+> If the flash BBT is not enabled, the driver falls back to use OOB
+> bad block markers only, as before. If the flash BBT is enabled the
+> kernel will keep track of bad blocks using a BBT, in addition to
+> the OOB markers.
+> 
+> As explained by Brian Norris the reasons for using a BBT are:
+> 
+> ""
+> The primary reason would be that NAND datasheets specify it these days.
+> A better argument is that nobody guarantees that you can write a
+> bad block marker to a worn out block; you may just get program failures.
+> 
+> This has been acknowledged by several developers over the last several
+> years.
+> 
+> Additionally, you get a boot-time performance improvement if you only
+> have to read a few pages, instead of a page or two from every block on
+> the flash.
+> ""
+> 
+> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-It seems like 'elm' serves more as an accessory piece of omap2.{o,ko},
-not really a separate module, so it's possible it'd make your life even
-easier to just link elm.o into omap2.o. There's no requirement that two
-source files create two separate kernel modules. I think this would
-present the simplest possible interface to the user.
+Pushed this one to l2-mtd.git. Thanks!
 
-Thoughts?
+But I do have one question below, and I have comments for patch 2.
+
+> ---
+>  arch/arm/mach-omap2/gpmc.c                   | 2 ++
+>  drivers/mtd/nand/omap2.c                     | 6 +++++-
+>  include/linux/platform_data/mtd-nand-omap2.h | 1 +
+>  3 files changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 2f97228..b55a225 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1440,6 +1440,8 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+>  				break;
+>  			}
+>  
+> +	gpmc_nand_data->flash_bbt = of_get_nand_on_flash_bbt(child);
+> +
+>  	val = of_get_nand_bus_width(child);
+>  	if (val == 16)
+>  		gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 5967b38..e1a9b31 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1663,7 +1663,6 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	mtd->owner		= THIS_MODULE;
+>  	nand_chip		= &info->nand;
+>  	nand_chip->ecc.priv	= NULL;
+> -	nand_chip->options	|= NAND_SKIP_BBTSCAN;
+>  
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	nand_chip->IO_ADDR_R = devm_ioremap_resource(&pdev->dev, res);
+> @@ -1692,6 +1691,11 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  		nand_chip->chip_delay = 50;
+>  	}
+>  
+> +	if (pdata->flash_bbt)
+> +		nand_chip->bbt_options |= NAND_BBT_USE_FLASH | NAND_BBT_NO_OOB;
+> +	else
+> +		nand_chip->options |= NAND_SKIP_BBTSCAN;
+
+Can you remind me: why do you use SKIP_BBTSCAN? Doesn't that mean you're
+skipping all boot-time scanning for bad blocks, and resorting to
+on-demand scanning (chip->block_bad()) every time you need to check for
+bad blocks?
+
+> +
+>  	/* scan NAND device connected to chip controller */
+>  	nand_chip->options |= pdata->devsize & NAND_BUSWIDTH_16;
+>  	if (nand_scan_ident(mtd, 1, NULL)) {
+> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+> index 16ec262..090bbab 100644
+> --- a/include/linux/platform_data/mtd-nand-omap2.h
+> +++ b/include/linux/platform_data/mtd-nand-omap2.h
+> @@ -71,6 +71,7 @@ struct omap_nand_platform_data {
+>  	struct mtd_partition	*parts;
+>  	int			nr_parts;
+>  	bool			dev_ready;
+> +	bool			flash_bbt;
+>  	enum nand_io		xfer_type;
+>  	int			devsize;
+>  	enum omap_ecc           ecc_opt;
 
 Brian
