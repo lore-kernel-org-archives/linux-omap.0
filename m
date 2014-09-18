@@ -1,118 +1,109 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 09/12] ARM: omap2plus_defconfig: Add cpufreq to defconfig
-Date: Thu, 18 Sep 2014 11:23:12 -0500
-Message-ID: <20140918162312.GA1245@kahuna>
-References: <1410837126-31553-1-git-send-email-tony@atomide.com>
- <1410837126-31553-9-git-send-email-tony@atomide.com>
- <20140918161131.GA32319@kahuna>
- <20140918162041.GF14505@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/3] OMAP4+: Get rid of internal SRAM handling
+Date: Thu, 18 Sep 2014 09:48:47 -0700
+Message-ID: <20140918164846.GG14505@atomide.com>
+References: <cover.1410362895.git.d-gerlach@ti.com>
+ <20140910165643.GA3118@splat>
+ <54133FDB.9030706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53546 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756816AbaIRQXg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Sep 2014 12:23:36 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14909 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932260AbaIRQtE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 12:49:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20140918162041.GF14505@atomide.com>
+In-Reply-To: <54133FDB.9030706@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Benoit Cousson <bcousson@baylibre.com>, Sekhar Nori <nsekhar@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 09:20-20140918, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [140918 09:12]:
-> > On 20:12-20140915, Tony Lindgren wrote:
-> > > Note that we can now use the CONFIG_GENERIC_CPUFREQ_CPU0,
-> > > so let's only enable that.
-> > > 
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >  arch/arm/configs/omap2plus_defconfig | 7 +++++++
-> > >  1 file changed, 7 insertions(+)
-> > > 
-> > > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> > > index fc63855..9d232a5 100644
-> > > --- a/arch/arm/configs/omap2plus_defconfig
-> > > +++ b/arch/arm/configs/omap2plus_defconfig
-> > > @@ -43,6 +43,13 @@ CONFIG_ARM_APPENDED_DTB=y
-> > >  CONFIG_ARM_ATAG_DTB_COMPAT=y
-> > >  CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
-> > >  CONFIG_KEXEC=y
-> > > +CONFIG_CPU_FREQ=y
-> > > +CONFIG_CPU_FREQ_GOV_POWERSAVE=y
-> > > +CONFIG_CPU_FREQ_GOV_USERSPACE=y
-> > > +CONFIG_CPU_FREQ_GOV_ONDEMAND=y
-> > > +CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
-> > > +CONFIG_GENERIC_CPUFREQ_CPU0=y
-> > > +# CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
+* Dave Gerlach <d-gerlach@ti.com> [140912 11:48]:
+> On 09/10/2014 11:56 AM, Nishanth Menon wrote:
+> > On 11:04-20140910, Dave Gerlach wrote:
+> >> v3:
+> >> Fix minor issue in last patch to check for null sram_pool if no sram
+> >> phandle is given in DT.
+> >>
+> >> Make all OMAP DT only platforms (am33xx, am43xx, omap4 and omap5)
+> >> use drivers/misc/sram.c driver instead of the omap internal
+> >> implementation for SRAM handling.
+> >>
+> >> Previous discussion can be found at [1].
+> >>
+> >> Regards,
+> >> Dave
+> >>
+> >> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2013-August/195588.html
+> >>
+> >> Rajendra Nayak (3):
+> >>   ARM: AM335x: Get rid of unused sram init function
+> >>   ARM: OMAP4+: Move SRAM data to DT
+> >>   ARM: OMAP4+: Remove static iotable mappings for SRAM
+> >>
+> >>  Documentation/devicetree/bindings/arm/omap/mpu.txt |  3 ++
+> >>  arch/arm/boot/dts/am33xx.dtsi                      |  5 ++-
+> >>  arch/arm/boot/dts/am4372.dtsi                      |  5 +++
+> >>  arch/arm/boot/dts/omap4.dtsi                       |  6 ++++
+> >>  arch/arm/boot/dts/omap5.dtsi                       |  8 ++++-
+> >>  arch/arm/configs/omap2plus_defconfig               |  1 +
+> >>  arch/arm/mach-omap2/io.c                           | 17 ----------
+> >>  arch/arm/mach-omap2/omap4-common.c                 | 22 +++++++++++-
+> >>  arch/arm/mach-omap2/sram.c                         | 39 +---------------------
+> >>  arch/arm/mach-omap2/sram.h                         |  7 ----
+> >>  10 files changed, 46 insertions(+), 67 deletions(-)
+> >>
 > > 
-> > With this
-> > we get performace as the default governor.
+> > Could you please provide logs for the following:
+> > a) Low power transition tests for OMAP3,4 on all available platforms as
+> > well?
+> > b) provide bootlogs on all omap2plus platforms to ensure we have no
+> > regressions.
 > > 
-> > could we use CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND as the default
-> > instead? on Many TI SoCs using Highest frequency is not really too nice
-> > of an idea for long periods of time. And not everything is upstream to
-> > support things optimially - example avs class 0, 1.5 ABB consolidation
-> > with cpufreq etc.. We definitely need thermal enabled as well for device
-> > safety needs.
 > 
-> OK, sure. I've applied the following version with your changes folded
-> in.
+> Here are logs for low power transition, all platforms passed, properly
+> transitioned power domains with mem sleep using wakeup_timer to wake.
 > 
-> Regards,
+> Low Power transition on v3.17-rc4 with patches applied, omap2plus_defconfig
+> (OMAP3 and OMAP4):
 > 
-> Tony
+>  1: BeagleBoard-XM: http://fpaste.org/133215/
+>  2: OMAP3430-Labrador(LDP): http://fpaste.org/133225/
+>  3: n900: http://fpaste.org/133244/
+>  4: pandaboard-es:  http://fpaste.org/133213/
+>  5: pandaboard-vanilla: http://fpaste.org/133214/
+>  6: sdp3430: http://fpaste.org/133246/
 > 
-> 8< ---------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Thu, 18 Sep 2014 09:01:07 -0700
-> Subject: [PATCH] ARM: omap2plus_defconfig: Add cpufreq to defconfig
+> Boot on v3.17-rc4 with patches applied, omap2plus_defconfig:
 > 
-> Note that we can now use the CONFIG_GENERIC_CPUFREQ_CPU0,
-> so let's only enable that. Let's use CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND
-> as suggested by Nishant.
+>  1: am335x-evm:  Boot PASS: http://fpaste.org/133179/
+>  2:  am335x-sk:  Boot PASS: http://fpaste.org/133180/
+>  3: am3517-evm:  Boot PASS: http://fpaste.org/133181/
+>  4:  am37x-evm:  Boot PASS: http://fpaste.org/133182/
+>  5: am43xx-epos:  Boot PASS: http://fpaste.org/133183/
+>  6: am43xx-gpevm:  Boot PASS: http://fpaste.org/133184/
+>  7: BeagleBoard-XM:  Boot PASS: http://fpaste.org/133191/
+>  8: beagleboard-vanilla:  Boot PASS: http://fpaste.org/133192/
+>  9: beaglebone-black:  Boot PASS: http://fpaste.org/133193/
+> 10: beaglebone:  Boot PASS: http://fpaste.org/133194/
+> 11: craneboard:  Boot PASS: http://fpaste.org/133186/
+> 12: dra7xx-evm:  Boot PASS: http://fpaste.org/131396/
+> 13: OMAP3430-Labrador(LDP):  Boot PASS: http://fpaste.org/133206/
+> 14:       n900:  Boot PASS: http://fpaste.org/133207/
+> 15:  omap5-evm:  Boot PASS: http://fpaste.org/133208/
+> 16: pandaboard-es:  Boot PASS: http://fpaste.org/133187/
+> 17: pandaboard-vanilla:  Boot PASS: http://fpaste.org/133188/
+> 18:    sdp2430:  Boot PASS: http://fpaste.org/133189/
+> 19:    sdp3430:  Boot PASS: http://fpaste.org/133212/
+> TOTAL = 19 boards, Booted Boards = 19, No Boot boards = 0
 > 
-> And also let's enable thermal as explained by Nishant Menon:
-> 
-> Many TI SoCs using Highest frequency is not really too nice of an idea for
-> long periods of time. And not everything is upstream to support things
-> optimially - example avs class 0, 1.5 ABB consolidation with cpufreq etc..
-> We definitely need thermal enabled as well for device safety needs.
-> 
-> Cc: Nishanth Menon <nm@ti.com>
-> [tony@atomide.com: updated per Nishant's suggestions]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -43,6 +43,14 @@ CONFIG_ARM_APPENDED_DTB=y
->  CONFIG_ARM_ATAG_DTB_COMPAT=y
->  CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
->  CONFIG_KEXEC=y
-> +CONFIG_CPU_FREQ=y
-> +CONFIG_CPU_FREQ_STAT_DETAILS=y
-> +CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
-> +CONFIG_CPU_FREQ_GOV_POWERSAVE=y
-> +CONFIG_CPU_FREQ_GOV_USERSPACE=y
-> +CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
-> +CONFIG_GENERIC_CPUFREQ_CPU0=y
-> +# CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
->  CONFIG_CPU_IDLE=y
->  CONFIG_BINFMT_MISC=y
->  CONFIG_PM_DEBUG=y
-> @@ -162,7 +170,9 @@ CONFIG_SENSORS_LM75=m
->  CONFIG_THERMAL=y
->  CONFIG_THERMAL_GOV_FAIR_SHARE=y
->  CONFIG_THERMAL_GOV_USER_SPACE=y
-> +CONFIG_CPU_THERMAL=y
->  CONFIG_TI_SOC_THERMAL=y
-> +CONFIG_TI_THERMAL=y
->  CONFIG_OMAP4_THERMAL=y
->  CONFIG_OMAP5_THERMAL=y
->  CONFIG_DRA752_THERMAL=y
+> Again, all pass. I have also tested with next AM335x Suspend/Resume
+> implementation, next version will use generic sram driver to allocate for
+> low-level assembly code, and that works fine as well.
 
-Acked-by: Nishanth Menon <nm@ti.com>
--- 
+Great, thanks for doing that. Applying all into omap-for-v3.18/soc.
+
 Regards,
-Nishanth Menon
+
+Tony
