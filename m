@@ -1,122 +1,95 @@
-From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Subject: Re: [PATCH] mfd: ti_am335x_tscadc: Update logic in CTRL register for
- 5-wire TS
-Date: Thu, 18 Sep 2014 15:38:57 +0200
-Message-ID: <20140918133856.GA14988@breakpoint.cc>
-References: <1409850117-5156-1-git-send-email-bigeasy@linutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
+Date: Thu, 18 Sep 2014 08:41:22 -0500
+Message-ID: <541AE102.2070407@ti.com>
+References: <1408716154-26101-1-git-send-email-nm@ti.com> <1408716154-26101-9-git-send-email-nm@ti.com>,<5419D7BD.30003@linaro.org> <448912EABC71F84BBCADFD3C67C4BE52CAC748@DBDE04.ent.ti.com> <541A25DA.8030101@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1409850117-5156-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-input-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Jeff Lance <j-lance1@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <541A25DA.8030101@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, "Kristo, Tero" <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "J, KEERTHY" <j-keerthy@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 2014-09-04 19:01:57 [+0200], Sebastian Andrzej Siewior wrote:
-> From: Jeff Lance <j-lance1@ti.com>
+On 09/17/2014 07:22 PM, Daniel Lezcano wrote:
+> On 09/17/2014 04:20 PM, Shilimkar, Santosh wrote:
+[...]
+>> Could you try a long run of this little program:
+>>
+>> https://git.linaro.org/power/pm-qa.git/blob/HEAD:/cpuidle/cpuidle_killer.c
+>>
+>> [Santosh] I am sure there will not be any issue with the long run test case here.
+>> Lets see if Nishant sees anything otherwise
 > 
-> The logic in AFE_Pen_Ctrl bitmask in the CTRL register is different for five
-> wire versus four or eight wire touschscreens. This patch should fix this for
-> five-wire touch screens. There should be no change needed here for four and
-> eight wire tousch screens.
-> 
-> Signed-off-by: Jeff Lance <j-lance1@ti.com>
-> [bigeasy: keep the change mfd only]
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
+> Ok. Make sure the cpu is effectively entering your C2 state with the 
+> sleep duration in the test program.
 
-ping
+Test kernel:
+https://github.com/nmenon/linux-2.6-playground/commits/testing/tmlind-test-suspend-resume
+(I decided to merge in various send for pull branches from maintainers
+and apply cpuidle on top)..
 
-> I've been looking at moving this piece and the idle mode setting into the
-> TSC driver. Kinda odd that I have to patch within the MFD driver for this
-> TSC related change.
-> Anyone disagrees?
-> 
->  drivers/mfd/ti_am335x_tscadc.c       | 30 +++++++++++++++++-------------
->  include/linux/mfd/ti_am335x_tscadc.h |  1 +
->  2 files changed, 18 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-> index dd4bf5816221..6c9cfb8c1d01 100644
-> --- a/drivers/mfd/ti_am335x_tscadc.c
-> +++ b/drivers/mfd/ti_am335x_tscadc.c
-> @@ -241,18 +241,20 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
->  	tscadc_writel(tscadc, REG_CLKDIV, tscadc->clk_div);
->  
->  	/* Set the control register bits */
-> -	ctrl = CNTRLREG_STEPCONFIGWRT |
-> -			CNTRLREG_STEPID;
-> -	if (tsc_wires > 0)
-> -		ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
-> +	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
->  	tscadc_writel(tscadc, REG_CTRL, ctrl);
->  
->  	/* Set register bits for Idle Config Mode */
-> -	if (tsc_wires > 0)
-> +	if (tsc_wires > 0) {
-> +		tscadc->tsc_wires = tsc_wires;
-> +		if (tsc_wires == 5)
-> +			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
-> +		else
-> +			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
->  		tscadc_idle_config(tscadc);
-> +	}
->  
->  	/* Enable the TSC module enable bit */
-> -	ctrl = tscadc_readl(tscadc, REG_CTRL);
->  	ctrl |= CNTRLREG_TSCSSENB;
->  	tscadc_writel(tscadc, REG_CTRL, ctrl);
->  
-> @@ -324,21 +326,23 @@ static int tscadc_suspend(struct device *dev)
->  static int tscadc_resume(struct device *dev)
->  {
->  	struct ti_tscadc_dev	*tscadc_dev = dev_get_drvdata(dev);
-> -	unsigned int restore, ctrl;
-> +	u32 ctrl;
->  
->  	pm_runtime_get_sync(dev);
->  
->  	/* context restore */
->  	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
-> -	if (tscadc_dev->tsc_cell != -1)
-> -		ctrl |= CNTRLREG_TSCENB | CNTRLREG_4WIRE;
->  	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
->  
-> -	if (tscadc_dev->tsc_cell != -1)
-> +	if (tscadc_dev->tsc_cell != -1) {
-> +		if (tscadc_dev->tsc_wires == 5)
-> +			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
-> +		else
-> +			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
->  		tscadc_idle_config(tscadc_dev);
-> -	restore = tscadc_readl(tscadc_dev, REG_CTRL);
-> -	tscadc_writel(tscadc_dev, REG_CTRL,
-> -			(restore | CNTRLREG_TSCSSENB));
-> +	}
-> +	ctrl |= CNTRLREG_TSCSSENB;
-> +	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
->  
->  	tscadc_writel(tscadc_dev, REG_CLKDIV, tscadc_dev->clk_div);
->  
-> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-> index fb96c84dada5..e2e70053470e 100644
-> --- a/include/linux/mfd/ti_am335x_tscadc.h
-> +++ b/include/linux/mfd/ti_am335x_tscadc.h
-> @@ -155,6 +155,7 @@ struct ti_tscadc_dev {
->  	void __iomem *tscadc_base;
->  	int irq;
->  	int used_cells;	/* 1-2 */
-> +	int tsc_wires;
->  	int tsc_cell;	/* -1 if not used */
->  	int adc_cell;	/* -1 if not used */
->  	struct mfd_cell cells[TSCADC_CELLS];
-> -- 
-> 2.1.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Controlled test run as follows on 4 different impacted platforms and 1
+platform as legacy reference.
+
+What we are looking for is
+> cpu1_pwrdm (ON),OFF:0,RET:2677,INA:0,ON:2678,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+RET:2677 indicated CPU1 hit C2
+> cpu0_pwrdm (ON),OFF:0,RET:2677,INA:0,ON:2678,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+RET:2677 indicated CPU0 hit C2
+> mpu_pwrdm (ON),OFF:0,RET:2667,INA:0,ON:2668,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:2667,RET-MEMBANK2-OFF:0
+RET:2667 indicates that CPU0 and CPU1 managed to achieve RET together,
+else by hardware constraints in place, MPU power domain will fail to
+transition.
+
+What I see in all cases below is that transitions do take place (C2 is
+successfully hit).
+
+Test #1: 120 seconds:
+CMD: set -x;uname -a;cat /sys/kernel/debug/pm_debug/count;sleep
+1;./cpuidle_killer_120;sleep 1;cat /sys/kernel/debug/pm_debug/count;set +x
+
+OMAP4 Panda-ES: (2 a9) - not impacted as part of this patch - just
+base test vector
+http://fpaste.org/134547/14110454/
+
+OMAP5 uEVM: (2 a15)
+http://fpaste.org/134546/10454181/
+
+DRA74x: (2 a15)
+http://fpaste.org/134543/11045286/
+
+DRA72: (2 a15)
+http://fpaste.org/134544/11045335/
+
+AM572x(DRA74x variant): (2 A15)
+http://fpaste.org/134545/10453761/
+
+
+Test #2: 1200 seconds: (http://fpaste.org/134564/47289141/)
+CMD: set -x;uname -a;cat /sys/kernel/debug/pm_debug/count;sleep
+1;./cpuidle_killer_1200;sleep 1;cat
+/sys/kernel/debug/pm_debug/count;set +x
+
+OMAP4 Panda-ES: (2 a9) - not impacted as part of this patch - just
+base test vector
+http://fpaste.org/134563/41104728/
+
+OMAP5 uEVM: (2 a15)
+http://fpaste.org/134562/47221141/
+
+DRA74x EVM: (2 a15)
+http://fpaste.org/134559/11047098/
+
+DRA72 EVM: (2 a15)
+http://fpaste.org/134560/11047151/
+
+AM572x EVM: (2 A15)
+http://fpaste.org/134561/47189141/
+
+
+-- 
+Regards,
+Nishanth Menon
