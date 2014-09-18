@@ -1,256 +1,109 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH V2 3/3] mfd: palmas: Add support for optional wakeup
-Date: Thu, 18 Sep 2014 10:33:27 -0700
-Message-ID: <20140918173327.GD8740@lee--X1>
-References: <1409950311-25236-1-git-send-email-nm@ti.com>
- <1409950311-25236-4-git-send-email-nm@ti.com>
- <alpine.DEB.2.10.1409052311210.5472@nanos>
- <20140908154109.GA12336@kahuna>
- <541AE40F.1090101@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v3 4/5] ASoC: davinci: HDMI audio build for AM33XX and
+ TDA998x
+Date: Thu, 18 Sep 2014 21:36:21 +0300
+Message-ID: <541B2625.2040600@ti.com>
+References: <cover.1410898073.git.jsarha@ti.com>	<270f1e048d9a5a17a7f367ecabc509475b8c1145.1410898073.git.jsarha@ti.com>	<20140917194126.GV7960@sirena.org.uk>	<5419F965.9060209@ti.com> <20140918102544.26b28b6b@armhf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f171.google.com ([209.85.213.171]:47070 "EHLO
-	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932117AbaIRRdc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 13:33:32 -0400
-Received: by mail-ig0-f171.google.com with SMTP id hn15so2617223igb.10
-        for <linux-omap@vger.kernel.org>; Thu, 18 Sep 2014 10:33:31 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <541AE40F.1090101@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38899 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932451AbaIRSgl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Sep 2014 14:36:41 -0400
+In-Reply-To: <20140918102544.26b28b6b@armhf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Mark Brown <broonie@kernel.org>, dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, tony@atomide.com, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com
 
-On Thu, 18 Sep 2014, Nishanth Menon wrote:
+On 09/18/2014 11:25 AM, Jean-Francois Moine wrote:
+ > On Thu, 18 Sep 2014 00:13:09 +0300
+ > Jyri Sarha <jsarha@ti.com> wrote:
+ >
+ >>> So, Jean-Francois is also trying to do things with the TDA998x - what's
+ >>> the story with that, is this joined up at all?
+ >>
+ >> Not really. This basic functionality does not touch tda998x at all on
+ >> the fly, but just sets i2s configuation in the beginning and bangs the
+ >> bits trough McASP. But as long as the old platform data for tda998x
+ >> still works after Jean-Francois' patches I should be safe.
+ >
+ > It should. And you may test it.
+ >
 
-> On 09/08/2014 10:41 AM, Nishanth Menon wrote:
-> > On 23:13-20140905, Thomas Gleixner wrote:
-> >> On Fri, 5 Sep 2014, Nishanth Menon wrote:
-> >>> +	if (!palmas->wakeirq)
-> >>> +		goto no_wake_irq;
-> >>> +
-> >>> +	ret =3D devm_request_irq(palmas->dev, palmas->wakeirq,
-> >>> +			       palmas_wake_irq,
-> >>> +			       IRQF_ONESHOT | pdata->irq_flags,
-> >>
-> >> Why is this marked IRQF_ONESHOT?
-> >=20
-> > Uggh.. should have dropped it. my bad.. removed in the revision bel=
-ow.
-> > Thanks for catching it.
-> >>
-> >>> +			       dev_name(palmas->dev),
-> >>> +			       &palmas);
-> >>> +	if (ret < 0)
-> >>> +		goto err_i2c;
-> >>
-> >> Why err and not doing the obvious clearing of palmas->wakeirq and
-> >> keep at least the i2c functional?
-> > Hmmm.. true.. we can stay alive even though without wakeup capabili=
-ty if
-> > someone messes up configuration..
-> >=20
-> > Fixed version below. Let me know if you are ok with the following.
->=20
-> Gentle ping. Would you like me to repost this series over again?
+I tested by BBB HDMI audio patches with "[PATCH v5] ASoC: tda998x: Add
+a codec to the HDMI transmitter", and it works otherwise, but the
+default for CTS_N_K has changed from 3 to 2. I just needed to change the
+supported format from S32_LE to S24_LE to compensate the change.
 
-Yes, always.
+ >> The problem with the Jean-Francois' patches is the DT support. The BBB
+ >> HDMI video is implemented trough tilcdc-slave mechanism without a DT
+ >> node for the tda encoder, which renders Jean-Francois' approach unusable
+ >> for BBB.
+ >
+ > I used the TDA998x with DT support for a long time with a hack by using
+ > parts of drm_i2c_encoder_init(). Now, I think that this function could
+ > be used as it is just setting no platform_data in info.
+ >
+ >> The whole tilcdc slave approach may not be the most elegant way to use
+ >> the tda driver, but it does not look like it is going to change any time
+ >> soon.
+ >
+ > Right: I proposed a patch for that and it was rejected.
+ >
 
-> > ----8<----
-> > From 6da58ac66eedea46cf7282c6644c76c8f328f5ee Mon Sep 17 00:00:00 2=
-001
-> > From: Nishanth Menon <nm@ti.com>
-> > Date: Tue, 12 Aug 2014 12:00:52 -0500
-> > Subject: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeu=
-p
-> >=20
-> > With the recent pinctrl-single changes, omaps can treat wake-up eve=
-nts
-> > from deeper power  states as interrupts.
-> >=20
-> > This is to handle the case where the system needs two interrupt
-> > sources when SoC is in deep sleep(1 to exit from deep power mode su=
-ch
-> > as sleep, and other from the module handling the actual event durin=
-g
-> > system active state). This is not the same as threaded interrupts a=
-s the
-> > wakeup interrupt source is used only as part of deeper power saving
-> > mode.
-> >=20
-> > Let's add support for the optional second interrupt for wake-up
-> > events. And then SoC can wakeup and handle the event using it's
-> > regular handler.
-> >=20
-> > This is similar in approach to commit 2a0b965cfb6e ("serial: omap: =
-Add
-> > support for optional wake-up")
-> >=20
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > ---
-> >  drivers/mfd/palmas.c       |   62 ++++++++++++++++++++++++++++++++=
-++++++++++++
-> >  include/linux/mfd/palmas.h |    2 ++
-> >  2 files changed, 64 insertions(+)
-> >=20
-> > diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
-> > index 28cb048..de7d204 100644
-> > --- a/drivers/mfd/palmas.c
-> > +++ b/drivers/mfd/palmas.c
-> > @@ -24,6 +24,7 @@
-> >  #include <linux/mfd/core.h>
-> >  #include <linux/mfd/palmas.h>
-> >  #include <linux/of_device.h>
-> > +#include <linux/of_irq.h>
-> > =20
-> >  static const struct regmap_config palmas_regmap_config[PALMAS_NUM_=
-CLIENTS] =3D {
-> >  	{
-> > @@ -326,6 +327,16 @@ static struct regmap_irq_chip tps65917_irq_chi=
-p =3D {
-> >  			PALMAS_INT1_MASK),
-> >  };
-> > =20
-> > +static irqreturn_t palmas_wake_irq(int irq, void *_palmas)
-> > +{
-> > +	/*
-> > +	 * Return Not handled so that interrupt is disabled.
-> > +	 * Level event ensures that the event is eventually handled
-> > +	 * by the appropriate chip handler already registered
-> > +	 */
-> > +	return IRQ_NONE;
-> > +}
-> > +
-> >  int palmas_ext_control_req_config(struct palmas *palmas,
-> >  	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
-> >  {
-> > @@ -409,6 +420,7 @@ static void palmas_dt_to_pdata(struct i2c_clien=
-t *i2c,
-> >  		pdata->mux_from_pdata =3D 1;
-> >  		pdata->pad2 =3D prop;
-> >  	}
-> > +	pdata->wakeirq =3D irq_of_parse_and_map(node, 1);
-> > =20
-> >  	/* The default for this register is all masked */
-> >  	ret =3D of_property_read_u32(node, "ti,power-ctrl", &prop);
-> > @@ -521,6 +533,7 @@ static int palmas_i2c_probe(struct i2c_client *=
-i2c,
-> >  	i2c_set_clientdata(i2c, palmas);
-> >  	palmas->dev =3D &i2c->dev;
-> >  	palmas->irq =3D i2c->irq;
-> > +	palmas->wakeirq =3D pdata->wakeirq;
-> > =20
-> >  	match =3D of_match_device(of_palmas_match_tbl, &i2c->dev);
-> > =20
-> > @@ -587,6 +600,25 @@ static int palmas_i2c_probe(struct i2c_client =
-*i2c,
-> >  	if (ret < 0)
-> >  		goto err_i2c;
-> > =20
-> > +	if (!palmas->wakeirq)
-> > +		goto no_wake_irq;
-> > +
-> > +	ret =3D devm_request_irq(palmas->dev, palmas->wakeirq,
-> > +			       palmas_wake_irq,
-> > +			       pdata->irq_flags,
-> > +			       dev_name(palmas->dev),
-> > +			       &palmas);
-> > +	if (ret < 0) {
-> > +		dev_err(palmas->dev, "Invalid wakeirq(%d) (res: %d), skiping\n",
-> > +			palmas->wakeirq, ret);
-> > +		palmas->wakeirq =3D 0;
-> > +	} else {
-> > +		/* We use wakeirq only during suspend-resume path */
-> > +		device_set_wakeup_capable(palmas->dev, true);
-> > +		disable_irq_nosync(palmas->wakeirq);
-> > +	}
-> > +
-> > +no_wake_irq:
-> >  no_irq:
-> >  	slave =3D PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
-> >  	addr =3D PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
-> > @@ -706,6 +738,34 @@ static int palmas_i2c_remove(struct i2c_client=
- *i2c)
-> >  	return 0;
-> >  }
-> > =20
-> > +static int palmas_i2c_suspend(struct i2c_client *i2c,  pm_message_=
-t mesg)
-> > +{
-> > +	struct palmas *palmas =3D i2c_get_clientdata(i2c);
-> > +	struct device *dev =3D &i2c->dev;
-> > +
-> > +	if (!palmas->wakeirq)
-> > +		return 0;
-> > +
-> > +	if (device_may_wakeup(dev))
-> > +		enable_irq(palmas->wakeirq);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int palmas_i2c_resume(struct i2c_client *i2c)
-> > +{
-> > +	struct palmas *palmas =3D i2c_get_clientdata(i2c);
-> > +	struct device *dev =3D &i2c->dev;
-> > +
-> > +	if (!palmas->wakeirq)
-> > +		return 0;
-> > +
-> > +	if (device_may_wakeup(dev))
-> > +		disable_irq_nosync(palmas->wakeirq);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> >  static const struct i2c_device_id palmas_i2c_id[] =3D {
-> >  	{ "palmas", },
-> >  	{ "twl6035", },
-> > @@ -721,6 +781,8 @@ static struct i2c_driver palmas_i2c_driver =3D =
-{
-> >  		   .of_match_table =3D of_palmas_match_tbl,
-> >  		   .owner =3D THIS_MODULE,
-> >  	},
-> > +	.suspend =3D palmas_i2c_suspend,
-> > +	.resume =3D palmas_i2c_resume,
-> >  	.probe =3D palmas_i2c_probe,
-> >  	.remove =3D palmas_i2c_remove,
-> >  	.id_table =3D palmas_i2c_id,
-> > diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.=
-h
-> > index fb0390a..e8cf4c2 100644
-> > --- a/include/linux/mfd/palmas.h
-> > +++ b/include/linux/mfd/palmas.h
-> > @@ -75,6 +75,7 @@ struct palmas {
-> >  	/* IRQ Data */
-> >  	int irq;
-> >  	u32 irq_mask;
-> > +	int wakeirq;
-> >  	struct mutex irq_lock;
-> >  	struct regmap_irq_chip_data *irq_data;
-> > =20
-> > @@ -377,6 +378,7 @@ struct palmas_clk_platform_data {
-> > =20
-> >  struct palmas_platform_data {
-> >  	int irq_flags;
-> > +	int wakeirq;
-> >  	int gpio_base;
-> > =20
-> >  	/* bit value to be loaded to the POWER_CTRL register */
-> >=20
->=20
->=20
+The tilcdc is not actively maintained by anybody ATM and that is why
+it is so hard to make any bigger changes to it. I hope we can change
+this at some point, but for now I am just trying to get a simple HDMI
+audio working on BBB with minimal changes.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ >> Best regards,
+ >> Jyri
+ >>
+ >> ps. I have been thinking on something similar to Jean-Francois' patch
+ >> for SiI9022 which I have been working on lately. Also I have been
+ >> wondering if it would be possible to come up with a generic ASoC codec
+ >> component driver or library that could be used with any HDMI encoder to
+ >> produce the ASoC codec component. Unfortunately I am in too early stage
+ >> to produce anything more concrete.
+ >
+ > Here are some thoughts about this topic.
+ >
+ > The video and audio worlds don't know about each other.
+ > The only solution I found is to let the encoder create the codec as
+ > a child device. Then, the codec knows from which encoder it depends.
+ > This could have been done using Russell's components, but the codec
+ > should have been declared in the DT. This is not useful.
+ >
+
+There is anothere option of putting the ASoC codec code into an ASoC
+library module and registering the ASoC codec component under the HDMI
+encoder device. However, this approach does not allow building the
+ASoC as modules if the HDMI encoder driver is built in. So a separate
+platform device for the codec component is probably better.
+
+ > The codec interacts with the encoder in 2 ways:
+ > - it uses the HDMI parameters retrieved by the encoder,
+ > - it gives the audio source type to the encoder.
+ > I used exported functions for that, but, for a generic codec, theses
+ > functions could be given through the codec platform_data.
+ >
+ > The codec declares the DAI(s) prior to know the encoder. The DAI table
+ > must be in the codec because of the snd_soc_dai_ops.
+ > For a generic codec, this DAI table could be built dynamically from
+ > information (name, id) also given through the codec platform_data.
+ >
+
+This is pretty much what I have been thinking too. The API between the
+generic ASoC HDMI codec could use already existing the linux headers
+derived HDMI standard. The ASoC side code should build the hdmi audio
+infoframe and configure the stream header bits etc, so basically do
+all the generic stuff coming from HDMI standard. Writing the bits
+to the appropriate registers in the encoder chip would be left to the
+HDMI encoder driver.
+
+Best regards,
+Jyri
+
