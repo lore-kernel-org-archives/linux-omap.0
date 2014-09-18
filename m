@@ -1,113 +1,122 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC] ARM: edma: unconditionally ack the error interrupt
-Date: Thu, 18 Sep 2014 12:42:24 +0300
-Message-ID: <541AA900.4080506@ti.com>
-References: <1410377960-26921-1-git-send-email-bigeasy@linutronix.de>
+From: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Subject: Re: [PATCH] mfd: ti_am335x_tscadc: Update logic in CTRL register for
+ 5-wire TS
+Date: Thu, 18 Sep 2014 15:38:57 +0200
+Message-ID: <20140918133856.GA14988@breakpoint.cc>
+References: <1409850117-5156-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43280 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755203AbaIRJnA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 05:43:00 -0400
-In-Reply-To: <1410377960-26921-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1409850117-5156-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-input-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Jeff Lance <j-lance1@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org
 
-On 09/10/2014 10:39 PM, Sebastian Andrzej Siewior wrote:
-> With 8250-dma, 8250-omap and am335x I observe the following:
->=20
-> - start a RX transfer which will finish once the FIFO has enough data
-> - The TX side starts a large TX transfer, say 1244 bytes. It takes ap=
-prox
->   102ms for the transfer to complete
-> - cancel the RX transfer & start the RX transfer a few times
-> - the TX transfer completes. dma_irq_handler() notices this and
->   schedules the completion callback
-> - dma_ccerr_handler() is invoked. It returns IRQ_NONE because all fou=
-r
->   checked registers return 0.
-> - the last irq handler is repeated a few times until the irq core shu=
-ts it
->   down.
->=20
-> I see the above describes pattern also without dma_ccerr_handler()
-> beeing invoked. But if it is invoked, it always _after_ the dma inter=
-rupt
-> handler for the TX handler was handled. If I disable TX-DMA for the U=
-ART
-> then I don't see this dma_ccerr_handler() at all.
->=20
-> Testing longer I see two addition scenarios of dma_ccerr_handler():
-> - EDMA_EMR0 reports 0x04000000 (the channel used by TX-UART).
->   edma_callback() reports "looks like slot is null". Looks harmless.
-> - EDMA_EMR0 reports the same values but later in the loop where a mat=
-ch
->   search again EDMA_EMR0 reports 0 and so thing is done.
->=20
-> Since it looks like the EDMA_EMR0 is loosing its content before the
-> dma_ccerr_handler() is invoked, I suggest to unconditionally ack the
-> interrupt so the irq core does not shut it down.
-
-It is reasonable to ack the error interrupt unconditionally.
-My hunch on what could be causing this that we might have unhandled dma=
- event
-and another comes. This will flag the EDMA_EMR register. Any change in =
-this
-register will assert error interrupt which can only be cleared by writi=
-ng to
-EDMA_EMRC register.
-The EDMA_EMRC register bits also cleared on edma_start(), edma_stop() a=
-nd
-edma_clean_channel() apart from the error interrupt handler.
-So it is possible that we have missed event on one of the channels but =
-a stop
-might clear the event so in the interrupt hander we do not see this.
-I think it would be good to understand what is going on the backround..=
-=2E
-Can you print out the EDMA_EMCR just before we clear it in the places I=
- have
-mentioned? We might get better understanding on which stage we clear it=
- and
-probably we can understand how to fix this properly so we are not going=
- to
-have missed events on channels.
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
->=20
+On 2014-09-04 19:01:57 [+0200], Sebastian Andrzej Siewior wrote:
+> From: Jeff Lance <j-lance1@ti.com>
+> 
+> The logic in AFE_Pen_Ctrl bitmask in the CTRL register is different for five
+> wire versus four or eight wire touschscreens. This patch should fix this for
+> five-wire touch screens. There should be no change needed here for four and
+> eight wire tousch screens.
+> 
+> Signed-off-by: Jeff Lance <j-lance1@ti.com>
+> [bigeasy: keep the change mfd only]
 > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 > ---
->  arch/arm/common/edma.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index 88099175fc56..b31f3b7b3851 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -432,8 +432,10 @@ static irqreturn_t dma_ccerr_handler(int irq, vo=
-id *data)
->  	if ((edma_read_array(ctlr, EDMA_EMR, 0) =3D=3D 0) &&
->  	    (edma_read_array(ctlr, EDMA_EMR, 1) =3D=3D 0) &&
->  	    (edma_read(ctlr, EDMA_QEMR) =3D=3D 0) &&
-> -	    (edma_read(ctlr, EDMA_CCERR) =3D=3D 0))
-> +	    (edma_read(ctlr, EDMA_CCERR) =3D=3D 0)) {
-> +		edma_write(ctlr, EDMA_EEVAL, 1);
->  		return IRQ_NONE;
+
+ping
+
+> I've been looking at moving this piece and the idle mode setting into the
+> TSC driver. Kinda odd that I have to patch within the MFD driver for this
+> TSC related change.
+> Anyone disagrees?
+> 
+>  drivers/mfd/ti_am335x_tscadc.c       | 30 +++++++++++++++++-------------
+>  include/linux/mfd/ti_am335x_tscadc.h |  1 +
+>  2 files changed, 18 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+> index dd4bf5816221..6c9cfb8c1d01 100644
+> --- a/drivers/mfd/ti_am335x_tscadc.c
+> +++ b/drivers/mfd/ti_am335x_tscadc.c
+> @@ -241,18 +241,20 @@ static	int ti_tscadc_probe(struct platform_device *pdev)
+>  	tscadc_writel(tscadc, REG_CLKDIV, tscadc->clk_div);
+>  
+>  	/* Set the control register bits */
+> -	ctrl = CNTRLREG_STEPCONFIGWRT |
+> -			CNTRLREG_STEPID;
+> -	if (tsc_wires > 0)
+> -		ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
+> +	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
+>  	tscadc_writel(tscadc, REG_CTRL, ctrl);
+>  
+>  	/* Set register bits for Idle Config Mode */
+> -	if (tsc_wires > 0)
+> +	if (tsc_wires > 0) {
+> +		tscadc->tsc_wires = tsc_wires;
+> +		if (tsc_wires == 5)
+> +			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
+> +		else
+> +			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
+>  		tscadc_idle_config(tscadc);
 > +	}
-> =20
->  	while (1) {
->  		int j =3D -1;
->=20
-
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  
+>  	/* Enable the TSC module enable bit */
+> -	ctrl = tscadc_readl(tscadc, REG_CTRL);
+>  	ctrl |= CNTRLREG_TSCSSENB;
+>  	tscadc_writel(tscadc, REG_CTRL, ctrl);
+>  
+> @@ -324,21 +326,23 @@ static int tscadc_suspend(struct device *dev)
+>  static int tscadc_resume(struct device *dev)
+>  {
+>  	struct ti_tscadc_dev	*tscadc_dev = dev_get_drvdata(dev);
+> -	unsigned int restore, ctrl;
+> +	u32 ctrl;
+>  
+>  	pm_runtime_get_sync(dev);
+>  
+>  	/* context restore */
+>  	ctrl = CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
+> -	if (tscadc_dev->tsc_cell != -1)
+> -		ctrl |= CNTRLREG_TSCENB | CNTRLREG_4WIRE;
+>  	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
+>  
+> -	if (tscadc_dev->tsc_cell != -1)
+> +	if (tscadc_dev->tsc_cell != -1) {
+> +		if (tscadc_dev->tsc_wires == 5)
+> +			ctrl |= CNTRLREG_5WIRE | CNTRLREG_TSCENB;
+> +		else
+> +			ctrl |= CNTRLREG_4WIRE | CNTRLREG_TSCENB;
+>  		tscadc_idle_config(tscadc_dev);
+> -	restore = tscadc_readl(tscadc_dev, REG_CTRL);
+> -	tscadc_writel(tscadc_dev, REG_CTRL,
+> -			(restore | CNTRLREG_TSCSSENB));
+> +	}
+> +	ctrl |= CNTRLREG_TSCSSENB;
+> +	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
+>  
+>  	tscadc_writel(tscadc_dev, REG_CLKDIV, tscadc_dev->clk_div);
+>  
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+> index fb96c84dada5..e2e70053470e 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -155,6 +155,7 @@ struct ti_tscadc_dev {
+>  	void __iomem *tscadc_base;
+>  	int irq;
+>  	int used_cells;	/* 1-2 */
+> +	int tsc_wires;
+>  	int tsc_cell;	/* -1 if not used */
+>  	int adc_cell;	/* -1 if not used */
+>  	struct mfd_cell cells[TSCADC_CELLS];
+> -- 
+> 2.1.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
