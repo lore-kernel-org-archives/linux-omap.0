@@ -1,79 +1,96 @@
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Subject: Re: [PATCH] arm: arm: fiq: fix build breakage with CONFIG_FIQ
-Date: Wed, 17 Sep 2014 16:29:03 -0700
-Message-ID: <541A193F.2060503@linaro.org>
-References: <1410984101-16762-1-git-send-email-balbi@ti.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
+Date: Wed, 17 Sep 2014 17:22:50 -0700
+Message-ID: <541A25DA.8030101@linaro.org>
+References: <1408716154-26101-1-git-send-email-nm@ti.com> <1408716154-26101-9-git-send-email-nm@ti.com>,<5419D7BD.30003@linaro.org> <448912EABC71F84BBCADFD3C67C4BE52CAC748@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:37968 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752208AbaIQX3H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Sep 2014 19:29:07 -0400
-Received: by mail-pd0-f171.google.com with SMTP id p10so110267pdj.2
-        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2014 16:29:06 -0700 (PDT)
-In-Reply-To: <1410984101-16762-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <448912EABC71F84BBCADFD3C67C4BE52CAC748@DBDE04.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "Kristo, Tero" <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "J, KEERTHY" <j-keerthy@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Nicolas Pitre <nico@linaro.org>
 
-On 17/09/14 13:01, Felipe Balbi wrote:
-> commit e1add97 (ARM: 8150/2: fiq: Replace default FIQ handler)
-> has a typo which causes build breakage whenever CONFIG_FIQ is
-> set.
-> 
-> The bug is very clear as can be noted that a new struct pt_regs
-> def_fiq_regs was defined but code uses dfl_fiq_regs.
+On 09/17/2014 04:20 PM, Shilimkar, Santosh wrote:
+> Sorry for the format. Emailing from webmail.
+> ________________________________________
 
-Quite so. My fault.
+[ ... ]
 
-This error was picked up by Olof's autobuilder and I have offered
-a fix as 8150/3 (posted to mailing list in this thread
-http://thread.gmane.org/gmane.linux.kernel/1789554 ).
+>> +static int omap_enter_idle_smp(struct cpuidle_device *dev,
+>> +                            struct cpuidle_driver *drv,
+>> +                            int index)
+>> +{
+>> +     struct idle_statedata *cx =3D state_ptr + index;
+>> +     unsigned long flag;
+>> +
+>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
+>
+> Why do you need this spin_lock_irqsave ? Aren't the local irqs alread=
+y
+> disabled ?
+>
+> [Santosh] Actually at one point of time before the idle consolidation=
+ the local
+> irq disable was inside the idle drivers. Now with that moved to core =
+layer,
+> I think plain spin_lock/unlock() should work.
 
-Your fix and mine are slightly different (I standardised on
-dfl_fiq_regs) but both approaches should be functionally identical.
+ok.
+
+>> +     cx->mpu_state_vote++;
+>> +     if (cx->mpu_state_vote =3D=3D num_online_cpus()) {
+>> +             pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
+>> +             omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
+>> +     }
+>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
+>> +
+>> +     omap4_enter_lowpower(dev->cpu, cx->cpu_state);
+>> +
+>> +     raw_spin_lock_irqsave(&mpu_lock, flag);
+>> +     if (cx->mpu_state_vote =3D=3D num_online_cpus())
+>> +             omap_set_pwrdm_state(mpu_pd, PWRDM_POWER_ON);
+>> +     cx->mpu_state_vote--;
+>> +     raw_spin_unlock_irqrestore(&mpu_lock, flag);
+>
+> I am not sure that will work. What happens if a cpu exits idle and th=
+en
+> re-enter idle immediately ?
+>
+> [Santosh] It works and that case is already taken care. CPU exist the=
+ idle and then votes
+> out for cluster state and if it reenters with the right targeted stat=
+e, the cluster state would
+> be picked.
+
+It isn't possible to have one cpu disabling the coherency, while the=20
+other one is looking for a lock ? Or eg. cpu0 is on WFI then cpu1 is th=
+e=20
+last entering idle. While cpu1 is entering 'lowpower', cpu0 exits the=20
+wfi check the state vote and set the power domain on. In the meantime=20
+cpu1 disables the coherency and cpu0 decrease the vote and release the=20
+lock. Could be possible there is a very small racy window here ?
+
+> Could you try a long run of this little program:
+>
+> https://git.linaro.org/power/pm-qa.git/blob/HEAD:/cpuidle/cpuidle_kil=
+ler.c
+>
+> [Santosh] I am sure there will not be any issue with the long run tes=
+t case here.
+> Lets see if Nishant sees anything otherwise
+
+Ok. Make sure the cpu is effectively entering your C2 state with the=20
+sleep duration in the test program.
 
 
-Daniel.
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
 
-
-> Cc: Daniel Thompson <daniel.thompson@linaro.org>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Nicolas Pitre <nico@linaro.org>
-> Fixes: e1add97 (ARM: 8150/2: fiq: Replace default FIQ handler)
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
-> 
-> KernelVersion: next-20140917
-> 
-> Russell, let me know if this is the correct KernelVersion tag you want/need
-> 
->  arch/arm/kernel/fiq.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/kernel/fiq.c b/arch/arm/kernel/fiq.c
-> index 1743049..b6ab4c7 100644
-> --- a/arch/arm/kernel/fiq.c
-> +++ b/arch/arm/kernel/fiq.c
-> @@ -64,7 +64,7 @@ static int fiq_def_op(void *ref, int relinquish)
->  	if (!relinquish) {
->  		/* Restore default handler and registers */
->  		local_fiq_disable();
-> -		set_fiq_regs(&dfl_fiq_regs);
-> +		set_fiq_regs(&def_fiq_regs);
->  		set_fiq_handler(&no_fiq_insn, sizeof(no_fiq_insn));
->  		local_fiq_enable();
->  
-> @@ -159,6 +159,6 @@ void __init init_FIQ(int start)
->  {
->  	unsigned offset = FIQ_OFFSET;
->  	no_fiq_insn = *(unsigned long *)(0xffff0000 + offset);
-> -	get_fiq_regs(&dfl_fiq_regs);
-> +	get_fiq_regs(&def_fiq_regs);
->  	fiq_start = start;
->  }
-> 
-
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
