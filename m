@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/4] part 2 of omap dts changes for v3.18 merge window
-Date: Thu, 18 Sep 2014 13:11:02 -0700
-Message-ID: <12774.5484271601$1411071126@news.gmane.org>
+Subject: [GIT PULL 4/4] omap clean-up for v3.18 merge window
+Date: Thu, 18 Sep 2014 13:11:03 -0700
+Message-ID: <46275.3902109855$1411071129@news.gmane.org>
 References: <pull-1411070912-460910>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25524 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25582 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756171AbaIRUL4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 16:11:56 -0400
+	with ESMTP id S1756171AbaIRUL6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 16:11:58 -0400
 In-Reply-To: <pull-1411070912-460910>
 In-Reply-To: <pull-1411070912-460910>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,48 +18,46 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, arm@kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-The following changes since commit d27704d1ec2f9ba06247b402c58a6f2febecef78:
+The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
 
-  ARM: dts: OMAP2+: Add sub mailboxes device node information (2014-09-11 11:46:30 -0700)
+  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/dt-part2-v2-for-v3.18
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/cleanup-for-v3.18
 
-for you to fetch changes up to f53e3c538da314913e5d3d82c9610f8da42bd894:
+for you to fetch changes up to 3d0cb73e9c85e60206ea9d5191bc0b9a0c4c8a99:
 
-  ARM: dts: DRA7: Add PMU nodes (2014-09-18 09:58:10 -0700)
-
-----------------------------------------------------------------
-Changes to add dra7 PMU, display support for cm-t54, misc
-changes needed for omap3 boards for device tree support.
+  arm: mach-omap2: Convert pr_warning to pr_warn (2014-09-18 09:53:57 -0700)
 
 ----------------------------------------------------------------
-Dmitry Lifshitz (6):
-      ARM: dts: sbc-t54: fix mux mode comment style
-      ARM: dts: cm-t54: fix mux mode comment style
-      ARM: dts: cm-t54: add HDMI/DVI display data
-      ARM: dts: cm-t54: add Startek LCD support
-      ARM: dts: cm-t54: add ADS7846 touchscreen support
-      ARM: dts: cm-t54: setup omap_dwc3
+Clean-up for omaps for v3.18 merge window:
 
-Lucas Weaver (1):
-      ARM: dts: DRA7: Add PMU nodes
+- Remove unused pieces of the legacy DMA API as we're moving to
+  dmaengine API
 
-Tony Lindgren (5):
-      ARM: dts: omap3-overo: Fix UART wake-up events
-      ARM: dts: omap: Remove WAKEUPENABLE mux options for UARTs
-      ARM: dts: Do not set pulls for I2C lines
-      ARM: dts: Add support for Ethernet on some N900 macro boards
-      ARM: dts: Enable PMIC idle configuration for LDP
+- Search and replace to standardize on pr_warn instead of pr_warning
 
- arch/arm/boot/dts/dra72x.dtsi                      |   5 +
- arch/arm/boot/dts/dra74x.dtsi                      |   6 +
- arch/arm/boot/dts/omap3-beagle-xm.dts              |   4 +-
- arch/arm/boot/dts/omap3-ldp.dts                    |   5 +
- arch/arm/boot/dts/omap3-n900.dts                   |  54 +++-
- .../boot/dts/omap3-overo-common-peripherals.dtsi   |   5 +-
- arch/arm/boot/dts/omap5-cm-t54.dts                 | 272 ++++++++++++++++++++-
- arch/arm/boot/dts/omap5-sbc-t54.dts                |   4 +-
- arch/arm/mach-omap2/pdata-quirks.c                 |   3 +
- 9 files changed, 344 insertions(+), 14 deletions(-)
+----------------------------------------------------------------
+Joe Perches (1):
+      arm: mach-omap2: Convert pr_warning to pr_warn
+
+Tony Lindgren (1):
+      ARM: OMAP: Remove unused pieces of legacy DMA API
+
+ arch/arm/mach-omap2/display.c            |   2 +-
+ arch/arm/mach-omap2/hdq1w.c              |   4 +-
+ arch/arm/mach-omap2/i2c.c                |   2 +-
+ arch/arm/mach-omap2/msdi.c               |   4 +-
+ arch/arm/mach-omap2/mux.c                |   2 +-
+ arch/arm/mach-omap2/omap_hwmod.c         |  26 +-
+ arch/arm/mach-omap2/pdata-quirks.c       |   4 +-
+ arch/arm/mach-omap2/pm34xx.c             |   2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c |   4 +-
+ arch/arm/mach-omap2/sr_device.c          |   2 +-
+ arch/arm/mach-omap2/vc.c                 |   2 +-
+ arch/arm/mach-omap2/voltage.c            |  22 +-
+ arch/arm/mach-omap2/wd_timer.c           |   4 +-
+ arch/arm/plat-omap/dma.c                 | 737 +------------------------------
+ include/linux/omap-dma.h                 |  37 --
+ 15 files changed, 46 insertions(+), 808 deletions(-)
