@@ -1,77 +1,118 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH v3 2/3] nand: omap2: Remove horrible ifdefs to fix module
- probe
-Date: Wed, 17 Sep 2014 23:03:36 -0700
-Message-ID: <20140918060336.GE7362@norris-Latitude-E6410>
-References: <1410447730-16087-1-git-send-email-ezequiel@vanguardiasur.com.ar>
- <1410447730-16087-3-git-send-email-ezequiel@vanguardiasur.com.ar>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 10/12] ARM: omap2plus_defconfig: Add support for distros
+ with systemd
+Date: Thu, 18 Sep 2014 09:01:27 +0200
+Message-ID: <CABxcv=k9wEf31ojc7b4o19Hk1oU6dKNinqxgLS5qZMrHSVb1FQ@mail.gmail.com>
+References: <1410837126-31553-1-git-send-email-tony@atomide.com>
+	<1410837126-31553-10-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:41439 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498AbaIRGDj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 02:03:39 -0400
-Received: by mail-pa0-f51.google.com with SMTP id eu11so758184pac.10
-        for <linux-omap@vger.kernel.org>; Wed, 17 Sep 2014 23:03:39 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1410447730-16087-3-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:34033 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149AbaIRHB3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 03:01:29 -0400
+Received: by mail-wg0-f44.google.com with SMTP id b13so390713wgh.27
+        for <linux-omap@vger.kernel.org>; Thu, 18 Sep 2014 00:01:27 -0700 (PDT)
+In-Reply-To: <1410837126-31553-10-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Sep 11, 2014 at 12:02:09PM -0300, Ezequiel Garcia wrote:
-> The current code abuses ifdefs to determine if the selected ECC scheme
-> is supported by the running kernel. As a result the code is hard to read,
-> and it also fails to load as a module.
+Hello Tony,
 
-Yes, a real eyesore, with little benefit from the #ifdef's.
+On Tue, Sep 16, 2014 at 5:12 AM, Tony Lindgren <tony@atomide.com> wrote:
+> Some distros are now using systemd, so let's enable most of
+> what's recommended at:
+>
+> http://cgit.freedesktop.org/systemd/systemd/tree/README
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig | 24 ++++++++++++++++++++++--
+>  1 file changed, 22 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 9d232a5..8e6c363 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -1,11 +1,28 @@
+>  CONFIG_SYSVIPC=y
+>  CONFIG_POSIX_MQUEUE=y
+> +CONFIG_FHANDLE=y
+> +CONFIG_AUDIT=y
+>  CONFIG_NO_HZ=y
+>  CONFIG_HIGH_RES_TIMERS=y
+>  CONFIG_BSD_PROCESS_ACCT=y
+>  CONFIG_IKCONFIG=y
+>  CONFIG_IKCONFIG_PROC=y
+>  CONFIG_LOG_BUF_SHIFT=16
+> +CONFIG_CGROUPS=y
+> +CONFIG_CGROUP_FREEZER=y
+> +CONFIG_CGROUP_DEVICE=y
+> +CONFIG_CPUSETS=y
+> +CONFIG_CGROUP_CPUACCT=y
+> +CONFIG_RESOURCE_COUNTERS=y
+> +CONFIG_MEMCG=y
+> +CONFIG_MEMCG_SWAP=y
+> +CONFIG_MEMCG_KMEM=y
+> +CONFIG_CGROUP_PERF=y
+> +CONFIG_CGROUP_SCHED=y
+> +CONFIG_CFS_BANDWIDTH=y
+> +CONFIG_RT_GROUP_SCHED=y
+> +CONFIG_BLK_CGROUP=y
+> +CONFIG_NAMESPACES=y
+>  CONFIG_BLK_DEV_INITRD=y
+>  CONFIG_EXPERT=y
+>  CONFIG_SLAB=y
+> @@ -37,6 +54,7 @@ CONFIG_ARM_ERRATA_411920=y
+>  CONFIG_SMP=y
+>  CONFIG_NR_CPUS=2
+>  CONFIG_CMA=y
+> +CONFIG_SECCOMP=y
+>  CONFIG_ZBOOT_ROM_TEXT=0x0
+>  CONFIG_ZBOOT_ROM_BSS=0x0
+>  CONFIG_ARM_APPENDED_DTB=y
+> @@ -66,7 +84,7 @@ CONFIG_IP_PNP_DHCP=y
+>  CONFIG_IP_PNP_BOOTP=y
+>  CONFIG_IP_PNP_RARP=y
+>  # CONFIG_INET_LRO is not set
+> -# CONFIG_IPV6 is not set
+> +CONFIG_IPV6=y
+>  CONFIG_NETFILTER=y
+>  CONFIG_CAN=m
+>  CONFIG_CAN_C_CAN=m
+> @@ -80,7 +98,6 @@ CONFIG_BT_HCIBCM203X=m
+>  CONFIG_BT_HCIBPA10X=m
+>  CONFIG_CFG80211=m
+>  CONFIG_MAC80211=m
+> -CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+>  CONFIG_DEVTMPFS=y
+>  CONFIG_DEVTMPFS_MOUNT=y
+>  CONFIG_DMA_CMA=y
+> @@ -265,11 +282,14 @@ CONFIG_EXT2_FS=y
+>  CONFIG_EXT3_FS=y
+>  # CONFIG_EXT3_FS_XATTR is not set
+>  CONFIG_EXT4_FS=y
+> +CONFIG_FANOTIFY=y
+>  CONFIG_QUOTA=y
+>  CONFIG_QFMT_V2=y
+> +CONFIG_AUTOFS4_FS=y
+>  CONFIG_MSDOS_FS=y
+>  CONFIG_VFAT_FS=y
+>  CONFIG_TMPFS=y
+> +CONFIG_TMPFS_POSIX_ACL=y
+>  CONFIG_JFFS2_FS=y
+>  CONFIG_JFFS2_SUMMARY=y
+>  CONFIG_JFFS2_FS_XATTR=y
+> --
 
-> This commit removes all the ifdefs and instead introduces a function
-> omap2_nand_ecc_check() to check if the ECC is supported by using
-> IS_ENABLED(CONFIG_xxx).
-> 
-> Since IS_ENABLED() is true when a config is =y or =m, this change fixes the
-> module so it can be loaded with no issues.
-> 
-> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-[...]
-> diff --git a/include/linux/platform_data/elm.h b/include/linux/platform_data/elm.h
-> index 780d1e9..25d1bca 100644
-> --- a/include/linux/platform_data/elm.h
-> +++ b/include/linux/platform_data/elm.h
-> @@ -42,8 +42,22 @@ struct elm_errorvec {
->  	int error_loc[16];
->  };
->  
-> +#if IS_ENABLED(CONFIG_MTD_NAND_OMAP_BCH)
->  void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
->  		struct elm_errorvec *err_vec);
->  int elm_config(struct device *dev, enum bch_ecc bch_type,
->  	int ecc_steps, int ecc_step_size, int ecc_syndrome_size);
-> +#else
-> +void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
-> +		struct elm_errorvec *err_vec)
+Looks good to me, so:
 
-You should not be defining non-static functions in a header. Now these
-functions will be uselessly placed in every compilation unit that
-includes this header. You should probably make this function 'static
-inline'.
+Reviewed-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-> +{
-> +}
-> +
-> +int elm_config(struct device *dev, enum bch_ecc bch_type,
-> +	int ecc_steps, int ecc_step_size, int ecc_syndrome_size)
+I think that the same options should be enabled in multi_v7_defconfig BTW.
 
-And same here.
-
-> +{
-> +	return -ENOSYS;
-> +}
-> +#endif /* CONFIG_MTD_NAND_ECC_BCH */
-> +
->  #endif /* __ELM_H */
-
-Brian
+Best regards,
+Javier
