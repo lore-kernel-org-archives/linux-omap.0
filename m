@@ -1,51 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Questions about enabling dps(dynamic power switching) and SLM
-Date: Thu, 18 Sep 2014 10:06:36 -0700
-Message-ID: <20140918170635.GJ14505@atomide.com>
-References: <BLU185-W2233E35F6629F6D4F137D6ECEB0@phx.gbl>
- <20140814140943.GB9239@atomide.com>
- <BLU185-W41F1B3F381C31F1C3B8266ECD40@phx.gbl>
- <BLU185-W16CBCC06A88D78F300AE9AECD40@phx.gbl>
- <20140819150110.GG9239@atomide.com>
- <BLU185-W41D02CD4B210AFAA8F36ECECC50@phx.gbl>
+Subject: Re: [PATCH 00/26] ARM: OMAP2+: PRCM cleanups for 3.18 merge window
+Date: Thu, 18 Sep 2014 10:16:51 -0700
+Message-ID: <20140918171650.GK14505@atomide.com>
+References: <1409594955-1476-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50559 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15912 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932117AbaIRRGt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 13:06:49 -0400
+	with ESMTP id S1755755AbaIRRRI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 13:17:08 -0400
 Content-Disposition: inline
-In-Reply-To: <BLU185-W41D02CD4B210AFAA8F36ECECC50@phx.gbl>
+In-Reply-To: <1409594955-1476-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Deepa Raj <draj187@hotmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Tero Kristo <t-kristo@ti.com> [140901 11:09]:
+> Hi,
+> 
+> This set contains PRCM related cleanups meant for 3.18 merge window.
+> These are based on top of 3.17-rc1 + the PRM set from Nishanth Menon
+> (http://article.gmane.org/gmane.linux.ports.arm.kernel/350305.) Nishanth's
+> set is used as basis to avoid merge issues.
+> 
+> Purpose of this work is to eventually convert the PRCM code into a
+> separate driver, but this is done in incremental parts as the amount
+> of changes is substantial. Expected conclusion of this work is 3.19
+> if everything goes fine.
+> 
+> This part of the work mostly moves some of the SoC specific PRCM driver
+> calls under generic version of the same, and adds SoC-ops to support
+> these on the driver level.
+> 
+> Working branch posted here:
+> 
+> tree: https://github.com/t-kristo/linux-pm.git
+> branch: for-v3.18/prcm-cleanup
 
-* Deepa Raj <draj187@hotmail.com> [140904 08:59]:
->
-> 1) Which register in omap3 (as you said dps works in OMAP3) that will
->  be configured to enable dps and slm?
-
-Hardware enters deeper idle states automatically when configured
-properly, see commits 3b8c4ebb7630, 9eca2837dd69 and c46f601cc2a0.
-Also see the recent changes to drivers/mfd/twl4030-power.c.
-
-> 2) I was working on OMAP3, I disabled TIDSP bridge driver mpu side as
-> we do not need IVA2. IVA2 powerdomain was always on during boot and
-> if the system is idle, it keeps on always on where I was expecting it
-> will move to low power state (checked the transitions from pm_dbg/count).
-> During suspend to RAM also , IVA2 was always on (hundred %s  sure no
-> body is using it as mputidspbridge driver is always disabled). Why is
-> it always on or do it needs some configuration. Since it was not going
-> low power state, so I manually powered it off.Is there register
-> configuration that i am missing so it will enter into low power state
-> automatically, otherwise why it is always on even it is not being used?
-
-IVA2 needs to be idled always, see commit 2d403f7b1981.
+Paul, any comments on this series?
 
 Regards,
 
 Tony
+ 
+> Testing done:
+> am335x-evm: boot
+> am335x-bone: boot
+> am335x-boneblack: boot
+> am3517-evm: boot
+> am437x-gp-evm: boot
+> omap3-beagle-xm: boot
+> omap3-beagle: boot suspend/resume (ret/off)
+> dra7-evm: boot (with additional clock patches to fix boot issues)
+> omap3-n900: boot
+> omap5-uevm: boot
+> omap4-panda-es: boot suspend/resume (ret)
+> omap2430-sdp: boot
+> 
+> -Tero
+> 
