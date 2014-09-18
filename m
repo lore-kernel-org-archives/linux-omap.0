@@ -1,67 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/4] omap clean-up for v3.18 merge window
-Date: Thu, 18 Sep 2014 13:11:03 -0700
-Message-ID: <2851.67908664352$1411071183@news.gmane.org>
-References: <pull-1411070912-460910>
+Subject: Re: [GIT PULL 5/5] omap dts changes for v3.18 merge window
+Date: Thu, 18 Sep 2014 13:15:08 -0700
+Message-ID: <20140918201507.GO14505@atomide.com>
+References: <pull-1410478051-378788>
+ <pull-1410478051-378788-5>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1411070912-460910>
-In-Reply-To: <pull-1411070912-460910>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28113 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756987AbaIRUPY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 16:15:24 -0400
+Content-Disposition: inline
+In-Reply-To: <pull-1410478051-378788-5>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
+* Tony Lindgren <tony@atomide.com> [140911 16:29]:
+> The following changes since commit 69e273c0b0a3c337a521d083374c918dc52c666f:
+> 
+>   Linux 3.17-rc3 (2014-08-31 18:23:04 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/dt-for-v3.18
+> 
+> for you to fetch changes up to d27704d1ec2f9ba06247b402c58a6f2febecef78:
+> 
+>   ARM: dts: OMAP2+: Add sub mailboxes device node information (2014-09-11 11:46:30 -0700)
+> 
+> ----------------------------------------------------------------
+> Changes for .dts files for omaps for v3.18 merge window:
+> 
+> - Updates for gta04 to add gta04a3 model
+> - Add support for Tehnexion TAO3530 boards
+> - Regulator names for beaglebone
+> - Pinctrl related updates for omap5, dra7 and am437
+> - Model name fix for sbc-t54
+> - Enable mailbox for various omaps
 
-  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
+This can cause a minor merge conflict, here's the
+merge resolution for reference.
 
-are available in the git repository at:
+Regards,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/cleanup-for-v3.18
+Tony
 
-for you to fetch changes up to 3d0cb73e9c85e60206ea9d5191bc0b9a0c4c8a99:
-
-  arm: mach-omap2: Convert pr_warning to pr_warn (2014-09-18 09:53:57 -0700)
-
-----------------------------------------------------------------
-Clean-up for omaps for v3.18 merge window:
-
-- Remove unused pieces of the legacy DMA API as we're moving to
-  dmaengine API
-
-- Search and replace to standardize on pr_warn instead of pr_warning
-
-----------------------------------------------------------------
-Joe Perches (1):
-      arm: mach-omap2: Convert pr_warning to pr_warn
-
-Tony Lindgren (1):
-      ARM: OMAP: Remove unused pieces of legacy DMA API
-
- arch/arm/mach-omap2/display.c            |   2 +-
- arch/arm/mach-omap2/hdq1w.c              |   4 +-
- arch/arm/mach-omap2/i2c.c                |   2 +-
- arch/arm/mach-omap2/msdi.c               |   4 +-
- arch/arm/mach-omap2/mux.c                |   2 +-
- arch/arm/mach-omap2/omap_hwmod.c         |  26 +-
- arch/arm/mach-omap2/pdata-quirks.c       |   4 +-
- arch/arm/mach-omap2/pm34xx.c             |   2 +-
- arch/arm/mach-omap2/smartreflex-class3.c |   4 +-
- arch/arm/mach-omap2/sr_device.c          |   2 +-
- arch/arm/mach-omap2/vc.c                 |   2 +-
- arch/arm/mach-omap2/voltage.c            |  22 +-
- arch/arm/mach-omap2/wd_timer.c           |   4 +-
- arch/arm/plat-omap/dma.c                 | 737 +------------------------------
- include/linux/omap-dma.h                 |  37 --
- 15 files changed, 46 insertions(+), 808 deletions(-)
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@@ -226,7 -240,9 +226,9 @@@ MACHINE_EN
+  #endif
+  
+  #ifdef CONFIG_SOC_DRA7XX
+ -static const char *dra74x_boards_compat[] __initconst = {
+ +static const char *const dra74x_boards_compat[] __initconst = {
++ 	"ti,am5728",
++ 	"ti,am5726",
+  	"ti,dra742",
+  	"ti,dra7",
+  	NULL,
+@@@ -245,7 -261,9 +247,9 @@@ DT_MACHINE_START(DRA74X_DT, "Generic DR
+  	.restart	= omap44xx_restart,
+  MACHINE_END
+  
+ -static const char *dra72x_boards_compat[] __initconst = {
+ +static const char *const dra72x_boards_compat[] __initconst = {
++ 	"ti,am5718",
++ 	"ti,am5716",
+  	"ti,dra722",
+  	NULL,
+  };
