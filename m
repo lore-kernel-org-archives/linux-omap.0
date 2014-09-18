@@ -1,74 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 5/5] omap dts changes for v3.18 merge window
-Date: Thu, 18 Sep 2014 13:15:08 -0700
-Message-ID: <20140918201507.GO14505@atomide.com>
-References: <pull-1410478051-378788>
- <pull-1410478051-378788-5>
+Subject: Re: [GIT PULL] omap wake-up regression fix for v3.17
+Date: Thu, 18 Sep 2014 13:17:08 -0700
+Message-ID: <20140918201708.GP14505@atomide.com>
+References: <20140917145906.GA14505@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28113 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756987AbaIRUPY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 16:15:24 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38415 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755785AbaIRURW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 16:17:22 -0400
 Content-Disposition: inline
-In-Reply-To: <pull-1410478051-378788-5>
+In-Reply-To: <20140917145906.GA14505@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [140911 16:29]:
+* Tony Lindgren <tony@atomide.com> [140917 08:00]:
 > The following changes since commit 69e273c0b0a3c337a521d083374c918dc52c666f:
 > 
 >   Linux 3.17-rc3 (2014-08-31 18:23:04 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/dt-for-v3.18
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/fix-v3.17-io-chain-v3
 > 
-> for you to fetch changes up to d27704d1ec2f9ba06247b402c58a6f2febecef78:
+> for you to fetch changes up to 7db143b89137de06ed289cf8b302f3bbbc5baa1f:
 > 
->   ARM: dts: OMAP2+: Add sub mailboxes device node information (2014-09-11 11:46:30 -0700)
+>   ARM: OMAP3: Fix I/O chain clock line assertion timed out error (2014-09-16 15:09:44 -0700)
 > 
 > ----------------------------------------------------------------
-> Changes for .dts files for omaps for v3.18 merge window:
-> 
-> - Updates for gta04 to add gta04a3 model
-> - Add support for Tehnexion TAO3530 boards
-> - Regulator names for beaglebone
-> - Pinctrl related updates for omap5, dra7 and am437
-> - Model name fix for sbc-t54
-> - Enable mailbox for various omaps
+> Regression fix for early omap3 revisions for wake-up events that
+> too some time to narrow down. Although a bit intrusive, this would
+> be good to get into the -rc cycle as there are quite a few boards
+> out there with omap3 es2.1 and es3.0, and we have those in at least
+> three boot test systems too that show errors without this patch.
 
-This can cause a minor merge conflict, here's the
-merge resolution for reference.
+This can also cause a merge conflict for linux next,
+here's the merge resolution for reference.
 
 Regards,
 
 Tony
 
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@@ -226,7 -240,9 +226,9 @@@ MACHINE_EN
-  #endif
+--- a/arch/arm/mach-omap2/prm3xxx.c
++++ b/arch/arm/mach-omap2/prm3xxx.c
+@@@ -662,18 -680,13 +686,25 @@@ static int omap3xxx_prm_late_init(void
+  	if (!(prm_features & PRM_HAS_IO_WAKEUP))
+  		return 0;
   
-  #ifdef CONFIG_SOC_DRA7XX
- -static const char *dra74x_boards_compat[] __initconst = {
- +static const char *const dra74x_boards_compat[] __initconst = {
-+ 	"ti,am5728",
-+ 	"ti,am5726",
-  	"ti,dra742",
-  	"ti,dra7",
-  	NULL,
-@@@ -245,7 -261,9 +247,9 @@@ DT_MACHINE_START(DRA74X_DT, "Generic DR
-  	.restart	= omap44xx_restart,
-  MACHINE_END
-  
- -static const char *dra72x_boards_compat[] __initconst = {
- +static const char *const dra72x_boards_compat[] __initconst = {
-+ 	"ti,am5718",
-+ 	"ti,am5716",
-  	"ti,dra722",
-  	NULL,
-  };
+ +	if (of_have_populated_dt()) {
+ +		struct device_node *np;
+ +		int irq_num;
+ +
+ +		np = of_find_matching_node(NULL, omap3_prm_dt_match_table);
+ +		if (np) {
+ +			irq_num = of_irq_get(np, 0);
+ +			if (irq_num >= 0)
+ +				omap3_prcm_irq_setup.irq = irq_num;
+ +		}
+ +	}
+ +
++ 	if (omap3_has_io_chain_ctrl())
++ 		omap3_prcm_irq_setup.reconfigure_io_chain =
++ 			omap3_prm_reconfigure_io_chain;
++ 	else
++ 		omap3_prcm_irq_setup.reconfigure_io_chain =
++ 			omap3430_pre_es3_1_reconfigure_io_chain;
++ 
+  	omap3xxx_prm_enable_io_wakeup();
+  	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+  	if (!ret)
