@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/4] part 2 of omap SoC changes for v3.18 merge window
-Date: Thu, 18 Sep 2014 13:11:01 -0700
-Message-ID: <28495.4325216406$1411071181@news.gmane.org>
+Subject: [GIT PULL 4/4] omap clean-up for v3.18 merge window
+Date: Thu, 18 Sep 2014 13:11:03 -0700
+Message-ID: <2851.67908664352$1411071183@news.gmane.org>
 References: <pull-1411070912-460910>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,49 +22,46 @@ To: linux-omap@vger.kernel.org, arm@kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 377fb3f5d9a34b2913939e0620c1c585b5913bab:
+The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
 
-  ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7 (2014-09-09 19:13:41 -0700)
+  Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/soc-part2-for-v3.18
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/cleanup-for-v3.18
 
-for you to fetch changes up to 1306c08a7cd7e6136490ab2bc728d2c39741003e:
+for you to fetch changes up to 3d0cb73e9c85e60206ea9d5191bc0b9a0c4c8a99:
 
-  ARM: OMAP4+: Remove static iotable mappings for SRAM (2014-09-18 09:47:35 -0700)
-
-----------------------------------------------------------------
-Few hwmod changes to support upcoming 8250 driver with DMA,
-start using the SRAM driver for some omaps, and update the
-defconfig.
+  arm: mach-omap2: Convert pr_warning to pr_warn (2014-09-18 09:53:57 -0700)
 
 ----------------------------------------------------------------
-Rajendra Nayak (3):
-      ARM: AM335x: Get rid of unused sram init function
-      ARM: OMAP4+: Move SRAM data to DT
-      ARM: OMAP4+: Remove static iotable mappings for SRAM
+Clean-up for omaps for v3.18 merge window:
 
-Tony Lindgren (7):
-      ARM: OMAP2+: Add hwmod flag for HWMOD_RECONFIG_IO_CHAIN
-      ARM: OMAP3: Use manual idle for UARTs because of DMA errata
-      ARM: omap2plus_defconfig: Shrink with savedefconfig
-      ARM: omap2plus_defconfig: Add cpufreq to defconfig
-      ARM: omap2plus_defconfig: Add support for distros with systemd
-      ARM: omap2plus_defconfig: Enable battery and reset drivers
-      ARM: omap2plus_defconfig: Enable some display features
+- Remove unused pieces of the legacy DMA API as we're moving to
+  dmaengine API
 
- Documentation/devicetree/bindings/arm/omap/mpu.txt |  3 +
- arch/arm/boot/dts/am33xx.dtsi                      |  5 +-
- arch/arm/boot/dts/am4372.dtsi                      |  5 ++
- arch/arm/boot/dts/omap4.dtsi                       |  6 ++
- arch/arm/boot/dts/omap5.dtsi                       |  8 ++-
- arch/arm/configs/omap2plus_defconfig               | 79 +++++++++++++++++-----
- arch/arm/mach-omap2/io.c                           | 17 -----
- arch/arm/mach-omap2/omap4-common.c                 | 22 +++++-
- arch/arm/mach-omap2/omap_hwmod.c                   |  4 +-
- arch/arm/mach-omap2/omap_hwmod.h                   |  4 ++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 12 ++--
- arch/arm/mach-omap2/sram.c                         | 39 +----------
- arch/arm/mach-omap2/sram.h                         |  7 --
- 13 files changed, 119 insertions(+), 92 deletions(-)
+- Search and replace to standardize on pr_warn instead of pr_warning
+
+----------------------------------------------------------------
+Joe Perches (1):
+      arm: mach-omap2: Convert pr_warning to pr_warn
+
+Tony Lindgren (1):
+      ARM: OMAP: Remove unused pieces of legacy DMA API
+
+ arch/arm/mach-omap2/display.c            |   2 +-
+ arch/arm/mach-omap2/hdq1w.c              |   4 +-
+ arch/arm/mach-omap2/i2c.c                |   2 +-
+ arch/arm/mach-omap2/msdi.c               |   4 +-
+ arch/arm/mach-omap2/mux.c                |   2 +-
+ arch/arm/mach-omap2/omap_hwmod.c         |  26 +-
+ arch/arm/mach-omap2/pdata-quirks.c       |   4 +-
+ arch/arm/mach-omap2/pm34xx.c             |   2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c |   4 +-
+ arch/arm/mach-omap2/sr_device.c          |   2 +-
+ arch/arm/mach-omap2/vc.c                 |   2 +-
+ arch/arm/mach-omap2/voltage.c            |  22 +-
+ arch/arm/mach-omap2/wd_timer.c           |   4 +-
+ arch/arm/plat-omap/dma.c                 | 737 +------------------------------
+ include/linux/omap-dma.h                 |  37 --
+ 15 files changed, 46 insertions(+), 808 deletions(-)
