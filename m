@@ -1,76 +1,97 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH v3 2/3] nand: omap2: Remove horrible ifdefs to fix module probe
-Date: Thu, 18 Sep 2014 08:48:06 +0100
-Message-ID: <CAAEAJfAbObn0biRrxKeGpddvYcSZfabntz8fY3LCaa8wsEzjkg@mail.gmail.com>
-References: <1410447730-16087-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<1410447730-16087-3-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<20140918060336.GE7362@norris-Latitude-E6410>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH v3 4/5] ASoC: davinci: HDMI audio build for AM33XX and
+ TDA998x
+Date: Thu, 18 Sep 2014 10:25:44 +0200
+Message-ID: <20140918102544.26b28b6b@armhf>
+References: <cover.1410898073.git.jsarha@ti.com>
+	<270f1e048d9a5a17a7f367ecabc509475b8c1145.1410898073.git.jsarha@ti.com>
+	<20140917194126.GV7960@sirena.org.uk>
+	<5419F965.9060209@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:49392 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbaIRHsH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 03:48:07 -0400
-Received: by mail-qc0-f179.google.com with SMTP id x13so680852qcv.38
-        for <linux-omap@vger.kernel.org>; Thu, 18 Sep 2014 00:48:06 -0700 (PDT)
-In-Reply-To: <20140918060336.GE7362@norris-Latitude-E6410>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:50820 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755200AbaIRIXb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 04:23:31 -0400
+In-Reply-To: <5419F965.9060209@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, tony@atomide.com, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com
 
-On 18 September 2014 07:03, Brian Norris <computersforpeace@gmail.com> =
-wrote:
-> On Thu, Sep 11, 2014 at 12:02:09PM -0300, Ezequiel Garcia wrote:
->> The current code abuses ifdefs to determine if the selected ECC sche=
-me
->> is supported by the running kernel. As a result the code is hard to =
-read,
->> and it also fails to load as a module.
->
-> Yes, a real eyesore, with little benefit from the #ifdef's.
->
->> This commit removes all the ifdefs and instead introduces a function
->> omap2_nand_ecc_check() to check if the ECC is supported by using
->> IS_ENABLED(CONFIG_xxx).
->>
->> Since IS_ENABLED() is true when a config is =3Dy or =3Dm, this chang=
-e fixes the
->> module so it can be loaded with no issues.
->>
->> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> [...]
->> diff --git a/include/linux/platform_data/elm.h b/include/linux/platf=
-orm_data/elm.h
->> index 780d1e9..25d1bca 100644
->> --- a/include/linux/platform_data/elm.h
->> +++ b/include/linux/platform_data/elm.h
->> @@ -42,8 +42,22 @@ struct elm_errorvec {
->>       int error_loc[16];
->>  };
->>
->> +#if IS_ENABLED(CONFIG_MTD_NAND_OMAP_BCH)
->>  void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
->>               struct elm_errorvec *err_vec);
->>  int elm_config(struct device *dev, enum bch_ecc bch_type,
->>       int ecc_steps, int ecc_step_size, int ecc_syndrome_size);
->> +#else
->> +void elm_decode_bch_error_page(struct device *dev, u8 *ecc_calc,
->> +             struct elm_errorvec *err_vec)
->
-> You should not be defining non-static functions in a header. Now thes=
-e
-> functions will be uselessly placed in every compilation unit that
-> includes this header. You should probably make this function 'static
-> inline'.
->
+On Thu, 18 Sep 2014 00:13:09 +0300
+Jyri Sarha <jsarha@ti.com> wrote:
 
-Darn, of course they must be static! Thanks for spotting this.
+> > So, Jean-Francois is also trying to do things with the TDA998x - wh=
+at's
+> > the story with that, is this joined up at all?
+>=20
+> Not really. This basic functionality does not touch tda998x at all on=
+=20
+> the fly, but just sets i2s configuation in the beginning and bangs th=
+e=20
+> bits trough McASP. But as long as the old platform data for tda998x=20
+> still works after Jean-Francois' patches I should be safe.
+
+It should. And you may test it.
+
+> The problem with the Jean-Francois' patches is the DT support. The BB=
+B=20
+> HDMI video is implemented trough tilcdc-slave mechanism without a DT=20
+> node for the tda encoder, which renders Jean-Francois' approach unusa=
+ble=20
+> for BBB.
+
+I used the TDA998x with DT support for a long time with a hack by using
+parts of drm_i2c_encoder_init(). Now, I think that this function could
+be used as it is just setting no platform_data in info.
+
+> The whole tilcdc slave approach may not be the most elegant way to us=
+e=20
+> the tda driver, but it does not look like it is going to change any t=
+ime=20
+> soon.
+
+Right: I proposed a patch for that and it was rejected.
+
+> Best regards,
+> Jyri
+>=20
+> ps. I have been thinking on something similar to Jean-Francois' patch=
+=20
+> for SiI9022 which I have been working on lately. Also I have been=20
+> wondering if it would be possible to come up with a generic ASoC code=
+c=20
+> component driver or library that could be used with any HDMI encoder =
+to=20
+> produce the ASoC codec component. Unfortunately I am in too early sta=
+ge=20
+> to produce anything more concrete.
+
+Here are some thoughts about this topic.
+
+The video and audio worlds don't know about each other.
+The only solution I found is to let the encoder create the codec as
+a child device. Then, the codec knows from which encoder it depends.
+This could have been done using Russell's components, but the codec
+should have been declared in the DT. This is not useful.
+
+The codec interacts with the encoder in 2 ways:
+- it uses the HDMI parameters retrieved by the encoder,
+- it gives the audio source type to the encoder.
+I used exported functions for that, but, for a generic codec, theses
+functions could be given through the codec platform_data.
+
+The codec declares the DAI(s) prior to know the encoder. The DAI table
+must be in the codec because of the snd_soc_dai_ops.
+=46or a generic codec, this DAI table could be built dynamically from
+information (name, id) also given through the codec platform_data.
+
 --=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
