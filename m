@@ -1,101 +1,211 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
-Date: Thu, 18 Sep 2014 08:50:12 -0500
-Message-ID: <541AE314.5040107@ti.com>
-References: <1408716154-26101-1-git-send-email-nm@ti.com> <1408716154-26101-9-git-send-email-nm@ti.com>,<5419D7BD.30003@linaro.org> <448912EABC71F84BBCADFD3C67C4BE52CAC748@DBDE04.ent.ti.com> <541A25DA.8030101@linaro.org> <541AE102.2070407@ti.com>
+Subject: Re: [PATCH V2 3/3] mfd: palmas: Add support for optional wakeup
+Date: Thu, 18 Sep 2014 08:54:23 -0500
+Message-ID: <541AE40F.1090101@ti.com>
+References: <1409950311-25236-1-git-send-email-nm@ti.com> <1409950311-25236-4-git-send-email-nm@ti.com> <alpine.DEB.2.10.1409052311210.5472@nanos> <20140908154109.GA12336@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <541AE102.2070407@ti.com>
+In-Reply-To: <20140908154109.GA12336@kahuna>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, "Kristo, Tero" <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "J, KEERTHY" <j-keerthy@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/18/2014 08:41 AM, Nishanth Menon wrote:
-> On 09/17/2014 07:22 PM, Daniel Lezcano wrote:
->> On 09/17/2014 04:20 PM, Shilimkar, Santosh wrote:
-> [...]
->>> Could you try a long run of this little program:
->>>
->>> https://git.linaro.org/power/pm-qa.git/blob/HEAD:/cpuidle/cpuidle_killer.c
->>>
->>> [Santosh] I am sure there will not be any issue with the long run test case here.
->>> Lets see if Nishant sees anything otherwise
+On 09/08/2014 10:41 AM, Nishanth Menon wrote:
+> On 23:13-20140905, Thomas Gleixner wrote:
+>> On Fri, 5 Sep 2014, Nishanth Menon wrote:
+>>> +	if (!palmas->wakeirq)
+>>> +		goto no_wake_irq;
+>>> +
+>>> +	ret = devm_request_irq(palmas->dev, palmas->wakeirq,
+>>> +			       palmas_wake_irq,
+>>> +			       IRQF_ONESHOT | pdata->irq_flags,
 >>
->> Ok. Make sure the cpu is effectively entering your C2 state with the 
->> sleep duration in the test program.
+>> Why is this marked IRQF_ONESHOT?
 > 
-> Test kernel:
-> https://github.com/nmenon/linux-2.6-playground/commits/testing/tmlind-test-suspend-resume
-> (I decided to merge in various send for pull branches from maintainers
-> and apply cpuidle on top)..
+> Uggh.. should have dropped it. my bad.. removed in the revision below.
+> Thanks for catching it.
+>>
+>>> +			       dev_name(palmas->dev),
+>>> +			       &palmas);
+>>> +	if (ret < 0)
+>>> +		goto err_i2c;
+>>
+>> Why err and not doing the obvious clearing of palmas->wakeirq and
+>> keep at least the i2c functional?
+> Hmmm.. true.. we can stay alive even though without wakeup capability if
+> someone messes up configuration..
 > 
-> Controlled test run as follows on 4 different impacted platforms and 1
-> platform as legacy reference.
-> 
-> What we are looking for is
->> cpu1_pwrdm (ON),OFF:0,RET:2677,INA:0,ON:2678,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> RET:2677 indicated CPU1 hit C2
->> cpu0_pwrdm (ON),OFF:0,RET:2677,INA:0,ON:2678,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> RET:2677 indicated CPU0 hit C2
->> mpu_pwrdm (ON),OFF:0,RET:2667,INA:0,ON:2668,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:2667,RET-MEMBANK2-OFF:0
-> RET:2667 indicates that CPU0 and CPU1 managed to achieve RET together,
-> else by hardware constraints in place, MPU power domain will fail to
-> transition.
-> 
-> What I see in all cases below is that transitions do take place (C2 is
-> successfully hit).
-> 
-> Test #1: 120 seconds:
-> CMD: set -x;uname -a;cat /sys/kernel/debug/pm_debug/count;sleep
-> 1;./cpuidle_killer_120;sleep 1;cat /sys/kernel/debug/pm_debug/count;set +x
-> 
-> OMAP4 Panda-ES: (2 a9) - not impacted as part of this patch - just
-> base test vector
-> http://fpaste.org/134547/14110454/
-> 
-> OMAP5 uEVM: (2 a15)
-> http://fpaste.org/134546/10454181/
-> 
-> DRA74x: (2 a15)
-> http://fpaste.org/134543/11045286/
-> 
-> DRA72: (2 a15)
-	  ^^
-Correction should have been 1 a15
+> Fixed version below. Let me know if you are ok with the following.
 
-> http://fpaste.org/134544/11045335/
-> 
-> AM572x(DRA74x variant): (2 A15)
-> http://fpaste.org/134545/10453761/
-> 
-> 
-> Test #2: 1200 seconds: (http://fpaste.org/134564/47289141/)
-> CMD: set -x;uname -a;cat /sys/kernel/debug/pm_debug/count;sleep
-> 1;./cpuidle_killer_1200;sleep 1;cat
-> /sys/kernel/debug/pm_debug/count;set +x
-> 
-> OMAP4 Panda-ES: (2 a9) - not impacted as part of this patch - just
-> base test vector
-> http://fpaste.org/134563/41104728/
-> 
-> OMAP5 uEVM: (2 a15)
-> http://fpaste.org/134562/47221141/
-> 
-> DRA74x EVM: (2 a15)
-> http://fpaste.org/134559/11047098/
-> 
-> DRA72 EVM: (2 a15)
-	      ^^
-Correction should have been 1 a15
+Gentle ping. Would you like me to repost this series over again?
 
-> http://fpaste.org/134560/11047151/
+> ----8<----
+> From 6da58ac66eedea46cf7282c6644c76c8f328f5ee Mon Sep 17 00:00:00 2001
+> From: Nishanth Menon <nm@ti.com>
+> Date: Tue, 12 Aug 2014 12:00:52 -0500
+> Subject: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
 > 
-> AM572x EVM: (2 A15)
-> http://fpaste.org/134561/47189141/
+> With the recent pinctrl-single changes, omaps can treat wake-up events
+> from deeper power  states as interrupts.
 > 
+> This is to handle the case where the system needs two interrupt
+> sources when SoC is in deep sleep(1 to exit from deep power mode such
+> as sleep, and other from the module handling the actual event during
+> system active state). This is not the same as threaded interrupts as the
+> wakeup interrupt source is used only as part of deeper power saving
+> mode.
+> 
+> Let's add support for the optional second interrupt for wake-up
+> events. And then SoC can wakeup and handle the event using it's
+> regular handler.
+> 
+> This is similar in approach to commit 2a0b965cfb6e ("serial: omap: Add
+> support for optional wake-up")
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  drivers/mfd/palmas.c       |   62 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/palmas.h |    2 ++
+>  2 files changed, 64 insertions(+)
+> 
+> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+> index 28cb048..de7d204 100644
+> --- a/drivers/mfd/palmas.c
+> +++ b/drivers/mfd/palmas.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/mfd/core.h>
+>  #include <linux/mfd/palmas.h>
+>  #include <linux/of_device.h>
+> +#include <linux/of_irq.h>
+>  
+>  static const struct regmap_config palmas_regmap_config[PALMAS_NUM_CLIENTS] = {
+>  	{
+> @@ -326,6 +327,16 @@ static struct regmap_irq_chip tps65917_irq_chip = {
+>  			PALMAS_INT1_MASK),
+>  };
+>  
+> +static irqreturn_t palmas_wake_irq(int irq, void *_palmas)
+> +{
+> +	/*
+> +	 * Return Not handled so that interrupt is disabled.
+> +	 * Level event ensures that the event is eventually handled
+> +	 * by the appropriate chip handler already registered
+> +	 */
+> +	return IRQ_NONE;
+> +}
+> +
+>  int palmas_ext_control_req_config(struct palmas *palmas,
+>  	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
+>  {
+> @@ -409,6 +420,7 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
+>  		pdata->mux_from_pdata = 1;
+>  		pdata->pad2 = prop;
+>  	}
+> +	pdata->wakeirq = irq_of_parse_and_map(node, 1);
+>  
+>  	/* The default for this register is all masked */
+>  	ret = of_property_read_u32(node, "ti,power-ctrl", &prop);
+> @@ -521,6 +533,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+>  	i2c_set_clientdata(i2c, palmas);
+>  	palmas->dev = &i2c->dev;
+>  	palmas->irq = i2c->irq;
+> +	palmas->wakeirq = pdata->wakeirq;
+>  
+>  	match = of_match_device(of_palmas_match_tbl, &i2c->dev);
+>  
+> @@ -587,6 +600,25 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+>  	if (ret < 0)
+>  		goto err_i2c;
+>  
+> +	if (!palmas->wakeirq)
+> +		goto no_wake_irq;
+> +
+> +	ret = devm_request_irq(palmas->dev, palmas->wakeirq,
+> +			       palmas_wake_irq,
+> +			       pdata->irq_flags,
+> +			       dev_name(palmas->dev),
+> +			       &palmas);
+> +	if (ret < 0) {
+> +		dev_err(palmas->dev, "Invalid wakeirq(%d) (res: %d), skiping\n",
+> +			palmas->wakeirq, ret);
+> +		palmas->wakeirq = 0;
+> +	} else {
+> +		/* We use wakeirq only during suspend-resume path */
+> +		device_set_wakeup_capable(palmas->dev, true);
+> +		disable_irq_nosync(palmas->wakeirq);
+> +	}
+> +
+> +no_wake_irq:
+>  no_irq:
+>  	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+>  	addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
+> @@ -706,6 +738,34 @@ static int palmas_i2c_remove(struct i2c_client *i2c)
+>  	return 0;
+>  }
+>  
+> +static int palmas_i2c_suspend(struct i2c_client *i2c,  pm_message_t mesg)
+> +{
+> +	struct palmas *palmas = i2c_get_clientdata(i2c);
+> +	struct device *dev = &i2c->dev;
+> +
+> +	if (!palmas->wakeirq)
+> +		return 0;
+> +
+> +	if (device_may_wakeup(dev))
+> +		enable_irq(palmas->wakeirq);
+> +
+> +	return 0;
+> +}
+> +
+> +static int palmas_i2c_resume(struct i2c_client *i2c)
+> +{
+> +	struct palmas *palmas = i2c_get_clientdata(i2c);
+> +	struct device *dev = &i2c->dev;
+> +
+> +	if (!palmas->wakeirq)
+> +		return 0;
+> +
+> +	if (device_may_wakeup(dev))
+> +		disable_irq_nosync(palmas->wakeirq);
+> +
+> +	return 0;
+> +}
+> +
+>  static const struct i2c_device_id palmas_i2c_id[] = {
+>  	{ "palmas", },
+>  	{ "twl6035", },
+> @@ -721,6 +781,8 @@ static struct i2c_driver palmas_i2c_driver = {
+>  		   .of_match_table = of_palmas_match_tbl,
+>  		   .owner = THIS_MODULE,
+>  	},
+> +	.suspend = palmas_i2c_suspend,
+> +	.resume = palmas_i2c_resume,
+>  	.probe = palmas_i2c_probe,
+>  	.remove = palmas_i2c_remove,
+>  	.id_table = palmas_i2c_id,
+> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+> index fb0390a..e8cf4c2 100644
+> --- a/include/linux/mfd/palmas.h
+> +++ b/include/linux/mfd/palmas.h
+> @@ -75,6 +75,7 @@ struct palmas {
+>  	/* IRQ Data */
+>  	int irq;
+>  	u32 irq_mask;
+> +	int wakeirq;
+>  	struct mutex irq_lock;
+>  	struct regmap_irq_chip_data *irq_data;
+>  
+> @@ -377,6 +378,7 @@ struct palmas_clk_platform_data {
+>  
+>  struct palmas_platform_data {
+>  	int irq_flags;
+> +	int wakeirq;
+>  	int gpio_base;
+>  
+>  	/* bit value to be loaded to the POWER_CTRL register */
 > 
 
 
