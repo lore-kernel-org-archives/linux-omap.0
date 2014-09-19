@@ -1,48 +1,156 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Fri, 19 Sep 2014 07:25:24 -0400
-Message-ID: <541C12A4.8020901@hurleysoftware.com>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de> <1410377411-26656-10-git-send-email-bigeasy@linutronix.de> <20140911111721.GB17476@xps8300> <54118AAB.2010205@linutronix.de> <5419B825.5000201@linutronix.de> <20140919102212.GA31784@xps8300> <541C0C64.5010206@linutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] rtc: omap: Support regulator supply for RTC
+Date: Fri, 19 Sep 2014 07:54:46 -0500
+Message-ID: <541C2796.7030300@ti.com>
+References: <1411119994-8234-1-git-send-email-lokeshvutla@ti.com> <541BFBFC.5070505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <541C0C64.5010206@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57856 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756500AbaISMzg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2014 08:55:36 -0400
+In-Reply-To: <541BFBFC.5070505@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, a.zummo@towertech.it, rtc-linux@googlegroups.com
+Cc: nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, balbi@ti.com, tony@atomide.com, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
 
-On 09/19/2014 06:58 AM, Sebastian Andrzej Siewior wrote:
-> On 09/19/2014 12:22 PM, Heikki Krogerus wrote:
->> Couldn't you just replace the handle_irq with a custom irq routine in
->> the omap driver like you did with set_termios? Where you would do
->> those tricks and/or call serial8250_handle_irq()?
-> 
-> Tricks within serial8250_handle_irq(), see [0]. It is not a lot but
-> still. I could provide my own handle irq, just asking what you would
-> prefer.
-> 
-> [0]
-> http://git.breakpoint.cc/cgit/bigeasy/linux.git/commit/?h=uart_v10_pre2&id=f26f161d998ee4a84a0aa6ddff69a435c25f204d
-> 
->> The 8250_core changes in that patch #10 only modify
->> serial8250_handle_irg right?
-> 
-> Correct. However there is another change due to the RX_DMA_BUG. A while
-> ago you said that this RX_DMA_BUG thing might be something that other
-> SoC could use, too.
-> If you ask me now for my own irq routine it would make sense to move RX
-> bug handling into omap specific code as well.
+On 09/19/2014 04:48 AM, Lokesh Vutla wrote:
+> +linux-omap, linux-arm-kernel, devicetree
+> On Friday 19 September 2014 03:16 PM, Lokesh Vutla wrote:
+>> On some Soc's RTC is powered by an external power regulator.
+>> e.g. RTC on DRA7 SoC. Make the OMAP RTC driver support a
+>> power regulator.
+>> And also making the driver as module_platform_driver to
+>> support probe deferal.
+>>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> ---
+>> Tested on DRA7. Logs here: http://fpaste.org/134804/11200041/
 
-I'm not excited at the prospect of an omap-specific irq handler, especially
-if this is just a silicon bug. I think it will create and encourage
-unnecessary code variation in the 8250 driver. The inertia of an
-omap-specific irq handler will mean it will probable stay forever. Suppose
-this tx dma bug is later discovered to be fixable inline (rather than by
-state), then we'll be stuck with an irq handler that no one will want to
-integrate.
+Is that the only platform using rtc-omap.c?
 
+>>
+>>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  3 +++
+>>  drivers/rtc/rtc-omap.c                             | 28 ++++++++++++++++++++--
+>>  2 files changed, 29 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>> index 5a0f02d..c9f963a 100644
+>> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>> @@ -10,6 +10,9 @@ Required properties:
+>>  - interrupts: rtc timer, alarm interrupts in order
+>>  - interrupt-parent: phandle for the interrupt controller
+>>  
+>> +Optional Properties:
+>> + - rtc-supply : phandle to the regulator device tree node if needed.
+>> +
+>>  Example:
+>>  
+>>  rtc@1c23000 {
+>> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+>> index 21142e6..4473d1d 100644
+>> --- a/drivers/rtc/rtc-omap.c
+>> +++ b/drivers/rtc/rtc-omap.c
+>> @@ -24,6 +24,7 @@
+>>  #include <linux/of_device.h>
+>>  #include <linux/pm_runtime.h>
+>>  #include <linux/io.h>
+>> +#include <linux/regulator/consumer.h>
+>>  
+>>  /* The OMAP1 RTC is a year/month/day/hours/minutes/seconds BCD clock
+>>   * with century-range alarm matching, driven by the 32kHz clock.
+>> @@ -121,6 +122,7 @@
+>>  #define OMAP_RTC_HAS_32KCLK_EN		BIT(2)
+>>  
+>>  static void __iomem	*rtc_base;
+
+^^ this can easily be removed by allocating data in probe.
+
+>> +static struct regulator	*rtc_reg;
+
+So, two instances cannot have different RTC supplies? we dont need to
+do this.
+
+>>  
+>>  #define rtc_read(addr)		readb(rtc_base + (addr))
+>>  #define rtc_write(val, addr)	writeb(val, rtc_base + (addr))
+>> @@ -372,11 +374,12 @@ static const struct of_device_id omap_rtc_of_match[] = {
+>>  };
+>>  MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+>>  
+>> -static int __init omap_rtc_probe(struct platform_device *pdev)
+>> +static int omap_rtc_probe(struct platform_device *pdev)
+>>  {
+>>  	struct resource		*res;
+>>  	struct rtc_device	*rtc;
+>>  	u8			reg, new_ctrl;
+>> +	int			ret;
+>>  	const struct platform_device_id *id_entry;
+>>  	const struct of_device_id *of_id;
+>>  
+>> @@ -402,6 +405,23 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+>>  		return -ENOENT;
+>>  	}
+>>  
+>> +	rtc_reg =  devm_regulator_get_optional(&pdev->dev, "rtc");
+>> +	if (IS_ERR(rtc_reg)) {
+>> +		if (PTR_ERR(rtc_reg) == -EPROBE_DEFER) {
+>> +			dev_err(&pdev->dev, "regulator not ready, retry\n");
+>> +			return -EPROBE_DEFER;
+>> +		}
+>> +		rtc_reg = NULL;
+>> +	}
+>> +
+>> +	if (rtc_reg) {
+>> +		ret = regulator_enable(rtc_reg);
+>> +		if (ret) {
+>> +			dev_dbg(&pdev->dev, "regulator enable failed\n");
+>> +			return ret;
+>> +		}
+>> +	}
+>> +
+
+Do you have a specific voltage you need for your rtc device?
+
+>>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>  	rtc_base = devm_ioremap_resource(&pdev->dev, res);
+>>  	if (IS_ERR(rtc_base))
+>> @@ -517,6 +537,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
+>>  	pm_runtime_put_sync(&pdev->dev);
+>>  	pm_runtime_disable(&pdev->dev);
+>>  
+>> +	if (rtc_reg)
+>> +		regulator_disable(rtc_reg);
+>> +
+>>  	return 0;
+>>  }
+>>  
+>> @@ -565,6 +588,7 @@ static void omap_rtc_shutdown(struct platform_device *pdev)
+>>  
+>>  MODULE_ALIAS("platform:omap_rtc");
+>>  static struct platform_driver omap_rtc_driver = {
+>> +	.probe		= omap_rtc_probe,
+>>  	.remove		= __exit_p(omap_rtc_remove),
+>>  	.shutdown	= omap_rtc_shutdown,
+>>  	.driver		= {
+>> @@ -576,7 +600,7 @@ static struct platform_driver omap_rtc_driver = {
+>>  	.id_table	= omap_rtc_devtype,
+>>  };
+>>  
+>> -module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
+>> +module_platform_driver(omap_rtc_driver);
+
+>>  
+>>  MODULE_AUTHOR("George G. Davis (and others)");
+>>  MODULE_LICENSE("GPL");
+>>
+> 
+
+
+-- 
 Regards,
-Peter Hurley
+Nishanth Menon
