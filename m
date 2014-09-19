@@ -1,237 +1,63 @@
-From: Michael Trimarchi <michael@amarulasolutions.com>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: OMAP3/AM3517 EHCI USB Issue
-Date: Fri, 19 Sep 2014 11:37:14 +0200
-Message-ID: <CAOf5uwn4w6Ja7u0AwKzHtEhDkR7PcSaTa4JSXndhxkEgdqZ-_g@mail.gmail.com>
-References: <20140728152948.GA28880@sysresccd>
-	<20140728155718.GF7667@saruman.home>
-	<20140728175739.GA29212@sysresccd>
-	<20140728181024.GI7667@saruman.home>
-	<53D7625B.3070301@ti.com>
-	<20140729152029.GA20542@sysresccd>
-	<53D8B4DA.906@ti.com>
-	<20140801230400.GA27785@sysresccd>
-	<CAO5Z=i3HF3BMVLamV9P1AOQh6rxyGuGz=Z5goG7w+o8iuNpv7A@mail.gmail.com>
-	<53DF5398.7000107@ti.com>
-	<20140804152754.GA12810@sysresccd>
-	<541BF5C7.3030201@ti.com>
+Date: Fri, 19 Sep 2014 12:48:55 +0300
+Message-ID: <541BFC07.1070700@ti.com>
+References: <20140728152948.GA28880@sysresccd>	<20140728155718.GF7667@saruman.home>	<20140728175739.GA29212@sysresccd>	<20140728181024.GI7667@saruman.home>	<53D7625B.3070301@ti.com>	<20140729152029.GA20542@sysresccd>	<53D8B4DA.906@ti.com>	<20140801230400.GA27785@sysresccd>	<CAO5Z=i3HF3BMVLamV9P1AOQh6rxyGuGz=Z5goG7w+o8iuNpv7A@mail.gmail.com>	<53DF5398.7000107@ti.com>	<20140804152754.GA12810@sysresccd>	<541BF5C7.3030201@ti.com> <CAOf5uwn4w6Ja7u0AwKzHtEhDkR7PcSaTa4JSXndhxkEgdqZ-_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:53052 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154AbaISJhP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2014 05:37:15 -0400
-Received: by mail-we0-f173.google.com with SMTP id t60so2178694wes.32
-        for <linux-omap@vger.kernel.org>; Fri, 19 Sep 2014 02:37:14 -0700 (PDT)
-In-Reply-To: <541BF5C7.3030201@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40174 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753250AbaISJtR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Sep 2014 05:49:17 -0400
+In-Reply-To: <CAOf5uwn4w6Ja7u0AwKzHtEhDkR7PcSaTa4JSXndhxkEgdqZ-_g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
+To: Michael Trimarchi <michael@amarulasolutions.com>
 Cc: Michael Welling <mwelling@emacinc.com>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, gregkh@linuxfoundation.org, USB list <linux-usb@vger.kernel.org>, heikki.krogerus@linux.intel.com, chris.ruehl@gtsys.com.hk, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi Roger
+On 09/19/2014 12:37 PM, Michael Trimarchi wrote:
+> Hi Roger
+> 
+> On Fri, Sep 19, 2014 at 11:22 AM, Roger Quadros <rogerq@ti.com> wrote:
+>> Hi Michael,
+>>
 
-On Fri, Sep 19, 2014 at 11:22 AM, Roger Quadros <rogerq@ti.com> wrote:
-> Hi Michael,
->
-> On 08/04/2014 06:27 PM, Michael Welling wrote:
->> On Mon, Aug 04, 2014 at 12:34:16PM +0300, Roger Quadros wrote:
->>> On 08/02/2014 02:51 AM, Michael Welling wrote:
->>>> On Fri, Aug 1, 2014 at 6:04 PM, Michael Welling <mwelling@emacinc.com> wrote:
->>>>> On Wed, Jul 30, 2014 at 12:03:22PM +0300, Roger Quadros wrote:
->>>>>> On 07/29/2014 06:20 PM, Michael Welling wrote:
->>>>>>> On Tue, Jul 29, 2014 at 11:59:07AM +0300, Roger Quadros wrote:
->>>>>>>> Hi Michael,
->>>>>>>>
->>>>>>>> On 07/28/2014 09:10 PM, Felipe Balbi wrote:
->>>>>>>>> On Mon, Jul 28, 2014 at 12:57:39PM -0500, Michael Welling wrote:
->>>>>>>>>> On Mon, Jul 28, 2014 at 10:57:18AM -0500, Felipe Balbi wrote:
->>>>>>>>>>> Hi,
->>>>>>>>>>>
->>>>>>>>>>> On Mon, Jul 28, 2014 at 10:29:49AM -0500, Michael Welling wrote:
->>>>>>>>>>>> On Mon, Jul 28, 2014 at 11:02:47AM -0400, Alan Stern wrote:
->>>>>>>>>>>>> On Fri, 25 Jul 2014, Michael Welling wrote:
->>>>>>>>>>>>>
->>>>>>>>>>>>>> The plot thickens....
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> So if I run the above command before anything is plugged into the ports
->>>>>>>>>>>>>> the HUB disconnects.
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> root@som3517:~# echo on > /sys/bus/usb/devices/1-1/power/control
->>>>>>>>>>>>>> [   63.068839] usb 1-1: USB disconnect, device number 2
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> Here is the output of the usbmon output when running the above command:
->>>>>>>>>>>>>> root@som3517:/sys/kernel/debug/usb/usbmon# cat 1t
->>>>>>>>>>>>>> de382e40 3788886573 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de382e40 3788890604 C Ci:001:00 0 4 = 07050000
->>>>>>>>>>>>>> de382e40 3788892965 S Ci:001:00 s a3 00 0000 0002 0004 4 <
->>>>>>>>>>>>>> de382e40 3788893093 C Ci:001:00 0 4 = 00010000
->>>>>>>>>>>>>> de382e40 3788894834 S Ci:001:00 s a3 00 0000 0003 0004 4 <
->>>>>>>>>>>>>> de382e40 3788894958 C Ci:001:00 0 4 = 00010000
->>>>>>>>>>>>>> de7d92c0 3788896519 S Ii:001:01 -115 4 <
->>>>>>>>>>>>>> de382e40 3788898778 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de382e40 3788900188 C Ci:001:00 0 4 = 07050000
->>>>>>>>>>>>>> de382e40 3788902705 S Co:001:00 s 23 01 0002 0001 0000 0
->>>>>>>>>>>>>> de382e40 3788905793 C Co:001:00 0 0
->>>>>>>>>>>>>> de382e40 3788940998 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de7d92c0 3788942065 C Ii:001:01 0 1 = 02
->>>>>>>>>>>>>> de7d92c0 3788943013 S Ii:001:01 -115 4 <
->>>>>>>>>>>>>> de382e40 3788943145 C Ci:001:00 0 4 = 03050400
->>>>>>>>>>>>>> de382e40 3788961031 S Co:001:00 s 23 01 0012 0001 0000 0
->>>>>>>>>>>>>> de382e40 3788961175 C Co:001:00 0 0
->>>>>>>>>>>>>> de382e40 3788961304 S Ci:002:00 s 80 00 0000 0000 0002 2 <
->>>>>>>>>>>>>> de382e40 3788965395 C Ci:002:00 -71 0
->>>>>>>>>>>>>> de249040 3788966954 S Co:001:00 s 23 03 0004 0001 0000 0
->>>>>>>>>>>>>> de249040 3788968362 C Co:001:00 0 0
->>>>>>>>>>>>>> de249040 3789021103 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de7d92c0 3789022194 C Ii:001:01 0 1 = 02
->>>>>>>>>>>>>> de7d92c0 3789022226 S Ii:001:01 -115 4 <
->>>>>>>>>>>>>> de249040 3789023423 C Ci:001:00 0 4 = 01051200
->>>>>>>>>>>>>> de249040 3789025010 S Co:001:00 s 23 03 0004 0001 0000 0
->>>>>>>>>>>>>> de249040 3789026815 C Co:001:00 0 0
->>>>>>>>>>>>>> de249040 3789230980 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de249040 3789231111 C Ci:001:00 0 4 = 00010300
->>>>>>>>>>>>>> de249040 3789232280 S Co:001:00 s 23 01 0014 0001 0000 0
->>>>>>>>>>>>>> de249040 3789232404 C Co:001:00 0 0
->>>>>>>>>>>>>> de249040 3789233056 S Co:001:00 s 23 01 0001 0001 0000 0
->>>>>>>>>>>>>> de249040 3789235345 C Co:001:00 0 0
->>>>>>>>>>>>>> de249040 3789236820 S Co:001:00 s 23 01 0001 0001 0000 0
->>>>>>>>>>>>>> de249040 3789237201 C Co:001:00 0 0
->>>>>>>>>>>>>> de249040 3789238180 S Co:001:00 s 23 01 0001 0001 0000 0
->>>>>>>>>>>>>> de249040 3789238510 C Co:001:00 0 0
->>>>>>>>>>>>>> de249040 3789240602 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de249040 3789241661 C Ci:001:00 0 4 = 00010300
->>>>>>>>>>>>>> de249040 3789242264 S Co:001:00 s 23 01 0010 0001 0000 0
->>>>>>>>>>>>>> de249040 3789243921 C Co:001:00 0 0
->>>>>>>>>>>>>> de249040 3789246540 S Co:001:00 s 23 01 0011 0001 0000 0
->>>>>>>>>>>>>> de249040 3789246930 C Co:001:00 0 0
->>>>>>>>>>>>>> de2490c0 3789283096 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de2490c0 3789286255 C Ci:001:00 0 4 = 00010000
->>>>>>>>>>>>>> de2490c0 3789330975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de2490c0 3789332606 C Ci:001:00 0 4 = 00010000
->>>>>>>>>>>>>> de2490c0 3789371015 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de2490c0 3789371146 C Ci:001:00 0 4 = 00010000
->>>>>>>>>>>>>> de2490c0 3789410975 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de2490c0 3789411097 C Ci:001:00 0 4 = 00010000
->>>>>>>>>>>>>> de2490c0 3789450972 S Ci:001:00 s a3 00 0000 0001 0004 4 <
->>>>>>>>>>>>>> de2490c0 3789451081 C Ci:001:00 0 4 = 00010000
->>>>>>>>>>>>>> de7d92c0 3789452462 C Ii:001:01 -2 0
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> Not sure what any of it means.
->>>>>>>>>>>>>
->>>>>>>>>>>>> Basically it means what you said above: the hub disconnected.  I can't
->>>>>>>>>>>>> tell why.  You'll have to ask someone who's familiar with the hardware
->>>>>>>>>>>>> on that board.
->>>>>>>>>>>>
->>>>>>>>>>>> Sadly, there is no one more familar with this specific hardware than myself.
->>>>>>>>>>>>
->>>>>>>>>>>> I can however ellaborate the hardware setup of the USB subsystem in
->>>>>>>>>>>> case there is someone out there that has used a similar setup.
->>>>>>>>>>>>
->>>>>>>>>>>> The board uses the AM3517 SoC from TI. The SoC's USB host port (HSUSB1) is
->>>>>>>>>>>> connected to a USB3320 PHY. The PHY is connected to a USB2512 switch to
->>>>>>>>>>>> provide two downstream USB ports.
->>>>>>>>>>>>
->>>>>>>>>>>> The very same hardware worked with the 2.6.37 kernel that I am trying to
->>>>>>>>>>>> move away from.
->>>>>>>
->>>>>>> It should be noted that the USB hardware work on the 3.2 kernel as well.
->>>>>>>
->>>>>>>>>>>>
->>>>>>>>>>>> Today I am going to try using 3.10 and 3.14 kernels see if they exhibit
->>>>>>>>>>>> the same behavior.
->>>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> It should be noted that the 3.10 kernel did not even detect the external
->>>>>>>>>> HUB and the 3.14 kernel exhibits the same failure as 3.16.
->>>>>>>>>>
->>>>>>>>>>> Do you have off-while-idle enabled ? This could be, as Alan suggested, a
->>>>>>>>>>> problem with remote wakeup. EHCI on TI parts is kinda awkward, if you
->>>>>>>>>>> will, and getting remote wakeup with PM working, is generally a
->>>>>>>>>>> challenge.
->>>>>>>>>>
->>>>>>>>>> How would one determine if off-while-idle is enabled? Is this a flag in an
->>>>>>>>>> entry in the devicetree?
->>>>>>>>>
->>>>>>>>> there is a pm_debug file on debugfs which you can use. Set autosuspend
->>>>>>>>> delay to UART (it's set to -1 by default, IIRC), then leave the board
->>>>>>>>> idle for a couple minutes, then read /sys/kernel/debug/pm_debug and see
->>>>>>>>> if the OFF() counters are increasing.
->>>>>>>>>
->>>>>>>>> Adding linux-omap to Cc. Also Tony, who has a simple script to enable
->>>>>>>>> pm_runtime on UART.
->>>>>>>>>
->>>>>>>>
->>>>>>>> The EHCI-omap driver when in use should prevent the USBHOST module from idling and this should in turn prevent the CORE from idling. So remote wakeup should work. It works fine in my setup with omap3beagle board OMAP3430/3530 ES3.1.
->>>>>>>> I'm using a recent u-boot v2014.07-rc4.
->>>>>>>>
->>>>>>>> It seems you are using an older silicon which needs single_ulpi_bypass flag set in platform data.
->>>>>>>> Did your below patch fix the issue for you?
->>>>>>>> https://lkml.org/lkml/2014/7/28/745
->>>>>>>
->>>>>>> Sadly, this did not fix the issue that I am having.
->>>>>>
->>>>>> OK. what u-boot version you are on? I can try to test with the same version.
->>>>>>
->>>>>>>
->>>>>>> The problem seems to be the interaction between the PHY and the HUB on
->>>>>>> the hardware. The USB host works fine until the last device is removed
->>>>>>> from the HUB as long a device is plugged in during boot.
->>>>>>
->>>>>> OK. The ULPI link seems to be dead after the external hub and PHY suspends.
->>>>>> As 3.2 works for you it should be easy to find out what commit broke the functionality
->>>>>> for older silicon.
+<snip>
+
 >>>>>
->>>>> So I found something today in our 3.2.21 kernel that probably
->>>>> worked around this suspend failure.
->>>>>
->>>>> http://git.emacinc.com/source/linux-emac.git/commit/2ede90e83c2432de5932a03dd79edd543eca1053
->>>>>
->>>>> Sadly this means the failure predates the 3.2 kernel.
->>>>>
->>>>> So I commented out the usb_enable_autosuspend() calls in the core HUB driver and
->>>>> magically I can plug and unplug all day long without a problem.
->>>>>
->>>>> So autosuspend is causing the failure.
->>>>>
->>>>> Now what is the best way to implement a fix without trashing the kernel?
+>>>>> It should be noted that the external HUB must be prevented from autosuspend
+>>>>> otherwise the resume fails.
 >>>>
->>>> It should be noted that the external HUB must be prevented from autosuspend
->>>> otherwise the resume fails.
+>>>> OK. I was able to reproduce the issue on my beagleboard as well. The key to reproduce the issue is to use a device which has autosuspend working. Earlier I was using a mass storage device so couldn't reproduce the issue. On using a HUB I could see the issue. Debugging this issue is on my action list.
+>>>>
 >>>
->>> OK. I was able to reproduce the issue on my beagleboard as well. The key to reproduce the issue is to use a device which has autosuspend working. Earlier I was using a mass storage device so couldn't reproduce the issue. On using a HUB I could see the issue. Debugging this issue is on my action list.
+>>> I will keep an eye out for the fix if it is possible. The implementation of
+>>> the remote resume workaround as listed in the sprz306d.pdf seems to hack
+>>> into the core EHCI drivers and limits you to a single USB host.
 >>>
 >>
->> I will keep an eye out for the fix if it is possible. The implementation of
->> the remote resume workaround as listed in the sprz306d.pdf seems to hack
->> into the core EHCI drivers and limits you to a single USB host.
+>> Please see Advisory 1.1.33 HSUSB Interoperability Issue with SMSC USB3320 PHY
+>> (sprz306d errata doc).
 >>
->
-> Please see Advisory 1.1.33 HSUSB Interoperability Issue with SMSC USB3320 PHY
-> (sprz306d errata doc).
->
-> It seems ULPI suspend/resume is broken and there is no workaround. So you have to
-> prevent the USB device connected at root port from suspending.
->
+>> It seems ULPI suspend/resume is broken and there is no workaround. So you have to
+>> prevent the USB device connected at root port from suspending.
+>>
+> 
+> It's very important to understand if this affect even OMAP4 and
+> tusb1210 that is suggested by TI.
+> 
 
-It's very important to understand if this affect even OMAP4 and
-tusb1210 that is suggested by TI.
+This particular issue was fixed in omap3630 ES1.1 onwards. But that doesn't mean OMAP4
+is free of issues around USB EHCI. 4430 brought it's own set of issues which
+were fixed in 4460. But there were still some issues requiring software workaround
+especially around USB suspend/resume.
 
-Michael
+e.g. There is still an issue with both 4430 and 4460 called i701 
+(USB Host - Possible Interoperability With External PHY At Resume Time)
+which is observed on certain PHYs (at least not on usb3320).
+There is a software workaround for that.
 
-
-> cheers,
-> -roger
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-| Michael Nazzareno Trimarchi                     Amarula Solutions BV |
-| COO  -  Founder                                      Cruquiuskade 47 |
-| +31(0)851119172                                 Amsterdam 1018 AM NL |
-|                  [`as] http://www.amarulasolutions.com               |
+cheers,
+-roger
