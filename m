@@ -1,156 +1,73 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] rtc: omap: Support regulator supply for RTC
-Date: Fri, 19 Sep 2014 07:54:46 -0500
-Message-ID: <541C2796.7030300@ti.com>
-References: <1411119994-8234-1-git-send-email-lokeshvutla@ti.com> <541BFBFC.5070505@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 1/5] clk: ti: add "ti,gpio-gate-clock" controlled clock
+Date: Fri, 19 Sep 2014 16:07:03 +0300
+Message-ID: <541C2A77.9070406@ti.com>
+References: <cover.1410898073.git.jsarha@ti.com> <71e8bdf16f8a3bff5db6ba80dcab9d21de05e939.1410898073.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="1uXkGQadUj5AAmolLFvO8fMQ1WbffHaIn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57856 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756500AbaISMzg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2014 08:55:36 -0400
-In-Reply-To: <541BFBFC.5070505@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56216 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754085AbaISNHT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Sep 2014 09:07:19 -0400
+In-Reply-To: <71e8bdf16f8a3bff5db6ba80dcab9d21de05e939.1410898073.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, a.zummo@towertech.it, rtc-linux@googlegroups.com
-Cc: nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, balbi@ti.com, tony@atomide.com, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devicetree@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, dri-devel@lists.freedesktop.org, airlied@linux.ie, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, bcousson@baylibre.com, alsa-devel@alsa-project.org, Mike Turquette <mturquette@linaro.org>
+Cc: tony@atomide.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, peter.ujfalusi@ti.com, detheridge@ti.com, t-kristo@ti.com
 
-On 09/19/2014 04:48 AM, Lokesh Vutla wrote:
-> +linux-omap, linux-arm-kernel, devicetree
-> On Friday 19 September 2014 03:16 PM, Lokesh Vutla wrote:
->> On some Soc's RTC is powered by an external power regulator.
->> e.g. RTC on DRA7 SoC. Make the OMAP RTC driver support a
->> power regulator.
->> And also making the driver as module_platform_driver to
->> support probe deferal.
->>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> ---
->> Tested on DRA7. Logs here: http://fpaste.org/134804/11200041/
+--1uXkGQadUj5AAmolLFvO8fMQ1WbffHaIn
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Is that the only platform using rtc-omap.c?
+On 16/09/14 23:40, Jyri Sarha wrote:
+> The added ti,gpio-gate-clock is a basic clock that can be enabled and
+> disabled trough a gpio output. The DT binding document for the clock
+> is also added. For EPROBE_DEFER handling the registering of the clock
+> has to be delayed until of_clk_get() call time.
+>=20
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  .../bindings/clock/ti/gpio-gate-clock.txt          |   21 ++
+>  drivers/clk/ti/Makefile                            |    2 +-
+>  drivers/clk/ti/gpio.c                              |  202 ++++++++++++=
+++++++++
+>  3 files changed, 224 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti/gpio-gat=
+e-clock.txt
+>  create mode 100644 drivers/clk/ti/gpio.c
 
->>
->>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  3 +++
->>  drivers/rtc/rtc-omap.c                             | 28 ++++++++++++++++++++--
->>  2 files changed, 29 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> index 5a0f02d..c9f963a 100644
->> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> @@ -10,6 +10,9 @@ Required properties:
->>  - interrupts: rtc timer, alarm interrupts in order
->>  - interrupt-parent: phandle for the interrupt controller
->>  
->> +Optional Properties:
->> + - rtc-supply : phandle to the regulator device tree node if needed.
->> +
->>  Example:
->>  
->>  rtc@1c23000 {
->> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
->> index 21142e6..4473d1d 100644
->> --- a/drivers/rtc/rtc-omap.c
->> +++ b/drivers/rtc/rtc-omap.c
->> @@ -24,6 +24,7 @@
->>  #include <linux/of_device.h>
->>  #include <linux/pm_runtime.h>
->>  #include <linux/io.h>
->> +#include <linux/regulator/consumer.h>
->>  
->>  /* The OMAP1 RTC is a year/month/day/hours/minutes/seconds BCD clock
->>   * with century-range alarm matching, driven by the 32kHz clock.
->> @@ -121,6 +122,7 @@
->>  #define OMAP_RTC_HAS_32KCLK_EN		BIT(2)
->>  
->>  static void __iomem	*rtc_base;
+Why is this a TI clock? Sounds like a generic one to me.
 
-^^ this can easily be removed by allocating data in probe.
+In any case, this should go through Mike.
 
->> +static struct regulator	*rtc_reg;
-
-So, two instances cannot have different RTC supplies? we dont need to
-do this.
-
->>  
->>  #define rtc_read(addr)		readb(rtc_base + (addr))
->>  #define rtc_write(val, addr)	writeb(val, rtc_base + (addr))
->> @@ -372,11 +374,12 @@ static const struct of_device_id omap_rtc_of_match[] = {
->>  };
->>  MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
->>  
->> -static int __init omap_rtc_probe(struct platform_device *pdev)
->> +static int omap_rtc_probe(struct platform_device *pdev)
->>  {
->>  	struct resource		*res;
->>  	struct rtc_device	*rtc;
->>  	u8			reg, new_ctrl;
->> +	int			ret;
->>  	const struct platform_device_id *id_entry;
->>  	const struct of_device_id *of_id;
->>  
->> @@ -402,6 +405,23 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->>  		return -ENOENT;
->>  	}
->>  
->> +	rtc_reg =  devm_regulator_get_optional(&pdev->dev, "rtc");
->> +	if (IS_ERR(rtc_reg)) {
->> +		if (PTR_ERR(rtc_reg) == -EPROBE_DEFER) {
->> +			dev_err(&pdev->dev, "regulator not ready, retry\n");
->> +			return -EPROBE_DEFER;
->> +		}
->> +		rtc_reg = NULL;
->> +	}
->> +
->> +	if (rtc_reg) {
->> +		ret = regulator_enable(rtc_reg);
->> +		if (ret) {
->> +			dev_dbg(&pdev->dev, "regulator enable failed\n");
->> +			return ret;
->> +		}
->> +	}
->> +
-
-Do you have a specific voltage you need for your rtc device?
-
->>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>  	rtc_base = devm_ioremap_resource(&pdev->dev, res);
->>  	if (IS_ERR(rtc_base))
->> @@ -517,6 +537,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
->>  	pm_runtime_put_sync(&pdev->dev);
->>  	pm_runtime_disable(&pdev->dev);
->>  
->> +	if (rtc_reg)
->> +		regulator_disable(rtc_reg);
->> +
->>  	return 0;
->>  }
->>  
->> @@ -565,6 +588,7 @@ static void omap_rtc_shutdown(struct platform_device *pdev)
->>  
->>  MODULE_ALIAS("platform:omap_rtc");
->>  static struct platform_driver omap_rtc_driver = {
->> +	.probe		= omap_rtc_probe,
->>  	.remove		= __exit_p(omap_rtc_remove),
->>  	.shutdown	= omap_rtc_shutdown,
->>  	.driver		= {
->> @@ -576,7 +600,7 @@ static struct platform_driver omap_rtc_driver = {
->>  	.id_table	= omap_rtc_devtype,
->>  };
->>  
->> -module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
->> +module_platform_driver(omap_rtc_driver);
-
->>  
->>  MODULE_AUTHOR("George G. Davis (and others)");
->>  MODULE_LICENSE("GPL");
->>
-> 
+ Tomi
 
 
--- 
-Regards,
-Nishanth Menon
+
+--1uXkGQadUj5AAmolLFvO8fMQ1WbffHaIn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUHCp3AAoJEPo9qoy8lh71nhEQAJO46f7xMmo3VjBWVDtoNo64
++PIeMqqNAOUeGbxiQ6Ac0EyMTSI6wuKr2L/Nc99SYMpCD6Svm0zXzcpY3+xtJ8Kc
+4dHoC+S9nwRwA0AFR7d9C5drwYCQv+NgKTPyR35gKCKyDnuDTnLh9JD2nxy2Qut5
+YjfDX/kw/V4qFouZJr/l4EUrqp6UN1hE1EVuapQWa+RwyUjbhXTzVC+j+I0MqLD8
+VE7q22+O8Cp4zb+JDeGgtqkZjoUFWNWfJP5etcAh/T4dsl/K5RQX46ZzC8CoVmzM
+TvBPgow1oJmvXulRtHdU3Es5AAqzICzmz3GEm3djBd5u0D1Ksle9TzQsl0E1BM8p
+43jBIeGVJ4raLbSYWAyZF9oY+G9bn50VN2YFQYsFCh5KxeFzdW0XQVJoSgLUlpA1
+mo1eyA1+vFnwdHxh9hijmzwZudDjdnrLmZHPNN8K++kN1pDvZrrFSc89J9wlayDg
+kpz+O+ErTnppulRbLwiYpEUwTD1Hrr75pnB2oORN0kufD2o9oBMrJTn6xDEvIpmq
+bn29qI8mB9CNmxeyo3f1UeodvUPWSFR5gtW8o1xBt2qhX7K+FHXFLxVPzD5HOZWe
+WU6J2qXO72MfV3ZMttKfU+ngdKBFBLFVCSG0C6BBYuhamAZQG3ZJ8uLC4JXBFf8G
+r1D2KMAgLMiHGj4/Yl1b
+=UN+w
+-----END PGP SIGNATURE-----
+
+--1uXkGQadUj5AAmolLFvO8fMQ1WbffHaIn--
