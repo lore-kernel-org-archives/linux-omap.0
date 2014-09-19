@@ -1,155 +1,179 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 00/26] ARM: OMAP2+: PRCM cleanups for 3.18 merge window
-Date: Fri, 19 Sep 2014 15:12:56 -0500
-Message-ID: <541C8E48.6090306@ti.com>
-References: <1409594955-1476-1-git-send-email-t-kristo@ti.com> <20140918171650.GK14505@atomide.com> <20140918191615.GN14505@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC] ARM: edma: unconditionally ack the error interrupt
+Date: Sat, 20 Sep 2014 00:29:01 +0300
+Message-ID: <541CA01D.1000006@ti.com>
+References: <1410377960-26921-1-git-send-email-bigeasy@linutronix.de> <541AA900.4080506@ti.com> <20140918161225.GA10232@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48560 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756771AbaISUNV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2014 16:13:21 -0400
-In-Reply-To: <20140918191615.GN14505@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20140918161225.GA10232@linutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 09/18/2014 02:16 PM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [140918 10:17]:
->> * Tero Kristo <t-kristo@ti.com> [140901 11:09]:
->>> Hi,
->>>
->>> This set contains PRCM related cleanups meant for 3.18 merge window.
->>> These are based on top of 3.17-rc1 + the PRM set from Nishanth Menon
->>> (http://article.gmane.org/gmane.linux.ports.arm.kernel/350305.) Nishanth's
->>> set is used as basis to avoid merge issues.
->>>
->>> Purpose of this work is to eventually convert the PRCM code into a
->>> separate driver, but this is done in incremental parts as the amount
->>> of changes is substantial. Expected conclusion of this work is 3.19
->>> if everything goes fine.
->>>
->>> This part of the work mostly moves some of the SoC specific PRCM driver
->>> calls under generic version of the same, and adds SoC-ops to support
->>> these on the driver level.
->>>
->>> Working branch posted here:
->>>
->>> tree: https://github.com/t-kristo/linux-pm.git
->>> branch: for-v3.18/prcm-cleanup
->>
->> Paul, any comments on this series?
-> 
-> Just gave this branch a quick try, it seems to work with off-idle
-> for me when merged with current linux-omap master branch. The following
-> merge resolution is needed because of the recent pre es3.1 fix though.
-> 
-> I've pushed out this merged with all the other pending patches into
-> omap-for-v3.18/tmp-merge-2014-09-18.
-> 
-> Nishant, care to give it a try and check your recent PM related
-> changes work with it?
-> 
-Sure. Sorry about the delay..  needed to find some workarounds for
-working with my board farm..
+On 09/18/2014 07:12 PM, Sebastian Andrzej Siewior wrote:
+> * Peter Ujfalusi | 2014-09-18 12:42:24 [+0300]:
+>=20
+>> My hunch on what could be causing this that we might have unhandled =
+dma event
+>> and another comes. This will flag the EDMA_EMR register. Any change =
+in this
+>> register will assert error interrupt which can only be cleared by wr=
+iting to
+>> EDMA_EMRC register.
+>> The EDMA_EMRC register bits also cleared on edma_start(), edma_stop(=
+) and
+>> edma_clean_channel() apart from the error interrupt handler.
+>> So it is possible that we have missed event on one of the channels b=
+ut a stop
+>> might clear the event so in the interrupt hander we do not see this.
+>> I think it would be good to understand what is going on the backroun=
+d...
+>> Can you print out the EDMA_EMCR just before we clear it in the place=
+s I have
+>> mentioned? We might get better understanding on which stage we clear=
+ it and
+>> probably we can understand how to fix this properly so we are not go=
+ing to
+>> have missed events on channels.
+>=20
+> Okay. For the protocol I applied this patch:
+>=20
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index 160460ae3a49..16598625a4d1 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -422,20 +422,24 @@ static irqreturn_t dma_ccerr_handler(int irq, v=
+oid *data)
+>  	int i;
+>  	int ctlr;
+>  	unsigned int cnt =3D 0;
+> +	u32 emr0;
+> =20
+>  	ctlr =3D irq2ctlr(irq);
+>  	if (ctlr < 0)
+>  		return IRQ_NONE;
+> =20
+>  	dev_dbg(data, "dma_ccerr_handler\n");
+> +	emr0 =3D edma_read_array(ctlr, EDMA_EMR, 0);
+> =20
+> -	if ((edma_read_array(ctlr, EDMA_EMR, 0) =3D=3D 0) &&
+> +	if ((emr0 =3D=3D 0) &&
+>  	    (edma_read_array(ctlr, EDMA_EMR, 1) =3D=3D 0) &&
+>  	    (edma_read(ctlr, EDMA_QEMR) =3D=3D 0) &&
+>  	    (edma_read(ctlr, EDMA_CCERR) =3D=3D 0)) {
+>  		edma_write(ctlr, EDMA_EEVAL, 1);
+> +		trace_printk("Unhandled\n");
+>  		return IRQ_NONE;
+>  	}
+> +	trace_printk("emr0: %x\n", emr0);
+> =20
+>  	while (1) {
+>  		int j =3D -1;
+> @@ -1310,6 +1314,9 @@ int edma_start(unsigned channel)
+>  		pr_debug("EDMA: ER%d %08x\n", j,
+>  			edma_shadow0_read_array(ctlr, SH_ER, j));
+>  		/* Clear any pending event or error */
+> +		trace_printk("j%d mask%x EDMA_EMCR: %x\n",
+> +			     j, mask,
+> +			     edma_read_array(ctlr, EDMA_EMCR, j));
+>  		edma_write_array(ctlr, EDMA_ECR, j, mask);
+>  		edma_write_array(ctlr, EDMA_EMCR, j, mask);
+>  		/* Clear any SER */
+> @@ -1347,6 +1354,9 @@ void edma_stop(unsigned channel)
+>  		edma_shadow0_write_array(ctlr, SH_EECR, j, mask);
+>  		edma_shadow0_write_array(ctlr, SH_ECR, j, mask);
+>  		edma_shadow0_write_array(ctlr, SH_SECR, j, mask);
+> +		trace_printk("j%d mask%x EDMA_EMCR: %x\n",
+> +			     j, mask,
+> +			     edma_read_array(ctlr, EDMA_EMCR, j));
+>  		edma_write_array(ctlr, EDMA_EMCR, j, mask);
+> =20
+>  		pr_debug("EDMA: EER%d %08x\n", j,
+> @@ -1387,6 +1397,9 @@ void edma_clean_channel(unsigned channel)
+>  				edma_read_array(ctlr, EDMA_EMR, j));
+>  		edma_shadow0_write_array(ctlr, SH_ECR, j, mask);
+>  		/* Clear the corresponding EMR bits */
+> +		trace_printk("j%d mask%x EDMA_EMCR: %x\n",
+> +			     j, mask,
+> +			     edma_read_array(ctlr, EDMA_EMCR, j));
+>  		edma_write_array(ctlr, EDMA_EMCR, j, mask);
+>  		/* Clear any SER */
+>  		edma_shadow0_write_array(ctlr, SH_SECR, j, mask);
+>=20
+> --
+>=20
+> and the result is something like this:
+>=20
+>            <idle>-0     [000] dnh.   303.356403: edma_start: j0 mask8=
+000000 EDMA_EMCR: 0
+>            <idle>-0     [000] d.h.   303.396721: edma_stop: j0 mask80=
+00000 EDMA_EMCR: 0
+>            <idle>-0     [000] dnh.   303.557103: edma_start: j0 mask8=
+000000 EDMA_EMCR: 0
+>            <idle>-0     [000] dnh.   303.557129: edma_stop: j0 mask40=
+00000 EDMA_EMCR: 0
+>            <idle>-0     [000] dnH.   303.557142: dma_ccerr_handler: U=
+nhandled
+>              less-2612  [000] d...   303.557237: edma_start: j0 mask4=
+000000 EDMA_EMCR: 0
+>              less-2612  [000] d.h.   303.562491: edma_stop: j0 mask40=
+00000 EDMA_EMCR: 0
+>              less-2612  [000] d...   303.564475: edma_start: j0 mask4=
+000000 EDMA_EMCR: 0
+>=20
+> The full trace is at [0]. I haven't found a single entry where EDMA_E=
+MCR
+> was !=3D 0 at those spots. *If* there is a edma_stop() before the
+> interrupt then the interrupt remains unhandled. If there is a
+> edma_start() with mask 8000000 then we have dma_ccerr_handler() with =
+a
+> mask of 4000000.
+
+mask 8000000 means URXEVT0 (UART0 rx), 4000000 is UTXEVT0 (UART0 tx) ev=
+ents.
+But it is clear that my theory was not even close to what's going on.
+Do you have some tool which can be used to reproduce this issue?
+
+>=20
+> Fun fact: If I remove the write access to EDMA_EMCR register (the wri=
+te
+> access after the read out) then I haven't seen [1] a single error int=
+errupt
+> beeing "unhandled" out of 9. The former has three out of eight.
+
+Hrm, this is interesting. Am I interpret it right:
+if you clear the event missed register's bit for the event, you will re=
+ceive
+the interrupt, but there if you read the EMR bits, they are all 0.
+if you do not clear the bit in the event missed register (even if it is=
+ not
+set) you will not receive the error interrupt. Right?
+
+I think this can be due to the fact how edma (if I read the TRM right) =
+works:
+the error irq will be asserted if there is a transition from 0 to 1 in =
+one of
+the error registers. If you had error and you did not cleared the error=
+ bit,
+the next error will not going to cause another transition so no interru=
+pt will
+be triggered. Having said that, there should be at least one error inte=
+rrupt
+coming since at some point we should have had 0 -> 1 transition...
+
+Can you print out also the EDMA_EMR at places you were printing EDMA_EM=
+CR?
+
+>=20
+> [0] https://breakpoint.cc/edma_trace.txt.xz
+> [1] https://breakpoint.cc/edma_trace_nowrite.txt.xz
+>=20
+> Sebastian
+>=20
 
 
-Tested-by: Nishanth Menon <nm@ti.com>
-
-Based on:
-
-omap-for-v3.18/tmp-merge-2014-09-18
-0164b2d Merge branch 'omap-for-v3.18/prcm' into omap-for-v3.18/tmp-merge
-
-Test #1: basic testing
-Added
-69c6133 HACK: Makefile: Build a uImage with dtb already appended
-(for legacy boards)
-
-commit 0164b2dbe83e885a53b0c9a99a508bdbfdf7ee6d BASIC boot
- 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2zy9OUOMM
- 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s2t0JaiHYf
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s2SRkMMQwp
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s20T0sq5dp
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s2AVYqDVBf
- 6: am43xx-gpevm:  Boot PASS: http://slexy.org/raw/s213N14B9r
- 7: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s21yyMkFRS
- 8: beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s2SYJOHRwI
- 9: beaglebone-black:  Boot PASS: http://slexy.org/raw/s214QDgb06
-10: beaglebone:  Boot PASS: http://slexy.org/raw/s21SOLcjMD
-11: craneboard:  Boot PASS: http://slexy.org/raw/s218cXoYSl
-12: dra72x-evm:  Boot FAIL: http://slexy.org/raw/s21BAnAW8N
-13: dra7xx-evm:  Boot PASS: http://slexy.org/raw/s21kf4G5Sh
-14: OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s21QIGwFOM
-15:       n900:  Boot PASS: http://slexy.org/raw/s21T5xECo2
-16:  omap5-evm:  Boot PASS: http://slexy.org/raw/s20qxa3iPw
-17: pandaboard-es:  Boot PASS: http://slexy.org/raw/s2Fh0hMW7n
-18: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2vqUc528i
-19:    sdp2430:  Boot PASS: http://slexy.org/raw/s21gAsEAeD
-20:    sdp3430:  Boot PASS: http://slexy.org/raw/s2dvThSn5D
-TOTAL = 20 boards, Booted Boards = 19, No Boot boards = 1
-
-
-Test #2: PM test (cpufreq/cpuidle/suspend-resume where applicable)
-
-Testing script: (http://slexy.org/view/s21SRQehwu)
-
-Added the following patches:
-59bf40d ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
-(discussion still going on https://patchwork.kernel.org/patch/4764661/
-- but good to know if it still continues to work with PRM changes).
-
-69c6133 HACK: Makefile: Build a uImage with dtb already appended
-(for legacy boards)
-
-b854ca8 gpio: omap: Fix interrupt names
-(https://patchwork.kernel.org/patch/4854511/)
-
-c50fc8b pinctrl: single: AM437x: Add pinctrl compatibility
-37d17bf pinctrl: single: Add DRA7 pinctrl compatibility
-74121c6 pinctrl: bindings: Add OMAP pinctrl binding
-(all of the above are in linux-next)
-
-efb2486 clk: prevent erronous parsing of children during rate change
-b92ac70 clk: ti: dra7-atl: Provide error check for incoming parameters
-in set_rate
-96e8b6b clk: ti: divider: Provide error check for incoming parameters
-in set_rate
-(all above picked up by mike)
-
-92e5e74 ARM: OMAP2+ / pm_debug: add support for wakeup_timer configuration
-(wakeup timer for testing purposes - remote boards)
-
-with these:
-commit 0164b2dbe83e885a53b0c9a99a508bdbfdf7ee6d + Additional patches
-basic PM test
- 1: am335x-evm:  Boot PASS: http://slexy.org/raw/s2xRMuVHvj
- 2:  am335x-sk:  Boot PASS: http://slexy.org/raw/s2qEHyI9Rs
- 3: am3517-evm:  Boot PASS: http://slexy.org/raw/s2Vptpboop
- 4:  am37x-evm:  Boot PASS: http://slexy.org/raw/s21TKVsyet
- 5: am43xx-epos:  Boot PASS: http://slexy.org/raw/s20KGye4N9
- 6: am43xx-gpevm:  Boot PASS: http://slexy.org/raw/s201uuCOp2
- 7: BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s21ChQP74I
- 8: beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s20oagBAsl
- 9: beaglebone-black:  Boot PASS: http://slexy.org/raw/s2VT200vL0
-10: beaglebone:  Boot PASS: http://slexy.org/raw/s20raoHSya
-11: craneboard:  Boot PASS: http://slexy.org/raw/s2vq6MYXNZ
-12: dra72x-evm:  Boot FAIL: http://slexy.org/raw/s2EPseu0Jj
-13: dra7xx-evm:  Boot PASS: http://slexy.org/raw/s21JJGLkTU
-14: OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s20Drlvdlp
-15:       n900:  Boot PASS: http://slexy.org/raw/s21aDnJ1Bi
-16:  omap5-evm:  Boot PASS: http://slexy.org/raw/s20ClvPKeK
-17: pandaboard-es:  Boot PASS: http://slexy.org/raw/s2L0dt0syP
-18: pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s2OlA9hfzy
-19:    sdp2430:  Boot PASS: http://slexy.org/raw/s20Kgf04TW
-20:    sdp3430:  Boot PASS: http://slexy.org/raw/s21p71QaVO
-TOTAL = 20 boards, Booted Boards = 19, No Boot boards = 1
-
-
-
--- 
-Regards,
-Nishanth Menon
+thanks,
+P=C3=A9ter
