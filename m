@@ -1,67 +1,67 @@
-From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
-Date: Fri, 19 Sep 2014 10:36:54 -0700 (PDT)
-Message-ID: <alpine.DEB.2.10.1409191027330.5612@nanos>
-References: <1411067086-16613-1-git-send-email-nm@ti.com> <1411067086-16613-4-git-send-email-nm@ti.com> <alpine.DEB.2.10.1409181749170.4206@nanos> <20140919030333.GA6088@kahuna> <alpine.DEB.2.10.1409190710320.5612@nanos> <20140919161927.GA28613@kahuna>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: [PATCH v4 4/7] ARM: l2c: Add support for overriding prefetch
+ settings
+Date: Fri, 19 Sep 2014 20:30:07 +0200
+Message-ID: <20140919183007.GG29620@piout.net>
+References: <1409062680-15906-1-git-send-email-t.figa@samsung.com>
+ <1409062680-15906-5-git-send-email-t.figa@samsung.com>
+ <20140919095000.GF29620@piout.net>
+ <20140919163932.GH12379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20140919161927.GA28613@kahuna>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LAK <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from top.free-electrons.com ([176.31.233.9]:38650 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757484AbaISSaL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2014 14:30:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20140919163932.GH12379@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tomasz Figa <t.figa@samsung.com>, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, tony@atomide.com, linus.walleij@linaro.org, linux-kernel@vger.kernel.org, drake@endlessm.com, loeliger@gmail.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 
-On Fri, 19 Sep 2014, Nishanth Menon wrote:
-> On 08:37-20140919, Thomas Gleixner wrote:
-> > The other omap drivers using this have the same issue ... And of
-> > course they are subtly different.
+On 19/09/2014 at 17:39:32 +0100, Russell King - ARM Linux wrote :
+> On Fri, Sep 19, 2014 at 11:50:01AM +0200, Alexandre Belloni wrote:
+> > On 26/08/2014 at 16:17:57 +0200, Tomasz Figa wrote :
+> > > Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
+> > > settings configured in registers leading to crashes if L2C is enabled
+> > > without overriding them. This patch introduces bindings to enable
+> > > prefetch settings to be specified from DT and necessary support in the
+> > > driver.
+> > > 
+> > > Signed-off-by: Tomasz Figa <t.figa@samsung.com>
 > > 
-> > The uart one handles the actual device interrupt, which is violating
-> > the general rule of possible interrupt reentrancy in the pm-runtime
-> > case if the two interrupts are affine to two different cores. Yes,
-> > it's protected by a lock and works by chance ....
+> > Tested-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 > > 
-> > The mmc one issues a disable_irq_nosync() in the wakeup irq handler
-> > itself.
-> > 
-> > WHY does one driver need that and the other does not? You are not even
-> > able to come up with a common scheme for OMAP. I don't want to see the
-> > mess others are going to create when this stuff becomes more used.
-> > 
-> > Thanks,
-> > 
-> > 	tglx
+> > It is working and useful on Atmel's sama5d4 were the bootloader is not
+> > configuring the L2C prefetch. However, I'm wondering whether we should
+> > add support for setting L310_PREFETCH_CTRL_DATA_PREFETCH and
+> > L310_PREFETCH_CTRL_INSTR_PREFETCH. I'm currently doing it by using
+> > ".l2c_aux_val    = L310_AUX_CTRL_DATA_PREFETCH |
+> > L310_AUX_CTRL_INSTR_PREFETCH" (those are the same bits) but this has the
+> > disadvantage of displaying the "L2C: platform modifies aux control
+> > register:" twice.
 > 
-> I think I understand your concern - I request Tony to comment about
-> this. I mean, I can try and hook things like uart in other drivers
-> (like https://patchwork.kernel.org/patch/4759171/ ), but w.r.t overall
-> generic usage guideline wise, I would prefer Tony to comment.
+> The L2C documentation, freely available from the ARM infocentre website,
+> has the answer to this for you.
+> 
+> The two bits in the prefetch control register which control the data
+> and instruction prefetching are aliases of the aux control register.
+> If you set them to a value in one register, they are reflected in the
+> other.
+> 
+> The reason for that is that once the L2 cache is enabled, writes to
+> the aux control register are no longer permitted, but it's safe to
+> enable and disable the prefetching with the cache already enabled.
+> This reason is even stated in the documentation.
+> 
 
-No, the uart and that i2c thing are just wrong. Assume the following
+Yeah, so my question still holds, should we have an other way to
+enable/disable I/D prefetch by adding two other DT bindings ?
 
-device irq affine to cpu0
-wakeup irq affine to cpu1
 
-CPU 0				CPU 1
-
-runtime suspend
-
- enable_wake(wakeup irq);
-
-wakeup interrupt is raised	device interrupt is raised
-
-  dev_handler(device)		dev_handler(device)
-
-It might work due to locking, but it is nevertheless wrong. Interrupt
-handlers for devices are guaranteed not to be reentrant. And this
-brilliant stuff simply violates that guarantee. So, no. It's wrong
-even if it happens to work by chance.
-
-Thanks,
-
-	tglx
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux, Kernel and Android engineering
+http://free-electrons.com
