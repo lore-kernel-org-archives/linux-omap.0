@@ -1,120 +1,186 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
-Date: Thu, 18 Sep 2014 17:57:33 -0700 (PDT)
-Message-ID: <alpine.DEB.2.10.1409181749170.4206@nanos>
-References: <1411067086-16613-1-git-send-email-nm@ti.com> <1411067086-16613-4-git-send-email-nm@ti.com>
+Date: Thu, 18 Sep 2014 22:03:33 -0500
+Message-ID: <20140919030333.GA6088@kahuna>
+References: <1411067086-16613-1-git-send-email-nm@ti.com>
+ <1411067086-16613-4-git-send-email-nm@ti.com>
+ <alpine.DEB.2.10.1409181749170.4206@nanos>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:57160 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720AbaISA5p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Sep 2014 20:57:45 -0400
-In-Reply-To: <1411067086-16613-4-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.10.1409181749170.4206@nanos>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: lee.jones@linaro.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, 18 Sep 2014, Nishanth Menon wrote:
-> +static irqreturn_t palmas_wake_irq(int irq, void *_palmas)
-> +{
-> +	/*
-> +	 * Return Not handled so that interrupt is disabled.
+On 17:57-20140918, Thomas Gleixner wrote:
+> On Thu, 18 Sep 2014, Nishanth Menon wrote:
+> > +static irqreturn_t palmas_wake_irq(int irq, void *_palmas)
+> > +{
+> > +	/*
+> > +	 * Return Not handled so that interrupt is disabled.
+> 
+> And how is that interrupt disabled by returning IRQ_NONE? You mean it
+> gets disabled after it got reraised 100000 times and the spurious
+> detector kills it?
 
-And how is that interrupt disabled by returning IRQ_NONE? You mean it
-gets disabled after it got reraised 100000 times and the spurious
-detector kills it?
+No, that does not happen due to the hardware involved:
+http://fpaste.org/134757/09428214/ (there are still fixes needed to
+various drivers to completely achieve low power states).
 
-> +	 * Level event ensures that the event is eventually handled
-> +	 * by the appropriate chip handler already registered
+Explanation below:
+> 
+> > +	 * Level event ensures that the event is eventually handled
+> > +	 * by the appropriate chip handler already registered
+> 
+> Eventually handled? So eventually it's not handled?
 
-Eventually handled? So eventually it's not handled?
+I had previously tried explaining this in v1:
+https://patchwork.kernel.org/patch/4743321/
 
-> +	 */
-> +	return IRQ_NONE;
-> +}
-> +
->  int palmas_ext_control_req_config(struct palmas *palmas,
->  	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
->  {
-> @@ -409,6 +420,7 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
->  		pdata->mux_from_pdata = 1;
->  		pdata->pad2 = prop;
->  	}
-> +	pdata->wakeirq = irq_of_parse_and_map(node, 1);
->  
->  	/* The default for this register is all masked */
->  	ret = of_property_read_u32(node, "ti,power-ctrl", &prop);
-> @@ -521,6 +533,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
->  	i2c_set_clientdata(i2c, palmas);
->  	palmas->dev = &i2c->dev;
->  	palmas->irq = i2c->irq;
-> +	palmas->wakeirq = pdata->wakeirq;
->  
->  	match = of_match_device(of_palmas_match_tbl, &i2c->dev);
->  
-> @@ -587,6 +600,25 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
->  	if (ret < 0)
->  		goto err_i2c;
->  
-> +	if (!palmas->wakeirq)
-> +		goto no_wake_irq;
-> +
-> +	ret = devm_request_irq(palmas->dev, palmas->wakeirq,
-> +			       palmas_wake_irq,
-> +			       pdata->irq_flags,
-> +			       dev_name(palmas->dev),
-> +			       &palmas);
-> +	if (ret < 0) {
-> +		dev_err(palmas->dev, "Invalid wakeirq(%d) (res: %d), skiping\n",
-> +			palmas->wakeirq, ret);
-> +		palmas->wakeirq = 0;
-> +	} else {
-> +		/* We use wakeirq only during suspend-resume path */
-> +		device_set_wakeup_capable(palmas->dev, true);
-> +		disable_irq_nosync(palmas->wakeirq);
+I agree it is a little convoluted, so will try again: mainly because
+of the hardware entities involved. Two different hardware generate
+interrupt. A GPIO hardware block handles palmas interrupts when SoC
+is ON, However with GPIO block active, we cannot achieve low power
+suspend (deep sleep) for the SoC, so, we switch off all GPIOs and SoC
+hardware blocks OFF as part of the sequence of going to low power
+suspend (mem), and depend on the hardware controlling the pins of the
+SoC to generate wakeup event (wakeirq).
 
-Urgh. Why nosysnc? And why do you want to do that at all?
+wakeirq is provided by drivers/pinctrl/pinctrl-single.c (implementation
+to handle pad generated interrupt source).
 
-	irq_set_status_flags(irq, IRQ_NOAUTOEN);
+wakeirq is generated by the hardware at the pin (we call it control
+module in TI SoC), this generates an interrupt on level change. Palmas
+generates level interrupt, and the level is cleared when interrupt
+source is cleared.
 
-Is what you want to set before requesting the irq.
+At suspend - we enable_irq(wakeirq) - this arms the pin for palmas
+interrupt to generate an interrupt when level changes.
 
+We start the wake sequence in deep sleep (only thing alive is that
+control module, every thing else, including GPIO block is powered
+off).
 
-> +	}
-> +
-> +no_wake_irq:
->  no_irq:
->  	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
->  	addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
-> @@ -706,6 +738,34 @@ static int palmas_i2c_remove(struct i2c_client *i2c)
->  	return 0;
->  }
->  
-> +static int palmas_i2c_suspend(struct i2c_client *i2c,  pm_message_t mesg)
-> +{
-> +	struct palmas *palmas = i2c_get_clientdata(i2c);
-> +	struct device *dev = &i2c->dev;
-> +
-> +	if (!palmas->wakeirq)
-> +		return 0;
-> +
-> +	if (device_may_wakeup(dev))
-> +		enable_irq(palmas->wakeirq);
-> +
-> +	return 0;
-> +}
-> +
-> +static int palmas_i2c_resume(struct i2c_client *i2c)
-> +{
-> +	struct palmas *palmas = i2c_get_clientdata(i2c);
-> +	struct device *dev = &i2c->dev;
-> +
-> +	if (!palmas->wakeirq)
-> +		return 0;
-> +
-> +	if (device_may_wakeup(dev))
-> +		disable_irq_nosync(palmas->wakeirq);
+On generating a wakeup event (in the example log, I used palmas power
+button), palmas generates a level event, the transition triggers two things:
+a) control module generates wakeirq (detecting the level shift)
+b) wakeirq causes wakeup of SoC from deep sleep.
 
-Again, why nosync?
+wakeirq wont be generated again by the hardware because pinctrl handles
+the wakeirq interrupt event in the control module.
+
+At resume - we disable_irq wakeirq -which in turn disables the pin for
+generating interrupts if level ever changes again.
+
+GPIO block is restored as part of resume path, and we generate the
+handler for palmas regular interrupt service which in turn goes and
+detects the real event and handles it.
+
+I suppose I can improve the commit message to elaborate this better?
+Will that help?
+> 
+> > +	 */
+> > +	return IRQ_NONE;
+> > +}
+> > +
+> >  int palmas_ext_control_req_config(struct palmas *palmas,
+> >  	enum palmas_external_requestor_id id,  int ext_ctrl, bool enable)
+> >  {
+> > @@ -409,6 +420,7 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
+> >  		pdata->mux_from_pdata = 1;
+> >  		pdata->pad2 = prop;
+> >  	}
+> > +	pdata->wakeirq = irq_of_parse_and_map(node, 1);
+> >  
+> >  	/* The default for this register is all masked */
+> >  	ret = of_property_read_u32(node, "ti,power-ctrl", &prop);
+> > @@ -521,6 +533,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+> >  	i2c_set_clientdata(i2c, palmas);
+> >  	palmas->dev = &i2c->dev;
+> >  	palmas->irq = i2c->irq;
+> > +	palmas->wakeirq = pdata->wakeirq;
+> >  
+> >  	match = of_match_device(of_palmas_match_tbl, &i2c->dev);
+> >  
+> > @@ -587,6 +600,25 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+> >  	if (ret < 0)
+> >  		goto err_i2c;
+> >  
+> > +	if (!palmas->wakeirq)
+> > +		goto no_wake_irq;
+> > +
+> > +	ret = devm_request_irq(palmas->dev, palmas->wakeirq,
+> > +			       palmas_wake_irq,
+> > +			       pdata->irq_flags,
+> > +			       dev_name(palmas->dev),
+> > +			       &palmas);
+> > +	if (ret < 0) {
+> > +		dev_err(palmas->dev, "Invalid wakeirq(%d) (res: %d), skiping\n",
+> > +			palmas->wakeirq, ret);
+> > +		palmas->wakeirq = 0;
+> > +	} else {
+> > +		/* We use wakeirq only during suspend-resume path */
+> > +		device_set_wakeup_capable(palmas->dev, true);
+> > +		disable_irq_nosync(palmas->wakeirq);
+> 
+> Urgh. Why nosysnc? And why do you want to do that at all?
+> 
+> 	irq_set_status_flags(irq, IRQ_NOAUTOEN);
+> 
+> Is what you want to set before requesting the irq.
+
+Aaah, OK. thanks on the suggestion. will do that.
+> 
+> 
+> > +	}
+> > +
+> > +no_wake_irq:
+> >  no_irq:
+> >  	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+> >  	addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
+> > @@ -706,6 +738,34 @@ static int palmas_i2c_remove(struct i2c_client *i2c)
+> >  	return 0;
+> >  }
+> >  
+> > +static int palmas_i2c_suspend(struct i2c_client *i2c,  pm_message_t mesg)
+> > +{
+> > +	struct palmas *palmas = i2c_get_clientdata(i2c);
+> > +	struct device *dev = &i2c->dev;
+> > +
+> > +	if (!palmas->wakeirq)
+> > +		return 0;
+> > +
+> > +	if (device_may_wakeup(dev))
+> > +		enable_irq(palmas->wakeirq);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int palmas_i2c_resume(struct i2c_client *i2c)
+> > +{
+> > +	struct palmas *palmas = i2c_get_clientdata(i2c);
+> > +	struct device *dev = &i2c->dev;
+> > +
+> > +	if (!palmas->wakeirq)
+> > +		return 0;
+> > +
+> > +	if (device_may_wakeup(dev))
+> > +		disable_irq_nosync(palmas->wakeirq);
+> 
+> Again, why nosync?
+true - nosync is not necessary at here. disable_irq is however necessary
+as we are not interested in wakeup events for level changes.
+
+We just use the enable/disable to control when we'd want to arm the pin
+for waking up from suspend state.
+
+-- 
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
