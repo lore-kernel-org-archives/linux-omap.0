@@ -1,161 +1,88 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
-Date: Fri, 19 Sep 2014 11:19:27 -0500
-Message-ID: <20140919161927.GA28613@kahuna>
-References: <1411067086-16613-1-git-send-email-nm@ti.com>
- <1411067086-16613-4-git-send-email-nm@ti.com>
- <alpine.DEB.2.10.1409181749170.4206@nanos>
- <20140919030333.GA6088@kahuna>
- <alpine.DEB.2.10.1409190710320.5612@nanos>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 00/26] ARM: OMAP2+: PRCM cleanups for 3.18 merge window
+Date: Fri, 19 Sep 2014 16:30:12 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1409191606310.22526@utopia.booyaka.com>
+References: <1409594955-1476-1-git-send-email-t-kristo@ti.com> <20140918171650.GK14505@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1409190710320.5612@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: lee.jones@linaro.org, LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, LAK <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@linaro.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:58607 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757428AbaISQaN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Sep 2014 12:30:13 -0400
+In-Reply-To: <20140918171650.GK14505@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 08:37-20140919, Thomas Gleixner wrote:
-> On Thu, 18 Sep 2014, Nishanth Menon wrote:
-> > On 17:57-20140918, Thomas Gleixner wrote:
+On Thu, 18 Sep 2014, Tony Lindgren wrote:
+
+> * Tero Kristo <t-kristo@ti.com> [140901 11:09]:
+> > Hi,
 > > 
-> > I suppose I can improve the commit message to elaborate this better?
-> > Will that help?
-> 
-> You also want to improve the comment in the empty handler.
-OK. will do the same. Thanks for suggesting.
-
-> 
-> > > 
-> > > > +	 */
-> > > > +	return IRQ_NONE;
-> 
-> And it still does not explain WHY you think that returning IRQ_NONE is
-> the right thing to do here. You actually handle the interrupt, right?
-> Just because the handler is an NOP does not mean you did not handle
-> it.
-
-Hmm.. My motivation for IRQ_NONE was because this specific handler does
-not handle the interrupt. Now, from this discussion, I understand that I
-should rather use IRQ_HANDLED since the event is indeed handled (just
-not here).
-
-Thank you for correcting my understanding. Will update in my next rev
-(once we solve the following discussion)..
-
-> 
-> > > > +static int palmas_i2c_suspend(struct i2c_client *i2c,  pm_message_t mesg)
-> > > > +{
-> > > > +	struct palmas *palmas = i2c_get_clientdata(i2c);
-> > > > +	struct device *dev = &i2c->dev;
-> > > > +
-> > > > +	if (!palmas->wakeirq)
-> > > > +		return 0;
-> > > > +
-> > > > +	if (device_may_wakeup(dev))
-> > > > +		enable_irq(palmas->wakeirq);
-> > > > +
-> > > > +	return 0;
-> > > > +}
-> > > > +
-> > > > +static int palmas_i2c_resume(struct i2c_client *i2c)
-> > > > +{
-> > > > +	struct palmas *palmas = i2c_get_clientdata(i2c);
-> > > > +	struct device *dev = &i2c->dev;
-> > > > +
-> > > > +	if (!palmas->wakeirq)
-> > > > +		return 0;
-> > > > +
-> > > > +	if (device_may_wakeup(dev))
-> > > > +		disable_irq_nosync(palmas->wakeirq);
-> > > 
-> > > Again, why nosync?
-> > true - nosync is not necessary at here. disable_irq is however necessary
-> > as we are not interested in wakeup events for level changes.
+> > This set contains PRCM related cleanups meant for 3.18 merge window.
+> > These are based on top of 3.17-rc1 + the PRM set from Nishanth Menon
+> > (http://article.gmane.org/gmane.linux.ports.arm.kernel/350305.) Nishanth's
+> > set is used as basis to avoid merge issues.
 > > 
-> > We just use the enable/disable to control when we'd want to arm the pin
-> > for waking up from suspend state.
+> > Purpose of this work is to eventually convert the PRCM code into a
+> > separate driver, but this is done in incremental parts as the amount
+> > of changes is substantial. Expected conclusion of this work is 3.19
+> > if everything goes fine.
+> > 
+> > This part of the work mostly moves some of the SoC specific PRCM driver
+> > calls under generic version of the same, and adds SoC-ops to support
+> > these on the driver level.
+> > 
+> > Working branch posted here:
+> > 
+> > tree: https://github.com/t-kristo/linux-pm.git
+> > branch: for-v3.18/prcm-cleanup
 > 
-> And what is issuing the call to enable/disable_irq_wake()? 
-> 
-> So if that interrupt is not marked proper then you can bring your
-> device into a wont resume state easily
-> 
->        start suspend
->        enable wakeirq
->        disable_device_irqs()
-> 	   if (!iswakeup_irq())
-> 	      disable_irq() // does not mask due to lazy masking
-> 
->        ....
->        wakeirq fires
->           if (irq_is_disabled())
-> 	     mask_irq();
-> 
->        transition into suspend
-> 
-> Now your pinctrl irq is masked at the HW level and wont wake the
-> machine up ever again.
-True.
+> Paul, any comments on this series?
 
-> 
-> So now looking at that pinctrl irq chip thing, which seems to be
-> designed to handle these kind of wakeups. That thing looks massivly
-> wrong as well, simply because it enforces to use
-> enable_irq/disable_irq().
-> 
-> So because the sole purpose of this chip is to handle the separate
-> wakeup style interrupt, it should actually NOT enable the interrupt in
-> the irq_unmask callback.
-> 
-> Simply because during normal operation nothing is interested in the
-> interrupt and any operation which might enable it (including request
-> irq) is just making the system handle completely pointless interrupts
-> and hoops and loops juggling with enable/disable irq.
-> 
-> So the right thing here is to have an empty unmask function and do the
-> actual unmask only in the irq_set_wake() callback. mask of course
-> needs to do what it says. The point is, that the following sequence of
-> code will just work w/o generating an interrupt on the wakeirq line
-> outside of the wake enabled context.
-> 
-> dev_init()
-> 	request_wakeirq();
-> 
-> suspend()
-> 	if (may_wake())
-> 	   enable_irq_wake();
-> 
-> resume()
-> 	if (may_wake())
-> 	   disable_irq_wake();
-> 
-> The other omap drivers using this have the same issue ... And of
-> course they are subtly different.
-> 
-> The uart one handles the actual device interrupt, which is violating
-> the general rule of possible interrupt reentrancy in the pm-runtime
-> case if the two interrupts are affine to two different cores. Yes,
-> it's protected by a lock and works by chance ....
-> 
-> The mmc one issues a disable_irq_nosync() in the wakeup irq handler
-> itself.
-> 
-> WHY does one driver need that and the other does not? You are not even
-> able to come up with a common scheme for OMAP. I don't want to see the
-> mess others are going to create when this stuff becomes more used.
-> 
-> Thanks,
-> 
-> 	tglx
+Patches 1, 3, 5, 8, 10, 13, 17, 18, 20, 21, 22, 23, 24 are:
 
-I think I understand your concern - I request Tony to comment about
-this. I mean, I can try and hook things like uart in other drivers
-(like https://patchwork.kernel.org/patch/4759171/ ), but w.r.t overall
-generic usage guideline wise, I would prefer Tony to comment.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
--- 
-Regards,
-Nishanth Menon
+Here are some specific comments on a few other patches:
+
+Regarding patch 7:  The kerneldoc-nano function comments are good, but 
+should begin with "/**" rather than "/*".  When that's fixed, it can be 
+considered acked by me.
+
+Regarding patches 14, 15, 16: Non-static prm_* functions really should 
+start with omap*_ to avoid potential naming conflicts with other drivers 
+when these are moved to drivers/.  (Obviously the same would apply for any 
+CM function names in other, future patches.)  When that's fixed, it can be 
+considered acked by me.
+
+Regarding patch 25: What are "I/O wakeup gaes" -- gates?  When that's 
+fixed, an acked-by for me can be added.
+
+Regarding patch 26: It seems wise to ensure that omap_prm_reset_system() 
+ends with a 'while(1) { cpu_relax(); }' or something similar, to ensure 
+that execution flow does not proceed past that point. At that point, it 
+should be possible to remove the "while(1) {}"s from omap44xx_restart(), 
+omap2xxx_restart(), etc.  When that's fixed, an acked-by for me can be 
+added.
+
+...
+
+And some general comments: none of which should probably block this 
+series, but seemed worth noting:
+
+Regarding patches 6 and 19: Tero, could you please share the DT node data 
+that you're planning to submit for the PRM, CM1, and CM2 on the OMAP4* 
+platforms? According to the TRM, these are separate IP blocks, with 
+separate OCP header register areas.  So these should probably have 
+separate DT nodes, regs, etc. if the DTS files are to match the hardware.  
+The planned DTS data may impact the way these patches are written, at 
+least, if more patches are to be avoided later.
+
+As far as patches 2, 4, 9, 11, and 12 go, I'll let those go without 
+comment.
+
+
+- Paul
