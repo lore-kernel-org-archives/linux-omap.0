@@ -1,51 +1,53 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
-Date: Sat, 20 Sep 2014 07:07:12 -0700
-Message-ID: <20140920140712.GA27096@atomide.com>
-References: <1411067086-16613-4-git-send-email-nm@ti.com>
- <alpine.DEB.2.10.1409181749170.4206@nanos>
- <20140919030333.GA6088@kahuna>
- <alpine.DEB.2.10.1409190710320.5612@nanos>
- <20140919161927.GA28613@kahuna>
- <alpine.DEB.2.10.1409191027330.5612@nanos>
- <20140919191649.GQ14505@atomide.com>
- <alpine.DEB.2.10.1409191233590.4213@nanos>
- <20140919195738.GR14505@atomide.com>
- <alpine.DEB.2.10.1409192100380.23826@nanos>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1409192100380.23826@nanos>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LAK <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH v4 0/5] nand: OMAP collected fixes
+Date: Sat, 20 Sep 2014 17:53:11 +0100
+Message-ID: <1411231996-6387-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:56596 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752898AbaITQyd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Sep 2014 12:54:33 -0400
+Received: by mail-wg0-f49.google.com with SMTP id x12so744081wgg.8
+        for <linux-omap@vger.kernel.org>; Sat, 20 Sep 2014 09:54:32 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>, Roger Quadros <rogerq@ti.com>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-* Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> [140919 19:08]:
-> On Fri, 19 Sep 2014, Tony Lindgren wrote:
-> > * Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> [140919 12:47]:
-> > > Why on earth are you wanting tasklets in there? That's just silly,
-> > > really.
-> > 
-> > Lack of a framework on driver side to cope with this in a generic
-> > way? :p
-> 
-> So instead of creating such a thing we rather have a completely ass
-> backward workaround which spreads itself all over the tree?
+I've collected all the changes recently discussed in a whole patchset.
+If you are just reading this for the first time please take a look at:
 
-I'm not kidding, you're the first one who was able to come up with
-such a simple solution and also describe why it should be done
-that way.
- 
-> You SoC folks really need a quarterly sanity check.
+[1] http://www.spinics.net/lists/linux-omap/msg110965.html
+[2] http://www.spinics.net/lists/linux-omap/msg110958.html 
 
-Probably time for me to file a bios bug on that yeah :)
+As requested by Roger, the omap_elm is a 'bool' driver now. The plan
+is to merge it inside omap2_nand, but my queue is really filled, so
+if anyone feels like doing, please be my guest.
 
-Regards,
+Although I'm hoping this to be the last round, feedback and testing
+is welcome.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Brian: I wonder if it's too late for v3.18?
+
+Thanks!
+
+Ezequiel Garcia (5):
+  nand: omap2: Remove horrible ifdefs to fix module probe
+  nand: omap2: Replace pr_err with dev_err
+  mtd: nand: Move ELM driver and rename as omap_elm
+  mtd: nand: Rename OMAP NAND driver
+  mtd: nand: Constrain omap_elm to built-in
+
+ drivers/mtd/devices/Makefile                   |   1 -
+ drivers/mtd/nand/Kconfig                       |   2 +-
+ drivers/mtd/nand/Makefile                      |   3 +-
+ drivers/mtd/nand/{omap2.c => omap2_nand.c}     | 160 ++++++++++++++-----------
+ drivers/mtd/{devices/elm.c => nand/omap_elm.c} |   0
+ include/linux/platform_data/elm.h              |  16 +++
+ 6 files changed, 107 insertions(+), 75 deletions(-)
+ rename drivers/mtd/nand/{omap2.c => omap2_nand.c} (95%)
+ rename drivers/mtd/{devices/elm.c => nand/omap_elm.c} (100%)
+
+-- 
+2.1.0
+
