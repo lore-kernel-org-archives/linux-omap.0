@@ -1,62 +1,115 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v4 4/7] ARM: l2c: Add support for overriding prefetch
-	settings
-Date: Sat, 20 Sep 2014 09:31:49 +0100
-Message-ID: <20140920083149.GI12379@n2100.arm.linux.org.uk>
-References: <1409062680-15906-1-git-send-email-t.figa@samsung.com> <1409062680-15906-5-git-send-email-t.figa@samsung.com> <20140919095000.GF29620@piout.net> <20140919163932.GH12379@n2100.arm.linux.org.uk> <20140919183007.GG29620@piout.net>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 1/2] iommu/omap: Reverse dependency between omap-iommu and
+	omap-iommu2
+Date: Sat, 20 Sep 2014 16:12:27 +0300
+Message-ID: <2586861.3TFFdmAzkQ@avalon>
+References: <1410277545-32157-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<3123675.ihHe2cOfgC@avalon> <540F7FD0.4010109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140919183007.GG29620@piout.net>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Tomasz Figa <t.figa@samsung.com>, linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, tony@atomide.com, linus.walleij@linaro.org, linux-kernel@vger.kernel.org, drake@endlessm.com, loeliger@gmail.com, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <540F7FD0.4010109-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 19, 2014 at 08:30:07PM +0200, Alexandre Belloni wrote:
-> On 19/09/2014 at 17:39:32 +0100, Russell King - ARM Linux wrote :
-> > On Fri, Sep 19, 2014 at 11:50:01AM +0200, Alexandre Belloni wrote:
-> > > On 26/08/2014 at 16:17:57 +0200, Tomasz Figa wrote :
-> > > > Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
-> > > > settings configured in registers leading to crashes if L2C is enabled
-> > > > without overriding them. This patch introduces bindings to enable
-> > > > prefetch settings to be specified from DT and necessary support in the
-> > > > driver.
-> > > > 
-> > > > Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-> > > 
-> > > Tested-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-> > > 
-> > > It is working and useful on Atmel's sama5d4 were the bootloader is not
-> > > configuring the L2C prefetch. However, I'm wondering whether we should
-> > > add support for setting L310_PREFETCH_CTRL_DATA_PREFETCH and
-> > > L310_PREFETCH_CTRL_INSTR_PREFETCH. I'm currently doing it by using
-> > > ".l2c_aux_val    = L310_AUX_CTRL_DATA_PREFETCH |
-> > > L310_AUX_CTRL_INSTR_PREFETCH" (those are the same bits) but this has the
-> > > disadvantage of displaying the "L2C: platform modifies aux control
-> > > register:" twice.
-> > 
-> > The L2C documentation, freely available from the ARM infocentre website,
-> > has the answer to this for you.
-> > 
-> > The two bits in the prefetch control register which control the data
-> > and instruction prefetching are aliases of the aux control register.
-> > If you set them to a value in one register, they are reflected in the
-> > other.
-> > 
-> > The reason for that is that once the L2 cache is enabled, writes to
-> > the aux control register are no longer permitted, but it's safe to
-> > enable and disable the prefetching with the cache already enabled.
-> > This reason is even stated in the documentation.
-> > 
-> 
-> Yeah, so my question still holds, should we have an other way to
-> enable/disable I/D prefetch by adding two other DT bindings ?
+Hi Suman,
 
-Your question doesn't hold, because the above answers it conclusively.
-No.
+On Tuesday 09 September 2014 17:31:44 Suman Anna wrote:
+> > On Tuesday 09 September 2014 16:33:11 Suman Anna wrote:
+> >> On 09/09/2014 10:45 AM, Laurent Pinchart wrote:
+> >>> The OMAP IOMMU driver supports both the OMAP1 and OMAP2+ IOMMU variants
+> >>> by splitting the driver into a core module and a thin arch-specific
+> >>> operations module.
+> >>> 
+> >>> (In practice only the OMAP2+ module omap-iommu2 is implemented, but
+> >>> let's not denigrate the effort.)
+> >> 
+> >> Thank you for the patch. I had something similar in my list of cleanup
+> >> TODO items on the OMAP IOMMU driver, but I was intending to cut down
+> >> more and consolidate the omap-iommu.c and omap-iommu2.c files into a
+> >> single one.
+> >> 
+> >> This had been the case from the introduction of the driver going back to
+> >> v2.6.30, and OMAP1 was never added and I doubt it would be added anytime
+> >> in the foreseeable future.
+> >> 
+> >>> The arch-specific operations module registers itself with the OMAP IOMMU
+> >>> core module at initialization time. This initializes a module global
+> >>> arch-specific operations pointer, used at runtime by the IOMMU
+> >>> instances.
+> >>> 
+> >>> This scheme causes several issues. In addition to making it impossible
+> >>> to support different OMAP IOMMU types in a single system (which in all
+> >>> fairness is quite unlikely to happen),
+> >> 
+> >> Yep, except for a few enhancements (like reporting Fault PC address on
+> >> OMAP4 DSPs, and dropping both endianness support), the core IOMMU
+> >> functionality hasn't changed much between OMAP2 and the latest OMAP4+
+> >> SoCs. So, my plan was to completely get rid of the iommu_functions (it
+> >> also eliminates the need for exporting most of the OMAP IOMMU API). So
+> >> while I am ok with the current patch, I prefer consolidation than
+> >> keeping the scalability alive, it can always be added if a need for that
+> >> arises. What do you think?
+> > 
+> > I agree with your approach, but in the meantime we have a problem to
+> > solve.
+> > How about applying this patch now (it goes in the right direction anyway),
+> > and then removing the iommu functions when you will have time ?
+> 
+> Can you give the subsys_initcall solution a try to see if that resolves
+> the problem at hand? That would be a much smaller change, if that
+> doesn't work we can go with this patch.
+
+It seems to work.
+
+> I will work on my cleanup list for 3.19.
+
+Does that schedule still hold ? If so I'll submit a simple subsys_initcall() 
+patch for v3.18.
+
+> >>  it also causes initialization
+> >>  
+> >>> ordering issues by requiring the arch-specific operations module to be
+> >>> loaded before any IOMMU user. This results in a probe breakage with the
+> >>> OMAP3 ISP driver when not compiled as a module.
+> >> 
+> >> This can be fixed if we make the current omap-iommu2.c as a
+> >> subsys_initcall as well, right?
+> >> 
+> >> regards
+> >> Suman
+> >> 
+> >>> Fix the problem by inverting the dependency. Instead of having the
+> >>> omap-iommu2 module register itself to iommu-omap, make the iommu-omap
+> >>> retrieve the omap-iommu2 operations structure directly when probing the
+> >>> IOMMU device. This ensures that a probed IOMMU will always have valid
+> >>> arch-specific operations.
+> >>> 
+> >>> As the arch-specific operations pointer is now initialized at probe
+> >>> time, this change requires turning it from a global variable into a
+> >>> per-device variable.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> >>> ---
+> >>> 
+> >>>  drivers/iommu/omap-iommu-debug.c |  6 ++-
+> >>>  drivers/iommu/omap-iommu.c       | 94 +++++++++++++--------------------
+> >>>  drivers/iommu/omap-iommu.h       | 10 ++++-
+> >>>  drivers/iommu/omap-iommu2.c      | 18 +-------
+> >>>  4 files changed, 45 insertions(+), 83 deletions(-)
 
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+
+Laurent Pinchart
