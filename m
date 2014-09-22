@@ -1,41 +1,40 @@
-From: "Benjamin Siaka" <siajaka@gmail.com>
-Subject: HOW ARE YOU?
-Date: Mon, 22 Sep 2014 01:18:42 +0000
-Message-ID: <20140922011853.5840A3AE86C4@studentsvm0.itb.ac.id>
-Reply-To: bensiaka@she.com
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: change clock init to use generic of_clk_init
+Date: Mon, 22 Sep 2014 09:52:04 +0300
+Message-ID: <541FC714.9050203@ti.com>
+References: <1408628959-32442-1-git-send-email-t-kristo@ti.com> <20140918171725.GL14505@atomide.com> <alpine.DEB.2.02.1409191632170.22526@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.itb.ac.id ([167.205.23.7]:15731 "EHLO mx2.itb.ac.id"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58142 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753067AbaIVB1w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Sep 2014 21:27:52 -0400
-Received: from av1.itb.ac.id (av1.itb.ac.id [167.205.1.71])
-	by mx2.itb.ac.id (Postfix) with ESMTP id 3j1STq4jtxz4fWdF
-	for <linux-omap@vger.kernel.org>; Mon, 22 Sep 2014 08:18:55 +0700 (WIT)
-Received: from mx2.itb.ac.id ([167.205.1.67])
-	by av1.itb.ac.id (av1.itb.ac.id [167.205.1.73]) (amavisd-new, port 10002)
-	with ESMTP id W6543euIf9gA for <linux-omap@vger.kernel.org>;
-	Mon, 22 Sep 2014 08:21:49 +0700 (WIT)
-Received: from studentsvm0.itb.ac.id (unknown [167.205.50.87])
-	by mx2.itb.ac.id (Postfix) with ESMTP id 3j1STp56XHz4fWbB
-	for <linux-omap@vger.kernel.org>; Mon, 22 Sep 2014 08:18:54 +0700 (WIT)
-Received: from [10.200.21.4] (unknown [79.142.73.220])
-	by studentsvm0.itb.ac.id (Postfix) with ESMTPSA id 5840A3AE86C4
-	for <linux-omap@vger.kernel.org>; Mon, 22 Sep 2014 08:18:52 +0700 (WIB)
-Content-Description: Mail message body
+	id S1750961AbaIVGv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Sep 2014 02:51:56 -0400
+In-Reply-To: <alpine.DEB.2.02.1409191632170.22526@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Stefan Assmann <sassmann@kpanic.de>
 
-Hello my Dear,
+On 09/19/2014 07:33 PM, Paul Walmsley wrote:
+> On Thu, 18 Sep 2014, Tony Lindgren wrote:
+>
+>> * Tero Kristo <t-kristo@ti.com> [140821 06:52]:
+>>> Previously, the TI clock driver initialized all the clocks hierarchically
+>>> under each separate clock provider node. Now, each clock that requires
+>>> IO access will instead check their parent node to find out which IO range
+>>> to use.
+>>>
+>>> This patch allows the TI clock driver to use a few new features provided
+>>> by the generic of_clk_init, and also allows registration of clock nodes
+>>> outside the clock hierarchy (for example, any external clocks.)
+>>
+>> Paul, any comments on this one?
+>
+> Not at this point.
 
-I will greatly appreciate my correspondence meets you in good health condition.
+Tony, ok to merge this through clock tree?
 
-My name is Mr. Benjamin Siaka. I am seeking for your co-operation for investment partnership in your Country. I shall provide the FUND for the investment. When you acknowledged the receipt of this correspondence, thereafter I will give you the Full Details of my investment proposal.
+-Tero
 
-I await your response in earliest.
-
-My regards,
-Mr. Benjamin Siaka.
