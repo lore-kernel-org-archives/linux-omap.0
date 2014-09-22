@@ -1,40 +1,53 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: change clock init to use generic of_clk_init
-Date: Mon, 22 Sep 2014 09:52:04 +0300
-Message-ID: <541FC714.9050203@ti.com>
-References: <1408628959-32442-1-git-send-email-t-kristo@ti.com> <20140918171725.GL14505@atomide.com> <alpine.DEB.2.02.1409191632170.22526@utopia.booyaka.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Mon, 22 Sep 2014 10:46:05 +0300
+Message-ID: <20140922074605.GB26114@xps8300>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+ <1410377411-26656-10-git-send-email-bigeasy@linutronix.de>
+ <20140911111721.GB17476@xps8300>
+ <54118AAB.2010205@linutronix.de>
+ <5419B825.5000201@linutronix.de>
+ <20140919102212.GA31784@xps8300>
+ <541C0C64.5010206@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58142 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750961AbaIVGv4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Sep 2014 02:51:56 -0400
-In-Reply-To: <alpine.DEB.2.02.1409191632170.22526@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <541C0C64.5010206@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Stefan Assmann <sassmann@kpanic.de>
 
-On 09/19/2014 07:33 PM, Paul Walmsley wrote:
-> On Thu, 18 Sep 2014, Tony Lindgren wrote:
->
->> * Tero Kristo <t-kristo@ti.com> [140821 06:52]:
->>> Previously, the TI clock driver initialized all the clocks hierarchically
->>> under each separate clock provider node. Now, each clock that requires
->>> IO access will instead check their parent node to find out which IO range
->>> to use.
->>>
->>> This patch allows the TI clock driver to use a few new features provided
->>> by the generic of_clk_init, and also allows registration of clock nodes
->>> outside the clock hierarchy (for example, any external clocks.)
->>
->> Paul, any comments on this one?
->
-> Not at this point.
+On Fri, Sep 19, 2014 at 12:58:44PM +0200, Sebastian Andrzej Siewior wrote:
+> On 09/19/2014 12:22 PM, Heikki Krogerus wrote:
+> > Couldn't you just replace the handle_irq with a custom irq routine in
+> > the omap driver like you did with set_termios? Where you would do
+> > those tricks and/or call serial8250_handle_irq()?
+> 
+> Tricks within serial8250_handle_irq(), see [0]. It is not a lot but
+> still. I could provide my own handle irq, just asking what you would
+> prefer.
+> 
+> [0]
+> http://git.breakpoint.cc/cgit/bigeasy/linux.git/commit/?h=uart_v10_pre2&id=f26f161d998ee4a84a0aa6ddff69a435c25f204d
+> 
+> > The 8250_core changes in that patch #10 only modify
+> > serial8250_handle_irg right?
+> 
+> Correct. However there is another change due to the RX_DMA_BUG. A while
+> ago you said that this RX_DMA_BUG thing might be something that other
+> SoC could use, too.
+> If you ask me now for my own irq routine it would make sense to move RX
+> bug handling into omap specific code as well.
 
-Tony, ok to merge this through clock tree?
+Well, there are no other SoCs at the moment that would need it, and
+it's actually possible that there never will be. So yes, just handle
+that also in the omap specific code.
 
--Tero
 
+Thanks,
+
+-- 
+heikki
