@@ -1,67 +1,131 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 08/10] ARM: OMAP5/DRA7: PM: cpuidle MPU CSWR support
-Date: Mon, 22 Sep 2014 08:17:08 -0500
-Message-ID: <20140922131708.GA17009@kahuna>
-References: <1408716154-26101-1-git-send-email-nm@ti.com>
- <1408716154-26101-9-git-send-email-nm@ti.com>
- <5419D7BD.30003@linaro.org>
- <448912EABC71F84BBCADFD3C67C4BE52CAC748@DBDE04.ent.ti.com>
- <541A25DA.8030101@linaro.org>
- <541AE102.2070407@ti.com>
- <541AE314.5040107@ti.com>
- <54201DE3.6030207@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/26] ARM: OMAP2+: PRCM cleanups for 3.18 merge window
+Date: Mon, 22 Sep 2014 16:19:01 +0300
+Message-ID: <542021C5.5060201@ti.com>
+References: <1409594955-1476-1-git-send-email-t-kristo@ti.com> <20140918171650.GK14505@atomide.com> <alpine.DEB.2.02.1409191606310.22526@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38650 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:38696 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558AbaIVNRh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2014 09:17:37 -0400
-Content-Disposition: inline
-In-Reply-To: <54201DE3.6030207@ti.com>
+	with ESMTP id S1753558AbaIVNSb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Sep 2014 09:18:31 -0400
+In-Reply-To: <alpine.DEB.2.02.1409191606310.22526@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, "Kristo, Tero" <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "J, KEERTHY" <j-keerthy@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Daniel,
-On 08:02-20140922, Nishanth Menon wrote:
-[...]
-> >>Test #2: 1200 seconds: (http://fpaste.org/134564/47289141/)
+On 09/19/2014 07:30 PM, Paul Walmsley wrote:
+> On Thu, 18 Sep 2014, Tony Lindgren wrote:
+>
+>> * Tero Kristo <t-kristo@ti.com> [140901 11:09]:
+>>> Hi,
+>>>
+>>> This set contains PRCM related cleanups meant for 3.18 merge window.
+>>> These are based on top of 3.17-rc1 + the PRM set from Nishanth Menon
+>>> (http://article.gmane.org/gmane.linux.ports.arm.kernel/350305.) Nishanth's
+>>> set is used as basis to avoid merge issues.
+>>>
+>>> Purpose of this work is to eventually convert the PRCM code into a
+>>> separate driver, but this is done in incremental parts as the amount
+>>> of changes is substantial. Expected conclusion of this work is 3.19
+>>> if everything goes fine.
+>>>
+>>> This part of the work mostly moves some of the SoC specific PRCM driver
+>>> calls under generic version of the same, and adds SoC-ops to support
+>>> these on the driver level.
+>>>
+>>> Working branch posted here:
+>>>
+>>> tree: https://github.com/t-kristo/linux-pm.git
+>>> branch: for-v3.18/prcm-cleanup
 
-Santosh wanted me to make certain that the following is noted;
-^^ -> is around 20 mins. -> So highlighting again.. I assume this is
-long enough test duration you requested for.
+Hi,
 
-> >>CMD: set -x;uname -a;cat /sys/kernel/debug/pm_debug/count;sleep
-> >>1;./cpuidle_killer_1200;sleep 1;cat
-> >>/sys/kernel/debug/pm_debug/count;set +x
-> >>
-> >>OMAP4 Panda-ES: (2 a9) - not impacted as part of this patch - just
-> >>base test vector
-> >>http://fpaste.org/134563/41104728/
-> >>
-> >>OMAP5 uEVM: (2 a15)
-> >>http://fpaste.org/134562/47221141/
-> >>
-> >>DRA74x EVM: (2 a15)
-> >>http://fpaste.org/134559/11047098/
-> >>
-> >>DRA72 EVM: (2 a15)
-> >	      ^^
-> >Correction should have been 1 a15
-> >
-> >>http://fpaste.org/134560/11047151/
-> >>
-> >>AM572x EVM: (2 A15)
-> >>http://fpaste.org/134561/47189141/
-> >>
-> >>
-> 
-> Daniel, Santosh: Gentle ping:
-> 
-> Any further comments? OR are we ok for this for being merged?
-> 
--- 
-Regards,
-Nishanth Menon
+I pushed v2 of this set as 'for-v3.18/prcm-cleanup-v2' to my tree. 
+Basically to address the below comments, and additionally I changed a 
+few public cm_* api names to omap_cm_* + add the tested-by/acked-by 
+statuses. Tony/Paul, do you want me to repost the series, or are you ok 
+with a local diff / pull only?
+
+>>
+>> Paul, any comments on this series?
+>
+> Patches 1, 3, 5, 8, 10, 13, 17, 18, 20, 21, 22, 23, 24 are:
+>
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+
+Thanks, added acks to v2 patches.
+
+>
+> Here are some specific comments on a few other patches:
+>
+> Regarding patch 7:  The kerneldoc-nano function comments are good, but
+> should begin with "/**" rather than "/*".  When that's fixed, it can be
+> considered acked by me.
+
+Yea, this was a typo, thanks for noticing.
+
+>
+> Regarding patches 14, 15, 16: Non-static prm_* functions really should
+> start with omap*_ to avoid potential naming conflicts with other drivers
+> when these are moved to drivers/.  (Obviously the same would apply for any
+> CM function names in other, future patches.)  When that's fixed, it can be
+> considered acked by me.
+
+Ok, changed. Additionally I changed some cm_* prototypes in patches #6, 
+#7 and #9 to be of form omap_cm_*.
+
+> Regarding patch 25: What are "I/O wakeup gaes" -- gates?  When that's
+> fixed, an acked-by for me can be added.
+
+Yes, gates. Fixed.
+
+> Regarding patch 26: It seems wise to ensure that omap_prm_reset_system()
+> ends with a 'while(1) { cpu_relax(); }' or something similar, to ensure
+> that execution flow does not proceed past that point. At that point, it
+> should be possible to remove the "while(1) {}"s from omap44xx_restart(),
+> omap2xxx_restart(), etc.  When that's fixed, an acked-by for me can be
+> added.
+
+Ok, changed this also. Added the while(1) cpu_relax(); part to the 
+public API, and removed the loops from everywhere else.
+
+>
+> ...
+>
+> And some general comments: none of which should probably block this
+> series, but seemed worth noting:
+>
+> Regarding patches 6 and 19: Tero, could you please share the DT node data
+> that you're planning to submit for the PRM, CM1, and CM2 on the OMAP4*
+> platforms? According to the TRM, these are separate IP blocks, with
+> separate OCP header register areas.  So these should probably have
+> separate DT nodes, regs, etc. if the DTS files are to match the hardware.
+> The planned DTS data may impact the way these patches are written, at
+> least, if more patches are to be avoided later.
+
+We already have the nodes for these. Check out omap4.dtsi for example, 
+we have nodes for prm/cm1/cm2/scrm there already. These were already 
+defined when the clock DT data was introduced, and I don't foresee any 
+changes to the nodes as of now. The nodes only contain register space 
+info as of now, and Nishanth is adding the interrupt property for PRM 
+interrupt purposes, but rest of the features are probably going to be 
+hardcoded within the PRCM drivers themselves.
+
+If you are interested, feel free to look at for-3.19/prcm-cleanup branch 
+in my git tree, this contains the remaining patches I have for PRCM 
+cleanup after this set available as of now.
+
+-Tero
+
+>
+> As far as patches 2, 4, 9, 11, and 12 go, I'll let those go without
+> comment.
+>
+>
+> - Paul
+>
+
