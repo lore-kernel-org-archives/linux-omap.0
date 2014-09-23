@@ -1,34 +1,82 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 0/2] dmaengine: omap-dma: Fix cyclic suspend/resume
-Date: Tue, 23 Sep 2014 18:23:27 +0530
-Message-ID: <20140923125327.GK24663@intel.com>
-References: <1410896757-3848-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate
+ change
+Date: Tue, 23 Sep 2014 16:38:45 +0300
+Message-ID: <542177E5.9060606@ti.com>
+References: <1408628866-32351-1-git-send-email-t-kristo@ti.com> <20140922191816.GF10233@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1410896757-3848-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47609 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755827AbaIWNiS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 09:38:18 -0400
+In-Reply-To: <20140922191816.GF10233@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Sep 16, 2014 at 10:45:55PM +0300, Peter Ujfalusi wrote:
-> Hi,
-> 
-> Changes since v2:
-> - fix typo in patch two
-> - Acked-by added from Russell
-> 
-> When the audio is paused/resumed (application paused the sream or board suspend)
-> the audio was only playing back one period worth of data and then stops because
-> the omap_dam_stop() clears the link configuration and it is not restored in
-> start.
-> 
-> Also add memory barrier call to resume path since this could happen right after
-> coming out from suspend.
+On 09/22/2014 10:18 PM, Stephen Boyd wrote:
+> On 08/21, Tero Kristo wrote:
+>> In some cases, clocks can switch their parent with clk_set_rate, for
+>> example clk_mux can do this in some cases. Current implementation of
+>> clk_change_rate uses un-safe list iteration on the clock children, which
+>> will cause wrong clocks to be parsed in case any of the clock children
+>> change their parents during the change rate operation. Fixed by using
+>> the safe list iterator instead.
+>>
+>> The problem was detected due to some divide by zero errors generated
+>> by clock init on dra7-evm board, see discussion under
+>> http://article.gmane.org/gmane.linux.ports.arm.kernel/349180 for details.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> To: Mike Turquette <mturquette@linaro.org>
+>> Reported-by: Nishanth Menon <nm@ti.com>
+>> ---
+>>   drivers/clk/clk.c |    7 ++++++-
+>>   1 file changed, 6 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+>> index b76fa69..bacc06f 100644
+>> --- a/drivers/clk/clk.c
+>> +++ b/drivers/clk/clk.c
+>> @@ -1467,6 +1467,7 @@ static struct clk *clk_propagate_rate_change(struct clk *clk, unsigned long even
+>>   static void clk_change_rate(struct clk *clk)
+>>   {
+>>   	struct clk *child;
+>> +	struct hlist_node *tmp;
+>>   	unsigned long old_rate;
+>>   	unsigned long best_parent_rate = 0;
+>>   	bool skip_set_rate = false;
+>> @@ -1502,7 +1503,11 @@ static void clk_change_rate(struct clk *clk)
+>>   	if (clk->notifier_count && old_rate != clk->rate)
+>>   		__clk_notify(clk, POST_RATE_CHANGE, old_rate, clk->rate);
+>>
+>> -	hlist_for_each_entry(child, &clk->children, child_node) {
+>> +	/*
+>> +	 * Use safe iteration, as change_rate can actually swap parents
+>> +	 * for certain clock types.
+>> +	 */
+>> +	hlist_for_each_entry_safe(child, tmp, &clk->children, child_node) {
+>>   		/* Skip children who will be reparented to another clock */
+>>   		if (child->new_parent && child->new_parent != clk)
+>>   			continue;
+>
+> Are we not hitting the new_parent check here? I don't understand
+> how we can be changing parents here unless the check is being
+> avoided, in which case I wonder why determine_rate isn't being
+> used.
+>
 
-Applied, thanks
+It depends how the clock underneath handles the situation. The error I 
+am seeing actually happens with a SoC specific compound clock (DPLL) 
+which integrates set_rate + mux functionality into a single clock node. 
+A call to the clk_set_rate changes the parent of this clock (from bypass 
+clock to reference clock), in addition to changing the rate (tune the 
+mul+div.) I looked at using the determine rate call with this type but 
+it breaks everything up... the parent gets changed but not the clock 
+rate, in addition to some other issues.
 
--- 
-~Vinod
+-Tero
