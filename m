@@ -1,142 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 00/26] ARM: OMAP2+: PRCM cleanups for 3.18 merge window
-Date: Tue, 23 Sep 2014 09:08:56 -0700
-Message-ID: <20140923160856.GD2451@atomide.com>
+Date: Tue, 23 Sep 2014 09:14:41 -0700
+Message-ID: <20140923161440.GE2451@atomide.com>
 References: <1409594955-1476-1-git-send-email-t-kristo@ti.com>
  <20140918171650.GK14505@atomide.com>
- <alpine.DEB.2.02.1409191606310.22526@utopia.booyaka.com>
- <542021C5.5060201@ti.com>
+ <20140918191615.GN14505@atomide.com>
+ <alpine.DEB.2.02.1409191633180.22526@utopia.booyaka.com>
+ <alpine.DEB.2.02.1409191726050.22526@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18026 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31712 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756374AbaIWQJR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 12:09:17 -0400
+	with ESMTP id S932102AbaIWQPF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 12:15:05 -0400
 Content-Disposition: inline
-In-Reply-To: <542021C5.5060201@ti.com>
+In-Reply-To: <alpine.DEB.2.02.1409191726050.22526@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 
-* Tero Kristo <t-kristo@ti.com> [140922 06:18]:
-> On 09/19/2014 07:30 PM, Paul Walmsley wrote:
-> >On Thu, 18 Sep 2014, Tony Lindgren wrote:
-> >
-> >>* Tero Kristo <t-kristo@ti.com> [140901 11:09]:
-> >>>Hi,
-> >>>
-> >>>This set contains PRCM related cleanups meant for 3.18 merge window.
-> >>>These are based on top of 3.17-rc1 + the PRM set from Nishanth Menon
-> >>>(http://article.gmane.org/gmane.linux.ports.arm.kernel/350305.) Nishanth's
-> >>>set is used as basis to avoid merge issues.
-> >>>
-> >>>Purpose of this work is to eventually convert the PRCM code into a
-> >>>separate driver, but this is done in incremental parts as the amount
-> >>>of changes is substantial. Expected conclusion of this work is 3.19
-> >>>if everything goes fine.
-> >>>
-> >>>This part of the work mostly moves some of the SoC specific PRCM driver
-> >>>calls under generic version of the same, and adds SoC-ops to support
-> >>>these on the driver level.
-> >>>
-> >>>Working branch posted here:
-> >>>
-> >>>tree: https://github.com/t-kristo/linux-pm.git
-> >>>branch: for-v3.18/prcm-cleanup
+* Paul Walmsley <paul@pwsan.com> [140919 10:28]:
+> On Fri, 19 Sep 2014, Paul Walmsley wrote:
 > 
-> Hi,
+> > However, I saw the following crash at boot on 37xxevm during one of
+> > the boot test.  Ran thirty more boot tests afterwards on that board
+> > and it did not recur.  It seems unlikely that the problem is related
+> > to this series, but looks like we may have some intermittent boot
+> > failure or race on 37xx :-(
 > 
-> I pushed v2 of this set as 'for-v3.18/prcm-cleanup-v2' to my tree. Basically
-> to address the below comments, and additionally I changed a few public cm_*
-> api names to omap_cm_* + add the tested-by/acked-by statuses. Tony/Paul, do
-> you want me to repost the series, or are you ok with a local diff / pull
-> only?
+> ...
+> 
+> > [    4.892211] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa318034
+> > [    4.900299] Internal error: : 1028 [#1] SMP ARM
+> > [    4.905090] Modules linked in:
+> > [    4.908325] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.17.0-rc5-12866-g0164b2d #1
+> > [    4.916320] task: c0835db0 ti: c082a000 task.ti: c082a000
+> > [    4.922027] PC is at omap2_gp_timer_set_next_event+0x24/0x78
+> > [    4.928009] LR is at clockevents_program_event+0xc0/0x148
+> > [    4.933715] pc : [<c002622c>]    lr : [<c00a2800>]    psr: 00000193
+> > [    4.933715] sp : c082bed8  ip : 00000000  fp : 00000000
+> > [    4.945800] r10: 00000000  r9 : 24101100  r8 : c0839080
+> > [    4.951324] r7 : 00000001  r6 : 237bc339  r5 : 0000009f  r4 : 3d9759e7
+> > [    4.958190] r3 : fa318034  r2 : c08cb920  r1 : 00000003  r0 : fffffec1
+> > [    4.965087] Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> > [    4.972900] Control: 10c5387d  Table: 80004019  DAC: 00000015      
+> > [    4.978942] Process swapper/0 (pid: 0, stack limit = 0xc082a248)   
+> > [    4.985290] Stack: (0xc082bed8 to 0xc082c000)
+> > [    4.989868] bec0:                                                       237bc339 00000001
+> > [    4.998504] bee0: 00000001 24101100 00000001 cfc7d6c8 00000001 cfc7da50 cfc7d720 c00a4780
+> > [    5.007141] bf00: 00000000 c00962b0 cfc7d720 c0096180 00000001 00000000 00000001 c08256c8
+> > [    5.015777] bf20: c082a000 c08256c8 00000000 c00962b0 237b4c04 00000001 00000002 a0000193
+> > [    5.024414] bf40: 00989680 00000000 00000000 24101100 00000001 cfc7da50 00000000 c108cc78
+> > [    5.033020] bf60: 00000000 c00962b0 00000000 00000002 00000001 00000000 c108cc78 c00a56f0
+> > [    5.041656] bf80: 00000000 00000002 237b4c04 00000001 c08c8ce8 c082a000 00000000 c08c8ce8
+> > [    5.050292] bfa0: c08329dc c0832978 cfc7f0f8 c0072808 c0559928 c08270f0 c08caf40 c080fdc0
+> > [    5.058929] bfc0: 00000000 c07c3b74 ffffffff ffffffff c07c35f0 00000000 00000000 c080fdc0
+> > [    5.067535] bfe0: c08cb154 c0832968 c080fdbc c083763c 80004059 80008074 00000000 00000000
+> > [    5.076171] [<c002622c>] (omap2_gp_timer_set_next_event) from [<c00a2800>] (clockevents_program_event+0xc0/0x148)
+> > [    5.087005] [<c00a2800>] (clockevents_program_event) from [<c00a4780>] (tick_program_event+0x44/0x54)
+> > [    5.096771] [<c00a4780>] (tick_program_event) from [<c0096180>] (__hrtimer_start_range_ns+0x3c0/0x4a0)
+> > [    5.106597] [<c0096180>] (__hrtimer_start_range_ns) from [<c00962b0>] (hrtimer_start_range_ns+0x24/0x2c)
+> > [    5.116577] [<c00962b0>] (hrtimer_start_range_ns) from [<c00a56f0>] (tick_nohz_idle_exit+0x140/0x1ec)
+> > [    5.126342] [<c00a56f0>] (tick_nohz_idle_exit) from [<c0072808>] (cpu_startup_entry+0xf4/0x2d0)
+> > [    5.135528] [<c0072808>] (cpu_startup_entry) from [<c07c3b74>] (start_kernel+0x340/0x3a8)
+> > [    5.144165] [<c07c3b74>] (start_kernel) from [<80008074>] (0x80008074)
+> > [    5.151031] Code: 13a0c000 0a000004 ee07cfba e592301c (e5931000) 
+> > [    5.157470] ---[ end trace f92de024d996d904 ]---
+> > [    5.162353] Kernel panic - not syncing: Attempted to kill the idle task!
+> > [    5.169433] ---[ end Kernel panic - not syncing: Attempted to kill the idle task!
+> 
+> Actually it just occurred to me that if something broke 
+> *wait_target_ready(), we'd expect to see intermittent failures like this, 
+> and this series touches *wait_target_ready().  So it might be worth taking 
+> a look at that with a magnifying glass to make sure that it's working.
 
-If the changes were minor, at least I'm fine without reposting.
-But let's wait to hear from Paul in case he has further comments.
+Yes errors like this should not happen. Let's make sure things are
+working reliably before merging this.
 
 Regards,
 
 Tony
- 
-> >>
-> >>Paul, any comments on this series?
-> >
-> >Patches 1, 3, 5, 8, 10, 13, 17, 18, 20, 21, 22, 23, 24 are:
-> >
-> >Acked-by: Paul Walmsley <paul@pwsan.com>
-> 
-> Thanks, added acks to v2 patches.
-> 
-> >
-> >Here are some specific comments on a few other patches:
-> >
-> >Regarding patch 7:  The kerneldoc-nano function comments are good, but
-> >should begin with "/**" rather than "/*".  When that's fixed, it can be
-> >considered acked by me.
-> 
-> Yea, this was a typo, thanks for noticing.
-> 
-> >
-> >Regarding patches 14, 15, 16: Non-static prm_* functions really should
-> >start with omap*_ to avoid potential naming conflicts with other drivers
-> >when these are moved to drivers/.  (Obviously the same would apply for any
-> >CM function names in other, future patches.)  When that's fixed, it can be
-> >considered acked by me.
-> 
-> Ok, changed. Additionally I changed some cm_* prototypes in patches #6, #7
-> and #9 to be of form omap_cm_*.
-> 
-> >Regarding patch 25: What are "I/O wakeup gaes" -- gates?  When that's
-> >fixed, an acked-by for me can be added.
-> 
-> Yes, gates. Fixed.
-> 
-> >Regarding patch 26: It seems wise to ensure that omap_prm_reset_system()
-> >ends with a 'while(1) { cpu_relax(); }' or something similar, to ensure
-> >that execution flow does not proceed past that point. At that point, it
-> >should be possible to remove the "while(1) {}"s from omap44xx_restart(),
-> >omap2xxx_restart(), etc.  When that's fixed, an acked-by for me can be
-> >added.
-> 
-> Ok, changed this also. Added the while(1) cpu_relax(); part to the public
-> API, and removed the loops from everywhere else.
-> 
-> >
-> >...
-> >
-> >And some general comments: none of which should probably block this
-> >series, but seemed worth noting:
-> >
-> >Regarding patches 6 and 19: Tero, could you please share the DT node data
-> >that you're planning to submit for the PRM, CM1, and CM2 on the OMAP4*
-> >platforms? According to the TRM, these are separate IP blocks, with
-> >separate OCP header register areas.  So these should probably have
-> >separate DT nodes, regs, etc. if the DTS files are to match the hardware.
-> >The planned DTS data may impact the way these patches are written, at
-> >least, if more patches are to be avoided later.
-> 
-> We already have the nodes for these. Check out omap4.dtsi for example, we
-> have nodes for prm/cm1/cm2/scrm there already. These were already defined
-> when the clock DT data was introduced, and I don't foresee any changes to
-> the nodes as of now. The nodes only contain register space info as of now,
-> and Nishanth is adding the interrupt property for PRM interrupt purposes,
-> but rest of the features are probably going to be hardcoded within the PRCM
-> drivers themselves.
-> 
-> If you are interested, feel free to look at for-3.19/prcm-cleanup branch in
-> my git tree, this contains the remaining patches I have for PRCM cleanup
-> after this set available as of now.
-> 
-> -Tero
-> 
-> >
-> >As far as patches 2, 4, 9, 11, and 12 go, I'll let those go without
-> >comment.
-> >
-> >
-> >- Paul
-> >
-> 
