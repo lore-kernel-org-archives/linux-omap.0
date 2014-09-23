@@ -1,211 +1,120 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] clk: ti: change clock init to use generic of_clk_init
-Date: Tue, 23 Sep 2014 08:49:02 -0700
-Message-ID: <20140923154901.GA2451@atomide.com>
-References: <1410523317-14787-1-git-send-email-t-kristo@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] iommu/omap: Reverse dependency between omap-iommu
+	and omap-iommu2
+Date: Tue, 23 Sep 2014 11:04:22 -0500
+Message-ID: <54219A06.80201@ti.com>
+References: <1410277545-32157-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<3123675.ihHe2cOfgC@avalon> <540F7FD0.4010109@ti.com>
+	<2586861.3TFFdmAzkQ@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30197 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754470AbaIWPtZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 11:49:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1410523317-14787-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <2586861.3TFFdmAzkQ@avalon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Mark Rutland <mark.rutland@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Stefan Assmann <sassmann@kpanic.de>
 
-* Tero Kristo <t-kristo@ti.com> [140912 05:02]:
-> Previously, the TI clock driver initialized all the clocks hierarchically
-> under each separate clock provider node. Now, each clock that requires
-> IO access will instead check their parent node to find out which IO range
-> to use.
-> 
-> This patch allows the TI clock driver to use a few new features provided
-> by the generic of_clk_init, and also allows registration of clock nodes
-> outside the clock hierarchy (for example, any external clocks.)
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Mike Turquette <mturquette@linaro.org>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Jyri Sarha <jsarha@ti.com>
-> Cc: Stefan Assmann <sassmann@kpanic.de>
-> ---
-> Changes from v1:
->   - fixed the retry logic for deferred clock inits, this wasn't working
->     properly in v1
+Hi Laurent,
 
-Sounds like you want to merge this via the clock tree, so please
-feel free to add:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
->  arch/arm/mach-omap2/io.c         |   12 +++++--
->  arch/arm/mach-omap2/prm_common.c |    2 --
->  drivers/clk/ti/clk.c             |   68 ++++++++++++++++++++++++--------------
->  include/linux/clk/ti.h           |    1 +
->  4 files changed, 54 insertions(+), 29 deletions(-)
+>
+> On Tuesday 09 September 2014 17:31:44 Suman Anna wrote:
+>>> On Tuesday 09 September 2014 16:33:11 Suman Anna wrote:
+>>>> On 09/09/2014 10:45 AM, Laurent Pinchart wrote:
+>>>>> The OMAP IOMMU driver supports both the OMAP1 and OMAP2+ IOMMU variants
+>>>>> by splitting the driver into a core module and a thin arch-specific
+>>>>> operations module.
+>>>>>
+>>>>> (In practice only the OMAP2+ module omap-iommu2 is implemented, but
+>>>>> let's not denigrate the effort.)
+>>>>
+>>>> Thank you for the patch. I had something similar in my list of cleanup
+>>>> TODO items on the OMAP IOMMU driver, but I was intending to cut down
+>>>> more and consolidate the omap-iommu.c and omap-iommu2.c files into a
+>>>> single one.
+>>>>
+>>>> This had been the case from the introduction of the driver going back to
+>>>> v2.6.30, and OMAP1 was never added and I doubt it would be added anytime
+>>>> in the foreseeable future.
+>>>>
+>>>>> The arch-specific operations module registers itself with the OMAP IOMMU
+>>>>> core module at initialization time. This initializes a module global
+>>>>> arch-specific operations pointer, used at runtime by the IOMMU
+>>>>> instances.
+>>>>>
+>>>>> This scheme causes several issues. In addition to making it impossible
+>>>>> to support different OMAP IOMMU types in a single system (which in all
+>>>>> fairness is quite unlikely to happen),
+>>>>
+>>>> Yep, except for a few enhancements (like reporting Fault PC address on
+>>>> OMAP4 DSPs, and dropping both endianness support), the core IOMMU
+>>>> functionality hasn't changed much between OMAP2 and the latest OMAP4+
+>>>> SoCs. So, my plan was to completely get rid of the iommu_functions (it
+>>>> also eliminates the need for exporting most of the OMAP IOMMU API). So
+>>>> while I am ok with the current patch, I prefer consolidation than
+>>>> keeping the scalability alive, it can always be added if a need for that
+>>>> arises. What do you think?
+>>>
+>>> I agree with your approach, but in the meantime we have a problem to
+>>> solve.
+>>> How about applying this patch now (it goes in the right direction anyway),
+>>> and then removing the iommu functions when you will have time ?
+>>
+>> Can you give the subsys_initcall solution a try to see if that resolves
+>> the problem at hand? That would be a much smaller change, if that
+>> doesn't work we can go with this patch.
 > 
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 5d0667c..a1b82a9 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -734,8 +734,16 @@ int __init omap_clk_init(void)
->  	ti_clk_init_features();
->  
->  	ret = of_prcm_init();
-> -	if (!ret)
-> -		ret = omap_clk_soc_init();
-> +	if (ret)
-> +		return ret;
-> +
-> +	of_clk_init(NULL);
-> +
-> +	ti_dt_clk_init_retry_clks();
-> +
-> +	ti_dt_clockdomains_setup();
-> +
-> +	ret = omap_clk_soc_init();
->  
->  	return ret;
->  }
-> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> index 76ca320..3b89080 100644
-> --- a/arch/arm/mach-omap2/prm_common.c
-> +++ b/arch/arm/mach-omap2/prm_common.c
-> @@ -525,8 +525,6 @@ int __init of_prcm_init(void)
->  		memmap_index++;
->  	}
->  
-> -	ti_dt_clockdomains_setup();
-> -
->  	return 0;
->  }
->  
-> diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-> index b1a6f71..337abe5 100644
-> --- a/drivers/clk/ti/clk.c
-> +++ b/drivers/clk/ti/clk.c
-> @@ -25,8 +25,8 @@
->  #undef pr_fmt
->  #define pr_fmt(fmt) "%s: " fmt, __func__
->  
-> -static int ti_dt_clk_memmap_index;
->  struct ti_clk_ll_ops *ti_clk_ll_ops;
-> +static struct device_node *clocks_node_ptr[CLK_MAX_MEMMAPS];
->  
->  /**
->   * ti_dt_clocks_register - register DT alias clocks during boot
-> @@ -108,9 +108,21 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
->  	struct clk_omap_reg *reg;
->  	u32 val;
->  	u32 tmp;
-> +	int i;
->  
->  	reg = (struct clk_omap_reg *)&tmp;
-> -	reg->index = ti_dt_clk_memmap_index;
-> +
-> +	for (i = 0; i < CLK_MAX_MEMMAPS; i++) {
-> +		if (clocks_node_ptr[i] == node->parent)
-> +			break;
-> +	}
-> +
-> +	if (i == CLK_MAX_MEMMAPS) {
-> +		pr_err("clk-provider not found for %s!\n", node->name);
-> +		return NULL;
-> +	}
-> +
-> +	reg->index = i;
->  
->  	if (of_property_read_u32_index(node, "reg", index, &val)) {
->  		pr_err("%s must have reg[%d]!\n", node->name, index);
-> @@ -127,20 +139,14 @@ void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index)
->   * @parent: master node
->   * @index: internal index for clk_reg_ops
->   *
-> - * Initializes a master clock IP block and its child clock nodes.
-> - * Regmap is provided for accessing the register space for the
-> - * IP block and all the clocks under it.
-> + * Initializes a master clock IP block. This basically sets up the
-> + * mapping from clocks node to the memory map index. All the clocks
-> + * are then initialized through the common of_clk_init call, and the
-> + * clocks will access their memory maps based on the node layout.
->   */
->  void ti_dt_clk_init_provider(struct device_node *parent, int index)
->  {
-> -	const struct of_device_id *match;
-> -	struct device_node *np;
->  	struct device_node *clocks;
-> -	of_clk_init_cb_t clk_init_cb;
-> -	struct clk_init_item *retry;
-> -	struct clk_init_item *tmp;
-> -
-> -	ti_dt_clk_memmap_index = index;
->  
->  	/* get clocks for this parent */
->  	clocks = of_get_child_by_name(parent, "clocks");
-> @@ -149,19 +155,31 @@ void ti_dt_clk_init_provider(struct device_node *parent, int index)
->  		return;
->  	}
->  
-> -	for_each_child_of_node(clocks, np) {
-> -		match = of_match_node(&__clk_of_table, np);
-> -		if (!match)
-> -			continue;
-> -		clk_init_cb = (of_clk_init_cb_t)match->data;
-> -		pr_debug("%s: initializing: %s\n", __func__, np->name);
-> -		clk_init_cb(np);
-> -	}
-> +	/* add clocks node info */
-> +	clocks_node_ptr[index] = clocks;
-> +}
->  
-> -	list_for_each_entry_safe(retry, tmp, &retry_list, link) {
-> -		pr_debug("retry-init: %s\n", retry->node->name);
-> -		retry->func(retry->hw, retry->node);
-> -		list_del(&retry->link);
-> -		kfree(retry);
-> +/**
-> + * ti_dt_clk_init_retry_clks - init clocks from the retry list
-> + *
-> + * Initializes any clocks that have failed to initialize before,
-> + * reasons being missing parent node(s) during earlier init. This
-> + * typically happens only for DPLLs which need to have both of their
-> + * parent clocks ready during init.
-> + */
-> +void ti_dt_clk_init_retry_clks(void)
-> +{
-> +	struct clk_init_item *retry;
-> +	struct clk_init_item *tmp;
-> +	int retries = 5;
-> +
-> +	while (!list_empty(&retry_list) && retries) {
-> +		list_for_each_entry_safe(retry, tmp, &retry_list, link) {
-> +			pr_debug("retry-init: %s\n", retry->node->name);
-> +			retry->func(retry->hw, retry->node);
-> +			list_del(&retry->link);
-> +			kfree(retry);
-> +		}
-> +		retries--;
->  	}
->  }
-> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-> index e8d8a35..f75acbf 100644
-> --- a/include/linux/clk/ti.h
-> +++ b/include/linux/clk/ti.h
-> @@ -292,6 +292,7 @@ void omap2xxx_clkt_vps_init(void);
->  void __iomem *ti_clk_get_reg_addr(struct device_node *node, int index);
->  void ti_dt_clocks_register(struct ti_dt_clk *oclks);
->  void ti_dt_clk_init_provider(struct device_node *np, int index);
-> +void ti_dt_clk_init_retry_clks(void);
->  void ti_dt_clockdomains_setup(void);
->  int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
->  		      ti_of_clk_init_cb_t func);
-> -- 
-> 1.7.9.5
+> It seems to work.
+> 
+>> I will work on my cleanup list for 3.19.
+> 
+> Does that schedule still hold ? If so I'll submit a simple subsys_initcall() 
+> patch for v3.18.
+
+Yes, that would be great. I am working on the patches and will post them
+in a couple of days.
+
+regards
+Suman
+
+> 
+>>>>  it also causes initialization
+>>>>  
+>>>>> ordering issues by requiring the arch-specific operations module to be
+>>>>> loaded before any IOMMU user. This results in a probe breakage with the
+>>>>> OMAP3 ISP driver when not compiled as a module.
+>>>>
+>>>> This can be fixed if we make the current omap-iommu2.c as a
+>>>> subsys_initcall as well, right?
+>>>>
+>>>> regards
+>>>> Suman
+>>>>
+>>>>> Fix the problem by inverting the dependency. Instead of having the
+>>>>> omap-iommu2 module register itself to iommu-omap, make the iommu-omap
+>>>>> retrieve the omap-iommu2 operations structure directly when probing the
+>>>>> IOMMU device. This ensures that a probed IOMMU will always have valid
+>>>>> arch-specific operations.
+>>>>>
+>>>>> As the arch-specific operations pointer is now initialized at probe
+>>>>> time, this change requires turning it from a global variable into a
+>>>>> per-device variable.
+>>>>>
+>>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+>>>>> ---
+>>>>>
+>>>>>  drivers/iommu/omap-iommu-debug.c |  6 ++-
+>>>>>  drivers/iommu/omap-iommu.c       | 94 +++++++++++++--------------------
+>>>>>  drivers/iommu/omap-iommu.h       | 10 ++++-
+>>>>>  drivers/iommu/omap-iommu2.c      | 18 +-------
+>>>>>  4 files changed, 45 insertions(+), 83 deletions(-)
 > 
