@@ -1,41 +1,32 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 2/2] remoteproc: add support to handle internal memories
-Date: Tue, 23 Sep 2014 17:16:29 +0300
-Message-ID: <CAK=WgbZanJYN7-vXW=wo0H40piauHGQHYPPppcCpc+6VapXmeg@mail.gmail.com>
-References: <1404836521-59637-1-git-send-email-s-anna@ti.com>
- <1404836521-59637-3-git-send-email-s-anna@ti.com> <CAK=WgbY-WmcJdnLHDf1CSkJqNBUeUMPTLcEZyLGKnECbxH1OAQ@mail.gmail.com>
- <53D7F6F3.9020804@ti.com> <CAK=WgbZ+NhA5AAhURUOojwnCbi2wYkJ11i-C5e7-kpZL5vD_3g@mail.gmail.com>
- <54174082.4010008@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/3] kbuild: remove unnecessary variable initializaions
+Date: Tue, 23 Sep 2014 16:56:01 +0200
+Message-ID: <CACRpkdZxLrdvPPwrXgTn_oVntxz_f+GCdsdSbDZ0R0Mre6F_Dg@mail.gmail.com>
+References: <1410258381-7088-1-git-send-email-yamada.m@jp.panasonic.com>
+	<1410258381-7088-3-git-send-email-yamada.m@jp.panasonic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:55772 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790AbaIWOQt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 10:16:49 -0400
-Received: by mail-ie0-f181.google.com with SMTP id tr6so9152309ieb.26
-        for <linux-omap@vger.kernel.org>; Tue, 23 Sep 2014 07:16:49 -0700 (PDT)
-In-Reply-To: <54174082.4010008@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1410258381-7088-3-git-send-email-yamada.m@jp.panasonic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Masahiro Yamada <yamada.m@jp.panasonic.com>
+Cc: linux-kbuild <linux-kbuild@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, Nicolas Ferre <nicolas.ferre@atmel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Hartley Sweeten <hsweeten@visionengravers.com>, Ryan Mallon <rmallon@gmail.com>, Kukjin Kim <kgene.kim@samsung.com>, Greg Ungerer <gerg@uclinux.org>, Ben Dooks <ben-linux@fluff.org>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Robert Tivy <rtivy@ti.com>
 
-Hi Suman,
+On Tue, Sep 9, 2014 at 12:26 PM, Masahiro Yamada
+<yamada.m@jp.panasonic.com> wrote:
 
-On Mon, Sep 15, 2014 at 10:39 PM, Suman Anna <s-anna@ti.com> wrote:
-> These processors need to use their internal RAM for loading, which is
-> not for generic usage by the kernel, so defining a CMA block for this
-> memory doesn't make sense.
+> Clearing obj-y, obj-m, obj-n, obj- in each Makefile is
+> a useless habit.
+>
+> They are non-exported variables; therefore they are always empty
+> whenever descending into each subdirectory.
+> (Moreorver, obj-y and obj-m are also set to empty at the beginning
+> of scripts/Makefile.build)
+>
+> Signed-off-by: Masahiro Yamada <yamada.m@jp.panasonic.com>
 
-Ok - so just to make sure I understand, this is physical memory you
-want to use, which belongs to the remote processor, and which isn't
-mapped normally by the kernel?
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-> Will it suffice to replace the memcpy() with memcpy_toio()?
-
-Yes, memcpy_toio should be fine (and then you don't need to cast the
-cookie returned by ioremap).
-
-Thanks,
-Ohad.
+Yours,
+Linus Walleij
