@@ -1,61 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] unshare and simplify omap_hsmmc platform struct
-Date: Tue, 23 Sep 2014 09:22:49 -0700
-Message-ID: <20140923162249.GF2451@atomide.com>
-References: <1411386911-8158-1-git-send-email-afenkart@gmail.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCH 2/2] remoteproc: add support to handle internal memories
+Date: Tue, 23 Sep 2014 11:42:45 -0500
+Message-ID: <5421A305.1050509@ti.com>
+References: <1404836521-59637-1-git-send-email-s-anna@ti.com> <1404836521-59637-3-git-send-email-s-anna@ti.com> <CAK=WgbY-WmcJdnLHDf1CSkJqNBUeUMPTLcEZyLGKnECbxH1OAQ@mail.gmail.com> <53D7F6F3.9020804@ti.com> <CAK=WgbZ+NhA5AAhURUOojwnCbi2wYkJ11i-C5e7-kpZL5vD_3g@mail.gmail.com> <54174082.4010008@ti.com> <CAK=WgbZanJYN7-vXW=wo0H40piauHGQHYPPppcCpc+6VapXmeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47662 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429AbaIWQXJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 12:23:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1411386911-8158-1-git-send-email-afenkart@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbZanJYN7-vXW=wo0H40piauHGQHYPPppcCpc+6VapXmeg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Robert Tivy <rtivy@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, pascal.huerst@gmail.com
 
-* Andreas Fenkart <afenkart@gmail.com> [140922 04:55]:
-> mmci and omap_hsmmc share very little fields in the platform
-> struct. unsharing significantly simplifies the omap_hsmmc driver
+Hi Ohad,
 
-I think this is good to do. I was hoping we could drop omap3
-legacy booting support and completely get rid of the platform_data
-for omap_hsmmc. But that happens when it happens, so let's do
-this meanwhile to remove some dependencies for the omap_hsmmc
-clean-up work.
-
-Some patches have missing descriptions, can you please add those?
-
-Once the patches have proper descriptions, and assuming this
-does not break the omap3 legacy booting with the board-*.c
-files, please feel free to add:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-As it seems this is best merged via the MMC tree.
-
-Regards,
-
-Tony
-
- 
-> Andreas Fenkart (6):
->   omap_hsmmc: unshare platform data struct with mmci driver
->   omap_hsmmc: remove unused callbacks from platform data struct
->   omap_hsmmc: remove unused fields in platform_data
->   omap_hsmmc: remove unused get_context_loss_count callback
->   omap_hsmmc: remove un-initialized callbacks from platform data
->   omap_hsmmc: remove un-initialized get_cover_state callback
+On 09/23/2014 09:16 AM, Ohad Ben-Cohen wrote:
+> Hi Suman,
 > 
->  arch/arm/mach-omap2/hsmmc.c                        |  61 ++--------
->  arch/arm/mach-omap2/hsmmc.h                        |  10 --
->  arch/arm/mach-omap2/mmc.h                          |   6 +-
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |   6 +-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   6 +-
->  drivers/mmc/host/omap_hsmmc.c                      | 133 +++------------------
->  include/linux/platform_data/hsmmc-omap.h           | 103 ++++++++++++++++
->  7 files changed, 142 insertions(+), 183 deletions(-)
->  create mode 100644 include/linux/platform_data/hsmmc-omap.h
+> On Mon, Sep 15, 2014 at 10:39 PM, Suman Anna <s-anna@ti.com> wrote:
+>> These processors need to use their internal RAM for loading, which is
+>> not for generic usage by the kernel, so defining a CMA block for this
+>> memory doesn't make sense.
+> 
+> Ok - so just to make sure I understand, this is physical memory you
+> want to use, which belongs to the remote processor, and which isn't
+> mapped normally by the kernel?
+
+Yes, this is not the regular DDR that is mapped into kernel normally,
+but is a RAM internal to the remote processor subsystem. The MPU can
+access it through a bus address/
+
+> 
+>> Will it suffice to replace the memcpy() with memcpy_toio()?
+> 
+> Yes, memcpy_toio should be fine (and then you don't need to cast the
+> cookie returned by ioremap).
+
+I have posted v2, and have not modified for this. The memcpy portion is
+actually present in the remoteproc_elf_loader.c, and looks like I need
+to export some flags from rproc_va_to_da if I were to differentiate
+this. Is that ok with you?
+
+regards
+Suman
