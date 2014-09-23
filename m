@@ -1,44 +1,81 @@
-From: Frans Klaver <fransklaver@gmail.com>
-Subject: Re: [PATCH 3/4] tty: omap-serial: use threaded interrupt handler
-Date: Tue, 23 Sep 2014 22:02:42 +0200
-Message-ID: <CAH6sp9OLFdFbEa+RA07RWd_EzTbCz7p0HApSoTeSp28yA8FLrA@mail.gmail.com>
-References: <1410789610-23059-1-git-send-email-frans.klaver@xsens.com>
-	<1410789610-23059-4-git-send-email-frans.klaver@xsens.com>
-	<54170823.7040801@hurleysoftware.com>
-	<5417228C.5070503@hurleysoftware.com>
-	<20140916085037.GI28458@ci00147.xsens-tech.local>
-	<54197804.3020302@hurleysoftware.com>
-	<20140917121303.GB20438@ci00147.xsens-tech.local>
-	<20140923082445.GA16218@ci00147.xsens-tech.local>
-	<5421AB20.8040606@hurleysoftware.com>
-	<88924386-79bc-44c7-9a07-249900cbd359@email.android.com>
-	<20140923183838.GA3122@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: ideas about idle loop and power management
+Date: Tue, 23 Sep 2014 13:37:23 -0700
+Message-ID: <20140923203722.GB3122@atomide.com>
+References: <CAJ2oMhKRSo76NEppiR6oqJXeuwrN=Um2azKCNGgP3PbuH_T3PA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140923183838.GA3122@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Frans Klaver <frans.klaver@xsens.com>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Alexey Pelykh <alexey.pelykh@gmail.com>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Rob Herring <robh+dt@kernel.org>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20709 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755438AbaIWUhl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 16:37:41 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJ2oMhKRSo76NEppiR6oqJXeuwrN=Um2azKCNGgP3PbuH_T3PA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ran Shalit <ranshalit@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Sep 23, 2014 at 8:38 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Frans Klaver <fransklaver@gmail.com> [140923 11:12]:
->> On 23 September 2014 19:17:20 CEST, Peter Hurley <peter@hurleysoftware.com> wrote:
->> >
->> >I would've thought the first 2 patches had already been picked up
->> >because
->> >they fix div-by-zero faults.
->>
->> I've had no confirmation of that happening so far. I also don't
->> know if I should expect one. Who'd take these patches? Tony?
->
-> $ scripts/get_maintainer.pl -f drivers/tty/serial/omap-serial.c
->
-> Shows they should be sent to Greg and linux-serial. Please also Cc
-> linux-omap. And if it's a fix, please make sure the subject has the
-> magic word fix :)
+* Ran Shalit <ranshalit@gmail.com> [140923 12:24]:
+> Hello,
+> 
+> I have a system which is required to have 2 modes operation:
+> 1. idle - in which devices in Soc and on board should be off.
+> 2. active mode
 
-Done. Thanks.
+Hmm we do this already with the mainline kernel since v3.16-rc6
+for device tree based systems too. Some devices will still block
+deeper idle states idle like EHCI. I suggest you give v3.17-rc6
+a try on a beagleboard xm (rev c preferrably)using omap2plus_defconfig.
+Or omap 37xx evm. Or on n900. Or overo, but that's still pending
+a .dts fix.
+ 
+> Moving from idle to active on interrupt, and moving from active to
+> idle when there is inactivity.
+> After reading and re-reading about PM various mechanism, I got to
+> conculsion that the best and easiest way to achive this on omap
+> (omap3530) will be as following:
+> 1. use cpuidle
+> 2. find the exact place in cpuidle mechanism where we enter idle loop,
+> and where we exit idle loop.
+> 3. on entering idle loop: turn off various devices on board, and
+> devices power domain
 
-Frans
+The devices are autoidle where possible with runtime PM. And then
+the hardware enters deeper idle states when drivers are not
+blocking.
+
+> 4. on exit idle loop: power again the devices.
+> 
+> I think that working such way on low machine registers will be easiest
+> and best instead of trying to do it using PM mechanism, which is quite
+> difficult to understand and do and also, I'm not sure even possible
+> using the existing mechanism.
+
+Hmm but that's already working with the mainline tree :)
+ 
+> I would appreciate your feedback.
+
+Sounds like you just need to give it a try. I'm using the following
+test script. You may need to also blank the LCD.
+
+Regards,
+
+Tony
+
+#!/bin/bash
+
+uarts=$(find /sys/class/tty/tty[SO]*/device/power/ -type d)
+for uart in $uarts; do
+        echo 3000 > $uart/autosuspend_delay_ms 2>&1
+done
+
+uarts=$(find /sys/class/tty/ttyO*/power/ -type d 2>/dev/null)
+for uart in $uarts; do
+        echo enabled > $uart/wakeup 2>&1
+        echo auto > $uart/control 2>&1
+done
+
+echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
+
