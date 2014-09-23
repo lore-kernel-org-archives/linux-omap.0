@@ -1,44 +1,70 @@
-From: Ran Shalit <ranshalit@gmail.com>
-Subject: ideas about idle loop and power management
-Date: Tue, 23 Sep 2014 22:23:26 +0300
-Message-ID: <CAJ2oMhKRSo76NEppiR6oqJXeuwrN=Um2azKCNGgP3PbuH_T3PA@mail.gmail.com>
+From: Frans Klaver <frans.klaver@xsens.com>
+Subject: [PATCH 1/2] tty: omap-serial: pull out calculation from baud_is_mode16
+Date: Tue, 23 Sep 2014 21:54:39 +0200
+Message-ID: <1411502080-19769-2-git-send-email-frans.klaver@xsens.com>
+References: <1411502080-19769-1-git-send-email-frans.klaver@xsens.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:62132 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753287AbaIWTX2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 15:23:28 -0400
-Received: by mail-wg0-f50.google.com with SMTP id l18so4039042wgh.21
-        for <linux-omap@vger.kernel.org>; Tue, 23 Sep 2014 12:23:26 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1411502080-19769-1-git-send-email-frans.klaver@xsens.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Frans Klaver <frans.klaver@xsens.com>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hello,
+To determine the correct divisor, we need to know the difference between
+the desired baud rate and the actual baud rate. The calculation for this
+difference is implemented twice within omap_serial_baud_is_mode16().
+Pull out the calculation for easier maintenance.
 
-I have a system which is required to have 2 modes operation:
-1. idle - in which devices in Soc and on board should be off.
-2. active mode
+Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
+---
+ drivers/tty/serial/omap-serial.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-Moving from idle to active on interrupt, and moving from active to
-idle when there is inactivity.
-After reading and re-reading about PM various mechanism, I got to
-conculsion that the best and easiest way to achive this on omap
-(omap3530) will be as following:
-1. use cpuidle
-2. find the exact place in cpuidle mechanism where we enter idle loop,
-and where we exit idle loop.
-3. on entering idle loop: turn off various devices on board, and
-devices power domain
-4. on exit idle loop: power again the devices.
-
-I think that working such way on low machine registers will be easiest
-and best instead of trying to do it using PM mechanism, which is quite
-difficult to understand and do and also, I'm not sure even possible
-using the existing mechanism.
-
-I would appreciate your feedback.
-
-Regards,
-Ran
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index d017cec..ae935ce 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -239,6 +239,22 @@ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ }
+ 
+ /*
++ * Calculate the absolute difference between the desired and actual baud
++ * rate for the given mode.
++ */
++static inline int calculate_baud_abs_diff(struct uart_port *port,
++				unsigned int baud, unsigned int mode)
++{
++	unsigned int n = port->uartclk / (mode * baud);
++	int abs_diff = baud - (port->uartclk / (mode * n));
++
++	if (abs_diff < 0)
++		abs_diff = -abs_diff;
++
++	return abs_diff;
++}
++
++/*
+  * serial_omap_baud_is_mode16 - check if baud rate is MODE16X
+  * @port: uart port info
+  * @baud: baudrate for which mode needs to be determined
+@@ -252,14 +268,8 @@ static void serial_omap_enable_wakeup(struct uart_omap_port *up, bool enable)
+ static bool
+ serial_omap_baud_is_mode16(struct uart_port *port, unsigned int baud)
+ {
+-	unsigned int n13 = port->uartclk / (13 * baud);
+-	unsigned int n16 = port->uartclk / (16 * baud);
+-	int baudAbsDiff13 = baud - (port->uartclk / (13 * n13));
+-	int baudAbsDiff16 = baud - (port->uartclk / (16 * n16));
+-	if (baudAbsDiff13 < 0)
+-		baudAbsDiff13 = -baudAbsDiff13;
+-	if (baudAbsDiff16 < 0)
+-		baudAbsDiff16 = -baudAbsDiff16;
++	int baudAbsDiff13 = calculate_baud_abs_diff(port, baud, 13);
++	int baudAbsDiff16 = calculate_baud_abs_diff(port, baud, 16);
+ 
+ 	return (baudAbsDiff13 >= baudAbsDiff16);
+ }
+-- 
+2.1.0
