@@ -1,49 +1,61 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RESEND PATCH] gpio: omap: Fix interrupt names
-Date: Tue, 23 Sep 2014 17:47:13 +0200
-Message-ID: <CACRpkdYh-AWN6y_cfn6sg9j-hYYkLYbf-3Vcnsv+u5WOO9hxLQ@mail.gmail.com>
-References: <1409946775-24076-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] clk: ti: change clock init to use generic of_clk_init
+Date: Tue, 23 Sep 2014 08:49:58 -0700
+Message-ID: <20140923154958.GB2451@atomide.com>
+References: <1408628959-32442-1-git-send-email-t-kristo@ti.com>
+ <20140918171725.GL14505@atomide.com>
+ <alpine.DEB.2.02.1409191632170.22526@utopia.booyaka.com>
+ <541FC714.9050203@ti.com>
+ <541FD5F4.6020909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1409946775-24076-1-git-send-email-nm@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32373 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752575AbaIWPuT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Sep 2014 11:50:19 -0400
+Content-Disposition: inline
+In-Reply-To: <541FD5F4.6020909@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jyri Sarha <jsarha@ti.com>, Stefan Assmann <sassmann@kpanic.de>
 
-On Fri, Sep 5, 2014 at 9:52 PM, Nishanth Menon <nm@ti.com> wrote:
+* Tero Kristo <t-kristo@ti.com> [140922 00:55]:
+> On 09/22/2014 09:52 AM, Tero Kristo wrote:
+> >On 09/19/2014 07:33 PM, Paul Walmsley wrote:
+> >>On Thu, 18 Sep 2014, Tony Lindgren wrote:
+> >>
+> >>>* Tero Kristo <t-kristo@ti.com> [140821 06:52]:
+> >>>>Previously, the TI clock driver initialized all the clocks
+> >>>>hierarchically
+> >>>>under each separate clock provider node. Now, each clock that requires
+> >>>>IO access will instead check their parent node to find out which IO
+> >>>>range
+> >>>>to use.
+> >>>>
+> >>>>This patch allows the TI clock driver to use a few new features
+> >>>>provided
+> >>>>by the generic of_clk_init, and also allows registration of clock nodes
+> >>>>outside the clock hierarchy (for example, any external clocks.)
+> >>>
+> >>>Paul, any comments on this one?
+> >>
+> >>Not at this point.
+> >
+> >Tony, ok to merge this through clock tree?
+> 
+> Oh btw, this is v1, I posted v2 a week back here:
+> 
+> http://article.gmane.org/gmane.linux.ports.arm.omap/118551
+> 
+> v2 has the retry init logic fixed in it (mainly for DPLLs which can have two
+> separate parents which of both must be available during init.)
 
-> When viewing the /proc/interrupts, there is no information about which
-> GPIO bank a specific gpio interrupt is hooked on to. This is more than a
-> bit irritating as such information can esily be provided back to the
-> user and at times, can be crucial for debug.
->
-> So, instead of displaying something like:
-> 31:     0       0  GPIO   0  palmas
-> 32:     0       0  GPIO  27  mmc0
->
-> Display the following with appropriate device name:
-> 31:     0       0  4ae10000.gpio   0  palmas
-> 32:     0       0  4805d000.gpio  27  mmc0
->
-> This requires that we create irq_chip instance specific for each GPIO
-> bank which is trivial to achieve.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> Acked-by: Kevin Hilman <khilman@linaro.org>
-> ---
-> Requested to be resend by Javier with linux-gpio maintainers in CC.
->
-> Original V1 of the patch: https://patchwork.kernel.org/patch/4757891/
->
-> Probably belongs to 3.18 kernel series at this point in time.
->
-> Changes since v1: just picked up Acks.
+Oh OK. I acked that one so please feel free to merge it via the
+clock tree. It does not seem to confilict with anything I have
+queued up.
 
-Patch applied.
+Regards,
 
-Yours,
-Linus Walleij
+Tony
