@@ -1,148 +1,100 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Tue, 23 Sep 2014 13:03:51 -0400
-Message-ID: <5421A7F7.3070109@hurleysoftware.com>
-References: <54119AAA.9080907@linutronix.de> <20140911151114.GD28458@ci00147.xsens-tech.local> <5411C810.7070906@linutronix.de> <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com> <54129F6C.7040508@linutronix.de> <20140912094010.GE28458@ci00147.xsens-tech.local> <5412C21A.8020203@linutronix.de> <20140912102816.GF28458@ci00147.xsens-tech.local> <541716DC.9020904@linutronix.de> <20140917102812.GA20438@ci00147.xsens-tech.local> <20140921204100.GA10111@linutronix.de>
+From: Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 3/4] tty: omap-serial: use threaded interrupt handler
+Date: Tue, 23 Sep 2014 13:17:20 -0400
+Message-ID: <5421AB20.8040606@hurleysoftware.com>
+References: <1410789610-23059-1-git-send-email-frans.klaver@xsens.com> <1410789610-23059-4-git-send-email-frans.klaver@xsens.com> <54170823.7040801@hurleysoftware.com> <5417228C.5070503@hurleysoftware.com> <20140916085037.GI28458@ci00147.xsens-tech.local> <54197804.3020302@hurleysoftware.com> <20140917121303.GB20438@ci00147.xsens-tech.local> <20140923082445.GA16218@ci00147.xsens-tech.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140921204100.GA10111@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Frans Klaver <frans.klaver@xsens.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20140923082445.GA16218-fflvphBLEC9V3v/g3MTWbjg1oUeLRpcR@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Frans Klaver <frans.klaver-MHHw4NDrbWwAvxtiuMwx3w@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexey Pelykh <alexey.pelykh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jiri Slaby <jslaby-AlSwsSmVLrQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/21/2014 04:41 PM, Sebastian Andrzej Siewior wrote:
-> * Frans Klaver | 2014-09-17 12:28:12 [+0200]:
->=20
->> - Bone Black: Yocto poky, core-image-minimal
->>  Login, "less file" locks up, doesn't show anything. I can exit usin=
-g
->>  Ctrl-C.
->=20
-> So I have the same with my and the serial-omap driver. No difference
-> here. The trace looks like this:
-> |           <idle>-0     [000] d.h.   444.393585: serial8250_handle_i=
-rq: iir cc lsr 61
-> |           <idle>-0     [000] d.h.   444.393605: serial8250_rx_chars=
-: get 0d
-> received the enter key
->=20
-> |           <idle>-0     [000] d.h.   444.393609: serial8250_rx_chars=
-: insert d lsr 61
-> |           <idle>-0     [000] d.h.   444.393614: uart_insert_char: 1
-> |           <idle>-0     [000] d.h.   444.393617: uart_insert_char: 2
-> |           <idle>-0     [000] dnh.   444.393636: serial8250_tx_chars=
-: empty
-> |      kworker/0:2-753   [000] d...   444.393686: serial8250_start_tx=
-: empty?1
-> |      kworker/0:2-753   [000] d.h.   444.393699: serial8250_handle_i=
-rq: iir c2 lsr 60
-> |      kworker/0:2-753   [000] d.h.   444.393705: serial8250_tx_chars=
-: empty
-> |               sh-1042  [000] d...   444.393822: serial8250_start_tx=
-: empty?1
-> |               sh-1042  [000] d.h.   444.393836: serial8250_handle_i=
-rq: iir c2 lsr 60
-> |               sh-1042  [000] d.h.   444.393842: serial8250_tx_chars=
-: empty
-> |               sh-1042  [000] d...   444.393855: serial8250_start_tx=
-: empty?0
-> |               sh-1042  [000] d.h.   444.393863: serial8250_handle_i=
-rq: iir c2 lsr 60
-> |               sh-1042  [000] d.h.   444.393867: serial8250_tx_chars=
-: put 0d
-> |               sh-1042  [000] d.h.   444.393871: serial8250_tx_chars=
-: put 0a
->=20
-> shell responded with "\r\n" which I see and then
->=20
-> |               sh-1042  [000] d.h.   444.394057: serial8250_handle_i=
-rq: iir c2 lsr 60
-> |               sh-1042  [000] d.h.   444.394065: serial8250_tx_chars=
-: empty
->=20
-> nothing more. less isn't sending data for some reason. Exactly the sa=
-me
-> thing happens in a Debian environment except that it continues:
-> =E2=80=A6
-> |             bash-2468  [000] d.h.    99.657899: serial8250_tx_chars=
-: put 0a
-> |             bash-2468  [000] d.h.    99.658089: serial8250_handle_i=
-rq: iir c2 lsr 60
-> |             bash-2468  [000] d.h.    99.658095: serial8250_tx_chars=
-: empty
-> =3D>
-> |             less-2474  [000] d...    99.696038: serial8250_start_tx=
-: empty?0
-> |             less-2474  [000] d.h.    99.696069: serial8250_handle_i=
-rq: iir c2 lsr 60
-> |             less-2474  [000] d.h.    99.696078: serial8250_tx_chars=
-: put 1b
-> |             less-2474  [000] d.h.    99.696082: serial8250_tx_chars=
-: put 5b
-> |             less-2474  [000] d.h.    99.696085: serial8250_tx_chars=
-: put 3f
-> |             less-2474  [000] d.h.    99.696087: serial8250_tx_chars=
-: put 31
->=20
-> It has to be something about the environment. Booting Debian and chro=
-ot
-> into this RFS and less works perfectly. But since it behaves like tha=
-t
-> with both drivers, I guess the problem is somewhere else=E2=80=A6
->=20
->>  vi runs normally, only occupies part of the total screen estate in
->>  minicom. After quitting, a weird character shows up (typically I se=
-e
->>  =C3=BF there), but minicom can use the rest of the screen estate ag=
-ain.
->>  If we disregard the odd character, this is much like the behavior w=
-e
->>  have on the omap-serial driver.
->> - Custom board: Yocto poky, custom image
->>  Login, "less file" locks up, showing only "=C3=BF" in the top left =
-corner
->>  of the screen. Can get out of there by having something dumped thro=
-ugh
->>  /dev/kmsg.
->=20
-> I managed to run into something like that with vi on dra7 and with
-> little more patience on am335x as well by "vi *" and then ":n".
->=20
-> This gets fixed indeed by writing. Hours of debugging and a lot of ha=
-ir
-> less later: the yocto RFS calls set_termios quite a lot.
+On 09/23/2014 04:24 AM, Frans Klaver wrote:
+> On Wed, Sep 17, 2014 at 02:13:03PM +0200, Frans Klaver wrote:
+>> On Wed, Sep 17, 2014 at 08:01:08AM -0400, Peter Hurley wrote:
+>>> On 09/16/2014 04:50 AM, Frans Klaver wrote:
+>>>> On Mon, Sep 15, 2014 at 01:31:56PM -0400, Peter Hurley wrote:
+>>>>> On 09/15/2014 11:39 AM, Peter Hurley wrote:
+>>>>>> On 09/15/2014 10:00 AM, Frans Klaver wrote:
+>>>>>>> At 3.6Mbaud, with slightly over 2Mbit/s data coming in, we see 1600 uart
+>>>>>>> rx buffer overflows within 30 seconds. Threading the interrupt handling reduces
+>>>>>>> this to about 170 overflows in 10 minutes.
+>>>>>>
+>>>>>> Why is the threadirqs kernel boot option not sufficient?
+>>>>>> Or conversely, shouldn't this be selectable?
+>>>>>
+>>>>
+>>>> I wasn't aware of the threadirqs boot option. I also wouldn't know if
+>>>> this should be selectable. What would be a reason to favor the
+>>>> non-threaded irq over the threaded irq?
+>>>
+>>> Not everyone cares enough about serial to dedicate kthreads to it :)
+>>
+>> Fair enough. In that light, we might not care enough about other
+>> subsystems to dedicate kthreads to it :). Selectable seems reasonable in
+>> that case.
+>>
+>>
+>>>>> Also, do you see the same performance differential when you implement this
+>>>>> in the 8250 driver (that is, on top of Sebastian's omap->8250 conversion)?
+>>>>>
+>>>>
+>>>> I haven't gotten Sebastian's driver to work properly yet on the console.
+>>>> There was no reason for me yet to throw my omap changes on top of
+>>>> Sebastian's queue.
+> 
+> Doing the threaded interrupt change on the 8250 driver doesn't seem as
+> trivial. Unless I'm mistaken, that version of this patch would mess with
+> all other 8250 based serial drivers, if it's done properly. Incidentally
+> I did try using threadirqs, but that didn't give my any significant
+> results. I mostly noticed a difference in the console.
+> 
+> 
+>>>>
+>>>>>> PS - To overflow the 64 byte RX FIFO at those data rates means interrupt
+>>>>>> latency in excess of 250us?
+>>>>
+>>>> At 3686400 baud it should take about 174 us to fill a 64 byte buffer. I
+>>>> haven't done any measurements on the interrupt latency though. If you
+>>>> consider that we're sending about 1kB of data, 240 times a second, we're
+>>>> spending a lot of time reading data from the uart. I can imagine the
+>>>> system has other work to do as well.
+>>>
+>>> System work should not keep irqs from being serviced. Even 174us is a long
+>>> time not to service an interrupt. Maybe console writes are keeping the isr
+>>> from running?
+>>
+>> That's quite possible. I'll have to redo the test setup I had for this to
+>> give you a decent answer. I'll have to do that anyway as Sebastian's
+>> 8250 conversion improves.
+> 
+> I haven't had time yet to look into this any further. I'll accept that
+> this patch may fix a case most people aren't the least interested in.
+> I'll also happily accept that I probably need a better argumentation
+> than "this works better for us".Would it make sense to drop this patch
+> and resubmit the other three? As I mentioned in the previous run, I
+> think these are useful in any case.
 
-readline() does this; it 'saves' the caller's termios, sets termios
-for non-canonical reads, reads one char, and 'restores' the caller's
-termios.
+I would've thought the first 2 patches had already been picked up because
+they fix div-by-zero faults.
 
-> This includes
-> changing the baudrate (not by yocto but the driver sets it to 0 and t=
-hen
-> to the requested one) and this seems to be responsible for the "bad
-> bytes". I haven't figured out yet I don't see this with omap-serial.
-> Even worse: If this (set_termios()) happens while the DMA is still
-> active then it might stall it. A write into the FIFO seems to fix it =
-and
-> this is where your "echo >/dev/kmsg" fixes things.
-> If I delay the restore_registers part of set_termios() until TX-DMA i=
-s
-> complete then it seems that the TX-DMA stall does not tall anymore.
+I don't really have a problem with the patch (except for it should be
+selectable, even if that's just a CONFIG_ setting). At the same time,
+the performance results don't really make sense; so if there's actually
+an underlying problem, I'd rather that get addressed (and the long
+interrupt latency may be the underlying problem).
 
-The tty core calls the driver's wait_until_sent() method before changin=
-g
-the termios (if TCSADRAIN is used for tcsetattr(), which I think for re=
-adline()
-it does).
-
-But DMA is cheating if the UART driver's tx_empty() method is saying th=
-e
-transmitter is empty while TX DMA is still running.
+As far as the 8250 driver and threaded irqs go, I just was hoping for
+another data point with a simple hard-coded test jig, not a full-blown
+patch series for all of them. Sorry for the misunderstanding.
 
 Regards,
 Peter Hurley
-=20
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
