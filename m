@@ -1,36 +1,75 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH v6 1/2] usb: rename phy to usb_phy in HCD
-Date: Wed, 24 Sep 2014 23:31:11 +0400
-Message-ID: <54231BFF.5070901@cogentembedded.com>
-References: <37148636.BU5lT4M4eC@wasted.cogentembedded.com> <2300651.HNvMzB0aUB@wasted.cogentembedded.com> <20140924192806.GO17997@saruman>
+Date: Wed, 24 Sep 2014 14:39:42 -0500
+Message-ID: <20140924193942.GR17997@saruman>
+References: <37148636.BU5lT4M4eC@wasted.cogentembedded.com>
+ <2300651.HNvMzB0aUB@wasted.cogentembedded.com>
+ <20140924192806.GO17997@saruman>
+ <54231BFF.5070901@cogentembedded.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ffBYM5qgR8HH9Mta"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140924192806.GO17997@saruman>
+Content-Disposition: inline
+In-Reply-To: <54231BFF.5070901@cogentembedded.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, Peter.Chen@freescale.com, stern@rowland.harvard.edu, swarren@wwwdotorg.org, thierry.reding@gmail.com, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, linux-kernel@vger.kernel.org, antoine.tenart@free-electrons.com
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, Peter.Chen@freescale.com, stern@rowland.harvard.edu, swarren@wwwdotorg.org, thierry.reding@gmail.com, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, linux-kernel@vger.kernel.org, antoine.tenart@free-electrons.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+--ffBYM5qgR8HH9Mta
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 09/24/2014 11:28 PM, Felipe Balbi wrote:
+On Wed, Sep 24, 2014 at 11:31:11PM +0400, Sergei Shtylyov wrote:
+> Hello.
+>=20
+> On 09/24/2014 11:28 PM, Felipe Balbi wrote:
+>=20
+> >>From: Antoine Tenart <antoine.tenart@free-electrons.com>
+>=20
+> >>The USB PHY member of the HCD structure is renamed to 'usb_phy' and
+> >>modifications are done in all drivers accessing it.
+> >>This is in preparation to adding the generic PHY support.
+>=20
+> >>Signed-off-by: Antoine Tenart <antoine.tenart@free-electrons.com>
+> >>[Sergei: added missing 'drivers/usb/misc/lvstest.c' file, resolved reje=
+cts,
+> >>updated changelog.]
+> >>Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> >>Acked-by: Alan Stern <stern@rowland.harvard.edu>
+>=20
+> >Acked-by: Felipe Balbi <balbi@ti.com>
+>=20
+>    Sorry, forgot to collect your ACK from the previous posting. :-/
 
->> From: Antoine Tenart <antoine.tenart@free-electrons.com>
+don't worry ;-)
 
->> The USB PHY member of the HCD structure is renamed to 'usb_phy' and
->> modifications are done in all drivers accessing it.
->> This is in preparation to adding the generic PHY support.
+--=20
+balbi
 
->> Signed-off-by: Antoine Tenart <antoine.tenart@free-electrons.com>
->> [Sergei: added missing 'drivers/usb/misc/lvstest.c' file, resolved rejects,
->> updated changelog.]
->> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->> Acked-by: Alan Stern <stern@rowland.harvard.edu>
+--ffBYM5qgR8HH9Mta
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> Acked-by: Felipe Balbi <balbi@ti.com>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-    Sorry, forgot to collect your ACK from the previous posting. :-/
+iQIcBAEBAgAGBQJUIx3+AAoJEIaOsuA1yqREKlQP/ilSdXJbAq8hq/pE2JDK3q+P
+A8zFNo5Kjpz0wuUFg4KaP9s/rPx+aLPdhSTuPTXobe+J1ayYAO5g0JgrDOOQ/BI5
+WF9a64pZuHJjSK5lp8LgjZ5GXCsJyy75SOCAjrsdZD1Zqhoo4g151YlxTcC3ZUCj
+NXtrMzH1uYDEz9p7t6laFus8s+UyVTahEeQyYLiICW72uRIygtiWDZulhwoiSlSi
+IcYfuJmumvgmPnC6J3ym+Muh65TjVzyods3KDT/qbNGpYJkk6yWICb+OS5xGt3mm
+8e5pyRnlCTMH2M1Do5kUwMFNlH29m41iMIypqZZqY0Vi/QfIKZFo2iNPNPHNBNmg
+rSBA6RqDzIeqGcLa6FWPGeFPiTRl/XL4+x4tWaWkGFnedsTY11eX0kC04wPtShQS
+e795+RRL8TOInyStcpN2srnnDzSIhdAcKjM/kdcMAaHv+h6FZTFolm6pQRV9PNbZ
+kl4iO1apq9mUhFURsN6I3xL6S447jTpjN+G0zSZm5kpClc0zuFTjmBQH0bKydrWM
+H1cI1/PjTo2qNrrfKMswur5SwSUZI/PY0lk4jifZqLD314PR3W+fwQYiomzX6veh
+M5D+D5tDy+SPNM9CZ5ms7Uaj1cd8m7TGyjyZ0UqSrc/CBBgJMeDTnfuIIB5Mtc+B
+NuUPT9yX6NpVl45S/NPc
+=aVIp
+-----END PGP SIGNATURE-----
 
-WBR, Sergei
+--ffBYM5qgR8HH9Mta--
