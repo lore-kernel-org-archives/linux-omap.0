@@ -1,61 +1,65 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Wed, 24 Sep 2014 09:53:46 +0200
-Message-ID: <20140924075346.GB19565@linutronix.de>
-References: <5411C810.7070906@linutronix.de>
- <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
- <54129F6C.7040508@linutronix.de>
- <20140912094010.GE28458@ci00147.xsens-tech.local>
- <5412C21A.8020203@linutronix.de>
- <20140912102816.GF28458@ci00147.xsens-tech.local>
- <541716DC.9020904@linutronix.de>
- <20140917102812.GA20438@ci00147.xsens-tech.local>
- <20140921204100.GA10111@linutronix.de>
- <5421A7F7.3070109@hurleysoftware.com>
+From: Frans Klaver <frans.klaver@xsens.com>
+Subject: [PATCH 1/2] tty: omap-serial: fix division by zero
+Date: Wed, 24 Sep 2014 09:55:21 +0200
+Message-ID: <1411545322-22940-2-git-send-email-frans.klaver@xsens.com>
+References: <1411545322-22940-1-git-send-email-frans.klaver@xsens.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5421A7F7.3070109@hurleysoftware.com>
+In-Reply-To: <1411545322-22940-1-git-send-email-frans.klaver@xsens.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: Frans Klaver <frans.klaver@xsens.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Frans Klaver <frans.klaver@xsens.com>, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Hurley | 2014-09-23 13:03:51 [-0400]:
+If the chosen baud rate is large enough (e.g. 3.5 megabaud), the
+calculated n values in serial_omap_is_baud_mode16() may become 0. This
+causes a division by zero when calculating the difference between
+calculated and desired baud rates. To prevent this, cap the n13 and n16
+values on 1.
 
->readline() does this; it 'saves' the caller's termios, sets termios
->for non-canonical reads, reads one char, and 'restores' the caller's
->termios.
+Division by zero in kernel.
+[<c00132e0>] (unwind_backtrace) from [<c00112ec>] (show_stack+0x10/0x14)
+[<c00112ec>] (show_stack) from [<c01ed7bc>] (Ldiv0+0x8/0x10)
+[<c01ed7bc>] (Ldiv0) from [<c023805c>] (serial_omap_baud_is_mode16+0x4c/0x68)
+[<c023805c>] (serial_omap_baud_is_mode16) from [<c02396b4>] (serial_omap_set_termios+0x90/0x8d8)
+[<c02396b4>] (serial_omap_set_termios) from [<c0230a0c>] (uart_change_speed+0xa4/0xa8)
+[<c0230a0c>] (uart_change_speed) from [<c0231798>] (uart_set_termios+0xa0/0x1fc)
+[<c0231798>] (uart_set_termios) from [<c022bb44>] (tty_set_termios+0x248/0x2c0)
+[<c022bb44>] (tty_set_termios) from [<c022c17c>] (set_termios+0x248/0x29c)
+[<c022c17c>] (set_termios) from [<c022c3e4>] (tty_mode_ioctl+0x1c8/0x4e8)
+[<c022c3e4>] (tty_mode_ioctl) from [<c0227e70>] (tty_ioctl+0xa94/0xb18)
+[<c0227e70>] (tty_ioctl) from [<c00cf45c>] (do_vfs_ioctl+0x4a0/0x560)
+[<c00cf45c>] (do_vfs_ioctl) from [<c00cf568>] (SyS_ioctl+0x4c/0x74)
+[<c00cf568>] (SyS_ioctl) from [<c000e480>] (ret_fast_syscall+0x0/0x30)
 
-interresting, thanks. I guess I would need to opimize this a little so
-the baudrate isn't going to 0 and back to the requested baudrate.
+Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
+---
+ drivers/tty/serial/omap-serial.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
->The tty core calls the driver's wait_until_sent() method before changi=
-ng
->the termios (if TCSADRAIN is used for tcsetattr(), which I think for r=
-eadline()
->it does).
-
-The interresting difference is that when I take the yocto RFS and chroo=
-t
-into from Debian then I don't this problem. Not sure if this is really
-readline or something else=E2=80=A6
-
->But DMA is cheating if the UART driver's tx_empty() method is saying t=
-he
->transmitter is empty while TX DMA is still running.
-This shouldn't be the case. But I will check this once I able to.
-After TX-DMA is done, "xmit->tail" is updated and port.icount.tx is
-incremented. At this time the TX FIFO is still full (up to 64 bytes) an=
-d
-I set UART_IER_THRI to wait until TX FIFO is empty so I can disable
-runtime-pm. Therefore I would assume LSR does not say BOTH_EMPTY until
-the FIFO is empty.
-
->Regards,
->Peter Hurley
-
-Sebastian
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index d017cec..e454b7c 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -254,8 +254,16 @@ serial_omap_baud_is_mode16(struct uart_port *port, unsigned int baud)
+ {
+ 	unsigned int n13 = port->uartclk / (13 * baud);
+ 	unsigned int n16 = port->uartclk / (16 * baud);
+-	int baudAbsDiff13 = baud - (port->uartclk / (13 * n13));
+-	int baudAbsDiff16 = baud - (port->uartclk / (16 * n16));
++	int baudAbsDiff13;
++	int baudAbsDiff16;
++
++	if (n13 == 0)
++		n13 = 1;
++	if (n16 == 0)
++		n16 = 1;
++
++	baudAbsDiff13 = baud - (port->uartclk / (13 * n13));
++	baudAbsDiff16 = baud - (port->uartclk / (16 * n16));
+ 	if (baudAbsDiff13 < 0)
+ 		baudAbsDiff13 = -baudAbsDiff13;
+ 	if (baudAbsDiff16 < 0)
+-- 
+2.1.0
