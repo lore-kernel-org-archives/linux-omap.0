@@ -1,43 +1,56 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Wed, 24 Sep 2014 09:56:51 +0200
-Message-ID: <20140924075651.GC19565@linutronix.de>
-References: <5411C810.7070906@linutronix.de>
- <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
- <54129F6C.7040508@linutronix.de>
- <20140912094010.GE28458@ci00147.xsens-tech.local>
- <5412C21A.8020203@linutronix.de>
- <20140912102816.GF28458@ci00147.xsens-tech.local>
- <541716DC.9020904@linutronix.de>
- <20140917102812.GA20438@ci00147.xsens-tech.local>
- <20140921204100.GA10111@linutronix.de>
- <20140922092853.GH20438@ci00147.xsens-tech.local>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v5 1/2] usb: rename phy to usb_phy in HCD
+Date: Tue, 23 Sep 2014 22:11:38 -0700
+Message-ID: <20140924051138.GA4440@kroah.com>
+References: <5072811.p8odmvpxdS@wasted.cogentembedded.com>
+ <2282553.NrZjRxyKlv@wasted.cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140922092853.GH20438@ci00147.xsens-tech.local>
+In-Reply-To: <2282553.NrZjRxyKlv@wasted.cogentembedded.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Frans Klaver <frans.klaver@xsens.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: linux-usb@vger.kernel.org, Peter.Chen@freescale.com, stern@rowland.harvard.edu, swarren@wwwdotorg.org, thierry.reding@gmail.com, balbi@ti.com, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, linux-kernel@vger.kernel.org, antoine.tenart@free-electrons.com
 List-Id: linux-omap@vger.kernel.org
 
-* Frans Klaver | 2014-09-22 11:28:54 [+0200]:
+On Fri, Sep 05, 2014 at 01:42:09AM +0400, Sergei Shtylyov wrote:
+> From: Antoine Tenart <antoine.tenart@free-electrons.com>
+> 
+> The USB PHY member of the HCD structure is renamed to 'usb_phy' and
+> modifications are done in all drivers accessing it.
+> This is in preparation to adding the generic PHY support.
+> 
+> Signed-off-by: Antoine Tenart <antoine.tenart@free-electrons.com>
+> [Sergei: added missing 'drivers/usb/misc/lvstest.c' file, resolved rejects
+> caused by patch reordering, updated changelog.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Acked-by: Alan Stern <stern@rowland.harvard.edu>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> 
+> ---
+> Changes in version 5:
+> - imported the patch from Antoine Tenart's series;
+> - added missing 'drivers/usb/misc/lvstest.c' file;
+> - resolved rejects caused by patch reordering;
+> - refreshed patch;
+> - updated changelog.
+> 
+>  drivers/usb/chipidea/host.c   |    2 +-
+>  drivers/usb/core/hcd.c        |   20 ++++++++++----------
+>  drivers/usb/core/hub.c        |    8 ++++----
+>  drivers/usb/host/ehci-fsl.c   |   16 ++++++++--------
+>  drivers/usb/host/ehci-hub.c   |    2 +-
+>  drivers/usb/host/ehci-msm.c   |    4 ++--
+>  drivers/usb/host/ehci-tegra.c |   16 ++++++++--------
+>  drivers/usb/host/ohci-omap.c  |   20 ++++++++++----------
+>  drivers/usb/misc/lvstest.c    |    8 ++++----
+>  include/linux/usb/hcd.h       |    2 +-
+>  10 files changed, 49 insertions(+), 49 deletions(-)
 
->
->Wow, thanks for your work here. This does indeed sound hard to trap.
->
->I guess then we'd still have to answer the question why the yocto build
->calls set_termios() so often, but that's not on you then. Did you notice
->it even changing settings? We might want to fix this even if the kernel
->should be able to cope.
+This doesn't apply to my tree at all anymore, can you refresh it and
+resend?
 
-Yeah. I don't care if this is yocto's fault or not. If it is possible to
-stop the DMA transfer from userland with whatever method then it needs to
-be fixed in kernel so that this does happen.
+thanks,
 
->Thanks again,
->Frans
-
-Sebastian
+greg k-h
