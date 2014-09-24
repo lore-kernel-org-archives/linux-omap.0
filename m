@@ -1,220 +1,110 @@
-From: Kiran Padwal <kiran.padwal@smartplayin.com>
-Subject: [PATCH 3/5] clk: Remove .owner field for driver
-Date: Wed, 24 Sep 2014 15:15:29 +0530
-Message-ID: <1411551929-27868-1-git-send-email-kiran.padwal@smartplayin.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH v5 0/7] Enable L2 cache support on Exynos4210/4x12 SoCs
+Date: Wed, 24 Sep 2014 13:05:34 +0200
+Message-ID: <1411556741-5810-1-git-send-email-m.szyprowski@samsung.com>
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Sender: linux-samsung-soc-owner@vger.kernel.org
-To: mturquette@linaro.org, ben-linux@fluff.org, kgene.kim@samsung.com, s.nawrocki@samsung.com, tomasz.figa@gmail.com, emilio@elopez.com.ar, maxime.ripard@free-electrons.com, t-kristo@ti.com, sboyd@codeaurora.org
-Cc: linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, Kiran Padwal <kiran.padwal@smartplayin.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-There is no need to init .owner field.
+This is an updated patchset, which intends to add support for L2 cache
+on Exynos4 SoCs on boards running under secure firmware, which requires
+certain initialization steps to be done with help of firmware, as
+selected registers are writable only from secure mode.
 
-Based on the patch from Peter Griffin <peter.griffin@linaro.org>
-"mmc: remove .owner field for drivers using module_platform_driver"
+First four patches extend existing support for secure write in L2C driver
+to account for design of secure firmware running on Exynos. Namely:
+ 1) direct read access to certain registers is needed on Exynos, because
+    secure firmware calls set several registers at once,
+ 2) not all boards are running secure firmware, so .write_sec callback
+    needs to be installed in Exynos firmware ops initialization code,
+ 3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
+    is not allowed and so must use l2c_write_sec as well,
+ 4) on certain boards, default value of prefetch register is incorrect
+    and must be overridden at L2C initialization.
+For boards running with firmware that provides access to individual
+L2C registers this series should introduce no functional changes. However
+since the driver is widely used on other platforms I'd like to kindly ask
+any interested people for testing.
 
-This patch removes the superflous .owner field for drivers which
-use the module_platform_driver API, as this is overriden in
-platform_driver_register anyway."
+Further three patches add implementation of .write_sec and .configure
+callbacks for Exynos secure firmware and necessary DT nodes to enable
+L2 cache.
 
-Signed-off-by: Kiran Padwal <kiran.padwal@smartplayin.com>
----
- drivers/clk/clk-axi-clkgen.c             |    1 -
- drivers/clk/clk-max77686.c               |    1 -
- drivers/clk/clk-max77802.c               |    1 -
- drivers/clk/clk-palmas.c                 |    1 -
- drivers/clk/clk-twl6040.c                |    1 -
- drivers/clk/clk-wm831x.c                 |    1 -
- drivers/clk/qcom/mmcc-apq8084.c          |    1 -
- drivers/clk/qcom/mmcc-msm8960.c          |    1 -
- drivers/clk/qcom/mmcc-msm8974.c          |    1 -
- drivers/clk/samsung/clk-s3c2410-dclk.c   |    1 -
- drivers/clk/sunxi/clk-sun6i-apb0-gates.c |    1 -
- drivers/clk/sunxi/clk-sun6i-apb0.c       |    1 -
- drivers/clk/sunxi/clk-sun6i-ar100.c      |    1 -
- drivers/clk/sunxi/clk-sun8i-apb0.c       |    1 -
- drivers/clk/ti/clk-dra7-atl.c            |    1 -
- 15 files changed, 15 deletions(-)
+Changes in this version tested on Exynos4412-based TRATS2 and OdroidU3+
+boards (both with secure firmware). There should be no functional change
+for Exynos boards running without secure firmware. I do not have access
+to affected non-Exynos boards, so I could not test on them.
 
-diff --git a/drivers/clk/clk-axi-clkgen.c b/drivers/clk/clk-axi-clkgen.c
-index 1127ee4..e619285 100644
---- a/drivers/clk/clk-axi-clkgen.c
-+++ b/drivers/clk/clk-axi-clkgen.c
-@@ -544,7 +544,6 @@ static int axi_clkgen_remove(struct platform_device *pdev)
- static struct platform_driver axi_clkgen_driver = {
- 	.driver = {
- 		.name = "adi-axi-clkgen",
--		.owner = THIS_MODULE,
- 		.of_match_table = axi_clkgen_ids,
- 	},
- 	.probe = axi_clkgen_probe,
-diff --git a/drivers/clk/clk-max77686.c b/drivers/clk/clk-max77686.c
-index ed0beb4..86cdb3a 100644
---- a/drivers/clk/clk-max77686.c
-+++ b/drivers/clk/clk-max77686.c
-@@ -73,7 +73,6 @@ MODULE_DEVICE_TABLE(platform, max77686_clk_id);
- static struct platform_driver max77686_clk_driver = {
- 	.driver = {
- 		.name  = "max77686-clk",
--		.owner = THIS_MODULE,
- 	},
- 	.probe = max77686_clk_probe,
- 	.remove = max77686_clk_remove,
-diff --git a/drivers/clk/clk-max77802.c b/drivers/clk/clk-max77802.c
-index 8e480c5..0729dc7 100644
---- a/drivers/clk/clk-max77802.c
-+++ b/drivers/clk/clk-max77802.c
-@@ -84,7 +84,6 @@ MODULE_DEVICE_TABLE(platform, max77802_clk_id);
- static struct platform_driver max77802_clk_driver = {
- 	.driver = {
- 		.name  = "max77802-clk",
--		.owner = THIS_MODULE,
- 	},
- 	.probe = max77802_clk_probe,
- 	.remove = max77802_clk_remove,
-diff --git a/drivers/clk/clk-palmas.c b/drivers/clk/clk-palmas.c
-index 781630e..8d45992 100644
---- a/drivers/clk/clk-palmas.c
-+++ b/drivers/clk/clk-palmas.c
-@@ -292,7 +292,6 @@ static int palmas_clks_remove(struct platform_device *pdev)
- static struct platform_driver palmas_clks_driver = {
- 	.driver = {
- 		.name = "palmas-clk",
--		.owner = THIS_MODULE,
- 		.of_match_table = palmas_clks_of_match,
- 	},
- 	.probe = palmas_clks_probe,
-diff --git a/drivers/clk/clk-twl6040.c b/drivers/clk/clk-twl6040.c
-index 1ada79a..4a75513 100644
---- a/drivers/clk/clk-twl6040.c
-+++ b/drivers/clk/clk-twl6040.c
-@@ -112,7 +112,6 @@ static int twl6040_clk_remove(struct platform_device *pdev)
- static struct platform_driver twl6040_clk_driver = {
- 	.driver = {
- 		.name = "twl6040-clk",
--		.owner = THIS_MODULE,
- 	},
- 	.probe = twl6040_clk_probe,
- 	.remove = twl6040_clk_remove,
-diff --git a/drivers/clk/clk-wm831x.c b/drivers/clk/clk-wm831x.c
-index b131041..ef67719 100644
---- a/drivers/clk/clk-wm831x.c
-+++ b/drivers/clk/clk-wm831x.c
-@@ -395,7 +395,6 @@ static struct platform_driver wm831x_clk_driver = {
- 	.probe = wm831x_clk_probe,
- 	.driver		= {
- 		.name	= "wm831x-clk",
--		.owner	= THIS_MODULE,
- 	},
- };
- 
-diff --git a/drivers/clk/qcom/mmcc-apq8084.c b/drivers/clk/qcom/mmcc-apq8084.c
-index 751eea3..dab988a 100644
---- a/drivers/clk/qcom/mmcc-apq8084.c
-+++ b/drivers/clk/qcom/mmcc-apq8084.c
-@@ -3341,7 +3341,6 @@ static struct platform_driver mmcc_apq8084_driver = {
- 	.remove		= mmcc_apq8084_remove,
- 	.driver		= {
- 		.name	= "mmcc-apq8084",
--		.owner	= THIS_MODULE,
- 		.of_match_table = mmcc_apq8084_match_table,
- 	},
- };
-diff --git a/drivers/clk/qcom/mmcc-msm8960.c b/drivers/clk/qcom/mmcc-msm8960.c
-index 2e80a21..68da36c 100644
---- a/drivers/clk/qcom/mmcc-msm8960.c
-+++ b/drivers/clk/qcom/mmcc-msm8960.c
-@@ -2679,7 +2679,6 @@ static struct platform_driver mmcc_msm8960_driver = {
- 	.remove		= mmcc_msm8960_remove,
- 	.driver		= {
- 		.name	= "mmcc-msm8960",
--		.owner	= THIS_MODULE,
- 		.of_match_table = mmcc_msm8960_match_table,
- 	},
- };
-diff --git a/drivers/clk/qcom/mmcc-msm8974.c b/drivers/clk/qcom/mmcc-msm8974.c
-index bc8f519..be94c54 100644
---- a/drivers/clk/qcom/mmcc-msm8974.c
-+++ b/drivers/clk/qcom/mmcc-msm8974.c
-@@ -2570,7 +2570,6 @@ static struct platform_driver mmcc_msm8974_driver = {
- 	.remove		= mmcc_msm8974_remove,
- 	.driver		= {
- 		.name	= "mmcc-msm8974",
--		.owner	= THIS_MODULE,
- 		.of_match_table = mmcc_msm8974_match_table,
- 	},
- };
-diff --git a/drivers/clk/samsung/clk-s3c2410-dclk.c b/drivers/clk/samsung/clk-s3c2410-dclk.c
-index 0449cc0..f4f29ed6 100644
---- a/drivers/clk/samsung/clk-s3c2410-dclk.c
-+++ b/drivers/clk/samsung/clk-s3c2410-dclk.c
-@@ -426,7 +426,6 @@ MODULE_DEVICE_TABLE(platform, s3c24xx_dclk_driver_ids);
- static struct platform_driver s3c24xx_dclk_driver = {
- 	.driver = {
- 		.name		= "s3c24xx-dclk",
--		.owner		= THIS_MODULE,
- 		.pm		= &s3c24xx_dclk_pm_ops,
- 	},
- 	.probe = s3c24xx_dclk_probe,
-diff --git a/drivers/clk/sunxi/clk-sun6i-apb0-gates.c b/drivers/clk/sunxi/clk-sun6i-apb0-gates.c
-index e10d052..64f3e46 100644
---- a/drivers/clk/sunxi/clk-sun6i-apb0-gates.c
-+++ b/drivers/clk/sunxi/clk-sun6i-apb0-gates.c
-@@ -99,7 +99,6 @@ static int sun6i_a31_apb0_gates_clk_probe(struct platform_device *pdev)
- static struct platform_driver sun6i_a31_apb0_gates_clk_driver = {
- 	.driver = {
- 		.name = "sun6i-a31-apb0-gates-clk",
--		.owner = THIS_MODULE,
- 		.of_match_table = sun6i_a31_apb0_gates_clk_dt_ids,
- 	},
- 	.probe = sun6i_a31_apb0_gates_clk_probe,
-diff --git a/drivers/clk/sunxi/clk-sun6i-apb0.c b/drivers/clk/sunxi/clk-sun6i-apb0.c
-index 1fa2337..7076360 100644
---- a/drivers/clk/sunxi/clk-sun6i-apb0.c
-+++ b/drivers/clk/sunxi/clk-sun6i-apb0.c
-@@ -65,7 +65,6 @@ static const struct of_device_id sun6i_a31_apb0_clk_dt_ids[] = {
- static struct platform_driver sun6i_a31_apb0_clk_driver = {
- 	.driver = {
- 		.name = "sun6i-a31-apb0-clk",
--		.owner = THIS_MODULE,
- 		.of_match_table = sun6i_a31_apb0_clk_dt_ids,
- 	},
- 	.probe = sun6i_a31_apb0_clk_probe,
-diff --git a/drivers/clk/sunxi/clk-sun6i-ar100.c b/drivers/clk/sunxi/clk-sun6i-ar100.c
-index eca8ca0..acca532 100644
---- a/drivers/clk/sunxi/clk-sun6i-ar100.c
-+++ b/drivers/clk/sunxi/clk-sun6i-ar100.c
-@@ -221,7 +221,6 @@ static const struct of_device_id sun6i_a31_ar100_clk_dt_ids[] = {
- static struct platform_driver sun6i_a31_ar100_clk_driver = {
- 	.driver = {
- 		.name = "sun6i-a31-ar100-clk",
--		.owner = THIS_MODULE,
- 		.of_match_table = sun6i_a31_ar100_clk_dt_ids,
- 	},
- 	.probe = sun6i_a31_ar100_clk_probe,
-diff --git a/drivers/clk/sunxi/clk-sun8i-apb0.c b/drivers/clk/sunxi/clk-sun8i-apb0.c
-index 1f5ba9b..155d002 100644
---- a/drivers/clk/sunxi/clk-sun8i-apb0.c
-+++ b/drivers/clk/sunxi/clk-sun8i-apb0.c
-@@ -56,7 +56,6 @@ static const struct of_device_id sun8i_a23_apb0_clk_dt_ids[] = {
- static struct platform_driver sun8i_a23_apb0_clk_driver = {
- 	.driver = {
- 		.name = "sun8i-a23-apb0-clk",
--		.owner = THIS_MODULE,
- 		.of_match_table = sun8i_a23_apb0_clk_dt_ids,
- 	},
- 	.probe = sun8i_a23_apb0_clk_probe,
-diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
-index af29359..990e1d9 100644
---- a/drivers/clk/ti/clk-dra7-atl.c
-+++ b/drivers/clk/ti/clk-dra7-atl.c
-@@ -301,7 +301,6 @@ MODULE_DEVICE_TABLE(of, of_dra7_atl_clk_match_tbl);
- static struct platform_driver dra7_atl_clk_driver = {
- 	.driver = {
- 		.name = "dra7-atl",
--		.owner = THIS_MODULE,
- 		.of_match_table = of_dra7_atl_clk_match_tbl,
- 	},
- 	.probe = of_dra7_atl_clk_probe,
+
+Depends on:
+ - [PATCH v3 0/5] Firmware-assisted suspend/resume of Exynos SoCs
+   (https://lkml.org/lkml/2014/8/26/445)
+
+
+Changelog:
+
+Changes since v4:
+(https://lkml.org/lkml/2014/8/26/461)
+ - rewrote the code accessing l2x0_saved_regs from assembly code
+ - added comment and reworked unconditional call to SMC_CMD_L2X0INVALL
+
+Changes since v3:
+(https://lkml.org/lkml/2014/7/17/600)
+ - fixed issues with references to initdata on resume path by creating
+   a copy of affected structure (pointed out by Russell King),
+ - fixed unnecessary full reconfiguration of L2C controller on resume
+   (configuration is already determined after initialization, so the
+    only thing to do is to push those values to the controller),
+ - rebased on next-20140717 tag of linux-next tree and last versions
+   of dependencies.
+
+Changes since v2:
+(https://lkml.org/lkml/2014/6/25/416)
+ - refactored L2C driver to use commit-like interface and make it no longer
+   depend on availability of writes to individual registers,
+ - moved L2C resume to assembly code, because doing it later makes some
+   systems unstable - this is also needed for deeper cpuidle modes,
+ - dropped unnecessary patch hacking around the .write_sec interface,
+ - dropped patch making the driver use l2c_write_sec() for LATENCY_CTRL
+   registers as Exynos is no longer affected and I'm not aware of any
+   reports that this is also needed on other platforms (can be applied
+   separately if it turns out to be so),
+ - rebased onto next-20140717 tag of linux-next tree.
+
+Changes since v1:
+(https://www.mail-archive.com/linux-omap@vger.kernel.org/msg106323.html)
+ - rebased onto for-next branch of linux-samsung tree,
+ - changed argument order of outer_cache.write_sec() callback to match
+   l2c_write_sec() function in cache-l2x0.c,
+ - added support of overriding of prefetch settings to work around incorrect
+   default settings on certain Exynos4x12-based boards,
+ - added call to firmware to invalidate whole L2 cache before setting enable
+   bit in L2C control register (required by Exynos secure firmware).
+
+
+Patch summary:
+
+Tomasz Figa (7):
+  ARM: l2c: Refactor the driver to use commit-like interface
+  ARM: l2c: Add interface to ask hypervisor to configure L2C
+  ARM: l2c: Get outer cache .write_sec callback from mach_desc only if
+    not NULL
+  ARM: l2c: Add support for overriding prefetch settings
+  ARM: EXYNOS: Add .write_sec outer cache callback for L2C-310
+  ARM: EXYNOS: Add support for non-secure L2X0 resume
+  ARM: dts: exynos4: Add nodes for L2 cache controller
+
+ Documentation/devicetree/bindings/arm/l2cc.txt |  10 +
+ arch/arm/boot/dts/exynos4210.dtsi              |   9 +
+ arch/arm/boot/dts/exynos4x12.dtsi              |  14 ++
+ arch/arm/include/asm/outercache.h              |   3 +
+ arch/arm/kernel/irq.c                          |   3 +-
+ arch/arm/mach-exynos/firmware.c                |  50 +++++
+ arch/arm/mach-exynos/sleep.S                   |  46 +++++
+ arch/arm/mm/cache-l2x0.c                       | 255 ++++++++++++++++---------
+ 8 files changed, 294 insertions(+), 96 deletions(-)
+
 -- 
-1.7.9.5
+1.9.2
