@@ -1,54 +1,61 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 5/5] omap dts changes for v3.18 merge window
-Date: Tue, 23 Sep 2014 22:13:09 -0700
-Message-ID: <20140924051309.GB30340@localhost>
-References: <pull-1410478051-378788>
- <pull-1410478051-378788-5>
- <20140918201507.GO14505@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Wed, 24 Sep 2014 09:53:46 +0200
+Message-ID: <20140924075346.GB19565@linutronix.de>
+References: <5411C810.7070906@linutronix.de>
+ <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
+ <54129F6C.7040508@linutronix.de>
+ <20140912094010.GE28458@ci00147.xsens-tech.local>
+ <5412C21A.8020203@linutronix.de>
+ <20140912102816.GF28458@ci00147.xsens-tech.local>
+ <541716DC.9020904@linutronix.de>
+ <20140917102812.GA20438@ci00147.xsens-tech.local>
+ <20140921204100.GA10111@linutronix.de>
+ <5421A7F7.3070109@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:58145 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbaIXFij (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Sep 2014 01:38:39 -0400
-Received: by mail-pa0-f53.google.com with SMTP id hz1so7832727pad.26
-        for <linux-omap@vger.kernel.org>; Tue, 23 Sep 2014 22:38:39 -0700 (PDT)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140918201507.GO14505@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5421A7F7.3070109@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: Frans Klaver <frans.klaver@xsens.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, Sep 18, 2014 at 01:15:08PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [140911 16:29]:
-> > The following changes since commit 69e273c0b0a3c337a521d083374c918dc52c666f:
-> > 
-> >   Linux 3.17-rc3 (2014-08-31 18:23:04 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/dt-for-v3.18
-> > 
-> > for you to fetch changes up to d27704d1ec2f9ba06247b402c58a6f2febecef78:
-> > 
-> >   ARM: dts: OMAP2+: Add sub mailboxes device node information (2014-09-11 11:46:30 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > Changes for .dts files for omaps for v3.18 merge window:
-> > 
-> > - Updates for gta04 to add gta04a3 model
-> > - Add support for Tehnexion TAO3530 boards
-> > - Regulator names for beaglebone
-> > - Pinctrl related updates for omap5, dra7 and am437
-> > - Model name fix for sbc-t54
-> > - Enable mailbox for various omaps
-> 
-> This can cause a minor merge conflict, here's the
-> merge resolution for reference.
+* Peter Hurley | 2014-09-23 13:03:51 [-0400]:
 
-Thanks, merged all branches now.
+>readline() does this; it 'saves' the caller's termios, sets termios
+>for non-canonical reads, reads one char, and 'restores' the caller's
+>termios.
 
+interresting, thanks. I guess I would need to opimize this a little so
+the baudrate isn't going to 0 and back to the requested baudrate.
 
--Olof
+>The tty core calls the driver's wait_until_sent() method before changi=
+ng
+>the termios (if TCSADRAIN is used for tcsetattr(), which I think for r=
+eadline()
+>it does).
+
+The interresting difference is that when I take the yocto RFS and chroo=
+t
+into from Debian then I don't this problem. Not sure if this is really
+readline or something else=E2=80=A6
+
+>But DMA is cheating if the UART driver's tx_empty() method is saying t=
+he
+>transmitter is empty while TX DMA is still running.
+This shouldn't be the case. But I will check this once I able to.
+After TX-DMA is done, "xmit->tail" is updated and port.icount.tx is
+incremented. At this time the TX FIFO is still full (up to 64 bytes) an=
+d
+I set UART_IER_THRI to wait until TX FIFO is empty so I can disable
+runtime-pm. Therefore I would assume LSR does not say BOTH_EMPTY until
+the FIFO is empty.
+
+>Regards,
+>Peter Hurley
+
+Sebastian
