@@ -1,75 +1,105 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6 1/2] usb: rename phy to usb_phy in HCD
-Date: Wed, 24 Sep 2014 14:39:42 -0500
-Message-ID: <20140924193942.GR17997@saruman>
-References: <37148636.BU5lT4M4eC@wasted.cogentembedded.com>
- <2300651.HNvMzB0aUB@wasted.cogentembedded.com>
- <20140924192806.GO17997@saruman>
- <54231BFF.5070901@cogentembedded.com>
-Reply-To: <balbi@ti.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 00/27] add pm_runtime_last_busy_and_autosuspend() helper
+Date: Wed, 24 Sep 2014 22:28:07 +0200
+Message-ID: <6374313.I12loOK9hA@vostro.rjw.lan>
+References: <1411575342-31048-1-git-send-email-vinod.koul@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ffBYM5qgR8HH9Mta"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54231BFF.5070901@cogentembedded.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, Peter.Chen@freescale.com, stern@rowland.harvard.edu, swarren@wwwdotorg.org, thierry.reding@gmail.com, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, linux-kernel@vger.kernel.org, antoine.tenart@free-electrons.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1411575342-31048-1-git-send-email-vinod.koul@intel.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: linux-kernel@vger.kernel.org, subhransu.s.prusty@intel.com, Alan Stern <stern@rowland.harvard.edu>, Alexandre Courbot <acourbot@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Gross <agross@codeaurora.org>, Baruch Siach <baruch@tkos.co.il>, Ben Skeggs <bskeggs@redhat.com>, Bjorn Andersson <bjorn.andersson@sonymobile.com>, "Chew, Chiau Ee" <chiau.ee.chew@intel.com>, Chris Ball <chris@printf.net>, Dan Carpenter <dan.carpenter@oracle.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Airlie <airlied@redhat.com>, David Herrmann <dh.herrmann@gmail.com>, dmaengine@vger.kernel.org, dri-devel@lists.freedesktop.org, "Du, Wenkai" <wenkai.du@intel.com>, Grant Grundler <grundler@chromium.org>, Ilia Mirkin <imirkin@alum.mit.edu>, intel-gfx@lists.freedesktop.org, "Ivan T. Ivanov" <iivanov@mm-sol.com>, Jaehoon Chung <jh80.chung@samsung.com>, Jani Nikula <jani.nikul>
 List-Id: linux-omap@vger.kernel.org
 
---ffBYM5qgR8HH9Mta
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wednesday, September 24, 2014 09:44:50 PM Vinod Koul wrote:
+> This patch series adds a simple macro pm_runtime_last_busy_and_autosuspend()
+> which invokes pm_runtime_mark_last_busy() and pm_runtime_put_autosuspend()
+> sequentially. Then we do a tree wide update of current patterns which are
+> present. As evident from log below this pattern is frequent in the
+> kernel.
+> 
+> This series can be found at
+> git://git.kernel.org/pub/scm/linux/kernel/git/vkoul/slave-dma.git
+> topic/pm_runtime_last_busy_and_autosuspend
+> 
+> Fengguang's kbuild has tested it so it shouldn't break things for anyone.
+> Barring one patch (explictyly mentioned in its changelog) rest are simple
+> replacements.
+> 
+> If all are okay, this should be merged thru PM tree as it depends on macro
+> addition.
+> 
+> Subhransu S. Prusty (1):
+>   PM: Add helper pm_runtime_last_busy_and_autosuspend()
+> 
+> Vinod Koul (26):
+>   dmaengine: ste_dma: use pm_runtime_last_busy_and_autosuspend helper
+>   extcon: arizona: use pm_runtime_last_busy_and_autosuspend helper
+>   drm/i915: use pm_runtime_last_busy_and_autosuspend helper
+>   drm/nouveau: use pm_runtime_last_busy_and_autosuspend helper
+>   drm/radeon: use pm_runtime_last_busy_and_autosuspend helper
+>   vga_switcheroo: use pm_runtime_last_busy_and_autosuspend helper
+>   i2c: designware: use pm_runtime_last_busy_and_autosuspend helper
+>   i2c: omap: use pm_runtime_last_busy_and_autosuspend helper
+>   i2c: qup: use pm_runtime_last_busy_and_autosuspend helper
+>   mfd: ab8500-gpadc: use pm_runtime_last_busy_and_autosuspend helper
+>   mfd: arizona: use pm_runtime_last_busy_and_autosuspend helper
+>   mei: use pm_runtime_last_busy_and_autosuspend helper
+>   mmc: use pm_runtime_last_busy_and_autosuspend helper
+>   mmc: mmci: use pm_runtime_last_busy_and_autosuspend helper
+>   mmc: omap_hsmmc: use pm_runtime_last_busy_and_autosuspend helper
+>   mmc: sdhci-pxav3: use pm_runtime_last_busy_and_autosuspend helper
+>   mmc: sdhci: use pm_runtime_last_busy_and_autosuspend helper
+>   NFC: trf7970a: use pm_runtime_last_busy_and_autosuspend helper
+>   pm2301-charger: use pm_runtime_last_busy_and_autosuspend helper
+>   spi: omap2-mcspi: use pm_runtime_last_busy_and_autosuspend helper
+>   spi: orion: use pm_runtime_last_busy_and_autosuspend helper
+>   spi: ti-qspi: use pm_runtime_last_busy_and_autosuspend helper
+>   spi: core: use pm_runtime_last_busy_and_autosuspend helper
+>   tty: serial: omap: use pm_runtime_last_busy_and_autosuspend helper
+>   usb: musb: omap2430: use pm_runtime_last_busy_and_autosuspend helper
+>   video: fbdev: use pm_runtime_last_busy_and_autosuspend helper
+> 
+>  Documentation/power/runtime_pm.txt          |    4 ++
+>  drivers/dma/ste_dma40.c                     |   30 ++++---------
+>  drivers/extcon/extcon-arizona.c             |    6 +--
+>  drivers/gpu/drm/i915/intel_pm.c             |    3 +-
+>  drivers/gpu/drm/nouveau/nouveau_connector.c |    3 +-
+>  drivers/gpu/drm/nouveau/nouveau_drm.c       |    9 +---
+>  drivers/gpu/drm/radeon/radeon_connectors.c  |   15 ++----
+>  drivers/gpu/drm/radeon/radeon_drv.c         |    5 +-
+>  drivers/gpu/drm/radeon/radeon_kms.c         |    6 +--
+>  drivers/gpu/vga/vga_switcheroo.c            |    7 +--
+>  drivers/i2c/busses/i2c-designware-core.c    |    3 +-
+>  drivers/i2c/busses/i2c-omap.c               |    6 +--
+>  drivers/i2c/busses/i2c-qup.c                |    3 +-
+>  drivers/mfd/ab8500-gpadc.c                  |    6 +--
+>  drivers/mfd/arizona-irq.c                   |    3 +-
+>  drivers/misc/mei/client.c                   |   12 ++----
+>  drivers/mmc/core/core.c                     |    3 +-
+>  drivers/mmc/host/mmci.c                     |   12 ++----
+>  drivers/mmc/host/omap_hsmmc.c               |   19 ++-------
+>  drivers/mmc/host/sdhci-pxav3.c              |    6 +--
+>  drivers/mmc/host/sdhci.c                    |    3 +-
+>  drivers/nfc/trf7970a.c                      |    3 +-
+>  drivers/power/pm2301_charger.c              |    3 +-
+>  drivers/spi/spi-omap2-mcspi.c               |    9 +---
+>  drivers/spi/spi-orion.c                     |    3 +-
+>  drivers/spi/spi-ti-qspi.c                   |    5 +-
+>  drivers/spi/spi.c                           |    6 +--
+>  drivers/tty/serial/omap-serial.c            |   60 +++++++++------------------
+>  drivers/usb/musb/omap2430.c                 |    6 +--
+>  drivers/video/fbdev/auo_k190x.c             |    9 +---
+>  include/linux/pm_runtime.h                  |    6 +++
+>  31 files changed, 97 insertions(+), 177 deletions(-)
 
-On Wed, Sep 24, 2014 at 11:31:11PM +0400, Sergei Shtylyov wrote:
-> Hello.
->=20
-> On 09/24/2014 11:28 PM, Felipe Balbi wrote:
->=20
-> >>From: Antoine Tenart <antoine.tenart@free-electrons.com>
->=20
-> >>The USB PHY member of the HCD structure is renamed to 'usb_phy' and
-> >>modifications are done in all drivers accessing it.
-> >>This is in preparation to adding the generic PHY support.
->=20
-> >>Signed-off-by: Antoine Tenart <antoine.tenart@free-electrons.com>
-> >>[Sergei: added missing 'drivers/usb/misc/lvstest.c' file, resolved reje=
-cts,
-> >>updated changelog.]
-> >>Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> >>Acked-by: Alan Stern <stern@rowland.harvard.edu>
->=20
-> >Acked-by: Felipe Balbi <balbi@ti.com>
->=20
->    Sorry, forgot to collect your ACK from the previous posting. :-/
+OK, I guess this is as good as it gets.
 
-don't worry ;-)
+What tree would you like it go through?
 
---=20
-balbi
 
---ffBYM5qgR8HH9Mta
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUIx3+AAoJEIaOsuA1yqREKlQP/ilSdXJbAq8hq/pE2JDK3q+P
-A8zFNo5Kjpz0wuUFg4KaP9s/rPx+aLPdhSTuPTXobe+J1ayYAO5g0JgrDOOQ/BI5
-WF9a64pZuHJjSK5lp8LgjZ5GXCsJyy75SOCAjrsdZD1Zqhoo4g151YlxTcC3ZUCj
-NXtrMzH1uYDEz9p7t6laFus8s+UyVTahEeQyYLiICW72uRIygtiWDZulhwoiSlSi
-IcYfuJmumvgmPnC6J3ym+Muh65TjVzyods3KDT/qbNGpYJkk6yWICb+OS5xGt3mm
-8e5pyRnlCTMH2M1Do5kUwMFNlH29m41iMIypqZZqY0Vi/QfIKZFo2iNPNPHNBNmg
-rSBA6RqDzIeqGcLa6FWPGeFPiTRl/XL4+x4tWaWkGFnedsTY11eX0kC04wPtShQS
-e795+RRL8TOInyStcpN2srnnDzSIhdAcKjM/kdcMAaHv+h6FZTFolm6pQRV9PNbZ
-kl4iO1apq9mUhFURsN6I3xL6S447jTpjN+G0zSZm5kpClc0zuFTjmBQH0bKydrWM
-H1cI1/PjTo2qNrrfKMswur5SwSUZI/PY0lk4jifZqLD314PR3W+fwQYiomzX6veh
-M5D+D5tDy+SPNM9CZ5ms7Uaj1cd8m7TGyjyZ0UqSrc/CBBgJMeDTnfuIIB5Mtc+B
-NuUPT9yX6NpVl45S/NPc
-=aVIp
------END PGP SIGNATURE-----
-
---ffBYM5qgR8HH9Mta--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
