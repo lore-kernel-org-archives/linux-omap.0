@@ -1,87 +1,75 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v5 4/7] ARM: l2c: Add support for overriding prefetch
- settings
-Date: Wed, 24 Sep 2014 13:10:51 +0100
-Message-ID: <20140924121051.GF5729@leverpostej>
-References: <1411556741-5810-1-git-send-email-m.szyprowski@samsung.com>
- <1411556741-5810-5-git-send-email-m.szyprowski@samsung.com>
- <20140924111446.GE5729@leverpostej>
- <5422A8D1.1000507@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [GIT PULL 2/5] omap soc changes for v3.18 merge window
+Date: Wed, 24 Sep 2014 10:23:20 -0500
+Message-ID: <20140924152320.GA26581@kahuna>
+References: <pull-1410478051-378788>
+ <5412304a.04a8440a.56eb.ffff9329SMTPIN_ADDED_BROKEN@mx.google.com>
+ <20140924050740.GA30340@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57419 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751228AbaIXPXt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Sep 2014 11:23:49 -0400
 Content-Disposition: inline
-In-Reply-To: <5422A8D1.1000507@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, "lauraa@codeaurora.org" <lauraa@codeaurora.org>, "tony@atomide.com" <tony@atomide.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "drake@endlessm.com" <drake@endlessm.com>, "loeliger@gmail.com" <loeliger@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+In-Reply-To: <20140924050740.GA30340@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Sep 24, 2014 at 12:19:45PM +0100, Tomasz Figa wrote:
-> On 24.09.2014 13:14, Mark Rutland wrote:
-> > On Wed, Sep 24, 2014 at 12:05:38PM +0100, Marek Szyprowski wrote:
-> >> From: Tomasz Figa <t.figa@samsung.com>
-> >>
-> >> Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
-> >> settings configured in registers leading to crashes if L2C is enabled
-> >> without overriding them. This patch introduces bindings to enable
-> >> prefetch settings to be specified from DT and necessary support in the
-> >> driver.
-> >>
-> >> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-> >> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> >> ---
-> >>  Documentation/devicetree/bindings/arm/l2cc.txt | 10 +++++++
-> >>  arch/arm/mm/cache-l2x0.c                       | 39 ++++++++++++++++++++++++++
-> >>  2 files changed, 49 insertions(+)
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/arm/l2cc.txt b/Documentation/devicetree/bindings/arm/l2cc.txt
-> >> index af527ee111c2..3443d2d76788 100644
-> >> --- a/Documentation/devicetree/bindings/arm/l2cc.txt
-> >> +++ b/Documentation/devicetree/bindings/arm/l2cc.txt
-> >> @@ -47,6 +47,16 @@ Optional properties:
-> >>  - cache-id-part: cache id part number to be used if it is not present
-> >>    on hardware
-> >>  - wt-override: If present then L2 is forced to Write through mode
-> >> +- arm,double-linefill : Override double linefill enable setting. Enable if
-> >> +  non-zero, disable if zero.
-> >> +- arm,double-linefill-incr : Override double linefill on INCR read. Enable
-> >> +  if non-zero, disable if zero.
-> >> +- arm,double-linefill-wrap : Override double linefill on WRAP read. Enable
-> >> +  if non-zero, disable if zero.
-> >> +- arm,prefetch-drop : Override prefetch drop enable setting. Enable if non-zero,
-> >> +  disable if zero.
+On 22:07-20140923, Olof Johansson wrote:
+> On Thu, Sep 11, 2014 at 04:28:55PM -0700, Tony Lindgren wrote:
+> > The following changes since commit d7eb67f7fef9c046f27a975118da2324de65a90c:
 > > 
-> > I'm not too keen on tristate properties. Is this level of flexibility
-> > really required?
+> >   Merge branch 'pull/v3.18/powerdomain-fixes' of https://github.com/nmenon/linux-2.6-playground into omap-for-v3.18/fixes-not-urgent (2014-09-08 15:04:24 -0700)
 > > 
-> > What exact overrides do you need for boards you know of? Why do these
-> > cause crashes if not overridden?
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/soc-for-v3.18
+> > 
+> > for you to fetch changes up to 377fb3f5d9a34b2913939e0620c1c585b5913bab:
+> > 
+> >   ARM: OMAP5+: Reuse OMAP4 PM code for OMAP5 and DRA7 (2014-09-09 19:13:41 -0700)
+> > 
+> > ----------------------------------------------------------------
+> > SoC related changes for omaps for v3.18 merge window:
+> > 
+> > - PM changes to make the code easier to use on newer SoCs
+> > - PM changes for newer SoCs suspend and resume and wake-up events
+> > - Minor clean-up to remove dead Kconfig options
+> > 
+> > Note that these have a dependency to the fixes-v3.18-not-urgent
+> > tag and is based on a commit in that series.
 > 
-> Well, this is all thanks to broken firmware, which doesn't initialize
-> those values properly on certain systems and they must be overridden. On
-> the other side, there are systems with firmware that does it correctly
-> and for those the boot defaults should be preferred. I don't see any
-> other reasonable option of handling this.
+> Merged. Note that this also has a fresh conflict with the latest fixes,
+> so please check that I resolved it correctly.
+> 
 
-With the lack of warnings for present but empty properties, I can forsee
-people placing empty properties (as the names make them sound like
-booleans which enable features).
+Looks fine to me.. also, Used a couple of out of tree patches for
+testing and all looks good from test perspective:
 
-Surely for enabling/disabling options we should only need to override
-one-way, disabling a feature that causes breakage for some reason?
-Otherwise we can keep the reset value (which might be sub-optimal).
+am335x-evm:  Boot PASS: http://slexy.org/raw/s21ul7EaiK
+am335x-sk:  Boot PASS: http://slexy.org/raw/s2xxG7b5t7
+am3517-evm:  Boot PASS: http://slexy.org/raw/s21we13Ebk
+am37x-evm:  Boot PASS: http://slexy.org/raw/s209iOnepY
+am43xx-epos:  Boot PASS: http://slexy.org/raw/s28GrriVvz
+am5728-evm:  Boot PASS: http://slexy.org/raw/s2wRllyrn2
+BeagleBoard-XM:  Boot PASS: http://slexy.org/raw/s2JPCJPebZ
+beagleboard-vanilla:  Boot PASS: http://slexy.org/raw/s2n4Pum58s
+beaglebone-black:  Boot PASS: http://slexy.org/raw/s20yDlR4eu
+craneboard:  Boot PASS: http://slexy.org/raw/s21DECJfEs
+dra72x-evm:  Boot PASS: http://slexy.org/raw/s2WgDuVxXj
+dra7xx-evm:  Boot PASS: http://slexy.org/raw/s2wOi9Okyk
+OMAP3430-Labrador(LDP):  Boot PASS: http://slexy.org/raw/s20qOiwY38
+n900:  Boot PASS: http://slexy.org/raw/s2j6hBxA2b
+omap5-evm:  Boot PASS: http://slexy.org/raw/s20Of1TCt4
+pandaboard-es:  Boot PASS: http://slexy.org/raw/s20P0IWXJX
+pandaboard-vanilla:  Boot PASS: http://slexy.org/raw/s20QWs7BP9
+sdp2430:  Boot PASS: http://slexy.org/raw/s2fXgpekEa
+sdp3430:  Boot PASS: http://slexy.org/raw/s21GW1utPn
 
-Perhaps a simple warning is sufficient if the property exists but is
-empty.
-
-> As for why they cause crashes, I'm not an expert if it is about L2C
-> internals, so I can't really tell, but apparently the cache can work
-> correctly only on certain settings.
-
-Likewise, I'm no expert on the l2x0 family. It would be nice to know if
-this justs masks an issue elsewhere in Linux, is required for some
-reason by the interconnect, etc. I guess we don't have enough
-information to figure that out.
-
-Mark.
+-- 
+Regards,
+Nishanth Menon
