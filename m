@@ -1,86 +1,130 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v5 2/7] ARM: l2c: Add interface to ask hypervisor to configure
- L2C
-Date: Wed, 24 Sep 2014 13:05:36 +0200
-Message-ID: <1411556741-5810-3-git-send-email-m.szyprowski@samsung.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v5 4/7] ARM: l2c: Add support for overriding prefetch
+ settings
+Date: Wed, 24 Sep 2014 12:14:47 +0100
+Message-ID: <20140924111446.GE5729@leverpostej>
 References: <1411556741-5810-1-git-send-email-m.szyprowski@samsung.com>
+ <1411556741-5810-5-git-send-email-m.szyprowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <1411556741-5810-1-git-send-email-m.szyprowski@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
-Cc: Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, tony@atomide.com, linus.walleij@linaro.org, Tomasz Figa <tomasz.figa@gmail.com>, drake@endlessm.com, loeliger@gmail.com, Kyungmin Park <kyungmin.park@samsung.com>, santosh.shilimkar@ti.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1411556741-5810-5-git-send-email-m.szyprowski@samsung.com>
+Content-Language: en-US
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, "lauraa@codeaurora.org" <lauraa@codeaurora.org>, "tony@atomide.com" <tony@atomide.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, "drake@endlessm.com" <drake@endlessm.com>, "loeliger@gmail.com" <loeliger@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tomasz Figa <t.figa@samsung.com>
+On Wed, Sep 24, 2014 at 12:05:38PM +0100, Marek Szyprowski wrote:
+> From: Tomasz Figa <t.figa@samsung.com>
+> 
+> Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
+> settings configured in registers leading to crashes if L2C is enabled
+> without overriding them. This patch introduces bindings to enable
+> prefetch settings to be specified from DT and necessary support in the
+> driver.
+> 
+> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  Documentation/devicetree/bindings/arm/l2cc.txt | 10 +++++++
+>  arch/arm/mm/cache-l2x0.c                       | 39 ++++++++++++++++++++++++++
+>  2 files changed, 49 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/l2cc.txt b/Documentation/devicetree/bindings/arm/l2cc.txt
+> index af527ee111c2..3443d2d76788 100644
+> --- a/Documentation/devicetree/bindings/arm/l2cc.txt
+> +++ b/Documentation/devicetree/bindings/arm/l2cc.txt
+> @@ -47,6 +47,16 @@ Optional properties:
+>  - cache-id-part: cache id part number to be used if it is not present
+>    on hardware
+>  - wt-override: If present then L2 is forced to Write through mode
+> +- arm,double-linefill : Override double linefill enable setting. Enable if
+> +  non-zero, disable if zero.
+> +- arm,double-linefill-incr : Override double linefill on INCR read. Enable
+> +  if non-zero, disable if zero.
+> +- arm,double-linefill-wrap : Override double linefill on WRAP read. Enable
+> +  if non-zero, disable if zero.
+> +- arm,prefetch-drop : Override prefetch drop enable setting. Enable if non-zero,
+> +  disable if zero.
 
-Because certain secure hypervisor do not allow writes to individual L2C
-registers, but rather expect set of parameters to be passed as argument
-to secure monitor calls, there is a need to provide an interface for the
-L2C driver to ask the firmware to configure the hardware according to
-specified parameters. This patch adds such.
+I'm not too keen on tristate properties. Is this level of flexibility
+really required?
 
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/include/asm/outercache.h | 3 +++
- arch/arm/mm/cache-l2x0.c          | 6 ++++++
- 2 files changed, 9 insertions(+)
+What exact overrides do you need for boards you know of? Why do these
+cause crashes if not overridden?
 
-diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
-index 891a56b35bcf..563b92fc2f41 100644
---- a/arch/arm/include/asm/outercache.h
-+++ b/arch/arm/include/asm/outercache.h
-@@ -23,6 +23,8 @@
- 
- #include <linux/types.h>
- 
-+struct l2x0_regs;
-+
- struct outer_cache_fns {
- 	void (*inv_range)(unsigned long, unsigned long);
- 	void (*clean_range)(unsigned long, unsigned long);
-@@ -36,6 +38,7 @@ struct outer_cache_fns {
- 
- 	/* This is an ARM L2C thing */
- 	void (*write_sec)(unsigned long, unsigned);
-+	void (*configure)(const struct l2x0_regs *);
- };
- 
- extern struct outer_cache_fns outer_cache;
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index b0735634f12c..84c6c55ab896 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -109,6 +109,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
- 
- static void l2c_configure(void __iomem *base)
- {
-+	if (outer_cache.configure) {
-+		outer_cache.configure(&l2x0_saved_regs);
-+		return;
-+	}
-+
- 	if (l2x0_data->configure)
- 		l2x0_data->configure(base);
- 
-@@ -909,6 +914,7 @@ static int __init __l2c_init(const struct l2c_init_data *data,
- 
- 	fns = data->outer_cache;
- 	fns.write_sec = outer_cache.write_sec;
-+	fns.configure = outer_cache.configure;
- 	if (data->fixup)
- 		data->fixup(l2x0_base, cache_id, &fns);
- 
--- 
-1.9.2
+Mark.
+
+> +- arm,prefetch-offset : Override prefetch offset value. Valid values are
+> +  0-7, 15, 23, and 31.
+>  
+>  Example:
+>  
+> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> index 84c6c55ab896..af90a6ff6b49 100644
+> --- a/arch/arm/mm/cache-l2x0.c
+> +++ b/arch/arm/mm/cache-l2x0.c
+> @@ -1059,6 +1059,8 @@ static void __init l2c310_of_parse(const struct device_node *np,
+>  	u32 data[3] = { 0, 0, 0 };
+>  	u32 tag[3] = { 0, 0, 0 };
+>  	u32 filter[2] = { 0, 0 };
+> +	u32 prefetch;
+> +	u32 val;
+>  
+>  	of_property_read_u32_array(np, "arm,tag-latency", tag, ARRAY_SIZE(tag));
+>  	if (tag[0] && tag[1] && tag[2])
+> @@ -1083,6 +1085,43 @@ static void __init l2c310_of_parse(const struct device_node *np,
+>  		l2x0_saved_regs.filter_start = (filter[0] & ~(SZ_1M - 1))
+>  					| L310_ADDR_FILTER_EN;
+>  	}
+> +
+> +	prefetch = l2x0_saved_regs.prefetch_ctrl;
+> +
+> +	if (!of_property_read_u32(np, "arm,double-linefill", &val)) {
+> +		if (val)
+> +			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL;
+> +		else
+> +			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL;
+> +	}
+> +
+> +	if (!of_property_read_u32(np, "arm,double-linefill-incr", &val)) {
+> +		if (val)
+> +			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
+> +		else
+> +			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
+> +	}
+> +
+> +	if (!of_property_read_u32(np, "arm,double-linefill-wrap", &val)) {
+> +		if (!val)
+> +			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
+> +		else
+> +			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
+> +	}
+> +
+> +	if (!of_property_read_u32(np, "arm,prefetch-drop", &val)) {
+> +		if (val)
+> +			prefetch |= L310_PREFETCH_CTRL_PREFETCH_DROP;
+> +		else
+> +			prefetch &= ~L310_PREFETCH_CTRL_PREFETCH_DROP;
+> +	}
+> +
+> +	if (!of_property_read_u32(np, "arm,prefetch-offset", &val)) {
+> +		prefetch &= ~L310_PREFETCH_CTRL_OFFSET_MASK;
+> +		prefetch |= val & L310_PREFETCH_CTRL_OFFSET_MASK;
+> +	}
+> +
+> +	l2x0_saved_regs.prefetch_ctrl = prefetch;
+>  }
+>  
+>  static const struct l2c_init_data of_l2c310_data __initconst = {
+> -- 
+> 1.9.2
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
