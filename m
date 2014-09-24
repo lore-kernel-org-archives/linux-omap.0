@@ -1,137 +1,87 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: ti_am335x_tscadc: Update logic in CTRL register for
- 5-wire TS
-Date: Wed, 24 Sep 2014 12:26:00 +0100
-Message-ID: <20140924112600.GJ19999@lee--X1>
-References: <1409850117-5156-1-git-send-email-bigeasy@linutronix.de>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v5 4/7] ARM: l2c: Add support for overriding prefetch
+ settings
+Date: Wed, 24 Sep 2014 13:10:51 +0100
+Message-ID: <20140924121051.GF5729@leverpostej>
+References: <1411556741-5810-1-git-send-email-m.szyprowski@samsung.com>
+ <1411556741-5810-5-git-send-email-m.szyprowski@samsung.com>
+ <20140924111446.GE5729@leverpostej>
+ <5422A8D1.1000507@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1409850117-5156-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-input-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Jeff Lance <j-lance1@ti.com>
+In-Reply-To: <5422A8D1.1000507@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Kukjin Kim <kgene.kim@samsung.com>, "lauraa@codeaurora.org" <lauraa@codeaurora.org>, "tony@atomide.com" <tony@atomide.com>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "drake@endlessm.com" <drake@endlessm.com>, "loeliger@gmail.com" <loeliger@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 04 Sep 2014, Sebastian Andrzej Siewior wrote:
+On Wed, Sep 24, 2014 at 12:19:45PM +0100, Tomasz Figa wrote:
+> On 24.09.2014 13:14, Mark Rutland wrote:
+> > On Wed, Sep 24, 2014 at 12:05:38PM +0100, Marek Szyprowski wrote:
+> >> From: Tomasz Figa <t.figa@samsung.com>
+> >>
+> >> Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
+> >> settings configured in registers leading to crashes if L2C is enabled
+> >> without overriding them. This patch introduces bindings to enable
+> >> prefetch settings to be specified from DT and necessary support in the
+> >> driver.
+> >>
+> >> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> >> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> >> ---
+> >>  Documentation/devicetree/bindings/arm/l2cc.txt | 10 +++++++
+> >>  arch/arm/mm/cache-l2x0.c                       | 39 ++++++++++++++++++++++++++
+> >>  2 files changed, 49 insertions(+)
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/arm/l2cc.txt b/Documentation/devicetree/bindings/arm/l2cc.txt
+> >> index af527ee111c2..3443d2d76788 100644
+> >> --- a/Documentation/devicetree/bindings/arm/l2cc.txt
+> >> +++ b/Documentation/devicetree/bindings/arm/l2cc.txt
+> >> @@ -47,6 +47,16 @@ Optional properties:
+> >>  - cache-id-part: cache id part number to be used if it is not present
+> >>    on hardware
+> >>  - wt-override: If present then L2 is forced to Write through mode
+> >> +- arm,double-linefill : Override double linefill enable setting. Enable if
+> >> +  non-zero, disable if zero.
+> >> +- arm,double-linefill-incr : Override double linefill on INCR read. Enable
+> >> +  if non-zero, disable if zero.
+> >> +- arm,double-linefill-wrap : Override double linefill on WRAP read. Enable
+> >> +  if non-zero, disable if zero.
+> >> +- arm,prefetch-drop : Override prefetch drop enable setting. Enable if non-zero,
+> >> +  disable if zero.
+> > 
+> > I'm not too keen on tristate properties. Is this level of flexibility
+> > really required?
+> > 
+> > What exact overrides do you need for boards you know of? Why do these
+> > cause crashes if not overridden?
+> 
+> Well, this is all thanks to broken firmware, which doesn't initialize
+> those values properly on certain systems and they must be overridden. On
+> the other side, there are systems with firmware that does it correctly
+> and for those the boot defaults should be preferred. I don't see any
+> other reasonable option of handling this.
 
-> From: Jeff Lance <j-lance1@ti.com>
->=20
-> The logic in AFE_Pen_Ctrl bitmask in the CTRL register is different f=
-or five
-> wire versus four or eight wire touschscreens. This patch should fix t=
-his for
-> five-wire touch screens. There should be no change needed here for fo=
-ur and
-> eight wire tousch screens.
->=20
-> Signed-off-by: Jeff Lance <j-lance1@ti.com>
-> [bigeasy: keep the change mfd only]
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
-> I've been looking at moving this piece and the idle mode setting into=
- the
-> TSC driver. Kinda odd that I have to patch within the MFD driver for =
-this
-> TSC related change.
-> Anyone disagrees?
->=20
->  drivers/mfd/ti_am335x_tscadc.c       | 30 +++++++++++++++++---------=
-----
->  include/linux/mfd/ti_am335x_tscadc.h |  1 +
->  2 files changed, 18 insertions(+), 13 deletions(-)
+With the lack of warnings for present but empty properties, I can forsee
+people placing empty properties (as the names make them sound like
+booleans which enable features).
 
-I hope this has been fully tested.
+Surely for enabling/disabling options we should only need to override
+one-way, disabling a feature that causes breakage for some reason?
+Otherwise we can keep the reset value (which might be sub-optimal).
 
-Looks like it could work though, so applied, thanks.
+Perhaps a simple warning is sufficient if the property exists but is
+empty.
 
-> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_t=
-scadc.c
-> index dd4bf5816221..6c9cfb8c1d01 100644
-> --- a/drivers/mfd/ti_am335x_tscadc.c
-> +++ b/drivers/mfd/ti_am335x_tscadc.c
-> @@ -241,18 +241,20 @@ static	int ti_tscadc_probe(struct platform_devi=
-ce *pdev)
->  	tscadc_writel(tscadc, REG_CLKDIV, tscadc->clk_div);
-> =20
->  	/* Set the control register bits */
-> -	ctrl =3D CNTRLREG_STEPCONFIGWRT |
-> -			CNTRLREG_STEPID;
-> -	if (tsc_wires > 0)
-> -		ctrl |=3D CNTRLREG_4WIRE | CNTRLREG_TSCENB;
-> +	ctrl =3D CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
->  	tscadc_writel(tscadc, REG_CTRL, ctrl);
-> =20
->  	/* Set register bits for Idle Config Mode */
-> -	if (tsc_wires > 0)
-> +	if (tsc_wires > 0) {
-> +		tscadc->tsc_wires =3D tsc_wires;
-> +		if (tsc_wires =3D=3D 5)
-> +			ctrl |=3D CNTRLREG_5WIRE | CNTRLREG_TSCENB;
-> +		else
-> +			ctrl |=3D CNTRLREG_4WIRE | CNTRLREG_TSCENB;
->  		tscadc_idle_config(tscadc);
-> +	}
-> =20
->  	/* Enable the TSC module enable bit */
-> -	ctrl =3D tscadc_readl(tscadc, REG_CTRL);
->  	ctrl |=3D CNTRLREG_TSCSSENB;
->  	tscadc_writel(tscadc, REG_CTRL, ctrl);
-> =20
-> @@ -324,21 +326,23 @@ static int tscadc_suspend(struct device *dev)
->  static int tscadc_resume(struct device *dev)
->  {
->  	struct ti_tscadc_dev	*tscadc_dev =3D dev_get_drvdata(dev);
-> -	unsigned int restore, ctrl;
-> +	u32 ctrl;
-> =20
->  	pm_runtime_get_sync(dev);
-> =20
->  	/* context restore */
->  	ctrl =3D CNTRLREG_STEPCONFIGWRT |	CNTRLREG_STEPID;
-> -	if (tscadc_dev->tsc_cell !=3D -1)
-> -		ctrl |=3D CNTRLREG_TSCENB | CNTRLREG_4WIRE;
->  	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
-> =20
-> -	if (tscadc_dev->tsc_cell !=3D -1)
-> +	if (tscadc_dev->tsc_cell !=3D -1) {
-> +		if (tscadc_dev->tsc_wires =3D=3D 5)
-> +			ctrl |=3D CNTRLREG_5WIRE | CNTRLREG_TSCENB;
-> +		else
-> +			ctrl |=3D CNTRLREG_4WIRE | CNTRLREG_TSCENB;
->  		tscadc_idle_config(tscadc_dev);
-> -	restore =3D tscadc_readl(tscadc_dev, REG_CTRL);
-> -	tscadc_writel(tscadc_dev, REG_CTRL,
-> -			(restore | CNTRLREG_TSCSSENB));
-> +	}
-> +	ctrl |=3D CNTRLREG_TSCSSENB;
-> +	tscadc_writel(tscadc_dev, REG_CTRL, ctrl);
-> =20
->  	tscadc_writel(tscadc_dev, REG_CLKDIV, tscadc_dev->clk_div);
-> =20
-> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd=
-/ti_am335x_tscadc.h
-> index fb96c84dada5..e2e70053470e 100644
-> --- a/include/linux/mfd/ti_am335x_tscadc.h
-> +++ b/include/linux/mfd/ti_am335x_tscadc.h
-> @@ -155,6 +155,7 @@ struct ti_tscadc_dev {
->  	void __iomem *tscadc_base;
->  	int irq;
->  	int used_cells;	/* 1-2 */
-> +	int tsc_wires;
->  	int tsc_cell;	/* -1 if not used */
->  	int adc_cell;	/* -1 if not used */
->  	struct mfd_cell cells[TSCADC_CELLS];
+> As for why they cause crashes, I'm not an expert if it is about L2C
+> internals, so I can't really tell, but apparently the cache can work
+> correctly only on certain settings.
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Likewise, I'm no expert on the l2x0 family. It would be nice to know if
+this justs masks an issue elsewhere in Linux, is required for some
+reason by the interconnect, etc. I guess we don't have enough
+information to figure that out.
+
+Mark.
