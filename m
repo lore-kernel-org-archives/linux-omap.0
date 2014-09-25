@@ -1,90 +1,142 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/27] add
-	pm_runtime_last_busy_and_autosuspend() helper
-Date: Thu, 25 Sep 2014 21:54:36 +0200
-Message-ID: <32849712.0gtj7BlKY3@vostro.rjw.lan>
-References: <1411575342-31048-1-git-send-email-vinod.koul@intel.com>
- <20140925142201.GD28045@saruman> <20140925142758.GB1316@katana>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v4 10/11] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Thu, 25 Sep 2014 14:42:35 -0500
+Message-ID: <5424702B.2040800@ti.com>
+References: <1405047349-15101-1-git-send-email-d-gerlach@ti.com> <1405047349-15101-11-git-send-email-d-gerlach@ti.com> <7h7g1dlp8b.fsf@linaro.org> <CAK=WgbYwGcSCxHfa880up1qKTroS=mi8UAf_Qh6Wz9n5x4D9rw@mail.gmail.com> <540F5C39.7040201@ti.com> <540F62E3.6080804@ti.com> <7hr3zk7b5z.fsf@deeprootsystems.com> <CAK=Wgbas+CqgYJ35Sao8eCkMPujpVNbWW-aikUQExScaqYfETw@mail.gmail.com> <541861DB.5000706@ti.com> <CAK=WgbYqv=Fu3fm7SK9_u_gu2Ac13Rgi+3Kyo6Bhu-+1WGFwow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20140925142758.GB1316@katana>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Wolfram Sang <wsa@the-dreams.de>, Vinod Koul <vinod.koul@intel.com>
-Cc: linux-wireless@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>, patches@opensource.wolfsonmicro.com, linux-doc@vger.kernel.org, Seungwon Jeon <tgih.jun@samsung.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Chris Ball <chris@printf.net>, dri-devel@lists.freedesktop.org, Marcin Wojtas <mw@semihalf.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Herrmann <dh.herrmann@gmail.com>, Shinya Kuribayashi <skuribay@pobox.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Jingoo Han <jg1.han@samsung.com>, Jaehoon Chung <jh80.chung@samsung.com>, Jani Nikula <jani.nikula@intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Ben Skeggs <bskeggs@redhat.com>, Bjorn Andersson <bjorn.andersson@sonymobile.com>, Dave Airlie <airlied@redhat.com>, Ulf Hansson <ulf.hanss>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53649 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751645AbaIYTnM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Sep 2014 15:43:12 -0400
+In-Reply-To: <CAK=WgbYqv=Fu3fm7SK9_u_gu2Ac13Rgi+3Kyo6Bhu-+1WGFwow@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>
+Cc: Kevin Hilman <khilman@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>, Russ Dill <russ.dill@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Mack <daniel@zonque.org>, Benoit Cousson <bcousson@baylibre.com>
 
-On Thursday, September 25, 2014 04:27:58 PM Wolfram Sang wrote:
-> 
-> --Bn2rw/3z4jIqBvZU
-> Content-Type: text/plain; charset=us-ascii
-> Content-Disposition: inline
-> Content-Transfer-Encoding: quoted-printable
-> 
-> On Thu, Sep 25, 2014 at 09:22:01AM -0500, Felipe Balbi wrote:
-> > On Thu, Sep 25, 2014 at 01:27:18PM +0530, Vinod Koul wrote:
-> > > On Wed, Sep 24, 2014 at 03:32:19PM -0500, Felipe Balbi wrote:
-> > > > > > > OK, I guess this is as good as it gets.
-> > > > > > >=20
-> > > > > > > What tree would you like it go through?
-> > > > > >=20
-> > > > > > Do we really need this new helper ? I mean, the very moment when =
-> we
-> > > > > > decide to implement ->runtime_idle() we will need to get rid of t=
-> his
-> > > > > > change. I wonder if it's really valid...
-> > > > >=20
-> > > > > I'm not sure I'm following?  This seems to simply implement what dr=
-> ivers
-> > > > > have been doing already as one function.  Why would it be invalid t=
-> o reduce
-> > > > > code duplication?
-> > > >=20
-> > > > For two reasons:
-> > > >=20
-> > > > 1) the helper has no inteligence whatsoever. It just calls the same
-> > > > functions.
-> > > >=20
-> > > > 2) the duplication will vanish whenever someone implements
-> > > > ->runtime_idle() and have that call pm_runtime_autosuspend() (like PCI
-> > > > and USB buses are doing today). This will just be yet another line th=
-> at
-> > > > needs to change.
-> > > >=20
-> > > > Frankly though, no strong feelings, I just think it's a commit that
-> > > > doesn't bring that any benefits other than looking like one line was
-> > > > removed.
-> > > and yes that is what it tries to do nothing more nothing less. If in fu=
-> ture
-> > > there are no users (today we have quite a few), then we can remove the =
-> dead
-> > > macro, no harm. But that is not the situation today.
-> >=20
-> > as I said, a commit that's bound to be useless. It's not like you're
-> > saving 10 lines of code, it's only one. Replacing two simple lines with
-> > a function which takes <joke> almost as many characters to type </joke>.
-> >=20
-> > IMO, this is pretty useless and I'd rather not see them in the drivers I
-> > maintain, sorry.
-> 
-> It is not a NACK from me; yet from a high-level perspective I agree with
-> Felipe.
+Ohad,
 
-OK
+On 09/17/2014 08:37 AM, Ohad Ben-Cohen wrote:> Hi Suman,
+>
+> On Tue, Sep 16, 2014 at 7:14 PM, Suman Anna <s-anna@ti.com> wrote:
+>> The current remoteproc infrastructure automatically calls rproc_boot only
+>> as part of the rpmsg/virtio stack (in remoteproc_virtio.c), but since the
+>> WkupM3 does not use rpmsg, there is no automatic booting of the WkupM3
+>> processor.  This is the reason why rproc_boot is called as part of the
+>> WkupM3 driver probe sequence. What are your concerns here, and if you think
+>> this is not the right place do invoke rproc_boot, where do you expect it to
+>> be called?
+>
+> The remoteproc layer is meant to hide hardware-specific details, and allow
+> high-level hardware-agnostic code to boot a remote processor, in order to
+> achieve some task, without even caring what kind of hardware it is booting.
+>
+> So generally we have some consumer driver asking remoteproc to boot a remote
+>  processor, and in turn, remoteproc asking a hardware-specific vendor driver
+>  to take care of the hardware details like actually taking the remote
+> processor out of reset.
+>
+> The consumer driver is some code that deals with some hardware agnostic task.
+> Today the only consumer we have is rpmsg, so it's perfectly reasonable if
+> remoteproc needs to be adapted a bit to accommodate other consumers as they
+> show up.
+>
+> Can you think of any component in your code that is not necessarily hardware
+>  specific, and that one day might be useful for other vendors? Can you
+> describe the task you're trying to achieve, the entities involved and the
+> flow between them?
+>
+>> Also do note that, there is no way at present to retrieve the struct rproc
+>>  for a given remote processor, to be able to invoke the rproc_boot from a
+>> different layer.
+>
+> It's perfectly ok to make struct rproc public if we have a consumer that
+> requires it.
+>
+>> Splitting this would still require some kind of notifier from remoteproc
+>> for the other layers for them to know that the WkupM3 remote processor has
+>>  been loaded and booted successfully. This is also done as part of the
+>> WkupM3 driver at the moment.
+>
+> Are there entities, other than the one that calls rproc_boot, that needs to
+> know that the WkupM3 is up? if so, let's discuss who should notify them -
+> remoteproc or the actual invoker of rproc_boot. It probably depends on who
+> those entities are and what's their relation, if any, to the WkupM3 driver.
 
-I'd rather not merge something that driver people don't want to use.
+There are three layers at play here. The pm layer, the ipc layer, and the rproc
+layer. As we know, currently the problem is that the ipc and rproc layer are
+combined.
 
-Vinod?
+PM on am33xx is ENTIRELY dependent on the wkup_m3. It can't enable any PM OPs
+until the FW is ready. So that is one place where the PM layer must be notified.
+The other instance is for IPC, the wkup_m3 triggers an interrupt back to the MPU
+when it it is done with it's work after an IPC event (explained more later), so
+the PM code must be notified of this as well.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Here is the exact flow between PM, IPC, and wkup_m3 during a suspend cycle:
+
+Boot:
+*Firmware gets loaded and wkup_m3 has hard reset deasserted and starts executing
+(Definite wkup_m3 rproc responsibility).
+
+*PM code is notified that wkup_m3 is awake (currently by wkup_m3_rproc start
+hook) and calls into pm code with rproc_ready hook and uses IPC registers (which
+were filled by wkup_m3) to check version number and make sure it's compatible.
+This sounds like IPC layer responsibility, but does the IPC layer just handle
+reading back the registers and give these values for the PM layer to interpret?
+Or does it do the interpreting and gives back a specific PM value? (In this case
+fw version.)
+
+Suspend:
+*PM code tells wkup_m3_rproc driver to place the command for the desired PM
+state in the IPC registers along with any other info needed for suspend
+(determined by PM code) and then ping the wkup_m3 using the mailbox, which is
+just a dummy write, the mailbox is not actually used just the interrupt. Once
+this happens the wkup_m3 itself runs, prepares for the desired PM state, and
+triggers it's own wkup_m3 interrupt, unrelated to the mailbox interrupt.
+
+*Once this interrupt is sent the wkup_m3_rproc has the irq handler for the
+interrupt and calls into pm code using txev_handler hook I defined, and with
+this, the PM code proceeds, and the wkup_m3 just waits for MPU clock gate
+(unrelated to IPC or wkup_m3, triggered by other SoC functionality).
+
+*On resume, no interrupt is generated from wkup_m3 but the PM code, in the
+standard resume path, reads from the IPC registers to check a status value
+(without receiving an interrupt like before, just assumes there is data because
+a resume is happening, interrupts are disabled still at this point) and then the
+PM code interprets the status value and a wake source value and does whatever it
+wants with it. This also sounds like IPC layer responsibility but again the
+question comes up do we provide generic IPC reg reading functionality or let the
+IPC layer do more, like with the version number read?
+
+I am not sure exactly how the layers should be divided. Does remoteproc notify
+an IPC layer which notifies the PM code that the rproc is booted and the IPC
+data is ready? Or does the remoteproc notify PM code directly and then that uses
+the IPC layer to read the IPC registers?
+
+However the wkup_m3 does trigger the wkup_m3 interrupt after it is done booting,
+so perhaps that could be used as the trigger instead, which fits better into the
+IPC layer. There are two different hooks back to PM code. One that indicates
+when wkup_m3 has booted, and one that indicates when the wkup_m3 interrupt has
+been received. As I mentioned before, perhaps we can get away with just using
+the wkup_m3 interrupt to indicate when the rproc has booted because it won't be
+triggered unless the fw runs from the start.
+
+Perhaps we can live with one notifier hook (for the interrupt from the wkup_m3),
+but I am still unclear on how generic the IPC layer should be. A very generic
+layer that just reads the IPC registers and handlers the interrupts could be
+reused, leaving the PM code to interprets those values while a more PM specific
+IPC layer would have to evolve with the PM layer as functionality changes, so I
+would definitely lean towards the highly generic IPC layer.
+
+Regards,
+Dave
+
+
+>
+> Thanks, Ohad.
+>
+
