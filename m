@@ -1,108 +1,47 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 3/4] rtc: omap: Update Kconfig for OMAP RTC
-Date: Thu, 25 Sep 2014 10:11:18 -0500
-Message-ID: <20140925151117.GL28045@saruman>
-References: <1411637529-18289-1-git-send-email-lokeshvutla@ti.com>
- <1411637529-18289-4-git-send-email-lokeshvutla@ti.com>
-Reply-To: balbi@ti.com
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Thu, 25 Sep 2014 17:14:03 +0200
+Message-ID: <20140925151403.GH19396@linutronix.de>
+References: <5411C810.7070906@linutronix.de>
+ <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
+ <54129F6C.7040508@linutronix.de>
+ <20140912094010.GE28458@ci00147.xsens-tech.local>
+ <5412C21A.8020203@linutronix.de>
+ <20140912102816.GF28458@ci00147.xsens-tech.local>
+ <541716DC.9020904@linutronix.de>
+ <20140917102812.GA20438@ci00147.xsens-tech.local>
+ <20140921204100.GA10111@linutronix.de>
+ <20140922092853.GH20438@ci00147.xsens-tech.local>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7416677211900859528=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1411637529-18289-4-git-send-email-lokeshvutla@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: a.zummo@towertech.it, rtc-linux@googlegroups.com, devicetree@vger.kernel.org, tony@atomide.com, j-keerthy@ti.com, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:34176 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981AbaIYPOM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2014 11:14:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20140922092853.GH20438@ci00147.xsens-tech.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Frans Klaver <frans.klaver@xsens.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 
---===============7416677211900859528==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eMP3JyRexyk9c0Bv"
-Content-Disposition: inline
+* Frans Klaver | 2014-09-22 11:28:54 [+0200]:
 
---eMP3JyRexyk9c0Bv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>I guess then we'd still have to answer the question why the yocto build
+>calls set_termios() so often, but that's not on you then. Did you notice
+>it even changing settings? We might want to fix this even if the kernel
+>should be able to cope.
 
-On Thu, Sep 25, 2014 at 03:02:08PM +0530, Lokesh Vutla wrote:
-> From: Tero Kristo <t-kristo@ti.com>
->=20
-> RTC is present in AM43xx and DRA7xx also. Updating the
-> same in Kconfig.
->=20
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-> Changes since v1:
-> 	- New patch
->  drivers/rtc/Kconfig    | 6 +++---
->  drivers/rtc/rtc-omap.c | 4 ++--
->  2 files changed, 5 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-> index a168e96..b092e2f 100644
-> --- a/drivers/rtc/Kconfig
-> +++ b/drivers/rtc/Kconfig
-> @@ -971,11 +971,11 @@ config RTC_DRV_IMXDI
->  	   will be called "rtc-imxdi".
-> =20
->  config RTC_DRV_OMAP
-> -	tristate "TI OMAP1"
-> -	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVIN=
-CI_DA8XX || SOC_AM33XX
-> +	tristate "TI OMAP Real Time Clock"
-> +	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVIN=
-CI_DA8XX || SOC_AM33XX || SOC_DRA7XX || SOC_AM43XX
+could you please test uart_v10_pre3? I dropped a few register sets and
+delayed the register update until TX-DMA is complete. I am traveling
+currently and have only my boneblack and it passes my limited testing.
+If it solves your problems, too then I would address Heikki's latest
+comments and prepare the final v10 (and I hope I didn't break beagle
+board in between).
 
-do you mind if we just make this "depends on ARCH_OMAP || ARCH_DAVINCI" ? P=
-retty much
-every incarnation has this anyway.
+>Thanks again,
+>Frans
 
---=20
-balbi
-
---eMP3JyRexyk9c0Bv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUJDCVAAoJEIaOsuA1yqRExl0QAKQ61n+fkOnUUBnVYgJR465z
-+/2lPE3hgjxGyxvVi7i08oSroIfQjKtS+6QCCxf0haKF/uXurWG+bniloSvQX82K
-C9LnZwClwqqr4PwlCq8pXSJESfEappufgYusfDUs6e3nl8/KCI1gjA/ZrVLZhur6
-r9L3HZNXFyz0b3yWeOAoPG+gaVpUILm4YpJ3OFH8DgP/6bHst4GIJtuFJk14PFKK
-iN7+f7LLmfOma0wZlE8zuKn7YdKi+2EqJ4rYe2VBmN9saw0XPCEPrWNNgfGCDUwq
-1fQkWx//ZUN4GIhzlL5uaHfeaZhycBAsOUWs+H+zhVotViNpCaRAnzus80U+BlsB
-2/2w5ANuwswOFkMH9Vc17uWjq8foOIFpOhAIQa3k2slTvCW1546ednnMhLHwe0rv
-/IMaCVhPYp6b7XEKvMmZcVnMtxoLrhOPvb+sVdLDngDjvLvN6WBZb5NjQU0gHPOh
-JHQlg6NQV0mpTGkY6iKihit95rPY/sdV3ZBo8BhgGP7jzLHL34exmg+RMEf5xnjb
-JP+Njkk3GQkiQJgTWVcWXkGpLKqnVzeALVpEMPR8FiIRyfrFkeWxQO/YDdZ7Banc
-tWHJCLaDwe8t6+m+AUlDWkJNr5f5AouWgZj5skDwyev9W/HEvrWvn4h0H6OKGsAW
-ni2+PYEav/1yAnTEkajk
-=VQ/o
------END PGP SIGNATURE-----
-
---eMP3JyRexyk9c0Bv--
-
-
---===============7416677211900859528==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============7416677211900859528==--
+Sebastian
