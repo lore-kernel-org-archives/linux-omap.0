@@ -1,58 +1,49 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH resend 1/2] tty: omap-serial: fix division by zero
-Date: Thu, 25 Sep 2014 12:24:51 +0200
-Message-ID: <20140925102451.GF22872@ci00147.xsens-tech.local>
-References: <20140924080852.GA28215@kroah.com>
- <1411636791-24116-1-git-send-email-frans.klaver@xsens.com>
- <20140925101628.GB16810@kroah.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Thu, 25 Sep 2014 12:42:08 +0200
+Message-ID: <20140925104208.GE19396@linutronix.de>
+References: <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com>
+ <54129F6C.7040508@linutronix.de>
+ <20140912094010.GE28458@ci00147.xsens-tech.local>
+ <5412C21A.8020203@linutronix.de>
+ <20140912102816.GF28458@ci00147.xsens-tech.local>
+ <541716DC.9020904@linutronix.de>
+ <20140917102812.GA20438@ci00147.xsens-tech.local>
+ <20140921204100.GA10111@linutronix.de>
+ <5421A7F7.3070109@hurleysoftware.com>
+ <20140924075346.GB19565@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140925101628.GB16810@kroah.com>
+In-Reply-To: <20140924075346.GB19565@linutronix.de>
 Sender: linux-serial-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: stable@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: Frans Klaver <frans.klaver@xsens.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 25, 2014 at 12:16:28PM +0200, Greg Kroah-Hartman wrote:
-> On Thu, Sep 25, 2014 at 11:19:51AM +0200, Frans Klaver wrote:
-> > If the chosen baud rate is large enough (e.g. 3.5 megabaud), the
-> > calculated n values in serial_omap_is_baud_mode16() may become 0. This
-> > causes a division by zero when calculating the difference between
-> > calculated and desired baud rates. To prevent this, cap the n13 and n16
-> > values on 1.
-> > 
-> > Division by zero in kernel.
-> > [<c00132e0>] (unwind_backtrace) from [<c00112ec>] (show_stack+0x10/0x14)
-> > [<c00112ec>] (show_stack) from [<c01ed7bc>] (Ldiv0+0x8/0x10)
-> > [<c01ed7bc>] (Ldiv0) from [<c023805c>] (serial_omap_baud_is_mode16+0x4c/0x68)
-> > [<c023805c>] (serial_omap_baud_is_mode16) from [<c02396b4>] (serial_omap_set_termios+0x90/0x8d8)
-> > [<c02396b4>] (serial_omap_set_termios) from [<c0230a0c>] (uart_change_speed+0xa4/0xa8)
-> > [<c0230a0c>] (uart_change_speed) from [<c0231798>] (uart_set_termios+0xa0/0x1fc)
-> > [<c0231798>] (uart_set_termios) from [<c022bb44>] (tty_set_termios+0x248/0x2c0)
-> > [<c022bb44>] (tty_set_termios) from [<c022c17c>] (set_termios+0x248/0x29c)
-> > [<c022c17c>] (set_termios) from [<c022c3e4>] (tty_mode_ioctl+0x1c8/0x4e8)
-> > [<c022c3e4>] (tty_mode_ioctl) from [<c0227e70>] (tty_ioctl+0xa94/0xb18)
-> > [<c0227e70>] (tty_ioctl) from [<c00cf45c>] (do_vfs_ioctl+0x4a0/0x560)
-> > [<c00cf45c>] (do_vfs_ioctl) from [<c00cf568>] (SyS_ioctl+0x4c/0x74)
-> > [<c00cf568>] (SyS_ioctl) from [<c000e480>] (ret_fast_syscall+0x0/0x30)
-> > 
-> > Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
-> > ---
-> > Resend to add stable@vger.kernel.org to CC. As far as I know, this applies to
-> > v3.9 and up.
-> 
-> <formletter>
-> 
-> This is not the correct way to submit patches for inclusion in the
-> stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
-> for how to do this properly.
-> 
-> </formletter>
-> 
-> I'll take care of this, but go read that file for your next time...
+* Sebastian Andrzej Siewior | 2014-09-24 09:53:46 [+0200]:
 
-Ah, right. I'll heed that next time. Thanks for taking care of it.
+>* Peter Hurley | 2014-09-23 13:03:51 [-0400]:
+>
+>>But DMA is cheating if the UART driver's tx_empty() method is saying the
+>>transmitter is empty while TX DMA is still running.
+>This shouldn't be the case. But I will check this once I able to.
 
-Frans
+I added 
+
+|#define BOTH_EMPTY      (UART_LSR_TEMT | UART_LSR_THRE)
+|    trace_printk("delay <%d>\n", (lsr & BOTH_EMPTY) == BOTH_EMPTY ? 1 : 0);
+
+in my set_termios() and the trace shows
+|              vi-949   [000] d...    70.477002: omap8250_restore_regs: delay <0>
+
+so no, it does not wait until TX FIFO is empty. It looks like it uses
+TCSANOW instead of TCSADRAIN. And since this looks "legal" I will delay
+it until TX-DMA is complete because it is known to stall the DMA operation.
+
+>>Regards,
+>>Peter Hurley
+
+Sebastian
