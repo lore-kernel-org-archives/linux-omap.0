@@ -1,75 +1,35 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Thu, 25 Sep 2014 15:11:37 +0200
-Message-ID: <20140925131137.GG19396@linutronix.de>
-References: <20140912094010.GE28458@ci00147.xsens-tech.local>
- <5412C21A.8020203@linutronix.de>
- <20140912102816.GF28458@ci00147.xsens-tech.local>
- <541716DC.9020904@linutronix.de>
- <20140917102812.GA20438@ci00147.xsens-tech.local>
- <20140921204100.GA10111@linutronix.de>
- <5421A7F7.3070109@hurleysoftware.com>
- <20140924075346.GB19565@linutronix.de>
- <20140925104208.GE19396@linutronix.de>
- <5423FD14.9060604@hurleysoftware.com>
+From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/2] iommu/omap: Remove omap_iommu unused owner field
+Date: Thu, 25 Sep 2014 15:57:20 +0200
+Message-ID: <20140925135719.GB28786@8bytes.org>
+References: <1410277545-32157-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1410277545-32157-3-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5423FD14.9060604@hurleysoftware.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: Frans Klaver <frans.klaver@xsens.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+In-Reply-To: <1410277545-32157-3-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Hurley | 2014-09-25 07:31:32 [-0400]:
+On Tue, Sep 09, 2014 at 06:45:45PM +0300, Laurent Pinchart wrote:
+> The owner field is never set. Remove it.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> ---
+>  drivers/iommu/omap-iommu.c | 11 -----------
+>  drivers/iommu/omap-iommu.h |  1 -
+>  2 files changed, 12 deletions(-)
 
->I just verified that GNU readline6 uses ioctl(TCSETSW, ...) to do the =
-set_termios
->(which is the ioctl that libc should use for tcsetattr(TCSADRAIN)).
->
->Maybe this userspace is using a readline()-alike that has a bug by not=
- using the
->correct tcsetattr() action?
-
-set_termios() has an opt argument. While doing ":n" in vi I see two inv=
-ocations
-with "opt =3D=3D 8" which stands for TCSETS.
-browsing through vi's code I stumbled upon=20
-
-|static void rawmode(void)
-|{
-=E2=80=A6
-|    tcsetattr_stdin_TCSANOW(&term_vi);
-|}
-|int FAST_FUNC tcsetattr_stdin_TCSANOW(const struct termios *tp)
-|{
-|    return tcsetattr(STDIN_FILENO, TCSANOW, tp);
-|}
-
-and this is probably what you meant. There is also
-| static void cookmode(void)
-| {
-|     fflush_all();
-|     tcsetattr_stdin_TCSANOW(&term_orig);
-| }
-
-However I don't see __tty_perform_flush() in kernel invoked.
-
->Or maybe the glibc-equivalent has the bug, and tcsetattr(TCSADRAIN) is=
- not using
->ioctl(TCSETSW)?
-
-libc is "GNU C Library 2.20".=20
-
->Regards,
->Peter Hurley
-
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied this one to arm/omap, thanks.
