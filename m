@@ -1,52 +1,126 @@
-From: Frans Klaver <fransklaver@gmail.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround for AM33xx
-Date: Thu, 25 Sep 2014 17:18:15 +0200
-Message-ID: <f4e9604d-6de0-4b56-8565-3a532686e745@email.android.com>
-References: <5411C810.7070906@linutronix.de> <2cf997d9-e7de-465b-915d-3a0a5e7b95f7@email.android.com> <54129F6C.7040508@linutronix.de> <20140912094010.GE28458@ci00147.xsens-tech.local> <5412C21A.8020203@linutronix.de> <20140912102816.GF28458@ci00147.xsens-tech.local> <541716DC.9020904@linutronix.de> <20140917102812.GA20438@ci00147.xsens-tech.local> <20140921204100.GA10111@linutronix.de> <20140922092853.GH20438@ci00147.xsens-tech.local> <20140925151403.GH19396@linutronix.de>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 00/27] add
+	pm_runtime_last_busy_and_autosuspend() helper
+Date: Thu, 25 Sep 2014 16:27:58 +0200
+Message-ID: <20140925142758.GB1316@katana>
+References: <1411575342-31048-1-git-send-email-vinod.koul@intel.com>
+ <6374313.I12loOK9hA@vostro.rjw.lan>
+ <20140924201558.GX17997@saruman>
+ <2322320.9rETJijE2n@vostro.rjw.lan>
+ <20140924203219.GZ17997@saruman> <20140925075718.GW24663@intel.com>
+ <20140925142201.GD28045@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:51854 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753013AbaIYPS0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Sep 2014 11:18:26 -0400
-In-Reply-To: <20140925151403.GH19396@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============0697962180=="
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20140925142201.GD28045@saruman>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-wireless@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>, patches@opensource.wolfsonmicro.com, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Chris Ball <chris@printf.net>, dri-devel@lists.freedesktop.org, Marcin Wojtas <mw@semihalf.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Herrmann <dh.herrmann@gmail.com>, Shinya Kuribayashi <skuribay@pobox.com>, Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>, Vinod Koul <vinod.koul@intel.com>, Jingoo Han <jg1.han@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Jaehoon Chung <jh80.chung@samsung.com>, Jani Nikula <jani.nikula@intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Ben Skeggs <bskeggs@redhat.com>, Bjorn Andersson <bjorn.andersson@sonymobile.>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Frans Klaver <frans.klaver@xsens.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
-
-On 25 September 2014 17:14:03 CEST, Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
->* Frans Klaver | 2014-09-22 11:28:54 [+0200]:
->
->>I guess then we'd still have to answer the question why the yocto
->build
->>calls set_termios() so often, but that's not on you then. Did you
->notice
->>it even changing settings? We might want to fix this even if the
->kernel
->>should be able to cope.
->
->could you please test uart_v10_pre3? I dropped a few register sets and
->delayed the register update until TX-DMA is complete. I am traveling
->currently and have only my boneblack and it passes my limited testing.
->If it solves your problems, too then I would address Heikki's latest
->comments and prepare the final v10 (and I hope I didn't break beagle
->board in between).
-
-That'll be Monday earliest for me. 
-
->
->>Thanks again,
->>Frans
->
->Sebastian
->
->_______________________________________________
->linux-arm-kernel mailing list
->linux-arm-kernel@lists.infradead.org
->http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
 
+--===============0697962180==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
+Content-Disposition: inline
+
+
+--Bn2rw/3z4jIqBvZU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Sep 25, 2014 at 09:22:01AM -0500, Felipe Balbi wrote:
+> On Thu, Sep 25, 2014 at 01:27:18PM +0530, Vinod Koul wrote:
+> > On Wed, Sep 24, 2014 at 03:32:19PM -0500, Felipe Balbi wrote:
+> > > > > > OK, I guess this is as good as it gets.
+> > > > > >=20
+> > > > > > What tree would you like it go through?
+> > > > >=20
+> > > > > Do we really need this new helper ? I mean, the very moment when =
+we
+> > > > > decide to implement ->runtime_idle() we will need to get rid of t=
+his
+> > > > > change. I wonder if it's really valid...
+> > > >=20
+> > > > I'm not sure I'm following?  This seems to simply implement what dr=
+ivers
+> > > > have been doing already as one function.  Why would it be invalid t=
+o reduce
+> > > > code duplication?
+> > >=20
+> > > For two reasons:
+> > >=20
+> > > 1) the helper has no inteligence whatsoever. It just calls the same
+> > > functions.
+> > >=20
+> > > 2) the duplication will vanish whenever someone implements
+> > > ->runtime_idle() and have that call pm_runtime_autosuspend() (like PCI
+> > > and USB buses are doing today). This will just be yet another line th=
+at
+> > > needs to change.
+> > >=20
+> > > Frankly though, no strong feelings, I just think it's a commit that
+> > > doesn't bring that any benefits other than looking like one line was
+> > > removed.
+> > and yes that is what it tries to do nothing more nothing less. If in fu=
+ture
+> > there are no users (today we have quite a few), then we can remove the =
+dead
+> > macro, no harm. But that is not the situation today.
+>=20
+> as I said, a commit that's bound to be useless. It's not like you're
+> saving 10 lines of code, it's only one. Replacing two simple lines with
+> a function which takes <joke> almost as many characters to type </joke>.
+>=20
+> IMO, this is pretty useless and I'd rather not see them in the drivers I
+> maintain, sorry.
+
+It is not a NACK from me; yet from a high-level perspective I agree with
+Felipe.
+
+
+--Bn2rw/3z4jIqBvZU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUJCZuAAoJEBQN5MwUoCm2jzAP/0uNlfLXi5fqmFvgh5egMX44
+Awl2fFUmc3+ZEwe23znHmWxWFQwxjpwRaGlXN2yVwhPZfvYZE4RCAGIGNrqzpZSv
+qzqeYbcNa3os06IQQ0x2CSsB27ay5QJsqomMrmeU5qBXlZI9c6AlxKLFubkIKXgV
+mtwD415hSXBv4oAsbJvwV7zDvWPkvwmy+sircUTem/aXH1YlmkOQYAkskBxbE456
+5/b+4IlyaVbnNzYT/TmHfH5Gk0uCvd5EOG00up8itDUQyjbXbRsMRvyZj5KPCFvP
+QCitjmxtnTvqNgoT997fAzBvkW/RoooTajOynTNwD5bo150g5vMDqzPhdDRpe+H8
+xplm3ukStUlouRYM3IcOSyAP6ngx464UiJ+6df189XTe58y8Vy1uvwY9sniUkH4/
+HjVG2XfwVewxy7WXtOqQEC+SBqAWYIe/J+L+GLNyvETyDV5blHWQKBwbhXIhNBFZ
+2JFDp8dJx/798USWsMmKMA1Rx8B52aO8xNVC1qxqom1Ua+EfnUs8rzGToTKK0iyW
+e8ZgwBDKgDIFLk160zldynIyFLuJepA/jjQHUUdO16YEe2gGHi/Pz6axA9v68A8l
+GgrR9I5vUBxFvELY4d8UH6zknXVgpKMNheRza9EUy6AxsYzAeFD6TLfUOdun1M6I
+Vogk8ikO5me6suf8bPAj
+=9gUi
+-----END PGP SIGNATURE-----
+
+--Bn2rw/3z4jIqBvZU--
+
+--===============0697962180==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Intel-gfx mailing list
+Intel-gfx@lists.freedesktop.org
+http://lists.freedesktop.org/mailman/listinfo/intel-gfx
+
+--===============0697962180==--
