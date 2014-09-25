@@ -1,117 +1,78 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH v2 4/4] rtc: omap: Support regulator supply for RTC
-Date: Thu, 25 Sep 2014 15:02:09 +0530
-Message-ID: <1411637529-18289-5-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH v2 3/4] rtc: omap: Update Kconfig for OMAP RTC
+Date: Thu, 25 Sep 2014 15:02:08 +0530
+Message-ID: <1411637529-18289-4-git-send-email-lokeshvutla@ti.com>
 References: <1411637529-18289-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43691 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751985AbaIYJeI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Sep 2014 05:34:08 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1411637529-18289-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: rtc-linux@googlegroups.com, a.zummo@towertech.it
-Cc: nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, balbi@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, lokeshvutla@ti.com
+Cc: devicetree@vger.kernel.org, tony@atomide.com, j-keerthy@ti.com, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On some Soc's RTC is powered by an external power regulator.
-e.g. RTC on DRA7 SoC. Make the OMAP RTC driver support a
-power regulator.
+From: Tero Kristo <t-kristo@ti.com>
+
+RTC is present in AM43xx and DRA7xx also. Updating the
+same in Kconfig.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
 Changes since v1:
-	- Separated probe deferral supporting into a new patch.
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |  3 +++
- drivers/rtc/rtc-omap.c                             | 24 ++++++++++++++++++++++
- 2 files changed, 27 insertions(+)
+	- New patch
+ drivers/rtc/Kconfig    | 6 +++---
+ drivers/rtc/rtc-omap.c | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-index 5a0f02d..c67a775 100644
---- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-+++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-@@ -10,6 +10,9 @@ Required properties:
- - interrupts: rtc timer, alarm interrupts in order
- - interrupt-parent: phandle for the interrupt controller
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index a168e96..b092e2f 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -971,11 +971,11 @@ config RTC_DRV_IMXDI
+ 	   will be called "rtc-imxdi".
  
-+Optional Properties:
-+- rtc-supply : phandle to the regulator device tree node if needed
-+
- Example:
+ config RTC_DRV_OMAP
+-	tristate "TI OMAP1"
+-	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX || SOC_AM33XX
++	tristate "TI OMAP Real Time Clock"
++	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX || SOC_AM33XX || SOC_DRA7XX || SOC_AM43XX
+ 	help
+ 	  Say "yes" here to support the on chip real time clock
+-	  present on TI OMAP1, AM33xx and DA8xx/OMAP-L13x.
++	  present on TI OMAP1, AM33xx, DA8xx/OMAP-L13x, AM43xx and DRA7xx.
  
- rtc@1c23000 {
+ 	  This driver can also be built as a module, if so, module
+ 	  will be called rtc-omap.
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index f28f1fd..8a8df2b 100644
+index 93c5424..f28f1fd 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -24,6 +24,7 @@
- #include <linux/of_device.h>
+@@ -1,5 +1,5 @@
+ /*
+- * TI OMAP1 Real Time Clock interface for Linux
++ * TI OMAP Real Time Clock interface for Linux
+  *
+  * Copyright (C) 2003 MontaVista Software, Inc.
+  * Author: George G. Davis <gdavis@mvista.com> or <source@mvista.com>
+@@ -25,7 +25,7 @@
  #include <linux/pm_runtime.h>
  #include <linux/io.h>
-+#include <linux/regulator/consumer.h>
  
- /* The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
+-/* The OMAP1 RTC is a year/month/day/hours/minutes/seconds BCD clock
++/* The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
   * with century-range alarm matching, driven by the 32kHz clock.
-@@ -124,6 +125,7 @@
-  * @device:		Device Pointer.
-  * pdata :		Copy of saved platform data.
-  * rtc_base :		Base address of memory-mapped IO registers.
-+ * rtc_reg :		Pointer to RTC power regulator.
-  * rtc_alarm :		RTC alarm interrupt number.
-  * rtc_timer :		RTC timer interrupt number.
-  * irq_stat :		Copy of Interrupt status register.
-@@ -133,6 +135,7 @@ struct rtc_omap_dev {
- 	struct device		*dev;
- 	unsigned long		pdata;
- 	void __iomem		*rtc_base;
-+	struct regulator	*rtc_reg;
- 	u32			rtc_alarm;
- 	u32			rtc_timer;
- 	u8			irqstat;
-@@ -402,6 +405,7 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 	struct resource		*res;
- 	struct rtc_omap_dev	*rtc_omap;
- 	u8			reg, new_ctrl;
-+	int			ret;
- 	const struct platform_device_id *id_entry;
- 	const struct of_device_id *of_id;
- 
-@@ -440,6 +444,23 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 	if (IS_ERR(rtc_omap->rtc_base))
- 		return PTR_ERR(rtc_omap->rtc_base);
- 
-+	rtc_omap->rtc_reg =  devm_regulator_get_optional(&pdev->dev, "rtc");
-+	if (IS_ERR(rtc_omap->rtc_reg)) {
-+		if (PTR_ERR(rtc_omap->rtc_reg) == -EPROBE_DEFER) {
-+			dev_err(&pdev->dev, "regulator not ready, retry\n");
-+			return -EPROBE_DEFER;
-+		}
-+		rtc_omap->rtc_reg = NULL;
-+	}
-+
-+	if (rtc_omap->rtc_reg) {
-+		ret = regulator_enable(rtc_omap->rtc_reg);
-+		if (ret) {
-+			dev_dbg(&pdev->dev, "regulator enable failed\n");
-+			return ret;
-+		}
-+	}
-+
- 	/* Enable the clock/module so that we can access the registers */
- 	pm_runtime_enable(&pdev->dev);
- 	pm_runtime_get_sync(&pdev->dev);
-@@ -549,6 +570,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-+	if (rtc_omap->rtc_reg)
-+		regulator_disable(rtc_omap->rtc_reg);
-+
- 	return 0;
- }
- 
+  *
+  * The main user-visible ways it differs from PC RTCs are by omitting
 -- 
 1.9.1
-
