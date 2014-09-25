@@ -1,11 +1,13 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH v2 0/4] rtc: omap: Add support for regulator supply
-Date: Thu, 25 Sep 2014 15:02:05 +0530
-Message-ID: <1411637529-18289-1-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH v2 2/4] rtc: omap: Adopt driver to support probe deferral
+Date: Thu, 25 Sep 2014 15:02:07 +0530
+Message-ID: <1411637529-18289-3-git-send-email-lokeshvutla@ti.com>
+References: <1411637529-18289-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1411637529-18289-1-git-send-email-lokeshvutla@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,34 +21,45 @@ To: rtc-linux@googlegroups.com, a.zummo@towertech.it
 Cc: devicetree@vger.kernel.org, tony@atomide.com, j-keerthy@ti.com, nsekhar@ti.com, balbi@ti.com, t-kristo@ti.com, lokeshvutla@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This series cleans up the OMAP RTC driver to use per device data structure.
-And adds support for regulator supply.
+module_platform_driver_probe() prevents driver from requesting probe deferral.
+So using module_platform_drive() to support probe deferral.
 
-Testing:
-RTC functionality test on:
-DRA742-evm: http://hastebin.com/avowiyegut.xml
-DRA722-evm: http://hastebin.com/hujuyuyato.xml
-Beagle Bone Black: http://hastebin.com/fawahapuyi.rb
-AM4372-GP-evm: http://hastebin.com/iyitiqeyev.rb (Used an out of tree patch for enabling rtc)
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+Changes since V1:
+	- New patch, seperated from patch 4/4.
+ drivers/rtc/rtc-omap.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Tested rtc wake using an internal tree with these patches applied:
-DRA742-evm: http://hastebin.com/banejadaci.coffee
-DRA722-evm: http://hastebin.com/adifefetax.vhdl
-Beagle Bone Black: http://hastebin.com/uxezamokiy.coffee
-AM4372-GP-evm: http://hastebin.com/ruvetigico.coffee
-
-Lokesh Vutla (3):
-  rtc: omap: Introduce rtc_omap_dev structure to include per device data
-  rtc: omap: Adopt driver to support probe deferral
-  rtc: omap: Support regulator supply for RTC
-
-Tero Kristo (1):
-  rtc: omap: Update Kconfig for OMAP RTC
-
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |   3 +
- drivers/rtc/Kconfig                                |   6 +-
- drivers/rtc/rtc-omap.c                             | 290 +++++++++++++--------
- 3 files changed, 182 insertions(+), 117 deletions(-)
-
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index 4e90b50..93c5424 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -397,7 +397,7 @@ static const struct of_device_id omap_rtc_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+ 
+-static int __init omap_rtc_probe(struct platform_device *pdev)
++static int omap_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct resource		*res;
+ 	struct rtc_omap_dev	*rtc_omap;
+@@ -601,6 +601,7 @@ static void omap_rtc_shutdown(struct platform_device *pdev)
+ }
+ 
+ static struct platform_driver omap_rtc_driver = {
++	.probe		= omap_rtc_probe,
+ 	.remove		= __exit_p(omap_rtc_remove),
+ 	.shutdown	= omap_rtc_shutdown,
+ 	.driver		= {
+@@ -612,7 +613,7 @@ static struct platform_driver omap_rtc_driver = {
+ 	.id_table	= omap_rtc_devtype,
+ };
+ 
+-module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
++module_platform_driver(omap_rtc_driver);
+ 
+ MODULE_ALIAS("platform:omap_rtc");
+ MODULE_AUTHOR("George G. Davis (and others)");
 -- 
 1.9.1
