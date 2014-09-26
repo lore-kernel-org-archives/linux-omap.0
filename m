@@ -1,68 +1,76 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
-Date: Fri, 26 Sep 2014 11:25:48 -0500
-Message-ID: <5425938C.6070007@ti.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com>	<1389658764-39199-5-git-send-email-s-anna@ti.com> <CAJAp7Oj-3ZxvN8o=rg8YeTiXYWyQ1iowgisdU1R5UcZeh4VmOQ@mail.gmail.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate change
+Date: Fri, 26 Sep 2014 16:24:53 -0700
+Message-ID: <20140926232453.19023.25483@quantum>
+References: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
+ <20140922191816.GF10233@codeaurora.org> <542177E5.9060606@ti.com>
+ <5424C2FA.4000508@codeaurora.org> <5425135F.2070809@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34151 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754888AbaIZQ0Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Sep 2014 12:26:25 -0400
-In-Reply-To: <CAJAp7Oj-3ZxvN8o=rg8YeTiXYWyQ1iowgisdU1R5UcZeh4VmOQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5425135F.2070809@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Bjorn Andersson <bjorn@kryo.se>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Bjorn,
-
-On 09/26/2014 09:40 AM, Bjorn Andersson wrote:
-> On Mon, Jan 13, 2014 at 4:19 PM, Suman Anna <s-anna@ti.com> wrote:
->> This patch adds three new OF helper functions to use/request
->> locks from a hwspinlock device instantiated through a
->> device-tree blob.
->>
+Quoting Tero Kristo (2014-09-26 00:18:55)
+> On 09/26/2014 04:35 AM, Stephen Boyd wrote:
+> > On 09/23/14 06:38, Tero Kristo wrote:
+> >> On 09/22/2014 10:18 PM, Stephen Boyd wrote:
+> >>> On 08/21, Tero Kristo wrote:
+> >>>>            /* Skip children who will be reparented to another clock */
+> >>>>            if (child->new_parent && child->new_parent != clk)
+> >>>>                continue;
+> >>>
+> >>> Are we not hitting the new_parent check here? I don't understand
+> >>> how we can be changing parents here unless the check is being
+> >>> avoided, in which case I wonder why determine_rate isn't being
+> >>> used.
+> >>>
+> >>
+> >> It depends how the clock underneath handles the situation. The error I
+> >> am seeing actually happens with a SoC specific compound clock (DPLL)
+> >> which integrates set_rate + mux functionality into a single clock
+> >> node. A call to the clk_set_rate changes the parent of this clock
+> >> (from bypass clock to reference clock), in addition to changing the
+> >> rate (tune the mul+div.) I looked at using the determine rate call
+> >> with this type but it breaks everything up... the parent gets changed
+> >> but not the clock rate, in addition to some other issues.
+> >
+> > Ok. Is this omap3_noncore_dpll_set_rate()?
 > 
-> Hi Ohad, Suman
+> Yes.
 > 
-> I'm about to send out some patches that depends on this functionality,
-> how do we move forward?
+>  > Can we use determine_rate +
+> > clk_set_parent_and_rate()? At least clk_set_parent_and_rate() would
+> > allow us to do the mult+div and the parent in the same op call, although
+> > I don't understand why setting the parent and then setting the rate is
+> > not going to work.
 > 
-> I still think it's wrong to not return -EPROBE_DEFER, but I much
-> rather have the code returning NULL than not having it in the tree (we
-> can always argue about it later...).
-> 
-> @Suman, do you remember if there was any other comments on the patch?
+> Well, setting parent first, then rate later causes problems with the 
+> DPLL ending up running with illegal (non-specified) rate, the M+N values 
+> are most likely wrong if you just switch from bypass clock to reference 
+> clock first without programming the M+N first.
 
-I have posted two further revisions of this series, the latest is v6
-[1]. I added additional patches in v5 that added the concept of reserved
-locks, and I have posted them as a separate RFC [2] for v6 so as to not
-block the core DT support.
+I took a quick look and it still seems to me that the OMAP DPLLs are
+still not modeled properly as mux clocks. Is this correct?
 
-In anycase, the latest v6 version does not define the
-of_hwspin_lock_request_specific() function anymore, and it is replaced
-with of_hwspin_lock_get_id() function, based on Ohad's review comments
-on v5, and I did add the support for -EPROBE_DEFER in this API, without
-changing any of the existing return code conventions.
+This issue has been lingering for a long time and we can't use
+determine_rate unless that clock has multiple parents. Simply hacking
+knowledge of the parent bypass clock into the .set_rate callback is not
+enough.
 
-I am yet to receive any comments on v6, but that series should address
-both your need for a probe deferral and Ohad's request to not change any
-return types. Please give it a try and let me know if you have any comments.
-
-regards
-Suman
-
-[1] http://marc.info/?l=linux-arm-kernel&m=141055365513902&w=2
-[2] http://marc.info/?l=linux-arm-kernel&m=141055554214657&w=2
+Regards,
+Mike
 
 > 
-> @Ohad, do you object merging Suman's patch in it's current form? I
-> think it should still apply cleanly.
+>   I'm interested in the other issues that you mentioned
+> > too.
 > 
-> Regards,
-> Bjorn
+> Mostly these were side-effects from the illegal DPLL setup I guess, like 
+> boot hang, failed drivers etc. I didn't really investigate this that 
+> much as it is much more simpler just to use safe list iteration here.
 > 
-
+> -Tero
