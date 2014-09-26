@@ -1,76 +1,94 @@
-From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate change
-Date: Fri, 26 Sep 2014 16:24:53 -0700
-Message-ID: <20140926232453.19023.25483@quantum>
-References: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
- <20140922191816.GF10233@codeaurora.org> <542177E5.9060606@ti.com>
- <5424C2FA.4000508@codeaurora.org> <5425135F.2070809@ti.com>
+From: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] clk: add gpio gated clock
+Date: Fri, 26 Sep 2014 16:53:53 -0700
+Message-ID: <20140926235353.19023.31514@quantum>
+References: <1409919694-26941-1-git-send-email-jsarha@ti.com>
+ <20140909221408.19023.12081@quantum> <541160E8.5070701@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5425135F.2070809@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <541160E8.5070701-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: t-kristo-l0cyMroinI0@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, detheridge-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Tero Kristo (2014-09-26 00:18:55)
-> On 09/26/2014 04:35 AM, Stephen Boyd wrote:
-> > On 09/23/14 06:38, Tero Kristo wrote:
-> >> On 09/22/2014 10:18 PM, Stephen Boyd wrote:
-> >>> On 08/21, Tero Kristo wrote:
-> >>>>            /* Skip children who will be reparented to another clock */
-> >>>>            if (child->new_parent && child->new_parent != clk)
-> >>>>                continue;
-> >>>
-> >>> Are we not hitting the new_parent check here? I don't understand
-> >>> how we can be changing parents here unless the check is being
-> >>> avoided, in which case I wonder why determine_rate isn't being
-> >>> used.
-> >>>
+Quoting Jyri Sarha (2014-09-11 01:44:24)
+> On 09/10/2014 01:14 AM, Mike Turquette wrote:
+> > Quoting Jyri Sarha (2014-09-05 05:21:34)
+> >> The added gpio-gate-clock is a basic clock that can be enabled and
+> >> disabled trough a gpio output. The DT binding document for the clock
+> >> is also added. For EPROBE_DEFER handling the registering of the clock
+> >> has to be delayed until of_clk_get() call time.
 > >>
-> >> It depends how the clock underneath handles the situation. The error I
-> >> am seeing actually happens with a SoC specific compound clock (DPLL)
-> >> which integrates set_rate + mux functionality into a single clock
-> >> node. A call to the clk_set_rate changes the parent of this clock
-> >> (from bypass clock to reference clock), in addition to changing the
-> >> rate (tune the mul+div.) I looked at using the determine rate call
-> >> with this type but it breaks everything up... the parent gets changed
-> >> but not the clock rate, in addition to some other issues.
+> >> Signed-off-by: Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+> >> ---
+> >>
+> >> This is my final attempt to get this generic gpio controlled basic
+> >> clock into mainline. Of course I gladly fix any issues that the patch
+> >> may have. However, if there is no response, I give up and move it to TI
+> >> specific clocks.
+> >>
 > >
-> > Ok. Is this omap3_noncore_dpll_set_rate()?
+> > I searched through my archives and found a post from January. You Cc'd
+> > me as "<mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>". Note that the address is wrapped in
+> > chevrons but there is no name string (e.g. "Mike Turquette").
+> >
+> > My mailer doesn't parse this well it was not flagged as to:me in my
+> > filters. Maybe other mailers handle this better? If you leave out the
+> > name string in the future then it would probably be best to drop the
+> > chevrons.
+> >
 > 
-> Yes.
+> Then git send-email adds the chevrons, but in the future I'll put the 
+> name string there too.
 > 
->  > Can we use determine_rate +
-> > clk_set_parent_and_rate()? At least clk_set_parent_and_rate() would
-> > allow us to do the mult+div and the parent in the same op call, although
-> > I don't understand why setting the parent and then setting the rate is
-> > not going to work.
+> >> I've been sending this patch as a part of Beaglebone-Black HDMI audio
+> >> patch series since last autumn. Since the previous version I have done
+> >> some minor cleanups and changed the clock's compatible property from
+> >> "gpio-clock" to "gpio-gate-clock". All the file names, comments,
+> >> etc. have also been changed accordingly.
+> >
+> > Is your platform the only one to take advantage of this clock type so
+> > far? I feel that it is esoteric enough that it shouldn't be made
+> > generic.
+> >
+> > The main reason is that all of the generic clock types needs to be
+> > overhauled at some point. E.g. the clk-gate should have its
+> > machine-specific logic separated from its machine-independent logic. If
+> > the gate clock were to populate .enable and .disable callbacks and then
+> > leave the actual register banging, or regmap'ing, or gpio'ing up to your
+> > backend driver then that would be a big improvement and would avoid the
+> > need to create this new clock type outright.
+> >
+> > So that's on my todo list, but it's not done yet. For your patch I think
+> > that putting this code into drivers/clk/ti would probably be best,
+> > unless other folks could use it as-is. Even if others could use it today
+> > I would want to remove it eventually for the reasons stated in the
+> > paragraph above.
+> >
 > 
-> Well, setting parent first, then rate later causes problems with the 
-> DPLL ending up running with illegal (non-specified) rate, the M+N values 
-> are most likely wrong if you just switch from bypass clock to reference 
-> clock first without programming the M+N first.
+> Ok, I see. I do not know of anybody else needing a gpio gate clock at 
+> the moment. I'll put the driver under drivers/clk/ti unless someone 
+> comes forward soon.
 
-I took a quick look and it still seems to me that the OMAP DPLLs are
-still not modeled properly as mux clocks. Is this correct?
+Well nobody came forward but after thinking about it I've seen this
+design elsewhere, so it should probably be generic. And the underlying
+machine-specific ops are less relevant to this type since most of that
+is abstracted away behind the GPIO api.
 
-This issue has been lingering for a long time and we can't use
-determine_rate unless that clock has multiple parents. Simply hacking
-knowledge of the parent bypass clock into the .set_rate callback is not
-enough.
+Applied to clk-next. Let me know if that causes a problem for you if you
+have merged this into the TI clk stuff.
 
 Regards,
 Mike
 
 > 
->   I'm interested in the other issues that you mentioned
-> > too.
+> Thanks,
+> Jyri
 > 
-> Mostly these were side-effects from the illegal DPLL setup I guess, like 
-> boot hang, failed drivers etc. I didn't really investigate this that 
-> much as it is much more simpler just to use safe list iteration here.
-> 
-> -Tero
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
