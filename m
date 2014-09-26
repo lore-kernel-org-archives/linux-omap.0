@@ -1,59 +1,43 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] ARM: dts: dra7-evm: Fix interrupt line of pcf@i2c1:0x21
-Date: Fri, 26 Sep 2014 16:12:21 +0300
-Message-ID: <54256635.1010704@ti.com>
-References: <1411736556-4538-1-git-send-email-rogerq@ti.com>
+From: Bjorn Andersson <bjorn@kryo.se>
+Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
+Date: Fri, 26 Sep 2014 07:40:33 -0700
+Message-ID: <CAJAp7Oj-3ZxvN8o=rg8YeTiXYWyQ1iowgisdU1R5UcZeh4VmOQ@mail.gmail.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
+	<1389658764-39199-5-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49388 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753782AbaIZNMY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Sep 2014 09:12:24 -0400
-Received: from dflxv15.itg.ti.com ([128.247.5.124])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id s8QDCNqU014581
-	for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2014 08:12:23 -0500
-Received: from DLEE70.ent.ti.com (dlemailx.itg.ti.com [157.170.170.113])
-	by dflxv15.itg.ti.com (8.14.3/8.13.8) with ESMTP id s8QDCNYv031839
-	for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2014 08:12:23 -0500
-In-Reply-To: <1411736556-4538-1-git-send-email-rogerq@ti.com>
+Received: from mail-we0-f172.google.com ([74.125.82.172]:58013 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754898AbaIZOkf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2014 10:40:35 -0400
+Received: by mail-we0-f172.google.com with SMTP id q58so817173wes.3
+        for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2014 07:40:33 -0700 (PDT)
+In-Reply-To: <1389658764-39199-5-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: nsekhar@ti.com
-Cc: george.cherian@ti.com, balbi@ti.com, linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Kumar Gala <galak@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Oops. send to the wrong mailing list. Please ignore.
+On Mon, Jan 13, 2014 at 4:19 PM, Suman Anna <s-anna@ti.com> wrote:
+> This patch adds three new OF helper functions to use/request
+> locks from a hwspinlock device instantiated through a
+> device-tree blob.
+>
 
-cheers,
--roger
+Hi Ohad, Suman
 
-On 09/26/2014 04:02 PM, Roger Quadros wrote:
-> The interrupt line of pcf I/O expander chip @i2c1:0x21
-> is tied to gpio6_11 and not gpio6_14. Fix that.
-> 
-> Without this USB_ID detection will not work and I2C3 bus activity
-> will cause spurious interrupts for the I/O expander chip.
-> 
-> Fixes: 87991e7b4dd4 (ARM: dts: dra7-evm: Add extcon nodes for USB)
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/boot/dts/dra7-evm.dts | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index 8ddd012..53b6fba 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -606,7 +606,7 @@
->  		gpio-controller;
->  		#gpio-cells = <2>;
->  		interrupt-parent = <&gpio6>;
-> -		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
-> +		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
->  		interrupt-controller;
->  		#interrupt-cells = <2>;
->  	};
-> 
+I'm about to send out some patches that depends on this functionality,
+how do we move forward?
 
+I still think it's wrong to not return -EPROBE_DEFER, but I much
+rather have the code returning NULL than not having it in the tree (we
+can always argue about it later...).
+
+@Suman, do you remember if there was any other comments on the patch?
+
+@Ohad, do you object merging Suman's patch in it's current form? I
+think it should still apply cleanly.
+
+Regards,
+Bjorn
