@@ -1,84 +1,69 @@
-From: =?utf-8?B?5bCP5L2Z?= <admin@icnc-fskd.lntu.edu.cn>
-Subject: =?utf-8?B?55So5LqG5LiA5qyh5L2g5bCx5Lya6KeJ5b6X5piv5pyA5aW955qE55+t5L+h5Y+R6YCB5bmz5Y+wIA==?=
-	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
-	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
-	=?utf-8?B?ICAgICAgICAgICAgICAgICAgICA=?=
-	=?utf-8?B?ICAgICAgICBrenZ4ano=?=
-Date: Sat, 27 Sep 2014 11:45:06 +0800
-Message-ID: <20140927114513271778@icnc-fskd.lntu.edu.cn>
-Reply-To: <dingxj8@aliyun.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] arm, fbdev, omap2, LLVMLinux: Remove nested function
+ from omap2 dss
+Date: Sat, 27 Sep 2014 11:46:21 -0500
+Message-ID: <20140927164554.GA7076@saruman>
+References: <1411780253-4492-1-git-send-email-behanw@converseincode.com>
+ <1411780253-4492-2-git-send-email-behanw@converseincode.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [111.117.160.13] ([111.117.160.13]:58396 "HELO
-	icnc-fskd.lntu.edu.cn" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with SMTP id S1750781AbaI0EWG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Sep 2014 00:22:06 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wzJLGUyc3ArbnUjN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1411780253-4492-2-git-send-email-behanw@converseincode.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Behan Webster <behanw@converseincode.com>
+Cc: plagnioj@jcrosoft.com, tomi.valkeinen@ti.com, daniel.vetter@ffwll.ch, geert@linux-m68k.org, laurent.pinchart@ideasonboard.com, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, robdclark@gmail.com, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: linux-ibcs2@vger.rutgers.edu, linux-meng@tom.com, linux-netdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-DQogIOi/meS4quefreS/oeWPkemAgeW5s+WPsOWunuWcqOaYr+WkquWlveeUqOS6hu+8jOWGjeS5
-n+S4jeaEgeaJvuS4jeWIsOWlveeahOW5s+WPsOS6hu+8jOWPquimgeaYr+S9oOWPkeeahOWGheWu
-ueaYr+ato+inhOeahO+8jOi9u+advuWwseWPr+S7peWPkemAgeWHuuWOu+OAguWKoFFRMTkzOTg5
-NzI15YW35L2T5ZKo6K+i77yM5Y+v5Lul5byA6LSm5Y+35rWL5pWI5p6c44CCDQoNCg0KDQoNCg0K
-IA0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0K
-DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
-Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0K
-DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCuS6uui1sOWIsOS7lueskeWY
-u+WYu+WcsOi/nOi/nOWPq+mBk++8muKAnOWwj+a0m++8jOi/h+adpe+8jOiuqeaxquWPlOWPlOaN
-j+S4gOS4i++8geKAnSAgICDor7TnnYDotbDliLDku5bouqvovrnvvIzlj4zmiYvlh7rlh7vvvIzl
-t6blj7PlvIDlvIDlt6XvvIzni6Dni6DlnLDmjY/kuobkuIDkuIvku5bnmoTohLjom4vjgIIgICAg
-5aSP5bCP5rSb6JOm5Zyw5oOz6LW377yM6L+Z5Lq65q2j5piv54i25Lqy5Li65pWw54i454i45piv
-5LuA5LmI5qC355qE5Lq65LmI77yf4oCdICAgIOS9leivl+mfteacieeCueS4jeiHqueEtuWdkOed
-gO+8jOW/g+eqgeeqgeebtOi3s++8jOiEuOe6ouW+l+abtOmAj++8jOmBk++8muKAnOS4jeefpemB
-k+OAguKAnSAgICDigJzmiJHniLjkuIDnm7Tmiornn6Xor4bliIblrZDnmoTlsIrkuKXvvIznnIvl
-vpfmr5Tku5bnmoTnlJ/lkb3ov5jph43opoHvvIzlnKjnsr7npZ7kuIropoHmsYLkurrmoLznmoTn
-i6znq4vjgIHliIbkuLrmlbDlrabjgIHor63mlofjgIHoi7Hor63lkozlpKfnu7zlkIjlm5vlpZfv
-vIzkuIrljYjov5jmnInov5jmnInkuInoioLor77vvIzogIPkuobmlbDlrabjgIHor63mlofvvIzk
-uIvljYjogIPkuoboi7Hor63lkozlpKfnu7zlkIjjgIIgICAg5pS+5a2m55qE5pe25YCZ5Yiw5LqG
-77yM5bGI5bCP5YWD5ZKM5Yeg5Liq5ZKM5aSP5bCP5rSb5YWz57O75LiN6ZSZ55qE5ZCM5a2m5Zu0
-552A5LuW6K+077ya4oCc5LiK5Y2I5L2g6K+06ICB5a2Q5bCx5YG356qD5L2g5LqG77yB5oCO5LmI
-5ru077yfICAgIOWYv+WYv++8jOeEtuWQjuWGjeeUqOaJueWIpOeahOecvOWFieadpeeci+adpeiH
-quWym+WbveeahOa0quawtOeMm+WFveOAgiAgICDlm6DmraTmioTooq3kuIDkuKrmnKzouqvlsLHm
-mK/mioTooq3ml6XmnKzmvKvnlLvnmoTkvZzlk4HvvIznrYnkuo7mioTooq3lsI/ml6XmnKznmoTk
-vZzlk4HvvIzlpI/lsI/mtJvooajnpLrmr6vml6DlhoXnlprkuYvmhJ/jgIIgIOS4iueahOiAgeW5
-tOS6uuWBmui/h+S4gOmhueiwg+afpe+8jOWFtuS4reaciTg1JeeahOiAgeW5tOS6uuacgOWQjuaC
-lOeahOS6i+aDheesrOS4gOmhuemAieaLqeeahOaYr+ayoeacieWlveWlveWtpuS5oOWQhOenjeef
-peivhuS4juaKgOiDveOAgiAgICDku4rnlJ/og73lpJ/ph43mnaXvvIzpgqPmmK/kuIvlrprlhrPl
-v4PopoHlgZrkuIDnlarkuI3lh6HnmoTkuJrnu6nvvIzku7vliY3pnaLmmK/liIDlsbHngavmtbfv
-vIzpmanls7DnrJHjgILlpI/lsI/mtJvlj6rop4nlvpflpbnnmoTkuIDpoqbkuIDnrJHml6DkuI3m
-nInnnYDliKvmoLfnmoTprYXlipvvvIzpgqPmmK/kuIDnp43lj5Hoh6rlhoXlv4PnmoTlhYnlvanv
-vIzlkozkuIDlkJHlvazlvazmnInnpLznlaXluKbnvp7mgK/nmoTkvZXor5fpn7XmmK/kuIDnp43k
-uI3lkIznmoTpo47pn7XjgIIgICAg5Y+q5piv77yM5LuW5rC46L+c5LiN6IO95Lii5byD5L2V6K+X
-6Z+177yM5L2V6K+X6Z+15aSq5ZaE6Imv5LqGCQ0K5Y+J5LmI77yf4oCd5aSP5bCP5rSb5oiP6LCR
-5Zyw6Zeu44CCICAgIOKAnOS4jeeJm++8jOaIkeeIuOeIuOWwj+enkeWRmOS4gOaemu+8jOiCoee6
-p+mDveayoeacieOAguKAneS9leivl+mfteS4gOWQkOWwj+iIjOWktO+8jOWBmuS6huS4qumsvOiE
-uOOAgiAgICDigJzmlL/lupzlpKfpmaLnmoTkurrlsLHmmK/niZvlj4nllYrvvIzlsI/np5HlkZjp
-g73pgqPkuYjmtbflir/jgILigJ3lpI/lsI/mtJvmkofnnYDlmLTngrnlr7nov5nkuKrlsI/okIzo
-kJ3ojonmgYvmgYvkuI3oiI3kuobjgIIgICAg5LiN6L+H5Lik5Lq65ZGK5Yir55qE5pe25YCZ77yM
-5L2V6K+X6Z+15aW95YOP5LiA54K55L6d5L6d5oOc5Yir55qE5oSf6KeJ6YO95rKh5pyJ77yM5a+5
-5Y2z5bCG6KaB5Y6755qE5YyX5Lqs5Z+O5b6I5piv5ZCR5b6A77yM6L+Z5ZCR5b6A5oqK5aW556a7
-5byA5aSP5bCP5rSb55qE6YKj5LiA54K55b+n5Lyk5Yay55qE5peg5b2x5peg6Liq44CCICAgIOWw
-seWGjeS5n+ayoeWQg+i/h+S6hu+8jOecn+aYr+S7pOS6uuaAgOW/teeahOWRs+mBk+OAgiAgICDk
-u5bog4zotbfkuabljIXvvIzouabouabot7Pot7PlnLDkuIrlrabkuobjgIIgICAg6LWw5Ye66Zeo
-5aSW77yM6KeJ5b6X56m65rCU54m55Yir5riF5paw77yM5Zug5Li65rG96L2m5b6I5bCR77yM5pyA
-5bi46KeB55qE5piv5qGR5aGU57qz77yM5bCR5pWw57qi5peX6L2m5piv5YWs5Yqh55So6L2m44CC
-ICAgIOi/meaXtuWAmeWxiOW/l+WLh+S4gOWPo+awlOWWneS6huS4pOeTtueZvemFku+8gSAgICDm
-nKzku6XkuLrvvIzkuZ/liIHpmr7ov4fkuobvvIzor6Xnu5npkrHkuoblkKfvvJ/okaPkuZ3mmJ/l
-jbTkuJ3mr6vkuI3orrLkv6HnlKjvvIzpgZPvvJrigJzkvaDopoHog73kuInljYHliIbpkp/kuI3l
-kJDlh7rmnaXvvIzmiJHlsLHnu5nkvaDpkrHigKbigKbigJ0gICAg5ZCs5Yiw6L+Z6YeM77yM5aSP
-5bCP5rSb5oCS5LiN5Y+v6YGP77yM6L+Z5YiG5piO5LiL77yM5p2O5aSn5Zi06Lqr5L2T5oCl6YCf
-5ZCR5YmN6aOe5aWU5LmL5Lit77yM5LiL55uY6KKr5Lq66Zi75oyh77yM6Lqr5L2T6Ieq54S26ICM
-54S25Zyw5YmN5YC+77yM6YeN6YeN5Zyw5pGU5LqG5Liq5Zi05ZWD5rOl44CCICAgIOS8l+S6uuea
-hOWYtOW3tOmVv+W+l+Wkp+Wkp+eahO+8jOW/g+mBk++8jOi/meW5tOi9u+S6uu+8jOiZveeEtuS5
-n+eul+aYr+i6q+W8uuWKm+Wjru+8jOiGgOWkp+iFsOWchu+8jOWPr+aYr+WSjOadjuayu+a0l+eJ
-jO+8jOWQhOaWueWKv+WKm+i9rueVqueZu+Wcuu+8jOWwseeci+aYr+iwgeeahOWKm+mHj+Wkp+S6
-huOAgiAgICDnrqHku5blqJjnmoTvvIzmi7zkuobvvIzku5blkqzntKfniZnlhbPlnKjlv4Pph4zp
-gZPjgILlpb3lg4/ogr7kuIrohbrliIbms4zlvpLnhLblop7lpJrvvIzku5bmhJ/op4nliLDkuIDn
-p43ojqvlkI3lhbblppnnmoTlv6vmhJ/jgIIgICAg5pS/5rK75pys5p2l5bCx5piv6KGA6IWl55qE
-77yM55S35Lq6CQ0K
+--wzJLGUyc3ArbnUjN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Fri, Sep 26, 2014 at 06:10:52PM -0700, Behan Webster wrote:
+> Replace the use of nested functions where a normal function will suffice.
+>=20
+> Nested functions are not liked by upstream kernel developers in general. =
+Their
+> use breaks the use of clang as a compiler, and doesn't make the code any
+> better.
+>=20
+> This code now works for both gcc and clang.
+>=20
+> Signed-off-by: Behan Webster <behanw@converseincode.com>
+> Suggested-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Arnd Bergmann <arnd@arndb.de>
 
+another one that make sense :-) And probably also deserves
+checkpatch/coccinelle/sparse.
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--wzJLGUyc3ArbnUjN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUJundAAoJEIaOsuA1yqREUkkP/i7tBWnOQu7nUvgsJOIBPe8Y
+Nh/Zh0I3ivxVtMVFEXDo6GIYSlENb0duDYHXHBkbSr2X67g8rEab1ROrEFepmghc
+JIdbWDxrBa+QfB9rG+xM2Uq2sVKc1o+0QZi92va9fsdmolMUWXwshbefhYzp0+yT
+03WAWVfn2JykPzO9cvH9Ux41LSpFDNOq0q2U9S8Td3O6dLLN5plDcgB4zHwy/Oal
+doHPdKx6VaPG5h/9R88KjiDsrivUEAg2PEy4nN+wKIOfk4Shb8cI+jiKLZAkFP/2
+8wBTnFySnl1D6iHiNUY5TflmxOF76eiZVoXOuG9qf2ALAjdeC2KV4mAOY/mIprdc
++JKXCMvr9mlDDG5/8Ap9e0pdheW8j4nEvQv0hDIeP4TCBvvHIFWEJRViLxQyBQav
++AgCBI3+h1XPkFhAjNygV9NWgOxzWyzEpFnp/8vxO0V0+6UMUpa3IA1yGJicPGiM
+XBDo54ED5+958dvgs+sbjl4NbqCxRoE/BGsN1JuzIrxne9/9AWhWOORyxc7M81+s
+XUGX5rgkYQFDfuzlXI6PdDU+ZpEshFqqTEjcgo1x3VVLQl0bWwo9ka70f++4uUHn
+EB+8V9Kj9tcMKnPPSEtfzdEosS42PrIbnbPz11oWgAMrWhNFmv6SckHj1aoxAd6W
+CCzYb7XhvOHi7Kig/r5v
+=vNsF
+-----END PGP SIGNATURE-----
+
+--wzJLGUyc3ArbnUjN--
