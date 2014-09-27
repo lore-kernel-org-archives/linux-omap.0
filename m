@@ -1,14 +1,20 @@
 From: Behan Webster <behanw@converseincode.com>
-Subject: [PATCH 1/2] arm, fbdev, omap2, LLVMLinux: Remove nested function from omap2 dss
-Date: Fri, 26 Sep 2014 18:10:52 -0700
-Message-ID: <1411780253-4492-2-git-send-email-behanw@converseincode.com>
+Subject: [PATCH 2/2] arm, fbdev, omap2, LLVMLinux: Remove nested function from omapfb
+Date: Fri, 26 Sep 2014 18:10:53 -0700
+Message-ID: <1411780253-4492-3-git-send-email-behanw@converseincode.com>
 References: <1411780253-4492-1-git-send-email-behanw@converseincode.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:39850 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751932AbaI0BLO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Sep 2014 21:11:14 -0400
+Received: by mail-pd0-f179.google.com with SMTP id ft15so13965643pdb.10
+        for <linux-omap@vger.kernel.org>; Fri, 26 Sep 2014 18:11:14 -0700 (PDT)
 In-Reply-To: <1411780253-4492-1-git-send-email-behanw@converseincode.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: plagnioj@jcrosoft.com, tomi.valkeinen@ti.com
 Cc: behanw@converseincode.com, archit@ti.com, daniel.vetter@ffwll.ch, geert@linux-m68k.org, laurent.pinchart@ideasonboard.com, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, robdclark@gmail.com, Arnd Bergmann <arnd@arndb.de>
-List-Id: linux-omap@vger.kernel.org
 
 Replace the use of nested functions where a normal function will suffice.
 
@@ -22,70 +28,37 @@ Signed-off-by: Behan Webster <behanw@converseincode.com>
 Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/video/fbdev/omap2/dss/dispc-compat.c  |  9 +++++----
- drivers/video/fbdev/omap2/dss/manager-sysfs.c | 16 +++++++++-------
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/dispc-compat.c b/drivers/video/fbdev/omap2/dss/dispc-compat.c
-index 83779c2..633c461 100644
---- a/drivers/video/fbdev/omap2/dss/dispc-compat.c
-+++ b/drivers/video/fbdev/omap2/dss/dispc-compat.c
-@@ -634,13 +634,14 @@ void dispc_mgr_disable_sync(enum omap_channel channel)
- 		WARN_ON(1);
- }
+diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+index ec2d132..1587243 100644
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -273,16 +273,16 @@ static struct omapfb_colormode omapfb_colormodes[] = {
+ 	},
+ };
  
-+static inline void dispc_irq_wait_handler(void *data, u32 mask)
++static bool cmp_component(struct fb_bitfield *f1, struct fb_bitfield *f2)
 +{
-+	complete((struct completion *)data);
++	return f1->length == f2->length &&
++		f1->offset == f2->offset &&
++		f1->msb_right == f2->msb_right;
 +}
 +
- int omap_dispc_wait_for_irq_interruptible_timeout(u32 irqmask,
- 		unsigned long timeout)
+ static bool cmp_var_to_colormode(struct fb_var_screeninfo *var,
+ 		struct omapfb_colormode *color)
  {
--	void dispc_irq_wait_handler(void *data, u32 mask)
+-	bool cmp_component(struct fb_bitfield *f1, struct fb_bitfield *f2)
 -	{
--		complete((struct completion *)data);
--	}
- 
- 	int r;
- 	DECLARE_COMPLETION_ONSTACK(completion);
-diff --git a/drivers/video/fbdev/omap2/dss/manager-sysfs.c b/drivers/video/fbdev/omap2/dss/manager-sysfs.c
-index 37b59fe..a7414fb 100644
---- a/drivers/video/fbdev/omap2/dss/manager-sysfs.c
-+++ b/drivers/video/fbdev/omap2/dss/manager-sysfs.c
-@@ -44,6 +44,13 @@ static ssize_t manager_display_show(struct omap_overlay_manager *mgr, char *buf)
- 			dssdev->name : "<none>");
- }
- 
-+static int manager_display_match(struct omap_dss_device *dssdev, void *data)
-+{
-+	const char *str = data;
-+
-+	return sysfs_streq(dssdev->name, str);
-+}
-+
- static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
- 		const char *buf, size_t size)
- {
-@@ -52,17 +59,12 @@ static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
- 	struct omap_dss_device *dssdev = NULL;
- 	struct omap_dss_device *old_dssdev;
- 
--	int match(struct omap_dss_device *dssdev, void *data)
--	{
--		const char *str = data;
--		return sysfs_streq(dssdev->name, str);
+-		return f1->length == f2->length &&
+-			f1->offset == f2->offset &&
+-			f1->msb_right == f2->msb_right;
 -	}
 -
- 	if (buf[size-1] == '\n')
- 		--len;
- 
- 	if (len > 0)
--		dssdev = omap_dss_find_device((void *)buf, match);
-+		dssdev = omap_dss_find_device((void *)buf,
-+			manager_display_match);
- 
- 	if (len > 0 && dssdev == NULL)
- 		return -EINVAL;
+ 	if (var->bits_per_pixel == 0 ||
+ 			var->red.length == 0 ||
+ 			var->blue.length == 0 ||
 -- 
 1.9.1
+
