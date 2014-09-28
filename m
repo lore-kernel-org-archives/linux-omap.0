@@ -1,42 +1,41 @@
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: Re: Legacy Code in gpmc-onenand.c
-Date: Sun, 28 Sep 2014 21:44:07 +0530
-Message-ID: <20140928161407.GA2493@sudip-PC>
-References: <5427744E.4040409@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Markus Pargmann <mpa@pengutronix.de>
+Subject: [PATCH RESEND v6 2/7] net: cpsw: Add missing return value
+Date: Sun, 28 Sep 2014 18:59:16 +0200
+Message-ID: <1411923561-31524-3-git-send-email-mpa@pengutronix.de>
+References: <1411923561-31524-1-git-send-email-mpa@pengutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:58452 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751902AbaI1QOU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Sep 2014 12:14:20 -0400
-Content-Disposition: inline
-In-Reply-To: <5427744E.4040409@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43639 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbaI1RAY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Sep 2014 13:00:24 -0400
+In-Reply-To: <1411923561-31524-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: nick <yocto6@gmail.com>
-Cc: khilman@deeprootsystems.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-On Sat, Sep 27, 2014 at 10:37:02PM -0400, nick wrote:
-> Greetings Kevin and others,
-> I am wondering if the below code is legacy I can remove it as stated it the fix me.
-> Cheers Nick 
-> else {
->                 /*
->                 * FIX ME: Appears to be legacy code from initial ONENAND commit.
->                 * Unclear what boards this is for and if this can be removed.
->                  */
->                 if (!cpu_is_omap34xx())
->                         onenand_sync.wait_on_read = true;
->         }
+ret is set 0 at this point, so jumping to that error label would result
+in a return value of 0. Set ret to -ENOMEM to return a proper error
+value.
 
-the FIX ME does not say that you can remove the code. It says you need to find out that the code is being used by which board. And if you want to remove it then you have to explain why the code is removed , and after removing what will be the effect , and if there is no effect then why there is no effect.
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+Reviewed-by: Wolfram Sang <wsa@the-dreams.de>
+---
+ drivers/net/ethernet/ti/cpsw.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Good Luck.
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 999fb72688d2..f09b4639ad31 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -2063,6 +2063,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	priv->irq_enabled = true;
+ 	if (!priv->cpts) {
+ 		dev_err(&pdev->dev, "error allocating cpts\n");
++		ret = -ENOMEM;
+ 		goto clean_ndev_ret;
+ 	}
+ 
+-- 
+2.1.0
 
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
