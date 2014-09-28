@@ -1,151 +1,47 @@
 From: Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH RESEND v6 5/7] net: cpsw: Add am33xx MACID readout
-Date: Sun, 28 Sep 2014 18:59:19 +0200
-Message-ID: <1411923561-31524-6-git-send-email-mpa@pengutronix.de>
-References: <1411923561-31524-1-git-send-email-mpa@pengutronix.de>
+Subject: [PATCH RESEND v6 0/7] DT doc: net: cpsw mac-address is optional
+Date: Sun, 28 Sep 2014 18:59:14 +0200
+Message-ID: <1411923561-31524-1-git-send-email-mpa@pengutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43741 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43739 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753995AbaI1RAr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Sep 2014 13:00:47 -0400
-In-Reply-To: <1411923561-31524-1-git-send-email-mpa@pengutronix.de>
+	with ESMTP id S1753721AbaI1RAq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 28 Sep 2014 13:00:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>
 Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de, Markus Pargmann <mpa@pengutronix.de>
 
-This patch adds a function to get the MACIDs from the am33xx SoC
-control module registers which hold unique vendor MACIDs. This is only
-used if of_get_mac_address() fails to get a valid mac address.
+Hi,
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-Reviewed-by: Wolfram Sang <wsa@the-dreams.de>
-Tested-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
+This is a resend of v6 of this series. I added the Acked-by of Tony Lindgren
+for patch 5/7. There are no other changes.
 
-Notes:
-    Changes in v6:
-     - Move machine check outside of cpsw_am33xx_cm_get_macid()
-    
-    Changes in v5:
-     - Fixed indention
+This series adds support to the cpsw driver to read the MACIDs of the am335x
+chip and use them as fallback. These addresses are only used if there are no
+mac addresses in the devicetree, for example set by a bootloader.
 
- Documentation/devicetree/bindings/net/cpsw.txt |  4 +++
+Best regards,
+
+Markus
+
+
+Markus Pargmann (7):
+  DT doc: net: cpsw mac-address is optional
+  net: cpsw: Add missing return value
+  net: cpsw: header, Add missing include
+  net: cpsw: Replace pr_err by dev_err
+  net: cpsw: Add am33xx MACID readout
+  am33xx: define syscon control module device node
+  arm: dts: am33xx, Add syscon phandle to cpsw node
+
+ Documentation/devicetree/bindings/net/cpsw.txt |  6 +++-
+ arch/arm/boot/dts/am33xx.dtsi                  |  6 ++++
  drivers/net/ethernet/ti/Kconfig                |  2 ++
- drivers/net/ethernet/ti/cpsw.c                 | 42 +++++++++++++++++++++++++-
- 3 files changed, 47 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/ti/cpsw.c                 | 45 ++++++++++++++++++++++++--
+ drivers/net/ethernet/ti/cpsw.h                 |  1 +
+ 5 files changed, 57 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index 107caf174a0e..33fe8462edf4 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -24,6 +24,8 @@ Optional properties:
- - ti,hwmods		: Must be "cpgmac0"
- - no_bd_ram		: Must be 0 or 1
- - dual_emac		: Specifies Switch to act as Dual EMAC
-+- syscon		: Phandle to the system control device node, which is
-+			  the control module device of the am33x
- 
- Slave Properties:
- Required properties:
-@@ -57,6 +59,7 @@ Examples:
- 		active_slave = <0>;
- 		cpts_clock_mult = <0x80000000>;
- 		cpts_clock_shift = <29>;
-+		syscon = <&cm>;
- 		cpsw_emac0: slave@0 {
- 			phy_id = <&davinci_mdio>, <0>;
- 			phy-mode = "rgmii-txid";
-@@ -85,6 +88,7 @@ Examples:
- 		active_slave = <0>;
- 		cpts_clock_mult = <0x80000000>;
- 		cpts_clock_shift = <29>;
-+		syscon = <&cm>;
- 		cpsw_emac0: slave@0 {
- 			phy_id = <&davinci_mdio>, <0>;
- 			phy-mode = "rgmii-txid";
-diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
-index 1769700a6070..5d8cb7956113 100644
---- a/drivers/net/ethernet/ti/Kconfig
-+++ b/drivers/net/ethernet/ti/Kconfig
-@@ -62,6 +62,8 @@ config TI_CPSW
- 	select TI_DAVINCI_CPDMA
- 	select TI_DAVINCI_MDIO
- 	select TI_CPSW_PHY_SEL
-+	select MFD_SYSCON
-+	select REGMAP
- 	---help---
- 	  This driver supports TI's CPSW Ethernet Switch.
- 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 0bc2c2a2c236..12497d921fa6 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -33,6 +33,8 @@
- #include <linux/of_net.h>
- #include <linux/of_device.h>
- #include <linux/if_vlan.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/regmap.h>
- 
- #include <linux/pinctrl/consumer.h>
- 
-@@ -1816,6 +1818,36 @@ static void cpsw_slave_init(struct cpsw_slave *slave, struct cpsw_priv *priv,
- 	slave->port_vlan = data->dual_emac_res_vlan;
- }
- 
-+#define AM33XX_CTRL_MAC_LO_REG(id) (0x630 + 0x8 * id)
-+#define AM33XX_CTRL_MAC_HI_REG(id) (0x630 + 0x8 * id + 0x4)
-+
-+static int cpsw_am33xx_cm_get_macid(struct device *dev, int slave,
-+		u8 *mac_addr)
-+{
-+	u32 macid_lo;
-+	u32 macid_hi;
-+	struct regmap *syscon;
-+
-+	syscon = syscon_regmap_lookup_by_phandle(dev->of_node, "syscon");
-+	if (IS_ERR(syscon)) {
-+		if (PTR_ERR(syscon) == -ENODEV)
-+			return 0;
-+		return PTR_ERR(syscon);
-+	}
-+
-+	regmap_read(syscon, AM33XX_CTRL_MAC_LO_REG(slave), &macid_lo);
-+	regmap_read(syscon, AM33XX_CTRL_MAC_HI_REG(slave), &macid_hi);
-+
-+	mac_addr[5] = (macid_lo >> 8) & 0xff;
-+	mac_addr[4] = macid_lo & 0xff;
-+	mac_addr[3] = (macid_hi >> 24) & 0xff;
-+	mac_addr[2] = (macid_hi >> 16) & 0xff;
-+	mac_addr[1] = (macid_hi >> 8) & 0xff;
-+	mac_addr[0] = macid_hi & 0xff;
-+
-+	return 0;
-+}
-+
- static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 			 struct platform_device *pdev)
- {
-@@ -1928,8 +1960,16 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 			 PHY_ID_FMT, mdio->name, phyid);
- 
- 		mac_addr = of_get_mac_address(slave_node);
--		if (mac_addr)
-+		if (mac_addr) {
- 			memcpy(slave_data->mac_addr, mac_addr, ETH_ALEN);
-+		} else {
-+			if (of_machine_is_compatible("ti,am33xx")) {
-+				ret = cpsw_am33xx_cm_get_macid(&pdev->dev, i,
-+							slave_data->mac_addr);
-+				if (ret)
-+					return ret;
-+			}
-+		}
- 
- 		slave_data->phy_if = of_get_phy_mode(slave_node);
- 		if (slave_data->phy_if < 0) {
 -- 
 2.1.0
 
