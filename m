@@ -1,47 +1,84 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
- for AM33xx
-Date: Mon, 29 Sep 2014 12:30:43 +0200
-Message-ID: <20140929103042.GA31111@ci00147.xsens-tech.local>
-References: <20140912094010.GE28458@ci00147.xsens-tech.local>
- <5412C21A.8020203@linutronix.de>
- <20140912102816.GF28458@ci00147.xsens-tech.local>
- <541716DC.9020904@linutronix.de>
- <20140917102812.GA20438@ci00147.xsens-tech.local>
- <20140921204100.GA10111@linutronix.de>
- <20140922092853.GH20438@ci00147.xsens-tech.local>
- <20140925151403.GH19396@linutronix.de>
- <20140929085042.GA13952@ci00147.xsens-tech.local>
- <20140929095440.GB13142@linutronix.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk, ti, LLVMLinux: Move __init outside of type definition
+Date: Mon, 29 Sep 2014 14:44:47 +0300
+Message-ID: <5429462F.7090702@ti.com>
+References: <1411777908-16016-1-git-send-email-behanw@converseincode.com> <20140927005506.GB25432@saruman> <54260B94.2050502@converseincode.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140929095440.GB13142@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54260B94.2050502@converseincode.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Behan Webster <behanw@converseincode.com>, balbi@ti.com
+Cc: mturquette@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 29, 2014 at 11:54:40AM +0200, Sebastian Andrzej Siewior wrote:
-> There is a patch named "ARM: edma: unconditionally ack the error
-> interrupt". I have the feeling that this is not really required once we
-> delay set_termios. I couldn't reproduce the bug with beagleblack with my
-> usual test case.
+On 09/27/2014 03:57 AM, Behan Webster wrote:
+> On 09/26/14 17:55, Felipe Balbi wrote:
+>> On Fri, Sep 26, 2014 at 05:31:48PM -0700, Behan Webster wrote:
+>>> As written, the __init for ti_clk_get_div_table is in the middle of
+>>> the return
+>>> type.
+>>>
+>>> The gcc documentation indicates that section attributes should be
+>>> added to the
+>>> end of the function declaration:
+>>>
+>>>    extern void foobar (void) __attribute__ ((section ("bar")));
+>>>
+>>> However gcc seems to be very permissive with where attributes can be
+>>> placed.
+>>> clang on the other hand isn't so permissive, and fails if you put the
+>>> section
+>>> definition in the middle of the return type:
+>>>
+>>> drivers/clk/ti/divider.c:298:28: error: expected ';' after struct
+>>> static struct clk_div_table
+>>>                             ^
+>>>                             ;
+>>> drivers/clk/ti/divider.c:298:1: warning: 'static' ignored on this
+>>>        declaration [-Wmissing-declarations]
+>>> static struct clk_div_table
+>>> ^
+>>> drivers/clk/ti/divider.c:299:9: error: type specifier missing,
+>>>        defaults to 'int' [-Werror,-Wimplicit-int]
+>>> __init *ti_clk_get_div_table(struct device_node *node)
+>>> ~~~~~~  ^
+>>> drivers/clk/ti/divider.c:345:9: warning: incompatible pointer types
+>>>        returning 'struct clk_div_table *' from a function with result
+>>> type 'int *' [-Wincompatible-pointer-types]
+>>>          return table;
+>>>                 ^~~~~
+>>> drivers/clk/ti/divider.c:419:9: warning: incompatible pointer types
+>>>        assigning to 'const struct clk_div_table *' from 'int *'
+>>> [-Wincompatible-pointer-types]
+>>>          *table = ti_clk_get_div_table(node);
+>>>                 ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+>>> 3 warnings and 2 errors generated.
+>>>
+>>> By convention, most of the kernel code puts section attributes
+>>> between the
+>>> return type and function name. In the case where the return type is a
+>>> pointer,
+>>> it's important to place the '*' on left of the __init.
+>>>
+>>> This updated code works for both gcc and clang.
+>>>
+>>> Signed-off-by: Behan Webster <behanw@converseincode.com>
+>>> Reviewed-by: Mark Charlebois <charlebm@gmail.com>
+>> makes sense to me:
+>>
+>> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> Thank you.
+>
+>> I wonder if we should add this a Sparse or Coccinelle rule.
+> +1
+>
+> I'm hoping it can be added to checkpatch as well.
+>
+> Behan
+>
 
-I think so too. I didn't need it either.
+Thanks, patch applied to for-v3.18/ti-clk-drv.
 
-
-> For your "too much work for irq" problem: Could you add trace_printk()
-> in tx/rx dma start/complete, and irq routine? The interresting part is
-> what is the irq routine doing once entered. It might be a condition that
-> is ignored at first and "acked" later while serving another event. Or it
-> is really doing something and this is more or less "legal".
-
-I'll have a look at that.
-
-> 
-> >Thanks,
-> >Frans
-> 
-> Sebastian
+-Tero
