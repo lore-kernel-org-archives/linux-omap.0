@@ -1,85 +1,71 @@
 From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 06/16] tty: serial: Add 8250-core based omap driver
-Date: Mon, 29 Sep 2014 11:38:23 +0200
-Message-ID: <20140929093823.GD13952@ci00147.xsens-tech.local>
+Subject: Re: [PATCH 02/16] tty: serial: 8250_core: add run time pm
+Date: Mon, 29 Sep 2014 11:46:20 +0200
+Message-ID: <20140929094620.GE13952@ci00147.xsens-tech.local>
 References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
- <1410377411-26656-7-git-send-email-bigeasy@linutronix.de>
+ <1410377411-26656-3-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1410377411-26656-7-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1410377411-26656-3-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-serial@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, mika.westerberg@linux.intel.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 10, 2014 at 09:30:01PM +0200, Sebastian Andrzej Siewior wrote:
+On Wed, Sep 10, 2014 at 09:29:57PM +0200, Sebastian Andrzej Siewior wrote:
+> +/*
+> + * This two wrapper ensure, that enable_runtime_pm_tx() can be called more than
+
+These two wrappers ensure that enable_runtime_pm_tx() ...
+
+> + * once and disable_runtime_pm_tx() will still disable RPM because the fifo is
+> + * empty and the HW can idle again.
+> + */
+> +static void serial8250_rpm_get_tx(struct uart_8250_port *p)
+> +{
+> +	unsigned char rpm_active;
+> +
+> +	if (!(p->capabilities & UART_CAP_RPM))
+> +		return;
+> +
+> +	rpm_active = xchg(&p->rpm_tx_active, 1);
+> +	if (rpm_active)
+> +		return;
+> +	pm_runtime_get_sync(p->port.dev);
+> +}
+> +
+> +static void serial8250_rpm_put_tx(struct uart_8250_port *p)
+> +{
+> +	unsigned char rpm_active;
+> +
+> +	if (!(p->capabilities & UART_CAP_RPM))
+> +		return;
+> +
+> +	rpm_active = xchg(&p->rpm_tx_active, 0);
+> +	if (!rpm_active)
+> +		return;
+> +	pm_runtime_mark_last_busy(p->port.dev);
+> +	pm_runtime_put_autosuspend(p->port.dev);
+> +}
+> +
+
+
+> @@ -1469,7 +1531,12 @@ void serial8250_tx_chars(struct uart_8250_port *up)
+>  
+>  	DEBUG_INTR("THRE...");
+>  
+> -	if (uart_circ_empty(xmit))
 > +	/*
-> +	 * We enable TRIG_GRANU for RX and TX and additionaly we set
-> +	 * SCR_TX_EMPTY bit. The result is the following:
-> +	 * - RX_TRIGGER amount of bytes in the FIFO will cause an interrupt.
-> +	 * - less than RX_TRIGGER number of bytes will also cause an interrupt
-> +	 *   once the UART decides that there no new bytes arriving.
-> +	 * - Once THRE is enabled, the interrupt will be fired once the FIFO is
-> +	 *   empty - the trigger level is ignored here.
-> +	 *
-> +	 * Once DMA is enabled:
-> +	 * - UART will assert the TX DMA line once there is room for TX_TRIGGER
-> +	 *   bytes in the TX FIFO. On each assert the DMA engine will move
-> +	 *   TX_TRIGGER bytes into the FIFO.
-> +	 * - UART will assert the RX DMA line once there are RX_TRIGGER bytes in
-> +	 *   the FIFO and move RX_TRIGGER bytes.
-> +	 * This is because treshold and trigger values are the same.
+> +	 * With RPM enabled, we have to wait once the FIFO is empty before the
 
-threshold
+s,once,until,? Or do I not understand the sentence correctly?
 
-> +	/*
-> +	 * It claims to be 16C750 compatible however it is a little different.
-> +	 * It has EFR and has no FCR7_64byte bit. The AFE (which it claims to
-> +	 * have) is enabled via EFR instead of MCR. The type is set here 8250
-> +	 * just to get things going. UNKNOWN does not work for a few reasons and
-> +	 * we don't need our own type since we don't use 8250's set_termios()
-> +	 * and our "bugs" are handeld via the bug member.
-
-handled
-
+> +	 * HW can go idle. So we get here once again with empty FIFO and disable
+> +	 * the interrupt and RPM in __stop_tx()
 > +	 */
-> +	up.port.type = PORT_8250;
-> +	up.port.iotype = UPIO_MEM;
-> +	up.port.flags = UPF_FIXED_PORT | UPF_FIXED_TYPE | UPF_SOFT_FLOW |
-> +		UPF_HARD_FLOW;
-> +	up.port.private_data = priv;
-> +
-> +	up.port.regshift = 2;
-> +	up.port.fifosize = 64;
-> +	up.tx_loadsz = 64;
-> +	up.capabilities = UART_CAP_FIFO | UART_CAP_EFR | UART_CAP_SLEEP;
-> +#ifdef CONFIG_PM_RUNTIME
-> +	/*
-> +	 * PM_RUNTIME is mostly transparent. However to do it right we need to a
-
-need to _do_ a ...?
-
-> +	 * TX empty interrupt before we can put the device to auto idle. So if
-> +	 * PM_RUNTIME is not enabled we don't add that flag and can spare that
-> +	 * one extra interrupt in the TX path.
-> +	 */
-
-<snip>
-
-> +config SERIAL_8250_OMAP
-> +	tristate "Support for OMAP internal UART (8250 based driver)"
-> +	depends on SERIAL_8250 && ARCH_OMAP2PLUS
-> +	help
-> +	  If you have a machine based on an Texas Instruments OMAP CPU you
-> +	  can enable its onboard serial ports by enabling this option.
-> +
-> +	  This driver is in early stage and uses ttyS instead of ttyO.
-> +
-
-I just wondered if this driver should be marked experimental?
-
-
-Thanks,
-Frans
+> +	if (uart_circ_empty(xmit) && !(up->capabilities & UART_CAP_RPM))
+>  		__stop_tx(up);
+>  }
+>  EXPORT_SYMBOL_GPL(serial8250_tx_chars);
