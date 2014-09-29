@@ -1,84 +1,81 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk, ti, LLVMLinux: Move __init outside of type definition
-Date: Mon, 29 Sep 2014 14:44:47 +0300
-Message-ID: <5429462F.7090702@ti.com>
-References: <1411777908-16016-1-git-send-email-behanw@converseincode.com> <20140927005506.GB25432@saruman> <54260B94.2050502@converseincode.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 06/16] tty: serial: Add 8250-core based omap driver
+Date: Mon, 29 Sep 2014 15:27:12 +0200
+Message-ID: <20140929132712.GD13142@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+ <1410377411-26656-7-git-send-email-bigeasy@linutronix.de>
+ <20140929093823.GD13952@ci00147.xsens-tech.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54260B94.2050502@converseincode.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Behan Webster <behanw@converseincode.com>, balbi@ti.com
-Cc: mturquette@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20140929093823.GD13952@ci00147.xsens-tech.local>
+Sender: linux-serial-owner@vger.kernel.org
+To: Frans Klaver <frans.klaver@xsens.com>
+Cc: linux-serial@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/27/2014 03:57 AM, Behan Webster wrote:
-> On 09/26/14 17:55, Felipe Balbi wrote:
->> On Fri, Sep 26, 2014 at 05:31:48PM -0700, Behan Webster wrote:
->>> As written, the __init for ti_clk_get_div_table is in the middle of
->>> the return
->>> type.
->>>
->>> The gcc documentation indicates that section attributes should be
->>> added to the
->>> end of the function declaration:
->>>
->>>    extern void foobar (void) __attribute__ ((section ("bar")));
->>>
->>> However gcc seems to be very permissive with where attributes can be
->>> placed.
->>> clang on the other hand isn't so permissive, and fails if you put the
->>> section
->>> definition in the middle of the return type:
->>>
->>> drivers/clk/ti/divider.c:298:28: error: expected ';' after struct
->>> static struct clk_div_table
->>>                             ^
->>>                             ;
->>> drivers/clk/ti/divider.c:298:1: warning: 'static' ignored on this
->>>        declaration [-Wmissing-declarations]
->>> static struct clk_div_table
->>> ^
->>> drivers/clk/ti/divider.c:299:9: error: type specifier missing,
->>>        defaults to 'int' [-Werror,-Wimplicit-int]
->>> __init *ti_clk_get_div_table(struct device_node *node)
->>> ~~~~~~  ^
->>> drivers/clk/ti/divider.c:345:9: warning: incompatible pointer types
->>>        returning 'struct clk_div_table *' from a function with result
->>> type 'int *' [-Wincompatible-pointer-types]
->>>          return table;
->>>                 ^~~~~
->>> drivers/clk/ti/divider.c:419:9: warning: incompatible pointer types
->>>        assigning to 'const struct clk_div_table *' from 'int *'
->>> [-Wincompatible-pointer-types]
->>>          *table = ti_clk_get_div_table(node);
->>>                 ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~
->>> 3 warnings and 2 errors generated.
->>>
->>> By convention, most of the kernel code puts section attributes
->>> between the
->>> return type and function name. In the case where the return type is a
->>> pointer,
->>> it's important to place the '*' on left of the __init.
->>>
->>> This updated code works for both gcc and clang.
->>>
->>> Signed-off-by: Behan Webster <behanw@converseincode.com>
->>> Reviewed-by: Mark Charlebois <charlebm@gmail.com>
->> makes sense to me:
->>
->> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> Thank you.
->
->> I wonder if we should add this a Sparse or Coccinelle rule.
-> +1
->
-> I'm hoping it can be added to checkpatch as well.
->
-> Behan
->
+* Frans Klaver | 2014-09-29 11:38:23 [+0200]:
 
-Thanks, patch applied to for-v3.18/ti-clk-drv.
+>threshold
+fixed
 
--Tero
+>> +	/*
+>> +	 * It claims to be 16C750 compatible however it is a little different.
+>> +	 * It has EFR and has no FCR7_64byte bit. The AFE (which it claims to
+>> +	 * have) is enabled via EFR instead of MCR. The type is set here 8250
+>> +	 * just to get things going. UNKNOWN does not work for a few reasons and
+>> +	 * we don't need our own type since we don't use 8250's set_termios()
+>> +	 * and our "bugs" are handeld via the bug member.
+>
+>handled
+replaced that last line with 
+    or pm callback.
+
+since there no bugs member anymore.
+
+>
+>> +	 */
+>> +	up.port.type = PORT_8250;
+>> +	up.port.iotype = UPIO_MEM;
+>> +	up.port.flags = UPF_FIXED_PORT | UPF_FIXED_TYPE | UPF_SOFT_FLOW |
+>> +		UPF_HARD_FLOW;
+>> +	up.port.private_data = priv;
+>> +
+>> +	up.port.regshift = 2;
+>> +	up.port.fifosize = 64;
+>> +	up.tx_loadsz = 64;
+>> +	up.capabilities = UART_CAP_FIFO | UART_CAP_EFR | UART_CAP_SLEEP;
+>> +#ifdef CONFIG_PM_RUNTIME
+>> +	/*
+>> +	 * PM_RUNTIME is mostly transparent. However to do it right we need to a
+>
+>need to _do_ a ...?
+I think dropping that 'to' should fix it.
+
+>> +	 * TX empty interrupt before we can put the device to auto idle. So if
+>> +	 * PM_RUNTIME is not enabled we don't add that flag and can spare that
+>> +	 * one extra interrupt in the TX path.
+>> +	 */
+>
+><snip>
+>
+>> +config SERIAL_8250_OMAP
+>> +	tristate "Support for OMAP internal UART (8250 based driver)"
+>> +	depends on SERIAL_8250 && ARCH_OMAP2PLUS
+>> +	help
+>> +	  If you have a machine based on an Texas Instruments OMAP CPU you
+>> +	  can enable its onboard serial ports by enabling this option.
+>> +
+>> +	  This driver is in early stage and uses ttyS instead of ttyO.
+>> +
+>
+>I just wondered if this driver should be marked experimental?
+What did you have in mind? CONFIG_EXPERIMENTAL is gone. After all that
+debuging that I had in the meantime I was thinking about dropping that
+"early stage".
+
+>Thanks,
+>Frans
+
+Sebastian
