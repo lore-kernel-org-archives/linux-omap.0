@@ -1,71 +1,54 @@
-From: Frans Klaver <frans.klaver@xsens.com>
-Subject: Re: [PATCH 02/16] tty: serial: 8250_core: add run time pm
-Date: Mon, 29 Sep 2014 11:46:20 +0200
-Message-ID: <20140929094620.GE13952@ci00147.xsens-tech.local>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
- <1410377411-26656-3-git-send-email-bigeasy@linutronix.de>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Mon, 29 Sep 2014 11:54:40 +0200
+Message-ID: <20140929095440.GB13142@linutronix.de>
+References: <54129F6C.7040508@linutronix.de>
+ <20140912094010.GE28458@ci00147.xsens-tech.local>
+ <5412C21A.8020203@linutronix.de>
+ <20140912102816.GF28458@ci00147.xsens-tech.local>
+ <541716DC.9020904@linutronix.de>
+ <20140917102812.GA20438@ci00147.xsens-tech.local>
+ <20140921204100.GA10111@linutronix.de>
+ <20140922092853.GH20438@ci00147.xsens-tech.local>
+ <20140925151403.GH19396@linutronix.de>
+ <20140929085042.GA13952@ci00147.xsens-tech.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1410377411-26656-3-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <20140929085042.GA13952@ci00147.xsens-tech.local>
 Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, mika.westerberg@linux.intel.com, linux-arm-kernel@lists.infradead.org
+To: Frans Klaver <frans.klaver@xsens.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 10, 2014 at 09:29:57PM +0200, Sebastian Andrzej Siewior wrote:
-> +/*
-> + * This two wrapper ensure, that enable_runtime_pm_tx() can be called more than
+* Frans Klaver | 2014-09-29 10:50:42 [+0200]:
 
-These two wrappers ensure that enable_runtime_pm_tx() ...
+>This version fixes the console things for us. It also increases the
+>amount of data we can push over the serial port. If I push the data
+>towards our requirements, we're not there yet. I get the "too much work
+>for irq" notice still. However, I don't think you'd need to be fixing
+>that in this series (or at all). We had similar issues there with
+>omap-serial as well.
+>
+>As far as I'm concerned, this is
+>
+>Tested-by: Frans Klaver <frans.klaver@xsens.com>
 
-> + * once and disable_runtime_pm_tx() will still disable RPM because the fifo is
-> + * empty and the HW can idle again.
-> + */
-> +static void serial8250_rpm_get_tx(struct uart_8250_port *p)
-> +{
-> +	unsigned char rpm_active;
-> +
-> +	if (!(p->capabilities & UART_CAP_RPM))
-> +		return;
-> +
-> +	rpm_active = xchg(&p->rpm_tx_active, 1);
-> +	if (rpm_active)
-> +		return;
-> +	pm_runtime_get_sync(p->port.dev);
-> +}
-> +
-> +static void serial8250_rpm_put_tx(struct uart_8250_port *p)
-> +{
-> +	unsigned char rpm_active;
-> +
-> +	if (!(p->capabilities & UART_CAP_RPM))
-> +		return;
-> +
-> +	rpm_active = xchg(&p->rpm_tx_active, 0);
-> +	if (!rpm_active)
-> +		return;
-> +	pm_runtime_mark_last_busy(p->port.dev);
-> +	pm_runtime_put_autosuspend(p->port.dev);
-> +}
-> +
+Thanks a lot.
+There is a patch named "ARM: edma: unconditionally ack the error
+interrupt". I have the feeling that this is not really required once we
+delay set_termios. I couldn't reproduce the bug with beagleblack with my
+usual test case.
 
+For your "too much work for irq" problem: Could you add trace_printk()
+in tx/rx dma start/complete, and irq routine? The interresting part is
+what is the irq routine doing once entered. It might be a condition that
+is ignored at first and "acked" later while serving another event. Or it
+is really doing something and this is more or less "legal".
 
-> @@ -1469,7 +1531,12 @@ void serial8250_tx_chars(struct uart_8250_port *up)
->  
->  	DEBUG_INTR("THRE...");
->  
-> -	if (uart_circ_empty(xmit))
-> +	/*
-> +	 * With RPM enabled, we have to wait once the FIFO is empty before the
+>Thanks,
+>Frans
 
-s,once,until,? Or do I not understand the sentence correctly?
-
-> +	 * HW can go idle. So we get here once again with empty FIFO and disable
-> +	 * the interrupt and RPM in __stop_tx()
-> +	 */
-> +	if (uart_circ_empty(xmit) && !(up->capabilities & UART_CAP_RPM))
->  		__stop_tx(up);
->  }
->  EXPORT_SYMBOL_GPL(serial8250_tx_chars);
+Sebastian
