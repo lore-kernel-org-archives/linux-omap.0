@@ -1,12 +1,11 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 05/13] tty: serial: 8250_dma: keep own book keeping about RX
- transfers
-Date: Mon, 29 Sep 2014 20:06:41 +0200
-Message-ID: <1412014009-13315-6-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 07/13] tty: serial: 8250_omap: add custom DMA-TX callback
+Date: Mon, 29 Sep 2014 20:06:43 +0200
+Message-ID: <1412014009-13315-8-git-send-email-bigeasy@linutronix.de>
 References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -19,74 +18,222 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-serial@vger.kernel.org
-Cc: tony@atomide.com, gregkh@linuxfoundation.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, vinod.koul@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-QWZ0ZXIgZG1hZW5naW5lX3Rlcm1pbmF0ZV9hbGwoKSBoYXMgYmVlbiBpbnZva2VkIHRoZW4gYm90
-aCBETUEgZHJpdmVycwooZWRtYSBhbmQgb21hcC1kbWEpIGRvIG5vdCBpbnZva2UgZG1hX2Nvb2tp
-ZV9jb21wbGV0ZSgpIHRvIG1hcmsgdGhlCnRyYW5zZmVyIGFzIGNvbXBsZXRlLiBUaGlzIGRtYV9j
-b29raWVfY29tcGxldGUoKSBpcyBwZXJmb3JtZWQgYnkgdGhlClN5bm9wc3lzIERlc2lnbldhcmUg
-ZHJpdmVyIHdoaWNoIGlzIHByb2JhYmx5IHRoZSBvbmx5IG9uZSB0aGF0IGlzIHVzZWQKYnkgb21h
-cDgyNTAtZG1hIGFuZCBoZW5jZSBkb24ndCBzZWUgZm9sbG93aW5nIHByb2JsZW3igKYK4oCmd2hp
-Y2ggaXMgdGhhdCBvbmNlIGEgUlggdHJhbnNmZXIgaGFzIGJlZW4gdGVybWluYXRlZCB0aGVuIGZv
-bGxvd2luZwpxdWVyeSBvZiBjaGFubmVsIHN0YXR1cyByZXBvcnRzIERNQV9JTl9QUk9HUkVTUyAo
-YWdhaW46IHRoZSBhY3R1YWwKdHJhbnNmZXIgaGFzIGJlZW4gY2FuY2VsZWQsIHRoZXJlIGlzIG5v
-dGhpbmcgZ29pbmcgb24gYW55bW9yZSkuCgpUaGlzIG1lYW5zIHRoYXQgc2VyaWFsODI1MF9yeF9k
-bWEoKSBuZXZlciBlbnF1ZXVlcyBhbm90aGVyIERNQSB0cmFuc2ZlcgpiZWNhdXNlIGl0ICh3cm9u
-Z2x5KSBhc3N1bWVzIHRoYXQgdGhlcmUgaXMgYSB0cmFuc2VyIGFscmVhZHkgcGVuZGluZy4KClZp
-bm9kIEtvdWwgcmVmdXNlcyB0byBhY2NlcHQgYSBwYXRjaCB3aGljaCBhZGRzIHRoaXMKZG1hX2Nv
-b2tpZV9jb21wbGV0ZSgpIHRvIGJvdGggZHJpdmVycyBhbmQgc28gZG1hZW5naW5lX3R4X3N0YXR1
-cygpIHdvdWxkCnJlcG9ydCBETUFfQ09NUExFVEUgaW5zdGVhZCAoYW5kIGJlaGF2ZSBsaWtlIHRo
-ZSBTeW5vcHN5cyBEZXNpZ25XYXJlCmRyaXZlciBhbHJlYWR5IGRvZXMpLiBIZSBhcmd1ZXMgdGhh
-dCBJIGFtIG5vdCBhbGxvd2VkIHRvIHVzZSB0aGUgY29va2llCnRvIHF1ZXJ5IHRoZSBzdGF0dXMg
-YW5kIHRoYXQgdGhlIGRyaXZlciBhbHJlYWR5IGNsZWFuZWQgZXZlcnl0aGluZyB1cCBhZnRlcgp0
-aGUgaW52b2thdGlvbiBvZiBkbWFlbmdpbmVfdGVybWluYXRlX2FsbCgpLgoKVG8gZW5kIHRoaXMg
-SSBhZGQgYSBib29ra2VlcGluZyB3aGV0aGVyIG9yIG5vdCBhIFJYLXRyYW5zZmVyIGhhcyBiZWVu
-CnN0YXJ0ZWQgdG8gdGhlIDgyNTAtZG1hIGNvZGUuIEl0IGhhcyBhbHJlYWR5IGJlZW4gZG9uZSBm
-b3IgdGhlIFRYIHNpZGUuCipOb3cqIHdlIGxlYXJuIGFib3V0IHRoZSBSWCBzdGF0dXMgYmFzZWQg
-b24gb3VyIGJvb2trZWVwaW5nIGFuZCBkb24ndApuZWVkIGRtYWVuZ2luZV90eF9zdGF0dXMoKSBm
-b3IgdGhpcyBhbnltb3JlLgoKQ2M6IHZpbm9kLmtvdWxAaW50ZWwuY29tClJldmlld2VkLWJ5OiBU
-b255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpUZXN0ZWQtYnk6IFRvbnkgTGluZGdyZW4g
-PHRvbnlAYXRvbWlkZS5jb20+ClNpZ25lZC1vZmYtYnk6IFNlYmFzdGlhbiBBbmRyemVqIFNpZXdp
-b3IgPGJpZ2Vhc3lAbGludXRyb25peC5kZT4KLS0tCiBkcml2ZXJzL3R0eS9zZXJpYWwvODI1MC84
-MjUwLmggICAgIHwgIDEgKwogZHJpdmVycy90dHkvc2VyaWFsLzgyNTAvODI1MF9kbWEuYyB8IDEw
-ICsrKystLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9u
-cygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdHR5L3NlcmlhbC84MjUwLzgyNTAuaCBiL2RyaXZl
-cnMvdHR5L3NlcmlhbC84MjUwLzgyNTAuaAppbmRleCBhNjNkMTk4ZjhkMDMuLmViYWI2MjUxNzlk
-NCAxMDA2NDQKLS0tIGEvZHJpdmVycy90dHkvc2VyaWFsLzgyNTAvODI1MC5oCisrKyBiL2RyaXZl
-cnMvdHR5L3NlcmlhbC84MjUwLzgyNTAuaApAQCAtNDIsNiArNDIsNyBAQCBzdHJ1Y3QgdWFydF84
-MjUwX2RtYSB7CiAKIAl1bnNpZ25lZCBjaGFyCQl0eF9ydW5uaW5nOjE7CiAJdW5zaWduZWQgY2hh
-cgkJdHhfZXJyOiAxOworCXVuc2lnbmVkIGNoYXIJCXJ4X3J1bm5pbmc6MTsKIH07CiAKIHN0cnVj
-dCBvbGRfc2VyaWFsX3BvcnQgewpkaWZmIC0tZ2l0IGEvZHJpdmVycy90dHkvc2VyaWFsLzgyNTAv
-ODI1MF9kbWEuYyBiL2RyaXZlcnMvdHR5L3NlcmlhbC84MjUwLzgyNTBfZG1hLmMKaW5kZXggNjll
-NTRhYmI2ZTcxLi5kYjllZGEzYzEyZDYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdHR5L3NlcmlhbC84
-MjUwLzgyNTBfZG1hLmMKKysrIGIvZHJpdmVycy90dHkvc2VyaWFsLzgyNTAvODI1MF9kbWEuYwpA
-QCAtNjEsNiArNjEsNyBAQCBzdGF0aWMgdm9pZCBfX2RtYV9yeF9jb21wbGV0ZSh2b2lkICpwYXJh
-bSkKIAlkbWFfc3luY19zaW5nbGVfZm9yX2NwdShkbWEtPnJ4Y2hhbi0+ZGV2aWNlLT5kZXYsIGRt
-YS0+cnhfYWRkciwKIAkJCQlkbWEtPnJ4X3NpemUsIERNQV9GUk9NX0RFVklDRSk7CiAKKwlkbWEt
-PnJ4X3J1bm5pbmcgPSAwOwogCWRtYWVuZ2luZV90eF9zdGF0dXMoZG1hLT5yeGNoYW4sIGRtYS0+
-cnhfY29va2llLCAmc3RhdGUpOwogCWRtYWVuZ2luZV90ZXJtaW5hdGVfYWxsKGRtYS0+cnhjaGFu
-KTsKIApAQCAtMTIzLDEwICsxMjQsNiBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0IHVh
-cnRfODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogewogCXN0cnVjdCB1YXJ0XzgyNTBf
-ZG1hCQkqZG1hID0gcC0+ZG1hOwogCXN0cnVjdCBkbWFfYXN5bmNfdHhfZGVzY3JpcHRvcgkqZGVz
-YzsKLQlzdHJ1Y3QgZG1hX3R4X3N0YXRlCQlzdGF0ZTsKLQlpbnQJCQkJZG1hX3N0YXR1czsKLQot
-CWRtYV9zdGF0dXMgPSBkbWFlbmdpbmVfdHhfc3RhdHVzKGRtYS0+cnhjaGFuLCBkbWEtPnJ4X2Nv
-b2tpZSwgJnN0YXRlKTsKIAogCXN3aXRjaCAoaWlyICYgMHgzZikgewogCWNhc2UgVUFSVF9JSVJf
-UkxTSToKQEAgLTEzNyw3ICsxMzQsNyBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0IHVh
-cnRfODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogCQkgKiBJZiBSQ1ZSIEZJRk8gdHJp
-Z2dlciBsZXZlbCB3YXMgbm90IHJlYWNoZWQsIGNvbXBsZXRlIHRoZQogCQkgKiB0cmFuc2ZlciBh
-bmQgbGV0IDgyNTBfY29yZSBjb3B5IHRoZSByZW1haW5pbmcgZGF0YS4KIAkJICovCi0JCWlmIChk
-bWFfc3RhdHVzID09IERNQV9JTl9QUk9HUkVTUykgeworCQlpZiAoZG1hLT5yeF9ydW5uaW5nKSB7
-CiAJCQlkbWFlbmdpbmVfcGF1c2UoZG1hLT5yeGNoYW4pOwogCQkJX19kbWFfcnhfY29tcGxldGUo
-cCk7CiAJCX0KQEAgLTE0Niw3ICsxNDMsNyBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0
-IHVhcnRfODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogCQlicmVhazsKIAl9CiAKLQlp
-ZiAoZG1hX3N0YXR1cykKKwlpZiAoZG1hLT5yeF9ydW5uaW5nKQogCQlyZXR1cm4gMDsKIAogCWRl
-c2MgPSBkbWFlbmdpbmVfcHJlcF9zbGF2ZV9zaW5nbGUoZG1hLT5yeGNoYW4sIGRtYS0+cnhfYWRk
-ciwKQEAgLTE1NSw2ICsxNTIsNyBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0IHVhcnRf
-ODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogCWlmICghZGVzYykKIAkJcmV0dXJuIC1F
-QlVTWTsKIAorCWRtYS0+cnhfcnVubmluZyA9IDE7CiAJZGVzYy0+Y2FsbGJhY2sgPSBfX2RtYV9y
-eF9jb21wbGV0ZTsKIAlkZXNjLT5jYWxsYmFja19wYXJhbSA9IHA7CiAKLS0gCjIuMS4wCgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
-cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
-bAo=
+This patch provides mostly a copy of serial8250_tx_dma() +
+__dma_tx_complete() with the following extensions:
+
+- DMA bug
+  At least on AM335x the following problem exists: Even if the TX FIFO is
+  empty and a TX transfer is programmed (and started) the UART does not
+  trigger the DMA transfer.
+  After $TRESHOLD number of bytes have been written to the FIFO manually the
+  UART reevaluates the whole situation and decides that now there is enough
+  room in the FIFO and so the transfer begins.
+  This problem has not been seen on DRA7 or beagle board xm (OMAP3). I am not
+  sure if this is UART-IP core specific or DMA engine.
+
+  The workaround is to use a threshold of one byte, program the DMA
+  transfer minus one byte and then to put the first byte into the FIFO to
+  kick start the transfer.
+
+- support for runtime PM
+  RPM is enabled on start_tx(). We can't disable RPM on DMA complete callback
+  because there is still data in the FIFO which is being sent. We have to wait
+  until the FIFO is empty before we disable it.
+  For this to happen we fake a TX sent error and enable THRI. Once the
+  FIFO is empty we receive an interrupt and since the TTY-buffer is still
+  empty we "put RPM" via __stop_tx(). Should it been filed then in the
+  start_tx() path we should program the DMA transfer and remove the error
+  flag and the THRI bit.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/tty/serial/8250/8250_omap.c | 144 ++++++++++++++++++++++++++++++++++++
+ include/uapi/linux/serial_reg.h     |   1 +
+ 2 files changed, 145 insertions(+)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 2f653c48639d..5f183d197dfa 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -22,6 +22,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/console.h>
+ #include <linux/pm_qos.h>
++#include <linux/dma-mapping.h>
+ 
+ #include "8250.h"
+ 
+@@ -29,6 +30,7 @@
+ 
+ #define UART_ERRATA_i202_MDR1_ACCESS	(1 << 0)
+ #define OMAP_UART_WER_HAS_TX_WAKEUP	(1 << 1)
++#define OMAP_DMA_TX_KICK		(1 << 2)
+ 
+ #define OMAP_UART_FCR_RX_TRIG		6
+ #define OMAP_UART_FCR_TX_TRIG		4
+@@ -616,6 +618,148 @@ static void omap_8250_unthrottle(struct uart_port *port)
+ 	pm_runtime_put_autosuspend(port->dev);
+ }
+ 
++#ifdef CONFIG_SERIAL_8250_DMA
++static int omap_8250_tx_dma(struct uart_8250_port *p);
++
++static void omap_8250_dma_tx_complete(void *param)
++{
++	struct uart_8250_port	*p = param;
++	struct uart_8250_dma	*dma = p->dma;
++	struct circ_buf		*xmit = &p->port.state->xmit;
++	unsigned long		flags;
++	bool			en_thri = false;
++
++	dma_sync_single_for_cpu(dma->txchan->device->dev, dma->tx_addr,
++				UART_XMIT_SIZE, DMA_TO_DEVICE);
++
++	spin_lock_irqsave(&p->port.lock, flags);
++
++	dma->tx_running = 0;
++
++	xmit->tail += dma->tx_size;
++	xmit->tail &= UART_XMIT_SIZE - 1;
++	p->port.icount.tx += dma->tx_size;
++
++	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
++		uart_write_wakeup(&p->port);
++
++	if (!uart_circ_empty(xmit) && !uart_tx_stopped(&p->port)) {
++		int ret;
++
++		ret = omap_8250_tx_dma(p);
++		if (ret)
++			en_thri = true;
++
++	} else if (p->capabilities & UART_CAP_RPM) {
++		en_thri = true;
++	}
++
++	if (en_thri) {
++		dma->tx_err = 1;
++		p->ier |= UART_IER_THRI;
++		serial_port_out(&p->port, UART_IER, p->ier);
++	}
++
++	spin_unlock_irqrestore(&p->port.lock, flags);
++}
++
++static int omap_8250_tx_dma(struct uart_8250_port *p)
++{
++	struct uart_8250_dma		*dma = p->dma;
++	struct omap8250_priv		*priv = p->port.private_data;
++	struct circ_buf			*xmit = &p->port.state->xmit;
++	struct dma_async_tx_descriptor	*desc;
++	unsigned int	skip_byte = 0;
++	int ret;
++
++	if (dma->tx_running)
++		return 0;
++	if (uart_tx_stopped(&p->port) || uart_circ_empty(xmit)) {
++
++		/*
++		 * Even if no data, we need to return an error for the two cases
++		 * below so serial8250_tx_chars() is invoked and properly clears
++		 * THRI and/or runtime suspend.
++		 */
++		if (dma->tx_err || p->capabilities & UART_CAP_RPM) {
++			ret = -EBUSY;
++			goto err;
++		}
++		if (p->ier & UART_IER_THRI) {
++			p->ier &= ~UART_IER_THRI;
++			serial_out(p, UART_IER, p->ier);
++		}
++		return 0;
++	}
++
++	dma->tx_size = CIRC_CNT_TO_END(xmit->head, xmit->tail, UART_XMIT_SIZE);
++	if (priv->habit & OMAP_DMA_TX_KICK) {
++		u8 tx_lvl;
++
++		/*
++		 * We need to put the first byte into the FIFO in order to start
++		 * the DMA transfer. For transfers smaller than four bytes we
++		 * don't bother doing DMA at all. It seem not matter if there
++		 * are still bytes in the FIFO from the last transfer (in case
++		 * we got here directly from omap_8250_dma_tx_complete()). Bytes
++		 * leaving the FIFO seem not to trigger the DMA transfer. It is
++		 * really the byte that we put into the FIFO.
++		 * If the FIFO is already full then we most likely got here from
++		 * omap_8250_dma_tx_complete(). And this means the DMA engine
++		 * just completed its work. We don't have to wait the complete
++		 * 86us at 115200,8n1 but around 60us (not to mention lower
++		 * baudrates). So in that case we take the interrupt and try
++		 * again with an empty FIFO.
++		 */
++		tx_lvl = serial_in(p, UART_OMAP_TX_LVL);
++		if (tx_lvl == p->tx_loadsz) {
++			ret = -EBUSY;
++			goto err;
++		}
++		if (dma->tx_size < 4) {
++			ret = -EINVAL;
++			goto err;
++		}
++		skip_byte = 1;
++	}
++
++	desc = dmaengine_prep_slave_single(dma->txchan,
++			dma->tx_addr + xmit->tail + skip_byte,
++			dma->tx_size - skip_byte, DMA_MEM_TO_DEV,
++			DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
++	if (!desc) {
++		ret = -EBUSY;
++		goto err;
++	}
++
++	dma->tx_running = 1;
++
++	desc->callback = omap_8250_dma_tx_complete;
++	desc->callback_param = p;
++
++	dma->tx_cookie = dmaengine_submit(desc);
++
++	dma_sync_single_for_device(dma->txchan->device->dev, dma->tx_addr,
++				   UART_XMIT_SIZE, DMA_TO_DEVICE);
++
++	dma_async_issue_pending(dma->txchan);
++	if (dma->tx_err)
++		dma->tx_err = 0;
++
++	if (p->ier & UART_IER_THRI) {
++		p->ier &= ~UART_IER_THRI;
++		serial_out(p, UART_IER, p->ier);
++	}
++	if (skip_byte)
++		serial_out(p, UART_TX, xmit->buf[xmit->tail]);
++	return 0;
++err:
++	dma->tx_err = 1;
++	return ret;
++}
++
++#endif
++
+ static int omap8250_probe(struct platform_device *pdev)
+ {
+ 	struct resource *regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+diff --git a/include/uapi/linux/serial_reg.h b/include/uapi/linux/serial_reg.h
+index df6c9ab6b0cd..53af3b790129 100644
+--- a/include/uapi/linux/serial_reg.h
++++ b/include/uapi/linux/serial_reg.h
+@@ -359,6 +359,7 @@
+ #define UART_OMAP_SYSC		0x15	/* System configuration register */
+ #define UART_OMAP_SYSS		0x16	/* System status register */
+ #define UART_OMAP_WER		0x17	/* Wake-up enable register */
++#define UART_OMAP_TX_LVL	0x1a	/* TX FIFO level register */
+ 
+ /*
+  * These are the definitions for the MDR1 register
+-- 
+2.1.0
