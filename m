@@ -1,60 +1,60 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [GIT PULL] TI clock driver changes for 3.18 merge window
-Date: Mon, 29 Sep 2014 19:13:09 +0300
-Message-ID: <54298515.3040201@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Mon, 29 Sep 2014 18:15:05 +0200
+Message-ID: <20140929161505.GF13142@linutronix.de>
+References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
+ <1410377411-26656-10-git-send-email-bigeasy@linutronix.de>
+ <20140911111721.GB17476@xps8300>
+ <54118AAB.2010205@linutronix.de>
+ <5411967A.6090406@hurleysoftware.com>
+ <54119AAA.9080907@linutronix.de>
+ <5411B33F.10405@hurleysoftware.com>
+ <54171B85.5060209@linutronix.de>
+ <54186B89.8050505@linutronix.de>
+ <54197C99.8030601@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58433 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753869AbaI2QM0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Sep 2014 12:12:26 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54197C99.8030601@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Mike,
+* Peter Hurley | 2014-09-17 08:20:41 [-0400]:
 
-The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
+>> So I connected my am335x-evm
+>> with beagle board xm because both of them have an old fashion UART
+>> connector (instead those uart-to-usb). Both configured with HW-Flow =
+and
+>> I haven't seen the function invoked but I saw "port->icount.overrun"
+>> being incremented. This shouldn't happen. So I am a little puzzled h=
+ere=E2=80=A6
+>
+>Yeah, that's weird. Do you have a break-out box to confirm that RTS/CT=
+S are
+>being driven?
 
-   Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
+=3D>
+- beagle board
+  According to schematics the board has only RX and TX connected. No
+  RTS/CTS
 
-are available in the git repository at:
+- am335x-evm
+  The schematics say "DNI" next to a resistor on RTS/CTS. DNI stands
+  most likely for "Do Not Install". With a scope it looks like the the
+  wire behind the MAX is open.
 
-   git@github.com:t-kristo/linux-pm.git for-v3.18/ti-clk-driver
+- beagle bone black
+  Only RX and TX are wired towards the USB2serial device.
 
-for you to fetch changes up to 04ed831f224d4553682f48e1b4a6b68f2622b68e:
+In short: each device I have has RTS/CTS not working/connected and I
+can't test HW handshake with HW available.
 
-   clk: ti: dra7-atl-clock: Mark the device as pm_runtime_irq_safe 
-(2014-09-29 11:51:14 +0300)
+>Regards,
+>Peter Hurley
 
-----------------------------------------------------------------
-Mostly fixes, except for the of_clk_init() change for the clock driver. 
-Boot tested on pretty much every board I have access to, also merge 
-tested with latest master to see if there are any conflicts with anything.
-
-----------------------------------------------------------------
-Behan Webster (1):
-       clk: ti: LLVMLinux: Move __init outside of type definition
-
-Peter Ujfalusi (1):
-       clk: ti: dra7-atl-clock: Mark the device as pm_runtime_irq_safe
-
-Sebastian Andrzej Siewior (1):
-       clk: ti: consider the fact that of_clk_get() might return an error
-
-Tero Kristo (2):
-       clk: ti: change clock init to use generic of_clk_init
-       clk: ti: dra7-atl-clock: fix a memory leak
-
-  arch/arm/mach-omap2/io.c         |   12 +++++--
-  arch/arm/mach-omap2/prm_common.c |    2 --
-  drivers/clk/ti/clk-dra7-atl.c    |    2 ++
-  drivers/clk/ti/clk.c             |   68 
-++++++++++++++++++++++++--------------
-  drivers/clk/ti/clockdomain.c     |    5 +++
-  drivers/clk/ti/divider.c         |    4 +--
-  include/linux/clk/ti.h           |    1 +
-  7 files changed, 63 insertions(+), 31 deletions(-)
+Sebastian
