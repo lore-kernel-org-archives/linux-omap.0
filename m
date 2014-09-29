@@ -1,133 +1,92 @@
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 08/13] tty: serial: 8250_omap: add custom DMA-RX callback
-Date: Mon, 29 Sep 2014 20:06:44 +0200
-Message-ID: <1412014009-13315-9-git-send-email-bigeasy@linutronix.de>
+Subject: [PATCH 05/13] tty: serial: 8250_dma: keep own book keeping about RX
+ transfers
+Date: Mon, 29 Sep 2014 20:06:41 +0200
+Message-ID: <1412014009-13315-6-git-send-email-bigeasy@linutronix.de>
 References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-serial@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-kernel@vger.kernel.org, balbi@ti.com, vinod.koul@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The omap needs a DMA request pending right away. If it is
-enqueued once the bytes are in the FIFO then nothing will happen
-and the FIFO will be later purged via RX-timeout interrupt.
-This patch enqueues RX-DMA request on completion but not if it
-was aborted on error. The first enqueue will happen in the driver
-in startup.
-
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/tty/serial/8250/8250_omap.c | 96 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
-
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index 5f183d197dfa..1659858e595a 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -619,6 +619,102 @@ static void omap_8250_unthrottle(struct uart_port *port)
- }
- 
- #ifdef CONFIG_SERIAL_8250_DMA
-+static int omap_8250_rx_dma(struct uart_8250_port *p, unsigned int iir);
-+
-+static void __dma_rx_do_complete(struct uart_8250_port *p, bool error)
-+{
-+	struct uart_8250_dma    *dma = p->dma;
-+	struct tty_port         *tty_port = &p->port.state->port;
-+	struct dma_tx_state     state;
-+	int                     count;
-+
-+	dma_sync_single_for_cpu(dma->rxchan->device->dev, dma->rx_addr,
-+				dma->rx_size, DMA_FROM_DEVICE);
-+
-+	dma->rx_running = 0;
-+	dmaengine_tx_status(dma->rxchan, dma->rx_cookie, &state);
-+	dmaengine_terminate_all(dma->rxchan);
-+
-+	count = dma->rx_size - state.residue;
-+
-+	tty_insert_flip_string(tty_port, dma->rx_buf, count);
-+	p->port.icount.rx += count;
-+	if (!error)
-+		omap_8250_rx_dma(p, 0);
-+
-+	tty_flip_buffer_push(tty_port);
-+}
-+
-+static void __dma_rx_complete(void *param)
-+{
-+	__dma_rx_do_complete(param, false);
-+}
-+
-+static int omap_8250_rx_dma(struct uart_8250_port *p, unsigned int iir)
-+{
-+	struct uart_8250_dma            *dma = p->dma;
-+	struct dma_async_tx_descriptor  *desc;
-+
-+	switch (iir & 0x3f) {
-+	case UART_IIR_RLSI:
-+		/* 8250_core handles errors and break interrupts */
-+		if (dma->rx_running) {
-+			dmaengine_pause(dma->rxchan);
-+			__dma_rx_do_complete(p, true);
-+		}
-+		return -EIO;
-+	case UART_IIR_RX_TIMEOUT:
-+		/*
-+		 * If RCVR FIFO trigger level was not reached, complete the
-+		 * transfer and let 8250_core copy the remaining data.
-+		 */
-+		if (dma->rx_running) {
-+			dmaengine_pause(dma->rxchan);
-+			__dma_rx_do_complete(p, true);
-+		}
-+		return -ETIMEDOUT;
-+	case UART_IIR_RDI:
-+		/*
-+		 * The OMAP UART is a special BEAST. If we receive RDI we _have_
-+		 * a DMA transfer programmed but it didn't work. One reason is
-+		 * that we were too slow and there were too many bytes in the
-+		 * FIFO, the UART counted wrong and never kicked the DMA engine
-+		 * to do anything. That means once we receive RDI on OMAP then
-+		 * the DMA won't do anything soon so we have to cancel the DMA
-+		 * transfer and purge the FIFO manually.
-+		 */
-+		if (dma->rx_running) {
-+			dmaengine_pause(dma->rxchan);
-+			__dma_rx_do_complete(p, true);
-+		}
-+		return -ETIMEDOUT;
-+
-+	default:
-+		break;
-+	}
-+
-+	if (dma->rx_running)
-+		return 0;
-+
-+	desc = dmaengine_prep_slave_single(dma->rxchan, dma->rx_addr,
-+					   dma->rx_size, DMA_DEV_TO_MEM,
-+					   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-+	if (!desc)
-+		return -EBUSY;
-+
-+	dma->rx_running = 1;
-+	desc->callback = __dma_rx_complete;
-+	desc->callback_param = p;
-+
-+	dma->rx_cookie = dmaengine_submit(desc);
-+
-+	dma_sync_single_for_device(dma->rxchan->device->dev, dma->rx_addr,
-+				   dma->rx_size, DMA_FROM_DEVICE);
-+
-+	dma_async_issue_pending(dma->rxchan);
-+	return 0;
-+}
-+
- static int omap_8250_tx_dma(struct uart_8250_port *p);
- 
- static void omap_8250_dma_tx_complete(void *param)
--- 
-2.1.0
+QWZ0ZXIgZG1hZW5naW5lX3Rlcm1pbmF0ZV9hbGwoKSBoYXMgYmVlbiBpbnZva2VkIHRoZW4gYm90
+aCBETUEgZHJpdmVycwooZWRtYSBhbmQgb21hcC1kbWEpIGRvIG5vdCBpbnZva2UgZG1hX2Nvb2tp
+ZV9jb21wbGV0ZSgpIHRvIG1hcmsgdGhlCnRyYW5zZmVyIGFzIGNvbXBsZXRlLiBUaGlzIGRtYV9j
+b29raWVfY29tcGxldGUoKSBpcyBwZXJmb3JtZWQgYnkgdGhlClN5bm9wc3lzIERlc2lnbldhcmUg
+ZHJpdmVyIHdoaWNoIGlzIHByb2JhYmx5IHRoZSBvbmx5IG9uZSB0aGF0IGlzIHVzZWQKYnkgb21h
+cDgyNTAtZG1hIGFuZCBoZW5jZSBkb24ndCBzZWUgZm9sbG93aW5nIHByb2JsZW3igKYK4oCmd2hp
+Y2ggaXMgdGhhdCBvbmNlIGEgUlggdHJhbnNmZXIgaGFzIGJlZW4gdGVybWluYXRlZCB0aGVuIGZv
+bGxvd2luZwpxdWVyeSBvZiBjaGFubmVsIHN0YXR1cyByZXBvcnRzIERNQV9JTl9QUk9HUkVTUyAo
+YWdhaW46IHRoZSBhY3R1YWwKdHJhbnNmZXIgaGFzIGJlZW4gY2FuY2VsZWQsIHRoZXJlIGlzIG5v
+dGhpbmcgZ29pbmcgb24gYW55bW9yZSkuCgpUaGlzIG1lYW5zIHRoYXQgc2VyaWFsODI1MF9yeF9k
+bWEoKSBuZXZlciBlbnF1ZXVlcyBhbm90aGVyIERNQSB0cmFuc2ZlcgpiZWNhdXNlIGl0ICh3cm9u
+Z2x5KSBhc3N1bWVzIHRoYXQgdGhlcmUgaXMgYSB0cmFuc2VyIGFscmVhZHkgcGVuZGluZy4KClZp
+bm9kIEtvdWwgcmVmdXNlcyB0byBhY2NlcHQgYSBwYXRjaCB3aGljaCBhZGRzIHRoaXMKZG1hX2Nv
+b2tpZV9jb21wbGV0ZSgpIHRvIGJvdGggZHJpdmVycyBhbmQgc28gZG1hZW5naW5lX3R4X3N0YXR1
+cygpIHdvdWxkCnJlcG9ydCBETUFfQ09NUExFVEUgaW5zdGVhZCAoYW5kIGJlaGF2ZSBsaWtlIHRo
+ZSBTeW5vcHN5cyBEZXNpZ25XYXJlCmRyaXZlciBhbHJlYWR5IGRvZXMpLiBIZSBhcmd1ZXMgdGhh
+dCBJIGFtIG5vdCBhbGxvd2VkIHRvIHVzZSB0aGUgY29va2llCnRvIHF1ZXJ5IHRoZSBzdGF0dXMg
+YW5kIHRoYXQgdGhlIGRyaXZlciBhbHJlYWR5IGNsZWFuZWQgZXZlcnl0aGluZyB1cCBhZnRlcgp0
+aGUgaW52b2thdGlvbiBvZiBkbWFlbmdpbmVfdGVybWluYXRlX2FsbCgpLgoKVG8gZW5kIHRoaXMg
+SSBhZGQgYSBib29ra2VlcGluZyB3aGV0aGVyIG9yIG5vdCBhIFJYLXRyYW5zZmVyIGhhcyBiZWVu
+CnN0YXJ0ZWQgdG8gdGhlIDgyNTAtZG1hIGNvZGUuIEl0IGhhcyBhbHJlYWR5IGJlZW4gZG9uZSBm
+b3IgdGhlIFRYIHNpZGUuCipOb3cqIHdlIGxlYXJuIGFib3V0IHRoZSBSWCBzdGF0dXMgYmFzZWQg
+b24gb3VyIGJvb2trZWVwaW5nIGFuZCBkb24ndApuZWVkIGRtYWVuZ2luZV90eF9zdGF0dXMoKSBm
+b3IgdGhpcyBhbnltb3JlLgoKQ2M6IHZpbm9kLmtvdWxAaW50ZWwuY29tClJldmlld2VkLWJ5OiBU
+b255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpUZXN0ZWQtYnk6IFRvbnkgTGluZGdyZW4g
+PHRvbnlAYXRvbWlkZS5jb20+ClNpZ25lZC1vZmYtYnk6IFNlYmFzdGlhbiBBbmRyemVqIFNpZXdp
+b3IgPGJpZ2Vhc3lAbGludXRyb25peC5kZT4KLS0tCiBkcml2ZXJzL3R0eS9zZXJpYWwvODI1MC84
+MjUwLmggICAgIHwgIDEgKwogZHJpdmVycy90dHkvc2VyaWFsLzgyNTAvODI1MF9kbWEuYyB8IDEw
+ICsrKystLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9u
+cygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdHR5L3NlcmlhbC84MjUwLzgyNTAuaCBiL2RyaXZl
+cnMvdHR5L3NlcmlhbC84MjUwLzgyNTAuaAppbmRleCBhNjNkMTk4ZjhkMDMuLmViYWI2MjUxNzlk
+NCAxMDA2NDQKLS0tIGEvZHJpdmVycy90dHkvc2VyaWFsLzgyNTAvODI1MC5oCisrKyBiL2RyaXZl
+cnMvdHR5L3NlcmlhbC84MjUwLzgyNTAuaApAQCAtNDIsNiArNDIsNyBAQCBzdHJ1Y3QgdWFydF84
+MjUwX2RtYSB7CiAKIAl1bnNpZ25lZCBjaGFyCQl0eF9ydW5uaW5nOjE7CiAJdW5zaWduZWQgY2hh
+cgkJdHhfZXJyOiAxOworCXVuc2lnbmVkIGNoYXIJCXJ4X3J1bm5pbmc6MTsKIH07CiAKIHN0cnVj
+dCBvbGRfc2VyaWFsX3BvcnQgewpkaWZmIC0tZ2l0IGEvZHJpdmVycy90dHkvc2VyaWFsLzgyNTAv
+ODI1MF9kbWEuYyBiL2RyaXZlcnMvdHR5L3NlcmlhbC84MjUwLzgyNTBfZG1hLmMKaW5kZXggNjll
+NTRhYmI2ZTcxLi5kYjllZGEzYzEyZDYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdHR5L3NlcmlhbC84
+MjUwLzgyNTBfZG1hLmMKKysrIGIvZHJpdmVycy90dHkvc2VyaWFsLzgyNTAvODI1MF9kbWEuYwpA
+QCAtNjEsNiArNjEsNyBAQCBzdGF0aWMgdm9pZCBfX2RtYV9yeF9jb21wbGV0ZSh2b2lkICpwYXJh
+bSkKIAlkbWFfc3luY19zaW5nbGVfZm9yX2NwdShkbWEtPnJ4Y2hhbi0+ZGV2aWNlLT5kZXYsIGRt
+YS0+cnhfYWRkciwKIAkJCQlkbWEtPnJ4X3NpemUsIERNQV9GUk9NX0RFVklDRSk7CiAKKwlkbWEt
+PnJ4X3J1bm5pbmcgPSAwOwogCWRtYWVuZ2luZV90eF9zdGF0dXMoZG1hLT5yeGNoYW4sIGRtYS0+
+cnhfY29va2llLCAmc3RhdGUpOwogCWRtYWVuZ2luZV90ZXJtaW5hdGVfYWxsKGRtYS0+cnhjaGFu
+KTsKIApAQCAtMTIzLDEwICsxMjQsNiBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0IHVh
+cnRfODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogewogCXN0cnVjdCB1YXJ0XzgyNTBf
+ZG1hCQkqZG1hID0gcC0+ZG1hOwogCXN0cnVjdCBkbWFfYXN5bmNfdHhfZGVzY3JpcHRvcgkqZGVz
+YzsKLQlzdHJ1Y3QgZG1hX3R4X3N0YXRlCQlzdGF0ZTsKLQlpbnQJCQkJZG1hX3N0YXR1czsKLQot
+CWRtYV9zdGF0dXMgPSBkbWFlbmdpbmVfdHhfc3RhdHVzKGRtYS0+cnhjaGFuLCBkbWEtPnJ4X2Nv
+b2tpZSwgJnN0YXRlKTsKIAogCXN3aXRjaCAoaWlyICYgMHgzZikgewogCWNhc2UgVUFSVF9JSVJf
+UkxTSToKQEAgLTEzNyw3ICsxMzQsNyBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0IHVh
+cnRfODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogCQkgKiBJZiBSQ1ZSIEZJRk8gdHJp
+Z2dlciBsZXZlbCB3YXMgbm90IHJlYWNoZWQsIGNvbXBsZXRlIHRoZQogCQkgKiB0cmFuc2ZlciBh
+bmQgbGV0IDgyNTBfY29yZSBjb3B5IHRoZSByZW1haW5pbmcgZGF0YS4KIAkJICovCi0JCWlmIChk
+bWFfc3RhdHVzID09IERNQV9JTl9QUk9HUkVTUykgeworCQlpZiAoZG1hLT5yeF9ydW5uaW5nKSB7
+CiAJCQlkbWFlbmdpbmVfcGF1c2UoZG1hLT5yeGNoYW4pOwogCQkJX19kbWFfcnhfY29tcGxldGUo
+cCk7CiAJCX0KQEAgLTE0Niw3ICsxNDMsNyBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0
+IHVhcnRfODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogCQlicmVhazsKIAl9CiAKLQlp
+ZiAoZG1hX3N0YXR1cykKKwlpZiAoZG1hLT5yeF9ydW5uaW5nKQogCQlyZXR1cm4gMDsKIAogCWRl
+c2MgPSBkbWFlbmdpbmVfcHJlcF9zbGF2ZV9zaW5nbGUoZG1hLT5yeGNoYW4sIGRtYS0+cnhfYWRk
+ciwKQEAgLTE1NSw2ICsxNTIsNyBAQCBpbnQgc2VyaWFsODI1MF9yeF9kbWEoc3RydWN0IHVhcnRf
+ODI1MF9wb3J0ICpwLCB1bnNpZ25lZCBpbnQgaWlyKQogCWlmICghZGVzYykKIAkJcmV0dXJuIC1F
+QlVTWTsKIAorCWRtYS0+cnhfcnVubmluZyA9IDE7CiAJZGVzYy0+Y2FsbGJhY2sgPSBfX2RtYV9y
+eF9jb21wbGV0ZTsKIAlkZXNjLT5jYWxsYmFja19wYXJhbSA9IHA7CiAKLS0gCjIuMS4wCgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
+cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
+dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
+bAo=
