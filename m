@@ -1,54 +1,41 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH RESEND v6 0/7] net: cpsw: Support for am335x chip MACIDs
-Date: Mon, 29 Sep 2014 14:21:28 +0530
-Message-ID: <54291D90.4010806@ti.com>
-References: <1411973599-18908-1-git-send-email-mpa@pengutronix.de>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: dra7-atl-clock: Mark the device as pm_runtime_irq_safe
+Date: Mon, 29 Sep 2014 11:54:08 +0300
+Message-ID: <54291E30.6040503@ti.com>
+References: <1411978233-25139-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42613 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751493AbaI2IwK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Sep 2014 04:52:10 -0400
-In-Reply-To: <1411973599-18908-1-git-send-email-mpa@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1411978233-25139-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, mturquette@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Markus Pargmann <mpa@pengutronix.de>, "David S. Miller" <davem@davemloft.net>
-Cc: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, Steven Rostedt <rostedt@goodmis.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, kernel@pengutronix.de
 
-On Monday 29 September 2014 12:23 PM, Markus Pargmann wrote:
-> Hi,
-> 
-> Another resend of this series to add the netdev list.
-> 
-> This series adds support to the cpsw driver to read the MACIDs of the am335x
-> chip and use them as fallback. These addresses are only used if there are no
-> mac addresses in the devicetree, for example set by a bootloader.
-> 
-> Best regards,
-> 
-> Markus
-> 
-> 
-> Markus Pargmann (7):
->   DT doc: net: cpsw mac-address is optional
->   net: cpsw: Add missing return value
->   net: cpsw: header, Add missing include
->   net: cpsw: Replace pr_err by dev_err
->   net: cpsw: Add am33xx MACID readout
->   am33xx: define syscon control module device node
->   arm: dts: am33xx, Add syscon phandle to cpsw node
-> 
->  Documentation/devicetree/bindings/net/cpsw.txt |  6 +++-
->  arch/arm/boot/dts/am33xx.dtsi                  |  6 ++++
->  drivers/net/ethernet/ti/Kconfig                |  2 ++
->  drivers/net/ethernet/ti/cpsw.c                 | 45 ++++++++++++++++++++++++--
->  drivers/net/ethernet/ti/cpsw.h                 |  1 +
->  5 files changed, 57 insertions(+), 3 deletions(-)
-> 
+On 09/29/2014 11:10 AM, Peter Ujfalusi wrote:
+> It is safe to call the pm sync calls in interrupt context in this driver.
+>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Acked-by: Mugunthan V N <mugunthanvnm@gmail.com>
+Thanks, applied to for-v3.18/ti-clk-drv.
 
-Regards
-Mugunthan V N
+-Tero
+
+> ---
+>   drivers/clk/ti/clk-dra7-atl.c | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+> index af29359677da..f18d149acd65 100644
+> --- a/drivers/clk/ti/clk-dra7-atl.c
+> +++ b/drivers/clk/ti/clk-dra7-atl.c
+> @@ -228,6 +228,7 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
+>   	cinfo->iobase = of_iomap(node, 0);
+>   	cinfo->dev = &pdev->dev;
+>   	pm_runtime_enable(cinfo->dev);
+> +	pm_runtime_irq_safe(cinfo->dev);
+>
+>   	pm_runtime_get_sync(cinfo->dev);
+>   	atl_write(cinfo, DRA7_ATL_PCLKMUX_REG(0), DRA7_ATL_PCLKMUX);
+>
