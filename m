@@ -1,42 +1,47 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 13/16] tty: serial: 8250_dma: add pm runtime
-Date: Mon, 29 Sep 2014 11:56:45 +0200
-Message-ID: <20140929095645.GC13142@linutronix.de>
-References: <1410377411-26656-1-git-send-email-bigeasy@linutronix.de>
- <1410377411-26656-14-git-send-email-bigeasy@linutronix.de>
- <20140929092606.GC13952@ci00147.xsens-tech.local>
+From: Frans Klaver <frans.klaver@xsens.com>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Mon, 29 Sep 2014 12:30:43 +0200
+Message-ID: <20140929103042.GA31111@ci00147.xsens-tech.local>
+References: <20140912094010.GE28458@ci00147.xsens-tech.local>
+ <5412C21A.8020203@linutronix.de>
+ <20140912102816.GF28458@ci00147.xsens-tech.local>
+ <541716DC.9020904@linutronix.de>
+ <20140917102812.GA20438@ci00147.xsens-tech.local>
+ <20140921204100.GA10111@linutronix.de>
+ <20140922092853.GH20438@ci00147.xsens-tech.local>
+ <20140925151403.GH19396@linutronix.de>
+ <20140929085042.GA13952@ci00147.xsens-tech.local>
+ <20140929095440.GB13142@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140929092606.GC13952@ci00147.xsens-tech.local>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frans Klaver <frans.klaver@xsens.com>
-Cc: linux-serial@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20140929095440.GB13142@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Frans Klaver | 2014-09-29 11:26:06 [+0200]:
+On Mon, Sep 29, 2014 at 11:54:40AM +0200, Sebastian Andrzej Siewior wrote:
+> There is a patch named "ARM: edma: unconditionally ack the error
+> interrupt". I have the feeling that this is not really required once we
+> delay set_termios. I couldn't reproduce the bug with beagleblack with my
+> usual test case.
 
->On Wed, Sep 10, 2014 at 09:30:08PM +0200, Sebastian Andrzej Siewior wrote:
->> There is nothing to do for RPM in the RX path. If the HW goes off then it
->> won't assert the DMA line and the transfer won't happen. So we hope that
->> the HW does not go off for RX to work (DMA or PIO makes no difference
->> here).
->> 
->> For TX the situation is slightly different. RPM is enabled on
->> start_tx(). We can't disable RPM on DMA complete callback because there
->> is still data in the FIFO which is being sent. We have to wait until
->> the FIFO is empty before we disable it.
->> For this to happen we fake a TX sent error and enable THRI. Once the
->> FIFO is empty we receive an interrupt and since the TTY-buffer is still
->> empty we "put RPM" via __stop_tx(). Should it been filed then in the
->> start_tx() path we should program the DMA transfer and remove the error
->> flag and the THRI bit.
->
->That last sentence starts out a bit messy.
+I think so too. I didn't need it either.
 
-This got mered so there is nothing I can do about it anymore. But I will
-try to fix comments in code where and in patches that are not yet merged
-(what you report :))
 
-Sebastian
+> For your "too much work for irq" problem: Could you add trace_printk()
+> in tx/rx dma start/complete, and irq routine? The interresting part is
+> what is the irq routine doing once entered. It might be a condition that
+> is ignored at first and "acked" later while serving another event. Or it
+> is really doing something and this is more or less "legal".
+
+I'll have a look at that.
+
+> 
+> >Thanks,
+> >Frans
+> 
+> Sebastian
