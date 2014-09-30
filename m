@@ -1,94 +1,48 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 13/17] iommu/omap: Remove couple of unused exported functions
-Date: Tue, 30 Sep 2014 16:16:08 -0500
-Message-ID: <1412111772-38006-14-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 15/17] iommu/omap: Reset the domain field upon detaching
+Date: Tue, 30 Sep 2014 16:16:10 -0500
+Message-ID: <1412111772-38006-16-git-send-email-s-anna@ti.com>
 References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39539 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850AbaI3VQ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Sep 2014 17:16:27 -0400
-In-Reply-To: <1412111772-38006-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1412111772-38006-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The exported functions omap_foreach_iommu_device() and
-omap_iotlb_cr_to_e() have been deleted, as they are no
-longer needed.
+The .domain field in omap_iommu struct is set properly when the
+OMAP IOMMU device is attached to, but is never reset properly
+on detach. Reset this properly so that the OMAP IOMMU debugfs
+logic can depend on this field before allowing the debugfs
+operations.
 
-The function omap_foreach_iommu_device() is not required
-after the consolidation of the OMAP IOMMU debug module,
-and the function omap_iotlb_cr_to_e() is not required
-after making the debugfs entry 'pagetable' read-only.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 21 ---------------------
- drivers/iommu/omap-iommu.h |  5 -----
- 2 files changed, 26 deletions(-)
+ drivers/iommu/omap-iommu.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 717d654..b3bc087 100644
+index a140873..3769dc0 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -203,20 +203,6 @@ static void iommu_disable(struct omap_iommu *obj)
- /*
-  *	TLB operations
-  */
--void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e)
--{
--	BUG_ON(!cr || !e);
--
--	e->da		= cr->cam & MMU_CAM_VATAG_MASK;
--	e->pa		= cr->ram & MMU_RAM_PADDR_MASK;
--	e->valid	= cr->cam & MMU_CAM_V;
--	e->pgsz		= cr->cam & MMU_CAM_PGSZ_MASK;
--	e->endian	= cr->ram & MMU_RAM_ENDIAN_MASK;
--	e->elsz		= cr->ram & MMU_RAM_ELSZ_MASK;
--	e->mixed	= cr->ram & MMU_RAM_MIXED;
--}
--EXPORT_SYMBOL_GPL(omap_iotlb_cr_to_e);
--
- static inline int iotlb_cr_valid(struct cr_regs *cr)
- {
- 	if (!cr)
-@@ -593,13 +579,6 @@ size_t omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t bytes)
+@@ -1202,6 +1202,7 @@ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
+ 
+ 	omap_domain->iommu_dev = arch_data->iommu_dev = NULL;
+ 	omap_domain->dev = NULL;
++	oiommu->domain = NULL;
  }
- EXPORT_SYMBOL_GPL(omap_dump_tlb_entries);
  
--int omap_foreach_iommu_device(void *data, int (*fn)(struct device *, void *))
--{
--	return driver_for_each_device(&omap_iommu_driver.driver,
--				      NULL, data, fn);
--}
--EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
--
- /*
-  *	H/W pagetable operations
-  */
-diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 6e9a8d2..2659139 100644
---- a/drivers/iommu/omap-iommu.h
-+++ b/drivers/iommu/omap-iommu.h
-@@ -190,14 +190,9 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- /*
-  * global functions
-  */
--extern void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
--
- extern int
- omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
- 
--extern int omap_foreach_iommu_device(void *data,
--				int (*fn)(struct device *, void *));
--
- extern ssize_t
- omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
- extern size_t
+ static void omap_iommu_detach_dev(struct iommu_domain *domain,
 -- 
 2.1.0
-
