@@ -1,7 +1,7 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH 2/3] Documentation: dt: input: tsc2007: Document new parameters
-Date: Tue, 30 Sep 2014 22:17:33 +0200
-Message-ID: <1412108254-19234-3-git-send-email-marek@goldelico.com>
+Subject: [PATCH 3/3] arm: dts: omap3-gta04: Extend touchscreen configs
+Date: Tue, 30 Sep 2014 22:17:34 +0200
+Message-ID: <1412108254-19234-4-git-send-email-marek@goldelico.com>
 References: <1412108254-19234-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1412108254-19234-1-git-send-email-marek@goldelico.com>
@@ -10,43 +10,29 @@ To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree
 Cc: hns@goldelico.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Marek Belisko <marek@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
+Adding min/max values for various touschscreen properties.
+
 Signed-off-by: Marek Belisko <marek@goldelico.com>
 ---
- .../devicetree/bindings/input/touchscreen/tsc2007.txt   | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
-index ec365e1..46b086c 100644
---- a/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
-+++ b/Documentation/devicetree/bindings/input/touchscreen/tsc2007.txt
-@@ -13,14 +13,25 @@ Optional properties:
-   (see interrupt binding[0]).
- - interrupts: (gpio) interrupt to which the chip is connected
-   (see interrupt binding[0]).
--- ti,max-rt: maximum pressure.
-+- ti,swap-xy: if present, swap x and y values. Rotation left/right is
-+  achieved by combination with flipping of x or y.
-+- ti,min-x: minimum x (default 0). Use this for a coarse calibration of the
-+  touch if there is no user space option (e.g. Android, X11).
-+- ti,max-x: maximum x (default 4095). If max-x is smaller than min-x the
-+  axis is swapped.
-+- ti,min-y: minimum y (default 0).
-+- ti,max-y: maximum y (default 4095).
-+- ti,min-rt: minimum pressure (default 0).
-+- ti,max-rt: maximum pressure (default 4095). Depending on your needs, you
-+  can also invert the pressure value since the raw rt value  reports the
-+  resistance and not the "pressure" (i.e. becomes lower for higher pressure).
- - ti,fuzzx: specifies the absolute input fuzz x value.
-   If set, it will permit noise in the data up to +- the value given to the fuzz
--  parameter, that is used to filter noise from the event stream.
-+  parameter, that is used to filter noise from the event stream (default 0).
- - ti,fuzzy: specifies the absolute input fuzz y value.
- - ti,fuzzz: specifies the absolute input fuzz z value.
- - ti,poll-period: how much time to wait (in milliseconds) before reading again the
--  values from the tsc2007.
-+  values from the tsc2007 (default 1).
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index fd34f91..2dafac3b 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -284,6 +284,12 @@
+ 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
+ 		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
+ 		ti,x-plate-ohms = <600>;
++		ti,min-x = <0x100>;
++		ti,max-x = <0xf00>;
++		ti,min-y = <0xf00>;
++		ti,max-y = <0x100>;
++		ti,min-rt = <0xfff>;
++		ti,max-rt = <0>;
+ 	};
+ };
  
- [0]: Documentation/devicetree/bindings/interrupt-controller/interrupts.txt
- [1]: Documentation/devicetree/bindings/gpio/gpio.txt
 -- 
 1.9.3
