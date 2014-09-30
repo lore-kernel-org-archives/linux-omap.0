@@ -1,88 +1,87 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT mechanism
-Date: Tue, 30 Sep 2014 17:01:06 +0200
-Message-ID: <542AC5B2.9040406@pengutronix.de>
-References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-3-git-send-email-rogerq@ti.com> <20140930132650.GN1325@katana> <542AB137.30507@ti.com> <20140930135226.GO1325@katana> <542AB6E9.9000907@ti.com> <20140930141909.GP1325@katana> <542ABC90.7010900@pengutronix.de> <20140930144950.GQ1325@katana>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT
+ mechanism
+Date: Tue, 30 Sep 2014 17:25:50 +0200
+Message-ID: <20140930152550.GR1325@katana>
+References: <1410273070-22485-1-git-send-email-rogerq@ti.com>
+ <1410273070-22485-3-git-send-email-rogerq@ti.com>
+ <20140930132650.GN1325@katana>
+ <542AB137.30507@ti.com>
+ <20140930135226.GO1325@katana>
+ <542AB6E9.9000907@ti.com>
+ <20140930141909.GP1325@katana>
+ <542ABC90.7010900@pengutronix.de>
+ <20140930144950.GQ1325@katana>
+ <542AC5B2.9040406@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="Q2teAWMSj68LmqGThNPIuel11IXG1dWUA"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <20140930144950.GQ1325@katana>
-Sender: linux-can-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="soWJpSPh+l8Y6Fy7"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:40516 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818AbaI3PZU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Sep 2014 11:25:20 -0400
+Content-Disposition: inline
+In-Reply-To: <542AC5B2.9040406@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Q2teAWMSj68LmqGThNPIuel11IXG1dWUA
-Content-Type: text/plain; charset=UTF-8
+
+--soWJpSPh+l8Y6Fy7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 09/30/2014 04:49 PM, Wolfram Sang wrote:
-> On Tue, Sep 30, 2014 at 04:22:08PM +0200, Marc Kleine-Budde wrote:
->> On 09/30/2014 04:19 PM, Wolfram Sang wrote:
->>>
->>>> As just TI is using this out of band RAMINIT mechanism, should it be=
- "ti,syscon" or just "syscon"?
->>>
->>> Yes, only TI uses this out-of-band RAMINIT (currently, at least). So,=
- we
->>> need an (optional) way to describe that. However, accessing syscon
->>> registers in general is not TI specific and a generic way to do this
->>> should be used. Which looks to me like the "syscon" property to allow=
 
->>> access to the register. Still, we should ask DT maintainers about it,=
-
->>> maybe they prefer a more precise property like "syscon-raminit" to al=
-low
->>> for further syscon extensions later or something...
->>
->> What do you think about putting the bit information in the
->> syscon-raminit phandle as additional arguments?
+> Yes, but syscon_regmap_lookup_by_phandle() doesn't need any support for
+> additional parameters. Have a look at:
 >=20
-> Then we'd have <n> syscon phandles for <n> instances?
+> drivers/net/ethernet/stmicro/stmmac/dwmac-socfpga.c
 >=20
-> Also, judging from Markus patch [1] there is already some
-> infrastructure, namely syscon_regmap_lookup_by_phandle(). From a
-> glimpse, it doesn't look viable to add such a support to it.
+> First get the regmap, then the 1st argument is the offset in the regmap,
+> the 2nd and 3rd could be the bits.
 
-Yes, but syscon_regmap_lookup_by_phandle() doesn't need any support for
-additional parameters. Have a look at:
+So, for one driver the extra arguments are: <reg> <start_bit> <stop_bit>
+For another driver (the stmmac example): <reg_offset> <reg_shift>
 
-drivers/net/ethernet/stmicro/stmmac/dwmac-socfpga.c
+Phew... Then we should really have a "syscon-raminit" property probably,
+so that at least plain "syscon" has a consistent syntax?
 
-First get the regmap, then the 1st argument is the offset in the regmap,
-the 2nd and 3rd could be the bits.
-
-> So, I'd rather drop additional arguments.
 >=20
-> Why would you like to have it encoded in DT?
+> > So, I'd rather drop additional arguments.
+> >=20
+> > Why would you like to have it encoded in DT?
+>=20
+> Where put the information then? Into the driver, but where do you get
+> the reference which instance of the DCAN you are, so that you can look
+> up the correct bits?
 
-Where put the information then? Into the driver, but where do you get
-the reference which instance of the DCAN you are, so that you can look
-up the correct bits?
-
-Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+Agreed. I thought we had this information in the driver already, but we
+haven't...
 
 
---Q2teAWMSj68LmqGThNPIuel11IXG1dWUA
+--soWJpSPh+l8Y6Fy7
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlQqxbIACgkQjTAFq1RaXHMR3wCfe3l+YvpKzt20cEcx8/Y/xu/N
-HLEAn0jJrXsj0mrumczXKVJmwh5ydmF6
-=Tllu
+iQIcBAEBAgAGBQJUKst+AAoJEBQN5MwUoCm2vGkP/jheXaSqCiV0tLnEp+ZjiX4j
+qsIurasuMyPVfC+sekM8gExkWiAuNW06uthsoBf4JuRSDsKWQZY4VvaDhRofDE8u
+d11uddMHBQaeny9crD9bTmshQKcKZ07qP68jH3vZmN++8vrtYfy6xD3YkqRapiPi
+yeRban8P931/kLx/iG8AQl3q5+najyTCpfYJOmJpPbKA5guiHSBZ/j6/FYSW0Ia0
+ZZFmAq5AbyGXfiNHIgNyS45T25cPz++X4shr3u1713t06oM5Qufphp2ikKnFbeXm
+z4znCbBUCAGo7lLJnjdY9f17YpGhs6jScS4cxvqKd4mknVxnDmZ3aRlenPPZA6iA
+HFzXoIx6EyYpaOu9qcRFot/o6oe+ua15UQZ48vuCUQ2G/jD9HyUoMfFLcgCo6fbe
+Fhqr66Pcd7jYx8wNgc0OS+mgYE96CHRVLRe3A1A9STSlbgDPjmlEyHHC6p8GH/Vo
+uJdQ08WOJq8KrhXV1sS0sw9JVdmoMM6co5YeWVLO28bDPtyNQuUu64Al2vq72Unx
+u23KXOHMekJD3iHCcODkki1Tjz0AJT/93kd4QhwcE8DlofagNNfZS9cnx+/VYId8
+5bNx+YkQz3j9I+Psj/5SeaX5Dk6JA1uvoQJTyaqrxYyPRZZIIBh8uV/rzvAICRug
+Ur3v6A/EGjQjut1S86CR
+=UAn6
 -----END PGP SIGNATURE-----
 
---Q2teAWMSj68LmqGThNPIuel11IXG1dWUA--
+--soWJpSPh+l8Y6Fy7--
