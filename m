@@ -1,97 +1,89 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 01/17] iommu/omap: Remove refcount field from omap_iommu object
-Date: Tue, 30 Sep 2014 16:15:56 -0500
-Message-ID: <1412111772-38006-2-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 06/17] iommu/omap: Remove omap_iommu_arch_version() and version field
+Date: Tue, 30 Sep 2014 16:16:01 -0500
+Message-ID: <1412111772-38006-7-git-send-email-s-anna@ti.com>
 References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1412111772-38006-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42262 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751214AbaI3VQ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Sep 2014 17:16:28 -0400
+In-Reply-To: <1412111772-38006-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The refcount field in omap_iommu object is primarily used to check
-if an IOMMU device has already been enabled, but this is already
-implicit in the omap_iommu_attach_dev() which ensures that only
-a single device can attach to an IOMMU. This field is redundant,
-and so has been cleaned up.
+The function omap_iommu_arch_version() is not used anymore,
+and is not required either, so remove it. The .version field
+in struct iommu_functions that this function uses is also
+removed, as it is not really an ops to retrieve a version and
+there won't be any usage for this field either.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/iommu/omap-iommu.c | 15 +++------------
- drivers/iommu/omap-iommu.h |  1 -
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ drivers/iommu/omap-iommu.c  | 9 ---------
+ drivers/iommu/omap-iommu.h  | 4 ----
+ drivers/iommu/omap-iommu2.c | 2 --
+ 3 files changed, 15 deletions(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 4b432c4..ed26701 100644
+index ed26701..332bfb9 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -819,8 +819,9 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
- 	u32 *iopgd, *iopte;
- 	struct omap_iommu *obj = data;
- 	struct iommu_domain *domain = obj->domain;
-+	struct omap_iommu_domain *omap_domain = domain->priv;
- 
--	if (!obj->refcount)
-+	if (!omap_domain->iommu_dev)
- 		return IRQ_NONE;
- 
- 	errs = iommu_report_fault(obj, &da);
-@@ -880,13 +881,6 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
- 
- 	spin_lock(&obj->iommu_lock);
- 
--	/* an iommu device can only be attached once */
--	if (++obj->refcount > 1) {
--		dev_err(dev, "%s: already attached!\n", obj->name);
--		err = -EBUSY;
--		goto err_enable;
--	}
--
- 	obj->iopgd = iopgd;
- 	err = iommu_enable(obj);
- 	if (err)
-@@ -899,7 +893,6 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
- 	return obj;
- 
- err_enable:
--	obj->refcount--;
- 	spin_unlock(&obj->iommu_lock);
- 	return ERR_PTR(err);
+@@ -138,15 +138,6 @@ void omap_iommu_restore_ctx(struct device *dev)
  }
-@@ -915,9 +908,7 @@ static void omap_iommu_detach(struct omap_iommu *obj)
+ EXPORT_SYMBOL_GPL(omap_iommu_restore_ctx);
  
- 	spin_lock(&obj->iommu_lock);
- 
--	if (--obj->refcount == 0)
--		iommu_disable(obj);
+-/**
+- * omap_iommu_arch_version - Return running iommu arch version
+- **/
+-u32 omap_iommu_arch_version(void)
+-{
+-	return arch_iommu->version;
+-}
+-EXPORT_SYMBOL_GPL(omap_iommu_arch_version);
 -
-+	iommu_disable(obj);
- 	obj->iopgd = NULL;
- 
- 	spin_unlock(&obj->iommu_lock);
+ static int iommu_enable(struct omap_iommu *obj)
+ {
+ 	int err;
 diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 4f1b68c..5c14000 100644
+index d7c5132..45fe67d 100644
 --- a/drivers/iommu/omap-iommu.h
 +++ b/drivers/iommu/omap-iommu.h
-@@ -33,7 +33,6 @@ struct omap_iommu {
- 	void		*isr_priv;
- 	struct iommu_domain *domain;
+@@ -70,8 +70,6 @@ struct cr_regs {
  
--	unsigned int	refcount;
- 	spinlock_t	iommu_lock;	/* global for this whole object */
+ /* architecture specific functions */
+ struct iommu_functions {
+-	unsigned long	version;
+-
+ 	int (*enable)(struct omap_iommu *obj);
+ 	void (*disable)(struct omap_iommu *obj);
+ 	void (*set_twl)(struct omap_iommu *obj, bool on);
+@@ -191,8 +189,6 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ /*
+  * global functions
+  */
+-extern u32 omap_iommu_arch_version(void);
+-
+ extern void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
  
- 	/*
+ extern int
+diff --git a/drivers/iommu/omap-iommu2.c b/drivers/iommu/omap-iommu2.c
+index 5e1ea3b..2f6a9f7 100644
+--- a/drivers/iommu/omap-iommu2.c
++++ b/drivers/iommu/omap-iommu2.c
+@@ -297,8 +297,6 @@ static void omap2_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e)
+ }
+ 
+ static const struct iommu_functions omap2_iommu_ops = {
+-	.version	= IOMMU_ARCH_VERSION,
+-
+ 	.enable		= omap2_iommu_enable,
+ 	.disable	= omap2_iommu_disable,
+ 	.set_twl	= omap2_iommu_set_twl,
 -- 
 2.1.0
+
