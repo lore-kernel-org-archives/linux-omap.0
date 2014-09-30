@@ -1,128 +1,49 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 11/17] iommu/omap: Make pagetable debugfs entry read-only
-Date: Tue, 30 Sep 2014 16:16:06 -0500
-Message-ID: <1412111772-38006-12-git-send-email-s-anna@ti.com>
-References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
+From: Dan Murphy <dmurphy@ti.com>
+Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
+Date: Tue, 30 Sep 2014 16:18:48 -0500
+Message-ID: <542B1E38.4020702@ti.com>
+References: <1412093220-24690-1-git-send-email-dmurphy@ti.com> <542B1ABE.5000900@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1412111772-38006-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <542B1ABE.5000900@metafoo.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lars-Peter Clausen <lars@metafoo.de>, broonie@kernel.org, gregkh@linuxfoundation.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove the writeability on the 'pagetable' debugfs entry,
-so that the mapping/unmapping into an OMAP IOMMU is only
-limited to actual client devices/drivers at kernel-level.
+Lars
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
----
- drivers/iommu/omap-iommu-debug.c | 48 ++--------------------------------------
- 1 file changed, 2 insertions(+), 46 deletions(-)
+On 09/30/2014 04:03 PM, Lars-Peter Clausen wrote:
+> On 09/30/2014 06:07 PM, Dan Murphy wrote:
+>> There may be spi devices that do not require a
+>> register read mask to read the registers.
+>>
+>> Currently the code sets the read mask based on
+>> a non-zero value passed in from the driver or if that
+>> value is 0 sets the read mask to 0x80.
+>
+> It only sets it to the bus default if both read_flag_mask and write_flag_mask are 0. The assumption is that both of them being zero is a invalid configuration and either of them (or both) have to be non-zero for proper operation, since otherwise the device can't tell the difference between a read and a write.
+>
+> Do you have a device where both the read and the write mask is 0?
+>
+> - Lars
 
-diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index a520438..28de657 100644
---- a/drivers/iommu/omap-iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -24,8 +24,6 @@
- #include "omap-iopgtable.h"
- #include "omap-iommu.h"
- 
--#define MAXCOLUMN 100 /* for short messages */
--
- static DEFINE_MUTEX(iommu_debug_lock);
- 
- static struct dentry *iommu_debug_root;
-@@ -82,39 +80,6 @@ static ssize_t debug_read_tlb(struct file *file, char __user *userbuf,
- 	return bytes;
- }
- 
--static ssize_t debug_write_pagetable(struct file *file,
--		     const char __user *userbuf, size_t count, loff_t *ppos)
--{
--	struct iotlb_entry e;
--	struct cr_regs cr;
--	int err;
--	struct device *dev = file->private_data;
--	struct omap_iommu *obj = dev_to_omap_iommu(dev);
--	char buf[MAXCOLUMN], *p = buf;
--
--	count = min(count, sizeof(buf));
--
--	mutex_lock(&iommu_debug_lock);
--	if (copy_from_user(p, userbuf, count)) {
--		mutex_unlock(&iommu_debug_lock);
--		return -EFAULT;
--	}
--
--	sscanf(p, "%x %x", &cr.cam, &cr.ram);
--	if (!cr.cam || !cr.ram) {
--		mutex_unlock(&iommu_debug_lock);
--		return -EINVAL;
--	}
--
--	omap_iotlb_cr_to_e(&cr, &e);
--	err = omap_iopgtable_store_entry(obj, &e);
--	if (err)
--		dev_err(obj->dev, "%s: fail to store cr\n", __func__);
--
--	mutex_unlock(&iommu_debug_lock);
--	return count;
--}
--
- #define dump_ioptable_entry_one(lv, da, val)			\
- 	({							\
- 		int __err = 0;					\
-@@ -202,14 +167,6 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
- 	return bytes;
- }
- 
--#define DEBUG_FOPS(name)						\
--	static const struct file_operations debug_##name##_fops = {	\
--		.open = simple_open,					\
--		.read = debug_read_##name,				\
--		.write = debug_write_##name,				\
--		.llseek = generic_file_llseek,				\
--	};
--
- #define DEBUG_FOPS_RO(name)						\
- 	static const struct file_operations debug_##name##_fops = {	\
- 		.open = simple_open,					\
-@@ -219,7 +176,7 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
- 
- DEBUG_FOPS_RO(regs);
- DEBUG_FOPS_RO(tlb);
--DEBUG_FOPS(pagetable);
-+DEBUG_FOPS_RO(pagetable);
- 
- #define __DEBUG_ADD_FILE(attr, mode)					\
- 	{								\
-@@ -230,7 +187,6 @@ DEBUG_FOPS(pagetable);
- 			return -ENOMEM;					\
- 	}
- 
--#define DEBUG_ADD_FILE(name) __DEBUG_ADD_FILE(name, 0600)
- #define DEBUG_ADD_FILE_RO(name) __DEBUG_ADD_FILE(name, 0400)
- 
- static int iommu_debug_register(struct device *dev, void *data)
-@@ -263,7 +219,7 @@ static int iommu_debug_register(struct device *dev, void *data)
- 
- 	DEBUG_ADD_FILE_RO(regs);
- 	DEBUG_ADD_FILE_RO(tlb);
--	DEBUG_ADD_FILE(pagetable);
-+	DEBUG_ADD_FILE_RO(pagetable);
- 
- 	return 0;
- 
+Yes I do have a device that the read/write mask are both 0.
+
+The device, which is already in production, has a specific control register that sets either the reading or writing of the rest of the registers.
+
+Here is the data sheet
+
+http://www.ti.com/lit/ds/symlink/afe4403.pdf
+
+See page 61 control0.
+
+Driver is written for this part just want to get this lead patch in or maybe an alternate solution.
+
+Dan
+
 -- 
-2.1.0
+------------------
+Dan Murphy
