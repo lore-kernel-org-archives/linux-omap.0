@@ -1,71 +1,117 @@
 From: Mike Turquette <mturquette@linaro.org>
-Subject: Re: [GIT PULL] TI clock driver changes for 3.18 merge window
-Date: Mon, 29 Sep 2014 23:43:48 -0700
-Message-ID: <20140930064348.19023.42102@quantum>
-References: <54298515.3040201@ti.com>
+Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate change
+Date: Tue, 30 Sep 2014 00:07:32 -0700
+Message-ID: <20140930070732.19023.37829@quantum>
+References: <1408628866-32351-1-git-send-email-t-kristo@ti.com>
+ <20140922191816.GF10233@codeaurora.org> <542177E5.9060606@ti.com>
+ <5424C2FA.4000508@codeaurora.org> <5425135F.2070809@ti.com>
+ <20140926232453.19023.25483@quantum> <542913B4.2020808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:34384 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbaI3GoO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2014 02:44:14 -0400
-Received: by mail-pa0-f47.google.com with SMTP id rd3so8513984pab.6
-        for <linux-omap@vger.kernel.org>; Mon, 29 Sep 2014 23:44:13 -0700 (PDT)
-In-Reply-To: <54298515.3040201@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <542913B4.2020808@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Quoting Tero Kristo (2014-09-29 09:13:09)
-> Hi Mike,
+Quoting Tero Kristo (2014-09-29 01:09:24)
+> On 09/27/2014 02:24 AM, Mike Turquette wrote:
+> > Quoting Tero Kristo (2014-09-26 00:18:55)
+> >> On 09/26/2014 04:35 AM, Stephen Boyd wrote:
+> >>> On 09/23/14 06:38, Tero Kristo wrote:
+> >>>> On 09/22/2014 10:18 PM, Stephen Boyd wrote:
+> >>>>> On 08/21, Tero Kristo wrote:
+> >>>>>>             /* Skip children who will be reparented to another clock */
+> >>>>>>             if (child->new_parent && child->new_parent != clk)
+> >>>>>>                 continue;
+> >>>>>
+> >>>>> Are we not hitting the new_parent check here? I don't understand
+> >>>>> how we can be changing parents here unless the check is being
+> >>>>> avoided, in which case I wonder why determine_rate isn't being
+> >>>>> used.
+> >>>>>
+> >>>>
+> >>>> It depends how the clock underneath handles the situation. The error I
+> >>>> am seeing actually happens with a SoC specific compound clock (DPLL)
+> >>>> which integrates set_rate + mux functionality into a single clock
+> >>>> node. A call to the clk_set_rate changes the parent of this clock
+> >>>> (from bypass clock to reference clock), in addition to changing the
+> >>>> rate (tune the mul+div.) I looked at using the determine rate call
+> >>>> with this type but it breaks everything up... the parent gets changed
+> >>>> but not the clock rate, in addition to some other issues.
+> >>>
+> >>> Ok. Is this omap3_noncore_dpll_set_rate()?
+> >>
+> >> Yes.
+> >>
+> >>   > Can we use determine_rate +
+> >>> clk_set_parent_and_rate()? At least clk_set_parent_and_rate() would
+> >>> allow us to do the mult+div and the parent in the same op call, although
+> >>> I don't understand why setting the parent and then setting the rate is
+> >>> not going to work.
+> >>
+> >> Well, setting parent first, then rate later causes problems with the
+> >> DPLL ending up running with illegal (non-specified) rate, the M+N values
+> >> are most likely wrong if you just switch from bypass clock to reference
+> >> clock first without programming the M+N first.
+> >
+> > I took a quick look and it still seems to me that the OMAP DPLLs are
+> > still not modeled properly as mux clocks. Is this correct?
 > 
-> The following changes since commit 7d1311b93e58ed55f3a31cc8f94c4b8fe988a2b9:
-> 
->    Linux 3.17-rc1 (2014-08-16 10:40:26 -0600)
-> 
-> are available in the git repository at:
-> 
->    git@github.com:t-kristo/linux-pm.git for-v3.18/ti-clk-driver
-> 
-> for you to fetch changes up to 04ed831f224d4553682f48e1b4a6b68f2622b68e:
-> 
->    clk: ti: dra7-atl-clock: Mark the device as pm_runtime_irq_safe 
-> (2014-09-29 11:51:14 +0300)
+> Yeah, they are not mux clocks, but rather a compound of mux + DPLL 
+> multiplier/divider logic. Changing the DPLL to be a separate mux + DPLL 
+> div/mult clock will still have overlapping usage of the DPLL_EN field, 
 
-Pulled!
+I'm not talking about splitting up the clock into two separate clocks.
+If memory serves the DPLL clock implementation "cheats" and hides the
+bypass_clk info from the clock framework. To be explicit, from the
+perspective of Linux clock framework DPLL clocks only have one parent.
 
-Thanks,
+In reality a typical DPLL should have at least 2 parents (and in some
+cases starting with OMAP4, some of the DPLL output clocks should have a
+second HSD parent). But the implementation does not reflect this.
+
+> as the DPLL must be in bypass mode during M+N change. Or, should the 
+> DPLL rate change only be allowed if the mux is in bypass setting? 
+> Several drivers still depend on direct dpll clk_set_rate working 
+> 'properly' (there are some other issues currently present also which 
+> have nothing to do with the mux behavior.)
+> 
+> > This issue has been lingering for a long time and we can't use
+> > determine_rate unless that clock has multiple parents. Simply hacking
+> > knowledge of the parent bypass clock into the .set_rate callback is not
+> > enough.
+> 
+> If you believe this _must_ be changed, I can take a look at this for 
+> next merge window, but this will cause a DT data compatibility break if 
+> nothing else (personally I don't care about this as I always rebuild DT 
+> blob with kernel, but lots of other people seem to do.)
+
+Well I guess the question is how long will we put up with the many small
+headaches caused by incorrectly modeling the clock?
+
+determine_rate and clk_set_parent_and_rate should be sufficient for the
+OMAP DPLLs but only if they are correctly modeled in the framework.
+
+Regards,
 Mike
 
 > 
-> ----------------------------------------------------------------
-> Mostly fixes, except for the of_clk_init() change for the clock driver. 
-> Boot tested on pretty much every board I have access to, also merge 
-> tested with latest master to see if there are any conflicts with anything.
+> -Tero
 > 
-> ----------------------------------------------------------------
-> Behan Webster (1):
->        clk: ti: LLVMLinux: Move __init outside of type definition
+> >
+> > Regards,
+> > Mike
+> >
+> >>
+> >>    I'm interested in the other issues that you mentioned
+> >>> too.
+> >>
+> >> Mostly these were side-effects from the illegal DPLL setup I guess, like
+> >> boot hang, failed drivers etc. I didn't really investigate this that
+> >> much as it is much more simpler just to use safe list iteration here.
+> >>
+> >> -Tero
 > 
-> Peter Ujfalusi (1):
->        clk: ti: dra7-atl-clock: Mark the device as pm_runtime_irq_safe
-> 
-> Sebastian Andrzej Siewior (1):
->        clk: ti: consider the fact that of_clk_get() might return an error
-> 
-> Tero Kristo (2):
->        clk: ti: change clock init to use generic of_clk_init
->        clk: ti: dra7-atl-clock: fix a memory leak
-> 
->   arch/arm/mach-omap2/io.c         |   12 +++++--
->   arch/arm/mach-omap2/prm_common.c |    2 --
->   drivers/clk/ti/clk-dra7-atl.c    |    2 ++
->   drivers/clk/ti/clk.c             |   68 
-> ++++++++++++++++++++++++--------------
->   drivers/clk/ti/clockdomain.c     |    5 +++
->   drivers/clk/ti/divider.c         |    4 +--
->   include/linux/clk/ti.h           |    1 +
->   7 files changed, 63 insertions(+), 31 deletions(-)
