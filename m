@@ -1,58 +1,29 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH 10/13] arm: dts: am33xx: add DMA properties for UART
-Date: Mon, 29 Sep 2014 20:06:46 +0200
-Message-ID: <1412014009-13315-11-git-send-email-bigeasy@linutronix.de>
-References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH RESEND v6 0/7] net: cpsw: Support for am335x chip MACIDs
+Date: Tue, 30 Sep 2014 01:31:13 -0400 (EDT)
+Message-ID: <20140930.013113.1095845408759260547.davem@davemloft.net>
+References: <1411973599-18908-1-git-send-email-mpa@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:53452 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250AbaI2S0o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Sep 2014 14:26:44 -0400
-In-Reply-To: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+Received: from shards.monkeyblade.net ([149.20.54.216]:39170 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063AbaI3FbQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2014 01:31:16 -0400
+In-Reply-To: <1411973599-18908-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-serial@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, devicetree@vger.kernel.org
+To: mpa@pengutronix.de
+Cc: bcousson@baylibre.com, tony@atomide.com, wsa@the-dreams.de, rostedt@goodmis.org, mugunthanvnm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, kernel@pengutronix.de
 
-Cc: devicetree@vger.kernel.org
-Reviewed-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- arch/arm/boot/dts/am33xx.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+From: Markus Pargmann <mpa@pengutronix.de>
+Date: Mon, 29 Sep 2014 08:53:12 +0200
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 3a0a161342ba..078a760a4a21 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -200,6 +200,8 @@
- 			reg = <0x44e09000 0x2000>;
- 			interrupts = <72>;
- 			status = "disabled";
-+			dmas = <&edma 26>, <&edma 27>;
-+			dma-names = "tx", "rx";
- 		};
- 
- 		uart1: serial@48022000 {
-@@ -209,6 +211,8 @@
- 			reg = <0x48022000 0x2000>;
- 			interrupts = <73>;
- 			status = "disabled";
-+			dmas = <&edma 28>, <&edma 29>;
-+			dma-names = "tx", "rx";
- 		};
- 
- 		uart2: serial@48024000 {
-@@ -218,6 +222,8 @@
- 			reg = <0x48024000 0x2000>;
- 			interrupts = <74>;
- 			status = "disabled";
-+			dmas = <&edma 30>, <&edma 31>;
-+			dma-names = "tx", "rx";
- 		};
- 
- 		uart3: serial@481a6000 {
--- 
-2.1.0
+> Another resend of this series to add the netdev list.
+> 
+> This series adds support to the cpsw driver to read the MACIDs of the am335x
+> chip and use them as fallback. These addresses are only used if there are no
+> mac addresses in the devicetree, for example set by a bootloader.
 
+Series applied to net-next, thanks.
