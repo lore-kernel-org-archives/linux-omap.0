@@ -1,32 +1,48 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Tue, 30 Sep 2014 23:03:58 +0200
-Message-ID: <542B1ABE.5000900@metafoo.de>
-References: <1412093220-24690-1-git-send-email-dmurphy@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 03/17] iommu/omap: Remove duplicate declarations
+Date: Tue, 30 Sep 2014 16:15:58 -0500
+Message-ID: <1412111772-38006-4-git-send-email-s-anna@ti.com>
+References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1412093220-24690-1-git-send-email-dmurphy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>, broonie@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1412111772-38006-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/30/2014 06:07 PM, Dan Murphy wrote:
-> There may be spi devices that do not require a
-> register read mask to read the registers.
->
-> Currently the code sets the read mask based on
-> a non-zero value passed in from the driver or if that
-> value is 0 sets the read mask to 0x80.
+The omap_iommu_save_ctx() and omap_iommu_restore_ctx() declarations
+are defined in include/linux/omap-iommu.h and do not belong in the
+internal drivers/iommu/omap-iommu.h header, so remove them.
 
-It only sets it to the bus default if both read_flag_mask and 
-write_flag_mask are 0. The assumption is that both of them being zero is a 
-invalid configuration and either of them (or both) have to be non-zero for 
-proper operation, since otherwise the device can't tell the difference 
-between a read and a write.
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+ drivers/iommu/omap-iommu.h | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Do you have a device where both the read and the write mask is 0?
-
-- Lars
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index 18a0f3a..4fc51c8 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -197,9 +197,6 @@ extern void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
+ extern int
+ omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
+ 
+-extern void omap_iommu_save_ctx(struct device *dev);
+-extern void omap_iommu_restore_ctx(struct device *dev);
+-
+ extern int omap_foreach_iommu_device(void *data,
+ 				int (*fn)(struct device *, void *));
+ 
+-- 
+2.1.0
