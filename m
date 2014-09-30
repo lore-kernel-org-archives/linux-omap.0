@@ -1,23 +1,25 @@
-From: Roger Quadros <rogerq@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
 Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT mechanism
-Date: Tue, 30 Sep 2014 16:33:43 +0300
-Message-ID: <542AB137.30507@ti.com>
+Date: Tue, 30 Sep 2014 15:45:36 +0200
+Message-ID: <542AB400.6080608@pengutronix.de>
 References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-3-git-send-email-rogerq@ti.com> <20140930132650.GN1325@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38551 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbaI3NeM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2014 09:34:12 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="Ab7sQouDq6F8vFcT7sgAUeKgFrE6VSXUv"
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20140930132650.GN1325@katana>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Roger Quadros <rogerq@ti.com>
+Cc: wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: wg@grandegger.com, mkl@pengutronix.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
-On 09/30/2014 04:26 PM, Wolfram Sang wrote:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--Ab7sQouDq6F8vFcT7sgAUeKgFrE6VSXUv
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+On 09/30/2014 03:26 PM, Wolfram Sang wrote:
 > On Tue, Sep 09, 2014 at 05:31:09PM +0300, Roger Quadros wrote:
 >> Some TI SoCs like DRA7 have a RAMINIT register specification
 >> different from the other AMxx SoCs and as expected by the
@@ -34,36 +36,61 @@ On 09/30/2014 04:26 PM, Wolfram Sang wrote:
 >> ---
 >>  .../devicetree/bindings/net/can/c_can.txt          |   7 ++
 >>  drivers/net/can/c_can/c_can.h                      |  11 ++-
->>  drivers/net/can/c_can/c_can_platform.c             | 109 +++++++++++++++------
+>>  drivers/net/can/c_can/c_can_platform.c             | 109 ++++++++++++=
++++------
 >>  3 files changed, 95 insertions(+), 32 deletions(-)
 >>
->> diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
+>> diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Doc=
+umentation/devicetree/bindings/net/can/c_can.txt
 >> index 8f1ae81..e12d1a1 100644
 >> --- a/Documentation/devicetree/bindings/net/can/c_can.txt
 >> +++ b/Documentation/devicetree/bindings/net/can/c_can.txt
 >> @@ -13,6 +13,13 @@ Optional properties:
 >>  - ti,hwmods		: Must be "d_can<n>" or "c_can<n>", n being the
 >>  			  instance number
->>  
->> +- ti,raminit-syscon	: Handle to system control region that contains the
+>> =20
+>> +- ti,raminit-syscon	: Handle to system control region that contains t=
+he
 >> +			  RAMINIT register. If specified, the second memory resource
 >> +			  in the reg property must index into the RAMINIT
 >> +			  register within the syscon region
-> 
+>=20
 > There seems to be a simple "syscon" property these days.
-
-I had used plain "syscon" in the earlier revisions but was asked to make it a TI specific
-property since only TI uses this mechanism.
-
-> 
->> +- ti,raminit-start-bit	: Bit posistion of START bit in the RAMINIT register
->> +- ti,raminit-done-bit	: Bit position of DONE bit in the RAMINIT register
-> 
-> This should not be encoded in DT! This is not describing hardware setup.
+>=20
+>> +- ti,raminit-start-bit	: Bit posistion of START bit in the RAMINIT re=
+gister
+>> +- ti,raminit-done-bit	: Bit position of DONE bit in the RAMINIT regis=
+ter
+>=20
+> This should not be encoded in DT! This is not describing hardware setup=
+=2E
 > The driver should know where the bits are for the syscon phandle,
 > depending on which SoC it runs...
-> 
-OK. I'll think of matching the compatible ID with SOC specific data in the driver.
 
-cheers,
--roger
+Is the register shared by more than one core? If so the information has
+to go somewhere. Using an alias in the DT is probably the wrong approach.=
+
+
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--Ab7sQouDq6F8vFcT7sgAUeKgFrE6VSXUv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlQqtAAACgkQjTAFq1RaXHO4+QCdGu0eY8rFVSylht3CRIFRm9wG
+f+UAnj5Mw9MXjqJeTjjCIFVD0p4jLmD6
+=lSa4
+-----END PGP SIGNATURE-----
+
+--Ab7sQouDq6F8vFcT7sgAUeKgFrE6VSXUv--
