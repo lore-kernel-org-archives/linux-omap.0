@@ -1,46 +1,79 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 02/17] iommu/omap: Remove unused isr_priv field from omap_iommu
-Date: Tue, 30 Sep 2014 16:15:57 -0500
-Message-ID: <1412111772-38006-3-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 16/17] iommu/omap: Fix bus error on debugfs access of unattached IOMMU
+Date: Tue, 30 Sep 2014 16:16:11 -0500
+Message-ID: <1412111772-38006-17-git-send-email-s-anna@ti.com>
 References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1412111772-38006-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44915 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105AbaI3VQ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2014 17:16:29 -0400
+In-Reply-To: <1412111772-38006-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The isr_priv field is a left-over from before the IOMMU API
-adaptation, this was used to store the callback data. This is
-no longer relevant, so remove it.
+Any debugfs access on an OMAP IOMMU that is not enabled (done during
+attach) results in a bus error due to access of registers without
+the clock or the reset enabled for the respective IOMMU. So, add a
+check to make sure the IOMMU is enabled/attached by a client device.
+This gracefully prints a "Operation not permitted" trace when the
+corresponding IOMMU is not enabled.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/iommu/omap-iommu.h | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/iommu/omap-iommu-debug.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 5c14000..18a0f3a 100644
---- a/drivers/iommu/omap-iommu.h
-+++ b/drivers/iommu/omap-iommu.h
-@@ -30,7 +30,6 @@ struct omap_iommu {
- 	const char	*name;
- 	void __iomem	*regbase;
- 	struct device	*dev;
--	void		*isr_priv;
- 	struct iommu_domain *domain;
+diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
+index 54a0dc6..e7b8aca 100644
+--- a/drivers/iommu/omap-iommu-debug.c
++++ b/drivers/iommu/omap-iommu-debug.c
+@@ -24,6 +24,11 @@ static DEFINE_MUTEX(iommu_debug_lock);
  
- 	spinlock_t	iommu_lock;	/* global for this whole object */
+ static struct dentry *iommu_debug_root;
+ 
++static inline bool is_omap_iommu_detached(struct omap_iommu *obj)
++{
++	return !obj->domain;
++}
++
+ static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
+ 			       size_t count, loff_t *ppos)
+ {
+@@ -31,6 +36,9 @@ static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
+ 	char *p, *buf;
+ 	ssize_t bytes;
+ 
++	if (is_omap_iommu_detached(obj))
++		return -EPERM;
++
+ 	buf = kmalloc(count, GFP_KERNEL);
+ 	if (!buf)
+ 		return -ENOMEM;
+@@ -54,6 +62,9 @@ static ssize_t debug_read_tlb(struct file *file, char __user *userbuf,
+ 	char *p, *buf;
+ 	ssize_t bytes, rest;
+ 
++	if (is_omap_iommu_detached(obj))
++		return -EPERM;
++
+ 	buf = kmalloc(count, GFP_KERNEL);
+ 	if (!buf)
+ 		return -ENOMEM;
+@@ -139,6 +150,9 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
+ 	char *p, *buf;
+ 	size_t bytes;
+ 
++	if (is_omap_iommu_detached(obj))
++		return -EPERM;
++
+ 	buf = (char *)__get_free_page(GFP_KERNEL);
+ 	if (!buf)
+ 		return -ENOMEM;
 -- 
 2.1.0
+
