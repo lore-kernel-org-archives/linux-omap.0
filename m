@@ -1,50 +1,56 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Tue, 30 Sep 2014 15:20:04 -0500
-Message-ID: <542B1074.5000802@ti.com>
-References: <1412093220-24690-1-git-send-email-dmurphy@ti.com> <20140930172543.GG4273@sirena.org.uk>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 02/13] tty: serial: 8250: make serial8250_console_setup()
+ non _init
+Date: Tue, 30 Sep 2014 16:27:46 -0400
+Message-ID: <542B1242.1010609@hurleysoftware.com>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de> <1412014009-13315-3-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140930172543.GG4273@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1412014009-13315-3-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/30/2014 12:25 PM, Mark Brown wrote:
-> On Tue, Sep 30, 2014 at 11:07:00AM -0500, Dan Murphy wrote:
->
->> -	if (config->read_flag_mask || config->write_flag_mask) {
->> +	if (config->read_flag_mask == REGMAP_NO_READ_MASK)
->> +		map->read_flag_mask = 0x00;
->> +	else if (config->read_flag_mask)
-> This breaks the symmetry in handling of read and write masks which isn't
-> great, please make the equivalent update for the write mask too.
+On 09/29/2014 02:06 PM, Sebastian Andrzej Siewior wrote:
+> if I boot with console=3DttyS0 and the omap driver is module I end up=
+ with
+>=20
+> | console [ttyS0] disabled
 
-Hmmm.  If I make the similar change for the write mask I will be adding dead
-code as write_flag_mask is not defaulted by the bus like the read_flag_mask which is
-defaulted to 0x80 in the regmap-spi code.  The i2c code does not make this assumption.
+Note to self: make ISA config optional.
 
-The original code did not seem to have symmetry as the only instance
-that write_flag_mask is modified is if it is non-zero.
+> | omap8250 44e09000.serial: ttyS0 at MMIO 0x44e09000 (irq =3D 88, bas=
+e_baud =3D 3000000) is a 8250
+> | Unable to handle kernel paging request at virtual address c07a9de0
+> | Modules linked in: 8250_omap(+)
+> | CPU: 0 PID: 908 Comm: modprobe Not tainted 3.17.0-rc5+ #1593
+> | PC is at serial8250_console_setup+0x0/0xc8
+> | LR is at register_console+0x13c/0x3a4
+> | [<c0078788>] (register_console) from [<c02d0340>] (uart_add_one_por=
+t+0x3cc/0x420)
+> | [<c02d0340>] (uart_add_one_port) from [<c02d38a4>] (serial8250_regi=
+ster_8250_port+0x298/0x39c)
+> | [<c02d38a4>] (serial8250_register_8250_port) from [<bf006274>] (oma=
+p8250_probe+0x218/0x3dc [8250_omap])
+> | [<bf006274>] (omap8250_probe [8250_omap]) from [<c02e3424>] (platfo=
+rm_drv_probe+0x2c/0x5c)
+> | [<c02e3424>] (platform_drv_probe) from [<c02e1eac>] (driver_probe_d=
+evice+0x104/0x228)
+> =E2=80=A6
+> | [<c009fa48>] (SyS_init_module) from [<c000e6e0>] (ret_fast_syscall+=
+0x0/0x30)
+> | Code: 7823603b f8314620 051b3013 491ed416 (44792204)
+>=20
+> because serial8250_console_setup() is already gone.
+>=20
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Let me know what you think.  I can add the code to make it more symmetrical but
-we may be adding code that is dead.  If I remove the defaulted read_flag_mask value out
-of the spi driver then I will need to find every spi device that needs that flag and set it.
-IMHO that would be really messy and probably mess us some drivers.
-
->> +#define REGMAP_NO_READ_MASK		0xff
-> An actual out of band value might be preferable here though that'd
-> involve changing the type and more checking so perhaps inessential.
-
-Thought about making this -1 with a variable change but that seemed
-really drastic where a value of 0xff seems to be a value that no one should use.
-
-Dan
-
-
--- 
-------------------
-Dan Murphy
+Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
