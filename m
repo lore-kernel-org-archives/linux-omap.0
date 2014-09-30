@@ -1,7 +1,8 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 03/17] iommu/omap: Remove duplicate declarations
-Date: Tue, 30 Sep 2014 16:15:58 -0500
-Message-ID: <1412111772-38006-4-git-send-email-s-anna@ti.com>
+Subject: [PATCH 04/17] iommu/omap: Remove conditional definition of
+	dev_to_omap_iommu()
+Date: Tue, 30 Sep 2014 16:15:59 -0500
+Message-ID: <1412111772-38006-5-git-send-email-s-anna@ti.com>
 References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,28 +22,54 @@ To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
 Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The omap_iommu_save_ctx() and omap_iommu_restore_ctx() declarations
-are defined in include/linux/omap-iommu.h and do not belong in the
-internal drivers/iommu/omap-iommu.h header, so remove them.
+The dev_to_omap_iommu() is local to the OMAP IOMMU modules, and
+need not be defined conditionally. The CONFIG_IOMMU_API dependency
+check was added in the past to fix a compilation issue back when
+the header resided in the arch/arm layers, and is no longer
+needed.
+
+While at this, fix the header against double inclusion as well.
 
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.h | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/iommu/omap-iommu.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 18a0f3a..4fc51c8 100644
+index 4fc51c8..d7c5132 100644
 --- a/drivers/iommu/omap-iommu.h
 +++ b/drivers/iommu/omap-iommu.h
-@@ -197,9 +197,6 @@ extern void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
- extern int
- omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
+@@ -10,6 +10,9 @@
+  * published by the Free Software Foundation.
+  */
  
--extern void omap_iommu_save_ctx(struct device *dev);
--extern void omap_iommu_restore_ctx(struct device *dev);
--
- extern int omap_foreach_iommu_device(void *data,
- 				int (*fn)(struct device *, void *));
++#ifndef _OMAP_IOMMU_H
++#define _OMAP_IOMMU_H
++
+ #if defined(CONFIG_ARCH_OMAP1)
+ #error "iommu for this processor not implemented yet"
+ #endif
+@@ -92,7 +95,6 @@ struct iommu_functions {
+ 	ssize_t (*dump_ctx)(struct omap_iommu *obj, char *buf, ssize_t len);
+ };
  
+-#ifdef CONFIG_IOMMU_API
+ /**
+  * dev_to_omap_iommu() - retrieves an omap iommu object from a user device
+  * @dev: iommu client device
+@@ -103,7 +105,6 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ 
+ 	return arch_data->iommu_dev;
+ }
+-#endif
+ 
+ /*
+  * MMU Register offsets
+@@ -220,3 +221,5 @@ static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
+ {
+ 	__raw_writel(val, obj->regbase + offs);
+ }
++
++#endif /* _OMAP_IOMMU_H */
 -- 
 2.1.0
