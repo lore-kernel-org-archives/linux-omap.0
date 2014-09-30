@@ -1,54 +1,56 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Tue, 30 Sep 2014 15:39:24 -0500
-Message-ID: <542B14FC.60007@ti.com>
-References: <1412093220-24690-1-git-send-email-dmurphy@ti.com> <20140930172543.GG4273@sirena.org.uk>
+From: Bjorn Andersson <bjorn@kryo.se>
+Subject: Re: [PATCHv6 0/5] hwspinlock core/omap dt support
+Date: Tue, 30 Sep 2014 13:54:28 -0700
+Message-ID: <CAJAp7Ogbj5K4N7=TEQQ8HJ0X7hkOqzFwv=1bRicVCNX9cv_jaA@mail.gmail.com>
+References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140930172543.GG4273@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:60535 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750850AbaI3Uya (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2014 16:54:30 -0400
+Received: by mail-lb0-f180.google.com with SMTP id f15so7343343lbj.11
+        for <linux-omap@vger.kernel.org>; Tue, 30 Sep 2014 13:54:29 -0700 (PDT)
+In-Reply-To: <1410553499-55951-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Suman Anna <s-anna@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Mark
-
-Thanks for the quick review
-
-On 09/30/2014 12:25 PM, Mark Brown wrote:
-> On Tue, Sep 30, 2014 at 11:07:00AM -0500, Dan Murphy wrote:
+On Fri, Sep 12, 2014 at 1:24 PM, Suman Anna <s-anna@ti.com> wrote:
+> Hi Ohad,
 >
->> -	if (config->read_flag_mask || config->write_flag_mask) {
->> +	if (config->read_flag_mask == REGMAP_NO_READ_MASK)
->> +		map->read_flag_mask = 0x00;
->> +	else if (config->read_flag_mask)
-> This breaks the symmetry in handling of read and write masks which isn't
-> great, please make the equivalent update for the write mask too.
+> This is an update to the hwspinlock dt support series. The series
+> is rebased onto v3.17-rc3, and addresses the review comments on the
+> previous v5 series. I have also split and left out the RFC patches
+> about the support for reserved locks (will post these as a separate
+> series) and return code convention changes in the hwspinlock core
+> (will not be needed anymore). The support for deferred probing of
+> clients is supported in the new of_hwspin_lock_get_id() function
+> itself.
 >
->
-Hmmm.  If I make the similar change for the write mask I will be adding dead
-code as write_flag_mask is not defaulted by the bus like the read_flag_mask which is
-defaulted to 0x80 in the regmap-spi code.  The i2c code does not make this assumption.
 
-The original code did not seem to have symmetry as the only instance
-that write_flag_mask is modified is if it is non-zero.
+Thanks for your reply to me, I had missed that you continued this work.
 
-Let me know what you think.  I can add the code to make it more symmetrical but
-we may be adding code that is dead.  If I remove the defaulted read_flag_mask value out
-of the spi driver then I will need to find every spi device that needs that flag and set it.
-IMHO that would be really messy and probably mess us some drivers.
 
->> +#define REGMAP_NO_READ_MASK		0xff
-> An actual out of band value might be preferable here though that'd
-> involve changing the type and more checking so perhaps inessential.
+I find it somewhat awkward to have to call both of_hwspin_lock_get_id() and
+then hwspin_lock_request_specific(), but I found the request from Ohad, so
+let's stick with it.
 
-Thought about making this -1 with a variable change but that seemed
-really drastic where a value of 0xff seems to be a value that no one should use.
 
-Dan
+Am I right that hwlock-num-locks and hwlock-base-id are optional from the
+frameworks perspective and only there to aid the hwspin drivers? If so it is
+strange to have in the common binding and have the helper functions in the core
+for simply reading hwspin device specific properties.
 
--- 
-------------------
-Dan Murphy
+Otherwise I think it looks sane, although I haven't spend that much time
+reviewing it.
+
+I did throw it into my tree and gave it a testrun with the Qualcomm code I've
+been working on. So for the non-omap parts:
+
+Tested-by: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+
+Regards,
+Bjorn
