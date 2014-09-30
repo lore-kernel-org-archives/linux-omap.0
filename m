@@ -1,75 +1,92 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 04/17] iommu/omap: Remove conditional definition of
-	dev_to_omap_iommu()
-Date: Tue, 30 Sep 2014 16:15:59 -0500
-Message-ID: <1412111772-38006-5-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH 14/17] iommu/omap: Do not export unneeded functions
+Date: Tue, 30 Sep 2014 16:16:09 -0500
+Message-ID: <1412111772-38006-15-git-send-email-s-anna@ti.com>
 References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1412111772-38006-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54143 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750992AbaI3VQZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Sep 2014 17:16:25 -0400
+In-Reply-To: <1412111772-38006-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The dev_to_omap_iommu() is local to the OMAP IOMMU modules, and
-need not be defined conditionally. The CONFIG_IOMMU_API dependency
-check was added in the past to fix a compilation issue back when
-the header resided in the arch/arm layers, and is no longer
-needed.
+The following functions were exported previously for usage by
+the OMAP IOMMU debug module:
+	omap_iommu_dump_ctx()
+	omap_dump_tlb_entries()
+	omap_iopgtable_store_entry()
 
-While at this, fix the header against double inclusion as well.
+These functions need not be exported anymore as the OMAP IOMMU
+debugfs code is integrated with the OMAP IOMMU driver, and
+there won't be external users for these functions. So, remove
+the EXPORT_SYMBOL_GPL on these. The omap_iopgtable_store_entry()
+is also made internal only, after making the 'pagetable' debugfs
+entry read-only.
 
-Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/iommu/omap-iommu.h | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/iommu/omap-iommu.c | 6 ++----
+ drivers/iommu/omap-iommu.h | 3 ---
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 4fc51c8..d7c5132 100644
---- a/drivers/iommu/omap-iommu.h
-+++ b/drivers/iommu/omap-iommu.h
-@@ -10,6 +10,9 @@
-  * published by the Free Software Foundation.
-  */
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index b3bc087..a140873 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -509,7 +509,6 @@ ssize_t omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t bytes)
  
-+#ifndef _OMAP_IOMMU_H
-+#define _OMAP_IOMMU_H
-+
- #if defined(CONFIG_ARCH_OMAP1)
- #error "iommu for this processor not implemented yet"
- #endif
-@@ -92,7 +95,6 @@ struct iommu_functions {
- 	ssize_t (*dump_ctx)(struct omap_iommu *obj, char *buf, ssize_t len);
- };
- 
--#ifdef CONFIG_IOMMU_API
- /**
-  * dev_to_omap_iommu() - retrieves an omap iommu object from a user device
-  * @dev: iommu client device
-@@ -103,7 +105,6 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- 
- 	return arch_data->iommu_dev;
+ 	return bytes;
  }
--#endif
+-EXPORT_SYMBOL_GPL(omap_iommu_dump_ctx);
+ 
+ static int
+ __dump_tlb_entries(struct omap_iommu *obj, struct cr_regs *crs, int num)
+@@ -577,7 +576,6 @@ size_t omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t bytes)
+ 
+ 	return p - buf;
+ }
+-EXPORT_SYMBOL_GPL(omap_dump_tlb_entries);
  
  /*
-  * MMU Register offsets
-@@ -220,3 +221,5 @@ static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
+  *	H/W pagetable operations
+@@ -760,7 +758,8 @@ iopgtable_store_entry_core(struct omap_iommu *obj, struct iotlb_entry *e)
+  * @obj:	target iommu
+  * @e:		an iommu tlb entry info
+  **/
+-int omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e)
++static int
++omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e)
  {
- 	__raw_writel(val, obj->regbase + offs);
+ 	int err;
+ 
+@@ -770,7 +769,6 @@ int omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e)
+ 		prefetch_iotlb_entry(obj, e);
+ 	return err;
  }
-+
-+#endif /* _OMAP_IOMMU_H */
+-EXPORT_SYMBOL_GPL(omap_iopgtable_store_entry);
+ 
+ /**
+  * iopgtable_lookup_entry - Lookup an iommu pte entry
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index 2659139..f32ddc3 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -190,9 +190,6 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ /*
+  * global functions
+  */
+-extern int
+-omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
+-
+ extern ssize_t
+ omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
+ extern size_t
 -- 
 2.1.0
+
