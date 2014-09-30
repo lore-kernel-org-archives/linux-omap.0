@@ -1,139 +1,81 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: prevent erronous parsing of children during rate
- change
-Date: Tue, 30 Sep 2014 11:48:49 +0300
-Message-ID: <542A6E71.10703@ti.com>
-References: <1408628866-32351-1-git-send-email-t-kristo@ti.com> <20140922191816.GF10233@codeaurora.org> <542177E5.9060606@ti.com> <5424C2FA.4000508@codeaurora.org> <5425135F.2070809@ti.com> <20140926232453.19023.25483@quantum> <542913B4.2020808@ti.com> <20140930070732.19023.37829@quantum>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/2] LLVMLinux: Patches to enable the kernel to be compiled
+ with clang/LLVM
+Date: Tue, 30 Sep 2014 13:15:34 +0300
+Message-ID: <542A82C6.7090607@ti.com>
+References: <1411780253-4492-1-git-send-email-behanw@converseincode.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48937 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751017AbaI3IsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Sep 2014 04:48:06 -0400
-In-Reply-To: <20140930070732.19023.37829@quantum>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="mvQ6K9J0owKcKksVvhS8puOJnSImu0b97"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1411780253-4492-1-git-send-email-behanw@converseincode.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Behan Webster <behanw@converseincode.com>, plagnioj@jcrosoft.com
+Cc: daniel.vetter@ffwll.ch, geert@linux-m68k.org, laurent.pinchart@ideasonboard.com, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, robdclark@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 09/30/2014 10:07 AM, Mike Turquette wrote:
-> Quoting Tero Kristo (2014-09-29 01:09:24)
->> On 09/27/2014 02:24 AM, Mike Turquette wrote:
->>> Quoting Tero Kristo (2014-09-26 00:18:55)
->>>> On 09/26/2014 04:35 AM, Stephen Boyd wrote:
->>>>> On 09/23/14 06:38, Tero Kristo wrote:
->>>>>> On 09/22/2014 10:18 PM, Stephen Boyd wrote:
->>>>>>> On 08/21, Tero Kristo wrote:
->>>>>>>>              /* Skip children who will be reparented to another clock */
->>>>>>>>              if (child->new_parent && child->new_parent != clk)
->>>>>>>>                  continue;
->>>>>>>
->>>>>>> Are we not hitting the new_parent check here? I don't understand
->>>>>>> how we can be changing parents here unless the check is being
->>>>>>> avoided, in which case I wonder why determine_rate isn't being
->>>>>>> used.
->>>>>>>
->>>>>>
->>>>>> It depends how the clock underneath handles the situation. The error I
->>>>>> am seeing actually happens with a SoC specific compound clock (DPLL)
->>>>>> which integrates set_rate + mux functionality into a single clock
->>>>>> node. A call to the clk_set_rate changes the parent of this clock
->>>>>> (from bypass clock to reference clock), in addition to changing the
->>>>>> rate (tune the mul+div.) I looked at using the determine rate call
->>>>>> with this type but it breaks everything up... the parent gets changed
->>>>>> but not the clock rate, in addition to some other issues.
->>>>>
->>>>> Ok. Is this omap3_noncore_dpll_set_rate()?
->>>>
->>>> Yes.
->>>>
->>>>    > Can we use determine_rate +
->>>>> clk_set_parent_and_rate()? At least clk_set_parent_and_rate() would
->>>>> allow us to do the mult+div and the parent in the same op call, although
->>>>> I don't understand why setting the parent and then setting the rate is
->>>>> not going to work.
->>>>
->>>> Well, setting parent first, then rate later causes problems with the
->>>> DPLL ending up running with illegal (non-specified) rate, the M+N values
->>>> are most likely wrong if you just switch from bypass clock to reference
->>>> clock first without programming the M+N first.
->>>
->>> I took a quick look and it still seems to me that the OMAP DPLLs are
->>> still not modeled properly as mux clocks. Is this correct?
->>
->> Yeah, they are not mux clocks, but rather a compound of mux + DPLL
->> multiplier/divider logic. Changing the DPLL to be a separate mux + DPLL
->> div/mult clock will still have overlapping usage of the DPLL_EN field,
->
-> I'm not talking about splitting up the clock into two separate clocks.
-> If memory serves the DPLL clock implementation "cheats" and hides the
-> bypass_clk info from the clock framework. To be explicit, from the
-> perspective of Linux clock framework DPLL clocks only have one parent.
->
-> In reality a typical DPLL should have at least 2 parents (and in some
-> cases starting with OMAP4, some of the DPLL output clocks should have a
-> second HSD parent). But the implementation does not reflect this.
+--mvQ6K9J0owKcKksVvhS8puOJnSImu0b97
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-No, this is not the DPLLs are modelled. Each DPLL has currently two 
-parents, ref-clk and bypass-clk, which are both modelled as separate 
-clock nodes, and the DPLL switches parents based on bypass/lock mode. 
-The bypass clock is also usually a mux clock, which further selects 
-separate bypass parent, resulting in 3 or more parents for a certain DPLL.
+On 27/09/14 04:10, Behan Webster wrote:
+> Replace the use of nested functions where a normal function will suffic=
+e.
+>=20
+> Nested functions are not liked by upstream kernel developers in general=
+=2E Their
+> use breaks the use of clang as a compiler, and doesn't make the code an=
+y
+> better.
+>=20
+> This code now works for both gcc and clang.
+>=20
+> The LLVMLinux project aims to fully build the Linux kernel using both g=
+cc and
+> clang (the C front end for the LLVM compiler infrastructure project).=20
+>=20
+> Behan Webster (2):
+>   arm, fbdev, omap2, LLVMLinux: Remove nested function from omap2 dss
+>   arm, fbdev, omap2, LLVMLinux: Remove nested function from omapfb
+>=20
+>  drivers/video/fbdev/omap2/dss/dispc-compat.c   |  9 +++++----
+>  drivers/video/fbdev/omap2/dss/manager-sysfs.c  | 16 +++++++++-------
+>  drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 14 +++++++-------
+>  3 files changed, 21 insertions(+), 18 deletions(-)
+>=20
 
->
->> as the DPLL must be in bypass mode during M+N change. Or, should the
->> DPLL rate change only be allowed if the mux is in bypass setting?
->> Several drivers still depend on direct dpll clk_set_rate working
->> 'properly' (there are some other issues currently present also which
->> have nothing to do with the mux behavior.)
->>
->>> This issue has been lingering for a long time and we can't use
->>> determine_rate unless that clock has multiple parents. Simply hacking
->>> knowledge of the parent bypass clock into the .set_rate callback is not
->>> enough.
->>
->> If you believe this _must_ be changed, I can take a look at this for
->> next merge window, but this will cause a DT data compatibility break if
->> nothing else (personally I don't care about this as I always rebuild DT
->> blob with kernel, but lots of other people seem to do.)
->
-> Well I guess the question is how long will we put up with the many small
-> headaches caused by incorrectly modeling the clock?
+I have to say I do like small helper funcs as nested functions, as they
+are restricted inside the parent function's scope. But, of course,
+nested funcs have their issues.
 
-Well, its not kind of incorrectly modelled, it is just modelled in such 
-way that clk_set_rate doesn't cope too well with it.
+So looks fine to me, queuing for 3.18.
 
-> determine_rate and clk_set_parent_and_rate should be sufficient for the
-> OMAP DPLLs but only if they are correctly modeled in the framework.
+ Tomi
 
-Do we have implementation for clk_set_parent_and_rate someplace? I 
-looked at rc7 and didn't find this. I think this would fix the issues I 
-am seeing combined with determine_rate, if clk_set_rate would internally 
-handle changing both rate + parent.
 
--Tero
 
->
-> Regards,
-> Mike
->
->>
->> -Tero
->>
->>>
->>> Regards,
->>> Mike
->>>
->>>>
->>>>     I'm interested in the other issues that you mentioned
->>>>> too.
->>>>
->>>> Mostly these were side-effects from the illegal DPLL setup I guess, like
->>>> boot hang, failed drivers etc. I didn't really investigate this that
->>>> much as it is much more simpler just to use safe list iteration here.
->>>>
->>>> -Tero
->>
+--mvQ6K9J0owKcKksVvhS8puOJnSImu0b97
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUKoLGAAoJEPo9qoy8lh717FMQAKzuxDGrxHRLc9oBBOVmS/Xv
+WYPWzczjdD1HKcnWR1D9HO+Np7C9U4hZMQRrf+6ZlJcULbmoofreXbgwmiMaT7f/
+TRt8kBskR+nZS98MLF8q2wqHjyok7XsUDaNvp03FSzzCCtg7UC1rA9+j2+F8Q0YH
+/kTDK7d0e9wHi/WRZ3TUCMsyDEbH/ZxQnR/IGXXu1edy78kOPxwnl6kik2SmaQlx
+fZ6z2EAzR2MTVNWQrZmjxaFPuPALN5TBGBQQcqPIJ4pBBIV3PpBQPb3HLPMVm4cp
+lam5y/qdCJdCNPP6k18ApCd3SOSFnZGRWXbj/4FFugPnh4PQIJCoFNPyEUQ/SDMF
++a32CT/oB+zr2pt6RGCS2P8mk1d+BUMrnZqyCDNqnqusiy1ZUdL7Llc+CDzjHX4u
+2t1ipuwGOQPNkGppENj9nL4bFZdaN+VbtWIxsWtRQchvAh2pwEPWhyUmA91gjSi2
+8AFSImnVArMf/66EChG04s2BHqi/sUB1chLC+Qz9UTzRpy4gVYVaUrwvBA14wMB1
+o7bxVKpZaUZe+vFXDfOOkS1RlorSowxL3Ous1JFfq+flWpxXOZ8PzywI78lnyg1l
+0WRsBICfD0P+rE/eLqGPXovEtFweudpi2eT7La6uloRBuAdBVyrAE9zw2e20UsYG
+i24+XyRCuEZg3EtuR/jG
+=KATX
+-----END PGP SIGNATURE-----
+
+--mvQ6K9J0owKcKksVvhS8puOJnSImu0b97--
