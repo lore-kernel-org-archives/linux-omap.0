@@ -1,7 +1,7 @@
 From: Dan Murphy <dmurphy@ti.com>
 Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Tue, 30 Sep 2014 15:19:20 -0500
-Message-ID: <542B1048.3020902@ti.com>
+Date: Tue, 30 Sep 2014 15:20:04 -0500
+Message-ID: <542B1074.5000802@ti.com>
 References: <1412093220-24690-1-git-send-email-dmurphy@ti.com> <20140930172543.GG4273@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
@@ -12,10 +12,6 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@kernel.org>
 Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Mark
-
-Thanks for the review
 
 On 09/30/2014 12:25 PM, Mark Brown wrote:
 > On Tue, Sep 30, 2014 at 11:07:00AM -0500, Dan Murphy wrote:
@@ -39,7 +35,6 @@ we may be adding code that is dead.  If I remove the defaulted read_flag_mask va
 of the spi driver then I will need to find every spi device that needs that flag and set it.
 IMHO that would be really messy and probably mess us some drivers.
 
->
 >> +#define REGMAP_NO_READ_MASK		0xff
 > An actual out of band value might be preferable here though that'd
 > involve changing the type and more checking so perhaps inessential.
@@ -48,6 +43,7 @@ Thought about making this -1 with a variable change but that seemed
 really drastic where a value of 0xff seems to be a value that no one should use.
 
 Dan
+
 
 -- 
 ------------------
