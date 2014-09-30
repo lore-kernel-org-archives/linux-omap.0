@@ -1,73 +1,88 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Tue, 30 Sep 2014 11:07:00 -0500
-Message-ID: <1412093220-24690-1-git-send-email-dmurphy@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT mechanism
+Date: Tue, 30 Sep 2014 18:04:19 +0200
+Message-ID: <542AD483.2020808@pengutronix.de>
+References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-3-git-send-email-rogerq@ti.com> <20140930132650.GN1325@katana> <542AB137.30507@ti.com> <20140930135226.GO1325@katana> <542AB6E9.9000907@ti.com> <20140930141909.GP1325@katana> <542ABC90.7010900@pengutronix.de> <20140930144950.GQ1325@katana> <542AC5B2.9040406@pengutronix.de> <20140930152550.GR1325@katana>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52277 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751159AbaI3QHG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Sep 2014 12:07:06 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="cIMFxGvl905iTE77CLLL0HVQphLfjjS2C"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20140930152550.GR1325@katana>
+Sender: netdev-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Dan Murphy <dmurphy@ti.com>
 
-There may be spi devices that do not require a
-register read mask to read the registers.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--cIMFxGvl905iTE77CLLL0HVQphLfjjS2C
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Currently the code sets the read mask based on
-a non-zero value passed in from the driver or if that
-value is 0 sets the read mask to 0x80.
+On 09/30/2014 05:25 PM, Wolfram Sang wrote:
+>=20
+>> Yes, but syscon_regmap_lookup_by_phandle() doesn't need any support fo=
+r
+>> additional parameters. Have a look at:
+>>
+>> drivers/net/ethernet/stmicro/stmmac/dwmac-socfpga.c
+>>
+>> First get the regmap, then the 1st argument is the offset in the regma=
+p,
+>> the 2nd and 3rd could be the bits.
+>=20
+> So, for one driver the extra arguments are: <reg> <start_bit> <stop_bit=
+>
+> For another driver (the stmmac example): <reg_offset> <reg_shift>
 
-A mask of 0 is a valid mask as well.  Create a define
-to indicate that the read mask can be zero and separate
-out the read flag mask and the write flag mask.
+The DCAN's "reg" is a "reg_offset" as in the stmmc.
 
-Signed-off-by: Dan Murphy <dmurphy@ti.com>
----
- drivers/base/regmap/regmap.c |   11 +++++++----
- include/linux/regmap.h       |    2 ++
- 2 files changed, 9 insertions(+), 4 deletions(-)
+Roger, can we derive both start and done bit from a common reg_shift?
 
-diff --git a/drivers/base/regmap/regmap.c b/drivers/base/regmap/regmap.c
-index 78f43fb..8c0a9b8 100644
---- a/drivers/base/regmap/regmap.c
-+++ b/drivers/base/regmap/regmap.c
-@@ -528,12 +528,15 @@ struct regmap *regmap_init(struct device *dev,
- 	INIT_LIST_HEAD(&map->async_free);
- 	init_waitqueue_head(&map->async_waitq);
- 
--	if (config->read_flag_mask || config->write_flag_mask) {
-+	if (config->read_flag_mask == REGMAP_NO_READ_MASK)
-+		map->read_flag_mask = 0x00;
-+	else if (config->read_flag_mask)
- 		map->read_flag_mask = config->read_flag_mask;
--		map->write_flag_mask = config->write_flag_mask;
--	} else if (bus) {
-+	else if (bus)
- 		map->read_flag_mask = bus->read_flag_mask;
--	}
-+
-+	if (config->write_flag_mask)
-+		map->write_flag_mask = config->write_flag_mask;
- 
- 	if (!bus) {
- 		map->reg_read  = config->reg_read;
-diff --git a/include/linux/regmap.h b/include/linux/regmap.h
-index c5ed83f..f1cdfe5 100644
---- a/include/linux/regmap.h
-+++ b/include/linux/regmap.h
-@@ -18,6 +18,8 @@
- #include <linux/err.h>
- #include <linux/bug.h>
- 
-+#define REGMAP_NO_READ_MASK		0xff
-+
- struct module;
- struct device;
- struct i2c_client;
--- 
-1.7.9.5
+> Phew... Then we should really have a "syscon-raminit" property probably=
+,
+> so that at least plain "syscon" has a consistent syntax?
 
+I think^whope we can have the same syntax as the stmmc :D
+
+>>> So, I'd rather drop additional arguments.
+>>>
+>>> Why would you like to have it encoded in DT?
+>>
+>> Where put the information then? Into the driver, but where do you get
+>> the reference which instance of the DCAN you are, so that you can look=
+
+>> up the correct bits?
+>=20
+> Agreed. I thought we had this information in the driver already, but we=
+
+> haven't...
+>=20
+
+The current driver relies on the of_alias_get_id(), which isn't
+considered best practice, is it? So I want to avoid this when switching
+to syscon.
+
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--cIMFxGvl905iTE77CLLL0HVQphLfjjS2C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlQq1IMACgkQjTAFq1RaXHM9GQCeOwY/cTIUO8H6WqNCDJQfY4fI
+ouEAniGjIrfync1tgm544wlncuj28V0O
+=Gh9I
+-----END PGP SIGNATURE-----
+
+--cIMFxGvl905iTE77CLLL0HVQphLfjjS2C--
