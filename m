@@ -1,71 +1,46 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 05/17] iommu/omap: Remove ver debugfs entry
-Date: Tue, 30 Sep 2014 16:16:00 -0500
-Message-ID: <1412111772-38006-6-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 02/17] iommu/omap: Remove unused isr_priv field from omap_iommu
+Date: Tue, 30 Sep 2014 16:15:57 -0500
+Message-ID: <1412111772-38006-3-git-send-email-s-anna@ti.com>
 References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44913 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751246AbaI3VQ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Sep 2014 17:16:28 -0400
-In-Reply-To: <1412111772-38006-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1412111772-38006-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The debugfs entry 'ver' to read the OMAP IOMMU version is
-not much useful for developers, so it has been removed. The
-same can be deduced from the register dump, provided by the
-debugfs entry 'regs', REVISION register. This also allows us
-to remove the omap_iommu_arch_revision() which is currently
-returning a fixed value.
+The isr_priv field is a left-over from before the IOMMU API
+adaptation, this was used to store the callback data. This is
+no longer relevant, so remove it.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- drivers/iommu/omap-iommu-debug.c | 13 -------------
- 1 file changed, 13 deletions(-)
+ drivers/iommu/omap-iommu.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index 531658d..0fb92aa 100644
---- a/drivers/iommu/omap-iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -30,17 +30,6 @@ static DEFINE_MUTEX(iommu_debug_lock);
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index 5c14000..18a0f3a 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -30,7 +30,6 @@ struct omap_iommu {
+ 	const char	*name;
+ 	void __iomem	*regbase;
+ 	struct device	*dev;
+-	void		*isr_priv;
+ 	struct iommu_domain *domain;
  
- static struct dentry *iommu_debug_root;
- 
--static ssize_t debug_read_ver(struct file *file, char __user *userbuf,
--			      size_t count, loff_t *ppos)
--{
--	u32 ver = omap_iommu_arch_version();
--	char buf[MAXCOLUMN], *p = buf;
--
--	p += sprintf(p, "H/W version: %d.%d\n", (ver >> 4) & 0xf , ver & 0xf);
--
--	return simple_read_from_buffer(userbuf, count, ppos, buf, p - buf);
--}
--
- static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
- 			       size_t count, loff_t *ppos)
- {
-@@ -228,7 +217,6 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
- 		.llseek = generic_file_llseek,				\
- 	};
- 
--DEBUG_FOPS_RO(ver);
- DEBUG_FOPS_RO(regs);
- DEBUG_FOPS_RO(tlb);
- DEBUG_FOPS(pagetable);
-@@ -273,7 +261,6 @@ static int iommu_debug_register(struct device *dev, void *data)
- 	if (!d)
- 		goto nomem;
- 
--	DEBUG_ADD_FILE_RO(ver);
- 	DEBUG_ADD_FILE_RO(regs);
- 	DEBUG_ADD_FILE_RO(tlb);
- 	DEBUG_ADD_FILE(pagetable);
+ 	spinlock_t	iommu_lock;	/* global for this whole object */
 -- 
 2.1.0
-
