@@ -1,70 +1,80 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Wed, 1 Oct 2014 12:15:04 +0100
-Message-ID: <20141001111504.GR4273@sirena.org.uk>
-References: <1412093220-24690-1-git-send-email-dmurphy@ti.com>
- <542B1ABE.5000900@metafoo.de>
- <542B1E38.4020702@ti.com>
- <542B20BE.3060200@metafoo.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 1/2] mtd: nand: Force omap_elm to be built as a module if omap2_nand is a module
+Date: Wed, 1 Oct 2014 14:33:29 +0300
+Message-ID: <1412163210-12948-2-git-send-email-rogerq@ti.com>
+References: <1412163210-12948-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nHJAUhyIZkPvF01C"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:56335 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbaJALPP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2014 07:15:15 -0400
-Content-Disposition: inline
-In-Reply-To: <542B20BE.3060200@metafoo.de>
+Received: from devils.ext.ti.com ([198.47.26.153]:55369 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbaJALeF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2014 07:34:05 -0400
+In-Reply-To: <1412163210-12948-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Dan Murphy <dmurphy@ti.com>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: computersforpeace@gmail.com
+Cc: ezequiel.garcia@free-electrons.com, pekon@pek-sem.com, arnd@arndb.de, dwmw2@infradead.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>, Roger Quadros <rogerq@ti.com>
 
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
---nHJAUhyIZkPvF01C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This commit adds a hidden option to build the omap_elm as a module, if
+omap2_nand is a module (and similarly in the built-in case).
 
-On Tue, Sep 30, 2014 at 11:29:34PM +0200, Lars-Peter Clausen wrote:
-> On 09/30/2014 11:18 PM, Dan Murphy wrote:
+This fixes the following build error when omap2_nand is chosen built-in,
+and omap_elm is chosen as a module:
 
-Dan, please fix your mail client to word wrap within paragraphs.
+drivers/built-in.o: In function `omap_nand_probe':
+drivers/mtd/nand/omap2.c:2010: undefined reference to `elm_config'
+drivers/mtd/nand/omap2.c:1980: undefined reference to `elm_config'
+drivers/mtd/nand/omap2.c:1927: undefined reference to `elm_config'
+drivers/built-in.o: In function `omap_elm_correct_data':
+drivers/mtd/nand/omap2.c:1444: undefined reference to `elm_decode_bch_error_page'
 
-> >The device, which is already in production, has a specific control register that sets either the reading or writing of the rest of the registers.
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/mtd/nand/Kconfig  | 5 ++++-
+ drivers/mtd/nand/Makefile | 2 +-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-> >Here is the data sheet
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index f1cf503..1cb4b1b 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -96,7 +96,7 @@ config MTD_NAND_OMAP2
+ 
+ config MTD_NAND_OMAP_BCH
+ 	depends on MTD_NAND_OMAP2
+-	tristate "Support hardware based BCH error correction"
++	bool "Support hardware based BCH error correction"
+ 	default n
+ 	select BCH
+ 	help
+@@ -106,6 +106,9 @@ config MTD_NAND_OMAP_BCH
+ 	  legacy OMAP families like OMAP2xxx, OMAP3xxx do not have ELM engine
+ 	  so they should not enable this config symbol.
+ 
++config MTD_NAND_OMAP_BCH_BUILD
++	def_tristate MTD_NAND_OMAP2 && MTD_NAND_OMAP_BCH
++
+ config MTD_NAND_IDS
+ 	tristate
+ 
+diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
+index b3237b7..9c847e4 100644
+--- a/drivers/mtd/nand/Makefile
++++ b/drivers/mtd/nand/Makefile
+@@ -27,7 +27,7 @@ obj-$(CONFIG_MTD_NAND_NDFC)		+= ndfc.o
+ obj-$(CONFIG_MTD_NAND_ATMEL)		+= atmel_nand.o
+ obj-$(CONFIG_MTD_NAND_GPIO)		+= gpio.o
+ obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2.o
+-obj-$(CONFIG_MTD_NAND_OMAP_BCH)		+= omap_elm.o
++obj-$(CONFIG_MTD_NAND_OMAP_BCH_BUILD)	+= omap_elm.o
+ obj-$(CONFIG_MTD_NAND_CM_X270)		+= cmx270_nand.o
+ obj-$(CONFIG_MTD_NAND_PXA3xx)		+= pxa3xx_nand.o
+ obj-$(CONFIG_MTD_NAND_TMIO)		+= tmio_nand.o
+-- 
+1.8.3.2
 
-> >http://www.ti.com/lit/ds/symlink/afe4403.pdf
-
-> >See page 61 control0.
-
-> >Driver is written for this part just want to get this lead patch in or maybe an alternate solution.
-
-> Looking at this the generic SPI regmap implementation might not necessarily
-> be the best thing to use here and you are probably better of implementing
-> either your own regmap bus or reg_read/reg_write callbacks that
-> automatically set/clear the SPI_READ bit in the control register depending
-> on the operation.
-
-It definitely needs more than just this change at any rate - any generic
-infrastructure that tries to work with the regmap is not going to know
-about this read/write register.
-
---nHJAUhyIZkPvF01C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUK+I3AAoJECTWi3JdVIfQ8bIH/0OQ1/OtzBU0/Abq0QR1IxhN
-GXYaL87cfOB52sCjyczfq1pO3sW7l/zRzyCI8IRzT0Q2l6LgzFFanhK/MKQdTiE1
-DiQ3uxX1/GMNAcfp7PfIlxr+ohec3RKo549nXOED4SWZ9TOJgJhabCgzLjD7O6z/
-yvUKqtpFHhh5Vj1iTq/2eMi4VjyE14AET3ww6Eb9TrrtCjMJLAbNDUfiWyQRpuxV
-r7meSaUzjO+WOKM+3CF2W3VkXyYrkbWxL97e4Q5e7A09SI3MDuZRUKpT0zXUXIQr
-zoASwba1MyEaa4q4Jz5kdoJTqz9Xqn4dvirQ3ET3RxZaFwRMVf3PJ5Zi7xpXS+I=
-=+Avc
------END PGP SIGNATURE-----
-
---nHJAUhyIZkPvF01C--
