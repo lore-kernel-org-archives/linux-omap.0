@@ -1,52 +1,65 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Tue, 30 Sep 2014 23:29:34 +0200
-Message-ID: <542B20BE.3060200@metafoo.de>
-References: <1412093220-24690-1-git-send-email-dmurphy@ti.com> <542B1ABE.5000900@metafoo.de> <542B1E38.4020702@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT mechanism
+Date: Wed, 1 Oct 2014 11:45:51 +0300
+Message-ID: <542BBF3F.2040803@ti.com>
+References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-3-git-send-email-rogerq@ti.com> <20140930132650.GN1325@katana> <542AB137.30507@ti.com> <20140930135226.GO1325@katana> <542AB6E9.9000907@ti.com> <20140930141909.GP1325@katana> <542ABC90.7010900@pengutronix.de> <20140930144950.GQ1325@katana> <542AC5B2.9040406@pengutronix.de> <20140930152550.GR1325@katana> <542AD483.2020808@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <542B1E38.4020702@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Murphy <dmurphy@ti.com>, broonie@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <542AD483.2020808@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, Wolfram Sang <wsa@the-dreams.de>
+Cc: wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/30/2014 11:18 PM, Dan Murphy wrote:
-> Lars
->
-> On 09/30/2014 04:03 PM, Lars-Peter Clausen wrote:
->> On 09/30/2014 06:07 PM, Dan Murphy wrote:
->>> There may be spi devices that do not require a
->>> register read mask to read the registers.
+On 09/30/2014 07:04 PM, Marc Kleine-Budde wrote:
+> On 09/30/2014 05:25 PM, Wolfram Sang wrote:
+>>
+>>> Yes, but syscon_regmap_lookup_by_phandle() doesn't need any support for
+>>> additional parameters. Have a look at:
 >>>
->>> Currently the code sets the read mask based on
->>> a non-zero value passed in from the driver or if that
->>> value is 0 sets the read mask to 0x80.
+>>> drivers/net/ethernet/stmicro/stmmac/dwmac-socfpga.c
+>>>
+>>> First get the regmap, then the 1st argument is the offset in the regmap,
+>>> the 2nd and 3rd could be the bits.
 >>
->> It only sets it to the bus default if both read_flag_mask and write_flag_mask are 0. The assumption is that both of them being zero is a invalid configuration and either of them (or both) have to be non-zero for proper operation, since otherwise the device can't tell the difference between a read and a write.
->>
->> Do you have a device where both the read and the write mask is 0?
->>
->> - Lars
->
-> Yes I do have a device that the read/write mask are both 0.
->
-> The device, which is already in production, has a specific control register that sets either the reading or writing of the rest of the registers.
->
-> Here is the data sheet
->
-> http://www.ti.com/lit/ds/symlink/afe4403.pdf
->
-> See page 61 control0.
->
-> Driver is written for this part just want to get this lead patch in or maybe an alternate solution.
+>> So, for one driver the extra arguments are: <reg> <start_bit> <stop_bit>
+>> For another driver (the stmmac example): <reg_offset> <reg_shift>
+> 
+> The DCAN's "reg" is a "reg_offset" as in the stmmc.
+> 
+> Roger, can we derive both start and done bit from a common reg_shift?
 
-Looking at this the generic SPI regmap implementation might not necessarily 
-be the best thing to use here and you are probably better of implementing 
-either your own regmap bus or reg_read/reg_write callbacks that 
-automatically set/clear the SPI_READ bit in the control register depending 
-on the operation.
+I'm sorry I didn't understand what you meant.
 
-- Lars
+<&syscon_phandl> <reg offset> <start bit> <stop bit> should work well for us.
+Even though reg offset is the same for both the DCAN instances.
+
+> 
+>> Phew... Then we should really have a "syscon-raminit" property probably,
+>> so that at least plain "syscon" has a consistent syntax?
+> 
+> I think^whope we can have the same syntax as the stmmc :D
+
+I agree too.
+
+> 
+>>>> So, I'd rather drop additional arguments.
+>>>>
+>>>> Why would you like to have it encoded in DT?
+>>>
+>>> Where put the information then? Into the driver, but where do you get
+>>> the reference which instance of the DCAN you are, so that you can look
+>>> up the correct bits?
+>>
+>> Agreed. I thought we had this information in the driver already, but we
+>> haven't...
+>>
+> 
+> The current driver relies on the of_alias_get_id(), which isn't
+> considered best practice, is it? So I want to avoid this when switching
+> to syscon.
+
+cheers,
+-roger
