@@ -1,132 +1,81 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT mechanism
-Date: Wed, 01 Oct 2014 12:26:57 +0200
-Message-ID: <542BD6F1.2020900@pengutronix.de>
-References: <1410273070-22485-1-git-send-email-rogerq@ti.com> <1410273070-22485-3-git-send-email-rogerq@ti.com> <20140930132650.GN1325@katana> <542AB137.30507@ti.com> <20140930135226.GO1325@katana> <542AB6E9.9000907@ti.com> <20140930141909.GP1325@katana> <542ABC90.7010900@pengutronix.de> <20140930144950.GQ1325@katana> <542AC5B2.9040406@pengutronix.de> <20140930152550.GR1325@katana> <542AD483.2020808@pengutronix.de> <542BBF3F.2040803@ti.com> <542BBFBE.90406@pengutronix.de> <542BC42F.2010406@ti.com> <542BD116.4090809@pengutronix.de> <542BD3A7.5060200@ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT
+ mechanism
+Date: Wed, 1 Oct 2014 12:43:18 +0200
+Message-ID: <20141001104317.GB1261@katana>
+References: <20140930144950.GQ1325@katana>
+ <542AC5B2.9040406@pengutronix.de>
+ <20140930152550.GR1325@katana>
+ <542AD483.2020808@pengutronix.de>
+ <542BBF3F.2040803@ti.com>
+ <542BBFBE.90406@pengutronix.de>
+ <542BC42F.2010406@ti.com>
+ <542BD116.4090809@pengutronix.de>
+ <542BD3A7.5060200@ti.com>
+ <542BD6F1.2020900@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="7v6TsEWF8I8Hni7coFaDh4kNPUBuVIMrE"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <542BD3A7.5060200@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="dTy3Mrz/UPE2dbVg"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:48083 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750992AbaJAKmq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Oct 2014 06:42:46 -0400
+Content-Disposition: inline
+In-Reply-To: <542BD6F1.2020900@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---7v6TsEWF8I8Hni7coFaDh4kNPUBuVIMrE
-Content-Type: text/plain; charset=UTF-8
+
+--dTy3Mrz/UPE2dbVg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 10/01/2014 12:12 PM, Roger Quadros wrote:
-> On 10/01/2014 01:01 PM, Marc Kleine-Budde wrote:
->> On 10/01/2014 11:06 AM, Roger Quadros wrote:
->>> On 10/01/2014 11:47 AM, Marc Kleine-Budde wrote:
->>>> On 10/01/2014 10:45 AM, Roger Quadros wrote:
->>>>> On 09/30/2014 07:04 PM, Marc Kleine-Budde wrote:
->>>>>> On 09/30/2014 05:25 PM, Wolfram Sang wrote:
->>>>>>>
->>>>>>>> Yes, but syscon_regmap_lookup_by_phandle() doesn't need any supp=
-ort for
->>>>>>>> additional parameters. Have a look at:
->>>>>>>>
->>>>>>>> drivers/net/ethernet/stmicro/stmmac/dwmac-socfpga.c
->>>>>>>>
->>>>>>>> First get the regmap, then the 1st argument is the offset in the=
- regmap,
->>>>>>>> the 2nd and 3rd could be the bits.
->>>>>>>
->>>>>>> So, for one driver the extra arguments are: <reg> <start_bit> <st=
-op_bit>
->>>>>>> For another driver (the stmmac example): <reg_offset> <reg_shift>=
 
->>>>>>
->>>>>> The DCAN's "reg" is a "reg_offset" as in the stmmc.
->>>>>>
->>>>>> Roger, can we derive both start and done bit from a common reg_shi=
-ft?
->>>>>
->>>>> I'm sorry I didn't understand what you meant.
->>>>>
->>>>> <&syscon_phandl> <reg offset> <start bit> <stop bit> should work we=
-ll for us.
->>>>> Even though reg offset is the same for both the DCAN instances.
->>>>
->>>> What's start bit and stop bit for instance 0 and 1 on that SoC that =
-has
->>>> two instances?
->>>>
->>>
->>> we have 3 SoCs at the moment, all have 2 DCAN instances.
->>>
->>> AM33xx & AM43xx
->>> instance	start	stop
->>> 1		0	8
->>> 2		1	9=09
->>
->> If we use a 0-based numbering for the instances:
->> instance	start		stop
->> 0		(0 << instance)	(8 << instance)
->> 1		(0 << instance)	(8 << instance)
->>
+> > Unfortunately it is 5 ;)
+> > We have display IP related bit in between 3 and 5 :P
 >=20
-> How does the instance number get set? What happens on boards where
-> the first instance is unused while the second one is in use?
+> What on earth were the HW engineers thinking????????????
 
-Via a single "instance" parameter of the syscon phandle....
+"Let's test my RNG on the bit-placement of this register" :)
 
->=20
->>> DRA7xx
->>> instance	start	stop
->>> 1		3	1
->>> 2		5	2
->>                 ^
->> 5 or 4?
->=20
-> Unfortunately it is 5 ;)
-> We have display IP related bit in between 3 and 5 :P
+> ...if we just have the instance parameter in the syscon phandle, we have
+> to put the mapping into the driver, which makes IMHO no sense, because
+> you have to touch the driver, if there is another SoC with the DCAN core.
 
-What on earth were the HW engineers thinking????????????
+=2E.. which would be my preferred solution. I think new SoCs should have
+some kind of:
 
-=2E..if we just have the instance parameter in the syscon phandle, we hav=
-e
-to put the mapping into the driver, which makes IMHO no sense, because
-you have to touch the driver, if there is another SoC with the DCAN core.=
+	compatible =3D "commodore,c64ultra", "bosch,d_can";
+
+in the DT anyhow to allow for SoC specific quirks/adjustments. And
+custom raminit belongs to that IMO (see the ti routine getting more and
+more specific).
 
 
-AFAICS we have these options:
-1) syscon phandle with three parameters:
-   reg offset, start bit shift, stop bit shift
-   (the name of the syscon phandle is a different topic)
-2) a single ti,start-stop-bit option with two parameter
-3) two ti,* entries with a single parameter each
-   (as in Roger's initial patch)
-
-Wolfram, which solution do you prefer? I'm in favour of 3 (+ plus a
-phandle with a reg offset parameter).
-
-puzzled,
-Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---7v6TsEWF8I8Hni7coFaDh4kNPUBuVIMrE
+--dTy3Mrz/UPE2dbVg
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlQr1vEACgkQjTAFq1RaXHM5fACeJT8HjA+Veg5FUtwnOPdf9wcL
-lAUAnR4FOhy1stkHyAC8aBSA6E4/PokC
-=J998
+iQIcBAEBAgAGBQJUK9rFAAoJEBQN5MwUoCm2aFoQAKsP/o5DSh/b9Tgb1sgw6Gln
+zGfWweBumR409OyTvdBe0Lqemv0PX2+Mux6H8pZTqQAjx6l3evpSdwXcUcPMoLFU
+lUvpN1UR2v6ZXv9DjprkRKHuwABUQGEzoK8UKPyfv3YmIN/nBNxnwjn3uMscfItQ
+8d/gKyg71fh0XMQPVyITYI0Ehv3C7foPMj30UxZ/I/LwYzkWErbPey8fiSu7r5FZ
+Ut3ln7jZ1hHk7pfoBZhg8kFv2eEWP18yD7G2Wb0kBLfueb6jXqmMLeXVWPGNoc4Y
+ISajtZicetXwjvoa6Upxl+RECGRLFeDk5dlIdA9IOonwd3o6RSjVqVMOHOmniEMG
+Edi4NQekLMwYDh+3gswWni17oUsro+Gx1cjbnvpfizfFB1OdTuKJUOnayXcdLIKu
+ggWRUVlPn2fX2ofm1tucU2GKqxih9LUvY8FOICGoHNwK2aoPPabzOG9DclGJk1JK
+bOaY52kKPCkk/rRtxF/WRNQjJ8p9w12qposcbbJc9FyAs1oTe2kFLrL9e+Qm9n9G
+SO054zMHFtVDcAe6AQRh1FqHPQQR+doCFlIGZbqQMXvOYlE76ZGka/pzobHB7J/0
+FnStB8ZuEZlDAKsysrvgsAr6vKdMjxePag4lM++4zLX2JoC4zcOPbaW3ym8/kdxc
+lHW7yi0Dlgv1JDhMu/pZ
+=rjA5
 -----END PGP SIGNATURE-----
 
---7v6TsEWF8I8Hni7coFaDh4kNPUBuVIMrE--
+--dTy3Mrz/UPE2dbVg--
