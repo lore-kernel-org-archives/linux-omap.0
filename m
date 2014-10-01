@@ -1,47 +1,70 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2 2/3] net: can: c_can: Add syscon/regmap RAMINIT mechanism
-Date: Wed, 01 Oct 2014 13:11:44 +0200
-Message-ID: <542BE170.9060300@pengutronix.de>
-References: <20140930144950.GQ1325@katana> <542AC5B2.9040406@pengutronix.de> <20140930152550.GR1325@katana> <542AD483.2020808@pengutronix.de> <542BBF3F.2040803@ti.com> <542BBFBE.90406@pengutronix.de> <542BC42F.2010406@ti.com> <542BD116.4090809@pengutronix.de> <542BD3A7.5060200@ti.com> <542BD6F1.2020900@pengutronix.de> <20141001104317.GB1261@katana>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
+Date: Wed, 1 Oct 2014 12:15:04 +0100
+Message-ID: <20141001111504.GR4273@sirena.org.uk>
+References: <1412093220-24690-1-git-send-email-dmurphy@ti.com>
+ <542B1ABE.5000900@metafoo.de>
+ <542B1E38.4020702@ti.com>
+ <542B20BE.3060200@metafoo.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="MSl2hsNE7q6jQK5LJ81xIlW2eAMHbNVh5"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <20141001104317.GB1261@katana>
-Sender: linux-can-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="nHJAUhyIZkPvF01C"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:56335 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908AbaJALPP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Oct 2014 07:15:15 -0400
+Content-Disposition: inline
+In-Reply-To: <542B20BE.3060200@metafoo.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---MSl2hsNE7q6jQK5LJ81xIlW2eAMHbNVh5
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On 10/01/2014 12:43 PM, Wolfram Sang wrote:
-> 	compatible =3D "commodore,c64ultra", "bosch,d_can";
-
-\o/
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Dan Murphy <dmurphy@ti.com>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
 
---MSl2hsNE7q6jQK5LJ81xIlW2eAMHbNVh5
+--nHJAUhyIZkPvF01C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Sep 30, 2014 at 11:29:34PM +0200, Lars-Peter Clausen wrote:
+> On 09/30/2014 11:18 PM, Dan Murphy wrote:
+
+Dan, please fix your mail client to word wrap within paragraphs.
+
+> >The device, which is already in production, has a specific control register that sets either the reading or writing of the rest of the registers.
+
+> >Here is the data sheet
+
+> >http://www.ti.com/lit/ds/symlink/afe4403.pdf
+
+> >See page 61 control0.
+
+> >Driver is written for this part just want to get this lead patch in or maybe an alternate solution.
+
+> Looking at this the generic SPI regmap implementation might not necessarily
+> be the best thing to use here and you are probably better of implementing
+> either your own regmap bus or reg_read/reg_write callbacks that
+> automatically set/clear the SPI_READ bit in the control register depending
+> on the operation.
+
+It definitely needs more than just this change at any rate - any generic
+infrastructure that tries to work with the regmap is not going to know
+about this read/write register.
+
+--nHJAUhyIZkPvF01C
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iEYEARECAAYFAlQr4XAACgkQjTAFq1RaXHO6kgCfbfVVNunBkdik66EwAxy/Ouc0
-JEAAn2xDdIIVg4gQyXji9cdcDlAD3qub
-=bdR7
+iQEcBAEBAgAGBQJUK+I3AAoJECTWi3JdVIfQ8bIH/0OQ1/OtzBU0/Abq0QR1IxhN
+GXYaL87cfOB52sCjyczfq1pO3sW7l/zRzyCI8IRzT0Q2l6LgzFFanhK/MKQdTiE1
+DiQ3uxX1/GMNAcfp7PfIlxr+ohec3RKo549nXOED4SWZ9TOJgJhabCgzLjD7O6z/
+yvUKqtpFHhh5Vj1iTq/2eMi4VjyE14AET3ww6Eb9TrrtCjMJLAbNDUfiWyQRpuxV
+r7meSaUzjO+WOKM+3CF2W3VkXyYrkbWxL97e4Q5e7A09SI3MDuZRUKpT0zXUXIQr
+zoASwba1MyEaa4q4Jz5kdoJTqz9Xqn4dvirQ3ET3RxZaFwRMVf3PJ5Zi7xpXS+I=
+=+Avc
 -----END PGP SIGNATURE-----
 
---MSl2hsNE7q6jQK5LJ81xIlW2eAMHbNVh5--
+--nHJAUhyIZkPvF01C--
