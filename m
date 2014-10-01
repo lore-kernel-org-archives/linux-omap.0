@@ -1,61 +1,73 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH] regmap: Allow read_reg_mask to be 0
-Date: Wed, 1 Oct 2014 06:39:48 -0500
-Message-ID: <542BE804.5010007@ti.com>
-References: <1412093220-24690-1-git-send-email-dmurphy@ti.com> <542B1ABE.5000900@metafoo.de> <542B1E38.4020702@ti.com> <542B20BE.3060200@metafoo.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 09/13] dmaengine: edma: check for echan->edesc => NULL
+ in edma_dma_pause()
+Date: Wed, 1 Oct 2014 15:00:53 +0300
+Message-ID: <542BECF5.2090700@ti.com>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de> <1412014009-13315-10-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <542B20BE.3060200@metafoo.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>, broonie@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1412014009-13315-10-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, vinod.koul@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Lars
+On 09/29/2014 09:06 PM, Sebastian Andrzej Siewior wrote:
+> I added book keeping of whether or not the 8250-dma driver has an RX
+> transfer pending or not so we don't BUG here if it calls
+> dmaengine_pause() on a channel which has not a pending transfer. Gues=
+s
+> what, this is not enough.
+> The following can be triggered with a busy RX channel and hackbench i=
+n
+> background:
+> - DMA transfer completes. The callback is delayed via
+>   vchan_cookie_complete() into a tasklet so it das not happen asap.
+> - hackbench keeps the system busy so the tasklet does not run "soon".
+> - the UART collected enough data and generates an "timeout"-interrupt=
+=2E
+>   Since 8250-dma *thinks* the DMA-transfer is still pending it tries =
+to
+>   cancel it via invoking dmaengine_pause() first. This causes the seg=
+fault
+>   because echan->edesc is NULL now that the transfer completed (howev=
+er
+>   the callback did not run yet).
+>=20
+> With this patch we don't BUG in the scenario described.
 
-On 09/30/2014 04:29 PM, Lars-Peter Clausen wrote:
-> On 09/30/2014 11:18 PM, Dan Murphy wrote:
->> Lars
->>
->> On 09/30/2014 04:03 PM, Lars-Peter Clausen wrote:
->>> On 09/30/2014 06:07 PM, Dan Murphy wrote:
->>>> There may be spi devices that do not require a
->>>> register read mask to read the registers.
->>>>
->>>> Currently the code sets the read mask based on
->>>> a non-zero value passed in from the driver or if that
->>>> value is 0 sets the read mask to 0x80.
->>>
->>> It only sets it to the bus default if both read_flag_mask and write_flag_mask are 0. The assumption is that both of them being zero is a invalid configuration and either of them (or both) have to be non-zero for proper operation, since otherwise the device can't tell the difference between a read and a write.
->>>
->>> Do you have a device where both the read and the write mask is 0?
->>>
->>> - Lars
->>
->> Yes I do have a device that the read/write mask are both 0.
->>
->> The device, which is already in production, has a specific control register that sets either the reading or writing of the rest of the registers.
->>
->> Here is the data sheet
->>
->> http://www.ti.com/lit/ds/symlink/afe4403.pdf
->>
->> See page 61 control0.
->>
->> Driver is written for this part just want to get this lead patch in or maybe an alternate solution.
->
-> Looking at this the generic SPI regmap implementation might not necessarily be the best thing to use here and you are probably better of implementing either your own regmap bus or reg_read/reg_write callbacks that automatically set/clear the SPI_READ bit in the control register depending on the operation.
->
-> - Lars
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-I am not sure implementing a different SPI regmap implementation is really the best thing.
-I am handling this control bit toggling in the peripheral driver.
-The device only needs to be written at init and then during calibration.  Other then that it is read read read.
+>=20
+> Cc: vinod.koul@intel.com
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> ---
+>  drivers/dma/edma.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+> index 7b65633f495e..123f578d6dd3 100644
+> --- a/drivers/dma/edma.c
+> +++ b/drivers/dma/edma.c
+> @@ -288,7 +288,7 @@ static int edma_slave_config(struct edma_chan *ec=
+han,
+>  static int edma_dma_pause(struct edma_chan *echan)
+>  {
+>  	/* Pause/Resume only allowed with cyclic mode */
+> -	if (!echan->edesc->cyclic)
+> +	if (!echan->edesc || !echan->edesc->cyclic)
+>  		return -EINVAL;
+> =20
+>  	edma_pause(echan->ch_num);
+>=20
 
-Dan
 
--- 
-------------------
-Dan Murphy
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
