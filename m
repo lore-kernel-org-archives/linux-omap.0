@@ -1,45 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/13 v10] omap 8250 based UART + DMA
-Date: Thu, 2 Oct 2014 09:43:39 -0700
-Message-ID: <20141002164339.GL3122@atomide.com>
-References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+Subject: Re: [PATCH v2 9/9] omap_hsmmc: remove unused slot_id parameter
+Date: Thu, 2 Oct 2014 09:45:29 -0700
+Message-ID: <20141002164528.GM3122@atomide.com>
+References: <1411983179-28677-1-git-send-email-afenkart@gmail.com>
+ <1411983179-28677-10-git-send-email-afenkart@gmail.com>
+ <20141002164252.GE7933@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37129 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751769AbaJBQpV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2014 12:45:21 -0400
 Content-Disposition: inline
-In-Reply-To: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
+In-Reply-To: <20141002164252.GE7933@saruman>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Andreas Fenkart <afenkart@gmail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, pascal.huerst@gmail.com
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140929 11:07]:
-> The queue is getting smaller. The highlights of v9=E2=80=A6v10
-> - the DMA stall Frans Klaver reported which popped up in yocto is gon=
-e. It
->   also seems that the "ack the err-irq even if nothing happened" in E=
-DMA
->   can be dropped.
-> - the RX- and TX-DMA callbacks are now OMAP-only and no "bugs" flags =
-are
->   introduced into the generic DMA code. This also means that there is
->   custom IRQ routine in case of DMA.
+* Felipe Balbi <balbi@ti.com> [141002 09:43]:
+> On Mon, Sep 29, 2014 at 11:32:59AM +0200, Andreas Fenkart wrote:
+> > omap_hsmmc only supports one slot. So slot id is always zero, and
+> > slot id is never used in the callbacks
+> 
+> I wonder if this will break slot multiplexing on n8x0.
 
-Looks good to me. For the patches that do not yet have my acks, please
-feel free to add:
-
-Reviewed-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-
-It's probably best that I queue the .dts changes separately though
-to avoid pointless merge conflicts.
+It's a different driver from this. This series separates out
+the omap_mmc (with slot multiplexing) and omap_mmc_hs with no
+slot multiplexing.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
