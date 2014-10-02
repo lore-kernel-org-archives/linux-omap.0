@@ -1,55 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 9/9] omap_hsmmc: remove unused slot_id parameter
-Date: Thu, 2 Oct 2014 11:42:52 -0500
-Message-ID: <20141002164252.GE7933@saruman>
-References: <1411983179-28677-1-git-send-email-afenkart@gmail.com>
- <1411983179-28677-10-git-send-email-afenkart@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/13 v10] omap 8250 based UART + DMA
+Date: Thu, 2 Oct 2014 09:43:39 -0700
+Message-ID: <20141002164339.GL3122@atomide.com>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VUDLurXRWRKrGuMn"
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1411983179-28677-10-git-send-email-afenkart@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, pascal.huerst@gmail.com
+In-Reply-To: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
 
---VUDLurXRWRKrGuMn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [140929 11:07]:
+> The queue is getting smaller. The highlights of v9=E2=80=A6v10
+> - the DMA stall Frans Klaver reported which popped up in yocto is gon=
+e. It
+>   also seems that the "ack the err-irq even if nothing happened" in E=
+DMA
+>   can be dropped.
+> - the RX- and TX-DMA callbacks are now OMAP-only and no "bugs" flags =
+are
+>   introduced into the generic DMA code. This also means that there is
+>   custom IRQ routine in case of DMA.
 
-On Mon, Sep 29, 2014 at 11:32:59AM +0200, Andreas Fenkart wrote:
-> omap_hsmmc only supports one slot. So slot id is always zero, and
-> slot id is never used in the callbacks
+Looks good to me. For the patches that do not yet have my acks, please
+feel free to add:
 
-I wonder if this will break slot multiplexing on n8x0.
+Reviewed-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Tony Lindgren <tony@atomide.com>
 
---=20
-balbi
+It's probably best that I queue the .dts changes separately though
+to avoid pointless merge conflicts.
 
---VUDLurXRWRKrGuMn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJULYCMAAoJEIaOsuA1yqRECXwP/0ckbZofZAUvU0vR271fZ0Oa
-e5K95GSqH+cSWG6hZbX2cNOV/GBSlFgnkLacHNAHZBoMbjAtbkMeAiaBMIVqIOd5
-ZIoVOfH/m/LHgbfLPV44+QB3zqfYXpRgfwwOolbqxZ5ZTTd3V9/K49tslfHMYBai
-mxIT0deEZjB4yPxg/JLT0SjQxjkhSpmqAdhBtdglzwiGe0wvZuLJMDxogQLPXO7b
-N/cKc57i1DxaweDfpdKM+zfvr3ZbziJV+L/psyuq510QCeLbRQ50JWBlbeZmd9qJ
-kZg0POukgS+WwvlYaKCj0fql/k2xZdZwKl7+lmxx73p/SlpHZJHPbW85k+hCCZ/K
-dhqYDZnMMnMW/oa2IcwjCoxUI6nrjfMgIaMaYOHqLXqhx2Eo0oSJLeO/EXnVDYIp
-txZs4uqHj3FCwfI5LezTO+lFXyxSMabmyC0ehy9uPIaDPHZf0LzoicDEftWEieYV
-pY6uf5VO9v7YrMCjtJX0A8ga4B+xWOrp9QZqhNRH3Q9Ys+3DWgQfLsb9IR5uhXf0
-V1CBpAoeDRwNPXh2wjfm1N2tpxku1t+gzBTD2omO6osKT36ybgThpcdMZvBbdeG0
-6Nx0dVqjVfh2Uni6XDmHqT3BCdWahfb2h6HvnjmnufUMbFkVD0EQFR7Atdb8Vc59
-qrtGHUAgi4u42B9KcHb2
-=fgLD
------END PGP SIGNATURE-----
-
---VUDLurXRWRKrGuMn--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
