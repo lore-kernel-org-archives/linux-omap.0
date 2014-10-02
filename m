@@ -1,115 +1,223 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH 2/2] clk: gpio-gate: Rename the struct from clk_gpio to clk_gpio_gate
-Date: Thu, 2 Oct 2014 10:53:32 +0300
-Message-ID: <5ca791d0bda38fe4cc3da4d6bde7e0a374822ee1.1412234778.git.jsarha@ti.com>
-References: <cover.1412234778.git.jsarha@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH 09/16] tty: serial: 8250_dma: Add a TX trigger workaround
+ for AM33xx
+Date: Thu, 2 Oct 2014 12:27:23 +0200
+Message-ID: <20141002102723.GB23661@linutronix.de>
+References: <20140912102816.GF28458@ci00147.xsens-tech.local>
+ <541716DC.9020904@linutronix.de>
+ <20140917102812.GA20438@ci00147.xsens-tech.local>
+ <20140921204100.GA10111@linutronix.de>
+ <20140922092853.GH20438@ci00147.xsens-tech.local>
+ <20140925151403.GH19396@linutronix.de>
+ <20140929085042.GA13952@ci00147.xsens-tech.local>
+ <20140929095440.GB13142@linutronix.de>
+ <20140929103042.GA31111@ci00147.xsens-tech.local>
+ <20140930084416.GB31111@ci00147.xsens-tech.local>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1412234778.git.jsarha@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, kernel-janitors@vger.kernel.org
-Cc: dan.carpenter@oracle.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:42608 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548AbaJBK1d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Oct 2014 06:27:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20140930084416.GB31111@ci00147.xsens-tech.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Frans Klaver <frans.klaver@xsens.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Peter Hurley <peter@hurleysoftware.com>, tony@atomide.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, balbi@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 
-I forgot to change this when changing the clk name from clk_gpio to
-clk_gpio_gate. Since I already changed the comment above the
-struct definition it is better to go all the way.
+* Frans Klaver | 2014-09-30 10:44:16 [+0200]:
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
----
- drivers/clk/clk-gpio-gate.c  |   22 +++++++++++-----------
- include/linux/clk-provider.h |    2 +-
- 2 files changed, 12 insertions(+), 12 deletions(-)
+>On Mon, Sep 29, 2014 at 12:30:43PM +0200, Frans Klaver wrote:
+>> On Mon, Sep 29, 2014 at 11:54:40AM +0200, Sebastian Andrzej Siewior =
+wrote:
+>> > For your "too much work for irq" problem: Could you add trace_prin=
+tk()
+>> > in tx/rx dma start/complete, and irq routine? The interresting par=
+t is
+>> > what is the irq routine doing once entered. It might be a conditio=
+n that
+>> > is ignored at first and "acked" later while serving another event.=
+ Or it
+>> > is really doing something and this is more or less "legal".
+>>=20
+>
+>Here's some trace output I get. I hope branches become clear by the
+>calls they do.
+>
+>       uart_test-482   [000] .ns.    17.860139: __dma_rx_do_complete: =
+error: 0, uart_bug_dma: 32
+>       uart_test-482   [000] .ns.    17.860141: __dma_rx_do_complete: =
+rx_dma(p, 0)
 
-diff --git a/drivers/clk/clk-gpio-gate.c b/drivers/clk/clk-gpio-gate.c
-index a648761..053939a 100644
---- a/drivers/clk/clk-gpio-gate.c
-+++ b/drivers/clk/clk-gpio-gate.c
-@@ -28,11 +28,11 @@
-  * parent - fixed parent.  No clk_set_parent support
-  */
- 
--#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio, hw)
-+#define to_clk_gpio(_hw) container_of(_hw, struct clk_gpio_gate, hw)
- 
- static int clk_gpio_gate_enable(struct clk_hw *hw)
- {
--	struct clk_gpio *clk = to_clk_gpio(hw);
-+	struct clk_gpio_gate *clk = to_clk_gpio(hw);
- 
- 	gpiod_set_value(clk->gpiod, 1);
- 
-@@ -41,14 +41,14 @@ static int clk_gpio_gate_enable(struct clk_hw *hw)
- 
- static void clk_gpio_gate_disable(struct clk_hw *hw)
- {
--	struct clk_gpio *clk = to_clk_gpio(hw);
-+	struct clk_gpio_gate *clk = to_clk_gpio(hw);
- 
- 	gpiod_set_value(clk->gpiod, 0);
- }
- 
- static int clk_gpio_gate_is_enabled(struct clk_hw *hw)
- {
--	struct clk_gpio *clk = to_clk_gpio(hw);
-+	struct clk_gpio_gate *clk = to_clk_gpio(hw);
- 
- 	return gpiod_get_value(clk->gpiod);
- }
-@@ -71,7 +71,7 @@ struct clk *clk_register_gpio_gate(struct device *dev, const char *name,
- 		const char *parent_name, struct gpio_desc *gpiod,
- 		unsigned long flags)
- {
--	struct clk_gpio *clk_gpio = NULL;
-+	struct clk_gpio_gate *clk_gpio_gate = NULL;
- 	struct clk *clk = ERR_PTR(-EINVAL);
- 	struct clk_init_data init = { NULL };
- 	unsigned long gpio_flags;
-@@ -89,9 +89,9 @@ struct clk *clk_register_gpio_gate(struct device *dev, const char *name,
- 		return ERR_PTR(err);
+these two happen outside the IRQ routine for every 48 bytes.
+=E2=80=A6
+>       uart_test-483   [000] dnh.    17.861018: serial8250_interrupt: =
+irq 89
+>       uart_test-483   [000] dnh.    17.861026: serial8250_interrupt: =
+89 e
+e? Did was the routine invoked 0xe times or this a register?
+
+>       uart_test-483   [000] .ns.    17.861045: __dma_rx_do_complete: =
+error: 0, uart_bug_dma: 32
+>       uart_test-483   [000] .ns.    17.861047: __dma_rx_do_complete: =
+rx_dma(p, 0)
+another 48bytes
+
+>       uart_test-479   [000] d.H.    17.861124: serial8250_interrupt: =
+irq 89
+>       uart_test-479   [000] d.H.    17.861133: serial8250_handle_irq:=
+ l1 IIR cc LSR 61
+>       uart_test-479   [000] d.H.    17.861135: serial8250_handle_irq:=
+ rx_dma(up, iir)
+>       uart_test-479   [000] d.H.    17.861139: serial8250_rx_dma: l1,=
+ UART_IIR_RX_TIMEOUT
+>       uart_test-479   [000] d.H.    17.861147: __dma_rx_do_complete: =
+error: 1, uart_bug_dma: 32
+>       uart_test-479   [000] d.H.    17.861150: serial8250_handle_irq:=
+ rx_chars(up, status)
+>       uart_test-479   [000] d.H.    17.861190: serial8250_handle_irq:=
+ rx_dma(up, 0)
+timeout, manual purge. Do you have an idea how many bytes were manually
+received?
+
+>       uart_test-479   [000] d.H.    17.861205: serial8250_interrupt: =
+89 e
+>     kworker/0:1-10    [000] dnH.    17.864949: serial8250_interrupt: =
+irq 89
+>
+>So far so good. We're just entered interrupt where stuff goes awry. Th=
+e
+>following pattern repeats over 600 times:
+>
+>     kworker/0:1-10    [000] dnH.    17.865198: serial8250_handle_irq:=
+ l1 IIR cc LSR 61
+>     kworker/0:1-10    [000] dnH.    17.865254: serial8250_handle_irq:=
+ rx_dma(up, iir)
+>     kworker/0:1-10    [000] dnH.    17.865333: serial8250_rx_dma: l1,=
+ UART_IIR_RX_TIMEOUT
+>     kworker/0:1-10    [000] dnH.    17.865626: __dma_rx_do_complete: =
+error: 1, uart_bug_dma: 32
+>     kworker/0:1-10    [000] dnH.    17.865747: serial8250_handle_irq:=
+ rx_chars(up, status)
+>     kworker/0:1-10    [000] dnH.    17.868797: serial8250_handle_irq:=
+ rx_dma(up, 0)
+>
+>ending with:
+>
+>     kworker/0:1-10    [000] dnH.    20.027093: serial8250_interrupt: =
+serial8250: too much work for irq89
+>     kworker/0:1-10    [000] dnH.    20.027181: serial8250_interrupt: =
+89 e
+>
+>This clogs the entire system until I disconnect the communication line=
+s.
+>
+>So we get an RX timeout. The receiver fifo trigger level was not reach=
+ed
+>and 8250_core is left to copy the remaining data. I would expect that =
+if
+>the trigger level wasn't reached, we wouldn't need to be doing this th=
+at
+>often. On the other hand, could we be trapped reading data from rx
+>without dma helping us? And how could we resolve this?
+
+So if I understand you correct, then you enter serial8250_interrupt()
+and then you enter multiple times omap_8250_dma_handle_irq() and
+you always get a TIMEOUT event and fetch byte(s) manualy via
+serial8250_rx_chars(). And after one iteration UART_IIR_NO_INT is not
+set and you do it again, right?
+
+I have no idea when exactly the timeout-interrupt fires. The manual
+says: "=E2=80=A6 the count is reset when there is activity on uarti_rx =
+=E2=80=A6" but it
+does not say how often it increments before the level is reached.
+It also might be that you have a small gap between two bytes and this
+high baud rate the gap is considered as a timeout event.
+
+Another thing could be that if the we enqueue a RX transfer from the
+dma_completion callback then we have too many bytes in the FIFO already
+becahse the callback is invoked from softirq. What happens if we cut th=
+e
+middle man via
+
+
+diff --git a/drivers/dma/virt-dma.c b/drivers/dma/virt-dma.c
+index 6f80432..21b04bd 100644
+--- a/drivers/dma/virt-dma.c
++++ b/drivers/dma/virt-dma.c
+@@ -63,8 +63,9 @@ static void vchan_complete(unsigned long arg)
+ 	dma_async_tx_callback cb =3D NULL;
+ 	void *cb_data =3D NULL;
+ 	LIST_HEAD(head);
++	unsigned long flags;
+=20
+-	spin_lock_irq(&vc->lock);
++	spin_lock_irqsave(&vc->lock, flags);
+ 	list_splice_tail_init(&vc->desc_completed, &head);
+ 	vd =3D vc->cyclic;
+ 	if (vd) {
+@@ -72,7 +73,7 @@ static void vchan_complete(unsigned long arg)
+ 		cb =3D vd->tx.callback;
+ 		cb_data =3D vd->tx.callback_param;
  	}
- 
--	clk_gpio = kzalloc(sizeof(struct clk_gpio), GFP_KERNEL);
-+	clk_gpio_gate = kzalloc(sizeof(struct clk_gpio_gate), GFP_KERNEL);
- 
--	if (!clk_gpio) {
-+	if (!clk_gpio_gate) {
- 		clk = ERR_PTR(-ENOMEM);
- 		goto clk_register_gpio_gate_err;
- 	}
-@@ -102,15 +102,15 @@ struct clk *clk_register_gpio_gate(struct device *dev, const char *name,
- 	init.parent_names = (parent_name ? &parent_name : NULL);
- 	init.num_parents = (parent_name ? 1 : 0);
- 
--	clk_gpio->gpiod = gpiod;
--	clk_gpio->hw.init = &init;
-+	clk_gpio_gate->gpiod = gpiod;
-+	clk_gpio_gate->hw.init = &init;
- 
--	clk = clk_register(dev, &clk_gpio->hw);
-+	clk = clk_register(dev, &clk_gpio_gate->hw);
- 
- 	if (!IS_ERR(clk))
- 		return clk;
- 
--	kfree(clk_gpio);
-+	kfree(clk_gpio_gate);
- 
- clk_register_gpio_gate_err:
- 	gpiod_put(gpiod);
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index ec1581b..860cb0c 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -498,7 +498,7 @@ struct clk *clk_register_composite(struct device *dev, const char *name,
-  * Implements .enable, .disable and .is_enabled
-  */
- 
--struct clk_gpio {
-+struct clk_gpio_gate {
- 	struct clk_hw	hw;
- 	struct gpio_desc *gpiod;
- };
--- 
-1.7.9.5
+-	spin_unlock_irq(&vc->lock);
++	spin_unlock_irqrestore(&vc->lock, flags);
+=20
+ 	if (cb)
+ 		cb(cb_data);
+diff --git a/drivers/dma/virt-dma.h b/drivers/dma/virt-dma.h
+index 181b952..7632338 100644
+--- a/drivers/dma/virt-dma.h
++++ b/drivers/dma/virt-dma.h
+@@ -92,7 +92,10 @@ static inline void vchan_cookie_complete(struct virt=
+_dma_desc *vd)
+ 		 vd, cookie);
+ 	list_add_tail(&vd->node, &vc->desc_completed);
+=20
+-	tasklet_schedule(&vc->task);
++	if (vd->tx.my_uart)
++		vc->task.func(vc);
++	else
++		tasklet_schedule(&vc->task);
+ }
+=20
+ /**
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8=
+250/8250_omap.c
+index 57a8b12..5d7ee92 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -728,6 +728,7 @@ static int omap_8250_rx_dma(struct uart_8250_port *=
+p, unsigned int iir)
+ 	dma->rx_running =3D 1;
+ 	desc->callback =3D __dma_rx_complete;
+ 	desc->callback_param =3D p;
++	desc->my_uart =3D 1;
+=20
+ 	dma->rx_cookie =3D dmaengine_submit(desc);
+=20
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index 1f9e642..0f5fbe1 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -459,6 +459,7 @@ struct dmaengine_unmap_data {
+ struct dma_async_tx_descriptor {
+ 	dma_cookie_t cookie;
+ 	enum dma_ctrl_flags flags; /* not a 'long' to pack with cookie */
++	u32 my_uart;
+ 	dma_addr_t phys;
+ 	struct dma_chan *chan;
+ 	dma_cookie_t (*tx_submit)(struct dma_async_tx_descriptor *tx);
+
+>
+>Frans
+
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
