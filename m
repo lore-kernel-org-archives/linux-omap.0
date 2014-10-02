@@ -1,32 +1,25 @@
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: [PATCH] MAINTAINERS: remove Rajendra Nayak, invalid e-mail
-Date: Thu,  2 Oct 2014 09:20:27 +0200
-Message-ID: <1412234427-17422-1-git-send-email-michael.opdenacker@free-electrons.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: [PATCH 0/2] Couple of changes to gpio-gate-clock
+Date: Thu, 2 Oct 2014 10:53:30 +0300
+Message-ID: <cover.1412234778.git.jsarha@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org, paul@pwsan.com
-Cc: davem@davemloft.net, gregkh@linuxfoundation.org, joe@perches.com, m.chehab@samsung.com, crope@iki.fi, jg1.han@samsung.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Michael Opdenacker <michael.opdenacker@free-electrons.com>
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mike Turquette <mturquette@linaro.org>, kernel-janitors@vger.kernel.org
+Cc: dan.carpenter@oracle.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This removes Rajendra Nayak from the MAINTAINERS file
-as his e-mail address is now rejected by the TI mail server.
+The first was suggested by Dan Carpenter. The second is just cleaning
+and not affecting the functionality.
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
----
- MAINTAINERS | 1 -
- 1 file changed, 1 deletion(-)
+Jyri Sarha (2):
+  clk: gpio-gate: Stop using devres API
+  clk: gpio-gate: Rename the struct from clk_gpio to clk_gpio_gate
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 37054306dc9f..db449ee19ca8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6496,7 +6496,6 @@ F:	arch/arm/*omap*/*pm*
- F:	drivers/cpufreq/omap-cpufreq.c
- 
- OMAP POWERDOMAIN SOC ADAPTATION LAYER SUPPORT
--M:	Rajendra Nayak <rnayak@ti.com>
- M:	Paul Walmsley <paul@pwsan.com>
- L:	linux-omap@vger.kernel.org
- S:	Maintained
+ drivers/clk/clk-gpio-gate.c  |   34 ++++++++++++----------------------
+ include/linux/clk-provider.h |    2 +-
+ 2 files changed, 13 insertions(+), 23 deletions(-)
+
 -- 
-1.9.1
+1.7.9.5
