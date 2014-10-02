@@ -1,66 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/9] unshare and simplify omap_hsmmc platform struct
-Date: Thu, 2 Oct 2014 09:36:34 -0700
-Message-ID: <20141002163633.GK3122@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 9/9] omap_hsmmc: remove unused slot_id parameter
+Date: Thu, 2 Oct 2014 11:42:52 -0500
+Message-ID: <20141002164252.GE7933@saruman>
 References: <1411983179-28677-1-git-send-email-afenkart@gmail.com>
+ <1411983179-28677-10-git-send-email-afenkart@gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VUDLurXRWRKrGuMn"
 Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1411983179-28677-1-git-send-email-afenkart@gmail.com>
+In-Reply-To: <1411983179-28677-10-git-send-email-afenkart@gmail.com>
 Sender: linux-mmc-owner@vger.kernel.org
 To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, pascal.huerst@gmail.com
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>, pascal.huerst@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Andreas Fenkart <afenkart@gmail.com> [140929 02:33]:
-> v2:
-> - replace erroneous mmci by omap1/2
-> - add description to all patches
-> - full compile check with:
-> 	CONFIG_MACH_OMAP3_BEAGLE=y
-> 	CONFIG_MACH_DEVKIT8000=y
-> 	CONFIG_MACH_OMAP_LDP=y
-> 	CONFIG_MACH_OMAP3530_LV_SOM=y
-> 	CONFIG_MACH_OMAP3_TORPEDO=y
-> 	CONFIG_MACH_OVERO=y
-> 	CONFIG_MACH_OMAP3517EVM=y
-> 	CONFIG_MACH_CRANEBOARD=y
-> 	CONFIG_MACH_OMAP3_PANDORA=y
-> 	CONFIG_MACH_TOUCHBOOK=y
-> 	CONFIG_MACH_OMAP_3430SDP=y
-> 	CONFIG_MACH_NOKIA_RX51=y
-> 	CONFIG_MACH_CM_T35=y
-> 	CONFIG_MACH_CM_T3517=y
-> 	CONFIG_MACH_CM_T3730=y
-> 	CONFIG_MACH_SBC3530=y
-> - reorganized and added more patches, hence no blank ack added
-> 
-> 
-> Andreas Fenkart (9):
->   omap_hsmmc: use separate platform data for ompa3 and omap 1/2 driver
->   omap_hsmmc: remove unused fields in platform_data
->   omap_hsmmc: remove un-initialized callbacks from platform data
->   omap_hsmmc: remove un-ready power_saving field in omap2_hsmmc_info
->   omap_hsmmc: remove unused get_context_loss_count callback
->   omap_hsmmc: remove unnecessary omap_hsmmc_slot_data indirection
->   omap_hsmmc: pass mmc_priv struct to gpio init / free
->   omap_hsmmc: Remove unnecessary callbacks from platform data
->   omap_hsmmc: remove unused slot_id parameter
-> 
->  arch/arm/mach-omap2/board-rx51-peripherals.c       |   4 +-
->  arch/arm/mach-omap2/hsmmc.c                        | 155 +++++------
->  arch/arm/mach-omap2/hsmmc.h                        |   9 +-
->  arch/arm/mach-omap2/mmc.h                          |   6 +-
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |   6 +-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   6 +-
->  drivers/mmc/host/omap_hsmmc.c                      | 282 ++++++++++-----------
->  include/linux/platform_data/hsmmc-omap.h           |  88 +++++++
->  8 files changed, 299 insertions(+), 257 deletions(-)
->  create mode 100644 include/linux/platform_data/hsmmc-omap.h
+--VUDLurXRWRKrGuMn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Looks good to me, please feel free to merge via the MMC
-tree as this should not conflict with omap changes. For the
-whole series:
+On Mon, Sep 29, 2014 at 11:32:59AM +0200, Andreas Fenkart wrote:
+> omap_hsmmc only supports one slot. So slot id is always zero, and
+> slot id is never used in the callbacks
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+I wonder if this will break slot multiplexing on n8x0.
+
+--=20
+balbi
+
+--VUDLurXRWRKrGuMn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJULYCMAAoJEIaOsuA1yqRECXwP/0ckbZofZAUvU0vR271fZ0Oa
+e5K95GSqH+cSWG6hZbX2cNOV/GBSlFgnkLacHNAHZBoMbjAtbkMeAiaBMIVqIOd5
+ZIoVOfH/m/LHgbfLPV44+QB3zqfYXpRgfwwOolbqxZ5ZTTd3V9/K49tslfHMYBai
+mxIT0deEZjB4yPxg/JLT0SjQxjkhSpmqAdhBtdglzwiGe0wvZuLJMDxogQLPXO7b
+N/cKc57i1DxaweDfpdKM+zfvr3ZbziJV+L/psyuq510QCeLbRQ50JWBlbeZmd9qJ
+kZg0POukgS+WwvlYaKCj0fql/k2xZdZwKl7+lmxx73p/SlpHZJHPbW85k+hCCZ/K
+dhqYDZnMMnMW/oa2IcwjCoxUI6nrjfMgIaMaYOHqLXqhx2Eo0oSJLeO/EXnVDYIp
+txZs4uqHj3FCwfI5LezTO+lFXyxSMabmyC0ehy9uPIaDPHZf0LzoicDEftWEieYV
+pY6uf5VO9v7YrMCjtJX0A8ga4B+xWOrp9QZqhNRH3Q9Ys+3DWgQfLsb9IR5uhXf0
+V1CBpAoeDRwNPXh2wjfm1N2tpxku1t+gzBTD2omO6osKT36ybgThpcdMZvBbdeG0
+6Nx0dVqjVfh2Uni6XDmHqT3BCdWahfb2h6HvnjmnufUMbFkVD0EQFR7Atdb8Vc59
+qrtGHUAgi4u42B9KcHb2
+=fgLD
+-----END PGP SIGNATURE-----
+
+--VUDLurXRWRKrGuMn--
