@@ -1,74 +1,35 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v2 0/9] unshare and simplify omap_hsmmc platform struct
-Date: Fri, 3 Oct 2014 15:00:07 +0200
-Message-ID: <CAPDyKFr-zhrOfvuqxTJ7+109trRfGFRT93Wk9P3Ju7Gv_7BuQA@mail.gmail.com>
-References: <1411983179-28677-1-git-send-email-afenkart@gmail.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 00/13 v10] omap 8250 based UART + DMA
+Date: Fri, 03 Oct 2014 09:08:08 -0400
+Message-ID: <542E9FB8.3080201@hurleysoftware.com>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f170.google.com ([209.85.216.170]:51549 "EHLO
-	mail-qc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752004AbaJCNAI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Oct 2014 09:00:08 -0400
-Received: by mail-qc0-f170.google.com with SMTP id m20so927183qcx.1
-        for <linux-omap@vger.kernel.org>; Fri, 03 Oct 2014 06:00:07 -0700 (PDT)
-In-Reply-To: <1411983179-28677-1-git-send-email-afenkart@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Pascal Huerst <pascal.huerst@gmail.com>
 
-On 29 September 2014 11:32, Andreas Fenkart <afenkart@gmail.com> wrote:
-> v2:
-> - replace erroneous mmci by omap1/2
-> - add description to all patches
-> - full compile check with:
->         CONFIG_MACH_OMAP3_BEAGLE=y
->         CONFIG_MACH_DEVKIT8000=y
->         CONFIG_MACH_OMAP_LDP=y
->         CONFIG_MACH_OMAP3530_LV_SOM=y
->         CONFIG_MACH_OMAP3_TORPEDO=y
->         CONFIG_MACH_OVERO=y
->         CONFIG_MACH_OMAP3517EVM=y
->         CONFIG_MACH_CRANEBOARD=y
->         CONFIG_MACH_OMAP3_PANDORA=y
->         CONFIG_MACH_TOUCHBOOK=y
->         CONFIG_MACH_OMAP_3430SDP=y
->         CONFIG_MACH_NOKIA_RX51=y
->         CONFIG_MACH_CM_T35=y
->         CONFIG_MACH_CM_T3517=y
->         CONFIG_MACH_CM_T3730=y
->         CONFIG_MACH_SBC3530=y
-> - reorganized and added more patches, hence no blank ack added
->
->
-> Andreas Fenkart (9):
->   omap_hsmmc: use separate platform data for ompa3 and omap 1/2 driver
->   omap_hsmmc: remove unused fields in platform_data
->   omap_hsmmc: remove un-initialized callbacks from platform data
->   omap_hsmmc: remove un-ready power_saving field in omap2_hsmmc_info
->   omap_hsmmc: remove unused get_context_loss_count callback
->   omap_hsmmc: remove unnecessary omap_hsmmc_slot_data indirection
->   omap_hsmmc: pass mmc_priv struct to gpio init / free
->   omap_hsmmc: Remove unnecessary callbacks from platform data
->   omap_hsmmc: remove unused slot_id parameter
->
->  arch/arm/mach-omap2/board-rx51-peripherals.c       |   4 +-
->  arch/arm/mach-omap2/hsmmc.c                        | 155 +++++------
->  arch/arm/mach-omap2/hsmmc.h                        |   9 +-
->  arch/arm/mach-omap2/mmc.h                          |   6 +-
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |   6 +-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   6 +-
->  drivers/mmc/host/omap_hsmmc.c                      | 282 ++++++++++-----------
->  include/linux/platform_data/hsmmc-omap.h           |  88 +++++++
->  8 files changed, 299 insertions(+), 257 deletions(-)
->  create mode 100644 include/linux/platform_data/hsmmc-omap.h
->
-> --
-> 2.1.0
->
+On 09/29/2014 02:06 PM, Sebastian Andrzej Siewior wrote:
+> The queue is getting smaller. The highlights of v9=E2=80=A6v10
+> - the DMA stall Frans Klaver reported which popped up in yocto is gon=
+e. It
+>   also seems that the "ack the err-irq even if nothing happened" in E=
+DMA
+>   can be dropped.
+> - the RX- and TX-DMA callbacks are now OMAP-only and no "bugs" flags =
+are
+>   introduced into the generic DMA code. This also means that there is
+>   custom IRQ routine in case of DMA.
 
-Thanks! Applied for next!
+=46or the series:
 
-Kind regards
-Uffe
+Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
