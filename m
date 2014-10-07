@@ -1,7 +1,7 @@
 From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH v2 4/4] phy: exynos7-usbdrd: Update dependency for ARCH_EXYNOS
-Date: Tue,  7 Oct 2014 15:49:36 +0530
-Message-ID: <1412677176-3850-5-git-send-email-gautam.vivek@samsung.com>
+Subject: [PATCH v2 3/4] phy: exynos5-usbdrd: Add facility for VBUS-BOOST-5V supply
+Date: Tue,  7 Oct 2014 15:49:35 +0530
+Message-ID: <1412677176-3850-4-git-send-email-gautam.vivek@samsung.com>
 References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
@@ -10,27 +10,95 @@ To: linux-usb@vger.kernel.org
 Cc: linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kgene.kim@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, kishon@ti.com, Vivek Gautam <gautam.vivek@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-This PHY controller is also present on Exynos7 platform
-in arch-exynos family.
-So PHY_EXYNOS5_USBDRD should now depend on ARCH_EXYNOS.
+Some Exynos SoCs have a separate regulator controlling a
+Boost 5V supply which goes as input for VBUS regulator.
+So adding a control for the same in driver, to enable
+vbus supply on the port.
 
 Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
 ---
- drivers/phy/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/phy/phy-exynos5-usbdrd.c |   30 ++++++++++++++++++++++++++++--
+ 1 file changed, 28 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 2a436e6..1514e40 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -193,7 +193,7 @@ config PHY_EXYNOS5250_USB2
+diff --git a/drivers/phy/phy-exynos5-usbdrd.c b/drivers/phy/phy-exynos5-usbdrd.c
+index 013ee84..57e8a0a 100644
+--- a/drivers/phy/phy-exynos5-usbdrd.c
++++ b/drivers/phy/phy-exynos5-usbdrd.c
+@@ -176,6 +176,7 @@ struct exynos5_usbdrd_phy {
+ 	u32 extrefclk;
+ 	struct clk *ref_clk;
+ 	struct regulator *vbus;
++	struct regulator *vbus_boost;
+ };
  
- config PHY_EXYNOS5_USBDRD
- 	tristate "Exynos5 SoC series USB DRD PHY driver"
--	depends on ARCH_EXYNOS5 && OF
-+	depends on ARCH_EXYNOS && OF
- 	depends on HAS_IOMEM
- 	depends on USB_DWC3_EXYNOS
- 	select GENERIC_PHY
+ static inline
+@@ -455,11 +456,20 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
+ 	clk_prepare_enable(phy_drd->ref_clk);
+ 
+ 	/* Enable VBUS supply */
++	if (phy_drd->vbus_boost) {
++		ret = regulator_enable(phy_drd->vbus_boost);
++		if (ret) {
++			dev_err(phy_drd->dev,
++				"Failed to enable VBUS boost supply\n");
++			goto fail_vbus;
++		}
++	}
++
+ 	if (phy_drd->vbus) {
+ 		ret = regulator_enable(phy_drd->vbus);
+ 		if (ret) {
+ 			dev_err(phy_drd->dev, "Failed to enable VBUS supply\n");
+-			goto fail_vbus;
++			goto fail_vbus_boost;
+ 		}
+ 	}
+ 
+@@ -468,6 +478,10 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
+ 
+ 	return 0;
+ 
++fail_vbus_boost:
++	if (phy_drd->vbus_boost)
++		regulator_disable(phy_drd->vbus_boost);
++
+ fail_vbus:
+ 	clk_disable_unprepare(phy_drd->ref_clk);
+ 	clk_disable_unprepare(phy_drd->pipeclk);
+@@ -489,6 +503,8 @@ static int exynos5_usbdrd_phy_power_off(struct phy *phy)
+ 	/* Disable VBUS supply */
+ 	if (phy_drd->vbus)
+ 		regulator_disable(phy_drd->vbus);
++	if (phy_drd->vbus_boost)
++		regulator_disable(phy_drd->vbus_boost);
+ 
+ 	clk_disable_unprepare(phy_drd->ref_clk);
+ 	clk_disable_unprepare(phy_drd->pipeclk);
+@@ -644,7 +660,7 @@ static int exynos5_usbdrd_phy_probe(struct platform_device *pdev)
+ 		break;
+ 	}
+ 
+-	/* Get Vbus regulator */
++	/* Get Vbus regulators */
+ 	phy_drd->vbus = devm_regulator_get(dev, "vbus");
+ 	if (IS_ERR(phy_drd->vbus)) {
+ 		ret = PTR_ERR(phy_drd->vbus);
+@@ -655,6 +671,16 @@ static int exynos5_usbdrd_phy_probe(struct platform_device *pdev)
+ 		phy_drd->vbus = NULL;
+ 	}
+ 
++	phy_drd->vbus_boost = devm_regulator_get(dev, "vbus-boost");
++	if (IS_ERR(phy_drd->vbus_boost)) {
++		ret = PTR_ERR(phy_drd->vbus_boost);
++		if (ret == -EPROBE_DEFER)
++			return ret;
++
++		dev_warn(dev, "Failed to get VBUS boost supply regulator\n");
++		phy_drd->vbus_boost = NULL;
++	}
++
+ 	dev_vdbg(dev, "Creating usbdrd_phy phy\n");
+ 
+ 	for (i = 0; i < EXYNOS5_DRDPHYS_NUM; i++) {
 -- 
 1.7.10.4
