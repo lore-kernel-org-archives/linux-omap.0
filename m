@@ -1,65 +1,67 @@
-From: Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH/v2] ARM: OMAP2: Remove unnecessary KERN_* in omap_phy_internal.c
-Date: Tue,  7 Oct 2014 23:16:16 +0900
-Message-ID: <1412691376-7895-1-git-send-email-standby24x7@gmail.com>
-References: <20141006162151.GA21908@kahuna>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:48627 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236AbaJGOQd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2014 10:16:33 -0400
-In-Reply-To: <20141006162151.GA21908@kahuna>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v2 0/8] Per-user clock constraints
+Date: Tue,  7 Oct 2014 17:21:45 +0200
+Message-ID: <1412695334-2608-1-git-send-email-tomeu.vizoso@collabora.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Alex Elder <elder@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Stephen Boyd <sboyd@codeaurora.org>, Tim Kryger <tim.kryger@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, nm@ti.com
-Cc: Masanari Iida <standby24x7@gmail.com>
 
-This patch remove unnecessary KERN_INFO and KERN_ERR from omap_phy_internal.c.
-Add pr_fmt. 
+Hello,
 
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
----
- arch/arm/mach-omap2/omap_phy_internal.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+this second version of the series adds several cleanups that were suggested by
+Stephen Boyd and contains several improvements to the seventh patch (clk: Make
+clk API return per-user struct clk instances) that were suggested by him during
+the review of v1.
 
-diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index 50640b3..1a19fa0 100644
---- a/arch/arm/mach-omap2/omap_phy_internal.c
-+++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -21,6 +21,8 @@
-   *
-   */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/types.h>
- #include <linux/delay.h>
- #include <linux/clk.h>
-@@ -97,13 +99,13 @@ void am35x_musb_phy_power(u8 on)
- 
- 		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
- 
--		pr_info(KERN_INFO "Waiting for PHY clock good...\n");
-+		pr_info("Waiting for PHY clock good...\n");
- 		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
- 				& CONF2_PHYCLKGD)) {
- 			cpu_relax();
- 
- 			if (time_after(jiffies, timeout)) {
--				pr_err(KERN_ERR "musb PHY clock good timed out\n");
-+				pr_err("musb PHY clock good timed out\n");
- 				break;
- 			}
- 		}
-@@ -145,7 +147,7 @@ void am35x_set_mode(u8 musb_mode)
- 		devconf2 |= CONF2_NO_OVERRIDE;
- 		break;
- 	default:
--		pr_info(KERN_INFO "Unsupported mode %u\n", musb_mode);
-+		pr_info("Unsupported mode %u\n", musb_mode);
- 	}
- 
- 	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+The first six patches are just cleanups that should be desirable on their own,
+and that should make easier to review the actual per-user clock patch.
+
+The seventh patch actually moves the per-clock data that was stored in struct
+clk to a new struct clk_core and adds references to it from both struct clk and
+struct clk_hw. struct clk is now ready to contain information that is specific
+to a given clk consumer.
+
+The eighth patch adds API for setting floor and ceiling constraints and stores
+that information on the per-user struct clk, which is iterable from struct
+clk_core.
+
+Thanks,
+
+Tomeu
+
+Tomeu Vizoso (8):
+  MIPS: Alchemy: Remove direct access to prepare_count field of struct
+    clk
+  clk: Remove unused function __clk_get_prepare_count
+  clk: Don't try to use a struct clk* after it could have been freed
+  clk: Don't expose __clk_get_accuracy
+  clk: change clk_debugfs_add_file to take a struct clk_hw
+  clk: Change clk_ops->determine_rate to return a clk_hw as the best
+    parent
+  clk: Make clk API return per-user struct clk instances
+  clk: Add floor and ceiling constraints to clock rates
+
+ arch/arm/mach-omap2/cclock3xxx_data.c   | 108 +++--
+ arch/arm/mach-omap2/clock.h             |  11 +-
+ arch/arm/mach-omap2/clock_common_data.c |   5 +-
+ arch/mips/alchemy/common/clock.c        |   7 +-
+ drivers/clk/at91/clk-programmable.c     |   4 +-
+ drivers/clk/bcm/clk-kona.c              |   4 +-
+ drivers/clk/clk-composite.c             |   9 +-
+ drivers/clk/clk.c                       | 723 +++++++++++++++++++++-----------
+ drivers/clk/clk.h                       |   7 +
+ drivers/clk/clkdev.c                    |  23 +-
+ drivers/clk/hisilicon/clk-hi3620.c      |   2 +-
+ drivers/clk/qcom/clk-rcg.c              |  20 +-
+ drivers/clk/qcom/clk-rcg2.c             |  28 +-
+ drivers/clk/sunxi/clk-factors.c         |   4 +-
+ drivers/clk/sunxi/clk-sun6i-ar100.c     |   4 +-
+ include/linux/clk-private.h             |  40 +-
+ include/linux/clk-provider.h            |  30 +-
+ include/linux/clk.h                     |  18 +
+ 18 files changed, 697 insertions(+), 350 deletions(-)
+
 -- 
-2.1.1.273.g97b8860
-
+1.9.3
