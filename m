@@ -1,68 +1,109 @@
-From: Romain Perier <romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH v2 1/4] regulator: Add helper function to get "poweroff-source" property
-Date: Tue,  7 Oct 2014 19:45:01 +0000
-Message-ID: <1412711104-15902-1-git-send-email-romain.perier@gmail.com>
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org, ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Romain Perier <romain.perier@gmail.com>
+Subject: [RFC PATCH v2 2/4] regulator: act8865: Add support to turn off all outputs
+Date: Tue,  7 Oct 2014 19:45:02 +0000
+Message-ID: <1412711104-15902-2-git-send-email-romain.perier@gmail.com>
+References: <1412711104-15902-1-git-send-email-romain.perier@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1412711104-15902-1-git-send-email-romain.perier@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree@vger.kernel.org
+Cc: broonie@kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, heiko@sntech.de, sameo@linux.intel.com, lee.jones@linaro.org, grant.likely@linaro.org, robh@kernel.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, anton@enomsg.org, ldewangan@nvidia.com, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Several drivers create their own devicetree property when they register
-poweroff capabilities. This is for example the case for mfd, regulator
-or power drivers which define "vendor,system-power-controller" property.
-This patch adds support for a standard property "poweroff-source"
-which marks the device as able to shutdown the system.
+When the property "poweroff-source" is found in the
+devicetree, the function pm_power_off is defined. This function sends the
+rights bit fields to the global off control register. shutdown/poweroff
+commands are now supported for hardware components which use these PMU.
 
-Signed-off-by: Romain Perier <romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Romain Perier <romain.perier@gmail.com>
 ---
- drivers/regulator/of_regulator.c       | 12 ++++++++++++
- include/linux/regulator/of_regulator.h |  6 ++++++
- 2 files changed, 18 insertions(+)
+ drivers/regulator/act8865-regulator.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-index 7a51814..8b898e6 100644
---- a/drivers/regulator/of_regulator.c
-+++ b/drivers/regulator/of_regulator.c
-@@ -240,3 +240,15 @@ struct regulator_init_data *regulator_of_get_init_data(struct device *dev,
+diff --git a/drivers/regulator/act8865-regulator.c b/drivers/regulator/act8865-regulator.c
+index afd06f9..8bba591 100644
+--- a/drivers/regulator/act8865-regulator.c
++++ b/drivers/regulator/act8865-regulator.c
+@@ -61,6 +61,8 @@
+ #define	ACT8846_REG12_VSET	0xa0
+ #define	ACT8846_REG12_CTRL	0xa1
+ #define	ACT8846_REG13_CTRL	0xb1
++#define	ACT8846_GLB_OFF_CTRL	0xc3
++#define	ACT8846_OFF_SYSMASK	0x18
  
- 	return init_data;
+ /*
+  * ACT8865 Global Register Map.
+@@ -84,6 +86,7 @@
+ #define	ACT8865_LDO3_CTRL	0x61
+ #define	ACT8865_LDO4_VSET	0x64
+ #define	ACT8865_LDO4_CTRL	0x65
++#define	ACT8865_MSTROFF		0x20
+ 
+ /*
+  * Field Definitions.
+@@ -98,6 +101,8 @@
+ 
+ struct act8865 {
+ 	struct regmap *regmap;
++	int off_reg;
++	int off_mask;
+ };
+ 
+ static const struct regmap_config act8865_regmap_config = {
+@@ -275,6 +280,16 @@ static struct regulator_init_data
+ 	return NULL;
  }
-+
-+/**
-+ * is_system_poweroff_source - Tells if poweroff-source is found for device_node
-+ * @np: Pointer to the given device_node
-+ *
-+ * return true if present false otherwise
-+ */
-+bool is_system_poweroff_source(const struct device_node *np)
+ 
++static struct i2c_client *act8865_i2c_client;
++static void act8865_power_off(void)
 +{
-+	return of_property_read_bool(np, "poweroff-source");
++	struct act8865 *act8865;
++
++	act8865 = i2c_get_clientdata(act8865_i2c_client);
++	regmap_write(act8865->regmap, act8865->off_reg, act8865->off_mask);
++	while (1);
 +}
-+EXPORT_SYMBOL_GPL(is_system_poweroff_source);
-diff --git a/include/linux/regulator/of_regulator.h b/include/linux/regulator/of_regulator.h
-index f921796..9d8fbb2 100644
---- a/include/linux/regulator/of_regulator.h
-+++ b/include/linux/regulator/of_regulator.h
-@@ -20,6 +20,7 @@ extern struct regulator_init_data
- extern int of_regulator_match(struct device *dev, struct device_node *node,
- 			      struct of_regulator_match *matches,
- 			      unsigned int num_matches);
-+extern bool is_system_poweroff_source(const struct device_node *np);
- #else
- static inline struct regulator_init_data
- 	*of_get_regulator_init_data(struct device *dev,
-@@ -35,6 +36,11 @@ static inline int of_regulator_match(struct device *dev,
++
+ static int act8865_pmic_probe(struct i2c_client *client,
+ 			      const struct i2c_device_id *i2c_id)
  {
- 	return 0;
- }
-+
-+static inline bool is_system_poweroff_source(const struct device_node *np)
-+{
-+	return false;
-+}
- #endif /* CONFIG_OF */
+@@ -285,6 +300,7 @@ static int act8865_pmic_probe(struct i2c_client *client,
+ 	int i, ret, num_regulators;
+ 	struct act8865 *act8865;
+ 	unsigned long type;
++	int off_reg, off_mask;
  
- #endif /* __LINUX_OF_REG_H */
+ 	pdata = dev_get_platdata(dev);
+ 
+@@ -304,10 +320,14 @@ static int act8865_pmic_probe(struct i2c_client *client,
+ 	case ACT8846:
+ 		regulators = act8846_regulators;
+ 		num_regulators = ARRAY_SIZE(act8846_regulators);
++		off_reg = ACT8846_GLB_OFF_CTRL;
++		off_mask = ACT8846_OFF_SYSMASK;
+ 		break;
+ 	case ACT8865:
+ 		regulators = act8865_regulators;
+ 		num_regulators = ARRAY_SIZE(act8865_regulators);
++		off_reg = ACT8865_SYS_CTRL;
++		off_mask = ACT8865_MSTROFF;
+ 		break;
+ 	default:
+ 		dev_err(dev, "invalid device id %lu\n", type);
+@@ -345,6 +365,14 @@ static int act8865_pmic_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
++	if (dev->of_node && is_system_poweroff_source(dev->of_node) &&
++		!pm_power_off) {
++		act8865_i2c_client = client;
++		act8865->off_reg = off_reg;
++		act8865->off_mask = off_mask;
++		pm_power_off = act8865_power_off;
++	}
++
+ 	/* Finally register devices */
+ 	for (i = 0; i < num_regulators; i++) {
+ 		const struct regulator_desc *desc = &regulators[i];
 -- 
 1.9.1
