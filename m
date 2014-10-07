@@ -1,59 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 1/4] dwc3: exynos: Add support for SCLK present on
- Exynos7
-Date: Tue, 7 Oct 2014 09:11:18 -0500
-Message-ID: <20141007141118.GD24720@saruman>
-References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
- <1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZARJHfwaSJQLOEUz"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kgene.kim@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, kishon@ti.com
+From: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH/v2] ARM: OMAP2: Remove unnecessary KERN_* in omap_phy_internal.c
+Date: Tue,  7 Oct 2014 23:16:16 +0900
+Message-ID: <1412691376-7895-1-git-send-email-standby24x7@gmail.com>
+References: <20141006162151.GA21908@kahuna>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:48627 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753236AbaJGOQd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Oct 2014 10:16:33 -0400
+In-Reply-To: <20141006162151.GA21908@kahuna>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, nm@ti.com
+Cc: Masanari Iida <standby24x7@gmail.com>
 
---ZARJHfwaSJQLOEUz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch remove unnecessary KERN_INFO and KERN_ERR from omap_phy_internal.c.
+Add pr_fmt. 
 
-On Tue, Oct 07, 2014 at 03:49:33PM +0530, Vivek Gautam wrote:
-> Exynos7 also has a separate special gate clock going to the IP
-> apart from the usual AHB clock. So add support for the same.
->=20
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ arch/arm/mach-omap2/omap_phy_internal.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-I'll take this one once -rc1 is tagged. The others have no direct
-dependency on this so I'll leave them to Kishon.
+diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+index 50640b3..1a19fa0 100644
+--- a/arch/arm/mach-omap2/omap_phy_internal.c
++++ b/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -21,6 +21,8 @@
+   *
+   */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/types.h>
+ #include <linux/delay.h>
+ #include <linux/clk.h>
+@@ -97,13 +99,13 @@ void am35x_musb_phy_power(u8 on)
+ 
+ 		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+ 
+-		pr_info(KERN_INFO "Waiting for PHY clock good...\n");
++		pr_info("Waiting for PHY clock good...\n");
+ 		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
+ 				& CONF2_PHYCLKGD)) {
+ 			cpu_relax();
+ 
+ 			if (time_after(jiffies, timeout)) {
+-				pr_err(KERN_ERR "musb PHY clock good timed out\n");
++				pr_err("musb PHY clock good timed out\n");
+ 				break;
+ 			}
+ 		}
+@@ -145,7 +147,7 @@ void am35x_set_mode(u8 musb_mode)
+ 		devconf2 |= CONF2_NO_OVERRIDE;
+ 		break;
+ 	default:
+-		pr_info(KERN_INFO "Unsupported mode %u\n", musb_mode);
++		pr_info("Unsupported mode %u\n", musb_mode);
+ 	}
+ 
+ 	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+-- 
+2.1.1.273.g97b8860
 
---=20
-balbi
-
---ZARJHfwaSJQLOEUz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUM/SGAAoJEIaOsuA1yqREvX4P/RVgtnSXBdISraqbxtUS55Fs
-A2s4SsiKJu7YOyMUhjvAaxD6yyXUBrlHwVPJ+fCgjRxBByiVoUim0rJ3I0Z+vVeS
-F+WqnwZJB9QdhhsDiZreNmikQ7toD6n1Va2PGop6Djd/VkJP4l5MuN/KDKMtbtAt
-RNQE463LlIS7h+OVtXLAUbRQCITjwq0VRxdMnQfnYpps73Cquyw89kfgl/fB1F94
-fdupFPVKJM153ExAQXWeKejuF2q0bdGyIg8QVDpGfMWV0Sf2AUqKWGtXqznBMrKp
-92ptlX5YSPYKH2/854wJhOSMDyw/0SjojMLqo4qxld3+FEAHll3wiZHsOX++vJvY
-Bw7ZgrlxdJpYdbOJaHn4D6tdjznGewWHcybjtLkEWNIdctKKRyKlvyxmUQS5d+ae
-J1k5QjPZ5oiBD/FJkXpQSovtDgEaI5A054ZDjn8mmh6BlWM2PT8mM9zJCxRPdIB/
-2mHKmMIWxIu7CDxCMc1UL/y0Pv+ScdS/RtwCYfScv2jaHJejt/2qnOWTFggQ/nzU
-qKmoKf+t+qimJ8xq06eQ4HyOa6QW3e0NJTOsFr9r4JGDN/ZBuWhb2szSFgTBPzqy
-1UAj0TUG0VrRC4aOoP00emix7Eo5obf8FLUbiDHYQgfQlBmqAF1RGrObj2z/3nrK
-5GUjOskMAp9cos8jSkkI
-=bVzM
------END PGP SIGNATURE-----
-
---ZARJHfwaSJQLOEUz--
