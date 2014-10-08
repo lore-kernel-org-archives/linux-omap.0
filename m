@@ -1,79 +1,35 @@
-From: PERIER Romain <romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH v2 1/4] regulator: Add helper function to get
- "poweroff-source" property
-Date: Tue, 7 Oct 2014 21:43:45 +0200
-Message-ID: <CABgxDoL2cztT6Y0oodtk4Q4jaDc1Rtx_RokxC+f0XykSojrdyg@mail.gmail.com>
-References: <1412711104-15902-1-git-send-email-romain.perier@gmail.com>
+From: Vivek Gautam <gautam.vivek@samsung.com>
+Subject: Re: [PATCH v2 1/4] dwc3: exynos: Add support for SCLK present on Exynos7
+Date: Wed, 8 Oct 2014 08:31:19 +0530
+Message-ID: <CAFp+6iF9ttEGSVc9p+YSXFxKnVTGK5aqyT0nEiFXbpoXj8aW+w@mail.gmail.com>
+References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
+	<1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
+	<20141007141118.GD24720@saruman>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1412711104-15902-1-git-send-email-romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, robh <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141007141118.GD24720@saruman>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Kukjin Kim <kgene.kim@samsung.com>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, robh+dt <robh+dt@kernel.org>, kishon <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is not the final location, I have no idea exactly where I might
-put this helper function. This is why I ask you your opinion (and
-also, this is why that's a proposal)
+On Tue, Oct 7, 2014 at 7:41 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Tue, Oct 07, 2014 at 03:49:33PM +0530, Vivek Gautam wrote:
+>> Exynos7 also has a separate special gate clock going to the IP
+>> apart from the usual AHB clock. So add support for the same.
+>>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>
+> I'll take this one once -rc1 is tagged. The others have no direct
+> dependency on this so I'll leave them to Kishon.
 
-2014-10-07 21:45 GMT+02:00 Romain Perier <romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> Several drivers create their own devicetree property when they register
-> poweroff capabilities. This is for example the case for mfd, regulator
-> or power drivers which define "vendor,system-power-controller" property.
-> This patch adds support for a standard property "poweroff-source"
-> which marks the device as able to shutdown the system.
->
-> Signed-off-by: Romain Perier <romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/regulator/of_regulator.c       | 12 ++++++++++++
->  include/linux/regulator/of_regulator.h |  6 ++++++
->  2 files changed, 18 insertions(+)
->
-> diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-> index 7a51814..8b898e6 100644
-> --- a/drivers/regulator/of_regulator.c
-> +++ b/drivers/regulator/of_regulator.c
-> @@ -240,3 +240,15 @@ struct regulator_init_data *regulator_of_get_init_data(struct device *dev,
->
->         return init_data;
->  }
-> +
-> +/**
-> + * is_system_poweroff_source - Tells if poweroff-source is found for device_node
-> + * @np: Pointer to the given device_node
-> + *
-> + * return true if present false otherwise
-> + */
-> +bool is_system_poweroff_source(const struct device_node *np)
-> +{
-> +       return of_property_read_bool(np, "poweroff-source");
-> +}
-> +EXPORT_SYMBOL_GPL(is_system_poweroff_source);
-> diff --git a/include/linux/regulator/of_regulator.h b/include/linux/regulator/of_regulator.h
-> index f921796..9d8fbb2 100644
-> --- a/include/linux/regulator/of_regulator.h
-> +++ b/include/linux/regulator/of_regulator.h
-> @@ -20,6 +20,7 @@ extern struct regulator_init_data
->  extern int of_regulator_match(struct device *dev, struct device_node *node,
->                               struct of_regulator_match *matches,
->                               unsigned int num_matches);
-> +extern bool is_system_poweroff_source(const struct device_node *np);
->  #else
->  static inline struct regulator_init_data
->         *of_get_regulator_init_data(struct device *dev,
-> @@ -35,6 +36,11 @@ static inline int of_regulator_match(struct device *dev,
->  {
->         return 0;
->  }
-> +
-> +static inline bool is_system_poweroff_source(const struct device_node *np)
-> +{
-> +       return false;
-> +}
->  #endif /* CONFIG_OF */
->
->  #endif /* __LINUX_OF_REG_H */
-> --
-> 1.9.1
->
+Thanks Felipe !
+
+
+
+-- 
+Best Regards
+Vivek Gautam
+Samsung R&D Institute, Bangalore
+India
