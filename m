@@ -1,182 +1,594 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Wed, 8 Oct 2014 12:13:22 -0500
-Message-ID: <20141008171322.GH22688@saruman>
-References: <20140904184021.GA13421@saruman.home>
- <20140904191642.GJ5001@linux.vnet.ibm.com>
- <20140904192535.GJ13421@saruman.home>
- <20140904200403.GL13421@saruman.home>
- <20140905213216.GD5001@linux.vnet.ibm.com>
-Reply-To: <balbi@ti.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v2 1/4] rtc: omap: Introduce rtc_omap_dev structure to
+ include per device data
+Date: Wed, 8 Oct 2014 19:36:52 +0200
+Message-ID: <20141008173652.GF1990@localhost>
+References: <1411637529-18289-1-git-send-email-lokeshvutla@ti.com>
+ <1411637529-18289-2-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Dx9iWuMxHO1cCoFc"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20140905213216.GD5001@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, josh@joshtriplett.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
-List-Id: linux-omap@vger.kernel.org
-
---Dx9iWuMxHO1cCoFc
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:56973 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751850AbaJHRjn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Oct 2014 13:39:43 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1411637529-18289-2-git-send-email-lokeshvutla@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: rtc-linux@googlegroups.com, a.zummo@towertech.it, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, balbi@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-Hi,
+On Thu, Sep 25, 2014 at 03:02:06PM +0530, Lokesh Vutla wrote:
+> Currently all the device data is declared globally which will be a
+> problem if more than one instance of device is present. So consolidate
+> all the data into rtc_omap_dev struct and adopt the driver to use this.
+> 
+> Suggested-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
+> Changes since v1:
+> 	- New patch as suggested by Felipe.
+>  drivers/rtc/rtc-omap.c | 257 ++++++++++++++++++++++++++++---------------------
+>  1 file changed, 147 insertions(+), 110 deletions(-)
+> 
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index 21142e6..4e90b50 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -41,8 +41,6 @@
+>  
+>  #define	DRIVER_NAME			"omap_rtc"
+>  
+> -#define OMAP_RTC_BASE			0xfffb4800
+> -
+>  /* RTC registers */
+>  #define OMAP_RTC_SECONDS_REG		0x00
+>  #define OMAP_RTC_MINUTES_REG		0x04
+> @@ -120,26 +118,53 @@
+>   */
+>  #define OMAP_RTC_HAS_32KCLK_EN		BIT(2)
+>  
+> -static void __iomem	*rtc_base;
+> +/**
+> + * struct rtc_omap_dev - Per device static data for driver's use
+> + * @rtc_device :	Pointer to generic RTC interface.
 
-On Fri, Sep 05, 2014 at 02:32:16PM -0700, Paul E. McKenney wrote:
-> On Thu, Sep 04, 2014 at 03:04:03PM -0500, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Thu, Sep 04, 2014 at 02:25:35PM -0500, Felipe Balbi wrote:
-> > > On Thu, Sep 04, 2014 at 12:16:42PM -0700, Paul E. McKenney wrote:
-> > > > On Thu, Sep 04, 2014 at 01:40:21PM -0500, Felipe Balbi wrote:
-> > > > > Hi,
-> > > > >=20
-> > > > > I keep triggering the following Oops with -rc3 when writing to th=
-e mass
-> > > > > storage gadget driver:
-> > > >=20
-> > > > v3.17-rc3, correct?
-> > >=20
-> > > yup, as in subject ;-)
-> > >=20
-> > > > I take it that the test passes on some earlier version?
-> > >=20
-> > > about to test v3.14.17.
-> >=20
-> > coudln't get v3.14 working on this board but at least v3.16 is also
-> > affected except that on now it happened during boot, I didn't even need
-> > to run my test:
-> >=20
-> > [   17.438195] Unable to handle kernel paging request at virtual addres=
-s ffffffff
-> > [   17.446109] pgd =3D ec360000
-> > [   17.448947] [ffffffff] *pgd=3Dae7f6821, *pte=3D00000000, *ppte=3D000=
-00000
-> > [   17.455639] Internal error: Oops: 17 [#1] SMP ARM
-> > [   17.460578] Modules linked in: dwc3(+) udc_core lis3lv02d_i2c lis3lv=
-02d input_polldev dwc3_omap matrix_keypad
-> > [   17.471060] CPU: 0 PID: 1381 Comm: accounts-daemon Tainted: G W     =
-3.16.0-00005-g8a6cdb4 #811
-> > [   17.480735] task: ed716040 ti: ec026000 task.ti: ec026000
-> > [   17.486405] PC is at find_get_entry+0x7c/0x128
-> > [   17.491070] LR is at 0xfffffffa
-> > [   17.494364] pc : [<c0110b4c>]    lr : [<fffffffa>]    psr: a0000013
-> > [   17.494364] sp : ec027dc8  ip : 00000000  fp : ec027dfc
-> > [   17.506384] r10: c0c6f6bc  r9 : 00000005  r8 : ecdf22f8
-> > [   17.511860] r7 : ec026008  r6 : 00000001  r5 : 00000000  r4 : 000000=
-00
-> > [   17.518705] r3 : ec027db4  r2 : 00000000  r1 : 00000005  r0 : ffffff=
-ff
-> > [   17.525526] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM Segm=
-ent user
-> > [   17.533007] Control: 10c5387d  Table: ac360059  DAC: 00000015
-> > [   17.539020] Process accounts-daemon (pid: 1381, stack limit =3D 0xec=
-026248)
-> > [   17.546151] Stack: (0xec027dc8 to 0xec028000)
-> > [   17.550710] 7dc0:                   00000000 00000000 c0110ad0 ecdf0=
-b80 00000000 ecdf22f4
-> > [   17.559259] 7de0: ecdf22f4 00000000 00000005 00000000 ec027e34 ec027=
-e00 c0111874 c0110adc
-> > [   17.567824] 7e00: ecdf0b80 c03565b4 ed7165f8 ec3dddf0 ecdf22f4 00000=
-005 ec3ddd00 00000001
-> > [   17.576385] 7e20: ecdf21a0 00000000 ec027ebc ec027e38 c0112978 c0111=
-844 00000000 c06af938
-> > [   17.584950] 7e40: ecdf0b70 ecdf0b70 ec027e6c ec027e58 00000005 00000=
-006 00000b80 ecdf0b70
-> > [   17.593514] 7e60: 00000000 c0163264 ec3dddf0 ec027ee8 ec027ed4 00000=
-b80 ec027eac ec027e88
-> > [   17.602087] 7e80: c0178d98 c0356590 00000000 00000000 00020000 00005=
-b80 00000000 ec027f78
-> > [   17.610653] 7ea0: ec3ddd00 ed716040 b6cab018 00000000 ec027f44 ec027=
-ec0 c0163264 c0112780
-> > [   17.619202] 7ec0: 00000180 00000180 ec027efc b6cab018 00000180 00000=
-000 00000000 00000180
-> > [   17.627772] 7ee0: ec027ecc 00000001 ec3ddd00 00000000 00000000 00000=
-000 ed716040 00000000
-> > [   17.636371] 7f00: 00000000 00000000 00005b80 00000000 00000180 00000=
-000 00000000 00000000
-> > [   17.644946] 7f20: b6cab018 ec3ddd00 b6cab018 ec027f78 ec3ddd00 00000=
-180 ec027f74 ec027f48
-> > [   17.653524] 7f40: c0163a6c c01631cc b6cab018 00000000 00005b80 00000=
-000 ec3ddd03 ec3ddd00
-> > [   17.662085] 7f60: 00000180 b6cab018 ec027fa4 ec027f78 c0164198 c0163=
-9e0 00005b80 00000000
-> > [   17.670658] 7f80: be91badc be91ba50 00044a00 00000003 c000f044 ec026=
-000 00000000 ec027fa8
-> > [   17.679222] 7fa0: c000edc0 c0164158 be91badc be91ba50 00000008 b6cab=
-018 00000180 be91ba38
-> > [   17.687794] 7fc0: be91badc be91ba50 00044a00 00000003 be91bbac b6cab=
-008 00000000 00000000
-> > [   17.696370] 7fe0: 00000020 be91ba40 b6c78e8c b6c78ea8 60000010 00000=
-008 ae7f6821 ae7f6c21
-> > [   17.704956] [<c0110b4c>] (find_get_entry) from [<c0111874>] (pagecac=
-he_get_page+0x3c/0x1f4)
-> > [   17.713687] [<c0111874>] (pagecache_get_page) from [<c0112978>] (gen=
-eric_file_read_iter+0x204/0x794)
-> > [   17.723259] [<c0112978>] (generic_file_read_iter) from [<c0163264>] =
-(new_sync_read+0xa4/0xcc)
-> > [   17.732185] [<c0163264>] (new_sync_read) from [<c0163a6c>] (vfs_read=
-+0x98/0x158)
-> > [   17.739945] [<c0163a6c>] (vfs_read) from [<c0164198>] (SyS_read+0x4c=
-/0xa0)
-> > [   17.747149] [<c0164198>] (SyS_read) from [<c000edc0>] (ret_fast_sysc=
-all+0x0/0x48)
-> > [   17.754994] Code: e1a01009 eb08ffa9 e3500000 0a00001f (e5904000)=20
-> > [   17.761476] ---[ end trace 49c4ed35a1c01157 ]---
-> >=20
-> > It seems to be a difficult-to-reproduce race though. On a second boot it
-> > didn't die during boot, but died with my USB test case. Unfortunately,
-> > the platform I'm using is pretty new and only goes as far back as v3.16
-> > (which I had to backport 11 patches to get it to boot good enough for
-> > this test).
-> >=20
-> > I wonder if a corrupt file system could cause such problems... I keep
-> > seeing EXT4 errors every now and again; considering that this dies in a
-> > path through VFS, I wonder...
->=20
-> I recall hearing of similar things in the past, but must defer to the
-> FS/VFS experts on this one.
+Member name in comment doesn't match actual name ("rtc").
 
-resurrecting this thread. I'm facing the same issues with a brand new
-filesystem mounted through NFS. The way to reproduce is the same though:
-using g_mass_storage with either tmpfs or mmc as backing store.
+> + * @device:		Device Pointer.
+> + * pdata :		Copy of saved platform data.
 
-However it seems to die much more frequently than before. I can
-reproduce all the time. It's definitely not a problem with my board as I
-have two boards with different SoCs (ARM Cortex A8 and ARM Cortex A9)
-with two different USB peripheral controllers (MUSB and DWC3), using the
-same rootfs and they die the exact same way no matter if I use tmpfs or
-MMC as backing store.
+Use a more descriptive name here to describe what it's really for
+(feature flags), perhaps just call it "flags". 
 
-Adding a few more folks here.
+Please prepend all members with a '@' (and remove the space before ':').
 
---=20
-balbi
+> + * rtc_base :		Base address of memory-mapped IO registers.
+> + * rtc_alarm :		RTC alarm interrupt number.
+> + * rtc_timer :		RTC timer interrupt number.
 
---Dx9iWuMxHO1cCoFc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+All these rtc_ prefixes are now quite redundant (and non-descriptive).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Call the interrupt fields irq_alarm and irq_timer instead.
 
-iQIcBAEBAgAGBQJUNXCyAAoJEIaOsuA1yqREATYP/i+tkBh/HdDLAMGRI8s5dSl2
-FzRxIrsD0ctMf5wAv6IXOmCABZdc520hVvQuYeYTX/mG+HBC7PULWgVVzu5TMmz2
-9va9fd8YAyfBYtcFiKDaHa83qL/VwVhP7bpRKGIfUT1dYgq9TAwDtAdaIT/ouRa8
-vcK/fiqFOJ/gQltJ1h+ahAv6/FPUSzHdgnfbfnlGrgi/DCr0/hk0OvaXzNNW0Fnc
-iJQYCXcwiT651leHx3C4W1twFV37yxAYR+1CGRd8KVTh+hEj/ogsoxj8/5yjtwuB
-VoCk+XXRiWQd7dOqh13gRvZ1kp8JvmBuar6DScgzRrPWDrIOwtvHXFbvn5Epd1qs
-6HVh4F19J+nq/76JU3Z6XerLoZbJhRQor//UnuggLG3K747XJN7YOm4LvSyM0bOy
-WSM3pMfTGVPdonNd9auPPuED0icS6+lCycMs4ZW14UKap9iZOZ+KhcUVpr3S2kbz
-sL0jvSgdAL3If76/9SXJAEPWW/yRElJjo29g6uJDEdch6YTjvd1TwX2B4x6un/ta
-CzNl+oVP5ZmVdF+BiHfWd4M0fMt5jqKcIrbO26n5crx2s0PCY7NReqwDLsExARy5
-QpqFH12Rvj+hJNWA7WhrkJY44Hb+F9kPRq/STBwfNxIUmH4sQuum37FlQCXTjp3h
-1y8D/VYYvS7Z+lYoNzZi
-=Xi++
------END PGP SIGNATURE-----
+>+ * irq_stat :		Copy of Interrupt status register.
 
---Dx9iWuMxHO1cCoFc--
+And then rename this after the register, e.g. "interrupts_reg", or call
+it irq_mask.
+
+Update the comment as well to describe what the field is used for (i.e.
+to store the interrupt mask while suspended). 
+
+> + */
+> +struct rtc_omap_dev {
+> +	struct rtc_device	*rtc;
+> +	struct device		*dev;
+> +	unsigned long		pdata;
+> +	void __iomem		*rtc_base;
+> +	u32			rtc_alarm;
+> +	u32			rtc_timer;
+> +	u8			irqstat;
+> +};
+>  
+> -#define rtc_read(addr)		readb(rtc_base + (addr))
+> -#define rtc_write(val, addr)	writeb(val, rtc_base + (addr))
+> +static inline u8 rtc_read(struct rtc_omap_dev *rtc_omap, u32 off)
+> +{
+> +	return readb(rtc_omap->rtc_base + off);
+> +}
+>  
+> -#define rtc_writel(val, addr)	writel(val, rtc_base + (addr))
+> +static inline void rtc_write(u8 val, struct rtc_omap_dev *rtc_omap, u32 off)
+
+Please make the rtc_omap_dev the first argument of both read and write.
+
+It doesn't hurt making the value argument the last one.
+
+> +{
+> +	writeb(val, rtc_omap->rtc_base + off);
+> +}
+>  
+> +static inline void rtc_writel(u32 val, struct rtc_omap_dev *rtc_omap, u32 off)
+
+Same here.
+
+> +{
+> +	writel(val, rtc_omap->rtc_base + off);
+> +}
+>  
+>  /* we rely on the rtc framework to handle locking (rtc->ops_lock),
+>   * so the only other requirement is that register accesses which
+>   * require BUSY to be clear are made with IRQs locally disabled
+>   */
+> -static void rtc_wait_not_busy(void)
+> +static void rtc_wait_not_busy(struct rtc_omap_dev *rtc_omap)
+>  {
+>  	int	count = 0;
+>  	u8	status;
+>  
+>  	/* BUSY may stay active for 1/32768 second (~30 usec) */
+>  	for (count = 0; count < 50; count++) {
+> -		status = rtc_read(OMAP_RTC_STATUS_REG);
+> +		status = rtc_read(rtc_omap, OMAP_RTC_STATUS_REG);
+>  		if ((status & (u8)OMAP_RTC_STATUS_BUSY) == 0)
+>  			break;
+>  		udelay(1);
+> @@ -147,16 +172,17 @@ static void rtc_wait_not_busy(void)
+>  	/* now we have ~15 usec to read/write various registers */
+>  }
+>  
+> -static irqreturn_t rtc_irq(int irq, void *rtc)
+> +static irqreturn_t rtc_irq(int irq, void *id)
+>  {
+> +	struct rtc_omap_dev *rtc_omap = (struct rtc_omap_dev *)id;
+>  	unsigned long		events = 0;
+>  	u8			irq_data;
+>  
+> -	irq_data = rtc_read(OMAP_RTC_STATUS_REG);
+> +	irq_data = rtc_read(rtc_omap, OMAP_RTC_STATUS_REG);
+>  
+>  	/* alarm irq? */
+>  	if (irq_data & OMAP_RTC_STATUS_ALARM) {
+> -		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
+> +		rtc_write(OMAP_RTC_STATUS_ALARM, rtc_omap, OMAP_RTC_STATUS_REG);
+>  		events |= RTC_IRQF | RTC_AF;
+>  	}
+>  
+> @@ -164,7 +190,7 @@ static irqreturn_t rtc_irq(int irq, void *rtc)
+>  	if (irq_data & OMAP_RTC_STATUS_1S_EVENT)
+>  		events |= RTC_IRQF | RTC_UF;
+>  
+> -	rtc_update_irq(rtc, 1, events);
+> +	rtc_update_irq(rtc_omap->rtc, 1, events);
+>  
+>  	return IRQ_HANDLED;
+>  }
+> @@ -172,15 +198,13 @@ static irqreturn_t rtc_irq(int irq, void *rtc)
+>  static int omap_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
+>  {
+>  	u8 reg, irqwake_reg = 0;
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	const struct platform_device_id *id_entry =
+> -					platform_get_device_id(pdev);
+> +	struct rtc_omap_dev *rtc_omap = dev_get_drvdata(dev);
+>  
+>  	local_irq_disable();
+> -	rtc_wait_not_busy();
+> -	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> -		irqwake_reg = rtc_read(OMAP_RTC_IRQWAKEEN);
+> +	rtc_wait_not_busy(rtc_omap);
+> +	reg = rtc_read(rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_IRQWAKEEN)
+> +		irqwake_reg = rtc_read(rtc_omap, OMAP_RTC_IRQWAKEEN);
+>  
+>  	if (enabled) {
+>  		reg |= OMAP_RTC_INTERRUPTS_IT_ALARM;
+> @@ -189,10 +213,10 @@ static int omap_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
+>  		reg &= ~OMAP_RTC_INTERRUPTS_IT_ALARM;
+>  		irqwake_reg &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+>  	}
+> -	rtc_wait_not_busy();
+> -	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> -		rtc_write(irqwake_reg, OMAP_RTC_IRQWAKEEN);
+> +	rtc_wait_not_busy(rtc_omap);
+> +	rtc_write(reg, rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_IRQWAKEEN)
+> +		rtc_write(irqwake_reg, rtc_omap, OMAP_RTC_IRQWAKEEN);
+>  	local_irq_enable();
+>  
+>  	return 0;
+> @@ -233,16 +257,18 @@ static void bcd2tm(struct rtc_time *tm)
+>  
+>  static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
+>  {
+> +	struct rtc_omap_dev *rtc_omap = dev_get_drvdata(dev);
+> +
+>  	/* we don't report wday/yday/isdst ... */
+>  	local_irq_disable();
+> -	rtc_wait_not_busy();
+> +	rtc_wait_not_busy(rtc_omap);
+>  
+> -	tm->tm_sec = rtc_read(OMAP_RTC_SECONDS_REG);
+> -	tm->tm_min = rtc_read(OMAP_RTC_MINUTES_REG);
+> -	tm->tm_hour = rtc_read(OMAP_RTC_HOURS_REG);
+> -	tm->tm_mday = rtc_read(OMAP_RTC_DAYS_REG);
+> -	tm->tm_mon = rtc_read(OMAP_RTC_MONTHS_REG);
+> -	tm->tm_year = rtc_read(OMAP_RTC_YEARS_REG);
+> +	tm->tm_sec = rtc_read(rtc_omap, OMAP_RTC_SECONDS_REG);
+> +	tm->tm_min = rtc_read(rtc_omap, OMAP_RTC_MINUTES_REG);
+> +	tm->tm_hour = rtc_read(rtc_omap, OMAP_RTC_HOURS_REG);
+> +	tm->tm_mday = rtc_read(rtc_omap, OMAP_RTC_DAYS_REG);
+> +	tm->tm_mon = rtc_read(rtc_omap, OMAP_RTC_MONTHS_REG);
+> +	tm->tm_year = rtc_read(rtc_omap, OMAP_RTC_YEARS_REG);
+>  
+>  	local_irq_enable();
+>  
+> @@ -252,17 +278,19 @@ static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
+>  
+>  static int omap_rtc_set_time(struct device *dev, struct rtc_time *tm)
+>  {
+> +	struct rtc_omap_dev *rtc_omap = dev_get_drvdata(dev);
+> +
+>  	if (tm2bcd(tm) < 0)
+>  		return -EINVAL;
+>  	local_irq_disable();
+> -	rtc_wait_not_busy();
+> +	rtc_wait_not_busy(rtc_omap);
+>  
+> -	rtc_write(tm->tm_year, OMAP_RTC_YEARS_REG);
+> -	rtc_write(tm->tm_mon, OMAP_RTC_MONTHS_REG);
+> -	rtc_write(tm->tm_mday, OMAP_RTC_DAYS_REG);
+> -	rtc_write(tm->tm_hour, OMAP_RTC_HOURS_REG);
+> -	rtc_write(tm->tm_min, OMAP_RTC_MINUTES_REG);
+> -	rtc_write(tm->tm_sec, OMAP_RTC_SECONDS_REG);
+> +	rtc_write(tm->tm_year, rtc_omap, OMAP_RTC_YEARS_REG);
+> +	rtc_write(tm->tm_mon, rtc_omap, OMAP_RTC_MONTHS_REG);
+> +	rtc_write(tm->tm_mday, rtc_omap, OMAP_RTC_DAYS_REG);
+> +	rtc_write(tm->tm_hour, rtc_omap, OMAP_RTC_HOURS_REG);
+> +	rtc_write(tm->tm_min, rtc_omap, OMAP_RTC_MINUTES_REG);
+> +	rtc_write(tm->tm_sec, rtc_omap, OMAP_RTC_SECONDS_REG);
+>  
+>  	local_irq_enable();
+>  
+> @@ -271,20 +299,22 @@ static int omap_rtc_set_time(struct device *dev, struct rtc_time *tm)
+>  
+>  static int omap_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  {
+> +	struct rtc_omap_dev *rtc_omap = dev_get_drvdata(dev);
+> +
+>  	local_irq_disable();
+> -	rtc_wait_not_busy();
+> +	rtc_wait_not_busy(rtc_omap);
+>  
+> -	alm->time.tm_sec = rtc_read(OMAP_RTC_ALARM_SECONDS_REG);
+> -	alm->time.tm_min = rtc_read(OMAP_RTC_ALARM_MINUTES_REG);
+> -	alm->time.tm_hour = rtc_read(OMAP_RTC_ALARM_HOURS_REG);
+> -	alm->time.tm_mday = rtc_read(OMAP_RTC_ALARM_DAYS_REG);
+> -	alm->time.tm_mon = rtc_read(OMAP_RTC_ALARM_MONTHS_REG);
+> -	alm->time.tm_year = rtc_read(OMAP_RTC_ALARM_YEARS_REG);
+> +	alm->time.tm_sec = rtc_read(rtc_omap, OMAP_RTC_ALARM_SECONDS_REG);
+> +	alm->time.tm_min = rtc_read(rtc_omap, OMAP_RTC_ALARM_MINUTES_REG);
+> +	alm->time.tm_hour = rtc_read(rtc_omap, OMAP_RTC_ALARM_HOURS_REG);
+> +	alm->time.tm_mday = rtc_read(rtc_omap, OMAP_RTC_ALARM_DAYS_REG);
+> +	alm->time.tm_mon = rtc_read(rtc_omap, OMAP_RTC_ALARM_MONTHS_REG);
+> +	alm->time.tm_year = rtc_read(rtc_omap, OMAP_RTC_ALARM_YEARS_REG);
+>  
+>  	local_irq_enable();
+>  
+>  	bcd2tm(&alm->time);
+> -	alm->enabled = !!(rtc_read(OMAP_RTC_INTERRUPTS_REG)
+> +	alm->enabled = !!(rtc_read(rtc_omap, OMAP_RTC_INTERRUPTS_REG)
+>  			& OMAP_RTC_INTERRUPTS_IT_ALARM);
+>  
+>  	return 0;
+> @@ -293,26 +323,24 @@ static int omap_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  {
+>  	u8 reg, irqwake_reg = 0;
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	const struct platform_device_id *id_entry =
+> -					platform_get_device_id(pdev);
+> +	struct rtc_omap_dev *rtc_omap = dev_get_drvdata(dev);
+>  
+>  	if (tm2bcd(&alm->time) < 0)
+>  		return -EINVAL;
+>  
+>  	local_irq_disable();
+> -	rtc_wait_not_busy();
+> +	rtc_wait_not_busy(rtc_omap);
+>  
+> -	rtc_write(alm->time.tm_year, OMAP_RTC_ALARM_YEARS_REG);
+> -	rtc_write(alm->time.tm_mon, OMAP_RTC_ALARM_MONTHS_REG);
+> -	rtc_write(alm->time.tm_mday, OMAP_RTC_ALARM_DAYS_REG);
+> -	rtc_write(alm->time.tm_hour, OMAP_RTC_ALARM_HOURS_REG);
+> -	rtc_write(alm->time.tm_min, OMAP_RTC_ALARM_MINUTES_REG);
+> -	rtc_write(alm->time.tm_sec, OMAP_RTC_ALARM_SECONDS_REG);
+> +	rtc_write(alm->time.tm_year, rtc_omap, OMAP_RTC_ALARM_YEARS_REG);
+> +	rtc_write(alm->time.tm_mon, rtc_omap, OMAP_RTC_ALARM_MONTHS_REG);
+> +	rtc_write(alm->time.tm_mday, rtc_omap, OMAP_RTC_ALARM_DAYS_REG);
+> +	rtc_write(alm->time.tm_hour, rtc_omap, OMAP_RTC_ALARM_HOURS_REG);
+> +	rtc_write(alm->time.tm_min, rtc_omap, OMAP_RTC_ALARM_MINUTES_REG);
+> +	rtc_write(alm->time.tm_sec, rtc_omap, OMAP_RTC_ALARM_SECONDS_REG);
+>  
+> -	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> -		irqwake_reg = rtc_read(OMAP_RTC_IRQWAKEEN);
+> +	reg = rtc_read(rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_IRQWAKEEN)
+> +		irqwake_reg = rtc_read(rtc_omap, OMAP_RTC_IRQWAKEEN);
+>  
+>  	if (alm->enabled) {
+>  		reg |= OMAP_RTC_INTERRUPTS_IT_ALARM;
+> @@ -321,9 +349,9 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  		reg &= ~OMAP_RTC_INTERRUPTS_IT_ALARM;
+>  		irqwake_reg &= ~OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN;
+>  	}
+> -	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_IRQWAKEEN)
+> -		rtc_write(irqwake_reg, OMAP_RTC_IRQWAKEEN);
+> +	rtc_write(reg, rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_IRQWAKEEN)
+> +		rtc_write(irqwake_reg, rtc_omap, OMAP_RTC_IRQWAKEEN);
+>  
+>  	local_irq_enable();
+>  
+> @@ -338,13 +366,10 @@ static struct rtc_class_ops omap_rtc_ops = {
+>  	.alarm_irq_enable = omap_rtc_alarm_irq_enable,
+>  };
+>  
+> -static int omap_rtc_alarm;
+> -static int omap_rtc_timer;
+> -
+>  #define	OMAP_RTC_DATA_AM3352_IDX	1
+>  #define	OMAP_RTC_DATA_DA830_IDX		2
+>  
+> -static struct platform_device_id omap_rtc_devtype[] = {
+> +static const struct platform_device_id omap_rtc_devtype[] = {
+
+This is an unrelated clean up and should go in a different patch.
+
+>  	{
+>  		.name	= DRIVER_NAME,
+>  	},
+> @@ -375,11 +400,18 @@ MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+>  static int __init omap_rtc_probe(struct platform_device *pdev)
+>  {
+>  	struct resource		*res;
+> -	struct rtc_device	*rtc;
+> +	struct rtc_omap_dev	*rtc_omap;
+>  	u8			reg, new_ctrl;
+>  	const struct platform_device_id *id_entry;
+>  	const struct of_device_id *of_id;
+>  
+> +	rtc_omap = devm_kzalloc(&pdev->dev, sizeof(*rtc_omap), GFP_KERNEL);
+> +	if (!rtc_omap)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, rtc_omap);
+> +	rtc_omap->dev = &pdev->dev;
+
+You never use this one directly, so why store it?
+
+> +
+>  	of_id = of_match_device(omap_rtc_of_match, &pdev->dev);
+>  	if (of_id)
+>  		pdev->id_entry = of_id->data;
+> @@ -389,78 +421,79 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+>  		dev_err(&pdev->dev, "no matching device entry\n");
+>  		return -ENODEV;
+>  	}
+> +	rtc_omap->pdata = id_entry->driver_data;
+>  
+> -	omap_rtc_timer = platform_get_irq(pdev, 0);
+> -	if (omap_rtc_timer <= 0) {
+> +	rtc_omap->rtc_timer = platform_get_irq(pdev, 0);
+> +	if (rtc_omap->rtc_timer <= 0) {
+>  		pr_debug("%s: no update irq?\n", pdev->name);
+>  		return -ENOENT;
+>  	}
+>  
+> -	omap_rtc_alarm = platform_get_irq(pdev, 1);
+> -	if (omap_rtc_alarm <= 0) {
+> +	rtc_omap->rtc_alarm = platform_get_irq(pdev, 1);
+> +	if (rtc_omap->rtc_alarm <= 0) {
+>  		pr_debug("%s: no alarm irq?\n", pdev->name);
+>  		return -ENOENT;
+>  	}
+>  
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	rtc_base = devm_ioremap_resource(&pdev->dev, res);
+> -	if (IS_ERR(rtc_base))
+> -		return PTR_ERR(rtc_base);
+> +	rtc_omap->rtc_base = devm_ioremap_resource(&pdev->dev, res);
+> +	if (IS_ERR(rtc_omap->rtc_base))
+> +		return PTR_ERR(rtc_omap->rtc_base);
+>  
+>  	/* Enable the clock/module so that we can access the registers */
+>  	pm_runtime_enable(&pdev->dev);
+>  	pm_runtime_get_sync(&pdev->dev);
+>  
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER) {
+> -		rtc_writel(KICK0_VALUE, OMAP_RTC_KICK0_REG);
+> -		rtc_writel(KICK1_VALUE, OMAP_RTC_KICK1_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_KICKER) {
+> +		rtc_writel(KICK0_VALUE, rtc_omap, OMAP_RTC_KICK0_REG);
+> +		rtc_writel(KICK1_VALUE, rtc_omap, OMAP_RTC_KICK1_REG);
+>  	}
+>  
+> -	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+> +	rtc_omap->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+>  			&omap_rtc_ops, THIS_MODULE);
+> -	if (IS_ERR(rtc)) {
+> +	if (IS_ERR(rtc_omap->rtc)) {
+>  		pr_debug("%s: can't register RTC device, err %ld\n",
+> -			pdev->name, PTR_ERR(rtc));
+> +			pdev->name, PTR_ERR(rtc_omap->rtc));
+>  		goto fail0;
+>  	}
+> -	platform_set_drvdata(pdev, rtc);
+>  
+>  	/* clear pending irqs, and set 1/second periodic,
+>  	 * which we'll use instead of update irqs
+>  	 */
+> -	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+> +	rtc_write(0, rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+>  
+>  	/* enable RTC functional clock */
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN)
+> -		rtc_writel(OMAP_RTC_OSC_32KCLK_EN, OMAP_RTC_OSC_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_32KCLK_EN)
+> +		rtc_writel(OMAP_RTC_OSC_32KCLK_EN, rtc_omap, OMAP_RTC_OSC_REG);
+>  
+>  	/* clear old status */
+> -	reg = rtc_read(OMAP_RTC_STATUS_REG);
+> +	reg = rtc_read(rtc_omap, OMAP_RTC_STATUS_REG);
+>  	if (reg & (u8) OMAP_RTC_STATUS_POWER_UP) {
+>  		pr_info("%s: RTC power up reset detected\n",
+>  			pdev->name);
+> -		rtc_write(OMAP_RTC_STATUS_POWER_UP, OMAP_RTC_STATUS_REG);
+> +		rtc_write(OMAP_RTC_STATUS_POWER_UP, rtc_omap,
+> +			  OMAP_RTC_STATUS_REG);
+>  	}
+>  	if (reg & (u8) OMAP_RTC_STATUS_ALARM)
+> -		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
+> +		rtc_write(OMAP_RTC_STATUS_ALARM, rtc_omap, OMAP_RTC_STATUS_REG);
+>  
+>  	/* handle periodic and alarm irqs */
+> -	if (devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
+> -			dev_name(&rtc->dev), rtc)) {
+> +	if (devm_request_irq(&pdev->dev, rtc_omap->rtc_timer, rtc_irq, 0,
+> +			     dev_name(&pdev->dev), rtc_omap)) {
+>  		pr_debug("%s: RTC timer interrupt IRQ%d already claimed\n",
+> -			pdev->name, omap_rtc_timer);
+> +			pdev->name, rtc_omap->rtc_timer);
+>  		goto fail0;
+>  	}
+> -	if ((omap_rtc_timer != omap_rtc_alarm) &&
+> -		(devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
+> -			dev_name(&rtc->dev), rtc))) {
+> +	if ((rtc_omap->rtc_timer != rtc_omap->rtc_alarm) &&
+> +	    (devm_request_irq(&pdev->dev, rtc_omap->rtc_alarm, rtc_irq, 0,
+> +			      dev_name(&pdev->dev), rtc_omap))) {
+>  		pr_debug("%s: RTC alarm interrupt IRQ%d already claimed\n",
+> -			pdev->name, omap_rtc_alarm);
+> +			pdev->name, rtc_omap->rtc_alarm);
+>  		goto fail0;
+>  	}
+>  
+>  	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
+> -	reg = rtc_read(OMAP_RTC_CTRL_REG);
+> +	reg = rtc_read(rtc_omap, OMAP_RTC_CTRL_REG);
+>  	if (reg & (u8) OMAP_RTC_CTRL_STOP)
+>  		pr_info("%s: already running\n", pdev->name);
+>  
+> @@ -488,13 +521,13 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+>  		pr_info("%s: split power mode\n", pdev->name);
+>  
+>  	if (reg != new_ctrl)
+> -		rtc_write(new_ctrl, OMAP_RTC_CTRL_REG);
+> +		rtc_write(new_ctrl, rtc_omap, OMAP_RTC_CTRL_REG);
+>  
+>  	return 0;
+>  
+>  fail0:
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER)
+> -		rtc_writel(0, OMAP_RTC_KICK0_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_KICKER)
+> +		rtc_writel(0, rtc_omap, OMAP_RTC_KICK0_REG);
+>  	pm_runtime_put_sync(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+>  	return -EIO;
+> @@ -502,16 +535,15 @@ fail0:
+>  
+>  static int __exit omap_rtc_remove(struct platform_device *pdev)
+>  {
+> -	const struct platform_device_id *id_entry =
+> -				platform_get_device_id(pdev);
+> +	struct rtc_omap_dev *rtc_omap = platform_get_drvdata(pdev);
+>  
+>  	device_init_wakeup(&pdev->dev, 0);
+>  
+>  	/* leave rtc running, but disable irqs */
+> -	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+> +	rtc_write(0, rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+>  
+> -	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER)
+> -		rtc_writel(0, OMAP_RTC_KICK0_REG);
+> +	if (rtc_omap->pdata & OMAP_RTC_HAS_KICKER)
+> +		rtc_writel(0, rtc_omap, OMAP_RTC_KICK0_REG);
+>  
+>  	/* Disable the clock/module */
+>  	pm_runtime_put_sync(&pdev->dev);
+> @@ -521,20 +553,21 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
+>  }
+>  
+>  #ifdef CONFIG_PM_SLEEP
+> -static u8 irqstat;
+>  
+>  static int omap_rtc_suspend(struct device *dev)
+>  {
+> -	irqstat = rtc_read(OMAP_RTC_INTERRUPTS_REG);
+> +	struct rtc_omap_dev *rtc_omap = dev_get_drvdata(dev);
+> +
+> +	rtc_omap->irqstat = rtc_read(rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+>  
+>  	/* FIXME the RTC alarm is not currently acting as a wakeup event
+>  	 * source on some platforms, and in fact this enable() call is just
+>  	 * saving a flag that's never used...
+>  	 */
+>  	if (device_may_wakeup(dev))
+> -		enable_irq_wake(omap_rtc_alarm);
+> +		enable_irq_wake(rtc_omap->rtc_alarm);
+>  	else
+> -		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+> +		rtc_write(0, rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+>  
+>  	/* Disable the clock/module */
+>  	pm_runtime_put_sync(dev);
+> @@ -544,13 +577,15 @@ static int omap_rtc_suspend(struct device *dev)
+>  
+>  static int omap_rtc_resume(struct device *dev)
+>  {
+> +	struct rtc_omap_dev *rtc_omap = dev_get_drvdata(dev);
+> +
+>  	/* Enable the clock/module so that we can access the registers */
+>  	pm_runtime_get_sync(dev);
+>  
+>  	if (device_may_wakeup(dev))
+> -		disable_irq_wake(omap_rtc_alarm);
+> +		disable_irq_wake(rtc_omap->rtc_alarm);
+>  	else
+> -		rtc_write(irqstat, OMAP_RTC_INTERRUPTS_REG);
+> +		rtc_write(rtc_omap->irqstat, rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+>  
+>  	return 0;
+>  }
+> @@ -560,10 +595,11 @@ static SIMPLE_DEV_PM_OPS(omap_rtc_pm_ops, omap_rtc_suspend, omap_rtc_resume);
+>  
+>  static void omap_rtc_shutdown(struct platform_device *pdev)
+>  {
+> -	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+> +	struct rtc_omap_dev *rtc_omap = platform_get_drvdata(pdev);
+> +
+> +	rtc_write(0, rtc_omap, OMAP_RTC_INTERRUPTS_REG);
+>  }
+>  
+> -MODULE_ALIAS("platform:omap_rtc");
+>  static struct platform_driver omap_rtc_driver = {
+>  	.remove		= __exit_p(omap_rtc_remove),
+>  	.shutdown	= omap_rtc_shutdown,
+> @@ -578,5 +614,6 @@ static struct platform_driver omap_rtc_driver = {
+>  
+>  module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
+>  
+> +MODULE_ALIAS("platform:omap_rtc");
+
+This is another unrelated clean up that should go in a different patch.
+
+>  MODULE_AUTHOR("George G. Davis (and others)");
+>  MODULE_LICENSE("GPL");
+
+Johan
