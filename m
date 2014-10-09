@@ -1,65 +1,44 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v2 0/8] Per-user clock constraints
-Date: Thu, 9 Oct 2014 09:21:01 +0200
-Message-ID: <CAAObsKBZ8irmk0fdEQUvT60ffu0oytVdJTu5s3+BXMCPaosPDQ@mail.gmail.com>
-References: <1412695334-2608-1-git-send-email-tomeu.vizoso@collabora.com> <5435E5B0.90900@codeaurora.org>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 12/13] tty: serial: 8250: omap: add custom irq handling
+Date: Thu, 9 Oct 2014 16:19:09 +0300
+Message-ID: <20141009131909.GB9108@kuha.fi.intel.com>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+ <1412014009-13315-13-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:45065 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463AbaJIHVW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2014 03:21:22 -0400
-In-Reply-To: <5435E5B0.90900@codeaurora.org>
+Received: from mga11.intel.com ([192.55.52.93]:21070 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757205AbaJINTO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Oct 2014 09:19:14 -0400
+Content-Disposition: inline
+In-Reply-To: <1412014009-13315-13-git-send-email-bigeasy@linutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Alex Elder <elder@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Tim Kryger <tim.kryger@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, Peter Hurley <peter@hurleysoftware.com>
 
-On 9 October 2014 03:32, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> On 10/07/2014 08:21 AM, Tomeu Vizoso wrote:
->>
->> Hello,
->>
->> this second version of the series adds several cleanups that were
->> suggested by
->> Stephen Boyd and contains several improvements to the seventh patch (clk:
->> Make
->> clk API return per-user struct clk instances) that were suggested by him
->> during
->> the review of v1.
->>
->> The first six patches are just cleanups that should be desirable on their
->> own,
->> and that should make easier to review the actual per-user clock patch.
->>
->> The seventh patch actually moves the per-clock data that was stored in
->> struct
->> clk to a new struct clk_core and adds references to it from both struct
->> clk and
->> struct clk_hw. struct clk is now ready to contain information that is
->> specific
->> to a given clk consumer.
->>
->> The eighth patch adds API for setting floor and ceiling constraints and
->> stores
->> that information on the per-user struct clk, which is iterable from struct
->> clk_core.
->>
->>
->
-> As said in the patches, can you please indicate which baseline this is on?
+On Mon, Sep 29, 2014 at 08:06:48PM +0200, Sebastian Andrzej Siewior wrote:
+> We have (or will have) custom DMA callbacks in the omap driver due to
+> the different behaviour in the RX and TX case. To make this work
+> we need a few changes in the IRQ handler to invoke the rx_handler again
+> after the "manual" mode or retry the tx_handler again before falling
+> back to the manual mode.
+> 
+> Heikki didn't want to see the extra hacks in the generic / default irq
+> handler and Peter wasn't too happy about an OMAP-only IRQ handler. The
+> way I planned it is to use this extra IRQ routine only in DMA case. If
+> Peter dislike this approach then I hope Heikki doesn't block changes in
+> the default IRQ handler :)
+> 
+> Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Cc: Peter Hurley <peter@hurleysoftware.com>
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-Sure, this was based on v3.17. Also available at:
+Looks good to me.
 
-http://cgit.collabora.com/git/user/tomeu/linux.git/log/?h=per-user-clk-constraints-v2
+Reviewed-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-> Also can you rebase onto clk-next if you send again before that is merged
-> into 3.18-rc1? There are some changes in the debugfs part that will
-> conflict. I'll review the more complicated parts in detail soon.
 
-Ack.
-
-Thanks,
-
-Tomeu
+-- 
+heikki
