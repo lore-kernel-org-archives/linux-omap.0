@@ -1,9 +1,8 @@
-From: Rabin Vincent <rabin@rab.in>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Thu, 9 Oct 2014 22:41:01 +0200
-Message-ID: <20141009204101.GA25955@debian>
-References: <20140904184021.GA13421@saruman.home>
- <20140904191642.GJ5001@linux.vnet.ibm.com>
+Date: Thu, 9 Oct 2014 15:46:37 -0500
+Message-ID: <20141009204637.GE25729@saruman>
+References: <20140904191642.GJ5001@linux.vnet.ibm.com>
  <20140904192535.GJ13421@saruman.home>
  <20140904200403.GL13421@saruman.home>
  <20140905213216.GD5001@linux.vnet.ibm.com>
@@ -12,60 +11,65 @@ References: <20140904184021.GA13421@saruman.home>
  <20141008212938.GP22688@saruman>
  <20141009160138.GA2396@cmpxchg.org>
  <20141009162656.GE16002@saruman>
+ <20141009204101.GA25955@debian>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="19uQFt6ulqmgNgg1"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141009162656.GE16002@saruman>
+In-Reply-To: <20141009204101.GA25955@debian>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Sasha Levin <sasha.levin@oracle.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, josh@joshtriplett.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Rik van Riel <riel@redhat.com>
+To: Rabin Vincent <rabin@rab.in>
+Cc: Felipe Balbi <balbi@ti.com>, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Sasha Levin <sasha.levin@oracle.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, josh@joshtriplett.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Rik van Riel <riel@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 09, 2014 at 11:26:56AM -0500, Felipe Balbi wrote:
-> alright, it's pretty deterministic however. Always on the same test, no
-> matter which USB controller, no matter if backing store is RAM or MMC.
-> 
-> Those two undefined instructions on the disassembly caught my attention,
-> perhaps I'm facing a GCC bug ?
+--19uQFt6ulqmgNgg1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The undefined instructions are just ARM's BUG() implementation.
+Hi,
 
-But did you see the question I asked you yesterday in your other thread?
-http://www.spinics.net/lists/arm-kernel/msg368634.html
+On Thu, Oct 09, 2014 at 10:41:01PM +0200, Rabin Vincent wrote:
+> On Thu, Oct 09, 2014 at 11:26:56AM -0500, Felipe Balbi wrote:
+> > alright, it's pretty deterministic however. Always on the same test, no
+> > matter which USB controller, no matter if backing store is RAM or MMC.
+> >=20
+> > Those two undefined instructions on the disassembly caught my attention,
+> > perhaps I'm facing a GCC bug ?
+>=20
+> The undefined instructions are just ARM's BUG() implementation.
+>=20
+> But did you see the question I asked you yesterday in your other thread?
+> http://www.spinics.net/lists/arm-kernel/msg368634.html
 
-Here it is again:
+hmm, completely missed that, sorry. I'm using 4.8.2, will try something
+else.
 
-  What GCC version are you using?
-  
-  4.8.1 and 4.8.2 are known to miscompile the ARM kernel and these
-  find_get_entry() crashes with 0xffffffff involved smell a lot like the
-  earlier reports from kernels build with those compilers:
-  
-  https://lkml.org/lkml/2014/6/25/456
-  https://lkml.org/lkml/2014/6/30/375
-  https://lkml.org/lkml/2014/6/30/660
-  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58854
-  https://lkml.org/lkml/2014/5/9/330
+--=20
+balbi
 
-Also, I didn't see any public email making a definitive link between GCC
-PR 58854 that Nathan pointed out in https://lkml.org/lkml/2014/6/30/660
-and the earlier find_get_entry() crashes, but I just built GCC 4.8.1 and
-an ARM kernel with that, and the GCC bug is clearly seen in
-radix_tree_lookup_slot() which returns the pointer which
-find_get_entry() is dereferencing:
+--19uQFt6ulqmgNgg1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-  <radix_tree_lookup_slot>:
-   e1a0c00d  mov     ip, sp
-   e92dd800  push    {fp, ip, lr, pc}
-   e24cb004  sub     fp, ip, #4
-   e24dd008  sub     sp, sp, #8
-   e3a02000  mov     r2, #0
-   e24b3010  sub     r3, fp, #16
-   ebffffc5  bl      c0176ab8 <__radix_tree_lookup>
-   e24bd00c  sub     sp, fp, #12		<--- sp moved up
-   e3500000  cmp     r0, #0
-   151b0010  ldrne   r0, [fp, #-16]		<--- load from under sp 
-   e89da800  ldm     sp, {fp, sp, pc}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Please check your compiler to make sure it's not the same problem.
+iQIcBAEBAgAGBQJUNvQtAAoJEIaOsuA1yqREylQP/0Xz2mxKi04305vCKFevaefK
+PLGF+pyX3OsF+LaoFU0GrL7Itdx4JD+2ZNFYoBGmSsWLRj1PRosSJWDY7TH3ojtn
+wsRSP/CVRsXLOWsdBIkcq2/9cqfST4KJwmORgA3lTwx627vyvrb0ASfOby3n1gm4
+HQMrQwiF7I+3N+HaD9e/bn8eeTJ1evVNvDHbJFyc0FkJU6Sj2Lu/K8DyuOId6gmA
+bZhJHV3Z1P6RViCkEfxBFdogWT0xTS9kma++9nF/0L6peL+65MF+/hu+m25jpvR+
+heNU5j1BjYFvP1Welxv7z87PETZ7r2CcJJEaXPpwJaFBc2YJHXkkKg8ohSt6oUyE
+1PS8mbzDpYMfUn+TIv+mKeAm6LRiXg6e1rSCIK2xXv1Ti8tq1qzBEBqApKCDU8mE
+lCA931lLkrWlMnFItiDjdXmaNMLy3OP3VTn08Oqk9iduCc17PvURyVEoFElesJ8k
+6lddvGGW2QkKb6rx7IGmD9n27ZzaynYif4Kc3H2Tq0jS6FrOBG1kwAe0qiET2l1m
+UhOlYZuXWxuhmHTpTTbGbJLQxBGj38p23ep7/n5wB6SgsVqL55VSJaU/DWH59d46
+XcwYn/uPe9uabgTASrXUrKYY1lpLMmcBIPQPy6S1FfpS+1I1rx0u3hkuOkpoEROq
+AQLpNLW4YEEbUAnvkdX2
+=CTwi
+-----END PGP SIGNATURE-----
+
+--19uQFt6ulqmgNgg1--
