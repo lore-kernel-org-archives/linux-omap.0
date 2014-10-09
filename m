@@ -1,48 +1,110 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH] ARM: dts: Disable smc91x on n900 until bootloader dependency is removed
-Date: Thu, 09 Oct 2014 13:58:47 -0700
-Message-ID: <7hy4spm03c.fsf@deeprootsystems.com>
-References: <20141009175357.GG10014@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: RCU bug with v3.17-rc3 ?
+Date: Thu, 9 Oct 2014 16:07:15 -0500
+Message-ID: <20141009210715.GH25729@saruman>
+References: <20140904192535.GJ13421@saruman.home>
+ <20140904200403.GL13421@saruman.home>
+ <20140905213216.GD5001@linux.vnet.ibm.com>
+ <20141008171322.GH22688@saruman> <20141008175707.GI22688@saruman>
+ <20141008212938.GP22688@saruman>
+ <20141009160138.GA2396@cmpxchg.org>
+ <20141009162656.GE16002@saruman> <20141009204101.GA25955@debian>
+ <20141009204637.GE25729@saruman>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:60921 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927AbaJIU6v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2014 16:58:51 -0400
-Received: by mail-pd0-f175.google.com with SMTP id v10so391697pde.20
-        for <linux-omap@vger.kernel.org>; Thu, 09 Oct 2014 13:58:51 -0700 (PDT)
-In-Reply-To: <20141009175357.GG10014@atomide.com> (Tony Lindgren's message of
-	"Thu, 9 Oct 2014 10:53:57 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============5507607834493297389=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20141009204637.GE25729@saruman>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Rik van Riel <riel@redhat.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, josh@joshtriplett.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rabin Vincent <rabin@rab.in>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, "Paul
+ E. McKenney" <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren <tony@atomide.com> writes:
+--===============5507607834493297389==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6cMF9JLEeZkfJjkP"
+Content-Disposition: inline
 
-> I added smc91x support but turns out we currently do not set the
-> smc91x timings in gpmc.c but rely on the bootloader timings. This
-> produces the following error unless the smc91x GPMC timings are
-> initialized by the bootloader:
->
-> Unhandled fault: external abort on non-linefetch (0x1008) at 0xd080630e
-> ...
-> [<c04067fc>] (smc_drv_probe) from [<c038e9c4>] (platform_drv_probe+0x2c/0x5c)
-> [<c038e9c4>] (platform_drv_probe) from [<c038d450>] (driver_probe_device+0x104/0x22c)
-> [<c038d450>] (driver_probe_device) from [<c038d60c>] (__driver_attach+0x94/0x98)
-> [<c038d60c>] (__driver_attach) from [<c038bc3c>] (bus_for_each_dev+0x54/0x88)
-> [<c038bc3c>] (bus_for_each_dev) from [<c038cc3c>] (bus_add_driver+0xd8/0x1d8)
-> [<c038cc3c>] (bus_add_driver) from [<c038dd74>] (driver_register+0x78/0xf4)
-> [<c038dd74>] (driver_register) from [<c0008924>] (do_one_initcall+0x80/0x1c0)
-> [<c0008924>] (do_one_initcall) from [<c0852d9c>] (kernel_init_freeable+0x1b8/0x28c)
-> [<c0852d9c>] (kernel_init_freeable) from [<c05ce86c>] (kernel_init+0x8/0xec)
-> [<c05ce86c>] (kernel_init) from [<c000e728>] (ret_from_fork+0x14/0x2c)
->
-> Let's fix the issue by disabling the smc91x module for now until we
-> have sorted out the issues in gpmc.c.
->
-> Reported-by: Kevin Hilman <khilman@linaro.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+--6cMF9JLEeZkfJjkP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tested-by: Kevin Hilman <khilman@linaro.org>
+Hi,
+
+On Thu, Oct 09, 2014 at 03:46:37PM -0500, Felipe Balbi wrote:
+> On Thu, Oct 09, 2014 at 10:41:01PM +0200, Rabin Vincent wrote:
+> > On Thu, Oct 09, 2014 at 11:26:56AM -0500, Felipe Balbi wrote:
+> > > alright, it's pretty deterministic however. Always on the same test, =
+no
+> > > matter which USB controller, no matter if backing store is RAM or MMC.
+> > >=20
+> > > Those two undefined instructions on the disassembly caught my attenti=
+on,
+> > > perhaps I'm facing a GCC bug ?
+> >=20
+> > The undefined instructions are just ARM's BUG() implementation.
+> >=20
+> > But did you see the question I asked you yesterday in your other thread?
+> > http://www.spinics.net/lists/arm-kernel/msg368634.html
+>=20
+> hmm, completely missed that, sorry. I'm using 4.8.2, will try something
+> else.
+
+seems to be working fine now, thanks. I'll leave test running overnight
+just in case.
+
+thanks again, and sorry for the noise.
+
+PS: I wonder if we should a warning message to the build system if we're
+building with known broken versions of GCC.
+
+--=20
+balbi
+
+--6cMF9JLEeZkfJjkP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUNvkDAAoJEIaOsuA1yqREEVsP/2SxJIVCFQ/Ulti5FMBUKRs/
+MTOe7euqjdN8apn1xHhG/5TLuxLiV5t4rLCXBxEmmySxuN+0CzOWGYaoGWxr+2RT
+HucKWC1+alYTgV+W+uI2t+77ZAjjWe9+rkuWl3n+JP/eCZ/okFWS6vF+vG9k++Y2
+tqluQNOA9tmZk0GiQ5a/tyF/27vfnVqSook+TPuV5UEYCghxyGHG/UWzKn3fUY0D
+e+n6Mqsq8E7R+ilnue9aJjTcWiAv14do1rDWNu+ZPl6Kx3u4jnW+Ok4IZE2xTdp3
+OBLTK9weBNBJwqSp2m0zU8wXc2BEKBgMgQcAAfkbUxy/brI+gDnGtbUif5QsSy+t
+dDu3e68KflwJHqhwbzg67I7Z89KZASFbt4+gqq86dSZnV82Jn6lrvgiFB3vroDO7
+AJMYRGmj6faT41doDkiyrqjxRVJmBjUspgBsQASMRyAWGtoKWfa5h5Bq6Au0M9Uf
+lUXcdz1pJsXldll/bpr0fwYAZZiah1arkVZ5uN1+KxoJRmrbnvdWN97BCK6Rm6i1
+oBJjhysNEKOD/aY1FayFjwEUZ/jksujSqaR5YjT3ci21tYBUGrqe1DwGqyQLEg1R
+h+ZKElR6JcsBUYO8nK3Xm1zGQ3IkHkutGn/rLIwpC5ZpSEfe6O9vxch1dOwsH8Dq
+HGwP0I+2mUZfSlJHhqU0
+=QSKq
+-----END PGP SIGNATURE-----
+
+--6cMF9JLEeZkfJjkP--
+
+
+--===============5507607834493297389==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============5507607834493297389==--
