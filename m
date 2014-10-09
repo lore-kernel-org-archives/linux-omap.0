@@ -1,75 +1,48 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Thu, 9 Oct 2014 15:46:37 -0500
-Message-ID: <20141009204637.GE25729@saruman>
-References: <20140904191642.GJ5001@linux.vnet.ibm.com>
- <20140904192535.GJ13421@saruman.home>
- <20140904200403.GL13421@saruman.home>
- <20140905213216.GD5001@linux.vnet.ibm.com>
- <20141008171322.GH22688@saruman>
- <20141008175707.GI22688@saruman>
- <20141008212938.GP22688@saruman>
- <20141009160138.GA2396@cmpxchg.org>
- <20141009162656.GE16002@saruman>
- <20141009204101.GA25955@debian>
-Reply-To: <balbi@ti.com>
+From: Kevin Hilman <khilman@kernel.org>
+Subject: Re: [PATCH] ARM: dts: Disable smc91x on n900 until bootloader dependency is removed
+Date: Thu, 09 Oct 2014 13:58:47 -0700
+Message-ID: <7hy4spm03c.fsf@deeprootsystems.com>
+References: <20141009175357.GG10014@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="19uQFt6ulqmgNgg1"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141009204101.GA25955@debian>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rabin Vincent <rabin@rab.in>
-Cc: Felipe Balbi <balbi@ti.com>, Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Sasha Levin <sasha.levin@oracle.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, josh@joshtriplett.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Rik van Riel <riel@redhat.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:60921 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbaJIU6v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2014 16:58:51 -0400
+Received: by mail-pd0-f175.google.com with SMTP id v10so391697pde.20
+        for <linux-omap@vger.kernel.org>; Thu, 09 Oct 2014 13:58:51 -0700 (PDT)
+In-Reply-To: <20141009175357.GG10014@atomide.com> (Tony Lindgren's message of
+	"Thu, 9 Oct 2014 10:53:57 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---19uQFt6ulqmgNgg1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Tony Lindgren <tony@atomide.com> writes:
 
-Hi,
+> I added smc91x support but turns out we currently do not set the
+> smc91x timings in gpmc.c but rely on the bootloader timings. This
+> produces the following error unless the smc91x GPMC timings are
+> initialized by the bootloader:
+>
+> Unhandled fault: external abort on non-linefetch (0x1008) at 0xd080630e
+> ...
+> [<c04067fc>] (smc_drv_probe) from [<c038e9c4>] (platform_drv_probe+0x2c/0x5c)
+> [<c038e9c4>] (platform_drv_probe) from [<c038d450>] (driver_probe_device+0x104/0x22c)
+> [<c038d450>] (driver_probe_device) from [<c038d60c>] (__driver_attach+0x94/0x98)
+> [<c038d60c>] (__driver_attach) from [<c038bc3c>] (bus_for_each_dev+0x54/0x88)
+> [<c038bc3c>] (bus_for_each_dev) from [<c038cc3c>] (bus_add_driver+0xd8/0x1d8)
+> [<c038cc3c>] (bus_add_driver) from [<c038dd74>] (driver_register+0x78/0xf4)
+> [<c038dd74>] (driver_register) from [<c0008924>] (do_one_initcall+0x80/0x1c0)
+> [<c0008924>] (do_one_initcall) from [<c0852d9c>] (kernel_init_freeable+0x1b8/0x28c)
+> [<c0852d9c>] (kernel_init_freeable) from [<c05ce86c>] (kernel_init+0x8/0xec)
+> [<c05ce86c>] (kernel_init) from [<c000e728>] (ret_from_fork+0x14/0x2c)
+>
+> Let's fix the issue by disabling the smc91x module for now until we
+> have sorted out the issues in gpmc.c.
+>
+> Reported-by: Kevin Hilman <khilman@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-On Thu, Oct 09, 2014 at 10:41:01PM +0200, Rabin Vincent wrote:
-> On Thu, Oct 09, 2014 at 11:26:56AM -0500, Felipe Balbi wrote:
-> > alright, it's pretty deterministic however. Always on the same test, no
-> > matter which USB controller, no matter if backing store is RAM or MMC.
-> >=20
-> > Those two undefined instructions on the disassembly caught my attention,
-> > perhaps I'm facing a GCC bug ?
->=20
-> The undefined instructions are just ARM's BUG() implementation.
->=20
-> But did you see the question I asked you yesterday in your other thread?
-> http://www.spinics.net/lists/arm-kernel/msg368634.html
-
-hmm, completely missed that, sorry. I'm using 4.8.2, will try something
-else.
-
---=20
-balbi
-
---19uQFt6ulqmgNgg1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUNvQtAAoJEIaOsuA1yqREylQP/0Xz2mxKi04305vCKFevaefK
-PLGF+pyX3OsF+LaoFU0GrL7Itdx4JD+2ZNFYoBGmSsWLRj1PRosSJWDY7TH3ojtn
-wsRSP/CVRsXLOWsdBIkcq2/9cqfST4KJwmORgA3lTwx627vyvrb0ASfOby3n1gm4
-HQMrQwiF7I+3N+HaD9e/bn8eeTJ1evVNvDHbJFyc0FkJU6Sj2Lu/K8DyuOId6gmA
-bZhJHV3Z1P6RViCkEfxBFdogWT0xTS9kma++9nF/0L6peL+65MF+/hu+m25jpvR+
-heNU5j1BjYFvP1Welxv7z87PETZ7r2CcJJEaXPpwJaFBc2YJHXkkKg8ohSt6oUyE
-1PS8mbzDpYMfUn+TIv+mKeAm6LRiXg6e1rSCIK2xXv1Ti8tq1qzBEBqApKCDU8mE
-lCA931lLkrWlMnFItiDjdXmaNMLy3OP3VTn08Oqk9iduCc17PvURyVEoFElesJ8k
-6lddvGGW2QkKb6rx7IGmD9n27ZzaynYif4Kc3H2Tq0jS6FrOBG1kwAe0qiET2l1m
-UhOlYZuXWxuhmHTpTTbGbJLQxBGj38p23ep7/n5wB6SgsVqL55VSJaU/DWH59d46
-XcwYn/uPe9uabgTASrXUrKYY1lpLMmcBIPQPy6S1FfpS+1I1rx0u3hkuOkpoEROq
-AQLpNLW4YEEbUAnvkdX2
-=CTwi
------END PGP SIGNATURE-----
-
---19uQFt6ulqmgNgg1--
+Tested-by: Kevin Hilman <khilman@linaro.org>
