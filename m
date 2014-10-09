@@ -1,249 +1,165 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
+From: Kodiak Furr <taskboxtester@gmail.com>
 Subject: Re: [PATCH v3 7/8] clk: Make clk API return per-user struct clk
  instances
-Date: Thu, 9 Oct 2014 16:22:58 -0700
-Message-ID: <20141009232258.GG5493@codeaurora.org>
+Date: Thu, 09 Oct 2014 18:42:55 -0500
+Message-ID: <54371d88.6f3fb60a.40e6.ffff9ffd@mx.google.com>
 References: <1412866903-6970-1-git-send-email-tomeu.vizoso@collabora.com>
  <1412866903-6970-8-git-send-email-tomeu.vizoso@collabora.com>
+ <20141009232258.GG5493@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1412866903-6970-8-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oi0-f48.google.com ([209.85.218.48]:52667 "EHLO
+	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002AbaJIXnG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2014 19:43:06 -0400
+In-Reply-To: <20141009232258.GG5493@codeaurora.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Mike Turquette <mturquette@linaro.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org
 
-On 10/09, Tomeu Vizoso wrote:
->  arch/arm/mach-omap2/cclock3xxx_data.c   | 108 ++++--
->  arch/arm/mach-omap2/clock.h             |  11 +-
->  arch/arm/mach-omap2/clock_common_data.c |   5 +-
->  drivers/clk/clk.c                       | 630 ++++++++++++++++++++------------
->  drivers/clk/clk.h                       |   5 +
->  drivers/clk/clkdev.c                    |  24 +-
->  include/linux/clk-private.h             |  35 +-
->  include/linux/clk-provider.h            |  22 +-
->  8 files changed, 549 insertions(+), 291 deletions(-)
+S29kaWFrIEZ1cnIgbGlrZWQgeW91ciBtZXNzYWdlIHdpdGggQm94ZXIgZm9yIEFuZHJvaWQuCgpP
+biBPY3QgOSwgMjAxNCA2OjIyIFBNLCBTdGVwaGVuIEJveWQgPHNib3lkQGNvZGVhdXJvcmEub3Jn
+PiB3cm90ZToKPgo+IE9uIDEwLzA5LCBUb21ldSBWaXpvc28gd3JvdGU6IAo+ID7CoCBhcmNoL2Fy
+bS9tYWNoLW9tYXAyL2NjbG9jazN4eHhfZGF0YS5jwqDCoCB8IDEwOCArKysrLS0gCj4gPsKgIGFy
+Y2gvYXJtL21hY2gtb21hcDIvY2xvY2suaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqAgMTEg
+Ky0gCj4gPsKgIGFyY2gvYXJtL21hY2gtb21hcDIvY2xvY2tfY29tbW9uX2RhdGEuYyB8wqDCoCA1
+ICstIAo+ID7CoCBkcml2ZXJzL2Nsay9jbGsuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgIHwgNjMwICsrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tIAo+
+ID7CoCBkcml2ZXJzL2Nsay9jbGsuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgIHzCoMKgIDUgKyAKPiA+wqAgZHJpdmVycy9jbGsvY2xrZGV2LmPCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqAgMjQgKy0gCj4gPsKgIGluY2x1ZGUvbGlu
+dXgvY2xrLXByaXZhdGUuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqAgMzUgKy0gCj4gPsKg
+IGluY2x1ZGUvbGludXgvY2xrLXByb3ZpZGVyLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHzCoCAy
+MiArLSAKPiA+wqAgOCBmaWxlcyBjaGFuZ2VkLCA1NDkgaW5zZXJ0aW9ucygrKSwgMjkxIGRlbGV0
+aW9ucygtKSAKPgo+IFRoZSBkaWZzdGF0IGxvb2tzIGdvb2QuIAo+Cj4gPiAKPiA+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL2Nsay9jbGsuYyBiL2RyaXZlcnMvY2xrL2Nsay5jIAo+ID4gaW5kZXggZmI4
+MjBiZi4uNGRiOTE4YSAxMDA2NDQgCj4gPiAtLS0gYS9kcml2ZXJzL2Nsay9jbGsuYyAKPiA+ICsr
+KyBiL2RyaXZlcnMvY2xrL2Nsay5jIAo+ID4gQEAgLTY5NSw2ICs3MzEsMTMgQEAgc3RydWN0IGNs
+ayAqX19jbGtfbG9va3VwKGNvbnN0IGNoYXIgKm5hbWUpIAo+ID7CoCByZXR1cm4gTlVMTDsgCj4g
+PsKgIH0gCj4gPsKgIAo+ID4gK3N0cnVjdCBjbGsgKl9fY2xrX2xvb2t1cChjb25zdCBjaGFyICpu
+YW1lKSAKPiA+ICt7IAo+ID4gKyBzdHJ1Y3QgY2xrX2NvcmUgKmNsayA9IGNsa19jb3JlX2xvb2t1
+cChuYW1lKTsgCj4gPiArIAo+ID4gKyByZXR1cm4gIWNsayA/IE5VTEwgOiBjbGstPmh3LT5jbGs7
+IAo+Cj4gVGhpcyBqdXN0IGxvb2tzIHdlaXJkIHdpdGggY2xrLT5ody0+Y2xrLiBJIGtub3cgd2Un
+cmUgdHJ5aW5nIHRvIAo+IGtlZXAgdGhlIGRpZmYgc21hbGwgYnkgbm90IHJlbmFtaW5nIGNsayB0
+byBjb3JlIHdoZW4gaXQncyB1c2VkIAo+IGV4dGVuc2l2ZWx5IHRocm91Z2hvdXQgdGhlIGNvZGUs
+IGJ1dCBmb3Igc21hbGwgbGl0dGxlIGFkZGl0aW9ucyAKPiBsaWtlIHRoaXMgSSB3b3VsZCBwcmVm
+ZXIgd2UgdXNlIGNvcmUgZm9yIGNsa19jb3JlIHBvaW50ZXJzIGFuZCAKPiBjbGsgZm9yIGNsayBw
+b2ludGVycy4gVGhlbiBhIHBhdGNoIGF0IHRoZSBlbmQgY2FuIHJlbmFtZSAKPiBldmVyeXRoaW5n
+IHRvIGJlIGNvbnNpc3RlbnQuIFRoaXMgdGhpbmcgYWxzbyB0aHJldyBtZSBvZmYgYmVjYXVzZSAK
+PiBJIHNlYXJjaGVkIGZvciBrZnJlZShjb3JlKSBidXQgY291bGRuJ3QgZmluZCBpdCBzbyBJIHRo
+b3VnaHQgd2UgCj4gbGVha2VkIHRoZSBjbGtfY29yZSBzdHJ1Y3R1cmUuIAo+Cj4gPiArfSAKPiA+
+ICsgCj4gPsKgIC8qIAo+ID7CoMKgICogSGVscGVyIGZvciBmaW5kaW5nIGJlc3QgcGFyZW50IHRv
+IHByb3ZpZGUgYSBnaXZlbiBmcmVxdWVuY3kuIFRoaXMgY2FuIGJlIHVzZWQgCj4gPsKgwqAgKiBk
+aXJlY3RseSBhcyBhIGRldGVybWluZV9yYXRlIGNhbGxiYWNrIChlLmcuIGZvciBhIG11eCksIG9y
+IGZyb20gYSBtb3JlIAo+ID4gQEAgLTIxNzUsMjQgKzIyOTgsMjQgQEAgdm9pZCBjbGtfdW5yZWdp
+c3RlcihzdHJ1Y3QgY2xrICpjbGspIAo+ID7CoCAqIGEgcmVmZXJlbmNlIHRvIHRoaXMgY2xvY2su
+IAo+ID7CoCAqLyAKPiA+wqAgZmxhZ3MgPSBjbGtfZW5hYmxlX2xvY2soKTsgCj4gPiAtIGNsay0+
+b3BzID0gJmNsa19ub2Rydl9vcHM7IAo+ID4gKyBjbGstPmNvcmUtPm9wcyA9ICZjbGtfbm9kcnZf
+b3BzOyAKPiA+wqAgY2xrX2VuYWJsZV91bmxvY2soZmxhZ3MpOyAKPiA+wqAgCj4gPiAtIGlmICgh
+aGxpc3RfZW1wdHkoJmNsay0+Y2hpbGRyZW4pKSB7IAo+ID4gLSBzdHJ1Y3QgY2xrICpjaGlsZDsg
+Cj4gPiArIGlmICghaGxpc3RfZW1wdHkoJmNsay0+Y29yZS0+Y2hpbGRyZW4pKSB7IAo+ID4gKyBz
+dHJ1Y3QgY2xrX2NvcmUgKmNoaWxkOyAKPiA+wqAgc3RydWN0IGhsaXN0X25vZGUgKnQ7IAo+ID7C
+oCAKPiA+wqAgLyogUmVwYXJlbnQgYWxsIGNoaWxkcmVuIHRvIHRoZSBvcnBoYW4gbGlzdC4gKi8g
+Cj4gPiAtIGhsaXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUoY2hpbGQsIHQsICZjbGstPmNoaWxkcmVu
+LCBjaGlsZF9ub2RlKSAKPiA+IC0gY2xrX3NldF9wYXJlbnQoY2hpbGQsIE5VTEwpOyAKPiA+ICsg
+aGxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZShjaGlsZCwgdCwgJmNsay0+Y29yZS0+Y2hpbGRyZW4s
+IGNoaWxkX25vZGUpIAo+ID4gKyBjbGtfY29yZV9zZXRfcGFyZW50KGNoaWxkLCBOVUxMKTsgCj4g
+PsKgIH0gCj4gPsKgIAo+ID4gLSBobGlzdF9kZWxfaW5pdCgmY2xrLT5jaGlsZF9ub2RlKTsgCj4g
+PiArIGhsaXN0X2RlbF9pbml0KCZjbGstPmNvcmUtPmNoaWxkX25vZGUpOyAKPiA+wqAgCj4gPiAt
+IGlmIChjbGstPnByZXBhcmVfY291bnQpIAo+ID4gKyBpZiAoY2xrLT5jb3JlLT5wcmVwYXJlX2Nv
+dW50KSAKPiA+wqAgcHJfd2FybigiJXM6IHVucmVnaXN0ZXJpbmcgcHJlcGFyZWQgY2xvY2s6ICVz
+XG4iLCAKPiA+IC0gX19mdW5jX18sIGNsay0+bmFtZSk7IAo+ID4gLSBrcmVmX3B1dCgmY2xrLT5y
+ZWYsIF9fY2xrX3JlbGVhc2UpOyAKPiA+ICsgX19mdW5jX18sIGNsay0+Y29yZS0+bmFtZSk7IAo+
+ID4gKyBrcmVmX3B1dCgmY2xrLT5jb3JlLT5yZWYsIF9fY2xrX3JlbGVhc2UpOyAKPiA+wqAgCj4g
+PsKgIGNsa19wcmVwYXJlX3VubG9jaygpOyAKPgo+IEl0IG1pZ2h0IGJlIHdvcnRoIGl0IHRvIG1h
+a2UgYSAiY29yZSIgbG9jYWwgdmFyaWFibGUgaW4gdGhpcyAKPiBmdW5jdGlvbi4gCj4KPiA+wqAg
+fSAKPiA+IEBAIC0yMjU1LDMyICsyMzc4LDM4IEBAIHZvaWQgZGV2bV9jbGtfdW5yZWdpc3Rlcihz
+dHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBjbGsgKmNsaykgCj4gPsKgIH0gCj4gPsKgIEVYUE9S
+VF9TWU1CT0xfR1BMKGRldm1fY2xrX3VucmVnaXN0ZXIpOyAKPiA+wqAgCj4gPiArc3RhdGljIHZv
+aWQgY2xrX2NvcmVfcHV0KHN0cnVjdCBjbGtfY29yZSAqY2xrKSAKPiA+ICt7IAo+ID4gKyBzdHJ1
+Y3QgbW9kdWxlICpvd25lcjsgCj4gPiArIAo+ID4gKyBpZiAoIWNsayB8fCBXQVJOX09OX09OQ0Uo
+SVNfRVJSKGNsaykpKSAKPiA+ICsgcmV0dXJuOyAKPiA+ICsgCj4gPiArIGNsa19wcmVwYXJlX2xv
+Y2soKTsgCj4gPiArIG93bmVyID0gY2xrLT5vd25lcjsgCj4KPiBTYW1lIGhlcmUgdG9vLCB3ZSBk
+b24ndCBuZWVkIHRvIHByb3RlY3QgdGhlIGFjY2VzcyB0byBvd25lciBzbyBpdCAKPiBjYW4gbW92
+ZSBvdXRzaWRlIHRoZSBsb2NrLiAKPgo+ID4gKyBrcmVmX3B1dCgmY2xrLT5yZWYsIF9fY2xrX3Jl
+bGVhc2UpOyAKPiA+ICsgbW9kdWxlX3B1dChvd25lcik7IAo+ID4gKyBjbGtfcHJlcGFyZV91bmxv
+Y2soKTsgCj4gPiArfSAKPiA+ICsgCj4gPsKgIC8qIAo+ID7CoMKgICogY2xrZGV2IGhlbHBlcnMg
+Cj4gPsKgwqAgKi8gCj4gPsKgIGludCBfX2Nsa19nZXQoc3RydWN0IGNsayAqY2xrKSAKPiA+wqAg
+eyAKPiA+wqAgaWYgKGNsaykgeyAKPiA+IC0gaWYgKCF0cnlfbW9kdWxlX2dldChjbGstPm93bmVy
+KSkgCj4gPiArIGlmICghdHJ5X21vZHVsZV9nZXQoY2xrLT5jb3JlLT5vd25lcikpIAo+ID7CoCBy
+ZXR1cm4gMDsgCj4gPsKgIAo+ID4gLSBrcmVmX2dldCgmY2xrLT5yZWYpOyAKPiA+ICsga3JlZl9n
+ZXQoJmNsay0+Y29yZS0+cmVmKTsgCj4gPsKgIH0gCj4gPsKgIHJldHVybiAxOyAKPgo+IEdyb3cg
+YSBjb3JlIHBvaW50ZXI/IAo+Cj4gPsKgIH0gCj4gPiBAQCAtMjM5MSw2ICsyNTIwLDMxIEBAIGlu
+dCBjbGtfbm90aWZpZXJfdW5yZWdpc3RlcihzdHJ1Y3QgY2xrICpjbGssIHN0cnVjdCBub3RpZmll
+cl9ibG9jayAqbmIpIAo+ID7CoCB9IAo+ID7CoCBFWFBPUlRfU1lNQk9MX0dQTChjbGtfbm90aWZp
+ZXJfdW5yZWdpc3Rlcik7IAo+ID7CoCAKPiA+ICtzdHJ1Y3QgY2xrICpfX2Nsa19jcmVhdGVfY2xr
+KHN0cnVjdCBjbGtfaHcgKmh3LCBjb25zdCBjaGFyICpkZXZfaWQsIAo+Cj4gQ3VyaW91cywgd2h5
+IHRoZSB1bmRlcnNjb3JlPyAKPgo+ID4gKyDCoMKgwqDCoCBjb25zdCBjaGFyICpjb25faWQpIAo+
+ID4gK3sgCj4gPiArIHN0cnVjdCBjbGsgKmNsazsgCj4gPiArIAo+ID4gKyAvKiBUaGlzIGlzIHRv
+IGFsbG93IHRoaXMgZnVuY3Rpb24gdG8gYmUgY2hhaW5lZCB0byBvdGhlcnMgKi8gCj4gPiArIGlm
+ICghaHcgfHwgSVNfRVJSKGh3KSkgCj4gPiArIHJldHVybiAoc3RydWN0IGNsayAqKSBodzsgCj4g
+PiArIAo+ID4gKyBjbGsgPSBremFsbG9jKHNpemVvZigqY2xrKSwgR0ZQX0tFUk5FTCk7IAo+ID4g
+KyBpZiAoIWNsaykgCj4gPiArIHJldHVybiBFUlJfUFRSKC1FTk9NRU0pOyAKPiA+ICsgCj4gPiAr
+IGNsay0+Y29yZSA9IGh3LT5jb3JlOyAKPiA+ICsgY2xrLT5kZXZfaWQgPSBkZXZfaWQ7IAo+ID4g
+KyBjbGstPmNvbl9pZCA9IGNvbl9pZDsgCj4gPiArIAo+ID4gKyByZXR1cm4gY2xrOyAKPiA+ICt9
+IAo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvY2xrL2Nsa2Rldi5jIGIvZHJpdmVycy9jbGsvY2xr
+ZGV2LmMgCj4gPiBpbmRleCBkYTRiZGE4Li40NDExZGI2IDEwMDY0NCAKPiA+IC0tLSBhL2RyaXZl
+cnMvY2xrL2Nsa2Rldi5jIAo+ID4gKysrIGIvZHJpdmVycy9jbGsvY2xrZGV2LmMgCj4gPiBAQCAt
+NjksNiArNzAsMTAgQEAgc3RydWN0IGNsayAqb2ZfY2xrX2dldChzdHJ1Y3QgZGV2aWNlX25vZGUg
+Km5wLCBpbnQgaW5kZXgpIAo+ID7CoCAKPiA+wqAgY2xrID0gb2ZfY2xrX2dldF9ieV9jbGtzcGVj
+KCZjbGtzcGVjKTsgCj4gPsKgIG9mX25vZGVfcHV0KGNsa3NwZWMubnApOyAKPiA+ICsgCj4gPiAr
+IGlmICghSVNfRVJSKGNsaykpIAo+ID4gKyBjbGsgPSBfX2Nsa19jcmVhdGVfY2xrKF9fY2xrX2dl
+dF9odyhjbGspLCBucC0+ZnVsbF9uYW1lLCBOVUxMKTsgCj4KPiBXZSBsb3N0IHRoZSBkZWJ1Z2dp
+bmcgaW5mb3JtYXRpb24gaGVyZSBhYm91dCB0aGUgZGV2aWNlIAo+IHJlcXVlc3RpbmcgdGhpcyBj
+bG9jayBhbmQgdGhlIG5hbWUgdGhleSBjYWxsZWQgaXQuIFdlIGdldCB0aGUgCj4gZGV2aWNlIG5v
+ZGUgbmFtZSBidXQgdGhhdCBtaWdodCBub3QgbWF0Y2ggdGhlIGRldmljZSBuYW1lLiBXZSAKPiBw
+cm9iYWJseSBuZWVkIHRvIG1ha2UgcHJpdmF0ZSBmdW5jdGlvbnMgaW4gaGVyZSB0aGF0IGFsbG93
+IHN1Y2ggCj4gaW5mb3JtYXRpb24gdG8gYmUgcGFzc2VkIHdpdGhvdXQgY2hhbmdpbmcgdGhlIEFQ
+SSBmb3IgCj4gb2ZfY2xrX2dldCgpLCBvZl9jbGtfZ2V0X2J5X25hbWUoKSwgZXRjLiAKPgo+ID4g
+KyAKPiA+wqAgcmV0dXJuIGNsazsgCj4gPsKgIH0gCj4gPsKgIEVYUE9SVF9TWU1CT0wob2ZfY2xr
+X2dldCk7IAo+ID4gQEAgLTE2OCwxNCArMTczLDI5IEBAIHN0YXRpYyBzdHJ1Y3QgY2xrX2xvb2t1
+cCAqY2xrX2ZpbmQoY29uc3QgY2hhciAqZGV2X2lkLCBjb25zdCBjaGFyICpjb25faWQpIAo+ID7C
+oCBzdHJ1Y3QgY2xrICpjbGtfZ2V0X3N5cyhjb25zdCBjaGFyICpkZXZfaWQsIGNvbnN0IGNoYXIg
+KmNvbl9pZCkgCj4gPsKgIHsgCj4gPsKgIHN0cnVjdCBjbGtfbG9va3VwICpjbDsgCj4gPiArIHN0
+cnVjdCBjbGsgKmNsayA9IE5VTEw7IAo+ID7CoCAKPiA+wqAgbXV0ZXhfbG9jaygmY2xvY2tzX211
+dGV4KTsgCj4gPiArIAo+ID7CoCBjbCA9IGNsa19maW5kKGRldl9pZCwgY29uX2lkKTsgCj4gPiAt
+IGlmIChjbCAmJiAhX19jbGtfZ2V0KGNsLT5jbGspKSAKPiA+ICsgaWYgKCFjbCkgCj4gPiArIGdv
+dG8gb3V0OyAKPiA+ICsgCj4gPiArIGlmICghX19jbGtfZ2V0KGNsLT5jbGspKSB7IAo+ID7CoCBj
+bCA9IE5VTEw7IAo+ID4gKyBnb3RvIG91dDsgCj4gPiArIH0gCj4gPiArIAo+ID4gKyNpZiBkZWZp
+bmVkKENPTkZJR19DT01NT05fQ0xLKSAKPiA+ICsgY2xrID0gX19jbGtfY3JlYXRlX2NsayhfX2Ns
+a19nZXRfaHcoY2wtPmNsayksIGRldl9pZCwgY29uX2lkKTsgCj4KPiBJIHdhcyBob3Bpbmcgd2Ug
+Y291bGQgcHV0IHRoZSBjbGtfaHcgcG9pbnRlciBuZXh0IHRvIHRoZSBjbGsgCj4gcG9pbnRlciBp
+biB0aGUgbG9va3VwIHN0cnVjdHVyZS4gVGhlbiBwcm92aWRlcnMgZG9uJ3QgaGF2ZSB0byAKPiBk
+ZWFsIHdpdGggY2xrIHBvaW50ZXJzIGF0IGFsbCBhbmQgY2FuIGp1c3QgYXNzaWduIHRoZWlyIGNs
+a19odyAKPiBwb2ludGVyIGluIHRoZSBsb29rdXAuIFRoaXMgd291bGQgbWFrZSBtb3N0IG9mIHRo
+ZSBvbWFwIHVzYWdlIG9mIAo+IHN0cnVjdCBjbGsgdW5uZWNlc3NhcnkuIEl0IGRvZXNuJ3Qgc2Vl
+bSBuZWNlc3NhcnkgdGhvdWdoIHNvIEkgCj4gZ3Vlc3Mgd2UgY2FuIGRvIHRoYXQgaW4gYW5vdGhl
+ciBzZXJpZXM/IAo+Cj4gPiArI2Vsc2UgCj4gPiArIGNsayA9IGNsLT5jbGs7IAo+ID4gKyNlbmRp
+ZiAKPiA+ICsgCj4gPiArb3V0OiAKPiA+wqAgbXV0ZXhfdW5sb2NrKCZjbG9ja3NfbXV0ZXgpOyAK
+PiA+wqAgCj4gPiAtIHJldHVybiBjbCA/IGNsLT5jbGsgOiBFUlJfUFRSKC1FTk9FTlQpOyAKPiA+
+ICsgcmV0dXJuIGNsID8gY2xrIDogRVJSX1BUUigtRU5PRU5UKTsgCj4gPsKgIH0gCj4gPsKgIEVY
+UE9SVF9TWU1CT0woY2xrX2dldF9zeXMpOyAKPiA+wqAgCj4gPiBAQCAtNTU0LDYgKzU1OSwxOSBA
+QCBsb25nIF9fY2xrX211eF9kZXRlcm1pbmVfcmF0ZShzdHJ1Y3QgY2xrX2h3ICpodywgdW5zaWdu
+ZWQgbG9uZyByYXRlLCAKPiA+wqAgwqDCoMKgwqDCoCB1bnNpZ25lZCBsb25nICpiZXN0X3BhcmVu
+dF9yYXRlLCAKPiA+wqAgwqDCoMKgwqDCoCBzdHJ1Y3QgY2xrX2h3ICoqYmVzdF9wYXJlbnRfcCk7
+IAo+ID7CoCAKPiA+ICsvKiogCj4gPiArICogX19jbGtfY29yZV90b19jbGsgLSByZXR1cm4gcGVy
+LXVzZXIgY2xrIAo+ID4gKyAqIEBjbGs6IHN0cnVjdCBjbGtfY29yZSBmb3Igd2hpY2ggd2Ugd2Fu
+dCBhIHBlci11c2VyIGNsayAKPiA+ICsgKiAKPiA+ICsgKiBSZXR1cm5zIGEgcGVyLXVzZXIgY2xv
+Y2sgdGhhdCBpcyBvd25lZCBieSBpdHMgcHJvdmlkZXIuIFRoZSBjYWxsZXIgc2hhbGwgbm90IAo+
+ID4gKyAqIGNhbGwgY2xrX2dldCgpIG9uIGl0LiAKPiA+ICsgKiAKPiA+ICsgKiBUaGlzIGZ1bmN0
+aW9uIHNob3VsZCBiZSBvbmx5IG5lZWRlZCBieSBpbXBsZW1lbnRvcnMgb2YgCj4gPiArICogY2xr
+X29wcy5kZXRlcm1pbmVfcmF0ZSgpIGFuZCBzaG91bGQgYmUgZHJvcHBlZCBvbmNlIGFsbCBoYXZl
+IG1vdmVkIHRvIGEgCj4gPiArICogdmFyaWFudCB0aGF0IHJldHVybnMgKipjbGtfY29yZSBpbnN0
+ZWFkLiAKPiA+ICsgKi8gCj4gPiArc3RydWN0IGNsayAqX19jbGtfY29yZV90b19jbGsoc3RydWN0
+IGNsa19jb3JlICpjbGspOyAKPiA+ICsgCj4KPiBXZSBjYW4gZHJvcCB0aGlzIG5vdyByaWdodD8g
+Cj4KPiAtLSAKPiBRdWFsY29tbSBJbm5vdmF0aW9uIENlbnRlciwgSW5jLiBpcyBhIG1lbWJlciBv
+ZiBDb2RlIEF1cm9yYSBGb3J1bSwgCj4gYSBMaW51eCBGb3VuZGF0aW9uIENvbGxhYm9yYXRpdmUg
+UHJvamVjdCAKPiAtLSAKPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUg
+bGluZSAidW5zdWJzY3JpYmUgbGludXgta2VybmVsIiBpbiAKPiB0aGUgYm9keSBvZiBhIG1lc3Nh
+Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyAKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
+wqAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sIAo+IFBsZWFzZSBy
+ZWFkIHRoZSBGQVEgYXTCoCBodHRwOi8vd3d3LnR1eC5vcmcvbGttbC8gCg==
 
-The difstat looks good.
-
-> 
-> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-> index fb820bf..4db918a 100644
-> --- a/drivers/clk/clk.c
-> +++ b/drivers/clk/clk.c
-> @@ -695,6 +731,13 @@ struct clk *__clk_lookup(const char *name)
->  	return NULL;
->  }
->  
-> +struct clk *__clk_lookup(const char *name)
-> +{
-> +	struct clk_core *clk = clk_core_lookup(name);
-> +
-> +	return !clk ? NULL : clk->hw->clk;
-
-This just looks weird with clk->hw->clk. I know we're trying to
-keep the diff small by not renaming clk to core when it's used
-extensively throughout the code, but for small little additions
-like this I would prefer we use core for clk_core pointers and
-clk for clk pointers. Then a patch at the end can rename
-everything to be consistent. This thing also threw me off because
-I searched for kfree(core) but couldn't find it so I thought we
-leaked the clk_core structure.
-
-> +}
-> +
->  /*
->   * Helper for finding best parent to provide a given frequency. This can be used
->   * directly as a determine_rate callback (e.g. for a mux), or from a more
-> @@ -2175,24 +2298,24 @@ void clk_unregister(struct clk *clk)
->  	 * a reference to this clock.
->  	 */
->  	flags = clk_enable_lock();
-> -	clk->ops = &clk_nodrv_ops;
-> +	clk->core->ops = &clk_nodrv_ops;
->  	clk_enable_unlock(flags);
->  
-> -	if (!hlist_empty(&clk->children)) {
-> -		struct clk *child;
-> +	if (!hlist_empty(&clk->core->children)) {
-> +		struct clk_core *child;
->  		struct hlist_node *t;
->  
->  		/* Reparent all children to the orphan list. */
-> -		hlist_for_each_entry_safe(child, t, &clk->children, child_node)
-> -			clk_set_parent(child, NULL);
-> +		hlist_for_each_entry_safe(child, t, &clk->core->children, child_node)
-> +			clk_core_set_parent(child, NULL);
->  	}
->  
-> -	hlist_del_init(&clk->child_node);
-> +	hlist_del_init(&clk->core->child_node);
->  
-> -	if (clk->prepare_count)
-> +	if (clk->core->prepare_count)
->  		pr_warn("%s: unregistering prepared clock: %s\n",
-> -					__func__, clk->name);
-> -	kref_put(&clk->ref, __clk_release);
-> +					__func__, clk->core->name);
-> +	kref_put(&clk->core->ref, __clk_release);
->  
->  	clk_prepare_unlock();
-
-It might be worth it to make a "core" local variable in this
-function.
-
->  }
-> @@ -2255,32 +2378,38 @@ void devm_clk_unregister(struct device *dev, struct clk *clk)
->  }
->  EXPORT_SYMBOL_GPL(devm_clk_unregister);
->  
-> +static void clk_core_put(struct clk_core *clk)
-> +{
-> +	struct module *owner;
-> +
-> +	if (!clk || WARN_ON_ONCE(IS_ERR(clk)))
-> +		return;
-> +
-> +	clk_prepare_lock();
-> +	owner = clk->owner;
-
-Same here too, we don't need to protect the access to owner so it
-can move outside the lock.
-
-> +	kref_put(&clk->ref, __clk_release);
-> +	module_put(owner);
-> +	clk_prepare_unlock();
-> +}
-> +
->  /*
->   * clkdev helpers
->   */
->  int __clk_get(struct clk *clk)
->  {
->  	if (clk) {
-> -		if (!try_module_get(clk->owner))
-> +		if (!try_module_get(clk->core->owner))
->  			return 0;
->  
-> -		kref_get(&clk->ref);
-> +		kref_get(&clk->core->ref);
->  	}
->  	return 1;
-
-Grow a core pointer?
-
->  }
-> @@ -2391,6 +2520,31 @@ int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb)
->  }
->  EXPORT_SYMBOL_GPL(clk_notifier_unregister);
->  
-> +struct clk *__clk_create_clk(struct clk_hw *hw, const char *dev_id,
-
-Curious, why the underscore?
-
-> +			     const char *con_id)
-> +{
-> +	struct clk *clk;
-> +
-> +	/* This is to allow this function to be chained to others */
-> +	if (!hw || IS_ERR(hw))
-> +		return (struct clk *) hw;
-> +
-> +	clk = kzalloc(sizeof(*clk), GFP_KERNEL);
-> +	if (!clk)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	clk->core = hw->core;
-> +	clk->dev_id = dev_id;
-> +	clk->con_id = con_id;
-> +
-> +	return clk;
-> +}
-> diff --git a/drivers/clk/clkdev.c b/drivers/clk/clkdev.c
-> index da4bda8..4411db6 100644
-> --- a/drivers/clk/clkdev.c
-> +++ b/drivers/clk/clkdev.c
-> @@ -69,6 +70,10 @@ struct clk *of_clk_get(struct device_node *np, int index)
->  
->  	clk = of_clk_get_by_clkspec(&clkspec);
->  	of_node_put(clkspec.np);
-> +
-> +	if (!IS_ERR(clk))
-> +		clk = __clk_create_clk(__clk_get_hw(clk), np->full_name, NULL);
-
-We lost the debugging information here about the device
-requesting this clock and the name they called it. We get the
-device node name but that might not match the device name. We
-probably need to make private functions in here that allow such
-information to be passed without changing the API for
-of_clk_get(), of_clk_get_by_name(), etc.
-
-> +
->  	return clk;
->  }
->  EXPORT_SYMBOL(of_clk_get);
-> @@ -168,14 +173,29 @@ static struct clk_lookup *clk_find(const char *dev_id, const char *con_id)
->  struct clk *clk_get_sys(const char *dev_id, const char *con_id)
->  {
->  	struct clk_lookup *cl;
-> +	struct clk *clk = NULL;
->  
->  	mutex_lock(&clocks_mutex);
-> +
->  	cl = clk_find(dev_id, con_id);
-> -	if (cl && !__clk_get(cl->clk))
-> +	if (!cl)
-> +		goto out;
-> +
-> +	if (!__clk_get(cl->clk)) {
->  		cl = NULL;
-> +		goto out;
-> +	}
-> +
-> +#if defined(CONFIG_COMMON_CLK)
-> +	clk = __clk_create_clk(__clk_get_hw(cl->clk), dev_id, con_id);
-
-I was hoping we could put the clk_hw pointer next to the clk
-pointer in the lookup structure. Then providers don't have to
-deal with clk pointers at all and can just assign their clk_hw
-pointer in the lookup. This would make most of the omap usage of
-struct clk unnecessary. It doesn't seem necessary though so I
-guess we can do that in another series?
-
-> +#else
-> +	clk = cl->clk;
-> +#endif
-> +
-> +out:
->  	mutex_unlock(&clocks_mutex);
->  
-> -	return cl ? cl->clk : ERR_PTR(-ENOENT);
-> +	return cl ? clk : ERR_PTR(-ENOENT);
->  }
->  EXPORT_SYMBOL(clk_get_sys);
->  
-> @@ -554,6 +559,19 @@ long __clk_mux_determine_rate(struct clk_hw *hw, unsigned long rate,
->  			      unsigned long *best_parent_rate,
->  			      struct clk_hw **best_parent_p);
->  
-> +/**
-> + * __clk_core_to_clk - return per-user clk
-> + * @clk: struct clk_core for which we want a per-user clk
-> + *
-> + * Returns a per-user clock that is owned by its provider. The caller shall not
-> + * call clk_get() on it.
-> + *
-> + * This function should be only needed by implementors of
-> + * clk_ops.determine_rate() and should be dropped once all have moved to a
-> + * variant that returns **clk_core instead.
-> + */
-> +struct clk *__clk_core_to_clk(struct clk_core *clk);
-> +
-
-We can drop this now right?
-
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
