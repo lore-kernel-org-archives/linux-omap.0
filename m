@@ -1,7 +1,7 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Rabin Vincent <rabin@rab.in>
 Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Thu, 9 Oct 2014 15:35:05 -0500
-Message-ID: <20141009203505.GD25729@saruman>
+Date: Thu, 9 Oct 2014 22:41:01 +0200
+Message-ID: <20141009204101.GA25955@debian>
 References: <20140904184021.GA13421@saruman.home>
  <20140904191642.GJ5001@linux.vnet.ibm.com>
  <20140904192535.GJ13421@saruman.home>
@@ -12,75 +12,60 @@ References: <20140904184021.GA13421@saruman.home>
  <20141008212938.GP22688@saruman>
  <20141009160138.GA2396@cmpxchg.org>
  <20141009162656.GE16002@saruman>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GyRA7555PLgSTuth"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20141009162656.GE16002@saruman>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Sasha Levin <sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Sasha Levin <sasha.levin@oracle.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, josh@joshtriplett.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Rik van Riel <riel@redhat.com>
 List-Id: linux-omap@vger.kernel.org
 
---GyRA7555PLgSTuth
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
 On Thu, Oct 09, 2014 at 11:26:56AM -0500, Felipe Balbi wrote:
-> > I'm thinking it's not the slot pointer itself that's bad, because
-> > __radix_tree_lookup() dereferences that to test if it's populated
-> > before returning it, and slot life-time is guaranteed by RCU.
-> >=20
-> > That would only leave garbage in the slot itself, crashing during
-> > page_cache_get_speculative().
-> >=20
-> > I'll keep staring at this change, but nothing stands out to me yet.
->=20
 > alright, it's pretty deterministic however. Always on the same test, no
 > matter which USB controller, no matter if backing store is RAM or MMC.
->=20
+> 
 > Those two undefined instructions on the disassembly caught my attention,
 > perhaps I'm facing a GCC bug ?
 
-no, probably not a GCC bug. Looking at your commit, however. Man, it
-does quite many things at once. Moves code around, adds new functions by
-refactoring (and changing) code, renames things, changes int offset into
-unsigned ints. Should not be too difficult too to miss a bug in there.
+The undefined instructions are just ARM's BUG() implementation.
 
-I'll continue digging here.
+But did you see the question I asked you yesterday in your other thread?
+http://www.spinics.net/lists/arm-kernel/msg368634.html
 
---=20
-balbi
+Here it is again:
 
---GyRA7555PLgSTuth
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  What GCC version are you using?
+  
+  4.8.1 and 4.8.2 are known to miscompile the ARM kernel and these
+  find_get_entry() crashes with 0xffffffff involved smell a lot like the
+  earlier reports from kernels build with those compilers:
+  
+  https://lkml.org/lkml/2014/6/25/456
+  https://lkml.org/lkml/2014/6/30/375
+  https://lkml.org/lkml/2014/6/30/660
+  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58854
+  https://lkml.org/lkml/2014/5/9/330
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Also, I didn't see any public email making a definitive link between GCC
+PR 58854 that Nathan pointed out in https://lkml.org/lkml/2014/6/30/660
+and the earlier find_get_entry() crashes, but I just built GCC 4.8.1 and
+an ARM kernel with that, and the GCC bug is clearly seen in
+radix_tree_lookup_slot() which returns the pointer which
+find_get_entry() is dereferencing:
 
-iQIcBAEBAgAGBQJUNvF5AAoJEIaOsuA1yqREvJIP+wQJ3fR8DoSTWlOFZH1MCSeP
-pdwbMse8Z8VBC5zRXxF8HMIRGc7ve95qTnDs0TQdhvIR2/EMDXxhDQ8DLnT04JuO
-/azKTutBsdK8Axe/czbTMNUspplcVpyWgFuPU9f3rgre5QhTJXryNUz1H3+tnAc2
-cwA/8j6wqbVxVIpwZW/Kdozg8QI+T4TO1VGHnsWwYNhjIGnOM5QgMPHDIQJdJc37
-SkMifnZTrtwBRGc1xhLPCNuQ/FoHh3Cu4LXKM90sOWMjRcTNr1dK/hnwM7fEVZJF
-ByemvzJVxA8EOcoOOUuFoa5J3ow28XNg+kRTIps0PauVyPBL/Xza5JaURMMb97/F
-VFd7INn467ZnBsZxnUDt0qjx/0GYwujTrlJbbp0QPKfjhO7dGgGqa3VJXTXV5eRQ
-njeUqdcEAgiuPU6CqwboLAgSjODUTE3v3jUdc2EBsq1Hazop7+1cvxCseuKLlc68
-r6GiLCn2mvYFIHz1125v/5pGxA6OfkRjaS8A1/U4tA1Wzf0dp/MKi749YfWQ13bD
-SfyWycfBI4gbnZb2ZQqGw4htjnzg31ObQCZLTMjn0j0jzftL7TFWily+9Y3L4WQ7
-6RetlWcIoxH0iiLqsk3RwtrtaztC2fSu7J7pH3KgbttUzJ7GBIfTXf774MgwIZhd
-16HADnJ9B5NEtw608Lgd
-=CsDM
------END PGP SIGNATURE-----
+  <radix_tree_lookup_slot>:
+   e1a0c00d  mov     ip, sp
+   e92dd800  push    {fp, ip, lr, pc}
+   e24cb004  sub     fp, ip, #4
+   e24dd008  sub     sp, sp, #8
+   e3a02000  mov     r2, #0
+   e24b3010  sub     r3, fp, #16
+   ebffffc5  bl      c0176ab8 <__radix_tree_lookup>
+   e24bd00c  sub     sp, fp, #12		<--- sp moved up
+   e3500000  cmp     r0, #0
+   151b0010  ldrne   r0, [fp, #-16]		<--- load from under sp 
+   e89da800  ldm     sp, {fp, sp, pc}
 
---GyRA7555PLgSTuth--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please check your compiler to make sure it's not the same problem.
