@@ -1,46 +1,48 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH 11/12] ARM: dts: am33xx: update rtc node compatible property
-Date: Thu,  9 Oct 2014 21:06:33 +0200
-Message-ID: <1412881594-25678-12-git-send-email-johan@kernel.org>
+Subject: [PATCH 10/12] rtc: omap: enable wake-up from power off
+Date: Thu,  9 Oct 2014 21:06:32 +0200
+Message-ID: <1412881594-25678-11-git-send-email-johan@kernel.org>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:44594 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400AbaJITMd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Oct 2014 15:12:33 -0400
 In-Reply-To: <1412881594-25678-1-git-send-email-johan@kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
-Cc: devicetree@vger.kernel.org, rtc-linux@googlegroups.com, Colin Foe-Parker <colin.foeparker@logicpd.com>, Lokesh Vutla <lokeshvutla@ti.com>, j-keerthy@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Johan Hovold <johan@kernel.org>, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org, AnilKumar Ch <anilkumar@ti.com>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, AnilKumar Ch <anilkumar@ti.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
 
-Enable am33xx specific RTC features (e.g. PMIC control) by adding
-"ti,am3352-rtc" to the compatible property of the rtc node.
+The ALARM interrupt must not be disabled during shutdown in order to be
+able to power up the system using an RTC alarm.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-omap.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 3a0a161342ba..098e53602d5c 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -411,7 +411,7 @@
- 		};
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index b0319864dd42..8836c58901b5 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -670,7 +670,15 @@ static SIMPLE_DEV_PM_OPS(omap_rtc_pm_ops, omap_rtc_suspend, omap_rtc_resume);
  
- 		rtc: rtc@44e3e000 {
--			compatible = "ti,da830-rtc";
-+			compatible = "ti,am3352-rtc", "ti,da830-rtc";
- 			reg = <0x44e3e000 0x1000>;
- 			interrupts = <75
- 				      76>;
+ static void omap_rtc_shutdown(struct platform_device *pdev)
+ {
+-	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
++	u8 mask;
++
++	/*
++	 * Keep the ALARM interrupt enabled to allow the system to power up on
++	 * alarm events.
++	 */
++	mask = rtc_read(OMAP_RTC_INTERRUPTS_REG);
++	mask &= OMAP_RTC_INTERRUPTS_IT_ALARM;
++	rtc_write(mask, OMAP_RTC_INTERRUPTS_REG);
+ }
+ 
+ MODULE_ALIAS("platform:omap_rtc");
 -- 
 2.0.4
+
