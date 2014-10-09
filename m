@@ -1,57 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [RFC PATCH 5/6] ARM: OMAP4: fix RFBI iclk
-Date: Thu, 9 Oct 2014 17:03:18 +0300
-Message-ID: <1412863399-9508-6-git-send-email-tomi.valkeinen@ti.com>
-References: <1412863399-9508-1-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44063 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755857AbaJIODk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Oct 2014 10:03:40 -0400
-In-Reply-To: <1412863399-9508-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v3 0/8] Per-user clock constraints
+Date: Thu,  9 Oct 2014 17:01:08 +0200
+Message-ID: <1412866903-6970-1-git-send-email-tomeu.vizoso@collabora.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Stephen Boyd <sboyd@codeaurora.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Alex Elder <elder@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Tim Kryger <tim.kryger@linaro.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com
-Cc: Tero Kristo <t-kristo@ti.com>, Archit Taneja <archit.taneja@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-RFBI iclk was set to point to hacky "dss_fck", which will be removed.
-Instead use "l3_div_ck", which is the proper clock for this. "l3_div_ck"
-is the parent of "dss_fck", so the clock rate is the same as previously.
+Hello,
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi               | 2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+this third version of the series is basically just a rebase on top of linux-next 20141009.
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 69408b53200d..4c15409a9056 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -880,7 +880,7 @@
- 				reg = <0x58002000 0x1000>;
- 				status = "disabled";
- 				ti,hwmods = "dss_rfbi";
--				clocks = <&dss_dss_clk>, <&dss_fck>;
-+				clocks = <&dss_dss_clk>, <&l3_div_ck>;
- 				clock-names = "fck", "ick";
- 			};
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 8126f178d57e..d6f41e1b6d1b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -824,7 +824,7 @@ static struct omap_hwmod_dma_info omap44xx_dss_rfbi_sdma_reqs[] = {
- };
- 
- static struct omap_hwmod_opt_clk dss_rfbi_opt_clks[] = {
--	{ .role = "ick", .clk = "dss_fck" },
-+	{ .role = "ick", .clk = "l3_div_ck" },
- };
- 
- static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+The first six patches are just cleanups that should be desirable on their own,
+and that should make easier to review the actual per-user clock patch.
+
+The seventh patch actually moves the per-clock data that was stored in struct
+clk to a new struct clk_core and adds references to it from both struct clk and
+struct clk_hw. struct clk is now ready to contain information that is specific
+to a given clk consumer.
+
+The eighth patch adds API for setting floor and ceiling constraints and stores
+that information on the per-user struct clk, which is iterable from struct
+clk_core.
+
+http://cgit.collabora.com/git/user/tomeu/linux.git/log/?h=per-user-clk-constraints-v3
+
+Thanks,
+
+Tomeu
+
+Tomeu Vizoso (8):
+  MIPS: Alchemy: Remove direct access to prepare_count field of struct
+    clk
+  clk: Remove unused function __clk_get_prepare_count
+  clk: Don't try to use a struct clk* after it could have been freed
+  clk: Don't expose __clk_get_accuracy
+  clk: change clk_debugfs_add_file to take a struct clk_hw
+  clk: Change clk_ops->determine_rate to return a clk_hw as the best
+    parent
+  clk: Make clk API return per-user struct clk instances
+  clk: Add floor and ceiling constraints to clock rates
+
+ Documentation/clk.txt                   |   2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c   | 108 +++--
+ arch/arm/mach-omap2/clock.h             |  11 +-
+ arch/arm/mach-omap2/clock_common_data.c |   5 +-
+ arch/mips/alchemy/common/clock.c        |  17 +-
+ drivers/clk/at91/clk-programmable.c     |   4 +-
+ drivers/clk/bcm/clk-kona.c              |   4 +-
+ drivers/clk/clk-composite.c             |   9 +-
+ drivers/clk/clk.c                       | 748 ++++++++++++++++++++------------
+ drivers/clk/clk.h                       |   5 +
+ drivers/clk/clkdev.c                    |  24 +-
+ drivers/clk/hisilicon/clk-hi3620.c      |   2 +-
+ drivers/clk/qcom/clk-rcg.c              |  20 +-
+ drivers/clk/qcom/clk-rcg2.c             |  28 +-
+ drivers/clk/sunxi/clk-factors.c         |   4 +-
+ drivers/clk/sunxi/clk-sun6i-ar100.c     |   4 +-
+ include/linux/clk-private.h             |  40 +-
+ include/linux/clk-provider.h            |  30 +-
+ include/linux/clk.h                     |  18 +
+ 19 files changed, 717 insertions(+), 366 deletions(-)
+
 -- 
-2.1.1
+1.9.3
 
