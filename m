@@ -1,53 +1,57 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: cpuidle - minimum time for sleep
-Date: Thu, 09 Oct 2014 15:01:43 -0400
-Message-ID: <11792.1412881303@turing-police.cc.vt.edu>
-References: <CAJ2oMhJXi-wxZJFcmm3LsTQOC35tAVKwr1PihUc0CmbnNtfPVQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1412881303_2528P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: Your message of "Thu, 09 Oct 2014 21:28:23 +0300."
-             <CAJ2oMhJXi-wxZJFcmm3LsTQOC35tAVKwr1PihUc0CmbnNtfPVQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ran Shalit <ranshalit@gmail.com>
-Cc: kernelnewbies <kernelnewbies@kernelnewbies.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-embedded@vger.kernel.org
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH 02/12] rtc: omap: fix missing wakealarm attribute
+Date: Thu,  9 Oct 2014 21:06:24 +0200
+Message-ID: <1412881594-25678-3-git-send-email-johan@kernel.org>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1412881594-25678-1-git-send-email-johan@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, AnilKumar Ch <anilkumar@ti.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---==_Exmh_1412881303_2528P
-Content-Type: text/plain; charset=us-ascii
+The platform device must be registered as wakeup capable before
+registering the class device, or the wakealarm attribute will not be
+created.
 
-On Thu, 09 Oct 2014 21:28:23 +0300, Ran Shalit said:
+Also make sure to unregister the wakeup source on probe errors.
 
-> Does anybody know what is the minimum expected time for sleep period
-> with the cpuidle ?
+Fixes: 1d2e2b65d098 ("rtc: omap: restore back (hard-code) wakeup support")
+Cc: stable <stable@vger.kernel.org>
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ drivers/rtc/rtc-omap.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Both processor dependent and sleep level dependent.  There's a certain
-amount of latency induced by the hardware waking up.
-
-Look at /sys/devices/system/cpu/cpu*/cpuidle/state*/latency
-
---==_Exmh_1412881303_2528P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Exmh version 2.5 07/13/2001
-
-iQIVAwUBVDbblgdmEQWDXROgAQJQrw/9Gf1ytV1qtQYLulg2riYyv3un2hhmgDzt
-Tdf/j72Lfzue13I8THDRlGhey3wVyc3nb1z+OC/LsDXGffKYw1Qjydayl115O1tg
-64tFE6RVDA+OM0rML67IrJqpjVZOcaqOra4VbxwnyRhWp6OGl2GgeNctsS2LvSd7
-+gnFe5CgTc4Al/TvkEPnx+zg+TPUZb4lVyFLFyONuUAVorr5lqL22sFNsqvDGwif
-qjn23FwVLK60FXfPu+8Cfbl364EtIe0UzeojW6VEyQ8IPTV/D6fhrbW3SOTP6RW3
-AQFdOAKwl4xCQ0xTK6vjbJbWqcK0o/l/ZuAdFsaQ7wlglGXL1U0Jtbzqo09YVHbN
-KoyRWAdrJX9lIbsroDoB50z27YkFeu3dGpgR5dMFQVleFME2Xy4TsgN/HCrS9j4/
-QseUn2oTEl9uAduEEDnN3Suzx4fZw/HaTBUm7poME9Lo+vsjQhGnTGZWiN09RT4y
-oNnEaqsjh4+Dld2B+72qseVb5efPnJAoNouv5xYEco3znCCtZnExPLxkBFs1PN4C
-hH/RyWcWbHO+3QwggodloKVdn42j/AoD9dQ+2YR9L9shOlRCdVE8rfqymaHZp7DS
-tDcZDSvspBws7WizdQkI3lxTslXrN8tAlPzHt3v78GaZIPnyGF46LlEEnLgLnXg5
-l5afbLqOLuc=
-=ojUa
------END PGP SIGNATURE-----
-
---==_Exmh_1412881303_2528P--
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index f842c216f2dd..828cb9983cc2 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -416,6 +416,8 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 		rtc_writel(KICK1_VALUE, OMAP_RTC_KICK1_REG);
+ 	}
+ 
++	device_init_wakeup(&pdev->dev, true);
++
+ 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 			&omap_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+@@ -484,8 +486,6 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	 *    is write-only, and always reads as zero...)
+ 	 */
+ 
+-	device_init_wakeup(&pdev->dev, true);
+-
+ 	if (new_ctrl & (u8) OMAP_RTC_CTRL_SPLIT)
+ 		pr_info("%s: split power mode\n", pdev->name);
+ 
+@@ -495,6 +495,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ fail0:
++	device_init_wakeup(&pdev->dev, false);
+ 	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER)
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
+ 	pm_runtime_put_sync(&pdev->dev);
+-- 
+2.0.4
