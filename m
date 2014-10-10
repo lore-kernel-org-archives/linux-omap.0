@@ -1,70 +1,141 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 07/12] rtc: omap: silence bogus power-up reset message at
- probe
-Date: Fri, 10 Oct 2014 13:02:56 -0500
-Message-ID: <20141010180256.GU31348@saruman>
+Subject: Re: [PATCH 09/12] rtc: omap: add support for pmic_power_en
+Date: Fri, 10 Oct 2014 13:07:27 -0500
+Message-ID: <20141010180721.GV31348@saruman>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <1412881594-25678-8-git-send-email-johan@kernel.org>
- <20141010180054.GS31348@saruman>
-Reply-To: <balbi@ti.com>
+ <1412881594-25678-10-git-send-email-johan@kernel.org>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O2g7+miYGsIKoR9l"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60566 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586AbaJJSDz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2014 14:03:55 -0400
-Content-Disposition: inline
-In-Reply-To: <20141010180054.GS31348@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3460743954257453828=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1412881594-25678-10-git-send-email-johan@kernel.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, Colin Foe-Parker <colin.foeparker@logicpd.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, j-keerthy@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, t-kristo@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 
---O2g7+miYGsIKoR9l
+--===============3460743954257453828==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UhXv5VeBZ/Y8lRnC"
+Content-Disposition: inline
+
+--UhXv5VeBZ/Y8lRnC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Oct 10, 2014 at 01:00:54PM -0500, Felipe Balbi wrote:
-> On Thu, Oct 09, 2014 at 09:06:29PM +0200, Johan Hovold wrote:
-> > Some legacy RTC IP revisions has a power-up reset flag in the status
-> > register that later revisions lack.
-> >=20
-> > As this flag is always read back as set on later revisions (or is
-> > overloaded with a different flag), make sure to only clear the flag and
-> > print the info message on legacy platforms.
-> >=20
-> > Signed-off-by: Johan Hovold <johan@kernel.org>
->=20
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
+Hi,
 
-oh, btw. This should be done for DT probes too.
+On Thu, Oct 09, 2014 at 09:06:31PM +0200, Johan Hovold wrote:
+> @@ -124,11 +138,18 @@
+>   */
+>  #define OMAP_RTC_HAS_POWER_UP_RESET	BIT(3)
+> =20
+> +/*
+> + * Some RTC IP revisions can control an external PMIC via the pmic_power=
+_en
+> + * pin.
+> + */
+> +#define OMAP_RTC_HAS_PMIC_MODE		BIT(4)
+> +
+>  static void __iomem	*rtc_base;
+> =20
+>  #define rtc_read(addr)		readb(rtc_base + (addr))
+>  #define rtc_write(val, addr)	writeb(val, rtc_base + (addr))
+> =20
+> +#define rtc_readl(addr)		readl(rtc_base + (addr))
+
+looks like this should be part of another patch. Or, at a minimum (since
+it's so minor), it deserves a mention on commit log.
+
+>  #define rtc_writel(val, addr)	writel(val, rtc_base + (addr))
+> =20
+> =20
+> @@ -338,6 +359,61 @@ static int omap_rtc_set_alarm(struct device *dev, st=
+ruct rtc_wkalrm *alm)
+>  	return 0;
+>  }
+> =20
+> +static struct platform_device *omap_rtc_power_off_dev;
+> +
+> +/*
+> + * omap_rtc_poweroff: RTC-controlled power off
+> + *
+> + * The RTC can be used to control an external PMIC via the pmic_power_en=
+ pin,
+> + * which can be configured to transition to OFF on ALARM2 events.
+> + *
+> + * Notes:
+> + * The two-second alarm offset is the shortest offset possible as the al=
+arm
+> + * registers must be set before the next timer update and the offset
+> + * calculation is to heavy for everything to be done within a single acc=
+ess
+
+s/to/too
+
+> @@ -425,10 +505,12 @@ static int __init omap_rtc_probe(struct platform_de=
+vice *pdev)
+>  		rtc_writel(KICK1_VALUE, OMAP_RTC_KICK1_REG);
+>  	}
+> =20
+> -	/* clear pending irqs, and set 1/second periodic,
+> -	 * which we'll use instead of update irqs
+> +	/*
+> +	 * disable interrupts
+> +	 *
+> +	 * NOTE: ALARM2 is not cleared on AM3352 if rtc_write (writeb) is used
+>  	 */
+> -	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+> +	rtc_writel(0, OMAP_RTC_INTERRUPTS_REG);
+
+bug fix, should be part of a separate patch and Cc stable :-)
 
 --=20
 balbi
 
---O2g7+miYGsIKoR9l
+--UhXv5VeBZ/Y8lRnC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUOB9QAAoJEIaOsuA1yqREEG8P/3fN9YIwts7YQ4E4i89g4Zow
-JTz/GFvU0V638nsMfFx/rKacOFFbwgiSr6jyrwg985vt1dok/y2aeghQ/Ag+ON8U
-X1e9sAXKWEYGSYj7AvMgQ4FQfVIw9KmtBycs+jer4derOqqNvSa6v++u+pVxtqrm
-+BEf9rmSu06vMec0x6OpsKhQGQGJ60pTk6HWCG6KDzyEwg9eSEU4ZiopJJYXAtC5
-3CxMayhGsJsElzJsBK/5WHl7VsVdUja7D8/OQCc46qAMF2z1bJwYhFMaVluXzTqj
-XaxY7uaazY6em32lgxTQvgJUdBPXSxHgwHN7uil28Ou0bZLd9SOfOlNSUJrVCAeW
-qLG1iCUTzf0CI9QJQZyL5ULCuYreSYGlAlGn85h/bsd2nvFiyJe1opEKAiXJouuE
-Z3ixkPJK6g31973dRoaMV4+0DmKOzBZkCaIaCuXh9gw3EvTUMPMNwLUnlw3beqU1
-qLtXcLn4xEGgL4101A6NtjKEiZj02hLA1/DlcsJTkkf/WW1wjCV+MPi2ru+MXGMz
-+KCE/r+pixfhyAG9Uy1BA4xOWGNe86+cDivwxe/l5sJWkk5Bq9A8vBoRozdrQcUQ
-xpElF2132+JUBoNg5cvMyrlCQaoVR4zDfcaKUacYaiqiEKP+W4tZeUP7doL4YTDB
-RHvDS5WAmbMhikMM9hzX
-=5DRq
+iQIcBAEBAgAGBQJUOCBfAAoJEIaOsuA1yqRE4w8P/A7gxViyJC0NGSToczXOZsGJ
+JqckNDKhqMQ0pIaWFvfdxCC888R/5Ibwv24W4jugw2dC5nrggKUmwb7wTPibIIv/
++wgdeuC2cTCsKy81n2xS6ecJkUOKTVqnnHSVYbGmpp1zlPLlGTBeR6J3SnM44JQ5
+Zdqh8rE7/fyLYo7oDJxV50f6WT7yREpygBrxIiLAKqtUMbH7LRkcFTI5ofWg5wB2
+lucMhCQjd8XsjfsOPri3GUZKHEQtYpqSFwbovqhcChoPNFWAxruyMA0eCsBMQmXw
+rYny+Zm02rqat8jw0b70jH+h/aYpd5BXzSs7WlTRvLd7WHwTm1dl+cXVdHIIItDy
+6DTo/Gefuz7BsjX4Xl+rlq5mvIJJ5G7VrUuPAgp1jzim+egsRCCHckISUJHW11TO
+2l6lwDgmehpccMcVGw89e4p0ld8EZ54ZctDg+xN6IJKBAieJa1ucJ80y2uRLn6kB
+dmD+zO1mNlMMH6lObl5pweWLlV/biVaVmGJEB+bWdU9xnT7FjnAoCN+lvJ0hCOis
+n1ffwHuZVJp28LsRnhvf5OtTC6jbvQ9xmK+g5Pu9JnbUIdfv3HKvfYEvSR54aJM4
+imDmlz1hHHDKMwwk+zOMAQkJlgaFK2KPBpHRBBKdqATfeK5RnDXpLyolBUK4CAJQ
+hw1EFpQbUnsb++i0D6tf
+=MO7H
 -----END PGP SIGNATURE-----
 
---O2g7+miYGsIKoR9l--
+--UhXv5VeBZ/Y8lRnC--
+
+
+--===============3460743954257453828==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3460743954257453828==--
