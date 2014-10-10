@@ -1,67 +1,66 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Fri, 10 Oct 2014 17:25:31 +0100
-Message-ID: <20141010162531.GL12379@n2100.arm.linux.org.uk>
-References: <20140905213216.GD5001@linux.vnet.ibm.com> <20141008171322.GH22688@saruman> <20141008175707.GI22688@saruman> <20141008212938.GP22688@saruman> <20141009160138.GA2396@cmpxchg.org> <20141009162656.GE16002@saruman> <20141009204101.GA25955@debian> <20141009204637.GE25729@saruman> <20141009210715.GH25729@saruman> <20141010135743.GB31348@saruman>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP3+: TWL: add support for mapping platform
+ data via pdata-quirks
+Date: Fri, 10 Oct 2014 10:00:17 -0700
+Message-ID: <20141010170017.GH10014@atomide.com>
+References: <1412948442-19896-1-git-send-email-t-kristo@ti.com>
+ <1412948442-19896-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:60059 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751375AbaJJQZi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Oct 2014 12:25:38 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25301 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbaJJRAv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Oct 2014 13:00:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20141010135743.GB31348@saruman>
+In-Reply-To: <1412948442-19896-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Rik van Riel <riel@redhat.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, josh@joshtriplett.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rabin Vincent <rabin@rab.in>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, Oct 10, 2014 at 08:57:43AM -0500, Felipe Balbi wrote:
-> On Thu, Oct 09, 2014 at 04:07:15PM -0500, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Thu, Oct 09, 2014 at 03:46:37PM -0500, Felipe Balbi wrote:
-> > > On Thu, Oct 09, 2014 at 10:41:01PM +0200, Rabin Vincent wrote:
-> > > > On Thu, Oct 09, 2014 at 11:26:56AM -0500, Felipe Balbi wrote:
-> > > > > alright, it's pretty deterministic however. Always on the same test, no
-> > > > > matter which USB controller, no matter if backing store is RAM or MMC.
-> > > > > 
-> > > > > Those two undefined instructions on the disassembly caught my attention,
-> > > > > perhaps I'm facing a GCC bug ?
-> > > > 
-> > > > The undefined instructions are just ARM's BUG() implementation.
-> > > > 
-> > > > But did you see the question I asked you yesterday in your other thread?
-> > > > http://www.spinics.net/lists/arm-kernel/msg368634.html
-> > > 
-> > > hmm, completely missed that, sorry. I'm using 4.8.2, will try something
-> > > else.
-> > 
-> > seems to be working fine now, thanks. I'll leave test running overnight
-> > just in case.
+* Tero Kristo <t-kristo@ti.com> [141010 06:41]:
+> Device tree based boot does not currently support DVFS voltage scaling,
+> as the VC/VP mapping is broken. This patch adds support to provide
+> platform data in the device tree boot case also, basically to pass the
+> function pointers to the vc/vp core for voltage changes.
 > 
-> yup, ran over night without any problems.
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/pdata-quirks.c |    8 ++--
+>  arch/arm/mach-omap2/twl-common.c   |   88 ++++++++++++++++++++++++++++++++----
+>  arch/arm/mach-omap2/twl-common.h   |    2 +
+>  3 files changed, 84 insertions(+), 14 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+> index 90c88d4..03e4a86 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -311,10 +311,10 @@ void omap_auxdata_legacy_init(struct device *dev)
+>  	if (dev->platform_data)
+>  		return;
+>  
+> -	if (strcmp("twl4030-gpio", dev_name(dev)))
+> -		return;
+> -
+> -	dev->platform_data = &twl_gpio_auxdata;
+> +	if (!strcmp("twl4030-gpio", dev_name(dev)))
+> +		dev->platform_data = &twl_gpio_auxdata;
+> +	else
+> +		dev->platform_data = omap_twl_match_regulator(dev);
+>  }
 
-Right, so GCC 4.8.{1,2} are totally unsuitable for kernel building (and
-it seems that this has been known about for some time.)
+I think now you're passing also dev->platform_data for all the
+other devices as this gets called for any devices added.
 
-We can blacklist these GCC versions quite easily.  We already have GCC
-3.3 blacklisted, and it's trivial to add others.  I would want to include
-some proper details about the bug, just like the other existing entries
-we already have in asm-offsets.c, where we name the functions that the
-compiler is known to break where appropriate.
+So you probale should use something like this instead:
 
-However, I'm rather annoyed that there are people here who have known
-for some time that GCC 4.8.1 and GCC 4.8.2 _can_ lead to filesystem
-corruption, and have sat on their backsides doing nothing about getting
-it blacklisted for something like a year.
+	if (!strcmp("twl4030-gpio", dev_name(dev)))
+		dev->platform_data = &twl_gpio_auxdata;
 
-When people talk about the ARM community being dysfunctional... well,
-this kind of irresponsible behaviour just gives them more fodder to
-throw at us.
+	if (!strcmp("twl4030-whatever-you-need", dev_name(dev)))
+		dev->platform_data = &twl_gpio_auxdata;
 
--- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+
+Tony
