@@ -1,45 +1,31 @@
-From: Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-Subject: Re: [RFC PATCH v2 1/4] regulator: Add helper function to get "poweroff-source" property
-Date: Fri, 10 Oct 2014 14:33:23 +0200
-Message-ID: <2477657.j9qmEgD9t9@phil>
-References: <1412711104-15902-1-git-send-email-romain.perier@gmail.com> <CABgxDoL2cztT6Y0oodtk4Q4jaDc1Rtx_RokxC+f0XykSojrdyg@mail.gmail.com> <CACxGe6vmBSgGpJgJ51Ki5KbQO65GDw3kSGSxnswYMfE8OGj9gw@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 0/2] ARM: OMAP3+: VCVP mapping fixes to get DVFS working
+Date: Fri, 10 Oct 2014 16:40:40 +0300
+Message-ID: <1412948442-19896-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([95.129.55.99]:46686 "EHLO gloria.sntech.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45785 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751454AbaJJMdl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Oct 2014 08:33:41 -0400
-In-Reply-To: <CACxGe6vmBSgGpJgJ51Ki5KbQO65GDw3kSGSxnswYMfE8OGj9gw@mail.gmail.com>
+	id S1751621AbaJJNkx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Oct 2014 09:40:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@linaro.org>
-Cc: PERIER Romain <romain.perier@gmail.com>, devicetree <devicetree@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, robh <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Anton Vorontsov <anton@enomsg.org>, Laxman Dewangan <ldewangan@nvidia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
+To: linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-Hi Grant,
+Hi,
 
-Am Freitag, 10. Oktober 2014, 12:47:08 schrieb Grant Likely:
-> What I'm more concerned about is the semantics of the property. What
-> do the generic code paths gain by standardizing this property? Is it
-> expected that
-[seems to be missing some text in the original mail]
+Seems like MPU DVFS does not scale the voltages currently with DT boot,
+due to missing mapping between regulator -> VCVP. Fixed this by adding
+support for platform data in the TWL regulator DT case + adding platform
+data quirk for the same.
 
-We currently see an influx of system-power-controller variants. While in the 
-past it only was
-	ti,system-power-controller
+Tested on omap3-beagle by measuring the MPU voltage rail.
 
-there is now already
-	maxim,system-power-controller
-	rockchip,system-power-controller
+OMAP4+ platforms do not currently register DVFS regulator, so this set by
+itself does not fix OMAP4 (needs the TPS MPU regulator added to DT etc.
+for OMAP4460.)
 
-Romain's work would introduce "active-semi,system-power-controller", I have a 
-"netronix,system-power-controller" sitting in some distant tree and there may 
-be more already waiting somewhere.
+-Tero
 
-So in the worst case I'd think you could expect such a property for every 
-pmic-vendor in vendor-prefixes.txt ... as it seems to be a quite common use-
-case these days to have the pmic handle system power on its own.
-
-
-Heiko
