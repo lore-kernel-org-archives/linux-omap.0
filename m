@@ -1,40 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
-Date: Sat, 11 Oct 2014 12:08:18 -0700
-Message-ID: <20141011190817.GA20644@atomide.com>
-References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <20141010175409.GL31348@saruman>
- <20141011093819.GA18988@localhost>
+From: Nathan Lynch <Nathan_Lynch@mentor.com>
+Subject: Re: RCU bug with v3.17-rc3 ?
+Date: Sat, 11 Oct 2014 14:27:36 -0500
+Message-ID: <543984A8.8050701@mentor.com>
+References: <20140905213216.GD5001@linux.vnet.ibm.com> <20141008171322.GH22688@saruman> <20141008175707.GI22688@saruman> <20141008212938.GP22688@saruman> <20141009160138.GA2396@cmpxchg.org> <20141009162656.GE16002@saruman> <20141009204101.GA25955@debian> <20141009204637.GE25729@saruman> <20141009210715.GH25729@saruman> <20141010135743.GB31348@saruman> <20141010162531.GL12379@n2100.arm.linux.org.uk> <54388B81.5020306@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141011093819.GA18988@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relay1.mentorg.com ([192.94.38.131]:36055 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075AbaJKT1r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Oct 2014 15:27:47 -0400
+In-Reply-To: <54388B81.5020306@mentor.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rik van Riel <riel@redhat.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, josh@joshtriplett.org, Rabin Vincent <rabin@rab.in>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Johan Hovold <johan@kernel.org> [141011 02:42]:
-> On Fri, Oct 10, 2014 at 12:54:22PM -0500, Felipe Balbi wrote:
-> > 
-> > is this power-off feature "RTC-only mode" ?
+On 10/10/2014 08:44 PM, Nathan Lynch wrote:
+> On 10/10/2014 11:25 AM, Russell King - ARM Linux wrote:
+>>
+>> Right, so GCC 4.8.{1,2} are totally unsuitable for kernel building (and
+>> it seems that this has been known about for some time.)
 > 
-> Yes, I believe so, at least as long as RTC power is maintained. The
-> pmic_power_en pin can otherwise still be used to power off. 
-> 
-> On the BeagleBone the PMIC can be configured to enter OFF or SLEEP mode
-> on power off, where the latter (and default) mode keeps the RTC power
-> supply enabled.
-> 
-> Thanks for the fast review, Felipe.
+> Looking at http://gcc.gnu.org/PR58854 it seems that all 4.8.x for x < 3
+> are affected, as well as 4.9.0.
 
-Great :) I assume adding the regulator support to this driver should
-also help in the 35xx case?
+Correction -- 4.9.0 has this fixed, even though the GCC PR shows it as a
+"known to fail" version.
 
-That is assuming that RTC power can be configured as a Linux
-regulator on 35xx.
-
-Regards,
-
-Tony
