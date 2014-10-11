@@ -1,47 +1,35 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH 12/12] ARM: dts: am335x-bone-common: enable power off and
- rtc wake up
-Date: Sat, 11 Oct 2014 12:34:32 +0200
-Message-ID: <20141011103432.GF18988@localhost>
-References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <1412881594-25678-13-git-send-email-johan@kernel.org>
- <20141010180941.GZ31348@saruman>
+From: Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH v2 1/4] regulator: Add helper function to get
+ "poweroff-source" property
+Date: Sat, 11 Oct 2014 14:51:59 +0100
+Message-ID: <CACxGe6vsec80SDQFvZxStEcm8i6wTpa2ve7-r=n13-vZUjarcA@mail.gmail.com>
+References: <1412711104-15902-1-git-send-email-romain.perier@gmail.com>
+ <CABgxDoL2cztT6Y0oodtk4Q4jaDc1Rtx_RokxC+f0XykSojrdyg@mail.gmail.com>
+ <CACxGe6vmBSgGpJgJ51Ki5KbQO65GDw3kSGSxnswYMfE8OGj9gw@mail.gmail.com> <CABgxDoKo8RkM3etK7Yu+8vHQSWs-53wnZujF_QvXR0GJAwBfoA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:40941 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752028AbaJKKhT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Oct 2014 06:37:19 -0400
-Content-Disposition: inline
-In-Reply-To: <20141010180941.GZ31348@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CABgxDoKo8RkM3etK7Yu+8vHQSWs-53wnZujF_QvXR0GJAwBfoA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: PERIER Romain <romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, robh <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 
-On Fri, Oct 10, 2014 at 01:09:49PM -0500, Felipe Balbi wrote:
-> On Thu, Oct 09, 2014 at 09:06:34PM +0200, Johan Hovold wrote:
-> > Configure the RTC as system-power controller, which allows the system to
-> > be powered off as well as woken up again on subsequent RTC alarms.
-> > 
-> > Note that the PMIC needs to be put in SLEEP (rather than OFF) mode to
-> > maintain RTC power. Specifically, this means that the PMIC
-> > ti,pmic-shutdown-controller property must be left unset in order to be
-> > able to wake up on RTC alarms.
-> > 
-> > Tested on BeagleBone Black (rev A5).
-> 
-> one thing though. IIRC, rtc-only mode does not work with ES1.0 and
-> beagle-bone white uses that. Perhaps move this from bone-common to
-> boneblack.dts ?
+On Fri, Oct 10, 2014 at 1:29 PM, PERIER Romain <romain.perier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>
+>> What I'm more concerned about is the semantics of the property. What
+>> do the generic code paths gain by standardizing this property? Is it
+>> expected that
+>
+> We really need to come up with a standard property for this and document
+> it rather than continuing to add individual device specific properties
+> each time a driver adds poweroff capability,
+> all doing the same thing (a lot of regulators driver, mfd drivers, soc
+> specific drivers, power drivers already do that, that's very redudant)
+> . This is a simple unification logic.
 
-Yeah, I had a quick look at the errata and you seem to be correct. I'll
-move it to boneblack.dts.
+Yes, it's fine. I accidentally left that paragraph in when I sent my
+reply. I started writing that concern, and then thought better of it.
+The property is fine.
 
-> other than that
-> 
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-
-Thanks,
-Johan
+g.
