@@ -1,68 +1,47 @@
-From: Peter Chen <peter.chen@freescale.com>
-Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Sat, 11 Oct 2014 11:54:32 +0800
-Message-ID: <20141011035431.GK3756@peterchendt>
-References: <20141008175707.GI22688@saruman> <20141008212938.GP22688@saruman>
- <20141009160138.GA2396@cmpxchg.org> <20141009162656.GE16002@saruman>
- <20141009204101.GA25955@debian> <20141009204637.GE25729@saruman>
- <20141009210715.GH25729@saruman> <20141010135743.GB31348@saruman>
- <20141010162531.GL12379@n2100.arm.linux.org.uk> <54388B81.5020306@mentor.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
+Date: Sat, 11 Oct 2014 11:38:19 +0200
+Message-ID: <20141011093819.GA18988@localhost>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <20141010175409.GL31348@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54388B81.5020306@mentor.com>
+In-Reply-To: <20141010175409.GL31348@saruman>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Lynch <Nathan_Lynch@mentor.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Rik van Riel <riel@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, josh@joshtriplett.org, Rabin Vincent <rabin@rab.in>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 10, 2014 at 08:44:33PM -0500, Nathan Lynch wrote:
-> On 10/10/2014 11:25 AM, Russell King - ARM Linux wrote:
+On Fri, Oct 10, 2014 at 12:54:22PM -0500, Felipe Balbi wrote:
+> HI,
+> 
+> On Thu, Oct 09, 2014 at 09:06:22PM +0200, Johan Hovold wrote:
+> > This series fixes a few issues with the omap rtc-driver, cleans up a bit
+> > and finally adds support for the PMIC control feature found in some
+> > revisions of this RTC IP block.
 > > 
-> > Right, so GCC 4.8.{1,2} are totally unsuitable for kernel building (and
-> > it seems that this has been known about for some time.)
+> > Ultimately, this allows for powering off the Beaglebone and waking it up
+> > again on RTC alarms.
+> > 
+> > I noticed yesterday that Lokesh Vutla recently posted some patches to
+> > add regulator support to this driver. [1] While that series has some
+> > issues that needs to be addressed, I still think it could be a good idea
+> > to rebase my pmic_power_en patch on top of it as it adds some long
+> > overdue device abstraction. That would be needed anyway in order to
+> > support the new power-off infrastructure that's in the pipe in a clean
+> > way. [2]
 > 
-> Looking at http://gcc.gnu.org/PR58854 it seems that all 4.8.x for x < 3
-> are affected, as well as 4.9.0.
-> 
-> > We can blacklist these GCC versions quite easily.  We already have GCC
-> > 3.3 blacklisted, and it's trivial to add others.  I would want to include
-> > some proper details about the bug, just like the other existing entries
-> > we already have in asm-offsets.c, where we name the functions that the
-> > compiler is known to break where appropriate.
-> 
-> Before blacklisting anything, it's worth considering that simple version
-> checks would break existing pre-4.8.3 compilers that have been patched
-> for PR58854.  It looks like Yocto and Buildroot issued releases with
-> patched 4.8.2 compilers well before the (fixed) 4.8.3 release.  I think
-> the most we can reasonably do without breaking some correctly-behaving
-> toolchains is to emit a warning.
+> is this power-off feature "RTC-only mode" ?
 
-Yocto has PR58854 problem patch.
+Yes, I believe so, at least as long as RTC power is maintained. The
+pmic_power_en pin can otherwise still be used to power off. 
 
-http://git.yoctoproject.org/cgit/cgit.cgi/poky/tree/meta/recipes-devtools/gcc/gcc-4.8/0048-PR58854_fix_arm_apcs_epilogue.patch?h=daisy
+On the BeagleBone the PMIC can be configured to enter OFF or SLEEP mode
+on power off, where the latter (and default) mode keeps the RTC power
+supply enabled.
 
-> 
-> Hopefully nobody's still using gcc 4.8 from the Linaro 2013.11 toolchain
-> release -- since it's a 4.8.3 prerelease from before the fix was
-> committed you'll get GCC_VERSION == 40803 but still generate bad code.
-> 
-> > However, I'm rather annoyed that there are people here who have known
-> > for some time that GCC 4.8.1 and GCC 4.8.2 _can_ lead to filesystem
-> > corruption, and have sat on their backsides doing nothing about getting
-> > it blacklisted for something like a year.
-> 
-> Mea culpa, although I hadn't drawn the connection to FS corruption
-> reports until now.  I have known about the issue for some time, but
-> figured the prevalence of the fix in downstream projects largely
-> mitigated the issue.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for the fast review, Felipe.
 
--- 
-Best Regards,
-Peter Chen
+Johan
