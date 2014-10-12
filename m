@@ -1,31 +1,97 @@
-From: Nathan Lynch <Nathan_Lynch@mentor.com>
-Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Sat, 11 Oct 2014 14:27:36 -0500
-Message-ID: <543984A8.8050701@mentor.com>
-References: <20140905213216.GD5001@linux.vnet.ibm.com> <20141008171322.GH22688@saruman> <20141008175707.GI22688@saruman> <20141008212938.GP22688@saruman> <20141009160138.GA2396@cmpxchg.org> <20141009162656.GE16002@saruman> <20141009204101.GA25955@debian> <20141009204637.GE25729@saruman> <20141009210715.GH25729@saruman> <20141010135743.GB31348@saruman> <20141010162531.GL12379@n2100.arm.linux.org.uk> <54388B81.5020306@mentor.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 08/12] rtc: omap: restore irq state after reading TC
+ registers
+Date: Sat, 11 Oct 2014 19:47:58 -0500
+Message-ID: <20141012004758.GB21128@saruman>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <1412881594-25678-9-git-send-email-johan@kernel.org>
+ <20141010180225.GT31348@saruman>
+ <20141011101201.GC18988@localhost>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:36055 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbaJKT1r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Oct 2014 15:27:47 -0400
-In-Reply-To: <54388B81.5020306@mentor.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GRPZ8SYKNexpdSJ7"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141011101201.GC18988@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rik van Riel <riel@redhat.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, josh@joshtriplett.org, Rabin Vincent <rabin@rab.in>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On 10/10/2014 08:44 PM, Nathan Lynch wrote:
-> On 10/10/2014 11:25 AM, Russell King - ARM Linux wrote:
->>
->> Right, so GCC 4.8.{1,2} are totally unsuitable for kernel building (and
->> it seems that this has been known about for some time.)
-> 
-> Looking at http://gcc.gnu.org/PR58854 it seems that all 4.8.x for x < 3
-> are affected, as well as 4.9.0.
+--GRPZ8SYKNexpdSJ7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Correction -- 4.9.0 has this fixed, even though the GCC PR shows it as a
-"known to fail" version.
+On Sat, Oct 11, 2014 at 12:12:01PM +0200, Johan Hovold wrote:
+> On Fri, Oct 10, 2014 at 01:02:31PM -0500, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Thu, Oct 09, 2014 at 09:06:30PM +0200, Johan Hovold wrote:
+> > > Make sure to restore local irq state when reading the timer/calendar
+> > > (TC) registers, so that omap_rtc_read_time() can be called with
+> > > interrupts disabled.
+> > >=20
+> > > Signed-off-by: Johan Hovold <johan@kernel.org>
+> > > ---
+> > >  drivers/rtc/rtc-omap.c | 6 ++++--
+> > >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > >=20
+> > > diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> > > index 0ef016553a97..62e2e9a9887a 100644
+> > > --- a/drivers/rtc/rtc-omap.c
+> > > +++ b/drivers/rtc/rtc-omap.c
+> > > @@ -239,8 +239,10 @@ static void bcd2tm(struct rtc_time *tm)
+> > > =20
+> > >  static int omap_rtc_read_time(struct device *dev, struct rtc_time *t=
+m)
+> > >  {
+> > > +	unsigned long flags;
+> > > +
+> > >  	/* we don't report wday/yday/isdst ... */
+> > > -	local_irq_disable();
+> > > +	local_irq_save(flags);
+> >=20
+> > you should really convert these to a real spin_lock_irq*(), that's
+> > because local_irq* do not get re-written with RT patchset, so this
+> > pretty much "breaks" RT.
+>=20
+> The driver uses local_irq* throughout to guarantee registers are not
+> read or written during an update event.
+>=20
+> In fact, at least on AM33xx, this is not even necessary when reading (as
+> opposed to writing) the TC registers, but I did not dare change that
+> without knowing how the legacy platforms work in this respect.
+>=20
+> Do you suggest doing this conversion as part of, or on top of, this
+> series?
 
+probably on top of is. Safer that way.
+
+--=20
+balbi
+
+--GRPZ8SYKNexpdSJ7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUOc++AAoJEIaOsuA1yqREjg4P/3+Lk5jKZx74l3U9ZvXHugE9
+ADO+nDrgcesXoyGVp+bQVRNFkLbQdWCSHCyqkjC4Hx2Nxw832W74R+YqrJavfI7S
+5+p4BFSTKEyDFuAKWtdLHLaAHgH2mAqPeMVb2XahX3jMeWH+ntBMf6cdPyf/f3Kb
+GeTM+snI5ccSi7EnROIKMqIsdJLAiMwSkaarjyD9bUTNfievcvIXhf4WFc09sGCd
+5ipRJm8fCWEPYcC7ORlEsUg7yZVyiMr5nbCV/1mO33igEu2f+Ic1XR+KchYmC6CO
+cLK/5pDmg2oU4hWAbhOrup1sTAPKqErtCyFiu0nG0oQYrkE4INYs8VbHwJGg63v2
+06U/WZDMGlICCRxWQ6L0HaEWAijuIrBE+gpHqZ+8vvaiSdVahIY2cwZVo12JJNXr
+wjOQYwVIWh5U/LSnprfzWKQGsR5rfsrlcWRZznQfLI9JtjXvhz+7sgz4THQNC6Tl
+DvC0KpUg046RBz7+om+qJC9RkUPIYoSGVemM2R5i5xrEMKDiubcvKkU39in2OUZ+
+md4z5OGYZkfuYiliJeuet+LFwud7SGzhIsIF7swo5sZoxR9TkRiMdsEome21XRFt
+XkB2O7DYr+DK/tb0UOku9KTiHOE2oU6fxcxrMfzoamP8yZ8jtQ6BGskdJhtyTJ5U
+24ltYEf7YAsPSvB3ZQWR
+=pRpA
+-----END PGP SIGNATURE-----
+
+--GRPZ8SYKNexpdSJ7--
