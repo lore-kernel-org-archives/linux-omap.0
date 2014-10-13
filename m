@@ -1,128 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.17
-Date: Mon, 13 Oct 2014 09:01:48 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1410130900130.20166@utopia.booyaka.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: RCU bug with v3.17-rc3 ?
+Date: Mon, 13 Oct 2014 09:11:34 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D174C996E@AcuExch.aculab.com>
+References: <20140905213216.GD5001@linux.vnet.ibm.com>
+ <20141008171322.GH22688@saruman> <20141008175707.GI22688@saruman>
+ <20141008212938.GP22688@saruman> <20141009160138.GA2396@cmpxchg.org>
+ <20141009162656.GE16002@saruman> <20141009204101.GA25955@debian>
+ <20141009204637.GE25729@saruman> <20141009210715.GH25729@saruman>
+ <20141010135743.GB31348@saruman>
+ <20141010162531.GL12379@n2100.arm.linux.org.uk> <54388B81.5020306@mentor.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39449 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876AbaJMJBt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2014 05:01:49 -0400
+Received: from mx0.aculab.com ([213.249.233.131]:50928 "HELO mx0.aculab.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753183AbaJMJN0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2014 05:13:26 -0400
+Received: from mx0.aculab.com ([127.0.0.1])
+ by localhost (mx0.aculab.com [127.0.0.1]) (amavisd-new, port 10024) with SMTP
+ id 12775-10 for <linux-omap@vger.kernel.org>;
+ Mon, 13 Oct 2014 10:13:23 +0100 (BST)
+In-Reply-To: <54388B81.5020306@mentor.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: 'Nathan Lynch' <Nathan_Lynch@mentor.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Rik van Riel <riel@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "josh@joshtriplett.org" <josh@joshtriplett.org>, Rabin Vincent <rabin@rab.in>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+
+From: Nathan Lynch
+> On 10/10/2014 11:25 AM, Russell King - ARM Linux wrote:
+> >
+> > Right, so GCC 4.8.{1,2} are totally unsuitable for kernel building (and
+> > it seems that this has been known about for some time.)
+> 
+> Looking at http://gcc.gnu.org/PR58854 it seems that all 4.8.x for x < 3
+> are affected, as well as 4.9.0.
+> 
+> > We can blacklist these GCC versions quite easily.  We already have GCC
+> > 3.3 blacklisted, and it's trivial to add others.  I would want to include
+> > some proper details about the bug, just like the other existing entries
+> > we already have in asm-offsets.c, where we name the functions that the
+> > compiler is known to break where appropriate.
+> 
+> Before blacklisting anything, it's worth considering that simple version
+> checks would break existing pre-4.8.3 compilers that have been patched
+> for PR58854.  It looks like Yocto and Buildroot issued releases with
+> patched 4.8.2 compilers well before the (fixed) 4.8.3 release.  I think
+> the most we can reasonably do without breaking some correctly-behaving
+> toolchains is to emit a warning.
+
+Is it possible to compile a small code fragment and check the generated
+code for the bug?
+Possibly predicated on the broken version number to avoid false positives.
+
+	David
 
 
-Here are some basic OMAP test results for Linux v3.17.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v3.17/20141006085043/
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 4/17): 5912osk, 2420n800, 3517evm, 4430es2panda
-    Pass (12/17): am335xbonelt, am335xbone, 4460pandaes, 4460varsomom,
-		  37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm, cmt3517, 5430es2uevm, 5430es2sbct54
-
-PM: chip retention via suspend:
-    FAIL ( 5/11): am335xbonelt, 4460varsomom, 2430sdp, 5430es2uevm,
-		  5430es2sbct54
-    Pass ( 6/11): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/11): am335xbonelt, 4460pandaes, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 5/11): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off except CORE via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off except CORE via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-
-vmlinux object size
-(delta in bytes from test_v3.17-rc7 (fe82dcec644244676d55a1384c958d5f67979adb)):
-   text     data      bss    total  kernel
-   +159       +8       +8     +175  omap1_defconfig
-   +127      -24       +8     +111  omap1_defconfig_1510innovator_only
-   +127       +8       +8     +143  omap1_defconfig_5912osk_only
-    -85       -8       +8      -85  multi_v7_defconfig
-    +63        0        0      +63  omap2plus_defconfig
-    +95        0       +8     +103  omap2plus_defconfig_2430sdp_only
-    +63        0        0      +63  omap2plus_defconfig_am33xx_only
-    +67        0        0      +67  omap2plus_defconfig_am43xx_only
-    +63        0        0      +63  omap2plus_defconfig_cpupm
-    +67        0        0      +67  omap2plus_defconfig_dra7xx_only
-    +32        0        0      +32  omap2plus_defconfig_n800_multi_omap2xxx
-    +32        0        0      +32  omap2plus_defconfig_n800_only_a
-   +127        0        0     +127  omap2plus_defconfig_no_pm
-   +127        0        0     +127  omap2plus_defconfig_omap2_4_only
-    +63        0        0      +63  omap2plus_defconfig_omap3_4_only
-    +67        0        0      +67  omap2plus_defconfig_omap5_only
-    -16        0      +16        0  rmk_omap3430_ldp_allnoconfig
-     -1        0       +4       +3  rmk_omap3430_ldp_oldconfig
-    +16        0      +16      +32  rmk_omap4430_sdp_allnoconfig
-     -1        0       +4       +3  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.17-rc7 (fe82dcec644244676d55a1384c958d5f67979adb))
-  avail  rsrvd   high  freed  board          kconfig
- -117908k -13164k      .  -148k  2420n800       omap2plus_defconfig_n800_only_a
-
-
-Skipping the Nokia N800 for this test run since it requires some hands-on 
-attention.
 
