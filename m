@@ -1,50 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] arm: dts: omap3-gta04: Extend touchscreen configs
-Date: Mon, 13 Oct 2014 09:29:05 -0700
-Message-ID: <20141013162905.GC5192@atomide.com>
-References: <1412108254-19234-1-git-send-email-marek@goldelico.com>
- <1412108254-19234-4-git-send-email-marek@goldelico.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/4] dwc3: exynos: Add support for SCLK present on
+ Exynos7
+Date: Mon, 13 Oct 2014 17:44:09 -0500
+Message-ID: <20141013224409.GB1496@saruman>
+References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
+ <1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
+ <00f101cfe6a1$d772c5a0$865850e0$%tikhomirov@samsung.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1412108254-19234-4-git-send-email-marek@goldelico.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, dmitry.torokhov@gmail.com, hns@goldelico.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+In-Reply-To: <00f101cfe6a1$d772c5a0$865850e0$%tikhomirov@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anton Tikhomirov <av.tikhomirov@samsung.com>
+Cc: 'Vivek Gautam' <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kgene.kim@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Marek Belisko <marek@goldelico.com> [140930 13:19]:
-> Adding min/max values for various touschscreen properties.
+--Bn2rw/3z4jIqBvZU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Assuming no other comments on this patch series, this should be
-safe to merge along with the other patches in this series without
-causing merge conflicts:
+Hi,
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> Signed-off-by: Marek Belisko <marek@goldelico.com>
-> ---
->  arch/arm/boot/dts/omap3-gta04.dtsi | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-> index fd34f91..2dafac3b 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> @@ -284,6 +284,12 @@
->  		interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
->  		gpios = <&gpio6 0 GPIO_ACTIVE_LOW>;
->  		ti,x-plate-ohms = <600>;
-> +		ti,min-x = <0x100>;
-> +		ti,max-x = <0xf00>;
-> +		ti,min-y = <0xf00>;
-> +		ti,max-y = <0x100>;
-> +		ti,min-rt = <0xfff>;
-> +		ti,max-rt = <0>;
->  	};
->  };
->  
-> -- 
-> 1.9.3
-> 
+On Mon, Oct 13, 2014 at 01:54:59PM +0900, Anton Tikhomirov wrote:
+> Hi Vivek,
+>=20
+> > Exynos7 also has a separate special gate clock going to the IP
+> > apart from the usual AHB clock. So add support for the same.
+>=20
+> As we discussed before, Exynos7 SoCs have 7 clocks to be controlled
+> by the driver. Adding only sclk is not enough.=20
+>=20
+> >=20
+> > Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> > ---
+> >  drivers/usb/dwc3/dwc3-exynos.c |   16 ++++++++++++++++
+> >  1 file changed, 16 insertions(+)
+> >=20
+> > diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-
+> > exynos.c
+> > index 3951a65..7dc6a98 100644
+> > --- a/drivers/usb/dwc3/dwc3-exynos.c
+> > +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> > @@ -35,6 +35,7 @@ struct dwc3_exynos {
+> >  	struct device		*dev;
+> >=20
+> >  	struct clk		*clk;
+>=20
+> The clock "clk" in Exynos5 just gated all that above 7 clocks, which
+> we should control separately now in Exynos7.
+>=20
+
+should I drop this patch for now ?
+
+--=20
+balbi
+
+--Bn2rw/3z4jIqBvZU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUPFW5AAoJEIaOsuA1yqRE2JAP/jLhi8fw0frOAN+5nxZhVUTi
+ByhmsFu6a7/oaLki/fg1WAz7AdgMH0CJuQZpY3UTlyc+4QUKHz7F/ZUWE49p2NFI
+vwQzYMuWPCh5of6kFMN538d1DbLBSE4JqE0VmP4o8My0zxU96UPABocIA+YTlgmo
+vCK8CPWe6rJ3/Hd78sD16wjANqK86UPGerLMQgIlpDcVTvu9Un8AFE4rumtYR+tF
+PldWc8/tuMp2XO6eV4cTQT/oQD3adBDFDfvBdXZXygmvGOjUVlVdpJ8n+ebwkB1z
+O0k6hfr5thmce3R5QKPLz8EGeg9ukSYgy6EOABoy5Hgo8XAJfMKT9r/7zLU1kdwk
+Y/+dw6Thcnpg2+Y8mpo4XQaaIKNDrDL6wiYGqUm8y03NnKK93wau/tb61NAIZe2m
+QiJvgf0FpvN7Fl2Mu2s2fgMHnYZZgIO/NXJ9V7eEGyyRt2/oucR9hduZ7kU1W2pZ
+dcMHpGG5LgFB2DMiwKdycEbo3JPsIsEJN0iPZ6KRMVKiiCdC7UGk137ZBq3xk8As
+8XEM4e1sdQv8ro/HammIM4mXBRrgLCIzfRk6ZYx3SRVKNPn9GdMEr5MJOmw8av1m
+pecPWxA18bQvuWP3fzBs01sflMSVRgYGboRJNsR3yMIp+XFZysXwoCxZgd3Wsuys
+IJI4eDVoTYvA1EYQOo4C
+=XPMD
+-----END PGP SIGNATURE-----
+
+--Bn2rw/3z4jIqBvZU--
