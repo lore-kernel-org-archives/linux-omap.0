@@ -1,83 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] CLK: TI: Remove unused includes of linux/clk-private.h
-Date: Mon, 13 Oct 2014 15:07:13 +0300
-Message-ID: <543BC071.2090905@ti.com>
-References: <1412351519-29214-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH v2 1/4] regulator: Add helper function to get
+ "poweroff-source" property
+Date: Mon, 13 Oct 2014 15:12:40 +0200
+Message-ID: <20141013131240.GZ27755@sirena.org.uk>
+References: <1412711104-15902-1-git-send-email-romain.perier@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TLkgL7PLGfOLXnur"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1412351519-29214-1-git-send-email-tomeu.vizoso@collabora.com>
+Content-Disposition: inline
+In-Reply-To: <1412711104-15902-1-git-send-email-romain.perier@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Romain Perier <romain.perier@gmail.com>
+Cc: devicetree@vger.kernel.org, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, heiko@sntech.de, sameo@linux.intel.com, lee.jones@linaro.org, grant.likely@linaro.org, robh@kernel.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org, anton@enomsg.org, ldewangan@nvidia.com, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tomeu,
 
-Please add a changelog to this patch. Also, just replace the 
-clk-private.h includes with clk-provider.h, do not add the include to 
-the generic header. Rest of the kernel does that where needed.
+--TLkgL7PLGfOLXnur
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Other than that, looks good to me.
+On Tue, Oct 07, 2014 at 07:45:01PM +0000, Romain Perier wrote:
+> Several drivers create their own devicetree property when they register
+> poweroff capabilities. This is for example the case for mfd, regulator
 
--Tero
+This seems fine from a code point of view but as discussed it's probably
+better placed outside of the regulator API.  Making it a static inline
+doesn't seem like a bad idea either.
 
-On 10/03/2014 06:51 PM, Tomeu Vizoso wrote:
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> ---
->   drivers/clk/ti/clk-44xx.c | 1 -
->   drivers/clk/ti/clk-54xx.c | 1 -
->   drivers/clk/ti/clk-7xx.c  | 1 -
->   include/linux/clk/ti.h    | 1 +
->   4 files changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
-> index 02517a8..8ea705e 100644
-> --- a/drivers/clk/ti/clk-44xx.c
-> +++ b/drivers/clk/ti/clk-44xx.c
-> @@ -12,7 +12,6 @@
->
->   #include <linux/kernel.h>
->   #include <linux/list.h>
-> -#include <linux/clk-private.h>
->   #include <linux/clkdev.h>
->   #include <linux/clk/ti.h>
->
-> diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
-> index 5e18399..e823d0b 100644
-> --- a/drivers/clk/ti/clk-54xx.c
-> +++ b/drivers/clk/ti/clk-54xx.c
-> @@ -12,7 +12,6 @@
->
->   #include <linux/kernel.h>
->   #include <linux/list.h>
-> -#include <linux/clk-private.h>
->   #include <linux/clkdev.h>
->   #include <linux/io.h>
->   #include <linux/clk/ti.h>
-> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-> index 62ac8f6..afd61a6 100644
-> --- a/drivers/clk/ti/clk-7xx.c
-> +++ b/drivers/clk/ti/clk-7xx.c
-> @@ -12,7 +12,6 @@
->
->   #include <linux/kernel.h>
->   #include <linux/list.h>
-> -#include <linux/clk-private.h>
->   #include <linux/clkdev.h>
->   #include <linux/clk/ti.h>
->
-> diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-> index e8d8a35..ced953a 100644
-> --- a/include/linux/clk/ti.h
-> +++ b/include/linux/clk/ti.h
-> @@ -16,6 +16,7 @@
->   #define __LINUX_CLK_TI_H__
->
->   #include <linux/clkdev.h>
-> +#include <linux/clk-provider.h>
->
->   /**
->    * struct dpll_data - DPLL registers and integration data
->
+--TLkgL7PLGfOLXnur
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUO8/IAAoJECTWi3JdVIfQmWwH/16Ow8sIBNQiRAw9ZnnUPFZY
+Jiyl3de1Jmu+PpI94ECMbKpzX1IvrNAqGl70vHLaXv7yVrJFXaKPmdNKanL7NO2S
+L6G3dTSxUwfYbeT1tBQrmgkfvLphagJgMRTrJhEwS7Fv4AZzMM74mcG9/Ev78mMq
+4miYsujyFYa4aW+Xd1OdYFKaMlU1T4aPDwB3vvEJ12exXVUgjqdt8K+o/MtgRfeY
+tVwk8mRu0J55kcpDW4LWHHSXitAafwgjXFmziG6QNXPCWX4Qa0z2cEg/zZ486XM+
+5+JXWCn/suF54lHgGv4xpdysyRekfGofFnRC5uvRhp4ZwUp8jUPSswJI2EctEn8=
+=TFS7
+-----END PGP SIGNATURE-----
+
+--TLkgL7PLGfOLXnur--
