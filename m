@@ -1,67 +1,117 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 07/12] rtc: omap: silence bogus power-up reset message at
- probe
-Date: Sun, 12 Oct 2014 20:42:40 +0200
-Message-ID: <20141012184240.GA2786@localhost>
-References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <1412881594-25678-8-git-send-email-johan@kernel.org>
- <20141010180054.GS31348@saruman>
- <20141010180256.GU31348@saruman>
- <20141011102004.GD18988@localhost>
- <20141012005007.GC21128@saruman>
+From: Anton Tikhomirov <av.tikhomirov@samsung.com>
+Subject: RE: [PATCH v2 1/4] dwc3: exynos: Add support for SCLK present on
+ Exynos7
+Date: Mon, 13 Oct 2014 13:54:59 +0900
+Message-ID: <00f101cfe6a1$d772c5a0$865850e0$%tikhomirov@samsung.com>
+References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
+ <1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141012005007.GC21128@saruman>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ks_c_5601-1987
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout3.samsung.com ([203.254.224.33]:28185 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750889AbaJMEzC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Oct 2014 00:55:02 -0400
+In-reply-to: <1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
+Content-language: en-us
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Vivek Gautam' <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kgene.kim@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, kishon@ti.com
 
-On Sat, Oct 11, 2014 at 07:50:07PM -0500, Felipe Balbi wrote:
-> Hi,
->=20
-> On Sat, Oct 11, 2014 at 12:20:04PM +0200, Johan Hovold wrote:
-> > On Fri, Oct 10, 2014 at 01:02:56PM -0500, Felipe Balbi wrote:
-> > > On Fri, Oct 10, 2014 at 01:00:54PM -0500, Felipe Balbi wrote:
-> > > > On Thu, Oct 09, 2014 at 09:06:29PM +0200, Johan Hovold wrote:
-> > > > > Some legacy RTC IP revisions has a power-up reset flag in the=
- status
-> > > > > register that later revisions lack.
-> > > > >=20
-> > > > > As this flag is always read back as set on later revisions (o=
-r is
-> > > > > overloaded with a different flag), make sure to only clear th=
-e flag and
-> > > > > print the info message on legacy platforms.
-> > > > >=20
-> > > > > Signed-off-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > >=20
-> > > > Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > >=20
-> > > oh, btw. This should be done for DT probes too.
-> >=20
-> > What do you mean? This is for DT probes (of "ti,da830-rtc" and
-> > "ti,am3352-rtc"). DT probing of legacy RTC IPs is currently not
-> > supported.
-> >=20
-> > Are you suggesting I should add a new compatible string for that?
->=20
-> it seemed to me that you're only passing the new flag through
-> platform_device_id table, not DT table. Did I miss something ?
+Hi Vivek,
 
-Ah, that's just the way the driver currently encodes the IP revision
-differences. The platform_device_id entries are references from
-of_device_id data. Should probably clean that up as well.
+> Exynos7 also has a separate special gate clock going to the IP
+> apart from the usual AHB clock. So add support for the same.
 
-Thanks again for the review. I'll post a new version when I'm back from
-D=FCsseldorf and ELC-E/Plumbers.
+As we discussed before, Exynos7 SoCs have 7 clocks to be controlled
+by the driver. Adding only sclk is not enough. 
 
-Johan
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> ---
+>  drivers/usb/dwc3/dwc3-exynos.c |   16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-
+> exynos.c
+> index 3951a65..7dc6a98 100644
+> --- a/drivers/usb/dwc3/dwc3-exynos.c
+> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> @@ -35,6 +35,7 @@ struct dwc3_exynos {
+>  	struct device		*dev;
+> 
+>  	struct clk		*clk;
+
+The clock "clk" in Exynos5 just gated all that above 7 clocks, which
+we should control separately now in Exynos7.
+
+> +	struct clk		*sclk;
+>  	struct regulator	*vdd33;
+>  	struct regulator	*vdd10;
+>  };
+> @@ -139,10 +140,21 @@ static int dwc3_exynos_probe(struct
+> platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+> 
+> +	/*
+> +	 * Exynos7 has a special gate clock going to this IP,
+> +	 * which in earlier SoCs was probably concealed.
+> +	 */
+> +	exynos->sclk = devm_clk_get(dev, "usbdrd30_sclk");
+> +	if (IS_ERR(exynos->sclk)) {
+> +		dev_info(dev, "no sclk specified\n");
+> +		exynos->sclk = NULL;
+> +	}
+> +
+>  	exynos->dev	= dev;
+>  	exynos->clk	= clk;
+> 
+>  	clk_prepare_enable(exynos->clk);
+> +	clk_prepare_enable(exynos->sclk);
+> 
+>  	exynos->vdd33 = devm_regulator_get(dev, "vdd33");
+>  	if (IS_ERR(exynos->vdd33)) {
+> @@ -185,6 +197,7 @@ err4:
+>  err3:
+>  	regulator_disable(exynos->vdd33);
+>  err2:
+> +	clk_disable_unprepare(exynos->sclk);
+>  	clk_disable_unprepare(clk);
+>  	return ret;
+>  }
+> @@ -197,6 +210,7 @@ static int dwc3_exynos_remove(struct
+> platform_device *pdev)
+>  	platform_device_unregister(exynos->usb2_phy);
+>  	platform_device_unregister(exynos->usb3_phy);
+> 
+> +	clk_disable_unprepare(exynos->sclk);
+>  	clk_disable_unprepare(exynos->clk);
+> 
+>  	regulator_disable(exynos->vdd33);
+> @@ -218,6 +232,7 @@ static int dwc3_exynos_suspend(struct device *dev)
+>  {
+>  	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
+> 
+> +	clk_disable(exynos->sclk);
+>  	clk_disable(exynos->clk);
+> 
+>  	regulator_disable(exynos->vdd33);
+> @@ -243,6 +258,7 @@ static int dwc3_exynos_resume(struct device *dev)
+>  	}
+> 
+>  	clk_enable(exynos->clk);
+> +	clk_enable(exynos->sclk);
+> 
+>  	/* runtime set active to reflect active state. */
+>  	pm_runtime_disable(dev);
+> --
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
