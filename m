@@ -1,18 +1,15 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 07/12] rtc: omap: silence bogus power-up reset message at
- probe
-Date: Mon, 13 Oct 2014 10:56:35 -0500
-Message-ID: <20141013155635.GG21709@saruman>
+Subject: Re: [PATCH 03/12] rtc: omap: fix class-device registration
+Date: Mon, 13 Oct 2014 10:57:07 -0500
+Message-ID: <20141013155707.GH21709@saruman>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <1412881594-25678-8-git-send-email-johan@kernel.org>
- <20141010180054.GS31348@saruman> <20141010180256.GU31348@saruman>
- <20141011102004.GD18988@localhost> <20141012005007.GC21128@saruman>
- <20141012184240.GA2786@localhost>
+ <1412881594-25678-4-git-send-email-johan@kernel.org>
+ <20141010175919.GO31348@saruman> <20141011095947.GB18988@localhost>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8692125445441232505=="
+Content-Type: multipart/mixed; boundary="===============5694704704566830498=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20141012184240.GA2786@localhost>
+In-Reply-To: <20141011095947.GB18988@localhost>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,93 +20,88 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Johan Hovold <johan@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, j-keerthy@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, t-kristo@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, Colin Foe-Parker <colin.foeparker@logicpd.com>, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, j-keerthy@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, t-kristo@ti.com, Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-omap@vger.kernel.org
 
---===============8692125445441232505==
+--===============5694704704566830498==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wayzTnRSUXKNfBqd"
+	protocol="application/pgp-signature"; boundary="byLs0wutDcxFdwtm"
 Content-Disposition: inline
 
---wayzTnRSUXKNfBqd
+--byLs0wutDcxFdwtm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, Oct 12, 2014 at 08:42:40PM +0200, Johan Hovold wrote:
-> On Sat, Oct 11, 2014 at 07:50:07PM -0500, Felipe Balbi wrote:
-> > Hi,
+On Sat, Oct 11, 2014 at 11:59:47AM +0200, Johan Hovold wrote:
+> > > @@ -450,14 +441,14 @@ static int __init omap_rtc_probe(struct platfor=
+m_device *pdev)
+> > > =20
+> > >  	/* handle periodic and alarm irqs */
+> > >  	if (devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
+> > > -			dev_name(&rtc->dev), rtc)) {
+> > > +			dev_name(&pdev->dev), pdev)) {
+> > >  		pr_debug("%s: RTC timer interrupt IRQ%d already claimed\n",
+> > >  			pdev->name, omap_rtc_timer);
+> > >  		goto fail0;
+> > >  	}
+> > >  	if ((omap_rtc_timer !=3D omap_rtc_alarm) &&
+> > >  		(devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
+> > > -			dev_name(&rtc->dev), rtc))) {
+> > > +			dev_name(&pdev->dev), pdev))) {
 > >=20
-> > On Sat, Oct 11, 2014 at 12:20:04PM +0200, Johan Hovold wrote:
-> > > On Fri, Oct 10, 2014 at 01:02:56PM -0500, Felipe Balbi wrote:
-> > > > On Fri, Oct 10, 2014 at 01:00:54PM -0500, Felipe Balbi wrote:
-> > > > > On Thu, Oct 09, 2014 at 09:06:29PM +0200, Johan Hovold wrote:
-> > > > > > Some legacy RTC IP revisions has a power-up reset flag in the s=
-tatus
-> > > > > > register that later revisions lack.
-> > > > > >=20
-> > > > > > As this flag is always read back as set on later revisions (or =
-is
-> > > > > > overloaded with a different flag), make sure to only clear the =
-flag and
-> > > > > > print the info message on legacy platforms.
-> > > > > >=20
-> > > > > > Signed-off-by: Johan Hovold <johan@kernel.org>
-> > > > >=20
-> > > > > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> > > >=20
-> > > > oh, btw. This should be done for DT probes too.
-> > >=20
-> > > What do you mean? This is for DT probes (of "ti,da830-rtc" and
-> > > "ti,am3352-rtc"). DT probing of legacy RTC IPs is currently not
-> > > supported.
-> > >=20
-> > > Are you suggesting I should add a new compatible string for that?
-> >=20
-> > it seemed to me that you're only passing the new flag through
-> > platform_device_id table, not DT table. Did I miss something ?
+> > i don't get it. Why pass pdev as cookie when all you need is rtc ?
+> > Doesn't sound very good to me. Also, IRQ handler *must* be registered
+> > only after RTC is registered. That's because if you request an IRQ here,
+> > you could already have a pending interrupt and since you won't have a
+> > valid rtc pointer you won't be able to clear the interrupt line.
 >=20
-> Ah, that's just the way the driver currently encodes the IP revision
-> differences. The platform_device_id entries are references from
-> of_device_id data. Should probably clean that up as well.
+> We don't need the class device (rtc pointer) to clear the interrupt
+> line. The iomem base is enough, and that is static until Lokesh adds the
+> struct omap_rtc_dev abstraction. Then we pass that as the cookie.
 
-oh, alright :-)
+I wonder how that patch will look like ;-)
 
-> Thanks again for the review. I'll post a new version when I'm back from
+> And all RTC interrupts have been disabled, and pending interrupts
+> cleared before registering the handlers so that should not be a problem.
+>=20
+> To the contrary, once the class device has been registered user-space
+> could enable interrupts at any time and that is why everything should
+> have been set up before.
 
-no problem.
+alright, got it. Thanks
 
 --=20
 balbi
 
---wayzTnRSUXKNfBqd
+--byLs0wutDcxFdwtm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUO/YzAAoJEIaOsuA1yqREP0AQAIkLWaDOJJTpFvhKcAdhb30P
-zrErSKM6Igf2zCVwk4n9is58jsKi1HW2mQwk8DVCAId4vMLg+V3ADYugQqZpvPg1
-ztYe24OoVe4VHZZ4/RJbJBCi3JRcq9LlutiGsTryjOfYwAqH+GdQ6fCf1VRgE251
-ADcH99wB5rRfBSlTKAQuku7UjtYF5AA2CArG+z/433XoZUS8NuCwfkHns5MTxFDE
-JJDNpPnH8d+tS3fq0hQXrrnjFYjBB++CfYbPNLMpkrhUhpnPne7OJfh/3kJ7dKcb
-OQcpHpeia6VvZkdJBQPDYNev/8vxvtIG6ym4ZiY3SkUR5pELv5QnnUjmrLQWkA4y
-+YTpXj9gFhT1I+KcSL1fKBoCc7y0YFqJk0DuEFWTxVuGyOcJIr0uCpeMF7jBQkrD
-Ezm7AWmJvblkuxoujUQF2elGYd2GHrl8JicXuE/klXm04LEpXrOnGDVvFUyX2NMj
-DwROaiNIt03B6976O/vweWgA3IiNG2O+gUOim7C+Kl686mVQySidw65F67NB1Tff
-t1wS1Jwt7NN5LVj5+9LJXrZGb0hydzO+kxeT2VciQWj5+kuWFraLcTVhlik1U1C/
-7a3DpU+xla1plmqJnLIOQXBZ4lcfp29tiFintXL9dRexF1oZxDWFLn8RJ/m8Ea7X
-xYoEskPxphUWdLNNoly4
-=yAIG
+iQIcBAEBAgAGBQJUO/ZTAAoJEIaOsuA1yqREX2YQAISJkbdj9LvlLe7tZSIGuarp
+NDlfDeTVp4sUbCMaR4MBT/ROQAF1sw96JC+xjDSEHQNkiLsJSVCt+j8U/HUvoTi5
+omsDTrJtNhTWuAGHXIO+e1pUQlCta6efXWdP/6sCXSb28OMHiFARK0ee//+dOFRy
+0jQsp/Dg8dK4zH6eflxfQrr2mVbFRallq6bj1St+LiKX+SIhayyKYRHBXq93kzEG
+dcpt3MKtL62aYMCD/gGbS1/QAuP7Y9/6uCNw9OHf4Ekd+24YeWJGp7Ez/ZZTBymK
+yvXfe8T7lanUrPU+Cnnolyd67sdp7lDUYmWzqiSD7/BzQcDLRibQjj3cNCp5GHz5
+RR8Pq3KuoUlthzbyKYpnWG50exm4uz7yixjTn609KOQ3E5qLxXgcy3Zw9CmuylXo
+W7BKWffHJFYEWdZz4onDbQLZ6Xlf28Y44yhRBO5D6cK2GrTuJ5Kl6lYgF09hYCHa
+/0SFmEBXkcyiW2wD7tl4A6wEJZ9fG11Jxg90DNl9rSoX/D6OXo2uspprJ7zyZ/Pp
+CuawpYi/M8vCIadFRV4d9uNu5QHj31VrAmR6TanddH562za8KXpgMLK71n2zo1Ap
+D+me7jRLM4BIqMErnvEzYjUJePBDN6WSPKtbfgTq6k4zWr2QZAPMs4UlbpB2XAWn
+56Ni+MgytrVzNDzXcFSI
+=NIq4
 -----END PGP SIGNATURE-----
 
---wayzTnRSUXKNfBqd--
+--byLs0wutDcxFdwtm--
 
 
---===============8692125445441232505==
+--===============5694704704566830498==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -120,4 +112,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============8692125445441232505==--
+--===============5694704704566830498==--
