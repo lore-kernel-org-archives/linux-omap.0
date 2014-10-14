@@ -1,58 +1,82 @@
-From: Anton Tikhomirov <av.tikhomirov@samsung.com>
-Subject: RE: [PATCH v2 1/4] dwc3: exynos: Add support for SCLK present on
- Exynos7
-Date: Tue, 14 Oct 2014 10:26:35 +0900
-Message-ID: <001801cfe74d$e4cb23d0$ae616b70$%tikhomirov@samsung.com>
-References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
- <1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
- <00f101cfe6a1$d772c5a0$865850e0$%tikhomirov@samsung.com>
- <543C575A.1030105@gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: RCU bug with v3.17-rc3 ?
+Date: Tue, 14 Oct 2014 04:06:40 +0200
+Message-ID: <20141014020640.GB25433@kroah.com>
+References: <20141009160138.GA2396@cmpxchg.org>
+ <20141009162656.GE16002@saruman>
+ <20141009204101.GA25955@debian>
+ <20141009204637.GE25729@saruman>
+ <20141009210715.GH25729@saruman>
+ <20141010135743.GB31348@saruman>
+ <20141010162531.GL12379@n2100.arm.linux.org.uk>
+ <54388B81.5020306@mentor.com>
+ <063D6719AE5E284EB5DD2968C1650D6D174C996E@AcuExch.aculab.com>
+ <20141013114307.GO12379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ks_c_5601-1987
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <543C575A.1030105@gmail.com>
-Content-language: en-us
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Tomasz Figa' <tomasz.figa@gmail.com>, 'Vivek Gautam' <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kgene.kim@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, kishon@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:54493 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754212AbaJNCHm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Oct 2014 22:07:42 -0400
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+	by gateway2.nyi.internal (Postfix) with ESMTP id E66BD2075F
+	for <linux-omap@vger.kernel.org>; Mon, 13 Oct 2014 22:07:41 -0400 (EDT)
+Content-Disposition: inline
+In-Reply-To: <20141013114307.GO12379@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: David Laight <David.Laight@ACULAB.COM>, 'Nathan Lynch' <Nathan_Lynch@mentor.com>, Felipe Balbi <balbi@ti.com>, Rik van Riel <riel@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "josh@joshtriplett.org" <josh@joshtriplett.org>, Rabin Vincent <rabin@rab.in>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hello,
-
-> Hi Anton,
+On Mon, Oct 13, 2014 at 12:43:07PM +0100, Russell King - ARM Linux wrote:
+> On Mon, Oct 13, 2014 at 09:11:34AM +0000, David Laight wrote:
+> > From: Nathan Lynch
+> > > On 10/10/2014 11:25 AM, Russell King - ARM Linux wrote:
+> > > >
+> > > > Right, so GCC 4.8.{1,2} are totally unsuitable for kernel building (and
+> > > > it seems that this has been known about for some time.)
+> > > 
+> > > Looking at http://gcc.gnu.org/PR58854 it seems that all 4.8.x for x < 3
+> > > are affected, as well as 4.9.0.
+> > > 
+> > > > We can blacklist these GCC versions quite easily.  We already have GCC
+> > > > 3.3 blacklisted, and it's trivial to add others.  I would want to include
+> > > > some proper details about the bug, just like the other existing entries
+> > > > we already have in asm-offsets.c, where we name the functions that the
+> > > > compiler is known to break where appropriate.
+> > > 
+> > > Before blacklisting anything, it's worth considering that simple version
+> > > checks would break existing pre-4.8.3 compilers that have been patched
+> > > for PR58854.  It looks like Yocto and Buildroot issued releases with
+> > > patched 4.8.2 compilers well before the (fixed) 4.8.3 release.  I think
+> > > the most we can reasonably do without breaking some correctly-behaving
+> > > toolchains is to emit a warning.
+> > 
+> > Is it possible to compile a small code fragment and check the generated
+> > code for the bug?
+> > Possibly predicated on the broken version number to avoid false positives.
 > 
-> On 13.10.2014 06:54, Anton Tikhomirov wrote:
-> > Hi Vivek,
-> >
-> >> Exynos7 also has a separate special gate clock going to the IP
-> >> apart from the usual AHB clock. So add support for the same.
-> >
-> > As we discussed before, Exynos7 SoCs have 7 clocks to be controlled
-> > by the driver. Adding only sclk is not enough.
-> >
+> I don't see how - it looks like it requires an interrupt to occur at an
+> opportune moment to provoke the function to fail.  The alternative would
+> be to parse the assembly generated by the compiler to determine how it
+> is dealing with the stack.
 > 
-> I'm quite interested in this discussion. Has it happened on mailing
-> lists?
-
-No, we used company messenger for the discussion.
-
+> I think the only viable solution here is that:
 > 
-> In general, previous SoCs also gave the possibility of controlling all
-> the bus clocks separately, in addition to bulk gates, but there was no
+> 1. We blacklist the bad compiler versions outright in the kernel.
 
-correct
+Yes, please do this, it's what we have done for other buggy compiler
+versions, no need to do something different here.
 
-> real advantage in using those, while burdening the clock tree with
-> numerous clocks. Isn't Exynos7 similar in this aspect?
+> Remember, it's the distro's choice to fix these buggy compilers, so the
+> onus is on _them_ to deal with the mess they've created by doing so.
 
-Exynos7 doesn't have "Gating all clocks for USBDRD30" bit. The clocks
-should be controlled separately.
+I totally agree.
 
-> 
-> Best regards,
-> Tomasz
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is someone going to send this patch, or do I have to write it myself?
+
+thanks,
+
+greg k-h
