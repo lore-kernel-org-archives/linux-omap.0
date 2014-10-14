@@ -1,54 +1,45 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v6 10/18] OMAPDSS: Kconfig: Remove HDMI audio booleans from Kconfig
-Date: Tue, 14 Oct 2014 20:29:29 +0300
-Message-ID: <4f1911097ffc2039b3988e83369c27a70a4154ab.1413306131.git.jsarha@ti.com>
+Subject: [PATCH v6 12/18] OMAPDSS: hdmi.h: Add members to hdmi drvdata for audio implementation
+Date: Tue, 14 Oct 2014 20:29:31 +0300
+Message-ID: <3811cd4b435ab6bff3697a690af0af9070378c9c.1413306131.git.jsarha@ti.com>
 References: <cover.1413306131.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35590 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35598 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755414AbaJNRaA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Oct 2014 13:30:00 -0400
+	id S1755422AbaJNRaD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Oct 2014 13:30:03 -0400
 In-Reply-To: <cover.1413306131.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-The booleans are not used anymore. Just select SND_OMAP_SOC_HDMI_AUDIO
-to enable OMAP HDMI audio support.
+Adds display_enabled flag and audio_abort_cb callback to struct hdmi.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/Kconfig |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/video/fbdev/omap2/dss/hdmi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/video/fbdev/omap2/dss/Kconfig b/drivers/video/fbdev/omap2/dss/Kconfig
-index 3d5eb6c..d1fa730 100644
---- a/drivers/video/fbdev/omap2/dss/Kconfig
-+++ b/drivers/video/fbdev/omap2/dss/Kconfig
-@@ -74,9 +74,6 @@ config OMAP4_DSS_HDMI
- 	help
- 	  HDMI support for OMAP4 based SoCs.
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index 6d129f2..bfaaf2f 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -366,10 +366,12 @@ struct omap_hdmi {
+ 	struct regulator *vdda_reg;
  
--config OMAP4_DSS_HDMI_AUDIO
--	bool
--
- config OMAP5_DSS_HDMI
- 	bool "HDMI support for OMAP5"
- 	default n
-@@ -86,10 +83,6 @@ config OMAP5_DSS_HDMI
- 	  Definition Multimedia Interface. See http://www.hdmi.org/ for HDMI
- 	  specification.
+ 	bool core_enabled;
++	bool display_enabled;
  
--config OMAP5_DSS_HDMI_AUDIO
--	depends on OMAP5_DSS_HDMI
--	bool
--
- config OMAP2_DSS_SDI
- 	bool "SDI support"
-         default n
+ 	struct omap_dss_device output;
+ 
+ 	struct platform_device *audio_pdev;
++	void (*audio_abort_cb)(struct device *dev);
+ };
+ 
+ #endif
 -- 
 1.7.9.5
 
