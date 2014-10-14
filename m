@@ -1,41 +1,42 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v6 06/18] OMAPDSS: hdmi: Add pdev pointer for audio_pdev in HDMI DRV data
-Date: Tue, 14 Oct 2014 20:29:25 +0300
-Message-ID: <edfccd85dbe95035c0b4ff1905ec16623fd38482.1413306131.git.jsarha@ti.com>
+Subject: [PATCH v6 07/18] ASoC: codecs/hdmi: Mark the maximum significant bits to HDMI codec
+Date: Tue, 14 Oct 2014 20:29:26 +0300
+Message-ID: <9d3aa456eb4d753c38fc642bf0a8cd5fdc5af54a.1413306131.git.jsarha@ti.com>
 References: <cover.1413306131.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46969 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755387AbaJNR3y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Oct 2014 13:29:54 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:36077 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755312AbaJNR3z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2014 13:29:55 -0400
 In-Reply-To: <cover.1413306131.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com, Jyri Sarha <jsarha@ti.com>
 
-This is used to store omap-hdmi-audio pdev for unregistering it.
+HDMI audio can not have more than 24 bits even if on i2s bus there
+would be 32 bit samples. Mark this by adding .sig_bits = 24 to
+playback stream definition.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi.h |    2 ++
- 1 file changed, 2 insertions(+)
+ sound/soc/codecs/hdmi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
-index 6bf077b..a6e08ff 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi.h
-+++ b/drivers/video/fbdev/omap2/dss/hdmi.h
-@@ -368,6 +368,8 @@ struct omap_hdmi {
- 	bool core_enabled;
- 
- 	struct omap_dss_device output;
-+
-+	struct platform_device *audio_pdev;
- };
- 
- #endif
+diff --git a/sound/soc/codecs/hdmi.c b/sound/soc/codecs/hdmi.c
+index 1087fd5..2a52b90 100644
+--- a/sound/soc/codecs/hdmi.c
++++ b/sound/soc/codecs/hdmi.c
+@@ -47,6 +47,7 @@ static struct snd_soc_dai_driver hdmi_codec_dai = {
+ 			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000,
+ 		.formats = SNDRV_PCM_FMTBIT_S16_LE |
+ 			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE,
++		.sig_bits = 24,
+ 	},
+ 	.capture = {
+ 		.stream_name = "Capture",
 -- 
 1.7.9.5
 
