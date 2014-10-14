@@ -1,56 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] watchdog: Fix omap watchdogs to enable the magic close bit
-Date: Tue, 14 Oct 2014 12:25:19 -0700
-Message-ID: <20141014192518.GH4972@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: omap USB_DPLL not configured as per manual
+Date: Tue, 14 Oct 2014 22:49:15 +0300
+Message-ID: <543D7E3B.7010503@ti.com>
+References: <543CFF45.4090202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33485 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754705AbaJNT0b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Oct 2014 15:26:31 -0400
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:53009 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754278AbaJNTtX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Oct 2014 15:49:23 -0400
+In-Reply-To: <543CFF45.4090202@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wim Van Sebroeck <wim@iguana.be>
-Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Dziedzic <gostrc@gmail.com>
+To: Roger Quadros <rogerq@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Menon, Nishanth" <nm@ti.com>, "tony@atomide.com" <tony@atomide.com>, Michael Trimarchi <michael@amarulasolutions.com>, "Balbi, Felipe" <balbi@ti.com>, George Cherian <george.cherian@ti.com>
 
-This allows testing the watchdog easily with distros just by
-doing pkill -9 watchdog.
+On 10/14/2014 01:47 PM, Roger Quadros wrote:
+> Hi Tero,
+>
+> The USB_DPLL doesn't have recommended M/N settings as per the TRM [1]
+> Thus the omapconf audit fails.
+>
+> Any ideas of how we can fix this up? Should we add a new clock.ops structure for
+> USB_DPLL to make sure that we don't violate the TRM recommended settings?
+> or should we just add some flags in dpll_data? We would need a new compatible id for sure.
+>
+> [1] - OMAP4460_ES1.x_NDA_TRM_vP.pdf - 3.6.3.9.5 DPLL_USB Preferred Settings
 
-Reported-by: Thomas Dziedzic <gostrc@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+The version of TRM I have doesn't have the recommended settings chapter, 
+I need to download the doc.
 
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -189,7 +189,7 @@ static int omap_wdt_set_timeout(struct watchdog_device *wdog,
- }
- 
- static const struct watchdog_info omap_wdt_info = {
--	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-+	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
- 	.identity = "OMAP Watchdog",
- };
- 
---- a/drivers/watchdog/retu_wdt.c
-+++ b/drivers/watchdog/retu_wdt.c
-@@ -94,7 +94,7 @@ static int retu_wdt_set_timeout(struct watchdog_device *wdog,
- }
- 
- static const struct watchdog_info retu_wdt_info = {
--	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-+	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
- 	.identity = "Retu watchdog",
- };
- 
---- a/drivers/watchdog/twl4030_wdt.c
-+++ b/drivers/watchdog/twl4030_wdt.c
-@@ -57,7 +57,7 @@ static int twl4030_wdt_set_timeout(struct watchdog_device *wdt,
- }
- 
- static const struct watchdog_info twl4030_wdt_info = {
--	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-+	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
- 	.identity = "TWL4030 Watchdog",
- };
- 
+I guess we probably should introduce new fields to the dpll_data for 
+this, does the TRM list an expected minimum divider / multiplier or just 
+a single pair of recommended values? Do the other DPLLs have similar 
+values? Looking at the DM I have here I see a recommended internal 
+reference clock values for the DPLLs (min/max) and is calculated based 
+on the refclk + N value.
+
+-Tero
+
+>
+> panda4460> omapconf audit dpll -d usb
+> |-------------------------------------------------------------------------------------|
+> | DPLL_USB AUDIT (@OPP OPP100, sysclk=38.4MHz) | Current Setting | Expected  | STATUS |
+> |-------------------------------------------------------------------------------------|
+> | Status                                       | Locked          | Locked    | Pass   |
+> | Mode                                         | Lock            | Lock      | Pass   |
+> | Autoidle Mode                                | Auto LPST       | Auto LPST | Pass   |
+> | Low-Power Mode                               | Disabled        | Disabled  | Pass   |
+> | REGM4XEN Mode                                | Disabled        | Disabled  | Pass   |
+> | DCC Mode                                     | Disabled        | Disabled  | Pass   |
+> | M Divider                                    | 25              | 400       | FAIL   |
+> | N Divider                                    | 0               | 15        | FAIL   |
+> | Lock Frequency                               | 960.0MHz        | 960.0MHz  | Pass   |
+> | M2 Divider                                   | 2               | 2         | Pass   |
+> | CLKOUT Output Rate                           | 480.0MHz        | 480.0MHz  | Pass   |
+> | CLKDCOLDO Output Rate                        | 960.0MHz        | 960.0MHz  | Pass   |
+> |-------------------------------------------------------------------------------------|
+>
+> cheers,
+> -roger
+>
+
