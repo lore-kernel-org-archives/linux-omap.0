@@ -1,67 +1,52 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: omap USB_DPLL not configured as per manual
-Date: Wed, 15 Oct 2014 11:22:04 +0300
-Message-ID: <543E2EAC.6010808@ti.com>
-References: <543CFF45.4090202@ti.com> <543D7E3B.7010503@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v6 07/18] ASoC: codecs/hdmi: Mark the maximum significant
+ bits to HDMI codec
+Date: Wed, 15 Oct 2014 12:25:54 +0200
+Message-ID: <20141015102553.GA27755@sirena.org.uk>
+References: <cover.1413306131.git.jsarha@ti.com>
+ <9d3aa456eb4d753c38fc642bf0a8cd5fdc5af54a.1413306131.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EkX7vcqEIssJSBlq"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58766 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751232AbaJOIWJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Oct 2014 04:22:09 -0400
-In-Reply-To: <543D7E3B.7010503@ti.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:55512 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257AbaJOK0P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2014 06:26:15 -0400
+Content-Disposition: inline
+In-Reply-To: <9d3aa456eb4d753c38fc642bf0a8cd5fdc5af54a.1413306131.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Menon, Nishanth" <nm@ti.com>, "tony@atomide.com" <tony@atomide.com>, Michael Trimarchi <michael@amarulasolutions.com>, "Balbi, Felipe" <balbi@ti.com>, George Cherian <george.cherian@ti.com>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, detheridge@ti.com
 
-On 10/14/2014 10:49 PM, Tero Kristo wrote:
-> On 10/14/2014 01:47 PM, Roger Quadros wrote:
->> Hi Tero,
->>
->> The USB_DPLL doesn't have recommended M/N settings as per the TRM [1]
->> Thus the omapconf audit fails.
->>
->> Any ideas of how we can fix this up? Should we add a new clock.ops structure for
->> USB_DPLL to make sure that we don't violate the TRM recommended settings?
->> or should we just add some flags in dpll_data? We would need a new compatible id for sure.
->>
->> [1] - OMAP4460_ES1.x_NDA_TRM_vP.pdf - 3.6.3.9.5 DPLL_USB Preferred Settings
-> 
-> The version of TRM I have doesn't have the recommended settings chapter, I need to download the doc.
-> 
-> I guess we probably should introduce new fields to the dpll_data for this, does the TRM list an expected minimum divider / multiplier or just a single pair of recommended values? Do the other DPLLs have similar values? Looking at the DM I have here I see a recommended internal reference clock values for the DPLLs (min/max) and is calculated based on the refclk + N value.
-> 
 
-At least for the USB_DPLL it is single M:N pair for each possible sysclk frequency.
-For other DPLLs they seem to depend on OPP as well as sys_clk.
+--EkX7vcqEIssJSBlq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-cheers,
--roger
+On Tue, Oct 14, 2014 at 08:29:26PM +0300, Jyri Sarha wrote:
+> HDMI audio can not have more than 24 bits even if on i2s bus there
+> would be 32 bit samples. Mark this by adding .sig_bits = 24 to
+> playback stream definition.
 
->>
->> panda4460> omapconf audit dpll -d usb
->> |-------------------------------------------------------------------------------------|
->> | DPLL_USB AUDIT (@OPP OPP100, sysclk=38.4MHz) | Current Setting | Expected  | STATUS |
->> |-------------------------------------------------------------------------------------|
->> | Status                                       | Locked          | Locked    | Pass   |
->> | Mode                                         | Lock            | Lock      | Pass   |
->> | Autoidle Mode                                | Auto LPST       | Auto LPST | Pass   |
->> | Low-Power Mode                               | Disabled        | Disabled  | Pass   |
->> | REGM4XEN Mode                                | Disabled        | Disabled  | Pass   |
->> | DCC Mode                                     | Disabled        | Disabled  | Pass   |
->> | M Divider                                    | 25              | 400       | FAIL   |
->> | N Divider                                    | 0               | 15        | FAIL   |
->> | Lock Frequency                               | 960.0MHz        | 960.0MHz  | Pass   |
->> | M2 Divider                                   | 2               | 2         | Pass   |
->> | CLKOUT Output Rate                           | 480.0MHz        | 480.0MHz  | Pass   |
->> | CLKDCOLDO Output Rate                        | 960.0MHz        | 960.0MHz  | Pass   |
->> |-------------------------------------------------------------------------------------|
->>
->> cheers,
->> -roger
->>
-> 
+Applied, thanks.  Please use subject lines matching the style for the
+subsystem (no codecs/).
 
+--EkX7vcqEIssJSBlq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUPkuxAAoJECTWi3JdVIfQjjwH/RzFFl4tVHtgWGCDi7sCOnnp
+lFyPVeSgYzloEHfXhVp57wzf6KXyBJkTlifVRJTViPfHwTuRw+cV5OdrdJztITRy
+6XwA6MJZCgCwu0e0x924nAmTQ653od5H0DpNaKiYq67entzVsILZ85iEVwAC5Aew
+KfuqZHq0p7n/lZIqVIpZF+Go4kGFVhr3QFUvCt9Pzc8b2Byb/AeF8uKYpadBC4q9
+jGYa6xbTpDliMRvWof+mx+xLEIDqXLQcAaSenmkRq2y/lhPXe6bRjolD4vGda48p
+kW5qS258V3Y1uq6tczUS0Wk/UKAmTmyN75YNeiy578SsYunLo+LNZS+xrMso2+0=
+=rvsH
+-----END PGP SIGNATURE-----
+
+--EkX7vcqEIssJSBlq--
