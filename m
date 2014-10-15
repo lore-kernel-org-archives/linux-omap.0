@@ -1,69 +1,73 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 09/13] dmaengine: edma: check for echan->edesc => NULL
- in edma_dma_pause()
-Date: Wed, 15 Oct 2014 20:58:42 +0530
-Message-ID: <20141015152842.GZ1638@intel.com>
-References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
- <1412014009-13315-10-git-send-email-bigeasy@linutronix.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
+Date: Wed, 15 Oct 2014 11:55:02 -0500
+Message-ID: <20141015165452.GB15770@saruman>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:41572 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750880AbaJOQFN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Oct 2014 12:05:13 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/Uq4LBwYP4y1W6pO"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1412014009-13315-10-git-send-email-bigeasy@linutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1412881594-25678-1-git-send-email-johan@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org
 
-On Mon, Sep 29, 2014 at 08:06:45PM +0200, Sebastian Andrzej Siewior wrote:
-> I added book keeping of whether or not the 8250-dma driver has an RX
-> transfer pending or not so we don't BUG here if it calls
-> dmaengine_pause() on a channel which has not a pending transfer. Guess
-> what, this is not enough.
-> The following can be triggered with a busy RX channel and hackbench in
-> background:
-> - DMA transfer completes. The callback is delayed via
->   vchan_cookie_complete() into a tasklet so it das not happen asap.
-> - hackbench keeps the system busy so the tasklet does not run "soon".
-> - the UART collected enough data and generates an "timeout"-interrupt.
->   Since 8250-dma *thinks* the DMA-transfer is still pending it tries to
->   cancel it via invoking dmaengine_pause() first. This causes the segfault
->   because echan->edesc is NULL now that the transfer completed (however
->   the callback did not run yet).
-> 
-> With this patch we don't BUG in the scenario described.
+--/Uq4LBwYP4y1W6pO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks
+Hi,
 
--- 
-~Vinod
+On Thu, Oct 09, 2014 at 09:06:22PM +0200, Johan Hovold wrote:
+> This series fixes a few issues with the omap rtc-driver, cleans up a bit
+> and finally adds support for the PMIC control feature found in some
+> revisions of this RTC IP block.
+>=20
+> Ultimately, this allows for powering off the Beaglebone and waking it up
+> again on RTC alarms.
+>=20
+> I noticed yesterday that Lokesh Vutla recently posted some patches to
+> add regulator support to this driver. [1] While that series has some
+> issues that needs to be addressed, I still think it could be a good idea
+> to rebase my pmic_power_en patch on top of it as it adds some long
+> overdue device abstraction. That would be needed anyway in order to
+> support the new power-off infrastructure that's in the pipe in a clean
+> way. [2]
+>=20
+> So my suggestion is to merge the first seven patches, rebase Lokesh
+> series on top of that, and then I rebase my final five patches on top
+> of that in turn. Hopefully, the new power-off handler call chain will
+> have stabilised by then.
 
-> 
-> Cc: vinod.koul@intel.com
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  drivers/dma/edma.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-> index 7b65633f495e..123f578d6dd3 100644
-> --- a/drivers/dma/edma.c
-> +++ b/drivers/dma/edma.c
-> @@ -288,7 +288,7 @@ static int edma_slave_config(struct edma_chan *echan,
->  static int edma_dma_pause(struct edma_chan *echan)
->  {
->  	/* Pause/Resume only allowed with cyclic mode */
-> -	if (!echan->edesc->cyclic)
-> +	if (!echan->edesc || !echan->edesc->cyclic)
->  		return -EINVAL;
->  
->  	edma_pause(echan->ch_num);
-> -- 
-> 2.1.0
-> 
+BTW, how do you test this series ?
 
--- 
+--=20
+balbi
+
+--/Uq4LBwYP4y1W6pO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUPqbmAAoJEIaOsuA1yqREmVgQAKjVt1z/XvKk5bIVglQNVmtG
+CpBtbKrVwb5I72/ZDpXSgYb8GkW7vULXXZWZeSXz/EEQ9wSL07B8dr+6/mhXgVk8
+/nCgUJjMv6FLr82F1XKsVZ8ZfYO9pIk9zc2UQUCtXiqRu+rNueFHAPRAuZ+fYDnO
+HXE8D2IOSfQGF2QSAgeYD5LxdFQiLBsHauUl1usavlgyJDD5cPIhxug6IEJSCdfM
+BmanVWCS8gl2s3Q5PyTAb7nBlXc6ZXdgqJnpWvqmoMN9HYGLK8RcMspEZD04wcIe
+OINRDf825X40TrjkRuvbmqBlV9flHxbjd0LokSpE6Uy0MM3GCdSL8JbvoDbFstzD
+rybdJZqLqAmAWvjDtQe1RieIhK78Y698nDIsxIvMZkP/fI1G4oBLnttnZKxISC5G
+g3AfM3m0xLC8+xIlZ9/2MkkPKofEz+g+dUI9ik42AS6+H2QxfkKQ5HQn9k5EeuXH
+w6VbAs3xMIEq/q3MvnZ1bxk6cNDYfH1jyIzEhCyrH5l1nPco9CCMawUTTa5FqEGc
+bnqE8O/BB617AZwDOOkKPS2q5Drey8nzrGeaFkrKwJcnLyxJZJCyLWwqiv0I+Ktn
++1wMWA8MGLX2bHiC2xerUCBU2ON22h4uXdtMaXByiZ6hVp17kt5nh8UOp890b5Y8
+MXVuBtgOgDFBZeHVlEtR
+=Es/r
+-----END PGP SIGNATURE-----
+
+--/Uq4LBwYP4y1W6pO--
