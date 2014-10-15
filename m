@@ -1,40 +1,94 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Wed, 15 Oct 2014 22:25:13 +0100
-Message-ID: <20141015212513.GA3247@n2100.arm.linux.org.uk>
-References: <20141009204101.GA25955@debian>
- <20141009204637.GE25729@saruman>
- <20141009210715.GH25729@saruman>
- <20141010135743.GB31348@saruman>
- <20141010162531.GL12379@n2100.arm.linux.org.uk>
- <54388B81.5020306@mentor.com>
- <063D6719AE5E284EB5DD2968C1650D6D174C996E@AcuExch.aculab.com>
- <20141013114307.GO12379@n2100.arm.linux.org.uk>
- <20141014020640.GB25433@kroah.com>
- <20141015212310.GP12379@n2100.arm.linux.org.uk>
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: [PATCH] ARM: Blacklist GCC 4.8.0 to GCC 4.8.2 - PR58854
+Date: Wed, 15 Oct 2014 22:56:39 +0100
+Message-ID: <E1XeWYh-0004Mw-FC@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:35138 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750721AbaJOV4v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Oct 2014 17:56:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20141015212310.GP12379-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>, 'Nathan Lynch' <Nathan_Lynch-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org" <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>, Rabin Vincent <rabin-66gdRtMMWGc@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Sasha Levin <sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nathan Lynch <Nathan_Lynch@mentor.com>, David Laight <David.Laight@ACULAB.COM>, Peter Hurley <peter@hurleysoftware.com>, Otavio Salvador <otavio@ossystems.com.br>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Oct 15, 2014 at 10:23:10PM +0100, Russell King - ARM Linux wrote:
-> As I said, I have a patch in progress, but it seems that there needed
-> to be some discussion about exactly which compiler versions are affected.
-> It seems that it's not as trivial as looking at the GCC bug entry.
+These stock GCC versions miscompile the kernel by incorrectly optimising
+the function epilogue code - by first increasing the stack pointer, and
+then loading entries from below the stack.  This means that an opportune
+interrupt or exception will corrupt the current function's saved state,
+which may result in the parent function seeing different register
+values.
 
-... and in any case, it has been a known bug for well over a year now,
-and it seems that it doesn't affect _that_ many people.  So taking some
-extra time to get it properly correct is the _right_ thing to do.
+As this bug has been known to result in corrupted filesystems, and these
+buggy compiler versions seem to be frequently used, we have little
+option but to blacklist these compiler versions.
 
+Distributions may have fixed PR58854, but as their compilers are totally
+indistinguishable from the buggy versions, it is unfortunate that this
+also results in those also being blacklisted.  Given the filesystem
+corruption potential of the original, this is the lesser evil.  People
+who want to build with their fixed compiler versions will need to adjust
+the kernel source.  (Distros need to think about the implications of
+fixing such a compiler bug, and consider how to ensure that their fixed
+compiler versions can be detected if they wish to avoid this.)
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+
+This is what I came up with - this places the build check right at the
+beginning of the kernel build, rather than at some point where
+linux/compiler.h gets included.  Note that this is where we have
+previous ARM specific GCC version blacklisting.  I'm blacklisting
+GCC 4.8.0 to GCC 4.8.2 inclussive, which seems to be the right versions
+for stock GCC.
+
+I was in two minds whether to include 4.8.3 as Linaro released a buggy
+toolchain which identifies itself as 4.8.3, but I decided that's also
+a distro problem.  IMHO Linaro should really think about taking that
+compiler down given the seriousness of this bug and it being
+indistinguishable from the fixed stock version.
+
+ arch/arm/kernel/asm-offsets.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
+index 713e807621d2..e14c1a12b414 100644
+--- a/arch/arm/kernel/asm-offsets.c
++++ b/arch/arm/kernel/asm-offsets.c
+@@ -10,6 +10,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <linux/compiler.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+ #include <linux/dma-mapping.h>
+@@ -39,10 +40,19 @@
+  * GCC 3.2.x: miscompiles NEW_AUX_ENT in fs/binfmt_elf.c
+  *            (http://gcc.gnu.org/PR8896) and incorrect structure
+  *	      initialisation in fs/jffs2/erase.c
++ * GCC 4.8.0-4.8.2: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58854
++ *	      miscompiles find_get_entry(), and can result in EXT3 and EXT4
++ *	      filesystem corruption (possibly other FS too).
+  */
++#ifdef __GNUC__
+ #if (__GNUC__ == 3 && __GNUC_MINOR__ < 3)
+ #error Your compiler is too buggy; it is known to miscompile kernels.
+-#error    Known good compilers: 3.3
++#error    Known good compilers: 3.3, 4.x
++#endif
++#if GCC_VERSION >= 40800 || GCC_VERSION < 40803
++#error Your compiler is too buggy; it is known to miscompile kernels
++#error and result in filesystem corruption and oopses.
++#endif
+ #endif
+ 
+ int main(void)
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.8.3.1
+
