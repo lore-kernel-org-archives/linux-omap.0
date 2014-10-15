@@ -1,128 +1,104 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/3] video: fbdev: omap2: omapfb: remove __exit annotation
-Date: Wed, 15 Oct 2014 09:41:40 -0500
-Message-ID: <20141015144140.GD10888@saruman>
-References: <1413311335-25083-1-git-send-email-balbi@ti.com>
- <543E64EE.4070104@ti.com>
+Subject: Re: [PATCH] watchdog: Fix omap watchdogs to enable the magic close
+ bit
+Date: Wed, 15 Oct 2014 09:42:24 -0500
+Message-ID: <20141015144224.GE10888@saruman>
+References: <20141014192518.GH4972@atomide.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hoZxPH4CaxYzWscb"
+	protocol="application/pgp-signature"; boundary="wTWi5aaYRw9ix9vO"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44987 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59200 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751544AbaJOOmM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Oct 2014 10:42:12 -0400
+	id S1751447AbaJOOmg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Oct 2014 10:42:36 -0400
 Content-Disposition: inline
-In-Reply-To: <543E64EE.4070104@ti.com>
+In-Reply-To: <20141014192518.GH4972@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, Darren Etheridge <detheridge@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Dziedzic <gostrc@gmail.com>
 
---hoZxPH4CaxYzWscb
+--wTWi5aaYRw9ix9vO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Wed, Oct 15, 2014 at 03:13:34PM +0300, Tomi Valkeinen wrote:
-> Hi,
+On Tue, Oct 14, 2014 at 12:25:19PM -0700, Tony Lindgren wrote:
+> This allows testing the watchdog easily with distros just by
+> doing pkill -9 watchdog.
 >=20
-> On 14/10/14 21:28, Felipe Balbi wrote:
-> > if we leave __exit annotation, driver can't be unbound
-> > through sysfs.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> >=20
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/v=
-ideo/fbdev/omap2/omapfb/omapfb-main.c
-> > index ec2d132..9cbf1ce 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-> > @@ -2619,7 +2619,7 @@ err0:
-> >  	return r;
-> >  }
-> > =20
-> > -static int __exit omapfb_remove(struct platform_device *pdev)
-> > +static int omapfb_remove(struct platform_device *pdev)
-> >  {
-> >  	struct omapfb2_device *fbdev =3D platform_get_drvdata(pdev);
-> > =20
-> > @@ -2636,7 +2636,7 @@ static int __exit omapfb_remove(struct platform_d=
-evice *pdev)
-> > =20
-> >  static struct platform_driver omapfb_driver =3D {
-> >  	.probe		=3D omapfb_probe,
-> > -	.remove         =3D __exit_p(omapfb_remove),
-> > +	.remove         =3D omapfb_remove,
-> >  	.driver         =3D {
-> >  		.name   =3D "omapfb",
-> >  		.owner  =3D THIS_MODULE,
+> Reported-by: Thomas Dziedzic <gostrc@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
 >=20
-> Interesting. I don't know if I'm doing something funny, but without this
-> patch, I can unbind omapfb, kind of.
->=20
-> "echo omapfb > unbind" goes ok, but remove is obviously not called.
-
-remove isn't called because it won't exist if it's built-in. Look at the
-definition of __exit_p()
-
-> Somehow omapfb device is still unbound from the driver, as I can then
-> bind it again, causing probe to be called. Which breaks everything.
->=20
-> I would've thought that unbinding is not possible if remove is missing,
-> but that doesn't seem to be the case. I guess it just means that remove
-> is not called when the driver & device are unbound.
-
-if no remove it provided on platform_driver structure, platform bus
-assumes you have nothing to do on your ->remove(), so you end up leaking
-all resources you allocated on ->probe() (unless you *really* don't need
-to do anything on ->remove).
-
-> We have 18 __exit_p()s in omapdss and related drivers. I guess they are
-> all broken the same way.
-
-yup, I should've grepped.
-
-> Note that omapfb unbind & bind does not work even with this patch, but
-> results in a crash as some old state is left into omapdss. The same
-> happens also with unloading and loading omapfb module (but keeping
-> omapdss module loaded).
-
-It worked fine for me. I unbound and bound omapfb multiple times.
-
-> So there seems to be more issues around this.
-
-quite a few more, I'd say
+> --- a/drivers/watchdog/omap_wdt.c
+> +++ b/drivers/watchdog/omap_wdt.c
+> @@ -189,7 +189,7 @@ static int omap_wdt_set_timeout(struct watchdog_devic=
+e *wdog,
+>  }
+> =20
+>  static const struct watchdog_info omap_wdt_info =3D {
+> -	.options =3D WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+> +	.options =3D WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
+>  	.identity =3D "OMAP Watchdog",
+>  };
+> =20
+> --- a/drivers/watchdog/retu_wdt.c
+> +++ b/drivers/watchdog/retu_wdt.c
+> @@ -94,7 +94,7 @@ static int retu_wdt_set_timeout(struct watchdog_device =
+*wdog,
+>  }
+> =20
+>  static const struct watchdog_info retu_wdt_info =3D {
+> -	.options =3D WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+> +	.options =3D WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
+>  	.identity =3D "Retu watchdog",
+>  };
+> =20
+> --- a/drivers/watchdog/twl4030_wdt.c
+> +++ b/drivers/watchdog/twl4030_wdt.c
+> @@ -57,7 +57,7 @@ static int twl4030_wdt_set_timeout(struct watchdog_devi=
+ce *wdt,
+>  }
+> =20
+>  static const struct watchdog_info twl4030_wdt_info =3D {
+> -	.options =3D WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+> +	.options =3D WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
+>  	.identity =3D "TWL4030 Watchdog",
+>  };
+> =20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --=20
 balbi
 
---hoZxPH4CaxYzWscb
+--wTWi5aaYRw9ix9vO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUPoekAAoJEIaOsuA1yqREZpMP/0G3EgRfFWOZXhyspHIwIkvW
-HQ1f6YeYCttLrCGdKa28STKo1HiJRkI5EVrewuKkimKytl7S88OM22HeaCF61lS+
-B9cWEy8GzkBVP7qdwFjX4KFag3Q2tYuqaavd22AkjwuTZu4nNO2KRKzeWBWo3qb8
-AKMlLm1La44tcQPjs0pAoTJNJ36hsiavY7RdmNGvthO3WD/o++pDT8JyRuhgPWgm
-tHc+JF1VoqDz/gx6mi7F8+pUO60l1pbPmXErIUdtyC8vRHlWQiM+g+UAXK6VSCGa
-idkhd/FQFow/sJgl4NiTo3s57obkJmYQXBrQTttWYjpSyiM+Kv+Uz+dj8s+7k3IU
-4opCT7IGu/seup7FB/iH0t85apiJXzoxI3J+ZEWcIRkB1dN+NVh5Oo3p/Ovf1cq7
-5vBMk+5KwFnDH0RxlWbK287S1A/PLLVkp5UlV5tol4kXxlVWPXarJ+GBKnGru8lN
-Ufc/toDPftB0+1LZcvXEUYzU6Fbj5z6+/wq9Ihn9pdZAwEjvP5GdedDhzTfnKekU
-uxmI4NM2UdAjaxXmlya1zo5utlG3WW0t2/EkjcVC/itrbOpN9E43bogvG0jHf3Al
-Gb4pkqtLoiIvIszkS9INiv4iCQhg6/lBs0W1QS5O8xy3OiX+N6yfEhK57tXO0oH1
-ehcL62ehVnidjJqV37WP
-=f0Y2
+iQIcBAEBAgAGBQJUPofQAAoJEIaOsuA1yqRE7hoQAK41KMk+fbksOoVtu8i+x9zH
+a8FBV0OsvmIl7qe5D4eVI7bqEy2Cp6JvACOyJB9fLoc7HWkn05BT+PAIMyI+y4fp
+QXe7RLV3iZa3DX5Ao04uBoG3j5yEhBXizo0RvouS77pYSm7GGyhN2QOnVU5I/0yR
+Y6Y11Aq7Sne0HeNJJ0r7A5C/Deej1vj2Sc/GM9RmEZ4F0PyCKvxAXoYQLVcBiV74
+wLNyQbQsBVL6IedsdzR926k1op1v7as5ylyLjbA2BobpBT8zF6oJMXj99UXNz8XN
+7Y8mKAl2a/lvrv7IpMBq8hSTpK2ljIwPc42kV5A+Ghm95yuNRVdVBlizjOuiV9BQ
+dA4gmL2jstbl2AqmWPR7BHl/HCt3d8bQ9JfImdLr5HPdBufBWqjrKLDkOxNC3Von
+wEjZlgYEMoMv8iXiKg6mDsezNahPvloLug3hoSB+v+x9v0ruaoLxyioJJCbgTk1m
+cAcDTCjJ9tbSo6NcaYvLebeYBrF4xdqf+5f97oEOTpwUKIi/doNZ3RRRxpBTpVX6
+U4bhmfyKJbiHqyFq7S0+BNEg6HU8QRSJYzKCCcVhUcjhSzYOUhFJs37b7iWzSFHi
+kWpKbIkOOX4TiSD8LNrfoEzvN7gK7UYos2rRZBCJt6qpJ0RWLKZWg/YFuHpcvYIM
+RdIPTBOAQZQe+E34bd+d
+=qGCA
 -----END PGP SIGNATURE-----
 
---hoZxPH4CaxYzWscb--
+--wTWi5aaYRw9ix9vO--
