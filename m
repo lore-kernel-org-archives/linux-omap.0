@@ -1,104 +1,98 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] watchdog: Fix omap watchdogs to enable the magic close
- bit
-Date: Wed, 15 Oct 2014 09:42:24 -0500
-Message-ID: <20141015144224.GE10888@saruman>
-References: <20141014192518.GH4972@atomide.com>
+Subject: Re: [PATCH v2 1/4] dwc3: exynos: Add support for SCLK present on
+ Exynos7
+Date: Wed, 15 Oct 2014 09:50:31 -0500
+Message-ID: <20141015145031.GA11511@saruman>
+References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com>
+ <1412677176-3850-2-git-send-email-gautam.vivek@samsung.com>
+ <00f101cfe6a1$d772c5a0$865850e0$%tikhomirov@samsung.com>
+ <20141013224409.GB1496@saruman>
+ <CAFp+6iEKkHxJNzkf+LOWJHtOhtZMe7HG_Vg97_NLfhJw11SQpA@mail.gmail.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wTWi5aaYRw9ix9vO"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59200 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751447AbaJOOmg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Oct 2014 10:42:36 -0400
+	protocol="application/pgp-signature"; boundary="ibTvN161/egqYuK8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141014192518.GH4972@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAFp+6iEKkHxJNzkf+LOWJHtOhtZMe7HG_Vg97_NLfhJw11SQpA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: Felipe Balbi <balbi@ti.com>, Anton Tikhomirov <av.tikhomirov@samsung.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Kukjin Kim <kgene.kim@samsung.com>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, robh+dt <robh+dt@kernel.org>, kishon <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Dziedzic <gostrc@gmail.com>
 
---wTWi5aaYRw9ix9vO
+--ibTvN161/egqYuK8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 14, 2014 at 12:25:19PM -0700, Tony Lindgren wrote:
-> This allows testing the watchdog easily with distros just by
-> doing pkill -9 watchdog.
->=20
-> Reported-by: Thomas Dziedzic <gostrc@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi,
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
+On Tue, Oct 14, 2014 at 10:25:00AM +0530, Vivek Gautam wrote:
+> Hi Felipe,
 >=20
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -189,7 +189,7 @@ static int omap_wdt_set_timeout(struct watchdog_devic=
-e *wdog,
->  }
-> =20
->  static const struct watchdog_info omap_wdt_info =3D {
-> -	.options =3D WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-> +	.options =3D WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
->  	.identity =3D "OMAP Watchdog",
->  };
-> =20
-> --- a/drivers/watchdog/retu_wdt.c
-> +++ b/drivers/watchdog/retu_wdt.c
-> @@ -94,7 +94,7 @@ static int retu_wdt_set_timeout(struct watchdog_device =
-*wdog,
->  }
-> =20
->  static const struct watchdog_info retu_wdt_info =3D {
-> -	.options =3D WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-> +	.options =3D WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
->  	.identity =3D "Retu watchdog",
->  };
-> =20
-> --- a/drivers/watchdog/twl4030_wdt.c
-> +++ b/drivers/watchdog/twl4030_wdt.c
-> @@ -57,7 +57,7 @@ static int twl4030_wdt_set_timeout(struct watchdog_devi=
-ce *wdt,
->  }
-> =20
->  static const struct watchdog_info twl4030_wdt_info =3D {
-> -	.options =3D WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-> +	.options =3D WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
->  	.identity =3D "TWL4030 Watchdog",
->  };
-> =20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+> On Tue, Oct 14, 2014 at 4:14 AM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > On Mon, Oct 13, 2014 at 01:54:59PM +0900, Anton Tikhomirov wrote:
+> >> Hi Vivek,
+> >>
+> >> > Exynos7 also has a separate special gate clock going to the IP
+> >> > apart from the usual AHB clock. So add support for the same.
+> >>
+> >> As we discussed before, Exynos7 SoCs have 7 clocks to be controlled
+> >> by the driver. Adding only sclk is not enough.
+> >>
+> >> >
+> >> > Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> >> > ---
+> >> >  drivers/usb/dwc3/dwc3-exynos.c |   16 ++++++++++++++++
+> >> >  1 file changed, 16 insertions(+)
+> >> >
+> >> > diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-
+> >> > exynos.c
+> >> > index 3951a65..7dc6a98 100644
+> >> > --- a/drivers/usb/dwc3/dwc3-exynos.c
+> >> > +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> >> > @@ -35,6 +35,7 @@ struct dwc3_exynos {
+> >> >     struct device           *dev;
+> >> >
+> >> >     struct clk              *clk;
+> >>
+> >> The clock "clk" in Exynos5 just gated all that above 7 clocks, which
+> >> we should control separately now in Exynos7.
+> >>
+> >
+> > should I drop this patch for now ?
+>=20
+> Yes, better to hold this for some time till we get more clarity
+> from our h/w team.
+
+now dropped. Please a new one if needed.
 
 --=20
 balbi
 
---wTWi5aaYRw9ix9vO
+--ibTvN161/egqYuK8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUPofQAAoJEIaOsuA1yqRE7hoQAK41KMk+fbksOoVtu8i+x9zH
-a8FBV0OsvmIl7qe5D4eVI7bqEy2Cp6JvACOyJB9fLoc7HWkn05BT+PAIMyI+y4fp
-QXe7RLV3iZa3DX5Ao04uBoG3j5yEhBXizo0RvouS77pYSm7GGyhN2QOnVU5I/0yR
-Y6Y11Aq7Sne0HeNJJ0r7A5C/Deej1vj2Sc/GM9RmEZ4F0PyCKvxAXoYQLVcBiV74
-wLNyQbQsBVL6IedsdzR926k1op1v7as5ylyLjbA2BobpBT8zF6oJMXj99UXNz8XN
-7Y8mKAl2a/lvrv7IpMBq8hSTpK2ljIwPc42kV5A+Ghm95yuNRVdVBlizjOuiV9BQ
-dA4gmL2jstbl2AqmWPR7BHl/HCt3d8bQ9JfImdLr5HPdBufBWqjrKLDkOxNC3Von
-wEjZlgYEMoMv8iXiKg6mDsezNahPvloLug3hoSB+v+x9v0ruaoLxyioJJCbgTk1m
-cAcDTCjJ9tbSo6NcaYvLebeYBrF4xdqf+5f97oEOTpwUKIi/doNZ3RRRxpBTpVX6
-U4bhmfyKJbiHqyFq7S0+BNEg6HU8QRSJYzKCCcVhUcjhSzYOUhFJs37b7iWzSFHi
-kWpKbIkOOX4TiSD8LNrfoEzvN7gK7UYos2rRZBCJt6qpJ0RWLKZWg/YFuHpcvYIM
-RdIPTBOAQZQe+E34bd+d
-=qGCA
+iQIcBAEBAgAGBQJUPom3AAoJEIaOsuA1yqREa7wP/Albssa+SpegQ4V4/1z6k/sB
+klRtejJ8nTp0PVhF0R3JIdrMCqlzYgct29hzj1pShFhye9aD9OqZVixETNE2eEif
+FX5JFZ/9XojyqlH4ejliL43pVz8aabG2Bqw6MKv2xgW06tRMM2OeFAubVGFLK+H9
+Ibb+P640tXwpKxa1+Ys1BhJWciGsp9a40JOjMX/k8LD4tDWpErFsvUwlj6qqlNb+
+JOVtLGsku8Fi1ByVFogiqOX2sVzPpm0h5gGrYEK1qm97RKBgWTgZw12dMxWoUXoV
+wUhmutXn+7GPJr/FslTt8v8raKDU+p+g7usHoxh/lgdnhQ6+W4U47Ezth+rfZYwi
+fbbPJIqVRSUml/tmDN42lin5PvO+revYJ1KbycLCTWOUb/18VLGbXkusmy+a3hVl
+k+6SbGNa99NysEAGpGKx6mbzpXOdOqYWfnpP3+i82+NRQslIEWzTs9lGP7cnPG66
+dpPSxEPmT1+MJlGB1uaz3v5/LZkbOrzJAK88aLHg7jMefQAFhJlKq7XhFUhINfdr
+LcLtkwRWI3P6BkcvlKrGAvqU5kWeVS6AsbbqXp6OyQ6WF8Vw9k1aiut3iA0YhP2p
+VaH3mKrcSFHJmVl/sWtP/8eY1Cta0x1CsXWbXHC2K49EigicbPYd3f7o7LxUMoiN
+GL4Zo8Fs7tDtoqLfeQ7l
+=9djE
 -----END PGP SIGNATURE-----
 
---wTWi5aaYRw9ix9vO--
+--ibTvN161/egqYuK8--
