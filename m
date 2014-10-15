@@ -1,19 +1,23 @@
 From: Vinod Koul <vinod.koul@intel.com>
 Subject: Re: [PATCH 09/13] dmaengine: edma: check for echan->edesc => NULL
  in edma_dma_pause()
-Date: Wed, 15 Oct 2014 20:57:00 +0530
-Message-ID: <20141015152700.GY1638@intel.com>
+Date: Wed, 15 Oct 2014 20:58:42 +0530
+Message-ID: <20141015152842.GZ1638@intel.com>
 References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
  <1412014009-13315-10-git-send-email-bigeasy@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:41572 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750880AbaJOQFN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Oct 2014 12:05:13 -0400
 Content-Disposition: inline
 In-Reply-To: <1412014009-13315-10-git-send-email-bigeasy@linutronix.de>
-Sender: linux-serial-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org
-List-Id: linux-omap@vger.kernel.org
 
 On Mon, Sep 29, 2014 at 08:06:45PM +0200, Sebastian Andrzej Siewior wrote:
 > I added book keeping of whether or not the 8250-dma driver has an RX
@@ -33,10 +37,11 @@ On Mon, Sep 29, 2014 at 08:06:45PM +0200, Sebastian Andrzej Siewior wrote:
 > 
 > With this patch we don't BUG in the scenario described.
 
-Applied thanks
+Applied, thanks
 
 -- 
 ~Vinod
+
 > 
 > Cc: vinod.koul@intel.com
 > Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
