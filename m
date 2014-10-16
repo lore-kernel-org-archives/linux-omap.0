@@ -1,65 +1,69 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 2/5] OMAPFB: remove wrong __exit and __exit_p()
-Date: Thu, 16 Oct 2014 08:19:39 -0500
-Message-ID: <20141016131939.GB3480@saruman>
-References: <1413452387-25452-1-git-send-email-tomi.valkeinen@ti.com>
- <1413452387-25452-2-git-send-email-tomi.valkeinen@ti.com>
-Reply-To: <balbi@ti.com>
+Date: Thu, 16 Oct 2014 16:23:00 +0300
+Message-ID: <543FC6B4.4060304@ti.com>
+References: <1413452387-25452-1-git-send-email-tomi.valkeinen@ti.com> <1413452387-25452-2-git-send-email-tomi.valkeinen@ti.com> <20141016131939.GB3480@saruman>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qcHopEYAB45HaUaB"
+	protocol="application/pgp-signature";
+	boundary="A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48062 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:48215 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316AbaJPNTs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2014 09:19:48 -0400
-Content-Disposition: inline
-In-Reply-To: <1413452387-25452-2-git-send-email-tomi.valkeinen@ti.com>
+	with ESMTP id S1752165AbaJPNXE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2014 09:23:04 -0400
+In-Reply-To: <20141016131939.GB3480@saruman>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: balbi@ti.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
---qcHopEYAB45HaUaB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 16, 2014 at 12:39:44PM +0300, Tomi Valkeinen wrote:
-> omapfb device can be unbound, so using __exit_p() for the driver's
-> remove callback is wrong.
+On 16/10/14 16:19, Felipe Balbi wrote:
+> On Thu, Oct 16, 2014 at 12:39:44PM +0300, Tomi Valkeinen wrote:
+>> omapfb device can be unbound, so using __exit_p() for the driver's
+>> remove callback is wrong.
+>>
+>> Remove __exit_p() and __exit from the driver's remove.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 >=20
-> Remove __exit_p() and __exit from the driver's remove.
+> and why was my version dropped ?
 >=20
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> http://marc.info/?l=3Dlinux-fbdev&m=3D141331137230988&w=3D2
 
-and why was my version dropped ?
+Oh, sorry, for no reason. I started from scratch as there seemed to be
+enough issues there, and didn't remember you had the exact same patch.
+I'll use yours instead of my version.
 
-http://marc.info/?l=3Dlinux-fbdev&m=3D141331137230988&w=3D2
+ Tomi
 
---=20
-balbi
 
---qcHopEYAB45HaUaB
+
+--A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUP8XrAAoJEIaOsuA1yqREgDAQAIJYW4IWUg65yuGQXOVHDGp7
-Dj6+i1llYQrO19i51SjgzX3UB21hCZY3yib2r7QcZf6vXCw3qdpT7z7l9yVZEG7m
-WMRRtYCTT1PbA6r7rbTaOQjsVhwZ3g4rxmVSpV9pe2l6axiDA0ItMiCu5gphHLdt
-wqKAoMdGqYZMMOW8H0Ixqn9CilQkawIXb9f5m5P+C/Bw56OdnpwdfoVP+fgrTz6b
-xa8GEHlNxlpY9fm/cAlM+CSqnO6P4RMxpL2P6tpf80uyidsDkRO/7NkSi3xPdua5
-ERjvhLVQduyA7wfW7rK12K8iknIXVUc6QBynD0Vklp7imtlqvqYonpowHoorpdvg
-1a32YNsKVxe+EOb4ILepmfIA86N/mdi5zxqZndGEwVweBEsdQotpHy9DbIY4unqj
-tZbxGmUoRs06xw8x2Ho4gErLwpKIs+QCz7iBBApgpRDcLLLszXlGM7/fVs7toj3X
-ltj7lnDMLEUn5ZbLMuNQ4AnHJK4unv7OZ0PSbKHfrnooBu8pezmbhkzjIM2eZtDv
-2Z0Lk9lFoAhixGlSNHbk9suGvaQ6zi+AViL17bZF7DhPc9aYta41jgoCJP6DVc1p
-U2J9095RTxXqXFNBF3wP8ESLJ887t8FN9Pq0yNYZR28icphnBke2sKq3KC+TmfUr
-wSYDS7OWosreXVfI565a
-=yIRh
+iQIcBAEBAgAGBQJUP8a0AAoJEPo9qoy8lh71UEkP/14mzsSjbdDqJ1Ttfbv0OXnR
+bMLvYQ0YlURTo/3NT6xmZRMvLNT8w7q/ujAfjWYFmtFQeYOJAS7OaE8NZQ5MohtT
+W5pEYwsHJdI0TXaBWzSQA+NcozAHmX+CxsvlhiNHrqvYasm1h1Z3ReRRLjHJzIJF
+2DvddHrkB53MzjWrnK1uHDnwvEgnFYajgc5nYu8jNc2dA1yK180+miqpCHyzeMGg
+gmCGx+KzNWvdE2pbTIPj09App6R2KfZn430d1/RFr+CBwLDQBybzj3mcm8dSgZWS
+lo/FC+1yp00sA9jpJ3cUFU5bXmvdeLXt7U4CgSE6BwlP0s2TZqzGJAH+3S4n5rHK
+myuyBI+qwd8oniwcsNetpQQFcLr47EwSUoZBEfxK69tBcccoJO8NOriZvnev3tW5
+yx/hHXgFl8qfIlL21Gm4OS+2Jvcp/CkWFzzWAf+Rxn+20pGQm8VAKksAHZLT5+qa
+f20so+V992+42zf7YHTBrnqfMEd+xbi8IXKTpHZWTTwZk8nNtjMQbYZXTayZiube
+Ub5xitZu5ohznieqQURXqnWot8zBlTnw+V6Jjbryiscz1z8efotMb8p/6dwgGBbn
+aGjWdrrbbiEfAId/rB9XMuCzGBKpRAwNxArCUmtZDoEEa3h79wsL94V2K6TPie4I
+Sn91BUlGs1cOMNFgK86R
+=PP7L
 -----END PGP SIGNATURE-----
 
---qcHopEYAB45HaUaB--
+--A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB--
