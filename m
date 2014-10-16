@@ -1,69 +1,59 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/5] OMAPFB: remove wrong __exit and __exit_p()
-Date: Thu, 16 Oct 2014 16:23:00 +0300
-Message-ID: <543FC6B4.4060304@ti.com>
-References: <1413452387-25452-1-git-send-email-tomi.valkeinen@ti.com> <1413452387-25452-2-git-send-email-tomi.valkeinen@ti.com> <20141016131939.GB3480@saruman>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [REPOST PATCH 0/2] ARM: OMAP3+: VCVP mapping fixes to get DVFS working
+Date: Thu, 16 Oct 2014 16:21:29 +0200
+Message-ID: <CAFqH_512uU6ztmN6wh2WSb==pBZiQE8e+tmeyXFiQWYqj50V_g@mail.gmail.com>
+References: <1412949989-20186-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48215 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165AbaJPNXE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2014 09:23:04 -0400
-In-Reply-To: <20141016131939.GB3480@saruman>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:50230 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218AbaJPOVb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2014 10:21:31 -0400
+Received: by mail-wg0-f47.google.com with SMTP id x13so3869687wgg.30
+        for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2014 07:21:29 -0700 (PDT)
+In-Reply-To: <1412949989-20186-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, lgirdwood@gmail.com, nm@ti.com, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 
---A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 16/10/14 16:19, Felipe Balbi wrote:
-> On Thu, Oct 16, 2014 at 12:39:44PM +0300, Tomi Valkeinen wrote:
->> omapfb device can be unbound, so using __exit_p() for the driver's
->> remove callback is wrong.
->>
->> Remove __exit_p() and __exit from the driver's remove.
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->=20
-> and why was my version dropped ?
->=20
-> http://marc.info/?l=3Dlinux-fbdev&m=3D141331137230988&w=3D2
+2014-10-10 16:06 GMT+02:00 Tero Kristo <t-kristo@ti.com>:
+> Hi,
+>
+> Seems like MPU DVFS does not scale the voltages currently with DT boot,
+> due to missing mapping between regulator -> VCVP. Fixed this by adding
+> support for platform data in the TWL regulator DT case + adding platform
+> data quirk for the same. This same already works in the legacy boot, the
+> platform data is passed fine.
+>
+> Tested on omap3-beagle by measuring the MPU voltage rail.
+>
+> OMAP4+ platforms do not currently register DVFS regulator, so this set by
+> itself does not fix OMAP4 (needs the TPS MPU regulator added to DT etc.
+> for OMAP4460.)
+>
+> -Tero
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Oh, sorry, for no reason. I started from scratch as there seemed to be
-enough issues there, and didn't remember you had the exact same patch.
-I'll use yours instead of my version.
+Tony proposed in the IRC apply this patch series in order to solve the
+following error messages with kernel 3.17
 
- Tomi
+[    2.522949] omap2_set_init_voltage: unable to find boot up OPP for
+vdd_mpu_iva
+[    2.533721] omap2_set_init_voltage: unable to set vdd_mpu_iva
+[    2.541564] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+[    2.551208] omap2_set_init_voltage: unable to set vdd_core
 
+I'm using omap3-igep0020, I didn't mesure the MPU voltage rail but
+should these patches solve these errors ? Did you resolve these errors
+on your Beagleboard ?
 
-
---A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUP8a0AAoJEPo9qoy8lh71UEkP/14mzsSjbdDqJ1Ttfbv0OXnR
-bMLvYQ0YlURTo/3NT6xmZRMvLNT8w7q/ujAfjWYFmtFQeYOJAS7OaE8NZQ5MohtT
-W5pEYwsHJdI0TXaBWzSQA+NcozAHmX+CxsvlhiNHrqvYasm1h1Z3ReRRLjHJzIJF
-2DvddHrkB53MzjWrnK1uHDnwvEgnFYajgc5nYu8jNc2dA1yK180+miqpCHyzeMGg
-gmCGx+KzNWvdE2pbTIPj09App6R2KfZn430d1/RFr+CBwLDQBybzj3mcm8dSgZWS
-lo/FC+1yp00sA9jpJ3cUFU5bXmvdeLXt7U4CgSE6BwlP0s2TZqzGJAH+3S4n5rHK
-myuyBI+qwd8oniwcsNetpQQFcLr47EwSUoZBEfxK69tBcccoJO8NOriZvnev3tW5
-yx/hHXgFl8qfIlL21Gm4OS+2Jvcp/CkWFzzWAf+Rxn+20pGQm8VAKksAHZLT5+qa
-f20so+V992+42zf7YHTBrnqfMEd+xbi8IXKTpHZWTTwZk8nNtjMQbYZXTayZiube
-Ub5xitZu5ohznieqQURXqnWot8zBlTnw+V6Jjbryiscz1z8efotMb8p/6dwgGBbn
-aGjWdrrbbiEfAId/rB9XMuCzGBKpRAwNxArCUmtZDoEEa3h79wsL94V2K6TPie4I
-Sn91BUlGs1cOMNFgK86R
-=PP7L
------END PGP SIGNATURE-----
-
---A14KlWknjRXGN4Cb5cRDr5UPjRlbblcIB--
+Cheers,
+   Enric
