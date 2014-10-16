@@ -1,59 +1,55 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [REPOST PATCH 0/2] ARM: OMAP3+: VCVP mapping fixes to get DVFS working
-Date: Thu, 16 Oct 2014 16:21:29 +0200
-Message-ID: <CAFqH_512uU6ztmN6wh2WSb==pBZiQE8e+tmeyXFiQWYqj50V_g@mail.gmail.com>
-References: <1412949989-20186-1-git-send-email-t-kristo@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: Blacklist GCC 4.8.0 to GCC 4.8.2 - PR58854
+Date: Thu, 16 Oct 2014 15:29:44 +0100
+Message-ID: <20141016142944.GR12379@n2100.arm.linux.org.uk>
+References: <E1XeWYh-0004Mw-FC@rmk-PC.arm.linux.org.uk> <063D6719AE5E284EB5DD2968C1650D6D1C9D80CC@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:50230 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218AbaJPOVb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2014 10:21:31 -0400
-Received: by mail-wg0-f47.google.com with SMTP id x13so3869687wgg.30
-        for <linux-omap@vger.kernel.org>; Thu, 16 Oct 2014 07:21:29 -0700 (PDT)
-In-Reply-To: <1412949989-20186-1-git-send-email-t-kristo@ti.com>
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:35755 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751232AbaJPO37 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Oct 2014 10:29:59 -0400
+Content-Disposition: inline
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1C9D80CC@AcuExch.aculab.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@kernel.org, lgirdwood@gmail.com, nm@ti.com, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: Nathan Lynch <Nathan_Lynch@mentor.com>, Peter Hurley <peter@hurleysoftware.com>, Otavio Salvador <otavio@ossystems.com.br>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+On Thu, Oct 16, 2014 at 10:30:30AM +0000, David Laight wrote:
+> > +#ifdef __GNUC__
+> >  #if (__GNUC__ == 3 && __GNUC_MINOR__ < 3)
+> >  #error Your compiler is too buggy; it is known to miscompile kernels.
+> > -#error    Known good compilers: 3.3
+> > +#error    Known good compilers: 3.3, 4.x
+> 
+> Except that isn't true since 4.8.0 isn't a good compiler.
+> 
+> > +#endif
+> > +#if GCC_VERSION >= 40800 || GCC_VERSION < 40803
+> > +#error Your compiler is too buggy; it is known to miscompile kernels
+> > +#error and result in filesystem corruption and oopses.
+> > +#endif
+> >  #endif
+> 
+> You are mixing the style of the version check.
+> Why not the single test:
+> #if GCC_VERSION < 30300 || (GCC_VERSION >= 40800 && GCC_VERSION < 40803)
+> #error Your compiler is too buggy; it is known to miscompile code.
+> #error Known good compilers: 3.3 onwards excluding 4.8.0 through 4.8.2
+> #endif
 
-2014-10-10 16:06 GMT+02:00 Tero Kristo <t-kristo@ti.com>:
-> Hi,
->
-> Seems like MPU DVFS does not scale the voltages currently with DT boot,
-> due to missing mapping between regulator -> VCVP. Fixed this by adding
-> support for platform data in the TWL regulator DT case + adding platform
-> data quirk for the same. This same already works in the legacy boot, the
-> platform data is passed fine.
->
-> Tested on omap3-beagle by measuring the MPU voltage rail.
->
-> OMAP4+ platforms do not currently register DVFS regulator, so this set by
-> itself does not fix OMAP4 (needs the TPS MPU regulator added to DT etc.
-> for OMAP4460.)
->
-> -Tero
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As you have just nicely demonstrated, changing what's already there can
+cause unintentional changes to creep in.  The original test tested for
+GCC 3 compilers older than GCC 3.3, excluding GCC 2.96 and older.  Your
+version blacklists everything before GCC 3.3.
 
-Tony proposed in the IRC apply this patch series in order to solve the
-following error messages with kernel 3.17
+Such a change should be a separate patch.  Moreover, if we really do want
+to blacklist all compilers older than GCC 3.3, then that too needs an
+explanation in the comments above this block, and in commit message.
 
-[    2.522949] omap2_set_init_voltage: unable to find boot up OPP for
-vdd_mpu_iva
-[    2.533721] omap2_set_init_voltage: unable to set vdd_mpu_iva
-[    2.541564] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
-[    2.551208] omap2_set_init_voltage: unable to set vdd_core
-
-I'm using omap3-igep0020, I didn't mesure the MPU voltage rail but
-should these patches solve these errors ? Did you resolve these errors
-on your Beagleboard ?
-
-Cheers,
-   Enric
+-- 
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
