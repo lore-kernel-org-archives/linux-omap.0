@@ -1,33 +1,53 @@
-From: Ran Shalit <ranshalit@gmail.com>
-Subject: understanding cpuidle
-Date: Thu, 16 Oct 2014 10:42:09 +0300
-Message-ID: <CAJ2oMhK_BccGQe9m1bHAc4St_jaBfaSFvyPnTRKxJwzGkfk-6Q@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 2/5] OMAPFB: remove wrong __exit and __exit_p()
+Date: Thu, 16 Oct 2014 12:39:44 +0300
+Message-ID: <1413452387-25452-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1413452387-25452-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:38350 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbaJPHmK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2014 03:42:10 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:45700 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751191AbaJPJjz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Oct 2014 05:39:55 -0400
+In-Reply-To: <1413452387-25452-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kernelnewbies <kernelnewbies@kernelnewbies.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hello,
+omapfb device can be unbound, so using __exit_p() for the driver's
+remove callback is wrong.
 
-I try to understand the cpuidle main concept but have some
-difficulties. I could not find any documentation to explain the
-cpuidle.
+Remove __exit_p() and __exit from the driver's remove.
 
-what does it mean that it enters idle when "no thread to run" ?if I
-have only one process which does only
-while(1)
-{
- printf("C");
-mdelay(1000);
-}
-Can I expect it to enter idle for 1 second and then print "C" and get
-again to idle ?
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks
-Ran
+diff --git a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+index ec2d132c782d..9cbf1ced51c2 100644
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -2619,7 +2619,7 @@ err0:
+ 	return r;
+ }
+ 
+-static int __exit omapfb_remove(struct platform_device *pdev)
++static int omapfb_remove(struct platform_device *pdev)
+ {
+ 	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
+ 
+@@ -2636,7 +2636,7 @@ static int __exit omapfb_remove(struct platform_device *pdev)
+ 
+ static struct platform_driver omapfb_driver = {
+ 	.probe		= omapfb_probe,
+-	.remove         = __exit_p(omapfb_remove),
++	.remove         = omapfb_remove,
+ 	.driver         = {
+ 		.name   = "omapfb",
+ 		.owner  = THIS_MODULE,
+-- 
+2.1.1
+
