@@ -1,27 +1,33 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH] ARM: Blacklist GCC 4.8.0 to GCC 4.8.2 - PR58854
-Date: Wed, 15 Oct 2014 20:44:01 -0400
-Message-ID: <543F14D1.20708@hurleysoftware.com>
-References: <E1XeWYh-0004Mw-FC@rmk-PC.arm.linux.org.uk> <543EF2B6.1050009@hurleysoftware.com> <20141016001801.GQ12379@n2100.arm.linux.org.uk>
+From: Ran Shalit <ranshalit@gmail.com>
+Subject: understanding cpuidle
+Date: Thu, 16 Oct 2014 10:42:09 +0300
+Message-ID: <CAJ2oMhK_BccGQe9m1bHAc4St_jaBfaSFvyPnTRKxJwzGkfk-6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout32.mail01.mtsvc.net ([216.70.64.70]:46758 "EHLO
-	n23.mail01.mtsvc.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750820AbaJPAoL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Oct 2014 20:44:11 -0400
-In-Reply-To: <20141016001801.GQ12379@n2100.arm.linux.org.uk>
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:38350 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882AbaJPHmK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Oct 2014 03:42:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nathan Lynch <Nathan_Lynch@mentor.com>, David Laight <David.Laight@ACULAB.COM>, Otavio Salvador <otavio@ossystems.com.br>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: kernelnewbies <kernelnewbies@kernelnewbies.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 10/15/2014 08:18 PM, Russell King - ARM Linux wrote:
-> Hence why I recommend that Linaro takes down their buggy compiler.
-> Their 4.8.3 version should not be used *anywhere*, just the same as
-> the stock 4.8 to 4.8.2 inclusive should also not be used anywhere on
-> ARM either.
+Hello,
 
-Completely agree.
+I try to understand the cpuidle main concept but have some
+difficulties. I could not find any documentation to explain the
+cpuidle.
 
+what does it mean that it enters idle when "no thread to run" ?if I
+have only one process which does only
+while(1)
+{
+ printf("C");
+mdelay(1000);
+}
+Can I expect it to enter idle for 1 second and then print "C" and get
+again to idle ?
+
+Thanks
+Ran
