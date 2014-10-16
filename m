@@ -1,43 +1,92 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 3/5] OMAPDSS: apply: wait pending updates on manager disable
-Date: Thu, 16 Oct 2014 12:39:45 +0300
-Message-ID: <1413452387-25452-3-git-send-email-tomi.valkeinen@ti.com>
-References: <1413452387-25452-1-git-send-email-tomi.valkeinen@ti.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH] ARM: Blacklist GCC 4.8.0 to GCC 4.8.2 - PR58854
+Date: Thu, 16 Oct 2014 10:30:30 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1C9D80CC@AcuExch.aculab.com>
+References: <E1XeWYh-0004Mw-FC@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45704 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888AbaJPJj5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Oct 2014 05:39:57 -0400
-In-Reply-To: <1413452387-25452-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mx0.aculab.com ([213.249.233.131]:33627 "HELO mx0.aculab.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752134AbaJPKcH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Oct 2014 06:32:07 -0400
+Received: from mx0.aculab.com ([127.0.0.1])
+ by localhost (mx0.aculab.com [127.0.0.1]) (amavisd-new, port 10024) with SMTP
+ id 31622-10 for <linux-omap@vger.kernel.org>;
+ Thu, 16 Oct 2014 11:31:58 +0100 (BST)
+In-Reply-To: <E1XeWYh-0004Mw-FC@rmk-PC.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: 'Russell King' <rmk+kernel@arm.linux.org.uk>, Nathan Lynch <Nathan_Lynch@mentor.com>, Peter Hurley <peter@hurleysoftware.com>, Otavio Salvador <otavio@ossystems.com.br>, Linus Torvalds <torvalds@linux-foundation.org>, Nicolas Pitre <nico@fluxnic.net>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-We should wait for any pending updates when an overlay manager is
-about to be disabled, because the updates will never be finished if the
-manager is disabled too early.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/fbdev/omap2/dss/apply.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/video/fbdev/omap2/dss/apply.c b/drivers/video/fbdev/omap2/dss/apply.c
-index 0a0b084ce65d..663ccc3bf4e5 100644
---- a/drivers/video/fbdev/omap2/dss/apply.c
-+++ b/drivers/video/fbdev/omap2/dss/apply.c
-@@ -1132,6 +1132,8 @@ static void dss_mgr_disable_compat(struct omap_overlay_manager *mgr)
- 	if (!mp->enabled)
- 		goto out;
- 
-+	wait_pending_extra_info_updates();
-+
- 	if (!mgr_manual_update(mgr))
- 		dispc_mgr_disable_sync(mgr->id);
- 
--- 
-2.1.1
-
+RnJvbTogUnVzc2VsbCBLaW5nDQo+IFRoZXNlIHN0b2NrIEdDQyB2ZXJzaW9ucyBtaXNjb21waWxl
+IHRoZSBrZXJuZWwgYnkgaW5jb3JyZWN0bHkgb3B0aW1pc2luZw0KPiB0aGUgZnVuY3Rpb24gZXBp
+bG9ndWUgY29kZSAtIGJ5IGZpcnN0IGluY3JlYXNpbmcgdGhlIHN0YWNrIHBvaW50ZXIsIGFuZA0K
+PiB0aGVuIGxvYWRpbmcgZW50cmllcyBmcm9tIGJlbG93IHRoZSBzdGFjay4gIFRoaXMgbWVhbnMg
+dGhhdCBhbiBvcHBvcnR1bmUNCj4gaW50ZXJydXB0IG9yIGV4Y2VwdGlvbiB3aWxsIGNvcnJ1cHQg
+dGhlIGN1cnJlbnQgZnVuY3Rpb24ncyBzYXZlZCBzdGF0ZSwNCj4gd2hpY2ggbWF5IHJlc3VsdCBp
+biB0aGUgcGFyZW50IGZ1bmN0aW9uIHNlZWluZyBkaWZmZXJlbnQgcmVnaXN0ZXINCj4gdmFsdWVz
+Lg0KPiANCj4gQXMgdGhpcyBidWcgaGFzIGJlZW4ga25vd24gdG8gcmVzdWx0IGluIGNvcnJ1cHRl
+ZCBmaWxlc3lzdGVtcywgYW5kIHRoZXNlDQo+IGJ1Z2d5IGNvbXBpbGVyIHZlcnNpb25zIHNlZW0g
+dG8gYmUgZnJlcXVlbnRseSB1c2VkLCB3ZSBoYXZlIGxpdHRsZQ0KPiBvcHRpb24gYnV0IHRvIGJs
+YWNrbGlzdCB0aGVzZSBjb21waWxlciB2ZXJzaW9ucy4NCj4gDQo+IERpc3RyaWJ1dGlvbnMgbWF5
+IGhhdmUgZml4ZWQgUFI1ODg1NCwgYnV0IGFzIHRoZWlyIGNvbXBpbGVycyBhcmUgdG90YWxseQ0K
+PiBpbmRpc3Rpbmd1aXNoYWJsZSBmcm9tIHRoZSBidWdneSB2ZXJzaW9ucywgaXQgaXMgdW5mb3J0
+dW5hdGUgdGhhdCB0aGlzDQo+IGFsc28gcmVzdWx0cyBpbiB0aG9zZSBhbHNvIGJlaW5nIGJsYWNr
+bGlzdGVkLiAgR2l2ZW4gdGhlIGZpbGVzeXN0ZW0NCj4gY29ycnVwdGlvbiBwb3RlbnRpYWwgb2Yg
+dGhlIG9yaWdpbmFsLCB0aGlzIGlzIHRoZSBsZXNzZXIgZXZpbC4gIFBlb3BsZQ0KPiB3aG8gd2Fu
+dCB0byBidWlsZCB3aXRoIHRoZWlyIGZpeGVkIGNvbXBpbGVyIHZlcnNpb25zIHdpbGwgbmVlZCB0
+byBhZGp1c3QNCj4gdGhlIGtlcm5lbCBzb3VyY2UuICAoRGlzdHJvcyBuZWVkIHRvIHRoaW5rIGFi
+b3V0IHRoZSBpbXBsaWNhdGlvbnMgb2YNCj4gZml4aW5nIHN1Y2ggYSBjb21waWxlciBidWcsIGFu
+ZCBjb25zaWRlciBob3cgdG8gZW5zdXJlIHRoYXQgdGhlaXIgZml4ZWQNCj4gY29tcGlsZXIgdmVy
+c2lvbnMgY2FuIGJlIGRldGVjdGVkIGlmIHRoZXkgd2lzaCB0byBhdm9pZCB0aGlzLikNCj4gDQo+
+IFNpZ25lZC1vZmYtYnk6IFJ1c3NlbGwgS2luZyA8cm1rK2tlcm5lbEBhcm0ubGludXgub3JnLnVr
+Pg0KPiAtLS0NCj4gDQo+IFRoaXMgaXMgd2hhdCBJIGNhbWUgdXAgd2l0aCAtIHRoaXMgcGxhY2Vz
+IHRoZSBidWlsZCBjaGVjayByaWdodCBhdCB0aGUNCj4gYmVnaW5uaW5nIG9mIHRoZSBrZXJuZWwg
+YnVpbGQsIHJhdGhlciB0aGFuIGF0IHNvbWUgcG9pbnQgd2hlcmUNCj4gbGludXgvY29tcGlsZXIu
+aCBnZXRzIGluY2x1ZGVkLiAgTm90ZSB0aGF0IHRoaXMgaXMgd2hlcmUgd2UgaGF2ZQ0KPiBwcmV2
+aW91cyBBUk0gc3BlY2lmaWMgR0NDIHZlcnNpb24gYmxhY2tsaXN0aW5nLiAgSSdtIGJsYWNrbGlz
+dGluZw0KPiBHQ0MgNC44LjAgdG8gR0NDIDQuOC4yIGluY2x1c3NpdmUsIHdoaWNoIHNlZW1zIHRv
+IGJlIHRoZSByaWdodCB2ZXJzaW9ucw0KPiBmb3Igc3RvY2sgR0NDLg0KPiANCj4gSSB3YXMgaW4g
+dHdvIG1pbmRzIHdoZXRoZXIgdG8gaW5jbHVkZSA0LjguMyBhcyBMaW5hcm8gcmVsZWFzZWQgYSBi
+dWdneQ0KPiB0b29sY2hhaW4gd2hpY2ggaWRlbnRpZmllcyBpdHNlbGYgYXMgNC44LjMsIGJ1dCBJ
+IGRlY2lkZWQgdGhhdCdzIGFsc28NCj4gYSBkaXN0cm8gcHJvYmxlbS4gIElNSE8gTGluYXJvIHNo
+b3VsZCByZWFsbHkgdGhpbmsgYWJvdXQgdGFraW5nIHRoYXQNCj4gY29tcGlsZXIgZG93biBnaXZl
+biB0aGUgc2VyaW91c25lc3Mgb2YgdGhpcyBidWcgYW5kIGl0IGJlaW5nDQo+IGluZGlzdGluZ3Vp
+c2hhYmxlIGZyb20gdGhlIGZpeGVkIHN0b2NrIHZlcnNpb24uDQo+IA0KPiAgYXJjaC9hcm0va2Vy
+bmVsL2FzbS1vZmZzZXRzLmMgfCAxMiArKysrKysrKysrKy0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAx
+MSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvYXJjaC9h
+cm0va2VybmVsL2FzbS1vZmZzZXRzLmMgYi9hcmNoL2FybS9rZXJuZWwvYXNtLW9mZnNldHMuYw0K
+PiBpbmRleCA3MTNlODA3NjIxZDIuLmUxNGMxYTEyYjQxNCAxMDA2NDQNCj4gLS0tIGEvYXJjaC9h
+cm0va2VybmVsL2FzbS1vZmZzZXRzLmMNCj4gKysrIGIvYXJjaC9hcm0va2VybmVsL2FzbS1vZmZz
+ZXRzLmMNCj4gQEAgLTEwLDYgKzEwLDcgQEANCj4gICAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0
+aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFzDQo+ICAgKiBwdWJsaXNo
+ZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbi4NCj4gICAqLw0KPiArI2luY2x1ZGUg
+PGxpbnV4L2NvbXBpbGVyLmg+DQo+ICAjaW5jbHVkZSA8bGludXgvc2NoZWQuaD4NCj4gICNpbmNs
+dWRlIDxsaW51eC9tbS5oPg0KPiAgI2luY2x1ZGUgPGxpbnV4L2RtYS1tYXBwaW5nLmg+DQo+IEBA
+IC0zOSwxMCArNDAsMTkgQEANCj4gICAqIEdDQyAzLjIueDogbWlzY29tcGlsZXMgTkVXX0FVWF9F
+TlQgaW4gZnMvYmluZm10X2VsZi5jDQo+ICAgKiAgICAgICAgICAgIChodHRwOi8vZ2NjLmdudS5v
+cmcvUFI4ODk2KSBhbmQgaW5jb3JyZWN0IHN0cnVjdHVyZQ0KPiAgICoJICAgICAgaW5pdGlhbGlz
+YXRpb24gaW4gZnMvamZmczIvZXJhc2UuYw0KPiArICogR0NDIDQuOC4wLTQuOC4yOiBodHRwczov
+L2djYy5nbnUub3JnL2J1Z3ppbGxhL3Nob3dfYnVnLmNnaT9pZD01ODg1NA0KPiArICoJICAgICAg
+bWlzY29tcGlsZXMgZmluZF9nZXRfZW50cnkoKSwgYW5kIGNhbiByZXN1bHQgaW4gRVhUMyBhbmQg
+RVhUNA0KPiArICoJICAgICAgZmlsZXN5c3RlbSBjb3JydXB0aW9uIChwb3NzaWJseSBvdGhlciBG
+UyB0b28pLg0KPiAgICovDQo+ICsjaWZkZWYgX19HTlVDX18NCj4gICNpZiAoX19HTlVDX18gPT0g
+MyAmJiBfX0dOVUNfTUlOT1JfXyA8IDMpDQo+ICAjZXJyb3IgWW91ciBjb21waWxlciBpcyB0b28g
+YnVnZ3k7IGl0IGlzIGtub3duIHRvIG1pc2NvbXBpbGUga2VybmVscy4NCj4gLSNlcnJvciAgICBL
+bm93biBnb29kIGNvbXBpbGVyczogMy4zDQo+ICsjZXJyb3IgICAgS25vd24gZ29vZCBjb21waWxl
+cnM6IDMuMywgNC54DQoNCkV4Y2VwdCB0aGF0IGlzbid0IHRydWUgc2luY2UgNC44LjAgaXNuJ3Qg
+YSBnb29kIGNvbXBpbGVyLg0KDQo+ICsjZW5kaWYNCj4gKyNpZiBHQ0NfVkVSU0lPTiA+PSA0MDgw
+MCB8fCBHQ0NfVkVSU0lPTiA8IDQwODAzDQo+ICsjZXJyb3IgWW91ciBjb21waWxlciBpcyB0b28g
+YnVnZ3k7IGl0IGlzIGtub3duIHRvIG1pc2NvbXBpbGUga2VybmVscw0KPiArI2Vycm9yIGFuZCBy
+ZXN1bHQgaW4gZmlsZXN5c3RlbSBjb3JydXB0aW9uIGFuZCBvb3BzZXMuDQo+ICsjZW5kaWYNCj4g
+ICNlbmRpZg0KDQpZb3UgYXJlIG1peGluZyB0aGUgc3R5bGUgb2YgdGhlIHZlcnNpb24gY2hlY2su
+DQpXaHkgbm90IHRoZSBzaW5nbGUgdGVzdDoNCiNpZiBHQ0NfVkVSU0lPTiA8IDMwMzAwIHx8IChH
+Q0NfVkVSU0lPTiA+PSA0MDgwMCAmJiBHQ0NfVkVSU0lPTiA8IDQwODAzKQ0KI2Vycm9yIFlvdXIg
+Y29tcGlsZXIgaXMgdG9vIGJ1Z2d5OyBpdCBpcyBrbm93biB0byBtaXNjb21waWxlIGNvZGUuDQoj
+ZXJyb3IgS25vd24gZ29vZCBjb21waWxlcnM6IDMuMyBvbndhcmRzIGV4Y2x1ZGluZyA0LjguMCB0
+aHJvdWdoIDQuOC4yDQojZW5kaWYNCg0KCURhdmlkDQoNCj4gDQo+ICBpbnQgbWFpbih2b2lkKQ0K
+PiAtLQ0KPiAxLjguMy4xDQoNCg==
