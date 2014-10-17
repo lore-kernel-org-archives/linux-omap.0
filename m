@@ -1,62 +1,68 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH] ARM: Blacklist GCC 4.8.0 to GCC 4.8.2 - PR58854
-Date: Thu, 16 Oct 2014 10:58:06 -0400 (EDT)
-Message-ID: <alpine.LFD.2.11.1410161052520.9094@knanqh.ubzr>
-References: <E1XeWYh-0004Mw-FC@rmk-PC.arm.linux.org.uk>
- <543EF2B6.1050009@hurleysoftware.com>
- <20141016001801.GQ12379@n2100.arm.linux.org.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [REPOST PATCH 0/2] ARM: OMAP3+: VCVP mapping fixes to get DVFS
+ working
+Date: Fri, 17 Oct 2014 08:55:31 +0300
+Message-ID: <5440AF53.9090003@ti.com>
+References: <1412949989-20186-1-git-send-email-t-kristo@ti.com> <CAFqH_512uU6ztmN6wh2WSb==pBZiQE8e+tmeyXFiQWYqj50V_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <20141016001801.GQ12379@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Otavio Salvador <otavio@ossystems.com.br>, Nathan Lynch <Nathan_Lynch@mentor.com>, David Laight <David.Laight@ACULAB.COM>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42971 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753325AbaJQF4C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Oct 2014 01:56:02 -0400
+In-Reply-To: <CAFqH_512uU6ztmN6wh2WSb==pBZiQE8e+tmeyXFiQWYqj50V_g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: linux-omap@vger.kernel.org, broonie@kernel.org, lgirdwood@gmail.com, nm@ti.com, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, 16 Oct 2014, Russell King - ARM Linux wrote:
+On 10/16/2014 05:21 PM, Enric Balletbo Serra wrote:
+> Hi,
+>
+> 2014-10-10 16:06 GMT+02:00 Tero Kristo <t-kristo@ti.com>:
+>> Hi,
+>>
+>> Seems like MPU DVFS does not scale the voltages currently with DT boot,
+>> due to missing mapping between regulator -> VCVP. Fixed this by adding
+>> support for platform data in the TWL regulator DT case + adding platform
+>> data quirk for the same. This same already works in the legacy boot, the
+>> platform data is passed fine.
+>>
+>> Tested on omap3-beagle by measuring the MPU voltage rail.
+>>
+>> OMAP4+ platforms do not currently register DVFS regulator, so this set by
+>> itself does not fix OMAP4 (needs the TPS MPU regulator added to DT etc.
+>> for OMAP4460.)
+>>
+>> -Tero
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Tony proposed in the IRC apply this patch series in order to solve the
+> following error messages with kernel 3.17
+>
+> [    2.522949] omap2_set_init_voltage: unable to find boot up OPP for
+> vdd_mpu_iva
+> [    2.533721] omap2_set_init_voltage: unable to set vdd_mpu_iva
+> [    2.541564] omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+> [    2.551208] omap2_set_init_voltage: unable to set vdd_core
+>
+> I'm using omap3-igep0020, I didn't mesure the MPU voltage rail but
+> should these patches solve these errors ? Did you resolve these errors
+> on your Beagleboard ?
 
-> So, let me put this another way: a compiler with this bug is _completely_
-> unsuitable for use for compiling programs for use under the Linux
-> kernel _as well_ as the Linux kernel itself.
-> 
-> The difference is that the Linaro compilers come with an expectation
-> that they are usable on ARM... whereas stock versions cover a lot more
-> and so the ARM arch is probably very small number of their users.
-> 
-> Hence why I recommend that Linaro takes down their buggy compiler.
-> Their 4.8.3 version should not be used *anywhere*, just the same as
-> the stock 4.8 to 4.8.2 inclusive should also not be used anywhere on
-> ARM either.
+These prints are caused by something else: namely the fact that 
+beagleboard rev C4+ boots up at 720MHz. This OPP is not supported by the 
+kernel and quelches out the warning prints.
 
-Here's the answer from the toolchain team:
+This should be fixed by modifying the OPP tables under the dtsi files, 
+however the nasty thing is not all beagleboards support 720MHz OPP. You 
+either need to specify a dts file for beagle-revC4 or do some kernel 
+magic to manually disable the 720MHz OPP on non-supported boards.
 
-On Thu, 16 Oct 2014, Yvan Roux <yvan.roux@linaro.org> wrote:
-
-| Hi Nicolas,
-|
-| thanks for bringing this to our knowledge.
-|
-| The fix for PR58854 was included in our releases since the GCC
-| 4.8-2013.12 which is based on a 4.8.3 prerelease version (at svn
-| revision 205577).  As we are doing monthly releases based on a
-| revision of the related FSF branch, using GCC_VERSION (__GNUC__,
-| __GNUC_MINOR,__GNUC_PATCHLEVEL) is not accurate enough to identify the
-| release version (all our releases between November 2013 and May 2014
-| will be 4.8.3) the __VERSION__ predefined macro is a bit more accurate
-| here ("4.8.3 20131202 (prerelease)") but not completely satisfactory.
-|
-| I completely agree that we should at least mention in our impacted
-| releases download pages that this bug is present.
-
-
-Nicolas
+-Tero
