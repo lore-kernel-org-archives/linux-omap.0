@@ -1,37 +1,62 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: USB Ethernet gadget on Nokia n900
-Date: Sun, 19 Oct 2014 12:07:39 +0200
-Message-ID: <20141019100739.GA2547@amd>
-References: <20141019090107.GA19132@amd>
+Date: Sun, 19 Oct 2014 16:58:45 +0200
+Message-ID: <201410191658.45851@pali>
+References: <20141019090107.GA19132@amd> <20141019100739.GA2547@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53674 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395AbaJSKHm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Oct 2014 06:07:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20141019090107.GA19132@amd>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart2906362.bYiEn6s3DN";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141019100739.GA2547@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, balbi@ti.com, linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
-On Sun 2014-10-19 11:01:07, Pavel Machek wrote:
-> Hi!
-> 
-> From 3.6 to 3.10, USB networking works on Nokia N900. With 3.11, it
-> fails with messages on the host. I also tried to get it to work on
-> 3.14 and 3.17, with no luck.
-> 
-> Any ideas? Does it work for you? Any config options to watch for?
+--nextPart2906362.bYiEn6s3DN
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-With 3.17, I get
+On Sunday 19 October 2014 12:07:39 Pavel Machek wrote:
+> On Sun 2014-10-19 11:01:07, Pavel Machek wrote:
+> > Hi!
+> >=20
+> > From 3.6 to 3.10, USB networking works on Nokia N900. With
+> > 3.11, it fails with messages on the host. I also tried to
+> > get it to work on 3.14 and 3.17, with no luck.
+> >=20
+> > Any ideas? Does it work for you? Any config options to watch
+> > for?
+>=20
+> With 3.17, I get
+>=20
+> omap_musb_mailbox: musb core is not yet ready
+>=20
+> message. It looks related...?
 
-omap_musb_mailbox: musb core is not yet ready
+Can you try tree https://gitorious.org/linux-n900/linux-n900/ ?
 
-message. It looks related...?
+I think with rx51_defconfig from above tree it worked fine for=20
+3.10 - 3.13 versions.
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart2906362.bYiEn6s3DN
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlRD0aUACgkQi/DJPQPkQ1J+1wCfcLaU/j4/zQfX7IVsCMtuKaNc
+TksAoMtKmguK1txrwe8WDZQwKuARe1QL
+=CI8B
+-----END PGP SIGNATURE-----
+
+--nextPart2906362.bYiEn6s3DN--
