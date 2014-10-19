@@ -1,37 +1,79 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: RCU bug with v3.17-rc3 ?
-Date: Sun, 19 Oct 2014 10:54:16 +0100
-Message-ID: <20141019095416.GT12379@n2100.arm.linux.org.uk>
-References: <20141009204637.GE25729@saruman> <20141009210715.GH25729@saruman> <20141010135743.GB31348@saruman> <20141010162531.GL12379@n2100.arm.linux.org.uk> <54388B81.5020306@mentor.com> <063D6719AE5E284EB5DD2968C1650D6D174C996E@AcuExch.aculab.com> <20141013114307.GO12379@n2100.arm.linux.org.uk> <20141014020640.GB25433@kroah.com> <20141015212310.GP12379@n2100.arm.linux.org.uk> <20141015212513.GA3247@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: Blacklist GCC 4.8.0 to GCC 4.8.2 - PR58854
+Date: Sun, 19 Oct 2014 10:55:55 +0100
+Message-ID: <20141019095555.GU12379@n2100.arm.linux.org.uk>
+References: <E1XeWYh-0004Mw-FC@rmk-PC.arm.linux.org.uk> <543EF2B6.1050009@hurleysoftware.com> <20141016001801.GQ12379@n2100.arm.linux.org.uk> <alpine.LFD.2.11.1410161052520.9094@knanqh.ubzr> <20141017134112.GS12379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:37702 "EHLO
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:37724 "EHLO
 	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751330AbaJSJyj (ORCPT
+	by vger.kernel.org with ESMTP id S1751469AbaJSJ4J (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Oct 2014 05:54:39 -0400
+	Sun, 19 Oct 2014 05:56:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20141015212513.GA3247@n2100.arm.linux.org.uk>
+In-Reply-To: <20141017134112.GS12379@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Rik van Riel <riel@redhat.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, 'Nathan Lynch' <Nathan_Lynch@mentor.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "josh@joshtriplett.org" <josh@joshtriplett.org>, Rabin Vincent <rabin@rab.in>, David Laight <David.Laight@ACULAB.COM>, Alan Stern <stern@rowland.harvard.edu>, Johannes Weiner <hannes@cmpxchg.org>, Sasha Levin <sasha.levin@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Nicolas Pitre <nicolas.pitre@linaro.org>, Olof Johansson <olof@lixom.net>
+Cc: Peter Hurley <peter@hurleysoftware.com>, Otavio Salvador <otavio@ossystems.com.br>, Nathan Lynch <Nathan_Lynch@mentor.com>, David Laight <David.Laight@ACULAB.COM>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Oct 15, 2014 at 10:25:13PM +0100, Russell King - ARM Linux wrote:
-> On Wed, Oct 15, 2014 at 10:23:10PM +0100, Russell King - ARM Linux wrote:
-> > As I said, I have a patch in progress, but it seems that there needed
-> > to be some discussion about exactly which compiler versions are affected.
-> > It seems that it's not as trivial as looking at the GCC bug entry.
+On Fri, Oct 17, 2014 at 02:41:12PM +0100, Russell King - ARM Linux wrote:
+> On Thu, Oct 16, 2014 at 10:58:06AM -0400, Nicolas Pitre wrote:
+> > On Thu, 16 Oct 2014, Russell King - ARM Linux wrote:
+> > 
+> > > So, let me put this another way: a compiler with this bug is _completely_
+> > > unsuitable for use for compiling programs for use under the Linux
+> > > kernel _as well_ as the Linux kernel itself.
+> > > 
+> > > The difference is that the Linaro compilers come with an expectation
+> > > that they are usable on ARM... whereas stock versions cover a lot more
+> > > and so the ARM arch is probably very small number of their users.
+> > > 
+> > > Hence why I recommend that Linaro takes down their buggy compiler.
+> > > Their 4.8.3 version should not be used *anywhere*, just the same as
+> > > the stock 4.8 to 4.8.2 inclusive should also not be used anywhere on
+> > > ARM either.
+> > 
+> > Here's the answer from the toolchain team:
+> > 
+> > On Thu, 16 Oct 2014, Yvan Roux <yvan.roux@linaro.org> wrote:
+> > 
+> > | Hi Nicolas,
+> > |
+> > | thanks for bringing this to our knowledge.
+> > |
+> > | The fix for PR58854 was included in our releases since the GCC
+> > | 4.8-2013.12 which is based on a 4.8.3 prerelease version (at svn
+> > | revision 205577).  As we are doing monthly releases based on a
+> > | revision of the related FSF branch, using GCC_VERSION (__GNUC__,
+> > | __GNUC_MINOR,__GNUC_PATCHLEVEL) is not accurate enough to identify the
+> > | release version (all our releases between November 2013 and May 2014
+> > | will be 4.8.3) the __VERSION__ predefined macro is a bit more accurate
+> > | here ("4.8.3 20131202 (prerelease)") but not completely satisfactory.
+> > |
+> > | I completely agree that we should at least mention in our impacted
+> > | releases download pages that this bug is present.
 > 
-> ... and in any case, it has been a known bug for well over a year now,
-> and it seems that it doesn't affect _that_ many people.  So taking some
-> extra time to get it properly correct is the _right_ thing to do.
+> Unfortunately, __VERSION__ doesn't help us identify that the bug has
+> been fixed - it's not something which can be tested at preprocessor
+> time.
+> 
+> Those which identify themselves as 4.8.3 won't be impacted by the patch,
+> which means that the Linaro 4.8.3 GCC versions will continue to build
+> the kernel just fine.  Even the buggy versions.
+> 
+> I don't see the point of continuing to offer the buggy versions for
+> download though - the compiler is totally unsuitable for building any
+> Linux related binaries, be that kernel or userspace, and so should not
+> be used under any circumstances, period.
 
-Well, this is just great.  Pushing out the change which blacklists these
-compilers takes out Olof's kernel build system...
+Right, with the test fixed (&& instead of ||), I've just pushed it out
+this morning, and received the results from Olof's kernel builder,
+which shows that he's using a gcc 4.8.x version which gets caught by
+the test.
 
-Things are not as trivial as they seem.
+I think Olof needs to do something about his gcc version there.
 
 -- 
 FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
