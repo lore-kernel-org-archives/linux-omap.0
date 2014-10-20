@@ -1,50 +1,48 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH v2 00/17] OMAP IOMMU Cleanup & Consolidation
-Date: Thu, 23 Oct 2014 14:34:47 +0200
-Message-ID: <20141023123447.GA10053@8bytes.org>
-References: <1414016555-28067-1-git-send-email-s-anna@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.18-rc1
+Date: Mon, 20 Oct 2014 18:13:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1410201810160.4472@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1410201804050.4472@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 8bytes.org ([81.169.241.247]:43351 "EHLO theia.8bytes.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754971AbaJWMeu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Oct 2014 08:34:50 -0400
-Content-Disposition: inline
-In-Reply-To: <1414016555-28067-1-git-send-email-s-anna@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:35922 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755790AbaJWPUX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Oct 2014 11:20:23 -0400
+In-Reply-To: <alpine.DEB.2.02.1410201804050.4472@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Wed, Oct 22, 2014 at 05:22:18PM -0500, Suman Anna wrote:
-> Suman Anna (17):
->   iommu/omap: Remove refcount field from omap_iommu object
->   iommu/omap: Remove unused isr_priv field from omap_iommu
->   iommu/omap: Remove duplicate declarations
->   iommu/omap: Remove conditional definition of dev_to_omap_iommu()
->   iommu/omap: Remove ver debugfs entry
->   iommu/omap: Remove omap_iommu_arch_version() and version field
->   iommu/omap: Remove bogus version check in context save/restore
->   iommu/omap: Simplify omap2_iommu_fault_isr()
->   iommu/omap: Consolidate OMAP IOMMU modules
->   iommu/omap: Fix the permissions on nr_tlb_entries
->   iommu/omap: Make pagetable debugfs entry read-only
->   iommu/omap: Integrate omap-iommu-debug into omap-iommu
->   iommu/omap: Remove couple of unused exported functions
->   iommu/omap: Do not export unneeded functions
->   iommu/omap: Reset the domain field upon detaching
->   iommu/omap: Fix bus error on debugfs access of unattached IOMMU
->   iommu/omap: Switch pagetable debugfs entry to use seq_file
+On Mon, 20 Oct 2014, Paul Walmsley wrote:
+
+> Boot-time memory difference
+> (delta in bytes from test_v3.17-rc7 (fe82dcec644244676d55a1384c958d5f67979adb))
+>   avail  rsrvd   high  freed  board          kconfig
+>  -117908k -13164k      .  -148k  2420n800    omap2plus_defconfig_n800_only_a
+>  -1012k  1012k      .      .  2430sdp        omap2plus_defconfig
+>  -1268k  1268k      .    16k  3530es31beagle omap2plus_defconfig
+>  -1268k  1268k      .    16k  3530es3beagle  omap2plus_defconfig
+>  -1780k  1780k      .    16k  3730beaglexm   omap2plus_defconfig
+>  -1780k  1780k      .    16k  3730es12beaglexmomap2plus_defconfig
+>  -1268k  1268k      .    16k  37xxevm        omap2plus_defconfig
+>  -2780k  2780k -16384k    16k  4460pandaes    omap2plus_defconfig
+>  -2776k  2776k -16384k    16k  4460varsomom   omap2plus_defconfig
+>  -4848k  4848k -16384k    16k  5430es2sbct54  omap2plus_defconfig
+>  -4800k  4800k -16384k    16k  5430es2uevm    omap2plus_defconfig
+>   -996k   996k      .     8k  am335xbone     omap2plus_defconfig_am33xx_only
+>  -1268k  1268k      .    16k  am335xbonelt   omap2plus_defconfig
 > 
->  drivers/iommu/Kconfig            |  12 +-
->  drivers/iommu/Makefile           |   1 -
->  drivers/iommu/omap-iommu-debug.c | 242 ++++++++--------------------
->  drivers/iommu/omap-iommu.c       | 306 ++++++++++++++++++++++-------------
->  drivers/iommu/omap-iommu.h       |  98 ++++++------
->  drivers/iommu/omap-iommu2.c      | 337 ---------------------------------------
->  6 files changed, 312 insertions(+), 684 deletions(-)
->  delete mode 100644 drivers/iommu/omap-iommu2.c
+> 
+> The size of an omap2plus_defconfig kernel has increased by 760K - a 
+> remarkable increase that fortunately does not appear to be matched by 
+> runtime memory consumption.
 
-Applied to arm/omap, thanks Suman.
+Well let's take that back.  I seem to have glazed over the 1 to 4MB (!) 
+runtime memory usage increases in boot memory consumption.  That is also 
+an extraordinary increase.
 
+
+- Paul
