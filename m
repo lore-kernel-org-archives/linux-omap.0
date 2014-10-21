@@ -1,51 +1,50 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 2/5] ARM: OMAP2+: gpmc: Error out if timings fail in gpmc_probe_generic_child()
-Date: Tue, 21 Oct 2014 15:41:46 +0300
-Message-ID: <1413895309-9152-3-git-send-email-rogerq@ti.com>
-References: <1413895309-9152-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 0/5] ARM: OMAP2+: gpmc: configuration enhancements
+Date: Tue, 21 Oct 2014 15:41:44 +0300
+Message-ID: <1413895309-9152-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57627 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932402AbaJUMl7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Oct 2014 08:41:59 -0400
-In-Reply-To: <1413895309-9152-1-git-send-email-rogerq@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47073 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932402AbaJUMmD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Oct 2014 08:42:03 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Sekhar Nori <nsekhar@ti.com>
+Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-gpmc_cs_set_timings() returns non-zero if there was
-an error while setting the GPMC timings. e.g. Timing was too
-large to be accomodated with current GPMC clock frequency and available
-timing range. Fail in this case, else we risk operating a NOR device
-with non compliant timings.
+Hi Tony,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/mach-omap2/gpmc.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+These patches address GPMC configuration issues and are for v3.19.
+Patches based on v3.18-rc1.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 45f680f..f5d9dd2 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1562,7 +1562,12 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
- 		goto err;
- 
- 	gpmc_read_timings_dt(child, &gpmc_t);
--	gpmc_cs_set_timings(cs, &gpmc_t);
-+	ret = gpmc_cs_set_timings(cs, &gpmc_t);
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to set gpmc timings for: %s\n",
-+			child->name);
-+		goto err;
-+	}
- 
- no_timings:
- 	if (of_platform_device_create(child, NULL, &pdev->dev))
+- Make sure to print a user visible error if a requested GPMC timing
+configuration can't be met.
+
+- Don't create GPMC child device if a GPMC timing could not be set.
+
+- Always enable address lines A26-A11 for non-NAND devices.
+
+- Perform GPMC configuration as per recommended procedure i.e.
+keep Chip Select disabled while changing GPMC configuration.
+
+Tested on dra7-evm, am437x-gp-evm and beagleboard.
+
+cheers,
+-roger
+
+Roger Quadros (5):
+  ARM: OMAP2+: gpmc: Print error message in set_gpmc_timing_reg()
+  ARM: OMAP2+: gpmc: Error out if timings fail in
+    gpmc_probe_generic_child()
+  ARM: OMAP2+: gpmc: Always enable A26-A11 for non NAND devices
+  ARM: OMAP2+: gpmc: Keep Chip Select disabled while configuring it
+  ARM: OMAP2+: gpmc: Sanity check GPMC fck on probe
+
+ arch/arm/mach-omap2/gpmc.c | 87 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 54 insertions(+), 33 deletions(-)
+
 -- 
 1.8.3.2
 
