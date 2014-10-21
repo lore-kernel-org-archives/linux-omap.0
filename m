@@ -1,66 +1,247 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [RFCv2 4/8] [media] si4713: use managed irq request
-Date: Tue, 21 Oct 2014 17:07:03 +0200
-Message-ID: <1413904027-16767-5-git-send-email-sre@kernel.org>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.105.125]:54015 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755697AbaJUPHt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Oct 2014 11:07:49 -0400
-In-Reply-To: <1413904027-16767-1-git-send-email-sre@kernel.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] ARM: DRA7: hwmod data: Add missing UART hwmod data
+Date: Tue, 21 Oct 2014 11:17:51 -0500
+Message-ID: <1413908271-666-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: nm@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Franklin Cooper Jr." <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 
-Introduce the usage of managed irq request to
-simplify the code slightly.
+From: Ambresh K <ambresh@ti.com>
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
+We had constrainted hwmod entries to entries in dts which were present
+only for default mapped interrupts, the ones such as UARTs > 6 which
+needed IRQ crossbar configured were never added to hwmod database.
+
+Add them now that IRQ crossbar is functional
+
+Without this, enabling UARTs7 to 10 in dts results in the following crash:
+[    1.893829] omap_uart 48420000.serial: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
+[    1.903381] Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+[    1.903381] ------------[ cut here ]------------
+[    1.903381] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x2ac/0x32c()
+[    1.903411] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3 (Read): Data Access in User mode during Functional access
+[    1.903411] Modules linked in:
+[    1.903411] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W      3.18.0-rc1-dirty #3
+[    1.903442] [<c0015270>] (unwind_backtrace) from [<c00119b4>] (show_stack+0x10/0x14)
+[    1.903442] [<c00119b4>] (show_stack) from [<c05e4afc>] (dump_stack+0x78/0x94)
+[    1.903472] [<c05e4afc>] (dump_stack) from [<c003fed0>] (warn_slowpath_common+0x6c/0x8c)
+[    1.903472] [<c003fed0>] (warn_slowpath_common) from [<c003ff84>] (warn_slowpath_fmt+0x30/0x40)
+[    1.903472] [<c003ff84>] (warn_slowpath_fmt) from [<c0333bfc>] (l3_interrupt_handler+0x2ac/0x32c)
+[    1.903503] [<c0333bfc>] (l3_interrupt_handler) from [<c008d6f8>] (handle_irq_event_percpu+0x60/0x230)
+[    1.903503] [<c008d6f8>] (handle_irq_event_percpu) from [<c008d904>] (handle_irq_event+0x3c/0x5c)
+[    1.903503] [<c008d904>] (handle_irq_event) from [<c00903b0>] (handle_fasteoi_irq+0xc4/0x190)
+[    1.903503] [<c00903b0>] (handle_fasteoi_irq) from [<c008d01c>] (generic_handle_irq+0x20/0x30)
+[    1.903533] [<c008d01c>] (generic_handle_irq) from [<c008d114>] (__handle_domain_irq+0x64/0xb8)
+[    1.903533] [<c008d114>] (__handle_domain_irq) from [<c00086e4>] (gic_handle_irq+0x20/0x60)
+[    1.903533] [<c00086e4>] (gic_handle_irq) from [<c05eb124>] (__irq_svc+0x44/0x5c)
+[    1.903533] Exception stack(0xc08d1f60 to 0xc08d1fa8)
+[    1.903564] 1f60: 00000001 00000001 00000000 c08dc930 c08d0000 00000000 00000000 00000000
+[    1.903564] 1f80: ffffffed c0978028 c08d89dc c08d8978 00000000 c08d1fa8 c0083fc0 c000f160
+[    1.903564] 1fa0: 20000013 ffffffff
+[    1.903564] [<c05eb124>] (__irq_svc) from [<c000f160>] (arch_cpu_idle+0x20/0x3c)
+[    1.903594] [<c000f160>] (arch_cpu_idle) from [<c0077c54>] (cpu_startup_entry+0x198/0x338)
+[    1.903594] [<c0077c54>] (cpu_startup_entry) from [<c0869be0>] (start_kernel+0x358/0x3c4)
+[    1.903594] [<c0869be0>] (start_kernel) from [<80008074>] (0x80008074)
+[    1.903594] ---[ end trace 293fc95d463cff71 ]---
+[    2.117553] Internal error: : 1406 [#1] SMP ARM
+[    2.122314] Modules linked in:
+[    2.125518] CPU: 1 PID: 1 Comm: swapper/0 Tainted: G        W      3.18.0-rc1-dirty #3
+[    2.133850] task: ed868b80 ti: ed86a000 task.ti: ed86a000
+[    2.139526] PC is at serial_omap_probe+0x2fc/0x514
+[    2.144561] LR is at trace_hardirqs_on_caller+0xec/0x1c4
+[    2.150146] pc : [<c038f0f0>]    lr : [<c0083fc0>]    psr: 40000013
+[    2.150146] sp : ed86be18  ip : ed9bb57c  fp : f005e000
+[    2.162231] r10: 0000012a  r9 : ed9b4f80  r8 : edc5bdcd
+[    2.167724] r7 : edc58810  r6 : ed9bb400  r5 : ed9bb410  r4 : edc5bc10
+[    2.174560] r3 : 00000000  r2 : 00000000  r1 : 00000014  r0 : ffffffed
+[    2.181427] Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[    2.189117] Control: 10c5387d  Table: 8000406a  DAC: 00000015
+[    2.195159] Process swapper/0 (pid: 1, stack limit = 0xed86a248)
+[    2.201477] Stack: (0xed86be18 to 0xed86c000)
+[    2.206054] be00:                                                       ed9ba2d0 00000000
+[    2.214660] be20: edc50150 00000001 c08cba58 00000000 00000000 ed9bb410 ffffffed c09481d8
+[    2.223236] be40: 00000000 c09481d8 c08cba58 00000000 00000000 c039bcfc c1170958 ed9bb410
+[    2.231842] be60: ed9bb444 c039a6f4 00000000 ed9bb410 c09481d8 ed9bb444 00000000 c08dc698
+[    2.240447] be80: edc4a100 c039a8b0 c09481d8 c039a81c 00000000 c0399060 ed8afaa8 ed92c110
+[    2.249053] bea0: c09481d8 edc482c0 c0949308 c0399ee0 c077f80c c09481d8 ed86a000 c09481d8
+[    2.257659] bec0: ed86a000 c08dc698 00000000 c039b088 00000000 00000000 ed86a000 c08a1924
+[    2.266235] bee0: c08a1904 c00089c4 00000000 00000000 00000000 00000000 60000093 00000000
+[    2.274841] bf00: 00000004 00000000 ed868b80 00000004 00000000 60000053 00000000 00000001
+[    2.283447] bf20: 00000000 c0083ea8 00000001 ed86a000 c08334bc ef7fc307 000000b2 c0059358
+[    2.292053] bf40: c07e176c c083299c 00000006 00000006 c08cb588 c08b69cc 00000006 c08b69ac
+[    2.300659] bf60: c097a280 000000b2 c08cba58 c0869588 00000000 c0869e04 00000006 00000006
+[    2.309234] bf80: c0869588 00000000 00000000 c05dfd7c 00000000 00000000 00000000 00000000
+[    2.317840] bfa0: 00000000 c05dfd84 00000000 c000e668 00000000 00000000 00000000 00000000
+[    2.326446] bfc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.335052] bfe0: 00000000 00000000 00000000 00000000 00000013 00000000 020405d0 00090c40
+[    2.343658] [<c038f0f0>] (serial_omap_probe) from [<c039bcfc>] (platform_drv_probe+0x48/0x98)
+[    2.352630] [<c039bcfc>] (platform_drv_probe) from [<c039a6f4>] (driver_probe_device+0x10c/0x234)
+[    2.361968] [<c039a6f4>] (driver_probe_device) from [<c039a8b0>] (__driver_attach+0x94/0x98)
+[    2.370819] [<c039a8b0>] (__driver_attach) from [<c0399060>] (bus_for_each_dev+0x54/0x88)
+[    2.379425] [<c0399060>] (bus_for_each_dev) from [<c0399ee0>] (bus_add_driver+0xdc/0x1d4)
+[    2.388031] [<c0399ee0>] (bus_add_driver) from [<c039b088>] (driver_register+0x78/0xf4)
+[    2.396453] [<c039b088>] (driver_register) from [<c08a1924>] (serial_omap_init+0x20/0x40)
+[    2.405059] [<c08a1924>] (serial_omap_init) from [<c00089c4>] (do_one_initcall+0x80/0x1cc)
+[    2.413757] [<c00089c4>] (do_one_initcall) from [<c0869e04>] (kernel_init_freeable+0x1b8/0x28c)
+[    2.422912] [<c0869e04>] (kernel_init_freeable) from [<c05dfd84>] (kernel_init+0x8/0xe4)
+[    2.431396] [<c05dfd84>] (kernel_init) from [<c000e668>] (ret_from_fork+0x14/0x2c)
+[    2.439361] Code: e1b02f23 020320f0 0203300f 01a02222 (0a000021)
+[    2.445770] ---[ end trace 293fc95d463cff72 ]---
+[    2.450683] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+[    2.450683]
+[    2.460296] CPU0: stopping
+[    2.463134] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D W      3.18.0-rc1-dirty #3
+[    2.471405] [<c0015270>] (unwind_backtrace) from [<c00119b4>] (show_stack+0x10/0x14)
+[    2.479522] [<c00119b4>] (show_stack) from [<c05e4afc>] (dump_stack+0x78/0x94)
+[    2.487060] [<c05e4afc>] (dump_stack) from [<c001394c>] (handle_IPI+0x190/0x264)
+[    2.494781] [<c001394c>] (handle_IPI) from [<c000871c>] (gic_handle_irq+0x58/0x60)
+[    2.502716] [<c000871c>] (gic_handle_irq) from [<c05eb124>] (__irq_svc+0x44/0x5c)
+[    2.510528] Exception stack(0xc08d1f60 to 0xc08d1fa8)
+[    2.515808] 1f60: c000f15c 00000000 00000000 00000000 c08d0000 00000000 00000000 00000000
+[    2.524353] 1f80: ffffffed c0978028 c08d89dc c08d8978 00000000 c08d1fa8 c000f15c c000f160
+[    2.532897] 1fa0: 60000013 ffffffff
+[    2.536529] [<c05eb124>] (__irq_svc) from [<c000f160>] (arch_cpu_idle+0x20/0x3c)
+[    2.544281] [<c000f160>] (arch_cpu_idle) from [<c0077c54>] (cpu_startup_entry+0x198/0x338)
+[    2.552917] [<c0077c54>] (cpu_startup_entry) from [<c0869be0>] (start_kernel+0x358/0x3c4)
+[    2.561462] [<c0869be0>] (start_kernel) from [<80008074>] (0x80008074)
+[    2.568298] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+[
+
+Reported-by: Franklin Cooper Jr. <fcooper@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Ambresh K <ambresh@ti.com>
 ---
- drivers/media/radio/si4713/si4713.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  100 +++++++++++++++++++++++++++++
+ 1 file changed, 100 insertions(+)
 
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index efc5d6b..ebec16d 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -1590,7 +1590,7 @@ static int si4713_probe(struct i2c_client *client,
- 	sdev->sd.ctrl_handler = hdl;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 5684f11..e2a7043 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -2075,6 +2075,70 @@ static struct omap_hwmod dra7xx_uart6_hwmod = {
+ 	},
+ };
  
- 	if (client->irq) {
--		rval = request_irq(client->irq,
-+		rval = devm_request_irq(&client->dev, client->irq,
- 			si4713_handler, IRQF_TRIGGER_FALLING,
- 			client->name, sdev);
- 		if (rval < 0) {
-@@ -1605,14 +1605,11 @@ static int si4713_probe(struct i2c_client *client,
- 	rval = si4713_initialize(sdev);
- 	if (rval < 0) {
- 		v4l2_err(&sdev->sd, "Failed to probe device information.\n");
--		goto free_irq;
-+		goto free_ctrls;
- 	}
++/* uart7 */
++static struct omap_hwmod dra7xx_uart7_hwmod = {
++	.name		= "uart7",
++	.class		= &dra7xx_uart_hwmod_class,
++	.clkdm_name	= "l4per2_clkdm",
++	.main_clk	= "uart7_gfclk_mux",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L4PER2_UART7_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L4PER2_UART7_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* uart8 */
++static struct omap_hwmod dra7xx_uart8_hwmod = {
++	.name		= "uart8",
++	.class		= &dra7xx_uart_hwmod_class,
++	.clkdm_name	= "l4per2_clkdm",
++	.main_clk	= "uart8_gfclk_mux",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L4PER2_UART8_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L4PER2_UART8_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* uart9 */
++static struct omap_hwmod dra7xx_uart9_hwmod = {
++	.name		= "uart9",
++	.class		= &dra7xx_uart_hwmod_class,
++	.clkdm_name	= "l4per2_clkdm",
++	.main_clk	= "uart9_gfclk_mux",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_L4PER2_UART9_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_L4PER2_UART9_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
++/* uart10 */
++static struct omap_hwmod dra7xx_uart10_hwmod = {
++	.name		= "uart10",
++	.class		= &dra7xx_uart_hwmod_class,
++	.clkdm_name	= "wkupaon_clkdm",
++	.main_clk	= "uart10_gfclk_mux",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DRA7XX_CM_WKUPAON_UART10_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_WKUPAON_UART10_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++};
++
+ /*
+  * 'usb_otg_ss' class
+  *
+@@ -3095,6 +3159,38 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per1__uart6 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
  
- 	return 0;
- 
--free_irq:
--	if (client->irq)
--		free_irq(client->irq, sdev);
- free_ctrls:
- 	v4l2_ctrl_handler_free(hdl);
- exit:
-@@ -1628,9 +1625,6 @@ static int si4713_remove(struct i2c_client *client)
- 	if (sdev->power_state)
- 		si4713_set_power_state(sdev, POWER_DOWN);
- 
--	if (client->irq > 0)
--		free_irq(client->irq, sdev);
--
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 
++/* l4_per2 -> uart7 */
++static struct omap_hwmod_ocp_if dra7xx_l4_per2__uart7 = {
++	.master		= &dra7xx_l4_per2_hwmod,
++	.slave		= &dra7xx_uart7_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per2 -> uart8 */
++static struct omap_hwmod_ocp_if dra7xx_l4_per2__uart8 = {
++	.master		= &dra7xx_l4_per2_hwmod,
++	.slave		= &dra7xx_uart8_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per2 -> uart9 */
++static struct omap_hwmod_ocp_if dra7xx_l4_per2__uart9 = {
++	.master		= &dra7xx_l4_per2_hwmod,
++	.slave		= &dra7xx_uart9_hwmod,
++	.clk		= "l3_iclk_div",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_wkup -> uart10 */
++static struct omap_hwmod_ocp_if dra7xx_l4_wkup__uart10 = {
++	.master		= &dra7xx_l4_wkup_hwmod,
++	.slave		= &dra7xx_uart10_hwmod,
++	.clk		= "wkupaon_iclk_mux",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* l4_per3 -> usb_otg_ss1 */
+ static struct omap_hwmod_ocp_if dra7xx_l4_per3__usb_otg_ss1 = {
+ 	.master		= &dra7xx_l4_per3_hwmod,
+@@ -3259,6 +3355,10 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per1__uart4,
+ 	&dra7xx_l4_per1__uart5,
+ 	&dra7xx_l4_per1__uart6,
++	&dra7xx_l4_per2__uart7,
++	&dra7xx_l4_per2__uart8,
++	&dra7xx_l4_per2__uart9,
++	&dra7xx_l4_wkup__uart10,
+ 	&dra7xx_l4_per3__usb_otg_ss1,
+ 	&dra7xx_l4_per3__usb_otg_ss2,
+ 	&dra7xx_l4_per3__usb_otg_ss3,
 -- 
-2.1.1
-
+1.7.9.5
