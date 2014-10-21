@@ -1,66 +1,73 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: OMAP4+: PM: Program CPU logic power state
-Date: Tue, 21 Oct 2014 15:24:36 -0500
-Message-ID: <1413923076-26063-1-git-send-email-nm@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 12/17] iommu/omap: Integrate omap-iommu-debug into
+	omap-iommu
+Date: Tue, 21 Oct 2014 16:28:27 -0500
+Message-ID: <5446CFFB.8030704@ti.com>
+References: <1412111772-38006-1-git-send-email-s-anna@ti.com>	<1412111772-38006-13-git-send-email-s-anna@ti.com>	<2808184.EdyuxU2UIF@avalon>
+	<542C26DF.9030102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <542C26DF.9030102-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-CPU logic power state is never programmed in either the initialization
-or the suspend/resume logic, instead, we depend on mpuss to program this
-properly. However, this leaves CPU logic power state indeterminate and
-most probably in reset configuration (If bootloader or other similar
-software have'nt monkeyed with the register). This can make powerstate=
-RET be either programmed for CSWR (logic=ret) or OSWR(logic = OFF) and
-in OSWR, there can be context loss when the code does not expect it.
+Hi Joerg,
 
-To prevent all these confusions, just support clearly ON, INA, CSWR,
-OFF which is the intent of the existing code by explicitly programming
-logic state.
+On 10/01/2014 11:07 AM, Anna, Suman wrote:
+> Hi Laurent,
+> 
+>> On Tuesday 30 September 2014 16:16:07 Suman Anna wrote:
+>>> The debugfs support for OMAP IOMMU is currently implemented
+>>> as a module, warranting certain OMAP-specific IOMMU API to
+>>> be exported. The OMAP IOMMU, when enabled, can only be built-in
+>>> into the kernel, so integrate the OMAP IOMMU debug module
+>>> into the OMAP IOMMU driver. This helps in eliminating the
+>>> need to export most of the current OMAP IOMMU API.
+>>>
+>>> The following are the main changes:
+>>> - The OMAP_IOMMU_DEBUG Kconfig option is eliminated, and
+>>>   the OMAP IOMMU debugfs support is built alongside the OMAP
+>>>   IOMMU driver, and enabled automatically only when debugfs
+>>>   is enabled.
+>>
+>> That's the part I'm unsure about. We're loosing the ability to save space by 
+>> not building the omap-iommu debugfs support when debugfs is enabled.
+> 
+> Yeah, I thought about it a bit, and went in favor of eliminating the
+> Kconfig. I don't have a strong opinion on this, but if saving space is
+> what is preferred, I can easily rework this patch to add it back.
+> 
+> Joerg, any preference which way we should go here?
 
-NOTE: since this is a hot path (using in cpuidle), the exit path just
-programs powerstate (logic state is immaterial when powerstate is ON).
+I am looking to refresh this series for 3.19, and this is the only patch
+that may need some changes. Please let me know what your preference is,
+and I can rework this patch if needed. Either way,
+the plan is to not have an OMAP IOMMU debugfs module, but only to
+have an option not to build the debugfs portions.
 
-Without doing this, we end up with lockups when CPUs enter OSWR and
-multiple blocks loose context, when we expect them to hit CSWR.
+regards
+Suman
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 6944ae3..79f49d9 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -227,7 +227,7 @@ static void __init save_l2x0_context(void)
- int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- {
- 	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
--	unsigned int save_state = 0;
-+	unsigned int save_state = 0, cpu_logic_state = PWRDM_POWER_RET;
- 	unsigned int wakeup_cpu;
- 
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
-@@ -239,6 +239,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 		save_state = 0;
- 		break;
- 	case PWRDM_POWER_OFF:
-+		cpu_logic_state = PWRDM_POWER_OFF;
- 		save_state = 1;
- 		break;
- 	case PWRDM_POWER_RET:
-@@ -270,6 +271,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 
- 	cpu_clear_prev_logic_pwrst(cpu);
- 	pwrdm_set_next_pwrst(pm_info->pwrdm, power_state);
-+	pwrdm_set_logic_retst(pm_info->pwrdm, cpu_logic_state);
- 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_pm_ops.resume));
- 	omap_pm_ops.scu_prepare(cpu, power_state);
- 	l2x0_pwrst_prepare(cpu, save_state);
--- 
-1.7.9.5
+> 
+>>
+>> For the rest of the series,
+>>
+>> Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> 
+> Thank you for reviewing the patches.
+> 
+> regards
+> Suman
+> 
