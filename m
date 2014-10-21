@@ -1,80 +1,171 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH v2 10/20] rtc: omap: remove DRIVER_NAME macro
-Date: Tue, 21 Oct 2014 19:37:56 +0200
-Message-ID: <1413913086-12730-11-git-send-email-johan@kernel.org>
+Subject: [PATCH v2 17/20] rtc: omap: fix minor coding style issues
+Date: Tue, 21 Oct 2014 19:38:03 +0200
+Message-ID: <1413913086-12730-18-git-send-email-johan@kernel.org>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
  <1413913086-12730-1-git-send-email-johan@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1413913086-12730-1-git-send-email-johan@kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>
-Cc: devicetree@vger.kernel.org, rtc-linux@googlegroups.com, Lokesh Vutla <lokeshvutla@ti.com>, j-keerthy@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Remove DRIVER_NAME macro which was used for unrelated strings (e.g.
-id-table entry and module name), but not for related ones (e.g. module
-name and alias).
+Fix minor coding style issues like comment style, indentation and remove
+a few unnecessary casts.
 
-Also move the module alias to the other module-info entries.
+Also drop the 1 from OMAP1 in the driver description.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/rtc/rtc-omap.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-omap.c | 46 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 1da610b8981f..f70ae660368b 100644
+index cb5ef3c845d1..4278421183e5 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -39,8 +39,6 @@
-  * the SoC). See the BOARD-SPECIFIC CUSTOMIZATION comment.
-  */
+@@ -1,5 +1,5 @@
+ /*
+- * TI OMAP1 Real Time Clock interface for Linux
++ * TI OMAP Real Time Clock interface for Linux
+  *
+  * Copyright (C) 2003 MontaVista Software, Inc.
+  * Author: George G. Davis <gdavis@mvista.com> or <source@mvista.com>
+@@ -25,7 +25,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/io.h>
  
--#define	DRIVER_NAME			"omap_rtc"
--
- /* RTC registers */
- #define OMAP_RTC_SECONDS_REG		0x00
- #define OMAP_RTC_MINUTES_REG		0x04
-@@ -360,7 +358,7 @@ static struct rtc_class_ops omap_rtc_ops = {
- 
- static const struct platform_device_id omap_rtc_devtype[] = {
- 	{
--		.name	= DRIVER_NAME,
-+		.name	= "omap_rtc",
- 	},
- 	[OMAP_RTC_DATA_AM3352_IDX] = {
- 		.name	= "am3352-rtc",
-@@ -587,12 +585,11 @@ static void omap_rtc_shutdown(struct platform_device *pdev)
- 	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
+-/* The OMAP1 RTC is a year/month/day/hours/minutes/seconds BCD clock
++/*
++ * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
+  * with century-range alarm matching, driven by the 32kHz clock.
+  *
+  * The main user-visible ways it differs from PC RTCs are by omitting
+@@ -154,19 +155,20 @@ static inline void rtc_writel(struct omap_rtc *rtc, unsigned int reg, u32 val)
+ 	writel(val, rtc->base + reg);
  }
  
--MODULE_ALIAS("platform:omap_rtc");
- static struct platform_driver omap_rtc_driver = {
- 	.remove		= __exit_p(omap_rtc_remove),
- 	.shutdown	= omap_rtc_shutdown,
- 	.driver		= {
--		.name	= DRIVER_NAME,
-+		.name	= "omap_rtc",
- 		.owner	= THIS_MODULE,
- 		.pm	= &omap_rtc_pm_ops,
- 		.of_match_table = omap_rtc_of_match,
-@@ -602,5 +599,6 @@ static struct platform_driver omap_rtc_driver = {
+-/* we rely on the rtc framework to handle locking (rtc->ops_lock),
++/*
++ * We rely on the rtc framework to handle locking (rtc->ops_lock),
+  * so the only other requirement is that register accesses which
+  * require BUSY to be clear are made with IRQs locally disabled
+  */
+ static void rtc_wait_not_busy(struct omap_rtc *rtc)
+ {
+-	int	count = 0;
+-	u8	status;
++	int count;
++	u8 status;
  
- module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
+ 	/* BUSY may stay active for 1/32768 second (~30 usec) */
+ 	for (count = 0; count < 50; count++) {
+ 		status = rtc_read(rtc, OMAP_RTC_STATUS_REG);
+-		if ((status & (u8)OMAP_RTC_STATUS_BUSY) == 0)
++		if (!(status & OMAP_RTC_STATUS_BUSY))
+ 			break;
+ 		udelay(1);
+ 	}
+@@ -175,9 +177,9 @@ static void rtc_wait_not_busy(struct omap_rtc *rtc)
  
-+MODULE_ALIAS("platform:omap_rtc");
- MODULE_AUTHOR("George G. Davis (and others)");
- MODULE_LICENSE("GPL");
+ static irqreturn_t rtc_irq(int irq, void *dev_id)
+ {
+-	struct omap_rtc		*rtc = dev_id;
+-	unsigned long		events = 0;
+-	u8			irq_data;
++	struct omap_rtc	*rtc = dev_id;
++	unsigned long events = 0;
++	u8 irq_data;
+ 
+ 	irq_data = rtc_read(rtc, OMAP_RTC_STATUS_REG);
+ 
+@@ -276,6 +278,7 @@ static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ 	local_irq_enable();
+ 
+ 	bcd2tm(tm);
++
+ 	return 0;
+ }
+ 
+@@ -285,6 +288,7 @@ static int omap_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ 
+ 	if (tm2bcd(tm) < 0)
+ 		return -EINVAL;
++
+ 	local_irq_disable();
+ 	rtc_wait_not_busy(rtc);
+ 
+@@ -303,6 +307,7 @@ static int omap_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ static int omap_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ {
+ 	struct omap_rtc *rtc = dev_get_drvdata(dev);
++	u8 interrupts;
+ 
+ 	local_irq_disable();
+ 	rtc_wait_not_busy(rtc);
+@@ -317,8 +322,9 @@ static int omap_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ 	local_irq_enable();
+ 
+ 	bcd2tm(&alm->time);
+-	alm->enabled = !!(rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG)
+-			& OMAP_RTC_INTERRUPTS_IT_ALARM);
++
++	interrupts = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
++	alm->enabled = !!(interrupts & OMAP_RTC_INTERRUPTS_IT_ALARM);
+ 
+ 	return 0;
+ }
+@@ -472,9 +478,9 @@ MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+ 
+ static int __init omap_rtc_probe(struct platform_device *pdev)
+ {
+-	struct omap_rtc		*rtc;
+-	struct resource		*res;
+-	u8			reg, mask, new_ctrl;
++	struct omap_rtc	*rtc;
++	struct resource	*res;
++	u8 reg, mask, new_ctrl;
+ 	const struct platform_device_id *id_entry;
+ 	const struct of_device_id *of_id;
+ 	int ret;
+@@ -551,14 +557,15 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 
+ 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
+ 	reg = rtc_read(rtc, OMAP_RTC_CTRL_REG);
+-	if (reg & (u8) OMAP_RTC_CTRL_STOP)
++	if (reg & OMAP_RTC_CTRL_STOP)
+ 		dev_info(&pdev->dev, "already running\n");
+ 
+ 	/* force to 24 hour mode */
+-	new_ctrl = reg & (OMAP_RTC_CTRL_SPLIT|OMAP_RTC_CTRL_AUTO_COMP);
++	new_ctrl = reg & (OMAP_RTC_CTRL_SPLIT | OMAP_RTC_CTRL_AUTO_COMP);
+ 	new_ctrl |= OMAP_RTC_CTRL_STOP;
+ 
+-	/* BOARD-SPECIFIC CUSTOMIZATION CAN GO HERE:
++	/*
++	 * BOARD-SPECIFIC CUSTOMIZATION CAN GO HERE:
+ 	 *
+ 	 *  - Device wake-up capability setting should come through chip
+ 	 *    init logic. OMAP1 boards should initialize the "wakeup capable"
+@@ -572,7 +579,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	 *    is write-only, and always reads as zero...)
+ 	 */
+ 
+-	if (new_ctrl & (u8) OMAP_RTC_CTRL_SPLIT)
++	if (new_ctrl & OMAP_RTC_CTRL_SPLIT)
+ 		dev_info(&pdev->dev, "split power mode\n");
+ 
+ 	if (reg != new_ctrl)
+@@ -651,7 +658,8 @@ static int omap_rtc_suspend(struct device *dev)
+ 
+ 	rtc->interrupts_reg = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
+ 
+-	/* FIXME the RTC alarm is not currently acting as a wakeup event
++	/*
++	 * FIXME: the RTC alarm is not currently acting as a wakeup event
+ 	 * source on some platforms, and in fact this enable() call is just
+ 	 * saving a flag that's never used...
+ 	 */
 -- 
 2.0.4
