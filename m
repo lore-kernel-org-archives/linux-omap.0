@@ -1,7 +1,7 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH v2 05/20] rtc: omap: fix class-device registration
-Date: Tue, 21 Oct 2014 19:37:51 +0200
-Message-ID: <1413913086-12730-6-git-send-email-johan@kernel.org>
+Subject: [PATCH v2 03/20] rtc: omap: fix interrupt disable at probe
+Date: Tue, 21 Oct 2014 19:37:49 +0200
+Message-ID: <1413913086-12730-4-git-send-email-johan@kernel.org>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
  <1413913086-12730-1-git-send-email-johan@kernel.org>
 Mime-Version: 1.0
@@ -22,88 +22,36 @@ To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =
 Cc: devicetree@vger.kernel.org, rtc-linux@googlegroups.com, Lokesh Vutla <lokeshvutla@ti.com>, j-keerthy@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-omap@vger.kernel.org
 
-Make sure not to register the class device until after the device has
-been configured.
+Use writel instead of writeb when disabling interrupts at probe as
+ALARM2 is not cleared otherwise on some IP-block revisions (e.g.
+AM3352).
 
-Currently, the device is not fully configured (e.g. 24-hour mode) when
-the class device is registered, something which involves driver
-callbacks for example to read the current time.
+Note that the driver currently never enables the ALARM2 interrupt.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/rtc/rtc-omap.c | 46 +++++++++++++++++++++++-----------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ drivers/rtc/rtc-omap.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 6b10db5a5702..813bed270867 100644
+index 828cb9983cc2..813d475fe7c6 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -413,16 +413,6 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 		rtc_writel(KICK1_VALUE, OMAP_RTC_KICK1_REG);
+@@ -427,10 +427,12 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
  	}
+ 	platform_set_drvdata(pdev, rtc);
  
--	device_init_wakeup(&pdev->dev, true);
--
--	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
--			&omap_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		ret = PTR_ERR(rtc);
--		goto err;
--	}
--	platform_set_drvdata(pdev, rtc);
--
- 	/*
- 	 * disable interrupts
- 	 *
-@@ -446,19 +436,6 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	if (reg & (u8) OMAP_RTC_STATUS_ALARM)
- 		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
+-	/* clear pending irqs, and set 1/second periodic,
+-	 * which we'll use instead of update irqs
++	/*
++	 * disable interrupts
++	 *
++	 * NOTE: ALARM2 is not cleared on AM3352 if rtc_write (writeb) is used
+ 	 */
+-	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
++	rtc_writel(0, OMAP_RTC_INTERRUPTS_REG);
  
--	/* handle periodic and alarm irqs */
--	ret = devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
--			dev_name(&rtc->dev), rtc);
--	if (ret)
--		goto err;
--
--	if (omap_rtc_timer != omap_rtc_alarm) {
--		ret = devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
--				dev_name(&rtc->dev), rtc);
--		if (ret)
--			goto err;
--	}
--
- 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
- 	reg = rtc_read(OMAP_RTC_CTRL_REG);
- 	if (reg & (u8) OMAP_RTC_CTRL_STOP)
-@@ -488,6 +465,29 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	if (reg != new_ctrl)
- 		rtc_write(new_ctrl, OMAP_RTC_CTRL_REG);
- 
-+	device_init_wakeup(&pdev->dev, true);
-+
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-+			&omap_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		ret = PTR_ERR(rtc);
-+		goto err;
-+	}
-+	platform_set_drvdata(pdev, rtc);
-+
-+	/* handle periodic and alarm irqs */
-+	ret = devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
-+			dev_name(&rtc->dev), rtc);
-+	if (ret)
-+		goto err;
-+
-+	if (omap_rtc_timer != omap_rtc_alarm) {
-+		ret = devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
-+				dev_name(&rtc->dev), rtc);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	return 0;
- 
- err:
+ 	/* enable RTC functional clock */
+ 	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN) {
 -- 
 2.0.4
