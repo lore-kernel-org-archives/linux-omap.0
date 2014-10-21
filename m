@@ -1,94 +1,120 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/4] ARM: dts: dra72-evm: Add NAND support
-Date: Tue, 21 Oct 2014 12:32:11 -0500
-Message-ID: <20141021173211.GA13160@kahuna>
-References: <1413888080-2669-1-git-send-email-rogerq@ti.com>
- <1413888080-2669-2-git-send-email-rogerq@ti.com>
- <54468D29.4070706@ti.com>
- <CAGo_u6q5SO74FYK61Zyx-oweiui=zatJzWjomVm7y6VES+a7Kg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH v2 04/20] rtc: omap: clean up probe error handling
+Date: Tue, 21 Oct 2014 19:37:50 +0200
+Message-ID: <1413913086-12730-5-git-send-email-johan@kernel.org>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <1413913086-12730-1-git-send-email-johan@kernel.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39518 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933046AbaJURcf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Oct 2014 13:32:35 -0400
-Content-Disposition: inline
-In-Reply-To: <CAGo_u6q5SO74FYK61Zyx-oweiui=zatJzWjomVm7y6VES+a7Kg@mail.gmail.com>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:56836 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933357AbaJURoy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Oct 2014 13:44:54 -0400
+In-Reply-To: <1413913086-12730-1-git-send-email-johan@kernel.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: dt list <devicetree@vger.kernel.org>, george.cherian@ti.com, Sekhar Nori <nsekhar@ti.com>, "Balbi, Felipe" <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
 
-On 12:16-20141021, Nishanth Menon wrote:
-> On Tue, Oct 21, 2014 at 11:43 AM, Nishanth Menon <nm@ti.com> wrote:
-> > Roger,
-> >
-> > On 10/21/2014 05:41 AM, Roger Quadros wrote:
-> >> DRA72-evm has a 256MB 16-bit wide NAND chip. Add
-> >> pinmux and NAND node.
-> >>
-> >> The NAND chips 'Chip select' and 'Write protect' can be
-> >> controlled using DIP Switch SW5. To use NAND,
-> >> the switch must be configured like so:
-> >>
-> >> SW5.1 (NAND_SELn) = ON (LOW)
-> >> SW5.9 (GPMC_WPN) = OFF (HIGH)
-> >
-> > Could we move this description to the dts as a comment? it would be
-> > little more easier to refer to than figuring it out from git log. I
-> > recollect trying to figure this out while attempting to test out NAND
-> > previously, never actually thought to check in git log. just a
-> > suggestion..
-> 
-> [...]
-> 
-> >> +&gpmc {
-> >> +     status = "okay";
-> >> +     pinctrl-names = "default";
-> >> +     pinctrl-0 = <&nand_default>;
-> >> +     ranges = <0 0 0 0x01000000>;    /* minimum GPMC partition = 16MB */
-> >> +     nand@0,0 {
-> >> +             /* To use NAND, DIP switch SW5 must be set like so:
-		      ^^ minor:
-		      /*
-		       * To use NAND,.... 
-> >> +              * SW5.1 (NAND_SELn) = ON (LOW)
-> >> +              * SW5.9 (GPMC_WPN) = OFF (HIGH)
-> >> +              */
-> 
-> [...]
-> 
-> Uggh.. ignore my comment - I see you already did that.. my bad.. i missed it :(
-> 
-> Quickly trying to test this, I got the following:
-> "
-> 
-> [    1.840728] omap-gpmc 50000000.gpmc: GPMC revision 6.0
-> [    1.847290] nand: device found, Manufacturer ID: 0x2c, Chip ID: 0xca
-> [    1.854003] nand: Micron MT29F2G16ABAEAWP
-> [    1.858245] nand: 256MiB, SLC, page size: 2048, OOB size: 64
-> [    1.864227] omap2-nand omap2-nand.0: CONFIG_MTD_NAND_OMAP_BCH not enabled
-> [    1.871459] omap2-nand: probe of omap2-nand.0 failed with error -22
-> "
-> 
-> Full log: http://hastebin.com/ozugepemin.md
-> 
-> Does this depend on
-> http://marc.info/?l=linux-omap&m=141389532511600&w=2 to function? I
-> assume yes.
+Remove some debug messages and return errors from subsystems rather than
+always fail with -EIO.
 
-looks like we'd want Tony to enable CONFIG_MTD_NAND_OMAP_BCH in
-omap2plus_defconfig?
+Note that the class-registration error has already been logged by rtc
+core.
 
-With that, it works like a charm..
-http://slexy.org/raw/s29rfTTWB4
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ drivers/rtc/rtc-omap.c | 41 ++++++++++++++++++-----------------------
+ 1 file changed, 18 insertions(+), 23 deletions(-)
 
-
-Feel free to add my:
-Tested-by: Nishanth Menon <nm@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
-
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index 813d475fe7c6..6b10db5a5702 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -379,6 +379,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	u8			reg, new_ctrl;
+ 	const struct platform_device_id *id_entry;
+ 	const struct of_device_id *of_id;
++	int ret;
+ 
+ 	of_id = of_match_device(omap_rtc_of_match, &pdev->dev);
+ 	if (of_id)
+@@ -391,16 +392,12 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	omap_rtc_timer = platform_get_irq(pdev, 0);
+-	if (omap_rtc_timer <= 0) {
+-		pr_debug("%s: no update irq?\n", pdev->name);
++	if (omap_rtc_timer <= 0)
+ 		return -ENOENT;
+-	}
+ 
+ 	omap_rtc_alarm = platform_get_irq(pdev, 1);
+-	if (omap_rtc_alarm <= 0) {
+-		pr_debug("%s: no alarm irq?\n", pdev->name);
++	if (omap_rtc_alarm <= 0)
+ 		return -ENOENT;
+-	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	rtc_base = devm_ioremap_resource(&pdev->dev, res);
+@@ -421,9 +418,8 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 			&omap_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+-		pr_debug("%s: can't register RTC device, err %ld\n",
+-			pdev->name, PTR_ERR(rtc));
+-		goto fail0;
++		ret = PTR_ERR(rtc);
++		goto err;
+ 	}
+ 	platform_set_drvdata(pdev, rtc);
+ 
+@@ -451,18 +447,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
+ 
+ 	/* handle periodic and alarm irqs */
+-	if (devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
+-			dev_name(&rtc->dev), rtc)) {
+-		pr_debug("%s: RTC timer interrupt IRQ%d already claimed\n",
+-			pdev->name, omap_rtc_timer);
+-		goto fail0;
+-	}
+-	if ((omap_rtc_timer != omap_rtc_alarm) &&
+-		(devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
+-			dev_name(&rtc->dev), rtc))) {
+-		pr_debug("%s: RTC alarm interrupt IRQ%d already claimed\n",
+-			pdev->name, omap_rtc_alarm);
+-		goto fail0;
++	ret = devm_request_irq(&pdev->dev, omap_rtc_timer, rtc_irq, 0,
++			dev_name(&rtc->dev), rtc);
++	if (ret)
++		goto err;
++
++	if (omap_rtc_timer != omap_rtc_alarm) {
++		ret = devm_request_irq(&pdev->dev, omap_rtc_alarm, rtc_irq, 0,
++				dev_name(&rtc->dev), rtc);
++		if (ret)
++			goto err;
+ 	}
+ 
+ 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
+@@ -496,13 +490,14 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-fail0:
++err:
+ 	device_init_wakeup(&pdev->dev, false);
+ 	if (id_entry->driver_data & OMAP_RTC_HAS_KICKER)
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	return -EIO;
++
++	return ret;
+ }
+ 
+ static int __exit omap_rtc_remove(struct platform_device *pdev)
 -- 
-Regards,
-Nishanth Menon
+2.0.4
+
