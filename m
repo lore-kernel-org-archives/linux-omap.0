@@ -1,78 +1,72 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: dra7-evm: Keep all VDD rails always-on
-Date: Tue, 21 Oct 2014 09:38:10 -0500
-Message-ID: <1413902290-304-1-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [RFCv2 0/8] [media] si4713 DT binding
+Date: Tue, 21 Oct 2014 17:06:59 +0200
+Message-ID: <1413904027-16767-1-git-send-email-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-DRA7 Data Manual (SPRS857L - August 2014) section 4.1.1 states: "All
-unused power supply balls must be supplied with the voltages specified
-in the Section 5.2, Recommended Operating Conditions".
+Hi,
 
-This implies that all unused voltage rails for Vayu can never be
-switched off even if the hardware blocks inside that voltage domain is
-unused. Switching off these unused rails may result in stability issues
-on other domains and increased leakage and power-on-hour impacts.
+This is the RFCv2 patchset adding DT support to the si4713
+radio transmitter i2c driver. The changes can be summarized
+as follows:
 
-J6eco-evm dts file already considers this, however j6evm-dts file needs
-to be fixed to consider this constraint of the SoC.
+ * Move regulator information back into the driver. The
+   regulators needed are documented in the chip and have
+   nothing to do with boarddata. Instead devm_regulator_get_optional
+   is used and errors are handled quite loosely now. Maybe the USB
+   driver should provide dummy regulators.
+ * GPIO handling is updated to gpiod consumer interface, resulting
+   in a driver cleanup and easy DT handling
+ * The driver is updated to use managed resources wherever possible
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+So much about the nice stuff. But there is also
 
-Patch is based on v3.18-rc1 tag.
+ * Instantiation of the platform device from the i2c (sub-)device. Since DT
+   is not supposed to contain linuxisms the device is a simple i2c node
+   resulting in the i2c probe function being called. Thus registering the main
+   v4l device must happen from there.
 
- arch/arm/boot/dts/dra7-evm.dts |    5 +++++
- 1 file changed, 5 insertions(+)
+Tested:
+ * Compilation on torvalds/linux.git:master (based on 52d589a)
+ * Booting in DT mode
+ * Some simply driver queries using v4l2-ctl
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index c6ce625..4f4c469 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -201,6 +201,7 @@
- 					regulator-name = "smps45";
- 					regulator-min-microvolt = < 850000>;
- 					regulator-max-microvolt = <1150000>;
-+					regulator-always-on;
- 					regulator-boot-on;
- 				};
- 
-@@ -209,6 +210,7 @@
- 					regulator-name = "smps6";
- 					regulator-min-microvolt = <850000>;
- 					regulator-max-microvolt = <12500000>;
-+					regulator-always-on;
- 					regulator-boot-on;
- 				};
- 
-@@ -226,6 +228,7 @@
- 					regulator-name = "smps8";
- 					regulator-min-microvolt = < 850000>;
- 					regulator-max-microvolt = <1250000>;
-+					regulator-always-on;
- 					regulator-boot-on;
- 				};
- 
-@@ -252,6 +255,7 @@
- 					regulator-name = "ldo2";
- 					regulator-min-microvolt = <3300000>;
- 					regulator-max-microvolt = <3300000>;
-+					regulator-always-on;
- 					regulator-boot-on;
- 				};
- 
-@@ -269,6 +273,7 @@
- 					regulator-name = "ldo9";
- 					regulator-min-microvolt = <1050000>;
- 					regulator-max-microvolt = <1050000>;
-+					regulator-always-on;
- 					regulator-boot-on;
- 				};
- 
+Not tested:
+ * The USB driver, since I do not own the USB dongle
+ * The legacy platform code (only DT boot has been tested).
+   (The legacy platform code is supposed to removed in the near future anyways)
+
+Changes since RFCv1 (requested by Hans Verkuil):
+ - splitted the patchset into more patches
+ - replaced dev_info with dev_dbg for missing regulators
+ - check for ENOSYS value from devm_gpiod_get (disabled GPIOLIB)
+
+-- Sebastian
+
+Sebastian Reichel (8):
+  [media] si4713: switch to devm regulator API
+  [media] si4713: switch reset gpio to devm_gpiod API
+  [media] si4713: use managed memory allocation
+  [media] si4713: use managed irq request
+  [media] si4713: add device tree support
+  [media] si4713: add DT binding documentation
+  ARM: OMAP2: RX-51: update si4713 platform data
+  [media] si4713: cleanup platform data
+
+ Documentation/devicetree/bindings/media/si4713.txt |  30 ++++
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |  69 ++++-----
+ drivers/media/radio/si4713/radio-platform-si4713.c |  28 +---
+ drivers/media/radio/si4713/si4713.c                | 167 +++++++++++++--------
+ drivers/media/radio/si4713/si4713.h                |  15 +-
+ include/media/radio-si4713.h                       |  30 ----
+ include/media/si4713.h                             |   4 +-
+ 7 files changed, 186 insertions(+), 157 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+ delete mode 100644 include/media/radio-si4713.h
+
 -- 
-1.7.9.5
+2.1.1
