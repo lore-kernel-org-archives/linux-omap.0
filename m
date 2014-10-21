@@ -1,7 +1,7 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH v2 13/20] rtc: omap: add helper to read raw bcd time
-Date: Tue, 21 Oct 2014 19:37:59 +0200
-Message-ID: <1413913086-12730-14-git-send-email-johan@kernel.org>
+Subject: [PATCH v2 16/20] rtc: omap: enable wake-up from power off
+Date: Tue, 21 Oct 2014 19:38:02 +0200
+Message-ID: <1413913086-12730-17-git-send-email-johan@kernel.org>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
  <1413913086-12730-1-git-send-email-johan@kernel.org>
 Mime-Version: 1.0
@@ -22,49 +22,34 @@ To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =
 Cc: devicetree@vger.kernel.org, rtc-linux@googlegroups.com, Lokesh Vutla <lokeshvutla@ti.com>, j-keerthy@ti.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-omap@vger.kernel.org
 
-Add helper to read raw BCD time that can be used in interrupt context.
+The ALARM interrupt must not be disabled during shutdown in order to be
+able to power up the system using an RTC alarm.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/rtc/rtc-omap.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-omap.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index ee20f2d36065..bcdf3c596214 100644
+index f6c93f877857..cb5ef3c845d1 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -234,22 +234,24 @@ static void bcd2tm(struct rtc_time *tm)
- 	tm->tm_year = bcd2bin(tm->tm_year) + 100;
+@@ -687,8 +687,15 @@ static SIMPLE_DEV_PM_OPS(omap_rtc_pm_ops, omap_rtc_suspend, omap_rtc_resume);
+ static void omap_rtc_shutdown(struct platform_device *pdev)
+ {
+ 	struct omap_rtc *rtc = platform_get_drvdata(pdev);
++	u8 mask;
+ 
+-	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
++	/*
++	 * Keep the ALARM interrupt enabled to allow the system to power up on
++	 * alarm events.
++	 */
++	mask = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
++	mask &= OMAP_RTC_INTERRUPTS_IT_ALARM;
++	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, mask);
  }
  
--
--static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+static void omap_rtc_read_time_raw(struct omap_rtc *rtc, struct rtc_time *tm)
- {
--	struct omap_rtc *rtc = dev_get_drvdata(dev);
--
--	/* we don't report wday/yday/isdst ... */
--	local_irq_disable();
--	rtc_wait_not_busy(rtc);
--
- 	tm->tm_sec = rtc_read(rtc, OMAP_RTC_SECONDS_REG);
- 	tm->tm_min = rtc_read(rtc, OMAP_RTC_MINUTES_REG);
- 	tm->tm_hour = rtc_read(rtc, OMAP_RTC_HOURS_REG);
- 	tm->tm_mday = rtc_read(rtc, OMAP_RTC_DAYS_REG);
- 	tm->tm_mon = rtc_read(rtc, OMAP_RTC_MONTHS_REG);
- 	tm->tm_year = rtc_read(rtc, OMAP_RTC_YEARS_REG);
-+}
-+
-+static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct omap_rtc *rtc = dev_get_drvdata(dev);
- 
-+	/* we don't report wday/yday/isdst ... */
-+	local_irq_disable();
-+	rtc_wait_not_busy(rtc);
-+	omap_rtc_read_time_raw(rtc, tm);
- 	local_irq_enable();
- 
- 	bcd2tm(tm);
+ static struct platform_driver omap_rtc_driver = {
 -- 
 2.0.4
