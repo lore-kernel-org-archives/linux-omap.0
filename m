@@ -1,36 +1,82 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: DRA7: Add aliases for all serial ports
-Date: Tue, 21 Oct 2014 11:18:15 -0500
-Message-ID: <1413908295-699-1-git-send-email-nm@ti.com>
+Subject: [PATCH] tty: serial: omap: increase max consoles to 10
+Date: Tue, 21 Oct 2014 11:23:36 -0500
+Message-ID: <1413908616-843-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, "Franklin Cooper Jr." <fcooper@ti.com>, Nishanth Menon <nm@ti.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Franklin Cooper Jr." <fcooper@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add serial port aliases for consoles > 6.
+Increase the maximum number of consoles possible to 10 since DRA7 now
+has the maximum number of consoles possible. without doing this, for
+example, enabling DRA7 UART10 results in internal data structures and
+console cannot match up and we endup with a crash as follows:
+
+[    1.903503] omap_uart 48424000.serial: [UART-1]: failure [serial_omap_probe]: -22
+[    1.911437] omap_uart: probe of 48424000.serial failed with error -22
+[    1.920379] Unable to handle kernel NULL pointer dereference at virtual address 00000004
+[    1.928894] pgd = c0004000
+[    1.931732] [00000004] *pgd=00000000
+[    1.935485] Internal error: Oops: 5 [#1] SMP ARM
+[    1.940338] Modules linked in:
+[    1.943542] CPU: 1 PID: 12 Comm: kworker/1:0 Tainted: G        W      3.18.0-rc1-00001-g8821bc4-dirty #6
+[    1.953521] task: ed8a2d00 ti: ed8a4000 task.ti: ed8a4000
+[    1.959197] PC is at process_one_work+0x38/0x4a4
+[    1.964050] LR is at 0x0
+[    1.966705] pc : [<c00548e0>]    lr : [<00000000>]    psr: 40000093
+[    1.966705] sp : ed8a5ea8  ip : ed8a5ec8  fp : eeb9abc0
+[    1.978759] r10: ed8a4000  r9 : 00000008  r8 : ed842458
+[    1.984252] r7 : 00000000  r6 : eeb9abc0  r5 : ed842440  r4 : edbf26a8
+[    1.991119] r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : 00000000
+[    1.997985] Flags: nZcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[    2.005767] Control: 10c5387d  Table: 8000406a  DAC: 00000015
+[    2.011810] Process kworker/1:0 (pid: 12, stack limit = 0xed8a4248)
+[    2.018371] Stack: (0xed8a5ea8 to 0xed8a6000)
+[    2.022949] 5ea0:                   00000001 00000000 60000093 c008346c 00000001 ed8a5ec8
+[    2.031555] 5ec0: c0054de4 eeb9abc0 ed8a4000 ed842458 00000008 ed8a4000 eeb9abc0 ed842440
+[    2.040161] 5ee0: eeb9abc0 eeb9abf0 ed8a4000 ed842458 00000008 ed8a4000 eeb9abc0 c0054ec4
+[    2.048767] 5f00: ed8a4000 eeb9ac4c a0000053 00000000 ed845bc0 ed842440 c0054d80 00000000
+[    2.057342] 5f20: 00000000 00000000 00000000 c005999c 00000001 00000000 c05eaa64 ed842440
+[    2.065948] 5f40: 00000000 00000000 dead4ead ffffffff ffffffff c097c680 00000000 00000000
+[    2.074554] 5f60: c078acd4 ed8a5f64 ed8a5f64 00000000 00000000 dead4ead ffffffff ffffffff
+[    2.083160] 5f80: c097c680 00000000 00000000 c078acd4 ed8a5f90 ed8a5f90 600000d3 ed845bc0
+[    2.091766] 5fa0: c00598d4 00000000 00000000 c000e668 00000000 00000000 00000000 00000000
+[    2.100341] 5fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.108947] 5fe0: 00000000 00000000 00000000 00000000 00000013 00000000 90005148 11010482
+[    2.117553] [<c00548e0>] (process_one_work) from [<c0054ec4>] (worker_thread+0x144/0x498)
+[    2.126159] [<c0054ec4>] (worker_thread) from [<c005999c>] (kthread+0xc8/0xe4)
+[    2.133758] [<c005999c>] (kthread) from [<c000e668>] (ret_from_fork+0x14/0x2c)
+[    2.141357] Code: e1a04001 e1a05000 e893000f e31e0004 (e5978004)
+[    2.147766] ---[ end trace 5798e2803311b69f ]---
+<snip>
+
+The final solution is to transition off to use 8250 driver and no
+dependency on console structures and move away from omap-serial driver,
+hence no major cleanups are done for this driver.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi |    4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 9cc9843..208dd83 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -34,6 +34,10 @@
- 		serial3 = &uart4;
- 		serial4 = &uart5;
- 		serial5 = &uart6;
-+		serial6 = &uart7;
-+		serial7 = &uart8;
-+		serial8 = &uart9;
-+		serial9 = &uart10;
- 	};
+Ref: eventual 8250 driver to transition to: http://marc.info/?l=linux-kernel&m=141201409108078&w=2
+
+ drivers/tty/serial/omap-serial.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 18c30ca..4f9cbb6 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -46,7 +46,7 @@
  
- 	timer {
+ #include <dt-bindings/gpio/gpio.h>
+ 
+-#define OMAP_MAX_HSUART_PORTS	6
++#define OMAP_MAX_HSUART_PORTS	10
+ 
+ #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
+ 
 -- 
 1.7.9.5
