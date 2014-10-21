@@ -1,52 +1,54 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v2 01/20] rtc: omap: fix clock-source configuration
-Date: Tue, 21 Oct 2014 19:37:47 +0200
-Message-ID: <1413913086-12730-2-git-send-email-johan@kernel.org>
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH v2 07/20] rtc: omap: use dev_info
+Date: Tue, 21 Oct 2014 19:37:53 +0200
+Message-ID: <1413913086-12730-8-git-send-email-johan@kernel.org>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
  <1413913086-12730-1-git-send-email-johan@kernel.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1413913086-12730-1-git-send-email-johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1413913086-12730-1-git-send-email-johan@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Make sure not to reset the clock-source configuration when enabling the
-32kHz clock mux.
+Use dev_info rather than pr_info.
 
-Until the clock source can be configured through device tree we must not
-overwrite settings made by the bootloader (e.g. clock-source selection).
-
-Fixes: cd914bba03d8 ("drivers/rtc/rtc-omap.c: add support for enabling
-32khz clock")
-Cc: stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/rtc/rtc-omap.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-omap.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 21142e6574a9..f842c216f2dd 100644
+index c750678de652..dbb88e46c25d 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -431,8 +431,10 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
- 
- 	/* enable RTC functional clock */
--	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN)
--		rtc_writel(OMAP_RTC_OSC_32KCLK_EN, OMAP_RTC_OSC_REG);
-+	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN) {
-+		reg = rtc_read(OMAP_RTC_OSC_REG);
-+		rtc_writel(reg | OMAP_RTC_OSC_32KCLK_EN, OMAP_RTC_OSC_REG);
-+	}
- 
+@@ -427,8 +427,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
  	/* clear old status */
  	reg = rtc_read(OMAP_RTC_STATUS_REG);
+ 	if (reg & (u8) OMAP_RTC_STATUS_POWER_UP) {
+-		pr_info("%s: RTC power up reset detected\n",
+-			pdev->name);
++		dev_info(&pdev->dev, "RTC power up reset detected\n");
+ 		rtc_write(OMAP_RTC_STATUS_POWER_UP, OMAP_RTC_STATUS_REG);
+ 	}
+ 	if (reg & (u8) OMAP_RTC_STATUS_ALARM)
+@@ -437,7 +436,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
+ 	reg = rtc_read(OMAP_RTC_CTRL_REG);
+ 	if (reg & (u8) OMAP_RTC_CTRL_STOP)
+-		pr_info("%s: already running\n", pdev->name);
++		dev_info(&pdev->dev, "already running\n");
+ 
+ 	/* force to 24 hour mode */
+ 	new_ctrl = reg & (OMAP_RTC_CTRL_SPLIT|OMAP_RTC_CTRL_AUTO_COMP);
+@@ -458,7 +457,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	 */
+ 
+ 	if (new_ctrl & (u8) OMAP_RTC_CTRL_SPLIT)
+-		pr_info("%s: split power mode\n", pdev->name);
++		dev_info(&pdev->dev, "split power mode\n");
+ 
+ 	if (reg != new_ctrl)
+ 		rtc_write(new_ctrl, OMAP_RTC_CTRL_REG);
 -- 
 2.0.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
