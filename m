@@ -1,82 +1,181 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] tty: serial: omap: increase max consoles to 10
-Date: Tue, 21 Oct 2014 11:23:36 -0500
-Message-ID: <1413908616-843-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH 1/4] ARM: dts: dra72-evm: Add NAND support
+Date: Tue, 21 Oct 2014 11:43:21 -0500
+Message-ID: <54468D29.4070706@ti.com>
+References: <1413888080-2669-1-git-send-email-rogerq@ti.com> <1413888080-2669-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Franklin Cooper Jr." <fcooper@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41490 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932304AbaJUQnp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Oct 2014 12:43:45 -0400
+In-Reply-To: <1413888080-2669-2-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: balbi@ti.com, nsekhar@ti.com, george.cherian@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Increase the maximum number of consoles possible to 10 since DRA7 now
-has the maximum number of consoles possible. without doing this, for
-example, enabling DRA7 UART10 results in internal data structures and
-console cannot match up and we endup with a crash as follows:
+Roger,
 
-[    1.903503] omap_uart 48424000.serial: [UART-1]: failure [serial_omap_probe]: -22
-[    1.911437] omap_uart: probe of 48424000.serial failed with error -22
-[    1.920379] Unable to handle kernel NULL pointer dereference at virtual address 00000004
-[    1.928894] pgd = c0004000
-[    1.931732] [00000004] *pgd=00000000
-[    1.935485] Internal error: Oops: 5 [#1] SMP ARM
-[    1.940338] Modules linked in:
-[    1.943542] CPU: 1 PID: 12 Comm: kworker/1:0 Tainted: G        W      3.18.0-rc1-00001-g8821bc4-dirty #6
-[    1.953521] task: ed8a2d00 ti: ed8a4000 task.ti: ed8a4000
-[    1.959197] PC is at process_one_work+0x38/0x4a4
-[    1.964050] LR is at 0x0
-[    1.966705] pc : [<c00548e0>]    lr : [<00000000>]    psr: 40000093
-[    1.966705] sp : ed8a5ea8  ip : ed8a5ec8  fp : eeb9abc0
-[    1.978759] r10: ed8a4000  r9 : 00000008  r8 : ed842458
-[    1.984252] r7 : 00000000  r6 : eeb9abc0  r5 : ed842440  r4 : edbf26a8
-[    1.991119] r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : 00000000
-[    1.997985] Flags: nZcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-[    2.005767] Control: 10c5387d  Table: 8000406a  DAC: 00000015
-[    2.011810] Process kworker/1:0 (pid: 12, stack limit = 0xed8a4248)
-[    2.018371] Stack: (0xed8a5ea8 to 0xed8a6000)
-[    2.022949] 5ea0:                   00000001 00000000 60000093 c008346c 00000001 ed8a5ec8
-[    2.031555] 5ec0: c0054de4 eeb9abc0 ed8a4000 ed842458 00000008 ed8a4000 eeb9abc0 ed842440
-[    2.040161] 5ee0: eeb9abc0 eeb9abf0 ed8a4000 ed842458 00000008 ed8a4000 eeb9abc0 c0054ec4
-[    2.048767] 5f00: ed8a4000 eeb9ac4c a0000053 00000000 ed845bc0 ed842440 c0054d80 00000000
-[    2.057342] 5f20: 00000000 00000000 00000000 c005999c 00000001 00000000 c05eaa64 ed842440
-[    2.065948] 5f40: 00000000 00000000 dead4ead ffffffff ffffffff c097c680 00000000 00000000
-[    2.074554] 5f60: c078acd4 ed8a5f64 ed8a5f64 00000000 00000000 dead4ead ffffffff ffffffff
-[    2.083160] 5f80: c097c680 00000000 00000000 c078acd4 ed8a5f90 ed8a5f90 600000d3 ed845bc0
-[    2.091766] 5fa0: c00598d4 00000000 00000000 c000e668 00000000 00000000 00000000 00000000
-[    2.100341] 5fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-[    2.108947] 5fe0: 00000000 00000000 00000000 00000000 00000013 00000000 90005148 11010482
-[    2.117553] [<c00548e0>] (process_one_work) from [<c0054ec4>] (worker_thread+0x144/0x498)
-[    2.126159] [<c0054ec4>] (worker_thread) from [<c005999c>] (kthread+0xc8/0xe4)
-[    2.133758] [<c005999c>] (kthread) from [<c000e668>] (ret_from_fork+0x14/0x2c)
-[    2.141357] Code: e1a04001 e1a05000 e893000f e31e0004 (e5978004)
-[    2.147766] ---[ end trace 5798e2803311b69f ]---
-<snip>
+On 10/21/2014 05:41 AM, Roger Quadros wrote:
+> DRA72-evm has a 256MB 16-bit wide NAND chip. Add
+> pinmux and NAND node.
+> 
+> The NAND chips 'Chip select' and 'Write protect' can be
+> controlled using DIP Switch SW5. To use NAND,
+> the switch must be configured like so:
+> 
+> SW5.1 (NAND_SELn) = ON (LOW)
+> SW5.9 (GPMC_WPN) = OFF (HIGH)
 
-The final solution is to transition off to use 8250 driver and no
-dependency on console structures and move away from omap-serial driver,
-hence no major cleanups are done for this driver.
+Could we move this description to the dts as a comment? it would be
+little more easier to refer to than figuring it out from git log. I
+recollect trying to figure this out while attempting to test out NAND
+previously, never actually thought to check in git log. just a
+suggestion..
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  arch/arm/boot/dts/dra72-evm.dts | 115 ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 115 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+> index 4107428..6f5417a 100644
+> --- a/arch/arm/boot/dts/dra72-evm.dts
+> +++ b/arch/arm/boot/dts/dra72-evm.dts
+> @@ -26,6 +26,33 @@
+>  			0x404 (PIN_INPUT | MUX_MODE0) /* i2c1_scl.i2c1_scl */
+>  		>;
+>  	};
+> +
+> +	nand_default: nand_default {
+> +		pinctrl-single,pins = <
+> +			0x0	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad0 */
+> +			0x4	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad1 */
+> +			0x8	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad2 */
+> +			0xc	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad3 */
+> +			0x10	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad4 */
+> +			0x14	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad5 */
+> +			0x18	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad6 */
+> +			0x1c	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad7 */
+> +			0x20	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad8 */
+> +			0x24	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad9 */
+> +			0x28	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad10 */
+> +			0x2c	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad11 */
+> +			0x30	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad12 */
+> +			0x34	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad13 */
+> +			0x38	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad14 */
+> +			0x3c	(PIN_INPUT  | MUX_MODE0) /* gpmc_ad15 */
+> +			0xb4	(PIN_OUTPUT | MUX_MODE0) /* gpmc_cs0 */
+> +			0xc4	(PIN_OUTPUT | MUX_MODE0) /* gpmc_advn_ale */
+> +			0xcc	(PIN_OUTPUT | MUX_MODE0) /* gpmc_wen */
+> +			0xc8	(PIN_OUTPUT | MUX_MODE0) /* gpmc_oen_ren */
+> +			0xd0	(PIN_OUTPUT | MUX_MODE0) /* gpmc_ben0 */
+> +			0xd8	(PIN_INPUT  | MUX_MODE0) /* gpmc_wait0 */
+> +		>;
+> +	};
+>  };
+>  
+>  &i2c1 {
+> @@ -142,3 +169,91 @@
+>  &uart1 {
+>  	status = "okay";
+>  };
+> +
+> +&elm {
+> +	status = "okay";
+> +};
+> +
+> +&gpmc {
+> +	status = "okay";
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&nand_default>;
+> +	ranges = <0 0 0 0x01000000>;	/* minimum GPMC partition = 16MB */
+> +	nand@0,0 {
+> +		/* To use NAND, DIP switch SW5 must be set like so:
+> +		 * SW5.1 (NAND_SELn) = ON (LOW)
+> +		 * SW5.9 (GPMC_WPN) = OFF (HIGH)
+> +		 */
+> +		reg = <0 0 4>;		/* device IO registers */
+> +		ti,nand-ecc-opt = "bch8";
+> +		ti,elm-id = <&elm>;
+> +		nand-bus-width = <16>;
+> +		gpmc,device-width = <2>;
+> +		gpmc,sync-clk-ps = <0>;
+> +		gpmc,cs-on-ns = <0>;
+> +		gpmc,cs-rd-off-ns = <80>;
+> +		gpmc,cs-wr-off-ns = <80>;
+> +		gpmc,adv-on-ns = <0>;
+> +		gpmc,adv-rd-off-ns = <60>;
+> +		gpmc,adv-wr-off-ns = <60>;
+> +		gpmc,we-on-ns = <10>;
+> +		gpmc,we-off-ns = <50>;
+> +		gpmc,oe-on-ns = <4>;
+> +		gpmc,oe-off-ns = <40>;
+> +		gpmc,access-ns = <40>;
+> +		gpmc,wr-access-ns = <80>;
+> +		gpmc,rd-cycle-ns = <80>;
+> +		gpmc,wr-cycle-ns = <80>;
+> +		gpmc,bus-turnaround-ns = <0>;
+> +		gpmc,cycle2cycle-delay-ns = <0>;
+> +		gpmc,clk-activation-ns = <0>;
+> +		gpmc,wait-monitoring-ns = <0>;
+> +		gpmc,wr-data-mux-bus-ns = <0>;
+> +		/* MTD partition table */
+> +		/* All SPL-* partitions are sized to minimal length
+> +		 * which can be independently programmable. For
+> +		 * NAND flash this is equal to size of erase-block */
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		partition@0 {
+> +			label = "NAND.SPL";
+> +			reg = <0x00000000 0x000020000>;
+> +		};
+> +		partition@1 {
+> +			label = "NAND.SPL.backup1";
+> +			reg = <0x00020000 0x00020000>;
+> +		};
+> +		partition@2 {
+> +			label = "NAND.SPL.backup2";
+> +			reg = <0x00040000 0x00020000>;
+> +		};
+> +		partition@3 {
+> +			label = "NAND.SPL.backup3";
+> +			reg = <0x00060000 0x00020000>;
+> +		};
+> +		partition@4 {
+> +			label = "NAND.u-boot-spl-os";
+> +			reg = <0x00080000 0x00040000>;
+> +		};
+> +		partition@5 {
+> +			label = "NAND.u-boot";
+> +			reg = <0x000c0000 0x00100000>;
+> +		};
+> +		partition@6 {
+> +			label = "NAND.u-boot-env";
+> +			reg = <0x001c0000 0x00020000>;
+> +		};
+> +		partition@7 {
+> +			label = "NAND.u-boot-env.backup1";
+> +			reg = <0x001e0000 0x00020000>;
+> +		};
+> +		partition@8 {
+> +			label = "NAND.kernel";
+> +			reg = <0x00200000 0x00800000>;
+> +		};
+> +		partition@9 {
+> +			label = "NAND.file-system";
+> +			reg = <0x00a00000 0x0f600000>;
+> +		};
+> +	};
+> +};
+> 
 
-Ref: eventual 8250 driver to transition to: http://marc.info/?l=linux-kernel&m=141201409108078&w=2
 
- drivers/tty/serial/omap-serial.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 18c30ca..4f9cbb6 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -46,7 +46,7 @@
- 
- #include <dt-bindings/gpio/gpio.h>
- 
--#define OMAP_MAX_HSUART_PORTS	6
-+#define OMAP_MAX_HSUART_PORTS	10
- 
- #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
- 
 -- 
-1.7.9.5
+Regards,
+Nishanth Menon
