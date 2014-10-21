@@ -1,54 +1,90 @@
-From: Arun KS <getarunks@gmail.com>
-Subject: Re: understanding cpuidle
-Date: Tue, 21 Oct 2014 17:03:33 +0530
-Message-ID: <CABOM9Zpzx11gQ+ontBxY6MhrYW=AxtRdGhdybsEpp=gxwHxWLQ@mail.gmail.com>
-References: <CAJ2oMhK_BccGQe9m1bHAc4St_jaBfaSFvyPnTRKxJwzGkfk-6Q@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 1/5] ARM: OMAP2+: gpmc: Print error message in set_gpmc_timing_reg()
+Date: Tue, 21 Oct 2014 15:41:45 +0300
+Message-ID: <1413895309-9152-2-git-send-email-rogerq@ti.com>
+References: <1413895309-9152-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJ2oMhK_BccGQe9m1bHAc4St_jaBfaSFvyPnTRKxJwzGkfk-6Q@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ran Shalit <ranshalit@gmail.com>
-Cc: kernelnewbies <kernelnewbies@kernelnewbies.org>, linux-pm@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47068 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932402AbaJUMl5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Oct 2014 08:41:57 -0400
+In-Reply-To: <1413895309-9152-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Sekhar Nori <nsekhar@ti.com>
 
-Hi Ran,
+Simplify set_gpmc_timing_reg() and always print error message
+if the requested timing cannot be achieved due to a too fast
+GPMC functional clock, irrespective if whether DEBUG is defined
+or not. This should help us debug timing configuration issues,
+which were otherwise simply not being displayed in the kernel log.
 
-On Thu, Oct 16, 2014 at 1:12 PM, Ran Shalit <ranshalit@gmail.com> wrote:
-> Hello,
->
-> I try to understand the cpuidle main concept but have some
-> difficulties. I could not find any documentation to explain the
-> cpuidle.
->
-> what does it mean that it enters idle when "no thread to run" ?if I
-> have only one process which does only
-> while(1)
-> {
->  printf("C");
-> mdelay(1000);
-> }
-> Can I expect it to enter idle for 1 second and then print "C" and get
-> again to idle ?
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 5fa3755..45f680f 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -283,13 +283,8 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+ 			   p->cycle2cyclediffcsen);
+ }
+ 
+-#ifdef DEBUG
+ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 			       int time, const char *name)
+-#else
+-static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+-			       int time)
+-#endif
+ {
+ 	u32 l;
+ 	int ticks, mask, nr_bits;
+@@ -299,15 +294,15 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 	else
+ 		ticks = gpmc_ns_to_ticks(time);
+ 	nr_bits = end_bit - st_bit + 1;
+-	if (ticks >= 1 << nr_bits) {
+-#ifdef DEBUG
+-		printk(KERN_INFO "GPMC CS%d: %-10s* %3d ns, %3d ticks >= %d\n",
+-				cs, name, time, ticks, 1 << nr_bits);
+-#endif
++	mask = (1 << nr_bits) - 1;
++
++	if (ticks > mask) {
++		pr_err("%s: GPMC error! CS%d: %s: %d ns, %d ticks > %d\n",
++		       __func__, cs, name, time, ticks, mask);
++
+ 		return -1;
+ 	}
+ 
+-	mask = (1 << nr_bits) - 1;
+ 	l = gpmc_cs_read_reg(cs, reg);
+ #ifdef DEBUG
+ 	printk(KERN_INFO
+@@ -322,16 +317,10 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 	return 0;
+ }
+ 
+-#ifdef DEBUG
+ #define GPMC_SET_ONE(reg, st, end, field) \
+ 	if (set_gpmc_timing_reg(cs, (reg), (st), (end),		\
+ 			t->field, #field) < 0)			\
+ 		return -1
+-#else
+-#define GPMC_SET_ONE(reg, st, end, field) \
+-	if (set_gpmc_timing_reg(cs, (reg), (st), (end), t->field) < 0) \
+-		return -1
+-#endif
+ 
+ int gpmc_calc_divider(unsigned int sync_clk)
+ {
+-- 
+1.8.3.2
 
-Your code will not go to cpu idle, because it is mdelay(), which is a
-busy looping.
-
-If you have used msleep(), you are relinquishing the cpu.
-Considering the fact that you have only one process running in your
-system, no other process in runnable state, kernel schedules the
-swapper(or idle) process.
-And you will enter into cpu idle.
-
-Thanks,
-Arun
-
->
-> Thanks
-> Ran
->
-> _______________________________________________
-> Kernelnewbies mailing list
-> Kernelnewbies@kernelnewbies.org
-> http://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies
