@@ -1,65 +1,49 @@
-From: Benoit Cousson <bcousson@baylibre.com>
-Subject: Re: [PATCH] MAINTAINERS: Update entry for omap related .dts files
- to cover new SoCs
-Date: Tue, 21 Oct 2014 22:26:59 +0800
-Message-ID: <54466D33.1010501@baylibre.com>
-References: <1413901462-32181-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/3] ARM: dts: dra72-evm: Add power button node
+Date: Tue, 21 Oct 2014 09:30:47 -0500
+Message-ID: <1413901848-32268-3-git-send-email-nm@ti.com>
+References: <1413901848-32268-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1413901462-32181-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1413901848-32268-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+With Commit adff5962fdd2 ("Input: introduce palmas-pwrbutton"), we can
+now support tps power button as a event source - This is SW7 (PB/WAKE)
+on the J6-evm.
 
-On 21/10/2014 22:24, Nishanth Menon wrote:
-> DRA7(including AM5x) and AM47x series are handled under OMAP umbrella=
-=2E
-> These SoC support and dts have been added since 3.14 kernel and Pull
-> requests for these have come in from OMAP till date.
->
-> So just ensure that get_maintainers can pick up this list as well.
->
-> Cc: Beno=C3=AEt Cousson <bcousson@baylibre.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/dra72-evm.dts |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Acked-by: Beno=C3=AEt Cousson <bcousson@baylibre.com>
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 671e473..1242a17 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -145,6 +145,14 @@
+ 				};
+ 			};
+ 		};
++
++		tps65917_power_button {
++			compatible = "ti,palmas-pwrbutton";
++			interrupt-parent = <&tps65917>;
++			interrupts = <1 IRQ_TYPE_NONE>;
++			wakeup-source;
++			ti,palmas-long-press-seconds = <6>;
++		};
+ 	};
+ };
+ 
+-- 
+1.7.9.5
 
-
-Thanks,
-Benoit
-
-> ---
->   MAINTAINERS |    3 +++
->   1 file changed, 3 insertions(+)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index a20df9b..e205bd2 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6585,6 +6585,9 @@ L:	devicetree@vger.kernel.org
->   S:	Maintained
->   F:	arch/arm/boot/dts/*omap*
->   F:	arch/arm/boot/dts/*am3*
-> +F:	arch/arm/boot/dts/*am4*
-> +F:	arch/arm/boot/dts/*am5*
-> +F:	arch/arm/boot/dts/*dra7*
->
->   OMAP CLOCK FRAMEWORK SUPPORT
->   M:	Paul Walmsley <paul@pwsan.com>
->
-
-
---=20
-Beno=C3=AEt Cousson
-BayLibre
-Embedded Linux Technology Lab
-www.baylibre.com
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
