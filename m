@@ -1,43 +1,83 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
-Date: Wed, 22 Oct 2014 13:07:58 +0200
-Message-ID: <20141022110758.GO2113@localhost>
-References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <20141010175409.GL31348@saruman>
- <20141011093819.GA18988@localhost>
- <20141011190817.GA20644@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 2/4] phy: exynos5-usbdrd: Add pipe-clk and utmi-clk
+ support
+Date: Wed, 22 Oct 2014 17:23:28 +0530
+Message-ID: <54479AB8.2010106@ti.com>
+References: <1412677176-3850-1-git-send-email-gautam.vivek@samsung.com> <1412677176-3850-3-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141011190817.GA20644@atomide.com>
+In-Reply-To: <1412677176-3850-3-git-send-email-gautam.vivek@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Johan Hovold <johan@kernel.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, kgene.kim@samsung.com, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Oct 11, 2014 at 12:08:18PM -0700, Tony Lindgren wrote:
-> * Johan Hovold <johan@kernel.org> [141011 02:42]:
-> > On Fri, Oct 10, 2014 at 12:54:22PM -0500, Felipe Balbi wrote:
-> > > 
-> > > is this power-off feature "RTC-only mode" ?
-> > 
-> > Yes, I believe so, at least as long as RTC power is maintained. The
-> > pmic_power_en pin can otherwise still be used to power off. 
-> > 
-> > On the BeagleBone the PMIC can be configured to enter OFF or SLEEP mode
-> > on power off, where the latter (and default) mode keeps the RTC power
-> > supply enabled.
-> > 
-> > Thanks for the fast review, Felipe.
+Hi,
+
+On Tuesday 07 October 2014 03:49 PM, Vivek Gautam wrote:
+> Exynos7 SoC has now separate gate control for 125MHz pipe3 phy
+> clock, as well as 60MHz utmi phy clock.
+> So get the same and control in the phy-exynos5-usbdrd driver.
 > 
-> Great :) I assume adding the regulator support to this driver should
-> also help in the 35xx case?
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> ---
+>  .../devicetree/bindings/phy/samsung-phy.txt        |    4 ++++
+>  drivers/phy/phy-exynos5-usbdrd.c                   |   22 ++++++++++++++++++++
+>  2 files changed, 26 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> index 15e0f2c..c2bc9dc 100644
+> --- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> +++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> @@ -138,6 +138,10 @@ Required properties:
+>  	       PHY operations, associated by phy name. It is used to
+>  	       determine bit values for clock settings register.
+>  	       For Exynos5420 this is given as 'sclk_usbphy30' in CMU.
+> +	- optional clocks: Exynos7 SoC has now following additional
+> +			   gate clocks available:
+> +			   - phy_pipe: for PIPE3 phy
+> +			   - phy_utmi: for UTMI+ phy
+>  - samsung,pmu-syscon: phandle for PMU system controller interface, used to
+>  		      control pmu registers for power isolation.
+>  - #phy-cells : from the generic PHY bindings, must be 1;
+> diff --git a/drivers/phy/phy-exynos5-usbdrd.c b/drivers/phy/phy-exynos5-usbdrd.c
+> index f756aca..013ee84 100644
+> --- a/drivers/phy/phy-exynos5-usbdrd.c
+> +++ b/drivers/phy/phy-exynos5-usbdrd.c
+> @@ -148,6 +148,8 @@ struct exynos5_usbdrd_phy_drvdata {
+>   * @dev: pointer to device instance of this platform device
+>   * @reg_phy: usb phy controller register memory base
+>   * @clk: phy clock for register access
+> + * @pipeclk: clock for pipe3 phy
+> + * @utmiclk: clock for utmi+ phy
+>   * @drv_data: pointer to SoC level driver data structure
+>   * @phys[]: array for 'EXYNOS5_DRDPHYS_NUM' number of PHY
+>   *	    instances each with its 'phy' and 'phy_cfg'.
+> @@ -161,6 +163,8 @@ struct exynos5_usbdrd_phy {
+>  	struct device *dev;
+>  	void __iomem *reg_phy;
+>  	struct clk *clk;
+> +	struct clk *pipeclk;
+> +	struct clk *utmiclk;
+>  	const struct exynos5_usbdrd_phy_drvdata *drv_data;
+>  	struct phy_usb_instance {
+>  		struct phy *phy;
+> @@ -446,6 +450,8 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
+>  
+>  	dev_dbg(phy_drd->dev, "Request to power_on usbdrd_phy phy\n");
+>  
+> +	clk_prepare_enable(phy_drd->utmiclk);
+> +	clk_prepare_enable(phy_drd->pipeclk);
 
-If I remember correctly both OMAP and Sitara 35xx have no on-chip RTC so
-they won't be using this driver.
+We can have a separate function for powering on/off usb3 phy and usb2 phy
+independently. That way if the USB controller is operating only on high speed
+mode, the pipe clock need not be enabled at all.
 
-> That is assuming that RTC power can be configured as a Linux
-> regulator on 35xx.
+I think we should create separate PHYs (phy_create) for usb2 phy and usb3 phy
+here. Please refer how Lee Jones did that for miphy365x modelling each PHY as a
+child node to the PHY provider and doing phy_create for each child node.
 
-Johan
+Thanks
+Kishon
