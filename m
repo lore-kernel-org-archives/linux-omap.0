@@ -1,58 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 4/5] OMAPDSS: fix dispc register dump for preload & mflag
-Date: Wed, 22 Oct 2014 11:39:33 +0300
-Message-ID: <1413967174-28009-4-git-send-email-tomi.valkeinen@ti.com>
-References: <1413967174-28009-1-git-send-email-tomi.valkeinen@ti.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH 09/12] rtc: omap: add support for pmic_power_en
+Date: Wed, 22 Oct 2014 12:18:49 +0200
+Message-ID: <20141022101849.GL2113@localhost>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <1412881594-25678-10-git-send-email-johan@kernel.org>
+ <20141010180721.GV31348@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42064 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754013AbaJVIkL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Oct 2014 04:40:11 -0400
-In-Reply-To: <1413967174-28009-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141010180721.GV31348@saruman>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Preload register is dumped twice for video overlays and mflag register
-is not dumped for GFX.
+On Fri, Oct 10, 2014 at 01:07:27PM -0500, Felipe Balbi wrote:
+> On Thu, Oct 09, 2014 at 09:06:31PM +0200, Johan Hovold wrote:
 
-Fix the register dump.
+> > -	/* clear pending irqs, and set 1/second periodic,
+> > -	 * which we'll use instead of update irqs
+> > +	/*
+> > +	 * disable interrupts
+> > +	 *
+> > +	 * NOTE: ALARM2 is not cleared on AM3352 if rtc_write (writeb) is used
+> >  	 */
+> > -	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+> > +	rtc_writel(0, OMAP_RTC_INTERRUPTS_REG);
+> 
+> bug fix, should be part of a separate patch and Cc stable :-)
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/fbdev/omap2/dss/dispc.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+I made this a separate fix in v2 but did not mark it for stable for now
+as no one has been bitten by it (ALARM2 is never enabled by the current
+driver).
 
-diff --git a/drivers/video/fbdev/omap2/dss/dispc.c b/drivers/video/fbdev/omap2/dss/dispc.c
-index e67976bd0627..0e9a74bb9fc2 100644
---- a/drivers/video/fbdev/omap2/dss/dispc.c
-+++ b/drivers/video/fbdev/omap2/dss/dispc.c
-@@ -3290,8 +3290,11 @@ static void dispc_dump_regs(struct seq_file *s)
- 		DUMPREG(i, DISPC_OVL_FIFO_SIZE_STATUS);
- 		DUMPREG(i, DISPC_OVL_ROW_INC);
- 		DUMPREG(i, DISPC_OVL_PIXEL_INC);
-+
- 		if (dss_has_feature(FEAT_PRELOAD))
- 			DUMPREG(i, DISPC_OVL_PRELOAD);
-+		if (dss_has_feature(FEAT_MFLAG))
-+			DUMPREG(i, DISPC_OVL_MFLAG_THRESHOLD);
- 
- 		if (i == OMAP_DSS_GFX) {
- 			DUMPREG(i, DISPC_OVL_WINDOW_SKIP);
-@@ -3312,10 +3315,6 @@ static void dispc_dump_regs(struct seq_file *s)
- 		}
- 		if (dss_has_feature(FEAT_ATTR2))
- 			DUMPREG(i, DISPC_OVL_ATTRIBUTES2);
--		if (dss_has_feature(FEAT_PRELOAD))
--			DUMPREG(i, DISPC_OVL_PRELOAD);
--		if (dss_has_feature(FEAT_MFLAG))
--			DUMPREG(i, DISPC_OVL_MFLAG_THRESHOLD);
- 	}
- 
- #undef DISPC_REG
--- 
-2.1.1
-
+Johan
