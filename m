@@ -1,48 +1,43 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 12/17] iommu/omap: Integrate omap-iommu-debug into
-	omap-iommu
-Date: Wed, 22 Oct 2014 13:38:56 -0500
-Message-ID: <5447F9C0.3020701@ti.com>
-References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
-	<1412111772-38006-13-git-send-email-s-anna@ti.com>
-	<2808184.EdyuxU2UIF@avalon> <542C26DF.9030102@ti.com>
-	<5446CFFB.8030704@ti.com> <20141022132951.GE10074@8bytes.org>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v2 10/17] iommu/omap: Fix the permissions on nr_tlb_entries
+Date: Wed, 22 Oct 2014 17:22:28 -0500
+Message-ID: <1414016555-28067-11-git-send-email-s-anna@ti.com>
+References: <1414016555-28067-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20141022132951.GE10074-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:46470 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932962AbaJVWWr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2014 18:22:47 -0400
+In-Reply-To: <1414016555-28067-1-git-send-email-s-anna@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-Hi Joerg,
+The permissions on the debugfs entry "nr_tlb_entries" should
+have been octal, not decimal, so fix it.
 
-On 10/22/2014 08:29 AM, Joerg Roedel wrote:
-> On Tue, Oct 21, 2014 at 04:28:27PM -0500, Suman Anna wrote:
->> I am looking to refresh this series for 3.19, and this is the only patch
->> that may need some changes. Please let me know what your preference is,
->> and I can rework this patch if needed. Either way,
->> the plan is to not have an OMAP IOMMU debugfs module, but only to
->> have an option not to build the debugfs portions.
-> 
-> Can I apply this series without this patch and you send me an updated
-> version of only this patch? If yes, please let me know, otherwise please
-> rebase the series on v3.18-rc1 and resend.
+Signed-off-by: Suman Anna <s-anna@ti.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/iommu/omap-iommu-debug.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Some of the patches following this patch don't apply without this patch,
-so this patch alone cannot be dropped. The preceding patches (Patches 1
-through 11) are not affected though. I will rebase and resend the entire
-series.
+diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
+index 0fb92aa..a520438 100644
+--- a/drivers/iommu/omap-iommu-debug.c
++++ b/drivers/iommu/omap-iommu-debug.c
+@@ -256,7 +256,7 @@ static int iommu_debug_register(struct device *dev, void *data)
+ 		goto nomem;
+ 	parent = d;
+ 
+-	d = debugfs_create_u8("nr_tlb_entries", 400, parent,
++	d = debugfs_create_u8("nr_tlb_entries", 0400, parent,
+ 			      (u8 *)&obj->nr_tlb_entries);
+ 	if (!d)
+ 		goto nomem;
+-- 
+2.1.0
 
-regards
-Suman
