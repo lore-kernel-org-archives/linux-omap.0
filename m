@@ -1,65 +1,48 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
-Date: Wed, 22 Oct 2014 09:43:26 -0700
-Message-ID: <20141022164326.GJ2542@atomide.com>
-References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <20141010175409.GL31348@saruman>
- <20141011093819.GA18988@localhost>
- <20141011190817.GA20644@atomide.com>
- <20141022110758.GO2113@localhost>
- <20141022152956.GI2542@atomide.com>
- <20141022162104.GB2381@localhost>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 12/17] iommu/omap: Integrate omap-iommu-debug into
+	omap-iommu
+Date: Wed, 22 Oct 2014 13:38:56 -0500
+Message-ID: <5447F9C0.3020701@ti.com>
+References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
+	<1412111772-38006-13-git-send-email-s-anna@ti.com>
+	<2808184.EdyuxU2UIF@avalon> <542C26DF.9030102@ti.com>
+	<5446CFFB.8030704@ti.com> <20141022132951.GE10074@8bytes.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141022162104.GB2381@localhost>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20141022132951.GE10074-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [141022 09:25]:
-> On Wed, Oct 22, 2014 at 08:29:56AM -0700, Tony Lindgren wrote:
-> > * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [141022 04:12]:
-> > > On Sat, Oct 11, 2014 at 12:08:18PM -0700, Tony Lindgren wrote:
-> > > > * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [141011 02:42]:
-> > > > > On Fri, Oct 10, 2014 at 12:54:22PM -0500, Felipe Balbi wrote:
-> > > > > > 
-> > > > > > is this power-off feature "RTC-only mode" ?
-> > > > > 
-> > > > > Yes, I believe so, at least as long as RTC power is maintained. The
-> > > > > pmic_power_en pin can otherwise still be used to power off. 
-> > > > > 
-> > > > > On the BeagleBone the PMIC can be configured to enter OFF or SLEEP mode
-> > > > > on power off, where the latter (and default) mode keeps the RTC power
-> > > > > supply enabled.
-> > > > > 
-> > > > > Thanks for the fast review, Felipe.
-> > > > 
-> > > > Great :) I assume adding the regulator support to this driver should
-> > > > also help in the 35xx case?
-> > > 
-> > > If I remember correctly both OMAP and Sitara 35xx have no on-chip RTC so
-> > > they won't be using this driver.
-> > 
-> > Sorry I made a typo.. I meanto to ask if adding the regulator
-> > helps in your 335x case (not 35xx case)?
+Hi Joerg,
+
+On 10/22/2014 08:29 AM, Joerg Roedel wrote:
+> On Tue, Oct 21, 2014 at 04:28:27PM -0500, Suman Anna wrote:
+>> I am looking to refresh this series for 3.19, and this is the only patch
+>> that may need some changes. Please let me know what your preference is,
+>> and I can rework this patch if needed. Either way,
+>> the plan is to not have an OMAP IOMMU debugfs module, but only to
+>> have an option not to build the debugfs portions.
 > 
-> Ah, sorry, that's what I first read before I noticed you wrote "35xx"
-> twice. :)
+> Can I apply this series without this patch and you send me an updated
+> version of only this patch? If yes, please let me know, otherwise please
+> rebase the series on v3.18-rc1 and resend.
 
-Yes sorry my nerves are doing things on their own for some stuff
-it seems like :)
- 
-> Yes, RTC power can be configured as a regulator on am33xx (e.g. provided
-> by LDO1 of the PMIC on BBB). I guess you would still need to configure
-> it as always-on to be able to use the RTC-only mode, though.
+Some of the patches following this patch don't apply without this patch,
+so this patch alone cannot be dropped. The preceding patches (Patches 1
+through 11) are not affected though. I will rebase and resend the entire
+series.
 
-OK great.
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Suman
