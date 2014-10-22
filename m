@@ -1,41 +1,50 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] tty: serial: omap: increase max consoles to 10
-Date: Wed, 22 Oct 2014 10:03:36 +0200
-Message-ID: <544764D8.8050804@linutronix.de>
-References: <1413908616-843-1-git-send-email-nm@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/5] OMAPDSS: HDMI: fix PLL GO bit handling
+Date: Wed, 22 Oct 2014 11:39:30 +0300
+Message-ID: <1413967174-28009-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1413908616-843-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Franklin Cooper Jr." <fcooper@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39924 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753677AbaJVIkH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2014 04:40:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 10/21/2014 06:23 PM, Nishanth Menon wrote:
-> 
-> The final solution is to transition off to use 8250 driver and no
-> dependency on console structures and move away from omap-serial driver,
-> hence no major cleanups are done for this driver.
+The PLL settings are committed by setting GO bit, which is then cleared
+by the HW when the settings have been taken into use.
 
-So the shiny new driver works for you, is this what you are saying?
+The current PLL code handles this wrong: instead of waiting for the bit
+to be cleared, it waits for the bit to be set. Usually, the bit is
+always set, as the CPU has just set it before. However, if the CPU takes
+enough time between setting the GO bit and checking it, the HW may
+already have cleared the bit and this leads to timeout error.
 
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index 18c30ca..4f9cbb6 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -46,7 +46,7 @@
->  
->  #include <dt-bindings/gpio/gpio.h>
->  
-> -#define OMAP_MAX_HSUART_PORTS	6
-> +#define OMAP_MAX_HSUART_PORTS	10
->  
->  #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
+Fix the wait to check the bit properly.
 
-Please also add a check in the probe code that "up->port.line" does not
-exceed OMAP_MAX_HSUART_PORTS again. So we leave the probe function with
-an error code instead.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/fbdev/omap2/dss/hdmi_pll.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Sebastian
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_pll.c b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
+index 54df12a8d744..d4ec815ba42e 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi_pll.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
+@@ -144,8 +144,8 @@ static int hdmi_pll_config(struct hdmi_pll_data *pll)
+ 
+ 	/* wait for bit change */
+ 	if (hdmi_wait_for_bit_change(pll->base, PLLCTRL_PLL_GO,
+-			0, 0, 1) != 1) {
+-		DSSERR("PLL GO bit not set\n");
++			0, 0, 0) != 0) {
++		DSSERR("PLL GO bit not clearing\n");
+ 		return -ETIMEDOUT;
+ 	}
+ 
+-- 
+2.1.1
+
