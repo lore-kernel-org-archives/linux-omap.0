@@ -1,57 +1,81 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
-Date: Wed, 22 Oct 2014 12:23:05 +0200
-Message-ID: <20141022102305.GM2113@localhost>
+Subject: Re: [PATCH 08/12] rtc: omap: restore irq state after reading TC
+ registers
+Date: Wed, 22 Oct 2014 12:50:11 +0200
+Message-ID: <20141022105011.GN2113@localhost>
 References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <20141015165452.GB15770@saruman>
- <20141015170628.GA13824@localhost>
- <20141015170832.GD15770@saruman>
+ <1412881594-25678-9-git-send-email-johan@kernel.org>
+ <20141010180225.GT31348@saruman>
+ <20141011101201.GC18988@localhost>
+ <20141012004758.GB21128@saruman>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141015170832.GD15770@saruman>
+In-Reply-To: <20141012004758.GB21128@saruman>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, Colin Foe-Parker <colin.foeparker@logicpd.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 15, 2014 at 12:08:32PM -0500, Felipe Balbi wrote:
-> On Wed, Oct 15, 2014 at 07:06:28PM +0200, Johan Hovold wrote:
-> > On Wed, Oct 15, 2014 at 11:55:02AM -0500, Felipe Balbi wrote:
-
-> > > BTW, how do you test this series ?
+On Sat, Oct 11, 2014 at 07:47:58PM -0500, Felipe Balbi wrote:
+> On Sat, Oct 11, 2014 at 12:12:01PM +0200, Johan Hovold wrote:
+> > On Fri, Oct 10, 2014 at 01:02:31PM -0500, Felipe Balbi wrote:
+> > > Hi,
+> > > 
+> > > On Thu, Oct 09, 2014 at 09:06:30PM +0200, Johan Hovold wrote:
+> > > > Make sure to restore local irq state when reading the timer/calendar
+> > > > (TC) registers, so that omap_rtc_read_time() can be called with
+> > > > interrupts disabled.
+> > > > 
+> > > > Signed-off-by: Johan Hovold <johan@kernel.org>
+> > > > ---
+> > > >  drivers/rtc/rtc-omap.c | 6 ++++--
+> > > >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> > > > index 0ef016553a97..62e2e9a9887a 100644
+> > > > --- a/drivers/rtc/rtc-omap.c
+> > > > +++ b/drivers/rtc/rtc-omap.c
+> > > > @@ -239,8 +239,10 @@ static void bcd2tm(struct rtc_time *tm)
+> > > >  
+> > > >  static int omap_rtc_read_time(struct device *dev, struct rtc_time *tm)
+> > > >  {
+> > > > +	unsigned long flags;
+> > > > +
+> > > >  	/* we don't report wday/yday/isdst ... */
+> > > > -	local_irq_disable();
+> > > > +	local_irq_save(flags);
+> > > 
+> > > you should really convert these to a real spin_lock_irq*(), that's
+> > > because local_irq* do not get re-written with RT patchset, so this
+> > > pretty much "breaks" RT.
 > > 
-> > Set a 30 second wakealarm using the sysfs attribute of the rtc class
-> > device and power off the BBB:
+> > The driver uses local_irq* throughout to guarantee registers are not
+> > read or written during an update event.
 > > 
-> > 	echo +30 >wakealarm; poweroff
+> > In fact, at least on AM33xx, this is not even necessary when reading (as
+> > opposed to writing) the TC registers, but I did not dare change that
+> > without knowing how the legacy platforms work in this respect.
+> > 
+> > Do you suggest doing this conversion as part of, or on top of, this
+> > series?
 > 
-> sweet!!!! It worked just fine :-)
+> probably on top of is. Safer that way.
 
-:)
+I didn't include this conversion in v2 as you may have noticed. In fact,
+I'm not even sure it should be done.
 
-> Too bad there's yet another DRM bug:
-> 
-> [  271.150158] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
-> [  271.150158] 
-> [  271.159725] CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 3.17.0-08392-g7fe2269-dirty #326
-> [  271.168567] [<c00175a4>] (unwind_backtrace) from [<c00132f0>] (show_stack+0x20/0x24)
-> [  271.176668] [<c00132f0>] (show_stack) from [<c06573a4>] (dump_stack+0x8c/0xa4)
-> [  271.184215] [<c06573a4>] (dump_stack) from [<c0654f10>] (panic+0xa0/0x220)
-> [  271.191405] [<c0654f10>] (panic) from [<c0049e54>] (do_exit+0x974/0x9d0)
-> [  271.198410] [<c0049e54>] (do_exit) from [<c0067694>] (SyS_reboot+0x14c/0x1e8)
-> [  271.205870] [<c0067694>] (SyS_reboot) from [<c000f080>] (ret_fast_syscall+0x0/0x48)
-> [  271.214023] drm_kms_helper: panic occurred, switching back to text console
-> [  271.221312] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
-> 
-> In any case, board still powered up after 30 seconds(-ish). So this gets
-> a:
-> 
-> Tested-by: Felipe Balbi <balbi@ti.com>
+Using local_irq* "breaks" RT, but if we change it to spin_lock_irq* and
+RT preempts us, we may miss the 15us access window which would break the
+driver:
 
-Thanks for testing. I didn't include your Tested-by in v2 due to the
-invasiveness of the new device-abstraction patch. Still works fine on BBB
-here though.
+	"If the ARM accesses the TC registers outside of the access
+	 period, then the access is not guaranteed."
+
+On am33xx this only affects updating the TC (timer/calendar) or alarm
+registers, but the driver currently disables interrupts also on reading
+the time (possibly because the early IP revisions did not have the
+shadow read registers).
 
 Johan
