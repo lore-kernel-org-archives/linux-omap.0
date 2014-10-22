@@ -1,125 +1,95 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 11/17] iommu/omap: Make pagetable debugfs entry read-only
-Date: Wed, 22 Oct 2014 17:22:29 -0500
-Message-ID: <1414016555-28067-12-git-send-email-s-anna@ti.com>
+Subject: [PATCH v2 13/17] iommu/omap: Remove couple of unused exported functions
+Date: Wed, 22 Oct 2014 17:22:31 -0500
+Message-ID: <1414016555-28067-14-git-send-email-s-anna@ti.com>
 References: <1414016555-28067-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49933 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932962AbaJVWWs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Oct 2014 18:22:48 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:46471 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933392AbaJVWWv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Oct 2014 18:22:51 -0400
 In-Reply-To: <1414016555-28067-1-git-send-email-s-anna@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Joerg Roedel <joro@8bytes.org>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-Remove the writeability on the 'pagetable' debugfs entry,
-so that the mapping/unmapping into an OMAP IOMMU is only
-limited to actual client devices/drivers at kernel-level.
+The exported functions omap_foreach_iommu_device() and
+omap_iotlb_cr_to_e() have been deleted, as they are no
+longer needed.
+
+The function omap_foreach_iommu_device() is not required
+after the consolidation of the OMAP IOMMU debug module,
+and the function omap_iotlb_cr_to_e() is not required
+after making the debugfs entry 'pagetable' read-only.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/iommu/omap-iommu-debug.c | 48 ++--------------------------------------
- 1 file changed, 2 insertions(+), 46 deletions(-)
+ drivers/iommu/omap-iommu.c | 21 ---------------------
+ drivers/iommu/omap-iommu.h |  5 -----
+ 2 files changed, 26 deletions(-)
 
-diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index a520438..28de657 100644
---- a/drivers/iommu/omap-iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -24,8 +24,6 @@
- #include "omap-iopgtable.h"
- #include "omap-iommu.h"
- 
--#define MAXCOLUMN 100 /* for short messages */
--
- static DEFINE_MUTEX(iommu_debug_lock);
- 
- static struct dentry *iommu_debug_root;
-@@ -82,39 +80,6 @@ static ssize_t debug_read_tlb(struct file *file, char __user *userbuf,
- 	return bytes;
- }
- 
--static ssize_t debug_write_pagetable(struct file *file,
--		     const char __user *userbuf, size_t count, loff_t *ppos)
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index b92b6fc..9171112 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -203,20 +203,6 @@ static void iommu_disable(struct omap_iommu *obj)
+ /*
+  *	TLB operations
+  */
+-void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e)
 -{
--	struct iotlb_entry e;
--	struct cr_regs cr;
--	int err;
--	struct device *dev = file->private_data;
--	struct omap_iommu *obj = dev_to_omap_iommu(dev);
--	char buf[MAXCOLUMN], *p = buf;
+-	BUG_ON(!cr || !e);
 -
--	count = min(count, sizeof(buf));
--
--	mutex_lock(&iommu_debug_lock);
--	if (copy_from_user(p, userbuf, count)) {
--		mutex_unlock(&iommu_debug_lock);
--		return -EFAULT;
--	}
--
--	sscanf(p, "%x %x", &cr.cam, &cr.ram);
--	if (!cr.cam || !cr.ram) {
--		mutex_unlock(&iommu_debug_lock);
--		return -EINVAL;
--	}
--
--	omap_iotlb_cr_to_e(&cr, &e);
--	err = omap_iopgtable_store_entry(obj, &e);
--	if (err)
--		dev_err(obj->dev, "%s: fail to store cr\n", __func__);
--
--	mutex_unlock(&iommu_debug_lock);
--	return count;
+-	e->da		= cr->cam & MMU_CAM_VATAG_MASK;
+-	e->pa		= cr->ram & MMU_RAM_PADDR_MASK;
+-	e->valid	= cr->cam & MMU_CAM_V;
+-	e->pgsz		= cr->cam & MMU_CAM_PGSZ_MASK;
+-	e->endian	= cr->ram & MMU_RAM_ENDIAN_MASK;
+-	e->elsz		= cr->ram & MMU_RAM_ELSZ_MASK;
+-	e->mixed	= cr->ram & MMU_RAM_MIXED;
 -}
+-EXPORT_SYMBOL_GPL(omap_iotlb_cr_to_e);
 -
- #define dump_ioptable_entry_one(lv, da, val)			\
- 	({							\
- 		int __err = 0;					\
-@@ -202,14 +167,6 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
- 	return bytes;
+ static inline int iotlb_cr_valid(struct cr_regs *cr)
+ {
+ 	if (!cr)
+@@ -595,13 +581,6 @@ size_t omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t bytes)
  }
+ EXPORT_SYMBOL_GPL(omap_dump_tlb_entries);
  
--#define DEBUG_FOPS(name)						\
--	static const struct file_operations debug_##name##_fops = {	\
--		.open = simple_open,					\
--		.read = debug_read_##name,				\
--		.write = debug_write_##name,				\
--		.llseek = generic_file_llseek,				\
--	};
+-int omap_foreach_iommu_device(void *data, int (*fn)(struct device *, void *))
+-{
+-	return driver_for_each_device(&omap_iommu_driver.driver,
+-				      NULL, data, fn);
+-}
+-EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
 -
- #define DEBUG_FOPS_RO(name)						\
- 	static const struct file_operations debug_##name##_fops = {	\
- 		.open = simple_open,					\
-@@ -219,7 +176,7 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
+ #endif /* CONFIG_OMAP_IOMMU_DEBUG */
  
- DEBUG_FOPS_RO(regs);
- DEBUG_FOPS_RO(tlb);
--DEBUG_FOPS(pagetable);
-+DEBUG_FOPS_RO(pagetable);
+ /*
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index 4783779..b18cecc 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -190,14 +190,9 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ /*
+  * global functions
+  */
+-extern void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
+-
+ extern int
+ omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
  
- #define __DEBUG_ADD_FILE(attr, mode)					\
- 	{								\
-@@ -230,7 +187,6 @@ DEBUG_FOPS(pagetable);
- 			return -ENOMEM;					\
- 	}
- 
--#define DEBUG_ADD_FILE(name) __DEBUG_ADD_FILE(name, 0600)
- #define DEBUG_ADD_FILE_RO(name) __DEBUG_ADD_FILE(name, 0400)
- 
- static int iommu_debug_register(struct device *dev, void *data)
-@@ -263,7 +219,7 @@ static int iommu_debug_register(struct device *dev, void *data)
- 
- 	DEBUG_ADD_FILE_RO(regs);
- 	DEBUG_ADD_FILE_RO(tlb);
--	DEBUG_ADD_FILE(pagetable);
-+	DEBUG_ADD_FILE_RO(pagetable);
- 
- 	return 0;
- 
+-extern int omap_foreach_iommu_device(void *data,
+-				int (*fn)(struct device *, void *));
+-
+ #ifdef CONFIG_OMAP_IOMMU_DEBUG
+ extern ssize_t
+ omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
 -- 
 2.1.0
 
