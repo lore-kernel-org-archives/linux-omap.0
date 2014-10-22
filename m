@@ -1,42 +1,47 @@
-From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 12/17] iommu/omap: Integrate omap-iommu-debug into
-	omap-iommu
-Date: Wed, 22 Oct 2014 15:29:51 +0200
-Message-ID: <20141022132951.GE10074@8bytes.org>
-References: <1412111772-38006-1-git-send-email-s-anna@ti.com>
-	<1412111772-38006-13-git-send-email-s-anna@ti.com>
-	<2808184.EdyuxU2UIF@avalon> <542C26DF.9030102@ti.com>
-	<5446CFFB.8030704@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
+Date: Wed, 22 Oct 2014 08:29:56 -0700
+Message-ID: <20141022152956.GI2542@atomide.com>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <20141010175409.GL31348@saruman>
+ <20141011093819.GA18988@localhost>
+ <20141011190817.GA20644@atomide.com>
+ <20141022110758.GO2113@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5446CFFB.8030704-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+In-Reply-To: <20141022110758.GO2113@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 21, 2014 at 04:28:27PM -0500, Suman Anna wrote:
-> I am looking to refresh this series for 3.19, and this is the only patch
-> that may need some changes. Please let me know what your preference is,
-> and I can rework this patch if needed. Either way,
-> the plan is to not have an OMAP IOMMU debugfs module, but only to
-> have an option not to build the debugfs portions.
+* Johan Hovold <johan@kernel.org> [141022 04:12]:
+> On Sat, Oct 11, 2014 at 12:08:18PM -0700, Tony Lindgren wrote:
+> > * Johan Hovold <johan@kernel.org> [141011 02:42]:
+> > > On Fri, Oct 10, 2014 at 12:54:22PM -0500, Felipe Balbi wrote:
+> > > > 
+> > > > is this power-off feature "RTC-only mode" ?
+> > > 
+> > > Yes, I believe so, at least as long as RTC power is maintained. The
+> > > pmic_power_en pin can otherwise still be used to power off. 
+> > > 
+> > > On the BeagleBone the PMIC can be configured to enter OFF or SLEEP mode
+> > > on power off, where the latter (and default) mode keeps the RTC power
+> > > supply enabled.
+> > > 
+> > > Thanks for the fast review, Felipe.
+> > 
+> > Great :) I assume adding the regulator support to this driver should
+> > also help in the 35xx case?
+> 
+> If I remember correctly both OMAP and Sitara 35xx have no on-chip RTC so
+> they won't be using this driver.
 
-Can I apply this series without this patch and you send me an updated
-version of only this patch? If yes, please let me know, otherwise please
-rebase the series on v3.18-rc1 and resend.
+Sorry I made a typo.. I meanto to ask if adding the regulator
+helps in your 335x case (not 35xx case)?
 
-Thanks,
+Regards,
 
-	Joerg
+Tony
