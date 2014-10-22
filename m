@@ -1,93 +1,99 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 14/17] iommu/omap: Do not export unneeded functions
-Date: Wed, 22 Oct 2014 17:22:32 -0500
-Message-ID: <1414016555-28067-15-git-send-email-s-anna@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 01/17] iommu/omap: Remove refcount field from omap_iommu
+	object
+Date: Wed, 22 Oct 2014 17:22:19 -0500
+Message-ID: <1414016555-28067-2-git-send-email-s-anna@ti.com>
 References: <1414016555-28067-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47585 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933392AbaJVWWu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Oct 2014 18:22:50 -0400
-In-Reply-To: <1414016555-28067-1-git-send-email-s-anna@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1414016555-28067-1-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Suman Anna <s-anna@ti.com>
 
-The following functions were exported previously for usage by
-the OMAP IOMMU debug module:
-	omap_iommu_dump_ctx()
-	omap_dump_tlb_entries()
-	omap_iopgtable_store_entry()
+The refcount field in omap_iommu object is primarily used to check
+if an IOMMU device has already been enabled, but this is already
+implicit in the omap_iommu_attach_dev() which ensures that only
+a single device can attach to an IOMMU. This field is redundant,
+and so has been cleaned up.
 
-These functions need not be exported anymore as the OMAP IOMMU
-debugfs code is integrated with the OMAP IOMMU driver, and
-there won't be external users for these functions. So, remove
-the EXPORT_SYMBOL_GPL on these. The omap_iopgtable_store_entry()
-is also made internal only, after making the 'pagetable' debugfs
-entry read-only.
-
-Signed-off-by: Suman Anna <s-anna@ti.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Acked-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 ---
- drivers/iommu/omap-iommu.c | 6 ++----
- drivers/iommu/omap-iommu.h | 3 ---
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ drivers/iommu/omap-iommu.c | 15 +++------------
+ drivers/iommu/omap-iommu.h |  1 -
+ 2 files changed, 3 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 9171112..3dcaef0 100644
+index 3627887..ea04e4d 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -511,7 +511,6 @@ ssize_t omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t bytes)
+@@ -819,8 +819,9 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 	u32 *iopgd, *iopte;
+ 	struct omap_iommu *obj = data;
+ 	struct iommu_domain *domain = obj->domain;
++	struct omap_iommu_domain *omap_domain = domain->priv;
  
- 	return bytes;
+-	if (!obj->refcount)
++	if (!omap_domain->iommu_dev)
+ 		return IRQ_NONE;
+ 
+ 	errs = iommu_report_fault(obj, &da);
+@@ -880,13 +881,6 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
+ 
+ 	spin_lock(&obj->iommu_lock);
+ 
+-	/* an iommu device can only be attached once */
+-	if (++obj->refcount > 1) {
+-		dev_err(dev, "%s: already attached!\n", obj->name);
+-		err = -EBUSY;
+-		goto err_enable;
+-	}
+-
+ 	obj->iopgd = iopgd;
+ 	err = iommu_enable(obj);
+ 	if (err)
+@@ -899,7 +893,6 @@ static struct omap_iommu *omap_iommu_attach(const char *name, u32 *iopgd)
+ 	return obj;
+ 
+ err_enable:
+-	obj->refcount--;
+ 	spin_unlock(&obj->iommu_lock);
+ 	return ERR_PTR(err);
  }
--EXPORT_SYMBOL_GPL(omap_iommu_dump_ctx);
+@@ -915,9 +908,7 @@ static void omap_iommu_detach(struct omap_iommu *obj)
  
- static int
- __dump_tlb_entries(struct omap_iommu *obj, struct cr_regs *crs, int num)
-@@ -579,7 +578,6 @@ size_t omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t bytes)
+ 	spin_lock(&obj->iommu_lock);
  
- 	return p - buf;
- }
--EXPORT_SYMBOL_GPL(omap_dump_tlb_entries);
+-	if (--obj->refcount == 0)
+-		iommu_disable(obj);
+-
++	iommu_disable(obj);
+ 	obj->iopgd = NULL;
  
- #endif /* CONFIG_OMAP_IOMMU_DEBUG */
- 
-@@ -764,7 +762,8 @@ iopgtable_store_entry_core(struct omap_iommu *obj, struct iotlb_entry *e)
-  * @obj:	target iommu
-  * @e:		an iommu tlb entry info
-  **/
--int omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e)
-+static int
-+omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e)
- {
- 	int err;
- 
-@@ -774,7 +773,6 @@ int omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e)
- 		prefetch_iotlb_entry(obj, e);
- 	return err;
- }
--EXPORT_SYMBOL_GPL(omap_iopgtable_store_entry);
- 
- /**
-  * iopgtable_lookup_entry - Lookup an iommu pte entry
+ 	spin_unlock(&obj->iommu_lock);
 diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index b18cecc..d736630 100644
+index 4f1b68c..5c14000 100644
 --- a/drivers/iommu/omap-iommu.h
 +++ b/drivers/iommu/omap-iommu.h
-@@ -190,9 +190,6 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- /*
-  * global functions
-  */
--extern int
--omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
--
- #ifdef CONFIG_OMAP_IOMMU_DEBUG
- extern ssize_t
- omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
+@@ -33,7 +33,6 @@ struct omap_iommu {
+ 	void		*isr_priv;
+ 	struct iommu_domain *domain;
+ 
+-	unsigned int	refcount;
+ 	spinlock_t	iommu_lock;	/* global for this whole object */
+ 
+ 	/*
 -- 
 2.1.0
-
