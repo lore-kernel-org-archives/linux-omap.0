@@ -1,38 +1,112 @@
-From: Kevin Hilman <khilman@kernel.org>
-Subject: Re: [PATCH] ARM: OMAP4+: PM: Program CPU logic power state
-Date: Fri, 24 Oct 2014 11:03:31 -0700
-Message-ID: <7h61f98hvw.fsf@deeprootsystems.com>
-References: <1413923076-26063-1-git-send-email-nm@ti.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Fri, 24 Oct 2014 21:02:51 +0200
+Message-ID: <20141024190251.GB19377@localhost>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <1413913086-12730-1-git-send-email-johan@kernel.org>
+ <20141024160845.GM26941@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1413923076-26063-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Tue, 21 Oct 2014 15:24:36 -0500")
+Content-Disposition: inline
+In-Reply-To: <20141024160845.GM26941@saruman>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+To: Felipe Balbi <balbi@ti.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+[ +CC: Russell ]
 
-> CPU logic power state is never programmed in either the initialization
-> or the suspend/resume logic, instead, we depend on mpuss to program this
-> properly. However, this leaves CPU logic power state indeterminate and
-> most probably in reset configuration (If bootloader or other similar
-> software have'nt monkeyed with the register). This can make powerstate=
-> RET be either programmed for CSWR (logic=ret) or OSWR(logic = OFF) and
-> in OSWR, there can be context loss when the code does not expect it.
->
-> To prevent all these confusions, just support clearly ON, INA, CSWR,
-> OFF which is the intent of the existing code by explicitly programming
-> logic state.
->
-> NOTE: since this is a hot path (using in cpuidle), the exit path just
-> programs powerstate (logic state is immaterial when powerstate is ON).
->
-> Without doing this, we end up with lockups when CPUs enter OSWR and
-> multiple blocks loose context, when we expect them to hit CSWR.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+On Fri, Oct 24, 2014 at 11:08:45AM -0500, Felipe Balbi wrote:
 
-Acked-by: Kevin Hilman <khilman@linaro.org>
+> I tested this entire series with my BBB and it still works fine. However
+> I still get below panic. This time without any DRM errors:
+> 
+> [   63.087832] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+> [   63.087832] 
+> [   63.097399] CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 3.18.0-rc1-00095-g8524e69 #556
+> [   63.106060] [<c00175a4>] (unwind_backtrace) from [<c00132f0>] (show_stack+0x20/0x24)
+> [   63.114160] [<c00132f0>] (show_stack) from [<c0657404>] (dump_stack+0x8c/0xa4)
+> [   63.121706] [<c0657404>] (dump_stack) from [<c0654f70>] (panic+0xa0/0x220)
+> [   63.128895] [<c0654f70>] (panic) from [<c0049e64>] (do_exit+0x974/0x9d0)
+> [   63.135900] [<c0049e64>] (do_exit) from [<c006775c>] (SyS_reboot+0x14c/0x1e8)
+> [   63.143361] [<c006775c>] (SyS_reboot) from [<c000f080>] (ret_fast_syscall+0x0/0x48)
+> [   63.151596] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+> 
+> Then again, this also happens by simply calling poweroff without
+> enabling wakealarm.
+
+Bah, I forgot to look into that. I haven't seen this myself as I don't
+use systemd (which does the syscall from process 0).
+
+Some driver power-off implementations and some arch machine_power_off
+spin indefinitely (or use an mdelay and WARN) after trying to power off.
+
+I think this is really a bug in arch/arm that should be fixed
+analogously to how failed reboot is handled in machine_restart().
+
+Care to try the patch below?
+
+I should still add a two-second delay to rtc-omap to avoid the arch
+error message.
+
+Andrew, can you update one patch in the series or should I just resend
+them all (with proper Tested-by tags)?
+
+> In any case, for the whole series:
+> 
+> Tested-by: Felipe Balbi <balbi@ti.com>
+
+Thanks for testing!
+
+Johan
+
+
+>From aaa1d1d6171c895b6966ba5b738ac7946ada97c7 Mon Sep 17 00:00:00 2001
+From: Johan Hovold <johan@kernel.org>
+Date: Fri, 24 Oct 2014 18:53:09 +0200
+Subject: [PATCH] ARM: fix failed power-off handling
+
+Make sure to handle failed power off by printing an error message and
+halting (analogously to how failed reboot is handled).
+
+Power off can fail for example if the hardware has not been wired up
+correctly.
+
+This avoids a kernel panic when called from process 0:
+
+[   63.087832] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+[   63.087832]
+[   63.097399] CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 3.18.0-rc1-00095-g8524e69 #556
+[   63.106060] [<c00175a4>] (unwind_backtrace) from [<c00132f0>] (show_stack+0x20/0x24)
+[   63.114160] [<c00132f0>] (show_stack) from [<c0657404>] (dump_stack+0x8c/0xa4)
+[   63.121706] [<c0657404>] (dump_stack) from [<c0654f70>] (panic+0xa0/0x220)
+[   63.128895] [<c0654f70>] (panic) from [<c0049e64>] (do_exit+0x974/0x9d0)
+[   63.135900] [<c0049e64>] (do_exit) from [<c006775c>] (SyS_reboot+0x14c/0x1e8)
+[   63.143361] [<c006775c>] (SyS_reboot) from [<c000f080>] (ret_fast_syscall+0x0/0x48)
+[   63.151596] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ arch/arm/kernel/process.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
+index a35f6ebbd2c2..68c38af5687c 100644
+--- a/arch/arm/kernel/process.c
++++ b/arch/arm/kernel/process.c
+@@ -212,6 +212,12 @@ void machine_power_off(void)
+ 
+ 	if (pm_power_off)
+ 		pm_power_off();
++
++	/* Give a grace period for failure to power off */
++	mdelay(1000);
++
++	pr_err("Power off failed -- system halted\n");
++	while (1);
+ }
+ 
+ /*
+-- 
+2.0.4
