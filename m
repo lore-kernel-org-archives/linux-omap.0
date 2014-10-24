@@ -1,111 +1,128 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 3/3] rtc: omap: Support regulator supply for RTC
-Date: Fri, 24 Oct 2014 08:26:43 -0500
-Message-ID: <544A5393.6090504@ti.com>
-References: <1414126425-13198-1-git-send-email-lokeshvutla@ti.com> <1414126425-13198-4-git-send-email-lokeshvutla@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH V3 1/3] rtc: omap: use module_platform_driver
+Date: Fri, 24 Oct 2014 10:38:17 -0500
+Message-ID: <20141024153817.GI26941@saruman>
+References: <1414126425-13198-1-git-send-email-lokeshvutla@ti.com>
+ <1414126425-13198-2-git-send-email-lokeshvutla@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59380 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756401AbaJXN1l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Oct 2014 09:27:41 -0400
-In-Reply-To: <1414126425-13198-4-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6187556472043849493=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1414126425-13198-2-git-send-email-lokeshvutla@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: a.zummo@towertech.it, rtc-linux@googlegroups.com, devicetree@vger.kernel.org, tony@atomide.com, j-keerthy@ti.com, nsekhar@ti.com, johan@kernel.org, balbi@ti.com, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux@roeck-us.net
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, a.zummo@towertech.it, johan@kernel.org
-Cc: tony@atomide.com, bcousson@baylibre.com, balbi@ti.com, akpm@linux-foundation.org, linux@roeck-us.net, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 10/23/2014 11:53 PM, Lokesh Vutla wrote:
-> On some Soc's RTC is powered by an external power regulator.
-SoC ? -> could you rephrase this to indicate "certain SoCs such as
-DRA7, RTC is an independent voltage domain of it's own and on
-platforms such as DRA7-evm, this may be supplied by individual
-regulator on it's own.
+--===============6187556472043849493==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kr14OxHsRwZHHqxS"
+Content-Disposition: inline
 
-> e.g. RTC on DRA7 SoC. Make the OMAP RTC driver support a
-> power regulator.
+--kr14OxHsRwZHHqxS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Question ofcourse is what voltage would you like that regulator to be
-at? As you are aware, certain LDOs and SMPS can drive varying voltage
-and just enable/disable would do just the default voltage of the
-SMPS/LDO, right? OR am i missing something here?
-
-> 
+On Fri, Oct 24, 2014 at 10:23:43AM +0530, Lokesh Vutla wrote:
+> module_platform_driver_probe() prevents driver from requesting probe defe=
+rral.
+> So using module_platform_drive() to support probe deferral.
+> And also removing .owner field which is set by module_platform_driver.
+>=20
 > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
 > ---
->  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  3 +++
->  drivers/rtc/rtc-omap.c                             | 24 ++++++++++++++++++++++
->  2 files changed, 27 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> index 750efd4..e7ad12b 100644
-> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-> @@ -15,6 +15,8 @@ Required properties:
->  Optional properties:
->  - ti,system-power-controller: whether the rtc is controlling the system power
->    through pmic_power_en
-> +Optional Properties:
-^^ already commented on..
-
-> +- vrtc-supply: phandle to the regulator device tree node if needed
-
-"phandle to supply regulator" ? since it is optional, "if needed" is
-redundant?
-
->  
->  Example:
->  
-> @@ -25,4 +27,5 @@ rtc@1c23000 {
->  		      19>;
->  	interrupt-parent = <&intc>;
->  	ti,system-power-controller;
-> +	vrtc-supply = <&ldo9_reg>;
->  };
+>  drivers/rtc/rtc-omap.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>=20
 > diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index d9bb5e7..61fe630 100644
+> index e74750f..d9bb5e7 100644
 > --- a/drivers/rtc/rtc-omap.c
 > +++ b/drivers/rtc/rtc-omap.c
-> @@ -25,6 +25,7 @@
->  #include <linux/of_device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/io.h>
-> +#include <linux/regulator/consumer.h>
->  
->  /*
->   * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
-> @@ -134,6 +135,7 @@ struct omap_rtc {
->  	u8 interrupts_reg;
->  	bool is_pmic_controller;
->  	const struct omap_rtc_device_type *type;
-> +	struct regulator *supply;
+> @@ -477,7 +477,7 @@ static const struct of_device_id omap_rtc_of_match[] =
+=3D {
 >  };
->  
->  static inline u8 rtc_read(struct omap_rtc *rtc, unsigned int reg)
-> @@ -516,6 +518,22 @@ static int omap_rtc_probe(struct platform_device *pdev)
->  
->  	platform_set_drvdata(pdev, rtc);
->  
-> +	rtc->supply = devm_regulator_get_optional(&pdev->dev, "vrtc");
-> +	if (IS_ERR(rtc->supply)) {
-> +		if (PTR_ERR(rtc->supply) == -EPROBE_DEFER)
-> +			return -EPROBE_DEFER;
-> +
-> +		rtc->supply = NULL;
-> +	}
-> +
-> +	if (rtc->supply) {
-> +		ret = regulator_enable(rtc->supply);
-> +		if (ret) {
-> +			dev_err(&pdev->dev, "regulator enable failed\n");
+>  MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+> =20
+> -static int __init omap_rtc_probe(struct platform_device *pdev)
+> +static int omap_rtc_probe(struct platform_device *pdev)
+>  {
+>  	struct omap_rtc	*rtc;
+>  	struct resource	*res;
+> @@ -708,18 +708,18 @@ static void omap_rtc_shutdown(struct platform_devic=
+e *pdev)
+>  }
+> =20
+>  static struct platform_driver omap_rtc_driver =3D {
+> +	.probe		=3D omap_rtc_probe,
+>  	.remove		=3D __exit_p(omap_rtc_remove),
+>  	.shutdown	=3D omap_rtc_shutdown,
+>  	.driver		=3D {
+>  		.name	=3D "omap_rtc",
+> -		.owner	=3D THIS_MODULE,
+>  		.pm	=3D &omap_rtc_pm_ops,
+>  		.of_match_table =3D omap_rtc_of_match,
+>  	},
+>  	.id_table	=3D omap_rtc_id_table,
+>  };
+> =20
+> -module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
+> +module_platform_driver(omap_rtc_driver);
+> =20
+>  MODULE_ALIAS("platform:omap_rtc");
+>  MODULE_AUTHOR("George G. Davis (and others)");
+> --=20
+> 1.9.1
+>=20
 
-would be nice to print the result as well - since it helps debug from
-log a little easier.
+--=20
+balbi
+
+--kr14OxHsRwZHHqxS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUSnJpAAoJEIaOsuA1yqRERzoP/RDpOuAnV8Han3KCbrCh14EA
+Wi5Drjm0UzXFvjwUccR/pIBnW8CRYT2hTYxZyQRwoT7xsMv+xT1TjK+mC/H1Cp26
+iuidWO0j84WDBfiqIe/rWPEwZHuOVfc4dZhyoFeODwAiKDbyqhd+lBrK0oMiJmzf
+KvGLWPPRT7LewRa7vOCRKZBqGFhnGI/q7fUqkmd2CGQl1Vrq1M2l/JVMlC+j25/y
+oiCeCzQM5LKLSL1xxUUHhLOgLNQDJ5umtSVYGZ28467SxHZ/g6QLCYkvVFgUJInH
+DG72p6Ef+yZJO17GPjzEksKuUUC9b/bVtgv/5PWxose0BrrumcTchRH9LiGVv27x
+aR161X15lf/LyfgASIYawGQbIzdC5uAjIBgprGBQymuyLL7+2IHvJ9XUMyMzWNUm
+Y4qtNC971EWK77TGx4QLFxQrkWauxIx+jEBjZgP9XYBmH5S0KuQWi2AOA1XGw/wb
+nR54BdLFhCCVsAOYfzK2QjOAG1owHjeks3pyPneKdH7BGfzYM2rfr2BL+30CNbEv
+/3rBExJIa+DAZcy6crEGDB6x5U7HeTJn8aBL07Lam3kQDwnflGmBmbb3E/U5X4n4
+hYJeRZDAexhmNeDoCCx4hCPPpvDG13t+kxLwm98eMnIFNPuPER8oTipm3rOkQRNJ
+iKj5g6BS9cx3UhaL9Fnl
+=8bTU
+-----END PGP SIGNATURE-----
+
+--kr14OxHsRwZHHqxS--
 
 
+--===============6187556472043849493==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
--- 
-Regards,
-Nishanth Menon
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============6187556472043849493==--
