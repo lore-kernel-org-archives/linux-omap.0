@@ -1,134 +1,70 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH V3 3/3] rtc: omap: Support regulator supply for RTC
-Date: Fri, 24 Oct 2014 13:27:49 +0530
-Message-ID: <544A067D.1070800@ti.com>
-References: <1414126425-13198-1-git-send-email-lokeshvutla@ti.com> <1414126425-13198-4-git-send-email-lokeshvutla@ti.com> <20141024075312.GD28808@localhost>
+From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 00/12] rtc: omap: fixes and power-off feature
+Date: Fri, 24 Oct 2014 09:58:37 +0200
+Message-ID: <20141024075837.GE28808@localhost>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <20141015165452.GB15770@saruman>
+ <20141015170628.GA13824@localhost>
+ <20141015170832.GD15770@saruman>
+ <20141022102305.GM2113@localhost>
+ <20141023185513.GD21407@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43144 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752195AbaJXH76 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Oct 2014 03:59:58 -0400
-In-Reply-To: <20141024075312.GD28808@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20141023185513.GD21407@saruman>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, a.zummo@towertech.it, tony@atomide.com, bcousson@baylibre.com, balbi@ti.com, akpm@linux-foundation.org, linux@roeck-us.net, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On Friday 24 October 2014 01:23 PM, Johan Hovold wrote:
-> On Fri, Oct 24, 2014 at 10:23:45AM +0530, Lokesh Vutla wrote:
->> On some Soc's RTC is powered by an external power regulator.
->> e.g. RTC on DRA7 SoC. Make the OMAP RTC driver support a
->> power regulator.
->>
->> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> ---
->>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  3 +++
->>  drivers/rtc/rtc-omap.c                             | 24 ++++++++++++++++++++++
->>  2 files changed, 27 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> index 750efd4..e7ad12b 100644
->> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
->> @@ -15,6 +15,8 @@ Required properties:
->>  Optional properties:
->>  - ti,system-power-controller: whether the rtc is controlling the system power
->>    through pmic_power_en
->> +Optional Properties:
+On Thu, Oct 23, 2014 at 01:55:13PM -0500, Felipe Balbi wrote:
+> On Wed, Oct 22, 2014 at 12:23:05PM +0200, Johan Hovold wrote:
+> > On Wed, Oct 15, 2014 at 12:08:32PM -0500, Felipe Balbi wrote:
+> > > On Wed, Oct 15, 2014 at 07:06:28PM +0200, Johan Hovold wrote:
+> > > > On Wed, Oct 15, 2014 at 11:55:02AM -0500, Felipe Balbi wrote:
+> > 
+> > > > > BTW, how do you test this series ?
+> > > > 
+> > > > Set a 30 second wakealarm using the sysfs attribute of the rtc class
+> > > > device and power off the BBB:
+> > > > 
+> > > > 	echo +30 >wakealarm; poweroff
+> > > 
+> > > sweet!!!! It worked just fine :-)
+> > 
+> > :)
+> > 
+> > > Too bad there's yet another DRM bug:
+> > > 
+> > > [  271.150158] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+> > > [  271.150158] 
+> > > [  271.159725] CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 3.17.0-08392-g7fe2269-dirty #326
+> > > [  271.168567] [<c00175a4>] (unwind_backtrace) from [<c00132f0>] (show_stack+0x20/0x24)
+> > > [  271.176668] [<c00132f0>] (show_stack) from [<c06573a4>] (dump_stack+0x8c/0xa4)
+> > > [  271.184215] [<c06573a4>] (dump_stack) from [<c0654f10>] (panic+0xa0/0x220)
+> > > [  271.191405] [<c0654f10>] (panic) from [<c0049e54>] (do_exit+0x974/0x9d0)
+> > > [  271.198410] [<c0049e54>] (do_exit) from [<c0067694>] (SyS_reboot+0x14c/0x1e8)
+> > > [  271.205870] [<c0067694>] (SyS_reboot) from [<c000f080>] (ret_fast_syscall+0x0/0x48)
+> > > [  271.214023] drm_kms_helper: panic occurred, switching back to text console
+> > > [  271.221312] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+> > > 
+> > > In any case, board still powered up after 30 seconds(-ish). So this gets
+> > > a:
+> > > 
+> > > Tested-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > 
+> > Thanks for testing. I didn't include your Tested-by in v2 due to the
+> > invasiveness of the new device-abstraction patch. Still works fine on BBB
+> > here though.
 > 
-> No need to repeat the "Optional Properties" header.
-Oops sorry. will remove it.
-> 
->> +- vrtc-supply: phandle to the regulator device tree node if needed
->>  
->>  Example:
->>  
->> @@ -25,4 +27,5 @@ rtc@1c23000 {
->>  		      19>;
->>  	interrupt-parent = <&intc>;
->>  	ti,system-power-controller;
->> +	vrtc-supply = <&ldo9_reg>;
->>  };
->> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
->> index d9bb5e7..61fe630 100644
->> --- a/drivers/rtc/rtc-omap.c
->> +++ b/drivers/rtc/rtc-omap.c
->> @@ -25,6 +25,7 @@
->>  #include <linux/of_device.h>
->>  #include <linux/pm_runtime.h>
->>  #include <linux/io.h>
->> +#include <linux/regulator/consumer.h>
->>  
->>  /*
->>   * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
->> @@ -134,6 +135,7 @@ struct omap_rtc {
->>  	u8 interrupts_reg;
->>  	bool is_pmic_controller;
->>  	const struct omap_rtc_device_type *type;
->> +	struct regulator *supply;
->>  };
->>  
->>  static inline u8 rtc_read(struct omap_rtc *rtc, unsigned int reg)
->> @@ -516,6 +518,22 @@ static int omap_rtc_probe(struct platform_device *pdev)
->>  
->>  	platform_set_drvdata(pdev, rtc);
-> 
-> Also could you move the regulator allocation before this
-> platform_set_drvdata when resending? It's not required, but that call
-> sort of separates the allocations from the device initialisation
-> currently.
-Okay.
+> alright, if I have time I'll test again, but not this week.
 
-Thanks and regards,
-Lokesh
-> 
->> +	rtc->supply = devm_regulator_get_optional(&pdev->dev, "vrtc");
->> +	if (IS_ERR(rtc->supply)) {
->> +		if (PTR_ERR(rtc->supply) == -EPROBE_DEFER)
->> +			return -EPROBE_DEFER;
->> +
->> +		rtc->supply = NULL;
->> +	}
->> +
->> +	if (rtc->supply) {
->> +		ret = regulator_enable(rtc->supply);
->> +		if (ret) {
->> +			dev_err(&pdev->dev, "regulator enable failed\n");
->> +			return ret;
->> +		}
->> +	}
->> +
->>  	/* Enable the clock/module so that we can access the registers */
->>  	pm_runtime_enable(&pdev->dev);
->>  	pm_runtime_get_sync(&pdev->dev);
->> @@ -624,6 +642,9 @@ err:
->>  	pm_runtime_put_sync(&pdev->dev);
->>  	pm_runtime_disable(&pdev->dev);
->>  
->> +	if (rtc->supply)
->> +		regulator_disable(rtc->supply);
->> +
->>  	return ret;
->>  }
->>  
->> @@ -649,6 +670,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
->>  	pm_runtime_put_sync(&pdev->dev);
->>  	pm_runtime_disable(&pdev->dev);
->>  
->> +	if (rtc->supply)
->> +		regulator_disable(rtc->supply);
->> +
->>  	return 0;
->>  }
-> 
-> Looks good otherwise. Feel free to add
-> 
-> Reviewed-by: Johan Hovold <johan@kernel.org>
-> 
-> Thanks,
-> Johan
-> 
+Great, thanks! I believe Andrew usually adds any late Reviewed-by or
+Tested-by tags while the patches live in his tree.
 
+Johan
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
