@@ -1,47 +1,120 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 3/3] rtc: omap: Support regulator supply for RTC
-Date: Fri, 24 Oct 2014 10:47:53 -0500
-Message-ID: <544A74A9.9090807@ti.com>
-References: <1414126425-13198-1-git-send-email-lokeshvutla@ti.com> <1414126425-13198-4-git-send-email-lokeshvutla@ti.com> <544A5393.6090504@ti.com> <20141024154312.GL26941@saruman>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Fri, 24 Oct 2014 11:08:45 -0500
+Message-ID: <20141024160845.GM26941@saruman>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+ <1413913086-12730-1-git-send-email-johan@kernel.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37203 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755412AbaJXPsw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Oct 2014 11:48:52 -0400
-In-Reply-To: <20141024154312.GL26941@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HxQt9wRz9wbL5Edg"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1413913086-12730-1-git-send-email-johan@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, a.zummo@towertech.it, johan@kernel.org, tony@atomide.com, bcousson@baylibre.com, akpm@linux-foundation.org, linux@roeck-us.net, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
 
-On 10/24/2014 10:43 AM, Felipe Balbi wrote:
-> On Fri, Oct 24, 2014 at 08:26:43AM -0500, Nishanth Menon wrote:
->> On 10/23/2014 11:53 PM, Lokesh Vutla wrote:
->>> On some Soc's RTC is powered by an external power regulator.
->> SoC ? -> could you rephrase this to indicate "certain SoCs such as
->> DRA7, RTC is an independent voltage domain of it's own and on
->> platforms such as DRA7-evm, this may be supplied by individual
->> regulator on it's own.
->>
->>> e.g. RTC on DRA7 SoC. Make the OMAP RTC driver support a
->>> power regulator.
->>
->> Question ofcourse is what voltage would you like that regulator to be
->> at? As you are aware, certain LDOs and SMPS can drive varying voltage
->> and just enable/disable would do just the default voltage of the
->> SMPS/LDO, right? OR am i missing something here?
-> 
-> just pass the correct voltage through DTS as we do for all other
-> regulators ? It's only tricky when we have a range of acceptable
-> voltages but for RTC, IIRC, it's always a set voltage (1.0V or 1.8V).
-> 
-you mean min=max=1.8V board constraint - sure it will work, except I
-might expect to see that in the example? OR expect the driver to
-explicitly set it.
+--HxQt9wRz9wbL5Edg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Regards,
-Nishanth Menon
+Hi,
+
+On Tue, Oct 21, 2014 at 07:37:46PM +0200, Johan Hovold wrote:
+> This series fixes a few issues with the omap rtc-driver, cleans up a
+> bit, adds device abstraction, and finally adds support for the PMIC
+> control feature found in some revisions of this RTC IP block.
+>=20
+> Ultimately, this allows for powering off the Beaglebone and waking it up
+> again on RTC alarms.
+>=20
+> Changes since v1 include:
+>=20
+>  - add device abstraction
+>  - add structured device-type info
+>  - fix interrupt disable at probe separately
+>  - register interrupts after class device as before
+>  - add helper to read raw bcd time
+>  - more clean ups
+>  - add copyright entry
+>  - enable pmic control only for Beaglebone Black
+>=20
+> I realised that it was better to keep this patch series self-contained
+> and include the device abstraction in it, rather than rely on some
+> patches yet to be posted (contrary to what I proposed in v1). It should
+> now be straight forward to add deferred-probing and regulator support on
+> top of this series instead. [1]
+>=20
+> I've kept Felipe's Reviewed-by tags only on the first and last couple of
+> patches which have not changed (in any significant way).
+>=20
+> For the record, the new functionality is easily tested on BBB with:
+>=20
+> 	echo +30 >/sys/class/rtc/rtc0/wakealarm; poweroff
+>=20
+> There are some patches floating around to add power-off handler
+> call chains [2] as well as an RFC for a generic "poweroff-source"
+> property [3]. Since it is unclear if, when (and through which tree) this
+> will eventually go in, I suggest merging this series as-is now and do
+> the trivial updates to use these new interfaces once the infrastructure
+> is in place.
+
+I tested this entire series with my BBB and it still works fine. However
+I still get below panic. This time without any DRM errors:
+
+[   63.087832] Kernel panic - not syncing: Attempted to kill init! exitcode=
+=3D0x00000000
+[   63.087832]=20
+[   63.097399] CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 3.18.0-rc1-0=
+0095-g8524e69 #556
+[   63.106060] [<c00175a4>] (unwind_backtrace) from [<c00132f0>] (show_stac=
+k+0x20/0x24)
+[   63.114160] [<c00132f0>] (show_stack) from [<c0657404>] (dump_stack+0x8c=
+/0xa4)
+[   63.121706] [<c0657404>] (dump_stack) from [<c0654f70>] (panic+0xa0/0x22=
+0)
+[   63.128895] [<c0654f70>] (panic) from [<c0049e64>] (do_exit+0x974/0x9d0)
+[   63.135900] [<c0049e64>] (do_exit) from [<c006775c>] (SyS_reboot+0x14c/0=
+x1e8)
+[   63.143361] [<c006775c>] (SyS_reboot) from [<c000f080>] (ret_fast_syscal=
+l+0x0/0x48)
+[   63.151596] ---[ end Kernel panic - not syncing: Attempted to kill init!=
+ exitcode=3D0x00000000
+
+Then again, this also happens by simply calling poweroff without
+enabling wakealarm.
+
+In any case, for the whole series:
+
+Tested-by: Felipe Balbi <balbi@ti.com>
+
+
+--=20
+balbi
+
+--HxQt9wRz9wbL5Edg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUSnmNAAoJEIaOsuA1yqREp18P/iLnSEuLHjHKG9Uf2i/cuu4f
+jW0RkduPYcTZ6zMlk1hoVIyXI1m7TL5gysD0887DoxotclFE/XWuNrz5EKectWIX
+nd1T6IcAgDiFP93SWRJEzL5wRNEaurkiQpifj0/00WcDEsCD8agivPk63KxWcOG4
+bTs9m0WRI+PjVhul5spR1rxkZMyLt4yhzIcePpsOqZefK9sVK+o+7dnl0kSyOZo0
+vwYVLSjAyKbySslxOIxDMNvbfjwdPcBh2L/A+qnkjGzfFCd9Ylnpg7XH7CCgpCXL
+dlcILZHjWmxln9sx30tCoRmhgXGvgmdEfNqwfJxIEMUl/W6ACRk5orxrmHF0bTwd
+fFfiSD1k2qbsM4Arn/Zuy7P9VZeCaJqhsE7JnmtpjJuf46UUth6xwZooxu3yqG99
+OO3tWADLABjs0pvrrTHpskMY4TzUmWWI3pYENxOf7IXVMqRhd557dvSFXjn7rd/1
+YQJz8u85dswWI/sUPA779LUDNZSVwq7idE+hlVjGxYG4Ts8tV2wztF5Pyxs9aMlD
+ulgkaehd/KvEi/rTejKjUwaw6Wc89yGL1a6Xd4prsFz4ZmLFAI5rIcEouN7PS3ch
+HgdUts86TqOZ1kiWxqvejdQcF3+L2I7aIl33XMSaIkpyF4jAQX8Kq9uoOdJtEIvN
+bPcVdp58T7F+6pPGNjhL
+=NX4z
+-----END PGP SIGNATURE-----
+
+--HxQt9wRz9wbL5Edg--
