@@ -1,50 +1,74 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: USB Ethernet gadget on Nokia n900
-Date: Sun, 26 Oct 2014 12:08:25 +0100
-Message-ID: <20141026110825.GA2263@amd>
-References: <20141019090107.GA19132@amd>
- <20141019100739.GA2547@amd>
- <20141019152414.GB5189@saruman>
- <20141019191937.GA6438@amd>
- <20141020213518.GB28144@drone.musicnaut.iki.fi>
+Date: Sun, 26 Oct 2014 12:12:46 +0100
+Message-ID: <201410261212.46582@pali>
+References: <20141019090107.GA19132@amd> <20141020213518.GB28144@drone.musicnaut.iki.fi> <20141026110825.GA2263@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart1583655.La57me4Sod";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141020213518.GB28144@drone.musicnaut.iki.fi>
+In-Reply-To: <20141026110825.GA2263@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+--nextPart1583655.La57me4Sod
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> On Sun, Oct 19, 2014 at 09:19:37PM +0200, Pavel Machek wrote:
-> > I am trying to use nfsroot, so I can't use modules.
-> 
-> Why not?
-> 
-> > (I am attaching full config, in case I missed something important).
-> 
-> I'm using the below config with 3.17 and g_ether works OK.
-> 
-> (My initramfs modprobes g_ether, runs busybox ifconfig for usb0
-> and launches sshd.)
+On Sunday 26 October 2014 12:08:25 Pavel Machek wrote:
+> Hi!
+>=20
+> > On Sun, Oct 19, 2014 at 09:19:37PM +0200, Pavel Machek wrote:
+> > > I am trying to use nfsroot, so I can't use modules.
+> >=20
+> > Why not?
+> >=20
+> > > (I am attaching full config, in case I missed something
+> > > important).
+> >=20
+> > I'm using the below config with 3.17 and g_ether works OK.
+> >=20
+> > (My initramfs modprobes g_ether, runs busybox ifconfig for
+> > usb0 and launches sshd.)
+>=20
+> I am trying to get 3.14 kernel to work, first. There, usb
+> gadget works when compiled into kernel. But with modules, I
+> get
+>=20
+> # root@(none):/tmp# insmod libcomposite.ko
+> # root@(none):/tmp# insmod u_ether.ko
+> # root@(none):/tmp# insmod usb_f_rndis.ko
+> # root@(none):/tmp# insmod g_ether.ko
+>=20
+> [  169.061218] udc musb-hdrc.0.auto: registering UDC driver
+> [g_ether] [  169.078918] g_ether musb-hdrc.0.auto: failed to
+> start g_ether: -2
+>=20
+> -2 is ENOENT...
+> 								Pavel
 
-I am trying to get 3.14 kernel to work, first. There, usb gadget works
-when compiled into kernel. But with modules, I get
+Can you try g_nokia.ko? I used this module for usb networking.
 
-# root@(none):/tmp# insmod libcomposite.ko                                      
-# root@(none):/tmp# insmod u_ether.ko                                           
-# root@(none):/tmp# insmod usb_f_rndis.ko                                       
-# root@(none):/tmp# insmod g_ether.ko                                           
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-[  169.061218] udc musb-hdrc.0.auto: registering UDC driver [g_ether]
-[  169.078918] g_ether musb-hdrc.0.auto: failed to start g_ether: -2
+--nextPart1583655.La57me4Sod
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
--2 is ENOENT...
-								Pavel
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+iEYEABECAAYFAlRM1y4ACgkQi/DJPQPkQ1LipwCgnJJAQeh4HC2UJuExaNhGU3al
+65UAnRqeZxBmbimYbScwrcPVcskntcWY
+=jvWG
+-----END PGP SIGNATURE-----
+
+--nextPart1583655.La57me4Sod--
