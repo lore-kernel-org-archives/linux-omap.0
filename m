@@ -1,113 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
-Date: Fri, 24 Oct 2014 15:08:33 -0500
-Message-ID: <20141024200833.GI11455@saruman>
-References: <1412881594-25678-1-git-send-email-johan@kernel.org>
- <1413913086-12730-1-git-send-email-johan@kernel.org>
- <20141024160845.GM26941@saruman>
- <20141024190251.GB19377@localhost>
- <20141024192540.GD11455@saruman>
- <20141024192948.GE11455@saruman>
- <20141024193655.GD19377@localhost>
- <20141024194442.GG11455@saruman>
- <20141024195532.GF19377@localhost>
-Reply-To: <balbi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: USB Ethernet gadget on Nokia n900
+Date: Sun, 26 Oct 2014 12:08:25 +0100
+Message-ID: <20141026110825.GA2263@amd>
+References: <20141019090107.GA19132@amd>
+ <20141019100739.GA2547@amd>
+ <20141019152414.GB5189@saruman>
+ <20141019191937.GA6438@amd>
+ <20141020213518.GB28144@drone.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LG0Ll82vYr46+VA1"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141024195532.GF19377@localhost>
+In-Reply-To: <20141020213518.GB28144@drone.musicnaut.iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Felipe Balbi <balbi@ti.com>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---LG0Ll82vYr46+VA1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi!
 
-On Fri, Oct 24, 2014 at 09:55:32PM +0200, Johan Hovold wrote:
-> On Fri, Oct 24, 2014 at 02:44:42PM -0500, Felipe Balbi wrote:
-> > On Fri, Oct 24, 2014 at 09:36:55PM +0200, Johan Hovold wrote:
-> > > On Fri, Oct 24, 2014 at 02:29:48PM -0500, Felipe Balbi wrote:
-> > > > Hi,
-> > > >=20
-> > > > On Fri, Oct 24, 2014 at 02:25:40PM -0500, Felipe Balbi wrote:
->=20
-> > > > > with this I always get to "Power off failed -- system halted". If=
- I
-> > > > > switch to v3.18-rc1 vanilla, then it works. So it's definitely ca=
-used by
-> > > > > your rtc-only patches.
-> > >=20
-> > > That's expected (see below). It works with v3.18-rc1 vanilla because
-> > > machine_halt is called instead of machine_power_off as there is no
-> > > registered power-off handler.
-> >=20
-> > yeah, that much I figured :-)
-> >=20
-> > > > ok, so it seems like it takes more than 1 second for things to
-> > > > propagate. If I increase that mdelay() to 3000, then everything wor=
-ks
-> > > > fine on my end. I think we should get RMK's input on this 3000ms de=
-lay
-> > > > to machine_power_off(). Should it be generic, or should we add it t=
-o our
-> > > > rtc pm_power_off implementation ?
-> > >=20
-> > > As I wrote above, we still need a 2-second mdelay in rtc-omap, which I
-> > > intend to add to the pmic_power_en patch.
-> >=20
-> > oh, alright then. If you can Cc me, I'll make sure to test that too ;-)
->=20
-> I will. :) Just wanted to see whether Andrew preferred I resend the
-> whole series or just that one patch first.
->=20
-> The diff is minimal:
->=20
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index e74750f00b18..e4f97ad9eb21 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -423,6 +423,8 @@ static void omap_rtc_power_off(void)
->         val =3D rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
->         rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
->                         val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-> +
-> +       mdelay(2000);
->  }
+> On Sun, Oct 19, 2014 at 09:19:37PM +0200, Pavel Machek wrote:
+> > I am trying to use nfsroot, so I can't use modules.
+> 
+> Why not?
+> 
+> > (I am attaching full config, in case I missed something important).
+> 
+> I'm using the below config with 3.17 and g_ether works OK.
+> 
+> (My initramfs modprobes g_ether, runs busybox ifconfig for usb0
+> and launches sshd.)
 
-you can add my:
+I am trying to get 3.14 kernel to work, first. There, usb gadget works
+when compiled into kernel. But with modules, I get
 
-Tested-by: Felipe Balbi <balbi@ti.com>
+# root@(none):/tmp# insmod libcomposite.ko                                      
+# root@(none):/tmp# insmod u_ether.ko                                           
+# root@(none):/tmp# insmod usb_f_rndis.ko                                       
+# root@(none):/tmp# insmod g_ether.ko                                           
 
-for this too. Now it's all good.
+[  169.061218] udc musb-hdrc.0.auto: registering UDC driver [g_ether]
+[  169.078918] g_ether musb-hdrc.0.auto: failed to start g_ether: -2
 
---=20
-balbi
+-2 is ENOENT...
+								Pavel
 
---LG0Ll82vYr46+VA1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUSrHBAAoJEIaOsuA1yqRETL4P/j2+2S8Eum0WZ4Ed7IeMAWrT
-drWTYcsVbcXO8qUyfrD/5YTBgLcYiE/w2flcUANCGb6oPv2tXMv7hYJH4v+ez9Mu
-Me9Xq0mX6oy6vzskzoguFNh8IPZNlBVVZ01a9xMVc/HzfCsGXyO9yXAdKpDtyaRN
-7fFdOG4ROvCHvbh2vuCTM2OFwvgQCAM5k0ahEzXeJMcwQLBedyJXTlFimMr/l8Ek
-WsJvYz79XnlH0lvx5z2cM+cnJYKBRO/Bb8lC9KMBBJRCLUyrfyKkBtJNW/pbv39R
-bFWpqRWC/m0tJJHiZdHuoxuWpUMATUWPZEXI9fsTGF8bYLYKo4Ph4v/8LRYqIp83
-eXD2WLbC0Vor6mTBnw/G+tYGOFYZKbyTealZZ1oH9tmjhk3WniYcRXIWU9+KuDp9
-wuQJ/spBIatf2Bt/+Its8l+VN0ACCT0+RGT3sRo9CtsrDZ2m0bA5MyCWrZxgi0qu
-LgG2xV6rxxuXBMk/tSu5F/7URjsD+eb42tQKpz4Jq47hIl62oXt4Dc0gVyv3cJ/3
-vtKZ7vagn5mUR0yDu5P5t9QPhAvnV6TTfXIBbyi/5oIN//fwDeiHPnbKooQe7Woy
-HXWRpNRtLaCdjwmpBLXWB0Xbyz3h/ebg4HS3uI+RMR5RMed8dAv3AH3DbTNwjD7V
-9b5yWt3/Q3xLIXTMTWL4
-=chnY
------END PGP SIGNATURE-----
-
---LG0Ll82vYr46+VA1--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
