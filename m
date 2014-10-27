@@ -1,7 +1,7 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v6 6/7] ARM: EXYNOS: Add support for non-secure L2X0 resume
-Date: Mon, 27 Oct 2014 12:05:49 +0100
-Message-ID: <1414407950-3029-7-git-send-email-m.szyprowski@samsung.com>
+Subject: [PATCH v6 4/7] ARM: l2c: Add support for overriding prefetch settings
+Date: Mon, 27 Oct 2014 12:05:47 +0100
+Message-ID: <1414407950-3029-5-git-send-email-m.szyprowski@samsung.com>
 References: <1414407950-3029-1-git-send-email-m.szyprowski@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-reply-to: <1414407950-3029-1-git-send-email-m.szyprowski@samsung.com>
@@ -12,84 +12,114 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Tomasz Figa <t.figa@samsung.com>
 
-On Exynos SoCs it is necessary to resume operation of L2C early in
-assembly code, because otherwise certain systems will crash. This patch
-adds necessary code to non-secure resume handler.
+Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
+settings configured in registers leading to crashes if L2C is enabled
+without overriding them. This patch introduces bindings to enable
+prefetch settings to be specified from DT and necessary support in the
+driver.
 
 Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-[rewrote the code accessing l2x0_saved_regs]
-Sigend-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+[mszyprow: rebased onto v3.18-rc1, added error messages when property value
+ is missing]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- arch/arm/mach-exynos/sleep.S | 46 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ Documentation/devicetree/bindings/arm/l2cc.txt | 10 +++++
+ arch/arm/mm/cache-l2x0.c                       | 55 ++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+)
 
-diff --git a/arch/arm/mach-exynos/sleep.S b/arch/arm/mach-exynos/sleep.S
-index e3c373082bbe..31d25834b9c4 100644
---- a/arch/arm/mach-exynos/sleep.S
-+++ b/arch/arm/mach-exynos/sleep.S
-@@ -16,6 +16,8 @@
-  */
+diff --git a/Documentation/devicetree/bindings/arm/l2cc.txt b/Documentation/devicetree/bindings/arm/l2cc.txt
+index 292ef7ca3058..0dbabe9a6b0a 100644
+--- a/Documentation/devicetree/bindings/arm/l2cc.txt
++++ b/Documentation/devicetree/bindings/arm/l2cc.txt
+@@ -57,6 +57,16 @@ Optional properties:
+ - cache-id-part: cache id part number to be used if it is not present
+   on hardware
+ - wt-override: If present then L2 is forced to Write through mode
++- arm,double-linefill : Override double linefill enable setting. Enable if
++  non-zero, disable if zero.
++- arm,double-linefill-incr : Override double linefill on INCR read. Enable
++  if non-zero, disable if zero.
++- arm,double-linefill-wrap : Override double linefill on WRAP read. Enable
++  if non-zero, disable if zero.
++- arm,prefetch-drop : Override prefetch drop enable setting. Enable if non-zero,
++  disable if zero.
++- arm,prefetch-offset : Override prefetch offset value. Valid values are
++  0-7, 15, 23, and 31.
  
- #include <linux/linkage.h>
-+#include <asm/asm-offsets.h>
-+#include <asm/hardware/cache-l2x0.h>
- #include "smc.h"
+ Example:
  
- #define CPU_MASK	0xff0ffff0
-@@ -74,6 +76,45 @@ ENTRY(exynos_cpu_resume_ns)
- 	mov	r0, #SMC_CMD_C15RESUME
- 	dsb
- 	smc	#0
-+#ifdef CONFIG_CACHE_L2X0
-+	adr	r0, 1f
-+	ldr	r2, [r0]
-+	add	r0, r2, r0
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index ad981894de73..69cfa8359ed3 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -1163,6 +1163,9 @@ static void __init l2c310_of_parse(const struct device_node *np,
+ 	u32 tag[3] = { 0, 0, 0 };
+ 	u32 filter[2] = { 0, 0 };
+ 	u32 assoc;
++	u32 prefetch;
++	u32 val;
++	int ret;
+ 
+ 	of_property_read_u32_array(np, "arm,tag-latency", tag, ARRAY_SIZE(tag));
+ 	if (tag[0] && tag[1] && tag[2])
+@@ -1204,6 +1207,58 @@ static void __init l2c310_of_parse(const struct device_node *np,
+ 		pr_err("PL310 OF: %d calculated, only 8 and 16 legal\n", assoc);
+ 		break;
+ 	}
 +
-+	/* Check that the address has been initialised. */
-+	ldr	r1, [r0, #L2X0_R_PHY_BASE]
-+	teq	r1, #0
-+	beq	skip_l2x0
++	prefetch = l2x0_saved_regs.prefetch_ctrl;
 +
-+	/* Check if controller has been enabled. */
-+	ldr	r2, [r1, #L2X0_CTRL]
-+	tst	r2, #0x1
-+	bne	skip_l2x0
++	ret = of_property_read_u32(np, "arm,double-linefill", &val);
++	if (ret == 0) {
++		if (val)
++			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL;
++	} else if (ret != -EINVAL) {
++		pr_err("PL310 OF: missing value for arm,double-linefill property\n");
++	}
 +
-+	ldr	r1, [r0, #L2X0_R_TAG_LATENCY]
-+	ldr	r2, [r0, #L2X0_R_DATA_LATENCY]
-+	ldr	r3, [r0, #L2X0_R_PREFETCH_CTRL]
-+	mov	r0, #SMC_CMD_L2X0SETUP1
-+	smc	#0
++	ret = of_property_read_u32(np, "arm,double-linefill-incr", &val);
++	if (ret == 0) {
++		if (val)
++			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_INCR;
++	} else if (ret != -EINVAL) {
++		pr_err("PL310 OF: missing value for arm,double-linefill-incr property\n");
++	}
 +
-+	/* Reload saved regs pointer because smc corrupts registers. */
-+	adr	r0, 1f
-+	ldr	r2, [r0]
-+	add	r0, r2, r0
++	ret = of_property_read_u32(np, "arm,double-linefill-wrap", &val);
++	if (ret == 0) {
++		if (!val)
++			prefetch |= L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_DBL_LINEFILL_WRAP;
++	} else if (ret != -EINVAL) {
++		pr_err("PL310 OF: missing value for arm,double-linefill-wrap property\n");
++	}
 +
-+	ldr	r1, [r0, #L2X0_R_PWR_CTRL]
-+	ldr	r2, [r0, #L2X0_R_AUX_CTRL]
-+	mov	r0, #SMC_CMD_L2X0SETUP2
-+	smc	#0
++	ret = of_property_read_u32(np, "arm,prefetch-drop", &val);
++	if (ret == 0) {
++		if (val)
++			prefetch |= L310_PREFETCH_CTRL_PREFETCH_DROP;
++		else
++			prefetch &= ~L310_PREFETCH_CTRL_PREFETCH_DROP;
++	} else if (ret != -EINVAL) {
++		pr_err("PL310 OF: missing value for arm,prefetch-drop property\n");
++	}
 +
-+	mov	r0, #SMC_CMD_L2X0INVALL
-+	smc	#0
++	ret = of_property_read_u32(np, "arm,prefetch-offset", &val);
++	if (ret == 0) {
++		prefetch &= ~L310_PREFETCH_CTRL_OFFSET_MASK;
++		prefetch |= val & L310_PREFETCH_CTRL_OFFSET_MASK;
++	} else if (ret != -EINVAL) {
++		pr_err("PL310 OF: missing value for arm,prefetch-offset property\n");
++	}
 +
-+	mov	r1, #1
-+	mov	r0, #SMC_CMD_L2X0CTRL
-+	smc	#0
-+skip_l2x0:
-+#endif /* CONFIG_CACHE_L2X0 */
- skip_cp15:
- 	b	cpu_resume
- ENDPROC(exynos_cpu_resume_ns)
-@@ -83,3 +124,8 @@ cp15_save_diag:
- 	.globl cp15_save_power
- cp15_save_power:
- 	.long	0	@ cp15 power control
-+
-+#ifdef CONFIG_CACHE_L2X0
-+	.align
-+1:	.long	l2x0_saved_regs - .
-+#endif /* CONFIG_CACHE_L2X0 */
++	l2x0_saved_regs.prefetch_ctrl = prefetch;
+ }
+ 
+ static const struct l2c_init_data of_l2c310_data __initconst = {
 -- 
 1.9.2
