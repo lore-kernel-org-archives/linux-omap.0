@@ -1,30 +1,74 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Tue, 28 Oct 2014 01:01:38 +0200
-Message-ID: <20141027230138.GB7805@drone.musicnaut.iki.fi>
-References: <20141027200008.GR2560@atomide.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Mon, 27 Oct 2014 16:22:51 -0700
+Message-ID: <20141027162251.d7ff2a5f31917c638d4e47f7@linux-foundation.org>
+References: <1412881594-25678-1-git-send-email-johan@kernel.org>
+	<1413913086-12730-1-git-send-email-johan@kernel.org>
+	<20141024160845.GM26941@saruman>
+	<20141024190251.GB19377@localhost>
+	<20141024192540.GD11455@saruman>
+	<20141024192948.GE11455@saruman>
+	<20141024193655.GD19377@localhost>
+	<20141024194442.GG11455@saruman>
+	<20141024195532.GF19377@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:58695 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbaJ0XCE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Oct 2014 19:02:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20141027200008.GR2560@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141024195532.GF19377@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+On Fri, 24 Oct 2014 21:55:32 +0200 Johan Hovold <johan@kernel.org> wrote:
 
-On Mon, Oct 27, 2014 at 01:00:09PM -0700, Tony Lindgren wrote:
+> On Fri, Oct 24, 2014 at 02:44:42PM -0500, Felipe Balbi wrote:
+> > On Fri, Oct 24, 2014 at 09:36:55PM +0200, Johan Hovold wrote:
+> > > On Fri, Oct 24, 2014 at 02:29:48PM -0500, Felipe Balbi wrote:
+> > > > Hi,
+> > > > 
+> > > > On Fri, Oct 24, 2014 at 02:25:40PM -0500, Felipe Balbi wrote:
+> 
+> > > > > with this I always get to "Power off failed -- system halted". If I
+> > > > > switch to v3.18-rc1 vanilla, then it works. So it's definitely caused by
+> > > > > your rtc-only patches.
+> > > 
+> > > That's expected (see below). It works with v3.18-rc1 vanilla because
+> > > machine_halt is called instead of machine_power_off as there is no
+> > > registered power-off handler.
+> > 
+> > yeah, that much I figured :-)
+> > 
+> > > > ok, so it seems like it takes more than 1 second for things to
+> > > > propagate. If I increase that mdelay() to 3000, then everything works
+> > > > fine on my end. I think we should get RMK's input on this 3000ms delay
+> > > > to machine_power_off(). Should it be generic, or should we add it to our
+> > > > rtc pm_power_off implementation ?
+> > > 
+> > > As I wrote above, we still need a 2-second mdelay in rtc-omap, which I
+> > > intend to add to the pmic_power_en patch.
+> > 
+> > oh, alright then. If you can Cc me, I'll make sure to test that too ;-)
+> 
+> I will. :) Just wanted to see whether Andrew preferred I resend the
+> whole series or just that one patch first.
+> 
+> The diff is minimal:
+> 
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index e74750f00b18..e4f97ad9eb21 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -423,6 +423,8 @@ static void omap_rtc_power_off(void)
+>         val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
+>         rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
+>                         val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
 > +
-> +	if (!of_have_populated_dt())
-> +		pr_warn("WARNING: legacy booting deprecated, please update to boot with .dts\n");
-> +
+> +       mdelay(2000);
+>  }
 
-Maybe use WARN so that the warning is more verbose and kernel gets tainted?
+Yes, having read this threadlet: we need a very good comment in there
+explaining what's going on, please.
 
-A.
+Do we even need this delay on anything other than arm?  Or even on all arm?
