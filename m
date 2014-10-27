@@ -1,71 +1,35 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 3/4] arm: boot: dts: am335x-evm: Make charge delay a DT parameter for tsc
-Date: Mon, 27 Oct 2014 16:38:30 +0530
-Message-ID: <1414408111-2631-4-git-send-email-vigneshr@ti.com>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v6 4/7] ARM: l2c: Add support for overriding prefetch
+	settings
+Date: Mon, 27 Oct 2014 11:14:04 +0000
+Message-ID: <20141027111404.GW12379@n2100.arm.linux.org.uk>
+References: <1414407950-3029-1-git-send-email-m.szyprowski@samsung.com> <1414407950-3029-5-git-send-email-m.szyprowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1414407950-3029-5-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Jan Kardell <jan.kardell@telliq.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Brad Griffis <bgriffis@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-The charge delay value is by default 0xB000. But it can be set to lower
-values on some boards as long as false pen-ups are avoided. Lowering the
-value increases the sampling rate (though current sampling rate is
-sufficient for tsc operation). Hence charge delay has been made a DT
-parameter.
+On Mon, Oct 27, 2014 at 12:05:47PM +0100, Marek Szyprowski wrote:
+> From: Tomasz Figa <t.figa@samsung.com>
+> 
+> Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
+> settings configured in registers leading to crashes if L2C is enabled
+> without overriding them. This patch introduces bindings to enable
+> prefetch settings to be specified from DT and necessary support in the
+> driver.
+> 
+> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> [mszyprow: rebased onto v3.18-rc1, added error messages when property value
+>  is missing]
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt    | 13 +++++++++++++
- arch/arm/boot/dts/am335x-evm.dts                            |  1 +
- 2 files changed, 14 insertions(+)
+Why?  What if the boot loader has already set these up appropriately?  Why
+should we force people to list these in the DT?
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-index 878549ba814d..ac62769e70e4 100644
---- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-+++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-@@ -28,6 +28,18 @@ Required properties:
- 	ti,adc-channels: List of analog inputs available for ADC.
- 			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
- 
-+Optional properties:
-+- child "tsc"
-+	ti,charge-delay: Length of touch screen charge delay step in terms of
-+			 ADC clock cycles. Charge delay value should be large in order
-+			 to avoid false pen-up events. This value affects the overall
-+			 sampling speed hence need to be kept as low as possible while
-+			 avoiding false pen-up event. Start from a lower value say 0x400
-+			 and increase value until false pen-up events are avoided. The
-+			 pen-up detection happens immediately after the charge step
-+			 so this does in fact function as a hardware knob for adjusting
-+			 the amount of "settling time".
-+
- Example:
- 	tscadc: tscadc@44e0d000 {
- 		compatible = "ti,am3359-tscadc";
-@@ -36,6 +48,7 @@ Example:
- 			ti,x-plate-resistance = <200>;
- 			ti,coordiante-readouts = <5>;
- 			ti,wire-config = <0x00 0x11 0x22 0x33>;
-+			ti,charge-delay = <0xB000>;
- 		};
- 
- 		adc {
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e2156a583de7..80be0462298b 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -641,6 +641,7 @@
- 		ti,x-plate-resistance = <200>;
- 		ti,coordinate-readouts = <5>;
- 		ti,wire-config = <0x00 0x11 0x22 0x33>;
-+		ti,charge-delay = <0xB000>;
- 	};
- 
- 	adc {
 -- 
-1.9.1
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
