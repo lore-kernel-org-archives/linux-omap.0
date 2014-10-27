@@ -1,103 +1,30 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v3] rtc: omap: add support for pmic_power_en
-Date: Mon, 27 Oct 2014 15:40:31 -0700
-Message-ID: <20141027154031.4492ea11d401045ca04a3ff8@linux-foundation.org>
-References: <1413913086-12730-1-git-send-email-johan@kernel.org>
-	<1414397368-26480-1-git-send-email-johan@kernel.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Tue, 28 Oct 2014 01:01:38 +0200
+Message-ID: <20141027230138.GB7805@drone.musicnaut.iki.fi>
+References: <20141027200008.GR2560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1414397368-26480-1-git-send-email-johan@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:58695 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbaJ0XCE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Oct 2014 19:02:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20141027200008.GR2560@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, 27 Oct 2014 09:09:28 +0100 Johan Hovold <johan@kernel.org> wrote:
+Hi,
 
-> Add new property "ti,system-power-controller" to register the RTC as a
-> power-off handler.
-> 
-> Some RTC IP revisions can control an external PMIC via the pmic_power_en
-> pin, which can be configured to transition to OFF on ALARM2 events and
-> back to ON on subsequent ALARM (wakealarm) events.
-> 
-> This is based on earlier work by Colin Foe-Parker and AnilKumar Ch. [1]
-> 
-> [1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg82127.html
-> 
-> Tested-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Johan Hovold <johan@kernel.org>
-> ---
-> 
-> Changes since v2:
->  - add two-second delay to allow alarm to trigger before returning
-
-hmpf.  As this sentence is below the ^--- it doesn't get into the
-changelog.
-
-> ...
->
-> +static void omap_rtc_power_off(void)
-> +{
-> +	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
-> +	struct rtc_time tm;
-> +	unsigned long now;
-> +	u32 val;
+On Mon, Oct 27, 2014 at 01:00:09PM -0700, Tony Lindgren wrote:
 > +
-> +	/* enable pmic_power_en control */
-> +	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
-> +	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
+> +	if (!of_have_populated_dt())
+> +		pr_warn("WARNING: legacy booting deprecated, please update to boot with .dts\n");
 > +
-> +	/* set alarm two seconds from now */
-> +	omap_rtc_read_time_raw(rtc, &tm);
-> +	bcd2tm(&tm);
-> +	rtc_tm_to_time(&tm, &now);
-> +	rtc_time_to_tm(now + 2, &tm);
-> +
-> +	if (tm2bcd(&tm) < 0) {
-> +		dev_err(&rtc->rtc->dev, "power off failed\n");
-> +		return;
-> +	}
-> +
-> +	rtc_wait_not_busy(rtc);
-> +
-> +	rtc_write(rtc, OMAP_RTC_ALARM2_SECONDS_REG, tm.tm_sec);
-> +	rtc_write(rtc, OMAP_RTC_ALARM2_MINUTES_REG, tm.tm_min);
-> +	rtc_write(rtc, OMAP_RTC_ALARM2_HOURS_REG, tm.tm_hour);
-> +	rtc_write(rtc, OMAP_RTC_ALARM2_DAYS_REG, tm.tm_mday);
-> +	rtc_write(rtc, OMAP_RTC_ALARM2_MONTHS_REG, tm.tm_mon);
-> +	rtc_write(rtc, OMAP_RTC_ALARM2_YEARS_REG, tm.tm_year);
-> +
-> +	/*
-> +	 * enable ALARM2 interrupt
-> +	 *
-> +	 * NOTE: this fails on AM3352 if rtc_write (writeb) is used
-> +	 */
-> +	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
-> +	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
-> +			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-> +
-> +	mdelay(2000);
 
-And it is uncommented.
+Maybe use WARN so that the warning is more verbose and kernel gets tainted?
 
-How on earth is a reader to know why this is here?
-
-I can do this
-
---- a/drivers/rtc/rtc-omap.c~rtc-omap-add-support-for-pmic_power_en-v3-fix
-+++ a/drivers/rtc/rtc-omap.c
-@@ -417,6 +417,7 @@ static void omap_rtc_power_off(void)
- 	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
- 			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
- 
-+	/* Allow alarm to trigger before returning */
- 	mdelay(2000);
- }
- 
-
-
-But it doesn't explain *why* we want the alarm to trigger before
-returning.
+A.
