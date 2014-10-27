@@ -1,54 +1,172 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/4] Touchscreen performance related fixes
-Date: Mon, 27 Oct 2014 16:38:27 +0530
-Message-ID: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 1/4] input: touchscreen: ti_am335x_tsc Interchange touchscreen and ADC steps
+Date: Mon, 27 Oct 2014 16:38:28 +0530
+Message-ID: <1414408111-2631-2-git-send-email-vigneshr@ti.com>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Jan Kardell <jan.kardell@telliq.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Brad Griffis <bgriffis@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This series of patches fix TSC defects related to lag in touchscreen
-performance and cursor jump at touch release. The lag was result of
-udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
-The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
-to avoid false pen-up events and remove udelay. The advisory says to use
-steps 1 to 4 for ADC and 5 to 16 for TSC (assuming 4 wire TSC and 4 channel
-ADC). Further the X co-ordinate must be the last one to be sampled just
-before charge step. The first two patches implement the required changes. 
+=46rom: Brad Griffis <bgriffis@ti.com>
 
-A DT parameter to configure the duration of tsc charge step. It represents
-number of ADC clock cycles to wait between applying the step configuration
-registers and going back to the IDLE state. The charge delay value can vary
-across boards. Configuring correct value of charge delay is important to avoid
-false pen-up events. Hence it is necessary to expose charge-delay value as
-DT parameter. The pen-up detection happens immediately after the charge step
-so this does in fact function as a hardware knob for adjusting the amount of
-settling time.
+This patch makes the initial changes required to workaround TSC-false
+pen-up interrupts. It is required to implement these changes in order t=
+o
+remove udelay in the TSC interrupt handler and false pen-up events.
+The charge step is to be executed immediately after sampling X+. Hence
+TSC is made to use higher numbered steps (steps 5 to 16 for 5 co-ordina=
+te
+readouts, 4 wire TSC configuration) and ADC to use lower ones. Further
+X co-ordinate readouts must be the last to be sampled, thus co-ordinate=
+s
+are sampled in the order Y-Z-X.
 
-After applying these changes false pen-up events have not be observed and
-smooth circles can be drawn on touch screen. The performance is much better
-in recognizing quick movement across the screen. No lag or cursor jump is
-observed.
+Signed-off-by: Brad Griffis <bgriffis@ti.com>
+[vigneshr@ti.com: Ported the patch from v3.12 to v3.18rc2]
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/iio/adc/ti_am335x_adc.c           |  2 +-
+ drivers/input/touchscreen/ti_am335x_tsc.c | 42 ++++++++++++++++++-----=
+--------
+ 2 files changed, 25 insertions(+), 19 deletions(-)
 
-Brad Griffis (2):
-  input: touchscreen: ti_am335x_tsc Interchange touchscreen and ADC
-    steps
-  input: touchscreen: ti_am335x_tsc: Remove udelay in interrupt handler
-
-Vignesh R (2):
-  arm: boot: dts: am335x-evm: Make charge delay a DT parameter for tsc
-  input: touchscreen: ti_am335x_tsc: Use charge delay DT parameter
-
- .../bindings/input/touchscreen/ti-tsc-adc.txt      |  13 +++
- arch/arm/boot/dts/am335x-evm.dts                   |   1 +
- drivers/iio/adc/ti_am335x_adc.c                    |   2 +-
- drivers/input/touchscreen/ti_am335x_tsc.c          | 106 ++++++++++-----------
- drivers/mfd/ti_am335x_tscadc.c                     |   7 +-
- include/linux/mfd/ti_am335x_tscadc.h               |   4 +-
- 6 files changed, 76 insertions(+), 57 deletions(-)
-
--- 
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335=
+x_adc.c
+index b730864731e8..3f530ed6bd80 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -98,7 +98,7 @@ static void tiadc_step_config(struct iio_dev *indio_d=
+ev)
+ 	 * needs to be given to ADC to digitalize data.
+ 	 */
+=20
+-	steps =3D TOTAL_STEPS - adc_dev->channels;
++	steps =3D 0;
+ 	if (iio_buffer_enabled(indio_dev))
+ 		stepconfig =3D STEPCONFIG_AVG_16 | STEPCONFIG_FIFO1
+ 					| STEPCONFIG_MODE_SWCNT;
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/=
+touchscreen/ti_am335x_tsc.c
+index 2ce649520fe0..1aeac9675fe7 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -121,7 +121,7 @@ static void titsc_step_config(struct titsc *ts_dev)
+ {
+ 	unsigned int	config;
+ 	int i;
+-	int end_step;
++	int end_step, first_step, tsc_steps;
+ 	u32 stepenable;
+=20
+ 	config =3D STEPCONFIG_MODE_HWSYNC |
+@@ -140,9 +140,11 @@ static void titsc_step_config(struct titsc *ts_dev=
+)
+ 		break;
+ 	}
+=20
+-	/* 1 =E2=80=A6 coordinate_readouts is for X */
+-	end_step =3D ts_dev->coordinate_readouts;
+-	for (i =3D 0; i < end_step; i++) {
++	tsc_steps =3D ts_dev->coordinate_readouts * 2 + 2;
++	first_step =3D TOTAL_STEPS - tsc_steps;
++	/* Steps 16 to 16-coordinate_readouts is for X */
++	end_step =3D first_step + tsc_steps;
++	for (i =3D end_step - ts_dev->coordinate_readouts; i < end_step; i++)=
+ {
+ 		titsc_writel(ts_dev, REG_STEPCONFIG(i), config);
+ 		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
+ 	}
+@@ -164,9 +166,9 @@ static void titsc_step_config(struct titsc *ts_dev)
+ 		break;
+ 	}
+=20
+-	/* coordinate_readouts =E2=80=A6 coordinate_readouts * 2 is for Y */
+-	end_step =3D ts_dev->coordinate_readouts * 2;
+-	for (i =3D ts_dev->coordinate_readouts; i < end_step; i++) {
++	/* 1 ... coordinate_readouts is for Y */
++	end_step =3D first_step + ts_dev->coordinate_readouts;
++	for (i =3D first_step; i < end_step; i++) {
+ 		titsc_writel(ts_dev, REG_STEPCONFIG(i), config);
+ 		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
+ 	}
+@@ -179,7 +181,7 @@ static void titsc_step_config(struct titsc *ts_dev)
+ 	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
+ 	titsc_writel(ts_dev, REG_CHARGEDELAY, CHARGEDLY_OPENDLY);
+=20
+-	/* coordinate_readouts * 2 =E2=80=A6 coordinate_readouts * 2 + 2 is f=
+or Z */
++	/* coordinate_readouts + 1 ... coordinate_readouts + 2 is for Z */
+ 	config =3D STEPCONFIG_MODE_HWSYNC |
+ 			STEPCONFIG_AVG_16 | ts_dev->bit_yp |
+ 			ts_dev->bit_xn | STEPCONFIG_INM_ADCREFM |
+@@ -194,8 +196,11 @@ static void titsc_step_config(struct titsc *ts_dev=
+)
+ 	titsc_writel(ts_dev, REG_STEPDELAY(end_step),
+ 			STEPCONFIG_OPENDLY);
+=20
+-	/* The steps1 =E2=80=A6 end and bit 0 for TS_Charge */
+-	stepenable =3D (1 << (end_step + 2)) - 1;
++	/* The steps end ... end - readouts * 2 + 2 and bit 0 for TS_Charge *=
+/
++	stepenable =3D 1;
++	for (i =3D 0; i < tsc_steps; i++)
++		stepenable |=3D 1 << (first_step + i + 1);
++
+ 	ts_dev->step_mask =3D stepenable;
+ 	am335x_tsc_se_set_cache(ts_dev->mfd_tscadc, ts_dev->step_mask);
+ }
+@@ -209,6 +214,7 @@ static void titsc_read_coordinates(struct titsc *ts=
+_dev,
+ 	unsigned int read, diff;
+ 	unsigned int i, channel;
+ 	unsigned int creads =3D ts_dev->coordinate_readouts;
++	unsigned int first_step =3D TOTAL_STEPS - (creads * 2 + 2);
+=20
+ 	*z1 =3D *z2 =3D 0;
+ 	if (fifocount % (creads * 2 + 2))
+@@ -226,7 +232,7 @@ static void titsc_read_coordinates(struct titsc *ts=
+_dev,
+=20
+ 		channel =3D (read & 0xf0000) >> 16;
+ 		read &=3D 0xfff;
+-		if (channel < creads) {
++		if (channel > first_step + creads + 2) {
+ 			diff =3D abs(read - prev_val_x);
+ 			if (diff < prev_diff_x) {
+ 				prev_diff_x =3D diff;
+@@ -234,19 +240,19 @@ static void titsc_read_coordinates(struct titsc *=
+ts_dev,
+ 			}
+ 			prev_val_x =3D read;
+=20
+-		} else if (channel < creads * 2) {
++		} else if (channel =3D=3D first_step + creads + 1) {
++			*z1 =3D read;
++
++		} else if (channel =3D=3D first_step + creads + 2) {
++			*z2 =3D read;
++
++		} else if (channel > first_step) {
+ 			diff =3D abs(read - prev_val_y);
+ 			if (diff < prev_diff_y) {
+ 				prev_diff_y =3D diff;
+ 				*y =3D read;
+ 			}
+ 			prev_val_y =3D read;
+-
+-		} else if (channel < creads * 2 + 1) {
+-			*z1 =3D read;
+-
+-		} else if (channel < creads * 2 + 2) {
+-			*z2 =3D read;
+ 		}
+ 	}
+ }
+--=20
 1.9.1
