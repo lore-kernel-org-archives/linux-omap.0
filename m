@@ -1,36 +1,77 @@
-From: "Griffis, Brad" <bgriffis@ti.com>
-Subject: RE: [PATCH 0/4] Touchscreen performance related fixes
-Date: Mon, 27 Oct 2014 19:02:47 +0000
-Message-ID: <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
- <544E821D.5040004@linutronix.de>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH typo-resend] mtd: omap: fix mtd devices not showing up
+Date: Mon, 27 Oct 2014 16:27:45 -0300
+Message-ID: <544E9CB1.5020804@vanguardiasur.com.ar>
+References: <1414416749-19598-1-git-send-email-frans.klaver@xsens.com> <544E4F19.8060205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <544E821D.5040004@linutronix.de>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "R, Vignesh" <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit
- Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry
- Torokhov <dmitry.torokhov@gmail.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi,
- Felipe" <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="spPkB50II6gw6VBolBVLpcV72TnS0Ow5N"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:50590 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753518AbaJ0T3S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Oct 2014 15:29:18 -0400
+Received: by mail-wi0-f175.google.com with SMTP id h11so5371934wiw.14
+        for <linux-omap@vger.kernel.org>; Mon, 27 Oct 2014 12:29:17 -0700 (PDT)
+In-Reply-To: <544E4F19.8060205@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Frans Klaver <frans.klaver@xsens.com>, Brian Norris <computersforpeace@gmail.com>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 10/27/2014 12:34 PM, Sebastian Andrzej Siewior wrote:
-> Do we really need #3 (and then #4)? Given the complexity we have already, is there any benefit by decreasing this value? 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--spPkB50II6gw6VBolBVLpcV72TnS0Ow5N
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I specifically requested we add ti,charge-delay to the device tree because it is THE critical value to tune for a given design.  Although I think the current value of 0xB000 will be suitable for a great many designs, I expect that many users will need to adjust this value for their hardware.  Details such as which touchscreen vendor is being used and how the touchscreen is connected (header vs cable) have an effect on what's appropriate here.
 
-> Would  someone want to increase it? Can we safely determine a value which works for everyone?
 
-This value represents a hardware delay before checking for the pen-up event.  So in the scenario where someone is seeing excessive false pen-up events they will want to increase this parameter.  The downsize of making this larger is that it decreases the overall sampling speed of both the touchscreen as well as the standalone ADC samples.  At one point I tried making it huge, but that made the touchscreen overly sluggish because the sampling became too slow.  So there is a definite trade-off that if you make it too large the touchscreen becomes sluggish, and if you make it too small then you may see false pen-up events.  The optimal value will need to be tuned for a given design.
+On 10/27/2014 10:56 AM, Roger Quadros wrote:
+> Hi Frans,
+>=20
+> On 10/27/2014 03:32 PM, Frans Klaver wrote:
+>> Since commit 6d178ef2fd5e ("mtd: nand: Move ELM driver and rename as
+>> omap_elm"), I don't have any mtd devices present on my am335x. This
+>> appears to be related to the link order of the omap_elm and omap2
+>> objects. Fix it by swapping the two in the Makefile.
+>=20
+
+I wonder how is it possible that I didn't got this on my tests.
+
+> Alternatively we could fix either elm_config() or omap_nand_probe() to
+> return -EPROBE_DEFER in case the device is present but driver not yet p=
+robed.
+>=20
+
+Yes, that's a good idea. Can't we do both? Getting a systematic deferred
+probe sounds like a bit silly to me.
+--=20
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
+
+
+--spPkB50II6gw6VBolBVLpcV72TnS0Ow5N
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUTpyxAAoJEIOKbhOEIHKiJZEP/21hauOXo1NGOp1d+FDK17iO
+20Eh+V+EB3EwDyJdzS7kEkHAC9f8ub8P1Ld03AhTrKC1DLfqY4BRXk087mLQaUqY
+fe6AycPSVf/ZoBhz5FcSjtwEOhgT5BrgEU28abV9Kn7Vn7/TmV0nTULvcZOeP2Nx
+l7JBdoVWkcaXmQfua5PY5ivC0xmfbSHng1PZ6ndEMTCYrUZH5JrLltSevKHk/bur
+Jk8Qbey8hbw+sLWhbIarRlDb1P/wlqS9W4C2csrLt9coiUXQlwxMwlWVyPS8VK+8
+17y+3peRVQj0lhhuBw0zwFNsTDZOb+cE0E4/duARZxaY+NLNBlhOtyiLjRkCOvBr
+y6ClDDmUrKEVRMclU+vPVzcTn5yWDA1Fdoq0BjflD1hhXnrT99aFei2Nyl+E7iiV
+yHhB+Tf1vTdjTUE0b8I2Kb+Iu9OPAnSasr7z9fg/cwYGYJQSlUWUV/rvIL76CoQp
+DfEwtHfBl9vi+MoVCcXladHhj+6xbsILa8c4K0hMxMbsKnUy9TeuoypGT71D0sil
+cCnd3bs5QhNN6Vhaj/G/oNdf7wYNdXjhyThSn8Wxp/SBp/LBrM7NT01X9uuqLSfa
+6SOf2a2/qXLjbJUTvoyf/N+P4lFO0YBHnrEBKvh6/yekMl32t+ieTpTV2JRhGQfH
+8E+znllgwi62GiXABnqq
+=fbAC
+-----END PGP SIGNATURE-----
+
+--spPkB50II6gw6VBolBVLpcV72TnS0Ow5N--
