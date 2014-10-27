@@ -1,11 +1,15 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.18-rc2
-Date: Mon, 27 Oct 2014 18:57:35 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1410271856120.27694@utopia.booyaka.com>
+From: "Griffis, Brad" <bgriffis@ti.com>
+Subject: RE: [PATCH 0/4] Touchscreen performance related fixes
+Date: Mon, 27 Oct 2014 19:02:47 +0000
+Message-ID: <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+ <544E821D.5040004@linutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <544E821D.5040004@linutronix.de>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,124 +19,18 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "R, Vignesh" <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit
+ Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry
+ Torokhov <dmitry.torokhov@gmail.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi,
+ Felipe" <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 10/27/2014 12:34 PM, Sebastian Andrzej Siewior wrote:
+> Do we really need #3 (and then #4)? Given the complexity we have already, is there any benefit by decreasing this value? 
 
-Here are some basic OMAP test results for Linux v3.18-rc2.
-Logs and other details at:
+I specifically requested we add ti,charge-delay to the device tree because it is THE critical value to tune for a given design.  Although I think the current value of 0xB000 will be suitable for a great many designs, I expect that many users will need to adjust this value for their hardware.  Details such as which touchscreen vendor is being used and how the touchscreen is connected (header vs cable) have an effect on what's appropriate here.
 
-    http://www.pwsan.com/omap/testlogs/test_v3.18-rc2/20141027002021/
+> Would  someone want to increase it? Can we safely determine a value which works for everyone?
 
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 4/17): 5912osk, 2420n800, 3517evm, 4430es2panda
-    Pass (12/17): am335xbonelt, am335xbone, 4460pandaes, 4460varsomom,
-		  37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm, cmt3517, 5430es2uevm, 5430es2sbct54
-
-PM: chip retention via suspend:
-    FAIL ( 5/11): am335xbonelt, 4460varsomom, 2430sdp, 5430es2uevm,
-		  5430es2sbct54
-    Pass ( 6/11): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/11): am335xbonelt, 4460pandaes, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 5/11): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-
-vmlinux object size
-(delta in bytes from test_v3.18-rc1 (f114040e3ea6e07372334ade75d1ee0775c355e1)):
-   text     data      bss    total  kernel
-  +1615     +216        0    +1831  omap1_defconfig
-  +1575     +224        0    +1799  omap1_defconfig_1510innovator_only
-  +1607     +192        0    +1799  omap1_defconfig_5912osk_only
- +11826     +256        0   +12082  multi_v7_defconfig
- +13779     +976        0   +14755  omap2plus_defconfig
- +12995     +976        0   +13971  omap2plus_defconfig_2430sdp_only
- +13651     +944        0   +14595  omap2plus_defconfig_am33xx_only
- +13651     +912      +64   +14627  omap2plus_defconfig_am43xx_only
- +13715     +936        0   +14651  omap2plus_defconfig_cpupm
- +13651     +944      +64   +14659  omap2plus_defconfig_dra7xx_only
-  +1759     +128        0    +1887  omap2plus_defconfig_n800_multi_omap2xxx
-  +1759     +128        0    +1887  omap2plus_defconfig_n800_only_a
- +13715     +976        0   +14691  omap2plus_defconfig_no_pm
- +13719     +912      +64   +14695  omap2plus_defconfig_omap2_4_only
- +13651     +904      +64   +14619  omap2plus_defconfig_omap3_4_only
- +13651     +936      +64   +14651  omap2plus_defconfig_omap5_only
-  +1996      +64     -316    +1744  rmk_omap3430_ldp_allnoconfig
-  +1917     +128        0    +2045  rmk_omap3430_ldp_oldconfig
-  +1980      +64     -300    +1744  rmk_omap4430_sdp_allnoconfig
-  +2087     +152        0    +2239  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.18-rc1 (f114040e3ea6e07372334ade75d1ee0775c355e1))
-  avail  rsrvd   high  freed  board          kconfig
-    -8k     8k      .      .  2430sdp        omap2plus_defconfig
-    -8k     8k      .    -4k  3530es31beagle omap2plus_defconfig
-    -8k     8k      .    -4k  3530es3beagle  omap2plus_defconfig
-    -8k     8k      .    -4k  3730beaglexm   omap2plus_defconfig
-    -8k     8k      .    -4k  3730es12beaglexmomap2plus_defconfig
-    -8k     8k      .    -4k  37xxevm        omap2plus_defconfig
-   -12k    12k      .    -4k  4460pandaes    omap2plus_defconfig
-   -12k    12k      .    -4k  4460varsomom   omap2plus_defconfig
-   -12k    12k      .    -4k  5430es2sbct54  omap2plus_defconfig
-    -8k     8k      .    -4k  5430es2uevm    omap2plus_defconfig
-   -16k    16k      .     4k  am335xbone     omap2plus_defconfig_am33xx_only
+This value represents a hardware delay before checking for the pen-up event.  So in the scenario where someone is seeing excessive false pen-up events they will want to increase this parameter.  The downsize of making this larger is that it decreases the overall sampling speed of both the touchscreen as well as the standalone ADC samples.  At one point I tried making it huge, but that made the touchscreen overly sluggish because the sampling became too slow.  So there is a definite trade-off that if you make it too large the touchscreen becomes sluggish, and if you make it too small then you may see false pen-up events.  The optimal value will need to be tuned for a given design.
