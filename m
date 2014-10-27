@@ -1,50 +1,46 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH v6 4/7] ARM: l2c: Add support for overriding prefetch
- settings
-Date: Mon, 27 Oct 2014 12:19:34 +0100
-Message-ID: <544E2A46.7070106@samsung.com>
-References: <1414407950-3029-1-git-send-email-m.szyprowski@samsung.com>
- <1414407950-3029-5-git-send-email-m.szyprowski@samsung.com>
- <20141027111404.GW12379@n2100.arm.linux.org.uk>
+From: Frans Klaver <frans.klaver@xsens.com>
+Subject: [PATCH] mtd: omap: fix mtd devices not showing up
+Date: Mon, 27 Oct 2014 14:27:45 +0100
+Message-ID: <1414416465-18329-1-git-send-email-frans.klaver@xsens.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:53451 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751622AbaJ0LTk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Oct 2014 07:19:40 -0400
-In-reply-to: <20141027111404.GW12379@n2100.arm.linux.org.uk>
+Received: from filter1.ibarracuda.nl ([83.247.7.10]:39336 "EHLO
+	filter1.ibarracuda.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752700AbaJ0N2M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Oct 2014 09:28:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: Frans Klaver <frans.klaver@xsens.com>, =?UTF-8?q?Ezequiel=20Garc=C3=ADa?= <ezequiel@vanguardiasur.com.ar>, Roger Quadros <rogerq@ti.com>, linux-mtd@lists.infradead.rg, linux-omap@vger.kernel.org
 
-Hello,
+Since commit 6d178ef2fd5e ("mtd: nand: Move ELM driver and rename as
+omap_elm"), I don't have any mtd devices present on my am335x. This
+appears to be related to the link order of the omap_elm and omap2
+objects. Fix it by swapping the two in the Makefile.
 
-On 2014-10-27 12:14, Russell King - ARM Linux wrote:
-> On Mon, Oct 27, 2014 at 12:05:47PM +0100, Marek Szyprowski wrote:
->> From: Tomasz Figa <t.figa@samsung.com>
->>
->> Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
->> settings configured in registers leading to crashes if L2C is enabled
->> without overriding them. This patch introduces bindings to enable
->> prefetch settings to be specified from DT and necessary support in the
->> driver.
->>
->> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
->> [mszyprow: rebased onto v3.18-rc1, added error messages when property value
->>   is missing]
-> Why?  What if the boot loader has already set these up appropriately?  Why
-> should we force people to list these in the DT?
+Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
+---
+I hoped this wouldn't make a difference, but it very much did. I don't
+have a proper explanation for why this actually fixes it for me though.
 
-The error message is displayed only when user provided prefetch related
-properties without any value (empty properties). Something that Mark Rutland
-requested here: https://lkml.org/lkml/2014/9/24/426 I'm sorry if I didn't
-describe it clearly enough.
+ drivers/mtd/nand/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Best regards
+diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
+index 9c847e4..24b81ec 100644
+--- a/drivers/mtd/nand/Makefile
++++ b/drivers/mtd/nand/Makefile
+@@ -26,8 +26,8 @@ obj-$(CONFIG_MTD_NAND_CS553X)		+= cs553x_nand.o
+ obj-$(CONFIG_MTD_NAND_NDFC)		+= ndfc.o
+ obj-$(CONFIG_MTD_NAND_ATMEL)		+= atmel_nand.o
+ obj-$(CONFIG_MTD_NAND_GPIO)		+= gpio.o
+-obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2.o
+ obj-$(CONFIG_MTD_NAND_OMAP_BCH_BUILD)	+= omap_elm.o
++obj-$(CONFIG_MTD_NAND_OMAP2) 		+= omap2.o
+ obj-$(CONFIG_MTD_NAND_CM_X270)		+= cmx270_nand.o
+ obj-$(CONFIG_MTD_NAND_PXA3xx)		+= pxa3xx_nand.o
+ obj-$(CONFIG_MTD_NAND_TMIO)		+= tmio_nand.o
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.1.0
 
