@@ -1,66 +1,142 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH V4 1/3] rtc: omap: use module_platform_driver
-Date: Tue, 28 Oct 2014 15:28:50 +0530
-Message-ID: <1414490332-14856-2-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH V4 3/3] rtc: omap: Support regulator supply for RTC
+Date: Tue, 28 Oct 2014 15:28:52 +0530
+Message-ID: <1414490332-14856-4-git-send-email-lokeshvutla@ti.com>
 References: <1414490332-14856-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59470 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36449 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754667AbaJ1KAg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Oct 2014 06:00:36 -0400
+	id S1752397AbaJ1KAs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Oct 2014 06:00:48 -0400
 In-Reply-To: <1414490332-14856-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org
 Cc: johan@kernel.org, tony@atomide.com, balbi@ti.com, akpm@linux-foundation.org, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, nm@ti.com, lokeshvutla@ti.com
 
-module_platform_driver_probe() prevents driver from requesting probe deferral.
-So using module_platform_drive() to support probe deferral.
-And also removing .owner field which is set by module_platform_driver.
+Certain SoCs such as DRA7, RTC is an independent voltage domain of it's own
+and on platforms such as DRA7-evm, this may be supplied by individual
+regulator on it's own.
+So make the OMAP RTC driver support a power regulator.
 
-Reviewed-by: Johan Hovold <johan@kernel.org>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 ---
- drivers/rtc/rtc-omap.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+- Dropped the Reviewed-by tags as this patch is changed from previous version.
+ Documentation/devicetree/bindings/rtc/rtc-omap.txt |  6 ++++
+ drivers/rtc/rtc-omap.c                             | 41 +++++++++++++++++++++-
+ 2 files changed, 46 insertions(+), 1 deletion(-)
 
+diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+index 750efd4..c1d84ac 100644
+--- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
++++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+@@ -15,6 +15,9 @@ Required properties:
+ Optional properties:
+ - ti,system-power-controller: whether the rtc is controlling the system power
+   through pmic_power_en
++- vrtc-supply: phandle to the regulator device tree node.
++- vrtc-minuV: Minimum required voltage in uV, If default voltage needs to be changed
++- vrtc-maxuV: Maximum acceptable voltage in uV, If default voltage needs to be changed
+ 
+ Example:
+ 
+@@ -25,4 +28,7 @@ rtc@1c23000 {
+ 		      19>;
+ 	interrupt-parent = <&intc>;
+ 	ti,system-power-controller;
++	vrtc-supply = <&ldo9_reg>;
++	vrtc-minuV = <1050000>;
++	vrtc-maxuV = <1050000>;
+ };
 diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index e74750f..d9bb5e7 100644
+index d9bb5e7..7f1358a 100644
 --- a/drivers/rtc/rtc-omap.c
 +++ b/drivers/rtc/rtc-omap.c
-@@ -477,7 +477,7 @@ static const struct of_device_id omap_rtc_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
+@@ -25,6 +25,7 @@
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/io.h>
++#include <linux/regulator/consumer.h>
  
--static int __init omap_rtc_probe(struct platform_device *pdev)
-+static int omap_rtc_probe(struct platform_device *pdev)
- {
- 	struct omap_rtc	*rtc;
- 	struct resource	*res;
-@@ -708,18 +708,18 @@ static void omap_rtc_shutdown(struct platform_device *pdev)
+ /*
+  * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
+@@ -134,6 +135,7 @@ struct omap_rtc {
+ 	u8 interrupts_reg;
+ 	bool is_pmic_controller;
+ 	const struct omap_rtc_device_type *type;
++	struct regulator *supply;
+ };
+ 
+ static inline u8 rtc_read(struct omap_rtc *rtc, unsigned int reg)
+@@ -484,7 +486,7 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	u8 reg, mask, new_ctrl;
+ 	const struct platform_device_id *id_entry;
+ 	const struct of_device_id *of_id;
+-	int ret;
++	int ret, vrtc_minuV = 0, vrtc_maxuV = 0;
+ 
+ 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+ 	if (!rtc)
+@@ -514,6 +516,37 @@ static int omap_rtc_probe(struct platform_device *pdev)
+ 	if (IS_ERR(rtc->base))
+ 		return PTR_ERR(rtc->base);
+ 
++	rtc->supply = devm_regulator_get_optional(&pdev->dev, "vrtc");
++	if (IS_ERR(rtc->supply)) {
++		if (PTR_ERR(rtc->supply) == -EPROBE_DEFER)
++			return -EPROBE_DEFER;
++
++		rtc->supply = NULL;
++	}
++
++	if (rtc->supply) {
++		of_property_read_u32(pdev->dev.of_node, "vrtc-minuV",
++				     &vrtc_minuV);
++		of_property_read_u32(pdev->dev.of_node, "vrtc-maxuV",
++				     &vrtc_maxuV);
++		if (vrtc_minuV && vrtc_maxuV) {
++			ret = regulator_set_voltage(rtc->supply,
++						    vrtc_minuV, vrtc_maxuV);
++			if (ret) {
++				dev_err(&pdev->dev, "failed to set volt %d\n",
++					ret);
++				return ret;
++			}
++		}
++
++		ret = regulator_enable(rtc->supply);
++		if (ret) {
++			dev_err(&pdev->dev, "regulator enable failed %d\n",
++				ret);
++			return ret;
++		}
++	}
++
+ 	platform_set_drvdata(pdev, rtc);
+ 
+ 	/* Enable the clock/module so that we can access the registers */
+@@ -624,6 +657,9 @@ err:
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
++	if (rtc->supply)
++		regulator_disable(rtc->supply);
++
+ 	return ret;
  }
  
- static struct platform_driver omap_rtc_driver = {
-+	.probe		= omap_rtc_probe,
- 	.remove		= __exit_p(omap_rtc_remove),
- 	.shutdown	= omap_rtc_shutdown,
- 	.driver		= {
- 		.name	= "omap_rtc",
--		.owner	= THIS_MODULE,
- 		.pm	= &omap_rtc_pm_ops,
- 		.of_match_table = omap_rtc_of_match,
- 	},
- 	.id_table	= omap_rtc_id_table,
- };
+@@ -649,6 +685,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
+ 	pm_runtime_put_sync(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
  
--module_platform_driver_probe(omap_rtc_driver, omap_rtc_probe);
-+module_platform_driver(omap_rtc_driver);
++	if (rtc->supply)
++		regulator_disable(rtc->supply);
++
+ 	return 0;
+ }
  
- MODULE_ALIAS("platform:omap_rtc");
- MODULE_AUTHOR("George G. Davis (and others)");
 -- 
 1.9.1
 
