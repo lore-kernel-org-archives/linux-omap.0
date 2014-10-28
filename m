@@ -1,55 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: USB Ethernet gadget on Nokia n900
-Date: Tue, 28 Oct 2014 15:11:25 -0700
-Message-ID: <20141028221124.GT2542@atomide.com>
-References: <20141019090107.GA19132@amd>
- <201410262222.39892@pali>
- <20141026215548.GA9004@amd>
- <201410262323.17891@pali>
- <20141027195209.GP2560@atomide.com>
- <20141027223114.GU2560@atomide.com>
- <20141028220450.GA27667@amd>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Tue, 28 Oct 2014 15:12:44 -0700
+Message-ID: <20141028221243.GU2542@atomide.com>
+References: <20141027200008.GR2560@atomide.com>
+ <20141027230138.GB7805@drone.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40256 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756038AbaJ1WOI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2014 18:14:08 -0400
 Content-Disposition: inline
-In-Reply-To: <20141028220450.GA27667@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <20141027230138.GB7805@drone.musicnaut.iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [141028 15:06]:
-> Hi!
+* Aaro Koskinen <aaro.koskinen@iki.fi> [141027 16:03]:
+> Hi,
 > 
-> > Here's a patch that should fix the issues for built-in USB
-> > gadgets.
-> > 
-> > Pavel, care to see if this gets NFSroot over USB working again
-> > for you?
+> On Mon, Oct 27, 2014 at 01:00:09PM -0700, Tony Lindgren wrote:
+> > +
+> > +	if (!of_have_populated_dt())
+> > +		pr_warn("WARNING: legacy booting deprecated, please update to boot with .dts\n");
+> > +
 > 
-> It seems to have did the trick for me. (Plus I needed to add
-> 
-> +CONFIG_ARM_ATAG_DTB_COMPAT=y
-> +CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
-> +# CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
-> 
-> to be able to control the command line, that's why testing took me a
-> while.)
+> Maybe use WARN so that the warning is more verbose and kernel gets tainted?
 
-Hmm I think I have a patch somewhere here to enable the standard
-bootz command for n900 mainline u-boot.. That way you can just do
+Well I was hoping to avoid annoying people with the trace.
+But can do that if people prefer that, what do others think?
 
-# bootz ${loadaddr} - ${fdtaddr}
- 
-> Networking now works against 3.17-based kernel. Thanks!
-
-Right on! Ideally the gadget probe would be event driven and called
-after USB controller driver probe. But that would mean keeping a
-list of all the gadgets as Felipe told me.
- 
-> Tested-by: Pavel Machek <pavel@ucw.cz>
-
-Thanks for testing,
+Regards,
 
 Tony
