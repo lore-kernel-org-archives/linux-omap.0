@@ -1,142 +1,61 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH V4 3/3] rtc: omap: Support regulator supply for RTC
-Date: Tue, 28 Oct 2014 15:28:52 +0530
-Message-ID: <1414490332-14856-4-git-send-email-lokeshvutla@ti.com>
-References: <1414490332-14856-1-git-send-email-lokeshvutla@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v6 4/7] ARM: l2c: Add support for overriding prefetch
+	settings
+Date: Tue, 28 Oct 2014 11:35:31 +0000
+Message-ID: <20141028113531.GZ12379@n2100.arm.linux.org.uk>
+References: <1414407950-3029-1-git-send-email-m.szyprowski@samsung.com> <1414407950-3029-5-git-send-email-m.szyprowski@samsung.com> <20141027111404.GW12379@n2100.arm.linux.org.uk> <544E2A46.7070106@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36449 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397AbaJ1KAs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Oct 2014 06:00:48 -0400
-In-Reply-To: <1414490332-14856-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <544E2A46.7070106@samsung.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, santosh.shilimkar@ti.com, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
-To: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org
-Cc: johan@kernel.org, tony@atomide.com, balbi@ti.com, akpm@linux-foundation.org, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, nm@ti.com, lokeshvutla@ti.com
 
-Certain SoCs such as DRA7, RTC is an independent voltage domain of it's own
-and on platforms such as DRA7-evm, this may be supplied by individual
-regulator on it's own.
-So make the OMAP RTC driver support a power regulator.
+On Mon, Oct 27, 2014 at 12:19:34PM +0100, Marek Szyprowski wrote:
+> Hello,
+>
+> On 2014-10-27 12:14, Russell King - ARM Linux wrote:
+>> On Mon, Oct 27, 2014 at 12:05:47PM +0100, Marek Szyprowski wrote:
+>>> From: Tomasz Figa <t.figa@samsung.com>
+>>>
+>>> Firmware on certain boards (e.g. ODROID-U3) can leave incorrect L2C prefetch
+>>> settings configured in registers leading to crashes if L2C is enabled
+>>> without overriding them. This patch introduces bindings to enable
+>>> prefetch settings to be specified from DT and necessary support in the
+>>> driver.
+>>>
+>>> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+>>> [mszyprow: rebased onto v3.18-rc1, added error messages when property value
+>>>   is missing]
+>> Why?  What if the boot loader has already set these up appropriately?  Why
+>> should we force people to list these in the DT?
+>
+> The error message is displayed only when user provided prefetch related
+> properties without any value (empty properties). Something that Mark Rutland
+> requested here: https://lkml.org/lkml/2014/9/24/426 I'm sorry if I didn't
+> describe it clearly enough.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
-- Dropped the Reviewed-by tags as this patch is changed from previous version.
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |  6 ++++
- drivers/rtc/rtc-omap.c                             | 41 +++++++++++++++++++++-
- 2 files changed, 46 insertions(+), 1 deletion(-)
+Ok.
 
-diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-index 750efd4..c1d84ac 100644
---- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-+++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-@@ -15,6 +15,9 @@ Required properties:
- Optional properties:
- - ti,system-power-controller: whether the rtc is controlling the system power
-   through pmic_power_en
-+- vrtc-supply: phandle to the regulator device tree node.
-+- vrtc-minuV: Minimum required voltage in uV, If default voltage needs to be changed
-+- vrtc-maxuV: Maximum acceptable voltage in uV, If default voltage needs to be changed
- 
- Example:
- 
-@@ -25,4 +28,7 @@ rtc@1c23000 {
- 		      19>;
- 	interrupt-parent = <&intc>;
- 	ti,system-power-controller;
-+	vrtc-supply = <&ldo9_reg>;
-+	vrtc-minuV = <1050000>;
-+	vrtc-maxuV = <1050000>;
- };
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index d9bb5e7..7f1358a 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -25,6 +25,7 @@
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/io.h>
-+#include <linux/regulator/consumer.h>
- 
- /*
-  * The OMAP RTC is a year/month/day/hours/minutes/seconds BCD clock
-@@ -134,6 +135,7 @@ struct omap_rtc {
- 	u8 interrupts_reg;
- 	bool is_pmic_controller;
- 	const struct omap_rtc_device_type *type;
-+	struct regulator *supply;
- };
- 
- static inline u8 rtc_read(struct omap_rtc *rtc, unsigned int reg)
-@@ -484,7 +486,7 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 	u8 reg, mask, new_ctrl;
- 	const struct platform_device_id *id_entry;
- 	const struct of_device_id *of_id;
--	int ret;
-+	int ret, vrtc_minuV = 0, vrtc_maxuV = 0;
- 
- 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
-@@ -514,6 +516,37 @@ static int omap_rtc_probe(struct platform_device *pdev)
- 	if (IS_ERR(rtc->base))
- 		return PTR_ERR(rtc->base);
- 
-+	rtc->supply = devm_regulator_get_optional(&pdev->dev, "vrtc");
-+	if (IS_ERR(rtc->supply)) {
-+		if (PTR_ERR(rtc->supply) == -EPROBE_DEFER)
-+			return -EPROBE_DEFER;
-+
-+		rtc->supply = NULL;
-+	}
-+
-+	if (rtc->supply) {
-+		of_property_read_u32(pdev->dev.of_node, "vrtc-minuV",
-+				     &vrtc_minuV);
-+		of_property_read_u32(pdev->dev.of_node, "vrtc-maxuV",
-+				     &vrtc_maxuV);
-+		if (vrtc_minuV && vrtc_maxuV) {
-+			ret = regulator_set_voltage(rtc->supply,
-+						    vrtc_minuV, vrtc_maxuV);
-+			if (ret) {
-+				dev_err(&pdev->dev, "failed to set volt %d\n",
-+					ret);
-+				return ret;
-+			}
-+		}
-+
-+		ret = regulator_enable(rtc->supply);
-+		if (ret) {
-+			dev_err(&pdev->dev, "regulator enable failed %d\n",
-+				ret);
-+			return ret;
-+		}
-+	}
-+
- 	platform_set_drvdata(pdev, rtc);
- 
- 	/* Enable the clock/module so that we can access the registers */
-@@ -624,6 +657,9 @@ err:
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-+	if (rtc->supply)
-+		regulator_disable(rtc->supply);
-+
- 	return ret;
- }
- 
-@@ -649,6 +685,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 
-+	if (rtc->supply)
-+		regulator_disable(rtc->supply);
-+
- 	return 0;
- }
- 
+I'd ask for one change.  Please make all these messages start with
+"L2C-310 OF" not "PL310 OF:".  The device is described in ARM
+documentation as a L2C-310 not PL310.  (Also note the : is dropped
+too - most of the other messages don't have the : either.)
+
+The:
+
+"PL310 OF: cache setting yield illegal associativity
+PL310 OF: -1073346556 calculated, only 8 and 16 legal"
+
+message could also be changed to something like:
+
+"L2C-310 OF cache associativity %d invalid, only 8 or 16 permitted\n"
+
+Thanks.
+
 -- 
-1.9.1
-
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
