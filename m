@@ -1,99 +1,73 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH V4 3/3] rtc: omap: Support regulator supply for RTC
-Date: Tue, 28 Oct 2014 15:11:16 +0000
-Message-ID: <20141028151116.GV18557@sirena.org.uk>
-References: <1414490332-14856-1-git-send-email-lokeshvutla@ti.com>
- <1414490332-14856-4-git-send-email-lokeshvutla@ti.com>
- <20141028150148.GE8123@saruman>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Tue, 28 Oct 2014 15:16:10 +0000
+Message-ID: <20141028151610.GA12379@n2100.arm.linux.org.uk>
+References: <20141024192540.GD11455@saruman> <20141024192948.GE11455@saruman> <20141024193655.GD19377@localhost> <20141024194442.GG11455@saruman> <20141024195532.GF19377@localhost> <20141027162251.d7ff2a5f31917c638d4e47f7@linux-foundation.org> <20141028002552.GX12379@n2100.arm.linux.org.uk> <20141028081616.GL2006@localhost> <20141028084745.GY12379@n2100.arm.linux.org.uk> <20141028131257.GS2006@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Yzwzo2Lpb9tBI5S/"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:53332 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbaJ1PMB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2014 11:12:01 -0400
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:47374 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753411AbaJ1PQ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Oct 2014 11:16:27 -0400
 Content-Disposition: inline
-In-Reply-To: <20141028150148.GE8123@saruman>
+In-Reply-To: <20141028131257.GS2006@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, johan@kernel.org, tony@atomide.com, akpm@linux-foundation.org, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, nm@ti.com
+To: Johan Hovold <johan@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 
+On Tue, Oct 28, 2014 at 02:12:57PM +0100, Johan Hovold wrote:
+> That's not what I was trying to refer to. But the patch set explicitly
+> allows for multiple, prioritised power-off handlers, which can power
+> off a board in different ways and with various degrees of success.
+> Specifically, it allows for fallback handlers in case one or more
+> power-off handlers fail.
+> 
+> So if we allow for that, what is to prevent the final power-off handler
+> from failing? And should this not be logged by arch code in the same way
+> as failure to restart is?
 
---Yzwzo2Lpb9tBI5S/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+And how is that different from having a set of power-off handlers, and
+reporting when each individual one fails?  Don't you want to know if
+your primary high priority reboot handler fails, just as much as you
+want to know if your final last-resort power-off handler fails?
 
-On Tue, Oct 28, 2014 at 10:01:48AM -0500, Felipe Balbi wrote:
-> On Tue, Oct 28, 2014 at 03:28:52PM +0530, Lokesh Vutla wrote:
+Or different from having no power-off handlers.
 
-> > +- vrtc-minuV: Minimum required voltage in uV, If default voltage needs=
- to be changed
-> > +- vrtc-maxuV: Maximum acceptable voltage in uV, If default voltage nee=
-ds to be changed
+Here's the x86 code:
 
-> huh ? minuV and maxuV is already part of the regulator binding itself.
+void machine_power_off(void)
+{
+        machine_ops.power_off();
+}
 
-No, they aren't - there's bindings for setting constraints but not
-bindings for setting values in consumers since consumers generally
-understand why they are setting a voltage if they do so.  I'd expect
-that we'd have a property for whatever system feature might cause us to
-need to explicitly set the voltage if we need to vary the voltage at
-runtime, or alternatively for systems to set a voltage through the
-constraints on the supply rather than having properties on the consumer
-- why are they here?
+struct machine_ops machine_ops = {
+        .power_off = native_machine_power_off,
+...
 
-If for some reason we really need these properties they should be -max-uV
-and -min-uV.
+static void native_machine_power_off(void)
+{
+        if (pm_power_off) {
+                if (!reboot_force)
+                        machine_shutdown();
+                pm_power_off();
+        }
+        /* A fallback in case there is no PM info available */
+        tboot_shutdown(TB_SHUTDOWN_HALT);
+}
 
-> > @@ -514,6 +516,37 @@ static int omap_rtc_probe(struct platform_device *=
-pdev)
-> >  	if (IS_ERR(rtc->base))
-> >  		return PTR_ERR(rtc->base);
-> > =20
-> > +	rtc->supply =3D devm_regulator_get_optional(&pdev->dev, "vrtc");
+void tboot_shutdown(u32 shutdown_type)
+{
+        void (*shutdown)(void);
 
-> I'm not sure if this is optional either, it's just that many of our
-> current DTS don't really pass a regulator to RTC, right ?
+        if (!tboot_enabled())
+                return;
 
-If the RTC can run without power that would certainly be most
-impressive.  I can't see any reason for this driver to use anything
-other than a standard regulator_get().
+See - x86 can very well just fall straight back out of machine_power_off()
+if there's no pm_power_off() hook and tboot is not enabled.
 
-> > +		if (vrtc_minuV && vrtc_maxuV) {
-> > +			ret =3D regulator_set_voltage(rtc->supply,
-> > +						    vrtc_minuV, vrtc_maxuV);
-> > +			if (ret) {
-> > +				dev_err(&pdev->dev, "failed to set volt %d\n",
-> > +					ret);
-> > +				return ret;
-> > +			}
-> > +		}
-
-> I'd really like to Mark's comments here but I was under the impression
-> that if the binding already gives min_microvolt =3D=3D max_microvolt then
-> driver shouldn't really care about a set_voltage. Mark ?
-
-That's what happens for the standard properties on the supplying
-regulator, these properties are separate to that.  Like I say I'm not
-sure I understand why this is being done on a per-consumer basis.
-
---Yzwzo2Lpb9tBI5S/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUT7IUAAoJECTWi3JdVIfQu78H/ifkVg7vhquFaJAD/XLQd87h
-pPXUhWJfprKyn3giq5pmMbr+CsAF9wwkeui9hYPPqvumFEN46dPCkMdiegkypXsv
-15ZGoBdB3lUdX7dzMY8vvHD8G35rVUHIiemqYU+iX1xAfm+N+MgjP6dp4SSRKuXu
-jgqwzQHvCYCs/xDjCGhN+S0ZU18cckvqZaNIkixE3OWnQ1Ex1dC14d7ydpKiSWwd
-8eg5ScKGMp4dbyjWtNAvQOZbEO3Dx3Rm+5u4YxXd/dm7UxavUpoge4TwS6xGqxKk
-LNnhd8ywQL1jKABQdt70M0736i0UtJS32TQEOVYiccEa8akhzF7MaC/e3dfCoOc=
-=KyNh
------END PGP SIGNATURE-----
-
---Yzwzo2Lpb9tBI5S/--
+-- 
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
