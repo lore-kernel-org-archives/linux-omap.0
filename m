@@ -1,37 +1,44 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v3] rtc: omap: add support for pmic_power_en
-Date: Tue, 28 Oct 2014 14:18:05 -0700
-Message-ID: <20141028141805.7b67bba29734be326354957f@linux-foundation.org>
-References: <1413913086-12730-1-git-send-email-johan@kernel.org>
-	<1414397368-26480-1-git-send-email-johan@kernel.org>
-	<20141027154031.4492ea11d401045ca04a3ff8@linux-foundation.org>
-	<20141028083633.GM2006@localhost>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: USB Ethernet gadget on Nokia n900
+Date: Tue, 28 Oct 2014 23:04:50 +0100
+Message-ID: <20141028220450.GA27667@amd>
+References: <20141019090107.GA19132@amd>
+ <201410262222.39892@pali>
+ <20141026215548.GA9004@amd>
+ <201410262323.17891@pali>
+ <20141027195209.GP2560@atomide.com>
+ <20141027223114.GU2560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141028083633.GM2006@localhost>
+Content-Disposition: inline
+In-Reply-To: <20141027223114.GU2560@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 28 Oct 2014 09:36:33 +0100 Johan Hovold <johan@kernel.org> wrote:
+Hi!
 
-> > But it doesn't explain *why* we want the alarm to trigger before
-> > returning.
+> Here's a patch that should fix the issues for built-in USB
+> gadgets.
 > 
-> Should we really require every power-off handler to document arch
-> behaviour (even if its inconsistent and currently undocumented); in
-> this case that some arches return to user-space where we may oops if
-> called from process 0 (e.g. systemd, but not if using sysvinit)?
+> Pavel, care to see if this gets NFSroot over USB working again
+> for you?
 
-The kernel really doesn't have a problem related to excessive amounts
-of useful code comments :(
+It seems to have did the trick for me. (Plus I needed to add
 
-The bottom line is: did I provide a reader with the ability to
-understand why the code is this way?  If "no" then improvements beckon.
++CONFIG_ARM_ATAG_DTB_COMPAT=y
++CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
++# CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
 
-This does look like one code site where an elaborate explanation is
-warranted.  There's no way in which a reader can get to your above
-paragraph from the current rtc-omap.c.
+to be able to control the command line, that's why testing took me a
+while.)
+
+Networking now works against 3.17-based kernel. Thanks!
+
+Tested-by: Pavel Machek <pavel@ucw.cz>
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
