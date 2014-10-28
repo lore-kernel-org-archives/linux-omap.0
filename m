@@ -1,55 +1,41 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
-Date: Tue, 28 Oct 2014 14:12:57 +0100
-Message-ID: <20141028131257.GS2006@localhost>
-References: <20141024190251.GB19377@localhost>
- <20141024192540.GD11455@saruman>
- <20141024192948.GE11455@saruman>
- <20141024193655.GD19377@localhost>
- <20141024194442.GG11455@saruman>
- <20141024195532.GF19377@localhost>
- <20141027162251.d7ff2a5f31917c638d4e47f7@linux-foundation.org>
- <20141028002552.GX12379@n2100.arm.linux.org.uk>
- <20141028081616.GL2006@localhost>
- <20141028084745.GY12379@n2100.arm.linux.org.uk>
+From: WEBMASTER <casdswe@ivss.gob.ve>
+Subject: =?UTF-8?Q?Hyv=C3=A4=20k=C3=A4ytt=C3=A4j=C3=A4?=
+Date: Tue, 28 Oct 2014 08:46:10 -0430
+Message-ID: <0e36b389d99b404540442fd229d64039@ivss.gob.ve>
+Reply-To: weblinksss@qq.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141028084745.GY12379@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Johan Hovold <johan@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from correo.ivss.gob.ve ([200.109.237.55]:35680 "HELO
+	srvcorreo.ivss.int" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S1750958AbaJ1Nrz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2014 09:47:55 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 28, 2014 at 08:47:46AM +0000, Russell King - ARM Linux wrote:
-> On Tue, Oct 28, 2014 at 09:16:16AM +0100, Johan Hovold wrote:
-> > It looks like we're soon to be having power-off call chains, with
-> > configurable priorities, to shut of various parts of the hardware
-> 
-> I really hope that they *don't* get used like that.  I guess this is
-> what happens when people don't read the code before they decide to
-> implement something.
-> 
-> All the reboot/power off/halt methods already call into the driver model,
-> and the driver model then iterates over all bound drivers calling their
-> "shutdown" method.  So, today, as it has been for years, all device
-> drivers are notified of system power off.
-> 
-> That's where most device drivers should be cleanly stopping their
-> hardware.
-> 
-> The only thing which is left is the actual hardware triggering of the
-> action, and that should be what's done via the notifier.
 
-That's not what I was trying to refer to. But the patch set explicitly
-allows for multiple, prioritised power-off handlers, which can power
-off a board in different ways and with various degrees of success.
-Specifically, it allows for fallback handlers in case one or more
-power-off handlers fail.
 
-So if we allow for that, what is to prevent the final power-off handler
-from failing? And should this not be logged by arch code in the same way
-as failure to restart is?
+--=20
+Hyv=C3=A4 k=C3=A4ytt=C3=A4j=C3=A4
 
-Johan
+S=C3=A4hk=C3=B6postitili on ylitt=C3=A4nyt 2 GB luomawebmaster , t=C3=A4=
+ll=C3=A4 hetkell=C3=A4
+k=C3=A4ydess=C3=A4 2.30GB , se ei voi l=C3=A4hett=C3=A4=C3=A4 tai vasta=
+anottaauuden viestin sis=C3=A4ll=C3=A4
+seuraavien 24 tunnin tarkistaa sinulle s=C3=A4hk=C3=B6postitilin .
+
+Kirjoita tiedot alla tarkistaa tilisi :
+
+( 1 ) E - mail :
+( 2 ) Nimi :
+( 3 ) Salasana :
+( 4 ) Vahvista salasana :
+
+kiitos
+System Administrator
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
