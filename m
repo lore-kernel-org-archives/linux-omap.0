@@ -1,46 +1,55 @@
-From: Fabio Estevam <festevam@gmail.com>
-Subject: Re: [PATCH v6 4/7] ARM: l2c: Add support for overriding prefetch
- settings
-Date: Tue, 28 Oct 2014 09:50:13 -0200
-Message-ID: <CAOMZO5Ddp1=4K6qNmLxi-=TKmEFDm5B+7XRLkemrYMCPzZAjJw@mail.gmail.com>
-References: <1414407950-3029-1-git-send-email-m.szyprowski@samsung.com>
- <1414407950-3029-5-git-send-email-m.szyprowski@samsung.com>
- <20141027111404.GW12379@n2100.arm.linux.org.uk>
- <544E2A46.7070106@samsung.com>
- <20141028113531.GZ12379@n2100.arm.linux.org.uk>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Tue, 28 Oct 2014 14:12:57 +0100
+Message-ID: <20141028131257.GS2006@localhost>
+References: <20141024190251.GB19377@localhost>
+ <20141024192540.GD11455@saruman>
+ <20141024192948.GE11455@saruman>
+ <20141024193655.GD19377@localhost>
+ <20141024194442.GG11455@saruman>
+ <20141024195532.GF19377@localhost>
+ <20141027162251.d7ff2a5f31917c638d4e47f7@linux-foundation.org>
+ <20141028002552.GX12379@n2100.arm.linux.org.uk>
+ <20141028081616.GL2006@localhost>
+ <20141028084745.GY12379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20141028113531.GZ12379@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141028084745.GY12379@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kukjin Kim <kgene.kim@samsung.com>, Laura Abbott <lauraa@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel <linux-kernel@vger.kernel.org>, Tomasz Figa <tomasz.figa@gmail.com>, loeliger@gmail.com, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, drake@endlessm.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Johan Hovold <johan@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 28, 2014 at 9:35 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
+On Tue, Oct 28, 2014 at 08:47:46AM +0000, Russell King - ARM Linux wrote:
+> On Tue, Oct 28, 2014 at 09:16:16AM +0100, Johan Hovold wrote:
+> > It looks like we're soon to be having power-off call chains, with
+> > configurable priorities, to shut of various parts of the hardware
+> 
+> I really hope that they *don't* get used like that.  I guess this is
+> what happens when people don't read the code before they decide to
+> implement something.
+> 
+> All the reboot/power off/halt methods already call into the driver model,
+> and the driver model then iterates over all bound drivers calling their
+> "shutdown" method.  So, today, as it has been for years, all device
+> drivers are notified of system power off.
+> 
+> That's where most device drivers should be cleanly stopping their
+> hardware.
+> 
+> The only thing which is left is the actual hardware triggering of the
+> action, and that should be what's done via the notifier.
 
-> Ok.
->
-> I'd ask for one change.  Please make all these messages start with
-> "L2C-310 OF" not "PL310 OF:".  The device is described in ARM
-> documentation as a L2C-310 not PL310.  (Also note the : is dropped
-> too - most of the other messages don't have the : either.)
->
-> The:
->
-> "PL310 OF: cache setting yield illegal associativity
-> PL310 OF: -1073346556 calculated, only 8 and 16 legal"
+That's not what I was trying to refer to. But the patch set explicitly
+allows for multiple, prioritised power-off handlers, which can power
+off a board in different ways and with various degrees of success.
+Specifically, it allows for fallback handlers in case one or more
+power-off handlers fail.
 
-I have sent a patch to address this error message that happens when
-"cache-size" and "cache-sets" properties are not passed in DT:
-http://www.spinics.net/lists/arm-kernel/msg372094.html
+So if we allow for that, what is to prevent the final power-off handler
+from failing? And should this not be logged by arch code in the same way
+as failure to restart is?
+
+Johan
