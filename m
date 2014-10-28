@@ -1,41 +1,63 @@
-From: WEBMASTER <casdswe@ivss.gob.ve>
-Subject: =?UTF-8?Q?Hyv=C3=A4=20k=C3=A4ytt=C3=A4j=C3=A4?=
-Date: Tue, 28 Oct 2014 08:46:10 -0430
-Message-ID: <0e36b389d99b404540442fd229d64039@ivss.gob.ve>
-Reply-To: weblinksss@qq.com
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V4 3/3] rtc: omap: Support regulator supply for RTC
+Date: Tue, 28 Oct 2014 09:02:45 -0500
+Message-ID: <544FA205.3000102@ti.com>
+References: <1414490332-14856-1-git-send-email-lokeshvutla@ti.com> <1414490332-14856-4-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from correo.ivss.gob.ve ([200.109.237.55]:35680 "HELO
-	srvcorreo.ivss.int" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S1750958AbaJ1Nrz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2014 09:47:55 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1414490332-14856-4-git-send-email-lokeshvutla-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, j-keerthy-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 10/28/2014 04:58 AM, Lokesh Vutla wrote:
+> Certain SoCs such as DRA7, RTC is an independent voltage domain of it's own
+> and on platforms such as DRA7-evm, this may be supplied by individual
+> regulator on it's own.
+> So make the OMAP RTC driver support a power regulator.
+> 
+> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+> ---
+> - Dropped the Reviewed-by tags as this patch is changed from previous version.
+>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |  6 ++++
+>  drivers/rtc/rtc-omap.c                             | 41 +++++++++++++++++++++-
+>  2 files changed, 46 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> index 750efd4..c1d84ac 100644
+> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> @@ -15,6 +15,9 @@ Required properties:
+>  Optional properties:
+>  - ti,system-power-controller: whether the rtc is controlling the system power
+>    through pmic_power_en
+> +- vrtc-supply: phandle to the regulator device tree node.
+> +- vrtc-minuV: Minimum required voltage in uV, If default voltage needs to be changed
+> +- vrtc-maxuV: Maximum acceptable voltage in uV, If default voltage needs to be changed
+>  
+>  Example:
+>  
+> @@ -25,4 +28,7 @@ rtc@1c23000 {
+>  		      19>;
+>  	interrupt-parent = <&intc>;
+>  	ti,system-power-controller;
+> +	vrtc-supply = <&ldo9_reg>;
+> +	vrtc-minuV = <1050000>;
+> +	vrtc-maxuV = <1050000>;
 
 
---=20
-Hyv=C3=A4 k=C3=A4ytt=C3=A4j=C3=A4
+why would we want to duplicate machine constraints that regulators
+already have? if there is a constant voltage needed, then it should be
+compatible property as it is not really a configuration option, right?
 
-S=C3=A4hk=C3=B6postitili on ylitt=C3=A4nyt 2 GB luomawebmaster , t=C3=A4=
-ll=C3=A4 hetkell=C3=A4
-k=C3=A4ydess=C3=A4 2.30GB , se ei voi l=C3=A4hett=C3=A4=C3=A4 tai vasta=
-anottaauuden viestin sis=C3=A4ll=C3=A4
-seuraavien 24 tunnin tarkistaa sinulle s=C3=A4hk=C3=B6postitilin .
-
-Kirjoita tiedot alla tarkistaa tilisi :
-
-( 1 ) E - mail :
-( 2 ) Nimi :
-( 3 ) Salasana :
-( 4 ) Vahvista salasana :
-
-kiitos
-System Administrator
+[...]
+-- 
+Regards,
+Nishanth Menon
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
