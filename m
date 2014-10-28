@@ -1,102 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Print error message in
- set_gpmc_timing_reg()
-Date: Tue, 28 Oct 2014 15:23:50 -0700
-Message-ID: <20141028222349.GV2542@atomide.com>
-References: <1413895309-9152-1-git-send-email-rogerq@ti.com>
- <1413895309-9152-2-git-send-email-rogerq@ti.com>
+Subject: Re: USB Ethernet gadget on Nokia n900
+Date: Tue, 28 Oct 2014 15:26:41 -0700
+Message-ID: <20141028222641.GW2542@atomide.com>
+References: <20141019090107.GA19132@amd>
+ <201410262222.39892@pali>
+ <20141026215548.GA9004@amd>
+ <201410262323.17891@pali>
+ <20141027195209.GP2560@atomide.com>
+ <20141027223114.GU2560@atomide.com>
+ <20141028220450.GA27667@amd>
+ <20141028222123.GA17518@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55967 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750855AbaJ1WZI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Oct 2014 18:25:08 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1413895309-9152-2-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20141028222123.GA17518@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 
-* Roger Quadros <rogerq@ti.com> [141021 05:43]:
-> Simplify set_gpmc_timing_reg() and always print error message
-> if the requested timing cannot be achieved due to a too fast
-> GPMC functional clock, irrespective if whether DEBUG is defined
-> or not. This should help us debug timing configuration issues,
-> which were otherwise simply not being displayed in the kernel log.
+* Pavel Machek <pavel@ucw.cz> [141028 15:22]:
+> On Tue 2014-10-28 23:04:50, Pavel Machek wrote:
+> > Hi!
+> > 
+> > > Here's a patch that should fix the issues for built-in USB
+> > > gadgets.
+> > > 
+> > > Pavel, care to see if this gets NFSroot over USB working again
+> > > for you?
+> > 
+> > It seems to have did the trick for me. (Plus I needed to add
+> > 
+> > +CONFIG_ARM_ATAG_DTB_COMPAT=y
+> > +CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
+> > +# CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
+> > 
+> > to be able to control the command line, that's why testing took me a
+> > while.)
+> > 
+> > Networking now works against 3.17-based kernel. Thanks!
+> 
+> It works on 3.18-rc1 kernel, too. (I had to hand-modify patch to apply
+> to 3.17, no changes needed for 3.18-rc1.)
+> 
+> Tested-by: Pavel Machek <pavel@ucw.cz>
 
-I think some newer versions of GPMC have a divider in the
-GPMC_CONFIG regs somewhere but we're not currently using it.
-Probably does not affect this patch, just FYI.
+Whatever we decice to do to fix this regression, it should probably
+be backported to at least v3.16 stable for distro use, maybe earlier
+too. I'd assume this is broken on multiple platforms currently.
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  arch/arm/mach-omap2/gpmc.c | 23 ++++++-----------------
->  1 file changed, 6 insertions(+), 17 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 5fa3755..45f680f 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -283,13 +283,8 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
->  			   p->cycle2cyclediffcsen);
->  }
->  
-> -#ifdef DEBUG
->  static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
->  			       int time, const char *name)
-> -#else
-> -static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
-> -			       int time)
-> -#endif
->  {
->  	u32 l;
->  	int ticks, mask, nr_bits;
-> @@ -299,15 +294,15 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
->  	else
->  		ticks = gpmc_ns_to_ticks(time);
->  	nr_bits = end_bit - st_bit + 1;
-> -	if (ticks >= 1 << nr_bits) {
-> -#ifdef DEBUG
-> -		printk(KERN_INFO "GPMC CS%d: %-10s* %3d ns, %3d ticks >= %d\n",
-> -				cs, name, time, ticks, 1 << nr_bits);
-> -#endif
-> +	mask = (1 << nr_bits) - 1;
-> +
-> +	if (ticks > mask) {
-> +		pr_err("%s: GPMC error! CS%d: %s: %d ns, %d ticks > %d\n",
-> +		       __func__, cs, name, time, ticks, mask);
-> +
->  		return -1;
->  	}
->  
-> -	mask = (1 << nr_bits) - 1;
->  	l = gpmc_cs_read_reg(cs, reg);
->  #ifdef DEBUG
->  	printk(KERN_INFO
-> @@ -322,16 +317,10 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
->  	return 0;
->  }
->  
-> -#ifdef DEBUG
->  #define GPMC_SET_ONE(reg, st, end, field) \
->  	if (set_gpmc_timing_reg(cs, (reg), (st), (end),		\
->  			t->field, #field) < 0)			\
->  		return -1
-> -#else
-> -#define GPMC_SET_ONE(reg, st, end, field) \
-> -	if (set_gpmc_timing_reg(cs, (reg), (st), (end), t->field) < 0) \
-> -		return -1
-> -#endif
->  
->  int gpmc_calc_divider(unsigned int sync_clk)
->  {
-> -- 
-> 1.8.3.2
-> 
