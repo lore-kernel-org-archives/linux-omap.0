@@ -1,50 +1,61 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia n900 problems in 3.18-rc1 (was Re: USB Ethernet gadget on
- Nokia n900)
-Date: Wed, 29 Oct 2014 22:34:42 +0100
-Message-ID: <20141029213442.GB32576@amd>
-References: <201410262222.39892@pali>
- <20141026215548.GA9004@amd>
- <201410262323.17891@pali>
- <20141027195209.GP2560@atomide.com>
- <20141027223114.GU2560@atomide.com>
- <20141028220450.GA27667@amd>
- <20141028221124.GT2542@atomide.com>
- <20141029084637.GA30662@amd>
- <20141029140943.GX2542@atomide.com>
- <5450F746.4030901@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Wed, 29 Oct 2014 16:45:41 -0500
+Message-ID: <20141029214541.GA21790@kahuna>
+References: <20141027200008.GR2560@atomide.com>
+ <20141027230138.GB7805@drone.musicnaut.iki.fi>
+ <20141028221243.GU2542@atomide.com>
+ <5450EEE7.8070801@ti.com>
+ <20141029185957.GA3723@earth.universe>
+ <20141029193915.GB2542@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38169 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755312AbaJ2VqS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Oct 2014 17:46:18 -0400
 Content-Disposition: inline
-In-Reply-To: <5450F746.4030901@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <20141029193915.GB2542@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@ring0.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed 2014-10-29 16:18:46, Tomi Valkeinen wrote:
-> On 29/10/14 16:09, Tony Lindgren wrote:
-> 
-> >> omapfb reports problems, but seems to work ok:
-> >>
-> >> [    0.990386] omapfb omapfb: cannot parse default modes
-> >> [    1.004791] Console: switching to colour frame buffer device 100x30
-> >> [    1.073150] omapfb omapfb: using display 'lcd' mode 800x480
+On 12:39-20141029, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@ring0.de> [141029 12:01]:
+> > Hi,
 > > 
-> > Tomi, is the default mode warning correct here?
+> > On Wed, Oct 29, 2014 at 08:43:03AM -0500, Nishanth Menon wrote:
+> > > On 10/28/2014 05:12 PM, Tony Lindgren wrote:
+> > > > * Aaro Koskinen <aaro.koskinen@iki.fi> [141027 16:03]:
+> > > >> Hi,
+> > > >>
+> > > >> On Mon, Oct 27, 2014 at 01:00:09PM -0700, Tony Lindgren wrote:
+> > > >>> +
+> > > >>> +	if (!of_have_populated_dt())
+> > > >>> +		pr_warn("WARNING: legacy booting deprecated, please update to boot with .dts\n");
+> > > >>> +
+> > > >>
+> > > >> Maybe use WARN so that the warning is more verbose and kernel gets tainted?
+> > > > 
+> > > > Well I was hoping to avoid annoying people with the trace.
+> > > > But can do that if people prefer that, what do others think?
+> > > > 
+> > > 
+> > > WARN is better and eye catchy. Also, could we add information on when
+> > > the support will be removed since we call it deprecated?
 > 
-> omapfb warns that it couldn't parse kernel cmdline parameters
-> ('omapfb.mode' parameter). I couldn't find in the thread what actual
-> parameters were used in this case.
+> Well quoting the hostage situation from a Mr. Show episode
+> "Now Who Wants Ice Cream?" the answer to that would be:
+> 
+> OK, you want me to guess? A hundred million days, or maybe ten more
+> minutes, somewhere in there, I just can't say, don't know.
 
-I had omapfb.mode=lcd:848x480-16 on command line. I removed it now.
+How about ~1 year? We have been talking about dt only boot for over an
+year already... Can we say 3.22 kernel, platforms that are not converted
+to device tree only loose legacy boot support. 
 
-> Although I don't see why N900 would need any omapfb mode parameters in
-> the first place, as the LCD has just one mode...
-
-I don't know where I copied it from, sorry...
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Regards,
+Nishanth Menon
