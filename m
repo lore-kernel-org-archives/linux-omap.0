@@ -1,85 +1,42 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
-Date: Wed, 29 Oct 2014 14:35:26 +0100
-Message-ID: <20141029133526.GE2265@localhost>
-References: <20141024194442.GG11455@saruman>
- <20141024195532.GF19377@localhost>
- <20141027162251.d7ff2a5f31917c638d4e47f7@linux-foundation.org>
- <20141028002552.GX12379@n2100.arm.linux.org.uk>
- <20141028081616.GL2006@localhost>
- <20141028084745.GY12379@n2100.arm.linux.org.uk>
- <20141028131257.GS2006@localhost>
- <20141028151610.GA12379@n2100.arm.linux.org.uk>
- <20141029123418.GB2265@localhost>
- <5450E9A8.1060506@roeck-us.net>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Wed, 29 Oct 2014 08:43:03 -0500
+Message-ID: <5450EEE7.8070801@ti.com>
+References: <20141027200008.GR2560@atomide.com> <20141027230138.GB7805@drone.musicnaut.iki.fi> <20141028221243.GU2542@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5450E9A8.1060506@roeck-us.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Johan Hovold <johan@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43256 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932746AbaJ2Nnn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Oct 2014 09:43:43 -0400
+In-Reply-To: <20141028221243.GU2542@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Oct 29, 2014 at 06:20:40AM -0700, Guenter Roeck wrote:
-> On 10/29/2014 05:34 AM, Johan Hovold wrote:
-> > On Tue, Oct 28, 2014 at 03:16:10PM +0000, Russell King - ARM Linux wrote:
-> >> On Tue, Oct 28, 2014 at 02:12:57PM +0100, Johan Hovold wrote:
-> >>> That's not what I was trying to refer to. But the patch set explicitly
-> >>> allows for multiple, prioritised power-off handlers, which can power
-> >>> off a board in different ways and with various degrees of success.
-> >>> Specifically, it allows for fallback handlers in case one or more
-> >>> power-off handlers fail.
-> >>>
-> >>> So if we allow for that, what is to prevent the final power-off handler
-> >>> from failing? And should this not be logged by arch code in the same way
-> >>> as failure to restart is?
-> >>
-> >> And how is that different from having a set of power-off handlers, and
-> >> reporting when each individual one fails?  Don't you want to know if
-> >> your primary high priority reboot handler fails, just as much as you
-> >> want to know if your final last-resort power-off handler fails?
-> >
-> > Good point. Failed power-off should probably be logged by the power-off
-> > call chain implementation (which seems to makes notifier chains a bad
-> > fit).
->
-> Good that I just replaced notifier chain with an open coded implementation.
-
-Good to hear.
-
-> Sure, that is possible, but I would prefer to do that as a follow-up commit,
-> and it should be discussed in the context of the power-off handler patch set.
-
-Fine with me.
-
-> > And what about any power-off latencies? Should this always be dealt with
-> > in the power-off handler?
-> >
-> > Again, if it's predictable and high, as in the OMAP RTC case, it should
-> > go in the handler. But what if it's just normal bus latencies
-> > (peripheral busses, i2c, or whatever people may come up with)?
-> >
-> > Should there always be a short delay before calling the next handler?
+On 10/28/2014 05:12 PM, Tony Lindgren wrote:
+> * Aaro Koskinen <aaro.koskinen@iki.fi> [141027 16:03]:
+>> Hi,
+>>
+>> On Mon, Oct 27, 2014 at 01:00:09PM -0700, Tony Lindgren wrote:
+>>> +
+>>> +	if (!of_have_populated_dt())
+>>> +		pr_warn("WARNING: legacy booting deprecated, please update to boot with .dts\n");
+>>> +
+>>
+>> Maybe use WARN so that the warning is more verbose and kernel gets tainted?
 > 
-> That delay would depend on the individual power-off handler, so I think
-> the current implementation works just fine (where power-off handlers
-> implement the delay).
+> Well I was hoping to avoid annoying people with the trace.
+> But can do that if people prefer that, what do others think?
+> 
 
-Some don't, and could possibly unknowingly have been relying on the fact
-that they could return to user space and be powered off at some later
-time. With systemd that would have caused a panic.
+WARN is better and eye catchy. Also, could we add information on when
+the support will be removed since we call it deprecated?
 
-Also consider generic power-off handlers such as gpio-poweroff. It
-currently hard-codes a three-second delay but the actual delay would
-really be board specific.
 
-> We could move the delay into the infrastructure, but it would have
-> to be configurable. I would prefer to consider that as a follow-up patch
-> to not overload the power-off handler patch set with too many changes
-> at the same time.
-
-Sure.
-
-Johan
+-- 
+Regards,
+Nishanth Menon
