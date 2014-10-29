@@ -1,71 +1,100 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Nokia n900 problems in 3.18-rc1 (was Re: USB Ethernet gadget
- on Nokia n900)
-Date: Wed, 29 Oct 2014 16:18:46 +0200
-Message-ID: <5450F746.4030901@ti.com>
-References: <20141019090107.GA19132@amd> <201410262222.39892@pali> <20141026215548.GA9004@amd> <201410262323.17891@pali> <20141027195209.GP2560@atomide.com> <20141027223114.GU2560@atomide.com> <20141028220450.GA27667@amd> <20141028221124.GT2542@atomide.com> <20141029084637.GA30662@amd> <20141029140943.GX2542@atomide.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Wed, 29 Oct 2014 08:25:02 -0700
+Message-ID: <20141029152502.GA20565@roeck-us.net>
+References: <20141024195532.GF19377@localhost>
+ <20141027162251.d7ff2a5f31917c638d4e47f7@linux-foundation.org>
+ <20141028002552.GX12379@n2100.arm.linux.org.uk>
+ <20141028081616.GL2006@localhost>
+ <20141028084745.GY12379@n2100.arm.linux.org.uk>
+ <20141028131257.GS2006@localhost>
+ <20141028151610.GA12379@n2100.arm.linux.org.uk>
+ <20141029123418.GB2265@localhost>
+ <20141029131020.GB12379@n2100.arm.linux.org.uk>
+ <20141029132244.GD2265@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58263 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933398AbaJ2OTv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 10:19:51 -0400
-In-Reply-To: <20141029140943.GX2542@atomide.com>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:36195 "EHLO
+	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933329AbaJ2PZi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 11:25:38 -0400
+Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
+	(envelope-from <linux@roeck-us.net>)
+	id 1XjV7x-004KlU-JC
+	for linux-omap@vger.kernel.org; Wed, 29 Oct 2014 15:25:37 +0000
+Content-Disposition: inline
+In-Reply-To: <20141029132244.GD2265@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>
-Cc: =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 
---kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Wed, Oct 29, 2014 at 02:22:44PM +0100, Johan Hovold wrote:
+> On Wed, Oct 29, 2014 at 01:10:20PM +0000, Russell King - ARM Linux wrote:
+> > On Wed, Oct 29, 2014 at 01:34:18PM +0100, Johan Hovold wrote:
+> > > On Tue, Oct 28, 2014 at 03:16:10PM +0000, Russell King - ARM Linux wrote:
+> > > > And how is that different from having a set of power-off handlers, and
+> > > > reporting when each individual one fails?  Don't you want to know if
+> > > > your primary high priority reboot handler fails, just as much as you
+> > > > want to know if your final last-resort power-off handler fails?
+> > > 
+> > > Good point. Failed power-off should probably be logged by the power-off
+> > > call chain implementation (which seems to makes notifier chains a bad
+> > > fit).
+> > > 
+> > > And what about any power-off latencies? Should this always be dealt with
+> > > in the power-off handler?
+> > > 
+> > > Again, if it's predictable and high, as in the OMAP RTC case, it should
+> > > go in the handler. But what if it's just normal bus latencies
+> > > (peripheral busses, i2c, or whatever people may come up with)?
+> > > 
+> > > Should there always be a short delay before calling the next handler?
+> > 
+> > If the handler has determined that it has failed, then why delay before
+> > trying the next handler?  At the point it has decided it has failed,
+> > surely that's after it has waited sufficient time to determine that
+> > failure?
+> 
+> The current handlers we have are not expecting any other handler to be
+> run after they return. My question was whether all these handlers should
+> get a short mdelay added to them (e.g. to compensate for bus latencies)
 
-On 29/10/14 16:09, Tony Lindgren wrote:
+Some of them do add a delay.
 
->> omapfb reports problems, but seems to work ok:
->>
->> [    0.990386] omapfb omapfb: cannot parse default modes
->> [    1.004791] Console: switching to colour frame buffer device 100x30=
+> or if this could be done in the power-off handler (e.g. before printing
+> the error message).
+> 
+That might make sense, but it would have to be configurable, since the delay
+is platform specific and power-off handler does not know how long to wait
+(the longest delay I have seen is 10 seconds).
 
->> [    1.073150] omapfb omapfb: using display 'lcd' mode 800x480
->=20
-> Tomi, is the default mode warning correct here?
+> > > > Or different from having no power-off handlers.
+> > > 
+> > > That is actually quite different, as in that case we call machine_halt
+> > > instead (via kernel_halt).
+> > 
+> > Today, ARM does exactly what x86 does.  If there's no power off handler
+> > registered, machine_power_off() shuts down other CPUs and returns.
+> 
+> No, if there are no power-off handlers registered, kernel/reboot.c will
+> never call machine_power_off:
+> 
+> 	/* Instead of trying to make the power_off code look like
+> 	 * halt when pm_power_off is not set do it the easy way.
+> 	 */
+> 	if ((cmd == LINUX_REBOOT_CMD_POWER_OFF) && !pm_power_off)
+> 		cmd = LINUX_REBOOT_CMD_HALT;
+> 
+> So in that case on arm, a system-halted message is printed, and we never
+> return to user-space.
+> 
+Some architectures do that, or go into an endless loop. Others do return
+from machine_power_off. Having a well defined behavior would be nice
+(such as dumping an error mesasge and calling machine_halt if
+machine_power_off returns). Only question would be where to put it.
+kernel_power_off() might be a good place; only problem is that there
+are direct callers of machine_power_off().
 
-omapfb warns that it couldn't parse kernel cmdline parameters
-('omapfb.mode' parameter). I couldn't find in the thread what actual
-parameters were used in this case.
-
-Although I don't see why N900 would need any omapfb mode parameters in
-the first place, as the LCD has just one mode...
-
- Tomi
-
-
-
---kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUUPdGAAoJEPo9qoy8lh71xp4QAJCnd8J6h3Zekf4y5gK1aJ3X
-YvhgAAVRNVSaAh81JpJnmVL+1My/Qjh1VuJt55uEemKfn8vbC75X14Yhn2m6d5yp
-gr6zHBckBxQL2nEc11vg+kiYHtg5k1TPGxlnAPeV70+PXLlGjWe4eT3pRa8TR0Gj
-hehDB+Ol46K7ptHW9u79rDSC9ajkFX9SWJvLKcmQv6jrSYBGCXOHxivv/KqY4Kg1
-Ih0VMl4Sy6OZ0ArHwgNd+FnZUndcHc2EYbK4qtEt00bKxXagYsns1dXl2Jr6vLRx
-m/V/CzPYbiuc7mYWjEUacjHeSQenAJyRFvRFlWmYvq4artP8Mj8JOMVwjmbikYjJ
-DwafwHQ3+1S2FlP6CYS57XLF9pdPQ6O+KCW3B87bmJcjcmHwBZ8cxzAHzFjWtkl1
-FrQDcd+26d7vSU4Jb69xQYk7dXdpT+/dsOoIX8YYm85gb1Q2ahg2IhKoHjR1Njcr
-q31RWg7SBanUtIAmr2pmphnScDySO2dh9TmS29a2Wlss2ktrtMF81wZTjnGUjg6Q
-NPB9uw63/j4Zm99xNgBWOvIscj3C3XwC9e0Ex2Jk1GENVArI0SLPsuBQSK3QsdBI
-OcrFP1IIVSDb8iz25gaRLniCrllJ45RcqPHLyrdarpFfqmx5Ca+sHwaa/Dq0Ichc
-wSD08ypifoOkXqn+CxK7
-=B1Co
------END PGP SIGNATURE-----
-
---kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA--
+Guenter
