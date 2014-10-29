@@ -1,120 +1,37 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Nokia n900 problems in 3.18-rc1 (was Re: USB Ethernet gadget on
- Nokia n900)
-Date: Wed, 29 Oct 2014 09:46:37 +0100
-Message-ID: <20141029084637.GA30662@amd>
-References: <20141019090107.GA19132@amd>
- <201410262222.39892@pali>
- <20141026215548.GA9004@amd>
- <201410262323.17891@pali>
- <20141027195209.GP2560@atomide.com>
- <20141027223114.GU2560@atomide.com>
- <20141028220450.GA27667@amd>
- <20141028221124.GT2542@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Print error message in set_gpmc_timing_reg()
+Date: Wed, 29 Oct 2014 10:50:21 +0200
+Message-ID: <5450AA4D.9040708@ti.com>
+References: <1413895309-9152-1-git-send-email-rogerq@ti.com> <1413895309-9152-2-git-send-email-rogerq@ti.com> <20141028222349.GV2542@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141028221124.GT2542@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58871 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755630AbaJ2Iuc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Oct 2014 04:50:32 -0400
+In-Reply-To: <20141028222349.GV2542@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 
-Hi!
-
-> > > Here's a patch that should fix the issues for built-in USB
-> > > gadgets.
-> > > 
-> > > Pavel, care to see if this gets NFSroot over USB working again
-> > > for you?
-> > 
-> > It seems to have did the trick for me. (Plus I needed to add
-> > 
-> > +CONFIG_ARM_ATAG_DTB_COMPAT=y
-> > +CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
-> > +# CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
-> > 
-> > to be able to control the command line, that's why testing took me a
-> > while.)
+On 10/29/2014 12:23 AM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [141021 05:43]:
+>> Simplify set_gpmc_timing_reg() and always print error message
+>> if the requested timing cannot be achieved due to a too fast
+>> GPMC functional clock, irrespective if whether DEBUG is defined
+>> or not. This should help us debug timing configuration issues,
+>> which were otherwise simply not being displayed in the kernel log.
 > 
-> Hmm I think I have a patch somewhere here to enable the standard
-> bootz command for n900 mainline u-boot.. That way you can just do
-> 
-> # bootz ${loadaddr} - ${fdtaddr}
+> I think some newer versions of GPMC have a divider in the
+> GPMC_CONFIG regs somewhere but we're not currently using it.
+> Probably does not affect this patch, just FYI.
 
-Actually, I guess booting directly from ROM using 0xffff is easier for
-testing for now.
+Right, we don't use it. In the future it could be a possibility that the GPMC
+driver scales the clock as necessary by using the GPMC_FCLK divider
+to accommodate slower devices. But then again, who needs slower devices? ;)
 
-Speaking of testing:
-
-I'm not sure what is omap_l3_smx neccessary for, but it does not work.
-
-[    0.223297] omap_l3_smx omap_l3_smx.0: couldn't request debug irq
-[    0.223419] omap_l3_smx: probe of omap_l3_smx.0 failed with error
--22
-
-There is some fun in pinmuxing:
-
-[    0.247131] irq: no irq domain found for /ocp/pinmux@48002030 !
-[    0.248291] irq: no irq domain found for /ocp/pinmux@48002030 !
-...
-[    0.384826] omap_i2c 48070000.i2c: could not find pctldev for node
-/ocp/pinmux@48002030/pinmux_i\
-2c1_pins, deferring probe
-[    0.384918] platform 48070000.i2c: Driver omap_i2c requests probe
-deferral
-[    0.385070] omap_i2c 48072000.i2c: could not find pctldev for node
-/ocp/pinmux@48002030/pinmux_i\
-2c2_pins, deferring probe
-[    0.385162] platform 48072000.i2c: Driver omap_i2c requests probe
-deferral
-[    0.385284] omap_i2c 48060000.i2c: could not find pctldev for node
-/ocp/pinmux@48002030/pinmux_i\
-2c3_pins, deferring probe
-[    0.385375] platform 48060000.i2c: Driver omap_i2c requests probe
-deferral
-
-And serial has some problems:
-
-[    0.482208] of_get_named_gpiod_flags: can't parse 'rts-gpio'
-property of node '/ocp/serial@4806c\
-000[0]'
-[    0.482513] omap_uart 4806c000.serial: ttyO1 at MMIO 0x4806c000
-(irq = 223, base_baud = 3000000)\
- is a OMAP UART1
-[    0.484588] of_get_named_gpiod_flags: can't parse 'rts-gpio'
-property of node '/ocp/serial@49020\
-000[0]'
-[    0.484771] omap_uart 49020000.serial: ttyO2 at MMIO 0x49020000
-(irq = 224, base_baud = 3000000)\
- is a OMAP UART2
-
-There's a lot of noise from probe defferal :-(. And it looks like mmc
-properties have some problems:
-
-[    0.739349] of_get_named_gpiod_flags: can't parse 'wp-gpios'
-property of node '/ocp/mmc@4809c000\
-[0]'
-[    0.740142] omap_hsmmc 4809c000.mmc: unable to get vmmc regulator
--517
-[    0.740386] platform 4809c000.mmc: Driver omap_hsmmc requests probe
-deferral
-[    0.740661] of_get_named_gpiod_flags: can't parse 'cd-gpios'
-property of node '/ocp/mmc@480b4000\
-[0]'
-[    0.740692] of_get_named_gpiod_flags: can't parse 'wp-gpios'
-property of node '/ocp/mmc@480b4000\
-[0]'
-
-omapfb reports problems, but seems to work ok:
-
-[    0.990386] omapfb omapfb: cannot parse default modes
-[    1.004791] Console: switching to colour frame buffer device 100x30
-[    1.073150] omapfb omapfb: using display 'lcd' mode 800x480
-
-Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+cheers,
+-roger
