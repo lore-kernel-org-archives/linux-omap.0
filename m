@@ -1,75 +1,38 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v7 2/8] ARM: l2c: Add interface to ask hypervisor to configure
- L2C
-Date: Wed, 29 Oct 2014 10:22:55 +0100
-Message-ID: <1414574581-2320-3-git-send-email-m.szyprowski@samsung.com>
+Subject: [PATCH v7 4/8] ARM: l2c: shorten warning about incorrect associativity
+Date: Wed, 29 Oct 2014 10:22:57 +0100
+Message-ID: <1414574581-2320-5-git-send-email-m.szyprowski@samsung.com>
 References: <1414574581-2320-1-git-send-email-m.szyprowski@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-reply-to: <1414574581-2320-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tomasz Figa <t.figa@samsung.com>
+Warning message about missing/incorrect associativity was a bit too
+long, so shorten it to fit a single line.
 
-Because certain secure hypervisor do not allow writes to individual L2C
-registers, but rather expect set of parameters to be passed as argument
-to secure monitor calls, there is a need to provide an interface for the
-L2C driver to ask the firmware to configure the hardware according to
-specified parameters. This patch adds such.
-
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+Suggested-by: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- arch/arm/include/asm/outercache.h | 3 +++
- arch/arm/mm/cache-l2x0.c          | 6 ++++++
- 2 files changed, 9 insertions(+)
+ arch/arm/mm/cache-l2x0.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
-index 891a56b35bcf..563b92fc2f41 100644
---- a/arch/arm/include/asm/outercache.h
-+++ b/arch/arm/include/asm/outercache.h
-@@ -23,6 +23,8 @@
- 
- #include <linux/types.h>
- 
-+struct l2x0_regs;
-+
- struct outer_cache_fns {
- 	void (*inv_range)(unsigned long, unsigned long);
- 	void (*clean_range)(unsigned long, unsigned long);
-@@ -36,6 +38,7 @@ struct outer_cache_fns {
- 
- 	/* This is an ARM L2C thing */
- 	void (*write_sec)(unsigned long, unsigned);
-+	void (*configure)(const struct l2x0_regs *);
- };
- 
- extern struct outer_cache_fns outer_cache;
 diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index 4286ee9bb3bd..ad981894de73 100644
+index ad981894de73..83b36f3b415c 100644
 --- a/arch/arm/mm/cache-l2x0.c
 +++ b/arch/arm/mm/cache-l2x0.c
-@@ -110,6 +110,11 @@ static inline void l2c_unlock(void __iomem *base, unsigned num)
- 
- static void l2c_configure(void __iomem *base)
- {
-+	if (outer_cache.configure) {
-+		outer_cache.configure(&l2x0_saved_regs);
-+		return;
-+	}
-+
- 	if (l2x0_data->configure)
- 		l2x0_data->configure(base);
- 
-@@ -910,6 +915,7 @@ static int __init __l2c_init(const struct l2c_init_data *data,
- 
- 	fns = data->outer_cache;
- 	fns.write_sec = outer_cache.write_sec;
-+	fns.configure = outer_cache.configure;
- 	if (data->fixup)
- 		data->fixup(l2x0_base, cache_id, &fns);
- 
+@@ -1200,8 +1200,8 @@ static void __init l2c310_of_parse(const struct device_node *np,
+ 		*aux_mask &= ~L2X0_AUX_CTRL_ASSOC_MASK;
+ 		break;
+ 	default:
+-		pr_err("PL310 OF: cache setting yield illegal associativity\n");
+-		pr_err("PL310 OF: %d calculated, only 8 and 16 legal\n", assoc);
++		pr_err("L2C-310 OF cache associativity %d invalid, only 8 or 16 permitted\n",
++		       assoc);
+ 		break;
+ 	}
+ }
 -- 
 1.9.2
