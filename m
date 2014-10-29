@@ -1,85 +1,85 @@
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH v2] mtd: omap: fix mtd devices not showing up
-Date: Wed, 29 Oct 2014 10:34:57 -0300
-Message-ID: <5450ED01.4010305@vanguardiasur.com.ar>
-References: <1414416749-19598-1-git-send-email-frans.klaver@xsens.com> <1414420445-9020-1-git-send-email-frans.klaver@xsens.com> <544F6611.1000801@ti.com> <20141029113612.GA2499@ci00147.xsens-tech.local> <5450ECC1.10701@ti.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Wed, 29 Oct 2014 14:35:26 +0100
+Message-ID: <20141029133526.GE2265@localhost>
+References: <20141024194442.GG11455@saruman>
+ <20141024195532.GF19377@localhost>
+ <20141027162251.d7ff2a5f31917c638d4e47f7@linux-foundation.org>
+ <20141028002552.GX12379@n2100.arm.linux.org.uk>
+ <20141028081616.GL2006@localhost>
+ <20141028084745.GY12379@n2100.arm.linux.org.uk>
+ <20141028131257.GS2006@localhost>
+ <20141028151610.GA12379@n2100.arm.linux.org.uk>
+ <20141029123418.GB2265@localhost>
+ <5450E9A8.1060506@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="CjTc0FgtvjjXbpPfpA7KqWL1kthhBiuUc"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:47963 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932729AbaJ2Ngb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 09:36:31 -0400
-Received: by mail-wi0-f179.google.com with SMTP id h11so4607074wiw.0
-        for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2014 06:36:29 -0700 (PDT)
-In-Reply-To: <5450ECC1.10701@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5450E9A8.1060506@roeck-us.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Johan Hovold <johan@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Frans Klaver <frans.klaver@xsens.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---CjTc0FgtvjjXbpPfpA7KqWL1kthhBiuUc
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Wed, Oct 29, 2014 at 06:20:40AM -0700, Guenter Roeck wrote:
+> On 10/29/2014 05:34 AM, Johan Hovold wrote:
+> > On Tue, Oct 28, 2014 at 03:16:10PM +0000, Russell King - ARM Linux wrote:
+> >> On Tue, Oct 28, 2014 at 02:12:57PM +0100, Johan Hovold wrote:
+> >>> That's not what I was trying to refer to. But the patch set explicitly
+> >>> allows for multiple, prioritised power-off handlers, which can power
+> >>> off a board in different ways and with various degrees of success.
+> >>> Specifically, it allows for fallback handlers in case one or more
+> >>> power-off handlers fail.
+> >>>
+> >>> So if we allow for that, what is to prevent the final power-off handler
+> >>> from failing? And should this not be logged by arch code in the same way
+> >>> as failure to restart is?
+> >>
+> >> And how is that different from having a set of power-off handlers, and
+> >> reporting when each individual one fails?  Don't you want to know if
+> >> your primary high priority reboot handler fails, just as much as you
+> >> want to know if your final last-resort power-off handler fails?
+> >
+> > Good point. Failed power-off should probably be logged by the power-off
+> > call chain implementation (which seems to makes notifier chains a bad
+> > fit).
+>
+> Good that I just replaced notifier chain with an open coded implementation.
 
+Good to hear.
 
+> Sure, that is possible, but I would prefer to do that as a follow-up commit,
+> and it should be discussed in the context of the power-off handler patch set.
 
-On 10/29/2014 10:33 AM, Roger Quadros wrote:
-> On 10/29/2014 01:36 PM, Frans Klaver wrote:
->> On Tue, Oct 28, 2014 at 11:46:57AM +0200, Roger Quadros wrote:
->>> On 10/27/2014 04:34 PM, Frans Klaver wrote:
->>>> Since commit 6d178ef2fd5e ("mtd: nand: Move ELM driver and rename as=
+Fine with me.
 
->>>> omap_elm"), I don't have any mtd devices present on my am335x. This
->>>> changes the link order of the omap_elm and omap2 objects, causing th=
-em
->>>> to probe in the wrong order.
->>>>
->>>> To fix this, make elm_config defer probing until the omap_elm driver=
- is
->>>> actually loaded.
->>>>
->>>> Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
->>>
->>> Acked-by: Roger Quadros <rogerq@ti.com>
->>
->> Thanks. How about Ezequiel's remark about doing both changes?
->=20
-> I don't have any strong feeling for or against it. We shouldn't be depe=
-nding on module load order anyways.
->=20
+> > And what about any power-off latencies? Should this always be dealt with
+> > in the power-off handler?
+> >
+> > Again, if it's predictable and high, as in the OMAP RTC case, it should
+> > go in the handler. But what if it's just normal bus latencies
+> > (peripheral busses, i2c, or whatever people may come up with)?
+> >
+> > Should there always be a short delay before calling the next handler?
+> 
+> That delay would depend on the individual power-off handler, so I think
+> the current implementation works just fine (where power-off handlers
+> implement the delay).
 
-Agreed, feel free to disregard my suggestion.
+Some don't, and could possibly unknowingly have been relying on the fact
+that they could return to user space and be powered off at some later
+time. With systemd that would have caused a panic.
 
---=20
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+Also consider generic power-off handlers such as gpio-poweroff. It
+currently hard-codes a three-second delay but the actual delay would
+really be board specific.
 
+> We could move the delay into the infrastructure, but it would have
+> to be configurable. I would prefer to consider that as a follow-up patch
+> to not overload the power-off handler patch set with too many changes
+> at the same time.
 
---CjTc0FgtvjjXbpPfpA7KqWL1kthhBiuUc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Sure.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBAgAGBQJUUO0BAAoJEIOKbhOEIHKiGS8QAI4CJ4duQCRMer7rz1M1V44B
-WKW0RI7mXRfvYB1suw1mNTxDt2/uIuqNsRxFoJG2XsB945qDLFVe0k713G05qiLc
-hsVCKgS0MaBk9rxxWw4bs6+nhVWn09ri2uFunPhHSxNAyyanDd+6PIzHtlL1XjNk
-wv4ZPJlc4gyA55yN8mRMnSXymTUAm9feIISPqoaE174Nlhh4VjmEEyHqBQ1uNKu6
-AUwvZiWjnLAkAk2QyGX9nKmC1OJoxj+XvrxcX3pX9VahDcaJx7Fe/vcRR603cNXp
-cJKqEau8veRpTP/6xkgModVM4UuNv7IO6msVbHxn4+QxY1UJVUepinbXl+GGpBCR
-9LRzPiPEyBPeDmJf/s5YtOekg8UDz6wbuKWRfPlgEutOgSaf0kUCSlpwXN8GIMBM
-ze3OwYjOu1auV1MWh5SI0IgTGN+1cbkLokLNz7xGBDbXLiI4xsQDMJLJf52CS//R
-xhljCpIefcrUKNQibTRb2VAWRCYd1E1gQBSH+I5d64c792bqmlTGiaRke416K5/j
-/xTQ3w6De2+cLE7BfPgFnPv/rvTGmHs2XQ4KWVJcH1ZXbLGzTFHzH7iYFo4KppGB
-i/J1Avtx6WiqYJIrfb3WUK8NF8C9UwK9CTq26ISU5AiJg5hSP786n+KK04tQaNdr
-KeCiYKrpNvS48D4bp/qZ
-=Kg0s
------END PGP SIGNATURE-----
-
---CjTc0FgtvjjXbpPfpA7KqWL1kthhBiuUc--
+Johan
