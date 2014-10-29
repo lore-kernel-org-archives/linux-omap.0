@@ -1,60 +1,50 @@
-From: ulterior61694@gmail.com
-Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
-Date: Thu, 30 Oct 2014 02:14:36 +0530
-Message-ID: <545151b5.4198420a.3426.ffffed2c@mx.google.com>
-Reply-To: sexpert277@gmail.com
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia n900 problems in 3.18-rc1 (was Re: USB Ethernet gadget on
+ Nokia n900)
+Date: Wed, 29 Oct 2014 22:34:42 +0100
+Message-ID: <20141029213442.GB32576@amd>
+References: <201410262222.39892@pali>
+ <20141026215548.GA9004@amd>
+ <201410262323.17891@pali>
+ <20141027195209.GP2560@atomide.com>
+ <20141027223114.GU2560@atomide.com>
+ <20141028220450.GA27667@amd>
+ <20141028221124.GT2542@atomide.com>
+ <20141029084637.GA30662@amd>
+ <20141029140943.GX2542@atomide.com>
+ <5450F746.4030901@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f193.google.com ([209.85.192.193]:45941 "EHLO
-	mail-pd0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755513AbaJ2Uoi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 16:44:38 -0400
-Received: by mail-pd0-f193.google.com with SMTP id fp1so2010952pdb.8
-        for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2014 13:44:38 -0700 (PDT)
-Received: from localhost.localdomain ([27.255.203.170])
-        by mx.google.com with ESMTPSA id uw1sm5149805pab.30.2014.10.29.13.44.36
-        for <linux-omap@vger.kernel.org>
-        (version=TLSv1 cipher=RC4-SHA bits=128/128);
-        Wed, 29 Oct 2014 13:44:37 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5450F746.4030901@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Dear Sir
+On Wed 2014-10-29 16:18:46, Tomi Valkeinen wrote:
+> On 29/10/14 16:09, Tony Lindgren wrote:
+> 
+> >> omapfb reports problems, but seems to work ok:
+> >>
+> >> [    0.990386] omapfb omapfb: cannot parse default modes
+> >> [    1.004791] Console: switching to colour frame buffer device 100x30
+> >> [    1.073150] omapfb omapfb: using display 'lcd' mode 800x480
+> > 
+> > Tomi, is the default mode warning correct here?
+> 
+> omapfb warns that it couldn't parse kernel cmdline parameters
+> ('omapfb.mode' parameter). I couldn't find in the thread what actual
+> parameters were used in this case.
 
-Did your website get hit by Google Penguin update on October 17th 2014?=
- What basically is Google Penguin Update? It is actually a code name fo=
-r Google algorithm which aims at decreasing your websites search engine=
- rankings that violate Google=92s guidelines by using black hat SEO tec=
-hniques to rank your webpage by giving number of spammy links to the pa=
-ge.
-=20
-We are one of those few SEO companies that can help you avoid penalties=
- from Google Updates like Penguin and Panda. Our clients have survived =
-all the previous and present updates with ease. They have never been hi=
-t because we use 100% white hat SEO techniques to rank Webpages.  Simpl=
-e thing that we do to keep websites away from any Penguin or Panda pena=
-lties is follow Google guidelines and we give Google users the best ans=
-wers to their queries.
+I had omapfb.mode=lcd:848x480-16 on command line. I removed it now.
 
-If you are looking to increase the quality of your websites and to get =
-more targeted traffic or save your websites from these Google penalties=
- email us back with your interest.=20
+> Although I don't see why N900 would need any omapfb mode parameters in
+> the first place, as the LCD has just one mode...
 
-We will be glad to serve you and help you grow your business.
-
-Regards
-
-Vince G
-
-SEO Manager ( TOB )
-B7 Green Avenue, Amritsar 143001 Punjab
-____________________________
-NO CLICK in the subject to STOP EMAILS
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't know where I copied it from, sorry...
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
