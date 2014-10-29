@@ -1,50 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Print error message in
- set_gpmc_timing_reg()
-Date: Wed, 29 Oct 2014 07:13:24 -0700
-Message-ID: <20141029141323.GY2542@atomide.com>
-References: <1413895309-9152-1-git-send-email-rogerq@ti.com>
- <1413895309-9152-2-git-send-email-rogerq@ti.com>
- <20141028222349.GV2542@atomide.com>
- <5450AA4D.9040708@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Nokia n900 problems in 3.18-rc1 (was Re: USB Ethernet gadget
+ on Nokia n900)
+Date: Wed, 29 Oct 2014 16:18:46 +0200
+Message-ID: <5450F746.4030901@ti.com>
+References: <20141019090107.GA19132@amd> <201410262222.39892@pali> <20141026215548.GA9004@amd> <201410262323.17891@pali> <20141027195209.GP2560@atomide.com> <20141027223114.GU2560@atomide.com> <20141028220450.GA27667@amd> <20141028221124.GT2542@atomide.com> <20141029084637.GA30662@amd> <20141029140943.GX2542@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36308 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932927AbaJ2OOj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 10:14:39 -0400
-Content-Disposition: inline
-In-Reply-To: <5450AA4D.9040708@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58263 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933398AbaJ2OTv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 10:19:51 -0400
+In-Reply-To: <20141029140943.GX2542@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>
+Cc: =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [141029 01:51]:
-> On 10/29/2014 12:23 AM, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq@ti.com> [141021 05:43]:
-> >> Simplify set_gpmc_timing_reg() and always print error message
-> >> if the requested timing cannot be achieved due to a too fast
-> >> GPMC functional clock, irrespective if whether DEBUG is defined
-> >> or not. This should help us debug timing configuration issues,
-> >> which were otherwise simply not being displayed in the kernel log.
-> > 
-> > I think some newer versions of GPMC have a divider in the
-> > GPMC_CONFIG regs somewhere but we're not currently using it.
-> > Probably does not affect this patch, just FYI.
-> 
-> Right, we don't use it. In the future it could be a possibility that the GPMC
-> driver scales the clock as necessary by using the GPMC_FCLK divider
-> to accommodate slower devices. But then again, who needs slower devices? ;)
+--kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I think some devices need such slow timings that we're already
-hitting the issue with 200MHz L3 on 37xx connected to a SMSC
-LAN9220 at least. With LAN9221 this is not an issue with faster
-timings. Anyways, I think the issue is out of the way now with
-LAN9220 and GPMC_FCLK divider support can be added later on as
-needed.
+On 29/10/14 16:09, Tony Lindgren wrote:
 
-Regards,
+>> omapfb reports problems, but seems to work ok:
+>>
+>> [    0.990386] omapfb omapfb: cannot parse default modes
+>> [    1.004791] Console: switching to colour frame buffer device 100x30=
 
-Tony
+>> [    1.073150] omapfb omapfb: using display 'lcd' mode 800x480
+>=20
+> Tomi, is the default mode warning correct here?
+
+omapfb warns that it couldn't parse kernel cmdline parameters
+('omapfb.mode' parameter). I couldn't find in the thread what actual
+parameters were used in this case.
+
+Although I don't see why N900 would need any omapfb mode parameters in
+the first place, as the LCD has just one mode...
+
+ Tomi
+
+
+
+--kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUUPdGAAoJEPo9qoy8lh71xp4QAJCnd8J6h3Zekf4y5gK1aJ3X
+YvhgAAVRNVSaAh81JpJnmVL+1My/Qjh1VuJt55uEemKfn8vbC75X14Yhn2m6d5yp
+gr6zHBckBxQL2nEc11vg+kiYHtg5k1TPGxlnAPeV70+PXLlGjWe4eT3pRa8TR0Gj
+hehDB+Ol46K7ptHW9u79rDSC9ajkFX9SWJvLKcmQv6jrSYBGCXOHxivv/KqY4Kg1
+Ih0VMl4Sy6OZ0ArHwgNd+FnZUndcHc2EYbK4qtEt00bKxXagYsns1dXl2Jr6vLRx
+m/V/CzPYbiuc7mYWjEUacjHeSQenAJyRFvRFlWmYvq4artP8Mj8JOMVwjmbikYjJ
+DwafwHQ3+1S2FlP6CYS57XLF9pdPQ6O+KCW3B87bmJcjcmHwBZ8cxzAHzFjWtkl1
+FrQDcd+26d7vSU4Jb69xQYk7dXdpT+/dsOoIX8YYm85gb1Q2ahg2IhKoHjR1Njcr
+q31RWg7SBanUtIAmr2pmphnScDySO2dh9TmS29a2Wlss2ktrtMF81wZTjnGUjg6Q
+NPB9uw63/j4Zm99xNgBWOvIscj3C3XwC9e0Ex2Jk1GENVArI0SLPsuBQSK3QsdBI
+OcrFP1IIVSDb8iz25gaRLniCrllJ45RcqPHLyrdarpFfqmx5Ca+sHwaa/Dq0Ichc
+wSD08ypifoOkXqn+CxK7
+=B1Co
+-----END PGP SIGNATURE-----
+
+--kXWSRCf1boGfPtNKKIbKetgC8uJrnE4tA--
