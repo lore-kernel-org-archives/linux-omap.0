@@ -1,60 +1,39 @@
 From: Johan Hovold <johan@kernel.org>
 Subject: Re: [PATCH v3] rtc: omap: add support for pmic_power_en
-Date: Wed, 29 Oct 2014 13:46:29 +0100
-Message-ID: <20141029124629.GA8823@localhost>
+Date: Wed, 29 Oct 2014 13:50:05 +0100
+Message-ID: <20141029125005.GB8823@localhost>
 References: <1413913086-12730-1-git-send-email-johan@kernel.org>
  <1414397368-26480-1-git-send-email-johan@kernel.org>
  <20141027154031.4492ea11d401045ca04a3ff8@linux-foundation.org>
  <20141028083633.GM2006@localhost>
- <20141028141805.7b67bba29734be326354957f@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141028141805.7b67bba29734be326354957f@linux-foundation.org>
+In-Reply-To: <20141028083633.GM2006@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Johan Hovold <johan@kernel.org>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 28, 2014 at 02:18:05PM -0700, Andrew Morton wrote:
-> On Tue, 28 Oct 2014 09:36:33 +0100 Johan Hovold <johan@kernel.org> wrote:
-> 
-> > > But it doesn't explain *why* we want the alarm to trigger before
-> > > returning.
-> > 
-> > Should we really require every power-off handler to document arch
-> > behaviour (even if its inconsistent and currently undocumented); in
-> > this case that some arches return to user-space where we may oops if
-> > called from process 0 (e.g. systemd, but not if using sysvinit)?
-> 
-> The kernel really doesn't have a problem related to excessive amounts
-> of useful code comments :(
-> 
-> The bottom line is: did I provide a reader with the ability to
-> understand why the code is this way?  If "no" then improvements beckon.
-> 
-> This does look like one code site where an elaborate explanation is
-> warranted.  There's no way in which a reader can get to your above
-> paragraph from the current rtc-omap.c.
+On Tue, Oct 28, 2014 at 09:36:33AM +0100, Johan Hovold wrote:
+> On Mon, Oct 27, 2014 at 03:40:31PM -0700, Andrew Morton wrote:
+> > On Mon, 27 Oct 2014 09:09:28 +0100 Johan Hovold <johan@kernel.org> wrote:
 
-I agree with you that I should add a comment on why that mdelay is
-there to make it perfectly clear and obvious that it's purpose is to let
-the alarm trigger, which in turn causes the pmic to power off the
-system.
+> But in general, how do you want to handle updates to a single patch in a
+> series you already have in your tree? Do you prefer a proper
+> incremental-fix patch (with commit message), just an updated single
+> patch, or a resend of the whole series?
 
-It is a power-off handler, and any power-off handler should not return
-until it has at least attempted to power off the system. In this case,
-that mandates a two-second delay.
+How should I best send the updated patch? Can you just replace the
+current three incremental patches:
 
-So far, so good. I don't agree with you that every power-off handler
-should document what happens if it fails to power-off the system. That
-is, to describe what arches will happily return to user space, and under
-what conditions (e.g. what init system is used) that this will cause a
-panic.
+	rtc-omap-add-support-for-pmic_power_en.patch
+	rtc-omap-add-support-for-pmic_power_en-v3.patch
+	rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
 
-If anything that belongs in arch code or kernel/reboot.c, and is
-also something that is likely to change over time (consider the
-power-off-handler call chains).
+that you have in your tree, with a single new v4 which adds a more
+elaborate comment?
 
+Thanks,
 Johan
