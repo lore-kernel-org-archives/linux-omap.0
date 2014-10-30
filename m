@@ -1,70 +1,81 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/10] omap gpmc and board clean-up for v3.19 merge window
-Date: Wed, 29 Oct 2014 17:28:58 -0700
-Message-ID: <1414628948-30702-1-git-send-email-tony@atomide.com>
+Subject: [PATCH 01/10] ARM: dts: Fix bootloader version dependencies by muxing n900 smc91x pins
+Date: Wed, 29 Oct 2014 17:28:59 -0700
+Message-ID: <1414628948-30702-2-git-send-email-tony@atomide.com>
+References: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51939 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52169 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757285AbaJ3AaW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:22 -0400
+	with ESMTP id S1757285AbaJ3Aab (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:31 -0400
+In-Reply-To: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>, Roger Quadros <rogerq@ti.com>
 
-Here are few patches to fix and clean up some GPMC issues
-and remove two board files that are no longer needed.
+Apparently some versions of nolo don't mux the necessary GPMC
+pins for the smc91x probe to work properly. Let's fix this issue
+by adding mux support for GPMC to the kernel.
 
-Regards,
+Note that it's unclear why the GPMC clk pin has input enabled, but
+let's not touch that as in general the mux settings in nolo are
+correct.
 
-Tony
+Cc: Kevin Hilman <khilman@kernel.org>
+Cc: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap3-n900.dts | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-
-Tony Lindgren (10):
-  ARM: dts: Fix bootloader version dependencies by muxing n900 smc91x
-    pins
-  ARM: dts: Fix wrong GPMC size mappings for omaps
-  ARM: dts: Add smc91x GPMC configuration for 2430sdp
-  ARM: dts: Add GPMC timings for omap zoom serial port
-  ARM: OMAP2+: Fix support for multiple devices on a GPMC chip select
-  ARM: OMAP2+: Show bootloader GPMC timings to allow configuring the
-    .dts file
-  ARM: OMAP2+: Require proper GPMC timings for devices
-  ARM: OMAP2+: Drop legacy code for gpmc-smc91x.c
-  ARM: OMAP2+: Drop board file for ti8168evm
-  ARM: omap2plus: Drop board file for 3430sdp
-
- arch/arm/boot/dts/am335x-evm.dts             |   4 +-
- arch/arm/boot/dts/am335x-igep0033.dtsi       |   4 +-
- arch/arm/boot/dts/am43x-epos-evm.dts         |   4 +-
- arch/arm/boot/dts/omap-zoom-common.dtsi      |  62 ++-
- arch/arm/boot/dts/omap2420-n8x0-common.dtsi  |   4 +-
- arch/arm/boot/dts/omap2430-sdp.dts           |  28 +-
- arch/arm/boot/dts/omap3-devkit8000.dts       |   4 +-
- arch/arm/boot/dts/omap3-evm-37xx.dts         |   4 +-
- arch/arm/boot/dts/omap3-gta04.dtsi           |   4 +-
- arch/arm/boot/dts/omap3-igep0020.dts         |   4 +-
- arch/arm/boot/dts/omap3-igep0030.dts         |   4 +-
- arch/arm/boot/dts/omap3-ldp.dts              |   2 +-
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi      |   2 +-
- arch/arm/boot/dts/omap3-n900.dts             |  35 +-
- arch/arm/boot/dts/omap3-n950-n9.dtsi         |   4 +-
- arch/arm/boot/dts/omap3-tao3530.dtsi         |   2 +-
- arch/arm/boot/dts/omap3430-sdp.dts           |   8 +-
- arch/arm/mach-omap2/Kconfig                  |  16 -
- arch/arm/mach-omap2/Makefile                 |   6 -
- arch/arm/mach-omap2/board-3430sdp.c          | 632 ---------------------------
- arch/arm/mach-omap2/board-rx51-peripherals.c |  29 --
- arch/arm/mach-omap2/board-ti8168evm.c        |  62 ---
- arch/arm/mach-omap2/gpmc-smc91x.c            | 186 --------
- arch/arm/mach-omap2/gpmc-smc91x.h            |  42 --
- arch/arm/mach-omap2/gpmc.c                   | 206 +++++++--
- 25 files changed, 324 insertions(+), 1034 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-3430sdp.c
- delete mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
- delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
- delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.h
-
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 739fcf2..e7210d1 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -142,6 +142,33 @@
+ 		>;
+ 	};
+ 
++	gpmc_pins: pinmux_gpmc_pins {
++		pinctrl-single,pins = <
++
++			/* address lines */
++                        OMAP3_CORE1_IOPAD(0x207a, PIN_OUTPUT | MUX_MODE0)       /* gpmc_a1.gpmc_a1 */
++                        OMAP3_CORE1_IOPAD(0x207c, PIN_OUTPUT | MUX_MODE0)       /* gpmc_a2.gpmc_a2 */
++                        OMAP3_CORE1_IOPAD(0x207e, PIN_OUTPUT | MUX_MODE0)       /* gpmc_a3.gpmc_a3 */
++
++			/* data lines, gpmc_d0..d7 not muxable according to TRM */
++                        OMAP3_CORE1_IOPAD(0x209e, PIN_INPUT | MUX_MODE0)        /* gpmc_d8.gpmc_d8 */
++                        OMAP3_CORE1_IOPAD(0x20a0, PIN_INPUT | MUX_MODE0)        /* gpmc_d9.gpmc_d9 */
++                        OMAP3_CORE1_IOPAD(0x20a2, PIN_INPUT | MUX_MODE0)        /* gpmc_d10.gpmc_d10 */
++                        OMAP3_CORE1_IOPAD(0x20a4, PIN_INPUT | MUX_MODE0)        /* gpmc_d11.gpmc_d11 */
++                        OMAP3_CORE1_IOPAD(0x20a6, PIN_INPUT | MUX_MODE0)        /* gpmc_d12.gpmc_d12 */
++                        OMAP3_CORE1_IOPAD(0x20a8, PIN_INPUT | MUX_MODE0)        /* gpmc_d13.gpmc_d13 */
++                        OMAP3_CORE1_IOPAD(0x20aa, PIN_INPUT | MUX_MODE0)        /* gpmc_d14.gpmc_d14 */
++                        OMAP3_CORE1_IOPAD(0x20ac, PIN_INPUT | MUX_MODE0)        /* gpmc_d15.gpmc_d15 */
++
++			/*
++			 * gpmc_ncs0, gpmc_nadv_ale, gpmc_noe, gpmc_nwe, gpmc_wait0 not muxable
++			 * according to TRM. REVISIT: why does nolo set input for gpmc_clk?
++			 */
++                        OMAP3_CORE1_IOPAD(0x20b0, PIN_OUTPUT | MUX_MODE0)       /* gpmc_ncs1.gpmc_ncs1 */
++                        OMAP3_CORE1_IOPAD(0x20be, PIN_INPUT | MUX_MODE0)        /* gpmc_clk.gpmc_clk */
++		>;
++	};
++
+ 	i2c1_pins: pinmux_i2c1_pins {
+ 		pinctrl-single,pins = <
+ 			0x18a (PIN_INPUT | MUX_MODE0)		/* i2c1_scl */
+@@ -588,6 +615,8 @@
+ 	ranges = <0 0 0x04000000 0x10000000>; /* 256MB */
+ 	ranges = <0 0 0x01000000 0x01000000>,	/* 16 MB for OneNAND */
+ 		 <1 0 0x02000000 0x01000000>;	/* 16 MB for smc91c96 */
++	pinctrl-names = "default";
++	pinctrl-0 = <&gpmc_pins>;
+ 
+ 	/* gpio-irq for dma: 65 */
+ 
 -- 
 2.1.1
 
