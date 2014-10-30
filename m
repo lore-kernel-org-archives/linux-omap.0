@@ -1,22 +1,24 @@
 From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH 06/10] ARM: OMAP2+: Show bootloader GPMC timings to allow
  configuring the .dts file
-Date: Thu, 30 Oct 2014 16:19:38 +0200
-Message-ID: <545248FA.7040201@ti.com>
+Date: Thu, 30 Oct 2014 16:26:51 +0200
+Message-ID: <54524AAB.6010306@ti.com>
 References: <1414628948-30702-1-git-send-email-tony@atomide.com> <1414628948-30702-7-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58169 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757996AbaJ3OUT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2014 10:20:19 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:46164 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751388AbaJ3O1S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Oct 2014 10:27:18 -0400
 In-Reply-To: <1414628948-30702-7-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
+
+Sorry if you get this twice. I wasn't sure if my last reply went through.
 
 On 10/30/2014 02:29 AM, Tony Lindgren wrote:
 > As we still have some devices with GPMC timings missing from the
@@ -167,6 +169,7 @@ Possible values of burst length are
 > +
 
 Shouldn't all the above functions except gpmc_show_regs() be defined within #ifdef DEBUG?
+
 
 >  #ifdef DEBUG
 >  static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
