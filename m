@@ -1,56 +1,70 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Thu, 30 Oct 2014 00:54:01 +0100
-Message-ID: <CABxcv==FAfYmLY9oA7Yd6OQuXPNmpkZsTg03no8VoD9fCBwgHg@mail.gmail.com>
-References: <20141027200008.GR2560@atomide.com>
-	<20141027230138.GB7805@drone.musicnaut.iki.fi>
-	<20141028221243.GU2542@atomide.com>
-	<5450EEE7.8070801@ti.com>
-	<20141029185957.GA3723@earth.universe>
-	<20141029193915.GB2542@atomide.com>
-	<20141029231154.GB23366@drone.musicnaut.iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/10] omap gpmc and board clean-up for v3.19 merge window
+Date: Wed, 29 Oct 2014 17:28:58 -0700
+Message-ID: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:57258 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757482AbaJ2XyD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 19:54:03 -0400
-Received: by mail-wi0-f177.google.com with SMTP id ex7so5999616wid.16
-        for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2014 16:54:01 -0700 (PDT)
-In-Reply-To: <20141029231154.GB23366@drone.musicnaut.iki.fi>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51939 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757285AbaJ3AaW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@ring0.de>, Nishanth Menon <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Hello Tony,
+Here are few patches to fix and clean up some GPMC issues
+and remove two board files that are no longer needed.
 
-On Thu, Oct 30, 2014 at 12:11 AM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> On Wed, Oct 29, 2014 at 12:39:16PM -0700, Tony Lindgren wrote:
->> From: Tony Lindgren <tony@atomide.com>
->> Date: Mon, 27 Oct 2014 13:05:54 -0700
->> Subject: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
->>
->> We're moving omaps to use device tree based booting and already have
->> omap2, omap4, omap5, am335x and am437x booting in device tree only
->> mode.
->>
->> Only omap3 still has legacy booting still around and we really want
->> to make that device tree only. So let's add a warning about deprecated
->> legacy booting so we get people to upgrade their boards to use device
->> tree based booting and find out about any remaining issues.
->>
->> Note that for most boards we already have the .dts file and those can
->> be booted with without changing the bootloader using the appended
->> DTB mode.
->>
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> Reviewed-by: Aaro Koskinen <aaro.koskinen@iki.fi>
->
+Regards,
 
-Reviewed-by: Javier Martinez Canillas <javier@dowhile0.org>
+Tony
 
-Best regards,
-Javier
+
+Tony Lindgren (10):
+  ARM: dts: Fix bootloader version dependencies by muxing n900 smc91x
+    pins
+  ARM: dts: Fix wrong GPMC size mappings for omaps
+  ARM: dts: Add smc91x GPMC configuration for 2430sdp
+  ARM: dts: Add GPMC timings for omap zoom serial port
+  ARM: OMAP2+: Fix support for multiple devices on a GPMC chip select
+  ARM: OMAP2+: Show bootloader GPMC timings to allow configuring the
+    .dts file
+  ARM: OMAP2+: Require proper GPMC timings for devices
+  ARM: OMAP2+: Drop legacy code for gpmc-smc91x.c
+  ARM: OMAP2+: Drop board file for ti8168evm
+  ARM: omap2plus: Drop board file for 3430sdp
+
+ arch/arm/boot/dts/am335x-evm.dts             |   4 +-
+ arch/arm/boot/dts/am335x-igep0033.dtsi       |   4 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts         |   4 +-
+ arch/arm/boot/dts/omap-zoom-common.dtsi      |  62 ++-
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi  |   4 +-
+ arch/arm/boot/dts/omap2430-sdp.dts           |  28 +-
+ arch/arm/boot/dts/omap3-devkit8000.dts       |   4 +-
+ arch/arm/boot/dts/omap3-evm-37xx.dts         |   4 +-
+ arch/arm/boot/dts/omap3-gta04.dtsi           |   4 +-
+ arch/arm/boot/dts/omap3-igep0020.dts         |   4 +-
+ arch/arm/boot/dts/omap3-igep0030.dts         |   4 +-
+ arch/arm/boot/dts/omap3-ldp.dts              |   2 +-
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi      |   2 +-
+ arch/arm/boot/dts/omap3-n900.dts             |  35 +-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi         |   4 +-
+ arch/arm/boot/dts/omap3-tao3530.dtsi         |   2 +-
+ arch/arm/boot/dts/omap3430-sdp.dts           |   8 +-
+ arch/arm/mach-omap2/Kconfig                  |  16 -
+ arch/arm/mach-omap2/Makefile                 |   6 -
+ arch/arm/mach-omap2/board-3430sdp.c          | 632 ---------------------------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  29 --
+ arch/arm/mach-omap2/board-ti8168evm.c        |  62 ---
+ arch/arm/mach-omap2/gpmc-smc91x.c            | 186 --------
+ arch/arm/mach-omap2/gpmc-smc91x.h            |  42 --
+ arch/arm/mach-omap2/gpmc.c                   | 206 +++++++--
+ 25 files changed, 324 insertions(+), 1034 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/board-3430sdp.c
+ delete mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+ delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
+ delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.h
+
+-- 
+2.1.1
+
