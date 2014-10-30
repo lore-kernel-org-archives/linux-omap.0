@@ -1,82 +1,54 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCHv2] phy: omap-usb2: Enable runtime PM of omap-usb2 phy
- properly
-Date: Thu, 30 Oct 2014 10:46:22 +0530
-Message-ID: <5451C9A6.1000607@ti.com>
-References: <20141006194418.GA399@debian> <1412679771-8293-1-git-send-email-ghorbel@pivasoftware.com> <20141029230913.GA26977@debian>
+From: Frans Klaver <fransklaver@gmail.com>
+Subject: Re: [PATCH v2] mtd: omap: fix mtd devices not showing up
+Date: Thu, 30 Oct 2014 07:02:11 +0100
+Message-ID: <D7E4DB5C-45E3-44BE-AD26-41042FD0AAD6@gmail.com>
+References: <1414416749-19598-1-git-send-email-frans.klaver@xsens.com> <1414420445-9020-1-git-send-email-frans.klaver@xsens.com> <544F6611.1000801@ti.com> <20141030014704.GE23619@ld-irv-0074>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141029230913.GA26977@debian>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rabin Vincent <rabin@rab.in>, tony@atomide.com
-Cc: rogerq@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, ghorbel@pivasoftware.com, linux-omap@vger.kernel.org
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:52600 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750802AbaJ3GCU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2014 02:02:20 -0400
+Received: by mail-wi0-f169.google.com with SMTP id n3so261179wiv.2
+        for <linux-omap@vger.kernel.org>; Wed, 29 Oct 2014 23:02:19 -0700 (PDT)
+In-Reply-To: <20141030014704.GE23619@ld-irv-0074>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Brian Norris <computersforpeace@gmail.com>, Roger Quadros <rogerq@ti.com>
+Cc: Frans Klaver <frans.klaver@xsens.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <ezequiel@vanguardiasur.com.ar>
+
+On 30 October 2014 02:47:04 CET, Brian Norris <computersforpeace@gmail.com> wrote:
+>On Tue, Oct 28, 2014 at 11:46:57AM +0200, Roger Quadros wrote:
+>> On 10/27/2014 04:34 PM, Frans Klaver wrote:
+>> > Since commit 6d178ef2fd5e ("mtd: nand: Move ELM driver and rename
+>as
+>> > omap_elm"), I don't have any mtd devices present on my am335x. This
+>> > changes the link order of the omap_elm and omap2 objects, causing
+>them
+>> > to probe in the wrong order.
+>> > 
+>> > To fix this, make elm_config defer probing until the omap_elm
+>driver is
+>> > actually loaded.
+>> > 
+>> > Signed-off-by: Frans Klaver <frans.klaver@xsens.com>
+>> 
+>> Acked-by: Roger Quadros <rogerq@ti.com>
+>
+>Pushed to l2-mtd.git/for-3.18. Thanks!
+
+Thanks 
+
+>While this might be considered a link-order bug from long ago, it's not
+>actually important until 3.18-rc1 where we changed the link order,
+>right? So it doesn't need to go to -stable?
+
+Correct. 
+
+Thanks, 
+Frans 
 
 
-
-On Thursday 30 October 2014 04:39 AM, Rabin Vincent wrote:
-> Unless I'm missing something, this patch appears to have still not been
-> picked up.  It would be nice if it can go in for 3.18 so that we have
-> working USB on pandaboard again at least in that release.
-> 
-> Tony, would you mind carrying it as OMAP maintainer since we haven't
-> heard anything from Kishon (the PHY maintainer) about this?  It's been
-> acked by Roger (whose patch introduced the problem).
-
-I'll send this in this -rc cycle.
-
-Thanks
-Kishon
-
-> 
-> Thanks.
-> 
-> (leaving the patch intact below)
-> 
-> On Tue, Oct 07, 2014 at 12:02:51PM +0100, Oussama Ghorbel wrote:
->> The USB OTG port does not work since v3.16 on omap platform.
->> This is a regression introduced by the commit
->> eb82a3d846fa (phy: omap-usb2: Balance pm_runtime_enable() on probe failure
->>  and remove).
->> This because the call to pm_runtime_enable() function is moved after the
->> call to devm_phy_create() function, which has side effect since later in
->> the subsequent calls of devm_phy_create() there is a check with
->> pm_runtime_enabled() to configure few things.
->>
->> Signed-off-by: Oussama Ghorbel <ghorbel@pivasoftware.com>
->> ---
->>  drivers/phy/phy-omap-usb2.c | 6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
->> index 93d7835..acc13f8 100644
->> --- a/drivers/phy/phy-omap-usb2.c
->> +++ b/drivers/phy/phy-omap-usb2.c
->> @@ -262,14 +262,16 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>  	otg->phy		= &phy->phy;
->>  
->>  	platform_set_drvdata(pdev, phy);
->> +	pm_runtime_enable(phy->dev);
->>  
->>  	generic_phy = devm_phy_create(phy->dev, NULL, &ops, NULL);
->> -	if (IS_ERR(generic_phy))
->> +	if (IS_ERR(generic_phy)) {
->> +		pm_runtime_disable(phy->dev);
->>  		return PTR_ERR(generic_phy);
->> +	}
->>  
->>  	phy_set_drvdata(generic_phy, phy);
->>  
->> -	pm_runtime_enable(phy->dev);
->>  	phy_provider = devm_of_phy_provider_register(phy->dev,
->>  			of_phy_simple_xlate);
->>  	if (IS_ERR(phy_provider)) {
->> -- 
->> 1.8.3.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
