@@ -1,108 +1,186 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/10] ARM: dts: Add GPMC timings for omap zoom serial port
-Date: Wed, 29 Oct 2014 17:29:02 -0700
-Message-ID: <1414628948-30702-5-git-send-email-tony@atomide.com>
+Subject: [PATCH 05/10] ARM: OMAP2+: Fix support for multiple devices on a GPMC chip select
+Date: Wed, 29 Oct 2014 17:29:03 -0700
+Message-ID: <1414628948-30702-6-git-send-email-tony@atomide.com>
 References: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52225 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52244 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756446AbaJ3Aad (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:33 -0400
+	with ESMTP id S1757285AbaJ3Aae (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:34 -0400
 In-Reply-To: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
 
-The four port serial port on the zoom debug board uses a TL16CP754C
-with a single interrupt and GPMC chip select. The serial ports each
-use a 8 bytes for IO registers, and are 256 bytes apart on the GPMC
-line.
+There are cases where we have multiple device instances
+connected to a single GPMC chip select. For example, there
+are four UARTs on the Zoom debug boards that all share a
+single chip select and a GPIO interrupt.
 
-Let's add timings for all four ports so we can remove the GPMC
-workarounds for using bootloader timings.
+We do have support for this already in theory, but it's broken
+because we're bailing out if the chip select is already taken.
 
-Not caused by this patch, but looks like u-boot only properly
-initializes the fifo on the first serial port. Currently the other
-ports produce garbage at least with my version of u-boot. I suspect
-that TL16CP754C needs non-standard initialization added to 8250
-driver to properly fix this issue.
+To be able to provide checks on the chip select usage, let's
+add new struct gpmc_cs_data so we can start using already
+registered device names for checks.
+
+Later on we probably want to start using struct gpmc_cs_data
+as a wrapper for all the GPMC chipselect related data.
 
 Cc: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap-zoom-common.dtsi | 58 +++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ arch/arm/mach-omap2/gpmc.c | 61 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 49 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap-zoom-common.dtsi b/arch/arm/boot/dts/omap-zoom-common.dtsi
-index 2889b50..46ef3e4 100644
---- a/arch/arm/boot/dts/omap-zoom-common.dtsi
-+++ b/arch/arm/boot/dts/omap-zoom-common.dtsi
-@@ -23,6 +23,64 @@
- 		interrupts = <6 IRQ_TYPE_EDGE_RISING>;	/* gpio102 */
- 		clock-frequency = <1843200>;
- 		current-speed = <115200>;
-+		gpmc,mux-add-data = <0>;
-+		gpmc,device-width = <1>;
-+		gpmc,wait-pin = <1>;
-+		gpmc,cycle2cycle-samecsen = <1>;
-+		gpmc,cycle2cycle-diffcsen = <1>;
-+		gpmc,cs-on-ns = <5>;
-+		gpmc,cs-rd-off-ns = <155>;
-+		gpmc,cs-wr-off-ns = <155>;
-+		gpmc,adv-on-ns = <15>;
-+		gpmc,adv-rd-off-ns = <40>;
-+		gpmc,adv-wr-off-ns = <40>;
-+		gpmc,oe-on-ns = <45>;
-+		gpmc,oe-off-ns = <145>;
-+		gpmc,we-on-ns = <45>;
-+		gpmc,we-off-ns = <145>;
-+		gpmc,rd-cycle-ns = <155>;
-+		gpmc,wr-cycle-ns = <155>;
-+		gpmc,access-ns = <145>;
-+		gpmc,page-burst-access-ns = <20>;
-+		gpmc,bus-turnaround-ns = <20>;
-+		gpmc,cycle2cycle-delay-ns = <20>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wr-data-mux-bus-ns = <45>;
-+		gpmc,wr-access-ns = <145>;
-+	};
-+	uart@3,1 {
-+		compatible = "ns16550a";
-+		reg = <3 0x100 8>;	/* CS3, offset 0x100, IO size 8 */
-+		bank-width = <2>;
-+		reg-shift = <1>;
-+		reg-io-width = <1>;
-+		interrupt-parent = <&gpio4>;
-+		interrupts = <6 IRQ_TYPE_EDGE_RISING>;	/* gpio102 */
-+		clock-frequency = <1843200>;
-+		current-speed = <115200>;
-+	};
-+	uart@3,2 {
-+		compatible = "ns16550a";
-+		reg = <3 0x200 8>;	/* CS3, offset 0x200, IO size 8 */
-+		bank-width = <2>;
-+		reg-shift = <1>;
-+		reg-io-width = <1>;
-+		interrupt-parent = <&gpio4>;
-+		interrupts = <6 IRQ_TYPE_EDGE_RISING>;	/* gpio102 */
-+		clock-frequency = <1843200>;
-+		current-speed = <115200>;
-+	};
-+	uart@3,3 {
-+		compatible = "ns16550a";
-+		reg = <3 0x300 8>;	/* CS3, offset 0x300, IO size 8 */
-+		bank-width = <2>;
-+		reg-shift = <1>;
-+		reg-io-width = <1>;
-+		interrupt-parent = <&gpio4>;
-+		interrupts = <6 IRQ_TYPE_EDGE_RISING>;	/* gpio102 */
-+		clock-frequency = <1843200>;
-+		current-speed = <115200>;
- 	};
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 5fa3755..2c5f348 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -118,6 +118,15 @@
+  */
+ #define	GPMC_NR_IRQ		2
  
- 	ethernet@gpmc {
++struct gpmc_cs_data {
++	const char *name;
++
++#define GPMC_CS_RESERVED	(1 << 0)
++	u32 flags;
++
++	struct resource mem;
++};
++
+ struct gpmc_client_irq	{
+ 	unsigned		irq;
+ 	u32			bitmask;
+@@ -155,10 +164,9 @@ static struct irq_chip gpmc_irq_chip;
+ static int gpmc_irq_start;
+ 
+ static struct resource	gpmc_mem_root;
+-static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
++static struct gpmc_cs_data gpmc_cs[GPMC_CS_NUM];
+ static DEFINE_SPINLOCK(gpmc_mem_lock);
+ /* Define chip-selects as reserved by default until probe completes */
+-static unsigned int gpmc_cs_map = ((1 << GPMC_CS_NUM) - 1);
+ static unsigned int gpmc_cs_num = GPMC_CS_NUM;
+ static unsigned int gpmc_nr_waitpins;
+ static struct device *gpmc_dev;
+@@ -460,13 +468,30 @@ static int gpmc_cs_mem_enabled(int cs)
+ 
+ static void gpmc_cs_set_reserved(int cs, int reserved)
+ {
+-	gpmc_cs_map &= ~(1 << cs);
+-	gpmc_cs_map |= (reserved ? 1 : 0) << cs;
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++
++	gpmc->flags |= GPMC_CS_RESERVED;
+ }
+ 
+ static bool gpmc_cs_reserved(int cs)
+ {
+-	return gpmc_cs_map & (1 << cs);
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++
++	return gpmc->flags & GPMC_CS_RESERVED;
++}
++
++static void gpmc_cs_set_name(int cs, const char *name)
++{
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++
++	gpmc->name = name;
++}
++
++const char *gpmc_cs_get_name(int cs)
++{
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++
++	return gpmc->name;
+ }
+ 
+ static unsigned long gpmc_mem_align(unsigned long size)
+@@ -485,7 +510,8 @@ static unsigned long gpmc_mem_align(unsigned long size)
+ 
+ static int gpmc_cs_insert_mem(int cs, unsigned long base, unsigned long size)
+ {
+-	struct resource	*res = &gpmc_cs_mem[cs];
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++	struct resource *res = &gpmc->mem;
+ 	int r;
+ 
+ 	size = gpmc_mem_align(size);
+@@ -500,7 +526,8 @@ static int gpmc_cs_insert_mem(int cs, unsigned long base, unsigned long size)
+ 
+ static int gpmc_cs_delete_mem(int cs)
+ {
+-	struct resource	*res = &gpmc_cs_mem[cs];
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++	struct resource *res = &gpmc->mem;
+ 	int r;
+ 
+ 	spin_lock(&gpmc_mem_lock);
+@@ -557,7 +584,8 @@ static int gpmc_cs_remap(int cs, u32 base)
+ 
+ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
+ {
+-	struct resource *res = &gpmc_cs_mem[cs];
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++	struct resource *res = &gpmc->mem;
+ 	int r = -1;
+ 
+ 	if (cs > gpmc_cs_num) {
+@@ -597,7 +625,8 @@ EXPORT_SYMBOL(gpmc_cs_request);
+ 
+ void gpmc_cs_free(int cs)
+ {
+-	struct resource	*res = &gpmc_cs_mem[cs];
++	struct gpmc_cs_data *gpmc = &gpmc_cs[cs];
++	struct resource *res = &gpmc->mem;
+ 
+ 	spin_lock(&gpmc_mem_lock);
+ 	if (cs >= gpmc_cs_num || cs < 0 || !gpmc_cs_reserved(cs)) {
+@@ -1511,6 +1540,7 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	struct gpmc_timings gpmc_t;
+ 	struct resource res;
+ 	unsigned long base;
++	const char *name;
+ 	int ret, cs;
+ 
+ 	if (of_property_read_u32(child, "reg", &cs) < 0) {
+@@ -1525,11 +1555,21 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 		return -ENODEV;
+ 	}
+ 
++	/*
++	 * Check if we have multiple instances of the same device
++	 * on a single chip select. If so, use the already initialized
++	 * timings.
++	 */
++	name = gpmc_cs_get_name(cs);
++	if (name && child->name && of_node_cmp(child->name, name) == 0)
++			goto no_timings;
++
+ 	ret = gpmc_cs_request(cs, resource_size(&res), &base);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "cannot request GPMC CS %d\n", cs);
+ 		return ret;
+ 	}
++	gpmc_cs_set_name(cs, child->name);
+ 
+ 	/*
+ 	 * For some GPMC devices we still need to rely on the bootloader
+@@ -1708,9 +1748,6 @@ static int gpmc_probe(struct platform_device *pdev)
+ 	if (gpmc_setup_irq() < 0)
+ 		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
+ 
+-	/* Now the GPMC is initialised, unreserve the chip-selects */
+-	gpmc_cs_map = 0;
+-
+ 	if (!pdev->dev.of_node) {
+ 		gpmc_cs_num	 = GPMC_CS_NUM;
+ 		gpmc_nr_waitpins = GPMC_NR_WAITPINS;
 -- 
 2.1.1
 
