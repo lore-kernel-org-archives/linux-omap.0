@@ -1,94 +1,71 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
-Date: Thu, 30 Oct 2014 11:01:43 +0100
-Message-ID: <20141030100143.GA7846@localhost>
-References: <20141028002552.GX12379@n2100.arm.linux.org.uk>
- <20141028081616.GL2006@localhost>
- <20141028084745.GY12379@n2100.arm.linux.org.uk>
- <20141028131257.GS2006@localhost>
- <20141028151610.GA12379@n2100.arm.linux.org.uk>
- <20141029123418.GB2265@localhost>
- <20141029131020.GB12379@n2100.arm.linux.org.uk>
- <20141029132244.GD2265@localhost>
- <20141029152502.GA20565@roeck-us.net>
- <20141029155109.GH2265@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141029155109.GH2265@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Johan Hovold <johan@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v5 0/7] Per-user clock constraints
+Date: Thu, 30 Oct 2014 11:48:26 +0100
+Message-ID: <1414666135-14313-1-git-send-email-tomeu.vizoso@collabora.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Stephen Boyd <sboyd@codeaurora.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Alex Elder <elder@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 29, 2014 at 04:51:09PM +0100, Johan Hovold wrote:
-> On Wed, Oct 29, 2014 at 08:25:02AM -0700, Guenter Roeck wrote:
-> > On Wed, Oct 29, 2014 at 02:22:44PM +0100, Johan Hovold wrote:
-> > > On Wed, Oct 29, 2014 at 01:10:20PM +0000, Russell King - ARM Linux wrote:
-> > > > On Wed, Oct 29, 2014 at 01:34:18PM +0100, Johan Hovold wrote:
-> > > > > On Tue, Oct 28, 2014 at 03:16:10PM +0000, Russell King - ARM Linux wrote:
-> > > > > > And how is that different from having a set of power-off handlers, and
-> > > > > > reporting when each individual one fails?  Don't you want to know if
-> > > > > > your primary high priority reboot handler fails, just as much as you
-> > > > > > want to know if your final last-resort power-off handler fails?
-> > > > > 
-> > > > > Good point. Failed power-off should probably be logged by the power-off
-> > > > > call chain implementation (which seems to makes notifier chains a bad
-> > > > > fit).
-> > > > > 
-> > > > > And what about any power-off latencies? Should this always be dealt with
-> > > > > in the power-off handler?
-> > > > > 
-> > > > > Again, if it's predictable and high, as in the OMAP RTC case, it should
-> > > > > go in the handler. But what if it's just normal bus latencies
-> > > > > (peripheral busses, i2c, or whatever people may come up with)?
-> > > > > 
-> > > > > Should there always be a short delay before calling the next handler?
-> > > > 
-> > > > If the handler has determined that it has failed, then why delay before
-> > > > trying the next handler?  At the point it has decided it has failed,
-> > > > surely that's after it has waited sufficient time to determine that
-> > > > failure?
-> > > 
-> > > The current handlers we have are not expecting any other handler to be
-> > > run after they return. My question was whether all these handlers should
-> > > get a short mdelay added to them (e.g. to compensate for bus latencies)
-> > 
-> > Some of them do add a delay.
-> 
-> Yes, but not all.
-> 
-> > > or if this could be done in the power-off handler (e.g. before printing
-> > > the error message).
-> > > 
-> > That might make sense, but it would have to be configurable, since the delay
-> > is platform specific and power-off handler does not know how long to wait
-> > (the longest delay I have seen is 10 seconds).
-> 
-> We've already concluded in this thread that such delays must be encoded
-> in the actual handler (even if it's an argument to the power-off call
-> chain code). The only exception should be generic handlers such as
-> gpio-poweroff, which may need to define different delays depending on
-> board. This could of course just be an argument of the corresponding DT
-> node.
+Hello,
 
-There probably should be a generic device-tree property for this, even
-if some delays would be device specific (e.g. the two second delay for
-omap rtc).
+this fifth version of the series has just one change, suggested by Stephen:
 
-But on top of that, external latencies would be quite board specific.
-The PMIC on the Beaglebone black adds a 50ms deglitch time, for
-instance.
+* Initialize clk.ceiling_constraint to ULONG_MAX and warn about new floor
+constraints being higher than the existing ceiling.
 
-> My question above was if it was reasonable to add some generic short
-> delay after calling each power-off handler to handle short power-off
-> latencies (e.g. bus latencies) so that not every handler needs an
-> explicit delay.
+The first five patches are just cleanups that should be desirable on their own,
+and that should make easier to review the actual per-user clock patch.
 
-I just added a 500ms margin to the OMAP rtc power-off handler. That
-should be more than enough, and perhaps something like that could be a
-default in the power-off call chain. Consider that arch-arm has a 1s
-grace period before reporting failed reboot already today.
+The sixth patch actually moves the per-clock data that was stored in struct
+clk to a new struct clk_core and adds references to it from both struct clk and
+struct clk_hw. struct clk is now ready to contain information that is specific
+to a given clk consumer.
 
-Johan
+The seventh patch adds API for setting floor and ceiling constraints and stores
+that information on the per-user struct clk, which is iterable from struct
+clk_core.
+
+They are based on top of 3.18-rc1.
+
+http://cgit.collabora.com/git/user/tomeu/linux.git/log/?h=per-user-clk-constraints-v5
+
+Thanks,
+
+Tomeu
+
+Tomeu Vizoso (7):
+  clk: Remove unused function __clk_get_prepare_count
+  clk: Don't try to use a struct clk* after it could have been freed
+  clk: Don't expose __clk_get_accuracy
+  clk: change clk_debugfs_add_file to take a struct clk_hw
+  clk: Change clk_ops->determine_rate to return a clk_hw as the best
+    parent
+  clk: Make clk API return per-user struct clk instances
+  clk: Add floor and ceiling constraints to clock rates
+
+ Documentation/clk.txt                   |   2 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c   | 108 +++--
+ arch/arm/mach-omap2/clock.h             |  11 +-
+ arch/arm/mach-omap2/clock_common_data.c |   5 +-
+ arch/mips/alchemy/common/clock.c        |  10 +-
+ drivers/clk/at91/clk-programmable.c     |   4 +-
+ drivers/clk/bcm/clk-kona.c              |   4 +-
+ drivers/clk/clk-composite.c             |   9 +-
+ drivers/clk/clk.c                       | 793 +++++++++++++++++++++-----------
+ drivers/clk/clk.h                       |   5 +
+ drivers/clk/clkdev.c                    |  73 ++-
+ drivers/clk/hisilicon/clk-hi3620.c      |   2 +-
+ drivers/clk/qcom/clk-rcg.c              |  20 +-
+ drivers/clk/qcom/clk-rcg2.c             |  28 +-
+ drivers/clk/sunxi/clk-factors.c         |   4 +-
+ drivers/clk/sunxi/clk-sun6i-ar100.c     |   4 +-
+ include/linux/clk-private.h             |  41 +-
+ include/linux/clk-provider.h            |  17 +-
+ include/linux/clk.h                     |  18 +
+ 19 files changed, 773 insertions(+), 385 deletions(-)
+
+-- 
+1.9.3
+
