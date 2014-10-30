@@ -1,399 +1,220 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/10] ARM: OMAP2+: Drop legacy code for gpmc-smc91x.c
-Date: Wed, 29 Oct 2014 17:29:06 -0700
-Message-ID: <1414628948-30702-9-git-send-email-tony@atomide.com>
+Subject: [PATCH 06/10] ARM: OMAP2+: Show bootloader GPMC timings to allow configuring the .dts file
+Date: Wed, 29 Oct 2014 17:29:04 -0700
+Message-ID: <1414628948-30702-7-git-send-email-tony@atomide.com>
 References: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52298 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52268 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758056AbaJ3Aag (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:36 -0400
+	with ESMTP id S1758044AbaJ3Aaf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:35 -0400
 In-Reply-To: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
 
-This code was only used by 2430sdp, 3430sdp, and n900 development
-boards.
+As we still have some devices with GPMC timings missing from the
+.dts files, let's make it a bit easier to use the bootloader
+values and print them out.
 
-The 2430sdp is already device tree only, and all the users of the
-3430sdp and n900 development boards are already booting in device
-tree mode, so we can drop the legacy smc91x support.
+Note that we now need to move the parsing of the device tree provided
+configuration a bit earlier so we can use that for checking if anything
+was configured.
 
 Cc: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Makefile                 |   3 -
- arch/arm/mach-omap2/board-3430sdp.c          |  28 ----
- arch/arm/mach-omap2/board-rx51-peripherals.c |  29 -----
- arch/arm/mach-omap2/gpmc-smc91x.c            | 186 ---------------------------
- arch/arm/mach-omap2/gpmc-smc91x.h            |  42 ------
- 5 files changed, 288 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
- delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.h
+ arch/arm/mach-omap2/gpmc.c | 141 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 137 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index d9e9412..3e824f8 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -284,9 +284,6 @@ obj-y					+= $(onenand-m) $(onenand-y)
- nand-$(CONFIG_MTD_NAND_OMAP2)		:= gpmc-nand.o
- obj-y					+= $(nand-m) $(nand-y)
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 2c5f348..0999923 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -291,6 +291,123 @@ static void gpmc_cs_bool_timings(int cs, const struct gpmc_bool_timings *p)
+ 			   p->cycle2cyclediffcsen);
+ }
  
--smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
--obj-y					+= $(smc91x-m) $(smc91x-y)
++static int get_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
++			       bool raw, bool noval, int shift,
++			       const char *name)
++{
++	u32 l;
++	int nr_bits, max_value, mask;
++
++	l = gpmc_cs_read_reg(cs, reg);
++	nr_bits = end_bit - st_bit + 1;
++	max_value = (1 << nr_bits) - 1;
++	mask = max_value << st_bit;
++	l = (l & mask) >> st_bit;
++	if (shift)
++		l <<= shift;
++	if (noval && (l == 0))
++		return 0;
++	if (!raw) {
++		unsigned int time_ns_min, time_ns, time_ns_max;
++
++		time_ns_min = gpmc_ticks_to_ns(l ? l - 1 : 0);
++		time_ns = gpmc_ticks_to_ns(l);
++		time_ns_max = gpmc_ticks_to_ns(l + 1 > max_value ?
++					       max_value : l + 1);
++		pr_info("gpmc,%s = <%u> (%u - %u ns, %i ticks)\n",
++			name, time_ns, time_ns_min, time_ns_max, l);
++	} else {
++		pr_info("gpmc,%s = <%u>\n", name, l);
++	}
++
++	return l;
++}
++
++#define GPMC_PRINT_CONFIG(cs, config) \
++	pr_info("cs%i %s: 0x%08x\n", cs, #config, \
++		gpmc_cs_read_reg(cs, config))
++#define GPMC_GET_RAW(reg, st, end, field) \
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 1, 0, 0, field)
++#define GPMC_GET_RAW_BOOL(reg, st, end, field) \
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 1, 1, 0, field)
++#define GPMC_GET_RAW_SHIFT(reg, st, end, shift, field) \
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 1, 1, (shift), field)
++#define GPMC_GET_TICKS(reg, st, end, field) \
++	get_gpmc_timing_reg(cs, (reg), (st), (end), 0, 0, 0, field)
++
++static void gpmc_show_regs(int cs, const char *desc)
++{
++	pr_info("gpmc cs%i %s:\n", cs, desc);
++	GPMC_PRINT_CONFIG(cs, GPMC_CS_CONFIG1);
++	GPMC_PRINT_CONFIG(cs, GPMC_CS_CONFIG2);
++	GPMC_PRINT_CONFIG(cs, GPMC_CS_CONFIG3);
++	GPMC_PRINT_CONFIG(cs, GPMC_CS_CONFIG4);
++	GPMC_PRINT_CONFIG(cs, GPMC_CS_CONFIG5);
++	GPMC_PRINT_CONFIG(cs, GPMC_CS_CONFIG6);
++}
++
++/*
++ * Note that gpmc,wait-pin handing wrongly assumes bit 8 is available,
++ * see commit c9fb809.
++ */
++static void gpmc_cs_show_timings(int cs, const char *desc)
++{
++	gpmc_show_regs(cs, desc);
++
++	pr_info("gpmc cs%i access configuration:\n", cs);
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1,  4,  4, "time-para-granularity");
++	GPMC_GET_RAW(GPMC_CS_CONFIG1,  8,  9, "mux-add-data");
++	GPMC_GET_RAW(GPMC_CS_CONFIG1, 12, 13, "device-width");
++	GPMC_GET_RAW(GPMC_CS_CONFIG1, 16, 17, "wait-pin");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 21, 21, "wait-on-write");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 22, 22, "wait-on-read");
++	GPMC_GET_RAW_SHIFT(GPMC_CS_CONFIG1, 23, 24, 3, "burst-length");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 27, 27, "sync-write");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 28, 28, "burst-write");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 29, 29, "gpmc,sync-read");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 30, 30, "burst-read");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 31, 31, "burst-wrap");
++
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG2,  7,  7, "cs-extra-delay");
++
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG3,  7,  7, "adv-extra-delay");
++
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG4, 23, 23, "we-extra-delay");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG4,  7,  7, "oe-extra-delay");
++
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG6,  7,  7, "cycle2cycle-samecsen");
++	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG6,  6,  6, "cycle2cycle-diffcsen");
++
++	pr_info("gpmc cs%i timings configuration:\n", cs);
++	GPMC_GET_TICKS(GPMC_CS_CONFIG2,  0,  3, "cs-on-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG2,  8, 12, "cs-rd-off-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG2, 16, 20, "cs-wr-off-ns");
++
++	GPMC_GET_TICKS(GPMC_CS_CONFIG3,  0,  3, "adv-on-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG3,  8, 12, "adv-rd-off-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG3, 16, 20, "adv-wr-off-ns");
++
++	GPMC_GET_TICKS(GPMC_CS_CONFIG4,  0,  3, "oe-on-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG4,  8, 12, "oe-off-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG4, 16, 19, "we-on-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG4, 24, 28, "we-off-ns");
++
++	GPMC_GET_TICKS(GPMC_CS_CONFIG5,  0,  4, "rd-cycle-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG5,  8, 12, "wr-cycle-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG5, 16, 20, "access-ns");
++
++	GPMC_GET_TICKS(GPMC_CS_CONFIG5, 24, 27, "page-burst-access-ns");
++
++	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 0, 3, "bus-turnaround-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 8, 11, "cycle2cycle-delay-ns");
++
++	GPMC_GET_TICKS(GPMC_CS_CONFIG1, 18, 19, "wait-monitoring-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG1, 25, 26, "clk-activation-ns");
++
++	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 16, 19, "wr-data-mux-bus-ns");
++	GPMC_GET_TICKS(GPMC_CS_CONFIG6, 24, 28, "wr-access-ns");
++}
++
+ #ifdef DEBUG
+ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+ 			       int time, const char *name)
+@@ -361,6 +478,9 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ 	int div;
+ 	u32 l;
+ 
++#ifdef DEBUG
++	gpmc_cs_show_timings(cs, "before gpmc_cs_set_timings");
++#endif
+ 	div = gpmc_calc_divider(t->sync_clk);
+ 	if (div < 0)
+ 		return div;
+@@ -410,7 +530,9 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+ 	}
+ 
+ 	gpmc_cs_bool_timings(cs, &t->bool_timings);
 -
- smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
- obj-y					+= $(smsc911x-m) $(smsc911x-y)
- ifneq ($(CONFIG_HWSPINLOCK_OMAP),)
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index d21a304..9857882 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -38,7 +38,6 @@
- #include <video/omap-panel-data.h>
- 
- #include "gpmc.h"
--#include "gpmc-smc91x.h"
- 
- #include "soc.h"
- #include "board-flash.h"
-@@ -407,32 +406,6 @@ static int __init omap3430_i2c_init(void)
++#ifdef DEBUG
++	gpmc_cs_show_timings(cs, "after gpmc_cs_set_timings");
++#endif
  	return 0;
  }
  
--#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
--
--static struct omap_smc91x_platform_data board_smc91x_data = {
--	.cs		= 3,
--	.flags		= GPMC_MUX_ADD_DATA | GPMC_TIMINGS_SMC91C96 |
--				IORESOURCE_IRQ_LOWLEVEL,
--};
--
--static void __init board_smc91x_init(void)
--{
--	if (omap_rev() > OMAP3430_REV_ES1_0)
--		board_smc91x_data.gpio_irq = 6;
--	else
--		board_smc91x_data.gpio_irq = 29;
--
--	gpmc_smc91x_init(&board_smc91x_data);
--}
--
--#else
--
--static inline void board_smc91x_init(void)
--{
--}
--
--#endif
--
- static void enable_board_wakeup_source(void)
- {
- 	/* T2 interrupt line (keypad) */
-@@ -609,7 +582,6 @@ static void __init omap_3430sdp_init(void)
- 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
- 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
- 	usb_musb_init(NULL);
--	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
- 	sdp3430_display_init();
- 	enable_board_wakeup_source();
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index ddfc8df..30e7d4c 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -32,7 +32,6 @@
+@@ -1571,6 +1693,20 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	}
+ 	gpmc_cs_set_name(cs, child->name);
  
- #include "common.h"
- #include <linux/omap-dma.h>
--#include "gpmc-smc91x.h"
++	gpmc_read_settings_dt(child, &gpmc_s);
++	gpmc_read_timings_dt(child, &gpmc_t);
++
++	/*
++	 * For some GPMC devices we still need to rely on the bootloader
++	 * timings because the devices can be connected via FPGA.
++	 * REVISIT: Add timing support from slls644g.pdf.
++	 */
++	if (!gpmc_t.cs_rd_off) {
++		gpmc_cs_show_timings(cs,
++				     "please add GPMC bootloader timings to .dts");
++		goto no_timings;
++	}
++
+ 	/*
+ 	 * For some GPMC devices we still need to rely on the bootloader
+ 	 * timings because the devices can be connected via FPGA. So far
+@@ -1602,8 +1738,6 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 		goto err;
+ 	}
  
- #include "board-rx51.h"
+-	gpmc_read_settings_dt(child, &gpmc_s);
+-
+ 	ret = of_property_read_u32(child, "bank-width", &gpmc_s.device_width);
+ 	if (ret < 0)
+ 		goto err;
+@@ -1612,7 +1746,6 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	if (ret < 0)
+ 		goto err;
  
-@@ -1146,33 +1145,6 @@ static struct omap_onenand_platform_data board_onenand_data[] = {
- };
- #endif
+-	gpmc_read_timings_dt(child, &gpmc_t);
+ 	gpmc_cs_set_timings(cs, &gpmc_t);
  
--#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
--
--static struct omap_smc91x_platform_data board_smc91x_data = {
--	.cs		= 1,
--	.gpio_irq	= 54,
--	.gpio_pwrdwn	= 86,
--	.gpio_reset	= 164,
--	.flags		= GPMC_TIMINGS_SMC91C96 | IORESOURCE_IRQ_HIGHLEVEL,
--};
--
--static void __init board_smc91x_init(void)
--{
--	omap_mux_init_gpio(54, OMAP_PIN_INPUT_PULLDOWN);
--	omap_mux_init_gpio(86, OMAP_PIN_OUTPUT);
--	omap_mux_init_gpio(164, OMAP_PIN_OUTPUT);
--
--	gpmc_smc91x_init(&board_smc91x_data);
--}
--
--#else
--
--static inline void board_smc91x_init(void)
--{
--}
--
--#endif
--
- static struct gpio rx51_wl1251_gpios[] __initdata = {
- 	{ RX51_WL1251_IRQ_GPIO,	  GPIOF_IN,		"wl1251 irq"	},
- };
-@@ -1303,7 +1275,6 @@ void __init rx51_peripherals_init(void)
- 	rx51_i2c_init();
- 	regulator_has_full_constraints();
- 	gpmc_onenand_init(board_onenand_data);
--	board_smc91x_init();
- 	rx51_add_gpio_keys();
- 	rx51_init_wl1251();
- 	rx51_init_tsc2005();
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
-deleted file mode 100644
-index 61a0635..0000000
---- a/arch/arm/mach-omap2/gpmc-smc91x.c
-+++ /dev/null
-@@ -1,186 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/gpmc-smc91x.c
-- *
-- * Copyright (C) 2009 Nokia Corporation
-- * Contact:	Tony Lindgren
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/platform_device.h>
--#include <linux/gpio.h>
--#include <linux/delay.h>
--#include <linux/interrupt.h>
--#include <linux/io.h>
--#include <linux/smc91x.h>
--
--#include "gpmc.h"
--#include "gpmc-smc91x.h"
--
--#include "soc.h"
--
--static struct omap_smc91x_platform_data *gpmc_cfg;
--
--static struct resource gpmc_smc91x_resources[] = {
--	[0] = {
--		.flags		= IORESOURCE_MEM,
--	},
--	[1] = {
--		.flags		= IORESOURCE_IRQ,
--	},
--};
--
--static struct smc91x_platdata gpmc_smc91x_info = {
--	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_IO_SHIFT_0,
--	.leda	= RPC_LED_100_10,
--	.ledb	= RPC_LED_TX_RX,
--};
--
--static struct platform_device gpmc_smc91x_device = {
--	.name		= "smc91x",
--	.id		= -1,
--	.dev		= {
--		.platform_data = &gpmc_smc91x_info,
--	},
--	.num_resources	= ARRAY_SIZE(gpmc_smc91x_resources),
--	.resource	= gpmc_smc91x_resources,
--};
--
--static struct gpmc_settings smc91x_settings = {
--	.device_width = GPMC_DEVWIDTH_16BIT,
--};
--
--/*
-- * Set the gpmc timings for smc91c96. The timings are taken
-- * from the data sheet available at:
-- * http://www.smsc.com/main/catalog/lan91c96.html
-- * REVISIT: Level shifters can add at least to the access latency.
-- */
--static int smc91c96_gpmc_retime(void)
--{
--	struct gpmc_timings t;
--	struct gpmc_device_timings dev_t;
--	const int t3 = 10;	/* Figure 12.2 read and 12.4 write */
--	const int t4_r = 20;	/* Figure 12.2 read */
--	const int t4_w = 5;	/* Figure 12.4 write */
--	const int t5 = 25;	/* Figure 12.2 read */
--	const int t6 = 15;	/* Figure 12.2 read */
--	const int t7 = 5;	/* Figure 12.4 write */
--	const int t8 = 5;	/* Figure 12.4 write */
--	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
--
--	/*
--	 * FIXME: Calculate the address and data bus muxed timings.
--	 * Note that at least adv_rd_off needs to be changed according
--	 * to omap3430 TRM Figure 11-11. Are the sdp boards using the
--	 * FPGA in between smc91x and omap as the timings are different
--	 * from above?
--	 */
--	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
--		return 0;
--
--	memset(&dev_t, 0, sizeof(dev_t));
--
--	dev_t.t_oeasu = t3 * 1000;
--	dev_t.t_oe = t5 * 1000;
--	dev_t.t_cez_r = t4_r * 1000;
--	dev_t.t_oez = t6 * 1000;
--	dev_t.t_rd_cycle = (t20 - t3) * 1000;
--
--	dev_t.t_weasu = t3 * 1000;
--	dev_t.t_wpl = t7 * 1000;
--	dev_t.t_wph = t8 * 1000;
--	dev_t.t_cez_w = t4_w * 1000;
--	dev_t.t_wr_cycle = (t20 - t3) * 1000;
--
--	gpmc_calc_timings(&t, &smc91x_settings, &dev_t);
--
--	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
--}
--
--/*
-- * Initialize smc91x device connected to the GPMC. Note that we
-- * assume that pin multiplexing is done in the board-*.c file,
-- * or in the bootloader.
-- */
--void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
--{
--	unsigned long cs_mem_base;
--	int ret;
--
--	gpmc_cfg = board_data;
--
--	if (gpmc_cfg->flags & GPMC_TIMINGS_SMC91C96)
--		gpmc_cfg->retime = smc91c96_gpmc_retime;
--
--	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
--		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
--		return;
--	}
--
--	gpmc_smc91x_resources[0].start = cs_mem_base + 0x300;
--	gpmc_smc91x_resources[0].end = cs_mem_base + 0x30f;
--	gpmc_smc91x_resources[1].flags |= (gpmc_cfg->flags & IRQF_TRIGGER_MASK);
--
--	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
--		smc91x_settings.mux_add_data = GPMC_MUX_AD;
--	if (gpmc_cfg->flags & GPMC_READ_MON)
--		smc91x_settings.wait_on_read = true;
--	if (gpmc_cfg->flags & GPMC_WRITE_MON)
--		smc91x_settings.wait_on_write = true;
--	if (gpmc_cfg->wait_pin)
--		smc91x_settings.wait_pin = gpmc_cfg->wait_pin;
--	ret = gpmc_cs_program_settings(gpmc_cfg->cs, &smc91x_settings);
--	if (ret < 0)
--		goto free1;
--
--	if (gpmc_cfg->retime) {
--		ret = gpmc_cfg->retime();
--		if (ret != 0)
--			goto free1;
--	}
--
--	if (gpio_request_one(gpmc_cfg->gpio_irq, GPIOF_IN, "SMC91X irq") < 0)
--		goto free1;
--
--	gpmc_smc91x_resources[1].start = gpio_to_irq(gpmc_cfg->gpio_irq);
--
--	if (gpmc_cfg->gpio_pwrdwn) {
--		ret = gpio_request_one(gpmc_cfg->gpio_pwrdwn,
--				       GPIOF_OUT_INIT_LOW, "SMC91X powerdown");
--		if (ret)
--			goto free2;
--	}
--
--	if (gpmc_cfg->gpio_reset) {
--		ret = gpio_request_one(gpmc_cfg->gpio_reset,
--				       GPIOF_OUT_INIT_LOW, "SMC91X reset");
--		if (ret)
--			goto free3;
--
--		gpio_set_value(gpmc_cfg->gpio_reset, 1);
--		msleep(100);
--		gpio_set_value(gpmc_cfg->gpio_reset, 0);
--	}
--
--	if (platform_device_register(&gpmc_smc91x_device) < 0) {
--		printk(KERN_ERR "Unable to register smc91x device\n");
--		gpio_free(gpmc_cfg->gpio_reset);
--		goto free3;
--	}
--
--	return;
--
--free3:
--	if (gpmc_cfg->gpio_pwrdwn)
--		gpio_free(gpmc_cfg->gpio_pwrdwn);
--free2:
--	gpio_free(gpmc_cfg->gpio_irq);
--free1:
--	gpmc_cs_free(gpmc_cfg->cs);
--
--	printk(KERN_ERR "Could not initialize smc91x\n");
--}
-diff --git a/arch/arm/mach-omap2/gpmc-smc91x.h b/arch/arm/mach-omap2/gpmc-smc91x.h
-deleted file mode 100644
-index b64fbee..0000000
---- a/arch/arm/mach-omap2/gpmc-smc91x.h
-+++ /dev/null
-@@ -1,42 +0,0 @@
--/*
-- * arch/arm/plat-omap/include/mach/gpmc-smc91x.h
-- *
-- * Copyright (C) 2009 Nokia Corporation
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef __ASM_ARCH_OMAP_GPMC_SMC91X_H__
--
--#define GPMC_TIMINGS_SMC91C96	(1 << 4)
--#define GPMC_MUX_ADD_DATA	(1 << 5) /* GPMC_CONFIG1_MUXADDDATA */
--#define GPMC_READ_MON		(1 << 6) /* GPMC_CONFIG1_WAIT_READ_MON */
--#define GPMC_WRITE_MON		(1 << 7) /* GPMC_CONFIG1_WAIT_WRITE_MON */
--
--struct omap_smc91x_platform_data {
--	int	cs;
--	int	gpio_irq;
--	int	gpio_pwrdwn;
--	int	gpio_reset;
--	int	wait_pin;	/* Optional GPMC_CONFIG1_WAITPINSELECT */
--	u32	flags;
--	int	(*retime)(void);
--};
--
--#if defined(CONFIG_SMC91X) || \
--	defined(CONFIG_SMC91X_MODULE)
--
--extern void gpmc_smc91x_init(struct omap_smc91x_platform_data *d);
--
--#else
--
--#define board_smc91x_data	NULL
--
--static inline void gpmc_smc91x_init(struct omap_smc91x_platform_data *d)
--{
--}
--
--#endif
--#endif
+ no_timings:
 -- 
 2.1.1
 
