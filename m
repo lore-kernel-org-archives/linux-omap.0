@@ -1,56 +1,189 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes against v3.18-rc2
-Date: Thu, 30 Oct 2014 09:50:20 -0700
-Message-ID: <20141030165019.GA31454@atomide.com>
+Subject: Re: [PATCH] net: smc91x: Fix gpios for device tree based booting
+Date: Thu, 30 Oct 2014 09:59:27 -0700
+Message-ID: <20141030165926.GB31454@atomide.com>
+References: <20141027202556.GT2560@atomide.com>
+ <20141029.145132.1881832564707108447.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31835 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48723 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932788AbaJ3Qvg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2014 12:51:36 -0400
+	with ESMTP id S933193AbaJ3RAk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Oct 2014 13:00:40 -0400
 Content-Disposition: inline
+In-Reply-To: <20141029.145132.1881832564707108447.davem@davemloft.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, khilman@linaro.org
 
-The following changes since commit cac7f2429872d3733dc3f9915857b1691da2eb2f:
+* David Miller <davem@davemloft.net> [141029 11:53]:
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Mon, 27 Oct 2014 13:25:56 -0700
+> 
+> > +/**
+> > + * of_try_set_control_gpio - configure a gpio if it exists
+> > + */
+> > +static int try_toggle_control_gpio(struct device *dev,
+> > +				   struct gpio_desc **desc,
+> > +				   const char *name, int index,
+> > +				   int value, unsigned int nsdelay)
+> 
+> This needs to be under CONFIG_OF cpp protection just like the code that
+> calls it.
 
-  Linux 3.18-rc2 (2014-10-26 16:48:41 -0700)
+Oops thanks for catching that, updated patch below. The code
+for try_toggle_control_gpio() is now within the existing
+IS_BUILTIN(CONFIG_OF) block. Compile and boot tested on omap1
+that's not yet booting with device tree.
 
-are available in the git repository at:
+Regards,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/fixes-against-v3.18-rc2
+Tony
 
-for you to fetch changes up to 4b91f7f3c8b20e073b7bfc098625b37f99789508:
+8< ----------------------
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 29 Oct 2014 16:06:11 -0700
+Subject: [PATCH] net: smc91x: Fix gpios for device tree based booting
 
-  ARM: OMAP2+: Warn about deprecated legacy booting mode (2014-10-29 12:19:20 -0700)
+With legacy booting, the platform init code was taking care of
+the configuring of GPIOs. With device tree based booting, things
+may or may not work depending what bootloader has configured or
+if the legacy platform code gets called.
 
-----------------------------------------------------------------
-Few fixes for omaps to enable NAND BCH so devices won't
-produce errors when booted with omap2plus_defconfig, and
-reduce bloat by making IPV6 a loadable module.
+Let's add support for the pwrdn and reset GPIOs to the smc91x
+driver to fix the issues of smc91x not working properly when
+booted in device tree mode.
 
-Also let's add a warning about legacy boot being deprecated
-for omap3.
+And let's change n900 to use these settings as some versions
+of the bootloader do not configure things properly causing
+errors.
 
-We now have things working with device tree, and only omap3 is
-still booting in legacy mode. So hopefully this warning will
-help move the remaining legacy mode users to boot with device
-tree.
+Reported-by: Kevin Hilman <khilman@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-As the total reduction of code and static data is somewhere
-around 20000 lines of code once we remove omap3 legacy mode
-booting, we really do want to make omap3 to boot also in
-device tree mode only over the next few merge cycles.
-
-----------------------------------------------------------------
-Tony Lindgren (3):
-      ARM: omap2plus_defconfig: Fix bloat caused by having ipv6 built-in
-      ARM: omap2plus_defconfig: Fix errors with NAND BCH
-      ARM: OMAP2+: Warn about deprecated legacy booting mode
-
- arch/arm/configs/omap2plus_defconfig | 4 ++--
- arch/arm/mach-omap2/omap_device.c    | 4 ++++
- 2 files changed, 6 insertions(+), 2 deletions(-)
+--- a/Documentation/devicetree/bindings/net/smsc-lan91c111.txt
++++ b/Documentation/devicetree/bindings/net/smsc-lan91c111.txt
+@@ -11,3 +11,5 @@ Optional properties:
+   are supported on the device.  Valid value for SMSC LAN91c111 are
+   1, 2 or 4.  If it's omitted or invalid, the size would be 2 meaning
+   16-bit access only.
++- power-gpios: GPIO to control the PWRDWN pin
++- reset-gpios: GPIO to control the RESET pin
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -668,6 +668,8 @@
+ 		bank-width = <2>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&ethernet_pins>;
++		power-gpios = <&gpio3 22 GPIO_ACTIVE_HIGH>;	/* gpio86 */
++		reset-gpios = <&gpio6 4 GPIO_ACTIVE_HIGH>;	/* gpio164 */
+ 		gpmc,device-width = <2>;
+ 		gpmc,sync-clk-ps = <0>;
+ 		gpmc,cs-on-ns = <0>;
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -252,9 +252,6 @@ static void __init nokia_n900_legacy_init(void)
+ 		platform_device_register(&omap3_rom_rng_device);
+ 
+ 	}
+-
+-	/* Only on some development boards */
+-	gpio_request_one(164, GPIOF_OUT_INIT_LOW, "smc91x reset");
+ }
+ 
+ static void __init omap3_tao3530_legacy_init(void)
+--- a/drivers/net/ethernet/smsc/smc91x.c
++++ b/drivers/net/ethernet/smsc/smc91x.c
+@@ -81,6 +81,7 @@ static const char version[] =
+ #include <linux/workqueue.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/of_gpio.h>
+ 
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+@@ -2188,6 +2189,41 @@ static const struct of_device_id smc91x_match[] = {
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, smc91x_match);
++
++/**
++ * of_try_set_control_gpio - configure a gpio if it exists
++ */
++static int try_toggle_control_gpio(struct device *dev,
++				   struct gpio_desc **desc,
++				   const char *name, int index,
++				   int value, unsigned int nsdelay)
++{
++	struct gpio_desc *gpio = *desc;
++	int res;
++
++	gpio = devm_gpiod_get_index(dev, name, index);
++	if (IS_ERR(gpio)) {
++		if (PTR_ERR(gpio) == -ENOENT) {
++			*desc = NULL;
++			return 0;
++		}
++
++		return PTR_ERR(gpio);
++	}
++	res = gpiod_direction_output(gpio, !value);
++	if (res) {
++		dev_err(dev, "unable to toggle gpio %s: %i\n", name, res);
++		devm_gpiod_put(dev, gpio);
++		gpio = NULL;
++		return res;
++	}
++	if (nsdelay)
++		usleep_range(nsdelay, 2 * nsdelay);
++	gpiod_set_value_cansleep(gpio, value);
++	*desc = gpio;
++
++	return 0;
++}
+ #endif
+ 
+ /*
+@@ -2237,6 +2273,28 @@ static int smc_drv_probe(struct platform_device *pdev)
+ 		struct device_node *np = pdev->dev.of_node;
+ 		u32 val;
+ 
++		/* Optional pwrdwn GPIO configured? */
++		ret = try_toggle_control_gpio(&pdev->dev, &lp->power_gpio,
++					      "power", 0, 0, 100);
++		if (ret)
++			return ret;
++
++		/*
++		 * Optional reset GPIO configured? Minimum 100 ns reset needed
++		 * according to LAN91C96 datasheet page 14.
++		 */
++		ret = try_toggle_control_gpio(&pdev->dev, &lp->reset_gpio,
++					      "reset", 0, 0, 100);
++		if (ret)
++			return ret;
++
++		/*
++		 * Need to wait for optional EEPROM to load, max 750 us according
++		 * to LAN91C96 datasheet page 55.
++		 */
++		if (lp->reset_gpio)
++			usleep_range(750, 1000);
++
+ 		/* Combination of IO widths supported, default to 16-bit */
+ 		if (!of_property_read_u32(np, "reg-io-width", &val)) {
+ 			if (val & 1)
+--- a/drivers/net/ethernet/smsc/smc91x.h
++++ b/drivers/net/ethernet/smsc/smc91x.h
+@@ -298,6 +298,9 @@ struct smc_local {
+ 	struct sk_buff *pending_tx_skb;
+ 	struct tasklet_struct tx_task;
+ 
++	struct gpio_desc *power_gpio;
++	struct gpio_desc *reset_gpio;
++
+ 	/* version/revision of the SMC91x chip */
+ 	int	version;
+ 
