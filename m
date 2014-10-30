@@ -1,66 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/10] ARM: dts: Add smc91x GPMC configuration for 2430sdp
-Date: Wed, 29 Oct 2014 17:29:01 -0700
-Message-ID: <1414628948-30702-4-git-send-email-tony@atomide.com>
+Subject: [PATCH 07/10] ARM: OMAP2+: Require proper GPMC timings for devices
+Date: Wed, 29 Oct 2014 17:29:05 -0700
+Message-ID: <1414628948-30702-8-git-send-email-tony@atomide.com>
 References: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52205 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52282 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757285AbaJ3Aad (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:33 -0400
+	with ESMTP id S1758051AbaJ3Aag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:36 -0400
 In-Reply-To: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
 
-Let's use the bootloader values except for the partially configured
-wait-pin that does not seem to work.
+Now that we have timings in the .dts files for smc91x
+and 8250, we can remove the device specific checks and
+just print out the bootloader timings for devices that
+may not have timings in the .dts files.
 
 Cc: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap2430-sdp.dts | 28 ++++++++++++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/gpmc.c | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2430-sdp.dts b/arch/arm/boot/dts/omap2430-sdp.dts
-index 2c90d29..05eca2e 100644
---- a/arch/arm/boot/dts/omap2430-sdp.dts
-+++ b/arch/arm/boot/dts/omap2430-sdp.dts
-@@ -43,7 +43,31 @@
- 		interrupts = <21 IRQ_TYPE_LEVEL_LOW>;	/* gpio149 */
- 		reg = <5 0x300 0xf>;
- 		bank-width = <2>;
--		gpmc,mux-add-data;
--        };
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,mux-add-data = <2>;
-+		gpmc,device-width = <1>;
-+		gpmc,cycle2cycle-samecsen = <1>;
-+		gpmc,cycle2cycle-diffcsen = <1>;
-+		gpmc,cs-on-ns = <7>;
-+		gpmc,cs-rd-off-ns = <233>;
-+		gpmc,cs-wr-off-ns = <233>;
-+		gpmc,adv-on-ns = <22>;
-+		gpmc,adv-rd-off-ns = <60>;
-+		gpmc,adv-wr-off-ns = <60>;
-+		gpmc,oe-on-ns = <67>;
-+		gpmc,oe-off-ns = <210>;
-+		gpmc,we-on-ns = <67>;
-+		gpmc,we-off-ns = <210>;
-+		gpmc,rd-cycle-ns = <233>;
-+		gpmc,wr-cycle-ns = <233>;
-+		gpmc,access-ns = <233>;
-+		gpmc,page-burst-access-ns = <30>;
-+		gpmc,bus-turnaround-ns = <30>;
-+		gpmc,cycle2cycle-delay-ns = <30>;
-+		gpmc,wait-monitoring-ns = <0>;
-+		gpmc,clk-activation-ns = <0>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
-+		gpmc,wr-access-ns = <0>;
-+	};
- };
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 0999923..0e74d1d 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1708,22 +1708,6 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	}
  
+ 	/*
+-	 * For some GPMC devices we still need to rely on the bootloader
+-	 * timings because the devices can be connected via FPGA. So far
+-	 * the list is smc91x on the omap2 SDP boards, and 8250 on zooms.
+-	 * REVISIT: Add timing support from slls644g.pdf and from the
+-	 * lan91c96 manual.
+-	 */
+-	if (of_device_is_compatible(child, "ns16550a") ||
+-	    of_device_is_compatible(child, "smsc,lan91c94") ||
+-	    of_device_is_compatible(child, "smsc,lan91c111")) {
+-		dev_warn(&pdev->dev,
+-			 "%s using bootloader timings on CS%d\n",
+-			 child->name, cs);
+-		goto no_timings;
+-	}
+-
+-	/*
+ 	 * FIXME: gpmc_cs_request() will map the CS to an arbitary
+ 	 * location in the gpmc address space. When booting with
+ 	 * device-tree we want the NOR flash to be mapped to the
 -- 
 2.1.1
 
