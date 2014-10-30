@@ -1,76 +1,170 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/10] ARM: omap2plus: Drop board file for 3430sdp
-Date: Wed, 29 Oct 2014 17:29:08 -0700
-Message-ID: <1414628948-30702-11-git-send-email-tony@atomide.com>
+Subject: [PATCH 08/10] ARM: OMAP2+: Drop legacy code for gpmc-smc91x.c
+Date: Wed, 29 Oct 2014 17:29:06 -0700
+Message-ID: <1414628948-30702-9-git-send-email-tony@atomide.com>
 References: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52334 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52298 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758045AbaJ3Aai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:38 -0400
+	with ESMTP id S1758056AbaJ3Aag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Oct 2014 20:30:36 -0400
 In-Reply-To: <1414628948-30702-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
 
-This board seems to be in use only for few automated
-boot test system and has been booting in device tree
-only mode for quite some time now.
+This code was only used by 2430sdp, 3430sdp, and n900 development
+boards.
 
-So let's drop the board file for it.
+The 2430sdp is already device tree only, and all the users of the
+3430sdp and n900 development boards are already booting in device
+tree mode, so we can drop the legacy smc91x support.
 
+Cc: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/Kconfig         |   6 -
- arch/arm/mach-omap2/Makefile        |   1 -
- arch/arm/mach-omap2/board-3430sdp.c | 604 ------------------------------------
- 3 files changed, 611 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-3430sdp.c
+ arch/arm/mach-omap2/Makefile                 |   3 -
+ arch/arm/mach-omap2/board-3430sdp.c          |  28 ----
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  29 -----
+ arch/arm/mach-omap2/gpmc-smc91x.c            | 186 ---------------------------
+ arch/arm/mach-omap2/gpmc-smc91x.h            |  42 ------
+ 5 files changed, 288 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
+ delete mode 100644 arch/arm/mach-omap2/gpmc-smc91x.h
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 7adc4f7..27ec892 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -235,12 +235,6 @@ config MACH_TOUCHBOOK
- 	default y
- 	select OMAP_PACKAGE_CBB
- 
--config MACH_OMAP_3430SDP
--	bool "OMAP 3430 SDP board"
--	depends on ARCH_OMAP3
--	default y
--	select OMAP_PACKAGE_CBB
--
- config MACH_NOKIA_N810
-        bool
- 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 3a54671..00b35a3 100644
+index d9e9412..3e824f8 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -246,7 +246,6 @@ obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
- obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
- obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
--obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o sdram-nokia.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51-peripherals.o
+@@ -284,9 +284,6 @@ obj-y					+= $(onenand-m) $(onenand-y)
+ nand-$(CONFIG_MTD_NAND_OMAP2)		:= gpmc-nand.o
+ obj-y					+= $(nand-m) $(nand-y)
+ 
+-smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
+-obj-y					+= $(smc91x-m) $(smc91x-y)
+-
+ smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
+ obj-y					+= $(smsc911x-m) $(smsc911x-y)
+ ifneq ($(CONFIG_HWSPINLOCK_OMAP),)
 diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-deleted file mode 100644
-index 9857882..0000000
+index d21a304..9857882 100644
 --- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -38,7 +38,6 @@
+ #include <video/omap-panel-data.h>
+ 
+ #include "gpmc.h"
+-#include "gpmc-smc91x.h"
+ 
+ #include "soc.h"
+ #include "board-flash.h"
+@@ -407,32 +406,6 @@ static int __init omap3430_i2c_init(void)
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+-
+-static struct omap_smc91x_platform_data board_smc91x_data = {
+-	.cs		= 3,
+-	.flags		= GPMC_MUX_ADD_DATA | GPMC_TIMINGS_SMC91C96 |
+-				IORESOURCE_IRQ_LOWLEVEL,
+-};
+-
+-static void __init board_smc91x_init(void)
+-{
+-	if (omap_rev() > OMAP3430_REV_ES1_0)
+-		board_smc91x_data.gpio_irq = 6;
+-	else
+-		board_smc91x_data.gpio_irq = 29;
+-
+-	gpmc_smc91x_init(&board_smc91x_data);
+-}
+-
+-#else
+-
+-static inline void board_smc91x_init(void)
+-{
+-}
+-
+-#endif
+-
+ static void enable_board_wakeup_source(void)
+ {
+ 	/* T2 interrupt line (keypad) */
+@@ -609,7 +582,6 @@ static void __init omap_3430sdp_init(void)
+ 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
+ 	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
+ 	usb_musb_init(NULL);
+-	board_smc91x_init();
+ 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
+ 	sdp3430_display_init();
+ 	enable_board_wakeup_source();
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index ddfc8df..30e7d4c 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -32,7 +32,6 @@
+ 
+ #include "common.h"
+ #include <linux/omap-dma.h>
+-#include "gpmc-smc91x.h"
+ 
+ #include "board-rx51.h"
+ 
+@@ -1146,33 +1145,6 @@ static struct omap_onenand_platform_data board_onenand_data[] = {
+ };
+ #endif
+ 
+-#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+-
+-static struct omap_smc91x_platform_data board_smc91x_data = {
+-	.cs		= 1,
+-	.gpio_irq	= 54,
+-	.gpio_pwrdwn	= 86,
+-	.gpio_reset	= 164,
+-	.flags		= GPMC_TIMINGS_SMC91C96 | IORESOURCE_IRQ_HIGHLEVEL,
+-};
+-
+-static void __init board_smc91x_init(void)
+-{
+-	omap_mux_init_gpio(54, OMAP_PIN_INPUT_PULLDOWN);
+-	omap_mux_init_gpio(86, OMAP_PIN_OUTPUT);
+-	omap_mux_init_gpio(164, OMAP_PIN_OUTPUT);
+-
+-	gpmc_smc91x_init(&board_smc91x_data);
+-}
+-
+-#else
+-
+-static inline void board_smc91x_init(void)
+-{
+-}
+-
+-#endif
+-
+ static struct gpio rx51_wl1251_gpios[] __initdata = {
+ 	{ RX51_WL1251_IRQ_GPIO,	  GPIOF_IN,		"wl1251 irq"	},
+ };
+@@ -1303,7 +1275,6 @@ void __init rx51_peripherals_init(void)
+ 	rx51_i2c_init();
+ 	regulator_has_full_constraints();
+ 	gpmc_onenand_init(board_onenand_data);
+-	board_smc91x_init();
+ 	rx51_add_gpio_keys();
+ 	rx51_init_wl1251();
+ 	rx51_init_tsc2005();
+diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
+deleted file mode 100644
+index 61a0635..0000000
+--- a/arch/arm/mach-omap2/gpmc-smc91x.c
 +++ /dev/null
-@@ -1,604 +0,0 @@
+@@ -1,186 +0,0 @@
 -/*
-- * linux/arch/arm/mach-omap2/board-3430sdp.c
+- * linux/arch/arm/mach-omap2/gpmc-smc91x.c
 - *
-- * Copyright (C) 2007 Texas Instruments
-- *
-- * Modified from mach-omap2/board-generic.c
-- *
-- * Initial code: Syed Mohammed Khasim
+- * Copyright (C) 2009 Nokia Corporation
+- * Contact:	Tony Lindgren
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
@@ -78,595 +172,228 @@ index 9857882..0000000
 - */
 -
 -#include <linux/kernel.h>
--#include <linux/init.h>
 -#include <linux/platform_device.h>
--#include <linux/delay.h>
--#include <linux/input.h>
--#include <linux/input/matrix_keypad.h>
--#include <linux/spi/spi.h>
--#include <linux/i2c/twl.h>
--#include <linux/regulator/machine.h>
--#include <linux/io.h>
 -#include <linux/gpio.h>
--#include <linux/mmc/host.h>
--#include <linux/platform_data/spi-omap2-mcspi.h>
--#include <linux/platform_data/omap-twl4030.h>
--#include <linux/usb/phy.h>
--
--#include <asm/mach-types.h>
--#include <asm/mach/arch.h>
--#include <asm/mach/map.h>
--
--#include "common.h"
--#include <linux/omap-dma.h>
--#include <video/omapdss.h>
--#include <video/omap-panel-data.h>
+-#include <linux/delay.h>
+-#include <linux/interrupt.h>
+-#include <linux/io.h>
+-#include <linux/smc91x.h>
 -
 -#include "gpmc.h"
+-#include "gpmc-smc91x.h"
 -
 -#include "soc.h"
--#include "board-flash.h"
--#include "mux.h"
--#include "sdram-qimonda-hyb18m512160af-6.h"
--#include "hsmmc.h"
--#include "pm.h"
--#include "control.h"
--#include "common-board-devices.h"
 -
--#define CONFIG_DISABLE_HFCLK 1
+-static struct omap_smc91x_platform_data *gpmc_cfg;
 -
--#define SDP3430_TS_GPIO_IRQ_SDPV1	3
--#define SDP3430_TS_GPIO_IRQ_SDPV2	2
--
--#define ENABLE_VAUX3_DEDICATED	0x03
--#define ENABLE_VAUX3_DEV_GRP	0x20
--
--#define TWL4030_MSECURE_GPIO 22
--
--static uint32_t board_keymap[] = {
--	KEY(0, 0, KEY_LEFT),
--	KEY(0, 1, KEY_RIGHT),
--	KEY(0, 2, KEY_A),
--	KEY(0, 3, KEY_B),
--	KEY(0, 4, KEY_C),
--	KEY(1, 0, KEY_DOWN),
--	KEY(1, 1, KEY_UP),
--	KEY(1, 2, KEY_E),
--	KEY(1, 3, KEY_F),
--	KEY(1, 4, KEY_G),
--	KEY(2, 0, KEY_ENTER),
--	KEY(2, 1, KEY_I),
--	KEY(2, 2, KEY_J),
--	KEY(2, 3, KEY_K),
--	KEY(2, 4, KEY_3),
--	KEY(3, 0, KEY_M),
--	KEY(3, 1, KEY_N),
--	KEY(3, 2, KEY_O),
--	KEY(3, 3, KEY_P),
--	KEY(3, 4, KEY_Q),
--	KEY(4, 0, KEY_R),
--	KEY(4, 1, KEY_4),
--	KEY(4, 2, KEY_T),
--	KEY(4, 3, KEY_U),
--	KEY(4, 4, KEY_D),
--	KEY(5, 0, KEY_V),
--	KEY(5, 1, KEY_W),
--	KEY(5, 2, KEY_L),
--	KEY(5, 3, KEY_S),
--	KEY(5, 4, KEY_H),
--	0
+-static struct resource gpmc_smc91x_resources[] = {
+-	[0] = {
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	[1] = {
+-		.flags		= IORESOURCE_IRQ,
+-	},
 -};
 -
--static struct matrix_keymap_data board_map_data = {
--	.keymap			= board_keymap,
--	.keymap_size		= ARRAY_SIZE(board_keymap),
+-static struct smc91x_platdata gpmc_smc91x_info = {
+-	.flags	= SMC91X_USE_16BIT | SMC91X_NOWAIT | SMC91X_IO_SHIFT_0,
+-	.leda	= RPC_LED_100_10,
+-	.ledb	= RPC_LED_TX_RX,
 -};
 -
--static struct twl4030_keypad_data sdp3430_kp_data = {
--	.keymap_data	= &board_map_data,
--	.rows		= 5,
--	.cols		= 6,
--	.rep		= 1,
+-static struct platform_device gpmc_smc91x_device = {
+-	.name		= "smc91x",
+-	.id		= -1,
+-	.dev		= {
+-		.platform_data = &gpmc_smc91x_info,
+-	},
+-	.num_resources	= ARRAY_SIZE(gpmc_smc91x_resources),
+-	.resource	= gpmc_smc91x_resources,
 -};
 -
--#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
--#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
+-static struct gpmc_settings smc91x_settings = {
+-	.device_width = GPMC_DEVWIDTH_16BIT,
+-};
 -
--static void __init sdp3430_display_init(void)
+-/*
+- * Set the gpmc timings for smc91c96. The timings are taken
+- * from the data sheet available at:
+- * http://www.smsc.com/main/catalog/lan91c96.html
+- * REVISIT: Level shifters can add at least to the access latency.
+- */
+-static int smc91c96_gpmc_retime(void)
 -{
--	int r;
+-	struct gpmc_timings t;
+-	struct gpmc_device_timings dev_t;
+-	const int t3 = 10;	/* Figure 12.2 read and 12.4 write */
+-	const int t4_r = 20;	/* Figure 12.2 read */
+-	const int t4_w = 5;	/* Figure 12.4 write */
+-	const int t5 = 25;	/* Figure 12.2 read */
+-	const int t6 = 15;	/* Figure 12.2 read */
+-	const int t7 = 5;	/* Figure 12.4 write */
+-	const int t8 = 5;	/* Figure 12.4 write */
+-	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
 -
 -	/*
--	 * the backlight GPIO doesn't directly go to the panel, it enables
--	 * an internal circuit on 3430sdp to create the signal V_BKL_28V,
--	 * this is connected to LED+ pin of the sharp panel. This GPIO
--	 * is left enabled in the board file, and not passed to the panel
--	 * as platform_data.
+-	 * FIXME: Calculate the address and data bus muxed timings.
+-	 * Note that at least adv_rd_off needs to be changed according
+-	 * to omap3430 TRM Figure 11-11. Are the sdp boards using the
+-	 * FPGA in between smc91x and omap as the timings are different
+-	 * from above?
 -	 */
--	r = gpio_request_one(SDP3430_LCD_PANEL_BACKLIGHT_GPIO,
--				GPIOF_OUT_INIT_HIGH, "LCD Backlight");
--	if (r)
--		pr_err("failed to get LCD Backlight GPIO\n");
+-	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
+-		return 0;
 -
+-	memset(&dev_t, 0, sizeof(dev_t));
+-
+-	dev_t.t_oeasu = t3 * 1000;
+-	dev_t.t_oe = t5 * 1000;
+-	dev_t.t_cez_r = t4_r * 1000;
+-	dev_t.t_oez = t6 * 1000;
+-	dev_t.t_rd_cycle = (t20 - t3) * 1000;
+-
+-	dev_t.t_weasu = t3 * 1000;
+-	dev_t.t_wpl = t7 * 1000;
+-	dev_t.t_wph = t8 * 1000;
+-	dev_t.t_cez_w = t4_w * 1000;
+-	dev_t.t_wr_cycle = (t20 - t3) * 1000;
+-
+-	gpmc_calc_timings(&t, &smc91x_settings, &dev_t);
+-
+-	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
 -}
--
--static struct panel_sharp_ls037v7dw01_platform_data sdp3430_lcd_pdata = {
--	.name                   = "lcd",
--	.source                 = "dpi.0",
--
--	.data_lines		= 16,
--
--	.resb_gpio		= SDP3430_LCD_PANEL_ENABLE_GPIO,
--	.ini_gpio		= -1,
--	.mo_gpio		= -1,
--	.lr_gpio		= -1,
--	.ud_gpio		= -1,
--};
--
--static struct platform_device sdp3430_lcd_device = {
--	.name                   = "panel-sharp-ls037v7dw01",
--	.id                     = 0,
--	.dev.platform_data      = &sdp3430_lcd_pdata,
--};
--
--static struct connector_dvi_platform_data sdp3430_dvi_connector_pdata = {
--	.name                   = "dvi",
--	.source                 = "tfp410.0",
--	.i2c_bus_num            = -1,
--};
--
--static struct platform_device sdp3430_dvi_connector_device = {
--	.name                   = "connector-dvi",
--	.id                     = 0,
--	.dev.platform_data      = &sdp3430_dvi_connector_pdata,
--};
--
--static struct encoder_tfp410_platform_data sdp3430_tfp410_pdata = {
--	.name                   = "tfp410.0",
--	.source                 = "dpi.0",
--	.data_lines             = 24,
--	.power_down_gpio        = -1,
--};
--
--static struct platform_device sdp3430_tfp410_device = {
--	.name                   = "tfp410",
--	.id                     = 0,
--	.dev.platform_data      = &sdp3430_tfp410_pdata,
--};
--
--static struct connector_atv_platform_data sdp3430_tv_pdata = {
--	.name = "tv",
--	.source = "venc.0",
--	.connector_type = OMAP_DSS_VENC_TYPE_SVIDEO,
--	.invert_polarity = false,
--};
--
--static struct platform_device sdp3430_tv_connector_device = {
--	.name                   = "connector-analog-tv",
--	.id                     = 0,
--	.dev.platform_data      = &sdp3430_tv_pdata,
--};
--
--static struct omap_dss_board_info sdp3430_dss_data = {
--	.default_display_name = "lcd",
--};
--
--static struct omap2_hsmmc_info mmc[] = {
--	{
--		.mmc		= 1,
--		/* 8 bits (default) requires S6.3 == ON,
--		 * so the SIM card isn't used; else 4 bits.
--		 */
--		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
--		.gpio_wp	= 4,
--		.deferred	= true,
--	},
--	{
--		.mmc		= 2,
--		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
--		.gpio_wp	= 7,
--		.deferred	= true,
--	},
--	{}	/* Terminator */
--};
--
--static struct omap_tw4030_pdata omap_twl4030_audio_data = {
--	.voice_connected = true,
--	.custom_routing	= true,
--
--	.has_hs		= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
--	.has_hf		= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
--
--	.has_mainmic	= true,
--	.has_submic	= true,
--	.has_hsmic	= true,
--	.has_linein	= OMAP_TWL4030_LEFT | OMAP_TWL4030_RIGHT,
--};
--
--static int sdp3430_twl_gpio_setup(struct device *dev,
--		unsigned gpio, unsigned ngpio)
--{
--	/* gpio + 0 is "mmc0_cd" (input/IRQ),
--	 * gpio + 1 is "mmc1_cd" (input/IRQ)
--	 */
--	mmc[0].gpio_cd = gpio + 0;
--	mmc[1].gpio_cd = gpio + 1;
--	omap_hsmmc_late_init(mmc);
--
--	/* gpio + 7 is "sub_lcd_en_bkl" (output/PWM1) */
--	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "sub_lcd_en_bkl");
--
--	/* gpio + 15 is "sub_lcd_nRST" (output) */
--	gpio_request_one(gpio + 15, GPIOF_OUT_INIT_LOW, "sub_lcd_nRST");
--
--	omap_twl4030_audio_data.jack_detect = gpio + 2;
--	omap_twl4030_audio_init("SDP3430", &omap_twl4030_audio_data);
--
--	return 0;
--}
--
--static struct twl4030_gpio_platform_data sdp3430_gpio_data = {
--	.pulldowns	= BIT(2) | BIT(6) | BIT(8) | BIT(13)
--				| BIT(16) | BIT(17),
--	.setup		= sdp3430_twl_gpio_setup,
--};
--
--/* regulator consumer mappings */
--
--/* ads7846 on SPI */
--static struct regulator_consumer_supply sdp3430_vaux3_supplies[] = {
--	REGULATOR_SUPPLY("vcc", "spi1.0"),
--};
--
--static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
--	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
--};
--
--static struct regulator_consumer_supply sdp3430_vsim_supplies[] = {
--	REGULATOR_SUPPLY("vmmc_aux", "omap_hsmmc.0"),
--};
--
--static struct regulator_consumer_supply sdp3430_vmmc2_supplies[] = {
--	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1"),
--};
 -
 -/*
-- * Apply all the fixed voltages since most versions of U-Boot
-- * don't bother with that initialization.
+- * Initialize smc91x device connected to the GPMC. Note that we
+- * assume that pin multiplexing is done in the board-*.c file,
+- * or in the bootloader.
 - */
--
--/* VAUX1 for mainboard (irda and sub-lcd) */
--static struct regulator_init_data sdp3430_vaux1 = {
--	.constraints = {
--		.min_uV			= 2800000,
--		.max_uV			= 2800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--/* VAUX2 for camera module */
--static struct regulator_init_data sdp3430_vaux2 = {
--	.constraints = {
--		.min_uV			= 2800000,
--		.max_uV			= 2800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--/* VAUX3 for LCD board */
--static struct regulator_init_data sdp3430_vaux3 = {
--	.constraints = {
--		.min_uV			= 2800000,
--		.max_uV			= 2800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies		= ARRAY_SIZE(sdp3430_vaux3_supplies),
--	.consumer_supplies		= sdp3430_vaux3_supplies,
--};
--
--/* VAUX4 for OMAP VDD_CSI2 (camera) */
--static struct regulator_init_data sdp3430_vaux4 = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 1800000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--};
--
--/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
--static struct regulator_init_data sdp3430_vmmc1 = {
--	.constraints = {
--		.min_uV			= 1850000,
--		.max_uV			= 3150000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vmmc1_supplies),
--	.consumer_supplies	= sdp3430_vmmc1_supplies,
--};
--
--/* VMMC2 for MMC2 card */
--static struct regulator_init_data sdp3430_vmmc2 = {
--	.constraints = {
--		.min_uV			= 1850000,
--		.max_uV			= 1850000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vmmc2_supplies),
--	.consumer_supplies	= sdp3430_vmmc2_supplies,
--};
--
--/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
--static struct regulator_init_data sdp3430_vsim = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 3000000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vsim_supplies),
--	.consumer_supplies	= sdp3430_vsim_supplies,
--};
--
--static struct twl4030_platform_data sdp3430_twldata = {
--	/* platform_data for children goes here */
--	.gpio		= &sdp3430_gpio_data,
--	.keypad		= &sdp3430_kp_data,
--
--	.vaux1		= &sdp3430_vaux1,
--	.vaux2		= &sdp3430_vaux2,
--	.vaux3		= &sdp3430_vaux3,
--	.vaux4		= &sdp3430_vaux4,
--	.vmmc1		= &sdp3430_vmmc1,
--	.vmmc2		= &sdp3430_vmmc2,
--	.vsim		= &sdp3430_vsim,
--};
--
--static int __init omap3430_i2c_init(void)
+-void __init gpmc_smc91x_init(struct omap_smc91x_platform_data *board_data)
 -{
--	/* i2c1 for PMIC only */
--	omap3_pmic_get_config(&sdp3430_twldata,
--			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
--			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
--			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
--	sdp3430_twldata.vdac->constraints.apply_uV = true;
--	sdp3430_twldata.vpll2->constraints.apply_uV = true;
--	sdp3430_twldata.vpll2->constraints.name = "VDVI";
+-	unsigned long cs_mem_base;
+-	int ret;
 -
--	sdp3430_twldata.audio->codec->hs_extmute = 1;
--	sdp3430_twldata.audio->codec->hs_extmute_gpio = -EINVAL;
+-	gpmc_cfg = board_data;
 -
--	omap3_pmic_init("twl4030", &sdp3430_twldata);
+-	if (gpmc_cfg->flags & GPMC_TIMINGS_SMC91C96)
+-		gpmc_cfg->retime = smc91c96_gpmc_retime;
 -
--	/* i2c2 on camera connector (for sensor control) and optional isp1301 */
--	omap_register_i2c_bus(2, 400, NULL, 0);
--	/* i2c3 on display connector (for DVI, tfp410) */
--	omap_register_i2c_bus(3, 400, NULL, 0);
--	return 0;
--}
--
--static void enable_board_wakeup_source(void)
--{
--	/* T2 interrupt line (keypad) */
--	omap_mux_init_signal("sys_nirq",
--		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
--}
--
--static struct usbhs_phy_data phy_data[] __initdata = {
--	{
--		.port = 1,
--		.reset_gpio = 57,
--		.vcc_gpio = -EINVAL,
--	},
--	{
--		.port = 2,
--		.reset_gpio = 61,
--		.vcc_gpio = -EINVAL,
--	},
--};
--
--static struct usbhs_omap_platform_data usbhs_bdata __initdata = {
--
--	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
--};
--
--#ifdef CONFIG_OMAP_MUX
--static struct omap_board_mux board_mux[] __initdata = {
--	{ .reg_offset = OMAP_MUX_TERMINATOR },
--};
--#else
--#define board_mux	NULL
--#endif
--
--/*
-- * SDP3430 V2 Board CS organization
-- * Different from SDP3430 V1. Now 4 switches used to specify CS
-- *
-- * See also the Switch S8 settings in the comments.
-- */
--static char chip_sel_3430[][GPMC_CS_NUM] = {
--	{PDC_NOR, PDC_NAND, PDC_ONENAND, DBG_MPDB, 0, 0, 0, 0}, /* S8:1111 */
--	{PDC_ONENAND, PDC_NAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1110 */
--	{PDC_NAND, PDC_ONENAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0}, /* S8:1101 */
--};
--
--static struct mtd_partition sdp_nor_partitions[] = {
--	/* bootloader (U-Boot, etc) in first sector */
--	{
--		.name		= "Bootloader-NOR",
--		.offset		= 0,
--		.size		= SZ_256K,
--		.mask_flags	= MTD_WRITEABLE, /* force read-only */
--	},
--	/* bootloader params in the next sector */
--	{
--		.name		= "Params-NOR",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= SZ_256K,
--		.mask_flags	= 0,
--	},
--	/* kernel */
--	{
--		.name		= "Kernel-NOR",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= SZ_2M,
--		.mask_flags	= 0
--	},
--	/* file system */
--	{
--		.name		= "Filesystem-NOR",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= MTDPART_SIZ_FULL,
--		.mask_flags	= 0
+-	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
+-		printk(KERN_ERR "Failed to request GPMC mem for smc91x\n");
+-		return;
 -	}
+-
+-	gpmc_smc91x_resources[0].start = cs_mem_base + 0x300;
+-	gpmc_smc91x_resources[0].end = cs_mem_base + 0x30f;
+-	gpmc_smc91x_resources[1].flags |= (gpmc_cfg->flags & IRQF_TRIGGER_MASK);
+-
+-	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
+-		smc91x_settings.mux_add_data = GPMC_MUX_AD;
+-	if (gpmc_cfg->flags & GPMC_READ_MON)
+-		smc91x_settings.wait_on_read = true;
+-	if (gpmc_cfg->flags & GPMC_WRITE_MON)
+-		smc91x_settings.wait_on_write = true;
+-	if (gpmc_cfg->wait_pin)
+-		smc91x_settings.wait_pin = gpmc_cfg->wait_pin;
+-	ret = gpmc_cs_program_settings(gpmc_cfg->cs, &smc91x_settings);
+-	if (ret < 0)
+-		goto free1;
+-
+-	if (gpmc_cfg->retime) {
+-		ret = gpmc_cfg->retime();
+-		if (ret != 0)
+-			goto free1;
+-	}
+-
+-	if (gpio_request_one(gpmc_cfg->gpio_irq, GPIOF_IN, "SMC91X irq") < 0)
+-		goto free1;
+-
+-	gpmc_smc91x_resources[1].start = gpio_to_irq(gpmc_cfg->gpio_irq);
+-
+-	if (gpmc_cfg->gpio_pwrdwn) {
+-		ret = gpio_request_one(gpmc_cfg->gpio_pwrdwn,
+-				       GPIOF_OUT_INIT_LOW, "SMC91X powerdown");
+-		if (ret)
+-			goto free2;
+-	}
+-
+-	if (gpmc_cfg->gpio_reset) {
+-		ret = gpio_request_one(gpmc_cfg->gpio_reset,
+-				       GPIOF_OUT_INIT_LOW, "SMC91X reset");
+-		if (ret)
+-			goto free3;
+-
+-		gpio_set_value(gpmc_cfg->gpio_reset, 1);
+-		msleep(100);
+-		gpio_set_value(gpmc_cfg->gpio_reset, 0);
+-	}
+-
+-	if (platform_device_register(&gpmc_smc91x_device) < 0) {
+-		printk(KERN_ERR "Unable to register smc91x device\n");
+-		gpio_free(gpmc_cfg->gpio_reset);
+-		goto free3;
+-	}
+-
+-	return;
+-
+-free3:
+-	if (gpmc_cfg->gpio_pwrdwn)
+-		gpio_free(gpmc_cfg->gpio_pwrdwn);
+-free2:
+-	gpio_free(gpmc_cfg->gpio_irq);
+-free1:
+-	gpmc_cs_free(gpmc_cfg->cs);
+-
+-	printk(KERN_ERR "Could not initialize smc91x\n");
+-}
+diff --git a/arch/arm/mach-omap2/gpmc-smc91x.h b/arch/arm/mach-omap2/gpmc-smc91x.h
+deleted file mode 100644
+index b64fbee..0000000
+--- a/arch/arm/mach-omap2/gpmc-smc91x.h
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/*
+- * arch/arm/plat-omap/include/mach/gpmc-smc91x.h
+- *
+- * Copyright (C) 2009 Nokia Corporation
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef __ASM_ARCH_OMAP_GPMC_SMC91X_H__
+-
+-#define GPMC_TIMINGS_SMC91C96	(1 << 4)
+-#define GPMC_MUX_ADD_DATA	(1 << 5) /* GPMC_CONFIG1_MUXADDDATA */
+-#define GPMC_READ_MON		(1 << 6) /* GPMC_CONFIG1_WAIT_READ_MON */
+-#define GPMC_WRITE_MON		(1 << 7) /* GPMC_CONFIG1_WAIT_WRITE_MON */
+-
+-struct omap_smc91x_platform_data {
+-	int	cs;
+-	int	gpio_irq;
+-	int	gpio_pwrdwn;
+-	int	gpio_reset;
+-	int	wait_pin;	/* Optional GPMC_CONFIG1_WAITPINSELECT */
+-	u32	flags;
+-	int	(*retime)(void);
 -};
 -
--static struct mtd_partition sdp_onenand_partitions[] = {
--	{
--		.name		= "X-Loader-OneNAND",
--		.offset		= 0,
--		.size		= 4 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE  /* force read-only */
--	},
--	{
--		.name		= "U-Boot-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= 2 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE  /* force read-only */
--	},
--	{
--		.name		= "U-Boot Environment-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= 1 * (64 * 2048),
--	},
--	{
--		.name		= "Kernel-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= 16 * (64 * 2048),
--	},
--	{
--		.name		= "File System-OneNAND",
--		.offset		= MTDPART_OFS_APPEND,
--		.size		= MTDPART_SIZ_FULL,
--	},
--};
+-#if defined(CONFIG_SMC91X) || \
+-	defined(CONFIG_SMC91X_MODULE)
 -
--static struct mtd_partition sdp_nand_partitions[] = {
--	/* All the partition sizes are listed in terms of NAND block size */
--	{
--		.name		= "X-Loader-NAND",
--		.offset		= 0,
--		.size		= 4 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
--	},
--	{
--		.name		= "U-Boot-NAND",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
--		.size		= 10 * (64 * 2048),
--		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
--	},
--	{
--		.name		= "Boot Env-NAND",
+-extern void gpmc_smc91x_init(struct omap_smc91x_platform_data *d);
 -
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1c0000 */
--		.size		= 6 * (64 * 2048),
--	},
--	{
--		.name		= "Kernel-NAND",
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
--		.size		= 40 * (64 * 2048),
--	},
--	{
--		.name		= "File System - NAND",
--		.size		= MTDPART_SIZ_FULL,
--		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x780000 */
--	},
--};
+-#else
 -
--static struct flash_partitions sdp_flash_partitions[] = {
--	{
--		.parts = sdp_nor_partitions,
--		.nr_parts = ARRAY_SIZE(sdp_nor_partitions),
--	},
--	{
--		.parts = sdp_onenand_partitions,
--		.nr_parts = ARRAY_SIZE(sdp_onenand_partitions),
--	},
--	{
--		.parts = sdp_nand_partitions,
--		.nr_parts = ARRAY_SIZE(sdp_nand_partitions),
--	},
--};
+-#define board_smc91x_data	NULL
 -
--static void __init omap_3430sdp_init(void)
+-static inline void gpmc_smc91x_init(struct omap_smc91x_platform_data *d)
 -{
--	int gpio_pendown;
--
--	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
--	omap_hsmmc_init(mmc);
--	omap3430_i2c_init();
--	omap_display_init(&sdp3430_dss_data);
--	platform_device_register(&sdp3430_lcd_device);
--	platform_device_register(&sdp3430_tfp410_device);
--	platform_device_register(&sdp3430_dvi_connector_device);
--	platform_device_register(&sdp3430_tv_connector_device);
--
--	if (omap_rev() > OMAP3430_REV_ES1_0)
--		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV2;
--	else
--		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV1;
--	omap_ads7846_init(1, gpio_pendown, 310, NULL);
--	omap_serial_init();
--	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
--	usb_bind_phy("musb-hdrc.0.auto", 0, "twl4030_usb");
--	usb_musb_init(NULL);
--	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
--	sdp3430_display_init();
--	enable_board_wakeup_source();
--
--	usbhs_init_phys(phy_data, ARRAY_SIZE(phy_data));
--	usbhs_init(&usbhs_bdata);
 -}
 -
--MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
--	/* Maintainer: Syed Khasim - Texas Instruments Inc */
--	.atag_offset	= 0x100,
--	.reserve	= omap_reserve,
--	.map_io		= omap3_map_io,
--	.init_early	= omap3430_init_early,
--	.init_irq	= omap3_init_irq,
--	.init_machine	= omap_3430sdp_init,
--	.init_late	= omap3430_init_late,
--	.init_time	= omap3_sync32k_timer_init,
--	.restart	= omap3xxx_restart,
--MACHINE_END
+-#endif
+-#endif
 -- 
 2.1.1
 
