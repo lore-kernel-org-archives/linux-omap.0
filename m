@@ -1,275 +1,94 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH v4] rtc: omap: add support for pmic_power_en
-Date: Thu, 30 Oct 2014 10:55:47 +0100
-Message-ID: <1414662947-8184-1-git-send-email-johan@kernel.org>
-References: <1413913086-12730-1-git-send-email-johan@kernel.org>
+Subject: Re: [PATCH v2 00/20] rtc: omap: fixes and power-off feature
+Date: Thu, 30 Oct 2014 11:01:43 +0100
+Message-ID: <20141030100143.GA7846@localhost>
+References: <20141028002552.GX12379@n2100.arm.linux.org.uk>
+ <20141028081616.GL2006@localhost>
+ <20141028084745.GY12379@n2100.arm.linux.org.uk>
+ <20141028131257.GS2006@localhost>
+ <20141028151610.GA12379@n2100.arm.linux.org.uk>
+ <20141029123418.GB2265@localhost>
+ <20141029131020.GB12379@n2100.arm.linux.org.uk>
+ <20141029132244.GD2265@localhost>
+ <20141029152502.GA20565@roeck-us.net>
+ <20141029155109.GH2265@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1413913086-12730-1-git-send-email-johan@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141029155109.GH2265@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Felipe Balbi <balbi@ti.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, Guenter Roeck <linux@roeck-us.net>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Johan Hovold <johan@kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Lokesh Vutla <lokeshvutla@ti.com>, nsekhar@ti.com, t-kristo@ti.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add new property "ti,system-power-controller" to register the RTC as a
-power-off handler.
+On Wed, Oct 29, 2014 at 04:51:09PM +0100, Johan Hovold wrote:
+> On Wed, Oct 29, 2014 at 08:25:02AM -0700, Guenter Roeck wrote:
+> > On Wed, Oct 29, 2014 at 02:22:44PM +0100, Johan Hovold wrote:
+> > > On Wed, Oct 29, 2014 at 01:10:20PM +0000, Russell King - ARM Linux wrote:
+> > > > On Wed, Oct 29, 2014 at 01:34:18PM +0100, Johan Hovold wrote:
+> > > > > On Tue, Oct 28, 2014 at 03:16:10PM +0000, Russell King - ARM Linux wrote:
+> > > > > > And how is that different from having a set of power-off handlers, and
+> > > > > > reporting when each individual one fails?  Don't you want to know if
+> > > > > > your primary high priority reboot handler fails, just as much as you
+> > > > > > want to know if your final last-resort power-off handler fails?
+> > > > > 
+> > > > > Good point. Failed power-off should probably be logged by the power-off
+> > > > > call chain implementation (which seems to makes notifier chains a bad
+> > > > > fit).
+> > > > > 
+> > > > > And what about any power-off latencies? Should this always be dealt with
+> > > > > in the power-off handler?
+> > > > > 
+> > > > > Again, if it's predictable and high, as in the OMAP RTC case, it should
+> > > > > go in the handler. But what if it's just normal bus latencies
+> > > > > (peripheral busses, i2c, or whatever people may come up with)?
+> > > > > 
+> > > > > Should there always be a short delay before calling the next handler?
+> > > > 
+> > > > If the handler has determined that it has failed, then why delay before
+> > > > trying the next handler?  At the point it has decided it has failed,
+> > > > surely that's after it has waited sufficient time to determine that
+> > > > failure?
+> > > 
+> > > The current handlers we have are not expecting any other handler to be
+> > > run after they return. My question was whether all these handlers should
+> > > get a short mdelay added to them (e.g. to compensate for bus latencies)
+> > 
+> > Some of them do add a delay.
+> 
+> Yes, but not all.
+> 
+> > > or if this could be done in the power-off handler (e.g. before printing
+> > > the error message).
+> > > 
+> > That might make sense, but it would have to be configurable, since the delay
+> > is platform specific and power-off handler does not know how long to wait
+> > (the longest delay I have seen is 10 seconds).
+> 
+> We've already concluded in this thread that such delays must be encoded
+> in the actual handler (even if it's an argument to the power-off call
+> chain code). The only exception should be generic handlers such as
+> gpio-poweroff, which may need to define different delays depending on
+> board. This could of course just be an argument of the corresponding DT
+> node.
 
-Some RTC IP revisions can control an external PMIC via the pmic_power_en
-pin, which can be configured to transition to OFF on ALARM2 events and
-back to ON on subsequent ALARM (wakealarm) events.
+There probably should be a generic device-tree property for this, even
+if some delays would be device specific (e.g. the two second delay for
+omap rtc).
 
-This is based on earlier work by Colin Foe-Parker and AnilKumar Ch. [1]
+But on top of that, external latencies would be quite board specific.
+The PMIC on the Beaglebone black adds a 50ms deglitch time, for
+instance.
 
-[1] https://www.mail-archive.com/linux-omap@vger.kernel.org/msg82127.html
+> My question above was if it was reasonable to add some generic short
+> delay after calling each power-off handler to handle short power-off
+> latencies (e.g. bus latencies) so that not every handler needs an
+> explicit delay.
 
-Tested-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Johan Hovold <johan@kernel.org>
----
-
-Here's an updated patch, which adds a comment on why there is a delay
-after activating the alarm.
-
-Note that I also increased the delay to include a margin for external
-latencies. For example, on Beaglebone Black, the PMIC has a 50ms
-deglitch time on the PWR_EN pin (which is connected to pmic_power_en).
-
-Such margins should probably eventually be specified through device
-tree, for instance, as an attribute to accompany the
-system-power-controller attribute and be handled by the power-off call
-chain infrastructure.
+I just added a 500ms margin to the OMAP rtc power-off handler. That
+should be more than enough, and perhaps something like that could be a
+default in the power-off call chain. Consider that arch-arm has a 1s
+grace period before reporting failed reboot already today.
 
 Johan
-
-
-Changes since v3:
- - increase the delay when waiting for power-off to include a 500ms
-   margin for external latencies (e.g. debounce circuits)
- - add comment on why that delay is there
- - add a space to one comment
-
-Changes since v2:
- - add two-second delay to allow alarm to trigger before returning
-
-
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |   9 +-
- drivers/rtc/rtc-omap.c                             | 100 +++++++++++++++++++++
- 2 files changed, 108 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-index 5a0f02d34d95..750efd40c72e 100644
---- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-+++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-@@ -5,11 +5,17 @@ Required properties:
- 	- "ti,da830-rtc"  - for RTC IP used similar to that on DA8xx SoC family.
- 	- "ti,am3352-rtc" - for RTC IP used similar to that on AM335x SoC family.
- 			    This RTC IP has special WAKE-EN Register to enable
--			    Wakeup generation for event Alarm.
-+			    Wakeup generation for event Alarm. It can also be
-+			    used to control an external PMIC via the
-+			    pmic_power_en pin.
- - reg: Address range of rtc register set
- - interrupts: rtc timer, alarm interrupts in order
- - interrupt-parent: phandle for the interrupt controller
- 
-+Optional properties:
-+- ti,system-power-controller: whether the rtc is controlling the system power
-+  through pmic_power_en
-+
- Example:
- 
- rtc@1c23000 {
-@@ -18,4 +24,5 @@ rtc@1c23000 {
- 	interrupts = <19
- 		      19>;
- 	interrupt-parent = <&intc>;
-+	ti,system-power-controller;
- };
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index c508e45ca3ce..e83f51ae7f63 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -68,6 +68,15 @@
- 
- #define OMAP_RTC_IRQWAKEEN		0x7c
- 
-+#define OMAP_RTC_ALARM2_SECONDS_REG	0x80
-+#define OMAP_RTC_ALARM2_MINUTES_REG	0x84
-+#define OMAP_RTC_ALARM2_HOURS_REG	0x88
-+#define OMAP_RTC_ALARM2_DAYS_REG	0x8c
-+#define OMAP_RTC_ALARM2_MONTHS_REG	0x90
-+#define OMAP_RTC_ALARM2_YEARS_REG	0x94
-+
-+#define OMAP_RTC_PMIC_REG		0x98
-+
- /* OMAP_RTC_CTRL_REG bit fields: */
- #define OMAP_RTC_CTRL_SPLIT		BIT(7)
- #define OMAP_RTC_CTRL_DISABLE		BIT(6)
-@@ -80,6 +89,7 @@
- 
- /* OMAP_RTC_STATUS_REG bit fields: */
- #define OMAP_RTC_STATUS_POWER_UP	BIT(7)
-+#define OMAP_RTC_STATUS_ALARM2		BIT(7)
- #define OMAP_RTC_STATUS_ALARM		BIT(6)
- #define OMAP_RTC_STATUS_1D_EVENT	BIT(5)
- #define OMAP_RTC_STATUS_1H_EVENT	BIT(4)
-@@ -89,6 +99,7 @@
- #define OMAP_RTC_STATUS_BUSY		BIT(0)
- 
- /* OMAP_RTC_INTERRUPTS_REG bit fields: */
-+#define OMAP_RTC_INTERRUPTS_IT_ALARM2	BIT(4)
- #define OMAP_RTC_INTERRUPTS_IT_ALARM	BIT(3)
- #define OMAP_RTC_INTERRUPTS_IT_TIMER	BIT(2)
- 
-@@ -98,6 +109,9 @@
- /* OMAP_RTC_IRQWAKEEN bit fields: */
- #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
- 
-+/* OMAP_RTC_PMIC bit fields: */
-+#define OMAP_RTC_PMIC_POWER_EN_EN	BIT(16)
-+
- /* OMAP_RTC_KICKER values */
- #define	KICK0_VALUE			0x83e70b13
- #define	KICK1_VALUE			0x95a4f1e0
-@@ -106,6 +120,7 @@ struct omap_rtc_device_type {
- 	bool has_32kclk_en;
- 	bool has_kicker;
- 	bool has_irqwakeen;
-+	bool has_pmic_mode;
- 	bool has_power_up_reset;
- };
- 
-@@ -115,6 +130,7 @@ struct omap_rtc {
- 	int irq_alarm;
- 	int irq_timer;
- 	u8 interrupts_reg;
-+	bool is_pmic_controller;
- 	const struct omap_rtc_device_type *type;
- };
- 
-@@ -345,6 +361,70 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	return 0;
- }
- 
-+static struct omap_rtc *omap_rtc_power_off_rtc;
-+
-+/*
-+ * omap_rtc_poweroff: RTC-controlled power off
-+ *
-+ * The RTC can be used to control an external PMIC via the pmic_power_en pin,
-+ * which can be configured to transition to OFF on ALARM2 events.
-+ *
-+ * Notes:
-+ * The two-second alarm offset is the shortest offset possible as the alarm
-+ * registers must be set before the next timer update and the offset
-+ * calculation is too heavy for everything to be done within a single access
-+ * period (~15 us).
-+ *
-+ * Called with local interrupts disabled.
-+ */
-+static void omap_rtc_power_off(void)
-+{
-+	struct omap_rtc *rtc = omap_rtc_power_off_rtc;
-+	struct rtc_time tm;
-+	unsigned long now;
-+	u32 val;
-+
-+	/* enable pmic_power_en control */
-+	val = rtc_readl(rtc, OMAP_RTC_PMIC_REG);
-+	rtc_writel(rtc, OMAP_RTC_PMIC_REG, val | OMAP_RTC_PMIC_POWER_EN_EN);
-+
-+	/* set alarm two seconds from now */
-+	omap_rtc_read_time_raw(rtc, &tm);
-+	bcd2tm(&tm);
-+	rtc_tm_to_time(&tm, &now);
-+	rtc_time_to_tm(now + 2, &tm);
-+
-+	if (tm2bcd(&tm) < 0) {
-+		dev_err(&rtc->rtc->dev, "power off failed\n");
-+		return;
-+	}
-+
-+	rtc_wait_not_busy(rtc);
-+
-+	rtc_write(rtc, OMAP_RTC_ALARM2_SECONDS_REG, tm.tm_sec);
-+	rtc_write(rtc, OMAP_RTC_ALARM2_MINUTES_REG, tm.tm_min);
-+	rtc_write(rtc, OMAP_RTC_ALARM2_HOURS_REG, tm.tm_hour);
-+	rtc_write(rtc, OMAP_RTC_ALARM2_DAYS_REG, tm.tm_mday);
-+	rtc_write(rtc, OMAP_RTC_ALARM2_MONTHS_REG, tm.tm_mon);
-+	rtc_write(rtc, OMAP_RTC_ALARM2_YEARS_REG, tm.tm_year);
-+
-+	/*
-+	 * enable ALARM2 interrupt
-+	 *
-+	 * NOTE: this fails on AM3352 if rtc_write (writeb) is used
-+	 */
-+	val = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
-+	rtc_writel(rtc, OMAP_RTC_INTERRUPTS_REG,
-+			val | OMAP_RTC_INTERRUPTS_IT_ALARM2);
-+
-+	/*
-+	 * Wait for alarm to trigger (within two seconds) and external PMIC to
-+	 * power off the system. Add a 500 ms margin for external latencies
-+	 * (e.g. debounce circuits).
-+	 */
-+	mdelay(2500);
-+}
-+
- static struct rtc_class_ops omap_rtc_ops = {
- 	.read_time	= omap_rtc_read_time,
- 	.set_time	= omap_rtc_set_time,
-@@ -361,6 +441,7 @@ static const struct omap_rtc_device_type omap_rtc_am3352_type = {
- 	.has_32kclk_en	= true,
- 	.has_kicker	= true,
- 	.has_irqwakeen	= true,
-+	.has_pmic_mode	= true,
- };
- 
- static const struct omap_rtc_device_type omap_rtc_da830_type = {
-@@ -412,6 +493,9 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	of_id = of_match_device(omap_rtc_of_match, &pdev->dev);
- 	if (of_id) {
- 		rtc->type = of_id->data;
-+		rtc->is_pmic_controller = rtc->type->has_pmic_mode &&
-+				of_property_read_bool(pdev->dev.of_node,
-+						"ti,system-power-controller");
- 	} else {
- 		id_entry = platform_get_device_id(pdev);
- 		rtc->type = (void *)id_entry->driver_data;
-@@ -460,6 +544,9 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 
- 	mask = OMAP_RTC_STATUS_ALARM;
- 
-+	if (rtc->type->has_pmic_mode)
-+		mask |= OMAP_RTC_STATUS_ALARM2;
-+
- 	if (rtc->type->has_power_up_reset) {
- 		mask |= OMAP_RTC_STATUS_POWER_UP;
- 		if (reg & OMAP_RTC_STATUS_POWER_UP)
-@@ -520,6 +607,13 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 			goto err;
- 	}
- 
-+	if (rtc->is_pmic_controller) {
-+		if (!pm_power_off) {
-+			omap_rtc_power_off_rtc = rtc;
-+			pm_power_off = omap_rtc_power_off;
-+		}
-+	}
-+
- 	return 0;
- 
- err:
-@@ -536,6 +630,12 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
- {
- 	struct omap_rtc *rtc = platform_get_drvdata(pdev);
- 
-+	if (pm_power_off == omap_rtc_power_off &&
-+			omap_rtc_power_off_rtc == rtc) {
-+		pm_power_off = NULL;
-+		omap_rtc_power_off_rtc = NULL;
-+	}
-+
- 	device_init_wakeup(&pdev->dev, 0);
- 
- 	/* leave rtc running, but disable irqs */
--- 
-2.0.4
