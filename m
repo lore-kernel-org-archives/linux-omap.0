@@ -1,97 +1,94 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 1/3] arm: mach-omap2: omap_hwmod_33xx_43xx_ipblock_data: Move am33xx_l4_hs_hwmod to ipblock_data
-Date: Fri, 31 Oct 2014 13:16:41 +0530
-Message-ID: <1414741603-18233-2-git-send-email-vigneshr@ti.com>
+Subject: [PATCH 3/3] arm: boot: dts: am4372: add tscadc DT entries for am437x-evm and am43x-epos-evm
+Date: Fri, 31 Oct 2014 13:16:43 +0530
+Message-ID: <1414741603-18233-4-git-send-email-vigneshr@ti.com>
 References: <1414741603-18233-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35293 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754868AbaJaHuc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Oct 2014 03:50:32 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1414741603-18233-1-git-send-email-vigneshr@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-This patch moves am33xx_l4_hs_hwmod from 33xx_data to ipblock_data. This
-is required because it can be reused in 43xx to add hwmod support to
-tscadc as it uses the same l4_hs hwmod in am43xx. This helps in setting
-appropriate clock domain names for tscadc on am33xx and am43xx.
+This patch adds tscadc DT entries for am437x-gp-evm and am43x-epos-evm.
 
 Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  1 +
- arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 15 +++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c              | 15 ---------------
- 3 files changed, 16 insertions(+), 15 deletions(-)
+ arch/arm/boot/dts/am4372.dtsi        | 20 ++++++++++++++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts  |  8 ++++++++
+ arch/arm/boot/dts/am43x-epos-evm.dts |  8 ++++++++
+ 3 files changed, 36 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-index 130332c0534d..6e57b8ad0db5 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-@@ -82,6 +82,7 @@ extern struct omap_hwmod am33xx_l3_main_hwmod;
- extern struct omap_hwmod am33xx_l3_s_hwmod;
- extern struct omap_hwmod am33xx_l3_instr_hwmod;
- extern struct omap_hwmod am33xx_l4_ls_hwmod;
-+extern struct omap_hwmod am33xx_l4_hs_hwmod;
- extern struct omap_hwmod am33xx_l4_wkup_hwmod;
- extern struct omap_hwmod am33xx_mpu_hwmod;
- extern struct omap_hwmod am33xx_pruss_hwmod;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index a579b89ce9b7..7f44922ab540 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -94,6 +94,21 @@ struct omap_hwmod am33xx_l4_ls_hwmod = {
- 	},
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 46660ffd2b65..fd2de8f256e6 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -667,6 +667,26 @@
+ 			};
+ 		};
+ 
++		tscadc: tscadc@44e0d000 {
++			compatible = "ti,am4372-tscadc","ti,am3359-tscadc";
++			reg = <0x44e0d000 0x1000>;
++			ti,hwmods = "adc_tsc";
++			interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&adc_tsc_fck>;
++			clock-names = "fck";
++			status = "disabled";
++
++			tsc {
++				compatible = "ti,am4372-tsc", "ti,am3359-tsc";
++			};
++
++			adc {
++				#io-channel-cells = <1>;
++				compatible = "ti,am4372-adc", "ti,am3359-adc";
++			};
++
++		};
++
+ 		sham: sham@53100000 {
+ 			compatible = "ti,omap5-sham";
+ 			ti,hwmods = "sham";
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index e7ac47fa6615..2ffd6d6dcc87 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -343,6 +343,14 @@
+ 	status = "okay";
  };
  
-+/* l4_hs */
-+struct omap_hwmod am33xx_l4_hs_hwmod = {
-+	.name		= "l4_hs",
-+	.class		= &am33xx_l4_hwmod_class,
-+	.clkdm_name	= "l4hs_clkdm",
-+	.flags		= HWMOD_INIT_NO_IDLE,
-+	.main_clk	= "l4hs_gclk",
-+	.prcm		= {
-+		.omap4  = {
-+			.clkctrl_offs   = AM33XX_CM_PER_L4HS_CLKCTRL_OFFSET,
-+			.modulemode     = MODULEMODE_SWCTRL,
-+		},
-+	},
++&tscadc {
++	status = "okay";
++
++	adc {
++		ti,adc-channels = <0 1 2 3 4 5 6 7>;
++	};
 +};
 +
- /* l4_wkup */
- struct omap_hwmod am33xx_l4_wkup_hwmod = {
- 	.name		= "l4_wkup",
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 6b406ca4bd3b..ce7d260495cb 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -63,21 +63,6 @@ static struct omap_hwmod am33xx_emif_hwmod = {
- 	},
+ &ecap0 {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index ac3e4859935f..f9bc607f3b3a 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -519,6 +519,14 @@
+ 	status = "okay";
  };
  
--/* l4_hs */
--static struct omap_hwmod am33xx_l4_hs_hwmod = {
--	.name		= "l4_hs",
--	.class		= &am33xx_l4_hwmod_class,
--	.clkdm_name	= "l4hs_clkdm",
--	.flags		= HWMOD_INIT_NO_IDLE,
--	.main_clk	= "l4hs_gclk",
--	.prcm		= {
--		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_PER_L4HS_CLKCTRL_OFFSET,
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
- static struct omap_hwmod_rst_info am33xx_wkup_m3_resets[] = {
- 	{ .name = "wkup_m3", .rst_shift = 3, .st_shift = 5 },
- };
++&tscadc {
++	status = "okay";
++
++	adc {
++		ti,adc-channels = <0 1 2 3 4 5 6 7>;
++	};
++};
++
+ &ecap0 {
+ 		status = "okay";
+ 		pinctrl-names = "default";
 -- 
 1.9.1
-
