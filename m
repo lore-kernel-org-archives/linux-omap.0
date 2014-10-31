@@ -1,78 +1,156 @@
-From: Hartmut Knaack <knaack.h@gmx.de>
-Subject: Re: [PATCH 3/4] arm: boot: dts: am335x-evm: Make charge delay
- a DT parameter for tsc
-Date: Fri, 31 Oct 2014 22:09:34 +0100
-Message-ID: <5453FA8E.3080204@gmx.de>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <1414408111-2631-4-git-send-email-vigneshr@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Fri, 31 Oct 2014 14:13:26 -0700
+Message-ID: <20141031211325.GC31454@atomide.com>
+References: <20141027200008.GR2560@atomide.com>
+ <20141031193057.GC12379@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1414408111-2631-4-git-send-email-vigneshr@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Jan Kardell <jan.kardell@telliq.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Brad Griffis <bgriffis@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32953 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751279AbaJaVOm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2014 17:14:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20141031193057.GC12379@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Vignesh R schrieb am 27.10.2014 12:08:
-> The charge delay value is by default 0xB000. But it can be set to lower
-> values on some boards as long as false pen-ups are avoided. Lowering the
-> value increases the sampling rate (though current sampling rate is
-> sufficient for tsc operation). Hence charge delay has been made a DT
-> parameter.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [141031 12:32]:
 > 
-I would recommend to use a few colons to separate some thoughts. Also, limit to 80 chars per line would be beneficial. See inline.
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->  .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt    | 13 +++++++++++++
->  arch/arm/boot/dts/am335x-evm.dts                            |  1 +
->  2 files changed, 14 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> index 878549ba814d..ac62769e70e4 100644
-> --- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> +++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> @@ -28,6 +28,18 @@ Required properties:
->  	ti,adc-channels: List of analog inputs available for ADC.
->  			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
->  
-> +Optional properties:
-> +- child "tsc"
-> +	ti,charge-delay: Length of touch screen charge delay step in terms of
-> +			 ADC clock cycles. Charge delay value should be large in order
-> +			 to avoid false pen-up events. This value affects the overall
-> +			 sampling speed hence need to be kept as low as possible while
-<...> speed, hence needs to be <...>
-> +			 avoiding false pen-up event. Start from a lower value say 0x400
-<...> pen-up events. Start from a lower value, like 0x400, and increase <...>
-> +			 and increase value until false pen-up events are avoided. The
-> +			 pen-up detection happens immediately after the charge step
-<...> charge step, so this <...>
-> +			 so this does in fact function as a hardware knob for adjusting
-> +			 the amount of "settling time".
-> +
->  Example:
->  	tscadc: tscadc@44e0d000 {
->  		compatible = "ti,am3359-tscadc";
-> @@ -36,6 +48,7 @@ Example:
->  			ti,x-plate-resistance = <200>;
->  			ti,coordiante-readouts = <5>;
->  			ti,wire-config = <0x00 0x11 0x22 0x33>;
-> +			ti,charge-delay = <0xB000>;
->  		};
->  
->  		adc {
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index e2156a583de7..80be0462298b 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -641,6 +641,7 @@
->  		ti,x-plate-resistance = <200>;
->  		ti,coordinate-readouts = <5>;
->  		ti,wire-config = <0x00 0x11 0x22 0x33>;
-> +		ti,charge-delay = <0xB000>;
->  	};
->  
->  	adc {
-> 
+> Last night I tried enabling DT booting on the LDP.  This resulted in
+> quite a horrid mess, so I don't think you're there still.
 
+Thanks for trying. Other than the mystery battery issue, the others
+should pretty much go away with just .config changes it seems.
+
+> The biggest problem seems to be that the kernel does /nothing/ but
+> spit out:
+> 
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> twl4030_bci bci.7: battery disconnected
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> twl4030_bci bci.7: battery disconnected
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> power_supply twl4030_ac: driver failed to report `current_now' property: -850000
+> twl4030_bci bci.7: battery disconnected
+> twl4030_bci bci.7: battery disconnected
+> 
+> Yes, the battery is disconnected, but there's absolutely no reason to keep
+> printing that damned warning time and time again.  The boot logger didn't
+> expect this, and it's logged about 16 hours of these continual messages
+> into the database... that's around 1.4GB of log!
+
+Hmm, I thought Nishant fixed that already with commit 61a7784efd3
+"power: twl4030_charger: detect battery presence prior to enabling
+charger".
+
+I'm not seeing these errors with twl4030_charger built in. For me it just
+bails out without a battery like it should:
+
+twl4030_bci 48070000.i2c:twl@48:bci: Battery was not detected:-19
+
+Nishant, any ideas on this one?
+ 
+> Other errors:
+> 
+> omap_hwmod: mcbsp2_sidetone using broken dt data from mcbsp
+> omap_hwmod: mcbsp3_sidetone using broken dt data from mcbsp
+
+This is a known issue with data for multiple devices squashed
+into one in the .dts files.
+
+Peter, any news on fixing up this issue? I think you promised to
+look at it already a while back :)
+
+> WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2538 _init+0xc8/0x170()
+> omap_hwmod: ssi: doesn't have mpu register target base
+> ...
+
+Not seeing this one, is this maybe from the legacy mode boot?
+
+> omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+> omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+
+Not seeing these either. Is this maybe from your 4430sdp instead?
+
+> omap_hwmod: mcbsp2: cannot be enabled for reset (3)
+
+This I'm seeing too, will take a look at this one.
+
+> twl4030_keypad keypad.31: OF: linux,keymap property not defined in /ocp/i2c@48070000/twl@48/keypad
+> twl4030_keypad keypad.31: Failed to build keymap
+> twl4030_keypad: probe of keypad.31 failed with error -2
+
+I'll take a look at this one as we now have a binding for
+twl4030_keypad. Probably just missing the keymap in the .dts
+file. The gpio keys should work though.
+ 
+> Digging the remaining messages out from between all the crap about the
+> battery:
+> 
+> 4809c000.mmc supply vmmc_aux not found, using dummy regulator
+> omap_hsmmc 4809c000.mmc: pins are not configured from the driver
+> 4809c000.mmc supply card-external-vcc not found, using dummy regulator
+> 480b4000.mmc supply vmmc not found, using dummy regulator
+> 480b4000.mmc supply vmmc_aux not found, using dummy regulator
+> omap_hsmmc 480b4000.mmc: pins are not configured from the driver
+> mmc0: host does not support reading read-only switch. assuming write-enable.
+> 480b4000.mmc supply card-external-vcc not found, using dummy regulator
+
+Not seeing this with my LDP. I think you're probably missing:
+CONFIG_REGULATOR_TWL4030
+CONFIG_REGULATOR_PBIAS
+
+> mmc0: new high speed SD card at address 0002
+> mmcblk0: mmc0:0002 00000 971 MiB
+> omap_hsmmc 480b4000.mmc: could not set regulator OCR (-22)
+> 480ad000.mmc supply vmmc not found, using dummy regulator
+> 480ad000.mmc supply vmmc_aux not found, using dummy regulator
+> omap_hsmmc 480ad000.mmc: could not set regulator OCR (-22)
+>  mmcblk0: p1 p2
+> omap_hsmmc 480ad000.mmc: pins are not configured from the driver
+> mmcblk0: error -84 transferring data, sector 1473761, nr 32, cmd response 0x900, card status 0xb00
+> mmcblk0: retrying using single block read
+> mmcblk0: error -84 transferring data, sector 426249, nr 32, cmd response 0x900, card status 0xb00
+> mmcblk0: retrying using single block read
+> mmcblk0: error -84 transferring data, sector 1525321, nr 192, cmd response 0x900, card status 0xb00
+> mmcblk0: retrying using single block read
+> ... etc ...
+
+I'm not seeing this one either on my LDP. I'm getting just one warning
+"multiblock reads disabled due to 35xx erratum 2.1.1.128"
+but the card works just fine here with no errors. I'd assume these go
+away with enabling the regulators above.
+ 
+> Of course, no problems with exactly the same kernel binary image without
+> DT.  I'd summarise this as DT remains totally unusable on LDP3430.  It's
+> soo unusable that it is going to /force/ me to take it out of the nightly
+> boot test, otherwise I'm going to have to manually intervene each and
+> every morning to kill the board.
+
+The LDP is certainly usable here with device tree based booting.
+
+It seems you're probably missing some .config options. Care to post
+your .config somewhere? Or maybe give it a try with omap2plus_defconfig?
+
+If that works, then maybe enable CONFIG_CHARGER_TWL4030=y in
+omap2plus_defconfig and see if you get the battery issue with it too?
+
+Regards,
+
+Tony
