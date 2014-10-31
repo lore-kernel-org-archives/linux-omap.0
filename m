@@ -1,234 +1,89 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 2/3] arm: mach-omap2: omap_hwmod_43xx_data: add hwmod support for tscadc on am43x-evm
-Date: Fri, 31 Oct 2014 13:16:42 +0530
-Message-ID: <1414741603-18233-3-git-send-email-vigneshr@ti.com>
-References: <1414741603-18233-1-git-send-email-vigneshr@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 06/10] ARM: OMAP2+: Show bootloader GPMC timings to allow
+ configuring the .dts file
+Date: Fri, 31 Oct 2014 11:24:20 +0200
+Message-ID: <54535544.7050308@ti.com>
+References: <1414628948-30702-1-git-send-email-tony@atomide.com> <1414628948-30702-7-git-send-email-tony@atomide.com> <545248FA.7040201@ti.com> <20141030144529.GG2542@atomide.com> <54525362.9080000@ti.com> <20141030163031.GG2560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58788 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34682 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756368AbaJaHul (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Oct 2014 03:50:41 -0400
-In-Reply-To: <1414741603-18233-1-git-send-email-vigneshr@ti.com>
+	id S1756039AbaJaJYq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Oct 2014 05:24:46 -0400
+In-Reply-To: <20141030163031.GG2560@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch adds hwmod support for tscadc to work on am43xx-evm. The am33xx
-hwmod structures of tscadc has been moved to ipblock_data so that it can
-be reused in am43xx. The clock domain names are separately set for am33xx
-and am43xx. Thus tscadc dt entries can now be added to am43xx board
-dt files.
+On 10/30/2014 06:30 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [141030 08:05]:
+>> On 10/30/2014 04:45 PM, Tony Lindgren wrote:
+>>> * Roger Quadros <rogerq@ti.com> [141030 07:21]:
+>>>> On 10/30/2014 02:29 AM, Tony Lindgren wrote:
+>>>>> +static void gpmc_cs_show_timings(int cs, const char *desc)
+>>>>> +{
+>>>>> +	gpmc_show_regs(cs, desc);
+>>>>> +
+>>>>> +	pr_info("gpmc cs%i access configuration:\n", cs);
+>>>>> +	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1,  4,  4, "time-para-granularity");
+>>>>> +	GPMC_GET_RAW(GPMC_CS_CONFIG1,  8,  9, "mux-add-data");
+>>>>> +	GPMC_GET_RAW(GPMC_CS_CONFIG1, 12, 13, "device-width");
+>>>>> +	GPMC_GET_RAW(GPMC_CS_CONFIG1, 16, 17, "wait-pin");
+>>>>> +	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 21, 21, "wait-on-write");
+>>>>> +	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 22, 22, "wait-on-read");
+>>>>> +	GPMC_GET_RAW_SHIFT(GPMC_CS_CONFIG1, 23, 24, 3, "burst-length");
+>>>>
+>>>> how does this work with shift = 3?
+>>>> Possible values of burst length are
+>>>> 0 -> 4
+>>>> 1 -> 8
+>>>> 2 -> 16
+>>>
+>>> Hmm sounds like a bug..
+> 
+> The shift does not work here for 0 << 3 naturally :) I've changed
+> it to l = (shift << l) where shift is 4 in this case.
+>  
+>>> In general, if you a chance to test this patch with a few
+>>> devices that would be great. Assuming you have working timings
+>>> in the bootloader, just remove the gpmc,* entries temporarily
+>>> from the .dts file for a device, and see if the values printed
+>>> by this patch make sense. I've used this to generate the values
+>>> for the 2430sdp smc91x and zoom 8250 but I don't think I've tried
+>>> anything with a burst mode so far.
+>>
+>> OK. I'll give it a spin with u-boot configured devices.
+> 
+> Great thanks. Updated patch below.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+> 8< ----------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Wed, 29 Oct 2014 17:16:48 -0700
+> Subject: [PATCH] ARM: OMAP2+: Show bootloader GPMC timings to allow configuring the .dts file
+> 
+> As we still have some devices with GPMC timings missing from the
+> .dts files, let's make it a bit easier to use the bootloader
+> values and print them out.
+> 
+> Note that we now need to move the parsing of the device tree provided
+> configuration a bit earlier so we can use that for checking if anything
+> was configured.
+> 
+> Cc: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  1 +
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 64 ++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 49 -----------------
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  1 +
- 4 files changed, 66 insertions(+), 49 deletions(-)
+Acked-by: Roger Quadros <rogerq@ti.com>
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-index 6e57b8ad0db5..b92a7c7825fa 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
-@@ -65,6 +65,7 @@ extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer4;
- extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer5;
- extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer6;
- extern struct omap_hwmod_ocp_if am33xx_l4_ls__timer7;
-+extern struct omap_hwmod_ocp_if am33xx_l4_wkup__adc_tsc;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__tpcc;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__tptc0;
- extern struct omap_hwmod_ocp_if am33xx_l3_main__tptc1;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-index 7f44922ab540..ef14e56a3968 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c
-@@ -151,6 +151,54 @@ struct omap_hwmod_class am33xx_wkup_m3_hwmod_class = {
- };
- 
- /*
-+ * 'adc/tsc' class
-+ * TouchScreen Controller (Anolog-To-Digital Converter)
-+ */
-+static struct omap_hwmod_class_sysconfig am33xx_adc_tsc_sysc = {
-+	.rev_offs	= 0x00,
-+	.sysc_offs	= 0x10,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			SIDLE_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class am33xx_adc_tsc_hwmod_class = {
-+	.name		= "adc_tsc",
-+	.sysc		= &am33xx_adc_tsc_sysc,
-+};
-+
-+struct omap_hwmod am33xx_adc_tsc_hwmod = {
-+	.name		= "adc_tsc",
-+	.class		= &am33xx_adc_tsc_hwmod_class,
-+	.clkdm_name	= "l4_wkup_clkdm",
-+	.main_clk	= "adc_tsc_fck",
-+	.prcm		= {
-+		.omap4  = {
-+			.modulemode     = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
-+/* L4 WKUP -> ADC_TSC */
-+static struct omap_hwmod_addr_space am33xx_adc_tsc_addrs[] = {
-+	{
-+		.pa_start	= 0x44E0D000,
-+		.pa_end		= 0x44E0D000 + SZ_8K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+struct omap_hwmod_ocp_if am33xx_l4_wkup__adc_tsc = {
-+	.master		= &am33xx_l4_wkup_hwmod,
-+	.slave		= &am33xx_adc_tsc_hwmod,
-+	.clk		= "dpll_core_m4_div2_ck",
-+	.addr		= am33xx_adc_tsc_addrs,
-+	.user		= OCP_USER_MPU,
-+};
-+
-+/*
-  * 'pru-icss' class
-  * Programmable Real-Time Unit and Industrial Communication Subsystem
-  */
-@@ -1370,6 +1418,7 @@ static void omap_hwmod_am33xx_clkctrl(void)
- 	CLKCTRL(am33xx_timer5_hwmod, AM33XX_CM_PER_TIMER5_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_timer6_hwmod, AM33XX_CM_PER_TIMER6_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_timer7_hwmod, AM33XX_CM_PER_TIMER7_CLKCTRL_OFFSET);
-+	CLKCTRL(am33xx_adc_tsc_hwmod, AM33XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex0_hwmod,
- 		AM33XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex1_hwmod,
-@@ -1398,6 +1447,18 @@ static void omap_hwmod_am33xx_clkctrl(void)
- 	CLKCTRL(am33xx_aes0_hwmod , AM33XX_CM_PER_AES0_CLKCTRL_OFFSET);
- }
- 
-+static void am33xx_hwmod_clockdomain(void)
-+{
-+	am33xx_l4_hs_hwmod.clkdm_name = "l4hs_clkdm";
-+	am33xx_adc_tsc_hwmod.clkdm_name = "l4_wkup_clkdm";
-+}
-+
-+static void am43xx_hwmod_clockdomain(void)
-+{
-+	am33xx_l4_hs_hwmod.clkdm_name = "l3_clkdm";
-+	am33xx_adc_tsc_hwmod.clkdm_name = "l3s_tsc_clkdm";
-+}
-+
- static void omap_hwmod_am33xx_rst(void)
- {
- 	RSTCTRL(am33xx_pruss_hwmod, AM33XX_RM_PER_RSTCTRL_OFFSET);
-@@ -1409,6 +1470,7 @@ void omap_hwmod_am33xx_reg(void)
- {
- 	omap_hwmod_am33xx_clkctrl();
- 	omap_hwmod_am33xx_rst();
-+	am33xx_hwmod_clockdomain();
- }
- 
- static void omap_hwmod_am43xx_clkctrl(void)
-@@ -1443,6 +1505,7 @@ static void omap_hwmod_am43xx_clkctrl(void)
- 	CLKCTRL(am33xx_timer5_hwmod, AM43XX_CM_PER_TIMER5_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_timer6_hwmod, AM43XX_CM_PER_TIMER6_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_timer7_hwmod, AM43XX_CM_PER_TIMER7_CLKCTRL_OFFSET);
-+	CLKCTRL(am33xx_adc_tsc_hwmod, AM43XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex0_hwmod,
- 		AM43XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET);
- 	CLKCTRL(am33xx_smartreflex1_hwmod,
-@@ -1482,4 +1545,5 @@ void omap_hwmod_am43xx_reg(void)
- {
- 	omap_hwmod_am43xx_clkctrl();
- 	omap_hwmod_am43xx_rst();
-+	am43xx_hwmod_clockdomain();
- }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index ce7d260495cb..c3ff14828850 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -88,37 +88,6 @@ static struct omap_hwmod am33xx_wkup_m3_hwmod = {
- };
- 
- /*
-- * 'adc/tsc' class
-- * TouchScreen Controller (Anolog-To-Digital Converter)
-- */
--static struct omap_hwmod_class_sysconfig am33xx_adc_tsc_sysc = {
--	.rev_offs	= 0x00,
--	.sysc_offs	= 0x10,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type2,
--};
--
--static struct omap_hwmod_class am33xx_adc_tsc_hwmod_class = {
--	.name		= "adc_tsc",
--	.sysc		= &am33xx_adc_tsc_sysc,
--};
--
--static struct omap_hwmod am33xx_adc_tsc_hwmod = {
--	.name		= "adc_tsc",
--	.class		= &am33xx_adc_tsc_hwmod_class,
--	.clkdm_name	= "l4_wkup_clkdm",
--	.main_clk	= "adc_tsc_fck",
--	.prcm		= {
--		.omap4	= {
--			.clkctrl_offs	= AM33XX_CM_WKUP_ADC_TSC_CLKCTRL_OFFSET,
--			.modulemode	= MODULEMODE_SWCTRL,
--		},
--	},
--};
--
--/*
-  * Modules omap_hwmod structures
-  *
-  * The following IPs are excluded for the moment because:
-@@ -426,24 +395,6 @@ static struct omap_hwmod_ocp_if am33xx_l4_wkup__gpio0 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--/* L4 WKUP -> ADC_TSC */
--static struct omap_hwmod_addr_space am33xx_adc_tsc_addrs[] = {
--	{
--		.pa_start	= 0x44E0D000,
--		.pa_end		= 0x44E0D000 + SZ_8K - 1,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
--static struct omap_hwmod_ocp_if am33xx_l4_wkup__adc_tsc = {
--	.master		= &am33xx_l4_wkup_hwmod,
--	.slave		= &am33xx_adc_tsc_hwmod,
--	.clk		= "dpll_core_m4_div2_ck",
--	.addr		= am33xx_adc_tsc_addrs,
--	.user		= OCP_USER_MPU,
--};
--
- static struct omap_hwmod_ocp_if am33xx_l4_hs__cpgmac0 = {
- 	.master		= &am33xx_l4_hs_hwmod,
- 	.slave		= &am33xx_cpgmac0_hwmod,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index fea01aa3ef42..3ce8d28c0f9a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -809,6 +809,7 @@ static struct omap_hwmod_ocp_if *am43xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l4_ls__timer5,
- 	&am33xx_l4_ls__timer6,
- 	&am33xx_l4_ls__timer7,
-+	&am33xx_l4_wkup__adc_tsc,
- 	&am33xx_l3_main__tpcc,
- 	&am33xx_l4_ls__uart2,
- 	&am33xx_l4_ls__uart3,
--- 
-1.9.1
+I won't be able to test this series this week, but will get back by the next.
+
+cheers,
+-roger
 
