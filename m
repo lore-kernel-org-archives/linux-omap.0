@@ -1,58 +1,187 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: Nokia n900 problems in 3.18-rc1 (was Re: USB Ethernet gadget on Nokia n900)
-Date: Fri, 31 Oct 2014 21:30:58 +0100
-Message-ID: <201410312130.58642@pali>
-References: <20141019090107.GA19132@amd> <20141029140943.GX2542@atomide.com> <20141031200318.GA6949@amd>
+From: Hartmut Knaack <knaack.h@gmx.de>
+Subject: Re: [PATCH 1/4] input: touchscreen: ti_am335x_tsc Interchange
+ touchscreen and ADC steps
+Date: Fri, 31 Oct 2014 22:03:49 +0100
+Message-ID: <5453F935.10007@gmx.de>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <1414408111-2631-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4480910.6W89ptCjVB";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:39034 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457AbaJaUbB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2014 16:31:01 -0400
-In-Reply-To: <20141031200318.GA6949@amd>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1414408111-2631-2-git-send-email-vigneshr@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Felipe Balbi <balbi@ti.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Jan Kardell <jan.kardell@telliq.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Brad Griffis <bgriffis@ti.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
---nextPart4480910.6W89ptCjVB
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Friday 31 October 2014 21:03:18 Pavel Machek wrote:
-> Hi!
+Vignesh R schrieb am 27.10.2014 12:08:
+> From: Brad Griffis <bgriffis@ti.com>
 >=20
-> I tried enabling audio. It works ...sometimes... after fixing
-> kconfig. But I'm getting WARN_ON, about 50% of time. Ideas
-> welcome.
+> This patch makes the initial changes required to workaround TSC-false
+> pen-up interrupts. It is required to implement these changes in order=
+ to
+> remove udelay in the TSC interrupt handler and false pen-up events.
+> The charge step is to be executed immediately after sampling X+. Henc=
+e
+> TSC is made to use higher numbered steps (steps 5 to 16 for 5 co-ordi=
+nate
+> readouts, 4 wire TSC configuration) and ADC to use lower ones. Furthe=
+r
+> X co-ordinate readouts must be the last to be sampled, thus co-ordina=
+tes
+> are sampled in the order Y-Z-X.
 >=20
-> 								Pavel
+> Signed-off-by: Brad Griffis <bgriffis@ti.com>
+> [vigneshr@ti.com: Ported the patch from v3.12 to v3.18rc2]
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  drivers/iio/adc/ti_am335x_adc.c           |  2 +-
+>  drivers/input/touchscreen/ti_am335x_tsc.c | 42 ++++++++++++++++++---=
+----------
+>  2 files changed, 25 insertions(+), 19 deletions(-)
+>=20
+> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am3=
+35x_adc.c
+> index b730864731e8..3f530ed6bd80 100644
+> --- a/drivers/iio/adc/ti_am335x_adc.c
+> +++ b/drivers/iio/adc/ti_am335x_adc.c
+> @@ -98,7 +98,7 @@ static void tiadc_step_config(struct iio_dev *indio=
+_dev)
+>  	 * needs to be given to ADC to digitalize data.
+>  	 */
+> =20
+> -	steps =3D TOTAL_STEPS - adc_dev->channels;
+> +	steps =3D 0;
+You could even initialize it with zero during variable definition. And =
+I think the above comment could need an update now.
+>  	if (iio_buffer_enabled(indio_dev))
+>  		stepconfig =3D STEPCONFIG_AVG_16 | STEPCONFIG_FIFO1
+>  					| STEPCONFIG_MODE_SWCNT;
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/inpu=
+t/touchscreen/ti_am335x_tsc.c
+> index 2ce649520fe0..1aeac9675fe7 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -121,7 +121,7 @@ static void titsc_step_config(struct titsc *ts_de=
+v)
+>  {
+>  	unsigned int	config;
+>  	int i;
+> -	int end_step;
+> +	int end_step, first_step, tsc_steps;
+>  	u32 stepenable;
+> =20
+>  	config =3D STEPCONFIG_MODE_HWSYNC |
+> @@ -140,9 +140,11 @@ static void titsc_step_config(struct titsc *ts_d=
+ev)
+>  		break;
+>  	}
+> =20
+> -	/* 1 =E2=80=A6 coordinate_readouts is for X */
+> -	end_step =3D ts_dev->coordinate_readouts;
+> -	for (i =3D 0; i < end_step; i++) {
+> +	tsc_steps =3D ts_dev->coordinate_readouts * 2 + 2;
+> +	first_step =3D TOTAL_STEPS - tsc_steps;
+> +	/* Steps 16 to 16-coordinate_readouts is for X */
+> +	end_step =3D first_step + tsc_steps;
+> +	for (i =3D end_step - ts_dev->coordinate_readouts; i < end_step; i+=
++) {
+>  		titsc_writel(ts_dev, REG_STEPCONFIG(i), config);
+>  		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
+>  	}
+> @@ -164,9 +166,9 @@ static void titsc_step_config(struct titsc *ts_de=
+v)
+>  		break;
+>  	}
+> =20
+> -	/* coordinate_readouts =E2=80=A6 coordinate_readouts * 2 is for Y *=
+/
+> -	end_step =3D ts_dev->coordinate_readouts * 2;
+> -	for (i =3D ts_dev->coordinate_readouts; i < end_step; i++) {
+> +	/* 1 ... coordinate_readouts is for Y */
+> +	end_step =3D first_step + ts_dev->coordinate_readouts;
+> +	for (i =3D first_step; i < end_step; i++) {
+>  		titsc_writel(ts_dev, REG_STEPCONFIG(i), config);
+>  		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
+>  	}
+> @@ -179,7 +181,7 @@ static void titsc_step_config(struct titsc *ts_de=
+v)
+>  	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
+>  	titsc_writel(ts_dev, REG_CHARGEDELAY, CHARGEDLY_OPENDLY);
+> =20
+> -	/* coordinate_readouts * 2 =E2=80=A6 coordinate_readouts * 2 + 2 is=
+ for Z */
+> +	/* coordinate_readouts + 1 ... coordinate_readouts + 2 is for Z */
+>  	config =3D STEPCONFIG_MODE_HWSYNC |
+>  			STEPCONFIG_AVG_16 | ts_dev->bit_yp |
+>  			ts_dev->bit_xn | STEPCONFIG_INM_ADCREFM |
+> @@ -194,8 +196,11 @@ static void titsc_step_config(struct titsc *ts_d=
+ev)
+>  	titsc_writel(ts_dev, REG_STEPDELAY(end_step),
+>  			STEPCONFIG_OPENDLY);
+> =20
+> -	/* The steps1 =E2=80=A6 end and bit 0 for TS_Charge */
+> -	stepenable =3D (1 << (end_step + 2)) - 1;
+> +	/* The steps end ... end - readouts * 2 + 2 and bit 0 for TS_Charge=
+ */
+> +	stepenable =3D 1;
+> +	for (i =3D 0; i < tsc_steps; i++)
+> +		stepenable |=3D 1 << (first_step + i + 1);
+> +
+>  	ts_dev->step_mask =3D stepenable;
+>  	am335x_tsc_se_set_cache(ts_dev->mfd_tscadc, ts_dev->step_mask);
+>  }
+> @@ -209,6 +214,7 @@ static void titsc_read_coordinates(struct titsc *=
+ts_dev,
+>  	unsigned int read, diff;
+>  	unsigned int i, channel;
+>  	unsigned int creads =3D ts_dev->coordinate_readouts;
+> +	unsigned int first_step =3D TOTAL_STEPS - (creads * 2 + 2);
+> =20
+>  	*z1 =3D *z2 =3D 0;
+>  	if (fifocount % (creads * 2 + 2))
+> @@ -226,7 +232,7 @@ static void titsc_read_coordinates(struct titsc *=
+ts_dev,
+> =20
+>  		channel =3D (read & 0xf0000) >> 16;
+>  		read &=3D 0xfff;
+> -		if (channel < creads) {
+> +		if (channel > first_step + creads + 2) {
+>  			diff =3D abs(read - prev_val_x);
+>  			if (diff < prev_diff_x) {
+>  				prev_diff_x =3D diff;
+> @@ -234,19 +240,19 @@ static void titsc_read_coordinates(struct titsc=
+ *ts_dev,
+>  			}
+>  			prev_val_x =3D read;
+> =20
+> -		} else if (channel < creads * 2) {
+> +		} else if (channel =3D=3D first_step + creads + 1) {
+> +			*z1 =3D read;
+> +
+> +		} else if (channel =3D=3D first_step + creads + 2) {
+> +			*z2 =3D read;
+> +
+> +		} else if (channel > first_step) {
+>  			diff =3D abs(read - prev_val_y);
+>  			if (diff < prev_diff_y) {
+>  				prev_diff_y =3D diff;
+>  				*y =3D read;
+>  			}
+>  			prev_val_y =3D read;
+> -
+> -		} else if (channel < creads * 2 + 1) {
+> -			*z1 =3D read;
+> -
+> -		} else if (channel < creads * 2 + 2) {
+> -			*z2 =3D read;
+>  		}
+>  	}
+>  }
 >=20
 
-I see same problem with audio. Sometimes after reboot it working=20
-and sometimes not. It looks like Nokia Bootloader set something=20
-somewhere and then it works... I have no idea how to fix it...
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart4480910.6W89ptCjVB
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRT8YIACgkQi/DJPQPkQ1KfcgCeJvT/fbQOYn9myWgO7PMvHj3x
-JgoAn1vozxfGRUySmULRCi93/t1WH3i0
-=J5ml
------END PGP SIGNATURE-----
-
---nextPart4480910.6W89ptCjVB--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
