@@ -1,62 +1,53 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] pinctrl: dra: dt-bindings: Fix output pull up/down
-Date: Fri, 31 Oct 2014 12:52:25 +0200
-Message-ID: <1414752745-13696-1-git-send-email-rogerq@ti.com>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH v5 0/7] Per-user clock constraints
+Date: Fri, 31 Oct 2014 13:33:58 +0200
+Message-ID: <20141031113358.GY32045@tbergstrom-lnx.Nvidia.com>
+References: <1414666135-14313-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42804 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756393AbaJaKwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Oct 2014 06:52:32 -0400
+Received: from hqemgate14.nvidia.com ([216.228.121.143]:13487 "EHLO
+	hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757781AbaJaLeU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2014 07:34:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1414666135-14313-1-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: nm@ti.com, balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Stephen Boyd <sboyd@codeaurora.org>, Alex Elder <elder@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
 
-For PIN_OUTPUT_PULLUP and PIN_OUTPUT_PULLDOWN we must not set the
-PULL_DIS bit which disables the PULLs.
+On Thu, Oct 30, 2014 at 11:48:26AM +0100, Tomeu Vizoso wrote:
+> Hello,
+> 
+> this fifth version of the series has just one change, suggested by Stephen:
+> 
+> * Initialize clk.ceiling_constraint to ULONG_MAX and warn about new floor
+> constraints being higher than the existing ceiling.
+> 
+> The first five patches are just cleanups that should be desirable on their own,
+> and that should make easier to review the actual per-user clock patch.
+> 
+> The sixth patch actually moves the per-clock data that was stored in struct
+> clk to a new struct clk_core and adds references to it from both struct clk and
+> struct clk_hw. struct clk is now ready to contain information that is specific
+> to a given clk consumer.
+> 
+> The seventh patch adds API for setting floor and ceiling constraints and stores
+> that information on the per-user struct clk, which is iterable from struct
+> clk_core.
+> 
+> They are based on top of 3.18-rc1.
+> 
+> http://cgit.collabora.com/git/user/tomeu/linux.git/log/?h=per-user-clk-constraints-v5
+> 
 
-While at that get rid for the PULL_ENA defination. It is misleading
-as there is no PULL enable bit in the register. And a zero bit defination
-makes no sense.
+Acked-By: Peter De Schrijver <pdeschrijver@nvidia.com>
 
-Fixes: 23d9cec07c58 (:pinctrl: dra: dt-bindings: Fix pull enable/disable")
+Mike,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- include/dt-bindings/pinctrl/dra.h | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Do you think this will be merged for 3.19?
 
-diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
-index 3d33794..71098e4 100644
---- a/include/dt-bindings/pinctrl/dra.h
-+++ b/include/dt-bindings/pinctrl/dra.h
-@@ -30,7 +30,6 @@
- #define MUX_MODE14	0xe
- #define MUX_MODE15	0xf
- 
--#define PULL_ENA		(0 << 16)
- #define PULL_DIS		(1 << 16)
- #define PULL_UP			(1 << 17)
- #define INPUT_EN		(1 << 18)
-@@ -40,12 +39,12 @@
- 
- /* Active pin states */
- #define PIN_OUTPUT		(0 | PULL_DIS)
--#define PIN_OUTPUT_PULLUP	(PIN_OUTPUT | PULL_ENA | PULL_UP)
--#define PIN_OUTPUT_PULLDOWN	(PIN_OUTPUT | PULL_ENA)
-+#define PIN_OUTPUT_PULLUP	(PULL_UP)
-+#define PIN_OUTPUT_PULLDOWN	(0)
- #define PIN_INPUT		(INPUT_EN | PULL_DIS)
- #define PIN_INPUT_SLEW		(INPUT_EN | SLEWCONTROL)
--#define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
--#define PIN_INPUT_PULLDOWN	(PULL_ENA | INPUT_EN)
-+#define PIN_INPUT_PULLUP	(INPUT_EN | PULL_UP)
-+#define PIN_INPUT_PULLDOWN	(INPUT_EN)
- 
- #endif
- 
--- 
-1.8.3.2
+Thanks,
 
+Peter.
