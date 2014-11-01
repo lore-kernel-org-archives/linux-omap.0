@@ -1,87 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Fri, 31 Oct 2014 16:37:23 -0700
-Message-ID: <20141031233722.GE31454@atomide.com>
-References: <20141027200008.GR2560@atomide.com>
- <20141031193057.GC12379@n2100.arm.linux.org.uk>
- <20141031211325.GC31454@atomide.com>
- <20141031223332.GD12379@n2100.arm.linux.org.uk>
+Date: Sat, 1 Nov 2014 00:44:51 +0000
+Message-ID: <20141101004451.GE12379@n2100.arm.linux.org.uk>
+References: <20141027200008.GR2560@atomide.com> <20141031193057.GC12379@n2100.arm.linux.org.uk> <20141031211325.GC31454@atomide.com> <20141031223332.GD12379@n2100.arm.linux.org.uk> <20141031233722.GE31454@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41532 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752564AbaJaXik (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Oct 2014 19:38:40 -0400
+Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:51906 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753560AbaKAAo6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Oct 2014 20:44:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20141031223332.GD12379@n2100.arm.linux.org.uk>
+In-Reply-To: <20141031233722.GE31454@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [141031 15:35]:
-> On Fri, Oct 31, 2014 at 02:13:26PM -0700, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [141031 12:32]:
+On Fri, Oct 31, 2014 at 04:37:23PM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [141031 15:35]:
+> > On Fri, Oct 31, 2014 at 02:13:26PM -0700, Tony Lindgren wrote:
+> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [141031 12:32]:
+> > > 
+> > > > WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2538 _init+0xc8/0x170()
+> > > > omap_hwmod: ssi: doesn't have mpu register target base
+> > > > ...
+> > > 
+> > > Not seeing this one, is this maybe from the legacy mode boot?
+> > > 
+> > > > omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
+> > > > omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
+> > > 
+> > > Not seeing these either. Is this maybe from your 4430sdp instead?
 > > 
-> > > WARNING: CPU: 0 PID: 1 at arch/arm/mach-omap2/omap_hwmod.c:2538 _init+0xc8/0x170()
-> > > omap_hwmod: ssi: doesn't have mpu register target base
-> > > ...
+> > This is /all/ from the 3430 LDP.
 > > 
-> > Not seeing this one, is this maybe from the legacy mode boot?
+> > Compare these two URLs:
 > > 
-> > > omap_hwmod: usb_host_hs: could not associate to clkdm l3_init_clkdm
-> > > omap_hwmod: usb_tll_hs: could not associate to clkdm l3_init_clkdm
-> > 
-> > Not seeing these either. Is this maybe from your 4430sdp instead?
+> > http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=2891
+> > http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=2892
 > 
-> This is /all/ from the 3430 LDP.
+> Not able to load the second one because of the broken battery
+> driver :)
 > 
-> Compare these two URLs:
+> But based on the link above I can see that you're mixing in both
+> legacy mode warnings and DT mode warnings at least for the SSI,
+> so that explains why I'm not seeing the SSI error.
 > 
-> http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=2891
-> http://www.arm.linux.org.uk/developer/build/result.php?type=boot&idx=2892
+> Still no idea where the l3_init_clkdm errors come from, are they
+> from your huge log?
+> 
+> Like I posted in this thread, I'm not seeing same errors as you are
+> with your config modified for DT:
+> 
+> http://muru.com/for-rmk/dmesg-ldp-dt-v3.18-rc2
 
-Not able to load the second one because of the broken battery
-driver :)
+Gah, the build system hadn't copied the wrapped image over since 3.14 days,
+so it was a boot of the 3.14 kernel.  Sorry about that.
 
-But based on the link above I can see that you're mixing in both
-legacy mode warnings and DT mode warnings at least for the SSI,
-so that explains why I'm not seeing the SSI error.
+Now fixed, things are looking better, but not good enough.  The biggest
+problem for the autobooter is this:
 
-Still no idea where the l3_init_clkdm errors come from, are they
-from your huge log?
+Deactivating swap...
+Unmounting local filesystems...
+Can't find /mnt/ram in /etc/fstab
+umount: forced umount of tmpfs failed!
+reboot: Power down
+...4.T.......
 
-Like I posted in this thread, I'm not seeing same errors as you are
-with your config modified for DT:
+Texas Instruments X-Loader 1.41mmc
+Starting OS Bootloader from MMC/SD1 ...
 
-http://muru.com/for-rmk/dmesg-ldp-dt-v3.18-rc2
- 
-> I'm not trying with omap2plus_defconfig as this is supposed to be a
-> separate build.  Given that - as I say - the /exact/ same kernel binary
-> works in legacy mode, it suggests that there's some pretty major
-> differences between what devices are supported in a legacy boot mode
-> and what devices are supported in DT boot mode.
 
-Sure no problem. Your .config works just fine for me in DT mode
-with the the options enabled like I posted in this thread.
- 
-> I really /can't/ risk letting the platform boot again in DT mode having
-> just played around with some options - if it spews like it did again
-> last night, it'll spew for the whole day tomorrow, and I really don't
-> want the database filling up with another gigabyte of log.
+U-Boot 1.1.4 (May 22 2008 - 18:10:53)
 
-Looks like the twl4030_charger.c driver just does printk in the irq
-handler for errors :) I'm almost certain you'd get the same errors
-in legacy mode too if board-ldp.c passed the platform_data to the
-battery driver.. No ideas why the battery detection during probe
-won't work for your hardware unless your PMIC is partially fried
-or some earlier revision that's broken.
+... which then proceeds with a full boot, and a re-run of everything,
+which will continue endlessly.
 
-Anyways, let me know what happens with the options I suggested and
-CONFIG_CHARGER_TWL4030 disabled so we can see if the other problems
-are gone.
+Power down *means* you're supposed to power down or halt.  You're *NOT*
+supposed to reboot.  This needs fixing.  Diffing the two log files
+gives this at that point:
 
-Regards,
+-reboot: System halted
++reboot: Power down
 
-Tony
+I guess the problem is that someone's decided with DT to hook a power
+down handler which reboots instead.  That's soo fscking broken.  Reboot
+means reboot.  Power off (and halt) means shutdown and _do_ _not_ reboot.
+If I want it to reboot, I'd have asked for a reboot.
+
+The battery problem is gone (so must have been fixed between 3.14 and
+3.18-rc2) as is the omap_hwmod warning with backtrace.
+
+New errors are:
+
++omap_l3_smx omap_l3_smx.0: couldn't request debug irq
++omap_l3_smx: probe of omap_l3_smx.0 failed with error -22
++irq: no irq domain found for /ocp/pinmux@48002030 !
++vddvario: no parameters
++vdd33a: no parameters
++omap2_set_init_voltage: unable to find boot up OPP for vdd_mpu_iva
++omap2_set_init_voltage: unable to set vdd_mpu_iva
++omap2_set_init_voltage: unable to find boot up OPP for vdd_core
++omap2_set_init_voltage: unable to set vdd_core
+
+However, these are minor compared to the dreadful poweroff behaviour.
+Still going to have to disable DT booting for the LDP because of that.
+
+-- 
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
