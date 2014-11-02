@@ -1,39 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] mfd: twl4030-power: Fix regression with missing compatible
- flag
-Date: Sun, 2 Nov 2014 10:09:38 -0800
-Message-ID: <20141102180938.GI31454@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Sun, 2 Nov 2014 10:15:18 -0800
+Message-ID: <20141102181518.GJ31454@atomide.com>
+References: <20141027200008.GR2560@atomide.com>
+ <20141031193057.GC12379@n2100.arm.linux.org.uk>
+ <20141031211325.GC31454@atomide.com>
+ <20141031223332.GD12379@n2100.arm.linux.org.uk>
+ <20141031233722.GE31454@atomide.com>
+ <20141101004451.GE12379@n2100.arm.linux.org.uk>
+ <20141101215745.GF31454@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63942 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751155AbaKBSQ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Nov 2014 13:16:29 -0500
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20141101215745.GF31454@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Commit e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset
-configuration") accidentally removed the compatible flag for
-"ti,twl4030-power" that should be there as documented in the
-binding.
+* Tony Lindgren <tony@atomide.com> [141101 15:00]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [141031 17:46]:
+>  
+> > However, these are minor compared to the dreadful poweroff behaviour.
+> > Still going to have to disable DT booting for the LDP because of that.
+> 
+> Sure, I'll let you know as soon as I have something available
+> for the PMIC powerdown issue.
 
-If "ti,twl4030-power" only the poweroff configuration is done
-by the driver.
+OK found the problem. The PMIC power transition register needs to
+have charger and VBUS bits disabled to prevent immediate reboot
+on powerdown for some boards.
 
-Fixes: e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset configuration")
-Cc: stable@vger.kernel.org # v3.16+
-Reported-by: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Fix posted as "mfd: twl4030-power: Fix poweroff with PM configuration
+enabled":
 
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -831,6 +831,9 @@ static struct twl4030_power_data osc_off_idle = {
- 
- static struct of_device_id twl4030_power_of_match[] = {
- 	{
-+		.compatible = "ti,twl4030-power",
-+	},
-+	{
- 		.compatible = "ti,twl4030-power-reset",
- 		.data = &omap3_reset,
- 	},
+https://lkml.org/lkml/2014/11/2/114
+
+Regards,
+
+Tony
