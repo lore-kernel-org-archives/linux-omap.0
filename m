@@ -1,42 +1,73 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 3/4] extcon: gpio: Always use gpio_get_value_cansleep
-Date: Mon, 3 Nov 2014 10:32:29 -0600
-Message-ID: <1415032350-8459-4-git-send-email-balbi@ti.com>
+Subject: [PATCH 4/4] extcon: gpio: Add support for using cable names
+Date: Mon, 3 Nov 2014 10:32:30 -0600
+Message-ID: <1415032350-8459-5-git-send-email-balbi@ti.com>
 References: <1415032350-8459-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43451 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752279AbaKCQdG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Nov 2014 11:33:06 -0500
 In-Reply-To: <1415032350-8459-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org, George Cherian <george.cherian@ti.com>, Felipe Balbi <balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org, George Cherian <george.cherian@ti.com>
 
 From: George Cherian <george.cherian@ti.com>
 
-Some gpio's can sleep while reading, so always use gpio_get_value_cansleep
-to get data. This fixes warning from gpiolib due to wrong API usage.
+Add support for using cable names. Enables other drivers to register interest
+and get notified using extcon provided notifier call backs.
 
-Reviewed-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: George Cherian <george.cherian@ti.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/extcon/extcon-gpio.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/extcon/extcon-gpio.txt | 2 ++
+ drivers/extcon/extcon-gpio.c                             | 4 ++++
+ 2 files changed, 6 insertions(+)
 
+diff --git a/Documentation/devicetree/bindings/extcon/extcon-gpio.txt b/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
+index 5fe6846..f19aeb4 100644
+--- a/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
++++ b/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
+@@ -7,6 +7,7 @@ Required Properties:
+  - compatible: should be:
+    * "linux,extcon-gpio"
+  - gpios: specifies the gpio pin used.
++ - cable-name: Name of the cable used.
+ 
+ Optional Properties:
+  - debounce: Debounce time for GPIO IRQ in ms
+@@ -18,4 +19,5 @@ Eg:
+ 		compatible = "linux,extcon-gpio";
+ 		gpios = <&gpio3 12 GPIO_ACTIVE_HIGH>;
+ 		debounce = <20>;
++		cable-name = "USB-HOST";
+ 	};
 diff --git a/drivers/extcon/extcon-gpio.c b/drivers/extcon/extcon-gpio.c
-index 9571e1f..7191d28 100644
+index 7191d28..cbe35af 100644
 --- a/drivers/extcon/extcon-gpio.c
 +++ b/drivers/extcon/extcon-gpio.c
-@@ -51,7 +51,7 @@ static void gpio_extcon_work(struct work_struct *work)
- 		container_of(to_delayed_work(work), struct gpio_extcon_data,
- 			     work);
+@@ -42,6 +42,7 @@ struct gpio_extcon_data {
+ 	struct delayed_work work;
+ 	unsigned long debounce_jiffies;
+ 	bool check_on_resume;
++	const char *cable_name[1];
+ };
  
--	state = gpiod_get_value(data->gpiod);
-+	state = gpiod_get_value_cansleep(data->gpiod);
- 	extcon_set_state(data->edev, state);
- }
- 
+ static void gpio_extcon_work(struct work_struct *work)
+@@ -112,6 +113,9 @@ static int gpio_extcon_probe(struct platform_device *pdev)
+ 		of_property_read_u32(np, "debounce", &debounce);
+ 		irq = gpiod_to_irq(extcon_data->gpiod);
+ 		irq_flags = irq_get_trigger_type(irq);
++		of_property_read_string_index(np, "cable-name", 0,
++					      extcon_data->cable_name);
++		extcon_data->edev->supported_cable = extcon_data->cable_name;
+ 	} else {
+ 		if (!pdata)
+ 			return -EBUSY;
 -- 
 2.1.0.GIT
+
