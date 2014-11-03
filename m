@@ -1,44 +1,113 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
-Date: Mon, 3 Nov 2014 19:09:21 +0100
-Message-ID: <20141103180920.GA20779@localhost.localdomain>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v3 00/47] kernel: Add support for power-off handler call
+ chain
+Date: Mon, 3 Nov 2014 10:22:13 -0800
+Message-ID: <20141103182213.GA10640@roeck-us.net>
+References: <1414425354-10359-1-git-send-email-linux@roeck-us.net>
+ <20141103175935.GS27425@saruman>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, linux-iio@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm
+In-Reply-To: <20141103175935.GS27425@saruman>
+Sender: linux-pm-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Alan Cox <gnomes@lxorguk.ukuu.org.uk>, Alexander Graf <agraf@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Heiko Stuebner <heiko@sntech.de>, Lee Jones <lee.jones@linaro.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Romain Perier <romain.perier@gmail.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 27, 2014 at 04:38:27PM +0530, Vignesh R wrote:
-> This series of patches fix TSC defects related to lag in touchscreen
-> performance and cursor jump at touch release. The lag was result of
-> udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
-> The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
-> to avoid false pen-up events and remove udelay.
+On Mon, Nov 03, 2014 at 11:59:35AM -0600, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Oct 27, 2014 at 08:55:07AM -0700, Guenter Roeck wrote:
+> > Various drivers implement architecture and/or device specific means to
+> > remove power from the system.  For the most part, those drivers set the
+> > global variable pm_power_off to point to a function within the driver.
+> > 
+> > This mechanism has a number of drawbacks.  Typically only one means
+> > to remove power is supported (at least if pm_power_off is used).
+> > At least in theory there can be multiple means to remove power, some of
+> > which may be less desirable.  For example, one mechanism might power off the
+> > entire system through an I/O port or gpio pin, while another might power off
+> > a board by disabling its power controller. Other mechanisms may really just
+> > execute a restart sequence or drop into the ROM monitor, or put the CPU into
+> > sleep mode.  Using pm_power_off can also be racy if the function pointer is
+> > set from a driver built as module, as the driver may be in the process of
+> > being unloaded when pm_power_off is called.  If there are multiple power-off
+> > handlers in the system, removing a module with such a handler may
+> > inadvertently reset the pointer to pm_power_off to NULL, leaving the system
+> > with no means to remove power.
+> > 
+> > Introduce a system power-off handler call chain to solve the described
+> > problems.  This call chain is expected to be executed from the architecture
+> > specific machine_power_off() function.  Drivers providing system power-off
+> > functionality are expected to register with this call chain.  By using the
+> > priority field in the notifier block, callers can control power-off handler
+> > execution sequence and thus ensure that the power-off handler with the
+> > optimal capabilities to remove power for a given system is called first.
+> > A call chain instead of a single call to the highest priority handler is
+> > used to provide fallback: If multiple power-off handlers are installed,
+> > all handlers will be called until one actually succeeds to power off the
+> > system.
+> > 
+> > Patch 01/47 implements the power-off handler API.
+> > 
+> > Patches 02/47 to 04/47 are cleanup patches to prepare for the move of
+> > pm_power_off to a common location.
+> > 
+> > Patches 05/47 to 07/47 remove references to pm_power_off from devicetree
+> > bindings descriptions.
+> > 
+> > Patch 08/47 moves the pm_power_off variable from architecture code to
+> > kernel/reboot.c. 
+> > 
+> > Patches 09/47 to 34/47 convert various drivers to register with the kernel
+> > power-off handler instead of setting pm_power_off directly.
+> > 
+> > Patches 35/47 to 46/47 do the same for architecture code.
+> > 
+> > Patch 47/47 finally removes pm_power_off.
+> > 
+> > For the most part, the individual patches include explanations why specific
+> > priorities were chosen, at least if the selected priority is not the default
+> > priority. Subsystem and architecture maintainers are encouraged to have a look
+> > at the selected priorities and suggest improvements.
+> > 
+> > I ran the final code through my normal build and qemu tests. Results are
+> > available at http://server.roeck-us.net:8010/builders in the 'poweroff-handler'
+> > column. I also built all available configurations for arm, mips, powerpc,
+> > m68k, and sh architectures.
+> > 
+> > The series is available in branch poweroff-handler of my repository at
+> > git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git.
+> > It is based on 3.18-rc2.
+> > 
+> > A note on Cc: In the initial submission I had way too many Cc:, causing the
+> > patchset to be treated as spam by many mailers and mailing list handlers,
+> > which of course defeated the purpose. This time around I am cutting down
+> > the distribution list down significantly. My apologies to anyone I may have
+> > failed to copy this time around.
+> 
+> you touch every single architecture with this patchset, but you didn't
+> care about Ccing any of the arch-specific mailing lists, like lakml ?
+> 
+What is lakml ? linux-kernel@vger.kernel.org was copied, if that is what you
+refer to. I don't find a reference to lakml anywhere, sorry. I'll be happy to
+add it manually if you provide the address.
 
-That advisory has two workarounds. You have chosen the second one?
+Architecture specific mailing lists were copied on individual patches as long
+as those mailing lists are reported by the MAINTAINERS file.
 
-The text of the second workaround says it only works on 4 wire setups,
-so I wonder how 5 wire designs will be affected.
+> Please resend with proper people in Cc, IIRC RMK had a few very
+> important comments about the idea behind this series.
+> 
+Felipe,
 
-> The advisory says to use
-> steps 1 to 4 for ADC and 5 to 16 for TSC (assuming 4 wire TSC and 4 channel
-> ADC).
+That doesn't work. I tried with rev 1. The result was that the patch series
+was flagged as spam and got dropped by most mailing lists, as explained above,
+and I got tagged as spammer by Google and several other mail servers,
+preventing me from posting _anything_ for several days.
 
-No, it doesn't say that. (sprz360f.pdf)
-
-> Further the X co-ordinate must be the last one to be sampled just
-> before charge step. The first two patches implement the required changes. 
-
-FWIW, I implemented the first workaround and removed the udelay not
-too long ago. Like Sebastian, I saw the TSC unit hang after about
-50000 interrupts when running with the workaround.
-
-Did you test you patch for very long?
+Please point me to the comments you refer to above in case I missed them.
 
 Thanks,
-Richard
+Guenter
