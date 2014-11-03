@@ -1,189 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 00/47] kernel: Add support for power-off handler call
- chain
-Date: Mon, 3 Nov 2014 12:28:29 -0600
-Message-ID: <20141103182829.GV27425@saruman>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v3 09/47] mfd: palmas: Register with kernel power-off
+ handler
+Date: Mon, 3 Nov 2014 10:36:53 -0800
+Message-ID: <20141103183653.GA10558@roeck-us.net>
 References: <1414425354-10359-1-git-send-email-linux@roeck-us.net>
- <20141103175935.GS27425@saruman>
- <20141103182213.GA10640@roeck-us.net>
-Reply-To: <balbi@ti.com>
+ <1414425354-10359-10-git-send-email-linux@roeck-us.net>
+ <20141103175645.GT12011@x1>
+ <20141103175954.GT27425@saruman>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yC91f7qSViS67v3c"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141103182213.GA10640@roeck-us.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Alan Cox <gnomes@lxorguk.ukuu.org.uk>, Alexander Graf <agraf@suse.de>, Andrew Morton <akpm@linux-foundation.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Heiko Stuebner <heiko@sntech.de>, Lee Jones <lee.jones@linaro.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Romain Perier <romain.perier@gmail.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+In-Reply-To: <20141103175954.GT27425@saruman>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---yC91f7qSViS67v3c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Nov 03, 2014 at 11:59:54AM -0600, Felipe Balbi wrote:
+> On Mon, Nov 03, 2014 at 05:56:45PM +0000, Lee Jones wrote:
+> > On Mon, 27 Oct 2014, Guenter Roeck wrote:
+> > 
+> > > Register with kernel power-off handler instead of setting pm_power_off
+> > > directly. Register with low priority to reflect that the original code
+> > > only sets pm_power_off if it was not already set.
+> > > 
+> > > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > > Cc: Lee Jones <lee.jones@linaro.org>
+> > > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> > > ---
+> > > v3:
+> > > - Replace poweroff in all newly introduced variables and in text
+> > >   with power_off or power-off as appropriate
+> > > - Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
+> > > v2:
+> > > - Use define to specify poweroff handler priority
+> > > - Use devm_register_power_off_handler
+> > > - Use dev_warn instead of dev_err
+> > > 
+> > >  drivers/mfd/palmas.c       | 31 +++++++++++++++++--------------
+> > >  include/linux/mfd/palmas.h |  3 +++
+> > >  2 files changed, 20 insertions(+), 14 deletions(-)
+> > 
+> > Acked-by: Lee Jones <lee.jones@linaro.org>
+> 
+> missed lakml and linux-omap.
+> 
+Felipe,
 
-Hi,
+unfortunately, get_maintainer.pl doesn't give a hint that this and the
+other affected patches should be sent to linux-omap. How am I supposed
+to know ?
 
-On Mon, Nov 03, 2014 at 10:22:13AM -0800, Guenter Roeck wrote:
-> On Mon, Nov 03, 2014 at 11:59:35AM -0600, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Mon, Oct 27, 2014 at 08:55:07AM -0700, Guenter Roeck wrote:
-> > > Various drivers implement architecture and/or device specific means to
-> > > remove power from the system.  For the most part, those drivers set t=
-he
-> > > global variable pm_power_off to point to a function within the driver.
-> > >=20
-> > > This mechanism has a number of drawbacks.  Typically only one means
-> > > to remove power is supported (at least if pm_power_off is used).
-> > > At least in theory there can be multiple means to remove power, some =
-of
-> > > which may be less desirable.  For example, one mechanism might power =
-off the
-> > > entire system through an I/O port or gpio pin, while another might po=
-wer off
-> > > a board by disabling its power controller. Other mechanisms may reall=
-y just
-> > > execute a restart sequence or drop into the ROM monitor, or put the C=
-PU into
-> > > sleep mode.  Using pm_power_off can also be racy if the function poin=
-ter is
-> > > set from a driver built as module, as the driver may be in the proces=
-s of
-> > > being unloaded when pm_power_off is called.  If there are multiple po=
-wer-off
-> > > handlers in the system, removing a module with such a handler may
-> > > inadvertently reset the pointer to pm_power_off to NULL, leaving the =
-system
-> > > with no means to remove power.
-> > >=20
-> > > Introduce a system power-off handler call chain to solve the described
-> > > problems.  This call chain is expected to be executed from the archit=
-ecture
-> > > specific machine_power_off() function.  Drivers providing system powe=
-r-off
-> > > functionality are expected to register with this call chain.  By usin=
-g the
-> > > priority field in the notifier block, callers can control power-off h=
-andler
-> > > execution sequence and thus ensure that the power-off handler with the
-> > > optimal capabilities to remove power for a given system is called fir=
-st.
-> > > A call chain instead of a single call to the highest priority handler=
- is
-> > > used to provide fallback: If multiple power-off handlers are installe=
-d,
-> > > all handlers will be called until one actually succeeds to power off =
-the
-> > > system.
-> > >=20
-> > > Patch 01/47 implements the power-off handler API.
-> > >=20
-> > > Patches 02/47 to 04/47 are cleanup patches to prepare for the move of
-> > > pm_power_off to a common location.
-> > >=20
-> > > Patches 05/47 to 07/47 remove references to pm_power_off from devicet=
-ree
-> > > bindings descriptions.
-> > >=20
-> > > Patch 08/47 moves the pm_power_off variable from architecture code to
-> > > kernel/reboot.c.=20
-> > >=20
-> > > Patches 09/47 to 34/47 convert various drivers to register with the k=
-ernel
-> > > power-off handler instead of setting pm_power_off directly.
-> > >=20
-> > > Patches 35/47 to 46/47 do the same for architecture code.
-> > >=20
-> > > Patch 47/47 finally removes pm_power_off.
-> > >=20
-> > > For the most part, the individual patches include explanations why sp=
-ecific
-> > > priorities were chosen, at least if the selected priority is not the =
-default
-> > > priority. Subsystem and architecture maintainers are encouraged to ha=
-ve a look
-> > > at the selected priorities and suggest improvements.
-> > >=20
-> > > I ran the final code through my normal build and qemu tests. Results =
-are
-> > > available at http://server.roeck-us.net:8010/builders in the 'powerof=
-f-handler'
-> > > column. I also built all available configurations for arm, mips, powe=
-rpc,
-> > > m68k, and sh architectures.
-> > >=20
-> > > The series is available in branch poweroff-handler of my repository at
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.gi=
-t.
-> > > It is based on 3.18-rc2.
-> > >=20
-> > > A note on Cc: In the initial submission I had way too many Cc:, causi=
-ng the
-> > > patchset to be treated as spam by many mailers and mailing list handl=
-ers,
-> > > which of course defeated the purpose. This time around I am cutting d=
-own
-> > > the distribution list down significantly. My apologies to anyone I ma=
-y have
-> > > failed to copy this time around.
-> >=20
-> > you touch every single architecture with this patchset, but you didn't
-> > care about Ccing any of the arch-specific mailing lists, like lakml ?
-> >=20
-> What is lakml ? linux-kernel@vger.kernel.org was copied, if that is what =
-you
+Note that linux-kernel@vger.kernel.org was copied on the entire series,
+if that is what you mean with lakml. linux-pm@vger.kernel.org was also
+copied on all patches. Additional mailing lists were only copied for
+affected architectures to avoid for the patches to be tagged as spam.
 
-only the greatest mailing list of all time.
+If there is a list named lakml, I must have missed it, and I seem to be
+unable to find a reference to it. If that is the case, my apologies,
+and please provide a link to it.
 
-heh, Linux ARM Kernel Mailing List.
-
-> refer to. I don't find a reference to lakml anywhere, sorry. I'll be happ=
-y to
-> add it manually if you provide the address.
->=20
-> Architecture specific mailing lists were copied on individual patches as =
-long
-> as those mailing lists are reported by the MAINTAINERS file.
->=20
-> > Please resend with proper people in Cc, IIRC RMK had a few very
-> > important comments about the idea behind this series.
-> >=20
-> Felipe,
->=20
-> That doesn't work. I tried with rev 1. The result was that the patch seri=
-es
-> was flagged as spam and got dropped by most mailing lists, as explained a=
-bove,
-> and I got tagged as spammer by Google and several other mail servers,
-> preventing me from posting _anything_ for several days.
-
-heh, that sucks.
-
---=20
-balbi
-
---yC91f7qSViS67v3c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUV8lNAAoJEIaOsuA1yqREiCEP/1Be8q8qjmYSfg5yQKj3NsZX
-IXyu4Z8ATsUK6XivI/1lU+pzga2mxSVmRCmohd871evVz+V86EuUiN7/P+nV0jp7
-zFaDxtsBktXDlvtSx3GRMc/kfltPCfqLU17EF1klXw2su8zm3b33uaynh5OqVx1c
-gxGQzcghq9H3NIIUsIGo0CnoXx8lv/yK/xx9qEgoAjmty6pNKauGHJ6kScEtVb61
-5Bf2ah34SdoPkDRmZQAOufr0t0YCOpELwZbMUcSJGsHduu/bwCEHp9ZJKM7GUJju
-zPwMlWLzT9nsJhjJOT8ioLQG8dB2HRNPEpHWYEppH3dB3goBkwIJAOOzyiugdZ23
-XVb44jLD3kBv1c96+G97kEGj31IUhwadQ4ERzoW2qqFOhgZgIyJ4tFNxzje2bFB8
-6WBF3dEWFj55mIyLSuQS2GLsikiWOTVeBh/W6xla/WvxjjFfrxR3KtI+1E3BZMOC
-6d32UahMoSVAb3dyPjCcXOIKC3iIOtdYfjWMOKQZ+vfH0TpbFQWXzkOYEkhI0T8s
-TApUWP69J9sHz4BTDy7eZEbnUtlY07lbLRa3FF/MKjmyPt/lJydH6yVyPZkezFYP
-HWdrTHmdE6vMvUWpkP9z2gF6ZEjbIID+nKnYAfyagW2WJBodEzAH6xHphVBzyajB
-RpiGHgmB8sYVhMBgHkPs
-=C9cW
------END PGP SIGNATURE-----
-
---yC91f7qSViS67v3c--
+Thanks,
+Guenter
