@@ -1,43 +1,87 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
-Date: Mon, 03 Nov 2014 13:17:28 +0100
-Message-ID: <54577258.9080508@linutronix.de>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <544E821D.5040004@linutronix.de> <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] pinctrl: dra: dt-bindings: Fix output pull up/down
+Date: Mon, 3 Nov 2014 08:30:23 -0600
+Message-ID: <20141103143023.GA8260@kahuna>
+References: <1414752745-13696-1-git-send-email-rogerq@ti.com>
+ <1415009392-6627-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Griffis, Brad" <bgriffis@ti.com>, "R, Vignesh" <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, "Balbi, Felipe" <balbi@ti.com>, Jan Kardell <jan.kardell@telliq.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52278 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751838AbaKCOa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Nov 2014 09:30:26 -0500
+Content-Disposition: inline
+In-Reply-To: <1415009392-6627-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On 10/27/2014 08:02 PM, Griffis, Brad wrote:
-> On 10/27/2014 12:34 PM, Sebastian Andrzej Siewior wrote:
->> Do we really need #3 (and then #4)? Given the complexity we have already, is there any benefit by decreasing this value? 
+On 12:09-20141103, Roger Quadros wrote:
+> For PIN_OUTPUT_PULLUP and PIN_OUTPUT_PULLDOWN we must not set the
+> PULL_DIS bit which disables the PULLs.
 > 
-> I specifically requested we add ti,charge-delay to the device tree because it is THE critical value to tune for a given design.  Although I think the current value of 0xB000 will be suitable for a great many designs, I expect that many users will need to adjust this value for their hardware.  Details such as which touchscreen vendor is being used and how the touchscreen is connected (header vs cable) have an effect on what's appropriate here.
-
-Oh. That is one knob I hoped we could avoid since I haven't seen it
-before on other TSCs. But okay. Please make sure that there is a
-message printed if the default value is used. And lets hope the user
-will do something about his.
-
->> Would  someone want to increase it? Can we safely determine a value which works for everyone?
+> PULL_ENA is a 0 and using it in an OR operation is a NOP, so don't
+> use it in the PIN_OUTPUT_PULLUP/DOWN macros.
 > 
-> This value represents a hardware delay before checking for the pen-up event.  So in the scenario where someone is seeing excessive false pen-up events they will want to increase this parameter.  The downsize of making this larger is that it decreases the overall sampling speed of both the touchscreen as well as the standalone ADC samples.  At one point I tried making it huge, but that made the touchscreen overly sluggish because the sampling became too slow.  So there is a definite trade-off that if you make it too large the touchscreen becomes sluggish, and if you make it too small then you may see false pen-up events.  The optimal value will need to be tuned for a given design.
+> Fixes: 23d9cec07c58 ("pinctrl: dra: dt-bindings: Fix pull enable/disable")
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  include/dt-bindings/pinctrl/dra.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+> index 3d33794..7448edf 100644
+> --- a/include/dt-bindings/pinctrl/dra.h
+> +++ b/include/dt-bindings/pinctrl/dra.h
+> @@ -40,8 +40,8 @@
+>  
+>  /* Active pin states */
+>  #define PIN_OUTPUT		(0 | PULL_DIS)
+> -#define PIN_OUTPUT_PULLUP	(PIN_OUTPUT | PULL_ENA | PULL_UP)
+> -#define PIN_OUTPUT_PULLDOWN	(PIN_OUTPUT | PULL_ENA)
+> +#define PIN_OUTPUT_PULLUP	(PULL_UP)
+> +#define PIN_OUTPUT_PULLDOWN	(0)
+>  #define PIN_INPUT		(INPUT_EN | PULL_DIS)
+>  #define PIN_INPUT_SLEW		(INPUT_EN | SLEWCONTROL)
+>  #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
 
-I applied the patches from this series and did the following test on my
-am335x-evm: A mug on the touchscreen (to make sure the events are
-coming), evtest on the event node to see that the events and loop of
+You are right, we do have an issue with using PIN_OUTPUT along with
+remaining setting.
 
-	cat /sys/bus/iio/devices/iio\:device0/in_voltage4_raw
+For a moment, I wondered why input was not impacted - then I realized
+that INPUT_EN was being used instead of PIN_INPUT - following that
+convention. With the intent being explicitly using macros that
+clearly indicate what each setting combination is is, how about the
+following?
 
-In the past I was able lock up the TSC/ADC HW that way (see commit
-7ca6740cd1 ("mfd: input: iio: ti_amm335x: Rework TSC/ADC
-synchronization")) for details.
-With this patches applied I don't seen any TSC events once the IIO
-interface is (heavily) used. Can this be fixed?
 
-Sebastian
+diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+index 3d33794..d4037e7 100644
+--- a/include/dt-bindings/pinctrl/dra.h
++++ b/include/dt-bindings/pinctrl/dra.h
+@@ -34,14 +34,15 @@
+ #define PULL_DIS		(1 << 16)
+ #define PULL_UP			(1 << 17)
+ #define INPUT_EN		(1 << 18)
++#define OUTPUT_EN		(0 << 18)
+ #define SLEWCONTROL		(1 << 19)
+ #define WAKEUP_EN		(1 << 24)
+ #define WAKEUP_EVENT		(1 << 25)
+ 
+ /* Active pin states */
+-#define PIN_OUTPUT		(0 | PULL_DIS)
+-#define PIN_OUTPUT_PULLUP	(PIN_OUTPUT | PULL_ENA | PULL_UP)
+-#define PIN_OUTPUT_PULLDOWN	(PIN_OUTPUT | PULL_ENA)
++#define PIN_OUTPUT		(OUTPUT_EN | PULL_DIS)
++#define PIN_OUTPUT_PULLUP	(OUTPUT_EN | PULL_ENA | PULL_UP)
++#define PIN_OUTPUT_PULLDOWN	(OUTPUT_EN | PULL_ENA)
+ #define PIN_INPUT		(INPUT_EN | PULL_DIS)
+ #define PIN_INPUT_SLEW		(INPUT_EN | SLEWCONTROL)
+ #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
+
+-- 
+Regards,
+Nishanth Menon
