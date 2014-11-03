@@ -1,117 +1,127 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] ARM: dts: dra7-evm: Add extcon nodes for USB
-Date: Mon, 3 Nov 2014 10:46:27 -0600
-Message-ID: <1415033187-11192-1-git-send-email-balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] pinctrl: dra: dt-bindings: Fix output pull up/down
+Date: Mon, 3 Nov 2014 11:56:34 -0600
+Message-ID: <CAGo_u6p-A4X9ux5RArvziKwYzPQECUwv8tUEJyAXNAPkP+Sjfg@mail.gmail.com>
+References: <1414752745-13696-1-git-send-email-rogerq@ti.com>
+	<1415009392-6627-1-git-send-email-rogerq@ti.com>
+	<20141103143023.GA8260@kahuna>
+	<545794CB.5030802@ti.com>
+	<54579858.4030605@ti.com>
+	<54579A4B.9060301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59410 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751908AbaKCQrF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Nov 2014 11:47:05 -0500
+Received: from mail-ig0-f173.google.com ([209.85.213.173]:52531 "EHLO
+	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753638AbaKCR4f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2014 12:56:35 -0500
+In-Reply-To: <54579A4B.9060301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, George Cherian <george.cherian@ti.com>, Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>
 
-From: George Cherian <george.cherian@ti.com>
+On Mon, Nov 3, 2014 at 9:07 AM, Roger Quadros <rogerq@ti.com> wrote:
+> On 11/03/2014 04:59 PM, Nishanth Menon wrote:
+>> On 11/03/2014 08:44 AM, Roger Quadros wrote:
+>>> On 11/03/2014 04:30 PM, Nishanth Menon wrote:
+>>>> On 12:09-20141103, Roger Quadros wrote:
+>>>>> For PIN_OUTPUT_PULLUP and PIN_OUTPUT_PULLDOWN we must not set the
+>>>>> PULL_DIS bit which disables the PULLs.
+>>>>>
+>>>>> PULL_ENA is a 0 and using it in an OR operation is a NOP, so don't
+>>>>> use it in the PIN_OUTPUT_PULLUP/DOWN macros.
+>>>>>
+>>>>> Fixes: 23d9cec07c58 ("pinctrl: dra: dt-bindings: Fix pull enable/disable")
+>>>>>
+>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>>> ---
+>>>>>  include/dt-bindings/pinctrl/dra.h | 4 ++--
+>>>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+>>>>> index 3d33794..7448edf 100644
+>>>>> --- a/include/dt-bindings/pinctrl/dra.h
+>>>>> +++ b/include/dt-bindings/pinctrl/dra.h
+>>>>> @@ -40,8 +40,8 @@
+>>>>>
+>>>>>  /* Active pin states */
+>>>>>  #define PIN_OUTPUT                (0 | PULL_DIS)
+>>>>> -#define PIN_OUTPUT_PULLUP (PIN_OUTPUT | PULL_ENA | PULL_UP)
+>>>>> -#define PIN_OUTPUT_PULLDOWN       (PIN_OUTPUT | PULL_ENA)
+>>>>> +#define PIN_OUTPUT_PULLUP (PULL_UP)
+>>>>> +#define PIN_OUTPUT_PULLDOWN       (0)
+>>>>>  #define PIN_INPUT         (INPUT_EN | PULL_DIS)
+>>>>>  #define PIN_INPUT_SLEW            (INPUT_EN | SLEWCONTROL)
+>>>>>  #define PIN_INPUT_PULLUP  (PULL_ENA | INPUT_EN | PULL_UP)
+>>>>
+>>>> You are right, we do have an issue with using PIN_OUTPUT along with
+>>>> remaining setting.
+>>>>
+>>>> For a moment, I wondered why input was not impacted - then I realized
+>>>> that INPUT_EN was being used instead of PIN_INPUT - following that
+>>>> convention. With the intent being explicitly using macros that
+>>>> clearly indicate what each setting combination is is, how about the
+>>>> following?
+>>>>
+>>>>
+>>>> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+>>>> index 3d33794..d4037e7 100644
+>>>> --- a/include/dt-bindings/pinctrl/dra.h
+>>>> +++ b/include/dt-bindings/pinctrl/dra.h
+>>>> @@ -34,14 +34,15 @@
+>>>>  #define PULL_DIS           (1 << 16)
+>>>>  #define PULL_UP                    (1 << 17)
+>>>>  #define INPUT_EN           (1 << 18)
+>>>> +#define OUTPUT_EN          (0 << 18)
+>>>>  #define SLEWCONTROL                (1 << 19)
+>>>>  #define WAKEUP_EN          (1 << 24)
+>>>>  #define WAKEUP_EVENT               (1 << 25)
+>>>>
+>>>>  /* Active pin states */
+>>>> -#define PIN_OUTPUT         (0 | PULL_DIS)
+>>>> -#define PIN_OUTPUT_PULLUP  (PIN_OUTPUT | PULL_ENA | PULL_UP)
+>>>> -#define PIN_OUTPUT_PULLDOWN        (PIN_OUTPUT | PULL_ENA)
+>>>> +#define PIN_OUTPUT         (OUTPUT_EN | PULL_DIS)
+>>>> +#define PIN_OUTPUT_PULLUP  (OUTPUT_EN | PULL_ENA | PULL_UP)
+>>>> +#define PIN_OUTPUT_PULLDOWN        (OUTPUT_EN | PULL_ENA)
+>>>
+>>> To me it adds more confusion and this change is a NOP as we're ORing 0 here
+>>> with OUTPUT_EN.
+>>
+>> look at this this way:
+>>
+>> PIN_OUTPUT_PULLDOWN   (OUTPUT_EN | PULL_ENA)
+>>
+>> should probably trigger in mind (what about PULLDOWN?)
+>>
+>> PIN_OUTPUT_PULLDOWN   (OUTPUT_EN | PULL_ENA | PULL_DOWN)
+>>
+>> then verify values of each OUTPUT_EN  -> 0 in bit 18, ok, etc.
+>>
+>>
+>> if we ensure that PIN_XX macros use just the basic primitives, it is
+>> easier to prevent the mistake like the one I made. the other option of
+>> not defining macros whose values are 0 implies that the reviewer has
+>> to recheck against trm to ensure all the right "1" bits are set.
+>>
+>>
+>> just my view here.
+>
+> Aren't the macros defining the bit positions not the actual enable or
+> disable actions?
+>
+> If we go by what you said then you will have to add
+> WAKEUP_DIS, SLEWCONTROL_DIS, WAKEUP_EVENT_DIS and so on.
+>
+> Which again makes no sense as you will have to define them to zero.
 
-Add extcon nodes for USB, without which USB won't
-work.
+WAKEUP should not be defined anyways - pinctrl controls them - should
+probably remove them from header.
 
-EXTCON is used to tell dwc3-omap.ko that a cable
-has been connected. It also passes the state of ID
-pin so that can be written to UTMI_STATUS register
-on dwc3-omap's address space.
-
-Signed-off-by: George Cherian <george.cherian@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
-
-**********************************************************
-**							**
-**			UNTESTED			**
-**********************************************************
-
-This patch was taken from TI's v3.14 tree available at [1],
-the patch was tested there. I didn't test on v3.18-rc3 because
-my DRA7 board has broken down. Working to get a replacement.
-
-Anyway, I'd suggest Tony to wait for a Tested-by tag.
-
-Note that in order for this to work you need following extra
-patches:
-
-http://marc.info/?l=linux-omap&m=141503217215492&w=2
-http://marc.info/?l=linux-omap&m=141503238715590&w=2
-http://marc.info/?l=linux-omap&m=141503246515631&w=2
-http://marc.info/?l=linux-omap&m=141503241315599&w=2
-http://marc.info/?l=linux-omap&m=141503282815782&w=2
-
-[1] http://git.ti.com/ti-linux-kernel/ti-linux-kernel/commits/ti-linux-3.14.y
-
- arch/arm/boot/dts/dra7-evm.dts | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
-
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index c6ce625..7710f29 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -26,6 +26,18 @@
- 		regulator-max-microvolt = <3300000>;
- 	};
- 
-+	extcon1: dra7x_usbid_extcon1 {
-+		compatible = "linux,extcon-gpio";
-+		gpios = <&pcf_gpio_21 1 GPIO_ACTIVE_LOW>;
-+		cable-name = "USB-HOST";
-+	};
-+
-+	extcon2: dra7x_usbid_extcon2 {
-+		compatible = "linux,extcon-gpio";
-+		gpios = <&pcf_gpio_21 2 GPIO_ACTIVE_LOW>;
-+		cable-name = "USB-HOST";
-+	};
-+
- 	vtt_fixed: fixedregulator-vtt {
- 		compatible = "regulator-fixed";
- 		regulator-name = "vtt_fixed";
-@@ -291,6 +303,19 @@
- 			};
- 		};
- 	};
-+
-+	pcf_gpio_21: gpio@21 {
-+		compatible = "ti,pcf8575";
-+		reg = <0x21>;
-+		lines-initial-states = <0x1408>;
-+		gpio-controller;
-+		#gpio-cells = <2>;
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <14 IRQ_TYPE_EDGE_FALLING>;
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
-+	};
-+
- };
- 
- &i2c2 {
-@@ -420,6 +445,14 @@
- 	};
- };
- 
-+&omap_dwc3_1 {
-+	extcon = <&extcon1>;
-+};
-+
-+&omap_dwc3_2 {
-+	extcon = <&extcon2>;
-+};
-+
- &usb1 {
- 	dr_mode = "peripheral";
- 	pinctrl-names = "default";
+but your point is probably a valid view w.r.t TI SoC bit definitions -
+we just define the "1" states in omap.h as well.
 -- 
-2.1.0.GIT
-
+---
+Regards,
+Nishanth Menon
