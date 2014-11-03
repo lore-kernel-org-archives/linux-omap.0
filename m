@@ -1,74 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/4] extcon: gpio: Convert the driver to use gpio desc
- API's
-Date: Mon, 3 Nov 2014 12:06:02 -0600
-Message-ID: <20141103180602.GU27425@saruman>
-References: <1415032350-8459-1-git-send-email-balbi@ti.com>
- <1415032350-8459-2-git-send-email-balbi@ti.com>
- <20141103180150.GA10164@roeck-us.net>
-Reply-To: <balbi@ti.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
+Date: Mon, 3 Nov 2014 19:09:21 +0100
+Message-ID: <20141103180920.GA20779@localhost.localdomain>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l/3WCmqZNZ+BnHMk"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48008 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753080AbaKCSGh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Nov 2014 13:06:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20141103180150.GA10164@roeck-us.net>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Felipe Balbi <balbi@ti.com>, myungjoo.ham@samsung.com, cw00.choi@samsung.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org, George Cherian <george.cherian@ti.com>
-
---l/3WCmqZNZ+BnHMk
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, linux-iio@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm
+List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 03, 2014 at 10:01:50AM -0800, Guenter Roeck wrote:
-> On Mon, Nov 03, 2014 at 10:32:27AM -0600, Felipe Balbi wrote:
-> > From: George Cherian <george.cherian@ti.com>
-> >=20
-> > Convert the driver to use gpiod_* API's.
-> >=20
-> > Reviewed-by: Roger Quadros <rogerq@ti.com>
-> > Signed-off-by: George Cherian <george.cherian@ti.com>
-> > Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
->=20
-> I think it might be useful and appropriate to explain that and why
-> you remove support for active-low pins, instead of hiding it in a
-> seemingly unrelated patch.
+On Mon, Oct 27, 2014 at 04:38:27PM +0530, Vignesh R wrote:
+> This series of patches fix TSC defects related to lag in touchscreen
+> performance and cursor jump at touch release. The lag was result of
+> udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
+> The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
+> to avoid false pen-up events and remove udelay.
 
-removed ? why removed ? gpio descs handle that for you, read the source
-code.
+That advisory has two workarounds. You have chosen the second one?
 
---=20
-balbi
+The text of the second workaround says it only works on 4 wire setups,
+so I wonder how 5 wire designs will be affected.
 
---l/3WCmqZNZ+BnHMk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> The advisory says to use
+> steps 1 to 4 for ADC and 5 to 16 for TSC (assuming 4 wire TSC and 4 channel
+> ADC).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+No, it doesn't say that. (sprz360f.pdf)
 
-iQIcBAEBAgAGBQJUV8QKAAoJEIaOsuA1yqREwb8P/3iyJi7rgFgtJK2ZcXxZWFJ7
-gv/yt0byPdY2C1tALT0kriVWlfZXP+YwHRXhLLQjeDPvyvn2VCVSx0ZPJYJzQJ7X
-CKqkioFxifKDrPBA+r9w3dQgHgBN7W08DtVMNk7Tn/p6Vb2km4TLOfNDIu7vu+TK
-A/xwkIeEh8FIrxw61/AqZqRHDrOfEcB0Y7XteaPuRPyitjBPprSStfNSWFBQjSW/
-e2Uza9pbdPNvy+6heZKdrtsdAsfGyBBTOrcp96G6aZ+ooJVIPehDOJV9+OsAS7QM
-iXk4IqwOVA/omKFE/u68jFlGUqiGYzcE/ZBApwmiGCALzFkSH5OyZlAQ2qTnlofV
-EXjSx9oCgDnfaH7QM9Wo6ktC9wiOQfSTl9ttn0L4ksDMu1Bn0HecnDIijOK2leam
-a1oJRlddbb1EVRr/CoQHWFdmI0MfHF9pgk2PJfoGsy3BmaRIo4YD73iqGuyc0fqa
-UI1RxaKEn4scVe8Yy7q4ZJveSggbGQWMQjqH21yFwaLOob3kPcBv8rOfAbdOiF+6
-W4Z03qVh6H2KlpLcgmNOmxr6b4GcVGJus2NXOe7tHmRulkIcow3mIeqxzG4nARMh
-Dzfpd4Ps9C2pYBieUaQWWWEdAcgiHzRhQYhfSFIi1bAkKYsMtIjPpqOlbwRYIc9j
-LrLhYkuIlyAywiSTM65s
-=7vjF
------END PGP SIGNATURE-----
+> Further the X co-ordinate must be the last one to be sampled just
+> before charge step. The first two patches implement the required changes. 
 
---l/3WCmqZNZ+BnHMk--
+FWIW, I implemented the first workaround and removed the udelay not
+too long ago. Like Sebastian, I saw the TSC unit hang after about
+50000 interrupts when running with the workaround.
+
+Did you test you patch for very long?
+
+Thanks,
+Richard
