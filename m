@@ -1,194 +1,121 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/4] extcon: gpio: Add dt support for the driver.
-Date: Mon, 3 Nov 2014 10:32:28 -0600
-Message-ID: <1415032350-8459-3-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@TI.COM>
+Subject: Re: [PATCH 4/4] extcon: gpio: Add support for using cable names
+Date: Mon, 3 Nov 2014 10:39:36 -0600
+Message-ID: <20141103163936.GO27425@saruman>
 References: <1415032350-8459-1-git-send-email-balbi@ti.com>
+ <1415032350-8459-5-git-send-email-balbi@ti.com>
+Reply-To: <balbi@TI.COM>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415032350-8459-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="da9oBGf5DLtF9ehv"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59102 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751908AbaKCQkJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Nov 2014 11:40:09 -0500
+Content-Disposition: inline
+In-Reply-To: <1415032350-8459-5-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@TI.COM>
+Cc: myungjoo.ham@samsung.com, cw00.choi@samsung.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@TI.COM, grant.likely@linaro.org, George Cherian <george.cherian@TI.COM>
 
-From: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
+--da9oBGf5DLtF9ehv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Add device tree support to extcon-gpio driver.
-Add devicetree binding documentation
+On Mon, Nov 03, 2014 at 10:32:30AM -0600, Felipe Balbi wrote:
+> From: George Cherian <george.cherian@ti.com>
+>=20
+> Add support for using cable names. Enables other drivers to register inte=
+rest
+> and get notified using extcon provided notifier call backs.
+>=20
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- .../devicetree/bindings/extcon/extcon-gpio.txt     | 21 ++++++
- drivers/extcon/extcon-gpio.c                       | 75 +++++++++++++++-------
- 2 files changed, 73 insertions(+), 23 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/extcon/extcon-gpio.txt
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-diff --git a/Documentation/devicetree/bindings/extcon/extcon-gpio.txt b/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
-new file mode 100644
-index 0000000..5fe6846
---- /dev/null
-+++ b/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
-@@ -0,0 +1,21 @@
-+GPIO based EXTCON
-+
-+EXTCON GPIO
-+-----------
-+
-+Required Properties:
-+ - compatible: should be:
-+   * "linux,extcon-gpio"
-+ - gpios: specifies the gpio pin used.
-+
-+Optional Properties:
-+ - debounce: Debounce time for GPIO IRQ in ms
-+
-+
-+Eg:
-+
-+	extcon1: am43_usbid_extcon1 {
-+		compatible = "linux,extcon-gpio";
-+		gpios = <&gpio3 12 GPIO_ACTIVE_HIGH>;
-+		debounce = <20>;
-+	};
-diff --git a/drivers/extcon/extcon-gpio.c b/drivers/extcon/extcon-gpio.c
-index 70e3fc7..9571e1f 100644
---- a/drivers/extcon/extcon-gpio.c
-+++ b/drivers/extcon/extcon-gpio.c
-@@ -25,8 +25,10 @@
- #include <linux/gpio.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-+#include <linux/irq.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/of_gpio.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
-@@ -80,16 +82,12 @@ static ssize_t extcon_gpio_print_state(struct extcon_dev *edev, char *buf)
- 
- static int gpio_extcon_probe(struct platform_device *pdev)
- {
-+	struct device_node *np = pdev->dev.of_node;
- 	struct gpio_extcon_platform_data *pdata = dev_get_platdata(&pdev->dev);
- 	struct gpio_extcon_data *extcon_data;
- 	int ret;
--
--	if (!pdata)
--		return -EBUSY;
--	if (!pdata->irq_flags) {
--		dev_err(&pdev->dev, "IRQ flag is not specified.\n");
--		return -EINVAL;
--	}
-+	unsigned int irq_flags;
-+	unsigned int debounce = 0;
- 
- 	extcon_data = devm_kzalloc(&pdev->dev, sizeof(struct gpio_extcon_data),
- 				   GFP_KERNEL);
-@@ -101,26 +99,51 @@ static int gpio_extcon_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "failed to allocate extcon device\n");
- 		return -ENOMEM;
- 	}
--	extcon_data->edev->name = pdata->name;
--
--	extcon_data->gpiod = gpio_to_desc(pdata->gpio);
--	extcon_data->state_on = pdata->state_on;
--	extcon_data->state_off = pdata->state_off;
--	extcon_data->check_on_resume = pdata->check_on_resume;
--	if (pdata->state_on && pdata->state_off)
--		extcon_data->edev->print_state = extcon_gpio_print_state;
- 
--	ret = devm_gpio_request_one(&pdev->dev, pdata->gpio, GPIOF_DIR_IN,
--				    pdev->name);
--	if (ret < 0)
--		return ret;
-+	if (np) {
-+		int irq;
-+
-+		extcon_data->gpiod = devm_gpiod_get(&pdev->dev, NULL);
-+		if (IS_ERR(extcon_data->gpiod))
-+			return PTR_ERR(extcon_data->gpiod);
-+
-+		extcon_data->edev->name = np->name;
-+		extcon_data->edev->dev.parent = &pdev->dev;
-+		of_property_read_u32(np, "debounce", &debounce);
-+		irq = gpiod_to_irq(extcon_data->gpiod);
-+		irq_flags = irq_get_trigger_type(irq);
-+	} else {
-+		if (!pdata)
-+			return -EBUSY;
-+
-+		if (!pdata->irq_flags) {
-+			dev_err(&pdev->dev, "IRQ flag is not specified.\n");
-+			return -EINVAL;
-+		}
-+
-+		extcon_data->edev->name = pdata->name;
-+
-+		extcon_data->gpiod = gpio_to_desc(pdata->gpio);
-+		extcon_data->state_on = pdata->state_on;
-+		extcon_data->state_off = pdata->state_off;
-+		extcon_data->check_on_resume = pdata->check_on_resume;
-+		if (pdata->state_on && pdata->state_off)
-+			extcon_data->edev->print_state = extcon_gpio_print_state;
-+
-+		ret = devm_gpio_request_one(&pdev->dev, pdata->gpio, GPIOF_DIR_IN,
-+				pdev->name);
-+		if (ret < 0)
-+			return ret;
-+		irq_flags = pdata->irq_flags;
-+		debounce = pdata->debounce;
-+	}
- 
--	if (pdata->debounce) {
-+	if (debounce) {
- 		ret = gpiod_set_debounce(extcon_data->gpiod,
--					pdata->debounce * 1000);
-+					 debounce * 1000);
- 		if (ret < 0)
- 			extcon_data->debounce_jiffies =
--				msecs_to_jiffies(pdata->debounce);
-+				msecs_to_jiffies(debounce);
- 	}
- 
- 	ret = devm_extcon_dev_register(&pdev->dev, extcon_data->edev);
-@@ -134,7 +157,7 @@ static int gpio_extcon_probe(struct platform_device *pdev)
- 		return extcon_data->irq;
- 
- 	ret = request_any_context_irq(extcon_data->irq, gpio_irq_handler,
--				      pdata->irq_flags, pdev->name,
-+				      irq_flags, pdev->name,
- 				      extcon_data);
- 	if (ret < 0)
- 		return ret;
-@@ -172,6 +195,11 @@ static int gpio_extcon_resume(struct device *dev)
- 
- static SIMPLE_DEV_PM_OPS(gpio_extcon_pm_ops, NULL, gpio_extcon_resume);
- 
-+static struct of_device_id of_extcon_gpio_match_tbl[] = {
-+	{ .compatible = "linux,extcon-gpio", },
-+	{ /* end */ }
-+};
-+
- static struct platform_driver gpio_extcon_driver = {
- 	.probe		= gpio_extcon_probe,
- 	.remove		= gpio_extcon_remove,
-@@ -179,6 +207,7 @@ static struct platform_driver gpio_extcon_driver = {
- 		.name	= "extcon-gpio",
- 		.owner	= THIS_MODULE,
- 		.pm	= &gpio_extcon_pm_ops,
-+		.of_match_table = of_extcon_gpio_match_tbl,
- 	},
- };
- 
--- 
-2.1.0.GIT
+> ---
+>  Documentation/devicetree/bindings/extcon/extcon-gpio.txt | 2 ++
+>  drivers/extcon/extcon-gpio.c                             | 4 ++++
+>  2 files changed, 6 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/extcon/extcon-gpio.txt b/D=
+ocumentation/devicetree/bindings/extcon/extcon-gpio.txt
+> index 5fe6846..f19aeb4 100644
+> --- a/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
+> +++ b/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
+> @@ -7,6 +7,7 @@ Required Properties:
+>   - compatible: should be:
+>     * "linux,extcon-gpio"
+>   - gpios: specifies the gpio pin used.
+> + - cable-name: Name of the cable used.
+> =20
+>  Optional Properties:
+>   - debounce: Debounce time for GPIO IRQ in ms
+> @@ -18,4 +19,5 @@ Eg:
+>  		compatible =3D "linux,extcon-gpio";
+>  		gpios =3D <&gpio3 12 GPIO_ACTIVE_HIGH>;
+>  		debounce =3D <20>;
+> +		cable-name =3D "USB-HOST";
+>  	};
+> diff --git a/drivers/extcon/extcon-gpio.c b/drivers/extcon/extcon-gpio.c
+> index 7191d28..cbe35af 100644
+> --- a/drivers/extcon/extcon-gpio.c
+> +++ b/drivers/extcon/extcon-gpio.c
+> @@ -42,6 +42,7 @@ struct gpio_extcon_data {
+>  	struct delayed_work work;
+>  	unsigned long debounce_jiffies;
+>  	bool check_on_resume;
+> +	const char *cable_name[1];
+>  };
+> =20
+>  static void gpio_extcon_work(struct work_struct *work)
+> @@ -112,6 +113,9 @@ static int gpio_extcon_probe(struct platform_device *=
+pdev)
+>  		of_property_read_u32(np, "debounce", &debounce);
+>  		irq =3D gpiod_to_irq(extcon_data->gpiod);
+>  		irq_flags =3D irq_get_trigger_type(irq);
+> +		of_property_read_string_index(np, "cable-name", 0,
+> +					      extcon_data->cable_name);
+> +		extcon_data->edev->supported_cable =3D extcon_data->cable_name;
+>  	} else {
+>  		if (!pdata)
+>  			return -EBUSY;
+> --=20
+> 2.1.0.GIT
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+balbi
+
+--da9oBGf5DLtF9ehv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUV6/IAAoJEIaOsuA1yqRExQsP/jJZzqn3jEF83alziM5V2qGr
+tJEEq3oHlFgm6goPX4A+T9sEE7tj0L9N6UWD0dpj0ik87NsmWGmT9QIyLte9W9xE
+Ep0RFqmveLigNqDNhY2OfB9BgmQGxBkIMDDlS9x39FV5kVugOc0cCTifpXU4deZ3
+DMMq3x1pKVZqHT332lRDCK8ZYVxpGMJee8dWfUA4rL0Vne1X6KZ+jS1vKjCAEpCz
+G2R6Yc0K3BIoLVvnRt/UJAsjDCMNLLBJHGoB5cwwJpGC7tefKNWBMi+TVU3uSolN
+bkebLA6YT+dqg4ErOgUt92UzJTMITEwzPPQoqxsRRL+rfCvkPVn+A/4rUIBtEwZm
+c+o3mhOaC1E1BWzFHqcSjxa3ce43SaWaOEecGTMMNYtSGlYz99C/57OVdwCwb/PZ
+hm3aF2PuRSYIUJWA6J9OR+xM7u/wTyIbV1fDu/DzbfpRFQlHcnlLcQQEpNn41jyh
+/79dp8bry/gznD+viKSAucZMUkWu95Xis6dzAkT0XgtCdrynmjnVBI1Gi4RDuFSZ
+XBQQnFDUrWCTzbD0ioJKAeMF+7fxuxerRhoLK2renjqGSsxWkOWp0KKZ6Vr/4WvR
+BCCDbZ+NwzIAnRzhHgoa+5RrQT8LX9+yACa+pJ18zDhqOyxXu05AVOMuDh+yFUyq
+IyuXRwyhg8D+h4VJLdDO
+=JYLr
+-----END PGP SIGNATURE-----
+
+--da9oBGf5DLtF9ehv--
