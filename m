@@ -1,71 +1,37 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: boot: dts: dra7: add labels to DWC3 nodes
-Date: Mon, 3 Nov 2014 10:28:42 -0600
-Message-ID: <1415032122-8230-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 0/4] extcon: gpio: add DT support
+Date: Mon, 3 Nov 2014 10:32:26 -0600
+Message-ID: <1415032350-8459-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57772 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908AbaKCQ3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2014 11:29:30 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:43753 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751908AbaKCQdE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Nov 2014 11:33:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+To: myungjoo.ham@samsung.com, cw00.choi@samsung.com
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org, Felipe Balbi <balbi@ti.com>
 
-by adding labels to DWC3 nodes, it's far easier
-for boards to reference them.
+Hi,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+this series has been tested with v3.18-rc2 with a
+yet-to-be-released board (called X15). That board
+is DT-only and we use extcon-gpio to decide which
+USB mode should be used (host or peripheral).
 
-soon we will need to reference these nodes in order
-to add extcon binding, so USB can be enabled out-of-the-box.
+George Cherian (4):
+  extcon: gpio: Convert the driver to use gpio desc API's
+  extcon: gpio: Add dt support for the driver.
+  extcon: gpio: Always use gpio_get_value_cansleep
+  extcon: gpio: Add support for using cable names
 
- arch/arm/boot/dts/dra7.dtsi | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ .../devicetree/bindings/extcon/extcon-gpio.txt     | 23 ++++++
+ drivers/extcon/extcon-gpio.c                       | 93 ++++++++++++++--------
+ 2 files changed, 84 insertions(+), 32 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/extcon/extcon-gpio.txt
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index b9bf09f..7b54d2b 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1143,7 +1143,7 @@
- 			};
- 		};
- 
--		omap_dwc3_1@48880000 {
-+		omap_dwc3_1: omap_dwc3_1@48880000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss1";
- 			reg = <0x48880000 0x10000>;
-@@ -1164,7 +1164,7 @@
- 			};
- 		};
- 
--		omap_dwc3_2@488c0000 {
-+		omap_dwc3_2: omap_dwc3_2@488c0000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss2";
- 			reg = <0x488c0000 0x10000>;
-@@ -1186,7 +1186,7 @@
- 		};
- 
- 		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
--		omap_dwc3_3@48900000 {
-+		omap_dwc3_3: omap_dwc3_3@48900000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss3";
- 			reg = <0x48900000 0x10000>;
-@@ -1206,7 +1206,7 @@
- 			};
- 		};
- 
--		omap_dwc3_4@48940000 {
-+		omap_dwc3_4: omap_dwc3_4@48940000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss4";
- 			reg = <0x48940000 0x10000>;
 -- 
 2.1.0.GIT
 
