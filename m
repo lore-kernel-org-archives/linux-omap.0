@@ -1,37 +1,92 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 0/4] extcon: gpio: add DT support
-Date: Mon, 3 Nov 2014 10:32:26 -0600
-Message-ID: <1415032350-8459-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 1/4] extcon: gpio: Convert the driver to use gpio desc API's
+Date: Mon, 3 Nov 2014 10:32:27 -0600
+Message-ID: <1415032350-8459-2-git-send-email-balbi@ti.com>
+References: <1415032350-8459-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43753 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43448 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751908AbaKCQdE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751922AbaKCQdE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 3 Nov 2014 11:33:04 -0500
+In-Reply-To: <1415032350-8459-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org, Felipe Balbi <balbi@ti.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org, George Cherian <george.cherian@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Hi,
+From: George Cherian <george.cherian@ti.com>
 
-this series has been tested with v3.18-rc2 with a
-yet-to-be-released board (called X15). That board
-is DT-only and we use extcon-gpio to decide which
-USB mode should be used (host or peripheral).
+Convert the driver to use gpiod_* API's.
 
-George Cherian (4):
-  extcon: gpio: Convert the driver to use gpio desc API's
-  extcon: gpio: Add dt support for the driver.
-  extcon: gpio: Always use gpio_get_value_cansleep
-  extcon: gpio: Add support for using cable names
+Reviewed-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: George Cherian <george.cherian@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/extcon/extcon-gpio.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
- .../devicetree/bindings/extcon/extcon-gpio.txt     | 23 ++++++
- drivers/extcon/extcon-gpio.c                       | 93 ++++++++++++++--------
- 2 files changed, 84 insertions(+), 32 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/extcon/extcon-gpio.txt
-
+diff --git a/drivers/extcon/extcon-gpio.c b/drivers/extcon/extcon-gpio.c
+index 72f19a3..70e3fc7 100644
+--- a/drivers/extcon/extcon-gpio.c
++++ b/drivers/extcon/extcon-gpio.c
+@@ -33,8 +33,7 @@
+ 
+ struct gpio_extcon_data {
+ 	struct extcon_dev *edev;
+-	unsigned gpio;
+-	bool gpio_active_low;
++	struct gpio_desc *gpiod;
+ 	const char *state_on;
+ 	const char *state_off;
+ 	int irq;
+@@ -50,9 +49,7 @@ static void gpio_extcon_work(struct work_struct *work)
+ 		container_of(to_delayed_work(work), struct gpio_extcon_data,
+ 			     work);
+ 
+-	state = gpio_get_value(data->gpio);
+-	if (data->gpio_active_low)
+-		state = !state;
++	state = gpiod_get_value(data->gpiod);
+ 	extcon_set_state(data->edev, state);
+ }
+ 
+@@ -106,21 +103,20 @@ static int gpio_extcon_probe(struct platform_device *pdev)
+ 	}
+ 	extcon_data->edev->name = pdata->name;
+ 
+-	extcon_data->gpio = pdata->gpio;
+-	extcon_data->gpio_active_low = pdata->gpio_active_low;
++	extcon_data->gpiod = gpio_to_desc(pdata->gpio);
+ 	extcon_data->state_on = pdata->state_on;
+ 	extcon_data->state_off = pdata->state_off;
+ 	extcon_data->check_on_resume = pdata->check_on_resume;
+ 	if (pdata->state_on && pdata->state_off)
+ 		extcon_data->edev->print_state = extcon_gpio_print_state;
+ 
+-	ret = devm_gpio_request_one(&pdev->dev, extcon_data->gpio, GPIOF_DIR_IN,
++	ret = devm_gpio_request_one(&pdev->dev, pdata->gpio, GPIOF_DIR_IN,
+ 				    pdev->name);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	if (pdata->debounce) {
+-		ret = gpio_set_debounce(extcon_data->gpio,
++		ret = gpiod_set_debounce(extcon_data->gpiod,
+ 					pdata->debounce * 1000);
+ 		if (ret < 0)
+ 			extcon_data->debounce_jiffies =
+@@ -133,7 +129,7 @@ static int gpio_extcon_probe(struct platform_device *pdev)
+ 
+ 	INIT_DELAYED_WORK(&extcon_data->work, gpio_extcon_work);
+ 
+-	extcon_data->irq = gpio_to_irq(extcon_data->gpio);
++	extcon_data->irq = gpiod_to_irq(extcon_data->gpiod);
+ 	if (extcon_data->irq < 0)
+ 		return extcon_data->irq;
+ 
 -- 
 2.1.0.GIT
 
