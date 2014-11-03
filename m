@@ -1,127 +1,164 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2] pinctrl: dra: dt-bindings: Fix output pull up/down
-Date: Mon, 3 Nov 2014 11:56:34 -0600
-Message-ID: <CAGo_u6p-A4X9ux5RArvziKwYzPQECUwv8tUEJyAXNAPkP+Sjfg@mail.gmail.com>
-References: <1414752745-13696-1-git-send-email-rogerq@ti.com>
-	<1415009392-6627-1-git-send-email-rogerq@ti.com>
-	<20141103143023.GA8260@kahuna>
-	<545794CB.5030802@ti.com>
-	<54579858.4030605@ti.com>
-	<54579A4B.9060301@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 17/47] mfd: tps65910: Register with kernel power-off
+ handler
+Date: Mon, 3 Nov 2014 11:57:27 -0600
+Message-ID: <20141103175727.GR27425@saruman>
+References: <1414425354-10359-1-git-send-email-linux@roeck-us.net>
+ <1414425354-10359-18-git-send-email-linux@roeck-us.net>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f173.google.com ([209.85.213.173]:52531 "EHLO
-	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753638AbaKCR4f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Nov 2014 12:56:35 -0500
-In-Reply-To: <54579A4B.9060301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="19HmC3QOnaNVzKTI"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1414425354-10359-18-git-send-email-linux@roeck-us.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Balbi, Felipe" <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, dt list <devicetree@vger.kernel.org>
 
-On Mon, Nov 3, 2014 at 9:07 AM, Roger Quadros <rogerq@ti.com> wrote:
-> On 11/03/2014 04:59 PM, Nishanth Menon wrote:
->> On 11/03/2014 08:44 AM, Roger Quadros wrote:
->>> On 11/03/2014 04:30 PM, Nishanth Menon wrote:
->>>> On 12:09-20141103, Roger Quadros wrote:
->>>>> For PIN_OUTPUT_PULLUP and PIN_OUTPUT_PULLDOWN we must not set the
->>>>> PULL_DIS bit which disables the PULLs.
->>>>>
->>>>> PULL_ENA is a 0 and using it in an OR operation is a NOP, so don't
->>>>> use it in the PIN_OUTPUT_PULLUP/DOWN macros.
->>>>>
->>>>> Fixes: 23d9cec07c58 ("pinctrl: dra: dt-bindings: Fix pull enable/disable")
->>>>>
->>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>>> ---
->>>>>  include/dt-bindings/pinctrl/dra.h | 4 ++--
->>>>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>>>
->>>>> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
->>>>> index 3d33794..7448edf 100644
->>>>> --- a/include/dt-bindings/pinctrl/dra.h
->>>>> +++ b/include/dt-bindings/pinctrl/dra.h
->>>>> @@ -40,8 +40,8 @@
->>>>>
->>>>>  /* Active pin states */
->>>>>  #define PIN_OUTPUT                (0 | PULL_DIS)
->>>>> -#define PIN_OUTPUT_PULLUP (PIN_OUTPUT | PULL_ENA | PULL_UP)
->>>>> -#define PIN_OUTPUT_PULLDOWN       (PIN_OUTPUT | PULL_ENA)
->>>>> +#define PIN_OUTPUT_PULLUP (PULL_UP)
->>>>> +#define PIN_OUTPUT_PULLDOWN       (0)
->>>>>  #define PIN_INPUT         (INPUT_EN | PULL_DIS)
->>>>>  #define PIN_INPUT_SLEW            (INPUT_EN | SLEWCONTROL)
->>>>>  #define PIN_INPUT_PULLUP  (PULL_ENA | INPUT_EN | PULL_UP)
->>>>
->>>> You are right, we do have an issue with using PIN_OUTPUT along with
->>>> remaining setting.
->>>>
->>>> For a moment, I wondered why input was not impacted - then I realized
->>>> that INPUT_EN was being used instead of PIN_INPUT - following that
->>>> convention. With the intent being explicitly using macros that
->>>> clearly indicate what each setting combination is is, how about the
->>>> following?
->>>>
->>>>
->>>> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
->>>> index 3d33794..d4037e7 100644
->>>> --- a/include/dt-bindings/pinctrl/dra.h
->>>> +++ b/include/dt-bindings/pinctrl/dra.h
->>>> @@ -34,14 +34,15 @@
->>>>  #define PULL_DIS           (1 << 16)
->>>>  #define PULL_UP                    (1 << 17)
->>>>  #define INPUT_EN           (1 << 18)
->>>> +#define OUTPUT_EN          (0 << 18)
->>>>  #define SLEWCONTROL                (1 << 19)
->>>>  #define WAKEUP_EN          (1 << 24)
->>>>  #define WAKEUP_EVENT               (1 << 25)
->>>>
->>>>  /* Active pin states */
->>>> -#define PIN_OUTPUT         (0 | PULL_DIS)
->>>> -#define PIN_OUTPUT_PULLUP  (PIN_OUTPUT | PULL_ENA | PULL_UP)
->>>> -#define PIN_OUTPUT_PULLDOWN        (PIN_OUTPUT | PULL_ENA)
->>>> +#define PIN_OUTPUT         (OUTPUT_EN | PULL_DIS)
->>>> +#define PIN_OUTPUT_PULLUP  (OUTPUT_EN | PULL_ENA | PULL_UP)
->>>> +#define PIN_OUTPUT_PULLDOWN        (OUTPUT_EN | PULL_ENA)
->>>
->>> To me it adds more confusion and this change is a NOP as we're ORing 0 here
->>> with OUTPUT_EN.
->>
->> look at this this way:
->>
->> PIN_OUTPUT_PULLDOWN   (OUTPUT_EN | PULL_ENA)
->>
->> should probably trigger in mind (what about PULLDOWN?)
->>
->> PIN_OUTPUT_PULLDOWN   (OUTPUT_EN | PULL_ENA | PULL_DOWN)
->>
->> then verify values of each OUTPUT_EN  -> 0 in bit 18, ok, etc.
->>
->>
->> if we ensure that PIN_XX macros use just the basic primitives, it is
->> easier to prevent the mistake like the one I made. the other option of
->> not defining macros whose values are 0 implies that the reviewer has
->> to recheck against trm to ensure all the right "1" bits are set.
->>
->>
->> just my view here.
->
-> Aren't the macros defining the bit positions not the actual enable or
-> disable actions?
->
-> If we go by what you said then you will have to add
-> WAKEUP_DIS, SLEWCONTROL_DIS, WAKEUP_EVENT_DIS and so on.
->
-> Which again makes no sense as you will have to define them to zero.
+--19HmC3QOnaNVzKTI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-WAKEUP should not be defined anyways - pinctrl controls them - should
-probably remove them from header.
+On Mon, Oct 27, 2014 at 08:55:24AM -0700, Guenter Roeck wrote:
+> Register with kernel power-off handler instead of setting pm_power_off
+> directly. Register with low priority to reflect that the original code
+> only sets pm_power_off if it was not already set.
+>=20
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-but your point is probably a valid view w.r.t TI SoC bit definitions -
-we just define the "1" states in omap.h as well.
--- 
----
-Regards,
-Nishanth Menon
+missed lakml and linux-omap here too
+
+> ---
+> v3:
+> - Replace poweroff in all newly introduced variables and in text
+>   with power_off or power-off as appropriate
+> - Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
+> v2:
+> - Use define to specify poweroff handler priority
+> - Use dev_warn instead of dev_err
+>=20
+>  drivers/mfd/tps65910.c       | 27 ++++++++++++++++++---------
+>  include/linux/mfd/tps65910.h |  3 +++
+>  2 files changed, 21 insertions(+), 9 deletions(-)
+>=20
+> diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+> index 7612d89..3c94dbf 100644
+> --- a/drivers/mfd/tps65910.c
+> +++ b/drivers/mfd/tps65910.c
+> @@ -23,6 +23,8 @@
+>  #include <linux/irq.h>
+>  #include <linux/irqdomain.h>
+>  #include <linux/mfd/core.h>
+> +#include <linux/notifier.h>
+> +#include <linux/pm.h>
+>  #include <linux/regmap.h>
+>  #include <linux/mfd/tps65910.h>
+>  #include <linux/of.h>
+> @@ -437,19 +439,20 @@ struct tps65910_board *tps65910_parse_dt(struct i2c=
+_client *client,
+>  }
+>  #endif
+> =20
+> -static struct i2c_client *tps65910_i2c_client;
+> -static void tps65910_power_off(void)
+> +static int tps65910_power_off(struct notifier_block *this,
+> +			      unsigned long unused1, void *unused2)
+>  {
+> -	struct tps65910 *tps65910;
+> -
+> -	tps65910 =3D dev_get_drvdata(&tps65910_i2c_client->dev);
+> +	struct tps65910 *tps65910 =3D container_of(this, struct tps65910,
+> +						 power_off_nb);
+> =20
+>  	if (tps65910_reg_set_bits(tps65910, TPS65910_DEVCTRL,
+>  			DEVCTRL_PWR_OFF_MASK) < 0)
+> -		return;
+> +		return NOTIFY_DONE;
+> =20
+>  	tps65910_reg_clear_bits(tps65910, TPS65910_DEVCTRL,
+>  			DEVCTRL_DEV_ON_MASK);
+> +
+> +	return NOTIFY_DONE;
+>  }
+> =20
+>  static int tps65910_i2c_probe(struct i2c_client *i2c,
+> @@ -505,9 +508,13 @@ static int tps65910_i2c_probe(struct i2c_client *i2c,
+>  	tps65910_ck32k_init(tps65910, pmic_plat_data);
+>  	tps65910_sleepinit(tps65910, pmic_plat_data);
+> =20
+> -	if (pmic_plat_data->pm_off && !pm_power_off) {
+> -		tps65910_i2c_client =3D i2c;
+> -		pm_power_off =3D tps65910_power_off;
+> +	if (pmic_plat_data->pm_off) {
+> +		tps65910->power_off_nb.notifier_call =3D tps65910_power_off;
+> +		tps65910->power_off_nb.priority =3D POWER_OFF_PRIORITY_LOW;
+> +		ret =3D register_power_off_handler(&tps65910->power_off_nb);
+> +		if (ret)
+> +			dev_warn(&i2c->dev,
+> +				 "failed to register power-off handler\n");
+>  	}
+> =20
+>  	ret =3D mfd_add_devices(tps65910->dev, -1,
+> @@ -527,6 +534,8 @@ static int tps65910_i2c_remove(struct i2c_client *i2c)
+>  {
+>  	struct tps65910 *tps65910 =3D i2c_get_clientdata(i2c);
+> =20
+> +	unregister_power_off_handler(&tps65910->power_off_nb);
+> +
+>  	tps65910_irq_exit(tps65910);
+>  	mfd_remove_devices(tps65910->dev);
+> =20
+> diff --git a/include/linux/mfd/tps65910.h b/include/linux/mfd/tps65910.h
+> index 6483a6f..94876c4 100644
+> --- a/include/linux/mfd/tps65910.h
+> +++ b/include/linux/mfd/tps65910.h
+> @@ -905,6 +905,9 @@ struct tps65910 {
+>  	/* IRQ Handling */
+>  	int chip_irq;
+>  	struct regmap_irq_chip_data *irq_data;
+> +
+> +	/* Power-off handling */
+> +	struct notifier_block power_off_nb;
+>  };
+> =20
+>  struct tps65910_platform_data {
+> --=20
+> 1.9.1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+--=20
+balbi
+
+--19HmC3QOnaNVzKTI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUV8IHAAoJEIaOsuA1yqRE6DQQAJfZmeYQX2oBzWdgs4gDi19r
+3kdBZ8+HFTeszmKLZvlSe0rcWw+/UM6YmZAq/hXWFgw4vW90DffqpjsmvRXtU/XA
+8/V/Pauh5Os83nLY4AITjiFyWykqplepDn5c9daiSPmijTIPyxr461pckJBYx2Zl
+G9NKI/3X86Bc9ELEZG2dHnJohrpbcauJNkfmBZwyFlmcRsjsXo8mG7ptJkXaIpbZ
+dFij/RtHoDoL2TV57Nqqs1V041c6FAOjcZK1j+ayCtjkk4RcDbfQbYEFhNhFFtg7
+gXxKzFavxIW/xaMLeuJ4mWnJLniDIZK2frrm10yXBzDb70WmAR87qQS/URZxDmYi
+mDSyPbWU4/T3YvMGtFDRwdOAip4k1DCxSOcTTqV1xfl00YdIO5a+/jI7S1iEDW20
+RSSq5nzZ8/HRUkz1Wa6o3bIfEuOe1bDCYAEsP2XHKsSe0nSAooXM3T07tHKQT4Fd
+kyPIq1VDekTiE3XBX3bdbfXKw4DsPbsMnacZ3Pzq+T8RZ53bPEdCAEWbnb0cjhVO
+jvzvtGDzTHWzM+svqXdDIbnkJQ4NGMcYViiXQURJZp5qq2hbq8QJWr95wVGK2YSi
+wTl+3wFOsi1H+t+ykiLn+fMdw61d86mGWUTcxCPIbCkkEQopRA0el5RZ7fhSqLV+
+gCP6f5S8sw0a3toAPxdy
+=TyJs
+-----END PGP SIGNATURE-----
+
+--19HmC3QOnaNVzKTI--
