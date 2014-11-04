@@ -1,40 +1,86 @@
-From: pekon <pekon@pek-sem.com>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Print error message in set_gpmc_timing_reg()
-Date: Wed, 05 Nov 2014 01:29:53 +0530
-Message-ID: <54593039.3090207@pek-sem.com>
-References: <1413895309-9152-1-git-send-email-rogerq@ti.com> <1413895309-9152-2-git-send-email-rogerq@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: N900 modem support in 3.18-rc1
+Date: Tue, 4 Nov 2014 21:51:17 +0100
+Message-ID: <20141104205117.GA17606@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from us2.outbound.mailhostbox.com ([162.210.70.57]:60068 "EHLO
-	us2.outbound.mailhostbox.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751188AbaKDUGx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2014 15:06:53 -0500
-In-Reply-To: <1413895309-9152-2-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: tony@atomide.com, javier@dowhile0.org, linux-omap@vger.kernel.org
 
-On Tuesday 21 October 2014 06:11 PM, Roger Quadros wrote:
-> Simplify set_gpmc_timing_reg() and always print error message
-> if the requested timing cannot be achieved due to a too fast
-> GPMC functional clock, irrespective if whether DEBUG is defined
-> or not. This should help us debug timing configuration issues,
-> which were otherwise simply not being displayed in the kernel log.
->
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
+Hi!
 
-Thanks for this patch.
-Its helpful in tweaking NAND signal timing, while trying to squeeze 
-read/write performance especially with new NAND devices.
+I'd like to test a modem (and eventually to get it to work :-) ) on
+n900. So far I found:
 
+http://lwn.net/Articles/592485/
 
-with regards, pekon
+It says:
 
-------------------------
-Powered by BigRock.com
+# supported. Testing the patchset with ofono works like this:
+# 
+#  # provide cmt device for ofono
+#  ln -sf /sys/bus/hsi/n900-modem /dev/cmt
 
+root@n900:/dev# ln -sf /sys/bus/hsi/n900-modem /dev/cmt
+root@n900:/dev# ls -al /dev/cmt
+lrwxrwxrwx 1 root root 23 Jan  1 08:51 /dev/cmt ->
+/sys/bus/hsi/n900-modem
+root@n900:/dev# cat /dev/cmt
+cat: /dev/cmt: No such file or directory
+root@n900:/dev# cd /dev/cmt
+-bash: cd: /dev/cmt: No such file or directory
+root@n900:/dev# 
+root@n900:/dev# ls -al /sys/bus/hsi/
+devices/           drivers_autoprobe  uevent             
+drivers/           drivers_probe      
+root@n900:/dev# ls -al /sys/bus/hsi/devices/
+cmt_speech/   hsi_char/     n900-modem/   ssi-protocol/ 
+root@n900:/dev# ls -al /sys/bus/hsi/devices/n900-modem
+lrwxrwxrwx 1 root root 0 Jan  1 08:46 /sys/bus/hsi/devices/n900-modem
+->
+../../../devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/n900-modem
+root@n900:/dev# 
+
+That seemed to match, so I symlinked it.
+
+#  # start ofono
+#  ofono --nodetach --debug
+
+It it a typo and it wants ofonod?
+
+root@n900:~# ofonod --nodetach --debug &
+[1] 3552
+root@n900:~# ofonod[3552]: oFono version 1.6
+
+#  # enable the modem
+#  mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty Powered true
+
+root@n900:~# mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty
+Powered true
+[ERR]: There is no method with name org.ofono.Modem.SetProperty on
+path /n900_0!
+
+#  # enable modem's RF parts
+#  mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty Online true
+
+root@n900:~# mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty
+Online true
+[ERR]: There is no method with name org.ofono.Modem.SetProperty on
+path /n900_0!
+
+#  # scan for available networks (takes some time)
+#  mdbus2 -s org.ofono /n900_0 org.ofono.NetworkRegistration.Scan
+
+root@n900:~# mdbus2 -s org.ofono /n900_0
+org.ofono.NetworkRegistration.Scan
+[ERR]: There is no method with name org.ofono.NetworkRegistration.Scan
+on path /n900_0!
+
+Any ideas? Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
