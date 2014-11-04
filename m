@@ -1,130 +1,91 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
- enabled
-Date: Tue, 04 Nov 2014 15:20:30 +0200
-Message-ID: <5458D29E.50908@compulab.co.il>
-References: <20141102180756.GH31454@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 06/10] ARM: OMAP2+: Show bootloader GPMC timings to allow
+ configuring the .dts file
+Date: Tue, 4 Nov 2014 15:40:01 +0200
+Message-ID: <5458D731.1010208@ti.com>
+References: <1414628948-30702-1-git-send-email-tony@atomide.com> <1414628948-30702-7-git-send-email-tony@atomide.com> <545248FA.7040201@ti.com> <20141030144529.GG2542@atomide.com> <54525362.9080000@ti.com> <20141030163031.GG2560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:46206 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752557AbaKDNUi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Nov 2014 08:20:38 -0500
-In-Reply-To: <20141102180756.GH31454@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57619 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753268AbaKDNkb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Nov 2014 08:40:31 -0500
+In-Reply-To: <20141030163031.GG2560@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orgRussell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
-
-On 11/02/14 20:07, Tony Lindgren wrote:
-> Commit e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset
-> configuration") enabled configuring the PM features for twl4030.
+On 10/30/2014 06:30 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [141030 08:05]:
+>> On 10/30/2014 04:45 PM, Tony Lindgren wrote:
+>>> * Roger Quadros <rogerq@ti.com> [141030 07:21]:
+>>>> On 10/30/2014 02:29 AM, Tony Lindgren wrote:
+>>>>> +static void gpmc_cs_show_timings(int cs, const char *desc)
+>>>>> +{
+>>>>> +	gpmc_show_regs(cs, desc);
+>>>>> +
+>>>>> +	pr_info("gpmc cs%i access configuration:\n", cs);
+>>>>> +	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1,  4,  4, "time-para-granularity");
+>>>>> +	GPMC_GET_RAW(GPMC_CS_CONFIG1,  8,  9, "mux-add-data");
+>>>>> +	GPMC_GET_RAW(GPMC_CS_CONFIG1, 12, 13, "device-width");
+>>>>> +	GPMC_GET_RAW(GPMC_CS_CONFIG1, 16, 17, "wait-pin");
+>>>>> +	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 21, 21, "wait-on-write");
+>>>>> +	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1, 22, 22, "wait-on-read");
+>>>>> +	GPMC_GET_RAW_SHIFT(GPMC_CS_CONFIG1, 23, 24, 3, "burst-length");
+>>>>
+>>>> how does this work with shift = 3?
+>>>> Possible values of burst length are
+>>>> 0 -> 4
+>>>> 1 -> 8
+>>>> 2 -> 16
+>>>
+>>> Hmm sounds like a bug..
 > 
-> This caused poweroff command to fail on devices that have the
-> BCI charger on twl4030 wired, or have power wired for VBUS.
-> Instead of powering off, the device reboots. This is because
-> voltage is detected on charger or VBUS with the default bits
-> enabled for the power transition registers.
+> The shift does not work here for 0 << 3 naturally :) I've changed
+> it to l = (shift << l) where shift is 4 in this case.
+>  
+>>> In general, if you a chance to test this patch with a few
+>>> devices that would be great. Assuming you have working timings
+>>> in the bootloader, just remove the gpmc,* entries temporarily
+>>> from the .dts file for a device, and see if the values printed
+>>> by this patch make sense. I've used this to generate the values
+>>> for the 2430sdp smc91x and zoom 8250 but I don't think I've tried
+>>> anything with a burst mode so far.
+>>
+>> OK. I'll give it a spin with u-boot configured devices.
 > 
-> To fix the issue, let's just clear VBUS and CHG bits as we want
-> poweroff command to keep the system powered off.
-
-What about devices that really need to start once VBUS or CHG is connected?
-It seems to me that forcing these bits on power off can break that kind of
-devices and these settings should really be board specific.
-What do you think?
-
+> Great thanks. Updated patch below.
 > 
-> Fixes: e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset configuration")
-> Cc: stable@vger.kernel.org # v3.16+
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Regards,
+> 
+> Tony
+> 
+> 
+> 8< ----------------
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Wed, 29 Oct 2014 17:16:48 -0700
+> Subject: [PATCH] ARM: OMAP2+: Show bootloader GPMC timings to allow configuring the .dts file
+> 
+> As we still have some devices with GPMC timings missing from the
+> .dts files, let's make it a bit easier to use the bootloader
+> values and print them out.
+> 
+> Note that we now need to move the parsing of the device tree provided
+> configuration a bit earlier so we can use that for checking if anything
+> was configured.
+> 
+> Cc: Roger Quadros <rogerq@ti.com>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > 
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -44,6 +44,15 @@ static u8 twl4030_start_script_address = 0x2b;
->  #define PWR_DEVSLP		BIT(1)
->  #define PWR_DEVOFF		BIT(0)
->  
-> +/* Register bits for CFG_P1_TRANSITION (also for P2 and P3) */
-> +#define STARTON_SWBUG		BIT(7)	/* Start on watchdog */
-> +#define STARTON_VBUS		BIT(5)	/* Start on VBUS */
-> +#define STARTON_VBAT		BIT(4)	/* Start on battery insert */
-> +#define STARTON_RTC		BIT(3)	/* Start on RTC */
-> +#define STARTON_USB		BIT(2)	/* Start on USB host */
-> +#define STARTON_CHG		BIT(1)	/* Start on charger */
-> +#define STARTON_PWON		BIT(0)	/* Start on PWRON button */
-> +
->  #define SEQ_OFFSYNC		(1 << 0)
->  
->  #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
-> @@ -606,6 +615,44 @@ twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
->  	return 0;
->  }
->  
-> +static int twl4030_starton_mask_and_set(u8 bitmask, u8 bitvalues)
-> +{
-> +	u8 regs[3] = { TWL4030_PM_MASTER_CFG_P1_TRANSITION,
-> +		       TWL4030_PM_MASTER_CFG_P2_TRANSITION,
-> +		       TWL4030_PM_MASTER_CFG_P3_TRANSITION, };
-> +	u8 val;
-> +	int i, err;
-> +
-> +	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG1,
-> +			       TWL4030_PM_MASTER_PROTECT_KEY);
-> +	if (err)
-> +		goto relock;
-> +	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
-> +			       TWL4030_PM_MASTER_KEY_CFG2,
-> +			       TWL4030_PM_MASTER_PROTECT_KEY);
-> +	if (err)
-> +		goto relock;
-> +
-> +	for (i = 0; i < sizeof(regs); i++) {
-> +		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER,
-> +				      &val, regs[i]);
-> +		if (err)
-> +			break;
-> +		val = (~bitmask & val) | (bitmask & bitvalues);
-> +		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
-> +				       val, regs[i]);
-> +		if (err)
-> +			break;
-> +	}
-> +
-> +	if (err)
-> +		pr_err("TWL4030 Register access failed: %i\n", err);
-> +
-> +relock:
-> +	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER, 0,
-> +				TWL4030_PM_MASTER_PROTECT_KEY);
-> +}
-> +
->  /*
->   * In master mode, start the power off sequence.
->   * After a successful execution, TWL shuts down the power to the SoC
-> @@ -615,6 +662,11 @@ void twl4030_power_off(void)
->  {
->  	int err;
->  
-> +	/* Disable start on charger or VBUS as it can break poweroff */
-> +	err = twl4030_starton_mask_and_set(STARTON_VBUS | STARTON_CHG, 0);
-> +	if (err)
-> +		pr_err("TWL4030 Unable to configure start-up\n");
-> +
->  	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, PWR_DEVOFF,
->  			       TWL4030_PM_MASTER_P1_SW_EVENTS);
->  	if (err)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
--- 
-Regards,
-Igor.
+I don't have any board with smsc or working NOR so I called
+gpmc_cs_show_timings() after NAND was setup.
+
+The printed values match closely to the configured values in the DTS.
+
+cheers,
+-roger
+
