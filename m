@@ -1,76 +1,77 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 7/8] net: can: c_can: Add support for TI DRA7 DCAN
-Date: Tue, 4 Nov 2014 12:21:00 +0200
-Message-ID: <1415096461-25576-8-git-send-email-rogerq@ti.com>
-References: <1415096461-25576-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 00/10] ARM: dts: TI: Add CAN support
+Date: Tue, 4 Nov 2014 12:48:44 +0200
+Message-ID: <1415098134-26405-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59109 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751961AbaKDKWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Nov 2014 05:22:00 -0500
-In-Reply-To: <1415096461-25576-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-DRA7 SoC has 2 CAN IPs. Provide compatible IDs and RAMINIT
-register data for both.
+Hi Tony,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+These patches add CAN support for am33xx, am43xx and dra7 platforms.
+They must go in together with CAN driver RAMINIT Syscon support [1].
+
+Tested on am335x-evm, am437x-gp-evm and dra7-evm.
+
+NOTE:
+- for DCAN to work on DRA7 we need this patch to keep the CAN PHY powered.
+https://lkml.org/lkml/2014/10/21/484
+
+- There is another issue which causes undesired behaviour if WKUPAON and
+L4CFG clock domains are allowed to HW_AUTO. Undesired behaviour is in the form
+of DCAN1 module being stuck-in-transition when disabled and RAMINIT-done bit
+not getting set as part of RAMINIT mechanism. To address these issues there is a patch
+to prevent these clockdomains from HW_AUTO.
+https://github.com/rogerq/linux/commit/31d6da939dbbaf8ea2ab96ca5680b81cd5607e51
+Even without this second patch DCAN seems to work.
+
+cheers,
+-roger
+
+Changelog:
+
+v3:
+- Move raminit register data into driver data
+- rename syscon property to "syscon-raminit"
+
+v2:
+- Added vendor prefix "ti," to raminit properties
+- Updated am335x dcan nodes
+
+[1] - CAN driver RAMINIT Syscon support
+http://article.gmane.org/gmane.linux.can/6773
+
+cheers,
+-roger
+
 ---
- Documentation/devicetree/bindings/net/can/c_can.txt |  1 +
- drivers/net/can/c_can/c_can_platform.c              | 16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
+Mugunthan V N (1):
+  arm: dts: am437x-gp: Add dcan support
 
-diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
-index 917ac0e..746cc07 100644
---- a/Documentation/devicetree/bindings/net/can/c_can.txt
-+++ b/Documentation/devicetree/bindings/net/can/c_can.txt
-@@ -4,6 +4,7 @@ Bosch C_CAN/D_CAN controller Device Tree Bindings
- Required properties:
- - compatible		: Should be "bosch,c_can" for C_CAN controllers and
- 			  "bosch,d_can" for D_CAN controllers.
-+			  Can be "ti,dra7-d_can1" or "ti,dra7-d_can2".
- - reg			: physical base address and size of the C_CAN/D_CAN
- 			  registers map
- - interrupts		: property with a value describing the interrupt
-diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-index d058820..dc618ce 100644
---- a/drivers/net/can/c_can/c_can_platform.c
-+++ b/drivers/net/can/c_can/c_can_platform.c
-@@ -195,6 +195,20 @@ static struct c_can_driver_data d_can_drvdata = {
- 	.id = BOSCH_D_CAN,
- };
- 
-+static struct c_can_driver_data dra7_dcan1_drvdata = {
-+	.id = BOSCH_D_CAN,
-+	.raminit_start_bit = 3,
-+	.raminit_done_bit = 1,
-+	.raminit_pulse = true,
-+};
-+
-+static struct c_can_driver_data dra7_dcan2_drvdata = {
-+	.id = BOSCH_D_CAN,
-+	.raminit_start_bit = 5,
-+	.raminit_done_bit = 2,
-+	.raminit_pulse = true,
-+};
-+
- static struct platform_device_id c_can_id_table[] = {
- 	{
- 		.name = KBUILD_MODNAME,
-@@ -215,6 +229,8 @@ MODULE_DEVICE_TABLE(platform, c_can_id_table);
- static const struct of_device_id c_can_of_table[] = {
- 	{ .compatible = "bosch,c_can", .data = &c_can_drvdata },
- 	{ .compatible = "bosch,d_can", .data = &d_can_drvdata },
-+	{ .compatible = "ti,dra7-d_can1", .data = &dra7_dcan1_drvdata },
-+	{ .compatible = "ti,dra7-d_can2", .data = &dra7_dcan2_drvdata },
- 	{ /* sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, c_can_of_table);
+Roger Quadros (9):
+  ARM: dts: dra7: Add syscon regmap for CORE CONTROL area
+  ARM: dts: DRA7: Add DCAN nodes
+  ARM: dts: dra7-evm: Add CAN support
+  ARM: dts: dra72-evm: Add CAN support
+  ARM: dts: am4372: Add control module syscon node
+  ARM: dts: am4372: Add DCAN nodes
+  ARM: dts: am33xx: Add control module syscon node
+  ARM: dts: am33xx: Update DCAN nodes
+  ARM: dts: am335x-evm: Add DCAN1 details
+
+ arch/arm/boot/dts/am335x-evm.dts    | 13 +++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi       | 25 +++++++++++++++++--------
+ arch/arm/boot/dts/am4372.dtsi       | 27 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts | 26 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7-evm.dts      | 23 +++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi         | 27 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra72-evm.dts     | 23 +++++++++++++++++++++++
+ 7 files changed, 156 insertions(+), 8 deletions(-)
+
 -- 
 1.8.3.2
 
