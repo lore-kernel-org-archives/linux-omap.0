@@ -1,42 +1,130 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
-Date: Tue, 04 Nov 2014 13:37:19 +0100
-Message-ID: <5458C87F.80409@linutronix.de>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <544E821D.5040004@linutronix.de> <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com> <54577258.9080508@linutronix.de> <5458BC0B.1040803@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
+ enabled
+Date: Tue, 04 Nov 2014 15:20:30 +0200
+Message-ID: <5458D29E.50908@compulab.co.il>
+References: <20141102180756.GH31454@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5458BC0B.1040803-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:46206 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752557AbaKDNUi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Nov 2014 08:20:38 -0500
+In-Reply-To: <20141102180756.GH31454@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orgRussell King - ARM Linux <linux@arm.linux.org.uk>
 
-On 11/04/2014 12:44 PM, Vignesh R wrote:
+Hi Tony,
 
-> I ran following commands
-> $ evtest /dev/input/touchscreen0 &
-> (with heavy item on touchscreen)
->  and
-> $ cat /sys/bus/iio/devices/iio\:device0/scan_elements/in_voltage4_en
-> (in a busy loop)
-> I tried above experiment on my board but I didn't hit any problem even
-> after running for close to 30 minutes. I was unable to reproduce failure
+On 11/02/14 20:07, Tony Lindgren wrote:
+> Commit e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset
+> configuration") enabled configuring the PM features for twl4030.
+> 
+> This caused poweroff command to fail on devices that have the
+> BCI charger on twl4030 wired, or have power wired for VBUS.
+> Instead of powering off, the device reboots. This is because
+> voltage is detected on charger or VBUS with the default bits
+> enabled for the power transition registers.
+> 
+> To fix the issue, let's just clear VBUS and CHG bits as we want
+> poweroff command to keep the system powered off.
 
-Just to make sure: You had the touchscreen and iio command running in
-parallel and you saw evtest output while there was iio operation?
+What about devices that really need to start once VBUS or CHG is connected?
+It seems to me that forcing these bits on power off can break that kind of
+devices and these settings should really be board specific.
+What do you think?
 
-> The problem may be in configuring correct charge-delay value. Please run:
-> $ ts_test > /dev/null
-> and let me know if pen events are being detected properly.
+> 
+> Fixes: e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset configuration")
+> Cc: stable@vger.kernel.org # v3.16+
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -44,6 +44,15 @@ static u8 twl4030_start_script_address = 0x2b;
+>  #define PWR_DEVSLP		BIT(1)
+>  #define PWR_DEVOFF		BIT(0)
+>  
+> +/* Register bits for CFG_P1_TRANSITION (also for P2 and P3) */
+> +#define STARTON_SWBUG		BIT(7)	/* Start on watchdog */
+> +#define STARTON_VBUS		BIT(5)	/* Start on VBUS */
+> +#define STARTON_VBAT		BIT(4)	/* Start on battery insert */
+> +#define STARTON_RTC		BIT(3)	/* Start on RTC */
+> +#define STARTON_USB		BIT(2)	/* Start on USB host */
+> +#define STARTON_CHG		BIT(1)	/* Start on charger */
+> +#define STARTON_PWON		BIT(0)	/* Start on PWRON button */
+> +
+>  #define SEQ_OFFSYNC		(1 << 0)
+>  
+>  #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
+> @@ -606,6 +615,44 @@ twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
+>  	return 0;
+>  }
+>  
+> +static int twl4030_starton_mask_and_set(u8 bitmask, u8 bitvalues)
+> +{
+> +	u8 regs[3] = { TWL4030_PM_MASTER_CFG_P1_TRANSITION,
+> +		       TWL4030_PM_MASTER_CFG_P2_TRANSITION,
+> +		       TWL4030_PM_MASTER_CFG_P3_TRANSITION, };
+> +	u8 val;
+> +	int i, err;
+> +
+> +	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG1,
+> +			       TWL4030_PM_MASTER_PROTECT_KEY);
+> +	if (err)
+> +		goto relock;
+> +	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+> +			       TWL4030_PM_MASTER_KEY_CFG2,
+> +			       TWL4030_PM_MASTER_PROTECT_KEY);
+> +	if (err)
+> +		goto relock;
+> +
+> +	for (i = 0; i < sizeof(regs); i++) {
+> +		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER,
+> +				      &val, regs[i]);
+> +		if (err)
+> +			break;
+> +		val = (~bitmask & val) | (bitmask & bitvalues);
+> +		err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
+> +				       val, regs[i]);
+> +		if (err)
+> +			break;
+> +	}
+> +
+> +	if (err)
+> +		pr_err("TWL4030 Register access failed: %i\n", err);
+> +
+> +relock:
+> +	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER, 0,
+> +				TWL4030_PM_MASTER_PROTECT_KEY);
+> +}
+> +
+>  /*
+>   * In master mode, start the power off sequence.
+>   * After a successful execution, TWL shuts down the power to the SoC
+> @@ -615,6 +662,11 @@ void twl4030_power_off(void)
+>  {
+>  	int err;
+>  
+> +	/* Disable start on charger or VBUS as it can break poweroff */
+> +	err = twl4030_starton_mask_and_set(STARTON_VBUS | STARTON_CHG, 0);
+> +	if (err)
+> +		pr_err("TWL4030 Unable to configure start-up\n");
+> +
+>  	err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, PWR_DEVOFF,
+>  			       TWL4030_PM_MASTER_P1_SW_EVENTS);
+>  	if (err)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Well I get the touch events but not while busy loop on iio interface is
-running (I get maybe one event every 5 seconds or so).
-After all, it is the same HW you have.
-
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Igor.
