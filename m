@@ -1,48 +1,49 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: Re: [PATCH 0/4] extcon: gpio: add DT support
-Date: Tue, 4 Nov 2014 11:42:04 +0530
-Message-ID: <54586E34.6090602@ti.com>
-References: <1415032350-8459-1-git-send-email-balbi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/5] ARM: OMAP2+: gpmc: Error out if timings fail in gpmc_probe_generic_child()
+Date: Tue, 4 Nov 2014 11:03:21 +0200
+Message-ID: <54589659.4090300@ti.com>
+References: <1413895309-9152-1-git-send-email-rogerq@ti.com> <1413895309-9152-3-git-send-email-rogerq@ti.com> <20141104004530.GM31454@atomide.com> <20141104011417.GN31454@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38403 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57375 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750753AbaKDGOg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Nov 2014 01:14:36 -0500
-In-Reply-To: <1415032350-8459-1-git-send-email-balbi@ti.com>
+	id S1752047AbaKDJD1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Nov 2014 04:03:27 -0500
+In-Reply-To: <20141104011417.GN31454@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 
-Hi Felipe et al.
+On 11/04/2014 03:14 AM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [141103 16:48]:
+>> --- a/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+>> +++ b/arch/arm/boot/dts/omap-gpmc-smsc911x.dtsi
+>> +		gpmc,device-width = <1>;
+>> +		gpmc,burst-length = <4>;
+> 
+> I've left out the gpmc,burst-length as that produces now
+> warnings about not being used and does not seem to work if
+> enabled.
 
-Another series was posted by removing the platform support.
-https://lkml.org/lkml/2014/10/14/244
+OK. Seems like it must be used together with either 'gpmc,burst-read'
+or/and 'gpmc,burst-write'
 
-I guess I forgot to copy linux-omap.
+cheers,
+-roger
 
-
-
-On 11/03/2014 10:02 PM, Felipe Balbi wrote:
-> Hi,
->
-> this series has been tested with v3.18-rc2 with a
-> yet-to-be-released board (called X15). That board
-> is DT-only and we use extcon-gpio to decide which
-> USB mode should be used (host or peripheral).
->
-> George Cherian (4):
->    extcon: gpio: Convert the driver to use gpio desc API's
->    extcon: gpio: Add dt support for the driver.
->    extcon: gpio: Always use gpio_get_value_cansleep
->    extcon: gpio: Add support for using cable names
->
->   .../devicetree/bindings/extcon/extcon-gpio.txt     | 23 ++++++
->   drivers/extcon/extcon-gpio.c                       | 93 ++++++++++++++--------
->   2 files changed, 84 insertions(+), 32 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/extcon/extcon-gpio.txt
->
+> 
+>> --- a/arch/arm/boot/dts/omap3-sb-t35.dtsi
+>> +++ b/arch/arm/boot/dts/omap3-sb-t35.dtsi
+>> +		gpmc,device-width = <1>;
+>> +		gpmc,burst-length = <4>;
+> 
+> And here too.
+> 
+> Regards,
+> 
+> Tony
+> 
 
