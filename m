@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 03/10] ARM: dts: dra7-evm: Add CAN support
-Date: Tue, 4 Nov 2014 12:48:47 +0200
-Message-ID: <1415098134-26405-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 04/10] ARM: dts: dra72-evm: Add CAN support
+Date: Tue, 4 Nov 2014 12:48:48 +0200
+Message-ID: <1415098134-26405-5-git-send-email-rogerq@ti.com>
 References: <1415098134-26405-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -23,15 +23,15 @@ so we don't enable the second port.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 23 +++++++++++++++++++++++
+ arch/arm/boot/dts/dra72-evm.dts | 23 +++++++++++++++++++++++
  1 file changed, 23 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index c6ce625..8c2c37b 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -171,6 +171,22 @@
- 			0xd0	(PIN_OUTPUT | MUX_MODE0)	/* gpmc_be0n_cle */
+diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
+index 4107428..a4b01ce 100644
+--- a/arch/arm/boot/dts/dra72-evm.dts
++++ b/arch/arm/boot/dts/dra72-evm.dts
+@@ -26,6 +26,22 @@
+ 			0x404 (PIN_INPUT | MUX_MODE0) /* i2c1_scl.i2c1_scl */
  		>;
  	};
 +
@@ -53,9 +53,9 @@ index c6ce625..8c2c37b 100644
  };
  
  &i2c1 {
-@@ -528,3 +544,10 @@
- 	ti,no-reset-on-init;
- 	ti,no-idle-on-init;
+@@ -142,3 +158,10 @@
+ &uart1 {
+ 	status = "okay";
  };
 +
 +&dcan1 {
