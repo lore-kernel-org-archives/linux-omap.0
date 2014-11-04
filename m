@@ -1,43 +1,57 @@
-From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
-Subject: Re: [PATCH 11/13] arm: dts: dra7: add DMA properties for UART
-Date: Tue, 4 Nov 2014 12:21:17 -0500
-Message-ID: <20141104172117.GC24112@csclub.uwaterloo.ca>
-References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
- <1412014009-13315-12-git-send-email-bigeasy@linutronix.de>
- <20141104170233.GB24112@csclub.uwaterloo.ca>
- <5459079D.7080703@linutronix.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] ARM: OMAP2+: gpmc: configuration enhancements
+Date: Tue, 4 Nov 2014 09:49:08 -0800
+Message-ID: <20141104174907.GC28170@atomide.com>
+References: <1413895309-9152-1-git-send-email-rogerq@ti.com>
+ <20141030151036.GE2560@atomide.com>
+ <5452582A.9060505@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51237 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750796AbaKDRuK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Nov 2014 12:50:10 -0500
 Content-Disposition: inline
-In-Reply-To: <5459079D.7080703@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, devicetree@vger.kernel.org
+In-Reply-To: <5452582A.9060505@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org
 
-On Tue, Nov 04, 2014 at 06:06:37PM +0100, Sebastian Andrzej Siewior wrote:
-> On 11/04/2014 06:02 PM, Lennart Sorensen wrote:
+* Roger Quadros <rogerq@ti.com> [141030 08:25]:
+> On 10/30/2014 05:10 PM, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq@ti.com> [141021 05:43]:
+> >> Hi Tony,
+> >>
+> >> These patches address GPMC configuration issues and are for v3.19.
+> >> Patches based on v3.18-rc1.
+> >>
+> >> - Make sure to print a user visible error if a requested GPMC timing
+> >> configuration can't be met.
+> >>
+> >> - Don't create GPMC child device if a GPMC timing could not be set.
+> >>
+> >> - Always enable address lines A26-A11 for non-NAND devices.
+> >>
+> >> - Perform GPMC configuration as per recommended procedure i.e.
+> >> keep Chip Select disabled while changing GPMC configuration.
+> >>
+> >> Tested on dra7-evm, am437x-gp-evm and beagleboard.
 > > 
-> > According to the manual the DMA channels for UART7 to 10 are:
+> > For all these, please feel free to add:
 > > 
-> > uart7:  144 145
-> > uart8:  146 147
-> > uart9:  148 149
-> > uart10: 150 151
+> > Acked-by: Tony Lindgren <tony@atomide.com>
 > > 
-> > Might as well add those too.  We have uart 7 and 8 in use on our board
-> > so I am about to go test it.
 > 
-> Mind sharing the manual with me? Mine does not mention DMA channels for
-> UART7-10. If you are able to test 7+8 (and it works) could you please
-> make patch which with for the remaining four devices?
+> Thanks. These patches are now available at
+> 
+> git@github.com:rogerq/linux.git		for-v3.19/gpmc-omap
+> 
 
-Well the file I have is called AM572x_ES1.1_NDA_TRM_vT.pdf, so I am not
-sure who I am allowed to share that file with.  Might be simpler to just
-ask TI for the latest version.
+Merged these on top of the patches I did to omap-for-v3.19/gpmc.
+There were few merge conflicts so you may want to check.
 
-How I hate NDAs.
+Regards,
 
--- 
-Len Sorensen
+Tony
