@@ -1,68 +1,41 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
 Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
-Date: Tue, 4 Nov 2014 17:14:11 +0530
-Message-ID: <5458BC0B.1040803@ti.com>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <544E821D.5040004@linutronix.de> <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com> <54577258.9080508@linutronix.de>
+Date: Tue, 04 Nov 2014 13:37:19 +0100
+Message-ID: <5458C87F.80409@linutronix.de>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <544E821D.5040004@linutronix.de> <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com> <54577258.9080508@linutronix.de> <5458BC0B.1040803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54577258.9080508-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+In-Reply-To: <5458BC0B.1040803-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 11/04/2014 12:44 PM, Vignesh R wrote:
 
+> I ran following commands
+> $ evtest /dev/input/touchscreen0 &
+> (with heavy item on touchscreen)
+>  and
+> $ cat /sys/bus/iio/devices/iio\:device0/scan_elements/in_voltage4_en
+> (in a busy loop)
+> I tried above experiment on my board but I didn't hit any problem even
+> after running for close to 30 minutes. I was unable to reproduce failure
 
-On Monday 03 November 2014 05:47 PM, Sebastian Andrzej Siewior wrote:
-> On 10/27/2014 08:02 PM, Griffis, Brad wrote:
->> On 10/27/2014 12:34 PM, Sebastian Andrzej Siewior wrote:
->>> Do we really need #3 (and then #4)? Given the complexity we have already, is there any benefit by decreasing this value? 
->>
->> I specifically requested we add ti,charge-delay to the device tree because it is THE critical value to tune for a given design.  Although I think the current value of 0xB000 will be suitable for a great many designs, I expect that many users will need to adjust this value for their hardware.  Details such as which touchscreen vendor is being used and how the touchscreen is connected (header vs cable) have an effect on what's appropriate here.
-> 
-> Oh. That is one knob I hoped we could avoid since I haven't seen it
-> before on other TSCs. But okay. Please make sure that there is a
-> message printed if the default value is used. And lets hope the user
-> will do something about his.
-> 
->>> Would  someone want to increase it? Can we safely determine a value which works for everyone?
->>
->> This value represents a hardware delay before checking for the pen-up event.  So in the scenario where someone is seeing excessive false pen-up events they will want to increase this parameter.  The downsize of making this larger is that it decreases the overall sampling speed of both the touchscreen as well as the standalone ADC samples.  At one point I tried making it huge, but that made the touchscreen overly sluggish because the sampling became too slow.  So there is a definite trade-off that if you make it too large the touchscreen becomes sluggish, and if you make it too small then you may see false pen-up events.  The optimal value will need to be tuned for a given design.
-> 
-> I applied the patches from this series and did the following test on my
-> am335x-evm: A mug on the touchscreen (to make sure the events are
-> coming), evtest on the event node to see that the events and loop of
-> 
-> 	cat /sys/bus/iio/devices/iio\:device0/in_voltage4_raw
-> 
-> In the past I was able lock up the TSC/ADC HW that way (see commit
-> 7ca6740cd1 ("mfd: input: iio: ti_amm335x: Rework TSC/ADC
-> synchronization")) for details.
-> With this patches applied I don't seen any TSC events once the IIO
-> interface is (heavily) used. Can this be fixed?
+Just to make sure: You had the touchscreen and iio command running in
+parallel and you saw evtest output while there was iio operation?
 
-I ran following commands
-$ evtest /dev/input/touchscreen0 &
-(with heavy item on touchscreen)
- and
-$ cat /sys/bus/iio/devices/iio\:device0/scan_elements/in_voltage4_en
-(in a busy loop)
-I tried above experiment on my board but I didn't hit any problem even
-after running for close to 30 minutes. I was unable to reproduce failure
+> The problem may be in configuring correct charge-delay value. Please run:
+> $ ts_test > /dev/null
+> and let me know if pen events are being detected properly.
 
-The problem may be in configuring correct charge-delay value. Please run:
-$ ts_test > /dev/null
-and let me know if pen events are being detected properly.
+Well I get the touch events but not while busy loop on iio interface is
+running (I get maybe one event every 5 seconds or so).
+After all, it is the same HW you have.
 
-> 
-> Sebastian
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Sebastian
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
