@@ -1,60 +1,35 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/4] extcon: gpio: add DT support
-Date: Tue, 4 Nov 2014 08:41:16 -0600
-Message-ID: <20141104144116.GB24983@saruman>
-References: <1415032350-8459-1-git-send-email-balbi@ti.com>
- <54586E34.6090602@ti.com>
-Reply-To: <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: public trm am572x (was Re: Re: [PATCH v2 1/2] ARM: DRA7: Add support
+ for soc_is_dra74x() and soc_is_dra72x() variants)
+Date: Tue, 4 Nov 2014 09:02:26 -0600
+Message-ID: <5458EA82.7090104@ti.com>
+References: <1406523237-6905-1-git-send-email-lokeshvutla@ti.com> <1406523237-6905-2-git-send-email-lokeshvutla@ti.com> <alpine.DEB.2.02.1407280529320.24161@utopia.booyaka.com> <53D5E0F4.3080607@ti.com> <CAGo_u6pZiyJ8574YUXvg_Pz_P=LDeot-kFh7NQJBUqgwsR+Fmw@mail.gmail.com> <alpine.DEB.2.02.1408280618480.21985@utopia.booyaka.com> <CAGo_u6qLJdrHw-FosDvhdvMQxQntf=ujZdRW+MrCdqbHZruU4A@mail.gmail.com> <alpine.DEB.2.02.1409051803190.9444@utopia.booyaka.com> <5409FD75.3090407@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+g7M9IMkV8truYOl"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54586E34.6090602@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, myungjoo.ham@samsung.com, cw00.choi@samsung.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, nsekhar@ti.com, grant.likely@linaro.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42091 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753402AbaKDPC4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Nov 2014 10:02:56 -0500
+In-Reply-To: <5409FD75.3090407@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Vutla, Lokesh" <lokeshvutla@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---+g7M9IMkV8truYOl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 09/05/2014 01:14 PM, Menon, Nishanth wrote:
+> On 09/05/2014 01:08 PM, Paul Walmsley wrote:
+> [...]
 
-On Tue, Nov 04, 2014 at 11:42:04AM +0530, George Cherian wrote:
-> Hi Felipe et al.
->=20
-> Another series was posted by removing the platform support.
-> https://lkml.org/lkml/2014/10/14/244
->=20
-> I guess I forgot to copy linux-omap.
+Just adding to this: public version of AM572x is now available here:
 
-you do too many things in patch one. I wonder why you decided to combine
-three patches in one for that series.
 
---=20
-balbi
+http://www.ti.com/lit/spruhz6
 
---+g7M9IMkV8truYOl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUWOWMAAoJEIaOsuA1yqREVLkQAJAxPatL4YsmCE0YGJ6wDGCr
-jRykXTqbxwe4E1JknLk7wJNHoryzimgmvbNMEu/RXfWKMVc5TQGHMTVjY1lhVF+7
-6hP0Nu9nM1nJQM005vFnkiwCEBJ1gDDQHKSiZjf0AhTiPp0qJU8bh7ZdjRvQOSV2
-slcLSLvZo1ZoLxmoXY4tOtPkn1M2kXWdk3zZKa5bC07osO7MmREsO3P6tUuYPSYY
-zt1PbdIsVvOx/cV5ZBl11ceWQY0vIBbVrOq0qQps4yk+CFqfvM1tXqRg8fNUwEDU
-3zI/S7Rm1paAaoOv68S+pZ50+Ie33gNxcIx94pti2nbvEvPVEsoQoVYLmoYWDh1i
-NbKCvhA/t1PdBE8oVu7jcpb1HvP0Wg3II3SaKYWHyf6tDLvnfkSqeMGR3QrlpBAn
-zw2sPvrvdr19X+ta8ehRAzAg9nBQF2E4WLrJ26IQiRQbmJxzwdvYUk5nuOR1BShY
-qv3l+yv7CI82zaO0YHZ8uz2l4X+BULITVReC7j2QGy07Bdm8N6WHN9amkmq9frFy
-O1zM5mBIhT1vfZzM70Efig5yNdYhkcRIU7SPABqNlAmk6zHJawKmVpplVSJZDGIE
-tSwxZYzcKDbd2o+quIC7Ksj8MojvNdQ59rcBQ1ueEVSEjmhVjs0bbZtxnXNTTiMQ
-pxmAdrkii0m8HdckJ0Oo
-=c2JS
------END PGP SIGNATURE-----
 
---+g7M9IMkV8truYOl--
+-- 
+Regards,
+Nishanth Menon
