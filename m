@@ -1,86 +1,32 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: N900 modem support in 3.18-rc1
-Date: Tue, 4 Nov 2014 21:51:17 +0100
-Message-ID: <20141104205117.GA17606@amd>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 11/13] arm: dts: dra7: add DMA properties for UART
+Date: Tue, 4 Nov 2014 16:03:15 -0500
+Message-ID: <20141104210315.GF24112@csclub.uwaterloo.ca>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+ <1412014009-13315-12-git-send-email-bigeasy@linutronix.de>
+ <20141104170233.GB24112@csclub.uwaterloo.ca>
+ <5459079D.7080703@linutronix.de>
+ <20141104172117.GC24112@csclub.uwaterloo.ca>
+ <20141104183315.GD24112@csclub.uwaterloo.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20141104183315.GD24112@csclub.uwaterloo.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On Tue, Nov 04, 2014 at 01:33:15PM -0500, Lennart Sorensen wrote:
+> Well it doesn't work, because I don't have the dma croassbar patches
+> from ti-linux-3.14.y which are required to use the full range of dma
+> channels on the dra7.
+> 
+> I will see how well it works without dma at least.
 
-I'd like to test a modem (and eventually to get it to work :-) ) on
-n900. So far I found:
+So it seems to be working on our board so far.  Will stress test it
+some more.  No DMA of course for now, but oh well.
 
-http://lwn.net/Articles/592485/
-
-It says:
-
-# supported. Testing the patchset with ofono works like this:
-# 
-#  # provide cmt device for ofono
-#  ln -sf /sys/bus/hsi/n900-modem /dev/cmt
-
-root@n900:/dev# ln -sf /sys/bus/hsi/n900-modem /dev/cmt
-root@n900:/dev# ls -al /dev/cmt
-lrwxrwxrwx 1 root root 23 Jan  1 08:51 /dev/cmt ->
-/sys/bus/hsi/n900-modem
-root@n900:/dev# cat /dev/cmt
-cat: /dev/cmt: No such file or directory
-root@n900:/dev# cd /dev/cmt
--bash: cd: /dev/cmt: No such file or directory
-root@n900:/dev# 
-root@n900:/dev# ls -al /sys/bus/hsi/
-devices/           drivers_autoprobe  uevent             
-drivers/           drivers_probe      
-root@n900:/dev# ls -al /sys/bus/hsi/devices/
-cmt_speech/   hsi_char/     n900-modem/   ssi-protocol/ 
-root@n900:/dev# ls -al /sys/bus/hsi/devices/n900-modem
-lrwxrwxrwx 1 root root 0 Jan  1 08:46 /sys/bus/hsi/devices/n900-modem
-->
-../../../devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/n900-modem
-root@n900:/dev# 
-
-That seemed to match, so I symlinked it.
-
-#  # start ofono
-#  ofono --nodetach --debug
-
-It it a typo and it wants ofonod?
-
-root@n900:~# ofonod --nodetach --debug &
-[1] 3552
-root@n900:~# ofonod[3552]: oFono version 1.6
-
-#  # enable the modem
-#  mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty Powered true
-
-root@n900:~# mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty
-Powered true
-[ERR]: There is no method with name org.ofono.Modem.SetProperty on
-path /n900_0!
-
-#  # enable modem's RF parts
-#  mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty Online true
-
-root@n900:~# mdbus2 -s org.ofono /n900_0 org.ofono.Modem.SetProperty
-Online true
-[ERR]: There is no method with name org.ofono.Modem.SetProperty on
-path /n900_0!
-
-#  # scan for available networks (takes some time)
-#  mdbus2 -s org.ofono /n900_0 org.ofono.NetworkRegistration.Scan
-
-root@n900:~# mdbus2 -s org.ofono /n900_0
-org.ofono.NetworkRegistration.Scan
-[ERR]: There is no method with name org.ofono.NetworkRegistration.Scan
-on path /n900_0!
-
-Any ideas? Thanks,
-									Pavel
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Len Sorensen
