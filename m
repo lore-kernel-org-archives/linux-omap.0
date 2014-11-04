@@ -1,59 +1,45 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 10/10] ARM: dts: am335x-evm: Add DCAN1 details
-Date: Tue, 4 Nov 2014 12:48:54 +0200
-Message-ID: <1415098134-26405-11-git-send-email-rogerq@ti.com>
-References: <1415098134-26405-1-git-send-email-rogerq@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v2 0/3] Add support for ADC on am437x-gp and am43x-epos-evm
+Date: Tue, 4 Nov 2014 16:45:25 +0530
+Message-ID: <1415099728-10959-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60111 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753249AbaKDKts (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Nov 2014 05:49:48 -0500
-In-Reply-To: <1415098134-26405-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-DCAN1 is routed to CAN port (J11) when Profile 1 is selected on the
-profile selection switch.
-Provide information for DCAN1 pins and node but keep it disabled
-by default. User has to manually enable it if Profile 1 is chosen.
+This series of patches enable ADC on am437x-gp-evm and am43x-epos-evm.
+The ADC clock hwmod data of am33xx has been moved to commom place so that
+both am43xx and am33xx can reuse them.
+tscadc DT node has been adided to am437x-gp and am43x-epos dt files.
+With these patches, ADC functionalities are now available on am43xx.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/am335x-evm.dts | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Changelog:
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e2156a5..7b7bd8f 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -307,6 +307,13 @@
- 			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
- 		>;
- 	};
-+
-+	dcan1_pins_default: dcan1_pins_default {
-+		pinctrl-single,pins = <
-+			0x168 (PIN_OUTPUT | MUX_MODE2) /* uart0_ctsn.d_can1_tx */
-+			0x16c (PIN_INPUT_PULLDOWN | MUX_MODE2) /* uart0_rtsn.d_can1_rx */
-+		>;
-+	};
- };
- 
- &uart0 {
-@@ -664,3 +671,9 @@
- &aes {
- 	status = "okay";
- };
-+
-+&dcan1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dcan1_pins_default>;
-+	status = "disabled";	/* Enable only if Profile 1 is selected */
-+};
+v2:
+Removed phy addresses in hwmod. Using DT instead.
+Removed unused "ti,am4372" compatible string.
+Use macro to set clk domain name.
+Fixed subject format of all patches
+
+Vignesh R (3):
+  ARM: OMAP2+: hwmod: AM335x/AM43x: Move am33xx_l4_hs_hwmod to
+    ipblock_data
+  ARM: OMAP2+: hwmod: AM335x/AM43x: add hwmod support for tscadc on
+    am43x-evm
+  ARM: dts: AM43xx: add tscadc DT entries for am437x-evm and
+    am43x-epos-evm
+
+ arch/arm/boot/dts/am4372.dtsi                      | 20 ++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts                |  8 +++
+ arch/arm/boot/dts/am43x-epos-evm.dts               |  8 +++
+ .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  2 +
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 71 ++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 64 -------------------
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  1 +
+ 7 files changed, 110 insertions(+), 64 deletions(-)
+
 -- 
-1.8.3.2
-
+1.9.1
