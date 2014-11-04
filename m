@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 04/10] ARM: dts: dra72-evm: Add CAN support
-Date: Tue, 4 Nov 2014 12:48:48 +0200
-Message-ID: <1415098134-26405-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 06/10] ARM: dts: am4372: Add DCAN nodes
+Date: Tue, 4 Nov 2014 12:48:50 +0200
+Message-ID: <1415098134-26405-7-git-send-email-rogerq@ti.com>
 References: <1415098134-26405-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,58 +12,46 @@ To: tony@atomide.com
 Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The board has 2 CAN ports but only the first one can be used.
-Enable the first CAN port.
-
-WAKEUP0 pin doesn't have INPUT enable bit so we just disable
-weak PULLs.
-
-The second CAN port cannot be used without hardware modification
-so we don't enable the second port.
+The SoC contains 2 DCAN modules. Add them.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/dra72-evm.dts | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ arch/arm/boot/dts/am4372.dtsi | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra72-evm.dts b/arch/arm/boot/dts/dra72-evm.dts
-index 4107428..a4b01ce 100644
---- a/arch/arm/boot/dts/dra72-evm.dts
-+++ b/arch/arm/boot/dts/dra72-evm.dts
-@@ -26,6 +26,22 @@
- 			0x404 (PIN_INPUT | MUX_MODE0) /* i2c1_scl.i2c1_scl */
- 		>;
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 899c57c..98f81c9 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -901,6 +901,28 @@
+ 			compatible = "mmio-sram";
+ 			reg = <0x40300000 0x40000>; /* 256k */
+ 		};
++
++		dcan0: can@481cc000 {
++			compatible = "ti,am3352-d_can0";
++			ti,hwmods = "d_can0";
++			clocks = <&dcan0_fck>;
++			clock-names = "fck";
++			reg = <0x481cc000 0x2000>;
++			syscon-raminit = <&am43xx_control_module 0x644>;
++			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
++			status = "disabled";
++		};
++
++		dcan1: can@481d0000 {
++			compatible = "ti,am3352-d_can1";
++			ti,hwmods = "d_can1";
++			clocks = <&dcan1_fck>;
++			clock-names = "fck";
++			reg = <0x481d0000 0x2000>;
++			syscon-raminit = <&am43xx_control_module 0x644>;
++			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
++			status = "disabled";
++		};
  	};
-+
-+	dcan1_pins_default: dcan1_pins_default {
-+		pinctrl-single,pins = <
-+			0x3d0   (PIN_OUTPUT | MUX_MODE0) /* dcan1_tx */
-+			0x3d4   (MUX_MODE15)		/* dcan1_rx.off */
-+			0x418   (PULL_DIS | MUX_MODE1) /* wakeup0.dcan1_rx */
-+		>;
-+	};
-+
-+	dcan1_pins_sleep: dcan1_pins_sleep {
-+		pinctrl-single,pins = <
-+			0x3d0   (MUX_MODE15)	/* dcan1_tx.off */
-+			0x3d4   (MUX_MODE15)	/* dcan1_rx.off */
-+			0x418   (MUX_MODE15)	/* wakeup0.off */
-+		>;
-+	};
  };
  
- &i2c1 {
-@@ -142,3 +158,10 @@
- &uart1 {
- 	status = "okay";
- };
-+
-+&dcan1 {
-+	status = "ok";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&dcan1_pins_default>;
-+	pinctrl-1 = <&dcan1_pins_sleep>;
-+};
 -- 
 1.8.3.2
 
