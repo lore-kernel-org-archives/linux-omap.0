@@ -1,89 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/5] ARM: dts: Add twl keypad map for LDP
-Date: Wed, 5 Nov 2014 10:44:03 -0800
-Message-ID: <20141105184403.GW31454@atomide.com>
-References: <1415212550-24692-1-git-send-email-tony@atomide.com>
- <1415212550-24692-5-git-send-email-tony@atomide.com>
+Subject: Re: [PATCH v3 00/10] ARM: dts: TI: Add CAN support
+Date: Wed, 5 Nov 2014 10:49:53 -0800
+Message-ID: <20141105184953.GX31454@atomide.com>
+References: <1415098134-26405-1-git-send-email-rogerq@ti.com>
+ <20141104155502.GS31454@atomide.com>
+ <545A04B4.1010508@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32798 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750891AbaKESpD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2014 13:45:03 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:44616 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891AbaKESu6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2014 13:50:58 -0500
 Content-Disposition: inline
-In-Reply-To: <1415212550-24692-5-git-send-email-tony@atomide.com>
+In-Reply-To: <545A04B4.1010508@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [141105 10:39]:
-> Looks like we're still missing the keypad map for LDP.
-> Let's add it since we have the binding now available
-> for the twl4030_keypad as otherwise we get the following
-> errors during the boot:
+* Roger Quadros <rogerq@ti.com> [141105 03:08]:
+> On 11/04/2014 05:55 PM, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq@ti.com> [141104 02:50]:
+> >> Hi Tony,
+> >>
+> >> These patches add CAN support for am33xx, am43xx and dra7 platforms.
+> >> They must go in together with CAN driver RAMINIT Syscon support [1].
+> > 
+> > Can you make this series not depend on [1] for most part without
+> > breaking existing functionality?
 > 
-> twl4030_keypad keypad.31: OF: linux,keymap property not defined
-> in /ocp/i2c@48070000/twl@48/keypad
-> twl4030_keypad keypad.31: Failed to build keymap
-> twl4030_keypad: probe of keypad.31 failed with error -2
+> I just checked that we haven't enabled DCAN on any of the boards
+> so we don't risk breaking anything even if these 2 series don't go in
+> together. 
 
-Uhh, this should say EVM instead of LDP.. Copy paste description
-from the LDP patch.
+OK 
+ 
+> > Then we can do a single follow-up patch to enable things after [1]
+> > has been merged.
+> > 
+> > That would remove a dependency between driver changes and .dts changes.
+> 
+> Apart from patches 1, 3 and 8, that add the control module nodes the rest
+> pretty much depend on the driver DT binding changes.
+> 
+> I can send them separately if needed.
+
+Well sounds like I can already apply the .dts changes without
+affecting anything until the driver changes are merged.
+
+Let me know if that's the case and I'll apply these assuming
+the binding is OK and not going to change.
 
 Regards,
 
 Tony
- 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/boot/dts/omap3-evm-common.dtsi | 21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-evm-common.dtsi b/arch/arm/boot/dts/omap3-evm-common.dtsi
-> index c8747c7..127f3e7 100644
-> --- a/arch/arm/boot/dts/omap3-evm-common.dtsi
-> +++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
-> @@ -2,6 +2,7 @@
->   * Common support for omap3 EVM boards
->   */
->  
-> +#include <dt-bindings/input/input.h>
->  #include "omap-gpmc-smsc911x.dtsi"
->  
->  / {
-> @@ -111,6 +112,26 @@
->  	ti,use-leds;
->  };
->  
-> +&twl_keypad {
-> +	linux,keymap = <
-> +			MATRIX_KEY(2, 2, KEY_1)
-> +			MATRIX_KEY(1, 1, KEY_2)
-> +			MATRIX_KEY(0, 0, KEY_3)
-> +			MATRIX_KEY(3, 2, KEY_4)
-> +			MATRIX_KEY(2, 1, KEY_5)
-> +			MATRIX_KEY(1, 0, KEY_6)
-> +			MATRIX_KEY(1, 3, KEY_7)
-> +			MATRIX_KEY(3, 1, KEY_8)
-> +			MATRIX_KEY(2, 0, KEY_9)
-> +			MATRIX_KEY(2, 3, KEY_KPASTERISK)
-> +			MATRIX_KEY(0, 2, KEY_0)
-> +			MATRIX_KEY(3, 0, KEY_KPDOT)
-> +			/* s4 not wired */
-> +			MATRIX_KEY(1, 2, KEY_BACKSPACE)
-> +			MATRIX_KEY(0, 1, KEY_ENTER)
-> +			>;
-> +};
-> +
->  &usb_otg_hs {
->  	interface-type = <0>;
->  	usb-phy = <&usb2_phy>;
-> -- 
-> 2.1.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
