@@ -1,64 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] ARM: OMAP2+: gpmc: configuration enhancements
-Date: Wed, 5 Nov 2014 08:09:46 -0800
-Message-ID: <20141105160946.GV31454@atomide.com>
-References: <1413895309-9152-1-git-send-email-rogerq@ti.com>
- <20141030151036.GE2560@atomide.com>
- <5452582A.9060505@ti.com>
- <20141104174907.GC28170@atomide.com>
- <545A1C13.1030007@ti.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 11/13] arm: dts: dra7: add DMA properties for UART
+Date: Wed, 5 Nov 2014 11:20:24 -0500
+Message-ID: <20141105162024.GH24112@csclub.uwaterloo.ca>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+ <1412014009-13315-12-git-send-email-bigeasy@linutronix.de>
+ <20141104170233.GB24112@csclub.uwaterloo.ca>
+ <5459079D.7080703@linutronix.de>
+ <20141104172117.GC24112@csclub.uwaterloo.ca>
+ <20141104183315.GD24112@csclub.uwaterloo.ca>
+ <20141104210315.GF24112@csclub.uwaterloo.ca>
+ <20141105011506.GG24112@csclub.uwaterloo.ca>
+ <5459DBB7.1090702@linutronix.de>
+ <20141105153307.GN24110@csclub.uwaterloo.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:18405 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932110AbaKEQKt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2014 11:10:49 -0500
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <545A1C13.1030007@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20141105153307.GN24110@csclub.uwaterloo.ca>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [141105 04:47]:
-> On 11/04/2014 07:49 PM, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq@ti.com> [141030 08:25]:
-> >> On 10/30/2014 05:10 PM, Tony Lindgren wrote:
-> >>> * Roger Quadros <rogerq@ti.com> [141021 05:43]:
-> >>>> Hi Tony,
-> >>>>
-> >>>> These patches address GPMC configuration issues and are for v3.19.
-> >>>> Patches based on v3.18-rc1.
-> >>>>
-> >>>> - Make sure to print a user visible error if a requested GPMC timing
-> >>>> configuration can't be met.
-> >>>>
-> >>>> - Don't create GPMC child device if a GPMC timing could not be set.
-> >>>>
-> >>>> - Always enable address lines A26-A11 for non-NAND devices.
-> >>>>
-> >>>> - Perform GPMC configuration as per recommended procedure i.e.
-> >>>> keep Chip Select disabled while changing GPMC configuration.
-> >>>>
-> >>>> Tested on dra7-evm, am437x-gp-evm and beagleboard.
-> >>>
-> >>> For all these, please feel free to add:
-> >>>
-> >>> Acked-by: Tony Lindgren <tony@atomide.com>
-> >>>
-> >>
-> >> Thanks. These patches are now available at
-> >>
-> >> git@github.com:rogerq/linux.git		for-v3.19/gpmc-omap
-> >>
-> > 
-> > Merged these on top of the patches I did to omap-for-v3.19/gpmc.
-> > There were few merge conflicts so you may want to check.
-> 
-> Thanks. The conflict resolution seems fine.
-> I've also tested NAND to be fine on am335x-evm, am437x-evm and dra7-evm.
+On Wed, Nov 05, 2014 at 10:33:15AM -0500, Lennart Sorensen wrote:
+> Two systems ran 16 hours each so far with no issues.  Pushed 170MB of
+> data through the pair of serial ports on one system at 230400.
 
-OK great thanks,
+The console on uart3 doesn't appear to be using the dma assuming the
+values in /sys for the dma controller and bytes transferred mean anything.
+It does mention in dmesg that it allocated dma channels for uart3 though.
 
-Tony
+How do you tell if it is using dma?
+
+-- 
+Len Sorensen
