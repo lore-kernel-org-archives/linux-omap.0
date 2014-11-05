@@ -1,65 +1,160 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [RESEND PATCH 2/2] extcon: gpio: Add support for using cable names
-Date: Wed, 5 Nov 2014 20:59:48 +0530
-Message-ID: <1415201388-32060-3-git-send-email-george.cherian@ti.com>
-References: <1415201388-32060-1-git-send-email-george.cherian@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v9] ARM: omap: edma: add suspend resume hook
+Date: Wed, 5 Nov 2014 09:57:37 -0600
+Message-ID: <545A48F1.8060607@ti.com>
+References: <1409043173-24357-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415201388-32060-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rongjun.ying@csr.com, Baohua.Song@csr.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48790 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755770AbaKEP6C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Nov 2014 10:58:02 -0500
+In-Reply-To: <1409043173-24357-1-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>, nsekhar@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
 
-Add support for using cable names. Enables other drivers to register interest
-and get notified using extcon provided notifier call backs.
+On 08/26/2014 03:52 AM, Daniel Mack wrote:
+> This patch makes the edma driver resume correctly after suspend. Tested
+> on an AM33xx platform with cyclic audio streams and omap_hsmmc.
+> 
+> All information can be reconstructed by already known runtime
+> information.
+> 
+> As we now use some functions that were previously only used from __init
+> context, annotations had to be dropped.
+> 
+> [nm@ti.com: added error handling for runtime + suspend_late/early_resume]
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> Tested-by: Joel Fernandes <joelf@ti.com>
+> Acked-by: Joel Fernandes <joelf@ti.com>
+> ---
+> Changes from v8:
+> 
+> 	* Drop the edma_suspend hook altogether. Even though back then
+> 	  when I wrote the code I was sure disabling the interrupts
+> 	  during suspend is necessary, tests now show it in fact isn't.
+> 	  My test setup still works if that code is omitted.
+> 	* Use SET_LATE_SYSTEM_SLEEP_PM_OPS in the dev_pm_ops
+> 	  declaration.
+> 
+> 	Thanks to Sekhar for pointing out the above.
+> 
+>  arch/arm/common/edma.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 58 insertions(+), 2 deletions(-)
 
-Signed-off-by: George Cherian <george.cherian@ti.com>
----
- Documentation/devicetree/bindings/extcon/extcon-gpio.txt | 2 ++
- drivers/extcon/extcon-gpio.c                             | 4 ++++
- 2 files changed, 6 insertions(+)
+Doesn't seem to be any comments here, any chance this can be picked up? This
+patch always seems to get missed but will be needed for suspend/resume on both
+AM335x and AM437x.
 
-diff --git a/Documentation/devicetree/bindings/extcon/extcon-gpio.txt b/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
-index 30aa2e1..2c9d29f 100644
---- a/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
-+++ b/Documentation/devicetree/bindings/extcon/extcon-gpio.txt
-@@ -7,6 +7,7 @@ Required Properties:
-  - compatible: should be:
- 	* "linux,extcon-gpio"
-  - gpios: specifies the gpio pin used.
-+ - cable-name: Name of the cable used.
- 
- Optional Properties:
-  - debounce: Debounce time for GPIO IRQ in ms
-@@ -18,4 +19,5 @@ Eg:
- 		compatible = "linux,extcon-gpio";
- 		gpios = <&gpio3 12 GPIO_ACTIVE_HIGH>;
- 		debounce = <20>;
-+		cable-name = "USB-HOST";
- 		};
-diff --git a/drivers/extcon/extcon-gpio.c b/drivers/extcon/extcon-gpio.c
-index 85795de..0e1b3e8 100644
---- a/drivers/extcon/extcon-gpio.c
-+++ b/drivers/extcon/extcon-gpio.c
-@@ -38,6 +38,7 @@ struct gpio_extcon_data {
- 	int irq;
- 	struct delayed_work work;
- 	unsigned long debounce_jiffies;
-+	const char *cable_name[1];
- };
- 
- static void gpio_extcon_work(struct work_struct *work)
-@@ -100,6 +101,9 @@ static int gpio_extcon_probe(struct platform_device *pdev)
- 				msecs_to_jiffies(debounce);
- 	}
- 
-+	of_property_read_string_index(np, "cable-name", 0,
-+				      extcon_data->cable_name);
-+	extcon_data->edev->supported_cable = extcon_data->cable_name;
- 	ret = devm_extcon_dev_register(&pdev->dev, extcon_data->edev);
- 	if (ret < 0)
- 		return ret;
--- 
-1.8.3.1
+Regards,
+Dave
+
+> 
+> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+> index 485be42..c623dd0 100644
+> --- a/arch/arm/common/edma.c
+> +++ b/arch/arm/common/edma.c
+> @@ -244,6 +244,8 @@ struct edma {
+>  	/* list of channels with no even trigger; terminated by "-1" */
+>  	const s8	*noevent;
+>  
+> +	struct edma_soc_info *info;
+> +
+>  	/* The edma_inuse bit for each PaRAM slot is clear unless the
+>  	 * channel is in use ... by ARM or DSP, for QDMA, or whatever.
+>  	 */
+> @@ -295,7 +297,7 @@ static void map_dmach_queue(unsigned ctlr, unsigned ch_no,
+>  			~(0x7 << bit), queue_no << bit);
+>  }
+>  
+> -static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
+> +static void assign_priority_to_queue(unsigned ctlr, int queue_no,
+>  		int priority)
+>  {
+>  	int bit = queue_no * 4;
+> @@ -314,7 +316,7 @@ static void __init assign_priority_to_queue(unsigned ctlr, int queue_no,
+>   * included in that particular EDMA variant (Eg : dm646x)
+>   *
+>   */
+> -static void __init map_dmach_param(unsigned ctlr)
+> +static void map_dmach_param(unsigned ctlr)
+>  {
+>  	int i;
+>  	for (i = 0; i < EDMA_MAX_DMACH; i++)
+> @@ -1762,15 +1764,69 @@ static int edma_probe(struct platform_device *pdev)
+>  			edma_write_array2(j, EDMA_DRAE, i, 1, 0x0);
+>  			edma_write_array(j, EDMA_QRAE, i, 0x0);
+>  		}
+> +		edma_cc[j]->info = info[j];
+>  		arch_num_cc++;
+>  	}
+>  
+>  	return 0;
+>  }
+>  
+> +static int edma_pm_resume(struct device *dev)
+> +{
+> +	int i, j, r;
+> +
+> +	r = pm_runtime_get_sync(dev);
+> +	if (r < 0) {
+> +		dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
+> +		return r;
+> +	}
+> +
+> +	for (j = 0; j < arch_num_cc; j++) {
+> +		struct edma *cc = edma_cc[j];
+> +
+> +		s8 (*queue_priority_mapping)[2];
+> +
+> +		queue_priority_mapping = cc->info->queue_priority_mapping;
+> +
+> +		/* Event queue priority mapping */
+> +		for (i = 0; queue_priority_mapping[i][0] != -1; i++)
+> +			assign_priority_to_queue(j,
+> +						 queue_priority_mapping[i][0],
+> +						 queue_priority_mapping[i][1]);
+> +
+> +		/*
+> +		 * Map the channel to param entry if channel mapping logic
+> +		 * exist
+> +		 */
+> +		if (edma_read(j, EDMA_CCCFG) & CHMAP_EXIST)
+> +			map_dmach_param(j);
+> +
+> +		for (i = 0; i < cc->num_channels; i++) {
+> +			if (test_bit(i, cc->edma_inuse)) {
+> +				/* ensure access through shadow region 0 */
+> +				edma_or_array2(j, EDMA_DRAE, 0, i >> 5,
+> +					       BIT(i & 0x1f));
+> +
+> +				setup_dma_interrupt(i,
+> +						    cc->intr_data[i].callback,
+> +						    cc->intr_data[i].data);
+> +			}
+> +		}
+> +	}
+> +
+> +	pm_runtime_put_sync(dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops edma_pm_ops = {
+> +	SET_LATE_SYSTEM_SLEEP_PM_OPS(NULL, edma_pm_resume)
+> +};
+> +
+>  static struct platform_driver edma_driver = {
+>  	.driver = {
+>  		.name	= "edma",
+> +		.pm	= &edma_pm_ops,
+>  		.of_match_table = edma_of_ids,
+>  	},
+>  	.probe = edma_probe,
+> 
+
