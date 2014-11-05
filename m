@@ -1,251 +1,102 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 4/8] net: can: c_can: Add syscon/regmap RAMINIT mechanism
-Date: Wed, 5 Nov 2014 13:37:21 +0200
-Message-ID: <545A0BF1.2010500@ti.com>
-References: <1415096461-25576-1-git-send-email-rogerq@ti.com> <1415096461-25576-5-git-send-email-rogerq@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
+Date: Wed, 5 Nov 2014 17:38:35 +0530
+Message-ID: <545A1343.4060002@ti.com>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <544E821D.5040004@linutronix.de> <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com> <54577258.9080508@linutronix.de> <5458BC0B.1040803@ti.com> <5458C87F.80409@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53481 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753888AbaKELht (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2014 06:37:49 -0500
-In-Reply-To: <1415096461-25576-5-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5458C87F.80409-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
-On 11/04/2014 12:20 PM, Roger Quadros wrote:
-> Some TI SoCs like DRA7 have a RAMINIT register specification
-> different from the other AMxx SoCs and as expected by the
-> existing driver.
+
+
+On Tuesday 04 November 2014 06:07 PM, Sebastian Andrzej Siewior wrote:
+> On 11/04/2014 12:44 PM, Vignesh R wrote:
 > 
-> To add more insanity, this register is shared with other
-> IPs like DSS, PCIe and PWM.
+>> I ran following commands
+>> $ evtest /dev/input/touchscreen0 &
+>> (with heavy item on touchscreen)
+>>  and
+>> $ cat /sys/bus/iio/devices/iio\:device0/scan_elements/in_voltage4_en
+>> (in a busy loop)
+>> I tried above experiment on my board but I didn't hit any problem even
+>> after running for close to 30 minutes. I was unable to reproduce failure
 > 
-> Provides a more generic mechanism to specify the RAMINIT
-> register location and START/DONE bit position and use the
-> syscon/regmap framework to access the register.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  .../devicetree/bindings/net/can/c_can.txt          |  3 +
->  drivers/net/can/c_can/c_can.h                      |  9 ++-
->  drivers/net/can/c_can/c_can_platform.c             | 93 +++++++++++++---------
->  3 files changed, 65 insertions(+), 40 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
-> index 8f1ae81..917ac0e 100644
-> --- a/Documentation/devicetree/bindings/net/can/c_can.txt
-> +++ b/Documentation/devicetree/bindings/net/can/c_can.txt
-> @@ -12,6 +12,9 @@ Required properties:
->  Optional properties:
->  - ti,hwmods		: Must be "d_can<n>" or "c_can<n>", n being the
->  			  instance number
-> +- syscon-raminit	: Handle to system control region that contains the
-> +			  RAMINIT register and register offset to the RAMINIT
-> +			  register.
->  
->  Note: "ti,hwmods" field is used to fetch the base address and irq
->  resources from TI, omap hwmod data base during device registration.
-> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
-> index c3b2108..b5067bd 100644
-> --- a/drivers/net/can/c_can/c_can.h
-> +++ b/drivers/net/can/c_can/c_can.h
-> @@ -178,6 +178,12 @@ struct c_can_driver_data {
->  	bool raminit_pulse;	/* If set, sets and clears START bit (pulse) */
->  };
->  
-> +/* Out of band RAMINIT register access via syscon regmap */
-> +struct c_can_raminit {
-> +	struct regmap *syscon;	/* for raminit ctrl. reg. access */
-> +	unsigned int reg;	/* register index within syscon */
-> +};
-> +
->  /* c_can private data structure */
->  struct c_can_priv {
->  	struct can_priv can;	/* must be the first member */
-> @@ -195,8 +201,7 @@ struct c_can_priv {
->  	const u16 *regs;
->  	void *priv;		/* for board-specific data */
->  	enum c_can_dev_id type;
-> -	u32 __iomem *raminit_ctrlreg;
-> -	int instance;
-> +	struct c_can_raminit raminit_sys;	/* RAMINIT via syscon regmap */
->  	void (*raminit) (const struct c_can_priv *priv, bool enable);
->  	u32 comm_rcv_high;
->  	u32 rxmasked;
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-> index 11946e8..d0ce439 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -32,14 +32,13 @@
->  #include <linux/clk.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> +#include <linux/mfd/syscon.h>
-> +#include <linux/regmap.h>
->  
->  #include <linux/can/dev.h>
->  
->  #include "c_can.h"
->  
-> -#define CAN_RAMINIT_START_MASK(i)	(0x001 << (i))
-> -#define CAN_RAMINIT_DONE_MASK(i)	(0x100 << (i))
-> -#define CAN_RAMINIT_ALL_MASK(i)		(0x101 << (i))
->  #define DCAN_RAM_INIT_BIT		(1 << 3)
->  static DEFINE_SPINLOCK(raminit_lock);
->  /*
-> @@ -72,47 +71,61 @@ static void c_can_plat_write_reg_aligned_to_32bit(const struct c_can_priv *priv,
->  	writew(val, priv->base + 2 * priv->regs[index]);
->  }
->  
-> -static void c_can_hw_raminit_wait_ti(const struct c_can_priv *priv, u32 mask,
-> -				  u32 val)
-> +static void c_can_hw_raminit_wait_syscon(const struct c_can_priv *priv,
-> +					 u32 mask, u32 val)
->  {
->  	int timeout = 0;
-> +	const struct c_can_raminit *raminit = &priv->raminit_sys;
-> +	u32 ctrl;
-> +
->  	/* We look only at the bits of our instance. */
->  	val &= mask;
-> -	while ((readl(priv->raminit_ctrlreg) & mask) != val) {
-> +	do {
->  		udelay(1);
->  		timeout++;
->  
-> +		regmap_read(raminit->syscon, raminit->reg, &ctrl);
->  		if (timeout == 1000) {
->  			dev_err(&priv->dev->dev, "%s: time out\n", __func__);
->  			break;
->  		}
-> -	}
-> +	} while ((ctrl & mask) != val);
->  }
->  
-> -static void c_can_hw_raminit_ti(const struct c_can_priv *priv, bool enable)
-> +static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
->  {
-> -	u32 mask = CAN_RAMINIT_ALL_MASK(priv->instance);
-> +	u32 mask;
->  	u32 ctrl;
-> +	const struct c_can_raminit *raminit = &priv->raminit_sys;
-> +	u8 start_bit, done_bit;
-> +
-> +	start_bit = priv->drvdata->raminit_start_bit;
-> +	done_bit = priv->drvdata->raminit_done_bit;
->  
->  	spin_lock(&raminit_lock);
->  
-> -	ctrl = readl(priv->raminit_ctrlreg);
-> +	mask = 1 << start_bit | 1 << done_bit;
-> +	regmap_read(raminit->syscon, raminit->reg, &ctrl);
-> +
->  	/* We clear the done and start bit first. The start bit is
->  	 * looking at the 0 -> transition, but is not self clearing;
->  	 * And we clear the init done bit as well.
-> +	 * NOTE: DONE must be written with 1 to clear it.
->  	 */
-> -	ctrl &= ~CAN_RAMINIT_START_MASK(priv->instance);
-> -	ctrl |= CAN_RAMINIT_DONE_MASK(priv->instance);
-> -	writel(ctrl, priv->raminit_ctrlreg);
-> -	ctrl &= ~CAN_RAMINIT_DONE_MASK(priv->instance);
-> -	c_can_hw_raminit_wait_ti(priv, mask, ctrl);
-> +	ctrl &= ~(1 << start_bit);
-> +	ctrl |= 1 << done_bit;
-> +	regmap_write(raminit->syscon, raminit->reg, ctrl);
-
-Thanks to Tomi for pointing out.
-
-I need to use regmap_update_bits() instead of regmap_write() for atomic modification,
-as this register needs to be shared between multiple drivers in case of DRA7 SoC.
-
-cheers,
--roger
-
-> +
-> +	ctrl &= ~(1 << done_bit);
-> +	c_can_hw_raminit_wait_syscon(priv, mask, ctrl);
->  
->  	if (enable) {
->  		/* Set start bit and wait for the done bit. */
-> -		ctrl |= CAN_RAMINIT_START_MASK(priv->instance);
-> -		writel(ctrl, priv->raminit_ctrlreg);
-> -		ctrl |= CAN_RAMINIT_DONE_MASK(priv->instance);
-> -		c_can_hw_raminit_wait_ti(priv, mask, ctrl);
-> +		ctrl |= 1 << start_bit;
-> +		regmap_write(raminit->syscon, raminit->reg, ctrl);
-> +
-> +		ctrl |= 1 << done_bit;
-> +		c_can_hw_raminit_wait_syscon(priv, mask, ctrl);
->  	}
->  	spin_unlock(&raminit_lock);
->  }
-> @@ -206,10 +219,11 @@ static int c_can_plat_probe(struct platform_device *pdev)
->  	struct net_device *dev;
->  	struct c_can_priv *priv;
->  	const struct of_device_id *match;
-> -	struct resource *mem, *res;
-> +	struct resource *mem;
->  	int irq;
->  	struct clk *clk;
->  	const struct c_can_driver_data *drvdata;
-> +	struct device_node *np = pdev->dev.of_node;
->  
->  	match = of_match_device(c_can_of_table, &pdev->dev);
->  	if (match) {
-> @@ -279,27 +293,30 @@ static int c_can_plat_probe(struct platform_device *pdev)
->  		priv->read_reg32 = d_can_plat_read_reg32;
->  		priv->write_reg32 = d_can_plat_write_reg32;
->  
-> -		if (pdev->dev.of_node)
-> -			priv->instance = of_alias_get_id(pdev->dev.of_node, "d_can");
-> -		else
-> -			priv->instance = pdev->id;
-> -
-> -		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-> -		/* Not all D_CAN modules have a separate register for the D_CAN
-> -		 * RAM initialization. Use default RAM init bit in D_CAN module
-> -		 * if not specified in DT.
-> +		/* Check if we need custom RAMINIT via syscon. Mostly for TI
-> +		 * platforms. Only supported with DT boot.
->  		 */
-> -		if (!res) {
-> +		if (np && of_property_read_bool(np, "syscon-raminit")) {
-> +			ret = -EINVAL;
-> +			priv->raminit_sys.syscon = syscon_regmap_lookup_by_phandle(np,
-> +					"syscon-raminit");
-> +			if (IS_ERR(priv->raminit_sys.syscon)) {
-> +				dev_err(&pdev->dev,
-> +					"couldn't get syscon regmap for RAMINIT reg.\n");
-> +				goto exit_free_device;
-> +			}
-> +
-> +			if (of_property_read_u32_index(np, "syscon-raminit", 1,
-> +						       &priv->raminit_sys.reg)) {
-> +				dev_err(&pdev->dev,
-> +					"couldn't get the RAMINIT reg. offset!\n");
-> +				goto exit_free_device;
-> +			}
-> +
-> +			priv->raminit = c_can_hw_raminit_syscon;
-> +		} else {
->  			priv->raminit = c_can_hw_raminit;
-> -			break;
->  		}
-> -
-> -		priv->raminit_ctrlreg = devm_ioremap(&pdev->dev, res->start,
-> -						     resource_size(res));
-> -		if (!priv->raminit_ctrlreg || priv->instance < 0)
-> -			dev_info(&pdev->dev, "control memory is not used for raminit\n");
-> -		else
-> -			priv->raminit = c_can_hw_raminit_ti;
->  		break;
->  	default:
->  		ret = -EINVAL;
+> Just to make sure: You had the touchscreen and iio command running in
+> parallel and you saw evtest output while there was iio operation?
 > 
 
+Yeah.. I see both evtest and IIO outputs. Touch events are received
+consistently (decent samples per second) and atleast one IIO output per
+second.
+Here is a part from console log
+---------------------------
+928
+Event: time 1413204484.240114, type 3 (Absolute), code 0 (X), value 1746
+Event: time 1413204484.240114, type 3 (Absolute), code 1 (Y), value 1720
+Event: time 1413204484.240114, type 3 (Absolute), code 24 (Pressure),
+value 99
+Event: time 1413204484.240114, -------------- Report Sync ------------
+Event: time 1413204484.255318, type 1 (Key), code 330 (Touch), value 0
+Event: time 1413204484.255318, type 3 (Absolute), code 24 (Pressure),
+value 0
+Event: time 1413204484.255318, -------------- Report Sync ------------
+933
+Event: time 1413204484.273599, type 3 (Absolute), code 1 (Y), value 1718
+Event: time 1413204484.273599, type 3 (Absolute), code 24 (Pressure),
+value 99
+Event: time 1413204484.273599, type 1 (Key), code 330 (Touch), value 1
+Event: time 1413204484.273599, -------------- Report Sync ------------
+Event: time 1413204484.290195, type 3 (Absolute), code 24 (Pressure),
+value 98
+Event: time 1413204484.290195, -------------- Report Sync ------------
+Event: time 1413204484.306783, type 3 (Absolute), code 1 (Y), value 1719
+Event: time 1413204484.306783, -------------- Report Sync ------------
+946
+Event: time 1413204484.322164, type 1 (Key), code 330 (Touch), value 0
+Event: time 1413204484.322164, type 3 (Absolute), code 24 (Pressure),
+value 0
+Event: time 1413204484.322164, -------------- Report Sync ------------
+Event: time 1413204484.340435, type 3 (Absolute), code 1 (Y), value 1721
+Event: time 1413204484.340435, type 3 (Absolute), code 24 (Pressure),
+value 98
+Event: time 1413204484.340435, type 1 (Key), code 330 (Touch), value 1
+Event: time 1413204484.340435, -------------- Report Sync ------------
+Event: time 1413204484.357025, type 3 (Absolute), code 0 (X), value 1745
+Event: time 1413204484.357025, type 3 (Absolute), code 24 (Pressure),
+value 97
+Event: time 1413204484.357025, -------------- Report Sync ------------
+Event: time 1413204484.373621, type 3 (Absolute), code 0 (X), value 1746
+Event: time 1413204484.373621, type 3 (Absolute), code 1 (Y), value 1720
+Event: time 1413204484.373621, -------------- Report Sync ------------
+942
+
+---------------------------
+The numbers 928, 933 etc are from oneshot ADC read. The above output is
+pretty consistent over time.
+
+>> The problem may be in configuring correct charge-delay value. Please run:
+>> $ ts_test > /dev/null
+>> and let me know if pen events are being detected properly.
+> 
+> Well I get the touch events but not while busy loop on iio interface is
+> running (I get maybe one event every 5 seconds or so).
+> After all, it is the same HW you have.
+
+Yeah.. I believe HW is same. I am using rev 1.5B with
+omap2plus_defconfig (+ TSC/ADC enabled)
+
+Regards
+Vignesh
+> 
+> Sebastian
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
