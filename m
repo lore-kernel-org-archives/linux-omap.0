@@ -1,47 +1,115 @@
-From: "santosh.shilimkar@oralce.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 1/5] ARM: OMAP3: Fix errors for omap_l3_smx when booted
- with device tree
-Date: Wed, 05 Nov 2014 12:16:45 -0800
-Message-ID: <545A85AD.3030309@oracle.com>
-References: <1415212550-24692-1-git-send-email-tony@atomide.com> <1415212550-24692-2-git-send-email-tony@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Wed, 5 Nov 2014 21:31:51 +0100
+Message-ID: <20141105203151.GA24636@amd>
+References: <20141104205117.GA17606@amd>
+ <20141105011122.GA30622@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:48168 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339AbaKEUQH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2014 15:16:07 -0500
-In-Reply-To: <1415212550-24692-2-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141105011122.GA30622@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
+
+On Wed 2014-11-05 02:11:22, Sebastian Reichel wrote:
+> Hi Pavel,
+> 
+> On Tue, Nov 04, 2014 at 09:51:17PM +0100, Pavel Machek wrote:
+> > I'd like to test a modem (and eventually to get it to work :-) ) on
+> > n900. So far I found:
+> > 
+> > http://lwn.net/Articles/592485/
+> > 
+> > It says:
+> > 
+> > # supported. Testing the patchset with ofono works like this:
+> > # 
+> > #  # provide cmt device for ofono
+> > #  ln -sf /sys/bus/hsi/n900-modem /dev/cmt
+> > 
+> > [...]
+> >
+> > That seemed to match, so I symlinked it.
+> 
+> looks ok. You should have the following files:
+> 
+> /dev/cmt/cmt_apeslpx
+> /dev/cmt/cmt_bsi
+> /dev/cmt/cmt_en
+> /dev/cmt/cmt_rst_rq
+> /dev/cmt/cmt_rst
+
+No, it is not ok :-(. I did enable CONFIG_CMT now (it was not enabled
+before, and wow, that entry has least helpful config help, ever; is it
+related?), but still can't see the required files:
+
+root@n900:/sys# find . | grep cmt
+./bus/hsi/devices/cmt_speech
+./bus/hsi/drivers/cmt_speech
+./bus/hsi/drivers/cmt_speech/bind
+./bus/hsi/drivers/cmt_speech/cmt_speech
+./bus/hsi/drivers/cmt_speech/uevent
+./bus/hsi/drivers/cmt_speech/unbind
+./devices/virtual/misc/cmt_speech
+./devices/virtual/misc/cmt_speech/dev
+./devices/virtual/misc/cmt_speech/power
+./devices/virtual/misc/cmt_speech/power/control
+./devices/virtual/misc/cmt_speech/power/runtime_active_time
+./devices/virtual/misc/cmt_speech/power/autosuspend_delay_ms
+./devices/virtual/misc/cmt_speech/power/runtime_status
+./devices/virtual/misc/cmt_speech/power/runtime_suspended_time
+./devices/virtual/misc/cmt_speech/subsystem
+./devices/virtual/misc/cmt_speech/uevent
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/power
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/power/control
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/power/runtime_active_time
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/power/autosuspend_delay_ms
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/power/runtime_status
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/power/runtime_suspended_time
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/modalias
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/driver
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/subsystem
+./devices/68000000.ocp/48058000.ssi-controller/ssi0/port0/cmt_speech/uevent
+./class/misc/cmt_speech
+root@n900:/sys# 
+
+(What does CMT mean? I should fix the help files, I guess...)
 
 
+> > root@n900:~# ofonod --nodetach --debug &
+> > [1] 3552
+> 
+> no output from ofono?
 
-On 11/05/2014 10:35 AM, Tony Lindgren wrote:
-> When booting omap3 in device tree mode, we're currently getting
-> the following errors:
->
-> omap_l3_smx omap_l3_smx.0: couldn't request debug irq
-> omap_l3_smx: probe of omap_l3_smx.0 failed with error -22
->
-> This is because we don't have handling in the driver for the
-> compatible property and instead assume platform data being
-> passed.
->
-> Note that this binding is already documented, and implemented
-> for the related omap_l3_noc driver for omap4 and later. Looks
-> like the binding somehow never got never implemented for this
-> omap_l3_smx driver though.
->
-> Let's also remove __exit_p to allow binding and unbinding
-> of the driver while at it.
->
-> Reported-by: Pavel Machek <pavel@ucw.cz>
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Cc: Santosh Shilimkar <ssantosh@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+Actually, a lot of output from ofonod, but nothing useful.
+
+> > root@n900:~# mdbus2 -s org.ofono /n900_0 xyz
+> > [ERR]: There is no method with name xyz on path /n900_0!
+> >
+> > [...]
+> > 
+> > Any ideas?
+> 
+> call mdbus2 with fewer arguments to see what is available on the
+> bus:
+> 
+> mdbus2 -s                      => list all system services
+> mdbus2 -s org.ofono            => list all ofono objects
+> mdbus2 -s org.ofono /n900_0    => list all methods from n900 object
+
+root@n900:~# mdbus2 -s org.ofono
+/
+root@n900:~# 
+
+But since I do not have required cmt_ files, I guess that's expected?
+
+
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
