@@ -1,45 +1,42 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
-Date: Wed, 5 Nov 2014 13:00:58 +0200
-Message-ID: <1415185258-11747-1-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v3 00/10] ARM: dts: TI: Add CAN support
+Date: Wed, 5 Nov 2014 13:06:28 +0200
+Message-ID: <545A04B4.1010508@ti.com>
+References: <1415098134-26405-1-git-send-email-rogerq@ti.com> <20141104155502.GS31454@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: computersforpeace@gmail.com, dwmw2@infradead.org
-Cc: ezequiel@vanguardiasur.com.ar, tony@atomide.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, pekon@pek-sem.com, Roger Quadros <rogerq@ti.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <20141104155502.GS31454@atomide.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-In commit 7d5929c1f343 ("mtd: nand: omap: Revert to using software ECC by default"),
-we switched back to using 1-bit SW ECC scheme by default. However
-commit b491da7233d5 ("mtd: nand: omap: clean-up ecc layout for BCH ecc schemes")
-didn't take into account the 1-bit SW scheme (i.e. OMAP_ECC_HAM1_CODE_SW)
-when checking for small page devices because it was already got rid of
-one commit earlier. Consider OMAP_ECC_HAM1_CODE_SW while deciding
-if we can proceed with small page devices or not.
+On 11/04/2014 05:55 PM, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [141104 02:50]:
+>> Hi Tony,
+>>
+>> These patches add CAN support for am33xx, am43xx and dra7 platforms.
+>> They must go in together with CAN driver RAMINIT Syscon support [1].
+> 
+> Can you make this series not depend on [1] for most part without
+> breaking existing functionality?
 
-Fixes: 7d5929c1f34 ("mtd: nand: omap: Revert to using software ECC by default")
+I just checked that we haven't enabled DCAN on any of the boards
+so we don't risk breaking anything even if these 2 series don't go in
+together. 
 
-Cc: <stable@vger.kernel.org>        [3.17+]
-Reported-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/mtd/nand/omap2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> Then we can do a single follow-up patch to enable things after [1]
+> has been merged.
+> 
+> That would remove a dependency between driver changes and .dts changes.
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 3b357e9..758e594 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1742,7 +1742,8 @@ static int omap_nand_probe(struct platform_device *pdev)
- 	}
- 
- 	/* check for small page devices */
--	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW)) {
-+	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW) &&
-+	    (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_SW)) {
- 		dev_err(&info->pdev->dev, "small page devices are not supported\n");
- 		err = -EINVAL;
- 		goto return_error;
--- 
-1.8.3.2
+Apart from patches 1, 3 and 8, that add the control module nodes the rest
+pretty much depend on the driver DT binding changes.
+
+I can send them separately if needed.
+
+cheers,
+-roger
