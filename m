@@ -1,59 +1,64 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v9] ARM: omap: edma: add suspend resume hook
-Date: Wed, 5 Nov 2014 21:34:41 +0530
-Message-ID: <545A4A99.70407@ti.com>
-References: <1409043173-24357-1-git-send-email-zonque@gmail.com> <545A48F1.8060607@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] ARM: OMAP2+: gpmc: configuration enhancements
+Date: Wed, 5 Nov 2014 08:09:46 -0800
+Message-ID: <20141105160946.GV31454@atomide.com>
+References: <1413895309-9152-1-git-send-email-rogerq@ti.com>
+ <20141030151036.GE2560@atomide.com>
+ <5452582A.9060505@ti.com>
+ <20141104174907.GC28170@atomide.com>
+ <545A1C13.1030007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49045 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755257AbaKEQFL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Nov 2014 11:05:11 -0500
-In-Reply-To: <545A48F1.8060607@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:18405 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932110AbaKEQKt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2014 11:10:49 -0500
+Content-Disposition: inline
+In-Reply-To: <545A1C13.1030007@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>, Daniel Mack <zonque@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: pekon@pek-sem.com, javier@dowhile0.org, linux-omap@vger.kernel.org
 
-On Wednesday 05 November 2014 09:27 PM, Dave Gerlach wrote:
-> On 08/26/2014 03:52 AM, Daniel Mack wrote:
->> This patch makes the edma driver resume correctly after suspend. Tested
->> on an AM33xx platform with cyclic audio streams and omap_hsmmc.
->>
->> All information can be reconstructed by already known runtime
->> information.
->>
->> As we now use some functions that were previously only used from __init
->> context, annotations had to be dropped.
->>
->> [nm@ti.com: added error handling for runtime + suspend_late/early_resume]
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> Signed-off-by: Daniel Mack <zonque@gmail.com>
->> Tested-by: Joel Fernandes <joelf@ti.com>
->> Acked-by: Joel Fernandes <joelf@ti.com>
->> ---
->> Changes from v8:
->>
->> 	* Drop the edma_suspend hook altogether. Even though back then
->> 	  when I wrote the code I was sure disabling the interrupts
->> 	  during suspend is necessary, tests now show it in fact isn't.
->> 	  My test setup still works if that code is omitted.
->> 	* Use SET_LATE_SYSTEM_SLEEP_PM_OPS in the dev_pm_ops
->> 	  declaration.
->>
->> 	Thanks to Sekhar for pointing out the above.
->>
->>  arch/arm/common/edma.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++--
->>  1 file changed, 58 insertions(+), 2 deletions(-)
+* Roger Quadros <rogerq@ti.com> [141105 04:47]:
+> On 11/04/2014 07:49 PM, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq@ti.com> [141030 08:25]:
+> >> On 10/30/2014 05:10 PM, Tony Lindgren wrote:
+> >>> * Roger Quadros <rogerq@ti.com> [141021 05:43]:
+> >>>> Hi Tony,
+> >>>>
+> >>>> These patches address GPMC configuration issues and are for v3.19.
+> >>>> Patches based on v3.18-rc1.
+> >>>>
+> >>>> - Make sure to print a user visible error if a requested GPMC timing
+> >>>> configuration can't be met.
+> >>>>
+> >>>> - Don't create GPMC child device if a GPMC timing could not be set.
+> >>>>
+> >>>> - Always enable address lines A26-A11 for non-NAND devices.
+> >>>>
+> >>>> - Perform GPMC configuration as per recommended procedure i.e.
+> >>>> keep Chip Select disabled while changing GPMC configuration.
+> >>>>
+> >>>> Tested on dra7-evm, am437x-gp-evm and beagleboard.
+> >>>
+> >>> For all these, please feel free to add:
+> >>>
+> >>> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>>
+> >>
+> >> Thanks. These patches are now available at
+> >>
+> >> git@github.com:rogerq/linux.git		for-v3.19/gpmc-omap
+> >>
+> > 
+> > Merged these on top of the patches I did to omap-for-v3.19/gpmc.
+> > There were few merge conflicts so you may want to check.
 > 
-> Doesn't seem to be any comments here, any chance this can be picked up? This
-> patch always seems to get missed but will be needed for suspend/resume on both
-> AM335x and AM437x.
+> Thanks. The conflict resolution seems fine.
+> I've also tested NAND to be fine on am335x-evm, am437x-evm and dra7-evm.
 
-Dave, do you have a branch against mainline with suspend working on any
-of these SoCs using which I can test this patch?
+OK great thanks,
 
-Thanks,
-Sekhar
+Tony
