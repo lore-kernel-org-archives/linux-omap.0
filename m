@@ -1,44 +1,65 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH 11/13] arm: dts: dra7: add DMA properties for UART
-Date: Wed, 05 Nov 2014 17:30:51 +0100
-Message-ID: <545A50BB.2020307@linutronix.de>
-References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de> <1412014009-13315-12-git-send-email-bigeasy@linutronix.de> <20141104170233.GB24112@csclub.uwaterloo.ca> <5459079D.7080703@linutronix.de> <20141104172117.GC24112@csclub.uwaterloo.ca> <20141104183315.GD24112@csclub.uwaterloo.ca> <20141104210315.GF24112@csclub.uwaterloo.ca> <20141105011506.GG24112@csclub.uwaterloo.ca> <5459DBB7.1090702@linutronix.de> <20141105153307.GN24110@csclub.uwaterloo.ca> <20141105162024.GH24112@csclub.uwaterloo.ca>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2] pinctrl: dra: dt-bindings: Fix output pull up/down
+Date: Wed, 5 Nov 2014 11:10:29 -0600
+Message-ID: <545A5A05.6050500@ti.com>
+References: <1414752745-13696-1-git-send-email-rogerq@ti.com> <1415009392-6627-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141105162024.GH24112@csclub.uwaterloo.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52211 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754039AbaKERKc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Nov 2014 12:10:32 -0500
+In-Reply-To: <1415009392-6627-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-On 11/05/2014 05:20 PM, Lennart Sorensen wrote:
-> On Wed, Nov 05, 2014 at 10:33:15AM -0500, Lennart Sorensen wrote:
->> Two systems ran 16 hours each so far with no issues.  Pushed 170MB o=
-f
->> data through the pair of serial ports on one system at 230400.
->=20
-> The console on uart3 doesn't appear to be using the dma assuming the
-> values in /sys for the dma controller and bytes transferred mean anyt=
-hing.
-> It does mention in dmesg that it allocated dma channels for uart3 tho=
-ugh.
+On 11/03/2014 04:09 AM, Roger Quadros wrote:
+> For PIN_OUTPUT_PULLUP and PIN_OUTPUT_PULLDOWN we must not set the
+> PULL_DIS bit which disables the PULLs.
+> 
+> PULL_ENA is a 0 and using it in an OR operation is a NOP, so don't
+> use it in the PIN_OUTPUT_PULLUP/DOWN macros.
+> 
+> Fixes: 23d9cec07c58 ("pinctrl: dra: dt-bindings: Fix pull enable/disable")
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  include/dt-bindings/pinctrl/dra.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
+> index 3d33794..7448edf 100644
+> --- a/include/dt-bindings/pinctrl/dra.h
+> +++ b/include/dt-bindings/pinctrl/dra.h
+> @@ -40,8 +40,8 @@
+>  
+>  /* Active pin states */
+>  #define PIN_OUTPUT		(0 | PULL_DIS)
+> -#define PIN_OUTPUT_PULLUP	(PIN_OUTPUT | PULL_ENA | PULL_UP)
+> -#define PIN_OUTPUT_PULLDOWN	(PIN_OUTPUT | PULL_ENA)
+> +#define PIN_OUTPUT_PULLUP	(PULL_UP)
+> +#define PIN_OUTPUT_PULLDOWN	(0)
+>  #define PIN_INPUT		(INPUT_EN | PULL_DIS)
+>  #define PIN_INPUT_SLEW		(INPUT_EN | SLEWCONTROL)
+>  #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
+> 
 
-Then it should use it :)
 
-> How do you tell if it is using dma?
+There might be additional updates needed to DRA7 pinctrl sequencing
+requirements based on latest documentation:
 
-There is omap_8250_tx_dma() and omap_8250_rx_dma(). Both setup
-callbacks (the rx+tx _complete). Upon successful DMA transfer you
-should see them invoked with bytes transfered (>0).
-=46or RX transfer you need at least trigger bytes in the FIFO within a
-given time frame (I think it was 46 bytes and the delay may be up to 2
-bytes). If you miss this then DMA for RX won't wire and you purge the
-=46IFO manually via "timeout-interrupt" (the callback will be invoked
-with an error condition and 0 bytes).
+http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf#page=4004&zoom=auto,0,274.1
 
-Assuming this works for you then one should figure out why the counters
-in /sys are not updated=85
+But, that has nothing to do with the bug that is currently being fixed
+in this patch,.
 
-Sebastian
+So, for the record:
+Acked-by: Nishanth Menon <nm@ti.com>
+
+-- 
+Regards,
+Nishanth Menon
