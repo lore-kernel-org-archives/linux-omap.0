@@ -1,27 +1,36 @@
-From: George Cherian <george.cherian@ti.com>
-Subject: [RESEND PATCH 0/2] Add dt support for extcon gpio driver
-Date: Wed, 5 Nov 2014 20:59:46 +0530
-Message-ID: <1415201388-32060-1-git-send-email-george.cherian@ti.com>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: Re: [PATCH 11/13] arm: dts: dra7: add DMA properties for UART
+Date: Wed, 5 Nov 2014 10:33:15 -0500
+Message-ID: <20141105153307.GN24110@csclub.uwaterloo.ca>
+References: <1412014009-13315-1-git-send-email-bigeasy@linutronix.de>
+ <1412014009-13315-12-git-send-email-bigeasy@linutronix.de>
+ <20141104170233.GB24112@csclub.uwaterloo.ca>
+ <5459079D.7080703@linutronix.de>
+ <20141104172117.GC24112@csclub.uwaterloo.ca>
+ <20141104183315.GD24112@csclub.uwaterloo.ca>
+ <20141104210315.GF24112@csclub.uwaterloo.ca>
+ <20141105011506.GG24112@csclub.uwaterloo.ca>
+ <5459DBB7.1090702@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: myungjoo.ham@samsung.com, cw00.choi@samsung.com
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rongjun.ying@csr.com, Baohua.Song@csr.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, George Cherian <george.cherian@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.csclub.uwaterloo.ca ([129.97.134.52]:36616 "EHLO
+	mail.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755771AbaKEPdS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Nov 2014 10:33:18 -0500
+Content-Disposition: inline
+In-Reply-To: <5459DBB7.1090702@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, devicetree@vger.kernel.org
 
-This series
-        - Adds dt support to extcon-gpio driver.
-	- Add cable name support in case of dt.
+On Wed, Nov 05, 2014 at 09:11:35AM +0100, Sebastian Andrzej Siewior wrote:
+> Okay. No DMA but the basic part seems to work for you. Thanks for
+> testing.
 
-George Cherian (2):
-  extcon: gpio: Add dt support for the driver
-  extcon: gpio: Add support for using cable names
-
- drivers/extcon/extcon-gpio.c       | 87 +++++++++++++-------------------------
- include/linux/extcon/extcon-gpio.h | 59 --------------------------
- 2 files changed, 29 insertions(+), 117 deletions(-)
- delete mode 100644 include/linux/extcon/extcon-gpio.h
+Two systems ran 16 hours each so far with no issues.  Pushed 170MB of
+data through the pair of serial ports on one system at 230400.
 
 -- 
-1.8.3.1
+Len Sorensen
