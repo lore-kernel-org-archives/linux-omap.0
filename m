@@ -1,126 +1,37 @@
-From: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
 Subject: Re: [PATCH] ARM: dts: Add am57xx-beagle-x15
-Date: Thu, 6 Nov 2014 11:37:58 -0500
-Message-ID: <545BA3E6.90105@ti.com>
-References: <1415290702-11353-1-git-send-email-nm@ti.com> <20141106163207.GF16896@saruman>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Date: Thu, 6 Nov 2014 11:41:48 -0500
+Message-ID: <20141106164148.GJ24112@csclub.uwaterloo.ca>
+References: <1415290702-11353-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <beagleboard+bncBCF77LUSWAKRB36H52RAKGQEU5JD2HA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <20141106163207.GF16896@saruman>
-List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/beagleboard/subscribe>
-To: balbi-l0cyMroinI0@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gerald-xujr6ya/RELK0SuXxyvBAPegYHeGw8Jk@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.csclub.uwaterloo.ca ([129.97.134.52]:34106 "EHLO
+	mail.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133AbaKFQlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 11:41:50 -0500
+Content-Disposition: inline
+In-Reply-To: <1415290702-11353-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, gerald@granddesignsgroup.com, fcooper@ti.com, beagleboard@googlegroups.com
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Thu, Nov 06, 2014 at 10:18:22AM -0600, Nishanth Menon wrote:
+> BeagleBoard-X15 is the next generation Open Source Hardware
+> BeagleBoard based on TI's AM5728 SoC featuring dual core 1.5GHZ A15
+> processor. The platform features 2GB DDR3L (w/dual 32bit busses),
+> eSATA, 3 USB3.0 ports, integrated HDMI (1920x108@60), separate LCD
+> port, video In port, 4GB eMMC, uSD, Analog audio in/out, dual 1G
+> Ethernet.
 
-On 11/06/2014 11:32 AM, Felipe Balbi wrote:
-> On Thu, Nov 06, 2014 at 10:18:22AM -0600, Nishanth Menon wrote:
->> BeagleBoard-X15 is the next generation Open Source Hardware 
->> BeagleBoard based on TI's AM5728 SoC featuring dual core 1.5GHZ
->> A15 processor. The platform features 2GB DDR3L (w/dual 32bit
->> busses), eSATA, 3 USB3.0 ports, integrated HDMI (1920x108@60),
->> separate LCD port, video In port, 4GB eMMC, uSD, Analog audio
->> in/out, dual 1G Ethernet.
->> 
->> For more information, refer to: BeagleBoard-X15 Wiki: 
->> http://www.elinux.org/Beagleboard:BeagleBoard-X15
->> 
->> AM5728 is part of the Sitara product family whose additional
->> details will be available:
->> http://www.ti.com/lsds/ti/arm/overview.page
->> 
->> Technical Reference Manual for AM5728 is public domain at: 
->> http://www.ti.com/lit/spruhz6
->> 
->> Just add basic support for the moment, the following updates are
->> needed: i)	Ethernet - depends on SoC dts fixes ii)	USB Client
->> (USB2) - depends on GPIO extcon ii)	HDMI - additional driver
->> fixes pending iii)	Audio - additional driver fixes pending
->> 
->> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> Signed-off-by:
->> Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> ---
->> 
->> Tested with omap2plus_defconfig modified as:
->> http://slexy.org/view/s2DRTzUwjj boot log:
->> http://slexy.org/raw/s25Grf1uoo based on 3.18-rc1 tag.
->> 
->> Support for u-boot has been posted as well: (series ending 
->> http://patchwork.ozlabs.org/patch/407552/ )
->> 
->> Side note: this patch generates a few unrelated checkpatch
->> warning for compatible which probably is part of appropriate
->> driver documentation fixes (functionality is already present).
->> 
->> arch/arm/boot/dts/Makefile              |    1 + 
->> arch/arm/boot/dts/am57xx-beagle-x15.dts |  405
->> +++++++++++++++++++++++++++++++ 2 files changed, 406
->> insertions(+) create mode 100644
->> arch/arm/boot/dts/am57xx-beagle-x15.dts
->> 
->> diff --git a/arch/arm/boot/dts/Makefile
->> b/arch/arm/boot/dts/Makefile index 38c89ca..eee1e4f 100644 ---
->> a/arch/arm/boot/dts/Makefile +++ b/arch/arm/boot/dts/Makefile @@
->> -347,6 +347,7 @@ dtb-$(CONFIG_SOC_OMAP5) += omap5-cm-t54.dtb \ 
->> omap5-sbc-t54.dtb \ omap5-uevm.dtb dtb-$(CONFIG_SOC_DRA7XX) +=
->> dra7-evm.dtb \ +	am57xx-beagle-x15.dtb \ dra72-evm.dtb 
->> dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-d2-network.dtb \ 
->> orion5x-lacie-ethernet-disk-mini-v2.dtb \ diff --git
->> a/arch/arm/boot/dts/am57xx-beagle-x15.dts
->> b/arch/arm/boot/dts/am57xx-beagle-x15.dts new file mode 100644 
->> index 0000000..1f1875b --- /dev/null +++
->> b/arch/arm/boot/dts/am57xx-beagle-x15.dts @@ -0,0 +1,405 @@ +/* +
->> * Copyright (C) 2014 Texas Instruments Incorporated -
->> http://www.ti.com/ + * + * This program is free software; you can
->> redistribute it and/or modify + * it under the terms of the GNU
->> General Public License version 2 as + * published by the Free
->> Software Foundation. + */ +/dts-v1/; + +#include "dra74x.dtsi" 
->> +#include <dt-bindings/clk/ti-dra7-atl.h> +#include
->> <dt-bindings/gpio/gpio.h> +#include
->> <dt-bindings/interrupt-controller/irq.h> + +/ { +	model = "TI
->> AM5728 BeagleBoard-X15"; +	compatible = "ti,am572x-beagle-x15",
->> "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7"; + +	aliases { +
->> rtc0 = &mcp_rtc; +		rtc1 = &tps659038_rtc; +	}; + +	memory { +
->> device_type = "memory"; +		reg = <0x80000000 0x40000000>; /* 1GB
->> to start. Target 2GB */
-> 
-> 1GiB ? Why would you put this here btw ? u-boot fills this one up.
+Oh neat, you put a USB3 hub on the board?
 
-Yes, it should either be the full and correct value or 0x0 (like a
-number of PowerPC platforms do) so it's clear something else gives us
-the right value here.
+I really should cleanup and submit my patch to make the system time not
+run 576ppm too fast on the AM57xx.
 
-- -- 
-Tom
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJUW6PmAAoJENk4IS6UOR1WV2kQAI7JY0DFR+XsWMAZ2shiGcF6
-+ZotxE4m030EQgfi8FnKe+i5u5pvHhJFqazRGX2cpYvj5X0fOnO730cyGLvunuQA
-npVDTcu/4RASxOUtEAW88u/wxUqL1BvYTHlcFTOnaeYJbgvt/C+QIO/wK+izAPso
-2ckS23d43DCAW2aVRo2Eq/L3CehjZz3dpQSzTyjWdYbQ0gROE4IWQ5J2qnSFYzhO
-VO5CQb4gqP0iAVk96Z6RJWtQxaYGfNta9QDCaEkZ6OOo4z+MHvdfk5a5HiJzfzlr
-VkRUaRql4UmvFFwUFoeYcsde1Mno8Ka3jXq94soNvnq0LiIYPjdLBI/7ca9exdbV
-CnY3TxtZOfYqRsGiSF1mac8wqCF7kBC+u7nGGK1sTdNzhN5dFrIfL0tkfl8/avfH
-YYyu/WeZEEZ8MJVk0KruXUgG1kge3FJc2v79AdDaiZtp6xcl5p+pVtCkx8QrCfGg
-ofPjEtmGKSatIW/PmnOt0L/qmMQNnzwSbT+zgeUfgUXYLiH3NFK7wAdW5hWS4T3n
-v5h1O8t3THZLnmc1Fdv4pfI3ozcoWjSLROlnWhtO1E9JEtVon8XfpyPObJzKV5GA
-9CT+5Ivrirz/4TEUJ1kCKBQcxyZUFEmEVKYu9KiMPux2Doz4MI4TZOZ/TcWTJiCJ
-hCXCtU398UOpnwVyy//D
-=N9bA
------END PGP SIGNATURE-----
+This will sure be a nice board when you get it released.  I will have
+to get one.
 
 -- 
-For more options, visit http://beagleboard.org/discuss
---- 
-You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+Len Sorensen
