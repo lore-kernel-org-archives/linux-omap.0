@@ -1,89 +1,93 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 1/4] input: touchscreen: ti_am335x_tsc Interchange
- touchscreen and ADC steps
-Date: Thu, 6 Nov 2014 15:19:17 +0100
-Message-ID: <20141106141916.GA17151@netboy>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
- <1414408111-2631-2-git-send-email-vigneshr@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v9] ARM: omap: edma: add suspend resume hook
+Date: Thu, 6 Nov 2014 08:36:16 -0600
+Message-ID: <545B8760.6060806@ti.com>
+References: <1409043173-24357-1-git-send-email-zonque@gmail.com> <545A48F1.8060607@ti.com> <545A4A99.70407@ti.com> <545A682F.4060306@ti.com> <545B325B.4050109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1414408111-2631-2-git-send-email-vigneshr@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Lee Jones <lee.jones@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>, Russell King <linux@arm.linux.org.uk>, Samuel Ortiz <sameo@linux.intel.com>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Brad Griffis <bgriffis@ti.com>, Pawel Moll <pawel.moll@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Hartmut Knaack <knaack.h@gmx.de>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jan Kardell <jan.kardell@telliq.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49948 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998AbaKFOgm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Nov 2014 09:36:42 -0500
+In-Reply-To: <545B325B.4050109@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
 
-On Mon, Oct 27, 2014 at 04:38:28PM +0530, Vignesh R wrote:
-
-...
-
-> @@ -209,6 +214,7 @@ static void titsc_read_coordinates(struct titsc *ts_dev,
->  	unsigned int read, diff;
->  	unsigned int i, channel;
->  	unsigned int creads = ts_dev->coordinate_readouts;
-> +	unsigned int first_step = TOTAL_STEPS - (creads * 2 + 2);
->  
->  	*z1 = *z2 = 0;
->  	if (fifocount % (creads * 2 + 2))
-> @@ -226,7 +232,7 @@ static void titsc_read_coordinates(struct titsc *ts_dev,
->  
->  		channel = (read & 0xf0000) >> 16;
->  		read &= 0xfff;
-> -		if (channel < creads) {
-> +		if (channel > first_step + creads + 2) {
->  			diff = abs(read - prev_val_x);
->  			if (diff < prev_diff_x) {
->  				prev_diff_x = diff;
-> @@ -234,19 +240,19 @@ static void titsc_read_coordinates(struct titsc *ts_dev,
->  			}
->  			prev_val_x = read;
->  
-> -		} else if (channel < creads * 2) {
-> +		} else if (channel == first_step + creads + 1) {
-> +			*z1 = read;
-> +
-> +		} else if (channel == first_step + creads + 2) {
-> +			*z2 = read;
-> +
-> +		} else if (channel > first_step) {
->  			diff = abs(read - prev_val_y);
->  			if (diff < prev_diff_y) {
->  				prev_diff_y = diff;
->  				*y = read;
-
-While you are at it, please get rid of the this "delta filter"
-nonsense.
-
-Thanks,
-Richard
-
->  			}
->  			prev_val_y = read;
-> -
-> -		} else if (channel < creads * 2 + 1) {
-> -			*z1 = read;
-> -
-> -		} else if (channel < creads * 2 + 2) {
-> -			*z2 = read;
->  		}
->  	}
->  }
-> -- 
-> 1.9.1
+Sekhar,
+On 11/06/2014 02:33 AM, Sekhar Nori wrote:
+> On Wednesday 05 November 2014 11:40 PM, Dave Gerlach wrote:
+>> Sekhar,
+>> On 11/05/2014 10:04 AM, Sekhar Nori wrote:
+>>> On Wednesday 05 November 2014 09:27 PM, Dave Gerlach wrote:
+>>>> On 08/26/2014 03:52 AM, Daniel Mack wrote:
+>>>>> This patch makes the edma driver resume correctly after suspend. Tested
+>>>>> on an AM33xx platform with cyclic audio streams and omap_hsmmc.
+>>>>>
+>>>>> All information can be reconstructed by already known runtime
+>>>>> information.
+>>>>>
+>>>>> As we now use some functions that were previously only used from __init
+>>>>> context, annotations had to be dropped.
+>>>>>
+>>>>> [nm@ti.com: added error handling for runtime + suspend_late/early_resume]
+>>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>>>> Tested-by: Joel Fernandes <joelf@ti.com>
+>>>>> Acked-by: Joel Fernandes <joelf@ti.com>
+>>>>> ---
+>>>>> Changes from v8:
+>>>>>
+>>>>> 	* Drop the edma_suspend hook altogether. Even though back then
+>>>>> 	  when I wrote the code I was sure disabling the interrupts
+>>>>> 	  during suspend is necessary, tests now show it in fact isn't.
+>>>>> 	  My test setup still works if that code is omitted.
+>>>>> 	* Use SET_LATE_SYSTEM_SLEEP_PM_OPS in the dev_pm_ops
+>>>>> 	  declaration.
+>>>>>
+>>>>> 	Thanks to Sekhar for pointing out the above.
+>>>>>
+>>>>>  arch/arm/common/edma.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++--
+>>>>>  1 file changed, 58 insertions(+), 2 deletions(-)
+>>>>
+>>>> Doesn't seem to be any comments here, any chance this can be picked up? This
+>>>> patch always seems to get missed but will be needed for suspend/resume on both
+>>>> AM335x and AM437x.
+>>>
+>>> Dave, do you have a branch against mainline with suspend working on any
+>>> of these SoCs using which I can test this patch?
+>>
+>> Yes, here is WIP of next version with all required patches + this one.
+>> https://github.com/dgerlach/linux-pm/tree/pm-ds0-v3.18-rc3-WIP
+>>
+>> For suspend to work you need to select:
+>>
+>> CONFIG_WKUP_M3_IPC=y
+>> CONFIG_WKUP_M3_RPROC=y
 > 
+> I get this:
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> arch/arm/mach-omap2/pm33xx.c:28:31: fatal error: linux/wkup_m3_ipc.h: No such file or directory
+>  #include <linux/wkup_m3_ipc.h>
+>                                ^
+> compilation terminated.
+> make[1]: *** [arch/arm/mach-omap2/pm33xx.o] Error 1
+> 
+> Forgot to commit wkup_m3_ipc.h?
+> 
+
+Ahhh sorry about that, looks like I dropped it during a rebase. Added it in a
+patch and pushed that on top of the tree from yesterday. Sorry again!.
+
+Regards,
+Dave
+
+
+> Thanks,
+> Sekhar
+>  
+> 
+
