@@ -1,52 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am335x-evm: Fix 5th NAND partition's name
-Date: Thu, 6 Nov 2014 10:21:32 -0800
-Message-ID: <20141106182131.GB31454@atomide.com>
-References: <1413890745-3855-1-git-send-email-rogerq@ti.com>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
+Date: Thu, 6 Nov 2014 12:24:11 -0600
+Message-ID: <545BBCCB.7030107@ti.com>
+References: <1389658764-39199-1-git-send-email-s-anna@ti.com> <1389658764-39199-5-git-send-email-s-anna@ti.com> <CAJAp7Oj-3ZxvN8o=rg8YeTiXYWyQ1iowgisdU1R5UcZeh4VmOQ@mail.gmail.com> <5425938C.6070007@ti.com> <CAK=WgbYf3++K4MVXW_n4zj-8fMEee61XG5+r40cW=trapRtJ7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19163 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750877AbaKFSWc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 13:22:32 -0500
-Content-Disposition: inline
-In-Reply-To: <1413890745-3855-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAK=WgbYf3++K4MVXW_n4zj-8fMEee61XG5+r40cW=trapRtJ7w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: javier.martinez@collabora.co.uk, pekon@pek-sem.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>
 
-* Roger Quadros <rogerq@ti.com> [141021 04:27]:
-> The 5th NAND partition should be named "NAND.u-boot-spl-os"
-> instead of "NAND.u-boot-spl". This is to be consistent with other
-> TI boards as well as u-boot.
+Hi Ohad,
 
-Applying into omap-for-v3.18/fixes thanks.
+On 10/06/2014 04:44 AM, Ohad Ben-Cohen wrote:
+> On Fri, Sep 26, 2014 at 7:25 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+>> I am yet to receive any comments on v6, but that series should address
+>> both your need for a probe deferral and Ohad's request to not change any
+>> return types. Please give it a try and let me know if you have any comments.
+> 
+> Guys,
+> 
+> Just to let you know we have several holidays around here these days,
+> and I intend to review all pending patches immediately soon after.
+> 
 
-Tony
- 
-> Fixes: 91994facdd2d ("ARM: dts: am335x-evm: NAND: update MTD partition table")
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  arch/arm/boot/dts/am335x-evm.dts | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index e2156a5..c4b968f 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -489,7 +489,7 @@
->  			reg = <0x00060000 0x00020000>;
->  		};
->  		partition@4 {
-> -			label = "NAND.u-boot-spl";
-> +			label = "NAND.u-boot-spl-os";
->  			reg = <0x00080000 0x00040000>;
->  		};
->  		partition@5 {
-> -- 
-> 1.8.3.2
-> 
+Ping on this. Can you review the latest series v6 [1] and pick it up for
+3.19? The MSM spinlock driver is also blocked/dependent on that series.
+
+regards
+Suman
+
+[1] http://marc.info/?l=linux-arm-kernel&m=141055365513902&w=2
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
