@@ -1,485 +1,92 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] ARM: dts: Add am57xx-beagle-x15
-Date: Thu, 6 Nov 2014 10:18:22 -0600
-Message-ID: <1415290702-11353-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: omap: hwmod: drop unnecessary list initialization
+Date: Thu, 6 Nov 2014 10:19:40 -0600
+Message-ID: <20141106161940.GE16896@saruman>
+References: <1405455492-1087-1-git-send-email-balbi@ti.com>
+ <alpine.DEB.2.02.1407280524160.24161@utopia.booyaka.com>
+ <20141104053952.GA15760@saruman>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BZaMRJmqxGScZ8Mx"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55287 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751212AbaKFQSx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Nov 2014 11:18:53 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:45838 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156AbaKFQTc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 11:19:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20141104053952.GA15760@saruman>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, gerald@granddesignsgroup.com, fcooper@ti.com, beagleboard@googlegroups.com, Nishanth Menon <nm@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-BeagleBoard-X15 is the next generation Open Source Hardware
-BeagleBoard based on TI's AM5728 SoC featuring dual core 1.5GHZ A15
-processor. The platform features 2GB DDR3L (w/dual 32bit busses),
-eSATA, 3 USB3.0 ports, integrated HDMI (1920x108@60), separate LCD
-port, video In port, 4GB eMMC, uSD, Analog audio in/out, dual 1G
-Ethernet.
+--BZaMRJmqxGScZ8Mx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-For more information, refer to:
-BeagleBoard-X15 Wiki:
-http://www.elinux.org/Beagleboard:BeagleBoard-X15
+On Mon, Nov 03, 2014 at 11:39:52PM -0600, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Mon, Jul 28, 2014 at 05:24:34AM +0000, Paul Walmsley wrote:
+> > On Tue, 15 Jul 2014, Felipe Balbi wrote:
+> >=20
+> > > ml->node and sl->node are currently initialized
+> > > by means of INIT_LIST_HEAD(). That initialiation
+> > > is followed by a list_add() call.
+> > >=20
+> > > Looking at what both these functions do we will have:
+> > >=20
+> > > 	ml->node.next =3D &ml->node;
+> > > 	ml->node.prev =3D &ml->node;
+> > > 	oi->master->master_ports.next.prev =3D &ml->node;
+> > > 	ml->node.next =3D &oi->master->master_ports.next;
+> > > 	ml->node.prev =3D &oi->master->master_ports;
+> > > 	oi->master->master_ports.next =3D &ml->node;
+> > >=20
+> > > from this, it's clear that both INIT_LIST_HEAD() calls
+> > > are unnecessary and can be safely removed.
+> > >=20
+> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > > ---
+> > >=20
+> > > found by code inspection, boot tested on am437x SK on today's
+> > > linux-next + pending patches.
+> >=20
+> > Thanks, queued for v3.18.
+>=20
+> This is not on v3.18, what happened ?
+>=20
+> $ git log --author=3Dbalbi@ti.com linus/master ^v3.17 -- arch/arm/mach-om=
+ap2/omap_hwmod.c
+> $
 
-AM5728 is part of the Sitara product family whose additional details
-will be available: http://www.ti.com/lsds/ti/arm/overview.page
+ping
 
-Technical Reference Manual for AM5728 is public domain at:
-http://www.ti.com/lit/spruhz6
+--=20
+balbi
 
-Just add basic support for the moment, the following updates are needed:
-  i)	Ethernet - depends on SoC dts fixes
-  ii)	USB Client (USB2) - depends on GPIO extcon
-  ii)	HDMI - additional driver fixes pending
-  iii)	Audio - additional driver fixes pending
+--BZaMRJmqxGScZ8Mx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Tested with omap2plus_defconfig modified as: http://slexy.org/view/s2DRTzUwjj
-boot log: http://slexy.org/raw/s25Grf1uoo
-based on 3.18-rc1 tag.
+iQIcBAEBAgAGBQJUW5+cAAoJEIaOsuA1yqRE+38P/jknMnJvpsLfpM5kdstx74RI
+5S9BtG5sLtOh7brNmObRn4wHS6+UHUyl/XQWyTa98UuycTAlqQa0l12MRYn9sK4e
+L8ZesREW5AOO/1QBNq+wrVaFNa9XHLk3ni/iYanBnnHbrqdQmMorQ0pQcSSyVGaY
+aCZD+HqlPEPHRmQYsfwMtBfiAXx5CRuqK2CQ27zfKNr+JuGRkuEo5L6krQ1k+JiD
+xyS3ftQj3e5JnmB56/CqjzLIK8tMtHeMaz5RF+pLuD1aH2lNyD7sqXgRSHdPsF+C
+saQRkVB/vxrA+9hffY9C6je3BwDzHtu/ue7wlaeCZxeIbx1F2oAesXP0XRbb7ZME
+EujmEz4BtSDJF2vpHJHIfRptY+CTkF6gYFaFHRaSr5GJ0Dls/8/P+M+rdrds98ko
+ItMdWeAik8fm6Da1Ldc8yQXq+zhasGiGvC54ED+SyZaBn103YE2RZY+pwxC7lWYB
+LakUMUSBFmlSVfrx9e+q1qCY/Vuem4WDYJ1WRQ9sUjodBlktfeJpqZM/IoiAKhUW
+YYsFhW6Mg8kvDj8y34dZoLaP885Y6FCfKOalAD8xP8wAdy4CMf+SUb2subf/qLWo
+3VFIRz6KuYqn1eaexdxzUdMVqVjIAZYC+damQjSl2cuDlvinObTh0QBiXik1tJwJ
+PNewj2CqNzaIdEgqd4AM
+=WbtT
+-----END PGP SIGNATURE-----
 
-Support for u-boot has been posted as well: (series ending
-http://patchwork.ozlabs.org/patch/407552/ )
-
-Side note: this patch generates a few unrelated checkpatch warning for
-compatible which probably is part of appropriate driver documentation
-fixes (functionality is already present).
-
- arch/arm/boot/dts/Makefile              |    1 +
- arch/arm/boot/dts/am57xx-beagle-x15.dts |  405 +++++++++++++++++++++++++++++++
- 2 files changed, 406 insertions(+)
- create mode 100644 arch/arm/boot/dts/am57xx-beagle-x15.dts
-
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 38c89ca..eee1e4f 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -347,6 +347,7 @@ dtb-$(CONFIG_SOC_OMAP5) += omap5-cm-t54.dtb \
- 	omap5-sbc-t54.dtb \
- 	omap5-uevm.dtb
- dtb-$(CONFIG_SOC_DRA7XX) += dra7-evm.dtb \
-+	am57xx-beagle-x15.dtb \
- 	dra72-evm.dtb
- dtb-$(CONFIG_ARCH_ORION5X) += orion5x-lacie-d2-network.dtb \
- 	orion5x-lacie-ethernet-disk-mini-v2.dtb \
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-new file mode 100644
-index 0000000..1f1875b
---- /dev/null
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
-@@ -0,0 +1,405 @@
-+/*
-+ * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+#include "dra74x.dtsi"
-+#include <dt-bindings/clk/ti-dra7-atl.h>
-+#include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/interrupt-controller/irq.h>
-+
-+/ {
-+	model = "TI AM5728 BeagleBoard-X15";
-+	compatible = "ti,am572x-beagle-x15", "ti,am5728", "ti,dra742", "ti,dra74", "ti,dra7";
-+
-+	aliases {
-+		rtc0 = &mcp_rtc;
-+		rtc1 = &tps659038_rtc;
-+	};
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x40000000>; /* 1GB to start. Target 2GB */
-+	};
-+
-+	vdd_3v3: fixedregulator-vdd_3v3 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vdd_3v3";
-+		vin-supply = <&regen1>;
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
-+
-+	vtt_fixed: fixedregulator-vtt {
-+		/* TPS51200 */
-+		compatible = "regulator-fixed";
-+		regulator-name = "vtt_fixed";
-+		vin-supply = <&smps3_reg>;
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		regulator-always-on;
-+		regulator-boot-on;
-+		enable-active-high;
-+		gpio = <&gpio7 11 GPIO_ACTIVE_HIGH>;
-+	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&leds_pins_default>;
-+
-+		led@0 {
-+			label = "beagle-x15:usr0";
-+			gpios = <&gpio7 9 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
-+		};
-+
-+		led@1 {
-+			label = "beagle-x15:usr1";
-+			gpios = <&gpio7 8 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "cpu0";
-+			default-state = "off";
-+		};
-+
-+		led@2 {
-+			label = "beagle-x15:usr2";
-+			gpios = <&gpio7 14 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "mmc0";
-+			default-state = "off";
-+		};
-+
-+		led@3 {
-+			label = "beagle-x15:usr3";
-+			gpios = <&gpio7 15 GPIO_ACTIVE_HIGH>;
-+			linux,default-trigger = "ide-disk";
-+			default-state = "off";
-+		};
-+	};
-+};
-+
-+&dra7_pmx_core {
-+	leds_pins_default: leds_pins_default {
-+		pinctrl-single,pins = <
-+			0x3a8 (PIN_OUTPUT | MUX_MODE14)	/* spi1_d1.gpio7_8 */
-+			0x3ac (PIN_OUTPUT | MUX_MODE14)	/* spi1_d0.gpio7_9 */
-+			0x3c0 (PIN_OUTPUT | MUX_MODE14)	/* spi2_sclk.gpio7_14 */
-+			0x3c4 (PIN_OUTPUT | MUX_MODE14)	/* spi2_d1.gpio7_15 */
-+		>;
-+	};
-+
-+	i2c1_pins_default: i2c1_pins_default {
-+		pinctrl-single,pins = <
-+			0x400 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_sda.sda */
-+			0x404 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c1_scl.scl */
-+		>;
-+	};
-+
-+	i2c3_pins_default: i2c3_pins_default {
-+		pinctrl-single,pins = <
-+			0x2a4 (PIN_INPUT| MUX_MODE10)	/* mcasp1_aclkx.i2c3_sda */
-+			0x2a8 (PIN_INPUT| MUX_MODE10)	/* mcasp1_fsx.i2c3_scl */
-+		>;
-+	};
-+
-+	uart3_pins_default: uart3_pins_default {
-+		pinctrl-single,pins = <
-+			0x248 (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_rxd.rxd */
-+			0x24c (PIN_INPUT_SLEW | MUX_MODE0) /* uart3_txd.txd */
-+		>;
-+	};
-+
-+	mmc1_pins_default: mmc1_pins_default {
-+		pinctrl-single,pins = <
-+			0x36c (PIN_INPUT | MUX_MODE14)	/* mmc1sdcd.gpio219 */
-+			0x354 (PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_clk.clk */
-+			0x358 (PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_cmd.cmd */
-+			0x35c (PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat0.dat0 */
-+			0x360 (PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat1.dat1 */
-+			0x364 (PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat2.dat2 */
-+			0x368 (PIN_INPUT_PULLUP | MUX_MODE0) /* mmc1_dat3.dat3 */
-+		>;
-+	};
-+
-+	mmc2_pins_default: mmc2_pins_default {
-+		pinctrl-single,pins = <
-+			0x9c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a23.mmc2_clk */
-+			0xb0 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_cs1.mmc2_cmd */
-+			0xa0 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a24.mmc2_dat0 */
-+			0xa4 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a25.mmc2_dat1 */
-+			0xa8 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a26.mmc2_dat2 */
-+			0xac (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a27.mmc2_dat3 */
-+			0x8c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a19.mmc2_dat4 */
-+			0x90 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a20.mmc2_dat5 */
-+			0x94 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a21.mmc2_dat6 */
-+			0x98 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_a22.mmc2_dat7 */
-+		>;
-+	};
-+
-+	tps659038_pins_default: tps659038_pins_default {
-+		pinctrl-single,pins = <
-+			0x418 (PIN_INPUT_PULLUP | MUX_MODE14)	/* wakeup0.gpio1_0 */
-+		>;
-+	};
-+
-+	tmp102_pins_default: tmp102_pins_default {
-+		pinctrl-single,pins = <
-+			0x3C8 (PIN_INPUT_PULLUP | MUX_MODE14)	/* spi2_d0.gpio7_16 */
-+		>;
-+	};
-+
-+	mcp79410_pins_default: mcp79410_pins_default {
-+		pinctrl-single,pins = <
-+			0x424 (PIN_INPUT_PULLUP | MUX_MODE1)	/* wakeup3.sys_nirq1 */
-+		>;
-+	};
-+
-+	usb1_pins: pinmux_usb1_pins {
-+		pinctrl-single,pins = <
-+			0x280 (PIN_INPUT_SLEW | MUX_MODE0) /* usb1_drvvbus */
-+		>;
-+	};
-+
-+};
-+
-+&i2c1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins_default>;
-+	clock-frequency = <400000>;
-+
-+	tps659038: tps659038@58 {
-+		compatible = "ti,tps659038";
-+		reg = <0x58>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tps659038_pins_default>;
-+
-+		#interrupt-cells = <2>;
-+		interrupt-controller;
-+
-+		ti,system-power-controller;
-+
-+		tps659038_pmic {
-+			compatible = "ti,tps659038-pmic";
-+
-+			regulators {
-+				smps12_reg: smps12 {
-+					/* VDD_MPU */
-+					regulator-name = "smps12";
-+					regulator-min-microvolt = < 850000>;
-+					regulator-max-microvolt = <1250000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps3_reg: smps3 {
-+					/* VDD_DDR */
-+					regulator-name = "smps3";
-+					regulator-min-microvolt = <1350000>;
-+					regulator-max-microvolt = <1350000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps45_reg: smps45 {
-+					/* VDD_DSPEVE, VDD_IVA, VDD_GPU */
-+					regulator-name = "smps45";
-+					regulator-min-microvolt = < 850000>;
-+					regulator-max-microvolt = <1150000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				smps6_reg: smps6 {
-+					/* VDD_CORE */
-+					regulator-name = "smps6";
-+					regulator-min-microvolt = <850000>;
-+					regulator-max-microvolt = <1030000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				/* SMPS7 unused */
-+
-+				smps8_reg: smps8 {
-+					/* VDD_1V8 */
-+					regulator-name = "smps8";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <1800000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				/* SMPS9 unused */
-+
-+				ldo1_reg: ldo1 {
-+					/* VDD_SD  */
-+					regulator-name = "ldo1";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <3300000>;
-+					regulator-boot-on;
-+				};
-+
-+				ldo2_reg: ldo2 {
-+					/* VDD_SHV5 */
-+					regulator-name = "ldo2";
-+					regulator-min-microvolt = <3300000>;
-+					regulator-max-microvolt = <3300000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo3_reg: ldo3 {
-+					/* VDDA_1V8_PHY */
-+					regulator-name = "ldo3";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <1800000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldo9_reg: ldo9 {
-+					/* VDD_RTC */
-+					regulator-name = "ldo9";
-+					regulator-min-microvolt = <1050000>;
-+					regulator-max-microvolt = <1050000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldoln_reg: ldoln {
-+					/* VDDA_1V8_PLL */
-+					regulator-name = "ldoln";
-+					regulator-min-microvolt = <1800000>;
-+					regulator-max-microvolt = <1800000>;
-+					regulator-always-on;
-+					regulator-boot-on;
-+				};
-+
-+				ldousb_reg: ldousb {
-+					/* VDDA_3V_USB: VDDA_USBHS33 */
-+					regulator-name = "ldousb";
-+					regulator-min-microvolt = <3300000>;
-+					regulator-max-microvolt = <3300000>;
-+					regulator-boot-on;
-+				};
-+
-+				regen1: regen1 {
-+					/* VDD_3V3_ON */
-+					regulator-name = "regen1";
-+					regulator-boot-on;
-+					regulator-always-on;
-+				};
-+			};
-+		};
-+
-+		tps659038_rtc: tps659038_rtc {
-+			compatible = "ti,palmas-rtc";
-+			interrupt-parent = <&tps659038>;
-+			interrupts = <8 IRQ_TYPE_NONE>;
-+			wakeup-source;
-+		};
-+
-+		tps659038_pwr_button: tps659038_pwr_button {
-+			compatible = "ti,palmas-pwrbutton";
-+			interrupt-parent = <&tps659038>;
-+			interrupts = <1 IRQ_TYPE_NONE>;
-+			wakeup-source;
-+			ti,palmas-long-press-seconds = <12>;
-+		};
-+	};
-+
-+	tmp102: tmp102@48 {
-+		compatible = "ti,tmp102";
-+		reg = <0x48>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&tmp102_pins_default>;
-+		interrupt-parent = <&gpio7>;
-+		interrupts = <16 IRQ_TYPE_LEVEL_LOW>;
-+	};
-+};
-+
-+&i2c3 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c3_pins_default>;
-+	clock-frequency = <400000>;
-+
-+	mcp_rtc: rtc@6f {
-+		compatible = "microchip,mcp7941x";
-+		reg = <0x6f>;
-+		interrupt-parent = <&gic>;
-+		interrupts = <GIC_SPI 2 IRQ_TYPE_LEVEL_LOW>;  /* IRQ_SYS_1N */
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&mcp79410_pins_default>;
-+
-+		vcc-supply = <&vdd_3v3>;
-+		wakeup-source;
-+	};
-+};
-+
-+&gpio7 {
-+	ti,no-reset-on-init;
-+	ti,no-idle-on-init;
-+};
-+
-+&cpu0 {
-+	cpu0-supply = <&smps12_reg>;
-+	voltage-tolerance = <1>;
-+};
-+
-+&uart3 {
-+	status = "okay";
-+	interrupts-extended = <&gic GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>,
-+			      <&dra7_pmx_core 0x248>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart3_pins_default>;
-+};
-+
-+&mmc1 {
-+	status = "okay";
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins_default>;
-+
-+	vmmc-supply = <&ldo1_reg>;
-+	vmmc_aux-supply = <&vdd_3v3>;
-+	pbias-supply = <&pbias_mmc_reg>;
-+	bus-width = <4>;
-+	cd-gpios = <&gpio6 27 0>; /* gpio 219 */
-+};
-+
-+&mmc2 {
-+	status = "okay";
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc2_pins_default>;
-+
-+	vmmc-supply = <&vdd_3v3>;
-+	bus-width = <8>;
-+	ti,non-removable;
-+	cap-mmc-dual-data-rate;
-+};
-+
-+&sata {
-+	status = "okay";
-+};
-+
-+&usb2_phy1 {
-+	phy-supply = <&ldousb_reg>;
-+};
-+
-+&usb1 {
-+	dr_mode = "host";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&usb1_pins>;
-+};
--- 
-1.7.9.5
-
+--BZaMRJmqxGScZ8Mx--
