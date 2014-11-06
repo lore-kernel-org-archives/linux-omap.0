@@ -1,59 +1,51 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] arm: boot: dts: am4372: enable dwc3 suspend PHY quirk
-Date: Thu, 6 Nov 2014 11:36:06 -0600
-Message-ID: <1415295366-593-2-git-send-email-balbi@ti.com>
-References: <1415295366-593-1-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 1/2] usb: dwc3: core: enable phy suspend quirk on non-FPGA
+Date: Thu, 6 Nov 2014 11:36:05 -0600
+Message-ID: <1415295366-593-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415295366-593-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58305 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751096AbaKFRf6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Nov 2014 12:35:58 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-Whenever Suspend PHY bit is set on AM437x devices,
-USB will not work due to Set EP Configuration command
-always failing.
+as it turns out, at least AM437x silicon (non-FPGA)
+needs to enable PHY suspend quirk. So let's allow
+for PHY suspend quirk to be used with non-FPGA
+builds too.
 
-This was only found after a recent commit 2164a47 (usb:
-dwc3: set SUSPHY bit for all cores, which will be merged
-for v3.19) added a missing *required* step to dwc3
-initialization. Synopsys Databook requires that we enable
-Suspend PHY bit after initialization but that, unfortunately,
-breaks AM437x.
-
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/usb/dwc3/core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 46660ff..e19068d 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -817,6 +817,8 @@
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
- 				status = "disabled";
-+				snps,dis_u3_susphy_quirk;
-+				snps,dis_u2_susphy_quirk;
- 			};
- 		};
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 8ae42b8..25ddc39 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -404,7 +404,7 @@ static void dwc3_phy_setup(struct dwc3 *dwc)
+ 	if (dwc->tx_de_emphasis_quirk)
+ 		reg |= DWC3_GUSB3PIPECTL_TX_DEEPH(dwc->tx_de_emphasis);
  
-@@ -839,6 +841,8 @@
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
- 				status = "disabled";
-+				snps,dis_u3_susphy_quirk;
-+				snps,dis_u2_susphy_quirk;
- 			};
- 		};
+-	if (dwc->dis_u3_susphy_quirk && dwc->is_fpga)
++	if (dwc->dis_u3_susphy_quirk)
+ 		reg &= ~DWC3_GUSB3PIPECTL_SUSPHY;
  
+ 	dwc3_writel(dwc->regs, DWC3_GUSB3PIPECTL(0), reg);
+@@ -422,7 +422,7 @@ static void dwc3_phy_setup(struct dwc3 *dwc)
+ 	if (dwc->revision > DWC3_REVISION_194A)
+ 		reg |= DWC3_GUSB2PHYCFG_SUSPHY;
+ 
+-	if (dwc->dis_u2_susphy_quirk && dwc->is_fpga)
++	if (dwc->dis_u2_susphy_quirk)
+ 		reg &= ~DWC3_GUSB2PHYCFG_SUSPHY;
+ 
+ 	dwc3_writel(dwc->regs, DWC3_GUSB2PHYCFG(0), reg);
 -- 
 2.1.0.GIT
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
