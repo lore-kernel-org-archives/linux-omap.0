@@ -1,45 +1,41 @@
-From: Manish Badarkhe <manishvb@ti.com>
-Subject: [PATCH] ASoC: tlv320aic3x: Remove '.owner' field of
-	driver
-Date: Thu, 6 Nov 2014 10:46:56 +0530
-Message-ID: <1415251016-3730-1-git-send-email-manishvb@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 0/3] ARM: dts: AM43x: Fix DCDC3 regulator voltage
+Date: Thu, 6 Nov 2014 07:45:00 -0600
+Message-ID: <545B7B5C.8040506@ti.com>
+References: <1415271004-10935-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, tiwai@suse.de, manishvb@ti.com, jsarha@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38141 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054AbaKFNpI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 08:45:08 -0500
+In-Reply-To: <1415271004-10935-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org
+Cc: devicetree@vger.kernel.org, galak@codeaurora.org, mark.rutland@arm.com, pawel.moll@arm.com
 
-Remove '.owner' field of driver structure as it is
-going to be filled via "module_i2c_driver" call.
+On 11/06/2014 04:50 AM, Keerthy wrote:
+> Fix DCDC3 volatge to 1.5V which is the right value to be supplied by
+> DCDC3 for all the boards.
+> 
+> Keerthy (3):
+>   ARM: dts: AM43x-EPOS-EVM: Fix DCDC3 voltage
+>   ARM: dts: AM437x-GP-EVM: Fix DCDC3 voltage
+>   ARM: dts: AM437x-SK-EVM: Fix DCDC3 voltage
+> 
+>  arch/arm/boot/dts/am437x-gp-evm.dts  |    4 ++--
+>  arch/arm/boot/dts/am437x-sk-evm.dts  |    4 ++--
+>  arch/arm/boot/dts/am43x-epos-evm.dts |    4 ++--
+>  3 files changed, 6 insertions(+), 6 deletions(-)
+> 
+If Tony suggests, we might want to squash these to a single patch
+since it hits every AM437x evm platform... but anyways..
 
-Signed-off-by: Manish Badarkhe <manishvb@ti.com>
----
-:100644 100644 0307909... 191b423... M	sound/soc/codecs/tlv320aic31xx.c
- sound/soc/codecs/tlv320aic31xx.c |    1 -
- 1 file changed, 1 deletion(-)
+Acked-by: Nishanth Menon <nm@ti.com>
 
-diff --git a/sound/soc/codecs/tlv320aic31xx.c b/sound/soc/codecs/tlv320aic31xx.c
-index 0307909..191b423 100644
---- a/sound/soc/codecs/tlv320aic31xx.c
-+++ b/sound/soc/codecs/tlv320aic31xx.c
-@@ -1303,7 +1303,6 @@ MODULE_DEVICE_TABLE(i2c, aic31xx_i2c_id);
- static struct i2c_driver aic31xx_i2c_driver = {
- 	.driver = {
- 		.name	= "tlv320aic31xx-codec",
--		.owner	= THIS_MODULE,
- 		.of_match_table = of_match_ptr(tlv320aic31xx_of_match),
- 	},
- 	.probe		= aic31xx_i2c_probe,
 -- 
-1.7.9.5
+Regards,
+Nishanth Menon
