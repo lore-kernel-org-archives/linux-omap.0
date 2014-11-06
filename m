@@ -1,68 +1,248 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] tty: serial: 8250: omap: Add pinctrl support for suspend
-Date: Thu, 6 Nov 2014 12:35:44 -0800
-Message-ID: <20141106203544.GE31454@atomide.com>
-References: <1415300850-21452-1-git-send-email-bigeasy@linutronix.de>
- <545BC8C1.4070503@ti.com>
- <545BCF3F.8020705@linutronix.de>
- <CAGo_u6qTqp1Wpo8E26gLpStu_EiRw32gstkCiXw+EWNDWSnHbw@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
+Date: Thu, 6 Nov 2014 12:46:30 -0800
+Message-ID: <20141106204629.GF31454@atomide.com>
+References: <1411067086-16613-1-git-send-email-nm@ti.com>
+ <1411067086-16613-4-git-send-email-nm@ti.com>
+ <alpine.DEB.2.10.1409181749170.4206@nanos>
+ <20140919030333.GA6088@kahuna>
+ <alpine.DEB.2.10.1409190710320.5612@nanos>
+ <20140919161927.GA28613@kahuna>
+ <alpine.DEB.2.10.1409191027330.5612@nanos>
+ <20140919191649.GQ14505@atomide.com>
+ <alpine.DEB.2.10.1409191233590.4213@nanos>
+ <20141002034345.GH3122@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAGo_u6qTqp1Wpo8E26gLpStu_EiRw32gstkCiXw+EWNDWSnHbw@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap <linux-omap@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>
+In-Reply-To: <20141002034345.GH3122-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LAK <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [141106 11:59]:
-> On Thu, Nov 6, 2014 at 1:42 PM, Sebastian Andrzej Siewior
-> <bigeasy@linutronix.de> wrote:
-> > On 11/06/2014 08:15 PM, Nishanth Menon wrote:
-> >> sounds good to me *IF* omap8250_enable_wakeup (wakeirq handling) is
-> >> the way we want to continue doing things for daisychain? -> Tony, can
-> >> you comment?
-> >> http://marc.info/?l=linux-omap&m=141222144402707&w=2
-> >>
-> >> I wonder if wakeirq explicit handling is valid anymore and something
-> >> given the potential race and alternate approach proposed?
-> >
-> > The wakeirq logic is already in the driver. So if we go for the
-> > alternate approach, the pinctrl patch is obsolete? Or does it mean we
-> > get rid of the map8250_enable_wakeup() including the second irq we have
-> > now (and keep the pinctl change)?
->
-> based on Thomas's feedback we should probably not carry forward
-> wakeirq as a seperate irq with it's own request_irq instead it psuedo
-> triggers uart's interrupt irq -> I am not clear about the direction
+Thomas,
 
-The pinctrl change in this patch and the wake-up events are a separate
-issue.
+Any comments on the patch below? Let me know if you want to keep the
+devm stuff out of kernel/irq/manage.c.
 
-As some omaps need the RX pin remuxed temporarily to GPIO for wake-up
-events, the $subject patch seems just fine to me.
-
-For the wake-up interrupts, the issue Thomas was concerned was
-re-entrant interrupts and  handling the wake-up interrupts in various
-different ways. From hardware point of view the wake-up events behave
-like a separate IRQ controller, so the request_irq part is fine.
-
-> Tony wants drivers to take in the approach in the thread above - all I
-> wondered was if it had any conflict of pin_sleep -> if the generic
-> handler retriggers the irq before the suspend_handler, then
-> configuring sleep is gonna break daisychain support. not sure if there
-> is any specific direction drivers should take.
-
-The wake-irq is disabled during runtime and should be enabled so
-that should not be an issue.
- 
-> Again, Tony is the right guy to comment about this.
-
-Yeah I'll repost the patches for the generic wake-irq handling.
-Fixing up the drivers to use that is trivial once we've agreed on
-the generic wake-up event handling.
-
-Regards,
-
-Tony
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [141001 20:45]:
+> Hi Thomas,
+> 
+> * Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> [140919 12:47]:
+> > 
+> > The wakeup handler is supposed to bring the thing out of deep sleep
+> > and nothing else. All you want it to do is to mask itself and save the
+> > information that the real device irq is pending.
+> > 
+> > A stub handler for the wakeup irq is enough. We can have that in the
+> > irq/pm core and all it would do is simply:
+> 
+> Here's a patch along the lines of what you described, hopefully that's
+> fairly close to what you had in mind.
+> 
+> I also did play with the replaying of the interrupts but I don't think
+> that's needed. Well at least not for the omap case. I added some
+> comments about that to the code.
+> 
+> So far I've tested with the omap-serial and omap_hsmmc drivers. The
+> serial driver does not have any status as the device is powered off.
+> So replaying of the interrupt does not help there, we need to wait for
+> the next event anyways.
+> 
+> Then with omap_hsmmc the SDIO interrupt on dat1 line is level
+> sensitive and is noticed after the MMC controller is powered on
+> again. So no replaying of the device interrupt needed here either.
+> 
+> I still have not tested the MMC remux lines to GPIO for wake-up
+> events that's also needed for some omaps.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 8<-----------
+> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Date: Wed, 1 Oct 2014 14:56:35 -0700
+> Subject: [PATCH] genirq: Add support for wake-up interrupts to fix irq reentry issues in drivers
+> 
+> As pointed out by Thomas Gleixner, at least omap wake-up interrupts
+> have an issue with re-entrant interrupts because the wake-up interrupts
+> are now handled as a secondary interrupt controller. Further, the
+> wake-up interrupt just needs wake the system at least for omaps. So we
+> should just make the wake-up interrupt handling generic.
+> 
+> Note that at least initially we are keeping things simple by assuming the
+> wake-up interrupt is level sensitive, and the device pm_runtime_resume()
+> can deal with the situation, and no replaying of the lost device interrupts
+> is needed.
+> 
+> After tinkering with replaying of the lost device interrupts, my opinion is
+> that it should be avoided because of the issues listed in the comments of
+> this patch.
+> 
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> --- a/include/linux/interrupt.h
+> +++ b/include/linux/interrupt.h
+> @@ -139,11 +139,15 @@ extern int __must_check
+>  request_percpu_irq(unsigned int irq, irq_handler_t handler,
+>  		   const char *devname, void __percpu *percpu_dev_id);
+>  
+> +struct device;
+> +
+> +extern int __must_check
+> +request_wake_irq(struct device *dev, unsigned int wakeirq,
+> +		 unsigned long irqflags);
+> +
+>  extern void free_irq(unsigned int, void *);
+>  extern void free_percpu_irq(unsigned int, void __percpu *);
+>  
+> -struct device;
+> -
+>  extern int __must_check
+>  devm_request_threaded_irq(struct device *dev, unsigned int irq,
+>  			  irq_handler_t handler, irq_handler_t thread_fn,
+> @@ -163,6 +167,10 @@ devm_request_any_context_irq(struct device *dev, unsigned int irq,
+>  		 irq_handler_t handler, unsigned long irqflags,
+>  		 const char *devname, void *dev_id);
+>  
+> +extern int __must_check
+> +devm_request_wake_irq(struct device *dev, unsigned int wakeirq,
+> +		      unsigned long irqflags);
+> +
+>  extern void devm_free_irq(struct device *dev, unsigned int irq, void *dev_id);
+>  
+>  /*
+> --- a/kernel/irq/manage.c
+> +++ b/kernel/irq/manage.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/module.h>
+>  #include <linux/random.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/slab.h>
+>  #include <linux/sched.h>
+>  #include <linux/sched/rt.h>
+> @@ -1578,6 +1579,111 @@ int request_any_context_irq(unsigned int irq, irq_handler_t handler,
+>  }
+>  EXPORT_SYMBOL_GPL(request_any_context_irq);
+>  
+> +/**
+> + *	handle_wakeirq_thread - call device runtime pm calls on wake-up interrupt
+> + *	@wakeirq: device specific wake-up interrupt
+> + *	@dev_id: struct device entry
+> + */
+> +static irqreturn_t handle_wakeirq_thread(int wakeirq, void *dev_id)
+> +{
+> +	struct device *dev = dev_id;
+> +	irqreturn_t ret = IRQ_NONE;
+> +
+> +	if (pm_runtime_suspended(dev)) {
+> +		pm_runtime_mark_last_busy(dev);
+> +		pm_request_resume(dev);
+> +		ret = IRQ_HANDLED;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+> + *	setup_wakeirq - allocate a wake-up interrupt for a device
+> + *	@dev: device to wake up
+> + *	@wakeirq: interrupt that wakes up the device
+> + *	@wakeflags: flags to pass to the interrupt handler
+> + *	@devm: use devm
+> + *
+> + *	Note that the wake-up interrupt starts disabled. The wake-up interrupt
+> + *	is typically enabled from the device pm_runtime_suspend() and disabled
+> + *	again in the device pm_runtime_resume(). For runtime PM, the wake-up
+> + *	interrupt should be always enabled, and for device suspend and resume,
+> + *	the wake-up interrupt should be enabled depending on the device specific
+> + *	configuration for device_can_wakeup().
+> + *
+> + *	Note also that we are not resending the lost device interrupts.
+> + *	We assume that the wake-up interrupt just needs to wake-up the device,
+> + *	and then device pm_runtime_resume() can deal with the situation.
+> + *
+> + *	There are at least the following reasons to not resend the lost device
+> + *	interrupts automatically based on the wake-up interrupt:
+> + *
+> + *	1. There can be interrupt reentry issues calling the device interrupt
+> + *	   based on the wake-up interrupt if done in the device driver. It
+> + *	   could be done with check_irq_resend() after checking the device
+> + *	   interrupt mask if we really wanted to though.
+> + *
+> + *	2. The device interrupt handler would need to be set up properly with
+> + *	   pm_runtime_irq_safe(). Ideally you don't want to call pm_runtime
+> + *	   calls from the device interrupt handler at all.
+> + *
+> + *	3. The IRQ subsystem may not know if it's safe to call the device
+> + *	   interrupt unless the driver updates the interrupt status with
+> + *	   disable_irq() and enable_irq() in addition to just disabling the
+> + *	   interrupt at the hardware level in the device registers.
+> + *
+> + *	So if replaying the lost device interrupts is absolutely needed from the
+> + *	hardware point of view, it's probably best to set up a completely
+> + *	separate wake-up interrupt handler for the wake-up interrupt in the
+> + *	device driver because of the reasons above.
+> + */
+> +static int setup_wakeirq(struct device *dev, unsigned int wakeirq,
+> +			 unsigned long wakeflags, bool devm)
+> +{
+> +	int ret;
+> +
+> +	if (!(dev && wakeirq)) {
+> +		pr_err("Missing device or wakeirq for %s irq %d\n",
+> +		       dev_name(dev), wakeirq);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (!(wakeflags &
+> +	      (IRQF_TRIGGER_LOW | IRQF_TRIGGER_HIGH | IRQF_ONESHOT))) {
+> +		pr_err("Invalid wakeirq for %s irq %d, must be level oneshot\n",
+> +		       dev_name(dev), wakeirq);
+> +		return -EINVAL;
+> +	}
+> +
+> +	irq_set_status_flags(wakeirq, _IRQ_NOAUTOEN);
+> +
+> +	if (devm)
+> +		ret = devm_request_threaded_irq(dev, wakeirq, NULL,
+> +						handle_wakeirq_thread,
+> +						wakeflags, dev_name(dev), dev);
+> +	else
+> +		ret = request_threaded_irq(wakeirq, NULL,
+> +					   handle_wakeirq_thread,
+> +					   wakeflags, dev_name(dev), dev);
+> +
+> +	return ret;
+> +}
+> +
+> +int request_wake_irq(struct device *dev, unsigned int wakeirq,
+> +		     unsigned long wakeflags)
+> +{
+> +	return setup_wakeirq(dev, wakeirq, wakeflags, false);
+> +}
+> +EXPORT_SYMBOL(request_wake_irq);
+> +
+> +int devm_request_wake_irq(struct device *dev, unsigned int wakeirq,
+> +			  unsigned long wakeflags)
+> +{
+> +	return setup_wakeirq(dev, wakeirq, wakeflags, false);
+> +}
+> +EXPORT_SYMBOL(devm_request_wake_irq);
+> +
+>  void enable_percpu_irq(unsigned int irq, unsigned int type)
+>  {
+>  	unsigned int cpu = smp_processor_id();
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
