@@ -1,56 +1,64 @@
-From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Subject: [PATCH 00/11] ARM: dts: igep00x0: Add support for new hardware revisions.
-Date: Thu,  6 Nov 2014 13:01:40 +0100
-Message-ID: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:56351 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963AbaKFMIQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 07:08:16 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Thu, 6 Nov 2014 13:47:11 +0100
+Message-ID: <20141106124711.GA26944@amd>
+References: <20141104205117.GA17606@amd>
+ <201411052137.31452@pali>
+ <20141105203918.GA29199@amd>
+ <201411052206.05379@pali>
+ <20141105220359.GA32052@amd>
+ <20141105234555.GA7097@earth.universe>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141105234555.GA7097@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: javier@dowhile0.org, devicetree@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Hi,
+Hi!
 
-This series is based on omap-for-v3.19/dt from tmlind repository and adds
-device tree support for two new hardware revisions of IGEPv2 and IGEP COM
-MODULE.
+> On Wed, Nov 05, 2014 at 11:03:59PM +0100, Pavel Machek wrote:
+> > > Maybe you need to enable modem?
+> > > 
+> > > This is n900 init sequence from script: nokia-n900-configs.sh
+> > 
+> > From the dts, it looks like this should somehow work without this.
+> 
+> Right :) The n900-modem driver will take care of this if the "pm"
+> parameter is set to 1 (which should be the default).
 
-Please could these patches be queued for 3.19 considering that these are not
-fixes, might be nice to get them merged for 3.19 series.
+I actually had pm=0 on the command line, but I removed it now, and no
+change:
+
+root@n900:~# find /sys/bus/hsi/devices/n900-modem/
+/sys/bus/hsi/devices/n900-modem/
+/sys/bus/hsi/devices/n900-modem/power
+/sys/bus/hsi/devices/n900-modem/power/control
+/sys/bus/hsi/devices/n900-modem/power/runtime_active_time
+/sys/bus/hsi/devices/n900-modem/power/autosuspend_delay_ms
+/sys/bus/hsi/devices/n900-modem/power/runtime_status
+/sys/bus/hsi/devices/n900-modem/power/runtime_suspended_time
+/sys/bus/hsi/devices/n900-modem/modalias
+/sys/bus/hsi/devices/n900-modem/driver
+/sys/bus/hsi/devices/n900-modem/subsystem
+/sys/bus/hsi/devices/n900-modem/uevent
+root@n900:~# cat /proc/cmdline 
+root=/dev/nfs nfsroot=192.168.1.6:/srv/nfs/n900 rw
+ip=192.168.1.8::192.168.1.6:255.255.255.192::usb0:  no-omap-wd
+no-ext-wd console=tty0
+root@n900:~# 
+
+Let me try with explicit =1. .. aha, that helps. Thanks!
+
+Do you have an example client that can talk to ofonod?
+
+What is needed to get voice calls to work?
 
 Best regards,
-
-Enric Balletbo i Serra (11):
-  ARM: dts: omap3-igep00x0: Fix UART2 pins that aren't common.
-  ARM: dts: omap3-igep00x0: Move NAND configuration to a common place.
-  ARM: dts: omap3-igep0030: Specify IGEP COM revision in device tree.
-  ARM: dts: omap3-igep0020: Specify IGEPv2 revision in device tree.
-  ARM: dts: omap3-igep00x0: Move outside common file the on board Wifi module.
-  ARM: dts: omap3-igep0030-common: Introduce igep0030 common dtsi file.
-  ARM: dts: omap3-igep0030-rev-g: Support IGEP COM MODULE Rev. G
-  ARM: dts: omap3-igep0020-common: Introduce igep0020 common dtsi file.
-  ARM: dts: omap3-igep0020-rev-f: Support IGEPv2 Rev. F
-  ARM: dts: omap3-igep00x0: Remove i2c2 node.
-  ARM: OAMP2+: igep00x0: Add pdata-quirks for the btwilink device.
-
- arch/arm/boot/dts/Makefile                   |   2 +
- arch/arm/boot/dts/omap3-igep.dtsi            | 103 +++++-----
- arch/arm/boot/dts/omap3-igep0020-common.dtsi | 246 +++++++++++++++++++++++
- arch/arm/boot/dts/omap3-igep0020-rev-f.dts   |  46 +++++
- arch/arm/boot/dts/omap3-igep0020.dts         | 285 ++++-----------------------
- arch/arm/boot/dts/omap3-igep0030-common.dtsi |  60 ++++++
- arch/arm/boot/dts/omap3-igep0030-rev-g.dts   |  68 +++++++
- arch/arm/boot/dts/omap3-igep0030.dts         | 124 +++++-------
- arch/arm/mach-omap2/pdata-quirks.c           |  36 +++-
- 9 files changed, 585 insertions(+), 385 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-igep0020-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-igep0020-rev-f.dts
- create mode 100644 arch/arm/boot/dts/omap3-igep0030-common.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-
+									Pavel
 -- 
-1.9.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
