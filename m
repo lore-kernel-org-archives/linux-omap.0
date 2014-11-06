@@ -1,54 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH 2/3] ARM: OMAP2+: Remove unnecesary include in
- GPMC driver
-Date: Thu, 6 Nov 2014 10:52:36 -0800
-Message-ID: <20141106185235.GD31454@atomide.com>
-References: <1395209295-24399-1-git-send-email-javier.martinez@collabora.co.uk>
- <1395209295-24399-3-git-send-email-javier.martinez@collabora.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH] tty: serial: 8250: omap: Add pinctrl support for suspend
+Date: Thu,  6 Nov 2014 20:07:30 +0100
+Message-ID: <1415300850-21452-1-git-send-email-bigeasy@linutronix.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22611 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751176AbaKFSxi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 13:53:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1395209295-24399-3-git-send-email-javier.martinez@collabora.co.uk>
+Received: from www.linutronix.de ([62.245.132.108]:44561 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877AbaKFTHs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 14:07:48 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Russell King <linux@arm.linux.org.uk>, Beno??t Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-serial@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>
 
-* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [140318 23:12]:
-> The GPMC driver includes arch/arm/mach-omap2/common.h but
-> does not use anything on that header so it can be removed.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+This is mostly an equivalent for the 8250-omap driver based on a patch
+of Dave Gerlach for the omap-serial driver (which is not yet merged).
 
-Probably meant Cc here? :) I'll apply this into omap-for-v3.19/gpmc,
-the rest will need to wait until omap3 is DT only.
+>From his changelog:
+|By optionally putting the pins into sleep state in the suspend callback
+|we can accomplish two things.
+|- minimize current leakage from pins and thus save power,
+|- prevent the IP from driving pins output in an uncontrolled manner,
+|  which may happen if the power domain drops the domain regulator.
 
-Regards,
+The pinctlr change is put before enable_wakeup logic as per Nishanth
+Menon (slightly reworded):
+|When wakeup is enabled, I/O daisy chain based wakeup is used by
+|reconfiguring the padconfig register. However, this gets overriden by
+|sleep/wakeup configuration. Therefore we need first to allow pinctrl to
+|play with the wakeup bits as needed beyond the sleep configuration.
 
-Tony
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ drivers/tty/serial/8250/8250_omap.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> ---
->  arch/arm/mach-omap2/gpmc.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index ab43755..b637c96 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -37,7 +37,6 @@
->  #include <asm/mach-types.h>
->  
->  #include "soc.h"
-> -#include "common.h"
->  #include "omap_device.h"
->  #include "gpmc.h"
->  #include "gpmc-nand.h"
-> -- 
-> 1.9.0
-> 
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 57a8b1241b85..1681875f2996 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1156,6 +1156,7 @@ static int omap8250_suspend(struct device *dev)
+ 	serial8250_suspend_port(priv->line);
+ 	flush_work(&priv->qos_work);
+ 
++	pinctrl_pm_select_sleep_state(dev);
+ 	if (device_may_wakeup(dev))
+ 		omap8250_enable_wakeup(priv, true);
+ 	else
+@@ -1167,6 +1168,7 @@ static int omap8250_resume(struct device *dev)
+ {
+ 	struct omap8250_priv *priv = dev_get_drvdata(dev);
+ 
++	pinctrl_pm_select_default_state(dev);
+ 	if (device_may_wakeup(dev))
+ 		omap8250_enable_wakeup(priv, false);
+ 
+-- 
+2.1.1
+
