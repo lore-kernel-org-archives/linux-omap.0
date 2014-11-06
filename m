@@ -1,37 +1,34 @@
-From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH] ARM: dts: Add am57xx-beagle-x15
-Date: Thu, 6 Nov 2014 11:41:48 -0500
-Message-ID: <20141106164148.GJ24112@csclub.uwaterloo.ca>
-References: <1415290702-11353-1-git-send-email-nm@ti.com>
+Date: Thu, 6 Nov 2014 10:42:59 -0600
+Message-ID: <545BA513.2090907@ti.com>
+References: <1415290702-11353-1-git-send-email-nm@ti.com> <20141106163207.GF16896@saruman> <545BA3E6.90105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.csclub.uwaterloo.ca ([129.97.134.52]:34106 "EHLO
-	mail.csclub.uwaterloo.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbaKFQlu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 11:41:50 -0500
-Content-Disposition: inline
-In-Reply-To: <1415290702-11353-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <545BA3E6.90105@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Rini <trini@ti.com>, balbi@ti.com
+Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, beagleboard@googlegroups.com, linux-kernel@vger.kernel.org, gerald@granddesignsgroup.com, fcooper@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, gerald@granddesignsgroup.com, fcooper@ti.com, beagleboard@googlegroups.com
 
-On Thu, Nov 06, 2014 at 10:18:22AM -0600, Nishanth Menon wrote:
-> BeagleBoard-X15 is the next generation Open Source Hardware
-> BeagleBoard based on TI's AM5728 SoC featuring dual core 1.5GHZ A15
-> processor. The platform features 2GB DDR3L (w/dual 32bit busses),
-> eSATA, 3 USB3.0 ports, integrated HDMI (1920x108@60), separate LCD
-> port, video In port, 4GB eMMC, uSD, Analog audio in/out, dual 1G
-> Ethernet.
+On 11/06/2014 10:37 AM, Tom Rini wrote:
 
-Oh neat, you put a USB3 hub on the board?
+>>> device_type = "memory"; +		reg = <0x80000000 0x40000000>; /* 1GB
+>>> to start. Target 2GB */
+>>
+>> 1GiB ? Why would you put this here btw ? u-boot fills this one up.
+> 
+> Yes, it should either be the full and correct value or 0x0 (like a
+> number of PowerPC platforms do) so it's clear something else gives us
+> the right value here.
 
-I really should cleanup and submit my patch to make the system time not
-run 576ppm too fast on the AM57xx.
+Honest mistake, my bad.. I thought I cleaned up the patch! Sigh!!! i
+will repost with proper 2GB. it is better that way in case being used
+with "other bootloaders" which are not exactly too good like u-boot.
 
-This will sure be a nice board when you get it released.  I will have
-to get one.
 
 -- 
-Len Sorensen
+Regards,
+Nishanth Menon
