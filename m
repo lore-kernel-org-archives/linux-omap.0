@@ -1,88 +1,56 @@
 From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Subject: [PATCH 11/11] ARM: OMAP2+: igep00x0: Add pdata-quirks for the btwilink device.
-Date: Thu,  6 Nov 2014 13:01:51 +0100
-Message-ID: <1415275311-6857-12-git-send-email-eballetbo@iseebcn.com>
-References: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
+Subject: [PATCH 00/11] ARM: dts: igep00x0: Add support for new hardware revisions.
+Date: Thu,  6 Nov 2014 13:01:40 +0100
+Message-ID: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:34469 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268AbaKFMCg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 07:02:36 -0500
-In-Reply-To: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:56351 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963AbaKFMIQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 07:08:16 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: javier@dowhile0.org, devicetree@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Add btwilink device for IGEPv2 Rev. F and IGEP COM MODULE Rev. G.
+Hi,
 
-Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
----
- arch/arm/mach-omap2/pdata-quirks.c | 36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+This series is based on omap-for-v3.19/dt from tmlind repository and adds
+device tree support for two new hardware revisions of IGEPv2 and IGEP COM
+MODULE.
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index c95346c..e72f0fc 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/of_platform.h>
-+#include <linux/ti_wilink_st.h>
- #include <linux/wl12xx.h>
- 
- #include <linux/platform_data/pinctrl-single.h>
-@@ -139,8 +140,38 @@ static void __init omap3_sbc_t3530_legacy_init(void)
- 	omap_ads7846_init(1, 57, 0, NULL);
- }
- 
--static void __init omap3_igep0020_legacy_init(void)
-+struct ti_st_plat_data wilink_pdata = {
-+	.nshutdown_gpio = 137,
-+	.dev_name = "/dev/ttyO1",
-+	.flow_cntrl = 1,
-+	.baud_rate = 300000,
-+};
-+
-+static struct platform_device wl18xx_device = {
-+	.name	= "kim",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data = &wilink_pdata,
-+	}
-+};
-+
-+static struct platform_device btwilink_device = {
-+	.name	= "btwilink",
-+	.id	= -1,
-+};
-+
-+static void __init omap3_igep0020_rev_f_legacy_init(void)
-+{
-+	legacy_init_wl12xx(0, 0, 177);
-+	platform_device_register(&wl18xx_device);
-+	platform_device_register(&btwilink_device);
-+}
-+
-+static void __init omap3_igep0030_rev_g_legacy_init(void)
- {
-+	legacy_init_wl12xx(0, 0, 136);
-+	platform_device_register(&wl18xx_device);
-+	platform_device_register(&btwilink_device);
- }
- 
- static void __init omap3_evm_legacy_init(void)
-@@ -393,7 +424,8 @@ static struct pdata_init pdata_quirks[] __initdata = {
- 	{ "nokia,omap3-n900", nokia_n900_legacy_init, },
- 	{ "nokia,omap3-n9", hsmmc2_internal_input_clk, },
- 	{ "nokia,omap3-n950", hsmmc2_internal_input_clk, },
--	{ "isee,omap3-igep0020", omap3_igep0020_legacy_init, },
-+	{ "isee,omap3-igep0020-rev-f", omap3_igep0020_rev_f_legacy_init, },
-+	{ "isee,omap3-igep0030-rev-g", omap3_igep0030_rev_g_legacy_init, },
- 	{ "ti,omap3-evm-37xx", omap3_evm_legacy_init, },
- 	{ "ti,omap3-zoom3", omap3_zoom_legacy_init, },
- 	{ "ti,am3517-evm", am3517_evm_legacy_init, },
+Please could these patches be queued for 3.19 considering that these are not
+fixes, might be nice to get them merged for 3.19 series.
+
+Best regards,
+
+Enric Balletbo i Serra (11):
+  ARM: dts: omap3-igep00x0: Fix UART2 pins that aren't common.
+  ARM: dts: omap3-igep00x0: Move NAND configuration to a common place.
+  ARM: dts: omap3-igep0030: Specify IGEP COM revision in device tree.
+  ARM: dts: omap3-igep0020: Specify IGEPv2 revision in device tree.
+  ARM: dts: omap3-igep00x0: Move outside common file the on board Wifi module.
+  ARM: dts: omap3-igep0030-common: Introduce igep0030 common dtsi file.
+  ARM: dts: omap3-igep0030-rev-g: Support IGEP COM MODULE Rev. G
+  ARM: dts: omap3-igep0020-common: Introduce igep0020 common dtsi file.
+  ARM: dts: omap3-igep0020-rev-f: Support IGEPv2 Rev. F
+  ARM: dts: omap3-igep00x0: Remove i2c2 node.
+  ARM: OAMP2+: igep00x0: Add pdata-quirks for the btwilink device.
+
+ arch/arm/boot/dts/Makefile                   |   2 +
+ arch/arm/boot/dts/omap3-igep.dtsi            | 103 +++++-----
+ arch/arm/boot/dts/omap3-igep0020-common.dtsi | 246 +++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-igep0020-rev-f.dts   |  46 +++++
+ arch/arm/boot/dts/omap3-igep0020.dts         | 285 ++++-----------------------
+ arch/arm/boot/dts/omap3-igep0030-common.dtsi |  60 ++++++
+ arch/arm/boot/dts/omap3-igep0030-rev-g.dts   |  68 +++++++
+ arch/arm/boot/dts/omap3-igep0030.dts         | 124 +++++-------
+ arch/arm/mach-omap2/pdata-quirks.c           |  36 +++-
+ 9 files changed, 585 insertions(+), 385 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-igep0020-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-igep0020-rev-f.dts
+ create mode 100644 arch/arm/boot/dts/omap3-igep0030-common.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-igep0030-rev-g.dts
+
 -- 
 1.9.1
 
