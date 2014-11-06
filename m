@@ -1,34 +1,123 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: dts: Add am57xx-beagle-x15
-Date: Thu, 6 Nov 2014 10:42:59 -0600
-Message-ID: <545BA513.2090907@ti.com>
-References: <1415290702-11353-1-git-send-email-nm@ti.com> <20141106163207.GF16896@saruman> <545BA3E6.90105@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <545BA3E6.90105@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Rini <trini@ti.com>, balbi@ti.com
-Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, beagleboard@googlegroups.com, linux-kernel@vger.kernel.org, gerald@granddesignsgroup.com, fcooper@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH v5 14/48] mfd: tps80031: Register with kernel power-off handler
+Date: Thu,  6 Nov 2014 08:42:58 -0800
+Message-ID: <1415292213-28652-15-git-send-email-linux@roeck-us.net>
+References: <1415292213-28652-1-git-send-email-linux@roeck-us.net>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1415292213-28652-1-git-send-email-linux@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/06/2014 10:37 AM, Tom Rini wrote:
+Register with kernel power-off handler instead of setting pm_power_off
+directly. Register with low priority to reflect that the original code
+only sets pm_power_off if it was not already set.
 
->>> device_type = "memory"; +		reg = <0x80000000 0x40000000>; /* 1GB
->>> to start. Target 2GB */
->>
->> 1GiB ? Why would you put this here btw ? u-boot fills this one up.
-> 
-> Yes, it should either be the full and correct value or 0x0 (like a
-> number of PowerPC platforms do) so it's clear something else gives us
-> the right value here.
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Acked-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v5:
+- Rebase to v3.18-rc3
+v4:
+- Do not use notifiers but internal functions and data structures to manage
+  the list of power-off handlers. Drop unused parameters from callbacks, and
+  make the power-off function type void
+v3:
+- Replace poweroff in all newly introduced variables and in text
+  with power_off or power-off as appropriate
+- Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
+v2:
+- Use define to specify poweroff handler priority
+- Use dev_warn instead of dev_err
 
-Honest mistake, my bad.. I thought I cleaned up the patch! Sigh!!! i
-will repost with proper 2GB. it is better that way in case being used
-with "other bootloaders" which are not exactly too good like u-boot.
+ drivers/mfd/tps80031.c       | 27 +++++++++++++++------------
+ include/linux/mfd/tps80031.h |  2 ++
+ 2 files changed, 17 insertions(+), 12 deletions(-)
 
-
+diff --git a/drivers/mfd/tps80031.c b/drivers/mfd/tps80031.c
+index ed6c5b0..996fd7c 100644
+--- a/drivers/mfd/tps80031.c
++++ b/drivers/mfd/tps80031.c
+@@ -147,7 +147,6 @@ static const struct tps80031_pupd_data tps80031_pupds[] = {
+ 	[TPS80031_CTLI2C_SCL]		= PUPD_DATA(4, 0,	BIT(2)),
+ 	[TPS80031_CTLI2C_SDA]		= PUPD_DATA(4, 0,	BIT(3)),
+ };
+-static struct tps80031 *tps80031_power_off_dev;
+ 
+ int tps80031_ext_power_req_config(struct device *dev,
+ 		unsigned long ext_ctrl_flag, int preq_bit,
+@@ -209,11 +208,14 @@ int tps80031_ext_power_req_config(struct device *dev,
+ }
+ EXPORT_SYMBOL_GPL(tps80031_ext_power_req_config);
+ 
+-static void tps80031_power_off(void)
++static void tps80031_power_off(struct power_off_handler_block *this)
+ {
+-	dev_info(tps80031_power_off_dev->dev, "switching off PMU\n");
+-	tps80031_write(tps80031_power_off_dev->dev, TPS80031_SLAVE_ID1,
+-				TPS80031_PHOENIX_DEV_ON, TPS80031_DEVOFF);
++	struct tps80031 *tps80031 = container_of(this, struct tps80031,
++						 power_off_hb);
++
++	dev_info(tps80031->dev, "switching off PMU\n");
++	tps80031_write(tps80031->dev, TPS80031_SLAVE_ID1,
++		       TPS80031_PHOENIX_DEV_ON, TPS80031_DEVOFF);
+ }
+ 
+ static void tps80031_pupd_init(struct tps80031 *tps80031,
+@@ -501,9 +503,13 @@ static int tps80031_probe(struct i2c_client *client,
+ 		goto fail_mfd_add;
+ 	}
+ 
+-	if (pdata->use_power_off && !pm_power_off) {
+-		tps80031_power_off_dev = tps80031;
+-		pm_power_off = tps80031_power_off;
++	if (pdata->use_power_off) {
++		tps80031->power_off_hb.handler = tps80031_power_off;
++		tps80031->power_off_hb.priority = POWER_OFF_PRIORITY_LOW;
++		ret = register_power_off_handler(&tps80031->power_off_hb);
++		if (ret)
++			dev_warn(&client->dev,
++				 "Failed to register power-off handler\n");
+ 	}
+ 	return 0;
+ 
+@@ -523,10 +529,7 @@ static int tps80031_remove(struct i2c_client *client)
+ 	struct tps80031 *tps80031 = i2c_get_clientdata(client);
+ 	int i;
+ 
+-	if (tps80031_power_off_dev == tps80031) {
+-		tps80031_power_off_dev = NULL;
+-		pm_power_off = NULL;
+-	}
++	unregister_power_off_handler(&tps80031->power_off_hb);
+ 
+ 	mfd_remove_devices(tps80031->dev);
+ 
+diff --git a/include/linux/mfd/tps80031.h b/include/linux/mfd/tps80031.h
+index 2c75c9c..5716077 100644
+--- a/include/linux/mfd/tps80031.h
++++ b/include/linux/mfd/tps80031.h
+@@ -24,6 +24,7 @@
+ #define __LINUX_MFD_TPS80031_H
+ 
+ #include <linux/device.h>
++#include <linux/pm.h>
+ #include <linux/regmap.h>
+ 
+ /* Pull-ups/Pull-downs */
+@@ -513,6 +514,7 @@ struct tps80031 {
+ 	struct i2c_client	*clients[TPS80031_NUM_SLAVES];
+ 	struct regmap		*regmap[TPS80031_NUM_SLAVES];
+ 	struct regmap_irq_chip_data *irq_data;
++	struct power_off_handler_block power_off_hb;
+ };
+ 
+ struct tps80031_pupd_init_data {
 -- 
-Regards,
-Nishanth Menon
+1.9.1
+
