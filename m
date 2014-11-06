@@ -1,35 +1,55 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: Add am57xx-beagle-x15
-Date: Thu, 6 Nov 2014 08:48:44 -0800
-Message-ID: <20141106164843.GY31454@atomide.com>
-References: <1415290702-11353-1-git-send-email-nm@ti.com>
- <20141106163207.GF16896@saruman>
- <545BA3E6.90105@ti.com>
- <545BA513.2090907@ti.com>
+From: "Gerald Coley" <gerald@granddesignsgroup.com>
+Subject: RE: [PATCH] ARM: dts: Add am57xx-beagle-x15
+Date: Thu, 6 Nov 2014 10:51:04 -0600
+Message-ID: <006701cff9e1$dc0cfbf0$9426f3d0$@granddesignsgroup.com>
+References: <1415290702-11353-1-git-send-email-nm@ti.com> <20141106163207.GF16896@saruman> <545BA3E6.90105@ti.com> <545BA513.2090907@ti.com> <20141106164843.GY31454@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <545BA513.2090907-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tom Rini <trini-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gerald-xujr6ya/RELK0SuXxyvBAPegYHeGw8Jk@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from sub4.mail.dreamhost.com ([69.163.253.135]:50390 "EHLO
+	homiemail-a108.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752504AbaKFQwO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 11:52:14 -0500
+In-Reply-To: <20141106164843.GY31454@atomide.com>
+Content-Language: en-us
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Tony Lindgren' <tony@atomide.com>, 'Nishanth Menon' <nm@ti.com>
+Cc: 'Tom Rini' <trini@ti.com>, balbi@ti.com, devicetree@vger.kernel.org, beagleboard@googlegroups.com, linux-kernel@vger.kernel.org, fcooper@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [141106 08:44]:
+Convert 12V to 5V and 3.3V. 5V supplies are too expensive at the required
+wattage level.
+
+Gerald
+
+
+-----Original Message-----
+From: Tony Lindgren [mailto:tony@atomide.com] 
+Sent: Thursday, November 6, 2014 10:49 AM
+To: Nishanth Menon
+Cc: Tom Rini; balbi@ti.com; devicetree@vger.kernel.org;
+beagleboard@googlegroups.com; linux-kernel@vger.kernel.org;
+gerald@granddesignsgroup.com; fcooper@ti.com; linux-omap@vger.kernel.org;
+linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] ARM: dts: Add am57xx-beagle-x15
+
+* Nishanth Menon <nm@ti.com> [141106 08:44]:
 > On 11/06/2014 10:37 AM, Tom Rini wrote:
 > 
-> >>> device_type = "memory"; +		reg = <0x80000000 0x40000000>; /* 1GB
+> >>> device_type = "memory"; +		reg = <0x80000000 0x40000000>; /*
+1GB
 > >>> to start. Target 2GB */
 > >>
 > >> 1GiB ? Why would you put this here btw ? u-boot fills this one up.
 > > 
-> > Yes, it should either be the full and correct value or 0x0 (like a
-> > number of PowerPC platforms do) so it's clear something else gives us
-> > the right value here.
+> > Yes, it should either be the full and correct value or 0x0 (like a 
+> > number of PowerPC platforms do) so it's clear something else gives 
+> > us the right value here.
 > 
-> Honest mistake, my bad.. I thought I cleaned up the patch! Sigh!!! i
-> will repost with proper 2GB. it is better that way in case being used
+> Honest mistake, my bad.. I thought I cleaned up the patch! Sigh!!! i 
+> will repost with proper 2GB. it is better that way in case being used 
 > with "other bootloaders" which are not exactly too good like u-boot.
 
 Can you also describe why all the always-on regulators are needed?
@@ -37,7 +57,4 @@ Can you also describe why all the always-on regulators are needed?
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
