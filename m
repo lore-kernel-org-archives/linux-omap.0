@@ -1,69 +1,82 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
-Date: Thu, 6 Nov 2014 13:12:09 +0530
-Message-ID: <545B2651.4090905@ti.com>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <20141103180920.GA20779@localhost.localdomain>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v9] ARM: omap: edma: add suspend resume hook
+Date: Thu, 6 Nov 2014 14:03:31 +0530
+Message-ID: <545B325B.4050109@ti.com>
+References: <1409043173-24357-1-git-send-email-zonque@gmail.com> <545A48F1.8060607@ti.com> <545A4A99.70407@ti.com> <545A682F.4060306@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141103180920.GA20779-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51033 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751070AbaKFId7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 03:33:59 -0500
+In-Reply-To: <545A682F.4060306@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>, Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
 
-
-
-On Monday 03 November 2014 11:39 PM, Richard Cochran wrote:
-> On Mon, Oct 27, 2014 at 04:38:27PM +0530, Vignesh R wrote:
->> This series of patches fix TSC defects related to lag in touchscreen
->> performance and cursor jump at touch release. The lag was result of
->> udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
->> The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
->> to avoid false pen-up events and remove udelay.
+On Wednesday 05 November 2014 11:40 PM, Dave Gerlach wrote:
+> Sekhar,
+> On 11/05/2014 10:04 AM, Sekhar Nori wrote:
+>> On Wednesday 05 November 2014 09:27 PM, Dave Gerlach wrote:
+>>> On 08/26/2014 03:52 AM, Daniel Mack wrote:
+>>>> This patch makes the edma driver resume correctly after suspend. Tested
+>>>> on an AM33xx platform with cyclic audio streams and omap_hsmmc.
+>>>>
+>>>> All information can be reconstructed by already known runtime
+>>>> information.
+>>>>
+>>>> As we now use some functions that were previously only used from __init
+>>>> context, annotations had to be dropped.
+>>>>
+>>>> [nm@ti.com: added error handling for runtime + suspend_late/early_resume]
+>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>>> Tested-by: Joel Fernandes <joelf@ti.com>
+>>>> Acked-by: Joel Fernandes <joelf@ti.com>
+>>>> ---
+>>>> Changes from v8:
+>>>>
+>>>> 	* Drop the edma_suspend hook altogether. Even though back then
+>>>> 	  when I wrote the code I was sure disabling the interrupts
+>>>> 	  during suspend is necessary, tests now show it in fact isn't.
+>>>> 	  My test setup still works if that code is omitted.
+>>>> 	* Use SET_LATE_SYSTEM_SLEEP_PM_OPS in the dev_pm_ops
+>>>> 	  declaration.
+>>>>
+>>>> 	Thanks to Sekhar for pointing out the above.
+>>>>
+>>>>  arch/arm/common/edma.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++--
+>>>>  1 file changed, 58 insertions(+), 2 deletions(-)
+>>>
+>>> Doesn't seem to be any comments here, any chance this can be picked up? This
+>>> patch always seems to get missed but will be needed for suspend/resume on both
+>>> AM335x and AM437x.
+>>
+>> Dave, do you have a branch against mainline with suspend working on any
+>> of these SoCs using which I can test this patch?
 > 
-> That advisory has two workarounds. You have chosen the second one?
+> Yes, here is WIP of next version with all required patches + this one.
+> https://github.com/dgerlach/linux-pm/tree/pm-ds0-v3.18-rc3-WIP
+> 
+> For suspend to work you need to select:
+> 
+> CONFIG_WKUP_M3_IPC=y
+> CONFIG_WKUP_M3_RPROC=y
 
-Work around one. Hence 5 wire design is not broken.
+I get this:
 
-> 
-> The text of the second workaround says it only works on 4 wire setups,
-> so I wonder how 5 wire designs will be affected.
-> 
->> The advisory says to use
->> steps 1 to 4 for ADC and 5 to 16 for TSC (assuming 4 wire TSC and 4 channel
->> ADC).
-> 
-> No, it doesn't say that. (sprz360f.pdf)
+arch/arm/mach-omap2/pm33xx.c:28:31: fatal error: linux/wkup_m3_ipc.h: No such file or directory
+ #include <linux/wkup_m3_ipc.h>
+                               ^
+compilation terminated.
+make[1]: *** [arch/arm/mach-omap2/pm33xx.o] Error 1
 
-The pen up event detection happens immediately after charge step. Hence,
-interchanging ADC and TSC steps makes sure that sampling of touch
-co-ordinates and pen events are done one after the other. This
-workaround was suggested by internal hardware folks. Earlier ADC steps
-intervened between sampling of co-ordinates and pen event detection
-which is not desirable.
+Forgot to commit wkup_m3_ipc.h?
 
-> 
->> Further the X co-ordinate must be the last one to be sampled just
->> before charge step. The first two patches implement the required changes. 
-> 
-> FWIW, I implemented the first workaround and removed the udelay not
-> too long ago. Like Sebastian, I saw the TSC unit hang after about
-> 50000 interrupts when running with the workaround.
-> 
-> Did you test you patch for very long?
+Thanks,
+Sekhar
+ 
 
-Yes, I tested for about 200000 interrupts and I didn't see any hang.
-This patch series does not just implement workaround but also does some
-minor changes, such as interchanging ADC and TSC steps etc, which makes
-TSC driver more robust. Let me know if you encounter any issues with my
-patch series.
-
-Regards
-Vignesh
-
-> 
-> Thanks,
-> Richard
-> 
