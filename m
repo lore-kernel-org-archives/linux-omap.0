@@ -1,46 +1,30 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH 0/3] ARM: dts: AM43x: Fix DCDC3 regulator voltage
-Date: Thu, 6 Nov 2014 13:29:28 -0600
-Message-ID: <CAOCHtYiT9VgXD73gLRszSquJsN0Ew1KSNk_tXpA5OcDkT7KnqQ@mail.gmail.com>
-References: <1415271004-10935-1-git-send-email-j-keerthy@ti.com>
-	<20141106182526.GC31454@atomide.com>
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH] tty: serial: 8250: omap: Add pinctrl support for suspend
+Date: Thu, 06 Nov 2014 20:42:55 +0100
+Message-ID: <545BCF3F.8020705@linutronix.de>
+References: <1415300850-21452-1-git-send-email-bigeasy@linutronix.de> <545BC8C1.4070503@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:37486 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877AbaKFT3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Nov 2014 14:29:30 -0500
-In-Reply-To: <20141106182526.GC31454@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <545BC8C1.4070503@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, linux-serial@vger.kernel.org, "tony@atomide.com" <tony@atomide.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Keerthy <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, galak@codeaurora.org, mark.rutland@arm.com, pawel.moll@arm.com
 
-On Thu, Nov 6, 2014 at 12:25 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Keerthy <j-keerthy@ti.com> [141106 02:55]:
->> Fix DCDC3 volatge to 1.5V which is the right value to be supplied by
->> DCDC3 for all the boards.
->
-> Hmm so what about the comments for similar beaglebone changes
-> in thread "[PATCH] ARM: dts: am335x-boneblack: set dcdc1 regulator
-> for 1.35v ddr3"?
+On 11/06/2014 08:15 PM, Nishanth Menon wrote:
+> sounds good to me *IF* omap8250_enable_wakeup (wakeirq handling) is
+> the way we want to continue doing things for daisychain? -> Tony, can
+> you comment?
+> http://marc.info/?l=linux-omap&m=141222144402707&w=2
+> 
+> I wonder if wakeirq explicit handling is valid anymore and something
+> given the potential race and alternate approach proposed?
 
-Based on Keerthy's patchset, i think we should just ignore my "1.35v"
-ddr3 patch for the beaglebone black. As by default it will be at
-1.50v. (so we can either define it for clarity at 1.50v or just ignore
-it.)
+The wakeirq logic is already in the driver. So if we go for the
+alternate approach, the pinctrl patch is obsolete? Or does it mean we
+get rid of the map8250_enable_wakeup() including the second irq we have
+now (and keep the pinctl change)?
 
-Keerthy,
-
-Are you guys seeing these same ddr lockups if u-boot correctly set's
-the 1.35v level first? Or should we just really leave it at the
-default power on voltage level? (till either u-boot or kernel grows
-the capabilities to correctly tell the ddr3 we are changing it's
-voltage.)
-
-Regards,
-
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+Sebastian
