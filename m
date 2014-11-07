@@ -1,31 +1,61 @@
-From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv4 4/7] hwspinlock/core: add common OF helpers
-Date: Fri, 7 Nov 2014 07:06:44 +0200
-Message-ID: <CAK=Wgbar61qG4bWQz=YiyeUZDD0hUf74wSPMV1dFpcVJb4Os3Q@mail.gmail.com>
-References: <1389658764-39199-1-git-send-email-s-anna@ti.com>
- <1389658764-39199-5-git-send-email-s-anna@ti.com> <CAJAp7Oj-3ZxvN8o=rg8YeTiXYWyQ1iowgisdU1R5UcZeh4VmOQ@mail.gmail.com>
- <5425938C.6070007@ti.com> <CAK=WgbYf3++K4MVXW_n4zj-8fMEee61XG5+r40cW=trapRtJ7w@mail.gmail.com>
- <545BBCCB.7030107@ti.com>
+From: Keerthy <a0393675@ti.com>
+Subject: Re: [PATCH 0/3] ARM: dts: AM43x: Fix DCDC3 regulator voltage
+Date: Fri, 7 Nov 2014 11:00:46 +0530
+Message-ID: <545C5906.6080204@ti.com>
+References: <1415271004-10935-1-git-send-email-j-keerthy@ti.com> <20141106182526.GC31454@atomide.com> <CAOCHtYiT9VgXD73gLRszSquJsN0Ew1KSNk_tXpA5OcDkT7KnqQ@mail.gmail.com> <545C580F.30606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <545BBCCB.7030107-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33585 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751373AbaKGFdq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Nov 2014 00:33:46 -0500
+In-Reply-To: <545C580F.30606@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, galak@codeaurora.org, mark.rutland@arm.com, pawel.moll@arm.com
 
-Hi Suman,
+On Friday 07 November 2014 10:56 AM, Keerthy wrote:
+> On Friday 07 November 2014 12:59 AM, Robert Nelson wrote:
+>> On Thu, Nov 6, 2014 at 12:25 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>> * Keerthy <j-keerthy@ti.com> [141106 02:55]:
+>>>> Fix DCDC3 volatge to 1.5V which is the right value to be supplied by
+>>>> DCDC3 for all the boards.
+>>> Hmm so what about the comments for similar beaglebone changes
+>>> in thread "[PATCH] ARM: dts: am335x-boneblack: set dcdc1 regulator
+>>> for 1.35v ddr3"?
+>> Based on Keerthy's patchset, i think we should just ignore my "1.35v"
+>> ddr3 patch for the beaglebone black. As by default it will be at
+>> 1.50v. (so we can either define it for clarity at 1.50v or just ignore
+>> it.)
+>>
+>> Keerthy,
+>>
+>> Are you guys seeing these same ddr lockups if u-boot correctly set's
+>> the 1.35v level first? Or should we just really leave it at the
+>> default power on voltage level? (till either u-boot or kernel grows
+>> the capabilities to correctly tell the ddr3 we are changing it's
+>> voltage.)
+>
+> Robert,
+>
+> In our case even u-boot lets it to be at 1.5V. The problem is
+> when the regulators are registered we try to set it 1.35V since
+> that is what we are passing from device tree. I see lock up
+> on the latest boards we have.
 
-On Thu, Nov 6, 2014 at 8:24 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
-> Ping on this. Can you review the latest series v6 [1] and pick it up for
-> 3.19? The MSM spinlock driver is also blocked/dependent on that series.
+The issue is seen when we are executing from DDR and the voltage is changed
+(in our case lowered) on the fly.
 
-Sure, it's on my mind, I hope I'll get to it next week.
+>
+> Regards,
+> Keerthy
+>
+>
+>>
+>> Regards,
+>>
+>
 
-Thanks,
-Ohad.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
