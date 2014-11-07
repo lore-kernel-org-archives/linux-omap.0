@@ -1,69 +1,100 @@
-From: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH POST V2] ARM: dts: Add am57xx-beagle-x15
-Date: Fri, 7 Nov 2014 13:37:04 -0500
-Message-ID: <545D1150.9000700@ti.com>
-References: <1415382433-31772-1-git-send-email-nm@ti.com>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
+Date: Fri, 7 Nov 2014 14:48:32 -0800
+Message-ID: <20141107224832.GG31454@atomide.com>
+References: <1415185258-11747-1-git-send-email-rogerq@ti.com>
+ <20141106180333.GZ31454@atomide.com>
+ <545C9267.7060301@ti.com>
+ <545C97AB.4040402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <beagleboard+bncBCF77LUSWAKRBWNC6SRAKGQEA6F3ZCA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <1415382433-31772-1-git-send-email-nm-l0cyMroinI0@public.gmane.org>
-List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/beagleboard/subscribe>
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gerald-xujr6ya/RELK0SuXxyvBAPegYHeGw8Jk@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <545C97AB.4040402@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: pekon@pek-sem.com, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/07/2014 12:47 PM, Nishanth Menon wrote:
-> BeagleBoard-X15 is the next generation Open Source Hardware
-> BeagleBoard based on TI's AM5728 SoC featuring dual core 1.5GHz A15
-> processor. The platform features 2GB DDR3L (w/dual 32bit busses),
-> eSATA, 3 USB3.0 ports, integrated HDMI (1920x1080@60), separate LCD
-> port, video In port, 4GB eMMC, uSD, Analog audio in/out, dual 1G
-> Ethernet.
+* Roger Quadros <rogerq@ti.com> [141107 01:59]:
+> On 11/07/2014 11:35 AM, Roger Quadros wrote:
+> > On 11/06/2014 08:03 PM, Tony Lindgren wrote:
+> >> * Roger Quadros <rogerq@ti.com> [141105 03:02]:
+> >>> In commit 7d5929c1f343 ("mtd: nand: omap: Revert to using software ECC by default"),
+> >>> we switched back to using 1-bit SW ECC scheme by default. However
+> >>> commit b491da7233d5 ("mtd: nand: omap: clean-up ecc layout for BCH ecc schemes")
+> >>> didn't take into account the 1-bit SW scheme (i.e. OMAP_ECC_HAM1_CODE_SW)
+> >>> when checking for small page devices because it was already got rid of
+> >>> one commit earlier. Consider OMAP_ECC_HAM1_CODE_SW while deciding
+> >>> if we can proceed with small page devices or not.
+> >>>
+> >>> Fixes: 7d5929c1f34 ("mtd: nand: omap: Revert to using software ECC by default")
+> >>>
+> >>> Cc: <stable@vger.kernel.org>        [3.17+]
+> >>> Reported-by: Tony Lindgren <tony@atomide.com>
+> >>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >>> ---
+> >>>  drivers/mtd/nand/omap2.c | 3 ++-
+> >>>  1 file changed, 2 insertions(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> >>> index 3b357e9..758e594 100644
+> >>> --- a/drivers/mtd/nand/omap2.c
+> >>> +++ b/drivers/mtd/nand/omap2.c
+> >>> @@ -1742,7 +1742,8 @@ static int omap_nand_probe(struct platform_device *pdev)
+> >>>  	}
+> >>>  
+> >>>  	/* check for small page devices */
+> >>> -	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW)) {
+> >>> +	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW) &&
+> >>> +	    (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_SW)) {
+> >>>  		dev_err(&info->pdev->dev, "small page devices are not supported\n");
+> >>>  		err = -EINVAL;
+> >>>  		goto return_error;
+> >>
+> >> Should this maybe have || instead of && For the OMAP_ECC_HAM1_CODE_SW?
+> > 
+> > The code is right.
+> > 
+> > there is a bug in omap3-ldp.dts.
+> > 
+> > there it says 
+> > ti,nand-ecc-opt = "bch8";
+> > 
+> > This is wrong. OMAP3 doesn't support bch8. I think you should use either "ham1" or "sw"
 > 
-> For more information, refer to:
-> BeagleBoard-X15 Wiki:
-> http://www.elinux.org/Beagleboard:BeagleBoard-X15
+> Well I'm wrong about the OMAP3 information. OMAP3 does support BCH4 and BCH8 as well.
 > 
-> AM5728 is part of the Sitara product family whose additional details
-> will be available: http://www.ti.com/lsds/ti/arm/overview.page
+> I'm don't thinkg small page check is right. For BCH8 we need 13 bytes per 512 bytes.
+> In the LDP case we have page size:1024 and OOB size: 32.
+> Thus for BCH8 we need 26 bytes per page. which should fit in 32 bytes OOB.
+> So this check is bogus in that case.
 > 
-> Technical Reference Manual for AM5728 is public domain at:
-> http://www.ti.com/lit/spruhz6
+> Pekon,
 > 
-> Just add basic support for the moment, the following updates are needed:
->   i)	Ethernet - depends on SoC dts fixes
->   ii)	USB Client (USB2) - depends on GPIO extcon
->   ii)	HDMI - additional driver fixes pending
->   iii)	Audio - additional driver fixes pending
+> can you please explain why you check for 64 bytes OOB size for all ECC schemes?
 > 
-> NOTE:
-> AM5728 Data Manual (SPRS915L - August 2014) section 4.1.1 states: "All
-> unused power supply balls must be supplied with the voltages specified
-> in the Section 5.2, Recommended Operating Conditions". This implies
-> that all unused voltage rails for AM5728 can never be switched off even
-> if the hardware blocks inside that voltage domain is unused. Switching
-> off these unused rails may result in stability issues on other domains
-> and increased leakage and power-on-hour impacts.
+> Tony,
 > 
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> The question for backward compatibility still remains. Even if OMAP3 supports bch8
+> do we stick to the scheme that was used in legacy boot or do we switch?
 
-Reviewed-by: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
+Well for the boards that had a standard file system, we should support
+that. But at least for the LDP, there was only the "bootable microSD card"
+AFAIK:
 
+http://support.logicpd.com/ProductDownloads/LegacyProducts/ZoomOMAP34xMDK.aspx
+ 
+> Then there is the question of boot rom compatibility. OMAP3 bootloaders use HAM1 scheme.
+> So if you want to be able to flash bootloader from the kernel we have to stick with HAM1.
+> 
+> changing the ECC scheme would mean that NAND filesystems created earlier won't work
+> and will have to be erased and recreated.
 
--- 
-Tom
+Right. I doubt anybody has bch8 rootfs on LDP.. And considering u-boot
+must be ham1 to boot at all, that's what we should change for the
+devices that do not have not standardized on bch8.
 
--- 
-For more options, visit http://beagleboard.org/discuss
---- 
-You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+Regards,
+
+Tony
