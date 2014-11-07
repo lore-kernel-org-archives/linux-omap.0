@@ -1,102 +1,55 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v4 6/8] net: can: c_can: Disable pins when CAN interface
- is down
-Date: Fri, 07 Nov 2014 15:54:40 +0100
-Message-ID: <545CDD30.2070508@pengutronix.de>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [REPOST PATCH 1/2] ARM: OMAP3+: TWL: add support for mapping
+ platform data via pdata-quirks
+Date: Fri, 7 Nov 2014 15:22:01 +0000
+Message-ID: <20141107152201.GS8509@sirena.org.uk>
+References: <1412949989-20186-1-git-send-email-t-kristo@ti.com>
+ <1412949989-20186-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="JIEXut5CEgL14Db53IjmwlMefxI7x8tkP"
+	protocol="application/pgp-signature"; boundary="FbCNvfVkhudvi8fu"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33875 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136AbaKGOy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2014 09:54:58 -0500
-In-Reply-To: <1415371762-29885-7-git-send-email-rogerq@ti.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:49326 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519AbaKGPXB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2014 10:23:01 -0500
+Content-Disposition: inline
+In-Reply-To: <1412949989-20186-2-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---JIEXut5CEgL14Db53IjmwlMefxI7x8tkP
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On 11/07/2014 03:49 PM, Roger Quadros wrote:
-> DRA7 CAN IP suffers from a problem which causes it to be prevented
-> from fully turning OFF (i.e. stuck in transition) if the module was
-> disabled while there was traffic on the CAN_RX line.
->=20
-> To work around this issue we select the SLEEP pin state by default
-> on probe and use the DEFAULT pin state on CAN up and back to the
-> SLEEP pin state on CAN down.
->=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/net/can/c_can/c_can.c          | 20 ++++++++++++++++++++
->  drivers/net/can/c_can/c_can.h          |  1 +
->  drivers/net/can/c_can/c_can_platform.c | 20 ++++++++++++++++++++
->  3 files changed, 41 insertions(+)
->=20
-> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_ca=
-n.c
-> index 8e78bb4..4dfc3ce 100644
-> --- a/drivers/net/can/c_can/c_can.c
-> +++ b/drivers/net/can/c_can/c_can.c
-> @@ -35,6 +35,7 @@
->  #include <linux/list.h>
->  #include <linux/io.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
-> =20
->  #include <linux/can.h>
->  #include <linux/can/dev.h>
-> @@ -603,6 +604,15 @@ static int c_can_start(struct net_device *dev)
-> =20
->  	priv->can.state =3D CAN_STATE_ERROR_ACTIVE;
-> =20
-> +	/* activate pins */
-> +	if (!IS_ERR(priv->pinctrl)) {
-> +		struct pinctrl_state *s;
-> +
-> +		s =3D pinctrl_lookup_state(priv->pinctrl, PINCTRL_STATE_DEFAULT);
-> +		if (!IS_ERR(s))
-> +			pinctrl_select_state(priv->pinctrl, s);
-> +	}
-
-Please put this common code into a seperate function.
-
-Marc
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, lgirdwood@gmail.com, nm@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
 
---JIEXut5CEgL14Db53IjmwlMefxI7x8tkP
+--FbCNvfVkhudvi8fu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Oct 10, 2014 at 05:06:28PM +0300, Tero Kristo wrote:
+
+> -	dev->platform_data = &twl_gpio_auxdata;
+> +	if (!strcmp("twl4030-gpio", dev_name(dev)))
+> +		dev->platform_data = &twl_gpio_auxdata;
+> +	else
+> +		dev->platform_data = omap_twl_match_regulator(dev);
+
+Looking at this idiom here I'd expect that we'd be adding another string
+comparison here?
+
+--FbCNvfVkhudvi8fu
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJUXN0wAAoJECte4hHFiupUtRwP/iy2x1woPjJNK9bvzSiWua4J
-wZzR9YL+VuikdWWB/Vjl54JZt6akXZV+t8EinX4oVn+O/UpiXDbuA/8bdzR7t3JG
-qegUG6yJmFsuEeM8YU9aRmUmYdIGva978kLVsoBXKcHe1pasBn3k1avg8DnzJTtq
-1pjZt0n+0ni+I2GEc1AUHMt4YbqV8piZQvjdoYoxWJtCwnZexr1rA22BM4j0DcRW
-dxRru6wj9bNYz31U7dPWQXJ+XWen2a3bALETCLIjU5TPZT0I6TTZYGgMYfRpTVLf
-Yk9enGCsSHScDdtV/FG2BXjIx5mXYZ5K+8jI/IuQdj3u9P0xHAwLVxiIhevGWr0V
-zYfB4xqDQUhWmWxBGlHgM3SgcQ3FANsIlTK5zf+GdTcIna4U1gaZsdAOa7sX8cvr
-aL4QlG5YFka8CG+8LUdnYAyItZIUW5G9cg/PaDSyBX91xZ+YU1fBKhPQoVYy2Inc
-JnwNsElMoS4G96wdg/KxjJRXfsJHUfmgEELvvQZJNhvjHF2F9+OyBloJrBBhwpE5
-JyRNz7cyFkrir67EBtHQsPxPobo2VNlG3U6oZhr9mV3P3MB0CQo6oLw97WNR0Ruc
-rT09uuwvfWms2uA/a718zAh/UpYzEAq4v/8QFDsQx7p49DaIoNflMQdEy91BKhS/
-WETbtUa6D8+5FOcKG2pm
-=PqsI
+iQEcBAEBAgAGBQJUXOOYAAoJECTWi3JdVIfQUxUH/3804ha/Yg/NGXZcqmqsql1I
+FR5DJXYjbDeTrpZFzKI66LsIgO6v2mng8v04C7WxCfpjVax+pJ//B/JxY70s88hR
+pmvwocqbgAiLSqISJdj3kcnfunR8svHSFSvD3b4C3C+Mvg/K746NssfZgNtVmYIl
+8SVpO+tVp65ihqoZjKY0mJehybv+Qq2UW6qTIPDOmp/j9rWq4mSw8BoqM9pbVUIW
+anq6+VoWN4qMevyy1CCrrYzdJrcWLzh0WiktDkzb6Pu/a/mvo9neHjGkYk7XlOoM
+RPXQ3ifrfPIIlkGTx3SQlI39cJ1Orj1UBCylu33FzJrHGkp/AUTyUpDhB5hTnLY=
+=v+wM
 -----END PGP SIGNATURE-----
 
---JIEXut5CEgL14Db53IjmwlMefxI7x8tkP--
+--FbCNvfVkhudvi8fu--
