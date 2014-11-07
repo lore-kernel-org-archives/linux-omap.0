@@ -1,89 +1,32 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
-Date: Fri, 7 Nov 2014 11:58:03 +0200
-Message-ID: <545C97AB.4040402@ti.com>
-References: <1415185258-11747-1-git-send-email-rogerq@ti.com> <20141106180333.GZ31454@atomide.com> <545C9267.7060301@ti.com>
+From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/4] input: touchscreen: ti_am335x_tsc Interchange
+ touchscreen and ADC steps
+Date: Fri, 7 Nov 2014 11:17:14 +0100
+Message-ID: <20141107101714.GA23102@netboy>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+ <1414408111-2631-2-git-send-email-vigneshr@ti.com>
+ <20141106141916.GA17151@netboy>
+ <545C59CD.3070707@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42221 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751245AbaKGJ6h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Nov 2014 04:58:37 -0500
-In-Reply-To: <545C9267.7060301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <545C59CD.3070707-l0cyMroinI0@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, pekon@pek-sem.com
-Cc: computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
 
-On 11/07/2014 11:35 AM, Roger Quadros wrote:
-> On 11/06/2014 08:03 PM, Tony Lindgren wrote:
->> * Roger Quadros <rogerq@ti.com> [141105 03:02]:
->>> In commit 7d5929c1f343 ("mtd: nand: omap: Revert to using software ECC by default"),
->>> we switched back to using 1-bit SW ECC scheme by default. However
->>> commit b491da7233d5 ("mtd: nand: omap: clean-up ecc layout for BCH ecc schemes")
->>> didn't take into account the 1-bit SW scheme (i.e. OMAP_ECC_HAM1_CODE_SW)
->>> when checking for small page devices because it was already got rid of
->>> one commit earlier. Consider OMAP_ECC_HAM1_CODE_SW while deciding
->>> if we can proceed with small page devices or not.
->>>
->>> Fixes: 7d5929c1f34 ("mtd: nand: omap: Revert to using software ECC by default")
->>>
->>> Cc: <stable@vger.kernel.org>        [3.17+]
->>> Reported-by: Tony Lindgren <tony@atomide.com>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>> ---
->>>  drivers/mtd/nand/omap2.c | 3 ++-
->>>  1 file changed, 2 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
->>> index 3b357e9..758e594 100644
->>> --- a/drivers/mtd/nand/omap2.c
->>> +++ b/drivers/mtd/nand/omap2.c
->>> @@ -1742,7 +1742,8 @@ static int omap_nand_probe(struct platform_device *pdev)
->>>  	}
->>>  
->>>  	/* check for small page devices */
->>> -	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW)) {
->>> +	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW) &&
->>> +	    (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_SW)) {
->>>  		dev_err(&info->pdev->dev, "small page devices are not supported\n");
->>>  		err = -EINVAL;
->>>  		goto return_error;
->>
->> Should this maybe have || instead of && For the OMAP_ECC_HAM1_CODE_SW?
-> 
-> The code is right.
-> 
-> there is a bug in omap3-ldp.dts.
-> 
-> there it says 
-> ti,nand-ecc-opt = "bch8";
-> 
-> This is wrong. OMAP3 doesn't support bch8. I think you should use either "ham1" or "sw"
+On Fri, Nov 07, 2014 at 11:04:05AM +0530, Vignesh R wrote:
+> Currently, there is too much noise in the TSC hardware that is being
+> removed by delta filtering. I tested TSC unit by removing filtering
+> logic, the performance was not at all satisfactory. The cursor jumps
+> wayward and smooth circles cannot be drawn. Looks like delta filtering
+> cannot be removed as of now. May be I will try and address it in future.
 
-Well I'm wrong about the OMAP3 information. OMAP3 does support BCH4 and BCH8 as well.
+FWIW, on the boards that I tested, I printed the measured values out,
+and I found that with 5 repetitions, I got the same value 5 times,
+plus or minus a very small delta.
 
-I'm don't thinkg small page check is right. For BCH8 we need 13 bytes per 512 bytes.
-In the LDP case we have page size:1024 and OOB size: 32.
-Thus for BCH8 we need 26 bytes per page. which should fit in 32 bytes OOB.
-So this check is bogus in that case.
-
-Pekon,
-
-can you please explain why you check for 64 bytes OOB size for all ECC schemes?
-
-Tony,
-
-The question for backward compatibility still remains. Even if OMAP3 supports bch8
-do we stick to the scheme that was used in legacy boot or do we switch?
-
-Then there is the question of boot rom compatibility. OMAP3 bootloaders use HAM1 scheme.
-So if you want to be able to flash bootloader from the kernel we have to stick with HAM1.
-
-changing the ECC scheme would mean that NAND filesystems created earlier won't work
-and will have to be erased and recreated.
-
-cheers,
--roger
+Thanks,
+Richard
