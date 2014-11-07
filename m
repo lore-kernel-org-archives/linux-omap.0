@@ -1,59 +1,102 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 3/8] net: can: c_can: Add RAMINIT register information to driver data
-Date: Fri, 7 Nov 2014 16:49:17 +0200
-Message-ID: <1415371762-29885-4-git-send-email-rogerq@ti.com>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v4 6/8] net: can: c_can: Disable pins when CAN interface
+ is down
+Date: Fri, 07 Nov 2014 15:54:40 +0100
+Message-ID: <545CDD30.2070508@pengutronix.de>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="JIEXut5CEgL14Db53IjmwlMefxI7x8tkP"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48041 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752925AbaKGOuI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2014 09:50:08 -0500
-In-Reply-To: <1415371762-29885-1-git-send-email-rogerq@ti.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33875 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136AbaKGOy6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2014 09:54:58 -0500
+In-Reply-To: <1415371762-29885-7-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
-Some platforms (e.g. TI) need special RAMINIT register handling.
-Provide a way to store RAMINIT register description in driver data.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--JIEXut5CEgL14Db53IjmwlMefxI7x8tkP
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/net/can/c_can/c_can.h          | 6 ++++++
- drivers/net/can/c_can/c_can_platform.c | 1 +
- 2 files changed, 7 insertions(+)
+On 11/07/2014 03:49 PM, Roger Quadros wrote:
+> DRA7 CAN IP suffers from a problem which causes it to be prevented
+> from fully turning OFF (i.e. stuck in transition) if the module was
+> disabled while there was traffic on the CAN_RX line.
+>=20
+> To work around this issue we select the SLEEP pin state by default
+> on probe and use the DEFAULT pin state on CAN up and back to the
+> SLEEP pin state on CAN down.
+>=20
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/net/can/c_can/c_can.c          | 20 ++++++++++++++++++++
+>  drivers/net/can/c_can/c_can.h          |  1 +
+>  drivers/net/can/c_can/c_can_platform.c | 20 ++++++++++++++++++++
+>  3 files changed, 41 insertions(+)
+>=20
+> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_ca=
+n.c
+> index 8e78bb4..4dfc3ce 100644
+> --- a/drivers/net/can/c_can/c_can.c
+> +++ b/drivers/net/can/c_can/c_can.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/list.h>
+>  #include <linux/io.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+> =20
+>  #include <linux/can.h>
+>  #include <linux/can/dev.h>
+> @@ -603,6 +604,15 @@ static int c_can_start(struct net_device *dev)
+> =20
+>  	priv->can.state =3D CAN_STATE_ERROR_ACTIVE;
+> =20
+> +	/* activate pins */
+> +	if (!IS_ERR(priv->pinctrl)) {
+> +		struct pinctrl_state *s;
+> +
+> +		s =3D pinctrl_lookup_state(priv->pinctrl, PINCTRL_STATE_DEFAULT);
+> +		if (!IS_ERR(s))
+> +			pinctrl_select_state(priv->pinctrl, s);
+> +	}
 
-diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
-index 26c975d..3c305a1 100644
---- a/drivers/net/can/c_can/c_can.h
-+++ b/drivers/net/can/c_can/c_can.h
-@@ -171,6 +171,12 @@ enum c_can_dev_id {
- 
- struct c_can_driver_data {
- 	enum c_can_dev_id id;
-+
-+	/* RAMINIT register description. Optional. */
-+	u8 num_can;		/* Number of CAN instances on the SoC */
-+	u8 *raminit_start_bits;	/* Array of START bit positions */
-+	u8 *raminit_done_bits;	/* Array of DONE bit positions */
-+	bool raminit_pulse;	/* If set, sets and clears START bit (pulse) */
- };
- 
- /* c_can private data structure */
-diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-index 1546c2b..20deb67 100644
---- a/drivers/net/can/c_can/c_can_platform.c
-+++ b/drivers/net/can/c_can/c_can_platform.c
-@@ -250,6 +250,7 @@ static int c_can_plat_probe(struct platform_device *pdev)
- 	}
- 
- 	priv = netdev_priv(dev);
-+
- 	switch (drvdata->id) {
- 	case BOSCH_C_CAN:
- 		priv->regs = reg_map_c_can;
--- 
-1.8.3.2
+Please put this common code into a seperate function.
 
+Marc
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--JIEXut5CEgL14Db53IjmwlMefxI7x8tkP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUXN0wAAoJECte4hHFiupUtRwP/iy2x1woPjJNK9bvzSiWua4J
+wZzR9YL+VuikdWWB/Vjl54JZt6akXZV+t8EinX4oVn+O/UpiXDbuA/8bdzR7t3JG
+qegUG6yJmFsuEeM8YU9aRmUmYdIGva978kLVsoBXKcHe1pasBn3k1avg8DnzJTtq
+1pjZt0n+0ni+I2GEc1AUHMt4YbqV8piZQvjdoYoxWJtCwnZexr1rA22BM4j0DcRW
+dxRru6wj9bNYz31U7dPWQXJ+XWen2a3bALETCLIjU5TPZT0I6TTZYGgMYfRpTVLf
+Yk9enGCsSHScDdtV/FG2BXjIx5mXYZ5K+8jI/IuQdj3u9P0xHAwLVxiIhevGWr0V
+zYfB4xqDQUhWmWxBGlHgM3SgcQ3FANsIlTK5zf+GdTcIna4U1gaZsdAOa7sX8cvr
+aL4QlG5YFka8CG+8LUdnYAyItZIUW5G9cg/PaDSyBX91xZ+YU1fBKhPQoVYy2Inc
+JnwNsElMoS4G96wdg/KxjJRXfsJHUfmgEELvvQZJNhvjHF2F9+OyBloJrBBhwpE5
+JyRNz7cyFkrir67EBtHQsPxPobo2VNlG3U6oZhr9mV3P3MB0CQo6oLw97WNR0Ruc
+rT09uuwvfWms2uA/a718zAh/UpYzEAq4v/8QFDsQx7p49DaIoNflMQdEy91BKhS/
+WETbtUa6D8+5FOcKG2pm
+=PqsI
+-----END PGP SIGNATURE-----
+
+--JIEXut5CEgL14Db53IjmwlMefxI7x8tkP--
