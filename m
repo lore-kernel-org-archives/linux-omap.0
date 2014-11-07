@@ -1,100 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
-Date: Fri, 7 Nov 2014 14:48:32 -0800
-Message-ID: <20141107224832.GG31454@atomide.com>
-References: <1415185258-11747-1-git-send-email-rogerq@ti.com>
- <20141106180333.GZ31454@atomide.com>
- <545C9267.7060301@ti.com>
- <545C97AB.4040402@ti.com>
+From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH] w1: omap-hdq: support device probing with device-tree.
+Date: Sat, 8 Nov 2014 10:30:32 +1100
+Message-ID: <20141108103032.5426db7a@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <545C97AB.4040402@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: pekon@pek-sem.com, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/7ddOIc1J6FJuK0j4OzOtqRn"; protocol="application/pgp-signature"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Evgeniy Polyakov <zbr-i6C2adt8DTjR7s880joybQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, GTA04 owners <gta04-owner-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [141107 01:59]:
-> On 11/07/2014 11:35 AM, Roger Quadros wrote:
-> > On 11/06/2014 08:03 PM, Tony Lindgren wrote:
-> >> * Roger Quadros <rogerq@ti.com> [141105 03:02]:
-> >>> In commit 7d5929c1f343 ("mtd: nand: omap: Revert to using software ECC by default"),
-> >>> we switched back to using 1-bit SW ECC scheme by default. However
-> >>> commit b491da7233d5 ("mtd: nand: omap: clean-up ecc layout for BCH ecc schemes")
-> >>> didn't take into account the 1-bit SW scheme (i.e. OMAP_ECC_HAM1_CODE_SW)
-> >>> when checking for small page devices because it was already got rid of
-> >>> one commit earlier. Consider OMAP_ECC_HAM1_CODE_SW while deciding
-> >>> if we can proceed with small page devices or not.
-> >>>
-> >>> Fixes: 7d5929c1f34 ("mtd: nand: omap: Revert to using software ECC by default")
-> >>>
-> >>> Cc: <stable@vger.kernel.org>        [3.17+]
-> >>> Reported-by: Tony Lindgren <tony@atomide.com>
-> >>> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>> ---
-> >>>  drivers/mtd/nand/omap2.c | 3 ++-
-> >>>  1 file changed, 2 insertions(+), 1 deletion(-)
-> >>>
-> >>> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> >>> index 3b357e9..758e594 100644
-> >>> --- a/drivers/mtd/nand/omap2.c
-> >>> +++ b/drivers/mtd/nand/omap2.c
-> >>> @@ -1742,7 +1742,8 @@ static int omap_nand_probe(struct platform_device *pdev)
-> >>>  	}
-> >>>  
-> >>>  	/* check for small page devices */
-> >>> -	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW)) {
-> >>> +	if ((mtd->oobsize < 64) && (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_HW) &&
-> >>> +	    (pdata->ecc_opt != OMAP_ECC_HAM1_CODE_SW)) {
-> >>>  		dev_err(&info->pdev->dev, "small page devices are not supported\n");
-> >>>  		err = -EINVAL;
-> >>>  		goto return_error;
-> >>
-> >> Should this maybe have || instead of && For the OMAP_ECC_HAM1_CODE_SW?
-> > 
-> > The code is right.
-> > 
-> > there is a bug in omap3-ldp.dts.
-> > 
-> > there it says 
-> > ti,nand-ecc-opt = "bch8";
-> > 
-> > This is wrong. OMAP3 doesn't support bch8. I think you should use either "ham1" or "sw"
-> 
-> Well I'm wrong about the OMAP3 information. OMAP3 does support BCH4 and BCH8 as well.
-> 
-> I'm don't thinkg small page check is right. For BCH8 we need 13 bytes per 512 bytes.
-> In the LDP case we have page size:1024 and OOB size: 32.
-> Thus for BCH8 we need 26 bytes per page. which should fit in 32 bytes OOB.
-> So this check is bogus in that case.
-> 
-> Pekon,
-> 
-> can you please explain why you check for 64 bytes OOB size for all ECC schemes?
-> 
-> Tony,
-> 
-> The question for backward compatibility still remains. Even if OMAP3 supports bch8
-> do we stick to the scheme that was used in legacy boot or do we switch?
+--Sig_/7ddOIc1J6FJuK0j4OzOtqRn
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Well for the boards that had a standard file system, we should support
-that. But at least for the LDP, there was only the "bootable microSD card"
-AFAIK:
 
-http://support.logicpd.com/ProductDownloads/LegacyProducts/ZoomOMAP34xMDK.aspx
- 
-> Then there is the question of boot rom compatibility. OMAP3 bootloaders use HAM1 scheme.
-> So if you want to be able to flash bootloader from the kernel we have to stick with HAM1.
-> 
-> changing the ECC scheme would mean that NAND filesystems created earlier won't work
-> and will have to be erased and recreated.
 
-Right. I doubt anybody has bch8 rootfs on LDP.. And considering u-boot
-must be ham1 to boot at all, that's what we should change for the
-devices that do not have not standardized on bch8.
+This driver has no 'compatible' string and so is not found when
+using device-tree.
 
-Regards,
+Add one with value to match
+		hdqw1w: 1w@480b2000 {
+device in omap3.dtsi.
 
-Tony
+Signed-off-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+
+diff --git a/Documentation/devicetree/bindings/w1/omap-hdq.txt b/Documentat=
+ion/devicetree/bindings/w1/omap-hdq.txt
+new file mode 100644
+index 000000000000..fef794741bd1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/w1/omap-hdq.txt
+@@ -0,0 +1,17 @@
++* OMAP HDQ One wire bus master controller
++
++Required properties:
++- compatible : should be "ti,omap3-1w"
++- reg : Address and length of the register set for the device
++- interrupts : interrupt line.
++- ti,hwmods : "hdq1w"
++
++Example:
++
++- From omap3.dtsi
++  hdqw1w: 1w@480b2000 {
++	compatible =3D "ti,omap3-1w";
++	reg =3D <0x480b2000 0x1000>;
++	interrupts =3D <58>;
++	ti,hwmods =3D "hdq1w";
++  };
+diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+index 9900e8ec7393..03321d6a2684 100644
+--- a/drivers/w1/masters/omap_hdq.c
++++ b/drivers/w1/masters/omap_hdq.c
+@@ -72,11 +72,18 @@ struct hdq_data {
+ static int omap_hdq_probe(struct platform_device *pdev);
+ static int omap_hdq_remove(struct platform_device *pdev);
+=20
++static struct of_device_id omap_hdq_dt_ids[] =3D {
++	{ .compatible =3D "ti,omap3-1w" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, omap_hdq_dt_ids);
++
+ static struct platform_driver omap_hdq_driver =3D {
+ 	.probe =3D	omap_hdq_probe,
+ 	.remove =3D	omap_hdq_remove,
+ 	.driver =3D	{
+ 		.name =3D	"omap_hdq",
++		.of_match_table =3D omap_hdq_dt_ids,
+ 	},
+ };
+=20
+
+--Sig_/7ddOIc1J6FJuK0j4OzOtqRn
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIVAwUBVF1WGDnsnt1WYoG5AQKY8A//QH85O0cW6uytzdkQ9Tr1eFj7TzIm0gYF
+eZ6nzYSHaqDaHn7PlBn7YHEdCxPw2hfksdFDvDoUObCxx6UvEMuuCjO+sqneVxJd
+5kU9aCb6nk7rUzakfbRoUyCZDaQ03b5SUmLo840/O7alVKQcu+g/Lwom+IFLnsHC
+z8XeGZNJL2OLdT5XKmrCKcgg6dhjSoqgE5AGUQK8fyinpZohFpMWWE8Kxis5NJ0R
+kpYBUVzLVW+VYgRHtBo0MUt1NxThZ/Qqdq5yh6vW/t6ykamoGamVpVzJ1Kp9274+
+Z89PCjJ3VKZoSV/FtcyTT8bvw7zd9odfY7vcXJYqx+XTvVYPCSFCxK1lsjjzVprF
+akYQJv5Cu2XGhb/MS6gacNjtdFjJhWLMKIucpT4NPxL3UzXPdHmsiNdP/NqKIJWF
+/LuiQN/4i5zF4hK05TA7gEPkCK80kH8RnSnw1MHNGQwI+n9sNEarPHIUQViKEpqw
+NJad44hXgLjRo9wftEhKWlO3UGd67FKhhs4csfOILNyt0JRVRBJ21piyhS4VB87O
+9PxeEoS7arA6S4XCFxe50XJwVDo2galkPepxtZJKS1zBevkH0ptUeIzFLqCUwUBe
+eZbzCYBPVYzo3PGQcBwtmi499AWLV0geS4TyGL0ntLZMz60H+hdPGrIAljofoxrD
+qEwTMsH1+kc=
+=sYx4
+-----END PGP SIGNATURE-----
+
+--Sig_/7ddOIc1J6FJuK0j4OzOtqRn--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
