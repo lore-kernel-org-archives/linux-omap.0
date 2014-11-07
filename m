@@ -1,69 +1,54 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: N900 modem support in 3.18-rc1
-Date: Fri, 7 Nov 2014 00:01:45 +0100
-Message-ID: <201411070001.46481@pali>
-References: <20141104205117.GA17606@amd> <20141106180335.GA21513@earth.universe> <20141106225005.GA14002@amd>
+From: Keerthy <a0393675-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/3] ARM: dts: AM43x: Fix DCDC3 regulator voltage
+Date: Fri, 7 Nov 2014 10:16:25 +0530
+Message-ID: <545C4EA1.5000802@ti.com>
+References: <1415271004-10935-1-git-send-email-j-keerthy@ti.com> <20141106182526.GC31454@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart6350092.FCnsWLNFgr";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141106225005.GA14002@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141106182526.GC31454-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart6350092.FCnsWLNFgr
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Thursday 06 November 2014 11:55 PM, Tony Lindgren wrote:
+> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [141106 02:55]:
+>> Fix DCDC3 volatge to 1.5V which is the right value to be supplied by
+>> DCDC3 for all the boards.
+> Hmm so what about the comments for similar beaglebone changes
+> in thread "[PATCH] ARM: dts: am335x-boneblack: set dcdc1 regulator
+> for 1.35v ddr3"?
+Hi Tony,
 
-On Thursday 06 November 2014 23:50:05 Pavel Machek wrote:
-> > > What is needed to get voice calls to work?
-> >=20
-> > There's still a kernel driver missing in mainline for
-> > exchanging voice data between the modem and the cpu (called
-> > cmt-speech).
-> >=20
-> > BTW the CMT driver should be removed from your kernel tree;
-> > its a deprecated variant of mainline's nokia-modem driver.
-> > Thus I guess the cmt-speech driver, which is available in
-> > your kernel tree, is not properly integrated into the
-> > changes I did during mainlining the other modem related
-> > drivers.
->=20
-> Aha, so CONFIG_CMT is the same thing as CONFIG_NOKIA_NODEM?
-> Ok, will disable that. Speech... if you'd have version I
-> could test, I'll happily do that.
->=20
-> Thanks,
-> 									Pavel
+am335x uses TPS65917 PMIC and am43x* use TPS65218 PMIC.
+The latest TPS65218 defaults to 1.5V. We see boot hangs when
+there is a voltage change from 1.5V to 1.35V in case of AM43x
+boards. Hence keeping it at 1.5V.
 
-=46or voice calls you need:
-* kernel driver cmt-speech (or it has some new name)
-* cmt-speech userspace library (communication with kernel)
-* pulseaudio modules which are using that library
+Regards,
+Keerthy
+>
+> Regards,
+>
+> Tony
+>   
+>> Keerthy (3):
+>>    ARM: dts: AM43x-EPOS-EVM: Fix DCDC3 voltage
+>>    ARM: dts: AM437x-GP-EVM: Fix DCDC3 voltage
+>>    ARM: dts: AM437x-SK-EVM: Fix DCDC3 voltage
+>>
+>>   arch/arm/boot/dts/am437x-gp-evm.dts  |    4 ++--
+>>   arch/arm/boot/dts/am437x-sk-evm.dts  |    4 ++--
+>>   arch/arm/boot/dts/am43x-epos-evm.dts |    4 ++--
+>>   3 files changed, 6 insertions(+), 6 deletions(-)
+>>
+>> -- 
+>> 1.7.9.5
+>>
 
-=46reemangordon (Ivaylo Dimitrov, CCed) should know more about it,=20
-specially about pulseaudio modules...
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart6350092.FCnsWLNFgr
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRb/doACgkQi/DJPQPkQ1KT3gCfeVcP50c4JB3diziGMrDrNka0
-oiEAoIuH7eWygsYS2PjOwa0riQBFd+8x
-=tdIT
------END PGP SIGNATURE-----
-
---nextPart6350092.FCnsWLNFgr--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
