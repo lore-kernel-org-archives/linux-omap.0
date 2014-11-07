@@ -1,64 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] arm: omap: hwmod: drop unnecessary list initialization
-Date: Fri, 7 Nov 2014 14:09:55 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411071408200.25985@utopia.booyaka.com>
-References: <1405455492-1087-1-git-send-email-balbi@ti.com> <alpine.DEB.2.02.1407280524160.24161@utopia.booyaka.com> <20141104053952.GA15760@saruman> <20141106161940.GE16896@saruman>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v4 0/8] net: can: Use syscon regmap for TI specific RAMINIT register
+Date: Fri, 7 Nov 2014 16:49:14 +0200
+Message-ID: <1415371762-29885-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41325 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752971AbaKGOJ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Nov 2014 09:09:56 -0500
-In-Reply-To: <20141106161940.GE16896@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi
+Hi,
 
-On Thu, 6 Nov 2014, Felipe Balbi wrote:
+Some hardware (TI am43xx) has a buggy RAMINIT DONE mechanism and it might
+not always set the DONE bit. This will result in a lockup in c_can_hw_raminit_wait_ti(),
+so patch 1 adds a timeout mechanism there.
 
-> On Mon, Nov 03, 2014 at 11:39:52PM -0600, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Mon, Jul 28, 2014 at 05:24:34AM +0000, Paul Walmsley wrote:
-> > > On Tue, 15 Jul 2014, Felipe Balbi wrote:
-> > > 
-> > > > ml->node and sl->node are currently initialized
-> > > > by means of INIT_LIST_HEAD(). That initialiation
-> > > > is followed by a list_add() call.
-> > > > 
-> > > > Looking at what both these functions do we will have:
-> > > > 
-> > > > 	ml->node.next = &ml->node;
-> > > > 	ml->node.prev = &ml->node;
-> > > > 	oi->master->master_ports.next.prev = &ml->node;
-> > > > 	ml->node.next = &oi->master->master_ports.next;
-> > > > 	ml->node.prev = &oi->master->master_ports;
-> > > > 	oi->master->master_ports.next = &ml->node;
-> > > > 
-> > > > from this, it's clear that both INIT_LIST_HEAD() calls
-> > > > are unnecessary and can be safely removed.
-> > > > 
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > ---
-> > > > 
-> > > > found by code inspection, boot tested on am437x SK on today's
-> > > > linux-next + pending patches.
-> > > 
-> > > Thanks, queued for v3.18.
-> > 
-> > This is not on v3.18, what happened ?
-> > 
-> > $ git log --author=balbi@ti.com linus/master ^v3.17 -- arch/arm/mach-omap2/omap_hwmod.c
-> > $
-> 
-> ping
+There is a non compliancy within TI platforms with respect to the
+layout of the RAMINIT register. The patches 3 and 4 address this issue
+and make a flexible but standard way of defining the RAMINIT hardware register
+layout in the device tree. The RAMINIT register is accessed using the syscon
+regmap framework.
 
-I wound up not sending any OMAP patches upstream for the v3.18 merge 
-window - instead just acking them.   This one has been requeued for v3.19.
+Patches available at
+git@github.com:rogerq/linux.git	[for-v3.19/can]
 
+Patches are tested on am335x-evm, am437x-gp-evm and dra7-evm.
+Board support files to allow CAN testing on these boards are available at
+git@github.com:rogerq/linux.git	[for-v3.19/omap-dts-dcan]
 
-- Paul
+Changelog:
+
+v4:
+- updated "syscon-raminit" binding to contain the CAN instance id. We no longer
+use different compatible ids for multiple CAN IPs on the same SoC. The instance
+ID is used instead to locate the start/stop bit positions from driver data.
+
+v3:
+- allow driver data to be more than just CAN_ID
+- RAMINIT register data moved to driver data instead of device tree file.
+
+v2:
+- added "ti" vendor prefix to TI specific raminit properties.
+- split DTS changes into a separate series
+
+cheers,
+-roger
+
+---
+Roger Quadros (8):
+  net: can: c_can: Add timeout to c_can_hw_raminit_ti()
+  net: can: c_can: Introduce c_can_driver_data structure
+  net: can: c_can: Add RAMINIT register information to driver data
+  net: can: c_can: Add syscon/regmap RAMINIT mechanism
+  net: can: c_can: Add support for START pulse in RAMINIT sequence
+  net: can: c_can: Disable pins when CAN interface is down
+  net: can: c_can: Add support for TI DRA7 DCAN
+  net: can: c_can: Add support for TI am3352 DCAN
+
+ .../devicetree/bindings/net/can/c_can.txt          |   4 +
+ drivers/net/can/c_can/c_can.c                      |  20 ++
+ drivers/net/can/c_can/c_can.h                      |  23 ++-
+ drivers/net/can/c_can/c_can_platform.c             | 217 +++++++++++++++------
+ 4 files changed, 203 insertions(+), 61 deletions(-)
+
+-- 
+1.8.3.2
+
