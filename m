@@ -1,41 +1,41 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
- enabled
-Date: Fri, 7 Nov 2014 11:25:49 +0000
-Message-ID: <20141107112549.GA4047@n2100.arm.linux.org.uk>
-References: <20141102180756.GH31454@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] ARM: OMAP2+: gpmc: Get rid of "ti,elm-id not found" warning
+Date: Fri, 7 Nov 2014 14:26:59 +0200
+Message-ID: <1415363219-25644-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141102180756.GH31454@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47094 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751763AbaKGM1L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Nov 2014 07:27:11 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: ezequiel@vanguardiasur.com.ar, linux-omap@vger.kernel.org, pekon@pek-sem.com, Roger Quadros <rogerq@ti.com>
 
-On Sun, Nov 02, 2014 at 10:07:56AM -0800, Tony Lindgren wrote:
-> Commit e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset
-> configuration") enabled configuring the PM features for twl4030.
-> 
-> This caused poweroff command to fail on devices that have the
-> BCI charger on twl4030 wired, or have power wired for VBUS.
-> Instead of powering off, the device reboots. This is because
-> voltage is detected on charger or VBUS with the default bits
-> enabled for the power transition registers.
-> 
-> To fix the issue, let's just clear VBUS and CHG bits as we want
-> poweroff command to keep the system powered off.
-> 
-> Fixes: e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset configuration")
-> Cc: stable@vger.kernel.org # v3.16+
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+OMAP3 and lower SoCs don't have the ELM module so this warning
+is annoying. Get rid of it.
 
-This fixes the problem for me, thanks.  This needs to go into -rc as
-it's a regression between booting non-DT and DT, and stands in the way
-of me switching from non-DT booting on OMAP3430.
+Reported-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c | 2 --
+ 1 file changed, 2 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 104bc2c..2334235 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1394,8 +1394,6 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+ 	if (gpmc_nand_data->elm_of_node == NULL)
+ 		gpmc_nand_data->elm_of_node =
+ 					of_parse_phandle(child, "elm_id", 0);
+-	if (gpmc_nand_data->elm_of_node == NULL)
+-		pr_warn("%s: ti,elm-id property not found\n", __func__);
+ 
+ 	/* select ecc-scheme for NAND */
+ 	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+1.8.3.2
+
