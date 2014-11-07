@@ -1,73 +1,74 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/5] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache save
-Date: Fri, 7 Nov 2014 11:19:08 +0530
-Message-ID: <1415339350-17679-4-git-send-email-vigneshr@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 4/5] ARM: dts: AM335x: Make charge delay a DT parameter for tsc
+Date: Fri, 7 Nov 2014 11:19:09 +0530
+Message-ID: <1415339350-17679-5-git-send-email-vigneshr@ti.com>
 References: <1415339350-17679-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415339350-17679-1-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1415339350-17679-1-git-send-email-vigneshr@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Vignesh R <vigneshr@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-In one shot mode, sequencer automatically disables all enabled steps at
-the end of each cycle. (both ADC steps and TSC steps) Hence these steps
-need not be saved in reg_se_cache for clearing these steps at a later
-stage.
-Also, when ADC wakes up Sequencer should not be busy executing any of the
-config steps except for the charge step. Previously charge step was 1 ADC
-clock cycle and hence it was ignored.
+The charge delay value is by default 0xB000. But it can be set to lower
+values on some boards as long as false pen-ups are avoided. Lowering the
+value increases the sampling rate (though current sampling rate is
+sufficient for tsc operation). Hence charge delay has been made a DT
+parameter.
 
-Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
- include/linux/mfd/ti_am335x_tscadc.h | 1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 15 +++++++++++++++
+ arch/arm/boot/dts/am335x-evm.dts                          |  1 +
+ 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
-index d877e777cce6..94ef8992f46b 100644
---- a/drivers/mfd/ti_am335x_tscadc.c
-+++ b/drivers/mfd/ti_am335x_tscadc.c
-@@ -86,8 +86,12 @@ static void am335x_tscadc_need_adc(struct ti_tscadc_dev *tsadc)
- 		spin_lock_irq(&tsadc->reg_lock);
- 		finish_wait(&tsadc->reg_se_wait, &wait);
+diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+index 878549ba814d..b87574bae009 100644
+--- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
++++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
+@@ -28,6 +28,20 @@ Required properties:
+ 	ti,adc-channels: List of analog inputs available for ADC.
+ 			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
  
-+		/*
-+		 * Sequencer should either be idle or
-+		 * busy applying the charge step.
-+		 */
- 		reg = tscadc_readl(tsadc, REG_ADCFSM);
--		WARN_ON(reg & SEQ_STATUS);
-+		WARN_ON(reg & SEQ_STATUS & (!CHARGE_STEP));
- 		tsadc->adc_waiting = false;
- 	}
- 	tsadc->adc_in_use = true;
-@@ -96,7 +100,6 @@ static void am335x_tscadc_need_adc(struct ti_tscadc_dev *tsadc)
- void am335x_tsc_se_set_once(struct ti_tscadc_dev *tsadc, u32 val)
- {
- 	spin_lock_irq(&tsadc->reg_lock);
--	tsadc->reg_se_cache |= val;
- 	am335x_tscadc_need_adc(tsadc);
++Optional properties:
++- child "tsc"
++	ti,charge-delay: Length of touch screen charge delay step in terms of
++			 ADC clock cycles. Charge delay value should be large
++			 in order to avoid false pen-up events. This value
++			 affects the overall sampling speed, hence need to be
++			 kept as low as possible, while avoiding false pen-up
++			 event. Start from a lower value, say 0x400, and
++			 increase value until false pen-up events are avoided.
++			 The pen-up detection happens immediately after the
++			 charge step, so this does in fact function as a
++			 hardware knob for adjusting the amount of "settling
++			 time".
++
+ Example:
+ 	tscadc: tscadc@44e0d000 {
+ 		compatible = "ti,am3359-tscadc";
+@@ -36,6 +50,7 @@ Example:
+ 			ti,x-plate-resistance = <200>;
+ 			ti,coordiante-readouts = <5>;
+ 			ti,wire-config = <0x00 0x11 0x22 0x33>;
++			ti,charge-delay = <0xB000>;
+ 		};
  
- 	tscadc_writel(tsadc, REG_SE, val);
-diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
-index c99be5dc0f5c..fcce182e4a35 100644
---- a/include/linux/mfd/ti_am335x_tscadc.h
-+++ b/include/linux/mfd/ti_am335x_tscadc.h
-@@ -128,6 +128,7 @@
+ 		adc {
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index e2156a583de7..80be0462298b 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -641,6 +641,7 @@
+ 		ti,x-plate-resistance = <200>;
+ 		ti,coordinate-readouts = <5>;
+ 		ti,wire-config = <0x00 0x11 0x22 0x33>;
++		ti,charge-delay = <0xB000>;
+ 	};
  
- /* Sequencer Status */
- #define SEQ_STATUS BIT(5)
-+#define CHARGE_STEP		0x11
- 
- #define ADC_CLK			3000000
- #define TOTAL_STEPS		16
+ 	adc {
 -- 
 1.9.1
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
