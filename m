@@ -1,103 +1,86 @@
-From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH] w1: omap-hdq: support device probing with device-tree.
-Date: Sat, 8 Nov 2014 10:30:32 +1100
-Message-ID: <20141108103032.5426db7a@notabene.brown>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] ARM: OMAP: serial: remove last vestige of DTR_gpio support.
+Date: Sat, 8 Nov 2014 10:42:46 +1100
+Message-ID: <20141108104246.1f2da822@notabene.brown>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/7ddOIc1J6FJuK0j4OzOtqRn"; protocol="application/pgp-signature"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Evgeniy Polyakov <zbr-i6C2adt8DTjR7s880joybQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, GTA04 owners <gta04-owner-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+ boundary="Sig_/nBqHWY3RL8t_UFfGuaDwoDd"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/7ddOIc1J6FJuK0j4OzOtqRn
+--Sig_/nBqHWY3RL8t_UFfGuaDwoDd
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
 
+These fields were added by:
+commit 9574f36fb801035f6ab0fbb1b53ce2c12c17d100
+    OMAP/serial: Add support for driving a GPIO as DTR.
 
-This driver has no 'compatible' string and so is not found when
-using device-tree.
+but not removed by
 
-Add one with value to match
-		hdqw1w: 1w@480b2000 {
-device in omap3.dtsi.
+commit 985bfd54c826c0ba873ca0adfd5589263e0c6ee2
+    tty: serial: omap: remove some dead code
 
-Signed-off-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+which reverted most of that commit.
+Time to revert the rest.
 
-diff --git a/Documentation/devicetree/bindings/w1/omap-hdq.txt b/Documentat=
-ion/devicetree/bindings/w1/omap-hdq.txt
-new file mode 100644
-index 000000000000..fef794741bd1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/w1/omap-hdq.txt
-@@ -0,0 +1,17 @@
-+* OMAP HDQ One wire bus master controller
-+
-+Required properties:
-+- compatible : should be "ti,omap3-1w"
-+- reg : Address and length of the register set for the device
-+- interrupts : interrupt line.
-+- ti,hwmods : "hdq1w"
-+
-+Example:
-+
-+- From omap3.dtsi
-+  hdqw1w: 1w@480b2000 {
-+	compatible =3D "ti,omap3-1w";
-+	reg =3D <0x480b2000 0x1000>;
-+	interrupts =3D <58>;
-+	ti,hwmods =3D "hdq1w";
-+  };
-diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-index 9900e8ec7393..03321d6a2684 100644
---- a/drivers/w1/masters/omap_hdq.c
-+++ b/drivers/w1/masters/omap_hdq.c
-@@ -72,11 +72,18 @@ struct hdq_data {
- static int omap_hdq_probe(struct platform_device *pdev);
- static int omap_hdq_remove(struct platform_device *pdev);
+Signed-off-by: NeilBrown <neilb@suse.de>
+
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index a388f8c1bcb3..57dee0c7cd2b 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -263,9 +263,6 @@ void __init omap_serial_init_port(struct omap_board_dat=
+a *bdata,
+ 	omap_up.dma_rx_timeout =3D info->dma_rx_timeout;
+ 	omap_up.dma_rx_poll_rate =3D info->dma_rx_poll_rate;
+ 	omap_up.autosuspend_timeout =3D info->autosuspend_timeout;
+-	omap_up.DTR_gpio =3D info->DTR_gpio;
+-	omap_up.DTR_inverted =3D info->DTR_inverted;
+-	omap_up.DTR_present =3D info->DTR_present;
 =20
-+static struct of_device_id omap_hdq_dt_ids[] =3D {
-+	{ .compatible =3D "ti,omap3-1w" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, omap_hdq_dt_ids);
-+
- static struct platform_driver omap_hdq_driver =3D {
- 	.probe =3D	omap_hdq_probe,
- 	.remove =3D	omap_hdq_remove,
- 	.driver =3D	{
- 		.name =3D	"omap_hdq",
-+		.of_match_table =3D omap_hdq_dt_ids,
- 	},
- };
+ 	pdata =3D &omap_up;
+ 	pdata_size =3D sizeof(struct omap_uart_port_info);
+diff --git a/include/linux/platform_data/serial-omap.h b/include/linux/plat=
+form_data/serial-omap.h
+index c860c1b314c0..d09275f3cde3 100644
+--- a/include/linux/platform_data/serial-omap.h
++++ b/include/linux/platform_data/serial-omap.h
+@@ -38,9 +38,6 @@ struct omap_uart_port_info {
+ 	unsigned int		dma_rx_timeout;
+ 	unsigned int		autosuspend_timeout;
+ 	unsigned int		dma_rx_poll_rate;
+-	int			DTR_gpio;
+-	int			DTR_inverted;
+-	int			DTR_present;
 =20
+ 	int (*get_context_loss_count)(struct device *);
+ 	void (*enable_wakeup)(struct device *, bool);
 
---Sig_/7ddOIc1J6FJuK0j4OzOtqRn
+--Sig_/nBqHWY3RL8t_UFfGuaDwoDd
 Content-Type: application/pgp-signature
 Content-Description: OpenPGP digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIVAwUBVF1WGDnsnt1WYoG5AQKY8A//QH85O0cW6uytzdkQ9Tr1eFj7TzIm0gYF
-eZ6nzYSHaqDaHn7PlBn7YHEdCxPw2hfksdFDvDoUObCxx6UvEMuuCjO+sqneVxJd
-5kU9aCb6nk7rUzakfbRoUyCZDaQ03b5SUmLo840/O7alVKQcu+g/Lwom+IFLnsHC
-z8XeGZNJL2OLdT5XKmrCKcgg6dhjSoqgE5AGUQK8fyinpZohFpMWWE8Kxis5NJ0R
-kpYBUVzLVW+VYgRHtBo0MUt1NxThZ/Qqdq5yh6vW/t6ykamoGamVpVzJ1Kp9274+
-Z89PCjJ3VKZoSV/FtcyTT8bvw7zd9odfY7vcXJYqx+XTvVYPCSFCxK1lsjjzVprF
-akYQJv5Cu2XGhb/MS6gacNjtdFjJhWLMKIucpT4NPxL3UzXPdHmsiNdP/NqKIJWF
-/LuiQN/4i5zF4hK05TA7gEPkCK80kH8RnSnw1MHNGQwI+n9sNEarPHIUQViKEpqw
-NJad44hXgLjRo9wftEhKWlO3UGd67FKhhs4csfOILNyt0JRVRBJ21piyhS4VB87O
-9PxeEoS7arA6S4XCFxe50XJwVDo2galkPepxtZJKS1zBevkH0ptUeIzFLqCUwUBe
-eZbzCYBPVYzo3PGQcBwtmi499AWLV0geS4TyGL0ntLZMz60H+hdPGrIAljofoxrD
-qEwTMsH1+kc=
-=sYx4
+iQIVAwUBVF1Y9jnsnt1WYoG5AQJ0GQ/+MKO66kVJoX9g90YxCsyS3+bmFN8t68TZ
+O6L5nUFLLzf0GHKzgiL98LOZjsY1Xk+hNN0yjF7meLq8mKLNws4VhDkVXwXSGcHX
+KI1U4NcCj43a/gPQEfizeE0yfmZ1nLtqdi+1mHicNTLch++hUCh6t5tg8diN3JpJ
+wAGRd+6jDRhcc8SQ8QX2CCUuHkqiFTluzT9n7qyZcq1CzfZpXSfu8g+/Jgwyyqzl
++ulUjlQ+0Crzsy8blhMG/VdSM2d5LU+AhjHLtAGd2r8SG+nC0vOX3rrsP0o8bnMz
+ywZDjRkbVvMrIkXK6ntgMAWoH6qdkGz/5m1SzMoL3L6zyj9LEGePhjghvzymvmDe
+6d1GHDZn6CfA3R3eG0B1qlkXuWbKhbkkXt8U1JQ5Ea5+68FQZgzieGNeN/KFYpYy
+pXVN+MLyL4k4gOmunpGrKroJ4incVX6XNcU0OeOeQmJP5fUAF7im3JxQ3lKaUhTQ
+sIVGdwkSyfuBgLL0F0uWeg5DeqTyvJlhsI4PyQP8BL4UhuqrynXxRoKkDCh3lw1P
+wefNlgsQ1mXmTshYzRXOgf/VmC9w3QDPy5ijjDXl3rZuuzU7b6YmQG2zCfK9etrN
+6+Vsmz/3UR4V+LVtGcHl1c3q7ILKcFp6bwJ3XWpK9LB8xjjnUChtS/zwnYOt33z2
+rPEJwwys1+o=
+=fPh7
 -----END PGP SIGNATURE-----
 
---Sig_/7ddOIc1J6FJuK0j4OzOtqRn--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Sig_/nBqHWY3RL8t_UFfGuaDwoDd--
