@@ -1,44 +1,42 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: N900 modem support in 3.18-rc1
-Date: Fri, 07 Nov 2014 09:04:52 +0200
-Message-ID: <545C6F14.8050303@gmail.com>
-References: <20141104205117.GA17606@amd> <20141106180335.GA21513@earth.universe> <20141106225005.GA14002@amd> <201411070001.46481@pali>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 1/4] input: touchscreen: ti_am335x_tsc Interchange
+ touchscreen and ADC steps
+Date: Fri, 7 Nov 2014 09:00:34 +0100
+Message-ID: <20141107080033.GA6455@netboy>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+ <1414408111-2631-2-git-send-email-vigneshr@ti.com>
+ <20141106141916.GA17151@netboy>
+ <545C59CD.3070707@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201411070001.46481@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <545C59CD.3070707@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, linux-iio@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Nov 07, 2014 at 11:04:05AM +0530, Vignesh R wrote:
+> 
+> Currently, there is too much noise in the TSC hardware that is being
+> removed by delta filtering.
 
+The so called "filter" was only programmed because the fifo entries
+were being mixed up. Sebastian fixed that.
 
-On  7.11.2014 01:01, Pali Roh=C3=A1r wrote:
+> I tested TSC unit by removing filtering
+> logic, the performance was not at all satisfactory. The cursor jumps
+> wayward and smooth circles cannot be drawn. Looks like delta filtering
+> cannot be removed as of now. May be I will try and address it in future.
 
->
-> For voice calls you need:
-> * kernel driver cmt-speech (or it has some new name)
-> * cmt-speech userspace library (communication with kernel)
-> * pulseaudio modules which are using that library
->
-> Freemangordon (Ivaylo Dimitrov, CCed) should know more about it,
-> specially about pulseaudio modules...
->
+The "filter" code is nonsensical. It picks the two values in seqeunce
+that are closest to one and another. How is that supposed to work?
 
-I have a patch for cmt-speech on top of nokia-modem driver living=20
-somewhere on my HDD, but I guess it is better Sebastian to make such a=20
-patch (Sebastian, no?).
+Did you look at the "noise"? What kind of properties did you see?
 
-About the pulseaudio stuff - we're still in process of REing it, so far=
-=20
-there are 2 out of 3 closed Nokia modules ready=20
-(https://gitorious.org/pulseaudio-nokia), but the last one, which is th=
-e=20
-one used for voice calls is still not ready and will take it a while :)=
-=2E
+A median filter makes more sense. Or sort, remove outliers, and
+average. But choosing the two closest in series is silly.
 
-Regards,
-Ivo
+Thanks,
+Richard
