@@ -1,58 +1,44 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 5/5] input: touchscreen: ti_am335x_tsc: Use charge delay DT parameter
-Date: Fri, 7 Nov 2014 11:19:10 +0530
-Message-ID: <1415339350-17679-6-git-send-email-vigneshr@ti.com>
-References: <1415339350-17679-1-git-send-email-vigneshr@ti.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Fri, 07 Nov 2014 09:04:52 +0200
+Message-ID: <545C6F14.8050303@gmail.com>
+References: <20141104205117.GA17606@amd> <20141106180335.GA21513@earth.universe> <20141106225005.GA14002@amd> <201411070001.46481@pali>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415339350-17679-1-git-send-email-vigneshr@ti.com>
+In-Reply-To: <201411070001.46481@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Vignesh R <vigneshr@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
 
-This patch reads charge delay from tsc DT node and writes to
-REG_CHARGEDELAY register. If the charge delay is not specified in DT
-then default value of 0xB000(CHARGEDLY_OPENDLY) is used.
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- drivers/input/touchscreen/ti_am335x_tsc.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 483fd97c0e0c..20ce76b1b6e7 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -52,6 +52,7 @@ struct titsc {
- 	u32			bit_xp, bit_xn, bit_yp, bit_yn;
- 	u32			inp_xp, inp_xn, inp_yp, inp_yn;
- 	u32			step_mask;
-+	u32			charge_delay;
- };
- 
- static unsigned int titsc_readl(struct titsc *ts, unsigned int reg)
-@@ -177,7 +178,7 @@ static void titsc_step_config(struct titsc *ts_dev)
- 
- 	config = titsc_readl(ts_dev, REG_IDLECONFIG);
- 	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
--	titsc_writel(ts_dev, REG_CHARGEDELAY, CHARGEDLY_OPENDLY);
-+	titsc_writel(ts_dev, REG_CHARGEDELAY, ts_dev->charge_delay);
- 
- 	/* coordinate_readouts + 1 ... coordinate_readouts + 2 is for Z */
- 	config = STEPCONFIG_MODE_HWSYNC |
-@@ -361,6 +362,11 @@ static int titsc_parse_dt(struct platform_device *pdev,
- 	if (err < 0)
- 		return err;
- 
-+	err = of_property_read_u32(node, "ti,charge-delay",
-+				   &ts_dev->charge_delay);
-+	if (err < 0)
-+		ts_dev->charge_delay = CHARGEDLY_OPENDLY;
-+
- 	return of_property_read_u32_array(node, "ti,wire-config",
- 			ts_dev->config_inp, ARRAY_SIZE(ts_dev->config_inp));
- }
--- 
-1.9.1
+On  7.11.2014 01:01, Pali Roh=C3=A1r wrote:
+
+>
+> For voice calls you need:
+> * kernel driver cmt-speech (or it has some new name)
+> * cmt-speech userspace library (communication with kernel)
+> * pulseaudio modules which are using that library
+>
+> Freemangordon (Ivaylo Dimitrov, CCed) should know more about it,
+> specially about pulseaudio modules...
+>
+
+I have a patch for cmt-speech on top of nokia-modem driver living=20
+somewhere on my HDD, but I guess it is better Sebastian to make such a=20
+patch (Sebastian, no?).
+
+About the pulseaudio stuff - we're still in process of REing it, so far=
+=20
+there are 2 out of 3 closed Nokia modules ready=20
+(https://gitorious.org/pulseaudio-nokia), but the last one, which is th=
+e=20
+one used for voice calls is still not ready and will take it a while :)=
+=2E
+
+Regards,
+Ivo
