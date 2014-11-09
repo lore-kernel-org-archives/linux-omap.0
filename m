@@ -1,20 +1,20 @@
 From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 05/11] ARM: dts: omap3-igep00x0: Move outside common file
- the on board Wifi module.
-Date: Sun, 9 Nov 2014 11:05:29 +0100
-Message-ID: <CABxcv==5N+EQnvqC9UmrKKO8MtADVNcR4Go_nf1kHD3kb6J8jA@mail.gmail.com>
+Subject: Re: [PATCH 06/11] ARM: dts: omap3-igep0030-common: Introduce igep0030
+ common dtsi file.
+Date: Sun, 9 Nov 2014 11:06:29 +0100
+Message-ID: <CABxcv=kRAG4Sgjd5mwbdcs8dGZZfnhvGO_qDzORw-CwUg6BmRQ@mail.gmail.com>
 References: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
-	<1415275311-6857-6-git-send-email-eballetbo@iseebcn.com>
+	<1415275311-6857-7-git-send-email-eballetbo@iseebcn.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:51249 "EHLO
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:48454 "EHLO
 	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbaKIKFa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 05:05:30 -0500
-Received: by mail-wi0-f173.google.com with SMTP id n3so8015235wiv.0
-        for <linux-omap@vger.kernel.org>; Sun, 09 Nov 2014 02:05:29 -0800 (PST)
-In-Reply-To: <1415275311-6857-6-git-send-email-eballetbo@iseebcn.com>
+	with ESMTP id S1751177AbaKIKGa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 05:06:30 -0500
+Received: by mail-wi0-f173.google.com with SMTP id n3so7985367wiv.12
+        for <linux-omap@vger.kernel.org>; Sun, 09 Nov 2014 02:06:29 -0800 (PST)
+In-Reply-To: <1415275311-6857-7-git-send-email-eballetbo@iseebcn.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
@@ -24,13 +24,11 @@ Hello Enric,
 
 On Thu, Nov 6, 2014 at 1:01 PM, Enric Balletbo i Serra
 <eballetbo@iseebcn.com> wrote:
-> New IGEP boards revisions will use another Wifi module, so this patch moves
-> the DT nodes outside the common omap3-igep.dtsi file to specific DT for every
-> board.
+> Use the omap3-igep0030-common.dtsi file and remove repeated parts leaving
+> the nodes that are not common between IGEP COM MODULE hardware revisions.
 >
 > Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+Looks good to me.
 
-Best regards,
-Javier
+Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
