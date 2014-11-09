@@ -1,56 +1,68 @@
-From: Sebastian Reichel <sre@kernel.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: tsc2005 touchscreen: implement disable attribute
-Date: Sun, 9 Nov 2014 13:40:25 +0100
-Message-ID: <20141109124025.GA21763@earth.universe>
-References: <20141109115636.GA3106@amd>
+Date: Sun, 9 Nov 2014 13:49:19 +0100
+Message-ID: <201411091349.20116@pali>
+References: <20141109115636.GA3106@amd> <20141109124025.GA21763@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141109115636.GA3106@amd>
-Sender: linux-input-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, B38611@freescale.com, jg1.han@samsung.com, linux-input@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart2482422.I2mjBvijPq";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:49655 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752012AbaKIMtX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 07:49:23 -0500
+In-Reply-To: <20141109124025.GA21763@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, B38611@freescale.com, jg1.han@samsung.com, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
+--nextPart2482422.I2mjBvijPq
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
---/9DWx/yDrRhgMJTb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Sunday 09 November 2014 13:40:25 Sebastian Reichel wrote:
+> Hi,
+>=20
+> On Sun, Nov 09, 2014 at 12:56:37PM +0100, Pavel Machek wrote:
+> > Implement disable attribute for tsc2005 touchscreen. It is
+> > useful to avoid wakeups when phone is in the pocket.
+>=20
+> I don't think this should be some driver specific sysfs node.
+> Instead a generic method from the input subsystem should be
+> used.
+>=20
+> -- Sebastian
 
-Hi,
+Yes. I would like to see generic method to turn off input device=20
+(or just "mute" it if device does not support turn off). Similar=20
+problem is also on laptops or other portable devices. E.g when I=20
+close LID of my laptop I want to turn off internal input devices=20
+(keyboard, touchpad, trackstick) without need to unload evdev=20
+Xserver drivers (or killing Xserver). Another use case is to turn=20
+off keyboard (also from kernel tty on Ctrl+Alt+Fx) which cannot=20
+be unplugged (internal laptop keyboard).
 
-On Sun, Nov 09, 2014 at 12:56:37PM +0100, Pavel Machek wrote:
-> Implement disable attribute for tsc2005 touchscreen. It is useful to
-> avoid wakeups when phone is in the pocket.
+CCed Dmitry, what do you think about it?
 
-I don't think this should be some driver specific sysfs node.
-Instead a generic method from the input subsystem should be
-used.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
--- Sebastian
-
---/9DWx/yDrRhgMJTb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--nextPart2482422.I2mjBvijPq
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJUX2C5AAoJENju1/PIO/qaSPwP/RPPUv9RIf9ERAxg+8kg6AGY
-T0S4iMku3oUttA7+a4k9xvhBR7jDny1jpiyEoyOcxAp61Oa9Mk0FR2W+RkozHvii
-tzgJRNCoRjJ24Dug3jjk8fspJCpeIuJyAHHD20YIHlHyl5yfvzZ1a9LELysUBxPN
-g833x8+QCf6txz6RKIOFIayl8I+U1LeiItV05hsjxX9OGagaOgIOLEsor6CmBAMS
-lI+u431i3HJ1oZw2SDQvvR6xUiHl4xU7Ijhc9WgefOYZWLaYONnsPUj64rTr8aCb
-N4DwSlLaFFrxUS0Lfb20uc8f/jh/Md8+Q1mQaROaWW2nbEiKAMDIPqhZ2m3EQeOy
-c+DxPQmPWcd4Rt/dANAHrgsZUB2i931tZwj4btU8eNy0pwkxTjgNM7zavp/21MB/
-sPcVuKh3ZOzl9lXXx2Z/hBhpQHs4nnW16LBNw+oQ7nz8sp/vLdDydQ+pjdVrNGJv
-tMFkcLq4k3IftGvN+rBn0V6lkdTtLPzTT2L7iEDLC3XyLhnMMz5OLI2AaOvt5J+A
-zr4Wb9TK1kEPvRGggw7yQlmW+URx7oBxWDMwaduybQnmwEfVmJI+EfK9gwYivPNb
-hgCg9N5IejOIQxifwIcE7DuXLcUIjWysbnJKcb4kSBxmp7qC8OoVhTYIIkTkDuVv
-420ojTy1RK+2l95PzAbp
-=I6L6
+iEYEABECAAYFAlRfYtAACgkQi/DJPQPkQ1LjewCeOq2LU1yi0D/nD6dpW8n3q9KT
+/vkAoIGQM3wGrLcg8IhxSB7jHakFABV6
+=Jd1K
 -----END PGP SIGNATURE-----
 
---/9DWx/yDrRhgMJTb--
+--nextPart2482422.I2mjBvijPq--
