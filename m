@@ -1,63 +1,60 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: ASoC: omap: enable sound support on n900 on
-	devicetree-based boot
-Date: Sun, 9 Nov 2014 20:41:51 +0100
-Message-ID: <20141109194151.GB7852@amd>
-References: <20141109120222.GA3815@amd> <20141109123753.GO2722@sirena.org.uk>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: tsc2005 touchscreen: implement disable attribute
+Date: Sun, 9 Nov 2014 12:01:42 -0800
+Message-ID: <20141109200142.GA37384@dtor-ws>
+References: <20141109115636.GA3106@amd>
+ <20141109124025.GA21763@earth.universe>
+ <201411091349.20116@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141109123753.GO2722@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@debian.org>
-Cc: alsa-devel@alsa-project.org, khilman@kernel.org, tony@atomide.com, sre@debian.org, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, freemangordon@abv.bg, peter.ujfalusi@ti.com, sre@ring0.de, tiwai@suse.de, pali.rohar@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <201411091349.20116@pali>
+Sender: linux-input-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, B38611@freescale.com, jg1.han@samsung.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With device tree, it is possible (and encouraged) to build N900
-kernels without CONFIG_MACH_NOKIA_RX51. Update config file to enable
-the driver build in this case.
+On Sun, Nov 09, 2014 at 01:49:19PM +0100, Pali Roh=E1r wrote:
+> On Sunday 09 November 2014 13:40:25 Sebastian Reichel wrote:
+> > Hi,
+> >=20
+> > On Sun, Nov 09, 2014 at 12:56:37PM +0100, Pavel Machek wrote:
+> > > Implement disable attribute for tsc2005 touchscreen. It is
+> > > useful to avoid wakeups when phone is in the pocket.
+> >=20
+> > I don't think this should be some driver specific sysfs node.
+> > Instead a generic method from the input subsystem should be
+> > used.
+> >=20
+> > -- Sebastian
+>=20
+> Yes. I would like to see generic method to turn off input device=20
+> (or just "mute" it if device does not support turn off). Similar=20
+> problem is also on laptops or other portable devices. E.g when I=20
+> close LID of my laptop I want to turn off internal input devices=20
+> (keyboard, touchpad, trackstick) without need to unload evdev=20
+> Xserver drivers (or killing Xserver). Another use case is to turn=20
+> off keyboard (also from kernel tty on Ctrl+Alt+Fx) which cannot=20
+> be unplugged (internal laptop keyboard).
+>=20
+> CCed Dmitry, what do you think about it?
 
-This makes sound work on my n900 under 3.18-rc1.
+Actually I'd like it to be not limited to input devices but rater try
+doing it at the device core level, if possible. I am sure there are IIO
+and other devices that could be forcibly turned off/put into low power
+mode under certain circumstances.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+There were some talks about it with Rafael, but we never come with
+anything concrete.
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index d44463a..2738b19 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -25,15 +25,15 @@ config SND_OMAP_SOC_N810
- 	  Say Y if you want to add support for SoC audio on Nokia N810.
- 
- config SND_OMAP_SOC_RX51
--	tristate "SoC Audio support for Nokia RX-51"
--	depends on SND_OMAP_SOC && ARM && (MACH_NOKIA_RX51 || COMPILE_TEST) && I2C
-+	tristate "SoC Audio support for Nokia N900 (RX-51)"
-+	depends on SND_OMAP_SOC && ARM && I2C
- 	select SND_OMAP_SOC_MCBSP
- 	select SND_SOC_TLV320AIC3X
- 	select SND_SOC_TPA6130A2
- 	depends on GPIOLIB
- 	help
--	  Say Y if you want to add support for SoC audio on Nokia RX-51
--	  hardware. This is also known as Nokia N900 product.
-+	  Say Y if you want to add support for SoC audio on Nokia N900
-+	  cellphone.
- 
- config SND_OMAP_SOC_AMS_DELTA
- 	tristate "SoC Audio support for Amstrad E3 (Delta) videophone"
+Thanks.
 
-
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--=20
+Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
