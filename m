@@ -1,20 +1,20 @@
 From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 03/11] ARM: dts: omap3-igep0030: Specify IGEP COM revision
+Subject: Re: [PATCH 04/11] ARM: dts: omap3-igep0020: Specify IGEPv2 revision
  in device tree.
-Date: Sun, 9 Nov 2014 10:51:35 +0100
-Message-ID: <CABxcv=kJj=fuuFn8JNgRYi-xZ3v=LDrwWiootQcZeP8nEBdEGw@mail.gmail.com>
+Date: Sun, 9 Nov 2014 11:03:14 +0100
+Message-ID: <CABxcv=k=XN+UrNAM7Tngp-MUv4O5v33zRcZjSWns=eGYSFrjyA@mail.gmail.com>
 References: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
-	<1415275311-6857-4-git-send-email-eballetbo@iseebcn.com>
+	<1415275311-6857-5-git-send-email-eballetbo@iseebcn.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:62935 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465AbaKIJvh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 04:51:37 -0500
-Received: by mail-wg0-f43.google.com with SMTP id y10so6689092wgg.30
-        for <linux-omap@vger.kernel.org>; Sun, 09 Nov 2014 01:51:36 -0800 (PST)
-In-Reply-To: <1415275311-6857-4-git-send-email-eballetbo@iseebcn.com>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:33049 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293AbaKIKDP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 05:03:15 -0500
+Received: by mail-wi0-f176.google.com with SMTP id h11so8008990wiw.3
+        for <linux-omap@vger.kernel.org>; Sun, 09 Nov 2014 02:03:14 -0800 (PST)
+In-Reply-To: <1415275311-6857-5-git-send-email-eballetbo@iseebcn.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
@@ -29,8 +29,6 @@ On Thu, Nov 6, 2014 at 1:01 PM, Enric Balletbo i Serra
 > to avoid confusions.
 >
 > Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-
-Agreed, is good to have the board revision information.
 
 Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
 
