@@ -1,34 +1,132 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 11/11] ARM: OMAP2+: igep00x0: Add pdata-quirks for the
- btwilink device.
-Date: Sun, 9 Nov 2014 11:23:52 +0100
-Message-ID: <CABxcv=kijAqwN6dzvrVE77mHr_GKeScG-ZHbUghJd133Bh-fDQ@mail.gmail.com>
-References: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
-	<1415275311-6857-12-git-send-email-eballetbo@iseebcn.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: tsc2005 touchscreen: implement disable attribute
+Date: Sun, 9 Nov 2014 12:56:37 +0100
+Message-ID: <20141109115636.GA3106@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:49391 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312AbaKIKXx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 05:23:53 -0500
-Received: by mail-wi0-f174.google.com with SMTP id d1so7901794wiv.1
-        for <linux-omap@vger.kernel.org>; Sun, 09 Nov 2014 02:23:52 -0800 (PST)
-In-Reply-To: <1415275311-6857-12-git-send-email-eballetbo@iseebcn.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, B38611@freescale.com, jg1.han@samsung.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-Hello Enric,
 
-On Thu, Nov 6, 2014 at 1:01 PM, Enric Balletbo i Serra
-<eballetbo@iseebcn.com> wrote:
-> Add btwilink device for IGEPv2 Rev. F and IGEP COM MODULE Rev. G.
->
-> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Implement disable attribute for tsc2005 touchscreen. It is useful to
+avoid wakeups when phone is in the pocket.
 
-Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-Best regards,
-Javier
+---
+
+[This is from Pali's n900 tree that is GPL, so that is okay, but maybe
+I should get his sign-off here?]
+
+diff --git a/drivers/input/touchscreen/tsc2005.c b/drivers/input/touchscreen/tsc2005.c
+index 52380b6..ec1c276 100644
+--- a/drivers/input/touchscreen/tsc2005.c
++++ b/drivers/input/touchscreen/tsc2005.c
+@@ -147,6 +147,7 @@ struct tsc2005 {
+ 
+ 	unsigned int		x_plate_ohm;
+ 
++	bool			disabled;
+ 	bool			opened;
+ 	bool			suspended;
+ 
+@@ -384,6 +385,48 @@ static void __tsc2005_enable(struct tsc2005 *ts)
+ 
+ }
+ 
++static ssize_t tsc2005_disable_show(struct device *dev,
++				    struct device_attribute *attr, char *buf)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	struct tsc2005 *ts = spi_get_drvdata(spi);
++
++	return sprintf(buf, "%u\n", ts->disabled);
++}
++
++static ssize_t tsc2005_disable_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t count)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	struct tsc2005 *ts = spi_get_drvdata(spi);
++	unsigned long val;
++	int error;
++
++	error = kstrtoul(buf, 10, &val);
++	if (error)
++		return error;
++
++	mutex_lock(&ts->mutex);
++
++	if (!ts->suspended && ts->opened) {
++		if (val) {
++			if (!ts->disabled)
++				__tsc2005_disable(ts);
++		} else {
++			if (ts->disabled)
++				__tsc2005_enable(ts);
++		}
++	}
++
++	ts->disabled = !!val;
++
++	mutex_unlock(&ts->mutex);
++
++	return count;
++}
++static DEVICE_ATTR(disable, 0664, tsc2005_disable_show, tsc2005_disable_store);
++
+ static ssize_t tsc2005_selftest_show(struct device *dev,
+ 				     struct device_attribute *attr,
+ 				     char *buf)
+@@ -466,6 +509,7 @@ out:
+ static DEVICE_ATTR(selftest, S_IRUGO, tsc2005_selftest_show, NULL);
+ 
+ static struct attribute *tsc2005_attrs[] = {
++	&dev_attr_disable.attr,
+ 	&dev_attr_selftest.attr,
+ 	NULL
+ };
+@@ -551,7 +595,7 @@ static int tsc2005_open(struct input_dev *input)
+ 
+ 	mutex_lock(&ts->mutex);
+ 
+-	if (!ts->suspended)
++	if (!ts->suspended && !ts->disabled)
+ 		__tsc2005_enable(ts);
+ 
+ 	ts->opened = true;
+@@ -567,7 +611,7 @@ static void tsc2005_close(struct input_dev *input)
+ 
+ 	mutex_lock(&ts->mutex);
+ 
+-	if (!ts->suspended)
++	if (!ts->suspended && !ts->disabled)
+ 		__tsc2005_disable(ts);
+ 
+ 	ts->opened = false;
+@@ -781,7 +825,7 @@ static int tsc2005_suspend(struct device *dev)
+ 
+ 	mutex_lock(&ts->mutex);
+ 
+-	if (!ts->suspended && ts->opened)
++	if (!ts->suspended && !ts->disabled && ts->opened)
+ 		__tsc2005_disable(ts);
+ 
+ 	ts->suspended = true;
+@@ -798,7 +842,7 @@ static int tsc2005_resume(struct device *dev)
+ 
+ 	mutex_lock(&ts->mutex);
+ 
+-	if (ts->suspended && ts->opened)
++	if (ts->suspended && !ts->disabled && ts->opened)
+ 		__tsc2005_enable(ts);
+ 
+ 	ts->suspended = false;
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
