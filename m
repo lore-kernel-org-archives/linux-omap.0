@@ -1,242 +1,169 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv3 1/4] [media] si4713: add device tree support
-Date: Mon, 10 Nov 2014 21:34:41 +0100
-Message-ID: <1415651684-3894-2-git-send-email-sre@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 3/4] ARM: OMAP2: RX-51: update si4713 platform data
+Date: Mon, 10 Nov 2014 12:37:15 -0800
+Message-ID: <20141110203714.GV31454@atomide.com>
 References: <1415651684-3894-1-git-send-email-sre@kernel.org>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1415651684-3894-1-git-send-email-sre@kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+ <1415651684-3894-4-git-send-email-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1415651684-3894-4-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree support by changing the device registration order.
-In the device tree the si4713 node is a normal I2C device, which
-will be probed as such. Thus the V4L device must be probed from
-the I2C device and not the other way around.
+* Sebastian Reichel <sre@kernel.org> [141110 12:37]:
+> This updates platform data related to Si4713, which
+> has been updated to be compatible with DT interface.
+> 
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- drivers/media/radio/si4713/radio-platform-si4713.c | 28 +++++--------------
- drivers/media/radio/si4713/si4713.c                | 31 ++++++++++++++++++++--
- drivers/media/radio/si4713/si4713.h                |  6 +++++
- include/media/radio-si4713.h                       | 30 ---------------------
- include/media/si4713.h                             |  1 +
- 5 files changed, 42 insertions(+), 54 deletions(-)
- delete mode 100644 include/media/radio-si4713.h
+Please feel free to merge this one along with the
+other camera patches, this should not conflict with
+anything in the linux-omap tree:
 
-diff --git a/drivers/media/radio/si4713/radio-platform-si4713.c b/drivers/media/radio/si4713/radio-platform-si4713.c
-index a47502a..2de5439 100644
---- a/drivers/media/radio/si4713/radio-platform-si4713.c
-+++ b/drivers/media/radio/si4713/radio-platform-si4713.c
-@@ -34,7 +34,7 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-event.h>
--#include <media/radio-si4713.h>
-+#include "si4713.h"
- 
- /* module parameters */
- static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
-@@ -153,7 +153,6 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
- {
- 	struct radio_si4713_platform_data *pdata = pdev->dev.platform_data;
- 	struct radio_si4713_device *rsdev;
--	struct i2c_adapter *adapter;
- 	struct v4l2_subdev *sd;
- 	int rval = 0;
- 
-@@ -177,20 +176,11 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
- 		goto exit;
- 	}
- 
--	adapter = i2c_get_adapter(pdata->i2c_bus);
--	if (!adapter) {
--		dev_err(&pdev->dev, "Cannot get i2c adapter %d\n",
--			pdata->i2c_bus);
--		rval = -ENODEV;
--		goto unregister_v4l2_dev;
--	}
--
--	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter,
--				       pdata->subdev_board_info, NULL);
--	if (!sd) {
-+	sd = i2c_get_clientdata(pdata->subdev);
-+	rval = v4l2_device_register_subdev(&rsdev->v4l2_dev, sd);
-+	if (rval) {
- 		dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
--		rval = -ENODEV;
--		goto put_adapter;
-+		goto unregister_v4l2_dev;
- 	}
- 
- 	rsdev->radio_dev = radio_si4713_vdev_template;
-@@ -202,14 +192,12 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
- 	if (video_register_device(&rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
- 		dev_err(&pdev->dev, "Could not register video device.\n");
- 		rval = -EIO;
--		goto put_adapter;
-+		goto unregister_v4l2_dev;
- 	}
- 	dev_info(&pdev->dev, "New device successfully probed\n");
- 
- 	goto exit;
- 
--put_adapter:
--	i2c_put_adapter(adapter);
- unregister_v4l2_dev:
- 	v4l2_device_unregister(&rsdev->v4l2_dev);
- exit:
-@@ -220,14 +208,10 @@ exit:
- static int radio_si4713_pdriver_remove(struct platform_device *pdev)
- {
- 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
--	struct v4l2_subdev *sd = list_entry(v4l2_dev->subdevs.next,
--					    struct v4l2_subdev, list);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct radio_si4713_device *rsdev;
- 
- 	rsdev = container_of(v4l2_dev, struct radio_si4713_device, v4l2_dev);
- 	video_unregister_device(&rsdev->radio_dev);
--	i2c_put_adapter(client->adapter);
- 	v4l2_device_unregister(&rsdev->v4l2_dev);
- 
- 	return 0;
-diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
-index ebec16d..c90004d 100644
---- a/drivers/media/radio/si4713/si4713.c
-+++ b/drivers/media/radio/si4713/si4713.c
-@@ -1446,9 +1446,12 @@ static int si4713_probe(struct i2c_client *client,
- 					const struct i2c_device_id *id)
- {
- 	struct si4713_device *sdev;
--	struct si4713_platform_data *pdata = client->dev.platform_data;
- 	struct v4l2_ctrl_handler *hdl;
--	int rval, i;
-+	struct si4713_platform_data *pdata = client->dev.platform_data;
-+	struct device_node *np = client->dev.of_node;
-+	struct radio_si4713_platform_data si4713_pdev_pdata;
-+	struct platform_device *si4713_pdev;
-+	int rval;
- 
- 	sdev = devm_kzalloc(&client->dev, sizeof(*sdev), GFP_KERNEL);
- 	if (!sdev) {
-@@ -1608,8 +1611,30 @@ static int si4713_probe(struct i2c_client *client,
- 		goto free_ctrls;
- 	}
- 
-+	if (!np && (!pdata || !pdata->is_platform_device))
-+		return 0;
-+
-+	si4713_pdev = platform_device_alloc("radio-si4713", -1);
-+	if (!si4713_pdev)
-+		goto put_main_pdev;
-+
-+	si4713_pdev_pdata.subdev = client;
-+	rval = platform_device_add_data(si4713_pdev, &si4713_pdev_pdata,
-+					sizeof(si4713_pdev_pdata));
-+	if (rval)
-+		goto put_main_pdev;
-+
-+	rval = platform_device_add(si4713_pdev);
-+	if (rval)
-+		goto put_main_pdev;
-+
-+	sdev->pd = si4713_pdev;
-+
- 	return 0;
- 
-+put_main_pdev:
-+	platform_device_put(si4713_pdev);
-+	v4l2_device_unregister_subdev(&sdev->sd);
- free_ctrls:
- 	v4l2_ctrl_handler_free(hdl);
- exit:
-@@ -1622,6 +1647,8 @@ static int si4713_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct si4713_device *sdev = to_si4713_device(sd);
- 
-+	platform_device_unregister(sdev->pd);
-+
- 	if (sdev->power_state)
- 		si4713_set_power_state(sdev, POWER_DOWN);
- 
-diff --git a/drivers/media/radio/si4713/si4713.h b/drivers/media/radio/si4713/si4713.h
-index 7c2479f..8a376e1 100644
---- a/drivers/media/radio/si4713/si4713.h
-+++ b/drivers/media/radio/si4713/si4713.h
-@@ -15,6 +15,7 @@
- #ifndef SI4713_I2C_H
- #define SI4713_I2C_H
- 
-+#include <linux/platform_device.h>
- #include <linux/regulator/consumer.h>
- #include <linux/gpio/consumer.h>
- #include <media/v4l2-subdev.h>
-@@ -238,6 +239,7 @@ struct si4713_device {
- 	struct regulator *vdd;
- 	struct regulator *vio;
- 	struct gpio_desc *gpio_reset;
-+	struct platform_device *pd;
- 	u32 power_state;
- 	u32 rds_enabled;
- 	u32 frequency;
-@@ -245,4 +247,8 @@ struct si4713_device {
- 	u32 stereo;
- 	u32 tune_rnl;
- };
-+
-+struct radio_si4713_platform_data {
-+	struct i2c_client *subdev;
-+};
- #endif /* ifndef SI4713_I2C_H */
-diff --git a/include/media/radio-si4713.h b/include/media/radio-si4713.h
-deleted file mode 100644
-index f6aae29..0000000
---- a/include/media/radio-si4713.h
-+++ /dev/null
-@@ -1,30 +0,0 @@
--/*
-- * include/media/radio-si4713.h
-- *
-- * Board related data definitions for Si4713 radio transmitter chip.
-- *
-- * Copyright (c) 2009 Nokia Corporation
-- * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-- *
-- * This file is licensed under the terms of the GNU General Public License
-- * version 2. This program is licensed "as is" without any warranty of any
-- * kind, whether express or implied.
-- *
-- */
--
--#ifndef RADIO_SI4713_H
--#define RADIO_SI4713_H
--
--#include <linux/i2c.h>
--
--#define SI4713_NAME "radio-si4713"
--
--/*
-- * Platform dependent definition
-- */
--struct radio_si4713_platform_data {
--	int i2c_bus;
--	struct i2c_board_info *subdev_board_info;
--};
--
--#endif /* ifndef RADIO_SI4713_H*/
-diff --git a/include/media/si4713.h b/include/media/si4713.h
-index f98a0a7..343b8fb5 100644
---- a/include/media/si4713.h
-+++ b/include/media/si4713.h
-@@ -26,6 +26,7 @@ struct si4713_platform_data {
- 	const char * const *supply_names;
- 	unsigned supplies;
- 	int gpio_reset; /* < 0 if not used */
-+	bool is_platform_device;
- };
- 
- /*
--- 
-2.1.1
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c | 69 +++++++++++++---------------
+>  1 file changed, 31 insertions(+), 38 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index ddfc8df..ec2e410 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/regulator/machine.h>
+>  #include <linux/gpio.h>
+>  #include <linux/gpio_keys.h>
+> +#include <linux/gpio/machine.h>
+>  #include <linux/mmc/host.h>
+>  #include <linux/power/isp1704_charger.h>
+>  #include <linux/platform_data/spi-omap2-mcspi.h>
+> @@ -38,7 +39,6 @@
+>  
+>  #include <sound/tlv320aic3x.h>
+>  #include <sound/tpa6130a2-plat.h>
+> -#include <media/radio-si4713.h>
+>  #include <media/si4713.h>
+>  #include <linux/platform_data/leds-lp55xx.h>
+>  
+> @@ -760,46 +760,17 @@ static struct regulator_init_data rx51_vintdig = {
+>  	},
+>  };
+>  
+> -static const char * const si4713_supply_names[] = {
+> -	"vio",
+> -	"vdd",
+> -};
+> -
+> -static struct si4713_platform_data rx51_si4713_i2c_data __initdata_or_module = {
+> -	.supplies	= ARRAY_SIZE(si4713_supply_names),
+> -	.supply_names	= si4713_supply_names,
+> -	.gpio_reset	= RX51_FMTX_RESET_GPIO,
+> -};
+> -
+> -static struct i2c_board_info rx51_si4713_board_info __initdata_or_module = {
+> -	I2C_BOARD_INFO("si4713", SI4713_I2C_ADDR_BUSEN_HIGH),
+> -	.platform_data	= &rx51_si4713_i2c_data,
+> -};
+> -
+> -static struct radio_si4713_platform_data rx51_si4713_data __initdata_or_module = {
+> -	.i2c_bus	= 2,
+> -	.subdev_board_info = &rx51_si4713_board_info,
+> -};
+> -
+> -static struct platform_device rx51_si4713_dev __initdata_or_module = {
+> -	.name	= "radio-si4713",
+> -	.id	= -1,
+> -	.dev	= {
+> -		.platform_data	= &rx51_si4713_data,
+> +static struct gpiod_lookup_table rx51_fmtx_gpios_table = {
+> +	.dev_id = "2-0063",
+> +	.table = {
+> +		GPIO_LOOKUP("gpio.6", 3, "reset", GPIO_ACTIVE_HIGH), /* 163 */
+> +		{ },
+>  	},
+>  };
+>  
+> -static __init void rx51_init_si4713(void)
+> +static __init void rx51_gpio_init(void)
+>  {
+> -	int err;
+> -
+> -	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
+> -	if (err) {
+> -		printk(KERN_ERR "Cannot request si4713 irq gpio. %d\n", err);
+> -		return;
+> -	}
+> -	rx51_si4713_board_info.irq = gpio_to_irq(RX51_FMTX_IRQ);
+> -	platform_device_register(&rx51_si4713_dev);
+> +	gpiod_add_lookup_table(&rx51_fmtx_gpios_table);
+>  }
+>  
+>  static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
+> @@ -1029,7 +1000,17 @@ static struct aic3x_pdata rx51_aic3x_data2 = {
+>  	.gpio_reset = 60,
+>  };
+>  
+> +static struct si4713_platform_data rx51_si4713_platform_data = {
+> +	.is_platform_device = true
+> +};
+> +
+>  static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+> +#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
+> +	{
+> +		I2C_BOARD_INFO("si4713", 0x63),
+> +		.platform_data = &rx51_si4713_platform_data,
+> +	},
+> +#endif
+>  	{
+>  		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+>  		.platform_data = &rx51_aic3x_data,
+> @@ -1070,6 +1051,10 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_3[] = {
+>  
+>  static int __init rx51_i2c_init(void)
+>  {
+> +#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
+> +	int err;
+> +#endif
+> +
+>  	if ((system_rev >= SYSTEM_REV_S_USES_VAUX3 && system_rev < 0x100) ||
+>  	    system_rev >= SYSTEM_REV_B_USES_VAUX3) {
+>  		rx51_twldata.vaux3 = &rx51_vaux3_mmc;
+> @@ -1087,6 +1072,14 @@ static int __init rx51_i2c_init(void)
+>  	rx51_twldata.vdac->constraints.name = "VDAC";
+>  
+>  	omap_pmic_init(1, 2200, "twl5030", 7 + OMAP_INTC_START, &rx51_twldata);
+> +#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713)
+> +	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
+> +	if (err) {
+> +		printk(KERN_ERR "Cannot request si4713 irq gpio. %d\n", err);
+> +		return err;
+> +	}
+> +	rx51_peripherals_i2c_board_info_2[0].irq = gpio_to_irq(RX51_FMTX_IRQ);
+> +#endif
+>  	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
+>  			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
+>  #if defined(CONFIG_SENSORS_LIS3_I2C) || defined(CONFIG_SENSORS_LIS3_I2C_MODULE)
+> @@ -1300,6 +1293,7 @@ static void __init rx51_init_omap3_rom_rng(void)
+>  
+>  void __init rx51_peripherals_init(void)
+>  {
+> +	rx51_gpio_init();
+>  	rx51_i2c_init();
+>  	regulator_has_full_constraints();
+>  	gpmc_onenand_init(board_onenand_data);
+> @@ -1307,7 +1301,6 @@ void __init rx51_peripherals_init(void)
+>  	rx51_add_gpio_keys();
+>  	rx51_init_wl1251();
+>  	rx51_init_tsc2005();
+> -	rx51_init_si4713();
+>  	rx51_init_lirc();
+>  	spi_register_board_info(rx51_peripherals_spi_board_info,
+>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+> -- 
+> 2.1.1
+> 
