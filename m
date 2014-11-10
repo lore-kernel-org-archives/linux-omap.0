@@ -1,103 +1,47 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v4 00/10] ARM: OMAP1/2+: MMC: separate platform data for
- mmc and mmc hs driver
-Date: Mon, 10 Nov 2014 13:07:36 +0100
-Message-ID: <CAPDyKFoTmB6JY9rkgOTbhvJ5_a=mpjqXL-Gy+jh4bXxfK+DPEg@mail.gmail.com>
-References: <1415457197-14294-1-git-send-email-afenkart@gmail.com>
+From: Mark Brown <broonie@debian.org>
+Subject: Re: ASoC: omap: enable sound support on n900 on devicetree-based boot
+Date: Mon, 10 Nov 2014 12:13:35 +0000
+Message-ID: <20141110121335.GO3815@sirena.org.uk>
+References: <20141109120222.GA3815@amd>
+ <20141109123753.GO2722@sirena.org.uk>
+ <20141109194151.GB7852@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1415457197-14294-1-git-send-email-afenkart@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andreas Fenkart <afenkart@gmail.com>
-Cc: linux-mmc <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Pascal Huerst <pascal.huerst@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aSkGYfF7HpsxURxE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141109194151.GB7852@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, peter.ujfalusi@ti.com, perex@perex.cz, tiwai@suse.de, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-On 8 November 2014 15:33, Andreas Fenkart <afenkart@gmail.com> wrote:
-> v4:
-> - rework patch descriptions
-> - dropped patch removing unused defines in mach-omap2/mmc.h
-> - rebase 3.18.0-rc3
-> - compile test omap1 and omap2
->
-> compile tested
-> OMAP1:
-> CONFIG_MACH_OMAP_INNOVATOR=y
-> CONFIG_MACH_OMAP_H2=y
-> CONFIG_MACH_OMAP_H3=y
-> CONFIG_MACH_HERALD=y
-> CONFIG_MACH_OMAP_OSK=y
-> CONFIG_MACH_OMAP_PERSEUS2=y
-> CONFIG_MACH_OMAP_FSAMPLE=y
-> CONFIG_MACH_VOICEBLUE=y
-> CONFIG_MACH_OMAP_PALMTE=y
-> CONFIG_MACH_OMAP_PALMZ71=y
-> CONFIG_MACH_OMAP_PALMTT=y
-> CONFIG_MACH_SX1=y
-> CONFIG_MACH_NOKIA770=y
-> CONFIG_MACH_AMS_DELTA=y
-> CONFIG_MACH_OMAP_GENERIC=y
->
-> OMAP2:
-> CONFIG_MACH_OMAP2_TUSB6010=y
-> CONFIG_MACH_OMAP3_BEAGLE=y
-> CONFIG_MACH_DEVKIT8000=y
-> CONFIG_MACH_OMAP_LDP=y
-> CONFIG_MACH_OMAP3530_LV_SOM=y
-> CONFIG_MACH_OMAP3_TORPEDO=y
-> CONFIG_MACH_OVERO=y
-> CONFIG_MACH_OMAP3517EVM=y
-> CONFIG_MACH_CRANEBOARD=y
-> CONFIG_MACH_OMAP3_PANDORA=y
-> CONFIG_MACH_TOUCHBOOK=y
-> CONFIG_MACH_OMAP_3430SDP=y
-> CONFIG_MACH_NOKIA_N810=y
-> CONFIG_MACH_NOKIA_N810_WIMAX=y
-> CONFIG_MACH_NOKIA_N8X0=y
-> CONFIG_MACH_NOKIA_RX51=y
-> CONFIG_MACH_CM_T35=y
-> CONFIG_MACH_CM_T3517=y
-> CONFIG_MACH_CM_T3730=y
-> CONFIG_MACH_SBC3530=y
-> CONFIG_MACH_TI8168EVM=y
-> CONFIG_MACH_TI8148EVM=y
->
-> Andreas Fenkart (10):
->   ARM: OMAP2: MMC: include mmc-omap platform header directly
->   ARM: OMAP1/2+: MMC: separate platform data for mmc and mmc hs driver
->   omap_hsmmc: remove unused fields in platform_data
->   omap_hsmmc: remove un-initialized callbacks from platform data
->   omap_hsmmc: remove never read power_saving field in omap2_hsmmc_info
->   omap_hsmmc: remove unused get_context_loss_count callback
->   omap_hsmmc: remove unnecessary omap_hsmmc_slot_data indirection
->   omap_hsmmc: pass mmc_priv struct to gpio init / free
->   omap_hsmmc: Remove unnecessary callbacks from platform data
->   omap_hsmmc: remove unused slot_id parameter
->
->  arch/arm/mach-omap2/board-n8x0.c                   |   2 +
->  arch/arm/mach-omap2/board-rx51-peripherals.c       |   4 +-
->  arch/arm/mach-omap2/hsmmc.c                        | 158 +++++-------
->  arch/arm/mach-omap2/hsmmc.h                        |   9 +-
->  arch/arm/mach-omap2/mmc.h                          |  10 -
->  arch/arm/mach-omap2/omap4-common.c                 |   1 -
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   4 +-
->  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |   8 +-
->  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |   1 -
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   8 +-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   4 +-
->  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |   4 +-
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |   4 +-
->  drivers/mmc/host/omap_hsmmc.c                      | 282 ++++++++++-----------
->  include/linux/platform_data/hsmmc-omap.h           |  90 +++++++
->  include/linux/platform_data/mmc-omap.h             |  27 --
->  16 files changed, 312 insertions(+), 304 deletions(-)
->  create mode 100644 include/linux/platform_data/hsmmc-omap.h
->
-> --
-> 2.1.1
->
 
-Thanks! Applied for next.
+--aSkGYfF7HpsxURxE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Kind regards
-Uffe
+On Sun, Nov 09, 2014 at 08:41:51PM +0100, Pavel Machek wrote:
+> With device tree, it is possible (and encouraged) to build N900
+> kernels without CONFIG_MACH_NOKIA_RX51. Update config file to enable
+> the driver build in this case.
+
+Applied, thanks.
+
+--aSkGYfF7HpsxURxE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUYKvvAAoJECTWi3JdVIfQOJcH/jRWtopHWQXLRmtMwMSulTnO
+OAxN8W7BpEVooUKXkXk6xjDX3Z+hm/uaH+oXj7qkAxMm3nQ2SU6oJGrVSZlEhgSe
++8zF13EO7J+MLE63atBXwQGujPMMsVpKGSsprNgIHEdZ+AHfB2kgmN0ZEjBG+lM2
+kE/DJwrtnwojVVC5YFrJYeoD9NvGF2ZLMyxEcvh4Dceq111hVSUgcENoEI+h1hJM
+W4DqOmxHxGRWJt538N4UehxSu4PCqS4PplTynHkzYoPh6ODLtD/XhRBeQl2f6XBn
+GJHggItkcNK70TGQyrZXjLYWwdbbV7MDYJGJvZflNrPqCYwmfgBwQ1TDRQVhPKQ=
+=VBi2
+-----END PGP SIGNATURE-----
+
+--aSkGYfF7HpsxURxE--
