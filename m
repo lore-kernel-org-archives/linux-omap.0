@@ -1,68 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] pinctrl: dra: dt-bindings: Fix output pull up/down
-Date: Mon, 10 Nov 2014 14:29:52 -0800
-Message-ID: <20141110222951.GY31454@atomide.com>
-References: <1414752745-13696-1-git-send-email-rogerq@ti.com>
- <1415009392-6627-1-git-send-email-rogerq@ti.com>
- <545A5A05.6050500@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/1] ARM: dts: dra72x-evm: Enable CPSW and MDIO
+Date: Mon, 10 Nov 2014 14:33:51 -0800
+Message-ID: <20141110223351.GZ31454@atomide.com>
+References: <1415008693-28552-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16080 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbaKJWag (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 17:30:36 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <545A5A05.6050500@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1415008693-28552-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nm-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [141105 09:12]:
-> On 11/03/2014 04:09 AM, Roger Quadros wrote:
-> > For PIN_OUTPUT_PULLUP and PIN_OUTPUT_PULLDOWN we must not set the
-> > PULL_DIS bit which disables the PULLs.
-> > 
-> > PULL_ENA is a 0 and using it in an OR operation is a NOP, so don't
-> > use it in the PIN_OUTPUT_PULLUP/DOWN macros.
-> > 
-> > Fixes: 23d9cec07c58 ("pinctrl: dra: dt-bindings: Fix pull enable/disable")
-> > 
-> > Signed-off-by: Roger Quadros <rogerq@ti.com>
-> > ---
-> >  include/dt-bindings/pinctrl/dra.h | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/include/dt-bindings/pinctrl/dra.h b/include/dt-bindings/pinctrl/dra.h
-> > index 3d33794..7448edf 100644
-> > --- a/include/dt-bindings/pinctrl/dra.h
-> > +++ b/include/dt-bindings/pinctrl/dra.h
-> > @@ -40,8 +40,8 @@
-> >  
-> >  /* Active pin states */
-> >  #define PIN_OUTPUT		(0 | PULL_DIS)
-> > -#define PIN_OUTPUT_PULLUP	(PIN_OUTPUT | PULL_ENA | PULL_UP)
-> > -#define PIN_OUTPUT_PULLDOWN	(PIN_OUTPUT | PULL_ENA)
-> > +#define PIN_OUTPUT_PULLUP	(PULL_UP)
-> > +#define PIN_OUTPUT_PULLDOWN	(0)
-> >  #define PIN_INPUT		(INPUT_EN | PULL_DIS)
-> >  #define PIN_INPUT_SLEW		(INPUT_EN | SLEWCONTROL)
-> >  #define PIN_INPUT_PULLUP	(PULL_ENA | INPUT_EN | PULL_UP)
-> > 
+* Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org> [141103 01:59]:
+> Adding CPSW phy-id, CPSW and MDIO pinmux configuration for active and
+> sleep states and enable them in board evm dts file.
 > 
+> Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+> ---
 > 
-> There might be additional updates needed to DRA7 pinctrl sequencing
-> requirements based on latest documentation:
+> Adding device tree entry for CPSW to make it work in Switch mode.
+> Patches are tested on top of Nishanth's PM tree for v3.17 [1] and pushed
+> my tree to [2].
 > 
-> http://www.ti.com/lit/ug/spruhz6/spruhz6.pdf#page=4004&zoom=auto,0,274.1
+> Did a boot test with CPSW and ping test with suspend/resume, the boot logs
+> on DRA72x EVM are posted at [3]
 > 
-> But, that has nothing to do with the bug that is currently being fixed
-> in this patch,.
-> 
-> So, for the record:
-> Acked-by: Nishanth Menon <nm@ti.com>
+> This patch depends on the DRA7xx CPSW support patch series [4] and one driver
+> patch (47276fc drivers: net:cpsw: fix probe_dt when only slave 1 is pinned out)
+> which is already present in linux-next
 
-OK applying into omap-for-v3.18/fixes thanks.
+Applying into omap-for-v3.19/dt thanks.
 
 Tony
+ 
+> [1] git://github.com/nmenon/linux-2.6-playground.git testing/v3.17/cpu-idle-suspend-dra7-omap5-framework
+> [2] git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git for-v3.19/dra72-evm-cpsw
+> [3] http://pastebin.ubuntu.com/8800549/
+> [4] http://comments.gmane.org/gmane.linux.kernel/1810171
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
