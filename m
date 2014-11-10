@@ -1,33 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/11] ARM: dts: igep00x0: Add support for new hardware
- revisions.
-Date: Mon, 10 Nov 2014 15:42:39 -0800
-Message-ID: <20141110234239.GE31454@atomide.com>
-References: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH POST V2] ARM: dts: Add am57xx-beagle-x15
+Date: Mon, 10 Nov 2014 15:46:16 -0800
+Message-ID: <20141110234615.GF31454@atomide.com>
+References: <1415382433-31772-1-git-send-email-nm@ti.com>
+ <545D1150.9000700@ti.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56987 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119AbaKJXnX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 18:43:23 -0500
+Content-Type: text/plain; charset=UTF-8
+Return-path: <beagleboard+bncBCQPVKWLVAIRB6E4QWRQKGQEVQVSORY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <545D1150.9000700-l0cyMroinI0@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <http://groups.google.com/group/beagleboard/subscribe>
+To: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gerald-xujr6ya/RELK0SuXxyvBAPegYHeGw8Jk@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Cc: linux-omap@vger.kernel.org, javier@dowhile0.org, devicetree@vger.kernel.org
 
-* Enric Balletbo i Serra <eballetbo@iseebcn.com> [141106 04:03]:
-> Hi,
+* Tom Rini <trini-l0cyMroinI0@public.gmane.org> [141107 10:38]:
+> On 11/07/2014 12:47 PM, Nishanth Menon wrote:
+> > BeagleBoard-X15 is the next generation Open Source Hardware
+> > BeagleBoard based on TI's AM5728 SoC featuring dual core 1.5GHz A15
+> > processor. The platform features 2GB DDR3L (w/dual 32bit busses),
+> > eSATA, 3 USB3.0 ports, integrated HDMI (1920x1080@60), separate LCD
+> > port, video In port, 4GB eMMC, uSD, Analog audio in/out, dual 1G
+> > Ethernet.
+> > 
+> > For more information, refer to:
+> > BeagleBoard-X15 Wiki:
+> > http://www.elinux.org/Beagleboard:BeagleBoard-X15
+> > 
+> > AM5728 is part of the Sitara product family whose additional details
+> > will be available: http://www.ti.com/lsds/ti/arm/overview.page
+> > 
+> > Technical Reference Manual for AM5728 is public domain at:
+> > http://www.ti.com/lit/spruhz6
+> > 
+> > Just add basic support for the moment, the following updates are needed:
+> >   i)	Ethernet - depends on SoC dts fixes
+> >   ii)	USB Client (USB2) - depends on GPIO extcon
+> >   ii)	HDMI - additional driver fixes pending
+> >   iii)	Audio - additional driver fixes pending
+> > 
+> > NOTE:
+> > AM5728 Data Manual (SPRS915L - August 2014) section 4.1.1 states: "All
+> > unused power supply balls must be supplied with the voltages specified
+> > in the Section 5.2, Recommended Operating Conditions". This implies
+> > that all unused voltage rails for AM5728 can never be switched off even
+> > if the hardware blocks inside that voltage domain is unused. Switching
+> > off these unused rails may result in stability issues on other domains
+> > and increased leakage and power-on-hour impacts.
+> > 
+> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 > 
-> This series is based on omap-for-v3.19/dt from tmlind repository and adds
-> device tree support for two new hardware revisions of IGEPv2 and IGEP COM
-> MODULE.
-> 
-> Please could these patches be queued for 3.19 considering that these are not
-> fixes, might be nice to get them merged for 3.19 series.
+> Reviewed-by: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
 
-Applying all into omap-for-v3.19/dt thanks.
+Applying into omap-for-v3.19/dt thanks.
 
 Tony
+
+-- 
+For more options, visit http://beagleboard.org/discuss
+--- 
+You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
