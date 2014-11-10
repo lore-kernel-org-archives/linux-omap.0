@@ -1,58 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] MAINTAINERS: Update entry for omap related .dts files to
- cover new SoCs
-Date: Mon, 10 Nov 2014 12:30:17 -0800
-Message-ID: <20141110203017.GT31454@atomide.com>
-References: <1413901462-32181-1-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1413901462-32181-1-git-send-email-nm@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv3 0/4] [media] si4713 DT binding
+Date: Mon, 10 Nov 2014 21:34:40 +0100
+Message-ID: <1415651684-3894-1-git-send-email-sre@kernel.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [141021 07:25]:
-> DRA7(including AM5x) and AM47x series are handled under OMAP umbrella=
-=2E
-> These SoC support and dts have been added since 3.14 kernel and Pull
-> requests for these have come in from OMAP till date.
->=20
-> So just ensure that get_maintainers can pick up this list as well.
+Hi,
 
-Applying this into omap-for-v3.18/fixes as we've seen some
-patches not copied to linux-omap list.
+This is the third revision of the si4713 radio transmitter DT support
+patchset needed for the Nokia N900.
 
-Regards,
+Changes since PATCHv2:
+ * Dropped patches 1-4, which have been accepted
+ * Patch 1 has been updated according to Sakari's comments
+ * Patch 3-4 are unchanged
 
-Tony
-=20
-> Cc: Beno=C3=AEt Cousson <bcousson@baylibre.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  MAINTAINERS |    3 +++
->  1 file changed, 3 insertions(+)
->=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index a20df9b..e205bd2 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6585,6 +6585,9 @@ L:	devicetree@vger.kernel.org
->  S:	Maintained
->  F:	arch/arm/boot/dts/*omap*
->  F:	arch/arm/boot/dts/*am3*
-> +F:	arch/arm/boot/dts/*am4*
-> +F:	arch/arm/boot/dts/*am5*
-> +F:	arch/arm/boot/dts/*dra7*
-> =20
->  OMAP CLOCK FRAMEWORK SUPPORT
->  M:	Paul Walmsley <paul@pwsan.com>
-> --=20
-> 1.7.9.5
->=20
+Apart from that you marked Patch 2 as not applicable last time [0].
+Normally the DT binding documentation is taken by the subsystem
+maintainer together with the driver changes. You can see the details
+in Documentation/devicetree/bindings/submitting-patches.txt
+
+For Patch 3 feedback from Tony is needed. I think the simplest solution
+would be to merge it via the media tree (assuming, that the boardcode
+is not yet removed in 3.19).
+
+[0] https://patchwork.linuxtv.org/patch/26506/
+
+-- Sebastian
+
+Sebastian Reichel (4):
+  [media] si4713: add device tree support
+  [media] si4713: add DT binding documentation
+  ARM: OMAP2: RX-51: update si4713 platform data
+  [media] si4713: cleanup platform data
+
+ Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++
+ arch/arm/mach-omap2/board-rx51-peripherals.c       | 69 ++++++++++------------
+ drivers/media/radio/si4713/radio-platform-si4713.c | 28 ++-------
+ drivers/media/radio/si4713/si4713.c                | 31 +++++++++-
+ drivers/media/radio/si4713/si4713.h                |  6 ++
+ include/media/radio-si4713.h                       | 30 ----------
+ include/media/si4713.h                             |  4 +-
+ 7 files changed, 103 insertions(+), 95 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+ delete mode 100644 include/media/radio-si4713.h
+
+-- 
+2.1.1
