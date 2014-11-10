@@ -1,79 +1,87 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: dtb size limit? was Re: Tiny dts change breaks boot on n900
-Date: Mon, 10 Nov 2014 13:58:06 +0100
-Message-ID: <20141110125806.GA16650@amd>
-References: <20141110123118.GA31134@amd>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v5 18/48] mfd: twl4030-power: Register with kernel power-off
+ handler
+Date: Mon, 10 Nov 2014 06:09:17 -0800
+Message-ID: <5460C70D.1000206@roeck-us.net>
+References: <1415292213-28652-1-git-send-email-linux@roeck-us.net> <1415292213-28652-19-git-send-email-linux@roeck-us.net> <20141110084600.GA2582@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53676 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721AbaKJM6I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 07:58:08 -0500
-Content-Disposition: inline
-In-Reply-To: <20141110123118.GA31134@amd>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:58098 "EHLO
+	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752545AbaKJOJV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 09:09:21 -0500
+Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
+	(envelope-from <linux@roeck-us.net>)
+	id 1Xnpei-003Ikk-L4
+	for linux-omap@vger.kernel.org; Mon, 10 Nov 2014 14:09:20 +0000
+In-Reply-To: <20141110084600.GA2582@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
 
-On Mon 2014-11-10 13:31:18, Pavel Machek wrote:
+On 11/10/2014 12:46 AM, Pavel Machek wrote:
 > Hi!
-> 
-> I'm confused:
-> 
-> This fixes boot on n900. Strange thing is ... adp1653 driver is not
-> even compiled in -- it is module.
-> 
-> It looks like tiny change in dts noone should care about breaks
-> boot... I don't even have adp1653 device parsing code written.
-> 
-> Something similar happened before -- change in device tree order broke
-> boot.
-> 
-> Any ideas? What is going on?
+>
+>> @@ -611,7 +611,7 @@ twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
+>>    * After a successful execution, TWL shuts down the power to the SoC
+>>    * and all peripherals connected to it.
+>>    */
+>> -void twl4030_power_off(void)
+>> +static void twl4030_power_off(struct power_off_handler_block *this)
+>>   {
+>>   	int err;
+>>
+>> @@ -621,6 +621,11 @@ void twl4030_power_off(void)
+>>   		pr_err("TWL4030 Unable to power off\n");
+>>   }
+>>
+>> +static struct power_off_handler_block twl4030_power_off_hb = {
+>> +	.handler = twl4030_power_off,
+>> +	.priority = POWER_OFF_PRIORITY_LOW,
+>> +};
+>> +
+>>   static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
+>>   					struct device_node *node)
+>>   {
+>> @@ -839,7 +844,9 @@ static int twl4030_power_probe(struct platform_device *pdev)
+>>   	}
+>>
+>>   	/* Board has to be wired properly to use this feature */
+>> -	if (twl4030_power_use_poweroff(pdata, node) && !pm_power_off) {
+>> +	if (twl4030_power_use_poweroff(pdata, node)) {
+>> +		int ret;
+>> +
+>>   		/* Default for SEQ_OFFSYNC is set, lets ensure this */
+>>   		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
+>>   				      TWL4030_PM_MASTER_CFG_P123_TRANSITION);
+>> @@ -856,7 +863,11 @@ static int twl4030_power_probe(struct platform_device *pdev)
+>>   			}
+>>   		}
+>>
+>> -		pm_power_off = twl4030_power_off;
+>> +		ret = devm_register_power_off_handler(&pdev->dev,
+>> +						      &twl4030_power_off_hb);
+>> +		if (ret)
+>> +			dev_warn(&pdev->dev,
+>> +				 "Failed to register power-off handler\n");
+>>   	}
+>>
+>
+> Could we get rid of the "struct power_off_handler_block" and guarantee
+> that register_power_off never fails (or print message from the
+> register_power_off...)? That way, your patch would be an cleanup.
+>
+> You could then add priorities if they turn out to be really
+> neccessary, later...
 
-If I replace the blog below with
+Priorities are necessary. We had _that_ discussion before.
+Priorities solve the problem where multiple handlers are installed,
+either conditionally or unconditionally. If I take priorities away,
+a substantial part of the patch set's value gets lost, and I might
+as well drop it.
 
- a = <1>;
- b = <2>;
- c = <3>;
- d = <4>;
+Guenter
 
-Resulting kernel boots. Replacing it with
-
- a-really-long-attribute-name-hopefully-this-breaks-stuff = <1>;
- b = <2>;
- c = <3>;
- d = <4>;
-
-Breaks the boot. I'm using dtb append option. Any ideas? Nonbooting
-dtb is 68910 bytes.
-
-pavel@amd:/data/l/linux-n900$ ls -al arch/arm/boot/dts/omap3-n900.dtb 
--rw-r--r-- 1 pavel pavel 68910 Nov 10 13:52 arch/arm/boot/dts/omap3-n900.dtb
-
-I removed some "smsc,lan91c94" settings, and it boots again. Weird.
-
-> 								Pavel
-> 
-> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-> index f3118bf..557a19e 100644
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -565,11 +565,6 @@
->  	adp1653: adp1653@30 {
->  		compatible = "ad,adp1653";
->  		reg = <0x30>;
-> -
-> -		max-flash-timeout-usec = <500000>;
-> -		max-flash-intensity-mA = <0>;
-> -		max-torch-intensity-mA = <0>;
-> -		max-indicator-intensity-uA = <0>;
->  	};
->  };
->  
-> 
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
