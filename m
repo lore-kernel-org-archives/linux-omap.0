@@ -1,52 +1,36 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv3 0/4] [media] si4713 DT binding
-Date: Mon, 10 Nov 2014 21:34:40 +0100
-Message-ID: <1415651684-3894-1-git-send-email-sre@kernel.org>
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
+Subject: [PATCHv3 4/4] [media] si4713: cleanup platform data
+Date: Mon, 10 Nov 2014 21:34:44 +0100
+Message-ID: <1415651684-3894-5-git-send-email-sre@kernel.org>
+References: <1415651684-3894-1-git-send-email-sre@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1415651684-3894-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Remove unreferenced members from the platform
+data's structure.
 
-This is the third revision of the si4713 radio transmitter DT support
-patchset needed for the Nokia N900.
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ include/media/si4713.h | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Changes since PATCHv2:
- * Dropped patches 1-4, which have been accepted
- * Patch 1 has been updated according to Sakari's comments
- * Patch 3-4 are unchanged
-
-Apart from that you marked Patch 2 as not applicable last time [0].
-Normally the DT binding documentation is taken by the subsystem
-maintainer together with the driver changes. You can see the details
-in Documentation/devicetree/bindings/submitting-patches.txt
-
-For Patch 3 feedback from Tony is needed. I think the simplest solution
-would be to merge it via the media tree (assuming, that the boardcode
-is not yet removed in 3.19).
-
-[0] https://patchwork.linuxtv.org/patch/26506/
-
--- Sebastian
-
-Sebastian Reichel (4):
-  [media] si4713: add device tree support
-  [media] si4713: add DT binding documentation
-  ARM: OMAP2: RX-51: update si4713 platform data
-  [media] si4713: cleanup platform data
-
- Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++
- arch/arm/mach-omap2/board-rx51-peripherals.c       | 69 ++++++++++------------
- drivers/media/radio/si4713/radio-platform-si4713.c | 28 ++-------
- drivers/media/radio/si4713/si4713.c                | 31 +++++++++-
- drivers/media/radio/si4713/si4713.h                |  6 ++
- include/media/radio-si4713.h                       | 30 ----------
- include/media/si4713.h                             |  4 +-
- 7 files changed, 103 insertions(+), 95 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
- delete mode 100644 include/media/radio-si4713.h
-
+diff --git a/include/media/si4713.h b/include/media/si4713.h
+index 343b8fb5..be4f58e 100644
+--- a/include/media/si4713.h
++++ b/include/media/si4713.h
+@@ -23,9 +23,6 @@
+  * Platform dependent definition
+  */
+ struct si4713_platform_data {
+-	const char * const *supply_names;
+-	unsigned supplies;
+-	int gpio_reset; /* < 0 if not used */
+ 	bool is_platform_device;
+ };
+ 
 -- 
 2.1.1
