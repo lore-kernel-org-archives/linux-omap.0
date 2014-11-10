@@ -1,17 +1,17 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH v6 14/48] mfd: tps80031: Register with kernel power-off handler
-Date: Sun,  9 Nov 2014 17:42:31 -0800
-Message-ID: <1415583785-6980-15-git-send-email-linux@roeck-us.net>
+Subject: [PATCH v6 09/48] mfd: palmas: Register with kernel power-off handler
+Date: Sun,  9 Nov 2014 17:42:26 -0800
+Message-ID: <1415583785-6980-10-git-send-email-linux@roeck-us.net>
 References: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:38993 "EHLO
+Received: from bh-25.webhostbox.net ([208.91.199.152]:38944 "EHLO
 	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245AbaKJBoB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 20:44:01 -0500
+	with ESMTP id S1752134AbaKJBns (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 20:43:48 -0500
 Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
 	(envelope-from <linux@roeck-us.net>)
-	id 1Xne1Q-000Ubo-Qx
-	for linux-omap@vger.kernel.org; Mon, 10 Nov 2014 01:44:00 +0000
+	id 1Xne1E-000UQN-B9
+	for linux-omap@vger.kernel.org; Mon, 10 Nov 2014 01:43:48 +0000
 In-Reply-To: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -43,92 +43,102 @@ v3:
 - Replace POWEROFF_PRIORITY_xxx with POWER_OFF_PRIORITY_xxx
 v2:
 - Use define to specify poweroff handler priority
+- Use devm_register_power_off_handler
 - Use dev_warn instead of dev_err
 
- drivers/mfd/tps80031.c       | 27 +++++++++++++++------------
- include/linux/mfd/tps80031.h |  2 ++
- 2 files changed, 17 insertions(+), 12 deletions(-)
+ drivers/mfd/palmas.c       | 28 ++++++++++++++--------------
+ include/linux/mfd/palmas.h |  3 +++
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/mfd/tps80031.c b/drivers/mfd/tps80031.c
-index ed6c5b0..996fd7c 100644
---- a/drivers/mfd/tps80031.c
-+++ b/drivers/mfd/tps80031.c
-@@ -147,7 +147,6 @@ static const struct tps80031_pupd_data tps80031_pupds[] = {
- 	[TPS80031_CTLI2C_SCL]		= PUPD_DATA(4, 0,	BIT(2)),
- 	[TPS80031_CTLI2C_SDA]		= PUPD_DATA(4, 0,	BIT(3)),
- };
--static struct tps80031 *tps80031_power_off_dev;
- 
- int tps80031_ext_power_req_config(struct device *dev,
- 		unsigned long ext_ctrl_flag, int preq_bit,
-@@ -209,11 +208,14 @@ int tps80031_ext_power_req_config(struct device *dev,
- }
- EXPORT_SYMBOL_GPL(tps80031_ext_power_req_config);
- 
--static void tps80031_power_off(void)
-+static void tps80031_power_off(struct power_off_handler_block *this)
- {
--	dev_info(tps80031_power_off_dev->dev, "switching off PMU\n");
--	tps80031_write(tps80031_power_off_dev->dev, TPS80031_SLAVE_ID1,
--				TPS80031_PHOENIX_DEV_ON, TPS80031_DEVOFF);
-+	struct tps80031 *tps80031 = container_of(this, struct tps80031,
-+						 power_off_hb);
-+
-+	dev_info(tps80031->dev, "switching off PMU\n");
-+	tps80031_write(tps80031->dev, TPS80031_SLAVE_ID1,
-+		       TPS80031_PHOENIX_DEV_ON, TPS80031_DEVOFF);
- }
- 
- static void tps80031_pupd_init(struct tps80031 *tps80031,
-@@ -501,9 +503,13 @@ static int tps80031_probe(struct i2c_client *client,
- 		goto fail_mfd_add;
- 	}
- 
--	if (pdata->use_power_off && !pm_power_off) {
--		tps80031_power_off_dev = tps80031;
--		pm_power_off = tps80031_power_off;
-+	if (pdata->use_power_off) {
-+		tps80031->power_off_hb.handler = tps80031_power_off;
-+		tps80031->power_off_hb.priority = POWER_OFF_PRIORITY_LOW;
-+		ret = register_power_off_handler(&tps80031->power_off_hb);
-+		if (ret)
-+			dev_warn(&client->dev,
-+				 "Failed to register power-off handler\n");
- 	}
- 	return 0;
- 
-@@ -523,10 +529,7 @@ static int tps80031_remove(struct i2c_client *client)
- 	struct tps80031 *tps80031 = i2c_get_clientdata(client);
- 	int i;
- 
--	if (tps80031_power_off_dev == tps80031) {
--		tps80031_power_off_dev = NULL;
--		pm_power_off = NULL;
--	}
-+	unregister_power_off_handler(&tps80031->power_off_hb);
- 
- 	mfd_remove_devices(tps80031->dev);
- 
-diff --git a/include/linux/mfd/tps80031.h b/include/linux/mfd/tps80031.h
-index 2c75c9c..5716077 100644
---- a/include/linux/mfd/tps80031.h
-+++ b/include/linux/mfd/tps80031.h
-@@ -24,6 +24,7 @@
- #define __LINUX_MFD_TPS80031_H
- 
- #include <linux/device.h>
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 28cb048..60f81ed 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -19,6 +19,7 @@
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
 +#include <linux/pm.h>
  #include <linux/regmap.h>
+ #include <linux/err.h>
+ #include <linux/mfd/core.h>
+@@ -425,20 +426,17 @@ static void palmas_dt_to_pdata(struct i2c_client *i2c,
+ 			"ti,system-power-controller");
+ }
  
- /* Pull-ups/Pull-downs */
-@@ -513,6 +514,7 @@ struct tps80031 {
- 	struct i2c_client	*clients[TPS80031_NUM_SLAVES];
- 	struct regmap		*regmap[TPS80031_NUM_SLAVES];
- 	struct regmap_irq_chip_data *irq_data;
+-static struct palmas *palmas_dev;
+-static void palmas_power_off(void)
++static void palmas_power_off(struct power_off_handler_block *this)
+ {
++	struct palmas *palmas = container_of(this, struct palmas, power_off_hb);
+ 	unsigned int addr;
+ 	int ret, slave;
+ 
+-	if (!palmas_dev)
+-		return;
+-
+ 	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PMU_CONTROL_BASE);
+ 	addr = PALMAS_BASE_TO_REG(PALMAS_PMU_CONTROL_BASE, PALMAS_DEV_CTRL);
+ 
+ 	ret = regmap_update_bits(
+-			palmas_dev->regmap[slave],
++			palmas->regmap[slave],
+ 			addr,
+ 			PALMAS_DEV_CTRL_DEV_ON,
+ 			0);
+@@ -668,9 +666,16 @@ no_irq:
+ 		ret = of_platform_populate(node, NULL, NULL, &i2c->dev);
+ 		if (ret < 0) {
+ 			goto err_irq;
+-		} else if (pdata->pm_off && !pm_power_off) {
+-			palmas_dev = palmas;
+-			pm_power_off = palmas_power_off;
++		} else if (pdata->pm_off) {
++			int ret2;
++
++			palmas->power_off_hb.handler = palmas_power_off;
++			palmas->power_off_hb.priority = POWER_OFF_PRIORITY_LOW;
++			ret2 = devm_register_power_off_handler(palmas->dev,
++							&palmas->power_off_hb);
++			if (ret2)
++				dev_warn(palmas->dev,
++					 "Failed to register power-off handler");
+ 		}
+ 	}
+ 
+@@ -698,11 +703,6 @@ static int palmas_i2c_remove(struct i2c_client *i2c)
+ 			i2c_unregister_device(palmas->i2c_clients[i]);
+ 	}
+ 
+-	if (palmas == palmas_dev) {
+-		pm_power_off = NULL;
+-		palmas_dev = NULL;
+-	}
+-
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+index fb0390a..7a43f7b 100644
+--- a/include/linux/mfd/palmas.h
++++ b/include/linux/mfd/palmas.h
+@@ -18,6 +18,7 @@
+ 
+ #include <linux/usb/otg.h>
+ #include <linux/leds.h>
++#include <linux/pm.h>
+ #include <linux/regmap.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/extcon.h>
+@@ -68,6 +69,8 @@ struct palmas {
+ 	struct i2c_client *i2c_clients[PALMAS_NUM_CLIENTS];
+ 	struct regmap *regmap[PALMAS_NUM_CLIENTS];
+ 
 +	struct power_off_handler_block power_off_hb;
- };
++
+ 	/* Stored chip id */
+ 	int id;
  
- struct tps80031_pupd_init_data {
 -- 
 1.9.1
 
