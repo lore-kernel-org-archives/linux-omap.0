@@ -1,61 +1,50 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] bus: omap_l3_noc: Correct returning IRQ_HANDLED unconditionally
- in the irq handler
-Date: Mon, 10 Nov 2014 09:30:02 -0600
-Message-ID: <5460D9FA.3000201@ti.com>
-References: <1415595784-5646-1-git-send-email-j-keerthy@ti.com> <1415595784-5646-3-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc: Get rid of "ti,elm-id not found"
+ warning
+Date: Mon, 10 Nov 2014 09:00:57 -0800
+Message-ID: <20141110170056.GJ31454@atomide.com>
+References: <1415363219-25644-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52480 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753124AbaKJPaJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Nov 2014 10:30:09 -0500
-In-Reply-To: <1415595784-5646-3-git-send-email-j-keerthy@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46144 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752799AbaKJRBm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 12:01:42 -0500
+Content-Disposition: inline
+In-Reply-To: <1415363219-25644-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org
-Cc: afzal@ti.com, tony@atomide.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: ezequiel@vanguardiasur.com.ar, linux-omap@vger.kernel.org, pekon@pek-sem.com
 
-On 11/09/2014 11:03 PM, Keerthy wrote:
-> Correct returning IRQ_HANDLED unconditionally in the irq handler.
-> Return IRQ_NONE for some interrupt which we do not expect to be
-> handled in this handler. This prevents kernel stalling with back
-> to back spurious interrupts.
+* Roger Quadros <rogerq@ti.com> [141107 04:28]:
+> OMAP3 and lower SoCs don't have the ELM module so this warning
+> is annoying. Get rid of it.
 > 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-
-Consider providing an appropriate fixes comment here as well?
-
+> Reported-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  drivers/bus/omap_l3_noc.c |    8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/gpmc.c | 2 --
+>  1 file changed, 2 deletions(-)
 > 
-> diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-> index b5eac29..17d8659 100644
-> --- a/drivers/bus/omap_l3_noc.c
-> +++ b/drivers/bus/omap_l3_noc.c
-> @@ -222,10 +222,14 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
->  			}
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 104bc2c..2334235 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -1394,8 +1394,6 @@ static int gpmc_probe_nand_child(struct platform_device *pdev,
+>  	if (gpmc_nand_data->elm_of_node == NULL)
+>  		gpmc_nand_data->elm_of_node =
+>  					of_parse_phandle(child, "elm_id", 0);
+> -	if (gpmc_nand_data->elm_of_node == NULL)
+> -		pr_warn("%s: ti,elm-id property not found\n", __func__);
 >  
->  			/* Error found so break the for loop */
-> -			break;
-> +			return IRQ_HANDLED;
->  		}
->  	}
-> -	return IRQ_HANDLED;
-> +
-> +	dev_err(l3->dev, "L3 %s IRQ not handled!!\n",
-> +		inttype ? "debug" : "application");
-> +
-> +	return IRQ_NONE;
->  }
->  
->  static const struct of_device_id l3_noc_match[] = {
-> 
+>  	/* select ecc-scheme for NAND */
+>  	if (of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
 
+I'll apply this into omap-for-v3.19/fixes-not-urgent as that's where
+the various error and warning message fixes are.
 
--- 
-Regards,
-Nishanth Menon
+Thanks,
+
+Tony
