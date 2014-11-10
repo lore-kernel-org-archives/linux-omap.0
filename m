@@ -1,34 +1,58 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 0/2] bus: omap_l3_noc: Add resume hook to restore mask registers
-Date: Mon, 10 Nov 2014 23:49:46 +0530
-Message-ID: <1415643588-14508-1-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] ARM: dts: dra72-evm: NAND and USB support
+Date: Mon, 10 Nov 2014 12:26:07 -0800
+Message-ID: <20141110202606.GS31454@atomide.com>
+References: <1413888080-2669-1-git-send-email-rogerq@ti.com>
+ <54524CD5.5060103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45615 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750941AbaKJSYA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Nov 2014 13:24:00 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38287 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218AbaKJU0w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 15:26:52 -0500
+Content-Disposition: inline
+In-Reply-To: <54524CD5.5060103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: j-keerthy@ti.com, nm@ti.com, afzal@ti.com, tony@atomide.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, nsekhar@ti.com, george.cherian@ti.com, nm@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-l3_noc module loses context during both DS0 and RTC+DDR in self refresh modes.
-This causes the previously masked l3 interrupts to trigger and the software
-book keeping assumes the interrupts are masked and does nothing to mask.
-This software/hardware out of sync leads to back to back l3 interrupts
-and eventually causes a hang. Hence adding resume hook to restore the
-mask registers based on the book keeping variables
+* Roger Quadros <rogerq@ti.com> [141030 07:37]:
+> Hi Tony,
+> 
+> On 10/21/2014 01:41 PM, Roger Quadros wrote:
+> > Hi Tony,
+> > 
+> > These patches add NAND and USB support for DRA72-evm.
+> > Patches are for v3.19 and based on v3.18-rc1.
+> > 
+> > I've tested that NAND and USB host works fine on DRA72-evm.
+> > 
+> > I couldn't get USB gadget mode to work. It doesn't work on DRA7-evm either.
+> > There seems to be some issue at the driver level. The dts entries are correct though.
+> 
+> Any further comments on this? Can we please queue this for -next? Thanks.
 
-Keerthy (2):
-  bus: omap_l3_noc: Add resume hook to restore context
-  bus: omap_l3_noc: Correct returning IRQ_HANDLED unconditionally in
-    the irq handler
+Applying into omap-for-v3.19/dt thanks.
 
- drivers/bus/omap_l3_noc.c |   63 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 61 insertions(+), 2 deletions(-)
+Tony
 
--- 
-1.7.9.5
-
+ 
+> > cheers,
+> > -roger
+> > 
+> > George Cherian (1):
+> >   ARM: dts: dra72-evm: Enable USB support for dra72-evm.
+> > 
+> > Roger Quadros (3):
+> >   ARM: dts: dra72-evm: Add NAND support
+> >   ARM: dts: DRA7: Move USB_OTG 4 to dra74x.dtsi
+> >   ARM: dts: dra72-evm: Add regulator information to USB2 PHYs
+> > 
+> >  arch/arm/boot/dts/dra7.dtsi     |  20 ------
+> >  arch/arm/boot/dts/dra72-evm.dts | 147 ++++++++++++++++++++++++++++++++++++++++
+> >  arch/arm/boot/dts/dra74x.dtsi   |  22 ++++++
+> >  3 files changed, 169 insertions(+), 20 deletions(-)
+> > 
+> 
