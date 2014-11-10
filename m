@@ -1,74 +1,64 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v5 18/48] mfd: twl4030-power: Register with kernel
- power-off handler
-Date: Mon, 10 Nov 2014 09:46:00 +0100
-Message-ID: <20141110084600.GA2582@amd>
-References: <1415292213-28652-1-git-send-email-linux@roeck-us.net>
- <1415292213-28652-19-git-send-email-linux@roeck-us.net>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 6/8] net: can: c_can: Disable pins when CAN interface
+ is down
+Date: Mon, 10 Nov 2014 11:00:31 +0200
+Message-ID: <54607EAF.40602@ti.com>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com> <545CDD30.2070508@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1415292213-28652-19-git-send-email-linux@roeck-us.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <545CDD30.2070508@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On 11/07/2014 04:54 PM, Marc Kleine-Budde wrote:
+> On 11/07/2014 03:49 PM, Roger Quadros wrote:
+>> DRA7 CAN IP suffers from a problem which causes it to be prevented
+>> from fully turning OFF (i.e. stuck in transition) if the module was
+>> disabled while there was traffic on the CAN_RX line.
+>>
+>> To work around this issue we select the SLEEP pin state by default
+>> on probe and use the DEFAULT pin state on CAN up and back to the
+>> SLEEP pin state on CAN down.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  drivers/net/can/c_can/c_can.c          | 20 ++++++++++++++++++++
+>>  drivers/net/can/c_can/c_can.h          |  1 +
+>>  drivers/net/can/c_can/c_can_platform.c | 20 ++++++++++++++++++++
+>>  3 files changed, 41 insertions(+)
+>>
+>> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+>> index 8e78bb4..4dfc3ce 100644
+>> --- a/drivers/net/can/c_can/c_can.c
+>> +++ b/drivers/net/can/c_can/c_can.c
+>> @@ -35,6 +35,7 @@
+>>  #include <linux/list.h>
+>>  #include <linux/io.h>
+>>  #include <linux/pm_runtime.h>
+>> +#include <linux/pinctrl/consumer.h>
+>>  
+>>  #include <linux/can.h>
+>>  #include <linux/can/dev.h>
+>> @@ -603,6 +604,15 @@ static int c_can_start(struct net_device *dev)
+>>  
+>>  	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>>  
+>> +	/* activate pins */
+>> +	if (!IS_ERR(priv->pinctrl)) {
+>> +		struct pinctrl_state *s;
+>> +
+>> +		s = pinctrl_lookup_state(priv->pinctrl, PINCTRL_STATE_DEFAULT);
+>> +		if (!IS_ERR(s))
+>> +			pinctrl_select_state(priv->pinctrl, s);
+>> +	}
+> 
+> Please put this common code into a seperate function.
 
-> @@ -611,7 +611,7 @@ twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
->   * After a successful execution, TWL shuts down the power to the SoC
->   * and all peripherals connected to it.
->   */
-> -void twl4030_power_off(void)
-> +static void twl4030_power_off(struct power_off_handler_block *this)
->  {
->  	int err;
->  
-> @@ -621,6 +621,11 @@ void twl4030_power_off(void)
->  		pr_err("TWL4030 Unable to power off\n");
->  }
->  
-> +static struct power_off_handler_block twl4030_power_off_hb = {
-> +	.handler = twl4030_power_off,
-> +	.priority = POWER_OFF_PRIORITY_LOW,
-> +};
-> +
->  static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
->  					struct device_node *node)
->  {
-> @@ -839,7 +844,9 @@ static int twl4030_power_probe(struct platform_device *pdev)
->  	}
->  
->  	/* Board has to be wired properly to use this feature */
-> -	if (twl4030_power_use_poweroff(pdata, node) && !pm_power_off) {
-> +	if (twl4030_power_use_poweroff(pdata, node)) {
-> +		int ret;
-> +
->  		/* Default for SEQ_OFFSYNC is set, lets ensure this */
->  		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
->  				      TWL4030_PM_MASTER_CFG_P123_TRANSITION);
-> @@ -856,7 +863,11 @@ static int twl4030_power_probe(struct platform_device *pdev)
->  			}
->  		}
->  
-> -		pm_power_off = twl4030_power_off;
-> +		ret = devm_register_power_off_handler(&pdev->dev,
-> +						      &twl4030_power_off_hb);
-> +		if (ret)
-> +			dev_warn(&pdev->dev,
-> +				 "Failed to register power-off handler\n");
->  	}
->  
+Oops, forgot this one in a hurry.
 
-Could we get rid of the "struct power_off_handler_block" and guarantee
-that register_power_off never fails (or print message from the
-register_power_off...)? That way, your patch would be an cleanup.
-
-You could then add priorities if they turn out to be really
-neccessary, later...
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+cheers,
+-roger
