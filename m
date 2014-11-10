@@ -1,37 +1,26 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: dts: sbc-t3x: add DVI display data
-Date: Mon, 10 Nov 2014 09:48:45 -0800
-Message-ID: <20141110174845.GP31454@atomide.com>
-References: <1413364186-23752-1-git-send-email-lifshitz@compulab.co.il>
- <1414927198-7127-1-git-send-email-lifshitz@compulab.co.il>
- <54561E45.7000404@compulab.co.il>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: omap3-gta04: Use omap specific pinctrl defines
+Date: Mon, 10 Nov 2014 09:51:05 -0800
+Message-ID: <20141110175104.GQ31454@atomide.com>
+References: <1413577923-23526-1-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34609 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752910AbaKJRtc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 12:49:32 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <54561E45.7000404@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1413577923-23526-1-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Igor Grinberg <grinberg@compulab.co.il> [141102 04:08]:
-> On 11/02/14 13:19, Dmitry Lifshitz wrote:
-> > Add DSS related pinmux and display data nodes required to support
-> > DVI video out on SBC-T3530, SBC-T3730 and SBC-T3517.
-> > 
-> > Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
-> 
-> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+* Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [141017 13:33]:
+> Use omap specific pinctrl defines (OMAP3_CORE1_IOPAD) to configure
+> the padconf register offset.
 
 Thanks applying into omap-for-v3.19/dt.
 
-Are we now ready to drop the board-cm-*.c files?
-
-Regards,
-
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
