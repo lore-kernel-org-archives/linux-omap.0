@@ -1,74 +1,33 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
- devconf1 register
-Date: Mon, 10 Nov 2014 15:36:31 -0800
-Message-ID: <20141110233630.GD31454@atomide.com>
-References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
- <1415051968-4878-5-git-send-email-marek@goldelico.com>
+Subject: Re: [PATCH 00/11] ARM: dts: igep00x0: Add support for new hardware
+ revisions.
+Date: Mon, 10 Nov 2014 15:42:39 -0800
+Message-ID: <20141110234239.GE31454@atomide.com>
+References: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56987 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119AbaKJXnX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 18:43:23 -0500
 Content-Disposition: inline
-In-Reply-To: <1415051968-4878-5-git-send-email-marek@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marek Belisko <marek@goldelico.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
+In-Reply-To: <1415275311-6857-1-git-send-email-eballetbo@iseebcn.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Cc: linux-omap@vger.kernel.org, javier@dowhile0.org, devicetree@vger.kernel.org
 
-* Marek Belisko <marek@goldelico.com> [141103 14:01]:
-> gta04 board need for tvout enabled 2 bits in devconf1 register (tvbypass and acbias).
-> Add single pinmux entry and enable it.
+* Enric Balletbo i Serra <eballetbo@iseebcn.com> [141106 04:03]:
+> Hi,
 > 
-> Signed-off-by: Marek Belisko <marek@goldelico.com>
-> ---
->  arch/arm/boot/dts/omap3-gta04.dtsi | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
+> This series is based on omap-for-v3.19/dt from tmlind repository and adds
+> device tree support for two new hardware revisions of IGEPv2 and IGEP COM
+> MODULE.
 > 
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-> index e4d05f0..a456d37 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> @@ -118,6 +118,17 @@
->  			};
->  		};
->  	};
-> +
-> +	/* pinmux for devconf1 */
-> +	control_devconf1: pinmux@480022d8 {
-> +		compatible = "pinctrl-single";
-> +		reg = <0x480022d8 4>;	/* single register */
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +		pinctrl-single,bit-per-mux;
-> +		pinctrl-single,register-width = <32>;
-> +		pinctrl-single,function-mask = <0xfc0bd5>;
-> +	};
->  };
->  
+> Please could these patches be queued for 3.19 considering that these are not
+> fixes, might be nice to get them merged for 3.19 series.
 
-The pinctrl-single entry should be in omap3.dtsi as the mux register is there
-for all the omap3 devices, can you please update the patch for that?
-
-Regards,
+Applying all into omap-for-v3.19/dt thanks.
 
 Tony
-
->  &omap3_pmx_core {
-> @@ -497,3 +508,14 @@
->  		};
->  	};
->  };
-> +
-> +&control_devconf1 {
-> +	pinctrl-name = "default";
-> +	pinctrl-0 = < &tv_acbias_pins>;
-> +
-> +	tv_acbias_pins: pinmux_tv_acbias_pins {
-> +		pinctrl-single,bits = <
-> +			0 0x40800 0x40800
-> +		>;
-> +	};
-> +};
-> -- 
-> 1.9.1
-> 
