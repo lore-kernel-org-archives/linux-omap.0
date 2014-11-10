@@ -1,72 +1,64 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH POST V2] ARM: dts: Add am57xx-beagle-x15
-Date: Mon, 10 Nov 2014 15:46:16 -0800
-Message-ID: <20141110234615.GF31454@atomide.com>
-References: <1415382433-31772-1-git-send-email-nm@ti.com>
- <545D1150.9000700@ti.com>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Subject: Re: [PATCH] ARM: dts: DRA7: Add aliases for all serial ports
+Date: Mon, 10 Nov 2014 15:49:38 -0800
+Message-ID: <20141110234937.GG31454@atomide.com>
+References: <1413908295-699-1-git-send-email-nm@ti.com>
+ <3461773.MMIsJQMVIu@wuerfel>
+ <5446BCEB.3020708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <beagleboard+bncBCQPVKWLVAIRB6E4QWRQKGQEVQVSORY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <545D1150.9000700-l0cyMroinI0@public.gmane.org>
-List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <http://groups.google.com/group/beagleboard/subscribe>
-To: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gerald-xujr6ya/RELK0SuXxyvBAPegYHeGw8Jk@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <5446BCEB.3020708-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Franklin Cooper Jr." <fcooper-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tom Rini <trini-l0cyMroinI0@public.gmane.org> [141107 10:38]:
-> On 11/07/2014 12:47 PM, Nishanth Menon wrote:
-> > BeagleBoard-X15 is the next generation Open Source Hardware
-> > BeagleBoard based on TI's AM5728 SoC featuring dual core 1.5GHz A15
-> > processor. The platform features 2GB DDR3L (w/dual 32bit busses),
-> > eSATA, 3 USB3.0 ports, integrated HDMI (1920x1080@60), separate LCD
-> > port, video In port, 4GB eMMC, uSD, Analog audio in/out, dual 1G
-> > Ethernet.
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [141021 13:08]:
+> On 10/21/2014 02:57 PM, Arnd Bergmann wrote:
+> > On Tuesday 21 October 2014 11:18:15 Nishanth Menon wrote:
+> >> Add serial port aliases for consoles > 6.
+> >>
+> >> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> >> ---
+> >>  arch/arm/boot/dts/dra7.dtsi |    4 ++++
+> >>  1 file changed, 4 insertions(+)
+> >>
+> >> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> >> index 9cc9843..208dd83 100644
+> >> --- a/arch/arm/boot/dts/dra7.dtsi
+> >> +++ b/arch/arm/boot/dts/dra7.dtsi
+> >> @@ -34,6 +34,10 @@
+> >>                 serial3 = &uart4;
+> >>                 serial4 = &uart5;
+> >>                 serial5 = &uart6;
+> >> +               serial6 = &uart7;
+> >> +               serial7 = &uart8;
+> >> +               serial8 = &uart9;
+> >> +               serial9 = &uart10;
+> >>
 > > 
-> > For more information, refer to:
-> > BeagleBoard-X15 Wiki:
-> > http://www.elinux.org/Beagleboard:BeagleBoard-X15
+> > I think this was wrong to start with: The aliases should be in the per-board
+> > .dts file and only list the ones that are actually connected to the outside.
 > > 
-> > AM5728 is part of the Sitara product family whose additional details
-> > will be available: http://www.ti.com/lsds/ti/arm/overview.page
-> > 
-> > Technical Reference Manual for AM5728 is public domain at:
-> > http://www.ti.com/lit/spruhz6
-> > 
-> > Just add basic support for the moment, the following updates are needed:
-> >   i)	Ethernet - depends on SoC dts fixes
-> >   ii)	USB Client (USB2) - depends on GPIO extcon
-> >   ii)	HDMI - additional driver fixes pending
-> >   iii)	Audio - additional driver fixes pending
-> > 
-> > NOTE:
-> > AM5728 Data Manual (SPRS915L - August 2014) section 4.1.1 states: "All
-> > unused power supply balls must be supplied with the voltages specified
-> > in the Section 5.2, Recommended Operating Conditions". This implies
-> > that all unused voltage rails for AM5728 can never be switched off even
-> > if the hardware blocks inside that voltage domain is unused. Switching
-> > off these unused rails may result in stability issues on other domains
-> > and increased leakage and power-on-hour impacts.
-> > 
-> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> > Otherwise the numbering won't match what's written on the board.
 > 
-> Reviewed-by: Tom Rini <trini-l0cyMroinI0@public.gmane.org>
+> At least in the case of DRA7 boards, they are not written specifically
+> since they come out over onboard FTDI usb2serial.
+> 
+> This will at least ensure that /dev/ttyO9 will always point to uart10
+> no matter the board, instead of having ttyO0 always pointing to
+> console serial port no matter the board (and having to guess which
+> figure out it actually was aliased to).
 
-Applying into omap-for-v3.19/dt thanks.
+It seems that having the UART numbering make sense is a good reason
+to apply this one. So applying into omap-for-v3.19/dt.
+
+Regards,
 
 Tony
-
--- 
-For more options, visit http://beagleboard.org/discuss
---- 
-You received this message because you are subscribed to the Google Groups "BeagleBoard" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
