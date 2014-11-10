@@ -1,136 +1,79 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
- enabled
-Date: Mon, 10 Nov 2014 12:40:19 +0000
-Message-ID: <20141110124019.GZ21424@x1>
-References: <20141102180756.GH31454@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: dtb size limit? was Re: Tiny dts change breaks boot on n900
+Date: Mon, 10 Nov 2014 13:58:06 +0100
+Message-ID: <20141110125806.GA16650@amd>
+References: <20141110123118.GA31134@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:47967 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249AbaKJMkZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 07:40:25 -0500
-Received: by mail-ig0-f178.google.com with SMTP id a13so8965349igq.17
-        for <linux-omap@vger.kernel.org>; Mon, 10 Nov 2014 04:40:24 -0800 (PST)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53676 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721AbaKJM6I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 07:58:08 -0500
 Content-Disposition: inline
-In-Reply-To: <20141102180756.GH31454@atomide.com>
+In-Reply-To: <20141110123118.GA31134@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 
-On Sun, 02 Nov 2014, Tony Lindgren wrote:
+On Mon 2014-11-10 13:31:18, Pavel Machek wrote:
+> Hi!
+> 
+> I'm confused:
+> 
+> This fixes boot on n900. Strange thing is ... adp1653 driver is not
+> even compiled in -- it is module.
+> 
+> It looks like tiny change in dts noone should care about breaks
+> boot... I don't even have adp1653 device parsing code written.
+> 
+> Something similar happened before -- change in device tree order broke
+> boot.
+> 
+> Any ideas? What is going on?
 
-> Commit e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset
-> configuration") enabled configuring the PM features for twl4030.
->=20
-> This caused poweroff command to fail on devices that have the
-> BCI charger on twl4030 wired, or have power wired for VBUS.
-> Instead of powering off, the device reboots. This is because
-> voltage is detected on charger or VBUS with the default bits
-> enabled for the power transition registers.
->=20
-> To fix the issue, let's just clear VBUS and CHG bits as we want
-> poweroff command to keep the system powered off.
->=20
-> Fixes: e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset configura=
-tion")
-> Cc: stable@vger.kernel.org # v3.16+
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+If I replace the blog below with
 
-Applied to -fixes.
+ a = <1>;
+ b = <2>;
+ c = <3>;
+ d = <4>;
 
-Not sure whether that was an Ack from Russell or not?
+Resulting kernel boots. Replacing it with
 
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -44,6 +44,15 @@ static u8 twl4030_start_script_address =3D 0x2b;
->  #define PWR_DEVSLP		BIT(1)
->  #define PWR_DEVOFF		BIT(0)
-> =20
-> +/* Register bits for CFG_P1_TRANSITION (also for P2 and P3) */
-> +#define STARTON_SWBUG		BIT(7)	/* Start on watchdog */
-> +#define STARTON_VBUS		BIT(5)	/* Start on VBUS */
-> +#define STARTON_VBAT		BIT(4)	/* Start on battery insert */
-> +#define STARTON_RTC		BIT(3)	/* Start on RTC */
-> +#define STARTON_USB		BIT(2)	/* Start on USB host */
-> +#define STARTON_CHG		BIT(1)	/* Start on charger */
-> +#define STARTON_PWON		BIT(0)	/* Start on PWRON button */
-> +
->  #define SEQ_OFFSYNC		(1 << 0)
-> =20
->  #define PHY_TO_OFF_PM_MASTER(p)		(p - 0x36)
-> @@ -606,6 +615,44 @@ twl4030_power_configure_resources(const struct t=
-wl4030_power_data *pdata)
->  	return 0;
->  }
-> =20
-> +static int twl4030_starton_mask_and_set(u8 bitmask, u8 bitvalues)
-> +{
-> +	u8 regs[3] =3D { TWL4030_PM_MASTER_CFG_P1_TRANSITION,
-> +		       TWL4030_PM_MASTER_CFG_P2_TRANSITION,
-> +		       TWL4030_PM_MASTER_CFG_P3_TRANSITION, };
-> +	u8 val;
-> +	int i, err;
-> +
-> +	err =3D twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KE=
-Y_CFG1,
-> +			       TWL4030_PM_MASTER_PROTECT_KEY);
-> +	if (err)
-> +		goto relock;
-> +	err =3D twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
-> +			       TWL4030_PM_MASTER_KEY_CFG2,
-> +			       TWL4030_PM_MASTER_PROTECT_KEY);
-> +	if (err)
-> +		goto relock;
-> +
-> +	for (i =3D 0; i < sizeof(regs); i++) {
-> +		err =3D twl_i2c_read_u8(TWL_MODULE_PM_MASTER,
-> +				      &val, regs[i]);
-> +		if (err)
-> +			break;
-> +		val =3D (~bitmask & val) | (bitmask & bitvalues);
-> +		err =3D twl_i2c_write_u8(TWL_MODULE_PM_MASTER,
-> +				       val, regs[i]);
-> +		if (err)
-> +			break;
-> +	}
-> +
-> +	if (err)
-> +		pr_err("TWL4030 Register access failed: %i\n", err);
-> +
-> +relock:
-> +	return twl_i2c_write_u8(TWL_MODULE_PM_MASTER, 0,
-> +				TWL4030_PM_MASTER_PROTECT_KEY);
-> +}
-> +
->  /*
->   * In master mode, start the power off sequence.
->   * After a successful execution, TWL shuts down the power to the SoC
-> @@ -615,6 +662,11 @@ void twl4030_power_off(void)
->  {
->  	int err;
-> =20
-> +	/* Disable start on charger or VBUS as it can break poweroff */
-> +	err =3D twl4030_starton_mask_and_set(STARTON_VBUS | STARTON_CHG, 0)=
-;
-> +	if (err)
-> +		pr_err("TWL4030 Unable to configure start-up\n");
-> +
->  	err =3D twl_i2c_write_u8(TWL_MODULE_PM_MASTER, PWR_DEVOFF,
->  			       TWL4030_PM_MASTER_P1_SW_EVENTS);
->  	if (err)
+ a-really-long-attribute-name-hopefully-this-breaks-stuff = <1>;
+ b = <2>;
+ c = <3>;
+ d = <4>;
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Breaks the boot. I'm using dtb append option. Any ideas? Nonbooting
+dtb is 68910 bytes.
+
+pavel@amd:/data/l/linux-n900$ ls -al arch/arm/boot/dts/omap3-n900.dtb 
+-rw-r--r-- 1 pavel pavel 68910 Nov 10 13:52 arch/arm/boot/dts/omap3-n900.dtb
+
+I removed some "smsc,lan91c94" settings, and it boots again. Weird.
+
+> 								Pavel
+> 
+> diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+> index f3118bf..557a19e 100644
+> --- a/arch/arm/boot/dts/omap3-n900.dts
+> +++ b/arch/arm/boot/dts/omap3-n900.dts
+> @@ -565,11 +565,6 @@
+>  	adp1653: adp1653@30 {
+>  		compatible = "ad,adp1653";
+>  		reg = <0x30>;
+> -
+> -		max-flash-timeout-usec = <500000>;
+> -		max-flash-intensity-mA = <0>;
+> -		max-torch-intensity-mA = <0>;
+> -		max-indicator-intensity-uA = <0>;
+>  	};
+>  };
+>  
+> 
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
