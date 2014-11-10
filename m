@@ -1,59 +1,45 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv3 2/4] [media] si4713: add DT binding documentation
-Date: Mon, 10 Nov 2014 21:34:42 +0100
-Message-ID: <1415651684-3894-3-git-send-email-sre@kernel.org>
-References: <1415651684-3894-1-git-send-email-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415651684-3894-1-git-send-email-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2 3/3] ARM: dts: dra72-evm: Add MMC nodes
+Date: Mon, 10 Nov 2014 12:34:52 -0800
+Message-ID: <20141110203451.GU31454@atomide.com>
+References: <1413901848-32268-1-git-send-email-nm@ti.com>
+ <1413902156-32684-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52445 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752732AbaKJUfg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 15:35:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1413902156-32684-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-This patch adds the DT bindings documentation for Silicon Labs Si4713 FM
-radio transmitter.
+* Nishanth Menon <nm@ti.com> [141021 07:37]:
+> Add MMC1 and 2 nodes. MMC1 is SDcard and MMC2 is eMMC.
+> 
+> NOTE on MMC1 card detect: Ideally, we should be using in-built SDCD
+> support, but we dont have it yet. So, use the fact that control module
+> of DRA7 is setup such that no matter what mode one configures it, GPIO
+> option is always hardwired in - use GPIO mode for SDcard detection.
+> 
+> [peter.ujfalusi@ti.com]
+> The power line feeding the SD card is also used by other devices on the EVM.
+> Use generic name instead of mmc2_3v3 so when other devices want to use the
+> same regulator it will look a bit better.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+> 
+> Apologies on the spam, I got my own name screwed up -fixing that right now
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- Documentation/devicetree/bindings/media/si4713.txt | 30 ++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/si4713.txt
+Applying all three into omap-for-v3.19/dt thanks.
 
-diff --git a/Documentation/devicetree/bindings/media/si4713.txt b/Documentation/devicetree/bindings/media/si4713.txt
-new file mode 100644
-index 0000000..5ee5552
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/si4713.txt
-@@ -0,0 +1,30 @@
-+* Silicon Labs FM Radio transmitter
-+
-+The Silicon Labs Si4713 is an FM radio transmitter with receive power scan
-+supporting 76-108 MHz. It includes an RDS encoder and has both, a stereo-analog
-+and a digital interface, which supports I2S, left-justified and a custom
-+DSP-mode format. It is programmable through an I2C interface.
-+
-+Required Properties:
-+- compatible: Should contain "silabs,si4713"
-+- reg: the I2C address of the device
-+
-+Optional Properties:
-+- interrupts-extended: Interrupt specifier for the chips interrupt
-+- reset-gpios: GPIO specifier for the chips reset line
-+- vdd-supply: phandle for Vdd regulator
-+- vio-supply: phandle for Vio regulator
-+
-+Example:
-+
-+&i2c2 {
-+        fmtx: si4713@63 {
-+                compatible = "silabs,si4713";
-+                reg = <0x63>;
-+
-+                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
-+                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
-+                vio-supply = <&vio>;
-+                vdd-supply = <&vaux1>;
-+        };
-+};
--- 
-2.1.1
+Tony
+ 
+> Changes in V2: Fixes the formatting error in author name.
+> V1: https://patchwork.kernel.org/patch/5125291/
