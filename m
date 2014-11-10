@@ -1,45 +1,131 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: dra7-evm: Keep all VDD rails always-on
-Date: Mon, 10 Nov 2014 12:39:23 -0800
-Message-ID: <20141110203922.GX31454@atomide.com>
-References: <1413902290-304-1-git-send-email-nm@ti.com>
- <54579476.10702@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [RFCv2 5/8] [media] si4713: add device tree support
+Date: Mon, 10 Nov 2014 21:58:14 +0100
+Message-ID: <20141110205814.GA2591@earth.universe>
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>
+ <1413904027-16767-6-git-send-email-sre@kernel.org>
+ <54594962.2090207@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54579476.10702-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <54594962.2090207@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [141103 06:44]:
-> Hi Nishant,
-> 
-> On 10/21/2014 05:38 PM, Nishanth Menon wrote:
-> > DRA7 Data Manual (SPRS857L - August 2014) section 4.1.1 states: "All
-> > unused power supply balls must be supplied with the voltages specified
-> > in the Section 5.2, Recommended Operating Conditions".
-> > 
-> > This implies that all unused voltage rails for Vayu can never be
-> > switched off even if the hardware blocks inside that voltage domain is
-> > unused. Switching off these unused rails may result in stability issues
-> > on other domains and increased leakage and power-on-hour impacts.
-> > 
-> > J6eco-evm dts file already considers this, however j6evm-dts file needs
-> > to be fixed to consider this constraint of the SoC.
-> > 
-> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> 
-> Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> 
-> I'm assuming that vddshv8 (MMC1 power group) can be switched off.
 
-Applying into omap-for-v3.19/dt thanks.
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Sakari,
+
+On Tue, Nov 04, 2014 at 11:47:14PM +0200, Sakari Ailus wrote:
+> Nice set of patches! Thanks! :-)
+
+Thanks :)
+
+> > [...]
+> >  	struct si4713_device *sdev;
+> > -	struct si4713_platform_data *pdata =3D client->dev.platform_data;
+> >  	struct v4l2_ctrl_handler *hdl;
+> > -	int rval, i;
+> > +	struct si4713_platform_data *pdata =3D client->dev.platform_data;
+> > +	struct device_node *np =3D client->dev.of_node;
+> > +	int rval;
+> > +
+>=20
+> Why empty line here?
+>=20
+> It's not a bad practice to declare short temporary variables etc. as last.
+
+Fixed in PATCHv3.
+
+> > +	struct radio_si4713_platform_data si4713_pdev_pdata;
+> > +	struct platform_device *si4713_pdev;
+> > =20
+> >  	sdev =3D devm_kzalloc(&client->dev, sizeof(*sdev), GFP_KERNEL);
+> >  	if (!sdev) {
+> > @@ -1608,8 +1612,31 @@ static int si4713_probe(struct i2c_client *clien=
+t,
+> >  		goto free_ctrls;
+> >  	}
+> > =20
+> > +	if ((pdata && pdata->is_platform_device) || np) {
+> > +		si4713_pdev =3D platform_device_alloc("radio-si4713", -1);
+>=20
+> You could declare si4713_pdev here since you're not using it elsewhere.
+
+It has been used in the put_main_pdev jump label at the bottom
+outside of the scope and all access will happen out of the scope
+after the refactoring you suggested below.
+
+> > +		if (!si4713_pdev)
+> > +			goto put_main_pdev;
+> > +
+> > +		si4713_pdev_pdata.subdev =3D client;
+> > +		rval =3D platform_device_add_data(si4713_pdev, &si4713_pdev_pdata,
+> > +						sizeof(si4713_pdev_pdata));
+> > +		if (rval)
+> > +			goto put_main_pdev;
+> > +
+> > +		rval =3D platform_device_add(si4713_pdev);
+> > +		if (rval)
+> > +			goto put_main_pdev;
+> > +
+> > +		sdev->pd =3D si4713_pdev;
+> > +	} else {
+> > +		sdev->pd =3D NULL;
+>=20
+> sdev->pd is NULL already here. You could simply return in if () and
+> proceed to create the platform device if need be.
+
+Right. I simplified the code accordingly in PATCHv3.
+
+> Speaking of which --- I wonder if there are other than historical
+> reasons to create the platform device. I guess that's out of the scope
+> of the set anyway.
+
+I think this was done, so that the usb device can export its own
+control functions.
+
+> > [...]
+> >
+> > +	if (sdev->pd)
+> > +		platform_device_unregister(sdev->pd);
+>=20
+> platform_device_unregister() may be safely called with NULL argument.
+
+Ok. Changed in PATCHv3.
+
+> > [...]
+
+-- Sebastian
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUYSbmAAoJENju1/PIO/qa90IP/22e/fi1cIzIKoCeIjQKQsXB
+nMxwX5/ejk8JMbRe4d3dDVWtIBYE/FqDFpM5jwfF295WzykKqZUpwlrzPff+iDjV
+SRt33b163fim/qu7NhpgaMH4/i0dTJYtIoyx+pIlXdWy560j+YIN+FIU92DZvShp
+ZekibJUQRPiL8uXp8qLWngdO4A7oCEGDWr5G5Kb5aj5bzuXvcJGpTvx7aSOqfOen
+Rt1XXmLRd9314je1bMdtszjdXGqXmnejUnqynANtI7l7MyV9FgMWUaAqc97ei1o0
+uHZ4cYzBtocOUFqbHnUp3uOmbrp8ulBJAfn0xq+C/6d86qwVL/Oqgrxipy4cRDZl
+jPaI3GlPJz690OBGg4YfnjTXae/AHnWkLpgz39XaSOdmdG26KKg1jav0wosfsvsV
+3VbotsVwDQsgzIHUbKmYQmv4Pc7bHSaJLRHtsz/BJjcT46qSbe8I7ozyQFmAkFJ+
+o8uVybLrfaDdt9weH6WeJKJEmQBzMz66C2YoZEKRB8K86ILF8aCq1K7lmMorAQvH
+Nc0JDlp/CRlfCZdIuJqe2VES99bGOMnoQmdYiAC08f3Ns3K31cLlTS3cwTI/gG9B
+JSrJXRMPCycpw5lnS0SduHsK9tVWo/F/BU5EOoYLmDQ4LUFhy5ipPIVArmJJOKsq
+xiuIClevWOzCji0IXQZH
+=GQV+
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
