@@ -1,81 +1,98 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: tsc2005 touchscreen: implement disable attribute
-Date: Mon, 10 Nov 2014 10:14:23 +0100
-Message-ID: <201411101014.25873@pali>
-References: <20141109115636.GA3106@amd> <201411091349.20116@pali> <20141109200142.GA37384@dtor-ws>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 3/5] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache
+ save
+Date: Mon, 10 Nov 2014 09:15:27 +0000
+Message-ID: <20141110091527.GD21424@x1>
+References: <1415339350-17679-1-git-send-email-vigneshr@ti.com>
+ <1415339350-17679-4-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1663519.rvD1VYdpLO";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20141109200142.GA37384@dtor-ws>
+Content-Disposition: inline
+In-Reply-To: <1415339350-17679-4-git-send-email-vigneshr@ti.com>
 Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, B38611@freescale.com, jg1.han@samsung.com, linux-input@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.i
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1663519.rvD1VYdpLO
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Fri, 07 Nov 2014, Vignesh R wrote:
 
-On Sunday 09 November 2014 21:01:42 Dmitry Torokhov wrote:
-> On Sun, Nov 09, 2014 at 01:49:19PM +0100, Pali Roh=C3=A1r wrote:
-> > On Sunday 09 November 2014 13:40:25 Sebastian Reichel wrote:
-> > > Hi,
-> > >=20
-> > > On Sun, Nov 09, 2014 at 12:56:37PM +0100, Pavel Machek=20
-wrote:
-> > > > Implement disable attribute for tsc2005 touchscreen. It
-> > > > is useful to avoid wakeups when phone is in the pocket.
-> > >=20
-> > > I don't think this should be some driver specific sysfs
-> > > node. Instead a generic method from the input subsystem
-> > > should be used.
-> > >=20
-> > > -- Sebastian
-> >=20
-> > Yes. I would like to see generic method to turn off input
-> > device (or just "mute" it if device does not support turn
-> > off). Similar problem is also on laptops or other portable
-> > devices. E.g when I close LID of my laptop I want to turn
-> > off internal input devices (keyboard, touchpad, trackstick)
-> > without need to unload evdev Xserver drivers (or killing
-> > Xserver). Another use case is to turn off keyboard (also
-> > from kernel tty on Ctrl+Alt+Fx) which cannot be unplugged
-> > (internal laptop keyboard).
-> >=20
-> > CCed Dmitry, what do you think about it?
+> In one shot mode, sequencer automatically disables all enabled steps =
+at
+> the end of each cycle. (both ADC steps and TSC steps) Hence these ste=
+ps
+> need not be saved in reg_se_cache for clearing these steps at a later
+> stage.
+> Also, when ADC wakes up Sequencer should not be busy executing any of=
+ the
+> config steps except for the charge step. Previously charge step was 1=
+ ADC
+> clock cycle and hence it was ignored.
 >=20
-> Actually I'd like it to be not limited to input devices but
-> rater try doing it at the device core level, if possible. I
-> am sure there are IIO and other devices that could be
-> forcibly turned off/put into low power mode under certain
-> circumstances.
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
+>  include/linux/mfd/ti_am335x_tscadc.h | 1 +
+>  2 files changed, 6 insertions(+), 2 deletions(-)
 >=20
-> There were some talks about it with Rafael, but we never come
-> with anything concrete.
->=20
-> Thanks.
+> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_t=
+scadc.c
+> index d877e777cce6..94ef8992f46b 100644
+> --- a/drivers/mfd/ti_am335x_tscadc.c
+> +++ b/drivers/mfd/ti_am335x_tscadc.c
+> @@ -86,8 +86,12 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  		spin_lock_irq(&tsadc->reg_lock);
+>  		finish_wait(&tsadc->reg_se_wait, &wait);
+> =20
+> +		/*
+> +		 * Sequencer should either be idle or
+> +		 * busy applying the charge step.
+> +		 */
+>  		reg =3D tscadc_readl(tsadc, REG_ADCFSM);
+> -		WARN_ON(reg & SEQ_STATUS);
+> +		WARN_ON(reg & SEQ_STATUS & (!CHARGE_STEP));
 
-Ok. What about adding sysfs node disable which accept value 0/1?
+This is almost certainly not correct.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Please take another look at the logic.
 
---nextPart1663519.rvD1VYdpLO
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+I'm _assuming_ you mean (reg & SEQ_STATUS && !CHARGE_STEP).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+>  		tsadc->adc_waiting =3D false;
+>  	}
+>  	tsadc->adc_in_use =3D true;
+> @@ -96,7 +100,6 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  void am335x_tsc_se_set_once(struct ti_tscadc_dev *tsadc, u32 val)
+>  {
+>  	spin_lock_irq(&tsadc->reg_lock);
+> -	tsadc->reg_se_cache |=3D val;
+>  	am335x_tscadc_need_adc(tsadc);
+> =20
+>  	tscadc_writel(tsadc, REG_SE, val);
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd=
+/ti_am335x_tscadc.h
+> index c99be5dc0f5c..fcce182e4a35 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -128,6 +128,7 @@
+> =20
+>  /* Sequencer Status */
+>  #define SEQ_STATUS BIT(5)
+> +#define CHARGE_STEP		0x11
+> =20
+>  #define ADC_CLK			3000000
+>  #define TOTAL_STEPS		16
 
-iEYEABECAAYFAlRggfEACgkQi/DJPQPkQ1K3agCfT1f1nSiPxa73eg49EoG14Cu+
-2ZwAn1/esZxH/KjcvUbR1CpQ3DcytWdu
-=nt1i
------END PGP SIGNATURE-----
-
---nextPart1663519.rvD1VYdpLO--
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
