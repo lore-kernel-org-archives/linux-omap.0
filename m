@@ -1,178 +1,81 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/5] input: touchscreen: ti_am335x_tsc: Remove udelay in
- interrupt handler
-Date: Mon, 10 Nov 2014 09:11:23 +0000
-Message-ID: <20141110091123.GC21424@x1>
-References: <1415339350-17679-1-git-send-email-vigneshr@ti.com>
- <1415339350-17679-3-git-send-email-vigneshr@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: tsc2005 touchscreen: implement disable attribute
+Date: Mon, 10 Nov 2014 10:14:23 +0100
+Message-ID: <201411101014.25873@pali>
+References: <20141109115636.GA3106@amd> <201411091349.20116@pali> <20141109200142.GA37384@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1415339350-17679-3-git-send-email-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.i
+Content-Type: multipart/signed;
+  boundary="nextPart1663519.rvD1VYdpLO";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20141109200142.GA37384@dtor-ws>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, B38611@freescale.com, jg1.han@samsung.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 07 Nov 2014, Vignesh R wrote:
+--nextPart1663519.rvD1VYdpLO
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-> From: Brad Griffis <bgriffis@ti.com>
+On Sunday 09 November 2014 21:01:42 Dmitry Torokhov wrote:
+> On Sun, Nov 09, 2014 at 01:49:19PM +0100, Pali Roh=C3=A1r wrote:
+> > On Sunday 09 November 2014 13:40:25 Sebastian Reichel wrote:
+> > > Hi,
+> > >=20
+> > > On Sun, Nov 09, 2014 at 12:56:37PM +0100, Pavel Machek=20
+wrote:
+> > > > Implement disable attribute for tsc2005 touchscreen. It
+> > > > is useful to avoid wakeups when phone is in the pocket.
+> > >=20
+> > > I don't think this should be some driver specific sysfs
+> > > node. Instead a generic method from the input subsystem
+> > > should be used.
+> > >=20
+> > > -- Sebastian
+> >=20
+> > Yes. I would like to see generic method to turn off input
+> > device (or just "mute" it if device does not support turn
+> > off). Similar problem is also on laptops or other portable
+> > devices. E.g when I close LID of my laptop I want to turn
+> > off internal input devices (keyboard, touchpad, trackstick)
+> > without need to unload evdev Xserver drivers (or killing
+> > Xserver). Another use case is to turn off keyboard (also
+> > from kernel tty on Ctrl+Alt+Fx) which cannot be unplugged
+> > (internal laptop keyboard).
+> >=20
+> > CCed Dmitry, what do you think about it?
 >=20
-> TSC interrupt handler had udelay to avoid reporting of false pen-up
-> interrupt to user space. This patch implements workaround suggesting =
-in
-> Advisory 1.0.31 of silicon errata for am335x, thus eliminating udelay
-> and touchscreen lag. This also improves performance of touchscreen an=
-d
-> eliminates sudden jump of cursor at touch release.
+> Actually I'd like it to be not limited to input devices but
+> rater try doing it at the device core level, if possible. I
+> am sure there are IIO and other devices that could be
+> forcibly turned off/put into low power mode under certain
+> circumstances.
 >=20
-> IDLECONFIG and CHARGECONFIG registers are to be configured
-> with same values in order to eliminate false pen-up events. This
-> workaround may result in false pen-down to be detected, hence conside=
-rable
-> charge step delay needs to be added. The charge delay is set to 0xB00=
-0
-> (in terms of ADC clock cycles) by default.
+> There were some talks about it with Rafael, but we never come
+> with anything concrete.
 >=20
-> TSC steps are disabled at the end of every sampling cycle and EOS bit=
- is
-> set. Once the EOS bit is set, the TSC steps need to be re-enabled to =
-begin
-> next sampling cycle.
->=20
-> Signed-off-by: Brad Griffis <bgriffis@ti.com>
-> [vigneshr@ti.com: Ported the patch from v3.12 to v3.18rc2]
->=20
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->  drivers/input/touchscreen/ti_am335x_tsc.c | 56 ++++++++++++---------=
-----------
->  include/linux/mfd/ti_am335x_tscadc.h      |  3 +-
+> Thanks.
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Ok. What about adding sysfs node disable which accept value 0/1?
 
->  2 files changed, 24 insertions(+), 35 deletions(-)
->=20
-> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/inpu=
-t/touchscreen/ti_am335x_tsc.c
-> index 1aeac9675fe7..483fd97c0e0c 100644
-> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
-> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-> @@ -173,11 +173,9 @@ static void titsc_step_config(struct titsc *ts_d=
-ev)
->  		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
->  	}
-> =20
-> -	/* Charge step configuration */
-> -	config =3D ts_dev->bit_xp | ts_dev->bit_yn |
-> -			STEPCHARGE_RFP_XPUL | STEPCHARGE_RFM_XNUR |
-> -			STEPCHARGE_INM_AN1 | STEPCHARGE_INP(ts_dev->inp_yp);
-> +	/* Make CHARGECONFIG same as IDLECONFIG */
-> =20
-> +	config =3D titsc_readl(ts_dev, REG_IDLECONFIG);
->  	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
->  	titsc_writel(ts_dev, REG_CHARGEDELAY, CHARGEDLY_OPENDLY);
-> =20
-> @@ -264,9 +262,26 @@ static irqreturn_t titsc_irq(int irq, void *dev)
->  	unsigned int status, irqclr =3D 0;
->  	unsigned int x =3D 0, y =3D 0;
->  	unsigned int z1, z2, z;
-> -	unsigned int fsm;
-> =20
-> -	status =3D titsc_readl(ts_dev, REG_IRQSTATUS);
-> +	status =3D titsc_readl(ts_dev, REG_RAWIRQSTATUS);
-> +	if (status & IRQENB_HW_PEN) {
-> +		ts_dev->pen_down =3D true;
-> +		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
-> +		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
-> +		irqclr |=3D IRQENB_HW_PEN;
-> +	}
-> +
-> +	if (status & IRQENB_PENUP) {
-> +		ts_dev->pen_down =3D false;
-> +		input_report_key(input_dev, BTN_TOUCH, 0);
-> +		input_report_abs(input_dev, ABS_PRESSURE, 0);
-> +		input_sync(input_dev);
-> +		irqclr |=3D IRQENB_PENUP;
-> +	}
-> +
-> +	if (status & IRQENB_EOS)
-> +		irqclr |=3D IRQENB_EOS;
-> +
->  	/*
->  	 * ADC and touchscreen share the IRQ line.
->  	 * FIFO1 interrupts are used by ADC. Handle FIFO0 IRQs here only
-> @@ -297,34 +312,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
->  		}
->  		irqclr |=3D IRQENB_FIFO0THRES;
->  	}
-> -
-> -	/*
-> -	 * Time for sequencer to settle, to read
-> -	 * correct state of the sequencer.
-> -	 */
-> -	udelay(SEQ_SETTLE);
-> -
-> -	status =3D titsc_readl(ts_dev, REG_RAWIRQSTATUS);
-> -	if (status & IRQENB_PENUP) {
-> -		/* Pen up event */
-> -		fsm =3D titsc_readl(ts_dev, REG_ADCFSM);
-> -		if (fsm =3D=3D ADCFSM_STEPID) {
-> -			ts_dev->pen_down =3D false;
-> -			input_report_key(input_dev, BTN_TOUCH, 0);
-> -			input_report_abs(input_dev, ABS_PRESSURE, 0);
-> -			input_sync(input_dev);
-> -		} else {
-> -			ts_dev->pen_down =3D true;
-> -		}
-> -		irqclr |=3D IRQENB_PENUP;
-> -	}
-> -
-> -	if (status & IRQENB_HW_PEN) {
-> -
-> -		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
-> -		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
-> -	}
-> -
->  	if (irqclr) {
->  		titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
->  		am335x_tsc_se_set_cache(ts_dev->mfd_tscadc, ts_dev->step_mask);
-> @@ -417,6 +404,7 @@ static int titsc_probe(struct platform_device *pd=
-ev)
->  	}
-> =20
->  	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
-> +	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_EOS);
->  	err =3D titsc_config_wires(ts_dev);
->  	if (err) {
->  		dev_err(&pdev->dev, "wrong i/p wire configuration\n");
-> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd=
-/ti_am335x_tscadc.h
-> index e2e70053470e..c99be5dc0f5c 100644
-> --- a/include/linux/mfd/ti_am335x_tscadc.h
-> +++ b/include/linux/mfd/ti_am335x_tscadc.h
-> @@ -52,6 +52,7 @@
-> =20
->  /* IRQ enable */
->  #define IRQENB_HW_PEN		BIT(0)
-> +#define IRQENB_EOS		BIT(1)
->  #define IRQENB_FIFO0THRES	BIT(2)
->  #define IRQENB_FIFO0OVRRUN	BIT(3)
->  #define IRQENB_FIFO0UNDRFLW	BIT(4)
-> @@ -107,7 +108,7 @@
->  /* Charge delay */
->  #define CHARGEDLY_OPEN_MASK	(0x3FFFF << 0)
->  #define CHARGEDLY_OPEN(val)	((val) << 0)
-> -#define CHARGEDLY_OPENDLY	CHARGEDLY_OPEN(1)
-> +#define CHARGEDLY_OPENDLY	CHARGEDLY_OPEN(0xB000)
-> =20
->  /* Control register */
->  #define CNTRLREG_TSCSSENB	BIT(0)
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+--nextPart1663519.rvD1VYdpLO
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlRggfEACgkQi/DJPQPkQ1K3agCfT1f1nSiPxa73eg49EoG14Cu+
+2ZwAn1/esZxH/KjcvUbR1CpQ3DcytWdu
+=nt1i
+-----END PGP SIGNATURE-----
+
+--nextPart1663519.rvD1VYdpLO--
