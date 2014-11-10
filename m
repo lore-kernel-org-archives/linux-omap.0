@@ -1,109 +1,74 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 1/2] bus: omap_l3_noc: Add resume hook to restore context
-Date: Mon, 10 Nov 2014 10:33:03 +0530
-Message-ID: <1415595784-5646-2-git-send-email-j-keerthy@ti.com>
-References: <1415595784-5646-1-git-send-email-j-keerthy@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v5 18/48] mfd: twl4030-power: Register with kernel
+ power-off handler
+Date: Mon, 10 Nov 2014 09:46:00 +0100
+Message-ID: <20141110084600.GA2582@amd>
+References: <1415292213-28652-1-git-send-email-linux@roeck-us.net>
+ <1415292213-28652-19-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44747 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbaKJFGF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 00:06:05 -0500
-In-Reply-To: <1415595784-5646-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1415292213-28652-19-git-send-email-linux@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: j-keerthy@ti.com, nm@ti.com, afzal@ti.com, tony@atomide.com
 
-On certain SoCs such as AM437x SoC, L3_noc error registers are
-maintained in power domain such as per domain which looses context as part
-of low power state such as RTC+DDR mode. On these platforms when we
-mask interrupts which we cannot handle, the source of these interrupts
-still remain on resume, however, the flag mux registers now contain
-their reset value (unmasked) - this breaks the system with infinite
-interrupts since we do not these interrupts to take place ever again.
+Hi!
 
-To handle this: restore the masking of interrupts which we have
-already recorded in the system as ones we cannot handle.
+> @@ -611,7 +611,7 @@ twl4030_power_configure_resources(const struct twl4030_power_data *pdata)
+>   * After a successful execution, TWL shuts down the power to the SoC
+>   * and all peripherals connected to it.
+>   */
+> -void twl4030_power_off(void)
+> +static void twl4030_power_off(struct power_off_handler_block *this)
+>  {
+>  	int err;
+>  
+> @@ -621,6 +621,11 @@ void twl4030_power_off(void)
+>  		pr_err("TWL4030 Unable to power off\n");
+>  }
+>  
+> +static struct power_off_handler_block twl4030_power_off_hb = {
+> +	.handler = twl4030_power_off,
+> +	.priority = POWER_OFF_PRIORITY_LOW,
+> +};
+> +
+>  static bool twl4030_power_use_poweroff(const struct twl4030_power_data *pdata,
+>  					struct device_node *node)
+>  {
+> @@ -839,7 +844,9 @@ static int twl4030_power_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	/* Board has to be wired properly to use this feature */
+> -	if (twl4030_power_use_poweroff(pdata, node) && !pm_power_off) {
+> +	if (twl4030_power_use_poweroff(pdata, node)) {
+> +		int ret;
+> +
+>  		/* Default for SEQ_OFFSYNC is set, lets ensure this */
+>  		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
+>  				      TWL4030_PM_MASTER_CFG_P123_TRANSITION);
+> @@ -856,7 +863,11 @@ static int twl4030_power_probe(struct platform_device *pdev)
+>  			}
+>  		}
+>  
+> -		pm_power_off = twl4030_power_off;
+> +		ret = devm_register_power_off_handler(&pdev->dev,
+> +						      &twl4030_power_off_hb);
+> +		if (ret)
+> +			dev_warn(&pdev->dev,
+> +				 "Failed to register power-off handler\n");
+>  	}
+>  
 
-Fixes: 654fa7979b5db9a44b8 ("bus: omap_l3_noc: ignore masked out unclearable targets")
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/bus/omap_l3_noc.c |   55 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+Could we get rid of the "struct power_off_handler_block" and guarantee
+that register_power_off never fails (or print message from the
+register_power_off...)? That way, your patch would be an cleanup.
 
-diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 531ae59..b5eac29 100644
---- a/drivers/bus/omap_l3_noc.c
-+++ b/drivers/bus/omap_l3_noc.c
-@@ -296,11 +296,66 @@ static int omap_l3_probe(struct platform_device *pdev)
- 	return ret;
- }
- 
-+#ifdef	CONFIG_PM
-+
-+/**
-+ * l3_resume_noirq() - resume function for l3_noc
-+ * @dev:	pointer to l3_noc device structure
-+ *
-+ * We only have the resume handler only since we
-+ * have already maintained the delta register
-+ * configuration as part of configuring the system
-+ */
-+static int l3_resume_noirq(struct device *dev)
-+{
-+	struct omap_l3 *l3 = dev_get_drvdata(dev);
-+	int i;
-+	struct l3_flagmux_data *flag_mux;
-+	void __iomem *base, *mask_regx = NULL;
-+	u32 mask_val;
-+
-+	for (i = 0; i < l3->num_modules; i++) {
-+		base = l3->l3_base[i];
-+		flag_mux = l3->l3_flagmux[i];
-+		if (!flag_mux->mask_app_bits && !flag_mux->mask_dbg_bits)
-+			continue;
-+
-+		mask_regx = base + flag_mux->offset + L3_FLAGMUX_MASK0 +
-+			   (L3_APPLICATION_ERROR << 3);
-+		mask_val = readl_relaxed(mask_regx);
-+		mask_val &= ~(flag_mux->mask_app_bits);
-+
-+		writel_relaxed(mask_val, mask_regx);
-+		mask_regx = base + flag_mux->offset + L3_FLAGMUX_MASK0 +
-+			   (L3_DEBUG_ERROR << 3);
-+		mask_val = readl_relaxed(mask_regx);
-+		mask_val &= ~(flag_mux->mask_dbg_bits);
-+
-+		writel_relaxed(mask_val, mask_regx);
-+	}
-+
-+	/* Dummy read to force OCP barrier */
-+	if (mask_regx)
-+		(void)readl(mask_regx);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops l3_dev_pm_ops = {
-+	.resume_noirq		= l3_resume_noirq,
-+};
-+
-+#define L3_DEV_PM_OPS (&l3_dev_pm_ops)
-+#else
-+#define L3_DEV_PM_OPS NULL
-+#endif
-+
- static struct platform_driver omap_l3_driver = {
- 	.probe		= omap_l3_probe,
- 	.driver		= {
- 		.name		= "omap_l3_noc",
- 		.owner		= THIS_MODULE,
-+		.pm		= L3_DEV_PM_OPS,
- 		.of_match_table = of_match_ptr(l3_noc_match),
- 	},
- };
+You could then add priorities if they turn out to be really
+neccessary, later...
+									Pavel
 -- 
-1.7.9.5
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
