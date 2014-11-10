@@ -1,14 +1,22 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH v6 16/48] mfd: tps6586x: Register with kernel power-off handler
-Date: Sun,  9 Nov 2014 17:42:33 -0800
-Message-ID: <1415583785-6980-17-git-send-email-linux@roeck-us.net>
+Subject: [PATCH v6 14/48] mfd: tps80031: Register with kernel power-off handler
+Date: Sun,  9 Nov 2014 17:42:31 -0800
+Message-ID: <1415583785-6980-15-git-send-email-linux@roeck-us.net>
 References: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:38993 "EHLO
+	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245AbaKJBoB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Nov 2014 20:44:01 -0500
+Received: from mailnull by bh-25.webhostbox.net with sa-checked (Exim 4.82)
+	(envelope-from <linux@roeck-us.net>)
+	id 1Xne1Q-000Ubo-Qx
+	for linux-omap@vger.kernel.org; Mon, 10 Nov 2014 01:44:00 +0000
 In-Reply-To: <1415583785-6980-1-git-send-email-linux@roeck-us.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-pm@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
 Register with kernel power-off handler instead of setting pm_power_off
 directly. Register with low priority to reflect that the original code
@@ -37,75 +45,90 @@ v2:
 - Use define to specify poweroff handler priority
 - Use dev_warn instead of dev_err
 
- drivers/mfd/tps6586x.c | 25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ drivers/mfd/tps80031.c       | 27 +++++++++++++++------------
+ include/linux/mfd/tps80031.h |  2 ++
+ 2 files changed, 17 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/mfd/tps6586x.c b/drivers/mfd/tps6586x.c
-index 8e1dbc4..f11165f 100644
---- a/drivers/mfd/tps6586x.c
-+++ b/drivers/mfd/tps6586x.c
-@@ -25,6 +25,7 @@
- #include <linux/err.h>
- #include <linux/i2c.h>
- #include <linux/platform_device.h>
+diff --git a/drivers/mfd/tps80031.c b/drivers/mfd/tps80031.c
+index ed6c5b0..996fd7c 100644
+--- a/drivers/mfd/tps80031.c
++++ b/drivers/mfd/tps80031.c
+@@ -147,7 +147,6 @@ static const struct tps80031_pupd_data tps80031_pupds[] = {
+ 	[TPS80031_CTLI2C_SCL]		= PUPD_DATA(4, 0,	BIT(2)),
+ 	[TPS80031_CTLI2C_SDA]		= PUPD_DATA(4, 0,	BIT(3)),
+ };
+-static struct tps80031 *tps80031_power_off_dev;
+ 
+ int tps80031_ext_power_req_config(struct device *dev,
+ 		unsigned long ext_ctrl_flag, int preq_bit,
+@@ -209,11 +208,14 @@ int tps80031_ext_power_req_config(struct device *dev,
+ }
+ EXPORT_SYMBOL_GPL(tps80031_ext_power_req_config);
+ 
+-static void tps80031_power_off(void)
++static void tps80031_power_off(struct power_off_handler_block *this)
+ {
+-	dev_info(tps80031_power_off_dev->dev, "switching off PMU\n");
+-	tps80031_write(tps80031_power_off_dev->dev, TPS80031_SLAVE_ID1,
+-				TPS80031_PHOENIX_DEV_ON, TPS80031_DEVOFF);
++	struct tps80031 *tps80031 = container_of(this, struct tps80031,
++						 power_off_hb);
++
++	dev_info(tps80031->dev, "switching off PMU\n");
++	tps80031_write(tps80031->dev, TPS80031_SLAVE_ID1,
++		       TPS80031_PHOENIX_DEV_ON, TPS80031_DEVOFF);
+ }
+ 
+ static void tps80031_pupd_init(struct tps80031 *tps80031,
+@@ -501,9 +503,13 @@ static int tps80031_probe(struct i2c_client *client,
+ 		goto fail_mfd_add;
+ 	}
+ 
+-	if (pdata->use_power_off && !pm_power_off) {
+-		tps80031_power_off_dev = tps80031;
+-		pm_power_off = tps80031_power_off;
++	if (pdata->use_power_off) {
++		tps80031->power_off_hb.handler = tps80031_power_off;
++		tps80031->power_off_hb.priority = POWER_OFF_PRIORITY_LOW;
++		ret = register_power_off_handler(&tps80031->power_off_hb);
++		if (ret)
++			dev_warn(&client->dev,
++				 "Failed to register power-off handler\n");
+ 	}
+ 	return 0;
+ 
+@@ -523,10 +529,7 @@ static int tps80031_remove(struct i2c_client *client)
+ 	struct tps80031 *tps80031 = i2c_get_clientdata(client);
+ 	int i;
+ 
+-	if (tps80031_power_off_dev == tps80031) {
+-		tps80031_power_off_dev = NULL;
+-		pm_power_off = NULL;
+-	}
++	unregister_power_off_handler(&tps80031->power_off_hb);
+ 
+ 	mfd_remove_devices(tps80031->dev);
+ 
+diff --git a/include/linux/mfd/tps80031.h b/include/linux/mfd/tps80031.h
+index 2c75c9c..5716077 100644
+--- a/include/linux/mfd/tps80031.h
++++ b/include/linux/mfd/tps80031.h
+@@ -24,6 +24,7 @@
+ #define __LINUX_MFD_TPS80031_H
+ 
+ #include <linux/device.h>
 +#include <linux/pm.h>
  #include <linux/regmap.h>
- #include <linux/of.h>
  
-@@ -133,6 +134,8 @@ struct tps6586x {
- 	u32			irq_en;
- 	u8			mask_reg[5];
- 	struct irq_domain	*irq_domain;
-+
+ /* Pull-ups/Pull-downs */
+@@ -513,6 +514,7 @@ struct tps80031 {
+ 	struct i2c_client	*clients[TPS80031_NUM_SLAVES];
+ 	struct regmap		*regmap[TPS80031_NUM_SLAVES];
+ 	struct regmap_irq_chip_data *irq_data;
 +	struct power_off_handler_block power_off_hb;
  };
  
- static inline struct tps6586x *dev_to_tps6586x(struct device *dev)
-@@ -472,13 +475,15 @@ static const struct regmap_config tps6586x_regmap_config = {
- 	.cache_type = REGCACHE_RBTREE,
- };
- 
--static struct device *tps6586x_dev;
--static void tps6586x_power_off(void)
-+static void tps6586x_power_off(struct power_off_handler_block *this)
- {
--	if (tps6586x_clr_bits(tps6586x_dev, TPS6586X_SUPPLYENE, EXITSLREQ_BIT))
-+	struct tps6586x *tps6586x = container_of(this, struct tps6586x,
-+						 power_off_hb);
-+
-+	if (tps6586x_clr_bits(tps6586x->dev, TPS6586X_SUPPLYENE, EXITSLREQ_BIT))
- 		return;
- 
--	tps6586x_set_bits(tps6586x_dev, TPS6586X_SUPPLYENE, SLEEP_MODE_BIT);
-+	tps6586x_set_bits(tps6586x->dev, TPS6586X_SUPPLYENE, SLEEP_MODE_BIT);
- }
- 
- static void tps6586x_print_version(struct i2c_client *client, int version)
-@@ -575,9 +580,13 @@ static int tps6586x_i2c_probe(struct i2c_client *client,
- 		goto err_add_devs;
- 	}
- 
--	if (pdata->pm_off && !pm_power_off) {
--		tps6586x_dev = &client->dev;
--		pm_power_off = tps6586x_power_off;
-+	if (pdata->pm_off) {
-+		tps6586x->power_off_hb.handler = tps6586x_power_off;
-+		tps6586x->power_off_hb.priority = POWER_OFF_PRIORITY_LOW;
-+		ret = register_power_off_handler(&tps6586x->power_off_hb);
-+		if (ret)
-+			dev_warn(&client->dev,
-+				 "failed to register power-off handler\n");
- 	}
- 
- 	return 0;
-@@ -594,6 +603,8 @@ static int tps6586x_i2c_remove(struct i2c_client *client)
- {
- 	struct tps6586x *tps6586x = i2c_get_clientdata(client);
- 
-+	unregister_power_off_handler(&tps6586x->power_off_hb);
-+
- 	tps6586x_remove_subdevs(tps6586x);
- 	mfd_remove_devices(tps6586x->dev);
- 	if (client->irq)
+ struct tps80031_pupd_init_data {
 -- 
 1.9.1
+
