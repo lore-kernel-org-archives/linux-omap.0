@@ -1,74 +1,85 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] arm: boot: dts: am4372: enable dwc3 suspend PHY quirk
-Date: Mon, 10 Nov 2014 15:11:32 -0800
-Message-ID: <20141110231132.GA31454@atomide.com>
-References: <1415295366-593-1-git-send-email-balbi@ti.com>
- <1415295366-593-2-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH] arm: boot: dts: dra7: add labels to DWC3 nodes
+Date: Mon, 10 Nov 2014 15:27:09 -0800
+Message-ID: <20141110232709.GB31454@atomide.com>
+References: <1415032122-8230-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18319 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38463 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751477AbaKJXMR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 18:12:17 -0500
+	with ESMTP id S1750904AbaKJX1x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 18:27:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1415295366-593-2-git-send-email-balbi@ti.com>
+In-Reply-To: <1415032122-8230-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Felipe Balbi <balbi@ti.com> [141106 09:40]:
-> Whenever Suspend PHY bit is set on AM437x devices,
-> USB will not work due to Set EP Configuration command
-> always failing.
-> 
-> This was only found after a recent commit 2164a47 (usb:
-> dwc3: set SUSPHY bit for all cores, which will be merged
-> for v3.19) added a missing *required* step to dwc3
-> initialization. Synopsys Databook requires that we enable
-> Suspend PHY bit after initialization but that, unfortunately,
-> breaks AM437x.
+* Felipe Balbi <balbi@ti.com> [141103 08:30]:
+> by adding labels to DWC3 nodes, it's far easier
+> for boards to reference them.
 > 
 > Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-This should be safe to queue along with the related USB
-changes:
+Applying into omap-for-v3.19/dt, had to update it because
+of "ARM: dts: DRA7: Move USB_OTG 4 to dra74x.dtsi". Updated
+patch below.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
 
-> ---
->  arch/arm/boot/dts/am4372.dtsi | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> index 46660ff..e19068d 100644
-> --- a/arch/arm/boot/dts/am4372.dtsi
-> +++ b/arch/arm/boot/dts/am4372.dtsi
-> @@ -817,6 +817,8 @@
->  				maximum-speed = "high-speed";
->  				dr_mode = "otg";
->  				status = "disabled";
-> +				snps,dis_u3_susphy_quirk;
-> +				snps,dis_u2_susphy_quirk;
->  			};
->  		};
->  
-> @@ -839,6 +841,8 @@
->  				maximum-speed = "high-speed";
->  				dr_mode = "otg";
->  				status = "disabled";
-> +				snps,dis_u3_susphy_quirk;
-> +				snps,dis_u2_susphy_quirk;
->  			};
->  		};
->  
-> -- 
-> 2.1.0.GIT
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+Tony
+
+8< -------------------
+From: Felipe Balbi <balbi@ti.com>
+Date: Mon, 3 Nov 2014 10:28:42 -0600
+Subject: [PATCH] arm: boot: dts: dra7: add labels to DWC3 nodes
+
+by adding labels to DWC3 nodes, it's far easier
+for boards to reference them.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+[tony@atomide.com: updated for otg 4 move to dra74x.dtsi]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1219,7 +1219,7 @@
+ 			};
+ 		};
+ 
+-		omap_dwc3_1@48880000 {
++		omap_dwc3_1: omap_dwc3_1@48880000 {
+ 			compatible = "ti,dwc3";
+ 			ti,hwmods = "usb_otg_ss1";
+ 			reg = <0x48880000 0x10000>;
+@@ -1240,7 +1240,7 @@
+ 			};
+ 		};
+ 
+-		omap_dwc3_2@488c0000 {
++		omap_dwc3_2: omap_dwc3_2@488c0000 {
+ 			compatible = "ti,dwc3";
+ 			ti,hwmods = "usb_otg_ss2";
+ 			reg = <0x488c0000 0x10000>;
+@@ -1262,7 +1262,7 @@
+ 		};
+ 
+ 		/* IRQ for DWC3_3 and DWC3_4 need IRQ crossbar */
+-		omap_dwc3_3@48900000 {
++		omap_dwc3_3: omap_dwc3_3@48900000 {
+ 			compatible = "ti,dwc3";
+ 			ti,hwmods = "usb_otg_ss3";
+ 			reg = <0x48900000 0x10000>;
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -46,7 +46,7 @@
+ 	};
+ 
+ 	ocp {
+-		omap_dwc3_4@48940000 {
++		omap_dwc3_4: omap_dwc3_4@48940000 {
+ 			compatible = "ti,dwc3";
+ 			ti,hwmods = "usb_otg_ss4";
+ 			reg = <0x48940000 0x10000>;
