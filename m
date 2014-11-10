@@ -1,131 +1,142 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [RFCv2 5/8] [media] si4713: add device tree support
-Date: Mon, 10 Nov 2014 21:58:14 +0100
-Message-ID: <20141110205814.GA2591@earth.universe>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>
- <1413904027-16767-6-git-send-email-sre@kernel.org>
- <54594962.2090207@iki.fi>
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: Re: Re: BeagleBoard-X15 - seriously? :)
+Date: Mon, 10 Nov 2014 16:29:35 -0600
+Message-ID: <CAGo_u6qsMkvimymMg2nYJ5UkyDOWeNUxZV4uToGgTn+0McE=ig@mail.gmail.com>
+References: <CAP3+TEr-AakTZs1rqGFjP7UsTREKW20h+kpc=SvcKqGJyvbseQ@mail.gmail.com>
+	<04092472-cf97-458f-a76c-2800368e10d9@googlegroups.com>
+	<D083D545.59578%john3909@gmail.com>
+	<CAP3+TEp0Xn74Txsf7p1symT+=PJQiO2BKd9wHxJoBYzAASrP4g@mail.gmail.com>
+	<CA+T6QPnSdxeB7=jdvWUbuwMWShrDF+6+=gEVRhAOd_MaHaeOaw@mail.gmail.com>
+	<D08638F8.59B9B%john3909@gmail.com>
+	<CAGo_u6qsbDtc0fj37qiLw62+YT_cdjJ7Oxqu2sZ8P-zDqDJDPQ@mail.gmail.com>
+	<D0865AF6.59CA5%john3909@gmail.com>
+	<546128DD.2040205@ti.com>
+	<D08669B8.59D39%john3909@gmail.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54594962.2090207@iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <beagleboard+bncBCO3XAUMTIFRBT7YQSRQKGQE7RGGN6I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <D08669B8.59D39%john3909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Post: <http://groups.google.com/group/beagleboard/post>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/beagleboard
+List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <http://groups.google.com/group/beagleboard/subscribe>
+To: BeagleBoard <beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Cc: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Nov 10, 2014 at 3:18 PM, John Syn <john3909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> On 11/10/14, 1:06 PM, "Suman Anna" <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+>
+>>Hi John,
+>>
+>>On 11/10/2014 02:24 PM, John Syn wrote:
+>>>
+>>> On 11/10/14, 10:58 AM, "Nishanth Menon" <nm-l0cyMroinI0@public.gmane.org> wrote:
+>>>
+>>>> On Mon, Nov 10, 2014 at 11:54 AM, John Syn <john3909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>>>>
+>>>>> On 11/10/14, 1:15 AM, "Jason Kridner" <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+>>>>>wrote:
+>>>>>
+>>>>>> On Sun, Nov 9, 2014 at 1:13 AM, Maxim Podbereznyy
+>>>>>><lisarden-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>>>> wrote:
+>>>>>>> John Syn,
+>>>>>>> Wandboard Quad does have 64 bit memory bus.
+>>>>>>>
+>>>>>>> P.S. I don't know who needs dual DSP onboard because TI definitely
+>>>>>>> will
+>>>>>>> not
+>>>>>>> support them as should like it was for omap3/dm37. I'd better have
+>>>>>>> well
+>>>>>>> supported hardware video encoder/decoder rather than double general
+>>>>>>> purpose
+>>>>>>> DSPs without any software support
+>>>>>>
+>>>>>> When OMAP3 came out, the only compilers for C6000 were expensive,
+>>>>>> closed-source compilers. Now, there is support in mainline GCC for
+>>>>>> C6000. As the BeagleBoard.org community, we have to work together to
+>>>>>> enable use of the DSPs if they are of interest to the
+>>>>>> community---there aren't any barriers in our way.
+>>>>> The TI C6000 does some amazing pipeline optimization, which seems to
+>>>>>be
+>>>>> missing from the GCC compiler. Anyway, using CCSV6 is no big deal, bu=
+t
+>>
+>>One should be able to directly download the C6000 compilers at
+>>http://software-dl.ti.com/codegen/non-esd/downloads/download.htm#C6000
+>>
+>>>>> support for RPMSG/REMOTEPROC on this processor is a big issue. The
+>>>>> source
+>>>>> is difficult to follow and my guess is we would need input from the
+>>>>> original authors to do this work.
+>>>>
+>>>> Why dont we get involved in linux-omap discussions on the topic? most
+>>>> of the rpmsg and remote proc discussions do take place in kernel
+>>>> mailing list. usually discussing in context helps move patches forward
+>>>> since it makes it clear to certain maintainers that these things are
+>>>> important and help community.
+>>>>
+>>>>
+>>>> Do you have anything specific that you are concerned about?
+>>
+>>> Looking at git.ti.com/rpmsg/rpmsg, I don=C2=B9t see any support for AM5=
+72x
+>>> processors. Also, Beagleboard-X15 is to be released with Kernel V3.18
+>>>but
+>>> I don=C2=B9t see support for this kernel versions. Last I heard, RPMSG =
+was
+>>> working on OMAP4, but not fully implemented on OMAP5, but this was a
+>>>while
+>>> ago and perhaps this has changed. Perhaps Suman can give us an update.
+>>> Similar concerns about REMOTEPROC. What I know is that I have been
+>>>pushing
+>>> this issue on the beta list and the only feedback I received was that
+>>> "RPMSG/REMOTEPROC was in a SW blackhole=C2=B2.
+>>
+>>The rpmsg-ti-linux-3.14.y branch in the above tree is the feature
+>>integration branch for rpmsg/remoteproc and does support all the
+>>processors on OMAP4, OMAP5 and AM572x/DRA7x. The AM572x support should
+>>be present through the am57xx-beagle-x15.dts file (its been sometime
+>>since I pulled the required platform branch with any updates to this).
+>>
+>>I am in the process of pushing all these features/patches upstream, but
+>>it will mostly be sometime next year before all the patches and their
+>>dependencies will make it into the upstream kernel, so until then have
+>>to rely on a TI tree.
+> Hi Suman,
+>
+> That is really good news. I=E2=80=99m guessing that V3.18 support will oc=
+cur with
+> the push to mainline? Any chance that we will see support when
+> Beagleboard-X15 launches in Feb 2015?
+>
+> Regards,
+> John
+>>
+>>regards
+>>Suman
+>>
+>>>
+>>> Based on the TRM, this processor looks extremely attractive, and we nee=
+d
+>>> RPMSG/REMOTEPROC to take advantage of the powerful dual DSPs and dual
+>>> CortexM4s.
+>>>
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fixing up linux-omap mailing list
 
-Hi Sakari,
-
-On Tue, Nov 04, 2014 at 11:47:14PM +0200, Sakari Ailus wrote:
-> Nice set of patches! Thanks! :-)
-
-Thanks :)
-
-> > [...]
-> >  	struct si4713_device *sdev;
-> > -	struct si4713_platform_data *pdata =3D client->dev.platform_data;
-> >  	struct v4l2_ctrl_handler *hdl;
-> > -	int rval, i;
-> > +	struct si4713_platform_data *pdata =3D client->dev.platform_data;
-> > +	struct device_node *np =3D client->dev.of_node;
-> > +	int rval;
-> > +
->=20
-> Why empty line here?
->=20
-> It's not a bad practice to declare short temporary variables etc. as last.
-
-Fixed in PATCHv3.
-
-> > +	struct radio_si4713_platform_data si4713_pdev_pdata;
-> > +	struct platform_device *si4713_pdev;
-> > =20
-> >  	sdev =3D devm_kzalloc(&client->dev, sizeof(*sdev), GFP_KERNEL);
-> >  	if (!sdev) {
-> > @@ -1608,8 +1612,31 @@ static int si4713_probe(struct i2c_client *clien=
-t,
-> >  		goto free_ctrls;
-> >  	}
-> > =20
-> > +	if ((pdata && pdata->is_platform_device) || np) {
-> > +		si4713_pdev =3D platform_device_alloc("radio-si4713", -1);
->=20
-> You could declare si4713_pdev here since you're not using it elsewhere.
-
-It has been used in the put_main_pdev jump label at the bottom
-outside of the scope and all access will happen out of the scope
-after the refactoring you suggested below.
-
-> > +		if (!si4713_pdev)
-> > +			goto put_main_pdev;
-> > +
-> > +		si4713_pdev_pdata.subdev =3D client;
-> > +		rval =3D platform_device_add_data(si4713_pdev, &si4713_pdev_pdata,
-> > +						sizeof(si4713_pdev_pdata));
-> > +		if (rval)
-> > +			goto put_main_pdev;
-> > +
-> > +		rval =3D platform_device_add(si4713_pdev);
-> > +		if (rval)
-> > +			goto put_main_pdev;
-> > +
-> > +		sdev->pd =3D si4713_pdev;
-> > +	} else {
-> > +		sdev->pd =3D NULL;
->=20
-> sdev->pd is NULL already here. You could simply return in if () and
-> proceed to create the platform device if need be.
-
-Right. I simplified the code accordingly in PATCHv3.
-
-> Speaking of which --- I wonder if there are other than historical
-> reasons to create the platform device. I guess that's out of the scope
-> of the set anyway.
-
-I think this was done, so that the usb device can export its own
-control functions.
-
-> > [...]
-> >
-> > +	if (sdev->pd)
-> > +		platform_device_unregister(sdev->pd);
->=20
-> platform_device_unregister() may be safely called with NULL argument.
-
-Ok. Changed in PATCHv3.
-
-> > [...]
-
--- Sebastian
-
---mP3DRpeJDSE+ciuQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUYSbmAAoJENju1/PIO/qa90IP/22e/fi1cIzIKoCeIjQKQsXB
-nMxwX5/ejk8JMbRe4d3dDVWtIBYE/FqDFpM5jwfF295WzykKqZUpwlrzPff+iDjV
-SRt33b163fim/qu7NhpgaMH4/i0dTJYtIoyx+pIlXdWy560j+YIN+FIU92DZvShp
-ZekibJUQRPiL8uXp8qLWngdO4A7oCEGDWr5G5Kb5aj5bzuXvcJGpTvx7aSOqfOen
-Rt1XXmLRd9314je1bMdtszjdXGqXmnejUnqynANtI7l7MyV9FgMWUaAqc97ei1o0
-uHZ4cYzBtocOUFqbHnUp3uOmbrp8ulBJAfn0xq+C/6d86qwVL/Oqgrxipy4cRDZl
-jPaI3GlPJz690OBGg4YfnjTXae/AHnWkLpgz39XaSOdmdG26KKg1jav0wosfsvsV
-3VbotsVwDQsgzIHUbKmYQmv4Pc7bHSaJLRHtsz/BJjcT46qSbe8I7ozyQFmAkFJ+
-o8uVybLrfaDdt9weH6WeJKJEmQBzMz66C2YoZEKRB8K86ILF8aCq1K7lmMorAQvH
-Nc0JDlp/CRlfCZdIuJqe2VES99bGOMnoQmdYiAC08f3Ns3K31cLlTS3cwTI/gG9B
-JSrJXRMPCycpw5lnS0SduHsK9tVWo/F/BU5EOoYLmDQ4LUFhy5ipPIVArmJJOKsq
-xiuIClevWOzCji0IXQZH
-=GQV+
------END PGP SIGNATURE-----
-
---mP3DRpeJDSE+ciuQ--
+--=20
+For more options, visit http://beagleboard.org/discuss
+---=20
+You received this message because you are subscribed to the Google Groups "=
+BeagleBoard" group.
+To unsubscribe from this group and stop receiving emails from it, send an e=
+mail to beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
