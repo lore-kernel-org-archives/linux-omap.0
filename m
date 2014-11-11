@@ -1,109 +1,139 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH] usb: phy: fix twl4030 build regression
-Date: Tue, 11 Nov 2014 08:52:17 -0600
-Message-ID: <20141111145217.GB25615@saruman>
+Date: Tue, 11 Nov 2014 08:53:01 -0600
+Message-ID: <20141111145301.GC25615@saruman>
 References: <7831012.jlbEUURqIo@wuerfel>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <20141111145217.GB25615@saruman>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cvVnyQ+4j833TQvp"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="0vzXIDBeUiKkjNJl"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45092 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752015AbaKKOxE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Nov 2014 09:53:04 -0500
 Content-Disposition: inline
-In-Reply-To: <7831012.jlbEUURqIo@wuerfel>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Antoine Tenart <antoine.tenart-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <20141111145217.GB25615@saruman>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Antoine Tenart <antoine.tenart@free-electrons.com>, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---cvVnyQ+4j833TQvp
-Content-Type: text/plain; charset=utf-8
+--0vzXIDBeUiKkjNJl
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 11, 2014 at 10:36:09AM +0100, Arnd Bergmann wrote:
-> Recent changes to the common OTG handling broke building the twl4030
-> OTG driver as found during an allmodconfig build of linux-next:
+On Tue, Nov 11, 2014 at 08:52:17AM -0600, Felipe Balbi wrote:
+> On Tue, Nov 11, 2014 at 10:36:09AM +0100, Arnd Bergmann wrote:
+> > Recent changes to the common OTG handling broke building the twl4030
+> > OTG driver as found during an allmodconfig build of linux-next:
+> >=20
+> > drivers/phy/phy-twl4030-usb.c: In function 'twl4030_set_peripheral':
+> > drivers/phy/phy-twl4030-usb.c:609:11: error: 'struct phy' has no member=
+ named 'state'
+> > drivers/phy/phy-twl4030-usb.c: In function 'twl4030_usb_probe':
+> > drivers/phy/phy-twl4030-usb.c:679:12: warning: assignment from incompat=
+ible pointer type
+> >=20
+> > This applies the same changes that were done to the other phy drivers
+> > to get it to build cleanly.
+> >=20
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > Fixes: 19c1eac2685b6 ("usb: rename phy to usb_phy in OTG")
+> > Fixes: e47d92545c297 ("usb: move the OTG state from the USB PHY to the =
+OTG structure")
 >=20
-> drivers/phy/phy-twl4030-usb.c: In function 'twl4030_set_peripheral':
-> drivers/phy/phy-twl4030-usb.c:609:11: error: 'struct phy' has no member n=
-amed 'state'
-> drivers/phy/phy-twl4030-usb.c: In function 'twl4030_usb_probe':
-> drivers/phy/phy-twl4030-usb.c:679:12: warning: assignment from incompatib=
-le pointer type
+> on my testing/next already:
 >=20
-> This applies the same changes that were done to the other phy drivers
-> to get it to build cleanly.
+> commit 7e1bbeb4292783dcc079156b8fa08d66d17219e0
+> Author: Felipe Balbi <balbi@ti.com>
+> Date:   Fri Nov 7 19:43:45 2014 -0600
 >=20
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Fixes: 19c1eac2685b6 ("usb: rename phy to usb_phy in OTG")
-> Fixes: e47d92545c297 ("usb: move the OTG state from the USB PHY to the OT=
-G structure")
+>     usb: host: ohci: omap: fix build breakage
 
-on my testing/next already:
+wrong commit, here's the correct one:
 
-commit 7e1bbeb4292783dcc079156b8fa08d66d17219e0
-Author: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Date:   Fri Nov 7 19:43:45 2014 -0600
+commit 8b9ca2767b2d1ea405287e530da3a7b234120b95
+Author: Felipe Balbi <balbi@ti.com>
+Date:   Fri Nov 7 09:06:04 2014 -0600
 
-    usb: host: ohci: omap: fix build breakage
+    phy: twl4030: Fix build breakage
    =20
     commit e47d925 (usb: move the OTG state
     from the USB PHY to the OTG structure) moved
     the OTG state field from struct usb_phy to
     struct usb_otg but, even though I fixed many
     other build breakages, I still missed one
-    on ohci-omap.c.
+    on phy-twl4030-usb.c.
    =20
     Fix the build breakage now.
    =20
-    drivers/usb/host/ohci-omap.c: In function =E2=80=98start_hnp=E2=80=99:
-    drivers/usb/host/ohci-omap.c:186:19: error: request for member =E2=80=
-=98state=E2=80=99 in something not a structure or union
-      hcd->usb_phy->otg.state =3D OTG_STATE_A_SUSPEND;
+    While at that, also a build warning introduced
+    by the same commit.
    =20
-    Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+    Cc: Kishon Vijay Abraham I <kishon@ti.com>
+    Cc: Antoine Tenart <antoine.tenart@free-electrons.com>
+    Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-index cf89b4b1..3e5df5a 100644
---- a/drivers/usb/host/ohci-omap.c
-+++ b/drivers/usb/host/ohci-omap.c
-@@ -183,7 +183,7 @@ static void start_hnp(struct ohci_hcd *ohci)
- 	otg_start_hnp(hcd->usb_phy->otg);
+diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+index 7b04bef..e2698d29 100644
+--- a/drivers/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -606,7 +606,7 @@ static int twl4030_set_peripheral(struct usb_otg *otg,
 =20
- 	local_irq_save(flags);
--	hcd->usb_phy->otg.state =3D OTG_STATE_A_SUSPEND;
-+	hcd->usb_phy->otg->state =3D OTG_STATE_A_SUSPEND;
- 	writel (RH_PS_PSS, &ohci->regs->roothub.portstatus [port]);
- 	l =3D omap_readl(OTG_CTRL);
- 	l &=3D ~OTG_A_BUSREQ;
+ 	otg->gadget =3D gadget;
+ 	if (!gadget)
+-		otg->phy->state =3D OTG_STATE_UNDEFINED;
++		otg->state =3D OTG_STATE_UNDEFINED;
+=20
+ 	return 0;
+ }
+@@ -618,7 +618,7 @@ static int twl4030_set_host(struct usb_otg *otg, struct=
+ usb_bus *host)
+=20
+ 	otg->host =3D host;
+ 	if (!host)
+-		otg->phy->state =3D OTG_STATE_UNDEFINED;
++		otg->state =3D OTG_STATE_UNDEFINED;
+=20
+ 	return 0;
+ }
+@@ -676,7 +676,7 @@ static int twl4030_usb_probe(struct platform_device *pd=
+ev)
+ 	twl->phy.otg		=3D otg;
+ 	twl->phy.type		=3D USB_PHY_TYPE_USB2;
+=20
+-	otg->phy		=3D &twl->phy;
++	otg->usb_phy		=3D &twl->phy;
+ 	otg->set_host		=3D twl4030_set_host;
+ 	otg->set_peripheral	=3D twl4030_set_peripheral;
+=20
 
 --=20
 balbi
 
---cvVnyQ+4j833TQvp
+--0vzXIDBeUiKkjNJl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUYiKhAAoJEIaOsuA1yqRErsYQAI02xqcwGFiZIF3qz/ArzPYg
-IS+A6LwpVZ3VbC8cOH0fXztv+N7rPsX1C0L5KZEnsK9c+N9+dTJa1ctY9XqYtYOy
-hAunR9spwEu/6wgevg6ATa6Pe5smkaLd+3n/ewa3x0ZSVUylKA12C8eI9WAmzV3O
-sm7cX624AWe9427O+Zg3HSDSXZyxYEbnhRRJ6ZfcETGvdc5VSQZHxCSYPDnF2hAh
-alnxNze0p2biWcVkk7hzFFf4KheZJUlR/VcRFIrmQs3isw0IOMLP6pEWbvzMIXwA
-gPAWztVgOpok3jtsr7JpJC0TxN7EU/Lvk6xg1fFaTTzKuqOPnf2l+0c5IXiSDJVE
-/BGRO9dWESfS3FxiRmkwQOl4/nPW68Lk4AC4AjDGI3rzyNYvyX88s2Nze0oZCy44
-Stj/4HBIklBlwS1DXfkGglLtrwvTzyd/YvL89FXaNuXkEGgf+0Ri2TAI9Plbaf0L
-uJH9a//R9ET8XglT+lL3/Wea3fjNuPfqojQpjXX7HvUO3uHuMhcIZltabaYJzmw3
-bcgh2dX2xxsf990BJ8CF8cU9N3yDnbmu6THTZqqdzRYhgjfGxQAS7cWKUFoQKRaZ
-JCRnQUnF0AwBwIZM/cWnZUw0MWRWz/62lQHOHMMHRNJFm/+PoOujnYBBKudjKzbs
-eoSZ8pNbdhiI6Y76dHf6
-=jxoo
+iQIcBAEBAgAGBQJUYiLNAAoJEIaOsuA1yqREFWgP/0aHs5/unyMiwUT834LJ6xN/
+EsT8SDV5FJ+Bdh3GWcs3P/N3D1q6qeg1d2DbOwW/6HqW77GVUSlJNCN7J+2ZVt4j
++AEGOA7/TmLa5tx5mLH2jZCfY64TivfAdGNjBDrfib079yhl+sY/8pu09hvRasGy
+uh9/Iv94U8GkbDGwCb+v+2h70l8l/5WPGwkXAsozZ5OWSymIY6zxKg7Mj75WLqnb
+poM5Bl4cyN3+Cr1oQ8KcBv9CGfb0BTixvUFbRtzOE0sJSqQvplm7KsbvG4dqyU5F
+lOv6V7JNbbkQ43ap0wAfGil+w9/Q9BpVYWy32wqcrdzS/ktToQxDZX6yleRoKScA
+cBQPLOBmQ1xcLdVpd1bTDijvTGoztfDynZIcjA4Ax+Le9wJcMuZtv8WhiLgdHFT+
+OdFh8O2ifyO7FL1Je/ZD0VTNrwnqRvTiU25x4NU76orGFIR2vksqixAHvwzx9Trb
+w51XCmzhM7cGtVq3OmliqJH6Q/EPzCZMkyp+UmgIj8w/yBVuEBXmZSaNzZN9ka9j
+pgbUkBGSrNSbKHx1nQB3kJnBALIf9wAcl2iPc/QJeRDdBT7MEoOTtU5ogX18/T3s
+AURx2tNC5xM7o88okRpa2E+XMbssowZHzMnBcTsyljKA0kGG9IPFEJsfkGhVduPR
+FrwW+8moWdWbZjQ/X/N7
+=f2CT
 -----END PGP SIGNATURE-----
 
---cvVnyQ+4j833TQvp--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--0vzXIDBeUiKkjNJl--
