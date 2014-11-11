@@ -1,48 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4+: PM: Program CPU logic power state
-Date: Mon, 10 Nov 2014 16:03:06 -0800
-Message-ID: <20141111000305.GJ31454@atomide.com>
-References: <1413923076-26063-1-git-send-email-nm@ti.com>
- <7h61f98hvw.fsf@deeprootsystems.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/4] arm: dts: omap3-gta04: Add handling for tv output
+Date: Tue, 11 Nov 2014 09:41:58 +0200
+Message-ID: <5461BDC6.7090308@ti.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com> <1415051968-4878-4-git-send-email-marek@goldelico.com> <20141110233050.GC31454@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27474 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398AbaKKADt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Nov 2014 19:03:49 -0500
-Content-Disposition: inline
-In-Reply-To: <7h61f98hvw.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141110233050.GC31454@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Marek Belisko <marek@goldelico.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 
-* Kevin Hilman <khilman@kernel.org> [141024 11:04]:
-> Nishanth Menon <nm@ti.com> writes:
-> 
-> > CPU logic power state is never programmed in either the initialization
-> > or the suspend/resume logic, instead, we depend on mpuss to program this
-> > properly. However, this leaves CPU logic power state indeterminate and
-> > most probably in reset configuration (If bootloader or other similar
-> > software have'nt monkeyed with the register). This can make powerstate=
-> > RET be either programmed for CSWR (logic=ret) or OSWR(logic = OFF) and
-> > in OSWR, there can be context loss when the code does not expect it.
-> >
-> > To prevent all these confusions, just support clearly ON, INA, CSWR,
-> > OFF which is the intent of the existing code by explicitly programming
-> > logic state.
-> >
-> > NOTE: since this is a hot path (using in cpuidle), the exit path just
-> > programs powerstate (logic state is immaterial when powerstate is ON).
-> >
-> > Without doing this, we end up with lockups when CPUs enter OSWR and
-> > multiple blocks loose context, when we expect them to hit CSWR.
-> >
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> 
-> Acked-by: Kevin Hilman <khilman@linaro.org>
+--MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Applying into omap-for-v3.19/soc thanks.
+Tony,
 
-Tony
+On 11/11/14 01:30, Tony Lindgren wrote:
+> * Marek Belisko <marek@goldelico.com> [141103 14:01]:
+>> Add handling for gta04 tv out chain:
+>> venc -> opa362 -> svideo
+>>
+>> Signed-off-by: Marek Belisko <marek@goldelico.com>
+>> ---
+>>  arch/arm/boot/dts/omap3-gta04.dtsi | 48 +++++++++++++++++++++++++++++=
++++++++++
+>>  1 file changed, 48 insertions(+)
+>=20
+> Applying this patch into omap-for-v3.19/dt thanks.
+
+There are changes needed for this series, so don't apply yet.
+
+I'll try to find the time to do a review and send comments soon.
+
+ Tomi
+
+
+
+--MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUYb3MAAoJEPo9qoy8lh71hhgQAKBEHdxqwh+ytM9xX9R8w3B0
+a3yeVeiHiyTmfhKys9F/vGdC4R3mEhZpWDpPh/z5N589141ocnY0nKtAbC9w/E5W
+o/0ssEx2fX8/y/q3m4T7KoYCzw6Iq45GE+W3HVzK4pcwtwRKGFvI8jzr/9G5ymae
+LCgErOnAbj8dNhi4H8lpt9ueZ8O0KNpBLNI8aN4L/cJMrzg0GwTOerk1N/ZKFV+/
+LznF9acxVsQMuCUZlDTUhfrZ8+o2GOb7CzjcC0qGb7VzipQZu2vWWBtkZeV1w+lj
+uyFjDRTjLu4rPPWjPFLrJ8ZQUWsZWegt5zPwmY5jGla3/6rIBn6FEL/Ee25Gvsin
+I1bXDgdxxo3D6dt338w34nbgUhwDjZkP46EVQPRDk+1w3tC8C5N7Q1LXsZPuczf2
+zZs5OIFJnpc1Ssf7ANWz4NhaYgglFow9iMHPrXqbZyKaE/hMJz14ao5BuySoqegc
+lKBEezmzGtu78uEnr+bvgKEvhEV6q5poMhHq2NAn78RwQ81W+13rfb8NYsCspJ2b
+ntWrO7Am+0684ZVIyT+gzyMxcXUmQYOCs0iA1Kwlno026c4omFk+QEs9lpXPmQe8
+PsRxaeEyFuHshqg0feWeXEQ35ze5dKIW8lpdS38ihT6/BugLtoQFwZYrwEIzzImc
+EnkRN2xTmvIiGwIl6rX3
+=B8gU
+-----END PGP SIGNATURE-----
+
+--MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io--
