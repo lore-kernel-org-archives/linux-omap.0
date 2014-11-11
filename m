@@ -1,102 +1,160 @@
-From: John Syn <john3909@gmail.com>
-Subject: Re: SGX support on AM572x
-Date: Tue, 11 Nov 2014 13:58:20 -0800
-Message-ID: <D087AB25.5A4A5%john3909@gmail.com>
-References: <D087A0BB.5A41E%john3909@gmail.com>
- <20141111195403.GA16958@kahuna>
+From: Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
+Date: Tue, 11 Nov 2014 20:12:26 -0200
+Message-ID: <20141111201226.5d824871@recife.lan>
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>
+	<1413904027-16767-2-git-send-email-sre@kernel.org>
+	<20141111090710.7a60a846@recife.lan>
+	<54624E83.1060404@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=EUC-KR
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:46332 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbaKKV6Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2014 16:58:25 -0500
-Received: by mail-pd0-f181.google.com with SMTP id y10so10749552pdj.26
-        for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2014 13:58:24 -0800 (PST)
-In-Reply-To: <20141111195403.GA16958@kahuna>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54624E83.1060404-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Robert Nelson <robertcnelson@gmail.com>
 
+Em Tue, 11 Nov 2014 18:59:31 +0100
+Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org> escreveu:
 
-On 11/11/14, 11:54 AM, "Nishanth Menon" <nm@ti.com> wrote:
+> Hi Mauro,
+>=20
+> On 11/11/2014 12:07 PM, Mauro Carvalho Chehab wrote:
+> > Em Tue, 21 Oct 2014 17:07:00 +0200
+> > Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> escreveu:
+> >=20
+> >> This switches back to the normal regulator API (but use
+> >> managed variant) in preparation for device tree support.
+> >=20
+> > This patch broke compilation. Please be sure that none of the patch=
+es in
+> > the series would break it, as otherwise git bisect would be broken.
+>=20
+> Weird, as reported by Sebastian, it works for me.
 
->On 11:17-20141111, John Syn wrote:
->> With the release of the Beagleboard-X15 in February 2015, I=A9=F6m t=
-rying to
->> get a handle on the status of SGX support for the AM572x processor. =
-Is
->> anyone working on adding this support and is there any schedule for
->> releasing SGX on AM572x? There is a lot of interest on the beagleboa=
-rd
->> mailing list, but SGX support seems to be a big stumbling block.
->
->1. Are you looking for SGX driver support in
->https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/ ?
->
->OR
->
->2. Are you looking for distro support?
->
->OR
->3. Are you looking for what TI release(if any) will contain?
->
->for (1) you already have response from beagleboard mailing list - TI, =
-to
->my knowledge will not support IMG[1] drivers in kernel.org - at least =
-no
->known activity in the past present or future to do that.
-Yeah, I think this is clearly understood.
->
->For (2): as the distro folks how they want to do things - again depend=
-s
->on where you are getting your distro from.
-The official distro for Beagleboard-X15 is Robert Nelson=A1=AFs Debian =
-distro,
-but as long as SGX is available for AM572x, I=A1=AFm sure Robert will f=
-ind a
-way to get this working.
->
->For (3): use TI support channel over e2e Phorums[2] and look at releva=
-nt
->TI release's release notes. Things like [3] are handled properly that
->way.
-I took a look in e2e and I did find one promising posting:
+Weird. Not sure what happened here.
 
-http://e2e.ti.com/support/omap/f/885/t/366372.aspx
+>=20
+> However, after applying this patch I get these new warnings:
+>=20
+>   CC      drivers/media/radio/si4713/radio-usb-si4713.o
+> drivers/media/radio/si4713/si4713.c: In function =E2=80=98si4713_prob=
+e=E2=80=99:
+> drivers/media/radio/si4713/si4713.c:1617:1: warning: label =E2=80=98f=
+ree_gpio=E2=80=99 defined but not used [-Wunused-label]
+>  free_gpio:
+>  ^
+> drivers/media/radio/si4713/si4713.c:1451:12: warning: unused variable=
+ =E2=80=98i=E2=80=99 [-Wunused-variable]
+>   int rval, i;
+>             ^
+>=20
+> So it's probably not a good idea to merge this patch anyway until thi=
+s is fixed.
 
-However, this article and your reference [3] are for V3.8 and I believe
-BeagleBoard-X15 will be released with V3.14 or V3.18. So my question is
-related to [3] and SGX support for either V3.14 or V3.18.
+Agreed. Also, v3 of this series apparently came after the pull request.
 
 Regards,
-John
->
->
->Other recent references:
->https://plus.google.com/100242854243155306943/posts/TKX7GfHkTow
->http://beagleboard.org/Community/Forums?place=3Dmsg%2Fbeagleboard%2F1t=
-3yxkPY
->SB8%2FxCbkoWC_GhQJ
->
->
->[1] http://www.imgtec.com/community/
->[2] e2e.ti.com
->[3]=20
->http://git.omapzoom.org/?p=3Ddevice/ti/proprietary-open.git;a=3Dtree;f=
-=3Djacinto
->6;h=3D6203e0dfe7cf89456517a1b877610f8ac2b4fd86;hb=3Drefs/heads/d-lolli=
-pop-rele
->ase
->--=20
->Regards,
->Nishanth Menon
+Mauro
 
 
+> Sebastian, can you fix these warnings and repost?
+>=20
+> Thanks!
+>=20
+> 	Hans
+>=20
+> >=20
+> > Thanks,
+> > Mauro
+> >=20
+> > drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
+> > drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_d=
+evice' has no member named 'supplies'
+> > =20
+> >           ^
+> > drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_d=
+evice' has no member named 'supplies'
+> >   if (sdev->vdd) {
+> >                                    ^
+> > drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_d=
+evice' has no member named 'supply_data'
+> >   if (sdev->vdd) {
+> >                                                    ^
+> > drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_d=
+evice' has no member named 'supplies'
+> >    v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+> >           ^
+> > drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_d=
+evice' has no member named 'supplies'
+> >    sdev->power_state =3D POWER_ON;
+> >                                     ^
+> > drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_d=
+evice' has no member named 'supply_data'
+> >    sdev->power_state =3D POWER_ON;
+> >                                                     ^
+> > drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown'=
+:
+> > drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_d=
+evice' has no member named 'supplies'
+> >   int err;
+> >            ^
+> > drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_d=
+evice' has no member named 'supplies'
+> >   u8 resp[SI4713_PWDN_NRESP];
+> >                                      ^
+> > drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_d=
+evice' has no member named 'supply_data'
+> > =20
+> >                 ^
+> > drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
+> > drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_d=
+evice' has no member named 'supplies'
+> >  /* si4713_probe - probe for the device */
+> >        ^
+> > drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_=
+device' has no member named 'supplies'
+> >  {
+> >                       ^
+> > drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_d=
+evice' has no member named 'supply_data'
+> >   struct si4713_device *sdev;
+> >        ^
+> > drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_=
+device' has no member named 'supplies'
+> >   struct v4l2_ctrl_handler *hdl;
+> >                                               ^
+> > drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_=
+device' has no member named 'supply_data'
+> >   int rval, i;
+> >            ^
+> > drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_=
+device' has no member named 'supplies'
+> > =20
+> >                           ^
+> > drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_=
+device' has no member named 'supply_data'
+> > =20
+> >                                           ^
+> > drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
+> > drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_=
+device' has no member named 'supplies'
+> >    goto free_irq;
+> >                           ^
+> > drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_=
+device' has no member named 'supply_data'
+> >    goto free_irq;
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-med=
+ia" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >=20
+>=20
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
 n
-the body of a message to majordomo@vger.kernel.org
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
