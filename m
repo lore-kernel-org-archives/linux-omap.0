@@ -1,48 +1,97 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v2] ARM: dts: sbc-t3x: add DVI display data
-Date: Tue, 11 Nov 2014 14:02:55 +0200
-Message-ID: <5461FAEF.3010607@compulab.co.il>
-References: <1413364186-23752-1-git-send-email-lifshitz@compulab.co.il> <1414927198-7127-1-git-send-email-lifshitz@compulab.co.il> <54561E45.7000404@compulab.co.il> <20141110174845.GP31454@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v3 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Tue, 11 Nov 2014 12:26:24 +0000
+Message-ID: <20141111122623.GA24004@x1>
+References: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
+ <1415694844-11230-4-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:51532 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752384AbaKKMDE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Nov 2014 07:03:04 -0500
-In-Reply-To: <20141110174845.GP31454@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1415694844-11230-4-git-send-email-vigneshr@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, =?ISO-8859-1?Q?Beno=EEt_?= =?ISO-8859-1?Q?Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+On Tue, 11 Nov 2014, Vignesh R wrote:
 
-On 11/10/14 19:48, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [141102 04:08]:
->> On 11/02/14 13:19, Dmitry Lifshitz wrote:
->>> Add DSS related pinmux and display data nodes required to support
->>> DVI video out on SBC-T3530, SBC-T3730 and SBC-T3517.
->>>
->>> Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
->>
->> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
-> 
-> Thanks applying into omap-for-v3.19/dt.
-> 
-> Are we now ready to drop the board-cm-*.c files?
+> In one shot mode, sequencer automatically disables all enabled steps =
+at
+> the end of each cycle. (both ADC steps and TSC steps) Hence these ste=
+ps
+> need not be saved in reg_se_cache for clearing these steps at a later
+> stage.
+> Also, when ADC wakes up Sequencer should not be busy executing any of=
+ the
+> config steps except for the charge step. Previously charge step was 1=
+ ADC
+> clock cycle and hence it was ignored.
+>=20
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
 
-Let's see, below is a list of things that are yet to be
-supported in DT boot:
-NAND, TV, LCD, Touchscreen, Audio (CM-T3x30), RTC (CM-T3517), CAN (CM-3517).
+You need to provide a changelog here when submitting new versions.
 
-We're rc4 now, so hopefully, we will be able to get all this in for 3.19
-and then have the board files removed for 3.20.
-This way we can have 3.19 with both ways supported and do last checks.
+>  drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
+>  include/linux/mfd/ti_am335x_tscadc.h | 1 +
+>  2 files changed, 6 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_t=
+scadc.c
+> index d877e777cce6..110038859a8d 100644
+> --- a/drivers/mfd/ti_am335x_tscadc.c
+> +++ b/drivers/mfd/ti_am335x_tscadc.c
+> @@ -86,8 +86,12 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  		spin_lock_irq(&tsadc->reg_lock);
+>  		finish_wait(&tsadc->reg_se_wait, &wait);
+> =20
+> +		/*
+> +		 * Sequencer should either be idle or
+> +		 * busy applying the charge step.
+> +		 */
+>  		reg =3D tscadc_readl(tsadc, REG_ADCFSM);
+> -		WARN_ON(reg & SEQ_STATUS);
+> +		WARN_ON((reg & SEQ_STATUS) && !(reg & CHARGE_STEP));
+>  		tsadc->adc_waiting =3D false;
+>  	}
+>  	tsadc->adc_in_use =3D true;
+> @@ -96,7 +100,6 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  void am335x_tsc_se_set_once(struct ti_tscadc_dev *tsadc, u32 val)
+>  {
+>  	spin_lock_irq(&tsadc->reg_lock);
+> -	tsadc->reg_se_cache |=3D val;
 
-Are you ok with this?
+You didn't answer my question about this?
 
--- 
-Regards,
-Igor.
+>  	am335x_tscadc_need_adc(tsadc);
+> =20
+>  	tscadc_writel(tsadc, REG_SE, val);
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd=
+/ti_am335x_tscadc.h
+> index c99be5dc0f5c..fcce182e4a35 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -128,6 +128,7 @@
+> =20
+>  /* Sequencer Status */
+>  #define SEQ_STATUS BIT(5)
+> +#define CHARGE_STEP		0x11
+> =20
+>  #define ADC_CLK			3000000
+>  #define TOTAL_STEPS		16
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
