@@ -1,137 +1,40 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
-Date: Tue, 11 Nov 2014 18:59:31 +0100
-Message-ID: <54624E83.1060404@xs4all.nl>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>	<1413904027-16767-2-git-send-email-sre@kernel.org> <20141111090710.7a60a846@recife.lan>
+From: John Syn <john3909@gmail.com>
+Subject: SGX support on AM572x
+Date: Tue, 11 Nov 2014 11:17:15 -0800
+Message-ID: <D087A0BB.5A41E%john3909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141111090710.7a60a846@recife.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Sebastian Reichel <sre@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:63312 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751415AbaKKTRT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2014 14:17:19 -0500
+Received: by mail-pd0-f173.google.com with SMTP id v10so10661154pde.32
+        for <linux-omap@vger.kernel.org>; Tue, 11 Nov 2014 11:17:18 -0800 (PST)
+Received: from [10.100.116.126] (ip70-181-182-235.sd.sd.cox.net. [70.181.182.235])
+        by mx.google.com with ESMTPSA id l6sm20062894pdr.39.2014.11.11.11.17.17
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Tue, 11 Nov 2014 11:17:18 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Mauro,
+With the release of the Beagleboard-X15 in February 2015, I=B9m trying =
+to
+get a handle on the status of SGX support for the AM572x processor. Is
+anyone working on adding this support and is there any schedule for
+releasing SGX on AM572x? There is a lot of interest on the beagleboard
+mailing list, but SGX support seems to be a big stumbling block.
 
-On 11/11/2014 12:07 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 21 Oct 2014 17:07:00 +0200
-> Sebastian Reichel <sre@kernel.org> escreveu:
->=20
->> This switches back to the normal regulator API (but use
->> managed variant) in preparation for device tree support.
->=20
-> This patch broke compilation. Please be sure that none of the patches=
- in
-> the series would break it, as otherwise git bisect would be broken.
+Regards,
+John
 
-Weird, as reported by Sebastian, it works for me.
 
-However, after applying this patch I get these new warnings:
 
-  CC      drivers/media/radio/si4713/radio-usb-si4713.o
-drivers/media/radio/si4713/si4713.c: In function =91si4713_probe=92:
-drivers/media/radio/si4713/si4713.c:1617:1: warning: label =91free_gpio=
-=92 defined but not used [-Wunused-label]
- free_gpio:
- ^
-drivers/media/radio/si4713/si4713.c:1451:12: warning: unused variable =91=
-i=92 [-Wunused-variable]
-  int rval, i;
-            ^
-
-So it's probably not a good idea to merge this patch anyway until this =
-is fixed.
-
-Sebastian, can you fix these warnings and repost?
-
-Thanks!
-
-	Hans
-
->=20
-> Thanks,
-> Mauro
->=20
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
-> drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_dev=
-ice' has no member named 'supplies'
-> =20
->           ^
-> drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_dev=
-ice' has no member named 'supplies'
->   if (sdev->vdd) {
->                                    ^
-> drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_dev=
-ice' has no member named 'supply_data'
->   if (sdev->vdd) {
->                                                    ^
-> drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_dev=
-ice' has no member named 'supplies'
->    v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
->           ^
-> drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_dev=
-ice' has no member named 'supplies'
->    sdev->power_state =3D POWER_ON;
->                                     ^
-> drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_dev=
-ice' has no member named 'supply_data'
->    sdev->power_state =3D POWER_ON;
->                                                     ^
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown':
-> drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_dev=
-ice' has no member named 'supplies'
->   int err;
->            ^
-> drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_dev=
-ice' has no member named 'supplies'
->   u8 resp[SI4713_PWDN_NRESP];
->                                      ^
-> drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_dev=
-ice' has no member named 'supply_data'
-> =20
->                 ^
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
-> drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_dev=
-ice' has no member named 'supplies'
->  /* si4713_probe - probe for the device */
->        ^
-> drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_de=
-vice' has no member named 'supplies'
->  {
->                       ^
-> drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_dev=
-ice' has no member named 'supply_data'
->   struct si4713_device *sdev;
->        ^
-> drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_de=
-vice' has no member named 'supplies'
->   struct v4l2_ctrl_handler *hdl;
->                                               ^
-> drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_de=
-vice' has no member named 'supply_data'
->   int rval, i;
->            ^
-> drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_de=
-vice' has no member named 'supplies'
-> =20
->                           ^
-> drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_de=
-vice' has no member named 'supply_data'
-> =20
->                                           ^
-> drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
-> drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_de=
-vice' has no member named 'supplies'
->    goto free_irq;
->                           ^
-> drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_de=
-vice' has no member named 'supply_data'
->    goto free_irq;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
