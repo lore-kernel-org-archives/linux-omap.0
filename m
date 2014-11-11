@@ -1,72 +1,34 @@
-From: "R, Vignesh" <vigneshr@ti.com>
-Subject: RE: [PATCH v3 3/6] mfd: ti_am335x_tscadc: Remove unwanted
- reg_se_cache save
-Date: Tue, 11 Nov 2014 15:26:19 +0000
-Message-ID: <71C24A547111EA4E84AE759B748D9EAE4B976C@DBDE04.ent.ti.com>
-References: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
- <1415694844-11230-4-git-send-email-vigneshr@ti.com>
- <20141111122623.GA24004@x1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH] ARM: OMAP2+: clock: remove unused function prototype
+Date: Tue, 11 Nov 2014 16:56:04 +0100
+Message-ID: <1415721364-25749-1-git-send-email-johan@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141111122623.GA24004@x1>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, "richardcochran@gmail.com" <richardcochran@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, "Balbi, Felipe" <balbi@ti.com>, "Griffis, Brad" <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, "devicetree@vger.kernel.org" <devicetree@vger.k>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-DQpPbiBUdWUsIDExIE5vdiAyMDE0LCBWaWduZXNoIFIgd3JvdGU6DQoNCj4gSW4gb25lIHNob3Qg
-bW9kZSwgc2VxdWVuY2VyIGF1dG9tYXRpY2FsbHkgZGlzYWJsZXMgYWxsIGVuYWJsZWQgc3RlcHMg
-DQo+IGF0IHRoZSBlbmQgb2YgZWFjaCBjeWNsZS4gKGJvdGggQURDIHN0ZXBzIGFuZCBUU0Mgc3Rl
-cHMpIEhlbmNlIHRoZXNlIA0KPiBzdGVwcyBuZWVkIG5vdCBiZSBzYXZlZCBpbiByZWdfc2VfY2Fj
-aGUgZm9yIGNsZWFyaW5nIHRoZXNlIHN0ZXBzIGF0IGEgDQo+IGxhdGVyIHN0YWdlLg0KPiBBbHNv
-LCB3aGVuIEFEQyB3YWtlcyB1cCBTZXF1ZW5jZXIgc2hvdWxkIG5vdCBiZSBidXN5IGV4ZWN1dGlu
-ZyBhbnkgb2YgDQo+IHRoZSBjb25maWcgc3RlcHMgZXhjZXB0IGZvciB0aGUgY2hhcmdlIHN0ZXAu
-IFByZXZpb3VzbHkgY2hhcmdlIHN0ZXAgDQo+IHdhcyAxIEFEQyBjbG9jayBjeWNsZSBhbmQgaGVu
-Y2UgaXQgd2FzIGlnbm9yZWQuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBWaWduZXNoIFIgPHZpZ25l
-c2hyQHRpLmNvbT4NCj4gLS0tDQoNCllvdSBuZWVkIHRvIHByb3ZpZGUgYSBjaGFuZ2Vsb2cgaGVy
-ZSB3aGVuIHN1Ym1pdHRpbmcgbmV3IHZlcnNpb25zLg0KDQpJIGhhdmUgaW5jbHVkZWQgY2hhbmdl
-bG9nIGluIHRoZSBjb3ZlciBwYWdlLiBXaWxsIGluY2x1ZGUgdGhlbSBpbiANCmluZGl2aWR1YWwg
-cGF0Y2hlcyBuZXh0IHRpbWUuDQoNCj4gIGRyaXZlcnMvbWZkL3RpX2FtMzM1eF90c2NhZGMuYyAg
-ICAgICB8IDcgKysrKystLQ0KPiAgaW5jbHVkZS9saW51eC9tZmQvdGlfYW0zMzV4X3RzY2FkYy5o
-IHwgMSArDQo+ICAyIGZpbGVzIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMo
-LSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21mZC90aV9hbTMzNXhfdHNjYWRjLmMgDQo+
-IGIvZHJpdmVycy9tZmQvdGlfYW0zMzV4X3RzY2FkYy5jIGluZGV4IGQ4NzdlNzc3Y2NlNi4uMTEw
-MDM4ODU5YThkIA0KPiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZmQvdGlfYW0zMzV4X3RzY2Fk
-Yy5jDQo+ICsrKyBiL2RyaXZlcnMvbWZkL3RpX2FtMzM1eF90c2NhZGMuYw0KPiBAQCAtODYsOCAr
-ODYsMTIgQEAgc3RhdGljIHZvaWQgYW0zMzV4X3RzY2FkY19uZWVkX2FkYyhzdHJ1Y3QgdGlfdHNj
-YWRjX2RldiAqdHNhZGMpDQo+ICAJCXNwaW5fbG9ja19pcnEoJnRzYWRjLT5yZWdfbG9jayk7DQo+
-ICAJCWZpbmlzaF93YWl0KCZ0c2FkYy0+cmVnX3NlX3dhaXQsICZ3YWl0KTsNCj4gIA0KPiArCQkv
-Kg0KPiArCQkgKiBTZXF1ZW5jZXIgc2hvdWxkIGVpdGhlciBiZSBpZGxlIG9yDQo+ICsJCSAqIGJ1
-c3kgYXBwbHlpbmcgdGhlIGNoYXJnZSBzdGVwLg0KPiArCQkgKi8NCj4gIAkJcmVnID0gdHNjYWRj
-X3JlYWRsKHRzYWRjLCBSRUdfQURDRlNNKTsNCj4gLQkJV0FSTl9PTihyZWcgJiBTRVFfU1RBVFVT
-KTsNCj4gKwkJV0FSTl9PTigocmVnICYgU0VRX1NUQVRVUykgJiYgIShyZWcgJiBDSEFSR0VfU1RF
-UCkpOw0KPiAgCQl0c2FkYy0+YWRjX3dhaXRpbmcgPSBmYWxzZTsNCj4gIAl9DQo+ICAJdHNhZGMt
-PmFkY19pbl91c2UgPSB0cnVlOw0KPiBAQCAtOTYsNyArMTAwLDYgQEAgc3RhdGljIHZvaWQgYW0z
-MzV4X3RzY2FkY19uZWVkX2FkYyhzdHJ1Y3QgDQo+IHRpX3RzY2FkY19kZXYgKnRzYWRjKSAgdm9p
-ZCBhbTMzNXhfdHNjX3NlX3NldF9vbmNlKHN0cnVjdCANCj4gdGlfdHNjYWRjX2RldiAqdHNhZGMs
-IHUzMiB2YWwpICB7DQo+ICAJc3Bpbl9sb2NrX2lycSgmdHNhZGMtPnJlZ19sb2NrKTsNCj4gLQl0
-c2FkYy0+cmVnX3NlX2NhY2hlIHw9IHZhbDsNCg0KWW91IGRpZG4ndCBhbnN3ZXIgbXkgcXVlc3Rp
-b24gYWJvdXQgdGhpcz8NCkkgZGlkIHJlcGx5IHRvIHRoZSBxdWVzdGlvbiBpbiB0aGUgcHJldmlv
-dXMgdGhyZWFkLiAgDQoNClByZXZpb3VzbHksIFRTQyBkaWQgbm90IHJlbGlhYmx5IHJlLWVuYWJs
-ZSBpdHMgc3RlcHMgYXMgdGhlIFRTQyBpcnEgaGFuZGxlciByZWNlaXZlZCANCmZhbHNlIHBlbiB1
-cCBldmVudHMuIEhlbmNlLCBpbiBvcmRlciB0byB1c2UgVFNDIGFmdGVyIEFEQyBvcGVyYXRpb24s
-IGl0IHdhcyBuZWNlc3NhcnkgdG8NCiBzYXZlIGFuZCByZS1lbmFibGUgVFNDIHN0ZXBzIChiYXNp
-Y2FsbHksIHRvIGtlZXAgVFNDIHN0ZXBzIGVuYWJsZWQgYWx3YXlzKS4NClRoZSBjaGFuZ2Ugd2Fz
-IG1vcmUgb2YgYSB3b3JrYXJvdW5kIHRvIG92ZXJjb21lIGxpbWl0YXRpb24gb2YgVFNDIGlycSBo
-YW5kbGVyLiBXaXRoIA0KdGhpcyBzZXJpZXMgb2YgcGF0Y2hlcywgVFNDIGlycSBoYW5kbGVyIGlz
-IHZlcnkgcmVsaWFibGUgYW5kIHRoZSB3b3JrYXJvdW5kIGlzIG5vIGxvbmdlciByZXF1aXJlZC4N
-Cg0KPiAgCWFtMzM1eF90c2NhZGNfbmVlZF9hZGModHNhZGMpOw0KPiAgDQo+ICAJdHNjYWRjX3dy
-aXRlbCh0c2FkYywgUkVHX1NFLCB2YWwpOw0KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9t
-ZmQvdGlfYW0zMzV4X3RzY2FkYy5oIA0KPiBiL2luY2x1ZGUvbGludXgvbWZkL3RpX2FtMzM1eF90
-c2NhZGMuaA0KPiBpbmRleCBjOTliZTVkYzBmNWMuLmZjY2UxODJlNGEzNSAxMDA2NDQNCj4gLS0t
-IGEvaW5jbHVkZS9saW51eC9tZmQvdGlfYW0zMzV4X3RzY2FkYy5oDQo+ICsrKyBiL2luY2x1ZGUv
-bGludXgvbWZkL3RpX2FtMzM1eF90c2NhZGMuaA0KPiBAQCAtMTI4LDYgKzEyOCw3IEBADQo+ICAN
-Cj4gIC8qIFNlcXVlbmNlciBTdGF0dXMgKi8NCj4gICNkZWZpbmUgU0VRX1NUQVRVUyBCSVQoNSkN
-Cj4gKyNkZWZpbmUgQ0hBUkdFX1NURVAJCTB4MTENCj4gIA0KPiAgI2RlZmluZSBBRENfQ0xLCQkJ
-MzAwMDAwMA0KPiAgI2RlZmluZSBUT1RBTF9TVEVQUwkJMTYNCg0KLS0NCkxlZSBKb25lcw0KTGlu
-YXJvIFNUTWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZCBMaW5hcm8ub3JnIOKUgiBP
-cGVuIHNvdXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MgRm9sbG93IExpbmFybzogRmFjZWJvb2sg
-fCBUd2l0dGVyIHwgQmxvZw0K
+Remove unused function prototype that was left by commit 149c09d3a61d
+("ARM: AM33xx: remove old clock data and link in new clock init code")
+which removed the definition.
+
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ arch/arm/mach-omap2/clock.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 4592a2762592..c81d6cc41891 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -269,8 +269,6 @@ extern const struct clksel_rate div31_1to31_rates[];
+ 
+ extern void __iomem *clk_memmaps[];
+ 
+-extern int am33xx_clk_init(void);
+-
+ extern int omap2_clkops_enable_clkdm(struct clk_hw *hw);
+ extern void omap2_clkops_disable_clkdm(struct clk_hw *hw);
+ 
+-- 
+2.0.4
