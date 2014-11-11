@@ -1,68 +1,89 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] usb: phy: fix twl4030 build regression
-Date: Tue, 11 Nov 2014 10:36:09 +0100
-Message-ID: <7831012.jlbEUURqIo@wuerfel>
+From: Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
+Date: Tue, 11 Nov 2014 09:07:10 -0200
+Message-ID: <20141111090710.7a60a846@recife.lan>
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>
+	<1413904027-16767-2-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Antoine Tenart <antoine.tenart-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1413904027-16767-2-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Recent changes to the common OTG handling broke building the twl4030
-OTG driver as found during an allmodconfig build of linux-next:
+Em Tue, 21 Oct 2014 17:07:00 +0200
+Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> escreveu:
 
-drivers/phy/phy-twl4030-usb.c: In function 'twl4030_set_peripheral':
-drivers/phy/phy-twl4030-usb.c:609:11: error: 'struct phy' has no member named 'state'
-drivers/phy/phy-twl4030-usb.c: In function 'twl4030_usb_probe':
-drivers/phy/phy-twl4030-usb.c:679:12: warning: assignment from incompatible pointer type
+> This switches back to the normal regulator API (but use
+> managed variant) in preparation for device tree support.
 
-This applies the same changes that were done to the other phy drivers
-to get it to build cleanly.
+This patch broke compilation. Please be sure that none of the patches in
+the series would break it, as otherwise git bisect would be broken.
 
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Fixes: 19c1eac2685b6 ("usb: rename phy to usb_phy in OTG")
-Fixes: e47d92545c297 ("usb: move the OTG state from the USB PHY to the OTG structure")
----
+Thanks,
+Mauro
 
-I have no idea if this is the correct fix, this is just a mechanical
-conversion, so please review carefully.
-
-diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
-index 7b04befd5271..e2698d29f436 100644
---- a/drivers/phy/phy-twl4030-usb.c
-+++ b/drivers/phy/phy-twl4030-usb.c
-@@ -606,7 +606,7 @@ static int twl4030_set_peripheral(struct usb_otg *otg,
+drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
+drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_device' has no member named 'supplies'
  
- 	otg->gadget = gadget;
- 	if (!gadget)
--		otg->phy->state = OTG_STATE_UNDEFINED;
-+		otg->state = OTG_STATE_UNDEFINED;
+          ^
+drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_device' has no member named 'supplies'
+  if (sdev->vdd) {
+                                   ^
+drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_device' has no member named 'supply_data'
+  if (sdev->vdd) {
+                                                   ^
+drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_device' has no member named 'supplies'
+   v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+          ^
+drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_device' has no member named 'supplies'
+   sdev->power_state = POWER_ON;
+                                    ^
+drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_device' has no member named 'supply_data'
+   sdev->power_state = POWER_ON;
+                                                    ^
+drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown':
+drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_device' has no member named 'supplies'
+  int err;
+           ^
+drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_device' has no member named 'supplies'
+  u8 resp[SI4713_PWDN_NRESP];
+                                     ^
+drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_device' has no member named 'supply_data'
  
- 	return 0;
- }
-@@ -618,7 +618,7 @@ static int twl4030_set_host(struct usb_otg *otg, struct usb_bus *host)
+                ^
+drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
+drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_device' has no member named 'supplies'
+ /* si4713_probe - probe for the device */
+       ^
+drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_device' has no member named 'supplies'
+ {
+                      ^
+drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_device' has no member named 'supply_data'
+  struct si4713_device *sdev;
+       ^
+drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_device' has no member named 'supplies'
+  struct v4l2_ctrl_handler *hdl;
+                                              ^
+drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_device' has no member named 'supply_data'
+  int rval, i;
+           ^
+drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_device' has no member named 'supplies'
  
- 	otg->host = host;
- 	if (!host)
--		otg->phy->state = OTG_STATE_UNDEFINED;
-+		otg->state = OTG_STATE_UNDEFINED;
+                          ^
+drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_device' has no member named 'supply_data'
  
- 	return 0;
- }
-@@ -676,7 +676,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	twl->phy.otg		= otg;
- 	twl->phy.type		= USB_PHY_TYPE_USB2;
- 
--	otg->phy		= &twl->phy;
-+	otg->usb_phy		= &twl->phy;
- 	otg->set_host		= twl4030_set_host;
- 	otg->set_peripheral	= twl4030_set_peripheral;
- 
-
+                                          ^
+drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
+drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_device' has no member named 'supplies'
+   goto free_irq;
+                          ^
+drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_device' has no member named 'supply_data'
+   goto free_irq;
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
