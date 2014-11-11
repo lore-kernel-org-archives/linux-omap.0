@@ -1,115 +1,137 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] omap prcm clean-up for v3.19
-Date: Tue, 11 Nov 2014 09:14:29 -0800
-Message-ID: <23193.7248413034$1415726202@news.gmane.org>
-References: <pull-1415725783-562282>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
+Date: Tue, 11 Nov 2014 18:59:31 +0100
+Message-ID: <54624E83.1060404@xs4all.nl>
+References: <1413904027-16767-1-git-send-email-sre@kernel.org>	<1413904027-16767-2-git-send-email-sre@kernel.org> <20141111090710.7a60a846@recife.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1415725783-562282>
-In-Reply-To: <pull-1415725783-562282>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141111090710.7a60a846@recife.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Sebastian Reichel <sre@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit f114040e3ea6e07372334ade75d1ee0775c355e1:
+Hi Mauro,
 
-  Linux 3.18-rc1 (2014-10-19 18:08:38 -0700)
+On 11/11/2014 12:07 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 21 Oct 2014 17:07:00 +0200
+> Sebastian Reichel <sre@kernel.org> escreveu:
+>=20
+>> This switches back to the normal regulator API (but use
+>> managed variant) in preparation for device tree support.
+>=20
+> This patch broke compilation. Please be sure that none of the patches=
+ in
+> the series would break it, as otherwise git bisect would be broken.
 
-are available in the git repository at:
+Weird, as reported by Sebastian, it works for me.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/prcm-cleanup
+However, after applying this patch I get these new warnings:
 
-for you to fetch changes up to 61c8621e2bd14faad9b89ab2284955b28000bcd5:
+  CC      drivers/media/radio/si4713/radio-usb-si4713.o
+drivers/media/radio/si4713/si4713.c: In function =91si4713_probe=92:
+drivers/media/radio/si4713/si4713.c:1617:1: warning: label =91free_gpio=
+=92 defined but not used [-Wunused-label]
+ free_gpio:
+ ^
+drivers/media/radio/si4713/si4713.c:1451:12: warning: unused variable =91=
+i=92 [-Wunused-variable]
+  int rval, i;
+            ^
 
-  ARM: OMAP2+: PRM: provide generic API for system reset (2014-10-27 08:39:26 -0700)
+So it's probably not a good idea to merge this patch anyway until this =
+is fixed.
 
-----------------------------------------------------------------
-Clean-up series for omap PRCM (Power Reset Clock Module) from
-Tero Kristo to move things a bit closer to becoming a proper
-device driver.
+Sebastian, can you fix these warnings and repost?
 
-----------------------------------------------------------------
-Tero Kristo (26):
-      ARM: DRA7: PRM: add voltage processor check behind a prm_feature flag
-      ARM: AM43XX: PRM: use OMAP4 PRM driver
-      ARM: OMAP2/3: hwmod: merge wait_target_ready functions for omap2/3
-      ARM: AM33xx/OMAP4+: CM: remove cdoffs parameter from wait_module_idle/ready
-      ARM: OMAP4/AM33xx: add cm_init / cm_exit calls for AM33xx and OMAP4+
-      ARM: OMAP2+: CM: add common API for cm_wait_module_ready
-      ARM: OMAP4+/AM33xx: CM: add common API for cm_wait_module_idle
-      ARM: OMAP2+: CM: make clkdm_hwsup operations static
-      ARM: OMAP2+: CM: add common APIs for cm_module_enable/disable
-      ARM: OMAP2/3: CM: make cm_split_idlest_reg SoC calls static
-      ARM: AM33xx: hwmod: remove am33xx specific module SoC opts
-      ARM: AM43xx: hwmod: use OMAP4 hardreset ops instead of the AM33xx version
-      ARM: AM33xx: PRM: add support for prm_init
-      ARM: OMAP2+: PRM: add generic API for asserting hardware reset
-      ARM: OMAP2+: PRM: add generic API for deasserting hardware reset
-      ARM: OMAP2+: PRM: add generic API for checking hardreset status
-      ARM: OMAP4: CM: move public definitions from cminst44xx.h to cm44xx.h
-      ARM: OMAP4: CM: make cminst direct register access functions static
-      ARM: OMAP4+: CM: remove omap4_cm1/cm2_* functions
-      ARM: AM33xx: PRM: move global warm reset implementation to driver
-      ARM: AM33xx: PRM: make direct register access functions static
-      ARM: OMAP4: PRM: make omap4_prm_read/write_inst_reg calls static
-      ARM: OMAP3: PRM: make PRCM interrupt handler related functions static
-      ARM: OMAP4: PRM: make PRCM interrupt handler related functions static
-      ARM: OMAP3+: PRM: add generic API for reconfiguring I/O chain
-      ARM: OMAP2+: PRM: provide generic API for system reset
+Thanks!
 
- arch/arm/mach-omap2/Makefile         |   2 +-
- arch/arm/mach-omap2/am33xx-restart.c |  12 +-
- arch/arm/mach-omap2/clock.c          |   3 +-
- arch/arm/mach-omap2/cm.h             |  18 ++-
- arch/arm/mach-omap2/cm1_44xx.h       |   2 -
- arch/arm/mach-omap2/cm1_54xx.h       |   2 -
- arch/arm/mach-omap2/cm1_7xx.h        |   2 -
- arch/arm/mach-omap2/cm2_44xx.h       |   2 -
- arch/arm/mach-omap2/cm2_54xx.h       |   2 -
- arch/arm/mach-omap2/cm2_7xx.h        |   2 -
- arch/arm/mach-omap2/cm2xxx.c         |  17 ++-
- arch/arm/mach-omap2/cm2xxx.h         |  10 +-
- arch/arm/mach-omap2/cm33xx.c         |  61 ++++++---
- arch/arm/mach-omap2/cm33xx.h         |  37 +-----
- arch/arm/mach-omap2/cm3xxx.c         |  19 +--
- arch/arm/mach-omap2/cm3xxx.h         |  12 --
- arch/arm/mach-omap2/cm44xx.c         |  49 -------
- arch/arm/mach-omap2/cm44xx.h         |   3 +
- arch/arm/mach-omap2/cm_44xx_54xx.h   |  36 -----
- arch/arm/mach-omap2/cm_common.c      |  82 +++++++++++-
- arch/arm/mach-omap2/cminst44xx.c     |  80 ++++++-----
- arch/arm/mach-omap2/cminst44xx.h     |  43 ------
- arch/arm/mach-omap2/io.c             |  11 +-
- arch/arm/mach-omap2/omap2-restart.c  |   5 +-
- arch/arm/mach-omap2/omap3-restart.c  |   7 +-
- arch/arm/mach-omap2/omap4-restart.c  |   6 +-
- arch/arm/mach-omap2/omap_hwmod.c     | 248 ++++++++---------------------------
- arch/arm/mach-omap2/prm.h            |  16 +++
- arch/arm/mach-omap2/prm2xxx.c        |   6 +-
- arch/arm/mach-omap2/prm2xxx.h        |   1 -
- arch/arm/mach-omap2/prm2xxx_3xxx.c   |  19 ++-
- arch/arm/mach-omap2/prm2xxx_3xxx.h   |   9 +-
- arch/arm/mach-omap2/prm33xx.c        |  64 +++++++--
- arch/arm/mach-omap2/prm33xx.h        |  11 +-
- arch/arm/mach-omap2/prm3xxx.c        |  32 ++---
- arch/arm/mach-omap2/prm3xxx.h        |  16 ---
- arch/arm/mach-omap2/prm44xx.c        |  36 +++--
- arch/arm/mach-omap2/prm44xx_54xx.h   |  19 ---
- arch/arm/mach-omap2/prm_common.c     |  99 ++++++++++++++
- arch/arm/mach-omap2/prminst44xx.c    |  10 +-
- arch/arm/mach-omap2/prminst44xx.h    |   5 +-
- 41 files changed, 530 insertions(+), 586 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/cm44xx.c
- delete mode 100644 arch/arm/mach-omap2/cm_44xx_54xx.h
- delete mode 100644 arch/arm/mach-omap2/cminst44xx.h
+	Hans
+
+>=20
+> Thanks,
+> Mauro
+>=20
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
+> drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_dev=
+ice' has no member named 'supplies'
+> =20
+>           ^
+> drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_dev=
+ice' has no member named 'supplies'
+>   if (sdev->vdd) {
+>                                    ^
+> drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_dev=
+ice' has no member named 'supply_data'
+>   if (sdev->vdd) {
+>                                                    ^
+> drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_dev=
+ice' has no member named 'supplies'
+>    v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
+>           ^
+> drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_dev=
+ice' has no member named 'supplies'
+>    sdev->power_state =3D POWER_ON;
+>                                     ^
+> drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_dev=
+ice' has no member named 'supply_data'
+>    sdev->power_state =3D POWER_ON;
+>                                                     ^
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown':
+> drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_dev=
+ice' has no member named 'supplies'
+>   int err;
+>            ^
+> drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_dev=
+ice' has no member named 'supplies'
+>   u8 resp[SI4713_PWDN_NRESP];
+>                                      ^
+> drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_dev=
+ice' has no member named 'supply_data'
+> =20
+>                 ^
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
+> drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_dev=
+ice' has no member named 'supplies'
+>  /* si4713_probe - probe for the device */
+>        ^
+> drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_de=
+vice' has no member named 'supplies'
+>  {
+>                       ^
+> drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_dev=
+ice' has no member named 'supply_data'
+>   struct si4713_device *sdev;
+>        ^
+> drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_de=
+vice' has no member named 'supplies'
+>   struct v4l2_ctrl_handler *hdl;
+>                                               ^
+> drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_de=
+vice' has no member named 'supply_data'
+>   int rval, i;
+>            ^
+> drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_de=
+vice' has no member named 'supplies'
+> =20
+>                           ^
+> drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_de=
+vice' has no member named 'supply_data'
+> =20
+>                                           ^
+> drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
+> drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_de=
+vice' has no member named 'supplies'
+>    goto free_irq;
+>                           ^
+> drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_de=
+vice' has no member named 'supply_data'
+>    goto free_irq;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
