@@ -1,12 +1,12 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v3 1/6] input: touchscreen: ti_am335x_tsc Interchange
- touchscreen and ADC steps
-Date: Tue, 11 Nov 2014 14:03:59 +0530
-Message-ID: <1415694844-11230-2-git-send-email-vigneshr@ti.com>
+Subject: [PATCH v3 2/6] input: touchscreen: ti_am335x_tsc: Remove udelay in
+ interrupt handler
+Date: Tue, 11 Nov 2014 14:04:00 +0530
+Message-ID: <1415694844-11230-3-git-send-email-vigneshr@ti.com>
 References: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -22,105 +22,144 @@ To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutl
 Cc: devicetree@vger.kernel.org, linux-iio@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Brad Griffis <bgriffis@ti.com>, Jan Kardell <jan.kardell@telliq.com>, Vignesh R <vigneshr@ti.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, linux-input@vger.kernel.org, Sanjeev Sharma <sanjeev_sharma@mentor.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogQnJhZCBHcmlmZmlzIDxiZ3JpZmZpc0B0aS5jb20+CgpUaGlzIHBhdGNoIG1ha2VzIHRo
-ZSBpbml0aWFsIGNoYW5nZXMgcmVxdWlyZWQgdG8gd29ya2Fyb3VuZCBUU0MtZmFsc2UKcGVuLXVw
-IGludGVycnVwdHMuIEl0IGlzIHJlcXVpcmVkIHRvIGltcGxlbWVudCB0aGVzZSBjaGFuZ2VzIGlu
-IG9yZGVyIHRvCnJlbW92ZSB1ZGVsYXkgaW4gdGhlIFRTQyBpbnRlcnJ1cHQgaGFuZGxlciBhbmQg
-ZmFsc2UgcGVuLXVwIGV2ZW50cy4KVGhlIGNoYXJnZSBzdGVwIGlzIHRvIGJlIGV4ZWN1dGVkIGlt
-bWVkaWF0ZWx5IGFmdGVyIHNhbXBsaW5nIFgrLiBIZW5jZQpUU0MgaXMgbWFkZSB0byB1c2UgaGln
-aGVyIG51bWJlcmVkIHN0ZXBzIChzdGVwcyA1IHRvIDE2IGZvciA1IGNvLW9yZGluYXRlCnJlYWRv
-dXRzLCA0IHdpcmUgVFNDIGNvbmZpZ3VyYXRpb24pIGFuZCBBREMgdG8gdXNlIGxvd2VyIG9uZXMu
-IEZ1cnRoZXIKWCBjby1vcmRpbmF0ZSByZWFkb3V0cyBtdXN0IGJlIHRoZSBsYXN0IHRvIGJlIHNh
-bXBsZWQsIHRodXMgY28tb3JkaW5hdGVzCmFyZSBzYW1wbGVkIGluIHRoZSBvcmRlciBZLVotWC4K
-ClNpZ25lZC1vZmYtYnk6IEJyYWQgR3JpZmZpcyA8YmdyaWZmaXNAdGkuY29tPgpbdmlnbmVzaHJA
-dGkuY29tOiBQb3J0ZWQgdGhlIHBhdGNoIGZyb20gdjMuMTIgdG8gdjMuMThyYzJdCgpTaWduZWQt
-b2ZmLWJ5OiBWaWduZXNoIFIgPHZpZ25lc2hyQHRpLmNvbT4KQWNrZWQtYnk6IEpvbmF0aGFuIENh
-bWVyb24gPGppYzIzQGtlcm5lbC5vcmc+Ci0tLQogZHJpdmVycy9paW8vYWRjL3RpX2FtMzM1eF9h
-ZGMuYyAgICAgICAgICAgfCAgNSArKy0tCiBkcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL3RpX2Ft
-MzM1eF90c2MuYyB8IDQyICsrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0KIDIgZmlsZXMg
-Y2hhbmdlZCwgMjYgaW5zZXJ0aW9ucygrKSwgMjEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9paW8vYWRjL3RpX2FtMzM1eF9hZGMuYyBiL2RyaXZlcnMvaWlvL2FkYy90aV9hbTMz
-NXhfYWRjLmMKaW5kZXggYjczMDg2NDczMWU4Li5hZGJhMjMyNDY0NzQgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvaWlvL2FkYy90aV9hbTMzNXhfYWRjLmMKKysrIGIvZHJpdmVycy9paW8vYWRjL3RpX2Ft
-MzM1eF9hZGMuYwpAQCAtODYsMTkgKzg2LDE4IEBAIHN0YXRpYyB2b2lkIHRpYWRjX3N0ZXBfY29u
-ZmlnKHN0cnVjdCBpaW9fZGV2ICppbmRpb19kZXYpCiB7CiAJc3RydWN0IHRpYWRjX2RldmljZSAq
-YWRjX2RldiA9IGlpb19wcml2KGluZGlvX2Rldik7CiAJdW5zaWduZWQgaW50IHN0ZXBjb25maWc7
-Ci0JaW50IGksIHN0ZXBzOworCWludCBpLCBzdGVwcyA9IDA7CiAKIAkvKgogCSAqIFRoZXJlIGFy
-ZSAxNiBjb25maWd1cmFibGUgc3RlcHMgYW5kIDggYW5hbG9nIGlucHV0CiAJICogbGluZXMgYXZh
-aWxhYmxlIHdoaWNoIGFyZSBzaGFyZWQgYmV0d2VlbiBUb3VjaHNjcmVlbiBhbmQgQURDLgogCSAq
-Ci0JICogU3RlcHMgYmFja3dhcmRzIGkuZS4gZnJvbSAxNiB0b3dhcmRzIDAgYXJlIHVzZWQgYnkg
-QURDCisJICogU3RlcHMgZm9yd2FyZHMgaS5lLiBmcm9tIDAgdG93YXJkcyAxNiBhcmUgdXNlZCBi
-eSBBREMKIAkgKiBkZXBlbmRpbmcgb24gbnVtYmVyIG9mIGlucHV0IGxpbmVzIG5lZWRlZC4KIAkg
-KiBDaGFubmVsIHdvdWxkIHJlcHJlc2VudCB3aGljaCBhbmFsb2cgaW5wdXQKIAkgKiBuZWVkcyB0
-byBiZSBnaXZlbiB0byBBREMgdG8gZGlnaXRhbGl6ZSBkYXRhLgogCSAqLwogCi0Jc3RlcHMgPSBU
-T1RBTF9TVEVQUyAtIGFkY19kZXYtPmNoYW5uZWxzOwogCWlmIChpaW9fYnVmZmVyX2VuYWJsZWQo
-aW5kaW9fZGV2KSkKIAkJc3RlcGNvbmZpZyA9IFNURVBDT05GSUdfQVZHXzE2IHwgU1RFUENPTkZJ
-R19GSUZPMQogCQkJCQl8IFNURVBDT05GSUdfTU9ERV9TV0NOVDsKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvaW5wdXQvdG91Y2hzY3JlZW4vdGlfYW0zMzV4X3RzYy5jIGIvZHJpdmVycy9pbnB1dC90b3Vj
-aHNjcmVlbi90aV9hbTMzNXhfdHNjLmMKaW5kZXggMmNlNjQ5NTIwZmUwLi4xYWVhYzk2NzVmZTcg
-MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdGlfYW0zMzV4X3RzYy5jCisr
-KyBiL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdGlfYW0zMzV4X3RzYy5jCkBAIC0xMjEsNyAr
-MTIxLDcgQEAgc3RhdGljIHZvaWQgdGl0c2Nfc3RlcF9jb25maWcoc3RydWN0IHRpdHNjICp0c19k
-ZXYpCiB7CiAJdW5zaWduZWQgaW50CWNvbmZpZzsKIAlpbnQgaTsKLQlpbnQgZW5kX3N0ZXA7CisJ
-aW50IGVuZF9zdGVwLCBmaXJzdF9zdGVwLCB0c2Nfc3RlcHM7CiAJdTMyIHN0ZXBlbmFibGU7CiAK
-IAljb25maWcgPSBTVEVQQ09ORklHX01PREVfSFdTWU5DIHwKQEAgLTE0MCw5ICsxNDAsMTEgQEAg
-c3RhdGljIHZvaWQgdGl0c2Nfc3RlcF9jb25maWcoc3RydWN0IHRpdHNjICp0c19kZXYpCiAJCWJy
-ZWFrOwogCX0KIAotCS8qIDEg4oCmIGNvb3JkaW5hdGVfcmVhZG91dHMgaXMgZm9yIFggKi8KLQll
-bmRfc3RlcCA9IHRzX2Rldi0+Y29vcmRpbmF0ZV9yZWFkb3V0czsKLQlmb3IgKGkgPSAwOyBpIDwg
-ZW5kX3N0ZXA7IGkrKykgeworCXRzY19zdGVwcyA9IHRzX2Rldi0+Y29vcmRpbmF0ZV9yZWFkb3V0
-cyAqIDIgKyAyOworCWZpcnN0X3N0ZXAgPSBUT1RBTF9TVEVQUyAtIHRzY19zdGVwczsKKwkvKiBT
-dGVwcyAxNiB0byAxNi1jb29yZGluYXRlX3JlYWRvdXRzIGlzIGZvciBYICovCisJZW5kX3N0ZXAg
-PSBmaXJzdF9zdGVwICsgdHNjX3N0ZXBzOworCWZvciAoaSA9IGVuZF9zdGVwIC0gdHNfZGV2LT5j
-b29yZGluYXRlX3JlYWRvdXRzOyBpIDwgZW5kX3N0ZXA7IGkrKykgewogCQl0aXRzY193cml0ZWwo
-dHNfZGV2LCBSRUdfU1RFUENPTkZJRyhpKSwgY29uZmlnKTsKIAkJdGl0c2Nfd3JpdGVsKHRzX2Rl
-diwgUkVHX1NURVBERUxBWShpKSwgU1RFUENPTkZJR19PUEVORExZKTsKIAl9CkBAIC0xNjQsOSAr
-MTY2LDkgQEAgc3RhdGljIHZvaWQgdGl0c2Nfc3RlcF9jb25maWcoc3RydWN0IHRpdHNjICp0c19k
-ZXYpCiAJCWJyZWFrOwogCX0KIAotCS8qIGNvb3JkaW5hdGVfcmVhZG91dHMg4oCmIGNvb3JkaW5h
-dGVfcmVhZG91dHMgKiAyIGlzIGZvciBZICovCi0JZW5kX3N0ZXAgPSB0c19kZXYtPmNvb3JkaW5h
-dGVfcmVhZG91dHMgKiAyOwotCWZvciAoaSA9IHRzX2Rldi0+Y29vcmRpbmF0ZV9yZWFkb3V0czsg
-aSA8IGVuZF9zdGVwOyBpKyspIHsKKwkvKiAxIC4uLiBjb29yZGluYXRlX3JlYWRvdXRzIGlzIGZv
-ciBZICovCisJZW5kX3N0ZXAgPSBmaXJzdF9zdGVwICsgdHNfZGV2LT5jb29yZGluYXRlX3JlYWRv
-dXRzOworCWZvciAoaSA9IGZpcnN0X3N0ZXA7IGkgPCBlbmRfc3RlcDsgaSsrKSB7CiAJCXRpdHNj
-X3dyaXRlbCh0c19kZXYsIFJFR19TVEVQQ09ORklHKGkpLCBjb25maWcpOwogCQl0aXRzY193cml0
-ZWwodHNfZGV2LCBSRUdfU1RFUERFTEFZKGkpLCBTVEVQQ09ORklHX09QRU5ETFkpOwogCX0KQEAg
-LTE3OSw3ICsxODEsNyBAQCBzdGF0aWMgdm9pZCB0aXRzY19zdGVwX2NvbmZpZyhzdHJ1Y3QgdGl0
-c2MgKnRzX2RldikKIAl0aXRzY193cml0ZWwodHNfZGV2LCBSRUdfQ0hBUkdFQ09ORklHLCBjb25m
-aWcpOwogCXRpdHNjX3dyaXRlbCh0c19kZXYsIFJFR19DSEFSR0VERUxBWSwgQ0hBUkdFRExZX09Q
-RU5ETFkpOwogCi0JLyogY29vcmRpbmF0ZV9yZWFkb3V0cyAqIDIg4oCmIGNvb3JkaW5hdGVfcmVh
-ZG91dHMgKiAyICsgMiBpcyBmb3IgWiAqLworCS8qIGNvb3JkaW5hdGVfcmVhZG91dHMgKyAxIC4u
-LiBjb29yZGluYXRlX3JlYWRvdXRzICsgMiBpcyBmb3IgWiAqLwogCWNvbmZpZyA9IFNURVBDT05G
-SUdfTU9ERV9IV1NZTkMgfAogCQkJU1RFUENPTkZJR19BVkdfMTYgfCB0c19kZXYtPmJpdF95cCB8
-CiAJCQl0c19kZXYtPmJpdF94biB8IFNURVBDT05GSUdfSU5NX0FEQ1JFRk0gfApAQCAtMTk0LDgg
-KzE5NiwxMSBAQCBzdGF0aWMgdm9pZCB0aXRzY19zdGVwX2NvbmZpZyhzdHJ1Y3QgdGl0c2MgKnRz
-X2RldikKIAl0aXRzY193cml0ZWwodHNfZGV2LCBSRUdfU1RFUERFTEFZKGVuZF9zdGVwKSwKIAkJ
-CVNURVBDT05GSUdfT1BFTkRMWSk7CiAKLQkvKiBUaGUgc3RlcHMxIOKApiBlbmQgYW5kIGJpdCAw
-IGZvciBUU19DaGFyZ2UgKi8KLQlzdGVwZW5hYmxlID0gKDEgPDwgKGVuZF9zdGVwICsgMikpIC0g
-MTsKKwkvKiBUaGUgc3RlcHMgZW5kIC4uLiBlbmQgLSByZWFkb3V0cyAqIDIgKyAyIGFuZCBiaXQg
-MCBmb3IgVFNfQ2hhcmdlICovCisJc3RlcGVuYWJsZSA9IDE7CisJZm9yIChpID0gMDsgaSA8IHRz
-Y19zdGVwczsgaSsrKQorCQlzdGVwZW5hYmxlIHw9IDEgPDwgKGZpcnN0X3N0ZXAgKyBpICsgMSk7
-CisKIAl0c19kZXYtPnN0ZXBfbWFzayA9IHN0ZXBlbmFibGU7CiAJYW0zMzV4X3RzY19zZV9zZXRf
-Y2FjaGUodHNfZGV2LT5tZmRfdHNjYWRjLCB0c19kZXYtPnN0ZXBfbWFzayk7CiB9CkBAIC0yMDks
-NiArMjE0LDcgQEAgc3RhdGljIHZvaWQgdGl0c2NfcmVhZF9jb29yZGluYXRlcyhzdHJ1Y3QgdGl0
-c2MgKnRzX2RldiwKIAl1bnNpZ25lZCBpbnQgcmVhZCwgZGlmZjsKIAl1bnNpZ25lZCBpbnQgaSwg
-Y2hhbm5lbDsKIAl1bnNpZ25lZCBpbnQgY3JlYWRzID0gdHNfZGV2LT5jb29yZGluYXRlX3JlYWRv
-dXRzOworCXVuc2lnbmVkIGludCBmaXJzdF9zdGVwID0gVE9UQUxfU1RFUFMgLSAoY3JlYWRzICog
-MiArIDIpOwogCiAJKnoxID0gKnoyID0gMDsKIAlpZiAoZmlmb2NvdW50ICUgKGNyZWFkcyAqIDIg
-KyAyKSkKQEAgLTIyNiw3ICsyMzIsNyBAQCBzdGF0aWMgdm9pZCB0aXRzY19yZWFkX2Nvb3JkaW5h
-dGVzKHN0cnVjdCB0aXRzYyAqdHNfZGV2LAogCiAJCWNoYW5uZWwgPSAocmVhZCAmIDB4ZjAwMDAp
-ID4+IDE2OwogCQlyZWFkICY9IDB4ZmZmOwotCQlpZiAoY2hhbm5lbCA8IGNyZWFkcykgeworCQlp
-ZiAoY2hhbm5lbCA+IGZpcnN0X3N0ZXAgKyBjcmVhZHMgKyAyKSB7CiAJCQlkaWZmID0gYWJzKHJl
-YWQgLSBwcmV2X3ZhbF94KTsKIAkJCWlmIChkaWZmIDwgcHJldl9kaWZmX3gpIHsKIAkJCQlwcmV2
-X2RpZmZfeCA9IGRpZmY7CkBAIC0yMzQsMTkgKzI0MCwxOSBAQCBzdGF0aWMgdm9pZCB0aXRzY19y
-ZWFkX2Nvb3JkaW5hdGVzKHN0cnVjdCB0aXRzYyAqdHNfZGV2LAogCQkJfQogCQkJcHJldl92YWxf
-eCA9IHJlYWQ7CiAKLQkJfSBlbHNlIGlmIChjaGFubmVsIDwgY3JlYWRzICogMikgeworCQl9IGVs
-c2UgaWYgKGNoYW5uZWwgPT0gZmlyc3Rfc3RlcCArIGNyZWFkcyArIDEpIHsKKwkJCSp6MSA9IHJl
-YWQ7CisKKwkJfSBlbHNlIGlmIChjaGFubmVsID09IGZpcnN0X3N0ZXAgKyBjcmVhZHMgKyAyKSB7
-CisJCQkqejIgPSByZWFkOworCisJCX0gZWxzZSBpZiAoY2hhbm5lbCA+IGZpcnN0X3N0ZXApIHsK
-IAkJCWRpZmYgPSBhYnMocmVhZCAtIHByZXZfdmFsX3kpOwogCQkJaWYgKGRpZmYgPCBwcmV2X2Rp
-ZmZfeSkgewogCQkJCXByZXZfZGlmZl95ID0gZGlmZjsKIAkJCQkqeSA9IHJlYWQ7CiAJCQl9CiAJ
-CQlwcmV2X3ZhbF95ID0gcmVhZDsKLQotCQl9IGVsc2UgaWYgKGNoYW5uZWwgPCBjcmVhZHMgKiAy
-ICsgMSkgewotCQkJKnoxID0gcmVhZDsKLQotCQl9IGVsc2UgaWYgKGNoYW5uZWwgPCBjcmVhZHMg
-KiAyICsgMikgewotCQkJKnoyID0gcmVhZDsKIAkJfQogCX0KIH0KLS0gCjEuOS4xCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5l
-bCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
-Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+From: Brad Griffis <bgriffis@ti.com>
+
+TSC interrupt handler had udelay to avoid reporting of false pen-up
+interrupt to user space. This patch implements workaround suggesting in
+Advisory 1.0.31 of silicon errata for am335x, thus eliminating udelay
+and touchscreen lag. This also improves performance of touchscreen and
+eliminates sudden jump of cursor at touch release.
+
+IDLECONFIG and CHARGECONFIG registers are to be configured
+with same values in order to eliminate false pen-up events. This
+workaround may result in false pen-down to be detected, hence considerable
+charge step delay needs to be added. The charge delay is set to 0xB000
+(in terms of ADC clock cycles) by default.
+
+TSC steps are disabled at the end of every sampling cycle and EOS bit is
+set. Once the EOS bit is set, the TSC steps need to be re-enabled to begin
+next sampling cycle.
+
+Signed-off-by: Brad Griffis <bgriffis@ti.com>
+[vigneshr@ti.com: Ported the patch from v3.12 to v3.18rc2]
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/input/touchscreen/ti_am335x_tsc.c | 56 ++++++++++++-------------------
+ include/linux/mfd/ti_am335x_tscadc.h      |  3 +-
+ 2 files changed, 24 insertions(+), 35 deletions(-)
+
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 1aeac9675fe7..483fd97c0e0c 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -173,11 +173,9 @@ static void titsc_step_config(struct titsc *ts_dev)
+ 		titsc_writel(ts_dev, REG_STEPDELAY(i), STEPCONFIG_OPENDLY);
+ 	}
+ 
+-	/* Charge step configuration */
+-	config = ts_dev->bit_xp | ts_dev->bit_yn |
+-			STEPCHARGE_RFP_XPUL | STEPCHARGE_RFM_XNUR |
+-			STEPCHARGE_INM_AN1 | STEPCHARGE_INP(ts_dev->inp_yp);
++	/* Make CHARGECONFIG same as IDLECONFIG */
+ 
++	config = titsc_readl(ts_dev, REG_IDLECONFIG);
+ 	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
+ 	titsc_writel(ts_dev, REG_CHARGEDELAY, CHARGEDLY_OPENDLY);
+ 
+@@ -264,9 +262,26 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 	unsigned int status, irqclr = 0;
+ 	unsigned int x = 0, y = 0;
+ 	unsigned int z1, z2, z;
+-	unsigned int fsm;
+ 
+-	status = titsc_readl(ts_dev, REG_IRQSTATUS);
++	status = titsc_readl(ts_dev, REG_RAWIRQSTATUS);
++	if (status & IRQENB_HW_PEN) {
++		ts_dev->pen_down = true;
++		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
++		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
++		irqclr |= IRQENB_HW_PEN;
++	}
++
++	if (status & IRQENB_PENUP) {
++		ts_dev->pen_down = false;
++		input_report_key(input_dev, BTN_TOUCH, 0);
++		input_report_abs(input_dev, ABS_PRESSURE, 0);
++		input_sync(input_dev);
++		irqclr |= IRQENB_PENUP;
++	}
++
++	if (status & IRQENB_EOS)
++		irqclr |= IRQENB_EOS;
++
+ 	/*
+ 	 * ADC and touchscreen share the IRQ line.
+ 	 * FIFO1 interrupts are used by ADC. Handle FIFO0 IRQs here only
+@@ -297,34 +312,6 @@ static irqreturn_t titsc_irq(int irq, void *dev)
+ 		}
+ 		irqclr |= IRQENB_FIFO0THRES;
+ 	}
+-
+-	/*
+-	 * Time for sequencer to settle, to read
+-	 * correct state of the sequencer.
+-	 */
+-	udelay(SEQ_SETTLE);
+-
+-	status = titsc_readl(ts_dev, REG_RAWIRQSTATUS);
+-	if (status & IRQENB_PENUP) {
+-		/* Pen up event */
+-		fsm = titsc_readl(ts_dev, REG_ADCFSM);
+-		if (fsm == ADCFSM_STEPID) {
+-			ts_dev->pen_down = false;
+-			input_report_key(input_dev, BTN_TOUCH, 0);
+-			input_report_abs(input_dev, ABS_PRESSURE, 0);
+-			input_sync(input_dev);
+-		} else {
+-			ts_dev->pen_down = true;
+-		}
+-		irqclr |= IRQENB_PENUP;
+-	}
+-
+-	if (status & IRQENB_HW_PEN) {
+-
+-		titsc_writel(ts_dev, REG_IRQWAKEUP, 0x00);
+-		titsc_writel(ts_dev, REG_IRQCLR, IRQENB_HW_PEN);
+-	}
+-
+ 	if (irqclr) {
+ 		titsc_writel(ts_dev, REG_IRQSTATUS, irqclr);
+ 		am335x_tsc_se_set_cache(ts_dev->mfd_tscadc, ts_dev->step_mask);
+@@ -417,6 +404,7 @@ static int titsc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_FIFO0THRES);
++	titsc_writel(ts_dev, REG_IRQENABLE, IRQENB_EOS);
+ 	err = titsc_config_wires(ts_dev);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "wrong i/p wire configuration\n");
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index e2e70053470e..c99be5dc0f5c 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -52,6 +52,7 @@
+ 
+ /* IRQ enable */
+ #define IRQENB_HW_PEN		BIT(0)
++#define IRQENB_EOS		BIT(1)
+ #define IRQENB_FIFO0THRES	BIT(2)
+ #define IRQENB_FIFO0OVRRUN	BIT(3)
+ #define IRQENB_FIFO0UNDRFLW	BIT(4)
+@@ -107,7 +108,7 @@
+ /* Charge delay */
+ #define CHARGEDLY_OPEN_MASK	(0x3FFFF << 0)
+ #define CHARGEDLY_OPEN(val)	((val) << 0)
+-#define CHARGEDLY_OPENDLY	CHARGEDLY_OPEN(1)
++#define CHARGEDLY_OPENDLY	CHARGEDLY_OPEN(0xB000)
+ 
+ /* Control register */
+ #define CNTRLREG_TSCSSENB	BIT(0)
+-- 
+1.9.1
