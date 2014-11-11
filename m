@@ -1,67 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] arm: dts: omap3-gta04: Add handling for tv output
-Date: Tue, 11 Nov 2014 09:41:58 +0200
-Message-ID: <5461BDC6.7090308@ti.com>
-References: <1415051968-4878-1-git-send-email-marek@goldelico.com> <1415051968-4878-4-git-send-email-marek@goldelico.com> <20141110233050.GC31454@atomide.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v3 3/6] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache save
+Date: Tue, 11 Nov 2014 14:04:01 +0530
+Message-ID: <1415694844-11230-4-git-send-email-vigneshr@ti.com>
+References: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141110233050.GC31454@atomide.com>
+In-Reply-To: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Marek Belisko <marek@goldelico.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Vignesh R <vigneshr@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+In one shot mode, sequencer automatically disables all enabled steps at
+the end of each cycle. (both ADC steps and TSC steps) Hence these steps
+need not be saved in reg_se_cache for clearing these steps at a later
+stage.
+Also, when ADC wakes up Sequencer should not be busy executing any of the
+config steps except for the charge step. Previously charge step was 1 ADC
+clock cycle and hence it was ignored.
 
-Tony,
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
+ include/linux/mfd/ti_am335x_tscadc.h | 1 +
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-On 11/11/14 01:30, Tony Lindgren wrote:
-> * Marek Belisko <marek@goldelico.com> [141103 14:01]:
->> Add handling for gta04 tv out chain:
->> venc -> opa362 -> svideo
->>
->> Signed-off-by: Marek Belisko <marek@goldelico.com>
->> ---
->>  arch/arm/boot/dts/omap3-gta04.dtsi | 48 +++++++++++++++++++++++++++++=
-+++++++++
->>  1 file changed, 48 insertions(+)
->=20
-> Applying this patch into omap-for-v3.19/dt thanks.
-
-There are changes needed for this series, so don't apply yet.
-
-I'll try to find the time to do a review and send comments soon.
-
- Tomi
-
-
-
---MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUYb3MAAoJEPo9qoy8lh71hhgQAKBEHdxqwh+ytM9xX9R8w3B0
-a3yeVeiHiyTmfhKys9F/vGdC4R3mEhZpWDpPh/z5N589141ocnY0nKtAbC9w/E5W
-o/0ssEx2fX8/y/q3m4T7KoYCzw6Iq45GE+W3HVzK4pcwtwRKGFvI8jzr/9G5ymae
-LCgErOnAbj8dNhi4H8lpt9ueZ8O0KNpBLNI8aN4L/cJMrzg0GwTOerk1N/ZKFV+/
-LznF9acxVsQMuCUZlDTUhfrZ8+o2GOb7CzjcC0qGb7VzipQZu2vWWBtkZeV1w+lj
-uyFjDRTjLu4rPPWjPFLrJ8ZQUWsZWegt5zPwmY5jGla3/6rIBn6FEL/Ee25Gvsin
-I1bXDgdxxo3D6dt338w34nbgUhwDjZkP46EVQPRDk+1w3tC8C5N7Q1LXsZPuczf2
-zZs5OIFJnpc1Ssf7ANWz4NhaYgglFow9iMHPrXqbZyKaE/hMJz14ao5BuySoqegc
-lKBEezmzGtu78uEnr+bvgKEvhEV6q5poMhHq2NAn78RwQ81W+13rfb8NYsCspJ2b
-ntWrO7Am+0684ZVIyT+gzyMxcXUmQYOCs0iA1Kwlno026c4omFk+QEs9lpXPmQe8
-PsRxaeEyFuHshqg0feWeXEQ35ze5dKIW8lpdS38ihT6/BugLtoQFwZYrwEIzzImc
-EnkRN2xTmvIiGwIl6rX3
-=B8gU
------END PGP SIGNATURE-----
-
---MhvWsGdt5gJCHT59upjoHSVeBoW8QX8io--
+diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+index d877e777cce6..110038859a8d 100644
+--- a/drivers/mfd/ti_am335x_tscadc.c
++++ b/drivers/mfd/ti_am335x_tscadc.c
+@@ -86,8 +86,12 @@ static void am335x_tscadc_need_adc(struct ti_tscadc_dev *tsadc)
+ 		spin_lock_irq(&tsadc->reg_lock);
+ 		finish_wait(&tsadc->reg_se_wait, &wait);
+ 
++		/*
++		 * Sequencer should either be idle or
++		 * busy applying the charge step.
++		 */
+ 		reg = tscadc_readl(tsadc, REG_ADCFSM);
+-		WARN_ON(reg & SEQ_STATUS);
++		WARN_ON((reg & SEQ_STATUS) && !(reg & CHARGE_STEP));
+ 		tsadc->adc_waiting = false;
+ 	}
+ 	tsadc->adc_in_use = true;
+@@ -96,7 +100,6 @@ static void am335x_tscadc_need_adc(struct ti_tscadc_dev *tsadc)
+ void am335x_tsc_se_set_once(struct ti_tscadc_dev *tsadc, u32 val)
+ {
+ 	spin_lock_irq(&tsadc->reg_lock);
+-	tsadc->reg_se_cache |= val;
+ 	am335x_tscadc_need_adc(tsadc);
+ 
+ 	tscadc_writel(tsadc, REG_SE, val);
+diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+index c99be5dc0f5c..fcce182e4a35 100644
+--- a/include/linux/mfd/ti_am335x_tscadc.h
++++ b/include/linux/mfd/ti_am335x_tscadc.h
+@@ -128,6 +128,7 @@
+ 
+ /* Sequencer Status */
+ #define SEQ_STATUS BIT(5)
++#define CHARGE_STEP		0x11
+ 
+ #define ADC_CLK			3000000
+ #define TOTAL_STEPS		16
+-- 
+1.9.1
