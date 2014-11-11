@@ -1,83 +1,68 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v3 4/6] ARM: dts: AM335x: Make charge delay a DT parameter for
- tsc
-Date: Tue, 11 Nov 2014 14:04:02 +0530
-Message-ID: <1415694844-11230-5-git-send-email-vigneshr@ti.com>
-References: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] usb: phy: fix twl4030 build regression
+Date: Tue, 11 Nov 2014 10:36:09 +0100
+Message-ID: <7831012.jlbEUURqIo@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: devicetree@vger.kernel.org, linux-iio@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Brad Griffis <bgriffis@ti.com>, Jan Kardell <jan.kardell@telliq.com>, Vignesh R <vigneshr@ti.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, linux-input@vger.kernel.org, Sanjeev Sharma <sanjeev_sharma@mentor.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Antoine Tenart <antoine.tenart-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The charge delay value is by default 0xB000. But it can be set to lower
-values on some boards as long as false pen-ups are avoided. Lowering the
-value increases the sampling rate (though current sampling rate is
-sufficient for tsc operation). Hence charge delay has been made a DT
-parameter.
+Recent changes to the common OTG handling broke building the twl4030
+OTG driver as found during an allmodconfig build of linux-next:
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
+drivers/phy/phy-twl4030-usb.c: In function 'twl4030_set_peripheral':
+drivers/phy/phy-twl4030-usb.c:609:11: error: 'struct phy' has no member named 'state'
+drivers/phy/phy-twl4030-usb.c: In function 'twl4030_usb_probe':
+drivers/phy/phy-twl4030-usb.c:679:12: warning: assignment from incompatible pointer type
+
+This applies the same changes that were done to the other phy drivers
+to get it to build cleanly.
+
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Fixes: 19c1eac2685b6 ("usb: rename phy to usb_phy in OTG")
+Fixes: e47d92545c297 ("usb: move the OTG state from the USB PHY to the OTG structure")
 ---
- .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 15 +++++++++++++++
- arch/arm/boot/dts/am335x-evm.dts                          |  1 +
- 2 files changed, 16 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-index 878549ba814d..b87574bae009 100644
---- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-+++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-@@ -28,6 +28,20 @@ Required properties:
- 	ti,adc-channels: List of analog inputs available for ADC.
- 			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
+I have no idea if this is the correct fix, this is just a mechanical
+conversion, so please review carefully.
+
+diff --git a/drivers/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+index 7b04befd5271..e2698d29f436 100644
+--- a/drivers/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -606,7 +606,7 @@ static int twl4030_set_peripheral(struct usb_otg *otg,
  
-+Optional properties:
-+- child "tsc"
-+	ti,charge-delay: Length of touch screen charge delay step in terms of
-+			 ADC clock cycles. Charge delay value should be large
-+			 in order to avoid false pen-up events. This value
-+			 affects the overall sampling speed, hence need to be
-+			 kept as low as possible, while avoiding false pen-up
-+			 event. Start from a lower value, say 0x400, and
-+			 increase value until false pen-up events are avoided.
-+			 The pen-up detection happens immediately after the
-+			 charge step, so this does in fact function as a
-+			 hardware knob for adjusting the amount of "settling
-+			 time".
-+
- Example:
- 	tscadc: tscadc@44e0d000 {
- 		compatible = "ti,am3359-tscadc";
-@@ -36,6 +50,7 @@ Example:
- 			ti,x-plate-resistance = <200>;
- 			ti,coordiante-readouts = <5>;
- 			ti,wire-config = <0x00 0x11 0x22 0x33>;
-+			ti,charge-delay = <0xB000>;
- 		};
+ 	otg->gadget = gadget;
+ 	if (!gadget)
+-		otg->phy->state = OTG_STATE_UNDEFINED;
++		otg->state = OTG_STATE_UNDEFINED;
  
- 		adc {
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e2156a583de7..80be0462298b 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -641,6 +641,7 @@
- 		ti,x-plate-resistance = <200>;
- 		ti,coordinate-readouts = <5>;
- 		ti,wire-config = <0x00 0x11 0x22 0x33>;
-+		ti,charge-delay = <0xB000>;
- 	};
+ 	return 0;
+ }
+@@ -618,7 +618,7 @@ static int twl4030_set_host(struct usb_otg *otg, struct usb_bus *host)
  
- 	adc {
--- 
-1.9.1
+ 	otg->host = host;
+ 	if (!host)
+-		otg->phy->state = OTG_STATE_UNDEFINED;
++		otg->state = OTG_STATE_UNDEFINED;
+ 
+ 	return 0;
+ }
+@@ -676,7 +676,7 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->phy.otg		= otg;
+ 	twl->phy.type		= USB_PHY_TYPE_USB2;
+ 
+-	otg->phy		= &twl->phy;
++	otg->usb_phy		= &twl->phy;
+ 	otg->set_host		= twl4030_set_host;
+ 	otg->set_peripheral	= twl4030_set_peripheral;
+ 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
