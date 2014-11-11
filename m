@@ -1,89 +1,48 @@
-From: Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
-Date: Tue, 11 Nov 2014 09:07:10 -0200
-Message-ID: <20141111090710.7a60a846@recife.lan>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>
-	<1413904027-16767-2-git-send-email-sre@kernel.org>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v2] ARM: dts: sbc-t3x: add DVI display data
+Date: Tue, 11 Nov 2014 14:02:55 +0200
+Message-ID: <5461FAEF.3010607@compulab.co.il>
+References: <1413364186-23752-1-git-send-email-lifshitz@compulab.co.il> <1414927198-7127-1-git-send-email-lifshitz@compulab.co.il> <54561E45.7000404@compulab.co.il> <20141110174845.GP31454@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1413904027-16767-2-git-send-email-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:51532 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752384AbaKKMDE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Nov 2014 07:03:04 -0500
+In-Reply-To: <20141110174845.GP31454@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, =?ISO-8859-1?Q?Beno=EEt_?= =?ISO-8859-1?Q?Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Em Tue, 21 Oct 2014 17:07:00 +0200
-Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> escreveu:
+Hi Tony,
 
-> This switches back to the normal regulator API (but use
-> managed variant) in preparation for device tree support.
+On 11/10/14 19:48, Tony Lindgren wrote:
+> * Igor Grinberg <grinberg@compulab.co.il> [141102 04:08]:
+>> On 11/02/14 13:19, Dmitry Lifshitz wrote:
+>>> Add DSS related pinmux and display data nodes required to support
+>>> DVI video out on SBC-T3530, SBC-T3730 and SBC-T3517.
+>>>
+>>> Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
+>>
+>> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+> 
+> Thanks applying into omap-for-v3.19/dt.
+> 
+> Are we now ready to drop the board-cm-*.c files?
 
-This patch broke compilation. Please be sure that none of the patches in
-the series would break it, as otherwise git bisect would be broken.
+Let's see, below is a list of things that are yet to be
+supported in DT boot:
+NAND, TV, LCD, Touchscreen, Audio (CM-T3x30), RTC (CM-T3517), CAN (CM-3517).
 
-Thanks,
-Mauro
+We're rc4 now, so hopefully, we will be able to get all this in for 3.19
+and then have the board files removed for 3.20.
+This way we can have 3.19 with both ways supported and do last checks.
 
-drivers/media/radio/si4713/si4713.c: In function 'si4713_powerup':
-drivers/media/radio/si4713/si4713.c:369:10: error: 'struct si4713_device' has no member named 'supplies'
- 
-          ^
-drivers/media/radio/si4713/si4713.c:370:35: error: 'struct si4713_device' has no member named 'supplies'
-  if (sdev->vdd) {
-                                   ^
-drivers/media/radio/si4713/si4713.c:370:51: error: 'struct si4713_device' has no member named 'supply_data'
-  if (sdev->vdd) {
-                                                   ^
-drivers/media/radio/si4713/si4713.c:402:10: error: 'struct si4713_device' has no member named 'supplies'
-   v4l2_dbg(1, debug, &sdev->sd, "Device in power up mode\n");
-          ^
-drivers/media/radio/si4713/si4713.c:403:36: error: 'struct si4713_device' has no member named 'supplies'
-   sdev->power_state = POWER_ON;
-                                    ^
-drivers/media/radio/si4713/si4713.c:403:52: error: 'struct si4713_device' has no member named 'supply_data'
-   sdev->power_state = POWER_ON;
-                                                    ^
-drivers/media/radio/si4713/si4713.c: In function 'si4713_powerdown':
-drivers/media/radio/si4713/si4713.c:435:11: error: 'struct si4713_device' has no member named 'supplies'
-  int err;
-           ^
-drivers/media/radio/si4713/si4713.c:436:37: error: 'struct si4713_device' has no member named 'supplies'
-  u8 resp[SI4713_PWDN_NRESP];
-                                     ^
-drivers/media/radio/si4713/si4713.c:437:16: error: 'struct si4713_device' has no member named 'supply_data'
- 
-                ^
-drivers/media/radio/si4713/si4713.c: In function 'si4713_probe':
-drivers/media/radio/si4713/si4713.c:1444:7: error: 'struct si4713_device' has no member named 'supplies'
- /* si4713_probe - probe for the device */
-       ^
-drivers/media/radio/si4713/si4713.c:1447:22: error: 'struct si4713_device' has no member named 'supplies'
- {
-                      ^
-drivers/media/radio/si4713/si4713.c:1448:7: error: 'struct si4713_device' has no member named 'supply_data'
-  struct si4713_device *sdev;
-       ^
-drivers/media/radio/si4713/si4713.c:1450:46: error: 'struct si4713_device' has no member named 'supplies'
-  struct v4l2_ctrl_handler *hdl;
-                                              ^
-drivers/media/radio/si4713/si4713.c:1451:11: error: 'struct si4713_device' has no member named 'supply_data'
-  int rval, i;
-           ^
-drivers/media/radio/si4713/si4713.c:1583:26: error: 'struct si4713_device' has no member named 'supplies'
- 
-                          ^
-drivers/media/radio/si4713/si4713.c:1583:42: error: 'struct si4713_device' has no member named 'supply_data'
- 
-                                          ^
-drivers/media/radio/si4713/si4713.c: In function 'si4713_remove':
-drivers/media/radio/si4713/si4713.c:1607:26: error: 'struct si4713_device' has no member named 'supplies'
-   goto free_irq;
-                          ^
-drivers/media/radio/si4713/si4713.c:1607:42: error: 'struct si4713_device' has no member named 'supply_data'
-   goto free_irq;
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Are you ok with this?
+
+-- 
+Regards,
+Igor.
