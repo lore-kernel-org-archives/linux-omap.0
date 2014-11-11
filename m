@@ -1,58 +1,126 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 5/6] input: touchscreen: ti_am335x_tsc: Use charge delay DT parameter
-Date: Tue, 11 Nov 2014 14:04:03 +0530
-Message-ID: <1415694844-11230-6-git-send-email-vigneshr@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH v3 1/6] input: touchscreen: ti_am335x_tsc Interchange
+ touchscreen and ADC steps
+Date: Tue, 11 Nov 2014 14:03:59 +0530
+Message-ID: <1415694844-11230-2-git-send-email-vigneshr@ti.com>
 References: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415694844-11230-1-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: devicetree@vger.kernel.org, linux-iio@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Brad Griffis <bgriffis@ti.com>, Jan Kardell <jan.kardell@telliq.com>, Vignesh R <vigneshr@ti.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, linux-input@vger.kernel.org, Sanjeev Sharma <sanjeev_sharma@mentor.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch reads charge delay from tsc DT node and writes to
-REG_CHARGEDELAY register. If the charge delay is not specified in DT
-then default value of 0xB000(CHARGEDLY_OPENDLY) is used.
-
-Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
----
- drivers/input/touchscreen/ti_am335x_tsc.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 483fd97c0e0c..20ce76b1b6e7 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -52,6 +52,7 @@ struct titsc {
- 	u32			bit_xp, bit_xn, bit_yp, bit_yn;
- 	u32			inp_xp, inp_xn, inp_yp, inp_yn;
- 	u32			step_mask;
-+	u32			charge_delay;
- };
- 
- static unsigned int titsc_readl(struct titsc *ts, unsigned int reg)
-@@ -177,7 +178,7 @@ static void titsc_step_config(struct titsc *ts_dev)
- 
- 	config = titsc_readl(ts_dev, REG_IDLECONFIG);
- 	titsc_writel(ts_dev, REG_CHARGECONFIG, config);
--	titsc_writel(ts_dev, REG_CHARGEDELAY, CHARGEDLY_OPENDLY);
-+	titsc_writel(ts_dev, REG_CHARGEDELAY, ts_dev->charge_delay);
- 
- 	/* coordinate_readouts + 1 ... coordinate_readouts + 2 is for Z */
- 	config = STEPCONFIG_MODE_HWSYNC |
-@@ -361,6 +362,11 @@ static int titsc_parse_dt(struct platform_device *pdev,
- 	if (err < 0)
- 		return err;
- 
-+	err = of_property_read_u32(node, "ti,charge-delay",
-+				   &ts_dev->charge_delay);
-+	if (err < 0)
-+		ts_dev->charge_delay = CHARGEDLY_OPENDLY;
-+
- 	return of_property_read_u32_array(node, "ti,wire-config",
- 			ts_dev->config_inp, ARRAY_SIZE(ts_dev->config_inp));
- }
--- 
-1.9.1
+RnJvbTogQnJhZCBHcmlmZmlzIDxiZ3JpZmZpc0B0aS5jb20+CgpUaGlzIHBhdGNoIG1ha2VzIHRo
+ZSBpbml0aWFsIGNoYW5nZXMgcmVxdWlyZWQgdG8gd29ya2Fyb3VuZCBUU0MtZmFsc2UKcGVuLXVw
+IGludGVycnVwdHMuIEl0IGlzIHJlcXVpcmVkIHRvIGltcGxlbWVudCB0aGVzZSBjaGFuZ2VzIGlu
+IG9yZGVyIHRvCnJlbW92ZSB1ZGVsYXkgaW4gdGhlIFRTQyBpbnRlcnJ1cHQgaGFuZGxlciBhbmQg
+ZmFsc2UgcGVuLXVwIGV2ZW50cy4KVGhlIGNoYXJnZSBzdGVwIGlzIHRvIGJlIGV4ZWN1dGVkIGlt
+bWVkaWF0ZWx5IGFmdGVyIHNhbXBsaW5nIFgrLiBIZW5jZQpUU0MgaXMgbWFkZSB0byB1c2UgaGln
+aGVyIG51bWJlcmVkIHN0ZXBzIChzdGVwcyA1IHRvIDE2IGZvciA1IGNvLW9yZGluYXRlCnJlYWRv
+dXRzLCA0IHdpcmUgVFNDIGNvbmZpZ3VyYXRpb24pIGFuZCBBREMgdG8gdXNlIGxvd2VyIG9uZXMu
+IEZ1cnRoZXIKWCBjby1vcmRpbmF0ZSByZWFkb3V0cyBtdXN0IGJlIHRoZSBsYXN0IHRvIGJlIHNh
+bXBsZWQsIHRodXMgY28tb3JkaW5hdGVzCmFyZSBzYW1wbGVkIGluIHRoZSBvcmRlciBZLVotWC4K
+ClNpZ25lZC1vZmYtYnk6IEJyYWQgR3JpZmZpcyA8YmdyaWZmaXNAdGkuY29tPgpbdmlnbmVzaHJA
+dGkuY29tOiBQb3J0ZWQgdGhlIHBhdGNoIGZyb20gdjMuMTIgdG8gdjMuMThyYzJdCgpTaWduZWQt
+b2ZmLWJ5OiBWaWduZXNoIFIgPHZpZ25lc2hyQHRpLmNvbT4KQWNrZWQtYnk6IEpvbmF0aGFuIENh
+bWVyb24gPGppYzIzQGtlcm5lbC5vcmc+Ci0tLQogZHJpdmVycy9paW8vYWRjL3RpX2FtMzM1eF9h
+ZGMuYyAgICAgICAgICAgfCAgNSArKy0tCiBkcml2ZXJzL2lucHV0L3RvdWNoc2NyZWVuL3RpX2Ft
+MzM1eF90c2MuYyB8IDQyICsrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0KIDIgZmlsZXMg
+Y2hhbmdlZCwgMjYgaW5zZXJ0aW9ucygrKSwgMjEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9paW8vYWRjL3RpX2FtMzM1eF9hZGMuYyBiL2RyaXZlcnMvaWlvL2FkYy90aV9hbTMz
+NXhfYWRjLmMKaW5kZXggYjczMDg2NDczMWU4Li5hZGJhMjMyNDY0NzQgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvaWlvL2FkYy90aV9hbTMzNXhfYWRjLmMKKysrIGIvZHJpdmVycy9paW8vYWRjL3RpX2Ft
+MzM1eF9hZGMuYwpAQCAtODYsMTkgKzg2LDE4IEBAIHN0YXRpYyB2b2lkIHRpYWRjX3N0ZXBfY29u
+ZmlnKHN0cnVjdCBpaW9fZGV2ICppbmRpb19kZXYpCiB7CiAJc3RydWN0IHRpYWRjX2RldmljZSAq
+YWRjX2RldiA9IGlpb19wcml2KGluZGlvX2Rldik7CiAJdW5zaWduZWQgaW50IHN0ZXBjb25maWc7
+Ci0JaW50IGksIHN0ZXBzOworCWludCBpLCBzdGVwcyA9IDA7CiAKIAkvKgogCSAqIFRoZXJlIGFy
+ZSAxNiBjb25maWd1cmFibGUgc3RlcHMgYW5kIDggYW5hbG9nIGlucHV0CiAJICogbGluZXMgYXZh
+aWxhYmxlIHdoaWNoIGFyZSBzaGFyZWQgYmV0d2VlbiBUb3VjaHNjcmVlbiBhbmQgQURDLgogCSAq
+Ci0JICogU3RlcHMgYmFja3dhcmRzIGkuZS4gZnJvbSAxNiB0b3dhcmRzIDAgYXJlIHVzZWQgYnkg
+QURDCisJICogU3RlcHMgZm9yd2FyZHMgaS5lLiBmcm9tIDAgdG93YXJkcyAxNiBhcmUgdXNlZCBi
+eSBBREMKIAkgKiBkZXBlbmRpbmcgb24gbnVtYmVyIG9mIGlucHV0IGxpbmVzIG5lZWRlZC4KIAkg
+KiBDaGFubmVsIHdvdWxkIHJlcHJlc2VudCB3aGljaCBhbmFsb2cgaW5wdXQKIAkgKiBuZWVkcyB0
+byBiZSBnaXZlbiB0byBBREMgdG8gZGlnaXRhbGl6ZSBkYXRhLgogCSAqLwogCi0Jc3RlcHMgPSBU
+T1RBTF9TVEVQUyAtIGFkY19kZXYtPmNoYW5uZWxzOwogCWlmIChpaW9fYnVmZmVyX2VuYWJsZWQo
+aW5kaW9fZGV2KSkKIAkJc3RlcGNvbmZpZyA9IFNURVBDT05GSUdfQVZHXzE2IHwgU1RFUENPTkZJ
+R19GSUZPMQogCQkJCQl8IFNURVBDT05GSUdfTU9ERV9TV0NOVDsKZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvaW5wdXQvdG91Y2hzY3JlZW4vdGlfYW0zMzV4X3RzYy5jIGIvZHJpdmVycy9pbnB1dC90b3Vj
+aHNjcmVlbi90aV9hbTMzNXhfdHNjLmMKaW5kZXggMmNlNjQ5NTIwZmUwLi4xYWVhYzk2NzVmZTcg
+MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdGlfYW0zMzV4X3RzYy5jCisr
+KyBiL2RyaXZlcnMvaW5wdXQvdG91Y2hzY3JlZW4vdGlfYW0zMzV4X3RzYy5jCkBAIC0xMjEsNyAr
+MTIxLDcgQEAgc3RhdGljIHZvaWQgdGl0c2Nfc3RlcF9jb25maWcoc3RydWN0IHRpdHNjICp0c19k
+ZXYpCiB7CiAJdW5zaWduZWQgaW50CWNvbmZpZzsKIAlpbnQgaTsKLQlpbnQgZW5kX3N0ZXA7CisJ
+aW50IGVuZF9zdGVwLCBmaXJzdF9zdGVwLCB0c2Nfc3RlcHM7CiAJdTMyIHN0ZXBlbmFibGU7CiAK
+IAljb25maWcgPSBTVEVQQ09ORklHX01PREVfSFdTWU5DIHwKQEAgLTE0MCw5ICsxNDAsMTEgQEAg
+c3RhdGljIHZvaWQgdGl0c2Nfc3RlcF9jb25maWcoc3RydWN0IHRpdHNjICp0c19kZXYpCiAJCWJy
+ZWFrOwogCX0KIAotCS8qIDEg4oCmIGNvb3JkaW5hdGVfcmVhZG91dHMgaXMgZm9yIFggKi8KLQll
+bmRfc3RlcCA9IHRzX2Rldi0+Y29vcmRpbmF0ZV9yZWFkb3V0czsKLQlmb3IgKGkgPSAwOyBpIDwg
+ZW5kX3N0ZXA7IGkrKykgeworCXRzY19zdGVwcyA9IHRzX2Rldi0+Y29vcmRpbmF0ZV9yZWFkb3V0
+cyAqIDIgKyAyOworCWZpcnN0X3N0ZXAgPSBUT1RBTF9TVEVQUyAtIHRzY19zdGVwczsKKwkvKiBT
+dGVwcyAxNiB0byAxNi1jb29yZGluYXRlX3JlYWRvdXRzIGlzIGZvciBYICovCisJZW5kX3N0ZXAg
+PSBmaXJzdF9zdGVwICsgdHNjX3N0ZXBzOworCWZvciAoaSA9IGVuZF9zdGVwIC0gdHNfZGV2LT5j
+b29yZGluYXRlX3JlYWRvdXRzOyBpIDwgZW5kX3N0ZXA7IGkrKykgewogCQl0aXRzY193cml0ZWwo
+dHNfZGV2LCBSRUdfU1RFUENPTkZJRyhpKSwgY29uZmlnKTsKIAkJdGl0c2Nfd3JpdGVsKHRzX2Rl
+diwgUkVHX1NURVBERUxBWShpKSwgU1RFUENPTkZJR19PUEVORExZKTsKIAl9CkBAIC0xNjQsOSAr
+MTY2LDkgQEAgc3RhdGljIHZvaWQgdGl0c2Nfc3RlcF9jb25maWcoc3RydWN0IHRpdHNjICp0c19k
+ZXYpCiAJCWJyZWFrOwogCX0KIAotCS8qIGNvb3JkaW5hdGVfcmVhZG91dHMg4oCmIGNvb3JkaW5h
+dGVfcmVhZG91dHMgKiAyIGlzIGZvciBZICovCi0JZW5kX3N0ZXAgPSB0c19kZXYtPmNvb3JkaW5h
+dGVfcmVhZG91dHMgKiAyOwotCWZvciAoaSA9IHRzX2Rldi0+Y29vcmRpbmF0ZV9yZWFkb3V0czsg
+aSA8IGVuZF9zdGVwOyBpKyspIHsKKwkvKiAxIC4uLiBjb29yZGluYXRlX3JlYWRvdXRzIGlzIGZv
+ciBZICovCisJZW5kX3N0ZXAgPSBmaXJzdF9zdGVwICsgdHNfZGV2LT5jb29yZGluYXRlX3JlYWRv
+dXRzOworCWZvciAoaSA9IGZpcnN0X3N0ZXA7IGkgPCBlbmRfc3RlcDsgaSsrKSB7CiAJCXRpdHNj
+X3dyaXRlbCh0c19kZXYsIFJFR19TVEVQQ09ORklHKGkpLCBjb25maWcpOwogCQl0aXRzY193cml0
+ZWwodHNfZGV2LCBSRUdfU1RFUERFTEFZKGkpLCBTVEVQQ09ORklHX09QRU5ETFkpOwogCX0KQEAg
+LTE3OSw3ICsxODEsNyBAQCBzdGF0aWMgdm9pZCB0aXRzY19zdGVwX2NvbmZpZyhzdHJ1Y3QgdGl0
+c2MgKnRzX2RldikKIAl0aXRzY193cml0ZWwodHNfZGV2LCBSRUdfQ0hBUkdFQ09ORklHLCBjb25m
+aWcpOwogCXRpdHNjX3dyaXRlbCh0c19kZXYsIFJFR19DSEFSR0VERUxBWSwgQ0hBUkdFRExZX09Q
+RU5ETFkpOwogCi0JLyogY29vcmRpbmF0ZV9yZWFkb3V0cyAqIDIg4oCmIGNvb3JkaW5hdGVfcmVh
+ZG91dHMgKiAyICsgMiBpcyBmb3IgWiAqLworCS8qIGNvb3JkaW5hdGVfcmVhZG91dHMgKyAxIC4u
+LiBjb29yZGluYXRlX3JlYWRvdXRzICsgMiBpcyBmb3IgWiAqLwogCWNvbmZpZyA9IFNURVBDT05G
+SUdfTU9ERV9IV1NZTkMgfAogCQkJU1RFUENPTkZJR19BVkdfMTYgfCB0c19kZXYtPmJpdF95cCB8
+CiAJCQl0c19kZXYtPmJpdF94biB8IFNURVBDT05GSUdfSU5NX0FEQ1JFRk0gfApAQCAtMTk0LDgg
+KzE5NiwxMSBAQCBzdGF0aWMgdm9pZCB0aXRzY19zdGVwX2NvbmZpZyhzdHJ1Y3QgdGl0c2MgKnRz
+X2RldikKIAl0aXRzY193cml0ZWwodHNfZGV2LCBSRUdfU1RFUERFTEFZKGVuZF9zdGVwKSwKIAkJ
+CVNURVBDT05GSUdfT1BFTkRMWSk7CiAKLQkvKiBUaGUgc3RlcHMxIOKApiBlbmQgYW5kIGJpdCAw
+IGZvciBUU19DaGFyZ2UgKi8KLQlzdGVwZW5hYmxlID0gKDEgPDwgKGVuZF9zdGVwICsgMikpIC0g
+MTsKKwkvKiBUaGUgc3RlcHMgZW5kIC4uLiBlbmQgLSByZWFkb3V0cyAqIDIgKyAyIGFuZCBiaXQg
+MCBmb3IgVFNfQ2hhcmdlICovCisJc3RlcGVuYWJsZSA9IDE7CisJZm9yIChpID0gMDsgaSA8IHRz
+Y19zdGVwczsgaSsrKQorCQlzdGVwZW5hYmxlIHw9IDEgPDwgKGZpcnN0X3N0ZXAgKyBpICsgMSk7
+CisKIAl0c19kZXYtPnN0ZXBfbWFzayA9IHN0ZXBlbmFibGU7CiAJYW0zMzV4X3RzY19zZV9zZXRf
+Y2FjaGUodHNfZGV2LT5tZmRfdHNjYWRjLCB0c19kZXYtPnN0ZXBfbWFzayk7CiB9CkBAIC0yMDks
+NiArMjE0LDcgQEAgc3RhdGljIHZvaWQgdGl0c2NfcmVhZF9jb29yZGluYXRlcyhzdHJ1Y3QgdGl0
+c2MgKnRzX2RldiwKIAl1bnNpZ25lZCBpbnQgcmVhZCwgZGlmZjsKIAl1bnNpZ25lZCBpbnQgaSwg
+Y2hhbm5lbDsKIAl1bnNpZ25lZCBpbnQgY3JlYWRzID0gdHNfZGV2LT5jb29yZGluYXRlX3JlYWRv
+dXRzOworCXVuc2lnbmVkIGludCBmaXJzdF9zdGVwID0gVE9UQUxfU1RFUFMgLSAoY3JlYWRzICog
+MiArIDIpOwogCiAJKnoxID0gKnoyID0gMDsKIAlpZiAoZmlmb2NvdW50ICUgKGNyZWFkcyAqIDIg
+KyAyKSkKQEAgLTIyNiw3ICsyMzIsNyBAQCBzdGF0aWMgdm9pZCB0aXRzY19yZWFkX2Nvb3JkaW5h
+dGVzKHN0cnVjdCB0aXRzYyAqdHNfZGV2LAogCiAJCWNoYW5uZWwgPSAocmVhZCAmIDB4ZjAwMDAp
+ID4+IDE2OwogCQlyZWFkICY9IDB4ZmZmOwotCQlpZiAoY2hhbm5lbCA8IGNyZWFkcykgeworCQlp
+ZiAoY2hhbm5lbCA+IGZpcnN0X3N0ZXAgKyBjcmVhZHMgKyAyKSB7CiAJCQlkaWZmID0gYWJzKHJl
+YWQgLSBwcmV2X3ZhbF94KTsKIAkJCWlmIChkaWZmIDwgcHJldl9kaWZmX3gpIHsKIAkJCQlwcmV2
+X2RpZmZfeCA9IGRpZmY7CkBAIC0yMzQsMTkgKzI0MCwxOSBAQCBzdGF0aWMgdm9pZCB0aXRzY19y
+ZWFkX2Nvb3JkaW5hdGVzKHN0cnVjdCB0aXRzYyAqdHNfZGV2LAogCQkJfQogCQkJcHJldl92YWxf
+eCA9IHJlYWQ7CiAKLQkJfSBlbHNlIGlmIChjaGFubmVsIDwgY3JlYWRzICogMikgeworCQl9IGVs
+c2UgaWYgKGNoYW5uZWwgPT0gZmlyc3Rfc3RlcCArIGNyZWFkcyArIDEpIHsKKwkJCSp6MSA9IHJl
+YWQ7CisKKwkJfSBlbHNlIGlmIChjaGFubmVsID09IGZpcnN0X3N0ZXAgKyBjcmVhZHMgKyAyKSB7
+CisJCQkqejIgPSByZWFkOworCisJCX0gZWxzZSBpZiAoY2hhbm5lbCA+IGZpcnN0X3N0ZXApIHsK
+IAkJCWRpZmYgPSBhYnMocmVhZCAtIHByZXZfdmFsX3kpOwogCQkJaWYgKGRpZmYgPCBwcmV2X2Rp
+ZmZfeSkgewogCQkJCXByZXZfZGlmZl95ID0gZGlmZjsKIAkJCQkqeSA9IHJlYWQ7CiAJCQl9CiAJ
+CQlwcmV2X3ZhbF95ID0gcmVhZDsKLQotCQl9IGVsc2UgaWYgKGNoYW5uZWwgPCBjcmVhZHMgKiAy
+ICsgMSkgewotCQkJKnoxID0gcmVhZDsKLQotCQl9IGVsc2UgaWYgKGNoYW5uZWwgPCBjcmVhZHMg
+KiAyICsgMikgewotCQkJKnoyID0gcmVhZDsKIAkJfQogCX0KIH0KLS0gCjEuOS4xCgoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5l
+bCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
+Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
