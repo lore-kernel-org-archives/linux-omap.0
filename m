@@ -1,76 +1,63 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [RFCv2 1/8] [media] si4713: switch to devm regulator API
-Date: Tue, 11 Nov 2014 15:33:00 +0100
-Message-ID: <20141111143300.GA23012@earth.universe>
-References: <1413904027-16767-1-git-send-email-sre@kernel.org>
- <1413904027-16767-2-git-send-email-sre@kernel.org>
- <20141111090710.7a60a846@recife.lan>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: dts: sbc-t3x: add DVI display data
+Date: Tue, 11 Nov 2014 06:49:12 -0800
+Message-ID: <20141111144911.GK31454@atomide.com>
+References: <1413364186-23752-1-git-send-email-lifshitz@compulab.co.il>
+ <1414927198-7127-1-git-send-email-lifshitz@compulab.co.il>
+ <54561E45.7000404@compulab.co.il>
+ <20141110174845.GP31454@atomide.com>
+ <5461FAEF.3010607@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141111090710.7a60a846@recife.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-List-Id: linux-omap@vger.kernel.org
-
-
---x+6KMIRAuhnl3hBn
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:23218 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440AbaKKOt6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Nov 2014 09:49:58 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <5461FAEF.3010607@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Mauro,
+* Igor Grinberg <grinberg@compulab.co.il> [141111 04:04]:
+> Hi Tony,
+> 
+> On 11/10/14 19:48, Tony Lindgren wrote:
+> > * Igor Grinberg <grinberg@compulab.co.il> [141102 04:08]:
+> >> On 11/02/14 13:19, Dmitry Lifshitz wrote:
+> >>> Add DSS related pinmux and display data nodes required to support
+> >>> DVI video out on SBC-T3530, SBC-T3730 and SBC-T3517.
+> >>>
+> >>> Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
+> >>
+> >> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+> > 
+> > Thanks applying into omap-for-v3.19/dt.
+> > 
+> > Are we now ready to drop the board-cm-*.c files?
+> 
+> Let's see, below is a list of things that are yet to be
+> supported in DT boot:
+> NAND, TV, LCD, Touchscreen, Audio (CM-T3x30), RTC (CM-T3517), CAN (CM-3517).
 
-On Tue, Nov 11, 2014 at 09:07:10AM -0200, Mauro Carvalho Chehab wrote:
-> Em Tue, 21 Oct 2014 17:07:00 +0200
-> Sebastian Reichel <sre@kernel.org> escreveu:
->=20
-> > This switches back to the normal regulator API (but use
-> > managed variant) in preparation for device tree support.
->=20
-> This patch broke compilation. Please be sure that none of the patches in
-> the series would break it, as otherwise git bisect would be broken.
->
-> [...]
+OK great, hopefully that's mostly just configuring the .dts
+files.
+ 
+> We're rc4 now, so hopefully, we will be able to get all this in for 3.19
+> and then have the board files removed for 3.20.
 
-mh, the errors seem to be from the old code (without the patch
-applied to drivers/media/radio/si4713/si4713.c) and the inlined code
-fragment displayed by the compiler seems to be the new code (with
-the patch applied to drivers/media/radio/si4713/si4713.c).
+Yes something like that sounds good to me. We should allow at
+least one release for people to change over.
 
-Possible reasons I can think of:
+> This way we can have 3.19 with both ways supported and do last checks.
+> 
+> Are you ok with this?
 
- * You are using some kind of object cache, which assumed it could
-   link the previously compiled si4713.o
- * You started the kernel compilation before merging the patch and
-   the commit was only half applied when the compilation reached
-   the si4713 driver.
+Sure if you get the changes posted before -rc6, otherwise
+it will be too late for v3.19.
 
--- Sebastian
+Regards,
 
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUYh4cAAoJENju1/PIO/qaYqsP/j6SRe41NWwhYwhF5B3CDSUs
-SKNXfUgBGu0ZmNKaTkpWem4+08g+qPhmj9XDlOvOr3lr3cvcaUA5+FTPehraYRh0
-kju4widgN15lpJsvVngaV5rU48ksC6nbXko1OUKkWTSR/Ye8wvN7Xboor4vAw30V
-cvBt+R3QG4Y5RHCmBKBSCYyO/yUYQ2IIsblKZEdby4ivZVJHyQ9qdb+c/E9I3UpF
-vWtzVBnm1gKVYJc4BkZP3hPqkVFSiOqCG+1mnZNcJoEHEJOtKoOReIjO+qx6idsz
-o3JX2/Zaqz9vCEN3GuIiiNdewPOQxaNR6lWavXhbAo08W9h9xUxkG5dQA3QxBTpn
-xEzAkxTc/VA0uJd1MCcopDv4Ryu8m8938nhgmP5d920D5mV8rfEpOyyi80wTTCLV
-RHd3dlgmDCePsTEyt3vxYDGh6ErRoYKBdQJPvm65wtBUc7AZ3Ih/fjTzvC5W/ZFY
-moQCZP6dOr8lrv4Xqp4DDWuVzPuH09cPdGYsasM1nM4rlGGYvVpWBM8F7/KvlKjT
-vF7Udnroh5zmyfYQfcexwPmuwAEqL3mBduvLHUfPvvLn5BwpAg69AEVMBcH4cgpt
-NeLmzPP16fpoGUln0gtxOCn2offK8sT0hVwzEErrA5RPEQwWxEHnZVRqvgR7G1j0
-Y9Yo10GblfzsXrF0s5L3
-=3sNS
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
+Tony
