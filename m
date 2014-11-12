@@ -1,51 +1,72 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv6 1/5] Documentation: dt: add common bindings for hwspinlock
-Date: Wed, 12 Nov 2014 11:08:51 -0600
-Message-ID: <54639423.3030607@ti.com>
-References: <1410553499-55951-1-git-send-email-s-anna@ti.com> <1410553499-55951-2-git-send-email-s-anna@ti.com> <CAK=WgbZqj23J4M8n5FOkPdUOcyK3==TXgc3DfX=LKS6E8C+-Bg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
+Date: Wed, 12 Nov 2014 10:02:54 -0800
+Message-ID: <20141112180253.GJ26481@atomide.com>
+References: <1415185258-11747-1-git-send-email-rogerq@ti.com>
+ <20141106180333.GZ31454@atomide.com>
+ <545C9267.7060301@ti.com>
+ <545C97AB.4040402@ti.com>
+ <20141107224832.GG31454@atomide.com>
+ <545FC08D.8000008@pek-sem.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAK=WgbZqj23J4M8n5FOkPdUOcyK3==TXgc3DfX=LKS6E8C+-Bg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35411 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751685AbaKLSDg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2014 13:03:36 -0500
+Content-Disposition: inline
+In-Reply-To: <545FC08D.8000008@pek-sem.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: pekon <pekon@pek-sem.com>
+Cc: Roger Quadros <rogerq@ti.com>, computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
 
-Kumar, Mark, Rob,
-
-On 11/12/2014 09:14 AM, Ohad Ben-Cohen wrote:
-> Hi Suman,
+* pekon <pekon@pek-sem.com> [141109 11:31]:
+> On Saturday 08 November 2014 04:18 AM, Tony Lindgren wrote:
+> >
+> >Right. I doubt anybody has bch8 rootfs on LDP.. And considering u-boot
+> >must be ham1 to boot at all, that's what we should change for the
+> >devices that do not have not standardized on bch8.
+> >
+> My view on this is slightly different:
+> - Lately, everyone seems to have migrated to BCH8.
 > 
-> On Fri, Sep 12, 2014 at 11:24 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
->> This patch adds the generic common bindings used to represent
->> a hwlock device and use/request locks in a device-tree build.
->>
-> ...
->>
->> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
->> ---
->>  .../devicetree/bindings/hwlock/hwlock.txt          | 55 ++++++++++++++++++++++
->>  1 file changed, 55 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
+> - Also HAM1 does not have strength to fix bitflips in aging NAND. So if
+> someone already has OMAP3-LDP deployed on field then its NAND would have
+> already aged to such an extend that HAM1 may not be sufficient.
+
+OK so it makes sense to keep it as BCH8 then. Would be nice to get
+the writing u-boot from kernel issue fixed somehow though as people
+are hitting that for sure.
+ 
+> My question is..
+> Moving back to HAM1 should be decided based on statistics rather than rule
+> of breaking backward compatibility. So please review:
+> (1) How many user of OMAP3-Zoom or other old boards complaining about using
+> BCH8 in mainline kernel? OR
+
+0
+
+> (2) How many users of OMAP3 legacy boards are migrating to newer kernel?
+
+Quite a few for sure, but are probably also using rootfs on MMC instead.
+ 
+> At-least I have not, rather most of the OMAP3 users I interacted via TI's
+> E2E forum wanted to migrate to BCH8 or even BCH16, as HAM1 was not
+> sufficient for their usage.
 > 
-> Please ask a DT maintainer to ACK this - otherwise I can't send this to Linus.
-> 
+> So whatever you decide on this topic, please be cautious that you don't
+> re-invent work for yourself, as I did. It took me lot of time and testing
+> effort on multiple boards to migrate HAM1 to BCH8, And add BCH16 for newer
+> devices.
 
-Can one of you ack this patch and the next patch [1] so that Ohad can
-pick up the series for 3.19? This series has been in works for quite
-some time now and was reviewed by each of you at some point of time
-(thanks!!), the cover letter [2] has the history of the changes.
+Right no objections to using BCH8 for rootfs, except it stopped working
+over past year or so.
 
-regards
-Suman
+And it seems the settings should be partition specific because of u-boot
+requiring HAM1.
 
-[1] https://patchwork.kernel.org/patch/4898001/
-[2] http://marc.info/?l=linux-omap&m=141055365213895&w=2
+Regards,
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
