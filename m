@@ -1,71 +1,53 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/22] OMAPDSS: DSI: remove pll_locked field
-Date: Wed, 12 Nov 2014 13:52:08 +0200
-Message-ID: <1415793144-11723-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 07/22] OMAPDSS: DSI: use struct copy instead of individual field copy
+Date: Wed, 12 Nov 2014 13:52:09 +0200
+Message-ID: <1415793144-11723-8-git-send-email-tomi.valkeinen@ti.com>
 References: <1415793144-11723-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38567 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53606 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752288AbaKLLwx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 06:52:53 -0500
+	id S1752377AbaKLLwz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2014 06:52:55 -0500
 In-Reply-To: <1415793144-11723-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We have pll_locked field in struct dsi_data, but it doesn't have any
-meaningful use anymore, and can be removed.
+Now that dsi_clock_info only contains information about the PLL, we can
+just copy the whole struct when storing the clock information, instead
+of copying individual fields.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/dsi.c | 10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/video/fbdev/omap2/dss/dsi.c | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
 diff --git a/drivers/video/fbdev/omap2/dss/dsi.c b/drivers/video/fbdev/omap2/dss/dsi.c
-index deab4135ddc0..37517e407f37 100644
+index 37517e407f37..b0a3c9ed1341 100644
 --- a/drivers/video/fbdev/omap2/dss/dsi.c
 +++ b/drivers/video/fbdev/omap2/dss/dsi.c
-@@ -329,8 +329,6 @@ struct dsi_data {
- 	struct mutex lock;
- 	struct semaphore bus_lock;
+@@ -1540,17 +1540,7 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
  
--	unsigned pll_locked;
+ 	DSSDBG("DSI PLL clock config starts");
+ 
+-	dsi->current_cinfo.fint = cinfo->fint;
+-	dsi->current_cinfo.clkin4ddr = cinfo->clkin4ddr;
+-	dsi->current_cinfo.dsi_pll_hsdiv_dispc_clk =
+-			cinfo->dsi_pll_hsdiv_dispc_clk;
+-	dsi->current_cinfo.dsi_pll_hsdiv_dsi_clk =
+-			cinfo->dsi_pll_hsdiv_dsi_clk;
 -
- 	spinlock_t irq_lock;
- 	struct dsi_isr_tables isr_tables;
- 	/* space for a copy used by the interrupt handler */
-@@ -1206,11 +1204,6 @@ static inline void dsi_enable_pll_clock(struct platform_device *dsidev,
- 		clk_prepare_enable(dsi->sys_clk);
- 	else
- 		clk_disable_unprepare(dsi->sys_clk);
--
--	if (enable && dsi->pll_locked) {
--		if (wait_for_bit_change(dsidev, DSI_PLL_STATUS, 1, 1) != 1)
--			DSSERR("cannot lock PLL when enabling clocks\n");
--	}
- }
+-	dsi->current_cinfo.regn = cinfo->regn;
+-	dsi->current_cinfo.regm = cinfo->regm;
+-	dsi->current_cinfo.regm_dispc = cinfo->regm_dispc;
+-	dsi->current_cinfo.regm_dsi = cinfo->regm_dsi;
++	dsi->current_cinfo = *cinfo;
  
- static void _dsi_print_reset_status(struct platform_device *dsidev)
-@@ -1647,8 +1640,6 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
- 		goto err;
- 	}
+ 	DSSDBG("DSI Fint %ld\n", cinfo->fint);
  
--	dsi->pll_locked = 1;
--
- 	l = dsi_read_reg(dsidev, DSI_PLL_CONFIGURATION2);
- 	l = FLD_MOD(l, 0, 0, 0);	/* DSI_PLL_IDLE */
- 	l = FLD_MOD(l, 0, 5, 5);	/* DSI_PLL_PLLLPMODE */
-@@ -1739,7 +1730,6 @@ void dsi_pll_uninit(struct platform_device *dsidev, bool disconnect_lanes)
- {
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
- 
--	dsi->pll_locked = 0;
- 	dsi_pll_power(dsidev, DSI_PLL_POWER_OFF);
- 	if (disconnect_lanes) {
- 		WARN_ON(!dsi->vdds_dsi_enabled);
 -- 
 2.1.3
 
