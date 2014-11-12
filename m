@@ -1,644 +1,128 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v7 18/20] ASoC: omap: Remove obsolete HDMI audio code
- and Kconfig options
-Date: Wed, 12 Nov 2014 14:04:01 +0200
-Message-ID: <54634CB1.4020009@ti.com>
-References: <cover.1415786458.git.jsarha@ti.com> <3b82bfccc11f3aefd34db578944b5447fcfa1d85.1415786458.git.jsarha@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
+ devconf1 register
+Date: Wed, 12 Nov 2014 14:53:49 +0200
+Message-ID: <5463585D.9070209@ti.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com> <1415051968-4878-5-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54166 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752977AbaKLMEQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 07:04:16 -0500
-In-Reply-To: <3b82bfccc11f3aefd34db578944b5447fcfa1d85.1415786458.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1415051968-4878-5-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-On 11/12/2014 12:49 PM, Jyri Sarha wrote:
-> Removes omap-hdmi DAI driver, omap-hdmi-card driver, the related
-> Kconfig options, and Makefile entries. The HDMI DAI drivers has been
-> integrated directly to OMAP4+ HDMI drivers and simple-card driver is
-> used instead of omap-hdmi-card driver.
+--c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On 03/11/14 23:59, Marek Belisko wrote:
+> gta04 board need for tvout enabled 2 bits in devconf1 register (tvbypas=
+s and acbias).
+> Add single pinmux entry and enable it.
 >=20
-> Signed-off-by: Jyri Sarha <jsarha@ti.com>
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
+> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 > ---
->  sound/soc/omap/Kconfig          |   13 --
->  sound/soc/omap/Makefile         |    4 -
->  sound/soc/omap/omap-hdmi-card.c |   87 ----------
->  sound/soc/omap/omap-hdmi.c      |  364 -----------------------------=
-----------
->  sound/soc/omap/omap-hdmi.h      |   38 ----
->  5 files changed, 506 deletions(-)
->  delete mode 100644 sound/soc/omap/omap-hdmi-card.c
->  delete mode 100644 sound/soc/omap/omap-hdmi.c
->  delete mode 100644 sound/soc/omap/omap-hdmi.h
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
 >=20
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 2b32b3e..3dfcadf 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -12,9 +12,6 @@ config SND_OMAP_SOC_MCBSP
->  config SND_OMAP_SOC_MCPDM
->  	tristate
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/oma=
+p3-gta04.dtsi
+> index e4d05f0..a456d37 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> @@ -118,6 +118,17 @@
+>  			};
+>  		};
+>  	};
+> +
+> +	/* pinmux for devconf1 */
+> +	control_devconf1: pinmux@480022d8 {
+> +		compatible =3D "pinctrl-single";
+> +		reg =3D <0x480022d8 4>;	/* single register */
+> +		#address-cells =3D <1>;
+> +		#size-cells =3D <0>;
+> +		pinctrl-single,bit-per-mux;
+> +		pinctrl-single,register-width =3D <32>;
+> +		pinctrl-single,function-mask =3D <0xfc0bd5>;
+> +	};
+>  };
 > =20
-> -config SND_OMAP_SOC_HDMI
-> -	tristate
-> -
->  config SND_OMAP_SOC_HDMI_AUDIO
->  	tristate "HDMI audio support for OMAP4+ based SoCs"
->  	depends on SND_OMAP_SOC
-> @@ -115,16 +112,6 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
->  	  - PandaBoard (4430)
->  	  - PandaBoardES (4460)
-> =20
-> -config SND_OMAP_SOC_OMAP_HDMI
-> -	tristate "SoC Audio support for Texas Instruments OMAP HDMI"
-> -	depends on SND_OMAP_SOC && OMAP4_DSS_HDMI && OMAP2_DSS
-> -	select SND_OMAP_SOC_HDMI
-> -	select SND_SOC_HDMI_CODEC
-> -	select OMAP4_DSS_HDMI_AUDIO
-> -	help
-> -	  Say Y if you want to add support for SoC HDMI audio on Texas Inst=
-ruments
-> -	  OMAP4 chips
-> -
->  config SND_OMAP_SOC_OMAP3_PANDORA
->  	tristate "SoC Audio support for OMAP3 Pandora"
->  	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_PANDORA
-> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-> index 40688a6..db36fbd 100644
-> --- a/sound/soc/omap/Makefile
-> +++ b/sound/soc/omap/Makefile
-> @@ -3,14 +3,12 @@ snd-soc-omap-objs :=3D omap-pcm.o
->  snd-soc-omap-dmic-objs :=3D omap-dmic.o
->  snd-soc-omap-mcbsp-objs :=3D omap-mcbsp.o mcbsp.o
->  snd-soc-omap-mcpdm-objs :=3D omap-mcpdm.o
-> -snd-soc-omap-hdmi-objs :=3D omap-hdmi.o
->  snd-soc-omap-hdmi-audio-objs :=3D omap-hdmi-audio.o
-> =20
->  obj-$(CONFIG_SND_OMAP_SOC) +=3D snd-soc-omap.o
->  obj-$(CONFIG_SND_OMAP_SOC_DMIC) +=3D snd-soc-omap-dmic.o
->  obj-$(CONFIG_SND_OMAP_SOC_MCBSP) +=3D snd-soc-omap-mcbsp.o
->  obj-$(CONFIG_SND_OMAP_SOC_MCPDM) +=3D snd-soc-omap-mcpdm.o
-> -obj-$(CONFIG_SND_OMAP_SOC_HDMI) +=3D snd-soc-omap-hdmi.o
->  obj-$(CONFIG_SND_OMAP_SOC_HDMI_AUDIO) +=3D snd-soc-omap-hdmi-audio.o
-> =20
->  # OMAP Machine Support
-> @@ -22,7 +20,6 @@ snd-soc-am3517evm-objs :=3D am3517evm.o
->  snd-soc-omap-abe-twl6040-objs :=3D omap-abe-twl6040.o
->  snd-soc-omap-twl4030-objs :=3D omap-twl4030.o
->  snd-soc-omap3pandora-objs :=3D omap3pandora.o
-> -snd-soc-omap-hdmi-card-objs :=3D omap-hdmi-card.o
-> =20
->  obj-$(CONFIG_SND_OMAP_SOC_N810) +=3D snd-soc-n810.o
->  obj-$(CONFIG_SND_OMAP_SOC_RX51) +=3D snd-soc-rx51.o
-> @@ -32,4 +29,3 @@ obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) +=3D snd-soc-a=
-m3517evm.o
->  obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) +=3D snd-soc-omap-abe-tw=
-l6040.o
->  obj-$(CONFIG_SND_OMAP_SOC_OMAP_TWL4030) +=3D snd-soc-omap-twl4030.o
->  obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) +=3D snd-soc-omap3pandora.o
-> -obj-$(CONFIG_SND_OMAP_SOC_OMAP_HDMI) +=3D snd-soc-omap-hdmi-card.o
-> diff --git a/sound/soc/omap/omap-hdmi-card.c b/sound/soc/omap/omap-hd=
-mi-card.c
-> deleted file mode 100644
-> index f649fe8..0000000
-> --- a/sound/soc/omap/omap-hdmi-card.c
-> +++ /dev/null
-> @@ -1,87 +0,0 @@
-> -/*
-> - * omap-hdmi-card.c
-> - *
-> - * OMAP ALSA SoC machine driver for TI OMAP HDMI
-> - * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti=
-=2Ecom/
-> - * Author: Ricardo Neri <ricardo.neri@ti.com>
-> - *
-> - * This program is free software; you can redistribute it and/or
-> - * modify it under the terms of the GNU General Public License
-> - * version 2 as published by the Free Software Foundation.
-> - *
-> - * This program is distributed in the hope that it will be useful, b=
-ut
-> - * WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> - * General Public License for more details.
-> - *
-> - * You should have received a copy of the GNU General Public License
-> - * along with this program; if not, write to the Free Software
-> - * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> - * 02110-1301 USA
-> - *
-> - */
-> -
-> -#include <linux/module.h>
-> -#include <sound/pcm.h>
-> -#include <sound/soc.h>
-> -#include <asm/mach-types.h>
-> -#include <video/omapdss.h>
-> -
-> -#define DRV_NAME "omap-hdmi-audio"
-> -
-> -static struct snd_soc_dai_link omap_hdmi_dai =3D {
-> -	.name =3D "HDMI",
-> -	.stream_name =3D "HDMI",
-> -	.cpu_dai_name =3D "omap-hdmi-audio-dai",
-> -	.platform_name =3D "omap-hdmi-audio-dai",
-> -	.codec_name =3D "hdmi-audio-codec",
-> -	.codec_dai_name =3D "hdmi-hifi",
-> -};
-> -
-> -static struct snd_soc_card snd_soc_omap_hdmi =3D {
-> -	.name =3D "OMAPHDMI",
-> -	.owner =3D THIS_MODULE,
-> -	.dai_link =3D &omap_hdmi_dai,
-> -	.num_links =3D 1,
-> -};
-> -
-> -static int omap_hdmi_probe(struct platform_device *pdev)
-> -{
-> -	struct snd_soc_card *card =3D &snd_soc_omap_hdmi;
-> -	int ret;
-> -
-> -	card->dev =3D &pdev->dev;
-> -
-> -	ret =3D snd_soc_register_card(card);
-> -	if (ret) {
-> -		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
-> -		card->dev =3D NULL;
-> -		return ret;
-> -	}
-> -	return 0;
-> -}
-> -
-> -static int omap_hdmi_remove(struct platform_device *pdev)
-> -{
-> -	struct snd_soc_card *card =3D platform_get_drvdata(pdev);
-> -
-> -	snd_soc_unregister_card(card);
-> -	card->dev =3D NULL;
-> -	return 0;
-> -}
-> -
-> -static struct platform_driver omap_hdmi_driver =3D {
-> -	.driver =3D {
-> -		.name =3D DRV_NAME,
-> -		.owner =3D THIS_MODULE,
-> -	},
-> -	.probe =3D omap_hdmi_probe,
-> -	.remove =3D omap_hdmi_remove,
-> -};
-> -
-> -module_platform_driver(omap_hdmi_driver);
-> -
-> -MODULE_AUTHOR("Ricardo Neri <ricardo.neri@ti.com>");
-> -MODULE_DESCRIPTION("OMAP HDMI machine ASoC driver");
-> -MODULE_LICENSE("GPL");
-> -MODULE_ALIAS("platform:" DRV_NAME);
-> diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-> deleted file mode 100644
-> index eb9c392..0000000
-> --- a/sound/soc/omap/omap-hdmi.c
-> +++ /dev/null
-> @@ -1,364 +0,0 @@
-> -/*
-> - * omap-hdmi.c
-> - *
-> - * OMAP ALSA SoC DAI driver for HDMI audio on OMAP4 processors.
-> - * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://w=
-ww.ti.com/
-> - * Authors: Jorge Candelaria <jorge.candelaria@ti.com>
-> - *          Ricardo Neri <ricardo.neri@ti.com>
-> - *
-> - * This program is free software; you can redistribute it and/or
-> - * modify it under the terms of the GNU General Public License
-> - * version 2 as published by the Free Software Foundation.
-> - *
-> - * This program is distributed in the hope that it will be useful, b=
-ut
-> - * WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> - * General Public License for more details.
-> - *
-> - * You should have received a copy of the GNU General Public License
-> - * along with this program; if not, write to the Free Software
-> - * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> - * 02110-1301 USA
-> - *
-> - */
-> -
-> -#include <linux/init.h>
-> -#include <linux/module.h>
-> -#include <linux/device.h>
-> -#include <sound/core.h>
-> -#include <sound/pcm.h>
-> -#include <sound/pcm_params.h>
-> -#include <sound/initval.h>
-> -#include <sound/soc.h>
-> -#include <sound/asound.h>
-> -#include <sound/asoundef.h>
-> -#include <sound/dmaengine_pcm.h>
-> -#include <video/omapdss.h>
-> -#include <sound/omap-pcm.h>
-> -
-> -#include "omap-hdmi.h"
-> -
-> -#define DRV_NAME "omap-hdmi-audio-dai"
-> -
-> -struct hdmi_priv {
-> -	struct snd_dmaengine_dai_dma_data dma_data;
-> -	unsigned int dma_req;
-> -	struct omap_dss_audio dss_audio;
-> -	struct snd_aes_iec958 iec;
-> -	struct snd_cea_861_aud_if cea;
-> -	struct omap_dss_device *dssdev;
-> -};
-> -
-> -static int omap_hdmi_dai_startup(struct snd_pcm_substream *substream=
-,
-> -				  struct snd_soc_dai *dai)
-> -{
-> -	struct hdmi_priv *priv =3D snd_soc_dai_get_drvdata(dai);
-> -	int err;
-> -	/*
-> -	 * Make sure that the period bytes are multiple of the DMA packet s=
-ize.
-> -	 * Largest packet size we use is 32 32-bit words =3D 128 bytes
-> -	 */
-> -	err =3D snd_pcm_hw_constraint_step(substream->runtime, 0,
-> -				 SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 128);
-> -	if (err < 0) {
-> -		dev_err(dai->dev, "could not apply constraint\n");
-> -		return err;
-> -	}
-> -
-> -	if (!priv->dssdev->driver->audio_supported(priv->dssdev)) {
-> -		dev_err(dai->dev, "audio not supported\n");
-> -		return -ENODEV;
-> -	}
-> -
-> -	snd_soc_dai_set_dma_data(dai, substream, &priv->dma_data);
-> -
-> -	return 0;
-> -}
-> -
-> -static int omap_hdmi_dai_prepare(struct snd_pcm_substream *substream=
-,
-> -				struct snd_soc_dai *dai)
-> -{
-> -	struct hdmi_priv *priv =3D snd_soc_dai_get_drvdata(dai);
-> -
-> -	return priv->dssdev->driver->audio_enable(priv->dssdev);
-> -}
-> -
-> -static int omap_hdmi_dai_hw_params(struct snd_pcm_substream *substre=
-am,
-> -				    struct snd_pcm_hw_params *params,
-> -				    struct snd_soc_dai *dai)
-> -{
-> -	struct hdmi_priv *priv =3D snd_soc_dai_get_drvdata(dai);
-> -	struct snd_aes_iec958 *iec =3D &priv->iec;
-> -	struct snd_cea_861_aud_if *cea =3D &priv->cea;
-> -	int err =3D 0;
-> -
-> -	switch (params_format(params)) {
-> -	case SNDRV_PCM_FORMAT_S16_LE:
-> -		priv->dma_data.maxburst =3D 16;
-> -		break;
-> -	case SNDRV_PCM_FORMAT_S24_LE:
-> -		priv->dma_data.maxburst =3D 32;
-> -		break;
-> -	default:
-> -		dev_err(dai->dev, "format not supported!\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	/*
-> -	 * fill the IEC-60958 channel status word
-> -	 */
-> -	/* initialize the word bytes */
-> -	memset(iec->status, 0, sizeof(iec->status));
-> -
-> -	/* specify IEC-60958-3 (commercial use) */
-> -	iec->status[0] &=3D ~IEC958_AES0_PROFESSIONAL;
-> -
-> -	/* specify that the audio is LPCM*/
-> -	iec->status[0] &=3D ~IEC958_AES0_NONAUDIO;
-> -
-> -	iec->status[0] |=3D IEC958_AES0_CON_NOT_COPYRIGHT;
-> -
-> -	iec->status[0] |=3D IEC958_AES0_CON_EMPHASIS_NONE;
-> -
-> -	iec->status[0] |=3D IEC958_AES1_PRO_MODE_NOTID;
-> -
-> -	iec->status[1] =3D IEC958_AES1_CON_GENERAL;
-> -
-> -	iec->status[2] |=3D IEC958_AES2_CON_SOURCE_UNSPEC;
-> -
-> -	iec->status[2] |=3D IEC958_AES2_CON_CHANNEL_UNSPEC;
-> -
-> -	switch (params_rate(params)) {
-> -	case 32000:
-> -		iec->status[3] |=3D IEC958_AES3_CON_FS_32000;
-> -		break;
-> -	case 44100:
-> -		iec->status[3] |=3D IEC958_AES3_CON_FS_44100;
-> -		break;
-> -	case 48000:
-> -		iec->status[3] |=3D IEC958_AES3_CON_FS_48000;
-> -		break;
-> -	case 88200:
-> -		iec->status[3] |=3D IEC958_AES3_CON_FS_88200;
-> -		break;
-> -	case 96000:
-> -		iec->status[3] |=3D IEC958_AES3_CON_FS_96000;
-> -		break;
-> -	case 176400:
-> -		iec->status[3] |=3D IEC958_AES3_CON_FS_176400;
-> -		break;
-> -	case 192000:
-> -		iec->status[3] |=3D IEC958_AES3_CON_FS_192000;
-> -		break;
-> -	default:
-> -		dev_err(dai->dev, "rate not supported!\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	/* specify the clock accuracy */
-> -	iec->status[3] |=3D IEC958_AES3_CON_CLOCK_1000PPM;
-> -
-> -	/*
-> -	 * specify the word length. The same word length value can mean
-> -	 * two different lengths. Hence, we need to specify the maximum
-> -	 * word length as well.
-> -	 */
-> -	switch (params_format(params)) {
-> -	case SNDRV_PCM_FORMAT_S16_LE:
-> -		iec->status[4] |=3D IEC958_AES4_CON_WORDLEN_20_16;
-> -		iec->status[4] &=3D ~IEC958_AES4_CON_MAX_WORDLEN_24;
-> -		break;
-> -	case SNDRV_PCM_FORMAT_S24_LE:
-> -		iec->status[4] |=3D IEC958_AES4_CON_WORDLEN_24_20;
-> -		iec->status[4] |=3D IEC958_AES4_CON_MAX_WORDLEN_24;
-> -		break;
-> -	default:
-> -		dev_err(dai->dev, "format not supported!\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	/*
-> -	 * Fill the CEA-861 audio infoframe (see spec for details)
-> -	 */
-> -
-> -	cea->db1_ct_cc =3D (params_channels(params) - 1)
-> -		& CEA861_AUDIO_INFOFRAME_DB1CC;
-> -	cea->db1_ct_cc |=3D CEA861_AUDIO_INFOFRAME_DB1CT_FROM_STREAM;
-> -
-> -	cea->db2_sf_ss =3D CEA861_AUDIO_INFOFRAME_DB2SF_FROM_STREAM;
-> -	cea->db2_sf_ss |=3D CEA861_AUDIO_INFOFRAME_DB2SS_FROM_STREAM;
-> -
-> -	cea->db3 =3D 0; /* not used, all zeros */
-> -
-> -	/*
-> -	 * The OMAP HDMI IP requires to use the 8-channel channel code when
-> -	 * transmitting more than two channels.
-> -	 */
-> -	if (params_channels(params) =3D=3D 2)
-> -		cea->db4_ca =3D 0x0;
-> -	else
-> -		cea->db4_ca =3D 0x13;
-> -
-> -	cea->db5_dminh_lsv =3D CEA861_AUDIO_INFOFRAME_DB5_DM_INH_PROHIBITED=
-;
-> -	/* the expression is trivial but makes clear what we are doing */
-> -	cea->db5_dminh_lsv |=3D (0 & CEA861_AUDIO_INFOFRAME_DB5_LSV);
-> -
-> -	priv->dss_audio.iec =3D iec;
-> -	priv->dss_audio.cea =3D cea;
-> -
-> -	err =3D priv->dssdev->driver->audio_config(priv->dssdev,
-> -						 &priv->dss_audio);
-> -
-> -	return err;
-> -}
-> -
-> -static int omap_hdmi_dai_trigger(struct snd_pcm_substream *substream=
-, int cmd,
-> -				struct snd_soc_dai *dai)
-> -{
-> -	struct hdmi_priv *priv =3D snd_soc_dai_get_drvdata(dai);
-> -	int err =3D 0;
-> -
-> -	switch (cmd) {
-> -	case SNDRV_PCM_TRIGGER_START:
-> -	case SNDRV_PCM_TRIGGER_RESUME:
-> -	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-> -		err =3D priv->dssdev->driver->audio_start(priv->dssdev);
-> -		break;
-> -	case SNDRV_PCM_TRIGGER_STOP:
-> -	case SNDRV_PCM_TRIGGER_SUSPEND:
-> -	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-> -		priv->dssdev->driver->audio_stop(priv->dssdev);
-> -		break;
-> -	default:
-> -		err =3D -EINVAL;
-> -	}
-> -	return err;
-> -}
-> -
-> -static void omap_hdmi_dai_shutdown(struct snd_pcm_substream *substre=
-am,
-> -				struct snd_soc_dai *dai)
-> -{
-> -	struct hdmi_priv *priv =3D snd_soc_dai_get_drvdata(dai);
-> -
-> -	priv->dssdev->driver->audio_disable(priv->dssdev);
-> -}
-> -
-> -static const struct snd_soc_dai_ops omap_hdmi_dai_ops =3D {
-> -	.startup	=3D omap_hdmi_dai_startup,
-> -	.hw_params	=3D omap_hdmi_dai_hw_params,
-> -	.prepare	=3D omap_hdmi_dai_prepare,
-> -	.trigger	=3D omap_hdmi_dai_trigger,
-> -	.shutdown	=3D omap_hdmi_dai_shutdown,
-> -};
-> -
-> -static struct snd_soc_dai_driver omap_hdmi_dai =3D {
-> -	.playback =3D {
-> -		.channels_min =3D 2,
-> -		.channels_max =3D 8,
-> -		.rates =3D OMAP_HDMI_RATES,
-> -		.formats =3D OMAP_HDMI_FORMATS,
-> -	},
-> -	.ops =3D &omap_hdmi_dai_ops,
-> -};
-> -
-> -static const struct snd_soc_component_driver omap_hdmi_component =3D=
- {
-> -	.name		=3D DRV_NAME,
-> -};
-> -
-> -static int omap_hdmi_probe(struct platform_device *pdev)
-> -{
-> -	int ret;
-> -	struct resource *hdmi_rsrc;
-> -	struct hdmi_priv *hdmi_data;
-> -	bool hdmi_dev_found =3D false;
-> -
-> -	hdmi_data =3D devm_kzalloc(&pdev->dev, sizeof(*hdmi_data), GFP_KERN=
-EL);
-> -	if (hdmi_data =3D=3D NULL) {
-> -		dev_err(&pdev->dev, "Cannot allocate memory for HDMI data\n");
-> -		return -ENOMEM;
-> -	}
-> -
-> -	hdmi_rsrc =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	if (!hdmi_rsrc) {
-> -		dev_err(&pdev->dev, "Cannot obtain IORESOURCE_MEM HDMI\n");
-> -		return -ENODEV;
-> -	}
-> -
-> -	hdmi_data->dma_data.addr =3D hdmi_rsrc->start + OMAP_HDMI_AUDIO_DMA=
-_PORT;
-> -
-> -	hdmi_rsrc =3D platform_get_resource(pdev, IORESOURCE_DMA, 0);
-> -	if (!hdmi_rsrc) {
-> -		dev_err(&pdev->dev, "Cannot obtain IORESOURCE_DMA HDMI\n");
-> -		return -ENODEV;
-> -	}
-> -
-> -	hdmi_data->dma_req =3D hdmi_rsrc->start;
-> -	hdmi_data->dma_data.filter_data =3D &hdmi_data->dma_req;
-> -	hdmi_data->dma_data.addr_width =3D DMA_SLAVE_BUSWIDTH_4_BYTES;
-> -
-> -	/*
-> -	 * TODO: We assume that there is only one DSS HDMI device. Future
-> -	 * OMAP implementations may support more than one HDMI devices and
-> -	 * we should provided separate audio support for all of them.
-> -	 */
-> -	/* Find an HDMI device. */
-> -	for_each_dss_dev(hdmi_data->dssdev) {
-> -		omap_dss_get_device(hdmi_data->dssdev);
-> -
-> -		if (!hdmi_data->dssdev->driver) {
-> -			omap_dss_put_device(hdmi_data->dssdev);
-> -			continue;
-> -		}
-> -
-> -		if (hdmi_data->dssdev->type =3D=3D OMAP_DISPLAY_TYPE_HDMI) {
-> -			hdmi_dev_found =3D true;
-> -			break;
-> -		}
-> -	}
-> -
-> -	if (!hdmi_dev_found) {
-> -		dev_err(&pdev->dev, "no driver for HDMI display found\n");
-> -		return -ENODEV;
-> -	}
-> -
-> -	dev_set_drvdata(&pdev->dev, hdmi_data);
-> -	ret =3D snd_soc_register_component(&pdev->dev, &omap_hdmi_component=
-,
-> -					 &omap_hdmi_dai, 1);
-> -
-> -	if (ret)
-> -		return ret;
-> -
-> -	return omap_pcm_platform_register(&pdev->dev);
-> -}
-> -
-> -static int omap_hdmi_remove(struct platform_device *pdev)
-> -{
-> -	struct hdmi_priv *hdmi_data =3D dev_get_drvdata(&pdev->dev);
-> -
-> -	snd_soc_unregister_component(&pdev->dev);
-> -
-> -	if (hdmi_data =3D=3D NULL) {
-> -		dev_err(&pdev->dev, "cannot obtain HDMi data\n");
-> -		return -ENODEV;
-> -	}
-> -
-> -	omap_dss_put_device(hdmi_data->dssdev);
-> -	return 0;
-> -}
-> -
-> -static struct platform_driver hdmi_dai_driver =3D {
-> -	.driver =3D {
-> -		.name =3D DRV_NAME,
-> -		.owner =3D THIS_MODULE,
-> -	},
-> -	.probe =3D omap_hdmi_probe,
-> -	.remove =3D omap_hdmi_remove,
-> -};
-> -
-> -module_platform_driver(hdmi_dai_driver);
-> -
-> -MODULE_AUTHOR("Jorge Candelaria <jorge.candelaria@ti.com>");
-> -MODULE_AUTHOR("Ricardo Neri <ricardo.neri@ti.com>");
-> -MODULE_DESCRIPTION("OMAP HDMI SoC Interface");
-> -MODULE_LICENSE("GPL");
-> -MODULE_ALIAS("platform:" DRV_NAME);
-> diff --git a/sound/soc/omap/omap-hdmi.h b/sound/soc/omap/omap-hdmi.h
-> deleted file mode 100644
-> index 6ad2bf4..0000000
-> --- a/sound/soc/omap/omap-hdmi.h
-> +++ /dev/null
-> @@ -1,38 +0,0 @@
-> -/*
-> - * omap-hdmi.h
-> - *
-> - * Definitions for OMAP ALSA SoC DAI driver for HDMI audio on OMAP4 =
-processors.
-> - * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://w=
-ww.ti.com/
-> - * Authors: Jorge Candelaria <jorge.candelaria@ti.com>
-> - *          Ricardo Neri <ricardo.neri@ti.com>
-> - *
-> - * This program is free software; you can redistribute it and/or
-> - * modify it under the terms of the GNU General Public License
-> - * version 2 as published by the Free Software Foundation.
-> - *
-> - * This program is distributed in the hope that it will be useful, b=
-ut
-> - * WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> - * General Public License for more details.
-> - *
-> - * You should have received a copy of the GNU General Public License
-> - * along with this program; if not, write to the Free Software
-> - * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> - * 02110-1301 USA
-> - *
-> - */
-> -
-> -#ifndef __OMAP_HDMI_H__
-> -#define __OMAP_HDMI_H__
-> -
-> -#define OMAP_HDMI_AUDIO_DMA_PORT 0x8c
-> -
-> -#define OMAP_HDMI_RATES	(SNDRV_PCM_RATE_32000 | \
-> -				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | \
-> -				SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
-> -				SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
-> -
-> -#define OMAP_HDMI_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | \
-> -				SNDRV_PCM_FMTBIT_S24_LE)
-> -
-> -#endif
+>  &omap3_pmx_core {
+> @@ -497,3 +508,14 @@
+>  		};
+>  	};
+>  };
+> +
+> +&control_devconf1 {
+> +	pinctrl-name =3D "default";
+> +	pinctrl-0 =3D < &tv_acbias_pins>;
+> +
+> +	tv_acbias_pins: pinmux_tv_acbias_pins {
+> +		pinctrl-single,bits =3D <
+> +			0 0x40800 0x40800
+
+I think it would be good to have a comment in the .dts above, mentioning
+that TVOUTBYPASS and TVACEN bits are being set.
+
+> +		>;
+> +	};
+> +};
 >=20
 
+OMAP3630 seems to have CONTROL_AVDAC1 and CONTROL_AVDAC2 registers. Did
+you check if the SoC you use have those? It looks like they need
+configuration also, if the exist.
 
---=20
-P=E9ter
+So, I don't think tvbypass and acbias are really pinmux stuff, but it
+does seem like an easy way to handle the devconf1 register, and I don't
+see any issues with the setting being fixed.
+
+However, devconf1 register seems to have bits for many devices,
+including mcbsp, mmc, and even some "Force MPU writes to be nonposted" bi=
+t.
+
+And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
+places in the kernel. I wonder if adding a pinmux entry for it could
+cause some rather odd problems.
+
+Tony, any idea about this? How should CONTROL_DEVCONFx registers be
+accessed?
+
+ Tomi
+
+
+
+--c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUY1hdAAoJEPo9qoy8lh71hlcQAJ6gfPqz/bOlLRyx0YacJy6f
+KZhOx50DHtm8v5Ft0U2nxaJJ8QfEn1gP1HgQ8lZVkLbU0rLCaeQdoBU2pcCbiFph
+BJZUP4G68VVdgcY8x6hd6PEx/eTcYWd33mOAKjf54rRwcTgWj/a1EOK4L9eCcUXn
+zNj9lRU2+uueg9SR19//aH18dZNpcDP+fyJFjjxEEwc6IAdCkLile4sa7Noio5S9
+RMhrbp3FW+43gzwlYRAWFPBfJkSyo/fG8/STJ9tUq0sb3xCSm56yqk/tXtxVj24p
+w35yTxPj9QF7xbrLEZPf91ZNGi/J+lZDYBnUb4LeUPuksILwjmrg93e6M8Xw20w7
+p9krJFYDWcmcezIr4a353ajqvHzNd5I3rorln8ehCJCYNpz87d2OzX0SkRUscFM0
+oQZKEcPO0lXIIOqP2PV6af8yI9Yt9v+g7amO9B13BKuYJn84NLTMe2jUnDfwRWtB
+d7J2bmKrjy4bZpq8SERs9ZESMn2rmqBD6sOyWYrr9PdcPAhDKtRwzniLSRApihWQ
+ZSsY2TjBtrQsdlRM6TbMAkCv/pflf2O62MZ4PHi9sulULFSyA0usSKlgWMLssdgo
+vDqwGAvtVT4HGpteZbJzCnVYqXSueSoDz4XFOml4rXRVmiM9WkJr3wxlRKHGpvBV
+FfgJH4Lmqp2IUXSFd8rU
+=48Bv
+-----END PGP SIGNATURE-----
+
+--c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
