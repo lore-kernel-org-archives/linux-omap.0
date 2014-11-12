@@ -1,184 +1,66 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v7.1 07/19] OMAPDSS: hdmi: Make hdmi structure public
-Date: Wed, 12 Nov 2014 16:40:58 +0200
-Message-ID: <a0d56167ac1a66cdbc12f53ed634e3f237d9b827.1415803065.git.jsarha@ti.com>
-References: <cover.1415803064.git.jsarha@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] usb: dwc3: gadget: Fix broken gadget on system suspend/resume
+Date: Wed, 12 Nov 2014 16:58:16 +0200
+Message-ID: <1415804296-28980-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32875 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752970AbaKLOl3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 09:41:29 -0500
-In-Reply-To: <cover.1415803064.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Unify the private anonymous struct in hdmi4.c and hdmi5.c, name it as
-struct omap_hdmi, and make it public in hdmi.h.
+On TI SoCs (e.g. DRA7) we don't support the DWC3 hibernation feature.
+We need to stop the gadget controller while system suspend
+else it results in L3 Bus errors on resume with broken
+USB gadget on J6-evm.
 
-Signed-off-by: Jyri Sarha <jsarha@ti.com>
+[   55.718226] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x224/0x31c()
+[   55.718232] 44000000.ocp:L3 Custom Error: MASTER USB3 TARGET GPMC (Idle): Data Access in User mode during Functional access
+[   55.718263] Modules linked in: usb_f_ss_lb g_zero libcomposite configfs xhci_hcd btwilink bluetooth dwc3 6lowpan_iphc m25p80 dwc3_omap omap_remoteproc
+[   55.718271] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.14.19-02011-g3ece3ca-dirty #658
+[   55.718290] [<c0016090>] (unwind_backtrace) from [<c0012060>] (show_stack+0x10/0x14)
+[   55.718302] [<c0012060>] (show_stack) from [<c062a2e4>] (dump_stack+0x78/0x94)
+[   55.718315] [<c062a2e4>] (dump_stack) from [<c0043bc4>] (warn_slowpath_common+0x6c/0x90)
+[   55.718325] [<c0043bc4>] (warn_slowpath_common) from [<c0043c7c>] (warn_slowpath_fmt+0x30/0x40)
+[   55.718336] [<c0043c7c>] (warn_slowpath_fmt) from [<c030fb24>] (l3_interrupt_handler+0x224/0x31c)
+[   55.718348] [<c030fb24>] (l3_interrupt_handler) from [<c0093010>] (handle_irq_event_percpu+0x5c/0x23c)
+[   55.718358] [<c0093010>] (handle_irq_event_percpu) from [<c009322c>] (handle_irq_event+0x3c/0x5c)
+[   55.718367] [<c009322c>] (handle_irq_event) from [<c0096160>] (handle_fasteoi_irq+0x98/0x158)
+[   55.718377] [<c0096160>] (handle_fasteoi_irq) from [<c00929dc>] (generic_handle_irq+0x20/0x30)
+[   55.718385] [<c00929dc>] (generic_handle_irq) from [<c000eea8>] (handle_IRQ+0x4c/0xb0)
+[   55.718393] [<c000eea8>] (handle_IRQ) from [<c0008638>] (gic_handle_irq+0x28/0x5c)
+[   55.718402] [<c0008638>] (gic_handle_irq) from [<c0630964>] (__irq_svc+0x44/0x5c)
+[   55.718406] Exception stack(0xc09c1f68 to 0xc09c1fb0)
+[   55.718412] 1f60:                   00000001 00000001 00000000 00000000 c09c0000 00000000
+[   55.718418] 1f80: c09c0000 c09c0000 c0a7a1e4 c09c8938 c09c89b4 00000000 60000093 c09c1fb0
+[   55.718423] 1fa0: c008a2e4 c00926cc 60000013 ffffffff
+[   55.718433] [<c0630964>] (__irq_svc) from [<c00926cc>] (cpu_startup_entry+0x100/0x1f4)
+[   55.718444] [<c00926cc>] (cpu_startup_entry) from [<c0901ac4>] (start_kernel+0x324/0x388)
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi.h  |   21 +++++++++++++++++++++
- drivers/video/fbdev/omap2/dss/hdmi4.c |   31 ++++++++-----------------------
- drivers/video/fbdev/omap2/dss/hdmi5.c |   20 ++------------------
- 3 files changed, 31 insertions(+), 41 deletions(-)
+ drivers/usb/dwc3/gadget.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
-index 9ba7c1a..6bf077b 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi.h
-+++ b/drivers/video/fbdev/omap2/dss/hdmi.h
-@@ -349,4 +349,25 @@ static inline bool hdmi_mode_has_audio(int mode)
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 3818b26..bc15b54 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -2741,7 +2741,13 @@ int dwc3_gadget_prepare(struct dwc3 *dwc)
  {
- 	return mode == HDMI_HDMI ? true : false;
- }
-+
-+/* HDMI DRV data */
-+struct omap_hdmi {
-+	struct mutex lock;
-+	struct platform_device *pdev;
-+
-+	struct hdmi_wp_data	wp;
-+	struct hdmi_pll_data	pll;
-+	struct hdmi_phy_data	phy;
-+	struct hdmi_core_data	core;
-+
-+	struct hdmi_config cfg;
-+
-+	struct clk *sys_clk;
-+	struct regulator *vdda_reg;
-+
-+	bool core_enabled;
-+
-+	struct omap_dss_device output;
-+};
-+
- #endif
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi4.c b/drivers/video/fbdev/omap2/dss/hdmi4.c
-index 9a8713c..764443e 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi4.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi4.c
-@@ -37,25 +37,9 @@
- #include "hdmi4_core.h"
- #include "dss.h"
- #include "dss_features.h"
-+#include "hdmi.h"
- 
--static struct {
--	struct mutex lock;
--	struct platform_device *pdev;
--
--	struct hdmi_wp_data	wp;
--	struct hdmi_pll_data	pll;
--	struct hdmi_phy_data	phy;
--	struct hdmi_core_data	core;
--
--	struct hdmi_config cfg;
--
--	struct clk *sys_clk;
--	struct regulator *vdda_hdmi_dac_reg;
--
--	bool core_enabled;
--
--	struct omap_dss_device output;
--} hdmi;
-+static struct omap_hdmi hdmi;
- 
- static int hdmi_runtime_get(void)
- {
-@@ -117,7 +101,7 @@ static int hdmi_init_regulator(void)
- 	int r;
- 	struct regulator *reg;
- 
--	if (hdmi.vdda_hdmi_dac_reg != NULL)
-+	if (hdmi.vdda_reg != NULL)
- 		return 0;
- 
- 	reg = devm_regulator_get(&hdmi.pdev->dev, "vdda");
-@@ -137,7 +121,7 @@ static int hdmi_init_regulator(void)
- 		}
+ 	if (dwc->pullups_connected) {
+ 		dwc3_gadget_disable_irq(dwc);
+-		dwc3_gadget_run_stop(dwc, true, true);
++		if (dwc->has_hibernation) {
++			dwc3_gadget_run_stop(dwc, true, true);
++		} else {
++			dwc3_gadget_run_stop(dwc, false, true);
++			/* remember to connect back on resume */
++			dwc->pullups_connected = true;
++		}
  	}
  
--	hdmi.vdda_hdmi_dac_reg = reg;
-+	hdmi.vdda_reg = reg;
- 
  	return 0;
- }
-@@ -146,7 +130,7 @@ static int hdmi_power_on_core(struct omap_dss_device *dssdev)
- {
- 	int r;
- 
--	r = regulator_enable(hdmi.vdda_hdmi_dac_reg);
-+	r = regulator_enable(hdmi.vdda_reg);
- 	if (r)
- 		return r;
- 
-@@ -162,7 +146,7 @@ static int hdmi_power_on_core(struct omap_dss_device *dssdev)
- 	return 0;
- 
- err_runtime_get:
--	regulator_disable(hdmi.vdda_hdmi_dac_reg);
-+	regulator_disable(hdmi.vdda_reg);
- 
- 	return r;
- }
-@@ -172,7 +156,7 @@ static void hdmi_power_off_core(struct omap_dss_device *dssdev)
- 	hdmi.core_enabled = false;
- 
- 	hdmi_runtime_put();
--	regulator_disable(hdmi.vdda_hdmi_dac_reg);
-+	regulator_disable(hdmi.vdda_reg);
- }
- 
- static int hdmi_power_on_full(struct omap_dss_device *dssdev)
-@@ -678,6 +662,7 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
- 	int irq;
- 
- 	hdmi.pdev = pdev;
-+	dev_set_drvdata(&pdev->dev, &hdmi);
- 
- 	mutex_init(&hdmi.lock);
- 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi5.c b/drivers/video/fbdev/omap2/dss/hdmi5.c
-index 169b764..694cdee 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi5.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi5.c
-@@ -43,24 +43,7 @@
- #include "dss.h"
- #include "dss_features.h"
- 
--static struct {
--	struct mutex lock;
--	struct platform_device *pdev;
--
--	struct hdmi_wp_data	wp;
--	struct hdmi_pll_data	pll;
--	struct hdmi_phy_data	phy;
--	struct hdmi_core_data	core;
--
--	struct hdmi_config cfg;
--
--	struct clk *sys_clk;
--	struct regulator *vdda_reg;
--
--	bool core_enabled;
--
--	struct omap_dss_device output;
--} hdmi;
-+static struct omap_hdmi hdmi;
- 
- static int hdmi_runtime_get(void)
- {
-@@ -703,6 +686,7 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
- 	int irq;
- 
- 	hdmi.pdev = pdev;
-+	dev_set_drvdata(&pdev->dev, &hdmi);
- 
- 	mutex_init(&hdmi.lock);
- 
 -- 
-1.7.9.5
-
+1.8.3.2
