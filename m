@@ -1,37 +1,37 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v7.1 13/19] OMAPDSS: hdmi4: Remove callbacks for the old ASoC DAI driver
-Date: Wed, 12 Nov 2014 16:41:04 +0200
-Message-ID: <5583ef2dbb46e6a9b1c37c0b922b6c9e9e8e655f.1415803065.git.jsarha@ti.com>
+Subject: [PATCH v7.1 15/19] OMAPDSS: hdmi5: Remove callbacks for the old ASoC DAI driver
+Date: Wed, 12 Nov 2014 16:41:06 +0200
+Message-ID: <54a47894a384e98788dbd43bf866f0f5dfece0d7.1415803065.git.jsarha@ti.com>
 References: <cover.1415803064.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43123 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43131 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753149AbaKLOli (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 09:41:38 -0500
+	id S1753015AbaKLOln (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2014 09:41:43 -0500
 In-Reply-To: <cover.1415803064.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>
 
-Removes the OMAP4 HDMI audio callbacks for the old external DAI driver.
+Removes the OMAP5 HDMI audio callbacks for the old external DAI driver.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi4.c |  113 ---------------------------------
+ drivers/video/fbdev/omap2/dss/hdmi5.c |  113 ---------------------------------
  1 file changed, 113 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi4.c b/drivers/video/fbdev/omap2/dss/hdmi4.c
-index 764443e..6f6764c 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi4.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi4.c
-@@ -468,112 +468,6 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi5.c b/drivers/video/fbdev/omap2/dss/hdmi5.c
+index 694cdee..1b9c86a 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi5.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi5.c
+@@ -492,112 +492,6 @@ static int hdmi_read_edid(struct omap_dss_device *dssdev,
  	return r;
  }
  
--#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+-#if defined(CONFIG_OMAP5_DSS_HDMI_AUDIO)
 -static int hdmi_audio_enable(struct omap_dss_device *dssdev)
 -{
 -	int r;
@@ -62,12 +62,12 @@ index 764443e..6f6764c 100644
 -
 -static int hdmi_audio_start(struct omap_dss_device *dssdev)
 -{
--	return hdmi4_audio_start(&hdmi.core, &hdmi.wp);
+-	return hdmi_wp_audio_core_req_enable(&hdmi.wp, true);
 -}
 -
 -static void hdmi_audio_stop(struct omap_dss_device *dssdev)
 -{
--	hdmi4_audio_stop(&hdmi.core, &hdmi.wp);
+-	hdmi_wp_audio_core_req_enable(&hdmi.wp, false);
 -}
 -
 -static bool hdmi_audio_supported(struct omap_dss_device *dssdev)
@@ -95,7 +95,7 @@ index 764443e..6f6764c 100644
 -		goto err;
 -	}
 -
--	r = hdmi4_audio_config(&hdmi.core, &hdmi.wp, audio, pclk);
+-	r = hdmi5_audio_config(&hdmi.core, &hdmi.wp, audio, pclk);
 -	if (r)
 -		goto err;
 -
@@ -140,7 +140,7 @@ index 764443e..6f6764c 100644
  static int hdmi_set_infoframe(struct omap_dss_device *dssdev,
  		const struct hdmi_avi_infoframe *avi)
  {
-@@ -602,13 +496,6 @@ static const struct omapdss_hdmi_ops hdmi_ops = {
+@@ -626,13 +520,6 @@ static const struct omapdss_hdmi_ops hdmi_ops = {
  	.read_edid		= hdmi_read_edid,
  	.set_infoframe		= hdmi_set_infoframe,
  	.set_hdmi_mode		= hdmi_set_hdmi_mode,
