@@ -1,128 +1,93 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
- devconf1 register
-Date: Wed, 12 Nov 2014 14:53:49 +0200
-Message-ID: <5463585D.9070209@ti.com>
-References: <1415051968-4878-1-git-send-email-marek@goldelico.com> <1415051968-4878-5-git-send-email-marek@goldelico.com>
+From: Johannes Pointner <johannes.pointner@gmail.com>
+Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
+Date: Wed, 12 Nov 2014 14:00:32 +0100
+Message-ID: <CAJKbBDDyShaJkzzfdFs07EK5gDUfwqWiv39Qi4FVSvRrfc6_fA@mail.gmail.com>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
+	<20141103180920.GA20779@localhost.localdomain>
+	<545B2651.4090905@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1415051968-4878-5-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <545B2651.4090905@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, linux-iio <linux-iio@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, linux-omap@vger
 List-Id: linux-omap@vger.kernel.org
 
---c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Hello Vignesh,
 
-Hi,
+I tried your patch version 3 on a customized board and had some
+behavior I couldn't explain.
+If I only use the touchscreen it works fine but if I also read values
+from the ADCs then I get a lot of pen_up events even if I am still
+touching the screen.
+For the test I read via
+# cat /sys/bus/iio/devices/iio\:device0/in_voltage5_raw
+values from the ADC in an busy loop as you explained in an email
+before. Did you also experience such behavior or do you know what
+causes it?
 
-On 03/11/14 23:59, Marek Belisko wrote:
-> gta04 board need for tvout enabled 2 bits in devconf1 register (tvbypas=
-s and acbias).
-> Add single pinmux entry and enable it.
->=20
-> Signed-off-by: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-> ---
->  arch/arm/boot/dts/omap3-gta04.dtsi | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/oma=
-p3-gta04.dtsi
-> index e4d05f0..a456d37 100644
-> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
-> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-> @@ -118,6 +118,17 @@
->  			};
->  		};
->  	};
-> +
-> +	/* pinmux for devconf1 */
-> +	control_devconf1: pinmux@480022d8 {
-> +		compatible =3D "pinctrl-single";
-> +		reg =3D <0x480022d8 4>;	/* single register */
-> +		#address-cells =3D <1>;
-> +		#size-cells =3D <0>;
-> +		pinctrl-single,bit-per-mux;
-> +		pinctrl-single,register-width =3D <32>;
-> +		pinctrl-single,function-mask =3D <0xfc0bd5>;
-> +	};
->  };
-> =20
->  &omap3_pmx_core {
-> @@ -497,3 +508,14 @@
->  		};
->  	};
->  };
-> +
-> +&control_devconf1 {
-> +	pinctrl-name =3D "default";
-> +	pinctrl-0 =3D < &tv_acbias_pins>;
-> +
-> +	tv_acbias_pins: pinmux_tv_acbias_pins {
-> +		pinctrl-single,bits =3D <
-> +			0 0x40800 0x40800
+Without the patches the touchscreen works fine during the iio test.
 
-I think it would be good to have a comment in the .dts above, mentioning
-that TVOUTBYPASS and TVACEN bits are being set.
+Thanks,
+Hannes
 
-> +		>;
-> +	};
-> +};
->=20
-
-OMAP3630 seems to have CONTROL_AVDAC1 and CONTROL_AVDAC2 registers. Did
-you check if the SoC you use have those? It looks like they need
-configuration also, if the exist.
-
-So, I don't think tvbypass and acbias are really pinmux stuff, but it
-does seem like an easy way to handle the devconf1 register, and I don't
-see any issues with the setting being fixed.
-
-However, devconf1 register seems to have bits for many devices,
-including mcbsp, mmc, and even some "Force MPU writes to be nonposted" bi=
-t.
-
-And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
-places in the kernel. I wonder if adding a pinmux entry for it could
-cause some rather odd problems.
-
-Tony, any idea about this? How should CONTROL_DEVCONFx registers be
-accessed?
-
- Tomi
-
-
-
---c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUY1hdAAoJEPo9qoy8lh71hlcQAJ6gfPqz/bOlLRyx0YacJy6f
-KZhOx50DHtm8v5Ft0U2nxaJJ8QfEn1gP1HgQ8lZVkLbU0rLCaeQdoBU2pcCbiFph
-BJZUP4G68VVdgcY8x6hd6PEx/eTcYWd33mOAKjf54rRwcTgWj/a1EOK4L9eCcUXn
-zNj9lRU2+uueg9SR19//aH18dZNpcDP+fyJFjjxEEwc6IAdCkLile4sa7Noio5S9
-RMhrbp3FW+43gzwlYRAWFPBfJkSyo/fG8/STJ9tUq0sb3xCSm56yqk/tXtxVj24p
-w35yTxPj9QF7xbrLEZPf91ZNGi/J+lZDYBnUb4LeUPuksILwjmrg93e6M8Xw20w7
-p9krJFYDWcmcezIr4a353ajqvHzNd5I3rorln8ehCJCYNpz87d2OzX0SkRUscFM0
-oQZKEcPO0lXIIOqP2PV6af8yI9Yt9v+g7amO9B13BKuYJn84NLTMe2jUnDfwRWtB
-d7J2bmKrjy4bZpq8SERs9ZESMn2rmqBD6sOyWYrr9PdcPAhDKtRwzniLSRApihWQ
-ZSsY2TjBtrQsdlRM6TbMAkCv/pflf2O62MZ4PHi9sulULFSyA0usSKlgWMLssdgo
-vDqwGAvtVT4HGpteZbJzCnVYqXSueSoDz4XFOml4rXRVmiM9WkJr3wxlRKHGpvBV
-FfgJH4Lmqp2IUXSFd8rU
-=48Bv
------END PGP SIGNATURE-----
-
---c0Kkcpg1fR1vkmcOxR1vKclD6JMrWcbsQ--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2014-11-06 8:42 GMT+01:00 Vignesh R <vigneshr@ti.com>:
+>
+>
+> On Monday 03 November 2014 11:39 PM, Richard Cochran wrote:
+>> On Mon, Oct 27, 2014 at 04:38:27PM +0530, Vignesh R wrote:
+>>> This series of patches fix TSC defects related to lag in touchscreen
+>>> performance and cursor jump at touch release. The lag was result of
+>>> udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
+>>> The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
+>>> to avoid false pen-up events and remove udelay.
+>>
+>> That advisory has two workarounds. You have chosen the second one?
+>
+> Work around one. Hence 5 wire design is not broken.
+>
+>>
+>> The text of the second workaround says it only works on 4 wire setups,
+>> so I wonder how 5 wire designs will be affected.
+>>
+>>> The advisory says to use
+>>> steps 1 to 4 for ADC and 5 to 16 for TSC (assuming 4 wire TSC and 4 channel
+>>> ADC).
+>>
+>> No, it doesn't say that. (sprz360f.pdf)
+>
+> The pen up event detection happens immediately after charge step. Hence,
+> interchanging ADC and TSC steps makes sure that sampling of touch
+> co-ordinates and pen events are done one after the other. This
+> workaround was suggested by internal hardware folks. Earlier ADC steps
+> intervened between sampling of co-ordinates and pen event detection
+> which is not desirable.
+>
+>>
+>>> Further the X co-ordinate must be the last one to be sampled just
+>>> before charge step. The first two patches implement the required changes.
+>>
+>> FWIW, I implemented the first workaround and removed the udelay not
+>> too long ago. Like Sebastian, I saw the TSC unit hang after about
+>> 50000 interrupts when running with the workaround.
+>>
+>> Did you test you patch for very long?
+>
+> Yes, I tested for about 200000 interrupts and I didn't see any hang.
+> This patch series does not just implement workaround but also does some
+> minor changes, such as interchanging ADC and TSC steps etc, which makes
+> TSC driver more robust. Let me know if you encounter any issues with my
+> patch series.
+>
+> Regards
+> Vignesh
+>
+>>
+>> Thanks,
+>> Richard
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
