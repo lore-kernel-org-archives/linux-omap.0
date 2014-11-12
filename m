@@ -1,70 +1,41 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v7 07/20] OMAPDSS: hdmi_wp: Add function for getting audio dma address
-Date: Wed, 12 Nov 2014 12:49:09 +0200
-Message-ID: <45a7b802ce4ec3e0c138b8a4e22ff7e610dafc3b.1415786458.git.jsarha@ti.com>
+Subject: [PATCH v7 09/20] OMAPDSS: hdmi: Add pdev pointer for audio_pdev in HDMI DRV data
+Date: Wed, 12 Nov 2014 12:49:11 +0200
+Message-ID: <4fccfd6c603fd479db11b427723eb4358504bde3.1415786458.git.jsarha@ti.com>
 References: <cover.1415786458.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50954 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752392AbaKLKtj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 05:49:39 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:39549 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752309AbaKLKtm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2014 05:49:42 -0500
 In-Reply-To: <cover.1415786458.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com, Jyri Sarha <jsarha@ti.com>
 
-The audio dma port is found in the hdmi_wp physical address space.
+This is used to store omap-hdmi-audio pdev for unregistering it.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi.h    |    2 ++
- drivers/video/fbdev/omap2/dss/hdmi_wp.c |    6 ++++++
- 2 files changed, 8 insertions(+)
+ drivers/video/fbdev/omap2/dss/hdmi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
-index 03726b5..9ba7c1a 100644
+index 6bf077b..a6e08ff 100644
 --- a/drivers/video/fbdev/omap2/dss/hdmi.h
 +++ b/drivers/video/fbdev/omap2/dss/hdmi.h
-@@ -250,6 +250,7 @@ struct hdmi_core_audio_config {
+@@ -368,6 +368,8 @@ struct omap_hdmi {
+ 	bool core_enabled;
  
- struct hdmi_wp_data {
- 	void __iomem *base;
-+	phys_addr_t phys_base;
+ 	struct omap_dss_device output;
++
++	struct platform_device *audio_pdev;
  };
  
- struct hdmi_pll_data {
-@@ -317,6 +318,7 @@ void hdmi_wp_video_config_timing(struct hdmi_wp_data *wp,
- void hdmi_wp_init_vid_fmt_timings(struct hdmi_video_format *video_fmt,
- 		struct omap_video_timings *timings, struct hdmi_config *param);
- int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp);
-+phys_addr_t hdmi_wp_get_audio_dma_addr(struct hdmi_wp_data *wp);
- 
- /* HDMI PLL funcs */
- int hdmi_pll_enable(struct hdmi_pll_data *pll, struct hdmi_wp_data *wp);
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi_wp.c b/drivers/video/fbdev/omap2/dss/hdmi_wp.c
-index 4ead962..c15377e 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi_wp.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi_wp.c
-@@ -249,6 +249,7 @@ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp)
- 		DSSERR("can't get WP mem resource\n");
- 		return -EINVAL;
- 	}
-+	wp->phys_base = res->start;
- 
- 	wp->base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(wp->base)) {
-@@ -258,3 +259,8 @@ int hdmi_wp_init(struct platform_device *pdev, struct hdmi_wp_data *wp)
- 
- 	return 0;
- }
-+
-+phys_addr_t hdmi_wp_get_audio_dma_addr(struct hdmi_wp_data *wp)
-+{
-+	return wp->phys_base + HDMI_WP_AUDIO_DATA;
-+}
+ #endif
 -- 
 1.7.9.5
 
