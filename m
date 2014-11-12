@@ -1,57 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] omap clean-up for v3.19
-Date: Wed, 12 Nov 2014 10:05:13 -0800
-Message-ID: <14895.8830548965$1415815668@news.gmane.org>
-References: <pull-1415814409-868361>
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCHv6 4/5] hwspinlock/core: add common OF helpers
+Date: Wed, 12 Nov 2014 21:08:22 +0200
+Message-ID: <CAK=WgbamdqAufjC4Xb5moERRBSB-cO6c1RPTE=f+dp75F+Eh7A@mail.gmail.com>
+References: <1410553499-55951-1-git-send-email-s-anna@ti.com> <1410553499-55951-5-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1415814409-868361>
-In-Reply-To: <pull-1415814409-868361>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1410553499-55951-5-git-send-email-s-anna-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 2dde3bccbf905548a17b8d440053f86454af54a9:
+Hi Suman,
 
-  Merge branch 'for-v3.19/gpmc-omap' of github.com:rogerq/linux into omap-for-v3.19/gpmc (2014-11-03 17:45:36 -0800)
+On Fri, Sep 12, 2014 at 11:24 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
+> +int of_hwspin_lock_get_id(struct device_node *np, int index)
+> +{
+> +       struct hwspinlock_device *bank;
+> +       struct of_phandle_args args;
+> +       int id;
+> +       int ret;
+> +
+> +       ret = of_parse_phandle_with_args(np, "hwlocks", "#hwlock-cells", index,
+> +                                        &args);
+> +       if (ret)
+> +               return ret;
+> +
+> +       mutex_lock(&hwspinlock_tree_lock);
+> +       list_for_each_entry(bank, &hwspinlock_devices, list)
+> +               if (bank->dev->of_node == args.np)
+> +                       break;
+> +       mutex_unlock(&hwspinlock_tree_lock);
+> +       if (&bank->list == &hwspinlock_devices) {
+> +               ret = -EPROBE_DEFER;
+> +               goto out;
+> +       }
 
-are available in the git repository at:
+Is this the validation you mentioned which requires the existence of
+"hwspinlock/core: maintain a list of registered hwspinlock banks" ?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/cleanup-part1
+I'm not convinced this is needed for several reasons:
+- the user isn't using the lock yet at this point, and may only need
+the id in order to communicate it to a remote processor
+- if the user will try to use the lock prematurely,
+hwspin_lock_request_specific should stop her
+- moreover, hwspin_lock_request_specific must be the one who validates
+the id, since in heterogeneous systems the user may get the id from a
+remote processor and not via of_hwspin_lock_get_id
 
-for you to fetch changes up to 1b383f44aabc8b69b8bc0d32b914f3d3cece9e04:
+ "hwspinlock/core: maintain a list of registered hwspinlock banks"
+adds complexity which must be very strongly justified.
 
-  ARM: OMAP2+: Drop board file for 3430sdp (2014-11-03 17:50:55 -0800)
+If we're not sure there is a strong justification for it, we better
+not merge it.
 
-----------------------------------------------------------------
-Drop few unused omap board files. The support for ti81xx is known to
-be incomplete and broken, and the 3430sdp is only used in few automated
-boot test systems AFAIK and those have been booting in device tree only
-mode for quite some time now.
+> +EXPORT_SYMBOL_GPL(of_hwspin_lock_get_base_id);
+...
+> +EXPORT_SYMBOL_GPL(of_hwspin_lock_get_num_locks);
 
-Note that this branch has a dependency to the related device tree
-changes and GPMC changes sent in a separate pull request.
+Do we really must expose these two helpers globally?
 
-----------------------------------------------------------------
-Tony Lindgren (2):
-      ARM: OMAP2+: Drop board file for ti8168evm
-      ARM: OMAP2+: Drop board file for 3430sdp
+Can we instead make these "static inline" methods and embed them in
+hwspinlock_internal.h ?
 
- arch/arm/mach-omap2/Kconfig           |  16 -
- arch/arm/mach-omap2/Makefile          |   3 -
- arch/arm/mach-omap2/board-3430sdp.c   | 604 ----------------------------------
- arch/arm/mach-omap2/board-ti8168evm.c |  62 ----
- 4 files changed, 685 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-3430sdp.c
- delete mode 100644 arch/arm/mach-omap2/board-ti8168evm.c
+Thanks,
+Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
