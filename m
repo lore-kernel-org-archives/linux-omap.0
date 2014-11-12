@@ -1,69 +1,156 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [PATCH 1/4] video: omapdss: Add opa362 driver
-Date: Wed, 12 Nov 2014 15:04:41 +0100
-Message-ID: <CAAfyv34dZBrss5cQJKq=gYUuYb3i7c2cKOyw_QezEuaG3UsodQ@mail.gmail.com>
-References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
-	<1415051968-4878-2-git-send-email-marek@goldelico.com>
-	<54636763.10605@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v5 6/8] net: can: c_can: Disable pins when CAN interface is
+ down
+Date: Wed, 12 Nov 2014 16:16:48 +0200
+Message-ID: <54636BD0.2010208@ti.com>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:64901 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752278AbaKLOEp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2014 09:04:45 -0500
-In-Reply-To: <54636763.10605@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41937 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752409AbaKLORm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2014 09:17:42 -0500
+In-Reply-To: <1415371762-29885-7-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+To: wg@grandegger.com, mkl@pengutronix.de
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-Hi Tomi,
+DRA7 CAN IP suffers from a problem which causes it to be prevented
+from fully turning OFF (i.e. stuck in transition) if the module was
+disabled while there was traffic on the CAN_RX line.
 
-On Wed, Nov 12, 2014 at 2:57 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> Hi,
->
->
-> On 03/11/14 23:59, Marek Belisko wrote:
->> opa362 is amplifier for videoand can be connected to the tvout pads
->> of the OMAP3. It has one gpio control for enable/disable of the output
->> (high impedance).
->>
->> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->> ---
->>  drivers/video/fbdev/omap2/displays-new/Kconfig     |   6 +
->>  drivers/video/fbdev/omap2/displays-new/Makefile    |   1 +
->>  .../fbdev/omap2/displays-new/amplifier-opa362.c    | 347 +++++++++++++++++++++
->>  3 files changed, 354 insertions(+)
->>  create mode 100644 drivers/video/fbdev/omap2/displays-new/amplifier-opa362.c
->
-> This doesn't even compile:
->
-> drivers/video/fbdev/omap2/displays-new/amplifier-opa362.c:207:28: error:
-> dereferencing pointer to incomplete type
->   ddata->enable_gpio = pdata->enable_gpio;
-Hmm sorry about that. I must mixed something up. I'll post updated version soon.
-Thanks for review.
->
-> And it seems to have fields for bypass and bypass which are handled in
-> the devconf1 patch.
->
->  Tomi
->
->
+To work around this issue we select the SLEEP pin state by default
+on probe and use the DEFAULT pin state on CAN up and back to the
+SLEEP pin state on CAN down.
 
-BR,
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/net/can/c_can/c_can.c          | 21 +++++++++++++++++++++
+ drivers/net/can/c_can/c_can.h          |  1 +
+ drivers/net/can/c_can/c_can_platform.c | 20 ++++++++++++++++++++
+ 3 files changed, 42 insertions(+)
 
-marek
-
+diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+index 8e78bb4..a950eea 100644
+--- a/drivers/net/can/c_can/c_can.c
++++ b/drivers/net/can/c_can/c_can.c
+@@ -35,6 +35,7 @@
+ #include <linux/list.h>
+ #include <linux/io.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pinctrl/consumer.h>
+ 
+ #include <linux/can.h>
+ #include <linux/can/dev.h>
+@@ -587,6 +588,21 @@ static int c_can_chip_config(struct net_device *dev)
+ 	return c_can_set_bittiming(dev);
+ }
+ 
++/*
++ * Selects the pinctrl state specified in the name.
++ */
++static void c_can_pinctrl_select_state(struct c_can_priv *priv,
++				      const char *name)
++{
++	if (!IS_ERR(priv->pinctrl)) {
++		struct pinctrl_state *s;
++
++		s = pinctrl_lookup_state(priv->pinctrl, name);
++		if (!IS_ERR(s))
++			pinctrl_select_state(priv->pinctrl, s);
++	}
++}
++
+ static int c_can_start(struct net_device *dev)
+ {
+ 	struct c_can_priv *priv = netdev_priv(dev);
+@@ -603,6 +619,8 @@ static int c_can_start(struct net_device *dev)
+ 
+ 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+ 
++	/* activate pins */
++	c_can_pinctrl_select_state(priv, PINCTRL_STATE_DEFAULT);
+ 	return 0;
+ }
+ 
+@@ -611,6 +629,9 @@ static void c_can_stop(struct net_device *dev)
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 
+ 	c_can_irq_control(priv, false);
++
++	/* deactivate pins */
++	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP);
+ 	priv->can.state = CAN_STATE_STOPPED;
+ }
+ 
+diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+index c6715ca..3cedf48 100644
+--- a/drivers/net/can/c_can/c_can.h
++++ b/drivers/net/can/c_can/c_can.h
+@@ -210,6 +210,7 @@ struct c_can_priv {
+ 	u32 comm_rcv_high;
+ 	u32 rxmasked;
+ 	u32 dlc[C_CAN_MSG_OBJ_TX_NUM];
++	struct pinctrl *pinctrl;
+ };
+ 
+ struct net_device *alloc_c_can_dev(void);
+diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+index b838c6b..71b9063 100644
+--- a/drivers/net/can/c_can/c_can_platform.c
++++ b/drivers/net/can/c_can/c_can_platform.c
+@@ -34,6 +34,7 @@
+ #include <linux/of_device.h>
+ #include <linux/mfd/syscon.h>
+ #include <linux/regmap.h>
++#include <linux/pinctrl/consumer.h>
+ 
+ #include <linux/can/dev.h>
+ 
+@@ -230,6 +231,7 @@ static int c_can_plat_probe(struct platform_device *pdev)
+ 	struct clk *clk;
+ 	const struct c_can_driver_data *drvdata;
+ 	struct device_node *np = pdev->dev.of_node;
++	struct pinctrl *pinctrl;
+ 
+ 	match = of_match_device(c_can_of_table, &pdev->dev);
+ 	if (match) {
+@@ -241,6 +243,23 @@ static int c_can_plat_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
++	pinctrl = devm_pinctrl_get(&pdev->dev);
++	if (!IS_ERR(pinctrl)) {
++		struct pinctrl_state *s;
++
++		/* Deactivate pins to prevent DRA7 DCAN IP from being
++		 * stuck in transition when module is disabled.
++		 * Pins are activated in c_can_start() and deactivated
++		 * in c_can_stop()
++		 */
++		s = pinctrl_lookup_state(pinctrl, PINCTRL_STATE_SLEEP);
++		if (!IS_ERR(s))
++			pinctrl_select_state(pinctrl, s);
++	} else {
++		dev_warn(&pdev->dev,
++			 "failed to get pinctrl\n");
++	}
++
+ 	/* get the appropriate clk */
+ 	clk = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(clk)) {
+@@ -270,6 +289,7 @@ static int c_can_plat_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	priv = netdev_priv(dev);
++	priv->pinctrl = pinctrl;
+ 
+ 	switch (drvdata->id) {
+ 	case BOSCH_C_CAN:
 -- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
+1.8.3.2
 
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+
