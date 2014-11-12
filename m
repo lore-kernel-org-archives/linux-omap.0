@@ -1,164 +1,98 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 11/22] OMAPDSS: DSI: dsi_runtime_get/put in pll_init
-Date: Wed, 12 Nov 2014 13:52:13 +0200
-Message-ID: <1415793144-11723-12-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 14/22] OMAPDSS: HDMI: fix setting REFSEL
+Date: Wed, 12 Nov 2014 13:52:16 +0200
+Message-ID: <1415793144-11723-15-git-send-email-tomi.valkeinen@ti.com>
 References: <1415793144-11723-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36455 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53622 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751547AbaKLLxB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 06:53:01 -0500
+	id S1751547AbaKLLxG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2014 06:53:06 -0500
 In-Reply-To: <1415793144-11723-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-When DPI uses the DSI PLL for pixel clock, the DPI code will call
-dsi_runtime_get/put to keep the DSI block enabled. A much simpler way to
-handle this is to do dsi_runtime_get/put in DSI's dsi_pll_init() and
-dsi_pll_uninit(), thus removing the need for DSI to call the runtime PM
-functions.
+Only OMAP5+ has REFSEL field, but at the moment it's set also on OMAP4.
+
+Fix this by adding a "has_refsel" field, and setting the REFSEL based on
+that.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/dpi.c | 17 +----------------
- drivers/video/fbdev/omap2/dss/dsi.c | 10 ++++++++--
- drivers/video/fbdev/omap2/dss/dss.h | 10 ----------
- 3 files changed, 9 insertions(+), 28 deletions(-)
+ drivers/video/fbdev/omap2/dss/hdmi.h     | 8 --------
+ drivers/video/fbdev/omap2/dss/hdmi_pll.c | 8 ++++----
+ 2 files changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/dss/dpi.c b/drivers/video/fbdev/omap2/dss/dpi.c
-index 0b9af5d3e650..81dd5e61e75e 100644
---- a/drivers/video/fbdev/omap2/dss/dpi.c
-+++ b/drivers/video/fbdev/omap2/dss/dpi.c
-@@ -402,10 +402,6 @@ static int dpi_display_enable(struct omap_dss_device *dssdev)
- 		goto err_src_sel;
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+index 262771b9b76b..4bbc9d206f4a 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi.h
++++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+@@ -101,13 +101,6 @@ enum hdmi_core_hdmi_dvi {
+ 	HDMI_HDMI = 1
+ };
  
- 	if (dpi->dsidev) {
--		r = dsi_runtime_get(dpi->dsidev);
--		if (r)
--			goto err_get_dsi;
+-enum hdmi_clk_refsel {
+-	HDMI_REFSEL_PCLK = 0,
+-	HDMI_REFSEL_REF1 = 1,
+-	HDMI_REFSEL_REF2 = 2,
+-	HDMI_REFSEL_SYSCLK = 3
+-};
 -
- 		r = dsi_pll_init(dpi->dsidev);
- 		if (r)
- 			goto err_dsi_pll_init;
-@@ -432,9 +428,6 @@ err_set_mode:
- 	if (dpi->dsidev)
- 		dsi_pll_uninit(dpi->dsidev, true);
- err_dsi_pll_init:
--	if (dpi->dsidev)
--		dsi_runtime_put(dpi->dsidev);
--err_get_dsi:
- err_src_sel:
- 	dispc_runtime_put();
- err_get_dispc:
-@@ -459,7 +452,6 @@ static void dpi_display_disable(struct omap_dss_device *dssdev)
- 	if (dpi->dsidev) {
- 		dss_select_lcd_clk_source(mgr->id, OMAP_DSS_CLK_SRC_FCK);
- 		dsi_pll_uninit(dpi->dsidev, true);
--		dsi_runtime_put(dpi->dsidev);
- 	}
+ enum hdmi_packing_mode {
+ 	HDMI_PACK_10b_RGB_YUV444 = 0,
+ 	HDMI_PACK_24b_RGB_YUV444_YUV422 = 1,
+@@ -199,7 +192,6 @@ struct hdmi_pll_info {
+ 	u16 regm2;
+ 	u16 regsd;
+ 	u16 dcofreq;
+-	enum hdmi_clk_refsel refsel;
+ };
  
- 	dispc_runtime_put();
-@@ -554,18 +546,11 @@ static int dpi_verify_dsi_pll(struct platform_device *dsidev)
+ struct hdmi_audio_format {
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi_pll.c b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
+index 6d92bb32fe51..b28d41a08a8f 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi_pll.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi_pll.c
+@@ -24,6 +24,7 @@
+ #define HDMI_DEFAULT_REGM2 1
  
- 	/* do initial setup with the PLL to see if it is operational */
+ struct hdmi_pll_features {
++	bool has_refsel;
+ 	bool sys_reset;
+ 	/* this is a hack, need to replace it with a better computation of M2 */
+ 	bool bound_dcofreq;
+@@ -96,9 +97,6 @@ void hdmi_pll_compute(struct hdmi_pll_data *pll, unsigned long clkin, int phy)
+ 	pi->dcofreq = phy > 1000 * 100;
+ 	pi->regsd = ((pi->regm * clkin / 10) / (pi->regn * 250) + 5) / 10;
  
--	r = dsi_runtime_get(dsidev);
--	if (r)
--		return r;
+-	/* Set the reference clock to sysclk reference */
+-	pi->refsel = HDMI_REFSEL_SYSCLK;
 -
- 	r = dsi_pll_init(dsidev);
--	if (r) {
--		dsi_runtime_put(dsidev);
-+	if (r)
- 		return r;
--	}
- 
- 	dsi_pll_uninit(dsidev, true);
--	dsi_runtime_put(dsidev);
- 
- 	return 0;
+ 	DSSDBG("M = %d Mf = %d\n", pi->regm, pi->regmf);
+ 	DSSDBG("range = %d sd = %d\n", pi->dcofreq, pi->regsd);
  }
-diff --git a/drivers/video/fbdev/omap2/dss/dsi.c b/drivers/video/fbdev/omap2/dss/dsi.c
-index 22cc91851e94..e8415b5e877e 100644
---- a/drivers/video/fbdev/omap2/dss/dsi.c
-+++ b/drivers/video/fbdev/omap2/dss/dsi.c
-@@ -1144,7 +1144,7 @@ static u32 dsi_get_errors(struct platform_device *dsidev)
- 	return e;
- }
+@@ -122,7 +120,8 @@ static int hdmi_pll_config(struct hdmi_pll_data *pll)
+ 	r = FLD_MOD(r, 0x0, 12, 12);	/* PLL_HIGHFREQ divide by 2 */
+ 	r = FLD_MOD(r, 0x1, 13, 13);	/* PLL_REFEN */
+ 	r = FLD_MOD(r, 0x0, 14, 14);	/* PHY_CLKINEN de-assert during locking */
+-	r = FLD_MOD(r, fmt->refsel, 22, 21);	/* REFSEL */
++	if (pll_feat->has_refsel)
++		r = FLD_MOD(r, 0x3, 22, 21);	/* REFSEL = SYSCLK */
  
--int dsi_runtime_get(struct platform_device *dsidev)
-+static int dsi_runtime_get(struct platform_device *dsidev)
- {
- 	int r;
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-@@ -1156,7 +1156,7 @@ int dsi_runtime_get(struct platform_device *dsidev)
- 	return r < 0 ? r : 0;
- }
+ 	if (fmt->dcofreq)
+ 		r = FLD_MOD(r, 0x4, 3, 1);	/* 1000MHz and 2000MHz */
+@@ -222,6 +221,7 @@ static const struct hdmi_pll_features omap44xx_pll_feats = {
+ };
  
--void dsi_runtime_put(struct platform_device *dsidev)
-+static void dsi_runtime_put(struct platform_device *dsidev)
- {
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
- 	int r;
-@@ -1674,6 +1674,10 @@ int dsi_pll_init(struct platform_device *dsidev)
- 	if (r)
- 		return r;
- 
-+	r = dsi_runtime_get(dsidev);
-+	if (r)
-+		return r;
-+
- 	dsi_enable_pll_clock(dsidev, 1);
- 	/*
- 	 * Note: SCP CLK is not required on OMAP3, but it is required on OMAP4.
-@@ -1717,6 +1721,7 @@ err1:
- err0:
- 	dsi_disable_scp_clk(dsidev);
- 	dsi_enable_pll_clock(dsidev, 0);
-+	dsi_runtime_put(dsidev);
- 	return r;
- }
- 
-@@ -1733,6 +1738,7 @@ void dsi_pll_uninit(struct platform_device *dsidev, bool disconnect_lanes)
- 
- 	dsi_disable_scp_clk(dsidev);
- 	dsi_enable_pll_clock(dsidev, 0);
-+	dsi_runtime_put(dsidev);
- 
- 	DSSDBG("PLL uninit done\n");
- }
-diff --git a/drivers/video/fbdev/omap2/dss/dss.h b/drivers/video/fbdev/omap2/dss/dss.h
-index e14a75b743a4..4c268985235c 100644
---- a/drivers/video/fbdev/omap2/dss/dss.h
-+++ b/drivers/video/fbdev/omap2/dss/dss.h
-@@ -268,9 +268,6 @@ struct file_operations;
- int dsi_init_platform_driver(void) __init;
- void dsi_uninit_platform_driver(void) __exit;
- 
--int dsi_runtime_get(struct platform_device *dsidev);
--void dsi_runtime_put(struct platform_device *dsidev);
--
- void dsi_dump_clocks(struct seq_file *s);
- 
- void dsi_irq_handler(void);
-@@ -291,13 +288,6 @@ int dsi_pll_init(struct platform_device *dsidev);
- void dsi_pll_uninit(struct platform_device *dsidev, bool disconnect_lanes);
- struct platform_device *dsi_get_dsidev_from_id(int module);
- #else
--static inline int dsi_runtime_get(struct platform_device *dsidev)
--{
--	return 0;
--}
--static inline void dsi_runtime_put(struct platform_device *dsidev)
--{
--}
- static inline u8 dsi_get_pixel_size(enum omap_dss_dsi_pixel_format fmt)
- {
- 	WARN("%s: DSI not compiled in, returning pixel_size as 0\n", __func__);
+ static const struct hdmi_pll_features omap54xx_pll_feats = {
++	.has_refsel		=	true,
+ 	.sys_reset		=	true,
+ 	.bound_dcofreq		=	true,
+ 	.fint_min		=	620000,
 -- 
 2.1.3
 
