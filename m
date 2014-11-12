@@ -1,162 +1,75 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: dwc3: gadget: Fix broken gadget on system
- suspend/resume
-Date: Wed, 12 Nov 2014 09:54:41 -0600
-Message-ID: <20141112155441.GI641@saruman>
-References: <1415804296-28980-1-git-send-email-rogerq@ti.com>
- <20141112150809.GE641@saruman>
- <54637D70.7060208@ti.com>
- <20141112153640.GH641@saruman>
- <54637F8B.8040508@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
+ enabled
+Date: Wed, 12 Nov 2014 08:26:07 -0800
+Message-ID: <20141112162607.GI26481@atomide.com>
+References: <20141102180756.GH31454@atomide.com>
+ <5458D29E.50908@compulab.co.il>
+ <20141104154231.GP31454@atomide.com>
+ <CANOLnOP8JmROaCruC8NEwh+Nzq_-fFit-+5d_W9vU9KtNTphoA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EVh9lyqKgK19OcEf"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54637F8B.8040508@ti.com>
+In-Reply-To: <CANOLnOP8JmROaCruC8NEwh+Nzq_-fFit-+5d_W9vU9KtNTphoA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
---EVh9lyqKgK19OcEf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Nov 12, 2014 at 05:40:59PM +0200, Roger Quadros wrote:
-> On 11/12/2014 05:36 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Wed, Nov 12, 2014 at 05:32:00PM +0200, Roger Quadros wrote:
-> >> On 11/12/2014 05:08 PM, Felipe Balbi wrote:
-> >>> On Wed, Nov 12, 2014 at 04:58:16PM +0200, Roger Quadros wrote:
-> >>>> On TI SoCs (e.g. DRA7) we don't support the DWC3 hibernation feature.
-> >>>> We need to stop the gadget controller while system suspend
-> >>>> else it results in L3 Bus errors on resume with broken
-> >>>> USB gadget on J6-evm.
-> >>>>
-> >>>> [   55.718226] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:1=
-47 l3_interrupt_handler+0x224/0x31c()
-> >>>> [   55.718232] 44000000.ocp:L3 Custom Error: MASTER USB3 TARGET GPMC=
- (Idle): Data Access in User mode during Functional access
-> >>>> [   55.718263] Modules linked in: usb_f_ss_lb g_zero libcomposite co=
-nfigfs xhci_hcd btwilink bluetooth dwc3 6lowpan_iphc m25p80 dwc3_omap omap_=
-remoteproc
-> >>>> [   55.718271] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.14.19-020=
-11-g3ece3ca-dirty #658
-> >>>> [   55.718290] [<c0016090>] (unwind_backtrace) from [<c0012060>] (sh=
-ow_stack+0x10/0x14)
-> >>>> [   55.718302] [<c0012060>] (show_stack) from [<c062a2e4>] (dump_sta=
-ck+0x78/0x94)
-> >>>> [   55.718315] [<c062a2e4>] (dump_stack) from [<c0043bc4>] (warn_slo=
-wpath_common+0x6c/0x90)
-> >>>> [   55.718325] [<c0043bc4>] (warn_slowpath_common) from [<c0043c7c>]=
- (warn_slowpath_fmt+0x30/0x40)
-> >>>> [   55.718336] [<c0043c7c>] (warn_slowpath_fmt) from [<c030fb24>] (l=
-3_interrupt_handler+0x224/0x31c)
-> >>>> [   55.718348] [<c030fb24>] (l3_interrupt_handler) from [<c0093010>]=
- (handle_irq_event_percpu+0x5c/0x23c)
-> >>>> [   55.718358] [<c0093010>] (handle_irq_event_percpu) from [<c009322=
-c>] (handle_irq_event+0x3c/0x5c)
-> >>>> [   55.718367] [<c009322c>] (handle_irq_event) from [<c0096160>] (ha=
-ndle_fasteoi_irq+0x98/0x158)
-> >>>> [   55.718377] [<c0096160>] (handle_fasteoi_irq) from [<c00929dc>] (=
-generic_handle_irq+0x20/0x30)
-> >>>> [   55.718385] [<c00929dc>] (generic_handle_irq) from [<c000eea8>] (=
-handle_IRQ+0x4c/0xb0)
-> >>>> [   55.718393] [<c000eea8>] (handle_IRQ) from [<c0008638>] (gic_hand=
-le_irq+0x28/0x5c)
-> >>>> [   55.718402] [<c0008638>] (gic_handle_irq) from [<c0630964>] (__ir=
-q_svc+0x44/0x5c)
-> >>>> [   55.718406] Exception stack(0xc09c1f68 to 0xc09c1fb0)
-> >>>> [   55.718412] 1f60:                   00000001 00000001 00000000 00=
-000000 c09c0000 00000000
-> >>>> [   55.718418] 1f80: c09c0000 c09c0000 c0a7a1e4 c09c8938 c09c89b4 00=
-000000 60000093 c09c1fb0
-> >>>> [   55.718423] 1fa0: c008a2e4 c00926cc 60000013 ffffffff
-> >>>> [   55.718433] [<c0630964>] (__irq_svc) from [<c00926cc>] (cpu_start=
-up_entry+0x100/0x1f4)
-> >>>> [   55.718444] [<c00926cc>] (cpu_startup_entry) from [<c0901ac4>] (s=
-tart_kernel+0x324/0x388)
-> >>>>
-> >>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>>> ---
-> >>>>  drivers/usb/dwc3/gadget.c | 8 +++++++-
-> >>>>  1 file changed, 7 insertions(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> >>>> index 3818b26..bc15b54 100644
-> >>>> --- a/drivers/usb/dwc3/gadget.c
-> >>>> +++ b/drivers/usb/dwc3/gadget.c
-> >>>> @@ -2741,7 +2741,13 @@ int dwc3_gadget_prepare(struct dwc3 *dwc)
-> >>>
-> >>> there is no more dwc3_gadget_prepare(), please rebase on 'next'.
+* Grazvydas Ignotas <notasas@gmail.com> [141112 07:46]:
+> On Tue, Nov 4, 2014 at 5:42 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Igor Grinberg <grinberg@compulab.co.il> [141104 05:22]:
+> >> Hi Tony,
 > >>
-> >> right.
+> >> On 11/02/14 20:07, Tony Lindgren wrote:
+> >> > Commit e7cd1d1eb16f ("mfd: twl4030-power: Add generic reset
+> >> > configuration") enabled configuring the PM features for twl4030.
+> >> >
+> >> > This caused poweroff command to fail on devices that have the
+> >> > BCI charger on twl4030 wired, or have power wired for VBUS.
+> >> > Instead of powering off, the device reboots. This is because
+> >> > voltage is detected on charger or VBUS with the default bits
+> >> > enabled for the power transition registers.
+> >> >
+> >> > To fix the issue, let's just clear VBUS and CHG bits as we want
+> >> > poweroff command to keep the system powered off.
 > >>
-> >>>
-> >>>>  {
-> >>>>  	if (dwc->pullups_connected) {
-> >>>>  		dwc3_gadget_disable_irq(dwc);
-> >>>> -		dwc3_gadget_run_stop(dwc, true, true);
-> >>>> +		if (dwc->has_hibernation) {
-> >>>> +			dwc3_gadget_run_stop(dwc, true, true);
-> >>>> +		} else {
-> >>>> +			dwc3_gadget_run_stop(dwc, false, true);
-> >>>> +			/* remember to connect back on resume */
-> >>>> +			dwc->pullups_connected =3D true;
-> >>>> +		}
-> >>>
-> >>> Another thing you probably want to do is make sure there is nothing
-> >>> pending on our request list because if there is, then we need to wait
-> >>> for any in-flight transfers to complete before disconnecting.
-> >>
-> >> shouldn't that check be done in dwc3_gadget_run_stop()?
-> >=20
-> > no, gadget drivers only disconnect pullups when they know there's
-> > nothing pending. And sometimes, we actually want to break such transfers
-> > to see how the thing would behave. Only suspend/resume needs to make
-> > transfers complete before hand.
-> >=20
-> >>> I also wonder if current code isn't really fragile... I mean, when you
-> >>> clear run_stop bit, you should notify the gadget by means of
-> >>> ->disconnect() and so on... But since we can't test this with mainlin=
-e,
-> >>> then it's difficult to tell.
-> >>>
-> >> that is true.
-> >=20
-> > Not sure what to do with this patch :-p
-> >=20
-> :). Maybe we can wait till we have suspend/resume working in mainline.
+> >> What about devices that really need to start once VBUS or CHG is connected?
+> >
+> > More handling can be added for some cases. With this patch the
+> > poweron bits will clear to defaults if power is completely removed.
+> > So start-up with VBUS and CHG works in that case.
+> >
+> > However, if you have a battery connected, and you poweroff, with
+> > this patch the device won't power up with VBUS or CHG connected.
+> >
+> > Note that most battery operated devices are not using the charger
+> > on twl4030 because it has issues charging a completely empty
+> > battery AFAIK. So most battery powered devices have been using an
+> > external USB charger chip that's not affected by this patch.
+> 
+> Pandora does, as well as GTA04 AFAIK, but that's not "most devices" I
+> guess.. At least pandora was booting up on charger connect up until
+> now. I don't know why shutdown used to work for Russell in legacy boot
+> and it changed for DT, the device would always start up when there was
+> AC power here.
 
-Perhaps... hopefully we won't forget about this :-)
+I think Pandora should still start up fine on charger connect except
+after you do a poweroff first?
 
---=20
-balbi
+And my guess is Pandora would not stay powered off earlier after you
+did poweroff but would start up again immediately instead.
 
---EVh9lyqKgK19OcEf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+If something has changed with the default start up events, then
+it must be some separate issue. This is because we configure the start
+up events only in twl4030_power_off() when poweroff is called, so those
+are not touched during the init time.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+BTW, the reason why things changed for device tree based booting is
+because we're now configuring the PMIC for PM features while for
+legacy booting that was only done for n900.
 
-iQIcBAEBAgAGBQJUY4LBAAoJEIaOsuA1yqREiM8QALKFTk/swBHciqE+CzUsXOyr
-eRjHynVdQD4VlLzqWXI5DK0UyyAzB3QLEOO4iDsytVG+w/pUMPn4Qa+YL0MNJJ2g
-1FhIbyrgiY4ja2yvwYGFOkJg6Jd/DQiPwSnYJzVuc/cODv5JA0/T8ZFrJwZVg31S
-nIczW+wy2G2Kup85isXWb2+z675mCb/yyTYnHivLdbelNcUrtwradrLKLM89+g10
-yl9+zOI2apwPvmYPoYyqqujCu279m+nDPLBGKqglQPuzuZKvevPeVIqhT7mBERcP
-qym3iwhXo5qj/BExhAMmAwdRq6qhWwMDWYezYYo0aPlrzdcIqvT/2SfbJyLrFSQy
-A+xe38480OoRKVPMYdHXTbKZ2g1NSCaX6nckblxO9siC99MBWZ1fCJcyvb2QZBqf
-TZCqo/XysZkvhPPEC7ZdPfc/Xg2iIxpVW88D2G44LjT1jmP6+AcZEu10KDBh+7p9
-yKi0iWBEwuyztRY+4aEbA+HZsCZVbvBLDWL1xiCneyP5jZsWOvEFRGitNSsCXhWS
-RpibQjjMcKhiYNwE39N5heAmI+YjT3vqUV4dpZVdn6BlIZeTenoC0VIMynIQr9hu
-G0a3qdBY5nYqu+53luQl6D5Eb5wGCvQcy6thS+wI4hAksJeIA2Xx02DYKrX2nir4
-eXbyx2d6PDcekNcJIbj8
-=p/G7
------END PGP SIGNATURE-----
+Regards,
 
---EVh9lyqKgK19OcEf--
+Tony
