@@ -1,156 +1,64 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 6/8] net: can: c_can: Disable pins when CAN interface is
- down
-Date: Wed, 12 Nov 2014 16:16:48 +0200
-Message-ID: <54636BD0.2010208@ti.com>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v7 06/20] OMAPDSS: omapdss.h: Remove audio_state member
+ of struct omap_dss_device
+Date: Wed, 12 Nov 2014 16:34:33 +0200
+Message-ID: <54636FF9.5000303@ti.com>
+References: <cover.1415786458.git.jsarha@ti.com> <2c129e22e96eba98ec1d825d01c25571272da13b.1415786458.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41937 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44840 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409AbaKLORm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 09:17:42 -0500
-In-Reply-To: <1415371762-29885-7-git-send-email-rogerq@ti.com>
+	id S1752617AbaKLOeo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2014 09:34:44 -0500
+In-Reply-To: <2c129e22e96eba98ec1d825d01c25571272da13b.1415786458.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-DRA7 CAN IP suffers from a problem which causes it to be prevented
-from fully turning OFF (i.e. stuck in transition) if the module was
-disabled while there was traffic on the CAN_RX line.
+Damn, this patch should have gone to second last for it not not to break 
+bisect. I'll squash it into "OMAPDSS: Remove all references to obsolete 
+HDMI audio callbacks" an mail v7.1 patch-set shortly.
 
-To work around this issue we select the SLEEP pin state by default
-on probe and use the DEFAULT pin state on CAN up and back to the
-SLEEP pin state on CAN down.
+Best regards,
+Jyri
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/net/can/c_can/c_can.c          | 21 +++++++++++++++++++++
- drivers/net/can/c_can/c_can.h          |  1 +
- drivers/net/can/c_can/c_can_platform.c | 20 ++++++++++++++++++++
- 3 files changed, 42 insertions(+)
-
-diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
-index 8e78bb4..a950eea 100644
---- a/drivers/net/can/c_can/c_can.c
-+++ b/drivers/net/can/c_can/c_can.c
-@@ -35,6 +35,7 @@
- #include <linux/list.h>
- #include <linux/io.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <linux/can.h>
- #include <linux/can/dev.h>
-@@ -587,6 +588,21 @@ static int c_can_chip_config(struct net_device *dev)
- 	return c_can_set_bittiming(dev);
- }
- 
-+/*
-+ * Selects the pinctrl state specified in the name.
-+ */
-+static void c_can_pinctrl_select_state(struct c_can_priv *priv,
-+				      const char *name)
-+{
-+	if (!IS_ERR(priv->pinctrl)) {
-+		struct pinctrl_state *s;
-+
-+		s = pinctrl_lookup_state(priv->pinctrl, name);
-+		if (!IS_ERR(s))
-+			pinctrl_select_state(priv->pinctrl, s);
-+	}
-+}
-+
- static int c_can_start(struct net_device *dev)
- {
- 	struct c_can_priv *priv = netdev_priv(dev);
-@@ -603,6 +619,8 @@ static int c_can_start(struct net_device *dev)
- 
- 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
- 
-+	/* activate pins */
-+	c_can_pinctrl_select_state(priv, PINCTRL_STATE_DEFAULT);
- 	return 0;
- }
- 
-@@ -611,6 +629,9 @@ static void c_can_stop(struct net_device *dev)
- 	struct c_can_priv *priv = netdev_priv(dev);
- 
- 	c_can_irq_control(priv, false);
-+
-+	/* deactivate pins */
-+	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP);
- 	priv->can.state = CAN_STATE_STOPPED;
- }
- 
-diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
-index c6715ca..3cedf48 100644
---- a/drivers/net/can/c_can/c_can.h
-+++ b/drivers/net/can/c_can/c_can.h
-@@ -210,6 +210,7 @@ struct c_can_priv {
- 	u32 comm_rcv_high;
- 	u32 rxmasked;
- 	u32 dlc[C_CAN_MSG_OBJ_TX_NUM];
-+	struct pinctrl *pinctrl;
- };
- 
- struct net_device *alloc_c_can_dev(void);
-diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-index b838c6b..71b9063 100644
---- a/drivers/net/can/c_can/c_can_platform.c
-+++ b/drivers/net/can/c_can/c_can_platform.c
-@@ -34,6 +34,7 @@
- #include <linux/of_device.h>
- #include <linux/mfd/syscon.h>
- #include <linux/regmap.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <linux/can/dev.h>
- 
-@@ -230,6 +231,7 @@ static int c_can_plat_probe(struct platform_device *pdev)
- 	struct clk *clk;
- 	const struct c_can_driver_data *drvdata;
- 	struct device_node *np = pdev->dev.of_node;
-+	struct pinctrl *pinctrl;
- 
- 	match = of_match_device(c_can_of_table, &pdev->dev);
- 	if (match) {
-@@ -241,6 +243,23 @@ static int c_can_plat_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
-+	pinctrl = devm_pinctrl_get(&pdev->dev);
-+	if (!IS_ERR(pinctrl)) {
-+		struct pinctrl_state *s;
-+
-+		/* Deactivate pins to prevent DRA7 DCAN IP from being
-+		 * stuck in transition when module is disabled.
-+		 * Pins are activated in c_can_start() and deactivated
-+		 * in c_can_stop()
-+		 */
-+		s = pinctrl_lookup_state(pinctrl, PINCTRL_STATE_SLEEP);
-+		if (!IS_ERR(s))
-+			pinctrl_select_state(pinctrl, s);
-+	} else {
-+		dev_warn(&pdev->dev,
-+			 "failed to get pinctrl\n");
-+	}
-+
- 	/* get the appropriate clk */
- 	clk = devm_clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(clk)) {
-@@ -270,6 +289,7 @@ static int c_can_plat_probe(struct platform_device *pdev)
- 	}
- 
- 	priv = netdev_priv(dev);
-+	priv->pinctrl = pinctrl;
- 
- 	switch (drvdata->id) {
- 	case BOSCH_C_CAN:
--- 
-1.8.3.2
-
+On 11/12/2014 12:49 PM, Jyri Sarha wrote:
+> The audio_state member is not used.
+>
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>   include/video/omapdss.h |    9 ---------
+>   1 file changed, 9 deletions(-)
+>
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index 069dfca..9f2699f 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -166,13 +166,6 @@ enum omap_dss_display_state {
+>   	OMAP_DSS_DISPLAY_ACTIVE,
+>   };
+>
+> -enum omap_dss_audio_state {
+> -	OMAP_DSS_AUDIO_DISABLED = 0,
+> -	OMAP_DSS_AUDIO_ENABLED,
+> -	OMAP_DSS_AUDIO_CONFIGURED,
+> -	OMAP_DSS_AUDIO_PLAYING,
+> -};
+> -
+>   struct omap_dss_audio {
+>   	struct snd_aes_iec958 *iec;
+>   	struct snd_cea_861_aud_if *cea;
+> @@ -783,8 +776,6 @@ struct omap_dss_device {
+>
+>   	enum omap_dss_display_state state;
+>
+> -	enum omap_dss_audio_state audio_state;
+> -
+>   	/* OMAP DSS output specific fields */
+>
+>   	struct list_head list;
+>
 
