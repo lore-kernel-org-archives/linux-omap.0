@@ -1,54 +1,90 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
-Date: Wed, 12 Nov 2014 22:23:44 +0000
-Message-ID: <20141112222344.GU3815@sirena.org.uk>
-References: <cover.1415803064.git.jsarha@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
+ enabled
+Date: Wed, 12 Nov 2014 16:31:54 -0600
+Message-ID: <20141112223154.GP641@saruman>
+References: <20141102180756.GH31454@atomide.com>
+ <5458D29E.50908@compulab.co.il>
+ <20141104154231.GP31454@atomide.com>
+ <CANOLnOP8JmROaCruC8NEwh+Nzq_-fFit-+5d_W9vU9KtNTphoA@mail.gmail.com>
+ <515E660B-B65D-41EF-97F5-74E4DE8FDD13@goldelico.com>
+ <20141112212027.GK26481@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="150V3TWQMAK77Hrh"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35553 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752195AbaKLWZN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2014 17:25:13 -0500
+	protocol="application/pgp-signature"; boundary="oDto3OTLsk6uOlQH"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1415803064.git.jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20141112212027.GK26481@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Igor Grinberg <grinberg@compulab.co.il>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-
---150V3TWQMAK77Hrh
+--oDto3OTLsk6uOlQH
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 12, 2014 at 04:40:51PM +0200, Jyri Sarha wrote:
+On Wed, Nov 12, 2014 at 01:20:27PM -0800, Tony Lindgren wrote:
+> * Dr. H. Nikolaus Schaller <hns@goldelico.com> [141112 12:28]:
+> > Am 12.11.2014 um 16:45 schrieb Grazvydas Ignotas <notasas@gmail.com>:
+> > > On Tue, Nov 4, 2014 at 5:42 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> > >=20
+> > > Pandora does, as well as GTA04 AFAIK,
+> >=20
+> > Yes. The trick is that the power level that turns on the device is a li=
+ttle higher
+> > and the battery provides enough energy for approx. 30 seconds until it =
+drained
+> > to a level where it turns off. Depending on general setup (WIFI must re=
+main
+> > powered off after boot) this is enough to boot into Linux and start ful=
+l charging.
+> > Another trick is to modify MLO and U-Boot to raise the charging current.
+>=20
+> Depending on the device and the boot-up speed this seems to work only when
+> connected to a Linux PC though. AFAIK Windows PCs enforce the 100mA USB p=
+ower
+> limit until the device is enumerated which can keep the device in an eter=
+nal
+> reboot loop not being able to ever get the charging going :)
 
-> It would make the most sense to get these in trough fbdev tree. So it
-> would be nice to get acked-bys (if the patches are Ok) for ASoC side
-> changes from appropriate maintainers.
+this is actually what the USB Battery Charging spec requires us to
+implement. If Linux is doing differently, it's a bug on Linux which
+should be fixed :-)
 
-So, this is a very large series which gets reposted every so often to no
-apparent interest from the video side, there's been no response at all
-that I can remember and even the earlier bits of the series before it
-starts touching audio don't seem to be getting merged.  What's going on
-here?
+No host is allowed to source more then one unit load (100mA in LS/FS/HS,
+150mA in SS) until the device is fully enumerated. Host are also
+required to drop max current budget to 8mA (IIRC) if the device doesn't
+enumerate for however many minutes (I guess it was a pretty long
+threshold, something like half an hour or so. My memory fails me right
+now).
 
---150V3TWQMAK77Hrh
+--=20
+balbi
+
+--oDto3OTLsk6uOlQH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQEcBAEBAgAGBQJUY93vAAoJECTWi3JdVIfQrAsH/jIGK5dQow19yRwIbSSotJJj
-p7B3EuLOqO6SHTHoUrkuSFzslxJogFjT3soeNKE6oGDiO3WCdWd2GAEoyTPI7XIi
-dHZBmwwrx9L87WfUqISKEcKZtksyLpKBLshnQ+TpqH41IfnicJNPIPxGPh1NMYZT
-a79T+hjA3gt7MoX4Mu6ZdI+nQTt5tmJsDvFOLwo9Cf+dJ+b9gH9SUWRNhPSh0zG0
-D073OUVlEA9ELloF93fSdt5GU98mDUjUO+7pL7a0b16R8DIsudQSI/lUM4yD8HON
-G6ngwSZQC33zK5lBmqmbRmEYItKkW7RUumeCBL0mQ8HNnyUJ6QjzBGT7xxdATa0=
-=K25l
+iQIcBAEBAgAGBQJUY9/aAAoJEIaOsuA1yqRERWsP/RUYuabRwR1hWbpKpTU5hhnU
+pYhODCI1EN7NnEMVnAognL1ZqLvBM0F5QCQxIDILszkswBtkVBLQxvjneIvrQprn
+q5Yiz5lhJiJzbEqogmm+4WUzVhhaGVhbB/jQsCJZuv5XKJVO+/D9ylj5puACZNfV
+NqmR+cwhbW+Hv5lu9rD7oQhtcuaBoPp3U4DejsePLwOq7emC4/A2aHyussMrqvs+
+Say3BRoEkXRox9xI2hfA4BnnQlpwyRpjZiFd7TIHqeVG7h5VLyA17WuInWqhAMn/
+lhuO8QotJHd67FjAliVTSvQX/wAuYpjm0XknvsURHDuFEokYbkoy0Mf5XYjEEMNo
+fBct3yio+K9aIFTBGXDHnj7B7Dktw0+WfSbcQkY3c/Tu8T2bbEuhAb/4Jy7imY1B
+R7DKn3cm1xREloDJlMQNsEUN3fieVn92K+2LOB+JB/sdx8cc/2HvX2sHY6F8nqq7
+jns2ax5nGnOehakQr+f79MGnujOELKOh/3NFIzNwiTHXwyjxB3uPag34iD4g4lWU
+TEJX1buTI+QKNk9o8gHRf3M5x7JAAIUA8yKB5kWLEVqcI0aYVz3QrqrvukA+uOlB
+Ko3TGNg0qEyTeEhpYQzLH9+3ik7FGFTIafZmqBVT6ZuGHFnEKQXnNZioe+qPyFhn
+nmxXDvg3xSXNL1/TsXQv
+=KRB2
 -----END PGP SIGNATURE-----
 
---150V3TWQMAK77Hrh--
+--oDto3OTLsk6uOlQH--
