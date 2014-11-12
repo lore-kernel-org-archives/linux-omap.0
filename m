@@ -1,15 +1,15 @@
 From: Jyri Sarha <jsarha@ti.com>
-Subject: [PATCH v7 17/20] OMAPDSS: hdmi5: Register ASoC platform device for omap hdmi audio
-Date: Wed, 12 Nov 2014 12:49:19 +0200
-Message-ID: <afcbd1cf531564dca5c093abbb40cac0f3efe682.1415786458.git.jsarha@ti.com>
+Subject: [PATCH v7 15/20] OMAPDSS: hdmi4: Register ASoC platform device for omap hdmi audio
+Date: Wed, 12 Nov 2014 12:49:17 +0200
+Message-ID: <21ee831da15efc2b2f456c53162b41e5ddacdf9c.1415786458.git.jsarha@ti.com>
 References: <cover.1415786458.git.jsarha@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50983 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752841AbaKLKt4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Nov 2014 05:49:56 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:39578 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752841AbaKLKtv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2014 05:49:51 -0500
 In-Reply-To: <cover.1415786458.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,22 +21,22 @@ it in probe function. Unregistering is done in remove function.
 
 Signed-off-by: Jyri Sarha <jsarha@ti.com>
 ---
- drivers/video/fbdev/omap2/dss/hdmi5.c |  125 +++++++++++++++++++++++++++++++++
+ drivers/video/fbdev/omap2/dss/hdmi4.c |  125 +++++++++++++++++++++++++++++++++
  1 file changed, 125 insertions(+)
 
-diff --git a/drivers/video/fbdev/omap2/dss/hdmi5.c b/drivers/video/fbdev/omap2/dss/hdmi5.c
-index 1b9c86a..feb76e2 100644
---- a/drivers/video/fbdev/omap2/dss/hdmi5.c
-+++ b/drivers/video/fbdev/omap2/dss/hdmi5.c
-@@ -38,6 +38,7 @@
+diff --git a/drivers/video/fbdev/omap2/dss/hdmi4.c b/drivers/video/fbdev/omap2/dss/hdmi4.c
+index 6f6764c..28a55b2 100644
+--- a/drivers/video/fbdev/omap2/dss/hdmi4.c
++++ b/drivers/video/fbdev/omap2/dss/hdmi4.c
+@@ -33,6 +33,7 @@
  #include <linux/gpio.h>
  #include <linux/regulator/consumer.h>
  #include <video/omapdss.h>
 +#include <sound/omap-hdmi-audio.h>
  
- #include "hdmi5_core.h"
+ #include "hdmi4_core.h"
  #include "dss.h"
-@@ -360,6 +361,8 @@ static int hdmi_display_enable(struct omap_dss_device *dssdev)
+@@ -336,6 +337,8 @@ static int hdmi_display_enable(struct omap_dss_device *dssdev)
  		goto err0;
  	}
  
@@ -45,7 +45,7 @@ index 1b9c86a..feb76e2 100644
  	mutex_unlock(&hdmi.lock);
  	return 0;
  
-@@ -374,8 +377,13 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
+@@ -350,8 +353,13 @@ static void hdmi_display_disable(struct omap_dss_device *dssdev)
  
  	mutex_lock(&hdmi.lock);
  
@@ -59,7 +59,7 @@ index 1b9c86a..feb76e2 100644
  	mutex_unlock(&hdmi.lock);
  }
  
-@@ -566,6 +574,112 @@ err:
+@@ -542,6 +550,112 @@ err:
  	return r;
  }
  
@@ -104,7 +104,7 @@ index 1b9c86a..feb76e2 100644
 +	WARN_ON(!hd->display_enabled);
 +
 +	hdmi_wp_audio_enable(&hd->wp, true);
-+	hdmi_wp_audio_core_req_enable(&hd->wp, true);
++	hdmi4_audio_start(&hd->core, &hd->wp);
 +
 +	return 0;
 +}
@@ -116,7 +116,7 @@ index 1b9c86a..feb76e2 100644
 +	WARN_ON(!hdmi_mode_has_audio(&hd->cfg));
 +	WARN_ON(!hd->display_enabled);
 +
-+	hdmi_wp_audio_core_req_enable(&hd->wp, false);
++	hdmi4_audio_stop(&hd->core, &hd->wp);
 +	hdmi_wp_audio_enable(&hd->wp, false);
 +}
 +
@@ -133,7 +133,7 @@ index 1b9c86a..feb76e2 100644
 +		goto out;
 +	}
 +
-+	ret = hdmi5_audio_config(&hd->core, &hd->wp, dss_audio,
++	ret = hdmi4_audio_config(&hd->core, &hd->wp, dss_audio,
 +				 hd->cfg.timings.pixelclock);
 +
 +out:
@@ -172,13 +172,13 @@ index 1b9c86a..feb76e2 100644
  /* HDMI HW IP initialisation */
  static int omapdss_hdmihw_probe(struct platform_device *pdev)
  {
-@@ -623,6 +737,14 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+@@ -599,6 +713,14 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
  
  	hdmi_init_output(pdev);
  
 +	r = hdmi_audio_register(&pdev->dev);
 +	if (r) {
-+		DSSERR("Registering HDMI audio failed %d\n", r);
++		DSSERR("Registering HDMI audio failed\n");
 +		hdmi_uninit_output(pdev);
 +		pm_runtime_disable(&pdev->dev);
 +		return r;
@@ -187,7 +187,7 @@ index 1b9c86a..feb76e2 100644
  	dss_debugfs_create_file("hdmi", hdmi_dump_regs);
  
  	return 0;
-@@ -630,6 +752,9 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+@@ -606,6 +728,9 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
  
  static int __exit omapdss_hdmihw_remove(struct platform_device *pdev)
  {
