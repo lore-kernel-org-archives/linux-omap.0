@@ -1,107 +1,64 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
- devconf1 register
-Date: Wed, 12 Nov 2014 22:02:52 +0100
-Message-ID: <CAAfyv34sPAa94dYM1QoHKEX+MN8NMnzE91HLhXW6MG1Yr=o8mQ@mail.gmail.com>
-References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
- <1415051968-4878-5-git-send-email-marek@goldelico.com>
- <20141110233630.GD31454@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
+ enabled
+Date: Wed, 12 Nov 2014 13:20:27 -0800
+Message-ID: <20141112212027.GK26481@atomide.com>
+References: <20141102180756.GH31454@atomide.com>
+ <5458D29E.50908@compulab.co.il>
+ <20141104154231.GP31454@atomide.com>
+ <CANOLnOP8JmROaCruC8NEwh+Nzq_-fFit-+5d_W9vU9KtNTphoA@mail.gmail.com>
+ <515E660B-B65D-41EF-97F5-74E4DE8FDD13@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20141110233630.GD31454@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Pawel Moll <pawel.moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Rob Herring <robh+dt@kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Kumar Gala <galak@codeaurora.org>, Grant Likely <grant.likely@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <515E660B-B65D-41EF-97F5-74E4DE8FDD13@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Igor Grinberg <grinberg@compulab.co.il>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+* Dr. H. Nikolaus Schaller <hns@goldelico.com> [141112 12:28]:
+> Am 12.11.2014 um 16:45 schrieb Grazvydas Ignotas <notasas@gmail.com>:
+> > On Tue, Nov 4, 2014 at 5:42 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > 
+> > Pandora does, as well as GTA04 AFAIK,
+> 
+> Yes. The trick is that the power level that turns on the device is a little higher
+> and the battery provides enough energy for approx. 30 seconds until it drained
+> to a level where it turns off. Depending on general setup (WIFI must remain
+> powered off after boot) this is enough to boot into Linux and start full charging.
+> Another trick is to modify MLO and U-Boot to raise the charging current.
 
-On Tue, Nov 11, 2014 at 12:36 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Marek Belisko <marek@goldelico.com> [141103 14:01]:
->> gta04 board need for tvout enabled 2 bits in devconf1 register (tvbypass and acbias).
->> Add single pinmux entry and enable it.
->>
->> Signed-off-by: Marek Belisko <marek@goldelico.com>
->> ---
->>  arch/arm/boot/dts/omap3-gta04.dtsi | 22 ++++++++++++++++++++++
->>  1 file changed, 22 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
->> index e4d05f0..a456d37 100644
->> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
->> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
->> @@ -118,6 +118,17 @@
->>                       };
->>               };
->>       };
->> +
->> +     /* pinmux for devconf1 */
->> +     control_devconf1: pinmux@480022d8 {
->> +             compatible = "pinctrl-single";
->> +             reg = <0x480022d8 4>;   /* single register */
->> +             #address-cells = <1>;
->> +             #size-cells = <0>;
->> +             pinctrl-single,bit-per-mux;
->> +             pinctrl-single,register-width = <32>;
->> +             pinctrl-single,function-mask = <0xfc0bd5>;
->> +     };
->>  };
->>
->
-> The pinctrl-single entry should be in omap3.dtsi as the mux register is there
-> for all the omap3 devices, can you please update the patch for that?
-Ok I'll do. Just one question. I checked TRM for omap3430 and omap3630 and
-reserved bits in devconf1 are different. So keep function-mask for
-omap3430 in omap3.dtsi
-and redefine in omap36xx.dtsi (not sure if this will work in this
-way)? Or exist other way how to deal with that? Thanks.
->
-> Regards,
->
-> Tony
->
->>  &omap3_pmx_core {
->> @@ -497,3 +508,14 @@
->>               };
->>       };
->>  };
->> +
->> +&control_devconf1 {
->> +     pinctrl-name = "default";
->> +     pinctrl-0 = < &tv_acbias_pins>;
->> +
->> +     tv_acbias_pins: pinmux_tv_acbias_pins {
->> +             pinctrl-single,bits = <
->> +                     0 0x40800 0x40800
->> +             >;
->> +     };
->> +};
->> --
->> 1.9.1
->>
+Depending on the device and the boot-up speed this seems to work only when
+connected to a Linux PC though. AFAIK Windows PCs enforce the 100mA USB power
+limit until the device is enumerated which can keep the device in an eternal
+reboot loop not being able to ever get the charging going :)
+ 
+> > guess.. At least pandora was booting up on charger connect up until
+> > now.
+> 
+> Same for GTA04.
 
-BR,
+See the comments I posted earlier today. Have you guys tried the $subject
+patch with v3.18-rc series?
 
-marek
+It sounds like these comments are based on just reading the patch. Or
+else I'm missing something related to some other regression that's
+probably unrelated to the $subject patch?
 
--- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
+> >> We could consider exporting a function for the charger driver to
+> >> configure the poweron mask. And we could also consider passing a
+> >> mask in ti,use_poweroff = 0xff.
+> 
+> Yes, exporting these masks would be fine - if a board needs a non-default
+> setup.
+ 
+It seems we've been missing all kind of things. We probably should
+first power off any the board specific GPIO regulators. Then configure
+the power-up sequence for the board. And then finally call the
+twl4030_power_off().
 
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+Regards,
+
+Tony
