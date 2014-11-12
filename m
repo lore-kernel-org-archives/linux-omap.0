@@ -1,90 +1,418 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
- enabled
-Date: Wed, 12 Nov 2014 16:31:54 -0600
-Message-ID: <20141112223154.GP641@saruman>
-References: <20141102180756.GH31454@atomide.com>
- <5458D29E.50908@compulab.co.il>
- <20141104154231.GP31454@atomide.com>
- <CANOLnOP8JmROaCruC8NEwh+Nzq_-fFit-+5d_W9vU9KtNTphoA@mail.gmail.com>
- <515E660B-B65D-41EF-97F5-74E4DE8FDD13@goldelico.com>
- <20141112212027.GK26481@atomide.com>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oDto3OTLsk6uOlQH"
+From: George McCollister <george.mccollister@gmail.com>
+Subject: [PATCH 2/2] ARM: dts: Add devicetree for NovaTech OrionLXm
+Date: Wed, 12 Nov 2014 16:41:33 -0600
+Message-ID: <1415832094-20991-2-git-send-email-george.mccollister@gmail.com>
+References: <1415832094-20991-1-git-send-email-george.mccollister@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141112212027.GK26481@atomide.com>
+In-Reply-To: <1415832094-20991-1-git-send-email-george.mccollister@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Igor Grinberg <grinberg@compulab.co.il>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
+Cc: George McCollister <george.mccollister@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Joachim Eastwood <manabian@gmail.com>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Carlos Garcia <carlos@cgarcia.org>, "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, "open list:OMAP DEVICE TREE..." <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---oDto3OTLsk6uOlQH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This adds the NovaTech OrionLXm which is based on the AM335x SoC
+http://www.novatechweb.com/substation-automation/orionlxm/
 
-On Wed, Nov 12, 2014 at 01:20:27PM -0800, Tony Lindgren wrote:
-> * Dr. H. Nikolaus Schaller <hns@goldelico.com> [141112 12:28]:
-> > Am 12.11.2014 um 16:45 schrieb Grazvydas Ignotas <notasas@gmail.com>:
-> > > On Tue, Nov 4, 2014 at 5:42 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> > >=20
-> > > Pandora does, as well as GTA04 AFAIK,
-> >=20
-> > Yes. The trick is that the power level that turns on the device is a li=
-ttle higher
-> > and the battery provides enough energy for approx. 30 seconds until it =
-drained
-> > to a level where it turns off. Depending on general setup (WIFI must re=
-main
-> > powered off after boot) this is enough to boot into Linux and start ful=
-l charging.
-> > Another trick is to modify MLO and U-Boot to raise the charging current.
->=20
-> Depending on the device and the boot-up speed this seems to work only when
-> connected to a Linux PC though. AFAIK Windows PCs enforce the 100mA USB p=
-ower
-> limit until the device is enumerated which can keep the device in an eter=
-nal
-> reboot loop not being able to ever get the charging going :)
+RAM: 512MiB
+Flash: 4GB eMMC
+Ethernet PHYs: 2x Micrel KSZ8041FTLI
+USB ports are used internally by the expansion cards.
+Internal micro SD slot is available.
 
-this is actually what the USB Battery Charging spec requires us to
-implement. If Linux is doing differently, it's a bug on Linux which
-should be fixed :-)
+Signed-off-by: George McCollister <george.mccollister@gmail.com>
+---
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/boot/dts/Makefile                         |   3 +-
+ arch/arm/boot/dts/am335x-lxm.dts                   | 354 +++++++++++++++++++++
+ 3 files changed, 359 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am335x-lxm.dts
 
-No host is allowed to source more then one unit load (100mA in LS/FS/HS,
-150mA in SS) until the device is fully enumerated. Host are also
-required to drop max current budget to 8mA (IIRC) if the device doesn't
-enumerate for however many minutes (I guess it was a pretty long
-threshold, something like half an hour or so. My memory fails me right
-now).
-
---=20
-balbi
-
---oDto3OTLsk6uOlQH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUY9/aAAoJEIaOsuA1yqRERWsP/RUYuabRwR1hWbpKpTU5hhnU
-pYhODCI1EN7NnEMVnAognL1ZqLvBM0F5QCQxIDILszkswBtkVBLQxvjneIvrQprn
-q5Yiz5lhJiJzbEqogmm+4WUzVhhaGVhbB/jQsCJZuv5XKJVO+/D9ylj5puACZNfV
-NqmR+cwhbW+Hv5lu9rD7oQhtcuaBoPp3U4DejsePLwOq7emC4/A2aHyussMrqvs+
-Say3BRoEkXRox9xI2hfA4BnnQlpwyRpjZiFd7TIHqeVG7h5VLyA17WuInWqhAMn/
-lhuO8QotJHd67FjAliVTSvQX/wAuYpjm0XknvsURHDuFEokYbkoy0Mf5XYjEEMNo
-fBct3yio+K9aIFTBGXDHnj7B7Dktw0+WfSbcQkY3c/Tu8T2bbEuhAb/4Jy7imY1B
-R7DKn3cm1xREloDJlMQNsEUN3fieVn92K+2LOB+JB/sdx8cc/2HvX2sHY6F8nqq7
-jns2ax5nGnOehakQr+f79MGnujOELKOh/3NFIzNwiTHXwyjxB3uPag34iD4g4lWU
-TEJX1buTI+QKNk9o8gHRf3M5x7JAAIUA8yKB5kWLEVqcI0aYVz3QrqrvukA+uOlB
-Ko3TGNg0qEyTeEhpYQzLH9+3ik7FGFTIafZmqBVT6ZuGHFnEKQXnNZioe+qPyFhn
-nmxXDvg3xSXNL1/TsXQv
-=KRB2
------END PGP SIGNATURE-----
-
---oDto3OTLsk6uOlQH--
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index ddd9bcd..4f6a82c 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -132,6 +132,9 @@ Boards:
+ - AM335X Bone : Low cost community board
+   compatible = "ti,am335x-bone", "ti,am33xx", "ti,omap3"
+ 
++- AM335X OrionLXm : Substation Automation Platform
++  compatible = "novatech,am335x-lxm", "ti,am33xx"
++
+ - OMAP5 EVM : Evaluation Module
+   compatible = "ti,omap5-evm", "ti,omap5"
+ 
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 38c89ca..454ee6c 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -331,7 +331,8 @@ dtb-$(CONFIG_SOC_AM33XX) += am335x-base0033.dtb \
+ 	am335x-evm.dtb \
+ 	am335x-evmsk.dtb \
+ 	am335x-nano.dtb \
+-	am335x-pepper.dtb
++	am335x-pepper.dtb \
++	am335x-lxm.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += omap4-duovero-parlor.dtb \
+ 	omap4-panda.dtb \
+ 	omap4-panda-a4.dtb \
+diff --git a/arch/arm/boot/dts/am335x-lxm.dts b/arch/arm/boot/dts/am335x-lxm.dts
+new file mode 100644
+index 0000000..0f7cbae
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-lxm.dts
+@@ -0,0 +1,354 @@
++/*
++ * Copyright (C) 2014 NovaTech LLC - http://www.novatechweb.com
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am33xx.dtsi"
++
++/ {
++	model = "NovaTech OrionLXm";
++	compatible = "novatech,am335x-lxm", "ti,am33xx";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vdd1_reg>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	vbat: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vbat";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-boot-on;
++	};
++
++	vmmcsd_fixed: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++};
++
++&am33xx_pinmux {
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3 */
++			0xf4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2 */
++			0xf8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1 */
++			0xfc (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0 */
++			0x100 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk */
++			0x104 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd */
++		>;
++	};
++
++	i2c0_pins: pinmux_i2c0_pins {
++		pinctrl-single,pins = <
++			0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
++			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
++		>;
++	};
++
++	i2c2_pins: pinmux_i2c2_pins {
++		pinctrl-single,pins = <
++			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
++			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
++		>;
++	};
++
++	cpsw_default: cpsw_default {
++		pinctrl-single,pins = <
++			/* Slave 1 */
++			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_int */
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_crs_dv */
++			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_rxer */
++			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* rmii1_txen */
++			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* rmii1_td1 */
++			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* rmii1_td0 */
++			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_rd1 */
++			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_rd0 */
++			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* rmii1_refclk */
++
++			/* Slave 2 */
++			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* rmii2_txen */
++			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* rmii2_td1 */
++			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* rmii2_td0 */
++			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_rd1 */
++			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_rd0 */
++			0x70 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_crs_dv */
++			0x74 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_rxer */
++			0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_int */
++			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii2_refclk */
++		>;
++	};
++
++	cpsw_sleep: cpsw_sleep {
++		pinctrl-single,pins = <
++			/* Slave 1 reset value */
++			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_int */
++			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_crs_dv */
++			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_rxer */
++			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_txen */
++			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_td1 */
++			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_td0 */
++			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_rd1 */
++			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_rd0 */
++			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_refclk */
++
++			/* Slave 2 reset value*/
++			0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_txen */
++			0x50 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_td1 */
++			0x54 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_td0 */
++			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_rd1 */
++			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_rd0 */
++			0x70 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_crs_dv */
++			0x74 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_rxer */
++			0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_int */
++			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_refclk */
++		>;
++	};
++
++	davinci_mdio_default: davinci_mdio_default {
++		pinctrl-single,pins = <
++			/* MDIO */
++			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
++			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
++		>;
++	};
++
++	davinci_mdio_sleep: davinci_mdio_sleep {
++		pinctrl-single,pins = <
++			/* MDIO reset value */
++			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
++			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
++		>;
++	};
++
++	emmc_pins: pinmux_emmc_pins {
++		pinctrl-single,pins = <
++			0x80 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
++			0x84 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
++			0x00 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
++			0x04 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
++			0x08 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
++			0x0c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad3.mmc1_dat3 */
++			0x10 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad4.mmc1_dat4 */
++			0x14 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad5.mmc1_dat5 */
++			0x18 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad6.mmc1_dat6 */
++			0x1c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad7.mmc1_dat7 */
++		>;
++	};
++
++	uart0_pins: pinmux_uart0_pins {
++		pinctrl-single,pins = <
++			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
++			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
++		>;
++	};
++};
++
++
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++
++	status = "okay";
++	clock-frequency = <400000>;
++
++	serial_config1: serial_config1@20 {
++		compatible = "nxp,pca9539";
++		reg = <0x20>;
++	};
++
++	serial_config2: serial_config2@21 {
++		compatible = "nxp,pca9539";
++		reg = <0x21>;
++	};
++
++	tps: tps@2d {
++		reg = <0x2d>;
++	};
++};
++
++&i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
++	status = "okay";
++	clock-frequency = <100000>;
++};
++
++/include/ "tps65910.dtsi"
++
++&tps {
++	vcc1-supply = <&vbat>;
++	vcc2-supply = <&vbat>;
++	vcc3-supply = <&vbat>;
++	vcc4-supply = <&vbat>;
++	vcc5-supply = <&vbat>;
++	vcc6-supply = <&vbat>;
++	vcc7-supply = <&vbat>;
++	vccio-supply = <&vbat>;
++
++	regulators {
++		vrtc_reg: regulator@0 {
++			regulator-always-on;
++		};
++
++		vio_reg: regulator@1 {
++			regulator-always-on;
++		};
++
++		vdd1_reg: regulator@2 {
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <600000>;
++			regulator-max-microvolt = <1500000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd2_reg: regulator@3 {
++			regulator-always-on;
++		};
++
++		vdd3_reg: regulator@4 {
++			regulator-always-on;
++		};
++
++		vdig1_reg: regulator@5 {
++			regulator-always-on;
++		};
++
++		vdig2_reg: regulator@6 {
++			regulator-always-on;
++		};
++
++		vpll_reg: regulator@7 {
++			regulator-always-on;
++		};
++
++		vdac_reg: regulator@8 {
++			regulator-always-on;
++		};
++
++		vaux1_reg: regulator@9 {
++			regulator-always-on;
++		};
++
++		vaux2_reg: regulator@10 {
++			regulator-always-on;
++		};
++
++		vaux33_reg: regulator@11 {
++			regulator-always-on;
++		};
++
++		vmmc_reg: regulator@12 {
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++	};
++};
++
++&sham {
++	status = "okay";
++};
++
++&aes {
++	status = "okay";
++};
++
++&uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_pins>;
++
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb1_phy {
++	status = "okay";
++};
++
++&usb0 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&usb1 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&cppi41dma  {
++	status = "okay";
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <5>;
++	phy-mode = "rmii";
++	dual_emac_res_vlan = <2>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <4>;
++	phy-mode = "rmii";
++	dual_emac_res_vlan = <3>;
++};
++
++&mac {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&cpsw_default>;
++	pinctrl-1 = <&cpsw_sleep>;
++	dual_emac = <1>;
++	status = "okay";
++};
++
++&davinci_mdio {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&davinci_mdio_default>;
++	pinctrl-1 = <&davinci_mdio_sleep>;
++	status = "okay";
++};
++
++&mmc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	bus-width = <4>;
++	status = "okay";
++	vmmc-supply = <&vmmc_reg>;
++	ti,vcc-aux-disable-is-sleep;
++};
++
++&mmc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	vmmc-supply = <&vmmcsd_fixed>;
++	bus-width = <8>;
++	ti,non-removable;
++	status = "okay";
++	ti,vcc-aux-disable-is-sleep;
++};
++
+-- 
+2.1.0
