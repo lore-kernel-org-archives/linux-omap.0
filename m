@@ -1,93 +1,79 @@
-From: Johannes Pointner <johannes.pointner@gmail.com>
-Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
-Date: Wed, 12 Nov 2014 14:00:32 +0100
-Message-ID: <CAJKbBDDyShaJkzzfdFs07EK5gDUfwqWiv39Qi4FVSvRrfc6_fA@mail.gmail.com>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>
-	<20141103180920.GA20779@localhost.localdomain>
-	<545B2651.4090905@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/4] video: omapdss: Add opa362 driver
+Date: Wed, 12 Nov 2014 15:57:55 +0200
+Message-ID: <54636763.10605@ti.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com> <1415051968-4878-2-git-send-email-marek@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <545B2651.4090905@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Richard Cochran <richardcochran@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, linux-iio <linux-iio@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, linux-omap@vger
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="lubUgX1x7F5LjjcrHrV4sKjeTAMTfe989"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1415051968-4878-2-git-send-email-marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Vignesh,
+--lubUgX1x7F5LjjcrHrV4sKjeTAMTfe989
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I tried your patch version 3 on a customized board and had some
-behavior I couldn't explain.
-If I only use the touchscreen it works fine but if I also read values
-from the ADCs then I get a lot of pen_up events even if I am still
-touching the screen.
-For the test I read via
-# cat /sys/bus/iio/devices/iio\:device0/in_voltage5_raw
-values from the ADC in an busy loop as you explained in an email
-before. Did you also experience such behavior or do you know what
-causes it?
+Hi,
 
-Without the patches the touchscreen works fine during the iio test.
 
-Thanks,
-Hannes
+On 03/11/14 23:59, Marek Belisko wrote:
+> opa362 is amplifier for videoand can be connected to the tvout pads
+> of the OMAP3. It has one gpio control for enable/disable of the output
+> (high impedance).
+>=20
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  drivers/video/fbdev/omap2/displays-new/Kconfig     |   6 +
+>  drivers/video/fbdev/omap2/displays-new/Makefile    |   1 +
+>  .../fbdev/omap2/displays-new/amplifier-opa362.c    | 347 +++++++++++++=
+++++++++
+>  3 files changed, 354 insertions(+)
+>  create mode 100644 drivers/video/fbdev/omap2/displays-new/amplifier-op=
+a362.c
 
-2014-11-06 8:42 GMT+01:00 Vignesh R <vigneshr@ti.com>:
->
->
-> On Monday 03 November 2014 11:39 PM, Richard Cochran wrote:
->> On Mon, Oct 27, 2014 at 04:38:27PM +0530, Vignesh R wrote:
->>> This series of patches fix TSC defects related to lag in touchscreen
->>> performance and cursor jump at touch release. The lag was result of
->>> udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
->>> The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
->>> to avoid false pen-up events and remove udelay.
->>
->> That advisory has two workarounds. You have chosen the second one?
->
-> Work around one. Hence 5 wire design is not broken.
->
->>
->> The text of the second workaround says it only works on 4 wire setups,
->> so I wonder how 5 wire designs will be affected.
->>
->>> The advisory says to use
->>> steps 1 to 4 for ADC and 5 to 16 for TSC (assuming 4 wire TSC and 4 channel
->>> ADC).
->>
->> No, it doesn't say that. (sprz360f.pdf)
->
-> The pen up event detection happens immediately after charge step. Hence,
-> interchanging ADC and TSC steps makes sure that sampling of touch
-> co-ordinates and pen events are done one after the other. This
-> workaround was suggested by internal hardware folks. Earlier ADC steps
-> intervened between sampling of co-ordinates and pen event detection
-> which is not desirable.
->
->>
->>> Further the X co-ordinate must be the last one to be sampled just
->>> before charge step. The first two patches implement the required changes.
->>
->> FWIW, I implemented the first workaround and removed the udelay not
->> too long ago. Like Sebastian, I saw the TSC unit hang after about
->> 50000 interrupts when running with the workaround.
->>
->> Did you test you patch for very long?
->
-> Yes, I tested for about 200000 interrupts and I didn't see any hang.
-> This patch series does not just implement workaround but also does some
-> minor changes, such as interchanging ADC and TSC steps etc, which makes
-> TSC driver more robust. Let me know if you encounter any issues with my
-> patch series.
->
-> Regards
-> Vignesh
->
->>
->> Thanks,
->> Richard
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This doesn't even compile:
+
+drivers/video/fbdev/omap2/displays-new/amplifier-opa362.c:207:28: error:
+dereferencing pointer to incomplete type
+  ddata->enable_gpio =3D pdata->enable_gpio;
+
+And it seems to have fields for bypass and bypass which are handled in
+the devconf1 patch.
+
+ Tomi
+
+
+
+--lubUgX1x7F5LjjcrHrV4sKjeTAMTfe989
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUY2djAAoJEPo9qoy8lh71xbwP/2BBJi+3w+xIY+DHFWmv44f3
+fynP4Gev891QE6eZ/JD/I5DBJ07z3KuwLVOHMIyuCT94p4Dwgb93so6la8m2wJ7k
+llgPrJaFy8s740rpWGj8S9MD3TgEv5nWCArhTpFLdAC1t1akN1AQmuzRGcxfMNzO
+4Djb0GLsEKxVQ/5dzPFBmjL+78WM0E1j46AKEDai+FiSDO7e9ZHpTYxmIKv0BJOI
+exvWpRgZrtpObm4/6BdA55F6QoWipSvdNYldS41N2HR4ecZeXEe0uCOgVc3f74dz
+42zGyUTmCCvTTLnEMZmgIhsqdR/+sFOG5Fm0kSRTFa7bG5KpCJGq1onp3AdZ4Pw7
+jP5MmnQl75iM59iK/2KmPXLhrDcJ06zXnv01o87SVmxFnW94lruggB/N0ySSSAIg
+qp7A9nAweSzIZTJ32qJz0ATAP30mQqshC2nAbdeUxCB+4CYamH1ZGc/X+zyaC1AJ
+YMQ5Ps0EBcVCMfowkL+tR+YXaAhgq74XwUuVy/hqiwQCySCYSglGE1xkD3Pg7knV
+yUM8Zo3z31MeA5aIhac1/X5gfiNQEX5u/ZLuB/U66KeYNxTAW6hlefz2DJ2Muop4
+SaLu3UtuHBEm5N5/fU7etL+2Lh2WgQEd2atOrNAA/IgzF1P4DzVz4OBsiF92Z7s0
+j3QHdbReqAuk/rzd+4eE
+=bxRy
+-----END PGP SIGNATURE-----
+
+--lubUgX1x7F5LjjcrHrV4sKjeTAMTfe989--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
