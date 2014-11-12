@@ -1,88 +1,74 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 00/22] OMAPDSS: Create a DSS PLL library
-Date: Wed, 12 Nov 2014 13:52:02 +0200
-Message-ID: <1415793144-11723-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 01/22] OMAPDSS: DSI: wait for hsdiv clocks when enabling PLL
+Date: Wed, 12 Nov 2014 13:52:03 +0200
+Message-ID: <1415793144-11723-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1415793144-11723-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41979 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751507AbaKLLwo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Nov 2014 06:52:44 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:53594 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751507AbaKLLwq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Nov 2014 06:52:46 -0500
+In-Reply-To: <1415793144-11723-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+At the moment we have two functions to wait for the HSDIV clocks to get
+active, dsi_wait_pll_hsdiv_dispc_active and
+dsi_wait_pll_hsdiv_dsi_active. Instead of such inconvenient functions,
+let's just make sure that the hsdiv clocks are active after the pll has
+been enabled.
 
-OMAP DSS hardware contains two different PLLs at the moment: DSI and HDMI PLLs.
-With the DRA7x we will have a new PLL, video PLL. The code for DSI and HDMI
-PLLs are totally separate, with no shared code.
+This patch adds code to dsi_pll_set_clock_div() to wait until HSDIV
+clocks are active.
 
-This series cleans up the PLL code for DSI and HDMI, and creates a common
-framework for DSS PLLs, which will also be used by the video PLLs.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/fbdev/omap2/dss/dsi.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-The first half of the patches clean up and rework DSI PLL code to make it more
-suitable with the common PLL code. We then add the common PLL library, and make
-DSI use that.
-
-The second half does the same for HDMI.
-
-There should be no changes visible to the user, although the exact settings for
-the PLLs may be slightly different from what we currently end up programming in
-to the registers.
-
-Tested on OMAP3/4/5 boards.
-
-This series is based on Archit's "OMAPDSS: Support multiple DPI instances"
-series. I have pushed these to:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git work/pll-library
-
- Tomi
-
-Tomi Valkeinen (22):
-  OMAPDSS: DSI: wait for hsdiv clocks when enabling PLL
-  OMAPDSS: DSI: remove unused hsdiv wait funcs
-  OMAPDSS: DSI: always power on hsclk & hsdiv
-  OMAPDSS: DSI: separate LP clock info from dsi_clock_info
-  OMAPDSS: DSI: remove clkin from dsi_clock_info
-  OMAPDSS: DSI: remove pll_locked field
-  OMAPDSS: DSI: use struct copy instead of individual field copy
-  OMAPDSS: DSI: rename clkin4ddr to clkdco
-  OMAPDSS: DSI: turn hsdivs fields to arrays
-  OMAPDSS: DSI: features: combine dsi & dispc hsdivs
-  OMAPDSS: DSI: dsi_runtime_get/put in pll_init
-  OMAPDSS: Add common PLL code
-  OMAPDSS: DSI: use common DSS PLL support
-  OMAPDSS: HDMI: fix setting REFSEL
-  OMAPDSS: HDMI5: disable interlace modes
-  OMAPDSS: HDMI: rewrite HDMI PLL calculation code
-  OMAPDSS: HDMI: Remove HDMI PLL reset
-  OMAPDSS: HDMI: store WP pointer to hdmi_pll_data
-  OMAPDSS: HDMI: split PLL enable & config
-  OMAPDSS: HDMI: remove extra poweroff
-  OMAPDSS: HDMI: use common DSS PLL support
-  OMAPDSS: features: remove unused DSI PLL features
-
- drivers/video/fbdev/omap2/dss/Makefile       |   2 +-
- drivers/video/fbdev/omap2/dss/dispc.c        |  20 +-
- drivers/video/fbdev/omap2/dss/dpi.c          | 106 ++---
- drivers/video/fbdev/omap2/dss/dsi.c          | 659 ++++++++++-----------------
- drivers/video/fbdev/omap2/dss/dss.c          |  15 -
- drivers/video/fbdev/omap2/dss/dss.h          | 193 ++++----
- drivers/video/fbdev/omap2/dss/dss_features.c |  42 --
- drivers/video/fbdev/omap2/dss/dss_features.h |  12 -
- drivers/video/fbdev/omap2/dss/hdmi.h         |  34 +-
- drivers/video/fbdev/omap2/dss/hdmi4.c        |  68 ++-
- drivers/video/fbdev/omap2/dss/hdmi5.c        |  73 ++-
- drivers/video/fbdev/omap2/dss/hdmi_phy.c     |  31 +-
- drivers/video/fbdev/omap2/dss/hdmi_pll.c     | 313 ++++++-------
- drivers/video/fbdev/omap2/dss/pll.c          | 378 +++++++++++++++
- 14 files changed, 979 insertions(+), 967 deletions(-)
- create mode 100644 drivers/video/fbdev/omap2/dss/pll.c
-
+diff --git a/drivers/video/fbdev/omap2/dss/dsi.c b/drivers/video/fbdev/omap2/dss/dsi.c
+index 0793bc67a275..fe8196b17a5e 100644
+--- a/drivers/video/fbdev/omap2/dss/dsi.c
++++ b/drivers/video/fbdev/omap2/dss/dsi.c
+@@ -1514,6 +1514,20 @@ static void dsi_pll_calc_dsi_fck(struct dsi_clock_info *cinfo)
+ 	cinfo->dsi_pll_hsdiv_dsi_clk = cinfo->clkin4ddr / cinfo->regm_dsi;
+ }
+ 
++static int dsi_wait_hsdiv_ack(struct platform_device *dsidev, u32 hsdiv_ack_mask)
++{
++	int t = 100;
++
++	while (t-- > 0) {
++		u32 v = dsi_read_reg(dsidev, DSI_PLL_STATUS);
++		v &= hsdiv_ack_mask;
++		if (v == hsdiv_ack_mask)
++			return 0;
++	}
++
++	return -ETIMEDOUT;
++}
++
+ int dsi_pll_set_clock_div(struct platform_device *dsidev,
+ 		struct dsi_clock_info *cinfo)
+ {
+@@ -1646,6 +1660,13 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
+ 	l = FLD_MOD(l, 0, 20, 20);	/* DSI_HSDIVBYPASS */
+ 	dsi_write_reg(dsidev, DSI_PLL_CONFIGURATION2, l);
+ 
++	r = dsi_wait_hsdiv_ack(dsidev, BIT(7) | BIT(8));
++	if (r) {
++		DSSERR("failed to enable HSDIV clocks: %d\n", r);
++		goto err;
++	}
++
++
+ 	DSSDBG("PLL config done\n");
+ err:
+ 	return r;
 -- 
 2.1.3
 
