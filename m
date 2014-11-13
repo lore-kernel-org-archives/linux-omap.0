@@ -1,66 +1,39 @@
 From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v4 3/8] net: can: c_can: Add RAMINIT register information
- to driver data
-Date: Thu, 13 Nov 2014 11:59:56 +0100
-Message-ID: <54648F2C.2060007@pengutronix.de>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-4-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v4 4/8] net: can: c_can: Add syscon/regmap RAMINIT mechanism
+Date: Thu, 13 Nov 2014 12:09:07 +0100
+Message-ID: <54649153.409@pengutronix.de>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-5-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1415371762-29885-4-git-send-email-rogerq@ti.com>
-Sender: netdev-owner@vger.kernel.org
+ boundary="AVSbkhbQHi8SEJNsH8CKnsSxRmoLxRP7O"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1415371762-29885-5-git-send-email-rogerq@ti.com>
+Sender: linux-can-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
 Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm
+--AVSbkhbQHi8SEJNsH8CKnsSxRmoLxRP7O
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
 On 11/07/2014 03:49 PM, Roger Quadros wrote:
-> Some platforms (e.g. TI) need special RAMINIT register handling.
-> Provide a way to store RAMINIT register description in driver data.
+> Some TI SoCs like DRA7 have a RAMINIT register specification
+> different from the other AMxx SoCs and as expected by the
+> existing driver.
 >=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  drivers/net/can/c_can/c_can.h          | 6 ++++++
->  drivers/net/can/c_can/c_can_platform.c | 1 +
->  2 files changed, 7 insertions(+)
+> To add more insanity, this register is shared with other
+> IPs like DSS, PCIe and PWM.
 >=20
-> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_ca=
-n.h
-> index 26c975d..3c305a1 100644
-> --- a/drivers/net/can/c_can/c_can.h
-> +++ b/drivers/net/can/c_can/c_can.h
-> @@ -171,6 +171,12 @@ enum c_can_dev_id {
-> =20
->  struct c_can_driver_data {
->  	enum c_can_dev_id id;
-> +
-> +	/* RAMINIT register description. Optional. */
-> +	u8 num_can;		/* Number of CAN instances on the SoC */
-> +	u8 *raminit_start_bits;	/* Array of START bit positions */
-> +	u8 *raminit_done_bits;	/* Array of DONE bit positions */
-> +	bool raminit_pulse;	/* If set, sets and clears START bit (pulse) */
->  };
-> =20
->  /* c_can private data structure */
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c=
-_can/c_can_platform.c
-> index 1546c2b..20deb67 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -250,6 +250,7 @@ static int c_can_plat_probe(struct platform_device =
-*pdev)
->  	}
-> =20
->  	priv =3D netdev_priv(dev);
-> +
+> Provides a more generic mechanism to specify the RAMINIT
+> register location and START/DONE bit position and use the
+> syscon/regmap framework to access the register.
 
-Dropped this hunk while applying.
+What about the existing device trees that don't have the syscon-raminit
+phandle? We can either keep the existing init routines or create regmap
+in the platform driver an use the new ones.
 
 Marc
 
@@ -71,7 +44,7 @@ Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
 Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
 
---9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm
+--AVSbkhbQHi8SEJNsH8CKnsSxRmoLxRP7O
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -79,19 +52,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUZI8sAAoJECte4hHFiupUsTIP/2o5V6D30laDDQFGvQEPlo9k
-7mQwj0PDoc+Ss0y3D3bJSsNafHyvqYRFT6i4kXiroofHsJNlTFaPjZ0oJ1X+K8ID
-UF8o2dm9oHr5jiJ2oE18gNkIACZQ07KNZqBj6DjJmgs2Am+zm+NN8+FnNA9VQ3P0
-dgBv+9pYTr2pjT+4NPExunen93EDsf1DNHK+1qRCo0eY9Q1YTJqDwfICUf+Tw3Z2
-8KnBHyioiXreOGArTTgAyVLgakoO5UFLUjtYhDZWKbeDFeFqFPhJujr4OOPSuSjc
-Bcmh+xkv0KxCxonzV65HHAuWQ2Gi9W8k6KVYWByDCNRGn4CwpcTSzD1p0fekGrQf
-pP1nPODqdvvuffvzNVF/SyJZuBK94fBn89ir7DyGu2xXE0WVzisRKVEtu31SVFNP
-f9oRRe3Rg4QqmVm2+GZVgFrQ/AV7rf6gp68eRrOq8wcIBCQau6ZzdMMri4m9fuVk
-nRUVS9Z4G5JVpoCwq3UCV9TAuQyGhWQQ2N3zYjJwclSamm+UQhwA0VFKLMhIRR26
-2BO7VUa5KhW9zc07li1SDHfiyrMujocWSUfWF+YXUtpbiD4IFUHGruobq2xF/9DO
-4CjEpCLMOzQYB95uSWa5J2TOzgMomVUM6Ia3+vhN65ZMB6DkcG0N1vpXRG99UYYa
-v5FvBrlnJCtL4vbD6+3C
-=sCMj
+iQIcBAEBAgAGBQJUZJFTAAoJECte4hHFiupUwokQAI0H4xlC3GWl+lFFavvt1zQG
+NFz/6gTXaH1Pb9CmnCEShIj/nZs5i/Y814T8rheOKSSQLzmt7mYTIqYevNXAIcjM
+k+xWK2ZXp/9yVB3dYG1DDBV9StK7PJzJamlQ39paRHNYYX/eKgXYP6DkL4lEiGBO
+inC9OiJFn1b3L4I9y+0OHZ21XFAfNGV65ITFolJuJaQL1aRy8XWFBFCD7X2MArch
+EVSMv8CvSd0eLeOkSmgkdiEuRUXCv2z5Pe0oPldwXsLd48mqi8A9JAa0fwHnf3jQ
+4amO/AZPYl8prLKajpY9oWaWEJ+CS7xEEtwLRZhZSIr5/rqFqrXBEHkmvk3JY/f2
+7c7qfBocWSzLQ/ilTFlSX4DqC4KC+hcrzgyWXOmUlUu/WgFq8rJabndZSuLqSDJ1
+OobADoSOPxCrgaj9xlQPlX+zNivkMlCYB6Kuep+SO4vCtSOnn8Ypv23MoELs8bXl
+lxVUr4S+NZu+ulsFA+dhMg5/WKcIg39moND+4qgugArp4RAfSLDcVFdGtLgnu/yH
+nXfFdKDqHPRDC6zerg7n2jgbi96CogN5QzDJXmY02oLtJieKo/UYUaPNDfsuotRK
+Tgv3aoCayfQaK/VC/02nQv3bUO3MQdVhcpnvqHNr6CfnA4vmcgtmLAcQ2Gz6KitJ
+ACcAuPlPf591cMti/0/3
+=8lWb
 -----END PGP SIGNATURE-----
 
---9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm--
+--AVSbkhbQHi8SEJNsH8CKnsSxRmoLxRP7O--
