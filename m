@@ -1,166 +1,120 @@
-From: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [alsa-devel] [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio
- support
-Date: Thu, 13 Nov 2014 16:00:02 +0100
-Message-ID: <20141113160002.7a1157a5@armhf>
-References: <cover.1415803064.git.jsarha@ti.com>
- <20141112222344.GU3815@sirena.org.uk>
- <54646648.5030807@ti.com>
- <20141113101738.6338bb1c@armhf>
- <54648149.9070104@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v5 6/8] net: can: c_can: Disable pins when CAN interface is
+ down
+Date: Thu, 13 Nov 2014 17:23:43 +0200
+Message-ID: <5464CCFF.5010004@ti.com>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:38232 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753304AbaKMO5B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 09:57:01 -0500
-In-Reply-To: <54648149.9070104@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1415371762-29885-7-git-send-email-rogerq@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thu, 13 Nov 2014 12:00:41 +0200
-Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+DRA7 CAN IP suffers from a problem which causes it to be prevented
+from fully turning OFF (i.e. stuck in transition) if the module was
+disabled while there was traffic on the CAN_RX line.
 
-	[snip]
-> Jyri or Peter knows this better, but I think one difference with OMAP
-> HDMI case and tda998x is that tda998x is an external encoder, and you
-> transfer audio data to it via i2s or spdif, whereas OMAP HDMI is insi=
-de
-> the SoC, and the HDMI IP gets the audio data via system DMA.
->=20
-> The system DMA transfers are triggered by the HDMI IP, and the HDMI I=
-P
-> has to be enabled and properly configured for the DMA ports to functi=
-on.
->=20
-> So, correct me if I'm wrong, but I think this is the fundamental diff=
-erence:
->=20
-> In your case, the actual audio playback happens with the i2s or spdif
-> side. You can enable the playback at any time, no matter what is the
-> status of tda998x. If tda998x is not operational, the audio data will
-> just go to /dev/null.
->=20
-> In our case, the actual audio playback happens inside the HDMI block.=
- We
-> need the whole HDMI block to be operational and correctly configured =
-for
-> (fake or real) playback to be possible.
+To work around this issue we select the SLEEP pin state by default
+on probe and use the DEFAULT pin state on CAN up and back to the
+SLEEP pin state on CAN down.
 
-When the tda998x is not operational, the CODEC knows it and reports an
-error to the audio subsystem on device open. But, once the tda998x has
-been started, it always stays operational, even without HDMI connection=
-=2E
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/net/can/c_can/c_can.c | 37 +++++++++++++++++++++++++++++++++++++
+ drivers/net/can/c_can/c_can.h |  1 +
+ 2 files changed, 38 insertions(+)
 
-> > and I saw only a few dependencies between the 2 subsystems:
-> >=20
-> > - the CODEC must know the transmitter parameters (DAIs - static -,
-> >   audio constraints - dynamic -),
->=20
-> The video mode (i.e. availability of audio) or the EDID (i.e. the
-> supported audio parameters) may change at any time, so I presume in y=
-our
-> series the video side will inform the codec of these changes at any p=
-oint?
-
-Such changes occur only when the HDMI output device (TV) is replaced by
-an other one (manual cable exchange or HDMI switcher). I wonder if
-these changes are correctly treated in the HDMI transmitters, DRM core,
-DRM drivers, X11/wayland...
-
-So, no, actually, once streaming is started, no information go from the
-HDMI transmitter to the CODEC.
-
-> > - the CODEC must alert the transmitter on audio start and stop.
-> >=20
-> > I don't think that stopping audio streaming on HDMI disconnection i=
-s
->=20
-> And you allow audio playback also if the monitor does not support aud=
-io,
-> or the video mode does not supprot audio?
-
-Bug in my patch: audio playback will be rejected if there will be no
-audio support.
-
-> > useful. I even let audio streaming start when the HDMI cable is
-> > disconnected.
->=20
-> Ah, this is actually unclear thing to me: what should the audio side
-> behavior be when the HDMI cable is disconnected or the video is blank=
-ed?
-> I believe the options are:
->=20
-> a) Always keep the audio device operational, no matter what is the
-> status of the video side. How should this work if the HDMI videomode =
-or
-> the HDMI monitor does not support audio? Is it desirable that the
-> userspace has no idea that the audio is not actually going anywhere?
->=20
-> b) Remove the audio device when audio support is not available. This
-> kind of makes sense, as, well, there's no possibility for audio outpu=
-t.
-> But maybe this is not how linux sound devices are supposed to behave?
->=20
-> c) Return errors when playback is attempted when audio support is not
-> available. Again, this kind of makes sense, as audio playback is not
-> possible. But maybe this is also not how audio devices generally work=
-=2E
->=20
-> Jyri, were there some other options we discussed?
->=20
-> Currently, the OMAP HDMI version does c). It's the easiest solution f=
-or us.
-
-Same for me, but checking the audio capability is done on audio streami=
-ng
-start only.
-
-When the HDMI output device is disconnected, the video and audio output=
-s
-don't need to be changed. I often switch off my TV set when I will not
-use my computer for a while, letting the computer itself running. When
-I get back and switch on back the TV set, video and audio are still
-there.
-
-> Option a) is a bit problematic for us, as it requires the HDMI IP sid=
-e
-> to be fully operational, with the video output configured and enabled=
-,
-> as that is what drives the audio DMA. If we stop the video, I believe
-> the audio DMA will freeze, and it'll lead to timeouts on the audio si=
-de.
->=20
-> I haven't tried, but I believe we could program the HDMI IP to some s=
-afe
-> default video mode if the cable is disconnected, and turn off the act=
-ual
-> HDMI PHY, so that the audio side could work even if the HDMI stream i=
-s
-> not going anywhere. I think it would be quite big change to how the H=
-DMI
-> driver works at the moment.
->=20
-> But then, if the cable _is_ connected and the video mode is such that=
- it
-> cannot not support audio, I wonder if we can still fake the audio
-> playback or will the HDMI IP get confused...
-
-AFAIK, the HDMI transmitters don't know if the video or audio is
-displayed/played by the external device(s). Only the user knows.
-
-BTW, you are talking about video modes without audio support. What are
-you thinking about?
-
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+index 8e78bb4..c80cb3d 100644
+--- a/drivers/net/can/c_can/c_can.c
++++ b/drivers/net/can/c_can/c_can.c
+@@ -35,6 +35,7 @@
+ #include <linux/list.h>
+ #include <linux/io.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pinctrl/consumer.h>
+ 
+ #include <linux/can.h>
+ #include <linux/can/dev.h>
+@@ -587,6 +588,21 @@ static int c_can_chip_config(struct net_device *dev)
+ 	return c_can_set_bittiming(dev);
+ }
+ 
++/*
++ * Selects the pinctrl state specified in the name.
++ */
++static void c_can_pinctrl_select_state(struct c_can_priv *priv,
++				      const char *name)
++{
++	if (!IS_ERR(priv->pinctrl)) {
++		struct pinctrl_state *s;
++
++		s = pinctrl_lookup_state(priv->pinctrl, name);
++		if (!IS_ERR(s))
++			pinctrl_select_state(priv->pinctrl, s);
++	}
++}
++
+ static int c_can_start(struct net_device *dev)
+ {
+ 	struct c_can_priv *priv = netdev_priv(dev);
+@@ -603,6 +619,8 @@ static int c_can_start(struct net_device *dev)
+ 
+ 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+ 
++	/* activate pins */
++	c_can_pinctrl_select_state(priv, PINCTRL_STATE_DEFAULT);
+ 	return 0;
+ }
+ 
+@@ -611,6 +629,9 @@ static void c_can_stop(struct net_device *dev)
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 
+ 	c_can_irq_control(priv, false);
++
++	/* deactivate pins */
++	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP);
+ 	priv->can.state = CAN_STATE_STOPPED;
+ }
+ 
+@@ -1244,6 +1265,22 @@ int register_c_can_dev(struct net_device *dev)
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 	int err;
+ 
++	priv->pinctrl = devm_pinctrl_get(dev->dev.parent);
++	if (!IS_ERR(priv->pinctrl)) {
++		struct pinctrl_state *s;
++
++		/* Deactivate pins to prevent DRA7 DCAN IP from being
++		 * stuck in transition when module is disabled.
++		 * Pins are activated in c_can_start() and deactivated
++		 * in c_can_stop()
++		 */
++		s = pinctrl_lookup_state(priv->pinctrl, PINCTRL_STATE_SLEEP);
++		if (!IS_ERR(s))
++			pinctrl_select_state(priv->pinctrl, s);
++	} else {
++		netdev_dbg(dev, "failed to get pinctrl\n");
++	}
++
+ 	c_can_pm_runtime_enable(priv);
+ 
+ 	dev->flags |= IFF_ECHO;	/* we support local echo */
+diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+index c6715ca..3cedf48 100644
+--- a/drivers/net/can/c_can/c_can.h
++++ b/drivers/net/can/c_can/c_can.h
+@@ -210,6 +210,7 @@ struct c_can_priv {
+ 	u32 comm_rcv_high;
+ 	u32 rxmasked;
+ 	u32 dlc[C_CAN_MSG_OBJ_TX_NUM];
++	struct pinctrl *pinctrl;
+ };
+ 
+ struct net_device *alloc_c_can_dev(void);
+-- 
+1.8.3.2
