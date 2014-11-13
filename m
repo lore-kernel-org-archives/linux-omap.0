@@ -1,50 +1,65 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: N900 modem support in 3.18-rc1
-Date: Thu, 13 Nov 2014 20:18:04 +0200
-Message-ID: <20141113181803.GB984@fuloong-minipc.musicnaut.iki.fi>
-References: <20141104205117.GA17606@amd>
- <201411052137.31452@pali>
- <20141105203918.GA29199@amd>
- <201411052206.05379@pali>
- <20141105220359.GA32052@amd>
- <20141105234555.GA7097@earth.universe>
- <20141106124711.GA26944@amd>
- <20141106180335.GA21513@earth.universe>
- <20141113162155.GA8512@xo-6d-61-c0.localdomain>
- <20141113174534.GO26481@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
+ devconf1 register
+Date: Thu, 13 Nov 2014 10:28:49 -0800
+Message-ID: <20141113182848.GQ26481@atomide.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
+ <1415051968-4878-5-git-send-email-marek@goldelico.com>
+ <5463585D.9070209@ti.com>
+ <20141112150210.GC26481@atomide.com>
+ <5464969F.30708@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:38600 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932648AbaKMSSM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 13:18:12 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20141113174534.GO26481@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5464969F.30708-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org, grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, freemangordon@abv.bg
 
-Hi,
-
-On Thu, Nov 13, 2014 at 09:45:36AM -0800, Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [141113 08:23]:
-> > OTOH ofono seems pretty reasonable. So I played a bit, and result
-> > is python/pygtk gui which can receive an sms, initiate a call, and
-> > report missed call. If someone wants to play, source is at
-> > 
-> > https://gitorious.org/tui/tui/source/b6141107e9341a1412720aed4b0d09143dfa2f4e:ofone
+* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [141113 03:33]:
+> On 12/11/14 17:02, Tony Lindgren wrote:
 > 
-> Pavel, care to fill in the the following type patch with some
-> instructions in the description now that you got it working?
+> >> And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
+> >> places in the kernel. I wonder if adding a pinmux entry for it could
+> >> cause some rather odd problems.
+> > 
+> > They can all use pinctrl-single no problem.
+> 
+> Can, but don't. That's my worry. If we touch the DEVCONF1 via pinmux,
+> and we have code in mach-omap2 that also touch DEVCONF1, without any
+> knowledge (and locking) between those...
 
-Could we even have some "permanent" instructions under Documentation/?
+Hmm yeah the McBSP clock mux could be racy as the mux register for
+McBSP is treated as a clock. This register muxes the clock between
+external pin and internal clock. Considering that this should be
+selectable at board level as the external clock probably needs to be
+used if level shifters are being used, it should be really handled by
+pinctrl-single.
 
-> I did not have luck yet when I tried. I got the /dev/cmt/*
-> entries after adding pm=1 param, but no luck scanning any networks.
+The other use for hsmmc.c and pdata-quirks.c for the one time mux for
+MMC clock from the MMC clock pin. That can be done with pinctrl-single
+from the MMC driver too for DT based booting.
 
-I haven't tested anything yet, but looking forward to do that during
-the weekend... Sounds pretty exciting. :-)
+Then we just have the save and restore of the registers for
+off-idle.
+ 
+> So _maybe_ that's not an issue, as the pinmux config we have here is
+> fixed, and done once at boot time, and maybe the code in mach-omap2 that
+> touch DEVCONF1 is also ran just once and not at the same time as the
+> pinmux. But I don't know if that's so.
 
-A.
+It seems we could just do a read-only check for McBSP in the clock
+code for the mux register, or even completely drop that code from
+cclock3xxx_data.c and start using the pinctrl for that mux.
+
+Paul & Tero, got any comments here?
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
