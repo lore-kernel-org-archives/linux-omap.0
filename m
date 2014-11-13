@@ -1,55 +1,59 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 8/8] net: can: c_can: Add support for TI am3352 DCAN
-Date: Thu, 13 Nov 2014 17:06:58 +0100
-Message-ID: <20141113160658.GB1275@katana>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com>
- <1415371762-29885-9-git-send-email-rogerq@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Thu, 13 Nov 2014 17:21:55 +0100
+Message-ID: <20141113162155.GA8512@xo-6d-61-c0.localdomain>
+References: <20141104205117.GA17606@amd>
+ <201411052137.31452@pali>
+ <20141105203918.GA29199@amd>
+ <201411052206.05379@pali>
+ <20141105220359.GA32052@amd>
+ <20141105234555.GA7097@earth.universe>
+ <20141106124711.GA26944@amd>
+ <20141106180335.GA21513@earth.universe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Pd0ReVV5GZGQvF3a"
-Return-path: <linux-can-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1415371762-29885-9-git-send-email-rogerq@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: wg@grandegger.com, mkl@pengutronix.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+In-Reply-To: <20141106180335.GA21513@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
 
+Hi!
 
---Pd0ReVV5GZGQvF3a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > I actually had pm=0 on the command line, but I removed it now, and no
+> > change: [...]
+> > 
+> > Let me try with explicit =1. .. aha, that helps. Thanks!
+> 
+> mh seems I actually missed to make 1 the default value. I will
+> prepare a patch for that.
+> 
+> I assume, that the example ofono commands work for you now?
 
-On Fri, Nov 07, 2014 at 04:49:22PM +0200, Roger Quadros wrote:
-> AM3352 SoC has 2 DCAN modules. Add compatible id and
-> raminit driver data for am3352 DCAN.
->=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+Yes, it now works great.
 
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
+> > Do you have an example client that can talk to ofonod?
+> 
+> I have not yet played with userland stuff. You could try
+> telepathy-ring, which integrates the ofono into the telepathy
+> framework.
+
+Ok, I took a look, and telepathy-ring is not in debian, and has
+a lot of dependencies.
+
+OTOH ofono seems pretty reasonable. So I played a bit, and result
+is python/pygtk gui which can receive an sms, initiate a call, and
+report missed call. If someone wants to play, source is at
+
+https://gitorious.org/tui/tui/source/b6141107e9341a1412720aed4b0d09143dfa2f4e:ofone
+
+Best regards,
+									Pavel
 
 
---Pd0ReVV5GZGQvF3a
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUZNciAAoJEBQN5MwUoCm2r5wQAKJ6jZC7x/RSLmp+JTKLeeuB
-RhNrk0tkk93UuSTlCWmtlfv2dQE+9AJ5YaWx571bJSgwQOGv5wbeHJAHhlO+UKuQ
-L43RbkvevgVcdiewteazzOIev5xcMaZv4KE6lGGKpYrzo8Jcd3yyFAE+5xe/Hhr3
-c0/QoS1aGnk/J7b8UK5wdhvrIukesMJ0MTBzhzFuvfhHrZPDZk32iQ4CRAcZPsCT
-VTbswvnP2sHXwQuEvu+ujJaWv8Ibq2SxsjwfGcUVQTy2vAQo4pl3PgWa8YIZTZUR
-XbEroF3dtgVhX7VSheUdUeZR2Dm5/sf92sO+Uq2PWgVTGMeACOleS+47U6RrAOQj
-SX4OinfLJps2o6EKQz99Ft/mUCCGClgW39GFZ4v+9I14Khi8bSeUp2hu2TqjCG8H
-WpGCA16pYnFecMmnWPxuHSQoRP7DWhaLUeyY/hXh5/NAZDzM66R9GZdZbR7+JsV1
-C3R2VfjDhAeg6V+5klkQAZ9Gt5zV06tDRnP0y7JHtwqY7HVQq7SQgZeybH+h13Zi
-rsdBRhhynKHhAZxO60BvSfO6F5Mrwi4mAgGlo33Zo692S00hqtWlaPCEa3H/WL0v
-BVXGmVKzgxAKhK3L+FvgrGpw2hthW5AJvqeNqYszaevNRoOba719CH6IFZ4ajs8M
-RhR5qsBICnBDI+a7f1HS
-=JgWW
------END PGP SIGNATURE-----
-
---Pd0ReVV5GZGQvF3a--
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
