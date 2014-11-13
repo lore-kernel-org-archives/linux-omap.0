@@ -1,59 +1,102 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 10/10] ARM: dts: am335x-evm: Add DCAN1 details
-Date: Thu, 13 Nov 2014 14:22:51 +0200
-Message-ID: <1415881371-4982-11-git-send-email-rogerq@ti.com>
-References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
+Date: Thu, 13 Nov 2014 17:53:17 +0530
+Message-ID: <5464A2B5.3020207@ti.com>
+References: <1414408111-2631-1-git-send-email-vigneshr@ti.com>	<20141103180920.GA20779@localhost.localdomain>	<545B2651.4090905@ti.com> <CAJKbBDDyShaJkzzfdFs07EK5gDUfwqWiv39Qi4FVSvRrfc6_fA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46227 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932793AbaKMMXs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 07:23:48 -0500
-In-Reply-To: <1415881371-4982-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJKbBDDyShaJkzzfdFs07EK5gDUfwqWiv39Qi4FVSvRrfc6_fA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johannes Pointner <johannes.pointner@gmail.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Samuel Ortiz <sameo@linux.intel.com>, Jan Kardell <jan.kardell@telliq.com>, linux-iio <linux-iio@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Meerwald <pmeerw@pmeerw.net>, Hartmut Knaack <knaack.h@gmx.de>, linux-om
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 
-DCAN1 is routed to CAN port (J11) when Profile 1 is selected on the
-profile selection switch.
-Provide information for DCAN1 pins and node but keep it disabled
-by default. User has to manually enable it if Profile 1 is chosen.
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/am335x-evm.dts | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+On Wednesday 12 November 2014 06:30 PM, Johannes Pointner wrote:
+> Hello Vignesh,
+> 
+> I tried your patch version 3 on a customized board and had some
+> behavior I couldn't explain.
+> If I only use the touchscreen it works fine but if I also read values
+> from the ADCs then I get a lot of pen_up events even if I am still
+> touching the screen.
+> For the test I read via
+> # cat /sys/bus/iio/devices/iio\:device0/in_voltage5_raw
+> values from the ADC in an busy loop as you explained in an email
+> before. Did you also experience such behavior or do you know what
+> causes it?
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index e2156a5..e3d0b39 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -307,6 +307,13 @@
- 			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE4) /* rmii1_ref_clk.mcasp1_axr3 */
- 		>;
- 	};
-+
-+	dcan1_pins_default: dcan1_pins_default {
-+		pinctrl-single,pins = <
-+			0x168 (PIN_OUTPUT | MUX_MODE2) /* uart0_ctsn.d_can1_tx */
-+			0x16c (PIN_INPUT_PULLDOWN | MUX_MODE2) /* uart0_rtsn.d_can1_rx */
-+		>;
-+	};
- };
- 
- &uart0 {
-@@ -664,3 +671,9 @@
- &aes {
- 	status = "okay";
- };
-+
-+&dcan1 {
-+	status = "disabled";	/* Enable only if Profile 1 is selected */
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dcan1_pins_default>;
-+};
--- 
-1.8.3.2
+Thanks for testing. I was able to fix this issue. Will post version 4
+shortly.
 
+Regards
+Vignesh
+
+> 
+> Without the patches the touchscreen works fine during the iio test.
+> 
+> Thanks,
+> Hannes
+> 
+> 2014-11-06 8:42 GMT+01:00 Vignesh R <vigneshr@ti.com>:
+>>
+>>
+>> On Monday 03 November 2014 11:39 PM, Richard Cochran wrote:
+>>> On Mon, Oct 27, 2014 at 04:38:27PM +0530, Vignesh R wrote:
+>>>> This series of patches fix TSC defects related to lag in touchscreen
+>>>> performance and cursor jump at touch release. The lag was result of
+>>>> udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
+>>>> The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
+>>>> to avoid false pen-up events and remove udelay.
+>>>
+>>> That advisory has two workarounds. You have chosen the second one?
+>>
+>> Work around one. Hence 5 wire design is not broken.
+>>
+>>>
+>>> The text of the second workaround says it only works on 4 wire setups,
+>>> so I wonder how 5 wire designs will be affected.
+>>>
+>>>> The advisory says to use
+>>>> steps 1 to 4 for ADC and 5 to 16 for TSC (assuming 4 wire TSC and 4 channel
+>>>> ADC).
+>>>
+>>> No, it doesn't say that. (sprz360f.pdf)
+>>
+>> The pen up event detection happens immediately after charge step. Hence,
+>> interchanging ADC and TSC steps makes sure that sampling of touch
+>> co-ordinates and pen events are done one after the other. This
+>> workaround was suggested by internal hardware folks. Earlier ADC steps
+>> intervened between sampling of co-ordinates and pen event detection
+>> which is not desirable.
+>>
+>>>
+>>>> Further the X co-ordinate must be the last one to be sampled just
+>>>> before charge step. The first two patches implement the required changes.
+>>>
+>>> FWIW, I implemented the first workaround and removed the udelay not
+>>> too long ago. Like Sebastian, I saw the TSC unit hang after about
+>>> 50000 interrupts when running with the workaround.
+>>>
+>>> Did you test you patch for very long?
+>>
+>> Yes, I tested for about 200000 interrupts and I didn't see any hang.
+>> This patch series does not just implement workaround but also does some
+>> minor changes, such as interchanging ADC and TSC steps etc, which makes
+>> TSC driver more robust. Let me know if you encounter any issues with my
+>> patch series.
+>>
+>> Regards
+>> Vignesh
+>>
+>>>
+>>> Thanks,
+>>> Richard
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
