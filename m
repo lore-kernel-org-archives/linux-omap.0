@@ -1,67 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 06/10] ARM: dts: am4372: Add DCAN nodes
-Date: Thu, 13 Nov 2014 09:40:44 -0800
-Message-ID: <20141113174044.GN26481@atomide.com>
-References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
- <1415881371-4982-7-git-send-email-rogerq@ti.com>
- <5464BB38.7020402@pengutronix.de>
- <5464C2C4.2070907@ti.com>
- <5464C3B1.2030908@pengutronix.de>
- <5464C4E8.9060103@ti.com>
- <5464C609.9070800@pengutronix.de>
+From: Suman Anna <s-anna@ti.com>
+Subject: Re: [PATCHv2] rpmsg: compute number of buffers to allocate from vrings
+Date: Thu, 13 Nov 2014 11:46:04 -0600
+Message-ID: <5464EE5C.8090904@ti.com>
+References: <1410892387-30596-1-git-send-email-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-can-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5464C609.9070800@pengutronix.de>
-Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1410892387-30596-1-git-send-email-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Marc Kleine-Budde <mkl@pengutronix.de> [141113 06:55]:
-> On 11/13/2014 03:49 PM, Roger Quadros wrote:
-> > On 11/13/2014 04:44 PM, Marc Kleine-Budde wrote:
-> >> On 11/13/2014 03:40 PM, Roger Quadros wrote:
-> >>> On 11/13/2014 04:07 PM, Marc Kleine-Budde wrote:
-> >>>> On 11/13/2014 01:22 PM, Roger Quadros wrote:
-> >>>>> The SoC contains 2 DCAN modules. Add them.
-> >>>>>
-> >>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>>>> ---
-> >>>>>  arch/arm/boot/dts/am4372.dtsi | 22 ++++++++++++++++++++++
-> >>>>>  1 file changed, 22 insertions(+)
-> >>>>>
-> >>>>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> >>>>> index 899c57c..12fb1db 100644
-> >>>>> --- a/arch/arm/boot/dts/am4372.dtsi
-> >>>>> +++ b/arch/arm/boot/dts/am4372.dtsi
-> >>>>> @@ -901,6 +901,28 @@
-> >>>>>  			compatible = "mmio-sram";
-> >>>>>  			reg = <0x40300000 0x40000>; /* 256k */
-> >>>>>  		};
-> >>>>> +
-> >>>>> +		dcan0: can@481cc000 {
-> >>>>> +			compatible = "ti,am3352-d_can";
-> >>>>
-> >>>> You should add "ti,am4372-d_can" as first compatible here.
-> >>>>
-> >>> We don't have a separate compatible id for am4372-d_can
-> >>> as it the IP exactly same as am3352-d_can.
-> >>
-> >> Having the "ti,am4372-d_can" compatible gives you the freedom to add
-> >> some spacial handling for the IP if there turns that you need to without
-> >> needing to modify the device tree. (We do this on imx.)
-> > 
-> > Agreed. On OMAP platforms we don't add new compatible IDs unless we really need to.
-> > Can we add "ti,am4372-d_can" even if it is not mentioned in Documentation/devicetree/bindings?
-> > 
-> > Tony what is your preference?
+Hi Ohad,
+
+On 09/16/2014 01:33 PM, Suman Anna wrote:
+> The buffers to be used for communication are allocated during the
+> rpmsg virtio driver's probe, and the total number of buffers is
+> currently hard-coded to 512. The vring configuration can vary from
+> one platform to another or between different remote processors. The
+> setup of the receive buffers will throw a WARN_ON if the associated
+> vrings are configured with less than 256 buffers (in each direction).
+> So, adjust this hard-coded value to rely on the number of buffers the
+> virtqueue vring is setup with, but also limit to use 256 buffers at
+> most in each direction to avoid wacky resource tables consuming up
+> unreasonable memory.
 > 
-> I don't insist, do it the Omap way :)
+> NOTE: The number of buffers is already assumed to be symmetrical
+> in each direction, and that logic is not unchanged.
+> 
+> Signed-off-by: Suman Anna <s-anna@ti.com>
+> ---
+> v2 changes:
+> - add upper limit on buffers and update comments
+> - revise patch description
 
-I agree it's good to add if we need to add custom handling later on.
+Any comments on this one, if not can you pick this up for 3.19?
 
-Regards,
-
-Tony
+regards
+Suman
