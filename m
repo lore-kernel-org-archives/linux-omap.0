@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 06/10] ARM: dts: am4372: Add DCAN nodes
-Date: Thu, 13 Nov 2014 14:22:47 +0200
-Message-ID: <1415881371-4982-7-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 07/10] arm: dts: am437x-gp: Add dcan support
+Date: Thu, 13 Nov 2014 14:22:48 +0200
+Message-ID: <1415881371-4982-8-git-send-email-rogerq@ti.com>
 References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,46 +12,61 @@ To: tony@atomide.com
 Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The SoC contains 2 DCAN modules. Add them.
+From: Mugunthan V N <mugunthanvnm@ti.com>
 
+Add DCAN support for AM437x GP EVM with both DCAN instances.
+
+[Roger Q] Updated output pin to not use pull up.
+
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Signed-off-by: George Cherian <george.cherian@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/boot/dts/am4372.dtsi | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ arch/arm/boot/dts/am437x-gp-evm.dts | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 899c57c..12fb1db 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -901,6 +901,28 @@
- 			compatible = "mmio-sram";
- 			reg = <0x40300000 0x40000>; /* 256k */
- 		};
-+
-+		dcan0: can@481cc000 {
-+			compatible = "ti,am3352-d_can";
-+			ti,hwmods = "d_can0";
-+			clocks = <&dcan0_fck>;
-+			clock-names = "fck";
-+			reg = <0x481cc000 0x2000>;
-+			syscon-raminit = <&am43xx_control_module 0x644 0>;
-+			interrupts = <GIC_SPI 52 IRQ_TYPE_LEVEL_HIGH>;
-+			status = "disabled";
-+		};
-+
-+		dcan1: can@481d0000 {
-+			compatible = "ti,am3352-d_can";
-+			ti,hwmods = "d_can1";
-+			clocks = <&dcan1_fck>;
-+			clock-names = "fck";
-+			reg = <0x481d0000 0x2000>;
-+			syscon-raminit = <&am43xx_control_module 0x644 1>;
-+			interrupts = <GIC_SPI 49 IRQ_TYPE_LEVEL_HIGH>;
-+			status = "disabled";
-+		};
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index e7ac47f..58594fd 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -254,6 +254,20 @@
+ 			0x238 (PIN_OUTPUT_PULLUP | MUX_MODE7)
+ 		>;
  	};
++
++	dcan0_default: dcan0_default_pins {
++		pinctrl-single,pins = <
++			0x178 (PIN_OUTPUT | MUX_MODE2)		/* uart1_ctsn.d_can0_tx */
++			0x17c (PIN_INPUT_PULLUP | MUX_MODE2)	/* uart1_rtsn.d_can0_rx */
++		>;
++	};
++
++	dcan1_default: dcan1_default_pins {
++		pinctrl-single,pins = <
++			0x180 (PIN_OUTPUT | MUX_MODE2)		/* uart1_rxd.d_can1_tx */
++			0x184 (PIN_INPUT_PULLUP | MUX_MODE2)	/* uart1_txd.d_can1_rx */
++		>;
++	};
  };
  
+ &i2c0 {
+@@ -511,3 +525,15 @@
+ 		};
+ 	};
+ };
++
++&dcan0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&dcan0_default>;
++	status = "okay";
++};
++
++&dcan1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&dcan1_default>;
++	status = "okay";
++};
 -- 
 1.8.3.2
 
