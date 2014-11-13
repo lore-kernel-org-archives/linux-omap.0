@@ -1,76 +1,66 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
-Date: Thu, 13 Nov 2014 13:29:22 +0200
-Message-ID: <54649612.8090402@ti.com>
-References: <1415185258-11747-1-git-send-email-rogerq@ti.com> <20141106180333.GZ31454@atomide.com> <545C9267.7060301@ti.com> <545C97AB.4040402@ti.com> <20141107224832.GG31454@atomide.com> <545FC08D.8000008@pek-sem.com> <20141112180253.GJ26481@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
+ devconf1 register
+Date: Thu, 13 Nov 2014 13:31:43 +0200
+Message-ID: <5464969F.30708@ti.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com> <1415051968-4878-5-git-send-email-marek@goldelico.com> <5463585D.9070209@ti.com> <20141112150210.GC26481@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20141112180253.GJ26481@atomide.com>
-Sender: stable-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, pekon <pekon@pek-sem.com>, "Rini, Tom" <trini@ti.com>
-Cc: computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="DMCMabk2ehAkTPpWcefgGcbx1ANQjpQ4x"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141112150210.GC26481@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Marek Belisko <marek@goldelico.com>, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
 
-On 11/12/2014 08:02 PM, Tony Lindgren wrote:
-> * pekon <pekon@pek-sem.com> [141109 11:31]:
->> On Saturday 08 November 2014 04:18 AM, Tony Lindgren wrote:
->>>
->>> Right. I doubt anybody has bch8 rootfs on LDP.. And considering u-boot
->>> must be ham1 to boot at all, that's what we should change for the
->>> devices that do not have not standardized on bch8.
->>>
->> My view on this is slightly different:
->> - Lately, everyone seems to have migrated to BCH8.
->>
->> - Also HAM1 does not have strength to fix bitflips in aging NAND. So if
->> someone already has OMAP3-LDP deployed on field then its NAND would have
->> already aged to such an extend that HAM1 may not be sufficient.
-> 
-> OK so it makes sense to keep it as BCH8 then. Would be nice to get
-> the writing u-boot from kernel issue fixed somehow though as people
-> are hitting that for sure.
+--DMCMabk2ehAkTPpWcefgGcbx1ANQjpQ4x
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-What about performance impact? OMAP3 doesn't have ELM module. So error location
-for BCH8 has to be done in software.
+On 12/11/14 17:02, Tony Lindgren wrote:
 
->  
->> My question is..
->> Moving back to HAM1 should be decided based on statistics rather than rule
->> of breaking backward compatibility. So please review:
->> (1) How many user of OMAP3-Zoom or other old boards complaining about using
->> BCH8 in mainline kernel? OR
-> 
-> 0
-> 
->> (2) How many users of OMAP3 legacy boards are migrating to newer kernel?
-> 
-> Quite a few for sure, but are probably also using rootfs on MMC instead.
->  
->> At-least I have not, rather most of the OMAP3 users I interacted via TI's
->> E2E forum wanted to migrate to BCH8 or even BCH16, as HAM1 was not
->> sufficient for their usage.
->>
->> So whatever you decide on this topic, please be cautious that you don't
->> re-invent work for yourself, as I did. It took me lot of time and testing
->> effort on multiple boards to migrate HAM1 to BCH8, And add BCH16 for newer
->> devices.
-> 
-> Right no objections to using BCH8 for rootfs, except it stopped working
-> over past year or so.
+>> And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
+>> places in the kernel. I wonder if adding a pinmux entry for it could
+>> cause some rather odd problems.
+>=20
+> They can all use pinctrl-single no problem.
 
-This would be BCH8-sw on OMAP3 right? AM3xx uses BCH8-hw and that seems to work fine.
-So it seems nobody has used/tested BCH8-sw.
+Can, but don't. That's my worry. If we touch the DEVCONF1 via pinmux,
+and we have code in mach-omap2 that also touch DEVCONF1, without any
+knowledge (and locking) between those...
 
-> 
-> And it seems the settings should be partition specific because of u-boot
-> requiring HAM1.
-> 
-I don't think we have partition specific ECC scheme support in u-boot or kernel,
-so it will become messy to manage.
-That means we either stick with HAM1 for all partitions or don't support NAND boot
-at all and go with any other ECC scheme for OMAP3.
+So _maybe_ that's not an issue, as the pinmux config we have here is
+fixed, and done once at boot time, and maybe the code in mach-omap2 that
+touch DEVCONF1 is also ran just once and not at the same time as the
+pinmux. But I don't know if that's so.
 
-cheers,
--roger
+ Tomi
+
+
+
+--DMCMabk2ehAkTPpWcefgGcbx1ANQjpQ4x
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUZJafAAoJEPo9qoy8lh71jJgP/3qSP8qsUyziPLpWjcX37leM
+NlMTt9xjQ6B8aNIUWDaso5CpfJmsO47I5S5coKcCDAtnyyRZdp1bGg6MtEhxWOoy
+mP0WfoZDzMrQh/j7IASwHe8R9MlHPCSa/+IBmG5BsqRCPaxrDULM8E6aGn3noKo1
+uI7XCossptOUjKhR6NxXaXKR0uqDZfkmCHvsVwNLj1mQiQAuns271AGkCVSUHlWN
+SN+gzxpg367m5DSAXuodLJZ8Vv+fC7Bkl1iDYrSO6zHAPlcPchxCeM9/iFZRzC12
+EAeSYTEQ1jrxiE3XReqNcqDP+/Pb2PDL6lapPMdawhuuFVRKF5X4yKpiNsdMQ8Uf
+qz1uiJN9E+fvewd0AVcndkLhkqwrWDDsFlgNHXM4xIpUHlSofurAhUMOtsy3OTse
+FErYnbNwz5Ls0XWta1OYmXUpwlc6Uy0JFaXdpCiIEpryzqbqYoVpuVuFreciFuGk
+VkoD1n1UkYRqaJW+phdfQxn+OFW/MO/m496rYvoQtCRqd4GRrh5mCVePYQ5ALZD2
+TUwtC+b41ynOO41SBMMAIHLMF0b8nxv4jv6fm1HXT1OI45ba6wxN8UTz0rzat5nE
+UQuvXYRDu+cssCiZq2OXRndj46cai21CZ8w6xpaaQDWbnBNKc3RRTjHHeHc1uKWu
+Xh0V0i2cC29uQe+PqAcE
+=U/8Y
+-----END PGP SIGNATURE-----
+
+--DMCMabk2ehAkTPpWcefgGcbx1ANQjpQ4x--
