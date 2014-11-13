@@ -1,47 +1,80 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 4/8] net: can: c_can: Add syscon/regmap RAMINIT mechanism
-Date: Thu, 13 Nov 2014 14:09:10 +0200
-Message-ID: <54649F66.8090305@ti.com>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-5-git-send-email-rogerq@ti.com> <54649153.409@pengutronix.de>
+Subject: [PATCH v4 00/10] ARM: dts: TI: Add CAN support
+Date: Thu, 13 Nov 2014 14:22:41 +0200
+Message-ID: <1415881371-4982-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45785 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932419AbaKMMJi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 07:09:38 -0500
-In-Reply-To: <54649153.409@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
-On 11/13/2014 01:09 PM, Marc Kleine-Budde wrote:
-> On 11/07/2014 03:49 PM, Roger Quadros wrote:
->> Some TI SoCs like DRA7 have a RAMINIT register specification
->> different from the other AMxx SoCs and as expected by the
->> existing driver.
->>
->> To add more insanity, this register is shared with other
->> IPs like DSS, PCIe and PWM.
->>
->> Provides a more generic mechanism to specify the RAMINIT
->> register location and START/DONE bit position and use the
->> syscon/regmap framework to access the register.
-> 
-> What about the existing device trees that don't have the syscon-raminit
-> phandle? We can either keep the existing init routines or create regmap
-> in the platform driver an use the new ones.
+Hi Tony,
 
-There is only one user
-arch/arm/boot/dts/am33xx.dtsi
+These patches add CAN support for am33xx, am43xx and dra7 platforms.
+They can go in independent of [1] but depend on [1] for functionality.
 
-The can nodes are disabled there and no other board file is enabling that node.
-So there is no breakage as such and not worth the hassle to maintain the old routine.
+Tested on am335x-evm, am437x-gp-evm and dra7-evm.
 
-I will be sending the corresponding dts changes today which Tony will take as we don't see
-any DT binding changes.
+NOTE:
+- for DCAN to work on DRA7 we need this patch to keep the CAN PHY powered.
+https://lkml.org/lkml/2014/10/21/484
+
+- on DRA7 there is another issue which causes undesired behaviour if WKUPAON and
+L4CFG clock domains are allowed to HW_AUTO. Undesired behaviour is in the form
+of DCAN1 module being stuck-in-transition when disabled and RAMINIT-done bit
+not getting set as part of RAMINIT mechanism. To address these issues there is a patch
+to prevent these clockdomains from HW_AUTO.
+https://github.com/rogerq/linux/commit/31d6da939dbbaf8ea2ab96ca5680b81cd5607e51
+Even without this second patch DCAN seems to work.
 
 cheers,
 -roger
+
+Changelog:
+
+v4:
+- added CAN instance number to "syscon-raminit" and use new compatible ids
+
+v3:
+- Move raminit register data into driver data
+- rename syscon property to "syscon-raminit"
+
+v2:
+- Added vendor prefix "ti," to raminit properties
+- Updated am335x dcan nodes
+
+[1] - CAN driver RAMINIT Syscon support
+http://article.gmane.org/gmane.linux.can/6892
+
+cheers,
+-roger
+
+---
+Mugunthan V N (1):
+  arm: dts: am437x-gp: Add dcan support
+
+Roger Quadros (9):
+  ARM: dts: dra7: Add syscon regmap for CORE CONTROL area
+  ARM: dts: DRA7: Add DCAN nodes
+  ARM: dts: dra7-evm: Add CAN support
+  ARM: dts: dra72-evm: Add CAN support
+  ARM: dts: am4372: Add control module syscon node
+  ARM: dts: am4372: Add DCAN nodes
+  ARM: dts: am33xx: Add control module syscon node
+  ARM: dts: am33xx: Update DCAN nodes
+  ARM: dts: am335x-evm: Add DCAN1 details
+
+ arch/arm/boot/dts/am335x-evm.dts    | 13 +++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi       | 25 +++++++++++++++++--------
+ arch/arm/boot/dts/am4372.dtsi       | 27 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts | 26 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7-evm.dts      | 23 +++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi         | 27 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra72-evm.dts     | 23 +++++++++++++++++++++++
+ 7 files changed, 156 insertions(+), 8 deletions(-)
+
+-- 
+1.8.3.2
+
