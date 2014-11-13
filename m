@@ -1,40 +1,50 @@
-From: Adam YH Lee <adam.yh.lee@gmail.com>
-Subject: [PATCH] ARM: Gumstix DuoVero: Bind vdac regulator to hdmi node
-Date: Thu, 13 Nov 2014 10:04:33 -0800
-Message-ID: <1415901873-5304-1-git-send-email-adam.yh.lee@gmail.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Thu, 13 Nov 2014 20:18:04 +0200
+Message-ID: <20141113181803.GB984@fuloong-minipc.musicnaut.iki.fi>
+References: <20141104205117.GA17606@amd>
+ <201411052137.31452@pali>
+ <20141105203918.GA29199@amd>
+ <201411052206.05379@pali>
+ <20141105220359.GA32052@amd>
+ <20141105234555.GA7097@earth.universe>
+ <20141106124711.GA26944@amd>
+ <20141106180335.GA21513@earth.universe>
+ <20141113162155.GA8512@xo-6d-61-c0.localdomain>
+ <20141113174534.GO26481@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:38937 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932866AbaKMSFE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 13:05:04 -0500
-Received: by mail-pa0-f44.google.com with SMTP id et14so946101pad.3
-        for <linux-omap@vger.kernel.org>; Thu, 13 Nov 2014 10:05:03 -0800 (PST)
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:38600 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932648AbaKMSSM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 13:18:12 -0500
+Content-Disposition: inline
+In-Reply-To: <20141113174534.GO26481@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: florian.vaussard@epfl.ch, Adam YH Lee <adam.yh.lee@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Sebastian Reichel <sre@kernel.org>, Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, freemangordon@abv.bg
 
-The HDMI node does not have a power supply attached. As a result its
-power regulator, VDAC, shuts off on boot and screen loses signal.
-This attaches VDAC (vdda_hdmi_dac) to HDMI's vdda-supply.
+Hi,
 
-Signed-off-by: Adam YH Lee <adam.yh.lee@gmail.com>
----
- arch/arm/boot/dts/omap4-duovero-parlor.dts | 1 +
- 1 file changed, 1 insertion(+)
+On Thu, Nov 13, 2014 at 09:45:36AM -0800, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [141113 08:23]:
+> > OTOH ofono seems pretty reasonable. So I played a bit, and result
+> > is python/pygtk gui which can receive an sms, initiate a call, and
+> > report missed call. If someone wants to play, source is at
+> > 
+> > https://gitorious.org/tui/tui/source/b6141107e9341a1412720aed4b0d09143dfa2f4e:ofone
+> 
+> Pavel, care to fill in the the following type patch with some
+> instructions in the description now that you got it working?
 
-diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
-index 6dc84d9..1a78f01 100644
---- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
-+++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
-@@ -177,6 +177,7 @@
- 
- &hdmi {
- 	status = "ok";
-+	vdda-supply = <&vdac>;
- 
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&dss_hdmi_pins>;
--- 
-1.9.1
+Could we even have some "permanent" instructions under Documentation/?
 
+> I did not have luck yet when I tried. I got the /dev/cmt/*
+> entries after adding pm=1 param, but no luck scanning any networks.
+
+I haven't tested anything yet, but looking forward to do that during
+the weekend... Sounds pretty exciting. :-)
+
+A.
