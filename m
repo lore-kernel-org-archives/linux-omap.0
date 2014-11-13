@@ -1,340 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
-Date: Thu, 13 Nov 2014 09:40:31 -0800
-Message-ID: <20141113174030.GM26481@atomide.com>
-References: <alpine.DEB.2.10.1409181749170.4206@nanos>
- <20140919030333.GA6088@kahuna>
- <alpine.DEB.2.10.1409190710320.5612@nanos>
- <20140919161927.GA28613@kahuna>
- <alpine.DEB.2.10.1409191027330.5612@nanos>
- <20140919191649.GQ14505@atomide.com>
- <alpine.DEB.2.10.1409191233590.4213@nanos>
- <20141002034345.GH3122@atomide.com>
- <20141106204629.GF31454@atomide.com>
- <alpine.DEB.2.11.1411131053050.3935@nanos>
+Subject: Re: [PATCH v4 06/10] ARM: dts: am4372: Add DCAN nodes
+Date: Thu, 13 Nov 2014 09:40:44 -0800
+Message-ID: <20141113174044.GN26481@atomide.com>
+References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
+ <1415881371-4982-7-git-send-email-rogerq@ti.com>
+ <5464BB38.7020402@pengutronix.de>
+ <5464C2C4.2070907@ti.com>
+ <5464C3B1.2030908@pengutronix.de>
+ <5464C4E8.9060103@ti.com>
+ <5464C609.9070800@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-can-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1411131053050.3935@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Nishanth Menon <nm@ti.com>, lee.jones@linaro.org, LKML <linux-kernel@vger.kernel.org>, devicetree@vger.kernel.org, Keerthy <j-keerthy@ti.com>, Mark Brown <broonie@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, LAK <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@linaro.org>
+In-Reply-To: <5464C609.9070800@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Thomas Gleixner <tglx@linutronix.de> [141113 02:04]:
-> Tony,
-> 
-> On Thu, 6 Nov 2014, Tony Lindgren wrote:
+* Marc Kleine-Budde <mkl@pengutronix.de> [141113 06:55]:
+> On 11/13/2014 03:49 PM, Roger Quadros wrote:
+> > On 11/13/2014 04:44 PM, Marc Kleine-Budde wrote:
+> >> On 11/13/2014 03:40 PM, Roger Quadros wrote:
+> >>> On 11/13/2014 04:07 PM, Marc Kleine-Budde wrote:
+> >>>> On 11/13/2014 01:22 PM, Roger Quadros wrote:
+> >>>>> The SoC contains 2 DCAN modules. Add them.
+> >>>>>
+> >>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >>>>> ---
+> >>>>>  arch/arm/boot/dts/am4372.dtsi | 22 ++++++++++++++++++++++
+> >>>>>  1 file changed, 22 insertions(+)
+> >>>>>
+> >>>>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> >>>>> index 899c57c..12fb1db 100644
+> >>>>> --- a/arch/arm/boot/dts/am4372.dtsi
+> >>>>> +++ b/arch/arm/boot/dts/am4372.dtsi
+> >>>>> @@ -901,6 +901,28 @@
+> >>>>>  			compatible = "mmio-sram";
+> >>>>>  			reg = <0x40300000 0x40000>; /* 256k */
+> >>>>>  		};
+> >>>>> +
+> >>>>> +		dcan0: can@481cc000 {
+> >>>>> +			compatible = "ti,am3352-d_can";
+> >>>>
+> >>>> You should add "ti,am4372-d_can" as first compatible here.
+> >>>>
+> >>> We don't have a separate compatible id for am4372-d_can
+> >>> as it the IP exactly same as am3352-d_can.
+> >>
+> >> Having the "ti,am4372-d_can" compatible gives you the freedom to add
+> >> some spacial handling for the IP if there turns that you need to without
+> >> needing to modify the device tree. (We do this on imx.)
 > > 
-> > Any comments on the patch below? Let me know if you want to keep the
-> > devm stuff out of kernel/irq/manage.c.
+> > Agreed. On OMAP platforms we don't add new compatible IDs unless we really need to.
+> > Can we add "ti,am4372-d_can" even if it is not mentioned in Documentation/devicetree/bindings?
+> > 
+> > Tony what is your preference?
 > 
-> Sorry, this slipped through the cracks.
+> I don't insist, do it the Omap way :)
 
-No problem I should have posted it as a separate thread anyways.
-  
-> > > +static int setup_wakeirq(struct device *dev, unsigned int wakeirq,
-> > > +			 unsigned long wakeflags, bool devm)
-> > > +{
-> > > +	int ret;
-> > > +
-> > > +	if (!(dev && wakeirq)) {
-> > > +		pr_err("Missing device or wakeirq for %s irq %d\n",
-> > > +		       dev_name(dev), wakeirq);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	if (!(wakeflags &
-> > > +	      (IRQF_TRIGGER_LOW | IRQF_TRIGGER_HIGH | IRQF_ONESHOT))) {
-> > > +		pr_err("Invalid wakeirq for %s irq %d, must be level oneshot\n",
-> > > +		       dev_name(dev), wakeirq);
-> 
-> This looks odd.
-> 
-> Why do you want to enforce LEVEL and ONESHOT?  I can see the point for
-> ONESHOT, but I'm wondering about the requirement for level.
-> 
-> Now if you really want to enforce level AND oneshot, your check is
-> wrong as it will not trigger on
-> 
->       wakeflags = IRQF_TRIGGER_LOW;
->       wakeflags = IRQF_TRIGGER_HIGH;
->       wakeflags = IRQF_ONESHOT;
-> 
-> Not what you really want, right?
-
-Hmm yes that's right. I've just added a warning about not replaying
-device interrupts in case somebody passes EDGE. Not sure how useful
-that is, but might get somebody to add more features if really needed.
-
-> > > +int request_wake_irq(struct device *dev, unsigned int wakeirq,
-> > > +		     unsigned long wakeflags)
-> > > +{
-> > > +	return setup_wakeirq(dev, wakeirq, wakeflags, false);
-> > > +}
-> > > +EXPORT_SYMBOL(request_wake_irq);
-> 
->   _GPL please
-
-Sure.
- 
-> > > +
-> > > +int devm_request_wake_irq(struct device *dev, unsigned int wakeirq,
-> > > +			  unsigned long wakeflags)
-> > > +{
-> > > +	return setup_wakeirq(dev, wakeirq, wakeflags, false);
-> 
-> Shouldnt that have devm = true?
-
-Oops thanks for catching that. As the devres stuff is separate, I've
-updated the patch to keep it that way by adding a minimal manage.h.
-This avoids including internals.h in devres.c. Does that seem usable
-for you?
+I agree it's good to add if we need to add custom handling later on.
 
 Regards,
 
 Tony
-
-8< -----------------
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 11 Nov 2014 07:53:55 -0800
-Subject: [PATCH] genirq: Add support for wake-up interrupts to fix irq reentry issues in drivers
-
-As pointed out by Thomas Gleixner, at least omap wake-up interrupts
-have an issue with re-entrant interrupts because the wake-up interrupts
-are now handled as a secondary interrupt controller. Further, the
-wake-up interrupt just needs wake the system at least for omaps. So we
-should make the wake-up interrupt handling generic.
-
-Note that at least initially we are keeping things simple by assuming the
-wake-up interrupt is level sensitive, and the device pm_runtime_resume()
-can deal with the situation, and no replaying of the lost device interrupts
-is needed.
-
-After tinkering with replaying of the lost device interrupts, my opinion is
-that it should be avoided because of the issues listed in the comments of
-this patch.
-
-Let's also add a minimal manage.h to allow us keeping the separation
-of devm functions and without having to include internals.h in devres.c.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/include/linux/interrupt.h
-+++ b/include/linux/interrupt.h
-@@ -139,11 +139,15 @@ extern int __must_check
- request_percpu_irq(unsigned int irq, irq_handler_t handler,
- 		   const char *devname, void __percpu *percpu_dev_id);
- 
-+struct device;
-+
-+extern int __must_check
-+request_wake_irq(struct device *dev, unsigned int wakeirq,
-+		 unsigned long irqflags);
-+
- extern void free_irq(unsigned int, void *);
- extern void free_percpu_irq(unsigned int, void __percpu *);
- 
--struct device;
--
- extern int __must_check
- devm_request_threaded_irq(struct device *dev, unsigned int irq,
- 			  irq_handler_t handler, irq_handler_t thread_fn,
-@@ -163,6 +167,10 @@ devm_request_any_context_irq(struct device *dev, unsigned int irq,
- 		 irq_handler_t handler, unsigned long irqflags,
- 		 const char *devname, void *dev_id);
- 
-+extern int __must_check
-+devm_request_wake_irq(struct device *dev, unsigned int wakeirq,
-+		      unsigned long irqflags);
-+
- extern void devm_free_irq(struct device *dev, unsigned int irq, void *dev_id);
- 
- /*
---- a/kernel/irq/devres.c
-+++ b/kernel/irq/devres.c
-@@ -3,6 +3,8 @@
- #include <linux/device.h>
- #include <linux/gfp.h>
- 
-+#include "manage.h"
-+
- /*
-  * Device resource management aware IRQ request/free implementation.
-  */
-@@ -118,6 +120,30 @@ int devm_request_any_context_irq(struct device *dev, unsigned int irq,
- EXPORT_SYMBOL(devm_request_any_context_irq);
- 
- /**
-+ *	devm_request_wake_irq - request a wake-up interrupt for a device
-+ *	@dev: device to wake on the wake-up interrupt
-+ *	@wakeirq: wake-up interrupt for the device
-+ *	@wakeirq: wake-up interrupt flags
-+ *
-+ *	The wake-up interrupt starts disabled and is typically enabled
-+ *	when needed by the device driver runtime PM calls.
-+ */
-+int devm_request_wake_irq(struct device *dev, unsigned int wakeirq,
-+			  unsigned long wakeflags)
-+{
-+	int ret;
-+
-+	ret = init_disabled_wakeirq(dev, wakeirq, wakeflags);
-+	if (ret)
-+		return ret;
-+
-+	return devm_request_threaded_irq(dev, wakeirq, NULL,
-+					 handle_wakeirq_thread,
-+					 wakeflags, dev_name(dev), dev);
-+}
-+EXPORT_SYMBOL_GPL(devm_request_wake_irq);
-+
-+/**
-  *	devm_free_irq - free an interrupt
-  *	@dev: device to free interrupt for
-  *	@irq: Interrupt line to free
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -14,12 +14,14 @@
- #include <linux/module.h>
- #include <linux/random.h>
- #include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
- #include <linux/sched/rt.h>
- #include <linux/task_work.h>
- 
- #include "internals.h"
-+#include "manage.h"
- 
- #ifdef CONFIG_IRQ_FORCED_THREADING
- __read_mostly bool force_irqthreads;
-@@ -1564,6 +1566,112 @@ int request_any_context_irq(unsigned int irq, irq_handler_t handler,
- }
- EXPORT_SYMBOL_GPL(request_any_context_irq);
- 
-+/**
-+ *	handle_wakeirq_thread - call device runtime pm calls on wake-up interrupt
-+ *	@wakeirq: device specific wake-up interrupt
-+ *	@dev_id: struct device entry
-+ */
-+irqreturn_t handle_wakeirq_thread(int wakeirq, void *dev_id)
-+{
-+	struct device *dev = dev_id;
-+	irqreturn_t ret = IRQ_NONE;
-+
-+	if (pm_runtime_suspended(dev)) {
-+		pm_runtime_mark_last_busy(dev);
-+		pm_request_resume(dev);
-+		ret = IRQ_HANDLED;
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ *	init_disabled_wakeirq - initialize a wake-up interrupt for a device
-+ *	@dev: device to wake up on the wake-up interrupt
-+ *	@wakeirq: wake-up interrupt for the device
-+ *	@wakeflags: wake-up interrupt flags
-+ *
-+ *	Note that the wake-up interrupt starts disabled. The wake-up interrupt
-+ *	is typically enabled from the device pm_runtime_suspend() and disabled
-+ *	again in the device pm_runtime_resume(). For runtime PM, the wake-up
-+ *	interrupt should be always enabled, and for device suspend and resume,
-+ *	the wake-up interrupt should be enabled depending on the device specific
-+ *	configuration for device_can_wakeup().
-+ *
-+ *	Note also that we are not resending the lost device interrupts.
-+ *	We assume that the wake-up interrupt just needs to wake-up the device,
-+ *	and then device pm_runtime_resume() can deal with the situation.
-+ *
-+ *	There are at least the following reasons to not resend the lost device
-+ *	interrupts automatically based on the wake-up interrupt:
-+ *
-+ *	1. There can be interrupt reentry issues calling the device interrupt
-+ *	   based on the wake-up interrupt if done in the device driver. It
-+ *	   could be done with check_irq_resend() after checking the device
-+ *	   interrupt mask if we really wanted to though.
-+ *
-+ *	2. The device interrupt handler would need to be set up properly with
-+ *	   pm_runtime_irq_safe(). Ideally you don't want to call pm_runtime
-+ *	   calls from the device interrupt handler at all.
-+ *
-+ *	3. The IRQ subsystem may not know if it's safe to call the device
-+ *	   interrupt unless the driver updates the interrupt status with
-+ *	   disable_irq() and enable_irq() in addition to just disabling the
-+ *	   interrupt at the hardware level in the device registers.
-+ *
-+ *	So if replaying the lost device interrupts is absolutely needed from the
-+ *	hardware point of view, it's probably best to set up a completely
-+ *	separate wake-up interrupt handler for the wake-up interrupt in the
-+ *	device driver because of the reasons above.
-+ */
-+int init_disabled_wakeirq(struct device *dev, unsigned int wakeirq,
-+			  unsigned long wakeflags)
-+{
-+	if (!(dev && wakeirq)) {
-+		pr_err("Missing device or wakeirq for %s irq %d\n",
-+		       dev_name(dev), wakeirq);
-+		return -EINVAL;
-+	}
-+
-+	if (!(wakeflags & IRQF_ONESHOT)) {
-+		pr_err("Invalid wakeirq for %s irq %d, must be oneshot\n",
-+		       dev_name(dev), wakeirq);
-+		return -EINVAL;
-+	}
-+
-+	if (wakeflags & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING))
-+		pr_warn("Not replaying device IRQs for %s on wakeirq%d\n",
-+			dev_name(dev), wakeirq);
-+
-+	irq_set_status_flags(wakeirq, _IRQ_NOAUTOEN);
-+
-+	return 0;
-+}
-+
-+/**
-+ *	request_wake_irq - request a wake-up interrupt for a device
-+ *	@dev: device to wake on the wake-up interrupt
-+ *	@wakeirq: wake-up interrupt for the device
-+ *	@wakeirq: wake-up interrupt flags
-+ *
-+ *	The wake-up interrupt starts disabled and is typically enabled
-+ *	when needed by the device driver runtime PM calls.
-+ */
-+int request_wake_irq(struct device *dev, unsigned int wakeirq,
-+		     unsigned long wakeflags)
-+{
-+	int ret;
-+
-+	ret = init_disabled_wakeirq(dev, wakeirq, wakeflags);
-+	if (ret)
-+		return ret;
-+
-+	return request_threaded_irq(wakeirq, NULL,
-+				    handle_wakeirq_thread,
-+				    wakeflags, dev_name(dev), dev);
-+}
-+EXPORT_SYMBOL_GPL(request_wake_irq);
-+
- void enable_percpu_irq(unsigned int irq, unsigned int type)
- {
- 	unsigned int cpu = smp_processor_id();
---- /dev/null
-+++ b/kernel/irq/manage.h
-@@ -0,0 +1,11 @@
-+/*
-+ * IRQ subsystem internal management functions and variables:
-+ *
-+ * Do not ever include this file from anything else than
-+ * kernel/irq/. Do not even think about using any information outside
-+ * of this file for your non core code.
-+ */
-+
-+irqreturn_t handle_wakeirq_thread(int wakeirq, void *dev_id);
-+int init_disabled_wakeirq(struct device *dev, unsigned int wakeirq,
-+			  unsigned long wakeflags);
