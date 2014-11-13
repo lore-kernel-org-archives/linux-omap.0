@@ -1,120 +1,171 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v5 6/8] net: can: c_can: Disable pins when CAN interface is
- down
-Date: Thu, 13 Nov 2014 17:23:43 +0200
-Message-ID: <5464CCFF.5010004@ti.com>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [alsa-devel] [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
+Date: Thu, 13 Nov 2014 17:44:38 +0200
+Message-ID: <5464D1E6.4050508@ti.com>
+References: <cover.1415803064.git.jsarha@ti.com> <20141112222344.GU3815@sirena.org.uk> <54646648.5030807@ti.com> <20141113101738.6338bb1c@armhf> <54648149.9070104@ti.com> <20141113160002.7a1157a5@armhf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1415371762-29885-7-git-send-email-rogerq@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47704 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752938AbaKMPou (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Nov 2014 10:44:50 -0500
+In-Reply-To: <20141113160002.7a1157a5@armhf>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-DRA7 CAN IP suffers from a problem which causes it to be prevented
-from fully turning OFF (i.e. stuck in transition) if the module was
-disabled while there was traffic on the CAN_RX line.
+--ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-To work around this issue we select the SLEEP pin state by default
-on probe and use the DEFAULT pin state on CAN up and back to the
-SLEEP pin state on CAN down.
+On 13/11/14 17:00, Jean-Francois Moine wrote:
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/net/can/c_can/c_can.c | 37 +++++++++++++++++++++++++++++++++++++
- drivers/net/can/c_can/c_can.h |  1 +
- 2 files changed, 38 insertions(+)
+> When the tda998x is not operational, the CODEC knows it and reports an
+> error to the audio subsystem on device open. But, once the tda998x has
+> been started, it always stays operational, even without HDMI connection=
+=2E
 
-diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
-index 8e78bb4..c80cb3d 100644
---- a/drivers/net/can/c_can/c_can.c
-+++ b/drivers/net/can/c_can/c_can.c
-@@ -35,6 +35,7 @@
- #include <linux/list.h>
- #include <linux/io.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <linux/can.h>
- #include <linux/can/dev.h>
-@@ -587,6 +588,21 @@ static int c_can_chip_config(struct net_device *dev)
- 	return c_can_set_bittiming(dev);
- }
- 
-+/*
-+ * Selects the pinctrl state specified in the name.
-+ */
-+static void c_can_pinctrl_select_state(struct c_can_priv *priv,
-+				      const char *name)
-+{
-+	if (!IS_ERR(priv->pinctrl)) {
-+		struct pinctrl_state *s;
-+
-+		s = pinctrl_lookup_state(priv->pinctrl, name);
-+		if (!IS_ERR(s))
-+			pinctrl_select_state(priv->pinctrl, s);
-+	}
-+}
-+
- static int c_can_start(struct net_device *dev)
- {
- 	struct c_can_priv *priv = netdev_priv(dev);
-@@ -603,6 +619,8 @@ static int c_can_start(struct net_device *dev)
- 
- 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
- 
-+	/* activate pins */
-+	c_can_pinctrl_select_state(priv, PINCTRL_STATE_DEFAULT);
- 	return 0;
- }
- 
-@@ -611,6 +629,9 @@ static void c_can_stop(struct net_device *dev)
- 	struct c_can_priv *priv = netdev_priv(dev);
- 
- 	c_can_irq_control(priv, false);
-+
-+	/* deactivate pins */
-+	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP);
- 	priv->can.state = CAN_STATE_STOPPED;
- }
- 
-@@ -1244,6 +1265,22 @@ int register_c_can_dev(struct net_device *dev)
- 	struct c_can_priv *priv = netdev_priv(dev);
- 	int err;
- 
-+	priv->pinctrl = devm_pinctrl_get(dev->dev.parent);
-+	if (!IS_ERR(priv->pinctrl)) {
-+		struct pinctrl_state *s;
-+
-+		/* Deactivate pins to prevent DRA7 DCAN IP from being
-+		 * stuck in transition when module is disabled.
-+		 * Pins are activated in c_can_start() and deactivated
-+		 * in c_can_stop()
-+		 */
-+		s = pinctrl_lookup_state(priv->pinctrl, PINCTRL_STATE_SLEEP);
-+		if (!IS_ERR(s))
-+			pinctrl_select_state(priv->pinctrl, s);
-+	} else {
-+		netdev_dbg(dev, "failed to get pinctrl\n");
-+	}
-+
- 	c_can_pm_runtime_enable(priv);
- 
- 	dev->flags |= IFF_ECHO;	/* we support local echo */
-diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
-index c6715ca..3cedf48 100644
---- a/drivers/net/can/c_can/c_can.h
-+++ b/drivers/net/can/c_can/c_can.h
-@@ -210,6 +210,7 @@ struct c_can_priv {
- 	u32 comm_rcv_high;
- 	u32 rxmasked;
- 	u32 dlc[C_CAN_MSG_OBJ_TX_NUM];
-+	struct pinctrl *pinctrl;
- };
- 
- struct net_device *alloc_c_can_dev(void);
--- 
-1.8.3.2
+What does "started" mean here? tda998x device/driver has been probed?
+
+The reason for the above is probably to handle hotplug? I.e. tda998x
+needs to be enabled always to detect HPD?
+
+Usually for OMAP, the HPD detection happens outside the HDMI IP. Thus
+the HDMI IP is turned fully off when the video is disabled.
+
+I believe tda998x could be used the same way, if the HPD pin is
+connected to a SoC GPIO instead of tda998x.
+
+>>> and I saw only a few dependencies between the 2 subsystems:
+>>>
+>>> - the CODEC must know the transmitter parameters (DAIs - static -,
+>>>   audio constraints - dynamic -),
+>>
+>> The video mode (i.e. availability of audio) or the EDID (i.e. the
+>> supported audio parameters) may change at any time, so I presume in yo=
+ur
+>> series the video side will inform the codec of these changes at any po=
+int?
+>=20
+> Such changes occur only when the HDMI output device (TV) is replaced by=
+
+
+The user can change the video mode at any time. The audio data packets
+are sent in the video blanking intervals, and if those intervals are too
+short, the video mode cannot support audio.
+
+If I'm not mistaken, officially only certain video modes defined in the
+HDMI spec support audio.
+
+> an other one (manual cable exchange or HDMI switcher). I wonder if
+> these changes are correctly treated in the HDMI transmitters, DRM core,=
+
+> DRM drivers, X11/wayland...
+
+HPD (which usually equals to cable change, but not always) is handled.
+
+>> a) Always keep the audio device operational, no matter what is the
+>> status of the video side. How should this work if the HDMI videomode o=
+r
+>> the HDMI monitor does not support audio? Is it desirable that the
+>> userspace has no idea that the audio is not actually going anywhere?
+>>
+>> b) Remove the audio device when audio support is not available. This
+>> kind of makes sense, as, well, there's no possibility for audio output=
+=2E
+>> But maybe this is not how linux sound devices are supposed to behave?
+>>
+>> c) Return errors when playback is attempted when audio support is not
+>> available. Again, this kind of makes sense, as audio playback is not
+>> possible. But maybe this is also not how audio devices generally work.=
+
+>>
+>> Jyri, were there some other options we discussed?
+>>
+>> Currently, the OMAP HDMI version does c). It's the easiest solution fo=
+r us.
+>=20
+> Same for me, but checking the audio capability is done on audio streami=
+ng
+> start only.
+
+Hmm, I understood you have option a)? You said "I even let audio
+streaming start when the HDMI cable is
+disconnected".
+
+With "audio support is not available" I mean also the case when the
+cable is not connected, as then we don't have EDID information, and thus
+we don't have a HDMI monitor with audio support on the other end.
+
+So to clarify, our driver only has "audio support available" if:
+- we successfully read EDID
+- EDID shows it's a HDMI monitor
+- EDID shows it has audio support for the format we support (this we
+don't actually do yet)
+
+Otherwise we default to DVI, which means no audio.
+
+If, at any point, the situation changes to "no audio support available",
+the audio playback is aborted and starting new audio playback fails.
+
+> AFAIK, the HDMI transmitters don't know if the video or audio is
+> displayed/played by the external device(s). Only the user knows.
+
+True.
+
+But the HDMI transmitter can know if the audio absolutely cannot be
+played, because there's no cable, or because the monitor says it doesn't
+support audio, or because the video mode cannot support audio, or
+because the HDMI output stream is disabled.
+
+So the question is, do we want/need to inform the userspace about those
+situations? Should a HDMI transmitted always look like it can play
+audio, even if it's clear it cannot?
+
+Again, I know very little about audio, but I think it would be nice that
+if I open the sound configuration window on my desktop, it'd show me
+that the HDMI audio device is disabled (because there's no cable).
+
+But perhaps that's a separate feature. We could have HDMI audio device
+always there and functional, but the desktop could get the information
+about HDMI cable connection some other way (DRM). And if the cable is
+not there, it knows that this particular audio device is also out, and
+thus doesn't show it (even if it's functional).
+
+> BTW, you are talking about video modes without audio support. What are
+> you thinking about?
+
+This I covered above.
+
+ Tomi
+
+
+
+--ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUZNHmAAoJEPo9qoy8lh71ZnsQAJ3u5vsLVQeeP3aFXi+5ImDj
+AwOx15QoWcd8MuBj5iToGCRhI1OFtTXWtqLzTfiTdm6PTKSUEkKyyUkfo9SdRyjb
+upb6TqbhoxSl4KAeqQHaDoXjqyIV/F8fk3hxNrnxVyQ/0sn3RP/QjCdU2ZYDHe1y
+LIcoTGSNisswzUGAEHaAvgpU4Le/7MtcBEjw0x5EzMCtO8+IDiUyQ6k1xThS87m8
+fXDBk0m77D6DXwWVx0QciZCY/aZkbV5C0xnwgfyEA1tIU0FRZwyAq+t+wD3QbHv0
+Yde7itRljdDbpqlL6t8yUNLnBS5zaFBbEDE8/N2UKyKx7YAiu+QNomEfJCTErvx4
+eWbrY2sA/4Ex0Dp1owSGKKhY7iww1FiFsY0yaKyXfKVtHj9iuUzF9C5zVD9VD3Gj
+80mcQyvcCdqBgx8hfcl3GhZS23R+xD7EGs2DDBbNxg0sWWwnfPwIQFOOY6zahV2E
+RgVDWKj2gE/6ee8nJmyuWGRXIbM90aM5VSqGzHXzRTA/KV25KTc+iO7srDBxxern
+DHn+x/N/sdB+6kDJVv0QooIU6HTwzcgr0yp7qx5xWx3yMJVTBcEfGzCMHZHII5wy
+XHnxCcnhtIr3iZi3pnPjtlEdWMZff9bwflxaQtjjPG8qRiZWl+f8JyEzjPjbbkkI
+LlUaPEfX4ceg8aGGRzRQ
+=sqDc
+-----END PGP SIGNATURE-----
+
+--ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ--
