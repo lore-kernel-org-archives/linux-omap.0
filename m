@@ -1,418 +1,268 @@
-From: George McCollister <george.mccollister@gmail.com>
-Subject: [PATCH 2/2] ARM: dts: Add devicetree for NovaTech OrionLXm
-Date: Wed, 12 Nov 2014 16:41:33 -0600
-Message-ID: <1415832094-20991-2-git-send-email-george.mccollister@gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] ARM: dts: Add devicetree for NovaTech OrionLXm
+Date: Wed, 12 Nov 2014 18:59:34 -0600
+Message-ID: <20141113005908.GA27381@saruman>
 References: <1415832094-20991-1-git-send-email-george.mccollister@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415832094-20991-1-git-send-email-george.mccollister@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: George McCollister <george.mccollister@gmail.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, Joachim Eastwood <manabian@gmail.com>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>, Carlos Garcia <carlos@cgarcia.org>, "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, "open list:OMAP DEVICE TREE..." <linux-omap@vger.kernel.org>
+ <1415832094-20991-2-git-send-email-george.mccollister@gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="f2QGlHpHGjS2mn6Y"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1415832094-20991-2-git-send-email-george.mccollister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: George McCollister <george.mccollister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, Joachim Eastwood <manabian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Carlos Garcia <carlos-FEoyFZUZMvJAfugRpC6u6w@public.gmane.org>, "open list:OPEN FIRMWARE AND..." <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "moderated list:ARM PORT" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "open list:OMAP DEVICE TREE..." <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This adds the NovaTech OrionLXm which is based on the AM335x SoC
-http://www.novatechweb.com/substation-automation/orionlxm/
+--f2QGlHpHGjS2mn6Y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-RAM: 512MiB
-Flash: 4GB eMMC
-Ethernet PHYs: 2x Micrel KSZ8041FTLI
-USB ports are used internally by the expansion cards.
-Internal micro SD slot is available.
+Hi,
 
-Signed-off-by: George McCollister <george.mccollister@gmail.com>
----
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +
- arch/arm/boot/dts/Makefile                         |   3 +-
- arch/arm/boot/dts/am335x-lxm.dts                   | 354 +++++++++++++++++++++
- 3 files changed, 359 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/boot/dts/am335x-lxm.dts
+On Wed, Nov 12, 2014 at 04:41:33PM -0600, George McCollister wrote:
+> diff --git a/arch/arm/boot/dts/am335x-lxm.dts b/arch/arm/boot/dts/am335x-=
+lxm.dts
+> new file mode 100644
+> index 0000000..0f7cbae
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/am335x-lxm.dts
+> @@ -0,0 +1,354 @@
+> +/*
+> + * Copyright (C) 2014 NovaTech LLC - http://www.novatechweb.com
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/dts-v1/;
+> +
+> +#include "am33xx.dtsi"
+> +
+> +/ {
+> +	model =3D "NovaTech OrionLXm";
+> +	compatible =3D "novatech,am335x-lxm", "ti,am33xx";
+> +
+> +	cpus {
+> +		cpu@0 {
+> +			cpu0-supply =3D <&vdd1_reg>;
+> +		};
+> +	};
+> +
+> +	memory {
+> +		device_type =3D "memory";
+> +		reg =3D <0x80000000 0x20000000>; /* 512 MB */
+> +	};
+> +
+> +	vbat: fixedregulator@0 {
+> +		compatible =3D "regulator-fixed";
+> +		regulator-name =3D "vbat";
+> +		regulator-min-microvolt =3D <5000000>;
+> +		regulator-max-microvolt =3D <5000000>;
+> +		regulator-boot-on;
+> +	};
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index ddd9bcd..4f6a82c 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -132,6 +132,9 @@ Boards:
- - AM335X Bone : Low cost community board
-   compatible = "ti,am335x-bone", "ti,am33xx", "ti,omap3"
- 
-+- AM335X OrionLXm : Substation Automation Platform
-+  compatible = "novatech,am335x-lxm", "ti,am33xx"
-+
- - OMAP5 EVM : Evaluation Module
-   compatible = "ti,omap5-evm", "ti,omap5"
- 
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 38c89ca..454ee6c 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -331,7 +331,8 @@ dtb-$(CONFIG_SOC_AM33XX) += am335x-base0033.dtb \
- 	am335x-evm.dtb \
- 	am335x-evmsk.dtb \
- 	am335x-nano.dtb \
--	am335x-pepper.dtb
-+	am335x-pepper.dtb \
-+	am335x-lxm.dtb
- dtb-$(CONFIG_ARCH_OMAP4) += omap4-duovero-parlor.dtb \
- 	omap4-panda.dtb \
- 	omap4-panda-a4.dtb \
-diff --git a/arch/arm/boot/dts/am335x-lxm.dts b/arch/arm/boot/dts/am335x-lxm.dts
-new file mode 100644
-index 0000000..0f7cbae
---- /dev/null
-+++ b/arch/arm/boot/dts/am335x-lxm.dts
-@@ -0,0 +1,354 @@
-+/*
-+ * Copyright (C) 2014 NovaTech LLC - http://www.novatechweb.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+#include "am33xx.dtsi"
-+
-+/ {
-+	model = "NovaTech OrionLXm";
-+	compatible = "novatech,am335x-lxm", "ti,am33xx";
-+
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply = <&vdd1_reg>;
-+		};
-+	};
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x20000000>; /* 512 MB */
-+	};
-+
-+	vbat: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vbat";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		regulator-boot-on;
-+	};
-+
-+	vmmcsd_fixed: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vmmcsd_fixed";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
-+};
-+
-+&am33xx_pinmux {
-+	mmc1_pins: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3 */
-+			0xf4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2 */
-+			0xf8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1 */
-+			0xfc (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0 */
-+			0x100 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk */
-+			0x104 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd */
-+		>;
-+	};
-+
-+	i2c0_pins: pinmux_i2c0_pins {
-+		pinctrl-single,pins = <
-+			0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
-+			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
-+		>;
-+	};
-+
-+	i2c2_pins: pinmux_i2c2_pins {
-+		pinctrl-single,pins = <
-+			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
-+			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
-+		>;
-+	};
-+
-+	cpsw_default: cpsw_default {
-+		pinctrl-single,pins = <
-+			/* Slave 1 */
-+			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_int */
-+			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_crs_dv */
-+			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_rxer */
-+			0x114 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* rmii1_txen */
-+			0x124 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* rmii1_td1 */
-+			0x128 (PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* rmii1_td0 */
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_rd1 */
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii1_rd0 */
-+			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE0)	/* rmii1_refclk */
-+
-+			/* Slave 2 */
-+			0x40 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* rmii2_txen */
-+			0x50 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* rmii2_td1 */
-+			0x54 (PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* rmii2_td0 */
-+			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_rd1 */
-+			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_rd0 */
-+			0x70 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_crs_dv */
-+			0x74 (PIN_INPUT_PULLDOWN | MUX_MODE3)	/* rmii2_rxer */
-+			0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_int */
-+			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE1)	/* rmii2_refclk */
-+		>;
-+	};
-+
-+	cpsw_sleep: cpsw_sleep {
-+		pinctrl-single,pins = <
-+			/* Slave 1 reset value */
-+			0x64 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_int */
-+			0x10c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_crs_dv */
-+			0x110 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_rxer */
-+			0x114 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_txen */
-+			0x124 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_td1 */
-+			0x128 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_td0 */
-+			0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_rd1 */
-+			0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_rd0 */
-+			0x144 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii1_refclk */
-+
-+			/* Slave 2 reset value*/
-+			0x40 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_txen */
-+			0x50 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_td1 */
-+			0x54 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_td0 */
-+			0x68 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_rd1 */
-+			0x6c (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_rd0 */
-+			0x70 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_crs_dv */
-+			0x74 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_rxer */
-+			0x78 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_int */
-+			0x108 (PIN_INPUT_PULLDOWN | MUX_MODE7)	/* rmii2_refclk */
-+		>;
-+	};
-+
-+	davinci_mdio_default: davinci_mdio_default {
-+		pinctrl-single,pins = <
-+			/* MDIO */
-+			0x148 (PIN_INPUT_PULLUP | SLEWCTRL_FAST | MUX_MODE0)	/* mdio_data.mdio_data */
-+			0x14c (PIN_OUTPUT_PULLUP | MUX_MODE0)			/* mdio_clk.mdio_clk */
-+		>;
-+	};
-+
-+	davinci_mdio_sleep: davinci_mdio_sleep {
-+		pinctrl-single,pins = <
-+			/* MDIO reset value */
-+			0x148 (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+			0x14c (PIN_INPUT_PULLDOWN | MUX_MODE7)
-+		>;
-+	};
-+
-+	emmc_pins: pinmux_emmc_pins {
-+		pinctrl-single,pins = <
-+			0x80 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn1.mmc1_clk */
-+			0x84 (PIN_INPUT_PULLUP | MUX_MODE2) /* gpmc_csn2.mmc1_cmd */
-+			0x00 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad0.mmc1_dat0 */
-+			0x04 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad1.mmc1_dat1 */
-+			0x08 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad2.mmc1_dat2 */
-+			0x0c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad3.mmc1_dat3 */
-+			0x10 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad4.mmc1_dat4 */
-+			0x14 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad5.mmc1_dat5 */
-+			0x18 (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad6.mmc1_dat6 */
-+			0x1c (PIN_INPUT_PULLUP | MUX_MODE1) /* gpmc_ad7.mmc1_dat7 */
-+		>;
-+	};
-+
-+	uart0_pins: pinmux_uart0_pins {
-+		pinctrl-single,pins = <
-+			0x170 (PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+			0x174 (PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-+		>;
-+	};
-+};
-+
-+
-+&i2c0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c0_pins>;
-+
-+	status = "okay";
-+	clock-frequency = <400000>;
-+
-+	serial_config1: serial_config1@20 {
-+		compatible = "nxp,pca9539";
-+		reg = <0x20>;
-+	};
-+
-+	serial_config2: serial_config2@21 {
-+		compatible = "nxp,pca9539";
-+		reg = <0x21>;
-+	};
-+
-+	tps: tps@2d {
-+		reg = <0x2d>;
-+	};
-+};
-+
-+&i2c2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c2_pins>;
-+
-+	status = "okay";
-+	clock-frequency = <100000>;
-+};
-+
-+/include/ "tps65910.dtsi"
-+
-+&tps {
-+	vcc1-supply = <&vbat>;
-+	vcc2-supply = <&vbat>;
-+	vcc3-supply = <&vbat>;
-+	vcc4-supply = <&vbat>;
-+	vcc5-supply = <&vbat>;
-+	vcc6-supply = <&vbat>;
-+	vcc7-supply = <&vbat>;
-+	vccio-supply = <&vbat>;
-+
-+	regulators {
-+		vrtc_reg: regulator@0 {
-+			regulator-always-on;
-+		};
-+
-+		vio_reg: regulator@1 {
-+			regulator-always-on;
-+		};
-+
-+		vdd1_reg: regulator@2 {
-+			regulator-name = "vdd_mpu";
-+			regulator-min-microvolt = <600000>;
-+			regulator-max-microvolt = <1500000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		vdd2_reg: regulator@3 {
-+			regulator-always-on;
-+		};
-+
-+		vdd3_reg: regulator@4 {
-+			regulator-always-on;
-+		};
-+
-+		vdig1_reg: regulator@5 {
-+			regulator-always-on;
-+		};
-+
-+		vdig2_reg: regulator@6 {
-+			regulator-always-on;
-+		};
-+
-+		vpll_reg: regulator@7 {
-+			regulator-always-on;
-+		};
-+
-+		vdac_reg: regulator@8 {
-+			regulator-always-on;
-+		};
-+
-+		vaux1_reg: regulator@9 {
-+			regulator-always-on;
-+		};
-+
-+		vaux2_reg: regulator@10 {
-+			regulator-always-on;
-+		};
-+
-+		vaux33_reg: regulator@11 {
-+			regulator-always-on;
-+		};
-+
-+		vmmc_reg: regulator@12 {
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+	};
-+};
-+
-+&sham {
-+	status = "okay";
-+};
-+
-+&aes {
-+	status = "okay";
-+};
-+
-+&uart0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart0_pins>;
-+
-+	status = "okay";
-+};
-+
-+&usb {
-+	status = "okay";
-+};
-+
-+&usb_ctrl_mod {
-+	status = "okay";
-+};
-+
-+&usb0_phy {
-+	status = "okay";
-+};
-+
-+&usb1_phy {
-+	status = "okay";
-+};
-+
-+&usb0 {
-+	status = "okay";
-+	dr_mode = "host";
-+};
-+
-+&usb1 {
-+	status = "okay";
-+	dr_mode = "host";
-+};
-+
-+&cppi41dma  {
-+	status = "okay";
-+};
-+
-+&cpsw_emac0 {
-+	phy_id = <&davinci_mdio>, <5>;
-+	phy-mode = "rmii";
-+	dual_emac_res_vlan = <2>;
-+};
-+
-+&cpsw_emac1 {
-+	phy_id = <&davinci_mdio>, <4>;
-+	phy-mode = "rmii";
-+	dual_emac_res_vlan = <3>;
-+};
-+
-+&mac {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&cpsw_default>;
-+	pinctrl-1 = <&cpsw_sleep>;
-+	dual_emac = <1>;
-+	status = "okay";
-+};
-+
-+&davinci_mdio {
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&davinci_mdio_default>;
-+	pinctrl-1 = <&davinci_mdio_sleep>;
-+	status = "okay";
-+};
-+
-+&mmc1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+	bus-width = <4>;
-+	status = "okay";
-+	vmmc-supply = <&vmmc_reg>;
-+	ti,vcc-aux-disable-is-sleep;
-+};
-+
-+&mmc2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&emmc_pins>;
-+	vmmc-supply = <&vmmcsd_fixed>;
-+	bus-width = <8>;
-+	ti,non-removable;
-+	status = "okay";
-+	ti,vcc-aux-disable-is-sleep;
-+};
-+
--- 
-2.1.0
+I suppose this is the 5V on a power jack, or something like that ?
+
+> +	vmmcsd_fixed: fixedregulator@0 {
+> +		compatible =3D "regulator-fixed";
+> +		regulator-name =3D "vmmcsd_fixed";
+> +		regulator-min-microvolt =3D <3300000>;
+> +		regulator-max-microvolt =3D <3300000>;
+
+but this... I know every other board devices this as a fixed regulator,
+but is it really a fixed regulator or is supplied by one of the LDOs on
+the PMIC ?
+
+> +	};
+> +};
+> +
+> +&am33xx_pinmux {
+> +	mmc1_pins: pinmux_mmc1_pins {
+> +		pinctrl-single,pins =3D <
+> +			0xf0 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat3 */
+> +			0xf4 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat2 */
+> +			0xf8 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat1 */
+> +			0xfc (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_dat0 */
+> +			0x100 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_clk */
+> +			0x104 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mmc0_cmd */
+> +		>;
+> +	};
+> +
+> +	i2c0_pins: pinmux_i2c0_pins {
+> +		pinctrl-single,pins =3D <
+> +			0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
+> +			0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
+> +		>;
+> +	};
+> +
+> +	i2c2_pins: pinmux_i2c2_pins {
+> +		pinctrl-single,pins =3D <
+> +			0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
+> +			0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* uart1_rtsn.i2c2_scl */
+
+on thing to keep in mind, if you already have external pullups, you
+might not want to add internal pullups as you'd end up with both
+resistors in parallel. For I2C the danger is minimal (unless you have a
+ton of bus capacitance, then it changes high/low time), but it's best to
+write a more "pristine" DTS. (and sure, I know pretty much every board
+makes this mistake, but it's best if we don't proliferate the error)
+
+> +&i2c0 {
+> +	pinctrl-names =3D "default";
+> +	pinctrl-0 =3D <&i2c0_pins>;
+> +
+> +	status =3D "okay";
+> +	clock-frequency =3D <400000>;
+> +
+> +	serial_config1: serial_config1@20 {
+> +		compatible =3D "nxp,pca9539";
+> +		reg =3D <0x20>;
+> +	};
+> +
+> +	serial_config2: serial_config2@21 {
+> +		compatible =3D "nxp,pca9539";
+> +		reg =3D <0x21>;
+> +	};
+> +
+> +	tps: tps@2d {
+> +		reg =3D <0x2d>;
+
+which TPS device ? no compatible ?
+
+> +/include/ "tps65910.dtsi"
+
+oh... okay.
+
+> +&tps {
+> +	vcc1-supply =3D <&vbat>;
+> +	vcc2-supply =3D <&vbat>;
+> +	vcc3-supply =3D <&vbat>;
+> +	vcc4-supply =3D <&vbat>;
+> +	vcc5-supply =3D <&vbat>;
+> +	vcc6-supply =3D <&vbat>;
+> +	vcc7-supply =3D <&vbat>;
+> +	vccio-supply =3D <&vbat>;
+> +
+> +	regulators {
+> +		vrtc_reg: regulator@0 {
+> +			regulator-always-on;
+
+this should not be always on, you want to pass this as supply to the RTC
+module so it can manage it. It's also best to give names to all
+regulators, so people know what they're used for.
+
+> +		};
+> +
+> +		vio_reg: regulator@1 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdd1_reg: regulator@2 {
+> +			regulator-name =3D "vdd_mpu";
+> +			regulator-min-microvolt =3D <600000>;
+> +			regulator-max-microvolt =3D <1500000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdd2_reg: regulator@3 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdd3_reg: regulator@4 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdig1_reg: regulator@5 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdig2_reg: regulator@6 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vpll_reg: regulator@7 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vdac_reg: regulator@8 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vaux1_reg: regulator@9 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vaux2_reg: regulator@10 {
+> +			regulator-always-on;
+> +		};
+> +
+> +		vaux33_reg: regulator@11 {
+
+isn't this the supply to the other MMC slot ?
+
+> +			regulator-always-on;
+> +		};
+> +
+> +		vmmc_reg: regulator@12 {
+> +			regulator-min-microvolt =3D <3300000>;
+> +			regulator-max-microvolt =3D <3300000>;
+> +			regulator-always-on;
+> +		};
+> +	};
+> +};
+> +
+> +&sham {
+> +	status =3D "okay";
+> +};
+> +
+> +&aes {
+> +	status =3D "okay";
+> +};
+
+just making sure, are you really using them ?
+
+> +&mmc1 {
+> +	pinctrl-names =3D "default";
+> +	pinctrl-0 =3D <&mmc1_pins>;
+> +	bus-width =3D <4>;
+> +	status =3D "okay";
+> +	vmmc-supply =3D <&vmmc_reg>;
+> +	ti,vcc-aux-disable-is-sleep;
+
+this binding isn't documented anywhere. What was it supposed to do ?
+
+--=20
+balbi
+
+--f2QGlHpHGjS2mn6Y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUZAJ2AAoJEIaOsuA1yqREEP4QAJlCXEZghs1ScbFYFUvdPD4R
+0LXjYoVGRnUS1w8/BM7Jj3t+gpL1fOatk1v1fBtDDP8s+1UCtDRT5eHB+wJArLW5
+EilaCaKz4KJBt0pArzgPDUHpJUMQGe9plWyZgxheEmgVj0ljwEt49v8iOXRqF0Fx
+BZYTSyGZbsSI8M90wLHgpORzN82So51yr9xBj9MEnGAHFLevU5f3D6auzRZ7ZCYw
+1yQRukNKN9dl7u/VWKDroJoM34ij01LEYYp8v1wcOVfcqxO5syCDBZaykYPsB79d
+Aqn8AGp+j8uGninD869/qhYh5xdVMmOgLwgwclPMX01+/kyzOWosS+fN0h9Ji5fO
+e2PtkBIfvklrLvP9/Ds/aEhlgn1n2RKDeplA5B1ZsL8FXmYqWByyUBrGTTupNglQ
+8Yqah3eirTsmJRxDsu8b/Xo1CZnxyxGVFtQv9UiRkI5+IgvKTBGwQ7pNCEKB8b9T
+NinikIrNOxqRxoJT5ZLWRfuksD2mzGfiHIHya5bKNovhLOxkdEehCmQE/s4WuGo0
+vEAIKKM2lqvjxv41MLUkhYso3WxMwWa8Qxq33oNZkEw7sopL9OjK1oom27zJDkaY
+uT4+grySq45uY76RAh6owSF78ghpXYK0eyfwwWvbo5UXGzCBpgo1Hy+AmODzn/Lx
+gCw19f7TxU5uL8LkhD2A
+=N5JM
+-----END PGP SIGNATURE-----
+
+--f2QGlHpHGjS2mn6Y--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
