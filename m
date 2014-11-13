@@ -1,64 +1,66 @@
 From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v4 2/8] net: can: c_can: Introduce c_can_driver_data structure
-Date: Thu, 13 Nov 2014 11:57:50 +0100
-Message-ID: <54648EAE.8050701@pengutronix.de>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-3-git-send-email-rogerq@ti.com>
+Subject: Re: [PATCH v4 3/8] net: can: c_can: Add RAMINIT register information
+ to driver data
+Date: Thu, 13 Nov 2014 11:59:56 +0100
+Message-ID: <54648F2C.2060007@pengutronix.de>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="OkNEfPOCsVjV1bMPB0I6dIU6na1D8teoE"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1415371762-29885-3-git-send-email-rogerq@ti.com>
-Sender: linux-can-owner@vger.kernel.org
+ boundary="9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1415371762-29885-4-git-send-email-rogerq@ti.com>
+Sender: netdev-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
 Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---OkNEfPOCsVjV1bMPB0I6dIU6na1D8teoE
+--9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
 On 11/07/2014 03:49 PM, Roger Quadros wrote:
-> We want to have more data than just can_dev_id to be present
-> in the driver data e.g. TI platforms need RAMINIT register
-> description. Introduce the c_can_driver_data structure and move
-> the can_dev_id into it.
->=20
-> Tidy up the way it is used on probe().
+> Some platforms (e.g. TI) need special RAMINIT register handling.
+> Provide a way to store RAMINIT register description in driver data.
 >=20
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
-
-[...]
-
-> @@ -198,21 +206,19 @@ static int c_can_plat_probe(struct platform_devic=
-e *pdev)
->  	struct net_device *dev;
->  	struct c_can_priv *priv;
->  	const struct of_device_id *match;
-> -	const struct platform_device_id *id;
->  	struct resource *mem, *res;
->  	int irq;
->  	struct clk *clk;
-> -
-> -	if (pdev->dev.of_node) {
-> -		match =3D of_match_device(c_can_of_table, &pdev->dev);
-> -		if (!match) {
-> -			dev_err(&pdev->dev, "Failed to find matching dt id\n");
-> -			ret =3D -EINVAL;
-> -			goto exit;
-> -		}
-> -		id =3D match->data;
-> +	const struct c_can_driver_data *drvdata;
+> ---
+>  drivers/net/can/c_can/c_can.h          | 6 ++++++
+>  drivers/net/can/c_can/c_can_platform.c | 1 +
+>  2 files changed, 7 insertions(+)
+>=20
+> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_ca=
+n.h
+> index 26c975d..3c305a1 100644
+> --- a/drivers/net/can/c_can/c_can.h
+> +++ b/drivers/net/can/c_can/c_can.h
+> @@ -171,6 +171,12 @@ enum c_can_dev_id {
+> =20
+>  struct c_can_driver_data {
+>  	enum c_can_dev_id id;
 > +
-> +	match =3D of_match_device(c_can_of_table, &pdev->dev);
-> +	if (match) {
-> +		drvdata =3D match->data;
-> +	} else if (pdev->id_entry->driver_data) {
-> +		drvdata =3D (struct c_can_driver_data *)
-> +			   pdev->id_entry->driver_data;
-                           ^^^^^^^^^^^^^^
-I've changes this to platform_get_device_id() while aplying.
+> +	/* RAMINIT register description. Optional. */
+> +	u8 num_can;		/* Number of CAN instances on the SoC */
+> +	u8 *raminit_start_bits;	/* Array of START bit positions */
+> +	u8 *raminit_done_bits;	/* Array of DONE bit positions */
+> +	bool raminit_pulse;	/* If set, sets and clears START bit (pulse) */
+>  };
+> =20
+>  /* c_can private data structure */
+> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c=
+_can/c_can_platform.c
+> index 1546c2b..20deb67 100644
+> --- a/drivers/net/can/c_can/c_can_platform.c
+> +++ b/drivers/net/can/c_can/c_can_platform.c
+> @@ -250,6 +250,7 @@ static int c_can_plat_probe(struct platform_device =
+*pdev)
+>  	}
+> =20
+>  	priv =3D netdev_priv(dev);
+> +
+
+Dropped this hunk while applying.
 
 Marc
 
@@ -69,7 +71,7 @@ Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
 Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
 
---OkNEfPOCsVjV1bMPB0I6dIU6na1D8teoE
+--9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -77,19 +79,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUZI6uAAoJECte4hHFiupUWqAQAKBVwHBv1QSDkkIvNFpKefxa
-qYiCvqn5TUgRiQHE65w6xScX8eUiDful9brI4pHqsRLBNPn50VkNnSkIZXugRK29
-GNCSPSCXT2zY0Ymmlc9RGgZ0GBBO90bLkzxZ21qxElJL1dm6geEtbiheH5uJ6Rsm
-1tB3Gy2AELh9k6Gy/WKRsGdj6c3bxtyr9b08ELzwCu1PJ4+XJzBjTisAcTYhSaKv
-pg/fpYxy2acwl+ZssWBJCjoo8IV1gFtx8H39W+hkzvKi2i6ZBobXkg+MlcnZczdN
-9vhDWYG25XNRUasf+Hoo3eR8DWIwZdUzkqd4djY9YtGRQYhAhf5iJkoFl5jWWALJ
-X8MJmC9tj0H513bZHCWrxRy408OutUOgb/x6DNBv99z3rZLoWacIa/AHkktSpGXa
-FY/zPn+iPUpbFe8eT+kdy2wH8+0r1RAH3gGudyjPd71xfatdVqBKZgmMe+bwe26S
-Feqk3YFn68pJC0TQi/ayIR37pOROulrkIwL1ACJHjmS6h/uC0pt/OzOYu9S2fyXq
-14ECfU+JsnL9t/NqsNCPkxl6QN5s1LV6IJCFXuyoVC6sf1nQME+/KJvtuzcbvu/B
-yGsyaWVwgdf1AK3A0Om/bmgB8HKb4lW6jwwQHKgkYs+r9Q0LZIGUe5+xaZRCFSWC
-hOGSCa5RnVssQUhQ0/R6
-=KKaZ
+iQIcBAEBAgAGBQJUZI8sAAoJECte4hHFiupUsTIP/2o5V6D30laDDQFGvQEPlo9k
+7mQwj0PDoc+Ss0y3D3bJSsNafHyvqYRFT6i4kXiroofHsJNlTFaPjZ0oJ1X+K8ID
+UF8o2dm9oHr5jiJ2oE18gNkIACZQ07KNZqBj6DjJmgs2Am+zm+NN8+FnNA9VQ3P0
+dgBv+9pYTr2pjT+4NPExunen93EDsf1DNHK+1qRCo0eY9Q1YTJqDwfICUf+Tw3Z2
+8KnBHyioiXreOGArTTgAyVLgakoO5UFLUjtYhDZWKbeDFeFqFPhJujr4OOPSuSjc
+Bcmh+xkv0KxCxonzV65HHAuWQ2Gi9W8k6KVYWByDCNRGn4CwpcTSzD1p0fekGrQf
+pP1nPODqdvvuffvzNVF/SyJZuBK94fBn89ir7DyGu2xXE0WVzisRKVEtu31SVFNP
+f9oRRe3Rg4QqmVm2+GZVgFrQ/AV7rf6gp68eRrOq8wcIBCQau6ZzdMMri4m9fuVk
+nRUVS9Z4G5JVpoCwq3UCV9TAuQyGhWQQ2N3zYjJwclSamm+UQhwA0VFKLMhIRR26
+2BO7VUa5KhW9zc07li1SDHfiyrMujocWSUfWF+YXUtpbiD4IFUHGruobq2xF/9DO
+4CjEpCLMOzQYB95uSWa5J2TOzgMomVUM6Ia3+vhN65ZMB6DkcG0N1vpXRG99UYYa
+v5FvBrlnJCtL4vbD6+3C
+=sCMj
 -----END PGP SIGNATURE-----
 
---OkNEfPOCsVjV1bMPB0I6dIU6na1D8teoE--
+--9pl5f1EE5GT8gskDJLf4AgEa6FEJ9C6Jm--
