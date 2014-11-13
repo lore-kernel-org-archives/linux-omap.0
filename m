@@ -1,62 +1,84 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv6 4/5] hwspinlock/core: add common OF helpers
-Date: Thu, 13 Nov 2014 12:03:20 +0200
-Message-ID: <CAK=WgbbatPTiz3efDWHVEcuug_UQfkCViMoK0zcfUg3JwB2oTA@mail.gmail.com>
-References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
- <1410553499-55951-5-git-send-email-s-anna@ti.com> <CAK=WgbamdqAufjC4Xb5moERRBSB-cO6c1RPTE=f+dp75F+Eh7A@mail.gmail.com>
- <5463B5B6.8040709@ti.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Thu, 13 Nov 2014 10:25:40 +0000
+Message-ID: <20141113102540.GJ24004@x1>
+References: <1415694844-11230-1-git-send-email-vigneshr@ti.com>
+ <1415694844-11230-4-git-send-email-vigneshr@ti.com>
+ <20141111122623.GA24004@x1>
+ <71C24A547111EA4E84AE759B748D9EAE4B976C@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:61939 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932102AbaKMKDm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 05:03:42 -0500
-Received: by mail-ig0-f177.google.com with SMTP id hl2so4648433igb.4
-        for <linux-omap@vger.kernel.org>; Thu, 13 Nov 2014 02:03:42 -0800 (PST)
-In-Reply-To: <5463B5B6.8040709@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <71C24A547111EA4E84AE759B748D9EAE4B976C-yXqyApvAXouIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, "richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Suman,
+On Tue, 11 Nov 2014, R, Vignesh wrote:
+> On Tue, 11 Nov 2014, Vignesh R wrote:
+> > In one shot mode, sequencer automatically disables all enabled step=
+s=20
+> > at the end of each cycle. (both ADC steps and TSC steps) Hence thes=
+e=20
+> > steps need not be saved in reg_se_cache for clearing these steps at=
+ a=20
+> > later stage.
+> > Also, when ADC wakes up Sequencer should not be busy executing any =
+of=20
+> > the config steps except for the charge step. Previously charge step=
+=20
+> > was 1 ADC clock cycle and hence it was ignored.
+> >=20
+> > Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> > ---
 
-On Wed, Nov 12, 2014 at 9:32 PM, Suman Anna <s-anna@ti.com> wrote:
->> Is this the validation you mentioned which requires the existence of
->> "hwspinlock/core: maintain a list of registered hwspinlock banks" ?
->
-> Well, not exactly. The validation is on the following segment,
->
-> +       id = of_hwspin_lock_simple_xlate(bank, &args);
-> +       if (id < 0 || id >= bank->num_locks) {
-> +               ret = -EINVAL;
-> +               goto out;
-> +       }
+[...]
 
-I'm not entirely convinced that this justifies adding the proposed
-linked list. Can't we can get the base_id and number of locks by
-traversing the DT?
+> > -	tsadc->reg_se_cache |=3D val;
+>=20
+> You didn't answer my question about this?
+> I did reply to the question in the previous thread. =20
+>=20
+> Previously, TSC did not reliably re-enable its steps as the TSC irq h=
+andler received=20
+> false pen up events. Hence, in order to use TSC after ADC operation, =
+it was necessary to
+>  save and re-enable TSC steps (basically, to keep TSC steps enabled a=
+lways).
+> The change was more of a workaround to overcome limitation of TSC irq=
+ handler. With=20
+> this series of patches, TSC irq handler is very reliable and the work=
+around is no longer required.
 
-> That said, it is also needed to provide the support for deferred probing
-> without changing the return code conventions on the existing API.
+Okay, thanks for the explanation.
 
-Here too, adding a data structure maintaining memory objects and
-taking care of it life cycle seems a bit overkill for anything to do
-with return values.
+By the way, your mailer doesn't appear to quote previous messages.  Is
+there any way to fix that?
 
-> Yes, and wouldn't that require that the id is validated? It just cannot
-> return any return value, and expect it will be verified somewhere else
-> or in a following API call. Not doing the validation unnecessarily
-> complicates the system usage of a lock as you are sharing an invalid
-> lock to a remote processor and then you have two validation failure
-> paths on different processors.
+> >  	am335x_tscadc_need_adc(tsadc);
+> > =20
+> >  	tscadc_writel(tsadc, REG_SE, val);
+> > diff --git a/include/linux/mfd/ti_am335x_tscadc.h=20
+> > b/include/linux/mfd/ti_am335x_tscadc.h
+> > index c99be5dc0f5c..fcce182e4a35 100644
+> > --- a/include/linux/mfd/ti_am335x_tscadc.h
+> > +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> > @@ -128,6 +128,7 @@
+> > =20
+> >  /* Sequencer Status */
+> >  #define SEQ_STATUS BIT(5)
+> > +#define CHARGE_STEP		0x11
+> > =20
+> >  #define ADC_CLK			3000000
+> >  #define TOTAL_STEPS		16
+>=20
 
-Validation is great but I'm still not convinced it can't be done
-without maintaining another data structure.
-
-Please show me specific technical issues that can't be resolved
-without adding the proposed linked list.
-
-Thanks,
-Ohad.
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
