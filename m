@@ -1,112 +1,90 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
-Date: Thu, 13 Nov 2014 15:45:52 -0800
-Message-ID: <20141113234551.GR26481@atomide.com>
-References: <alpine.DEB.2.10.1409190710320.5612@nanos>
- <20140919161927.GA28613@kahuna>
- <alpine.DEB.2.10.1409191027330.5612@nanos>
- <20140919191649.GQ14505@atomide.com>
- <alpine.DEB.2.10.1409191233590.4213@nanos>
- <20141002034345.GH3122@atomide.com>
- <20141106204629.GF31454@atomide.com>
- <alpine.DEB.2.11.1411131053050.3935@nanos>
- <20141113174030.GM26481@atomide.com>
- <alpine.DEB.2.11.1411132251170.3935@nanos>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
+ devconf1 register
+Date: Thu, 13 Nov 2014 15:58:41 -0800
+Message-ID: <20141113235840.GS26481@atomide.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
+ <1415051968-4878-5-git-send-email-marek@goldelico.com>
+ <5463585D.9070209@ti.com>
+ <20141112150210.GC26481@atomide.com>
+ <5464969F.30708@ti.com>
+ <20141113182848.GQ26481@atomide.com>
+ <alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1411132251170.3935@nanos>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LAK <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org> [141113 14:27]:
+* Paul Walmsley <paul@pwsan.com> [141113 15:01]:
+> Hi
+> 
 > On Thu, 13 Nov 2014, Tony Lindgren wrote:
-> > Oops thanks for catching that. As the devres stuff is separate, I've
-> > updated the patch to keep it that way by adding a minimal manage.h.
-> > This avoids including internals.h in devres.c. Does that seem usable
-> > for you?
 > 
-> What's wrong with internals.h? devres.c is core code, so it is not
-> affected of the ban to include internals.h :)
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [141113 03:33]:
+> > > On 12/11/14 17:02, Tony Lindgren wrote:
+> > > 
+> > > >> And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
+> > > >> places in the kernel. I wonder if adding a pinmux entry for it could
+> > > >> cause some rather odd problems.
+> > > > 
+> > > > They can all use pinctrl-single no problem.
+> > > 
+> > > Can, but don't. That's my worry. If we touch the DEVCONF1 via pinmux,
+> > > and we have code in mach-omap2 that also touch DEVCONF1, without any
+> > > knowledge (and locking) between those...
+> > 
+> > Hmm yeah the McBSP clock mux could be racy as the mux register for
+> > McBSP is treated as a clock. This register muxes the clock between
+> > external pin and internal clock. Considering that this should be
+> > selectable at board level as the external clock probably needs to be
+> > used if level shifters are being used, it should be really handled by
+> > pinctrl-single.
+> > 
+> > The other use for hsmmc.c and pdata-quirks.c for the one time mux for
+> > MMC clock from the MMC clock pin. That can be done with pinctrl-single
+> > from the MMC driver too for DT based booting.
+> > 
+> > Then we just have the save and restore of the registers for
+> > off-idle.
+> >  
+> > > So _maybe_ that's not an issue, as the pinmux config we have here is
+> > > fixed, and done once at boot time, and maybe the code in mach-omap2 that
+> > > touch DEVCONF1 is also ran just once and not at the same time as the
+> > > pinmux. But I don't know if that's so.
+> > 
+> > It seems we could just do a read-only check for McBSP in the clock
+> > code for the mux register, or even completely drop that code from
+> > cclock3xxx_data.c and start using the pinctrl for that mux.
+> > 
+> > Paul & Tero, got any comments here?
+> 
+> It's best to move all of the SCM register reads/writes to an SCM IP block 
+> driver.  This driver would be the only entity that would touch the SCM IP 
+> block registers - no other code on the system would touch it (perhaps 
+> aside from anything needed for early init).  The SCM driver would enforce 
+> mutual exclusion via a spinlock, so concurrent SCM register modifications 
+> wouldn't flake out.  Then the SCM driver would register clocks with the 
+> CCF, register pins with the pinctrl subsystem, etc. etc.
 
-No problem, just that we need to bring in few other includes and
-devres.c is currently free of any core irq stuff :) I can switch to
-internals.h no problem if you prefer that.
-  
-> > + *	So if replaying the lost device interrupts is absolutely needed from the
-> > + *	hardware point of view, it's probably best to set up a completely
-> > + *	separate wake-up interrupt handler for the wake-up interrupt in the
-> > + *	device driver because of the reasons above.
-> 
-> Can we please kill this last paragraph? I'm already seeing the
-> gazillion of "I think it is required to do so for my soooo special
-> chip" implementations in random drivers which all get it wrong again.
+We actually do have that with pinctrl-single + syscon. We certainly
+need to implement more Linux framework drivers for the SCM registers.
+Things like regulators, clocks, and PHYs, but they should use
+pinctrl-single + syscon. See the the pbias-regulator.c for example.
 
-OK :)
- 
-> So I'd rather provide a mechanism upfront which lets the driver know
-> that the wakeup interrupt originated from that device, i.e. let the
-> wake up handler call
-> 
->      pm_wakeup_irq(dev);
-> 
-> which calls:
-> 
->       pm_runtime_mark_last_busy(dev);
->       pm_request_resume(dev);
-> 
-> and aside of that tells the device via a flag or preferrably a
-> sequence counter that the wakeup irq has been triggered. So affected
-> devices can handle it based on that information w/o implementing the
-> next broken variant of wakeup irq handlers.
+Looking at the McBSP clock handling, threre's yet more handling of
+the same DEVCONF1 mux register in omap2_mcbsp_set_clks_src that gets 
+alled from omap_mcbsp_dai_set_dai_sysclk.
 
-OK I'll take a look if we can just set some pm_runtime flag and use
-the pm_runtime counters for that.
-
-> That also allows to remove the wakeflags check for level/edge.
-> 
-> > + */
-> > +int init_disabled_wakeirq(struct device *dev, unsigned int wakeirq,
-> > +			  unsigned long wakeflags)
-> > +{
-> > +	if (!(dev && wakeirq)) {
-> 
-> This is the second time I stumbled over this. While it is correct it
-> would be simpler to parse 
-> 
->       if (!dev || !wakeirq) {
-> 
-> At least for my review damaged brain :)
-
-Heh !!true.
- 
-> > +		pr_err("Missing device or wakeirq for %s irq %d\n",
-> > +		       dev_name(dev), wakeirq);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (!(wakeflags & IRQF_ONESHOT)) {
-> > +		pr_err("Invalid wakeirq for %s irq %d, must be oneshot\n",
-> > +		       dev_name(dev), wakeirq);
-> > +		return -EINVAL;
-> > +	}
-> 
-> Is there a reason why we force the wakeirq into a threaded handler?
-
-Yes the drivers may need to restore hardware state in the pm_runtime
-calls and who knows what else drivers will be doing. So that too might
-be a good reason to just set a flag in pm_runtime land.
-
-Anyways, thanks for your comments. I'll post a complete series after
-looking into the wake-up counters a bit.
+To me it seems that if we handle the DEVCONF with pinctrl-single, we
+don't need most of the McBSP fck code or the omap2_mcbsp_set_clks_src.
+Having the mux register as the clock enable register is not nice..
+Who knows what the clock coming from the external pin might be :)
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
