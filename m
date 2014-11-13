@@ -1,59 +1,52 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: N900 modem support in 3.18-rc1
-Date: Thu, 13 Nov 2014 17:21:55 +0100
-Message-ID: <20141113162155.GA8512@xo-6d-61-c0.localdomain>
+Date: Thu, 13 Nov 2014 17:24:20 +0100
+Message-ID: <20141113162420.GB8512@xo-6d-61-c0.localdomain>
 References: <20141104205117.GA17606@amd>
- <201411052137.31452@pali>
- <20141105203918.GA29199@amd>
- <201411052206.05379@pali>
- <20141105220359.GA32052@amd>
- <20141105234555.GA7097@earth.universe>
- <20141106124711.GA26944@amd>
  <20141106180335.GA21513@earth.universe>
+ <20141106225005.GA14002@amd>
+ <201411070001.46481@pali>
+ <545C6F14.8050303@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141106180335.GA21513@earth.universe>
+In-Reply-To: <545C6F14.8050303@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Pali Roh?r <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On Fri 2014-11-07 09:04:52, Ivaylo Dimitrov wrote:
+> On  7.11.2014 01:01, Pali Roh=E1r wrote:
+> >
+> >For voice calls you need:
+> >* kernel driver cmt-speech (or it has some new name)
+> >* cmt-speech userspace library (communication with kernel)
+> >* pulseaudio modules which are using that library
+> >
+> >Freemangordon (Ivaylo Dimitrov, CCed) should know more about it,
+> >specially about pulseaudio modules...
+>=20
+> I have a patch for cmt-speech on top of nokia-modem driver living
+> somewhere on my HDD, but I guess it is better Sebastian to make such
+> a patch (Sebastian, no?).
 
-> > I actually had pm=0 on the command line, but I removed it now, and no
-> > change: [...]
-> > 
-> > Let me try with explicit =1. .. aha, that helps. Thanks!
-> 
-> mh seems I actually missed to make 1 the default value. I will
-> prepare a patch for that.
-> 
-> I assume, that the example ofono commands work for you now?
+Sebastian is quiet, can we have the patch? :-).
 
-Yes, it now works great.
+> About the pulseaudio stuff - we're still in process of REing it, so
+> far there are 2 out of 3 closed Nokia modules ready
+> (https://gitorious.org/pulseaudio-nokia), but the last one, which is
+> the one used for voice calls is still not ready and will take it a
+> while :).
 
-> > Do you have an example client that can talk to ofonod?
-> 
-> I have not yet played with userland stuff. You could try
-> telepathy-ring, which integrates the ofono into the telepathy
-> framework.
+Ok, is there a way I could help? Pretty much everything else works with
+opensource drivers...
 
-Ok, I took a look, and telepathy-ring is not in debian, and has
-a lot of dependencies.
-
-OTOH ofono seems pretty reasonable. So I played a bit, and result
-is python/pygtk gui which can receive an sms, initiate a call, and
-report missed call. If someone wants to play, source is at
-
-https://gitorious.org/tui/tui/source/b6141107e9341a1412720aed4b0d09143dfa2f4e:ofone
-
-Best regards,
+Thanks,
 									Pavel
-
-
-
--- 
+--=20
 (english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
