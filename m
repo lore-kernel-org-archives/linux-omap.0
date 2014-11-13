@@ -1,171 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [alsa-devel] [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
-Date: Thu, 13 Nov 2014 17:44:38 +0200
-Message-ID: <5464D1E6.4050508@ti.com>
-References: <cover.1415803064.git.jsarha@ti.com> <20141112222344.GU3815@sirena.org.uk> <54646648.5030807@ti.com> <20141113101738.6338bb1c@armhf> <54648149.9070104@ti.com> <20141113160002.7a1157a5@armhf>
+From: Tom Rini <trini@ti.com>
+Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
+Date: Thu, 13 Nov 2014 11:00:45 -0500
+Message-ID: <5464D5AD.30508@ti.com>
+References: <1415185258-11747-1-git-send-email-rogerq@ti.com> <20141106180333.GZ31454@atomide.com> <545C9267.7060301@ti.com> <545C97AB.4040402@ti.com> <20141107224832.GG31454@atomide.com> <545FC08D.8000008@pek-sem.com> <20141112180253.GJ26481@atomide.com> <54649612.8090402@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47704 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752938AbaKMPou (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Nov 2014 10:44:50 -0500
-In-Reply-To: <20141113160002.7a1157a5@armhf>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <54649612.8090402@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, pekon <pekon@pek-sem.com>
+Cc: computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 13/11/14 17:00, Jean-Francois Moine wrote:
-
-> When the tda998x is not operational, the CODEC knows it and reports an
-> error to the audio subsystem on device open. But, once the tda998x has
-> been started, it always stays operational, even without HDMI connection=
-=2E
-
-What does "started" mean here? tda998x device/driver has been probed?
-
-The reason for the above is probably to handle hotplug? I.e. tda998x
-needs to be enabled always to detect HPD?
-
-Usually for OMAP, the HPD detection happens outside the HDMI IP. Thus
-the HDMI IP is turned fully off when the video is disabled.
-
-I believe tda998x could be used the same way, if the HPD pin is
-connected to a SoC GPIO instead of tda998x.
-
->>> and I saw only a few dependencies between the 2 subsystems:
+On 11/13/2014 06:29 AM, Roger Quadros wrote:
+> On 11/12/2014 08:02 PM, Tony Lindgren wrote:
+>> * pekon <pekon@pek-sem.com> [141109 11:31]:
+>>> On Saturday 08 November 2014 04:18 AM, Tony Lindgren wrote:
+>>>>
+>>>> Right. I doubt anybody has bch8 rootfs on LDP.. And considering u-boot
+>>>> must be ham1 to boot at all, that's what we should change for the
+>>>> devices that do not have not standardized on bch8.
+>>>>
+>>> My view on this is slightly different:
+>>> - Lately, everyone seems to have migrated to BCH8.
 >>>
->>> - the CODEC must know the transmitter parameters (DAIs - static -,
->>>   audio constraints - dynamic -),
+>>> - Also HAM1 does not have strength to fix bitflips in aging NAND. So if
+>>> someone already has OMAP3-LDP deployed on field then its NAND would have
+>>> already aged to such an extend that HAM1 may not be sufficient.
 >>
->> The video mode (i.e. availability of audio) or the EDID (i.e. the
->> supported audio parameters) may change at any time, so I presume in yo=
-ur
->> series the video side will inform the codec of these changes at any po=
-int?
->=20
-> Such changes occur only when the HDMI output device (TV) is replaced by=
-
-
-The user can change the video mode at any time. The audio data packets
-are sent in the video blanking intervals, and if those intervals are too
-short, the video mode cannot support audio.
-
-If I'm not mistaken, officially only certain video modes defined in the
-HDMI spec support audio.
-
-> an other one (manual cable exchange or HDMI switcher). I wonder if
-> these changes are correctly treated in the HDMI transmitters, DRM core,=
-
-> DRM drivers, X11/wayland...
-
-HPD (which usually equals to cable change, but not always) is handled.
-
->> a) Always keep the audio device operational, no matter what is the
->> status of the video side. How should this work if the HDMI videomode o=
-r
->> the HDMI monitor does not support audio? Is it desirable that the
->> userspace has no idea that the audio is not actually going anywhere?
+>> OK so it makes sense to keep it as BCH8 then. Would be nice to get
+>> the writing u-boot from kernel issue fixed somehow though as people
+>> are hitting that for sure.
+> 
+> What about performance impact? OMAP3 doesn't have ELM module. So error location
+> for BCH8 has to be done in software.
+> 
+>>  
+>>> My question is..
+>>> Moving back to HAM1 should be decided based on statistics rather than rule
+>>> of breaking backward compatibility. So please review:
+>>> (1) How many user of OMAP3-Zoom or other old boards complaining about using
+>>> BCH8 in mainline kernel? OR
 >>
->> b) Remove the audio device when audio support is not available. This
->> kind of makes sense, as, well, there's no possibility for audio output=
-=2E
->> But maybe this is not how linux sound devices are supposed to behave?
+>> 0
 >>
->> c) Return errors when playback is attempted when audio support is not
->> available. Again, this kind of makes sense, as audio playback is not
->> possible. But maybe this is also not how audio devices generally work.=
-
+>>> (2) How many users of OMAP3 legacy boards are migrating to newer kernel?
 >>
->> Jyri, were there some other options we discussed?
+>> Quite a few for sure, but are probably also using rootfs on MMC instead.
+>>  
+>>> At-least I have not, rather most of the OMAP3 users I interacted via TI's
+>>> E2E forum wanted to migrate to BCH8 or even BCH16, as HAM1 was not
+>>> sufficient for their usage.
+>>>
+>>> So whatever you decide on this topic, please be cautious that you don't
+>>> re-invent work for yourself, as I did. It took me lot of time and testing
+>>> effort on multiple boards to migrate HAM1 to BCH8, And add BCH16 for newer
+>>> devices.
 >>
->> Currently, the OMAP HDMI version does c). It's the easiest solution fo=
-r us.
->=20
-> Same for me, but checking the audio capability is done on audio streami=
-ng
-> start only.
+>> Right no objections to using BCH8 for rootfs, except it stopped working
+>> over past year or so.
+> 
+> This would be BCH8-sw on OMAP3 right? AM3xx uses BCH8-hw and that seems to work fine.
+> So it seems nobody has used/tested BCH8-sw.
 
-Hmm, I understood you have option a)? You said "I even let audio
-streaming start when the HDMI cable is
-disconnected".
+A few years back, and I want to choose my words carefully when talking
+about error correction, BCH8-sw was "working" well enough for rootfs (I
+didn't induce any particular amount of errors or try and cause corner
+cases, etc, etc).
 
-With "audio support is not available" I mean also the case when the
-cable is not connected, as then we don't have EDID information, and thus
-we don't have a HDMI monitor with audio support on the other end.
+>> And it seems the settings should be partition specific because of u-boot
+>> requiring HAM1.
+>>
+> I don't think we have partition specific ECC scheme support in u-boot or kernel,
+> so it will become messy to manage.
+> That means we either stick with HAM1 for all partitions or don't support NAND boot
+> at all and go with any other ECC scheme for OMAP3.
 
-So to clarify, our driver only has "audio support available" if:
-- we successfully read EDID
-- EDID shows it's a HDMI monitor
-- EDID shows it has audio support for the format we support (this we
-don't actually do yet)
+This is indeed where life starts getting more complicated than what we
+allow for today in both U-Boot and Kernel, as I recall things anyhow.  I
+think omap3 does (and I know am335x and later do) allow for saying ECC
+is all done on-chip and ROM should do nothing.  But if you want to boot
+you're going to be limited to HAM1 (or in some cases BCH4?  I didn't
+have to deal with these parts myself so second-hand recollections here)
+if you want to _boot_.  So you'll be in that particular area of the part
+life-span where you have to worry about read disturbances and so forth.
 
-Otherwise we default to DVI, which means no audio.
-
-If, at any point, the situation changes to "no audio support available",
-the audio playback is aborted and starting new audio playback fails.
-
-> AFAIK, the HDMI transmitters don't know if the video or audio is
-> displayed/played by the external device(s). Only the user knows.
-
-True.
-
-But the HDMI transmitter can know if the audio absolutely cannot be
-played, because there's no cable, or because the monitor says it doesn't
-support audio, or because the video mode cannot support audio, or
-because the HDMI output stream is disabled.
-
-So the question is, do we want/need to inform the userspace about those
-situations? Should a HDMI transmitted always look like it can play
-audio, even if it's clear it cannot?
-
-Again, I know very little about audio, but I think it would be nice that
-if I open the sound configuration window on my desktop, it'd show me
-that the HDMI audio device is disabled (because there's no cable).
-
-But perhaps that's a separate feature. We could have HDMI audio device
-always there and functional, but the desktop could get the information
-about HDMI cable connection some other way (DRM). And if the cable is
-not there, it knows that this particular audio device is also out, and
-thus doesn't show it (even if it's functional).
-
-> BTW, you are talking about video modes without audio support. What are
-> you thinking about?
-
-This I covered above.
-
- Tomi
-
-
-
---ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUZNHmAAoJEPo9qoy8lh71ZnsQAJ3u5vsLVQeeP3aFXi+5ImDj
-AwOx15QoWcd8MuBj5iToGCRhI1OFtTXWtqLzTfiTdm6PTKSUEkKyyUkfo9SdRyjb
-upb6TqbhoxSl4KAeqQHaDoXjqyIV/F8fk3hxNrnxVyQ/0sn3RP/QjCdU2ZYDHe1y
-LIcoTGSNisswzUGAEHaAvgpU4Le/7MtcBEjw0x5EzMCtO8+IDiUyQ6k1xThS87m8
-fXDBk0m77D6DXwWVx0QciZCY/aZkbV5C0xnwgfyEA1tIU0FRZwyAq+t+wD3QbHv0
-Yde7itRljdDbpqlL6t8yUNLnBS5zaFBbEDE8/N2UKyKx7YAiu+QNomEfJCTErvx4
-eWbrY2sA/4Ex0Dp1owSGKKhY7iww1FiFsY0yaKyXfKVtHj9iuUzF9C5zVD9VD3Gj
-80mcQyvcCdqBgx8hfcl3GhZS23R+xD7EGs2DDBbNxg0sWWwnfPwIQFOOY6zahV2E
-RgVDWKj2gE/6ee8nJmyuWGRXIbM90aM5VSqGzHXzRTA/KV25KTc+iO7srDBxxern
-DHn+x/N/sdB+6kDJVv0QooIU6HTwzcgr0yp7qx5xWx3yMJVTBcEfGzCMHZHII5wy
-XHnxCcnhtIr3iZi3pnPjtlEdWMZff9bwflxaQtjjPG8qRiZWl+f8JyEzjPjbbkkI
-LlUaPEfX4ceg8aGGRzRQ
-=sqDc
------END PGP SIGNATURE-----
-
---ilEgJkmO4JHLAQi5dKqAscXjDHBisk6bQ--
+We _really_ do need (in both kernel and U-Boot) the ability to say a
+"partition" has ECC scheme X and another has scheme Y due to limitations
+on what you can boot from vs what you need for the (continued) life span
+of the device in question.
+-- 
+Tom
