@@ -1,84 +1,182 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 09/10] ARM: dts: am33xx: Update DCAN nodes
-Date: Thu, 13 Nov 2014 17:03:49 +0100
-Message-ID: <20141113160349.GA1275@katana>
-References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
- <1415881371-4982-10-git-send-email-rogerq@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v5 6/8] net: can: c_can: Disable pins when CAN interface
+ is down
+Date: Thu, 13 Nov 2014 17:03:45 +0100
+Message-ID: <5464D661.7080505@pengutronix.de>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com> <5464CCFF.5010004@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
+ protocol="application/pgp-signature";
+ boundary="fs1NdbNEJ87RHFRqEdxWW79S520rud0k8"
 Return-path: <linux-can-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1415881371-4982-10-git-send-email-rogerq@ti.com>
+In-Reply-To: <5464CCFF.5010004@ti.com>
 Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: tony@atomide.com, wg@grandegger.com, mkl@pengutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--fs1NdbNEJ87RHFRqEdxWW79S520rud0k8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 13, 2014 at 02:22:50PM +0200, Roger Quadros wrote:
-> Add "raminit-syscon" property to specify the RAMINIT register.
-> Add clock information.
-> Rename can nodes from "d_can" to "can" to be compliant
-> with the ePAPR specs.
+On 11/13/2014 04:23 PM, Roger Quadros wrote:
+> DRA7 CAN IP suffers from a problem which causes it to be prevented
+> from fully turning OFF (i.e. stuck in transition) if the module was
+> disabled while there was traffic on the CAN_RX line.
+>=20
+> To work around this issue we select the SLEEP pin state by default
+> on probe and use the DEFAULT pin state on CAN up and back to the
+> SLEEP pin state on CAN down.
 >=20
 > Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  arch/arm/boot/dts/am33xx.dtsi | 20 ++++++++++++--------
->  1 file changed, 12 insertions(+), 8 deletions(-)
+>  drivers/net/can/c_can/c_can.c | 37 +++++++++++++++++++++++++++++++++++=
+++
+>  drivers/net/can/c_can/c_can.h |  1 +
+>  2 files changed, 38 insertions(+)
 >=20
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 9f3058c..74fefa1 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -338,20 +338,24 @@
->  			interrupts =3D <91>;
->  		};
+> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_ca=
+n.c
+> index 8e78bb4..c80cb3d 100644
+> --- a/drivers/net/can/c_can/c_can.c
+> +++ b/drivers/net/can/c_can/c_can.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/list.h>
+>  #include <linux/io.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
 > =20
-> -		dcan0: d_can@481cc000 {
-> -			compatible =3D "bosch,d_can";
-> +		dcan0: can@481cc000 {
-> +			compatible =3D "ti,am3352-d_can";
->  			ti,hwmods =3D "d_can0";
-> -			reg =3D <0x481cc000 0x2000
-> -				0x44e10644 0x4>;
-> +			reg =3D <0x481cc000 0x2000>;
-> +			clocks =3D <&dcan0_fck>;
-> +			clock-names =3D "fck";
-> +			syscon-raminit =3D <&am33xx_control_module 0x644 0>;
+>  #include <linux/can.h>
+>  #include <linux/can/dev.h>
+> @@ -587,6 +588,21 @@ static int c_can_chip_config(struct net_device *de=
+v)
+>  	return c_can_set_bittiming(dev);
+>  }
+> =20
+> +/*
+> + * Selects the pinctrl state specified in the name.
+> + */
+> +static void c_can_pinctrl_select_state(struct c_can_priv *priv,
+> +				      const char *name)
+> +{
+> +	if (!IS_ERR(priv->pinctrl)) {
+> +		struct pinctrl_state *s;
+> +
+> +		s =3D pinctrl_lookup_state(priv->pinctrl, name);
+> +		if (!IS_ERR(s))
+> +			pinctrl_select_state(priv->pinctrl, s);
+> +	}
+> +}
+> +
+>  static int c_can_start(struct net_device *dev)
+>  {
+>  	struct c_can_priv *priv =3D netdev_priv(dev);
+> @@ -603,6 +619,8 @@ static int c_can_start(struct net_device *dev)
+> =20
+>  	priv->can.state =3D CAN_STATE_ERROR_ACTIVE;
+> =20
+> +	/* activate pins */
+> +	c_can_pinctrl_select_state(priv, PINCTRL_STATE_DEFAULT);
+>  	return 0;
+>  }
+> =20
+> @@ -611,6 +629,9 @@ static void c_can_stop(struct net_device *dev)
+>  	struct c_can_priv *priv =3D netdev_priv(dev);
+> =20
+>  	c_can_irq_control(priv, false);
+> +
+> +	/* deactivate pins */
+> +	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP);
+>  	priv->can.state =3D CAN_STATE_STOPPED;
+>  }
+> =20
+> @@ -1244,6 +1265,22 @@ int register_c_can_dev(struct net_device *dev)
+>  	struct c_can_priv *priv =3D netdev_priv(dev);
+>  	int err;
+> =20
+> +	priv->pinctrl =3D devm_pinctrl_get(dev->dev.parent);
 
-Yeah, I missed to write the mail that I disagreed with the "dcan_0/1"
-compatible-properties of V3. The second parameter to syscon here is much
-better!
+What's dev->dev.parent?
+Ah, this is set by SET_NETDEV_DEV(dev, &pdev->dev); Good work!
 
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
+I thought we had to set priv->pinctrl in the platform.c.
+
+> +	if (!IS_ERR(priv->pinctrl)) {
+> +		struct pinctrl_state *s;
+> +
+> +		/* Deactivate pins to prevent DRA7 DCAN IP from being
+> +		 * stuck in transition when module is disabled.
+> +		 * Pins are activated in c_can_start() and deactivated
+> +		 * in c_can_stop()
+> +		 */
+> +		s =3D pinctrl_lookup_state(priv->pinctrl, PINCTRL_STATE_SLEEP);
+> +		if (!IS_ERR(s))
+> +			pinctrl_select_state(priv->pinctrl, s);
+> +	} else {
+> +		netdev_dbg(dev, "failed to get pinctrl\n");
+> +	}
+> +
+The above can be replace by this?
+
+	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP)
+
+Then we don't have the worrying looking error message if there isn't any
+pinctrl, e.g. for the PCI driver with pinctrl enabled in the Kernel.
+
+I just stumbled over pinctrl_pm_select_sleep_state(), is it possible to
+integrate this into runtime pm?
+
+http://lxr.free-electrons.com/source/drivers/pinctrl/core.c#L1282
+
+>  	c_can_pm_runtime_enable(priv);
+> =20
+>  	dev->flags |=3D IFF_ECHO;	/* we support local echo */
+> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_ca=
+n.h
+> index c6715ca..3cedf48 100644
+> --- a/drivers/net/can/c_can/c_can.h
+> +++ b/drivers/net/can/c_can/c_can.h
+> @@ -210,6 +210,7 @@ struct c_can_priv {
+>  	u32 comm_rcv_high;
+>  	u32 rxmasked;
+>  	u32 dlc[C_CAN_MSG_OBJ_TX_NUM];
+> +	struct pinctrl *pinctrl;
+>  };
+> =20
+>  struct net_device *alloc_c_can_dev(void);
+>=20
+
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
 
---6c2NcOVqGQ03X4Wi
+--fs1NdbNEJ87RHFRqEdxWW79S520rud0k8
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUZNZlAAoJEBQN5MwUoCm2pEUP/1mgDo7Nxbw/Cj8EyNr3kMaC
-6CEIQFZ2W7TgMGZuGzRd7qpIepHPM5NHiqqsgKOOLyFsuCQUXCE64padMFdcQ28S
-DQQ7DVbbOAZfPVctZ9wqcyD45HvYxg3DGtg+Dfo0/+zHMKYGgmbwdXMOsS1NRapw
-aQ2dQemYlsOZN8RX7nLeKo7XbGv+6RgVWxNTtT3pOfW9xKjdD5MGfJVELV3A7SP3
-wn1STeoGDoyH9QvL//5Lb+iuAmwRPm4px8YcVQM0b/KgutyFHiOSrQITZVetIcyG
-czmks5gjyASvSJCoi1V1fQpcT/jm7rkqgateu56vVzLzj789XCj9hjb7qkGvMk8t
-Me8Rt5EnwSh92zKgksnQm7ztVAmIWq/qaaj1MkrZ8IPb14OZ0ZJ5T1X+7Ow5O3Ua
-83xSc/r8FgQEqyVyM4ZvFo6A3HZt17yRwkwnivOy7koeVRp2jLMwxi0zMTLgDdkH
-IqYxrreSBpqiWKjpJC8D7RLP7yz24zDOIjoEXZwyRfZolJKU32mWkxP8dNSQbups
-p/w+vU/BrjiAxIVPcnm3h+V9szrPxzJaMveR98lgDB6SDrWsPmSEClyxFiUv332t
-0Rkh25gCvAQ+x26Fa8VnGaGDDpmm/4VNjYhiufI6Riho8oxSO0833jFRzioosSNe
-CcE9e1cfaHrLGEb80KL9
-=2YPi
+iQIcBAEBAgAGBQJUZNZhAAoJECte4hHFiupUNrgP/jLcYc14YyaicO46SCACijPe
+oohLxBL6kjwLTRsK27BU3INxg8LEI8acW0kQd/xiafwZWN89JqZY3seyFKcs3PFL
+RU5kXmTfXWN5bi8KAAJIxPHpmuab1H0ZT851l+ZE5Fyxys7bVh7XYt9OoatmXZRR
+orpb6NjqyvooZ+UhSBpP+V9nSlJx/VddPJjgbgRFjRlnAnOtnNXqAiG4qZwDiTWq
+tvawMqGBBoxk6M6FkA2XGXWT5xUCv8NqnCm7gXFAp2vROfJmX1+rjM8Jsp4xSzod
+DaKY+LOHsFuO7OqVWvoIfwbOqUSE/0+KyO1Tr5UIO2Y6ytEX+28qhPRTIZXi1ILp
+Y9sSOT/NVCg/pS0EyujMKM5k5k7ESvkYKakOV1iAds3fAVQdXZLKJBpnvjhNMw3K
+dY6HEbg4wHFsqSbUia//Ia6lDLXfwZ6uK8QFsswwG5MKzWLzk6u64wmnIn4+49fS
+znh9Dcgins3vwLk4PY5dqcKt0yawhnxFi0kmr9B+kOK2SgPZWCCdf8sBwy6Ie0NV
+VNMwb3OK7y1ne+JGDM8km8Q+hbzTJB7zyrrkiJe1cEH38OhLFzI5EfPXlqrnOBWw
+4ThWQ7QqFqxV9IvkQEYu+R2kyjE8bZvNo/VDoRhgIYSdMbdEhGTi0MCX7zR6c3s1
+/Hs63uP+Y/lIHnlHzqRP
+=ODCb
 -----END PGP SIGNATURE-----
 
---6c2NcOVqGQ03X4Wi--
+--fs1NdbNEJ87RHFRqEdxWW79S520rud0k8--
