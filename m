@@ -1,31 +1,66 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv6 5/5] hwspinlock/omap: add support for dt nodes
-Date: Thu, 13 Nov 2014 11:04:05 +0200
-Message-ID: <CAK=WgbadSrhJ6hnE2Wf=k74bmyq04vfWAOU-r7iL=A++Y+myMg@mail.gmail.com>
-References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
- <1410553499-55951-6-git-send-email-s-anna@ti.com> <CAK=WgbZE7_WrsNz5E+MDX7j2tAGEjv91zeCgqhB=Jsiu0+d8vw@mail.gmail.com>
- <5463B9F7.8040105@ti.com>
+From: Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [alsa-devel] [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio
+ support
+Date: Thu, 13 Nov 2014 10:17:38 +0100
+Message-ID: <20141113101738.6338bb1c@armhf>
+References: <cover.1415803064.git.jsarha@ti.com>
+	<20141112222344.GU3815@sirena.org.uk>
+	<54646648.5030807@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5463B9F7.8040105@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:52188 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932074AbaKMJOn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Nov 2014 04:14:43 -0500
+In-Reply-To: <54646648.5030807@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Suman,
+On Thu, 13 Nov 2014 10:05:28 +0200
+Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+	[snip]
+> I don't have much knowledge of the asoc architecture, so I probably
+> can't comment much on the sound/ side design. For me the most importa=
+nt
+> things are that 1) it works 2) I can easily unload/load the modules
+> (which was broken in some of the earlier versions).
+>=20
+> As a more general discussion item, I'm still wondering why it feels l=
+ike
+> we (OMAP) are doing something totally new here. I'd imagine that almo=
+st
+> every device with HDMI would need both video and audio side support, =
+and
+> those sides need to work together. And the audio side would need to g=
+et
+> notified of things like cable disconnect (i.e. the video stream is
+> stopped -> audio must be stopped also). But if I've understood right,
+> there was no similar existing code to be found.
 
-On Wed, Nov 12, 2014 at 9:50 PM, Suman Anna <s-anna@ti.com> wrote:
-> None of the OMAPs have multiple IP instances, and as such the base-id is
-> an optional property. I have made this change to make sure we atleast
-> attempt to use the value if mentioned in DT and not hard-coding the
-> value to begin with (going by the optional property semantics). If and
-> when multiple instances get added and a secondary node doesn't add the
-> property, the node will not be registered with the core due to an
-> overlap failure.
+I recently posted a patch on the HDMI CODEC to interface a HDMI
+transmitter
+http://mailman.alsa-project.org/pipermail/alsa-devel/2014-October/08274=
+5.html
+and I saw only a few dependencies between the 2 subsystems:
 
-Ok, that sounds good.
+- the CODEC must know the transmitter parameters (DAIs - static -,
+  audio constraints - dynamic -),
 
-Thanks,
-Ohad.
+- the CODEC must alert the transmitter on audio start and stop.
+
+I don't think that stopping audio streaming on HDMI disconnection is
+useful. I even let audio streaming start when the HDMI cable is
+disconnected.
+
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
