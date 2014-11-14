@@ -1,63 +1,155 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 8/8] net: can: c_can: Add support for TI am3352 DCAN
-Date: Fri, 14 Nov 2014 12:26:44 +0100
-Message-ID: <20141114112643.GA3424@katana>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com>
- <1415371762-29885-9-git-send-email-rogerq@ti.com>
- <20141113160658.GB1275@katana>
- <5465CAA3.5030301@pengutronix.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v5 6/8] net: can: c_can: Disable pins when CAN interface
+ is down
+Date: Fri, 14 Nov 2014 15:43:16 +0200
+Message-ID: <546606F4.6020102@ti.com>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-7-git-send-email-rogerq@ti.com> <5464CCFF.5010004@ti.com> <5464D661.7080505@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-can-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5465CAA3.5030301@pengutronix.de>
+In-Reply-To: <5464D661.7080505@pengutronix.de>
 Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, Linus Walleij <linus.walleij@linaro.org>
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On 11/13/2014 06:03 PM, Marc Kleine-Budde wrote:
+> On 11/13/2014 04:23 PM, Roger Quadros wrote:
+>> DRA7 CAN IP suffers from a problem which causes it to be prevented
+>> from fully turning OFF (i.e. stuck in transition) if the module was
+>> disabled while there was traffic on the CAN_RX line.
+>>
+>> To work around this issue we select the SLEEP pin state by default
+>> on probe and use the DEFAULT pin state on CAN up and back to the
+>> SLEEP pin state on CAN down.
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  drivers/net/can/c_can/c_can.c | 37 +++++++++++++++++++++++++++++++++++++
+>>  drivers/net/can/c_can/c_can.h |  1 +
+>>  2 files changed, 38 insertions(+)
+>>
+>> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+>> index 8e78bb4..c80cb3d 100644
+>> --- a/drivers/net/can/c_can/c_can.c
+>> +++ b/drivers/net/can/c_can/c_can.c
+>> @@ -35,6 +35,7 @@
+>>  #include <linux/list.h>
+>>  #include <linux/io.h>
+>>  #include <linux/pm_runtime.h>
+>> +#include <linux/pinctrl/consumer.h>
+>>  
+>>  #include <linux/can.h>
+>>  #include <linux/can/dev.h>
+>> @@ -587,6 +588,21 @@ static int c_can_chip_config(struct net_device *dev)
+>>  	return c_can_set_bittiming(dev);
+>>  }
+>>  
+>> +/*
+>> + * Selects the pinctrl state specified in the name.
+>> + */
+>> +static void c_can_pinctrl_select_state(struct c_can_priv *priv,
+>> +				      const char *name)
+>> +{
+>> +	if (!IS_ERR(priv->pinctrl)) {
+>> +		struct pinctrl_state *s;
+>> +
+>> +		s = pinctrl_lookup_state(priv->pinctrl, name);
+>> +		if (!IS_ERR(s))
+>> +			pinctrl_select_state(priv->pinctrl, s);
+>> +	}
+>> +}
+>> +
+>>  static int c_can_start(struct net_device *dev)
+>>  {
+>>  	struct c_can_priv *priv = netdev_priv(dev);
+>> @@ -603,6 +619,8 @@ static int c_can_start(struct net_device *dev)
+>>  
+>>  	priv->can.state = CAN_STATE_ERROR_ACTIVE;
+>>  
+>> +	/* activate pins */
+>> +	c_can_pinctrl_select_state(priv, PINCTRL_STATE_DEFAULT);
+>>  	return 0;
+>>  }
+>>  
+>> @@ -611,6 +629,9 @@ static void c_can_stop(struct net_device *dev)
+>>  	struct c_can_priv *priv = netdev_priv(dev);
+>>  
+>>  	c_can_irq_control(priv, false);
+>> +
+>> +	/* deactivate pins */
+>> +	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP);
+>>  	priv->can.state = CAN_STATE_STOPPED;
+>>  }
+>>  
+>> @@ -1244,6 +1265,22 @@ int register_c_can_dev(struct net_device *dev)
+>>  	struct c_can_priv *priv = netdev_priv(dev);
+>>  	int err;
+>>  
+>> +	priv->pinctrl = devm_pinctrl_get(dev->dev.parent);
+> 
+> What's dev->dev.parent?
+> Ah, this is set by SET_NETDEV_DEV(dev, &pdev->dev); Good work!
+> 
+> I thought we had to set priv->pinctrl in the platform.c.
+> 
+>> +	if (!IS_ERR(priv->pinctrl)) {
+>> +		struct pinctrl_state *s;
+>> +
+>> +		/* Deactivate pins to prevent DRA7 DCAN IP from being
+>> +		 * stuck in transition when module is disabled.
+>> +		 * Pins are activated in c_can_start() and deactivated
+>> +		 * in c_can_stop()
+>> +		 */
+>> +		s = pinctrl_lookup_state(priv->pinctrl, PINCTRL_STATE_SLEEP);
+>> +		if (!IS_ERR(s))
+>> +			pinctrl_select_state(priv->pinctrl, s);
+>> +	} else {
+>> +		netdev_dbg(dev, "failed to get pinctrl\n");
+>> +	}
+>> +
+> The above can be replace by this?
+> 
+> 	c_can_pinctrl_select_state(priv, PINCTRL_STATE_SLEEP)
 
---0OAP2g/MAC+5xKAE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes, indeed.
 
-On Fri, Nov 14, 2014 at 10:25:55AM +0100, Marc Kleine-Budde wrote:
-> On 11/13/2014 05:06 PM, Wolfram Sang wrote:
-> > On Fri, Nov 07, 2014 at 04:49:22PM +0200, Roger Quadros wrote:
-> >> AM3352 SoC has 2 DCAN modules. Add compatible id and
-> >> raminit driver data for am3352 DCAN.
-> >>
-> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >=20
-> > Acked-by: Wolfram Sang <wsa@the-dreams.de>
->=20
-> For the whole series or just this patch?
+> 
+> Then we don't have the worrying looking error message if there isn't any
+> pinctrl, e.g. for the PCI driver with pinctrl enabled in the Kernel.
+> 
+> I just stumbled over pinctrl_pm_select_sleep_state(), is it possible to
+> integrate this into runtime pm?
+> 
+> http://lxr.free-electrons.com/source/drivers/pinctrl/core.c#L1282
 
-Just this one.
+I think those functions are there for the same reason but not sure why aren't 
+they used in runtime pm core.
 
+Linus W. any hints?
 
---0OAP2g/MAC+5xKAE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+cheers,
+-roger
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> 
+>>  	c_can_pm_runtime_enable(priv);
+>>  
+>>  	dev->flags |= IFF_ECHO;	/* we support local echo */
+>> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+>> index c6715ca..3cedf48 100644
+>> --- a/drivers/net/can/c_can/c_can.h
+>> +++ b/drivers/net/can/c_can/c_can.h
+>> @@ -210,6 +210,7 @@ struct c_can_priv {
+>>  	u32 comm_rcv_high;
+>>  	u32 rxmasked;
+>>  	u32 dlc[C_CAN_MSG_OBJ_TX_NUM];
+>> +	struct pinctrl *pinctrl;
+>>  };
+>>  
+>>  struct net_device *alloc_c_can_dev(void);
+>>
+> 
+> Marc
+> 
 
-iQIcBAEBAgAGBQJUZebzAAoJEBQN5MwUoCm26qMP/AjCypqjMTLvId87OJWWBf5x
-89gr06cBvgBFBuP4FlWKrhGxaVwNov4ijjWNCMqtlpWZ1AHOanjEIqF0ciZl76kv
-AOz+/dMualiu82WU8SOvFFvD+89sqOeXC4JpL6xS1K1NYuOU5XR1sIfXi1U10NsM
-HG61xKkou5CgykFW5xKbhgeSTnOu28xUfwSOrzjd1QehC+ski7G4N/ouwGEP/TLL
-HpLkULHcKPX5Do06aaIYn4tpF7qQbzHJLNWPNy0PpYo9xCeRXjPFXcu/JEn8fGFN
-zMLrpEHT2BbEWW6mWzZcCAc9sS4XoLRO/ZNbk4GvHDj+YScSypU9MTt78LLFzKYV
-mbtAwy5KkBBdscQoF9Au9TO2bB/2Y1MneFonVCXe6DvNQlv4pWKLHzf2j4K2OlXH
-aw6XIyBy2N1qNNppwqDDzG/hWpUveIe3v5xIGOowk0Zt1qC19kcAkCVuNLRGDkc6
-98uWoW7oBK5yZ4o9HjEwSfTV9PQsWnOnnzcyi/NYO1XrGBnaCjLM0LtWymaPOjjg
-BLf2n4oCuNhJV7+li4rNvXKETDk31kroA/LLRcVg6fb/rgNfOzgkIKzMjx+CD1y1
-QhSIYzR+TfTjz1Fc5ZNkOR0MjrJa4YFVKlP+BRRCOZhspmmaRkagTmePututjCvP
-dGIZhPyTfTZ/edG/g+7L
-=Sjj6
------END PGP SIGNATURE-----
-
---0OAP2g/MAC+5xKAE--
