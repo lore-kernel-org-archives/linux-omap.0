@@ -1,155 +1,60 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v4 6/6] input: touchscreen: ti_am335x_tsc: Replace delta filtering with median filtering
-Date: Fri, 14 Nov 2014 10:37:31 +0530
-Message-ID: <1415941651-28962-7-git-send-email-vigneshr@ti.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v5 0/7] Per-user clock constraints
+Date: Fri, 14 Nov 2014 07:28:12 +0100
+Message-ID: <CAAObsKARz=Y3J74Fm+MVOuH-ftK6yGSxWnNtd3LpHZjebKCGsg@mail.gmail.com>
+References: <1414666135-14313-1-git-send-email-tomeu.vizoso@collabora.com> <20141031113358.GY32045@tbergstrom-lnx.Nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+In-Reply-To: <20141031113358.GY32045@tbergstrom-lnx.Nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Vignesh R <vigneshr@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-iio@vger.kernel.org, linux-input@vger.kernel.org
+To: Peter De Schrijver <pdeschrijver@nvidia.com>
+Cc: Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Stephen Boyd <sboyd@codeaurora.org>, Alex Elder <elder@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Previously, delta filtering was applied TSC co-ordinate readouts before
-reporting a single value to user space. This patch replaces delta filtering
-with median filtering. Median filtering sorts co-ordinate readouts, drops min
-and max values, and reports the average of remaining values. This method is
-more sensible than delta filering. Median filtering is applied only if number
-of readouts is greater than 3 else just average of co-ordinate readouts is
-reported.
+On 31 October 2014 12:33, Peter De Schrijver <pdeschrijver@nvidia.com> wrote:
+> On Thu, Oct 30, 2014 at 11:48:26AM +0100, Tomeu Vizoso wrote:
+>> Hello,
+>>
+>> this fifth version of the series has just one change, suggested by Stephen:
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- drivers/input/touchscreen/ti_am335x_tsc.c | 91 +++++++++++++++++--------------
- 1 file changed, 51 insertions(+), 40 deletions(-)
+Hi Mike, how is this looking for 3.19?
 
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index e64055a8cd48..b84493fc8a78 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/sort.h>
- 
- #include <linux/mfd/ti_am335x_tscadc.h>
- 
-@@ -204,56 +205,61 @@ static void titsc_step_config(struct titsc *ts_dev)
- 	am335x_tsc_se_set_cache(ts_dev->mfd_tscadc, ts_dev->step_mask);
- }
- 
-+static int titsc_cmp_coord(const void *a, const void *b)
-+{
-+	return *(int *)a - *(int *)b;
-+}
-+
- static void titsc_read_coordinates(struct titsc *ts_dev,
- 		u32 *x, u32 *y, u32 *z1, u32 *z2)
- {
--	unsigned int fifocount = titsc_readl(ts_dev, REG_FIFO0CNT);
--	unsigned int prev_val_x = ~0, prev_val_y = ~0;
--	unsigned int prev_diff_x = ~0, prev_diff_y = ~0;
--	unsigned int read, diff;
--	unsigned int i, channel;
-+	unsigned int yvals[7], xvals[7];
-+	unsigned int i, xsum = 0, ysum = 0;
- 	unsigned int creads = ts_dev->coordinate_readouts;
--	unsigned int first_step = TOTAL_STEPS - (creads * 2 + 2);
- 
--	*z1 = *z2 = 0;
--	if (fifocount % (creads * 2 + 2))
--		fifocount -= fifocount % (creads * 2 + 2);
--	/*
--	 * Delta filter is used to remove large variations in sampled
--	 * values from ADC. The filter tries to predict where the next
--	 * coordinate could be. This is done by taking a previous
--	 * coordinate and subtracting it form current one. Further the
--	 * algorithm compares the difference with that of a present value,
--	 * if true the value is reported to the sub system.
--	 */
--	for (i = 0; i < fifocount; i++) {
--		read = titsc_readl(ts_dev, REG_FIFO0);
--
--		channel = (read & 0xf0000) >> 16;
--		read &= 0xfff;
--		if (channel > first_step + creads + 2) {
--			diff = abs(read - prev_val_x);
--			if (diff < prev_diff_x) {
--				prev_diff_x = diff;
--				*x = read;
--			}
--			prev_val_x = read;
-+	for (i = 0; i < creads; i++) {
-+		yvals[i] = titsc_readl(ts_dev, REG_FIFO0);
-+		yvals[i] &= 0xfff;
-+	}
- 
--		} else if (channel == first_step + creads + 1) {
--			*z1 = read;
-+	*z1 = titsc_readl(ts_dev, REG_FIFO0);
-+	*z1 &= 0xfff;
-+	*z2 = titsc_readl(ts_dev, REG_FIFO0);
-+	*z2 &= 0xfff;
- 
--		} else if (channel == first_step + creads + 2) {
--			*z2 = read;
-+	for (i = 0; i < creads; i++) {
-+		xvals[i] = titsc_readl(ts_dev, REG_FIFO0);
-+		xvals[i] &= 0xfff;
-+	}
- 
--		} else if (channel > first_step) {
--			diff = abs(read - prev_val_y);
--			if (diff < prev_diff_y) {
--				prev_diff_y = diff;
--				*y = read;
--			}
--			prev_val_y = read;
-+	/*
-+	 * If co-ordinates readouts is less than 4 then
-+	 * report the average. In case of 4 or more
-+	 * readouts, sort the co-ordinate samples, drop
-+	 * min and max values and report the average of
-+	 * remaining values.
-+	 */
-+	if (creads <=  3) {
-+		for (i = 0; i < creads; i++) {
-+			ysum += yvals[i];
-+			xsum += xvals[i];
- 		}
-+		ysum /= creads;
-+		xsum /= creads;
-+	} else {
-+		sort(yvals, creads, sizeof(unsigned int),
-+		     titsc_cmp_coord, NULL);
-+		sort(xvals, creads, sizeof(unsigned int),
-+		     titsc_cmp_coord, NULL);
-+		for (i = 1; i < creads - 1; i++) {
-+			ysum += yvals[i];
-+			xsum += xvals[i];
-+		}
-+		ysum /= creads - 2;
-+		xsum /= creads - 2;
- 	}
-+	*y = ysum;
-+	*x = xsum;
- }
- 
- static irqreturn_t titsc_irq(int irq, void *dev)
-@@ -367,6 +373,11 @@ static int titsc_parse_dt(struct platform_device *pdev,
- 	if (err < 0)
- 		return err;
- 
-+	if (ts_dev->coordinate_readouts <= 0) {
-+		dev_warn(&pdev->dev, "invalid co-ordinate readouts, resetting it to 5\n");
-+		ts_dev->coordinate_readouts = 5;
-+	}
-+
- 	err = of_property_read_u32(node, "ti,charge-delay",
- 				   &ts_dev->charge_delay);
- 	if (err < 0)
--- 
-1.9.1
+Regards,
+
+Tomeu
+
+>> * Initialize clk.ceiling_constraint to ULONG_MAX and warn about new floor
+>> constraints being higher than the existing ceiling.
+>>
+>> The first five patches are just cleanups that should be desirable on their own,
+>> and that should make easier to review the actual per-user clock patch.
+>>
+>> The sixth patch actually moves the per-clock data that was stored in struct
+>> clk to a new struct clk_core and adds references to it from both struct clk and
+>> struct clk_hw. struct clk is now ready to contain information that is specific
+>> to a given clk consumer.
+>>
+>> The seventh patch adds API for setting floor and ceiling constraints and stores
+>> that information on the per-user struct clk, which is iterable from struct
+>> clk_core.
+>>
+>> They are based on top of 3.18-rc1.
+>>
+>> http://cgit.collabora.com/git/user/tomeu/linux.git/log/?h=per-user-clk-constraints-v5
+>>
+>
+> Acked-By: Peter De Schrijver <pdeschrijver@nvidia.com>
+>
+> Mike,
+>
+> Do you think this will be merged for 3.19?
+>
+> Thanks,
+>
+> Peter.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
