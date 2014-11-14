@@ -1,7 +1,7 @@
 From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: [PATCH v8 6/8] can: c_can: Disable pins when CAN interface is down
-Date: Fri, 14 Nov 2014 19:09:49 +0100
-Message-ID: <1415988591-6032-7-git-send-email-mkl@pengutronix.de>
+Subject: [PATCH v8 5/8] can: c_can: Add support for START pulse in RAMINIT sequence
+Date: Fri, 14 Nov 2014 19:09:48 +0100
+Message-ID: <1415988591-6032-6-git-send-email-mkl@pengutronix.de>
 References: <1415988591-6032-1-git-send-email-mkl@pengutronix.de>
 Return-path: <linux-can-owner@vger.kernel.org>
 In-Reply-To: <1415988591-6032-1-git-send-email-mkl@pengutronix.de>
@@ -12,65 +12,54 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Roger Quadros <rogerq@ti.com>
 
-DRA7 CAN IP suffers from a problem which causes it to be prevented
-from fully turning OFF (i.e. stuck in transition) if the module was
-disabled while there was traffic on the CAN_RX line.
-
-To work around this issue we select the SLEEP pin state by default
-on probe and use the DEFAULT pin state on CAN up and back to the
-SLEEP pin state on CAN down.
+Some SoCs e.g. (TI DRA7xx) need a START pulse to start the
+RAMINIT sequence i.e. START bit must be set and cleared before
+checking for the DONE bit status.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
 ---
- drivers/net/can/c_can/c_can.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/net/can/c_can/c_can.h          | 1 +
+ drivers/net/can/c_can/c_can_platform.c | 7 +++++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
-index 8e78bb48f5a4..f94a9fa60488 100644
---- a/drivers/net/can/c_can/c_can.c
-+++ b/drivers/net/can/c_can/c_can.c
-@@ -35,6 +35,7 @@
- #include <linux/list.h>
- #include <linux/io.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
+diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+index 28a73d14ea8d..8acdc7fa4792 100644
+--- a/drivers/net/can/c_can/c_can.h
++++ b/drivers/net/can/c_can/c_can.h
+@@ -188,6 +188,7 @@ struct c_can_raminit {
+ 	struct regmap *syscon;	/* for raminit ctrl. reg. access */
+ 	unsigned int reg;	/* register index within syscon */
+ 	struct raminit_bits bits;
++	bool needs_pulse;
+ };
  
- #include <linux/can.h>
- #include <linux/can/dev.h>
-@@ -603,6 +604,8 @@ static int c_can_start(struct net_device *dev)
+ /* c_can private data structure */
+diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+index 1fbfa1d59c29..41fa460c3592 100644
+--- a/drivers/net/can/c_can/c_can_platform.c
++++ b/drivers/net/can/c_can/c_can_platform.c
+@@ -120,6 +120,12 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
+ 		ctrl |= 1 << raminit->bits.start;
+ 		regmap_write(raminit->syscon, raminit->reg, ctrl);
  
- 	priv->can.state = CAN_STATE_ERROR_ACTIVE;
- 
-+	/* activate pins */
-+	pinctrl_pm_select_default_state(dev->dev.parent);
- 	return 0;
- }
- 
-@@ -611,6 +614,9 @@ static void c_can_stop(struct net_device *dev)
- 	struct c_can_priv *priv = netdev_priv(dev);
- 
- 	c_can_irq_control(priv, false);
++		/* clear START bit if start pulse is needed */
++		if (raminit->needs_pulse) {
++			ctrl &= ~(1 << raminit->bits.start);
++			regmap_write(raminit->syscon, raminit->reg, ctrl);
++		}
 +
-+	/* deactivate pins */
-+	pinctrl_pm_select_sleep_state(dev->dev.parent);
- 	priv->can.state = CAN_STATE_STOPPED;
- }
+ 		ctrl |= 1 << raminit->bits.done;
+ 		c_can_hw_raminit_wait_syscon(priv, mask, ctrl);
+ 	}
+@@ -325,6 +331,7 @@ static int c_can_plat_probe(struct platform_device *pdev)
+ 			}
  
-@@ -1244,6 +1250,13 @@ int register_c_can_dev(struct net_device *dev)
- 	struct c_can_priv *priv = netdev_priv(dev);
- 	int err;
+ 			raminit->bits = drvdata->raminit_bits[id];
++			raminit->needs_pulse = drvdata->raminit_pulse;
  
-+	/* Deactivate pins to prevent DRA7 DCAN IP from being
-+	 * stuck in transition when module is disabled.
-+	 * Pins are activated in c_can_start() and deactivated
-+	 * in c_can_stop()
-+	 */
-+	pinctrl_pm_select_sleep_state(dev->dev.parent);
-+
- 	c_can_pm_runtime_enable(priv);
- 
- 	dev->flags |= IFF_ECHO;	/* we support local echo */
+ 			priv->raminit = c_can_hw_raminit_syscon;
+ 		} else {
 -- 
 2.1.1
 
