@@ -1,54 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: some clock/hwmod patches for v3.19
-Date: Fri, 14 Nov 2014 10:47:20 -0800
-Message-ID: <20141114184719.GA7046@atomide.com>
-References: <alpine.DEB.2.02.1411132249550.17030@utopia.booyaka.com>
+Subject: Re: [PATCH v2 0/3] Add support for ADC on am437x-gp and
+ am43x-epos-evm
+Date: Fri, 14 Nov 2014 10:50:49 -0800
+Message-ID: <20141114185049.GB7046@atomide.com>
+References: <1415099728-10959-1-git-send-email-vigneshr@ti.com>
+ <54657FFA.1070200@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21613 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161282AbaKNSrx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 13:47:53 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1411132249550.17030@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <54657FFA.1070200@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [141113 14:52]:
-> The following changes since commit f114040e3ea6e07372334ade75d1ee0775c355e1:
+* Vignesh R <vigneshr@ti.com> [141113 20:09]:
 > 
->   Linux 3.18-rc1 (2014-10-19 18:08:38 -0700)
+> On Tuesday 04 November 2014 04:45 PM, Vignesh R wrote:
+> > This series of patches enable ADC on am437x-gp-evm and am43x-epos-evm.
+> > The ADC clock hwmod data of am33xx has been moved to commom place so that
+> > both am43xx and am33xx can reuse them.
+> > tscadc DT node has been adided to am437x-gp and am43x-epos dt files.
+> > With these patches, ADC functionalities are now available on am43xx.
+> > 
+> > Changelog:
+> > 
+> > v2:
+> > Removed phy addresses in hwmod. Using DT instead.
+> > Removed unused "ti,am4372" compatible string.
+> > Use macro to set clk domain name.
+> > Fixed subject format of all patches
+> > 
 > 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.19/omap-a
-> 
-> for you to fetch changes up to 79005fbd3e1d671d08c45c9140ee9826efdc367c:
-> 
->   ARM: OMAP2+: hwmod: drop unnecessary list initialization (2014-11-13 09:36:55 -0700)
-> 
-> ----------------------------------------------------------------
-> Some OMAP clock/hwmod patches for v3.19.
-> 
-> Most of the patches are clock-related.  The DPLL implementation is
-> changed to better align to the common clock framework.
-> There is also a patch that removes a few lines from the hwmod code -
-> this patch should have no functional effect.
-> 
-> Basic build, boot, and PM test logs for these patches can be found here:
-> 
-> http://www.pwsan.com/omap/testlogs/omap-a-for-v3.19/20141113094101/
+> Please accept these patches.
 
-Pulling into omap-for-v3.19/soc thanks. FYI, looks like there are
-few more open hwmod related threads you may want to look at:
-
-[PATCH v2 0/3] Add support for ADC on am437x-gp and am43x-epos-evm
-[RFC PATCH 0/6] ARM: OMAP4+: hwmod: fixing omap4+ DSS hwmods
-[PATCH] ARM: DRA7: hwmod data: Add missing UART hwmod data
+Adding Paul to Cc, I don't think Paul has seen these, probably because
+get_maintainer.pl did not catch these hwmod files?
 
 Regards,
 
 Tony
+ 
+> > Vignesh R (3):
+> >   ARM: OMAP2+: hwmod: AM335x/AM43x: Move am33xx_l4_hs_hwmod to
+> >     ipblock_data
+> >   ARM: OMAP2+: hwmod: AM335x/AM43x: add hwmod support for tscadc on
+> >     am43x-evm
+> >   ARM: dts: AM43xx: add tscadc DT entries for am437x-evm and
+> >     am43x-epos-evm
+> > 
+> >  arch/arm/boot/dts/am4372.dtsi                      | 20 ++++++
+> >  arch/arm/boot/dts/am437x-gp-evm.dts                |  8 +++
+> >  arch/arm/boot/dts/am43x-epos-evm.dts               |  8 +++
+> >  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  2 +
+> >  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 71 ++++++++++++++++++++++
+> >  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 64 -------------------
+> >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  1 +
+> >  7 files changed, 110 insertions(+), 64 deletions(-)
+> > 
