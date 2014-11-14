@@ -1,79 +1,20 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 06/10] ARM: dts: am4372: Add DCAN nodes
-Date: Fri, 14 Nov 2014 10:07:46 -0800
-Message-ID: <20141114180746.GV31250@atomide.com>
-References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
- <1415881371-4982-7-git-send-email-rogerq@ti.com>
- <5464BB38.7020402@pengutronix.de>
- <5464C2C4.2070907@ti.com>
- <5464C3B1.2030908@pengutronix.de>
- <5464C4E8.9060103@ti.com>
- <5464C609.9070800@pengutronix.de>
- <20141113174044.GN26481@atomide.com>
- <54662C3D.8050103@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: [PATCH v8 0/8] can: c_can: Use syscon regmap for TI specific RAMINIT register
+Date: Fri, 14 Nov 2014 19:09:43 +0100
+Message-ID: <1415988591-6032-1-git-send-email-mkl@pengutronix.de>
 Return-path: <linux-can-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54662C3D.8050103@ti.com>
 Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
+To: linux-can@vger.kernel.org
+Cc: wsa@the-dreams.de, linux-omap@vger.kernel.org, rogerq@ti.com, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [141114 08:24]:
-> On 11/13/2014 07:40 PM, Tony Lindgren wrote:
-> > * Marc Kleine-Budde <mkl@pengutronix.de> [141113 06:55]:
-> >> On 11/13/2014 03:49 PM, Roger Quadros wrote:
-> >>> On 11/13/2014 04:44 PM, Marc Kleine-Budde wrote:
-> >>>> On 11/13/2014 03:40 PM, Roger Quadros wrote:
-> >>>>> On 11/13/2014 04:07 PM, Marc Kleine-Budde wrote:
-> >>>>>> On 11/13/2014 01:22 PM, Roger Quadros wrote:
-> >>>>>>> The SoC contains 2 DCAN modules. Add them.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> >>>>>>> ---
-> >>>>>>>  arch/arm/boot/dts/am4372.dtsi | 22 ++++++++++++++++++++++
-> >>>>>>>  1 file changed, 22 insertions(+)
-> >>>>>>>
-> >>>>>>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-> >>>>>>> index 899c57c..12fb1db 100644
-> >>>>>>> --- a/arch/arm/boot/dts/am4372.dtsi
-> >>>>>>> +++ b/arch/arm/boot/dts/am4372.dtsi
-> >>>>>>> @@ -901,6 +901,28 @@
-> >>>>>>>  			compatible = "mmio-sram";
-> >>>>>>>  			reg = <0x40300000 0x40000>; /* 256k */
-> >>>>>>>  		};
-> >>>>>>> +
-> >>>>>>> +		dcan0: can@481cc000 {
-> >>>>>>> +			compatible = "ti,am3352-d_can";
-> >>>>>>
-> >>>>>> You should add "ti,am4372-d_can" as first compatible here.
-> >>>>>>
-> >>>>> We don't have a separate compatible id for am4372-d_can
-> >>>>> as it the IP exactly same as am3352-d_can.
-> >>>>
-> >>>> Having the "ti,am4372-d_can" compatible gives you the freedom to add
-> >>>> some spacial handling for the IP if there turns that you need to without
-> >>>> needing to modify the device tree. (We do this on imx.)
-> >>>
-> >>> Agreed. On OMAP platforms we don't add new compatible IDs unless we really need to.
-> >>> Can we add "ti,am4372-d_can" even if it is not mentioned in Documentation/devicetree/bindings?
-> >>>
-> >>> Tony what is your preference?
-> >>
-> >> I don't insist, do it the Omap way :)
-> > 
-> > I agree it's good to add if we need to add custom handling later on.
-> 
-> As of now I don't foresee any custom handling for am4372-d_can vs am3352-d_can, but I can
-> add am4372-d_can anyways. In that case, do I need to mention it in 
-> Documentation/devicetree/bindings/net/can/c_can.txt?
->
-> I guess not, cause we don't do anything specific to am4372-d_can there.
+Picking up Roger's work:
 
-I think you should to avoid checkpatch.pl warnings.
+Changes since v7:
+- combined raminit start and done bit into a struct (3/8, 7/8, 8/8)
+- constified struct c_can_driver_data (2/8, 7/8, 8/8)
+- silenced compiler warning in c_can_hw_raminit_{wait,}_syscon (4/8)
+- use platform_get_device_id in probe() instead of open coding it (2/8)
 
-Regards,
+Marc
 
-Tony
