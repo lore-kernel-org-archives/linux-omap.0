@@ -1,115 +1,114 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH v8 0/7] Enable L2 cache support on Exynos4210/4x12 SoCs
-Date: Fri, 14 Nov 2014 15:11:58 +0100
-Message-ID: <54660DAE.9090601@samsung.com>
-References: <1415884694-5868-1-git-send-email-m.szyprowski@samsung.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
+ devconf1 register
+Date: Fri, 14 Nov 2014 16:36:58 +0200
+Message-ID: <CANOLnONkQu-BBvZH5nb+VngCxq=xnk60JkTd6Jha1uFt2j8gJQ@mail.gmail.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
+	<1415051968-4878-5-git-send-email-marek@goldelico.com>
+	<5463585D.9070209@ti.com>
+	<20141112150210.GC26481@atomide.com>
+	<5464969F.30708@ti.com>
+	<20141113182848.GQ26481@atomide.com>
+	<alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com>
+	<20141113235840.GS26481@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <1415884694-5868-1-git-send-email-m.szyprowski@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Kukjin Kim <kgene.kim@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141113235840.GS26481@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, robh+dt@kernel.org, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, bcousson@baylibre.com, galak@codeaurora.org, Grant Likely <grant.likely@linaro.org>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+On Fri, Nov 14, 2014 at 1:58 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Paul Walmsley <paul@pwsan.com> [141113 15:01]:
+>> Hi
+>>
+>> On Thu, 13 Nov 2014, Tony Lindgren wrote:
+>>
+>> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [141113 03:33]:
+>> > > On 12/11/14 17:02, Tony Lindgren wrote:
+>> > >
+>> > > >> And, with a quick grep, I see CONTROL_DEVCONF1 touched in mul=
+tiple
+>> > > >> places in the kernel. I wonder if adding a pinmux entry for i=
+t could
+>> > > >> cause some rather odd problems.
+>> > > >
+>> > > > They can all use pinctrl-single no problem.
+>> > >
+>> > > Can, but don't. That's my worry. If we touch the DEVCONF1 via pi=
+nmux,
+>> > > and we have code in mach-omap2 that also touch DEVCONF1, without=
+ any
+>> > > knowledge (and locking) between those...
+>> >
+>> > Hmm yeah the McBSP clock mux could be racy as the mux register for
+>> > McBSP is treated as a clock. This register muxes the clock between
+>> > external pin and internal clock. Considering that this should be
+>> > selectable at board level as the external clock probably needs to =
+be
+>> > used if level shifters are being used, it should be really handled=
+ by
+>> > pinctrl-single.
+>> >
+>> > The other use for hsmmc.c and pdata-quirks.c for the one time mux =
+for
+>> > MMC clock from the MMC clock pin. That can be done with pinctrl-si=
+ngle
+>> > from the MMC driver too for DT based booting.
+>> >
+>> > Then we just have the save and restore of the registers for
+>> > off-idle.
+>> >
+>> > > So _maybe_ that's not an issue, as the pinmux config we have her=
+e is
+>> > > fixed, and done once at boot time, and maybe the code in mach-om=
+ap2 that
+>> > > touch DEVCONF1 is also ran just once and not at the same time as=
+ the
+>> > > pinmux. But I don't know if that's so.
+>> >
+>> > It seems we could just do a read-only check for McBSP in the clock
+>> > code for the mux register, or even completely drop that code from
+>> > cclock3xxx_data.c and start using the pinctrl for that mux.
+>> >
+>> > Paul & Tero, got any comments here?
+>>
+>> It's best to move all of the SCM register reads/writes to an SCM IP =
+block
+>> driver.  This driver would be the only entity that would touch the S=
+CM IP
+>> block registers - no other code on the system would touch it (perhap=
+s
+>> aside from anything needed for early init).  The SCM driver would en=
+force
+>> mutual exclusion via a spinlock, so concurrent SCM register modifica=
+tions
+>> wouldn't flake out.  Then the SCM driver would register clocks with =
+the
+>> CCF, register pins with the pinctrl subsystem, etc. etc.
+>
+> We actually do have that with pinctrl-single + syscon. We certainly
+> need to implement more Linux framework drivers for the SCM registers.
+> Things like regulators, clocks, and PHYs, but they should use
+> pinctrl-single + syscon. See the the pbias-regulator.c for example.
+>
+> Looking at the McBSP clock handling, threre's yet more handling of
+> the same DEVCONF1 mux register in omap2_mcbsp_set_clks_src that gets
+> alled from omap_mcbsp_dai_set_dai_sysclk.
+>
+> To me it seems that if we handle the DEVCONF with pinctrl-single, we
+> don't need most of the McBSP fck code or the omap2_mcbsp_set_clks_src=
+=2E
+> Having the mux register as the clock enable register is not nice..
+> Who knows what the clock coming from the external pin might be :)
 
-On 2014-11-13 14:18, Marek Szyprowski wrote:
-> This is an updated patchset, which intends to add support for L2 cache
-> on Exynos4 SoCs on boards running under secure firmware, which requires
-> certain initialization steps to be done with help of firmware, as
-> selected registers are writable only from secure mode.
->
-> First four patches extend existing support for secure write in L2C driver
-> to account for design of secure firmware running on Exynos. Namely:
->   1) direct read access to certain registers is needed on Exynos, because
->      secure firmware calls set several registers at once,
->   2) not all boards are running secure firmware, so .write_sec callback
->      needs to be installed in Exynos firmware ops initialization code,
->   3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
->      is not allowed and so must use l2c_write_sec as well,
->   4) on certain boards, default value of prefetch register is incorrect
->      and must be overridden at L2C initialization.
-> For boards running with firmware that provides access to individual
-> L2C registers this series should introduce no functional changes. However
-> since the driver is widely used on other platforms I'd like to kindly ask
-> any interested people for testing.
->
-> Further three patches add implementation of .write_sec and .configure
-> callbacks for Exynos secure firmware and necessary DT nodes to enable
-> L2 cache.
->
-> Changes in this version tested on Exynos4412-based TRATS2 and OdroidU3+
-> boards (both with secure firmware). There should be no functional change
-> for Exynos boards running without secure firmware. I do not have access
-> to affected non-Exynos boards, so I could not test on them.
->
->
-> Depends on:
->   - [PATCH v3 0/5] Firmware-assisted suspend/resume of Exynos SoCs
->     (https://lkml.org/lkml/2014/8/26/445)
->     available in samsung/pm2 branch in
->     git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc.git
->   - L2C patches merged to v3.18-rc3
+How will audio do dynamic muxing without that code?
+The pin must be remuxed back to internal clock when audio stops, or
+else PM breaks.
 
-I assume that after all comments from previous versions, no more changes 
-are needed
-to this patchset and I would really like to have it queued to v3.19.
 
-Arnd, Olof: could you take this patchset thought arm-soc tree? It already
-contains all dependencies.
-
-Kukjin: could you ack this patchset?
-
-> Changelog:
-> Changes since v7:
-> (https://lkml.org/lkml/2014/10/29/158)
-> - rebased onto arm-soc/for-next kernel tree (depends on patches merged to
->    v3.18-rc3 and arm-soc/samsung/pm2 branch)
-> - removed 'ARM: l2c: unify L2C-310 OF initialization error messages' patch
->    (no longer needed)
->
-> Changes since v6:
-> (https://lkml.org/lkml/2014/10/27/233)
-> - changed PL310 to L2C-310 prefix in error messages
-> - added patch shortening the error message about incorrect associativity
->
-> Changes since v5:
-> (https://lkml.org/lkml/2014/9/24/364)
-> - rebased onto v3.18-rc2
-> - added error message about missing properties values
->
-> Changes since v4:
-> (https://lkml.org/lkml/2014/8/26/461)
->   - rewrote the code accessing l2x0_saved_regs from assembly code
->   - added comment and reworked unconditional call to SMC_CMD_L2X0INVALL
->
->
-> Patch summary:
->
-> Tomasz Figa (7):
->    ARM: l2c: Refactor the driver to use commit-like interface
->    ARM: l2c: Add interface to ask hypervisor to configure L2C
->    ARM: l2c: Get outer cache .write_sec callback from mach_desc only if
->      not NULL
->    ARM: l2c: Add support for overriding prefetch settings
->    ARM: EXYNOS: Add .write_sec outer cache callback for L2C-310
->    ARM: EXYNOS: Add support for non-secure L2X0 resume
->    ARM: dts: exynos4: Add nodes for L2 cache controller
->
->   Documentation/devicetree/bindings/arm/l2cc.txt |  10 +
->   arch/arm/boot/dts/exynos4210.dtsi              |   9 +
->   arch/arm/boot/dts/exynos4x12.dtsi              |  14 ++
->   arch/arm/include/asm/outercache.h              |   3 +
->   arch/arm/kernel/irq.c                          |   3 +-
->   arch/arm/mach-exynos/firmware.c                |  50 +++++
->   arch/arm/mach-exynos/sleep.S                   |  46 +++++
->   arch/arm/mm/cache-l2x0.c                       | 270 ++++++++++++++++---------
->   8 files changed, 309 insertions(+), 96 deletions(-)
->
-
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+Gra=C5=BEvydas
