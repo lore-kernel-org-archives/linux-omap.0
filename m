@@ -1,90 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
- devconf1 register
-Date: Thu, 13 Nov 2014 15:58:41 -0800
-Message-ID: <20141113235840.GS26481@atomide.com>
-References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
- <1415051968-4878-5-git-send-email-marek@goldelico.com>
- <5463585D.9070209@ti.com>
- <20141112150210.GC26481@atomide.com>
- <5464969F.30708@ti.com>
- <20141113182848.GQ26481@atomide.com>
- <alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] Add support for ADC on am437x-gp and am43x-epos-evm
+Date: Fri, 14 Nov 2014 09:37:22 +0530
+Message-ID: <54657FFA.1070200@ti.com>
+References: <1415099728-10959-1-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1415099728-10959-1-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [141113 15:01]:
-> Hi
+
+On Tuesday 04 November 2014 04:45 PM, Vignesh R wrote:
+> This series of patches enable ADC on am437x-gp-evm and am43x-epos-evm.
+> The ADC clock hwmod data of am33xx has been moved to commom place so that
+> both am43xx and am33xx can reuse them.
+> tscadc DT node has been adided to am437x-gp and am43x-epos dt files.
+> With these patches, ADC functionalities are now available on am43xx.
 > 
-> On Thu, 13 Nov 2014, Tony Lindgren wrote:
+> Changelog:
 > 
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [141113 03:33]:
-> > > On 12/11/14 17:02, Tony Lindgren wrote:
-> > > 
-> > > >> And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
-> > > >> places in the kernel. I wonder if adding a pinmux entry for it could
-> > > >> cause some rather odd problems.
-> > > > 
-> > > > They can all use pinctrl-single no problem.
-> > > 
-> > > Can, but don't. That's my worry. If we touch the DEVCONF1 via pinmux,
-> > > and we have code in mach-omap2 that also touch DEVCONF1, without any
-> > > knowledge (and locking) between those...
-> > 
-> > Hmm yeah the McBSP clock mux could be racy as the mux register for
-> > McBSP is treated as a clock. This register muxes the clock between
-> > external pin and internal clock. Considering that this should be
-> > selectable at board level as the external clock probably needs to be
-> > used if level shifters are being used, it should be really handled by
-> > pinctrl-single.
-> > 
-> > The other use for hsmmc.c and pdata-quirks.c for the one time mux for
-> > MMC clock from the MMC clock pin. That can be done with pinctrl-single
-> > from the MMC driver too for DT based booting.
-> > 
-> > Then we just have the save and restore of the registers for
-> > off-idle.
-> >  
-> > > So _maybe_ that's not an issue, as the pinmux config we have here is
-> > > fixed, and done once at boot time, and maybe the code in mach-omap2 that
-> > > touch DEVCONF1 is also ran just once and not at the same time as the
-> > > pinmux. But I don't know if that's so.
-> > 
-> > It seems we could just do a read-only check for McBSP in the clock
-> > code for the mux register, or even completely drop that code from
-> > cclock3xxx_data.c and start using the pinctrl for that mux.
-> > 
-> > Paul & Tero, got any comments here?
+> v2:
+> Removed phy addresses in hwmod. Using DT instead.
+> Removed unused "ti,am4372" compatible string.
+> Use macro to set clk domain name.
+> Fixed subject format of all patches
 > 
-> It's best to move all of the SCM register reads/writes to an SCM IP block 
-> driver.  This driver would be the only entity that would touch the SCM IP 
-> block registers - no other code on the system would touch it (perhaps 
-> aside from anything needed for early init).  The SCM driver would enforce 
-> mutual exclusion via a spinlock, so concurrent SCM register modifications 
-> wouldn't flake out.  Then the SCM driver would register clocks with the 
-> CCF, register pins with the pinctrl subsystem, etc. etc.
 
-We actually do have that with pinctrl-single + syscon. We certainly
-need to implement more Linux framework drivers for the SCM registers.
-Things like regulators, clocks, and PHYs, but they should use
-pinctrl-single + syscon. See the the pbias-regulator.c for example.
+Please accept these patches.
 
-Looking at the McBSP clock handling, threre's yet more handling of
-the same DEVCONF1 mux register in omap2_mcbsp_set_clks_src that gets 
-alled from omap_mcbsp_dai_set_dai_sysclk.
+Regards
+Vignesh R
 
-To me it seems that if we handle the DEVCONF with pinctrl-single, we
-don't need most of the McBSP fck code or the omap2_mcbsp_set_clks_src.
-Having the mux register as the clock enable register is not nice..
-Who knows what the clock coming from the external pin might be :)
-
-Regards,
-
-Tony
+> Vignesh R (3):
+>   ARM: OMAP2+: hwmod: AM335x/AM43x: Move am33xx_l4_hs_hwmod to
+>     ipblock_data
+>   ARM: OMAP2+: hwmod: AM335x/AM43x: add hwmod support for tscadc on
+>     am43x-evm
+>   ARM: dts: AM43xx: add tscadc DT entries for am437x-evm and
+>     am43x-epos-evm
+> 
+>  arch/arm/boot/dts/am4372.dtsi                      | 20 ++++++
+>  arch/arm/boot/dts/am437x-gp-evm.dts                |  8 +++
+>  arch/arm/boot/dts/am43x-epos-evm.dts               |  8 +++
+>  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  2 +
+>  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 71 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 64 -------------------
+>  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  1 +
+>  7 files changed, 110 insertions(+), 64 deletions(-)
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
