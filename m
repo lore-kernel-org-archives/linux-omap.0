@@ -1,61 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] Add support for ADC on am437x-gp and
- am43x-epos-evm
-Date: Fri, 14 Nov 2014 10:50:49 -0800
-Message-ID: <20141114185049.GB7046@atomide.com>
-References: <1415099728-10959-1-git-send-email-vigneshr@ti.com>
- <54657FFA.1070200@ti.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Fri, 14 Nov 2014 21:54:42 +0200
+Message-ID: <54665E02.8050108@gmail.com>
+References: <20141104205117.GA17606@amd> <20141106180335.GA21513@earth.universe> <20141106225005.GA14002@amd> <201411070001.46481@pali> <545C6F14.8050303@gmail.com> <20141113162420.GB8512@xo-6d-61-c0.localdomain> <5465A977.4030605@gmail.com> <20141114172008.GB12250@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <54657FFA.1070200@ti.com>
+In-Reply-To: <20141114172008.GB12250@earth.universe>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, Sakari Ailus <sakari.ailus@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-* Vignesh R <vigneshr@ti.com> [141113 20:09]:
-> 
-> On Tuesday 04 November 2014 04:45 PM, Vignesh R wrote:
-> > This series of patches enable ADC on am437x-gp-evm and am43x-epos-evm.
-> > The ADC clock hwmod data of am33xx has been moved to commom place so that
-> > both am43xx and am33xx can reuse them.
-> > tscadc DT node has been adided to am437x-gp and am43x-epos dt files.
-> > With these patches, ADC functionalities are now available on am43xx.
-> > 
-> > Changelog:
-> > 
-> > v2:
-> > Removed phy addresses in hwmod. Using DT instead.
-> > Removed unused "ti,am4372" compatible string.
-> > Use macro to set clk domain name.
-> > Fixed subject format of all patches
-> > 
-> 
-> Please accept these patches.
 
-Adding Paul to Cc, I don't think Paul has seen these, probably because
-get_maintainer.pl did not catch these hwmod files?
 
-Regards,
+On 14.11.2014 19:20, Sebastian Reichel wrote:
+>
+> The patch looks ok. It does not cleanup the cmt-speech driver for
+> mainline usage, but it should work. Before adding this driver to the
+> mainline kernel there should be open source userspace support anyway.
+>
 
-Tony
- 
-> > Vignesh R (3):
-> >   ARM: OMAP2+: hwmod: AM335x/AM43x: Move am33xx_l4_hs_hwmod to
-> >     ipblock_data
-> >   ARM: OMAP2+: hwmod: AM335x/AM43x: add hwmod support for tscadc on
-> >     am43x-evm
-> >   ARM: dts: AM43xx: add tscadc DT entries for am437x-evm and
-> >     am43x-epos-evm
-> > 
-> >  arch/arm/boot/dts/am4372.dtsi                      | 20 ++++++
-> >  arch/arm/boot/dts/am437x-gp-evm.dts                |  8 +++
-> >  arch/arm/boot/dts/am43x-epos-evm.dts               |  8 +++
-> >  .../mach-omap2/omap_hwmod_33xx_43xx_common_data.h  |  2 +
-> >  .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 71 ++++++++++++++++++++++
-> >  arch/arm/mach-omap2/omap_hwmod_33xx_data.c         | 64 -------------------
-> >  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  1 +
-> >  7 files changed, 110 insertions(+), 64 deletions(-)
-> > 
+I am aware of that(patch not ready), it's one of the reasons this patch 
+still sits on gitorious IMO.
+
+libcmtspeechdata was opened by Nokia long ago, so I don't understand 
+what userspace support (for inclusion of the driver in the mainline 
+kernel that is) is needed. see 
+https://gitorious.org/meego-cellular/libcmtspeechdata/source/7f8f3ce357513e4849e1bf6d657980a514529c1a:
+
+REed pulseaudio modules that use cmtspeech will be ready sooner than 
+later (I believe in 2-3 monts from now), see on gitorious how fast we 
+progressed with -record and -music modules. Sure, -voice module is way 
+more complicated, but lots of it is already opensourced, we just need to 
+figure out a couple of DSP algorithms(drc, agc, aec, etc) related to 
+call quality. But I don't think the driver should wait for those modules 
+to be REed, they can be used as is even now, in their closed form for 
+testing. Unfortunately all my spare time is dedicated to that PA stuff, 
+so I simply can't cleanup cmtspeech driver and send a patch for 
+upstreaming. (Pavel, what about you?)
+
+> Btw. I am aware that this would break existing pulse audio stuff,
+> but wouldn't it make sense to export a V4L2 device instead of the
+> custom /dev/cmt_speech ABI?
+>
+
+Nokia PA guys did a great job integrating lots of things related to 
+audio and honestly, I don't see a reason why should we reinvent the 
+wheel. There is lot more behind the scenes than simple PCM streaming 
+(like audio policies and routing, sideband audio, speakers protection, 
+etc) and reiplementing all this using different API wouldn't worth it IMO.
+
+Not to say that I agree with Pali's reply that working userspace should 
+not be broken just for the sake of it.
+
+Ivo
