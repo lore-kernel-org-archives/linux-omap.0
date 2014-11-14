@@ -1,76 +1,82 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: N900 modem support in 3.18-rc1
-Date: Fri, 14 Nov 2014 18:34:18 +0100
-Message-ID: <201411141834.19242@pali>
-References: <20141104205117.GA17606@amd> <5465A977.4030605@gmail.com> <20141114172008.GB12250@earth.universe>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC PATCH 2/3] mmc: omap_hsmmc: add tuning support
+Date: Fri, 14 Nov 2014 11:41:52 -0600
+Message-ID: <20141114174152.GM11538@saruman>
+References: <1415883379-19654-1-git-send-email-kishon@ti.com>
+ <1415883379-19654-3-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart10492741.B20IFtmAfR";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141114172008.GB12250@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TXIPBuAs4GDcsx9K"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1415883379-19654-3-git-send-email-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: chris@printf.net, ulf.hansson@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, nsekhar@ti.com, afenkart@gmail.com, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart10492741.B20IFtmAfR
-Content-Type: Text/Plain;
-  charset="utf-8"
+--TXIPBuAs4GDcsx9K
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Friday 14 November 2014 18:20:09 Sebastian Reichel wrote:
-> Hi,
->=20
-> On Fri, Nov 14, 2014 at 09:04:23AM +0200, Ivaylo Dimitrov=20
-wrote:
-> > [...]
-> > https://gitorious.org/linux-n900/freemangordons-linux-n900/c
-> > ommits/30e9a5c498a89cea4c29523f69e436bf0af3c631
-> >=20
-> > commits 89ce13b, b81d80d, ec4d0dc, 91256e2 and 8022a6d -
-> > e29f558 (no idea why gitorious shows those mixed with SGX
-> > stuff, on my local tree it is contiguous patch series)
-> >=20
-> > didn't test against the current upstream, but I see no
-> > reason why those should not apply, build and run.
->=20
-> The patch looks ok. It does not cleanup the cmt-speech driver
-> for mainline usage, but it should work. Before adding this
-> driver to the mainline kernel there should be open source
-> userspace support anyway.
->=20
-> Btw. I am aware that this would break existing pulse audio
-> stuff, but wouldn't it make sense to export a V4L2 device
-> instead of the custom /dev/cmt_speech ABI?
->=20
+Hi,
 
-It is not good idea to break existing applications even if they=20
-are closed... And there are some open source meego/nemo=20
-pulseaudio modules which using cmt speech (but audio quality is=20
-worse).
+On Thu, Nov 13, 2014 at 06:26:18PM +0530, Kishon Vijay Abraham I wrote:
+> @@ -233,6 +263,48 @@ struct omap_mmc_of_data {
+>  	u8 controller_flags;
+>  };
+> =20
+> +static const u32 ref_tuning_4bits[] =3D {
+> +	0x00FF0FFF, 0xCCC3CCFF, 0xFFCC3CC3, 0xEFFEFFFE,
+> +	0xDDFFDFFF, 0xFBFFFBFF, 0xFF7FFFBF, 0xEFBDF777,
+> +	0xF0FFF0FF, 0x3CCCFC0F, 0xCFCC33CC, 0xEEFFEFFF,
+> +	0xFDFFFDFF, 0xFFBFFFDF, 0xFFF7FFBB, 0xDE7B7FF7
+> +};
+> +
+> +static const u32 ref_tuning_8bits[] =3D {
+> +	0xFF00FFFF, 0x0000FFFF, 0xCCCCFFFF, 0xCCCC33CC,
+> +	0xCC3333CC, 0xFFFFCCCC, 0xFFFFEEFF, 0xFFEEEEFF,
+> +	0xFFDDFFFF, 0xDDDDFFFF, 0xBBFFFFFF, 0xBBFFFFFF,
+> +	0xFFFFFFBB, 0XFFFFFF77, 0x77FF7777, 0xFFEEDDBB,
+> +	0x00FFFFFF, 0x00FFFFFF, 0xCCFFFF00, 0xCC33CCCC,
+> +	0x3333CCCC, 0xFFCCCCCC, 0xFFEEFFFF, 0xEEEEFFFF,
+> +	0xDDFFFFFF, 0xDDFFFFFF, 0xFFFFFFDD, 0XFFFFFFBB,
+> +	0xFFFFBBBB, 0xFFFF77FF, 0xFF7777FF, 0xEEDDBB77
+> +};
 
-Anyway what is /dev/cmt_speech doing? If it exports gsm voice=20
-call data, should not it have alsa snd interface?
+yet another feature we would've gotten for free if we were already using
+sdhci. This is just a copy of what's on sdhci-msm.c, probably because
+they license the same IP we do.
 
-V4L2 interface is not for video/camera/capture/tv cards?
+It would be much better to just convert omap-hsmmc.c into sdhci-omap.c
+much like it was done for 8250-omap.c, with the added benefit that this
+will incur no userland regressions due to devnode names.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+--=20
+balbi
 
---nextPart10492741.B20IFtmAfR
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+--TXIPBuAs4GDcsx9K
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1
 
-iEYEABECAAYFAlRmPRsACgkQi/DJPQPkQ1IboQCgv92aX//7c+RU05LVCJJuuJB8
-XXkAnjKwjaeMyQKIod4yvVK1GyA9GdBZ
-=0c7Q
+iQIcBAEBAgAGBQJUZj7gAAoJEIaOsuA1yqREmbYP/A3aKmMOFLbdhe5G3WwrCG8U
+e4vP9xY4VoQ4ItZKDaj3vG7F2BXL7aVV975ksd8k+zGFN+g+9OxXxNFeVNF8/TgY
+jDPW8VGwfA9XolLVDj2faURDRMmx/VgDK9nlUOsldIpRfIeDQywidzZwBND+SQZf
+6Blnn/YaJEMh8DhJiRHufHJltohvPinJ/n5qTv9ZL3Ql8ND/UC3nK+XOoHueCUOU
+bDzXjssTP2Xl5paHcHmuUUL9UgmXTaA0rJrH9MS68hAS4S21uUfHX06JV4QuZlMH
+9t+roZceCljjYSL+bP3jsc+Nxizm6Q+k0wkYo964G45AvxnG3138tSmPx28In8qQ
+5Ip4a0ODdLrHj98qWHl/+KqyuEbRoyLNX7llJuVmMRfu5FWufIJEtBnNglT3hg5u
+05EqZRVmp4+aBj1T4oADcWQSub6/a91OnX0wZEYTwkuypoqTmiO77bhUMt2hqAcP
+YYD+ffovmxXoGFJgUjuTjvJ2npIstyZeVnNCal2ePliDxP5AhUndBvKtEo+oT8z4
+/1XirQjBvA47E/gd9K8AgRJ6Rkp3EXPUXLjuLAOLbFY+RvEmFwNgKD2/5ku5/5EB
+ymVHivyIIbIByWtDwNJBl4l/1Sld0FtMmaxTX7ryHLm0JiQczJkpp8AnwImUxxh4
+FReNNPFeNdOH2wTGj+0o
+=vXtc
 -----END PGP SIGNATURE-----
 
---nextPart10492741.B20IFtmAfR--
+--TXIPBuAs4GDcsx9K--
