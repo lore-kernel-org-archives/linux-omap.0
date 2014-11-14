@@ -1,85 +1,99 @@
-From: Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH v9] ARM: omap: edma: add suspend resume hook
-Date: Fri, 14 Nov 2014 18:07:15 +0100
-Message-ID: <546636C3.8070202@zonque.org>
-References: <1409043173-24357-1-git-send-email-zonque@gmail.com> <546635DB.4020202@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH V3 3/3] mfd: palmas: Add support for optional wakeup
+Date: Fri, 14 Nov 2014 09:08:17 -0800
+Message-ID: <20141114170816.GW26481@atomide.com>
+References: <alpine.DEB.2.10.1409190710320.5612@nanos>
+ <20140919161927.GA28613@kahuna>
+ <alpine.DEB.2.10.1409191027330.5612@nanos>
+ <20140919191649.GQ14505@atomide.com>
+ <alpine.DEB.2.10.1409191233590.4213@nanos>
+ <20141002034345.GH3122@atomide.com>
+ <20141106204629.GF31454@atomide.com>
+ <alpine.DEB.2.11.1411131053050.3935@nanos>
+ <20141113174030.GM26481@atomide.com>
+ <20141114161901.GG11538@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:59362 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161333AbaKNRHX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Nov 2014 12:07:23 -0500
-In-Reply-To: <546635DB.4020202@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20141114161901.GG11538@saruman>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LAK <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Kevin Hilman <khilman-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, d-gerlach@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
 
-Hi Sekhar,
-
-On 11/14/2014 06:03 PM, Sekhar Nori wrote:
-> I think I have asked this before, and I am still not sure why this call 
-> to pm_runtime_get_sync() is needed here. From my testing today, this 
-> does seem to be a a no-op and this call returns from rpm_resume() 
-> because of this check:
+* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [141114 08:20]:
+> On Thu, Nov 13, 2014 at 09:40:31AM -0800, Tony Lindgren wrote:
+> > +/**
+> > + *	handle_wakeirq_thread - call device runtime pm calls on wake-up interrupt
+> > + *	@wakeirq: device specific wake-up interrupt
+> > + *	@dev_id: struct device entry
+> > + */
+> > +irqreturn_t handle_wakeirq_thread(int wakeirq, void *dev_id)
+> > +{
+> > +	struct device *dev = dev_id;
+> > +	irqreturn_t ret = IRQ_NONE;
+> > +
+> > +	if (pm_runtime_suspended(dev)) {
+> > +		pm_runtime_mark_last_busy(dev);
+> > +		pm_request_resume(dev);
 > 
-> 	else if (dev->power.disable_depth == 1 && dev->power.is_suspended
-> 	    && dev->power.runtime_status == RPM_ACTIVE)
-> 		retval = 1;
-
-Yes. IIRC, it was in fact not needed.
-
-> So, AFAICS, the net effect is an increment of dev->power.usage_count
-> (which is already greater than 0) and its subsequent decrement at the
-> end of the function.
+> this assumes that every driver's ->resume() callback has a:
 > 
-> After removing this call I did not see any EDMA malfunction as well 
-> (can access MMC/SD just fine after suspend/resume cycle).
+> 	if (pending)
+> 		handle_pending_irqs();
 > 
-> So, any objections to merging this patch with the attached hunk 
-> applied?
-
-Looks good to me, we can still add it back later if it turns out to be
-needed.
-
-
-Thanks,
-Daniel
-
-
-> Thanks,
-> Sekhar
+> which might not be very nice. I'd rather follow what Thomas suggested
+> and always pass device irq so this can mark it pending. Keep in mind
+> that we *don't* need a pm_runtime_get_sync() in every IRQ handler
+> because of that. Adding it is but the easiest way to get things working
+> and, quite frankly, very silly.
 > 
-> ---8<---
-> diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-> index 1f492d5be9c0..79de6a23047b 100644
-> --- a/arch/arm/common/edma.c
-> +++ b/arch/arm/common/edma.c
-> @@ -1803,13 +1803,7 @@ static int edma_probe(struct platform_device *pdev)
->  
->  static int edma_pm_resume(struct device *dev)
->  {
-> -       int i, j, r;
-> -
-> -       r = pm_runtime_get_sync(dev);
-> -       if (r < 0) {
-> -               dev_err(dev, "%s: get_sync returned %d\n", __func__, r);
-> -               return r;
-> -       }
-> +       int i, j;
->  
->         for (j = 0; j < arch_num_cc; j++) {
->                 struct edma *cc = edma_cc[j];
-> @@ -1844,8 +1838,6 @@ static int edma_pm_resume(struct device *dev)
->                 }
->         }
->  
-> -       pm_runtime_put_sync(dev);
-> -
->         return 0;
->  }
+> what we want is rather:
 > 
+> 	irqreturn_t my_handler(int irq, void *dev_id)
+> 	{
+> 		struct device *dev = dev_id;
 > 
+> 		if (pm_runtime_suspended(dev)) {
+> 			pending_irqs_to_be_handled_from_runtime_resume = true;
+> 			pm_runtime_get(dev);
+> 			clear_irq_source(dev);
+> 			return IRQ_HANDLED;
+> 		}
+> 	}
+> 
+> or something similar.
 
+Yeah I'll take a look.
+ 
+> > +		ret = IRQ_HANDLED;
+> > +	}
+> 
+> you're not masking the wake irq here which means that when this handler
+> returns, wake irq will be unmasked by core IRQ subsystem leaving it
+> unmasked after ->resume().
+
+It currently assumes the consumer driver takes care of it. But I get
+your point, we should be able to automate this further.
+
+And right now there's also a dependency on dev->power.irq_safe so
+RPM_ASYNC is not set. And this all should ideally work even with runtime
+PM not set as it's also needed for resume from suspend.
+ 
+> you *know* you'll pass a NULL top half handler, why don't you just force
+> IRQF_ONESHOT instead of erroring out ? Just add:
+> 
+> 	wakeflags |= IRQF_ONESHOT;
+> 
+> and get it over with :-)
+
+Good point :)
+ 
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
