@@ -1,54 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] omap driver changes for v3.19
-Date: Fri, 14 Nov 2014 13:06:46 -0800
-Message-ID: <38863.5026211434$1415999315@news.gmane.org>
-References: <pull-1415999057-591605>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Fri, 14 Nov 2014 22:14:38 +0100
+Message-ID: <20141114211438.GA6658@amd>
+References: <20141104205117.GA17606@amd>
+ <20141106180335.GA21513@earth.universe>
+ <20141106225005.GA14002@amd>
+ <201411070001.46481@pali>
+ <545C6F14.8050303@gmail.com>
+ <20141113162420.GB8512@xo-6d-61-c0.localdomain>
+ <5465A977.4030605@gmail.com>
+ <20141114172008.GB12250@earth.universe>
+ <54665E02.8050108@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1415999057-591605>
-In-Reply-To: <pull-1415999057-591605>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <54665E02.8050108@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, Sakari Ailus <sakari.ailus@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit cac7f2429872d3733dc3f9915857b1691da2eb2f:
+Hi!
 
-  Linux 3.18-rc2 (2014-10-26 16:48:41 -0700)
+On Fri 2014-11-14 21:54:42, Ivaylo Dimitrov wrote:
+> On 14.11.2014 19:20, Sebastian Reichel wrote:
+> >
+> >The patch looks ok. It does not cleanup the cmt-speech driver for
+> >mainline usage, but it should work. Before adding this driver to the
+> >mainline kernel there should be open source userspace support anyway.
+> >
+> 
+> I am aware of that(patch not ready), it's one of the reasons this patch
+> still sits on gitorious IMO.
+> 
+> libcmtspeechdata was opened by Nokia long ago, so I don't understand what
+> userspace support (for inclusion of the driver in the mainline kernel that
+> is) is needed. see https://gitorious.org/meego-cellular/libcmtspeechdata/source/7f8f3ce357513e4849e1bf6d657980a514529c1a:
+> 
+> REed pulseaudio modules that use cmtspeech will be ready sooner than later
+> (I believe in 2-3 monts from now), see on gitorious how fast we progressed
+> with -record and -music modules. Sure, -voice module is way more
+> complicated, but lots of it is already opensourced, we just need to figure
+> out a couple of DSP algorithms(drc, agc, aec, etc) related to call quality.
+> But I don't think the driver should wait for those modules to be REed, they
+> can be used as is even now, in their closed form for testing. Unfortunately
+> all my spare time is dedicated to that PA stuff, so I simply can't cleanup
+> cmtspeech driver and send a patch for upstreaming. (Pavel, what
+>about you?)
 
-are available in the git repository at:
+Hey, I can try.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/w1-and-l3-noc
+But there are two things I'd like to understand, first:
 
-for you to fetch changes up to c4cf0935a2d8fe6d186bf4253ea3c4b4a8a8a710:
+a) how did Mer people solve this? Or did they just ship nokia
+binaries?
 
-  bus: omap_l3_noc: Correct returning IRQ_HANDLED unconditionally in the irq handler (2014-11-12 07:16:27 -0800)
+b) do we really need those DSP algorithms? Can we just take data from
+microphone and send it down the GSM line, and take data from GSM line
+and put it to the speaker? If it will not work in the speakerphone
+mode, I can live with that... It should somehow work in normal-phone
+mode, and be definitely feasible with wired handsfree, no?
 
-----------------------------------------------------------------
-Few omap driver changes to add minimal device tree support
-for the omap 1w driver, and to fix resume and interrupt issues
-on the l3-noc driver.
-
-----------------------------------------------------------------
-Keerthy (2):
-      bus: omap_l3_noc: Add resume hook to restore context
-      bus: omap_l3_noc: Correct returning IRQ_HANDLED unconditionally in the irq handler
-
-NeilBrown (1):
-      w1: omap-hdq: support device probing with device-tree
-
- Documentation/devicetree/bindings/w1/omap-hdq.txt | 17 ++++++
- drivers/bus/omap_l3_noc.c                         | 63 ++++++++++++++++++++++-
- drivers/w1/masters/omap_hdq.c                     |  7 +++
- 3 files changed, 85 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/w1/omap-hdq.txt
+Thanks,
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
