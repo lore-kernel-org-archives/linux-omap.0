@@ -1,102 +1,106 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v4 7/8] net: can: c_can: Add support for TI DRA7 DCAN
-Date: Fri, 14 Nov 2014 16:56:37 +0100
-Message-ID: <54662635.5020101@pengutronix.de>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-8-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
+ devconf1 register
+Date: Fri, 14 Nov 2014 07:58:23 -0800
+Message-ID: <20141114155823.GV26481@atomide.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
+ <1415051968-4878-5-git-send-email-marek@goldelico.com>
+ <5463585D.9070209@ti.com>
+ <20141112150210.GC26481@atomide.com>
+ <5464969F.30708@ti.com>
+ <20141113182848.GQ26481@atomide.com>
+ <alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com>
+ <20141113235840.GS26481@atomide.com>
+ <CANOLnONkQu-BBvZH5nb+VngCxq=xnk60JkTd6Jha1uFt2j8gJQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="1MFWPXKcR9NKi3Bl5PnMRLfu2fgOgcEIw"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1415371762-29885-8-git-send-email-rogerq@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
-Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CANOLnONkQu-BBvZH5nb+VngCxq=xnk60JkTd6Jha1uFt2j8gJQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, pawel.moll-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, "Dr. H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1MFWPXKcR9NKi3Bl5PnMRLfu2fgOgcEIw
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+* Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141114 06:38]:
+> On Fri, Nov 14, 2014 at 1:58 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> > * Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org> [141113 15:01]:
+> >> Hi
+> >>
+> >> On Thu, 13 Nov 2014, Tony Lindgren wrote:
+> >>
+> >> > * Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [141113 03:33]:
+> >> > > On 12/11/14 17:02, Tony Lindgren wrote:
+> >> > >
+> >> > > >> And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
+> >> > > >> places in the kernel. I wonder if adding a pinmux entry for it could
+> >> > > >> cause some rather odd problems.
+> >> > > >
+> >> > > > They can all use pinctrl-single no problem.
+> >> > >
+> >> > > Can, but don't. That's my worry. If we touch the DEVCONF1 via pinmux,
+> >> > > and we have code in mach-omap2 that also touch DEVCONF1, without any
+> >> > > knowledge (and locking) between those...
+> >> >
+> >> > Hmm yeah the McBSP clock mux could be racy as the mux register for
+> >> > McBSP is treated as a clock. This register muxes the clock between
+> >> > external pin and internal clock. Considering that this should be
+> >> > selectable at board level as the external clock probably needs to be
+> >> > used if level shifters are being used, it should be really handled by
+> >> > pinctrl-single.
+> >> >
+> >> > The other use for hsmmc.c and pdata-quirks.c for the one time mux for
+> >> > MMC clock from the MMC clock pin. That can be done with pinctrl-single
+> >> > from the MMC driver too for DT based booting.
+> >> >
+> >> > Then we just have the save and restore of the registers for
+> >> > off-idle.
+> >> >
+> >> > > So _maybe_ that's not an issue, as the pinmux config we have here is
+> >> > > fixed, and done once at boot time, and maybe the code in mach-omap2 that
+> >> > > touch DEVCONF1 is also ran just once and not at the same time as the
+> >> > > pinmux. But I don't know if that's so.
+> >> >
+> >> > It seems we could just do a read-only check for McBSP in the clock
+> >> > code for the mux register, or even completely drop that code from
+> >> > cclock3xxx_data.c and start using the pinctrl for that mux.
+> >> >
+> >> > Paul & Tero, got any comments here?
+> >>
+> >> It's best to move all of the SCM register reads/writes to an SCM IP block
+> >> driver.  This driver would be the only entity that would touch the SCM IP
+> >> block registers - no other code on the system would touch it (perhaps
+> >> aside from anything needed for early init).  The SCM driver would enforce
+> >> mutual exclusion via a spinlock, so concurrent SCM register modifications
+> >> wouldn't flake out.  Then the SCM driver would register clocks with the
+> >> CCF, register pins with the pinctrl subsystem, etc. etc.
+> >
+> > We actually do have that with pinctrl-single + syscon. We certainly
+> > need to implement more Linux framework drivers for the SCM registers.
+> > Things like regulators, clocks, and PHYs, but they should use
+> > pinctrl-single + syscon. See the the pbias-regulator.c for example.
+> >
+> > Looking at the McBSP clock handling, threre's yet more handling of
+> > the same DEVCONF1 mux register in omap2_mcbsp_set_clks_src that gets
+> > alled from omap_mcbsp_dai_set_dai_sysclk.
+> >
+> > To me it seems that if we handle the DEVCONF with pinctrl-single, we
+> > don't need most of the McBSP fck code or the omap2_mcbsp_set_clks_src.
+> > Having the mux register as the clock enable register is not nice..
+> > Who knows what the clock coming from the external pin might be :)
+> 
+> How will audio do dynamic muxing without that code?
+> The pin must be remuxed back to internal clock when audio stops, or
+> else PM breaks.
 
-On 11/07/2014 03:49 PM, Roger Quadros wrote:
-> DRA7 SoC has 2 CAN IPs. Provide compatible IDs and RAMINIT
-> register data for both.
->=20
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  Documentation/devicetree/bindings/net/can/c_can.txt |  1 +
->  drivers/net/can/c_can/c_can_platform.c              | 11 +++++++++++
->  2 files changed, 12 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Docu=
-mentation/devicetree/bindings/net/can/c_can.txt
-> index a3ca3ee..f682fdb 100644
-> --- a/Documentation/devicetree/bindings/net/can/c_can.txt
-> +++ b/Documentation/devicetree/bindings/net/can/c_can.txt
-> @@ -4,6 +4,7 @@ Bosch C_CAN/D_CAN controller Device Tree Bindings
->  Required properties:
->  - compatible		: Should be "bosch,c_can" for C_CAN controllers and
->  			  "bosch,d_can" for D_CAN controllers.
-> +			  Can be "ti,dra7-d_can".
->  - reg			: physical base address and size of the C_CAN/D_CAN
->  			  registers map
->  - interrupts		: property with a value describing the interrupt
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c=
-_can/c_can_platform.c
-> index 71b9063..7a81db4 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -195,6 +195,16 @@ static struct c_can_driver_data d_can_drvdata =3D =
-{
->  	.id =3D BOSCH_D_CAN,
->  };
-> =20
-> +static u8 dra7_raminit_start_bits[] =3D {3, 5};
-> +static u8 dra7_raminit_done_bits[] =3D {1, 2};
-> +static struct c_can_driver_data dra7_dcan_drvdata =3D {
-> +	.id =3D BOSCH_D_CAN,
-> +	.num_can =3D 2,
-                   ^
-Replaced by ARRAY_SIZE(dra7_raminit_start_bits)
+There's a standard way of dealing with that already available. We can
+just have runtime_pm functions call pinctrl_pm_select_sleep_state()
+and pinctrl_pm_select_default_state().
 
-Same for the am3352_dcan_drvdata in the next patch.
+Regards,
 
-> +	.raminit_start_bits =3D dra7_raminit_start_bits,
-> +	.raminit_done_bits =3D dra7_raminit_done_bits,
-> +	.raminit_pulse =3D true,
-> +};
-
-Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---1MFWPXKcR9NKi3Bl5PnMRLfu2fgOgcEIw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUZiY1AAoJECte4hHFiupUDdkP/3lVqjNHs2cnWCL/GcRJubGL
-V7g8CN5I+2SN6jjWP5lyCf5mpsKEtIls+C+ybJy2EYJETEnYfC8zzOkp5Jux+3wV
-0YlehijuixVKlqFRcTi6TAc3omBUOIGhNQsL2Nwwkcu8FX1DBOdG3C3jxZRaucIj
-6vfitct7gZY5nN3l7dApXD6rVVPbWznKByS432DlfJs2JVvL2LtRnJ/keY5vvEp2
-uzxEf2wbhQGkg4xjQdfVYfSkIbP/Ej8g6wgNoYiMsEWkFYdHTLOTgoyJzSMn5PGR
-pjKe4cj1lfcH8/MMTSX81b1Iqa46NxVlY9UeE3nHAb/aCl5RvGXzQCC0CCzK3zBn
-z6CKypUWsdjLJg978PPiwbYDOpjuxNp84tpHMd6jWFBni5TNNK4BjCd9dApCF4XR
-fi69TH9UbF68olGepqzOmO0r3RDfGIseUF5430mZ9R5BN9S4bngq1B767zOVYr31
-jMP76yHA6qNRnptDjCF5s+9DyisOqRD5o1gIvtTI80TwVEdZ9HFD+ysuzG05r0Jl
-5jWrBL8yUwnB2X3zTcYrVAxcVQ1hokvYcS5yW4mZiLhBHq4PEpNq/PUG+38W/VHY
-XV+EWCnBFG+7AxLnGN871VxO9muD/mSdScN6pHI4d6YO0Cn/T++ClFn+aiKBp0Rp
-/crfguAKhA1qyVnTZ8Ky
-=QhBU
------END PGP SIGNATURE-----
-
---1MFWPXKcR9NKi3Bl5PnMRLfu2fgOgcEIw--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
