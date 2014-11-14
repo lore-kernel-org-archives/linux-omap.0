@@ -1,48 +1,65 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv6 4/5] hwspinlock/core: add common OF helpers
-Date: Fri, 14 Nov 2014 22:05:07 +0200
-Message-ID: <CAK=WgbYEQPwPH-i_kfF8-h6uOH9q4rcT1+W0smG3e=chDg833Q@mail.gmail.com>
-References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
- <1410553499-55951-5-git-send-email-s-anna@ti.com> <CAK=WgbamdqAufjC4Xb5moERRBSB-cO6c1RPTE=f+dp75F+Eh7A@mail.gmail.com>
- <5463B5B6.8040709@ti.com> <CAK=WgbbatPTiz3efDWHVEcuug_UQfkCViMoK0zcfUg3JwB2oTA@mail.gmail.com>
- <5464EC7A.7050603@ti.com> <CAK=WgbbodS8GsUxQbkyCp6hAG+Ko4LMirx+pUa8_fUdxWFasvw@mail.gmail.com>
- <54651C48.90809@ti.com> <CAK=WgbYMM19-rWLOBjix+TA3fF_Pb25ia1rutDxYSUg9SV0efg@mail.gmail.com>
- <5466373B.2070808@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] omap soc changes for v3.19
+Date: Fri, 14 Nov 2014 13:06:45 -0800
+Message-ID: <9632.22330105982$1415999256@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f173.google.com ([209.85.213.173]:65383 "EHLO
-	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161842AbaKNUF2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 15:05:28 -0500
-Received: by mail-ig0-f173.google.com with SMTP id r10so312995igi.12
-        for <linux-omap@vger.kernel.org>; Fri, 14 Nov 2014 12:05:27 -0800 (PST)
-In-Reply-To: <5466373B.2070808@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34285 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754306AbaKNVH0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 16:07:26 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Nov 14, 2014 at 7:09 PM, Suman Anna <s-anna@ti.com> wrote:
->> It seems to me that hwspin_lock_request_specific failures should be
->> used by clients to defer their probing. Why wouldn't such a simple
->> solution work?
+The following changes since commit cac7f2429872d3733dc3f9915857b1691da2eb2f:
 
-> Because the API always returns NULL on failures and there is no way for
-> the clients to figure out if the lock id passed is invalid or the bank
-> containing the lock is not registered.
+  Linux 3.18-rc2 (2014-10-26 16:48:41 -0700)
 
-It seems to me this may always be the case - lock ids may be wrong and
-there's no way to fully validate them.
+are available in the git repository at:
 
-Let's start with the simpler approach where
-hwspin_lock_request_specific failures are used by clients to defer
-their probing.
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/clocks-and-pm
 
-If a real use case will require changes we can always do that later,
-though it seems to me the only gain by changing this API is to catch a
-small subset of fatal DT mistakes which will anyway be caught very
-early in the development.
+for you to fetch changes up to 9889278181bcdbae882664d8cee5bb0e064397e4:
 
-Thanks,
-Ohad.
+  Merge tag 'for-v3.19/omap-a' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.19/soc (2014-11-14 10:25:12 -0800)
+
+----------------------------------------------------------------
+SoC related changes for omaps. Mostly to make PM easier to use for
+omap4 and later, and to fix clock DPLL fixes by adding determine_rate
+and set_rate_and_parent.
+
+----------------------------------------------------------------
+Felipe Balbi (1):
+      ARM: OMAP2+: hwmod: drop unnecessary list initialization
+
+Nishanth Menon (3):
+      ARM: OMAP4: PM: Only do static dependency configuration in omap4_init_static_deps
+      ARM: OMAP4+: PM: Centralize static dependency mapping table
+      ARM: OMAP4+: PM: Program CPU logic power state
+
+Tero Kristo (5):
+      ARM: OMAP3: clock: use clk_features flags for omap3 DPLL4 checks
+      ARM: OMAP3: clock: add new rate changing logic support for noncore DPLLs
+      ARM: OMAP4: clock: add support for determine_rate for omap4 regm4xen DPLL
+      ARM: OMAP3: clock: add support for dpll4_set_rate_and_parent
+      ARM: OMAP3+: DPLL: use determine_rate() and set_rate_and_parent()
+
+Tony Lindgren (1):
+      Merge tag 'for-v3.19/omap-a' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.19/soc
+
+ arch/arm/mach-omap2/cclock3xxx_data.c     |   6 +
+ arch/arm/mach-omap2/clock.c               |   4 +
+ arch/arm/mach-omap2/clock.h               |   1 +
+ arch/arm/mach-omap2/clock3xxx.c           |  38 ++++++-
+ arch/arm/mach-omap2/dpll3xxx.c            | 179 ++++++++++++++++++++----------
+ arch/arm/mach-omap2/dpll44xx.c            |  41 +++++++
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   4 +-
+ arch/arm/mach-omap2/omap_hwmod.c          |   2 -
+ arch/arm/mach-omap2/pm44xx.c              | 146 +++++++++++-------------
+ drivers/clk/ti/dpll.c                     |  15 +++
+ include/linux/clk/ti.h                    |  15 +++
+ 11 files changed, 307 insertions(+), 144 deletions(-)
