@@ -1,104 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] mach-omap2: remove deprecated VIDEO_OMAP2 support
-Date: Fri, 14 Nov 2014 10:44:54 -0800
-Message-ID: <20141114184454.GY26481@atomide.com>
-References: <1415956994-5240-1-git-send-email-hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL] ARM: OMAP2+: some clock/hwmod patches for v3.19
+Date: Fri, 14 Nov 2014 10:47:20 -0800
+Message-ID: <20141114184719.GA7046@atomide.com>
+References: <alpine.DEB.2.02.1411132249550.17030@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21613 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161282AbaKNSrx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 13:47:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1415956994-5240-1-git-send-email-hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>, David Cohen <dacohen@gmail.com>
+In-Reply-To: <alpine.DEB.2.02.1411132249550.17030@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Hans Verkuil <hverkuil@xs4all.nl> [141114 01:25]:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+* Paul Walmsley <paul@pwsan.com> [141113 14:52]:
+> The following changes since commit f114040e3ea6e07372334ade75d1ee0775c355e1:
 > 
-> The omap2 camera driver has been deprecated for a year and is now
-> going to be removed. It is unmaintained and it uses an internal API
-> that has long since been superseded by a much better API. Worse, that
-> internal API has been abused by out-of-kernel trees (i.MX6).
+>   Linux 3.18-rc1 (2014-10-19 18:08:38 -0700)
 > 
-> In addition, Sakari stated that these drivers have never been in a
-> usable state in the mainline kernel due to missing platform data.
+> are available in the git repository at:
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: David Cohen <dacohen@gmail.com>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/for-v3.19/omap-a
+> 
+> for you to fetch changes up to 79005fbd3e1d671d08c45c9140ee9826efdc367c:
+> 
+>   ARM: OMAP2+: hwmod: drop unnecessary list initialization (2014-11-13 09:36:55 -0700)
+> 
+> ----------------------------------------------------------------
+> Some OMAP clock/hwmod patches for v3.19.
+> 
+> Most of the patches are clock-related.  The DPLL implementation is
+> changed to better align to the common clock framework.
+> There is also a patch that removes a few lines from the hwmod code -
+> this patch should have no functional effect.
+> 
+> Basic build, boot, and PM test logs for these patches can be found here:
+> 
+> http://www.pwsan.com/omap/testlogs/omap-a-for-v3.19/20141113094101/
 
-This applies with fuzz to what I have queued but should not
-cause merge conflicts and should be safe to merge along with
-other camera related patches:
+Pulling into omap-for-v3.19/soc thanks. FYI, looks like there are
+few more open hwmod related threads you may want to look at:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+[PATCH v2 0/3] Add support for ADC on am437x-gp and am43x-epos-evm
+[RFC PATCH 0/6] ARM: OMAP4+: hwmod: fixing omap4+ DSS hwmods
+[PATCH] ARM: DRA7: hwmod data: Add missing UART hwmod data
 
-> ---
->  arch/arm/mach-omap2/devices.c | 31 -------------------------------
->  1 file changed, 31 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 324f02b..1b623a0 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -101,28 +101,6 @@ static int __init omap4_l3_init(void)
->  }
->  omap_postcore_initcall(omap4_l3_init);
->  
-> -#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> -
-> -static struct resource omap2cam_resources[] = {
-> -	{
-> -		.start		= OMAP24XX_CAMERA_BASE,
-> -		.end		= OMAP24XX_CAMERA_BASE + 0xfff,
-> -		.flags		= IORESOURCE_MEM,
-> -	},
-> -	{
-> -		.start		= 24 + OMAP_INTC_START,
-> -		.flags		= IORESOURCE_IRQ,
-> -	}
-> -};
-> -
-> -static struct platform_device omap2cam_device = {
-> -	.name		= "omap24xxcam",
-> -	.id		= -1,
-> -	.num_resources	= ARRAY_SIZE(omap2cam_resources),
-> -	.resource	= omap2cam_resources,
-> -};
-> -#endif
-> -
->  #if defined(CONFIG_IOMMU_API)
->  
->  #include <linux/platform_data/iommu-omap.h>
-> @@ -245,14 +223,6 @@ int omap3_init_camera(struct isp_platform_data *pdata)
->  
->  #endif
->  
-> -static inline void omap_init_camera(void)
-> -{
-> -#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> -	if (cpu_is_omap24xx())
-> -		platform_device_register(&omap2cam_device);
-> -#endif
-> -}
-> -
->  #if defined(CONFIG_OMAP2PLUS_MBOX) || defined(CONFIG_OMAP2PLUS_MBOX_MODULE)
->  static inline void __init omap_init_mbox(void)
->  {
-> @@ -431,7 +401,6 @@ static int __init omap2_init_devices(void)
->  	 * in alphabetical order so they're easier to sort through.
->  	 */
->  	omap_init_audio();
-> -	omap_init_camera();
->  	/* If dtb is there, the devices will be created dynamically */
->  	if (!of_have_populated_dt()) {
->  		omap_init_mbox();
-> -- 
-> 2.1.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Regards,
+
+Tony
