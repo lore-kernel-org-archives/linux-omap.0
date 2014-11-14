@@ -1,114 +1,60 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
- devconf1 register
-Date: Fri, 14 Nov 2014 16:36:58 +0200
-Message-ID: <CANOLnONkQu-BBvZH5nb+VngCxq=xnk60JkTd6Jha1uFt2j8gJQ@mail.gmail.com>
-References: <1415051968-4878-1-git-send-email-marek@goldelico.com>
-	<1415051968-4878-5-git-send-email-marek@goldelico.com>
-	<5463585D.9070209@ti.com>
-	<20141112150210.GC26481@atomide.com>
-	<5464969F.30708@ti.com>
-	<20141113182848.GQ26481@atomide.com>
-	<alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com>
-	<20141113235840.GS26481@atomide.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: Re: [PATCH v7.1 11/19] OMAPDSS: hdmi: Make hdmi_mode_has_audio()
+ more user friedly
+Date: Fri, 14 Nov 2014 16:37:18 +0200
+Message-ID: <5466139E.5040308@mentor.com>
+References: <cover.1415803064.git.jsarha@ti.com> <8047b50c76efecd72e7219f7871c59cc4a8ee5f5.1415803065.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141113235840.GS26481@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, pawel.moll@arm.com, ijc+devicetree@hellion.org.uk, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, robh+dt@kernel.org, Tero Kristo <t-kristo@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, bcousson@baylibre.com, galak@codeaurora.org, Grant Likely <grant.likely@linaro.org>, Marek Belisko <marek@goldelico.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relay1.mentorg.com ([192.94.38.131]:34066 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965179AbaKNOhX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 09:37:23 -0500
+In-Reply-To: <8047b50c76efecd72e7219f7871c59cc4a8ee5f5.1415803065.git.jsarha@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-On Fri, Nov 14, 2014 at 1:58 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Paul Walmsley <paul@pwsan.com> [141113 15:01]:
->> Hi
->>
->> On Thu, 13 Nov 2014, Tony Lindgren wrote:
->>
->> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [141113 03:33]:
->> > > On 12/11/14 17:02, Tony Lindgren wrote:
->> > >
->> > > >> And, with a quick grep, I see CONTROL_DEVCONF1 touched in mul=
-tiple
->> > > >> places in the kernel. I wonder if adding a pinmux entry for i=
-t could
->> > > >> cause some rather odd problems.
->> > > >
->> > > > They can all use pinctrl-single no problem.
->> > >
->> > > Can, but don't. That's my worry. If we touch the DEVCONF1 via pi=
-nmux,
->> > > and we have code in mach-omap2 that also touch DEVCONF1, without=
- any
->> > > knowledge (and locking) between those...
->> >
->> > Hmm yeah the McBSP clock mux could be racy as the mux register for
->> > McBSP is treated as a clock. This register muxes the clock between
->> > external pin and internal clock. Considering that this should be
->> > selectable at board level as the external clock probably needs to =
-be
->> > used if level shifters are being used, it should be really handled=
- by
->> > pinctrl-single.
->> >
->> > The other use for hsmmc.c and pdata-quirks.c for the one time mux =
-for
->> > MMC clock from the MMC clock pin. That can be done with pinctrl-si=
-ngle
->> > from the MMC driver too for DT based booting.
->> >
->> > Then we just have the save and restore of the registers for
->> > off-idle.
->> >
->> > > So _maybe_ that's not an issue, as the pinmux config we have her=
-e is
->> > > fixed, and done once at boot time, and maybe the code in mach-om=
-ap2 that
->> > > touch DEVCONF1 is also ran just once and not at the same time as=
- the
->> > > pinmux. But I don't know if that's so.
->> >
->> > It seems we could just do a read-only check for McBSP in the clock
->> > code for the mux register, or even completely drop that code from
->> > cclock3xxx_data.c and start using the pinctrl for that mux.
->> >
->> > Paul & Tero, got any comments here?
->>
->> It's best to move all of the SCM register reads/writes to an SCM IP =
-block
->> driver.  This driver would be the only entity that would touch the S=
-CM IP
->> block registers - no other code on the system would touch it (perhap=
-s
->> aside from anything needed for early init).  The SCM driver would en=
-force
->> mutual exclusion via a spinlock, so concurrent SCM register modifica=
-tions
->> wouldn't flake out.  Then the SCM driver would register clocks with =
-the
->> CCF, register pins with the pinctrl subsystem, etc. etc.
->
-> We actually do have that with pinctrl-single + syscon. We certainly
-> need to implement more Linux framework drivers for the SCM registers.
-> Things like regulators, clocks, and PHYs, but they should use
-> pinctrl-single + syscon. See the the pbias-regulator.c for example.
->
-> Looking at the McBSP clock handling, threre's yet more handling of
-> the same DEVCONF1 mux register in omap2_mcbsp_set_clks_src that gets
-> alled from omap_mcbsp_dai_set_dai_sysclk.
->
-> To me it seems that if we handle the DEVCONF with pinctrl-single, we
-> don't need most of the McBSP fck code or the omap2_mcbsp_set_clks_src=
-=2E
-> Having the mux register as the clock enable register is not nice..
-> Who knows what the clock coming from the external pin might be :)
+Hi Jyri,
 
-How will audio do dynamic muxing without that code?
-The pin must be remuxed back to internal clock when audio stops, or
-else PM breaks.
+On 12.11.2014 16:41, Jyri Sarha wrote:
+> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+> ---
+>  drivers/video/fbdev/omap2/dss/hdmi.h |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+> index a6e08ff..6d129f2 100644
+> --- a/drivers/video/fbdev/omap2/dss/hdmi.h
+> +++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+> @@ -345,9 +345,9 @@ void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
+>  		struct hdmi_audio_format *aud_fmt);
+>  void hdmi_wp_audio_config_dma(struct hdmi_wp_data *wp,
+>  		struct hdmi_audio_dma *aud_dma);
+> -static inline bool hdmi_mode_has_audio(int mode)
+> +static inline bool hdmi_mode_has_audio(struct hdmi_config *cfg)
+>  {
+> -	return mode == HDMI_HDMI ? true : false;
+> +	return cfg->hdmi_dvi_mode == HDMI_HDMI ? true : false;
+>  }
+>  
+>  /* HDMI DRV data */
+> 
 
+would it be possible for you to rearrange the changes preserving the
+following sequence?
 
-Gra=C5=BEvydas
+1) 13/19
+2) 15/19
+3) 11/19
+4) 14/19
+5) 16/19
+
+Otherwise I'm worried that someone's git rebase may fail.
+
+--
+With best wishes,
+Vladimir
