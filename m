@@ -1,93 +1,91 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv6 4/5] hwspinlock/core: add common OF helpers
-Date: Fri, 14 Nov 2014 11:09:15 -0600
-Message-ID: <5466373B.2070808@ti.com>
-References: <1410553499-55951-1-git-send-email-s-anna@ti.com> <1410553499-55951-5-git-send-email-s-anna@ti.com> <CAK=WgbamdqAufjC4Xb5moERRBSB-cO6c1RPTE=f+dp75F+Eh7A@mail.gmail.com> <5463B5B6.8040709@ti.com> <CAK=WgbbatPTiz3efDWHVEcuug_UQfkCViMoK0zcfUg3JwB2oTA@mail.gmail.com> <5464EC7A.7050603@ti.com> <CAK=WgbbodS8GsUxQbkyCp6hAG+Ko4LMirx+pUa8_fUdxWFasvw@mail.gmail.com> <54651C48.90809@ti.com> <CAK=WgbYMM19-rWLOBjix+TA3fF_Pb25ia1rutDxYSUg9SV0efg@mail.gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Fri, 14 Nov 2014 18:20:09 +0100
+Message-ID: <20141114172008.GB12250@earth.universe>
+References: <20141104205117.GA17606@amd>
+ <20141106180335.GA21513@earth.universe>
+ <20141106225005.GA14002@amd>
+ <201411070001.46481@pali>
+ <545C6F14.8050303@gmail.com>
+ <20141113162420.GB8512@xo-6d-61-c0.localdomain>
+ <5465A977.4030605@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAK=WgbYMM19-rWLOBjix+TA3fF_Pb25ia1rutDxYSUg9SV0efg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Josh Cartwright <joshc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Bjorn Andersson <bjorn-UYDU3/A3LUY@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="rJwd6BRFiFCcLxzm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5465A977.4030605@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Pali Roh?r <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, Sakari Ailus <sakari.ailus@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
 
-On 11/14/2014 01:11 AM, Ohad Ben-Cohen wrote:
-> Hi Suman,
-> 
-> On Thu, Nov 13, 2014 at 11:02 PM, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
->> OK, lets take an example. I have say 2 device instances, say
->>         hwlock1: hwlock@0 {
->>                 hwlock-num-locks = <32>
->>                 hwlock-base-id = <0>;
->>                 #hwlock-cells = <1>;
->>         };
->>         hwlock2: hwlock@0 {
->>                 hwlock-num-locks = <32>
->>                 hwlock-base-id = <32>;
->>                 #hwlock-cells = <1>;
->>         };
->>
->>         some-client {
->>                 hwlocks = <&hwlock1 32>, <&hwlock2 0>;
->>         };
->>
->> The first args value is incorrect, and I expect the API to return an
->> error. I don't think the API can make assumptions that all passed in
->> values will be correct. What do you suggest that the API do here?
-> 
-> I think this is just one example of many potential mistakes the DT
-> developer can have, and that there's nothing really special about it.
-> 
-> What if the '5' digit below is a typo, and the actual hardware
-> assignment was supposed to be '4' ?
-> 
->          some-client {
->                  hwlocks = <&hwlock1 5>, <&hwlock2 5>;
->          };
-> 
-> I don't see how much different this mistake is from the one you
-> mentioned above. There's a limit to how much we can really catch DT
-> mistakes in the code, just like we couldn't really catch past mistakes
-> in the platform data structures.
-> 
-> If we can easily add some validations then great, but if we have to go
-> to great lengths just to gain very limited validations, then I'd vote
-> against doing so.
+--rJwd6BRFiFCcLxzm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OK, personally, I am not too comfortable to not perform any validation
-on an API.
+Hi,
 
-> 
->> One solution to handle #1 is to also make the hwlock-num-locks property
->> also mandatory (even though it could have been read from a register
-> 
-> Yeah, this is awkward. We shouldn't impose this on implementations
-> like OMAP which don't need it.
-> 
-> Again I think for the very limited validation this buys us - it's not worth it.
-> 
->> And, how do you propose we solve the problem of deferred probing?
-> 
-> It seems to me that hwspin_lock_request_specific failures should be
-> used by clients to defer their probing. Why wouldn't such a simple
-> solution work?
+On Fri, Nov 14, 2014 at 09:04:23AM +0200, Ivaylo Dimitrov wrote:
+> [...]
+> https://gitorious.org/linux-n900/freemangordons-linux-n900/commits/30e9a5=
+c498a89cea4c29523f69e436bf0af3c631
+>=20
+> commits 89ce13b, b81d80d, ec4d0dc, 91256e2 and 8022a6d - e29f558 (no idea
+> why gitorious shows those mixed with SGX stuff, on my local tree it is
+> contiguous patch series)
+>=20
+> didn't test against the current upstream, but I see no reason why those
+> should not apply, build and run.
 
-Because the API always returns NULL on failures and there is no way for
-the clients to figure out if the lock id passed is invalid or the bank
-containing the lock is not registered. This was an old discussion on v4
-[1], and you insisted that we don't change the return code convention on
-the API. I had couple of patches on v5 that dealt with this, but even
-that requires the list of registered devices.
+The patch looks ok. It does not cleanup the cmt-speech driver for
+mainline usage, but it should work. Before adding this driver to the
+mainline kernel there should be open source userspace support anyway.
 
-regards
-Suman
+Btw. I am aware that this would break existing pulse audio stuff,
+but wouldn't it make sense to export a V4L2 device instead of the
+custom /dev/cmt_speech ABI?
 
-[1] https://patchwork.kernel.org/patch/3481331/
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > >About the pulseaudio stuff - we're still in process of REing it, so
+> > >far there are 2 out of 3 closed Nokia modules ready
+> > >(https://gitorious.org/pulseaudio-nokia), but the last one, which is
+> > >the one used for voice calls is still not ready and will take it a
+> > >while :).
+> >
+> > Ok, is there a way I could help? Pretty much everything else works with
+> > opensource drivers...
+> >
+>=20
+> There is, though I am not sure you'll like it much - fire up IDA and join
+> the party :P. Ping me on IRC for more details in case you're interested.
+>=20
+> Regards,
+> Ivo
+
+-- Sebastian
+
+--rJwd6BRFiFCcLxzm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUZjnIAAoJENju1/PIO/qaE50P/iBkVFblPfQxGzyPK8oVuapu
+BPiWG0TklWFmqLup2Ghz1HAREn0AdK/Y7/H70groMYFOJTIU5kRWOkKIrArIK+4z
+qgpZ+4iFa28/wSrxQFfQBDgYho5pjXQ+jdPtk922vtEeMfCtR8++d9AtQVngGGfl
+kEpsJZtP74spTj5Sea688dsgqDotgFteTmtajkRIhaMlNVkn1maekGruQQ4NYLmn
+8etl7oJoA8q9qPclDs2kzGjml9tTH5aaYo9l+wM4+raD1Bwrup+FhC+48NN38vjW
+vFrJk1c47v/KAZKEnPs5YfFnDmWWgiqsoNIG6DqhcJ9R0AeT1cYQDXFHOVCg4Aln
+6G91qaZsOK9pzuAoosmQtCt8oirkJhS1Z2oyPRaBPqiUi07puKQyrsytxn7ng26w
+FqtVzvA1bqgUUZDjr0pZNlso+llTRxbDL4Hl/YFn3XsnVD55c1Oi/Srhy8M6UUbq
+mCWbUaUbbX0RFKkl/8xu4cbwBLvr0sV+89+2E0Ff5QQ7HnKBNXGE6H6OZg5gBWLB
++64fagoRY7gROrJNCGdjjxnhtMItUwUswQsM9tY6HTlMa2L/UaVXk9puXjncyZuY
+nXdL9HWFO8I7cK3/+hicfBmfXB3MPF54UxRzxDasBFFxb3gOyHmhugYdA02O6XAK
+arlbP48/GBclxFvj+vTl
+=XDRa
+-----END PGP SIGNATURE-----
+
+--rJwd6BRFiFCcLxzm--
