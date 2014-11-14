@@ -1,60 +1,50 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v5 0/7] Per-user clock constraints
-Date: Fri, 14 Nov 2014 07:28:12 +0100
-Message-ID: <CAAObsKARz=Y3J74Fm+MVOuH-ftK6yGSxWnNtd3LpHZjebKCGsg@mail.gmail.com>
-References: <1414666135-14313-1-git-send-email-tomeu.vizoso@collabora.com> <20141031113358.GY32045@tbergstrom-lnx.Nvidia.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Fri, 14 Nov 2014 09:04:23 +0200
+Message-ID: <5465A977.4030605@gmail.com>
+References: <20141104205117.GA17606@amd> <20141106180335.GA21513@earth.universe> <20141106225005.GA14002@amd> <201411070001.46481@pali> <545C6F14.8050303@gmail.com> <20141113162420.GB8512@xo-6d-61-c0.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141031113358.GY32045@tbergstrom-lnx.Nvidia.com>
+In-Reply-To: <20141113162420.GB8512@xo-6d-61-c0.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter De Schrijver <pdeschrijver@nvidia.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Stephen Boyd <sboyd@codeaurora.org>, Alex Elder <elder@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Pali Roh?r <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
 
-On 31 October 2014 12:33, Peter De Schrijver <pdeschrijver@nvidia.com> wrote:
-> On Thu, Oct 30, 2014 at 11:48:26AM +0100, Tomeu Vizoso wrote:
->> Hello,
->>
->> this fifth version of the series has just one change, suggested by Stephen:
 
-Hi Mike, how is this looking for 3.19?
+
+On 13.11.2014 18:24, Pavel Machek wrote:
+> On Fri 2014-11-07 09:04:52, Ivaylo Dimitrov wrote:
+>
+> Sebastian is quiet, can we have the patch? :-).
+
+Sure, why not :)
+
+https://gitorious.org/linux-n900/freemangordons-linux-n900/commits/30e9a5c498a89cea4c29523f69e436bf0af3c631
+
+commits 89ce13b, b81d80d, ec4d0dc, 91256e2 and 8022a6d - e29f558 (no 
+idea why gitorious shows those mixed with SGX stuff, on my local tree it 
+is contiguous patch series)
+
+didn't test against the current upstream, but I see no reason why those 
+should not apply, build and run.
+
+>
+>> About the pulseaudio stuff - we're still in process of REing it, so
+>> far there are 2 out of 3 closed Nokia modules ready
+>> (https://gitorious.org/pulseaudio-nokia), but the last one, which is
+>> the one used for voice calls is still not ready and will take it a
+>> while :).
+>
+> Ok, is there a way I could help? Pretty much everything else works with
+> opensource drivers...
+>
+
+There is, though I am not sure you'll like it much - fire up IDA and 
+join the party :P. Ping me on IRC for more details in case you're 
+interested.
 
 Regards,
-
-Tomeu
-
->> * Initialize clk.ceiling_constraint to ULONG_MAX and warn about new floor
->> constraints being higher than the existing ceiling.
->>
->> The first five patches are just cleanups that should be desirable on their own,
->> and that should make easier to review the actual per-user clock patch.
->>
->> The sixth patch actually moves the per-clock data that was stored in struct
->> clk to a new struct clk_core and adds references to it from both struct clk and
->> struct clk_hw. struct clk is now ready to contain information that is specific
->> to a given clk consumer.
->>
->> The seventh patch adds API for setting floor and ceiling constraints and stores
->> that information on the per-user struct clk, which is iterable from struct
->> clk_core.
->>
->> They are based on top of 3.18-rc1.
->>
->> http://cgit.collabora.com/git/user/tomeu/linux.git/log/?h=per-user-clk-constraints-v5
->>
->
-> Acked-By: Peter De Schrijver <pdeschrijver@nvidia.com>
->
-> Mike,
->
-> Do you think this will be merged for 3.19?
->
-> Thanks,
->
-> Peter.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Ivo
