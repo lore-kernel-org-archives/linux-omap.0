@@ -1,115 +1,63 @@
-From: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [alsa-devel] [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio
- support
-Date: Fri, 14 Nov 2014 11:59:16 +0100
-Message-ID: <20141114115916.6af5adce@armhf>
-References: <cover.1415803064.git.jsarha@ti.com>
-	<20141112222344.GU3815@sirena.org.uk>
-	<54646648.5030807@ti.com>
-	<20141113101738.6338bb1c@armhf>
-	<54648149.9070104@ti.com>
-	<20141113160002.7a1157a5@armhf>
-	<5464D1E6.4050508@ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v4 8/8] net: can: c_can: Add support for TI am3352 DCAN
+Date: Fri, 14 Nov 2014 12:26:44 +0100
+Message-ID: <20141114112643.GA3424@katana>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com>
+ <1415371762-29885-9-git-send-email-rogerq@ti.com>
+ <20141113160658.GB1275@katana>
+ <5465CAA3.5030301@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:59876 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965392AbaKNK4O convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 05:56:14 -0500
-In-Reply-To: <5464D1E6.4050508@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+Return-path: <linux-can-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5465CAA3.5030301@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: Roger Quadros <rogerq@ti.com>, wg@grandegger.com, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thu, 13 Nov 2014 17:44:38 +0200
-Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-	[snip]
-> >> a) Always keep the audio device operational, no matter what is the
-> >> status of the video side. How should this work if the HDMI videomo=
-de or
-> >> the HDMI monitor does not support audio? Is it desirable that the
-> >> userspace has no idea that the audio is not actually going anywher=
-e?
+
+--0OAP2g/MAC+5xKAE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Nov 14, 2014 at 10:25:55AM +0100, Marc Kleine-Budde wrote:
+> On 11/13/2014 05:06 PM, Wolfram Sang wrote:
+> > On Fri, Nov 07, 2014 at 04:49:22PM +0200, Roger Quadros wrote:
+> >> AM3352 SoC has 2 DCAN modules. Add compatible id and
+> >> raminit driver data for am3352 DCAN.
 > >>
-> >> b) Remove the audio device when audio support is not available. Th=
-is
-> >> kind of makes sense, as, well, there's no possibility for audio ou=
-tput.
-> >> But maybe this is not how linux sound devices are supposed to beha=
-ve?
-> >>
-> >> c) Return errors when playback is attempted when audio support is =
-not
-> >> available. Again, this kind of makes sense, as audio playback is n=
-ot
-> >> possible. But maybe this is also not how audio devices generally w=
-ork.
-> >>
-> >> Jyri, were there some other options we discussed?
-> >>
-> >> Currently, the OMAP HDMI version does c). It's the easiest solutio=
-n for us. =20
+> >> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > >=20
-> > Same for me, but checking the audio capability is done on audio str=
-eaming
-> > start only. =20
+> > Acked-by: Wolfram Sang <wsa@the-dreams.de>
 >=20
-> Hmm, I understood you have option a)? You said "I even let audio
-> streaming start when the HDMI cable is
-> disconnected".
+> For the whole series or just this patch?
 
-The option a) is the one of the patch, but I am moving towards option c=
-).
+Just this one.
 
-> With "audio support is not available" I mean also the case when the
-> cable is not connected, as then we don't have EDID information, and t=
-hus
-> we don't have a HDMI monitor with audio support on the other end.
 
-What I was saying is: when the cable is connected, all audio/video
-parameters are known. Then, when the cable is disconnected, there is
-no reason, a priori, to change these parameters, and audio/video
-streaming may continue. The problem might be raised later when an other
-monitor with different parameters will be connected.
+--0OAP2g/MAC+5xKAE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> So to clarify, our driver only has "audio support available" if:
-> - we successfully read EDID
-> - EDID shows it's a HDMI monitor
-> - EDID shows it has audio support for the format we support (this we
-> don't actually do yet)
->=20
-> Otherwise we default to DVI, which means no audio.
->=20
-> If, at any point, the situation changes to "no audio support availabl=
-e",
-> the audio playback is aborted and starting new audio playback fails.
-	[snip]
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-So, to summarize, you need the information 'audio support available' on
-the audio side.
+iQIcBAEBAgAGBQJUZebzAAoJEBQN5MwUoCm26qMP/AjCypqjMTLvId87OJWWBf5x
+89gr06cBvgBFBuP4FlWKrhGxaVwNov4ijjWNCMqtlpWZ1AHOanjEIqF0ciZl76kv
+AOz+/dMualiu82WU8SOvFFvD+89sqOeXC4JpL6xS1K1NYuOU5XR1sIfXi1U10NsM
+HG61xKkou5CgykFW5xKbhgeSTnOu28xUfwSOrzjd1QehC+ski7G4N/ouwGEP/TLL
+HpLkULHcKPX5Do06aaIYn4tpF7qQbzHJLNWPNy0PpYo9xCeRXjPFXcu/JEn8fGFN
+zMLrpEHT2BbEWW6mWzZcCAc9sS4XoLRO/ZNbk4GvHDj+YScSypU9MTt78LLFzKYV
+mbtAwy5KkBBdscQoF9Au9TO2bB/2Y1MneFonVCXe6DvNQlv4pWKLHzf2j4K2OlXH
+aw6XIyBy2N1qNNppwqDDzG/hWpUveIe3v5xIGOowk0Zt1qC19kcAkCVuNLRGDkc6
+98uWoW7oBK5yZ4o9HjEwSfTV9PQsWnOnnzcyi/NYO1XrGBnaCjLM0LtWymaPOjjg
+BLf2n4oCuNhJV7+li4rNvXKETDk31kroA/LLRcVg6fb/rgNfOzgkIKzMjx+CD1y1
+QhSIYzR+TfTjz1Fc5ZNkOR0MjrJa4YFVKlP+BRRCOZhspmmaRkagTmePututjCvP
+dGIZhPyTfTZ/edG/g+7L
+=Sjj6
+-----END PGP SIGNATURE-----
 
-It should not be difficult to export a function in the generic HDMI
-driver for this job. This function would have the following arguments:
-
-- device (child device of the HDMI transmitter)
-- pin (output widget name)
-- status (enable/disable)
-
-and would:
-
-- set the pin status so that the HDMI output would be included or not
-  in the audio path, and
-
-- abort audio streaming on disabling audio.
-
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--0OAP2g/MAC+5xKAE--
