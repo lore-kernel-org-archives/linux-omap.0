@@ -1,7 +1,7 @@
 From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: [PATCH v8 5/8] can: c_can: Add support for START pulse in RAMINIT sequence
-Date: Fri, 14 Nov 2014 19:09:48 +0100
-Message-ID: <1415988591-6032-6-git-send-email-mkl@pengutronix.de>
+Subject: [PATCH v8 7/8] can: c_can: Add support for TI DRA7 DCAN
+Date: Fri, 14 Nov 2014 19:09:50 +0100
+Message-ID: <1415988591-6032-8-git-send-email-mkl@pengutronix.de>
 References: <1415988591-6032-1-git-send-email-mkl@pengutronix.de>
 Return-path: <linux-can-owner@vger.kernel.org>
 In-Reply-To: <1415988591-6032-1-git-send-email-mkl@pengutronix.de>
@@ -12,54 +12,59 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Roger Quadros <rogerq@ti.com>
 
-Some SoCs e.g. (TI DRA7xx) need a START pulse to start the
-RAMINIT sequence i.e. START bit must be set and cleared before
-checking for the DONE bit status.
+DRA7 SoC has 2 CAN IPs. Provide compatible IDs and RAMINIT
+register data for both.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
 ---
- drivers/net/can/c_can/c_can.h          | 1 +
- drivers/net/can/c_can/c_can_platform.c | 7 +++++++
- 2 files changed, 8 insertions(+)
+ Documentation/devicetree/bindings/net/can/c_can.txt |  1 +
+ drivers/net/can/c_can/c_can_platform.c              | 13 +++++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
-index 28a73d14ea8d..8acdc7fa4792 100644
---- a/drivers/net/can/c_can/c_can.h
-+++ b/drivers/net/can/c_can/c_can.h
-@@ -188,6 +188,7 @@ struct c_can_raminit {
- 	struct regmap *syscon;	/* for raminit ctrl. reg. access */
- 	unsigned int reg;	/* register index within syscon */
- 	struct raminit_bits bits;
-+	bool needs_pulse;
- };
- 
- /* c_can private data structure */
+diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
+index a3ca3ee53546..f682fdb6d921 100644
+--- a/Documentation/devicetree/bindings/net/can/c_can.txt
++++ b/Documentation/devicetree/bindings/net/can/c_can.txt
+@@ -4,6 +4,7 @@ Bosch C_CAN/D_CAN controller Device Tree Bindings
+ Required properties:
+ - compatible		: Should be "bosch,c_can" for C_CAN controllers and
+ 			  "bosch,d_can" for D_CAN controllers.
++			  Can be "ti,dra7-d_can".
+ - reg			: physical base address and size of the C_CAN/D_CAN
+ 			  registers map
+ - interrupts		: property with a value describing the interrupt
 diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-index 1fbfa1d59c29..41fa460c3592 100644
+index 41fa460c3592..570da5f56aae 100644
 --- a/drivers/net/can/c_can/c_can_platform.c
 +++ b/drivers/net/can/c_can/c_can_platform.c
-@@ -120,6 +120,12 @@ static void c_can_hw_raminit_syscon(const struct c_can_priv *priv, bool enable)
- 		ctrl |= 1 << raminit->bits.start;
- 		regmap_write(raminit->syscon, raminit->reg, ctrl);
+@@ -190,6 +190,18 @@ static const struct c_can_driver_data d_can_drvdata = {
+ 	.id = BOSCH_D_CAN,
+ };
  
-+		/* clear START bit if start pulse is needed */
-+		if (raminit->needs_pulse) {
-+			ctrl &= ~(1 << raminit->bits.start);
-+			regmap_write(raminit->syscon, raminit->reg, ctrl);
-+		}
++static const struct raminit_bits dra7_raminit_bits[] = {
++	[0] = { .start = 3, .done = 1, },
++	[1] = { .start = 5, .done = 2, },
++};
 +
- 		ctrl |= 1 << raminit->bits.done;
- 		c_can_hw_raminit_wait_syscon(priv, mask, ctrl);
- 	}
-@@ -325,6 +331,7 @@ static int c_can_plat_probe(struct platform_device *pdev)
- 			}
- 
- 			raminit->bits = drvdata->raminit_bits[id];
-+			raminit->needs_pulse = drvdata->raminit_pulse;
- 
- 			priv->raminit = c_can_hw_raminit_syscon;
- 		} else {
++static const struct c_can_driver_data dra7_dcan_drvdata = {
++	.id = BOSCH_D_CAN,
++	.raminit_num = ARRAY_SIZE(dra7_raminit_bits),
++	.raminit_bits = dra7_raminit_bits,
++	.raminit_pulse = true,
++};
++
+ static struct platform_device_id c_can_id_table[] = {
+ 	{
+ 		.name = KBUILD_MODNAME,
+@@ -210,6 +222,7 @@ MODULE_DEVICE_TABLE(platform, c_can_id_table);
+ static const struct of_device_id c_can_of_table[] = {
+ 	{ .compatible = "bosch,c_can", .data = &c_can_drvdata },
+ 	{ .compatible = "bosch,d_can", .data = &d_can_drvdata },
++	{ .compatible = "ti,dra7-d_can", .data = &dra7_dcan_drvdata },
+ 	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, c_can_of_table);
 -- 
 2.1.1
 
