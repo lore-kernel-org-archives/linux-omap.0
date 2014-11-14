@@ -1,44 +1,104 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: dra7: fix DSS PLL clock mux registers
-Date: Fri, 14 Nov 2014 10:29:43 -0800
-Message-ID: <20141114182943.GX26481@atomide.com>
-References: <1413190241-13527-1-git-send-email-tomi.valkeinen@ti.com>
- <20141112152401.GF26481@atomide.com>
- <20141112152549.GG26481@atomide.com>
- <54644B27.8010701@ti.com>
+Subject: Re: [PATCH 1/2] mach-omap2: remove deprecated VIDEO_OMAP2 support
+Date: Fri, 14 Nov 2014 10:44:54 -0800
+Message-ID: <20141114184454.GY26481@atomide.com>
+References: <1415956994-5240-1-git-send-email-hverkuil@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:27542 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750972AbaKNSaQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 13:30:16 -0500
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54644B27.8010701@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1415956994-5240-1-git-send-email-hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi, Hans Verkuil <hans.verkuil@cisco.com>, David Cohen <dacohen@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, Somnath Mukherjee <somnath@ti.com>
 
-* Tero Kristo <t-kristo@ti.com> [141112 22:11]:
-> On 11/12/2014 05:25 PM, Tony Lindgren wrote:
-> >* Tony Lindgren <tony@atomide.com> [141112 07:26]:
-> >>* Tomi Valkeinen <tomi.valkeinen@ti.com> [141013 01:52]:
-> >>>The clock nodes for DSS VIDEO1/2 and HDMI have wrong register addresses.
-> >>>This patch fixes the addresses so that they point to
-> >>>CM_CLKSEL_VIDEO1_PLL_SYS, CM_CLKSEL_VIDEO2_PLL_SYS and
-> >>>CM_CLKSEL_HDMI_PLL_SYS.
-> >>>
-> >>>Reported-by: Somnath Mukherjee <somnath@ti.com>
-> >>>Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> >>
-> >>Applying into omap-for-v3.19/fixes-not-urgent thanks.
-> >
-> >Actually this one would be good to have an ack from Tero
-> >as he may need to fix his scripts generating these entries.
+* Hans Verkuil <hverkuil@xs4all.nl> [141114 01:25]:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Acked-by: Tero Kristo <t-kristo@ti.com>
+> The omap2 camera driver has been deprecated for a year and is now
+> going to be removed. It is unmaintained and it uses an internal API
+> that has long since been superseded by a much better API. Worse, that
+> internal API has been abused by out-of-kernel trees (i.MX6).
+> 
+> In addition, Sakari stated that these drivers have never been in a
+> usable state in the mainline kernel due to missing platform data.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: David Cohen <dacohen@gmail.com>
 
-Re-applying with Tero's ack thanks.
+This applies with fuzz to what I have queued but should not
+cause merge conflicts and should be safe to merge along with
+other camera related patches:
 
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  arch/arm/mach-omap2/devices.c | 31 -------------------------------
+>  1 file changed, 31 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 324f02b..1b623a0 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -101,28 +101,6 @@ static int __init omap4_l3_init(void)
+>  }
+>  omap_postcore_initcall(omap4_l3_init);
+>  
+> -#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+> -
+> -static struct resource omap2cam_resources[] = {
+> -	{
+> -		.start		= OMAP24XX_CAMERA_BASE,
+> -		.end		= OMAP24XX_CAMERA_BASE + 0xfff,
+> -		.flags		= IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start		= 24 + OMAP_INTC_START,
+> -		.flags		= IORESOURCE_IRQ,
+> -	}
+> -};
+> -
+> -static struct platform_device omap2cam_device = {
+> -	.name		= "omap24xxcam",
+> -	.id		= -1,
+> -	.num_resources	= ARRAY_SIZE(omap2cam_resources),
+> -	.resource	= omap2cam_resources,
+> -};
+> -#endif
+> -
+>  #if defined(CONFIG_IOMMU_API)
+>  
+>  #include <linux/platform_data/iommu-omap.h>
+> @@ -245,14 +223,6 @@ int omap3_init_camera(struct isp_platform_data *pdata)
+>  
+>  #endif
+>  
+> -static inline void omap_init_camera(void)
+> -{
+> -#if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+> -	if (cpu_is_omap24xx())
+> -		platform_device_register(&omap2cam_device);
+> -#endif
+> -}
+> -
+>  #if defined(CONFIG_OMAP2PLUS_MBOX) || defined(CONFIG_OMAP2PLUS_MBOX_MODULE)
+>  static inline void __init omap_init_mbox(void)
+>  {
+> @@ -431,7 +401,6 @@ static int __init omap2_init_devices(void)
+>  	 * in alphabetical order so they're easier to sort through.
+>  	 */
+>  	omap_init_audio();
+> -	omap_init_camera();
+>  	/* If dtb is there, the devices will be created dynamically */
+>  	if (!of_have_populated_dt()) {
+>  		omap_init_mbox();
+> -- 
+> 2.1.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
