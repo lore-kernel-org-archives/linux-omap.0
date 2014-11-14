@@ -1,82 +1,118 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 2/3] mmc: omap_hsmmc: add tuning support
-Date: Fri, 14 Nov 2014 11:41:52 -0600
-Message-ID: <20141114174152.GM11538@saruman>
-References: <1415883379-19654-1-git-send-email-kishon@ti.com>
- <1415883379-19654-3-git-send-email-kishon@ti.com>
-Reply-To: <balbi@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v4 3/8] net: can: c_can: Add RAMINIT register information
+ to driver data
+Date: Fri, 14 Nov 2014 18:55:30 +0100
+Message-ID: <54664212.8080206@pengutronix.de>
+References: <1415371762-29885-1-git-send-email-rogerq@ti.com> <1415371762-29885-4-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TXIPBuAs4GDcsx9K"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1415883379-19654-3-git-send-email-kishon@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: chris@printf.net, ulf.hansson@linaro.org, tony@atomide.com, devicetree@vger.kernel.org, nsekhar@ti.com, afenkart@gmail.com, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+ protocol="application/pgp-signature";
+ boundary="ub8ulLvilUfPbnqmGk77AvWG8K6NX3WWp"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41472 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161175AbaKNRzz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 12:55:55 -0500
+In-Reply-To: <1415371762-29885-4-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, wg@grandegger.com
+Cc: wsa@the-dreams.de, tony@atomide.com, tglx@linutronix.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, netdev@vger.kernel.org
 
---TXIPBuAs4GDcsx9K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--ub8ulLvilUfPbnqmGk77AvWG8K6NX3WWp
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, Nov 13, 2014 at 06:26:18PM +0530, Kishon Vijay Abraham I wrote:
-> @@ -233,6 +263,48 @@ struct omap_mmc_of_data {
->  	u8 controller_flags;
->  };
+On 11/07/2014 03:49 PM, Roger Quadros wrote:
+> Some platforms (e.g. TI) need special RAMINIT register handling.
+> Provide a way to store RAMINIT register description in driver data.
+>=20
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  drivers/net/can/c_can/c_can.h          | 6 ++++++
+>  drivers/net/can/c_can/c_can_platform.c | 1 +
+>  2 files changed, 7 insertions(+)
+>=20
+> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_ca=
+n.h
+> index 26c975d..3c305a1 100644
+> --- a/drivers/net/can/c_can/c_can.h
+> +++ b/drivers/net/can/c_can/c_can.h
+> @@ -171,6 +171,12 @@ enum c_can_dev_id {
 > =20
-> +static const u32 ref_tuning_4bits[] =3D {
-> +	0x00FF0FFF, 0xCCC3CCFF, 0xFFCC3CC3, 0xEFFEFFFE,
-> +	0xDDFFDFFF, 0xFBFFFBFF, 0xFF7FFFBF, 0xEFBDF777,
-> +	0xF0FFF0FF, 0x3CCCFC0F, 0xCFCC33CC, 0xEEFFEFFF,
-> +	0xFDFFFDFF, 0xFFBFFFDF, 0xFFF7FFBB, 0xDE7B7FF7
-> +};
+>  struct c_can_driver_data {
+>  	enum c_can_dev_id id;
 > +
-> +static const u32 ref_tuning_8bits[] =3D {
-> +	0xFF00FFFF, 0x0000FFFF, 0xCCCCFFFF, 0xCCCC33CC,
-> +	0xCC3333CC, 0xFFFFCCCC, 0xFFFFEEFF, 0xFFEEEEFF,
-> +	0xFFDDFFFF, 0xDDDDFFFF, 0xBBFFFFFF, 0xBBFFFFFF,
-> +	0xFFFFFFBB, 0XFFFFFF77, 0x77FF7777, 0xFFEEDDBB,
-> +	0x00FFFFFF, 0x00FFFFFF, 0xCCFFFF00, 0xCC33CCCC,
-> +	0x3333CCCC, 0xFFCCCCCC, 0xFFEEFFFF, 0xEEEEFFFF,
-> +	0xDDFFFFFF, 0xDDFFFFFF, 0xFFFFFFDD, 0XFFFFFFBB,
-> +	0xFFFFBBBB, 0xFFFF77FF, 0xFF7777FF, 0xEEDDBB77
-> +};
+> +	/* RAMINIT register description. Optional. */
+> +	u8 num_can;		/* Number of CAN instances on the SoC */
+> +	u8 *raminit_start_bits;	/* Array of START bit positions */
+> +	u8 *raminit_done_bits;	/* Array of DONE bit positions */
 
-yet another feature we would've gotten for free if we were already using
-sdhci. This is just a copy of what's on sdhci-msm.c, probably because
-they license the same IP we do.
+What do you think about making this a struct:
 
-It would be much better to just convert omap-hsmmc.c into sdhci-omap.c
-much like it was done for 8250-omap.c, with the added benefit that this
-will incur no userland regressions due to devnode names.
++struct raminit_bits {
++       u8 start;
++       u8 done;
++};
+
+ struct c_can_driver_data {
+        enum c_can_dev_id id;
++
++       /* RAMINIT register description. Optional. */
++       const struct raminit_bits *raminit_bits; /* Array of START/DONE b=
+it positions */
++       u8 raminit_num;         /* Number of CAN instances on the SoC */
++       bool raminit_pulse;     /* If set, sets and clears START bit (pul=
+se) */
+ };
+
+The driver data looks like this:
+
++static const struct raminit_bits dra7_raminit_bits[] =3D {
++       [0] =3D { .start =3D 3, .done =3D 1, },
++       [1] =3D { .start =3D 5, .done =3D 2, },
++};
++
++static const struct c_can_driver_data dra7_dcan_drvdata =3D {
++       .id =3D BOSCH_D_CAN,
++       .raminit_num =3D ARRAY_SIZE(dra7_raminit_bits),
++       .raminit_bits =3D dra7_raminit_bits,
++       .raminit_pulse =3D true,
++};
+
+I'll send an updated series.
+
+Marc
 
 --=20
-balbi
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
---TXIPBuAs4GDcsx9K
+
+--ub8ulLvilUfPbnqmGk77AvWG8K6NX3WWp
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUZj7gAAoJEIaOsuA1yqREmbYP/A3aKmMOFLbdhe5G3WwrCG8U
-e4vP9xY4VoQ4ItZKDaj3vG7F2BXL7aVV975ksd8k+zGFN+g+9OxXxNFeVNF8/TgY
-jDPW8VGwfA9XolLVDj2faURDRMmx/VgDK9nlUOsldIpRfIeDQywidzZwBND+SQZf
-6Blnn/YaJEMh8DhJiRHufHJltohvPinJ/n5qTv9ZL3Ql8ND/UC3nK+XOoHueCUOU
-bDzXjssTP2Xl5paHcHmuUUL9UgmXTaA0rJrH9MS68hAS4S21uUfHX06JV4QuZlMH
-9t+roZceCljjYSL+bP3jsc+Nxizm6Q+k0wkYo964G45AvxnG3138tSmPx28In8qQ
-5Ip4a0ODdLrHj98qWHl/+KqyuEbRoyLNX7llJuVmMRfu5FWufIJEtBnNglT3hg5u
-05EqZRVmp4+aBj1T4oADcWQSub6/a91OnX0wZEYTwkuypoqTmiO77bhUMt2hqAcP
-YYD+ffovmxXoGFJgUjuTjvJ2npIstyZeVnNCal2ePliDxP5AhUndBvKtEo+oT8z4
-/1XirQjBvA47E/gd9K8AgRJ6Rkp3EXPUXLjuLAOLbFY+RvEmFwNgKD2/5ku5/5EB
-ymVHivyIIbIByWtDwNJBl4l/1Sld0FtMmaxTX7ryHLm0JiQczJkpp8AnwImUxxh4
-FReNNPFeNdOH2wTGj+0o
-=vXtc
+iQIcBAEBAgAGBQJUZkISAAoJECte4hHFiupUeZoQAJIc5VIEoRwFAkPnG9wdV5Pw
+X2ccOjItaQzTfE07WuyLjNhparwtLKJ6IfU1VRpDAgoUbeqq3UZHoK/X/kPCBUiH
+mFKAGrY6z8tPiXPJ7hEmQMuX/tREqWc7iV1LaMUATd6zhQZbmUyDZWluGuos+vsS
+l23rxv7gVRMadw4AjXgxvAc5hwabxti0hFEGZtsHT6YZgLrT3bd4ahZBn1R4hgds
+U9+owpMB52H7RgR7NpJ1lanOqGI99USZU+Jjn1Neloe3/RHZyXEvxDU6rVy6Cu64
+2qTt9IXOgfZ02htATS4v4bGDSbG9K/ZBTs7elQlUWI5YooYxLEyOxud/hv0yOoHu
+2ucGIzEgG0b7lnQ9fKbyTQ/jF7jKcHZV29kh7xNrJMvTwPc0MfbUIvIbXBYIwgd3
+asnLbYTdfaFNORVuQVwGDbgHUuDLG5bxiXHMqtPw/3E8hqLUiqgpnYM6IKSAsd71
+bl961PWfOTp1viwA39gfUT59n9SLAuPdLGf5CgrBpRa1hI6Lel8MVxcDFeLMJ9lm
+tvXU/u3an3qq2UwexPGPF/yPJNMeFkbQ7xP5UiBm6jeNi+sh15z2QJdvyZPru9bI
+xCcpfbhIzXx2FaaJk6ly6NdeDNaJW7CVx7b0XstOAlV/BMkltuemGKJV0T5arqij
+OC3n5HflP25rvSvlqySw
+=aVHL
 -----END PGP SIGNATURE-----
 
---TXIPBuAs4GDcsx9K--
+--ub8ulLvilUfPbnqmGk77AvWG8K6NX3WWp--
