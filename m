@@ -1,62 +1,79 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH 2/3] mmc: omap_hsmmc: add tuning support
-Date: Fri, 14 Nov 2014 18:07:07 +0000
-Message-ID: <20141114180707.GC4047@n2100.arm.linux.org.uk>
-References: <1415883379-19654-1-git-send-email-kishon@ti.com>
- <1415883379-19654-3-git-send-email-kishon@ti.com>
- <20141114174152.GM11538@saruman>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 06/10] ARM: dts: am4372: Add DCAN nodes
+Date: Fri, 14 Nov 2014 10:07:46 -0800
+Message-ID: <20141114180746.GV31250@atomide.com>
+References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
+ <1415881371-4982-7-git-send-email-rogerq@ti.com>
+ <5464BB38.7020402@pengutronix.de>
+ <5464C2C4.2070907@ti.com>
+ <5464C3B1.2030908@pengutronix.de>
+ <5464C4E8.9060103@ti.com>
+ <5464C609.9070800@pengutronix.de>
+ <20141113174044.GN26481@atomide.com>
+ <54662C3D.8050103@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-can-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141114174152.GM11538@saruman>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, ulf.hansson@linaro.org, tony@atomide.com, linux-mmc@vger.kernel.org, afenkart@gmail.com, nsekhar@ti.com, chris@printf.net, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <54662C3D.8050103@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 14, 2014 at 11:41:52AM -0600, Felipe Balbi wrote:
-> Hi,
+* Roger Quadros <rogerq@ti.com> [141114 08:24]:
+> On 11/13/2014 07:40 PM, Tony Lindgren wrote:
+> > * Marc Kleine-Budde <mkl@pengutronix.de> [141113 06:55]:
+> >> On 11/13/2014 03:49 PM, Roger Quadros wrote:
+> >>> On 11/13/2014 04:44 PM, Marc Kleine-Budde wrote:
+> >>>> On 11/13/2014 03:40 PM, Roger Quadros wrote:
+> >>>>> On 11/13/2014 04:07 PM, Marc Kleine-Budde wrote:
+> >>>>>> On 11/13/2014 01:22 PM, Roger Quadros wrote:
+> >>>>>>> The SoC contains 2 DCAN modules. Add them.
+> >>>>>>>
+> >>>>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> >>>>>>> ---
+> >>>>>>>  arch/arm/boot/dts/am4372.dtsi | 22 ++++++++++++++++++++++
+> >>>>>>>  1 file changed, 22 insertions(+)
+> >>>>>>>
+> >>>>>>> diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+> >>>>>>> index 899c57c..12fb1db 100644
+> >>>>>>> --- a/arch/arm/boot/dts/am4372.dtsi
+> >>>>>>> +++ b/arch/arm/boot/dts/am4372.dtsi
+> >>>>>>> @@ -901,6 +901,28 @@
+> >>>>>>>  			compatible = "mmio-sram";
+> >>>>>>>  			reg = <0x40300000 0x40000>; /* 256k */
+> >>>>>>>  		};
+> >>>>>>> +
+> >>>>>>> +		dcan0: can@481cc000 {
+> >>>>>>> +			compatible = "ti,am3352-d_can";
+> >>>>>>
+> >>>>>> You should add "ti,am4372-d_can" as first compatible here.
+> >>>>>>
+> >>>>> We don't have a separate compatible id for am4372-d_can
+> >>>>> as it the IP exactly same as am3352-d_can.
+> >>>>
+> >>>> Having the "ti,am4372-d_can" compatible gives you the freedom to add
+> >>>> some spacial handling for the IP if there turns that you need to without
+> >>>> needing to modify the device tree. (We do this on imx.)
+> >>>
+> >>> Agreed. On OMAP platforms we don't add new compatible IDs unless we really need to.
+> >>> Can we add "ti,am4372-d_can" even if it is not mentioned in Documentation/devicetree/bindings?
+> >>>
+> >>> Tony what is your preference?
+> >>
+> >> I don't insist, do it the Omap way :)
+> > 
+> > I agree it's good to add if we need to add custom handling later on.
 > 
-> On Thu, Nov 13, 2014 at 06:26:18PM +0530, Kishon Vijay Abraham I wrote:
-> > @@ -233,6 +263,48 @@ struct omap_mmc_of_data {
-> >  	u8 controller_flags;
-> >  };
-> >  
-> > +static const u32 ref_tuning_4bits[] = {
-> > +	0x00FF0FFF, 0xCCC3CCFF, 0xFFCC3CC3, 0xEFFEFFFE,
-> > +	0xDDFFDFFF, 0xFBFFFBFF, 0xFF7FFFBF, 0xEFBDF777,
-> > +	0xF0FFF0FF, 0x3CCCFC0F, 0xCFCC33CC, 0xEEFFEFFF,
-> > +	0xFDFFFDFF, 0xFFBFFFDF, 0xFFF7FFBB, 0xDE7B7FF7
-> > +};
-> > +
-> > +static const u32 ref_tuning_8bits[] = {
-> > +	0xFF00FFFF, 0x0000FFFF, 0xCCCCFFFF, 0xCCCC33CC,
-> > +	0xCC3333CC, 0xFFFFCCCC, 0xFFFFEEFF, 0xFFEEEEFF,
-> > +	0xFFDDFFFF, 0xDDDDFFFF, 0xBBFFFFFF, 0xBBFFFFFF,
-> > +	0xFFFFFFBB, 0XFFFFFF77, 0x77FF7777, 0xFFEEDDBB,
-> > +	0x00FFFFFF, 0x00FFFFFF, 0xCCFFFF00, 0xCC33CCCC,
-> > +	0x3333CCCC, 0xFFCCCCCC, 0xFFEEFFFF, 0xEEEEFFFF,
-> > +	0xDDFFFFFF, 0xDDFFFFFF, 0xFFFFFFDD, 0XFFFFFFBB,
-> > +	0xFFFFBBBB, 0xFFFF77FF, 0xFF7777FF, 0xEEDDBB77
-> > +};
-> 
-> yet another feature we would've gotten for free if we were already using
-> sdhci. This is just a copy of what's on sdhci-msm.c, probably because
-> they license the same IP we do.
-> 
-> It would be much better to just convert omap-hsmmc.c into sdhci-omap.c
-> much like it was done for 8250-omap.c, with the added benefit that this
-> will incur no userland regressions due to devnode names.
+> As of now I don't foresee any custom handling for am4372-d_can vs am3352-d_can, but I can
+> add am4372-d_can anyways. In that case, do I need to mention it in 
+> Documentation/devicetree/bindings/net/can/c_can.txt?
+>
+> I guess not, cause we don't do anything specific to am4372-d_can there.
 
-If someone does do that, sdhci needs more of the quirks killing - sdhci.c
-/really/ needs to become a library which all these drivers use, rather
-than interposing itself between the MMC core and the actual driver, and
-the more that can be done the better.  All the time that people expand
-on the current disaster, that job is just going to get harder and harder
-(because there'll be more and more sub-drivers, with more and more
-sub-driver specific quirks.)
+I think you should to avoid checkpatch.pl warnings.
 
--- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+
+Tony
