@@ -1,82 +1,101 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv6 4/5] hwspinlock/core: add common OF helpers
-Date: Fri, 14 Nov 2014 09:11:15 +0200
-Message-ID: <CAK=WgbYMM19-rWLOBjix+TA3fF_Pb25ia1rutDxYSUg9SV0efg@mail.gmail.com>
-References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
- <1410553499-55951-5-git-send-email-s-anna@ti.com> <CAK=WgbamdqAufjC4Xb5moERRBSB-cO6c1RPTE=f+dp75F+Eh7A@mail.gmail.com>
- <5463B5B6.8040709@ti.com> <CAK=WgbbatPTiz3efDWHVEcuug_UQfkCViMoK0zcfUg3JwB2oTA@mail.gmail.com>
- <5464EC7A.7050603@ti.com> <CAK=WgbbodS8GsUxQbkyCp6hAG+Ko4LMirx+pUa8_fUdxWFasvw@mail.gmail.com>
- <54651C48.90809@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 4/4] arm: dts: omap3-gta04: Add static configuration for
+ devconf1 register
+Date: Fri, 14 Nov 2014 09:32:06 +0200
+Message-ID: <5465AFF6.506@ti.com>
+References: <1415051968-4878-1-git-send-email-marek@goldelico.com> <1415051968-4878-5-git-send-email-marek@goldelico.com> <5463585D.9070209@ti.com> <20141112150210.GC26481@atomide.com> <5464969F.30708@ti.com> <20141113182848.GQ26481@atomide.com> <alpine.DEB.2.02.1411132251320.17030@utopia.booyaka.com> <20141113235840.GS26481@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:50857 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754131AbaKNHLg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Nov 2014 02:11:36 -0500
-Received: by mail-ie0-f170.google.com with SMTP id tp5so17471650ieb.29
-        for <linux-omap@vger.kernel.org>; Thu, 13 Nov 2014 23:11:35 -0800 (PST)
-In-Reply-To: <54651C48.90809@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141113235840.GS26481@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Marek Belisko <marek@goldelico.com>, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, linux@arm.linux.org.uk, plagnioj@jcrosoft.com, grant.likely@linaro.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com
 List-Id: linux-omap@vger.kernel.org
-To: Suman Anna <s-anna@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Kumar Gala <galak@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, Bjorn Andersson <bjorn@kryo.se>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Suman,
-
-On Thu, Nov 13, 2014 at 11:02 PM, Suman Anna <s-anna@ti.com> wrote:
-> OK, lets take an example. I have say 2 device instances, say
->         hwlock1: hwlock@0 {
->                 hwlock-num-locks = <32>
->                 hwlock-base-id = <0>;
->                 #hwlock-cells = <1>;
->         };
->         hwlock2: hwlock@0 {
->                 hwlock-num-locks = <32>
->                 hwlock-base-id = <32>;
->                 #hwlock-cells = <1>;
->         };
+On 11/14/2014 01:58 AM, Tony Lindgren wrote:
+> * Paul Walmsley <paul@pwsan.com> [141113 15:01]:
+>> Hi
+>>
+>> On Thu, 13 Nov 2014, Tony Lindgren wrote:
+>>
+>>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [141113 03:33]:
+>>>> On 12/11/14 17:02, Tony Lindgren wrote:
+>>>>
+>>>>>> And, with a quick grep, I see CONTROL_DEVCONF1 touched in multiple
+>>>>>> places in the kernel. I wonder if adding a pinmux entry for it could
+>>>>>> cause some rather odd problems.
+>>>>>
+>>>>> They can all use pinctrl-single no problem.
+>>>>
+>>>> Can, but don't. That's my worry. If we touch the DEVCONF1 via pinmux,
+>>>> and we have code in mach-omap2 that also touch DEVCONF1, without any
+>>>> knowledge (and locking) between those...
+>>>
+>>> Hmm yeah the McBSP clock mux could be racy as the mux register for
+>>> McBSP is treated as a clock. This register muxes the clock between
+>>> external pin and internal clock. Considering that this should be
+>>> selectable at board level as the external clock probably needs to be
+>>> used if level shifters are being used, it should be really handled by
+>>> pinctrl-single.
+>>>
+>>> The other use for hsmmc.c and pdata-quirks.c for the one time mux for
+>>> MMC clock from the MMC clock pin. That can be done with pinctrl-single
+>>> from the MMC driver too for DT based booting.
+>>>
+>>> Then we just have the save and restore of the registers for
+>>> off-idle.
+>>>
+>>>> So _maybe_ that's not an issue, as the pinmux config we have here is
+>>>> fixed, and done once at boot time, and maybe the code in mach-omap2 that
+>>>> touch DEVCONF1 is also ran just once and not at the same time as the
+>>>> pinmux. But I don't know if that's so.
+>>>
+>>> It seems we could just do a read-only check for McBSP in the clock
+>>> code for the mux register, or even completely drop that code from
+>>> cclock3xxx_data.c and start using the pinctrl for that mux.
+>>>
+>>> Paul & Tero, got any comments here?
+>>
+>> It's best to move all of the SCM register reads/writes to an SCM IP block
+>> driver.  This driver would be the only entity that would touch the SCM IP
+>> block registers - no other code on the system would touch it (perhaps
+>> aside from anything needed for early init).  The SCM driver would enforce
+>> mutual exclusion via a spinlock, so concurrent SCM register modifications
+>> wouldn't flake out.  Then the SCM driver would register clocks with the
+>> CCF, register pins with the pinctrl subsystem, etc. etc.
 >
->         some-client {
->                 hwlocks = <&hwlock1 32>, <&hwlock2 0>;
->         };
+> We actually do have that with pinctrl-single + syscon. We certainly
+> need to implement more Linux framework drivers for the SCM registers.
+> Things like regulators, clocks, and PHYs, but they should use
+> pinctrl-single + syscon. See the the pbias-regulator.c for example.
 >
-> The first args value is incorrect, and I expect the API to return an
-> error. I don't think the API can make assumptions that all passed in
-> values will be correct. What do you suggest that the API do here?
+> Looking at the McBSP clock handling, threre's yet more handling of
+> the same DEVCONF1 mux register in omap2_mcbsp_set_clks_src that gets
+> alled from omap_mcbsp_dai_set_dai_sysclk.
+>
+> To me it seems that if we handle the DEVCONF with pinctrl-single, we
+> don't need most of the McBSP fck code or the omap2_mcbsp_set_clks_src.
+> Having the mux register as the clock enable register is not nice..
+> Who knows what the clock coming from the external pin might be :)
 
-I think this is just one example of many potential mistakes the DT
-developer can have, and that there's nothing really special about it.
+The PRCM/clock cleanups that I have under work basically splits the 
+clock inits under their respective IP blocks; currently everything is 
+registered under generic PRCM. System control module will be one of the 
+clock providers (and is going to look like a driver), which will be 
+registering its own clocks. This doesn't change the fact that pinctrl is 
+directly mapping its own register space atm though, it might be possible 
+to re-route this to use the generic system control module if need be though.
 
-What if the '5' digit below is a typo, and the actual hardware
-assignment was supposed to be '4' ?
+I guess its just a political decision which way we want to go, currently 
+we have lots of system control clocks under the clock data (for 
+AM33xx,AM43xx,OMAP3), but we can remove these easily if need be. In some 
+cases it is nicer to have the data in the clock tree though, the drivers 
+don't need to care if they are touching a clock or a pinctrl entity. 
+Some people have been converting additional stuff to CCF outside of 
+PRCM, like Archit did some work to try and get control module clock 
+support for DRA7, and Tomi has been talking to convert some of the DSS 
+internal clocks to CCF also.
 
-         some-client {
-                 hwlocks = <&hwlock1 5>, <&hwlock2 5>;
-         };
-
-I don't see how much different this mistake is from the one you
-mentioned above. There's a limit to how much we can really catch DT
-mistakes in the code, just like we couldn't really catch past mistakes
-in the platform data structures.
-
-If we can easily add some validations then great, but if we have to go
-to great lengths just to gain very limited validations, then I'd vote
-against doing so.
-
-> One solution to handle #1 is to also make the hwlock-num-locks property
-> also mandatory (even though it could have been read from a register
-
-Yeah, this is awkward. We shouldn't impose this on implementations
-like OMAP which don't need it.
-
-Again I think for the very limited validation this buys us - it's not worth it.
-
-> And, how do you propose we solve the problem of deferred probing?
-
-It seems to me that hwspin_lock_request_specific failures should be
-used by clients to defer their probing. Why wouldn't such a simple
-solution work?
-
-Thanks,
-Ohad.
+-Tero
