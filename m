@@ -1,90 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 4/6] ARM: dts: AM335x: Make charge delay a DT
- parameter for TSC
-Date: Fri, 14 Nov 2014 10:03:29 -0800
-Message-ID: <20141114180328.GU31250@atomide.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
- <1415941651-28962-5-git-send-email-vigneshr@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCH 2/3] mmc: omap_hsmmc: add tuning support
+Date: Fri, 14 Nov 2014 18:07:07 +0000
+Message-ID: <20141114180707.GC4047@n2100.arm.linux.org.uk>
+References: <1415883379-19654-1-git-send-email-kishon@ti.com>
+ <1415883379-19654-3-git-send-email-kishon@ti.com>
+ <20141114174152.GM11538@saruman>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1415941651-28962-5-git-send-email-vigneshr@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20141114174152.GM11538@saruman>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, devicetree@vger.kernel.org, ulf.hansson@linaro.org, tony@atomide.com, linux-mmc@vger.kernel.org, afenkart@gmail.com, nsekhar@ti.com, chris@printf.net, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Vignesh R <vigneshr@ti.com> [141113 21:42]:
-> The charge delay value is by default 0x400. But it can be set to lower
-> values on some boards, as long as false pen-ups are avoided. Lowering the
-> value increases the sampling rate (though current sampling rate is
-> sufficient for TSC operation). In some boards, the value has to be
-> increased to avoid false pen-up events. Hence, charge delay has been
-> made a DT parameter.
+On Fri, Nov 14, 2014 at 11:41:52AM -0600, Felipe Balbi wrote:
+> Hi,
 > 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> On Thu, Nov 13, 2014 at 06:26:18PM +0530, Kishon Vijay Abraham I wrote:
+> > @@ -233,6 +263,48 @@ struct omap_mmc_of_data {
+> >  	u8 controller_flags;
+> >  };
+> >  
+> > +static const u32 ref_tuning_4bits[] = {
+> > +	0x00FF0FFF, 0xCCC3CCFF, 0xFFCC3CC3, 0xEFFEFFFE,
+> > +	0xDDFFDFFF, 0xFBFFFBFF, 0xFF7FFFBF, 0xEFBDF777,
+> > +	0xF0FFF0FF, 0x3CCCFC0F, 0xCFCC33CC, 0xEEFFEFFF,
+> > +	0xFDFFFDFF, 0xFFBFFFDF, 0xFFF7FFBB, 0xDE7B7FF7
+> > +};
+> > +
+> > +static const u32 ref_tuning_8bits[] = {
+> > +	0xFF00FFFF, 0x0000FFFF, 0xCCCCFFFF, 0xCCCC33CC,
+> > +	0xCC3333CC, 0xFFFFCCCC, 0xFFFFEEFF, 0xFFEEEEFF,
+> > +	0xFFDDFFFF, 0xDDDDFFFF, 0xBBFFFFFF, 0xBBFFFFFF,
+> > +	0xFFFFFFBB, 0XFFFFFF77, 0x77FF7777, 0xFFEEDDBB,
+> > +	0x00FFFFFF, 0x00FFFFFF, 0xCCFFFF00, 0xCC33CCCC,
+> > +	0x3333CCCC, 0xFFCCCCCC, 0xFFEEFFFF, 0xEEEEFFFF,
+> > +	0xDDFFFFFF, 0xDDFFFFFF, 0xFFFFFFDD, 0XFFFFFFBB,
+> > +	0xFFFFBBBB, 0xFFFF77FF, 0xFF7777FF, 0xEEDDBB77
+> > +};
+> 
+> yet another feature we would've gotten for free if we were already using
+> sdhci. This is just a copy of what's on sdhci-msm.c, probably because
+> they license the same IP we do.
+> 
+> It would be much better to just convert omap-hsmmc.c into sdhci-omap.c
+> much like it was done for 8250-omap.c, with the added benefit that this
+> will incur no userland regressions due to devnode names.
 
-As long as the input and DT people are OK with this, ack for
-merging the .dts changes along with the input patches:
+If someone does do that, sdhci needs more of the quirks killing - sdhci.c
+/really/ needs to become a library which all these drivers use, rather
+than interposing itself between the MMC core and the actual driver, and
+the more that can be done the better.  All the time that people expand
+on the current disaster, that job is just going to get harder and harder
+(because there'll be more and more sub-drivers, with more and more
+sub-driver specific quirks.)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
-> 
-> v4:
->  - Set charge delay to 0x400 as default. Most devices function normally
->    at this value
-> 
->  .../devicetree/bindings/input/touchscreen/ti-tsc-adc.txt  | 15 +++++++++++++++
->  arch/arm/boot/dts/am335x-evm.dts                          |  1 +
->  2 files changed, 16 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> index 878549ba814d..6df5028a4ad3 100644
-> --- a/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> +++ b/Documentation/devicetree/bindings/input/touchscreen/ti-tsc-adc.txt
-> @@ -28,6 +28,20 @@ Required properties:
->  	ti,adc-channels: List of analog inputs available for ADC.
->  			 AIN0 = 0, AIN1 = 1 and so on till AIN7 = 7.
->  
-> +Optional properties:
-> +- child "tsc"
-> +	ti,charge-delay: Length of touch screen charge delay step in terms of
-> +			 ADC clock cycles. Charge delay value should be large
-> +			 in order to avoid false pen-up events. This value
-> +			 affects the overall sampling speed, hence need to be
-> +			 kept as low as possible, while avoiding false pen-up
-> +			 event. Start from a lower value, say 0x400, and
-> +			 increase value until false pen-up events are avoided.
-> +			 The pen-up detection happens immediately after the
-> +			 charge step, so this does in fact function as a
-> +			 hardware knob for adjusting the amount of "settling
-> +			 time".
-> +
->  Example:
->  	tscadc: tscadc@44e0d000 {
->  		compatible = "ti,am3359-tscadc";
-> @@ -36,6 +50,7 @@ Example:
->  			ti,x-plate-resistance = <200>;
->  			ti,coordiante-readouts = <5>;
->  			ti,wire-config = <0x00 0x11 0x22 0x33>;
-> +			ti,charge-delay = <0x400>;
->  		};
->  
->  		adc {
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index e2156a583de7..ce12f6ef1e28 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -641,6 +641,7 @@
->  		ti,x-plate-resistance = <200>;
->  		ti,coordinate-readouts = <5>;
->  		ti,wire-config = <0x00 0x11 0x22 0x33>;
-> +		ti,charge-delay = <0x400>;
->  	};
->  
->  	adc {
-> -- 
-> 1.9.1
-> 
+-- 
+FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
+according to speedtest.net.
