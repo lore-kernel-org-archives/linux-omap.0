@@ -1,154 +1,67 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq handling
-Date: Sat, 15 Nov 2014 08:42:03 +0300
-Message-ID: <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
-References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com> <1416014452-6712-2-git-send-email-al.kochet@gmail.com> <20141115014859.GC808@saruman> <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com> <20141115034756.GA2917@saruman> <20141115035328.GA3289@saruman>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=windows-1251
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141115035328.GA3289@saruman>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+From: pekon <pekon@pek-sem.com>
+Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
+Date: Sat, 15 Nov 2014 16:42:17 +0530
+Message-ID: <54673511.80205@pek-sem.com>
+References: <1415185258-11747-1-git-send-email-rogerq@ti.com> <20141106180333.GZ31454@atomide.com> <545C9267.7060301@ti.com> <545C97AB.4040402@ti.com> <20141107224832.GG31454@atomide.com> <545FC08D.8000008@pek-sem.com> <20141112180253.GJ26481@atomide.com> <54649612.8090402@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <54649612.8090402@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, "Rini, Tom" <trini@ti.com>
+Cc: computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello again.
+Hi,
 
-> (please, never top-post)
-Sorry.
+On Thursday 13 November 2014 04:59 PM, Roger Quadros wrote:
+[...]
+>
+> What about performance impact? OMAP3 doesn't have ELM module. So error location
+> for BCH8 has to be done in software.
+>
 
-Sorry for the inaccurate presentation of ideas. I am not a native Engli=
-sh speaker.
+Performance impact happens only when there are bit-flips in an page.
+- For BCH8_HW ECC schemes
+ELM comes in the picture only when during reads there is an ECC 
+mis-match, if there is no ECC mis-match GPMC engine alone handles all 
+the decoding part.
 
-=46irst about patches:
-[PATCH 1/2] and [PATCH 2/2] - intended to solve two independent problem=
-s.
-They were sent as series, In the future, try not to do so, In order not=
- to mislead.
+- For BCH8_SW ECC schemes
+Same-way, lib/bch.8: decode_bch() path is taken only when ECC mismatch 
+is detected on the read path, for normal read/write GPMC engine handles 
+everything.
 
-> How could I ever call omap_i2c_complete_cmd() with 'err' set as 0 if =
-I
-> had either a NACK or Arbitration Lost ?
+Yes, you may argue that with aging of the NAND the occurrence of 
+bit-flips is common. That's true, but for new devices especially for SLC 
+NAND the occurrence is usually rare on fresh parts. Also considering 
+that most SLC are now manufactured in matured technologies.
 
-[PATCH 1/2] - fix AL, NACK handling and does not apply to [PATCH 2/2].
-It not cause of problem solved of [PATCH 2/2].
-
-> =08right, this is the same as it was before. If count reaches 100 we =
-will
-> omap_i2c_complete_cmd().
-*No*
-
-During refactoring submitted a series of patches was made the mistake.
-This error alters the behavior of the interrupt handler, if it ends wit=
-h the message=20
-"Too much work in one IRQ".
-
-Error in the commit 66b9298878742f08cb6e79b7c7d5632d782fd1e1.=20
-All subsequent commits were correct and translate this error further.
-
-In the parent commit 3312d25e1abdc41be8a75a1b2c3ccaa39a14ed99
-(the commit before 66b9298878742f08cb6e79b7c7d5632d782fd1e1) in case
-count reaches 100, loop breaks *without* calling omap_i2c_complete_cmd(=
-).
-
-In commit 66b9298878742f08cb6e79b7c7d5632d782fd1e1, in case
-count reaches 100, loop breaks and omap_i2c_complete_cmd() *get called*=
-=2E
-
-To see that, you need to open two versions of a file i2c-omap.c, side b=
-y side.
-
-i2c-omap.c version corresponding to parent commit:
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dr=
-ivers/i2c/busses/i2c-omap.c?id=3D3312d25e1abdc41be8a75a1b2c3ccaa39a14ed=
-99#n823
-
-i2c-omap.c version corresponding next commit:
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dr=
-ivers/i2c/busses/i2c-omap.c?id=3D66b9298878742f08cb6e79b7c7d5632d782fd1=
-e1#n823
-
-According to wikipedia: "Code refactoring is the process of restructuri=
-ng existing computer code =96 changing the factoring =96=20
-without changing its external behavior.'
-
-And commit's (66b9298878742f08cb6e79b7c7d5632d782fd1e1) message states =
-what:
-i2c: omap: switch over to do {} while loop
-this will make sure that we execute at least once.
-No functional changes otherwise.
-
-But functional change present!
-It's call of omap_i2c_complete_cmd()!
-
-The next question: What affects this change?
-If count reaches 100 and loop breaks and no error occupy during loop pr=
-ocessing,
-and no error would be set in err_cmd, omap_i2c_complete_cmd will set 0 =
-as
-result of transfer and wakeup omap_i2c_xfer. In other words, current i2=
-c transfer
-will be aborted with incorrect (success) status set. But, does transfer=
- completed in real?
-Do buf data was sent to i2c slave device or received from it in real?
-Upper layer code would thing, that data was sent successfully.
-
-How to see that bug in real live? Just add extra delayes into isr threa=
-d.
-I did it unintentionally inserting dev_warn into isr thread.
-
-BTW. I made more testing and provide more logs to demonstrate affected =
-changes.
+Also, if you are using UBIFS on top of NAND, then it will scrub the data 
+on first detection of bit-flips, thereby reducing the accumulation of 
+bit-flips and thereby conserving read performance.
 
 
-> which deadlock are you talking about ? How do you trigger it ? Where =
-are
-> the lockup debug traces ?
->=20
-> Well, I tried to debug I2C ISR hang issue (thats another question I
-> want to discuss later) using output to console. I places few dev_warn
->=20
-> if you found a bug with the ISR, why discuss it later ? How can I
-> understand if you found a real bug without proper logs ?
+>>
+>>
+[...]
+>> Right no objections to using BCH8 for rootfs, except it stopped working
+>> over past year or so.
+>
+> This would be BCH8-sw on OMAP3 right? AM3xx uses BCH8-hw and that seems to work fine.
+> So it seems nobody has used/tested BCH8-sw.
+>
+I have tested BCH8_SW on both AM335x and later SoC, and checked its 
+compatibility with various combinations of u-boot. [1] should give you 
+some indications of various combinations users can try ..
 
 
-I put in order my thoughts and describe. It's next problem, not related=
- to patch1/patch2.
+with regards, pekon
 
-In general, the problem (the 3rd one) is that linux either hang or segf=
-ault
-in the i2c-omap driver if another master on the i2c bus (multimaster en=
-vironment),
-submit write request to General Call Address. In that case ISR could no=
-t correctly
-handle RDR (or XRDY, ARDY, or that ever). Thats becase i2c-omap driver =
-doesn't
-correctly handle i2c-controller's slave mode. But controller enter slav=
-e mode
-after each master transfer. Yes, AAS and GC interrupts masked, but i2c-=
-controller
-still sends RDR (or that ever events) when it detect slave access from =
-another master on the bus.
+[1]
+http://processors.wiki.ti.com/index.php/Linux_Core_NAND_User%27s_Guide#ECC_schemes_support
 
-I have two safe solutions of the (3rd) problem in the mind:
-- keep interrupts disabled between i2c-master access (I think about imp=
-lementing
-i2c_omap_interrupt_enable_clr/i2c_omap_interrupt_enable_set helpers and=
- putting
-them in the right places)
-- keep controller disabled between i2c-master access (keep EN-bit of CO=
-N register 0)
 
-That solutions also help with races between isr and xfer_msg.
-
-What do you think about that?
-
-How to reproduce 3-rd problem:
-In order to ease reproduce, you should disable i2c controller from ente=
-ring suspend mode:
-echo on > /sys/devices/platform/omap/omap_i2c.2/power/control
-
-And then, using another i2c-master, connected to the same (i2c.2) bus,
-initiate I2C write transfer to Generall Call Address, than linux ether =
-hang or isr thread segfault :)
+------------------------
+Powered by BigRock.com
