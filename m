@@ -1,66 +1,38 @@
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: Re: [PATCH v7.1 11/19] OMAPDSS: hdmi: Make hdmi_mode_has_audio()
- more user friedly
-Date: Sat, 15 Nov 2014 17:52:00 +0200
-Message-ID: <546776A0.2060305@mentor.com>
-References: <cover.1415803064.git.jsarha@ti.com> <8047b50c76efecd72e7219f7871c59cc4a8ee5f5.1415803065.git.jsarha@ti.com> <5466139E.5040308@mentor.com>
+From: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 2/6] input: touchscreen: ti_am335x_tsc: Remove udelay
+ in interrupt handler
+Date: Sat, 15 Nov 2014 20:27:39 +0100
+Message-ID: <20141115192739.GA18766@localhost.localdomain>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+ <1415941651-28962-3-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:40519 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754009AbaKOPwG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Nov 2014 10:52:06 -0500
-In-Reply-To: <5466139E.5040308@mentor.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1415941651-28962-3-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap@vger.k
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-Hi Jyri,
-
-On 14.11.2014 16:37, Vladimir Zapolskiy wrote:
-> Hi Jyri,
+On Fri, Nov 14, 2014 at 10:37:27AM +0530, Vignesh R wrote:
+> From: Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>
 > 
-> On 12.11.2014 16:41, Jyri Sarha wrote:
->> Signed-off-by: Jyri Sarha <jsarha@ti.com>
->> ---
->>  drivers/video/fbdev/omap2/dss/hdmi.h |    4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
->> index a6e08ff..6d129f2 100644
->> --- a/drivers/video/fbdev/omap2/dss/hdmi.h
->> +++ b/drivers/video/fbdev/omap2/dss/hdmi.h
->> @@ -345,9 +345,9 @@ void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
->>  		struct hdmi_audio_format *aud_fmt);
->>  void hdmi_wp_audio_config_dma(struct hdmi_wp_data *wp,
->>  		struct hdmi_audio_dma *aud_dma);
->> -static inline bool hdmi_mode_has_audio(int mode)
->> +static inline bool hdmi_mode_has_audio(struct hdmi_config *cfg)
->>  {
->> -	return mode == HDMI_HDMI ? true : false;
->> +	return cfg->hdmi_dvi_mode == HDMI_HDMI ? true : false;
->>  }
->>  
->>  /* HDMI DRV data */
->>
-> 
-> would it be possible for you to rearrange the changes preserving the
-> following sequence?
-> 
-> 1) 13/19
-> 2) 15/19
-> 3) 11/19
-> 4) 14/19
-> 5) 16/19
-> 
-> Otherwise I'm worried that someone's git rebase may fail.
+> TSC interrupt handler had udelay to avoid reporting of false pen-up
+> interrupt to user space. This patch implements workaround suggesting in
+> Advisory 1.0.31 of silicon errata for am335x, thus eliminating udelay
+> and touchscreen lag. This also improves performance of touchscreen and
+> eliminates sudden jump of cursor at touch release.
 
-sorry, git bisect of course.
+I back ported this series onto v3.15.1 in order to try this out on a
+custom, beaglebone-like board. With this series, the touch is really
+broken. (I had fixed the pen up problem in a totally different way for
+a customer, and so I wanted to try out your solution.)
 
---
-With best wishes,
-Vladimir
+I will try to port the board code to a more recent kernel to try your
+series again. With which kernel version did you test your patches?
 
+And which board?
+
+Thanks,
+Richard
