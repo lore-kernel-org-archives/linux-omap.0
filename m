@@ -1,99 +1,45 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] i2c: omap: fix NACK and Arbitration Lost irq handling
-Date: Fri, 14 Nov 2014 19:43:36 -0600
-Message-ID: <20141115014336.GB808@saruman>
-References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Fba/0zbH8Xs+Fj9o"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1416014452-6712-1-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH] ARM: DTS: OMAP3-N900: add si4713 support
+Date: Sat, 15 Nov 2014 02:47:30 +0100
+Message-ID: <1416016050-4252-1-git-send-email-sre@kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ring0.de ([5.45.105.125]:56448 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754875AbaKOBrh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Nov 2014 20:47:37 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Sebastian Reichel <sre@kernel.org>
 
---Fba/0zbH8Xs+Fj9o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add si4713 node to the N900 device tree file.
 
-On Sat, Nov 15, 2014 at 05:20:51AM +0400, Alexander Kochetkov wrote:
-> commit 1d7afc95946487945cc7f5019b41255b72224b70 (i2c: omap: ack IRQ in pa=
-rts)
-> changed the interrupt handler to complete transfers without clearing
-> XRDY (AL case) and ARDY (NACK case) flags. XRDY or ARDY interrupt will be
-> fired again (in parallel with omap_i2c_xfer_msg). Interrupt handler will
-> complete transfers second time. As a result, NACK and AL transfers
-> terminates with "transfer timeout" and sometimes client code segfault.
->=20
-> The patch restore original logic of handling NACK and AL interrupts and
-> fix race between interrupt handler and omap_i2c_xfer_msg (for AL and
-> NACK case only).
->=20
-> Tested on Beagleboard XM C.
->=20
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ arch/arm/boot/dts/omap3-n900.dts | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Assuming this is really correct (I haven't tested), you need to add:
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 9b0494a..81c99f3 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -540,6 +540,16 @@
+ 		power-gpio = <&gpio4 2 GPIO_ACTIVE_HIGH>; /* 98 */
+ 	};
+ 
++	si4713: si4713@63 {
++		compatible = "silabs,si4713";
++                reg = <0x63>;
++
++                interrupts-extended = <&gpio2 21 IRQ_TYPE_EDGE_FALLING>; /* 53 */
++                reset-gpios = <&gpio6 3 GPIO_ACTIVE_HIGH>; /* 163 */
++                vio-supply = <&vio>;
++                vdd-supply = <&vaux1>;
++	};
++
+ 	bq24150a: bq24150a@6b {
+ 		compatible = "ti,bq24150a";
+ 		reg = <0x6b>;
+-- 
+2.1.1
 
-Fixes: 1d7afc9 i2c: omap: ack IRQ in parts
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.7+
-
-here and resend, so it gets backported to older kernels.
-
-> Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    2 --
->  1 file changed, 2 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 90dcc2e..9af7095 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -926,14 +926,12 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
->  		if (stat & OMAP_I2C_STAT_NACK) {
->  			err |=3D OMAP_I2C_STAT_NACK;
->  			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
-> -			break;
->  		}
-> =20
->  		if (stat & OMAP_I2C_STAT_AL) {
->  			dev_err(dev->dev, "Arbitration lost\n");
->  			err |=3D OMAP_I2C_STAT_AL;
->  			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
-> -			break;
->  		}
-> =20
->  		/*
-> --=20
-> 1.7.9.5
->=20
-
---=20
-balbi
-
---Fba/0zbH8Xs+Fj9o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUZq/IAAoJEIaOsuA1yqREhYMP/R8v7SJo12+TfmAnIw/hQ/Ij
-j66njArDCzUbVnlEp0PpNR0LUaNZwiuTSPNBYnclNqNpXQXEqfDdeotxkYHTQ9b8
-eq3nLDbvOJfS3gFCXnEFP2lxcwogF2CtiLLUHdKIvIiPhG3ALXhuMHWLd4mppxYa
-69bHqWvK/yzLxpY1sJTf4AFjf6AqKnigoCTUcnuKUAbtV2vAQRABzeXn2NhCjqFk
-A7PmoEYZAfLRxk0VvrNdTgmOjjAvv/RHAxaxwOEstsJuhEQATUxn7uRbtfENgUD3
-lsUWct+cc/ZqC5WXLvvWnOPzhjlQO+x/qpNQW0fVrGWbJsHEnNhGbURiXGhZTiVe
-tASYHAtow69FIqHhru6aFih8KcTISUUG8fZj45Elo/5XFJLGTiG0Sl/u0OQgMbiA
-+gqSky1Mxk3l8QyO67XFi+wxDp1KRDLrSHEUwbyFtB+kmKQtunwrCLY9kxlJ+Nll
-9iMnS9zYelyLNRqzqo05l2NI+QXUSfMFo9eIXuA9qJCMyApi+aJu6RDpjYUCbQ2P
-Y/JLoz2LVaoUzJjpsYFaS4P2suJym7a0hEOM77M2OSYTtx8/oHJQFLjjaH2T5QWy
-HkoHZ8Fzkcqtg8VlivzwgtqY5IAumvvsT9oO6T4tiTOvEmXI2wI9abjofZdp7B44
-qnHzXCIUVAtHO0y7xAtI
-=J9rF
------END PGP SIGNATURE-----
-
---Fba/0zbH8Xs+Fj9o--
