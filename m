@@ -1,120 +1,154 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq
- handling
-Date: Fri, 14 Nov 2014 21:53:28 -0600
-Message-ID: <20141115035328.GA3289@saruman>
-References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com>
- <1416014452-6712-2-git-send-email-al.kochet@gmail.com>
- <20141115014859.GC808@saruman>
- <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com>
- <20141115034756.GA2917@saruman>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44881 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935166AbaKODxI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Nov 2014 22:53:08 -0500
-Content-Disposition: inline
-In-Reply-To: <20141115034756.GA2917@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq handling
+Date: Sat, 15 Nov 2014 08:42:03 +0300
+Message-ID: <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
+References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com> <1416014452-6712-2-git-send-email-al.kochet@gmail.com> <20141115014859.GC808@saruman> <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com> <20141115034756.GA2917@saruman> <20141115035328.GA3289@saruman>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141115035328.GA3289@saruman>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Alexander Kochetkov <al.kochet@gmail.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>
 
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello again.
 
-Hi again,
+> (please, never top-post)
+Sorry.
 
-On Fri, Nov 14, 2014 at 09:47:56PM -0600, Felipe Balbi wrote:
-> > > how ? This is an interesting bug which deserves further explanation.
-> >=20
-> > Look at the loops above, and at the omap_i2c_complete_cmd:
-> >=20
-> > static inline void
-> > omap_i2c_complete_cmd(struct omap_i2c_dev *dev, u16 err)
-> > {
-> > 	dev->cmd_err |=3D err;
-> > 	complete(&dev->cmd_complete);
-> > }
-> >=20
-> > You can see, loop will be aborted if counter reached 100. Final state
-> > of transfer depends on values stored in the 'err' and 'dev->cmd_err'.
-> > If 'err' and 'dev->cmd_err' are zero, than transfer would be aborted
-> > with status 0.
+Sorry for the inaccurate presentation of ideas. I am not a native Engli=
+sh speaker.
 
-look at the IRQ handler again:
+=46irst about patches:
+[PATCH 1/2] and [PATCH 2/2] - intended to solve two independent problem=
+s.
+They were sent as series, In the future, try not to do so, In order not=
+ to mislead.
 
-| omap_i2c_isr_thread(int this_irq, void *dev_id)
-| {
-| 	struct omap_i2c_dev *dev =3D dev_id;
-| 	unsigned long flags;
-| 	u16 bits;
-| 	u16 stat;
-| 	int err =3D 0, count =3D 0;
-|=20
-| 	spin_lock_irqsave(&dev->lock, flags);
-| 	do {
+> How could I ever call omap_i2c_complete_cmd() with 'err' set as 0 if =
+I
+> had either a NACK or Arbitration Lost ?
 
-[...]
+[PATCH 1/2] - fix AL, NACK handling and does not apply to [PATCH 2/2].
+It not cause of problem solved of [PATCH 2/2].
 
-| 		if (stat & OMAP_I2C_STAT_NACK) {
-| 			err |=3D OMAP_I2C_STAT_NACK;
-| 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
-| 			break;
-| 		}
-|=20
-| 		if (stat & OMAP_I2C_STAT_AL) {
-| 			dev_err(dev->dev, "Arbitration lost\n");
-| 			err |=3D OMAP_I2C_STAT_AL;
-| 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
-| 			break;
-| 		}
+> =08right, this is the same as it was before. If count reaches 100 we =
+will
+> omap_i2c_complete_cmd().
+*No*
 
-[...]
+During refactoring submitted a series of patches was made the mistake.
+This error alters the behavior of the interrupt handler, if it ends wit=
+h the message=20
+"Too much work in one IRQ".
 
-|=20
-| 	} while (stat);
-|=20
-| 	omap_i2c_complete_cmd(dev, err);
-|=20
-| out:
-| 	spin_unlock_irqrestore(&dev->lock, flags);
-|=20
-| 	return IRQ_HANDLED;
-| }
+Error in the commit 66b9298878742f08cb6e79b7c7d5632d782fd1e1.=20
+All subsequent commits were correct and translate this error further.
 
-How could I ever call omap_i2c_complete_cmd() with 'err' set as 0 if I
-had either a NACK or Arbitration Lost ?
+In the parent commit 3312d25e1abdc41be8a75a1b2c3ccaa39a14ed99
+(the commit before 66b9298878742f08cb6e79b7c7d5632d782fd1e1) in case
+count reaches 100, loop breaks *without* calling omap_i2c_complete_cmd(=
+).
 
---=20
-balbi
+In commit 66b9298878742f08cb6e79b7c7d5632d782fd1e1, in case
+count reaches 100, loop breaks and omap_i2c_complete_cmd() *get called*=
+=2E
 
---5mCyUwZo2JvN/JJP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+To see that, you need to open two versions of a file i2c-omap.c, side b=
+y side.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+i2c-omap.c version corresponding to parent commit:
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dr=
+ivers/i2c/busses/i2c-omap.c?id=3D3312d25e1abdc41be8a75a1b2c3ccaa39a14ed=
+99#n823
 
-iQIcBAEBAgAGBQJUZs44AAoJEIaOsuA1yqREsjYP/0XUXjBXHVz655fpFajFx357
-XH+MfOiyfJQUEcysTK7qI6OT/UCJmAnxc9YWtcKnkk5aLuP6t9VHhyd/UXnZxNR/
-YLPsQqJ76UaVsxxiJ9MUeFNAjZa1oEWPcdxweLE7o1Fa3xVPLC5w2PDcLp45CPnK
-khd6dC4PphVDLo6N/dLdrZoYgzdAqxxNh8K5LJF36EWJpT8YKSRYPxct0U3Bqkyh
-d/79fjgLQAeg3NRlWWe0P8LBFEPItI4q3AwEAG+YgmJ/BYe7XbZh2rSrBUubDCYV
-FO9ua6uWZNCcq2yYo50BkIyXk49OqLcm49LN1Y212ltAV/Q4HqP5oXBZVFkkMJWW
-teXmlC99DlJvXt2QzQt4bDarucox/soFT+79lXCOcvUj1Jwiej7iD3WCApazFigt
-UzPWY0960jgWZDxzDr3YlP7XFLFPyJVk5laWqnkxmylR91YW5KabsZHwQZ5smPtB
-3vIEmB0qi9gJON/9ebk/vcZozAYhbwLKjAsBN0n+3AklD7CqwfQsziZVzjgZB3Zb
-X7A7wq+cQmeTZy1BrQOd4XtVCi74O2w9X4Z555+qaLpfO0RhUivuz0vyGOXDtvut
-AkqHgfJ9wHIm2IiHzD3FfwCLEaqdf+nSi9TbSsFAVl0JYwnvVt929zOKT+DCEP9q
-7+TDkO7tZIUqeKRvgCmu
-=r6Na
------END PGP SIGNATURE-----
+i2c-omap.c version corresponding next commit:
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dr=
+ivers/i2c/busses/i2c-omap.c?id=3D66b9298878742f08cb6e79b7c7d5632d782fd1=
+e1#n823
 
---5mCyUwZo2JvN/JJP--
+According to wikipedia: "Code refactoring is the process of restructuri=
+ng existing computer code =96 changing the factoring =96=20
+without changing its external behavior.'
+
+And commit's (66b9298878742f08cb6e79b7c7d5632d782fd1e1) message states =
+what:
+i2c: omap: switch over to do {} while loop
+this will make sure that we execute at least once.
+No functional changes otherwise.
+
+But functional change present!
+It's call of omap_i2c_complete_cmd()!
+
+The next question: What affects this change?
+If count reaches 100 and loop breaks and no error occupy during loop pr=
+ocessing,
+and no error would be set in err_cmd, omap_i2c_complete_cmd will set 0 =
+as
+result of transfer and wakeup omap_i2c_xfer. In other words, current i2=
+c transfer
+will be aborted with incorrect (success) status set. But, does transfer=
+ completed in real?
+Do buf data was sent to i2c slave device or received from it in real?
+Upper layer code would thing, that data was sent successfully.
+
+How to see that bug in real live? Just add extra delayes into isr threa=
+d.
+I did it unintentionally inserting dev_warn into isr thread.
+
+BTW. I made more testing and provide more logs to demonstrate affected =
+changes.
+
+
+> which deadlock are you talking about ? How do you trigger it ? Where =
+are
+> the lockup debug traces ?
+>=20
+> Well, I tried to debug I2C ISR hang issue (thats another question I
+> want to discuss later) using output to console. I places few dev_warn
+>=20
+> if you found a bug with the ISR, why discuss it later ? How can I
+> understand if you found a real bug without proper logs ?
+
+
+I put in order my thoughts and describe. It's next problem, not related=
+ to patch1/patch2.
+
+In general, the problem (the 3rd one) is that linux either hang or segf=
+ault
+in the i2c-omap driver if another master on the i2c bus (multimaster en=
+vironment),
+submit write request to General Call Address. In that case ISR could no=
+t correctly
+handle RDR (or XRDY, ARDY, or that ever). Thats becase i2c-omap driver =
+doesn't
+correctly handle i2c-controller's slave mode. But controller enter slav=
+e mode
+after each master transfer. Yes, AAS and GC interrupts masked, but i2c-=
+controller
+still sends RDR (or that ever events) when it detect slave access from =
+another master on the bus.
+
+I have two safe solutions of the (3rd) problem in the mind:
+- keep interrupts disabled between i2c-master access (I think about imp=
+lementing
+i2c_omap_interrupt_enable_clr/i2c_omap_interrupt_enable_set helpers and=
+ putting
+them in the right places)
+- keep controller disabled between i2c-master access (keep EN-bit of CO=
+N register 0)
+
+That solutions also help with races between isr and xfer_msg.
+
+What do you think about that?
+
+How to reproduce 3-rd problem:
+In order to ease reproduce, you should disable i2c controller from ente=
+ring suspend mode:
+echo on > /sys/devices/platform/omap/omap_i2c.2/power/control
+
+And then, using another i2c-master, connected to the same (i2c.2) bus,
+initiate I2C write transfer to Generall Call Address, than linux ether =
+hang or isr thread segfault :)
