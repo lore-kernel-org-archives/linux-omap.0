@@ -1,67 +1,66 @@
-From: pekon <pekon@pek-sem.com>
-Subject: Re: [PATCH] mtd: nand: omap: Fix NAND enumeration on 3430 LDP
-Date: Sat, 15 Nov 2014 16:42:17 +0530
-Message-ID: <54673511.80205@pek-sem.com>
-References: <1415185258-11747-1-git-send-email-rogerq@ti.com> <20141106180333.GZ31454@atomide.com> <545C9267.7060301@ti.com> <545C97AB.4040402@ti.com> <20141107224832.GG31454@atomide.com> <545FC08D.8000008@pek-sem.com> <20141112180253.GJ26481@atomide.com> <54649612.8090402@ti.com>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: Re: [PATCH v7.1 11/19] OMAPDSS: hdmi: Make hdmi_mode_has_audio()
+ more user friedly
+Date: Sat, 15 Nov 2014 17:52:00 +0200
+Message-ID: <546776A0.2060305@mentor.com>
+References: <cover.1415803064.git.jsarha@ti.com> <8047b50c76efecd72e7219f7871c59cc4a8ee5f5.1415803065.git.jsarha@ti.com> <5466139E.5040308@mentor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <54649612.8090402@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, "Rini, Tom" <trini@ti.com>
-Cc: computersforpeace@gmail.com, dwmw2@infradead.org, ezequiel@vanguardiasur.com.ar, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relay1.mentorg.com ([192.94.38.131]:40519 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754009AbaKOPwG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Nov 2014 10:52:06 -0500
+In-Reply-To: <5466139E.5040308@mentor.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-Hi,
+Hi Jyri,
 
-On Thursday 13 November 2014 04:59 PM, Roger Quadros wrote:
-[...]
->
-> What about performance impact? OMAP3 doesn't have ELM module. So error location
-> for BCH8 has to be done in software.
->
-
-Performance impact happens only when there are bit-flips in an page.
-- For BCH8_HW ECC schemes
-ELM comes in the picture only when during reads there is an ECC 
-mis-match, if there is no ECC mis-match GPMC engine alone handles all 
-the decoding part.
-
-- For BCH8_SW ECC schemes
-Same-way, lib/bch.8: decode_bch() path is taken only when ECC mismatch 
-is detected on the read path, for normal read/write GPMC engine handles 
-everything.
-
-Yes, you may argue that with aging of the NAND the occurrence of 
-bit-flips is common. That's true, but for new devices especially for SLC 
-NAND the occurrence is usually rare on fresh parts. Also considering 
-that most SLC are now manufactured in matured technologies.
-
-Also, if you are using UBIFS on top of NAND, then it will scrub the data 
-on first detection of bit-flips, thereby reducing the accumulation of 
-bit-flips and thereby conserving read performance.
-
-
+On 14.11.2014 16:37, Vladimir Zapolskiy wrote:
+> Hi Jyri,
+> 
+> On 12.11.2014 16:41, Jyri Sarha wrote:
+>> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+>> ---
+>>  drivers/video/fbdev/omap2/dss/hdmi.h |    4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
 >>
+>> diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+>> index a6e08ff..6d129f2 100644
+>> --- a/drivers/video/fbdev/omap2/dss/hdmi.h
+>> +++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+>> @@ -345,9 +345,9 @@ void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
+>>  		struct hdmi_audio_format *aud_fmt);
+>>  void hdmi_wp_audio_config_dma(struct hdmi_wp_data *wp,
+>>  		struct hdmi_audio_dma *aud_dma);
+>> -static inline bool hdmi_mode_has_audio(int mode)
+>> +static inline bool hdmi_mode_has_audio(struct hdmi_config *cfg)
+>>  {
+>> -	return mode == HDMI_HDMI ? true : false;
+>> +	return cfg->hdmi_dvi_mode == HDMI_HDMI ? true : false;
+>>  }
+>>  
+>>  /* HDMI DRV data */
 >>
-[...]
->> Right no objections to using BCH8 for rootfs, except it stopped working
->> over past year or so.
->
-> This would be BCH8-sw on OMAP3 right? AM3xx uses BCH8-hw and that seems to work fine.
-> So it seems nobody has used/tested BCH8-sw.
->
-I have tested BCH8_SW on both AM335x and later SoC, and checked its 
-compatibility with various combinations of u-boot. [1] should give you 
-some indications of various combinations users can try ..
+> 
+> would it be possible for you to rearrange the changes preserving the
+> following sequence?
+> 
+> 1) 13/19
+> 2) 15/19
+> 3) 11/19
+> 4) 14/19
+> 5) 16/19
+> 
+> Otherwise I'm worried that someone's git rebase may fail.
 
+sorry, git bisect of course.
 
-with regards, pekon
+--
+With best wishes,
+Vladimir
 
-[1]
-http://processors.wiki.ti.com/index.php/Linux_Core_NAND_User%27s_Guide#ECC_schemes_support
-
-
-------------------------
-Powered by BigRock.com
