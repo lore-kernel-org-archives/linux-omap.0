@@ -1,73 +1,51 @@
-From: Ran Shalit <ranshalit@gmail.com>
-Subject: Fail to enter retention
-Date: Sun, 16 Nov 2014 22:10:35 +0200
-Message-ID: <CAJ2oMh+jALrwq8sOf84+zK-0=vSS790jsW-jjgZtBCXvJDuG4w@mail.gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes against v3.18-rc4
+Date: Sun, 16 Nov 2014 15:10:48 -0800
+Message-ID: <20141116231048.GC14929@quad.lixom.net>
+References: <20141111165357.GB26481@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:61862 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589AbaKPUKh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Nov 2014 15:10:37 -0500
-Received: by mail-wi0-f176.google.com with SMTP id ex7so3882195wid.3
-        for <linux-omap@vger.kernel.org>; Sun, 16 Nov 2014 12:10:35 -0800 (PST)
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:35206 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489AbaKPXKv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Nov 2014 18:10:51 -0500
+Received: by mail-pa0-f54.google.com with SMTP id hz1so9744673pad.41
+        for <linux-omap@vger.kernel.org>; Sun, 16 Nov 2014 15:10:50 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20141111165357.GB26481@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hello,
+On Tue, Nov 11, 2014 at 08:53:58AM -0800, Tony Lindgren wrote:
+> The following changes since commit 4b91f7f3c8b20e073b7bfc098625b37f99789508:
+> 
+>   ARM: OMAP2+: Warn about deprecated legacy booting mode (2014-10-29 12:19:20 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-against-v3.18-rc4
+> 
+> for you to fetch changes up to 73b3a6657a88ef5348a0d69c9a8107d6f01ae862:
+> 
+>   pinctrl: dra: dt-bindings: Fix output pull up/down (2014-11-10 14:29:20 -0800)
+> 
+> ----------------------------------------------------------------
+> Few omap fixes for hangs and wrong pinctrl defines, and update
+> MAINTAINERS file to avoid missing PMIC and SoC related patches:
+> 
+> - Fix random hangs on am437x because of incorrect default
+>   value for the DDR regulator
+> 
+> - Fix wrong partition name for NAND on am335x-evm
+> 
+> - Fix wrong pinctrl defines for dra7xx
+> 
+> - Update maintainers entries for PMICs and SoCs
 
-I'm using OMAP3530 with custom board. I have enabled all power mode
-features as described in PSP wiki, but it still fails to enter any
-state different from state0.
-
-~ # cat /dbg/pm_debug/count
-usbhost_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-per_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:0,RET:3,INA:4,ON:7,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-neon_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-per_clkdm->per_pwrdm (11)
-usbhost_clkdm->usbhost_pwrdm (3)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (2)
-core_l4_clkdm->core_pwrdm (12)
-core_l3_clkdm->core_pwrdm (4)
-d2d_clkdm->core_pwrdm (0)
-sgx_clkdm->sgx_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-neon_clkdm->neon_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-prm_clkdm->wkup_pwrdm (0)
-cm_clkdm->core_pwrdm (0)
-
-The next thing was trying to get the uart to sleep (though there might
-be also problems with other domains ?) .
-
-On trying to enable uart as wakeup source I get the following:
-
-echo enabled >  /sys/devices/platform/omap/omap_uart.2/power/wakeup
-
-cat  /sys/devices/platform/omap/omap_uart.2/power/wakeup
-
-#> disabled      (?????)
-
-echo 1 >  /sys/devices/platform/omap/omap_uart.2/sleep_timeout
-~ # [   85.006622] omap_device: omap_uart.2: new worst case deactivate
-latency 0: 61035
-[   85.559844] omap_device: omap_uart.2: new worst case activate
-latency 0: 61035
-[  982.415161] omap_device: omap_uart.2: new worst case deactivate
-latency 0: 91552
-
-< console hangs here >
+Merged. Might miss today's -rc though.
 
 
-
-Thanks for any suggestions,
-
-Ran
+-Olof
