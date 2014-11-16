@@ -1,54 +1,82 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Sun, 16 Nov 2014 11:15:48 +0100
-Message-ID: <20141116101548.GB32483@amd>
-References: <20141116075928.GA9763@amd>
- <546877EF.8010906@suse.de>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: N900 modem support in 3.18-rc1
+Date: Sun, 16 Nov 2014 13:29:50 +0100
+Message-ID: <87vbmf1g75.fsf@free.fr>
+References: <201411052137.31452@pali> <20141105203918.GA29199@amd>
+	<201411052206.05379@pali> <20141105220359.GA32052@amd>
+	<20141105234555.GA7097@earth.universe> <20141106124711.GA26944@amd>
+	<20141106180335.GA21513@earth.universe>
+	<20141113162155.GA8512@xo-6d-61-c0.localdomain>
+	<20141113174534.GO26481@atomide.com>
+	<20141113181803.GB984@fuloong-minipc.musicnaut.iki.fi>
+	<20141116101248.GA32483@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <546877EF.8010906@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>
-Cc: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:41729 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755114AbaKPMaG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Nov 2014 07:30:06 -0500
+In-Reply-To: <20141116101248.GA32483@amd> (Pavel Machek's message of "Sun, 16
+	Nov 2014 11:12:48 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, khilman@kernel.org, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Pali Roh?r <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, freemangordon@abv.bg, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Sun 2014-11-16 11:09:51, Andreas F=E4rber wrote:
-> Hi Pavel,
->=20
-> Am 16.11.2014 um 08:59 schrieb Pavel Machek:
-> > For device tree people: Yes, I know I'll have to create file in
-> > documentation, but does the binding below look acceptable?
-> [...]
-> > diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/o=
-map3-n900.dts
-> > index 739fcf2..ed0bfc1 100644
-> > --- a/arch/arm/boot/dts/omap3-n900.dts
-> > +++ b/arch/arm/boot/dts/omap3-n900.dts
-> > @@ -553,6 +561,18 @@
-> > =20
-> >  		ti,usb-charger-detection =3D <&isp1704>;
-> >  	};
-> > +
-> > +	adp1653: adp1653@30 {
->=20
-> This should probably be led-controller@30 (a generic description not
-> specific to the model). The label name is fine.
+Pavel Machek <pavel@ucw.cz> writes:
 
-Thanks.
+> On Thu 2014-11-13 20:18:04, Aaro Koskinen wrote:
+>> Hi,
+>> 
+>> On Thu, Nov 13, 2014 at 09:45:36AM -0800, Tony Lindgren wrote:
+>> > * Pavel Machek <pavel@ucw.cz> [141113 08:23]:
+>> > > OTOH ofono seems pretty reasonable. So I played a bit, and result
+>> > > is python/pygtk gui which can receive an sms, initiate a call, and
+>> > > report missed call. If someone wants to play, source is at
+>> > > 
+>> > > https://gitorious.org/tui/tui/source/b6141107e9341a1412720aed4b0d09143dfa2f4e:ofone
+>> > 
+>> > Pavel, care to fill in the the following type patch with some
+>> > instructions in the description now that you got it working?
+>> 
+>> Could we even have some "permanent" instructions under Documentation/?
+>
+> Something like this?
+>
+> commit 375d8d9f17433ade6afae91d4f34e170f0af04c4
+> Author: Pavel <pavel@ucw.cz>
+> Date:   Sun Nov 16 11:10:59 2014 +0100
+>
+> Add basic documentation for n900 testing.
+>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+>
+> diff --git a/Documentation/cellphones.txt b/Documentation/cellphones.txt
+> new file mode 100644
+> index 0000000..d7e8e7a
+> --- /dev/null
+> +++ b/Documentation/cellphones.txt
+> @@ -0,0 +1,90 @@
+> +Running Linux on Cellphones
+> +===========================
+> +
+> +At this moment (2014), there are no cellphones completely supported by
+> +mainline kernel. Another problem is lack of hackable userspace to run
+> +on cellphone, even when kernel support is available.
+Hi Pavel,
 
-> > +		gpios =3D <&gpio3 24 GPIO_ACTIVE_HIGH>; /* Want 88 */
->=20
-> At least to me, the meaning of "Want 88" is not clear - drop or clari=
-fy?
+There is the Mitac Mio A701. Very old but still it is there, with the kernel
+part maintained.
 
-I changed it to /* 88 */ to match rest of code.
+Userspace was based on QTopia in 2008. I don't maintain that part anymore
+though.
 
-Best regards,
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+The GSM part relies on a simple ttyS device (modem has its internal flash), no
+real data at that time, or rather 2G only, but the 07.10 mux support was never
+included in Qtopia ...
+
+Cheers.
+
+-- 
+Robert
