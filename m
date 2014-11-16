@@ -1,36 +1,51 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v12 11/15] arm: omap1: Migrate debug_ll macros to use
- 8250.S
-Date: Sun, 16 Nov 2014 02:29:56 +0200
-Message-ID: <20141116002956.GA13220@fuloong-minipc.musicnaut.iki.fi>
-References: <1414148076-12685-1-git-send-email-daniel.thompson@linaro.org>
- <1414148076-12685-12-git-send-email-daniel.thompson@linaro.org>
+From: Kukjin Kim <kgene@kernel.org>
+Subject: RE: [PATCH v8 0/7] Enable L2 cache support on Exynos4210/4x12 SoCs
+Date: Sun, 16 Nov 2014 10:20:01 +0900
+Message-ID: <00ef01d0013b$716f1d30$544d5790$@kernel.org>
+References: <1415884694-5868-1-git-send-email-m.szyprowski@samsung.com>
+ <54660DAE.9090601@samsung.com> <2593372.vOeyyAKq5M@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1414148076-12685-12-git-send-email-daniel.thompson@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Arnd Bergmann <arnd@arndb.de>, Paul Bolle <pebolle@tiscali.nl>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, patches@linaro.org, linaro-kernel@lists.linaro.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:62421 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754768AbaKPBUD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Nov 2014 20:20:03 -0500
+In-reply-to: <2593372.vOeyyAKq5M@wuerfel>
+Content-language: ko
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Arnd Bergmann' <arnd@arndb.de>, 'Marek Szyprowski' <m.szyprowski@samsung.com>
+Cc: 'Olof Johansson' <olof@lixom.net>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 'Tomasz Figa' <tomasz.figa@gmail.com>, 'Kyungmin Park' <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, 'Mark Rutland' <mark.rutland@arm.com>
 
-Hi,
+Arnd Bergmann wrote:
+> 
+> On Friday 14 November 2014 15:11:58 Marek Szyprowski wrote:
+> >
+> > I assume that after all comments from previous versions, no more changes
+> > are needed
+> > to this patchset and I would really like to have it queued to v3.19.
+> >
+> > Arnd, Olof: could you take this patchset thought arm-soc tree? It already
+> > contains all dependencies.
+> >
+> > Kukjin: could you ack this patchset?
+> 
+> I'd rather see this merged through Russell's tree, as most of the patches
+> are for core code, and only three are for the platform.
+> 
+> For the exynos patches:
+> 
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> 
+I'm also fine on this series for the exynos stuff:
 
-On Fri, Oct 24, 2014 at 11:54:32AM +0100, Daniel Thompson wrote:
-> +	config DEBUG_OMAP1UART1
-> +		bool "Kernel low-level debugging via OMAP1 UART1"
-> +		depends on ARCH_OMAP1
-> +		select DEBUG_UART_8250
-> +		help
-> +		  Say Y here if you want kernel low-level debugging support
-> +		  on OMAP1 based platforms (expect OMAP730) on the UART1.
-[...]
-> +		  on OMAP1 based platforms (expect OMAP730) on the UART2.
-[...]
-> +		  on OMAP1 based platforms (expect OMAP730) on the UART3.
-                                            ^^^^^^
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
-Spelling again wrong. I think it was already corrected in v11?
+And agree with Arnd's suggestion to handle in rmk tree.
+(I think seems this has no dependency with samsung tree)
 
-A.
+Thanks,
+Kukjin
+
