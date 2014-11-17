@@ -1,125 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.18-rc4
-Date: Mon, 17 Nov 2014 03:33:05 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411170331420.3210@utopia.booyaka.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 2/6] input: touchscreen: ti_am335x_tsc: Remove udelay
+ in interrupt handler
+Date: Mon, 17 Nov 2014 09:57:05 +0530
+Message-ID: <54697919.5030302@ti.com>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com> <1415941651-28962-3-git-send-email-vigneshr@ti.com> <20141115192739.GA18766@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:35889 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbaKQDdH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Nov 2014 22:33:07 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141115192739.GA18766-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap@v
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
 
-Here are some basic OMAP test results for Linux v3.18-rc4.
-Logs and other details at:
 
-    http://www.pwsan.com/omap/testlogs/test_v3.18-rc4/20141110160915/
+On Sunday 16 November 2014 12:57 AM, Richard Cochran wrote:
+> On Fri, Nov 14, 2014 at 10:37:27AM +0530, Vignesh R wrote:
+>> From: Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>
+>>
+>> TSC interrupt handler had udelay to avoid reporting of false pen-up
+>> interrupt to user space. This patch implements workaround suggesting in
+>> Advisory 1.0.31 of silicon errata for am335x, thus eliminating udelay
+>> and touchscreen lag. This also improves performance of touchscreen and
+>> eliminates sudden jump of cursor at touch release.
+> 
+> I back ported this series onto v3.15.1 in order to try this out on a
+> custom, beaglebone-like board. With this series, the touch is really
+> broken. (I had fixed the pen up problem in a totally different way for
+> a customer, and so I wanted to try out your solution.)
+> 
+> I will try to port the board code to a more recent kernel to try your
+> series again. With which kernel version did you test your patches?
+> 
+> And which board?
+> 
+Thanks for testing these patches.
 
+My patches are based on v3.18rc2. I tested my patches on am335x-evm
+using tslib.
+If you are encountering false pen-ups, charge-delay parameter needs to
+be tuned to your board. In some custom setups charge-delay of 0xB000
+provided better performance.
+If you are using ts_test (from tslib) for testing try
+# ts_test > /dev/null
+for better performance.
 
-Test summary
-------------
+Please explain "touch is broken"? What is the behaviour of TSC?
+Which ADC channels are being used for TSC?
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+Regards
+Vignesh
 
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 3/17): 5912osk, 3517evm, 4430es2panda
-    Pass (13/17): am335xbonelt, am335xbone, 4460pandaes, 4460varsomom,
-		  37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54, 2420n800
-
-PM: chip retention via suspend:
-    FAIL ( 5/11): am335xbonelt, 4460varsomom, 2430sdp, 5430es2uevm,
-		  5430es2sbct54
-    Pass ( 6/11): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 6/11): am335xbonelt, 4460pandaes, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 5/11): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-
-vmlinux object size
-(delta in bytes from test_v3.18-rc3 (0df1f2487d2f0d04703f142813d53615d62a1da4)):
-   text     data      bss    total  kernel
-   +448        0        0     +448  omap1_defconfig
-   +448        0        0     +448  omap1_defconfig_1510innovator_only
-   +448        0        0     +448  omap1_defconfig_5912osk_only
-  +1175      -88      +64    +1151  multi_v7_defconfig
-   +355        0        0     +355  omap2plus_defconfig
-   +319        0        0     +319  omap2plus_defconfig_2430sdp_only
-   +355       +8        0     +363  omap2plus_defconfig_am33xx_only
-   +419       +8        0     +427  omap2plus_defconfig_am43xx_only
-   +355      -24        0     +331  omap2plus_defconfig_cpupm
-   +351       +8        0     +359  omap2plus_defconfig_dra7xx_only
-   +359       +8        0     +367  omap2plus_defconfig_n800_multi_omap2xxx
-   +327       +8        0     +335  omap2plus_defconfig_n800_only_a
-   +295        0        0     +295  omap2plus_defconfig_no_pm
-   +299       +8        0     +307  omap2plus_defconfig_omap2_4_only
-   +359       +8        0     +367  omap2plus_defconfig_omap3_4_only
-   +351       +8        0     +359  omap2plus_defconfig_omap5_only
-   +360      -24      -32     +304  rmk_omap3430_ldp_allnoconfig
-   +347       +8        0     +355  rmk_omap3430_ldp_oldconfig
-   +316      -20      -24     +272  rmk_omap4430_sdp_allnoconfig
-   +371      +16        0     +387  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.18-rc3 (0df1f2487d2f0d04703f142813d53615d62a1da4))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
-
+> Thanks,
+> Richard
+> 
+> 
