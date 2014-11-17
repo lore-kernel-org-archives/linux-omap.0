@@ -1,44 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Mon, 17 Nov 2014 07:06:17 -0800
-Message-ID: <20141117150617.GD7046@atomide.com>
-References: <20141116075928.GA9763@amd>
- <20141117101553.GA21151@amd>
- <20141117145545.GC7046@atomide.com>
- <201411171601.32311@pali>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: Re: [PATCH v7.1 11/19] OMAPDSS: hdmi: Make hdmi_mode_has_audio()
+ more user friedly
+Date: Mon, 17 Nov 2014 17:12:59 +0200
+Message-ID: <546A107B.1030800@mentor.com>
+References: <cover.1415803064.git.jsarha@ti.com> <8047b50c76efecd72e7219f7871c59cc4a8ee5f5.1415803065.git.jsarha@ti.com> <5466139E.5040308@mentor.com> <54661A30.3010708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201411171601.32311@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relay1.mentorg.com ([192.94.38.131]:57334 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751180AbaKQPNI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2014 10:13:08 -0500
+In-Reply-To: <54661A30.3010708@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: peter.ujfalusi@ti.com, broonie@kernel.org, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [141117 07:03]:
-> On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
-> >=20
-> > There's nothing stopping us from initializing the camera code
-> > from pdata-quirks.c for now to keep it working. Certainly the
-> > binding should be added to the driver, but that removes a
-> > dependency to the legacy booting mode if things are otherwise
-> > working.
->=20
-> Tony, legacy board code for n900 is not in mainline tree. And=20
-> that omap3 camera subsystem for n900 is broken since 3.5=20
-> kernel... (both Front and Back camera on n900 show only green=20
-> picture).
+Hi Jyri,
 
-I'm still seeing the legacy board code for n900 in mainline tree :)
-It's deprecated, but still there.
+On 14.11.2014 17:05, Jyri Sarha wrote:
+> On 11/14/2014 04:37 PM, Vladimir Zapolskiy wrote:
+>> Hi Jyri,
+>>
+>> On 12.11.2014 16:41, Jyri Sarha wrote:
+>>> Signed-off-by: Jyri Sarha <jsarha@ti.com>
+>>> ---
+>>>   drivers/video/fbdev/omap2/dss/hdmi.h |    4 ++--
+>>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/video/fbdev/omap2/dss/hdmi.h b/drivers/video/fbdev/omap2/dss/hdmi.h
+>>> index a6e08ff..6d129f2 100644
+>>> --- a/drivers/video/fbdev/omap2/dss/hdmi.h
+>>> +++ b/drivers/video/fbdev/omap2/dss/hdmi.h
+>>> @@ -345,9 +345,9 @@ void hdmi_wp_audio_config_format(struct hdmi_wp_data *wp,
+>>>   		struct hdmi_audio_format *aud_fmt);
+>>>   void hdmi_wp_audio_config_dma(struct hdmi_wp_data *wp,
+>>>   		struct hdmi_audio_dma *aud_dma);
+>>> -static inline bool hdmi_mode_has_audio(int mode)
+>>> +static inline bool hdmi_mode_has_audio(struct hdmi_config *cfg)
+>>>   {
+>>> -	return mode == HDMI_HDMI ? true : false;
+>>> +	return cfg->hdmi_dvi_mode == HDMI_HDMI ? true : false;
+>>>   }
+>>>
+>>>   /* HDMI DRV data */
+>>>
+>>
+>> would it be possible for you to rearrange the changes preserving the
+>> following sequence?
+>>
+>> 1) 13/19
+>> 2) 15/19
+>> 3) 11/19
+>> 4) 14/19
+>> 5) 16/19
+>>
+> 
+> Sure, I can do that. Everything should be fine in that order too.
+> 
+>> Otherwise I'm worried that someone's git rebase may fail.
+>>
 
-Are you maybe talking about some other piece of platform_data that's
-no longer in the mainline kernel?
+sorry again, I meant git-bisect, git rebase is fine.
 
-No idea what might be wrong with the camera though.
+> But do not follow why. Did you notice that 10/19 removes the config 
+> options that enable the pieces of code that are deleted in 13/19 and 
+> 15/19. IOW, the code that uses hdmi_mode_has_audio() (and would become 
+> broken by 11/19) is already disabled by 10/19. Git-wise I see no problem 
+> either.
 
-Regards,
+Right, I was worried by changed hdmi_mode_has_audio() API and still
+present source code, which uses the old API (it is fixed in the
+following patches). If the code that uses hdmi_mode_has_audio() is
+disabled by 10/19 and the kernel can be successfully compiled and
+working on partial application of the changeset, then there should be no
+problem with git-bisect, and probably no need to rearrange the commits.
 
-Tony
+> I'll rearrange the patches if you still insist there is a problem with 
+> current order, but I would like to understand why.
+
+--
+With best wishes,
+Vladimir
