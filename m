@@ -1,69 +1,81 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH] ARM: dts: DRA7: Add node for RTC
-Date: Mon, 17 Nov 2014 19:12:14 +0300
-Message-ID: <546A1E5E.1040909@cogentembedded.com>
-References: <1416199509-3977-1-git-send-email-lokeshvutla@ti.com> <5469E76A.7020105@cogentembedded.com> <5469F271.9080102@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Fail to enter retention
+Date: Mon, 17 Nov 2014 08:22:10 -0800
+Message-ID: <20141117162209.GE7046@atomide.com>
+References: <CAJ2oMh+jALrwq8sOf84+zK-0=vSS790jsW-jjgZtBCXvJDuG4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:55755 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751966AbaKQQMW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2014 11:12:22 -0500
-Received: by mail-lb0-f181.google.com with SMTP id l4so16474504lbv.12
-        for <linux-omap@vger.kernel.org>; Mon, 17 Nov 2014 08:12:16 -0800 (PST)
-In-Reply-To: <5469F271.9080102@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16186 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751138AbaKQQWd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2014 11:22:33 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJ2oMh+jALrwq8sOf84+zK-0=vSS790jsW-jjgZtBCXvJDuG4w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org
+To: Ran Shalit <ranshalit@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On 11/17/2014 4:04 PM, Lokesh Vutla wrote:
+* Ran Shalit <ranshalit@gmail.com> [141116 12:13]:
+> Hello,
+> 
+> I'm using OMAP3530 with custom board. I have enabled all power mode
+> features as described in PSP wiki, but it still fails to enter any
+> state different from state0.
 
->> On 11/17/2014 7:45 AM, Lokesh Vutla wrote:
+Works for me with pretty much all omap3 boards I have here with
+mainline kernel since v3.17 using omap2plus_defconfig. And the
+following script to idle uarts and enable off-idle (or retention).
 
->>> Add node for RTC.
+USB needs to be disconnected and EHCI probably still cannot be
+enabled.
+ 
+> The next thing was trying to get the uart to sleep (though there might
+> be also problems with other domains ?) .
+> 
+> On trying to enable uart as wakeup source I get the following:
+> 
+> echo enabled >  /sys/devices/platform/omap/omap_uart.2/power/wakeup
+> 
+> cat  /sys/devices/platform/omap/omap_uart.2/power/wakeup
+> 
+> #> disabled      (?????)
+> 
+> echo 1 >  /sys/devices/platform/omap/omap_uart.2/sleep_timeout
+> ~ # [   85.006622] omap_device: omap_uart.2: new worst case deactivate
+> latency 0: 61035
+> [   85.559844] omap_device: omap_uart.2: new worst case activate
+> latency 0: 61035
+> [  982.415161] omap_device: omap_uart.2: new worst case deactivate
+> latency 0: 91552
+> 
+> < console hangs here >
 
->>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> [nm@ti.com: update with rtc crossbar number]
->>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>> ---
->>>    arch/arm/boot/dts/dra7.dtsi | 9 +++++++++
->>>    1 file changed, 9 insertions(+)
+Sounds like you need to enable the wake-up interrupt for the UART.
+See the interrupts-extended entry for many omap3-*.dts files:
 
->>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
->>> index 9cc9843..f98f9f0 100644
->>> --- a/arch/arm/boot/dts/dra7.dtsi
->>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>> @@ -1075,6 +1075,15 @@
->>>                status = "disabled";
->>>            };
->>>
->>> +        rtc: rtcss@48838000 {
+interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
 
->>     Please just name the node "rtc@48838000", in accordance with ePAPR.
+If you get it working, care to update the instructions in the wiki
+too?
 
-> Okay. will update it.
+Regards,
 
->>> +            compatible = "ti,am3352-rtc";
->>> +            reg = <0x48838000 0x100>;
->>> +            interrupts = <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>,
->>> +                     <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>;
+Tony
 
->>     2 similar interrupts?
+8< ----------------------
+#!/bin/bash
 
-> both rtc timer and rtc alarm uses same interrupt on DRA7 Soc.
-> Driver handles it accordingly.
-> So passing the same interrupt.
+uarts=$(find /sys/class/tty/tty[SO]*/device/power/ -type d)
+for uart in $uarts; do
+	echo 3000 > $uart/autosuspend_delay_ms 2>&1
+done
 
-    I think it would have been better if the driver just handled a single 
-interrupt.
+uarts=$(find /sys/class/tty/ttyO*/power/ -type d 2>/dev/null)
+for uart in $uarts; do
+	echo enabled > $uart/wakeup 2>&1
+	echo auto > $uart/control 2>&1
+done
 
-> Thanks and regards,
-> Lokesh
-
->> [...]
-
-WBR, Sergei
-
+echo 1 > /sys/kernel/debug/pm_debug/enable_off_mode
