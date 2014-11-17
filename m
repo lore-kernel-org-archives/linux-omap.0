@@ -1,73 +1,58 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq
- handling
-Date: Mon, 17 Nov 2014 15:41:53 +0100
-Message-ID: <20141117144152.GA12644@katana>
-References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com>
- <1416014452-6712-2-git-send-email-al.kochet@gmail.com>
- <20141115014859.GC808@saruman>
- <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com>
- <20141115034756.GA2917@saruman>
- <20141115035328.GA3289@saruman>
- <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
- <20141116154558.GA7422@saruman>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: i2c: omap: fix NACK and Arbitration Lost irq handling
+Date: Mon, 17 Nov 2014 16:41:31 +0200
+Message-ID: <546A091B.2080505@ti.com>
+References: <1416013976-6441-1-git-send-email-al.kochet@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:36043 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752028AbaKQOke (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Nov 2014 09:40:34 -0500
-Content-Disposition: inline
-In-Reply-To: <20141116154558.GA7422@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1416013976-6441-1-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Alexander Kochetkov <al.kochet@gmail.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
+On 11/15/2014 03:12 AM, Alexander Kochetkov wrote:
+> commit 1d7afc95946487945cc7f5019b41255b72224b70 (i2c: omap: ack IRQ in parts)
+> changed the interrupt handler to complete transfers without clearing
+> XRDY (AL case) and ARDY (NACK case) flags. XRDY or ARDY interrupt will be
+> fired again (in parallel with omap_i2c_xfer_msg). Interrupt handler will
+> complete transfers second time. As a result, NACK and AL transfers
+> terminates with "transfer timeout" and sometimes client code segfault.
+>
+> The patch restore original logic of handling NACK and AL interrupts and
+> fix race between interrupt handler and omap_i2c_xfer_msg (for AL and
+> NACK case only).
+>
+> Tested on Beagleboard XM C.
 
---ew6BAiZeqk4r7MaW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Seems you've got the same issue as I :) long time ago
+https://lkml.org/lkml/2013/6/7/530
 
-
-> > submit write request to General Call Address. In that case ISR could
-> > not correctly handle RDR (or XRDY, ARDY, or that ever). Thats becase
-> > i2c-omap driver doesn't correctly handle i2c-controller's slave mode.
->=20
-> right, Linux doesn't support being the slave. That's also a missing
-> feature, not a bug.
-
-This is going to change. I sent out RFC patches for slave support [1]
-and will send V1 this week. This won't affect your driver, though,
-unless you implement the backend into it.
-
-Just to keep your heads up.
-
-[1] http://thread.gmane.org/gmane.linux.kernel/1783295
-
---ew6BAiZeqk4r7MaW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUagkwAAoJEBQN5MwUoCm2bIcP/RPzqjNW1MEWiqPCIEIKtmY5
-K98BU4opTlzGselfnb6VIq+tY7odP0uCQD8GlY9hZEydbHOvmdcy/I8s7Hd8cZDB
-DmfVXtgXRZqrYjg3SvvVA/GY3GW17UCbCtnm15MKOkGFY6sql3mLKeasoTAJCTt9
-gbYNDMiMiZp7oOce/9OqapzSYLrLeYT5Llu8gY7v5G3wwWZfvc1rsUxN39tVSt53
-jkMpcPLTef4jodw31/Mq+whunCP03Z+n39nMqJoFR4AtCDqSu6/Og2zy9s4LoF+5
-qN4vnrjwUMxXMi+LENq86GiTYHbsRxxTDEw/8P8UbazANyrd8uSC1Q+6DtkGV4eN
-o6IgibNAeoC7spn3z85hzB4LBRGwgtEZpH0PW0J6Z3nk+RopAvLQmMmHEkCt+MBx
-hqvXWTUtr3K4mtoT8OF+Dh7vNH52XKuCOgpGY1AEJKYD3oHg9ZROuRN5dDFXZ75Z
-3pBvFSS5kdjaZJkLc0jbhzKhV6/6TJUQdQRB8TUNZMruXFAZSnAKmDX6eplPKFSk
-Q5fC8F8KmqThq3EWEiPP6TTKnf/EO4xTCjMSEilCT6Ej+wQaGIo/MqUdy/VoNLio
-N8B5DjHgabM8T3fgcr2WR/FcAseGb3o+hK4Nk5sQve49NlGZvI0sgJKdS+f+CJbT
-430T47a1gKduWDoCIxvO
-=Uv2O
------END PGP SIGNATURE-----
-
---ew6BAiZeqk4r7MaW--
+>
+> Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>   drivers/i2c/busses/i2c-omap.c |    2 --
+>   1 file changed, 2 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 90dcc2e..9af7095 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -926,14 +926,12 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+>   		if (stat & OMAP_I2C_STAT_NACK) {
+>   			err |= OMAP_I2C_STAT_NACK;
+>   			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
+> -			break;
+>   		}
+>
+>   		if (stat & OMAP_I2C_STAT_AL) {
+>   			dev_err(dev->dev, "Arbitration lost\n");
+>   			err |= OMAP_I2C_STAT_AL;
+>   			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
+> -			break;
+>   		}
+>
+>   		/*
+>
