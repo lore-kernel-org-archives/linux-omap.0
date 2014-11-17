@@ -1,76 +1,69 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Mon, 17 Nov 2014 16:21:53 +0100
-Message-ID: <201411171621.54895@pali>
-References: <20141116075928.GA9763@amd> <201411171601.32311@pali> <20141117150617.GD7046@atomide.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH] ARM: dts: DRA7: Add node for RTC
+Date: Mon, 17 Nov 2014 19:12:14 +0300
+Message-ID: <546A1E5E.1040909@cogentembedded.com>
+References: <1416199509-3977-1-git-send-email-lokeshvutla@ti.com> <5469E76A.7020105@cogentembedded.com> <5469F271.9080102@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart24421768.ZgrPxUV2KB";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141117150617.GD7046@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:55755 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbaKQQMW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2014 11:12:22 -0500
+Received: by mail-lb0-f181.google.com with SMTP id l4so16474504lbv.12
+        for <linux-omap@vger.kernel.org>; Mon, 17 Nov 2014 08:12:16 -0800 (PST)
+In-Reply-To: <5469F271.9080102@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org
 
---nextPart24421768.ZgrPxUV2KB
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 11/17/2014 4:04 PM, Lokesh Vutla wrote:
 
-On Monday 17 November 2014 16:06:17 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141117 07:03]:
-> > On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
-> > > There's nothing stopping us from initializing the camera
-> > > code from pdata-quirks.c for now to keep it working.
-> > > Certainly the binding should be added to the driver, but
-> > > that removes a dependency to the legacy booting mode if
-> > > things are otherwise working.
-> >=20
-> > Tony, legacy board code for n900 is not in mainline tree.
-> > And that omap3 camera subsystem for n900 is broken since
-> > 3.5 kernel... (both Front and Back camera on n900 show only
-> > green picture).
->=20
-> I'm still seeing the legacy board code for n900 in mainline
-> tree :) It's deprecated, but still there.
->=20
+>> On 11/17/2014 7:45 AM, Lokesh Vutla wrote:
 
-Yes, it is there because conversion from board code to DT is not=20
-complete yet... It is slow progress but you can watch it on page=20
-http://elinux.org/N900 (last two columns).
+>>> Add node for RTC.
 
-> Are you maybe talking about some other piece of platform_data
-> that's no longer in the mainline kernel?
->=20
+>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>> [nm@ti.com: update with rtc crossbar number]
+>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>> ---
+>>>    arch/arm/boot/dts/dra7.dtsi | 9 +++++++++
+>>>    1 file changed, 9 insertions(+)
 
-Yes, about platform_data which were never in mainline kernel.=20
-Just only in other trees. That code is: camera subsystem (with=20
-all other devices), cellular modem, bluetooth, radio.
+>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>>> index 9cc9843..f98f9f0 100644
+>>> --- a/arch/arm/boot/dts/dra7.dtsi
+>>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>>> @@ -1075,6 +1075,15 @@
+>>>                status = "disabled";
+>>>            };
+>>>
+>>> +        rtc: rtcss@48838000 {
 
-> No idea what might be wrong with the camera though.
->=20
-> Regards,
->=20
-> Tony
+>>     Please just name the node "rtc@48838000", in accordance with ePAPR.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+> Okay. will update it.
 
---nextPart24421768.ZgrPxUV2KB
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+>>> +            compatible = "ti,am3352-rtc";
+>>> +            reg = <0x48838000 0x100>;
+>>> +            interrupts = <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>,
+>>> +                     <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+>>     2 similar interrupts?
 
-iEYEABECAAYFAlRqEpIACgkQi/DJPQPkQ1KkLACfUNWGUzoX6EuoC8WlszGxWO+v
-b+QAoIc1NDSPjO5s9uQL0EzC3uyP4Hcd
-=0o81
------END PGP SIGNATURE-----
+> both rtc timer and rtc alarm uses same interrupt on DRA7 Soc.
+> Driver handles it accordingly.
+> So passing the same interrupt.
 
---nextPart24421768.ZgrPxUV2KB--
+    I think it would have been better if the driver just handled a single 
+interrupt.
+
+> Thanks and regards,
+> Lokesh
+
+>> [...]
+
+WBR, Sergei
+
