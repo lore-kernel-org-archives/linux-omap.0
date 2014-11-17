@@ -1,59 +1,97 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 2/6] input: touchscreen: ti_am335x_tsc: Remove udelay
- in interrupt handler
-Date: Mon, 17 Nov 2014 09:57:05 +0530
-Message-ID: <54697919.5030302@ti.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com> <1415941651-28962-3-git-send-email-vigneshr@ti.com> <20141115192739.GA18766@localhost.localdomain>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [RFC PATCH] ARM: DRA: hwmod: RTC: Add reset function for RTC
+Date: Mon, 17 Nov 2014 10:13:22 +0530
+Message-ID: <1416199402-3865-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141115192739.GA18766-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap@v
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43992 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751056AbaKQEo5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 16 Nov 2014 23:44:57 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, paul@pwsan.com, Lokesh Vutla <lokeshvutla@ti.com>
 
+RTC IP have kicker feature which prevents spurious writes to its registers.
+In order to write into any of the RTC registers, KICK values has te be
+written to KICK registers. Currently hwmod is updating the IDLEMODE in rtc
+sysconfig register without writing into any kick register which is a noop.
+When autoidle is allowed for rtc, interruts are not received until IDLEMODE
+is set to SIDLE_SMART_WKUP.
+Adding a reset function to unlock RTC registers so that IDLEMODE is
+updated.
 
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.h          |  1 +
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  1 +
+ arch/arm/mach-omap2/omap_hwmod_reset.c    | 23 +++++++++++++++++++++++
+ 3 files changed, 25 insertions(+)
 
-On Sunday 16 November 2014 12:57 AM, Richard Cochran wrote:
-> On Fri, Nov 14, 2014 at 10:37:27AM +0530, Vignesh R wrote:
->> From: Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>
->>
->> TSC interrupt handler had udelay to avoid reporting of false pen-up
->> interrupt to user space. This patch implements workaround suggesting in
->> Advisory 1.0.31 of silicon errata for am335x, thus eliminating udelay
->> and touchscreen lag. This also improves performance of touchscreen and
->> eliminates sudden jump of cursor at touch release.
-> 
-> I back ported this series onto v3.15.1 in order to try this out on a
-> custom, beaglebone-like board. With this series, the touch is really
-> broken. (I had fixed the pen up problem in a totally different way for
-> a customer, and so I wanted to try out your solution.)
-> 
-> I will try to port the board code to a more recent kernel to try your
-> series again. With which kernel version did you test your patches?
-> 
-> And which board?
-> 
-Thanks for testing these patches.
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 512f809..3703f99 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -744,6 +744,7 @@ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
+  */
+ 
+ extern int omap_hwmod_aess_preprogram(struct omap_hwmod *oh);
++int omap_hwmod_rtc_unlock(struct omap_hwmod *oh);
+ 
+ /*
+  * Chip variant-specific hwmod init routines - XXX should be converted
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 5684f11..90e1df4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1584,6 +1584,7 @@ static struct omap_hwmod_class_sysconfig dra7xx_rtcss_sysc = {
+ static struct omap_hwmod_class dra7xx_rtcss_hwmod_class = {
+ 	.name	= "rtcss",
+ 	.sysc	= &dra7xx_rtcss_sysc,
++	.reset	= &omap_hwmod_rtc_unlock,
+ };
+ 
+ /* rtcss */
+diff --git a/arch/arm/mach-omap2/omap_hwmod_reset.c b/arch/arm/mach-omap2/omap_hwmod_reset.c
+index 65e186c..b825a28 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_reset.c
++++ b/arch/arm/mach-omap2/omap_hwmod_reset.c
+@@ -30,6 +30,12 @@
+ 
+ #include "omap_hwmod.h"
+ 
++#define RTC_KICK0_REG_OFFSET	0x6c
++#define RTC_KICK1_REG_OFFSET	0x70
++
++#define RTC_KICK0_VALUE		0x83E70B13
++#define RTC_KICK1_VALUE		0x95A4F1E0
++
+ /**
+  * omap_hwmod_aess_preprogram - enable AESS internal autogating
+  * @oh: struct omap_hwmod *
+@@ -51,3 +57,20 @@ int omap_hwmod_aess_preprogram(struct omap_hwmod *oh)
+ 
+ 	return 0;
+ }
++
++/**
++ * omap_hwmod_rtc_unlock - Reset and unlock the Kicker mechanism.
++ * @oh: struct omap_hwmod *
++ *
++ * RTC IP have kicker feature.  This prevents spurious writes to its registers.
++ * In order to write into any of the RTC registers, KICK values has te be
++ * written in respective KICK registers. This is needed for hwmod to write into
++ * sysconfig register.
++ */
++int omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
++{
++	omap_hwmod_write(RTC_KICK0_VALUE, oh, RTC_KICK0_REG_OFFSET);
++	omap_hwmod_write(RTC_KICK1_VALUE, oh, RTC_KICK1_REG_OFFSET);
++
++	return 0;
++}
+-- 
+1.9.1
 
-My patches are based on v3.18rc2. I tested my patches on am335x-evm
-using tslib.
-If you are encountering false pen-ups, charge-delay parameter needs to
-be tuned to your board. In some custom setups charge-delay of 0xB000
-provided better performance.
-If you are using ts_test (from tslib) for testing try
-# ts_test > /dev/null
-for better performance.
-
-Please explain "touch is broken"? What is the behaviour of TSC?
-Which ADC channels are being used for TSC?
-
-Regards
-Vignesh
-
-> Thanks,
-> Richard
-> 
-> 
