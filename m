@@ -1,55 +1,62 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: ASoC: omap-mcbsp: Deletion of an unnecessary check
- before the function call "kfree"
-Date: Mon, 17 Nov 2014 21:11:37 +0200
-Message-ID: <546A4869.6010209@bitmer.com>
-References: <5307CAA2.8060406@users.sourceforge.net>
- <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
- <530A086E.8010901@users.sourceforge.net>
- <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
- <530A72AA.3000601@users.sourceforge.net>
- <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
- <530B5FB6.6010207@users.sourceforge.net>
- <alpine.DEB.2.10.1402241710370.2074@hadrien>
- <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net> <5469F4D5.9050908@users.sourceforge.net>
+From: Ran Shalit <ranshalit@gmail.com>
+Subject: Re: Fail to enter retention
+Date: Mon, 17 Nov 2014 21:46:22 +0200
+Message-ID: <CAJ2oMhL5x3nAxTQg36O9-DUfHK9iy-g9+qqN=bYj3Nw7HNjAnA@mail.gmail.com>
+References: <CAJ2oMh+jALrwq8sOf84+zK-0=vSS790jsW-jjgZtBCXvJDuG4w@mail.gmail.com>
+	<20141117162209.GE7046@atomide.com>
+	<CAJ2oMh+t-Wahe=CTbrZQ=C2X-0n_x6FSzhwA6opyzhDFvJXdZg@mail.gmail.com>
+	<20141117180944.GG7046@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5469F4D5.9050908@users.sourceforge.net>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, Jaroslav Kysela <perex@perex.cz>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Coccinelle <cocci@systeme.lip6.fr>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:51337 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751907AbaKQTqX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2014 14:46:23 -0500
+Received: by mail-wi0-f172.google.com with SMTP id n3so2804834wiv.11
+        for <linux-omap@vger.kernel.org>; Mon, 17 Nov 2014 11:46:22 -0800 (PST)
+In-Reply-To: <20141117180944.GG7046@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On 11/17/2014 03:15 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 17 Nov 2014 14:05:27 +0100
-> 
-> The kfree() function tests whether its argument is NULL and then
-> returns immediately. Thus the test around the call is not needed.
-> 
-> This issue was detected by using the Coccinelle software.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  sound/soc/omap/mcbsp.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+>You need to look if you have some devices blocking deeper
+>idle states in cm_idlest*_core and cm_idlest_per registers.
+
+>The device will automatically idle whatever it can if there
+>are no blockers. I believe at least EHCI still is blocking,
+>and MUSB if configured and cable connected.
+
+I'll check the registers value, should I then try to modify this
+registers in order to get into retention ?
+I will still have to disable serial right ? Maybe some kernel process
+which run in background prevents retention ?
+Is there some simple way to debug this or do I need to modify these registers ?
+
+Thank you very much,
+Ran
+
+On Mon, Nov 17, 2014 at 8:09 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Ran Shalit <ranshalit@gmail.com> [141117 09:14]:
+>> Hi Tony,
+>>
+>> Thanks very much for suggestions,
+>> I am able to wakeup the uart (though it takes about 10 seconds till it wakeup).
+>
+> The wake-up should happen within few hundred milliseconds at most.
+> Sounds like you're waking on some timer event instead.
+>
+>> Do you have any suggestion, how I can understnad why it did not get
+>> into retention and how to continue from this point ?
+>
+> You need to look if you have some devices blocking deeper
+> idle states in cm_idlest*_core and cm_idlest_per registers.
+>
+> The device will automatically idle whatever it can if there
+> are no blockers. I believe at least EHCI still is blocking,
+> and MUSB if configured and cable connected.
+>
+> Regards,
+>
+> Tony
