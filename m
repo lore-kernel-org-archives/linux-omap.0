@@ -1,94 +1,51 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Mon, 17 Nov 2014 16:01:31 +0100
-Message-ID: <201411171601.32311@pali>
-References: <20141116075928.GA9763@amd> <20141117101553.GA21151@amd> <20141117145545.GC7046@atomide.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v9] ARM: omap: edma: add suspend resume hook
+Date: Mon, 17 Nov 2014 20:33:39 +0530
+Message-ID: <546A0E4B.5000901@ti.com>
+References: <1409043173-24357-1-git-send-email-zonque@gmail.com> <546635DB.4020202@ti.com> <546636C3.8070202@zonque.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart8237810.Y3XGAkWlkd";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141117145545.GC7046@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, sakari.ailus@iki.fi, devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54135 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753081AbaKQPEJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Nov 2014 10:04:09 -0500
+In-Reply-To: <546636C3.8070202@zonque.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <daniel@zonque.org>, d-gerlach@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com
 
---nextPart8237810.Y3XGAkWlkd
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Friday 14 November 2014 10:37 PM, Daniel Mack wrote:
+> Hi Sekhar,
+> 
+> On 11/14/2014 06:03 PM, Sekhar Nori wrote:
+>> I think I have asked this before, and I am still not sure why this call 
+>> to pm_runtime_get_sync() is needed here. From my testing today, this 
+>> does seem to be a a no-op and this call returns from rpm_resume() 
+>> because of this check:
+>>
+>> 	else if (dev->power.disable_depth == 1 && dev->power.is_suspended
+>> 	    && dev->power.runtime_status == RPM_ACTIVE)
+>> 		retval = 1;
+> 
+> Yes. IIRC, it was in fact not needed.
+> 
+>> So, AFAICS, the net effect is an increment of dev->power.usage_count
+>> (which is already greater than 0) and its subsequent decrement at the
+>> end of the function.
+>>
+>> After removing this call I did not see any EDMA malfunction as well 
+>> (can access MMC/SD just fine after suspend/resume cycle).
+>>
+>> So, any objections to merging this patch with the attached hunk 
+>> applied?
+> 
+> Looks good to me, we can still add it back later if it turns out to be
+> needed.
 
-On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [141117 02:17]:
-> > On Mon 2014-11-17 11:09:45, Pali Roh=C3=A1r wrote:
-> > > On Monday 17 November 2014 11:05:19 Pavel Machek wrote:
-> > > > Hi!
-> > > >=20
-> > > > On Mon 2014-11-17 09:43:19, Pali Roh=C3=A1r wrote:
-> > > > > On Sunday 16 November 2014 08:59:28 Pavel Machek wrote:
-> > > > > > For device tree people: Yes, I know I'll have to
-> > > > > > create file in documentation, but does the binding
-> > > > > > below look acceptable?
-> > > > > >=20
-> > > > > > I'll clean up driver code a bit more, remove the
-> > > > > > printks. Anything else obviously wrong?
-> > > > >=20
-> > > > > I think that this patch is probably not good and
-> > > > > specially not for n900. adp1653 should be registered
-> > > > > throw omap3 isp camera subsystem which does not have
-> > > > > DT support yet.
-> > > >=20
-> > > > Can you explain?
-> > > >=20
-> > > > adp1653 is independend device on i2c bus, and we have
-> > > > kernel driver for it (unlike rest of n900 camera
-> > > > system). Just now it is unusable due to lack of DT
-> > > > binding. It has two functions, LED light and a camera
-> > > > flash; yes, the second one should be integrated to the
-> > > > rest of camera system, but that is not yet merged. That
-> > > > should not prevent us from merging DT support for the
-> > > > flash, so that this part can be tested/maintained.
-> > >=20
-> > > Ok. When ISP camera subsystem has DT support somebody will
-> > > modify n900 DT to add camera flash from adp1653 to ISP...
-> > > I believe it will not be hard.
-> >=20
-> > Exactly. And yes, I'd like to get complete camera support
-> > for n900 merged. But first step is "make sure existing
-> > support does not break".
->=20
-> There's nothing stopping us from initializing the camera code
-> from pdata-quirks.c for now to keep it working. Certainly the
-> binding should be added to the driver, but that removes a
-> dependency to the legacy booting mode if things are otherwise
-> working.
->=20
-> Regards,
->=20
-> Tony
+Okay, thanks for the confirmation.
 
-Tony, legacy board code for n900 is not in mainline tree. And=20
-that omap3 camera subsystem for n900 is broken since 3.5=20
-kernel... (both Front and Back camera on n900 show only green=20
-picture).
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart8237810.Y3XGAkWlkd
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlRqDcwACgkQi/DJPQPkQ1KKoQCgwQG6qZ6AnoH3oSTwVbrwqa6o
-BcAAn0kudF2gUH2gGE79y+X1d+p0T2Cz
-=8fDr
------END PGP SIGNATURE-----
-
---nextPart8237810.Y3XGAkWlkd--
+Regards,
+Sekhar
