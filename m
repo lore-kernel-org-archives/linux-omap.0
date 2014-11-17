@@ -1,75 +1,65 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v8 9/9] net: can: c_can: Add support for TI am4372 DCAN
-Date: Mon, 17 Nov 2014 14:31:55 +0200
-Message-ID: <5469EABB.10506@ti.com>
-References: <1415988591-6032-1-git-send-email-mkl@pengutronix.de> <5469E55F.1050502@ti.com> <5469E61D.4050507@pengutronix.de>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] ARM: dts: DRA7: Add node for RTC
+Date: Mon, 17 Nov 2014 18:34:49 +0530
+Message-ID: <5469F271.9080102@ti.com>
+References: <1416199509-3977-1-git-send-email-lokeshvutla@ti.com> <5469E76A.7020105@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <5469E61D.4050507@pengutronix.de>
-Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>, linux-can@vger.kernel.org
-Cc: wsa@the-dreams.de, linux-omap@vger.kernel.org, kernel@pengutronix.de
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49261 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751146AbaKQNGZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Nov 2014 08:06:25 -0500
+In-Reply-To: <5469E76A.7020105@cogentembedded.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 11/17/2014 02:12 PM, Marc Kleine-Budde wrote:
-> On 11/17/2014 01:09 PM, Roger Quadros wrote:
->> AM4372 SoC has 2 DCAN modules. Add compatible id and
->> raminit driver data for it. The driver data is same as AM3352
->> but this gives us flexibility to add AM4372 specific quirks
->> if required later.
+Hi,
+On Monday 17 November 2014 05:47 PM, Sergei Shtylyov wrote:
+> Hello.
 > 
-> Strictly speaking we don't need the hunk in
-> "drivers/net/can/c_can/c_can_platform.c" yet, iff the AM4372 dts(i) has
-> this compatible:
+> On 11/17/2014 7:45 AM, Lokesh Vutla wrote:
 > 
-> "ti,am4372-d_can", "ti,am3352-d_can"
-
-I tried with that, but checkpatch still gives this warning
-WARNING: DT compatible string "ti,am4372-d_can" appears un-documented -- check ./Documentation/devicetree/bindings/
-
-I guess we can just live with it. Please ignore this patch in that case.
-
-cheers,
--roger
-
+>> Add node for RTC.
 > 
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> [nm@ti.com: update with rtc crossbar number]
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
 >> ---
->>  Documentation/devicetree/bindings/net/can/c_can.txt | 3 ++-
->>  drivers/net/can/c_can/c_can_platform.c              | 1 +
->>  2 files changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
->> index 6731730..5a1d8b0 100644
->> --- a/Documentation/devicetree/bindings/net/can/c_can.txt
->> +++ b/Documentation/devicetree/bindings/net/can/c_can.txt
->> @@ -4,7 +4,8 @@ Bosch C_CAN/D_CAN controller Device Tree Bindings
->>  Required properties:
->>  - compatible		: Should be "bosch,c_can" for C_CAN controllers and
->>  			  "bosch,d_can" for D_CAN controllers.
->> -			  Can be "ti,dra7-d_can" or "ti,am3352-d_can".
->> +			  Can be "ti,dra7-d_can", "ti,am3352-d_can" or
->> +			  "ti,am4372-d_can".
->>  - reg			: physical base address and size of the C_CAN/D_CAN
->>  			  registers map
->>  - interrupts		: property with a value describing the interrupt
->> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
->> index f4488e5..a4535d2 100644
->> --- a/drivers/net/can/c_can/c_can_platform.c
->> +++ b/drivers/net/can/c_can/c_can_platform.c
->> @@ -235,6 +235,7 @@ static const struct of_device_id c_can_of_table[] = {
->>  	{ .compatible = "bosch,d_can", .data = &d_can_drvdata },
->>  	{ .compatible = "ti,dra7-d_can", .data = &dra7_dcan_drvdata },
->>  	{ .compatible = "ti,am3352-d_can", .data = &am3352_dcan_drvdata },
->> +	{ .compatible = "ti,am4372-d_can", .data = &am3352_dcan_drvdata },
->>  	{ /* sentinel */ },
->>  };
->>  MODULE_DEVICE_TABLE(of, c_can_of_table);
->>
+>>   arch/arm/boot/dts/dra7.dtsi | 9 +++++++++
+>>   1 file changed, 9 insertions(+)
 > 
-> Marc
+>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>> index 9cc9843..f98f9f0 100644
+>> --- a/arch/arm/boot/dts/dra7.dtsi
+>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>> @@ -1075,6 +1075,15 @@
+>>               status = "disabled";
+>>           };
+>>
+>> +        rtc: rtcss@48838000 {
+> 
+>    Please just name the node "rtc@48838000", in accordance with ePAPR.
+Okay. will update it.
+> 
+>> +            compatible = "ti,am3352-rtc";
+>> +            reg = <0x48838000 0x100>;
+>> +            interrupts = <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>,
+>> +                     <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>;
+> 
+>    2 similar interrupts?
+both rtc timer and rtc alarm uses same interrupt on DRA7 Soc.
+Driver handles it accordingly.
+So passing the same interrupt.
+
+Thanks and regards,
+Lokesh
+> 
+> [...]
+> 
+> WBR, Sergei
 > 
 
