@@ -1,73 +1,99 @@
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v9 7/7] ARM: dts: exynos4: Add nodes for L2 cache controller
-Date: Mon, 17 Nov 2014 12:48:29 +0100
-Message-ID: <1416224909-4290-8-git-send-email-m.szyprowski@samsung.com>
-References: <1416224909-4290-1-git-send-email-m.szyprowski@samsung.com>
+Subject: [PATCH v9 0/7] Enable L2 cache support on Exynos4210/4x12 SoCs
+Date: Mon, 17 Nov 2014 12:48:22 +0100
+Message-ID: <1416224909-4290-1-git-send-email-m.szyprowski@samsung.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1416224909-4290-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tomasz Figa <t.figa@samsung.com>
+This is an updated patchset, which intends to add support for L2 cache
+on Exynos4 SoCs on boards running under secure firmware, which requires
+certain initialization steps to be done with help of firmware, as
+selected registers are writable only from secure mode.
 
-This patch adds device tree nodes for L2 cache controller present on
-Exynos4 SoCs.
+First four patches extend existing support for secure write in L2C driver
+to account for design of secure firmware running on Exynos. Namely:
+ 1) direct read access to certain registers is needed on Exynos, because
+    secure firmware calls set several registers at once,
+ 2) not all boards are running secure firmware, so .write_sec callback
+    needs to be installed in Exynos firmware ops initialization code,
+ 3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
+    is not allowed and so must use l2c_write_sec as well,
+ 4) on certain boards, default value of prefetch register is incorrect
+    and must be overridden at L2C initialization.
+For boards running with firmware that provides access to individual
+L2C registers this series should introduce no functional changes. However
+since the driver is widely used on other platforms I'd like to kindly ask
+any interested people for testing.
 
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Kukjin Kim <kgene.kim@samsung.com>
----
- arch/arm/boot/dts/exynos4210.dtsi |  9 +++++++++
- arch/arm/boot/dts/exynos4x12.dtsi | 14 ++++++++++++++
- 2 files changed, 23 insertions(+)
+Further three patches add implementation of .write_sec and .configure
+callbacks for Exynos secure firmware and necessary DT nodes to enable
+L2 cache.
 
-diff --git a/arch/arm/boot/dts/exynos4210.dtsi b/arch/arm/boot/dts/exynos4210.dtsi
-index 807bb5bf91fc..8a182c43e314 100644
---- a/arch/arm/boot/dts/exynos4210.dtsi
-+++ b/arch/arm/boot/dts/exynos4210.dtsi
-@@ -64,6 +64,15 @@
- 		reg = <0x10023CA0 0x20>;
- 	};
- 
-+	l2c: l2-cache-controller@10502000 {
-+		compatible = "arm,pl310-cache";
-+		reg = <0x10502000 0x1000>;
-+		cache-unified;
-+		cache-level = <2>;
-+		arm,tag-latency = <2 2 1>;
-+		arm,data-latency = <2 2 1>;
-+	};
-+
- 	gic: interrupt-controller@10490000 {
- 		cpu-offset = <0x8000>;
- 	};
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index 861bb919f6d3..c7adfd60ad3a 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -54,6 +54,20 @@
- 		reg = <0x10023CA0 0x20>;
- 	};
- 
-+	l2c: l2-cache-controller@10502000 {
-+		compatible = "arm,pl310-cache";
-+		reg = <0x10502000 0x1000>;
-+		cache-unified;
-+		cache-level = <2>;
-+		arm,tag-latency = <2 2 1>;
-+		arm,data-latency = <3 2 1>;
-+		arm,double-linefill = <1>;
-+		arm,double-linefill-incr = <0>;
-+		arm,double-linefill-wrap = <1>;
-+		arm,prefetch-drop = <1>;
-+		arm,prefetch-offset = <7>;
-+	};
-+
- 	clock: clock-controller@10030000 {
- 		compatible = "samsung,exynos4412-clock";
- 		reg = <0x10030000 0x20000>;
+Changes in this version tested on Exynos4412-based TRATS2 and OdroidU3+
+boards (both with secure firmware). There should be no functional change
+for Exynos boards running without secure firmware. I do not have access
+to affected non-Exynos boards, so I could not test on them.
+
+Depends on:
+- v3.18-rc3
+
+Changelog:
+
+Changes since v8:
+(http://lkml.org/lkml/2014/11/13/263)
+- Rebased onto vanilla v3.18-rc3 and added required includes, which were
+  previously added by other patches
+- Added Acked-by tags for Exynos part
+
+Changes since v7:
+(https://lkml.org/lkml/2014/10/29/158)
+- rebased onto arm-soc/for-next kernel tree (depends on patches merged to
+  v3.18-rc3 and arm-soc/samsung/pm2 branch)
+- removed 'ARM: l2c: unify L2C-310 OF initialization error messages' patch
+  (no longer needed)
+
+Changes since v6:
+(https://lkml.org/lkml/2014/10/27/233)
+- changed PL310 to L2C-310 prefix in error messages
+- added patch shortening the error message about incorrect associativity
+
+Changes since v5:
+(https://lkml.org/lkml/2014/9/24/364)
+- rebased onto v3.18-rc2
+- added error message about missing properties values
+
+Changes since v4:
+(https://lkml.org/lkml/2014/8/26/461)
+ - rewrote the code accessing l2x0_saved_regs from assembly code
+ - added comment and reworked unconditional call to SMC_CMD_L2X0INVALL
+
+
+Patch summary:
+
+Tomasz Figa (7):
+  ARM: l2c: Refactor the driver to use commit-like interface
+  ARM: l2c: Add interface to ask hypervisor to configure L2C
+  ARM: l2c: Get outer cache .write_sec callback from mach_desc only if
+    not NULL
+  ARM: l2c: Add support for overriding prefetch settings
+  ARM: EXYNOS: Add .write_sec outer cache callback for L2C-310
+  ARM: EXYNOS: Add support for non-secure L2X0 resume
+  ARM: dts: exynos4: Add nodes for L2 cache controller
+
+ Documentation/devicetree/bindings/arm/l2cc.txt |  10 +
+ arch/arm/boot/dts/exynos4210.dtsi              |   9 +
+ arch/arm/boot/dts/exynos4x12.dtsi              |  14 ++
+ arch/arm/include/asm/outercache.h              |   3 +
+ arch/arm/kernel/irq.c                          |   3 +-
+ arch/arm/mach-exynos/Makefile                  |   1 +
+ arch/arm/mach-exynos/firmware.c                |  51 +++++
+ arch/arm/mach-exynos/sleep.S                   |  48 +++++
+ arch/arm/mach-exynos/smc.h                     |   4 +
+ arch/arm/mm/cache-l2x0.c                       | 270 ++++++++++++++++---------
+ 10 files changed, 317 insertions(+), 96 deletions(-)
+
 -- 
 1.9.2
