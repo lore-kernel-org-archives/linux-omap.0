@@ -1,53 +1,75 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH 0/4] Touchscreen performance related fixes
-Date: Mon, 17 Nov 2014 17:48:43 +0530
-Message-ID: <5469E7A3.2000303@ti.com>
-References: <1414408111-2631-1-git-send-email-vigneshr@ti.com> <544E821D.5040004@linutronix.de> <912A29987EAE174BA6CF187D7CDFA9CE26F46B2B@DLEE08.ent.ti.com> <54577258.9080508@linutronix.de> <5458BC0B.1040803@ti.com> <5458C87F.80409@linutronix.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v8 9/9] net: can: c_can: Add support for TI am4372 DCAN
+Date: Mon, 17 Nov 2014 14:31:55 +0200
+Message-ID: <5469EABB.10506@ti.com>
+References: <1415988591-6032-1-git-send-email-mkl@pengutronix.de> <5469E55F.1050502@ti.com> <5469E61D.4050507@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5458C87F.80409@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "Griffis, Brad" <bgriffis@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Lee Jones <lee.jones@linaro.org>, "Balbi, Felipe" <balbi@ti.com>, Jan Kardell <jan.kardell@telliq.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <5469E61D.4050507@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, linux-can@vger.kernel.org
+Cc: wsa@the-dreams.de, linux-omap@vger.kernel.org, kernel@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Tuesday 04 November 2014 06:07 PM, Sebastian Andrzej Siewior wrote:
-> On 11/04/2014 12:44 PM, Vignesh R wrote:
+On 11/17/2014 02:12 PM, Marc Kleine-Budde wrote:
+> On 11/17/2014 01:09 PM, Roger Quadros wrote:
+>> AM4372 SoC has 2 DCAN modules. Add compatible id and
+>> raminit driver data for it. The driver data is same as AM3352
+>> but this gives us flexibility to add AM4372 specific quirks
+>> if required later.
 > 
->> I ran following commands
->> $ evtest /dev/input/touchscreen0 &
->> (with heavy item on touchscreen)
->>  and
->> $ cat /sys/bus/iio/devices/iio\:device0/scan_elements/in_voltage4_en
->> (in a busy loop)
->> I tried above experiment on my board but I didn't hit any problem even
->> after running for close to 30 minutes. I was unable to reproduce failure
+> Strictly speaking we don't need the hunk in
+> "drivers/net/can/c_can/c_can_platform.c" yet, iff the AM4372 dts(i) has
+> this compatible:
 > 
-> Just to make sure: You had the touchscreen and iio command running in
-> parallel and you saw evtest output while there was iio operation?
-> 
->> The problem may be in configuring correct charge-delay value. Please run:
->> $ ts_test > /dev/null
->> and let me know if pen events are being detected properly.
-> 
-> Well I get the touch events but not while busy loop on iio interface is
-> running (I get maybe one event every 5 seconds or so).
-> After all, it is the same HW you have.
+> "ti,am4372-d_can", "ti,am3352-d_can"
 
-Were you able to test the latest version (v4) of this patch series?
-Please let me know if the performance is satisfactory.
+I tried with that, but checkpatch still gives this warning
+WARNING: DT compatible string "ti,am4372-d_can" appears un-documented -- check ./Documentation/devicetree/bindings/
 
-Regards
-Vignesh
+I guess we can just live with it. Please ignore this patch in that case.
+
+cheers,
+-roger
 
 > 
-> Sebastian
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/net/can/c_can.txt | 3 ++-
+>>  drivers/net/can/c_can/c_can_platform.c              | 1 +
+>>  2 files changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
+>> index 6731730..5a1d8b0 100644
+>> --- a/Documentation/devicetree/bindings/net/can/c_can.txt
+>> +++ b/Documentation/devicetree/bindings/net/can/c_can.txt
+>> @@ -4,7 +4,8 @@ Bosch C_CAN/D_CAN controller Device Tree Bindings
+>>  Required properties:
+>>  - compatible		: Should be "bosch,c_can" for C_CAN controllers and
+>>  			  "bosch,d_can" for D_CAN controllers.
+>> -			  Can be "ti,dra7-d_can" or "ti,am3352-d_can".
+>> +			  Can be "ti,dra7-d_can", "ti,am3352-d_can" or
+>> +			  "ti,am4372-d_can".
+>>  - reg			: physical base address and size of the C_CAN/D_CAN
+>>  			  registers map
+>>  - interrupts		: property with a value describing the interrupt
+>> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+>> index f4488e5..a4535d2 100644
+>> --- a/drivers/net/can/c_can/c_can_platform.c
+>> +++ b/drivers/net/can/c_can/c_can_platform.c
+>> @@ -235,6 +235,7 @@ static const struct of_device_id c_can_of_table[] = {
+>>  	{ .compatible = "bosch,d_can", .data = &d_can_drvdata },
+>>  	{ .compatible = "ti,dra7-d_can", .data = &dra7_dcan_drvdata },
+>>  	{ .compatible = "ti,am3352-d_can", .data = &am3352_dcan_drvdata },
+>> +	{ .compatible = "ti,am4372-d_can", .data = &am3352_dcan_drvdata },
+>>  	{ /* sentinel */ },
+>>  };
+>>  MODULE_DEVICE_TABLE(of, c_can_of_table);
+>>
 > 
+> Marc
+> 
+
