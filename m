@@ -1,55 +1,38 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH v9 3/7] ARM: l2c: Get outer cache .write_sec callback from
- mach_desc only if not NULL
-Date: Mon, 17 Nov 2014 12:48:25 +0100
-Message-ID: <1416224909-4290-4-git-send-email-m.szyprowski@samsung.com>
-References: <1416224909-4290-1-git-send-email-m.szyprowski@samsung.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v8 0/8] can: c_can: Use syscon regmap for TI specific
+ RAMINIT register
+Date: Mon, 17 Nov 2014 14:07:37 +0200
+Message-ID: <5469E509.3000700@ti.com>
+References: <1415988591-6032-1-git-send-email-mkl@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-reply-to: <1416224909-4290-1-git-send-email-m.szyprowski@samsung.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-samsung-soc@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, tony@atomide.com, linus.walleij@linaro.org, Tomasz Figa <tomasz.figa@gmail.com>, drake@endlessm.com, loeliger@gmail.com, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene.kim@samsung.com>, Olof Johansson <olof@lixom.net>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, Marek Szyprowski <m.szyprowski@samsung.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37137 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751528AbaKQMHu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Nov 2014 07:07:50 -0500
+In-Reply-To: <1415988591-6032-1-git-send-email-mkl@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, linux-can@vger.kernel.org
+Cc: wsa@the-dreams.de, linux-omap@vger.kernel.org, kernel@pengutronix.de
 
-From: Tomasz Figa <t.figa@samsung.com>
+On 11/14/2014 08:09 PM, Marc Kleine-Budde wrote:
+> Picking up Roger's work:
+> 
+> Changes since v7:
+> - combined raminit start and done bit into a struct (3/8, 7/8, 8/8)
+> - constified struct c_can_driver_data (2/8, 7/8, 8/8)
+> - silenced compiler warning in c_can_hw_raminit_{wait,}_syscon (4/8)
+> - use platform_get_device_id in probe() instead of open coding it (2/8)
+> 
 
-Certain platforms (i.e. Exynos) might need to set .write_sec callback
-from firmware initialization which is happenning in .init_early callback
-of machine descriptor. However current code will overwrite the pointer
-with whatever is present in machine descriptor, even though it can be
-already set earlier. This patch fixes this by making the assignment
-conditional, depending on whether current .write_sec callback is NULL.
+Thanks for saving me one more iteration :).
+I've tested this to work on AM437x-evm and DRA7-evm.
 
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/kernel/irq.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Please pick patch 9 as well which I will send in response to this thread.
+That one adds compatible id for am4372-d_can.
 
-diff --git a/arch/arm/kernel/irq.c b/arch/arm/kernel/irq.c
-index 7c81ec428b9b..5acb8aef6f2d 100644
---- a/arch/arm/kernel/irq.c
-+++ b/arch/arm/kernel/irq.c
-@@ -108,7 +108,8 @@ void __init init_IRQ(void)
- 
- 	if (IS_ENABLED(CONFIG_OF) && IS_ENABLED(CONFIG_CACHE_L2X0) &&
- 	    (machine_desc->l2c_aux_mask || machine_desc->l2c_aux_val)) {
--		outer_cache.write_sec = machine_desc->l2c_write_sec;
-+		if (!outer_cache.write_sec)
-+			outer_cache.write_sec = machine_desc->l2c_write_sec;
- 		ret = l2x0_of_init(machine_desc->l2c_aux_val,
- 				   machine_desc->l2c_aux_mask);
- 		if (ret)
--- 
-1.9.2
+cheers,
+-roger
