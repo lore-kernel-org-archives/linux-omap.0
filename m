@@ -1,102 +1,124 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq
- handling
-Date: Tue, 18 Nov 2014 10:38:27 -0600
-Message-ID: <20141118163827.GA6179@saruman>
-References: <1416014452-6712-2-git-send-email-al.kochet@gmail.com>
- <20141115014859.GC808@saruman>
- <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com>
- <20141115034756.GA2917@saruman>
- <20141115035328.GA3289@saruman>
- <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
- <20141116154558.GA7422@saruman>
- <20141117144152.GA12644@katana>
- <20141118160059.GI8223@saruman>
- <5D39428D-F359-4F04-8ACC-D607011B88B9@gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] Fixes: 1d7afc9 i2c: omap: ack IRQ in parts
+Date: Tue, 18 Nov 2014 10:39:22 -0600
+Message-ID: <20141118163921.GB6179@saruman>
+References: <1416242517-29885-1-git-send-email-al.kochet@gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5D39428D-F359-4F04-8ACC-D607011B88B9-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+In-Reply-To: <1416242517-29885-1-git-send-email-al.kochet@gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: Alexander Kochetkov <al.kochet@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---sm4nu43k4a2Rpi4c
+--Bn2rw/3z4jIqBvZU
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 18, 2014 at 07:31:44PM +0300, Alexander Kochetkov wrote:
+On Mon, Nov 17, 2014 at 08:41:57PM +0400, Alexander Kochetkov wrote:
+> commit 1d7afc95946487945cc7f5019b41255b72224b70 (i2c: omap: ack IRQ in pa=
+rts)
+> changed the interrupt handler to complete transfers without clearing
+> XRDY (AL case) and ARDY (NACK case) flags. XRDY or ARDY interrupts will be
+> fired again. As a result, ISR keep processing transfer after it was alrea=
+dy
+> complete (from the driver code point of view).
 >=20
-> > Still, as of now we can't consider what Alexander mentions a bug. Good
-> > to get it sorted out, but not -rc material.
-> >=20
+> A didn't see real impacts of the 1d7afc9, but it is really bad idea to
+> have ISR running on user data after transfer was complete.
 >=20
-> Actually, I focused on fixing issues then i2c-omap acts as master in a
-> multi master environment.
-
-but that's not supported either. If you wanna do that, then go through
-the TRM and implement what's missing. Then give a good commit log
-explaining the issues and how you solved them :-)
-
-Still not -rc material :-)
-
-> And must say, that current linux/mainline driver work perfectly with
-> minor fixes.
-
-that's good to know. I know some folks still have a few hick ups. The IP
-isn't all that great, I'm afraid.
-
-> I could take a look how to switch the driver into mixed master/slave
-> mode, but later.
+> It looks, what 1d7afc9 violate TI specs in what how AL and NACK should be
+> handled (see Note 1, sprugn4r, Figure 17-31 and Figure 17-32).
 >=20
-> Sad to say, I encountered undocumented i2c- hardware issue.
-> In short: BB-bit doesn't reflect I2C-bus state after soft reset if SDA
-> or SCL line was low during reset until i2c-controller again detect
-> START or STOP condition on the wire.
-
-this is another of those which really deserves a mention in code comment
-or commit log :-)
-
-> More over, if SDA was low during reset, than next submitted transfer
-> will not start ("controller timeout"), if SCL was low during reset,
-> than next submitted transfer will start and corrupt signals on wire :(
-
-another thing to add as comment to code :-)
-
-> I'm checking it now. And going to post results to ti forum.
+> According to specs (if I understood correctly), in case of NACK and AL dr=
+iver
+> must reset NACK, AL, ARDY, RDR, and RRDY (Master Receive Mode), and
+> NACK, AL, ARDY, and XDR (Master Transmitter Mode).
 >=20
-> BB-bit reflect I2C-bus state, between power-down/power-up modes.
+> All that is done down the code under the if condition:
+> if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) =
+=2E..
+>=20
+> The patch restore pre 1d7afc9 logic of handling NACK and AL interrupts, so
+> no interrupts is fired after ISR informs the rest of driver what transfer
+> complete.
+>=20
+> Note: instead of removing break under NACK case, we could just replace 'b=
+reak'
+> with 'continue' and allow NACK transfer to finish using ARDY event. I fou=
+nd
+> that NACK and ARDY bits usually set together. That case confirm TI wiki:
+> http://processors.wiki.ti.com/index.php/I2C_Tips#Detecting_and_handling_N=
+ACK
+>=20
+> In order if someone interested in the event traces for NACK and AL cases,
+> I sent them to mailing list.
+>=20
+> Tested on Beagleboard XM C.
+>=20
+> Signed-off-by: Alexander Kochetkov <al.kochet@gmail.com>
+> Cc: <stable@vger.kernel.org> # v3.7+
 
-alright, thanks.
+This is good, but subject is wrong. That fixes line should not be the
+subject, it should be here after Cc :-)
+
+Other than that, I'd just ask for Aaro to test on his legacy systems.
+
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    2 --
+>  1 file changed, 2 deletions(-)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 90dcc2e..9af7095 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -926,14 +926,12 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+>  		if (stat & OMAP_I2C_STAT_NACK) {
+>  			err |=3D OMAP_I2C_STAT_NACK;
+>  			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
+> -			break;
+>  		}
+> =20
+>  		if (stat & OMAP_I2C_STAT_AL) {
+>  			dev_err(dev->dev, "Arbitration lost\n");
+>  			err |=3D OMAP_I2C_STAT_AL;
+>  			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
+> -			break;
+>  		}
+> =20
+>  		/*
+> --=20
+> 1.7.9.5
+>=20
 
 --=20
 balbi
 
---sm4nu43k4a2Rpi4c
+--Bn2rw/3z4jIqBvZU
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUa3YDAAoJEIaOsuA1yqREGmkP/2CT+QgzyOqKihN3hvMTyLnf
-bZyjRl3pJYJKSHuqmAzLab6+PXankDLeUDXpDCpheUR8ejpOQJvMBI5esoIXic9o
-WouA4rsZEQtEl+3SoYVCIOURcaJkBCKNiMmD6OFDAkl7aBHI5X1BHic/reS3mpr5
-4dx+F5K8+beNIPiTGnGOE056s+xClMIiqJw2tjJQHE70Q8ee2swmnMcVJyM9COrx
-WxI0avC+Pw9VCFeow6gFeraiCnITRtrZSZvs6nuwm+d7Xn0WxVQtW+UetRGfJVR7
-ASob+Wq8/g6dH+qJNxsz17UzPc4HWFRQcmuGjRlFQ8keGBJEUK0lO405bkSeJfw7
-ju9/9yeNIkdivAOtpjCHEl6DamiiQEs3VBE4+3zUNowWV55Hy4Gm1bb8OYC22OtF
-pVMBrwASe3gWNKp9PQ52+iH2UTMB9AlWko5dJX9dDONcUcGacLGHK4GpiRnDTyVK
-bWhPpAhAVytTgZzCxMQPcRZfPUOcx4CthWLHZy1wBtnCk26z9aDAk1h/QqFzllBj
-Ib2iCLLeAd2zY4D0wrk9yOvSou6U0F9O+4V2DsYH4pwmSqOgvPBoTgAbdQL07cgq
-ctWQ2ubDusbNcHunOiEm/7DEpC8y23HeG5XLipovkbwWEuUZ1MH1S5zxOgj0e7bN
-hhq/wHujel9NgfCITMwo
-=kxPn
+iQIcBAEBAgAGBQJUa3Y5AAoJEIaOsuA1yqREPxgP/1+MSBUF3bHMkD9fmaqJ1z2C
+BVWsNXhVtNyjzHhCRiJRgRy+F6GV0qGHi11YdmRpI86Qx5SLzLcY36LJt/9zU6rS
+E1tT/uIX/FHyEaAbNnZmQjrV/4mRJLmVEcARskzTOQzIyosMrlD5z70KqvkVlJ6N
+n/mL9arYlufYibYGZCXmxhjCw26wZuvvanq9qGALWDrX6uzS06OzJYzygC8c9a1v
+mcqrwjgtgWvk8UbNfKLXnEX9Wo98s4ArTMd05oy29TINiEbtjyDCUnFpJNYgfmKe
+B5nLnDzIc5HOocZjUWCZiRNTqFnesep//bLta7hV0UFSNnCWKY/XQ7/qIkZfGkxU
+1ib+tMkDRoAIG9C/3KZOB/I/CFBklzszY6X8BB6Lbet5pz6BjdMShoaf6mYBfgDO
+v8YFeum8QCptFcHgH2uyAu5qeMx5vArW8XuIzd9Z1ek2lMUYKDZ+GBC1JEhyGW6/
+upr0B28B3rgCNpKQHtIVxGwFmkfM7hFV3WLo9XAnjaps613ezPjvMLM2GDfmaYQz
+7be0ywgpA8g+iP9zN1valQqDhS8l/gMWLDLoL79WBS9fwc8uXaRxlQm5FcNT9k27
+9Zk6odD+xckjmH60DknsEH296vMeZA63rxTTqKTAx88ARM9EFLXRqzSjZzfuJlJj
+E79TQZThRXqjTIzn88I8
+=IiW9
 -----END PGP SIGNATURE-----
 
---sm4nu43k4a2Rpi4c--
+--Bn2rw/3z4jIqBvZU--
