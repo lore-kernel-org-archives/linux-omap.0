@@ -1,135 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] input: touchscreen: edt-ft5x06: fix driver autoprobing
-Date: Tue, 18 Nov 2014 14:19:07 -0600
-Message-ID: <20141118201907.GQ6179@saruman>
-References: <20141118192112.GM6179@saruman>
- <1416338862-8240-1-git-send-email-balbi@ti.com>
- <20141118195902.GF3003@dtor-ws>
- <20141118200340.GP6179@saruman>
- <20141118201421.GH3003@dtor-ws>
-Reply-To: <balbi@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v4 00/10] ARM: dts: TI: Add CAN support
+Date: Tue, 18 Nov 2014 21:42:28 +0100
+Message-ID: <546BAF34.1020409@pengutronix.de>
+References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XQ/JOjNzrAcf1KaA"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141118201421.GH3003@dtor-ws>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, stable@vger.kernel.org, wsa@the-dreams.de
+ protocol="application/pgp-signature";
+ boundary="6B2EaiMVjQkPDP3nq5J23bquDDsQ3Ntbk"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1415881371-4982-1-git-send-email-rogerq@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, tony@atomide.com
+Cc: wg@grandegger.com, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---XQ/JOjNzrAcf1KaA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--6B2EaiMVjQkPDP3nq5J23bquDDsQ3Ntbk
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 18, 2014 at 12:14:21PM -0800, Dmitry Torokhov wrote:
-> On Tue, Nov 18, 2014 at 02:03:40PM -0600, Felipe Balbi wrote:
-> > On Tue, Nov 18, 2014 at 11:59:02AM -0800, Dmitry Torokhov wrote:
-> > > On Tue, Nov 18, 2014 at 01:27:42PM -0600, Felipe Balbi wrote:
-> > > > Because with OF we can pass more specific
-> > > > compatible flags (such as edt-ft5306) instead
-> > > > of generic edt-ft5x06, when i2c-core's
-> > > > of_i2c_register_devices() tries to request_module(),
-> > > > it'll request it with a non-existent specific module
-> > > > alias.
-> > > >=20
-> > > > In order to have this driver autoprobing again, we
-> > > > just need to add missing MODULE_ALIAS() entries to
-> > > > edt-ft5x06 driver.
-> > > >=20
-> > > > Thanks to Dmitry for noticing that it actually should
-> > > > autoprobe even with of_device_id.
-> > > >=20
-> > > > Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > > > Cc: <linux-input@vger.kernel.org>
-> > > > Cc: <stable@vger.kernel.org> # v3.15+
-> > > > Fixes: dac90dc2 (Input: edt-ft5x06 - add DT support)
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > ---
-> > > >  drivers/input/touchscreen/edt-ft5x06.c | 3 +++
-> > > >  1 file changed, 3 insertions(+)
-> > > >=20
-> > > > diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input=
-/touchscreen/edt-ft5x06.c
-> > > > index ee3434f..bcbf688 100644
-> > > > --- a/drivers/input/touchscreen/edt-ft5x06.c
-> > > > +++ b/drivers/input/touchscreen/edt-ft5x06.c
-> > > > @@ -1147,6 +1147,9 @@ static struct i2c_driver edt_ft5x06_ts_driver=
- =3D {
-> > > > =20
-> > > >  module_i2c_driver(edt_ft5x06_ts_driver);
-> > > > =20
-> > > > +MODULE_ALIAS("i2c:edt-ft5206");
-> > > > +MODULE_ALIAS("i2c:edt-ft5306");
-> > > > +MODULE_ALIAS("i2c:edt-ft5406");
-> > > >  MODULE_AUTHOR("Simon Budig <simon.budig@kernelconcepts.de>");
-> > > >  MODULE_DESCRIPTION("EDT FT5x06 I2C Touchscreen Driver");
-> > > >  MODULE_LICENSE("GPL");
-> > > > --=20
-> > > > 2.1.0.GIT
-> > > >=20
-> > >=20
-> > > Here is what I see if I run modinfo on the module:
-> > >=20
-> > > dtor@dtor-ws:~/kernel/work$ modinfo
-> > > drivers/input/touchscreen/edt-ft5x06.ko
-> > > filename:
-> > > /home/dtor/kernel/work/drivers/input/touchscreen/edt-ft5x06.ko
-> > > license:        GPL
-> > > description:    EDT FT5x06 I2C Touchscreen Driver
-> > > author:         Simon Budig <simon.budig@kernelconcepts.de>
-> > > alias:          i2c:edt-ft5x06
-> > > alias:          of:N*T*Cedt,edt-ft5406*
-> > > alias:          of:N*T*Cedt,edt-ft5306*
-> > > alias:          of:N*T*Cedt,edt-ft5206*
-> > > depends:        i2c-core
-> > > intree:         Y
-> > > vermagic:       3.17.0+ SMP preempt mod_unload=20
-> > >=20
-> > > As you can see we already have what I consider proper modaliases for =
-the
-> > > driver. Why don't they work? Is it because modprobe doe snot know how=
- to
-> > > handle OF-style modaliases or device's uevents are missing OF data in
-> > > them?
-> >=20
-> > no, it's because i2c call request_module for i2c:edt-ft5306. i2c core
-> > never uses any of the of aliases.
+On 11/13/2014 01:22 PM, Roger Quadros wrote:
+> Hi Tony,
 >=20
-> 1. I think both i2c and spi are cheating in this regard: they should
-> rely on normal driver request paths through udev.
+> These patches add CAN support for am33xx, am43xx and dra7 platforms.
+> They can go in independent of [1] but depend on [1] for functionality.
 >=20
-> 2. I2C should emit proper modalias for devices coming by the way of
-> devicetree. It already does special handling for ACPI, it needs to do
-> the same for OF. I think SPI does the right thing there.
+> Tested on am335x-evm, am437x-gp-evm and dra7-evm.
+>=20
+> NOTE:
+> - for DCAN to work on DRA7 we need this patch to keep the CAN PHY power=
+ed.
+> https://lkml.org/lkml/2014/10/21/484
+>=20
+> - on DRA7 there is another issue which causes undesired behaviour if WK=
+UPAON and
+> L4CFG clock domains are allowed to HW_AUTO. Undesired behaviour is in t=
+he form
+> of DCAN1 module being stuck-in-transition when disabled and RAMINIT-don=
+e bit
+> not getting set as part of RAMINIT mechanism. To address these issues t=
+here is a patch
+> to prevent these clockdomains from HW_AUTO.
+> https://github.com/rogerq/linux/commit/31d6da939dbbaf8ea2ab96ca5680b81c=
+d5607e51
+> Even without this second patch DCAN seems to work.
 
-I'll let Wolfram comment here for I2C.
+FWIW:
+Acked-by: Marc Kleine-Budde <mkl@pengutronix.de>
+
+I've send a pull request with the CAN driver changes to David Miller
+yesterday, the code is supposed to hit mainline in v3.19.
+
+regards,
+Marc
 
 --=20
-balbi
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
---XQ/JOjNzrAcf1KaA
+
+--6B2EaiMVjQkPDP3nq5J23bquDDsQ3Ntbk
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUa6m7AAoJEIaOsuA1yqREviEP/Ah/qlNTCSXJGe1eEkTKUHXu
-ClsQNMz5zNPGD26EG+TM+OoJr2ps8siL4Qksn/gYQx/95LLjIX3gL4JOpQq3iIOH
-h03FsjxUGFl9OPg4fxTU+QZHxOgi1wKqkJSQ5pwEdW1hqn8qGFS6Z0CA2H6KDwml
-Rm0hiIFp2P/mI0TU4QvLEDO6KXPBdGX6ScHgGdwhu6UscuXARCANSAsbQVRYbJgq
-D0EZWhSXyHW9r5BrVdV+BjrGKKWGe7EsJkRyZuKHHyuO5S2BnAusu3yThS0eCm0k
-gORQF/EiOpoAuFOQqxBNHg4cNWnJr0hsLLTad6XpAmu+b90rruVycENwosNEHnUV
-YVOZoHZnggKpI42nrPNXUGJxFmHzd9XAv1zDymnMyxHIBqyCrXFAjbekQoWwicTO
-iAgkgXFPv04BYeZ0ZaS6OLvW8oY/28TSG4pKVf3QxlPVj31VTUnxbxKH+ft9suSW
-P+IjwPzRloPJcAXMsHgzYy8RMMR9sSEHl6HnlAEIWqv7afClfJa/1OlPvLlqa1Xx
-EoUK3/Ckmi4iAzm8JE29Ha0l7EJs4Iz50z5r4QXVUvcQ/hFu/UZt+XbO0PiKzyvr
-J7tUH2ttEBtgHG7MyL+Wr4wlZttpdektMgcImbQBeIGNUPJenijpproTzOSuR8Ou
-KVuIzX0oYamHnsDxI9Lo
-=BkvA
+iQIcBAEBAgAGBQJUa680AAoJECte4hHFiupU40sP/jlltsvv3kadYgAbtX1tAdAy
+5A5+HYGa3C8jbQDCSkeLAhBIVYTLetWg3WqP7+BTHSPGcfAbmkSLCqERziVMoJxV
+VydE4NGNWolUTSjCaJAVBEtN324uop5rRpi0juG2bGkpe//wlywKJ9qPSqsNrCWt
+UwNCbMaYPuIXi4mXreBvh0TS8VkERKB4dowpavRqMqe9gafbZc6I+HwVnikPIvOo
+85sb51JD7fRlMzBX3vJ52pLDNXAnNx2vWTAO4Q3FBctKjzypTrk3Ye7DWMKojcMU
+fNJrFRm/Lg2PyF6Erzi8v9oGabkBufJm2lSXT0oWZx8xgZ5t/pToRsNH8zOFBXox
+K6rNXRz62ifTFOki6hICV6gtbaCtTq3PSO+Qyyv8wsl8OEQsDPbIpB7DgiF5Az+4
+7R06J6XVB1IagzV+04z2kfLBYc+hhTDVTyBJRxIkCslUktZMbfRVqrZaq23LHiCC
+zUSmE0hqzCDjlvEyjsYAKhH0KGZnm/xzo/rKb3tmtW/HhurbZiPeQuhmtIabl1q6
+cC2YVDDhaQup2yicdi/2lMnaJP4oHABXGhcht7VXm6hewXwkFTR/OHV+FB/ynsyF
+YyRooL+FOWGlExpk5O1gV1giCsMxycYLw3cLB2wQt0AlJKrK6abWpLxhEuW2BEcD
+Kuanu078HgsfOjMLD5G4
+=9bBM
 -----END PGP SIGNATURE-----
 
---XQ/JOjNzrAcf1KaA--
+--6B2EaiMVjQkPDP3nq5J23bquDDsQ3Ntbk--
