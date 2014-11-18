@@ -1,47 +1,42 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
- reg_se_cache save
-Date: Tue, 18 Nov 2014 09:12:40 -0800
-Message-ID: <20141118171240.GB3003@dtor-ws>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
- <1415941651-28962-4-git-send-email-vigneshr@ti.com>
- <20141118143005.GF24004@x1>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 02/10] arm: omap: omap2plus_defconfig: enable EDT FT5X06 touchscreen
+Date: Tue, 18 Nov 2014 12:07:00 -0600
+Message-ID: <1416334028-7766-2-git-send-email-balbi@ti.com>
+References: <1416334028-7766-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141118143005.GF24004@x1>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kern
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53956 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753674AbaKRSHO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2014 13:07:14 -0500
+In-Reply-To: <1416334028-7766-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-On Tue, Nov 18, 2014 at 02:30:05PM +0000, Lee Jones wrote:
-> On Fri, 14 Nov 2014, Vignesh R wrote:
-> 
-> > In one shot mode, sequencer automatically disables all enabled steps at
-> > the end of each cycle. (both ADC steps and TSC steps) Hence these steps
-> > need not be saved in reg_se_cache for clearing these steps at a later
-> > stage.
-> > Also, when ADC wakes up Sequencer should not be busy executing any of the
-> > config steps except for the charge step. Previously charge step was 1 ADC
-> > clock cycle and hence it was ignored.
-> > 
-> > Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
-> >  include/linux/mfd/ti_am335x_tscadc.h | 1 +
-> >  2 files changed, 6 insertions(+), 2 deletions(-)
-> 
-> Code looks better now.
-> 
-> Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> 
-> What's the plan for this series?
+AM437x Starter Kit ships with EDT FT5306 touchscreen
+device. By enabling the driver we make sure touchscreen
+will work out of the box.
 
-I am waiting for the interested parties to provide more feedback. So far
-I have seen a few reports saying that they see issues with the series
-applied.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 24d6fe2..c893487 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -177,6 +177,7 @@ CONFIG_KEYBOARD_MATRIX=m
+ CONFIG_KEYBOARD_TWL4030=y
+ CONFIG_INPUT_TOUCHSCREEN=y
+ CONFIG_TOUCHSCREEN_ADS7846=m
++CONFIG_TOUCHSCREEN_EDT_FT5X06=m
+ CONFIG_TOUCHSCREEN_TSC2005=m
+ CONFIG_TOUCHSCREEN_TSC2007=m
+ CONFIG_INPUT_MISC=y
 -- 
-Dmitry
+2.1.0.GIT
+
