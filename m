@@ -1,12 +1,12 @@
 From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: [PATCH 9/9] ARM: dts: cm-t3x30: add keypad support
-Date: Tue, 18 Nov 2014 11:13:24 +0200
-Message-ID: <1416302004-22199-10-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH 8/9] ARM: dts: sbc-t3x30: add audio support
+Date: Tue, 18 Nov 2014 11:13:23 +0200
+Message-ID: <1416302004-22199-9-git-send-email-lifshitz@compulab.co.il>
 References: <1416302004-22199-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:46698 "EHLO
+Received: from softlayer.compulab.co.il ([50.23.254.55]:58617 "EHLO
 	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753878AbaKRJNt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753885AbaKRJNt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 18 Nov 2014 04:13:49 -0500
 In-Reply-To: <1416302004-22199-1-git-send-email-lifshitz@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,48 +14,112 @@ List-Id: linux-omap@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Add twl4030 matrtix keypad support.
+Add audio related DT nodes
 
 Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
 ---
- arch/arm/boot/dts/omap3-cm-t3x30.dtsi |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi   |   16 ++++++++++++++++
+ arch/arm/boot/dts/omap3-cm-t3x30.dtsi |   14 ++++++++++++++
+ arch/arm/boot/dts/omap3-sb-t35.dtsi   |   16 ++++++++++++++++
+ 3 files changed, 46 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/boot/dts/omap3-cm-t3x.dtsi b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+index 1a8262c..7e510e0 100644
+--- a/arch/arm/boot/dts/omap3-cm-t3x.dtsi
++++ b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
+@@ -148,6 +148,15 @@
+ 			OMAP3_CORE1_IOPAD(0x21ce, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcspi1_cs0 */
+ 		>;
+ 	};
++
++	mcbsp2_pins: pinmux_mcbsp2_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x213c, PIN_INPUT | MUX_MODE0)	/* mcbsp2_fsx */
++			OMAP3_CORE1_IOPAD(0x213e, PIN_INPUT | MUX_MODE0)	/* mcbsp2_clkx */
++			OMAP3_CORE1_IOPAD(0x2140, PIN_INPUT | MUX_MODE0)	/* mcbsp2_dr */
++			OMAP3_CORE1_IOPAD(0x2142, PIN_OUTPUT | MUX_MODE0)	/* mcbsp2_dx */
++		>;
++	};
+ };
+ 
+ &uart3 {
+@@ -238,3 +247,10 @@
+ 		};
+ 	};
+ };
++
++&mcbsp2 {
++	status = "ok";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&mcbsp2_pins>;
++};
 diff --git a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
-index bcd896f..3a91204 100644
+index 25ba083..bcd896f 100644
 --- a/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
 +++ b/arch/arm/boot/dts/omap3-cm-t3x30.dtsi
-@@ -78,6 +78,7 @@
- 
- #include "twl4030.dtsi"
- #include "twl4030_omap3.dtsi"
-+#include <dt-bindings/input/input.h>
- 
- &mmc1 {
- 	vmmc-supply = <&vmmc1>;
-@@ -89,6 +90,22 @@
- 	ti,pullups = <0x000001>;
+@@ -10,6 +10,14 @@
+ 			cpu0-supply = <&vcc>;
+ 		};
+ 	};
++
++	sound {
++		compatible = "ti,omap-twl4030";
++		ti,model = "cm-t35";
++
++		ti,mcbsp = <&mcbsp2>;
++		ti,codec = <&twl_audio>;
++	};
  };
  
-+&twl_keypad {
-+	linux,keymap = <
-+				MATRIX_KEY(0x00, 0x01, KEY_A)
-+				MATRIX_KEY(0x00, 0x02, KEY_B)
-+				MATRIX_KEY(0x00, 0x03, KEY_LEFT)
+ &omap3_pmx_core {
+@@ -59,6 +67,12 @@
+ 		reg = <0x48>;
+ 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+ 		interrupt-parent = <&intc>;
 +
-+				MATRIX_KEY(0x01, 0x01, KEY_UP)
-+				MATRIX_KEY(0x01, 0x02, KEY_ENTER)
-+				MATRIX_KEY(0x01, 0x03, KEY_DOWN)
-+
-+				MATRIX_KEY(0x02, 0x01, KEY_RIGHT)
-+				MATRIX_KEY(0x02, 0x02, KEY_C)
-+				MATRIX_KEY(0x02, 0x03, KEY_D)
-+			>;
-+};
-+
- &hsusb1_phy {
- 	reset-gpios = <&twl_gpio 6 GPIO_ACTIVE_LOW>;
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
++		};
+ 	};
  };
+ 
+diff --git a/arch/arm/boot/dts/omap3-sb-t35.dtsi b/arch/arm/boot/dts/omap3-sb-t35.dtsi
+index aff733e..827f614 100644
+--- a/arch/arm/boot/dts/omap3-sb-t35.dtsi
++++ b/arch/arm/boot/dts/omap3-sb-t35.dtsi
+@@ -43,6 +43,16 @@
+ 			};
+ 		};
+ 	};
++
++	audio_amp: audio_amp {
++		compatible = "regulator-fixed";
++		regulator-name = "audio_amp";
++		pinctrl-names = "default";
++		pinctrl-0 = <&sb_t35_audio_amp>;
++		gpio = <&gpio2 29 GPIO_ACTIVE_LOW>;   /* gpio_61 */
++		enable-active-low;
++		regulator-always-on;
++	};
+ };
+ 
+ &omap3_pmx_core {
+@@ -65,6 +75,12 @@
+ 			OMAP3_CORE1_IOPAD(0x21c4, PIN_INPUT_PULLUP | MUX_MODE0) /* i2c3_sda */
+ 		>;
+ 	};
++
++	sb_t35_audio_amp: pinmux_sb_t35_audio_amp {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20c8, PIN_OUTPUT | MUX_MODE4) /* gpmc_nbe1.gpio_61 */
++		>;
++	};
+ };
+ 
+ &i2c3 {
 -- 
 1.7.5.4
 
