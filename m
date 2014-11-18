@@ -1,105 +1,52 @@
 From: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Subject: [PATCH 2/9] ARM: dts: cm-t3x: add ADS7846 touchscreen support
-Date: Tue, 18 Nov 2014 11:13:17 +0200
-Message-ID: <1416302004-22199-3-git-send-email-lifshitz@compulab.co.il>
+Subject: [PATCH 3/9] ARM: OMAP2+: remove cm-t3x touchscreen pdata quirk
+Date: Tue, 18 Nov 2014 11:13:18 +0200
+Message-ID: <1416302004-22199-4-git-send-email-lifshitz@compulab.co.il>
 References: <1416302004-22199-1-git-send-email-lifshitz@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:48002 "EHLO
+Received: from softlayer.compulab.co.il ([50.23.254.55]:42503 "EHLO
 	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751145AbaKRJNp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Nov 2014 04:13:45 -0500
+	id S1753776AbaKRJNq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Nov 2014 04:13:46 -0500
 In-Reply-To: <1416302004-22199-1-git-send-email-lifshitz@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>
 
-Add ADS7846 touchscreen support.
+Remove ADS7846 touchscreen pdata quirk for CM-T3x CoMs
 
 Signed-off-by: Dmitry Lifshitz <lifshitz@compulab.co.il>
 ---
- arch/arm/boot/dts/omap3-cm-t3x.dtsi |   57 +++++++++++++++++++++++++++++++++++
- 1 files changed, 57 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pdata-quirks.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-cm-t3x.dtsi b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-index e4c0c56..3636fed 100644
---- a/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-+++ b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-@@ -49,6 +49,13 @@
- 		compatible = "usb-nop-xceiv";
- 		vcc-supply = <&hsusb2_power>;
- 	};
-+
-+	ads7846reg: ads7846-reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "ads7846-reg";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+	};
- };
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index e72f0fc..02080c0 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -131,13 +131,11 @@ static void __init omap3_sbc_t3730_legacy_init(void)
+ {
+ 	omap3_sbc_t3x_usb_hub_init(167, "sb-t35 usb hub");
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 136);
+-	omap_ads7846_init(1, 57, 0, NULL);
+ }
  
- &omap3_pmx_core {
-@@ -115,6 +122,21 @@
- 			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE0)	/* dss_data5.dss_data5 */
- 		>;
- 	};
-+
-+	ads7846_pins: pinmux_ads7846_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20ba, PIN_INPUT_PULLUP | MUX_MODE4)	/* gpmc_ncs6.gpio_57 */
-+		>;
-+	};
-+
-+	mcspi1_pins: pinmux_mcspi1_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21c8, PIN_INPUT | MUX_MODE0)	/* mcspi1_clk */
-+			OMAP3_CORE1_IOPAD(0x21ca, PIN_INPUT | MUX_MODE0)	/* mcspi1_simo */
-+			OMAP3_CORE1_IOPAD(0x21cc, PIN_INPUT | MUX_MODE0)	/* mcspi1_somi */
-+			OMAP3_CORE1_IOPAD(0x21ce, PIN_INPUT_PULLDOWN | MUX_MODE0) /* mcspi1_cs0 */
-+		>;
-+	};
- };
+ static void __init omap3_sbc_t3530_legacy_init(void)
+ {
+ 	omap3_sbc_t3x_usb_hub_init(167, "sb-t35 usb hub");
+-	omap_ads7846_init(1, 57, 0, NULL);
+ }
  
- &uart3 {
-@@ -147,3 +169,38 @@
- &usbhsehci {
- 	phys = <&hsusb1_phy &hsusb2_phy>;
- };
-+
-+&mcspi1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcspi1_pins>;
-+
-+	/* touch controller */
-+	ads7846@0 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&ads7846_pins>;
-+
-+		compatible = "ti,ads7846";
-+		vcc-supply = <&ads7846reg>;
-+
-+		reg = <0>;			/* CS0 */
-+		spi-max-frequency = <1500000>;
-+
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <25 0>;		/* gpio_57 */
-+		pendown-gpio = <&gpio2 25 0>;
-+
-+		ti,x-min = /bits/ 16 <0x0>;
-+		ti,x-max = /bits/ 16 <0x0fff>;
-+		ti,y-min = /bits/ 16 <0x0>;
-+		ti,y-max = /bits/ 16 <0x0fff>;
-+
-+		ti,x-plate-ohms = /bits/ 16 <180>;
-+		ti,pressure-max = /bits/ 16 <255>;
-+
-+		ti,debounce-max = /bits/ 16 <30>;
-+		ti,debounce-tol = /bits/ 16 <10>;
-+		ti,debounce-rep = /bits/ 16 <1>;
-+
-+		linux,wakeup;
-+	};
-+};
+ struct ti_st_plat_data wilink_pdata = {
+@@ -249,7 +247,6 @@ static void __init omap3_sbc_t3517_legacy_init(void)
+ 	hsmmc2_internal_input_clk();
+ 	omap3_sbc_t3517_wifi_init();
+ 	legacy_init_wl12xx(WL12XX_REFCLOCK_38, 0, 145);
+-	omap_ads7846_init(1, 57, 0, NULL);
+ }
+ 
+ static void __init am3517_evm_legacy_init(void)
 -- 
 1.7.5.4
 
