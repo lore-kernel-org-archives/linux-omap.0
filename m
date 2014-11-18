@@ -1,53 +1,104 @@
-From: Jacek Anaszewski <j.anaszewski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Tue, 18 Nov 2014 09:09:09 +0100
-Message-ID: <546AFEA5.9020000@samsung.com>
-References: <20141116075928.GA9763@amd>
- <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+From: Ran Shalit <ranshalit@gmail.com>
+Subject: Re: Fail to enter retention
+Date: Tue, 18 Nov 2014 10:21:12 +0200
+Message-ID: <CAJ2oMhKPb-Hde--2WfQT=9U5r8XQUKo2UHHvsJ8D841zpMqLRA@mail.gmail.com>
+References: <CAJ2oMh+jALrwq8sOf84+zK-0=vSS790jsW-jjgZtBCXvJDuG4w@mail.gmail.com>
+	<20141117162209.GE7046@atomide.com>
+	<CAJ2oMh+t-Wahe=CTbrZQ=C2X-0n_x6FSzhwA6opyzhDFvJXdZg@mail.gmail.com>
+	<20141117180944.GG7046@atomide.com>
+	<CAJ2oMhL5x3nAxTQg36O9-DUfHK9iy-g9+qqN=bYj3Nw7HNjAnA@mail.gmail.com>
+	<20141117203808.GH7046@atomide.com>
+	<CAJ2oMhJxnRjb8NUz+JyYLJYiRBA+vSA3C2q7viEZf0sVXqFtqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20141117145857.GO8907-S+BSfZ9RZZmRSg0ZkenSGLdO1Tsj/99ntUK59QYPAWc@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, sre-GFxCN5SEZAc@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, freemangordon-uiMcrn6V0Vs@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:61655 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752783AbaKRIVP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2014 03:21:15 -0500
+Received: by mail-wi0-f182.google.com with SMTP id h11so11654559wiw.9
+        for <linux-omap@vger.kernel.org>; Tue, 18 Nov 2014 00:21:13 -0800 (PST)
+In-Reply-To: <CAJ2oMhJxnRjb8NUz+JyYLJYiRBA+vSA3C2q7viEZf0sVXqFtqw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Pavel, Sakari,
+Hi Tony,
 
-On 11/17/2014 03:58 PM, Sakari Ailus wrote:
-> Hi Pavel,
+When I try to do suspend from userspace, I get better results and it
+seems that all domain been put to RET or OFF but on checking power
+state time it still shows 0. Do you know why ?
+
+usbhost_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+per_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+dss_pwrdm (ON),OFF:0,RET:5,INA:4,ON:9,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+core_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
+neon_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0
+mpu_pwrdm (ON),OFF:0,RET:2,INA:0,ON:3,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
+per_clkdm->per_pwrdm (11)
+usbhost_clkdm->usbhost_pwrdm (3)
+cam_clkdm->cam_pwrdm (0)
+dss_clkdm->dss_pwrdm (2)
+core_l4_clkdm->core_pwrdm (12)
+core_l3_clkdm->core_pwrdm (4)
+d2d_clkdm->core_pwrdm (0)
+sgx_clkdm->sgx_pwrdm (0)
+iva2_clkdm->iva2_pwrdm (0)
+neon_clkdm->neon_pwrdm (0)
+mpu_clkdm->mpu_pwrdm (0)
+prm_clkdm->wkup_pwrdm (0)
+cm_clkdm->core_pwrdm (0)
+
+Thank you,
+Ran
+
+On Mon, Nov 17, 2014 at 11:09 PM, Ran Shalit <ranshalit@gmail.com> wrote:
+> Hi Tony,
 >
-> On Sun, Nov 16, 2014 at 08:59:28AM +0100, Pavel Machek wrote:
->> For device tree people: Yes, I know I'll have to create file in
->> documentation, but does the binding below look acceptable?
+>>Just printing the registers out in the idle loop most likely will give
+>>you the info you need.
+>
+> Probably a dumb question... But if I try to print them won't it
+> automatically wakes up the serial (by the way should the serial wakeup
+> be configured to RX pin only ?)
+> Another thing I don't understand... Can it be that there is some
+> ongoing kernel process that also prevent me for entering retention ?
+> I think maybe I should try first to suspend (instead of trying to
+> enter retention in idle) , maybe it might bring better result ?
+>
+> Thanks very much,
+> Ran
+>
+> On Mon, Nov 17, 2014 at 10:38 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Ran Shalit <ranshalit@gmail.com> [141117 11:48]:
+>>> >You need to look if you have some devices blocking deeper
+>>> >idle states in cm_idlest*_core and cm_idlest_per registers.
+>>>
+>>> >The device will automatically idle whatever it can if there
+>>> >are no blockers. I believe at least EHCI still is blocking,
+>>> >and MUSB if configured and cable connected.
+>>>
+>>> I'll check the registers value, should I then try to modify this
+>>> registers in order to get into retention ?
 >>
->> I'll clean up driver code a bit more, remove the printks. Anything
->> else obviously wrong?
->
-> Jacek Anaszewski is working on flash support for LED devices. I think it'd
-> be good to sync the DT bindings for the two, as the types of devices
-> supported by the LED API and the V4L2 flash API are quite similar.
->
-> Cc Jacek.
-
-I've already submitted a patch [1] that updates leds common bindings.
-I hasn't been merged yet, as the related LED Flash class patch [2]
-still needs some indicator leds related discussion [3].
-
-I think this is a good moment to discuss the flash related led common
-bindings.
-
-[1] http://www.spinics.net/lists/linux-leds/msg02121.html
-[2] http://www.spinics.net/lists/linux-media/msg83100.html
-[3] http://www.spinics.net/lists/linux-leds/msg02472.html
-
-Best Regards,
-Jacek Anaszewski
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> No, those are read-only status registers. You need idle the
+>> drivers that show as blocking in those registers.
+>>
+>>> I will still have to disable serial right ? Maybe some kernel process
+>>> which run in background prevents retention ?
+>>
+>> Yes otherwise the UART bits will show as blocking in those
+>> registers.
+>>
+>>> Is there some simple way to debug this or do I need to modify these registers ?
+>>
+>> Just printing them out in the idle loop most likely will give
+>> you the info you need.
+>>
+>> Regards,
+>>
+>> Tony
