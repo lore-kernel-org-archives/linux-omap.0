@@ -1,70 +1,74 @@
-From: Ran Shalit <ranshalit@gmail.com>
-Subject: Re: Fail to enter retention
-Date: Mon, 17 Nov 2014 23:09:53 +0200
-Message-ID: <CAJ2oMhJxnRjb8NUz+JyYLJYiRBA+vSA3C2q7viEZf0sVXqFtqw@mail.gmail.com>
-References: <CAJ2oMh+jALrwq8sOf84+zK-0=vSS790jsW-jjgZtBCXvJDuG4w@mail.gmail.com>
-	<20141117162209.GE7046@atomide.com>
-	<CAJ2oMh+t-Wahe=CTbrZQ=C2X-0n_x6FSzhwA6opyzhDFvJXdZg@mail.gmail.com>
-	<20141117180944.GG7046@atomide.com>
-	<CAJ2oMhL5x3nAxTQg36O9-DUfHK9iy-g9+qqN=bYj3Nw7HNjAnA@mail.gmail.com>
-	<20141117203808.GH7046@atomide.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] ARM: dts: DRA7: Add node for RTC
+Date: Tue, 18 Nov 2014 10:31:04 +0530
+Message-ID: <546AD290.8080303@ti.com>
+References: <1416199509-3977-1-git-send-email-lokeshvutla@ti.com> <5469E76A.7020105@cogentembedded.com> <5469F271.9080102@ti.com> <546A1E5E.1040909@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:44677 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752132AbaKQVJz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Nov 2014 16:09:55 -0500
-Received: by mail-wi0-f176.google.com with SMTP id ex7so7108085wid.9
-        for <linux-omap@vger.kernel.org>; Mon, 17 Nov 2014 13:09:54 -0800 (PST)
-In-Reply-To: <20141117203808.GH7046@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50173 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708AbaKRFCo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2014 00:02:44 -0500
+In-Reply-To: <546A1E5E.1040909@cogentembedded.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+Hi,
+On Monday 17 November 2014 09:42 PM, Sergei Shtylyov wrote:
+> On 11/17/2014 4:04 PM, Lokesh Vutla wrote:
+> 
+>>> On 11/17/2014 7:45 AM, Lokesh Vutla wrote:
+> 
+>>>> Add node for RTC.
+> 
+>>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>>> [nm@ti.com: update with rtc crossbar number]
+>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>>> ---
+>>>>    arch/arm/boot/dts/dra7.dtsi | 9 +++++++++
+>>>>    1 file changed, 9 insertions(+)
+> 
+>>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>>>> index 9cc9843..f98f9f0 100644
+>>>> --- a/arch/arm/boot/dts/dra7.dtsi
+>>>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>>>> @@ -1075,6 +1075,15 @@
+>>>>                status = "disabled";
+>>>>            };
+>>>>
+>>>> +        rtc: rtcss@48838000 {
+> 
+>>>     Please just name the node "rtc@48838000", in accordance with ePAPR.
+> 
+>> Okay. will update it.
+> 
+>>>> +            compatible = "ti,am3352-rtc";
+>>>> +            reg = <0x48838000 0x100>;
+>>>> +            interrupts = <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>,
+>>>> +                     <GIC_SPI 217 IRQ_TYPE_LEVEL_HIGH>;
+> 
+>>>     2 similar interrupts?
+> 
+>> both rtc timer and rtc alarm uses same interrupt on DRA7 Soc.
+>> Driver handles it accordingly.
+>> So passing the same interrupt.
+> 
+>    I think it would have been better if the driver just handled a single interrupt.
+There are certain SoCs with RTC IP where timer and alarm uses different interrupts.
+Driver has to take care of that scenario also. So it expects two interrupts from dt. 
 
->Just printing the registers out in the idle loop most likely will give
->you the info you need.
+Thanks and regards,
+Lokesh 
+> 
+>> Thanks and regards,
+>> Lokesh
+> 
+>>> [...]
+> 
+> WBR, Sergei
+> 
 
-Probably a dumb question... But if I try to print them won't it
-automatically wakes up the serial (by the way should the serial wakeup
-be configured to RX pin only ?)
-Another thing I don't understand... Can it be that there is some
-ongoing kernel process that also prevent me for entering retention ?
-I think maybe I should try first to suspend (instead of trying to
-enter retention in idle) , maybe it might bring better result ?
-
-Thanks very much,
-Ran
-
-On Mon, Nov 17, 2014 at 10:38 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Ran Shalit <ranshalit@gmail.com> [141117 11:48]:
->> >You need to look if you have some devices blocking deeper
->> >idle states in cm_idlest*_core and cm_idlest_per registers.
->>
->> >The device will automatically idle whatever it can if there
->> >are no blockers. I believe at least EHCI still is blocking,
->> >and MUSB if configured and cable connected.
->>
->> I'll check the registers value, should I then try to modify this
->> registers in order to get into retention ?
->
-> No, those are read-only status registers. You need idle the
-> drivers that show as blocking in those registers.
->
->> I will still have to disable serial right ? Maybe some kernel process
->> which run in background prevents retention ?
->
-> Yes otherwise the UART bits will show as blocking in those
-> registers.
->
->> Is there some simple way to debug this or do I need to modify these registers ?
->
-> Just printing them out in the idle loop most likely will give
-> you the info you need.
->
-> Regards,
->
-> Tony
