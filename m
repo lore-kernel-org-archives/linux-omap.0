@@ -1,61 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Fail to enter retention
-Date: Tue, 18 Nov 2014 07:45:43 -0800
-Message-ID: <20141118154543.GJ7046@atomide.com>
-References: <CAJ2oMh+jALrwq8sOf84+zK-0=vSS790jsW-jjgZtBCXvJDuG4w@mail.gmail.com>
- <20141117162209.GE7046@atomide.com>
- <CAJ2oMh+t-Wahe=CTbrZQ=C2X-0n_x6FSzhwA6opyzhDFvJXdZg@mail.gmail.com>
- <20141117180944.GG7046@atomide.com>
- <CAJ2oMhL5x3nAxTQg36O9-DUfHK9iy-g9+qqN=bYj3Nw7HNjAnA@mail.gmail.com>
- <20141117203808.GH7046@atomide.com>
- <CAJ2oMhJxnRjb8NUz+JyYLJYiRBA+vSA3C2q7viEZf0sVXqFtqw@mail.gmail.com>
- <CAJ2oMhKPb-Hde--2WfQT=9U5r8XQUKo2UHHvsJ8D841zpMqLRA@mail.gmail.com>
- <CAJ2oMhJLo04q3Y48Q_f4VX=ew+tMJbBmY7toAODTsqbKRReHLw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq
+ handling
+Date: Tue, 18 Nov 2014 10:00:59 -0600
+Message-ID: <20141118160059.GI8223@saruman>
+References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com>
+ <1416014452-6712-2-git-send-email-al.kochet@gmail.com>
+ <20141115014859.GC808@saruman>
+ <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com>
+ <20141115034756.GA2917@saruman>
+ <20141115035328.GA3289@saruman>
+ <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
+ <20141116154558.GA7422@saruman>
+ <20141117144152.GA12644@katana>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FK65GREB+Evh/hTL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:27519 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932123AbaKRPqE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2014 10:46:04 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:53806 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753439AbaKRQAp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Nov 2014 11:00:45 -0500
 Content-Disposition: inline
-In-Reply-To: <CAJ2oMhJLo04q3Y48Q_f4VX=ew+tMJbBmY7toAODTsqbKRReHLw@mail.gmail.com>
+In-Reply-To: <20141117144152.GA12644@katana>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ran Shalit <ranshalit@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Felipe Balbi <balbi@ti.com>, Alexander Kochetkov <al.kochet@gmail.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-* Ran Shalit <ranshalit@gmail.com> [141118 00:26]:
-> 
-> In coninuity to my previous message, thse is the log for time in state
-> 0-state 6:
-> 
-> On Tue, Nov 18, 2014 at 10:21 AM, Ran Shalit <ranshalit@gmail.com> wrote:
-> >
-> > When I try to do suspend from userspace, I get better results and it
-> > seems that all domain been put to RET or OFF but on checking power
-> > state time it still shows 0. Do you know why ?
+--FK65GREB+Evh/hTL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Looks like you still have some hardware blocking off states. Maybe the
-state time shows only that?
+On Mon, Nov 17, 2014 at 03:41:53PM +0100, Wolfram Sang wrote:
+>=20
+> > > submit write request to General Call Address. In that case ISR could
+> > > not correctly handle RDR (or XRDY, ARDY, or that ever). Thats becase
+> > > i2c-omap driver doesn't correctly handle i2c-controller's slave mode.
+> >=20
+> > right, Linux doesn't support being the slave. That's also a missing
+> > feature, not a bug.
+>=20
+> This is going to change. I sent out RFC patches for slave support [1]
+> and will send V1 this week. This won't affect your driver, though,
+> unless you implement the backend into it.
+>=20
+> Just to keep your heads up.
+>=20
+> [1] http://thread.gmane.org/gmane.linux.kernel/1783295
 
-> >> Probably a dumb question... But if I try to print them won't it
-> >> automatically wakes up the serial (by the way should the serial wakeup
-> >> be configured to RX pin only ?)
+sweet :-)
 
-Yes for the RX pin only as that's where the wake-up event comes from.
+Still, as of now we can't consider what Alexander mentions a bug. Good
+to get it sorted out, but not -rc material.
 
-> >> Another thing I don't understand... Can it be that there is some
-> >> ongoing kernel process that also prevent me for entering retention ?
+--=20
+balbi
 
-Could be if you have something CPU intensive going on like tracing.
+--FK65GREB+Evh/hTL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> >> I think maybe I should try first to suspend (instead of trying to
-> >> enter retention in idle) , maybe it might bring better result ?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Yes from the hardware point of view suspend does the same thing as
-the deeper idle states.
+iQIcBAEBAgAGBQJUa207AAoJEIaOsuA1yqREWv8P/0wuoVjan7wGBpsjA/Xd2s2c
+45srl4AgZH3xX6Q10p8f/STxJpLSR1fP+bGdsVkj5G8HjFuTm1+I+Me0uuL08nqi
+MPvJVegNJDhAFaw1itF6N5TRr8kV7TavGAQwBWEMD3iJfhIESYoE6rKR76pxsS83
+/jK8nNz6yKjxZO+H2/Lp85PZVv+CwJtu4efePoJVFjI1KESqphPCAZJG0/CTcSlE
+Fiwi2rg2l5p/4TcoJ0HtTy4+Eo1vt6tBnuVnTPds96BM4gHsK8DQXW5Quc/UT4lF
+KH1toAjkf1eY9IeSy+enSllwuT5p8ZNiLj62fPAaoq4OzDiPIj0Hik+D6qWCutDU
+LyWqqMcNDJD2GxXdYUJpQbhe1PmrOyt5PWx6ojJRuaXtz676WeVOEZwlFUkuhK3q
+EDzoCUp1Pa3R85J8XMqxJFczCNdeos1hGE56f4oCS/WW0q7v5iHKMNAuBSEyVJ4X
+P4CBPCkgZKg+xgqwiUO9S+GW56ht2rt72wuh5OclHfYOrk55u7qWbSxYrR+BN4Eo
+OWFoK1zVPiBat4mfrXG+3B24c2qpkje+kB//RVfLs/x2dEA46CsY3N1kJr8daMNa
+qMYcia69I3tzixyposGwca6nnrT2nwSwVzPIvqF7GldO0ct0fYQ0wAgem7m5JGET
+SjaVmwuDy1n/cBbFIIX6
+=kbUL
+-----END PGP SIGNATURE-----
 
-Regards,
-
-Tony
+--FK65GREB+Evh/hTL--
