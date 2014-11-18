@@ -1,81 +1,40 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq
- handling
-Date: Tue, 18 Nov 2014 17:12:41 +0100
-Message-ID: <20141118161241.GH30004@katana>
-References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com>
- <1416014452-6712-2-git-send-email-al.kochet@gmail.com>
- <20141115014859.GC808@saruman>
- <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com>
- <20141115034756.GA2917@saruman>
- <20141115035328.GA3289@saruman>
- <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
- <20141116154558.GA7422@saruman>
- <20141117144152.GA12644@katana>
- <20141118160059.GI8223@saruman>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dMyqICaxQaaUjrCL"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141118160059.GI8223@saruman>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---dMyqICaxQaaUjrCL
+From: Alexander Kochetkov <al.kochet@gmail.com>
+Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq handling
+Date: Tue, 18 Nov 2014 19:31:44 +0300
+Message-ID: <5D39428D-F359-4F04-8ACC-D607011B88B9@gmail.com>
+References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com> <1416014452-6712-2-git-send-email-al.kochet@gmail.com> <20141115014859.GC808@saruman> <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com> <20141115034756.GA2917@saruman> <20141115035328.GA3289@saruman> <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com> <20141116154558.GA7422@saruman> <20141117144152.GA12644@katana> <20141118160059.GI8223@saruman>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:56940 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932100AbaKRQbt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2014 11:31:49 -0500
+In-Reply-To: <20141118160059.GI8223@saruman>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+Cc: Alexander Kochetkov <al.kochet@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>
 
-
-> > > right, Linux doesn't support being the slave. That's also a missing
-> > > feature, not a bug.
-> >=20
-> > This is going to change. I sent out RFC patches for slave support [1]
-> > and will send V1 this week. This won't affect your driver, though,
-> > unless you implement the backend into it.
-> >=20
-> > Just to keep your heads up.
-> >=20
-> > [1] http://thread.gmane.org/gmane.linux.kernel/1783295
->=20
-> sweet :-)
-
-V1 was sent out a few seconds ago :)
-
-https://lkml.org/lkml/2014/11/18/678
 
 > Still, as of now we can't consider what Alexander mentions a bug. Good
 > to get it sorted out, but not -rc material.
+> 
 
-I got confused with all the patches sent out for his issues. Can you ack
-them once you are fine and mention if you consider them important for
-this or the next release? That would be really helpful!
+Actually, I focused on fixing issues then i2c-omap acts as master in a multi master environment.
+And must say, that current linux/mainline driver work perfectly with minor fixes.
 
+I could take a look how to switch the driver into mixed master/slave mode, but later.
 
---dMyqICaxQaaUjrCL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Sad to say, I encountered undocumented i2c- hardware issue.
+In short: BB-bit doesn't reflect I2C-bus state after soft reset if SDA or SCL line was low during reset
+until i2c-controller again detect START or STOP condition on the wire.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+More over, if SDA was low during reset, than next submitted transfer will not start ("controller timeout"),
+if SCL was low during reset, than next submitted transfer will start and corrupt signals on wire :(
 
-iQIcBAEBAgAGBQJUa2/5AAoJEBQN5MwUoCm2wbQQAJRMYWeig0w2oFaI4QBK/Wbe
-qtynhUdpOsFpogiy+j/toJi1KDJijejE7qw6drCUTLZTeqEQPIP/1ndvT5qclNVO
-ydw9ZOrnP/1rdsh71vFzqc1rNlPXjm2XziByohg2bCvOQlu3o8GtwQJ5VRVLZyQT
-a/0YA96rkA8G9pWaMBnlnRxZCj8eL2ODRa++BBhzIcE4vZKPmmTlAk4VdjUkV0PK
-L264wZn1RgiLEDiBREtfa1mEoPHnwH6kL2JXEpv/v99cfsD7N4dazveZAQdWzI3z
-YIlbVogRneXqui7JjvVIWbPxUK+bZr1qQDsOeKScQvPRsKGYrQeMfBHx5rEQBtlB
-jQTn7QjRRCJx7y8W/wtaGLnB/DNeXyUfO0kvvd7Olc9W3UR/CryTP1awq15Ao4vA
-afluJ7BOqoviTJKtttJjOh4uXYa/PbD+TQ0ieO86uk41hd4qhK4PJKZS9017o2zt
-TqhGaEKpGUTYdXW0mNt3ern7SttTcDP29l3Efu/gql4e2BTsGRWBIpdUgtTuodAT
-BfFv5a/6kUwEhdWFXCURrIzW8UiBcKdYCio6Hv3px0LLLcwBQEULJyZHjYhwIpvY
-Dze1S4o+0Pj4v1gb9KEAzw7x7kAdb2ltGmsG6KzacuOpR/nSNmlM07P1jxPKSwme
-SPjCOJHfO1y0vmMe7d/7
-=1fcd
------END PGP SIGNATURE-----
+I'm checking it now. And going to post results to ti forum.
 
---dMyqICaxQaaUjrCL--
+BB-bit reflect I2C-bus state, between power-down/power-up modes.
+
+Alexander.
