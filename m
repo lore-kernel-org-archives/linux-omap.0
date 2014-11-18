@@ -1,141 +1,123 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Tue, 18 Nov 2014 11:04:56 +0100
-Message-ID: <546B19C8.2090008@samsung.com>
-References: <20141116075928.GA9763@amd>
- <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
+From: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
+Date: Tue, 18 Nov 2014 11:42:39 +0100
+Message-ID: <CAFqH_53eQ05Dy4W2EE_OtCA72w-MQNugLiOLJdj=n-yCnZHwSg@mail.gmail.com>
+References: <CAFqH_53hyYO9DHfhzDhYkTnimKR0FOQuUw4OGCM4myKoOJSQRA@mail.gmail.com>
+	<20141117180413.GF7046@atomide.com>
+	<CAFqH_52LV8k6OyH04dUmhzZChnHrtJR23qu1ewhU49iOVT1Mwg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20141118084603.GC4059@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAFqH_52LV8k6OyH04dUmhzZChnHrtJR23qu1ewhU49iOVT1Mwg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/18/2014 09:46 AM, Pavel Machek wrote:
-> On Tue 2014-11-18 09:09:09, Jacek Anaszewski wrote:
->> Hi Pavel, Sakari,
->>
->> On 11/17/2014 03:58 PM, Sakari Ailus wrote:
->>> Hi Pavel,
+2014-11-18 10:02 GMT+01:00 Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+> Hi Tony,
+>
+> 2014-11-17 19:04 GMT+01:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+>> * Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141117 07:15]:
+>>>  Hi all,
 >>>
->>> On Sun, Nov 16, 2014 at 08:59:28AM +0100, Pavel Machek wrote:
->>>> For device tree people: Yes, I know I'll have to create file in
->>>> documentation, but does the binding below look acceptable?
->>>>
->>>> I'll clean up driver code a bit more, remove the printks. Anything
->>>> else obviously wrong?
+>>> I'm trying to use the USB OTG driver of OMAP3 processor in HOST mode
+>>> when it's configured in dual role mode (CONFIG_USB_MUSB_DUAL_ROLE=y)
 >>>
->>> Jacek Anaszewski is working on flash support for LED devices. I think it'd
->>> be good to sync the DT bindings for the two, as the types of devices
->>> supported by the LED API and the V4L2 flash API are quite similar.
+>>> The test case that I'm trying to solve is as follows.
 >>>
->>> Cc Jacek.
+>>> 1) Boot the board.
+>>> 2) Put the USB ID pin to ground
+>>> 3) Connect a pendrive.
+>>>
+>>> In such case doesn't work as expected and pendrive is never detected.
+>>>
+>>> Enabling debug information, I see that the phyter (twl4030) is
+>>> constantly polling the STS_HW_CONDITIONS register, who reports:
+>>>
+>>>   twl4030_usb 48070000.i2c:twl@48:twl4030-usb: HW_CONDITIONS 0x54/84; link 1
+>>>
+>>> The STS_HW_CONDITIONS register reports:
+>>>
+>>> Bit 2: STS_USB : 1: USB is plugged in.
+>>> Bit 4: STS_WAKEUP1: Level status of WAKEUP1 pad (active high) = nSLEEP1
+>>> Bit 6: STS_WAKEUP3: Level status of WAKEUP3 pad (active high) = CLKREQ
+>>>
+>>> I guess that in this case the state machine is waiting for VBUS, and
+>>> looks for bit 7 STS_VBUS (Level status of VBUS port), but this never
+>>> occurs. Using an oscilloscope I checked VBUS level and I can confirm
+>>> that it's a 0 level.
+>>>
+>>> My understand is that in this case the driver should enable VBUS but I
+>>> didn't find where is the best place to do this and why is not doing
+>>> this already. Any clue on this?
 >>
->> I've already submitted a patch [1] that updates leds common bindings.
->> I hasn't been merged yet, as the related LED Flash class patch [2]
->> still needs some indicator leds related discussion [3].
+>> Just tested v3.18-rc5 with beagleboard xm, and the host mode
+>> enumerates the devices, then may fail with "insufficient bus power"
+>> at least for the WLAN device I tried with.
 >>
->> I think this is a good moment to discuss the flash related led common
->> bindings.
 >
-> Part of problem is that adp1653 is not regarded as "LED" device by
-> current kernel driver.
-
-It doesn't prevent us from keeping the flash devices related
-DT bindings unified across kernel subsystems. The DT bindings
-docs for the adp1653 could just provide a reference to the
-led/common.txt bindings. In the future, when LED Flash
-class will be merged, all the V4L2 Flash drivers might be
-moved to the LED subsystem to gain the LED subsystem support.
-
->> [1] http://www.spinics.net/lists/linux-leds/msg02121.html
+> Is this with following options ?
 >
-> @@ -3,6 +3,17 @@ Common leds properties.
->   Optional properties for child nodes:
->   - label : The label for this LED.  If omitted, the label is
->     taken from the node name (excluding the unit address).
-> +- iout-torch : Array of maximum intensities in microamperes of the
->   torch
-> +	led currents in order from sub-led 0 to N-1, where N is the
->   number
-> +	of torch sub-leds exposed by the device
-> +- iout-flash : Array of maximum intensities in microamperes of the
->   flash
-> +	led currents in order from sub-led 0 to N-1, where N is the
->   number
-> +	of flash sub-leds exposed by the device
-> +- iout-indicator : Array of maximum intensities in microamperes of
-> +  the indicator led currents in order from sub-led 0 to N-1,
-> +  where N is the number of indicator sub-leds exposed by the device
-> +- flash-timeout : timeout in microseconds after which flash led
-> +  is turned off
+> CONFIG_USB_MUSB_DUAL_ROLE=y
+> # CONFIG_USB_MUSB_HOST is not set
+> # CONFIG_USB_MUSB_GADGET is not set
 >
->   - linux,default-trigger :  This parameter, if present, is a
->       string defining the trigger assigned to the LED.  Current
->       triggers are:
-> @@ -19,5 +30,10 @@ Examples:
->   system-status {
->   	       label = "Status";
->   	       linux,default-trigger = "heartbeat";
-> +	       iout-torch = <500 500>;
-> +	       iout-flash = <1000 1000>;
-> +	       iout-indicator = <100 100>;
-> +	       flash-timeout = <1000>;
-> +
-> 	...
->   };
+> Because with these options doesn't work for me. It only works if I
+> don't use dual role mode
 >
-> I don't get it; system-status describes single LED, why are iout-torch
-> (and friends) arrays of two?
-
-Some devices can control more than one led. The array is for such
-purposes. The system-status should be probably renamed to
-something more generic for both common leds and flash leds,
-e.g. system-led.
-
-> Also, at least on adp1653, these are actually two leds -- white and
-> red. Torch and flash is white led, indicator is red led.
-
-Then you should define three properties:
-
-iout-torch = <[uA]>;
-iout-flash = <[uA]>;
-iout-indicator = <[uA]>;
-
-iout-torch and iout-flash properties would determine the current
-for the white led in the torch and flash modes respectively and
-the iout-indicator property would determine the current for
-the indicator led.
-
->> [2] http://www.spinics.net/lists/linux-media/msg83100.html
->> [3] http://www.spinics.net/lists/linux-leds/msg02472.html
+> CONFIG_USB_MUSB_HOST=y
+> CONFIG_USB_MUSB_DUAL_ROLE is not set
 >
-> What device are you using for testing? Can you cc me on future
-> patches?
 
-I am using max77693 [1] and aat1290 [2]. OK, I will add you on cc.
+Sorry this is not true, it only works if I set  mode = <1> in my
+device tree, either it's CONFIG_USB_MUSB_DUAL_ROLE=y or
+CONFIG_USB_MUSB_HOST=y configured.
 
-> Why do we need complex "flash LED class" support, and where is the
-> V4L2 glue?
-
-The rationale for unification of the LED and V4L2 Flash API
-can be found in the discussion [3]. The glue is the v4l2-flash [4]
-module which exposes a sub-device, that controls a LED Flash class
-device with use of LED Flash class API.
-
-The v4l2-flash sub-device registers with v4l2-async API
-in a media device. Exemplary support for v4l2-flash
-sub-devices is added to the exynos4-is driver in the patch [5].
-
-Best Regards,
-Jacek Anaszewski
-
-[1] http://www.spinics.net/lists/linux-leds/msg02326.html
-[2] http://www.spinics.net/lists/linux-media/msg81079.html
-[3] http://www.spinics.net/lists/linux-media/msg69012.html
-[4] http://www.spinics.net/lists/linux-leds/msg02322.html
-[5] http://www.spinics.net/lists/linux-leds/msg02323.html
+>> I noticed that this only works with CONFIG_USB_MUSB_HDRC and
+>> CONFIG_TWL4030_USB built into the kernel. No luck so far with them
+>> as loadable modules for some reason. Looks like also USB gadgets
+>> fail with MUSB as modules.
+>>
+>
+> It's weird, for me fails in both cases, built-in and with loadable
+> modules. Connecting the OTG Cable Adapter with a pendrive reports
+>
+> [   51.462432] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> HW_CONDITIONS 0x54/84; link 1
+> [   51.470916] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> twl4030_usb_runtime_resume
+> [   51.487274] musb-hdrc musb-hdrc.0.auto: ID GND
+> [   52.480712] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> HW_CONDITIONS 0x54/84; link 1
+> [   53.489044] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> HW_CONDITIONS 0x54/84; link 1
+>
+> And then polls until I disconnect the OTG Cable Adapter with the pendrive.
+>
+> [   71.488983] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> HW_CONDITIONS 0x54/84; link 1
+> [   71.778930] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> HW_CONDITIONS 0x50/80; link 4
+> [   71.787536] musb-hdrc musb-hdrc.0.auto: VBUS Disconnect
+> [   72.489044] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> HW_CONDITIONS 0x50/80; link 4
+> [   74.088714] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+> twl4030_usb_runtime_suspend
+>
+>
+>> And on the 37xx EVM, I've never had any luck getting any twl4030_usb
+>> interrupts for some reason.
+>>
+>
+> Regards,
+>
+> Enric
+>
+>> Regards,
+>>
+>> Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
