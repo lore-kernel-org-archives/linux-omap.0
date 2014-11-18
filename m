@@ -1,83 +1,158 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq
- handling
-Date: Tue, 18 Nov 2014 10:00:59 -0600
-Message-ID: <20141118160059.GI8223@saruman>
-References: <1416014452-6712-1-git-send-email-al.kochet@gmail.com>
- <1416014452-6712-2-git-send-email-al.kochet@gmail.com>
- <20141115014859.GC808@saruman>
- <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com>
- <20141115034756.GA2917@saruman>
- <20141115035328.GA3289@saruman>
- <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
- <20141116154558.GA7422@saruman>
- <20141117144152.GA12644@katana>
-Reply-To: <balbi@ti.com>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Tue, 18 Nov 2014 17:02:14 +0100
+Message-ID: <546B6D86.8090701@samsung.com>
+References: <20141116075928.GA9763@amd>
+ <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+ <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
+ <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FK65GREB+Evh/hTL"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53806 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753439AbaKRQAp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Nov 2014 11:00:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20141117144152.GA12644@katana>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20141118132159.GA21089@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org, Linux LED Subsystem <linux-leds@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Felipe Balbi <balbi@ti.com>, Alexander Kochetkov <al.kochet@gmail.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
---FK65GREB+Evh/hTL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Pavel,
 
-On Mon, Nov 17, 2014 at 03:41:53PM +0100, Wolfram Sang wrote:
->=20
-> > > submit write request to General Call Address. In that case ISR could
-> > > not correctly handle RDR (or XRDY, ARDY, or that ever). Thats becase
-> > > i2c-omap driver doesn't correctly handle i2c-controller's slave mode.
-> >=20
-> > right, Linux doesn't support being the slave. That's also a missing
-> > feature, not a bug.
->=20
-> This is going to change. I sent out RFC patches for slave support [1]
-> and will send V1 this week. This won't affect your driver, though,
-> unless you implement the backend into it.
->=20
-> Just to keep your heads up.
->=20
-> [1] http://thread.gmane.org/gmane.linux.kernel/1783295
+On 11/18/2014 02:21 PM, Pavel Machek wrote:
+> Hi!
+>
+>>>>> @@ -19,5 +30,10 @@ Examples:
+>>>>>   system-status {
+>>>>>   	       label = "Status";
+>>>>>   	       linux,default-trigger = "heartbeat";
+>>>>> +	       iout-torch = <500 500>;
+>>>>> +	       iout-flash = <1000 1000>;
+>>>>> +	       iout-indicator = <100 100>;
+>>>>> +	       flash-timeout = <1000>;
+>>>>> +
+>>>>> 	...
+>>>>>   };
+>>>>>
+>>>>> I don't get it; system-status describes single LED, why are iout-torch
+>>>>> (and friends) arrays of two?
+>>>>
+>>>> Some devices can control more than one led. The array is for such
+>>>> purposes. The system-status should be probably renamed to
+>>>> something more generic for both common leds and flash leds,
+>>>> e.g. system-led.
+>>>
+>>> No, sorry. The Documentation/devicetree/bindings/leds/common.txt
+>>> describes binding for _one LED_. Yes, your device can have two leds,
+>>> so your devices should have two such blocks in the device tree... Each
+>>> led should have its own label and default trigger, for example. And I
+>>> guess flash-timeout be per-LED, too.
+>>
+>> I think that a device tree binding describes a single physical device.
+>> No matter how many sub-leds a device controls, it is still one
+>> piece of hardware.
+>
+> You got this wrong, sorry.
+>
+> In my case, there are three physical devices:
+>
+> adp1653
+> 	white LED
+> 	red LED
 
-sweet :-)
+You've mentioned that your white led is torch/flash and indicator
+is the red led. They are probably connected to the HPLED and
+ILED pins of the ADP1653 device respectively. The device is just
+a regulator, that delivers electric current to the leds connected
+to it. Kernel cannot directly activate leds, but has to talk
+to the device through I2C bus. One I2C device can have only one
+related device tree binding.
 
-Still, as of now we can't consider what Alexander mentions a bug. Good
-to get it sorted out, but not -rc material.
+> Each LED should have an label, and probably default trigger -- default
+> trigger for red one should be "we are recording video" and for white
+> should be "this is flash for default camera".
 
---=20
-balbi
+default-trigger is not mandatory, the device doesn't have to have
+associated led-trigger. I think that you should look at
+Documentation/leds/leds-class.txt and drivers/leds/triggers for
+more detailed information. In a nutshell triggers are kernel
+sources of led events. You can set e.g. "heartbeat", "timer"
+trigger etc.
+As for now the driver belongs to the V4L2 subsystem it doesn't
+support triggers. Moreover your event "we are recording a video"
+should be activated by setting V4L2_CID_FLASH_INDICATOR_INTENSITY
+v4l2 control followed by V4L2_FLASH_LED_MODE_TORCH. Your event
+"this is flash for default camera" seems to be flash strobe,
+that can be activated by setting V4L2_CID_FLASH_STROBE control.
+The driver by default sets the indicator current for both actions
+to the value previously set with V4L2_CID_FLASH_INDICATOR_INTENSITY.
 
---FK65GREB+Evh/hTL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> If the hardware LED changes with one that needs different current, the
+> block for the adp1653 stays the same, but white LED block should be
+> updated with different value.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+I think that you are talking about sub nodes. Indeed I am leaning
+towards this type of design.
 
-iQIcBAEBAgAGBQJUa207AAoJEIaOsuA1yqREWv8P/0wuoVjan7wGBpsjA/Xd2s2c
-45srl4AgZH3xX6Q10p8f/STxJpLSR1fP+bGdsVkj5G8HjFuTm1+I+Me0uuL08nqi
-MPvJVegNJDhAFaw1itF6N5TRr8kV7TavGAQwBWEMD3iJfhIESYoE6rKR76pxsS83
-/jK8nNz6yKjxZO+H2/Lp85PZVv+CwJtu4efePoJVFjI1KESqphPCAZJG0/CTcSlE
-Fiwi2rg2l5p/4TcoJ0HtTy4+Eo1vt6tBnuVnTPds96BM4gHsK8DQXW5Quc/UT4lF
-KH1toAjkf1eY9IeSy+enSllwuT5p8ZNiLj62fPAaoq4OzDiPIj0Hik+D6qWCutDU
-LyWqqMcNDJD2GxXdYUJpQbhe1PmrOyt5PWx6ojJRuaXtz676WeVOEZwlFUkuhK3q
-EDzoCUp1Pa3R85J8XMqxJFczCNdeos1hGE56f4oCS/WW0q7v5iHKMNAuBSEyVJ4X
-P4CBPCkgZKg+xgqwiUO9S+GW56ht2rt72wuh5OclHfYOrk55u7qWbSxYrR+BN4Eo
-OWFoK1zVPiBat4mfrXG+3B24c2qpkje+kB//RVfLs/x2dEA46CsY3N1kJr8daMNa
-qMYcia69I3tzixyposGwca6nnrT2nwSwVzPIvqF7GldO0ct0fYQ0wAgem7m5JGET
-SjaVmwuDy1n/cBbFIIX6
-=kbUL
------END PGP SIGNATURE-----
+>> default-trigger property should also be an array of strings.
+>
+> That is not how it currently works.
 
---FK65GREB+Evh/hTL--
+OK, I agree.
+
+>
+>> I agree that flash-timeout should be per led - an array, similarly
+>> as in case of iout's.
+>
+> Agreed about per-led, disagreed about the array. As all the fields
+> would need arrays, and as LED system currently does not use arrays for
+> label and linux,default-trigger, I believe we should follow existing
+> design and model it as three devices. (It _is_ physically three devices.)
+
+Right, I missed that the leds/common.txt describes child node.
+
+I propose following modifications to the binding:
+
+Optional properties for child nodes:
+- iout-mode-led : 	maximum intensity in microamperes of the LED
+		  	(torch LED for flash devices)
+- iout-mode-flash : 	initial intensity in microamperes of the
+			flash LED; it is required to enable support
+			for the flash led
+- iout-mode-indicator : initial intensity in microamperes of the
+			indicator LED; it is required to enable support
+			for the indicator led
+- max-iout-mode-led : 	maximum intensity in microamperes of the LED
+		  	(torch LED for flash devices)
+- max-iout-mode-flash : maximum intensity in microamperes of the
+			flash LED
+- max-iout-mode-indicator : maximum intensity in microamperes of the
+			indicator LED
+- flash-timeout :	timeout in microseconds after which flash
+			led is turned off
+
+system-status {
+         label = "max77693_1";
+         iout-mode-led = <500>;
+         max-iout-mode-led = <500>;
+         ...
+};
+
+camera-flash1 {
+         label = "max77693_2";
+         iout-mode-led = <500>;
+         iout-mode-flash = <1000>;
+	iout-mode-indicator = <100>;
+         max-iout-mode-led = <500>;
+         max-iout-mode-flash = <1000>;
+         max-iout-mode-indicator = <100>;
+         flash-timeout = <1000>;
+         ...
+};
+
+
+I propose to avoid name "torch", as for ordinary leds it would
+be misleading.
+
+Regards,
+Jacek
