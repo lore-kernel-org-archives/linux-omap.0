@@ -1,74 +1,47 @@
-From: Alexander Kochetkov <al.kochet@gmail.com>
-Subject: [PATCH] i2c: omap: fix NACK and Arbitration Lost irq handling
-Date: Tue, 18 Nov 2014 21:00:58 +0400
-Message-ID: <1416330058-21473-1-git-send-email-al.kochet@gmail.com>
-References: <1416242517-29885-1-git-send-email-al.kochet@gmail.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1416242517-29885-1-git-send-email-al.kochet@gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Alexander Kochetkov <al.kochet@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Tue, 18 Nov 2014 09:12:40 -0800
+Message-ID: <20141118171240.GB3003@dtor-ws>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+ <1415941651-28962-4-git-send-email-vigneshr@ti.com>
+ <20141118143005.GF24004@x1>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20141118143005.GF24004@x1>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kern
 List-Id: linux-omap@vger.kernel.org
 
-commit 1d7afc95946487945cc7f5019b41255b72224b70 (i2c: omap: ack IRQ in parts)
-changed the interrupt handler to complete transfers without clearing
-XRDY (AL case) and ARDY (NACK case) flags. XRDY or ARDY interrupts will be
-fired again. As a result, ISR keep processing transfer after it was already
-complete (from the driver code point of view).
+On Tue, Nov 18, 2014 at 02:30:05PM +0000, Lee Jones wrote:
+> On Fri, 14 Nov 2014, Vignesh R wrote:
+> 
+> > In one shot mode, sequencer automatically disables all enabled steps at
+> > the end of each cycle. (both ADC steps and TSC steps) Hence these steps
+> > need not be saved in reg_se_cache for clearing these steps at a later
+> > stage.
+> > Also, when ADC wakes up Sequencer should not be busy executing any of the
+> > config steps except for the charge step. Previously charge step was 1 ADC
+> > clock cycle and hence it was ignored.
+> > 
+> > Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
+> >  include/linux/mfd/ti_am335x_tscadc.h | 1 +
+> >  2 files changed, 6 insertions(+), 2 deletions(-)
+> 
+> Code looks better now.
+> 
+> Acked-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> 
+> What's the plan for this series?
 
-A didn't see real impacts of the 1d7afc9, but it is really bad idea to
-have ISR running on user data after transfer was complete.
+I am waiting for the interested parties to provide more feedback. So far
+I have seen a few reports saying that they see issues with the series
+applied.
 
-It looks, what 1d7afc9 violate TI specs in what how AL and NACK should be
-handled (see Note 1, sprugn4r, Figure 17-31 and Figure 17-32).
-
-According to specs (if I understood correctly), in case of NACK and AL driver
-must reset NACK, AL, ARDY, RDR, and RRDY (Master Receive Mode), and
-NACK, AL, ARDY, and XDR (Master Transmitter Mode).
-
-All that is done down the code under the if condition:
-if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) ...
-
-The patch restore pre 1d7afc9 logic of handling NACK and AL interrupts, so
-no interrupts is fired after ISR informs the rest of driver what transfer
-complete.
-
-Note: instead of removing break under NACK case, we could just replace 'break'
-with 'continue' and allow NACK transfer to finish using ARDY event. I found
-that NACK and ARDY bits usually set together. That case confirm TI wiki:
-http://processors.wiki.ti.com/index.php/I2C_Tips#Detecting_and_handling_NACK
-
-In order if someone interested in the event traces for NACK and AL cases,
-I sent them to mailing list.
-
-Tested on Beagleboard XM C.
-
-Signed-off-by: Alexander Kochetkov <al.kochet@gmail.com>
-Fixes: 1d7afc9 i2c: omap: ack IRQ in parts
-Cc: <stable@vger.kernel.org> # v3.7+
-
----
- drivers/i2c/busses/i2c-omap.c |    2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 90dcc2e..9af7095 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -926,14 +926,12 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 		if (stat & OMAP_I2C_STAT_NACK) {
- 			err |= OMAP_I2C_STAT_NACK;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
--			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_AL) {
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
--			break;
- 		}
- 
- 		/*
 -- 
-1.7.9.5
+Dmitry
