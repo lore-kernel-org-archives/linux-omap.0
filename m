@@ -1,63 +1,60 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Tue, 18 Nov 2014 19:35:45 +0100
-Message-ID: <20141118183545.GA16999@amd>
-References: <20141116075928.GA9763@amd>
- <20141117101553.GA21151@amd>
- <20141117145545.GC7046@atomide.com>
- <201411171601.32311@pali>
- <20141117150617.GD7046@atomide.com>
+From: freshman60284@gmail.com
+Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
+Date: Wed, 19 Nov 2014 00:08:29 +0530
+Message-ID: <546b9223.6ba7420a.53a1.1b28@mx.google.com>
+Reply-To: sehgal_anamika@yahoo.in
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20141117150617.GD7046-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, sre-GFxCN5SEZAc@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, freemangordon-uiMcrn6V0Vs@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, sakari.ailus-X3B1VOXEql0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pd0-f196.google.com ([209.85.192.196]:34680 "EHLO
+	mail-pd0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754023AbaKRSi2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2014 13:38:28 -0500
+Received: by mail-pd0-f196.google.com with SMTP id y10so251931pdj.7
+        for <linux-omap@vger.kernel.org>; Tue, 18 Nov 2014 10:38:28 -0800 (PST)
+Received: from localhost.localdomain ([27.255.178.67])
+        by mx.google.com with ESMTPSA id zn11sm38777099pab.24.2014.11.18.10.38.26
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Tue, 18 Nov 2014 10:38:27 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Mon 2014-11-17 07:06:17, Tony Lindgren wrote:
-> * Pali Roh=E1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141117 07:03]:
-> > On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
-> > >=20
-> > > There's nothing stopping us from initializing the camera code
-> > > from pdata-quirks.c for now to keep it working. Certainly the
-> > > binding should be added to the driver, but that removes a
-> > > dependency to the legacy booting mode if things are otherwise
-> > > working.
-> >=20
-> > Tony, legacy board code for n900 is not in mainline tree. And=20
-> > that omap3 camera subsystem for n900 is broken since 3.5=20
-> > kernel... (both Front and Back camera on n900 show only green=20
-> > picture).
->=20
-> I'm still seeing the legacy board code for n900 in mainline tree :)
-> It's deprecated, but still there.
->=20
-> Are you maybe talking about some other piece of platform_data that's
-> no longer in the mainline kernel?
->=20
-> No idea what might be wrong with the camera though.
+Dear Sir
 
-Camera support for main and secondary cameras was never mainline, AFAIC=
-T.
+Did your website get hit by Google Penguin update on October 17th 2014?=
+ What basically is Google Penguin Update? It is actually a code name fo=
+r Google algorithm which aims at decreasing your websites search engine=
+ rankings that violate Google=92s guidelines by using black hat SEO tec=
+hniques to rank your webpage by giving number of spammy links to the pa=
+ge.
+=20
+We are one of those few SEO companies that can help you avoid penalties=
+ from Google Updates like Penguin and Panda. Our clients have survived =
+all the previous and present updates with ease. They have never been hi=
+t because we use 100% white hat SEO techniques to rank Webpages.  Simpl=
+e thing that we do to keep websites away from any Penguin or Panda pena=
+lties is follow Google guidelines and we give Google users the best ans=
+wers to their queries.
 
-Merging it will not be easy, as it lacks DT support... and was broken
-for long time.
+If you are looking to increase the quality of your websites and to get =
+more targeted traffic or save your websites from these Google penalties=
+ email us back with your interest.=20
 
-Anyway, flash is kind of important for me, since it makes phone useful
-as backup light; and it is simple piece of hw, so I intend to keep it
-useful.
+We will be glad to serve you and help you grow your business.
 
-       	       	   	    	      	      	  		     Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
+Regards
+
+Anamika Sehgal
+
+SEO Manager ( TOB )
+B7 Green Avenue, Amritsar 143001 Punjab
+____________________________
+NO CLICK in the subject to STOP EMAILS
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
