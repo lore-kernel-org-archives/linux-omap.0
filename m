@@ -1,29 +1,18 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Subject: Re: [PATCH v2] input: touchscreen: edt-ft5x06: fix driver autoprobing
-Date: Tue, 18 Nov 2014 13:37:19 -0600
-Message-ID: <20141118193719.GO6179@saruman>
+Date: Tue, 18 Nov 2014 11:59:02 -0800
+Message-ID: <20141118195902.GF3003@dtor-ws>
 References: <20141118192112.GM6179@saruman>
  <1416338862-8240-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="96dIhm/ZjrNld+BP"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37355 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754023AbaKRThA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Nov 2014 14:37:00 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <1416338862-8240-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, stable@vger.kernel.org
-
---96dIhm/ZjrNld+BP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org, stable@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 On Tue, Nov 18, 2014 at 01:27:42PM -0600, Felipe Balbi wrote:
 > Because with OF we can pass more specific
@@ -32,47 +21,64 @@ On Tue, Nov 18, 2014 at 01:27:42PM -0600, Felipe Balbi wrote:
 > of_i2c_register_devices() tries to request_module(),
 > it'll request it with a non-existent specific module
 > alias.
->=20
+> 
 > In order to have this driver autoprobing again, we
 > just need to add missing MODULE_ALIAS() entries to
 > edt-ft5x06 driver.
->=20
+> 
 > Thanks to Dmitry for noticing that it actually should
 > autoprobe even with of_device_id.
->=20
+> 
 > Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 > Cc: <linux-input@vger.kernel.org>
 > Cc: <stable@vger.kernel.org> # v3.15+
 > Fixes: dac90dc2 (Input: edt-ft5x06 - add DT support)
 > Signed-off-by: Felipe Balbi <balbi@ti.com>
 > ---
+>  drivers/input/touchscreen/edt-ft5x06.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/edt-ft5x06.c b/drivers/input/touchscreen/edt-ft5x06.c
+> index ee3434f..bcbf688 100644
+> --- a/drivers/input/touchscreen/edt-ft5x06.c
+> +++ b/drivers/input/touchscreen/edt-ft5x06.c
+> @@ -1147,6 +1147,9 @@ static struct i2c_driver edt_ft5x06_ts_driver = {
+>  
+>  module_i2c_driver(edt_ft5x06_ts_driver);
+>  
+> +MODULE_ALIAS("i2c:edt-ft5206");
+> +MODULE_ALIAS("i2c:edt-ft5306");
+> +MODULE_ALIAS("i2c:edt-ft5406");
+>  MODULE_AUTHOR("Simon Budig <simon.budig@kernelconcepts.de>");
+>  MODULE_DESCRIPTION("EDT FT5x06 I2C Touchscreen Driver");
+>  MODULE_LICENSE("GPL");
+> -- 
+> 2.1.0.GIT
+> 
 
+Here is what I see if I run modinfo on the module:
 
-btw, with this, patches 7 through 10 can be ignored.
+dtor@dtor-ws:~/kernel/work$ modinfo
+drivers/input/touchscreen/edt-ft5x06.ko
+filename:
+/home/dtor/kernel/work/drivers/input/touchscreen/edt-ft5x06.ko
+license:        GPL
+description:    EDT FT5x06 I2C Touchscreen Driver
+author:         Simon Budig <simon.budig@kernelconcepts.de>
+alias:          i2c:edt-ft5x06
+alias:          of:N*T*Cedt,edt-ft5406*
+alias:          of:N*T*Cedt,edt-ft5306*
+alias:          of:N*T*Cedt,edt-ft5206*
+depends:        i2c-core
+intree:         Y
+vermagic:       3.17.0+ SMP preempt mod_unload 
 
---=20
-balbi
+As you can see we already have what I consider proper modaliases for the
+driver. Why don't they work? Is it because modprobe doe snot know how to
+handle OF-style modaliases or device's uevents are missing OF data in
+them?
 
---96dIhm/ZjrNld+BP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUa5/vAAoJEIaOsuA1yqRETV0P/iEZkya5pkQdzZKRfhpofYXw
-7PAUPldzO7vDuTEbWCHmhLG5Xb5LLDhbcR7nrvojnNUOI73ymVvdNHPDzuTQSdmn
-YgQlAZK8IQ++v2/DKSSzIxxcNqQpomRTuOncxKGznErlX7NcVBAsfzi4apxcqADu
-uMdZVLFw3rAVbGILNzJK3UC8DY6pPyRcYyLYs6SoVStzJiQxfj8fRq0JqSdbF61r
-XQXPSSHe3n+SXjNuXkcAAad83yf+yFB4dR7Yg13NrxIivXwW4RUt0lSdfLSk8qqy
-i9yTPGb15f7GLEVZzDvv2N1qfBzbePw9aBB4KdTsPvFD7uEOFb+uSdS+Hz7xdzu6
-jSOY2lLqs0vQpj8ipK98SEC3OpwZp9lf6LjQTrDrwWPZt39IpllfkSzZ8mGdGEeR
-GGn8lwbzYydT0hJUqgG1ePblEGnro7dSXSDBD9M/f0BMGTxeQXzCRUEfRCvLNgPb
-Xz034iwWl6t5TZAhjBAZo2kr4V2f7ZXiCiFhlQWxFrKH0wd88aY8JGWhI/q6VFMV
-+6rwuwlbcwuRlTGrujGA8n32axYMLoBINKyNMTrDW6zIyjyKY4D5U0906s6RFSvQ
-oa7rq9W6ppBfkC5OLNgz5AY/XC0bsIk4WDBIJCeiItsc98D541yxAcyZmMPPcnDf
-nibqqtPrX8Z7+YQdENIF
-=p2nF
------END PGP SIGNATURE-----
-
---96dIhm/ZjrNld+BP--
+-- 
+Dmitry
