@@ -1,89 +1,42 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 modem support in 3.18-rc1
-Date: Tue, 18 Nov 2014 08:42:55 +0100
-Message-ID: <20141118074254.GA4059@amd>
-References: <201411052206.05379@pali>
- <20141105220359.GA32052@amd>
- <20141105234555.GA7097@earth.universe>
- <20141106124711.GA26944@amd>
- <20141106180335.GA21513@earth.universe>
- <20141113162155.GA8512@xo-6d-61-c0.localdomain>
- <20141113174534.GO26481@atomide.com>
- <20141113181803.GB984@fuloong-minipc.musicnaut.iki.fi>
- <20141116101248.GA32483@amd>
- <87vbmf1g75.fsf@free.fr>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH v8 0/7] Enable L2 cache support on Exynos4210/4x12 SoCs
+Date: Tue, 18 Nov 2014 08:46:18 +0100
+Message-ID: <546AF94A.8040502@samsung.com>
+References: <1415884694-5868-1-git-send-email-m.szyprowski@samsung.com>
+ <54660DAE.9090601@samsung.com> <2593372.vOeyyAKq5M@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87vbmf1g75.fsf@free.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, khilman@kernel.org, Tony Lindgren <tony@atomide.com>, kernel list <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, Pali Roh?r <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, freemangordon@abv.bg, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-reply-to: <2593372.vOeyyAKq5M@wuerfel>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Olof Johansson <olof@lixom.net>, Kukjin Kim <kgene.kim@samsung.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun 2014-11-16 13:29:50, Robert Jarzmik wrote:
-> Pavel Machek <pavel@ucw.cz> writes:
-> 
-> > On Thu 2014-11-13 20:18:04, Aaro Koskinen wrote:
-> >> Hi,
-> >> 
-> >> On Thu, Nov 13, 2014 at 09:45:36AM -0800, Tony Lindgren wrote:
-> >> > * Pavel Machek <pavel@ucw.cz> [141113 08:23]:
-> >> > > OTOH ofono seems pretty reasonable. So I played a bit, and result
-> >> > > is python/pygtk gui which can receive an sms, initiate a call, and
-> >> > > report missed call. If someone wants to play, source is at
-> >> > > 
-> >> > > https://gitorious.org/tui/tui/source/b6141107e9341a1412720aed4b0d09143dfa2f4e:ofone
-> >> > 
-> >> > Pavel, care to fill in the the following type patch with some
-> >> > instructions in the description now that you got it working?
-> >> 
-> >> Could we even have some "permanent" instructions under Documentation/?
-> >
-> > Something like this?
-> >
-> > commit 375d8d9f17433ade6afae91d4f34e170f0af04c4
-> > Author: Pavel <pavel@ucw.cz>
-> > Date:   Sun Nov 16 11:10:59 2014 +0100
-> >
-> > Add basic documentation for n900 testing.
-> >
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >
-> > diff --git a/Documentation/cellphones.txt b/Documentation/cellphones.txt
-> > new file mode 100644
-> > index 0000000..d7e8e7a
-> > --- /dev/null
-> > +++ b/Documentation/cellphones.txt
-> > @@ -0,0 +1,90 @@
-> > +Running Linux on Cellphones
-> > +===========================
-> > +
-> > +At this moment (2014), there are no cellphones completely supported by
-> > +mainline kernel. Another problem is lack of hackable userspace to run
-> > +on cellphone, even when kernel support is available.
-> Hi Pavel,
-> 
-> There is the Mitac Mio A701. Very old but still it is there, with the kernel
-> part maintained.
-> 
-> Userspace was based on QTopia in 2008. I don't maintain that part anymore
-> though.
-> 
-> The GSM part relies on a simple ttyS device (modem has its internal flash), no
-> real data at that time, or rather 2G only, but the 07.10 mux support was never
-> included in Qtopia ...
+Hello,
 
-Thanks for the info. 
+On 2014-11-14 15:51, Arnd Bergmann wrote:
+> On Friday 14 November 2014 15:11:58 Marek Szyprowski wrote:
+>> I assume that after all comments from previous versions, no more changes
+>> are needed
+>> to this patchset and I would really like to have it queued to v3.19.
+>>
+>> Arnd, Olof: could you take this patchset thought arm-soc tree? It already
+>> contains all dependencies.
+>>
+>> Kukjin: could you ack this patchset?
+> I'd rather see this merged through Russell's tree, as most of the patches
+> are for core code, and only three are for the platform.
 
-I added 
+Ok, I will upload v9 posted yesterday to Russell's patch system when
+http://www.arm.linux.org.uk/ gets back to life.
 
-"
-+Mainline has support for Mitac Mio A701, but that having only 64MiB
-+RAM, QTopia is the software to use there.
-"
-									Pavel
+> For the exynos patches:
+>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+
+Best regards
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
