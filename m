@@ -1,60 +1,45 @@
-From: freshman60284@gmail.com
-Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
-Date: Wed, 19 Nov 2014 00:08:29 +0530
-Message-ID: <546b9223.6ba7420a.53a1.1b28@mx.google.com>
-Reply-To: sehgal_anamika@yahoo.in
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 06/10] input: touchscreen: edt-ft5x06: fix driver
+ autoprobing
+Date: Tue, 18 Nov 2014 10:38:47 -0800
+Message-ID: <20141118183847.GE3003@dtor-ws>
+References: <1416334028-7766-1-git-send-email-balbi@ti.com>
+ <1416334028-7766-6-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pd0-f196.google.com ([209.85.192.196]:34680 "EHLO
-	mail-pd0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023AbaKRSi2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Nov 2014 13:38:28 -0500
-Received: by mail-pd0-f196.google.com with SMTP id y10so251931pdj.7
-        for <linux-omap@vger.kernel.org>; Tue, 18 Nov 2014 10:38:28 -0800 (PST)
-Received: from localhost.localdomain ([27.255.178.67])
-        by mx.google.com with ESMTPSA id zn11sm38777099pab.24.2014.11.18.10.38.26
-        for <linux-omap@vger.kernel.org>
-        (version=TLSv1 cipher=RC4-SHA bits=128/128);
-        Tue, 18 Nov 2014 10:38:27 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1416334028-7766-6-git-send-email-balbi@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Lothar =?iso-8859-1?Q?Wa=DFmann?= <lw@karo-electronics.de>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-input@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Dear Sir
+Hi Felipe,
 
-Did your website get hit by Google Penguin update on October 17th 2014?=
- What basically is Google Penguin Update? It is actually a code name fo=
-r Google algorithm which aims at decreasing your websites search engine=
- rankings that violate Google=92s guidelines by using black hat SEO tec=
-hniques to rank your webpage by giving number of spammy links to the pa=
-ge.
-=20
-We are one of those few SEO companies that can help you avoid penalties=
- from Google Updates like Penguin and Panda. Our clients have survived =
-all the previous and present updates with ease. They have never been hi=
-t because we use 100% white hat SEO techniques to rank Webpages.  Simpl=
-e thing that we do to keep websites away from any Penguin or Panda pena=
-lties is follow Google guidelines and we give Google users the best ans=
-wers to their queries.
+On Tue, Nov 18, 2014 at 12:07:04PM -0600, Felipe Balbi wrote:
+> i2c devices match against struct i2c_device_id
+> even for CONFIG_OF case, so adding a struct of_device_id
+> doesn't change anything. As a result, currently, edt-ft5x06
+> will not autoprobe if built as a module.
 
-If you are looking to increase the quality of your websites and to get =
-more targeted traffic or save your websites from these Google penalties=
- email us back with your interest.=20
+Why doe snot it autoprobe? We properly declare MODULE_DEVICE_TABLE for
+OF, is it because we are missing some data in device uevent?
 
-We will be glad to serve you and help you grow your business.
+> 
+> To fix the issue and still maintain backwards compatibility
+> with all DTS files currently in tree, we're just moving
+> all ids from of_device_id to i2c_device_id while also
+> adding the following specific ids which should be used
+> from now on:
+> 
+> 	{ "edt-ft5206", 0, }
+> 	{ "edt-ft5306", 0, }
+> 	{ "edt-ft5406", 0, }
 
-Regards
+Is this a tee-wide change? Link to the discussion?
 
-Anamika Sehgal
+Thanks.
 
-SEO Manager ( TOB )
-B7 Green Avenue, Amritsar 143001 Punjab
-____________________________
-NO CLICK in the subject to STOP EMAILS
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Dmitry
