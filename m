@@ -1,97 +1,74 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Tue, 18 Nov 2014 17:51:48 +0100
-Message-ID: <20141118165148.GA11711@amd>
-References: <20141116075928.GA9763@amd>
- <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com>
- <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com>
- <20141118113256.GA10022@amd>
- <546B40FA.2070409@samsung.com>
- <20141118132159.GA21089@amd>
- <546B6D86.8090701@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-leds-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <546B6D86.8090701@samsung.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org, Linux LED Subsystem <linux-leds@vger.kernel.org>
+From: Alexander Kochetkov <al.kochet@gmail.com>
+Subject: [PATCH] i2c: omap: fix NACK and Arbitration Lost irq handling
+Date: Tue, 18 Nov 2014 21:00:58 +0400
+Message-ID: <1416330058-21473-1-git-send-email-al.kochet@gmail.com>
+References: <1416242517-29885-1-git-send-email-al.kochet@gmail.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1416242517-29885-1-git-send-email-al.kochet@gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Alexander Kochetkov <al.kochet@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+commit 1d7afc95946487945cc7f5019b41255b72224b70 (i2c: omap: ack IRQ in parts)
+changed the interrupt handler to complete transfers without clearing
+XRDY (AL case) and ARDY (NACK case) flags. XRDY or ARDY interrupts will be
+fired again. As a result, ISR keep processing transfer after it was already
+complete (from the driver code point of view).
 
-> >If the hardware LED changes with one that needs different current, the
-> >block for the adp1653 stays the same, but white LED block should be
-> >updated with different value.
-> 
-> I think that you are talking about sub nodes. Indeed I am leaning
-> towards this type of design.
+A didn't see real impacts of the 1d7afc9, but it is really bad idea to
+have ISR running on user data after transfer was complete.
 
-I think I am :-).
+It looks, what 1d7afc9 violate TI specs in what how AL and NACK should be
+handled (see Note 1, sprugn4r, Figure 17-31 and Figure 17-32).
 
-> >>I agree that flash-timeout should be per led - an array, similarly
-> >>as in case of iout's.
-> >
-> >Agreed about per-led, disagreed about the array. As all the fields
-> >would need arrays, and as LED system currently does not use arrays for
-> >label and linux,default-trigger, I believe we should follow existing
-> >design and model it as three devices. (It _is_ physically three devices.)
-> 
-> Right, I missed that the leds/common.txt describes child node.
-> 
-> I propose following modifications to the binding:
-> 
-> Optional properties for child nodes:
-> - iout-mode-led : 	maximum intensity in microamperes of the LED
-> 		  	(torch LED for flash devices)
-> - iout-mode-flash : 	initial intensity in microamperes of the
-> 			flash LED; it is required to enable support
-> 			for the flash led
-> - iout-mode-indicator : initial intensity in microamperes of the
-> 			indicator LED; it is required to enable support
-> 			for the indicator led
-> - max-iout-mode-led : 	maximum intensity in microamperes of the LED
-> 		  	(torch LED for flash devices)
-> - max-iout-mode-flash : maximum intensity in microamperes of the
-> 			flash LED
-> - max-iout-mode-indicator : maximum intensity in microamperes of the
-> 			indicator LED
-> - flash-timeout :	timeout in microseconds after which flash
-> 			led is turned off
+According to specs (if I understood correctly), in case of NACK and AL driver
+must reset NACK, AL, ARDY, RDR, and RRDY (Master Receive Mode), and
+NACK, AL, ARDY, and XDR (Master Transmitter Mode).
 
-Ok, I took a look, and "iout" is notation I understand, but people may
-have trouble with and I don't see it used anywhere else.
+All that is done down the code under the if condition:
+if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) ...
 
-Also... do we need both "current" and "max-current" properties?
+The patch restore pre 1d7afc9 logic of handling NACK and AL interrupts, so
+no interrupts is fired after ISR informs the rest of driver what transfer
+complete.
 
-But regulators already have "regulator-max-microamp" property. So what
-about:
+Note: instead of removing break under NACK case, we could just replace 'break'
+with 'continue' and allow NACK transfer to finish using ARDY event. I found
+that NACK and ARDY bits usually set together. That case confirm TI wiki:
+http://processors.wiki.ti.com/index.php/I2C_Tips#Detecting_and_handling_NACK
 
-max-microamp : 	maximum intensity in microamperes of the LED
- 		  	(torch LED for flash devices)
-max-flash-microamp : 	initial intensity in microamperes of the
- 			flash LED; it is required to enable support
- 			for the flash led
-flash-timeout-microseconds : timeout in microseconds after which flash
- 			led is turned off
+In order if someone interested in the event traces for NACK and AL cases,
+I sent them to mailing list.
 
-If you had indicator on the same led, I guess
+Tested on Beagleboard XM C.
 
-indicator-microamp : recommended intensity in microamperes of the LED
-		         for indication
+Signed-off-by: Alexander Kochetkov <al.kochet@gmail.com>
+Fixes: 1d7afc9 i2c: omap: ack IRQ in parts
+Cc: <stable@vger.kernel.org> # v3.7+
 
-...would do?
+---
+ drivers/i2c/busses/i2c-omap.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-> I propose to avoid name "torch", as for ordinary leds it would
-> be misleading.
-
-Agreed.
-
-Thanks,
-									Pavel
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 90dcc2e..9af7095 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -926,14 +926,12 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+ 		if (stat & OMAP_I2C_STAT_NACK) {
+ 			err |= OMAP_I2C_STAT_NACK;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
+-			break;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_AL) {
+ 			dev_err(dev->dev, "Arbitration lost\n");
+ 			err |= OMAP_I2C_STAT_AL;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
+-			break;
+ 		}
+ 
+ 		/*
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.9.5
