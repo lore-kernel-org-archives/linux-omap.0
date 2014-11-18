@@ -1,99 +1,92 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Tue, 18 Nov 2014 14:21:59 +0100
-Message-ID: <20141118132159.GA21089@amd>
-References: <20141116075928.GA9763@amd>
- <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com>
- <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com>
- <20141118113256.GA10022@amd>
- <546B40FA.2070409@samsung.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Tue, 18 Nov 2014 14:30:05 +0000
+Message-ID: <20141118143005.GF24004@x1>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+ <1415941651-28962-4-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <546B40FA.2070409@samsung.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org, Linux LED Subsystem <linux-leds@vger.kernel.org>
+In-Reply-To: <1415941651-28962-4-git-send-email-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+On Fri, 14 Nov 2014, Vignesh R wrote:
 
-> >>>@@ -19,5 +30,10 @@ Examples:
-> >>>  system-status {
-> >>>  	       label = "Status";
-> >>>  	       linux,default-trigger = "heartbeat";
-> >>>+	       iout-torch = <500 500>;
-> >>>+	       iout-flash = <1000 1000>;
-> >>>+	       iout-indicator = <100 100>;
-> >>>+	       flash-timeout = <1000>;
-> >>>+
-> >>>	...
-> >>>  };
-> >>>
-> >>>I don't get it; system-status describes single LED, why are iout-torch
-> >>>(and friends) arrays of two?
-> >>
-> >>Some devices can control more than one led. The array is for such
-> >>purposes. The system-status should be probably renamed to
-> >>something more generic for both common leds and flash leds,
-> >>e.g. system-led.
-> >
-> >No, sorry. The Documentation/devicetree/bindings/leds/common.txt
-> >describes binding for _one LED_. Yes, your device can have two leds,
-> >so your devices should have two such blocks in the device tree... Each
-> >led should have its own label and default trigger, for example. And I
-> >guess flash-timeout be per-LED, too.
-> 
-> I think that a device tree binding describes a single physical device.
-> No matter how many sub-leds a device controls, it is still one
-> piece of hardware.
+> In one shot mode, sequencer automatically disables all enabled steps =
+at
+> the end of each cycle. (both ADC steps and TSC steps) Hence these ste=
+ps
+> need not be saved in reg_se_cache for clearing these steps at a later
+> stage.
+> Also, when ADC wakes up Sequencer should not be busy executing any of=
+ the
+> config steps except for the charge step. Previously charge step was 1=
+ ADC
+> clock cycle and hence it was ignored.
+>=20
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
+>  include/linux/mfd/ti_am335x_tscadc.h | 1 +
+>  2 files changed, 6 insertions(+), 2 deletions(-)
 
-You got this wrong, sorry.
+Code looks better now.
 
-In my case, there are three physical devices:
+Acked-by: Lee Jones <lee.jones@linaro.org>
 
-adp1653
-	white LED
-	red LED
+What's the plan for this series?
 
-Each LED should have an label, and probably default trigger -- default
-trigger for red one should be "we are recording video" and for white
-should be "this is flash for default camera".
+> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_t=
+scadc.c
+> index d877e777cce6..110038859a8d 100644
+> --- a/drivers/mfd/ti_am335x_tscadc.c
+> +++ b/drivers/mfd/ti_am335x_tscadc.c
+> @@ -86,8 +86,12 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  		spin_lock_irq(&tsadc->reg_lock);
+>  		finish_wait(&tsadc->reg_se_wait, &wait);
+> =20
+> +		/*
+> +		 * Sequencer should either be idle or
+> +		 * busy applying the charge step.
+> +		 */
+>  		reg =3D tscadc_readl(tsadc, REG_ADCFSM);
+> -		WARN_ON(reg & SEQ_STATUS);
+> +		WARN_ON((reg & SEQ_STATUS) && !(reg & CHARGE_STEP));
+>  		tsadc->adc_waiting =3D false;
+>  	}
+>  	tsadc->adc_in_use =3D true;
+> @@ -96,7 +100,6 @@ static void am335x_tscadc_need_adc(struct ti_tscad=
+c_dev *tsadc)
+>  void am335x_tsc_se_set_once(struct ti_tscadc_dev *tsadc, u32 val)
+>  {
+>  	spin_lock_irq(&tsadc->reg_lock);
+> -	tsadc->reg_se_cache |=3D val;
+>  	am335x_tscadc_need_adc(tsadc);
+> =20
+>  	tscadc_writel(tsadc, REG_SE, val);
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd=
+/ti_am335x_tscadc.h
+> index 3f4e994ace2b..1fd50dcfe47c 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -128,6 +128,7 @@
+> =20
+>  /* Sequencer Status */
+>  #define SEQ_STATUS BIT(5)
+> +#define CHARGE_STEP		0x11
+> =20
+>  #define ADC_CLK			3000000
+>  #define TOTAL_STEPS		16
 
-If the hardware LED changes with one that needs different current, the
-block for the adp1653 stays the same, but white LED block should be
-updated with different value.
-
-> default-trigger property should also be an array of strings.
-
-That is not how it currently works.
-
-> I agree that flash-timeout should be per led - an array, similarly
-> as in case of iout's.
-
-Agreed about per-led, disagreed about the array. As all the fields
-would need arrays, and as LED system currently does not use arrays for
-label and linux,default-trigger, I believe we should follow existing
-design and model it as three devices. (It _is_ physically three devices.)
-
-> >>The v4l2-flash sub-device registers with v4l2-async API
-> >>in a media device. Exemplary support for v4l2-flash
-> >>sub-devices is added to the exynos4-is driver in the patch [5].
-> >
-> >Thanks for the links. It seems that aside from moving adp1653 driver
-> >to device tree, it should be moved to the LED framework, but that's a
-> >topic for another patch.
-> 
-> Like I mentioned in the previous message the LED Flash class patch
-> isn't in its final shape yet. Nonetheless I think that we should
-> agree on the leds/common.txt documentation improvements and
-> define DT documentation for adp1653 accordingly.
-
-Agreed.
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
