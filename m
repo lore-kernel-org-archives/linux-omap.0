@@ -1,69 +1,237 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 0/3] mmc: omap_hsmmc: make more use of mmc library functionality
-Date: Wed, 19 Nov 2014 11:14:24 +0100
-Message-ID: <CAPDyKFr=vjh5UOzkrbn7Fpm8j97sqf6xxD7tm+HydOKtyeYKoQ@mail.gmail.com>
-References: <20141107234628.4923.60525.stgit@notabene.brown>
+From: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
+Date: Wed, 19 Nov 2014 12:12:08 +0100
+Message-ID: <CAFqH_508pYkDXO8BCR=cFGFY_CgfkhqvseUy=Z--fJMOQCo6Tg@mail.gmail.com>
+References: <CAFqH_53hyYO9DHfhzDhYkTnimKR0FOQuUw4OGCM4myKoOJSQRA@mail.gmail.com>
+	<20141117180413.GF7046@atomide.com>
+	<CAFqH_52LV8k6OyH04dUmhzZChnHrtJR23qu1ewhU49iOVT1Mwg@mail.gmail.com>
+	<20141118154204.GI7046@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20141107234628.4923.60525.stgit@notabene.brown>
-Sender: linux-mmc-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Chris Ball <chris@printf.net>, Balaji T K <balajitk@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, Venkatraman S <svenkatr@ti.com>, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141118154204.GI7046-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 8 November 2014 00:52, NeilBrown <neilb@suse.de> wrote:
-> omap_hsmmc currently duplicates some work that can be done for
-> it by common code, and consequently does not benefit from extra
-> functionality in that common code.
+Hi Tony,
+
+2014-11-18 16:42 GMT+01:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+> * Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141118 01:04]:
+>> Hi Tony,
+>>
+>> 2014-11-17 19:04 GMT+01:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+>> >
+>> > Just tested v3.18-rc5 with beagleboard xm, and the host mode
+>> > enumerates the devices, then may fail with "insufficient bus power"
+>> > at least for the WLAN device I tried with.
+>> >
+>>
+>> Is this with following options ?
+>>
+>> CONFIG_USB_MUSB_DUAL_ROLE=y
+>> # CONFIG_USB_MUSB_HOST is not set
+>> # CONFIG_USB_MUSB_GADGET is not set
+>>
+>> Because with these options doesn't work for me. It only works if I
+>> don't use dual role mode
+>>
+>> CONFIG_USB_MUSB_HOST=y
+>> CONFIG_USB_MUSB_DUAL_ROLE is not set
 >
-> In particular, mmc_of_parse and the slot-gpio library are not used.
+> Weird. Yes I have CONFIG_USB_MUSB_DUAL_ROLE. AFAIK there's actually
+> no way to disable the role switching in MUSB hardware, the hardware
+> tries to do things on it's own anyways. So it's probably best to always
+> set it to CONFIG_USB_MUSB_DUAL_ROLE=y unless size of the code is an
+> issue.
 >
-> This set of patches allows omap_hsmmc to use that common
-> functionality, and benefit from any extra devicetree parsing
-> that it performs.
+>> > I noticed that this only works with CONFIG_USB_MUSB_HDRC and
+>> > CONFIG_TWL4030_USB built into the kernel. No luck so far with them
+>> > as loadable modules for some reason. Looks like also USB gadgets
+>> > fail with MUSB as modules.
 >
-> The one awkward part of this change is that omap_hsmmc has an
-> interrupt handler for 'card detect' which does more than the
-> common code.
-> I see three options:
->  1 - move that functionality into common code
->  2 - discard that functionality
->  3 - allow the common code to be configured to use a device-specific
->      card detect interrupt.
+> I found the core issue with loadable modules, we currently need to
+> have just one platform glue layer module compiled in. I have a
+> fix coming up for that..
 >
-> This series implements '3'.  I suspect a mix of '1' and '2' would
-> be a better choice but I know no of the history or justification
-> for those differences.
+>> It's weird, for me fails in both cases, built-in and with loadable
+>> modules. Connecting the OTG Cable Adapter with a pendrive reports
+>>
+>> [   51.462432] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> HW_CONDITIONS 0x54/84; link 1
+>> [   51.470916] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> twl4030_usb_runtime_resume
+>> [   51.487274] musb-hdrc musb-hdrc.0.auto: ID GND
+>> [   52.480712] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> HW_CONDITIONS 0x54/84; link 1
+>> [   53.489044] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> HW_CONDITIONS 0x54/84; link 1
+>>
+>> And then polls until I disconnect the OTG Cable Adapter with the pendrive.
+>>
+>> [   71.488983] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> HW_CONDITIONS 0x54/84; link 1
+>> [   71.778930] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> HW_CONDITIONS 0x50/80; link 4
+>> [   71.787536] musb-hdrc musb-hdrc.0.auto: VBUS Disconnect
+>> [   72.489044] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> HW_CONDITIONS 0x50/80; link 4
+>> [   74.088714] twl4030_usb 48070000.i2c:twl@48:twl4030-usb:
+>> twl4030_usb_runtime_suspend
 >
-> My preference would be for this series to be applied (if there are
-> no other issues) and if there are opinions about effecting '1' or '2',
-> they can be done with subsequent patches.
->
-> Thanks,
-> NeilBrown
+> Looks like the twl4030-usb is producing interrupts alright. Maybe
+> check your MUSB configuration one more time. See the attached
+> patch, but note you need to only select the glue layer for the
+> CONFIG_USB_MUSB_OMAP2PLUS option and disable other glue layer
+> module options.
 >
 
-I like the looks of this patchset, but it needs a rebase.
+Checked again, and no luck. It's very weird because from the OTG point
+of view, OTG is exactly the same between Beagleboard-XM and IGEPv2.
 
-Kind regards
-Uffe
+Can you confirm that you're using kernel 3.18-rc5 without other
+patches applied ? At this moment, I don't have a Beagleboard-XM to
+test, I'll try to get one because at this moment I'm a bit stuck with
+this problem.
 
+> Also, you may want to monitor the VBUS line in host mode. If the
+> VBUS does not come up fast enough, MUSB hardware will give up as
+> it's again trying to do things on its own.
 >
-> ---
+>> > And on the 37xx EVM, I've never had any luck getting any twl4030_usb
+>> > interrupts for some reason.
 >
-> NeilBrown (3):
->       mmc: omap_hsmmc: remove prepare/complete system suspend support.
->       mmc: omap_hsmmc: use slot-gpio library for gpio support.
->       mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration.
+> Turns out the 37xx EVM is using an isp1507 phy instead of the
+> twl4030 phy. The proper fix for that will be to start using the
+> usb-nop-xceiv or phy-ulpi when we have drivers/phy/ driver for
+> it. Right now trying to use it seems to fail with the following
+> error:
 >
+> HS USB OTG: no PHY configured
 >
->  drivers/mmc/core/slot-gpio.c           |   21 ++++
->  drivers/mmc/host/omap_hsmmc.c          |  158 +++++---------------------------
->  include/linux/mmc/slot-gpio.h          |    2
->  include/linux/platform_data/mmc-omap.h |    4 -
->  4 files changed, 47 insertions(+), 138 deletions(-)
+> Regards,
 >
-> --
-> Signature
+> Tony
 >
+
+Thanks,
+  Enric
+
+> 8< -------------
+> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Date: Mon, 17 Nov 2014 07:53:59 -0800
+> Subject: [PATCH] ARM: omap2plus_defconfig: Enable USB as loadable modules
+>
+> NOTE: Currently only one MUSB glue layer can be selected
+> below because of the ifdefs, I'll do a fix for that.
+>
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -270,17 +270,92 @@ CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
+>  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+>  CONFIG_USB=y
+>  CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+> +CONFIG_USB_DYNAMIC_MINORS=y
+> +CONFIG_USB_OTG=y
+>  CONFIG_USB_MON=y
+>  CONFIG_USB_WDM=y
+>  CONFIG_USB_STORAGE=y
+> +CONFIG_USB_MUSB_HDRC=m
+> +CONFIG_USB_MUSB_TUSB6010=m
+> +CONFIG_USB_MUSB_OMAP2PLUS=m
+> +CONFIG_USB_MUSB_AM35X=m
+> +CONFIG_USB_MUSB_DSPS=m
+>  CONFIG_USB_DWC3=m
+> -CONFIG_USB_TEST=y
+> -CONFIG_AM335X_PHY_USB=y
+> +CONFIG_USB_SERIAL=m
+> +CONFIG_USB_SERIAL_GENERIC=y
+> +CONFIG_USB_SERIAL_SIMPLE=m
+> +CONFIG_USB_SERIAL_FTDI_SIO=m
+> +CONFIG_USB_SERIAL_PL2303=m
+> +CONFIG_USB_EMI62=m
+> +CONFIG_USB_EMI26=m
+> +CONFIG_USB_ADUTUX=m
+> +CONFIG_USB_SEVSEG=m
+> +CONFIG_USB_RIO500=m
+> +CONFIG_USB_LEGOTOWER=m
+> +CONFIG_USB_LCD=m
+> +CONFIG_USB_LED=m
+> +CONFIG_USB_CYPRESS_CY7C63=m
+> +CONFIG_USB_CYTHERM=m
+> +CONFIG_USB_IDMOUSE=m
+> +CONFIG_USB_FTDI_ELAN=m
+> +CONFIG_USB_APPLEDISPLAY=m
+> +CONFIG_USB_SISUSBVGA=m
+> +CONFIG_USB_SISUSBVGA_CON=y
+> +CONFIG_USB_LD=m
+> +CONFIG_USB_TRANCEVIBRATOR=m
+> +CONFIG_USB_IOWARRIOR=m
+> +CONFIG_USB_TEST=m
+> +CONFIG_USB_EHSET_TEST_FIXTURE=m
+> +CONFIG_USB_ISIGHTFW=m
+> +CONFIG_USB_YUREX=m
+> +CONFIG_USB_EZUSB_FX2=m
+> +CONFIG_USB_HSIC_USB3503=m
+> +CONFIG_USB_LINK_LAYER_TEST=m
+> +CONFIG_NOP_USB_XCEIV=y
+> +CONFIG_AM335X_PHY_USB=m
+> +CONFIG_TWL6030_USB=m
+> +CONFIG_USB_GPIO_VBUS=m
+> +CONFIG_USB_ISP1301=m
+> +CONFIG_USB_ULPI=y
+>  CONFIG_USB_GADGET=y
+>  CONFIG_USB_GADGET_DEBUG=y
+>  CONFIG_USB_GADGET_DEBUG_FILES=y
+>  CONFIG_USB_GADGET_DEBUG_FS=y
+> +CONFIG_USB_CONFIGFS=m
+> +CONFIG_USB_CONFIGFS_SERIAL=y
+> +CONFIG_USB_CONFIGFS_ACM=y
+> +CONFIG_USB_CONFIGFS_OBEX=y
+> +CONFIG_USB_CONFIGFS_NCM=y
+> +CONFIG_USB_CONFIGFS_ECM=y
+> +CONFIG_USB_CONFIGFS_ECM_SUBSET=y
+> +CONFIG_USB_CONFIGFS_RNDIS=y
+> +CONFIG_USB_CONFIGFS_EEM=y
+> +CONFIG_USB_CONFIGFS_MASS_STORAGE=y
+> +CONFIG_USB_CONFIGFS_F_LB_SS=y
+> +CONFIG_USB_CONFIGFS_F_FS=y
+>  CONFIG_USB_ZERO=m
+> +CONFIG_USB_ZERO_HNPTEST=y
+> +CONFIG_USB_AUDIO=m
+> +CONFIG_GADGET_UAC1=y
+> +CONFIG_USB_ETH=m
+> +CONFIG_USB_ETH_EEM=y
+> +CONFIG_USB_G_NCM=m
+> +CONFIG_USB_GADGETFS=m
+> +CONFIG_USB_FUNCTIONFS=m
+> +CONFIG_USB_FUNCTIONFS_ETH=y
+> +CONFIG_USB_FUNCTIONFS_RNDIS=y
+> +CONFIG_USB_FUNCTIONFS_GENERIC=y
+> +CONFIG_USB_MASS_STORAGE=m
+> +CONFIG_USB_G_SERIAL=m
+> +CONFIG_USB_MIDI_GADGET=m
+> +CONFIG_USB_G_PRINTER=m
+> +CONFIG_USB_CDC_COMPOSITE=m
+> +CONFIG_USB_G_ACM_MS=m
+> +CONFIG_USB_G_MULTI=m
+> +CONFIG_USB_G_MULTI_CDC=y
+> +CONFIG_USB_G_HID=m
+> +CONFIG_USB_G_DBGP=m
+> +CONFIG_USB_LED_TRIG=y
+>  CONFIG_MMC=y
+>  CONFIG_SDIO_UART=y
+>  CONFIG_MMC_OMAP=y
+> @@ -310,6 +385,7 @@ CONFIG_PWM_TWL=y
+>  CONFIG_PWM_TWL_LED=y
+>  CONFIG_OMAP_USB2=y
+>  CONFIG_TI_PIPE3=y
+> +CONFIG_TWL4030_USB=m
+>  CONFIG_EXT2_FS=y
+>  CONFIG_EXT3_FS=y
+>  # CONFIG_EXT3_FS_XATTR is not set
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
