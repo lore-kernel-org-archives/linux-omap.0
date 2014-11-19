@@ -1,43 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
-Date: Wed, 19 Nov 2014 09:53:49 -0800
-Message-ID: <20141119175348.GK7046@atomide.com>
-References: <CAFqH_53hyYO9DHfhzDhYkTnimKR0FOQuUw4OGCM4myKoOJSQRA@mail.gmail.com>
- <20141117180413.GF7046@atomide.com>
- <CAFqH_52LV8k6OyH04dUmhzZChnHrtJR23qu1ewhU49iOVT1Mwg@mail.gmail.com>
- <20141118154204.GI7046@atomide.com>
- <CAFqH_508pYkDXO8BCR=cFGFY_CgfkhqvseUy=Z--fJMOQCo6Tg@mail.gmail.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Wed, 19 Nov 2014 20:01:01 +0200
+Message-ID: <546CDADD.3080003@iki.fi>
+References: <20141116075928.GA9763@amd> <20141117101553.GA21151@amd> <20141117145545.GC7046@atomide.com> <201411171601.32311@pali> <20141117150617.GD7046@atomide.com> <20141118183545.GA16999@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44623 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756094AbaKSRyH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Nov 2014 12:54:07 -0500
-Content-Disposition: inline
-In-Reply-To: <CAFqH_508pYkDXO8BCR=cFGFY_CgfkhqvseUy=Z--fJMOQCo6Tg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141118183545.GA16999@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, balbi@ti.com
 
-* Enric Balletbo Serra <eballetbo@gmail.com> [141119 03:14]:
-> 2014-11-18 16:42 GMT+01:00 Tony Lindgren <tony@atomide.com>:
-> 
-> Checked again, and no luck. It's very weird because from the OTG point
-> of view, OTG is exactly the same between Beagleboard-XM and IGEPv2.
-> 
-> Can you confirm that you're using kernel 3.18-rc5 without other
-> patches applied ? At this moment, I don't have a Beagleboard-XM to
-> test, I'll try to get one because at this moment I'm a bit stuck with
-> this problem.
+Hi Pavel,
 
-Yes it was with v3.18-rc5 and the defconfig patch I posted except
-I had to disable all the other MUSB platforms. Also tested it with
-built in modules.
+Pavel Machek wrote:
+> On Mon 2014-11-17 07:06:17, Tony Lindgren wrote:
+>> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141117 07:03]:
+>>> On Monday 17 November 2014 15:55:46 Tony Lindgren wrote:
+>>>>
+>>>> There's nothing stopping us from initializing the camera code
+>>>> from pdata-quirks.c for now to keep it working. Certainly the
+>>>> binding should be added to the driver, but that removes a
+>>>> dependency to the legacy booting mode if things are otherwise
+>>>> working.
+>>>
+>>> Tony, legacy board code for n900 is not in mainline tree. And=20
+>>> that omap3 camera subsystem for n900 is broken since 3.5=20
+>>> kernel... (both Front and Back camera on n900 show only green=20
+>>> picture).
+>>
+>> I'm still seeing the legacy board code for n900 in mainline tree :)
+>> It's deprecated, but still there.
+>>
+>> Are you maybe talking about some other piece of platform_data that's
+>> no longer in the mainline kernel?
+>>
+>> No idea what might be wrong with the camera though.
+>=20
+> Camera support for main and secondary cameras was never mainline, AFA=
+ICT.
+>=20
+> Merging it will not be easy, as it lacks DT support... and was broken
+> for long time.
 
-Maybe you need to check the .dts pinctrl entries for hsusb0_* lines?
+I have a smiapp patchset for DT support that I posted a while ago, here=
+:
 
-Regards,
+<URL:http://www.spinics.net/lists/linux-media/msg83285.html>
 
-Tony
+What's missing on top of that is the omap3isp support, plus something t=
+o
+toggle the sysctl registers based on the chosen receiver. I have a
+preliminary, not RFC yet but functional set here:
+
+<URL:http://vihersipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=3D~sailus/l=
+inux.git;a=3Dshortlog;h=3Drefs/heads/rm696-045-dt>
+
+The main camera support requires et8ek8 driver as well, and resolving
+the breakage with the image capture on 3430.
+
+N9/N950 will be first, though. Lens controllers are another matter, but
+nothing too difficult on that side either.
+
+> Anyway, flash is kind of important for me, since it makes phone usefu=
+l
+> as backup light; and it is simple piece of hw, so I intend to keep it
+> useful.
+
+Me, too. :-)
+
+--=20
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@iki.fi
