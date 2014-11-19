@@ -1,109 +1,154 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
- enabled
-Date: Wed, 19 Nov 2014 14:43:48 +1100
-Message-ID: <20141119144348.169c4166@notabene.brown>
-References: <20141102180756.GH31454@atomide.com>
-	<5458D29E.50908@compulab.co.il>
-	<20141104154231.GP31454@atomide.com>
-	<CANOLnOP8JmROaCruC8NEwh+Nzq_-fFit-+5d_W9vU9KtNTphoA@mail.gmail.com>
-	<515E660B-B65D-41EF-97F5-74E4DE8FDD13@goldelico.com>
-	<20141112212027.GK26481@atomide.com>
-	<20141112223154.GP641@saruman>
+From: Jacek Anaszewski <j.anaszewski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Wed, 19 Nov 2014 10:45:09 +0100
+Message-ID: <546C66A5.6060201@samsung.com>
+References: <20141116075928.GA9763@amd>
+ <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+ <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
+ <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
+ <546B6D86.8090701@samsung.com> <20141118165148.GA11711@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/0pudNttYBM/.QLEovnsqZFY"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141112223154.GP641@saruman>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Igor Grinberg <grinberg@compulab.co.il>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <20141118165148.GA11711@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Cc: pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, sre-GFxCN5SEZAc@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, freemangordon-uiMcrn6V0Vs@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pawel.moll-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org, galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux LED Subsystem <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/0pudNttYBM/.QLEovnsqZFY
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Pavel, Sakari,
 
-On Wed, 12 Nov 2014 16:31:54 -0600 Felipe Balbi <balbi@ti.com> wrote:
+On 11/18/2014 05:51 PM, Pavel Machek wrote:
+> Hi!
+>
+>>> If the hardware LED changes with one that needs different current, the
+>>> block for the adp1653 stays the same, but white LED block should be
+>>> updated with different value.
+>>
+>> I think that you are talking about sub nodes. Indeed I am leaning
+>> towards this type of design.
+>
+> I think I am :-).
+>
+>>>> I agree that flash-timeout should be per led - an array, similarly
+>>>> as in case of iout's.
+>>>
+>>> Agreed about per-led, disagreed about the array. As all the fields
+>>> would need arrays, and as LED system currently does not use arrays for
+>>> label and linux,default-trigger, I believe we should follow existing
+>>> design and model it as three devices. (It _is_ physically three devices.)
+>>
+>> Right, I missed that the leds/common.txt describes child node.
+>>
+>> I propose following modifications to the binding:
+>>
+>> Optional properties for child nodes:
+>> - iout-mode-led : 	maximum intensity in microamperes of the LED
+>> 		  	(torch LED for flash devices)
+>> - iout-mode-flash : 	initial intensity in microamperes of the
+>> 			flash LED; it is required to enable support
+>> 			for the flash led
+>> - iout-mode-indicator : initial intensity in microamperes of the
+>> 			indicator LED; it is required to enable support
+>> 			for the indicator led
+>> - max-iout-mode-led : 	maximum intensity in microamperes of the LED
+>> 		  	(torch LED for flash devices)
+>> - max-iout-mode-flash : maximum intensity in microamperes of the
+>> 			flash LED
+>> - max-iout-mode-indicator : maximum intensity in microamperes of the
+>> 			indicator LED
+>> - flash-timeout :	timeout in microseconds after which flash
+>> 			led is turned off
+>
+> Ok, I took a look, and "iout" is notation I understand, but people may
+> have trouble with and I don't see it used anywhere else.
+>
+> Also... do we need both "current" and "max-current" properties?
+>
+> But regulators already have "regulator-max-microamp" property. So what
+> about:
+>
+> max-microamp : 	maximum intensity in microamperes of the LED
+>   		  	(torch LED for flash devices)
+> max-flash-microamp : 	initial intensity in microamperes of the
+>   			flash LED; it is required to enable support
+>   			for the flash led
+> flash-timeout-microseconds : timeout in microseconds after which flash
+>   			led is turned off
+>
+> If you had indicator on the same led, I guess
+>
+> indicator-microamp : recommended intensity in microamperes of the LED
+> 		         for indication
+>
+> ...would do?
 
-> On Wed, Nov 12, 2014 at 01:20:27PM -0800, Tony Lindgren wrote:
-> > * Dr. H. Nikolaus Schaller <hns@goldelico.com> [141112 12:28]:
-> > > Am 12.11.2014 um 16:45 schrieb Grazvydas Ignotas <notasas@gmail.com>:
-> > > > On Tue, Nov 4, 2014 at 5:42 PM, Tony Lindgren <tony@atomide.com> wr=
-ote:
-> > > >=20
-> > > > Pandora does, as well as GTA04 AFAIK,
-> > >=20
-> > > Yes. The trick is that the power level that turns on the device is a =
-little higher
-> > > and the battery provides enough energy for approx. 30 seconds until i=
-t drained
-> > > to a level where it turns off. Depending on general setup (WIFI must =
-remain
-> > > powered off after boot) this is enough to boot into Linux and start f=
-ull charging.
-> > > Another trick is to modify MLO and U-Boot to raise the charging curre=
-nt.
-> >=20
-> > Depending on the device and the boot-up speed this seems to work only w=
-hen
-> > connected to a Linux PC though. AFAIK Windows PCs enforce the 100mA USB=
- power
-> > limit until the device is enumerated which can keep the device in an et=
-ernal
-> > reboot loop not being able to ever get the charging going :)
->=20
-> this is actually what the USB Battery Charging spec requires us to
-> implement. If Linux is doing differently, it's a bug on Linux which
-> should be fixed :-)
->=20
-> No host is allowed to source more then one unit load (100mA in LS/FS/HS,
-> 150mA in SS) until the device is fully enumerated. Host are also
-> required to drop max current budget to 8mA (IIRC) if the device doesn't
-> enumerate for however many minutes (I guess it was a pretty long
-> threshold, something like half an hour or so. My memory fails me right
-> now).
->=20
 
-I think the twl4030 driver does do the "right" thing unless the "allow_usb"
-module parameter is set, in which case it enables charging at a higher rate
-which is 600mA (default value of BCIIREF1).
+Ongoing discussion allowed me for taking a look at the indicator issue
+from different perspective. This is also vital for the issue of
+whether a v4l2-flash sub-device should be created per device or
+per sub-led [1].
 
-It would be nice if the driver could check if a charger was plugged in and
-act accordingly.
-The charger I have for my openmoko is identified by a 47K resistor between =
-ID
-and ground.  The twl4030 can detect that easily enough, but it isn't very
-standard.
+Currently each sub-led is represented as a separate device tree
+sub node and the led drivers create separate LED class device for the
+sub nodes. What this implies is that indicator led also must be
+represented by the separate LED class device.
 
-The standard is of course to have D+ and D- shorted, but I don't know if the
-twl4030 can detect that?  If it can, then getting some very early code to
-check for the short (or the 47k resistor) and quickly enabling charging mig=
-ht
-be a sufficient solution.
+This is contrary to the way how V4L2 Flash API approaches this issue,
+as it considers a flash device as a regulator chip driven through
+a bus. The API allows to set the led in torch or flash mode and
+implicitly assumes that there can be additional indicator led
+supported, which can't be turned on separately, but the drivers apply
+the indicator current to the indicator led when the torch or flash led
+is activated.
 
-NeilBrown
+I propose to create separate v4l2-flash device for the indicator led,
+and treat it as a regular sub-led similarly like it is done in the
+LED subsystem. LED Flash class driver would only add a flag
+LED_DEV_CAP_INDICATOR and basing on it the v4l2-flash sub-device
+would create only V4L2_CID_FLASH_INDICATOR_INTENSITY control for it.
+There could ba also additional control added:
+V4L2_CID_FLASH_INDICATOR_PATTERN to support the feature
+supported by some LED class drivers.
 
---Sig_/0pudNttYBM/.QLEovnsqZFY
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+ From the media device perspective such an approach would
+be harmful, as the indicator led could be turned on right
+before strobing the flash or turning the torch on, by
+separate calls to different v4l2-flash sub-devices.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+The design described above would allow for avoiding issues I touched
+in the message [1].
 
-iQIVAwUBVGwR9Dnsnt1WYoG5AQIs7g/+OfqF6FfolC7x5kOb04o46VwQIiyrleXo
-oGZztPdtkiTM0Ni6mZALybHkW+y/4yhMdrz4kQoIrb5Kn1/LoRAUvSCpB2A2BenC
-yCektVlSTJj8sH1oXvFiJdsOgAtXKdbGW88kSy4rN68UTjOm9qFkHVdgGg+O4X3J
-UuCveALbyvlXNwC5PwlkuIbMAxteHs3tY08Lp7UnJsdL2LKx6LsM0YmBBEK7rej9
-vGUTLJeNMtSWq/bJWBph5SjuRBQQiTxJ/5HxMjM+n6lr0V3p8uUNdD+dR6bP1gRk
-vCweYnQo6gR/2XrxiSKWpykaVYTtgl9qiFNT6htOmKTERT8jPMz5V7TwdhGT1PTO
-BdAlW3Ld2sJRz9pDTgA9R7ag2PCwBU9S1d591G+16A8Zl0FwK5ks1ME68cvuOUSt
-IBPlkCbN3lhC1ADSoRtHuY6R0cZJC9LpDWgxwz66vO/FIfzNUdHHvvo4gxSPwUjz
-5LrZe2neYGxQ4QGke/HTop6h0jgbSuKdp2rcqrIADgsc2DonHUdzry4jkgualYaQ
-7nQrYH+kvUKSrbjhTM0BPjGlER8FcBibrjQPuj+qoD3JKjS6bLFXXYj3b1OJaoXR
-aer9Gsl+gQXpMqDRskN7LdRRVpfIqMe+vq9yv88kLIhVCDyOHs1hdDWxSUZUkvkn
-3WDedru/Kqw=
-=zPpi
------END PGP SIGNATURE-----
+Regarding DT documentation:
 
---Sig_/0pudNttYBM/.QLEovnsqZFY--
+I would also swap the segments of a property name to follow the 
+convention as in case of "regulator-max-microamp".
+
+Updated version:
+
+==========================================================
+
+Optional properties for child nodes:
+- max-microamp : maximum intensity in microamperes of the LED
+		 (torch LED for flash devices)
+- flash-max-microamp : maximum intensity in microamperes of the
+		       flash LED; it is mandatory if the led should
+		       support the flash mode
+- flash-timeout-microsec : timeout in microseconds after which the flash
+		           led is turned off
+- indicator-pattern : identifier of the blinking pattern for the
+		      indicator led
+
+==========================================================
+
+Regards,
+Jacek
+
+[1] 
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/84643
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
