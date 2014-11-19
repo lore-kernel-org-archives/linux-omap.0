@@ -1,118 +1,122 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 0/3] mmc: omap_hsmmc: make more use of mmc library
- functionality
-Date: Thu, 20 Nov 2014 08:44:31 +1100
-Message-ID: <20141120084431.7a2220bc@notabene.brown>
-References: <20141107234628.4923.60525.stgit@notabene.brown>
-	<CAPDyKFr=vjh5UOzkrbn7Fpm8j97sqf6xxD7tm+HydOKtyeYKoQ@mail.gmail.com>
+From: James Hogan <james.hogan@imgtec.com>
+Subject: [PATCH 00/15] tz1090: add clock components
+Date: Wed, 19 Nov 2014 23:15:28 +0000
+Message-ID: <1416438943-11429-1-git-send-email-james.hogan@imgtec.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/H=w4tjHKMTzb/RuIgp.QGOA"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFr=vjh5UOzkrbn7Fpm8j97sqf6xxD7tm+HydOKtyeYKoQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Chris Ball <chris@printf.net>, Balaji T K <balajitk@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, Venkatraman S <svenkatr@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Mike Turquette <mturquette@linaro.org>, linux-metag@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+Cc: James Hogan <james.hogan@imgtec.com>, =?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio@elopez.com.ar>, Heiko Stuebner <heiko@sntech.de>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Mark Rutland <mark.rutland@arm.com>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <robh+dt@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/H=w4tjHKMTzb/RuIgp.QGOA
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+This patchset adds common clock framework support for the TZ1090 SoC.
 
-On Wed, 19 Nov 2014 11:14:24 +0100 Ulf Hansson <ulf.hansson@linaro.org> wro=
-te:
+Patches 1 and 2 are generic and switch clk-divider to use masks
+internally instead of shifts and width. Patch 1 came from Mike's divide=
+r
+DT bindings patchset from a while back. This is required by the TZ1090
+divider binding (patch 13).
 
-> On 8 November 2014 00:52, NeilBrown <neilb@suse.de> wrote:
-> > omap_hsmmc currently duplicates some work that can be done for
-> > it by common code, and consequently does not benefit from extra
-> > functionality in that common code.
-> >
-> > In particular, mmc_of_parse and the slot-gpio library are not used.
-> >
-> > This set of patches allows omap_hsmmc to use that common
-> > functionality, and benefit from any extra devicetree parsing
-> > that it performs.
-> >
-> > The one awkward part of this change is that omap_hsmmc has an
-> > interrupt handler for 'card detect' which does more than the
-> > common code.
-> > I see three options:
-> >  1 - move that functionality into common code
-> >  2 - discard that functionality
-> >  3 - allow the common code to be configured to use a device-specific
-> >      card detect interrupt.
-> >
-> > This series implements '3'.  I suspect a mix of '1' and '2' would
-> > be a better choice but I know no of the history or justification
-> > for those differences.
-> >
-> > My preference would be for this series to be applied (if there are
-> > no other issues) and if there are opinions about effecting '1' or '2',
-> > they can be done with subsequent patches.
-> >
-> > Thanks,
-> > NeilBrown
-> >
->=20
-> I like the looks of this patchset, but it needs a rebase.
+Patches 3 to 14 add TZ1090 clock types and associated DT bindings,
+specifically:
+* PLLs (True Circuits, but TZ1090 specific register interface)
+* Gate banks (a register containing clock gate bits)
+* Mux banks (a register containing clock mux bits)
+* Clock deleters (delete up to 1023 out of every 1024 clocks)
+* PDC clock (combined divider and mux)
+* Divider clock (pretty basic divider, but specific to TZ1090)
 
-Thanks.  What should I rebase against?  Is 3.18-rc sufficient or is there
-some other tree I should work against?
+=46inally patch 15 defines most of the TZ1090 clocks using these
+components, with a few placeholders for less interesting clocks from
+more complex components. This is mostly for reference to give an idea
+how the clock components are intended to be used, and I'll take this on=
+e
+through the metag tree when the drivers/clk/ stuff is accepted.
 
-Thanks,
-NeilBrown
+James Hogan (14):
+  clk: divider: expose new clk_register_divider_mask
+  dt: binding: add binding for tz1090-pll clock
+  clk: tz1090: add PLL clock driver
+  dt: binding: add binding for TZ1090 gate bank
+  clk: tz1090: add gate bank clock driver
+  dt: binding: add binding for TZ1090 mux bank
+  clk: tz1090: add mux bank clock driver
+  dt: binding: add binding for TZ1090 clock deleter
+  clk: tz1090: add deleter clock driver
+  dt: binding: add binding for TZ1090 PDC clock
+  clk: tz1090: add PDC clock driver
+  dt: binding: add binding for TZ1090 divider clock
+  clk: tz1090: add divider clock driver
+  metag: tz1090: add TZ1090 clocks to device tree
 
->=20
-> Kind regards
-> Uffe
->=20
-> >
-> > ---
-> >
-> > NeilBrown (3):
-> >       mmc: omap_hsmmc: remove prepare/complete system suspend support.
-> >       mmc: omap_hsmmc: use slot-gpio library for gpio support.
-> >       mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configurati=
-on.
-> >
-> >
-> >  drivers/mmc/core/slot-gpio.c           |   21 ++++
-> >  drivers/mmc/host/omap_hsmmc.c          |  158 +++++-------------------=
---------
-> >  include/linux/mmc/slot-gpio.h          |    2
-> >  include/linux/platform_data/mmc-omap.h |    4 -
-> >  4 files changed, 47 insertions(+), 138 deletions(-)
-> >
-> > --
-> > Signature
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Mike Turquette (1):
+  clk: divider: replace bitfield width with mask
 
+ .../bindings/clock/img,tz1090-deleter.txt          |  40 ++
+ .../bindings/clock/img,tz1090-divider.txt          |  37 +
+ .../bindings/clock/img,tz1090-gate-bank.txt        |  52 ++
+ .../bindings/clock/img,tz1090-mux-bank.txt         |  56 ++
+ .../bindings/clock/img,tz1090-pdc-clock.txt        |  44 ++
+ .../devicetree/bindings/clock/img,tz1090-pll.txt   |  33 +
+ arch/arm/mach-imx/clk-busy.c                       |   2 +-
+ arch/arm/mach-imx/clk-fixup-div.c                  |   2 +-
+ arch/metag/Kconfig.soc                             |   1 +
+ arch/metag/boot/dts/tz1090.dtsi                    |   4 +
+ arch/metag/boot/dts/tz1090_clk.dtsi                | 784 +++++++++++++=
+++++++++
+ drivers/clk/Makefile                               |   1 +
+ drivers/clk/clk-divider.c                          |  58 +-
+ drivers/clk/mxs/clk-div.c                          |   2 +-
+ drivers/clk/rockchip/clk.c                         |   2 +-
+ drivers/clk/st/clk-flexgen.c                       |   4 +-
+ drivers/clk/st/clkgen-mux.c                        |   4 +-
+ drivers/clk/st/clkgen-pll.c                        |   2 +-
+ drivers/clk/sunxi/clk-sunxi.c                      |   2 +-
+ drivers/clk/ti/divider.c                           |   2 +-
+ drivers/clk/tz1090/Makefile                        |   7 +
+ drivers/clk/tz1090/clk-tz1090-deleter.c            | 188 +++++
+ drivers/clk/tz1090/clk-tz1090-divider.c            |  96 +++
+ drivers/clk/tz1090/clk-tz1090-gate-bank.c          | 199 ++++++
+ drivers/clk/tz1090/clk-tz1090-mux-bank.c           | 191 +++++
+ drivers/clk/tz1090/clk-tz1090-pdc.c                | 185 +++++
+ drivers/clk/tz1090/clk-tz1090-pll.c                | 305 ++++++++
+ include/linux/clk-private.h                        |   2 +-
+ include/linux/clk-provider.h                       |   7 +-
+ 29 files changed, 2282 insertions(+), 30 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/clock/img,tz1090-=
+deleter.txt
+ create mode 100644 Documentation/devicetree/bindings/clock/img,tz1090-=
+divider.txt
+ create mode 100644 Documentation/devicetree/bindings/clock/img,tz1090-=
+gate-bank.txt
+ create mode 100644 Documentation/devicetree/bindings/clock/img,tz1090-=
+mux-bank.txt
+ create mode 100644 Documentation/devicetree/bindings/clock/img,tz1090-=
+pdc-clock.txt
+ create mode 100644 Documentation/devicetree/bindings/clock/img,tz1090-=
+pll.txt
+ create mode 100644 arch/metag/boot/dts/tz1090_clk.dtsi
+ create mode 100644 drivers/clk/tz1090/Makefile
+ create mode 100644 drivers/clk/tz1090/clk-tz1090-deleter.c
+ create mode 100644 drivers/clk/tz1090/clk-tz1090-divider.c
+ create mode 100644 drivers/clk/tz1090/clk-tz1090-gate-bank.c
+ create mode 100644 drivers/clk/tz1090/clk-tz1090-mux-bank.c
+ create mode 100644 drivers/clk/tz1090/clk-tz1090-pdc.c
+ create mode 100644 drivers/clk/tz1090/clk-tz1090-pll.c
 
---Sig_/H=w4tjHKMTzb/RuIgp.QGOA
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIVAwUBVG0PPznsnt1WYoG5AQL1CRAAiyq+USFIPgRFmSfmWsLBb+jUXWQw9WUL
-wj044A4rtK/deuEWqzQfodo23bZvi/3s64Q70VbgBMCsu20sAj0Vc2Of1gi6KSqk
-x5z3ic/HcWUNWlN5RnkoR0vR6Bj98dj4lMBOryw5gNW2FfZ8by1Wu8qcmwUHffsS
-Rvo5GPzzVW9kLdkJUVBb1lxB8KYv27Fh/3ca3Bts9TJAQh5HzBGgGl/4+XWLDTkB
-/YSiqxPEwbdw6bw6mOEcPvQ970jFjWbFrHWJXciK2Wv38x55arq4hKa5NcMRY+f/
-xH6o9n0LrGIYKYgpdgimMLG7vW8p9kzJ19v9jxMlzW1urXWsrOuKfky/hdeMq2jn
-QtkepdrajTn8K0E72TKiLCc3scXQcsqs+5JhSg5ILnSJMb2qTDNR1vNM3Z6b/mp+
-4a7P2ULI5kGETKXxrAgjwFdHW+jkLw/I5GT0PQrovfLuLoSu5HkaGmwoKRbPNE8S
-cBjeng79RhR9EBnbgeYgulGWQ5iYc7FIVT9Alie8FYkox+F/9ZHrQF7p81u5dIhp
-+LsbWNUtScCm6e557V4mzgyQ8LA5Nlh9G6hYxgutslXDbDtaQJ/3Mo8uK79AFQ8n
-FK//Y6iMfTxCZLzk8KYCKLDFbeAdgfBp7DtO9mGtdmNv/KleFZ4iX+kgwpsOemO4
-0haZeQek7t4=
-=y1zT
------END PGP SIGNATURE-----
-
---Sig_/H=w4tjHKMTzb/RuIgp.QGOA--
+Cc: "Emilio L=C3=B3pez" <emilio@elopez.com.ar>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-rockchip@lists.infradead.org
+--=20
+2.0.4
