@@ -1,57 +1,184 @@
-From: Alexander Kochetkov <al.kochet@gmail.com>
-Subject: [PATCH 3/4] i2c: omap: don't reset controller if Arbitration Lost detected
-Date: Fri, 21 Nov 2014 01:28:44 +0400
-Message-ID: <1416518925-20679-4-git-send-email-al.kochet@gmail.com>
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
+Date: Fri, 21 Nov 2014 01:28:43 +0400
+Message-ID: <1416518925-20679-3-git-send-email-al.kochet@gmail.com>
 References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, al.kochet@gmail.com
-Cc: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1416518925-20679-1-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Arbitration Lost is a expected situation in a multimaster environment.
-IP correctly detect it.
+In a multimaster environment, after IP software reset, BB-bit value doesn't
+correspond to the current bus state. It may happen what BB-bit will be 0,
+while the bus is busy due to another I2C master activity.
 
-The only reason for reseting IP in the AL case is to be sure to
-avoid advisory 1.94 (omap3) and errata i595 (omap4):
-"I2C: After an Arbitration is Lost the Module Incorrectly Starts
-the Next Transfer" with workaround: "The MST and STT bits inside
-I2C_CON should be set to 1 at the same moment (avoid setting the
-MST bit to 1 while STT = 0)."
+Any transfer started when BB=0 and bus is busy wouldn't be completed by IP
+and results in controller timeout. More over, in some cases IP could
+interrupt another master's transfer and corrupt data on wire.
 
-The driver never writes MST and STT bits separately and doesn't
-create condition for errata. So the reset is not necessary.
+The commit implement method allowing to prevent IP from entering into
+"controller timeout" state and from "data corruption" state.
+
+The one drawback is the need to wait for 10ms before the first transfer.
 
 Tested on Beagleboard XM C.
 
-Signed-off-by: Alexander Kochetkov <al.kochet@gmail.com>
+Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-omap.c |  103 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 103 insertions(+)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 3ffb9c0..47103e7 100644
+index a021733..3ffb9c0 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -707,13 +707,17 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 		return 0;
+@@ -58,6 +58,9 @@
+ /* timeout for pm runtime autosuspend */
+ #define OMAP_I2C_PM_TIMEOUT		1000	/* ms */
  
- 	/* We have an error */
--	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
-+	if (dev->cmd_err & (OMAP_I2C_STAT_ROVR |
- 			    OMAP_I2C_STAT_XUDF)) {
- 		omap_i2c_reset(dev);
- 		__omap_i2c_init(dev);
- 		return -EIO;
++/* timeout for making decision on bus free status */
++#define OMAP_I2C_BUS_FREE_TIMEOUT (msecs_to_jiffies(10))
++
+ /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
+ enum {
+ 	OMAP_I2C_REV_REG = 0,
+@@ -210,6 +213,9 @@ struct omap_i2c_dev {
+ 						 */
+ 	u32			rev;
+ 	unsigned		b_hw:1;		/* bad h/w fixes */
++	unsigned		bb_valid:1;	/* true when BB-bit reflects
++						 * the I2C bus state
++						 */
+ 	unsigned		receiver:1;	/* true when we're in receiver mode */
+ 	u16			iestate;	/* Saved interrupt register */
+ 	u16			pscstate;
+@@ -336,7 +342,10 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
+ 		/* SYSC register is cleared by the reset; rewrite it */
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, sysc);
+ 
++		/* Schedule I2C-bus monitoring on the next transfer */
++		dev->bb_valid = 0;
  	}
++
+ 	return 0;
+ }
  
-+	if (dev->cmd_err & OMAP_I2C_STAT_AL) {
-+		return -EIO;
+@@ -449,6 +458,11 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	dev->scllstate = scll;
+ 	dev->sclhstate = sclh;
+ 
++	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
++		/* Not implemented */
++		dev->bb_valid = 1;
 +	}
 +
- 	if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
- 		if (msg->flags & I2C_M_IGNORE_NAK)
- 			return 0;
+ 	__omap_i2c_init(dev);
+ 
+ 	return 0;
+@@ -473,6 +487,91 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
+ 	return 0;
+ }
+ 
++/*
++ * Wait while BB-bit doesn't reflect the I2C bus state
++ *
++ * In a multimaster environment, after IP software reset, BB-bit value doesn't
++ * correspond to the current bus state. It may happen what BB-bit will be 0,
++ * while the bus is busy due to another I2C master activity.
++ * Here are BB-bit values after reset:
++ *     SDA   SCL   BB   NOTES
++ *       0     0    0   1, 2
++ *       1     0    0   1, 2
++ *       0     1    1
++ *       1     1    0   3
++ * Later, if IP detect SDA=0 and SCL=1 (ACK) or SDA 1->0 while SCL=1 (START)
++ * combinations on the bus, it set BB-bit to 1.
++ * If IP detect SDA 0->1 while SCL=1 (STOP) combination on the bus,
++ * it set BB-bit to 0 and BF to 1.
++ * BB and BF bits correctly tracks the bus state while IP is suspended
++ * BB bit became valid on the next FCLK clock after CON_EN bit set
++ *
++ * NOTES:
++ * 1. Any transfer started when BB=0 and bus is busy wouldn't be
++ *    completed by IP and results in controller timeout.
++ * 2. Any transfer started when BB=0 and SCL=0 results in IP
++ *    starting to drive SDA low. In that case IP corrupt data
++ *    on the bus.
++ * 3. Any transfer started in the middle of another master's transfer
++ *    results in unpredictable results and data corruption
++ */
++static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *dev)
++{
++	unsigned long bus_free_timeout = 0;
++	unsigned long timeout;
++	int bus_free = 0;
++	u16 stat, systest;
++
++	if (dev->bb_valid)
++		return 0;
++
++	timeout = jiffies + OMAP_I2C_TIMEOUT;
++	while (1) {
++		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
++		/*
++		 * We will see BB or BF event in a case IP had detected any
++		 * activity on the I2C bus. Now IP correctly tracks the bus
++		 * state. BB-bit value is valid.
++		 */
++		if (stat & (OMAP_I2C_STAT_BB | OMAP_I2C_STAT_BF))
++			break;
++
++		/*
++		 * Otherwise, we must look signals on the bus to make
++		 * the right decision.
++		 */
++		systest = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++		if ((systest & OMAP_I2C_SYSTEST_SCL_I_FUNC) &&
++		    (systest & OMAP_I2C_SYSTEST_SDA_I_FUNC)) {
++			if (!bus_free) {
++				bus_free_timeout = jiffies +
++					OMAP_I2C_BUS_FREE_TIMEOUT;
++				bus_free = 1;
++			}
++
++			/*
++			 * SDA and SCL lines was high for 10 ms without bus
++			 * activity detected. The bus is free. Consider
++			 * BB-bit value is valid.
++			 */
++			if (time_after(jiffies, bus_free_timeout))
++				break;
++		} else {
++			bus_free = 0;
++		}
++
++		if (time_after(jiffies, timeout)) {
++			dev_warn(dev->dev, "timeout waiting for bus ready\n");
++			return -ETIMEDOUT;
++		}
++
++		msleep(1);
++	}
++
++	dev->bb_valid = 1;
++	return 0;
++}
++
+ static void omap_i2c_resize_fifo(struct omap_i2c_dev *dev, u8 size, bool is_rx)
+ {
+ 	u16		buf;
+@@ -643,6 +742,10 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 	if (IS_ERR_VALUE(r))
+ 		goto out;
+ 
++	r = omap_i2c_wait_for_bb_valid(dev);
++	if (r < 0)
++		goto out;
++
+ 	r = omap_i2c_wait_for_bb(dev);
+ 	if (r < 0)
+ 		goto out;
 -- 
 1.7.9.5
