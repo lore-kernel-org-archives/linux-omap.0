@@ -1,76 +1,63 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC PATCH 0/6] ARM: OMAP4+: hwmod: fixing omap4+ DSS hwmods
-Date: Thu, 20 Nov 2014 07:04:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411200342370.9204@utopia.booyaka.com>
-References: <1412863399-9508-1-git-send-email-tomi.valkeinen@ti.com> <5465C2A4.3060901@ti.com>
+Subject: Re: [PATCH v2 2/3] ARM: OMAP2+: hwmod: AM335x/AM43x: add hwmod
+ support for tscadc on am43x-evm
+Date: Thu, 20 Nov 2014 07:09:51 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1411200706441.9204@utopia.booyaka.com>
+References: <1415099728-10959-1-git-send-email-vigneshr@ti.com> <1415099728-10959-3-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:59400 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:59434 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775AbaKTHEc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 02:04:32 -0500
-In-Reply-To: <5465C2A4.3060901@ti.com>
+	with ESMTP id S1750775AbaKTHJw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 02:09:52 -0500
+In-Reply-To: <1415099728-10959-3-git-send-email-vigneshr@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Archit Taneja <archit.taneja@gmail.com>
+To: Vignesh R <vigneshr@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Tomi,
+On Tue, 4 Nov 2014, Vignesh R wrote:
 
-thanks for the ping.
-
-On Fri, 14 Nov 2014, Tomi Valkeinen wrote:
-
-> On 09/10/14 17:03, Tomi Valkeinen wrote:
-> > This is an RFC to fix the issues with boot time DSS hwmod setup.
-> > 
-> > There was an earlier series sent by Archit here:
-> > 
-> > http://www.spinics.net/lists/linux-omap/msg107700.html
-> > 
-> > This series takes different approach, and just tries to fix the issue at setup
-> > time by making sure the DSS core hwmod is enabled when a DSS submodule hwmod is
-> > being setup.
-> > 
-> > Quickly tested on OMAP4 Panda and OMAP5 uEVM.
-> > 
-> >  Tomi
-> > 
-> > Tomi Valkeinen (6):
-> >   ARM: OMAP2+: hwmod: add parent_hwmod support
-> >   ARM: OMAP5: hwmod: set DSS submodule parent hwmods
-> >   ARM: OMAP4: hwmod: set DSS submodule parent hwmods
-> >   ARM: OMAP4: hwmod: use MODULEMODE properly
-> >   ARM: OMAP4: fix RFBI iclk
-> >   ARM: dts: omap4.dtsi: remove dss_fck
-> > 
-> >  arch/arm/boot/dts/omap4.dtsi               |  2 +-
-> >  arch/arm/boot/dts/omap44xx-clocks.dtsi     |  8 --------
-> >  arch/arm/mach-omap2/omap_hwmod.c           | 22 ++++++++++++++++++++++
-> >  arch/arm/mach-omap2/omap_hwmod.h           |  1 +
-> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 25 ++++++++++++++++---------
-> >  arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  5 +++++
-> >  6 files changed, 45 insertions(+), 18 deletions(-)
-> > 
+> This patch adds hwmod support for tscadc to work on am43xx-evm. The am33xx
+> hwmod structures of tscadc has been moved to ipblock_data so that it can
+> be reused in am43xx. The clock domain names are separately set for am33xx
+> and am43xx. Thus tscadc dt entries can now be added to am43xx board
+> dt files.
 > 
-> Ping. Would this series be acceptable?
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 
-Yes, it looks good for the short term, and definitely moves us closer to 
-where we should be.  
+...
 
-Queued with Archit's Reviewed-by:, with some extra documentation added to 
-the first patch.  If you have a spare moment, could you take a quick look 
-at it?  It should not result in any functional changes.
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+> index 6e57b8ad0db5..b92a7c7825fa 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
 
-In theory, that .parent_hwmod information should come from the 
-omap_hwmod_ocp_if data.  But as you know, unfortunately due to some 
-limitations in the hwmod code, we don't handle IP blocks with multiple 
-interconnect parents very well right now.  Ultimately we should only have 
-one "OCP" interface between each of the DSS IP blocks.  But for that to 
-work, the physical address code needs to be overhauled, and the data 
-should be specified as offsets rather than absolute addresses.  One of 
-these days.
+...
+
+> +static void am33xx_hwmod_clockdomain(void)
+> +{
+> +	CLKDMNAME(am33xx_l4_hs_hwmod, "l4hs_clkdm");
+> +	CLKDMNAME(am33xx_adc_tsc_hwmod, "l4_wkup_clkdm");
+> +}
+> +
+> +static void am43xx_hwmod_clockdomain(void)
+> +{
+> +	CLKDMNAME(am33xx_l4_hs_hwmod, "l3_clkdm");
+> +	CLKDMNAME(am33xx_adc_tsc_hwmod, "l3s_tsc_clkdm");
+> +}
+> +
+
+...
+
+> +	am33xx_hwmod_clockdomain();
+
+I looked at this patch and the one before it.  Is there some reason why we 
+need to share these two hwmods between AM33xx and AM43xx?  It seems 
+cleaner just to add the ADC data directly to the AM43xx hwmod data file, 
+not touch the AM33xx data, and not add another runtime data update for the 
+clockdomains.  Unless there's something that I'm missing?
 
 
 - Paul
