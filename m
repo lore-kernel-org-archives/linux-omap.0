@@ -1,65 +1,71 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
-Date: Thu, 20 Nov 2014 13:48:27 +0100
-Message-ID: <546DE31B.20602@samsung.com>
-References: <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
- <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
- <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
- <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
- <546B6D86.8090701@samsung.com> <20141118165148.GA11711@amd>
- <546C66A5.6060201@samsung.com> <20141120121202.GA27527@amd>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache
+ save
+Date: Thu, 20 Nov 2014 19:26:00 +0530
+Message-ID: <546DF2F0.9080405@ti.com>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com> <1415941651-28962-4-git-send-email-vigneshr@ti.com> <20141118143005.GF24004@x1> <20141118171240.GB3003@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-reply-to: <20141120121202.GA27527@amd>
-Sender: linux-leds-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org, Linux LED Subsystem <linux-leds@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20141118171240.GB3003@dtor-ws>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>
+Cc: Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orglinu
 List-Id: linux-omap@vger.kernel.org
 
-Hi Pavel,
-
-On 11/20/2014 01:12 PM, Pavel Machek wrote:
-> Hi!
->
->> I would also swap the segments of a property name to follow the convention
->> as in case of "regulator-max-microamp".
+On Tuesday 18 November 2014 10:42 PM, Dmitry Torokhov wrote:
+> On Tue, Nov 18, 2014 at 02:30:05PM +0000, Lee Jones wrote:
+>> On Fri, 14 Nov 2014, Vignesh R wrote:
 >>
->> Updated version:
+>>> In one shot mode, sequencer automatically disables all enabled steps at
+>>> the end of each cycle. (both ADC steps and TSC steps) Hence these steps
+>>> need not be saved in reg_se_cache for clearing these steps at a later
+>>> stage.
+>>> Also, when ADC wakes up Sequencer should not be busy executing any of the
+>>> config steps except for the charge step. Previously charge step was 1 ADC
+>>> clock cycle and hence it was ignored.
+>>>
+>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>> ---
+>>>  drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
+>>>  include/linux/mfd/ti_am335x_tscadc.h | 1 +
+>>>  2 files changed, 6 insertions(+), 2 deletions(-)
 >>
->> ==========================================================
+>> Code looks better now.
 >>
->> Optional properties for child nodes:
->> - max-microamp : maximum intensity in microamperes of the LED
->> 		 (torch LED for flash devices)
->> - flash-max-microamp : maximum intensity in microamperes of the
->> 		       flash LED; it is mandatory if the led should
->> 		       support the flash mode
->> - flash-timeout-microsec : timeout in microseconds after which the flash
->> 		           led is turned off
->
-> Works for me. Do you want to submit a patch or should I do it?
-
-You can submit a patch for leds/common.txt and a separate patch for the
-adp1653 with a reference to the leds/common.txt for the child nodes.
-
->
->> - indicator-pattern : identifier of the blinking pattern for the
->> 		      indicator led
+>> Acked-by: Lee Jones <lee.jones@linaro.org>
 >>
->
-> This would need a bit more documentation, no?
+>> What's the plan for this series?
+> 
+> I am waiting for the interested parties to provide more feedback. So far
+> I have seen a few reports saying that they see issues with the series
+> applied.
 
-- indicator-pattern : identifier of the blinking pattern for the
-  		      indicator led; valid identifiers should be
-		      defined in the documentation of the parent
-		      node.
+I tested this using lcd7 cape connected to beaglebone black. The latest
+kernel I could find on this board was a TI BSP based v3.14 kernel. So I
+had to port these patches to that kernel. Cc Robert Nelson to see if he
+knows about a more recent kernel supporting that cape.
 
-I wouldn't go for pre-defined identifiers as the pattern
-can be a combination of various settings like ramp-up, ramp-down,
-pulse time etc. Drivers should expose only few combinations of
-these settings in my opinion, like e.g. leds-lm355x.c does.
+I did not see any breakage with these patches applied although I did not
+see any noticeable performance improvement as well.
 
-Regards,
-Jacek
+I also tested along with continuous loop reading from
+/sys/bus/iio/devices/iio:device0/in_voltage5_raw
+
+I have pushed the kernel I used here in case anyone wants to take a look
+at my porting.
+
+http://git.ti.com/cgit/cgit.cgi/~nsekhar/ti-linux-kernel/nsekhar-ti-linux-kernel.git/log/?h=am335x-tsc-test
+
+I also tested this series on AM335x EVM using the v3.18-rc5 kernel.
+Again, no breakage but no improvement as well.
+
+All testing was done using ts_test
+
+FWIW, you can add:
+
+Tested-by: Sekhar Nori <nsekhar@ti.com>
+
+Thanks,
+Sekhar
