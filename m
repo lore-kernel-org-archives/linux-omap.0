@@ -1,119 +1,91 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] ARM: OMAP2+: Move GPMC initcall to devices.c
-Date: Thu, 20 Nov 2014 14:28:20 -0800
-Message-ID: <1416522501-14999-3-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/3] drivers: bus: Move omap gpmc code to live under drivers
+Date: Thu, 20 Nov 2014 14:28:21 -0800
+Message-ID: <1416522501-14999-4-git-send-email-tony@atomide.com>
 References: <1416522501-14999-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48035 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48131 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756935AbaKTW3A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 17:29:00 -0500
+	with ESMTP id S1757320AbaKTW3D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 17:29:03 -0500
 In-Reply-To: <1416522501-14999-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Roger Quadros <rogerq@ti.com>
 
-This will us allow to just move gpmc.c to live under drivers
-in the next patch.
-
-Note that we now also remove the omap specific check for the
-initcall. That's OK as gpmc_probe() checks for the pdata
-and bails out for other platforms compiled in.
+Just move to drivers as further clean-up can now happen there
+finally.
 
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Roger Quadros <rogerq@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/devices.c | 26 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc.c    | 31 +------------------------------
- 2 files changed, 27 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/Kconfig                           | 1 +
+ arch/arm/mach-omap2/Makefile                          | 2 +-
+ drivers/bus/Kconfig                                   | 3 +++
+ drivers/bus/Makefile                                  | 3 ++-
+ arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c | 0
+ 5 files changed, 7 insertions(+), 2 deletions(-)
+ rename arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c (100%)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 324f02b..110256a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -445,3 +445,29 @@ static int __init omap2_init_devices(void)
- 	return 0;
- }
- omap_arch_initcall(omap2_init_devices);
-+
-+static int __init omap_gpmc_init(void)
-+{
-+	struct omap_hwmod *oh;
-+	struct platform_device *pdev;
-+	char *oh_name = "gpmc";
-+
-+	/*
-+	 * if the board boots up with a populated DT, do not
-+	 * manually add the device from this initcall
-+	 */
-+	if (of_have_populated_dt())
-+		return -ENODEV;
-+
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
-+		return -ENODEV;
-+	}
-+
-+	pdev = omap_device_build("omap-gpmc", -1, oh, NULL, 0);
-+	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
-+
-+	return PTR_RET(pdev);
-+}
-+omap_postcore_initcall(omap_gpmc_init);
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index bc14f25..80dfb17 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -37,9 +37,6 @@
- #include <linux/platform_data/mtd-nand-omap2.h>
- #include <linux/platform_data/mtd-onenand-omap2.h>
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index f4d06ae..3021901 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -80,6 +80,7 @@ config ARCH_OMAP2PLUS
+ 	select GENERIC_IRQ_CHIP
+ 	select MACH_OMAP_GENERIC
+ 	select OMAP_DM_TIMER
++	select OMAP_GPMC
+ 	select PINCTRL
+ 	select SOC_BUS
+ 	select TI_PRIV_EDMA
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 3e824f8..bd85741 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -6,7 +6,7 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
+ 	-I$(srctree)/arch/arm/plat-omap/include
  
--#include "soc.h"
--#include "omap_device.h"
--
- #include <asm/mach-types.h>
+ # Common support
+-obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o gpmc.o timer.o pm.o \
++obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
+ 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
+ 	 omap_device.o sram.o drm.o
  
- #define	DEVICE_NAME		"omap-gpmc"
-@@ -2010,35 +2007,9 @@ static __exit void gpmc_exit(void)
+diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
+index 603eb1b..09aacc8 100644
+--- a/drivers/bus/Kconfig
++++ b/drivers/bus/Kconfig
+@@ -27,6 +27,9 @@ config MVEBU_MBUS
+ 	  Driver needed for the MBus configuration on Marvell EBU SoCs
+ 	  (Kirkwood, Dove, Orion5x, MV78XX0 and Armada 370/XP).
  
- }
++config OMAP_GPMC
++	bool
++
+ config OMAP_OCP2SCP
+ 	tristate "OMAP OCP2SCP DRIVER"
+ 	depends on ARCH_OMAP2PLUS
+diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
+index 2973c18..96e77dd 100644
+--- a/drivers/bus/Makefile
++++ b/drivers/bus/Makefile
+@@ -5,7 +5,8 @@
+ obj-$(CONFIG_BRCMSTB_GISB_ARB)	+= brcmstb_gisb.o
+ obj-$(CONFIG_IMX_WEIM)	+= imx-weim.o
+ obj-$(CONFIG_MVEBU_MBUS) += mvebu-mbus.o
+-obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
++
++obj-$(CONFIG_OMAP_GPMC)		+= omap-gpmc.o
  
--omap_postcore_initcall(gpmc_init);
-+postcore_initcall(gpmc_init);
- module_exit(gpmc_exit);
- 
--static int __init omap_gpmc_init(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--	char *oh_name = "gpmc";
--
--	/*
--	 * if the board boots up with a populated DT, do not
--	 * manually add the device from this initcall
--	 */
--	if (of_have_populated_dt())
--		return -ENODEV;
--
--	oh = omap_hwmod_lookup(oh_name);
--	if (!oh) {
--		pr_err("Could not look up %s\n", oh_name);
--		return -ENODEV;
--	}
--
--	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0);
--	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
--
--	return PTR_RET(pdev);
--}
--omap_postcore_initcall(omap_gpmc_init);
--
- static irqreturn_t gpmc_handle_irq(int irq, void *dev)
- {
- 	int i;
+ # Interconnect bus driver for OMAP SoCs.
+ obj-$(CONFIG_OMAP_INTERCONNECT)	+= omap_l3_smx.o omap_l3_noc.o
+diff --git a/arch/arm/mach-omap2/gpmc.c b/drivers/bus/omap-gpmc.c
+similarity index 100%
+rename from arch/arm/mach-omap2/gpmc.c
+rename to drivers/bus/omap-gpmc.c
 -- 
 2.1.3
 
