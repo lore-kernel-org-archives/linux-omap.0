@@ -1,132 +1,76 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC PATCH 1/6] ARM: OMAP2+: hwmod: add parent_hwmod support
-Date: Thu, 20 Nov 2014 07:03:43 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411200702440.9204@utopia.booyaka.com>
-References: <1412863399-9508-1-git-send-email-tomi.valkeinen@ti.com> <1412863399-9508-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [RFC PATCH 0/6] ARM: OMAP4+: hwmod: fixing omap4+ DSS hwmods
+Date: Thu, 20 Nov 2014 07:04:31 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1411200342370.9204@utopia.booyaka.com>
+References: <1412863399-9508-1-git-send-email-tomi.valkeinen@ti.com> <5465C2A4.3060901@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:59393 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:59400 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838AbaKTHDp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 02:03:45 -0500
-In-Reply-To: <1412863399-9508-2-git-send-email-tomi.valkeinen@ti.com>
+	with ESMTP id S1750775AbaKTHEc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 02:04:32 -0500
+In-Reply-To: <5465C2A4.3060901@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Archit Taneja <archit.taneja@gmail.com>
 
-Hi
+Hi Tomi,
 
-On Thu, 9 Oct 2014, Tomi Valkeinen wrote:
+thanks for the ping.
 
-> Add parent_hwmod pointer to omap_hwmod. This can be set to point to a
-> "parent" hwmod that needs to be enabled for the "child" hwmod to work.
+On Fri, 14 Nov 2014, Tomi Valkeinen wrote:
+
+> On 09/10/14 17:03, Tomi Valkeinen wrote:
+> > This is an RFC to fix the issues with boot time DSS hwmod setup.
+> > 
+> > There was an earlier series sent by Archit here:
+> > 
+> > http://www.spinics.net/lists/linux-omap/msg107700.html
+> > 
+> > This series takes different approach, and just tries to fix the issue at setup
+> > time by making sure the DSS core hwmod is enabled when a DSS submodule hwmod is
+> > being setup.
+> > 
+> > Quickly tested on OMAP4 Panda and OMAP5 uEVM.
+> > 
+> >  Tomi
+> > 
+> > Tomi Valkeinen (6):
+> >   ARM: OMAP2+: hwmod: add parent_hwmod support
+> >   ARM: OMAP5: hwmod: set DSS submodule parent hwmods
+> >   ARM: OMAP4: hwmod: set DSS submodule parent hwmods
+> >   ARM: OMAP4: hwmod: use MODULEMODE properly
+> >   ARM: OMAP4: fix RFBI iclk
+> >   ARM: dts: omap4.dtsi: remove dss_fck
+> > 
+> >  arch/arm/boot/dts/omap4.dtsi               |  2 +-
+> >  arch/arm/boot/dts/omap44xx-clocks.dtsi     |  8 --------
+> >  arch/arm/mach-omap2/omap_hwmod.c           | 22 ++++++++++++++++++++++
+> >  arch/arm/mach-omap2/omap_hwmod.h           |  1 +
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 25 ++++++++++++++++---------
+> >  arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  5 +++++
+> >  6 files changed, 45 insertions(+), 18 deletions(-)
+> > 
 > 
-> This is used at hwmod setup time: when doing the initial setup and
-> reset, first enable the parent hwmod, and after setup and reset is done,
-> restore the parent hwmod to postsetup_state.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Ping. Would this series be acceptable?
 
-This one has been updated here to add some kerneldoc documentation.  
-Please let me know if you have any objections.
+Yes, it looks good for the short term, and definitely moves us closer to 
+where we should be.  
+
+Queued with Archit's Reviewed-by:, with some extra documentation added to 
+the first patch.  If you have a spare moment, could you take a quick look 
+at it?  It should not result in any functional changes.
+
+In theory, that .parent_hwmod information should come from the 
+omap_hwmod_ocp_if data.  But as you know, unfortunately due to some 
+limitations in the hwmod code, we don't handle IP blocks with multiple 
+interconnect parents very well right now.  Ultimately we should only have 
+one "OCP" interface between each of the DSS IP blocks.  But for that to 
+work, the physical address code needs to be overhauled, and the data 
+should be specified as offsets rather than absolute addresses.  One of 
+these days.
 
 
 - Paul
-
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Thu, 9 Oct 2014 17:03:14 +0300
-Subject: [PATCH] ARM: OMAP2+: hwmod: add parent_hwmod support
-
-Add parent_hwmod pointer to omap_hwmod. This can be set to point to a
-"parent" hwmod that needs to be enabled for the "child" hwmod to work.
-
-This is used at hwmod setup time: when doing the initial setup and
-reset, first enable the parent hwmod, and after setup and reset is done,
-restore the parent hwmod to postsetup_state.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Reviewed-by: Archit Taneja <archit.taneja@gmail.com>
-[paul@pwsan.com: add kerneldoc documentation for parent_hwmod; note that it
- is a temporary workaround]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 22 ++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.h |  8 ++++++++
- 2 files changed, 30 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index acae6d5d1151..a2c7b300fe89 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2719,11 +2719,33 @@ static int __init _setup(struct omap_hwmod *oh, void *data)
- 	if (oh->_state != _HWMOD_STATE_INITIALIZED)
- 		return 0;
- 
-+	if (oh->parent_hwmod) {
-+		int r;
-+
-+		r = _enable(oh->parent_hwmod);
-+		WARN(r, "hwmod: %s: setup: failed to enable parent hwmod %s\n",
-+		     oh->name, oh->parent_hwmod->name);
-+	}
-+
- 	_setup_iclk_autoidle(oh);
- 
- 	if (!_setup_reset(oh))
- 		_setup_postsetup(oh);
- 
-+	if (oh->parent_hwmod) {
-+		u8 postsetup_state;
-+
-+		postsetup_state = oh->parent_hwmod->_postsetup_state;
-+
-+		if (postsetup_state == _HWMOD_STATE_IDLE)
-+			_idle(oh->parent_hwmod);
-+		else if (postsetup_state == _HWMOD_STATE_DISABLED)
-+			_shutdown(oh->parent_hwmod);
-+		else if (postsetup_state != _HWMOD_STATE_ENABLED)
-+			WARN(1, "hwmod: %s: unknown postsetup state %d! defaulting to enabled\n",
-+			     oh->parent_hwmod->name, postsetup_state);
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 512f809a3f4d..35ca6efbec31 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -633,6 +633,7 @@ struct omap_hwmod_link {
-  * @flags: hwmod flags (documented below)
-  * @_lock: spinlock serializing operations on this hwmod
-  * @node: list node for hwmod list (internal use)
-+ * @parent_hwmod: (temporary) a pointer to the hierarchical parent of this hwmod
-  *
-  * @main_clk refers to this module's "main clock," which for our
-  * purposes is defined as "the functional clock needed for register
-@@ -643,6 +644,12 @@ struct omap_hwmod_link {
-  * the omap_hwmod code and should not be set during initialization.
-  *
-  * @masters and @slaves are now deprecated.
-+ *
-+ * @parent_hwmod is temporary; there should be no need for it, as this
-+ * information should already be expressed in the OCP interface
-+ * structures.  @parent_hwmod is present as a workaround until we improve
-+ * handling for hwmods with multiple parents (e.g., OMAP4+ DSS with
-+ * multiple register targets across different interconnects).
-  */
- struct omap_hwmod {
- 	const char			*name;
-@@ -680,6 +687,7 @@ struct omap_hwmod {
- 	u8				_int_flags;
- 	u8				_state;
- 	u8				_postsetup_state;
-+	struct omap_hwmod		*parent_hwmod;
- };
- 
- struct omap_hwmod *omap_hwmod_lookup(const char *name);
--- 
-2.1.3
-
