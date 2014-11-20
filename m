@@ -1,59 +1,51 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 3/7] dwc3: dwc3-keystone: fix error return code
-Date: Thu, 20 Nov 2014 18:33:58 +0100
-Message-ID: <1416504842-18548-4-git-send-email-Julia.Lawall@lip6.fr>
-References: <1416504842-18548-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] MAINTAINERS: add maintainer for OMAP hwmod data
+Date: Thu, 20 Nov 2014 18:07:01 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1411201805530.9204@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1165015048-1416506821=:9204"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1416504842-18548-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: kernel-janitors@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Return a negative error code on failure.
+--843723315-1165015048-1416506821=:9204
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
 
-// <smpl>
-@@
-identifier ret; expression e1,e2;
-@@
-(
-if (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-// </smpl>
+I wind up reviewing and committing most of the OMAP hwmod data
+patches, so, add myself to MAINTAINERS there so folks will cc me.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Beno=EEt Cousson <bcousson@baylibre.com>
 ---
-The patches in this series are independent of each other.
+ MAINTAINERS | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
- drivers/usb/dwc3/dwc3-keystone.c |    1 +
- 1 file changed, 1 insertion(+)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c444907ccd69..d904e13a4d54 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6716,6 +6716,12 @@ L:=09linux-omap@vger.kernel.org
+ S:=09Maintained
+ F:=09arch/arm/mach-omap2/omap_hwmod.*
+=20
++OMAP HWMOD DATA
++M:=09Paul Walmsley <paul@pwsan.com>
++L:=09linux-omap@vger.kernel.org
++S:=09Maintained
++F:=09arch/arm/mach-omap2/omap_hwmod*data*
++
+ OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
+ M:=09Beno=EEt Cousson <bcousson@baylibre.com>
+ L:=09linux-omap@vger.kernel.org
+--=20
+2.1.3
 
-diff --git a/drivers/usb/dwc3/dwc3-keystone.c b/drivers/usb/dwc3/dwc3-keystone.c
-index dd8d2df..fe3b933 100644
---- a/drivers/usb/dwc3/dwc3-keystone.c
-+++ b/drivers/usb/dwc3/dwc3-keystone.c
-@@ -123,6 +123,7 @@ static int kdwc3_probe(struct platform_device *pdev)
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(&pdev->dev, "missing irq\n");
-+		error = irq;
- 		goto err_irq;
- 	}
- 
+--843723315-1165015048-1416506821=:9204--
