@@ -1,74 +1,133 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH 2/2] i2c: omap: fix "Too much work in one IRQ" irq
- handling
-Date: Thu, 20 Nov 2014 17:43:19 +0100
-Message-ID: <20141120164319.GB4725@katana>
-References: <20141115014859.GC808@saruman>
- <7C4EE58D-8956-40C2-B649-775B2F551D2A@gmail.com>
- <20141115034756.GA2917@saruman>
- <20141115035328.GA3289@saruman>
- <A47891AC-7453-43F0-9196-5133A1525C68@gmail.com>
- <20141116154558.GA7422@saruman>
- <20141117144152.GA12644@katana>
- <20141118160059.GI8223@saruman>
- <20141118161241.GH30004@katana>
- <2DED62C3-7C54-49E0-A39B-F68D5DAC66B1@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC PATCH] ARM: DRA: hwmod: RTC: Add reset function for RTC
+Date: Thu, 20 Nov 2014 16:56:59 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com>
+References: <1416199402-3865-1-git-send-email-lokeshvutla@ti.com> <546DB513.6000104@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="98e8jtXdkpgskNou"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2DED62C3-7C54-49E0-A39B-F68D5DAC66B1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:38308 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757742AbaKTQ5A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 11:57:00 -0500
+In-Reply-To: <546DB513.6000104@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com
+
+On Thu, 20 Nov 2014, Lokesh Vutla wrote:
+
+> On Monday 17 November 2014 10:13 AM, Lokesh Vutla wrote:
+> > RTC IP have kicker feature which prevents spurious writes to its registers.
+> > In order to write into any of the RTC registers, KICK values has te be
+> > written to KICK registers. Currently hwmod is updating the IDLEMODE in rtc
+> > sysconfig register without writing into any kick register which is a noop.
+> > When autoidle is allowed for rtc, interruts are not received until IDLEMODE
+> > is set to SIDLE_SMART_WKUP.
+> > Adding a reset function to unlock RTC registers so that IDLEMODE is
+> > updated.
+> Ping..!!
+> Is this patch acceptable?
+
+Lokesh
+
+1. This looks like a fix.  Is this intended to go in as a v3.18-rc patch, 
+or against v3.19?  If so it would be very helpful for the maintainers if 
+you were to state that somewhere.
+
+2. Your patch unlocks the RTC registers, but never relocks it.  This seems 
+to defeat the point of the spurious write protection.  Shouldn't your 
+patch only unlock the RTC immediately before the hwmod code touches the 
+RTC registers, and then relock it immediately afterwards, per SPRUHZ6 
+section 23.4.3.3?  If so then the .reset function pointer is the wrong 
+place for this; I would suggest adding some .lock and .unlock function 
+pointers that are to be called before and after any register write to the 
+IP block.
+
+3. Your macros don't mention DRA7xx specifically.  Does this sequence 
+apply to some other TI chips, or just DRA7xx?  Please document this in a 
+comment above the macros, and possibly change the name of the macros to 
+refer to DRA7XX.
 
 
---98e8jtXdkpgskNou
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+- Paul
 
-Hi,
+> 
+> Thanks and regards,
+> Lokesh
+> > 
+> > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_hwmod.h          |  1 +
+> >  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  1 +
+> >  arch/arm/mach-omap2/omap_hwmod_reset.c    | 23 +++++++++++++++++++++++
+> >  3 files changed, 25 insertions(+)
+> > 
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+> > index 512f809..3703f99 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod.h
+> > +++ b/arch/arm/mach-omap2/omap_hwmod.h
+> > @@ -744,6 +744,7 @@ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
+> >   */
+> >  
+> >  extern int omap_hwmod_aess_preprogram(struct omap_hwmod *oh);
+> > +int omap_hwmod_rtc_unlock(struct omap_hwmod *oh);
+> >  
+> >  /*
+> >   * Chip variant-specific hwmod init routines - XXX should be converted
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > index 5684f11..90e1df4 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > @@ -1584,6 +1584,7 @@ static struct omap_hwmod_class_sysconfig dra7xx_rtcss_sysc = {
+> >  static struct omap_hwmod_class dra7xx_rtcss_hwmod_class = {
+> >  	.name	= "rtcss",
+> >  	.sysc	= &dra7xx_rtcss_sysc,
+> > +	.reset	= &omap_hwmod_rtc_unlock,
+> >  };
+> >  
+> >  /* rtcss */
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_reset.c b/arch/arm/mach-omap2/omap_hwmod_reset.c
+> > index 65e186c..b825a28 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_reset.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_reset.c
+> > @@ -30,6 +30,12 @@
+> >  
+> >  #include "omap_hwmod.h"
+> >  
+> > +#define RTC_KICK0_REG_OFFSET	0x6c
+> > +#define RTC_KICK1_REG_OFFSET	0x70
+> > +
+> > +#define RTC_KICK0_VALUE		0x83E70B13
+> > +#define RTC_KICK1_VALUE		0x95A4F1E0
+> > +
+> >  /**
+> >   * omap_hwmod_aess_preprogram - enable AESS internal autogating
+> >   * @oh: struct omap_hwmod *
+> > @@ -51,3 +57,20 @@ int omap_hwmod_aess_preprogram(struct omap_hwmod *oh)
+> >  
+> >  	return 0;
+> >  }
+> > +
+> > +/**
+> > + * omap_hwmod_rtc_unlock - Reset and unlock the Kicker mechanism.
+> > + * @oh: struct omap_hwmod *
+> > + *
+> > + * RTC IP have kicker feature.  This prevents spurious writes to its registers.
+> > + * In order to write into any of the RTC registers, KICK values has te be
+> > + * written in respective KICK registers. This is needed for hwmod to write into
+> > + * sysconfig register.
+> > + */
+> > +int omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
+> > +{
+> > +	omap_hwmod_write(RTC_KICK0_VALUE, oh, RTC_KICK0_REG_OFFSET);
+> > +	omap_hwmod_write(RTC_KICK1_VALUE, oh, RTC_KICK1_REG_OFFSET);
+> > +
+> > +	return 0;
+> > +}
+> > 
+> 
 
-thanks for the list!
 
-> latest, v3 (same as v2, fixed subject line):
-> https://patchwork.ozlabs.org/patch/412095/
-
-Yes, I have an eye on this one. Only waiting for the test results from
-older platforms by Aaro.
-
-> Sorry, for making so much noise.
-
-No problem, this is part of the process. Still, assistance like yours
-with this list is very much appreciated so I can focus on actual review!
-
-Regards,
-
-   Wolfram
-
-
---98e8jtXdkpgskNou
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUbhonAAoJEBQN5MwUoCm2c+wP/R7blMn7XLJtNpzynxhdEr8S
-KdSZVGdifEdp8wsNpYYQ88v2uTAJR6+r5wQD3S9+wbD38crKIf/F1PF81/iJ8qqo
-Idvx5t7OToKnArcPR+qxMUXN7LeOVGWiUT0NhNJLxnT+tYRmLwGnCVDbChAbLhmi
-GJMSmUn/fWKu3HaqC+f2uhyqpYvEiGd+e+XAx65xZyniMxZqgiPm1nHkShWnkB3v
-tdvzNB/M6pYF0aCZ1gPfMcTLKhMw/y2CZmjoCwByT58fQgpEkwsEMNo/XCWMi2Cl
-fd3iwEmRAPH5MLE5G1ZqSWhfhjD2P4OxIOn4t5Em5os3OPqi21cvYcXRAl+oDYVB
-NdBJcSWpLgDv+oA2IMCeWERWkfsqmpDw7XlnKl+U0eea3AsGA6AxjkYy4C2Au9a6
-In0LdXnwiWMM9UWtlJKfxk/F8K8ojrbPVP6aqxSfkI1875aZBa0sq9k0+gCWnLRS
-Gkg9eNIVv2p+jZOdAJkrZMrNH6c0le3REKjKqBDA+wB12dKUMc1/0g3Wh/lsp0/H
-sR+Yf7iieXu0snLU1pxzLFE4Lj5SRsUMxQOAO63RZ6GKnwR5AfgDrK+QbS94Hend
-/W+Kbt9qA4kORk2UqA6H+QvD0S0Hu2K+BmWfH4l1fli20XHQM5cAYWnT0ro4tckB
-SAYw37PEcuhkWubpezMK
-=nTRH
------END PGP SIGNATURE-----
-
---98e8jtXdkpgskNou--
+- Paul
