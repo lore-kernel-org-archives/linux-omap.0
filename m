@@ -1,124 +1,173 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: DRA7: hwmod data: Add missing UART hwmod data
-Date: Thu, 20 Nov 2014 08:23:15 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411200822390.9204@utopia.booyaka.com>
-References: <1413908271-666-1-git-send-email-nm@ti.com>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Thu, 20 Nov 2014 10:21:56 +0100
+Message-ID: <546DB2B4.1070909@samsung.com>
+References: <20141116075928.GA9763@amd>
+ <20141117145857.GO8907@valkosipuli.retiisi.org.uk>
+ <546AFEA5.9020000@samsung.com> <20141118084603.GC4059@amd>
+ <546B19C8.2090008@samsung.com> <20141118113256.GA10022@amd>
+ <546B40FA.2070409@samsung.com> <20141118132159.GA21089@amd>
+ <546B6D86.8090701@samsung.com> <20141118165148.GA11711@amd>
+ <546C66A5.6060201@samsung.com> <546CD90B.8060903@iki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1413908271-666-1-git-send-email-nm@ti.com>
+In-reply-to: <546CD90B.8060903@iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Franklin Cooper Jr." <fcooper@ti.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org, Linux LED Subsystem <linux-leds@vger.kernel.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 21 Oct 2014, Nishanth Menon wrote:
+Hi Pavel, Sakari,
 
-> From: Ambresh K <ambresh@ti.com>
-> 
-> We had constrainted hwmod entries to entries in dts which were present
-> only for default mapped interrupts, the ones such as UARTs > 6 which
-> needed IRQ crossbar configured were never added to hwmod database.
-> 
-> Add them now that IRQ crossbar is functional
-> 
-> Without this, enabling UARTs7 to 10 in dts results in the following crash:
-> [    1.893829] omap_uart 48420000.serial: _od_fail_runtime_resume: FIXME: missing hwmod/omap_dev info
-> [    1.903381] Unhandled fault: imprecise external abort (0x1406) at 0x00000000
-> [    1.903381] ------------[ cut here ]------------
-> [    1.903381] WARNING: CPU: 0 PID: 0 at drivers/bus/omap_l3_noc.c:147 l3_interrupt_handler+0x2ac/0x32c()
-> [    1.903411] 44000000.ocp:L3 Custom Error: MASTER MPU TARGET L4_PER2_P3 (Read): Data Access in User mode during Functional access
-> [    1.903411] Modules linked in:
-> [    1.903411] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W      3.18.0-rc1-dirty #3
-> [    1.903442] [<c0015270>] (unwind_backtrace) from [<c00119b4>] (show_stack+0x10/0x14)
-> [    1.903442] [<c00119b4>] (show_stack) from [<c05e4afc>] (dump_stack+0x78/0x94)
-> [    1.903472] [<c05e4afc>] (dump_stack) from [<c003fed0>] (warn_slowpath_common+0x6c/0x8c)
-> [    1.903472] [<c003fed0>] (warn_slowpath_common) from [<c003ff84>] (warn_slowpath_fmt+0x30/0x40)
-> [    1.903472] [<c003ff84>] (warn_slowpath_fmt) from [<c0333bfc>] (l3_interrupt_handler+0x2ac/0x32c)
-> [    1.903503] [<c0333bfc>] (l3_interrupt_handler) from [<c008d6f8>] (handle_irq_event_percpu+0x60/0x230)
-> [    1.903503] [<c008d6f8>] (handle_irq_event_percpu) from [<c008d904>] (handle_irq_event+0x3c/0x5c)
-> [    1.903503] [<c008d904>] (handle_irq_event) from [<c00903b0>] (handle_fasteoi_irq+0xc4/0x190)
-> [    1.903503] [<c00903b0>] (handle_fasteoi_irq) from [<c008d01c>] (generic_handle_irq+0x20/0x30)
-> [    1.903533] [<c008d01c>] (generic_handle_irq) from [<c008d114>] (__handle_domain_irq+0x64/0xb8)
-> [    1.903533] [<c008d114>] (__handle_domain_irq) from [<c00086e4>] (gic_handle_irq+0x20/0x60)
-> [    1.903533] [<c00086e4>] (gic_handle_irq) from [<c05eb124>] (__irq_svc+0x44/0x5c)
-> [    1.903533] Exception stack(0xc08d1f60 to 0xc08d1fa8)
-> [    1.903564] 1f60: 00000001 00000001 00000000 c08dc930 c08d0000 00000000 00000000 00000000
-> [    1.903564] 1f80: ffffffed c0978028 c08d89dc c08d8978 00000000 c08d1fa8 c0083fc0 c000f160
-> [    1.903564] 1fa0: 20000013 ffffffff
-> [    1.903564] [<c05eb124>] (__irq_svc) from [<c000f160>] (arch_cpu_idle+0x20/0x3c)
-> [    1.903594] [<c000f160>] (arch_cpu_idle) from [<c0077c54>] (cpu_startup_entry+0x198/0x338)
-> [    1.903594] [<c0077c54>] (cpu_startup_entry) from [<c0869be0>] (start_kernel+0x358/0x3c4)
-> [    1.903594] [<c0869be0>] (start_kernel) from [<80008074>] (0x80008074)
-> [    1.903594] ---[ end trace 293fc95d463cff71 ]---
-> [    2.117553] Internal error: : 1406 [#1] SMP ARM
-> [    2.122314] Modules linked in:
-> [    2.125518] CPU: 1 PID: 1 Comm: swapper/0 Tainted: G        W      3.18.0-rc1-dirty #3
-> [    2.133850] task: ed868b80 ti: ed86a000 task.ti: ed86a000
-> [    2.139526] PC is at serial_omap_probe+0x2fc/0x514
-> [    2.144561] LR is at trace_hardirqs_on_caller+0xec/0x1c4
-> [    2.150146] pc : [<c038f0f0>]    lr : [<c0083fc0>]    psr: 40000013
-> [    2.150146] sp : ed86be18  ip : ed9bb57c  fp : f005e000
-> [    2.162231] r10: 0000012a  r9 : ed9b4f80  r8 : edc5bdcd
-> [    2.167724] r7 : edc58810  r6 : ed9bb400  r5 : ed9bb410  r4 : edc5bc10
-> [    2.174560] r3 : 00000000  r2 : 00000000  r1 : 00000014  r0 : ffffffed
-> [    2.181427] Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> [    2.189117] Control: 10c5387d  Table: 8000406a  DAC: 00000015
-> [    2.195159] Process swapper/0 (pid: 1, stack limit = 0xed86a248)
-> [    2.201477] Stack: (0xed86be18 to 0xed86c000)
-> [    2.206054] be00:                                                       ed9ba2d0 00000000
-> [    2.214660] be20: edc50150 00000001 c08cba58 00000000 00000000 ed9bb410 ffffffed c09481d8
-> [    2.223236] be40: 00000000 c09481d8 c08cba58 00000000 00000000 c039bcfc c1170958 ed9bb410
-> [    2.231842] be60: ed9bb444 c039a6f4 00000000 ed9bb410 c09481d8 ed9bb444 00000000 c08dc698
-> [    2.240447] be80: edc4a100 c039a8b0 c09481d8 c039a81c 00000000 c0399060 ed8afaa8 ed92c110
-> [    2.249053] bea0: c09481d8 edc482c0 c0949308 c0399ee0 c077f80c c09481d8 ed86a000 c09481d8
-> [    2.257659] bec0: ed86a000 c08dc698 00000000 c039b088 00000000 00000000 ed86a000 c08a1924
-> [    2.266235] bee0: c08a1904 c00089c4 00000000 00000000 00000000 00000000 60000093 00000000
-> [    2.274841] bf00: 00000004 00000000 ed868b80 00000004 00000000 60000053 00000000 00000001
-> [    2.283447] bf20: 00000000 c0083ea8 00000001 ed86a000 c08334bc ef7fc307 000000b2 c0059358
-> [    2.292053] bf40: c07e176c c083299c 00000006 00000006 c08cb588 c08b69cc 00000006 c08b69ac
-> [    2.300659] bf60: c097a280 000000b2 c08cba58 c0869588 00000000 c0869e04 00000006 00000006
-> [    2.309234] bf80: c0869588 00000000 00000000 c05dfd7c 00000000 00000000 00000000 00000000
-> [    2.317840] bfa0: 00000000 c05dfd84 00000000 c000e668 00000000 00000000 00000000 00000000
-> [    2.326446] bfc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-> [    2.335052] bfe0: 00000000 00000000 00000000 00000000 00000013 00000000 020405d0 00090c40
-> [    2.343658] [<c038f0f0>] (serial_omap_probe) from [<c039bcfc>] (platform_drv_probe+0x48/0x98)
-> [    2.352630] [<c039bcfc>] (platform_drv_probe) from [<c039a6f4>] (driver_probe_device+0x10c/0x234)
-> [    2.361968] [<c039a6f4>] (driver_probe_device) from [<c039a8b0>] (__driver_attach+0x94/0x98)
-> [    2.370819] [<c039a8b0>] (__driver_attach) from [<c0399060>] (bus_for_each_dev+0x54/0x88)
-> [    2.379425] [<c0399060>] (bus_for_each_dev) from [<c0399ee0>] (bus_add_driver+0xdc/0x1d4)
-> [    2.388031] [<c0399ee0>] (bus_add_driver) from [<c039b088>] (driver_register+0x78/0xf4)
-> [    2.396453] [<c039b088>] (driver_register) from [<c08a1924>] (serial_omap_init+0x20/0x40)
-> [    2.405059] [<c08a1924>] (serial_omap_init) from [<c00089c4>] (do_one_initcall+0x80/0x1cc)
-> [    2.413757] [<c00089c4>] (do_one_initcall) from [<c0869e04>] (kernel_init_freeable+0x1b8/0x28c)
-> [    2.422912] [<c0869e04>] (kernel_init_freeable) from [<c05dfd84>] (kernel_init+0x8/0xe4)
-> [    2.431396] [<c05dfd84>] (kernel_init) from [<c000e668>] (ret_from_fork+0x14/0x2c)
-> [    2.439361] Code: e1b02f23 020320f0 0203300f 01a02222 (0a000021)
-> [    2.445770] ---[ end trace 293fc95d463cff72 ]---
-> [    2.450683] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
-> [    2.450683]
-> [    2.460296] CPU0: stopping
-> [    2.463134] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D W      3.18.0-rc1-dirty #3
-> [    2.471405] [<c0015270>] (unwind_backtrace) from [<c00119b4>] (show_stack+0x10/0x14)
-> [    2.479522] [<c00119b4>] (show_stack) from [<c05e4afc>] (dump_stack+0x78/0x94)
-> [    2.487060] [<c05e4afc>] (dump_stack) from [<c001394c>] (handle_IPI+0x190/0x264)
-> [    2.494781] [<c001394c>] (handle_IPI) from [<c000871c>] (gic_handle_irq+0x58/0x60)
-> [    2.502716] [<c000871c>] (gic_handle_irq) from [<c05eb124>] (__irq_svc+0x44/0x5c)
-> [    2.510528] Exception stack(0xc08d1f60 to 0xc08d1fa8)
-> [    2.515808] 1f60: c000f15c 00000000 00000000 00000000 c08d0000 00000000 00000000 00000000
-> [    2.524353] 1f80: ffffffed c0978028 c08d89dc c08d8978 00000000 c08d1fa8 c000f15c c000f160
-> [    2.532897] 1fa0: 60000013 ffffffff
-> [    2.536529] [<c05eb124>] (__irq_svc) from [<c000f160>] (arch_cpu_idle+0x20/0x3c)
-> [    2.544281] [<c000f160>] (arch_cpu_idle) from [<c0077c54>] (cpu_startup_entry+0x198/0x338)
-> [    2.552917] [<c0077c54>] (cpu_startup_entry) from [<c0869be0>] (start_kernel+0x358/0x3c4)
-> [    2.561462] [<c0869be0>] (start_kernel) from [<80008074>] (0x80008074)
-> [    2.568298] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
-> [
-> 
-> Reported-by: Franklin Cooper Jr. <fcooper@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Ambresh K <ambresh@ti.com>
+On 11/19/2014 06:53 PM, Sakari Ailus wrote:
+> Hi Jacek and Pavel,
+>
+> Jacek Anaszewski wrote:
+>> Hi Pavel, Sakari,
+>>
+>> On 11/18/2014 05:51 PM, Pavel Machek wrote:
+>>> Hi!
+>>>
+>>>>> If the hardware LED changes with one that needs different current, the
+>>>>> block for the adp1653 stays the same, but white LED block should be
+>>>>> updated with different value.
+>>>>
+>>>> I think that you are talking about sub nodes. Indeed I am leaning
+>>>> towards this type of design.
+>>>
+>>> I think I am :-).
+>>>
+>>>>>> I agree that flash-timeout should be per led - an array, similarly
+>>>>>> as in case of iout's.
+>>>>>
+>>>>> Agreed about per-led, disagreed about the array. As all the fields
+>>>>> would need arrays, and as LED system currently does not use arrays for
+>>>>> label and linux,default-trigger, I believe we should follow existing
+>>>>> design and model it as three devices. (It _is_ physically three
+>>>>> devices.)
+>>>>
+>>>> Right, I missed that the leds/common.txt describes child node.
+>>>>
+>>>> I propose following modifications to the binding:
+>>>>
+>>>> Optional properties for child nodes:
+>>>> - iout-mode-led :     maximum intensity in microamperes of the LED
+>>>>                (torch LED for flash devices)
+>>>> - iout-mode-flash :     initial intensity in microamperes of the
+>>>>              flash LED; it is required to enable support
+>>>>              for the flash led
+>>>> - iout-mode-indicator : initial intensity in microamperes of the
+>>>>              indicator LED; it is required to enable support
+>>>>              for the indicator led
+>>>> - max-iout-mode-led :     maximum intensity in microamperes of the LED
+>>>>                (torch LED for flash devices)
+>>>> - max-iout-mode-flash : maximum intensity in microamperes of the
+>>>>              flash LED
+>>>> - max-iout-mode-indicator : maximum intensity in microamperes of the
+>>>>              indicator LED
+>>>> - flash-timeout :    timeout in microseconds after which flash
+>>>>              led is turned off
+>>>
+>>> Ok, I took a look, and "iout" is notation I understand, but people may
+>>> have trouble with and I don't see it used anywhere else.
+>>>
+>>> Also... do we need both "current" and "max-current" properties?
+>>>
+>>> But regulators already have "regulator-max-microamp" property. So what
+>>> about:
+>>>
+>>> max-microamp :     maximum intensity in microamperes of the LED
+>>>                  (torch LED for flash devices)
+>>> max-flash-microamp :     initial intensity in microamperes of the
+>>>                flash LED; it is required to enable support
+>>>                for the flash led
+>>> flash-timeout-microseconds : timeout in microseconds after which flash
+>>>                led is turned off
+>>>
+>>> If you had indicator on the same led, I guess
+>>>
+>>> indicator-microamp : recommended intensity in microamperes of the LED
+>>>                   for indication
+>
+> The value for the indicator is maximum as well, not just a recommendation.
+>
+>>>
+>>> ...would do?
+>>
+>>
+>> Ongoing discussion allowed me for taking a look at the indicator issue
+>> from different perspective. This is also vital for the issue of
+>> whether a v4l2-flash sub-device should be created per device or
+>> per sub-led [1].
+>>
+>> Currently each sub-led is represented as a separate device tree
+>> sub node and the led drivers create separate LED class device for the
+>> sub nodes. What this implies is that indicator led also must be
+>> represented by the separate LED class device.
+>>
+>> This is contrary to the way how V4L2 Flash API approaches this issue,
+>> as it considers a flash device as a regulator chip driven through
+>> a bus. The API allows to set the led in torch or flash mode and
+>> implicitly assumes that there can be additional indicator led
+>> supported, which can't be turned on separately, but the drivers apply
+>> the indicator current to the indicator led when the torch or flash led
+>> is activated.
+>
+> The indicator is independent of the flash LED in V4L2 flash API. At
+> least that's how it should be, and in adp1653 the two are independent,
+> but the as3645a can't use indicator with the flash AFAIR.
 
-Thanks, queued.
+Right.
 
-- Paul
+>> I propose to create separate v4l2-flash device for the indicator led,
+>> and treat it as a regular sub-led similarly like it is done in the
+>> LED subsystem. LED Flash class driver would only add a flag
+>> LED_DEV_CAP_INDICATOR and basing on it the v4l2-flash sub-device
+>> would create only V4L2_CID_FLASH_INDICATOR_INTENSITY control for it.
+>> There could ba also additional control added:
+>> V4L2_CID_FLASH_INDICATOR_PATTERN to support the feature
+>> supported by some LED class drivers.
+>
+> Interesting idea.
+>
+> The flash controller is still a single I2C device with common set of
+> faults, for instance. Some devices refuse to work again in case of
+> faults until they are cleared (= read).
+
+The V4L2_CID_FLASH_FAULT control should be also supported by the
+indicator v4l2-flash sub-device then.
+
+> Could the indicator pattern control be present in the same sub-device?
+
+Yes, this was my intention. To conclude - the indicator v4l2-flash 
+sub-device should support up to three controls:
+- V4L2_CID_FLASH_TORCH_INTENSITY
+- V4L2_CID_FLASH_FAULT
+- V4L2_CID_FLASH_INDICATOR_PATTERN (if supported by the LED Flash
+				    class driver)
+
+V4L2_CID_FLASH_INDICATOR_PATTERN would be a menu control with
+custom menu items.
+
+> Are there any flash LED controllers that support such functionality?
+
+There is: lm3556. LED subsystem leds-lm355x.c driver supports it.
+The driver exposes dedicated sysfs attribute for setting the blinking
+pattern (four possible options).
+
+>>  From the media device perspective such an approach would
+>> be harmful, as the indicator led could be turned on right
+>> before strobing the flash or turning the torch on, by
+>> separate calls to different v4l2-flash sub-devices.
+>>
+>> The design described above would allow for avoiding issues I touched
+>> in the message [1].
+>
+> Let me reply this separately. Feel free to ping me if I obviously appear
+> to miss something.
+>
+
+Best Regards,
+Jacek Anaszewski
