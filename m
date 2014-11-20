@@ -1,41 +1,177 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: some clock/hwmod patches for v3.19
-Date: Thu, 20 Nov 2014 17:29:52 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411201727550.9204@utopia.booyaka.com>
-References: <alpine.DEB.2.02.1411132249550.17030@utopia.booyaka.com> <20141114184719.GA7046@atomide.com>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 0/7] fix error return code
+Date: Thu, 20 Nov 2014 18:33:55 +0100
+Message-ID: <1416504842-18548-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38895 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757903AbaKTR3y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 12:29:54 -0500
-In-Reply-To: <20141114184719.GA7046@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 14 Nov 2014, Tony Lindgren wrote:
+The complate semantic patch that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-> Pulling into omap-for-v3.19/soc thanks. FYI, looks like there are
-> few more open hwmod related threads you may want to look at:
+// <smpl>
+@ok exists@
+identifier f,ret,i;
+expression e;
+constant c;
+@@
 
-Thanks for the ping...
+// identify a function that returns a negative return value at least once.
+f(...) {
+... when any
+(
+return -c@i;
+|
+ret = -c@i;
+... when != ret = e
+return ret;
+|
+if (ret < 0) { ... return ret; }
+)
+... when any
+}
 
-> [PATCH v2 0/3] Add support for ADC on am437x-gp and am43x-epos-evm
+@r exists@
+identifier ret,ok.f,fn;
+expression e1,e2,e3,e4,e5,e6,x;
+statement S,S1;
+position p1,p2,p3;
+@@
 
-Just posted some comments about this ADC one.
+// identify a case where the return variable is set to a non-negative value
+// and then returned in error-handling code
+f(...) {
+... when any
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\)
+    when != &ret
+    when any
+(
+ if (<+... ret = e5 ...+>) S1
+|
+ if (<+... &ret ...+>) S1
+|
+if@p2(<+...x = fn(...)...+>)
+ {
+  ... when != ret = e6
+      when forall
+ return@p3 ret;
+}
+|
+break;
+|
+x = fn(...)
+... when != \(ret = e4\|ret++\|ret--\|ret+=e4\|ret-=e4\)
+    when != &ret
+(
+ if (<+... ret = e3 ...+>) S
+|
+ if (<+... &ret ...+>) S
+|
+if@p2(<+...\(x != 0\|x < 0\|x == NULL\|IS_ERR(x)\)...+>)
+ {
+  ... when != ret = e2
+      when forall
+ return@p3 ret;
+}
+)
+)
+... when any
+}
 
-> [RFC PATCH 0/6] ARM: OMAP4+: hwmod: fixing omap4+ DSS hwmods
-> [PATCH] ARM: DRA7: hwmod data: Add missing UART hwmod data
+@printer depends on r@
+position p;
+identifier ok.f,pr;
+constant char [] c;
+@@
 
-Reviewed & pulled these into a branch and just sent the pull request; 
-thanks.
+f(...) { <...pr@p(...,c,...)...> }
 
-Looks like Lokesh has another DRA7xx hwmod data patch for RTC that seems 
-to be a fix.  Have sent some comments.  That one might come in late for 
-v3.18-rc if it turns out to pertain to those kernels.
+@bad0 exists@
+identifier r.ret,ok.f,g != {ERR_PTR,IS_ERR};
+position p != printer.p;
+@@
+
+f(...) { ... when any
+g@p(...,ret,...)
+... when any
+ }
+
+@bad depends on !bad0 exists@
+position r.p1,r.p2;
+statement S1,S2;
+identifier r.ret;
+expression e1;
+@@
+
+// ignore the above if there is some path where the variable is set to
+// something else
+(
+if@p1 (\(ret < 0\|ret != 0\)) S1
+|
+ret@p1 = 0
+)
+... when any
+ \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\|&ret\)
+... when any
+if@p2(...) S2
+
+@bad1 depends on !bad0 && !bad exists@
+position r.p2;
+statement S2;
+identifier r.ret;
+expression e1;
+constant c;
+@@
+
+ret = -c
+... when != \(ret = e1\|ret++\|ret--\|ret+=e1\|ret-=e1\)
+    when != &ret
+    when any
+if@p2(...) S2
+
+@bad2 depends on !bad0 && !bad && !bad1 exists@
+position r.p1,r.p2;
+identifier r.ret;
+expression e1;
+statement S2;
+constant c;
+@@
+
+// likewise ignore it if there has been an intervening return
+ret@p1 = 0
+... when != if (...) { ... ret = e1 ... return ret; }
+    when != if (...) { ... return -c; }
+    when any
+if@p2(...) S2
 
 
-- Paul
+@script:python depends on !bad0 && !bad && !bad1 && !bad2@
+p1 << r.p1;
+p2 << r.p2;
+p3 << r.p3;
+@@
+
+cocci.print_main("",p1)
+cocci.print_secs("",p2)
+cocci.print_secs("",p3)
+
+// </smpl>
