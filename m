@@ -1,71 +1,38 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache
- save
-Date: Thu, 20 Nov 2014 19:26:00 +0530
-Message-ID: <546DF2F0.9080405@ti.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com> <1415941651-28962-4-git-send-email-vigneshr@ti.com> <20141118143005.GF24004@x1> <20141118171240.GB3003@dtor-ws>
+From: "Griffis, Brad" <bgriffis-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Thu, 20 Nov 2014 14:23:30 +0000
+Message-ID: <912A29987EAE174BA6CF187D7CDFA9CE26F69163@DLEE08.ent.ti.com>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+ <1415941651-28962-4-git-send-email-vigneshr@ti.com>
+ <20141118143005.GF24004@x1> <20141118171240.GB3003@dtor-ws>
+ <546DF2F0.9080405@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20141118171240.GB3003@dtor-ws>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, richardcochran@gmail.com, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orglinu
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <546DF2F0.9080405-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "R, Vignesh" <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, "richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 18 November 2014 10:42 PM, Dmitry Torokhov wrote:
-> On Tue, Nov 18, 2014 at 02:30:05PM +0000, Lee Jones wrote:
->> On Fri, 14 Nov 2014, Vignesh R wrote:
->>
->>> In one shot mode, sequencer automatically disables all enabled steps at
->>> the end of each cycle. (both ADC steps and TSC steps) Hence these steps
->>> need not be saved in reg_se_cache for clearing these steps at a later
->>> stage.
->>> Also, when ADC wakes up Sequencer should not be busy executing any of the
->>> config steps except for the charge step. Previously charge step was 1 ADC
->>> clock cycle and hence it was ignored.
->>>
->>> Signed-off-by: Vignesh R <vigneshr@ti.com>
->>> ---
->>>  drivers/mfd/ti_am335x_tscadc.c       | 7 +++++--
->>>  include/linux/mfd/ti_am335x_tscadc.h | 1 +
->>>  2 files changed, 6 insertions(+), 2 deletions(-)
->>
->> Code looks better now.
->>
->> Acked-by: Lee Jones <lee.jones@linaro.org>
->>
->> What's the plan for this series?
-> 
-> I am waiting for the interested parties to provide more feedback. So far
-> I have seen a few reports saying that they see issues with the series
-> applied.
+> -----Original Message-----
+> From: Nori, Sekhar
+> Sent: Thursday, November 20, 2014 7:56 AM
+>
+> I also tested this series on AM335x EVM using the v3.18-rc5 kernel.
+> Again, no breakage but no improvement as well.
 
-I tested this using lcd7 cape connected to beaglebone black. The latest
-kernel I could find on this board was a TI BSP based v3.14 kernel. So I
-had to port these patches to that kernel. Cc Robert Nelson to see if he
-knows about a more recent kernel supporting that cape.
+The primary goal was not necessarily to improve performance of the touchscreen itself.  It was to reduce unnecessary CPU overhead introduced by the 275us udelay in the ISR.  On a related note, that 275us udelay is not something that worked for all boards.  For example, see the following forum thread:
 
-I did not see any breakage with these patches applied although I did not
-see any noticeable performance improvement as well.
+http://e2e.ti.com/support/arm/sitara_arm/f/791/p/217587/775152.aspx#775152
 
-I also tested along with continuous loop reading from
-/sys/bus/iio/devices/iio:device0/in_voltage5_raw
+In that thread the user was registering multiple press events for a single press.  By increasing the udelay to 1.5ms they were able to solve the problem.  Of course, having a 1.5ms delay in your ISR is a really bad thing to do...
 
-I have pushed the kernel I used here in case anyone wants to take a look
-at my porting.
-
-http://git.ti.com/cgit/cgit.cgi/~nsekhar/ti-linux-kernel/nsekhar-ti-linux-kernel.git/log/?h=am335x-tsc-test
-
-I also tested this series on AM335x EVM using the v3.18-rc5 kernel.
-Again, no breakage but no improvement as well.
-
-All testing was done using ts_test
-
-FWIW, you can add:
-
-Tested-by: Sekhar Nori <nsekhar@ti.com>
-
-Thanks,
-Sekhar
+I have another customer that was experiencing the same issue of registering multiple press events, and sure enough the 1.5ms delay "fixed" their problem too.  The patches allowed them to remove that gigantic delay from the ISR because that software delay has now become a hardware delay via CHARGECONFIG.  That customer is the one that needed 0xB000 which is MUCH larger than the value of 0x400 that was working fine for me on the EVM.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
