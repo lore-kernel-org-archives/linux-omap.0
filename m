@@ -1,84 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: Prepare to move GPMC to drivers by
- platform data header
-Date: Fri, 21 Nov 2014 08:15:30 -0800
-Message-ID: <20141121161529.GQ7046@atomide.com>
-References: <1416522501-14999-1-git-send-email-tony@atomide.com>
- <1416522501-14999-2-git-send-email-tony@atomide.com>
- <546F05C3.6090508@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
+Date: Fri, 21 Nov 2014 16:14:35 +0000
+Message-ID: <20141121161435.GS3815@sirena.org.uk>
+References: <cover.1415803064.git.jsarha@ti.com>
+ <20141112222344.GU3815@sirena.org.uk>
+ <54646648.5030807@ti.com>
+ <546DC9A0.8060700@ti.com>
+ <20141121112317.GQ3815@sirena.org.uk>
+ <546F317B.9030004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qe1hh2wipCyCpKD2"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37563 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932625AbaKUQPo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 11:15:44 -0500
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33857 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932152AbaKUQQS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 11:16:18 -0500
 Content-Disposition: inline
-In-Reply-To: <546F05C3.6090508@ti.com>
+In-Reply-To: <546F317B.9030004@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-* Roger Quadros <rogerq@ti.com> [141121 01:30]:
-> On 11/21/2014 12:28 AM, Tony Lindgren wrote:
-> > +#include <linux/omap-gpmc.h>
-> > +#include <linux/platform_data/omap-gpmc.h>
-> 
-> I think we should get rid for mach-omap2/gpmc.h and include the above two
-> headers wherever needed.
 
-Well I'm trying to keep the churn on patching all board-*.c files
-down to minimum until they just get dropped.
+--qe1hh2wipCyCpKD2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-So let's keep gpmc.h around still for a little while for all the
-board-*.c files.
- 
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index 175564c..88721df 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -29,6 +29,7 @@
-> >  #include <linux/delay.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/omap-dma.h>
-> > +#include <linux/omap-gpmc.h>
-> >  #include <linux/platform_data/gpio-omap.h>
-> >  
-> >  #include <trace/events/power.h>
-> > @@ -43,7 +44,6 @@
-> >  #include "common.h"
-> >  #include "cm3xxx.h"
-> >  #include "cm-regbits-34xx.h"
-> > -#include "gpmc.h"
-> >  #include "prm-regbits-34xx.h"
-> >  #include "prm3xxx.h"
-> >  #include "pm.h"
+On Fri, Nov 21, 2014 at 02:35:07PM +0200, Jyri Sarha wrote:
+> On 11/21/2014 01:23 PM, Mark Brown wrote:
 
-And for the files that will stay around, let's not include gpmc.h.
+> >With this specific series I also need to figure out what all the video
+> >side is about (like I said earlier a lot of the patches look like
+> >they're supposed to be simple fixes for the video code not terribly
+> >closely tied to the rest of the series but none of them are getting
+> >applied) and what the end goal is beyond mechanically moving code.
 
-> > --- /dev/null
-> > +++ b/include/linux/platform_data/omap-gpmc.h
-> > @@ -0,0 +1,177 @@
-> > +/*
-> > + * General-Purpose Memory Controller for OMAP2
-> > + *
-> > + * Copyright (C) 2005-2006 Nokia Corporation
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#ifndef __OMAP2_GPMC_H
-> > +#define __OMAP2_GPMC_H
-> > +
-> > +#include <linux/platform_data/mtd-nand-omap2.h>
-> 
-> Why do need to include this header here?
+> The end goal of this series is to fix OMAP HDMI audio, that got broken
+> couple of releases ago. At the same time I cleaned up the old complex scheme
+> to make the connection between the video and audio parts and allow multiple
+> HDMI devices (DSS side is not ready for this yet, but audio side is).
 
-Probably left over from the old code, that looks unnecessary.
+But in what way is it broken and how did this happen?  Why are none of
+the patches which look like they're supposed to be bug fixes early on in
+the series getting applied?  I had thought this was just a lack of
+interest on the video side but it seems there's some other problems
+since the series has apparently been discussed off-list and still it's
+just as big as it was initially.
 
-Regards,
+--qe1hh2wipCyCpKD2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tony
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUb2TrAAoJECTWi3JdVIfQCtkH/3kL0kh9YqsExu8q6I1d9zgx
+ko+a9SfkuIkF0a66D69INQFex7ACsyJe+bOCAJ/EogbIvvDISzUyqaESsDvwPQHq
+pYwSS48+Fs1+kmmHswGGi4tWRd7BVGkACa51ZIzhHoKQ+Lfwfz8OkQgQPlNqDwLQ
+Rhkyqtn+BcK5u55X2qCDnTCikBrtCyKTPZhLA+rvV9xKyETNNgysh9rOSPcLlcy3
+sV8548H4LyAL5iDXs7RsSinr+MN+7a8mtr7xtOvc3rfDo3OcSwfS31rGZSyO9/C6
+gT0Pm95ThODCkKbyxeOxgo2Ra0vJcx+1q/3Pjbz4RqOvbtwcj00vW0cNoIOi97Q=
+=CHr7
+-----END PGP SIGNATURE-----
+
+--qe1hh2wipCyCpKD2--
