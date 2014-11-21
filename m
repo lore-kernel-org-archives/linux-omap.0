@@ -1,48 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Gumstix DuoVero: Bind vdac regulator to hdmi node
-Date: Fri, 21 Nov 2014 15:53:13 -0800
-Message-ID: <20141121235312.GD7046@atomide.com>
-References: <1415901873-5304-1-git-send-email-adam.yh.lee@gmail.com>
+Subject: Re: [PATCH] ARM: DTS: OMAP3-N900: add si4713 support
+Date: Fri, 21 Nov 2014 15:54:33 -0800
+Message-ID: <20141121235432.GE7046@atomide.com>
+References: <1416016050-4252-1-git-send-email-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28963 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752622AbaKUXxZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 18:53:25 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1415901873-5304-1-git-send-email-adam.yh.lee@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1416016050-4252-1-git-send-email-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adam YH Lee <adam.yh.lee@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, florian.vaussard@epfl.ch
 
-* Adam YH Lee <adam.yh.lee@gmail.com> [141113 10:06]:
-> The HDMI node does not have a power supply attached. As a result its
-> power regulator, VDAC, shuts off on boot and screen loses signal.
-> This attaches VDAC (vdda_hdmi_dac) to HDMI's vdda-supply.
+* Sebastian Reichel <sre@kernel.org> [141114 17:49]:
+> Add si4713 node to the N900 device tree file.
 
 Applying into omap-for-v3.19/dt-v2 thanks.
 
 Tony
- 
-> Signed-off-by: Adam YH Lee <adam.yh.lee@gmail.com>
-> ---
->  arch/arm/boot/dts/omap4-duovero-parlor.dts | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
-> index 6dc84d9..1a78f01 100644
-> --- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
-> +++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
-> @@ -177,6 +177,7 @@
->  
->  &hdmi {
->  	status = "ok";
-> +	vdda-supply = <&vdac>;
->  
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&dss_hdmi_pins>;
-> -- 
-> 1.9.1
-> 
