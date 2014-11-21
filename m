@@ -1,123 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] ARM: OMAP2+: Move GPMC initcall to devices.c
-Date: Fri, 21 Nov 2014 10:34:15 -0800
-Message-ID: <1416594856-15201-3-git-send-email-tony@atomide.com>
-References: <1416594856-15201-1-git-send-email-tony@atomide.com>
+Subject: [PATCHv2 0/3] Move omap GPMC to live in drivers/memory
+Date: Fri, 21 Nov 2014 10:34:13 -0800
+Message-ID: <1416594856-15201-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57278 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57062 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014AbaKUSep (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 13:34:45 -0500
-In-Reply-To: <1416594856-15201-1-git-send-email-tony@atomide.com>
+	with ESMTP id S1751924AbaKUSeh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 13:34:37 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org
 
-This will us allow to just move gpmc.c to live under drivers
-in the next patch.
+Hi,
 
-Note that we now also remove the omap specific check for the
-initcall. That's OK as gpmc_probe() checks for the pdata
-and bails out for other platforms compiled in.
+Here's version 2 of the patches to move omap GPMC (General Purpose
+Memory Controller) to live under drivers for further clean-up
+work.
 
-Also the postcore_initcall() maybe possible to change to
-just regular module_init(), but let's do that in separate
-patch after the move to drivers is done.
+Changes from the first version are:
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c | 26 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc.c    | 31 +------------------------------
- 2 files changed, 27 insertions(+), 30 deletions(-)
+- Few randconfig fixes for the first patch in the series
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 324f02b..110256a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -445,3 +445,29 @@ static int __init omap2_init_devices(void)
- 	return 0;
- }
- omap_arch_initcall(omap2_init_devices);
-+
-+static int __init omap_gpmc_init(void)
-+{
-+	struct omap_hwmod *oh;
-+	struct platform_device *pdev;
-+	char *oh_name = "gpmc";
-+
-+	/*
-+	 * if the board boots up with a populated DT, do not
-+	 * manually add the device from this initcall
-+	 */
-+	if (of_have_populated_dt())
-+		return -ENODEV;
-+
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
-+		return -ENODEV;
-+	}
-+
-+	pdev = omap_device_build("omap-gpmc", -1, oh, NULL, 0);
-+	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
-+
-+	return PTR_RET(pdev);
-+}
-+omap_postcore_initcall(omap_gpmc_init);
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index bc14f25..80dfb17 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -37,9 +37,6 @@
- #include <linux/platform_data/mtd-nand-omap2.h>
- #include <linux/platform_data/mtd-onenand-omap2.h>
- 
--#include "soc.h"
--#include "omap_device.h"
--
- #include <asm/mach-types.h>
- 
- #define	DEVICE_NAME		"omap-gpmc"
-@@ -2010,35 +2007,9 @@ static __exit void gpmc_exit(void)
- 
- }
- 
--omap_postcore_initcall(gpmc_init);
-+postcore_initcall(gpmc_init);
- module_exit(gpmc_exit);
- 
--static int __init omap_gpmc_init(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--	char *oh_name = "gpmc";
--
--	/*
--	 * if the board boots up with a populated DT, do not
--	 * manually add the device from this initcall
--	 */
--	if (of_have_populated_dt())
--		return -ENODEV;
--
--	oh = omap_hwmod_lookup(oh_name);
--	if (!oh) {
--		pr_err("Could not look up %s\n", oh_name);
--		return -ENODEV;
--	}
--
--	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0);
--	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
--
--	return PTR_RET(pdev);
--}
--omap_postcore_initcall(omap_gpmc_init);
--
- static irqreturn_t gpmc_handle_irq(int irq, void *dev)
- {
- 	int i;
+- Don't include mach-omap2/gpmc.h any longer in any files
+  we touch in this patch series, just keep it around for
+  legacy reasons
+
+- Move GPMC to drivers/memory instead of drivers/bus
+
+Regards,
+
+Tony
+
+
+Tony Lindgren (3):
+  ARM: OMAP2+: Prepare to move GPMC to drivers by platform data header
+  ARM: OMAP2+: Move GPMC initcall to devices.c
+  memory: gpmc: Move omap gpmc code to live under drivers
+
+ MAINTAINERS                                        |   8 +
+ arch/arm/mach-omap2/Kconfig                        |   2 +
+ arch/arm/mach-omap2/Makefile                       |   2 +-
+ arch/arm/mach-omap2/board-am3517crane.c            |   1 +
+ arch/arm/mach-omap2/board-cm-t35.c                 |   3 +-
+ arch/arm/mach-omap2/board-cm-t3517.c               |   3 +-
+ arch/arm/mach-omap2/board-flash.c                  |   4 +-
+ arch/arm/mach-omap2/board-flash.h                  |   1 -
+ arch/arm/mach-omap2/board-n8x0.c                   |   2 -
+ arch/arm/mach-omap2/board-omap3pandora.c           |   2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   3 +-
+ arch/arm/mach-omap2/devices.c                      |  26 +++
+ arch/arm/mach-omap2/gpmc-nand.c                    |   3 +-
+ arch/arm/mach-omap2/gpmc-onenand.c                 |   3 +-
+ arch/arm/mach-omap2/gpmc-onenand.h                 |  24 ---
+ arch/arm/mach-omap2/gpmc.h                         | 228 +--------------------
+ arch/arm/mach-omap2/pm34xx.c                       |   2 +-
+ drivers/memory/Kconfig                             |   8 +
+ drivers/memory/Makefile                            |   1 +
+ .../gpmc.c => drivers/memory/omap-gpmc.c           |  91 +++++---
+ .../gpmc-nand.h => include/linux/omap-gpmc.h       |  18 +-
+ include/linux/platform_data/omap-gpmc.h            | 177 ++++++++++++++++
+ 22 files changed, 310 insertions(+), 302 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
+ rename arch/arm/mach-omap2/gpmc.c => drivers/memory/omap-gpmc.c (95%)
+ rename arch/arm/mach-omap2/gpmc-nand.h => include/linux/omap-gpmc.h (54%)
+ create mode 100644 include/linux/platform_data/omap-gpmc.h
+
 -- 
 2.1.3
 
