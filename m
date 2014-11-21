@@ -1,50 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] drivers: bus: Move omap gpmc code to live under
- drivers
-Date: Fri, 21 Nov 2014 08:18:22 -0800
-Message-ID: <20141121161821.GS7046@atomide.com>
-References: <1416522501-14999-1-git-send-email-tony@atomide.com>
- <1416522501-14999-4-git-send-email-tony@atomide.com>
- <546F0299.1070508@ti.com>
- <3449576.YFhSXUYQOn@wuerfel>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
+Date: Fri, 21 Nov 2014 16:38:15 +0000
+Message-ID: <20141121163815.GT3815@sirena.org.uk>
+References: <cover.1415803064.git.jsarha@ti.com>
+ <20141112222344.GU3815@sirena.org.uk>
+ <54646648.5030807@ti.com>
+ <546DC9A0.8060700@ti.com>
+ <20141121112317.GQ3815@sirena.org.uk>
+ <546F2BA3.9050203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="eEMbiT5PVwodlmOQ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43281 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758177AbaKUQSd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 11:18:33 -0500
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33881 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758728AbaKUQjh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 11:39:37 -0500
 Content-Disposition: inline
-In-Reply-To: <3449576.YFhSXUYQOn@wuerfel>
+In-Reply-To: <546F2BA3.9050203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-* Arnd Bergmann <arnd@arndb.de> [141121 03:17]:
-> On Friday 21 November 2014 11:15:05 Roger Quadros wrote:
-> > On 11/21/2014 12:28 AM, Tony Lindgren wrote:
-> > > Just move to drivers as further clean-up can now happen there
-> > > finally.
-> 
-> Awesome!
-> 
-> > >  arch/arm/mach-omap2/Kconfig                           | 1 +
-> > >  arch/arm/mach-omap2/Makefile                          | 2 +-
-> > >  drivers/bus/Kconfig                                   | 3 +++
-> > >  drivers/bus/Makefile                                  | 3 ++-
-> > >  arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c | 0
-> > >  5 files changed, 7 insertions(+), 2 deletions(-)
-> > >  rename arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c (100%)
-> > 
-> > Should we move it to drivers/memory/ instead?
-> > TI_AEMIF driver lives there. This is similar to OMAP-GPMC for but for
-> > Davinci and Keystone platforms.
-> 
-> Agreed, using drivers/memory sounds better.
 
-Good point, I forgot we have separate drivers/memory and drivers/bus.
+--eEMbiT5PVwodlmOQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards,
+On Fri, Nov 21, 2014 at 02:10:11PM +0200, Jyri Sarha wrote:
 
-Tony
+> OMAP HDMI audio is fundamentally different to the case on Armada or on BBB.
+> In omap the whole HDMI IP is integrated to the SoC and there really is no
+> codec in the ASoC sense. The the cpu-dai transmits the audio directly to
+> hdmi wire and there is no i2s bus involved. So this case should not be mixed
+> with the patches Jean-Francois working on. The code is also orthogonal in
+> that sense that the latest omap-hdmi-audio uses the generic dymmy codec.
+
+The discussion seemed to be about what to do with unplugged connections
+which isn't what you're talking about there and does seem like an area
+where we should at least be aiming for common behaviour even if not a
+common implementation.
+
+There's also all the stuff about parsing EDIDs for capabilities which
+would seem to be related to that but seems to have gone off into the
+weeds.
+
+--eEMbiT5PVwodlmOQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUb2p2AAoJECTWi3JdVIfQq8YH/i3MInS0Eb59xtMT5mVcW8nO
+CxYacQ/f6F/APa9sFkKnMmXHjRRGEukPIXdGD5ywckrfmhtX7FKYoEiqxeOFg1Us
+IQgQPrQoiTAmlIOcOLRZTFdoAR+8leJ0qyUralsO1SkXOXqXr22oLFWzqez1Jt4W
+qcP+3RhXoF3aDytD8yuvIxcBp0WEC/JlO6FKIChQC9W+yMjScuCU/Hvjo8ODvHy3
+kcHXVLY6lABFNJUXg59FbSVrJlG0UQHYmUFaihF/hLMgDiR5l48i4WGpxuRPo6LO
+lITjKIa4kNtA78jTmkZGOfH6UHxN78vRxiIV/+9ucQYmhdobB0iZi6K86dHTLJc=
+=iGAJ
+-----END PGP SIGNATURE-----
+
+--eEMbiT5PVwodlmOQ--
