@@ -1,34 +1,65 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
- reg_se_cache save
-Date: Fri, 21 Nov 2014 14:10:36 +0100
-Message-ID: <20141121131036.GA18931@localhost.localdomain>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
- <1415941651-28962-4-git-send-email-vigneshr@ti.com>
- <20141118143005.GF24004@x1>
- <20141118171240.GB3003@dtor-ws>
- <546DF2F0.9080405@ti.com>
- <20141120144028.GB5809@localhost.localdomain>
- <546F2BA4.4000808@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <546F2BA4.4000808@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.
+From: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 00/11] Exynos7: Adding USB 3.0 support
+Date: Fri, 21 Nov 2014 19:05:43 +0530
+Message-ID: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 21, 2014 at 05:40:12PM +0530, Sekhar Nori wrote:
-> Not sure how to reproduce the jumping on pen-up.
+The series has dependency on
+a) "[PATCH v7 0/7] Enable support for Samsung Exynos7 SoC"
+   http://www.spinics.net/lists/linux-samsung-soc/msg38734.html
+b) "[GIT PULL] Samsung clock changes for 3.19" - specifically the clock dt
+   bindings header.
+   http://comments.gmane.org/gmane.linux.kernel.samsung-soc/39142
+c) "tty: serial: samsung: Clean-up selection of number of available UARTs"
+   http://www.spinics.net/lists/linux-samsung-soc/msg37418.html
+d) "dts, kbuild: Implement support for dtb vendor subdirs"(merged in linux-next)
+   https://lkml.org/lkml/2014/10/21/654
+e) "Samsung pinctrl patches for v3.19"
+   http://www.spinics.net/lists/linux-samsung-soc/msg38744.html
 
-Does the cursor stay in exactly the same spot when you lift up the
-stylus? Then you don't have the issue.
+Tested on Exynos7-espresso board with 3.18-rc5 and above dependencies.
 
-On the BB white using the LCD4 cape and the shipped debian kernel, the
-cursor *does* jump away, but not as often or as far as on the custom
-design I was working with.
+Clubbing the pinctrl, clk, and usb driver changes alongwith the dt changes
+together in this series only so as to avoid having 'n' number of dependencies.
 
-Thanks,
-Richard
+The USB driver patches in this series were part of [1] sent earlier.
+[1] [PATCH v2 0/4] usb: dwc3/phy-exynos5-usbdrd: Extend support to Exynos7
+    https://lkml.org/lkml/2014/10/7/191
+
+Vivek Gautam (11):
+  pinctrl: exynos: Add BUS1 pin controller for exynos7
+  dwc3: exynos: Remove local variable for clock from probe
+  dwc3: exynos: Add provision for suspend clock
+  dwc3: exynos: Add provision for AXI UpScaler clock on exynos7
+  phy: exynos5-usbdrd: Add pipe-clk, utmi-clk and itp-clk support
+  phy: exynos5-usbdrd: Add facility for VBUS-BOOST-5V supply
+  phy: exynos7-usbdrd: Update dependency for ARCH_EXYNOS
+  clk: exynos7: Add required clock tree for USB
+  arm64: exynos: Add bus1 pinctrl node on exynos7
+  arm64: dts: Enable USB 3.0 controller on exynos7
+  arm64: dts: exynos7-espresso: Add regulators for Vbus and Vbus-Boost
+
+ .../devicetree/bindings/phy/samsung-phy.txt        |    6 +
+ .../devicetree/bindings/usb/exynos-usb.txt         |    6 +-
+ arch/arm64/boot/dts/exynos/exynos7-espresso.dts    |   43 +++++++
+ arch/arm64/boot/dts/exynos/exynos7-pinctrl.dtsi    |   26 ++++
+ arch/arm64/boot/dts/exynos/exynos7.dtsi            |   42 ++++++
+ drivers/clk/samsung/clk-exynos7.c                  |   64 +++++++++
+ drivers/phy/Kconfig                                |    2 +-
+ drivers/phy/phy-exynos5-usbdrd.c                   |  136 +++++++++++++++++---
+ drivers/pinctrl/samsung/pinctrl-exynos.c           |   12 ++
+ drivers/usb/dwc3/dwc3-exynos.c                     |   39 +++++-
+ include/dt-bindings/clock/exynos7-clk.h            |    9 +-
+ 11 files changed, 354 insertions(+), 31 deletions(-)
+
+-- 
+1.7.10.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
