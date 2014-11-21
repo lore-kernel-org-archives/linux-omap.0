@@ -1,114 +1,254 @@
-From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH 04/11] dwc3: exynos: Add provision for AXI UpScaler clock on
- exynos7
-Date: Fri, 21 Nov 2014 19:05:47 +0530
-Message-ID: <1416576954-11997-5-git-send-email-gautam.vivek@samsung.com>
+From: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 05/11] phy: exynos5-usbdrd: Add pipe-clk,
+ utmi-clk and itp-clk support
+Date: Fri, 21 Nov 2014 19:05:48 +0530
+Message-ID: <1416576954-11997-6-git-send-email-gautam.vivek@samsung.com>
 References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-reply-to: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, balbi@ti.com, kishon@ti.com
-Cc: linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, tomasz.figa@gmail.com, s.nawrocki@samsung.com, robh+dt@kernel.org, stern@rowland.harvard.edu, kgene.kim@samsung.com, Vivek Gautam <gautam.vivek@samsung.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <1416576954-11997-1-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, tomasz.figa-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-DWC3 controller on Exynos7 SoC has separate control for
-AXI UpScaler which connects DWC3 DRD controller to AXI bus.
-Get the gate clock for the same to control it across power
-cycles.
+Exynos7 SoC has now separate gate control for 125MHz pipe3 phy
+clock, as well as 60MHz utmi phy clock.
+Additionally, separate gate control is available for the clock
+used for ITP (Isochronous Transfer Packet) generation.
 
-Suggested-by: Anton Tikhomirov <av.tikhomirov@samsung.com>
-Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+So get the same and control in the phy-exynos5-usbdrd driver.
+
+Suggested-by: Anton Tikhomirov <av.tikhomirov-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 ---
- Documentation/devicetree/bindings/usb/exynos-usb.txt |    6 ++++--
- drivers/usb/dwc3/dwc3-exynos.c                       |   17 +++++++++++++++++
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/phy/samsung-phy.txt        |    6 ++
+ drivers/phy/phy-exynos5-usbdrd.c                   |  104 ++++++++++++++++----
+ 2 files changed, 92 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/exynos-usb.txt b/Documentation/devicetree/bindings/usb/exynos-usb.txt
-index a3b5990..9b4dbe3 100644
---- a/Documentation/devicetree/bindings/usb/exynos-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/exynos-usb.txt
-@@ -82,8 +82,10 @@ Example:
+diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+index 15e0f2c..d5bad92 100644
+--- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
++++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+@@ -128,6 +128,7 @@ Required properties:
+ - compatible : Should be set to one of the following supported values:
+ 	- "samsung,exynos5250-usbdrd-phy" - for exynos5250 SoC,
+ 	- "samsung,exynos5420-usbdrd-phy" - for exynos5420 SoC.
++	- "samsung,exynos7-usbdrd-phy" - for exynos7 SoC.
+ - reg : Register offset and length of USB DRD PHY register set;
+ - clocks: Clock IDs array as required by the controller
+ - clock-names: names of clocks correseponding to IDs in the clock property;
+@@ -138,6 +139,11 @@ Required properties:
+ 	       PHY operations, associated by phy name. It is used to
+ 	       determine bit values for clock settings register.
+ 	       For Exynos5420 this is given as 'sclk_usbphy30' in CMU.
++	- optional clocks: Exynos7 SoC has now following additional
++			   gate clocks available:
++			   - phy_pipe: for PIPE3 phy
++			   - phy_utmi: for UTMI+ phy
++			   - itp: for ITP generation
+ - samsung,pmu-syscon: phandle for PMU system controller interface, used to
+ 		      control pmu registers for power isolation.
+ - #phy-cells : from the generic PHY bindings, must be 1;
+diff --git a/drivers/phy/phy-exynos5-usbdrd.c b/drivers/phy/phy-exynos5-usbdrd.c
+index f756aca..3654712 100644
+--- a/drivers/phy/phy-exynos5-usbdrd.c
++++ b/drivers/phy/phy-exynos5-usbdrd.c
+@@ -141,6 +141,7 @@ struct exynos5_usbdrd_phy_drvdata {
+ 	const struct exynos5_usbdrd_phy_config *phy_cfg;
+ 	u32 pmu_offset_usbdrd0_phy;
+ 	u32 pmu_offset_usbdrd1_phy;
++	bool has_common_clk_gate;
+ };
  
- DWC3
- Required properties:
-- - compatible: should be "samsung,exynos5250-dwusb3" for USB 3.0 DWC3
--	       controller.
-+ - compatible: should be one of the following -
-+	       "samsung,exynos5250-dwusb3": for USB 3.0 DWC3 controller on
-+					    Exynos5250/5420.
-+	       "samsung,exynos7-dwusb3": for USB 3.0 DWC3 controller on Exynos7.
-  - #address-cells, #size-cells : should be '1' if the device has sub-nodes
- 				 with 'reg' property.
-  - ranges: allows valid 1:1 translation between child's address space and
-diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-index af15ab3..6ae8fe5 100644
---- a/drivers/usb/dwc3/dwc3-exynos.c
-+++ b/drivers/usb/dwc3/dwc3-exynos.c
-@@ -36,6 +36,7 @@ struct dwc3_exynos {
+ /**
+@@ -148,6 +149,9 @@ struct exynos5_usbdrd_phy_drvdata {
+  * @dev: pointer to device instance of this platform device
+  * @reg_phy: usb phy controller register memory base
+  * @clk: phy clock for register access
++ * @pipeclk: clock for pipe3 phy
++ * @utmiclk: clock for utmi+ phy
++ * @itpclk: clock for ITP generation
+  * @drv_data: pointer to SoC level driver data structure
+  * @phys[]: array for 'EXYNOS5_DRDPHYS_NUM' number of PHY
+  *	    instances each with its 'phy' and 'phy_cfg'.
+@@ -155,12 +159,14 @@ struct exynos5_usbdrd_phy_drvdata {
+  *	       reference clocks' for SS and HS operations
+  * @ref_clk: reference clock to PHY block from which PHY's
+  *	     operational clocks are derived
+- * @ref_rate: rate of above reference clock
+  */
+ struct exynos5_usbdrd_phy {
+ 	struct device *dev;
+ 	void __iomem *reg_phy;
+ 	struct clk *clk;
++	struct clk *pipeclk;
++	struct clk *utmiclk;
++	struct clk *itpclk;
+ 	const struct exynos5_usbdrd_phy_drvdata *drv_data;
+ 	struct phy_usb_instance {
+ 		struct phy *phy;
+@@ -447,6 +453,11 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
+ 	dev_dbg(phy_drd->dev, "Request to power_on usbdrd_phy phy\n");
  
- 	struct clk		*clk;
- 	struct clk		*susp_clk;
-+	struct clk		*axius_clk;
+ 	clk_prepare_enable(phy_drd->ref_clk);
++	if (!phy_drd->drv_data->has_common_clk_gate) {
++		clk_prepare_enable(phy_drd->pipeclk);
++		clk_prepare_enable(phy_drd->utmiclk);
++		clk_prepare_enable(phy_drd->itpclk);
++	}
  
- 	struct regulator	*vdd33;
- 	struct regulator	*vdd10;
-@@ -150,6 +151,17 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
- 	}
- 	clk_prepare_enable(exynos->susp_clk);
+ 	/* Enable VBUS supply */
+ 	if (phy_drd->vbus) {
+@@ -464,6 +475,11 @@ static int exynos5_usbdrd_phy_power_on(struct phy *phy)
  
-+	if (of_device_is_compatible(node, "samsung,exynos7-dwusb3")) {
-+		exynos->axius_clk = devm_clk_get(dev, "usbdrd30_axius_clk");
-+		if (IS_ERR(exynos->axius_clk)) {
-+			dev_err(dev, "no AXI UpScaler clk specified\n");
-+			return -ENODEV;
-+		}
-+		clk_prepare_enable(exynos->axius_clk);
-+	} else {
-+		exynos->axius_clk = NULL;
+ fail_vbus:
+ 	clk_disable_unprepare(phy_drd->ref_clk);
++	if (!phy_drd->drv_data->has_common_clk_gate) {
++		clk_disable_unprepare(phy_drd->itpclk);
++		clk_disable_unprepare(phy_drd->utmiclk);
++		clk_disable_unprepare(phy_drd->pipeclk);
++	}
+ 
+ 	return ret;
+ }
+@@ -483,6 +499,11 @@ static int exynos5_usbdrd_phy_power_off(struct phy *phy)
+ 		regulator_disable(phy_drd->vbus);
+ 
+ 	clk_disable_unprepare(phy_drd->ref_clk);
++	if (!phy_drd->drv_data->has_common_clk_gate) {
++		clk_disable_unprepare(phy_drd->itpclk);
++		clk_disable_unprepare(phy_drd->pipeclk);
++		clk_disable_unprepare(phy_drd->utmiclk);
++	}
+ 
+ 	return 0;
+ }
+@@ -506,6 +527,57 @@ static struct phy_ops exynos5_usbdrd_phy_ops = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static int exynos5_usbdrd_phy_clk_handle(struct exynos5_usbdrd_phy *phy_drd)
++{
++	unsigned long ref_rate;
++	int ret;
++
++	phy_drd->clk = devm_clk_get(phy_drd->dev, "phy");
++	if (IS_ERR(phy_drd->clk)) {
++		dev_err(phy_drd->dev, "Failed to get phy clock\n");
++		return PTR_ERR(phy_drd->clk);
 +	}
 +
- 	exynos->vdd33 = devm_regulator_get(dev, "vdd33");
- 	if (IS_ERR(exynos->vdd33)) {
- 		ret = PTR_ERR(exynos->vdd33);
-@@ -191,6 +203,7 @@ err4:
- err3:
- 	regulator_disable(exynos->vdd33);
- err2:
-+	clk_disable_unprepare(exynos->axius_clk);
- 	clk_disable_unprepare(exynos->susp_clk);
- 	clk_disable_unprepare(exynos->clk);
- 	return ret;
-@@ -204,6 +217,7 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
- 	platform_device_unregister(exynos->usb2_phy);
- 	platform_device_unregister(exynos->usb3_phy);
- 
-+	clk_disable_unprepare(exynos->axius_clk);
- 	clk_disable_unprepare(exynos->susp_clk);
- 	clk_disable_unprepare(exynos->clk);
- 
-@@ -216,6 +230,7 @@ static int dwc3_exynos_remove(struct platform_device *pdev)
- #ifdef CONFIG_OF
- static const struct of_device_id exynos_dwc3_match[] = {
- 	{ .compatible = "samsung,exynos5250-dwusb3" },
-+	{ .compatible = "samsung,exynos7-dwusb3" },
- 	{},
++	phy_drd->ref_clk = devm_clk_get(phy_drd->dev, "ref");
++	if (IS_ERR(phy_drd->ref_clk)) {
++		dev_err(phy_drd->dev, "Failed to get phy reference clock\n");
++		return PTR_ERR(phy_drd->ref_clk);
++	}
++	ref_rate = clk_get_rate(phy_drd->ref_clk);
++
++	ret = exynos5_rate_to_clk(ref_rate, &phy_drd->extrefclk);
++	if (ret) {
++		dev_err(phy_drd->dev, "Clock rate (%ld) not supported\n",
++			ref_rate);
++		return ret;
++	}
++
++	if (!phy_drd->drv_data->has_common_clk_gate) {
++		phy_drd->pipeclk = devm_clk_get(phy_drd->dev, "phy_pipe");
++		if (IS_ERR(phy_drd->pipeclk)) {
++			dev_info(phy_drd->dev,
++				 "PIPE3 phy operational clock not specified\n");
++			phy_drd->pipeclk = NULL;
++		}
++
++		phy_drd->utmiclk = devm_clk_get(phy_drd->dev, "phy_utmi");
++		if (IS_ERR(phy_drd->utmiclk)) {
++			dev_info(phy_drd->dev,
++				 "UTMI phy operational clock not specified\n");
++			phy_drd->utmiclk = NULL;
++		}
++
++		phy_drd->itpclk = devm_clk_get(phy_drd->dev, "itp");
++		if (IS_ERR(phy_drd->itpclk)) {
++			dev_info(phy_drd->dev,
++				 "ITP clock from main OSC not specified\n");
++			phy_drd->itpclk = NULL;
++		}
++	}
++
++	return 0;
++}
++
+ static const struct exynos5_usbdrd_phy_config phy_cfg_exynos5[] = {
+ 	{
+ 		.id		= EXYNOS5_DRDPHY_UTMI,
+@@ -525,11 +597,19 @@ static const struct exynos5_usbdrd_phy_drvdata exynos5420_usbdrd_phy = {
+ 	.phy_cfg		= phy_cfg_exynos5,
+ 	.pmu_offset_usbdrd0_phy	= EXYNOS5_USBDRD_PHY_CONTROL,
+ 	.pmu_offset_usbdrd1_phy	= EXYNOS5420_USBDRD1_PHY_CONTROL,
++	.has_common_clk_gate	= true,
  };
- MODULE_DEVICE_TABLE(of, exynos_dwc3_match);
-@@ -226,6 +241,7 @@ static int dwc3_exynos_suspend(struct device *dev)
- {
- 	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
  
-+	clk_disable(exynos->axius_clk);
- 	clk_disable(exynos->clk);
+ static const struct exynos5_usbdrd_phy_drvdata exynos5250_usbdrd_phy = {
+ 	.phy_cfg		= phy_cfg_exynos5,
+ 	.pmu_offset_usbdrd0_phy	= EXYNOS5_USBDRD_PHY_CONTROL,
++	.has_common_clk_gate	= true,
++};
++
++static const struct exynos5_usbdrd_phy_drvdata exynos7_usbdrd_phy = {
++	.phy_cfg		= phy_cfg_exynos5,
++	.pmu_offset_usbdrd0_phy	= EXYNOS5_USBDRD_PHY_CONTROL,
++	.has_common_clk_gate	= false,
+ };
  
- 	regulator_disable(exynos->vdd33);
-@@ -251,6 +267,7 @@ static int dwc3_exynos_resume(struct device *dev)
+ static const struct of_device_id exynos5_usbdrd_phy_of_match[] = {
+@@ -539,6 +619,9 @@ static const struct of_device_id exynos5_usbdrd_phy_of_match[] = {
+ 	}, {
+ 		.compatible = "samsung,exynos5420-usbdrd-phy",
+ 		.data = &exynos5420_usbdrd_phy
++	}, {
++		.compatible = "samsung,exynos7-usbdrd-phy",
++		.data = &exynos7_usbdrd_phy
+ 	},
+ 	{ },
+ };
+@@ -555,7 +638,6 @@ static int exynos5_usbdrd_phy_probe(struct platform_device *pdev)
+ 	const struct exynos5_usbdrd_phy_drvdata *drv_data;
+ 	struct regmap *reg_pmu;
+ 	u32 pmu_offset;
+-	unsigned long ref_rate;
+ 	int i, ret;
+ 	int channel;
+ 
+@@ -576,23 +658,9 @@ static int exynos5_usbdrd_phy_probe(struct platform_device *pdev)
+ 	drv_data = match->data;
+ 	phy_drd->drv_data = drv_data;
+ 
+-	phy_drd->clk = devm_clk_get(dev, "phy");
+-	if (IS_ERR(phy_drd->clk)) {
+-		dev_err(dev, "Failed to get clock of phy controller\n");
+-		return PTR_ERR(phy_drd->clk);
+-	}
+-
+-	phy_drd->ref_clk = devm_clk_get(dev, "ref");
+-	if (IS_ERR(phy_drd->ref_clk)) {
+-		dev_err(dev, "Failed to get reference clock of usbdrd phy\n");
+-		return PTR_ERR(phy_drd->ref_clk);
+-	}
+-	ref_rate = clk_get_rate(phy_drd->ref_clk);
+-
+-	ret = exynos5_rate_to_clk(ref_rate, &phy_drd->extrefclk);
++	ret = exynos5_usbdrd_phy_clk_handle(phy_drd);
+ 	if (ret) {
+-		dev_err(phy_drd->dev, "Clock rate (%ld) not supported\n",
+-			ref_rate);
++		dev_err(dev, "Failed to initialize clocks\n");
+ 		return ret;
  	}
  
- 	clk_enable(exynos->clk);
-+	clk_enable(exynos->axius_clk);
- 
- 	/* runtime set active to reflect active state. */
- 	pm_runtime_disable(dev);
 -- 
 1.7.10.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
