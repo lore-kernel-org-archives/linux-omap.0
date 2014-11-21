@@ -1,63 +1,65 @@
-From: "Griffis, Brad" <bgriffis@ti.com>
-Subject: RE: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
- reg_se_cache save
-Date: Fri, 21 Nov 2014 22:25:50 +0000
-Message-ID: <912A29987EAE174BA6CF187D7CDFA9CE26F6D664@DLEE08.ent.ti.com>
-References: <1415941651-28962-4-git-send-email-vigneshr@ti.com>
- <20141118143005.GF24004@x1> <20141118171240.GB3003@dtor-ws>
- <546DF2F0.9080405@ti.com> <20141120144028.GB5809@localhost.localdomain>
- <546F2BA4.4000808@ti.com> <20141121131036.GA18931@localhost.localdomain>
- <CAJKbBDDVTA+=priRu7sCD=vHrC8AUg4DM3kycuGrqbpF-5FGAA@mail.gmail.com>
- <546F5C27.7040004@ti.com>
- <CAJKbBDD=eYmU=LuViwLPNV=kYCziDQgKjL07bT7og4vsj0Ee7A@mail.gmail.com>
- <20141121214005.GA4020@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20141121214005.GA4020@localhost.localdomain>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>, Johannes Pointner <johannes.pointner@gmail.com>
-Cc: "Nori, Sekhar" <nsekhar@ti.com>, "R, Vignesh" <vigneshr@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, "Balbi, Felipe" <balbi@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.or
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 3/4] i2c: omap: don't reset controller if Arbitration Lost detected
+Date: Sat, 22 Nov 2014 02:51:47 +0400
+Message-ID: <1416610307-3698-1-git-send-email-al.kochet@gmail.com>
+References: <1416518925-20679-4-git-send-email-al.kochet@gmail.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1416518925-20679-4-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Arbitration Lost is an expected situation in a multimaster
+environment. I2C controller (IP) correctly detect and report AL.
 
-> -----Original Message-----
-> From: Richard Cochran [mailto:richardcochran@gmail.com]
-> 
-> On Fri, Nov 21, 2014 at 07:17:18PM +0100, Johannes Pointner wrote:
-> > Before the patches were also jumps but I thought it is something
-> > Vignesh should know. Maybe there is some fix for that too?
+The only one visible reason for reseting IP in the AL case is
+to avoid advisory 1.94 (omap3) and errata i595 (omap4): "I2C:
+After an Arbitration is Lost the Module Incorrectly Starts
+the Next Transfer".
 
-I believe I've seen the "jumping" behavior pop up at a couple random times in my testing.  I think it relates to the hardware not properly registering a pen-up interrupt.  When that's happening can you try running ts_calibrate?  If you're not registering a pen-up event then you won't be able to advance through those touch points.  Is this behavior related to capturing ADC samples, or do you see this behavior even without capturing ADC samples?
+Errata workaround states: "The MST and STT bits inside I2C_CON
+should be set to 1 at the same moment (avoid setting the MST bit
+to 1 while STT = 0)." The driver never set MST and STT bits
+separately and doesn't create condition for errata. So the reset
+is not necessary.
 
-> > As Richard also noted, it would be nice if ti could let us know how to
-> > get the delay values right. By trial and error is IMHO not the best
-> > way.
-> 
-> That is not only an opinion, it is a matter of fact. TI really dropped the ball on
-> this one. I thought the patch series was a sign they finally were going to
-> properly address this issue. Wrong again.
+Also corrected return value for AL to -EAGAIN.
 
-These patches originate from work I did on TI's SDK 7.00 (3.12 kernel).  The touchscreen is working beautifully in that environment and we are putting forth significant effort to bring those improvements to the community. 
+Tested on Beagleboard XM C.
 
-Things do not seem to be working as well with the current mainline kernel.  I've been reviewing various patches between 3.12 and the mainline to understand why it's different.  I believe I have figured this out, and I have discussions going separately with individuals that contributed those patches in order to come up with the best possible solution, i.e. we likely need a few additional changes to this patch set.
+Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
 
-The CHARGECONFIG delay serves precisely the same purpose as the udelay in the original code base.  How did you determine the udelay value in the first place?  I went through the effort of figuring out a way to make the delay into a HARDWARE delay instead of a software delay so that it could be removed from the ISR.  That delay time relates to "settling time" and so it's going to be dependent on your PCB.  You could hook up an oscilloscope and attempt to capture this parameter from the signals themselves.  Personally I think that's a lot more difficult than just doing a few iterations of testing.
+On 21.10.2014 21:11, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org> wrote:
+> The errno for AL is -EAGAIN. Curly braces are not needed.
 
-> The data sheet for the TI part used to have a reference to an app-note for
-> the touch controller.
-> 
->       spruh73f page 1154
-> 
->       The Pen IRQ can only occur if the correct Pen Ctrl bits are high
->       (AFE Pen Ctrl bits 6:5 in the TSC_ADC control register) and if
->       the correct ground transistor biasing is set in the StepConfig
->       [N] Register. Refer to the application notes for the correct
->       settings.
-> 
-> I searched high and low for this application note. Then, the data sheet got
-> revised.
+Thank you, Wolfram, fixed.
 
-Such an application note does not exist, which explains why you didn't find it and why we have removed that reference from the TRM.  Sorry for your trouble.  We always strive for accurate documentation.
+ drivers/i2c/busses/i2c-omap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 3ffb9c0..02da567 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -707,13 +707,15 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 		return 0;
+ 
+ 	/* We have an error */
+-	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+-			    OMAP_I2C_STAT_XUDF)) {
++	if (dev->cmd_err & (OMAP_I2C_STAT_ROVR | OMAP_I2C_STAT_XUDF)) {
+ 		omap_i2c_reset(dev);
+ 		__omap_i2c_init(dev);
+ 		return -EIO;
+ 	}
+ 
++	if (dev->cmd_err & OMAP_I2C_STAT_AL)
++		return -EAGAIN;
++
+ 	if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
+ 		if (msg->flags & I2C_M_IGNORE_NAK)
+ 			return 0;
+-- 
+1.7.9.5
