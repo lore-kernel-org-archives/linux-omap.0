@@ -1,49 +1,67 @@
-From: Alexander Kochetkov <al.kochet@gmail.com>
-Subject: Re: [PATCH] i2c: omap: fix i207 errata handling
-Date: Fri, 21 Nov 2014 03:29:40 +0300
-Message-ID: <089B5BDA-682D-46B6-869F-A6ADDFE691C3@gmail.com>
-References: <1416529011-21803-1-git-send-email-al.kochet@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2 2/3] ARM: OMAP2+: hwmod: AM335x/AM43x: add hwmod support
+ for tscadc on am43x-evm
+Date: Fri, 21 Nov 2014 10:30:04 +0530
+Message-ID: <546EC6D4.7080906@ti.com>
+References: <1415099728-10959-1-git-send-email-vigneshr@ti.com> <1415099728-10959-3-git-send-email-vigneshr@ti.com> <alpine.DEB.2.02.1411200706441.9204@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1416529011-21803-1-git-send-email-al.kochet@gmail.com>
+In-Reply-To: <alpine.DEB.2.02.1411200706441.9204@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Alexander Kochetkov <al.kochet@gmail.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-21 =CE=CF=D1=C2. 2014 =C7., =D7 3:16, Alexander Kochetkov <al.kochet@gm=
-ail.com> =CE=C1=D0=C9=D3=C1=CC(=C1):
 
-> commit 6d9939f651419a63e091105663821f9c7d3fec37 (i2c: omap: split out=
- [XR]DR
-> and [XR]RDY) changed the way how errata i207 (I2C: RDR Flag May Be In=
-correctly
-> Set) get handled.
+On 11/20/2014 12:39 PM, Paul Walmsley wrote:
+> On Tue, 4 Nov 2014, Vignesh R wrote:
+>
+>> This patch adds hwmod support for tscadc to work on am43xx-evm. The am33xx
+>> hwmod structures of tscadc has been moved to ipblock_data so that it can
+>> be reused in am43xx. The clock domain names are separately set for am33xx
+>> and am43xx. Thus tscadc dt entries can now be added to am43xx board
+>> dt files.
+>>
+>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ...
+>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+>> index 6e57b8ad0db5..b92a7c7825fa 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_43xx_common_data.h
+> ...
+>
+>> +static void am33xx_hwmod_clockdomain(void)
+>> +{
+>> +	CLKDMNAME(am33xx_l4_hs_hwmod, "l4hs_clkdm");
+>> +	CLKDMNAME(am33xx_adc_tsc_hwmod, "l4_wkup_clkdm");
+>> +}
+>> +
+>> +static void am43xx_hwmod_clockdomain(void)
+>> +{
+>> +	CLKDMNAME(am33xx_l4_hs_hwmod, "l3_clkdm");
+>> +	CLKDMNAME(am33xx_adc_tsc_hwmod, "l3s_tsc_clkdm");
+>> +}
+>> +
+> ...
+>
+>> +	am33xx_hwmod_clockdomain();
+> I looked at this patch and the one before it.  Is there some reason why we 
+> need to share these two hwmods between AM33xx and AM43xx?  It seems 
+> cleaner just to add the ADC data directly to the AM43xx hwmod data file, 
+> not touch the AM33xx data, and not add another runtime data update for the 
+> clockdomains.  Unless there's something that I'm missing?
 
-It's is seen if open 6d9939f651419a63e09^ and 6d9939f651419a63e09 side =
-by side:
 
-6d9939f651419a63e09^:
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dr=
-ivers/i2c/busses/i2c-omap.c?id=3D540a4790f7da0d3ca5ad9d726f198a5eb4db05=
-ec#n800
+I wanted to reuse hwmod structures. Except for clockdomain and offset,
+rest of the hwmod data are same for AM33xx and AM43xx. Adding data to AM43xx
+hwmod file just duplicates these structures. Do you still want me to move them
+to AM43xx file?
 
-6d9939f651419a63e09:
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/dr=
-ivers/i2c/busses/i2c-omap.c?id=3D6d9939f651419a63e091105663821f9c7d3fec=
-37#n800
+Regards
+Vignesh
 
-Errata "2C: RDR Flag May Be Incorrectly Set"
-http://www.ti.com/lit/er/sprz319f/sprz319f.pdf
 
-21 =CE=CF=D1=C2. 2014 =C7., =D7 3:16, Alexander Kochetkov <al.kochet@gm=
-ail.com> =CE=C1=D0=C9=D3=C1=CC(=C1):
-
-> Found by code review. Real impact haven't seen.
-> Tested on Beagleboard XM C.
-
-Does anybody know the "certain rare conditions" when RDR errata appears=
-?
-I tested without luck (Beagleboard XM C).
+> - Paul
