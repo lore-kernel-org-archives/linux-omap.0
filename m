@@ -1,28 +1,34 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 0/3] mmc: omap_hsmmc: make more use of mmc library functionality
-Date: Fri, 21 Nov 2014 13:56:50 +0100
-Message-ID: <CAPDyKFr6aHwp+ODUYJB8L2_+dG69-QQBkQxO0ZFB1+Z+UAz-9Q@mail.gmail.com>
-References: <20141107234628.4923.60525.stgit@notabene.brown>
-	<CAPDyKFr=vjh5UOzkrbn7Fpm8j97sqf6xxD7tm+HydOKtyeYKoQ@mail.gmail.com>
-	<20141120084431.7a2220bc@notabene.brown>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Fri, 21 Nov 2014 14:10:36 +0100
+Message-ID: <20141121131036.GA18931@localhost.localdomain>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
+ <1415941651-28962-4-git-send-email-vigneshr@ti.com>
+ <20141118143005.GF24004@x1>
+ <20141118171240.GB3003@dtor-ws>
+ <546DF2F0.9080405@ti.com>
+ <20141120144028.GB5809@localhost.localdomain>
+ <546F2BA4.4000808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20141120084431.7a2220bc@notabene.brown>
-Sender: linux-mmc-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Chris Ball <chris@printf.net>, Balaji T K <balajitk@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, Venkatraman S <svenkatr@ti.com>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <546F2BA4.4000808@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.
 List-Id: linux-omap@vger.kernel.org
 
->
-> Thanks.  What should I rebase against?  Is 3.18-rc sufficient or is there
-> some other tree I should work against?
->
-> Thanks,
-> NeilBrown
->
+On Fri, Nov 21, 2014 at 05:40:12PM +0530, Sekhar Nori wrote:
+> Not sure how to reproduce the jumping on pen-up.
 
-git://git.linaro.org/people/ulf.hansson/mmc.git
+Does the cursor stay in exactly the same spot when you lift up the
+stylus? Then you don't have the issue.
 
-Kind regards
-Uffe
+On the BB white using the LCD4 cape and the shipped debian kernel, the
+cursor *does* jump away, but not as often or as far as on the custom
+design I was working with.
+
+Thanks,
+Richard
