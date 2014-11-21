@@ -1,50 +1,47 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted reg_se_cache
- save
-Date: Fri, 21 Nov 2014 17:40:12 +0530
-Message-ID: <546F2BA4.4000808@ti.com>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com> <1415941651-28962-4-git-send-email-vigneshr@ti.com> <20141118143005.GF24004@x1> <20141118171240.GB3003@dtor-ws> <546DF2F0.9080405@ti.com> <20141120144028.GB5809@localhost.localdomain>
+From: Jyri Sarha <jsarha@ti.com>
+Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
+Date: Fri, 21 Nov 2014 14:35:07 +0200
+Message-ID: <546F317B.9030004@ti.com>
+References: <cover.1415803064.git.jsarha@ti.com> <20141112222344.GU3815@sirena.org.uk> <54646648.5030807@ti.com> <546DC9A0.8060700@ti.com> <20141121112317.GQ3815@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141120144028.GB5809-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel@vg
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42464 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758485AbaKUMfU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 07:35:20 -0500
+In-Reply-To: <20141121112317.GQ3815@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-On Thursday 20 November 2014 08:10 PM, Richard Cochran wrote:
-> On Thu, Nov 20, 2014 at 07:26:00PM +0530, Sekhar Nori wrote:
->> I tested this using lcd7 cape connected to beaglebone black. The latest
->> kernel I could find on this board was a TI BSP based v3.14 kernel. So I
->> had to port these patches to that kernel. Cc Robert Nelson to see if he
->> knows about a more recent kernel supporting that cape.
-> 
-> What is missing from mainline for the black?
-> 
-> (I thought it was fully supported by now.)
+On 11/21/2014 01:23 PM, Mark Brown wrote:
+> With this specific series I also need to figure out what all the video
+> side is about (like I said earlier a lot of the patches look like
+> they're supposed to be simple fixes for the video code not terribly
+> closely tied to the rest of the series but none of them are getting
+> applied) and what the end goal is beyond mechanically moving code.
 
-Black is supported, but LCD7 cape is not.
+(Sorry, I forgot to comment this part.)
 
->  
->> I did not see any breakage with these patches applied although I did not
->> see any noticeable performance improvement as well.
-> 
-> So, the jumping on pen-up persists, right?  That means the patch
-> series does not provide a general fix for that issue.
+The end goal of this series is to fix OMAP HDMI audio, that got broken 
+couple of releases ago. At the same time I cleaned up the old complex 
+scheme to make the connection between the video and audio parts and 
+allow multiple HDMI devices (DSS side is not ready for this yet, but 
+audio side is).
 
-Not sure how to reproduce the jumping on pen-up. I was able to draw
-circles, sign my name and actually today I wrote up the whole English
-alphabet on the screen. Picture here.
+Another target was to make configuring the audio as simple as possible. 
+Because everything needed for HDMI audio is always there if the video 
+side is correctly configured, there should be no need for any additional 
+configuration (in DT or otherwise) to get the audio working. Now simply 
+selecting omap-hdmi-audio is enough. There is no complex cross 
+dependencies to the video side any more, the audio driver simply does 
+find its device if the HDMI video driver is not probed.
 
-https://drive.google.com/file/d/0ByWLwvGx8MeyVF9CTlhHU0FHMFk/view?usp=sharing
+But indeed, in functional sense the whole series - apart from the couple 
+of fixes in the beginning - is just moving the code around.
 
-Is there any particular pattern you want me to test with?
-
-I would still like to test with a more recent kernel on LCD7 cape. So,
-if anyone has ideas (other than I porting the LCD7 support) please let
-me know.
-
-Thanks,
-Sekhar
+Best regards,
+Jyri
