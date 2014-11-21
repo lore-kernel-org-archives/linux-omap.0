@@ -1,47 +1,28 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
-Date: Fri, 21 Nov 2014 14:35:07 +0200
-Message-ID: <546F317B.9030004@ti.com>
-References: <cover.1415803064.git.jsarha@ti.com> <20141112222344.GU3815@sirena.org.uk> <54646648.5030807@ti.com> <546DC9A0.8060700@ti.com> <20141121112317.GQ3815@sirena.org.uk>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/3] mmc: omap_hsmmc: make more use of mmc library functionality
+Date: Fri, 21 Nov 2014 13:56:50 +0100
+Message-ID: <CAPDyKFr6aHwp+ODUYJB8L2_+dG69-QQBkQxO0ZFB1+Z+UAz-9Q@mail.gmail.com>
+References: <20141107234628.4923.60525.stgit@notabene.brown>
+	<CAPDyKFr=vjh5UOzkrbn7Fpm8j97sqf6xxD7tm+HydOKtyeYKoQ@mail.gmail.com>
+	<20141120084431.7a2220bc@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42464 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758485AbaKUMfU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 07:35:20 -0500
-In-Reply-To: <20141121112317.GQ3815@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20141120084431.7a2220bc@notabene.brown>
+Sender: linux-mmc-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Chris Ball <chris@printf.net>, Balaji T K <balajitk@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-mmc <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, GTA04 owners <gta04-owner@goldelico.com>, Venkatraman S <svenkatr@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-On 11/21/2014 01:23 PM, Mark Brown wrote:
-> With this specific series I also need to figure out what all the video
-> side is about (like I said earlier a lot of the patches look like
-> they're supposed to be simple fixes for the video code not terribly
-> closely tied to the rest of the series but none of them are getting
-> applied) and what the end goal is beyond mechanically moving code.
+>
+> Thanks.  What should I rebase against?  Is 3.18-rc sufficient or is there
+> some other tree I should work against?
+>
+> Thanks,
+> NeilBrown
+>
 
-(Sorry, I forgot to comment this part.)
+git://git.linaro.org/people/ulf.hansson/mmc.git
 
-The end goal of this series is to fix OMAP HDMI audio, that got broken 
-couple of releases ago. At the same time I cleaned up the old complex 
-scheme to make the connection between the video and audio parts and 
-allow multiple HDMI devices (DSS side is not ready for this yet, but 
-audio side is).
-
-Another target was to make configuring the audio as simple as possible. 
-Because everything needed for HDMI audio is always there if the video 
-side is correctly configured, there should be no need for any additional 
-configuration (in DT or otherwise) to get the audio working. Now simply 
-selecting omap-hdmi-audio is enough. There is no complex cross 
-dependencies to the video side any more, the audio driver simply does 
-find its device if the HDMI video driver is not probed.
-
-But indeed, in functional sense the whole series - apart from the couple 
-of fixes in the beginning - is just moving the code around.
-
-Best regards,
-Jyri
+Kind regards
+Uffe
