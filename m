@@ -1,47 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: Move GPMC initcall to devices.c
-Date: Fri, 21 Nov 2014 08:17:05 -0800
-Message-ID: <20141121161705.GR7046@atomide.com>
+Subject: Re: [PATCH 3/3] drivers: bus: Move omap gpmc code to live under
+ drivers
+Date: Fri, 21 Nov 2014 08:18:22 -0800
+Message-ID: <20141121161821.GS7046@atomide.com>
 References: <1416522501-14999-1-git-send-email-tony@atomide.com>
- <1416522501-14999-3-git-send-email-tony@atomide.com>
- <546F08C2.4090903@ti.com>
+ <1416522501-14999-4-git-send-email-tony@atomide.com>
+ <546F0299.1070508@ti.com>
+ <3449576.YFhSXUYQOn@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40637 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43281 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755412AbaKUQRQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 11:17:16 -0500
+	with ESMTP id S1758177AbaKUQSd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 11:18:33 -0500
 Content-Disposition: inline
-In-Reply-To: <546F08C2.4090903@ti.com>
+In-Reply-To: <3449576.YFhSXUYQOn@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
-* Roger Quadros <rogerq@ti.com> [141121 01:43]:
-> On 11/21/2014 12:28 AM, Tony Lindgren wrote:
-> > This will us allow to just move gpmc.c to live under drivers
-> > in the next patch.
-> > 
-> > Note that we now also remove the omap specific check for the
-> > initcall. That's OK as gpmc_probe() checks for the pdata
-> > and bails out for other platforms compiled in.
-> > 
-> > Cc: Arnd Bergmann <arnd@arndb.de>
-> > Cc: Roger Quadros <rogerq@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+* Arnd Bergmann <arnd@arndb.de> [141121 03:17]:
+> On Friday 21 November 2014 11:15:05 Roger Quadros wrote:
+> > On 11/21/2014 12:28 AM, Tony Lindgren wrote:
+> > > Just move to drivers as further clean-up can now happen there
+> > > finally.
 > 
-> I guess gpmc_init can't still be put under module_init() till we have fixed up
-> some more issues in the GPMC driver. But it shouldn't prevent us from making
-> the move to drivers/, so
+> Awesome!
 > 
-> Acked-by: Roger Quadros <rogerq@ti.com>
+> > >  arch/arm/mach-omap2/Kconfig                           | 1 +
+> > >  arch/arm/mach-omap2/Makefile                          | 2 +-
+> > >  drivers/bus/Kconfig                                   | 3 +++
+> > >  drivers/bus/Makefile                                  | 3 ++-
+> > >  arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c | 0
+> > >  5 files changed, 7 insertions(+), 2 deletions(-)
+> > >  rename arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c (100%)
+> > 
+> > Should we move it to drivers/memory/ instead?
+> > TI_AEMIF driver lives there. This is similar to OMAP-GPMC for but for
+> > Davinci and Keystone platforms.
+> 
+> Agreed, using drivers/memory sounds better.
 
-Yeah I figured it's too close to the merge cycle to start playing
-with the initcall levels. It may already be possible to make it
-just module_init() but let's do that as separate patches after
-the move.
+Good point, I forgot we have separate drivers/memory and drivers/bus.
 
 Regards,
 
