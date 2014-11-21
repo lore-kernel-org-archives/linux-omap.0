@@ -1,42 +1,23 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v13 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S
-Date: Fri, 21 Nov 2014 15:39:59 -0800
-Message-ID: <20141121233958.GB7046@atomide.com>
-References: <1416235750-4766-1-git-send-email-daniel.thompson@linaro.org>
- <1416235750-4766-6-git-send-email-daniel.thompson@linaro.org>
+Subject: Re: [PATCH v5 06/10] ARM: dts: am4372: Add DCAN nodes
+Date: Fri, 21 Nov 2014 15:50:32 -0800
+Message-ID: <20141121235032.GC7046@atomide.com>
+References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
+ <1415881371-4982-7-git-send-email-rogerq@ti.com>
+ <5469F35D.80504@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-can-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1416235750-4766-6-git-send-email-daniel.thompson@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Paul Bolle <pebolle@tiscali.nl>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, John Stultz <john.stultz@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, patches@linaro.org, linaro-kernel@lists.linaro.org, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
+In-Reply-To: <5469F35D.80504@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Daniel Thompson <daniel.thompson@linaro.org> [141117 06:53]:
-> The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
-> the 8520 code the omap1 macro automatically determines what UART to use
-> based on breadcrumbs left by the bootloader and automatically copes with
-> the eccentric register layout on OMAP7XX.
-> 
-> This patch drops both these features and relies instead on the generic
-> 8250 macros:
-> 
-> 1. Dropping support for the bootloader breadcrumbs is identical to the
->    way the migration was handled for OMAP2 (see 808b7e07464d...).
-> 
-> 2. Support for OMAP7XX still exists but it must be configured by hand
->    (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
-> 
-> Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
-> Cc: linux-omap@vger.kernel.org
-> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+* Roger Quadros <rogerq@ti.com> [141117 05:10]:
+> The SoC contains 2 DCAN modules. Add them.
 
-Looks OK to me, probably best that these are queued all together so:
+Thanks applying all into omap-for-v3.19/dt-v2.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tony
