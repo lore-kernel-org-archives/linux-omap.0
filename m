@@ -1,91 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] drivers: bus: Move omap gpmc code to live under drivers
-Date: Thu, 20 Nov 2014 14:28:21 -0800
-Message-ID: <1416522501-14999-4-git-send-email-tony@atomide.com>
-References: <1416522501-14999-1-git-send-email-tony@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48131 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757320AbaKTW3D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Nov 2014 17:29:03 -0500
-In-Reply-To: <1416522501-14999-1-git-send-email-tony@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] i2c: omap: fix i207 errata handling
+Date: Fri, 21 Nov 2014 04:16:51 +0400
+Message-ID: <1416529011-21803-1-git-send-email-al.kochet@gmail.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Roger Quadros <rogerq@ti.com>
 
-Just move to drivers as further clean-up can now happen there
-finally.
+commit 6d9939f651419a63e091105663821f9c7d3fec37 (i2c: omap: split out [XR]DR
+and [XR]RDY) changed the way how errata i207 (I2C: RDR Flag May Be Incorrectly
+Set) get handled. 6d9939f6514 code doesn't correspond to workaround provided by
+errata.
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Roger Quadros <rogerq@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+According to errata ISR must filter out spurious RDR before data read not after.
+ISR must read RXSTAT to get number of bytes available to read. Because RDR
+could be set while there could no data in the receive FIFO.
+
+Restored pre 6d9939f6514 way of handling errata.
+
+Found by code review. Real impact haven't seen.
+Tested on Beagleboard XM C.
+
+Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Fixes: 6d9939f651419a63e09110 i2c: omap: split out [XR]DR and [XR]RDY
 ---
- arch/arm/mach-omap2/Kconfig                           | 1 +
- arch/arm/mach-omap2/Makefile                          | 2 +-
- drivers/bus/Kconfig                                   | 3 +++
- drivers/bus/Makefile                                  | 3 ++-
- arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c | 0
- 5 files changed, 7 insertions(+), 2 deletions(-)
- rename arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c (100%)
+ drivers/i2c/busses/i2c-omap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f4d06ae..3021901 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -80,6 +80,7 @@ config ARCH_OMAP2PLUS
- 	select GENERIC_IRQ_CHIP
- 	select MACH_OMAP_GENERIC
- 	select OMAP_DM_TIMER
-+	select OMAP_GPMC
- 	select PINCTRL
- 	select SOC_BUS
- 	select TI_PRIV_EDMA
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 3e824f8..bd85741 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -6,7 +6,7 @@ ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
- 	-I$(srctree)/arch/arm/plat-omap/include
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 90dcc2e..e7cbcb0 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -958,11 +958,13 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+ 			if (dev->fifo_size)
+ 				num_bytes = dev->buf_len;
  
- # Common support
--obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o gpmc.o timer.o pm.o \
-+obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
- 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
- 	 omap_device.o sram.o drm.o
+-			omap_i2c_receive_data(dev, num_bytes, true);
+-
+-			if (dev->errata & I2C_OMAP_ERRATA_I207)
++			if (dev->errata & I2C_OMAP_ERRATA_I207) {
+ 				i2c_omap_errata_i207(dev, stat);
++				num_bytes = (omap_i2c_read_reg(dev,
++					OMAP_I2C_BUFSTAT_REG) >> 8) & 0x3F;
++			}
  
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-index 603eb1b..09aacc8 100644
---- a/drivers/bus/Kconfig
-+++ b/drivers/bus/Kconfig
-@@ -27,6 +27,9 @@ config MVEBU_MBUS
- 	  Driver needed for the MBus configuration on Marvell EBU SoCs
- 	  (Kirkwood, Dove, Orion5x, MV78XX0 and Armada 370/XP).
- 
-+config OMAP_GPMC
-+	bool
-+
- config OMAP_OCP2SCP
- 	tristate "OMAP OCP2SCP DRIVER"
- 	depends on ARCH_OMAP2PLUS
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-index 2973c18..96e77dd 100644
---- a/drivers/bus/Makefile
-+++ b/drivers/bus/Makefile
-@@ -5,7 +5,8 @@
- obj-$(CONFIG_BRCMSTB_GISB_ARB)	+= brcmstb_gisb.o
- obj-$(CONFIG_IMX_WEIM)	+= imx-weim.o
- obj-$(CONFIG_MVEBU_MBUS) += mvebu-mbus.o
--obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
-+
-+obj-$(CONFIG_OMAP_GPMC)		+= omap-gpmc.o
- 
- # Interconnect bus driver for OMAP SoCs.
- obj-$(CONFIG_OMAP_INTERCONNECT)	+= omap_l3_smx.o omap_l3_noc.o
-diff --git a/arch/arm/mach-omap2/gpmc.c b/drivers/bus/omap-gpmc.c
-similarity index 100%
-rename from arch/arm/mach-omap2/gpmc.c
-rename to drivers/bus/omap-gpmc.c
++			omap_i2c_receive_data(dev, num_bytes, true);
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
+ 			continue;
+ 		}
 -- 
-2.1.3
-
+1.7.9.5
