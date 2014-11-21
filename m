@@ -1,25 +1,25 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH 3/3] drivers: bus: Move omap gpmc code to live under drivers
-Date: Fri, 21 Nov 2014 13:35:58 +0530
-Message-ID: <546EF266.1010901@ti.com>
+Date: Fri, 21 Nov 2014 11:15:05 +0200
+Message-ID: <546F0299.1070508@ti.com>
 References: <1416522501-14999-1-git-send-email-tony@atomide.com> <1416522501-14999-4-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59343 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33643 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752836AbaKUIHm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Nov 2014 03:07:42 -0500
+	id S1752547AbaKUJPf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Nov 2014 04:15:35 -0500
 In-Reply-To: <1416522501-14999-4-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Roger Quadros <rogerq@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
 Hi Tony,
 
-On Friday 21 November 2014 03:58 AM, Tony Lindgren wrote:
+On 11/21/2014 12:28 AM, Tony Lindgren wrote:
 > Just move to drivers as further clean-up can now happen there
 > finally.
 > 
@@ -34,6 +34,11 @@ On Friday 21 November 2014 03:58 AM, Tony Lindgren wrote:
 >  arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c | 0
 >  5 files changed, 7 insertions(+), 2 deletions(-)
 >  rename arch/arm/mach-omap2/gpmc.c => drivers/bus/omap-gpmc.c (100%)
+
+Should we move it to drivers/memory/ instead?
+TI_AEMIF driver lives there. This is similar to OMAP-GPMC for but for
+Davinci and Keystone platforms.
+
 > 
 > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
 > index f4d06ae..3021901 100644
@@ -71,6 +76,19 @@ On Friday 21 November 2014 03:58 AM, Tony Lindgren wrote:
 > +config OMAP_GPMC
 > +	bool
 > +
+
+Description? I had put this from a similar patch that I created earlier
+
++	 This driver is for the General Purpose Memory Controller (GPMC)
++	 present on Texas Instruments SoCs (e.g. OMAP2+). GPMC allows
++	 interfacing to a variety of asynchronous as well as synchronous
++	 memory drives like NOR, NAND, OneNAND, SRAM.
++
+
+
+cheers,
+-roger
+
 >  config OMAP_OCP2SCP
 >  	tristate "OMAP OCP2SCP DRIVER"
 >  	depends on ARCH_OMAP2PLUS
@@ -83,10 +101,6 @@ On Friday 21 November 2014 03:58 AM, Tony Lindgren wrote:
 >  obj-$(CONFIG_IMX_WEIM)	+= imx-weim.o
 >  obj-$(CONFIG_MVEBU_MBUS) += mvebu-mbus.o
 > -obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
-I guess this is unrelated to $subject. Shouldn't this be dropped?
-
-Thanks and regards,
-Lokesh
 > +
 > +obj-$(CONFIG_OMAP_GPMC)		+= omap-gpmc.o
 >  
@@ -97,4 +111,3 @@ Lokesh
 > rename from arch/arm/mach-omap2/gpmc.c
 > rename to drivers/bus/omap-gpmc.c
 > 
-
