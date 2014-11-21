@@ -1,62 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: twl4030-power: Fix poweroff with PM configuration
- enabled
-Date: Fri, 21 Nov 2014 15:37:10 -0800
-Message-ID: <20141121233709.GA7046@atomide.com>
-References: <20141102180756.GH31454@atomide.com>
- <5458D29E.50908@compulab.co.il>
- <20141104154231.GP31454@atomide.com>
- <CANOLnOP8JmROaCruC8NEwh+Nzq_-fFit-+5d_W9vU9KtNTphoA@mail.gmail.com>
- <515E660B-B65D-41EF-97F5-74E4DE8FDD13@goldelico.com>
- <20141112212027.GK26481@atomide.com>
- <20141112223154.GP641@saruman>
- <20141119144348.169c4166@notabene.brown>
+Subject: Re: [PATCH v13 5/9] arm: omap1: Migrate debug_ll macros to use 8250.S
+Date: Fri, 21 Nov 2014 15:39:59 -0800
+Message-ID: <20141121233958.GB7046@atomide.com>
+References: <1416235750-4766-1-git-send-email-daniel.thompson@linaro.org>
+ <1416235750-4766-6-git-send-email-daniel.thompson@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20141119144348.169c4166@notabene.brown>
+In-Reply-To: <1416235750-4766-6-git-send-email-daniel.thompson@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Felipe Balbi <balbi@ti.com>, "Dr. H. Nikolaus Schaller" <hns@goldelico.com>, Grazvydas Ignotas <notasas@gmail.com>, Igor Grinberg <grinberg@compulab.co.il>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, List for communicating with real GTA04 owners <gta04-owner@goldelico.com>
+To: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, spear-devel@list.st.com, Paul Bolle <pebolle@tiscali.nl>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, John Stultz <john.stultz@linaro.org>, Sumit Semwal <sumit.semwal@linaro.org>, patches@linaro.org, linaro-kernel@lists.linaro.org, Arnd Bergmann <arnd.bergmann@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* NeilBrown <neilb@suse.de> [141118 19:45]:
-> On Wed, 12 Nov 2014 16:31:54 -0600 Felipe Balbi <balbi@ti.com> wrote:
-> > 
-> > this is actually what the USB Battery Charging spec requires us to
-> > implement. If Linux is doing differently, it's a bug on Linux which
-> > should be fixed :-)
-> > 
-> > No host is allowed to source more then one unit load (100mA in LS/FS/HS,
-> > 150mA in SS) until the device is fully enumerated. Host are also
-> > required to drop max current budget to 8mA (IIRC) if the device doesn't
-> > enumerate for however many minutes (I guess it was a pretty long
-> > threshold, something like half an hour or so. My memory fails me right
-> > now).
-> > 
+* Daniel Thompson <daniel.thompson@linaro.org> [141117 06:53]:
+> The omap1's debug-macro.S is similar to the generic 8250 code. Compared to
+> the 8520 code the omap1 macro automatically determines what UART to use
+> based on breadcrumbs left by the bootloader and automatically copes with
+> the eccentric register layout on OMAP7XX.
 > 
-> I think the twl4030 driver does do the "right" thing unless the "allow_usb"
-> module parameter is set, in which case it enables charging at a higher rate
-> which is 600mA (default value of BCIIREF1).
+> This patch drops both these features and relies instead on the generic
+> 8250 macros:
 > 
-> It would be nice if the driver could check if a charger was plugged in and
-> act accordingly.
-> The charger I have for my openmoko is identified by a 47K resistor between ID
-> and ground.  The twl4030 can detect that easily enough, but it isn't very
-> standard.
+> 1. Dropping support for the bootloader breadcrumbs is identical to the
+>    way the migration was handled for OMAP2 (see 808b7e07464d...).
+> 
+> 2. Support for OMAP7XX still exists but it must be configured by hand
+>    (DEBUG_OMAP7XXUART1/2/3) rather than handled at runtime.
+> 
+> Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
+> Cc: linux-omap@vger.kernel.org
+> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Sounds doable to me, feel free to patch it up since you guys are using
-the twl4030 charger :)
- 
-> The standard is of course to have D+ and D- shorted, but I don't know if the
-> twl4030 can detect that?  If it can, then getting some very early code to
-> check for the short (or the 47k resistor) and quickly enabling charging might
-> be a sufficient solution.
+Looks OK to me, probably best that these are queued all together so:
 
-I guess. Note that there's also the USB BC1.2 spec that is more
-complicated than having the data lines shorted.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
