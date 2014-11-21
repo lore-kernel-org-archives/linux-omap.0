@@ -1,39 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] drivers: bus: Move omap gpmc code to live under
- drivers
-Date: Fri, 21 Nov 2014 09:18:04 -0800
-Message-ID: <20141121171804.GU7046@atomide.com>
-References: <1416522501-14999-1-git-send-email-tony@atomide.com>
- <1416522501-14999-4-git-send-email-tony@atomide.com>
- <546EF266.1010901@ti.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 1/2] ARM: OMAP2+: hwmod: AM43x: add hwmod support for
+ ADC on AM43xx
+Date: Fri, 21 Nov 2014 17:38:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1411211737100.9204@utopia.booyaka.com>
+References: <1416564862-23056-1-git-send-email-vigneshr@ti.com> <1416564862-23056-2-git-send-email-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34558 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932081AbaKURSQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Nov 2014 12:18:16 -0500
-Content-Disposition: inline
-In-Reply-To: <546EF266.1010901@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1416564862-23056-2-git-send-email-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Roger Quadros <rogerq@ti.com>
 
-* Lokesh Vutla <lokeshvutla@ti.com> [141121 00:09]:
-> On Friday 21 November 2014 03:58 AM, Tony Lindgren wrote:
-> > --- a/drivers/bus/Makefile
-> > +++ b/drivers/bus/Makefile
-> > @@ -5,7 +5,8 @@
-> >  obj-$(CONFIG_BRCMSTB_GISB_ARB)	+= brcmstb_gisb.o
-> >  obj-$(CONFIG_IMX_WEIM)	+= imx-weim.o
-> >  obj-$(CONFIG_MVEBU_MBUS) += mvebu-mbus.o
-> > -obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
->
-> I guess this is unrelated to $subject. Shouldn't this be dropped?
+On Fri, 21 Nov 2014, Vignesh R wrote:
 
-Yes thanks for catching that.
+> This patch adds hwmod support for ADC on AM43xx. Since clockdomain
+> and offsets of adc_tsc are different from AM33xx, ADC data has been
+> directly added to AM43xx hwmod file.
+> 
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 
-Regards,
+Thanks, will try to queue this for v3.19.  Will update my previous pull 
+request.  Otherwise it's v3.20 material.
 
-Tony
+Note that I cannot test this patch locally due to the lack of an AM43xx 
+board.
+
+
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
