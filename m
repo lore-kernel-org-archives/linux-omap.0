@@ -1,54 +1,64 @@
 From: Vivek Gautam <gautam.vivek@samsung.com>
-Subject: [PATCH 01/11] pinctrl: exynos: Add BUS1 pin controller for exynos7
-Date: Fri, 21 Nov 2014 19:05:44 +0530
-Message-ID: <1416576954-11997-2-git-send-email-gautam.vivek@samsung.com>
+Subject: [PATCH 02/11] dwc3: exynos: Remove local variable for clock from probe
+Date: Fri, 21 Nov 2014 19:05:45 +0530
+Message-ID: <1416576954-11997-3-git-send-email-gautam.vivek@samsung.com>
 References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-reply-to: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
 Sender: linux-samsung-soc-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, balbi@ti.com, kishon@ti.com
-Cc: linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, tomasz.figa@gmail.com, s.nawrocki@samsung.com, robh+dt@kernel.org, stern@rowland.harvard.edu, kgene.kim@samsung.com, Vivek Gautam <gautam.vivek@samsung.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, tomasz.figa@gmail.com, s.nawrocki@samsung.com, robh+dt@kernel.org, stern@rowland.harvard.edu, kgene.kim@samsung.com, Vivek Gautam <gautam.vivek@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-USB and Power regulator on Exynos7 require gpios available
-in BUS1 pin controller block.
-So adding the BUS1 pinctrl support.
+There's no need to keep one local variable for clock, and
+then assign the same to 'clk' member of dwc3_exynos.
+Just cleaning it up.
 
-Signed-off-by: Naveen Krishna Ch <naveenkrishna.ch@gmail.com>
 Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/pinctrl/samsung/pinctrl-exynos.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/usb/dwc3/dwc3-exynos.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/pinctrl/samsung/pinctrl-exynos.c b/drivers/pinctrl/samsung/pinctrl-exynos.c
-index d5d4cfc..caca5b5 100644
---- a/drivers/pinctrl/samsung/pinctrl-exynos.c
-+++ b/drivers/pinctrl/samsung/pinctrl-exynos.c
-@@ -1300,6 +1300,13 @@ static const struct samsung_pin_bank_data exynos7_pin_banks7[] __initconst = {
- 	EXYNOS_PIN_BANK_EINTG(8, 0x060, "gpr3", 0x0c),
- };
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index 3951a65..7109de7 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -106,7 +106,6 @@ static int dwc3_exynos_remove_child(struct device *dev, void *unused)
+ static int dwc3_exynos_probe(struct platform_device *pdev)
+ {
+ 	struct dwc3_exynos	*exynos;
+-	struct clk		*clk;
+ 	struct device		*dev = &pdev->dev;
+ 	struct device_node	*node = dev->of_node;
  
-+/* pin banks of exynos7 pin-controller - BUS1 */
-+static const struct samsung_pin_bank_data exynos7_pin_banks8[] __initconst = {
-+	EXYNOS_PIN_BANK_EINTG(8, 0x020, "gpf0", 0x00),
-+	EXYNOS_PIN_BANK_EINTG(8, 0x0a0, "gpf4", 0x10),
-+	EXYNOS_PIN_BANK_EINTG(6, 0x120, "gph1", 0x20),
-+};
+@@ -133,15 +132,13 @@ static int dwc3_exynos_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
+-	clk = devm_clk_get(dev, "usbdrd30");
+-	if (IS_ERR(clk)) {
++	exynos->dev	= dev;
 +
- const struct samsung_pin_ctrl exynos7_pin_ctrl[] __initconst = {
- 	{
- 		/* pin-controller instance 0 Alive data */
-@@ -1342,5 +1349,10 @@ const struct samsung_pin_ctrl exynos7_pin_ctrl[] __initconst = {
- 		.pin_banks	= exynos7_pin_banks7,
- 		.nr_banks	= ARRAY_SIZE(exynos7_pin_banks7),
- 		.eint_gpio_init = exynos_eint_gpio_init,
-+	}, {
-+		/* pin-controller instance 8 BUS1 data */
-+		.pin_banks	= exynos7_pin_banks8,
-+		.nr_banks	= ARRAY_SIZE(exynos7_pin_banks8),
-+		.eint_gpio_init = exynos_eint_gpio_init,
- 	},
- };
++	exynos->clk = devm_clk_get(dev, "usbdrd30");
++	if (IS_ERR(exynos->clk)) {
+ 		dev_err(dev, "couldn't get clock\n");
+ 		return -EINVAL;
+ 	}
+-
+-	exynos->dev	= dev;
+-	exynos->clk	= clk;
+-
+ 	clk_prepare_enable(exynos->clk);
+ 
+ 	exynos->vdd33 = devm_regulator_get(dev, "vdd33");
+@@ -185,7 +182,7 @@ err4:
+ err3:
+ 	regulator_disable(exynos->vdd33);
+ err2:
+-	clk_disable_unprepare(clk);
++	clk_disable_unprepare(exynos->clk);
+ 	return ret;
+ }
+ 
 -- 
 1.7.10.4
