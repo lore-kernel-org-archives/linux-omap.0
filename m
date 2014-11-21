@@ -1,65 +1,46 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 3/4] i2c: omap: don't reset controller if Arbitration Lost detected
-Date: Sat, 22 Nov 2014 02:51:47 +0400
-Message-ID: <1416610307-3698-1-git-send-email-al.kochet@gmail.com>
-References: <1416518925-20679-4-git-send-email-al.kochet@gmail.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416518925-20679-4-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Alexander Kochetkov <al.kochet@gmail.com>
+Subject: Re: [PATCH] i2c: omap: fix i207 errata handling
+Date: Sat, 22 Nov 2014 02:02:03 +0300
+Message-ID: <B174E67D-9CCF-48B6-A5E5-911668161823@gmail.com>
+References: <1416529011-21803-1-git-send-email-al.kochet@gmail.com> <20141121160828.GP7508@saruman>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141121160828.GP7508@saruman>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Arbitration Lost is an expected situation in a multimaster
-environment. I2C controller (IP) correctly detect and report AL.
 
-The only one visible reason for reseting IP in the AL case is
-to avoid advisory 1.94 (omap3) and errata i595 (omap4): "I2C:
-After an Arbitration is Lost the Module Incorrectly Starts
-the Next Transfer".
+21 =CE=CF=D1=C2. 2014 =C7., =D7 19:08, Felipe Balbi <balbi@ti.com> =CE=C1=
+=D0=C9=D3=C1=CC(=C1):
 
-Errata workaround states: "The MST and STT bits inside I2C_CON
-should be set to 1 at the same moment (avoid setting the MST bit
-to 1 while STT = 0)." The driver never set MST and STT bits
-separately and doesn't create condition for errata. So the reset
-is not necessary.
+> Tested on BBB and AM437x Starter Kit
+>=20
+> Tested-by: Felipe Balbi <balbi@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-Also corrected return value for AL to -EAGAIN.
+21 =CE=CF=D1=C2. 2014 =C7., =D7 0:10, Aaro Koskinen <aaro.koskinen@iki.=
+fi> =CE=C1=D0=C9=D3=C1=CC(=C1):
 
-Tested on Beagleboard XM C.
+> I could not see any breakage or anything wrong on OMAP2 & OMAP3.
+> On OMAP1 I don't have anything on the OMAP I2C bus, so cannot really
+> test anything there.
+>=20
+> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
 
-On 21.10.2014 21:11, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org> wrote:
+21 =CE=CF=D1=C2. 2014 =C7., =D7 21:11, Wolfram Sang <wsa@the-dreams.de>=
+ =CE=C1=D0=C9=D3=C1=CC(=C1):
+
 > The errno for AL is -EAGAIN. Curly braces are not needed.
 
-Thank you, Wolfram, fixed.
 
- drivers/i2c/busses/i2c-omap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Guys, I really appreciate you help.
+So much testing and review.
+I could not have done one.
+Thank you!
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 3ffb9c0..02da567 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -707,13 +707,15 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 		return 0;
- 
- 	/* We have an error */
--	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
--			    OMAP_I2C_STAT_XUDF)) {
-+	if (dev->cmd_err & (OMAP_I2C_STAT_ROVR | OMAP_I2C_STAT_XUDF)) {
- 		omap_i2c_reset(dev);
- 		__omap_i2c_init(dev);
- 		return -EIO;
- 	}
- 
-+	if (dev->cmd_err & OMAP_I2C_STAT_AL)
-+		return -EAGAIN;
-+
- 	if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
- 		if (msg->flags & I2C_M_IGNORE_NAK)
- 			return 0;
--- 
-1.7.9.5
+Alexander.
