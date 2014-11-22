@@ -1,78 +1,78 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/1] ARM: OMAP2: Deletion of unnecessary checks before three
- function calls
-Date: Sat, 22 Nov 2014 11:00:35 +0100
-Message-ID: <54705EC3.90708@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH 2/4] i2c: omap: implement workaround for handling invalid
+ BB-bit values
+Date: Sat, 22 Nov 2014 14:23:09 +0100
+Message-ID: <20141122132309.GC2679@katana>
+References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
+ <1416518925-20679-3-git-send-email-al.kochet@gmail.com>
+ <20141121160808.GM7508@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XMCwj5IQnwKtuyBG"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20141121160808.GM7508@saruman>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 22 Nov 2014 10:50:33 +0100
 
-The functions clk_disable(), of_node_put() and omap_device_delete() test
-whether their argument is NULL and then return immediately.
-Thus the test around the call is not needed.
+--XMCwj5IQnwKtuyBG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This issue was detected by using the Coccinelle software.
+On Fri, Nov 21, 2014 at 10:08:08AM -0600, Felipe Balbi wrote:
+> On Fri, Nov 21, 2014 at 01:28:43AM +0400, Alexander Kochetkov wrote:
+> > In a multimaster environment, after IP software reset, BB-bit value doe=
+sn't
+> > correspond to the current bus state. It may happen what BB-bit will be =
+0,
+> > while the bus is busy due to another I2C master activity.
+> >=20
+> > Any transfer started when BB=3D0 and bus is busy wouldn't be completed =
+by IP
+> > and results in controller timeout. More over, in some cases IP could
+> > interrupt another master's transfer and corrupt data on wire.
+> >=20
+> > The commit implement method allowing to prevent IP from entering into
+> > "controller timeout" state and from "data corruption" state.
+> >=20
+> > The one drawback is the need to wait for 10ms before the first transfer.
+> >=20
+> > Tested on Beagleboard XM C.
+> >=20
+> > Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>=20
+> Tested on BBB and AM437x Starter Kit
+>=20
+> Tested-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- arch/arm/mach-omap2/omap_device.c | 3 +--
- arch/arm/mach-omap2/omap_hwmod.c  | 3 +--
- arch/arm/mach-omap2/timer.c       | 3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
+Huh, I can't apply this one? Which kernel version is this based on?
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index d22c30d..5108859 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -199,8 +199,7 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
- 
- 	switch (event) {
- 	case BUS_NOTIFY_DEL_DEVICE:
--		if (pdev->archdata.od)
--			omap_device_delete(pdev->archdata.od);
-+		omap_device_delete(pdev->archdata.od);
- 		break;
- 	case BUS_NOTIFY_ADD_DEVICE:
- 		if (pdev->dev.of_node)
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 9e91a4e..e2406c4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -917,8 +917,7 @@ static int _disable_clocks(struct omap_hwmod *oh)
- 
- 	pr_debug("omap_hwmod: %s: disabling clocks\n", oh->name);
- 
--	if (oh->_clk)
--		clk_disable(oh->_clk);
-+	clk_disable(oh->_clk);
- 
- 	p = oh->slave_ports.next;
- 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 43d03fb..5b428a0 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -205,8 +205,7 @@ static void __init omap_dmtimer_init(void)
- 	/* If we are a secure device, remove any secure timer nodes */
- 	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)) {
- 		np = omap_get_timer_dt(omap_timer_match, "ti,timer-secure");
--		if (np)
--			of_node_put(np);
-+		of_node_put(np);
- 	}
- }
- 
--- 
-2.1.3
 
+--XMCwj5IQnwKtuyBG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUcI49AAoJEBQN5MwUoCm2Ba8P/0imzQrZvoLx7zKI+v5UpV1f
+mFRmNH5X7yvAhbt3dao6/hJ3hSs1x7wJp+momIObCXGhNZepzrqEdENPqKNnnx2f
+v30nl18b9Gt43D+DjzD7qLNlvlhNleKMUC4auXYnfmi2BuarMbVWY+ug7KcIPL2e
+WVyzRUejWoY3nbTkCnuinu9cGTUDH2+R2Ve6WIuIcV5n7uASgNYK+XAJf0Y3wXmu
+TeFJwV9tDEWcD32Fmdf0Vmfy1BaO8fz6KGkJ33rXG5E+O+QIH+ps96jKakMS27eZ
+pThbihzEs+tMK16Lwbg+qUA8TS3QSyvYLPI6Tk5/OUVs6qDxiWKUHoBynjNMczp8
+xtB2rl7YDvg1irwhevuh2ZQjVi+a+ceflejOca7zy9QBgtO2X2dMIM34UwL0OH2H
+4ayFM6SSKPWJjvoRcVQIA5dMAX3VZ6hmtxkVuZWAAi0bhvOTvvdqFklshPYbL2um
+uIh3uR+b8gRNvnao4LkI/To0LCUaa/8gFHG9UQHT3bb7BPToCH0ZUleJE6paYOx8
+TUWf3PmTnS/wd//gaqb7QkPrxd3088HvIGl7lAe0qMeokoTpusUMmrVTRAvm5Zq9
+4T75IHh0sE0TgVOAGgbkaELdv9lIiU1Wl52KOEi0MssgFqM93GZyvFangC02MBRI
+Exghg2WSfXCYtqwbYWrD
+=zLD2
+-----END PGP SIGNATURE-----
+
+--XMCwj5IQnwKtuyBG--
