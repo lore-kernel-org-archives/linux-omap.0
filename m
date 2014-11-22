@@ -1,54 +1,49 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH] usb: dwc3: return error code from the most recent call
-Date: Sat, 22 Nov 2014 15:56:47 +0100
-Message-ID: <1416668207-10770-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Srinivas Kandagatla <srinivas.kandagatla@gmail.com>
-Cc: kernel-janitors@vger.kernel.org, Maxime Coquelin <maxime.coquelin@st.com>, Patrice Chotard <patrice.chotard@st.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, kernel@stlinux.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Kukjin Kim <kgene@kernel.org>
+Subject: Re: [PATCH 00/11] Exynos7: Adding USB 3.0 support
+Date: Sun, 23 Nov 2014 00:12:05 +0900
+Message-ID: <5470A7C5.1070302@kernel.org>
+References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com> <20141121151130.GD7508@saruman> <54704BF0.1000903@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <54704BF0.1000903@ti.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, tomasz.figa@gmail.com, s.nawrocki@samsung.com, robh+dt@kernel.org, stern@rowland.harvard.edu, kgene.kim@samsung.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+On 11/22/14 17:40, Kishon Vijay Abraham I wrote:
+> 
+> On Friday 21 November 2014 08:41 PM, Felipe Balbi wrote:
+>> On Fri, Nov 21, 2014 at 07:05:43PM +0530, Vivek Gautam wrote:
+>>> The series has dependency on
+>>> a) "[PATCH v7 0/7] Enable support for Samsung Exynos7 SoC"
+>>>    http://www.spinics.net/lists/linux-samsung-soc/msg38734.html
+>>> b) "[GIT PULL] Samsung clock changes for 3.19" - specifically the clock dt
+>>>    bindings header.
+>>>    http://comments.gmane.org/gmane.linux.kernel.samsung-soc/39142
+>>> c) "tty: serial: samsung: Clean-up selection of number of available UARTs"
+>>>    http://www.spinics.net/lists/linux-samsung-soc/msg37418.html
+>>> d) "dts, kbuild: Implement support for dtb vendor subdirs"(merged in linux-next)
+>>>    https://lkml.org/lkml/2014/10/21/654
+>>> e) "Samsung pinctrl patches for v3.19"
+>>>    http://www.spinics.net/lists/linux-samsung-soc/msg38744.html
+>>>
+>>> Tested on Exynos7-espresso board with 3.18-rc5 and above dependencies.
+>>>
+>>> Clubbing the pinctrl, clk, and usb driver changes alongwith the dt changes
+>>> together in this series only so as to avoid having 'n' number of dependencies.
+>>>
+>>> The USB driver patches in this series were part of [1] sent earlier.
+>>> [1] [PATCH v2 0/4] usb: dwc3/phy-exynos5-usbdrd: Extend support to Exynos7
+>>>     https://lkml.org/lkml/2014/10/7/191
+>>
+>> I took dwc3 driver patches.
+> 
+> I took the phy patches.
+> 
+I'll take DT changes once exynos7 is landing into samsung tree :)
 
-Copy-paste error from the previous block of error handling code.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression e,e1;
-@@
-
-if (IS_ERR(e)) {
-  ...
-(
-  ret = PTR_ERR(e);
-|
-*  ret = PTR_ERR(e1);
-)
-  ...
-  return ret;
-}
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
- drivers/usb/dwc3/dwc3-st.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/usb/dwc3/dwc3-st.c b/drivers/usb/dwc3/dwc3-st.c
-index c7602b5..4a1a543 100644
---- a/drivers/usb/dwc3/dwc3-st.c
-+++ b/drivers/usb/dwc3/dwc3-st.c
-@@ -243,7 +243,7 @@ static int st_dwc3_probe(struct platform_device *pdev)
- 	dwc3_data->rstc_rst = devm_reset_control_get(dev, "softreset");
- 	if (IS_ERR(dwc3_data->rstc_rst)) {
- 		dev_err(&pdev->dev, "could not get reset controller\n");
--		ret = PTR_ERR(dwc3_data->rstc_pwrdn);
-+		ret = PTR_ERR(dwc3_data->rstc_rst);
- 		goto undo_powerdown;
- 	}
- 
-
+Thanks,
+Kukjin
