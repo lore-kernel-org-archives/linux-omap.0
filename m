@@ -1,63 +1,79 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 1/4] i2c: omap: cleanup register definitions
-Date: Sat, 22 Nov 2014 23:47:11 +0400
-Message-ID: <1416685634-5864-2-git-send-email-al.kochet@gmail.com>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH v3 0/4] i2c: omap: patch series related to multimaster
+ mode
+Date: Sat, 22 Nov 2014 22:08:13 +0100
+Message-ID: <20141122210812.GA1275@katana>
 References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
  <1416685634-5864-1-git-send-email-al.kochet@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <1416685634-5864-1-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Delete STAT_AD0 mask as unrelated to current IP (omap1?).
-Delete DEBUG conditional around SYSTEST masks group.
-Add SYSTEST functional mode masks for SCL and SDA.
-Add STAT_BF mask.
 
-Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Tested-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 32dc651..adfac9b 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -98,7 +98,7 @@ enum {
- #define OMAP_I2C_STAT_ROVR	(1 << 11)	/* Receive overrun */
- #define OMAP_I2C_STAT_XUDF	(1 << 10)	/* Transmit underflow */
- #define OMAP_I2C_STAT_AAS	(1 << 9)	/* Address as slave */
--#define OMAP_I2C_STAT_AD0	(1 << 8)	/* Address zero */
-+#define OMAP_I2C_STAT_BF	(1 << 8)	/* Bus Free */
- #define OMAP_I2C_STAT_XRDY	(1 << 4)	/* Transmit data ready */
- #define OMAP_I2C_STAT_RRDY	(1 << 3)	/* Receive data ready */
- #define OMAP_I2C_STAT_ARDY	(1 << 2)	/* Register access ready */
-@@ -146,16 +146,20 @@ enum {
- #define OMAP_I2C_SCLH_HSSCLH	8
- 
- /* I2C System Test Register (OMAP_I2C_SYSTEST): */
--#ifdef DEBUG
- #define OMAP_I2C_SYSTEST_ST_EN		(1 << 15)	/* System test enable */
- #define OMAP_I2C_SYSTEST_FREE		(1 << 14)	/* Free running mode */
- #define OMAP_I2C_SYSTEST_TMODE_MASK	(3 << 12)	/* Test mode select */
- #define OMAP_I2C_SYSTEST_TMODE_SHIFT	(12)		/* Test mode select */
-+/* Functional mode */
-+#define OMAP_I2C_SYSTEST_SCL_I_FUNC	(1 << 8)	/* SCL line input value */
-+#define OMAP_I2C_SYSTEST_SCL_O_FUNC	(1 << 7)	/* SCL line output value */
-+#define OMAP_I2C_SYSTEST_SDA_I_FUNC	(1 << 6)	/* SDA line input value */
-+#define OMAP_I2C_SYSTEST_SDA_O_FUNC	(1 << 5)	/* SDA line output value */
-+/* SDA/SCL IO mode */
- #define OMAP_I2C_SYSTEST_SCL_I		(1 << 3)	/* SCL line sense in */
- #define OMAP_I2C_SYSTEST_SCL_O		(1 << 2)	/* SCL line drive out */
- #define OMAP_I2C_SYSTEST_SDA_I		(1 << 1)	/* SDA line sense in */
- #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
--#endif
- 
- /* OCP_SYSSTATUS bit definitions */
- #define SYSS_RESETDONE_MASK		(1 << 0)
--- 
-1.7.9.5
+On Sat, Nov 22, 2014 at 11:47:10PM +0400, Alexander Kochetkov wrote:
+> Here is the patch series intended to improve stability of
+> i2c-omap driver in the i2c multimaster environments.
+>=20
+> Tested on Beagleboard XM C.
+> For now all fine. No controller timeouts, no data corruptions.
+>=20
+> Also impelemented i2c bus fault detection during startup and
+> after reset.
+>=20
+> So, instead of the message "controller timeout" blaming IP,
+> you get "timeout waiting for bus ready".
+>=20
+> Rebased against i2c/for-next (eb61694b43dea0d43ea2574e7d48f476a6bdffb0)
+>=20
+> Tested on the kernel from angstrom-v2013.06-yocto1.4
+> Kernel recepie linux-mainline_3.2.bb
+> git://github.com/Angstrom-distribution/meta-ti.git; branch angstrom-stagi=
+ng-yocto1.4
+> With all i2-omap.c patches backported from upstream linux/master
+>=20
+> Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>=20
+> Alexander Kochetkov (4):
+>   i2c: omap: cleanup register definitions
+>   i2c: omap: implement workaround for handling invalid BB-bit values
+>   i2c: omap: don't reset controller if Arbitration Lost detected
+>   i2c: omap: add notes related to i2c multimaster mode
+
+All applied to for-next, thanks!
+
+
+--2fHTh5uZTiUOsy+g
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUcPs8AAoJEBQN5MwUoCm2of4P/RYg5MELYAaeKfX8bMbiQYe/
+dOoccjTAaGR/KI3fd0qb0K+0SSjYz8OHqe2YpoD4Xqd8p5OhHzIZgDQjAikS5fQc
+WcLYs9pnUxgO30LONK2o78lUy5VIl+9/5Cg2EHuQPeJMvedupOup3aVG/O5JDwD7
+LNsCZp6RKRwE4DCTVHhaRpMC/pa9bTwW3M1Zt2a5wUjAYLlih+dvcNBv/cQ/lmft
+LX2u3Yy2pRvo/NEo3aoxr9np88XwIvvVRcELCIlJ2bE0rEVoYmqKFFW+MTR/bGMi
+A+0ptbH0B7E4HUUch4XMYbvyBupvvaBz8Izr6jIudQFx1q0PiEevuQv6UIM9QIe+
+y1tRql8o4cTv2Vk2YXhuPh2l4J3HHoczhv29bxI6dOUh4g3ixExlP4tBhc+WaWAh
+D0NxhpsQsOaJyqFtRLsANEl8WPHD2AbNcLa8U2RshZMhp5Pf6PoeTpv6vxJF8Jpv
+BU5HnsFlgWRqfee+HZEcmZ/d/oR7TUuPjjhmDg+FWgAmT6VMkbyl+aQ79FMBQqlT
+u6swIdti14Og7hXxU6tqR5VQD6KBhiO3jRbgWKofxLG/TkJvRIXDF4OY7QhyyMCP
+T5YIvdakBfJrpayDO5DDfxQT5vrbyEcxlLpSBXXasunQ9R9y5RYcddJrFOtlrfN0
+OENSIho3PzzLbT346jNN
+=YMcV
+-----END PGP SIGNATURE-----
+
+--2fHTh5uZTiUOsy+g--
