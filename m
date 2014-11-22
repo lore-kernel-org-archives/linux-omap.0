@@ -1,105 +1,33 @@
-From: Alim Akhtar <alim.akhtar@gmail.com>
-Subject: Re: [PATCH 09/11] arm64: exynos: Add bus1 pinctrl node on exynos7
-Date: Sat, 22 Nov 2014 19:11:25 +0530
-Message-ID: <CAGOxZ53TUvZhSDLfeCuyvBwVcrkQhFnftQzk1DbkU_krdoFbZA@mail.gmail.com>
-References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com> <1416576954-11997-10-git-send-email-gautam.vivek@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1416576954-11997-10-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, linux-usb <linux-usb@vger.kernel.org>, devicetree@vger.kernel.org, balbi <balbi@ti.com>, kishon <kishon@ti.com>, linux-omap <linux-omap@vger.kernel.org>, gregkh@linuxfoundation.org, Tomasz Figa <tomasz.figa@gmail.com>, Sylwester Nawrocki <s.nawrocki@samsung.com>, robh+dt <robh+dt@kernel.org>, stern <stern@rowland.harvard.edu>, Kukjin Kim <kgene.kim@samsung.com>
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
+Date: Sat, 22 Nov 2014 17:06:10 +0300
+Message-ID: <B6D9B4D7-25CB-456F-88B4-EB6A53E33A9D@gmail.com>
+References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416518925-20679-3-git-send-email-al.kochet@gmail.com> <20141121160808.GM7508@saruman> <20141122132309.GC2679@katana>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141122132309.GC2679@katana>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Vivek,
 
-On Fri, Nov 21, 2014 at 7:05 PM, Vivek Gautam <gautam.vivek@samsung.com> wrote:
-> BUS1 pinctrl provides gpios for usb and power regulator
-> available on exynos7-espresso board. So add relevant device
-> node for pinctrl-bus1.
->
-> Signed-off-by: Naveen Krishna Ch <naveenkrishna.ch@gmail.com>
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> ---
->  arch/arm64/boot/dts/exynos/exynos7-pinctrl.dtsi |   26 +++++++++++++++++++++++
->  arch/arm64/boot/dts/exynos/exynos7.dtsi         |    7 ++++++
->  2 files changed, 33 insertions(+)
->
-> diff --git a/arch/arm64/boot/dts/exynos/exynos7-pinctrl.dtsi b/arch/arm64/boot/dts/exynos/exynos7-pinctrl.dtsi
-> index 2eef4a2..9648e03 100644
-> --- a/arch/arm64/boot/dts/exynos/exynos7-pinctrl.dtsi
-> +++ b/arch/arm64/boot/dts/exynos/exynos7-pinctrl.dtsi
-> @@ -335,6 +335,32 @@
->         };
->  };
->
-> +&pinctrl_bus1 {
-> +       gpf0: gpf0 {
-> +               gpio-controller;
-> +               #gpio-cells = <2>;
-> +
-> +               interrupt-controller;
-> +               #interrupt-cells = <2>;
-> +       };
-> +
-> +       gpf4: gpf4 {
-> +               gpio-controller;
-> +               #gpio-cells = <2>;
-> +
-> +               interrupt-controller;
-> +               #interrupt-cells = <2>;
-> +       };
-> +
-> +       gph1: gph1 {
-> +               gpio-controller;
-> +               #gpio-cells = <2>;
-> +
-> +               interrupt-controller;
-> +               #interrupt-cells = <2>;
-> +       };
-> +};
-> +
-See my comment on patch 01/11, accordingly you can modify this.
+22 =CE=CF=D1=C2. 2014 =C7., =D7 16:23, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>=
+ =CE=C1=D0=C9=D3=C1=CC(=C1):
 
->  &pinctrl_nfc {
->         gpj0: gpj0 {
->                 gpio-controller;
-> diff --git a/arch/arm64/boot/dts/exynos/exynos7.dtsi b/arch/arm64/boot/dts/exynos/exynos7.dtsi
-> index d7a37c3..90048b2 100644
-> --- a/arch/arm64/boot/dts/exynos/exynos7.dtsi
-> +++ b/arch/arm64/boot/dts/exynos/exynos7.dtsi
-> @@ -26,6 +26,7 @@
->                 pinctrl5 = &pinctrl_ese;
->                 pinctrl6 = &pinctrl_fsys0;
->                 pinctrl7 = &pinctrl_fsys1;
-> +               pinctrl8 = &pinctrl_bus1;
->         };
->
->         cpus {
-> @@ -242,6 +243,12 @@
->                         interrupts = <0 383 0>;
->                 };
->
-> +               pinctrl_bus1: pinctrl@14870000 {
-> +                       compatible = "samsung,exynos7-pinctrl";
-> +                       reg = <0x14870000 0x1000>;
-> +                       interrupts = <0 384 0>;
-> +               };
-> +
->                 pinctrl_nfc: pinctrl@14cd0000 {
->                         compatible = "samsung,exynos7-pinctrl";
->                         reg = <0x14cd0000 0x1000>;
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Huh, I can't apply this one? Which kernel version is this based on?
 
+v.3.13-rc8
+It depends on PATCH 1/4
 
-
--- 
-Regards,
-Alim
+alexander@ubuntu:git.kernel.org.pub.scm.linux.kernel.git.stable.linux-s=
+table$ git log --pretty=3Doneline --abbrev-commit -6
+204c058 i2c: omap: add notes related to i2c multimaster mode
+2b15417 i2c: omap: don't reset controller if Arbitration Lost detected
+38ef30e i2c: omap: implement workaround for handling invalid BB-bit val=
+ues
+9b15135 i2c: omap: cleanup register definitions
+a7483d8 Fixes: 1d7afc9 i2c: omap: ack IRQ in parts
+7e22e91 Linux 3.13-rc8
