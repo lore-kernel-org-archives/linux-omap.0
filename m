@@ -1,65 +1,37 @@
-From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: Re: [PATCH 2/4] i2c: omap: implement workaround for handling invalid
- BB-bit values
-Date: Sat, 22 Nov 2014 19:02:22 +0100
-Message-ID: <20141122180222.GA9698@katana>
-References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
- <1416518925-20679-3-git-send-email-al.kochet@gmail.com>
- <20141121160808.GM7508@saruman>
- <20141122132309.GC2679@katana>
- <B6D9B4D7-25CB-456F-88B4-EB6A53E33A9D@gmail.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: [RFC] adp1653: Add device tree bindings for LED controller
+Date: Sat, 22 Nov 2014 20:45:48 +0200
+Message-ID: <5470D9DC.70807@gmail.com>
+References: <20141116075928.GA9763@amd> <201411171601.32311@pali> <20141117150407.GP8907@valkosipuli.retiisi.org.uk> <201411171615.34822@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <B6D9B4D7-25CB-456F-88B4-EB6A53E33A9D-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201411171615.34822@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, bcousson@baylibre.com, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, devicetree@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Sat, Nov 22, 2014 at 05:06:10PM +0300, Alexander Kochetkov wrote:
->=20
-> 22 =D0=BD=D0=BE=D1=8F=D0=B1. 2014 =D0=B3., =D0=B2 16:23, Wolfram Sang <ws=
-a@the-dreams.de> =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=BB(=D0=B0):
->=20
-> > Huh, I can't apply this one? Which kernel version is this based on?
->=20
-> v.3.13-rc8
+>> Can you capture raw bayer images correctly? I assume green
+>> means YUV buffers that are all zero.
+>>
+>> Do you know more specifically which patch breaks it?
+>
+> CCing freemangordon (Ivaylo Dimitrov). He tried to debug it
+> months ago but without success. Should know more info about this
+> problem.
+>
+> I think that commit which broke it was not bisected...
+>
 
-Wow, that's old. Can you please rebase the series on top of 3.18-rc4? Or
-my i2c/for-next? Or at the very least 3.17?
+According to my vague memories, the green captured image was a result 
+from the ISP IRQ never got triggered. I tried to find why, but never 
+succeeded.
 
-@Felipe: With which kernel did you test the series? Also, 3.13?
-
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUcM+uAAoJEBQN5MwUoCm2zk4P/iC6x0VMW9PO1tfCbnatApUl
-aO0WzWx1XnqyNt9qo+L7EZjGiDXo9iRfh9Doo39S0Frm3LBnq7NI9N/SlkRWZFcS
-txS/579BmuqHSw0+0Sjp/V0B7l5mgpSNXpZjdSKgB6EO/rkC1tN4OurvPJyl5bwh
-t1Csu0JHehwpYW4fCJBpa//3VbZ9aepl7rUWj70n2ETBWPQaGmxEKvWY2Ztku4/Y
-5Rxf2dcM9nQ68LzRPj5A4HVXPugKOOYWo+Turd51t4DQEamX+aAj3M9hRfdMovwL
-GANh2RHLSJ+O3Iy2iwnLvdeUd7yL19EhhjeE5V9T8ZvIzHtoHQCcA+yu6XKMhwXi
-+o9wYqC8aZGUEPdhoVtUFSJYwfHCiltzPFz6jqlHVJRM4rnYaPjwilQmRYFtVTGz
-Pqc0NIted7naIbj+FN8D5cmL4jeUa3yKuyDbW5MHsPY3BIpxQ/cqMTLT9BZ0uvq0
-e5VUcIG3ywTcnSvnAWRLJlxY7BYvXyrjX+CK6TY5v2kLFwd+FHDtlxnL+dDV/Ieg
-iiojNHQsd6suJ/lmANh22KZFSZEPbxVMlyz03E5/NG2bUK1nTgTQg19bJ8E309C/
-BCVo5rl/4Kbc7+AgzkQ2y1O3cHbkL64Z9I/CaSTCvHQiQFZ5IfI04vYT9d/g5DDg
-PcsAqhFcSAEiQ74UehGA
-=Z2hb
------END PGP SIGNATURE-----
-
---X1bOJ3K7DJ5YkBrT--
+Sakari, we discussed that on #maemo-ssu when I was playing with cameras, 
+and there is nothing new in that regard:
+http://mg.pov.lt/maemo-ssu-irclog/%23maemo-ssu.2013-09-18.log.html#t2013-09-18T18:46:38 
