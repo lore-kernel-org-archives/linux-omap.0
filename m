@@ -1,71 +1,39 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/1] video: fbdev-OMAP2: Deletion of unnecessary checks before
- the function call "i2c_put_adapter"
-Date: Sun, 23 Nov 2014 14:14:10 +0100
-Message-ID: <5471DDA2.1060000@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:51592 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751014AbaKWNOe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 23 Nov 2014 08:14:34 -0500
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
+Date: Sun, 23 Nov 2014 16:18:40 +0300
+Message-ID: <1CC68911-DF20-4FF0-A08A-1A6F0B565662@gmail.com>
+References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416518925-20679-3-git-send-email-al.kochet@gmail.com> <20141121160808.GM7508@saruman> <20141122132309.GC2679@katana> <B6D9B4D7-25CB-456F-88B4-EB6A53E33A9D@gmail.com> <20141122180222.GA9698@katana> <20141123044306.GA19898@saruman>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141123044306.GA19898@saruman>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 23 Nov 2014 14:07:22 +0100
 
-The i2c_put_adapter() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+23 =CE=CF=D1=C2. 2014 =C7., =D7 7:43, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> =CE=C1=
+=D0=C9=D3=C1=CC(=C1):
 
-This issue was detected by using the Coccinelle software.
+> maybe there was a typo? I tested on v3.18-rc3 :-)
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/video/fbdev/omap2/displays-new/connector-dvi.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+I do my tests on kernel from angstrom with almost all i2c-omap patches =
+backported from linux/master.
+Then I rebased them to wrong (old) kernel version and posted to the lis=
+t.
 
-diff --git a/drivers/video/fbdev/omap2/displays-new/connector-dvi.c b/drivers/video/fbdev/omap2/displays-new/connector-dvi.c
-index 74de2bc..196c61a 100644
---- a/drivers/video/fbdev/omap2/displays-new/connector-dvi.c
-+++ b/drivers/video/fbdev/omap2/displays-new/connector-dvi.c
-@@ -262,8 +262,7 @@ static int dvic_probe_pdata(struct platform_device *pdev)
- 
- 	in = omap_dss_find_output(pdata->source);
- 	if (in == NULL) {
--		if (ddata->i2c_adapter)
--			i2c_put_adapter(ddata->i2c_adapter);
-+		i2c_put_adapter(ddata->i2c_adapter);
- 
- 		dev_err(&pdev->dev, "Failed to find video source\n");
- 		return -EPROBE_DEFER;
-@@ -352,8 +351,7 @@ static int dvic_probe(struct platform_device *pdev)
- err_reg:
- 	omap_dss_put_device(ddata->in);
- 
--	if (ddata->i2c_adapter)
--		i2c_put_adapter(ddata->i2c_adapter);
-+	i2c_put_adapter(ddata->i2c_adapter);
- 
- 	return r;
- }
-@@ -371,8 +369,7 @@ static int __exit dvic_remove(struct platform_device *pdev)
- 
- 	omap_dss_put_device(in);
- 
--	if (ddata->i2c_adapter)
--		i2c_put_adapter(ddata->i2c_adapter);
-+	i2c_put_adapter(ddata->i2c_adapter);
- 
- 	return 0;
- }
--- 
-2.1.3
+Angstrom kernel is from meta-ti layer. It's the same kernel as for arag=
+o.
+http://arago-project.org/wiki/index.php/Main_Page
 
+I would really like to switch to the recent kernel, but I don't know ho=
+w good codec engine (CE) is supported on it.
+Initially all ti drivers for codec engine was done for 2.6.x kernels an=
+d later some of them was ported for 3.2.x.
+
+=46elipe, do you know how CE is supported on v3.18-rc3?
+
+Regards,
+Alexander.
