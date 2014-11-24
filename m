@@ -1,109 +1,84 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
-Date: Mon, 24 Nov 2014 10:18:31 +0200
-Message-ID: <5472E9D7.7000908@ti.com>
-References: <cover.1415803064.git.jsarha@ti.com> <20141112222344.GU3815@sirena.org.uk> <54646648.5030807@ti.com> <546DC9A0.8060700@ti.com> <20141121112317.GQ3815@sirena.org.uk> <546F317B.9030004@ti.com> <20141121161435.GS3815@sirena.org.uk>
+From: Johannes Pointner <johannes.pointner@gmail.com>
+Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
+ reg_se_cache save
+Date: Mon, 24 Nov 2014 09:32:23 +0100
+Message-ID: <CAJKbBDCSjSWfXrbJawP3peRFhEk9ZaMyPyS=bNNVvqBv2am8ag@mail.gmail.com>
+References: <1415941651-28962-4-git-send-email-vigneshr@ti.com>
+	<20141118143005.GF24004@x1>
+	<20141118171240.GB3003@dtor-ws>
+	<546DF2F0.9080405@ti.com>
+	<20141120144028.GB5809@localhost.localdomain>
+	<546F2BA4.4000808@ti.com>
+	<20141121131036.GA18931@localhost.localdomain>
+	<CAJKbBDDVTA+=priRu7sCD=vHrC8AUg4DM3kycuGrqbpF-5FGAA@mail.gmail.com>
+	<546F5C27.7040004@ti.com>
+	<CAJKbBDD=eYmU=LuViwLPNV=kYCziDQgKjL07bT7og4vsj0Ee7A@mail.gmail.com>
+	<20141121214005.GA4020@localhost.localdomain>
+	<912A29987EAE174BA6CF187D7CDFA9CE26F6D664@DLEE08.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="5d8k6rOX1jHBdt6q3X0WKsFp7cdqJbFRp"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50102 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbaKXISq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 03:18:46 -0500
-In-Reply-To: <20141121161435.GS3815@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <912A29987EAE174BA6CF187D7CDFA9CE26F6D664@DLEE08.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Griffis, Brad" <bgriffis@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, "Nori, Sekhar" <nsekhar@ti.com>, "R, Vignesh" <vigneshr@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, "Balbi, Felipe" <balbi@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
---5d8k6rOX1jHBdt6q3X0WKsFp7cdqJbFRp
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+2014-11-21 23:25 GMT+01:00 Griffis, Brad <bgriffis@ti.com>:
+>
+>> -----Original Message-----
+>> From: Richard Cochran [mailto:richardcochran@gmail.com]
+>>
+>> On Fri, Nov 21, 2014 at 07:17:18PM +0100, Johannes Pointner wrote:
+>> > Before the patches were also jumps but I thought it is something
+>> > Vignesh should know. Maybe there is some fix for that too?
+>
+> I believe I've seen the "jumping" behavior pop up at a couple random times in my testing.  I think it relates to the hardware not properly registering a pen-up interrupt.  When that's happening can you try running ts_calibrate?  If you're not registering a pen-up event then you won't be able to advance through those touch points.  Is this behavior related to capturing ADC samples, or do you see this behavior even without capturing ADC samples?
 
-On 21/11/14 18:14, Mark Brown wrote:
-> On Fri, Nov 21, 2014 at 02:35:07PM +0200, Jyri Sarha wrote:
->> On 11/21/2014 01:23 PM, Mark Brown wrote:
->=20
->>> With this specific series I also need to figure out what all the vide=
-o
->>> side is about (like I said earlier a lot of the patches look like
->>> they're supposed to be simple fixes for the video code not terribly
->>> closely tied to the rest of the series but none of them are getting
->>> applied) and what the end goal is beyond mechanically moving code.
->=20
->> The end goal of this series is to fix OMAP HDMI audio, that got broken=
+Is it the right way to test? Because I think the ts_lib will cover
+misbehavior of the touchscreen driver.
 
->> couple of releases ago. At the same time I cleaned up the old complex =
-scheme
->> to make the connection between the video and audio parts and allow mul=
-tiple
->> HDMI devices (DSS side is not ready for this yet, but audio side is).
->=20
-> But in what way is it broken and how did this happen?  Why are none of
+>
+>> > As Richard also noted, it would be nice if ti could let us know how to
+>> > get the delay values right. By trial and error is IMHO not the best
+>> > way.
+>>
+>> That is not only an opinion, it is a matter of fact. TI really dropped the ball on
+>> this one. I thought the patch series was a sign they finally were going to
+>> properly address this issue. Wrong again.
+>
+> These patches originate from work I did on TI's SDK 7.00 (3.12 kernel).  The touchscreen is working beautifully in that environment and we are putting forth significant effort to bring those improvements to the community.
+>
+> Things do not seem to be working as well with the current mainline kernel.  I've been reviewing various patches between 3.12 and the mainline to understand why it's different.  I believe I have figured this out, and I have discussions going separately with individuals that contributed those patches in order to come up with the best possible solution, i.e. we likely need a few additional changes to this patch set.
 
-I don't have a clear answer, but it probably involves lack of use, and
-buggy and hard to use implementation. Things have changed around the
-original HDMI audio implementation, and it stopped working at some point.=
+Ok, then I'm looking forward for a new patch set to test. Furthermore,
+I would be interested which changes you are talking about.
 
+>
+> The CHARGECONFIG delay serves precisely the same purpose as the udelay in the original code base.  How did you determine the udelay value in the first place?  I went through the effort of figuring out a way to make the delay into a HARDWARE delay instead of a software delay so that it could be removed from the ISR.  That delay time relates to "settling time" and so it's going to be dependent on your PCB.  You could hook up an oscilloscope and attempt to capture this parameter from the signals themselves.  Personally I think that's a lot more difficult than just doing a few iterations of testing.
 
-As the original implementation was found rather lacking, and with some
-fundamental issues, it was deemed better to have a fresh approach.
+I did measure with an oscilloscope to get the right charge delay and
+it looks fine to me. But I can't affect the jumps with the charge
+delay, the only thing that helped, was to add some sample delay. But
+it didn't solve it.
 
-> the patches which look like they're supposed to be bug fixes early on i=
-n
-> the series getting applied?  I had thought this was just a lack of
-> interest on the video side but it seems there's some other problems
-> since the series has apparently been discussed off-list and still it's
-> just as big as it was initially.
+>
+>> The data sheet for the TI part used to have a reference to an app-note for
+>> the touch controller.
+>>
+>>       spruh73f page 1154
+>>
+>>       The Pen IRQ can only occur if the correct Pen Ctrl bits are high
+>>       (AFE Pen Ctrl bits 6:5 in the TSC_ADC control register) and if
+>>       the correct ground transistor biasing is set in the StepConfig
+>>       [N] Register. Refer to the application notes for the correct
+>>       settings.
+>>
+>> I searched high and low for this application note. Then, the data sheet got
+>> revised.
+>
+> Such an application note does not exist, which explains why you didn't find it and why we have removed that reference from the TRM.  Sorry for your trouble.  We always strive for accurate documentation.
 
-The whole series is about HDMI audio, not video.
-
-The main HDMI driver resides in the fbdev directory, as the video side
-is the "master" here, and it contains the code to access the registers
-(including audio related registers). The sound/ part in this series acts
-as a logic between the asoc and the low level HDMI driver.
-
-This series only touch the parts about HDMI audio, so the fixes early on
-don't really fix anything without the rest of the series (as the current
-HDMI audio doesn't work).
-
-And in any case, I don't like applying individual patches from a series.
-Usually that just complicates things. If I would apply some of the early
-patches to fbdev, then this series would no longer work on plain
-mainline kernel, and would instead depend on fbdev tree. The situation
-would be ever worse if you'd also pick some of the audio patches to
-sound tree, creating a dependency to two subsystem trees.
-
-So if there's no particular important reason to pick patches from a
-series, I rather keep it as a whole to simplify merging and testing.
-
- Tomi
-
-
-
---5d8k6rOX1jHBdt6q3X0WKsFp7cdqJbFRp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUcunXAAoJEPo9qoy8lh71d8EP/0WHc8cwEHiD9BzPBd2WgijN
-eQNmfNrMbGBp4xQokJZGaLFpr7TtMFwhBk/bl1DKRE509wZZ3E+scD9YqYa3p+iW
-z0iPJdbUmGggkzkGYK3Vn67LzegOBdwRUR87w4R9RYv4sgrkOb7AFvz0Hg+QpHOq
-qu+kPH6MCGis6OMjHQIntAc/FppbAYEr6rA0fBvw+j3xhGG1zdctvsTFk5BCxaIF
-Dd9fZrzYgC3Lig7tQkT/uvbROmfcIi/sy5EvSBS+GrMPlkhtD0CHXWeSP9HSJ5Bt
-CCKaROj2L3CtGEkGZsO4edtf5X8EMI+DPyHN3wbQEhhOo8rUVy74Y92dBx/U/h9k
-lEkX1pgUmkMEYVQ89A14jmOAzWwmK2HRQvnLB6slCzq3tgzmA5NcvNTFbU2r1K1R
-4+0WJ5fj+lPv6c62b5kGWBE9OOta+ZcIRNUHLFZO61SbytHUqVMP0PnuWgAM9SeM
-285Tbwq5ccs1Vugjbczf4QNqBOIEMqyL3ped/P4xfHBtTA+Gxqs5BWlR2lzVWGPM
-gR/OB7hs1p2U9EOzJtxwORS95vD403UvfsWjMoAHsIfQxDvGp66ka8cSeKkQaJf7
-bl1Gju4DAo9lUdbm6o0gww1uRADBJeQwUeVdnDDHZ9amg1q5calpB7mtpIebldK6
-CSXddzXlBTcaum64sBl+
-=Vwhp
------END PGP SIGNATURE-----
-
---5d8k6rOX1jHBdt6q3X0WKsFp7cdqJbFRp--
+Thanks,
+Hannes
