@@ -1,587 +1,346 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4] mailbox/omap: adapt to the new mailbox framework
-Date: Mon, 24 Nov 2014 17:31:14 -0600
-Message-ID: <5473BFC2.5090203@ti.com>
-References: <1415055950-64090-1-git-send-email-s-anna@ti.com> <CAJe_ZhcfYuoJcVE=Kc4mYOasrnGor1OEjfaN7CQVH=2s1Xmr-A@mail.gmail.com>
+From: Apelete Seketeli <apelete@seketeli.net>
+Subject: Re: [PATCH 5/8] usb: musb: Change end point selection to use new IO
+ access
+Date: Tue, 25 Nov 2014 00:38:35 +0100
+Message-ID: <20141124233835.GB14728@tao>
+References: <1416855906-13931-1-git-send-email-tony@atomide.com>
+ <1416855906-13931-6-git-send-email-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJe_ZhcfYuoJcVE=Kc4mYOasrnGor1OEjfaN7CQVH=2s1Xmr-A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from seketeli.net ([94.23.218.202]:42350 "EHLO ms.seketeli.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750813AbaKXXo2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Nov 2014 18:44:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1416855906-13931-6-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Fabio Baltieri <fabio.baltieri@linaro.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Lars-Peter Clausen <lars@metafoo.de>
 
-Hi Jassi,
+Hi Tony,
 
-On 11/24/2014 03:54 AM, Jassi Brar wrote:
-> On 4 November 2014 at 04:35, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> wrote:
->> The OMAP mailbox driver and its existing clients (remoteproc
->> for OMAP4+) are adapted to use the generic mailbox framework.
->>
->> The main changes for the adaptation are:
->>   - The tasklet used for Tx is replaced with the state machine from
->>     the generic mailbox framework. The workqueue used for processing
->>     the received messages stays intact for minimizing the effects on
->>     the OMAP mailbox clients.
->>   - The existing exported client API, omap_mbox_get, omap_mbox_put and
->>     omap_mbox_send_msg are deleted, as the framework provides equivalent
->>     functionality. A OMAP-specific omap_mbox_request_channel is added
->>     though to support non-DT way of requesting mailboxes.
->>   - The OMAP mailbox driver is integrated with the mailbox framework
->>     through the proper implementations of mbox_chan_ops, except for
->>     .last_tx_done and .peek_data. The OMAP mailbox driver does not need
->>     these ops, as it is completely interrupt driven.
->>   - The OMAP mailbox driver uses a custom of_xlate controller ops that
->>     allows phandles for the pargs specifier instead of indexing to avoid
->>     any channel registration order dependencies.
->>   - The new framework does not support multiple clients operating on a
->>     single channel, so the reference counting logic is simplified.
->>   - The remoteproc driver (current client) is adapted to use the new API.
->>     The notifier callbacks used within this client is replaced with the
->>     regular callbacks from the newer framework.
->>   - The exported OMAP mailbox API are limited to omap_mbox_save_ctx,
->>     omap_mbox_restore_ctx, omap_mbox_enable_irq & omap_mbox_disable_irq,
->>     with the signature modified to take in the new mbox_chan handle instead
->>     of the OMAP specific omap_mbox handle. The first 2 will be removed when
->>     the OMAP mailbox driver is adapted to runtime_pm. The other exported
->>     API omap_mbox_request_channel will be removed once existing legacy
->>     users are converted to DT.
->>
->> Cc: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
->> ---
->> v3->v4: No code changes, switched the example to use the DSP node instead of
->> WkupM3 in the bindings document & minor commit description changes. Other than
->> that, this is a repost of the driver adaptation patch [1] from the OMAP Mailbox
->> framework adaptation series [2]. This patch is intended for the 3.19 merge window,
->> all the dependent patches in [2] are merged as of 3.18-rc2. The DTS patch in [2]
->> will be posted separately.
->>
->> [1] http://marc.info/?l=linux-omap&m=141038453917790&w=2
->> [2] http://marc.info/?l=linux-omap&m=141038447817775&w=2
->>
->>  .../devicetree/bindings/mailbox/omap-mailbox.txt   |  23 ++
->>  drivers/mailbox/omap-mailbox.c                     | 346 ++++++++++++---------
->>  drivers/remoteproc/omap_remoteproc.c               |  51 +--
->>  include/linux/omap-mailbox.h                       |  16 +-
->>  4 files changed, 256 insertions(+), 180 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
->> index 48edc4b..d1a0433 100644
->> --- a/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
->> +++ b/Documentation/devicetree/bindings/mailbox/omap-mailbox.txt
->> @@ -43,6 +43,9 @@ Required properties:
->>                         device. The format is dependent on which interrupt
->>                         controller the OMAP device uses
->>  - ti,hwmods:           Name of the hwmod associated with the mailbox
->> +- #mbox-cells:         Common mailbox binding property to identify the number
->> +                       of cells required for the mailbox specifier. Should be
->> +                       1
->>  - ti,mbox-num-users:   Number of targets (processor devices) that the mailbox
->>                         device can interrupt
->>  - ti,mbox-num-fifos:   Number of h/w fifo queues within the mailbox IP block
->> @@ -72,6 +75,18 @@ data that represent the following:
->>      Cell #3 (usr_id)  - mailbox user id for identifying the interrupt line
->>                          associated with generating a tx/rx fifo interrupt.
->>
->> +Mailbox Users:
->> +==============
->> +A device needing to communicate with a target processor device should specify
->> +them using the common mailbox binding properties, "mboxes" and the optional
->> +"mbox-names" (please see Documentation/devicetree/bindings/mailbox/mailbox.txt
->> +for details). Each value of the mboxes property should contain a phandle to the
->> +mailbox controller device node and an args specifier that will be the phandle to
->> +the intended sub-mailbox child node to be used for communication. The equivalent
->> +"mbox-names" property value can be used to give a name to the communication channel
->> +to be used by the client user.
->> +
->> +
->>  Example:
->>  --------
->>
->> @@ -81,6 +96,7 @@ mailbox: mailbox@4a0f4000 {
->>         reg = <0x4a0f4000 0x200>;
->>         interrupts = <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
->>         ti,hwmods = "mailbox";
->> +       #mbox-cells = <1>;
->>         ti,mbox-num-users = <3>;
->>         ti,mbox-num-fifos = <8>;
->>         mbox_ipu: mbox_ipu {
->> @@ -93,12 +109,19 @@ mailbox: mailbox@4a0f4000 {
->>         };
->>  };
->>
->> +dsp {
->> +       ...
->> +       mboxes = <&mailbox &mbox_dsp>;
->> +       ...
->> +};
->> +
->>  /* AM33xx */
->>  mailbox: mailbox@480C8000 {
->>         compatible = "ti,omap4-mailbox";
->>         reg = <0x480C8000 0x200>;
->>         interrupts = <77>;
->>         ti,hwmods = "mailbox";
->> +       #mbox-cells = <1>;
->>         ti,mbox-num-users = <4>;
->>         ti,mbox-num-fifos = <8>;
->>         mbox_wkupm3: wkup_m3 {
->> diff --git a/drivers/mailbox/omap-mailbox.c b/drivers/mailbox/omap-mailbox.c
->> index bcc7ee1..66b83ca 100644
->> --- a/drivers/mailbox/omap-mailbox.c
->> +++ b/drivers/mailbox/omap-mailbox.c
->> @@ -29,13 +29,14 @@
->>  #include <linux/slab.h>
->>  #include <linux/kfifo.h>
->>  #include <linux/err.h>
->> -#include <linux/notifier.h>
->>  #include <linux/module.h>
->>  #include <linux/of_device.h>
->>  #include <linux/platform_device.h>
->>  #include <linux/pm_runtime.h>
->>  #include <linux/platform_data/mailbox-omap.h>
->>  #include <linux/omap-mailbox.h>
->> +#include <linux/mailbox_controller.h>
->> +#include <linux/mailbox_client.h>
->>
->>  #define MAILBOX_REVISION               0x000
->>  #define MAILBOX_MESSAGE(m)             (0x040 + 4 * (m))
->> @@ -80,7 +81,6 @@ struct omap_mbox_queue {
->>         spinlock_t              lock;
->>         struct kfifo            fifo;
->>         struct work_struct      work;
->> -       struct tasklet_struct   tasklet;
->>         struct omap_mbox        *mbox;
->>         bool full;
->>  };
->> @@ -92,6 +92,7 @@ struct omap_mbox_device {
->>         u32 num_users;
->>         u32 num_fifos;
->>         struct omap_mbox **mboxes;
->> +       struct mbox_controller controller;
->>         struct list_head elem;
->>  };
->>
->> @@ -110,15 +111,14 @@ struct omap_mbox_fifo_info {
->>  struct omap_mbox {
->>         const char              *name;
->>         int                     irq;
->> -       struct omap_mbox_queue  *txq, *rxq;
->> +       struct omap_mbox_queue  *rxq;
->>         struct device           *dev;
->>         struct omap_mbox_device *parent;
->>         struct omap_mbox_fifo   tx_fifo;
->>         struct omap_mbox_fifo   rx_fifo;
->>         u32                     ctx[OMAP4_MBOX_NR_REGS];
->>         u32                     intr_type;
->> -       int                     use_count;
->> -       struct blocking_notifier_head   notifier;
->> +       struct mbox_chan        *chan;
->>  };
->>
->>  /* global variables for the mailbox devices */
->> @@ -129,6 +129,14 @@ static unsigned int mbox_kfifo_size = CONFIG_OMAP_MBOX_KFIFO_SIZE;
->>  module_param(mbox_kfifo_size, uint, S_IRUGO);
->>  MODULE_PARM_DESC(mbox_kfifo_size, "Size of omap's mailbox kfifo (bytes)");
->>
->> +static struct omap_mbox *mbox_chan_to_omap_mbox(struct mbox_chan *chan)
->> +{
->> +       if (!chan || !chan->con_priv)
->> +               return NULL;
->> +
->> +       return (struct omap_mbox *)chan->con_priv;
->> +}
->> +
->>  static inline
->>  unsigned int mbox_read_reg(struct omap_mbox_device *mdev, size_t ofs)
->>  {
->> @@ -194,41 +202,14 @@ static int is_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
->>         return (int)(enable & status & bit);
->>  }
->>
->> -/*
->> - * message sender
->> - */
->> -int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
->> -{
->> -       struct omap_mbox_queue *mq = mbox->txq;
->> -       int ret = 0, len;
->> -
->> -       spin_lock_bh(&mq->lock);
->> -
->> -       if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
->> -               ret = -ENOMEM;
->> -               goto out;
->> -       }
->> -
->> -       if (kfifo_is_empty(&mq->fifo) && !mbox_fifo_full(mbox)) {
->> -               mbox_fifo_write(mbox, msg);
->> -               goto out;
->> -       }
->> -
->> -       len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
->> -       WARN_ON(len != sizeof(msg));
->> -
->> -       tasklet_schedule(&mbox->txq->tasklet);
->> -
->> -out:
->> -       spin_unlock_bh(&mq->lock);
->> -       return ret;
->> -}
->> -EXPORT_SYMBOL(omap_mbox_msg_send);
->> -
->> -void omap_mbox_save_ctx(struct omap_mbox *mbox)
->> +void omap_mbox_save_ctx(struct mbox_chan *chan)
->>  {
->>         int i;
->>         int nr_regs;
->> +       struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
->> +
->> +       if (WARN_ON(!mbox))
->> +               return;
->>
->>         if (mbox->intr_type)
->>                 nr_regs = OMAP4_MBOX_NR_REGS;
->> @@ -243,10 +224,14 @@ void omap_mbox_save_ctx(struct omap_mbox *mbox)
->>  }
->>  EXPORT_SYMBOL(omap_mbox_save_ctx);
->>
->> -void omap_mbox_restore_ctx(struct omap_mbox *mbox)
->> +void omap_mbox_restore_ctx(struct mbox_chan *chan)
->>  {
->>         int i;
->>         int nr_regs;
->> +       struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
->> +
->> +       if (WARN_ON(!mbox))
->> +               return;
->>
->>         if (mbox->intr_type)
->>                 nr_regs = OMAP4_MBOX_NR_REGS;
->> @@ -254,14 +239,13 @@ void omap_mbox_restore_ctx(struct omap_mbox *mbox)
->>                 nr_regs = MBOX_NR_REGS;
->>         for (i = 0; i < nr_regs; i++) {
->>                 mbox_write_reg(mbox->parent, mbox->ctx[i], i * sizeof(u32));
->> -
->>                 dev_dbg(mbox->dev, "%s: [%02x] %08x\n", __func__,
->>                         i, mbox->ctx[i]);
->>         }
->>  }
->>  EXPORT_SYMBOL(omap_mbox_restore_ctx);
->>
->> -void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
->> +static void _omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
->>  {
->>         u32 l;
->>         struct omap_mbox_fifo *fifo = (irq == IRQ_TX) ?
->> @@ -273,9 +257,8 @@ void omap_mbox_enable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
->>         l |= bit;
->>         mbox_write_reg(mbox->parent, l, irqenable);
->>  }
->> -EXPORT_SYMBOL(omap_mbox_enable_irq);
->>
->> -void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
->> +static void _omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
->>  {
->>         struct omap_mbox_fifo *fifo = (irq == IRQ_TX) ?
->>                                 &mbox->tx_fifo : &mbox->rx_fifo;
->> @@ -291,28 +274,28 @@ void omap_mbox_disable_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
->>
->>         mbox_write_reg(mbox->parent, bit, irqdisable);
->>  }
->> -EXPORT_SYMBOL(omap_mbox_disable_irq);
->>
->> -static void mbox_tx_tasklet(unsigned long tx_data)
->> +void omap_mbox_enable_irq(struct mbox_chan *chan, omap_mbox_irq_t irq)
->>  {
->> -       struct omap_mbox *mbox = (struct omap_mbox *)tx_data;
->> -       struct omap_mbox_queue *mq = mbox->txq;
->> -       mbox_msg_t msg;
->> -       int ret;
->> +       struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
->>
->> -       while (kfifo_len(&mq->fifo)) {
->> -               if (mbox_fifo_full(mbox)) {
->> -                       omap_mbox_enable_irq(mbox, IRQ_TX);
->> -                       break;
->> -               }
->> +       if (WARN_ON(!mbox))
->> +               return;
->>
->> -               ret = kfifo_out(&mq->fifo, (unsigned char *)&msg,
->> -                                                               sizeof(msg));
->> -               WARN_ON(ret != sizeof(msg));
->> +       _omap_mbox_enable_irq(mbox, irq);
->> +}
->> +EXPORT_SYMBOL(omap_mbox_enable_irq);
->>
->> -               mbox_fifo_write(mbox, msg);
->> -       }
->> +void omap_mbox_disable_irq(struct mbox_chan *chan, omap_mbox_irq_t irq)
->> +{
->> +       struct omap_mbox *mbox = mbox_chan_to_omap_mbox(chan);
->> +
->> +       if (WARN_ON(!mbox))
->> +               return;
->> +
->> +       _omap_mbox_disable_irq(mbox, irq);
->>  }
->> +EXPORT_SYMBOL(omap_mbox_disable_irq);
->>
->>  /*
->>   * Message receiver(workqueue)
->> @@ -328,12 +311,11 @@ static void mbox_rx_work(struct work_struct *work)
->>                 len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
->>                 WARN_ON(len != sizeof(msg));
->>
->> -               blocking_notifier_call_chain(&mq->mbox->notifier, len,
->> -                                                               (void *)msg);
->> +               mbox_chan_received_data(mq->mbox->chan, (void *)msg);
->>                 spin_lock_irq(&mq->lock);
->>                 if (mq->full) {
->>                         mq->full = false;
->> -                       omap_mbox_enable_irq(mq->mbox, IRQ_RX);
->> +                       _omap_mbox_enable_irq(mq->mbox, IRQ_RX);
->>                 }
->>                 spin_unlock_irq(&mq->lock);
->>         }
->> @@ -344,9 +326,9 @@ static void mbox_rx_work(struct work_struct *work)
->>   */
->>  static void __mbox_tx_interrupt(struct omap_mbox *mbox)
->>  {
->> -       omap_mbox_disable_irq(mbox, IRQ_TX);
->> +       _omap_mbox_disable_irq(mbox, IRQ_TX);
->>         ack_mbox_irq(mbox, IRQ_TX);
->> -       tasklet_schedule(&mbox->txq->tasklet);
->> +       mbox_chan_txdone(mbox->chan, 0);
->>  }
->>
->>  static void __mbox_rx_interrupt(struct omap_mbox *mbox)
->> @@ -357,7 +339,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
->>
->>         while (!mbox_fifo_empty(mbox)) {
->>                 if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
->> -                       omap_mbox_disable_irq(mbox, IRQ_RX);
->> +                       _omap_mbox_disable_irq(mbox, IRQ_RX);
->>                         mq->full = true;
->>                         goto nomem;
->>                 }
->> @@ -388,11 +370,13 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
->>  }
->>
->>  static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
->> -                                       void (*work) (struct work_struct *),
->> -                                       void (*tasklet)(unsigned long))
->> +                                       void (*work)(struct work_struct *))
->>  {
->>         struct omap_mbox_queue *mq;
->>
->> +       if (!work)
->> +               return NULL;
->> +
->>         mq = kzalloc(sizeof(struct omap_mbox_queue), GFP_KERNEL);
->>         if (!mq)
->>                 return NULL;
->> @@ -402,12 +386,9 @@ static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
->>         if (kfifo_alloc(&mq->fifo, mbox_kfifo_size, GFP_KERNEL))
->>                 goto error;
->>
->> -       if (work)
->> -               INIT_WORK(&mq->work, work);
->> -
->> -       if (tasklet)
->> -               tasklet_init(&mq->tasklet, tasklet, (unsigned long)mbox);
->> +       INIT_WORK(&mq->work, work);
->>         return mq;
->> +
->>  error:
->>         kfree(mq);
->>         return NULL;
->> @@ -423,71 +404,35 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
->>  {
->>         int ret = 0;
->>         struct omap_mbox_queue *mq;
->> -       struct omap_mbox_device *mdev = mbox->parent;
->>
->> -       mutex_lock(&mdev->cfg_lock);
->> -       ret = pm_runtime_get_sync(mdev->dev);
->> -       if (unlikely(ret < 0))
->> -               goto fail_startup;
->> -
->> -       if (!mbox->use_count++) {
->> -               mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
->> -               if (!mq) {
->> -                       ret = -ENOMEM;
->> -                       goto fail_alloc_txq;
->> -               }
->> -               mbox->txq = mq;
->> +       mq = mbox_queue_alloc(mbox, mbox_rx_work);
->> +       if (!mq)
->> +               return -ENOMEM;
->> +       mbox->rxq = mq;
->> +       mq->mbox = mbox;
->> +
->> +       ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
->> +                         mbox->name, mbox);
->> +       if (unlikely(ret)) {
->> +               pr_err("failed to register mailbox interrupt:%d\n", ret);
->> +               goto fail_request_irq;
->> +       }
->>
->> -               mq = mbox_queue_alloc(mbox, mbox_rx_work, NULL);
->> -               if (!mq) {
->> -                       ret = -ENOMEM;
->> -                       goto fail_alloc_rxq;
->> -               }
->> -               mbox->rxq = mq;
->> -               mq->mbox = mbox;
->> -               ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
->> -                                                       mbox->name, mbox);
->> -               if (unlikely(ret)) {
->> -                       pr_err("failed to register mailbox interrupt:%d\n",
->> -                                                                       ret);
->> -                       goto fail_request_irq;
->> -               }
->> +       _omap_mbox_enable_irq(mbox, IRQ_RX);
->>
->> -               omap_mbox_enable_irq(mbox, IRQ_RX);
->> -       }
->> -       mutex_unlock(&mdev->cfg_lock);
->>         return 0;
->>
->>  fail_request_irq:
->>         mbox_queue_free(mbox->rxq);
->> -fail_alloc_rxq:
->> -       mbox_queue_free(mbox->txq);
->> -fail_alloc_txq:
->> -       pm_runtime_put_sync(mdev->dev);
->> -       mbox->use_count--;
->> -fail_startup:
->> -       mutex_unlock(&mdev->cfg_lock);
->>         return ret;
->>  }
->>
->>  static void omap_mbox_fini(struct omap_mbox *mbox)
->>  {
->> -       struct omap_mbox_device *mdev = mbox->parent;
->> -
->> -       mutex_lock(&mdev->cfg_lock);
->> -
->> -       if (!--mbox->use_count) {
->> -               omap_mbox_disable_irq(mbox, IRQ_RX);
->> -               free_irq(mbox->irq, mbox);
->> -               tasklet_kill(&mbox->txq->tasklet);
->> -               flush_work(&mbox->rxq->work);
->> -               mbox_queue_free(mbox->txq);
->> -               mbox_queue_free(mbox->rxq);
->> -       }
->> -
->> -       pm_runtime_put_sync(mdev->dev);
->> -
->> -       mutex_unlock(&mdev->cfg_lock);
->> +       _omap_mbox_disable_irq(mbox, IRQ_RX);
->> +       free_irq(mbox->irq, mbox);
->> +       flush_work(&mbox->rxq->work);
->> +       mbox_queue_free(mbox->rxq);
->>  }
->>
->>  static struct omap_mbox *omap_mbox_device_find(struct omap_mbox_device *mdev,
->> @@ -509,42 +454,55 @@ static struct omap_mbox *omap_mbox_device_find(struct omap_mbox_device *mdev,
->>         return mbox;
->>  }
->>
->> -struct omap_mbox *omap_mbox_get(const char *name, struct notifier_block *nb)
->> +struct mbox_chan *omap_mbox_request_channel(struct mbox_client *cl,
->> +                                           const char *chan_name)
->>  {
->> +       struct device *dev = cl->dev;
->>         struct omap_mbox *mbox = NULL;
->>         struct omap_mbox_device *mdev;
->> +       struct mbox_chan *chan;
->> +       unsigned long flags;
->>         int ret;
->>
->> +       if (!dev)
->> +               return ERR_PTR(-ENODEV);
->> +
->> +       if (dev->of_node) {
->> +               pr_err("%s: please use mbox_request_channel(), this API is supported only for OMAP non-DT usage\n",
->> +                      __func__);
->> +               return ERR_PTR(-ENODEV);
->> +       }
->> +
->>         mutex_lock(&omap_mbox_devices_lock);
->>         list_for_each_entry(mdev, &omap_mbox_devices, elem) {
->> -               mbox = omap_mbox_device_find(mdev, name);
->> +               mbox = omap_mbox_device_find(mdev, chan_name);
->>                 if (mbox)
->>                         break;
->>         }
->>         mutex_unlock(&omap_mbox_devices_lock);
->>
->> -       if (!mbox)
->> +       if (!mbox || !mbox->chan)
->>                 return ERR_PTR(-ENOENT);
->>
->> -       if (nb)
->> -               blocking_notifier_chain_register(&mbox->notifier, nb);
->> +       chan = mbox->chan;
->> +       spin_lock_irqsave(&chan->lock, flags);
->> +       chan->msg_free = 0;
->> +       chan->msg_count = 0;
->> +       chan->active_req = NULL;
->> +       chan->cl = cl;
->> +       init_completion(&chan->tx_complete);
->> +       spin_unlock_irqrestore(&chan->lock, flags);
->>
->> -       ret = omap_mbox_startup(mbox);
->> +       ret = chan->mbox->ops->startup(chan);
->>         if (ret) {
->> -               blocking_notifier_chain_unregister(&mbox->notifier, nb);
->> -               return ERR_PTR(-ENODEV);
->> +               pr_err("Unable to startup the chan (%d)\n", ret);
->> +               mbox_free_channel(chan);
->> +               chan = ERR_PTR(ret);
->>         }
->>
->> -       return mbox;
->> -}
->> -EXPORT_SYMBOL(omap_mbox_get);
->> -
->> -void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb)
->> -{
->> -       blocking_notifier_chain_unregister(&mbox->notifier, nb);
->> -       omap_mbox_fini(mbox);
->> +       return chan;
->>  }
->> -EXPORT_SYMBOL(omap_mbox_put);
->> +EXPORT_SYMBOL(omap_mbox_request_channel);
->>
-> Why not mbox_request_channel()?
-> And what about other 4 exports - omap_mbox_{save_ctx, restore_ctx,
-> enable_irq & disable_irq} ?
+Thanks for the patch.
 
-Please see the last bullet item in the patch description. It is gonna
-take couple of kernel versions before the OMAP remoteproc is converted
-to DT, so until then we need some of the API as a stop-gap, but the plan
-is to remove most of them eventually.
+On Mon, Nov-24-2014 at 11:05:03 AM -0800, Tony Lindgren wrote:
+> This allows the endpoints to work when multiple MUSB glue
+> layers are built in.
 
-The enable_irq and disable_irq variants will be needed by our WkupM3 IPC
-driver (needed to achieve PM suspend/resume on TI AM335x/AM437x SoCs)
-for flow control. You can look at the usage in an earlier version [1],
-and that series is being reworked now but would still require these. It
-had also been used by TI DSP/Bridge driver, but that is no longer
-relevant as that driver has been deleted in 3.17.
+Applied on top of 3.18-rc6 mainline and tested successfully on JZ4740.
+Been able to use ethernet-over-usb to access the internet on
+device. No issue as far as I'm concerned.
 
-regards
-Suman
+Acked-by: Apelete Seketeli <apelete@seketeli.net>
 
-[1] http://marc.info/?l=linux-omap&m=140504747716092&w=2
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Cc: Fabio Baltieri <fabio.baltieri@linaro.org>
+> Cc: Lee Jones <lee.jones@linaro.org>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Apelete Seketeli <apelete@seketeli.net>
+> Cc: Lars-Peter Clausen <lars@metafoo.de>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/usb/musb/am35x.c     |  1 +
+>  drivers/usb/musb/da8xx.c     |  1 +
+>  drivers/usb/musb/jz4740.c    |  1 +
+>  drivers/usb/musb/musb_core.c | 38 +++++++++++++++++++++++++++++++++++++-
+>  drivers/usb/musb/musb_core.h | 37 +------------------------------------
+>  drivers/usb/musb/musb_dsps.c |  1 +
+>  drivers/usb/musb/musb_io.h   |  2 ++
+>  drivers/usb/musb/musb_regs.h | 11 -----------
+>  drivers/usb/musb/musbhsdma.c |  7 ++++---
+>  drivers/usb/musb/tusb6010.c  | 13 +++++++++++++
+>  drivers/usb/musb/ux500.c     |  1 +
+>  11 files changed, 62 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+> index 13d1d77..1ea4a67 100644
+> --- a/drivers/usb/musb/am35x.c
+> +++ b/drivers/usb/musb/am35x.c
+> @@ -438,6 +438,7 @@ static void am35x_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+>  }
+>  
+>  static const struct musb_platform_ops am35x_ops = {
+> +	.quirks		= MUSB_INDEXED_EP,
+>  	.init		= am35x_musb_init,
+>  	.exit		= am35x_musb_exit,
+>  
+> diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+> index 058775e..c9079c8 100644
+> --- a/drivers/usb/musb/da8xx.c
+> +++ b/drivers/usb/musb/da8xx.c
+> @@ -458,6 +458,7 @@ static int da8xx_musb_exit(struct musb *musb)
+>  }
+>  
+>  static const struct musb_platform_ops da8xx_ops = {
+> +	.quirks		= MUSB_INDEXED_EP,
+>  	.init		= da8xx_musb_init,
+>  	.exit		= da8xx_musb_exit,
+>  
+> diff --git a/drivers/usb/musb/jz4740.c b/drivers/usb/musb/jz4740.c
+> index d118729..40e9874 100644
+> --- a/drivers/usb/musb/jz4740.c
+> +++ b/drivers/usb/musb/jz4740.c
+> @@ -106,6 +106,7 @@ static int jz4740_musb_exit(struct musb *musb)
+>  }
+>  
+>  static const struct musb_platform_ops jz4740_musb_ops = {
+> +	.quirks		= MUSB_INDEXED_EP,
+>  	.init		= jz4740_musb_init,
+>  	.exit		= jz4740_musb_exit,
+>  };
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 2fbe149..48ddc82 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -229,6 +229,27 @@ static u32 musb_default_fifo_offset(u8 epnum)
+>  	return 0x20 + (epnum * 4);
+>  }
+>  
+> +/* "flat" mapping: each endpoint has its own i/o address */
+> +static void musb_flat_ep_select(void __iomem *mbase, u8 epnum)
+> +{
+> +}
+> +
+> +static u32 musb_flat_ep_offset(u8 epnum, u16 offset)
+> +{
+> +	return 0x100 + (0x10 * epnum) + offset;
+> +}
+> +
+> +/* "indexed" mapping: INDEX register controls register bank select */
+> +static void musb_indexed_ep_select(void __iomem *mbase, u8 epnum)
+> +{
+> +	musb_writeb(mbase, MUSB_INDEX, epnum);
+> +}
+> +
+> +static u32 musb_indexed_ep_offset(u8 epnum, u16 offset)
+> +{
+> +	return 0x10 + offset;
+> +}
+> +
+>  static u8 musb_default_readb(const void __iomem *addr, unsigned offset)
+>  {
+>  	return __raw_readb(addr + offset);
+> @@ -1534,7 +1555,7 @@ static int musb_core_init(u16 musb_type, struct musb *musb)
+>  		}
+>  #endif
+>  
+> -		hw_ep->regs = MUSB_EP_OFFSET(i, 0) + mbase;
+> +		hw_ep->regs = musb->io.ep_offset(i, 0) + mbase;
+>  		hw_ep->target_regs = musb_read_target_reg_base(i, mbase);
+>  		hw_ep->rx_reinit = 1;
+>  		hw_ep->tx_reinit = 1;
+> @@ -2004,6 +2025,21 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+>  	if (musb->ops->quirks)
+>  		musb->io.quirks = musb->ops->quirks;
+>  
+> +	/* At least tusb6010 has it's own offsets.. */
+> +	if (musb->ops->ep_offset)
+> +		musb->io.ep_offset = musb->ops->ep_offset;
+> +	if (musb->ops->ep_select)
+> +		musb->io.ep_select = musb->ops->ep_select;
+> +
+> +	/* ..and some devices use indexed offset or flat offset */
+> +	if (musb->io.quirks & MUSB_INDEXED_EP) {
+> +		musb->io.ep_offset = musb_indexed_ep_offset;
+> +		musb->io.ep_select = musb_indexed_ep_select;
+> +	} else {
+> +		musb->io.ep_offset = musb_flat_ep_offset;
+> +		musb->io.ep_select = musb_flat_ep_select;
+> +	}
+> +
+>  	if (musb->ops->fifo_offset)
+>  		musb->io.fifo_offset = musb->ops->fifo_offset;
+>  	else
+> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+> index 7c7f38c..02f62cb 100644
+> --- a/drivers/usb/musb/musb_core.h
+> +++ b/drivers/usb/musb/musb_core.h
+> @@ -124,41 +124,6 @@ enum musb_g_ep0_state {
+>  #define OTG_TIME_A_AIDL_BDIS	200		/* min 200 msec */
+>  #define OTG_TIME_B_ASE0_BRST	100		/* min 3.125 ms */
+>  
+> -
+> -/*************************** REGISTER ACCESS ********************************/
+> -
+> -/* Endpoint registers (other than dynfifo setup) can be accessed either
+> - * directly with the "flat" model, or after setting up an index register.
+> - */
+> -
+> -#if defined(CONFIG_ARCH_DAVINCI) || defined(CONFIG_SOC_OMAP2430) \
+> -		|| defined(CONFIG_SOC_OMAP3430) || defined(CONFIG_BLACKFIN) \
+> -		|| defined(CONFIG_ARCH_OMAP4)
+> -/* REVISIT indexed access seemed to
+> - * misbehave (on DaVinci) for at least peripheral IN ...
+> - */
+> -#define	MUSB_FLAT_REG
+> -#endif
+> -
+> -/* TUSB mapping: "flat" plus ep0 special cases */
+> -#if defined(CONFIG_USB_MUSB_TUSB6010) || \
+> -	defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
+> -#define musb_ep_select(_mbase, _epnum) \
+> -	musb_writeb((_mbase), MUSB_INDEX, (_epnum))
+> -#define	MUSB_EP_OFFSET			MUSB_TUSB_OFFSET
+> -
+> -/* "flat" mapping: each endpoint has its own i/o address */
+> -#elif	defined(MUSB_FLAT_REG)
+> -#define musb_ep_select(_mbase, _epnum)	(((void)(_mbase)), ((void)(_epnum)))
+> -#define	MUSB_EP_OFFSET			MUSB_FLAT_OFFSET
+> -
+> -/* "indexed" mapping: INDEX register controls register bank select */
+> -#else
+> -#define musb_ep_select(_mbase, _epnum) \
+> -	musb_writeb((_mbase), MUSB_INDEX, (_epnum))
+> -#define	MUSB_EP_OFFSET			MUSB_INDEXED_OFFSET
+> -#endif
+> -
+>  /****************************** FUNCTIONS ********************************/
+>  
+>  #define MUSB_HST_MODE(_musb)\
+> @@ -514,7 +479,7 @@ static inline int musb_read_fifosize(struct musb *musb,
+>  	u8 reg = 0;
+>  
+>  	/* read from core using indexed model */
+> -	reg = musb_readb(mbase, MUSB_EP_OFFSET(epnum, MUSB_FIFOSIZE));
+> +	reg = musb_readb(mbase, musb->io.ep_offset(epnum, MUSB_FIFOSIZE));
+>  	/* 0's returned when no more endpoints */
+>  	if (!reg)
+>  		return -ENODEV;
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> index 48bc09e..b7f2efc 100644
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -636,6 +636,7 @@ static int dsps_musb_reset(struct musb *musb)
+>  }
+>  
+>  static struct musb_platform_ops dsps_ops = {
+> +	.quirks		= MUSB_INDEXED_EP,
+>  	.init		= dsps_musb_init,
+>  	.exit		= dsps_musb_exit,
+>  
+> diff --git a/drivers/usb/musb/musb_io.h b/drivers/usb/musb/musb_io.h
+> index 14aa217..8a57a6f 100644
+> --- a/drivers/usb/musb/musb_io.h
+> +++ b/drivers/usb/musb/musb_io.h
+> @@ -37,6 +37,8 @@
+>  
+>  #include <linux/io.h>
+>  
+> +#define musb_ep_select(_mbase, _epnum)	musb->io.ep_select((_mbase), (_epnum))
+> +
+>  /**
+>   * struct musb_io - IO functions for MUSB
+>   * @quirks:	platform specific flags
+> diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+> index b2b1f73..92b4c3d 100644
+> --- a/drivers/usb/musb/musb_regs.h
+> +++ b/drivers/usb/musb/musb_regs.h
+> @@ -287,19 +287,8 @@
+>  #define MUSB_FIFOSIZE		0x0F
+>  #define MUSB_CONFIGDATA		MUSB_FIFOSIZE	/* Re-used for EP0 */
+>  
+> -/* Offsets to endpoint registers in indexed model (using INDEX register) */
+> -#define MUSB_INDEXED_OFFSET(_epnum, _offset)	\
+> -	(0x10 + (_offset))
+> -
+> -/* Offsets to endpoint registers in flat models */
+> -#define MUSB_FLAT_OFFSET(_epnum, _offset)	\
+> -	(0x100 + (0x10*(_epnum)) + (_offset))
+> -
+>  #if defined(CONFIG_USB_MUSB_TUSB6010) ||	\
+>  	defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
+> -/* TUSB6010 EP0 configuration register is special */
+> -#define MUSB_TUSB_OFFSET(_epnum, _offset)	\
+> -	(0x10 + _offset)
+>  #include "tusb6010.h"		/* Needed "only" for TUSB_EP0_CONF */
+>  #endif
+>  
+> diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
+> index e8e9f9a..ab7ec09 100644
+> --- a/drivers/usb/musb/musbhsdma.c
+> +++ b/drivers/usb/musb/musbhsdma.c
+> @@ -195,6 +195,7 @@ static int dma_channel_abort(struct dma_channel *channel)
+>  {
+>  	struct musb_dma_channel *musb_channel = channel->private_data;
+>  	void __iomem *mbase = musb_channel->controller->base;
+> +	struct musb *musb = musb_channel->controller->private_data;
+>  
+>  	u8 bchannel = musb_channel->idx;
+>  	int offset;
+> @@ -202,7 +203,7 @@ static int dma_channel_abort(struct dma_channel *channel)
+>  
+>  	if (channel->status == MUSB_DMA_STATUS_BUSY) {
+>  		if (musb_channel->transmit) {
+> -			offset = MUSB_EP_OFFSET(musb_channel->epnum,
+> +			offset = musb->io.ep_offset(musb_channel->epnum,
+>  						MUSB_TXCSR);
+>  
+>  			/*
+> @@ -215,7 +216,7 @@ static int dma_channel_abort(struct dma_channel *channel)
+>  			csr &= ~MUSB_TXCSR_DMAMODE;
+>  			musb_writew(mbase, offset, csr);
+>  		} else {
+> -			offset = MUSB_EP_OFFSET(musb_channel->epnum,
+> +			offset = musb->io.ep_offset(musb_channel->epnum,
+>  						MUSB_RXCSR);
+>  
+>  			csr = musb_readw(mbase, offset);
+> @@ -326,7 +327,7 @@ static irqreturn_t dma_controller_irq(int irq, void *private_data)
+>  					    (musb_channel->max_packet_sz - 1)))
+>  				    ) {
+>  					u8  epnum  = musb_channel->epnum;
+> -					int offset = MUSB_EP_OFFSET(epnum,
+> +					int offset = musb->io.ep_offset(epnum,
+>  								    MUSB_TXCSR);
+>  					u16 txcsr;
+>  
+> diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+> index 38efebc..fe69bad 100644
+> --- a/drivers/usb/musb/tusb6010.c
+> +++ b/drivers/usb/musb/tusb6010.c
+> @@ -131,6 +131,17 @@ static u32 tusb_fifo_offset(u8 epnum)
+>  	return 0x200 + (epnum * 0x20);
+>  }
+>  
+> +static u32 tusb_ep_offset(u8 epnum, u16 offset)
+> +{
+> +	return 0x10 + offset;
+> +}
+> +
+> +/* TUSB mapping: "flat" plus ep0 special cases */
+> +static void tusb_ep_select(void __iomem *mbase, u8 epnum)
+> +{
+> +	musb_writeb(mbase, MUSB_INDEX, epnum);
+> +}
+> +
+>  /*
+>   * TUSB6010 doesn't allow 8-bit access; 16-bit access is the minimum.
+>   */
+> @@ -1174,6 +1185,8 @@ static const struct musb_platform_ops tusb_ops = {
+>  	.init		= tusb_musb_init,
+>  	.exit		= tusb_musb_exit,
+>  
+> +	.ep_offset	= tusb_ep_offset,
+> +	.ep_select	= tusb_ep_select,
+>  	.fifo_offset	= tusb_fifo_offset,
+>  	.readb		= tusb_readb,
+>  	.writeb		= tusb_writeb,
+> diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
+> index dc666e9..c170501 100644
+> --- a/drivers/usb/musb/ux500.c
+> +++ b/drivers/usb/musb/ux500.c
+> @@ -188,6 +188,7 @@ static int ux500_musb_exit(struct musb *musb)
+>  }
+>  
+>  static const struct musb_platform_ops ux500_ops = {
+> +	.quirks		= MUSB_INDEXED_EP,
+>  	.init		= ux500_musb_init,
+>  	.exit		= ux500_musb_exit,
+>  
+> -- 
+> 2.1.3
+> 
+
+-- 
+        Apelete
