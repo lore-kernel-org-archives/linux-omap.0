@@ -1,35 +1,49 @@
-From: Catalin Crenguta <catalin.crenguta@gmail.com>
-Subject: TLV320AIC3104 Sample rate problem
-Date: Mon, 24 Nov 2014 18:03:33 +0200
-Message-ID: <CABH3fy9DXUu32b8J-QA6FkpZ7eFNu6gfR=8tApLnQTzfubpsYw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 06/10] ARM: dts: am4372: Add DCAN nodes
+Date: Mon, 24 Nov 2014 08:05:00 -0800
+Message-ID: <20141124160459.GE2817@atomide.com>
+References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
+ <1415881371-4982-7-git-send-email-rogerq@ti.com>
+ <5469F35D.80504@ti.com>
+ <20141121235032.GC7046@atomide.com>
+ <20141122000853.GI7046@atomide.com>
+ <54730144.9070106@ti.com>
+ <54731250.9050909@ti.com>
+ <20141124154903.GC2817@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f195.google.com ([209.85.212.195]:42966 "EHLO
-	mail-wi0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051AbaKXQDf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 11:03:35 -0500
-Received: by mail-wi0-f195.google.com with SMTP id h11so2351352wiw.2
-        for <linux-omap@vger.kernel.org>; Mon, 24 Nov 2014 08:03:33 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-can-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141124154903.GC2817@atomide.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, beagleboard@googlegroups.com
 
-Hello,
+* Tony Lindgren <tony@atomide.com> [141124 07:49]:
+> * Roger Quadros <rogerq@ti.com> [141124 03:13]:
+> > 
+> > I couldn't reproduce the errors on linux-next nor on your branch. Maybe you had a conflict resolution issue?
+> 
+> I guess it must have been a conflict resolution issue at my end then.
+> 
+> > I've rebased the patches on omap-for-v3.19/dt-v2 and are available for you to pull from:
+> > 
+> > The following changes since commit 0f39f7b906dbeabe2ffd8739d5201e890d102ea6:
+> > 
+> >   ARM: dts: AM43xx: add tscadc DT entries for am437x-evm and am43x-epos-evm (2014-11-21 16:25:06 -0800)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git@github.com:rogerq/linux.git for-v3.19/omap-dts-dcan
+> 
+> Pulling into omap-for-v3.19/dts thanks. Let's also switch into fixes
+> only mode for v3.19 now with -rc6 out.
 
-I'm using an Audio Cape Rev. B connected to BeagleBone Black
-(MCLK=12MHz) and I'm trying to record audio at sample rate 8KHz.
-Recording and playback using ALSA is OK, but when playing the recorded
-samples on PC you can hear that the actual sample rate is lower (the
-pitch shifted to a lower tone).
-I have added debug messages throughout the alsa driver tlv320aic3x.c,
-and I found out that the PLL parameters are computed correctly as in
-TLV320AIC3104 Datasheet Table found at page 27. (p: 1 j: 8 d: 1920 r:
-1).
-Has anyone else encountered a problem like this? Can someone with more
-experience check the driver?
+Knowing you most likely don't have anything else based on this branch,
+I ended up just picking the patches from your branch to unify the
+subject line for one of the patches.
 
-Kernel: https://github.com/beagleboard/linux , commit 2bcc89c, 3.14.19+.
+Regards,
 
-Best regards,
-Catalin Crenguta
+Tony
