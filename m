@@ -1,36 +1,63 @@
-From: Alexander Kochetkov <al.kochet@gmail.com>
-Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
-Date: Tue, 25 Nov 2014 00:08:56 +0300
-Message-ID: <465F63CE-4FAD-4CC8-94BB-D1E086E636B9@gmail.com>
-References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-3-git-send-email-al.kochet@gmail.com> <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com> <47A1A441-952C-4AC3-859C-5A8E405767E0@gmail.com> <20141124194759.GG2757@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:37828 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056AbaKXVJB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 16:09:01 -0500
-In-Reply-To: <20141124194759.GG2757@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] omap: i2c: don't check bus state IP rev3.3 and earlier
+Date: Mon, 24 Nov 2014 13:08:10 -0800
+Message-ID: <20141124210809.GG2817@atomide.com>
+References: <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
+ <1416861189-17109-1-git-send-email-al.kochet@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1416861189-17109-1-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Alexander Kochetkov <al.kochet@gmail.com>, Kevin Hilman <khilman@kernel.org>, Felipe Balbi <balbi@ti.com>, Wolfram Sang <wsa@the-dreams.de>, linux-omap <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 
+* Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141124 12:35]:
+> Commit 903c3859f77f9b0aace551da03267ef7a211dbc4 ("i2c: omap: implement
+> workaround for handling invalid BB-bit values") introduce the error result
+> in boot test fault on OMAP3530 boards
+> 
+> The patch fix the error (disable i2c bus test for OMAP3530).
 
-24 =CE=CF=D1=C2. 2014 =C7., =D7 22:47, Tony Lindgren <tony@atomide.com>=
- =CE=C1=D0=C9=D3=C1=CC(=C1):
+Maybe add Reported-by: credit for Kevin Hilman here?
+Other than that, this fixes the problem for me:
 
-> I'd say by Tuesday as we have multiple automated test systems failing
-> as soon as people update their trees. And when they are failing, we
-> may miss other breakage happening in linux next.
-
-=46ix:
-http://marc.info/?l=3Dlinux-i2c&m=3D141686120720069&w=3D2
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+ 
+> Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Fixes: 903c3859f77f9b0aace551da03267ef7a211dbc4
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 5d92d0e..4563200 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -344,8 +344,10 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
+>  		/* SYSC register is cleared by the reset; rewrite it */
+>  		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, sysc);
+>  
+> -		/* Schedule I2C-bus monitoring on the next transfer */
+> -		dev->bb_valid = 0;
+> +		if (dev->rev > OMAP_I2C_REV_ON_3430_3530) {
+> +			/* Schedule I2C-bus monitoring on the next transfer */
+> +			dev->bb_valid = 0;
+> +		}
+>  	}
+>  
+>  	return 0;
+> @@ -460,7 +462,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  	dev->scllstate = scll;
+>  	dev->sclhstate = sclh;
+>  
+> -	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
+> +	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530) {
+>  		/* Not implemented */
+>  		dev->bb_valid = 1;
+>  	}
+> -- 
+> 1.7.9.5
+> 
