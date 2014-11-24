@@ -1,52 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] ARM: dts: sbc-t3x: add audio and TV out support
-Date: Mon, 24 Nov 2014 07:58:42 -0800
-Message-ID: <20141124155841.GD2817@atomide.com>
-References: <1416735722-26167-1-git-send-email-lifshitz@compulab.co.il>
+From: Catalin Crenguta <catalin.crenguta@gmail.com>
+Subject: TLV320AIC3104 Sample rate problem
+Date: Mon, 24 Nov 2014 18:03:33 +0200
+Message-ID: <CABH3fy9DXUu32b8J-QA6FkpZ7eFNu6gfR=8tApLnQTzfubpsYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52507 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753419AbaKXQBS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 11:01:18 -0500
-Content-Disposition: inline
-In-Reply-To: <1416735722-26167-1-git-send-email-lifshitz@compulab.co.il>
+Received: from mail-wi0-f195.google.com ([209.85.212.195]:42966 "EHLO
+	mail-wi0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051AbaKXQDf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 11:03:35 -0500
+Received: by mail-wi0-f195.google.com with SMTP id h11so2351352wiw.2
+        for <linux-omap@vger.kernel.org>; Mon, 24 Nov 2014 08:03:33 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Lifshitz <lifshitz@compulab.co.il>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, beagleboard@googlegroups.com
 
-* Dmitry Lifshitz <lifshitz@compulab.co.il> [141123 01:44]:
-> Add support for more SBC-T3x single board computers features:
-> 
-> * Audio on CM-T3x30
-> * TV out on CM-T3x
-> 
-> This patch set adds missing I2C1 pinmux required for CM-T3x EEPROM and 
-> CM-T3x30 audio support.
+Hello,
 
-Thanks applying into omap-for-v3.19/dt-v2. Let's also do fixes
-only for v3.19 from now on as -rc6 is tagged.
+I'm using an Audio Cape Rev. B connected to BeagleBone Black
+(MCLK=12MHz) and I'm trying to record audio at sample rate 8KHz.
+Recording and playback using ALSA is OK, but when playing the recorded
+samples on PC you can hear that the actual sample rate is lower (the
+pitch shifted to a lower tone).
+I have added debug messages throughout the alsa driver tlv320aic3x.c,
+and I found out that the PLL parameters are computed correctly as in
+TLV320AIC3104 Datasheet Table found at page 27. (p: 1 j: 8 d: 1920 r:
+1).
+Has anyone else encountered a problem like this? Can someone with more
+experience check the driver?
 
-Regards,
+Kernel: https://github.com/beagleboard/linux , commit 2bcc89c, 3.14.19+.
 
-Tony
- 
-> Dmitry Lifshitz (4):
->   ARM: dts: cm-t3x: add I2C1 pinmux
->   ARM: dts: cm-t3x: add TV out support
->   ARM: dts: sbc-t3x: add TV out display alias
->   ARM: dts: sbc-t3x30: add audio support
-> 
->  arch/arm/boot/dts/omap3-cm-t3x.dtsi   |   48 +++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-cm-t3x30.dtsi |   18 ++++++++++++
->  arch/arm/boot/dts/omap3-sb-t35.dtsi   |   16 +++++++++++
->  arch/arm/boot/dts/omap3-sbc-t3517.dts |    1 +
->  arch/arm/boot/dts/omap3-sbc-t3530.dts |    1 +
->  arch/arm/boot/dts/omap3-sbc-t3730.dts |    1 +
->  6 files changed, 85 insertions(+), 0 deletions(-)
-> 
-> -- 
-> 1.7.5.4
-> 
+Best regards,
+Catalin Crenguta
