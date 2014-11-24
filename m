@@ -1,88 +1,85 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling
- invalid BB-bit values
-Date: Mon, 24 Nov 2014 13:10:23 -0600
-Message-ID: <20141124191023.GG25712@saruman>
-References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
- <1416685634-5864-1-git-send-email-al.kochet@gmail.com>
- <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
- <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/8] usb: musb: Change to use new IO access
+Date: Mon, 24 Nov 2014 13:12:02 -0600
+Message-ID: <20141124191202.GH25712@saruman>
+References: <1416855906-13931-1-git-send-email-tony@atomide.com>
+ <1416855906-13931-5-git-send-email-tony@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bO4vSxwwZtUjUWHo"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="9sSKoi6Rw660DLir"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38263 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754074AbaKXTLv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Nov 2014 14:11:51 -0500
 Content-Disposition: inline
-In-Reply-To: <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+In-Reply-To: <1416855906-13931-5-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Fabio Baltieri <fabio.baltieri@linaro.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
 
---bO4vSxwwZtUjUWHo
+--9sSKoi6Rw660DLir
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 24, 2014 at 11:08:48AM -0800, Kevin Hilman wrote:
-> On Sat, Nov 22, 2014 at 11:47 AM, Alexander Kochetkov
-> <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > In a multimaster environment, after IP software reset, BB-bit value doe=
-sn't
-> > correspond to the current bus state. It may happen what BB-bit will be =
-0,
-> > while the bus is busy due to another I2C master activity.
-> >
-> > Any transfer started when BB=3D0 and bus is busy wouldn't be completed =
-by IP
-> > and results in controller timeout. More over, in some cases IP could
-> > interrupt another master's transfer and corrupt data on wire.
-> >
-> > The commit implement method allowing to prevent IP from entering into
-> > "controller timeout" state and from "data corruption" state.
-> >
-> > The one drawback is the need to wait for 10ms before the first transfer.
-> >
-> > Tested on Beagleboard XM C.
-> > Tested on BBB and AM437x Starter Kit by Felipe Balbi.
-> >
-> > Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > Tested-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->=20
-> This patch recently hit linux-next (as commit 903c3859f77f) and boot
-> breakage[1] in next-20141124 on OMAP3530 Beagle and Overo/Tobi boards
-> was bisected down to this commit.
->=20
-> Kevin
->=20
-> [1] http://status.armcloud.us/boot/?next-20141124&omap
+On Mon, Nov 24, 2014 at 11:05:02AM -0800, Tony Lindgren wrote:
+> @@ -312,10 +345,40 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 l=
+en, u8 *dst)
+>  		ioread8_rep(fifo, dst, len);
+>  	}
+>  }
+> -#endif
+> =20
+> -#endif	/* normal PIO */
+> +/*
+> + * Old style IO functions
+> + */
+> +u8 (*musb_readb)(const void __iomem *addr, unsigned offset);
+> +EXPORT_SYMBOL(musb_readb);
+> +
+> +void (*musb_writeb)(void __iomem *addr, unsigned offset, u8 data);
+> +EXPORT_SYMBOL(musb_writeb);
+> =20
+> +u16 (*musb_readw)(const void __iomem *addr, unsigned offset);
+> +EXPORT_SYMBOL(musb_readw);
+> +
+> +void (*musb_writew)(void __iomem *addr, unsigned offset, u16 data);
+> +EXPORT_SYMBOL(musb_writew);
+> +
+> +u32 (*musb_readl)(const void __iomem *addr, unsigned offset);
+> +EXPORT_SYMBOL(musb_readl);
+> +
+> +void (*musb_writel)(void __iomem *addr, unsigned offset, u32 data);
+> +EXPORT_SYMBOL(musb_writel);
 
-btw, based on Kevin's boot test, only OMAP3530 is failing.
+let's make all these _GPL()
 
 --=20
 balbi
 
---bO4vSxwwZtUjUWHo
+--9sSKoi6Rw660DLir
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUc4KeAAoJEIaOsuA1yqRECs0P/j0/YbGcdhL8RQSJlX3WaQWW
-BiTrZhDA0dS27z14x7dnyO0xdl1B2gxUAfDl3gATWq2ILP206Thn4tbO5l3VJ0Hv
-LfO2MLKmd+zWuaFAo4pCFg4makM5MEDw0ctFDeg4b44hH5hVebGcV/pUf9wS5K/v
-75Fd02xKKtNacuAr7J+JprQvbvUZ0K54gWco/VeDN0sbE4Gcq3a2opV1mooPOcWK
-k/qZZ9aDtSsUT9sT97h5c8tDCVp0/PxUZirzkRCq9M5dV2mkj0hQZM9wBSbemCJ5
-33YqEiz6oKSOpxcsMd2XuLbjsum/r5ciraCzjlPKkSqVIxAP4NNXzU7U5iScuxI5
-fVtfomz1SkTgAkeRsGF7AW6fmhpDt9aEcvjJPLSYx200nSn6QcE095M8BMY2yizF
-GdZlA088FjMWWyMbgeko8PvjJJI4WTzQyKGpxkoqufIIxWicdKz4kQn/k1JK0Nsb
-9NcbAZZpWQ1jfkl45pPAJFqrfRhNZNnHaXahNB+9tPML7V8JMKoSC9DBbc9wPGRv
-shS9LJ6gnbKXA09T58pALPKohmxB1SiI4ijE8NhogiXzfM/rjoiwqvNxgXuvOV1l
-QnSDG1oppYCziUjKI19BfPHUddLQjGCZLNNNwuo1j2gv0HuXlAm4c8Pi7OGsD8Jm
-MUM3miJZZZXeAPqAwsAN
-=UY+Q
+iQIcBAEBAgAGBQJUc4MCAAoJEIaOsuA1yqRENdsP/idDXNAtqEY+6/xffJ6yug5W
+VScl28UEcdm5lsmrgt4YKvHqCSNP63xXgJ8j0k4QVu2KlIOXmTeVMyTXrNkgTNSm
+sNajzzFYtvLza0imsFrkEZ2LjNDp7TKgp12jKEafdCy5I5iFINDH5Lt4ayY/qJ0p
+YT9UfF9/h+9XE2EM67qqgGgFfE3GCrzvvLHdnRhH2OEkdhX3O5g7x4tRMjz74BOV
+16Z0WK6VjJc/dtPXezfT6DMOLPIj+1DIXJ+X4wH8EODhlrhQ3qNwa6h/tGYfaCo1
+gKrEuyJ6Tb2yB/TiRd8BiByaghpKmDNrWXJDsFhuXsUxrBj0519H71lYQ5wLUSSJ
+PQJztrKUXxk8u5CUtSRoOHqJP0znjnG/fVG5EZat1abUE3ZmDznXARkEv1WhcGiJ
+IMbGEGTbtQIslPyF0X4jYdIkKEJ6kM8YnahoUc1GatGaEkBEg9HLuoK29k/j5fF3
+dC82qyLh9qG4X0M1KzOZzMrjI6K8ZZgnu3xJFUV9LikSBxhAcIlT/Z3/j4zxVcKx
+Ud8YrggrxOoj1P9n7pi6voKIGxivuvBLHehM9GU3JZ8aBW2kz325vO3+Dwq+Bn/n
+2/XVNPiXvJS4iVR1dhVMKqWMqAqrxIsOMZDUg+MAxS1uGjhIleOtklKvgA9WjOqz
+clKDgvQn9I+bybVlWYhw
+=rXBB
 -----END PGP SIGNATURE-----
 
---bO4vSxwwZtUjUWHo--
+--9sSKoi6Rw660DLir--
