@@ -1,48 +1,56 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ASoC: tlv320aic31xx: Fix off by one error in the loop
- stucture.
-Date: Mon, 24 Nov 2014 18:46:47 +0000
-Message-ID: <20141124184647.GA7712@sirena.org.uk>
-References: <1416854232-29432-1-git-send-email-jsarha@ti.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: v3.18-rc1: n900 battery discharged down to 2.97V
+Date: Mon, 24 Nov 2014 19:58:34 +0100
+Message-ID: <201411241958.34578@pali>
+References: <20141124183130.GA2927@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TUp3RUwt6Yfp+hcS"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:37245 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537AbaKXSsn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 13:48:43 -0500
-Content-Disposition: inline
-In-Reply-To: <1416854232-29432-1-git-send-email-jsarha@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart24860448.4cI6gHVUIl";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141124183130.GA2927@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
-To: Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, dcb314@hotmail.com
 
+--nextPart24860448.4cI6gHVUIl
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
---TUp3RUwt6Yfp+hcS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Monday 24 November 2014 19:31:30 Pavel Machek wrote:
+> Hi!
+>=20
+> I left the machine on usb-networking for extended period of
+> time. Unfortunately, Xfce screensaver kept screen busy, and
+> kernel failed to kill the machine.
+>=20
+> At the end, hardware protections worked (I guess), but result
+> is battery discharged down to 2.97V.
+>=20
+> Best regards,
+> 									Pavel
 
-On Mon, Nov 24, 2014 at 08:37:12PM +0200, Jyri Sarha wrote:
-> Fix off by one read beyond the end of a table.
+So you need some program which will monitor battery status and=20
+when battery status is empty it should turn of device.
 
-Applied, thanks.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
---TUp3RUwt6Yfp+hcS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--nextPart24860448.4cI6gHVUIl
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJUc30WAAoJECTWi3JdVIfQX3wH/A+ipoR2ArtCbHPcCEIlUAJT
-tSLPXaXr5sGbMtycEEDbTT5M2DFE+HVeC0dvob7dCzoBkprARwtl3RgOhxHAtBct
-mJdUiuOePPv+xRKurHbCEhUHXBdb2RBKSTWojKT1VgwrqVNz0OP6Np+CF4YcYohu
-W23j8FxSsldmfOkxl4glbwQkbO1W6Fty5TW4rseg5q2XNvpxF3fw7eMkG4Q4xqxC
-LDg5CKAipGFfGGm85iQMXCLv1q3fSwQKMm7Jg7VIJ1GNellSXEBlE8DPdkVeHsFM
-g5YL511HJG93cpZQom1KPLT9raIP19EQCcyz//uiotXtZLB4bbZOQqSmn9z3YFs=
-=+k22
+iEYEABECAAYFAlRzf9oACgkQi/DJPQPkQ1JlVACeORqh+refDqK0v1R/2K1DtpJp
+Vc8AnjO0jGEMnMaQK5/brlIolL7TOF1i
+=Notd
 -----END PGP SIGNATURE-----
 
---TUp3RUwt6Yfp+hcS--
+--nextPart24860448.4cI6gHVUIl--
