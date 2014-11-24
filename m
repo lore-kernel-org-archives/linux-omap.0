@@ -1,57 +1,74 @@
-From: Alexander Kochetkov <al.kochet@gmail.com>
-Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
-Date: Mon, 24 Nov 2014 22:39:42 +0300
-Message-ID: <47A1A441-952C-4AC3-859C-5A8E405767E0@gmail.com>
-References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-3-git-send-email-al.kochet@gmail.com> <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=koi8-r
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling
+ invalid BB-bit values
+Date: Mon, 24 Nov 2014 11:47:59 -0800
+Message-ID: <20141124194759.GG2757@atomide.com>
+References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
+ <1416685634-5864-1-git-send-email-al.kochet@gmail.com>
+ <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
+ <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com>
+ <47A1A441-952C-4AC3-859C-5A8E405767E0@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:37058 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751083AbaKXTjq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 14:39:46 -0500
-In-Reply-To: <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <47A1A441-952C-4AC3-859C-5A8E405767E0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, Wolfram Sang <wsa@the-dreams.de>, Alexander Kochetkov <al.kochet@gmail.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 
-
-24 =CE=CF=D1=C2. 2014 =C7., =D7 22:08, Kevin Hilman <khilman@kernel.org=
-> =CE=C1=D0=C9=D3=C1=CC(=C1):
-
-> This patch recently hit linux-next (as commit 903c3859f77f) and boot
-> breakage[1] in next-20141124 on OMAP3530 Beagle and Overo/Tobi boards
-> was bisected down to this commit.
+* Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141124 11:41]:
 >=20
-> Kevin
+> 24 =D0=BD=D0=BE=D1=8F=D0=B1. 2014 =D0=B3., =D0=B2 22:08, Kevin Hilman=
+ <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=BB(=D0=B0=
+):
 >=20
-> [1] http://status.armcloud.us/boot/?next-20141124&omap
+> > This patch recently hit linux-next (as commit 903c3859f77f) and boo=
+t
+> > breakage[1] in next-20141124 on OMAP3530 Beagle and Overo/Tobi boar=
+ds
+> > was bisected down to this commit.
+> >=20
+> > Kevin
+> >=20
+> > [1] http://status.armcloud.us/boot/?next-20141124&omap
+>=20
+>=20
+> Could someone advice with debugging on OMAP3530?
 
+Just try to boot it with your patch? :)
+=20
+> I'd like to apply one one more commit to see events during boot and
+> see actual signals on wire (during of timeout)?
 
-Could someone advice with debugging on OMAP3530?
+If you post a patch, I can test boot with it. Looks like the failing
+ones have i2c rev3.3 on 34xx vs rev4.4 on 36xx.
 
-I'd like to apply one one more commit to see events during boot and
-see actual signals on wire (during of timeout)?
+But the test function should not loop forever in any case I take?
 
-Otherwise, commit must dropped (or rewritten such way it is disabled by=
- default).
+So I doubt we just want to change the test for for a higher rev number
+for  OMAP_I2C_REV_ON_3430_3530.
+=20
+> Otherwise, commit must dropped (or rewritten such way it is disabled =
+by default).
+>=20
+>=20
+> 24 =D0=BD=D0=BE=D1=8F=D0=B1. 2014 =D0=B3., =D0=B2 22:13, Wolfram Sang=
+ <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org> =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=BB(=D0=B0)=
+:
+>=20
+> > OK, giving Alexander some time for a fix. If it can't be found, I'l=
+l
+> > revert this patch. Thanks!
+>=20
+> What deadline?
 
+I'd say by Tuesday as we have multiple automated test systems failing
+as soon as people update their trees. And when they are failing, we
+may miss other breakage happening in linux next.
 
-24 =CE=CF=D1=C2. 2014 =C7., =D7 22:13, Wolfram Sang <wsa@the-dreams.de>=
- =CE=C1=D0=C9=D3=C1=CC(=C1):
+Regards,
 
-> OK, giving Alexander some time for a fix. If it can't be found, I'll
-> revert this patch. Thanks!
-
-What deadline?
-
-Alexander.
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
