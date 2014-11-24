@@ -1,63 +1,88 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/8] Allow multiple MUSB glue layers to be built in
-Date: Mon, 24 Nov 2014 11:04:58 -0800
-Message-ID: <1416855906-13931-1-git-send-email-tony@atomide.com>
+Subject: [PATCH 3/8] usb: musb: Populate new IO functions for blackfin
+Date: Mon, 24 Nov 2014 11:05:01 -0800
+Message-ID: <1416855906-13931-4-git-send-email-tony@atomide.com>
+References: <1416855906-13931-1-git-send-email-tony@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19680 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19800 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754069AbaKXTHy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 14:07:54 -0500
+	with ESMTP id S1754069AbaKXTH4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 14:07:56 -0500
+In-Reply-To: <1416855906-13931-1-git-send-email-tony@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Bryan Wu <cooloney@gmail.com>
 
-Hi all,
+Populate new IO functions for blackfin
 
-I noticed MUSB did not work for me as loadable modules and it was
-because of the iffdeffery that breaks things with multiple glue
-layers enabled as loadable modules.
+Cc: Bryan Wu <cooloney@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/usb/musb/blackfin.c | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-I've set up function pointers for the PIO functions that now allow
-building in multiple glue layers as modules or built-in.
-
-Note that this series still does not sort out the DMA related issues,
-I have a series in works for that too. But that will take some more
-debugging.
-
-So far this has been tested to work on omap3, am335x and tusb6010.
-
-Regards,
-
-Tony
-
-
-Tony Lindgren (8):
-  usb: musb: Add function pointers for IO access functions
-  usb: musb: Populate new IO functions for tusb6010
-  usb: musb: Populate new IO functions for blackfin
-  usb: musb: Change to use new IO access
-  usb: musb: Change end point selection to use new IO access
-  usb: musb: Pass fifo_mode in platform data
-  usb: musb: Allow multiple glue layers to be built in
-  usb: musb: Use IS_ENABLED for tusb6010
-
- drivers/usb/musb/Kconfig     |   5 +-
- drivers/usb/musb/am35x.c     |   4 +-
- drivers/usb/musb/blackfin.c  |  48 ++++++++++-
- drivers/usb/musb/da8xx.c     |   2 +
- drivers/usb/musb/jz4740.c    |   2 +
- drivers/usb/musb/musb_core.c | 199 ++++++++++++++++++++++++++++++++++++-------
- drivers/usb/musb/musb_core.h |  86 ++++++++++---------
- drivers/usb/musb/musb_dsps.c |   1 +
- drivers/usb/musb/musb_io.h   | 106 ++++++-----------------
- drivers/usb/musb/musb_regs.h |  26 ------
- drivers/usb/musb/musbhsdma.c |   7 +-
- drivers/usb/musb/tusb6010.c  |  58 ++++++++++++-
- drivers/usb/musb/ux500.c     |   2 +
- drivers/usb/musb/ux500_dma.c |   4 +-
- 14 files changed, 356 insertions(+), 194 deletions(-)
-
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index ac4422b..8b5ad57 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -33,6 +33,41 @@ struct bfin_glue {
+ };
+ #define glue_to_musb(g)		platform_get_drvdata(g->musb)
+ 
++static u32 bfin_fifo_offset(u8 epnum)
++{
++	return USB_OFFSET(USB_EP0_FIFO) + (epnum * 8);
++}
++
++static u8 bfin_readb(const void __iomem *addr, unsigned offset)
++{
++	return (u8)(bfin_read16(addr + offset));
++}
++
++static u16 bfin_readw(const void __iomem *addr, unsigned offset)
++{
++	return bfin_read16(addr + offset);
++}
++
++static u32 bfin_readl(const void __iomem *addr, unsigned offset)
++{
++	return (u32)(bfin_read16(addr + offset));
++}
++
++static void bfin_writeb(void __iomem *addr, unsigned offset, u8 data)
++{
++	bfin_write16(addr + offset, (u16)data);
++}
++
++static void bfin_writew(void __iomem *addr, unsigned offset, u16 data)
++{
++	bfin_write16(addr + offset, data);
++}
++
++static void binf_writel(void __iomem *addr, unsigned offset, u32 data)
++{
++	bfin_write16(addr + offset, (u16)data);
++}
++
+ /*
+  * Load an endpoint's FIFO
+  */
+@@ -433,6 +468,14 @@ static const struct musb_platform_ops bfin_ops = {
+ 	.init		= bfin_musb_init,
+ 	.exit		= bfin_musb_exit,
+ 
++	.readb		= bfin_readb,
++	.writeb		= bfin_writeb,
++	.readw		= bfin_readw,
++	.writew		= bfin_writew,
++	.readl		= bfin_readl,
++	.writel		= bfin_writel,
++	.read_fifo	= musb_read_fifo,
++	.write_fifo	= musb_write_fifo,
+ 	.enable		= bfin_musb_enable,
+ 	.disable	= bfin_musb_disable,
+ 
 -- 
 2.1.3
 
