@@ -1,48 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] memory: gpmc: Move omap gpmc code to live under
- drivers
-Date: Mon, 24 Nov 2014 07:44:04 -0800
-Message-ID: <20141124154403.GB2817@atomide.com>
-References: <1416594856-15201-1-git-send-email-tony@atomide.com>
- <1416594856-15201-4-git-send-email-tony@atomide.com>
- <547301AB.9040905@ti.com>
+Subject: Re: [PATCH v5 06/10] ARM: dts: am4372: Add DCAN nodes
+Date: Mon, 24 Nov 2014 07:49:04 -0800
+Message-ID: <20141124154903.GC2817@atomide.com>
+References: <1415881371-4982-1-git-send-email-rogerq@ti.com>
+ <1415881371-4982-7-git-send-email-rogerq@ti.com>
+ <5469F35D.80504@ti.com>
+ <20141121235032.GC7046@atomide.com>
+ <20141122000853.GI7046@atomide.com>
+ <54730144.9070106@ti.com>
+ <54731250.9050909@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17208 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750955AbaKXPqj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 10:46:39 -0500
+Return-path: <linux-can-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <547301AB.9040905@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <54731250.9050909@ti.com>
+Sender: linux-can-owner@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [141124 02:02]:
-> On 11/21/2014 08:34 PM, Tony Lindgren wrote:
-> > --- a/drivers/memory/Kconfig
-> > +++ b/drivers/memory/Kconfig
-> > @@ -41,6 +41,14 @@ config TI_EMIF
-> >  	  parameters and other settings during frequency, voltage and
-> >  	  temperature changes
-> >  
-> > +config OMAP_GPMC
-> > +	bool
+* Roger Quadros <rogerq@ti.com> [141124 03:13]:
 > 
-> We should depend on ARCH_OMAP2PLUS. Other platforms won't benefit
-> anything from this driver.
+> I couldn't reproduce the errors on linux-next nor on your branch. Maybe you had a conflict resolution issue?
 
-We can't do that yet until we have sorted out the remaining platform
-data issues with arch/arm/mach-omap2/*gpmc*.c files.
+I guess it must have been a conflict resolution issue at my end then.
 
-So OMAP_GPMC is currently a silent Kconfig option that does not show
-up as the description after the bool is not there, we select
-OMAP_GPMC automatically based on ARCH_OMAP2PLUS.
+> I've rebased the patches on omap-for-v3.19/dt-v2 and are available for you to pull from:
+> 
+> The following changes since commit 0f39f7b906dbeabe2ffd8739d5201e890d102ea6:
+> 
+>   ARM: dts: AM43xx: add tscadc DT entries for am437x-evm and am43x-epos-evm (2014-11-21 16:25:06 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git@github.com:rogerq/linux.git for-v3.19/omap-dts-dcan
 
-Once we have the remaining legacy code issues sorted out, we can
-make this into just a regular device driver.
+Pulling into omap-for-v3.19/dts thanks. Let's also switch into fixes
+only mode for v3.19 now with -rc6 out.
 
 Regards,
 
