@@ -1,39 +1,89 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 7/8] usb: musb: Allow multiple glue layers to be built in
-Date: Mon, 24 Nov 2014 11:05:05 -0800
-Message-ID: <1416855906-13931-8-git-send-email-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 2/8] usb: musb: Populate new IO functions for tusb6010
+Date: Mon, 24 Nov 2014 11:05:00 -0800
+Message-ID: <1416855906-13931-3-git-send-email-tony@atomide.com>
 References: <1416855906-13931-1-git-send-email-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416855906-13931-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19770 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754508AbaKXTH4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 14:07:56 -0500
+In-Reply-To: <1416855906-13931-1-git-send-email-tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-There's no reason any longer to keep it as a choice now that
-the IO access has been fixed.
+Let's populate the new IO functions for tusb6010 but not use
+them yet.
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/Kconfig | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/usb/musb/tusb6010.c | 41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 06cc5d6..9d68372 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -58,8 +58,7 @@ config USB_MUSB_DUAL_ROLE
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index 2daa779..996ea21 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -126,6 +126,41 @@ static void tusb_wbus_quirk(struct musb *musb, int enabled)
+ 	}
+ }
  
- endchoice
++static u32 tusb_fifo_offset(u8 epnum)
++{
++	return 0x200 + (epnum * 0x20);
++}
++
++/*
++ * TUSB6010 doesn't allow 8-bit access; 16-bit access is the minimum.
++ */
++static u8 tusb_readb(const void __iomem *addr, unsigned offset)
++{
++	u16 tmp;
++	u8 val;
++
++	tmp = __raw_readw(addr + (offset & ~1));
++	if (offset & 1)
++		val = (tmp >> 8);
++	else
++		val = tmp & 0xff;
++
++	return val;
++}
++
++static void tusb_writeb(void __iomem *addr, unsigned offset, u8 data)
++{
++	u16 tmp;
++
++	tmp = __raw_readw(addr + (offset & ~1));
++	if (offset & 1)
++		tmp = (data << 8) | (tmp & 0xff);
++	else
++		tmp = (tmp & 0xff00) | data;
++
++	__raw_writew(tmp, addr + (offset & ~1));
++}
++
+ /*
+  * TUSB 6010 may use a parallel bus that doesn't support byte ops;
+  * so both loading and unloading FIFOs need explicit byte counts.
+@@ -1135,9 +1170,15 @@ static int tusb_musb_exit(struct musb *musb)
+ }
  
--choice
--	prompt "Platform Glue Layer"
-+comment "Platform Glue Layer"
+ static const struct musb_platform_ops tusb_ops = {
++	.quirks		= MUSB_IN_TUSB,
+ 	.init		= tusb_musb_init,
+ 	.exit		= tusb_musb_exit,
  
- config USB_MUSB_DAVINCI
- 	tristate "DaVinci"
-@@ -101,8 +100,6 @@ config USB_MUSB_JZ4740
- 	depends on USB_MUSB_GADGET
- 	depends on USB_OTG_BLACKLIST_HUB
++	.fifo_offset	= tusb_fifo_offset,
++	.readb		= tusb_readb,
++	.writeb		= tusb_writeb,
++	.read_fifo	= musb_read_fifo,
++	.write_fifo	= musb_write_fifo,
+ 	.enable		= tusb_musb_enable,
+ 	.disable	= tusb_musb_disable,
  
--endchoice
+-- 
+2.1.3
+
