@@ -1,40 +1,98 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
- reg_se_cache save
-Date: Mon, 24 Nov 2014 11:01:49 +0100
-Message-ID: <20141124100149.GA5124@localhost.localdomain>
-References: <1415941651-28962-1-git-send-email-vigneshr@ti.com>
- <1415941651-28962-4-git-send-email-vigneshr@ti.com>
- <20141118143005.GF24004@x1>
- <20141118171240.GB3003@dtor-ws>
- <546DF2F0.9080405@ti.com>
- <20141120144028.GB5809@localhost.localdomain>
- <546F2BA4.4000808@ti.com>
- <20141121131036.GA18931@localhost.localdomain>
- <5472F30A.1000608@linutronix.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v5 06/10] ARM: dts: am4372: Add DCAN nodes
+Date: Mon, 24 Nov 2014 13:11:12 +0200
+Message-ID: <54731250.9050909@ti.com>
+References: <1415881371-4982-1-git-send-email-rogerq@ti.com> <1415881371-4982-7-git-send-email-rogerq@ti.com> <5469F35D.80504@ti.com> <20141121235032.GC7046@atomide.com> <20141122000853.GI7046@atomide.com> <54730144.9070106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5472F30A.1000608@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Sekhar Nori <nsekhar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Vignesh R <vigneshr@ti.com>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Brad Griffis <bgriffis@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-om
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54420 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752053AbaKXLLc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Nov 2014 06:11:32 -0500
+In-Reply-To: <54730144.9070106@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, wsa@the-dreams.de, mugunthanvnm@ti.com, george.cherian@ti.com, balbi@ti.com, nsekhar@ti.comnm@ti.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, linux-can@vger.kernel.org, devicetree@vger.kernel.org
 
-On Mon, Nov 24, 2014 at 09:57:46AM +0100, Sebastian Andrzej Siewior wrote:
-> On 11/21/2014 02:10 PM, Richard Cochran wrote:
+On 11/24/2014 11:58 AM, Roger Quadros wrote:
+> On 11/22/2014 02:08 AM, Tony Lindgren wrote:
+>> * Tony Lindgren <tony@atomide.com> [141121 15:52]:
+>>> * Roger Quadros <rogerq@ti.com> [141117 05:10]:
+>>>> The SoC contains 2 DCAN modules. Add them.
+>>>
+>>> Thanks applying all into omap-for-v3.19/dt-v2.
+>>
+>> Oops, have to drop these as they cause this on make dtbs:
+>>
+>>   DTC     arch/arm/boot/dts/dra7-evm.dtb
+>> Warning (reg_format): "reg" property in /soc/can@481cc000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+>> Warning (reg_format): "reg" property in /soc/can@481d0000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+>> Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/can@481cc000
+>> Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/can@481cc000
+>> Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/can@481d0000
+>> Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/can@481d0000
+>>   DTC     arch/arm/boot/dts/am57xx-beagle-x15.dtb
+>> Warning (reg_format): "reg" property in /soc/can@481cc000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+>> Warning (reg_format): "reg" property in /soc/can@481d0000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+>> Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/can@481cc000
+>> Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/can@481cc000
+>> Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/can@481d0000
+>> Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/can@481d0000
+>>   DTC     arch/arm/boot/dts/dra72-evm.dtb
+>> Warning (reg_format): "reg" property in /soc/can@481cc000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+>> Warning (reg_format): "reg" property in /soc/can@481d0000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+>> Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/can@481cc000
+>> Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/can@481cc000
+>> Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/can@481d0000
+>> Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/can@481d0000
+>>
+>> Care to update the patches for that and then do a pull request for me?
 > 
-> > On the BB white using the LCD4 cape and the shipped debian kernel, the
-> > cursor *does* jump away, but not as often or as far as on the custom
-> > design I was working with.
-> 
-> This sounds like the ADC is still sampling while the input data becomes
-> invalid. Usually there is a resistor on the wiper line and the
-> touchscreen manual says how much it should be at least. Could you
-> please check if this is properly installed?
+> I didn't see these warnings on 3.18-rc1 though. Looks like some new checks were added in -next.
+> I'll fix these and send you an updated pull request.
 
-Wiper line? This is a four wire device.
+I couldn't reproduce the errors on linux-next nor on your branch. Maybe you had a conflict resolution issue?
+I've rebased the patches on omap-for-v3.19/dt-v2 and are available for you to pull from:
 
-Thanks,
-Richard
+The following changes since commit 0f39f7b906dbeabe2ffd8739d5201e890d102ea6:
+
+  ARM: dts: AM43xx: add tscadc DT entries for am437x-evm and am43x-epos-evm (2014-11-21 16:25:06 -0800)
+
+are available in the git repository at:
+
+  git@github.com:rogerq/linux.git for-v3.19/omap-dts-dcan
+
+for you to fetch changes up to bae6665b8002282a833bf482b242e7df5d63b3d3:
+
+  ARM: dts: am335x-evm: Add DCAN1 details (2014-11-24 12:41:17 +0200)
+
+----------------------------------------------------------------
+Mugunthan V N (1):
+      arm: dts: am437x-gp: Add dcan support
+
+Roger Quadros (9):
+      ARM: dts: dra7: Add syscon regmap for CORE CONTROL area
+      ARM: dts: DRA7: Add DCAN nodes
+      ARM: dts: dra7-evm: Add CAN support
+      ARM: dts: dra72-evm: Add CAN support
+      ARM: dts: am4372: Add control module syscon node
+      ARM: dts: am4372: Add DCAN nodes
+      ARM: dts: am33xx: Add control module syscon node
+      ARM: dts: am33xx: Update DCAN nodes
+      ARM: dts: am335x-evm: Add DCAN1 details
+
+ arch/arm/boot/dts/am335x-evm.dts    | 13 +++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi       | 25 +++++++++++++++++--------
+ arch/arm/boot/dts/am4372.dtsi       | 27 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/am437x-gp-evm.dts | 26 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra7-evm.dts      | 22 ++++++++++++++++++++++
+ arch/arm/boot/dts/dra7.dtsi         | 26 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/dra72-evm.dts     | 23 +++++++++++++++++++++++
+ 7 files changed, 154 insertions(+), 8 deletions(-)
+
+--
+cheers,
+-roger
