@@ -1,57 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/8] usb: musb: Change to use new IO access
-Date: Mon, 24 Nov 2014 11:26:09 -0800
-Message-ID: <20141124192609.GF2757@atomide.com>
-References: <1416855906-13931-1-git-send-email-tony@atomide.com>
- <1416855906-13931-5-git-send-email-tony@atomide.com>
- <20141124191202.GH25712@saruman>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Alexander Kochetkov <al.kochet@gmail.com>
+Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
+Date: Mon, 24 Nov 2014 22:39:42 +0300
+Message-ID: <47A1A441-952C-4AC3-859C-5A8E405767E0@gmail.com>
+References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-3-git-send-email-al.kochet@gmail.com> <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54086 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782AbaKXT2o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 14:28:44 -0500
-Content-Disposition: inline
-In-Reply-To: <20141124191202.GH25712@saruman>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:37058 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751083AbaKXTjq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 14:39:46 -0500
+In-Reply-To: <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Fabio Baltieri <fabio.baltieri@linaro.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Felipe Balbi <balbi@ti.com>, Wolfram Sang <wsa@the-dreams.de>, Alexander Kochetkov <al.kochet@gmail.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 
-* Felipe Balbi <balbi@ti.com> [141124 11:13]:
-> On Mon, Nov 24, 2014 at 11:05:02AM -0800, Tony Lindgren wrote:
-> > @@ -312,10 +345,40 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
-> >  		ioread8_rep(fifo, dst, len);
-> >  	}
-> >  }
-> > -#endif
-> >  
-> > -#endif	/* normal PIO */
-> > +/*
-> > + * Old style IO functions
-> > + */
-> > +u8 (*musb_readb)(const void __iomem *addr, unsigned offset);
-> > +EXPORT_SYMBOL(musb_readb);
-> > +
-> > +void (*musb_writeb)(void __iomem *addr, unsigned offset, u8 data);
-> > +EXPORT_SYMBOL(musb_writeb);
-> >  
-> > +u16 (*musb_readw)(const void __iomem *addr, unsigned offset);
-> > +EXPORT_SYMBOL(musb_readw);
-> > +
-> > +void (*musb_writew)(void __iomem *addr, unsigned offset, u16 data);
-> > +EXPORT_SYMBOL(musb_writew);
-> > +
-> > +u32 (*musb_readl)(const void __iomem *addr, unsigned offset);
-> > +EXPORT_SYMBOL(musb_readl);
-> > +
-> > +void (*musb_writel)(void __iomem *addr, unsigned offset, u32 data);
-> > +EXPORT_SYMBOL(musb_writel);
-> 
-> let's make all these _GPL()
 
-Sure.
+24 =CE=CF=D1=C2. 2014 =C7., =D7 22:08, Kevin Hilman <khilman@kernel.org=
+> =CE=C1=D0=C9=D3=C1=CC(=C1):
 
-Tony
+> This patch recently hit linux-next (as commit 903c3859f77f) and boot
+> breakage[1] in next-20141124 on OMAP3530 Beagle and Overo/Tobi boards
+> was bisected down to this commit.
+>=20
+> Kevin
+>=20
+> [1] http://status.armcloud.us/boot/?next-20141124&omap
 
+
+Could someone advice with debugging on OMAP3530?
+
+I'd like to apply one one more commit to see events during boot and
+see actual signals on wire (during of timeout)?
+
+Otherwise, commit must dropped (or rewritten such way it is disabled by=
+ default).
+
+
+24 =CE=CF=D1=C2. 2014 =C7., =D7 22:13, Wolfram Sang <wsa@the-dreams.de>=
+ =CE=C1=D0=C9=D3=C1=CC(=C1):
+
+> OK, giving Alexander some time for a fix. If it can't be found, I'll
+> revert this patch. Thanks!
+
+What deadline?
+
+Alexander.
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
