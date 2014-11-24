@@ -1,141 +1,80 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/8] usb: musb: Add function pointers for IO access functions
-Date: Mon, 24 Nov 2014 11:04:59 -0800
-Message-ID: <1416855906-13931-2-git-send-email-tony@atomide.com>
-References: <1416855906-13931-1-git-send-email-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416855906-13931-1-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] i2c: omap: implement workaround for handling invalid
+ BB-bit values
+Date: Mon, 24 Nov 2014 13:08:40 -0600
+Message-ID: <20141124190840.GE25712@saruman>
+References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
+ <1416518925-20679-3-git-send-email-al.kochet@gmail.com>
+ <20141121160808.GM7508@saruman>
+ <20141122132309.GC2679@katana>
+ <B6D9B4D7-25CB-456F-88B4-EB6A53E33A9D@gmail.com>
+ <20141122180222.GA9698@katana>
+ <20141123044306.GA19898@saruman>
+ <1CC68911-DF20-4FF0-A08A-1A6F0B565662@gmail.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XuV1QlJbYrcVoo+x"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1CC68911-DF20-4FF0-A08A-1A6F0B565662@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexander Kochetkov <al.kochet@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
-MUSB currently breaks badly if we try to build in support
-for multiple platforms. This also happens if done as loadable
-modules, which is not nice for distros.
+--XuV1QlJbYrcVoo+x
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Let's fix the issue by adding new struct musb_io for the IO
-access functions that the platform code can populate. Note
-that we don't want to use the current ops as that's really
-platform_data and and set as a const.
+On Sun, Nov 23, 2014 at 04:18:40PM +0300, Alexander Kochetkov wrote:
+>=20
+> 23 =D0=BD=D0=BE=D1=8F=D0=B1. 2014 =D0=B3., =D0=B2 7:43, Felipe Balbi <bal=
+bi@ti.com> =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=BB(=D0=B0):
+>=20
+> > maybe there was a typo? I tested on v3.18-rc3 :-)
+>=20
+> I do my tests on kernel from angstrom with almost all i2c-omap patches
+> backported from linux/master.
+> Then I rebased them to wrong (old) kernel version and posted to the
+> list.
+>=20
+> Angstrom kernel is from meta-ti layer. It's the same kernel as for arago.
+> http://arago-project.org/wiki/index.php/Main_Page
+>=20
+> I would really like to switch to the recent kernel, but I don't know
+> how good codec engine (CE) is supported on it.
+> Initially all ti drivers for codec engine was done for 2.6.x kernels
+> and later some of them was ported for 3.2.x.
+>=20
+> Felipe, do you know how CE is supported on v3.18-rc3?
 
-This should allow eventually adding function pointers also
-for the DMA code to struct musb_io, but that's a whole
-different set of patches. For now, let's just fix the PIO
-access.
+what's CE ?
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/usb/musb/musb_core.h | 40 ++++++++++++++++++++++++++++++++++++++++
- drivers/usb/musb/musb_io.h   | 18 ++++++++++++++++++
- 2 files changed, 58 insertions(+)
+--=20
+balbi
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 414e57a..7c7f38c 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -173,8 +173,25 @@ enum musb_g_ep0_state {
- 
- /******************************** TYPES *************************************/
- 
-+struct musb_io;
-+
- /**
-  * struct musb_platform_ops - Operations passed to musb_core by HW glue layer
-+ * @quirks:	flags for platform specific quirks
-+ * @enable:	enable device
-+ * @disable:	disable device
-+ * @ep_offset:	returns the end point offset
-+ * @ep_select:	selects the specified end point
-+ * @fifo_mode:	sets the fifo mode
-+ * @fifo_offset: returns the fifo offset
-+ * @readb:	read 8 bits
-+ * @writeb:	write 8 bits
-+ * @readw:	read 16 bits
-+ * @writew:	write 16 bits
-+ * @readl:	read 32 bits
-+ * @writel:	write 32 bits
-+ * @read_fifo:	reads the fifo
-+ * @write_fifo:	writes to fifo
-  * @init:	turns on clocks, sets up platform-specific registers, etc
-  * @exit:	undoes @init
-  * @set_mode:	forcefully changes operating mode
-@@ -184,12 +201,34 @@ enum musb_g_ep0_state {
-  * @adjust_channel_params: pre check for standard dma channel_program func
-  */
- struct musb_platform_ops {
-+
-+#define MUSB_DMA_UX500		BIT(6)
-+#define MUSB_DMA_CPPI41		BIT(5)
-+#define MUSB_DMA_CPPI		BIT(4)
-+#define MUSB_DMA_TUSB_OMAP	BIT(3)
-+#define MUSB_DMA_INVENTRA	BIT(2)
-+#define MUSB_IN_TUSB		BIT(1)
-+#define MUSB_INDEXED_EP		BIT(0)
-+	u32	quirks;
-+
- 	int	(*init)(struct musb *musb);
- 	int	(*exit)(struct musb *musb);
- 
- 	void	(*enable)(struct musb *musb);
- 	void	(*disable)(struct musb *musb);
- 
-+	u32	(*ep_offset)(u8 epnum, u16 offset);
-+	void	(*ep_select)(void __iomem *mbase, u8 epnum);
-+	u16	fifo_mode;
-+	u32	(*fifo_offset)(u8 epnum);
-+	u8	(*readb)(const void __iomem *addr, unsigned offset);
-+	void	(*writeb)(void __iomem *addr, unsigned offset, u8 data);
-+	u16	(*readw)(const void __iomem *addr, unsigned offset);
-+	void	(*writew)(void __iomem *addr, unsigned offset, u16 data);
-+	u32	(*readl)(const void __iomem *addr, unsigned offset);
-+	void	(*writel)(void __iomem *addr, unsigned offset, u32 data);
-+	void	(*read_fifo)(struct musb_hw_ep *hw_ep, u16 len, u8 *buf);
-+	void	(*write_fifo)(struct musb_hw_ep *hw_ep, u16 len, const u8 *buf);
- 	int	(*set_mode)(struct musb *musb, u8 mode);
- 	void	(*try_idle)(struct musb *musb, unsigned long timeout);
- 	int	(*reset)(struct musb *musb);
-@@ -292,6 +331,7 @@ struct musb {
- 	/* device lock */
- 	spinlock_t		lock;
- 
-+	struct musb_io		io;
- 	const struct musb_platform_ops *ops;
- 	struct musb_context_registers context;
- 
-diff --git a/drivers/usb/musb/musb_io.h b/drivers/usb/musb/musb_io.h
-index eebeed7..46c01c8 100644
---- a/drivers/usb/musb/musb_io.h
-+++ b/drivers/usb/musb/musb_io.h
-@@ -37,6 +37,24 @@
- 
- #include <linux/io.h>
- 
-+/**
-+ * struct musb_io - IO functions for MUSB
-+ * @quirks:	platform specific flags
-+ * @ep_offset:	platform specific function to get end point offset
-+ * @ep_select:	platform specific function to select end point
-+ * @fifo_offset: platform specific function to get fifo offset
-+ * @read_fifo:	platform specific function to read fifo
-+ * @write_fifo:	platform specific function to write fifo
-+ */
-+struct musb_io {
-+	u32	quirks;
-+	u32	(*ep_offset)(u8 epnum, u16 offset);
-+	void	(*ep_select)(void __iomem *mbase, u8 epnum);
-+	u32	(*fifo_offset)(u8 epnum);
-+	void	(*read_fifo)(struct musb_hw_ep *hw_ep, u16 len, u8 *buf);
-+	void	(*write_fifo)(struct musb_hw_ep *hw_ep, u16 len, const u8 *buf);
-+};
-+
- #ifndef CONFIG_BLACKFIN
- 
- /* NOTE:  these offsets are all in bytes */
--- 
-2.1.3
+--XuV1QlJbYrcVoo+x
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUc4I3AAoJEIaOsuA1yqREEMEP/Rb3NyFytlPmHaKBocd194hC
+IGNXEF6UnTJDNpnWZH88B5Z72GklsiGMkU2Zu1FyRNM9VF4E+ixhTx/vGcY1MIh7
++SZdpzdop+d7/Mfa3tgMgf7FL4LzaGVfVFNkXLKEwf501tAu5X3wbqmzTU9Iy9we
+TMO61Q4By7TMBLky1IlkfWVstNJVZLMkpIfWnXXL6J49hG3n6ku7LF9jPoSxeN4+
+KyJHtR8iMsLtMs1WBla8ew2xUktZblsXnS3MMegWPVwyKJZirdZVRd3xCRgKPLje
+x+3vpHAO3dk8MtghGncejYHwEnJcNkbWudpHxF3V/uavbxhs+8KqG6FYQr20AfxZ
+JBjyF4CGY4Vj9aWs28UfxHtTO9UuLh2HCpfsXIex1dLHYm9JQOAvO4tocKx5A5n/
+jKL9cgOp8KvoQRWZ8LDUNsM2d7KusM8VwmIXpRIFze948o5anMIVsK0fGQwHl6gJ
+Mg/6XPNHrYHsQt013wjyH2ep3HKhwXSbEBhEf6ZdwOz5j9oDeaUnRhW7rpSyjzQ8
+MaNiCu1oFY419+2BJTq4AfOHxWiecO/tu1eQfwerUZo5R9o+iv89YgtLbZBpMdiV
+Ddu+/PoGGO4/lt280ReU4n64o0tLLfsRSrXvpqFtTNPBkD3tAMOacWCGRE5/vEfb
+XZlSA+svyFbCtJPMA/Cj
+=vgAr
+-----END PGP SIGNATURE-----
+
+--XuV1QlJbYrcVoo+x--
