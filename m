@@ -1,36 +1,52 @@
-From: Alexander Kochetkov <al.kochet@gmail.com>
-Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
-Date: Mon, 24 Nov 2014 23:05:21 +0300
-Message-ID: <47749B61-5924-4E56-9931-77B0CFC0AAA0@gmail.com>
-References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-3-git-send-email-al.kochet@gmail.com> <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com> <47A1A441-952C-4AC3-859C-5A8E405767E0@gmail.com> <20141124194759.GG2757@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141124194759.GG2757@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@kernel.org>, Felipe Balbi <balbi@ti.com>, Wolfram Sang <wsa@the-dreams.de>, linux-omap <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Alexander Kochetkov <al.kochet@gmail.com>
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] omap: i2c: don't check bus state IP rev3.3 and earlier
+Date: Tue, 25 Nov 2014 00:33:09 +0400
+Message-ID: <1416861189-17109-1-git-send-email-al.kochet@gmail.com>
+References: <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1416685634-5864-3-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Guys, I really sorry for that :(
+Commit 903c3859f77f9b0aace551da03267ef7a211dbc4 ("i2c: omap: implement
+workaround for handling invalid BB-bit values") introduce the error result
+in boot test fault on OMAP3530 boards
 
-> Just try to boot it with your patch? :)
+The patch fix the error (disable i2c bus test for OMAP3530).
 
-Yes, may be two-three times (max).
-Something (u-boot, may be) leave the bus in the wrong state.
-Really strange.
+Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Fixes: 903c3859f77f9b0aace551da03267ef7a211dbc4
+---
+ drivers/i2c/busses/i2c-omap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-> But the test function should not loop forever in any case I take?
-
-It doesn't loop forever. It finish with message:
-"[    3.046691] omap_i2c 48070000.i2c: timeout waiting for bus ready"
-
-> So I doubt we just want to change the test for for a higher rev number
-> for  OMAP_I2C_REV_ON_3430_3530.
-
-
-Yes, I'll do it within 15 minutes.
-And later, if it possible, I'd try to see what happens.
-
-Alexander.
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 5d92d0e..4563200 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -344,8 +344,10 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
+ 		/* SYSC register is cleared by the reset; rewrite it */
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, sysc);
+ 
+-		/* Schedule I2C-bus monitoring on the next transfer */
+-		dev->bb_valid = 0;
++		if (dev->rev > OMAP_I2C_REV_ON_3430_3530) {
++			/* Schedule I2C-bus monitoring on the next transfer */
++			dev->bb_valid = 0;
++		}
+ 	}
+ 
+ 	return 0;
+@@ -460,7 +462,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	dev->scllstate = scll;
+ 	dev->sclhstate = sclh;
+ 
+-	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
++	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530) {
+ 		/* Not implemented */
+ 		dev->bb_valid = 1;
+ 	}
+-- 
+1.7.9.5
