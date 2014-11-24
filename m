@@ -1,39 +1,67 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
-Date: Sun, 23 Nov 2014 16:18:40 +0300
-Message-ID: <1CC68911-DF20-4FF0-A08A-1A6F0B565662@gmail.com>
-References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416518925-20679-3-git-send-email-al.kochet@gmail.com> <20141121160808.GM7508@saruman> <20141122132309.GC2679@katana> <B6D9B4D7-25CB-456F-88B4-EB6A53E33A9D@gmail.com> <20141122180222.GA9698@katana> <20141123044306.GA19898@saruman>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141123044306.GA19898@saruman>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH 01/11] pinctrl: exynos: Add BUS1 pin controller for exynos7
+Date: Mon, 24 Nov 2014 10:30:19 +0530
+Message-ID: <CAFp+6iF-N63YSsdv2a6=MYp_mD=eQY_Oi8=9JVNU5dG0BA7YGQ@mail.gmail.com>
+References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
+	<1416576954-11997-2-git-send-email-gautam.vivek@samsung.com>
+	<CAGOxZ53d_Vk1cF8Y2LNgMNeuCFeQJKmHQeN19pO5HfAdp4hx8A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAGOxZ53d_Vk1cF8Y2LNgMNeuCFeQJKmHQeN19pO5HfAdp4hx8A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alim Akhtar <alim.akhtar@gmail.com>
+Cc: Vivek Gautam <gautam.vivek@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, kishon <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Figa <tomasz.figa@gmail.com>, Sylwester Nawrocki <s.nawrocki@samsung.com>, robh+dt <robh+dt@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Alim,
 
-23 =CE=CF=D1=C2. 2014 =C7., =D7 7:43, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> =CE=C1=
-=D0=C9=D3=C1=CC(=C1):
 
-> maybe there was a typo? I tested on v3.18-rc3 :-)
+On Sat, Nov 22, 2014 at 7:07 PM, Alim Akhtar <alim.akhtar@gmail.com> wrote:
+> Hi Vivek,
+>
+> On Fri, Nov 21, 2014 at 7:05 PM, Vivek Gautam <gautam.vivek@samsung.com> wrote:
+>> USB and Power regulator on Exynos7 require gpios available
+>> in BUS1 pin controller block.
+>> So adding the BUS1 pinctrl support.
+>>
+>> Signed-off-by: Naveen Krishna Ch <naveenkrishna.ch@gmail.com>
+>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+>> Cc: Linus Walleij <linus.walleij@linaro.org>
+>> ---
+>>  drivers/pinctrl/samsung/pinctrl-exynos.c |   12 ++++++++++++
+>>  1 file changed, 12 insertions(+)
+>>
+>> diff --git a/drivers/pinctrl/samsung/pinctrl-exynos.c b/drivers/pinctrl/samsung/pinctrl-exynos.c
+>> index d5d4cfc..caca5b5 100644
+>> --- a/drivers/pinctrl/samsung/pinctrl-exynos.c
+>> +++ b/drivers/pinctrl/samsung/pinctrl-exynos.c
+>> @@ -1300,6 +1300,13 @@ static const struct samsung_pin_bank_data exynos7_pin_banks7[] __initconst = {
+>>         EXYNOS_PIN_BANK_EINTG(8, 0x060, "gpr3", 0x0c),
+>>  };
+>>
+>> +/* pin banks of exynos7 pin-controller - BUS1 */
+>> +static const struct samsung_pin_bank_data exynos7_pin_banks8[] __initconst = {
+>> +       EXYNOS_PIN_BANK_EINTG(8, 0x020, "gpf0", 0x00),
+>> +       EXYNOS_PIN_BANK_EINTG(8, 0x0a0, "gpf4", 0x10),
+>> +       EXYNOS_PIN_BANK_EINTG(6, 0x120, "gph1", 0x20),
+>> +};
+>> +
+> Looks like you are just trying to touch pin banks only related to USB
+> stuffs, but as this patch does not have any dependencies on other
+> patches in this series, will you consider adding other pin banks of
+> BUS1, just for completeness of BUS1 pin-controller.
 
-I do my tests on kernel from angstrom with almost all i2c-omap patches =
-backported from linux/master.
-Then I rebased them to wrong (old) kernel version and posted to the lis=
-t.
+True, this just touches the USB related pinctrl.
+Will add the rest pin banks of BUS1 for completeness.
+Thanks for pointing out. :-)
 
-Angstrom kernel is from meta-ti layer. It's the same kernel as for arag=
-o.
-http://arago-project.org/wiki/index.php/Main_Page
+[snip]
 
-I would really like to switch to the recent kernel, but I don't know ho=
-w good codec engine (CE) is supported on it.
-Initially all ti drivers for codec engine was done for 2.6.x kernels an=
-d later some of them was ported for 3.2.x.
 
-=46elipe, do you know how CE is supported on v3.18-rc3?
 
-Regards,
-Alexander.
+-- 
+Best Regards
+Vivek Gautam
+Samsung R&D Institute, Bangalore
+India
