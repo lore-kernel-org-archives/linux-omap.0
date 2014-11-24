@@ -1,84 +1,89 @@
-From: Johannes Pointner <johannes.pointner@gmail.com>
-Subject: Re: [PATCH v4 3/6] mfd: ti_am335x_tscadc: Remove unwanted
- reg_se_cache save
-Date: Mon, 24 Nov 2014 09:32:23 +0100
-Message-ID: <CAJKbBDCSjSWfXrbJawP3peRFhEk9ZaMyPyS=bNNVvqBv2am8ag@mail.gmail.com>
-References: <1415941651-28962-4-git-send-email-vigneshr@ti.com>
-	<20141118143005.GF24004@x1>
-	<20141118171240.GB3003@dtor-ws>
-	<546DF2F0.9080405@ti.com>
-	<20141120144028.GB5809@localhost.localdomain>
-	<546F2BA4.4000808@ti.com>
-	<20141121131036.GA18931@localhost.localdomain>
-	<CAJKbBDDVTA+=priRu7sCD=vHrC8AUg4DM3kycuGrqbpF-5FGAA@mail.gmail.com>
-	<546F5C27.7040004@ti.com>
-	<CAJKbBDD=eYmU=LuViwLPNV=kYCziDQgKjL07bT7og4vsj0Ee7A@mail.gmail.com>
-	<20141121214005.GA4020@localhost.localdomain>
-	<912A29987EAE174BA6CF187D7CDFA9CE26F6D664@DLEE08.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
+Date: Mon, 24 Nov 2014 10:48:01 +0200
+Message-ID: <5472F0C1.6030707@ti.com>
+References: <cover.1415803064.git.jsarha@ti.com> <20141112222344.GU3815@sirena.org.uk> <54646648.5030807@ti.com> <546DC9A0.8060700@ti.com> <20141121112317.GQ3815@sirena.org.uk> <546F2BA3.9050203@ti.com> <20141121163815.GT3815@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <912A29987EAE174BA6CF187D7CDFA9CE26F6D664@DLEE08.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Griffis, Brad" <bgriffis@ti.com>
-Cc: Richard Cochran <richardcochran@gmail.com>, "Nori, Sekhar" <nsekhar@ti.com>, "R, Vignesh" <vigneshr@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald <pmeerw@pmeerw.net>, Samuel Ortiz <sameo@linux.intel.com>, "Balbi, Felipe" <balbi@ti.com>, Sanjeev Sharma <sanjeev_sharma@mentor.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Jan Kardell <jan.kardell@telliq.>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="aPTDb4JClJ34mL2OSiEtVU5XCECwUufPq"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48739 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750985AbaKXIsX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Nov 2014 03:48:23 -0500
+In-Reply-To: <20141121163815.GT3815@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-2014-11-21 23:25 GMT+01:00 Griffis, Brad <bgriffis@ti.com>:
->
->> -----Original Message-----
->> From: Richard Cochran [mailto:richardcochran@gmail.com]
->>
->> On Fri, Nov 21, 2014 at 07:17:18PM +0100, Johannes Pointner wrote:
->> > Before the patches were also jumps but I thought it is something
->> > Vignesh should know. Maybe there is some fix for that too?
->
-> I believe I've seen the "jumping" behavior pop up at a couple random times in my testing.  I think it relates to the hardware not properly registering a pen-up interrupt.  When that's happening can you try running ts_calibrate?  If you're not registering a pen-up event then you won't be able to advance through those touch points.  Is this behavior related to capturing ADC samples, or do you see this behavior even without capturing ADC samples?
+--aPTDb4JClJ34mL2OSiEtVU5XCECwUufPq
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Is it the right way to test? Because I think the ts_lib will cover
-misbehavior of the touchscreen driver.
+On 21/11/14 18:38, Mark Brown wrote:
+> On Fri, Nov 21, 2014 at 02:10:11PM +0200, Jyri Sarha wrote:
+>=20
+>> OMAP HDMI audio is fundamentally different to the case on Armada or on=
+ BBB.
+>> In omap the whole HDMI IP is integrated to the SoC and there really is=
+ no
+>> codec in the ASoC sense. The the cpu-dai transmits the audio directly =
+to
+>> hdmi wire and there is no i2s bus involved. So this case should not be=
+ mixed
+>> with the patches Jean-Francois working on. The code is also orthogonal=
+ in
+>> that sense that the latest omap-hdmi-audio uses the generic dymmy code=
+c.
+>=20
+> The discussion seemed to be about what to do with unplugged connections=
 
->
->> > As Richard also noted, it would be nice if ti could let us know how to
->> > get the delay values right. By trial and error is IMHO not the best
->> > way.
->>
->> That is not only an opinion, it is a matter of fact. TI really dropped the ball on
->> this one. I thought the patch series was a sign they finally were going to
->> properly address this issue. Wrong again.
->
-> These patches originate from work I did on TI's SDK 7.00 (3.12 kernel).  The touchscreen is working beautifully in that environment and we are putting forth significant effort to bring those improvements to the community.
->
-> Things do not seem to be working as well with the current mainline kernel.  I've been reviewing various patches between 3.12 and the mainline to understand why it's different.  I believe I have figured this out, and I have discussions going separately with individuals that contributed those patches in order to come up with the best possible solution, i.e. we likely need a few additional changes to this patch set.
+> which isn't what you're talking about there and does seem like an area
+> where we should at least be aiming for common behaviour even if not a
+> common implementation.
+>=20
+> There's also all the stuff about parsing EDIDs for capabilities which
+> would seem to be related to that but seems to have gone off into the
+> weeds.
 
-Ok, then I'm looking forward for a new patch set to test. Furthermore,
-I would be interested which changes you are talking about.
+I agree all these should be studied and worked further. However, I would
+still like to merge this series in the next merge window:
 
->
-> The CHARGECONFIG delay serves precisely the same purpose as the udelay in the original code base.  How did you determine the udelay value in the first place?  I went through the effort of figuring out a way to make the delay into a HARDWARE delay instead of a software delay so that it could be removed from the ISR.  That delay time relates to "settling time" and so it's going to be dependent on your PCB.  You could hook up an oscilloscope and attempt to capture this parameter from the signals themselves.  Personally I think that's a lot more difficult than just doing a few iterations of testing.
+a) The series does fix the OMAP HDMI audio, so that users can actually
+use it.
 
-I did measure with an oscilloscope to get the right charge delay and
-it looks fine to me. But I can't affect the jumps with the charge
-delay, the only thing that helped, was to add some sample delay. But
-it didn't solve it.
+b) The series does make the driver model much better, so that I can
+actually be bothered to keep it enabled (earlier, even when it more or
+less worked, it was too much hassle when doing development using modules)=
+=2E
 
->
->> The data sheet for the TI part used to have a reference to an app-note for
->> the touch controller.
->>
->>       spruh73f page 1154
->>
->>       The Pen IRQ can only occur if the correct Pen Ctrl bits are high
->>       (AFE Pen Ctrl bits 6:5 in the TSC_ADC control register) and if
->>       the correct ground transistor biasing is set in the StepConfig
->>       [N] Register. Refer to the application notes for the correct
->>       settings.
->>
->> I searched high and low for this application note. Then, the data sheet got
->> revised.
->
-> Such an application note does not exist, which explains why you didn't find it and why we have removed that reference from the TRM.  Sorry for your trouble.  We always strive for accurate documentation.
+ Tomi
 
-Thanks,
-Hannes
+
+
+--aPTDb4JClJ34mL2OSiEtVU5XCECwUufPq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUcvDBAAoJEPo9qoy8lh71krkP/2uPrWy2ZUoTHtGz9YlSTYoi
+hbjwXRtpYrmYqwT1RwGYEE5DVJWsZJ0osYprs3ILJoGTB5hJDAPDXWASxMRVjhd2
+1XHu/6eEP5hFpT4GxCnjYuxLbaVVHd4nSTuNffSO42ktzUVV2VvFIm3mptLFey1W
+GzaaT3ufFyr7wT3z5IKPzWJ/OVCBi7S3yEEGvHbH3X9TeWY1dBqHI+2fW8cX/j9S
+G0SEHKSyBWVw4fEXVdJfZt3wLbrt+zdhRMhfr96Xo0VETLqfo0iG90c5WctGpMwN
+CEitNfLF1UKyqu/CUZjtfuCEYENP2YUod9FUFW5oZ9PsphvWLUpJN2/zVLaFwZiF
+Fj5770mrYPmYtkWo9Rs7RzsBVJeEGlPmtslm6zq1vZ2WtGdKPYDeZbDHkTULqQtJ
+1uiL5MPWK0ffnDplf1XsQn6+gchMwesQKpg+3+4f8o3gQqcSKL9JYTtyEYMo+62Y
+eR3QMPTloZi0tt3cV4tPy8rmFFc4YTgjyBbuxExOu4x3Nb+kkcHNNMshLWNJv/1d
+lql2ZidwVwFz9WFDDbDmkwXumItIUTp/0a6/KwYud7+uOSC3c6LPomFYW/Hr2gFk
+ZKqTMHr1dR3nUQ7tEyuEIXgSagp/5/8AiOnaoKEYQ9qg82V1jrv6cjB4IsQPfk0H
+3wRddb4Bvf/zuj58IetD
+=KyuB
+-----END PGP SIGNATURE-----
+
+--aPTDb4JClJ34mL2OSiEtVU5XCECwUufPq--
