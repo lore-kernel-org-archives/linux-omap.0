@@ -1,33 +1,68 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 4/8] usb: musb: Change to use new IO access
-Date: Tue, 25 Nov 2014 10:46:35 +0100
-Message-ID: <CACRpkdZ+6fHrusnwck3HhYgNn=Wd0MGZ9q7kdkgu6pZ0=fkTbw@mail.gmail.com>
-References: <1416855906-13931-1-git-send-email-tony@atomide.com>
-	<1416855906-13931-5-git-send-email-tony@atomide.com>
+From: Vivek Gautam <gautamvivek1987@gmail.com>
+Subject: Re: [PATCH 00/11] Exynos7: Adding USB 3.0 support
+Date: Tue, 25 Nov 2014 17:18:43 +0530
+Message-ID: <CAFp+6iE5XJ+TGu+8TvRFd3Up-kzki3VPD4k6gPXaYbscfwnz4w@mail.gmail.com>
+References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
+	<20141121151130.GD7508@saruman>
+	<54704BF0.1000903@ti.com>
+	<5470A7C5.1070302@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1416855906-13931-5-git-send-email-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Fabio Baltieri <fabio.baltieri-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5470A7C5.1070302@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Kukjin Kim <kgene@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Figa <tomasz.figa@gmail.com>, robh+dt <robh+dt@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kukjin Kim <kgene.kim@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 24, 2014 at 8:05 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+Hi Sylwester,
 
-> Change to use new IO access. This allows us to build in multiple
-> MUSB glue layers.
+
+On Sat, Nov 22, 2014 at 8:42 PM, Kukjin Kim <kgene@kernel.org> wrote:
+> On 11/22/14 17:40, Kishon Vijay Abraham I wrote:
+>>
+>> On Friday 21 November 2014 08:41 PM, Felipe Balbi wrote:
+>>> On Fri, Nov 21, 2014 at 07:05:43PM +0530, Vivek Gautam wrote:
+>>>> The series has dependency on
+>>>> a) "[PATCH v7 0/7] Enable support for Samsung Exynos7 SoC"
+>>>>    http://www.spinics.net/lists/linux-samsung-soc/msg38734.html
+>>>> b) "[GIT PULL] Samsung clock changes for 3.19" - specifically the clock dt
+>>>>    bindings header.
+>>>>    http://comments.gmane.org/gmane.linux.kernel.samsung-soc/39142
+>>>> c) "tty: serial: samsung: Clean-up selection of number of available UARTs"
+>>>>    http://www.spinics.net/lists/linux-samsung-soc/msg37418.html
+>>>> d) "dts, kbuild: Implement support for dtb vendor subdirs"(merged in linux-next)
+>>>>    https://lkml.org/lkml/2014/10/21/654
+>>>> e) "Samsung pinctrl patches for v3.19"
+>>>>    http://www.spinics.net/lists/linux-samsung-soc/msg38744.html
+>>>>
+>>>> Tested on Exynos7-espresso board with 3.18-rc5 and above dependencies.
+>>>>
+>>>> Clubbing the pinctrl, clk, and usb driver changes alongwith the dt changes
+>>>> together in this series only so as to avoid having 'n' number of dependencies.
+>>>>
+>>>> The USB driver patches in this series were part of [1] sent earlier.
+>>>> [1] [PATCH v2 0/4] usb: dwc3/phy-exynos5-usbdrd: Extend support to Exynos7
+>>>>     https://lkml.org/lkml/2014/10/7/191
+>>>
+>>> I took dwc3 driver patches.
+>>
+>> I took the phy patches.
+>>
+> I'll take DT changes once exynos7 is landing into samsung tree :)
 >
-> Cc: Fabio Baltieri <fabio.baltieri-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+You too may want to pick the sole clock driver patch in this series
+for 3.19 ? :-)
+"clk: exynos7: Add required clock tree for USB"
 
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please let me know if the merge window is still open on your side so
+that you can
+pick this patch.
+
+
+-- 
+Best Regards
+Vivek Gautam
+Samsung R&D Institute, Bangalore
+India
