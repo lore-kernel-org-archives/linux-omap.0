@@ -1,578 +1,523 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 11/19] usb: dwc3: Add seperate dwc3_gadget object to support gadget release
-Date: Tue, 25 Nov 2014 18:41:47 +0530
-Message-ID: <1416921115-10467-12-git-send-email-george.cherian@ti.com>
+Subject: [PATCH 01/19] usb: common: drd-lib: Add DRD lib for USB.
+Date: Tue, 25 Nov 2014 18:41:37 +0530
+Message-ID: <1416921115-10467-2-git-send-email-george.cherian@ti.com>
 References: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, George Cherian <george.cherian@ti.com>
+Cc: mark.rutland@arm.com, George Cherian <george.cherian@ti.com>, kgene.kim@samsung.com, linux@arm.linux.org.uk, ben-linux@fluff.org, mathias.nyman@intel.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, sojka@merica.cz, balbi@ti.com, robh+dt@kernel.org, pawel.moll@arm.com, peter.chen@freescale.com, bcousson@baylibre.com, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
 
-With the current implementation it's impossible to release the gadget.
-Add a separate dwc3_gadget object to dwc3 structure so that the same
-can be freed during the gadget release.
-This is in prepration to adapt dwc3 gadget driver to  drd library.
-DRD library uses usb_del/add_gadget_udc while switching roles between
-HOST and DEVICE modes. If the usb_gadget is not released during usb_del_gadget_udc,
-the subsequent usb_add_gadget_udc would try to initialize an already initialized
-kobject. To avoid this make sure we have an easily freeable object.
+Add USB DRD library. This Library facilitates to
+switch roles between HOST and Device modes.
+
+A DRD should be added to the library using usb_drd_add().
+Register the HOST and UDC using usb_drd_register_hcd/udc().
+Un-Register the HOST and UDC using usb_drd_unregister_hcd/udc().
+
+Depending on the state of IP -
+Call the following to start/stop HOST controller
+usb_drd_start/stop_hcd().
+This internally calls usb_add/remove_hcd() or IP specific low level start/stop
+defined in ll_start/stop
+
+Call the following to start/stop UDC
+usb_drd_start/stop_udc().
+This internally calls udc_start/udc_stop() or IP specific low level start/stop
+defined in ll_start/stop
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/dwc3/core.h   |   7 ++-
- drivers/usb/dwc3/ep0.c    |  35 ++++++++------
- drivers/usb/dwc3/gadget.c | 113 ++++++++++++++++++++++++++++++----------------
- drivers/usb/dwc3/gadget.h |   1 +
- 4 files changed, 101 insertions(+), 55 deletions(-)
+ drivers/usb/Kconfig          |  15 ++
+ drivers/usb/common/Makefile  |   1 +
+ drivers/usb/common/drd-lib.c | 346 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/drd.h      |  77 ++++++++++
+ 4 files changed, 439 insertions(+)
+ create mode 100644 drivers/usb/common/drd-lib.c
+ create mode 100644 include/linux/usb/drd.h
 
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 7c5ae37..7fbe736 100644
---- a/drivers/usb/dwc3/core.h
-+++ b/drivers/usb/dwc3/core.h
-@@ -626,6 +626,11 @@ struct dwc3_scratchpad_array {
- 	__le64	dma_adr[DWC3_MAX_HIBER_SCRATCHBUFS];
- };
+diff --git a/drivers/usb/Kconfig b/drivers/usb/Kconfig
+index ae481c3..ea0d944 100644
+--- a/drivers/usb/Kconfig
++++ b/drivers/usb/Kconfig
+@@ -34,6 +34,21 @@ config USB_COMMON
+ 	default y
+ 	depends on USB || USB_GADGET
  
-+struct dwc3_gadget {
-+	struct usb_gadget gadget;
-+	struct dwc3 *dwc;
++config DRD_LIB
++	tristate  "DRD Library support"
++	default y
++	depends on USB && USB_GADGET
++	---help---
++	  This option adds DRD Library support for Universal Serial Bus (USB).
++	  DRD Library faciliatets the Role switching by HOST and DEVICE roles,
++	  If your hardware has a Dual Role Device.
++
++	  The DRD Library uses USB core API's to start/stop HOST controllers,
++	  UDC API's to start/stop DEVICE controllers, ther by enabling to
++	  switch roles between HOST and Device modes.
++
++	  Say N if unsure.
++
+ config USB_ARCH_HAS_HCD
+ 	def_bool y
+ 
+diff --git a/drivers/usb/common/Makefile b/drivers/usb/common/Makefile
+index ca2f8bd..e2c1593 100644
+--- a/drivers/usb/common/Makefile
++++ b/drivers/usb/common/Makefile
+@@ -7,3 +7,4 @@ usb-common-y			  += common.o
+ usb-common-$(CONFIG_USB_LED_TRIG) += led.o
+ 
+ obj-$(CONFIG_USB_OTG_FSM) += usb-otg-fsm.o
++obj-$(CONFIG_DRD_LIB)       += drd-lib.o
+diff --git a/drivers/usb/common/drd-lib.c b/drivers/usb/common/drd-lib.c
+new file mode 100644
+index 0000000..6159436
+--- /dev/null
++++ b/drivers/usb/common/drd-lib.c
+@@ -0,0 +1,346 @@
++/**
++ * drd-lib.c - USB DRD library functions
++ *
++ * Copyright (C) 2014 Texas Instruments
++ * Author: George Cherian <george.cherian@ti.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2  of
++ * the License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/usb.h>
++
++#include <linux/usb/hcd.h>
++#include <linux/usb/gadget.h>
++#include <linux/usb/drd.h>
++
++/**
++ * struct usb_drd - describes one dual role device
++ * @host - the HOST controller device of this drd
++ * @gadget - the gadget of drd
++ * @parent - the device to the actual controller
++ * @list - for use by the drd lib
++ * @state - specifies the current state
++ *
++ * This represents the internal data structure which is used by the UDC-class
++ * to hold information about udc driver and gadget together.
++ */
++struct usb_drd {
++	struct usb_drd_host	*host;
++	struct usb_drd_gadget	*gadget;
++	struct device		*parent;
++	struct list_head	list;
++	unsigned int		state;
 +};
 +
- /**
-  * struct dwc3 - representation of our controller
-  * @ctrl_req: usb control request which is used for ep0
-@@ -736,7 +741,7 @@ struct dwc3 {
- 	struct dwc3_event_buffer **ev_buffs;
- 	struct dwc3_ep		*eps[DWC3_ENDPOINTS_NUM];
- 
--	struct usb_gadget	gadget;
-+	struct dwc3_gadget	*dwc_gadget;
- 	struct usb_gadget_driver *gadget_driver;
- 
- 	struct usb_phy		*usb2_phy;
-diff --git a/drivers/usb/dwc3/ep0.c b/drivers/usb/dwc3/ep0.c
-index baeedbd..e7409f1 100644
---- a/drivers/usb/dwc3/ep0.c
-+++ b/drivers/usb/dwc3/ep0.c
-@@ -109,6 +109,7 @@ static int __dwc3_gadget_ep0_queue(struct dwc3_ep *dep,
- 		struct dwc3_request *req)
- {
- 	struct dwc3		*dwc = dep->dwc;
-+	struct dwc3_gadget	*dwc_gadget = dwc->dwc_gadget;
- 
- 	req->request.actual	= 0;
- 	req->request.status	= -EINPROGRESS;
-@@ -152,7 +153,7 @@ static int __dwc3_gadget_ep0_queue(struct dwc3_ep *dep,
- 
- 		direction = !dwc->ep0_expect_in;
- 		dwc->delayed_status = false;
--		usb_gadget_set_state(&dwc->gadget, USB_STATE_CONFIGURED);
-+		usb_gadget_set_state(&dwc_gadget->gadget, USB_STATE_CONFIGURED);
- 
- 		if (dwc->ep0state == EP0_STATUS_PHASE)
- 			__dwc3_ep0_do_control_status(dwc, dwc->eps[direction]);
-@@ -391,6 +392,7 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
- 		struct usb_ctrlrequest *ctrl, int set)
- {
- 	struct dwc3_ep		*dep;
-+	struct dwc3_gadget	*dwc_gadget = dwc->dwc_gadget;
- 	u32			recip;
- 	u32			wValue;
- 	u32			wIndex;
-@@ -401,7 +403,7 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
- 	wValue = le16_to_cpu(ctrl->wValue);
- 	wIndex = le16_to_cpu(ctrl->wIndex);
- 	recip = ctrl->bRequestType & USB_RECIP_MASK;
--	state = dwc->gadget.state;
-+	state = dwc_gadget->gadget.state;
- 
- 	switch (recip) {
- 	case USB_RECIP_DEVICE:
-@@ -499,7 +501,8 @@ static int dwc3_ep0_handle_feature(struct dwc3 *dwc,
- 
- static int dwc3_ep0_set_address(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
- {
--	enum usb_device_state state = dwc->gadget.state;
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
-+	enum usb_device_state state = dwc_gadget->gadget.state;
- 	u32 addr;
- 	u32 reg;
- 
-@@ -521,26 +524,28 @@ static int dwc3_ep0_set_address(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
- 	dwc3_writel(dwc->regs, DWC3_DCFG, reg);
- 
- 	if (addr)
--		usb_gadget_set_state(&dwc->gadget, USB_STATE_ADDRESS);
-+		usb_gadget_set_state(&dwc_gadget->gadget, USB_STATE_ADDRESS);
- 	else
--		usb_gadget_set_state(&dwc->gadget, USB_STATE_DEFAULT);
-+		usb_gadget_set_state(&dwc_gadget->gadget, USB_STATE_DEFAULT);
- 
- 	return 0;
- }
- 
- static int dwc3_ep0_delegate_req(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
- {
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
- 	int ret;
- 
- 	spin_unlock(&dwc->lock);
--	ret = dwc->gadget_driver->setup(&dwc->gadget, ctrl);
-+	ret = dwc->gadget_driver->setup(&dwc_gadget->gadget, ctrl);
- 	spin_lock(&dwc->lock);
- 	return ret;
- }
- 
- static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
- {
--	enum usb_device_state state = dwc->gadget.state;
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
-+	enum usb_device_state state = dwc_gadget->gadget.state;
- 	u32 cfg;
- 	int ret;
- 	u32 reg;
-@@ -564,8 +569,8 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
- 			 * to change the state on the next usb_ep_queue()
- 			 */
- 			if (ret == 0)
--				usb_gadget_set_state(&dwc->gadget,
--						USB_STATE_CONFIGURED);
-+				usb_gadget_set_state(&dwc_gadget->gadget,
-+						     USB_STATE_CONFIGURED);
- 
- 			/*
- 			 * Enable transition to U1/U2 state when
-@@ -583,8 +588,8 @@ static int dwc3_ep0_set_config(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
- 	case USB_STATE_CONFIGURED:
- 		ret = dwc3_ep0_delegate_req(dwc, ctrl);
- 		if (!cfg && !ret)
--			usb_gadget_set_state(&dwc->gadget,
--					USB_STATE_ADDRESS);
-+			usb_gadget_set_state(&dwc_gadget->gadget,
-+					     USB_STATE_ADDRESS);
- 		break;
- 	default:
- 		ret = -EINVAL;
-@@ -639,7 +644,8 @@ static void dwc3_ep0_set_sel_cmpl(struct usb_ep *ep, struct usb_request *req)
- static int dwc3_ep0_set_sel(struct dwc3 *dwc, struct usb_ctrlrequest *ctrl)
- {
- 	struct dwc3_ep	*dep;
--	enum usb_device_state state = dwc->gadget.state;
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
-+	enum usb_device_state state = dwc_gadget->gadget.state;
- 	u16		wLength;
- 	u16		wValue;
- 
-@@ -918,6 +924,7 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
- 		struct dwc3_ep *dep, struct dwc3_request *req)
- {
- 	int			ret;
-+	struct dwc3_gadget	*dwc_gadget = dwc->dwc_gadget;
- 
- 	req->direction = !!dep->number;
- 
-@@ -930,7 +937,7 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
- 		u32	transfer_size;
- 		u32	maxpacket;
- 
--		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
-+		ret = usb_gadget_map_request(&dwc_gadget->gadget, &req->request,
- 				dep->number);
- 		if (ret) {
- 			dev_dbg(dwc->dev, "failed to map request\n");
-@@ -953,7 +960,7 @@ static void __dwc3_ep0_do_control_data(struct dwc3 *dwc,
- 				dwc->ep0_bounce_addr, transfer_size,
- 				DWC3_TRBCTL_CONTROL_DATA);
- 	} else {
--		ret = usb_gadget_map_request(&dwc->gadget, &req->request,
-+		ret = usb_gadget_map_request(&dwc_gadget->gadget, &req->request,
- 				dep->number);
- 		if (ret) {
- 			dev_dbg(dwc->dev, "failed to map request\n");
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index f03b136..2c54d45 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -234,6 +234,7 @@ void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
- 		int status)
- {
- 	struct dwc3			*dwc = dep->dwc;
-+	struct dwc3_gadget		*dwc_gadget = dwc->dwc_gadget;
- 	int				i;
- 
- 	if (req->queued) {
-@@ -261,8 +262,8 @@ void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
- 	if (dwc->ep0_bounced && dep->number == 0)
- 		dwc->ep0_bounced = false;
- 	else
--		usb_gadget_unmap_request(&dwc->gadget, &req->request,
--				req->direction);
-+		usb_gadget_unmap_request(&dwc_gadget->gadget, &req->request,
-+					 req->direction);
- 
- 	dev_dbg(dwc->dev, "request %p from %s completed %d/%d ===> %d\n",
- 			req, dep->name, req->request.actual,
-@@ -407,6 +408,7 @@ static int dwc3_gadget_set_ep_config(struct dwc3 *dwc, struct dwc3_ep *dep,
- 		bool ignore, bool restore)
- {
- 	struct dwc3_gadget_ep_cmd_params params;
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
- 
- 	memset(&params, 0x00, sizeof(params));
- 
-@@ -414,7 +416,7 @@ static int dwc3_gadget_set_ep_config(struct dwc3 *dwc, struct dwc3_ep *dep,
- 		| DWC3_DEPCFG_MAX_PACKET_SIZE(usb_endpoint_maxp(desc));
- 
- 	/* Burst size is only needed in SuperSpeed mode */
--	if (dwc->gadget.speed == USB_SPEED_SUPER) {
-+	if (dwc_gadget->gadget.speed == USB_SPEED_SUPER) {
- 		u32 burst = dep->endpoint.maxburst - 1;
- 
- 		params.param0 |= DWC3_DEPCFG_BURST_SIZE(burst);
-@@ -928,6 +930,7 @@ static int __dwc3_gadget_kick_transfer(struct dwc3_ep *dep, u16 cmd_param,
- 	struct dwc3_gadget_ep_cmd_params params;
- 	struct dwc3_request		*req;
- 	struct dwc3			*dwc = dep->dwc;
-+	struct dwc3_gadget		*dwc_gadget = dwc->dwc_gadget;
- 	int				ret;
- 	u32				cmd;
- 
-@@ -980,8 +983,8 @@ static int __dwc3_gadget_kick_transfer(struct dwc3_ep *dep, u16 cmd_param,
- 		 * here and stop, unmap, free and del each of the linked
- 		 * requests instead of what we do now.
- 		 */
--		usb_gadget_unmap_request(&dwc->gadget, &req->request,
--				req->direction);
-+		usb_gadget_unmap_request(&dwc_gadget->gadget, &req->request,
-+					 req->direction);
- 		list_del(&req->list);
- 		return ret;
- 	}
-@@ -1029,6 +1032,7 @@ static void dwc3_gadget_start_isoc(struct dwc3 *dwc,
- static int __dwc3_gadget_ep_queue(struct dwc3_ep *dep, struct dwc3_request *req)
- {
- 	struct dwc3		*dwc = dep->dwc;
-+	struct dwc3_gadget	*dwc_gadget = dwc->dwc_gadget;
- 	int			ret;
- 
- 	req->request.actual	= 0;
-@@ -1048,7 +1052,7 @@ static int __dwc3_gadget_ep_queue(struct dwc3_ep *dep, struct dwc3_request *req)
- 	 * This will also avoid Host cancelling URBs due to too
- 	 * many NAKs.
- 	 */
--	ret = usb_gadget_map_request(&dwc->gadget, &req->request,
-+	ret = usb_gadget_map_request(&dwc_gadget->gadget, &req->request,
- 			dep->direction);
- 	if (ret)
- 		return ret;
-@@ -1320,7 +1324,8 @@ static const struct usb_ep_ops dwc3_gadget_ep_ops = {
- 
- static int dwc3_gadget_get_frame(struct usb_gadget *g)
- {
--	struct dwc3		*dwc = gadget_to_dwc(g);
-+	struct dwc3_gadget *dwc_gadget = gadget_to_dwc_gadget(g);
-+	struct dwc3 *dwc = dwc_gadget->dwc;
- 	u32			reg;
- 
- 	reg = dwc3_readl(dwc->regs, DWC3_DSTS);
-@@ -1329,7 +1334,8 @@ static int dwc3_gadget_get_frame(struct usb_gadget *g)
- 
- static int dwc3_gadget_wakeup(struct usb_gadget *g)
- {
--	struct dwc3		*dwc = gadget_to_dwc(g);
-+	struct dwc3_gadget *dwc_gadget = gadget_to_dwc_gadget(g);
-+	struct dwc3 *dwc = dwc_gadget->dwc;
- 
- 	unsigned long		timeout;
- 	unsigned long		flags;
-@@ -1410,7 +1416,8 @@ out:
- static int dwc3_gadget_set_selfpowered(struct usb_gadget *g,
- 		int is_selfpowered)
- {
--	struct dwc3		*dwc = gadget_to_dwc(g);
-+	struct dwc3_gadget *dwc_gadget = gadget_to_dwc_gadget(g);
-+	struct dwc3 *dwc = dwc_gadget->dwc;
- 	unsigned long		flags;
- 
- 	spin_lock_irqsave(&dwc->lock, flags);
-@@ -1476,7 +1483,8 @@ static int dwc3_gadget_run_stop(struct dwc3 *dwc, int is_on, int suspend)
- 
- static int dwc3_gadget_pullup(struct usb_gadget *g, int is_on)
- {
--	struct dwc3		*dwc = gadget_to_dwc(g);
-+	struct dwc3_gadget *dwc_gadget = gadget_to_dwc_gadget(g);
-+	struct dwc3 *dwc = dwc_gadget->dwc;
- 	unsigned long		flags;
- 	int			ret;
- 
-@@ -1519,7 +1527,8 @@ static irqreturn_t dwc3_thread_interrupt(int irq, void *_dwc);
- static int dwc3_gadget_start(struct usb_gadget *g,
- 		struct usb_gadget_driver *driver)
- {
--	struct dwc3		*dwc = gadget_to_dwc(g);
-+	struct dwc3_gadget *dwc_gadget = gadget_to_dwc_gadget(g);
-+	struct dwc3 *dwc = dwc_gadget->dwc;
- 	struct dwc3_ep		*dep;
- 	unsigned long		flags;
- 	int			ret = 0;
-@@ -1539,7 +1548,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
- 
- 	if (dwc->gadget_driver) {
- 		dev_err(dwc->dev, "%s is already bound to %s\n",
--				dwc->gadget.name,
-+				dwc_gadget->gadget.name,
- 				dwc->gadget_driver->driver.name);
- 		ret = -EBUSY;
- 		goto err1;
-@@ -1632,7 +1641,8 @@ err0:
- 
- static int dwc3_gadget_stop(struct usb_gadget *g)
- {
--	struct dwc3		*dwc = gadget_to_dwc(g);
-+	struct dwc3_gadget *dwc_gadget = gadget_to_dwc_gadget(g);
-+	struct dwc3 *dwc = dwc_gadget->dwc;
- 	unsigned long		flags;
- 	int			irq;
- 
-@@ -1667,6 +1677,7 @@ static int dwc3_gadget_init_hw_endpoints(struct dwc3 *dwc,
- 		u8 num, u32 direction)
- {
- 	struct dwc3_ep			*dep;
-+	struct dwc3_gadget		*dwc_gadget = dwc->dwc_gadget;
- 	u8				i;
- 
- 	for (i = 0; i < num; i++) {
-@@ -1693,7 +1704,7 @@ static int dwc3_gadget_init_hw_endpoints(struct dwc3 *dwc,
- 			dep->endpoint.maxburst = 1;
- 			dep->endpoint.ops = &dwc3_gadget_ep0_ops;
- 			if (!epnum)
--				dwc->gadget.ep0 = &dep->endpoint;
-+				dwc_gadget->gadget.ep0 = &dep->endpoint;
- 		} else {
- 			int		ret;
- 
-@@ -1701,7 +1712,7 @@ static int dwc3_gadget_init_hw_endpoints(struct dwc3 *dwc,
- 			dep->endpoint.max_streams = 15;
- 			dep->endpoint.ops = &dwc3_gadget_ep_ops;
- 			list_add_tail(&dep->endpoint.ep_list,
--					&dwc->gadget.ep_list);
-+					&dwc_gadget->gadget.ep_list);
- 
- 			ret = dwc3_alloc_trb_pool(dep);
- 			if (ret)
-@@ -1718,8 +1729,9 @@ static int dwc3_gadget_init_hw_endpoints(struct dwc3 *dwc,
- static int dwc3_gadget_init_endpoints(struct dwc3 *dwc)
- {
- 	int				ret;
-+	struct dwc3_gadget		*dwc_gadget = dwc->dwc_gadget;
- 
--	INIT_LIST_HEAD(&dwc->gadget.ep_list);
-+	INIT_LIST_HEAD(&dwc_gadget->gadget.ep_list);
- 
- 	ret = dwc3_gadget_init_hw_endpoints(dwc, dwc->num_out_eps, 0);
- 	if (ret < 0) {
-@@ -2020,38 +2032,46 @@ static void dwc3_endpoint_interrupt(struct dwc3 *dwc,
- 
- static void dwc3_disconnect_gadget(struct dwc3 *dwc)
- {
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
++static LIST_HEAD(drd_list);
++static DEFINE_SPINLOCK(drd_lock);
 +
- 	if (dwc->gadget_driver && dwc->gadget_driver->disconnect) {
- 		spin_unlock(&dwc->lock);
--		dwc->gadget_driver->disconnect(&dwc->gadget);
-+		dwc->gadget_driver->disconnect(&dwc_gadget->gadget);
- 		spin_lock(&dwc->lock);
- 	}
- }
- 
- static void dwc3_suspend_gadget(struct dwc3 *dwc)
- {
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
++static struct usb_drd *usb_drd_get_dev(struct device *parent)
++{
++	struct usb_drd *drd;
 +
- 	if (dwc->gadget_driver && dwc->gadget_driver->suspend) {
- 		spin_unlock(&dwc->lock);
--		dwc->gadget_driver->suspend(&dwc->gadget);
-+		dwc->gadget_driver->suspend(&dwc_gadget->gadget);
- 		spin_lock(&dwc->lock);
- 	}
- }
- 
- static void dwc3_resume_gadget(struct dwc3 *dwc)
- {
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
++	spin_lock(&drd_lock);
++	list_for_each_entry(drd, &drd_list, list)
++		if (drd->parent == parent)
++			goto out;
++	drd = NULL;
++out:
++	spin_unlock(&drd_lock);
 +
- 	if (dwc->gadget_driver && dwc->gadget_driver->resume) {
- 		spin_unlock(&dwc->lock);
--		dwc->gadget_driver->resume(&dwc->gadget);
-+		dwc->gadget_driver->resume(&dwc_gadget->gadget);
- 	}
- }
- 
- static void dwc3_reset_gadget(struct dwc3 *dwc)
- {
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
++	return drd;
++}
 +
- 	if (!dwc->gadget_driver)
- 		return;
- 
--	if (dwc->gadget.speed != USB_SPEED_UNKNOWN) {
-+	if (dwc_gadget->gadget.speed != USB_SPEED_UNKNOWN) {
- 		spin_unlock(&dwc->lock);
--		usb_gadget_udc_reset(&dwc->gadget, dwc->gadget_driver);
-+		usb_gadget_udc_reset(&dwc_gadget->gadget, dwc->gadget_driver);
- 		spin_lock(&dwc->lock);
- 	}
- }
-@@ -2145,6 +2165,7 @@ static void dwc3_clear_stall_all_ep(struct dwc3 *dwc)
- static void dwc3_gadget_disconnect_interrupt(struct dwc3 *dwc)
- {
- 	int			reg;
-+	struct dwc3_gadget	*dwc_gadget = dwc->dwc_gadget;
- 
- 	reg = dwc3_readl(dwc->regs, DWC3_DCTL);
- 	reg &= ~DWC3_DCTL_INITU1ENA;
-@@ -2156,9 +2177,9 @@ static void dwc3_gadget_disconnect_interrupt(struct dwc3 *dwc)
- 	dwc3_disconnect_gadget(dwc);
- 	dwc->start_config_issued = false;
- 
--	dwc->gadget.speed = USB_SPEED_UNKNOWN;
-+	dwc_gadget->gadget.speed = USB_SPEED_UNKNOWN;
- 	dwc->setup_packet_pending = false;
--	usb_gadget_set_state(&dwc->gadget, USB_STATE_NOTATTACHED);
-+	usb_gadget_set_state(&dwc_gadget->gadget, USB_STATE_NOTATTACHED);
- }
- 
- static void dwc3_gadget_reset_interrupt(struct dwc3 *dwc)
-@@ -2241,6 +2262,7 @@ static void dwc3_update_ram_clk_sel(struct dwc3 *dwc, u32 speed)
- static void dwc3_gadget_conndone_interrupt(struct dwc3 *dwc)
- {
- 	struct dwc3_ep		*dep;
-+	struct dwc3_gadget	*dwc_gadget = dwc->dwc_gadget;
- 	int			ret;
- 	u32			reg;
- 	u8			speed;
-@@ -2270,24 +2292,24 @@ static void dwc3_gadget_conndone_interrupt(struct dwc3 *dwc)
- 			dwc3_gadget_reset_interrupt(dwc);
- 
- 		dwc3_gadget_ep0_desc.wMaxPacketSize = cpu_to_le16(512);
--		dwc->gadget.ep0->maxpacket = 512;
--		dwc->gadget.speed = USB_SPEED_SUPER;
-+		dwc_gadget->gadget.ep0->maxpacket = 512;
-+		dwc_gadget->gadget.speed = USB_SPEED_SUPER;
- 		break;
- 	case DWC3_DCFG_HIGHSPEED:
- 		dwc3_gadget_ep0_desc.wMaxPacketSize = cpu_to_le16(64);
--		dwc->gadget.ep0->maxpacket = 64;
--		dwc->gadget.speed = USB_SPEED_HIGH;
-+		dwc_gadget->gadget.ep0->maxpacket = 64;
-+		dwc_gadget->gadget.speed = USB_SPEED_HIGH;
- 		break;
- 	case DWC3_DCFG_FULLSPEED2:
- 	case DWC3_DCFG_FULLSPEED1:
- 		dwc3_gadget_ep0_desc.wMaxPacketSize = cpu_to_le16(64);
--		dwc->gadget.ep0->maxpacket = 64;
--		dwc->gadget.speed = USB_SPEED_FULL;
-+		dwc_gadget->gadget.ep0->maxpacket = 64;
-+		dwc_gadget->gadget.speed = USB_SPEED_FULL;
- 		break;
- 	case DWC3_DCFG_LOWSPEED:
- 		dwc3_gadget_ep0_desc.wMaxPacketSize = cpu_to_le16(8);
--		dwc->gadget.ep0->maxpacket = 8;
--		dwc->gadget.speed = USB_SPEED_LOW;
-+		dwc_gadget->gadget.ep0->maxpacket = 8;
-+		dwc_gadget->gadget.speed = USB_SPEED_LOW;
- 		break;
- 	}
- 
-@@ -2351,12 +2373,13 @@ static void dwc3_gadget_conndone_interrupt(struct dwc3 *dwc)
- 
- static void dwc3_gadget_wakeup_interrupt(struct dwc3 *dwc)
- {
-+	struct dwc3_gadget		*dwc_gadget = dwc->dwc_gadget;
- 	/*
- 	 * TODO take core out of low power mode when that's
- 	 * implemented.
- 	 */
- 
--	dwc->gadget_driver->resume(&dwc->gadget);
-+	dwc->gadget_driver->resume(&dwc_gadget->gadget);
- }
- 
- static void dwc3_gadget_linksts_change_interrupt(struct dwc3 *dwc,
-@@ -2667,6 +2690,7 @@ static irqreturn_t dwc3_interrupt(int irq, void *_dwc)
- int dwc3_gadget_init(struct dwc3 *dwc)
- {
- 	int					ret;
-+	struct dwc3_gadget			*dwc_gadget;
- 
- 	dwc->ctrl_req = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
- 			&dwc->ctrl_req_addr, GFP_KERNEL);
-@@ -2699,17 +2723,24 @@ int dwc3_gadget_init(struct dwc3 *dwc)
- 		goto err3;
- 	}
- 
--	dwc->gadget.ops			= &dwc3_gadget_ops;
--	dwc->gadget.max_speed		= USB_SPEED_SUPER;
--	dwc->gadget.speed		= USB_SPEED_UNKNOWN;
--	dwc->gadget.sg_supported	= true;
--	dwc->gadget.name		= "dwc3-gadget";
-+	dwc_gadget = kzalloc(sizeof(*dwc_gadget), GFP_KERNEL);
-+	if (!dwc_gadget) {
-+		ret = -ENOMEM;
-+		goto err3;
++int usb_drd_get_state(struct device *parent)
++{
++	struct usb_drd	*drd;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	return drd->state;
++}
++EXPORT_SYMBOL_GPL(usb_drd_get_state);
++
++int usb_drd_release(struct device *parent)
++{
++	struct usb_drd	*drd;
++	int ret;
++
++	spin_lock(&drd_lock);
++	list_for_each_entry(drd, &drd_list, list) {
++		if (drd->parent == parent) {
++			kfree(drd);
++			ret = 0;
++			goto out;
++		}
 +	}
++	ret = -ENODEV;
++out:
++	spin_unlock(&drd_lock);
 +
-+	dwc_gadget->gadget.ops			= &dwc3_gadget_ops;
-+	dwc_gadget->gadget.max_speed		= USB_SPEED_SUPER;
-+	dwc_gadget->gadget.speed		= USB_SPEED_UNKNOWN;
-+	dwc_gadget->gadget.sg_supported	= true;
-+	dwc_gadget->gadget.name		= "dwc3-gadget";
-+	dwc_gadget->dwc = dwc;
- 
- 	/*
- 	 * Per databook, DWC3 needs buffer size to be aligned to MaxPacketSize
- 	 * on ep out.
- 	 */
--	dwc->gadget.quirk_ep_out_aligned_size = true;
-+	dwc_gadget->gadget.quirk_ep_out_aligned_size = true;
- 
- 	/*
- 	 * REVISIT: Here we should clear all pending IRQs to be
-@@ -2720,7 +2751,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
- 	if (ret)
- 		goto err4;
- 
--	ret = usb_add_gadget_udc(dwc->dev, &dwc->gadget);
-+	ret = usb_add_gadget_udc(dwc->dev, &dwc_gadget->gadget);
- 	if (ret) {
- 		dev_err(dwc->dev, "failed to register udc\n");
- 		goto err4;
-@@ -2752,7 +2783,9 @@ err0:
- 
- void dwc3_gadget_exit(struct dwc3 *dwc)
- {
--	usb_del_gadget_udc(&dwc->gadget);
-+	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
++	return ret;
++}
++EXPORT_SYMBOL_GPL(usb_drd_release);
 +
-+	usb_del_gadget_udc(&dwc_gadget->gadget);
- 
- 	dwc3_gadget_free_endpoints(dwc);
- 
-diff --git a/drivers/usb/dwc3/gadget.h b/drivers/usb/dwc3/gadget.h
-index 18ae3ea..b6c3e40 100644
---- a/drivers/usb/dwc3/gadget.h
-+++ b/drivers/usb/dwc3/gadget.h
-@@ -26,6 +26,7 @@
- struct dwc3;
- #define to_dwc3_ep(ep)		(container_of(ep, struct dwc3_ep, endpoint))
- #define gadget_to_dwc(g)	(container_of(g, struct dwc3, gadget))
-+#define gadget_to_dwc_gadget(g)	(container_of(g, struct dwc3_gadget, gadget))
- 
- /* DEPCFG parameter 1 */
- #define DWC3_DEPCFG_INT_NUM(n)		((n) << 0)
++int usb_drd_add(struct device *parent)
++{
++	struct usb_drd	*drd;
++
++	drd = kzalloc(sizeof(*drd), GFP_KERNEL);
++	if (!drd)
++		return -ENOMEM;
++
++	spin_lock(&drd_lock);
++	drd->parent = parent;
++	list_add_tail(&drd->list, &drd_list);
++	drd->state = DRD_UNREGISTERED;
++
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_add);
++
++int usb_drd_register_hcd(struct device *parent, struct usb_drd_host *host)
++{
++	struct usb_drd	*drd;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	spin_lock(&drd_lock);
++	drd->host = host;
++	drd->state |= DRD_HOST_REGISTERED | DRD_HOST_ACTIVE;
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_register_hcd);
++
++int usb_drd_unregister_hcd(struct device *parent)
++{
++	struct usb_drd	*drd;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	spin_lock(&drd_lock);
++	drd->state &= ~(DRD_HOST_REGISTERED | DRD_HOST_ACTIVE);
++	spin_unlock(&drd_lock);
++	kfree(drd->host);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_unregister_hcd);
++
++int usb_drd_start_hcd(struct device *parent)
++{
++	struct usb_drd	*drd;
++	struct usb_drd_setup *setup;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	if (WARN_ON(!(drd->state & DRD_HOST_REGISTERED)))
++		return -EINVAL;
++
++	setup = drd->host->host_setup;
++	if (setup && setup->ll_start)
++		setup->ll_start(setup->data);
++
++	usb_add_hcd(drd->host->main_hcd,
++		    drd->host->hcd_irq, IRQF_SHARED);
++	if (drd->host->shared_hcd)
++		usb_add_hcd(drd->host->shared_hcd,
++			    drd->host->hcd_irq, IRQF_SHARED);
++
++	spin_lock(&drd_lock);
++	drd->state |= DRD_HOST_ACTIVE;
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_start_hcd);
++
++int usb_drd_stop_hcd(struct device *parent)
++{
++	struct usb_drd	*drd;
++	struct usb_drd_setup *setup;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	if (WARN_ON(!(drd->state & DRD_HOST_ACTIVE)))
++		return -EINVAL;
++
++	setup = drd->host->host_setup;
++	if (setup && setup->ll_stop)
++		setup->ll_stop(setup->data);
++	if (drd->host->shared_hcd)
++		usb_remove_hcd(drd->host->shared_hcd);
++
++	usb_remove_hcd(drd->host->main_hcd);
++
++	spin_lock(&drd_lock);
++	drd->state = drd->state & ~DRD_HOST_ACTIVE;
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_stop_hcd);
++
++int usb_drd_register_udc(struct device *parent, struct usb_drd_gadget *gadget)
++{
++	struct usb_drd	*drd;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	spin_lock(&drd_lock);
++	drd->gadget = gadget;
++	drd->state |= DRD_DEVICE_REGISTERED;
++	if (drd->gadget->g_driver)
++		drd->state |= DRD_DEVICE_ACTIVE;
++
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_register_udc);
++
++int usb_drd_register_udc_driver(struct device *parent,
++				struct usb_gadget_driver *driver)
++{
++	struct usb_drd	*drd;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	spin_lock(&drd_lock);
++	drd->gadget->g_driver = driver;
++	drd->state |= DRD_DEVICE_ACTIVE;
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_register_udc_driver);
++
++int usb_drd_unregister_udc(struct device *parent)
++{
++	struct usb_drd	*drd;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	spin_lock(&drd_lock);
++	drd->state &= ~(DRD_DEVICE_REGISTERED | DRD_DEVICE_ACTIVE);
++	spin_unlock(&drd_lock);
++	kfree(drd->gadget->gadget_setup);
++	kfree(drd->gadget);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_unregister_udc);
++
++int usb_drd_unregister_udc_driver(struct device *parent)
++{
++	struct usb_drd	*drd;
++	struct usb_drd_gadget *drd_gadget;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++	drd_gadget = drd->gadget;
++
++	spin_lock(&drd_lock);
++	drd->state &= ~DRD_DEVICE_ACTIVE;
++	drd_gadget->g_driver = NULL;
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_unregister_udc_driver);
++
++int usb_drd_start_udc(struct device *parent)
++{
++	struct usb_drd	*drd;
++	struct usb_drd_gadget *drd_gadget;
++	struct usb_drd_setup *setup;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	if (WARN_ON(!(drd->state & DRD_DEVICE_REGISTERED)))
++		return -EINVAL;
++
++	drd_gadget = drd->gadget;
++	setup = drd_gadget->gadget_setup;
++
++	if (setup && setup->ll_start)
++		setup->ll_start(setup->data);
++
++	usb_add_gadget_udc_release(parent, drd_gadget->gadget,
++				   setup->ll_release);
++	spin_lock(&drd_lock);
++	drd->state |= DRD_DEVICE_ACTIVE;
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_start_udc);
++
++int usb_drd_stop_udc(struct device *parent)
++{
++	struct usb_drd	*drd;
++	struct usb_drd_gadget *drd_gadget;
++	struct usb_drd_setup *setup;
++
++	drd = usb_drd_get_dev(parent);
++	if (!drd)
++		return -ENODEV;
++
++	if (WARN_ON(!(drd->state & DRD_DEVICE_REGISTERED)))
++		return -EINVAL;
++
++	drd_gadget = drd->gadget;
++	setup = drd_gadget->gadget_setup;
++	if (setup && setup->ll_stop)
++		setup->ll_stop(setup->data);
++
++	usb_del_gadget_udc(drd_gadget->gadget);
++
++	spin_lock(&drd_lock);
++	drd->state = drd->state & ~DRD_DEVICE_ACTIVE;
++	spin_unlock(&drd_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_drd_stop_udc);
++
++MODULE_DESCRIPTION("USB-DRD Library");
++MODULE_AUTHOR("George Cherian <george.cherian@ti.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/usb/drd.h b/include/linux/usb/drd.h
+new file mode 100644
+index 0000000..71c64dc
+--- /dev/null
++++ b/include/linux/usb/drd.h
+@@ -0,0 +1,77 @@
++#include <linux/usb/gadget.h>
++#include <linux/usb/otg.h>
++#include <linux/usb/hcd.h>
++
++struct usb_drd_setup {
++	int	(*ll_start)(void *);
++	int	(*ll_stop)(void *);
++	void	(*ll_release)(struct device *);
++	void	*data;
++};
++
++struct usb_drd_host {
++	struct usb_hcd		*main_hcd;
++	struct usb_hcd		*shared_hcd;
++	int			hcd_irq;
++	struct usb_drd_setup *host_setup;
++};
++
++struct usb_drd_gadget {
++	struct usb_gadget_driver *g_driver;
++	struct usb_gadget *gadget;
++	struct usb_drd_setup *gadget_setup;
++};
++
++#define DRD_UNREGISTERED	0x0
++#define DRD_DEVICE_REGISTERED	0x1
++#define DRD_HOST_REGISTERED	0x2
++#define DRD_HOST_ACTIVE		0x4
++#define DRD_DEVICE_ACTIVE	0x8
++
++#if IS_ENABLED(CONFIG_DRD_LIB)
++int usb_drd_release(struct device *parent);
++int usb_drd_add(struct device *parent);
++int usb_drd_register_udc(struct device *parent,
++			 struct usb_drd_gadget *gadget);
++int usb_drd_register_udc_driver(struct device *parent,
++				struct usb_gadget_driver *driver);
++int usb_drd_unregister_udc(struct device *parent);
++int usb_drd_unregister_udc_driver(struct device *parent);
++int usb_drd_register_hcd(struct device *parent,
++			 struct usb_drd_host *host);
++int usb_drd_unregister_hcd(struct device *parent);
++int usb_drd_start_hcd(struct device *parent);
++int usb_drd_stop_hcd(struct device *parent);
++int usb_drd_start_udc(struct device *parent);
++int usb_drd_stop_udc(struct device *parent);
++int usb_drd_get_state(struct device *parent);
++#else
++static inline int usb_drd_release(struct device *parent)
++{ return 0; }
++static inline int usb_drd_add(struct device *parent)
++{ return 0; }
++static inline int usb_drd_register_udc(struct device *parent,
++				       struct usb_drd_gadget *gadget)
++{ return 0; }
++static inline int usb_drd_register_udc_driver(struct device *parent,
++					      struct usb_gadget_driver *driver)
++{ return 0; }
++static inline int usb_drd_unregister_udc(struct device *parent,
++					 struct usb_drd_gadget *gadget)
++{ return 0; }
++static inline int usb_drd_unregister_udc_driver(struct device *parent)
++{ return 0; }
++static inline int usb_drd_register_hcd(struct device *parent,
++				       struct usb_drd_host *host)
++{ return 0; }
++static inline int usb_drd_unregister_hcd(struct device *parent)
++{ return 0; }
++static inline int usb_drd_stop_hcd(struct device *parent)
++{ return 0; }
++static inline int usb_drd_start_udc(struct device *parent)
++{ return 0; }
++static inline int usb_drd_stop_udc(struct device *parent)
++{ return 0; }
++static inline int usb_drd_get_state(struct device *parent)
++{ return 0; }
++#endif
 -- 
 1.8.3.1
