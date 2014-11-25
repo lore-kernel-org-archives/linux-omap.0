@@ -1,83 +1,61 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 17/19] arm: dts: dra7: Add named interrupt property for dwc3
-Date: Tue, 25 Nov 2014 18:41:53 +0530
-Message-ID: <1416921115-10467-18-git-send-email-george.cherian@ti.com>
+Subject: [PATCH 05/19] usb: host: xhci-plat: Add support to pass
+ XHCI_NEEDS_LHC_RESET quirk
+Date: Tue, 25 Nov 2014 18:41:41 +0530
+Message-ID: <1416921115-10467-6-git-send-email-george.cherian@ti.com>
 References: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, George Cherian <george.cherian@ti.com>
+Cc: mark.rutland@arm.com, George Cherian <george.cherian@ti.com>, kgene.kim@samsung.com, linux@arm.linux.org.uk, ben-linux@fluff.org, mathias.nyman@intel.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, sojka@merica.cz, balbi@ti.com, robh+dt@kernel.org, pawel.moll@arm.com, peter.chen@freescale.com, bcousson@baylibre.com, galak@codeaurora.org
 List-Id: linux-omap@vger.kernel.org
 
-Add interrupt names so that the same can be used for OTG easily.
+Extend the platform data to pass XHCI_NEEDS_LHC_RESET quirk to
+the xhci driver.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- arch/arm/boot/dts/dra7.dtsi | 28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ drivers/usb/host/xhci-plat.c     | 3 +++
+ include/linux/usb/xhci_pdriver.h | 1 +
+ 2 files changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 9cc9843..78f1761 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1153,7 +1153,12 @@
- 			usb1: usb@48890000 {
- 				compatible = "snps,dwc3";
- 				reg = <0x48890000 0x17000>;
--				interrupts = <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupts = <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "peripheral",
-+						  "host",
-+						  "otg";
- 				phys = <&usb2_phy1>, <&usb3_phy1>;
- 				phy-names = "usb2-phy", "usb3-phy";
- 				tx-fifo-resize;
-@@ -1174,7 +1179,12 @@
- 			usb2: usb@488d0000 {
- 				compatible = "snps,dwc3";
- 				reg = <0x488d0000 0x17000>;
--				interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 87 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "peripheral",
-+						  "host",
-+						  "otg";
- 				phys = <&usb2_phy2>;
- 				phy-names = "usb2-phy";
- 				tx-fifo-resize;
-@@ -1197,7 +1207,12 @@
- 			usb3: usb@48910000 {
- 				compatible = "snps,dwc3";
- 				reg = <0x48910000 0x17000>;
--				interrupts = <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupts = <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 88 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 344 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "peripheral",
-+						  "host",
-+						  "otg";
- 				tx-fifo-resize;
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
-@@ -1217,7 +1232,12 @@
- 			usb4: usb@48950000 {
- 				compatible = "snps,dwc3";
- 				reg = <0x48950000 0x17000>;
--				interrupts = <GIC_SPI 345 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupts = <GIC_SPI 345 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 345 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 346 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "peripheral",
-+						  "host",
-+						  "otg";
- 				tx-fifo-resize;
- 				maximum-speed = "high-speed";
- 				dr_mode = "otg";
+diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+index 2c42273..d8d024d 100644
+--- a/drivers/usb/host/xhci-plat.c
++++ b/drivers/usb/host/xhci-plat.c
+@@ -31,6 +31,9 @@ static void xhci_plat_quirks(struct device *dev, struct xhci_hcd *xhci)
+ 
+ 	if (pdata->usb_drd_support)
+ 		xhci->quirks |= XHCI_DRD_SUPPORT;
++
++	if (pdata->usb_needs_lhc_reset)
++		xhci->quirks |= XHCI_NEEDS_LHC_RESET;
+ 	/*
+ 	 * As of now platform drivers don't provide MSI support so we ensure
+ 	 * here that the generic code does not try to make a pci_dev from our
+diff --git a/include/linux/usb/xhci_pdriver.h b/include/linux/usb/xhci_pdriver.h
+index 539c2d8..8ef7321 100644
+--- a/include/linux/usb/xhci_pdriver.h
++++ b/include/linux/usb/xhci_pdriver.h
+@@ -23,6 +23,7 @@
+ struct usb_xhci_pdata {
+ 	unsigned	usb3_lpm_capable:1;
+ 	unsigned	usb_drd_support:1;
++	unsigned	usb_needs_lhc_reset:1;
+ };
+ 
+ #endif /* __USB_CORE_XHCI_PDRIVER_H */
 -- 
 1.8.3.1
