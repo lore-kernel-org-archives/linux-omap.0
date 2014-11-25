@@ -1,63 +1,130 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling invalid BB-bit values
-Date: Tue, 25 Nov 2014 03:09:13 +0300
-Message-ID: <06376010-5DED-49AA-9494-A9546567E7CA@gmail.com>
-References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-1-git-send-email-al.kochet@gmail.com> <1416685634-5864-3-git-send-email-al.kochet@gmail.com> <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com> <47A1A441-952C-4AC3-859C-5A8E405767E0@gmail.com> <20141124194759.GG2757@atomide.com> <47749B61-5924-4E56-9931-77B0CFC0AAA0@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <47749B61-5924-4E56-9931-77B0CFC0AAA0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.18-rc6
+Date: Tue, 25 Nov 2014 01:17:39 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1411250114480.16047@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:56082 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635AbaKYBRk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 20:17:40 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@vger.kernel.org, kernel-build-reports@lists.infradead.org
 
 
-24 =CE=CF=D1=C2. 2014 =C7., =D7 23:05, Alexander Kochetkov <al.kochet@g=
-mail.com> =CE=C1=D0=C9=D3=C1=CC(=C1):
+Here are some basic OMAP test results for Linux v3.18-rc6.
+Logs and other details at:
 
-> Something (u-boot, may be) leave the bus in the wrong state.
-> Really strange.
+    http://www.pwsan.com/omap/testlogs/test_v3.18-rc6/20141123170640/
 
-Actually something wrong with i2c-pullups on i2c.1 bus on fault boards.
-May be these are boards without pull-ups?
-All beagles doesn't have internal pull-ups on i2c.1 since u-boot 2011.x=
-=2E
 
-Here is the bug in the u-boot related to beagle:
-http://git.denx.de/?p=3Du-boot.git;a=3Dcommit;h=3D04e2a13336f0e507ef416=
-bbede3be92b79c46594
+Test summary
+------------
 
-Yes, I made fix, but keep that in mind.
+Build: uImage:
+    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
+		  omap1_defconfig_5912osk_only
 
-=46or example one of the boards (omap3-beagle):
-http://status.armcloud.us/boot/omap3-beagle/job/next/kernel/next-201411=
-24/defconfig/arm-omap2plus_defconfig/
-http://status.armcloud.us/boot/omap3-beagle,legacy/job/next/kernel/next=
--20141124/defconfig/arm-omap2plus_defconfig/
-http://status.armcloud.us/boot/omap3-beagle/job/next/kernel/next-201411=
-24/defconfig/arm-multi_v7_defconfig/
+Build: uImage+dtb:
+    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
+		  omap2plus_defconfig/omap4-panda,
+		  omap2plus_defconfig/omap4-panda-es,
+		  omap2plus_defconfig/omap4-var-som,
+		  omap2plus_defconfig/omap3-evm-37xx,
+		  omap2plus_defconfig_n800_only_a/omap2420-n800,
+		  omap2plus_defconfig/omap2430-sdp,
+		  omap2plus_defconfig/am3517-evm,
+		  omap2plus_defconfig/omap3-beagle,
+		  omap2plus_defconfig/omap3-beagle-xm,
+		  omap2plus_defconfig/omap3-sbc-t3517,
+		  omap2plus_defconfig/omap5-uevm,
+		  omap2plus_defconfig/omap5-sbc-t54
 
-has following warning message in the u-boot log:
-> U-Boot 2014.07 (Aug 21 2014 - 11:03:05)
->=20
-> OMAP3530-GP ES3.0, CPU-OPP2, L3-165MHz, Max CPU Clock 600 MHz
-> OMAP3 Beagle board + LPDDR/NAND
-> ....
-> Beagle Rev C1/C2/C3
-> Timed out in wait_for_event: status=3D1000
-> Check if pads/pull-ups of bus 1 are properly configured
+Build: zImage:
+    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
+		  omap2plus_defconfig_n800_only_a,
+		  omap2plus_defconfig_n800_multi_omap2xxx,
+		  omap2plus_defconfig_2430sdp_only,
+		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
+		  omap2plus_defconfig_omap2_4_only,
+		  omap2plus_defconfig_omap3_4_only,
+		  omap2plus_defconfig_omap5_only,
+		  omap2plus_defconfig_dra7xx_only,
+		  omap2plus_defconfig_am43xx_only,
+		  rmk_omap3430_ldp_oldconfig,
+		  rmk_omap3430_ldp_allnoconfig,
+		  rmk_omap4430_sdp_oldconfig,
+		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
 
-Also beagle schematic has following log entry for A3:
-4. Added optional pullup resistors on I2C2_SCL and I2C_SDA into the lay=
-out.
+Boot to userspace:
+    FAIL ( 1/17): 2430sdp
+    skip ( 2/17): 5912osk, 3517evm
+    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
+		  5430es2sbct54, 2420n800
 
-Is the fault beagle is pre A3 revision?
+PM: chip retention via suspend:
+    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
+		  5430es2uevm, 5430es2sbct54
+    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730beaglexm, 3730es12beaglexm
 
-I can't tell anything about second one board (omap3-overo-tobi), becaus=
-e I could not get it schematic.
+PM: chip retention via dynamic idle:
+    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
+		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
+    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
+		  3730es12beaglexm
 
-And how you have i2c.1 working without pull-ups I don't know.
+PM: chip off (except CORE, due to errata) via suspend:
+    Pass ( 1/ 1): 3730beaglexm
 
-Alexander.
+PM: chip off (except CORE, due to errata) via dynamic idle:
+    Pass ( 1/ 1): 3730beaglexm
+
+PM: chip off via suspend:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+PM: chip off via dynamic idle:
+    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
+		  3730es12beaglexm
+
+
+vmlinux object size
+(delta in bytes from test_v3.18-rc5 (fc14f9c1272f62c3e8d01300f52467c0d9af50f9)):
+   text     data      bss    total  kernel
+    -20        0        0      -20  omap1_defconfig
+    +12        0        0      +12  omap1_defconfig_1510innovator_only
+    -52        0        0      -52  omap1_defconfig_5912osk_only
+  +9640     +184        0    +9824  multi_v7_defconfig
+   -116      -16        0     -132  omap2plus_defconfig
+   -140      +24        0     -116  omap2plus_defconfig_2430sdp_only
+   -116       -8        0     -124  omap2plus_defconfig_am33xx_only
+   -116       -8        0     -124  omap2plus_defconfig_am43xx_only
+   -116       -8        0     -124  omap2plus_defconfig_cpupm
+   -116       -8        0     -124  omap2plus_defconfig_dra7xx_only
+   -156      +32        0     -124  omap2plus_defconfig_n800_multi_omap2xxx
+   -124      +24        0     -100  omap2plus_defconfig_n800_only_a
+   -116       -8        0     -124  omap2plus_defconfig_no_pm
+   -116       -8        0     -124  omap2plus_defconfig_omap2_4_only
+   -116       -8        0     -124  omap2plus_defconfig_omap3_4_only
+    -52      +24        0      -28  omap2plus_defconfig_omap5_only
+   -124        0      -48     -172  rmk_omap3430_ldp_allnoconfig
+    -88      +24        0      -64  rmk_omap3430_ldp_oldconfig
+   -140        0      -32     -172  rmk_omap4430_sdp_allnoconfig
+  +3984      -16        0    +3968  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from test_v3.18-rc5 (fc14f9c1272f62c3e8d01300f52467c0d9af50f9))
+  avail  rsrvd   high  freed  board          kconfig
+   352k  -352k      .    -4k  am335xbonelt   omap2plus_defconfig
+
+
+The big boot-time memory difference for am335xbonelt is bogus.  Looks like 
+during the v3.18-rc5 test run, that board actually booted a v3.18-rc1 
+kernel.  Have to get a check for that into the QA scripts..
+
