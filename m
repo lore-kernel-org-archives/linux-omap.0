@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 18/19] arm: dts: exynos5250: Add named interrupt property for dwc3
-Date: Tue, 25 Nov 2014 18:41:54 +0530
-Message-ID: <1416921115-10467-19-git-send-email-george.cherian@ti.com>
+Subject: [PATCH 19/19] arm: dts: am43x evms: Make usb1 as OTG
+Date: Tue, 25 Nov 2014 18:41:55 +0530
+Message-ID: <1416921115-10467-20-git-send-email-george.cherian@ti.com>
 References: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,30 +12,54 @@ To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-sa
 Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add interrupt names so that the same can be used for OTG easily.
+USB1 of am43x EPOS EVM, am437x GP EVM and am437x SK EVM can be used as OTG.
+Enable the same.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- arch/arm/boot/dts/exynos5250.dtsi | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts  | 2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-index f21b9aa..c74cd8b 100644
---- a/arch/arm/boot/dts/exynos5250.dtsi
-+++ b/arch/arm/boot/dts/exynos5250.dtsi
-@@ -558,7 +558,12 @@
- 		dwc3 {
- 			compatible = "synopsys,dwc3";
- 			reg = <0x12000000 0x10000>;
--			interrupts = <0 72 0>;
-+			interrupts = <0 72 0>,
-+				     <0 72 0>,
-+				     <0 72 0>;
-+			interrupt-names = "peripheral",
-+					  "host",
-+					  "otg";
- 			phys = <&usbdrd_phy 0>, <&usbdrd_phy 1>;
- 			phy-names = "usb2-phy", "usb3-phy";
- 		};
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index e7ac47f..a8b5752 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -380,7 +380,7 @@
+ };
+ 
+ &usb1 {
+-	dr_mode = "peripheral";
++	dr_mode = "otg";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 859ff3d..b258826 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -478,7 +478,7 @@
+ };
+ 
+ &usb1 {
+-	dr_mode = "peripheral";
++	dr_mode = "otg";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index ac3e485..3d106e9 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -542,7 +542,7 @@
+ };
+ 
+ &usb1 {
+-	dr_mode = "peripheral";
++	dr_mode = "otg";
+ 	status = "okay";
+ };
+ 
 -- 
 1.8.3.1
