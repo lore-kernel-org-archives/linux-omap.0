@@ -1,130 +1,152 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.18-rc6
-Date: Tue, 25 Nov 2014 01:17:39 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411250114480.16047@utopia.booyaka.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [RFC PATCH] ARM: DRA: hwmod: RTC: Add reset function for RTC
+Date: Tue, 25 Nov 2014 09:32:48 +0530
+Message-ID: <5473FF68.3070805@ti.com>
+References: <1416199402-3865-1-git-send-email-lokeshvutla@ti.com> <546DB513.6000104@ti.com> <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:56082 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635AbaKYBRk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Nov 2014 20:17:40 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:53919 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751058AbaKYEEY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Nov 2014 23:04:24 -0500
+In-Reply-To: <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@vger.kernel.org, kernel-build-reports@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com
 
+Hi Paul,
+On Thursday 20 November 2014 10:26 PM, Paul Walmsley wrote:
+> On Thu, 20 Nov 2014, Lokesh Vutla wrote:
+> 
+>> On Monday 17 November 2014 10:13 AM, Lokesh Vutla wrote:
+>>> RTC IP have kicker feature which prevents spurious writes to its registers.
+>>> In order to write into any of the RTC registers, KICK values has te be
+>>> written to KICK registers. Currently hwmod is updating the IDLEMODE in rtc
+>>> sysconfig register without writing into any kick register which is a noop.
+>>> When autoidle is allowed for rtc, interruts are not received until IDLEMODE
+>>> is set to SIDLE_SMART_WKUP.
+>>> Adding a reset function to unlock RTC registers so that IDLEMODE is
+>>> updated.
+>> Ping..!!
+>> Is this patch acceptable?
+> 
+> Lokesh
+> 
+> 1. This looks like a fix.  Is this intended to go in as a v3.18-rc patch, 
+> or against v3.19?  If so it would be very helpful for the maintainers if 
+> you were to state that somewhere.
+Yes. This is a fix, intended to go in 3.18-rc. Sorry should have
+mentioned it.
+> 
+> 2. Your patch unlocks the RTC registers, but never relocks it.  This seems 
+> to defeat the point of the spurious write protection.  Shouldn't your 
+> patch only unlock the RTC immediately before the hwmod code touches the 
+> RTC registers, and then relock it immediately afterwards, per SPRUHZ6 
+> section 23.4.3.3?  If so then the .reset function pointer is the wrong 
+> place for this; I would suggest adding some .lock and .unlock function 
+> pointers that are to be called before and after any register write to the 
+> IP block.
+Yeah I agree with you.
+Currently rtc driver unlocks these kick registers in probe and leaves it unlocks for
+further use.
+But if hwmod does unlock and lock for every sysconfig write driver should also
+implement unlock and lock for every rtc register write, which adds an extra overhead.
+I am not sure if some one writes into rtc registers other than hwmod and driver.
+IMO we can leave it unlocked as the driver does.
+> 
+> 3. Your macros don't mention DRA7xx specifically.  Does this sequence 
+> apply to some other TI chips, or just DRA7xx?  Please document this in a 
+> comment above the macros, and possibly change the name of the macros to 
+> refer to DRA7XX.
+This sequence applies to AM43xx and AM33xx also. So made it generic.
+Ill document it.
 
-Here are some basic OMAP test results for Linux v3.18-rc6.
-Logs and other details at:
-
-    http://www.pwsan.com/omap/testlogs/test_v3.18-rc6/20141123170640/
-
-
-Test summary
-------------
-
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
-
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
-
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
-
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 2/17): 5912osk, 3517evm
-    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54, 2420n800
-
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-
-vmlinux object size
-(delta in bytes from test_v3.18-rc5 (fc14f9c1272f62c3e8d01300f52467c0d9af50f9)):
-   text     data      bss    total  kernel
-    -20        0        0      -20  omap1_defconfig
-    +12        0        0      +12  omap1_defconfig_1510innovator_only
-    -52        0        0      -52  omap1_defconfig_5912osk_only
-  +9640     +184        0    +9824  multi_v7_defconfig
-   -116      -16        0     -132  omap2plus_defconfig
-   -140      +24        0     -116  omap2plus_defconfig_2430sdp_only
-   -116       -8        0     -124  omap2plus_defconfig_am33xx_only
-   -116       -8        0     -124  omap2plus_defconfig_am43xx_only
-   -116       -8        0     -124  omap2plus_defconfig_cpupm
-   -116       -8        0     -124  omap2plus_defconfig_dra7xx_only
-   -156      +32        0     -124  omap2plus_defconfig_n800_multi_omap2xxx
-   -124      +24        0     -100  omap2plus_defconfig_n800_only_a
-   -116       -8        0     -124  omap2plus_defconfig_no_pm
-   -116       -8        0     -124  omap2plus_defconfig_omap2_4_only
-   -116       -8        0     -124  omap2plus_defconfig_omap3_4_only
-    -52      +24        0      -28  omap2plus_defconfig_omap5_only
-   -124        0      -48     -172  rmk_omap3430_ldp_allnoconfig
-    -88      +24        0      -64  rmk_omap3430_ldp_oldconfig
-   -140        0      -32     -172  rmk_omap4430_sdp_allnoconfig
-  +3984      -16        0    +3968  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.18-rc5 (fc14f9c1272f62c3e8d01300f52467c0d9af50f9))
-  avail  rsrvd   high  freed  board          kconfig
-   352k  -352k      .    -4k  am335xbonelt   omap2plus_defconfig
-
-
-The big boot-time memory difference for am335xbonelt is bogus.  Looks like 
-during the v3.18-rc5 test run, that board actually booted a v3.18-rc1 
-kernel.  Have to get a check for that into the QA scripts..
+Thanks and regards,
+Lokesh
+> 
+> 
+> - Paul
+> 
+>>
+>> Thanks and regards,
+>> Lokesh
+>>>
+>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/omap_hwmod.h          |  1 +
+>>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  1 +
+>>>  arch/arm/mach-omap2/omap_hwmod_reset.c    | 23 +++++++++++++++++++++++
+>>>  3 files changed, 25 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+>>> index 512f809..3703f99 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod.h
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod.h
+>>> @@ -744,6 +744,7 @@ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
+>>>   */
+>>>  
+>>>  extern int omap_hwmod_aess_preprogram(struct omap_hwmod *oh);
+>>> +int omap_hwmod_rtc_unlock(struct omap_hwmod *oh);
+>>>  
+>>>  /*
+>>>   * Chip variant-specific hwmod init routines - XXX should be converted
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> index 5684f11..90e1df4 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+>>> @@ -1584,6 +1584,7 @@ static struct omap_hwmod_class_sysconfig dra7xx_rtcss_sysc = {
+>>>  static struct omap_hwmod_class dra7xx_rtcss_hwmod_class = {
+>>>  	.name	= "rtcss",
+>>>  	.sysc	= &dra7xx_rtcss_sysc,
+>>> +	.reset	= &omap_hwmod_rtc_unlock,
+>>>  };
+>>>  
+>>>  /* rtcss */
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_reset.c b/arch/arm/mach-omap2/omap_hwmod_reset.c
+>>> index 65e186c..b825a28 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod_reset.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod_reset.c
+>>> @@ -30,6 +30,12 @@
+>>>  
+>>>  #include "omap_hwmod.h"
+>>>  
+>>> +#define RTC_KICK0_REG_OFFSET	0x6c
+>>> +#define RTC_KICK1_REG_OFFSET	0x70
+>>> +
+>>> +#define RTC_KICK0_VALUE		0x83E70B13
+>>> +#define RTC_KICK1_VALUE		0x95A4F1E0
+>>> +
+>>>  /**
+>>>   * omap_hwmod_aess_preprogram - enable AESS internal autogating
+>>>   * @oh: struct omap_hwmod *
+>>> @@ -51,3 +57,20 @@ int omap_hwmod_aess_preprogram(struct omap_hwmod *oh)
+>>>  
+>>>  	return 0;
+>>>  }
+>>> +
+>>> +/**
+>>> + * omap_hwmod_rtc_unlock - Reset and unlock the Kicker mechanism.
+>>> + * @oh: struct omap_hwmod *
+>>> + *
+>>> + * RTC IP have kicker feature.  This prevents spurious writes to its registers.
+>>> + * In order to write into any of the RTC registers, KICK values has te be
+>>> + * written in respective KICK registers. This is needed for hwmod to write into
+>>> + * sysconfig register.
+>>> + */
+>>> +int omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
+>>> +{
+>>> +	omap_hwmod_write(RTC_KICK0_VALUE, oh, RTC_KICK0_REG_OFFSET);
+>>> +	omap_hwmod_write(RTC_KICK1_VALUE, oh, RTC_KICK1_REG_OFFSET);
+>>> +
+>>> +	return 0;
+>>> +}
+>>>
+>>
+> 
+> 
+> - Paul
+> 
 
