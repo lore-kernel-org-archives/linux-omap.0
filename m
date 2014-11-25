@@ -1,152 +1,137 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [RFC PATCH] ARM: DRA: hwmod: RTC: Add reset function for RTC
-Date: Tue, 25 Nov 2014 09:32:48 +0530
-Message-ID: <5473FF68.3070805@ti.com>
-References: <1416199402-3865-1-git-send-email-lokeshvutla@ti.com> <546DB513.6000104@ti.com> <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
+Date: Tue, 25 Nov 2014 11:26:36 +0200
+Message-ID: <54744B4C.2030105@ti.com>
+References: <cover.1415803064.git.jsarha@ti.com> <20141112222344.GU3815@sirena.org.uk> <54646648.5030807@ti.com> <546DC9A0.8060700@ti.com> <20141121112317.GQ3815@sirena.org.uk> <546F317B.9030004@ti.com> <20141121161435.GS3815@sirena.org.uk> <5472E9D7.7000908@ti.com> <20141124173920.GL7712@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="9eL0DQpkaKSGrAumvCeus5fPPmaRm7WWb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53919 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41096 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751058AbaKYEEY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Nov 2014 23:04:24 -0500
-In-Reply-To: <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com>
+	id S1750802AbaKYJ0w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Nov 2014 04:26:52 -0500
+In-Reply-To: <20141124173920.GL7712@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com
+To: Mark Brown <broonie@kernel.org>
+Cc: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-Hi Paul,
-On Thursday 20 November 2014 10:26 PM, Paul Walmsley wrote:
-> On Thu, 20 Nov 2014, Lokesh Vutla wrote:
-> 
->> On Monday 17 November 2014 10:13 AM, Lokesh Vutla wrote:
->>> RTC IP have kicker feature which prevents spurious writes to its registers.
->>> In order to write into any of the RTC registers, KICK values has te be
->>> written to KICK registers. Currently hwmod is updating the IDLEMODE in rtc
->>> sysconfig register without writing into any kick register which is a noop.
->>> When autoidle is allowed for rtc, interruts are not received until IDLEMODE
->>> is set to SIDLE_SMART_WKUP.
->>> Adding a reset function to unlock RTC registers so that IDLEMODE is
->>> updated.
->> Ping..!!
->> Is this patch acceptable?
-> 
-> Lokesh
-> 
-> 1. This looks like a fix.  Is this intended to go in as a v3.18-rc patch, 
-> or against v3.19?  If so it would be very helpful for the maintainers if 
-> you were to state that somewhere.
-Yes. This is a fix, intended to go in 3.18-rc. Sorry should have
-mentioned it.
-> 
-> 2. Your patch unlocks the RTC registers, but never relocks it.  This seems 
-> to defeat the point of the spurious write protection.  Shouldn't your 
-> patch only unlock the RTC immediately before the hwmod code touches the 
-> RTC registers, and then relock it immediately afterwards, per SPRUHZ6 
-> section 23.4.3.3?  If so then the .reset function pointer is the wrong 
-> place for this; I would suggest adding some .lock and .unlock function 
-> pointers that are to be called before and after any register write to the 
-> IP block.
-Yeah I agree with you.
-Currently rtc driver unlocks these kick registers in probe and leaves it unlocks for
-further use.
-But if hwmod does unlock and lock for every sysconfig write driver should also
-implement unlock and lock for every rtc register write, which adds an extra overhead.
-I am not sure if some one writes into rtc registers other than hwmod and driver.
-IMO we can leave it unlocked as the driver does.
-> 
-> 3. Your macros don't mention DRA7xx specifically.  Does this sequence 
-> apply to some other TI chips, or just DRA7xx?  Please document this in a 
-> comment above the macros, and possibly change the name of the macros to 
-> refer to DRA7XX.
-This sequence applies to AM43xx and AM33xx also. So made it generic.
-Ill document it.
+--9eL0DQpkaKSGrAumvCeus5fPPmaRm7WWb
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Thanks and regards,
-Lokesh
-> 
-> 
-> - Paul
-> 
->>
->> Thanks and regards,
->> Lokesh
->>>
->>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/omap_hwmod.h          |  1 +
->>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  1 +
->>>  arch/arm/mach-omap2/omap_hwmod_reset.c    | 23 +++++++++++++++++++++++
->>>  3 files changed, 25 insertions(+)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
->>> index 512f809..3703f99 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.h
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.h
->>> @@ -744,6 +744,7 @@ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
->>>   */
->>>  
->>>  extern int omap_hwmod_aess_preprogram(struct omap_hwmod *oh);
->>> +int omap_hwmod_rtc_unlock(struct omap_hwmod *oh);
->>>  
->>>  /*
->>>   * Chip variant-specific hwmod init routines - XXX should be converted
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> index 5684f11..90e1df4 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
->>> @@ -1584,6 +1584,7 @@ static struct omap_hwmod_class_sysconfig dra7xx_rtcss_sysc = {
->>>  static struct omap_hwmod_class dra7xx_rtcss_hwmod_class = {
->>>  	.name	= "rtcss",
->>>  	.sysc	= &dra7xx_rtcss_sysc,
->>> +	.reset	= &omap_hwmod_rtc_unlock,
->>>  };
->>>  
->>>  /* rtcss */
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_reset.c b/arch/arm/mach-omap2/omap_hwmod_reset.c
->>> index 65e186c..b825a28 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_reset.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_reset.c
->>> @@ -30,6 +30,12 @@
->>>  
->>>  #include "omap_hwmod.h"
->>>  
->>> +#define RTC_KICK0_REG_OFFSET	0x6c
->>> +#define RTC_KICK1_REG_OFFSET	0x70
->>> +
->>> +#define RTC_KICK0_VALUE		0x83E70B13
->>> +#define RTC_KICK1_VALUE		0x95A4F1E0
->>> +
->>>  /**
->>>   * omap_hwmod_aess_preprogram - enable AESS internal autogating
->>>   * @oh: struct omap_hwmod *
->>> @@ -51,3 +57,20 @@ int omap_hwmod_aess_preprogram(struct omap_hwmod *oh)
->>>  
->>>  	return 0;
->>>  }
->>> +
->>> +/**
->>> + * omap_hwmod_rtc_unlock - Reset and unlock the Kicker mechanism.
->>> + * @oh: struct omap_hwmod *
->>> + *
->>> + * RTC IP have kicker feature.  This prevents spurious writes to its registers.
->>> + * In order to write into any of the RTC registers, KICK values has te be
->>> + * written in respective KICK registers. This is needed for hwmod to write into
->>> + * sysconfig register.
->>> + */
->>> +int omap_hwmod_rtc_unlock(struct omap_hwmod *oh)
->>> +{
->>> +	omap_hwmod_write(RTC_KICK0_VALUE, oh, RTC_KICK0_REG_OFFSET);
->>> +	omap_hwmod_write(RTC_KICK1_VALUE, oh, RTC_KICK1_REG_OFFSET);
->>> +
->>> +	return 0;
->>> +}
->>>
->>
-> 
-> 
-> - Paul
-> 
+On 24/11/14 19:39, Mark Brown wrote:
 
+> OK...  this is all telling me that I *really* need to scrub this in
+> detail.  It's all sounding very vague, it's an area which seems to caus=
+e
+> lots of problems and I don't want to be sitting here next time around
+> trying to figure out if another rewrite makes things better or worse or=
+
+> if another driver should look similar or different.
+
+I was vague as I don't have the details. I don't know much about the
+audio side, except from the users side. Jyri can perhaps fill in the
+details.
+
+But a proper review for sound/ side would be appreciated.
+
+For what it's worth, I can say from a user's perspective that with this
+series the OMAP HDMI audio finally seems to work so that I'm satisfied
+with it. While there's still things to improve, it works and I can keep
+it enabled in the kernel while developing the video side and it doesn't
+get on my way.
+
+>> The whole series is about HDMI audio, not video.
+>=20
+> You know exactly what I mean - the early patches are in drivers/video,
+> don't touch anything outside of that and have no obvious dependencies.
+
+My point was, there's no particular reason to apply those patches
+individually. It's an independent series, about HDMI audio, and applying
+only some of the earlier patches does not improve the kernel in visible
+manner.
+
+>> And in any case, I don't like applying individual patches from a serie=
+s.
+>> Usually that just complicates things. If I would apply some of the ear=
+ly
+>> patches to fbdev, then this series would no longer work on plain
+>> mainline kernel, and would instead depend on fbdev tree. The situation=
+
+>=20
+> But I thought everyone was saying this hardware doesn't work anyway and=
+
+> that you want to apply all these changes to fbdev?
+
+I don't particularly _want_ to apply these via fbdev, but I think it's
+the easiest way. Most of the files touched are in drivers/video/, so
+hopefully merging via fbdev reduces the chances of conflicts.
+
+And this needs your ack before it can be merged via fbdev tree. Until
+you've said that you're fine getting this via fbdev, we don't know how
+this will be merged, and I can't create dependencies to fbdev.
+
+> This means we're all then stuck reading reposts of the same enormous
+> series over and over again - as a reviewer a really big series that
+> appears from the subject lines to be mostly about another system is
+> really offputting.  If you're going to do something like this please at=
+
+
+Well, yes, I see your point. And I agree that patches that the rest of
+the series does not depend on should normally be applied individually if
+the series starts getting multiple revisions (although even those
+patches could cause conflicts if the rest of the patches touch code nearb=
+y).
+
+But that's not the case here, as all the patches are needed to get a
+working HDMI audio.
+
+> least reply to the messages, that way it's clearer that there's not
+> going to be a dependency problem getting the patches applied (which is
+> part of what makes things offputting).
+
+Yes, lack of communication was my mistake.
+
+In any case, how do you want to proceed? As I said, I very much would
+like to get this into the next merge window and from my point of view
+the current versions looks good. If you find something to be fixed in
+the sound/ side, and you're fine with merging this via fbdev, I can
+start merging the earlier patches in the series so that the next
+revision is easier to review.
+
+But the merge window is getting close. If you find something very wrong
+with the series, we can skip this merge window. But if there are only
+issues that can be easily fixed with follow-up patches, I'd rather merge
+this revision than do more full review rounds.
+
+ Tomi
+
+
+
+--9eL0DQpkaKSGrAumvCeus5fPPmaRm7WWb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUdEtQAAoJEPo9qoy8lh71948P/ijNBPT/0dYzyqHPji6j/YWO
+BYHQ5gdgrrwPCuztoquixMyMuLzTiAQZz0GprFnDnymkKCdl/SdU/IQ6IFHVaai+
+bN3umihTTivc54zXIZNaoT1owCO0xyFyDwXBFXgCDqHC/qmflOk+zynDEBp+jZli
++PdfJzY8LYLyFa8XqL9v6J5LENpYpQFoCJtARQou25leKP248yJ0idxCf99EBOOV
+vYzq97Sbyuu1zXf4Ju7kBVeXMROBlMNDOjoep4x19OMTy3gt+PJVyedE6ZKTqe/d
+tz7o0b953O3XTpcoyrcCww8e7QgpRaL+6GURptPIEG+BKJMG+EhMDi0KZaidA7VI
+osk5N9v/Ys9yZCHjirIudbQ7Ic5KguhfnBi2RlyKIfJGyaAeinqdtvcvm4DFUUCM
+rFuJKuOKiW4H2WH9sIySRhmLnIeuUi/emWHd6v3VHjy6pa/znmR9aaEDR02QwwfK
+MOIk11Zr9Lfzjhzr2tiwLqrFR2pjiMZQsaCwffoD2bfop1/hohSqoSm88n5djlob
+6KnrVRJN3OZgVfq/kQX/0UI4ytV4vcoXa/bYbzZZbBjQordi98iYQk4U8awskBPj
+Zd5qNt3Wm49Y1HRMAD4kXo+tz8nYrh2xjmXjwzJ+Q3NiDhRWau4PUewimPnQ6Vtg
+lD9JkUNJllPFvWU3SJ2b
+=nRm4
+-----END PGP SIGNATURE-----
+
+--9eL0DQpkaKSGrAumvCeus5fPPmaRm7WWb--
