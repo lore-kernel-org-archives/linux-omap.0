@@ -1,68 +1,77 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH 00/11] Exynos7: Adding USB 3.0 support
-Date: Tue, 25 Nov 2014 17:18:43 +0530
-Message-ID: <CAFp+6iE5XJ+TGu+8TvRFd3Up-kzki3VPD4k6gPXaYbscfwnz4w@mail.gmail.com>
-References: <1416576954-11997-1-git-send-email-gautam.vivek@samsung.com>
-	<20141121151130.GD7508@saruman>
-	<54704BF0.1000903@ti.com>
-	<5470A7C5.1070302@kernel.org>
+From: George Cherian <george.cherian@ti.com>
+Subject: [PATCH 00/19] Add Support for USB DRD in AM437x
+Date: Tue, 25 Nov 2014 18:41:36 +0530
+Message-ID: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5470A7C5.1070302@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Kukjin Kim <kgene@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Vivek Gautam <gautam.vivek@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Tomasz Figa <tomasz.figa@gmail.com>, robh+dt <robh+dt@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Kukjin Kim <kgene.kim@samsung.com>
+Content-Type: text/plain
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sylwester,
+The series add DRD suport for AM437x.
+
+The serires adds 
+	- USB DRD Library
+		This Library facilitates in switching roles between HOST 	
+		and Device. 
+	- DWC3 OTG driver.
+		This driver currently suports only the ID based switching
 
 
-On Sat, Nov 22, 2014 at 8:42 PM, Kukjin Kim <kgene@kernel.org> wrote:
-> On 11/22/14 17:40, Kishon Vijay Abraham I wrote:
->>
->> On Friday 21 November 2014 08:41 PM, Felipe Balbi wrote:
->>> On Fri, Nov 21, 2014 at 07:05:43PM +0530, Vivek Gautam wrote:
->>>> The series has dependency on
->>>> a) "[PATCH v7 0/7] Enable support for Samsung Exynos7 SoC"
->>>>    http://www.spinics.net/lists/linux-samsung-soc/msg38734.html
->>>> b) "[GIT PULL] Samsung clock changes for 3.19" - specifically the clock dt
->>>>    bindings header.
->>>>    http://comments.gmane.org/gmane.linux.kernel.samsung-soc/39142
->>>> c) "tty: serial: samsung: Clean-up selection of number of available UARTs"
->>>>    http://www.spinics.net/lists/linux-samsung-soc/msg37418.html
->>>> d) "dts, kbuild: Implement support for dtb vendor subdirs"(merged in linux-next)
->>>>    https://lkml.org/lkml/2014/10/21/654
->>>> e) "Samsung pinctrl patches for v3.19"
->>>>    http://www.spinics.net/lists/linux-samsung-soc/msg38744.html
->>>>
->>>> Tested on Exynos7-espresso board with 3.18-rc5 and above dependencies.
->>>>
->>>> Clubbing the pinctrl, clk, and usb driver changes alongwith the dt changes
->>>> together in this series only so as to avoid having 'n' number of dependencies.
->>>>
->>>> The USB driver patches in this series were part of [1] sent earlier.
->>>> [1] [PATCH v2 0/4] usb: dwc3/phy-exynos5-usbdrd: Extend support to Exynos7
->>>>     https://lkml.org/lkml/2014/10/7/191
->>>
->>> I took dwc3 driver patches.
->>
->> I took the phy patches.
->>
-> I'll take DT changes once exynos7 is landing into samsung tree :)
->
+Felipe Balbi (2):
+  usb: dwc3: core: Adapt to named interrupts
+  arm: dts: am4372: Add named interrupt property for dwc3
 
-You too may want to pick the sole clock driver patch in this series
-for 3.19 ? :-)
-"clk: exynos7: Add required clock tree for USB"
+George Cherian (17):
+  usb: common: drd-lib: Add DRD lib for USB.
+  usb: host xhci: fix up deallocation code
+  usb: host: xhci-plat: Add support to pass XHCI_DRD_SUPPORT quirk
+  usb: host xhci: Add XHCI_NEEDS_LHC_RESET quirk
+  usb: host: xhci-plat: Add support to pass XHCI_NEEDS_LHC_RESET quirk
+  usb: dwc3: host: Pass the XHCI_DRD_SUPPORT and XHCI_NEEDS_LHC_RESET
+    quirk
+  usb: host: xhci: Adapt xhci to use usb drd library
+  usb: dwc3: core: Add dwc3_drd_helper function
+  usb: dwc3: dwc3-omap: Make the wrapper interrupt shared
+  usb: dwc3: Add seperate dwc3_gadget object to support gadget release
+  usb: dwc3: gadget: Adapt gadget to drd library
+  usb: dwc3: core: Add DWC3 OTG specific register defines
+  usb: dwc3: otg: Add the initial otg driver for dwc3.
+  arm: dts: omap5: Add named interrupt property for dwc3
+  arm: dts: dra7: Add named interrupt property for dwc3
+  arm: dts: exynos5250: Add named interrupt property for dwc3
+  arm: dts: am43x evms: Make usb1 as OTG
 
-Please let me know if the merge window is still open on your side so
-that you can
-pick this patch.
-
+ arch/arm/boot/dts/am4372.dtsi        |  18 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts  |   2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts  |   2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts |   2 +-
+ arch/arm/boot/dts/dra7.dtsi          |  28 ++-
+ arch/arm/boot/dts/exynos5250.dtsi    |   7 +-
+ arch/arm/boot/dts/omap5.dtsi         |   7 +-
+ drivers/usb/Kconfig                  |  15 ++
+ drivers/usb/common/Makefile          |   1 +
+ drivers/usb/common/drd-lib.c         | 346 +++++++++++++++++++++++++++++++++++
+ drivers/usb/dwc3/Makefile            |   4 +
+ drivers/usb/dwc3/core.c              |  27 ++-
+ drivers/usb/dwc3/core.h              |  93 +++++++++-
+ drivers/usb/dwc3/dwc3-omap.c         |   4 +-
+ drivers/usb/dwc3/ep0.c               |  35 ++--
+ drivers/usb/dwc3/gadget.c            | 211 +++++++++++++++------
+ drivers/usb/dwc3/gadget.h            |   1 +
+ drivers/usb/dwc3/host.c              |   2 +
+ drivers/usb/dwc3/otg.c               | 126 +++++++++++++
+ drivers/usb/host/xhci-plat.c         |  22 +++
+ drivers/usb/host/xhci.c              |  27 ++-
+ drivers/usb/host/xhci.h              |   2 +
+ include/linux/usb/drd.h              |  77 ++++++++
+ include/linux/usb/xhci_pdriver.h     |   2 +
+ 24 files changed, 962 insertions(+), 99 deletions(-)
+ create mode 100644 drivers/usb/common/drd-lib.c
+ create mode 100644 drivers/usb/dwc3/otg.c
+ create mode 100644 include/linux/usb/drd.h
 
 -- 
-Best Regards
-Vivek Gautam
-Samsung R&D Institute, Bangalore
-India
+1.8.3.1
