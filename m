@@ -1,49 +1,102 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 06/19] usb: dwc3: host: Pass the XHCI_DRD_SUPPORT and
- XHCI_NEEDS_LHC_RESET quirk
-Date: Tue, 25 Nov 2014 18:41:42 +0530
-Message-ID: <1416921115-10467-7-git-send-email-george.cherian@ti.com>
+Subject: [PATCH 13/19] usb: dwc3: core: Add DWC3 OTG specific register defines
+Date: Tue, 25 Nov 2014 18:41:49 +0530
+Message-ID: <1416921115-10467-14-git-send-email-george.cherian@ti.com>
 References: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: mark.rutland@arm.com, George Cherian <george.cherian@ti.com>, kgene.kim@samsung.com, linux@arm.linux.org.uk, ben-linux@fluff.org, mathias.nyman@intel.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, sojka@merica.cz, balbi@ti.com, robh+dt@kernel.org, pawel.moll@arm.com, peter.chen@freescale.com, bcousson@baylibre.com, galak@codeaurora.org
+Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Pass the quir flag XHCI_DRD_SUPPORT from DWC3 host to xhci platform driver.
-This enables xhci driver to handle deallocation's differently while in DRD mode.
-Pass the quirk flag XHCI_NEEDS_LHC_RESET from DWC3 host to xhci platform
-driver. This enables to do LHRESET during xhci_reset().
+Add OTG reggister defines to DWC3 core.h
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/dwc3/host.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/usb/dwc3/core.h | 68 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
 
-diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
-index dcb8ca0..257b5b5 100644
---- a/drivers/usb/dwc3/host.c
-+++ b/drivers/usb/dwc3/host.c
-@@ -53,6 +53,8 @@ int dwc3_host_init(struct dwc3 *dwc)
- #ifdef CONFIG_DWC3_HOST_USB3_LPM_ENABLE
- 	pdata.usb3_lpm_capable = 1;
- #endif
-+	pdata.usb_drd_support = 1;
-+	pdata.usb_needs_lhc_reset = 1;
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 7fbe736..eb2e970 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -381,6 +381,74 @@
+ #define DWC3_DEPCMD_TYPE_BULK		2
+ #define DWC3_DEPCMD_TYPE_INTR		3
  
- 	ret = platform_device_add_data(xhci, &pdata, sizeof(pdata));
- 	if (ret) {
++/* OTG Configuration Register */
++#define DWC3_OCFG_DISPWRCUTTOFF                (1 << 5)
++#define DWC3_OCFG_HIBDISMASK           (1 << 4)
++#define DWC3_OCFG_SFTRSTMASK           (1 << 3)
++#define DWC3_OCFG_OTGVERSION           (1 << 2)
++#define DWC3_OCFG_HNPCAP               (1 << 1)
++#define DWC3_OCFG_SRPCAP               (1 << 0)
++
++/* OTG CTL Register */
++#define DWC3_OCTL_OTG3GOERR            (1 << 7)
++#define DWC3_OCTL_PERIMODE             (1 << 6)
++#define DWC3_OCTL_PRTPWRCTL            (1 << 5)
++#define DWC3_OCTL_HNPREQ               (1 << 4)
++#define DWC3_OCTL_SESREQ               (1 << 3)
++#define DWC3_OCTL_TERMSELIDPULSE       (1 << 2)
++#define DWC3_OCTL_DEVSETHNPEN          (1 << 1)
++#define DWC3_OCTL_HOSTSETHNPEN         (1 << 0)
++
++/* OTG Event Register */
++#define DWC3_OEVT_DEVICEMODE           (1 << 31)
++#define DWC3_OEVT_XHCIRUNSTPSET                (1 << 27)
++#define DWC3_OEVT_DEVRUNSTPSET         (1 << 26)
++#define DWC3_OEVT_HIBENTRY             (1 << 25)
++#define DWC3_OEVT_IDSTSCHNG            (1 << 24)
++#define DWC3_OEVT_HRRCONFNOTIF         (1 << 23)
++#define DWC3_OEVT_HRRINITNOTIF         (1 << 22)
++#define DWC3_OEVT_ADEVIDLE             (1 << 21)
++#define DWC3_OEVT_ADEVBHOSTEND         (1 << 20)
++#define DWC3_OEVT_ADEVHOST             (1 << 19)
++#define DWC3_OEVT_ADEVHNPCHNG          (1 << 18)
++#define DWC3_OEVT_ADEVSRPDET           (1 << 17)
++#define DWC3_OEVT_ADEVSESSENDDET       (1 << 16)
++#define DWC3_OEVT_BDEVBHOSTEND         (1 << 11)
++#define DWC3_OEVT_BDEVHNPCHNG          (1 << 10)
++#define DWC3_OEVT_BDEVSESSVLDDET       (1 << 9)
++#define DWC3_OEVT_BDEVVBUSCHNG         (1 << 8)
++#define DWC3_OEVT_BSESSVLD             (1 << 3)
++#define DWC3_OEVT_HOSTNEGSTS           (1 << 2)
++#define DWC3_OEVT_SESSREQSTS           (1 << 1)
++#define DWC3_OEVT_ERR                  (1 << 0)
++
++/* OTG Event Enable Register */
++#define DWC3_OEVTEN_XHCIRUNSTPSETEN    (1 << 27)
++#define DWC3_OEVTEN_DEVRUNSTPSETEN     (1 << 26)
++#define DWC3_OEVTEN_HIBENTRYEN         (1 << 25)
++#define DWC3_OEVTEN_CONIDSTSCHNGEN     (1 << 24)
++#define DWC3_OEVTEN_HRRCONFNOTIFEN     (1 << 23)
++#define DWC3_OEVTEN_HRRINITNOTIFEN     (1 << 22)
++#define DWC3_OEVTEN_ADEVIDLEEN         (1 << 21)
++#define DWC3_OEVTEN_ADEVBHOSTENDEN     (1 << 20)
++#define DWC3_OEVTEN_ADEVHOSTEN         (1 << 19)
++#define DWC3_OEVTEN_ADEVHNPCHNGEN      (1 << 18)
++#define DWC3_OEVTEN_ADEVSRPDETEN       (1 << 17)
++#define DWC3_OEVTEN_ADEVSESSENDDETEN   (1 << 16)
++#define DWC3_OEVTEN_BDEVHOSTENDEN      (1 << 11)
++#define DWC3_OEVTEN_BDEVHNPCHNGEN      (1 << 10)
++#define DWC3_OEVTEN_BDEVSESSVLDDETEN   (1 << 9)
++#define DWC3_OEVTEN_BDEVVBUSCHNGEVNTEN (1 << 8)
++
++/* OTG Status Register */
++#define DWC3_OSTS_DEVRUNSTP            (1 << 13)
++#define DWC3_OSTS_XHCIRUNSTP           (1 << 12)
++#define DWC3_OSTS_PERIPHERALSTATE      (1 << 4)
++#define DWC3_OSTS_XHCIPORTPOWER                (1 << 3)
++#define DWC3_OSTS_BSESVLD              (1 << 2)
++#define DWC3_OSTS_VBUSVLD              (1 << 1)
++#define DWC3_OSTS_CONIDSTS             (1 << 0)
++
+ /* Structures */
+ 
+ struct dwc3_trb;
 -- 
 1.8.3.1
