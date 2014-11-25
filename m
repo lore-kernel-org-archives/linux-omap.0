@@ -1,7 +1,7 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 16/19] arm: dts: omap5: Add named interrupt property for dwc3
-Date: Tue, 25 Nov 2014 18:41:52 +0530
-Message-ID: <1416921115-10467-17-git-send-email-george.cherian@ti.com>
+Subject: [PATCH 18/19] arm: dts: exynos5250: Add named interrupt property for dwc3
+Date: Tue, 25 Nov 2014 18:41:54 +0530
+Message-ID: <1416921115-10467-19-git-send-email-george.cherian@ti.com>
 References: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -16,26 +16,26 @@ Add interrupt names so that the same can be used for OTG easily.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi | 7 ++++++-
+ arch/arm/boot/dts/exynos5250.dtsi | 7 ++++++-
  1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 256b7f6..a712ad9 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -817,7 +817,12 @@
- 			dwc3@4a030000 {
- 				compatible = "snps,dwc3";
- 				reg = <0x4a030000 0x10000>;
--				interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>,
-+					     <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>;
-+				interrupt-names = "peripheral",
-+						  "host",
-+						  "otg";
- 				phys = <&usb2_phy>, <&usb3_phy>;
- 				phy-names = "usb2-phy", "usb3-phy";
- 				dr_mode = "peripheral";
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+index f21b9aa..c74cd8b 100644
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -558,7 +558,12 @@
+ 		dwc3 {
+ 			compatible = "synopsys,dwc3";
+ 			reg = <0x12000000 0x10000>;
+-			interrupts = <0 72 0>;
++			interrupts = <0 72 0>,
++				     <0 72 0>,
++				     <0 72 0>;
++			interrupt-names = "peripheral",
++					  "host",
++					  "otg";
+ 			phys = <&usbdrd_phy 0>, <&usbdrd_phy 1>;
+ 			phy-names = "usb2-phy", "usb3-phy";
+ 		};
 -- 
 1.8.3.1
