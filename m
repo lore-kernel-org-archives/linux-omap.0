@@ -1,109 +1,211 @@
 From: George Cherian <george.cherian@ti.com>
-Subject: [PATCH 02/19] usb: host xhci: fix up deallocation code
-Date: Tue, 25 Nov 2014 18:41:38 +0530
-Message-ID: <1416921115-10467-3-git-send-email-george.cherian@ti.com>
+Subject: [PATCH 12/19] usb: dwc3: gadget: Adapt gadget to drd library
+Date: Tue, 25 Nov 2014 18:41:48 +0530
+Message-ID: <1416921115-10467-13-git-send-email-george.cherian@ti.com>
 References: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1416921115-10467-1-git-send-email-george.cherian@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: mark.rutland@arm.com, George Cherian <george.cherian@ti.com>, kgene.kim@samsung.com, linux@arm.linux.org.uk, ben-linux@fluff.org, mathias.nyman@intel.com, ijc+devicetree@hellion.org.uk, tony@atomide.com, gregkh@linuxfoundation.org, sojka@merica.cz, balbi@ti.com, robh+dt@kernel.org, pawel.moll@arm.com, peter.chen@freescale.com, bcousson@baylibre.com, galak@codeaurora.org
+Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, George Cherian <george.cherian@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This fixes up the deallocation code in the xhci driver, so that
-usb_add_hcd()/usb_remove_hcd() can be called repeatedly without
-crashing.
-
-In case of DRD mode, the DRD library calls /usb_remove_hcd() while
-switching from HOST mode to Device mode, but it doesnot call usb_put_hcd().
-We need to preserve the already allocated xhci struct for the subsequent
-call of usb_add_hcd() from the DRD library.
-
-A new quirk flag XHCI_DRD_SUPPORT is added to differentiate between
-normal usb_remove_hcd and drd specific call.
+Adapt the dwc3 gadget to use drd library functions.
+In prepration to support DRD on dwc3.
 
 Signed-off-by: George Cherian <george.cherian@ti.com>
 ---
- drivers/usb/host/xhci.c | 22 ++++++++++++++++------
- drivers/usb/host/xhci.h |  1 +
- 2 files changed, 17 insertions(+), 6 deletions(-)
+ drivers/usb/dwc3/gadget.c | 128 ++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 100 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-index 2a5d45b..d4196f8 100644
---- a/drivers/usb/host/xhci.c
-+++ b/drivers/usb/host/xhci.c
-@@ -666,7 +666,8 @@ static void xhci_only_stop_hcd(struct usb_hcd *hcd)
- 	 * calls this function when allocation fails in usb_add_hcd(), or
- 	 * usb_remove_hcd() is called).  So we need to unset xHCI's pointer.
- 	 */
--	xhci->shared_hcd = NULL;
-+	if (!(xhci->quirks & XHCI_DRD_SUPPORT))
-+		xhci->shared_hcd = NULL;
- 	spin_unlock_irq(&xhci->lock);
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 2c54d45..a75fae5 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -29,6 +29,7 @@
+ 
+ #include <linux/usb/ch9.h>
+ #include <linux/usb/gadget.h>
++#include <linux/usb/drd.h>
+ 
+ #include "debug.h"
+ #include "core.h"
+@@ -2681,6 +2682,89 @@ static irqreturn_t dwc3_interrupt(int irq, void *_dwc)
+ 	return ret;
  }
  
-@@ -4815,6 +4816,7 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
- 	struct xhci_hcd		*xhci;
- 	struct device		*dev = hcd->self.controller;
- 	int			retval;
-+	bool			allocated = false;
- 
- 	/* Accept arbitrarily long scatter-gather lists */
- 	hcd->self.sg_tablesize = ~0;
-@@ -4826,10 +4828,15 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
- 	hcd->self.no_stop_on_short = 1;
- 
- 	if (usb_hcd_is_primary_hcd(hcd)) {
--		xhci = kzalloc(sizeof(struct xhci_hcd), GFP_KERNEL);
--		if (!xhci)
--			return -ENOMEM;
--		*((struct xhci_hcd **) hcd->hcd_priv) = xhci;
-+		if (*((struct xhci_hcd **)hcd->hcd_priv) == NULL) {
-+			xhci = kzalloc(sizeof(struct xhci_hcd), GFP_KERNEL);
-+			if (!xhci)
-+				return -ENOMEM;
-+			*((struct xhci_hcd **)hcd->hcd_priv) = xhci;
-+			allocated = true;
-+		} else {
-+			xhci = *((struct xhci_hcd **)hcd->hcd_priv);
-+		}
- 		xhci->main_hcd = hcd;
- 		/* Mark the first roothub as being USB 2.0.
- 		 * The xHCI driver will register the USB 3.0 roothub.
-@@ -4902,7 +4909,10 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
- 	xhci_dbg(xhci, "Called HCD init\n");
- 	return 0;
- error:
--	kfree(xhci);
-+	if (allocated) {
-+		*((struct xhci_hcd **)hcd->hcd_priv) = NULL;
-+		kfree(xhci);
++void dwc3_gadget_release(struct device *dev)
++{
++	struct usb_gadget *gadget = container_of(dev, struct usb_gadget, dev);
++	struct dwc3_gadget *dwc_gadget = gadget_to_dwc_gadget(gadget);
++	struct dwc3 *dwc = dwc_gadget->dwc;
++
++	dev_dbg(dev, "releasing '%s'\n", dev_name(dev));
++	dwc3_gadget_free_endpoints(dwc);
++	dma_free_coherent(dwc->dev, DWC3_EP0_BOUNCE_SIZE,
++			  dwc->ep0_bounce, dwc->ep0_bounce_addr);
++	kfree(dwc->setup_buf);
++	dma_free_coherent(dwc->dev, sizeof(*dwc->ep0_trb),
++			  dwc->ep0_trb, dwc->ep0_trb_addr);
++	dma_free_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
++			  dwc->ctrl_req, dwc->ctrl_req_addr);
++	usb_drd_unregister_udc(dwc->dev);
++	kfree(dwc_gadget);
++}
++
++int dwc3_gadget_setup(void *data)
++{
++	struct dwc3 *dwc = data;
++	struct dwc3_gadget *dwc_gadget;
++	struct usb_drd_gadget *drd_gadget;
++	struct usb_drd_setup *gadget_setup;
++	int ret;
++
++	drd_gadget = kzalloc(sizeof(*drd_gadget), GFP_KERNEL);
++	if (!drd_gadget) {
++		ret = -ENOMEM;
++		goto err1;
 +	}
- 	return retval;
++
++	gadget_setup = kzalloc(sizeof(*gadget_setup), GFP_KERNEL);
++	if (!gadget_setup) {
++		ret = -ENOMEM;
++		goto err2;
++	}
++
++	dwc_gadget = kzalloc(sizeof(*dwc_gadget), GFP_KERNEL);
++	if (!dwc_gadget) {
++		ret = -ENOMEM;
++		goto err3;
++	}
++
++	drd_gadget->g_driver = dwc->gadget_driver;
++
++	/*
++	 * Pass the DWC3 specific routines for
++	 * switching roles to the drd library
++	 */
++	gadget_setup->ll_start = NULL;
++	gadget_setup->ll_stop = NULL;
++	gadget_setup->ll_release = dwc3_gadget_release;
++	gadget_setup->data =  (void *)dwc;
++	drd_gadget->gadget_setup = gadget_setup;
++
++	dwc_gadget->gadget.ops			= &dwc3_gadget_ops;
++	dwc_gadget->gadget.max_speed		= USB_SPEED_SUPER;
++	dwc_gadget->gadget.speed		= USB_SPEED_UNKNOWN;
++	dwc_gadget->gadget.sg_supported		= true;
++	dwc_gadget->gadget.name			= "dwc3-gadget";
++	dwc_gadget->dwc				= dwc;
++	drd_gadget->gadget = &dwc_gadget->gadget;
++
++	/*
++	 * Per databook, DWC3 needs buffer size to be aligned to MaxPacketSize
++	 * on ep out.
++	 */
++	dwc_gadget->gadget.quirk_ep_out_aligned_size = true;
++	dwc->dwc_gadget = dwc_gadget;
++	usb_drd_register_udc(dwc->dev, drd_gadget);
++
++	return 0;
++
++err3:
++	kfree(gadget_setup);
++err2:
++	kfree(drd_gadget);
++err1:
++	return ret;
++}
++
+ /**
+  * dwc3_gadget_init - Initializes gadget related registers
+  * @dwc: pointer to our controller context structure
+@@ -2690,7 +2774,6 @@ static irqreturn_t dwc3_interrupt(int irq, void *_dwc)
+ int dwc3_gadget_init(struct dwc3 *dwc)
+ {
+ 	int					ret;
+-	struct dwc3_gadget			*dwc_gadget;
+ 
+ 	dwc->ctrl_req = dma_alloc_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
+ 			&dwc->ctrl_req_addr, GFP_KERNEL);
+@@ -2723,24 +2806,9 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+ 		goto err3;
+ 	}
+ 
+-	dwc_gadget = kzalloc(sizeof(*dwc_gadget), GFP_KERNEL);
+-	if (!dwc_gadget) {
+-		ret = -ENOMEM;
++	ret = dwc3_gadget_setup(dwc);
++	if (ret)
+ 		goto err3;
+-	}
+-
+-	dwc_gadget->gadget.ops			= &dwc3_gadget_ops;
+-	dwc_gadget->gadget.max_speed		= USB_SPEED_SUPER;
+-	dwc_gadget->gadget.speed		= USB_SPEED_UNKNOWN;
+-	dwc_gadget->gadget.sg_supported	= true;
+-	dwc_gadget->gadget.name		= "dwc3-gadget";
+-	dwc_gadget->dwc = dwc;
+-
+-	/*
+-	 * Per databook, DWC3 needs buffer size to be aligned to MaxPacketSize
+-	 * on ep out.
+-	 */
+-	dwc_gadget->gadget.quirk_ep_out_aligned_size = true;
+ 
+ 	/*
+ 	 * REVISIT: Here we should clear all pending IRQs to be
+@@ -2751,7 +2819,8 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+ 	if (ret)
+ 		goto err4;
+ 
+-	ret = usb_add_gadget_udc(dwc->dev, &dwc_gadget->gadget);
++	ret = usb_add_gadget_udc_release(dwc->dev, &dwc->dwc_gadget->gadget,
++					 dwc3_gadget_release);
+ 	if (ret) {
+ 		dev_err(dwc->dev, "failed to register udc\n");
+ 		goto err4;
+@@ -2760,6 +2829,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
+ 	return 0;
+ 
+ err4:
++	usb_drd_unregister_udc(dwc->dev);
+ 	dwc3_gadget_free_endpoints(dwc);
+ 	dma_free_coherent(dwc->dev, DWC3_EP0_BOUNCE_SIZE,
+ 			dwc->ep0_bounce, dwc->ep0_bounce_addr);
+@@ -2785,20 +2855,22 @@ void dwc3_gadget_exit(struct dwc3 *dwc)
+ {
+ 	struct dwc3_gadget *dwc_gadget = dwc->dwc_gadget;
+ 
+-	usb_del_gadget_udc(&dwc_gadget->gadget);
++	if (usb_drd_get_state(dwc->dev) & DRD_DEVICE_REGISTERED) {
++		usb_del_gadget_udc(&dwc_gadget->gadget);
+ 
+-	dwc3_gadget_free_endpoints(dwc);
++		dwc3_gadget_free_endpoints(dwc);
+ 
+-	dma_free_coherent(dwc->dev, DWC3_EP0_BOUNCE_SIZE,
+-			dwc->ep0_bounce, dwc->ep0_bounce_addr);
++		dma_free_coherent(dwc->dev, DWC3_EP0_BOUNCE_SIZE,
++				  dwc->ep0_bounce, dwc->ep0_bounce_addr);
+ 
+-	kfree(dwc->setup_buf);
++		kfree(dwc->setup_buf);
+ 
+-	dma_free_coherent(dwc->dev, sizeof(*dwc->ep0_trb),
+-			dwc->ep0_trb, dwc->ep0_trb_addr);
++		dma_free_coherent(dwc->dev, sizeof(*dwc->ep0_trb),
++				  dwc->ep0_trb, dwc->ep0_trb_addr);
+ 
+-	dma_free_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
+-			dwc->ctrl_req, dwc->ctrl_req_addr);
++		dma_free_coherent(dwc->dev, sizeof(*dwc->ctrl_req),
++				  dwc->ctrl_req, dwc->ctrl_req_addr);
++	}
  }
- EXPORT_SYMBOL_GPL(xhci_gen_setup);
-diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
-index df76d64..2248058 100644
---- a/drivers/usb/host/xhci.h
-+++ b/drivers/usb/host/xhci.h
-@@ -1560,6 +1560,7 @@ struct xhci_hcd {
- #define XHCI_SPURIOUS_WAKEUP	(1 << 18)
- /* For controllers with a broken beyond repair streams implementation */
- #define XHCI_BROKEN_STREAMS	(1 << 19)
-+#define XHCI_DRD_SUPPORT	(1 << 20)
- 	unsigned int		num_active_eps;
- 	unsigned int		limit_active_eps;
- 	/* There are two roothubs to keep track of bus suspend info for */
+ 
+ int dwc3_gadget_suspend(struct dwc3 *dwc)
 -- 
 1.8.3.1
