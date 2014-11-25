@@ -1,53 +1,96 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH 5/8] usb: musb: Change end point selection to use new
- IO access
-Date: Tue, 25 Nov 2014 16:02:46 +0100
-Message-ID: <54749A16.20204@metafoo.de>
-References: <1416855906-13931-1-git-send-email-tony@atomide.com> <1416855906-13931-6-git-send-email-tony@atomide.com> <20141124233835.GB14728@tao> <20141124235241.GH2817@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 2/4] i2c: omap: implement workaround for handling
+ invalid BB-bit values
+Date: Tue, 25 Nov 2014 07:41:50 -0800
+Message-ID: <20141125154150.GI2817@atomide.com>
+References: <1416518925-20679-1-git-send-email-al.kochet@gmail.com>
+ <1416685634-5864-1-git-send-email-al.kochet@gmail.com>
+ <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
+ <CAMAWPa8whctBR6fBFaSzPvm3qn+QK06CimRrxFxxH=0kNkF4UA@mail.gmail.com>
+ <47A1A441-952C-4AC3-859C-5A8E405767E0@gmail.com>
+ <20141124194759.GG2757@atomide.com>
+ <47749B61-5924-4E56-9931-77B0CFC0AAA0@gmail.com>
+ <06376010-5DED-49AA-9494-A9546567E7CA@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out-207.synserver.de ([212.40.185.207]:1051 "EHLO
-	smtp-out-207.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbaKYPCp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Nov 2014 10:02:45 -0500
-In-Reply-To: <20141124235241.GH2817@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <06376010-5DED-49AA-9494-A9546567E7CA-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Apelete Seketeli <apelete@seketeli.net>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Fabio Baltieri <fabio.baltieri@linaro.org>, Lee Jones <lee.jones@linaro.org>, Linus Walleij <linus.walleij@linaro.org>
 
-On 11/25/2014 12:52 AM, Tony Lindgren wrote:
-> * Apelete Seketeli <apelete@seketeli.net> [141124 15:40]:
->> Hi Tony,
->>
->> Thanks for the patch.
->>
->> On Mon, Nov-24-2014 at 11:05:03 AM -0800, Tony Lindgren wrote:
->>> This allows the endpoints to work when multiple MUSB glue
->>> layers are built in.
->>
->> Applied on top of 3.18-rc6 mainline and tested successfully on JZ4740.
->> Been able to use ethernet-over-usb to access the internet on
->> device. No issue as far as I'm concerned.
->
-> Great that's good to hear and thanks for testing.
->
-> Doing the DMA patches here right now.. For the DMA, I've set up
-> JZ4740 to use the MUSB_DMA_INVENTRA option by default, is that OK
-> or do you have some other DMA hardware on it?
->
-> If MUSB_DMA_INVENTRA does not work, and you don't have other DMA
-> hardware on it, we can pass MUSB_DMA_INVENTRA and leave the DMA
-> function pointers empty, and then the driver will bail out during
-> init unless the option for CONFIG_MUSB_PIO_ONLY is set.
+* Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141124 16:11]:
+>=20
+> 24 =D0=BD=D0=BE=D1=8F=D0=B1. 2014 =D0=B3., =D0=B2 23:05, Alexander Ko=
+chetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=BB=
+(=D0=B0):
+>=20
+> > Something (u-boot, may be) leave the bus in the wrong state.
+> > Really strange.
+>=20
+> Actually something wrong with i2c-pullups on i2c.1 bus on fault board=
+s.
+> May be these are boards without pull-ups?
 
-Yea... so according to the datasheet there is no DMA support, or at least it 
-is not documented in the datasheet's description of the USB core. There is a 
-vendor driver for the core which has ifdefs to enable DMA which looks like 
-MUSB_DMA_INVENTRA, but I think we never really go that to work too well. So 
-the current configuration is to use only PIO.
+It could be. Boards that use external i2c pulls should have all the
+internal pulls disabled as the pulls get connected in parallel and
+the total resistance decreases. And then the i2c signals may not be
+up to the spec.
 
-- Lars
+Note that there are internal pulls in the i2c controller, and in the
+i2c padconf registers.
 
+> All beagles doesn't have internal pull-ups on i2c.1 since u-boot 2011=
+=2Ex.
+
+The pulls should be enabled based on the board and possibly based
+on the board revision.
+=20
+> Here is the bug in the u-boot related to beagle:
+> http://git.denx.de/?p=3Du-boot.git;a=3Dcommit;h=3D04e2a13336f0e507ef4=
+16bbede3be92b79c46594
+>=20
+> Yes, I made fix, but keep that in mind.
+>=20
+> For example one of the boards (omap3-beagle):
+> http://status.armcloud.us/boot/omap3-beagle/job/next/kernel/next-2014=
+1124/defconfig/arm-omap2plus_defconfig/
+> http://status.armcloud.us/boot/omap3-beagle,legacy/job/next/kernel/ne=
+xt-20141124/defconfig/arm-omap2plus_defconfig/
+> http://status.armcloud.us/boot/omap3-beagle/job/next/kernel/next-2014=
+1124/defconfig/arm-multi_v7_defconfig/
+>=20
+> has following warning message in the u-boot log:
+> > U-Boot 2014.07 (Aug 21 2014 - 11:03:05)
+> >=20
+> > OMAP3530-GP ES3.0, CPU-OPP2, L3-165MHz, Max CPU Clock 600 MHz
+> > OMAP3 Beagle board + LPDDR/NAND
+> > ....
+> > Beagle Rev C1/C2/C3
+> > Timed out in wait_for_event: status=3D1000
+> > Check if pads/pull-ups of bus 1 are properly configured
+>=20
+> Also beagle schematic has following log entry for A3:
+> 4. Added optional pullup resistors on I2C2_SCL and I2C_SDA into the l=
+ayout.
+>=20
+> Is the fault beagle is pre A3 revision?
+
+Seems to be C1/C2/C3 based on the above logs?
+=20
+> I can't tell anything about second one board (omap3-overo-tobi), beca=
+use I could not get it schematic.
+>=20
+> And how you have i2c.1 working without pull-ups I don't know.
+
+I checked on the LDP and it seems to have external pulls for i2c.
+I also tested n900 without your fix, and it's failing too. On n900
+there are external pulls and all the internal pulls should be
+disabled.
+
+Regards,
+
+Tony
