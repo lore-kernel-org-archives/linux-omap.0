@@ -1,66 +1,37 @@
-From: Wolfram Sang <wsa@the-dreams.de>
+From: Alexander Kochetkov <al.kochet@gmail.com>
 Subject: Re: [PATCH v2] omap: i2c: don't check bus state IP rev3.3 and earlier
-Date: Tue, 25 Nov 2014 15:19:24 +0100
-Message-ID: <20141125141924.GD1843@katana>
-References: <20141124210809.GG2817@atomide.com>
- <1416867655-22232-1-git-send-email-al.kochet@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Hf61M2y+wYpnELGG"
+Date: Tue, 25 Nov 2014 17:38:23 +0300
+Message-ID: <7E0A0B24-91D5-41A4-B007-004C5965D0D7@gmail.com>
+References: <20141124210809.GG2817@atomide.com> <1416867655-22232-1-git-send-email-al.kochet@gmail.com> <20141125141924.GD1843@katana>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1416867655-22232-1-git-send-email-al.kochet@gmail.com>
+In-Reply-To: <20141125141924.GD1843@katana>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexander Kochetkov <al.kochet@gmail.com>
+To: Wolfram Sang <wsa@the-dreams.de>
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---Hf61M2y+wYpnELGG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+25 =CE=CF=D1=C2. 2014 =C7., =D7 17:19, Wolfram Sang <wsa@the-dreams.de>=
+ =CE=C1=D0=C9=D3=C1=CC(=C1):
 
-On Tue, Nov 25, 2014 at 02:20:55AM +0400, Alexander Kochetkov wrote:
-> Commit 903c3859f77f9b0aace551da03267ef7a211dbc4 ("i2c: omap: implement
-> workaround for handling invalid BB-bit values") introduce the error result
-> in boot test fault on OMAP3530 boards
->=20
-> The patch fix the error (disable i2c bus test for OMAP3530).
->=20
-> Signed-off-by: Alexander Kochetkov <al.kochet@gmail.com>
-> Fixes: 903c3859f77f9b0aace551da03267ef7a211dbc4
-> Reported-by: Kevin Hilman <khilman@kernel.org>
-> Tested-by: Tony Lindgren <tony@atomide.com>
->=20
+> I'll push out this evening to make the boot tests work again. If ther=
+e
+> is more to be investigated, either hurry up and post v3 ;) or let me
+> know that you need more time.
 
-Applied to for-next, thanks!
+Ok, thank you. Let the fix go to the kernel-next.
+Maybe small fix to subject "omap: i2c:" to "i2c: omap:"
 
-I'll push out this evening to make the boot tests work again. If there
-is more to be investigated, either hurry up and post v3 ;) or let me
-know that you need more time.
+I still guessing what some boards have broken i2c pull-ups.
+And real fix must go in the board file.
+http://www.spinics.net/lists/linux-i2c/msg17750.html
 
+I could create a patch to confirm this.
+But I don't have omap3530 boards to run.
+I'll be very appreciated if someone could run the patch.
 
---Hf61M2y+wYpnELGG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUdI/rAAoJEBQN5MwUoCm27vwP/26YUQ12x4vab6NKhQEEca2v
-YvdWWNl9E2SrI3DiaBbjY44stVpkg6OEl6lsyxUs/AqQQRfjutWyDyexyELWpPkj
-NMQ2H5tPuIg6WIuo8UawRheoFumy8LnXUXCHz84J53cd8HsNyDy9+8SjNqolqMAM
-t3tPeoR/atBk6JzlCuyvLZajUkfPB8VwZ1mmDfvHHwYFSzbM01D72opWJORvowPn
-WwCKzgEEqa1ym0mjoIukI/NGe+4Sj3LVzZz9hUMFhdNHfcMSUdJ0I0vEEGb0nbnJ
-/knCHluL7SsNtilnBathDTMYAW6YTKvnimEBxhOj+MmemVkCzCrqG2J7M4wPHwBg
-qI2kfd4jezwXJeJGHJX4hMu1kDQiM6N5P9kZMOUKT+yFYaZmJPUaN3ozpjBJkzeN
-H1Nos8B+ovFVP5tgBtJp1e3AePTga7BFNq2HWF4m2oUXVuITDAeReZxDV2YJYL7q
-OrhCBDFrrrhAA0Ldh7l0KWb225Q2ZZKRM3NOrrWFKfuYXV7O3FtoACWS6H8K5zJ8
-DGrfKO7jzTntNdacv6yWpqkEtyETnNHuE1BUF9bT14Br6FJHXuONXR11Ne83aZ3I
-CHBVxa3xgYPvnmmZMSvi2IQ7Qprln5XdP1QKGlVYzSqpiFWrWOk7OjHhbSHBK/HO
-4GjuVWmrBkqnWA003sCL
-=zl1p
------END PGP SIGNATURE-----
-
---Hf61M2y+wYpnELGG--
+Regards,
+Alexander.
