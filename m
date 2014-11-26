@@ -1,89 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC PATCH] ARM: DRA: hwmod: RTC: Add reset function for RTC
-Date: Wed, 26 Nov 2014 07:04:26 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1411260649330.16047@utopia.booyaka.com>
-References: <1416199402-3865-1-git-send-email-lokeshvutla@ti.com> <546DB513.6000104@ti.com> <alpine.DEB.2.02.1411201644470.9204@utopia.booyaka.com> <5473FF68.3070805@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47528 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226AbaKZHE1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 02:04:27 -0500
-In-Reply-To: <5473FF68.3070805@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH] rtc: omap: drop vendor-prefix from power-controller dt property
+Date: Wed, 26 Nov 2014 10:33:35 +0100
+Message-ID: <1416994415-22367-1-git-send-email-johan@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com
 
-Hi Lokesh 
+Drop the vendor-prefix from the "ti,system-power-controller" device-tree
+property name.
 
-On Tue, 25 Nov 2014, Lokesh Vutla wrote:
+It has been agreed to make "system-power-controller" a standard property
+and to drop the vendor-prefix that is currently used by several drivers.
 
-> Hi Paul,
-> On Thursday 20 November 2014 10:26 PM, Paul Walmsley wrote:
-> > On Thu, 20 Nov 2014, Lokesh Vutla wrote:
-> > 
-> >> On Monday 17 November 2014 10:13 AM, Lokesh Vutla wrote:
-> >>> RTC IP have kicker feature which prevents spurious writes to its registers.
-> >>> In order to write into any of the RTC registers, KICK values has te be
-> >>> written to KICK registers. Currently hwmod is updating the IDLEMODE in rtc
-> >>> sysconfig register without writing into any kick register which is a noop.
-> >>> When autoidle is allowed for rtc, interruts are not received until IDLEMODE
-> >>> is set to SIDLE_SMART_WKUP.
-> >>> Adding a reset function to unlock RTC registers so that IDLEMODE is
-> >>> updated.
-> >> Ping..!!
-> >> Is this patch acceptable?
-> > 
-> > Lokesh
-> > 
-> > 1. This looks like a fix.  Is this intended to go in as a v3.18-rc patch, 
-> > or against v3.19?  If so it would be very helpful for the maintainers if 
-> > you were to state that somewhere.
-> Yes. This is a fix, intended to go in 3.18-rc. Sorry should have
-> mentioned it.
+Note that drivers that have used "<vendor>,system-power-controller" in a
+released kernel will need to support both versions.
 
-A few questions.  Do you know when this problem started (in terms of 
-kernel versions)?
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ Documentation/devicetree/bindings/rtc/rtc-omap.txt | 4 ++--
+ arch/arm/boot/dts/am335x-boneblack.dts             | 2 +-
+ drivers/rtc/rtc-omap.c                             | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-Also: the patch description states that this is only a problem when 
-autoidle is allowed for RTC.  What enables autoidle for RTC - the RTCSS 
-driver?  Or does hwmod wind up doing this after the RTCSS driver unlocks 
-it?
-
-> > 2. Your patch unlocks the RTC registers, but never relocks it.  This seems 
-> > to defeat the point of the spurious write protection.  Shouldn't your 
-> > patch only unlock the RTC immediately before the hwmod code touches the 
-> > RTC registers, and then relock it immediately afterwards, per SPRUHZ6 
-> > section 23.4.3.3?  If so then the .reset function pointer is the wrong 
-> > place for this; I would suggest adding some .lock and .unlock function 
-> > pointers that are to be called before and after any register write to the 
-> > IP block.
-> Yeah I agree with you.
-> Currently rtc driver unlocks these kick registers in probe and leaves it unlocks for
-> further use.
-> But if hwmod does unlock and lock for every sysconfig write driver should also
-> implement unlock and lock for every rtc register write, which adds an extra overhead.
-> I am not sure if some one writes into rtc registers other than hwmod and driver.
-> IMO we can leave it unlocked as the driver does.
-
-I would think that the best approach would be to set up .lock and .unlock 
-function pointers, then add a temporary hwmod flag that, if set, would 
-prevent the .lock function from ever being called.  Then once the driver 
-is fixed, that flag can be dropped.
-
-> > 3. Your macros don't mention DRA7xx specifically.  Does this sequence 
-> > apply to some other TI chips, or just DRA7xx?  Please document this in a 
-> > comment above the macros, and possibly change the name of the macros to 
-> > refer to DRA7XX.
-> This sequence applies to AM43xx and AM33xx also. So made it generic.
-> Ill document it.
-
-OK but it would need more than just documentation, right?  Wouldn't the 
-hwmod data also need to be modified for AM33xx/AM43xx to add the .reset 
-function pointer?  Any reason why folks wouldn't have seen this problem on 
-AM33xx/AM43xx?
-
-
-- Paul
+diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+index 750efd40c72e..4ba4dbd34289 100644
+--- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
++++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+@@ -13,7 +13,7 @@ Required properties:
+ - interrupt-parent: phandle for the interrupt controller
+ 
+ Optional properties:
+-- ti,system-power-controller: whether the rtc is controlling the system power
++- system-power-controller: whether the rtc is controlling the system power
+   through pmic_power_en
+ 
+ Example:
+@@ -24,5 +24,5 @@ rtc@1c23000 {
+ 	interrupts = <19
+ 		      19>;
+ 	interrupt-parent = <&intc>;
+-	ti,system-power-controller;
++	system-power-controller;
+ };
+diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
+index 0c8cdc9520b7..d4affb7e3b61 100644
+--- a/arch/arm/boot/dts/am335x-boneblack.dts
++++ b/arch/arm/boot/dts/am335x-boneblack.dts
+@@ -77,5 +77,5 @@
+ };
+ 
+ &rtc {
+-	ti,system-power-controller;
++	system-power-controller;
+ };
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index fba13e53c278..4f1c6ca97211 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -502,7 +502,7 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
+ 		rtc->type = of_id->data;
+ 		rtc->is_pmic_controller = rtc->type->has_pmic_mode &&
+ 				of_property_read_bool(pdev->dev.of_node,
+-						"ti,system-power-controller");
++						"system-power-controller");
+ 	} else {
+ 		id_entry = platform_get_device_id(pdev);
+ 		rtc->type = (void *)id_entry->driver_data;
+-- 
+2.0.4
