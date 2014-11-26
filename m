@@ -1,95 +1,60 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: n900: kernel cmdline from bootloader in DT mode
-Date: Wed, 26 Nov 2014 16:27:57 +0100
-Message-ID: <201411261627.57241@pali>
-References: <201411261354.33652@pali> <201411261436.42166@pali> <20141126152159.GA26123@amd>
+From: deportment34112@gmail.com
+Subject: Fix Penguin Penalty 17th October2014 ( mail-archive.com )
+Date: Wed, 26 Nov 2014 21:04:06 +0530
+Message-ID: <5475f2eb.0681440a.03bf.671f@mx.google.com>
+Reply-To: roshnipatel1984@yahoo.com
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart4195630.Q5WrA1YLtE";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:37729 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753608AbaKZP2A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 10:28:00 -0500
-Received: by mail-wg0-f53.google.com with SMTP id l18so4026534wgh.40
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2014 07:27:59 -0800 (PST)
-In-Reply-To: <20141126152159.GA26123@amd>
+Received: from mail-pd0-f196.google.com ([209.85.192.196]:34703 "EHLO pdbfp1"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752841AbaKZPeE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2014 10:34:04 -0500
+Received: by pdbfp1 with SMTP id fp1so1078591pdb.1
+        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2014 07:34:04 -0800 (PST)
+Received: from localhost.localdomain ([124.253.219.30])
+        by mx.google.com with ESMTPSA id ns6sm2224744pbb.77.2014.11.26.07.34.02
+        for <linux-omap@vger.kernel.org>
+        (version=TLSv1 cipher=RC4-SHA bits=128/128);
+        Wed, 26 Nov 2014 07:34:03 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@ring0.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, aaro.koskinen@iki.fi, freemangordon@abv.bg
+To: linux-omap@vger.kernel.org
 
---nextPart4195630.Q5WrA1YLtE
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Dear Sir
 
-On Wednesday 26 November 2014 16:22:00 Pavel Machek wrote:
-> On Wed 2014-11-26 14:36:42, Pali Roh=C3=A1r wrote:
-> > On Wednesday 26 November 2014 14:28:01 Pavel Machek wrote:
-> > > Hi!
-> > >=20
-> > > > for some unknown reasons when I compile kernel for n900
-> > > > in DT mode it ignore cmdline passed by bootloader. When
-> > > > I comment
-> > > >=20
-> > > > CONFIG_ARM_APPENDED_DTB=3Dy
-> > > >=20
-> > > > then it boots into legacy board mode and cmdline is used
-> > > > from bootloader.
-> > > >=20
-> > > > When is problem?
-> > >=20
-> > > It seems to work for me, I'm booting using 0xffff, with
-> > > attached config.
-> > >=20
-> > > 									Pavel
-> >=20
-> > Can you try to set some "root=3Dsomething" into CONFIG_CMDLINE
-> > and then add real "root=3D" param via 0xffff?
-> >=20
-> > My problem is that I have specified ubifs mtd root in
-> > CONFIG_CMDLINE and when I set correct root via bootloader
-> > (from 0xffff or flasher-3.5) it is ignored and used only
-> > what is specified in CONFIG_CMDLINE.
->=20
-> CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
-> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=3Dy
-> # CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
-> CONFIG_CMDLINE=3D"console=3DttyO2,115200 console=3Dtty"
->=20
-> Um.. Internal commandline should be completely ignored for me.
->=20
-> Do you have
-> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER?
->=20
-> 									Pavel
+Did your website get hit by Google Penguin update on October 17th 2014?=
+ What basically is Google Penguin Update? It is actually a code name fo=
+r Google algorithm which aims at decreasing your websites search engine=
+ rankings that violate Google=92s guidelines by using black hat SEO tec=
+hniques to rank your webpage by giving number of spammy links to the pa=
+ge.
+=20
+We are one of those few SEO companies that can help you avoid penalties=
+ from Google Updates like Penguin and Panda. Our clients have survived =
+all the previous and present updates with ease. They have never been hi=
+t because we use 100% white hat SEO techniques to rank Webpages.  Simpl=
+e thing that we do to keep websites away from any Penguin or Panda pena=
+lties is follow Google guidelines and we give Google users the best ans=
+wers to their queries.
 
-Yes, I have:
+If you are looking to increase the quality of your websites and to get =
+more targeted traffic or save your websites from these Google penalties=
+ email us back with your interest.=20
 
-CONFIG_ARM_APPENDED_DTB=3Dy
-CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
-CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=3Dy
-CONFIG_CMDLINE=3D"...."
-CONFIG_CMDLINE_FROM_BOOTLOADER=3Dy
+We will be glad to serve you and help you grow your business.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Regards
 
---nextPart4195630.Q5WrA1YLtE
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Roshni Patel
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlR18X0ACgkQi/DJPQPkQ1KjogCgyP7KGMJNRUK4UHCtWWEeDG/i
-pcEAoK7YPucvTZ+MT0ml+D5jgY4Ib22w
-=BxOP
------END PGP SIGNATURE-----
-
---nextPart4195630.Q5WrA1YLtE--
+SEO Manager ( TOB )
+B7 Green Avenue, Amritsar 143001 Punjab
+____________________________
+NO CLICK in the subject to STOP EMAILS
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
