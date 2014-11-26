@@ -1,62 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Wed, 26 Nov 2014 15:14:36 -0800
-Message-ID: <20141126231435.GQ2817@atomide.com>
-References: <20141027200008.GR2560@atomide.com>
- <201411262022.03338@pali>
- <20141126200806.GO2817@atomide.com>
- <201411270001.44871@pali>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: n900: kernel cmdline from bootloader in DT mode
+Date: Thu, 27 Nov 2014 00:25:53 +0100
+Message-ID: <201411270025.53559@pali>
+References: <201411261354.33652@pali> <201411261436.42166@pali> <20141126152159.GA26123@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed;
+  boundary="nextPart1794735.tIlvv96XQK";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31213 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752540AbaKZXRK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 18:17:10 -0500
-Content-Disposition: inline
-In-Reply-To: <201411270001.44871@pali>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:33212 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754199AbaKZXZ4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 18:25:56 -0500
+Received: by mail-wi0-f181.google.com with SMTP id r20so6633305wiv.8
+        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2014 15:25:55 -0800 (PST)
+In-Reply-To: <20141126152159.GA26123@amd>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@ring0.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, aaro.koskinen@iki.fi, freemangordon@abv.bg
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 15:03]:
-> On Wednesday 26 November 2014 21:08:06 Tony Lindgren wrote:
->=20
-> With your patch I'm getting:
->=20
-> Hardware        : Nokia RX-51 board
->=20
-> So patch is good.
+--nextPart1794735.tIlvv96XQK
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Is that a Tested-by: then? :)
-=20
-> > > Revision comes from bootloader (via ATAG) and it is HW
-> > > revision of N900 device. It cannot be hardcoded into kernel
-> > > or DTS as it it depends on HW.
+On Wednesday 26 November 2014 16:22:00 Pavel Machek wrote:
+> On Wed 2014-11-26 14:36:42, Pali Roh=C3=A1r wrote:
+> > On Wednesday 26 November 2014 14:28:01 Pavel Machek wrote:
+> > > Hi!
+> > >=20
+> > > > for some unknown reasons when I compile kernel for n900
+> > > > in DT mode it ignore cmdline passed by bootloader. When
+> > > > I comment
+> > > >=20
+> > > > CONFIG_ARM_APPENDED_DTB=3Dy
+> > > >=20
+> > > > then it boots into legacy board mode and cmdline is used
+> > > > from bootloader.
+> > > >=20
+> > > > When is problem?
+> > >=20
+> > > It seems to work for me, I'm booting using 0xffff, with
+> > > attached config.
+> > >=20
+> > > 									Pavel
 > >=20
-> > Well for the "Revision" line problem, we could pass the
-> > revision in cmdline or .dts if not passed in the legacy
-> > ATAGs. It sounds like were just not copying it to system_rev
-> > for DT based booting? Maybe it's just some missing
-> > CONFIG_ATAG option that needs to be enabled?
+> > Can you try to set some "root=3Dsomething" into CONFIG_CMDLINE
+> > and then add real "root=3D" param via 0xffff?
+> >=20
+> > My problem is that I have specified ubifs mtd root in
+> > CONFIG_CMDLINE and when I set correct root via bootloader
+> > (from 0xffff or flasher-3.5) it is ignored and used only
+> > what is specified in CONFIG_CMDLINE.
 >=20
-> Yes it looks like DT code does not read Revision ATAG... I tried=20
-> to enable everything but always same problem...
+> CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
+> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=3Dy
+> # CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
+> CONFIG_CMDLINE=3D"console=3DttyO2,115200 console=3Dtty"
+>=20
+> Um.. Internal commandline should be completely ignored for me.
+>=20
+> Do you have
+> CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER?
+>=20
+> 									Pavel
 
-Maybe check if it shows up properly in /proc/atags or whatever
-the interface for it was?
+Can you try to set:
 
-The build_tag_list() should parse ATAG_REVISION and then
-parse_tag_revision() should copy it to system_rev. Maybe try
-adding some printks to see if those functions get called?
+CONFIG_USE_OF=3Dy
+CONFIG_ATAGS=3Dy
+# CONFIG_DEPRECATED_PARAM_STRUCT is not set
+CONFIG_ZBOOT_ROM_TEXT=3D0x0
+CONFIG_ZBOOT_ROM_BSS=3D0x0
+CONFIG_ARM_APPENDED_DTB=3Dy
+CONFIG_ARM_ATAG_DTB_COMPAT=3Dy
+CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=3Dy
+# CONFIG_ARM_ATAG_DTB_COMPAT_CMDLINE_EXTEND is not set
+CONFIG_CMDLINE=3D"init=3D/sbin/preinit ubi.mtd=3Drootfs root=3Dubi0:rootfs =
+rootfstype=3Dubifs=20
+rootflags=3Dbulk_read,no_chk_data_crc rw mtdoops.mtddev=3Dlog console=3Dtty=
+0 console=3DttyO2 omapfb_vram=3D7M=20
+omapfb.mode=3Dlcd:848x480-16 nokia-modem.pm=3D0"
+CONFIG_CMDLINE_FROM_BOOTLOADER=3Dy
+# CONFIG_CMDLINE_EXTEND is not set
+# CONFIG_CMDLINE_FORCE is not set
+CONFIG_KEXEC=3Dy
+CONFIG_ATAGS_PROC=3Dy
+# CONFIG_CRASH_DUMP is not set
+CONFIG_AUTO_ZRELADDR=3Dy
 
-Regards,
+and then boot kernel 3.18-rc6 with cmdline specified in bootloader?
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1794735.tIlvv96XQK
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlR2YYEACgkQi/DJPQPkQ1Kw7wCffeFqz4jvasxrCsk/a1aOtMOc
+grsAmwcT37IFwCjxja3zJmhPmMICA+uz
+=3BKL
+-----END PGP SIGNATURE-----
+
+--nextPart1794735.tIlvv96XQK--
