@@ -1,145 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Wed, 26 Nov 2014 12:08:06 -0800
-Message-ID: <20141126200806.GO2817@atomide.com>
-References: <20141027200008.GR2560@atomide.com>
- <201411261957.08860@pali>
- <20141126191027.GM2817@atomide.com>
- <201411262022.03338@pali>
+Subject: Re: [PATCH 3/3] memory: gpmc: Move omap gpmc code to live under
+ drivers
+Date: Wed, 26 Nov 2014 12:10:38 -0800
+Message-ID: <20141126201037.GP2817@atomide.com>
+References: <1416594856-15201-1-git-send-email-tony@atomide.com>
+ <1416594856-15201-4-git-send-email-tony@atomide.com>
+ <547301AB.9040905@ti.com>
+ <20141124154403.GB2817@atomide.com>
+ <5475B80A.5010207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46623 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50885 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbaKZUKi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 15:10:38 -0500
+	with ESMTP id S1750793AbaKZUNG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 15:13:06 -0500
 Content-Disposition: inline
-In-Reply-To: <201411262022.03338@pali>
+In-Reply-To: <5475B80A.5010207@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 11:24]:
-> On Wednesday 26 November 2014 20:10:28 Tony Lindgren wrote:
-> > * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 10:59]:
-> > > On Wednesday 26 November 2014 19:19:35 Tony Lindgren wrote:
-> > > > Maybe Pali can try to restart that discussion? To me it
-> > > > seems the /proc/cpuinfo should be the same as it's a user
-> > > > interface. Sorry forgot the details of the previous
-> > > > discussion..
-> > >=20
-> > > Yes, two days ago I again wrote emails about this problem...
-> > >=20
-> > > E.g. one of them, see: https://lkml.org/lkml/2014/11/24/774
-> > >=20
-> > > > And with which app was that? Sorry I forgot..
-> > >=20
-> > > More applications/libraries for N900 which running on Maemo
-> > > 5 system. Some of them are Nokia proprietary, some of them
-> > > are open source and some are mine.
-> > >=20
-> > > Basically problem is that non DT boot provides this info in
-> > > /proc/cpuinfo:
-> > >=20
-> > > Hardware        : Nokia RX-51 board
-> > > Revision        : 0012
-> > >=20
-> > > New DT boot provides this:
-> > >=20
-> > > Hardware        : Generic OMAP3 (Flattened Device Tree)
-> > > Revision        : 0000
-> >=20
-> > Oh you can easily fix that by adding a n900 specific
-> > DT_MACHINE_START entry to mach-omap2/board-generic.c.
-> >=20
->=20
-> I would like to see some solution which does not depend on=20
-> distributing addition patch which will not be in mainline=20
-> kernel...
+* Roger Quadros <rogerq@ti.com> [141126 03:24]:
+> On 24/11/14 17:44, Tony Lindgren wrote:
+> > * Roger Quadros <rogerq@ti.com> [141124 02:02]:
+> >> On 11/21/2014 08:34 PM, Tony Lindgren wrote:
+> >>> --- a/drivers/memory/Kconfig
+> >>> +++ b/drivers/memory/Kconfig
+> >>> @@ -41,6 +41,14 @@ config TI_EMIF
+> >>>  	  parameters and other settings during frequency, voltage and
+> >>>  	  temperature changes
+> >>>  
+> >>> +config OMAP_GPMC
+> >>> +	bool
+> >>
+> >> We should depend on ARCH_OMAP2PLUS. Other platforms won't benefit
+> >> anything from this driver.
+> > 
+> > We can't do that yet until we have sorted out the remaining platform
+> > data issues with arch/arm/mach-omap2/*gpmc*.c files.
+> > 
+> > So OMAP_GPMC is currently a silent Kconfig option that does not show
+> > up as the description after the bool is not there, we select
+> > OMAP_GPMC automatically based on ARCH_OMAP2PLUS.
+> > 
+> > Once we have the remaining legacy code issues sorted out, we can
+> > make this into just a regular device driver.
+> 
+> OK. In that case,
+> 
+> Acked-by: Roger Quadros <rogerq@ti.com>
 
-Yes mainline of course. Maybe you misunderstood what I was
-suggesting, maybe try the attached patch to fix the "Hardware"
-line problem in /proc/cpuinfo?
-=20
-> For this problem I proposed patch (which was rejected):=20
-> https://lkml.org/lkml/2014/6/18/853
+Thanks. FYI I did the move now based on what Arnd and I discussed
+on #armlinux as we were trying to figure out if the earlier gpmc
+changes should be merged to drivers branch.
 
-Yes I think that should continue as a separate discussion
-too if there are other differences in /proc/cpuinfo.
-=20
-> Basically Hardware is used to check if application is running on=20
-> Nokia N900 or not. Also entry from Hardware is appended to Web=20
-> browser user agent and some internet services using it as=20
-> identifier (N900 device).
->=20
-> > The revision entry you can populate too in pdata-quirks.c,
-> > or maybe add something generic to populate it based on the
-> > cmdline or a dts entry as I believe that comes from the
-> > legacy ATAGs. I think that's just the system_rev or some
-> > other *_rev global in the kernel.
->=20
-> Revision comes from bootloader (via ATAG) and it is HW revision=20
-> of N900 device. It cannot be hardcoded into kernel or DTS as it=20
-> it depends on HW.
+Arnd, to prettify the diffstats for the arm-soc drivers branch,
+I've just sent a pull request for these as:
 
-Well for the "Revision" line problem, we could pass the revision
-in cmdline or .dts if not passed in the legacy ATAGs. It sounds
-like were just not copying it to system_rev for DT based booting?
-Maybe it's just some missing CONFIG_ATAG option that needs to be
-enabled?
+"[GIT PULL] move omap gpmc to drivers finally".
 
 Regards,
 
 Tony
-
-8< ------------
-=46rom: Tony Lindgren <tony@atomide.com>
-Date: Wed, 26 Nov 2014 11:55:29 -0800
-Subject: [PATCH] ARM: OMAP2+: Fix n900 board name for legacy user space
-
-N900 legacy user space apps need the board name in
-/proc/cpuinfo to work properly for the Hardware entry.
-
-=46or other boards this should not be an issues and they
-can use the generic Hardware entry.
-
-Let's fix the issue by adding a custom DT_MACHINE_START
-for n900.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -118,6 +118,24 @@ MACHINE_END
- #endif
-=20
- #ifdef CONFIG_ARCH_OMAP3
-+/* Some boards need board name for legacy userspace in /proc/cpuinfo *=
-/
-+static const char *const n900_boards_compat[] __initconst =3D {
-+	"nokia,omap3-n900",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(OMAP3_N900_DT, "Nokia RX-51 board")
-+	.reserve	=3D omap_reserve,
-+	.map_io		=3D omap3_map_io,
-+	.init_early	=3D omap3430_init_early,
-+	.init_machine	=3D omap_generic_init,
-+	.init_late	=3D omap3_init_late,
-+	.init_time	=3D omap3_sync32k_timer_init,
-+	.dt_compat	=3D n900_boards_compat,
-+	.restart	=3D omap3xxx_restart,
-+MACHINE_END
-+
-+/* Generic omap3 boards, most boards can use these */
- static const char *const omap3_boards_compat[] __initconst =3D {
- 	"ti,omap3430",
- 	"ti,omap3",
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
