@@ -1,107 +1,73 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [RFC PATCH v5 4/4] ARM: OMAP2+: AM33XX: Hookup AM33XX PM code into OMAP builds
-Date: Wed, 26 Nov 2014 15:52:33 -0600
-Message-ID: <c5c9586aef3eb4ccddeefd0f40b20d60eeb062c8.1417038624.git.d-gerlach@ti.com>
-References: <cover.1417038624.git.d-gerlach@ti.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH] arm: omap2: rx51-peripherals: fix build warning
+Date: Wed, 26 Nov 2014 22:56:48 +0100
+Message-ID: <20141126215648.GA10126@earth.universe>
+References: <1417033655-32332-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34823 "EHLO bear.ext.ti.com"
+Received: from mail.kernel.org ([198.145.19.201]:45019 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752739AbaKZVxU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Nov 2014 16:53:20 -0500
-In-Reply-To: <cover.1417038624.git.d-gerlach@ti.com>
+	id S1751107AbaKZV4y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2014 16:56:54 -0500
+Content-Disposition: inline
+In-Reply-To: <1417033655-32332-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-With all the requisite changes in place we can now enable basic
-PM support for AM33xx. This patch updates the various OMAP files
-to enable suspend-resume on AM33xx.
 
-Because the suspend resume functionality is different on AM33xx
-than other OMAP platforms due to the need for M3 firmware and an
-IPC channel to be in place, separate PM ops are used instead of
-omap_pm_ops.
+--DocE+STaALJfprDB
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
- arch/arm/mach-omap2/Makefile | 2 ++
- arch/arm/mach-omap2/common.h | 9 +++++++++
- arch/arm/mach-omap2/io.c     | 1 +
- arch/arm/mach-omap2/pm.h     | 6 ++++++
- 4 files changed, 18 insertions(+)
+On Wed, Nov 26, 2014 at 02:27:35PM -0600, Felipe Balbi wrote:
+> commit 68a3c04 ([media] ARM: OMAP2: RX-51: update
+> si4713 platform data) updated board-rx51-peripherals.c
+> so that si4713 could be easily used on DT boot, but
+> it ended up introducing a build warning whenever
+> si4713 isn't enabled.
+>=20
+> This patches fixes that warning:
+>=20
+> arch/arm/mach-omap2/board-rx51-peripherals.c:1000:36: warning: \
+> 	=E2=80=98rx51_si4713_platform_data=E2=80=99 defined but not used [-Wunus=
+ed-variable]
+>  static struct si4713_platform_data rx51_si4713_platform_data =3D {
+>=20
+> Cc: Sebastian Reichel <sre@kernel.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index d9e9412..6d1464d 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -90,6 +90,7 @@ omap-4-5-pm-common			=  pm44xx.o omap-mpuss-lowpower.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-pm-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-pm-common)
- obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-4-5-pm-common)
-+obj-$(CONFIG_SOC_AM33XX)		+= pm33xx.o sleep33xx.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
- 
- obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
-@@ -97,6 +98,7 @@ obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)    += smartreflex-class3.o
- 
- AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
- AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
-+AFLAGS_sleep33xx.o			:=-Wa,-march=armv7-a$(plus_sec)
- 
- endif
- 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 377eea8..64bf9a8 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -76,6 +76,15 @@ static inline int omap4_pm_init_early(void)
- }
- #endif
- 
-+#if defined(CONFIG_PM) && defined(CONFIG_SOC_AM33XX)
-+int am33xx_pm_init(void);
-+#else
-+static inline int am33xx_pm_init(void)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_OMAP_MUX
- int omap_mux_late_init(void);
- #else
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 03cbb16..4b7828a 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -575,6 +575,7 @@ void __init am33xx_init_early(void)
- void __init am33xx_init_late(void)
- {
- 	omap_common_late_init();
-+	am33xx_pm_init();
- }
- #endif
- 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 425bfcd..9e19340 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -81,6 +81,12 @@ extern unsigned int omap3_do_wfi_sz;
- /* ... and its pointer from SRAM after copy */
- extern void (*omap3_do_wfi_sram)(void);
- 
-+/* am33xx_do_wfi function pointer and size, for copy to SRAM */
-+extern void am33xx_do_wfi(void);
-+extern unsigned int am33xx_do_wfi_sz;
-+extern unsigned int am33xx_resume_offset;
-+extern unsigned long am33xx_emif_sram_table;
-+
- /* save_secure_ram_context function pointer and size, for copy to SRAM */
- extern int save_secure_ram_context(u32 *addr);
- extern unsigned int save_secure_ram_context_sz;
--- 
-2.1.0
+Acked-By: Sebastian Reichel <sre@kernel.org>
 
+-- Sebastian
+
+--DocE+STaALJfprDB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUdkygAAoJENju1/PIO/qa8QwP/0fxhcV3LUM6lK4QQBr+6oHx
+IAVlQULK4OEyMZCe2kHyRKYT3AoUIpfEOQPXgyMJqmn5eje8u4fcgnjCLc3mMokT
+18FYH2QvVzEnm24dDmnopDjyvmPHwKNqdLTPGqolLLt6m+288Plr2KrUeU5sy9ko
+AT2t9HSpfIym8RZh2Vtuz8Jji6iOFxNasDivwgfEFmK2b17QHQLsq3uuzZ99NA5e
+iYLoo5IsSt2RNafPmTavosY3o72UygTiv33Qy7mL1m8v7czWDzmp6xtubk7Y4eMf
+RJdMInnB/D6tL5rdU+tBJU8783Kct5XgOivMuQlwCF1lDqtrdrQGllSbfBMvUCsf
+zCdHqHkj/LW5Rm4J3Wktu2jQlaw5Oqw9G0ghGhKGiaaF/Zu0PAzqzf7+EmmQo0pc
+2TLKwT4qZbhn6pBhoD3+fxec9KhADxTWylW6FsmRHfkqQ/FfqXgpemTGm7X1d1k5
+2ZFKzm0wlno7RvbilU5yxD3ZAahFPjdAwh4p78WBVnUajFT3Pqko9v3OF8mZV9qH
+qr+D45AbHEUdskP6lA3H+EO7/2zzpGXVz6QmSzFMDjfuk75PhaV6aTdq8HDNRELA
+K3TznqwAm0G/cE+86nWRObcz9wURwTT5XgzfkoylOPME6UzBwyt3tQlEdL50oVc4
+CGswFt3bDE/11DUy9q1O
+=0ByT
+-----END PGP SIGNATURE-----
+
+--DocE+STaALJfprDB--
