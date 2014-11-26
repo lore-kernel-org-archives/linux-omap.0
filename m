@@ -1,41 +1,67 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] omap: i2c: don't check bus state IP rev3.3 and earlier
-Date: Wed, 26 Nov 2014 22:26:10 +0300
-Message-ID: <65BAE81D-E894-48EB-B5A0-0D0FFB9B448F@gmail.com>
-References: <20141124210809.GG2817@atomide.com> <1416867655-22232-1-git-send-email-al.kochet@gmail.com> <20141125141924.GD1843@katana> <7E0A0B24-91D5-41A4-B007-004C5965D0D7@gmail.com> <7hvbm3jdq1.fsf@deeprootsystems.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7hvbm3jdq1.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] move omap gpmc to drivers finally
+Date: Wed, 26 Nov 2014 11:43:30 -0800
+Message-ID: <20141126194330.GN2817@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62143 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751139AbaKZTp7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 14:45:59 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Roger Quadros <rogerq@ti.com>
 
+The following changes since commit 6f8782a7a1c826e1c013d6b7d5504af6bcc079e6:
 
-25 =CE=CF=D1=C2. 2014 =C7., =D7 22:13, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org=
-> =CE=C1=D0=C9=D3=C1=CC(=C1):
+  ARM: OMAP2+: Remove unnecesary include in GPMC driver (2014-11-06 10:51:06 -0800)
 
-> I'll test your patch on all my OMAP boards.  Put whatever debug outpu=
-t
-> you want, and I'll send you links to all the boot output.
+are available in the git repository at:
 
-Hello, Kevin!
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/gpmc-move
 
-I've sent the patch[1]. Could you be so kind to run it on all your OMAP=
- boards?
-Thank you very much!
-It is not urgent at all.
+for you to fetch changes up to d2c70f553d7203b9bb37730e577be29794ae3169:
 
-What is the preferred way for giving patches for you (for future)?
-I have one more fixes for i2c-omap (I think final).
-I don't want to break tests anymore.
+  memory: gpmc: Move omap gpmc code to live under drivers (2014-11-26 11:11:19 -0800)
 
-And I found, that n900 boot test PASS, but in fact it doesn't[2].
+----------------------------------------------------------------
+We can finally move the GPMC code to live in drivers/memory
+for further clean up work. This series does the move with
+minimal changes to the code.
 
-Alexander.
+----------------------------------------------------------------
+Tony Lindgren (3):
+      ARM: OMAP2+: Prepare to move GPMC to drivers by platform data header
+      ARM: OMAP2+: Move GPMC initcall to devices.c
+      memory: gpmc: Move omap gpmc code to live under drivers
 
-[1] http://marc.info/?l=3Dlinux-i2c&m=3D141702877518332&w=3D2
-[2] http://status.armcloud.us/boot/omap3-n900/job/next/kernel/next-2014=
-1124/defconfig/arm-omap2plus_defconfig/
+ MAINTAINERS                                        |   8 +
+ arch/arm/mach-omap2/Kconfig                        |   2 +
+ arch/arm/mach-omap2/Makefile                       |   2 +-
+ arch/arm/mach-omap2/board-am3517crane.c            |   1 +
+ arch/arm/mach-omap2/board-cm-t35.c                 |   3 +-
+ arch/arm/mach-omap2/board-cm-t3517.c               |   3 +-
+ arch/arm/mach-omap2/board-flash.c                  |   4 +-
+ arch/arm/mach-omap2/board-flash.h                  |   1 -
+ arch/arm/mach-omap2/board-n8x0.c                   |   2 -
+ arch/arm/mach-omap2/board-omap3pandora.c           |   2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   3 +-
+ arch/arm/mach-omap2/devices.c                      |  26 +++
+ arch/arm/mach-omap2/gpmc-nand.c                    |   3 +-
+ arch/arm/mach-omap2/gpmc-onenand.c                 |   3 +-
+ arch/arm/mach-omap2/gpmc-onenand.h                 |  24 ---
+ arch/arm/mach-omap2/gpmc.h                         | 228 +--------------------
+ arch/arm/mach-omap2/pm34xx.c                       |   2 +-
+ drivers/memory/Kconfig                             |   8 +
+ drivers/memory/Makefile                            |   1 +
+ .../gpmc.c => drivers/memory/omap-gpmc.c           |  91 +++++---
+ .../gpmc-nand.h => include/linux/omap-gpmc.h       |  18 +-
+ include/linux/platform_data/omap-gpmc.h            | 177 ++++++++++++++++
+ 22 files changed, 310 insertions(+), 302 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
+ rename arch/arm/mach-omap2/gpmc.c => drivers/memory/omap-gpmc.c (95%)
+ rename arch/arm/mach-omap2/gpmc-nand.h => include/linux/omap-gpmc.h (54%)
+ create mode 100644 include/linux/platform_data/omap-gpmc.h
