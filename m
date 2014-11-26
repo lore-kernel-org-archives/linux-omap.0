@@ -1,105 +1,41 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Wed, 26 Nov 2014 20:22:03 +0100
-Message-ID: <201411262022.03338@pali>
-References: <20141027200008.GR2560@atomide.com> <201411261957.08860@pali> <20141126191027.GM2817@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1702352.Kss0k1jQFy";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:57493 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736AbaKZTWH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 14:22:07 -0500
-Received: by mail-wi0-f178.google.com with SMTP id hi2so6079174wib.5
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2014 11:22:05 -0800 (PST)
-In-Reply-To: <20141126191027.GM2817@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] omap: i2c: don't check bus state IP rev3.3 and earlier
+Date: Wed, 26 Nov 2014 22:26:10 +0300
+Message-ID: <65BAE81D-E894-48EB-B5A0-0D0FFB9B448F@gmail.com>
+References: <20141124210809.GG2817@atomide.com> <1416867655-22232-1-git-send-email-al.kochet@gmail.com> <20141125141924.GD1843@katana> <7E0A0B24-91D5-41A4-B007-004C5965D0D7@gmail.com> <7hvbm3jdq1.fsf@deeprootsystems.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7hvbm3jdq1.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---nextPart1702352.Kss0k1jQFy
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 26 November 2014 20:10:28 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 10:59]:
-> > On Wednesday 26 November 2014 19:19:35 Tony Lindgren wrote:
-> > > Maybe Pali can try to restart that discussion? To me it
-> > > seems the /proc/cpuinfo should be the same as it's a user
-> > > interface. Sorry forgot the details of the previous
-> > > discussion..
-> >=20
-> > Yes, two days ago I again wrote emails about this problem...
-> >=20
-> > E.g. one of them, see: https://lkml.org/lkml/2014/11/24/774
-> >=20
-> > > And with which app was that? Sorry I forgot..
-> >=20
-> > More applications/libraries for N900 which running on Maemo
-> > 5 system. Some of them are Nokia proprietary, some of them
-> > are open source and some are mine.
-> >=20
-> > Basically problem is that non DT boot provides this info in
-> > /proc/cpuinfo:
-> >=20
-> > Hardware        : Nokia RX-51 board
-> > Revision        : 0012
-> >=20
-> > New DT boot provides this:
-> >=20
-> > Hardware        : Generic OMAP3 (Flattened Device Tree)
-> > Revision        : 0000
->=20
-> Oh you can easily fix that by adding a n900 specific
-> DT_MACHINE_START entry to mach-omap2/board-generic.c.
->=20
+25 =CE=CF=D1=C2. 2014 =C7., =D7 22:13, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org=
+> =CE=C1=D0=C9=D3=C1=CC(=C1):
 
-I would like to see some solution which does not depend on=20
-distributing addition patch which will not be in mainline=20
-kernel...
+> I'll test your patch on all my OMAP boards.  Put whatever debug outpu=
+t
+> you want, and I'll send you links to all the boot output.
 
-=46or this problem I proposed patch (which was rejected):=20
-https://lkml.org/lkml/2014/6/18/853
+Hello, Kevin!
 
-Basically Hardware is used to check if application is running on=20
-Nokia N900 or not. Also entry from Hardware is appended to Web=20
-browser user agent and some internet services using it as=20
-identifier (N900 device).
+I've sent the patch[1]. Could you be so kind to run it on all your OMAP=
+ boards?
+Thank you very much!
+It is not urgent at all.
 
-> The revision entry you can populate too in pdata-quirks.c,
-> or maybe add something generic to populate it based on the
-> cmdline or a dts entry as I believe that comes from the
-> legacy ATAGs. I think that's just the system_rev or some
-> other *_rev global in the kernel.
->=20
-> Regards,
->=20
-> Tony
+What is the preferred way for giving patches for you (for future)?
+I have one more fixes for i2c-omap (I think final).
+I don't want to break tests anymore.
 
-Revision comes from bootloader (via ATAG) and it is HW revision=20
-of N900 device. It cannot be hardcoded into kernel or DTS as it=20
-it depends on HW.
+And I found, that n900 boot test PASS, but in fact it doesn't[2].
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Alexander.
 
---nextPart1702352.Kss0k1jQFy
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlR2KFsACgkQi/DJPQPkQ1JZFACdGgMCaWKN8wxfAlcCiMp1G0MV
-7YUAoJWfUYYgYfWEM8EwYl9jObU9qA1J
-=fmgJ
------END PGP SIGNATURE-----
-
---nextPart1702352.Kss0k1jQFy--
+[1] http://marc.info/?l=3Dlinux-i2c&m=3D141702877518332&w=3D2
+[2] http://status.armcloud.us/boot/omap3-n900/job/next/kernel/next-2014=
+1124/defconfig/arm-omap2plus_defconfig/
