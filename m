@@ -1,67 +1,51 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: omap2: rx51-peripherals: fix build warning
-Date: Wed, 26 Nov 2014 14:27:35 -0600
-Message-ID: <1417033655-32332-1-git-send-email-balbi@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [RFC PATCH 0/2] Add ioremap_exec enhancements
+Date: Wed, 26 Nov 2014 15:13:59 -0600
+Message-ID: <cover.1417029918.git.d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42153 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44055 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752618AbaKZU1w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Nov 2014 15:27:52 -0500
+	id S1750895AbaKZVO7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2014 16:14:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Russ Dill <russ.dill@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Philipp Zabel <p.zabel@pengutronix.de>, Shawn Guo <shawn.guo@freescale.com>, Tony Lindgren <tony@atomide.com>, Anson.Huang@freescale.com, Dave Gerlach <d-gerlach@ti.com>
 
-commit 68a3c04 ([media] ARM: OMAP2: RX-51: update
-si4713 platform data) updated board-rx51-peripherals.c
-so that si4713 could be easily used on DT boot, but
-it ended up introducing a build warning whenever
-si4713 isn't enabled.
+Hi,
 
-This patches fixes that warning:
+Some platforms need the ability to ioremap memory for use with small
+chunks of code, like in certain PM applications that run from sram.
 
-arch/arm/mach-omap2/board-rx51-peripherals.c:1000:36: warning: \
-	=E2=80=98rx51_si4713_platform_data=E2=80=99 defined but not used [-Wun=
-used-variable]
- static struct si4713_platform_data rx51_si4713_platform_data =3D {
+This series provides a common way to call an arch's ioremap_exec, which
+currently only exists for ARM, so that we can use it in the generic
+sram driver in a forthcoming patch.
 
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c | 2 ++
- 1 file changed, 2 insertions(+)
+This patch is part of a patch series split into several smaller sets
+for introducing suspend on AM335x. I plan to use it to copy several
+pieces of ASM code from an EMIF driver and the SoC PM code to run from
+SRAM on the SoC. I have pushed a branch here [1] based on v3.18-rc6
+with all required patches so that the higher level plan for these
+patches can be seen.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
-ch-omap2/board-rx51-peripherals.c
-index d18a5cf..bda20c5 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -997,9 +997,11 @@ static struct aic3x_pdata rx51_aic3x_data2 =3D {
- 	.gpio_reset =3D 60,
- };
-=20
-+#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713=
-)
- static struct si4713_platform_data rx51_si4713_platform_data =3D {
- 	.is_platform_device =3D true
- };
-+#endif
-=20
- static struct i2c_board_info __initdata rx51_peripherals_i2c_board_inf=
-o_2[] =3D {
- #if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713=
-)
---=20
-2.1.0.GIT
+Regards,
+Dave
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] https://github.com/dgerlach/linux-pm/tree/rfc-pm-am335x-v3.18-rc6
+
+Russ Dill (2):
+  asm-generic: io: Add exec versions of ioremap
+  lib: devres: Add exec versions of devm_ioremap_resource and friends
+
+ arch/arm/include/asm/io.h   |   2 +
+ include/asm-generic/iomap.h |   5 ++
+ include/linux/device.h      |  19 ++++++-
+ include/linux/io.h          |   9 +++-
+ lib/devres.c                | 125 ++++++++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 154 insertions(+), 6 deletions(-)
+
+-- 
+2.1.0
+
