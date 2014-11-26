@@ -1,66 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] memory: gpmc: Move omap gpmc code to live under
- drivers
-Date: Wed, 26 Nov 2014 12:10:38 -0800
-Message-ID: <20141126201037.GP2817@atomide.com>
-References: <1416594856-15201-1-git-send-email-tony@atomide.com>
- <1416594856-15201-4-git-send-email-tony@atomide.com>
- <547301AB.9040905@ti.com>
- <20141124154403.GB2817@atomide.com>
- <5475B80A.5010207@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap2: rx51-peripherals: fix build warning
+Date: Wed, 26 Nov 2014 14:27:35 -0600
+Message-ID: <1417033655-32332-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50885 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbaKZUNG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 15:13:06 -0500
-Content-Disposition: inline
-In-Reply-To: <5475B80A.5010207@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42153 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752618AbaKZU1w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2014 15:27:52 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-* Roger Quadros <rogerq@ti.com> [141126 03:24]:
-> On 24/11/14 17:44, Tony Lindgren wrote:
-> > * Roger Quadros <rogerq@ti.com> [141124 02:02]:
-> >> On 11/21/2014 08:34 PM, Tony Lindgren wrote:
-> >>> --- a/drivers/memory/Kconfig
-> >>> +++ b/drivers/memory/Kconfig
-> >>> @@ -41,6 +41,14 @@ config TI_EMIF
-> >>>  	  parameters and other settings during frequency, voltage and
-> >>>  	  temperature changes
-> >>>  
-> >>> +config OMAP_GPMC
-> >>> +	bool
-> >>
-> >> We should depend on ARCH_OMAP2PLUS. Other platforms won't benefit
-> >> anything from this driver.
-> > 
-> > We can't do that yet until we have sorted out the remaining platform
-> > data issues with arch/arm/mach-omap2/*gpmc*.c files.
-> > 
-> > So OMAP_GPMC is currently a silent Kconfig option that does not show
-> > up as the description after the bool is not there, we select
-> > OMAP_GPMC automatically based on ARCH_OMAP2PLUS.
-> > 
-> > Once we have the remaining legacy code issues sorted out, we can
-> > make this into just a regular device driver.
-> 
-> OK. In that case,
-> 
-> Acked-by: Roger Quadros <rogerq@ti.com>
+commit 68a3c04 ([media] ARM: OMAP2: RX-51: update
+si4713 platform data) updated board-rx51-peripherals.c
+so that si4713 could be easily used on DT boot, but
+it ended up introducing a build warning whenever
+si4713 isn't enabled.
 
-Thanks. FYI I did the move now based on what Arnd and I discussed
-on #armlinux as we were trying to figure out if the earlier gpmc
-changes should be merged to drivers branch.
+This patches fixes that warning:
 
-Arnd, to prettify the diffstats for the arm-soc drivers branch,
-I've just sent a pull request for these as:
+arch/arm/mach-omap2/board-rx51-peripherals.c:1000:36: warning: \
+	=E2=80=98rx51_si4713_platform_data=E2=80=99 defined but not used [-Wun=
+used-variable]
+ static struct si4713_platform_data rx51_si4713_platform_data =3D {
 
-"[GIT PULL] move omap gpmc to drivers finally".
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Regards,
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/ma=
+ch-omap2/board-rx51-peripherals.c
+index d18a5cf..bda20c5 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -997,9 +997,11 @@ static struct aic3x_pdata rx51_aic3x_data2 =3D {
+ 	.gpio_reset =3D 60,
+ };
+=20
++#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713=
+)
+ static struct si4713_platform_data rx51_si4713_platform_data =3D {
+ 	.is_platform_device =3D true
+ };
++#endif
+=20
+ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_inf=
+o_2[] =3D {
+ #if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI4713=
+)
+--=20
+2.1.0.GIT
 
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
