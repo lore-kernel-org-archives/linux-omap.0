@@ -1,275 +1,93 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [RFC PATCH v5 2/4] ARM: OMAP2+: AM33XX: Add assembly code for PM operations
-Date: Wed, 26 Nov 2014 15:52:31 -0600
-Message-ID: <91ebad5059aeef618386c3ff311f275e4b0ec381.1417038624.git.d-gerlach@ti.com>
+Subject: [RFC PATCH v5 1/4] ARM: OMAP2+: timer: Add suspend-resume callbacks for clkevent device
+Date: Wed, 26 Nov 2014 15:52:30 -0600
+Message-ID: <c8a9e025ce9672ce5f4c3abb2b00f626adf01f57.1417038624.git.d-gerlach@ti.com>
 References: <cover.1417038624.git.d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37107 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157AbaKZVxS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 16:53:18 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:59782 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753058AbaKZVxP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Nov 2014 16:53:15 -0500
 In-Reply-To: <cover.1417038624.git.d-gerlach@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Dave Gerlach <d-gerlach@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 
-In preparation for suspend-resume support for AM33XX, add
-the assembly file with the code which is copied to internal
-memory (OCMC RAM) during bootup and runs from there.
+From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-As part of the low power entry (DeepSleep0 mode in AM33XX TRM),
-the code running from OCMC RAM does the following
-1. Calls routine to store the EMIF configuration
-2. Calls routine to place external memory in self-refresh
-3. Disables EMIF clock
-4. Executes WFI after writing to MPU_CLKCTRL register.
+OMAP timer code registers two timers - one as clocksource
+and one as clockevent. Since AM33XX has only one usable timer
+in the WKUP domain one of the timers needs suspend-resume
+support to restore the configuration to pre-suspend state.
 
-If no interrupts have come, WFI execution on MPU gets registered
-as an interrupt with the WKUP-M3. WKUP-M3 takes care of disabling
-some clocks which MPU should not (L3, L4, OCMC RAM etc) and takes
-care of clockdomain and powerdomain transitions as part of the
-DeepSleep0 mode entry.
+commit adc78e6b9946 ("timekeeping: Add suspend and resume
+of clock event devices") introduced .suspend and .resume
+callbacks for clock event devices. Leverage these
+callbacks to have AM33XX clockevent timer behave properly
+across system suspend.
 
-In case a late interrupt comes in, WFI ends up as a NOP and MPU
-continues execution from internal memory. The 'abort path' code
-undoes whatever was done as part of the low power entry and indicates
-a suspend failure by passing a non-zero value to the cpu_resume routine.
-
-The 'resume path' code is similar to the 'abort path' with the key
-difference of MMU being enabled in the 'abort path' but being
-disabled in the 'resume path' due to MPU getting powered off.
-
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-omap2/sleep33xx.S | 216 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 216 insertions(+)
- create mode 100644 arch/arm/mach-omap2/sleep33xx.S
+ arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
-new file mode 100644
-index 0000000..9399a16
---- /dev/null
-+++ b/arch/arm/mach-omap2/sleep33xx.S
-@@ -0,0 +1,216 @@
-+/*
-+ * Low level suspend code for AM33XX SoCs
-+ *
-+ * Copyright (C) 2012-2014 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Vaibhav Bedia, Dave Gerlach
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 4f61148..5c7ecde 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -67,6 +67,9 @@
+ static struct omap_dm_timer clkev;
+ static struct clock_event_device clockevent_gpt;
+ 
++/* Clockevent hwmod for am335x and am437x suspend */
++struct omap_hwmod *clockevent_gpt_hwmod;
 +
-+#include <linux/linkage.h>
-+#include <asm/memory.h>
-+#include <asm/assembler.h>
+ #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
+ static unsigned long arch_timer_freq;
+ 
+@@ -128,6 +131,23 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+ 	}
+ }
+ 
++static void omap_clkevt_idle(struct clock_event_device *unused)
++{
++	if (!clockevent_gpt_hwmod)
++		return;
 +
-+#include "iomap.h"
-+#include "cm33xx.h"
++	omap_hwmod_idle(clockevent_gpt_hwmod);
++}
 +
-+#define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
-+#define AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE			0x0002
++static void omap_clkevt_unidle(struct clock_event_device *unused)
++{
++	if (!clockevent_gpt_hwmod)
++		return;
 +
-+	.text
-+	.align 3
++	omap_hwmod_enable(clockevent_gpt_hwmod);
++	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
++}
 +
-+ENTRY(am33xx_do_wfi)
-+	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
+ static struct clock_event_device clockevent_gpt = {
+ 	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+ 	.rating		= 300,
+@@ -355,6 +375,14 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ 					3, /* Timer internal resynch latency */
+ 					0xffffffff);
+ 
++	if (soc_is_am33xx()) {
++		clockevent_gpt.suspend = omap_clkevt_idle;
++		clockevent_gpt.resume = omap_clkevt_unidle;
 +
-+	/*
-+	 * Flush all data from the L1 and L2 data cache before disabling
-+	 * SCTLR.C bit.
-+	 */
-+	ldr	r1, kernel_flush
-+	blx	r1
++		clockevent_gpt_hwmod =
++			omap_hwmod_lookup(clockevent_gpt.name);
++	}
 +
-+	/*
-+	 * Clear the SCTLR.C bit to prevent further data cache
-+	 * allocation. Clearing SCTLR.C would make all the data accesses
-+	 * strongly ordered and would not hit the cache.
-+	 */
-+	mrc	p15, 0, r0, c1, c0, 0
-+	bic	r0, r0, #(1 << 2)	@ Disable the C bit
-+	mcr	p15, 0, r0, c1, c0, 0
-+	isb
-+
-+	/*
-+	 * Invalidate L1 and L2 data cache.
-+	 */
-+	ldr	r1, kernel_flush
-+	blx	r1
-+
-+	ldr	r1, ti_emif_save_context
-+	blx	r1
-+
-+	ldr	r1, ti_emif_enter_sr
-+	blx	r1
-+
-+	/* Disable EMIF */
-+	ldr     r1, virt_emif_clkctrl
-+	ldr     r2, [r1]
-+	bic     r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
-+	str     r2, [r1]
-+
-+	ldr	r1, virt_emif_clkctrl
-+wait_emif_disable:
-+	ldr	r2, [r1]
-+	ldr	r3, module_disabled_val
-+	cmp	r2, r3
-+	bne	wait_emif_disable
-+
-+	/*
-+	 * For the MPU WFI to be registered as an interrupt
-+	 * to WKUP_M3, MPU_CLKCTRL.MODULEMODE needs to be set
-+	 * to DISABLED
-+	 */
-+	ldr	r1, virt_mpu_clkctrl
-+	ldr	r2, [r1]
-+	bic	r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
-+	str	r2, [r1]
-+
-+	/*
-+	 * Execute an ISB instruction to ensure that all of the
-+	 * CP15 register changes have been committed.
-+	 */
-+	isb
-+
-+	/*
-+	 * Execute a barrier instruction to ensure that all cache,
-+	 * TLB and branch predictor maintenance operations issued
-+	 * have completed.
-+	 */
-+	dsb
-+	dmb
-+
-+	/*
-+	 * Execute a WFI instruction and wait until the
-+	 * STANDBYWFI output is asserted to indicate that the
-+	 * CPU is in idle and low power state. CPU can specualatively
-+	 * prefetch the instructions so add NOPs after WFI. Thirteen
-+	 * NOPs as per Cortex-A8 pipeline.
-+	 */
-+	wfi
-+
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+	nop
-+
-+	/* We come here in case of an abort due to a late interrupt */
-+
-+	/* Set MPU_CLKCTRL.MODULEMODE back to ENABLE */
-+	ldr	r1, virt_mpu_clkctrl
-+	mov	r2, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
-+	str	r2, [r1]
-+
-+	/* Re-enable EMIF */
-+	ldr	r1, virt_emif_clkctrl
-+	mov	r2, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
-+	str	r2, [r1]
-+wait_emif_enable:
-+	ldr	r3, [r1]
-+	cmp	r2, r3
-+	bne	wait_emif_enable
-+
-+	ldr	r1, ti_emif_abort_sr
-+	blx	r1
-+
-+	/*
-+	 * Set SCTLR.C bit to allow data cache allocation
-+	 */
-+	mrc	p15, 0, r0, c1, c0, 0
-+	orr	r0, r0, #(1 << 2)	@ Enable the C bit
-+	mcr	p15, 0, r0, c1, c0, 0
-+	isb
-+
-+	/* Let the suspend code know about the abort */
-+	mov	r0, #1
-+	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
-+ENDPROC(am33xx_do_wfi)
-+
-+	.align
-+ENTRY(am33xx_resume_offset)
-+	.word . - am33xx_do_wfi
-+
-+ENTRY(am33xx_resume_from_deep_sleep)
-+	/* Re-enable EMIF */
-+	ldr	r0, phys_emif_clkctrl
-+	mov	r1, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
-+	str	r1, [r0]
-+wait_emif_enable1:
-+	ldr	r2, [r0]
-+	cmp	r1, r2
-+	bne	wait_emif_enable1
-+
-+	adr	sp, temp_stack
-+
-+	ldr	r1, ti_emif_restore_context
-+	blx	r1
-+
-+	ldr	r1, ti_emif_exit_sr
-+	blx	r1
-+
-+resume_to_ddr:
-+	/* We are back. Branch to the common CPU resume routine */
-+	mov	r0, #0
-+	ldr	pc, resume_addr
-+ENDPROC(am33xx_resume_from_deep_sleep)
-+
-+/*
-+ * Local variables
-+ */
-+	.align
-+resume_addr:
-+	.word	cpu_resume - PAGE_OFFSET + 0x80000000
-+kernel_flush:
-+	.word   v7_flush_dcache_all
-+virt_mpu_clkctrl:
-+	.word	AM33XX_CM_MPU_MPU_CLKCTRL
-+virt_emif_clkctrl:
-+	.word	AM33XX_CM_PER_EMIF_CLKCTRL
-+phys_emif_clkctrl:
-+	.word	(AM33XX_CM_BASE + AM33XX_CM_PER_MOD + \
-+		AM33XX_CM_PER_EMIF_CLKCTRL_OFFSET)
-+module_disabled_val:
-+	.word	0x30000
-+
-+/* DDR related defines */
-+ENTRY(am33xx_emif_sram_table)
-+ti_emif_save_context:
-+	.word	0x00000000
-+ti_emif_restore_context:
-+	.word	0x00000000
-+ti_emif_enter_sr:
-+	.word	0x00000000
-+ti_emif_exit_sr:
-+	.word	0x00000000
-+ti_emif_abort_sr:
-+	.word	0x00000000
-+	.align 3
-+	.space 64
-+temp_stack:
-+ENTRY(am33xx_do_wfi_sz)
-+	.word	. - am33xx_do_wfi
+ 	pr_info("OMAP clockevent source: %s at %lu Hz\n", clockevent_gpt.name,
+ 		clkev.rate);
+ }
 -- 
 2.1.0
 
