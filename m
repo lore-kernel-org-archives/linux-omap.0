@@ -1,109 +1,99 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Wed, 26 Nov 2014 19:57:08 +0100
-Message-ID: <201411261957.08860@pali>
-References: <20141027200008.GR2560@atomide.com> <20141126172857.GA26157@amd> <20141126181934.GL2817@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1822310.B1qtr1HzKQ";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:42998 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbaKZS5M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 13:57:12 -0500
-Received: by mail-wi0-f172.google.com with SMTP id n3so13492658wiv.11
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2014 10:57:11 -0800 (PST)
-In-Reply-To: <20141126181934.GL2817@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alexander Kochetkov <al.kochet@gmail.com>
+Subject: [RFC] i2c: omap: TEST: do IP reset during probe.
+Date: Wed, 26 Nov 2014 23:05:22 +0400
+Message-ID: <1417028722-29306-1-git-send-email-al.kochet@gmail.com>
+References: <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Alexander Kochetkov <al.kochet@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---nextPart1822310.B1qtr1HzKQ
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+NOT FOR UPSTREAM
 
-On Wednesday 26 November 2014 19:19:35 Tony Lindgren wrote:
-> * Pavel Machek <pavel@ucw.cz> [141126 09:31]:
-> > On Tue 2014-10-28 01:01:38, Aaro Koskinen wrote:
-> > > Hi,
-> > >=20
-> > > On Mon, Oct 27, 2014 at 01:00:09PM -0700, Tony Lindgren=20
-wrote:
-> > > > +
-> > > > +	if (!of_have_populated_dt())
-> > > > +		pr_warn("WARNING: legacy booting deprecated, please
-> > > > update to boot with .dts\n"); +
-> > >=20
-> > > Maybe use WARN so that the warning is more verbose and
-> > > kernel gets tainted?
-> >=20
-> > Well.. Pali still has regression where /proc/cpuinfo changes
-> > in a way that breaks existing userspace, when dt is used on
-> > N900.
-> >=20
-> > And rmk was less then helpfull...
->=20
-> Maybe Pali can try to restart that discussion? To me it seems
-> the /proc/cpuinfo should be the same as it's a user
-> interface. Sorry forgot the details of the previous
-> discussion..
->=20
+The patch checks if IP reset during probe could bring I2C bus
+to a free state on omap2430 - omap3530 boards.
 
-Yes, two days ago I again wrote emails about this problem...
+I guess, IP hold one of I2C lines in a low state.
+I guess, u-boot haven't sent a stop condition.
 
-E.g. one of them, see: https://lkml.org/lkml/2014/11/24/774
+The patch is rebased on branch 'i2c/for-next' of
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux
+(6e79807443cba7397cd855ed29d6faba51d4c893)
 
-> And with which app was that? Sorry I forgot..
->=20
+Signed-off-by: Alexander Kochetkov <al.kochet@gmail.com>
+Reported-by: Kevin Hilman <khilman@kernel.org>
+Tested-by: Kevin Hilman <khilman@kernel.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   41 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 39 insertions(+), 2 deletions(-)
 
-More applications/libraries for N900 which running on Maemo 5=20
-system. Some of them are Nokia proprietary, some of them are open=20
-source and some are mine.
-
-Basically problem is that non DT boot provides this info in=20
-/proc/cpuinfo:
-
-Hardware        : Nokia RX-51 board
-Revision        : 0012
-
-New DT boot provides this:
-
-Hardware        : Generic OMAP3 (Flattened Device Tree)
-Revision        : 0000
-
-> It's weird that it's not been an issue for other though?
->=20
-> > Should we maybe solve that before adding backtraces to our
-> > boot messages?
->=20
-> With this warning we want to notify the people actually using
-> mainline kernel on omap3 that they should update their
-> systems. And also let us know on this list about the
-> regressions, so I think that's quite valuable.
->=20
-> Regards,
->=20
-> Tony
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart1822310.B1qtr1HzKQ
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlR2IoQACgkQi/DJPQPkQ1Io9gCeOMqMzvI5N/FxxZxrPjPN7lOj
-OekAnjnQDd9ToS1v9+ctUgvyNURzisFt
-=naWe
------END PGP SIGNATURE-----
-
---nextPart1822310.B1qtr1HzKQ--
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 4563200..865c9a1 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -282,6 +282,26 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+ }
+ 
++static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *dev);
++
++static inline void
++omap_i2c_dump_state(const char *func, int line, struct omap_i2c_dev *dev, const char *msg)
++{
++	u16 systest = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++	dev_info(dev->dev, "%s: STAT=0x%04x; IE=0x%04x; CON=0x%04x; SYSTEST=0x%04x; SDA=%d%d [OI]; SCL=%d%d [OI] (%s:%d)\n",
++		msg,
++		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG),
++		omap_i2c_read_reg(dev, OMAP_I2C_IE_REG),
++		omap_i2c_read_reg(dev, OMAP_I2C_CON_REG),
++		systest,
++		(systest & OMAP_I2C_SYSTEST_SDA_O_FUNC) ? 1 : 0,
++		(systest & OMAP_I2C_SYSTEST_SDA_I_FUNC) ? 1 : 0,
++		(systest & OMAP_I2C_SYSTEST_SCL_O_FUNC) ? 1 : 0,
++		(systest & OMAP_I2C_SYSTEST_SCL_I_FUNC) ? 1 : 0,
++		func, line);
++}
++#define OMAP_I2C_DUMP_STATE(dev, msg) omap_i2c_dump_state(__func__, __LINE__, (dev), (msg))
++
+ static void __omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+ 
+@@ -469,6 +489,23 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 
+ 	__omap_i2c_init(dev);
+ 
++	msleep(1);
++	OMAP_I2C_DUMP_STATE(dev, "init0");
++
++	dev->bb_valid = 0;
++	omap_i2c_wait_for_bb_valid(dev);
++	OMAP_I2C_DUMP_STATE(dev, "init1");
++	dev_info(dev->dev, "init1: bb_valid=%d\n", dev->bb_valid);
++
++	omap_i2c_reset(dev);
++	__omap_i2c_init(dev);
++	dev->bb_valid = 0;
++	omap_i2c_wait_for_bb_valid(dev);
++	OMAP_I2C_DUMP_STATE(dev, "init2");
++	dev_info(dev->dev, "init2: bb_valid=%d\n", dev->bb_valid);
++
++	dev->bb_valid = 1;
++
+ 	return 0;
+ }
+ 
+@@ -1367,8 +1404,8 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		goto err_unuse_clocks;
+ 	}
+ 
+-	dev_info(dev->dev, "bus %d rev%d.%d at %d kHz\n", adap->nr,
+-		 major, minor, dev->speed);
++	dev_info(dev->dev, "bus %d rev%d.%d at %d kHz (rev %08x)\n", adap->nr,
++		 major, minor, dev->speed, dev->rev);
+ 
+ 	pm_runtime_mark_last_busy(dev->dev);
+ 	pm_runtime_put_autosuspend(dev->dev);
+-- 
+1.7.9.5
