@@ -1,76 +1,94 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
 Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Thu, 27 Nov 2014 12:18:36 +0100
-Message-ID: <20141127111836.GA20159@amd>
-References: <20141027200008.GR2560@atomide.com>
- <201411261957.08860@pali>
- <20141126191027.GM2817@atomide.com>
- <201411262022.03338@pali>
- <20141126200806.GO2817@atomide.com>
+Date: Thu, 27 Nov 2014 12:32:47 +0100
+Message-ID: <201411271232.47231@pali>
+References: <20141027200008.GR2560@atomide.com> <201411270038.01312@pali> <20141127011203.GR2817@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart13629102.RTXyN0Aayy";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45675 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752666AbaK0LSj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2014 06:18:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20141126200806.GO2817@atomide.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:53638 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105AbaK0Lcu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2014 06:32:50 -0500
+Received: by mail-wg0-f47.google.com with SMTP id n12so6218550wgh.34
+        for <linux-omap@vger.kernel.org>; Thu, 27 Nov 2014 03:32:49 -0800 (PST)
+In-Reply-To: <20141127011203.GR2817@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> 8< ------------
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 26 Nov 2014 11:55:29 -0800
-> Subject: [PATCH] ARM: OMAP2+: Fix n900 board name for legacy user space
-> 
-> N900 legacy user space apps need the board name in
-> /proc/cpuinfo to work properly for the Hardware entry.
-> 
-> For other boards this should not be an issues and they
-> can use the generic Hardware entry.
-> 
-> Let's fix the issue by adding a custom DT_MACHINE_START
-> for n900.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+--nextPart13629102.RTXyN0Aayy
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+On Thursday 27 November 2014 02:12:04 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 15:40]:
+> > With enabled CONFIG_ARM_APPENDED_DTB=3Dy file /proc/atags is
+> > missing.
+>=20
+> OK I guess it should not be needed for DT based booting.
+>=20
 
-Thanks!
-								Pavel
+If I do not enable CONFIG_ARM_APPENDED_DTB=3Dy then kernel is=20
+booting in legacy mode (not in DT).
 
-> 
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -118,6 +118,24 @@ MACHINE_END
->  #endif
->  
->  #ifdef CONFIG_ARCH_OMAP3
-> +/* Some boards need board name for legacy userspace in /proc/cpuinfo */
-> +static const char *const n900_boards_compat[] __initconst = {
-> +	"nokia,omap3-n900",
-> +	NULL,
-> +};
-> +
-> +DT_MACHINE_START(OMAP3_N900_DT, "Nokia RX-51 board")
-> +	.reserve	= omap_reserve,
-> +	.map_io		= omap3_map_io,
-> +	.init_early	= omap3430_init_early,
-> +	.init_machine	= omap_generic_init,
-> +	.init_late	= omap3_init_late,
-> +	.init_time	= omap3_sync32k_timer_init,
-> +	.dt_compat	= n900_boards_compat,
-> +	.restart	= omap3xxx_restart,
-> +MACHINE_END
-> +
-> +/* Generic omap3 boards, most boards can use these */
->  static const char *const omap3_boards_compat[] __initconst = {
->  	"ti,omap3430",
->  	"ti,omap3",
+> > > The build_tag_list() should parse ATAG_REVISION and then
+> > > parse_tag_revision() should copy it to system_rev. Maybe
+> > > try adding some printks to see if those functions get
+> > > called?
+> >=20
+> > Now I see... Problem is that build_tag_list() is called from
+> > convert_to_tag_list() which is called from
+> > setup_machine_tags() which is called from setup_arch() only
+> > if setup_machine_fdt() call fails. And it fails for *non*
+> > DT boot. You can check this chain too.
+>=20
+> Thinking about this probably the best long term solution is
+> to pass optional board_revision in the kernel cmdline that
+> can be parsed early and copied to system_rev variable.
+>=20
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Not possible. Our bootloader is closed & proprietary. I tried to=20
+replace it with u-boot I was not able to do that. So we will use=20
+that Nokia closed bootloader forever and it can provide data only=20
+in ATAG structure.
+
+> Or if you can think of some other way to get it, we can set
+> system_rev in pdata-quirks.c.
+>=20
+> Or maybe add some code to copy the ATAGs somewhere where
+> they are out of the way and don't conflict with the device
+> tree data? Then we can query ATAG_REVISION from pdata-quirks.c
+> and set system_rev.
+>=20
+> Regards,
+>=20
+> Tony
+
+If we are able to read ATAG from pdata-quirks, then we can parse=20
+it there and fix problems... But I do not know if address of ATAG=20
+structure is available there...
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart13629102.RTXyN0Aayy
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlR3C98ACgkQi/DJPQPkQ1K14wCeKz+doTV4TTqQuz2gSUmMkxyP
+PKYAoL4wOjxQgci99b4vLzOKcSdUCx22
+=xGDR
+-----END PGP SIGNATURE-----
+
+--nextPart13629102.RTXyN0Aayy--
