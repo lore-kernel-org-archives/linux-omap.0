@@ -1,97 +1,60 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Thu, 27 Nov 2014 00:38:01 +0100
-Message-ID: <201411270038.01312@pali>
-References: <20141027200008.GR2560@atomide.com> <201411270001.44871@pali> <20141126231435.GQ2817@atomide.com>
+Date: Wed, 26 Nov 2014 17:12:04 -0800
+Message-ID: <20141127011203.GR2817@atomide.com>
+References: <20141027200008.GR2560@atomide.com>
+ <201411270001.44871@pali>
+ <20141126231435.GQ2817@atomide.com>
+ <201411270038.01312@pali>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart5834737.7bDdQZy9x5";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:46397 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbaKZXiE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 18:38:04 -0500
-Received: by mail-wg0-f48.google.com with SMTP id y19so5008090wgg.21
-        for <linux-omap@vger.kernel.org>; Wed, 26 Nov 2014 15:38:03 -0800 (PST)
-In-Reply-To: <20141126231435.GQ2817@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63252 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752938AbaK0BOf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 20:14:35 -0500
+Content-Disposition: inline
+In-Reply-To: <201411270038.01312@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---nextPart5834737.7bDdQZy9x5
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thursday 27 November 2014 00:14:36 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 15:03]:
-> > On Wednesday 26 November 2014 21:08:06 Tony Lindgren wrote:
-> >=20
-> > With your patch I'm getting:
-> >=20
-> > Hardware        : Nokia RX-51 board
-> >=20
-> > So patch is good.
+* Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 15:40]:
 >=20
-> Is that a Tested-by: then? :)
+> With enabled CONFIG_ARM_APPENDED_DTB=3Dy file /proc/atags is=20
+> missing.
+
+OK I guess it should not be needed for DT based booting.
+=20
+> > The build_tag_list() should parse ATAG_REVISION and then
+> > parse_tag_revision() should copy it to system_rev. Maybe try
+> > adding some printks to see if those functions get called?
 >=20
+> Now I see... Problem is that build_tag_list() is called from=20
+> convert_to_tag_list() which is called from setup_machine_tags()=20
+> which is called from setup_arch() only if setup_machine_fdt()=20
+> call fails. And it fails for *non* DT boot. You can check this=20
+> chain too.
 
-Yes for Hardware line you can add my:
+Thinking about this probably the best long term solution is
+to pass optional board_revision in the kernel cmdline that
+can be parsed early and copied to system_rev variable.
 
-Tested-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+Or if you can think of some other way to get it, we can set
+system_rev in pdata-quirks.c.
 
-> > > > Revision comes from bootloader (via ATAG) and it is HW
-> > > > revision of N900 device. It cannot be hardcoded into
-> > > > kernel or DTS as it it depends on HW.
-> > >=20
-> > > Well for the "Revision" line problem, we could pass the
-> > > revision in cmdline or .dts if not passed in the legacy
-> > > ATAGs. It sounds like were just not copying it to
-> > > system_rev for DT based booting? Maybe it's just some
-> > > missing CONFIG_ATAG option that needs to be enabled?
-> >=20
-> > Yes it looks like DT code does not read Revision ATAG... I
-> > tried to enable everything but always same problem...
->=20
-> Maybe check if it shows up properly in /proc/atags or whatever
-> the interface for it was?
->=20
+Or maybe add some code to copy the ATAGs somewhere where
+they are out of the way and don't conflict with the device
+tree data? Then we can query ATAG_REVISION from pdata-quirks.c
+and set system_rev.
 
-With enabled CONFIG_ARM_APPENDED_DTB=3Dy file /proc/atags is=20
-missing.
+Regards,
 
-> The build_tag_list() should parse ATAG_REVISION and then
-> parse_tag_revision() should copy it to system_rev. Maybe try
-> adding some printks to see if those functions get called?
->=20
-> Regards,
->=20
-> Tony
-
-Now I see... Problem is that build_tag_list() is called from=20
-convert_to_tag_list() which is called from setup_machine_tags()=20
-which is called from setup_arch() only if setup_machine_fdt()=20
-call fails. And it fails for *non* DT boot. You can check this=20
-chain too.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart5834737.7bDdQZy9x5
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlR2ZFkACgkQi/DJPQPkQ1LW4gCeL6mVEHhEQGkenb3/bEMNa/mS
-pdAAniZ4dMBPKukXA0lOt+Xk17mh50XX
-=jEGo
------END PGP SIGNATURE-----
-
---nextPart5834737.7bDdQZy9x5--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
