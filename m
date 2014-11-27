@@ -1,107 +1,55 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [RFC PATCH 2/2] lib: devres: Add exec versions of
- devm_ioremap_resource and friends
-Date: Thu, 27 Nov 2014 10:41:23 +0100
-Message-ID: <CAMuHMdWn3mgzwX55+OCWwMZwvfXkh7B+n-b0uChAW5gbx9b7Dw@mail.gmail.com>
-References: <cover.1417029918.git.d-gerlach@ti.com>
-	<bde13d5e7931af9aa90ddc09a79be5c30e3eef94.1417029918.git.d-gerlach@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/3] ARM: edma: Correct header file usage
+Date: Thu, 27 Nov 2014 12:41:28 +0200
+Message-ID: <1417084891-17990-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <bde13d5e7931af9aa90ddc09a79be5c30e3eef94.1417029918.git.d-gerlach@ti.com>
-Sender: linux-arch-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Arch <linux-arch@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russ Dill <russ.dill@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Philipp Zabel <p.zabel@pengutronix.de>, Shawn Guo <shawn.guo@freescale.com>, Tony Lindgren <tony@atomide.com>, Anson.Huang@freescale.com, Josh Triplett <josh@joshtriplett.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, linux@arm.linux.org.uk, nsekhar@ti.com, arnd@arndb.de, vinod.koul@intel.com, khilman@deeprootsystems.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, chris@printf.net, Liam Girdwood <lgirdwood@gmail.com>, dmaengine@vger.kernel.org, ulf.hansson@linaro.org, linux-spi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 26, 2014 at 10:14 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
-> --- a/lib/devres.c
-> +++ b/lib/devres.c
-> @@ -72,6 +72,64 @@ void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
->  EXPORT_SYMBOL(devm_ioremap_nocache);
->
->  /**
-> + * devm_ioremap_exec - Managed ioremap_exec()
-> + * @dev: Generic device to remap IO address for
-> + * @offset: BUS offset to map
-> + * @size: Size of map
-> + *
-> + * Managed ioremap_exec().  Map is automatically unmapped on driver detach.
-> + */
-> +void __iomem *devm_ioremap_exec(struct device *dev, resource_size_t offset,
-> +                               unsigned long size)
-> +{
+Hi,
 
-[...]
+The linux/platform_data/edma.h file was used for API definition as well, which
+is not correct since the header should only contain platform data related
+structures, defines, etc.
 
-> +       addr = ioremap_exec(offset, size);
+Mark: I think this series can go via arm since it is just changing include stuff
+under ASoC.
 
-[...]
+Regards,
+Peter
+---
+Peter Ujfalusi (3):
+  ASoC: davinci-evm: Do not include edma headers
+  ARM: edma: Rename header file for dmaengine filter function definition
+  ARM: edma: Split up header file to platform_data and API file
 
-> +}
-> +EXPORT_SYMBOL(devm_ioremap_exec);
-> +
-> +/**
-> + * devm_ioremap_exec_nocache - Managed ioremap_exec_nocache()
-> + * @dev: Generic device to remap IO address for
-> + * @offset: BUS offset to map
-> + * @size: Size of map
-> + *
-> + * Managed ioremap_exec_nocache().  Map is automatically unmapped on driver
-> + * detach.
-> + */
-> +void __iomem *devm_ioremap_exec_nocache(struct device *dev,
-> +                                       resource_size_t offset,
-> +                                       unsigned long size)
-> +{
+ arch/arm/common/edma.c                     |   3 +-
+ arch/arm/mach-davinci/devices.c            |   1 +
+ arch/arm/mach-davinci/include/mach/da8xx.h |   1 +
+ drivers/dma/edma.c                         |   2 +-
+ drivers/mmc/host/davinci_mmc.c             |   3 +-
+ drivers/spi/spi-davinci.c                  |   2 +-
+ include/linux/edma-dmaengine.h             |  29 ++++++
+ include/linux/edma.h                       | 152 ++++++++++++++++++++++++++---
+ include/linux/platform_data/edma.h         | 148 ++--------------------------
+ sound/soc/davinci/davinci-evm.c            |   3 -
+ sound/soc/davinci/davinci-pcm.h            |   1 +
+ sound/soc/davinci/edma-pcm.c               |   2 +-
+ 12 files changed, 182 insertions(+), 165 deletions(-)
+ create mode 100644 include/linux/edma-dmaengine.h
 
-[...]
-
-> +       addr = ioremap_exec_nocache(offset, size);
-
-[...]
-
-> +}
-> +EXPORT_SYMBOL(devm_ioremap_exec_nocache);
-> +
-
-Both of these are identical to the already-existing devm_ioremap() and
-devm_ioremap_nocache(), except for the call to the underlying
-ioremap*() variant.
-
-Can't the variant selection be done by passing a flag around, set by
-the top-level inline functions, to avoid code duplication?
-Some architecture-specific ioremap() implementations already work that
-way, cfr. arch/m68k/include/asm/io_mm.h:
-
-static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
-{
-        return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
-}
-static inline void __iomem *ioremap_nocache(unsigned long physaddr,
-unsigned lonn
-g size)
-{
-        return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
-}
-static inline void __iomem *ioremap_writethrough(unsigned long physaddr,
-                                         unsigned long size)
-{
-        return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
-}
-static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
-                                      unsigned long size)
-{
-        return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
-}
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+2.1.3
