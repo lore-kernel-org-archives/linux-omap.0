@@ -1,62 +1,67 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 16/23] ARM: OMAP4: omapdss: remove legacy pad muxing support
-Date: Thu, 27 Nov 2014 18:09:49 +0200
-Message-ID: <54774CCD.5060600@ti.com>
-References: <1417103514-17027-1-git-send-email-t-kristo@ti.com> <1417103514-17027-17-git-send-email-t-kristo@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/3] ARM: edma: Rename header file for
+ dmaengine filter function definition
+Date: Thu, 27 Nov 2014 20:46:12 +0200
+Message-ID: <54777174.4070203@ti.com>
+References: <1417084891-17990-1-git-send-email-peter.ujfalusi@ti.com>
+ <8235185.7qUDHu9jso@wuerfel> <547733E3.3020408@ti.com>
+ <3300340.ou8f7H2hIc@wuerfel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39313 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750947AbaK0QKX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Nov 2014 11:10:23 -0500
-In-Reply-To: <1417103514-17027-17-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com
-Cc: linux-arm-kernel@lists.infradead.org
-
---vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <3300340.ou8f7H2hIc@wuerfel>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: alsa-devel@alsa-project.org, linux@arm.linux.org.uk, vinod.koul@intel.com, nsekhar@ti.com, linux-spi@vger.kernel.org, linux-mmc@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, chris@printf.net, dmaengine@vger.kernel.org, ulf.hansson@linaro.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-On 27/11/14 17:51, Tero Kristo wrote:
-> OMAP4 is DT only now, so the legacy mux support is not needed anymore.
-> Padconf is used instead from the driver / DT. This removes the need
-> for having the mux APIs exported from the control module driver.
+On 11/27/2014 04:50 PM, Arnd Bergmann wrote:
+> On Thursday 27 November 2014 16:23:31 Peter Ujfalusi wrote:
+>> This will only work in case of legacy boot. When booting with DT we do n=
+ot
+>> have pdata and after this patch in dt boot we are not going to be able t=
+o get
+>> the DMA resources either.
+> =
 
-We still use those mux functions for DT. The mux registers for DSI are
-so funny that we can't use the normal padconf for them.
+> No, when booting with DT, the filter_fn and data are not used at all,
+> we get the dma channel by parsing the DT instead.
 
-I did do some work to use syscon, but I never had time to finish it.
+Correct.
 
- Tomi
+>> I think if we want to do something like this, it has to be done within t=
+he
+>> dmaengine framework. The dma controller's of_dma_filter_info already have
+>> .filter_fn which could be used by the framework.
+> =
 
+> No, of_dma_filter_info/of_dma_simple_xlate was a mistake, we should never
+> have even introduced that. All drivers that rely on this can simply
+> provide their own xlate function that calls of_dma_get_slave_channel()
+> or one of the related functions.
+> =
 
+> edma is particularly trivial, it can just use of_dma_xlate_by_chan_id()
+> instead of of_dma_simple_xlate, as it looks up the channel by its number.
 
---vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+I see. With this series I did not planed to fix all edma related issues, ju=
+st
+as a start clean up the related header files. I would rather not add fixes =
+to
+mmc, spi, etc drivers since while you have valid point it is not in the sco=
+pe
+of this series.
+Can we do the changes you are suggesting in an incremental manner?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+-- =
 
-iQIcBAEBAgAGBQJUd0zNAAoJEPo9qoy8lh71TbcP/0MnAtLTZl39JW6aIGptGFQw
-W8tZ/pvnu3ZzV7z2192mvxFOtRU+mtzgGku47b2qz2+uEroyYHyztqO0fLa3h3wz
-sHAG0bckxc/6vFXxy/NZZoJzXrCv5qZ7dCdJ49uY1C7Nw3RH7zDdlK1B75CdgEFL
-C083U2EpNthTNYgok6AHgi23SDMe7poHdq0vSzBzotwnX/oRM/zsF2uy+Q6JWzN3
-+8NCzNQdCIcw7pJPne3ZgSpktBndpsxzWxUvOcY+IY9+t0gmo6VhJPjCqWNX+esP
-V2/LIRr+Sj4/XUXbJFEShqZ1pGmdnD0FbM7gA83d/VcdTOurVf/22IpclyMYxZLf
-rUFeqJX2z967PJhFHl8jWD+dh4vY6VubsSq1Hw/dA+VJVuMD+6VByBM1JDosXR86
-/ZmRjrcr7UFJ1PMKJnHjSe7X2sNE9jy5kG4JkpZdu1gyXlg+jlr44IaqViCgcmF2
-NbcUksRPwF5b0vH6GnD2fRRFL8Dl8qBP7rxm72OlB2KT4/I9GPf4uQVFsQIPlOh2
-neqp6//NtljDHZfc7TP0qhsDs79ZeDD4Ul1B/v03e1avbIVpXIi+4nd0llg0VqIH
-5mqSz5yNPmuVwp630sY+/SExsF3N1tV1b7ktvsFerh8AiMF0ngV8Pw7NMhAJ80HV
-v1W0c4wtqg58vA6gI4K3
-=zBvH
------END PGP SIGNATURE-----
-
---vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL--
+P=E9ter
