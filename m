@@ -1,60 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Wed, 26 Nov 2014 17:12:04 -0800
-Message-ID: <20141127011203.GR2817@atomide.com>
-References: <20141027200008.GR2560@atomide.com>
- <201411270001.44871@pali>
- <20141126231435.GQ2817@atomide.com>
- <201411270038.01312@pali>
+From: "Lu, Baolu" <baolu.lu@linux.intel.com>
+Subject: Re: [PATCH 06/19] usb: dwc3: host: Pass the XHCI_DRD_SUPPORT and
+ XHCI_NEEDS_LHC_RESET quirk
+Date: Thu, 27 Nov 2014 10:00:27 +0800
+Message-ID: <547685BB.3020109@linux.intel.com>
+References: <1416921115-10467-1-git-send-email-george.cherian@ti.com> <1416921115-10467-7-git-send-email-george.cherian@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63252 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752938AbaK0BOf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Nov 2014 20:14:35 -0500
-Content-Disposition: inline
-In-Reply-To: <201411270038.01312@pali>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1416921115-10467-7-git-send-email-george.cherian@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: George Cherian <george.cherian@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [141126 15:40]:
->=20
-> With enabled CONFIG_ARM_APPENDED_DTB=3Dy file /proc/atags is=20
-> missing.
 
-OK I guess it should not be needed for DT based booting.
-=20
-> > The build_tag_list() should parse ATAG_REVISION and then
-> > parse_tag_revision() should copy it to system_rev. Maybe try
-> > adding some printks to see if those functions get called?
->=20
-> Now I see... Problem is that build_tag_list() is called from=20
-> convert_to_tag_list() which is called from setup_machine_tags()=20
-> which is called from setup_arch() only if setup_machine_fdt()=20
-> call fails. And it fails for *non* DT boot. You can check this=20
-> chain too.
-
-Thinking about this probably the best long term solution is
-to pass optional board_revision in the kernel cmdline that
-can be parsed early and copied to system_rev variable.
-
-Or if you can think of some other way to get it, we can set
-system_rev in pdata-quirks.c.
-
-Or maybe add some code to copy the ATAGs somewhere where
-they are out of the way and don't conflict with the device
-tree data? Then we can query ATAG_REVISION from pdata-quirks.c
-and set system_rev.
+On 2014=E5=B9=B411=E6=9C=8825=E6=97=A5 21:11, George Cherian wrote:
+> Pass the quir flag XHCI_DRD_SUPPORT from DWC3 host to xhci platform d=
+river.
+"quir" to "quirk"
 
 Regards,
+Baolu
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This enables xhci driver to handle deallocation's differently while i=
+n DRD mode.
+> Pass the quirk flag XHCI_NEEDS_LHC_RESET from DWC3 host to xhci platf=
+orm
+> driver. This enables to do LHRESET during xhci_reset().
+>
+> Signed-off-by: George Cherian <george.cherian@ti.com>
+> ---
+>   drivers/usb/dwc3/host.c | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
+> index dcb8ca0..257b5b5 100644
+> --- a/drivers/usb/dwc3/host.c
+> +++ b/drivers/usb/dwc3/host.c
+> @@ -53,6 +53,8 @@ int dwc3_host_init(struct dwc3 *dwc)
+>   #ifdef CONFIG_DWC3_HOST_USB3_LPM_ENABLE
+>   	pdata.usb3_lpm_capable =3D 1;
+>   #endif
+> +	pdata.usb_drd_support =3D 1;
+> +	pdata.usb_needs_lhc_reset =3D 1;
+>  =20
+>   	ret =3D platform_device_add_data(xhci, &pdata, sizeof(pdata));
+>   	if (ret) {
