@@ -1,169 +1,62 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 20/23] ARM: OMAP4+: PRM: determine prm_device_inst based on DT compatibility
-Date: Thu, 27 Nov 2014 17:51:51 +0200
-Message-ID: <1417103514-17027-21-git-send-email-t-kristo@ti.com>
-References: <1417103514-17027-1-git-send-email-t-kristo@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 16/23] ARM: OMAP4: omapdss: remove legacy pad muxing support
+Date: Thu, 27 Nov 2014 18:09:49 +0200
+Message-ID: <54774CCD.5060600@ti.com>
+References: <1417103514-17027-1-git-send-email-t-kristo@ti.com> <1417103514-17027-17-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46267 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39313 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751366AbaK0PwP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Nov 2014 10:52:15 -0500
-In-Reply-To: <1417103514-17027-1-git-send-email-t-kristo@ti.com>
+	id S1750947AbaK0QKX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Nov 2014 11:10:23 -0500
+In-Reply-To: <1417103514-17027-17-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com
+To: Tero Kristo <t-kristo@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-PRM device instance offset is now provided through the prm_init_data.
-This gets rid of some cpu_is_X / soc_is_X calls from PRM core code,
-preparing for PRM to be its own separate driver.
+--vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/prcm-common.h |    2 ++
- arch/arm/mach-omap2/prm44xx.c     |    2 ++
- arch/arm/mach-omap2/prm_common.c  |   28 +++++++++++++++++++++++++---
- arch/arm/mach-omap2/prminst44xx.c |   18 +++++-------------
- arch/arm/mach-omap2/prminst44xx.h |    1 +
- 5 files changed, 35 insertions(+), 16 deletions(-)
+On 27/11/14 17:51, Tero Kristo wrote:
+> OMAP4 is DT only now, so the legacy mux support is not needed anymore.
+> Padconf is used instead from the driver / DT. This removes the need
+> for having the mux APIs exported from the control module driver.
 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index d0d81d0..89c09eb 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -524,6 +524,7 @@ struct of_device_id;
-  * @index: clock memory mapping index to be used
-  * @mem: IO mem pointer for this module
-  * @offset: module base address offset from the IO base
-+ * @device_inst_offset: device instance offset within the module address space
-  * @init: low level PRCM init function for this module
-  * @np: device node for this PRCM module
-  */
-@@ -531,6 +532,7 @@ struct omap_prcm_init_data {
- 	int index;
- 	void __iomem *mem;
- 	s16 offset;
-+	s32 device_inst_offset;
- 	int (*init)(const struct omap_prcm_init_data *data);
- 	struct device_node *np;
- };
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index e179dbe..1994dcc 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -712,6 +712,8 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
- 	if (!soc_is_dra7xx())
- 		prm_features |= PRM_HAS_VOLTAGE;
- 
-+	omap4_prminst_set_prm_dev_inst(data->device_inst_offset);
-+
- 	return prm_register(&omap44xx_prm_ll_data);
- }
- 
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index b2e1eee..0fc2da9 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -34,6 +34,9 @@
- #include "prm3xxx.h"
- #include "prm33xx.h"
- #include "prm44xx.h"
-+#include "prm54xx.h"
-+#include "prm7xx.h"
-+#include "prcm43xx.h"
- #include "common.h"
- #include "clock.h"
- #include "cm.h"
-@@ -647,6 +650,25 @@ static struct omap_prcm_init_data am3_prm_data __initdata = {
- static struct omap_prcm_init_data omap4_prm_data __initdata = {
- 	.index = CLK_MEMMAP_INDEX_PRM,
- 	.init = omap44xx_prm_init,
-+	.device_inst_offset = OMAP4430_PRM_DEVICE_INST,
-+};
-+
-+static struct omap_prcm_init_data omap5_prm_data __initdata = {
-+	.index = CLK_MEMMAP_INDEX_PRM,
-+	.init = omap44xx_prm_init,
-+	.device_inst_offset = OMAP54XX_PRM_DEVICE_INST,
-+};
-+
-+static struct omap_prcm_init_data dra7_prm_data __initdata = {
-+	.index = CLK_MEMMAP_INDEX_PRM,
-+	.init = omap44xx_prm_init,
-+	.device_inst_offset = DRA7XX_PRM_DEVICE_INST,
-+};
-+
-+static struct omap_prcm_init_data am4_prm_data __initdata = {
-+	.index = CLK_MEMMAP_INDEX_PRM,
-+	.init = omap44xx_prm_init,
-+	.device_inst_offset = AM43XX_PRM_DEVICE_INST,
- };
- 
- static struct omap_prcm_init_data scrm_data __initdata = {
-@@ -655,14 +677,14 @@ static struct omap_prcm_init_data scrm_data __initdata = {
- 
- static struct of_device_id omap_prcm_dt_match_table[] __initdata = {
- 	{ .compatible = "ti,am3-prcm", .data = &am3_prm_data },
--	{ .compatible = "ti,am4-prcm", .data = &omap4_prm_data },
-+	{ .compatible = "ti,am4-prcm", .data = &am4_prm_data },
- 	{ .compatible = "ti,omap2-prcm", .data = &omap2_prm_data },
- 	{ .compatible = "ti,omap3-prm", .data = &omap3_prm_data },
- 	{ .compatible = "ti,omap4-prm", .data = &omap4_prm_data },
- 	{ .compatible = "ti,omap4-scrm", .data = &scrm_data },
--	{ .compatible = "ti,omap5-prm", .data = &omap4_prm_data },
-+	{ .compatible = "ti,omap5-prm", .data = &omap5_prm_data },
- 	{ .compatible = "ti,omap5-scrm", .data = &scrm_data },
--	{ .compatible = "ti,dra7-prm", .data = &omap4_prm_data },
-+	{ .compatible = "ti,dra7-prm", .data = &dra7_prm_data },
- 	{ }
- };
- 
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index 8adf7b1..c4859c4 100644
---- a/arch/arm/mach-omap2/prminst44xx.c
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -47,22 +47,14 @@ void omap_prm_base_init(void)
- 
- s32 omap4_prmst_get_prm_dev_inst(void)
- {
--	if (prm_dev_inst != PRM_INSTANCE_UNKNOWN)
--		return prm_dev_inst;
--
--	/* This cannot be done way early at boot.. as things are not setup */
--	if (cpu_is_omap44xx())
--		prm_dev_inst = OMAP4430_PRM_DEVICE_INST;
--	else if (soc_is_omap54xx())
--		prm_dev_inst = OMAP54XX_PRM_DEVICE_INST;
--	else if (soc_is_dra7xx())
--		prm_dev_inst = DRA7XX_PRM_DEVICE_INST;
--	else if (soc_is_am43xx())
--		prm_dev_inst = AM43XX_PRM_DEVICE_INST;
--
- 	return prm_dev_inst;
- }
- 
-+void omap4_prminst_set_prm_dev_inst(s32 dev_inst)
-+{
-+	prm_dev_inst = dev_inst;
-+}
-+
- /* Read a register in a PRM instance */
- u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
- {
-diff --git a/arch/arm/mach-omap2/prminst44xx.h b/arch/arm/mach-omap2/prminst44xx.h
-index fb1c9d7..0c03d07 100644
---- a/arch/arm/mach-omap2/prminst44xx.h
-+++ b/arch/arm/mach-omap2/prminst44xx.h
-@@ -14,6 +14,7 @@
- 
- #define PRM_INSTANCE_UNKNOWN	-1
- extern s32 omap4_prmst_get_prm_dev_inst(void);
-+void omap4_prminst_set_prm_dev_inst(s32 dev_inst);
- 
- /*
-  * In an ideal world, we would not export these low-level functions,
--- 
-1.7.9.5
+We still use those mux functions for DT. The mux registers for DSI are
+so funny that we can't use the normal padconf for them.
 
+I did do some work to use syscon, but I never had time to finish it.
+
+ Tomi
+
+
+
+--vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUd0zNAAoJEPo9qoy8lh71TbcP/0MnAtLTZl39JW6aIGptGFQw
+W8tZ/pvnu3ZzV7z2192mvxFOtRU+mtzgGku47b2qz2+uEroyYHyztqO0fLa3h3wz
+sHAG0bckxc/6vFXxy/NZZoJzXrCv5qZ7dCdJ49uY1C7Nw3RH7zDdlK1B75CdgEFL
+C083U2EpNthTNYgok6AHgi23SDMe7poHdq0vSzBzotwnX/oRM/zsF2uy+Q6JWzN3
++8NCzNQdCIcw7pJPne3ZgSpktBndpsxzWxUvOcY+IY9+t0gmo6VhJPjCqWNX+esP
+V2/LIRr+Sj4/XUXbJFEShqZ1pGmdnD0FbM7gA83d/VcdTOurVf/22IpclyMYxZLf
+rUFeqJX2z967PJhFHl8jWD+dh4vY6VubsSq1Hw/dA+VJVuMD+6VByBM1JDosXR86
+/ZmRjrcr7UFJ1PMKJnHjSe7X2sNE9jy5kG4JkpZdu1gyXlg+jlr44IaqViCgcmF2
+NbcUksRPwF5b0vH6GnD2fRRFL8Dl8qBP7rxm72OlB2KT4/I9GPf4uQVFsQIPlOh2
+neqp6//NtljDHZfc7TP0qhsDs79ZeDD4Ul1B/v03e1avbIVpXIi+4nd0llg0VqIH
+5mqSz5yNPmuVwp630sY+/SExsF3N1tV1b7ktvsFerh8AiMF0ngV8Pw7NMhAJ80HV
+v1W0c4wtqg58vA6gI4K3
+=zBvH
+-----END PGP SIGNATURE-----
+
+--vLk8wX4giKTxRrPu6UKu6H9HNVnJobKOL--
