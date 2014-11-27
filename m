@@ -1,72 +1,107 @@
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH] arm: omap2: rx51-peripherals: fix build warning
-Date: Thu, 27 Nov 2014 08:41:59 +0100
-Message-ID: <5476D5C7.7030400@cisco.com>
-References: <1417033655-32332-1-git-send-email-balbi@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [RFC PATCH 2/2] lib: devres: Add exec versions of
+ devm_ioremap_resource and friends
+Date: Thu, 27 Nov 2014 10:41:23 +0100
+Message-ID: <CAMuHMdWn3mgzwX55+OCWwMZwvfXkh7B+n-b0uChAW5gbx9b7Dw@mail.gmail.com>
+References: <cover.1417029918.git.d-gerlach@ti.com>
+	<bde13d5e7931af9aa90ddc09a79be5c30e3eef94.1417029918.git.d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:54354 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbaK0HwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2014 02:52:12 -0500
-In-Reply-To: <1417033655-32332-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <bde13d5e7931af9aa90ddc09a79be5c30e3eef94.1417029918.git.d-gerlach@ti.com>
+Sender: linux-arch-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Arch <linux-arch@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Russ Dill <russ.dill@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Philipp Zabel <p.zabel@pengutronix.de>, Shawn Guo <shawn.guo@freescale.com>, Tony Lindgren <tony@atomide.com>, Anson.Huang@freescale.com, Josh Triplett <josh@joshtriplett.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On 11/26/2014 09:27 PM, Felipe Balbi wrote:
-> commit 68a3c04 ([media] ARM: OMAP2: RX-51: update
-> si4713 platform data) updated board-rx51-peripherals.c
-> so that si4713 could be easily used on DT boot, but
-> it ended up introducing a build warning whenever
-> si4713 isn't enabled.
->=20
-> This patches fixes that warning:
->=20
-> arch/arm/mach-omap2/board-rx51-peripherals.c:1000:36: warning: \
-> 	=E2=80=98rx51_si4713_platform_data=E2=80=99 defined but not used [-W=
-unused-variable]
->  static struct si4713_platform_data rx51_si4713_platform_data =3D {
->=20
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+On Wed, Nov 26, 2014 at 10:14 PM, Dave Gerlach <d-gerlach@ti.com> wrote:
+> --- a/lib/devres.c
+> +++ b/lib/devres.c
+> @@ -72,6 +72,64 @@ void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+>  EXPORT_SYMBOL(devm_ioremap_nocache);
+>
+>  /**
+> + * devm_ioremap_exec - Managed ioremap_exec()
+> + * @dev: Generic device to remap IO address for
+> + * @offset: BUS offset to map
+> + * @size: Size of map
+> + *
+> + * Managed ioremap_exec().  Map is automatically unmapped on driver detach.
+> + */
+> +void __iomem *devm_ioremap_exec(struct device *dev, resource_size_t offset,
+> +                               unsigned long size)
+> +{
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+[...]
 
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c | 2 ++
->  1 file changed, 2 insertions(+)
->=20
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/=
-mach-omap2/board-rx51-peripherals.c
-> index d18a5cf..bda20c5 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -997,9 +997,11 @@ static struct aic3x_pdata rx51_aic3x_data2 =3D {
->  	.gpio_reset =3D 60,
->  };
-> =20
-> +#if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI47=
-13)
->  static struct si4713_platform_data rx51_si4713_platform_data =3D {
->  	.is_platform_device =3D true
->  };
-> +#endif
-> =20
->  static struct i2c_board_info __initdata rx51_peripherals_i2c_board_i=
-nfo_2[] =3D {
->  #if IS_ENABLED(CONFIG_I2C_SI4713) && IS_ENABLED(CONFIG_PLATFORM_SI47=
-13)
->=20
+> +       addr = ioremap_exec(offset, size);
+
+[...]
+
+> +}
+> +EXPORT_SYMBOL(devm_ioremap_exec);
+> +
+> +/**
+> + * devm_ioremap_exec_nocache - Managed ioremap_exec_nocache()
+> + * @dev: Generic device to remap IO address for
+> + * @offset: BUS offset to map
+> + * @size: Size of map
+> + *
+> + * Managed ioremap_exec_nocache().  Map is automatically unmapped on driver
+> + * detach.
+> + */
+> +void __iomem *devm_ioremap_exec_nocache(struct device *dev,
+> +                                       resource_size_t offset,
+> +                                       unsigned long size)
+> +{
+
+[...]
+
+> +       addr = ioremap_exec_nocache(offset, size);
+
+[...]
+
+> +}
+> +EXPORT_SYMBOL(devm_ioremap_exec_nocache);
+> +
+
+Both of these are identical to the already-existing devm_ioremap() and
+devm_ioremap_nocache(), except for the call to the underlying
+ioremap*() variant.
+
+Can't the variant selection be done by passing a flag around, set by
+the top-level inline functions, to avoid code duplication?
+Some architecture-specific ioremap() implementations already work that
+way, cfr. arch/m68k/include/asm/io_mm.h:
+
+static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
+{
+        return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+}
+static inline void __iomem *ioremap_nocache(unsigned long physaddr,
+unsigned lonn
+g size)
+{
+        return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+}
+static inline void __iomem *ioremap_writethrough(unsigned long physaddr,
+                                         unsigned long size)
+{
+        return __ioremap(physaddr, size, IOMAP_WRITETHROUGH);
+}
+static inline void __iomem *ioremap_fullcache(unsigned long physaddr,
+                                      unsigned long size)
+{
+        return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
+}
+
+Gr{oetje,eeting}s,
+
+                        Geert
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
