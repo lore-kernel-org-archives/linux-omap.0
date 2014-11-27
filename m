@@ -1,50 +1,52 @@
-From: "Lu, Baolu" <baolu.lu@linux.intel.com>
-Subject: Re: [PATCH 06/19] usb: dwc3: host: Pass the XHCI_DRD_SUPPORT and
- XHCI_NEEDS_LHC_RESET quirk
-Date: Thu, 27 Nov 2014 10:00:27 +0800
-Message-ID: <547685BB.3020109@linux.intel.com>
-References: <1416921115-10467-1-git-send-email-george.cherian@ti.com> <1416921115-10467-7-git-send-email-george.cherian@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 0/6] Touchscreen performance related fixes
+Date: Thu, 27 Nov 2014 09:59:33 +0530
+Message-ID: <5476A8AD.4010003@ti.com>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com> <20141124115116.GA14997@linutronix.de> <547321A2.6010207@ti.com> <547325FA.6020004@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1416921115-10467-7-git-send-email-george.cherian@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: George Cherian <george.cherian@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: peter.chen@freescale.com, sojka@merica.cz, mathias.nyman@intel.com, balbi@ti.com, gregkh@linuxfoundation.org, tony@atomide.com, bcousson@baylibre.com, kgene.kim@samsung.com, ben-linux@fluff.org, linux@arm.linux.org.uk, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <547325FA.6020004-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.orglinux
 List-Id: linux-omap@vger.kernel.org
 
 
-On 2014=E5=B9=B411=E6=9C=8825=E6=97=A5 21:11, George Cherian wrote:
-> Pass the quir flag XHCI_DRD_SUPPORT from DWC3 host to xhci platform d=
-river.
-"quir" to "quirk"
 
-Regards,
-Baolu
+On Monday 24 November 2014 06:05 PM, Sebastian Andrzej Siewior wrote:
+> On 11/24/2014 01:16 PM, Vignesh R wrote:
+> 
+>> I have tried running both IIO and TSC at the same time. But I have never
+>> seen WARN_ON() even after running for close to 30 min. Can you send me
+>> the exact script, so that it will be easy to reproduce?
+> 
+> Sure thing.
+> - one shell
+> 	evtest /dev/input/event2
+> - second shell
+> 	./iio-test.sh
+>   with:
+> 
+> |#!/bin/sh
+> |
+> |while [ 1 = 1 ]
+> |do
+> |        cat /sys/bus/iio/devices/iio\:device0/in_voltage4_raw
+> |done
+> 
+> 
+> the kernel config: https://breakpoint.cc/am335x-config
+> 
 
-> This enables xhci driver to handle deallocation's differently while i=
-n DRD mode.
-> Pass the quirk flag XHCI_NEEDS_LHC_RESET from DWC3 host to xhci platf=
-orm
-> driver. This enables to do LHRESET during xhci_reset().
->
-> Signed-off-by: George Cherian <george.cherian@ti.com>
-> ---
->   drivers/usb/dwc3/host.c | 2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
-> index dcb8ca0..257b5b5 100644
-> --- a/drivers/usb/dwc3/host.c
-> +++ b/drivers/usb/dwc3/host.c
-> @@ -53,6 +53,8 @@ int dwc3_host_init(struct dwc3 *dwc)
->   #ifdef CONFIG_DWC3_HOST_USB3_LPM_ENABLE
->   	pdata.usb3_lpm_capable =3D 1;
->   #endif
-> +	pdata.usb_drd_support =3D 1;
-> +	pdata.usb_needs_lhc_reset =3D 1;
->  =20
->   	ret =3D platform_device_add_data(xhci, &pdata, sizeof(pdata));
->   	if (ret) {
+I was able to reproduce this issue. When ADC hits WARN_ON(), the TSC
+steps should be disabled. But, in this case, TSC is sampling the first Y
+co-ordinate and all TSC steps are enabled.
+REG_SE: 0x1ffc1
+ADC_STAT: 0x24
+
+Any idea why this may be happening?
+
+Regards
+Vignesh
