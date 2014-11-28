@@ -1,154 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Fri, 28 Nov 2014 14:24:26 -0800
-Message-ID: <20141128222424.GX2817@atomide.com>
-References: <20141027200008.GR2560@atomide.com>
- <201411271232.47231@pali>
- <20141128202719.GU2817@atomide.com>
- <201411282241.12095@pali>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] move omap gpmc to drivers finally
+Date: Fri, 28 Nov 2014 23:41:40 +0100
+Message-ID: <4073059.QNMRS4hN3Z@wuerfel>
+References: <20141126194330.GN2817@atomide.com> <201411281228.52786.arnd@arndb.de> <20141128213915.GV2817@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25735 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751176AbaK1W0u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 17:26:50 -0500
-Content-Disposition: inline
-In-Reply-To: <201411282241.12095@pali>
+Received: from mout.kundenserver.de ([212.227.17.10]:64633 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354AbaK1Wlo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 17:41:44 -0500
+In-Reply-To: <20141128213915.GV2817@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-* Pali Roh=C3=A1r <pali.rohar@gmail.com> [141128 13:43]:
-> On Friday 28 November 2014 21:27:19 Tony Lindgren wrote:
->=20
-> > Are you saying there are some issues with that?
->
-> uboot (in mode when is loaded from NOLO) has those issues:
->=20
-> 1) uboot cannot read n900 onenand mtd (uboot onenand driver not
-> working, do not know why)
-> 2) missing support for battery charging (can totally discharge
-> battery)
-> 3) missing support for panel panel (so sometimes screen is
-> totally black until kernel is booted and loaded own drivers)
-> 4) limit for storing both uboot and kernel into MTD is limited by
-> 2MB (size of kernel nand partition)
->=20
-> Basically you can use uboot if you accept all above issues.
->=20
-> But there are people (Pavel CCed) who prefer to work without
-> uboot when testing kernel. So it is not good idea to lock new
-> kernel versions to depends on new uboot version.
+On Friday 28 November 2014 13:39:16 Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [141128 03:31]:
+> > On Wednesday 26 November 2014, Tony Lindgren wrote:
+> > >
+> > > We can finally move the GPMC code to live in drivers/memory
+> > > for further clean up work. This series does the move with
+> > > minimal changes to the code.
+> > 
+> > I just looked at this branch. It's definitely nice to move the code
+> > to drivers/memory, but I don't like the idea of having lots of function
+> > declarations and internal data structures in a linux/platform_data/*.h
+> > file. We can still merge this for 3.19, but I want to make sure you have
+> > a plan for getting rid of this (and put that into the tag description).
+> > 
+> > Does this header file get removed once all non-DT board files are gone?
+> 
+> Yes that will become driver internal data at that point.
 
-OK thanks for the update, I was not aware of the issues above.
-=20
-> > Are there other ATAGs needed beyond the ATAG_REVISION?
->=20
-> Sorry for longer email. I will provide some more info about it.
-> First I will describe that informations are passed from NOLO
-> to kernel. Note that all those informations are passed also from
-> uboot to kernel (uboot just reuse non static data from NOLO).
-> Then I will describe that we need in userspace.
->=20
-> Here are all ATAGs from NOLO:
-=2E..=20
+Ok, cool.
 
-These we should not need, it's all coming from the .dts files.
+> > How about moving the declarations into include/linux/omap-gpmc.h instead?
+> 
+> OK. Below is an updated pull request with the platform_data/omap-gpmc.h
+> dropped.
 
-> 0036 - 0003:54410007 ATAG REVISION revision=3D00002204
->        0588 - 000c:4f80 BOOTREASON:   pwr_key    =20
->        0604 - 0018:4f82 VERSION:      product      =3D RX-51      =20
->        0632 - 0018:4f82 VERSION:      hw-build     =3D 2204       =20
->        0660 - 0018:4f82 VERSION:      nolo         =3D 1.4.14     =20
->        0688 - 0018:4f82 VERSION:      boot-mode    =3D normal     =20
+Pulled into next/omap-gpmc, thanks!
 
-Seems like these are the ones we should somehow get. The others
-should be coming in the .dts file already, or can be deciphered
-based on the above in the kernel.
-=20
-> ATAG MEM is generated by NOLO and also uboot at runtime. But we
-> have hardcoded memory values in n900 DT file. Maybe we should use
-> those generated by uboot bootloader (or reuse uboot code for
-> generating) instead using hardcoded one?
+I guess we'll end up merging this branch into next/drivers before submitting,
+but I have to see the relative sizes first. If it's a significant chunk of
+the drivers changes, we might submit it as one branch to Linus.
 
-Yes we should not need ATAG MEM.
-=20
-> ATAG REVISION is that which is magically generated by NOLO and
-> which we want to reuse. Better would be understand how and why it
-> NOLO generate (maybe there is something secret register which can
-> tell it?). But I was not able to find out it.
-
-I would assume that's also somewhere in the cal area.
-=20
-> OMAP table is one big ATAG structure which contains lot of other
-> values. Basically all values (except uart, bootreason and
-> version) are static and on all n900 devices are same.
->=20
-> Partitions are generated by NOLO from CAL (/dev/mtd1) data, but I
-> think nobody ever changed them (but it is possible!).
-
-AFAIK it's safe to assume they are coming in the .dts file.
-=20
-> Uart is enabled when serial console is enabled via NOLO.
-
-We can keep the UART enabled all the time no problem. It's timeouts
-just need to be configured for idle.
-=20
-> Bootreason contains omap3 bootreason value from special register
-> (plus magic from NOLO) which is cleared automatically by NOLO (so
-> no way to read it from kernel).
->=20
-> Version contains some key-value data. Product is always RX-51,
-> hw-build is same as ATAG REVISION, nolo is nolo version and value
-> for boot-mode is ether normal or update.
-
-OK=20
-=20
-> What we need in userspace:
->=20
-> In file /proc/cpuinfo:
-> Hardware        : Nokia RX-51 board
-> Revision        : <hw_revision_number>
->=20
-> And in any file and any format (does not matter if text, binary,
-> whatever...) we need value from bootreason, boot-mode (and maybe
-> nolo version).
-
-OK
-=20
-> Current maemo applications are using files /proc/bootreason (for
-> bootreason) and /proc/component_version (for all version) which
-> are specific for Nokia 2.6.28 kernel. All those applications
-> (which reading ether bootreason or bootmode proc files) are
-> either shell scripts or open source, so editing them is possible.
-> I will start fixing them once there will be *stable* ABI for
-> those data.
->=20
-> With non DT (legacy) boot all above atags are present in binary
-> file /proc/atags.
->=20
-> But because DT boot does not provide /proc/atags file I need some
-> interface how to read above needed strings.
->=20
-> So I would like to know what is possible and how?
-
-How about patch things so we see /proc/atags also for DT based
-booting, but in a way where the ATAGs don't do anything?
-=20
-> Does kernel provide some interface for telling userspace
-> applications something like bootreason (e.g power key, software
-> reset, rtc alarm, charger connected, ...)?
-
-I don't think we have anything like that currently.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
