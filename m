@@ -1,69 +1,45 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v7 6/8] net: can: c_can: Disable pins when CAN interface
- is down
-Date: Fri, 28 Nov 2014 11:22:12 +0200
-Message-ID: <54783EC4.5000909@ti.com>
-References: <1415371762-29885-1-git-send-email-rogerq@ti.com>	<1415371762-29885-7-git-send-email-rogerq@ti.com>	<5464CCFF.5010004@ti.com>	<5466225D.2070202@ti.com> <CACRpkdbVXPi7fNjGEzChayQ1KQg8h2R6sm0TNRsVOFJmAT=YMQ@mail.gmail.com> <54779564.7010309@pengutronix.de>
+From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
+Date: Fri, 28 Nov 2014 11:35:53 +0100
+Message-ID: <CAGm1_kvZnkB4MWPv3ExCqibb0Rq4xXfkPHHpfDb9HOTFNf7BiA@mail.gmail.com>
+References: <CAFqH_53hyYO9DHfhzDhYkTnimKR0FOQuUw4OGCM4myKoOJSQRA@mail.gmail.com>
+ <20141117180413.GF7046@atomide.com> <CAFqH_52LV8k6OyH04dUmhzZChnHrtJR23qu1ewhU49iOVT1Mwg@mail.gmail.com>
+ <20141118154204.GI7046@atomide.com> <CAFqH_508pYkDXO8BCR=cFGFY_CgfkhqvseUy=Z--fJMOQCo6Tg@mail.gmail.com>
+ <20141119175348.GK7046@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34266 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831AbaK1JWk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 04:22:40 -0500
-In-Reply-To: <54779564.7010309@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141119175348.GK7046-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>, Linus Walleij <linus.walleij@linaro.org>
-Cc: wg@grandegger.com, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>, Mugunthan V N <mugunthanvnm@ti.com>, George Cherian <george.cherian@ti.com>, Felipe Balbi <balbi@ti.com>, Sekhar Nori <nsekhar@ti.com>Nishanth Menon <nm@ti.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-can@vger.kernel.org, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 
-On 27/11/14 23:19, Marc Kleine-Budde wrote:
-> On 11/27/2014 02:26 PM, Linus Walleij wrote:
->> On Fri, Nov 14, 2014 at 4:40 PM, Roger Quadros <rogerq@ti.com> wrote:
+On Wed, Nov 19, 2014 at 6:53 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> * Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141119 03:14]:
+>> 2014-11-18 16:42 GMT+01:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
 >>
->>> DRA7 CAN IP suffers from a problem which causes it to be prevented
->>> from fully turning OFF (i.e. stuck in transition) if the module was
->>> disabled while there was traffic on the CAN_RX line.
->>>
->>> To work around this issue we select the SLEEP pin state by default
->>> on probe and use the DEFAULT pin state on CAN up and back to the
->>> SLEEP pin state on CAN down.
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Checked again, and no luck. It's very weird because from the OTG point
+>> of view, OTG is exactly the same between Beagleboard-XM and IGEPv2.
 >>
->> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
-> 
-> Thanks, however the patch is already upstream.
-> 
->>
->> I see you figured it out all by yourselves :D
->>
->> (Sorry for being absent.)
->>
->>> +#include <linux/pinctrl/consumer.h>
->>> +       pinctrl_pm_select_default_state(dev->dev.parent);
->>> +       pinctrl_pm_select_sleep_state(dev->dev.parent);
->>> +       pinctrl_pm_select_sleep_state(dev->dev.parent);
->>
->> NB: in drivers/base/pinctrl.c:
->>
->> #ifdef CONFIG_PM
->>         /*
->>          * If power management is enabled, we also look for the optional
->>          * sleep and idle pin states, with semantics as defined in
->>          * <linux/pinctrl/pinctrl-state.h>
->>          */
->>         dev->pins->sleep_state = pinctrl_lookup_state(dev->pins->p,
->>                                         PINCTRL_STATE_SLEEP);
->>
->> So if these states are necessary for the driver to work, put
->> depends on PM or select PM in the Kconfig.
-> 
-> Roger, you can prepare a patch, if needed.
+>> Can you confirm that you're using kernel 3.18-rc5 without other
+>> patches applied ? At this moment, I don't have a Beagleboard-XM to
+>> test, I'll try to get one because at this moment I'm a bit stuck with
+>> this problem.
+>
+> Yes it was with v3.18-rc5 and the defconfig patch I posted except
+> I had to disable all the other MUSB platforms. Also tested it with
+> built in modules.
+>
+> Maybe you need to check the .dts pinctrl entries for hsusb0_* lines?
 
-As pinctrl sleep is an optional driver feature we don't need to do any changes.
-For the DRA7 specific case, the platform configs ensure that PM is enabled.
+Just my 2 cents, My am335x based board shows similar symptoms
+(CONFIG_USB_MUSB_DUAL_ROLE enabled). Only if I specify  dr_mode =
+"host"; in my DTS I get device enumerated. 3.15, that I had before
+made no problems as OTG.
 
-cheers,
--roger
+Yegor
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
