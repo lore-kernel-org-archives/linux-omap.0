@@ -1,52 +1,67 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Sat, 29 Nov 2014 00:54:39 +0200
-Message-ID: <20141128225439.GC1382@fuloong-minipc.musicnaut.iki.fi>
-References: <20141027200008.GR2560@atomide.com>
- <201411282241.12095@pali>
- <20141128224134.GB1382@fuloong-minipc.musicnaut.iki.fi>
- <201411282349.00487@pali>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:43470 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209AbaK1Wys (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 17:54:48 -0500
-Content-Disposition: inline
-In-Reply-To: <201411282349.00487@pali>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] i2c: omap: TEST: do IP reset during probe.
+Date: Sat, 29 Nov 2014 02:25:29 +0300
+Message-ID: <E4A4FA05-0752-41CB-B86B-84035C6EAF05@gmail.com>
+References: <1416685634-5864-3-git-send-email-al.kochet@gmail.com> <1417028722-29306-1-git-send-email-al.kochet@gmail.com> <7hzjbdd57j.fsf@deeprootsystems.com> <20141128221350.GW2817@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141128221350.GW2817-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Hello, Tony!
 
-On Fri, Nov 28, 2014 at 11:49:00PM +0100, Pali Roh=E1r wrote:
-> On Friday 28 November 2014 23:41:35 Aaro Koskinen wrote:
-> > On Fri, Nov 28, 2014 at 10:41:12PM +0100, Pali Roh=E1r wrote:
-> > > uboot (in mode when is loaded from NOLO) has those issues:
-> > >=20
-> > > 1) uboot cannot read n900 onenand mtd (uboot onenand driver
-> > > not working, do not know why)
-> > > 2) missing support for battery charging (can totally
-> > > discharge battery)
-> >=20
-> > NOLO enables watchdogs when booting. So if you get stuck in
-> > the U-boot for whatever reason the device will power off
-> > after ~30 secs or so.
->=20
-> Not truth!
->=20
-> Uboot RX51 code periodically kick watchdogs if are enabled. I=20
-> implemented that before RX51 uboot was merged into mainline.
+I just want to know, is multimaster i2c feature is interesting for TI SOC,
+so I could send another patches?
 
-Maybe then it shouldn't do that.
+Or it's better to leave the thing without changes, as current single master version
+well tested and work?
 
-A.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also I have a draft version of mixed multimaster/slave version. But it could introduce new bugs.
+Are we ready for that? Thats because IP behavior, sometimes, doesn't correspond to TRMs[4][5].
+It's the one of strange IP I ever seen on TI SOC. And TRM not as detailed as DSP TRMs.
+
+Yes, I test the patch. But  IP handling is really tricky.
+So, I doubt.
+
+Looks, like you haven't seen my response in another thread[1].
+So, duplicate it here.
+
+24.11.2014 22:47, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> *:
+
+> If you post a patch, I can test boot with it. Looks like the failing
+> ones have i2c rev3.3 on 34xx vs rev4.4 on 36xx.
+
+> So I doubt we just want to change the test for for a higher rev number
+> for  OMAP_I2C_REV_ON_3430_3530.
+
+You 100% right here.
+My fault.
+Thank you for giving right directions.
+Thanks Kevin for running test, so I could debug the reason.
+
+Functional mode bits are unimplemented in the SYSTEST register on omap3530.
+"10:5 Reserved Write 0s for future compatibility. Read returns 0."
+That was the reason. SYSTEST always 0.
+
+It is possible (and I could do it) to implement the bus check using SYSTEST SDA/SCL loopback mode.
+
+One more problem, I found that BB-check from the patch[2] sometimes (very rarely) doesn't work
+as expected. Sometimes the master start transfer while bus is in use by another master. 
+It happens if another master continuously read from eeprom array of 0xff.
+
+So, one of problems on the way of running IP in a multimaster mode, is BB-bit behavior.
+I reported the problem to ti forum[3] and expect some response.
+
+Regards,
+Alexander.
+
+[1] http://www.spinics.net/lists/linux-i2c/msg17797.html
+[2] http://www.spinics.net/lists/linux-i2c/msg17678.html
+[3] http://e2e.ti.com/support/dsp/davinci_digital_media_processors/f/537/t/383876.aspx
+[4] omap3530 - TRM - spruf98y
+[5] AM-DM37x Multimedia Device Silicon Revision 1.x  - sprugn4r
