@@ -1,51 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] move omap gpmc to drivers finally
-Date: Fri, 28 Nov 2014 23:41:40 +0100
-Message-ID: <4073059.QNMRS4hN3Z@wuerfel>
-References: <20141126194330.GN2817@atomide.com> <201411281228.52786.arnd@arndb.de> <20141128213915.GV2817@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Sat, 29 Nov 2014 00:41:35 +0200
+Message-ID: <20141128224134.GB1382@fuloong-minipc.musicnaut.iki.fi>
+References: <20141027200008.GR2560@atomide.com>
+ <201411271232.47231@pali>
+ <20141128202719.GU2817@atomide.com>
+ <201411282241.12095@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:64633 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751354AbaK1Wlo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 17:41:44 -0500
-In-Reply-To: <20141128213915.GV2817@atomide.com>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:54154 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209AbaK1Wln (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 17:41:43 -0500
+Content-Disposition: inline
+In-Reply-To: <201411282241.12095@pali>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 28 November 2014 13:39:16 Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [141128 03:31]:
-> > On Wednesday 26 November 2014, Tony Lindgren wrote:
-> > >
-> > > We can finally move the GPMC code to live in drivers/memory
-> > > for further clean up work. This series does the move with
-> > > minimal changes to the code.
-> > 
-> > I just looked at this branch. It's definitely nice to move the code
-> > to drivers/memory, but I don't like the idea of having lots of function
-> > declarations and internal data structures in a linux/platform_data/*.h
-> > file. We can still merge this for 3.19, but I want to make sure you have
-> > a plan for getting rid of this (and put that into the tag description).
-> > 
-> > Does this header file get removed once all non-DT board files are gone?
-> 
-> Yes that will become driver internal data at that point.
+Hi,
 
-Ok, cool.
+On Fri, Nov 28, 2014 at 10:41:12PM +0100, Pali Roh=E1r wrote:
+> uboot (in mode when is loaded from NOLO) has those issues:
+>=20
+> 1) uboot cannot read n900 onenand mtd (uboot onenand driver not
+> working, do not know why)
+> 2) missing support for battery charging (can totally discharge
+> battery)
 
-> > How about moving the declarations into include/linux/omap-gpmc.h instead?
-> 
-> OK. Below is an updated pull request with the platform_data/omap-gpmc.h
-> dropped.
+NOLO enables watchdogs when booting. So if you get stuck in the U-boot
+for whatever reason the device will power off after ~30 secs or so.
 
-Pulled into next/omap-gpmc, thanks!
-
-I guess we'll end up merging this branch into next/drivers before submitting,
-but I have to see the relative sizes first. If it's a significant chunk of
-the drivers changes, we might submit it as one branch to Linus.
-
-	Arnd
+A.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
