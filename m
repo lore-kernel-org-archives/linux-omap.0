@@ -1,49 +1,83 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] move omap gpmc to drivers finally
-Date: Fri, 28 Nov 2014 12:28:52 +0100
-Message-ID: <201411281228.52786.arnd@arndb.de>
-References: <20141126194330.GN2817@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/3] ARM: edma: Rename header file for
+ dmaengine filter function definition
+Date: Fri, 28 Nov 2014 13:48:42 +0200
+Message-ID: <5478611A.5060404@ti.com>
+References: <1417084891-17990-1-git-send-email-peter.ujfalusi@ti.com>
+ <4859328.eEV7jzKEaA@wuerfel> <54782148.6040108@ti.com>
+ <6448422.mtUnef24Xp@wuerfel>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:56736 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976AbaK1L3d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 06:29:33 -0500
-In-Reply-To: <20141126194330.GN2817@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <6448422.mtUnef24Xp@wuerfel>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: alsa-devel@alsa-project.org, linux@arm.linux.org.uk, vinod.koul@intel.com, nsekhar@ti.com, linux-spi@vger.kernel.org, linux-mmc@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, chris@printf.net, dmaengine@vger.kernel.org, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-On Wednesday 26 November 2014, Tony Lindgren wrote:
-> The following changes since commit 6f8782a7a1c826e1c013d6b7d5504af6bcc079e6:
-> 
->   ARM: OMAP2+: Remove unnecesary include in GPMC driver (2014-11-06 10:51:06 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/gpmc-move
-> 
-> for you to fetch changes up to d2c70f553d7203b9bb37730e577be29794ae3169:
-> 
->   memory: gpmc: Move omap gpmc code to live under drivers (2014-11-26 11:11:19 -0800)
-> 
-> ----------------------------------------------------------------
-> We can finally move the GPMC code to live in drivers/memory
-> for further clean up work. This series does the move with
-> minimal changes to the code.
+On 11/28/2014 12:51 PM, Arnd Bergmann wrote:
+> On Friday 28 November 2014 09:16:24 Peter Ujfalusi wrote:
+>> On 11/27/2014 11:52 PM, Arnd Bergmann wrote:
+>>> On Thursday 27 November 2014 20:46:12 Peter Ujfalusi wrote:
+>>>>
+>>>> I see. With this series I did not planed to fix all edma related issue=
+s, just
+>>>> as a start clean up the related header files. I would rather not add f=
+ixes to
+>>>> mmc, spi, etc drivers since while you have valid point it is not in th=
+e scope
+>>>> of this series.
+>>>> Can we do the changes you are suggesting in an incremental manner?
+>>>
+>>> Sure, but I'd leave the existing filter function declaration alone then
+>>> and not move it, since we wouldn't want to keep it in the long run.
+>>
+>> but if you want to reference the filter function (which is in
+>> drivers/dma/edma.c) in arch/arm/mach-davinci/ directory, we will need it.
+>> Don't we?
+> =
 
-I just looked at this branch. It's definitely nice to move the code
-to drivers/memory, but I don't like the idea of having lots of function
-declarations and internal data structures in a linux/platform_data/*.h
-file. We can still merge this for 3.19, but I want to make sure you have
-a plan for getting rid of this (and put that into the tag description).
+> Yes, unless you move the definition of the filter function into
+> arch/arm/common/edma.c or arch/arm/mach-davinci/devices.c, but that
+> would require other changes.
 
-Does this header file get removed once all non-DT board files are gone?
+At the end the aim is to get rid of the edma code form arch/arm and have on=
+ly
+dmaengine API towards eDMA. The ASoC davinci-pcm is the only user of the
+legacy API AFAIK. It has a mode called ping-pong which is not possible with
+the dmaeingine at all. This is to overcome underflow situations on parts wh=
+ere
+the audio IP does not have FIFO.
+My edma-pcm (which is using dmaengine) should be able to handle this
+situation, but I need to verify it before I can remove the davinci-pcm and
+then we can get rid of the direct eDMA API and code.
 
-How about moving the declarations into include/linux/omap-gpmc.h instead?
+>> If I leave the header as it is, then how would we clean up the edma head=
+ers? I
+>> would not put the API definitions for the arch code into the same file a=
+s we
+>> have the filter definition.
+> =
 
-	Arnd
+> Ok, just go ahead with your current patch then, we can always follow up.
+> The most important cleanup for edma is elsewhere anyway, so once the asoc
+> drivers can use the dmaengine interface, this should be easier.
+> =
+
+> 	Arnd
+> =
+
+
+
+-- =
+
+P=E9ter
