@@ -1,102 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] move omap gpmc to drivers finally
-Date: Fri, 28 Nov 2014 13:39:16 -0800
-Message-ID: <20141128213915.GV2817@atomide.com>
-References: <20141126194330.GN2817@atomide.com>
- <201411281228.52786.arnd@arndb.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC] i2c: omap: TEST: do IP reset during probe.
+Date: Fri, 28 Nov 2014 14:13:51 -0800
+Message-ID: <20141128221350.GW2817@atomide.com>
+References: <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
+ <1417028722-29306-1-git-send-email-al.kochet@gmail.com>
+ <7hzjbdd57j.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48999 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751174AbaK1Vll (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Nov 2014 16:41:41 -0500
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <201411281228.52786.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <7hzjbdd57j.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-* Arnd Bergmann <arnd@arndb.de> [141128 03:31]:
-> On Wednesday 26 November 2014, Tony Lindgren wrote:
+* Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [141126 13:27]:
+> Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+> 
+> > NOT FOR UPSTREAM
 > >
-> > We can finally move the GPMC code to live in drivers/memory
-> > for further clean up work. This series does the move with
-> > minimal changes to the code.
+> > The patch checks if IP reset during probe could bring I2C bus
+> > to a free state on omap2430 - omap3530 boards.
+> >
+> > I guess, IP hold one of I2C lines in a low state.
+> > I guess, u-boot haven't sent a stop condition.
+> >
+> > The patch is rebased on branch 'i2c/for-next' of
+> > git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux
+> > (6e79807443cba7397cd855ed29d6faba51d4c893)
+> >
+> > Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > Reported-by: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Tested-by: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > 
-> I just looked at this branch. It's definitely nice to move the code
-> to drivers/memory, but I don't like the idea of having lots of function
-> declarations and internal data structures in a linux/platform_data/*.h
-> file. We can still merge this for 3.19, but I want to make sure you have
-> a plan for getting rid of this (and put that into the tag description).
+> Built for omap2plus_defconfig and tested on all my OMAP boards.  Results
+> here:
 > 
-> Does this header file get removed once all non-DT board files are gone?
+> http://people.linaro.org/~khilman/tmp/next-20141126-1-g760388ee02e4/arm-omap2plus_defconfig/
 
-Yes that will become driver internal data at that point.
- 
-> How about moving the declarations into include/linux/omap-gpmc.h instead?
-
-OK. Below is an updated pull request with the platform_data/omap-gpmc.h
-dropped.
+And below is the output from 2430sdp with linux next plus Alexander's
+test patch. Looks like for some time 2430 i2c has not been behaving
+reliably unless I force compatible to ti,omap2420-i2c instead of
+ti,omap2430-i2c.. The output below is with ti,omap2430-i2c.
 
 Regards,
 
 Tony
 
-8< -------------------
-The following changes since commit 6f8782a7a1c826e1c013d6b7d5504af6bcc079e6:
-
-  ARM: OMAP2+: Remove unnecesary include in GPMC driver (2014-11-06 10:51:06 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/gpmc-move-v2
-
-for you to fetch changes up to 186401937927426f85a28bd798e82ca18e4e5549:
-
-  memory: gpmc: Move omap gpmc code to live under drivers (2014-11-28 12:54:39 -0800)
-
-----------------------------------------------------------------
-We can finally move the GPMC code to live in drivers/memory for
-further clean up work.
-
-Note that we still have dependencies to the legacy booting for
-omap3 board-*.c files for setting up the board specific memory
-timings. For that we need the timing related things still exposed
-in include/linux/omap-gpmc.h. This will all become private data
-to the GPMC driver once the legacy booting support can be dropped.
-
-----------------------------------------------------------------
-Tony Lindgren (3):
-      ARM: OMAP2+: Prepare to move GPMC to drivers by platform data header
-      ARM: OMAP2+: Move GPMC initcall to devices.c
-      memory: gpmc: Move omap gpmc code to live under drivers
-
- MAINTAINERS                                        |   8 +
- arch/arm/mach-omap2/Kconfig                        |   2 +
- arch/arm/mach-omap2/Makefile                       |   2 +-
- arch/arm/mach-omap2/board-am3517crane.c            |   1 +
- arch/arm/mach-omap2/board-cm-t35.c                 |   3 +-
- arch/arm/mach-omap2/board-cm-t3517.c               |   3 +-
- arch/arm/mach-omap2/board-flash.c                  |   3 +-
- arch/arm/mach-omap2/board-flash.h                  |   1 -
- arch/arm/mach-omap2/board-n8x0.c                   |   2 -
- arch/arm/mach-omap2/board-omap3pandora.c           |   2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c       |   3 +-
- arch/arm/mach-omap2/devices.c                      |  26 +++
- arch/arm/mach-omap2/gpmc-nand.c                    |   3 +-
- arch/arm/mach-omap2/gpmc-nand.h                    |  27 ---
- arch/arm/mach-omap2/gpmc-onenand.c                 |   3 +-
- arch/arm/mach-omap2/gpmc-onenand.h                 |  24 ---
- arch/arm/mach-omap2/gpmc.h                         | 227 +--------------------
- arch/arm/mach-omap2/pm34xx.c                       |   2 +-
- drivers/memory/Kconfig                             |   8 +
- drivers/memory/Makefile                            |   1 +
- .../gpmc.c => drivers/memory/omap-gpmc.c           |  90 +++++---
- include/linux/omap-gpmc.h                          | 199 ++++++++++++++++++
- 22 files changed, 316 insertions(+), 324 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/gpmc-nand.h
- delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
- rename arch/arm/mach-omap2/gpmc.c => drivers/memory/omap-gpmc.c (95%)
- create mode 100644 include/linux/omap-gpmc.h
+8< -------------
+[    0.913574] omap_i2c 48070000.i2c: init0: STAT=0x0000; IE=0x601f; CON=0x8000; SYSTEST=0x0000; SDA=00 [OI]; SCL=00 [OI] (omap_i2c_init:493)
+[    1.931365] omap_i2c 48070000.i2c: timeout waiting for bus ready
+[    1.931457] omap_i2c 48070000.i2c: init1: STAT=0x0000; IE=0x601f; CON=0x8000; SYSTEST=0x0000; SDA=00 [OI]; SCL=00 [OI] (omap_i2c_init:497)
+[    1.931518] omap_i2c 48070000.i2c: init1: bb_valid=0
+[    2.949249] omap_i2c 48070000.i2c: timeout waiting for bus ready
+[    2.949340] omap_i2c 48070000.i2c: init2: STAT=0x0000; IE=0x601f; CON=0x8000; SYSTEST=0x0000; SDA=00 [OI]; SCL=00 [OI] (omap_i2c_init:504)
+[    2.949401] omap_i2c 48070000.i2c: init2: bb_valid=0
+[    2.952941] omap_i2c 48070000.i2c: bus 0 rev3.3 at 100 kHz (rev 00000036)
+[    2.969299] omap_i2c 48072000.i2c: init0: STAT=0x0000; IE=0x601f; CON=0x8000; SYSTEST=0x0000; SDA=00 [OI]; SCL=00 [OI] (omap_i2c_init:493)
+[    3.987091] omap_i2c 48072000.i2c: timeout waiting for bus ready
+[    3.987182] omap_i2c 48072000.i2c: init1: STAT=0x0000; IE=0x601f; CON=0x8000; SYSTEST=0x0000; SDA=00 [OI]; SCL=00 [OI] (omap_i2c_init:497)
+[    3.987243] omap_i2c 48072000.i2c: init1: bb_valid=0
+[    5.004974] omap_i2c 48072000.i2c: timeout waiting for bus ready
+[    5.005096] omap_i2c 48072000.i2c: init2: STAT=0x0000; IE=0x601f; CON=0x8000; SYSTEST=0x0000; SDA=00 [OI]; SCL=00 [OI] (omap_i2c_init:504)
+[    5.005126] omap_i2c 48072000.i2c: init2: bb_valid=0
+[    5.017517] omap_i2c 48072000.i2c: bus 1 rev3.3 at 100 kHz (rev 00000036)
+[    7.555419] twl4030_keypad 48072000.i2c:twl@48:keypad: OF: linux,keymap property not defined in /ocp/i2c@48072000/twl@48/keypad
+[    7.567626] twl4030_keypad 48072000.i2c:twl@48:keypad: Failed to build keymap
+[    7.575439] twl4030_keypad: probe of 48072000.i2c:twl@48:keypad failed with error -2
+[    7.599639] input: twl4030_pwrbutton as /devices/platform/ocp/48072000.i2c/i2c-1/1-0048/48072000.i2c:twl@48:pwrbutton/input/input1
+[    7.624450] twl_rtc 48072000.i2c:twl@48:rtc: Power up reset detected.
+[    7.631988] twl_rtc 48072000.i2c:twl@48:rtc: Enabling TWL-RTC
+[    7.655456] twl_rtc 48072000.i2c:twl@48:rtc: rtc core: registered 48072000.i2c:twl@48 as rtc0
+[    7.923187] i2c /dev entries driver
+[    8.246795] twl_rtc 48072000.i2c:twl@48:rtc: hctosys: unable to read the hardware clock
+[    9.675994] omap_i2c 48072000.i2c: controller timed out
+[   10.704010] omap_i2c 48072000.i2c: controller timed out
+[   11.734069] omap_i2c 48072000.i2c: controller timed out
+root@omap2430sdp:/# [   12.823638] omap_i2c 48072000.i2c: controller timed out
+[   12.834747] twl4030: I2C error -110 reading PIH ISR
