@@ -1,61 +1,71 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v9 0/7] Enable L2 cache support on Exynos4210/4x12 SoCs
-Date: Thu, 27 Nov 2014 22:51:00 +0000
-Message-ID: <20141127225100.GA3840@n2100.arm.linux.org.uk>
-References: <1416224909-4290-1-git-send-email-m.szyprowski@samsung.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH] ARM: OMAP2+: AM43x: Add ID for ES1.2
+Date: Fri, 28 Nov 2014 09:02:07 +0530
+Message-ID: <1417145527-31086-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:38183 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231AbaK0WvY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Nov 2014 17:51:24 -0500
-Content-Disposition: inline
-In-Reply-To: <1416224909-4290-1-git-send-email-m.szyprowski@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51511 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750981AbaK1Ddr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Nov 2014 22:33:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomasz Figa <tomasz.figa@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-samsung-soc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Kukjin Kim <kgene.kim@samsung.com>, lauraa@codeaurora.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, tony@atomide.com, drake@endlessm.com, loeliger@gmail.com, Mark Rutland <mark.rutland@arm.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com, nm@ti.com, lokeshvutla@ti.com
 
-On Mon, Nov 17, 2014 at 12:48:22PM +0100, Marek Szyprowski wrote:
-> This is an updated patchset, which intends to add support for L2 cache
-> on Exynos4 SoCs on boards running under secure firmware, which requires
-> certain initialization steps to be done with help of firmware, as
-> selected registers are writable only from secure mode.
-> 
-> First four patches extend existing support for secure write in L2C driver
-> to account for design of secure firmware running on Exynos. Namely:
->  1) direct read access to certain registers is needed on Exynos, because
->     secure firmware calls set several registers at once,
->  2) not all boards are running secure firmware, so .write_sec callback
->     needs to be installed in Exynos firmware ops initialization code,
->  3) write access to {DATA,TAG}_LATENCY_CTRL registers fron non-secure world
->     is not allowed and so must use l2c_write_sec as well,
->  4) on certain boards, default value of prefetch register is incorrect
->     and must be overridden at L2C initialization.
-> For boards running with firmware that provides access to individual
-> L2C registers this series should introduce no functional changes. However
-> since the driver is widely used on other platforms I'd like to kindly ask
-> any interested people for testing.
-> 
-> Further three patches add implementation of .write_sec and .configure
-> callbacks for Exynos secure firmware and necessary DT nodes to enable
-> L2 cache.
-> 
-> Changes in this version tested on Exynos4412-based TRATS2 and OdroidU3+
-> boards (both with secure firmware). There should be no functional change
-> for Exynos boards running without secure firmware. I do not have access
-> to affected non-Exynos boards, so I could not test on them.
+ES1.2 is a minor variant of ES1.1. Major changes since ES1.1 are
+updating ROM for fixing the following boot modes:
+- NAND boot
+- UART boot
+- Ethernet boot
+- USB HOST/Client boot
+This patch adds ID support for AM437x ES1.2 silicon.
+There are no additional kernel fixes required for ES1.2 silicon.
 
-So, I applied this series, and now I get a conflicts between my tree and
-arm-soc for:
+Latest Technical Documentation can be found here:
+http://www.ti.com/lsds/ti/arm/sitara_arm_cortex_a_processor/arm_cortex_a9_core/am437x_arm_cortex_a9/tech_docs.page
 
-arch/arm/mach-exynos/firmware.c
-arch/arm/mach-exynos/sleep.S
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ arch/arm/mach-omap2/id.c  | 8 ++++++--
+ arch/arm/mach-omap2/soc.h | 1 +
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-So, I'm going to un-stage the exynos bits, and we'll have to work out
-some way to handle those.
-
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 53841de..c25feba 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -471,11 +471,15 @@ void __init omap3xxx_check_revision(void)
+ 			cpu_rev = "1.0";
+ 			break;
+ 		case 1:
+-		/* FALLTHROUGH */
+-		default:
+ 			omap_revision = AM437X_REV_ES1_1;
+ 			cpu_rev = "1.1";
+ 			break;
++		case 2:
++		/* FALLTHROUGH */
++		default:
++			omap_revision = AM437X_REV_ES1_2;
++			cpu_rev = "1.2";
++			break;
+ 		}
+ 		break;
+ 	case 0xb8f2:
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 4376f59..c1a3b44 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -446,6 +446,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define AM437X_CLASS		0x43700000
+ #define AM437X_REV_ES1_0	(AM437X_CLASS | (0x10 << 8))
+ #define AM437X_REV_ES1_1	(AM437X_CLASS | (0x11 << 8))
++#define AM437X_REV_ES1_2	(AM437X_CLASS | (0x12 << 8))
+ 
+ #define OMAP443X_CLASS		0x44300044
+ #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
 -- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+1.9.1
+
