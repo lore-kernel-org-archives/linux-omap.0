@@ -1,66 +1,43 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/3] ARM: edma: Rename header file for
- dmaengine filter function definition
-Date: Fri, 28 Nov 2014 09:16:24 +0200
-Message-ID: <54782148.6040108@ti.com>
-References: <1417084891-17990-1-git-send-email-peter.ujfalusi@ti.com>
- <3300340.ou8f7H2hIc@wuerfel> <54777174.4070203@ti.com>
- <4859328.eEV7jzKEaA@wuerfel>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 16/23] ARM: OMAP4: omapdss: remove legacy pad muxing support
+Date: Fri, 28 Nov 2014 09:58:32 +0200
+Message-ID: <54782B28.7010306@ti.com>
+References: <1417103514-17027-1-git-send-email-t-kristo@ti.com> <1417103514-17027-17-git-send-email-t-kristo@ti.com> <54774CCD.5060600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <4859328.eEV7jzKEaA@wuerfel>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: alsa-devel@alsa-project.org, linux@arm.linux.org.uk, vinod.koul@intel.com, nsekhar@ti.com, linux-spi@vger.kernel.org, linux-mmc@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, chris@printf.net, dmaengine@vger.kernel.org, ulf.hansson@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55410 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750870AbaK1H6F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Nov 2014 02:58:05 -0500
+In-Reply-To: <54774CCD.5060600@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, paul@pwsan.com, nm@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On 11/27/2014 11:52 PM, Arnd Bergmann wrote:
-> On Thursday 27 November 2014 20:46:12 Peter Ujfalusi wrote:
->>
->> I see. With this series I did not planed to fix all edma related issues,=
- just
->> as a start clean up the related header files. I would rather not add fix=
-es to
->> mmc, spi, etc drivers since while you have valid point it is not in the =
-scope
->> of this series.
->> Can we do the changes you are suggesting in an incremental manner?
-> =
+On 11/27/2014 06:09 PM, Tomi Valkeinen wrote:
+> On 27/11/14 17:51, Tero Kristo wrote:
+>> OMAP4 is DT only now, so the legacy mux support is not needed anymore.
+>> Padconf is used instead from the driver / DT. This removes the need
+>> for having the mux APIs exported from the control module driver.
+>
+> We still use those mux functions for DT. The mux registers for DSI are
+> so funny that we can't use the normal padconf for them.
 
-> Sure, but I'd leave the existing filter function declaration alone then
-> and not move it, since we wouldn't want to keep it in the long run.
+Ah hmm, so it seems, I overlooked the omapdss_init_of() function. Looks 
+like some of the patches in this set needs to be dropped for now then, 
+namely 16, 17, and patch 18 has to be modified.
 
-but if you want to reference the filter function (which is in
-drivers/dma/edma.c) in arch/arm/mach-davinci/ directory, we will need it.
-Don't we?
+The direct omap4 padconf hacks are very bad though. Maybe it should be 
+changed to only allow access to that single DSIPHY register.
 
-If I leave the header as it is, then how would we clean up the edma headers=
-? I
-would not put the API definitions for the arch code into the same file as we
-have the filter definition.
+-Tero
 
+> I did do some work to use syscon, but I never had time to finish it.
+>
+>   Tomi
+>
+>
 
-> =
-
-> 	Arnd
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> =
-
-
-
--- =
-
-P=E9ter
