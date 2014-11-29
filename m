@@ -1,69 +1,57 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] tty: serial: serial-omap: depend on !8250_omap
-Date: Sat, 29 Nov 2014 10:48:23 +0100
-Message-ID: <20141129094823.GA10840@linutronix.de>
-References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v7.1 09/19] ASoC: omap-hdmi-audio: Add platform device
+ for OMAP HDMI audio support
+Date: Sat, 29 Nov 2014 11:32:30 +0000
+Message-ID: <20141129113230.GC7712@sirena.org.uk>
+References: <cover.1415803064.git.jsarha@ti.com>
+ <9a528990bbe116d9bb073f690b835c847b3fa0bf.1415803065.git.jsarha@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EqMiG03fNEfpmvTL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:36707 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbaK2Js0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Nov 2014 04:48:26 -0500
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43129 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751517AbaK2Lcu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Nov 2014 06:32:50 -0500
 Content-Disposition: inline
-In-Reply-To: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
+In-Reply-To: <9a528990bbe116d9bb073f690b835c847b3fa0bf.1415803065.git.jsarha@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-serial@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>, uwe@kleine-koenig.org
+To: Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
 
-* Sebastian Andrzej Siewior | 2014-11-26 23:01:46 [+0100]:
 
->Technically speaking this is not required. If both are enabled then th=
-e
->Maikefile order says that 8250 one wins, the second is never probed.
->
->If we choose to enable 8250_omap via defconfig then one might get supp=
-rised
->that his console isn't working anymore since nothing says use ttySx
->instead ttyOx.
->This patch _tries_ to bring this to the users' attention by not showin=
-g
->the serial-omap driver once the 8250 one is enabled. So the user might
->choose to use the help text which says that this driver (8250_omap)
->uses ttySx instead ttyOx.
->
->Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
->---
->This is my attempt to warn the defconfig user of the defconfig change
->(which did not yet happen). Any suggestions?
+--EqMiG03fNEfpmvTL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This is was Uwe Kleine-K=C3=B6nig suggested off-list:
+On Wed, Nov 12, 2014 at 04:41:00PM +0200, Jyri Sarha wrote:
+> The platform device should only be registered from OMAPDSS HDMI
+> driver. The platform driver registers and unregisters all ASoC
+> components needed for OMAP HDMI audio.
 
-|Currently there are two drivers for the serial device. Until the new o=
-ne
-|matured enough to drop the old one, let them conflict each other. They
-|both handle the same devices, but only one can be responsible for a
-|single device. There is no technical need, but having two drivers in t=
-he
-|same kernel might result in surprises.
+So, this basically seems fine but I'm looking at this code and I'm not
+really seeing a huge amount of OMAP specificness here.  Why is this an
+OMAP driver and not something more generic - can't we have other HDMI
+controllers offering the same interface?  There's a few serial numbers
+that would need filing off but since the ASoC driver is basically just
+interface matching and not talking to the hardware it looks like it
+ought to be usable by more than just OMAP.
 
-I personally don't mind having two drivers enabled since the makefile
-order is always the same. My main concern is the ttyOx -> ttySx switch
-after the newer driver is enabled by default via defconfig (and the use=
-r
-does not know it). "make oldconfig" is covered by "default n".
-Uwe's has a point about "matured enough to drop the old one". It isn't
-mentioned anywhere that the newer driver supports also DMA. Is this
-something we want to add to the help text?
-Could someone that will probably be dealling with possible fallout comm=
-ent
-on this? This patch shouldn't go in without an ACK.
+--EqMiG03fNEfpmvTL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBAgAGBQJUea7NAAoJECTWi3JdVIfQ0X8H/0Y3bNETmcOTTVhJ9DT/6weI
+euk6WVkAborw1stVRQQwblkdZRis66LjCpHTCNGgut8RUXqbQo1If1QIZgY0Q7Gg
+CAzmNgRZVVyP7irda/SywKzstfRdBVEf/d/pIiyeAkRu3IgF23NvSIkkBMOWHax/
+0/vNpmS1FC/RvLP22fP5EmNeuQKvHA2xF+PlX9yLkB5fqW7tgGF4oSJ5Bma1kuEQ
+rdGEwCYWbREaaS+Yzbt+1YpcsDFBSrVR36p0LlL+GLLMTF5lgr8uLYRyIjS7pyGZ
+cZquXpPgnMpNZ2r5FjlYhMw++MOP451qstnkdqqvSArQZXCrMGj3T3hiBq5CfbY=
+=5ctB
+-----END PGP SIGNATURE-----
+
+--EqMiG03fNEfpmvTL--
