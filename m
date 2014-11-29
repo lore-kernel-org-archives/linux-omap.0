@@ -1,82 +1,69 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] i2c: omap: TEST: do IP reset during probe.
-Date: Sat, 29 Nov 2014 05:14:13 +0300
-Message-ID: <AECD26B8-1FFA-4FFB-AC68-4CDC50F3F48B@gmail.com>
-References: <1416685634-5864-3-git-send-email-al.kochet@gmail.com> <1417028722-29306-1-git-send-email-al.kochet@gmail.com> <7hzjbdd57j.fsf@deeprootsystems.com> <20141128221350.GW2817@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=koi8-r
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH] tty: serial: serial-omap: depend on !8250_omap
+Date: Sat, 29 Nov 2014 10:48:23 +0100
+Message-ID: <20141129094823.GA10840@linutronix.de>
+References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141128221350.GW2817-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:36707 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317AbaK2Js0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Nov 2014 04:48:26 -0500
+Content-Disposition: inline
+In-Reply-To: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>, uwe@kleine-koenig.org
 
+* Sebastian Andrzej Siewior | 2014-11-26 23:01:46 [+0100]:
 
-29 =CE=CF=D1=C2. 2014 =C7., =D7 1:13, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> =
-=CE=C1=D0=C9=D3=C1=CC(=C1):
+>Technically speaking this is not required. If both are enabled then th=
+e
+>Maikefile order says that 8250 one wins, the second is never probed.
+>
+>If we choose to enable 8250_omap via defconfig then one might get supp=
+rised
+>that his console isn't working anymore since nothing says use ttySx
+>instead ttyOx.
+>This patch _tries_ to bring this to the users' attention by not showin=
+g
+>the serial-omap driver once the 8250 one is enabled. So the user might
+>choose to use the help text which says that this driver (8250_omap)
+>uses ttySx instead ttyOx.
+>
+>Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+>---
+>This is my attempt to warn the defconfig user of the defconfig change
+>(which did not yet happen). Any suggestions?
 
-> Looks like for some time 2430 i2c has not been behaving
-> reliably
+This is was Uwe Kleine-K=C3=B6nig suggested off-list:
 
-    commit dd74548ddece4b9d68e5528287a272fa552c81d0 ("i2c: omap:
-    resize fifos before each message") dropped check for dev->buf_len.
-    As result, data processing loop cause dev->buf overruns for
-    devices with 16-bit data register (omap2420 only).
-    Found by code review.
+|Currently there are two drivers for the serial device. Until the new o=
+ne
+|matured enough to drop the old one, let them conflict each other. They
+|both handle the same devices, but only one can be responsible for a
+|single device. There is no technical need, but having two drivers in t=
+he
+|same kernel might result in surprises.
 
-I have the patch for that. omap2420 actually broken at all.
-But I'm not ready to send it right now.
+I personally don't mind having two drivers enabled since the makefile
+order is always the same. My main concern is the ttyOx -> ttySx switch
+after the newer driver is enabled by default via defconfig (and the use=
+r
+does not know it). "make oldconfig" is covered by "default n".
+Uwe's has a point about "matured enough to drop the old one". It isn't
+mentioned anywhere that the newer driver supports also DMA. Is this
+something we want to add to the help text?
+Could someone that will probably be dealling with possible fallout comm=
+ent
+on this? This patch shouldn't go in without an ACK.
 
-Part of the patch:
-
--       while (num_bytes--) {
-+       while (num_bytes) {
-                w =3D omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
-                *dev->buf++ =3D w;
-                dev->buf_len--;
-+               num_bytes--;
-=20
-                /*
-                 * Data reg in 2430, omap3 and
-                 * omap4 is 8 bit wide
-                 */
-                if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
--                       *dev->buf++ =3D w >> 8;
--                       dev->buf_len--;
-+                       if (num_bytes) {
-+                               *dev->buf++ =3D w >> 8;
-+                               dev->buf_len--;
-+                               num_bytes--;
-+                       }
-                }
-        }
-
-
-
--       while (num_bytes--) {
-+       while (num_bytes) {
-                if (dev->errata & I2C_OMAP_ERRATA_I462) {
-                        int ret;
-=20
-@@ -931,14 +947,18 @@ static int omap_i2c_transmit_data(struct omap_i2c=
-_dev *dev, u8 num_bytes,
-=20
-                w =3D *dev->buf++;
-                dev->buf_len--;
-+               num_bytes--;
-=20
-                /*
-                 * Data reg in 2430, omap3 and
-                 * omap4 is 8 bit wide
-                 */
-                if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
--                       w |=3D *dev->buf++ << 8;
--                       dev->buf_len--;
-+                       if (num_bytes) {
-+                               w |=3D *dev->buf++ << 8;
-+                               dev->buf_len--;
-+                               num_bytes--;
-+                       }
-                }
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
