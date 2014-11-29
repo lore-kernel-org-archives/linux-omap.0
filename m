@@ -1,75 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] tty: serial: serial-omap: depend on !8250_omap
-Date: Sat, 29 Nov 2014 09:34:19 -0800
-Message-ID: <20141129173418.GY2817@atomide.com>
-References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
- <20141129094823.GA10840@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141129094823.GA10840@linutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>, uwe@kleine-koenig.org
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [RFC 0/2] i2c: omap: new fixes for driver
+Date: Sun, 30 Nov 2014 01:00:01 +0400
+Message-ID: <1417294803-14729-1-git-send-email-al.kochet@gmail.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Andrzej Siewior <bigeasy@linutronix.de> [141129 01:50]:
-> * Sebastian Andrzej Siewior | 2014-11-26 23:01:46 [+0100]:
->=20
-> >Technically speaking this is not required. If both are enabled then =
-the
-> >Maikefile order says that 8250 one wins, the second is never probed.
-> >
-> >If we choose to enable 8250_omap via defconfig then one might get su=
-pprised
-> >that his console isn't working anymore since nothing says use ttySx
-> >instead ttyOx.
-> >This patch _tries_ to bring this to the users' attention by not show=
-ing
-> >the serial-omap driver once the 8250 one is enabled. So the user mig=
-ht
-> >choose to use the help text which says that this driver (8250_omap)
-> >uses ttySx instead ttyOx.
-> >
-> >Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> >---
-> >This is my attempt to warn the defconfig user of the defconfig chang=
-e
-> >(which did not yet happen). Any suggestions?
->=20
-> This is was Uwe Kleine-K=C3=B6nig suggested off-list:
->=20
-> |Currently there are two drivers for the serial device. Until the new=
- one
-> |matured enough to drop the old one, let them conflict each other. Th=
-ey
-> |both handle the same devices, but only one can be responsible for a
-> |single device. There is no technical need, but having two drivers in=
- the
-> |same kernel might result in surprises.
->=20
-> I personally don't mind having two drivers enabled since the makefile
-> order is always the same. My main concern is the ttyOx -> ttySx switc=
-h
-> after the newer driver is enabled by default via defconfig (and the u=
-ser
-> does not know it). "make oldconfig" is covered by "default n".
-> Uwe's has a point about "matured enough to drop the old one". It isn'=
-t
-> mentioned anywhere that the newer driver supports also DMA. Is this
-> something we want to add to the help text?
-> Could someone that will probably be dealling with possible fallout co=
-mment
-> on this? This patch shouldn't go in without an ACK.
+The first patch fix i2c-omap driver for omap2420, found by code review and
+later reported by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> here[1].
+Candidate for stable?
 
-Well the nightmare userspace switch from ttyS to ttyO few years ago is
-something we want to avoid.. I think the best solution would be to make
-serial-omap.c transparently provide support for ttyO using the new 8250
-code so both ttyS and ttyO devices would just work. Otherwise it will
-be years of "my serial port stopped working" questions again.
+The second patch unhide the reson of system lockup.
+
+The patch is rebased on branch 'i2c/for-next' of
+git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux
+(6e79807443cba7397cd855ed29d6faba51d4c893)
+
+Tony, could you check, what the patches fix the problem reported[1]?
+Kevin, could you run tests for patches on all omap boards?
 
 Regards,
+Alexander.
 
-Tony
+[1] http://www.spinics.net/lists/linux-i2c/msg17811.html
+
+Alexander Kochetkov (2):
+  i2c: omap: fix buffer overruns during RX/TX data processing
+  i2c: omap: show that the reason of system lockup is an unhandled ISR
+    event
+
+ drivers/i2c/busses/i2c-omap.c |   64 ++++++++++++++++++++++++++++++++---------
+ 1 file changed, 50 insertions(+), 14 deletions(-)
+
+-- 
+1.7.9.5
