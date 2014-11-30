@@ -1,45 +1,69 @@
 From: Marek Belisko <marek@goldelico.com>
-Subject: [PATCH v3 0/3] omapdss: Add video output support for gta04
-Date: Sun, 30 Nov 2014 14:07:44 +0100
-Message-ID: <1417352867-7436-1-git-send-email-marek@goldelico.com>
+Subject: [PATCH v3 2/3] Documentation: DT: Add documentation for ti,opa362 bindings
+Date: Sun, 30 Nov 2014 14:07:46 +0100
+Message-ID: <1417352867-7436-3-git-send-email-marek@goldelico.com>
+References: <1417352867-7436-1-git-send-email-marek@goldelico.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:56417 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbaK3NI2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Nov 2014 08:08:28 -0500
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:58409 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186AbaK3NIb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Nov 2014 08:08:31 -0500
+In-Reply-To: <1417352867-7436-1-git-send-email-marek@goldelico.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, grant.likely@linaro.org
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 
-changes from v2:
-- rename amplifier-opa362.c to encoder-opa362
-- drop inversion handlign from driver
-- add ti,invert-polarity to venc node
-
-I also drop devconf1 handling patches because discussion how to
-properly implement is not yet finished and this part is independent
-from video driver.
-
-changes from v1:
-- fix opa362 compilation error
-- fix opa362 DT documentation
-- move devconf1 definition to omap3.dtsi
-
-Marek Belisko (3):
-  video: omapdss: Add opa362 driver
-  Documentation: DT: Add documentation for ti,opa362 bindings
-  arm: dts: omap3-gta04: Add handling for tv output
-
- .../devicetree/bindings/video/ti,opa362.txt        |  38 +++
- arch/arm/boot/dts/omap3-gta04.dtsi                 |  49 ++++
- drivers/video/fbdev/omap2/displays-new/Kconfig     |   6 +
- drivers/video/fbdev/omap2/displays-new/Makefile    |   1 +
- .../fbdev/omap2/displays-new/encoder-opa362.c      | 283 +++++++++++++++++++++
- 5 files changed, 377 insertions(+)
+Signed-off-by: Marek Belisko <marek@goldelico.com>
+---
+ .../devicetree/bindings/video/ti,opa362.txt        | 38 ++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/video/ti,opa362.txt
- create mode 100644 drivers/video/fbdev/omap2/displays-new/encoder-opa362.c
 
+diff --git a/Documentation/devicetree/bindings/video/ti,opa362.txt b/Documentation/devicetree/bindings/video/ti,opa362.txt
+new file mode 100644
+index 0000000..4747ef9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/ti,opa362.txt
+@@ -0,0 +1,38 @@
++OPA362 analog video amplifier
++
++Required properties:
++- compatible: "ti,opa362"
++- gpio: enable/disable output gpio
++
++Required node:
++- Video port 0 for opa362 input
++- Video port 1 for opa362 output
++
++Example:
++
++tv_amp: opa362 {
++	compatible = "ti,opa362";
++	gpios = <&gpio1 23 0>;  /* GPIO to enable video out amplifier */
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++			opa_in: endpoint@0 {
++				remote-endpoint = <&venc_out>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++			opa_out: endpoint@0 {
++				remote-endpoint = <&tv_connector_in>;
++			};
++		};
++	};
++};
++
++
++
 -- 
 1.9.1
 
