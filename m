@@ -1,51 +1,45 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC] i2c: omap: TEST: do IP reset during probe.
-Date: Sat, 29 Nov 2014 14:06:19 -0800
-Message-ID: <20141129220619.GZ2817@atomide.com>
-References: <1416685634-5864-3-git-send-email-al.kochet@gmail.com>
- <1417028722-29306-1-git-send-email-al.kochet@gmail.com>
- <7hzjbdd57j.fsf@deeprootsystems.com>
- <20141128221350.GW2817@atomide.com>
- <E4A4FA05-0752-41CB-B86B-84035C6EAF05@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E4A4FA05-0752-41CB-B86B-84035C6EAF05-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+From: Marek Belisko <marek@goldelico.com>
+Subject: [PATCH v3 0/3] omapdss: Add video output support for gta04
+Date: Sun, 30 Nov 2014 14:07:44 +0100
+Message-ID: <1417352867-7436-1-git-send-email-marek@goldelico.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:56417 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752051AbaK3NI2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Nov 2014 08:08:28 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, bcousson@baylibre.com, tony@atomide.com, linux@arm.linux.org.uk, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, grant.likely@linaro.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek@goldelico.com>
 
-* Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141128 15:27]:
-> Hello, Tony!
-> 
-> I just want to know, is multimaster i2c feature is interesting for TI SOC,
-> so I could send another patches?
+changes from v2:
+- rename amplifier-opa362.c to encoder-opa362
+- drop inversion handlign from driver
+- add ti,invert-polarity to venc node
 
-Sure and thanks for looking into fixing things.
- 
-> Or it's better to leave the thing without changes, as current single master version
-> well tested and work?
+I also drop devconf1 handling patches because discussion how to
+properly implement is not yet finished and this part is independent
+from video driver.
 
-Well once the fixes are in, I don't see any reason to not add
-multimaster support.
- 
-> Also I have a draft version of mixed multimaster/slave version. But it could introduce new bugs.
-> Are we ready for that? Thats because IP behavior, sometimes, doesn't correspond to TRMs[4][5].
-> It's the one of strange IP I ever seen on TI SOC. And TRM not as detailed as DSP TRMs.
+changes from v1:
+- fix opa362 compilation error
+- fix opa362 DT documentation
+- move devconf1 definition to omap3.dtsi
 
-I think we can pretty easily test the i2c support before things get
-merged. I guess it should then be possible to loop two i2c controllers
-and run automated tests on them :)
- 
-> Looks, like you haven't seen my response in another thread[1].
-> So, duplicate it here.
+Marek Belisko (3):
+  video: omapdss: Add opa362 driver
+  Documentation: DT: Add documentation for ti,opa362 bindings
+  arm: dts: omap3-gta04: Add handling for tv output
 
-Sorry I guess I forgot to reply, let me know if I still missed something.
+ .../devicetree/bindings/video/ti,opa362.txt        |  38 +++
+ arch/arm/boot/dts/omap3-gta04.dtsi                 |  49 ++++
+ drivers/video/fbdev/omap2/displays-new/Kconfig     |   6 +
+ drivers/video/fbdev/omap2/displays-new/Makefile    |   1 +
+ .../fbdev/omap2/displays-new/encoder-opa362.c      | 283 +++++++++++++++++++++
+ 5 files changed, 377 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/ti,opa362.txt
+ create mode 100644 drivers/video/fbdev/omap2/displays-new/encoder-opa362.c
 
-I'll give your two fixes a try on Monday hopefully.
+-- 
+1.9.1
 
-Regards,
-
-Tony
