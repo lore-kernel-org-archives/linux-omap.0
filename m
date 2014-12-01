@@ -1,65 +1,76 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
-Date: Mon, 1 Dec 2014 08:57:14 +0100
-Message-ID: <CAGm1_ku4UYL0DX9DuSJWn9-QKhcq+mUKyVTA433F6XbRe2FnHg@mail.gmail.com>
-References: <CAFqH_53hyYO9DHfhzDhYkTnimKR0FOQuUw4OGCM4myKoOJSQRA@mail.gmail.com>
- <20141117180413.GF7046@atomide.com> <CAFqH_52LV8k6OyH04dUmhzZChnHrtJR23qu1ewhU49iOVT1Mwg@mail.gmail.com>
- <20141118154204.GI7046@atomide.com> <CAFqH_508pYkDXO8BCR=cFGFY_CgfkhqvseUy=Z--fJMOQCo6Tg@mail.gmail.com>
- <20141119175348.GK7046@atomide.com> <CAGm1_kvZnkB4MWPv3ExCqibb0Rq4xXfkPHHpfDb9HOTFNf7BiA@mail.gmail.com>
- <20141129153521.GB14924@saruman>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
+Date: Mon, 1 Dec 2014 11:07:06 +0200
+Message-ID: <547C2FBA.4030204@ti.com>
+References: <cover.1415803064.git.jsarha@ti.com> <20141129115957.GE7712@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="blQAtojEKCpEraSF8CEc62QM0jTNWlldg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:57674 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752204AbaLAH5g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2014 02:57:36 -0500
-In-Reply-To: <20141129153521.GB14924@saruman>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56290 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752671AbaLAJHS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Dec 2014 04:07:18 -0500
+In-Reply-To: <20141129115957.GE7712@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
-On Sat, Nov 29, 2014 at 4:35 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Fri, Nov 28, 2014 at 11:35:53AM +0100, Yegor Yefremov wrote:
->> On Wed, Nov 19, 2014 at 6:53 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > * Enric Balletbo Serra <eballetbo@gmail.com> [141119 03:14]:
->> >> 2014-11-18 16:42 GMT+01:00 Tony Lindgren <tony@atomide.com>:
->> >>
->> >> Checked again, and no luck. It's very weird because from the OTG point
->> >> of view, OTG is exactly the same between Beagleboard-XM and IGEPv2.
->> >>
->> >> Can you confirm that you're using kernel 3.18-rc5 without other
->> >> patches applied ? At this moment, I don't have a Beagleboard-XM to
->> >> test, I'll try to get one because at this moment I'm a bit stuck with
->> >> this problem.
->> >
->> > Yes it was with v3.18-rc5 and the defconfig patch I posted except
->> > I had to disable all the other MUSB platforms. Also tested it with
->> > built in modules.
->> >
->> > Maybe you need to check the .dts pinctrl entries for hsusb0_* lines?
+--blQAtojEKCpEraSF8CEc62QM0jTNWlldg
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+On 29/11/14 13:59, Mark Brown wrote:
+> On Wed, Nov 12, 2014 at 04:40:51PM +0200, Jyri Sarha wrote:
+>> The patches are based on:
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git for-next=
+
 >>
->> Just my 2 cents, My am335x based board shows similar symptoms
->> (CONFIG_USB_MUSB_DUAL_ROLE enabled). Only if I specify  dr_mode =
->> "host"; in my DTS I get device enumerated. 3.15, that I had before
->> made no problems as OTG.
->
-> Are you sure your ID pin is properly routed ? If you set dr_mode to otg,
-> then you *must* have a properly routed ID pin and use a proper
-> micro-/mini-ab receptacle. That's not true for e.g. beagle bone black.
->
-> One USB port is using a Standard-A while the other uses mini-B. You
-> can't do any role swapping with those.
+>> The base, the patches, and couple of additional not-to-be-merged
+>> omap2plus_defconfig patches can be found here:
+>> https://github.com/jsarha/linux.git omap-hdmi-audio
+>=20
+> I guess I'm OK with these so
+>=20
+> Reviewed-by: Mark Brown <broonie@kernel.org>
 
-Yes, I'm sure, that ID pin is routed properly. It is also not BBB, but
-real device Baltos iR 5221
-(http://visionsystems.de/produkte/baltos-ir-5221.html). With 3.15 I'm
-able to use OTG port both as device and host. I boot the device,
-insert FTDI based hardware into OTG port and my ttyUSBx devices, then
-disconnect and connect to PC and I get usb0 network interface and can
-communicate with PC.
+Thanks. And just to be sure, that's "ok, we can merge these in the next
+merge window"?
 
-Yegor
+> but like I said in reply to the patch adding the new driver I think
+> we're going to want to generalize this a bit.
+
+Yep, if I'm not mistaken I did suggest that to Jyri at some point. We
+can continue working on that, but I'd rather not do anything big on that
+front before there is some other SoC that has the same setup.
+
+ Tomi
+
+
+
+--blQAtojEKCpEraSF8CEc62QM0jTNWlldg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUfC+6AAoJEPo9qoy8lh71N+EP/0AYndnEucrVPo1Wg9ARmSu2
+o8CDwQlVAijTtsF2g0tHyk2dwUfWQAu7bXGs9poCMPckAxPQ0jcO8R4CYnOpH+ot
+pWqMj3/x6HBLbzMI9Lt50ucj4nVMWX9+aBLt7gux4vJja1OPw05jNzYRg+mHarKE
+9+M/sb6aI06/XcDB4Pi+7RqiquqyQGU5FioqSlamiU9jx11aPFWCJKYc43QOfAYn
+JGoYaBuX+95LKurfUdn2s8R8dfSU4Vi3GIOosfsMrW7E5ZAPbqP1kSYf6A78hzkz
+QAP+t0TCBRGJ/FxXQPleY5TL0Qpskt49suqMjJhzTJ4biiQQdTqgmau43EiSePHD
+AsTS6CPlMy8NE1XJlVlYq0QZ/dgReM519M3Po5CF1ZLZ4YriONcBEYWNay/nJhHq
+4Q9ASgjYCXTAG7JkKt8LH2uAw3RDifj1ILqIZ16dUnOf74ZNIPzFb5pnRitERqOa
+FLJYjDRdKFLpDYIex+HD8g1MsUrI2MzxcvvD+mX3uYjaoMcTHQVTI1/69U47Ival
+OUVT93TeAjFGt2cP47FU126DUn1Q1hIp08xVZFbzNyCNJ3grNsT8f/xpf/MnHDQv
+qFZ6k9r1dRiRsgfb9Cc23NrxxcdRzQvRD4Dls1H7HD0oFqcmZVS19VYqOet/cf1B
+PwtILvmX7JcGQb98yA6E
+=W/24
+-----END PGP SIGNATURE-----
+
+--blQAtojEKCpEraSF8CEc62QM0jTNWlldg--
