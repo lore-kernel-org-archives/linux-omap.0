@@ -1,70 +1,130 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
-Date: Mon, 1 Dec 2014 19:31:12 +0000
-Message-ID: <20141201193112.GN7712@sirena.org.uk>
-References: <cover.1415803064.git.jsarha@ti.com>
- <20141129115957.GE7712@sirena.org.uk>
- <547C2FBA.4030204@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC 1/2] i2c: omap: fix buffer overruns during RX/TX data
+ processing
+Date: Mon, 1 Dec 2014 11:58:42 -0800
+Message-ID: <20141201195841.GD2817@atomide.com>
+References: <1417294803-14729-1-git-send-email-al.kochet@gmail.com>
+ <1417294803-14729-2-git-send-email-al.kochet@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eSIQo8/L/IVtUaNr"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:45357 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753311AbaLATbS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2014 14:31:18 -0500
-Content-Disposition: inline
-In-Reply-To: <547C2FBA.4030204@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jyri Sarha <jsarha@ti.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
-
-
---eSIQo8/L/IVtUaNr
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1417294803-14729-2-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 01, 2014 at 11:07:06AM +0200, Tomi Valkeinen wrote:
-> On 29/11/14 13:59, Mark Brown wrote:
+* Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141129 13:02]:
+> commit dd74548ddece4b9d68e5528287a272fa552c81d0 ("i2c: omap:
+> resize fifos before each message") dropped check for dev->buf_len.
+> As result, data processing loop cause dev->buf overruns for
+> devices with 16-bit data register (omap2420).
+> 
+> In the dd74548ddece4b9d68 code, for each loop iteration if the
+> flag OMAP_I2C_FLAG_16BIT_DATA_REG is set (omap2420), dev->buf
+> is incremented twice, and dev->buf_len decremented twice.
+> 
+> Also buffer overrun could happen (in theory) due to wrong
+> ISR handling (bug).
+> 
+> The commit fix data processing for omap2420 and add guard checks
+> in the data processing loops do disallow accesses to the buffer,
+> when dev->buf_len is zero. Also added warnings to unhide the bug.
+> 
+> Found by code review.
+> 
+> Signed-off-by: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Fixes: dd74548ddece4b9d68e5528287a272fa552c81d0 "i2c: omap: resize fifos before each message"
+> Reported-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-> > Reviewed-by: Mark Brown <broonie@kernel.org>
+I think this is a different issue than what I'm seeing.
 
-> Thanks. And just to be sure, that's "ok, we can merge these in the next
-> merge window"?
+Not sure if I've seen what you're describing.. The $subject patch
+should be reviewed by Felipe and Aaro, but this does not help
+things on 2430.
 
-Yes.
+Regards,
 
-> > but like I said in reply to the patch adding the new driver I think
-> > we're going to want to generalize this a bit.
+Tony
 
-> Yep, if I'm not mistaken I did suggest that to Jyri at some point. We
-> can continue working on that, but I'd rather not do anything big on that
-> front before there is some other SoC that has the same setup.
 
-I really want to see people making an effort to make code shareable here
-- I think one of the reasons nobody is upstreaming any of their code is
-that there's nothing generic in place to handle generic tasks so people
-just look at their code, think it's too much of a device specific hack
-and think they'll get back to looking at it later.  If this is a
-sensible set of callbacks to have to pass configuration around let's
-make that discoverable without requiring people to look through the OMAP
-drivers.
-
---eSIQo8/L/IVtUaNr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBAgAGBQJUfMH/AAoJECTWi3JdVIfQg5IH/i3sTbK4INdyckCWZ873u1cU
-5nuZ99BN8e/5Dzl8Juvy0uqovDFcysVjyB4q8lBqxH/O1sEAnH6CaX+qu3rfWgTZ
-4xX/7gp4qmrF6SR5LJ7DFFWUbP91V04ciabM+WKu/3z7EIJtJLZs3zaLEQ01rv8U
-OlM//Zy4Zmh1DhBbAxRHCIqZ1dHET9o0SE7v+IMiuFwWR9mQXdv3mXqJFf1TJ2Bq
-EPKKdKW+DO453MKwE4lkBuYYfX3ZTpwQZkzAbb6jvyaEs+DKQ9hXB3ovBbnQZ53b
-vbLRmVTQgaVjp5/zsjBRtPyu9KAHc3oXxVr6OMCKf+XQSax3rls+37qHr2ehhrc=
-=AAsU
------END PGP SIGNATURE-----
-
---eSIQo8/L/IVtUaNr--
+>  drivers/i2c/busses/i2c-omap.c |   36 ++++++++++++++++++++++++++++--------
+>  1 file changed, 28 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 4563200..e890295 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -938,20 +938,30 @@ static int errata_omap3_i462(struct omap_i2c_dev *dev)
+>  static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
+>  		bool is_rdr)
+>  {
+> -	u16		w;
+> +	u16 w;
+> +
+> +	if (unlikely(num_bytes > dev->buf_len)) {
+> +		dev_err(dev->dev, "%s interrupt can't receive %u byte(s)\n",
+> +			is_rdr ? "RDR" : "RRDY", (num_bytes - dev->buf_len));
+> +		num_bytes = dev->buf_len;
+> +	}
+>  
+> -	while (num_bytes--) {
+> +	while (num_bytes) {
+>  		w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+>  		*dev->buf++ = w;
+>  		dev->buf_len--;
+> +		num_bytes--;
+>  
+>  		/*
+>  		 * Data reg in 2430, omap3 and
+>  		 * omap4 is 8 bit wide
+>  		 */
+>  		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
+> -			*dev->buf++ = w >> 8;
+> -			dev->buf_len--;
+> +			if (num_bytes) {
+> +				*dev->buf++ = w >> 8;
+> +				dev->buf_len--;
+> +				num_bytes--;
+> +			}
+>  		}
+>  	}
+>  }
+> @@ -959,19 +969,29 @@ static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
+>  static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
+>  		bool is_xdr)
+>  {
+> -	u16		w;
+> +	u16 w;
+> +
+> +	if (unlikely(num_bytes > dev->buf_len)) {
+> +		dev_err(dev->dev, "%s interrupt can't transmit %u byte(s)\n",
+> +			is_xdr ? "XDR" : "XRDY", (num_bytes - dev->buf_len));
+> +		num_bytes = dev->buf_len;
+> +	}
+>  
+> -	while (num_bytes--) {
+> +	while (num_bytes) {
+>  		w = *dev->buf++;
+>  		dev->buf_len--;
+> +		num_bytes--;
+>  
+>  		/*
+>  		 * Data reg in 2430, omap3 and
+>  		 * omap4 is 8 bit wide
+>  		 */
+>  		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
+> -			w |= *dev->buf++ << 8;
+> -			dev->buf_len--;
+> +			if (num_bytes) {
+> +				w |= *dev->buf++ << 8;
+> +				dev->buf_len--;
+> +				num_bytes--;
+> +			}
+>  		}
+>  
+>  		if (dev->errata & I2C_OMAP_ERRATA_I462) {
+> -- 
+> 1.7.9.5
+> 
