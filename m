@@ -1,50 +1,33 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/23] ARM: OMAP2+: PRCM cleanups towards 3.19 / part2
-Date: Mon, 1 Dec 2014 17:58:04 +0200
-Message-ID: <547C900C.20003@ti.com>
-References: <1417103514-17027-1-git-send-email-t-kristo@ti.com> <alpine.DEB.2.02.1411271913040.1406@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] tty: serial: serial-omap: depend on !8250_omap
+Date: Mon, 1 Dec 2014 08:38:13 -0800
+Message-ID: <20141201163813.GA2817@atomide.com>
+References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
+ <20141129094823.GA10840@linutronix.de>
+ <20141129173418.GY2817@atomide.com>
+ <20141201140914.728aaa46@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47971 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932074AbaLAP50 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Dec 2014 10:57:26 -0500
-In-Reply-To: <alpine.DEB.2.02.1411271913040.1406@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20141201140914.728aaa46@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>, uwe@kleine-koenig.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, nm@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 11/27/2014 09:15 PM, Paul Walmsley wrote:
-> On Thu, 27 Nov 2014, Tero Kristo wrote:
->
->> Yet another PRCM cleanup set, towards making PRCM a separate driver.
->> This set is most likely too late for 3.19, but hopefully it can make
->> it to 3.20.
->
-> Yep too late for 3.19.
->
-> ...
->
->> Testing done:
->>
->
-> ...
->
->> omap3-beagle: boot, suspend (ret), suspend (off) (UART wakeup seems broken on 3.18-rc1 btw)
->
-> v3.18-rc1 UART wakeups worked here on both of the 35xx Beagles:
->
-> http://www.pwsan.com/omap/testlogs/test_v3.18-rc1/20141020095901/README.txt
-> http://www.pwsan.com/omap/testlogs/test_v3.18-rc1/20141020095901/pm/3530es3beagle/3530es3beagle_log.txt
-> http://www.pwsan.com/omap/testlogs/test_v3.18-rc1/20141020095901/pm/3530es31beagle/3530es31beagle_log.txt
+* One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> [141201 06:11]:
+> > Well the nightmare userspace switch from ttyS to ttyO few years ago is
+> > something we want to avoid.. I think the best solution would be to make
+> > serial-omap.c transparently provide support for ttyO using the new 8250
+> > code so both ttyS and ttyO devices would just work. Otherwise it will
+> > be years of "my serial port stopped working" questions again.
+> 
+> Thata a udev problem not a kernel one surely.
 
-After investigating this a bit, it seems you are right. It looks like I 
-just had wakeup disabled on the tty port, the default behaviour has 
-changed at some point for some reason. After enabling wakeup, resume 
-with console works also.
+How do you suggest we get people to update their kernel command line
+and inittab? Udev may not even be installed.
 
--Tero
+Regards,
 
+Tony
