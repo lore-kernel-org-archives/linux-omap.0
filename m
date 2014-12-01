@@ -1,54 +1,65 @@
-From: Jyri Sarha <jsarha@ti.com>
-Subject: Re: [PATCH v7.1 09/19] ASoC: omap-hdmi-audio: Add platform device
- for OMAP HDMI audio support
-Date: Mon, 1 Dec 2014 09:15:36 +0200
-Message-ID: <547C1598.1000509@ti.com>
-References: <cover.1415803064.git.jsarha@ti.com> <9a528990bbe116d9bb073f690b835c847b3fa0bf.1415803065.git.jsarha@ti.com> <20141129113230.GC7712@sirena.org.uk>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: USB OTG doesn't work in HOST mode on OMAP3 processor on 3.18-rc5
+Date: Mon, 1 Dec 2014 08:57:14 +0100
+Message-ID: <CAGm1_ku4UYL0DX9DuSJWn9-QKhcq+mUKyVTA433F6XbRe2FnHg@mail.gmail.com>
+References: <CAFqH_53hyYO9DHfhzDhYkTnimKR0FOQuUw4OGCM4myKoOJSQRA@mail.gmail.com>
+ <20141117180413.GF7046@atomide.com> <CAFqH_52LV8k6OyH04dUmhzZChnHrtJR23qu1ewhU49iOVT1Mwg@mail.gmail.com>
+ <20141118154204.GI7046@atomide.com> <CAFqH_508pYkDXO8BCR=cFGFY_CgfkhqvseUy=Z--fJMOQCo6Tg@mail.gmail.com>
+ <20141119175348.GK7046@atomide.com> <CAGm1_kvZnkB4MWPv3ExCqibb0Rq4xXfkPHHpfDb9HOTFNf7BiA@mail.gmail.com>
+ <20141129153521.GB14924@saruman>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51697 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752471AbaLAHPo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Dec 2014 02:15:44 -0500
-In-Reply-To: <20141129113230.GC7712@sirena.org.uk>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:57674 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752204AbaLAH5g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Dec 2014 02:57:36 -0500
+In-Reply-To: <20141129153521.GB14924@saruman>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com, tomi.valkeinen@ti.com
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Enric Balletbo Serra <eballetbo@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 11/29/2014 01:32 PM, Mark Brown wrote:
-> On Wed, Nov 12, 2014 at 04:41:00PM +0200, Jyri Sarha wrote:
->> The platform device should only be registered from OMAPDSS HDMI
->> driver. The platform driver registers and unregisters all ASoC
->> components needed for OMAP HDMI audio.
+On Sat, Nov 29, 2014 at 4:35 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
 >
-> So, this basically seems fine but I'm looking at this code and I'm not
-> really seeing a huge amount of OMAP specificness here.  Why is this an
-> OMAP driver and not something more generic - can't we have other HDMI
-> controllers offering the same interface?  There's a few serial numbers
-> that would need filing off but since the ASoC driver is basically just
-> interface matching and not talking to the hardware it looks like it
-> ought to be usable by more than just OMAP.
+> On Fri, Nov 28, 2014 at 11:35:53AM +0100, Yegor Yefremov wrote:
+>> On Wed, Nov 19, 2014 at 6:53 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Enric Balletbo Serra <eballetbo@gmail.com> [141119 03:14]:
+>> >> 2014-11-18 16:42 GMT+01:00 Tony Lindgren <tony@atomide.com>:
+>> >>
+>> >> Checked again, and no luck. It's very weird because from the OTG point
+>> >> of view, OTG is exactly the same between Beagleboard-XM and IGEPv2.
+>> >>
+>> >> Can you confirm that you're using kernel 3.18-rc5 without other
+>> >> patches applied ? At this moment, I don't have a Beagleboard-XM to
+>> >> test, I'll try to get one because at this moment I'm a bit stuck with
+>> >> this problem.
+>> >
+>> > Yes it was with v3.18-rc5 and the defconfig patch I posted except
+>> > I had to disable all the other MUSB platforms. Also tested it with
+>> > built in modules.
+>> >
+>> > Maybe you need to check the .dts pinctrl entries for hsusb0_* lines?
+>>
+>> Just my 2 cents, My am335x based board shows similar symptoms
+>> (CONFIG_USB_MUSB_DUAL_ROLE enabled). Only if I specify  dr_mode =
+>> "host"; in my DTS I get device enumerated. 3.15, that I had before
+>> made no problems as OTG.
 >
+> Are you sure your ID pin is properly routed ? If you set dr_mode to otg,
+> then you *must* have a properly routed ID pin and use a proper
+> micro-/mini-ab receptacle. That's not true for e.g. beagle bone black.
+>
+> One USB port is using a Standard-A while the other uses mini-B. You
+> can't do any role swapping with those.
 
-The only reason is that I have not encountered any other audio capable 
-HDMI device falling in this category (cpu-dai integrated within HDMI 
-device block). Without at least two devices utilizing this code it 
-remains questionable whether the code is really generic. At least the 
-dss_version should be replaced with some explicit data to fill struct 
-snd_soc_dai_driver. Also struct omap_dss_audio is coming directly from 
-omap dss code, its contents is generic but I am not sure if the 
-information within struct snd_aes_iec958 and struct snd_cea_861_aud_if 
-is enough to configure the HDMI IP in all possible cases.
+Yes, I'm sure, that ID pin is routed properly. It is also not BBB, but
+real device Baltos iR 5221
+(http://visionsystems.de/produkte/baltos-ir-5221.html). With 3.15 I'm
+able to use OTG port both as device and host. I boot the device,
+insert FTDI based hardware into OTG port and my ttyUSBx devices, then
+disconnect and connect to PC and I get usb0 network interface and can
+communicate with PC.
 
-I can work on making this API look more generic, but before there is 
-another candidate to use this API it is questionable if the code will 
-ever be used by any other device.
-
-Best regards,
-Jyri
-
-
-
+Yegor
