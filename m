@@ -1,76 +1,57 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v7.1 00/19] Rework OMAP4+ HDMI audio support
-Date: Mon, 1 Dec 2014 11:07:06 +0200
-Message-ID: <547C2FBA.4030204@ti.com>
-References: <cover.1415803064.git.jsarha@ti.com> <20141129115957.GE7712@sirena.org.uk>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 0/6] Touchscreen performance related fixes
+Date: Mon, 1 Dec 2014 15:23:25 +0530
+Message-ID: <547C3A95.30605@ti.com>
+References: <1415941651-28962-1-git-send-email-vigneshr@ti.com> <20141124115116.GA14997@linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="blQAtojEKCpEraSF8CEc62QM0jTNWlldg"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56290 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671AbaLAJHS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Dec 2014 04:07:18 -0500
-In-Reply-To: <20141129115957.GE7712@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141124115116.GA14997-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Benoit Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Brad Griffis <bgriffis-l0cyMroinI0@public.gmane.org>, Sanjeev Sharma <sanjeev_sharma-nmGgyN9QBj3QT0dZR+AlfA@public.gmane.org>, Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, Jan Kardell <jan.kardell-KSZdJiTw9mzQT0dZR+AlfA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.orglinux
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Jyri Sarha <jsarha@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, peter.ujfalusi@ti.com, liam.r.girdwood@linux.intel.com
 
---blQAtojEKCpEraSF8CEc62QM0jTNWlldg
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Hi Sebastian,
 
-On 29/11/14 13:59, Mark Brown wrote:
-> On Wed, Nov 12, 2014 at 04:40:51PM +0200, Jyri Sarha wrote:
->> The patches are based on:
->> git://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git for-next=
+On Monday 24 November 2014 05:21 PM, Sebastian Andrzej Siewior wrote:
+> * Vignesh R | 2014-11-14 10:37:25 [+0530]:
+> 
+>> This series of patches fix TSC defects related to lag in touchscreen
+>> performance and cursor jump at touch release. The lag was result of
+>> udelay in TSC interrupt handler. Cursor jump due to false pen-up event.
+>> The patches implement Advisory 1.0.31 in silicon errata of am335x-evm
+> am335x not -evm. The am335x-evm is a board (with its own advisory
+> document) built around the SoC.
+> 
+> Just testing the v4. I can use now IIO and touchscren at the same time.
+> back at v1 I reported that it does not work, this has been fixed now.
+> I had it running for a few minutes, now I see one of WARN_ON() beeing
+> triggered (I've cut a few numbers so don't wonder about PID 2 and so on):
+> 
 
->>
->> The base, the patches, and couple of additional not-to-be-merged
->> omap2plus_defconfig patches can be found here:
->> https://github.com/jsarha/linux.git omap-hdmi-audio
->=20
-> I guess I'm OK with these so
->=20
-> Reviewed-by: Mark Brown <broonie@kernel.org>
+I fixed the issue that was triggering the WARN_ON(). I think it would be
+better if you tested these patches, before I posted them on the
+mainline. I don't want to clutter the list with too main versions. Here
+is the link to the tree with latest changes:
 
-Thanks. And just to be sure, that's "ok, we can merge these in the next
-merge window"?
+git clone -b tsc-devel git://git.ti.com/kernel/tsc-adc.git
+(tsc-devel branch)
 
-> but like I said in reply to the patch adding the new driver I think
-> we're going to want to generalize this a bit.
+Please test the above tree and let me know the results.
+I will post new version(v5) if there are no issues wrt IIO and TSC
+working at the same time.
 
-Yep, if I'm not mistaken I did suggest that to Jyri at some point. We
-can continue working on that, but I'd rather not do anything big on that
-front before there is some other SoC that has the same setup.
+The cursor jump at touch release has been fixed. But I do see random
+cursor movement when dragging on the screen. This is not due to false
+pen-up events. My patches do not aim at fixing them. (the aim is to
+remove udelay in irq handler and fix false pen-ups).
+With these changes, false pen-ups have been eliminated and there is a
+significant improvement in the performance of TSC. I feel these patches
+can go in, if there are no other serious issues.
 
- Tomi
+I will work on random cursor jump in a separate patch series.
 
-
-
---blQAtojEKCpEraSF8CEc62QM0jTNWlldg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUfC+6AAoJEPo9qoy8lh71N+EP/0AYndnEucrVPo1Wg9ARmSu2
-o8CDwQlVAijTtsF2g0tHyk2dwUfWQAu7bXGs9poCMPckAxPQ0jcO8R4CYnOpH+ot
-pWqMj3/x6HBLbzMI9Lt50ucj4nVMWX9+aBLt7gux4vJja1OPw05jNzYRg+mHarKE
-9+M/sb6aI06/XcDB4Pi+7RqiquqyQGU5FioqSlamiU9jx11aPFWCJKYc43QOfAYn
-JGoYaBuX+95LKurfUdn2s8R8dfSU4Vi3GIOosfsMrW7E5ZAPbqP1kSYf6A78hzkz
-QAP+t0TCBRGJ/FxXQPleY5TL0Qpskt49suqMjJhzTJ4biiQQdTqgmau43EiSePHD
-AsTS6CPlMy8NE1XJlVlYq0QZ/dgReM519M3Po5CF1ZLZ4YriONcBEYWNay/nJhHq
-4Q9ASgjYCXTAG7JkKt8LH2uAw3RDifj1ILqIZ16dUnOf74ZNIPzFb5pnRitERqOa
-FLJYjDRdKFLpDYIex+HD8g1MsUrI2MzxcvvD+mX3uYjaoMcTHQVTI1/69U47Ival
-OUVT93TeAjFGt2cP47FU126DUn1Q1hIp08xVZFbzNyCNJ3grNsT8f/xpf/MnHDQv
-qFZ6k9r1dRiRsgfb9Cc23NrxxcdRzQvRD4Dls1H7HD0oFqcmZVS19VYqOet/cf1B
-PwtILvmX7JcGQb98yA6E
-=W/24
------END PGP SIGNATURE-----
-
---blQAtojEKCpEraSF8CEc62QM0jTNWlldg--
+Regards
+Vignesh
