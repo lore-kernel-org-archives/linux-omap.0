@@ -1,129 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.18-rc7
-Date: Tue, 2 Dec 2014 18:39:38 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1412021838410.16734@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:33942 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060AbaLBSjj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Dec 2014 13:39:39 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Doug Anderson <dianders@chromium.org>
+Subject: [PATCH v4 0/3] Fixes for SDIO interrupts for dw_mmc
+Date: Tue,  2 Dec 2014 12:49:54 -0800
+Message-ID: <1417553397-460-1-git-send-email-dianders@chromium.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Doug Anderson <dianders@chromium.org>, linux@arm.linux.org.uk, wsa@the-dreams.de, tony@atomide.com, linux-kernel@vger.kernel.org, s.hauer@pengutronix.de, linux-mmc@vger.kernel.org, chris@printf.net, gsoutade@neotion.com, joe@perches.com, axel.lin@ingics.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
+Bing Zhao at Marvell found a problem with dw_mmc where interrupts
+weren't firing sometimes.  He tracked it down to a read-modify-write
+problem with the INTMASK.  These three patches fix the problem.
 
-Here are some basic OMAP test results for Linux v3.18-rc7.
-Logs and other details at:
+Note: I've picked up a > 1-year old series here to make another
+attempt at landing it upstream.  These patches have been in shipping
+Chromebooks for the last year.  There are essentially no changes from
+the last v3 other than a rebase.
 
-    http://www.pwsan.com/omap/testlogs/test_v3.18-rc7/20141201203859/
+The first patch extends the "init_card()" mechanism of MMC core to
+actually be called for all card types, not just SDIO.  That could be
+applied any time and should fix at least one longstanding bug
+(untested).
 
+The second patch is a cleanup patch to use init_card() to move things
+around a bit so we don't need to handle SDIO cards in such a strange
+place.  On earlier versions of this patch Seungwon brought up a few
+points which I have _not_ addressed.  See
+<https://patchwork.kernel.org/patch/3049071/>.  Other than talk of
+cards with out of band interrupts maybe being able to gate their
+clocks, he wanted to use MMC_QUIRK_BROKEN_CLK_GATING.  I didn't do
+that because of the ordering of init_card() and when the quirks are
+set.  Some users of init_card() like pandora_wl1251_init_card() rely
+on it being called very early in the process.
+pandora_wl1251_init_card() hardcodes a vendor and device and thus need
+to be called super early.  On the other hand the code that adds quirks
+_reads_ the vendor and device.  It can't possibly move before
+init_card().  If folks are willing to take an additional host op of
+init_card_late() I can certainly go that way, though.
 
-Test summary
-------------
+The third patch is (I think) reviewed and ready to go assuming the
+other two land.
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+Changes in v3:
+- Add fixup to pandora_wl1251_init_card().
 
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
+Changes in v2:
+- mmc core change new for this version.
+- Fixed "|" to "&".
+- intmask_lock renamed to irq_lock
 
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+Doug Anderson (3):
+  mmc: core: Support the optional init_card() callback for MMC and SD
+  mmc: dw_mmc: Cleanup disable of low power mode w/ SDIO interrupts
+  mmc: dw_mmc: Protect read-modify-write of INTMASK with a lock
 
-Boot to userspace:
-    FAIL ( 1/16): 2430sdp
-    skip ( 2/16): 5912osk, 3517evm
-    Pass (13/16): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, 5430es2uevm,
-		  5430es2sbct54, 2420n800
+ arch/arm/mach-omap2/board-omap3pandora.c | 14 +++---
+ drivers/mmc/core/mmc.c                   |  6 +++
+ drivers/mmc/core/sd.c                    |  7 ++-
+ drivers/mmc/host/dw_mmc.c                | 80 +++++++++++++++++++-------------
+ drivers/mmc/host/dw_mmc.h                |  1 +
+ include/linux/mmc/dw_mmc.h               |  6 +++
+ 6 files changed, 74 insertions(+), 40 deletions(-)
 
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
-
-PM: chip retention via dynamic idle:
-    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
-
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
-
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
-
-
-vmlinux object size
-(delta in bytes from test_v3.18-rc6 (5d01410fe4d92081f349b013a2e7a95429e4f2c9)):
-   text     data      bss    total  kernel
-   +100     +336        0     +436  omap1_defconfig
-   -956     +336        0     -620  omap1_defconfig_1510innovator_only
-   -892     +328        0     -564  omap1_defconfig_5912osk_only
-   -303     +456        0     +153  multi_v7_defconfig
-    -59     +744        0     +685  omap2plus_defconfig
-   -863     +488        0     -375  omap2plus_defconfig_2430sdp_only
-  -4095     +736        0    -3359  omap2plus_defconfig_am33xx_only
-     +5     +744        0     +749  omap2plus_defconfig_am43xx_only
-    -59     +776        0     +717  omap2plus_defconfig_cpupm
-     +5     +736        0     +741  omap2plus_defconfig_dra7xx_only
-   -255     +488        0     +233  omap2plus_defconfig_n800_multi_omap2xxx
-   -287     +456        0     +169  omap2plus_defconfig_n800_only_a
-   +145     +768        0     +913  omap2plus_defconfig_no_pm
-     +5     +776        0     +781  omap2plus_defconfig_omap2_4_only
-     +1     +744        0     +745  omap2plus_defconfig_omap3_4_only
-    -59     +712        0     +653  omap2plus_defconfig_omap5_only
-   -172     +264      +64     +156  rmk_omap3430_ldp_allnoconfig
-    +21     +456        0     +477  rmk_omap3430_ldp_oldconfig
-   -124     +292      +48     +216  rmk_omap4430_sdp_allnoconfig
-  -4007     +648        0    -3359  rmk_omap4430_sdp_oldconfig
-
-Boot-time memory difference
-(delta in bytes from test_v3.18-rc6 (5d01410fe4d92081f349b013a2e7a95429e4f2c9))
-  avail  rsrvd   high  freed  board          kconfig
-    -4k     4k      .      .  2430sdp        omap2plus_defconfig
-    -4k     4k      .      .  3730beaglexm   omap2plus_defconfig
-    -4k     4k      .      .  3730es12beaglexmomap2plus_defconfig
-     8k    -8k      .    -4k  am335xbone     omap2plus_defconfig_am33xx_only
-
+-- 
+2.2.0.rc0.207.ga3a616c
 
