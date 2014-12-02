@@ -1,22 +1,79 @@
-From: Md Ashfaque <md.ashfaque@oracle.com>
-Subject: support Helpdesk
-Date: Tue, 2 Dec 2014 04:46:59 -0800 (PST)
-Message-ID: <104ede05-14db-4885-8f73-d11e074bd57b@default>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: AM43x: Add ID for ES1.2
+Date: Tue, 2 Dec 2014 10:49:20 -0600
+Message-ID: <547DED90.50504@ti.com>
+References: <1417145527-31086-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:48857 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753426AbaLBM5R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Dec 2014 07:57:17 -0500
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60971 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932327AbaLBQtp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Dec 2014 11:49:45 -0500
+In-Reply-To: <1417145527-31086-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: info@webmaster.org
+To: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, nsekhar@ti.com, t-kristo@ti.com
 
-Your email has exceeded the storage limit set. You will not be able to send or receive messages.
-To activate, click on the link and complete the information required;
-onlinewbupdate.jigsy.com
-The account must be reactivated today to regenerate new space.
-support Helpdesk
+On 11/27/2014 09:32 PM, Lokesh Vutla wrote:
+> ES1.2 is a minor variant of ES1.1. Major changes since ES1.1 are
+> updating ROM for fixing the following boot modes:
+> - NAND boot
+> - UART boot
+> - Ethernet boot
+> - USB HOST/Client boot
+> This patch adds ID support for AM437x ES1.2 silicon.
+> There are no additional kernel fixes required for ES1.2 silicon.
+> 
+> Latest Technical Documentation can be found here:
+> http://www.ti.com/lsds/ti/arm/sitara_arm_cortex_a_processor/arm_cortex_a9_core/am437x_arm_cortex_a9/tech_docs.page
+> 
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
+>  arch/arm/mach-omap2/id.c  | 8 ++++++--
+>  arch/arm/mach-omap2/soc.h | 1 +
+>  2 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 53841de..c25feba 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -471,11 +471,15 @@ void __init omap3xxx_check_revision(void)
+>  			cpu_rev = "1.0";
+>  			break;
+>  		case 1:
+> -		/* FALLTHROUGH */
+> -		default:
+>  			omap_revision = AM437X_REV_ES1_1;
+>  			cpu_rev = "1.1";
+>  			break;
+> +		case 2:
+> +		/* FALLTHROUGH */
+> +		default:
+> +			omap_revision = AM437X_REV_ES1_2;
+> +			cpu_rev = "1.2";
+> +			break;
+>  		}
+>  		break;
+>  	case 0xb8f2:
+> diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+> index 4376f59..c1a3b44 100644
+> --- a/arch/arm/mach-omap2/soc.h
+> +++ b/arch/arm/mach-omap2/soc.h
+> @@ -446,6 +446,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define AM437X_CLASS		0x43700000
+>  #define AM437X_REV_ES1_0	(AM437X_CLASS | (0x10 << 8))
+>  #define AM437X_REV_ES1_1	(AM437X_CLASS | (0x11 << 8))
+> +#define AM437X_REV_ES1_2	(AM437X_CLASS | (0x12 << 8))
+>  
+>  #define OMAP443X_CLASS		0x44300044
+>  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
+> 
+
+Reviewed-by: Nishanth Menon <nm@ti.com>
+
+-- 
+Regards,
+Nishanth Menon
