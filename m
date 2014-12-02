@@ -1,117 +1,90 @@
-From: Doug Anderson <dianders@chromium.org>
-Subject: [PATCH v4 1/3] mmc: core: Support the optional init_card() callback for MMC and SD
-Date: Tue,  2 Dec 2014 12:49:55 -0800
-Message-ID: <1417553397-460-2-git-send-email-dianders@chromium.org>
-References: <1417553397-460-1-git-send-email-dianders@chromium.org>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Tue, 2 Dec 2014 22:28:16 +0100
+Message-ID: <201412022228.16421@pali>
+References: <20141027200008.GR2560@atomide.com> <201411271232.47231@pali> <20141128202719.GU2817@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart3720473.JLXMeiLLZh";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ig0-f171.google.com ([209.85.213.171]:53767 "EHLO
-	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932762AbaLBUuZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Dec 2014 15:50:25 -0500
-Received: by mail-ig0-f171.google.com with SMTP id z20so11615801igj.16
-        for <linux-omap@vger.kernel.org>; Tue, 02 Dec 2014 12:50:24 -0800 (PST)
-In-Reply-To: <1417553397-460-1-git-send-email-dianders@chromium.org>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:59186 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932894AbaLBV2T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Dec 2014 16:28:19 -0500
+Received: by mail-wg0-f51.google.com with SMTP id k14so17989324wgh.24
+        for <linux-omap@vger.kernel.org>; Tue, 02 Dec 2014 13:28:18 -0800 (PST)
+In-Reply-To: <20141128202719.GU2817@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Doug Anderson <dianders@chromium.org>, tony@atomide.com, linux@arm.linux.org.uk, chris@printf.net, gsoutade@neotion.com, axel.lin@ingics.com, s.hauer@pengutronix.de, wsa@the-dreams.de, joe@perches.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-In (3fcb027 ARM: MXC: mxcmmc: work around a bug in the SDHC busy line
-handling) the optional init_card() callback was added.  According to
-the original change it was "for now only called from
-mmc_sdio_init_card()".
+--nextPart3720473.JLXMeiLLZh
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-This callback really ought to be called from the SD and MMC init
-functions as well.  One current user of this callback
-(mxcmci_init_card) will not work as expected if you insert an SDIO
-card, then eject it and put a normal SD card in.  Specifically the
-normal SD card will not get to run with 4-bit data.
+On Friday 28 November 2014 21:27:19 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141127 03:34]:
+> > On Thursday 27 November 2014 02:12:04 Tony Lindgren wrote:
+> > > Thinking about this probably the best long term solution
+> > > is to pass optional board_revision in the kernel cmdline
+> > > that can be parsed early and copied to system_rev
+> > > variable.
+> >=20
+> > Not possible. Our bootloader is closed & proprietary. I
+> > tried to replace it with u-boot I was not able to do that.
+> > So we will use that Nokia closed bootloader forever and it
+> > can provide data only in ATAG structure.
+>=20
+> I'm using just mainline u-boot flashed as kernel for nolo that
+> then loads the kernel.
+>=20
+> For passing the board revision using the pass through u-boot
+> is probably the best long term solution. U-boot can read the
+> ATAGs from nolo and modify the .dtb for the revision
+> information.
+>=20
+> Are you saying there are some issues with that?
+>=20
+> > > Or if you can think of some other way to get it, we can
+> > > set system_rev in pdata-quirks.c.
+> > >=20
+> > > Or maybe add some code to copy the ATAGs somewhere where
+> > > they are out of the way and don't conflict with the device
+> > > tree data? Then we can query ATAG_REVISION from
+> > > pdata-quirks.c and set system_rev.
+> >=20
+> > If we are able to read ATAG from pdata-quirks, then we can
+> > parse it there and fix problems... But I do not know if
+> > address of ATAG structure is available there...
+>=20
+> Are there other ATAGs needed beyond the ATAG_REVISION?
+>=20
+> Regards,
+>=20
+> Tony
 
-I'd like to use the init_card() callback to handle a similar quirk on
-dw_mmc when using SDIO Interrupts (the "low power" feature of the card
-needs to be disabled), so that will add a second user of the function.
+Ouch... Also ATAG_CMDLINE... which is probably reason why cmdline=20
+passed from bootloader is ignored.
 
-As part of this change fixup the one place that relied on the callback
-only happening for SDIO cards.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-Signed-off-by: Doug Anderson <dianders@chromium.org>
-Reviewed-by: Grant Grundler <grundler@chromium.org>
----
-Changes in v3:
-- Add fixup to pandora_wl1251_init_card().
+--nextPart3720473.JLXMeiLLZh
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Changes in v2:
-- mmc core change new for this version.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
- arch/arm/mach-omap2/board-omap3pandora.c | 14 ++++++++------
- drivers/mmc/core/mmc.c                   |  6 ++++++
- drivers/mmc/core/sd.c                    |  7 ++++++-
- 3 files changed, 20 insertions(+), 7 deletions(-)
+iEYEABECAAYFAlR+LvAACgkQi/DJPQPkQ1K9KQCfd4n6fI4lvKlhoqk6RU8Om/tu
+oK4An0JU5DTycGthkiX31et3+uhsL3M5
+=sGBE
+-----END PGP SIGNATURE-----
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 7f17087..969e100 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -254,12 +254,14 @@ static void pandora_wl1251_init_card(struct mmc_card *card)
- 	 * We have TI wl1251 attached to MMC3. Pass this information to
- 	 * SDIO core because it can't be probed by normal methods.
- 	 */
--	card->quirks |= MMC_QUIRK_NONSTD_SDIO;
--	card->cccr.wide_bus = 1;
--	card->cis.vendor = 0x104c;
--	card->cis.device = 0x9066;
--	card->cis.blksize = 512;
--	card->cis.max_dtr = 20000000;
-+	if (card->type == MMC_TYPE_SDIO || card->type == MMC_TYPE_SD_COMBO) {
-+		card->quirks |= MMC_QUIRK_NONSTD_SDIO;
-+		card->cccr.wide_bus = 1;
-+		card->cis.vendor = 0x104c;
-+		card->cis.device = 0x9066;
-+		card->cis.blksize = 512;
-+		card->cis.max_dtr = 20000000;
-+	}
- }
- 
- static struct omap2_hsmmc_info omap3pandora_mmc[] = {
-diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
-index 02ad792..4a21d66 100644
---- a/drivers/mmc/core/mmc.c
-+++ b/drivers/mmc/core/mmc.c
-@@ -1297,6 +1297,12 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
- 	}
- 
- 	/*
-+	 * Call the optional HC's init_card function to handle quirks.
-+	 */
-+	if (host->ops->init_card)
-+		host->ops->init_card(host, card);
-+
-+	/*
- 	 * For native busses:  set card RCA and quit open drain mode.
- 	 */
- 	if (!mmc_host_is_spi(host)) {
-diff --git a/drivers/mmc/core/sd.c b/drivers/mmc/core/sd.c
-index d90a6de..29fccdc 100644
---- a/drivers/mmc/core/sd.c
-+++ b/drivers/mmc/core/sd.c
-@@ -933,6 +933,12 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
- 	}
- 
- 	/*
-+	 * Call the optional HC's init_card function to handle quirks.
-+	 */
-+	if (host->ops->init_card)
-+		host->ops->init_card(host, card);
-+
-+	/*
- 	 * For native busses:  get card RCA and quit open drain mode.
- 	 */
- 	if (!mmc_host_is_spi(host)) {
-@@ -1271,4 +1277,3 @@ err:
- 
- 	return err;
- }
--
--- 
-2.2.0.rc0.207.ga3a616c
-
+--nextPart3720473.JLXMeiLLZh--
