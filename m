@@ -1,73 +1,77 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] tty: serial: serial-omap: depend on !8250_omap
-Date: Mon, 1 Dec 2014 19:51:18 -0600
-Message-ID: <20141202015118.GA1891@saruman>
-References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
- <20141129094823.GA10840@linutronix.de>
- <20141129173418.GY2817@atomide.com>
- <20141201140914.728aaa46@lxorguk.ukuu.org.uk>
- <20141201231338.GA14524@fuloong-minipc.musicnaut.iki.fi>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v7 0/7] Per-user clock constraints
+Date: Tue,  2 Dec 2014 08:54:17 +0100
+Message-ID: <1417506933-8915-1-git-send-email-tomeu.vizoso@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141201231338.GA14524@fuloong-minipc.musicnaut.iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, Felipe Balbi <balbi@ti.com>, uwe@kleine-koenig.org
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Stephen Boyd <sboyd@codeaurora.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Alex Elder <elder@linaro.org>, Bintian Wang <bintian.wang@huawei.com>, Chao Xie <chao.xie@marvell.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, Jaehoon Chung <jh80.chung@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-mips@linux-mips.org, linux-omap@vger.kernel.org, Manuel Lauss <manuel.lauss@gmail.com>, Matt Porter <mporter@linaro.org>, Mike Turquette <mturquette@linaro.org>, Ralf Baechle <ralf@linux-mips.org>, Zhangfei Gao <zhangfei.gao@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
---0OAP2g/MAC+5xKAE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-On Tue, Dec 02, 2014 at 01:13:38AM +0200, Aaro Koskinen wrote:
-> Hi,
->=20
-> On Mon, Dec 01, 2014 at 02:09:14PM +0000, One Thousand Gnomes wrote:
-> > > Well the nightmare userspace switch from ttyS to ttyO few years ago is
-> > > something we want to avoid.. I think the best solution would be to ma=
-ke
-> > > serial-omap.c transparently provide support for ttyO using the new 82=
-50
-> > > code so both ttyS and ttyO devices would just work. Otherwise it will
-> > > be years of "my serial port stopped working" questions again.
-> >=20
-> > Thata a udev problem not a kernel one surely.
->=20
-> People also use serial console to observe the early kernel boot before
-> the userspace is started.
+this seventh version of the series has added just a few fixes for new
+implementations in linux-next of the determine_rate callback.
 
-right, we need a way to tell the kernel that ttyO%d and ttyS%d are the
-exact same device so that console=3DttyO0 and console=3DttyS0 mean the same
-thing. That maintains backwards compatibility and lets people move on
+A rough test module was used to test this:
 
---=20
-balbi
+http://cgit.collabora.com/git/user/tomeu/linux.git/commit/?h=per-user-clk-constraints-v7&id=3d87d46d98f74b6f53eadf0d28785a3cd85c2178
 
---0OAP2g/MAC+5xKAE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+The first five patches are just cleanups that should be desirable on their own,
+and that should make easier to review the actual per-user clock patch.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+The sixth patch actually moves the per-clock data that was stored in struct
+clk to a new struct clk_core and adds references to it from both struct clk and
+struct clk_hw. struct clk is now ready to contain information that is specific
+to a given clk consumer.
 
-iQIcBAEBAgAGBQJUfRsWAAoJEIaOsuA1yqRErUsQAJA0mMvj/k5W7dCe5rAQ6FjD
-wcFKbU52iQvQVwT5M798eW1egOzt9IKPQ2ykIE5Da6ozkAKCH/CHfU8jwC2DkLvP
-SkzfhyOk/U+lQNimBZBLnoW6GggMx45OzumABuiJR+Ak3kfixAHQNedPvTHl10mg
-yN318m4QPf9Bt50Hp236H7uT7sd1Y6z4mtMS34Nu6LPJqKsJVvIvobl46PDCLRua
-kzxa1dyv4SL1YI/6WnN6SDigf01WKLaTabkPQGd8Q2Cmdxv3kshDQQ2maXPndl4b
-NSegaR6S7YAPa39VTB9Nwa1Z/MXyrZoVsifzWR8dM5+QG3skIr12l7gominRcn8e
-uGdrKTpIEXYBULeodjIma5MtqTbdQCgPrx2/lK2ecAeiXLantaB5A08an2cwt4Xv
-BkVJYWFzFQiwvw/RrhgofmOZNy0F9E7ee20efUwYhfWADs6dS9HTabkdz7+wHBRZ
-pWaOk2zMPpvBWeTYTsDJW9uXZQ6L98gs6H7C0tACZZ7Ri9syG8HFVwH94T70jyvF
-zVRF85ZOp340W8JhrtYW0huHT4h/5+SwAo/ONODBAKnNAI0hAuMrfjLRJg4xnhGy
-ZqPrnVlcRYgBfuW+a78Q+4jV6UtMrJ5FuDxppC+Kq52gIzD9K/mu4KJp1WbEWI8s
-1ohZeS2I4WqpFz8yr6In
-=VBGz
------END PGP SIGNATURE-----
+The seventh patch adds API for setting floor and ceiling constraints and stores
+that information on the per-user struct clk, which is iterable from struct
+clk_core.
 
---0OAP2g/MAC+5xKAE--
+They are based on top of linux-next 20141201.
+
+http://cgit.collabora.com/git/user/tomeu/linux.git/log/?h=per-user-clk-constraints-v7
+
+Thanks,
+
+Tomeu
+
+Tomeu Vizoso (7):
+  clk: Remove unused function __clk_get_prepare_count
+  clk: Don't try to use a struct clk* after it could have been freed
+  clk: Don't expose __clk_get_accuracy
+  clk: change clk_debugfs_add_file to take a struct clk_hw
+  clk: Change clk_ops->determine_rate to return a clk_hw as the best
+    parent
+  clk: Make clk API return per-user struct clk instances
+  clk: Add floor and ceiling constraints to clock rates
+
+ Documentation/clk.txt                   |   4 +-
+ arch/arm/mach-omap2/cclock3xxx_data.c   | 108 +++--
+ arch/arm/mach-omap2/clock.h             |  11 +-
+ arch/arm/mach-omap2/clock_common_data.c |   5 +-
+ arch/arm/mach-omap2/dpll3xxx.c          |   8 +-
+ arch/arm/mach-omap2/dpll44xx.c          |   8 +-
+ arch/mips/alchemy/common/clock.c        |  18 +-
+ drivers/clk/at91/clk-programmable.c     |   6 +-
+ drivers/clk/bcm/clk-kona.c              |   6 +-
+ drivers/clk/clk-composite.c             |  18 +-
+ drivers/clk/clk.c                       | 807 +++++++++++++++++++++-----------
+ drivers/clk/clk.h                       |   5 +
+ drivers/clk/clkdev.c                    |  80 +++-
+ drivers/clk/hisilicon/clk-hi3620.c      |   4 +-
+ drivers/clk/mmp/clk-mix.c               |   6 +-
+ drivers/clk/qcom/clk-pll.c              |   3 +-
+ drivers/clk/qcom/clk-rcg.c              |  30 +-
+ drivers/clk/qcom/clk-rcg2.c             |  34 +-
+ drivers/clk/sunxi/clk-factors.c         |   6 +-
+ drivers/clk/sunxi/clk-sun6i-ar100.c     |   6 +-
+ include/linux/clk-private.h             |  41 +-
+ include/linux/clk-provider.h            |  26 +-
+ include/linux/clk.h                     |  28 ++
+ include/linux/clk/ti.h                  |   8 +-
+ 24 files changed, 873 insertions(+), 403 deletions(-)
+
+-- 
+1.9.3
