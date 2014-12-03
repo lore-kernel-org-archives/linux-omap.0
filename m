@@ -1,49 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] hsi / OMAP / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
-Date: Wed, 03 Dec 2014 23:45:22 +0100
-Message-ID: <22524926.vCRamu0d6Y@vostro.rjw.lan>
-References: <6319344.XVfdONE5DJ@vostro.rjw.lan> <2553100.3OLsEPLv6G@wuerfel>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.18-rc7
+Date: Wed, 3 Dec 2014 22:25:48 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1412032224240.8865@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1412021838410.16734@utopia.booyaka.com> <547EB63B.5070200@compulab.co.il> <alpine.DEB.2.02.1412031655140.8865@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2553100.3OLsEPLv6G@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:51292 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124AbaLCWZt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Dec 2014 17:25:49 -0500
+In-Reply-To: <alpine.DEB.2.02.1412031655140.8865@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Wednesday, December 03, 2014 08:49:12 PM Arnd Bergmann wrote:
-> On Wednesday 03 December 2014 03:02:24 Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
-> > selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
-> > depending on CONFIG_PM_RUNTIME may now be changed to depend on
-> > CONFIG_PM.
-> > 
-> > Do that for the omap_ssi driver.
-> > 
+Hi Igor,
+
+On Wed, 3 Dec 2014, Paul Walmsley wrote:
+
+> On Wed, 3 Dec 2014, Igor Grinberg wrote:
 > 
-> Just for clarification: does that mean that PM, PM_RUNTIME, and PM_SLEEP
-> are all synonyms now, or is there still some other combination that
-> allows a subset to be set?
+> > I've looked at the boot log and it seems cm-t3517 is booting just fine...
+> 
+> Thanks for the note.  I will look into this - CM-T3517 should be listed 
+> there.  
+> 
+> > A problem with the test/report collecting script?
+> 
+> Most likely...
 
-PM_RUNTIME is always set when PM is, but PM_SLEEP still may not be set then.
+Well this one turned out to be due to my own stupidity.  It's been fixed 
+and this particular issue should not recur.  
 
-The plan is to drop PM_RUNTIME and use PM as a user-visible option instead
-of it (which can be selected automatically by PM_SLEEP too).
+I've reuploaded a new test summary and will reply appropriately to the 
+original message.
 
-As stated here:
-http://marc.info/?l=linux-kernel&m=141710589711818&w=4
-http://marc.info/?l=linux-kernel&m=141712284917133&w=4
+Thanks again for pointing it out,
 
-> Before we do lots of s/CONFIG_PM_SLEEP/CONFIG_PM/ changes in lots of
-> other drivers, it would be nice to come up with a new set of macros
-> to replace all the SET_RUNTIME_PM_OPS/SIMPLE_DEV_PM_OPS/..._OPS
-> with a version that avoided the #ifdefs altogether.
 
-I don't think we can avoid all of the #ifdefs and the macros still work
-(except for one which is redundant, but I have a patch to clean that up).
-
-Rafael
+- Paul
