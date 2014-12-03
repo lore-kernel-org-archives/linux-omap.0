@@ -1,44 +1,35 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH] gpio / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
-Date: Wed, 3 Dec 2014 12:38:12 +0100
-Message-ID: <CABxcv=n-ADTXRaS6_K=B7UZEi9aCysNgS9yMs8jiZWY-2yqRLQ@mail.gmail.com>
-References: <1655942.O63mJN07or@vostro.rjw.lan>
+From: Ravikumar Kattekola <rk@ti.com>
+Subject: [PATCH 0/2] ARM: dts: dra7-evm: Regulator max voltage fixes
+Date: Wed, 3 Dec 2014 17:33:55 +0530
+Message-ID: <1417608237-12258-1-git-send-email-rk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1655942.O63mJN07or@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <ssantosh@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux GPIO List <linux-gpio@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Ravikumar Kattekola <rk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Rafael,
+Hi,
 
-On Wed, Dec 3, 2014 at 2:50 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
-> selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
-> depending on CONFIG_PM_RUNTIME may now be changed to depend on
-> CONFIG_PM.
->
-> Replace CONFIG_PM_RUNTIME with CONFIG_PM in drivers/gpio/gpio-omap.c.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
+This set does a minor fix and an update:
 
-Acked-by: Javier Martinez Canillas <javier@dowhile0.org>
+   - Fix a typo in the max voltage property of smps6 (vdd_gpu) regulator node added by
+     the patch : c56a831ca47e ("ARM: dts: DRA7: Add TPS659038 PMIC nodes")
 
->
-> Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
-> PM_SLEEP is selected) which is only in linux-next at the moment (via the
-> linux-pm tree).
->
-> Please let me know if it is OK to take this one into linux-pm.
->
+   - Update max voltage property of smps7 (vdd_core) regulator node to align with the 
+     latest Data Manual
 
-AFAICT there isn't another patch for gpio-omap on this cycle so I'm OK
-if you take this through linux-pm.
+Regards,
+RK
 
-Best regards,
-Javier
+Ravikumar Kattekola (2):
+  ARM: dts: dra7-evm: Fix typo in SMPS6 (VDD_GPU) max voltage
+  ARM: dts: dra7-evm: Update SMPS7 (VDD_CORE) max voltage to match DM
+
+ arch/arm/boot/dts/dra7-evm.dts  |    4 ++--
+ arch/arm/boot/dts/dra72-evm.dts |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+-- 
+1.7.9.5
