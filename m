@@ -1,124 +1,77 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: Question about patch "i2c: omap: resize fifos before each
- message"
-Date: Wed, 3 Dec 2014 11:49:38 -0600
-Message-ID: <20141203174938.GJ16138@saruman>
-References: <A20987D6-DEEC-488D-9655-36A4D186599B@gmail.com>
- <20141203154936.GF16138@saruman>
- <8C51B585-BFD6-48CC-A2C4-EB88CB820426@gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+HmK7y6O+lKZIGkr"
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Question about patch "i2c: omap: resize fifos before each message"
+Date: Wed, 3 Dec 2014 22:01:33 +0300
+Message-ID: <7602A84A-43B2-4C22-ACFA-FEA0640A6B7D@gmail.com>
+References: <A20987D6-DEEC-488D-9655-36A4D186599B@gmail.com> <20141203154936.GF16138@saruman> <8C51B585-BFD6-48CC-A2C4-EB88CB820426@gmail.com> <20141203174938.GJ16138@saruman>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8C51B585-BFD6-48CC-A2C4-EB88CB820426-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20141203174938.GJ16138@saruman>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---+HmK7y6O+lKZIGkr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+03 =C4=C5=CB. 2014 =C7., =D7 20:49, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> =CE=C1=D0=
+=C9=D3=C1=CC(=C1):
 
-On Wed, Dec 03, 2014 at 08:34:21PM +0300, Alexander Kochetkov wrote:
-> >> 2. I want to avoid changing fifos before message submission, because
-> >> IP can start receiving message in a slave mode (race).
-> >=20
-> > I2C is not full-duplex. There's no way it will receive any data while
-> > you're transmitting, right ?
-> >=20
->=20
-> I2C is half duplex, right. But, IP work in slave receiver and master
-> transmitter modes.  And IP switch to slave receiver mode after master
 
-it has more modes than that. It can also be a master receiver and a
-slave transmitter. Note also that MST bit does *not* auto clear. This
-means that as the driver is today, IP will always be in Master mode
-which further strengthens my suspicion that what you describe can't
-possibly happen.
+>  It can also be a master receiver and a
+> slave transmitter.=20
+Agree, but this unrelated to races.
 
-> transfer (simply clear MST bit and ready for reception and that TRM
-> state about).=20
+>  Note also that MST bit does *not* auto clear.
 
-this is wrong. Clear MST bit and IP switches to slave mode. Transmit or
-receive is selected through another bit (TRX -> bit 9 on I2C_CON). Also,
-the IP won't do anything (considering it's always in master mode) until
-STT bit is set again, so there's really no way for what you describe
-below to ever happen with current driver.
+Yes, it *does* auto clear!
+MST bit automatically clear when IP receive AL.
+See TRM [1]. All other TRMs (omap3530, omap3430,=20
+omap4, omap5) has the same picture.
 
-> And question sounds like: what happen if we reset or change FIFO
-> threshold value (in order to submit new master transfer) when IP start
-> receiving data to the fifo.  How many bytes we have to read on RRDY?
+=46rom TRM:
+2Ci.I2C_CON[10] MST bits are cleared by hardware
 
-I don't see how this would ever happen.
+And MST bit clear after IP send STP (success transfer).
 
-> That race I'am talking about. And there is only one place where race
-> couldn't happen: it's ISR (thread). So I want to move almost all
-> master initialization code into ISR.
+Did you see what value is in CON register after successful master trans=
+fer?
+Apply my patch and see that.
+It doesn't have MST bit set. That mean IP is in slave mode
+(receiver or transmitter - doesn't matter) after *any* master transfer.
 
-if you do that, you'll end up with an IRQ handler that takes a lot of
-time to run, because at every IRQ you'll reprogram the thing, it's
-better to program things from omap_i2c_xfer_msg() and wait for the IRQ
-to happen. Just as it is today.
+And simple test show that. IP respond to GC address (address 0).
+And respond to SA address (if programmed).
 
-> >> 3. dev->threshold is changed in range 1-fifo_size/2. So instead of RDR
-> >> we get RRDY and for messages larger then fifo_size/2 we still get RRDY
-> >> and RDR.
-> >=20
-> > we will only get RDR if message_size % threshold > 0. If we have a 16
-> > byte transfer and we program threshold to 8 bytes, we will get two RRDY
-> > IRQs.
-> >=20
-> >> Felipe, do you have in mind why do you want to avoid RDR and XDR event=
-s?
-> >> Something about errata?
-> >=20
-> > nothing about errata. As the commit log say (or tried to say), if the
-> > entire message fits into the FIFO we save one interrupt. It's a
-> > micro-optimization.
->=20
-> I see, thank you. But due to error only half of fifo is utilized for
-> that.
+And TRM[1] figure has comment for 'end' state:
+"I2C controller goes into slave receiver mode."
 
-right, it also tries to use double buffering, so that while IP is
-shifting data onto SDA, we can feed the other half of the FIFO with more
-data.
+And IP keeps into slave mode until 'suspend'.
 
-> And, I'll try to move fifo threshold init code into ISR. Don't see
-> something wrong.
+Then, after 'resume' IP initialized into slave receiver mode. There is =
+short=20
+time after resume and master start initialize new transfer.
 
-I wouldn't do that. It's just too late... look, IRQs won't fire until
-I2C_CON is setup to start a transfer (transmit or receive), you *must*
-resize FIFO before starting a transfer otherwise, well, you know...
+So, then we start new transfer IP could start receiving slave command.
 
---=20
-balbi
+> Also,
+> the IP won't do anything (considering it's always in master mode) unt=
+il
+> STT bit is set again
+Yes, it do slave reception or tranmittion with STT bit set to 0.
 
---+HmK7y6O+lKZIGkr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+You could set STT bit to 1, and then it got cleared to 0, you
+now, that IP received Start condition with slave transfer.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+You could leave STT bit set to 0, but IP still respond to slave transfe=
+r.
+(at least the IP on dm3730).
 
-iQIcBAEBAgAGBQJUf00yAAoJEIaOsuA1yqREtsAQAJ29fYo87KTDK2mbrtFOjuaE
-sj9sfz3TQxSbKwnrQ9TOrVJP42Mw7JIUpNC9KKD8a8rddFDRfLlDpmm09rjzkus1
-HU034z1gs19SwzSs1kzzVQ1e8kFN5H/8u0CoX6DdcahTvquxb1/AHEk61Tj/3fZH
-3QxPsWwy7cs9fAx1flR1Kp0LHsMykQNfEbcGGOTBjWQk1XHxrnFnnxVWy7kVY4WW
-VWE2bcGAxty2OYoOeQm/bsvAIBxFOINpAFcJOZGR4BHn+Y5jWlBYrTQ5LNsJusnl
-r/QhlyccWuz6nxFhAW+9ygUm+3Lb2344/1/h5VBykhPohQGHAAvezI5tMD6kEPBS
-hThauv4KWuzwIJG/9IPzDvLUtPe3GnQsvW/qDlTNDkDVTlm7Lm9o0Ls0SJJQdGXf
-Luv4HKeiXKFxU8Y1AbqXlv6/SuEkG4O5LumiECNO28SaLax9vL7iZ7aAh3n6Ml9g
-bmP7xrfSqfRGUCdHDd5CMf4Zd0xG1yN+oJnnVbSzNwTKlgHo6NX7s6cOgu7EeqL+
-vupP0nngYbBW8T0ejDQEvo81TotzpwXcgntCzQ82FT+nGdHSF201FGPOlTC8vg5D
-J5FT8+1gG11sYSHvZcZH4WdjrSEszfOqiXbA995sLNuY58WZMaAWEtyRjedk+Ffp
-92S/tn+Ol71QPtR99tT2
-=Cvaa
------END PGP SIGNATURE-----
+And we can't set MST bit again after master transfer to leave IP in the
+master mode. We must disable IP (clear EN bit) before transfers to
+disable slave mode, or we must handle slave interrupts.
+Because un handled  slave interrupt leave SCL low.
 
---+HmK7y6O+lKZIGkr--
+[1] AM-DM37x Multimedia Device Silicon Revision 1.x  - sprugn4r,
+    p.2815, Figure 17-32. HS I2C Master Receiver Mode,=20
+    Interrupt Method, in F/S and HS Modes (I2C Mode)
