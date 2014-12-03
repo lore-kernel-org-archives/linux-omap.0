@@ -1,126 +1,36 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Question about patch "i2c: omap: resize fifos before each
- message"
-Date: Wed, 3 Dec 2014 13:38:26 -0600
-Message-ID: <20141203193826.GK16138@saruman>
-References: <A20987D6-DEEC-488D-9655-36A4D186599B@gmail.com>
- <20141203154936.GF16138@saruman>
- <8C51B585-BFD6-48CC-A2C4-EB88CB820426@gmail.com>
- <20141203174938.GJ16138@saruman>
- <7602A84A-43B2-4C22-ACFA-FEA0640A6B7D@gmail.com>
-Reply-To: <balbi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] hsi / OMAP / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Wed, 03 Dec 2014 20:49:12 +0100
+Message-ID: <2553100.3OLsEPLv6G@wuerfel>
+References: <6319344.XVfdONE5DJ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KIbT1ud6duwZIwNL"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33191 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750862AbaLCTi3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Dec 2014 14:38:29 -0500
-Content-Disposition: inline
-In-Reply-To: <7602A84A-43B2-4C22-ACFA-FEA0640A6B7D@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6319344.XVfdONE5DJ@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Kochetkov <al.kochet@gmail.com>
-Cc: balbi@ti.com, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Wolfram Sang <wsa@the-dreams.de>, linux-omap <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
---KIbT1ud6duwZIwNL
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wednesday 03 December 2014 03:02:24 Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+> depending on CONFIG_PM_RUNTIME may now be changed to depend on
+> CONFIG_PM.
+> 
+> Do that for the omap_ssi driver.
+> 
 
-Hi,
+Just for clarification: does that mean that PM, PM_RUNTIME, and PM_SLEEP
+are all synonyms now, or is there still some other combination that
+allows a subset to be set?
 
-On Wed, Dec 03, 2014 at 10:01:33PM +0300, Alexander Kochetkov wrote:
-> 03 =D0=B4=D0=B5=D0=BA. 2014 =D0=B3., =D0=B2 20:49, Felipe Balbi <balbi@ti=
-=2Ecom> =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=BB(=D0=B0):
->=20
->=20
-> >  It can also be a master receiver and a
-> > slave transmitter.=20
-> Agree, but this unrelated to races.
->=20
-> >  Note also that MST bit does *not* auto clear.
->=20
-> Yes, it *does* auto clear!
-> MST bit automatically clear when IP receive AL.
-> See TRM [1]. All other TRMs (omap3530, omap3430,=20
-> omap4, omap5) has the same picture.
->=20
-> From TRM:
-> 2Ci.I2C_CON[10] MST bits are cleared by hardware
->=20
-> And MST bit clear after IP send STP (success transfer).
->=20
-> Did you see what value is in CON register after successful master
-> transfer?  Apply my patch and see that.
-> It doesn't have MST bit set. That mean IP is in slave mode (receiver
-> or transmitter - doesn't matter) after *any* master transfer.
->=20
-> And simple test show that. IP respond to GC address (address 0).
-> And respond to SA address (if programmed).
->=20
-> And TRM[1] figure has comment for 'end' state:
-> "I2C controller goes into slave receiver mode."
+Before we do lots of s/CONFIG_PM_SLEEP/CONFIG_PM/ changes in lots of
+other drivers, it would be nice to come up with a new set of macros
+to replace all the SET_RUNTIME_PM_OPS/SIMPLE_DEV_PM_OPS/..._OPS
+with a version that avoided the #ifdefs altogether.
 
-had completely missed that comment. Right, IP will switch over into
-slave mode. Still, as of today, this can't happen because Multimaster
-isn't supported :-)
-
-> And IP keeps into slave mode until 'suspend'.
->=20
-> Then, after 'resume' IP initialized into slave receiver mode. There is
-> short time after resume and master start initialize new transfer.
->=20
-> So, then we start new transfer IP could start receiving slave command.
-
-you'd first receive an interrupt which would let you figure out if the
-interrupt was for Slave or Master modes. Then you can do anything you
-want (set a flag that you're going into slave mode and return -EAGAIN on
-any master transfer request for example).
-
-> > Also,
-> > the IP won't do anything (considering it's always in master mode) until
-> > STT bit is set again
-> Yes, it do slave reception or tranmittion with STT bit set to 0.
->=20
-> You could set STT bit to 1, and then it got cleared to 0, you
-> now, that IP received Start condition with slave transfer.
->=20
-> You could leave STT bit set to 0, but IP still respond to slave transfer.
-> (at least the IP on dm3730).
->=20
-> And we can't set MST bit again after master transfer to leave IP in the
-> master mode. We must disable IP (clear EN bit) before transfers to
-> disable slave mode, or we must handle slave interrupts.
-
-then handle slave interrupts :-) But handle them so that it won't race
-with a master transfer request. Moving omap_i2c_xfer() inside the IRQ
-handler isn't the best way to do it, however.
-
---=20
-balbi
-
---KIbT1ud6duwZIwNL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUf2ayAAoJEIaOsuA1yqREdGgP/2QrEGaKutdNngjuDJxCX2+N
-4SbYe18cvBdNJ0/pzuCqJIk2VQkL7Aw4ExIHI96403GuFPjPbIU7jyDJHzs2DAWp
-+j4pzDbMNZNQJzGmBHZNrXSmBq3kLJ3fPRVq57XcJJqW1AiSsnHLH1KIavWqXbKt
-GhpV9ADfwqsidCeThewreCvtBFYj6kcVluFDdCyXQ+nl1JQ3RR+JkiVOr1y7HCjQ
-z4jRUXQDq91eiX19jA/eoLDcl/tkXVsUbp2OHRpK1oyBIrK1mFY8CqAxZOGNSedc
-onYwdO4uhIJzRrq7KiBeZuqWZrcqBlP1RdZqEEsyRpfikeIMoUyI+zR4fgHTnFGp
-A7679ZsW5NGfWF4WVpdqn68r7m7IAiOi9QfWOYsrrm79fZ83/XACMfKtNpKKOeey
-WXdGvgrqX7rAy/ktc5PIeu5XNpyz6WGNfOXkmXUIf25N6gpsjDb6u+rVEvGD1XSb
-HzhOcUerh06VuJ0RyJ5FZrP9X+jT7G7Fj7GUeE2jmS+Mthqi0U7z73M+m4UIBDxO
-UnIjNuqDZA4ZJJ2g7mdFLVZp/HuS2HNmh4rEWkWITkuts921yddNiqyOemhM011K
-FgBdcHpatjphK7g6xM/yhcdt2JYmGLE9rtsyKJV6e/MdAlg9A3gtEVT9UvpeYllv
-lloP6Fy4XAxlXitjhSFW
-=W+3H
------END PGP SIGNATURE-----
-
---KIbT1ud6duwZIwNL--
+	Arnd
