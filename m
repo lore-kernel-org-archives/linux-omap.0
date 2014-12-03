@@ -1,32 +1,95 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Question about patch "i2c: omap: resize fifos before each message"
-Date: Wed, 3 Dec 2014 18:11:18 +0300
-Message-ID: <A20987D6-DEEC-488D-9655-36A4D186599B@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: Question about patch "i2c: omap: resize fifos before each
+ message"
+Date: Wed, 3 Dec 2014 09:49:36 -0600
+Message-ID: <20141203154936.GF16138@saruman>
+References: <A20987D6-DEEC-488D-9655-36A4D186599B@gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HB4mHL4PVvkpZAgW"
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <A20987D6-DEEC-488D-9655-36A4D186599B-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+--HB4mHL4PVvkpZAgW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Question about the patch[1].
+Hi,
 
-I want to change the code in a way to not touch fifo thresholds for each message.
-Because:
-1. dev->threshold is valid only with checking of transfer direction.
-   So, if last transfer was transmission and ISR get RRDY interrupt from slave receiver,
-   then dev->threshold is invalid. We must read threshold value from BUF register, to
-   process correctly.
-2. I want to avoid changing fifos before message submission, because IP can start receiving
-   message in a slave mode (race).
-3. dev->threshold is changed in range 1-fifo_size/2. So instead of RDR we get RRDY and
-   for messages larger then fifo_size/2 we still get RRDY and RDR.
+On Wed, Dec 03, 2014 at 06:11:18PM +0300, Alexander Kochetkov wrote:
+> Felipe,
+>=20
+> Question about the patch[1].
+>=20
+> I want to change the code in a way to not touch fifo thresholds for
+> each message.  Because:
+>
+> 1. dev->threshold is valid only with checking of transfer direction.
+> So, if last transfer was transmission and ISR get RRDY interrupt from
+> slave receiver, then dev->threshold is invalid. We must read threshold
+> value from BUF register, to process correctly.
 
-Felipe, do you have in mind why do you want to avoid RDR and XDR events?
-Something about errata?
+What I noticed, however, is that threshold value from BUF wasn't very
+reliable. My memory is now really fuzzy, but when I talked to the person
+who maintained this IP RTL inside TI, there were some "interesting"
+requirements wrt when BUF's threshold was valid and I had a hard time
+ensuring that access time.
 
-[1] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/i2c/busses/i2c-omap.c?id=dd74548ddece4b9d68e5528287a272fa552c81d0
+> 2. I want to avoid changing fifos before message submission, because
+> IP can start receiving message in a slave mode (race).
+
+I2C is not full-duplex. There's no way it will receive any data while
+you're transmitting, right ?
+
+> 3. dev->threshold is changed in range 1-fifo_size/2. So instead of RDR
+> we get RRDY and for messages larger then fifo_size/2 we still get RRDY
+> and RDR.
+
+we will only get RDR if message_size % threshold > 0. If we have a 16
+byte transfer and we program threshold to 8 bytes, we will get two RRDY
+IRQs.
+
+> Felipe, do you have in mind why do you want to avoid RDR and XDR events?
+> Something about errata?
+
+nothing about errata. As the commit log say (or tried to say), if the
+entire message fits into the FIFO we save one interrupt. It's a
+micro-optimization.
+
+> [1] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commi=
+t/drivers/i2c/busses/i2c-omap.c?id=3Ddd74548ddece4b9d68e5528287a272fa552c81=
+d0
+
+--=20
+balbi
+
+--HB4mHL4PVvkpZAgW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUfzEQAAoJEIaOsuA1yqREsfkP/izCmgPzNtetgaQ+Iya813um
+sV/GWUpISdkB3vxHJGZw92WhgdWtOQsFwV6Ed2YGqUPJiOyJFvqlJ4phh8QY6iXz
+Boj1pwlbEfNKLsNTag+kmAb51w4h9+lYI+0TgiCCICcU4NUFtefns+FwP5gn83d0
+B9yjbH5vv/hJzL8C+2h9jwG8pTB/hqkAxiN2Py7MWqF6YW53hIwxH3MTWb2ROfZO
+QdQ2pHosIqo/di2RKwYJeXKiN93okS/EjVpcqsAf9Wdh7Hrj3T1afd6VJ0OUCJTb
+UqAh6jUmKs7DqaB3uBr7iB7ZH4su15IOTd6pt3XwipoQ6m6yLMQV+fIf0F2mKXYb
+EIR28biRYBmsLBlb6Io03U6o2e7zi+atq/hDVrlTY/LPg7RmRqEg90hECMVohhTw
+0A7sZD6SwSLO+Mqs5A+acFNXy8OILAt+It4HK8+YQ0x5vrza9mtmwMNag6CpOfJW
+OQSQQKoPLIKFxKfSvnMei3AP831YJhAgMD5YW9b4eZ5ypAfd3FwXMKsdjv6qPmAf
+nGRvvJwBM1vQUwf0SYE1vMipBXIdPTwbI1wT1vjkuo3op4G2pbWl3zv8mcSifgxs
+gslQzrNg+i0HPQ4LahWq5pKzUWWKsd14udP3SAluoVhnQF0sFWxlvbac1IRbah7+
+BHcu5RWphXFxHUgZ1cB4
+=ikW7
+-----END PGP SIGNATURE-----
+
+--HB4mHL4PVvkpZAgW--
