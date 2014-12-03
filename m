@@ -1,54 +1,76 @@
-From: Doug Anderson <dianders@chromium.org>
-Subject: [PATCH v5 1/4] ARM: OMAP2+: Make sure pandora_wl1251_init_card() applies to SDIO only
-Date: Tue,  2 Dec 2014 15:42:44 -0800
-Message-ID: <1417563767-32181-2-git-send-email-dianders@chromium.org>
-References: <1417563767-32181-1-git-send-email-dianders@chromium.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1417563767-32181-1-git-send-email-dianders@chromium.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jaehoon Chung <jh80.chung@samsung.com>, Seungwon Jeon <tgih.jun@samsung.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Alim Akhtar <alim.akhtar@samsung.com>, Sonny Rao <sonnyrao@chromium.org>, Andrew Bresticker <abrestic@chromium.org>, Heiko Stuebner <heiko@sntech.de>, Doug Anderson <dianders@chromium.org>, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] gpio / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Wed, 03 Dec 2014 02:50:30 +0100
+Message-ID: <1655942.O63mJN07or@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Santosh Shilimkar <ssantosh@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-In preparation for having init_card() called for all card types (not
-just SDIO), change pandora_wl1251_init_card() so it checks whether the
-card type is SDIO.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Signed-off-by: Doug Anderson <dianders@chromium.org>
+After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+depending on CONFIG_PM_RUNTIME may now be changed to depend on
+CONFIG_PM.
+
+Replace CONFIG_PM_RUNTIME with CONFIG_PM in drivers/gpio/gpio-omap.c.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
-Changes in v5:
-- Split fixup to pandora_wl1251_init_card() into its own patch.
 
-Changes in v3: None
-Changes in v2: None
+Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+PM_SLEEP is selected) which is only in linux-next at the moment (via the
+linux-pm tree).
 
- arch/arm/mach-omap2/board-omap3pandora.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+Please let me know if it is OK to take this one into linux-pm.
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 7f17087..969e100 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -254,12 +254,14 @@ static void pandora_wl1251_init_card(struct mmc_card *card)
- 	 * We have TI wl1251 attached to MMC3. Pass this information to
- 	 * SDIO core because it can't be probed by normal methods.
- 	 */
--	card->quirks |= MMC_QUIRK_NONSTD_SDIO;
--	card->cccr.wide_bus = 1;
--	card->cis.vendor = 0x104c;
--	card->cis.device = 0x9066;
--	card->cis.blksize = 512;
--	card->cis.max_dtr = 20000000;
-+	if (card->type == MMC_TYPE_SDIO || card->type == MMC_TYPE_SD_COMBO) {
-+		card->quirks |= MMC_QUIRK_NONSTD_SDIO;
-+		card->cccr.wide_bus = 1;
-+		card->cis.vendor = 0x104c;
-+		card->cis.device = 0x9066;
-+		card->cis.blksize = 512;
-+		card->cis.max_dtr = 20000000;
-+	}
+---
+ drivers/gpio/gpio-omap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+Index: linux-pm/drivers/gpio/gpio-omap.c
+===================================================================
+--- linux-pm.orig/drivers/gpio/gpio-omap.c
++++ linux-pm/drivers/gpio/gpio-omap.c
+@@ -1259,7 +1259,7 @@ static int omap_gpio_probe(struct platfo
+ 
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 
+-#if defined(CONFIG_PM_RUNTIME)
++#if defined(CONFIG_PM)
+ static void omap_gpio_restore_context(struct gpio_bank *bank);
+ 
+ static int omap_gpio_runtime_suspend(struct device *dev)
+@@ -1440,7 +1440,7 @@ static int omap_gpio_runtime_resume(stru
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_PM_RUNTIME */
++#endif /* CONFIG_PM */
+ 
+ void omap2_gpio_prepare_for_idle(int pwr_mode)
+ {
+@@ -1468,7 +1468,7 @@ void omap2_gpio_resume_after_idle(void)
+ 	}
  }
  
- static struct omap2_hsmmc_info omap3pandora_mmc[] = {
--- 
-2.2.0.rc0.207.ga3a616c
+-#if defined(CONFIG_PM_RUNTIME)
++#if defined(CONFIG_PM)
+ static void omap_gpio_init_context(struct gpio_bank *p)
+ {
+ 	struct omap_gpio_reg_offs *regs = p->regs;
+@@ -1525,7 +1525,7 @@ static void omap_gpio_restore_context(st
+ 	writel_relaxed(bank->context.irqenable2,
+ 				bank->base + bank->regs->irqenable2);
+ }
+-#endif /* CONFIG_PM_RUNTIME */
++#endif /* CONFIG_PM */
+ #else
+ #define omap_gpio_runtime_suspend NULL
+ #define omap_gpio_runtime_resume NULL
+
