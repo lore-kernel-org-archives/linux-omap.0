@@ -1,70 +1,71 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: OMAP baseline test results for v3.18-rc7
-Date: Wed, 03 Dec 2014 09:05:31 +0200
-Message-ID: <547EB63B.5070200@compulab.co.il>
-References: <alpine.DEB.2.02.1412021838410.16734@utopia.booyaka.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c-omap / PM: Drop CONFIG_PM_RUNTIME from i2c-omap.c
+Date: Wed, 3 Dec 2014 12:17:32 +0100
+Message-ID: <20141203111732.GC1039@katana>
+References: <1764802.h0lkXSoFee@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:34671 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751792AbaLCHFi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Dec 2014 02:05:38 -0500
-In-Reply-To: <alpine.DEB.2.02.1412021838410.16734@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TYecfFk8j8mZq+dy"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1764802.h0lkXSoFee@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-Hi Paul,
 
-On 12/02/14 20:39, Paul Walmsley wrote:
-> 
-> Here are some basic OMAP test results for Linux v3.18-rc7.
-> Logs and other details at:
-> 
->     http://www.pwsan.com/omap/testlogs/test_v3.18-rc7/20141201203859/
-> 
-> 
-> Test summary
-> ------------
-> 
+--TYecfFk8j8mZq+dy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[...]
+On Wed, Dec 03, 2014 at 02:58:15AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>=20
+> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected) PM_RUNTIME is always set if PM is set, so some #ifdef blocks
+> depending on CONFIG_PM_RUNTIME may be dropped now.
+>=20
+> Do that in drivers/i2c/busses/i2c-omap.c.
+>=20
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>=20
+> Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+> PM_SLEEP is selected) which is only in linux-next at the moment (via the
+> linux-pm tree).
+>=20
+> Please let me know if it is OK to take this one into linux-pm.
 
-> Build: uImage+dtb:
->     Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-> 		  omap2plus_defconfig/omap4-panda,
-> 		  omap2plus_defconfig/omap4-panda-es,
-> 		  omap2plus_defconfig/omap4-var-som,
-> 		  omap2plus_defconfig/omap3-evm-37xx,
-> 		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-> 		  omap2plus_defconfig/omap2430-sdp,
-> 		  omap2plus_defconfig/am3517-evm,
-> 		  omap2plus_defconfig/omap3-beagle,
-> 		  omap2plus_defconfig/omap3-beagle-xm,
-> 		  omap2plus_defconfig/omap3-sbc-t3517,
-> 		  omap2plus_defconfig/omap5-uevm,
-> 		  omap2plus_defconfig/omap5-sbc-t54
-> 
+=46rom my side, yes:
 
-[...]
+Acked-by: Wolfram Sang <wsa@the-dreams.de>
 
-> Boot to userspace:
->     FAIL ( 1/16): 2430sdp
->     skip ( 2/16): 5912osk, 3517evm
->     Pass (13/16): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-> 		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-> 		  3730beaglexm, 3730es12beaglexm, 5430es2uevm,
-> 		  5430es2sbct54, 2420n800
+Might be worth waiting a day for an ack from someone at TI. They usually
+keep a good eye on their drivers.
 
-I've looked at the boot log and it seems cm-t3517 is booting just fine...
-A problem with the test/report collecting script?
-5912osk is not listed by the link above, but there are indeed 16 entries...
 
-[...]
+--TYecfFk8j8mZq+dy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--- 
-Regards,
-Igor.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUfvFMAAoJEBQN5MwUoCm2qbUQAKrX54LEYWLrqmU+/rMj37u9
+ApAk6STSKWHuglymQ+gjXBlGBSwu9d7xjt9ROWXIppd/hRDqLHUY/FB3/3YDaAMl
+O/m0kI1BiwYcha8jbd+bFcakOMBJeNZEiVTpKCj+qMDtlGQffzZkupP+0XlGYwvu
+ZRuQzc9elGnu0fxoDw3/4Isic00MKZm43vgfJBBrJxaeCCmImez8UubXmHv6z8UQ
+D+lnMqvlBDMJYGHbwClUcw8nbtfbX4xkxoYxcw4x4D0X4y9njQjEsj9tpJxOHsdc
+jZDs0o6NrdgewZhh8N4MtW7lDb3q6olpcD5jUuHrn7JgGK/88FxcMn9h5cLX5QSG
+MFDsBKj9zAWHbsXjgDlGwZQx0FNZilJ3Z8V5NO+Jy1iTKpJckE47aBiKuqTwk6ss
+W02L0cf+V6Ub/RRRkSVLRy0/CPwFXhGVxCVTHT19AIXRLU7KEQRJs1jE2NpUk+mk
+E302ihKPACI3VrDNQ5LD3mRWrDvk1JHFzq8A5L9todD/T9sImOeEF4wNxf1vlVsC
+vYQiWDmr44Ig+INYtjLl1Q37LdDohphw2aAtIlF8gAC+d2XlQUcYQoDR6Y2v33U2
+nuXzbF6Y3UW1+Xs4ezUmBBrjz7Jv7TiGXr82GXiQpQwzv54tvK+9pzi/bgJK7brf
+9kindPUPir34s8hey5Qj
+=dMhd
+-----END PGP SIGNATURE-----
+
+--TYecfFk8j8mZq+dy--
