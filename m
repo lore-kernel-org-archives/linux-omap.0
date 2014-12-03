@@ -1,72 +1,49 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Wed, 3 Dec 2014 17:52:04 +0100
-Message-ID: <20141203165204.GD26685@amd>
-References: <20141027200008.GR2560@atomide.com>
- <201411270038.01312@pali>
- <20141127011203.GR2817@atomide.com>
- <201411271232.47231@pali>
- <20141128202719.GU2817@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.18-rc7
+Date: Wed, 3 Dec 2014 16:56:32 +0000 (UTC)
+Message-ID: <alpine.DEB.2.02.1412031655140.8865@utopia.booyaka.com>
+References: <alpine.DEB.2.02.1412021838410.16734@utopia.booyaka.com> <547EB63B.5070200@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55711 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbaLCQwH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Dec 2014 11:52:07 -0500
-Content-Disposition: inline
-In-Reply-To: <20141128202719.GU2817@atomide.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:47846 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbaLCQ4e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Dec 2014 11:56:34 -0500
+In-Reply-To: <547EB63B.5070200@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
 
-On Fri 2014-11-28 12:27:19, Tony Lindgren wrote:
-> * Pali Roh=E1r <pali.rohar@gmail.com> [141127 03:34]:
-> > On Thursday 27 November 2014 02:12:04 Tony Lindgren wrote:
-> > >=20
-> > > Thinking about this probably the best long term solution is
-> > > to pass optional board_revision in the kernel cmdline that
-> > > can be parsed early and copied to system_rev variable.
-> > >=20
-> >=20
-> > Not possible. Our bootloader is closed & proprietary. I tried to=20
-> > replace it with u-boot I was not able to do that. So we will use=20
-> > that Nokia closed bootloader forever and it can provide data only=20
-> > in ATAG structure.
->=20
-> I'm using just mainline u-boot flashed as kernel for nolo that
-> then loads the kernel.
->=20
-> For passing the board revision using the pass through u-boot is
-> probably the best long term solution. U-boot can read the ATAGs
-> from nolo and modify the .dtb for the revision information.
->=20
-> Are you saying there are some issues with that?
+Hi Igor,
 
-Plenty :-).
+On Wed, 3 Dec 2014, Igor Grinberg wrote:
 
-Basically, u-boot is great for production (select one of kernels and
-boot it), but pretty much unusable for development:
+> On 12/02/14 20:39, Paul Walmsley wrote:
+> > 
+> > Here are some basic OMAP test results for Linux v3.18-rc7.
+> > Logs and other details at:
+> > 
+> >     http://www.pwsan.com/omap/testlogs/test_v3.18-rc7/20141201203859/
+> 
+> [...]
+> 
+> > Boot to userspace:
+> >     FAIL ( 1/16): 2430sdp
+> >     skip ( 2/16): 5912osk, 3517evm
+> >     Pass (13/16): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
+> > 		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
+> > 		  3730beaglexm, 3730es12beaglexm, 5430es2uevm,
+> > 		  5430es2sbct54, 2420n800
+> 
+> I've looked at the boot log and it seems cm-t3517 is booting just fine...
 
-1) It does not support backlight, so you are interacting blind
+Thanks for the note.  I will look into this - CM-T3517 should be listed 
+there.  
 
-2) Setup to load kernels over usb would probably be interesting
+> A problem with the test/report collecting script?
 
-3) It makes kernel fail in interesting ways depending on phase of
-moon.
+Most likely...
 
-Please, keep nolo supported. Debugging kernel & user space is bad,
-debugging u-boot & kernel & user space would be even worse.
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
