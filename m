@@ -1,80 +1,49 @@
-From: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Wed, 3 Dec 2014 22:22:17 +0000 (UTC)
-Message-ID: <m5o2ep$5gq$1@ger.gmane.org>
-References: <20141027200008.GR2560@atomide.com> <201411270038.01312@pali>
-	<20141127011203.GR2817@atomide.com> <201411271232.47231@pali>
-	<20141128202719.GU2817@atomide.com> <20141203165204.GD26685@amd>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] hsi / OMAP / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Wed, 03 Dec 2014 23:45:22 +0100
+Message-ID: <22524926.vCRamu0d6Y@vostro.rjw.lan>
+References: <6319344.XVfdONE5DJ@vostro.rjw.lan> <2553100.3OLsEPLv6G@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:52494 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750730AbaLCWWd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Dec 2014 17:22:33 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1XwIJb-0000EO-B9
-	for linux-omap@vger.kernel.org; Wed, 03 Dec 2014 23:22:31 +0100
-Received: from 178.70.169.181 ([178.70.169.181])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 03 Dec 2014 23:22:31 +0100
-Received: from dbaryshkov by 178.70.169.181 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 03 Dec 2014 23:22:31 +0100
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2553100.3OLsEPLv6G@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
-On Wed, 03 Dec 2014 17:52:04 +0100, Pavel Machek wrote:
+On Wednesday, December 03, 2014 08:49:12 PM Arnd Bergmann wrote:
+> On Wednesday 03 December 2014 03:02:24 Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> > selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+> > depending on CONFIG_PM_RUNTIME may now be changed to depend on
+> > CONFIG_PM.
+> > 
+> > Do that for the omap_ssi driver.
+> > 
+> 
+> Just for clarification: does that mean that PM, PM_RUNTIME, and PM_SLEEP
+> are all synonyms now, or is there still some other combination that
+> allows a subset to be set?
 
-> On Fri 2014-11-28 12:27:19, Tony Lindgren wrote:
->> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141127 03:34]:
->> > On Thursday 27 November 2014 02:12:04 Tony Lindgren wrote:
->> > >=20
->> > > Thinking about this probably the best long term solution is to p=
-ass
->> > > optional board_revision in the kernel cmdline that can be parsed
->> > > early and copied to system_rev variable.
->> > >=20
->> > >=20
->> > Not possible. Our bootloader is closed & proprietary. I tried to
->> > replace it with u-boot I was not able to do that. So we will use t=
-hat
->> > Nokia closed bootloader forever and it can provide data only in AT=
-AG
->> > structure.
->>=20
->> I'm using just mainline u-boot flashed as kernel for nolo that then
->> loads the kernel.
->>=20
->> For passing the board revision using the pass through u-boot is
->> probably the best long term solution. U-boot can read the ATAGs from
->> nolo and modify the .dtb for the revision information.
->>=20
->> Are you saying there are some issues with that?
->=20
-> Plenty :-).
->=20
-> Basically, u-boot is great for production (select one of kernels and
-> boot it), but pretty much unusable for development:
+PM_RUNTIME is always set when PM is, but PM_SLEEP still may not be set then.
 
-You might want to look at kexecboot project. Basically it is an initram=
-fs
-payload bundled with a Linux kernel that can further choose which kerne=
-l
-to load. USB is not supported (afair), but one might add that - it's
-just a Linux environment in the end.
+The plan is to drop PM_RUNTIME and use PM as a user-visible option instead
+of it (which can be selected automatically by PM_SLEEP too).
 
---=20
-With best wishes
-Dmitry
+As stated here:
+http://marc.info/?l=linux-kernel&m=141710589711818&w=4
+http://marc.info/?l=linux-kernel&m=141712284917133&w=4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Before we do lots of s/CONFIG_PM_SLEEP/CONFIG_PM/ changes in lots of
+> other drivers, it would be nice to come up with a new set of macros
+> to replace all the SET_RUNTIME_PM_OPS/SIMPLE_DEV_PM_OPS/..._OPS
+> with a version that avoided the #ifdefs altogether.
+
+I don't think we can avoid all of the #ifdefs and the macros still work
+(except for one which is redundant, but I have a patch to clean that up).
+
+Rafael
