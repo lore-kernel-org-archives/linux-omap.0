@@ -1,79 +1,51 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
-Date: Thu, 4 Dec 2014 20:01:36 +0100
-Message-ID: <201412042001.36805@pali>
-References: <20141027200008.GR2560@atomide.com> <201412041934.03384@pali> <20141204184033.GI2817@atomide.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] hwmon: (gpio-fan) Allow usage of gpio operations that
+ may sleep
+Date: Thu, 4 Dec 2014 11:05:28 -0800
+Message-ID: <20141204190528.GA16925@roeck-us.net>
+References: <1417712328-29831-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart38320720.p06OznuTKD";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:57160 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932215AbaLDTBk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2014 14:01:40 -0500
-Received: by mail-wg0-f45.google.com with SMTP id b13so23562957wgh.32
-        for <linux-omap@vger.kernel.org>; Thu, 04 Dec 2014 11:01:39 -0800 (PST)
-In-Reply-To: <20141204184033.GI2817@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1417712328-29831-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Jean Delvare <jdelvare@suse.de>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---nextPart38320720.p06OznuTKD
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Thu, Dec 04, 2014 at 10:58:47AM -0600, Nishanth Menon wrote:
+> Certain I2C based GPIO expanders could be used in sleepable context,
+> this results in:
+> [  115.890569] ------------[ cut here ]------------
+> [  115.895422] WARNING: CPU: 0 PID: 1115 at drivers/gpio/gpiolib.c:1370 gpiod_set_raw_value+0x40/0x4c()
+> [  115.905024] Modules linked in:
+> [  115.908229] CPU: 0 PID: 1115 Comm: sh Tainted: G        W      3.18.0-rc7-next-20141203-dirty #1
+> [  115.917461] Hardware name: Generic DRA74X (Flattened Device Tree)
+> [  115.923876] [<c0015368>] (unwind_backtrace) from [<c00119f4>] (show_stack+0x10/0x14)
+> [  115.932013] [<c00119f4>] (show_stack) from [<c05b78e8>] (dump_stack+0x78/0x94)
+> [  115.939594] [<c05b78e8>] (dump_stack) from [<c003de28>] (warn_slowpath_common+0x7c/0xb4)
+> [  115.948094] [<c003de28>] (warn_slowpath_common) from [<c003de7c>] (warn_slowpath_null+0x1c/0x24)
+> [  115.957315] [<c003de7c>] (warn_slowpath_null) from [<c03461e8>] (gpiod_set_raw_value+0x40/0x4c)
+> [  115.966457] [<c03461e8>] (gpiod_set_raw_value) from [<c04866f4>] (set_fan_speed+0x4c/0x64)
+> [  115.975145] [<c04866f4>] (set_fan_speed) from [<c04868a8>] (set_rpm+0x98/0xac)
+> [  115.982742] [<c04868a8>] (set_rpm) from [<c039fb4c>] (dev_attr_store+0x18/0x24)
+> [  115.990426] [<c039fb4c>] (dev_attr_store) from [<c01b0a28>] (sysfs_kf_write+0x4c/0x50)
+> [  115.998742] [<c01b0a28>] (sysfs_kf_write) from [<c01afe1c>] (kernfs_fop_write+0xbc/0x19c)
+> [  116.007333] [<c01afe1c>] (kernfs_fop_write) from [<c0148cc4>] (vfs_write+0xb0/0x1a0)
+> [  116.015461] [<c0148cc4>] (vfs_write) from [<c0148fbc>] (SyS_write+0x44/0x84)
+> [  116.022881] [<c0148fbc>] (SyS_write) from [<c000e5c0>] (ret_fast_syscall+0x0/0x48)
+> [  116.030833] ---[ end trace 3a0b636123acab82 ]---
+> 
+> So, switch over to sleepable GPIO operations as there is no mandatory
+> need for non-sleepable gpio operations in the fan driver.
+> 
+> This allows the fan driver to be used with i2c based gpio expanders such
+> as palmas_gpio.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-On Thursday 04 December 2014 19:40:34 Tony Lindgren wrote:
-> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141204 10:36]:
-> > see last mail in thread (I CCed you):
-> > "[PATCH] ARM: /proc/cpuinfo: Use DT machine name when
-> > possible"
-> >=20
-> > There is already some layer for converting ATAGs to DTB and
-> > it is in decompresser:
-> > arch/arm/boot/compressed/atags_to_fdt.c
-> >=20
-> > I do not know if it can help us to provide /proc/cpuinfo and
-> > /proc/atags in DT boot, but at least this this transfer
-> > cmdline and mem ATAGs to DBT.
->=20
-> Yes that makes sense to me. Sorry forgot about that piece of
-> code as I have not tinkered with arch/arm/boot/compressed/*
-> for a few years.
->=20
+Applied to hwmon-next. Do we need this in older kernels ?
 
-I did not know about that code in compressed too...
-
-> It sounds like there may be some regression also if the
-> cmdline is not being passed like it already should. But I
-> assume you already figured that out and have some patches
-> coming :)
->=20
-> Regards,
->=20
-> Tony
-
-I did not start find out why it not working (do not have time=20
-now), but at least I know where to start looking for it.
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart38320720.p06OznuTKD
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlSAr5AACgkQi/DJPQPkQ1LhxwCglFj+ai7INiedhJGJOCnzPQP9
-PJwAnjPEWbVZL42i80UbDP1SeAvXEmc3
-=Eh3V
------END PGP SIGNATURE-----
-
---nextPart38320720.p06OznuTKD--
+Thanks,
+Guenter
