@@ -1,68 +1,111 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH] hwmon: (gpio-fan) Allow usage of gpio operations that
- may sleep
-Date: Thu, 4 Dec 2014 12:08:47 -0800
-Message-ID: <20141204200847.GC16925@roeck-us.net>
-References: <1417712328-29831-1-git-send-email-nm@ti.com>
- <20141204190528.GA16925@roeck-us.net>
- <20141204194615.GA7975@kahuna>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 0/2] Add DRA7xx CPSW Ethernet support in Device Tree
+Date: Thu, 4 Dec 2014 14:14:01 -0600
+Message-ID: <20141204201401.GA18419@saruman>
+References: <1413885661-4850-1-git-send-email-mugunthanvnm@ti.com>
+ <54463063.80207@ti.com>
+ <20141021172223.GA12943@kahuna>
+ <20141103162722.GN27425@saruman>
+ <545BA9EE.1040905@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20141204194615.GA7975@kahuna>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Jean Delvare <jdelvare@suse.de>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+In-Reply-To: <545BA9EE.1040905-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 04, 2014 at 01:46:15PM -0600, Nishanth Menon wrote:
-> On 11:05-20141204, Guenter Roeck wrote:
-> > On Thu, Dec 04, 2014 at 10:58:47AM -0600, Nishanth Menon wrote:
-> > > Certain I2C based GPIO expanders could be used in sleepable context,
-> > > this results in:
-> > > [  115.890569] ------------[ cut here ]------------
-> > > [  115.895422] WARNING: CPU: 0 PID: 1115 at drivers/gpio/gpiolib.c:1370 gpiod_set_raw_value+0x40/0x4c()
-> > > [  115.905024] Modules linked in:
-> > > [  115.908229] CPU: 0 PID: 1115 Comm: sh Tainted: G        W      3.18.0-rc7-next-20141203-dirty #1
-> > > [  115.917461] Hardware name: Generic DRA74X (Flattened Device Tree)
-> > > [  115.923876] [<c0015368>] (unwind_backtrace) from [<c00119f4>] (show_stack+0x10/0x14)
-> > > [  115.932013] [<c00119f4>] (show_stack) from [<c05b78e8>] (dump_stack+0x78/0x94)
-> > > [  115.939594] [<c05b78e8>] (dump_stack) from [<c003de28>] (warn_slowpath_common+0x7c/0xb4)
-> > > [  115.948094] [<c003de28>] (warn_slowpath_common) from [<c003de7c>] (warn_slowpath_null+0x1c/0x24)
-> > > [  115.957315] [<c003de7c>] (warn_slowpath_null) from [<c03461e8>] (gpiod_set_raw_value+0x40/0x4c)
-> > > [  115.966457] [<c03461e8>] (gpiod_set_raw_value) from [<c04866f4>] (set_fan_speed+0x4c/0x64)
-> > > [  115.975145] [<c04866f4>] (set_fan_speed) from [<c04868a8>] (set_rpm+0x98/0xac)
-> > > [  115.982742] [<c04868a8>] (set_rpm) from [<c039fb4c>] (dev_attr_store+0x18/0x24)
-> > > [  115.990426] [<c039fb4c>] (dev_attr_store) from [<c01b0a28>] (sysfs_kf_write+0x4c/0x50)
-> > > [  115.998742] [<c01b0a28>] (sysfs_kf_write) from [<c01afe1c>] (kernfs_fop_write+0xbc/0x19c)
-> > > [  116.007333] [<c01afe1c>] (kernfs_fop_write) from [<c0148cc4>] (vfs_write+0xb0/0x1a0)
-> > > [  116.015461] [<c0148cc4>] (vfs_write) from [<c0148fbc>] (SyS_write+0x44/0x84)
-> > > [  116.022881] [<c0148fbc>] (SyS_write) from [<c000e5c0>] (ret_fast_syscall+0x0/0x48)
-> > > [  116.030833] ---[ end trace 3a0b636123acab82 ]---
-> > > 
-> > > So, switch over to sleepable GPIO operations as there is no mandatory
-> > > need for non-sleepable gpio operations in the fan driver.
-> > > 
-> > > This allows the fan driver to be used with i2c based gpio expanders such
-> > > as palmas_gpio.
-> > > 
-> > > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > 
-> > Applied to hwmon-next. Do we need this in older kernels ?
-> 
-> I have'nt had a need for it till recently.. in terms of the sleepable
-> get/set, it seems to have been introduced with
-> 	commit 7560fa60fcdcdb0da662f6a9fad9064b554ef46c
-> 	Author: David Brownell <david-b@pacbell.net>
-> 	Date:   Tue Mar 4 14:28:27 2008 -0800
-> 	gpio: <linux/gpio.h> and "no GPIO support here" stubs
-> 
-> Guessing no one needed it so far.. so probably future should be good
-> enough, I think..
-> 
-Ok.
+--HlL+5n6rz5pIUxbD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-We can still add it to -stable at a later time if the need arises.
+On Thu, Nov 06, 2014 at 10:33:42PM +0530, Mugunthan V N wrote:
+> Tony
+>=20
+> On Monday 03 November 2014 09:57 PM, Felipe Balbi wrote:
+> > On Tue, Oct 21, 2014 at 12:22:23PM -0500, Nishanth Menon wrote:
+> >> On 15:37-20141021, Mugunthan V N wrote:
+> >>> Nishanth
+> >>>
+> >>> On Tuesday 21 October 2014 03:30 PM, Mugunthan V N wrote:
+> >>>> Adding device tree entry for CPSW to make it work in Dual EMAC mode.
+> >>>> These patches were tested with DRA7 hwmod patches on top of linux-ne=
+xt.
+> >>>> Patches are tested on top of Nishanth's PM tree for v3.17 [1] and pu=
+shed
+> >>>> my tree to [2].
+> >>>>
+> >>>> Did a boot test with CPSW and ping test with suspend/resume, the boo=
+t logs
+> >>>> on DRA7xx EVM are posted at [3]
+> >>>>
+> >>>> [1] git://github.com/nmenon/linux-2.6-playground.git testing/v3.17/c=
+pu-idle-suspend-dra7-omap5-framework
+> >>>> [2] git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git v3.17/d=
+ra7-evm-cpsw-v3
+> >>>> [3] http://pastebin.ubuntu.com/8613072/
+> >>>>
+> >>>> Changes from v2:
+> >>>> * Changed pinctrl comments to hold mode0-name.mode-selected-name
+> >>>> * Changes slave numbers in the pinctrl comments
+> >>>> * Added cpsw and cpts clocks
+> >>>>
+> >>>
+> >>> I have not added support for dra72x-evm as it has only slave no 2 pin=
+ned
+> >>> out and having issues with bringing up the interface, need some more
+> >>> time to submit the patch, in the mean time I have submitted dra7-evm
+> >>> support only so that people can use dra7-evm on linux-next.
+> >>
+> >> Quickly tested as well:
+> >> http://slexy.org/raw/s2vISJxYrR
+> >>
+> >> Please feel free to add:
+> >> Tested-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> >> Acked-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> >=20
+> > I've used these patches with X15 (DRA7xx-based yet-to-be-released board)
+> > with v3.18-rc2.
+> >=20
+> > Tested-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> >=20
+>=20
+> Ping on this
 
-Guenter
+another ping on this
+
+--=20
+balbi
+
+--HlL+5n6rz5pIUxbD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJUgMCJAAoJEIaOsuA1yqREkLwP/RUy9lfGwH5FY6CoathimTd2
+b1zNIVdQhc5jxTycJfCpfeOuQzfoTBwkZxbITq5/Al/BBPVGYaNESlXoHdUAgKHY
+ro0VBdbQBNgkBAky4oCRa6f92yg0FSJ9R37ax0PXKHtRhsJS1Rvc8VsmayqG8eDD
+8XvhtCqitlpdatem7RdzaNPj6j9rRUzQ0CRH17m9FoNtMGMCC1uqDeNauiLtd2V/
+ouFxYjvpWPE0vbGiNCBc2/kQuHjso5SAoF4ncKYF3g7fCi3jCyOpqpQM6PLJVKpn
+djIhsYsBRgoFy7pQu0Cp6Rp87CjjbIIPHYSvTaZOdwpAhnMNFPHJ3KJifjV6j/lM
+LxvRxcBKoDmCgAV+E0w8pN/Yk9dqvXiXvWgjGFiqmZFO/+4Y7JgU9ttnQLXQY6+6
+SI+b5GiRxa9lK0YkpZIcxYm6W1XWM6Sa9CchCnqgNZiWfED9OJomRDiwjvVaq2NK
+xNDctcl8vZcna1s/EOzYT8QJCQTYoP4mzoPpXDAKnDo/bYZ51swXdW+RqGUCwsHd
+jWV6ZyvI8zd/SsCOg/ZLjWfVgWVGOLxl58PHU+G3S7kDjqRSr4kqeE2jZOXg9afI
+4ds8LkGeaF9yDUqmyA7dblEjS7II/tZXv0DG+ewwmN9j3hhMZGyRJdcJRMQq5DII
+7In0Pi9acNA9OFV0naIn
+=jCEj
+-----END PGP SIGNATURE-----
+
+--HlL+5n6rz5pIUxbD--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
