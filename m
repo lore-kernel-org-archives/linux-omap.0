@@ -1,127 +1,76 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap2: rx51-peripherals: fix build warning
-Date: Thu, 4 Dec 2014 11:03:53 -0600
-Message-ID: <20141204170353.GK18045@saruman>
-References: <1417033655-32332-1-git-send-email-balbi@ti.com>
- <20141204152411.GF18045@saruman>
- <3261416.DL88JFJXUF@wuerfel>
- <20141204154835.GH18045@saruman>
- <20141204163930.GF2817@atomide.com>
- <20141204150012.2fb75907@recife.lan>
+Subject: Re: [PATCH 0/6] arm: boot: dts: am437x-sk: DTS pinmux fixes
+Date: Thu, 4 Dec 2014 11:06:55 -0600
+Message-ID: <20141204170655.GM18045@saruman>
+References: <1417712519-4615-1-git-send-email-balbi@ti.com>
+ <20141204170415.GL18045@saruman>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZG5hGh9V5E9QzVHS"
+	protocol="application/pgp-signature"; boundary="MSd2ShuMixI0uVaZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36505 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36654 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932453AbaLDREW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Dec 2014 12:04:22 -0500
+	id S1751407AbaLDRHT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Dec 2014 12:07:19 -0500
 Content-Disposition: inline
-In-Reply-To: <20141204150012.2fb75907@recife.lan>
+In-Reply-To: <20141204170415.GL18045@saruman>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---ZG5hGh9V5E9QzVHS
-Content-Type: text/plain; charset=utf-8
+--MSd2ShuMixI0uVaZ
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Dec 04, 2014 at 03:00:12PM -0200, Mauro Carvalho Chehab wrote:
-> Em Thu, 04 Dec 2014 08:39:31 -0800
-> Tony Lindgren <tony@atomide.com> escreveu:
->=20
-> > * Felipe Balbi <balbi@ti.com> [141204 07:50]:
-> > > Hi,
-> > >=20
-> > > On Thu, Dec 04, 2014 at 04:41:13PM +0100, Arnd Bergmann wrote:
-> > > > On Thursday 04 December 2014 09:24:11 Felipe Balbi wrote:
-> > > > > On Wed, Nov 26, 2014 at 02:27:35PM -0600, Felipe Balbi wrote:
-> > > > > > commit 68a3c04 ([media] ARM: OMAP2: RX-51: update
-> > > > > > si4713 platform data) updated board-rx51-peripherals.c
-> > > > > > so that si4713 could be easily used on DT boot, but
-> > > > > > it ended up introducing a build warning whenever
-> > > > > > si4713 isn't enabled.
-> > > > > >=20
-> > > > > > This patches fixes that warning:
-> > > > > >=20
-> > > > > > arch/arm/mach-omap2/board-rx51-peripherals.c:1000:36: warning: \
-> > > > > > 	=E2=80=98rx51_si4713_platform_data=E2=80=99 defined but not us=
-ed [-Wunused-variable]
-> > > > > >  static struct si4713_platform_data rx51_si4713_platform_data =
-=3D {
-> > > > > >=20
-> > > > > > Cc: Sebastian Reichel <sre@kernel.org>
-> > > > > > Cc: Tony Lindgren <tony@atomide.com>
-> > > > > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > > > Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > > > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > >=20
-> > > > > a gentle reminder on this one.
-> > > > >=20
-> > > >=20
-> > > > Let me add my
-> > > >=20
-> > > > Acked-by: Arnd Bergmann <arnd@arndb.de>
-> > > >=20
-> > > > You didn't say who you expect to pick up the patch. I assume Mauro
-> > >=20
-> > > patch author now decides who takes the patch ? That's new :-)
->=20
-> Well, for patches that cross subsystem boundaries, like this one,
-> the best is to give a hint about whom you expect to pick it.
->=20
-> In this specific case, as commit 68a3c04 is in my tree, the best is
-> to merge the patch on it, as the patch may not even apply at Tony's
-> tree.
-
-pointing to the commit that caused the problem really isn't enough ? The
-commit short description (which is also on my commit log) clearly
-mentions "[media]".
-
-Anyway, I'll do that next time.
-
-> > > > should take it because he took the patch that caused the problem,
-> > > > but he might not be aware that he should look at this now.
-> > >=20
-> > > He is in Cc, let's ask him :-)
+On Thu, Dec 04, 2014 at 11:04:15AM -0600, Felipe Balbi wrote:
+> > Here's a small series of non-critical fixes and improvements
+> > for AM437x Starter Kit DTS.
 > >=20
-> > Best that this one goes in along with the other si4713 patches
-> > to avoid dependencies between trees:
+> > Basically I'm removing unnecessary pulls and adding explicit
+> > pinmux for a couple interfaces which were missing.
 > >=20
-> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > All patches tested on top of commit 1ca7c60 (Add linux-next
+> > specific files for 20141204). Boot logs will be attached as
+> > a reply here.
 >=20
-> Thanks! I'll merge it via my tree.
+> boot log attached.
 
-tks
+no idea why the thing says "-dirty". Just reboot and I get:
+
+# uname -a
+Linux saruman 3.18.0-rc7-next-20141204-00009-g8ade679 #2348 SMP Thu Dec 4 1=
+1:04:44 CST 2014 armv7l GNU/Linux
+
+cheers
 
 --=20
 balbi
 
---ZG5hGh9V5E9QzVHS
+--MSd2ShuMixI0uVaZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUgJP5AAoJEIaOsuA1yqREDPEP+gIi4o+uo5uRQqmSCUSh+LCm
-zImUUyhakT2lC3i6prYqMA/zGoEqURmU3CXOsvKhnTOJOs9DMv3VLG+O+/lOEWt5
-+tgORK4CQExurjeyymvIIRc2jzIwwolpymu81CA4EOcMQZwb9UcibEiOXvv+MINK
-+3XsUlsoxeLEIdk7v/1NrDxlgBl/Hmb3ImwOiY1u/4/bdwIp+gNSu8oQ37IxL88E
-PkUs5o8ClbyAawCMV/yszCCSRUh6nroxXWDWrBEhXlkiLF0oEzHBvkiIGWWEwF3v
-IYAilKiESzMelEeo8Psx3H0TM1ZLMpHhD3dD5tohyn9c7mRpWtvzmPhY90x1TAGQ
-evIoPyFTQKnoz5tnKg38mamfMRLK16cRzN8MJC/0bDoipVxDHy3r8dvg/ctBRGXa
-iAbIq0OswDOiaeH/bGI7B3uKWIRDhDVxzMO/T0hcmWjTsh2VQoYpBZ0QCUo+60UN
-DmlvcE/ki4pvD8rr9oPqgOqy/NqdIk+BAKiHT0YSMFjt6jhJHx/FgmUxWh5nuvSC
-06+Am8bgtCPUAeWb9beJqujPsCFrLfovEEZym1ULojvTgsditx92kY7dnkCkSt5V
-Yky2iHxCuQjPJetpCHvYy3quB2H/2QLPvrGC7bcJTN4AW0zzJ2EnYDXhbGKsHXcJ
-NjBlUOZkzyktEKgm90se
-=4sIk
+iQIcBAEBAgAGBQJUgJSvAAoJEIaOsuA1yqREeDwP/2N1w/C9ZM1etZQVMvOlpS5P
+sHF8CXf4LFjHgLq86VLCXESfBU4GbTvLQXXFOMVtvDA9RyXhqbwNRJr8rX26fd+F
+0vpsQhKD5YNPc/DYFA1SMOOgwicKVYICoHxMgJV2f/P9UGi1J3GMjjGTjT65Mhve
+yIIk1ZkacTXa/b6Qr5xrnREJxl/y4DDZ/WLDWDTwH+FzLcRrtOx1NrDJjQdexAEK
+qe3o47y7+039mKKqEWCR41tE+n7H4ixaqc0gnx8ovQVzDplA4PQT+WKCD9L9lW8h
+kC6uMq5E3p78H4pg/e0ntanf3hypI6vnPEhWlOIKbqMEp2lIb5pksM57OYZbCe85
+lp1ffgTvO2b2A8dsZ1jOiPIEzaxuXRMu6kpPmv4S4o/bUr7UsnGXeJw5BKtajiaO
++NOdIiJBoIbaWck3NG0eXmyiE+43wT74ZloYrN7sKTAIw0lsiwsFaO8jbknGhIH1
+gIIdL3RykoLRe1OSLAbI82mwNN/CNwP1/omza+VUE4VjkTjIlhLfnLaAxm8IN/Pg
+sE+cMAot778+9UUcz0Ca5asZfhVBdiAieuflMFtpJnxCdrouJsZLUOKRJxeTSWXf
+pyrKN8kUaJ4Dqv3Fk1/SbD3woA4ZpjmokbgSrwUhQehVVNVNp/M02xE37qi5150x
+7vg2jCKpcGZDec4N8+JB
+=L81f
 -----END PGP SIGNATURE-----
 
---ZG5hGh9V5E9QzVHS--
+--MSd2ShuMixI0uVaZ--
