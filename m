@@ -1,113 +1,156 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 0/2] Add DRA7xx CPSW Ethernet support in Device Tree
-Date: Thu, 4 Dec 2014 14:14:31 -0600
-Message-ID: <20141204201431.GB18419@saruman>
-References: <1413885661-4850-1-git-send-email-mugunthanvnm@ti.com>
- <54463063.80207@ti.com>
- <20141021172223.GA12943@kahuna>
- <20141103162722.GN27425@saruman>
- <545BA9EE.1040905@ti.com>
- <20141204201401.GA18419@saruman>
-Reply-To: <balbi@ti.com>
+Subject: [PATCH] ARM: dts: am57xx-beagle-x15: Add dual ethernet
+Date: Thu, 4 Dec 2014 14:53:38 -0600
+Message-ID: <1417726418-1955-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cmJC7u66zC7hs+87"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141204201401.GA18419@saruman>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>Nishanth Menon <nm@ti.com>, bcousson@baylibre.com, tony@atomide.com, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45987 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752093AbaLDUyD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Dec 2014 15:54:03 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Nishanth Menon <nm@ti.com>, Sekhar Nori <nsekhar@ti.com>
 
---cmJC7u66zC7hs+87
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Make CPSW work - BeagleBoard-X15 has two network ports
 
-On Thu, Dec 04, 2014 at 02:14:01PM -0600, Felipe Balbi wrote:
-> On Thu, Nov 06, 2014 at 10:33:42PM +0530, Mugunthan V N wrote:
-> > Tony
-> >=20
-> > On Monday 03 November 2014 09:57 PM, Felipe Balbi wrote:
-> > > On Tue, Oct 21, 2014 at 12:22:23PM -0500, Nishanth Menon wrote:
-> > >> On 15:37-20141021, Mugunthan V N wrote:
-> > >>> Nishanth
-> > >>>
-> > >>> On Tuesday 21 October 2014 03:30 PM, Mugunthan V N wrote:
-> > >>>> Adding device tree entry for CPSW to make it work in Dual EMAC mod=
-e.
-> > >>>> These patches were tested with DRA7 hwmod patches on top of linux-=
-next.
-> > >>>> Patches are tested on top of Nishanth's PM tree for v3.17 [1] and =
-pushed
-> > >>>> my tree to [2].
-> > >>>>
-> > >>>> Did a boot test with CPSW and ping test with suspend/resume, the b=
-oot logs
-> > >>>> on DRA7xx EVM are posted at [3]
-> > >>>>
-> > >>>> [1] git://github.com/nmenon/linux-2.6-playground.git testing/v3.17=
-/cpu-idle-suspend-dra7-omap5-framework
-> > >>>> [2] git://git.ti.com/~mugunthanvnm/ti-linux-kernel/linux.git v3.17=
-/dra7-evm-cpsw-v3
-> > >>>> [3] http://pastebin.ubuntu.com/8613072/
-> > >>>>
-> > >>>> Changes from v2:
-> > >>>> * Changed pinctrl comments to hold mode0-name.mode-selected-name
-> > >>>> * Changes slave numbers in the pinctrl comments
-> > >>>> * Added cpsw and cpts clocks
-> > >>>>
-> > >>>
-> > >>> I have not added support for dra72x-evm as it has only slave no 2 p=
-inned
-> > >>> out and having issues with bringing up the interface, need some more
-> > >>> time to submit the patch, in the mean time I have submitted dra7-evm
-> > >>> support only so that people can use dra7-evm on linux-next.
-> > >>
-> > >> Quickly tested as well:
-> > >> http://slexy.org/raw/s2vISJxYrR
-> > >>
-> > >> Please feel free to add:
-> > >> Tested-by: Nishanth Menon <nm@ti.com>
-> > >> Acked-by: Nishanth Menon <nm@ti.com>
-> > >=20
-> > > I've used these patches with X15 (DRA7xx-based yet-to-be-released boa=
-rd)
-> > > with v3.18-rc2.
-> > >=20
-> > > Tested-by: Felipe Balbi <balbi@ti.com>
-> > >=20
-> >=20
-> > Ping on this
->=20
-> another ping on this
+MUX_MODE15 means "driver off". Pins are turned off
+conserving more power.
 
-oh my bad, it's already queued for v3.19. sorry
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/boot/dts/am57xx-beagle-x15.dts | 106 ++++++++++++++++++++++++++++++++
+ 1 file changed, 106 insertions(+)
 
---=20
-balbi
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index 49edbda..da1b24c 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -140,6 +140,86 @@
+ 		>;
+ 	};
+ 
++	cpsw_pins_default: cpsw_pins_default {
++		pinctrl-single,pins = <
++			/* Slave 1 */
++			0x250 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_tclk */
++			0x254 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_tctl */
++			0x258 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td3 */
++			0x25c (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td2 */
++			0x260 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td1 */
++			0x264 (PIN_OUTPUT | MUX_MODE0)	/* rgmii1_td0 */
++			0x268 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rclk */
++			0x26c (PIN_INPUT | MUX_MODE0)	/* rgmii1_rctl */
++			0x270 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd3 */
++			0x274 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd2 */
++			0x278 (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd1 */
++			0x27c (PIN_INPUT | MUX_MODE0)	/* rgmii1_rd0 */
++
++			/* Slave 2 */
++			0x198 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_tclk */
++			0x19c (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_tctl */
++			0x1a0 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td3 */
++			0x1a4 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td2 */
++			0x1a8 (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td1 */
++			0x1ac (PIN_OUTPUT | MUX_MODE3)	/* rgmii2_td0 */
++			0x1b0 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rclk */
++			0x1b4 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rctl */
++			0x1b8 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd3 */
++			0x1bc (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd2 */
++			0x1c0 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd1 */
++			0x1c4 (PIN_INPUT | MUX_MODE3)	/* rgmii2_rd0 */
++		>;
++
++	};
++
++	cpsw_pins_sleep: cpsw_pins_sleep {
++		pinctrl-single,pins = <
++			/* Slave 1 */
++			0x250 (PIN_INPUT | MUX_MODE15)
++			0x254 (PIN_INPUT | MUX_MODE15)
++			0x258 (PIN_INPUT | MUX_MODE15)
++			0x25c (PIN_INPUT | MUX_MODE15)
++			0x260 (PIN_INPUT | MUX_MODE15)
++			0x264 (PIN_INPUT | MUX_MODE15)
++			0x268 (PIN_INPUT | MUX_MODE15)
++			0x26c (PIN_INPUT | MUX_MODE15)
++			0x270 (PIN_INPUT | MUX_MODE15)
++			0x274 (PIN_INPUT | MUX_MODE15)
++			0x278 (PIN_INPUT | MUX_MODE15)
++			0x27c (PIN_INPUT | MUX_MODE15)
++
++			/* Slave 1 */
++			0x198 (PIN_INPUT | MUX_MODE15)
++			0x19c (PIN_INPUT | MUX_MODE15)
++			0x1a0 (PIN_INPUT | MUX_MODE15)
++			0x1a4 (PIN_INPUT | MUX_MODE15)
++			0x1a8 (PIN_INPUT | MUX_MODE15)
++			0x1ac (PIN_INPUT | MUX_MODE15)
++			0x1b0 (PIN_INPUT | MUX_MODE15)
++			0x1b4 (PIN_INPUT | MUX_MODE15)
++			0x1b8 (PIN_INPUT | MUX_MODE15)
++			0x1bc (PIN_INPUT | MUX_MODE15)
++			0x1c0 (PIN_INPUT | MUX_MODE15)
++			0x1c4 (PIN_INPUT | MUX_MODE15)
++		>;
++	};
++
++	davinci_mdio_pins_default: davinci_mdio_pins_default {
++		pinctrl-single,pins = <
++			/* MDIO */
++			0x23c (PIN_OUTPUT_PULLUP | MUX_MODE0)	/* mdio_mclk */
++			0x240 (PIN_INPUT_PULLUP | MUX_MODE0)	/* mdio_d */
++		>;
++	};
++
++	davinci_mdio_pins_sleep: davinci_mdio_pins_sleep {
++		pinctrl-single,pins = <
++			0x23c (PIN_INPUT | MUX_MODE15)
++			0x240 (PIN_INPUT | MUX_MODE15)
++		>;
++	};
++
+ 	tps659038_pins_default: tps659038_pins_default {
+ 		pinctrl-single,pins = <
+ 			0x418 (PIN_INPUT_PULLUP | MUX_MODE14)	/* wakeup0.gpio1_0 */
+@@ -365,6 +445,32 @@
+ 	pinctrl-0 = <&uart3_pins_default>;
+ };
+ 
++&mac {
++	status = "okay";
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&cpsw_pins_default>;
++	pinctrl-1 = <&cpsw_pins_sleep>;
++	dual_emac;
++};
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <1>;
++	phy-mode = "rgmii";
++	dual_emac_res_vlan = <1>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <2>;
++	phy-mode = "rgmii";
++	dual_emac_res_vlan = <2>;
++};
++
++&davinci_mdio {
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&davinci_mdio_pins_default>;
++	pinctrl-1 = <&davinci_mdio_pins_sleep>;
++};
++
+ &mmc1 {
+ 	status = "okay";
+ 
+-- 
+2.1.0.GIT
 
---cmJC7u66zC7hs+87
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJUgMCnAAoJEIaOsuA1yqREJSsP/jF1D/KtAq1I9VXtTjrgpdDa
-KGcRF2gZAKFCPVSSKBEXdUtE67nvHy3K9zAq6MZvYCN47F41CxFNhmNybP9HrT8I
-AX2aaVMvSh4HN49ZZSgpG98EVQgnrpy0wb8UCNpwgE7ODPEpVA7oPmiv+lRkpufG
-qSMpHM1rkFfHAYcSt10LTM+0KYGeCxurtU34hXZNrtx4d7x/3TL0SP6P1Z6/HgcE
-JqDgIiRzh8SziRb1rvHO560Vbz5w5x0MmpoF6NjGpDrFS1TSra7wOlqgGWdzk+iL
-TOP267bkC8iIZQRe2cQb88Mgu+wBZVGlqEbs/6OzfLgcug7wQn6K4MKh6qI6v+ks
-7i8c0YfWzrBljGO6NXS3gUJ0SlRDxoQIAknFOkII+clOMLfLUjKJscsZlYGZYRGV
-My+T3Jx4BRrlsknmsen8C7KcBzdlmqKZGVYYH6HR2P6a2x4L9hRVAouxUlSjEtxg
-nLomW6PKE7Q47Vac+gEVBjBAbB9CHax81WH9iwQa49Ty0SKy7i2HbzoXznEEXM+j
-89ICeEYzO4u84leX+ta3hTqHmW8p27MAiiPkeyswj/qHNBdDeKOjoQX0LLR+6R+V
-A+BFqRa0W623p5FBvTDKXGmxYUsXc7Sq5M4VGpw0zkYhYx/vLD8chroEwy5MFxvI
-T+jZ0EbOdfpSRNotYfUK
-=eJmI
------END PGP SIGNATURE-----
-
---cmJC7u66zC7hs+87--
