@@ -1,71 +1,187 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC 0/5] i2c: omap: new fixes 2
-Date: Thu, 4 Dec 2014 10:23:03 -0800
-Message-ID: <20141204182302.GH2817@atomide.com>
-References: <1417617242-16869-1-git-send-email-al.kochet@gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Warn about deprecated legacy booting mode
+Date: Thu, 4 Dec 2014 19:34:03 +0100
+Message-ID: <201412041934.03384@pali>
+References: <20141027200008.GR2560@atomide.com> <201411282241.12095@pali> <20141128222424.GX2817@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1417617242-16869-1-git-send-email-al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed;
+  boundary="nextPart3371473.zjzYEvSdqq";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:44085 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932455AbaLDSeI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2014 13:34:08 -0500
+Received: by mail-wi0-f169.google.com with SMTP id r20so37129144wiv.2
+        for <linux-omap@vger.kernel.org>; Thu, 04 Dec 2014 10:34:06 -0800 (PST)
+In-Reply-To: <20141128222424.GX2817@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [141203 06:36]:
-> This pacth series intended for fixing problem reported
-> by Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> here[1]
-> 
-> One of first four patched could fix the problem.
-> Last patch provide event trace so I could resolve problem.
-> It could be applied using 'git am' or 'patch -p1 ...'
-> 
-> Patches are rebased on branch 'i2c/for-next' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/wsa/linux
-> (6e79807443cba7397cd855ed29d6faba51d4c893)
-> 
-> Tony, could you check, does the series fix the problem reported[1]?
-> If yes, could you bisect and point commit that solve.
-> If no, could you provide trace output (with or without the patches
-> from series).
-> If no, could you check does i2c-omap.c from commit ca1f8da9ac5ce6e63d8f6933f83fabc1f3f961f4.
-> (the commit before my changes to kernel) work for you?
+--nextPart3371473.zjzYEvSdqq
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-It seems this is not related to your patches. Applying these
-cause the following though on my 2430sdp:
+On Friday 28 November 2014 23:24:26 Tony Lindgren wrote:
+> * Pali Roh=C3=A1r <pali.rohar@gmail.com> [141128 13:43]:
+> > On Friday 28 November 2014 21:27:19 Tony Lindgren wrote:
+> > > Are you saying there are some issues with that?
+> >=20
+> > uboot (in mode when is loaded from NOLO) has those issues:
+> >=20
+> > 1) uboot cannot read n900 onenand mtd (uboot onenand driver
+> > not working, do not know why)
+> > 2) missing support for battery charging (can totally
+> > discharge battery)
+> > 3) missing support for panel panel (so sometimes screen is
+> > totally black until kernel is booted and loaded own drivers)
+> > 4) limit for storing both uboot and kernel into MTD is
+> > limited by 2MB (size of kernel nand partition)
+> >=20
+> > Basically you can use uboot if you accept all above issues.
+> >=20
+> > But there are people (Pavel CCed) who prefer to work without
+> > uboot when testing kernel. So it is not good idea to lock
+> > new kernel versions to depends on new uboot version.
+>=20
+> OK thanks for the update, I was not aware of the issues above.
+>=20
+> > > Are there other ATAGs needed beyond the ATAG_REVISION?
+> >=20
+> > Sorry for longer email. I will provide some more info about
+> > it. First I will describe that informations are passed from
+> > NOLO to kernel. Note that all those informations are passed
+> > also from uboot to kernel (uboot just reuse non static data
+> > from NOLO). Then I will describe that we need in userspace.
+>=20
+> > Here are all ATAGs from NOLO:
+> ...
+>=20
+> These we should not need, it's all coming from the .dts files.
+>=20
+> > 0036 - 0003:54410007 ATAG REVISION revision=3D00002204
+> >=20
+> >        0588 - 000c:4f80 BOOTREASON:   pwr_key
+> >        0604 - 0018:4f82 VERSION:      product      =3D RX-51
+> >        0632 - 0018:4f82 VERSION:      hw-build     =3D 2204
+> >        0660 - 0018:4f82 VERSION:      nolo         =3D 1.4.14
+> >        0688 - 0018:4f82 VERSION:      boot-mode    =3D normal
+>=20
+> Seems like these are the ones we should somehow get. The
+> others should be coming in the .dts file already, or can be
+> deciphered based on the above in the kernel.
+>=20
+> > ATAG MEM is generated by NOLO and also uboot at runtime. But
+> > we have hardcoded memory values in n900 DT file. Maybe we
+> > should use those generated by uboot bootloader (or reuse
+> > uboot code for generating) instead using hardcoded one?
+>=20
+> Yes we should not need ATAG MEM.
+>=20
+> > ATAG REVISION is that which is magically generated by NOLO
+> > and which we want to reuse. Better would be understand how
+> > and why it NOLO generate (maybe there is something secret
+> > register which can tell it?). But I was not able to find
+> > out it.
+>=20
+> I would assume that's also somewhere in the cal area.
+>=20
+> > OMAP table is one big ATAG structure which contains lot of
+> > other values. Basically all values (except uart, bootreason
+> > and version) are static and on all n900 devices are same.
+> >=20
+> > Partitions are generated by NOLO from CAL (/dev/mtd1) data,
+> > but I think nobody ever changed them (but it is possible!).
+>=20
+> AFAIK it's safe to assume they are coming in the .dts file.
+>=20
+> > Uart is enabled when serial console is enabled via NOLO.
+>=20
+> We can keep the UART enabled all the time no problem. It's
+> timeouts just need to be configured for idle.
+>=20
+> > Bootreason contains omap3 bootreason value from special
+> > register (plus magic from NOLO) which is cleared
+> > automatically by NOLO (so no way to read it from kernel).
+> >=20
+> > Version contains some key-value data. Product is always
+> > RX-51, hw-build is same as ATAG REVISION, nolo is nolo
+> > version and value for boot-mode is ether normal or update.
+>=20
+> OK
+>=20
+> > What we need in userspace:
+> >=20
+> > In file /proc/cpuinfo:
+> > Hardware        : Nokia RX-51 board
+> > Revision        : <hw_revision_number>
+> >=20
+> > And in any file and any format (does not matter if text,
+> > binary, whatever...) we need value from bootreason,
+> > boot-mode (and maybe nolo version).
+>=20
+> OK
+>=20
+> > Current maemo applications are using files /proc/bootreason
+> > (for bootreason) and /proc/component_version (for all
+> > version) which are specific for Nokia 2.6.28 kernel. All
+> > those applications (which reading ether bootreason or
+> > bootmode proc files) are either shell scripts or open
+> > source, so editing them is possible. I will start fixing
+> > them once there will be *stable* ABI for those data.
+> >=20
+> > With non DT (legacy) boot all above atags are present in
+> > binary file /proc/atags.
+> >=20
+> > But because DT boot does not provide /proc/atags file I need
+> > some interface how to read above needed strings.
+> >=20
+> > So I would like to know what is possible and how?
+>=20
+> How about patch things so we see /proc/atags also for DT based
+> booting, but in a way where the ATAGs don't do anything?
+>=20
+> > Does kernel provide some interface for telling userspace
+> > applications something like bootreason (e.g power key,
+> > software reset, rtc alarm, charger connected, ...)?
+>=20
+> I don't think we have anything like that currently.
+>=20
+> Regards,
+>=20
+> Tony
 
-omap_i2c 48072000.i2c: addr: 0x004b, len: 2, flags: 0x0, stop: 1
-omap_i2c 48072000.i2c: XFER0: STAT=0x0000; IE=0x601f; CON=0x8000; (omap_i2c_xfer_msg:705)
-omap_i2c 48072000.i2c: XFER1: STAT=0x0010; IE=0x601f; CON=0x8600; (omap_i2c_xfer_msg:707)
-omap_i2c 48072000.i2c: THR: STAT=0x1410; IE=0x601f; CON=0x8600; (omap_i2c_isr_thread:1016)
-omap_i2c 48072000.i2c: IRQ (ISR = 0x0010)
-omap_i2c 48072000.i2c: THR: STAT=0x1000; IE=0x601f; CON=0x8600; (omap_i2c_isr_thread:1016)
-omap_i2c 48072000.i2c: THR DONE: STAT=0x1004; IE=0x601f; CON=0x8600; (omap_i2c_isr_thread:1168)
-omap_i2c 48072000.i2c: THR: STAT=0x1004; IE=0x601f; CON=0x8600; (omap_i2c_isr_thread:1016)
-omap_i2c 48072000.i2c: IRQ (ISR = 0x0004)
-omap_i2c 48072000.i2c: THR: STAT=0x1000; IE=0x601f; CON=0x8602; (omap_i2c_isr_thread:1016)
-omap_i2c 48072000.i2c: THR DONE: STAT=0x1000; IE=0x601f; CON=0x8602; (omap_i2c_isr_thread:1168)
-omap_i2c 48072000.i2c: XFER TIMEOUT: STAT=0x1000; IE=0x601f; CON=0x8602; (omap_i2c_xfer_msg:716)
-omap_i2c 48072000.i2c: controller timed out
-twl: Write failed (mod 3, reg 0x0e count 1)
+Hi Tony,
 
-Regards,
+see last mail in thread (I CCed you):
+"[PATCH] ARM: /proc/cpuinfo: Use DT machine name when possible"
 
-Tony
+There is already some layer for converting ATAGs to DTB and it is=20
+in decompresser: arch/arm/boot/compressed/atags_to_fdt.c
 
-> [1] http://www.spinics.net/lists/linux-i2c/msg17811.html
-> 
-> Alexander Kochetkov (5):
->   i2c: omap: ack only reported events
->   i2c: omap: simplify i462 errata handling for NACK and AL cases
->   i2c: omap: move STP generation logic into ISR thread
->   i2c: omap: reimpelement STP hack via 2-phases transfer
->   i2c: omap: add trace
-> 
->  drivers/i2c/busses/i2c-omap.c |  162 ++++++++++++++++++++++++-----------------
->  1 file changed, 95 insertions(+), 67 deletions(-)
-> 
-> -- 
-> 1.7.9.5
-> 
+I do not know if it can help us to provide /proc/cpuinfo and=20
+/proc/atags in DT boot, but at least this this transfer cmdline=20
+and mem ATAGs to DBT.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart3371473.zjzYEvSdqq
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlSAqRsACgkQi/DJPQPkQ1JhPACgskeeoHO01D/PQKRozEw6iVSH
+MAEAoMT+yabggURDytCzk6CPCrzZbP7S
+=wmFN
+-----END PGP SIGNATURE-----
+
+--nextPart3371473.zjzYEvSdqq--
