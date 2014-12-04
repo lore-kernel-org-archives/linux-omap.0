@@ -1,97 +1,113 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/3] arm: boot: dts: am437x-sk: fix lcd enable pin mux
- data
-Date: Thu, 4 Dec 2014 08:43:25 -0600
-Message-ID: <20141204144325.GA17269@saruman>
-References: <1413311335-25083-1-git-send-email-balbi@ti.com>
- <1413311335-25083-3-git-send-email-balbi@ti.com>
- <543E6774.8000406@ti.com>
+Subject: Re: [PATCH v2] drivers: net : cpsw: Update Kconfig for CPSW
+Date: Thu, 4 Dec 2014 08:48:30 -0600
+Message-ID: <20141204144830.GB18045@saruman>
+References: <1417668869-25616-1-git-send-email-lokeshvutla@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+	protocol="application/pgp-signature"; boundary="Yylu36WmvOXNoKYn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41758 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753975AbaLDOnv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Dec 2014 09:43:51 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:38620 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932155AbaLDOs3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2014 09:48:29 -0500
 Content-Disposition: inline
-In-Reply-To: <543E6774.8000406@ti.com>
+In-Reply-To: <1417668869-25616-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Benoit Cousson <bcousson@baylibre.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-fbdev@vger.kernel.org, Darren Etheridge <detheridge@ti.com>
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, mugunthanvnm@ti.com, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, balbi@ti.com, nsekhar@ti.com, t-kristo@ti.com
 
---BXVAT5kNtrzKuDFl
+--Yylu36WmvOXNoKYn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-HI,
-
-On Wed, Oct 15, 2014 at 03:24:20PM +0300, Tomi Valkeinen wrote:
-> On 14/10/14 21:28, Felipe Balbi wrote:
-> > Caused by a copy & paste error. Note that even with
-> > this bug AM437x SK display still works because GPIO
-> > mux mode is always enabled. It's still wrong to mux
-> > somebody else's pin.
-> >=20
-> > Luckily ball D25 (offset 0x238 - gpio5_8) on AM437x
-> > isn't used for anything.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  arch/arm/boot/dts/am437x-sk-evm.dts | 3 +--
-> >  1 file changed, 1 insertion(+), 2 deletions(-)
-> >=20
-> > diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am=
-437x-sk-evm.dts
-> > index 859ff3d..681be00 100644
-> > --- a/arch/arm/boot/dts/am437x-sk-evm.dts
-> > +++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-> > @@ -320,8 +320,7 @@
-> > =20
-> >  	lcd_pins: lcd_pins {
-> >  		pinctrl-single,pins =3D <
-> > -			/* GPIO 5_8 to select LCD / HDMI */
-> > -			0x238 (PIN_OUTPUT_PULLUP | MUX_MODE7)
-> > +			0x1c (PIN_OUTPUT_PULLUP | MUX_MODE7) /* gpcm_ad7.gpio1_7 */
-> >  		>;
-> >  	};
-> >  };
+On Thu, Dec 04, 2014 at 10:24:29AM +0530, Lokesh Vutla wrote:
+> CPSW is present in AM33xx, AM43xx, DRA7xx.
+> Updating the Kconfig to depend on ARCH_OMAP2PLUS instead of listing
+> all SoC's.
 >=20
-> I didn't verify the offset, but based on the comments this looks fine to =
-me.
->=20
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-Tony, are you taking this patch ? Looks like it has been forgotten and
-now it needs to be backported to v3.17 and v3.18 (assuming it's too late
-for v3.18).
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+> ---
+>  drivers/net/ethernet/ti/Kconfig | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kc=
+onfig
+> index 5d8cb79..7051255 100644
+> --- a/drivers/net/ethernet/ti/Kconfig
+> +++ b/drivers/net/ethernet/ti/Kconfig
+> @@ -5,7 +5,7 @@
+>  config NET_VENDOR_TI
+>  	bool "Texas Instruments (TI) devices"
+>  	default y
+> -	depends on PCI || EISA || AR7 || (ARM && (ARCH_DAVINCI || ARCH_OMAP3 ||=
+ SOC_AM33XX || ARCH_KEYSTONE))
+> +	depends on PCI || EISA || AR7 || ARCH_DAVINCI || ARCH_OMAP2PLUS || ARCH=
+_KEYSTONE
+>  	---help---
+>  	  If you have a network (Ethernet) card belonging to this class, say Y
+>  	  and read the Ethernet-HOWTO, available from
+> @@ -32,7 +32,7 @@ config TI_DAVINCI_EMAC
+> =20
+>  config TI_DAVINCI_MDIO
+>  	tristate "TI DaVinci MDIO Support"
+> -	depends on ARM && ( ARCH_DAVINCI || ARCH_OMAP3 || SOC_AM33XX || ARCH_KE=
+YSTONE )
+> +	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS || ARCH_KEYSTONE
+>  	select PHYLIB
+>  	---help---
+>  	  This driver supports TI's DaVinci MDIO module.
+> @@ -42,7 +42,7 @@ config TI_DAVINCI_MDIO
+> =20
+>  config TI_DAVINCI_CPDMA
+>  	tristate "TI DaVinci CPDMA Support"
+> -	depends on ARM && ( ARCH_DAVINCI || ARCH_OMAP3 || SOC_AM33XX )
+> +	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS
+>  	---help---
+>  	  This driver supports TI's DaVinci CPDMA dma engine.
+> =20
+> @@ -58,7 +58,7 @@ config TI_CPSW_PHY_SEL
+> =20
+>  config TI_CPSW
+>  	tristate "TI CPSW Switch Support"
+> -	depends on ARM && (ARCH_DAVINCI || SOC_AM33XX)
+> +	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS
+>  	select TI_DAVINCI_CPDMA
+>  	select TI_DAVINCI_MDIO
+>  	select TI_CPSW_PHY_SEL
+> --=20
+> 1.9.1
+>=20
 
 --=20
 balbi
 
---BXVAT5kNtrzKuDFl
+--Yylu36WmvOXNoKYn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUgHMNAAoJEIaOsuA1yqRES1EP/jtI8Mf1qOWlPPiTUX0kRPDJ
-YuKe+9wEAr2WtMoq5fRzQAzXiv4GFEews1Ki+F62dgd7nsa4snyGka4JrGYSq1Wd
-cZzkeEE/5Yi6PWZs9zhGAtDMlvIywITaBYQej2xP7L+UVjDLXqwVGJf4Op6NWyao
-8OCChRFAIc93c1eYgrfAijH1dOwlUqGNrEgYYBp68PBTj1Dnpa27IWhNxmkV4kb2
-h/4f7oPqV/yVzU8jTjeiuUB7uPorazuqchwllI9dAbELPS1+AX0qU0ZELV7aGdf2
-is9ECtYUNtHaN0eCUKgrMJqa7+f/PwaH2Q9ostnY7yDyXIV/mnpd80pf7fKIdK5I
-YjU1KFqZtQ/HztSnK0Y3z4e7GEDRQhNT/2YgUWqfzZk0v5EDzuxzq/7mLbyQaiUF
-Fi7ViPj2mnWSqbThKrc5GJab5pjEJ3alwaZxQfvGBHcXtOgNwJhWDmlamCNRCpsK
-I+0LNW45odpbO5KFRqYYMHE3AQF8s2Gw4ye0yR9hvhZCaNbFhlPxiFHOVoV5Y7ee
-sYrPlChz77azjGw43it8WsirE0ijv+6kui1ZXalLmC6hUEiOL0PSJeqhgBaXERx3
-bzRwhffp2WzDx4yCYwgmfDE+MfthNGCDhgD+5zEx8Ug8kg2TryHFVsP1PP3/bF94
-5HVPlzVfuUhxKsPetbyc
-=sd95
+iQIcBAEBAgAGBQJUgHQ+AAoJEIaOsuA1yqREuZMP/RuJtb2Fy+UpqZPtSTQ/q8/Y
+CBkQ8M+azi2yQIb+NlEKgE/DLLCIJfMjTOk67Ac6AzgP4OaJLl9N/X/3axyeHuTd
+GYPXM89xmQdz9LD6R5bUEIrRK2J3zXsJ+lJh/CPKRPYP1vMZoqdl3eZv2IJt3wb2
+prYaZseXWdSY/OzsVwflLB1DnhI/6fgy9j3M0zRQsnWHZokc6Deg9EP+YGYdoDP7
+7XVS1kmHPlpw4VQJubL+VpECglLxVuKAmMD7S+UKWJUKVe8aYgRNnBi8AyTN7MKn
+glPEi8cDZYhFdShMozuR31pJojiTgS8IWXMcNXXu1sJzsHSWq7gDc58o2JQ9toDU
+LwCCt2TlShlqdpVnG7d2T3/FPGjJbweKKU/XIZwWqVBAnh8kPZWIezQlqUN8ttjg
+vdGCU/LgzsyXGtHDVcQZkYUmOShYLS5iSffFGajdCu1O9uIOeclQ7eML3xix/L43
+oJwb0byXfkJpAH5a1BICRcQr0BI303usroMuENr88PLo0BsQ+MEqFHzTav464y2g
+PIrq9tjYh74MmTOlsqKOFBv/Ihey3jnipEIho0KnKkDsK2QQaoyqCQQeIiPbN6ST
+DXvtJCxlLVrNHdz6xUrIi5MvqIevERKcNQKWSdET4DHV30rZbL1IdYKXBsS9Z0eU
+av5FOlsLmi2rW0n7PeIV
+=B3YQ
 -----END PGP SIGNATURE-----
 
---BXVAT5kNtrzKuDFl--
+--Yylu36WmvOXNoKYn--
