@@ -1,30 +1,32 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v2] drivers: net : cpsw: Update Kconfig for CPSW
-Date: Thu, 4 Dec 2014 11:47:47 +0530
-Message-ID: <547FFC8B.7020100@ti.com>
-References: <1417668869-25616-1-git-send-email-lokeshvutla@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] hsi / OMAP / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Thu, 04 Dec 2014 10:23:35 +0100
+Message-ID: <8906994.EV0QeHVvVO@wuerfel>
+References: <6319344.XVfdONE5DJ@vostro.rjw.lan> <2553100.3OLsEPLv6G@wuerfel> <22524926.vCRamu0d6Y@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54746 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751182AbaLDGRx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Dec 2014 01:17:53 -0500
-In-Reply-To: <1417668869-25616-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <22524926.vCRamu0d6Y@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-omap@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>, netdev@vger.kernel.org, davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, balbi@ti.com, nsekhar@ti.com, t-kristo@ti.com
 
-On Thursday 04 December 2014 10:24 AM, Lokesh Vutla wrote:
-> CPSW is present in AM33xx, AM43xx, DRA7xx.
-> Updating the Kconfig to depend on ARCH_OMAP2PLUS instead of listing
-> all SoC's.
+On Wednesday 03 December 2014 23:45:22 Rafael J. Wysocki wrote:
+> http://marc.info/?l=linux-kernel&m=141712284917133&w=4
 > 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> > Before we do lots of s/CONFIG_PM_SLEEP/CONFIG_PM/ changes in lots of
+> > other drivers, it would be nice to come up with a new set of macros
+> > to replace all the SET_RUNTIME_PM_OPS/SIMPLE_DEV_PM_OPS/..._OPS
+> > with a version that avoided the #ifdefs altogether.
+> 
+> I don't think we can avoid all of the #ifdefs and the macros still work
+> (except for one which is redundant, but I have a patch to clean that up).
 
-Acked-by: Mugunthan V N <mugunthanvnm@ti.com>
+Right, while we can create a version that does not require the #ifdef,
+that would still mean we'd have to touch every file and replace
+SET_RUNTIME_PM_OPS with PM_SET_RUNTIME_OPS or something like that
+because the new macro would not work if the function is not defined.
 
-Regards
-Mugunthan V N
+	Arnd
