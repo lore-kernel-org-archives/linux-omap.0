@@ -1,75 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap2: rx51-peripherals: fix build warning
-Date: Thu, 4 Dec 2014 08:39:31 -0800
-Message-ID: <20141204163930.GF2817@atomide.com>
-References: <1417033655-32332-1-git-send-email-balbi@ti.com>
- <20141204152411.GF18045@saruman>
- <3261416.DL88JFJXUF@wuerfel>
- <20141204154835.GH18045@saruman>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] hwmon: (gpio-fan) Add a shutdown handler to poweroff the fans
+Date: Thu, 4 Dec 2014 10:58:56 -0600
+Message-ID: <1417712336-31070-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11622 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932699AbaLDQlr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Dec 2014 11:41:47 -0500
-Content-Disposition: inline
-In-Reply-To: <20141204154835.GH18045@saruman>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <jdelvare@suse.de>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Sebastian Reichel <sre@kernel.org>, Hans Verkuil <hans.verkuil@cisco.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <balbi@ti.com> [141204 07:50]:
-> Hi,
->=20
-> On Thu, Dec 04, 2014 at 04:41:13PM +0100, Arnd Bergmann wrote:
-> > On Thursday 04 December 2014 09:24:11 Felipe Balbi wrote:
-> > > On Wed, Nov 26, 2014 at 02:27:35PM -0600, Felipe Balbi wrote:
-> > > > commit 68a3c04 ([media] ARM: OMAP2: RX-51: update
-> > > > si4713 platform data) updated board-rx51-peripherals.c
-> > > > so that si4713 could be easily used on DT boot, but
-> > > > it ended up introducing a build warning whenever
-> > > > si4713 isn't enabled.
-> > > >=20
-> > > > This patches fixes that warning:
-> > > >=20
-> > > > arch/arm/mach-omap2/board-rx51-peripherals.c:1000:36: warning: =
-\
-> > > > 	=E2=80=98rx51_si4713_platform_data=E2=80=99 defined but not us=
-ed [-Wunused-variable]
-> > > >  static struct si4713_platform_data rx51_si4713_platform_data =3D=
+Poweroff the fans when shutting down the system. Else,
+echo '1' > /sys/class/hwmon/hwmon0/fan1_target; poweroff leaves the
+fan running if the System power off does not drive the gpio expander
+which might control the fan power supply.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+based on next-20141204 , but can rebase to required branch as needed.
+
+ drivers/hwmon/gpio-fan.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+index 7802eb2..36abf81 100644
+--- a/drivers/hwmon/gpio-fan.c
++++ b/drivers/hwmon/gpio-fan.c
+@@ -550,6 +550,14 @@ static int gpio_fan_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static void gpio_fan_shutdown(struct platform_device *pdev)
++{
++	struct gpio_fan_data *fan_data = dev_get_drvdata(&pdev->dev);
++
++	if (fan_data->ctrl)
++		set_fan_speed(fan_data, 0);
++}
++
+ #ifdef CONFIG_PM_SLEEP
+ static int gpio_fan_suspend(struct device *dev)
  {
-> > > >=20
-> > > > Cc: Sebastian Reichel <sre@kernel.org>
-> > > > Cc: Tony Lindgren <tony@atomide.com>
-> > > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > >=20
-> > > a gentle reminder on this one.
-> > >=20
-> >=20
-> > Let me add my
-> >=20
-> > Acked-by: Arnd Bergmann <arnd@arndb.de>
-> >=20
-> > You didn't say who you expect to pick up the patch. I assume Mauro
->=20
-> patch author now decides who takes the patch ? That's new :-)
->=20
-> > should take it because he took the patch that caused the problem,
-> > but he might not be aware that he should look at this now.
->=20
-> He is in Cc, let's ask him :-)
-
-Best that this one goes in along with the other si4713 patches
-to avoid dependencies between trees:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+@@ -581,6 +589,7 @@ static SIMPLE_DEV_PM_OPS(gpio_fan_pm, gpio_fan_suspend, gpio_fan_resume);
+ 
+ static struct platform_driver gpio_fan_driver = {
+ 	.probe		= gpio_fan_probe,
++	.shutdown	= gpio_fan_shutdown,
+ 	.driver	= {
+ 		.name	= "gpio-fan",
+ 		.pm	= GPIO_FAN_PM,
+-- 
+1.7.9.5
