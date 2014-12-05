@@ -1,49 +1,76 @@
-From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 1/2] i2c: omap: fix buffer overruns during RX/TX data processing
-Date: Fri, 5 Dec 2014 20:18:53 +0300
-Message-ID: <46D905A0-2E71-4490-84BD-4D2467E13899@gmail.com>
-References: <1417294803-14729-1-git-send-email-al.kochet@gmail.com> <1417294803-14729-2-git-send-email-al.kochet@gmail.com> <20141201195841.GD2817@atomide.com> <B3F4FEFF-2333-473D-8A35-7D4EF1C44D90@gmail.com> <20141204180946.GG2817@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20141204180946.GG2817-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: am57xx-beagle-x15: Add GPIO controlled fan node
+Date: Fri, 5 Dec 2014 11:32:18 -0600
+Message-ID: <1417800739-13146-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello, Tony!
+From: "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
 
-> The issue I'm seeing on 2430sdp is some earlier regression that
-> has started happening over the past year or so. 
+TPS gpio now controls a 5v 500mA TL5209 regulator which may be supply
+a fan (such as AFB02505HHB) over J1 connector for various purposes.
+Provide device tree node to enable the same.
 
-I don't have 2430sdp. And I couldn't  find 2430sdp schematics.
-Looks, like this is NDA stuff.
+Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+---
+Depends on the following:
+https://patchwork.kernel.org/patch/5439201/
+https://patchwork.kernel.org/patch/5439191/
 
-> Of course the issue I'm seeing could be caused by hung twl4030
-> PMIC too.
+enable and disable can be controlled by
+echo '1' > /sys/class/hwmon/hwmon0/fan1_target
+and
+echo '0' > /sys/class/hwmon/hwmon0/fan1_target
 
-This could be switching twl4030 into inappropriate for 2430sdp mode.
+requires CONFIG_GPIO_PALMAS and CONFIG_SENSORS_GPIO_FAN to be operational
+Applies on 
+https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.19/dt-v2
 
-For example, SMARTREFLEX_ENABLE bit is dangerous, because
-it switch twl-pads from VMODE to i2c.
-And when you set SMARTREFLEX_ENABLE, twl automatically drop
-VDD1 and VDD2 to 1.2V (if VDD1_SR_CONTROL was not initialized through
-BYPASS register early in the boot loader).
+ arch/arm/boot/dts/am57xx-beagle-x15.dts |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-What mode is used in the 2430sdp? VMODE or Smartreflex?
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15.dts b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+index 49edbda..7fe82ef 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15.dts
++++ b/arch/arm/boot/dts/am57xx-beagle-x15.dts
+@@ -80,6 +80,15 @@
+ 			default-state = "off";
+ 		};
+ 	};
++
++	gpio_fan {
++		/* Based on 5v 500mA AFB02505HHB */
++		compatible = "gpio-fan";
++		pinctrl-names = "default";
++		gpios =  <&tps659038_gpio 1 GPIO_ACTIVE_HIGH>;
++		gpio-fan,speed-map = <0    0
++				      13000 1>;
++	};
+ };
+ 
+ &dra7_pmx_core {
+@@ -314,6 +323,12 @@
+ 			wakeup-source;
+ 			ti,palmas-long-press-seconds = <12>;
+ 		};
++
++		tps659038_gpio: tps659038_gpio {
++			compatible = "ti,palmas-gpio";
++			gpio-controller;
++			#gpio-cells = <2>;
++		};
+ 	};
+ 
+ 	tmp102: tmp102@48 {
+-- 
+1.7.9.5
 
-And, that is my assumption, may be it wrong again.
-
-I'd added trace in the twl_i2c_read_u8/twl_i2c_write_u8 functions to
-easy find concrete line of code, what cause problem (by register address).
-
-Hang happens on access to 0x004b address group.
-That could be: BACKUP_REG, INT, PM_MASTER, PM_RECEIVER, RTC or
-SECURED_REG. It hard to tell which one cause hang without trace.
-
-Hope this helps.
-
-Regards,
-Alexander.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
