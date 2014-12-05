@@ -1,44 +1,51 @@
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] tty: serial: serial-omap: depend on !8250_omap
-Date: Fri, 5 Dec 2014 13:51:33 +0000
-Message-ID: <20141205135133.37fb96f6@lxorguk.ukuu.org.uk>
-References: <1417039306-2384-1-git-send-email-bigeasy@linutronix.de>
-	<20141129094823.GA10840@linutronix.de>
-	<20141129173418.GY2817@atomide.com>
-	<20141201140914.728aaa46@lxorguk.ukuu.org.uk>
-	<20141201231338.GA14524@fuloong-minipc.musicnaut.iki.fi>
-	<20141202015118.GA1891@saruman>
+From: Nishanth Menon <nm@ti.com>
+Subject: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c: Refactor
+ the driver to use commit-like)
+Date: Fri, 5 Dec 2014 10:10:59 -0600
+Message-ID: <5481D913.9040109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141202015118.GA1891@saruman>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>, uwe@kleine-koenig.org
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>, Tomasz Figa <t.figa@samsung.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>linux-next <linux-next@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 1 Dec 2014 19:51:18 -0600
-Felipe Balbi <balbi@ti.com> wrote:
+next-20141204 fails to boot, but next-20141203 boots fine with
+omap2plus_defconfig.
 
-> On Tue, Dec 02, 2014 at 01:13:38AM +0200, Aaro Koskinen wrote:
-> > Hi,
-> > 
-> > On Mon, Dec 01, 2014 at 02:09:14PM +0000, One Thousand Gnomes wrote:
-> > > > Well the nightmare userspace switch from ttyS to ttyO few years ago is
-> > > > something we want to avoid.. I think the best solution would be to make
-> > > > serial-omap.c transparently provide support for ttyO using the new 8250
-> > > > code so both ttyS and ttyO devices would just work. Otherwise it will
-> > > > be years of "my serial port stopped working" questions again.
-> > > 
-> > > Thata a udev problem not a kernel one surely.
-> > 
-> > People also use serial console to observe the early kernel boot before
-> > the userspace is started.
-> 
-> right, we need a way to tell the kernel that ttyO%d and ttyS%d are the
-> exact same device so that console=ttyO0 and console=ttyS0 mean the same
-> thing. That maintains backwards compatibility and lets people move on
+Panda-ES(4460):
+https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-es.txt
+Panda(4430):
+https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-vanilla.txt
 
-Yes.. and that possibly also means a temporary char driver that claims
-ttyO* and simply redirects the calls into the tty.
+at the point of hang (JTAG):
+ pandaboard-es:
+	cpu0: http://slexy.org/view/s2eIFqkRd5
+	cpu1: http://slexy.org/view/s2Tysb6gpL
+
+Case #1:
+Disabling CPUIDLE allows boot to proceed. there does not seem to have
+been any change in drivers/cpuidle and arch/arm/mach-omap2 w.r.t this.
+
+Case #2: Reverting the following allows boot.
+
+>From next-20141204
+10df7d5 ARM: 8211/1: l2c: Add support for overriding prefetch settings
+revert this  -> boot still fails
+
+d42ced0 ARM: 8210/1: l2c: Get outer cache .write_sec callback from
+mach_desc only if not NULL
+revert this  -> boot still fails
+
+46b9af8 ARM: 8209/1: l2c: Add interface to ask hypervisor to configure L2C
+revert this  -> boot still fails
+
+c94e325 ARM: 8208/1: l2c: Refactor the driver to use commit-like
+revert this  -> boot passed (first bad commit).
+
+
+-- 
+Regards,
+Nishanth Menon
