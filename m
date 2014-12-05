@@ -1,54 +1,56 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
- Refactor the driver to use commit-like)
-Date: Fri, 5 Dec 2014 16:23:13 +0000
-Message-ID: <20141205162312.GB11502@n2100.arm.linux.org.uk>
-References: <5481D913.9040109@ti.com>
- <5481D9BF.2090007@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: regression: Clock changes in next-20141205 break at least omap4
+Date: Fri, 5 Dec 2014 08:55:39 -0800
+Message-ID: <20141205165539.GA30437@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:39566 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751051AbaLEQX1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2014 11:23:27 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24651 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750934AbaLEQ5p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2014 11:57:45 -0500
 Content-Disposition: inline
-In-Reply-To: <5481D9BF.2090007@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-omap <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Michael Turquette <mturquette@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Boyd <sboyd@codeaurora.org>, Nishanth Menon <nm@ti.com>
 
-On Fri, Dec 05, 2014 at 10:13:51AM -0600, Nishanth Menon wrote:
-> On 12/05/2014 10:10 AM, Nishanth Menon wrote:
-> > Case #2: Reverting the following allows boot.
-> > 
-> > From next-20141204
-> > 10df7d5 ARM: 8211/1: l2c: Add support for overriding prefetch settings
-> > revert this  -> boot still fails
-> > 
-> > d42ced0 ARM: 8210/1: l2c: Get outer cache .write_sec callback from
-> > mach_desc only if not NULL
-> > revert this  -> boot still fails
-> > 
-> > 46b9af8 ARM: 8209/1: l2c: Add interface to ask hypervisor to configure L2C
-> > revert this  -> boot still fails
-> > 
-> > c94e325 ARM: 8208/1: l2c: Refactor the driver to use commit-like
-> > revert this  -> boot passed (first bad commit).
-> > 
-> > 
-> 
-> + linux-samsung soc and updated Thomaz's mail ID (gmail now).
+Hi,
 
-Given where we are in the cycle (-final likely this weekend) the only
-thing we can do right now is to drop the patch set; exynos (and mvebu)
-will have to wait another cycle until this patch set (hopefully in a
-revised form) can be merged.
+Looks like commit 646cafc6aa4d ("clk: Change clk_ops->determine_rate
+to return a clk_hw as the best parent") breaks booting at least for
+omap4.
 
-I think we need 8208/1 split up into smaller changes so that the cause
-of this regression can be found.
+Below is the output from omap4-sdp with DEBUG_LL and earlyprintk
+enabled.
 
--- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+
+Tony
+
+[    1.670806] clock: dpll_abe_ck failed transition to 'locked'
+[    2.966735] clock: dpll_abe_ck failed transition to 'locked'
+[    4.262634] clock: dpll_abe_ck failed transition to 'locked'
+[    4.268554] ------------[ cut here ]------------
+[    4.273406] WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:846 clk_disable+0x24/0x30()
+[    4.281341] Modules linked in:
+[    4.284576] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.18.0-rc7-next-20141205-00004-g24aaa63b #141
+[    4.293945] Hardware name: Generic OMAP4 (Flattened Device Tree)
+[    4.300231] [<c0015614>] (unwind_backtrace) from [<c0011cdc>] (show_stack+0x10/0x14)
+[    4.308288] [<c0011cdc>] (show_stack) from [<c05b7fb8>] (dump_stack+0x80/0x9c)
+[    4.315795] [<c05b7fb8>] (dump_stack) from [<c003e4e8>] (warn_slowpath_common+0x78/0xb4)
+[    4.324188] [<c003e4e8>] (warn_slowpath_common) from [<c003e540>] (warn_slowpath_null+0x1c/0x24)
+[    4.333282] [<c003e540>] (warn_slowpath_null) from [<c04c386c>] (clk_disable+0x24/0x30)
+[    4.341583] [<c04c386c>] (clk_disable) from [<c00252a0>] (_disable_clocks+0x18/0x68)
+[    4.349609] [<c00252a0>] (_disable_clocks) from [<c0026810>] (_idle+0x15c/0x240)
+[    4.357299] [<c0026810>] (_idle) from [<c0844cb8>] (_setup+0x174/0x22c)
+[    4.364166] [<c0844cb8>] (_setup) from [<c0026c4c>] (omap_hwmod_for_each+0x30/0x5c)
+[    4.372131] [<c0026c4c>] (omap_hwmod_for_each) from [<c08450c4>] (__omap_hwmod_setup_all+0x30/0x40)
+[    4.381500] [<c08450c4>] (__omap_hwmod_setup_all) from [<c0008b44>] (do_one_initcall+0x80/0x1d4)
+[    4.390594] [<c0008b44>] (do_one_initcall) from [<c0837e9c>] (kernel_init_freeable+0x1f4/0x2cc)
+[    4.399627] [<c0837e9c>] (kernel_init_freeable) from [<c05b211c>] (kernel_init+0x8/0xe4)
+[    4.408020] [<c05b211c>] (kernel_init) from [<c000ea48>] (ret_from_fork+0x14/0x2c)
+[    4.415954] ---[ end trace f968bc068c5b0ccc ]---
+[    5.710815] clock: dpll_abe_ck failed transition to 'locked'
+[    7.006744] clock: dpll_abe_ck failed transition to 'locked'
+
