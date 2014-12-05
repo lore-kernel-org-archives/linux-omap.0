@@ -1,56 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: regression: Clock changes in next-20141205 break at least omap4
-Date: Fri, 5 Dec 2014 08:55:39 -0800
-Message-ID: <20141205165539.GA30437@atomide.com>
-Mime-Version: 1.0
+From: Alexander Kochetkov <al.kochet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC 1/2] i2c: omap: fix buffer overruns during RX/TX data processing
+Date: Fri, 5 Dec 2014 20:18:53 +0300
+Message-ID: <46D905A0-2E71-4490-84BD-4D2467E13899@gmail.com>
+References: <1417294803-14729-1-git-send-email-al.kochet@gmail.com> <1417294803-14729-2-git-send-email-al.kochet@gmail.com> <20141201195841.GD2817@atomide.com> <B3F4FEFF-2333-473D-8A35-7D4EF1C44D90@gmail.com> <20141204180946.GG2817@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:24651 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750934AbaLEQ5p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Dec 2014 11:57:45 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141204180946.GG2817-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Michael Turquette <mturquette@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Boyd <sboyd@codeaurora.org>, Nishanth Menon <nm@ti.com>
 
-Hi,
+Hello, Tony!
 
-Looks like commit 646cafc6aa4d ("clk: Change clk_ops->determine_rate
-to return a clk_hw as the best parent") breaks booting at least for
-omap4.
+> The issue I'm seeing on 2430sdp is some earlier regression that
+> has started happening over the past year or so. 
 
-Below is the output from omap4-sdp with DEBUG_LL and earlyprintk
-enabled.
+I don't have 2430sdp. And I couldn't  find 2430sdp schematics.
+Looks, like this is NDA stuff.
+
+> Of course the issue I'm seeing could be caused by hung twl4030
+> PMIC too.
+
+This could be switching twl4030 into inappropriate for 2430sdp mode.
+
+For example, SMARTREFLEX_ENABLE bit is dangerous, because
+it switch twl-pads from VMODE to i2c.
+And when you set SMARTREFLEX_ENABLE, twl automatically drop
+VDD1 and VDD2 to 1.2V (if VDD1_SR_CONTROL was not initialized through
+BYPASS register early in the boot loader).
+
+What mode is used in the 2430sdp? VMODE or Smartreflex?
+
+And, that is my assumption, may be it wrong again.
+
+I'd added trace in the twl_i2c_read_u8/twl_i2c_write_u8 functions to
+easy find concrete line of code, what cause problem (by register address).
+
+Hang happens on access to 0x004b address group.
+That could be: BACKUP_REG, INT, PM_MASTER, PM_RECEIVER, RTC or
+SECURED_REG. It hard to tell which one cause hang without trace.
+
+Hope this helps.
 
 Regards,
-
-Tony
-
-[    1.670806] clock: dpll_abe_ck failed transition to 'locked'
-[    2.966735] clock: dpll_abe_ck failed transition to 'locked'
-[    4.262634] clock: dpll_abe_ck failed transition to 'locked'
-[    4.268554] ------------[ cut here ]------------
-[    4.273406] WARNING: CPU: 0 PID: 1 at drivers/clk/clk.c:846 clk_disable+0x24/0x30()
-[    4.281341] Modules linked in:
-[    4.284576] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.18.0-rc7-next-20141205-00004-g24aaa63b #141
-[    4.293945] Hardware name: Generic OMAP4 (Flattened Device Tree)
-[    4.300231] [<c0015614>] (unwind_backtrace) from [<c0011cdc>] (show_stack+0x10/0x14)
-[    4.308288] [<c0011cdc>] (show_stack) from [<c05b7fb8>] (dump_stack+0x80/0x9c)
-[    4.315795] [<c05b7fb8>] (dump_stack) from [<c003e4e8>] (warn_slowpath_common+0x78/0xb4)
-[    4.324188] [<c003e4e8>] (warn_slowpath_common) from [<c003e540>] (warn_slowpath_null+0x1c/0x24)
-[    4.333282] [<c003e540>] (warn_slowpath_null) from [<c04c386c>] (clk_disable+0x24/0x30)
-[    4.341583] [<c04c386c>] (clk_disable) from [<c00252a0>] (_disable_clocks+0x18/0x68)
-[    4.349609] [<c00252a0>] (_disable_clocks) from [<c0026810>] (_idle+0x15c/0x240)
-[    4.357299] [<c0026810>] (_idle) from [<c0844cb8>] (_setup+0x174/0x22c)
-[    4.364166] [<c0844cb8>] (_setup) from [<c0026c4c>] (omap_hwmod_for_each+0x30/0x5c)
-[    4.372131] [<c0026c4c>] (omap_hwmod_for_each) from [<c08450c4>] (__omap_hwmod_setup_all+0x30/0x40)
-[    4.381500] [<c08450c4>] (__omap_hwmod_setup_all) from [<c0008b44>] (do_one_initcall+0x80/0x1d4)
-[    4.390594] [<c0008b44>] (do_one_initcall) from [<c0837e9c>] (kernel_init_freeable+0x1f4/0x2cc)
-[    4.399627] [<c0837e9c>] (kernel_init_freeable) from [<c05b211c>] (kernel_init+0x8/0xe4)
-[    4.408020] [<c05b211c>] (kernel_init) from [<c000ea48>] (ret_from_fork+0x14/0x2c)
-[    4.415954] ---[ end trace f968bc068c5b0ccc ]---
-[    5.710815] clock: dpll_abe_ck failed transition to 'locked'
-[    7.006744] clock: dpll_abe_ck failed transition to 'locked'
-
+Alexander.
