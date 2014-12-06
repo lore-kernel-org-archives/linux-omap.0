@@ -1,129 +1,24 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ARM / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
-Date: Sat, 06 Dec 2014 03:50:03 +0100
-Message-ID: <2407638.dfZGaT4vm1@vostro.rjw.lan>
+From: "Quan Han" <quanhan46@aliyun.com>
+Subject: Re:
+Date: Sat, 06 Dec 2014 08:18:04 -0500
+Message-ID: <20141206132706.36040105D95@mail.primeltd.ru>
+Reply-To: quanhan500@qq.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: Will Deacon <will.deacon@arm.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relay.escadaltd.ru ([62.152.93.162]:53309 "EHLO
+	mail.primeltd.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751167AbaLFOWM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2014 09:22:12 -0500
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <quanhan46@aliyun.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
-selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
-depending on CONFIG_PM_RUNTIME may now be changed to depend on
-CONFIG_PM.
+Hello,
 
-Replace CONFIG_PM_RUNTIME with CONFIG_PM everywhere in the code under
-arch/arm/ (the defconfig files will be modified later).
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
-PM_SLEEP is selected) which is only in linux-next at the moment (via the
-linux-pm tree).
-
-Please let me know if it is OK to take this one into linux-pm.
-
----
- arch/arm/kernel/perf_event.c       |    2 +-
- arch/arm/mach-davinci/pm_domain.c  |    2 +-
- arch/arm/mach-keystone/pm_domain.c |    2 +-
- arch/arm/mach-omap1/pm_bus.c       |    4 ++--
- arch/arm/mach-omap2/io.c           |    2 +-
- arch/arm/mach-omap2/omap_device.c  |    2 +-
- 6 files changed, 7 insertions(+), 7 deletions(-)
-
-Index: linux-pm/arch/arm/kernel/perf_event.c
-===================================================================
---- linux-pm.orig/arch/arm/kernel/perf_event.c
-+++ linux-pm/arch/arm/kernel/perf_event.c
-@@ -481,7 +481,7 @@ static void armpmu_disable(struct pmu *p
- 	armpmu->stop(armpmu);
- }
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int armpmu_runtime_resume(struct device *dev)
- {
- 	struct arm_pmu_platdata *plat = dev_get_platdata(dev);
-Index: linux-pm/arch/arm/mach-davinci/pm_domain.c
-===================================================================
---- linux-pm.orig/arch/arm/mach-davinci/pm_domain.c
-+++ linux-pm/arch/arm/mach-davinci/pm_domain.c
-@@ -14,7 +14,7 @@
- #include <linux/pm_clock.h>
- #include <linux/platform_device.h>
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int davinci_pm_runtime_suspend(struct device *dev)
- {
- 	int ret;
-Index: linux-pm/arch/arm/mach-keystone/pm_domain.c
-===================================================================
---- linux-pm.orig/arch/arm/mach-keystone/pm_domain.c
-+++ linux-pm/arch/arm/mach-keystone/pm_domain.c
-@@ -19,7 +19,7 @@
- #include <linux/clk-provider.h>
- #include <linux/of.h>
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int keystone_pm_runtime_suspend(struct device *dev)
- {
- 	int ret;
-Index: linux-pm/arch/arm/mach-omap1/pm_bus.c
-===================================================================
---- linux-pm.orig/arch/arm/mach-omap1/pm_bus.c
-+++ linux-pm/arch/arm/mach-omap1/pm_bus.c
-@@ -21,7 +21,7 @@
- 
- #include "soc.h"
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int omap1_pm_runtime_suspend(struct device *dev)
- {
- 	int ret;
-@@ -59,7 +59,7 @@ static struct dev_pm_domain default_pm_d
- #define OMAP1_PM_DOMAIN (&default_pm_domain)
- #else
- #define OMAP1_PM_DOMAIN NULL
--#endif /* CONFIG_PM_RUNTIME */
-+#endif /* CONFIG_PM */
- 
- static struct pm_clk_notifier_block platform_bus_notifier = {
- 	.pm_domain = OMAP1_PM_DOMAIN,
-Index: linux-pm/arch/arm/mach-omap2/io.c
-===================================================================
---- linux-pm.orig/arch/arm/mach-omap2/io.c
-+++ linux-pm/arch/arm/mach-omap2/io.c
-@@ -359,7 +359,7 @@ static void __init omap_hwmod_init_posts
- 	u8 postsetup_state;
- 
- 	/* Set the default postsetup state for all hwmods */
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- 	postsetup_state = _HWMOD_STATE_IDLE;
- #else
- 	postsetup_state = _HWMOD_STATE_ENABLED;
-Index: linux-pm/arch/arm/mach-omap2/omap_device.c
-===================================================================
---- linux-pm.orig/arch/arm/mach-omap2/omap_device.c
-+++ linux-pm/arch/arm/mach-omap2/omap_device.c
-@@ -588,7 +588,7 @@ odbs_exit:
- 	return ERR_PTR(ret);
- }
- 
--#ifdef CONFIG_PM_RUNTIME
-+#ifdef CONFIG_PM
- static int _od_runtime_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
-
+Compliments of the day to you and I believe all is well. My name is Mr. Quan Han and I work in bank of china. I have a transaction that I believe will be of mutual benefits to both of us. It involves an investment portfolio worth(eight million,three hundred and seventy thousand USD) which I like to acquire with your help and assistance. 
+Yours sincerely,
+Quan Han.
