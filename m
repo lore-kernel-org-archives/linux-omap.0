@@ -1,100 +1,51 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: N900: fixing MMC at boot
-Date: Sat, 6 Dec 2014 18:35:27 +0100
-Message-ID: <20141206173526.GA7964@amd>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: N900: fixing MMC at boot
+Date: Sat, 6 Dec 2014 18:40:16 +0100
+Message-ID: <201412061840.16157@pali>
+References: <20141206173526.GA7964@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52270 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124AbaLFRf3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2014 12:35:29 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed;
+  boundary="nextPart2174853.yvoI7793JV";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20141206173526.GA7964@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 List-Id: linux-omap@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 
-Hi!
+--nextPart2174853.yvoI7793JV
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-For a long time, MMC was not working during boot... (making the box
-unusable without nfsroot). It seems problem is in the regulators,
-because with diff below, I was able to mount root on SD card for a
-first time ... in a long time.
+On Saturday 06 December 2014 18:35:27 Pavel Machek wrote:
+> Hi!
+>=20
+> For a long time, MMC was not working during boot... (making
+> the box unusable without nfsroot). It seems problem is in the
+> regulators, because with diff below, I was able to mount root
+> on SD card for a first time ... in a long time.
+>=20
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz> [but not for upstream]
+Hi, do you mean external SD card or internal eMMC (MyDocs)?
 
-diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
-index 8607433..07791c6 100644
---- a/Documentation/devicetree/bindings/regulator/regulator.txt
-+++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-@@ -4,7 +4,8 @@ Optional properties:
- - regulator-name: A string used as a descriptive name for regulator outputs
- - regulator-min-microvolt: smallest voltage consumers may set
- - regulator-max-microvolt: largest voltage consumers may set
--- regulator-microvolt-offset: Offset applied to voltages to compensate for voltage drops
-+- regulator-microvolt-offset: Offset applied to voltages to compensate for 
-+  voltage drops
- - regulator-min-microamp: smallest current consumers may set
- - regulator-max-microamp: largest current consumers may set
- - regulator-always-on: boolean, regulator should never be disabled
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index 11d8afd..707928d 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -287,31 +287,35 @@
- 	regulator-name = "V28";
- 	regulator-min-microvolt = <2800000>;
- 	regulator-max-microvolt = <2800000>;
--	regulator-always-on; /* due battery cover sensor */
-+	regulator-always-on; /* due to battery cover sensor */
- };
- 
- &vaux2 {
- 	regulator-name = "VCSI";
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
-+	regulator-always-on; /* FIXME */
- };
- 
- &vaux3 {
- 	regulator-name = "VMMC2_30";
- 	regulator-min-microvolt = <2800000>;
- 	regulator-max-microvolt = <3000000>;
-+	regulator-always-on; /* FIXME */
- };
- 
- &vaux4 {
- 	regulator-name = "VCAM_ANA_28";
- 	regulator-min-microvolt = <2800000>;
- 	regulator-max-microvolt = <2800000>;
-+	regulator-always-on; /* FIXME */
- };
- 
- &vmmc1 {
- 	regulator-name = "VMMC1";
- 	regulator-min-microvolt = <1850000>;
- 	regulator-max-microvolt = <3150000>;
-+	regulator-always-on; /* FIXME */
- };
- 
- &vmmc2 {
-@@ -339,13 +343,14 @@
- 	regulator-name = "VMMC2_IO_18";
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
-+	regulator-always-on; /* FIXME */
- };
- 
- &vio {
- 	regulator-name = "VIO";
- 	regulator-min-microvolt = <1800000>;
- 	regulator-max-microvolt = <1800000>;
--
-+	regulator-always-on; /* FIXME */
- };
- 
- &vintana1 {
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--nextPart2174853.yvoI7793JV
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlSDP4AACgkQi/DJPQPkQ1IudgCgniDGCCVTLGGW7XeDSELlCcBn
+5LIAn2hd1TOpwbIau08SGcdZVgt/37gq
+=aXfC
+-----END PGP SIGNATURE-----
+
+--nextPart2174853.yvoI7793JV--
