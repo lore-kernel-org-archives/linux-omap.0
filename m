@@ -1,24 +1,100 @@
-From: "Quan Han" <quanhan46@aliyun.com>
-Subject: Re:
-Date: Sat, 06 Dec 2014 08:18:04 -0500
-Message-ID: <20141206132706.36040105D95@mail.primeltd.ru>
-Reply-To: quanhan500@qq.com
+From: Pavel Machek <pavel@ucw.cz>
+Subject: N900: fixing MMC at boot
+Date: Sat, 6 Dec 2014 18:35:27 +0100
+Message-ID: <20141206173526.GA7964@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay.escadaltd.ru ([62.152.93.162]:53309 "EHLO
-	mail.primeltd.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751167AbaLFOWM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2014 09:22:12 -0500
-Content-Description: Mail message body
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52270 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124AbaLFRf3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2014 12:35:29 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <quanhan46@aliyun.com>
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
 
+Hi!
 
-Hello,
+For a long time, MMC was not working during boot... (making the box
+unusable without nfsroot). It seems problem is in the regulators,
+because with diff below, I was able to mount root on SD card for a
+first time ... in a long time.
 
-Compliments of the day to you and I believe all is well. My name is Mr. Quan Han and I work in bank of china. I have a transaction that I believe will be of mutual benefits to both of us. It involves an investment portfolio worth(eight million,three hundred and seventy thousand USD) which I like to acquire with your help and assistance. 
-Yours sincerely,
-Quan Han.
+Signed-off-by: Pavel Machek <pavel@ucw.cz> [but not for upstream]
+
+diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
+index 8607433..07791c6 100644
+--- a/Documentation/devicetree/bindings/regulator/regulator.txt
++++ b/Documentation/devicetree/bindings/regulator/regulator.txt
+@@ -4,7 +4,8 @@ Optional properties:
+ - regulator-name: A string used as a descriptive name for regulator outputs
+ - regulator-min-microvolt: smallest voltage consumers may set
+ - regulator-max-microvolt: largest voltage consumers may set
+-- regulator-microvolt-offset: Offset applied to voltages to compensate for voltage drops
++- regulator-microvolt-offset: Offset applied to voltages to compensate for 
++  voltage drops
+ - regulator-min-microamp: smallest current consumers may set
+ - regulator-max-microamp: largest current consumers may set
+ - regulator-always-on: boolean, regulator should never be disabled
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 11d8afd..707928d 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -287,31 +287,35 @@
+ 	regulator-name = "V28";
+ 	regulator-min-microvolt = <2800000>;
+ 	regulator-max-microvolt = <2800000>;
+-	regulator-always-on; /* due battery cover sensor */
++	regulator-always-on; /* due to battery cover sensor */
+ };
+ 
+ &vaux2 {
+ 	regulator-name = "VCSI";
+ 	regulator-min-microvolt = <1800000>;
+ 	regulator-max-microvolt = <1800000>;
++	regulator-always-on; /* FIXME */
+ };
+ 
+ &vaux3 {
+ 	regulator-name = "VMMC2_30";
+ 	regulator-min-microvolt = <2800000>;
+ 	regulator-max-microvolt = <3000000>;
++	regulator-always-on; /* FIXME */
+ };
+ 
+ &vaux4 {
+ 	regulator-name = "VCAM_ANA_28";
+ 	regulator-min-microvolt = <2800000>;
+ 	regulator-max-microvolt = <2800000>;
++	regulator-always-on; /* FIXME */
+ };
+ 
+ &vmmc1 {
+ 	regulator-name = "VMMC1";
+ 	regulator-min-microvolt = <1850000>;
+ 	regulator-max-microvolt = <3150000>;
++	regulator-always-on; /* FIXME */
+ };
+ 
+ &vmmc2 {
+@@ -339,13 +343,14 @@
+ 	regulator-name = "VMMC2_IO_18";
+ 	regulator-min-microvolt = <1800000>;
+ 	regulator-max-microvolt = <1800000>;
++	regulator-always-on; /* FIXME */
+ };
+ 
+ &vio {
+ 	regulator-name = "VIO";
+ 	regulator-min-microvolt = <1800000>;
+ 	regulator-max-microvolt = <1800000>;
+-
++	regulator-always-on; /* FIXME */
+ };
+ 
+ &vintana1 {
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
