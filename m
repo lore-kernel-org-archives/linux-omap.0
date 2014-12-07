@@ -1,107 +1,337 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 0/5] irqchip: kill the GIC routable domain
-Date: Sun, 7 Dec 2014 11:16:47 -0600
-Message-ID: <20141207171646.GA12049@kahuna>
-References: <1417873576-10463-1-git-send-email-marc.zyngier@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44410 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752051AbaLGRRh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 7 Dec 2014 12:17:37 -0500
-Content-Disposition: inline
-In-Reply-To: <1417873576-10463-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Subject: [PATCH] arch: arm: mach-omap2: omap_hwmod.c:  Remove some unused functions
+Date: Sun,  7 Dec 2014 18:24:07 +0100
+Message-ID: <1417973047-12972-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org, Stefan Agner <stefan@agner.ch>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org
 
-On 13:46-20141206, Marc Zyngier wrote:
-> After my series removing the gic_arch_extn hack, I figured that the
-> next step was to expunge the GIC driver of the routable domain horror.
-> 
-> There is a few reasons for this:
-> 
-> - The allocation of interrupts in this domain is fairly similar to
->   what we do for MSI (see the GICv2m driver), and stacked domains have
->   proved to be a fitting solution.
-> 
-> - The current description in DT is currently entierely inaccurate, and
->   as we already broke it for the OMAP WUGEN block, we might as well do
->   it again for the TI crossbar.
-> 
-> - The way crossbar, WUGEN and GIC interract is quite complex (this is
->   effectively a stack of three interrupt controllers with interesting
->   exceptions and braindead routing), and stacked domains are the right
->   abstraction for that.
-> 
-> - Other platforms (Freescale Vybrid) are starting to come up with the
->   same type of things, and it'd be good to avoid them following the
->   same broken model.
-> 
-> - It removes a few lines from the code base so it can't completely be
->   a bad idea!
-> 
-> So this patch series does exactly that: make the crossbar a stacked
-> interrupt controller that only takes care of setting up the routing,
-> fix the DTs to represent the actual HW, and remove a bit of the
-> craziness from the GIC code.
-> 
-> As for the previous series:
-> 
-> - I haven't been able to test this at all, I don't have access to the
->   HW. TI people, please test and post fixes, as I expect I introduced
->   a few bugs.
-> 
-> - This actively *breaks* existing setups. If you boot a new kernel
->   with an old DT, interrupt routing *will* be broken. Old kernels on a
->   new DT won't boot either! You've been warned. This really outline
->   the necessity of actually describing the HW in device trees...
-> 
-> As for the patches, they are on top of 3.18-rc7 + tip/irq/irqdomain-arm +
-> the gic_arch_extn removal series.
-> 
-> I've pushed the code to:
-> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/die-gic-arch-extn-die-die-die
-> 
-> Comments welcome,
-> 
-> 	 M.
-> 
-> Marc Zyngier (5):
->   genirq: Add irqchip_set_wake_parent
->   irqchip: crossbar: convert dra7 crossbar to stacked domains
->   DT: update ti,irq-crossbar binding
->   irqchip: GIC: get rid of routable domain
->   DT: arm,gic: kill arm,routable-irqs
-> 
->  Documentation/devicetree/bindings/arm/gic.txt      |   6 -
->  .../devicetree/bindings/arm/omap/crossbar.txt      |  18 +-
->  arch/arm/boot/dts/dra7.dtsi                        |  10 +-
->  arch/arm/boot/dts/dra72x.dtsi                      |   3 +-
->  arch/arm/boot/dts/dra74x.dtsi                      |   5 +-
->  arch/arm/mach-omap2/omap4-common.c                 |   4 -
->  drivers/irqchip/irq-crossbar.c                     | 202 ++++++++++++---------
->  drivers/irqchip/irq-gic.c                          |  59 +-----
->  include/linux/irq.h                                |   1 +
->  include/linux/irqchip/arm-gic.h                    |   6 -
->  include/linux/irqchip/irq-crossbar.h               |  11 --
->  kernel/irq/chip.c                                  |  16 ++
->  12 files changed, 153 insertions(+), 188 deletions(-)
->  delete mode 100644 include/linux/irqchip/irq-crossbar.h
-> 
-> -- 
-> 2.1.3
-> 
+Removes some functions that are not used anywhere:
+omap_hwmod_pad_route_irq() omap_hwmod_no_setup_reset()
+omap_hwmod_read_hardreset() omap_hwmod_del_initiator_dep()
+omap_hwmod_enable_clocks() omap_hwmod_reset() omap_hwmod_ocp_barrier()
+omap_hwmod_disable_clocks() omap_hwmod_add_initiator_dep()
 
-	Patches are available here:
-	https://patchwork.kernel.org/patch/5449231/
-	https://patchwork.kernel.org/patch/5449241/
-	https://patchwork.kernel.org/patch/5449271/
-	https://patchwork.kernel.org/patch/5449261/
-	https://patchwork.kernel.org/patch/5449251/
+This was partially found by using a static code analysis program called cppcheck.
 
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |  232 --------------------------------------
+ arch/arm/mach-omap2/omap_hwmod.h |   16 ---
+ 2 files changed, 248 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 716247e..fbfcf74 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -3504,91 +3504,6 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
+ 	return 0;
+ }
+ 
+-/**
+- * omap_hwmod_enable_clocks - enable main_clk, all interface clocks
+- * @oh: struct omap_hwmod *oh
+- *
+- * Intended to be called by the omap_device code.
+- */
+-int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&oh->_lock, flags);
+-	_enable_clocks(oh);
+-	spin_unlock_irqrestore(&oh->_lock, flags);
+-
+-	return 0;
+-}
+-
+-/**
+- * omap_hwmod_disable_clocks - disable main_clk, all interface clocks
+- * @oh: struct omap_hwmod *oh
+- *
+- * Intended to be called by the omap_device code.
+- */
+-int omap_hwmod_disable_clocks(struct omap_hwmod *oh)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&oh->_lock, flags);
+-	_disable_clocks(oh);
+-	spin_unlock_irqrestore(&oh->_lock, flags);
+-
+-	return 0;
+-}
+-
+-/**
+- * omap_hwmod_ocp_barrier - wait for posted writes against the hwmod to complete
+- * @oh: struct omap_hwmod *oh
+- *
+- * Intended to be called by drivers and core code when all posted
+- * writes to a device must complete before continuing further
+- * execution (for example, after clearing some device IRQSTATUS
+- * register bits)
+- *
+- * XXX what about targets with multiple OCP threads?
+- */
+-void omap_hwmod_ocp_barrier(struct omap_hwmod *oh)
+-{
+-	BUG_ON(!oh);
+-
+-	if (!oh->class->sysc || !oh->class->sysc->sysc_flags) {
+-		WARN(1, "omap_device: %s: OCP barrier impossible due to device configuration\n",
+-			oh->name);
+-		return;
+-	}
+-
+-	/*
+-	 * Forces posted writes to complete on the OCP thread handling
+-	 * register writes
+-	 */
+-	omap_hwmod_read(oh, oh->class->sysc->sysc_offs);
+-}
+-
+-/**
+- * omap_hwmod_reset - reset the hwmod
+- * @oh: struct omap_hwmod *
+- *
+- * Under some conditions, a driver may wish to reset the entire device.
+- * Called from omap_device code.  Returns -EINVAL on error or passes along
+- * the return value from _reset().
+- */
+-int omap_hwmod_reset(struct omap_hwmod *oh)
+-{
+-	int r;
+-	unsigned long flags;
+-
+-	if (!oh)
+-		return -EINVAL;
+-
+-	spin_lock_irqsave(&oh->_lock, flags);
+-	r = _reset(oh);
+-	spin_unlock_irqrestore(&oh->_lock, flags);
+-
+-	return r;
+-}
+-
+ /*
+  * IP block data retrieval functions
+  */
+@@ -3843,52 +3758,12 @@ void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh)
+ 	return oh->_mpu_rt_va;
+ }
+ 
+-/**
+- * omap_hwmod_add_initiator_dep - add sleepdep from @init_oh to @oh
+- * @oh: struct omap_hwmod *
+- * @init_oh: struct omap_hwmod * (initiator)
+- *
+- * Add a sleep dependency between the initiator @init_oh and @oh.
+- * Intended to be called by DSP/Bridge code via platform_data for the
+- * DSP case; and by the DMA code in the sDMA case.  DMA code, *Bridge
+- * code needs to add/del initiator dependencies dynamically
+- * before/after accessing a device.  Returns the return value from
+- * _add_initiator_dep().
+- *
+- * XXX Keep a usecount in the clockdomain code
+- */
+-int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
+-				 struct omap_hwmod *init_oh)
+-{
+-	return _add_initiator_dep(oh, init_oh);
+-}
+-
+ /*
+  * XXX what about functions for drivers to save/restore ocp_sysconfig
+  * for context save/restore operations?
+  */
+ 
+ /**
+- * omap_hwmod_del_initiator_dep - remove sleepdep from @init_oh to @oh
+- * @oh: struct omap_hwmod *
+- * @init_oh: struct omap_hwmod * (initiator)
+- *
+- * Remove a sleep dependency between the initiator @init_oh and @oh.
+- * Intended to be called by DSP/Bridge code via platform_data for the
+- * DSP case; and by the DMA code in the sDMA case.  DMA code, *Bridge
+- * code needs to add/del initiator dependencies dynamically
+- * before/after accessing a device.  Returns the return value from
+- * _del_initiator_dep().
+- *
+- * XXX Keep a usecount in the clockdomain code
+- */
+-int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
+-				 struct omap_hwmod *init_oh)
+-{
+-	return _del_initiator_dep(oh, init_oh);
+-}
+-
+-/**
+  * omap_hwmod_enable_wakeup - allow device to wake up the system
+  * @oh: struct omap_hwmod *
+  *
+@@ -4009,33 +3884,6 @@ int omap_hwmod_deassert_hardreset(struct omap_hwmod *oh, const char *name)
+ }
+ 
+ /**
+- * omap_hwmod_read_hardreset - read the HW reset line state of submodules
+- * contained in the hwmod module
+- * @oh: struct omap_hwmod *
+- * @name: name of the reset line to look up and read
+- *
+- * Return the current state of the hwmod @oh's reset line named @name:
+- * returns -EINVAL upon parameter error or if this operation
+- * is unsupported on the current OMAP; otherwise, passes along the return
+- * value from _read_hardreset().
+- */
+-int omap_hwmod_read_hardreset(struct omap_hwmod *oh, const char *name)
+-{
+-	int ret;
+-	unsigned long flags;
+-
+-	if (!oh)
+-		return -EINVAL;
+-
+-	spin_lock_irqsave(&oh->_lock, flags);
+-	ret = _read_hardreset(oh, name);
+-	spin_unlock_irqrestore(&oh->_lock, flags);
+-
+-	return ret;
+-}
+-
+-
+-/**
+  * omap_hwmod_for_each_by_class - call @fn for each hwmod of class @classname
+  * @classname: struct omap_hwmod_class name to search for
+  * @fn: callback function pointer to call for each hwmod in class @classname
+@@ -4145,86 +3993,6 @@ int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+ }
+ 
+ /**
+- * omap_hwmod_no_setup_reset - prevent a hwmod from being reset upon setup
+- * @oh: struct omap_hwmod *
+- *
+- * Prevent the hwmod @oh from being reset during the setup process.
+- * Intended for use by board-*.c files on boards with devices that
+- * cannot tolerate being reset.  Must be called before the hwmod has
+- * been set up.  Returns 0 upon success or negative error code upon
+- * failure.
+- */
+-int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
+-{
+-	if (!oh)
+-		return -EINVAL;
+-
+-	if (oh->_state != _HWMOD_STATE_REGISTERED) {
+-		pr_err("omap_hwmod: %s: cannot prevent setup reset; in wrong state\n",
+-			oh->name);
+-		return -EINVAL;
+-	}
+-
+-	oh->flags |= HWMOD_INIT_NO_RESET;
+-
+-	return 0;
+-}
+-
+-/**
+- * omap_hwmod_pad_route_irq - route an I/O pad wakeup to a particular MPU IRQ
+- * @oh: struct omap_hwmod * containing hwmod mux entries
+- * @pad_idx: array index in oh->mux of the hwmod mux entry to route wakeup
+- * @irq_idx: the hwmod mpu_irqs array index of the IRQ to trigger on wakeup
+- *
+- * When an I/O pad wakeup arrives for the dynamic or wakeup hwmod mux
+- * entry number @pad_idx for the hwmod @oh, trigger the interrupt
+- * service routine for the hwmod's mpu_irqs array index @irq_idx.  If
+- * this function is not called for a given pad_idx, then the ISR
+- * associated with @oh's first MPU IRQ will be triggered when an I/O
+- * pad wakeup occurs on that pad.  Note that @pad_idx is the index of
+- * the _dynamic or wakeup_ entry: if there are other entries not
+- * marked with OMAP_DEVICE_PAD_WAKEUP or OMAP_DEVICE_PAD_REMUX, these
+- * entries are NOT COUNTED in the dynamic pad index.  This function
+- * must be called separately for each pad that requires its interrupt
+- * to be re-routed this way.  Returns -EINVAL if there is an argument
+- * problem or if @oh does not have hwmod mux entries or MPU IRQs;
+- * returns -ENOMEM if memory cannot be allocated; or 0 upon success.
+- *
+- * XXX This function interface is fragile.  Rather than using array
+- * indexes, which are subject to unpredictable change, it should be
+- * using hwmod IRQ names, and some other stable key for the hwmod mux
+- * pad records.
+- */
+-int omap_hwmod_pad_route_irq(struct omap_hwmod *oh, int pad_idx, int irq_idx)
+-{
+-	int nr_irqs;
+-
+-	might_sleep();
+-
+-	if (!oh || !oh->mux || !oh->mpu_irqs || pad_idx < 0 ||
+-	    pad_idx >= oh->mux->nr_pads_dynamic)
+-		return -EINVAL;
+-
+-	/* Check the number of available mpu_irqs */
+-	for (nr_irqs = 0; oh->mpu_irqs[nr_irqs].irq >= 0; nr_irqs++)
+-		;
+-
+-	if (irq_idx >= nr_irqs)
+-		return -EINVAL;
+-
+-	if (!oh->mux->irqs) {
+-		/* XXX What frees this? */
+-		oh->mux->irqs = kzalloc(sizeof(int) * oh->mux->nr_pads_dynamic,
+-			GFP_KERNEL);
+-		if (!oh->mux->irqs)
+-			return -ENOMEM;
+-	}
+-	oh->mux->irqs[pad_idx] = irq_idx;
+-
+-	return 0;
+-}
+-
+-/**
+  * omap_hwmod_init - initialize the hwmod code
+  *
+  * Sets up some function pointers needed by the hwmod code to operate on the
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 512f809..abfe56d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -694,13 +694,6 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_assert_hardreset(struct omap_hwmod *oh, const char *name);
+ int omap_hwmod_deassert_hardreset(struct omap_hwmod *oh, const char *name);
+-int omap_hwmod_read_hardreset(struct omap_hwmod *oh, const char *name);
+-
+-int omap_hwmod_enable_clocks(struct omap_hwmod *oh);
+-int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
+-
+-int omap_hwmod_reset(struct omap_hwmod *oh);
+-void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
+ 
+ void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs);
+ u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs);
+@@ -715,11 +708,6 @@ int omap_hwmod_get_resource_byname(struct omap_hwmod *oh, unsigned int type,
+ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh);
+ void __iomem *omap_hwmod_get_mpu_rt_va(struct omap_hwmod *oh);
+ 
+-int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
+-				 struct omap_hwmod *init_oh);
+-int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
+-				 struct omap_hwmod *init_oh);
+-
+ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh);
+ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh);
+ 
+@@ -731,10 +719,6 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
+ int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+ 
+-int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
+-
+-int omap_hwmod_pad_route_irq(struct omap_hwmod *oh, int pad_idx, int irq_idx);
+-
+ extern void __init omap_hwmod_init(void);
+ 
+ const char *omap_hwmod_get_main_clk(struct omap_hwmod *oh);
 -- 
-Regards,
-Nishanth Menon
+1.7.10.4
