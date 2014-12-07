@@ -1,149 +1,138 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] arch: arm: mach-omap2: powerdomain.c:  Remove some
- unused functions
-Date: Sun, 7 Dec 2014 11:22:31 -0600
-Message-ID: <20141207172231.GA12811@kahuna>
-References: <1417960707-11569-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+Subject: Re: [PATCH] ARM / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Sun, 7 Dec 2014 11:23:26 -0600
+Message-ID: <20141207172326.GB12811@kahuna>
+References: <2407638.dfZGaT4vm1@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49894 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbaLGRXO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Dec 2014 12:23:14 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1417960707-11569-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <2407638.dfZGaT4vm1@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On 14:58-20141207, Rickard Strandqvist wrote:
-> Removes some functions that are not used anywhere:
-> pwrdm_get_voltdm() pwrdm_for_each_clkdm() pwrdm_del_clkdm()
+On 03:50-20141206, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> This was partially found by using a static code analysis program called cppcheck.
+> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+> depending on CONFIG_PM_RUNTIME may now be changed to depend on
+> CONFIG_PM.
 > 
-> Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+> Replace CONFIG_PM_RUNTIME with CONFIG_PM everywhere in the code under
+> arch/arm/ (the defconfig files will be modified later).
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  arch/arm/mach-omap2/powerdomain.c |   81 -------------------------------------
->  arch/arm/mach-omap2/powerdomain.h |    5 ---
->  2 files changed, 86 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 7fb033e..6bd6025 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -484,87 +484,6 @@ pac_exit:
+> Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+> PM_SLEEP is selected) which is only in linux-next at the moment (via the
+> linux-pm tree).
+> 
+> Please let me know if it is OK to take this one into linux-pm.
+> 
+> ---
+>  arch/arm/kernel/perf_event.c       |    2 +-
+>  arch/arm/mach-davinci/pm_domain.c  |    2 +-
+>  arch/arm/mach-keystone/pm_domain.c |    2 +-
+>  arch/arm/mach-omap1/pm_bus.c       |    4 ++--
+>  arch/arm/mach-omap2/io.c           |    2 +-
+>  arch/arm/mach-omap2/omap_device.c  |    2 +-
+>  6 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> Index: linux-pm/arch/arm/kernel/perf_event.c
+> ===================================================================
+> --- linux-pm.orig/arch/arm/kernel/perf_event.c
+> +++ linux-pm/arch/arm/kernel/perf_event.c
+> @@ -481,7 +481,7 @@ static void armpmu_disable(struct pmu *p
+>  	armpmu->stop(armpmu);
 >  }
 >  
->  /**
-> - * pwrdm_del_clkdm - remove a clockdomain from a powerdomain
-> - * @pwrdm: struct powerdomain * to add the clockdomain to
-> - * @clkdm: struct clockdomain * to associate with a powerdomain
-> - *
-> - * Dissociate the clockdomain @clkdm from the powerdomain
-> - * @pwrdm. Returns -EINVAL if presented with invalid pointers; -ENOENT
-> - * if @clkdm was not associated with the powerdomain, or 0 upon
-> - * success.
-> - */
-> -int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm)
-> -{
-> -	int ret = -EINVAL;
-> -	int i;
-> -
-> -	if (!pwrdm || !clkdm)
-> -		return -EINVAL;
-> -
-> -	pr_debug("powerdomain: %s: dissociating clockdomain %s\n",
-> -		 pwrdm->name, clkdm->name);
-> -
-> -	for (i = 0; i < PWRDM_MAX_CLKDMS; i++)
-> -		if (pwrdm->pwrdm_clkdms[i] == clkdm)
-> -			break;
-> -
-> -	if (i == PWRDM_MAX_CLKDMS) {
-> -		pr_debug("powerdomain: %s: clkdm %s not associated?!\n",
-> -			 pwrdm->name, clkdm->name);
-> -		ret = -ENOENT;
-> -		goto pdc_exit;
-> -	}
-> -
-> -	pwrdm->pwrdm_clkdms[i] = NULL;
-> -
-> -	ret = 0;
-> -
-> -pdc_exit:
-> -	return ret;
-> -}
-> -
-> -/**
-> - * pwrdm_for_each_clkdm - call function on each clkdm in a pwrdm
-> - * @pwrdm: struct powerdomain * to iterate over
-> - * @fn: callback function *
-> - *
-> - * Call the supplied function @fn for each clockdomain in the powerdomain
-> - * @pwrdm.  The callback function can return anything but 0 to bail
-> - * out early from the iterator.  Returns -EINVAL if presented with
-> - * invalid pointers; or passes along the last return value of the
-> - * callback function, which should be 0 for success or anything else
-> - * to indicate failure.
-> - */
-> -int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
-> -			 int (*fn)(struct powerdomain *pwrdm,
-> -				   struct clockdomain *clkdm))
-> -{
-> -	int ret = 0;
-> -	int i;
-> -
-> -	if (!fn)
-> -		return -EINVAL;
-> -
-> -	for (i = 0; i < PWRDM_MAX_CLKDMS && !ret; i++)
-> -		if (pwrdm->pwrdm_clkdms[i])
-> -			ret = (*fn)(pwrdm, pwrdm->pwrdm_clkdms[i]);
-> -
-> -	return ret;
-> -}
-> -
-> -/**
-> - * pwrdm_get_voltdm - return a ptr to the voltdm that this pwrdm resides in
-> - * @pwrdm: struct powerdomain *
-> - *
-> - * Return a pointer to the struct voltageomain that the specified powerdomain
-> - * @pwrdm exists in.
-> - */
-> -struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm)
-> -{
-> -	return pwrdm->voltdm.ptr;
-> -}
-> -
-> -/**
->   * pwrdm_get_mem_bank_count - get number of memory banks in this powerdomain
->   * @pwrdm: struct powerdomain *
->   *
-> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-> index 11bd4dd..28a796c 100644
-> --- a/arch/arm/mach-omap2/powerdomain.h
-> +++ b/arch/arm/mach-omap2/powerdomain.h
-> @@ -212,11 +212,6 @@ int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
->  			void *user);
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>  static int armpmu_runtime_resume(struct device *dev)
+>  {
+>  	struct arm_pmu_platdata *plat = dev_get_platdata(dev);
+> Index: linux-pm/arch/arm/mach-davinci/pm_domain.c
+> ===================================================================
+> --- linux-pm.orig/arch/arm/mach-davinci/pm_domain.c
+> +++ linux-pm/arch/arm/mach-davinci/pm_domain.c
+> @@ -14,7 +14,7 @@
+>  #include <linux/pm_clock.h>
+>  #include <linux/platform_device.h>
 >  
->  int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
-> -int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
-> -int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
-> -			 int (*fn)(struct powerdomain *pwrdm,
-> -				   struct clockdomain *clkdm));
-> -struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>  static int davinci_pm_runtime_suspend(struct device *dev)
+>  {
+>  	int ret;
+> Index: linux-pm/arch/arm/mach-keystone/pm_domain.c
+> ===================================================================
+> --- linux-pm.orig/arch/arm/mach-keystone/pm_domain.c
+> +++ linux-pm/arch/arm/mach-keystone/pm_domain.c
+> @@ -19,7 +19,7 @@
+>  #include <linux/clk-provider.h>
+>  #include <linux/of.h>
 >  
->  int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>  static int keystone_pm_runtime_suspend(struct device *dev)
+>  {
+>  	int ret;
+> Index: linux-pm/arch/arm/mach-omap1/pm_bus.c
+> ===================================================================
+> --- linux-pm.orig/arch/arm/mach-omap1/pm_bus.c
+> +++ linux-pm/arch/arm/mach-omap1/pm_bus.c
+> @@ -21,7 +21,7 @@
 >  
+>  #include "soc.h"
+>  
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>  static int omap1_pm_runtime_suspend(struct device *dev)
+>  {
+>  	int ret;
+> @@ -59,7 +59,7 @@ static struct dev_pm_domain default_pm_d
+>  #define OMAP1_PM_DOMAIN (&default_pm_domain)
+>  #else
+>  #define OMAP1_PM_DOMAIN NULL
+> -#endif /* CONFIG_PM_RUNTIME */
+> +#endif /* CONFIG_PM */
+>  
+>  static struct pm_clk_notifier_block platform_bus_notifier = {
+>  	.pm_domain = OMAP1_PM_DOMAIN,
+> Index: linux-pm/arch/arm/mach-omap2/io.c
+> ===================================================================
+> --- linux-pm.orig/arch/arm/mach-omap2/io.c
+> +++ linux-pm/arch/arm/mach-omap2/io.c
+> @@ -359,7 +359,7 @@ static void __init omap_hwmod_init_posts
+>  	u8 postsetup_state;
+>  
+>  	/* Set the default postsetup state for all hwmods */
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>  	postsetup_state = _HWMOD_STATE_IDLE;
+>  #else
+>  	postsetup_state = _HWMOD_STATE_ENABLED;
+> Index: linux-pm/arch/arm/mach-omap2/omap_device.c
+> ===================================================================
+> --- linux-pm.orig/arch/arm/mach-omap2/omap_device.c
+> +++ linux-pm/arch/arm/mach-omap2/omap_device.c
+> @@ -588,7 +588,7 @@ odbs_exit:
+>  	return ERR_PTR(ret);
+>  }
+>  
+> -#ifdef CONFIG_PM_RUNTIME
+> +#ifdef CONFIG_PM
+>  static int _od_runtime_suspend(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> 
 
-I dont see immediate usage atm.. and at least looking at product kernel
-for am335x, usage does not appear either.
-
+For the OMAP pieces:
 Acked-by: Nishanth Menon <nm@ti.com>
-
 -- 
 Regards,
 Nishanth Menon
