@@ -1,66 +1,44 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: N900: fixing MMC at boot
-Date: Sat, 6 Dec 2014 19:08:46 +0100
-Message-ID: <201412061908.46854@pali>
-References: <20141206173526.GA7964@amd> <201412061840.16157@pali> <20141206180429.GA312@amd>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2402645.slvSIkAGTB";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Subject: [PATCH] arch: arm: mach-omap1: irq.c:  Remove unused function
+Date: Sun,  7 Dec 2014 13:26:49 +0100
+Message-ID: <1417955210-10576-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:42106 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbaLFSIu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Dec 2014 13:08:50 -0500
-In-Reply-To: <20141206180429.GA312@amd>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:47433 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989AbaLGMYM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Dec 2014 07:24:12 -0500
+Received: by mail-wg0-f46.google.com with SMTP id x13so1708563wgg.33
+        for <linux-omap@vger.kernel.org>; Sun, 07 Dec 2014 04:24:10 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
---nextPart2402645.slvSIkAGTB
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Remove the function irq_bank_readl() that is not used anywhere.
 
-On Saturday 06 December 2014 19:04:29 Pavel Machek wrote:
-> On Sat 2014-12-06 18:40:16, Pali Roh=C3=A1r wrote:
-> > On Saturday 06 December 2014 18:35:27 Pavel Machek wrote:
-> > > Hi!
-> > >=20
-> > > For a long time, MMC was not working during boot...
-> > > (making the box unusable without nfsroot). It seems
-> > > problem is in the regulators, because with diff below, I
-> > > was able to mount root on SD card for a first time ... in
-> > > a long time.
-> >=20
-> > Hi, do you mean external SD card or internal eMMC (MyDocs)?
->=20
-> I mean u-SD card. But it is strange. I reverted the patch now,
-> and it still works. Not sure why or what I've done
-> differently.
->=20
-> 									Pavel
+This was partially found by using a static code analysis program called cppcheck.
 
-Remove battery wait some time and try again. Maybe you configured=20
-something which can be cleared only after full device shutdown...
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ arch/arm/mach-omap1/irq.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+diff --git a/arch/arm/mach-omap1/irq.c b/arch/arm/mach-omap1/irq.c
+index 122ef67..a8a533d 100644
+--- a/arch/arm/mach-omap1/irq.c
++++ b/arch/arm/mach-omap1/irq.c
+@@ -64,11 +64,6 @@ u32 omap_irq_flags;
+ static unsigned int irq_bank_count;
+ static struct omap_irq_bank *irq_banks;
+ 
+-static inline unsigned int irq_bank_readl(int bank, int offset)
+-{
+-	return omap_readl(irq_banks[bank].base_reg + offset);
+-}
+-
+ static inline void irq_bank_writel(unsigned long value, int bank, int offset)
+ {
+ 	omap_writel(value, irq_banks[bank].base_reg + offset);
+-- 
+1.7.10.4
 
---nextPart2402645.slvSIkAGTB
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlSDRi4ACgkQi/DJPQPkQ1JSywCgwLUKkxBhiC7cg38715KPmZNa
-AwoAoLyyrzQQkmijtNXYZtJ4hfdJ65QF
-=M/Bg
------END PGP SIGNATURE-----
-
---nextPart2402645.slvSIkAGTB--
