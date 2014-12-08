@@ -1,53 +1,42 @@
-From: Bjorn Andersson <bjorn@kryo.se>
-Subject: Re: [PATCHv6 1/5] Documentation: dt: add common bindings for hwspinlock
-Date: Mon, 8 Dec 2014 09:21:37 -0800
-Message-ID: <CAJAp7OgqHsY+bpwfhrN6N=_r+Rf=ab84LX4LXf1b_GxYVQZkbQ@mail.gmail.com>
-References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
-	<1410553499-55951-2-git-send-email-s-anna@ti.com>
-	<CAK=WgbZqj23J4M8n5FOkPdUOcyK3==TXgc3DfX=LKS6E8C+-Bg@mail.gmail.com>
-	<54639423.3030607@ti.com>
+From: santosh shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH] ARM / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Mon, 08 Dec 2014 10:14:46 -0800
+Message-ID: <5485EA96.4000806@oracle.com>
+References: <2407638.dfZGaT4vm1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <54639423.3030607@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Suman Anna <s-anna@ti.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2407638.dfZGaT4vm1@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Russell King <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 12, 2014 at 9:08 AM, Suman Anna <s-anna@ti.com> wrote:
-> Kumar, Mark, Rob,
+On 12/5/2014 6:50 PM, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
-> On 11/12/2014 09:14 AM, Ohad Ben-Cohen wrote:
->> Hi Suman,
->>
->> On Fri, Sep 12, 2014 at 11:24 PM, Suman Anna <s-anna@ti.com> wrote:
->>> This patch adds the generic common bindings used to represent
->>> a hwlock device and use/request locks in a device-tree build.
->>>
->> ...
->>>
->>> Cc: Rob Herring <robh+dt@kernel.org>
->>> Signed-off-by: Suman Anna <s-anna@ti.com>
-
-Reviewed-by: Bjorn Andersson <bjorn.andersson@sonymobile.com>
-
->>> ---
->>>  .../devicetree/bindings/hwlock/hwlock.txt          | 55 ++++++++++++++++++++++
->>>  1 file changed, 55 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
->>
->> Please ask a DT maintainer to ACK this - otherwise I can't send this to Linus.
->>
+> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+> depending on CONFIG_PM_RUNTIME may now be changed to depend on
+> CONFIG_PM.
 >
-> Can one of you ack this patch and the next patch [1] so that Ohad can
-> pick up the series for 3.19? This series has been in works for quite
-> some time now and was reviewed by each of you at some point of time
-> (thanks!!), the cover letter [2] has the history of the changes.
+> Replace CONFIG_PM_RUNTIME with CONFIG_PM everywhere in the code under
+> arch/arm/ (the defconfig files will be modified later).
 >
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>
+> Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+> PM_SLEEP is selected) which is only in linux-next at the moment (via the
+> linux-pm tree).
+>
+> Please let me know if it is OK to take this one into linux-pm.
+>
+> ---
 
-Could we please have a statement from a DT maintainer so we could move
-forward with this?
+>   arch/arm/mach-keystone/pm_domain.c |    2 +-
 
-Regards,
-Bjorn
+Looks fine to me. For keystone parts.
+
+Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
