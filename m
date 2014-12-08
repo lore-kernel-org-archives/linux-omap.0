@@ -1,53 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
- Refactor the driver to use commit-like)
-Date: Mon, 8 Dec 2014 12:22:35 +0000
-Message-ID: <20141208122235.GC11502@n2100.arm.linux.org.uk>
-References: <5481D913.9040109@ti.com>
- <5481D9BF.2090007@ti.com>
- <20141205162312.GB11502@n2100.arm.linux.org.uk>
- <CA+Ln22EFKRm_9HPaVvL7zFdmmB5Zz5RnJKbZkESVOBOLPvUnGA@mail.gmail.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] ARM / PM: Replace CONFIG_PM_RUNTIME with CONFIG_PM
+Date: Mon, 8 Dec 2014 13:45:48 +0100
+Message-ID: <CAPDyKFpk3XW43e+7b0Py80a-RAUnbbZ3t+w7B9Sm8KdeyMZ5Ag@mail.gmail.com>
+References: <2407638.dfZGaT4vm1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:44979 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751969AbaLHMWx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Dec 2014 07:22:53 -0500
-Content-Disposition: inline
-In-Reply-To: <CA+Ln22EFKRm_9HPaVvL7zFdmmB5Zz5RnJKbZkESVOBOLPvUnGA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2407638.dfZGaT4vm1@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-omap <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
 
-On Mon, Dec 08, 2014 at 08:54:18PM +0900, Tomasz Figa wrote:
-> 2014-12-06 1:23 GMT+09:00 Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> > Given where we are in the cycle (-final likely this weekend) the only
-> > thing we can do right now is to drop the patch set; exynos (and mvebu)
-> > will have to wait another cycle until this patch set (hopefully in a
-> > revised form) can be merged.
-> 
-> Or a fix could be queued on top of this. Since (I believe) this series
-> has been queued for 3.19, we have 6 or 7 RC releases ahead, which
-> could be used for the purpose of fixing things (as they are supposed
-> to?).
+On 6 December 2014 at 03:50, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> After commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if PM_SLEEP is
+> selected) PM_RUNTIME is always set if PM is set, so #ifdef blocks
+> depending on CONFIG_PM_RUNTIME may now be changed to depend on
+> CONFIG_PM.
+>
+> Replace CONFIG_PM_RUNTIME with CONFIG_PM everywhere in the code under
+> arch/arm/ (the defconfig files will be modified later).
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>
+> Note: This depends on commit b2b49ccbdd54 (PM: Kconfig: Set PM_RUNTIME if
+> PM_SLEEP is selected) which is only in linux-next at the moment (via the
+> linux-pm tree).
+>
+> Please let me know if it is OK to take this one into linux-pm.
+>
+> ---
+>  arch/arm/kernel/perf_event.c       |    2 +-
+>  arch/arm/mach-davinci/pm_domain.c  |    2 +-
+>  arch/arm/mach-keystone/pm_domain.c |    2 +-
+>  arch/arm/mach-omap1/pm_bus.c       |    4 ++--
+>  arch/arm/mach-omap2/io.c           |    2 +-
+>  arch/arm/mach-omap2/omap_device.c  |    2 +-
+>  6 files changed, 7 insertions(+), 7 deletions(-)
 
-They were merged on 27th November, so they would've been in linux-next
-from about last Monday.  Nishanth reported a failure on Friday, the
-last week day before the merge window opens.  There's no time to try
-and fix this before the merge window, which is why I decided to drop
-it.  They have already been dropped.  They were dropped immediately
-after my message on Friday was sent.  So they've not been in linux-next
-over this past weekend.
+There are a bunch of Kconfig options that "selects/depends" on
+"PM_RUNTIME". I suppose you should change them into "PM" as well.
 
-We don't push known broken code in during the merge window.  The merge
-window is the exact time when subtle bugs are likely to be introduced,
-and is the exact time that you want bisect to work.  If we push known
-broken patches into the kernel during that period, we break the ability
-to use bisect to find problems, especially where it causes a platform
-to become unbootable.
-
--- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+Kind regards
+Uffe
