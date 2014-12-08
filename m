@@ -1,65 +1,53 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
- Refactor the driver to use commit-like)
-Date: Mon, 8 Dec 2014 15:11:26 +0000
-Message-ID: <20141208151126.GD11502@n2100.arm.linux.org.uk>
-References: <5481D913.9040109@ti.com>
- <5481D9BF.2090007@ti.com>
- <20141205162312.GB11502@n2100.arm.linux.org.uk>
- <CA+Ln22EFKRm_9HPaVvL7zFdmmB5Zz5RnJKbZkESVOBOLPvUnGA@mail.gmail.com>
- <20141208122235.GC11502@n2100.arm.linux.org.uk>
- <5485AD80.1050008@ti.com>
+From: Bjorn Andersson <bjorn@kryo.se>
+Subject: Re: [PATCHv6 1/5] Documentation: dt: add common bindings for hwspinlock
+Date: Mon, 8 Dec 2014 09:21:37 -0800
+Message-ID: <CAJAp7OgqHsY+bpwfhrN6N=_r+Rf=ab84LX4LXf1b_GxYVQZkbQ@mail.gmail.com>
+References: <1410553499-55951-1-git-send-email-s-anna@ti.com>
+	<1410553499-55951-2-git-send-email-s-anna@ti.com>
+	<CAK=WgbZqj23J4M8n5FOkPdUOcyK3==TXgc3DfX=LKS6E8C+-Bg@mail.gmail.com>
+	<54639423.3030607@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gw-1.arm.linux.org.uk ([78.32.30.217]:45355 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752960AbaLHPLj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Dec 2014 10:11:39 -0500
-Content-Disposition: inline
-In-Reply-To: <5485AD80.1050008@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <54639423.3030607@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Josh Cartwright <joshc@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>, Kevin Hilman <khilman@linaro.org>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-omap <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
 
-On Mon, Dec 08, 2014 at 07:54:08AM -0600, Nishanth Menon wrote:
-> On 12/08/2014 06:22 AM, Russell King - ARM Linux wrote:
-> > On Mon, Dec 08, 2014 at 08:54:18PM +0900, Tomasz Figa wrote:
-> >> 2014-12-06 1:23 GMT+09:00 Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> >>> Given where we are in the cycle (-final likely this weekend) the only
-> >>> thing we can do right now is to drop the patch set; exynos (and mvebu)
-> >>> will have to wait another cycle until this patch set (hopefully in a
-> >>> revised form) can be merged.
-> >>
-> >> Or a fix could be queued on top of this. Since (I believe) this series
-> >> has been queued for 3.19, we have 6 or 7 RC releases ahead, which
-> >> could be used for the purpose of fixing things (as they are supposed
-> >> to?).
-> > 
-> > They were merged on 27th November, so they would've been in linux-next
-> > from about last Monday.  Nishanth reported a failure on Friday, the
-> 
-> For what ever it is worth, the l2c changes actually appeared on
-> Thursday CST (next-20141204). Found the regression against
-> next-20141203 tag and it took me a day to track it down (after looking
-> at a few other regressions as well)..
+On Wed, Nov 12, 2014 at 9:08 AM, Suman Anna <s-anna@ti.com> wrote:
+> Kumar, Mark, Rob,
+>
+> On 11/12/2014 09:14 AM, Ohad Ben-Cohen wrote:
+>> Hi Suman,
+>>
+>> On Fri, Sep 12, 2014 at 11:24 PM, Suman Anna <s-anna@ti.com> wrote:
+>>> This patch adds the generic common bindings used to represent
+>>> a hwlock device and use/request locks in a device-tree build.
+>>>
+>> ...
+>>>
+>>> Cc: Rob Herring <robh+dt@kernel.org>
+>>> Signed-off-by: Suman Anna <s-anna@ti.com>
 
-I wonder if that's because I didn't push my tree out until Tuesday-ish.
-It takes around 48 hours between when I push stuff out to it appearing
-in linux-next, which is not particularly desirable, but unavoidable due
-to timezone differences.
+Reviewed-by: Bjorn Andersson <bjorn.andersson@sonymobile.com>
 
-I did decide that I wouldn't push it out the same day I merged it because
-I wanted it to run through my build/boot system, which it did successfully,
-but then my OMAP4 build doesn't have CPU idle enabled (and as you've
-identified, when CPU idle is disabled, it works.)
+>>> ---
+>>>  .../devicetree/bindings/hwlock/hwlock.txt          | 55 ++++++++++++++++++++++
+>>>  1 file changed, 55 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/hwlock/hwlock.txt
+>>
+>> Please ask a DT maintainer to ACK this - otherwise I can't send this to Linus.
+>>
+>
+> Can one of you ack this patch and the next patch [1] so that Ohad can
+> pick up the series for 3.19? This series has been in works for quite
+> some time now and was reviewed by each of you at some point of time
+> (thanks!!), the cover letter [2] has the history of the changes.
+>
 
-The problem there is that if I decide not to push some merged changes out,
-it takes several days before I get around to touching the kernel tree
-again.  Hence why it took from Thursday until Tuesday for it to eventually
-get pushed out.
+Could we please have a statement from a DT maintainer so we could move
+forward with this?
 
--- 
-FTTC broadband for 0.8mile line: currently at 9.5Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+Bjorn
