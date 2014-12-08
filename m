@@ -1,42 +1,73 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: nokia_h4p on 3.16+
-Date: Mon, 8 Dec 2014 21:47:35 +0100
-Message-ID: <20141208204735.GA21599@amd>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: nokia_h4p on 3.16+
+Date: Mon, 8 Dec 2014 21:50:37 +0100
+Message-ID: <201412082150.37946@pali>
+References: <20141208204735.GA21599@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart4237497.Uu1p0Le9GF";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20141208204735.GA21599@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg
-Cc: balbi@ti.com, Greg KH <greg@kroah.com>, marcel@holtmann.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, freemangordon@abv.bg, balbi@ti.com, Greg KH <greg@kroah.com>, marcel@holtmann.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi!
+--nextPart4237497.Uu1p0Le9GF
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-It seems commit:
+On Monday 08 December 2014 21:47:35 Pavel Machek wrote:
+> Hi!
+>=20
+> It seems commit:
+>=20
+> commit bd5dc09f557547399cd44d0a1224df7ff64e4a6b
+> Author: Felipe Balbi <balbi@ti.com>
+> Date:   Wed Apr 23 09:58:28 2014 -0500
+>=20
+>     serial: fix UART_IIR_ID
+>=20
+>     UART IRQ Identification bitfield is 3
+>         bits long (bits 3:1) but current mask only
+> 	    masks 2 bits. Fix it.
+>=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>=20
+> breaks bluetooth driver on n900. (drivers/staging/nokia_h4p).
+>=20
+> Pali, you may want to revert the patch.
+>=20
+> That is good news, because reverting it on 3.18-rcX brings h4p
+> back, too (and as machine boots on nfsroot, debugging should
+> be possible.)
+>=20
+> Best regards,
+> 									Pavel
 
-commit bd5dc09f557547399cd44d0a1224df7ff64e4a6b
-Author: Felipe Balbi <balbi@ti.com>
-Date:   Wed Apr 23 09:58:28 2014 -0500
+Hi! this is good news.
 
-    serial: fix UART_IIR_ID
+CCing new freemangordon's @gmail address.
 
-    UART IRQ Identification bitfield is 3
-        bits long (bits 3:1) but current mask only
-	    masks 2 bits. Fix it.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+--nextPart4237497.Uu1p0Le9GF
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-breaks bluetooth driver on n900. (drivers/staging/nokia_h4p).
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Pali, you may want to revert the patch.
+iEYEABECAAYFAlSGDx0ACgkQi/DJPQPkQ1KzYQCeIswHfp56W5OJy+PSvg8IADBj
+JaUAoKK2zssF5CpPYO319sKhqbzuU6Gy
+=/a0e
+-----END PGP SIGNATURE-----
 
-That is good news, because reverting it on 3.18-rcX brings h4p back,
-too (and as machine boots on nfsroot, debugging should be possible.)
-
-Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+--nextPart4237497.Uu1p0Le9GF--
