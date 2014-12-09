@@ -1,361 +1,64 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 1/7] arm: omap: hwmod: add debugfs interface
-Date: Tue, 9 Dec 2014 16:27:46 -0600
-Message-ID: <1418164072-19087-2-git-send-email-balbi@ti.com>
-References: <1418164072-19087-1-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 0/7] arm: omap: move more HWMOD data to DT
+Date: Tue, 9 Dec 2014 16:27:45 -0600
+Message-ID: <1418164072-19087-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39831 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47194 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753329AbaLIW2W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Dec 2014 17:28:22 -0500
-In-Reply-To: <1418164072-19087-1-git-send-email-balbi@ti.com>
+	id S1753213AbaLIW2V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Dec 2014 17:28:21 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-By exposing the details of hwmod structures
-to debugfs we can much more easily verify
-that changes to hwmod data is correct and won't
-cause regressions.
+Hi,
 
-The idea is that this can be used to check the
-state of one hwmod, verify hwmod sysc fields, etc.
+here's a more complete series showing the out of debugfs interface.
 
-For example, this will be used to move some of
-the sysc fields to DT and later verify that they
-are correct pre- and post-patch.
+So far only AM43xx has been converted and only those HWMODs which
+play well with DT and/or are not common with other OMAPs/AM33xx.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/Makefile             |   2 +-
- arch/arm/mach-omap2/omap_device.c        |   2 +
- arch/arm/mach-omap2/omap_hwmod.h         |   9 ++
- arch/arm/mach-omap2/omap_hwmod_debugfs.c | 269 +++++++++++++++++++++++++++++++
- 4 files changed, 281 insertions(+), 1 deletion(-)
+I plan to work on AM33xx tomorrow, but this RFC shows what we can
+achieve WRT HWMOD static data reduction.
+
+As you can see, with AM43xx, data reduction is quite minimal, since
+it reuses so much from AM33xx, but well, had to start somewhere.
+
+All patches were boot tested with AM437x SK on top of:
+
+commit 1ca7c606de868d172afb4eb65e04e290dbdb51ff
+Author: Stephen Rothwell <sfr@canb.auug.org.au>
+Date:   Thu Dec 4 19:49:10 2014 +1100
+
+    Add linux-next specific files for 20141204
+    
+    Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+
+cheers
+
+Felipe Balbi (7):
+  arm: omap: hwmod: add debugfs interface
+  arm: omap: devicetree: add new properties for OMAP devices
+  arm: omap: hwmod: drop 'const' qualifier from omap_hwmod_class name
+  arm: omap: device: add support for generating sysconfig data from DT
+  arm: omap: hwmod: allow for registration of class-less hwmods
+  arm: boot: dts: am4372: add sysconfig data to all HWMODs
+  arm: omap: hwmod: 43xx: remove sysc and class data
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   7 +
+ arch/arm/boot/dts/am4372.dtsi                      | 251 +++++++++++++++++++
+ arch/arm/mach-omap2/Makefile                       |   2 +-
+ arch/arm/mach-omap2/omap_device.c                  | 117 +++++++++
+ arch/arm/mach-omap2/omap_hwmod.c                   |  30 ++-
+ arch/arm/mach-omap2/omap_hwmod.h                   |  11 +-
+ arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  61 -----
+ arch/arm/mach-omap2/omap_hwmod_debugfs.c           | 269 +++++++++++++++++++++
+ 8 files changed, 673 insertions(+), 75 deletions(-)
  create mode 100644 arch/arm/mach-omap2/omap_hwmod_debugfs.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5d27dfd..68c9ae5 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -11,7 +11,7 @@ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
- 	 omap_device.o sram.o drm.o
- 
- hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
--					  omap_hwmod_common_data.o
-+					  omap_hwmod_common_data.o omap_hwmod_debugfs.o
- clock-common				= clock.o clock_common_data.o \
- 					  clkt_dpll.o clkt_clksel.o
- secure-common				= omap-smc.o omap-secure.o
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 8c58b71..abd622b 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -156,6 +156,8 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 		hwmods[i] = oh;
- 		if (oh->flags & HWMOD_INIT_NO_IDLE)
- 			device_active = true;
-+
-+		omap_hwmod_register_debugfs(oh);
- 	}
- 
- 	od = omap_device_alloc(pdev, hwmods, oh_cnt);
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 35ca6ef..fcf55f5 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -768,4 +768,13 @@ int am43xx_hwmod_init(void);
- 
- extern int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois);
- 
-+#if IS_ENABLED(CONFIG_DEBUG_FS)
-+extern int omap_hwmod_register_debugfs(struct omap_hwmod *oh);
-+#else
-+static inline int omap_hwmod_register_debugfs(struct omap_hwmod *oh)
-+{
-+	return 0;
-+}
-+#endif
-+
- #endif
-diff --git a/arch/arm/mach-omap2/omap_hwmod_debugfs.c b/arch/arm/mach-omap2/omap_hwmod_debugfs.c
-new file mode 100644
-index 0000000..cc9533b
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod_debugfs.c
-@@ -0,0 +1,269 @@
-+/*
-+ * omap_hwmod debugfs view
-+ *
-+ * Copyright (C) 2014 Texas Instruments, Incorporated - http://www.ti.com
-+ * Author: Felipe Balbi <balbi@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#undef DEBUG
-+
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/io.h>
-+#include <linux/err.h>
-+#include <linux/fs.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/spinlock.h>
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+
-+#include "clock.h"
-+#include "omap_hwmod.h"
-+
-+#include "soc.h"
-+#include "common.h"
-+#include "clockdomain.h"
-+#include "powerdomain.h"
-+#include "cm2xxx.h"
-+#include "cm3xxx.h"
-+#include "cm33xx.h"
-+#include "prm.h"
-+#include "prm3xxx.h"
-+#include "prm44xx.h"
-+#include "prm33xx.h"
-+#include "prminst44xx.h"
-+#include "mux.h"
-+#include "pm.h"
-+
-+#if IS_ENABLED(CONFIG_DEBUG_FS)
-+static struct dentry *omap_hwmod_debugfs_root;
-+
-+static int __init omap_hwmod_create_files(struct omap_hwmod *oh,
-+		struct dentry *dir)
-+{
-+	struct dentry *file;
-+
-+	file = debugfs_create_u16("flags", S_IRUGO, dir, &oh->flags);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("mpu_rt_idx", S_IRUGO, dir, &oh->mpu_rt_idx);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("response_lat", S_IRUGO, dir,
-+			&oh->response_lat);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("rst_lines_cnt", S_IRUGO, dir,
-+			&oh->rst_lines_cnt);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("opt_clks_cnt", S_IRUGO, dir,
-+			&oh->opt_clks_cnt);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("masters_cnt", S_IRUGO, dir, &oh->masters_cnt);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("slaves_cnt", S_IRUGO, dir, &oh->slaves_cnt);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("hwmods_cnt", S_IRUGO, dir, &oh->hwmods_cnt);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("_int_flags", S_IRUGO, dir, &oh->_int_flags);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("_state", S_IRUGO, dir, &oh->_state);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("_postsetup_state", S_IRUGO, dir,
-+			&oh->_postsetup_state);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+static int __init
-+omap_hwmod_create_sysc_files(struct omap_hwmod_class_sysconfig *sysc,
-+		struct dentry *dir)
-+{
-+	struct dentry *subdir;
-+	struct dentry *file;
-+
-+	if (!sysc)
-+		return 0;
-+
-+	subdir = debugfs_create_dir("sysc", dir);
-+	if (!subdir)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_x32("rev_offs", S_IRUGO, subdir,
-+			&sysc->rev_offs);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_x32("sysc_offs", S_IRUGO, subdir,
-+			&sysc->sysc_offs);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_x32("syss_offs", S_IRUGO, subdir,
-+			&sysc->syss_offs);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_x16("sysc_flags", S_IRUGO, subdir,
-+			&sysc->sysc_flags);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("srst_udelay", S_IRUGO, subdir,
-+			&sysc->srst_udelay);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_x8("idlemodes", S_IRUGO, subdir,
-+			&sysc->idlemodes);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u8("clockact", S_IRUGO, subdir, &sysc->clockact);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+static int __init omap_hwmod_create_class_files(struct omap_hwmod_class *class,
-+		struct dentry *dir)
-+{
-+	struct dentry *subdir;
-+	struct dentry *file;
-+	int ret;
-+
-+	if (!class)
-+		return 0;
-+
-+	subdir = debugfs_create_dir("class", dir);
-+	if (!subdir)
-+		return -ENOMEM;
-+
-+	file = debugfs_create_u32("rev", S_IRUGO, subdir, &class->rev);
-+	if (!file)
-+		return -ENOMEM;
-+
-+	ret = omap_hwmod_create_sysc_files(class->sysc, subdir);
-+	if (ret)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+static int __init omap_hwmod_create_irq_files(struct omap_hwmod_irq_info *irqs,
-+		struct dentry *dir)
-+{
-+	struct dentry *subdir;
-+	int i = 0;
-+
-+	if (!irqs)
-+		return 0;
-+
-+	subdir = debugfs_create_dir("irqs", dir);
-+	if (!subdir)
-+		return -ENOMEM;
-+
-+	while (irqs[i].irq != -1) {
-+		struct dentry *file;
-+
-+		file = debugfs_create_u16(irqs[i].name, S_IRUGO, subdir,
-+				&irqs[i].irq);
-+		if (!file)
-+			return -ENOMEM;
-+		i++;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init omap_hwmod_create_dma_files(struct omap_hwmod_dma_info *dmas,
-+		struct dentry *dir)
-+{
-+	struct dentry *subdir;
-+	int i = 0;
-+
-+	if (!dmas)
-+		return 0;
-+
-+	subdir = debugfs_create_dir("dmas", dir);
-+	if (!subdir)
-+		return -ENOMEM;
-+
-+	while (dmas[i].dma_req != -1) {
-+		struct dentry *file;
-+
-+		file = debugfs_create_u16(dmas[i].name, S_IRUGO, subdir,
-+				&dmas[i].dma_req);
-+		if (!file)
-+			return -ENOMEM;
-+		i++;
-+	}
-+
-+	return 0;
-+}
-+
-+int omap_hwmod_register_debugfs(struct omap_hwmod *oh)
-+{
-+	struct dentry *root;
-+	struct dentry *dir;
-+	int ret;
-+
-+	if (!omap_hwmod_debugfs_root) {
-+		root = debugfs_create_dir("omap_hwmod", NULL);
-+		if (!root ) {
-+			pr_debug("omap_hwmod: unable to initialize debugfs\n");
-+			return 0;
-+		}
-+
-+		omap_hwmod_debugfs_root = root;
-+	} else {
-+		root = omap_hwmod_debugfs_root;
-+	}
-+
-+	dir = debugfs_create_dir(oh->name, root);
-+	if (!dir)
-+		return -ENOMEM;
-+
-+	ret = omap_hwmod_create_files(oh, dir);
-+	if (ret)
-+		return ret;
-+
-+	ret = omap_hwmod_create_class_files(oh->class, dir);
-+	if (ret)
-+		return ret;
-+
-+	ret = omap_hwmod_create_irq_files(oh->mpu_irqs, dir);
-+	if (ret)
-+		return ret;
-+
-+	ret = omap_hwmod_create_dma_files(oh->sdma_reqs, dir);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+#endif
 -- 
 2.2.0
 
