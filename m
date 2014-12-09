@@ -1,61 +1,361 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: __hci_cmd_sync() not suitable for nokia h4p
-Date: Tue, 9 Dec 2014 22:19:00 +0100
-Message-ID: <7EFD3C33-E503-4FB6-BCCF-52836080ABD6@holtmann.org>
-References: <20141209190210.GA15641@amd> <304050AD-DB11-4A2B-A1F7-8B1BBB5F04F0@holtmann.org> <20141209201328.GA18003@amd>
-Mime-Version: 1.0 (Mac OS X Mail 8.1 \(1993\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141209201328.GA18003@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, sre@debian.org, Sebastian Reichel <sre@ring0.de>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, tony@atomide.com, khilman@kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <ivo.g.dimitrov.75@gmail.com>, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH 1/7] arm: omap: hwmod: add debugfs interface
+Date: Tue, 9 Dec 2014 16:27:46 -0600
+Message-ID: <1418164072-19087-2-git-send-email-balbi@ti.com>
+References: <1418164072-19087-1-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39831 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753329AbaLIW2W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Dec 2014 17:28:22 -0500
+In-Reply-To: <1418164072-19087-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-Hi Pavel,
+By exposing the details of hwmod structures
+to debugfs we can much more easily verify
+that changes to hwmod data is correct and won't
+cause regressions.
 
->>> Major problem with Nokia H4P driver was, that it uses custom functions
->>> instead of __hci_cmd_sync().
-> 
->> the __hci_cmd_sync is for sending HCI commands and not low-level
->> protocol transports like H:4 or similar. So you want to separate the
->> actual transport of HCI from the firmware loading.
-> 
-> The TODO file says:
-> 
-> # > +
-> # > +     skb_queue_tail(&info->txq, fw_skb);
-> # > +     spin_lock_irqsave(&info->lock, flags);
-> # > +     hci_h4p_outb(info, UART_IER, hci_h4p_inb(info, UART_IER) |
-> # > +                     UART_IER_THRI);
-> # > +     spin_unlock_irqrestore(&info->lock, flags);
-> # > +}
-> # 
-> # and as I explained before, this crazy can not continue. Bluetooth drivers can provide a
-> # +hdev->setup callback for loading firmware and doing other setup details. You can just
-> # +bring up the HCI transport. We are providing __hci_cmd_sync for easy loading of the
-> # +firmware. Especially if the firmware just consists of HCI commands. Which is clearly the
-> # +case with the Nokia firmware files.
-> 
-> ...so I take it you (and thus TODO) were wrong and __hci_cmd_sync is
-> not suitable after all?
+The idea is that this can be used to check the
+state of one hwmod, verify hwmod sysc fields, etc.
 
-__hci_cmd_sync is to be used in hdev->setup where you load the firmware. However when hdev->setup is run, we expect that the HCI transport is fully up and running and that the driver takes care of the transport. That is done via hdev->send and hci_recv_frame.
+For example, this will be used to move some of
+the sysc fields to DT and later verify that they
+are correct pre- and post-patch.
 
-> But I don't understand what you want me to do at this point. I guess
-> skb_queue_tail+hci_h4p_outb should be moved to a helper function
-> (that's easy), and I already moved initialization to hci_setup().
-> 
-> nokia_core.c uses test_bit(HCI_RUNNING, &info->hdev->flags) to tell
-> between initialization and data traffic, but I guess that's fine?
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/Makefile             |   2 +-
+ arch/arm/mach-omap2/omap_device.c        |   2 +
+ arch/arm/mach-omap2/omap_hwmod.h         |   9 ++
+ arch/arm/mach-omap2/omap_hwmod_debugfs.c | 269 +++++++++++++++++++++++++++++++
+ 4 files changed, 281 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_debugfs.c
 
-I have no idea on how much more I can explain this. There should be code in the driver that handles the HCI transport. That means init of the transport and sending and receiving HCI frames. And then there is the piece to load the firmware etc. These are two independent things.
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 5d27dfd..68c9ae5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -11,7 +11,7 @@ obj-y := id.o io.o control.o mux.o devices.o fb.o serial.o timer.o pm.o \
+ 	 omap_device.o sram.o drm.o
+ 
+ hwmod-common				= omap_hwmod.o omap_hwmod_reset.o \
+-					  omap_hwmod_common_data.o
++					  omap_hwmod_common_data.o omap_hwmod_debugfs.o
+ clock-common				= clock.o clock_common_data.o \
+ 					  clkt_dpll.o clkt_clksel.o
+ secure-common				= omap-smc.o omap-secure.o
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index 8c58b71..abd622b 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -156,6 +156,8 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 		hwmods[i] = oh;
+ 		if (oh->flags & HWMOD_INIT_NO_IDLE)
+ 			device_active = true;
++
++		omap_hwmod_register_debugfs(oh);
+ 	}
+ 
+ 	od = omap_device_alloc(pdev, hwmods, oh_cnt);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 35ca6ef..fcf55f5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -768,4 +768,13 @@ int am43xx_hwmod_init(void);
+ 
+ extern int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois);
+ 
++#if IS_ENABLED(CONFIG_DEBUG_FS)
++extern int omap_hwmod_register_debugfs(struct omap_hwmod *oh);
++#else
++static inline int omap_hwmod_register_debugfs(struct omap_hwmod *oh)
++{
++	return 0;
++}
++#endif
++
+ #endif
+diff --git a/arch/arm/mach-omap2/omap_hwmod_debugfs.c b/arch/arm/mach-omap2/omap_hwmod_debugfs.c
+new file mode 100644
+index 0000000..cc9533b
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap_hwmod_debugfs.c
+@@ -0,0 +1,269 @@
++/*
++ * omap_hwmod debugfs view
++ *
++ * Copyright (C) 2014 Texas Instruments, Incorporated - http://www.ti.com
++ * Author: Felipe Balbi <balbi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#undef DEBUG
++
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/fs.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/spinlock.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
++
++#include "clock.h"
++#include "omap_hwmod.h"
++
++#include "soc.h"
++#include "common.h"
++#include "clockdomain.h"
++#include "powerdomain.h"
++#include "cm2xxx.h"
++#include "cm3xxx.h"
++#include "cm33xx.h"
++#include "prm.h"
++#include "prm3xxx.h"
++#include "prm44xx.h"
++#include "prm33xx.h"
++#include "prminst44xx.h"
++#include "mux.h"
++#include "pm.h"
++
++#if IS_ENABLED(CONFIG_DEBUG_FS)
++static struct dentry *omap_hwmod_debugfs_root;
++
++static int __init omap_hwmod_create_files(struct omap_hwmod *oh,
++		struct dentry *dir)
++{
++	struct dentry *file;
++
++	file = debugfs_create_u16("flags", S_IRUGO, dir, &oh->flags);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("mpu_rt_idx", S_IRUGO, dir, &oh->mpu_rt_idx);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("response_lat", S_IRUGO, dir,
++			&oh->response_lat);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("rst_lines_cnt", S_IRUGO, dir,
++			&oh->rst_lines_cnt);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("opt_clks_cnt", S_IRUGO, dir,
++			&oh->opt_clks_cnt);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("masters_cnt", S_IRUGO, dir, &oh->masters_cnt);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("slaves_cnt", S_IRUGO, dir, &oh->slaves_cnt);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("hwmods_cnt", S_IRUGO, dir, &oh->hwmods_cnt);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("_int_flags", S_IRUGO, dir, &oh->_int_flags);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("_state", S_IRUGO, dir, &oh->_state);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("_postsetup_state", S_IRUGO, dir,
++			&oh->_postsetup_state);
++	if (!file)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static int __init
++omap_hwmod_create_sysc_files(struct omap_hwmod_class_sysconfig *sysc,
++		struct dentry *dir)
++{
++	struct dentry *subdir;
++	struct dentry *file;
++
++	if (!sysc)
++		return 0;
++
++	subdir = debugfs_create_dir("sysc", dir);
++	if (!subdir)
++		return -ENOMEM;
++
++	file = debugfs_create_x32("rev_offs", S_IRUGO, subdir,
++			&sysc->rev_offs);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_x32("sysc_offs", S_IRUGO, subdir,
++			&sysc->sysc_offs);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_x32("syss_offs", S_IRUGO, subdir,
++			&sysc->syss_offs);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_x16("sysc_flags", S_IRUGO, subdir,
++			&sysc->sysc_flags);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("srst_udelay", S_IRUGO, subdir,
++			&sysc->srst_udelay);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_x8("idlemodes", S_IRUGO, subdir,
++			&sysc->idlemodes);
++	if (!file)
++		return -ENOMEM;
++
++	file = debugfs_create_u8("clockact", S_IRUGO, subdir, &sysc->clockact);
++	if (!file)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static int __init omap_hwmod_create_class_files(struct omap_hwmod_class *class,
++		struct dentry *dir)
++{
++	struct dentry *subdir;
++	struct dentry *file;
++	int ret;
++
++	if (!class)
++		return 0;
++
++	subdir = debugfs_create_dir("class", dir);
++	if (!subdir)
++		return -ENOMEM;
++
++	file = debugfs_create_u32("rev", S_IRUGO, subdir, &class->rev);
++	if (!file)
++		return -ENOMEM;
++
++	ret = omap_hwmod_create_sysc_files(class->sysc, subdir);
++	if (ret)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static int __init omap_hwmod_create_irq_files(struct omap_hwmod_irq_info *irqs,
++		struct dentry *dir)
++{
++	struct dentry *subdir;
++	int i = 0;
++
++	if (!irqs)
++		return 0;
++
++	subdir = debugfs_create_dir("irqs", dir);
++	if (!subdir)
++		return -ENOMEM;
++
++	while (irqs[i].irq != -1) {
++		struct dentry *file;
++
++		file = debugfs_create_u16(irqs[i].name, S_IRUGO, subdir,
++				&irqs[i].irq);
++		if (!file)
++			return -ENOMEM;
++		i++;
++	}
++
++	return 0;
++}
++
++static int __init omap_hwmod_create_dma_files(struct omap_hwmod_dma_info *dmas,
++		struct dentry *dir)
++{
++	struct dentry *subdir;
++	int i = 0;
++
++	if (!dmas)
++		return 0;
++
++	subdir = debugfs_create_dir("dmas", dir);
++	if (!subdir)
++		return -ENOMEM;
++
++	while (dmas[i].dma_req != -1) {
++		struct dentry *file;
++
++		file = debugfs_create_u16(dmas[i].name, S_IRUGO, subdir,
++				&dmas[i].dma_req);
++		if (!file)
++			return -ENOMEM;
++		i++;
++	}
++
++	return 0;
++}
++
++int omap_hwmod_register_debugfs(struct omap_hwmod *oh)
++{
++	struct dentry *root;
++	struct dentry *dir;
++	int ret;
++
++	if (!omap_hwmod_debugfs_root) {
++		root = debugfs_create_dir("omap_hwmod", NULL);
++		if (!root ) {
++			pr_debug("omap_hwmod: unable to initialize debugfs\n");
++			return 0;
++		}
++
++		omap_hwmod_debugfs_root = root;
++	} else {
++		root = omap_hwmod_debugfs_root;
++	}
++
++	dir = debugfs_create_dir(oh->name, root);
++	if (!dir)
++		return -ENOMEM;
++
++	ret = omap_hwmod_create_files(oh, dir);
++	if (ret)
++		return ret;
++
++	ret = omap_hwmod_create_class_files(oh->class, dir);
++	if (ret)
++		return ret;
++
++	ret = omap_hwmod_create_irq_files(oh->mpu_irqs, dir);
++	if (ret)
++		return ret;
++
++	ret = omap_hwmod_create_dma_files(oh->sdma_reqs, dir);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++#endif
+-- 
+2.2.0
 
-Look at how btusb.c is doing this. We only run __hci_cmd_sync there. The details on how commands and events are going over USB are not handling hdev->setup. That is done by the basics of the driver.
-
-What needs to be done is the bring up of the device including the proper UART settings and speed and then just run the firmware downloads. All firmware files on the Nokia devices where just HCI commands with vendor specific details. Some from CSR, some from Broadcom and some from TI. You can actually decode them if you really want to. Shouldn't be that hard.
-
-Regards
-
-Marcel
