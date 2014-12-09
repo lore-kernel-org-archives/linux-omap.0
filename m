@@ -1,124 +1,114 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.18
-Date: Mon, 8 Dec 2014 23:24:35 +0000 (UTC)
-Message-ID: <alpine.DEB.2.02.1412082323001.31750@utopia.booyaka.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 0/5] irqchip: kill the GIC routable domain
+Date: Tue, 09 Dec 2014 09:53:42 +0000
+Message-ID: <5486C6A6.8060702@arm.com>
+References: <1417873576-10463-1-git-send-email-marc.zyngier@arm.com> <20141207171646.GA12049@kahuna> <20141207180322.GA15688@kahuna> <54856B21.6070104@arm.com> <20141208224116.GA2538@kahuna>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42658 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbaLHXYh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Dec 2014 18:24:37 -0500
+Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:46767 "EHLO
+	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754092AbaLIJxv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Dec 2014 04:53:51 -0500
+In-Reply-To: <20141208224116.GA2538@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, kernel-build-reports@lists.linaro.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stefan Agner <stefan@agner.ch>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Here are some basic OMAP test results for Linux v3.18.
-Logs and other details at:
+On 08/12/14 22:41, Nishanth Menon wrote:
 
-    http://www.pwsan.com/omap/testlogs/test_v3.18/20141208144211/
+> Anyways.. The following diff[1] on top of your branch makes DRA7 work - I
+> assume you will squash as needed and repost with linux-omap mailing list
+> in CC.
 
+Brilliant. I'll squash that into my tree and repost at some point.
 
-Test summary
-------------
+> I increased the scope of testing knowing that WUGEN is present in many
+> A9 based TI platforms as well.. and at least OMAP4 showed flakiness in
+> my testing.. Also a few notes:
+> 
+> Stuff like: am437x is a bit questionable (interrupt-parent probably should be wugen?)
+> 175:          0       GIC  39  tps65218 
+> 
+> OMAP5: (should be wugen?)
+> 308:       4323          0       GIC 106  OMAP UART2
+> 411:          0          0       GIC 151  twl6040
+> 405:          1          0       GIC  39  palmas
 
-Build: uImage:
-    Pass ( 3/ 3): omap1_defconfig, omap1_defconfig_1510innovator_only,
-		  omap1_defconfig_5912osk_only
+Well, I can't really tell. Someone with access to the documentation
+should be able to find out.
 
-Build: uImage+dtb:
-    Pass (13/13): omap2plus_defconfig_am33xx_only/am335x-bone,
-		  omap2plus_defconfig/omap4-panda,
-		  omap2plus_defconfig/omap4-panda-es,
-		  omap2plus_defconfig/omap4-var-som,
-		  omap2plus_defconfig/omap3-evm-37xx,
-		  omap2plus_defconfig_n800_only_a/omap2420-n800,
-		  omap2plus_defconfig/omap2430-sdp,
-		  omap2plus_defconfig/am3517-evm,
-		  omap2plus_defconfig/omap3-beagle,
-		  omap2plus_defconfig/omap3-beagle-xm,
-		  omap2plus_defconfig/omap3-sbc-t3517,
-		  omap2plus_defconfig/omap5-uevm,
-		  omap2plus_defconfig/omap5-sbc-t54
+> OMAP4 serial port is flaky -> not sure if it is due to routing of GIC to UART2 and not via WUGEN
+> IRQ branch: with my fix applied:
+> ---------------------------------
 
-Build: zImage:
-    Pass (17/17): omap2plus_defconfig, omap2plus_defconfig_am33xx_only,
-		  omap2plus_defconfig_n800_only_a,
-		  omap2plus_defconfig_n800_multi_omap2xxx,
-		  omap2plus_defconfig_2430sdp_only,
-		  omap2plus_defconfig_cpupm, omap2plus_defconfig_no_pm,
-		  omap2plus_defconfig_omap2_4_only,
-		  omap2plus_defconfig_omap3_4_only,
-		  omap2plus_defconfig_omap5_only,
-		  omap2plus_defconfig_dra7xx_only,
-		  omap2plus_defconfig_am43xx_only,
-		  rmk_omap3430_ldp_oldconfig,
-		  rmk_omap3430_ldp_allnoconfig,
-		  rmk_omap4430_sdp_oldconfig,
-		  rmk_omap4430_sdp_allnoconfig, multi_v7_defconfig
+[...]
 
-Boot to userspace:
-    FAIL ( 1/17): 2430sdp
-    skip ( 2/17): 5912osk, 3517evm
-    Pass (14/17): am335xbonelt, am335xbone, 4430es2panda, 4460pandaes,
-		  4460varsomom, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm, cmt3517, 5430es2uevm,
-		  5430es2sbct54, 2420n800
+> 18: pandaboard-es:  Boot FAIL: http://slexy.org/raw/s20ty0Z6i5 (not expected)
+> 19: pandaboard-vanilla:  Boot FAIL: http://slexy.org/raw/s20BYfaMd2 (not expected)
 
-PM: chip retention via suspend:
-    FAIL ( 6/12): am335xbonelt, 4430es2panda, 4460varsomom, 2430sdp,
-		  5430es2uevm, 5430es2sbct54
-    Pass ( 6/12): 4460pandaes, 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730beaglexm, 3730es12beaglexm
+If I read the log correctly, the serial port stops responding after a while?
 
-PM: chip retention via dynamic idle:
-    FAIL ( 7/12): am335xbonelt, 4430es2panda, 4460pandaes,
-		  4460varsomom, 2430sdp, 5430es2uevm, 5430es2sbct54
-    Pass ( 5/12): 37xxevm, 3530es3beagle, 3530es31beagle, 3730beaglexm,
-		  3730es12beaglexm
+[...]
 
-PM: chip off (except CORE, due to errata) via suspend:
-    Pass ( 1/ 1): 3730beaglexm
+> I suggest skipping 3.19 if possible and giving it a more detailed time
+> in linux-next with omap4 etc being more thoroughly being tested before
+> letting it through, if possible.
 
-PM: chip off (except CORE, due to errata) via dynamic idle:
-    Pass ( 1/ 1): 3730beaglexm
+None of that code is for 3.19 (that ship has sailed a long time ago). My
+plan is to hit 3.20, so it should be in -next by -rc4 or so.
 
-PM: chip off via suspend:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
+> [1] ------------- diff ------------
+>  arch/arm/boot/dts/dra7-evm.dts |    2 +-
+>  arch/arm/boot/dts/dra7.dtsi    |   23 +++++++++++++----------
+>  drivers/irqchip/irq-crossbar.c |    4 ++--
+>  3 files changed, 16 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index c6ce625..d024429 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -323,7 +323,7 @@
+>  	status = "okay";
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&uart1_pins>;
+> -	interrupts-extended = <&gic GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
+> +	interrupts-extended = <&crossbar_mpu GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
+>  			      <&dra7_pmx_core 0x3e0>;
+>  };
 
-PM: chip off via dynamic idle:
-    Pass ( 4/ 4): 37xxevm, 3530es3beagle, 3530es31beagle,
-		  3730es12beaglexm
+Ah, I obviously missed quite a few of these...
 
+[...]
 
-vmlinux object size
-(delta in bytes from test_v3.18-rc7 (009d0431c3914de64666bec0d350e54fdd59df6a)):
-   text     data      bss    total  kernel
-     -7        0        0       -7  omap1_defconfig
-    +57        0        0      +57  omap1_defconfig_1510innovator_only
-     -7        0        0       -7  omap1_defconfig_5912osk_only
-    -87       -8        0      -95  multi_v7_defconfig
-    -59       -8        0      -67  omap2plus_defconfig
-    -91      -16        0     -107  omap2plus_defconfig_2430sdp_only
-   -123       -8        0     -131  omap2plus_defconfig_am33xx_only
-    -63      -16        0      -79  omap2plus_defconfig_am43xx_only
-    -59      +16        0      -43  omap2plus_defconfig_cpupm
-   -127       -8        0     -135  omap2plus_defconfig_dra7xx_only
-    -67      -16        0      -83  omap2plus_defconfig_n800_multi_omap2xxx
-    -35      -16        0      -51  omap2plus_defconfig_n800_only_a
-   -123      +24        0      -99  omap2plus_defconfig_no_pm
-    -59      +16        0      -43  omap2plus_defconfig_omap2_4_only
-   -123      -16        0     -139  omap2plus_defconfig_omap3_4_only
-    -63      -16        0      -79  omap2plus_defconfig_omap5_only
-   -132      -16      +16     -132  rmk_omap3430_ldp_allnoconfig
-   -103       +8        0      -95  rmk_omap3430_ldp_oldconfig
-   -132      -12      +16     -128  rmk_omap4430_sdp_allnoconfig
-  +3993       +8        0    +4001  rmk_omap4430_sdp_oldconfig
+> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
+> index b44915a..f7daff0 100644
+> --- a/drivers/irqchip/irq-crossbar.c
+> +++ b/drivers/irqchip/irq-crossbar.c
+> @@ -99,7 +99,7 @@ static int allocate_gic_irq(struct irq_domain *domain, unsigned virq,
+>  	if (err)
+>  		cb->irq_map[i] = IRQ_FREE;
+>  	else
+> -		cb->write(hwirq, i);
+> +		cb->write(i, hwirq);
+>  
+>  	return err;
+>  }
+> @@ -353,4 +353,4 @@ static int __init irqcrossbar_init(struct device_node *node,
+>  	return 0;
+>  }
+>  
+> -IRQCHIP_DECLARE(ti_irqcrossbar, "ti,irqcrossbar", irqcrossbar_init);
+> +IRQCHIP_DECLARE(ti_irqcrossbar, "ti,irq-crossbar", irqcrossbar_init);
 
-Boot-time memory difference
-(delta in bytes from test_v3.18-rc7 (009d0431c3914de64666bec0d350e54fdd59df6a))
-  avail  rsrvd   high  freed  board          kconfig
-  (no differences)
+Ah, nice catch. Thanks a lot for the testing and the fixes. I'll try to
+get a panda up and running (I'm sure I have one collecting dust
+somewhere), and see if I can get it to behave.
 
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
