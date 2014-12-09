@@ -1,160 +1,158 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 7/7] arm: omap: hwmod: 43xx: remove sysc and class data
-Date: Tue, 9 Dec 2014 16:27:52 -0600
-Message-ID: <1418164072-19087-8-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 5/7] arm: omap: hwmod: allow for registration of class-less hwmods
+Date: Tue, 9 Dec 2014 16:27:50 -0600
+Message-ID: <1418164072-19087-6-git-send-email-balbi@ti.com>
 References: <1418164072-19087-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39836 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44485 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753387AbaLIW2b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Dec 2014 17:28:31 -0500
+	id S1753387AbaLIW21 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Dec 2014 17:28:27 -0500
 In-Reply-To: <1418164072-19087-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-now that this data comes from DT, we can safely
-remove them from this file.
+Before this patch, HWMOD requires the existence
+of a struct omap_hwmod_class very early. It just
+so happens that we're moving that data to DeviceTree
+in a follow-up commit so we need to allow the
+registration of HWMODs with a valid omap_hwmod_class
+pointer.
+
+When the device is built from DT, we will allocate and
+populate struct omap_hwmod_class based on DT data.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c | 61 ------------------------------
- 1 file changed, 61 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-index 5c6c841..f990782 100644
---- a/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_43xx_data.c
-@@ -95,22 +95,10 @@ static struct omap_hwmod am43xx_gpio0_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index cbb908d..2355764 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -504,6 +504,9 @@ static int _set_dmadisable(struct omap_hwmod *oh)
+ 	u32 v;
+ 	u32 dmadisable_mask;
  
--static struct omap_hwmod_class_sysconfig am43xx_synctimer_sysc = {
--	.rev_offs	= 0x0,
--	.sysc_offs	= 0x4,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO),
--	.sysc_fields	= &omap_hwmod_sysc_type1,
--};
++	if (!oh->class)
++		return -EINVAL;
++
+ 	if (!oh->class->sysc ||
+ 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_DMADISABLE))
+ 		return -EINVAL;
+@@ -1843,7 +1846,7 @@ static int _ocp_softreset(struct omap_hwmod *oh)
+ 	int c = 0;
+ 	int ret = 0;
  
--static struct omap_hwmod_class am43xx_synctimer_hwmod_class = {
--	.name	= "synctimer",
--	.sysc	= &am43xx_synctimer_sysc,
--};
+-	if (!oh->class->sysc ||
++	if (!oh->class || !oh->class->sysc ||
+ 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_SOFTRESET))
+ 		return -ENOENT;
  
- static struct omap_hwmod am43xx_synctimer_hwmod = {
- 	.name		= "counter_32k",
--	.class		= &am43xx_synctimer_hwmod_class,
- 	.clkdm_name	= "l4_wkup_aon_clkdm",
- 	.flags		= HWMOD_SWSUP_SIDLE,
- 	.main_clk	= "synctimer_32kclk",
-@@ -318,13 +306,9 @@ static struct omap_hwmod am43xx_gpio5_hwmod = {
- 	.dev_attr	= &gpio_dev_attr,
- };
+@@ -1937,12 +1940,13 @@ static int _reset(struct omap_hwmod *oh)
  
--static struct omap_hwmod_class am43xx_ocp2scp_hwmod_class = {
--	.name	= "ocp2scp",
--};
+ 	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
  
- static struct omap_hwmod am43xx_ocp2scp0_hwmod = {
- 	.name		= "ocp2scp0",
--	.class		= &am43xx_ocp2scp_hwmod_class,
- 	.clkdm_name	= "l4ls_clkdm",
- 	.main_clk	= "l4ls_gclk",
- 	.prcm = {
-@@ -337,7 +321,6 @@ static struct omap_hwmod am43xx_ocp2scp0_hwmod = {
- 
- static struct omap_hwmod am43xx_ocp2scp1_hwmod = {
- 	.name		= "ocp2scp1",
--	.class		= &am43xx_ocp2scp_hwmod_class,
- 	.clkdm_name	= "l4ls_clkdm",
- 	.main_clk	= "l4ls_gclk",
- 	.prcm = {
-@@ -348,26 +331,8 @@ static struct omap_hwmod am43xx_ocp2scp1_hwmod = {
- 	},
- };
- 
--static struct omap_hwmod_class_sysconfig am43xx_usb_otg_ss_sysc = {
--	.rev_offs	= 0x0000,
--	.sysc_offs	= 0x0010,
--	.sysc_flags	= (SYSC_HAS_DMADISABLE | SYSC_HAS_MIDLEMODE |
--				SYSC_HAS_SIDLEMODE),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--				SIDLE_SMART_WKUP | MSTANDBY_FORCE |
--				MSTANDBY_NO | MSTANDBY_SMART |
--				MSTANDBY_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type2,
--};
--
--static struct omap_hwmod_class am43xx_usb_otg_ss_hwmod_class = {
--	.name	= "usb_otg_ss",
--	.sysc	= &am43xx_usb_otg_ss_sysc,
--};
--
- static struct omap_hwmod am43xx_usb_otg_ss0_hwmod = {
- 	.name		= "usb_otg_ss0",
--	.class		= &am43xx_usb_otg_ss_hwmod_class,
- 	.clkdm_name	= "l3s_clkdm",
- 	.main_clk	= "l3s_gclk",
- 	.prcm = {
-@@ -380,7 +345,6 @@ static struct omap_hwmod am43xx_usb_otg_ss0_hwmod = {
- 
- static struct omap_hwmod am43xx_usb_otg_ss1_hwmod = {
- 	.name		= "usb_otg_ss1",
--	.class		= &am43xx_usb_otg_ss_hwmod_class,
- 	.clkdm_name	= "l3s_clkdm",
- 	.main_clk	= "l3s_gclk",
- 	.prcm = {
-@@ -391,22 +355,10 @@ static struct omap_hwmod am43xx_usb_otg_ss1_hwmod = {
- 	},
- };
- 
--static struct omap_hwmod_class_sysconfig am43xx_qspi_sysc = {
--	.sysc_offs      = 0x0010,
--	.sysc_flags     = SYSC_HAS_SIDLEMODE,
--	.idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--				SIDLE_SMART_WKUP),
--	.sysc_fields    = &omap_hwmod_sysc_type2,
--};
- 
--static struct omap_hwmod_class am43xx_qspi_hwmod_class = {
--	.name   = "qspi",
--	.sysc   = &am43xx_qspi_sysc,
--};
- 
- static struct omap_hwmod am43xx_qspi_hwmod = {
- 	.name           = "qspi",
--	.class          = &am43xx_qspi_hwmod_class,
- 	.clkdm_name     = "l3s_clkdm",
- 	.main_clk       = "l3s_gclk",
- 	.prcm = {
-@@ -421,23 +373,10 @@ static struct omap_hwmod am43xx_qspi_hwmod = {
-  * 'adc/tsc' class
-  * TouchScreen Controller (Analog-To-Digital Converter)
+-	if (oh->class->reset) {
++	if (oh->class && oh->class->reset) {
+ 		r = oh->class->reset(oh);
+ 	} else {
+ 		if (oh->rst_lines_cnt > 0) {
+-			for (i = 0; i < oh->rst_lines_cnt; i++)
++			for (i = 0; i < oh->rst_lines_cnt; i++) {
+ 				_assert_hardreset(oh, oh->rst_lines[i].name);
++			}
+ 			return 0;
+ 		} else {
+ 			r = _ocp_softreset(oh);
+@@ -1958,7 +1962,7 @@ static int _reset(struct omap_hwmod *oh)
+ 	 * softreset.  The _enable() function should be split to avoid
+ 	 * the rewrite of the OCP_SYSCONFIG register.
+ 	 */
+-	if (oh->class->sysc) {
++	if (oh->class && oh->class->sysc) {
+ 		_update_sysc_cache(oh);
+ 		_enable_sysc(oh);
+ 	}
+@@ -2036,7 +2040,7 @@ static int _omap4_get_context_lost(struct omap_hwmod *oh)
   */
--static struct omap_hwmod_class_sysconfig am43xx_adc_tsc_sysc = {
--	.rev_offs	= 0x00,
--	.sysc_offs	= 0x10,
--	.sysc_flags	= SYSC_HAS_SIDLEMODE,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			  SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type2,
--};
+ static int _enable_preprogram(struct omap_hwmod *oh)
+ {
+-	if (!oh->class->enable_preprogram)
++	if (!oh->class || !oh->class->enable_preprogram)
+ 		return 0;
  
--static struct omap_hwmod_class am43xx_adc_tsc_hwmod_class = {
--	.name		= "adc_tsc",
--	.sysc		= &am43xx_adc_tsc_sysc,
--};
+ 	return oh->class->enable_preprogram(oh);
+@@ -2145,7 +2149,7 @@ static int _enable(struct omap_hwmod *oh)
+ 		oh->_state = _HWMOD_STATE_ENABLED;
  
- static struct omap_hwmod am43xx_adc_tsc_hwmod = {
- 	.name		= "adc_tsc",
--	.class		= &am43xx_adc_tsc_hwmod_class,
- 	.clkdm_name	= "l3s_tsc_clkdm",
- 	.main_clk	= "adc_tsc_fck",
- 	.prcm		= {
+ 		/* Access the sysconfig only if the target is ready */
+-		if (oh->class->sysc) {
++		if (oh->class && oh->class->sysc) {
+ 			if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
+ 				_update_sysc_cache(oh);
+ 			_enable_sysc(oh);
+@@ -2186,7 +2190,7 @@ static int _idle(struct omap_hwmod *oh)
+ 	if (_are_all_hardreset_lines_asserted(oh))
+ 		return 0;
+ 
+-	if (oh->class->sysc)
++	if (oh->class && oh->class->sysc)
+ 		_idle_sysc(oh);
+ 	_del_initiator_dep(oh, mpu_oh);
+ 
+@@ -2244,7 +2248,7 @@ static int _shutdown(struct omap_hwmod *oh)
+ 
+ 	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
+ 
+-	if (oh->class->pre_shutdown) {
++	if (oh->class && oh->class->pre_shutdown) {
+ 		prev_state = oh->_state;
+ 		if (oh->_state == _HWMOD_STATE_IDLE)
+ 			_enable(oh);
+@@ -2256,7 +2260,7 @@ static int _shutdown(struct omap_hwmod *oh)
+ 		}
+ 	}
+ 
+-	if (oh->class->sysc) {
++	if (oh->class && oh->class->sysc) {
+ 		if (oh->_state == _HWMOD_STATE_IDLE)
+ 			_enable(oh);
+ 		_shutdown_sysc(oh);
+@@ -2451,7 +2455,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+ 				oh->name, np->name);
+ 	}
+ 
+-	if (oh->class->sysc) {
++	if (oh->class && oh->class->sysc) {
+ 		r = _init_mpu_rt_base(oh, NULL, index, np);
+ 		if (r < 0) {
+ 			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
+@@ -2684,8 +2688,7 @@ static int __init _setup(struct omap_hwmod *oh, void *data)
+  */
+ static int __init _register(struct omap_hwmod *oh)
+ {
+-	if (!oh || !oh->name || !oh->class || !oh->class->name ||
+-	    (oh->_state != _HWMOD_STATE_UNKNOWN))
++	if (!oh || !oh->name || (oh->_state != _HWMOD_STATE_UNKNOWN))
+ 		return -EINVAL;
+ 
+ 	pr_debug("omap_hwmod: %s: registering\n", oh->name);
+@@ -3942,6 +3945,9 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 		 __func__, classname);
+ 
+ 	list_for_each_entry(temp_oh, &omap_hwmod_list, node) {
++		if (!temp_oh->class)
++			continue;
++
+ 		if (!strcmp(temp_oh->class->name, classname)) {
+ 			pr_debug("omap_hwmod: %s: %s: calling callback fn\n",
+ 				 __func__, temp_oh->name);
 -- 
 2.2.0
 
