@@ -1,114 +1,136 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 0/5] irqchip: kill the GIC routable domain
-Date: Tue, 09 Dec 2014 09:53:42 +0000
-Message-ID: <5486C6A6.8060702@arm.com>
-References: <1417873576-10463-1-git-send-email-marc.zyngier@arm.com> <20141207171646.GA12049@kahuna> <20141207180322.GA15688@kahuna> <54856B21.6070104@arm.com> <20141208224116.GA2538@kahuna>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
+ Refactor the driver to use commit-like)
+Date: Tue, 9 Dec 2014 10:57:46 -0600
+Message-ID: <20141209165746.GA29935@kahuna>
+References: <5481D913.9040109@ti.com>
+ <5481D9BF.2090007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from foss-mx-na.foss.arm.com ([217.140.108.86]:46767 "EHLO
-	foss-mx-na.foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754092AbaLIJxv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Dec 2014 04:53:51 -0500
-In-Reply-To: <20141208224116.GA2538@kahuna>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5481D9BF.2090007@ti.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Kevin Hilman <khilman@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Benoit Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stefan Agner <stefan@agner.ch>, Jason Cooper <jason@lakedaemon.net>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 08/12/14 22:41, Nishanth Menon wrote:
-
-> Anyways.. The following diff[1] on top of your branch makes DRA7 work - I
-> assume you will squash as needed and repost with linux-omap mailing list
-> in CC.
-
-Brilliant. I'll squash that into my tree and repost at some point.
-
-> I increased the scope of testing knowing that WUGEN is present in many
-> A9 based TI platforms as well.. and at least OMAP4 showed flakiness in
-> my testing.. Also a few notes:
+On 10:13-20141205, Nishanth Menon wrote:
+> On 12/05/2014 10:10 AM, Nishanth Menon wrote:
+> > next-20141204 fails to boot, but next-20141203 boots fine with
+> > omap2plus_defconfig.
+> > 
+> > Panda-ES(4460):
+> > https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-es.txt
+> > Panda(4430):
+> > https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-vanilla.txt
+> > 
+> > at the point of hang (JTAG):
+> >  pandaboard-es:
+> > 	cpu0: http://slexy.org/view/s2eIFqkRd5
+> > 	cpu1: http://slexy.org/view/s2Tysb6gpL
+> > 
+> > Case #1:
+> > Disabling CPUIDLE allows boot to proceed. there does not seem to have
+> > been any change in drivers/cpuidle and arch/arm/mach-omap2 w.r.t this.
+> > 
+> > Case #2: Reverting the following allows boot.
+> > 
+> > From next-20141204
+> > 10df7d5 ARM: 8211/1: l2c: Add support for overriding prefetch settings
+> > revert this  -> boot still fails
+> > 
+> > d42ced0 ARM: 8210/1: l2c: Get outer cache .write_sec callback from
+> > mach_desc only if not NULL
+> > revert this  -> boot still fails
+> > 
+> > 46b9af8 ARM: 8209/1: l2c: Add interface to ask hypervisor to configure L2C
+> > revert this  -> boot still fails
+> > 
+> > c94e325 ARM: 8208/1: l2c: Refactor the driver to use commit-like
+> > revert this  -> boot passed (first bad commit).
+> > 
+> > 
 > 
-> Stuff like: am437x is a bit questionable (interrupt-parent probably should be wugen?)
-> 175:          0       GIC  39  tps65218 
-> 
-> OMAP5: (should be wugen?)
-> 308:       4323          0       GIC 106  OMAP UART2
-> 411:          0          0       GIC 151  twl6040
-> 405:          1          0       GIC  39  palmas
+> + linux-samsung soc and updated Thomaz's mail ID (gmail now).
 
-Well, I can't really tell. Someone with access to the documentation
-should be able to find out.
+Spend a few mins trying to track this down and it does look like commit
+c94e325 does a kmemdup for the data as part of l2x0_of_init->__l2c_init
 
-> OMAP4 serial port is flaky -> not sure if it is due to routing of GIC to UART2 and not via WUGEN
-> IRQ branch: with my fix applied:
-> ---------------------------------
+This fails since the invocation is in early_init. doing it a bit later
+as the following hack makes it work
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 608079a..0bc6bd9 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -170,12 +170,19 @@ static const char *const omap4_boards_compat[] __initconst = {
+ 	NULL,
+ };
+ 
++
++static void tmp_init_irq(void)
++{
++	omap_l2_cache_init();
++	omap_gic_of_init();
++}
++
+ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+ 	.reserve	= omap_reserve,
+ 	.smp		= smp_ops(omap4_smp_ops),
+ 	.map_io		= omap4_map_io,
+ 	.init_early	= omap4430_init_early,
+-	.init_irq	= omap_gic_of_init,
++	.init_irq	= tmp_init_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap4430_init_late,
+ 	.init_time	= omap4_local_timer_init,
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 03cbb16..f97847d 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -627,7 +627,6 @@ void __init omap4430_init_early(void)
+ 	omap44xx_clockdomains_init();
+ 	omap44xx_hwmod_init();
+ 	omap_hwmod_init_postsetup();
+-	omap_l2_cache_init();
+ 	omap_clk_soc_init = omap4xxx_dt_clk_init;
+ }
+ 
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index e5948c5..0ca90db 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -848,8 +848,11 @@ static int __init __l2c_init(const struct l2c_init_data *data,
+ 	 * context from callers can access the structure.
+ 	 */
+ 	l2x0_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
+-	if (!l2x0_data)
++	if (!l2x0_data) {
++		pr_err("%s no mem %d\n", __func__, sizeof(*data));
++		dump_stack();
+ 		return -ENOMEM;
++	}
+ 
+ 	/*
+ 	 * Sanity check the aux values.  aux_mask is the bits we preserve
+@@ -1647,6 +1650,7 @@ int __init l2x0_of_init(u32 aux_val, u32 aux_mask)
+ 	struct device_node *np;
+ 	struct resource res;
+ 	u32 cache_id, old_aux;
++	int r;
+ 
+ 	np = of_find_matching_node(NULL, l2x0_ids);
+ 	if (!np)
+@@ -1693,6 +1697,8 @@ int __init l2x0_of_init(u32 aux_val, u32 aux_mask)
+ 	else
+ 		cache_id = readl_relaxed(l2x0_base + L2X0_CACHE_ID);
+ 
+-	return __l2c_init(data, aux_val, aux_mask, cache_id);
++	r = __l2c_init(data, aux_val, aux_mask, cache_id);
++	pr_err("%s: %d\n", __func__, r);
++	return r;
+ }
 
-[...]
-
-> 18: pandaboard-es:  Boot FAIL: http://slexy.org/raw/s20ty0Z6i5 (not expected)
-> 19: pandaboard-vanilla:  Boot FAIL: http://slexy.org/raw/s20BYfaMd2 (not expected)
-
-If I read the log correctly, the serial port stops responding after a while?
-
-[...]
-
-> I suggest skipping 3.19 if possible and giving it a more detailed time
-> in linux-next with omap4 etc being more thoroughly being tested before
-> letting it through, if possible.
-
-None of that code is for 3.19 (that ship has sailed a long time ago). My
-plan is to hit 3.20, so it should be in -next by -rc4 or so.
-
-> [1] ------------- diff ------------
->  arch/arm/boot/dts/dra7-evm.dts |    2 +-
->  arch/arm/boot/dts/dra7.dtsi    |   23 +++++++++++++----------
->  drivers/irqchip/irq-crossbar.c |    4 ++--
->  3 files changed, 16 insertions(+), 13 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-> index c6ce625..d024429 100644
-> --- a/arch/arm/boot/dts/dra7-evm.dts
-> +++ b/arch/arm/boot/dts/dra7-evm.dts
-> @@ -323,7 +323,7 @@
->  	status = "okay";
->  	pinctrl-names = "default";
->  	pinctrl-0 = <&uart1_pins>;
-> -	interrupts-extended = <&gic GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
-> +	interrupts-extended = <&crossbar_mpu GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
->  			      <&dra7_pmx_core 0x3e0>;
->  };
-
-Ah, I obviously missed quite a few of these...
-
-[...]
-
-> diff --git a/drivers/irqchip/irq-crossbar.c b/drivers/irqchip/irq-crossbar.c
-> index b44915a..f7daff0 100644
-> --- a/drivers/irqchip/irq-crossbar.c
-> +++ b/drivers/irqchip/irq-crossbar.c
-> @@ -99,7 +99,7 @@ static int allocate_gic_irq(struct irq_domain *domain, unsigned virq,
->  	if (err)
->  		cb->irq_map[i] = IRQ_FREE;
->  	else
-> -		cb->write(hwirq, i);
-> +		cb->write(i, hwirq);
->  
->  	return err;
->  }
-> @@ -353,4 +353,4 @@ static int __init irqcrossbar_init(struct device_node *node,
->  	return 0;
->  }
->  
-> -IRQCHIP_DECLARE(ti_irqcrossbar, "ti,irqcrossbar", irqcrossbar_init);
-> +IRQCHIP_DECLARE(ti_irqcrossbar, "ti,irq-crossbar", irqcrossbar_init);
-
-Ah, nice catch. Thanks a lot for the testing and the fixes. I'll try to
-get a panda up and running (I'm sure I have one collecting dust
-somewhere), and see if I can get it to behave.
-
-Thanks,
-
-	M.
 -- 
-Jazz is not dead. It just smells funny...
+Regards,
+Nishanth Menon
