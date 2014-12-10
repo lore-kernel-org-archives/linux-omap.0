@@ -1,69 +1,87 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: BCM2048 bluetooth connected over OMAP serial
-Date: Wed, 10 Dec 2014 21:56:22 +0100
-Message-ID: <20141210205622.GA25286@amd>
-References: <20141210164333.GA3154@amd>
- <11367725.nphhSzdtpK@wuerfel>
- <20141210184203.GA28150@leverpostej>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few fixes for the v3.19 merge window
+Date: Wed, 10 Dec 2014 12:57:52 -0800
+Message-ID: <20141210205752.GB12921@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:36340 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933226AbaLJU7k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 15:59:40 -0500
 Content-Disposition: inline
-In-Reply-To: <20141210184203.GA28150@leverpostej>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org" <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, "sre-GFxCN5SEZAc@public.gmane.org" <sre-GFxCN5SEZAc@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "aaro.koskinen-X3B1VOXEql0@public.gmane.org" <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, "ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <Pawel.Moll-5wv7dgnIgG8@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed 2014-12-10 18:42:03, Mark Rutland wrote:
-> On Wed, Dec 10, 2014 at 05:02:42PM +0000, Arnd Bergmann wrote:
-> > On Wednesday 10 December 2014 17:43:33 Pavel Machek wrote:
-> > > 
-> > > So, there's bluetooth chip that's connected to the SoC by UART and some
-> > > GPIOs. What would be right representation in the device tree?
-> > > Something like this?
-> > > 
-> > >         bluetooth {
-> > >                   compatible = "broadcom,bcm2048";
-> > >                   uart = <&uart2>;
-> > >                   reset-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>; /* want 91 */
-> > >                   host-wakeup-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>; /* want 101 */
-> > >                   bluetooth-wakeup-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>; /* want 37 */
-> > >                   chip-type = >;
-> > >                   bt-sysclk = <2>;
-> > >                   reset-gpio-shared = <0>;
-> > >         };
-> > > 
-> > > Is there some way to prevent OMAP tty driver from binding to the
-> > > device and exporting the device to userspace?
-> > 
-> > I think from the driver perspective, you want this to be a tty line
-> > discipline rather than a driver that attaches to the physical
-> > uart.
-> > 
-> > For the DT representation, I fear we haven't got a precedent. A uart
-> > phandle sounds reasonable, but there might be other ways to do it
-> > and we should consider if there are better alternatives. It could
-> > possibly be a child node of the uart, but that would require other
-> > infrastructure in the kernel because we don't currently create
-> > devices for those.
-> 
-> I think the child node is the way to go; that would match what we do for
-> I2C and SPI. We might need new infrastructure, but I don't think we
-> should treat this differently simlpy because we don't have that yet.
+The following changes since commit a0e4467726cd26bacb16f13d207ffcfa82ffc07d:
 
-Well, uart in this case looks more like a GPIO than an I2C (no
-addressing, just few wires). And we do phandle for GPIOs.
+  Merge tag 'asm-generic-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic (2014-12-09 17:25:00 -0800)
 
-Actually, the chip also has PCM, analog audio, and "pc compatible?"
-connections, plus some connection to WIFI. So we may need more
-phandles there....
+are available in the git repository at:
 
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.19/fixes-for-merge-window
+
+for you to fetch changes up to 661ea91b676bcca137c1c3fe838997925ce98060:
+
+  ARM: omap2plus_defconfig: Enable AHCI_PLATFORM driver (2014-12-10 09:33:50 -0800)
+
+----------------------------------------------------------------
+Fixes for a few issues found that would be good to get
+into -rc1:
+
+- Update SoC revision detection for am43x es1.2
+
+- Fix regression with GPMC timings on 2430sdp for some versions
+  of u-boot
+
+- Fix dra7 watchdog compatible property
+
+- Fix am437x-sk-evm LCD timings
+
+- Fix dra7 DSS clock muxing
+
+- Fix dra7-evm voltages
+
+- Remove a unused function prototype for am33xx_clk_init
+
+- Enable AHCI in the omap2plus_defconfig
+
+----------------------------------------------------------------
+Felipe Balbi (1):
+      ARM: dts: am437x-sk: fix lcd enable pin mux data
+
+Johan Hovold (1):
+      ARM: OMAP2+: clock: remove unused function prototype
+
+Lokesh Vutla (2):
+      ARM: dts: DRA7: wdt: Fix compatible property for watchdog node
+      ARM: OMAP2+: AM43x: Add ID for ES1.2
+
+Ravikumar Kattekola (2):
+      ARM: dts: dra7-evm: Fix typo in SMPS6 (VDD_GPU) max voltage
+      ARM: dts: dra7-evm: Update SMPS7 (VDD_CORE) max voltage to match DM
+
+Roger Quadros (1):
+      ARM: omap2plus_defconfig: Enable AHCI_PLATFORM driver
+
+Tomi Valkeinen (2):
+      ARM: dts: dra7: fix DSS PLL clock mux registers
+      ARM: dts: am437x-sk-evm.dts: fix LCD timings
+
+Tony Lindgren (2):
+      Merge branch 'omap-for-v3.19/fixes-not-urgent' into omap-for-v3.19/fixes
+      ARM: dts: Fix gpmc regression for omap 2430sdp smc91x
+
+ arch/arm/boot/dts/am437x-sk-evm.dts  | 15 +++++++--------
+ arch/arm/boot/dts/dra7-evm.dts       |  4 ++--
+ arch/arm/boot/dts/dra7.dtsi          |  2 +-
+ arch/arm/boot/dts/dra72-evm.dts      |  2 +-
+ arch/arm/boot/dts/dra7xx-clocks.dtsi |  6 +++---
+ arch/arm/boot/dts/omap2430-sdp.dts   | 32 ++++++++++++++++----------------
+ arch/arm/configs/omap2plus_defconfig |  2 ++
+ arch/arm/mach-omap2/clock.h          |  2 --
+ arch/arm/mach-omap2/id.c             |  8 ++++++--
+ arch/arm/mach-omap2/soc.h            |  1 +
+ 10 files changed, 39 insertions(+), 35 deletions(-)
