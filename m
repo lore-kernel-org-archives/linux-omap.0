@@ -1,118 +1,158 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 0/7] arm: omap: move more HWMOD data to DT
-Date: Tue, 9 Dec 2014 16:30:14 -0600
-Message-ID: <20141209223014.GE25857@saruman>
-References: <1418164072-19087-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
+ Refactor the driver to use commit-like)
+Date: Wed, 10 Dec 2014 10:42:33 +0100
+Message-ID: <54881589.20105@samsung.com>
+References: <5481D913.9040109@ti.com> <5481D9BF.2090007@ti.com>
+ <20141209165746.GA29935@kahuna>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OZkY3AIuv2LYvjdk"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45116 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442AbaLIWam (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Dec 2014 17:30:42 -0500
-Content-Disposition: inline
-In-Reply-To: <1418164072-19087-1-git-send-email-balbi@ti.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39708 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751805AbaLJJmi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 04:42:38 -0500
+In-reply-to: <20141209165746.GA29935@kahuna>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
 
---OZkY3AIuv2LYvjdk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-On Tue, Dec 09, 2014 at 04:27:45PM -0600, Felipe Balbi wrote:
-> Hi,
->=20
-> here's a more complete series showing the out of debugfs interface.
->=20
-> So far only AM43xx has been converted and only those HWMODs which
-> play well with DT and/or are not common with other OMAPs/AM33xx.
->=20
-> I plan to work on AM33xx tomorrow, but this RFC shows what we can
-> achieve WRT HWMOD static data reduction.
->=20
-> As you can see, with AM43xx, data reduction is quite minimal, since
-> it reuses so much from AM33xx, but well, had to start somewhere.
->=20
-> All patches were boot tested with AM437x SK on top of:
->=20
-> commit 1ca7c606de868d172afb4eb65e04e290dbdb51ff
-> Author: Stephen Rothwell <sfr@canb.auug.org.au>
-> Date:   Thu Dec 4 19:49:10 2014 +1100
->=20
->     Add linux-next specific files for 20141204
->    =20
->     Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
->=20
-> cheers
->=20
-> Felipe Balbi (7):
->   arm: omap: hwmod: add debugfs interface
->   arm: omap: devicetree: add new properties for OMAP devices
->   arm: omap: hwmod: drop 'const' qualifier from omap_hwmod_class name
->   arm: omap: device: add support for generating sysconfig data from DT
->   arm: omap: hwmod: allow for registration of class-less hwmods
->   arm: boot: dts: am4372: add sysconfig data to all HWMODs
->   arm: omap: hwmod: 43xx: remove sysc and class data
->=20
->  .../devicetree/bindings/arm/omap/omap.txt          |   7 +
->  arch/arm/boot/dts/am4372.dtsi                      | 251 +++++++++++++++=
-++++
->  arch/arm/mach-omap2/Makefile                       |   2 +-
->  arch/arm/mach-omap2/omap_device.c                  | 117 +++++++++
->  arch/arm/mach-omap2/omap_hwmod.c                   |  30 ++-
->  arch/arm/mach-omap2/omap_hwmod.h                   |  11 +-
->  arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  61 -----
->  arch/arm/mach-omap2/omap_hwmod_debugfs.c           | 269 +++++++++++++++=
-++++++
->  8 files changed, 673 insertions(+), 75 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/omap_hwmod_debugfs.c
+On 2014-12-09 17:57, Nishanth Menon wrote:
+> On 10:13-20141205, Nishanth Menon wrote:
+>> On 12/05/2014 10:10 AM, Nishanth Menon wrote:
+>>> next-20141204 fails to boot, but next-20141203 boots fine with
+>>> omap2plus_defconfig.
+>>>
+>>> Panda-ES(4460):
+>>> https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-es.txt
+>>> Panda(4430):
+>>> https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-vanilla.txt
+>>>
+>>> at the point of hang (JTAG):
+>>>   pandaboard-es:
+>>> 	cpu0: http://slexy.org/view/s2eIFqkRd5
+>>> 	cpu1: http://slexy.org/view/s2Tysb6gpL
+>>>
+>>> Case #1:
+>>> Disabling CPUIDLE allows boot to proceed. there does not seem to have
+>>> been any change in drivers/cpuidle and arch/arm/mach-omap2 w.r.t this.
+>>>
+>>> Case #2: Reverting the following allows boot.
+>>>
+>>>  From next-20141204
+>>> 10df7d5 ARM: 8211/1: l2c: Add support for overriding prefetch settings
+>>> revert this  -> boot still fails
+>>>
+>>> d42ced0 ARM: 8210/1: l2c: Get outer cache .write_sec callback from
+>>> mach_desc only if not NULL
+>>> revert this  -> boot still fails
+>>>
+>>> 46b9af8 ARM: 8209/1: l2c: Add interface to ask hypervisor to configure L2C
+>>> revert this  -> boot still fails
+>>>
+>>> c94e325 ARM: 8208/1: l2c: Refactor the driver to use commit-like
+>>> revert this  -> boot passed (first bad commit).
+>>>
+>>>
+>> + linux-samsung soc and updated Thomaz's mail ID (gmail now).
+> Spend a few mins trying to track this down and it does look like commit
+> c94e325 does a kmemdup for the data as part of l2x0_of_init->__l2c_init
+>
+> This fails since the invocation is in early_init. doing it a bit later
+> as the following hack makes it work
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index 608079a..0bc6bd9 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -170,12 +170,19 @@ static const char *const omap4_boards_compat[] __initconst = {
+>   	NULL,
+>   };
+>   
+> +
+> +static void tmp_init_irq(void)
+> +{
+> +	omap_l2_cache_init();
+> +	omap_gic_of_init();
+> +}
+> +
+>   DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+>   	.reserve	= omap_reserve,
+>   	.smp		= smp_ops(omap4_smp_ops),
+>   	.map_io		= omap4_map_io,
+>   	.init_early	= omap4430_init_early,
+> -	.init_irq	= omap_gic_of_init,
+> +	.init_irq	= tmp_init_irq,
+>   	.init_machine	= omap_generic_init,
+>   	.init_late	= omap4430_init_late,
+>   	.init_time	= omap4_local_timer_init,
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 03cbb16..f97847d 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -627,7 +627,6 @@ void __init omap4430_init_early(void)
+>   	omap44xx_clockdomains_init();
+>   	omap44xx_hwmod_init();
+>   	omap_hwmod_init_postsetup();
+> -	omap_l2_cache_init();
+>   	omap_clk_soc_init = omap4xxx_dt_clk_init;
+>   }
+>   
 
-btw, after removing all class and sysconfig static definitions, we get:
+Please note that am43xx_init_early() also calls omap_l2_cache_init(),
+so similar fix is needed for "Generic AM43 (Flattened Device Tree)"
+machines.
 
-$ git diff --stat
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  44 --
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  70 --
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |  42 --
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c | 188 ------
- .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c | 370 +----------
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  78 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 399 ------------
- arch/arm/mach-omap2/omap_hwmod_43xx_data.c         |  37 --
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 713 -----------------=
-----
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         | 469 --------------
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 488 +-------------
- .../mach-omap2/omap_hwmod_common_ipblock_data.c    |  30 +-
- 12 files changed, 5 insertions(+), 2923 deletions(-)
+I've briefly looked how the initialization is done on various omap
+platforms, but I don't see the good generic place for omap_l2_cache_init().
+IMHO the best solution will be to completely switch to generic/common l2c
+initialization and provide ".l2c_aux_val" and ".l2c_aux_mask" in machine
+descriptor. For the time being something like proposed above can be used.
 
---=20
-balbi
+I assume that now it won't be possible to get l2c patches back to -next,
+so I will resend them (again...) with the omap related fix.
 
---OZkY3AIuv2LYvjdk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> index e5948c5..0ca90db 100644
+> --- a/arch/arm/mm/cache-l2x0.c
+> +++ b/arch/arm/mm/cache-l2x0.c
+> @@ -848,8 +848,11 @@ static int __init __l2c_init(const struct l2c_init_data *data,
+>   	 * context from callers can access the structure.
+>   	 */
+>   	l2x0_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
+> -	if (!l2x0_data)
+> +	if (!l2x0_data) {
+> +		pr_err("%s no mem %d\n", __func__, sizeof(*data));
+> +		dump_stack();
+>   		return -ENOMEM;
+> +	}
+>   
+>   	/*
+>   	 * Sanity check the aux values.  aux_mask is the bits we preserve
+> @@ -1647,6 +1650,7 @@ int __init l2x0_of_init(u32 aux_val, u32 aux_mask)
+>   	struct device_node *np;
+>   	struct resource res;
+>   	u32 cache_id, old_aux;
+> +	int r;
+>   
+>   	np = of_find_matching_node(NULL, l2x0_ids);
+>   	if (!np)
+> @@ -1693,6 +1697,8 @@ int __init l2x0_of_init(u32 aux_val, u32 aux_mask)
+>   	else
+>   		cache_id = readl_relaxed(l2x0_base + L2X0_CACHE_ID);
+>   
+> -	return __l2c_init(data, aux_val, aux_mask, cache_id);
+> +	r = __l2c_init(data, aux_val, aux_mask, cache_id);
+> +	pr_err("%s: %d\n", __func__, r);
+> +	return r;
+>   }
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
-iQIcBAEBAgAGBQJUh3f2AAoJEIaOsuA1yqRE8QwP/0yzwQ29lTahwB9aP33ZPXsg
-JG2AgJqRakncKdeS0wYxVOlfSU2OmIMjws0//LViQ6/lSrrKFJ6hY5YfLb023h1P
-liECWdCHMbg3b9cjNWXd2dqViu002Aidpo4w4TB/jDZNVGB8XWB2Iz02brdNDGWw
-N0DN9GLGT3A7g6P1ySAUq5MO6piid20dMqmpIhJ2tDQwgqtI7eiVQ4p3KvMiSJr/
-5zLZMx1t1HwzvFlgpwQ5nisLip0+S0bvMugRKQ0HJXTrE3IoFr6abbfTtqqd1clp
-o+BSjyx77qlFQOjkZ+crwDBfbl/b/c4ddvMaz0yjlsuvsaK60SLyIuebAcTmNe/M
-HUNM5+9ftgASKVerJ5ZlRGA76fFAqCraN1Xd8LEsQX4rsh+kKnPPabHxlpFhXTPS
-q9m1cXTYA1KOQ3UtZMr2i/TMrJVNoNvNxIe0qOHsn4PCAoZ1WpdslnRvdrIBIiml
-TvFMIDhqmfOXVPJCrdPTb8Dp8Wrz8X2ONadXzx7IvOrgnUI4pxJqjeHSsc5eDkBA
-8lH7Ko1gm2Jc1orIIdBgn15GgyPszW1IhGUZVgUYI05aymvwdKp8/NLlQNlek4fk
-Wn6A4StbeKqI4lgHf10Phgp842BEsBg9jlbeK7klwaISTW5CqoGB4faI2KBnsNbw
-+dhbs/N9NA6MLLBcuS44
-=mb96
------END PGP SIGNATURE-----
-
---OZkY3AIuv2LYvjdk--
