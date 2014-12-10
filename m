@@ -1,49 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2plus_defconfig: Enable AHCI_PLATFORM driver
-Date: Wed, 10 Dec 2014 09:06:55 -0800
-Message-ID: <20141210170654.GG30437@atomide.com>
-References: <1416829297-12664-1-git-send-email-rogerq@ti.com>
+From: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: BCM2048 bluetooth connected over OMAP serial
+Date: Wed, 10 Dec 2014 11:35:59 -0600
+Message-ID: <CAL_Jsq+dy+5Fsg_oasP_hN3RuL1Wk7fOcQjyp+UdaJZyGa=uEg@mail.gmail.com>
+References: <20141210164333.GA3154@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59875 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932209AbaLJRIo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 12:08:44 -0500
-Content-Disposition: inline
-In-Reply-To: <1416829297-12664-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141210164333.GA3154@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Roger Quadros <rogerq@ti.com> [141124 03:43]:
-> OMAP5 and DRA7 platforms need the AHCI platform driver
-> for SATA support.
-> 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
+On Wed, Dec 10, 2014 at 10:43 AM, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+> Hi!
+>
+> So, there's bluetooth chip that's connected to the SoC by UART and some
+> GPIOs. What would be right representation in the device tree?
+> Something like this?
+>
+>         bluetooth {
+>                   compatible = "broadcom,bcm2048";
+>                   uart = <&uart2>;
+>                   reset-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>; /* want 91 */
+>                   host-wakeup-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>; /* want 101 */
+>                   bluetooth-wakeup-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>; /* want 37 */
+>                   chip-type = <3>;
+>                   bt-sysclk = <2>;
+>                   reset-gpio-shared = <0>;
+>         };
+>
+> Is there some way to prevent OMAP tty driver from binding to the
+> device and exporting the device to userspace?
 
-Applying into omap-for-v3.19/fixes to get this working.
+Isn't the normal way for BT to work is the uart is exposed to
+userspace and the BT stack is all in userspace? This is how other
+Broadcom BT/WiFi combo parts work.
 
-Tony
-
-> ---
->  arch/arm/configs/omap2plus_defconfig | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 87a5c11..d75358a 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -127,6 +127,8 @@ CONFIG_SRAM=y
->  CONFIG_SCSI=y
->  CONFIG_BLK_DEV_SD=y
->  CONFIG_SCSI_SCAN_ASYNC=y
-> +CONFIG_ATA=y
-> +CONFIG_SATA_AHCI_PLATFORM=y
->  CONFIG_MD=y
->  CONFIG_NETDEVICES=y
->  # CONFIG_NET_VENDOR_ARC is not set
-> -- 
-> 1.8.3.2
-> 
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
