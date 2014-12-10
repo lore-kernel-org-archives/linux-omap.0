@@ -1,158 +1,84 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: regression: OMAP4 (next-20141204) (bisect to: ARM: 8208/1: l2c:
- Refactor the driver to use commit-like)
-Date: Wed, 10 Dec 2014 10:42:33 +0100
-Message-ID: <54881589.20105@samsung.com>
-References: <5481D913.9040109@ti.com> <5481D9BF.2090007@ti.com>
- <20141209165746.GA29935@kahuna>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [RFC/PATCH 2/7] arm: omap: devicetree: add new properties for
+ OMAP devices
+Date: Wed, 10 Dec 2014 16:37:19 +0530
+Message-ID: <54882967.60302@ti.com>
+References: <1418164072-19087-1-git-send-email-balbi@ti.com> <1418164072-19087-3-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39708 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751805AbaLJJmi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 04:42:38 -0500
-In-reply-to: <20141209165746.GA29935@kahuna>
+Received: from devils.ext.ti.com ([198.47.26.153]:51052 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750911AbaLJLJB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 06:09:01 -0500
+In-Reply-To: <1418164072-19087-3-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-next <linux-next@vger.kernel.org>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+To: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org
 
-Hello,
+Hi Felipe,
 
-On 2014-12-09 17:57, Nishanth Menon wrote:
-> On 10:13-20141205, Nishanth Menon wrote:
->> On 12/05/2014 10:10 AM, Nishanth Menon wrote:
->>> next-20141204 fails to boot, but next-20141203 boots fine with
->>> omap2plus_defconfig.
->>>
->>> Panda-ES(4460):
->>> https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-es.txt
->>> Panda(4430):
->>> https://github.com/nmenon/kernel-test-logs/blob/next-20141204/omap2plus_defconfig/pandaboard-vanilla.txt
->>>
->>> at the point of hang (JTAG):
->>>   pandaboard-es:
->>> 	cpu0: http://slexy.org/view/s2eIFqkRd5
->>> 	cpu1: http://slexy.org/view/s2Tysb6gpL
->>>
->>> Case #1:
->>> Disabling CPUIDLE allows boot to proceed. there does not seem to have
->>> been any change in drivers/cpuidle and arch/arm/mach-omap2 w.r.t this.
->>>
->>> Case #2: Reverting the following allows boot.
->>>
->>>  From next-20141204
->>> 10df7d5 ARM: 8211/1: l2c: Add support for overriding prefetch settings
->>> revert this  -> boot still fails
->>>
->>> d42ced0 ARM: 8210/1: l2c: Get outer cache .write_sec callback from
->>> mach_desc only if not NULL
->>> revert this  -> boot still fails
->>>
->>> 46b9af8 ARM: 8209/1: l2c: Add interface to ask hypervisor to configure L2C
->>> revert this  -> boot still fails
->>>
->>> c94e325 ARM: 8208/1: l2c: Refactor the driver to use commit-like
->>> revert this  -> boot passed (first bad commit).
->>>
->>>
->> + linux-samsung soc and updated Thomaz's mail ID (gmail now).
-> Spend a few mins trying to track this down and it does look like commit
-> c94e325 does a kmemdup for the data as part of l2x0_of_init->__l2c_init
->
-> This fails since the invocation is in early_init. doing it a bit later
-> as the following hack makes it work
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 608079a..0bc6bd9 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -170,12 +170,19 @@ static const char *const omap4_boards_compat[] __initconst = {
->   	NULL,
->   };
->   
-> +
-> +static void tmp_init_irq(void)
-> +{
-> +	omap_l2_cache_init();
-> +	omap_gic_of_init();
-> +}
-> +
->   DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
->   	.reserve	= omap_reserve,
->   	.smp		= smp_ops(omap4_smp_ops),
->   	.map_io		= omap4_map_io,
->   	.init_early	= omap4430_init_early,
-> -	.init_irq	= omap_gic_of_init,
-> +	.init_irq	= tmp_init_irq,
->   	.init_machine	= omap_generic_init,
->   	.init_late	= omap4430_init_late,
->   	.init_time	= omap4_local_timer_init,
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index 03cbb16..f97847d 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -627,7 +627,6 @@ void __init omap4430_init_early(void)
->   	omap44xx_clockdomains_init();
->   	omap44xx_hwmod_init();
->   	omap_hwmod_init_postsetup();
-> -	omap_l2_cache_init();
->   	omap_clk_soc_init = omap4xxx_dt_clk_init;
->   }
->   
+On Wednesday 10 December 2014 03:57 AM, Felipe Balbi wrote:
+> In order to get rid of some more hwmod data, we
+> introduce a few extra properties to OMAP DT
+> data in order to be able to pass the needed
+> information through DT.
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  Documentation/devicetree/bindings/arm/omap/omap.txt | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> index 4f6a82c..c6b9515 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> @@ -23,6 +23,13 @@ Optional properties:
+>    during suspend.
+>  - ti,no-reset-on-init: When present, the module should not be reset at init
+>  - ti,no-idle-on-init: When present, the module should not be idled at init
+> +- ti,rev_offs: IP block revision register offset (defaults to 0)
+> +- ti,sysc_offs: OCP_SYSCONFIG register offset (defaults to 0)
+> +- ti,syss_offs: OCP_SYSSTATUS register offset (defaults to 0)
+> +- ti,srst_udelay: Delay needed after a softreset in usecs (defaults to 0)
+> +- ti,idlemodes: Slave and Master supported idling modes
+> +- ti,clockact: default value of clock activity bits (defaults to 0)
+> +- ti,sysc_type: OCP_SYSCONFIG type. Valid types are 1, 2 or 3 (defaults to 1)
+Once if all the hwmod data comes to dt it will be very dufficult to see all the data
+together. Can we separate out hwmod class data like clocks data is separated out into different node
+or something of the sort like below?
 
-Please note that am43xx_init_early() also calls omap_l2_cache_init(),
-so similar fix is needed for "Generic AM43 (Flattened Device Tree)"
-machines.
+	ti, hwmod_class {
+		ti,class_name = <>;
+		ti,rev_offs = <>;
+		ti,sysc_offs = <>;
+		ti,syss_offs = <>;
+		ti,srst_udelay = <>;
+		ti,idlemodes = <>;
+		ti,clockact = <>;
+		ti,sysc_type = <>;
+	};
 
-I've briefly looked how the initialization is done on various omap
-platforms, but I don't see the good generic place for omap_l2_cache_init().
-IMHO the best solution will be to completely switch to generic/common l2c
-initialization and provide ".l2c_aux_val" and ".l2c_aux_mask" in machine
-descriptor. For the time being something like proposed above can be used.
+example:
+	counter32k: counter@44e86000 {
+			compatible = "ti,am4372-counter32k","ti,omap-counter32k";
+			reg = <0x44e86000 0x40>;
+			ti,hwmods = "counter_32k";
+			ti,hwmod_class {
+				ti,class_name = "synctimer";
+				ti,idlemodes = <0x3>;
+				ti,sysc_flags = <0x20>;
+				ti,sysc_offs = <0x4>;
+			};
+	};
 
-I assume that now it won't be possible to get l2c patches back to -next,
-so I will resend them (again...) with the omap related fix.
-
-> diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-> index e5948c5..0ca90db 100644
-> --- a/arch/arm/mm/cache-l2x0.c
-> +++ b/arch/arm/mm/cache-l2x0.c
-> @@ -848,8 +848,11 @@ static int __init __l2c_init(const struct l2c_init_data *data,
->   	 * context from callers can access the structure.
->   	 */
->   	l2x0_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
-> -	if (!l2x0_data)
-> +	if (!l2x0_data) {
-> +		pr_err("%s no mem %d\n", __func__, sizeof(*data));
-> +		dump_stack();
->   		return -ENOMEM;
-> +	}
->   
->   	/*
->   	 * Sanity check the aux values.  aux_mask is the bits we preserve
-> @@ -1647,6 +1650,7 @@ int __init l2x0_of_init(u32 aux_val, u32 aux_mask)
->   	struct device_node *np;
->   	struct resource res;
->   	u32 cache_id, old_aux;
-> +	int r;
->   
->   	np = of_find_matching_node(NULL, l2x0_ids);
->   	if (!np)
-> @@ -1693,6 +1697,8 @@ int __init l2x0_of_init(u32 aux_val, u32 aux_mask)
->   	else
->   		cache_id = readl_relaxed(l2x0_base + L2X0_CACHE_ID);
->   
-> -	return __l2c_init(data, aux_val, aux_mask, cache_id);
-> +	r = __l2c_init(data, aux_val, aux_mask, cache_id);
-> +	pr_err("%s: %d\n", __func__, r);
-> +	return r;
->   }
->
-
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+Thanks and regards,
+Lokesh
+		
+>  
+>  Example:
+>  
+> 
 
