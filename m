@@ -1,51 +1,191 @@
-From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Subject: Re: BCM2048 bluetooth connected over OMAP serial
-Date: Wed, 10 Dec 2014 18:42:33 +0100
-Message-ID: <5C56C73A-1D8E-4ACC-B1B7-3E8D49943A70@holtmann.org>
-References: <20141210164333.GA3154@amd> <CAL_Jsq+dy+5Fsg_oasP_hN3RuL1Wk7fOcQjyp+UdaJZyGa=uEg@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.1 \(1993\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL_Jsq+dy+5Fsg_oasP_hN3RuL1Wk7fOcQjyp+UdaJZyGa=uEg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] spi/omap100k: Convert to runtime PM
+Date: Wed, 10 Dec 2014 18:16:52 +0000
+Message-ID: <1418235412-10867-1-git-send-email-broonie@kernel.org>
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
+Currently the omap100k driver uses prepare and unprepare transfer hardware
+to enable and disable clocks for the IP block. Since these functions are
+called along with runtime PM and end up duplicating its functionality in a
+less flexible fashion we are trying to phase them out so convert this
+driver to do runtime PM instead.
 
->> So, there's bluetooth chip that's connected to the SoC by UART and some
->> GPIOs. What would be right representation in the device tree?
->> Something like this?
->> 
->>        bluetooth {
->>                  compatible = "broadcom,bcm2048";
->>                  uart = <&uart2>;
->>                  reset-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>; /* want 91 */
->>                  host-wakeup-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>; /* want 101 */
->>                  bluetooth-wakeup-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>; /* want 37 */
->>                  chip-type = <3>;
->>                  bt-sysclk = <2>;
->>                  reset-gpio-shared = <0>;
->>        };
->> 
->> Is there some way to prevent OMAP tty driver from binding to the
->> device and exporting the device to userspace?
-> 
-> Isn't the normal way for BT to work is the uart is exposed to
-> userspace and the BT stack is all in userspace? This is how other
-> Broadcom BT/WiFi combo parts work.
+While doing so add missing error handling and remove a redundant NULL
+assignment.
 
-not on Linux actually. The Bluetooth core layer (including the HCI transport) are all in kernel space.
+Signed-off-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/spi/spi-omap-100k.c | 101 +++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 77 insertions(+), 24 deletions(-)
 
-However UART based Bluetooth chips are exposed as TTY and then the N_HCI line discipline is used to attach it to the kernel Bluetooth subsystem.
-
-Regards
-
-Marcel
+diff --git a/drivers/spi/spi-omap-100k.c b/drivers/spi/spi-omap-100k.c
+index 79399ae9c84c..ea70494aae12 100644
+--- a/drivers/spi/spi-omap-100k.c
++++ b/drivers/spi/spi-omap-100k.c
+@@ -29,6 +29,7 @@
+ #include <linux/device.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+@@ -299,16 +300,6 @@ static int omap1_spi100k_setup(struct spi_device *spi)
+ 	return ret;
+ }
+ 
+-static int omap1_spi100k_prepare_hardware(struct spi_master *master)
+-{
+-	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
+-
+-	clk_prepare_enable(spi100k->ick);
+-	clk_prepare_enable(spi100k->fck);
+-
+-	return 0;
+-}
+-
+ static int omap1_spi100k_transfer_one_message(struct spi_master *master,
+ 					      struct spi_message *m)
+ {
+@@ -377,16 +368,6 @@ static int omap1_spi100k_transfer_one_message(struct spi_master *master,
+ 	return status;
+ }
+ 
+-static int omap1_spi100k_unprepare_hardware(struct spi_master *master)
+-{
+-	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
+-
+-	clk_disable_unprepare(spi100k->ick);
+-	clk_disable_unprepare(spi100k->fck);
+-
+-	return 0;
+-}
+-
+ static int omap1_spi100k_probe(struct platform_device *pdev)
+ {
+ 	struct spi_master       *master;
+@@ -407,14 +388,12 @@ static int omap1_spi100k_probe(struct platform_device *pdev)
+ 
+ 	master->setup = omap1_spi100k_setup;
+ 	master->transfer_one_message = omap1_spi100k_transfer_one_message;
+-	master->prepare_transfer_hardware = omap1_spi100k_prepare_hardware;
+-	master->unprepare_transfer_hardware = omap1_spi100k_unprepare_hardware;
+-	master->cleanup = NULL;
+ 	master->num_chipselect = 2;
+ 	master->mode_bits = MODEBITS;
+ 	master->bits_per_word_mask = SPI_BPW_RANGE_MASK(4, 32);
+ 	master->min_speed_hz = OMAP1_SPI100K_MAX_FREQ/(1<<16);
+ 	master->max_speed_hz = OMAP1_SPI100K_MAX_FREQ;
++	master->auto_runtime_pm = true;
+ 
+ 	spi100k = spi_master_get_devdata(master);
+ 
+@@ -439,22 +418,96 @@ static int omap1_spi100k_probe(struct platform_device *pdev)
+ 		goto err;
+ 	}
+ 
++	status = clk_prepare_enable(spi100k->ick);
++	if (status != 0) {
++		dev_err(&pdev->dev, "failed to enable ick: %d\n", status);
++		goto err;
++	}
++
++	status = clk_prepare_enable(spi100k->fck);
++	if (status != 0) {
++		dev_err(&pdev->dev, "failed to enable fck: %d\n", status);
++		goto err_ick;
++	}
++
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_set_active(&pdev->dev);
++
+ 	status = devm_spi_register_master(&pdev->dev, master);
+ 	if (status < 0)
+-		goto err;
++		goto err_fck;
+ 
+ 	return status;
+ 
++err_fck:
++	clk_disable_unprepare(spi100k->fck);
++err_ick:
++	clk_disable_unprepare(spi100k->ick);
+ err:
+ 	spi_master_put(master);
+ 	return status;
+ }
+ 
++static int omap1_spi100k_remove(struct platform_device *pdev)
++{
++	struct spi_master *master = spi_master_get(platform_get_drvdata(pdev));
++	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
++
++	pm_runtime_disable(&pdev->dev);
++
++	clk_disable_unprepare(spi100k->fck);
++	clk_disable_unprepare(spi100k->ick);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int omap1_spi100k_runtime_suspend(struct device *dev)
++{
++	struct spi_master *master = spi_master_get(dev_get_drvdata(dev));
++	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
++
++	clk_disable_unprepare(spi100k->ick);
++	clk_disable_unprepare(spi100k->fck);
++
++	return 0;
++}
++
++static int omap1_spi100k_runtime_resume(struct device *dev)
++{
++	struct spi_master *master = spi_master_get(dev_get_drvdata(dev));
++	struct omap1_spi100k *spi100k = spi_master_get_devdata(master);
++	int ret;
++
++	ret = clk_prepare_enable(spi100k->ick);
++	if (ret != 0) {
++		dev_err(dev, "Failed to enable ick: %d\n", ret);
++		return ret;
++	}
++
++	ret = clk_prepare_enable(spi100k->fck);
++	if (ret != 0) {
++		dev_err(dev, "Failed to enable fck: %d\n", ret);
++		clk_disable_unprepare(spi100k->ick);
++		return ret;
++	}
++
++	return 0;
++}
++#endif
++
++static const struct dev_pm_ops omap1_spi100k_pm = {
++	SET_RUNTIME_PM_OPS(omap1_spi100k_runtime_suspend,
++			   omap1_spi100k_runtime_resume, NULL)
++};
++
+ static struct platform_driver omap1_spi100k_driver = {
+ 	.driver = {
+ 		.name		= "omap1_spi100k",
++		.pm		= &omap1_spi100k_pm,
+ 	},
+ 	.probe		= omap1_spi100k_probe,
++	.remove		= omap1_spi100k_remove,
+ };
+ 
+ module_platform_driver(omap1_spi100k_driver);
+-- 
+2.1.3
 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
