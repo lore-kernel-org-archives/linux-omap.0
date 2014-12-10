@@ -1,81 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: AM43x: Add ID for ES1.2
-Date: Wed, 10 Dec 2014 08:45:02 -0800
-Message-ID: <20141210164501.GD30437@atomide.com>
-References: <1417145527-31086-1-git-send-email-lokeshvutla@ti.com>
- <547DED90.50504@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/2] ARM: dts: dra7-evm: Regulator max voltage fixes
+Date: Wed, 10 Dec 2014 08:47:35 -0800
+Message-ID: <20141210164734.GE30437@atomide.com>
+References: <1417608237-12258-1-git-send-email-rk@ti.com>
+ <547F0A57.7040806@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11190 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758124AbaLJQqu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 11:46:50 -0500
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <547DED90.50504@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <547F0A57.7040806-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Ravikumar Kattekola <rk-l0cyMroinI0@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, t-kristo@ti.com
 
-* Nishanth Menon <nm@ti.com> [141202 08:51]:
-> On 11/27/2014 09:32 PM, Lokesh Vutla wrote:
-> > ES1.2 is a minor variant of ES1.1. Major changes since ES1.1 are
-> > updating ROM for fixing the following boot modes:
-> > - NAND boot
-> > - UART boot
-> > - Ethernet boot
-> > - USB HOST/Client boot
-> > This patch adds ID support for AM437x ES1.2 silicon.
-> > There are no additional kernel fixes required for ES1.2 silicon.
+* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [141203 05:06]:
+> On 12/03/2014 06:03 AM, Ravikumar Kattekola wrote:
+> > Hi,
 > > 
-> > Latest Technical Documentation can be found here:
-> > http://www.ti.com/lsds/ti/arm/sitara_arm_cortex_a_processor/arm_cortex_a9_core/am437x_arm_cortex_a9/tech_docs.page
+> > This set does a minor fix and an update:
 > > 
-> > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/id.c  | 8 ++++++--
-> >  arch/arm/mach-omap2/soc.h | 1 +
-> >  2 files changed, 7 insertions(+), 2 deletions(-)
+> >    - Fix a typo in the max voltage property of smps6 (vdd_gpu) regulator node added by
+> >      the patch : c56a831ca47e ("ARM: dts: DRA7: Add TPS659038 PMIC nodes")
 > > 
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 53841de..c25feba 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -471,11 +471,15 @@ void __init omap3xxx_check_revision(void)
-> >  			cpu_rev = "1.0";
-> >  			break;
-> >  		case 1:
-> > -		/* FALLTHROUGH */
-> > -		default:
-> >  			omap_revision = AM437X_REV_ES1_1;
-> >  			cpu_rev = "1.1";
-> >  			break;
-> > +		case 2:
-> > +		/* FALLTHROUGH */
-> > +		default:
-> > +			omap_revision = AM437X_REV_ES1_2;
-> > +			cpu_rev = "1.2";
-> > +			break;
-> >  		}
-> >  		break;
-> >  	case 0xb8f2:
-> > diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-> > index 4376f59..c1a3b44 100644
-> > --- a/arch/arm/mach-omap2/soc.h
-> > +++ b/arch/arm/mach-omap2/soc.h
-> > @@ -446,6 +446,7 @@ IS_OMAP_TYPE(3430, 0x3430)
-> >  #define AM437X_CLASS		0x43700000
-> >  #define AM437X_REV_ES1_0	(AM437X_CLASS | (0x10 << 8))
-> >  #define AM437X_REV_ES1_1	(AM437X_CLASS | (0x11 << 8))
-> > +#define AM437X_REV_ES1_2	(AM437X_CLASS | (0x12 << 8))
-> >  
-> >  #define OMAP443X_CLASS		0x44300044
-> >  #define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
+> >    - Update max voltage property of smps7 (vdd_core) regulator node to align with the 
+> >      latest Data Manual
 > > 
+> > Regards,
+> > RK
+> > 
+> > Ravikumar Kattekola (2):
+> >   ARM: dts: dra7-evm: Fix typo in SMPS6 (VDD_GPU) max voltage
+> >   ARM: dts: dra7-evm: Update SMPS7 (VDD_CORE) max voltage to match DM
+> > 
+> >  arch/arm/boot/dts/dra7-evm.dts  |    4 ++--
+> >  arch/arm/boot/dts/dra72-evm.dts |    2 +-
+> >  2 files changed, 3 insertions(+), 3 deletions(-)
+> > 
+> These apply to
 > 
-> Reviewed-by: Nishanth Menon <nm@ti.com>
+> https://git.kernel.org/cgit/linux/kernel/git/tmlind/linux-omap.git/log/?h=omap-for-v3.19/dt-v2
+> 
+> Acked-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 
-Applying into omap-for-v3.19/fixes thanks.
+Applying both into omap-for-v3.19/fixes thanks.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
