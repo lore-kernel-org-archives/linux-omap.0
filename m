@@ -1,125 +1,613 @@
-From: "sre@debian.org" <sre@kernel.org>
-Subject: Re: BCM2048 bluetooth connected over OMAP serial
-Date: Wed, 10 Dec 2014 23:50:37 +0100
-Message-ID: <20141210225036.GA5585@earth.universe>
-References: <20141210164333.GA3154@amd>
- <11367725.nphhSzdtpK@wuerfel>
- <20141210184203.GA28150@leverpostej>
- <20141210205622.GA25286@amd>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] treewide: Convert clockevents_notify to use int cpu
+Date: Wed, 10 Dec 2014 15:28:53 -0800
+Message-ID: <1418254133.18092.22.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141210205622.GA25286@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mark Rutland <mark.rutland@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "pali.rohar@gmail.com" <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@kernel.org" <khilman@kernel.org>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "ivo.g.dimitrov.75@gmail.com" <ivo.g.dimitrov.75@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Pawel Moll <Pawel.Moll@arm.com>, "ijc+devicetree@hellion.org.uk" <ijc+devicetree@hellion.org.uk>, "galak@codeaurora.org" <galak@codeaurora.org>
+To: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-tegra@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+As far as I can tell, there's no value indirecting
+the cpu passed to this function via a void *.
 
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Update all the callers and called functions from within
+clockevents_notify.
 
-Hi,
+Miscellanea:
 
-On Wed, Dec 10, 2014 at 09:56:22PM +0100, Pavel Machek wrote:
-> On Wed 2014-12-10 18:42:03, Mark Rutland wrote:
-> > On Wed, Dec 10, 2014 at 05:02:42PM +0000, Arnd Bergmann wrote:
-> > > On Wednesday 10 December 2014 17:43:33 Pavel Machek wrote:
-> > > >=20
-> > > > So, there's bluetooth chip that's connected to the SoC by UART and =
-some
-> > > > GPIOs. What would be right representation in the device tree?
-> > > > Something like this?
-> > > >=20
-> > > >         bluetooth {
-> > > >                   compatible =3D "broadcom,bcm2048";
-> > > >                   uart =3D <&uart2>;
-> > > >                   reset-gpios =3D <&gpio3 27 GPIO_ACTIVE_HIGH>; /* =
-want 91 */
-> > > >                   host-wakeup-gpios =3D <&gpio4 5 GPIO_ACTIVE_HIGH>=
-; /* want 101 */
-> > > >                   bluetooth-wakeup-gpios =3D <&gpio2 5 GPIO_ACTIVE_=
-HIGH>; /* want 37 */
-> > > >                   chip-type =3D >;
-> > > >                   bt-sysclk =3D <2>;
-> > > >                   reset-gpio-shared =3D <0>;
-> > > >         };
-> > > >=20
-> > > > Is there some way to prevent OMAP tty driver from binding to the
-> > > > device and exporting the device to userspace?
-> > >=20
-> > > I think from the driver perspective, you want this to be a tty line
-> > > discipline rather than a driver that attaches to the physical
-> > > uart.
-> > >=20
-> > > For the DT representation, I fear we haven't got a precedent. A uart
-> > > phandle sounds reasonable, but there might be other ways to do it
-> > > and we should consider if there are better alternatives. It could
-> > > possibly be a child node of the uart, but that would require other
-> > > infrastructure in the kernel because we don't currently create
-> > > devices for those.
-> >=20
-> > I think the child node is the way to go; that would match what we do for
-> > I2C and SPI. We might need new infrastructure, but I don't think we
-> > should treat this differently simlpy because we don't have that yet.
->=20
-> Well, uart in this case looks more like a GPIO than an I2C (no
-> addressing, just few wires). And we do phandle for GPIOs.
+Add pr_fmt and convert one printk(KERN_ERR to pr_err
 
-Right and the devices use I2C for full communication and GPIOs as
-helpers. I guess UART counts as full communication and not as helper.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ arch/arm/mach-omap2/cpuidle44xx.c      |  7 +++----
+ arch/arm/mach-tegra/cpuidle-tegra114.c |  4 ++--
+ arch/arm/mach-tegra/cpuidle-tegra20.c  |  8 ++++----
+ arch/arm/mach-tegra/cpuidle-tegra30.c  |  8 ++++----
+ arch/x86/kernel/process.c              |  6 +++---
+ arch/x86/xen/suspend.c                 |  2 +-
+ drivers/acpi/acpi_pad.c                |  9 +++++----
+ drivers/acpi/processor_idle.c          |  4 ++--
+ drivers/cpuidle/driver.c               |  3 +--
+ drivers/idle/intel_idle.c              |  7 +++----
+ include/linux/clockchips.h             |  6 +++---
+ kernel/sched/idle.c                    |  4 ++--
+ kernel/time/clockevents.c              | 15 +++++++--------
+ kernel/time/hrtimer.c                  |  6 ++----
+ kernel/time/tick-broadcast.c           | 16 ++++++++--------
+ kernel/time/tick-common.c              | 16 ++++++++--------
+ kernel/time/tick-internal.h            | 18 +++++++++---------
+ kernel/time/timekeeping.c              |  4 ++--
+ 18 files changed, 69 insertions(+), 74 deletions(-)
 
-phandle vs child node is not a matter of adressing and btw where is
-the difference between "5th gpio on 1st gpio controller" and "5th
-address on 1st i2c controller"?
-
-> Actually, the chip also has PCM, analog audio, and "pc compatible?"
-> connections, plus some connection to WIFI. So we may need more
-> phandles there....
-
-This is much harder to solve. I think we don't have a DT binding for
-a device, which uses two communication interfaces as the bcm2048
-(uart & i2c). OTOH we may just add a slave device for the fm-radio
-part like this:
-
-uart {
-    bcm2048 {
-        stuff;
-    };
-};
-
-i2c {
-    bcm2048-radio {
-        master =3D <&bcm2048>;
-    };
-};
-
--- Sebastian
-
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUiM45AAoJENju1/PIO/qaV3YQAKMMjP8Dw83+z+KNaKLZiMCU
-hpX4RNXDYXh4MHqNKWG/TnKU1ROZuKDwRSrcnv5U0VuI4VviOstnAiSCJgwYygQL
-rUW/zVr0NdqF7rTIxt/3ylm0WHOT+4pQhwYxs19YMTMExabiCIQZzjFk+YRkskxG
-9wDcs0V8X4LnVrZjAZ0dwmkaGJBiDxY069GPtGB5SCWPmYtSegsMNGaG9ijse+Is
-kyY8wufsQ7KlR+QOZ0TxepDDya/rSZ4u05TL9a8hSTHkdPT799alXtvZDgcZrg2Q
-unHD1F1yKnUYUZPwIQNBg6BMyVb1y0g0LZz15EerzQpYEbNBPRjGTJyR15Eq4Imk
-PBH9Q8ehqE7wHRGUu5hXwgCPXwQLZTuhb0iwjcMVPqnb3XInDp85yocC+7lnjh+A
-gps6gI1Eg5daR54Nas1rVtrykYDiKsh+cP6uzwd6ResLzFYkziOnxI4XW+7oxxME
-Ua0YXDKJrwDmv63tzKdBFXIAFShNd3mBvn/yU3cVPOEmSUiAxjLYJA3EtgIr/F9b
-IpUdelis9vGqO9vB6bk0Gzi8mk+DnlztFQjd9ZKqgbjv5hlQVMSweTLWLV2iExmz
-m2TB7eryydUxolDceGBosCXBmn1l73IzyhydE5L4nEEAyBaxk6CN84yZTFYD5+ZM
-ncPeC12B+/U7rPb1qZbe
-=Mhsd
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index 01e398a..5d50aa1 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -112,7 +112,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	mpuss_can_lose_context = (cx->mpu_state == PWRDM_POWER_RET) &&
+ 				 (cx->mpu_logic_state == PWRDM_POWER_OFF);
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu_id);
+ 
+ 	/*
+ 	 * Call idle CPU PM enter notifier chain so that
+@@ -169,7 +169,7 @@ static int omap_enter_idle_coupled(struct cpuidle_device *dev,
+ 	if (dev->cpu == 0 && mpuss_can_lose_context)
+ 		cpu_cluster_pm_exit();
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu_id);
+ 
+ fail:
+ 	cpuidle_coupled_parallel_barrier(dev, &abort_barrier);
+@@ -184,8 +184,7 @@ fail:
+  */
+ static void omap_setup_broadcast_timer(void *arg)
+ {
+-	int cpu = smp_processor_id();
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, smp_processor_id());
+ }
+ 
+ static struct cpuidle_driver omap4_idle_driver = {
+diff --git a/arch/arm/mach-tegra/cpuidle-tegra114.c b/arch/arm/mach-tegra/cpuidle-tegra114.c
+index f2b586d..3b2fc3f 100644
+--- a/arch/arm/mach-tegra/cpuidle-tegra114.c
++++ b/arch/arm/mach-tegra/cpuidle-tegra114.c
+@@ -44,7 +44,7 @@ static int tegra114_idle_power_down(struct cpuidle_device *dev,
+ 	tegra_set_cpu_in_lp2();
+ 	cpu_pm_enter();
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+ 
+ 	call_firmware_op(prepare_idle);
+ 
+@@ -52,7 +52,7 @@ static int tegra114_idle_power_down(struct cpuidle_device *dev,
+ 	if (call_firmware_op(do_idle, 0) == -ENOSYS)
+ 		cpu_suspend(0, tegra30_sleep_cpu_secondary_finish);
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+ 
+ 	cpu_pm_exit();
+ 	tegra_clear_cpu_in_lp2();
+diff --git a/arch/arm/mach-tegra/cpuidle-tegra20.c b/arch/arm/mach-tegra/cpuidle-tegra20.c
+index 4f25a7c..ab30758 100644
+--- a/arch/arm/mach-tegra/cpuidle-tegra20.c
++++ b/arch/arm/mach-tegra/cpuidle-tegra20.c
+@@ -136,11 +136,11 @@ static bool tegra20_cpu_cluster_power_down(struct cpuidle_device *dev,
+ 	if (tegra20_reset_cpu_1() || !tegra_cpu_rail_off_ready())
+ 		return false;
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+ 
+ 	tegra_idle_lp2_last();
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+ 
+ 	if (cpu_online(1))
+ 		tegra20_wake_cpu1_from_reset();
+@@ -153,13 +153,13 @@ static bool tegra20_idle_enter_lp2_cpu_1(struct cpuidle_device *dev,
+ 					 struct cpuidle_driver *drv,
+ 					 int index)
+ {
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+ 
+ 	cpu_suspend(0, tegra20_sleep_cpu_secondary_finish);
+ 
+ 	tegra20_cpu_clear_resettable();
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+ 
+ 	return true;
+ }
+diff --git a/arch/arm/mach-tegra/cpuidle-tegra30.c b/arch/arm/mach-tegra/cpuidle-tegra30.c
+index f8815ed..67d0492 100644
+--- a/arch/arm/mach-tegra/cpuidle-tegra30.c
++++ b/arch/arm/mach-tegra/cpuidle-tegra30.c
+@@ -76,11 +76,11 @@ static bool tegra30_cpu_cluster_power_down(struct cpuidle_device *dev,
+ 		return false;
+ 	}
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+ 
+ 	tegra_idle_lp2_last();
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+ 
+ 	return true;
+ }
+@@ -90,13 +90,13 @@ static bool tegra30_cpu_core_power_down(struct cpuidle_device *dev,
+ 					struct cpuidle_driver *drv,
+ 					int index)
+ {
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu);
+ 
+ 	smp_wmb();
+ 
+ 	cpu_suspend(0, tegra30_sleep_cpu_secondary_finish);
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
++	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+ 
+ 	return true;
+ }
+diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+index e127dda..09290b0 100644
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -380,10 +380,10 @@ static void amd_e400_idle(void)
+ 			 * Force broadcast so ACPI can not interfere.
+ 			 */
+ 			clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_FORCE,
+-					   &cpu);
++					   cpu);
+ 			pr_info("Switch to broadcast mode on CPU%d\n", cpu);
+ 		}
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu);
+ 
+ 		default_idle();
+ 
+@@ -392,7 +392,7 @@ static void amd_e400_idle(void)
+ 		 * called with interrupts disabled.
+ 		 */
+ 		local_irq_disable();
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu);
+ 		local_irq_enable();
+ 	} else
+ 		default_idle();
+diff --git a/arch/x86/xen/suspend.c b/arch/x86/xen/suspend.c
+index c4df9db..61bab6a 100644
+--- a/arch/x86/xen/suspend.c
++++ b/arch/x86/xen/suspend.c
+@@ -87,7 +87,7 @@ static void xen_vcpu_notify_restore(void *data)
+ 	if ( smp_processor_id() == 0)
+ 		return;
+ 
+-	clockevents_notify(reason, NULL);
++	clockevents_notify(reason, -1);
+ }
+ 
+ void xen_arch_resume(void)
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index c7b105c..63138e4 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -180,17 +180,18 @@ static int power_saving_thread(void *data)
+ 			if (lapic_detected_unstable && !lapic_marked_unstable) {
+ 				int i;
+ 				/* LAPIC could halt in idle, so notify users */
+-				for_each_online_cpu(i)
++				for_each_online_cpu(i) {
+ 					clockevents_notify(
+ 						CLOCK_EVT_NOTIFY_BROADCAST_ON,
+-						&i);
++						i);
++				}
+ 				lapic_marked_unstable = 1;
+ 			}
+ 			local_irq_disable();
+ 			cpu = smp_processor_id();
+ 			if (lapic_marked_unstable)
+ 				clockevents_notify(
+-					CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
++					CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu);
+ 			stop_critical_timings();
+ 
+ 			mwait_idle_with_hints(power_saving_mwait_eax, 1);
+@@ -198,7 +199,7 @@ static int power_saving_thread(void *data)
+ 			start_critical_timings();
+ 			if (lapic_marked_unstable)
+ 				clockevents_notify(
+-					CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
++					CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu);
+ 			local_irq_enable();
+ 
+ 			if (time_before(expire_time, jiffies)) {
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 4995365..2eaa450 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -162,7 +162,7 @@ static void __lapic_timer_propagate_broadcast(void *arg)
+ 	reason = pr->power.timer_broadcast_on_state < INT_MAX ?
+ 		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
+ 
+-	clockevents_notify(reason, &pr->id);
++	clockevents_notify(reason, pr->id);
+ }
+ 
+ static void lapic_timer_propagate_broadcast(struct acpi_processor *pr)
+@@ -183,7 +183,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+ 
+ 		reason = broadcast ?  CLOCK_EVT_NOTIFY_BROADCAST_ENTER :
+ 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
+-		clockevents_notify(reason, &pr->id);
++		clockevents_notify(reason, pr->id);
+ 	}
+ }
+ 
+diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+index 2697e87..2fcc20b 100644
+--- a/drivers/cpuidle/driver.c
++++ b/drivers/cpuidle/driver.c
+@@ -143,8 +143,7 @@ static inline void __cpuidle_unset_driver(struct cpuidle_driver *drv)
+  */
+ static void cpuidle_setup_broadcast_timer(void *arg)
+ {
+-	int cpu = smp_processor_id();
+-	clockevents_notify((long)(arg), &cpu);
++	clockevents_notify((long)arg, smp_processor_id());
+ }
+ 
+ /**
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index 9cceacb..945b1f3 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -582,12 +582,12 @@ static int intel_idle(struct cpuidle_device *dev,
+ 		leave_mm(cpu);
+ 
+ 	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, cpu);
+ 
+ 	mwait_idle_with_hints(eax, ecx);
+ 
+ 	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, cpu);
+ 
+ 	return index;
+ }
+@@ -595,12 +595,11 @@ static int intel_idle(struct cpuidle_device *dev,
+ static void __setup_broadcast_timer(void *arg)
+ {
+ 	unsigned long reason = (unsigned long)arg;
+-	int cpu = smp_processor_id();
+ 
+ 	reason = reason ?
+ 		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
+ 
+-	clockevents_notify(reason, &cpu);
++	clockevents_notify(reason, smp_processor_id());
+ }
+ 
+ static int cpu_hotplug_notify(struct notifier_block *n,
+diff --git a/include/linux/clockchips.h b/include/linux/clockchips.h
+index 2e4cb67..4e03069 100644
+--- a/include/linux/clockchips.h
++++ b/include/linux/clockchips.h
+@@ -195,9 +195,9 @@ static inline void tick_setup_hrtimer_broadcast(void) {};
+ #endif
+ 
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+-extern int clockevents_notify(unsigned long reason, void *arg);
++extern int clockevents_notify(unsigned long reason, int cpu);
+ #else
+-static inline int clockevents_notify(unsigned long reason, void *arg) { return 0; }
++static inline int clockevents_notify(unsigned long reason, int cpu) { return 0; }
+ #endif
+ 
+ #else /* CONFIG_GENERIC_CLOCKEVENTS_BUILD */
+@@ -205,7 +205,7 @@ static inline int clockevents_notify(unsigned long reason, void *arg) { return 0
+ static inline void clockevents_suspend(void) {}
+ static inline void clockevents_resume(void) {}
+ 
+-static inline int clockevents_notify(unsigned long reason, void *arg) { return 0; }
++static inline int clockevents_notify(unsigned long reason, int cpu) { return 0; }
+ static inline int tick_check_broadcast_expired(void) { return 0; }
+ static inline void tick_setup_hrtimer_broadcast(void) {};
+ 
+diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
+index c47fce7..e68faee 100644
+--- a/kernel/sched/idle.c
++++ b/kernel/sched/idle.c
+@@ -144,7 +144,7 @@ use_default:
+ 	 * fail if it is not available
+ 	 */
+ 	if (broadcast &&
+-	    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &dev->cpu))
++	    clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, dev->cpu))
+ 		goto use_default;
+ 
+ 	/* Take note of the planned idle state. */
+@@ -161,7 +161,7 @@ use_default:
+ 	idle_set_state(this_rq(), NULL);
+ 
+ 	if (broadcast)
+-		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &dev->cpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, dev->cpu);
+ 
+ 	/*
+ 	 * Give the governor an opportunity to reflect on the outcome
+diff --git a/kernel/time/clockevents.c b/kernel/time/clockevents.c
+index 5544990..69973be 100644
+--- a/kernel/time/clockevents.c
++++ b/kernel/time/clockevents.c
+@@ -546,11 +546,11 @@ void clockevents_resume(void)
+  * clockevents_notify - notification about relevant events
+  * Returns 0 on success, any other value on error
+  */
+-int clockevents_notify(unsigned long reason, void *arg)
++int clockevents_notify(unsigned long reason, int cpu)
+ {
+ 	struct clock_event_device *dev, *tmp;
+ 	unsigned long flags;
+-	int cpu, ret = 0;
++	int ret = 0;
+ 
+ 	raw_spin_lock_irqsave(&clockevents_lock, flags);
+ 
+@@ -558,7 +558,7 @@ int clockevents_notify(unsigned long reason, void *arg)
+ 	case CLOCK_EVT_NOTIFY_BROADCAST_ON:
+ 	case CLOCK_EVT_NOTIFY_BROADCAST_OFF:
+ 	case CLOCK_EVT_NOTIFY_BROADCAST_FORCE:
+-		tick_broadcast_on_off(reason, arg);
++		tick_broadcast_on_off(reason, cpu);
+ 		break;
+ 
+ 	case CLOCK_EVT_NOTIFY_BROADCAST_ENTER:
+@@ -567,7 +567,7 @@ int clockevents_notify(unsigned long reason, void *arg)
+ 		break;
+ 
+ 	case CLOCK_EVT_NOTIFY_CPU_DYING:
+-		tick_handover_do_timer(arg);
++		tick_handover_do_timer(cpu);
+ 		break;
+ 
+ 	case CLOCK_EVT_NOTIFY_SUSPEND:
+@@ -580,9 +580,9 @@ int clockevents_notify(unsigned long reason, void *arg)
+ 		break;
+ 
+ 	case CLOCK_EVT_NOTIFY_CPU_DEAD:
+-		tick_shutdown_broadcast_oneshot(arg);
+-		tick_shutdown_broadcast(arg);
+-		tick_shutdown(arg);
++		tick_shutdown_broadcast_oneshot(cpu);
++		tick_shutdown_broadcast(cpu);
++		tick_shutdown(cpu);
+ 		/*
+ 		 * Unregister the clock event devices which were
+ 		 * released from the users in the notify chain.
+@@ -592,7 +592,6 @@ int clockevents_notify(unsigned long reason, void *arg)
+ 		/*
+ 		 * Now check whether the CPU has left unused per cpu devices
+ 		 */
+-		cpu = *((int *)arg);
+ 		list_for_each_entry_safe(dev, tmp, &clockevent_devices, list) {
+ 			if (cpumask_test_cpu(cpu, dev->cpumask) &&
+ 			    cpumask_weight(dev->cpumask) == 1 &&
+diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
+index 37e50aa..e8c903f 100644
+--- a/kernel/time/hrtimer.c
++++ b/kernel/time/hrtimer.c
+@@ -1717,15 +1717,13 @@ static int hrtimer_cpu_notify(struct notifier_block *self,
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	case CPU_DYING:
+ 	case CPU_DYING_FROZEN:
+-		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DYING, &scpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DYING, scpu);
+ 		break;
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+-	{
+-		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, &scpu);
++		clockevents_notify(CLOCK_EVT_NOTIFY_CPU_DEAD, scpu);
+ 		migrate_hrtimers(scpu);
+ 		break;
+-	}
+ #endif
+ 
+ 	default:
+diff --git a/kernel/time/tick-broadcast.c b/kernel/time/tick-broadcast.c
+index 066f0ec..4ede817 100644
+--- a/kernel/time/tick-broadcast.c
++++ b/kernel/time/tick-broadcast.c
+@@ -11,6 +11,9 @@
+  * This code is licenced under the GPL version 2. For details see
+  * kernel-base/COPYING.
+  */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/cpu.h>
+ #include <linux/err.h>
+ #include <linux/hrtimer.h>
+@@ -396,11 +399,10 @@ out:
+  * Powerstate information: The system enters/leaves a state, where
+  * affected devices might stop.
+  */
+-void tick_broadcast_on_off(unsigned long reason, int *oncpu)
++void tick_broadcast_on_off(unsigned long reason, int oncpu)
+ {
+-	if (!cpumask_test_cpu(*oncpu, cpu_online_mask))
+-		printk(KERN_ERR "tick-broadcast: ignoring broadcast for "
+-		       "offline CPU #%d\n", *oncpu);
++	if (!cpumask_test_cpu(oncpu, cpu_online_mask))
++		pr_err("ignoring broadcast for offline CPU #%d\n", oncpu);
+ 	else
+ 		tick_do_broadcast_on_off(&reason);
+ }
+@@ -419,11 +421,10 @@ void tick_set_periodic_handler(struct clock_event_device *dev, int broadcast)
+ /*
+  * Remove a CPU from broadcasting
+  */
+-void tick_shutdown_broadcast(unsigned int *cpup)
++void tick_shutdown_broadcast(int cpu)
+ {
+ 	struct clock_event_device *bc;
+ 	unsigned long flags;
+-	unsigned int cpu = *cpup;
+ 
+ 	raw_spin_lock_irqsave(&tick_broadcast_lock, flags);
+ 
+@@ -898,10 +899,9 @@ void tick_broadcast_switch_to_oneshot(void)
+ /*
+  * Remove a dead CPU from broadcasting
+  */
+-void tick_shutdown_broadcast_oneshot(unsigned int *cpup)
++void tick_shutdown_broadcast_oneshot(int cpu)
+ {
+ 	unsigned long flags;
+-	unsigned int cpu = *cpup;
+ 
+ 	raw_spin_lock_irqsave(&tick_broadcast_lock, flags);
+ 
+diff --git a/kernel/time/tick-common.c b/kernel/time/tick-common.c
+index 7efeedf..ae4b200 100644
+--- a/kernel/time/tick-common.c
++++ b/kernel/time/tick-common.c
+@@ -337,14 +337,14 @@ out_bc:
+  *
+  * Called with interrupts disabled.
+  */
+-void tick_handover_do_timer(int *cpup)
++void tick_handover_do_timer(int cpu)
+ {
+-	if (*cpup == tick_do_timer_cpu) {
+-		int cpu = cpumask_first(cpu_online_mask);
++	if (cpu != tick_do_timer_cpu)
++		return;
+ 
+-		tick_do_timer_cpu = (cpu < nr_cpu_ids) ? cpu :
+-			TICK_DO_TIMER_NONE;
+-	}
++	cpu = cpumask_first(cpu_online_mask);
++
++	tick_do_timer_cpu = (cpu < nr_cpu_ids) ? cpu : TICK_DO_TIMER_NONE;
+ }
+ 
+ /*
+@@ -354,9 +354,9 @@ void tick_handover_do_timer(int *cpup)
+  * access the hardware device itself.
+  * We just set the mode and remove it from the lists.
+  */
+-void tick_shutdown(unsigned int *cpup)
++void tick_shutdown(int cpu)
+ {
+-	struct tick_device *td = &per_cpu(tick_cpu_device, *cpup);
++	struct tick_device *td = &per_cpu(tick_cpu_device, cpu);
+ 	struct clock_event_device *dev = td->evtdev;
+ 
+ 	td->mode = TICKDEV_MODE_PERIODIC;
+diff --git a/kernel/time/tick-internal.h b/kernel/time/tick-internal.h
+index 366aeb4..57ab722 100644
+--- a/kernel/time/tick-internal.h
++++ b/kernel/time/tick-internal.h
+@@ -23,8 +23,8 @@ extern int tick_do_timer_cpu __read_mostly;
+ extern void tick_setup_periodic(struct clock_event_device *dev, int broadcast);
+ extern void tick_handle_periodic(struct clock_event_device *dev);
+ extern void tick_check_new_device(struct clock_event_device *dev);
+-extern void tick_handover_do_timer(int *cpup);
+-extern void tick_shutdown(unsigned int *cpup);
++extern void tick_handover_do_timer(int cpu);
++extern void tick_shutdown(int cpu);
+ extern void tick_suspend(void);
+ extern void tick_resume(void);
+ extern bool tick_check_replacement(struct clock_event_device *curdev,
+@@ -50,7 +50,7 @@ extern void tick_resume_oneshot(void);
+ extern void tick_broadcast_setup_oneshot(struct clock_event_device *bc);
+ extern int tick_broadcast_oneshot_control(unsigned long reason);
+ extern void tick_broadcast_switch_to_oneshot(void);
+-extern void tick_shutdown_broadcast_oneshot(unsigned int *cpup);
++extern void tick_shutdown_broadcast_oneshot(int cpu);
+ extern int tick_resume_broadcast_oneshot(struct clock_event_device *bc);
+ extern int tick_broadcast_oneshot_active(void);
+ extern void tick_check_oneshot_broadcast_this_cpu(void);
+@@ -62,7 +62,7 @@ static inline void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
+ }
+ static inline int tick_broadcast_oneshot_control(unsigned long reason) { return 0; }
+ static inline void tick_broadcast_switch_to_oneshot(void) { }
+-static inline void tick_shutdown_broadcast_oneshot(unsigned int *cpup) { }
++static inline void tick_shutdown_broadcast_oneshot(int cpu) { }
+ static inline int tick_broadcast_oneshot_active(void) { return 0; }
+ static inline void tick_check_oneshot_broadcast_this_cpu(void) { }
+ static inline bool tick_broadcast_oneshot_available(void) { return true; }
+@@ -90,7 +90,7 @@ static inline void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
+ 	BUG();
+ }
+ static inline int tick_broadcast_oneshot_control(unsigned long reason) { return 0; }
+-static inline void tick_shutdown_broadcast_oneshot(unsigned int *cpup) { }
++static inline void tick_shutdown_broadcast_oneshot(int cpu) { }
+ static inline int tick_resume_broadcast_oneshot(struct clock_event_device *bc)
+ {
+ 	return 0;
+@@ -113,8 +113,8 @@ static inline void tick_nohz_init(void) { }
+ extern int tick_device_uses_broadcast(struct clock_event_device *dev, int cpu);
+ extern void tick_install_broadcast_device(struct clock_event_device *dev);
+ extern int tick_is_broadcast_device(struct clock_event_device *dev);
+-extern void tick_broadcast_on_off(unsigned long reason, int *oncpu);
+-extern void tick_shutdown_broadcast(unsigned int *cpup);
++extern void tick_broadcast_on_off(unsigned long reason, int oncpu);
++extern void tick_shutdown_broadcast(int cpu);
+ extern void tick_suspend_broadcast(void);
+ extern int tick_resume_broadcast(void);
+ extern void tick_broadcast_init(void);
+@@ -138,8 +138,8 @@ static inline int tick_device_uses_broadcast(struct clock_event_device *dev,
+ 	return 0;
+ }
+ static inline void tick_do_periodic_broadcast(struct clock_event_device *d) { }
+-static inline void tick_broadcast_on_off(unsigned long reason, int *oncpu) { }
+-static inline void tick_shutdown_broadcast(unsigned int *cpup) { }
++static inline void tick_broadcast_on_off(unsigned long reason, int oncpu) { }
++static inline void tick_shutdown_broadcast(int cpu) { }
+ static inline void tick_suspend_broadcast(void) { }
+ static inline int tick_resume_broadcast(void) { return 0; }
+ static inline void tick_broadcast_init(void) { }
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index 6a93185..dc84f52 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -1245,7 +1245,7 @@ static void timekeeping_resume(void)
+ 
+ 	touch_softlockup_watchdog();
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, NULL);
++	clockevents_notify(CLOCK_EVT_NOTIFY_RESUME, -1);
+ 
+ 	/* Resume hrtimers */
+ 	hrtimers_resume();
+@@ -1299,7 +1299,7 @@ static int timekeeping_suspend(void)
+ 	write_seqcount_end(&tk_core.seq);
+ 	raw_spin_unlock_irqrestore(&timekeeper_lock, flags);
+ 
+-	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, NULL);
++	clockevents_notify(CLOCK_EVT_NOTIFY_SUSPEND, -1);
+ 	clocksource_suspend();
+ 	clockevents_suspend();
+ 
