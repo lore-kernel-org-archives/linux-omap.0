@@ -1,57 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: boot: dts: am437x-sk: fix lcd enable pin mux data
-Date: Wed, 10 Dec 2014 08:31:47 -0800
-Message-ID: <20141210163147.GC30437@atomide.com>
-References: <20141204144325.GA17269@saruman>
- <1417705821-21847-1-git-send-email-balbi@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: BCM2048 bluetooth connected over OMAP serial
+Date: Wed, 10 Dec 2014 17:43:33 +0100
+Message-ID: <20141210164333.GA3154@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34558 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756427AbaLJQng (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 11:43:36 -0500
 Content-Disposition: inline
-In-Reply-To: <1417705821-21847-1-git-send-email-balbi@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, stable@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: pali.rohar@gmail.com, sre@debian.org, sre@ring0.de, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, devicetree@vger.kernel.org, robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org
 
-* Felipe Balbi <balbi@ti.com> [141204 07:12]:
-> Caused by a copy & paste error. Note that even with
-> this bug AM437x SK display still works because GPIO
-> mux mode is always enabled. It's still wrong to mux
-> somebody else's pin.
-> 
-> Luckily ball D25 (offset 0x238 - gpio5_8) on AM437x
-> isn't used for anything.
-> 
-> While at that, also replace a pullup with a pulldown
-> as that gpio should be normally low, not high.
-> 
-> Cc: <stable@vger.kernel.org> # v3.17+
-> Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+Hi!
 
-Applying into omap-for-v3.19/fixes thanks.
+So, there's bluetooth chip that's connected to the SoC by UART and some
+GPIOs. What would be right representation in the device tree?
+Something like this?
 
-Tony
+	bluetooth {
+                  compatible = "broadcom,bcm2048";
+                  uart = <&uart2>;
+                  reset-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>; /* want 91 */
+                  host-wakeup-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>; /* want 101 */
+	          bluetooth-wakeup-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>; /* want 37 */
+                  chip-type = <3>;
+                  bt-sysclk = <2>;
+                  reset-gpio-shared = <0>;
+        };
 
-> ---
->  arch/arm/boot/dts/am437x-sk-evm.dts | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-> index f7f77a7..0eceb8a 100644
-> --- a/arch/arm/boot/dts/am437x-sk-evm.dts
-> +++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-> @@ -320,8 +320,7 @@
->  
->  	lcd_pins: lcd_pins {
->  		pinctrl-single,pins = <
-> -			/* GPIO 5_8 to select LCD / HDMI */
-> -			0x238 (PIN_OUTPUT_PULLUP | MUX_MODE7)
-> +			0x1c (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* gpcm_ad7.gpio1_7 */
->  		>;
->  	};
->  };
-> -- 
-> 2.1.0.GIT
-> 
+Is there some way to prevent OMAP tty driver from binding to the
+device and exporting the device to userspace?
+
+Best regards,
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
