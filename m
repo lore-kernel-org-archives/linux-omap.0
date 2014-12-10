@@ -1,74 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: am437x-sk-evm.dts: fix LCD timings
-Date: Wed, 10 Dec 2014 09:03:27 -0800
-Message-ID: <20141210170326.GF30437@atomide.com>
-References: <1417765171-7384-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] ARM: omap2plus_defconfig: Enable AHCI_PLATFORM driver
+Date: Wed, 10 Dec 2014 09:06:55 -0800
+Message-ID: <20141210170654.GG30437@atomide.com>
+References: <1416829297-12664-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59875 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932209AbaLJRIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2014 12:08:44 -0500
 Content-Disposition: inline
-In-Reply-To: <1417765171-7384-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org
+In-Reply-To: <1416829297-12664-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [141204 23:42]:
-> The lcd0 node for am437x-sk-evm.dts contains bad LCD timings, and while
-> they seem to work with a quick test, doing for example blank/unblank
-> will give you a black display.
+* Roger Quadros <rogerq@ti.com> [141124 03:43]:
+> OMAP5 and DRA7 platforms need the AHCI platform driver
+> for SATA support.
 > 
-> This patch updates the timings to the 'typical' values from the LCD spec
-> sheet.
-> 
-> Also, the compatible string is completely bogus, as
-> "osddisplays,osd057T0559-34ts" is _not_ a 480x272 panel. The panel on
-> the board is a newhaven one. Update the compatible string to reflect
-> this. Note that this hasn't caused any issues, as the "panel-dpi"
-> matches the driver.
-> 
-> Cc: <stable@vger.kernel.org> # v3.17+
-> Tested-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-Applying into omap-for-v3.19/fixes thanks.
+Applying into omap-for-v3.19/fixes to get this working.
 
 Tony
 
 > ---
->  arch/arm/boot/dts/am437x-sk-evm.dts | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
+>  arch/arm/configs/omap2plus_defconfig | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-> index 859ff3d620ee..66071c7b3dde 100644
-> --- a/arch/arm/boot/dts/am437x-sk-evm.dts
-> +++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-> @@ -100,7 +100,7 @@
->  	};
->  
->  	lcd0: display {
-> -		compatible = "osddisplays,osd057T0559-34ts", "panel-dpi";
-> +		compatible = "newhaven,nhd-4.3-480272ef-atxl", "panel-dpi";
->  		label = "lcd";
->  
->  		pinctrl-names = "default";
-> @@ -112,11 +112,11 @@
->  			clock-frequency = <9000000>;
->  			hactive = <480>;
->  			vactive = <272>;
-> -			hfront-porch = <8>;
-> -			hback-porch = <43>;
-> -			hsync-len = <4>;
-> -			vback-porch = <12>;
-> -			vfront-porch = <4>;
-> +			hfront-porch = <2>;
-> +			hback-porch = <2>;
-> +			hsync-len = <41>;
-> +			vfront-porch = <2>;
-> +			vback-porch = <2>;
->  			vsync-len = <10>;
->  			hsync-active = <0>;
->  			vsync-active = <0>;
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 87a5c11..d75358a 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -127,6 +127,8 @@ CONFIG_SRAM=y
+>  CONFIG_SCSI=y
+>  CONFIG_BLK_DEV_SD=y
+>  CONFIG_SCSI_SCAN_ASYNC=y
+> +CONFIG_ATA=y
+> +CONFIG_SATA_AHCI_PLATFORM=y
+>  CONFIG_MD=y
+>  CONFIG_NETDEVICES=y
+>  # CONFIG_NET_VENDOR_ARC is not set
 > -- 
-> 2.2.0
+> 1.8.3.2
 > 
