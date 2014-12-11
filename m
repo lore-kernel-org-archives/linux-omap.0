@@ -1,108 +1,120 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 3/3] mmc: omap_hsmmc: use mmc_of_parse to parse common mmc
- configuration.
-Date: Fri, 12 Dec 2014 08:43:08 +1100
-Message-ID: <20141211214308.3753.15675.stgit@notabene.brown>
-References: <20141211214023.3753.10652.stgit@notabene.brown>
+From: Belisko Marek <marek.belisko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: BCM2048 bluetooth connected over OMAP serial
+Date: Thu, 11 Dec 2014 23:10:17 +0100
+Message-ID: <CAAfyv35D1bn5uzWU298Wz6xRXb58-5i6Mgz6WogLh3_PK4p1pg@mail.gmail.com>
+References: <20141210164333.GA3154@amd>
+	<11367725.nphhSzdtpK@wuerfel>
+	<20141210184203.GA28150@leverpostej>
+	<20141210205622.GA25286@amd>
+	<20141210225036.GA5585@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20141211214023.3753.10652.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Chris Ball <chris@printf.net>
-Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20141210225036.GA5585-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org" <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org" <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, "ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pawel Moll <Pawel.Moll-5wv7dgnIgG8@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "aaro.koskinen-X3B1VOXEql0@public.gmane.org" <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This ensures that all standard options are available to hsmmc,
-In particular, I need cap-power-off-card.
+Neil Brown send series which implement what was suggested in previous posts:
+https://lkml.org/lkml/2014/12/11/454
 
-Signed-off-by: NeilBrown <neilb@suse.de>
----
- drivers/mmc/host/omap_hsmmc.c |   33 ++++++++-------------------------
- 1 file changed, 8 insertions(+), 25 deletions(-)
+On Wed, Dec 10, 2014 at 11:50 PM, sre-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> Hi,
+>
+> On Wed, Dec 10, 2014 at 09:56:22PM +0100, Pavel Machek wrote:
+>> On Wed 2014-12-10 18:42:03, Mark Rutland wrote:
+>> > On Wed, Dec 10, 2014 at 05:02:42PM +0000, Arnd Bergmann wrote:
+>> > > On Wednesday 10 December 2014 17:43:33 Pavel Machek wrote:
+>> > > >
+>> > > > So, there's bluetooth chip that's connected to the SoC by UART and some
+>> > > > GPIOs. What would be right representation in the device tree?
+>> > > > Something like this?
+>> > > >
+>> > > >         bluetooth {
+>> > > >                   compatible = "broadcom,bcm2048";
+>> > > >                   uart = <&uart2>;
+>> > > >                   reset-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>; /* want 91 */
+>> > > >                   host-wakeup-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>; /* want 101 */
+>> > > >                   bluetooth-wakeup-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>; /* want 37 */
+>> > > >                   chip-type = >;
+>> > > >                   bt-sysclk = <2>;
+>> > > >                   reset-gpio-shared = <0>;
+>> > > >         };
+>> > > >
+>> > > > Is there some way to prevent OMAP tty driver from binding to the
+>> > > > device and exporting the device to userspace?
+>> > >
+>> > > I think from the driver perspective, you want this to be a tty line
+>> > > discipline rather than a driver that attaches to the physical
+>> > > uart.
+>> > >
+>> > > For the DT representation, I fear we haven't got a precedent. A uart
+>> > > phandle sounds reasonable, but there might be other ways to do it
+>> > > and we should consider if there are better alternatives. It could
+>> > > possibly be a child node of the uart, but that would require other
+>> > > infrastructure in the kernel because we don't currently create
+>> > > devices for those.
+>> >
+>> > I think the child node is the way to go; that would match what we do for
+>> > I2C and SPI. We might need new infrastructure, but I don't think we
+>> > should treat this differently simlpy because we don't have that yet.
+>>
+>> Well, uart in this case looks more like a GPIO than an I2C (no
+>> addressing, just few wires). And we do phandle for GPIOs.
+>
+> Right and the devices use I2C for full communication and GPIOs as
+> helpers. I guess UART counts as full communication and not as helper.
+>
+> phandle vs child node is not a matter of adressing and btw where is
+> the difference between "5th gpio on 1st gpio controller" and "5th
+> address on 1st i2c controller"?
+>
+>> Actually, the chip also has PCM, analog audio, and "pc compatible?"
+>> connections, plus some connection to WIFI. So we may need more
+>> phandles there....
+>
+> This is much harder to solve. I think we don't have a DT binding for
+> a device, which uses two communication interfaces as the bcm2048
+> (uart & i2c). OTOH we may just add a slave device for the fm-radio
+> part like this:
+>
+> uart {
+>     bcm2048 {
+>         stuff;
+>     };
+> };
+>
+> i2c {
+>     bcm2048-radio {
+>         master = <&bcm2048>;
+>     };
+> };
+>
+> -- Sebastian
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 32514b648e3c..1bfacc59e3bf 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1931,13 +1931,6 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- {
- 	struct omap_hsmmc_platform_data *pdata;
- 	struct device_node *np = dev->of_node;
--	u32 bus_width, max_freq;
--	int cd_gpio, wp_gpio;
--
--	cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
--	wp_gpio = of_get_named_gpio(np, "wp-gpios", 0);
--	if (cd_gpio == -EPROBE_DEFER || wp_gpio == -EPROBE_DEFER)
--		return ERR_PTR(-EPROBE_DEFER);
- 
- 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
-@@ -1946,34 +1939,20 @@ static struct omap_hsmmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- 	if (of_find_property(np, "ti,dual-volt", NULL))
- 		pdata->controller_flags |= OMAP_HSMMC_SUPPORTS_DUAL_VOLT;
- 
--	pdata->switch_pin = cd_gpio;
--	pdata->gpio_wp = wp_gpio;
-+	pdata->switch_pin = -EINVAL;
-+	pdata->gpio_wp = -EINVAL;
- 
- 	if (of_find_property(np, "ti,non-removable", NULL)) {
- 		pdata->nonremovable = true;
- 		pdata->no_regulator_off_init = true;
- 	}
--	of_property_read_u32(np, "bus-width", &bus_width);
--	if (bus_width == 4)
--		pdata->caps |= MMC_CAP_4_BIT_DATA;
--	else if (bus_width == 8)
--		pdata->caps |= MMC_CAP_8_BIT_DATA;
- 
- 	if (of_find_property(np, "ti,needs-special-reset", NULL))
- 		pdata->features |= HSMMC_HAS_UPDATED_RESET;
- 
--	if (!of_property_read_u32(np, "max-frequency", &max_freq))
--		pdata->max_freq = max_freq;
--
- 	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
- 		pdata->features |= HSMMC_HAS_HSPE_SUPPORT;
- 
--	if (of_find_property(np, "keep-power-in-suspend", NULL))
--		pdata->pm_caps |= MMC_PM_KEEP_POWER;
--
--	if (of_find_property(np, "enable-sdio-wakeup", NULL))
--		pdata->pm_caps |= MMC_PM_WAKE_SDIO_IRQ;
--
- 	return pdata;
- }
- #else
-@@ -2031,6 +2010,10 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 		goto err;
- 	}
- 
-+	ret = mmc_of_parse(mmc);
-+	if (ret)
-+		goto err1;
-+
- 	host		= mmc_priv(mmc);
- 	host->mmc	= mmc;
- 	host->pdata	= pdata;
-@@ -2059,7 +2042,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 
- 	if (pdata->max_freq > 0)
- 		mmc->f_max = pdata->max_freq;
--	else
-+	else if (mmc->f_max == 0)
- 		mmc->f_max = OMAP_MMC_MAX_CLOCK;
- 
- 	spin_lock_init(&host->irq_lock);
-@@ -2113,7 +2096,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 	if (mmc_pdata(host)->nonremovable)
- 		mmc->caps |= MMC_CAP_NONREMOVABLE;
- 
--	mmc->pm_caps = mmc_pdata(host)->pm_caps;
-+	mmc->pm_caps |= mmc_pdata(host)->pm_caps;
- 
- 	omap_hsmmc_conf_bus_power(host);
- 
+BR,
+
+marek
+
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
