@@ -1,155 +1,66 @@
-From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
-Subject: Re: ARM: OMAP5/DRA7: Fix counter frequency drift for AM572x errata
- i856
-Date: Thu, 11 Dec 2014 15:43:08 -0500
-Message-ID: <20141211204308.GU24110@csclub.uwaterloo.ca>
-References: <20141211204116.GT24110@csclub.uwaterloo.ca>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH v2 0/3] mmc: omap_hsmmc: make more use of mmc library
+ functionality
+Date: Fri, 12 Dec 2014 08:43:08 +1100
+Message-ID: <20141211214023.3753.10652.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20141211204116.GT24110@csclub.uwaterloo.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: R Sricharan <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Chris Ball <chris@printf.net>
+Cc: GTA04 owners <gta04-owner@goldelico.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 11, 2014 at 03:41:16PM -0500, Lennart Sorensen wrote:
-> Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
-> crystal is not enabled at power up.  Instead the CPU falls back to using
-> an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
-> 20MHz on boards so far (which gives an emulated frequency of 32.786KHz),
-> but can also be 19.2 or 27MHz which result in much larger drift.
-> 
-> Since this is used to drive the master counter at 32.768KHz * 375 /
-> 2 = 6.144MHz, the emulated speed for 20MHz is of by 570ppm, or about 43
-> seconds per day, and more than the 500ppm NTP is able to tolerate.
-> 
-> Checking the CTRL_CORE_BOOTSTRAP register can determine if the CPU
-> is using the real 32.768KHz crystal or the emulated SYSCLK1/610, and
-> by known that the real counter frequency can be determined and used.
-> The real speed is then SYSCLK1 / 610 * 375 / 2 or SYSCLK1 * 375 / 1220.
-> This is unfortunately not integer math so the actual arch_timer_freq
-> needs to be precalculated.
-> 
-> Also the SYSCLK1 frequencies that have never been used by an omap
-> evaluation board were all missing a 0.
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 4f61148..2e81511 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -513,11 +513,11 @@ static void __init realtime_counter_init(void)
->  	rate = clk_get_rate(sys_clk);
->  	/* Numerator/denumerator values refer TRM Realtime Counter section */
->  	switch (rate) {
-> -	case 1200000:
-> +	case 12000000:
->  		num = 64;
->  		den = 125;
->  		break;
-> -	case 1300000:
-> +	case 13000000:
->  		num = 768;
->  		den = 1625;
->  		break;
-> @@ -529,11 +529,11 @@ static void __init realtime_counter_init(void)
->  		num = 192;
->  		den = 625;
->  		break;
-> -	case 2600000:
-> +	case 26000000:
->  		num = 384;
->  		den = 1625;
->  		break;
-> -	case 2700000:
-> +	case 27000000:
->  		num = 256;
->  		den = 1125;
->  		break;
-> @@ -557,6 +557,73 @@ static void __init realtime_counter_init(void)
->  	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
->  
->  	arch_timer_freq = (rate / den) * num;
-> +
-> +	if (soc_is_dra7xx()) {
-> +		#define CTRL_CORE_BOOTSTRAP 0x4A0026C4
-> +		#define SPEEDSELECT_MASK 0x00000300
-> +		void __iomem *corebase;
-> +		corebase = ioremap(CTRL_CORE_BOOTSTRAP, SZ_4);
-> +		if (!corebase)
-> +			pr_err("%s: ioremap failed\n", __func__);
-> +		else {
-> +			reg = readl_relaxed(corebase) & SPEEDSELECT_MASK;
-> +			iounmap(corebase);
-> +			/*
-> +			 * Errata i856 says the 32.768KHz crystal does
-> +			 * not start at power on, so the CPU falls back in
-> +			 * an emulated 32KHz clock instead.  This causes
-> +			 * the master counter frequency to not be what it
-> +			 * was expected to be.	This affects at least
-> +			 * the AM572x 1.0 and 1.1 revisions.
-> +			 * Of course any board built without a populated
-> +			 * 32.768KHz crystal would also need this fix
-> +			 * even if the CPU is fixed later.
-> +			 *
-> +			 * If the two speedselect bits are not 0, then the
-> +			 * 32.768KHz clock driving the course counter that
-> +			 * corrects the fine counter every time it ticks is
-> +			 * actually rate/610 rather than 32.768KHz and we
-> +			 * should compensate to avoid the 570ppm (At 20MHz,
-> +			 * much worse at other rates) too fast system time.
-> +			 *
-> +			 * Precalculate the arch_timer_freq, since
-> +			 * rate/610 isn't integer math and accuracy is
-> +			 * desirable here.
-> +			 */
-> +			if (reg) {
-> +				switch (rate) {
-> +				case 19200000:
-> +					num = 375;
-> +					den = 1220;
-> +					arch_timer_freq = 5901639;
-> +					break;
-> +				case 27000000:
-> +					num = 375;
-> +					den = 1220;
-> +					arch_timer_freq = 8299180;
-> +					break;
-> +				case 20000000:
-> +				default:
-> +					num = 375;
-> +					den = 1220;
-> +					arch_timer_freq = 6147541;
-> +					break;
-> +				}
-> +				reg = readl_relaxed(base + INCREMENTER_NUMERATOR_OFFSET) &
-> +						NUMERATOR_DENUMERATOR_MASK;
-> +				reg |= num;
-> +				writel_relaxed(reg, base + INCREMENTER_NUMERATOR_OFFSET);
-> +
-> +				reg = readl_relaxed(base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET) &
-> +						NUMERATOR_DENUMERATOR_MASK;
-> +				reg |= den;
-> +				writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
-> +
-> +				printk(KERN_WARNING "DRA7xx CP15 compensated for sloppy internal 32KHz clock.\n");
-> +			}
-> +		}
-> +	}
-> +
->  	set_cntfreq();
->  
->  	iounmap(base);
+This is resend, rebased on
+  git://git.linaro.org/people/ulf.hansson/mmc.git  next
 
-I am perfectly willing to split this into two patches it prefered (one
-for the counter frequency fix and one for the rate typos).
+and so should apply to 3.19-rc1.
 
-Other cleanups needed would be great too, since I am still not too
-pleased with how this looks.
+omap_hsmmc currently duplicates some work that can be done for
+it by common code, and consequently does not benefit from extra
+functionality in that common code.
 
-With this fix however many boards have run ntp with drift less than 3ppm,
-so it works very well.
+In particular, mmc_of_parse and the slot-gpio library are not used.
 
--- 
-Len Sorensen
+This set of patches allows omap_hsmmc to use that common
+functionality, and benefit from any extra devicetree parsing
+that it performs.
+
+The one awkward part of this change is that omap_hsmmc has an
+interrupt handler for 'card detect' which does more than the
+common code.
+I see three options:
+ 1 - move that functionality into common code
+ 2 - discard that functionality
+ 3 - allow the common code to be configured to use a device-specific
+     card detect interrupt.
+
+This series implements '3'.  I suspect a mix of '1' and '2' would
+be a better choice but I know none of the history or justification
+for those differences.
+
+My preference would be for this series to be applied (if there are
+no other issues) and if there are opinions about effecting '1' or '2',
+they can be done with subsequent patches.
+
+Thanks,
+NeilBrown
+
+
+---
+
+NeilBrown (3):
+      mmc: omap_hsmmc: remove prepare/complete system suspend support.
+      mmc: omap_hsmmc: use slot-gpio library for gpio support.
+      mmc: omap_hsmmc: use mmc_of_parse to parse common mmc configuration.
+
+
+ drivers/mmc/core/slot-gpio.c           |   24 +++++
+ drivers/mmc/host/omap_hsmmc.c          |  150 +++++---------------------------
+ include/linux/mmc/slot-gpio.h          |    2 
+ include/linux/platform_data/mmc-omap.h |    4 -
+ 4 files changed, 47 insertions(+), 133 deletions(-)
+
+--
+Signature
