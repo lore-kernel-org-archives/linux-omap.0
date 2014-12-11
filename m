@@ -1,165 +1,241 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 2/7] arm: omap: devicetree: add new properties for
- OMAP devices
-Date: Thu, 11 Dec 2014 08:21:59 -0600
-Message-ID: <20141211142159.GD20762@saruman>
+Subject: Re: [RFC/PATCH 5/7] arm: omap: hwmod: allow for registration of
+ class-less hwmods
+Date: Thu, 11 Dec 2014 08:23:33 -0600
+Message-ID: <20141211142333.GE20762@saruman>
 References: <1418164072-19087-1-git-send-email-balbi@ti.com>
- <1418164072-19087-3-git-send-email-balbi@ti.com>
- <54882967.60302@ti.com>
- <20141210150049.GD4602@saruman>
- <20141211004627.GB5585@earth.universe>
+ <1418164072-19087-6-git-send-email-balbi@ti.com>
+ <54882576.8020609@ti.com>
+ <20141210145433.GC4602@saruman>
+ <20141211005238.GC5585@earth.universe>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BRE3mIcgqKzpedwo"
+	protocol="application/pgp-signature"; boundary="wchHw8dVAp53YPj8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43344 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53123 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754406AbaLKOWb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Dec 2014 09:22:31 -0500
+	id S932612AbaLKOYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Dec 2014 09:24:08 -0500
 Content-Disposition: inline
-In-Reply-To: <20141211004627.GB5585@earth.universe>
+In-Reply-To: <20141211005238.GC5585@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Tony Lindgren <tony@atomide.com>, "Kristo, Tero" <t-kristo@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org
 
---BRE3mIcgqKzpedwo
+--wchHw8dVAp53YPj8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Dec 11, 2014 at 01:46:28AM +0100, Sebastian Reichel wrote:
-> On Wed, Dec 10, 2014 at 09:00:49AM -0600, Felipe Balbi wrote:
-> > On Wed, Dec 10, 2014 at 04:37:19PM +0530, Lokesh Vutla wrote:
-> > > On Wednesday 10 December 2014 03:57 AM, Felipe Balbi wrote:
-> > > > In order to get rid of some more hwmod data, we
-> > > > introduce a few extra properties to OMAP DT
-> > > > data in order to be able to pass the needed
-> > > > information through DT.
-> > > >=20
-> > > > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > > > ---
-> > > >  Documentation/devicetree/bindings/arm/omap/omap.txt | 7 +++++++
-> > > >  1 file changed, 7 insertions(+)
-> > > >=20
-> > > > diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/=
-Documentation/devicetree/bindings/arm/omap/omap.txt
-> > > > index 4f6a82c..c6b9515 100644
-> > > > --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> > > > +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> > > > @@ -23,6 +23,13 @@ Optional properties:
-> > > >    during suspend.
-> > > >  - ti,no-reset-on-init: When present, the module should not be rese=
-t at init
-> > > >  - ti,no-idle-on-init: When present, the module should not be idled=
- at init
-> > > > +- ti,rev_offs: IP block revision register offset (defaults to 0)
-> > > > +- ti,sysc_offs: OCP_SYSCONFIG register offset (defaults to 0)
-> > > > +- ti,syss_offs: OCP_SYSSTATUS register offset (defaults to 0)
-> > > > +- ti,srst_udelay: Delay needed after a softreset in usecs (default=
-s to 0)
-> > > > +- ti,idlemodes: Slave and Master supported idling modes
-> > > > +- ti,clockact: default value of clock activity bits (defaults to 0)
-> > > > +- ti,sysc_type: OCP_SYSCONFIG type. Valid types are 1, 2 or 3 (def=
-aults to 1)
-> > > Once if all the hwmod data comes to dt it will be very dufficult to s=
-ee all the data
-> > > together. Can we separate out hwmod class data like clocks data is se=
-parated out into different node
-> > > or something of the sort like below?
-> > >=20
-> > > 	ti, hwmod_class {
-> > > 		ti,class_name =3D <>;
+On Thu, Dec 11, 2014 at 01:52:38AM +0100, Sebastian Reichel wrote:
+> On Wed, Dec 10, 2014 at 08:54:33AM -0600, Felipe Balbi wrote:
+> > Hi,
 > >=20
-> > this can be done, but I don't want to pass a class name. It's anyways
-> > just the hwmod name without the digits. For those which are not, I would
-> > rather change the class name to match.
+> > (adding linux-omap back to the loop)
+> >=20
+> > On Wed, Dec 10, 2014 at 04:20:30PM +0530, Lokesh Vutla wrote:
+> > > Hi Felipe,
+> > >=20
+> > > On Wednesday 10 December 2014 03:57 AM, Felipe Balbi wrote:
+> > > > Before this patch, HWMOD requires the existence
+> > > > of a struct omap_hwmod_class very early.
+> > > Yes, hwmod code looks for omap_hwmod_class entry before registering a=
+ny hwmod.
+> > >=20
+> > > With the patch 4/7 omap_hwmod_class gets populated from dt very late =
+after registration of the hwmod.
+> > > So all the hwmod which gets class data from dt never gets registered =
+and state is always UNKNOWN.
+> > > Mostly making it unusable.
+> > > IMO this patch just masks the problem.
+> > >=20
+> > > In order to register hwmod we need to populate class data very early.
+> > > We can populate at the same place as how reg property is being parsed.
+> > > Call omap_hwmod_init_sysc() in _init() of the particular hwmod:
+> > > The below diff will help:
+> > >
+> > > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
+map_hwmod.c
+> > > index cbb908d..05ecf8a 100644
+> > > --- a/arch/arm/mach-omap2/omap_hwmod.c
+> > > +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> > > @@ -2415,6 +2415,116 @@ static int __init _init_mpu_rt_base(struct om=
+ap_hwmod *oh, void *data,
+> > >  	return 0;
+> > >  }
+> > > =20
+> > > +static int omap_hwmod_has_sysc_bindings(struct device_node *node)
+> > > +{
+> > > +	char *properties[] =3D {
+> > > +		"ti,rev_offs",
+> > > +		"ti,sysc_offs",
+> > > +		"ti,syss_offs",
+> > > +		"ti,sysc_flags",
+> > > +		"ti,srst_udelay",
+> > > +		"ti,idlemodes",
+> > > +		"ti,clockact",
+> > > +		"ti,sysc_type",
+> > > +		NULL
+> > > +	};
+> > > +	char **tmp =3D properties;
+> > > +
+> > > +	while (*tmp) {
+> > > +		if (of_property_read_bool(node, *tmp)) {
+> > > +			return true;
+> > > +		}
+> > > +		tmp++;
+> > > +	}
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static int omap_hwmod_init_sysc(struct device_node *node,
+> > > +		struct omap_hwmod *oh, int index)
+> > > +{
+> > > +	struct omap_hwmod_class *class =3D oh->class;
+> > > +	struct omap_hwmod_class_sysconfig *sysc;
+> > > +	int ret;
+> > > +	int i;
+> > > +	char name[128];
+> > > +	const char *tmp =3D oh->name;
+> > > +	u32 prop;
+> > > +
+> > > +	/* if data isn't provided by DT, skip */
+> > > +	if ((class && class->sysc) || !omap_hwmod_has_sysc_bindings(node))
+> > > +		return 0;
+> > > +
+> > > +	class =3D kzalloc(sizeof(*class), GFP_KERNEL);
+> > > +	if (!class)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	i =3D 0;
+> > > +	while (*tmp) {
+> > > +		if (isalpha(*tmp))
+> > > +			name[i++] =3D *tmp;
+> > > +		tmp++;
+> > > +	}
+> > > +	name[i] =3D '\0';
+> > > +
+> > > +	class->name =3D kzalloc(sizeof(name), GFP_KERNEL);
+> > > +	if (!class->name)
+> > > +		return -ENOMEM;
+> > > +	strncpy(class->name, name, sizeof(name) - 1);
+> > > +
+> > > +	sysc =3D kzalloc(sizeof(*sysc), GFP_KERNEL);
+> > > +	if (!sysc)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,rev_offs", index, &pro=
+p);
+> > > +	if (!ret)
+> > > +		sysc->rev_offs =3D prop;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,sysc_offs", index, &pr=
+op);
+> > > +	if (!ret)
+> > > +		sysc->sysc_offs =3D prop;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,syss_offs", index, &pr=
+op);
+> > > +	if (!ret)
+> > > +		sysc->syss_offs =3D prop;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,sysc_flags", index, &p=
+rop);
+> > > +	if (!ret)
+> > > +		sysc->sysc_flags =3D prop & 0xffff;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,srst_udelay", index, &=
+prop);
+> > > +	if (!ret)
+> > > +		sysc->srst_udelay =3D prop & 0xff;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,idlemodes", index, &pr=
+op);
+> > > +	if (!ret)
+> > > +		sysc->idlemodes =3D prop & 0xff;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,clockact", index, &pro=
+p);
+> > > +	if (!ret)
+> > > +		sysc->clockact =3D prop & 0xff;
+> > > +
+> > > +	ret =3D of_property_read_u32_index(node, "ti,sysc_type", index, &pr=
+op);
+> > > +	if (ret)
+> > > +		prop =3D 1;
+> > > +
+> > > +	switch (prop) {
+> > > +	case 2:
+> > > +		sysc->sysc_fields =3D &omap_hwmod_sysc_type2;
+> > > +		break;
+> > > +	case 3:
+> > > +		sysc->sysc_fields =3D &omap_hwmod_sysc_type3;
+> > > +		break;
+> > > +	case 1:
+> > > +	default:
+> > > +		sysc->sysc_fields =3D &omap_hwmod_sysc_type1;
+> > > +	}
+> > > +	class->sysc =3D sysc;
+> > > +	oh->class =3D class;
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > >  /**
+> > >   * _init - initialize internal data for the hwmod @oh
+> > >   * @oh: struct omap_hwmod *
+> > > @@ -2449,6 +2559,12 @@ static int __init _init(struct omap_hwmod *oh,=
+ void *data)
+> > >  		else if (np && index)
+> > >  			pr_warn("omap_hwmod: %s using broken dt data from %s\n",
+> > >  				oh->name, np->name);
+> > > +
+> > > +		if (np) {
+> > > +			r =3D omap_hwmod_init_sysc(np, oh, 0);
+> >=20
+> > this won't handle any binding which lists more than one hwmod on its
+> > ti,hwmods property.
 >=20
-> I did some initial thinking on this some weeks ago, too (and then
-> was short of time, so I did not continue). My suggestion for the
-> binding would be:
->=20
-> * OCP_SYSCONFIG (power-management of IP-Cores connected to OMAP processor=
-s)
->=20
-> Each IP-Core connected to the bus of OMAP processors has
-> three registers, which specify the IP-Core's version, its
-> status and setup of PM features.
->=20
-> Required Properties:
-> - ti,prcm-type: must be one of the following:
->    1 for OMAP2+ register style,
->    2 for OMAP4+ register style,
->    3 for AM33xx register style
-> - reg: offset to revision, config and status registers
->        relative to module base address
->=20
-> Optional Properties:
-> - ti,idlemodes:                bit field of flags (SIDLE)
->    PRCM_IDLE_FORCE               (1 << 0)
->    PRCM_IDLE_NO                  (1 << 1)
->    PRCM_IDLE_SMART               (1 << 2)
->    PRCM_IDLE_SMART_WKUP          (1 << 3)
-> - ti,standbymodes:             bit field of flags (MIDLE)
->    PRCM_STANDBY_FORCE            (1 << 0)
->    PRCM_STANDBY_NO               (1 << 1)
->    PRCM_STANDBY_SMART            (1 << 2)
->    PRCM_STANDBY_SMART_WKUP       (1 << 3)
-> - ti,sysc-has-autoidle:        config register has AUTOIDLE bit
-> - ti,sysc-has-softreset:       config register has SOFTRESET bit
-> - ti,sysc-has-enawakeup:       config register has ENAWAKEUP bit
-> - ti,sysc-has-emufree:         config register has EMUFREE bit
-> - ti,sysc-has-clock-activity:  config register has CLOCKACTIVITY bit
-> - ti,sysc-has-dma-disable:     config register has DMADISABLE bit
-> - ti,sysc-has-reset-status:    config register has RESETDONE bit
-> - ti,syss-has-reset-status:    status register has RESETDONE bit
+> I think Tony planned to remove this kind of multi hwmod references.
 
-I thought about having boolean flags like this but after talking to Tony
-we agreed that it would just increase the amount of string parsing
-during early initialization. Besides, why have two properties using an
-integer bitfield and another huge number of boolean properties ?
+true, but I'm still a bit iffy wrt that. ABI compatibility breaks and
+all
 
-> - ti,reset-delay-us:           reset delay in us
->=20
-> Example:
->=20
-> ocp {
-> 	gpio1: gpio@48310000 {
-> 		compatible =3D "ti,omap3-gpio";
->=20
-> 		... /* IP-Core specific properties */
->=20
-> 		ti,sysconfig {
+> IMHO instead of DT referencing the hwmod stuff using ti,hwmods the
+> hwmod database should reference the compatible values. This depends
+> on omap3 being DT only of course.
 
-this is what I'm still waiting for comments from Tony. I'm not convinced
-we need this extra indentation level. It really brings nothing of value.
+don't you think it's too late for that ? We need to support the current
+form of dts files forever. It's an ABI afterall.
 
 --=20
 balbi
 
---BRE3mIcgqKzpedwo
+--wchHw8dVAp53YPj8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUiaiHAAoJEIaOsuA1yqRESocQAKWuOSha19GEHOg5S6G5xqsF
-WUIHWg38y+IgxHwBcyuuNep5GREzqF6sxQAcKLjYeu6kyohlWCgtaUdB+/FN6/OI
-m/EzzwjvG41lPQ0Sw+wLSJZHooOeRHUnNOdyIlh5/DcpSP6vzIQulslP+lzHKKeX
-7YToUvXI52C5AR+pQ5NeXdOTrgf4150/8g8InZ1vPvBS7zg4h0WGjTQUheZj66MR
-MLoYQ3GxqBOcMtYQFOqQo0BgyWKOWpHpykJDAA7wMDHMhTOhQo2PUQpUJb721QyC
-ngOcpivtrczUIUKs4u9cXMdoezvvBo2OmLZ1/urocJxTKHki60950Ovi6etpL7+y
-8S6Dg2pmNRT2FQEe5BE8P/5dlR5bsl2Kd/bbDCA1lPbtDLKvQ1Syv2KbNq4+kMvL
-XX8sPKdtx4a83x0jcEfQUmABjNQv35Epog28gg0l1Lh+YN2ZQZ20S8CJX8SOpspC
-Uzc6N5IIFL13ghvmBHk8wQwJzarKb5RMvAJOWKB9sgDBIGGoRva+Xq7L119+AKLq
-/JclwzwvzdIyRHZ9N6xNF1jGE/sXwqfxwEHqcUzvkOMzNFFLtxgrGIBJdVxDt1fU
-fUa2ISQPgUhJwonuGlwG9nHl/DmsbNLnL1SUM+MB9UBvCm46S3yOgFZLcA3mBd1Y
-AZD1IND561+M73wkwsgg
-=5CVe
+iQIcBAEBAgAGBQJUiajlAAoJEIaOsuA1yqRERvcP/2MXFvE0zSWQig4OZZ8DnPSu
+viaAJlgcpvjSAbGzpbsYLHuoiJYeRpMDZ2tf2W9G6AmXVqhpgXOPf4EPYgAifhDN
+wXRvH+hPVMAOfwjcWo1gs2DrVcUWF36jD1KagoYNQtMJRlm4UMQxHyiFNDLgVJ33
+s8c7kBwsD62Q+joZFKld4PYGcan/AM+bA0sx9uLJI7WnxFrUCXx88VZ0GmStT14m
+yFZ8VyWIyn1uoxS4GudIwlsnLwo3E6bAB1cre6P+0zZkD7rQ/fjSS/JKuLujrf1n
+Bg8s2TVbm4E5vAiSgn+Wv4NqdxwU+UDQQp+8dfq5xrfpGksmLMnx4iVnbV1g724M
+iNgVOUlZ6hqL8xRsEZP4l6xCVDlmYkz3Zp0wn336zGKn7tku0uQCMQDkmghPSGoR
+JfWWx/Ruojq3+EFrqpXkUsFAZcF2uuwq/SZyiD6nz+ZVw5abSMoKaJzhjIrkPwAX
+VjnP/JV/KZzr37XhLtGTzYW/E6ysJ+Fox1n8R4ee1bIB31bb93Ik8/NFwpcVGNcT
+u6bH0EROnPqGSwEXJUsECMn/H2KeaO+wZZXv4nGt7qM2F1CTZoLqmeG9rjOnTXrZ
+rnkj6MImdTzMlfafZLwtVmDgvQtIPFuvhmWKpw3PAiACHQ7bHFXR6G5lep954KNK
+ILLZ47WLX5pwqRy0gli6
+=2qN7
 -----END PGP SIGNATURE-----
 
---BRE3mIcgqKzpedwo--
+--wchHw8dVAp53YPj8--
