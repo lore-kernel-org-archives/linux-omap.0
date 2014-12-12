@@ -1,81 +1,31 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [RFC PATCH 2/2] of/clk: use "clkops-clocks" to specify clocks handled by clock_ops domain
-Date: Fri, 12 Dec 2014 19:40:52 +0200
-Message-ID: <2061380.HdoWyg3PvY@avalon>
-References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be> <2717555.fiA6A86F65@avalon> <53D8F24B.7010104@ti.com>
+Date: Fri, 12 Dec 2014 19:52:42 +0200
+Message-ID: <3639676.T9j4AkXvCz@avalon>
+References: <1398334403-26181-1-git-send-email-geert+renesas@glider.be> <2717555.fiA6A86F65@avalon> <7hegvlq3a2.fsf@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <53D8F24B.7010104@ti.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Geert Uytterhoeven <geert+renesas@glider.be>, ulf.hansson@linaro.org, Kevin Hilman <khilman@linaro.org>, Mike Turquette <mturquette@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <7hegvlq3a2.fsf@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Kevin Hilman <khilman@kernel.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Grygorii Strashko <grygorii.strashko@ti.com>, Geert Uytterhoeven <geert+renesas@glider.be>, ulf.hansson@linaro.org, Mike Turquette <mturquette@linaro.org>, Tomasz Figa <tomasz.figa@gmail.com>, Ben Dooks <ben.dooks@codethink.co.uk>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Grygorii,
+Hi Kevin,
 
-I've found this mail deep inside my inbox :-)
-
-On Wednesday 30 July 2014 16:25:31 Grygorii Strashko wrote:
-> On 07/30/2014 03:06 AM, Laurent Pinchart wrote:
+On Monday 08 September 2014 13:13:25 Kevin Hilman wrote:
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
 > > On Monday 28 July 2014 23:52:34 Grant Likely wrote:
 > >> On Mon, Jul 28, 2014 at 11:47 AM, Grygorii Strashko wrote:
-> >>> On 07/28/2014 05:05 PM, Grant Likely wrote:
-> >>>> On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko wrote:
-> >>>>> Use "clkops-clocks" property to specify clocks handled by
-> >>>>> clock_ops domain PM domain. Only clocks defined in "clkops-clocks"
-> >>>>> set of clocks will be handled by Runtime PM through clock_ops
-> >>>>> Pm domain.
-> >>>>> 
-> >>>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> >>>>> ---
-> >>>>> 
-> >>>>>    drivers/of/of_clk.c |    7 ++-----
-> >>>>>    1 file changed, 2 insertions(+), 5 deletions(-)
-> >>>>> 
-> >>>>> diff --git a/drivers/of/of_clk.c b/drivers/of/of_clk.c
-> >>>>> index 35f5e9f..5f9b90e 100644
-> >>>>> --- a/drivers/of/of_clk.c
-> >>>>> +++ b/drivers/of/of_clk.c
-> >>>>> @@ -86,11 +86,8 @@ int of_clk_register_runtime_pm_clocks(struct
-> >>>>> device_node *np,>>>
-> >>>>> 
-> >>>>>       struct clk *clk;
-> >>>>>       int error;
-> >>>>> 
-> >>>>> -    for (i = 0; (clk = of_clk_get(np, i)) && !IS_ERR(clk); i++) {
-> >>>>> -            if (!clk_may_runtime_pm(clk)) {
-> >>>>> -                    clk_put(clk);
-> >>>>> -                    continue;
-> >>>>> -            }
-> >>>>> +    for (i = 0; (clk = of_clk_get_from_set(np, "clkops", i)) &&
-> >>>>> +                 !IS_ERR(clk); i++) {
-> >>>> 
-> >>>> This really looks like an ABI break to me. What happens to all the
-> >>>> existing platforms who don't have this new clkops-clocks in their
-> >>>> device tree?
-> >>> 
-> >>> Agree. This patch as is will break such platforms.
-> >>> As possible solution for above problem - the NULL can be used as clock's
-> >>> prefix by default and platform code can configure new value of clock's
-> >>> prefix during initialization.
-> >>> In addition, to make this solution full the of_clk_get_by_name() will
-> >>> need to be modified too.
-> >>> 
-> >>> But note pls, this is pure RFC patches which I did to find out the
-> >>> answer on questions: - What is better: maintain Runtime PM clocks
-> >>> configuration in DT or in code?
-> >> 
-> >> In code. I don't think it is workable to embed runtime PM behaviour
-> >> into the DT bindings. I think there will be too much variance in what
-> >> hardware requires. We can create helpers to make this simpler, but I
-> >> don't think it is a good idea to set it up automatically without any
-> >> control from the driver itself.
-> >> 
-> >>> - Where and when to call of_clk_register_runtime_pm_clocks()?
-> >>> 
-> >>>    Bus notifier/ platform core/ device drivers
+> >> > On 07/28/2014 05:05 PM, Grant Likely wrote:
+> >> >> On Thu, 12 Jun 2014 19:53:43 +0300, Grygorii Strashko wrote:
+> [...]
+> 
+> >> > - Where and when to call of_clk_register_runtime_pm_clocks()?
+> >> > 
+> >> >   Bus notifier/ platform core/ device drivers
 > >> 
 > >> I would say in device drivers.
 > > 
@@ -83,7 +33,14 @@ On Wednesday 30 July 2014 16:25:31 Grygorii Strashko wrote:
 > > 
 > > It will help here to take a step back and remember what the problem we're
 > > trying to solve is.
-> > 
+> 
+> [jumping in late, after Grygorii ping'd me about looking at this]
+> 
+> Laurent, thanks for summarizing the problem so well.  It helped me
+> catchup on the discussion.
+
+You're welcome. Sorry for the very late reply.
+
 > > At the root is clock management. Our system comprise many clocks, and they
 > > need to be handled. The Common Clock Framework nicely models the clocks,
 > > and offers an API for drivers to retrieve device clocks and control them.
@@ -116,7 +73,13 @@ On Wednesday 30 July 2014 16:25:31 Grygorii Strashko wrote:
 > > simplify drivers. Moving clock management code out of the drivers doesn't
 > > (unless I'm missing something) open the door to new possibilities, it just
 > > serves as a simplification.
-> > 
+> 
+> I disagree. Actually, it opens up the door to lots of new possibilities
+> that are crucial for fine-grained PM with QoS. It is not just
+> simplification. There are many good reasons that some SoCs have moved all
+> the management of PM-related clocks *out* of device drivers. More on that
+> below...
+> 
 > > Now, as Grygorii mentioned, differences between how a given IP core is
 > > integrated in various SoCs can make clock management SoC-dependent. In the
 > > vast majority of cases (which is really what we need to target, given that
@@ -124,9 +87,40 @@ On Wednesday 30 July 2014 16:25:31 Grygorii Strashko wrote:
 > > list of clocks that must be managed. That list can be common to all
 > > devices in a given SoC, or can be device-dependent as well.
 > 
-> That's actually a problem - now we have static list of managed clocks
-> per-SoC and not per device.
+> If we care about fine-grained PM, this is a way-too oversimplified
+> version of what SoC integragion means.
 > 
+> There are lots of pieces which fall under "SoC integration", for
+> example: clock domains, power domains, voltage domains, SoC-specific
+> wakeup capabilities, etc. etc.  Then, for fun throw in QoS constraints,
+> and things get really exciting.
+> 
+> IOW, if you care about fine-grained PM and QoS, you simply can't reduce
+> SoC integration down to "a list of clocks to be managed."
+
+Of course. I was talking about SoC integration for clocks, not about SoC 
+integration in general.
+
+> QoS makes this interesting as well because a device driver's decision to
+> gate its own clocks may have serious repercussions on the wakeup latency
+> of *other* devices in the same power domain. For example, the clock gating
+> of the last active device in a powerdomain may cause the enclosing power-
+> domain to be power gated, having a major impact on the wakup latency of
+> *all* devices in that power domain.
+> 
+> So if we're going to manage the list of PM-related clocks in the device
+> driver, we'll also keep track of all the other devices in the same power
+> domain, whether or not they're active, whether or not they have QoS
+> constraints, etc. etc. Hopefully you can see that we're quickly way outside
+> the scope of the IP block that the device driver is intended to manage.
+> 
+> All of this is "SoC integration" knowledge, and IMO doen't belong in the
+> device drivers.  It belongs at the SoC integration level, and in todays
+> kernel frameworks that means pm_domain/genpd.
+
+Ok, there's more to it than I initially thought. Let's see how we can make 
+this happen then :-)
+
 > > Few locations can be used to express a per-device list of per-SoC clocks.
 > > We can have clocks lists in a per-SoC and per-device location, per-device
 > > clocks lists in an SoC-specific location, or per-SoC clocks lists in a
@@ -138,18 +132,17 @@ On Wednesday 30 July 2014 16:25:31 Grygorii Strashko wrote:
 > > software policy, with the hardware description part being already present
 > > in DT in the clocks property.
 > 
-> I'm not fully agree here. The clock is "functional clock" If It's managed by
-> runtime PM. And all such clocks need to be enabled/disabled always when
-> device is powered on/off. So, from my point of view it's HW description and
-> it follows TRM.
->
-> Other clocks are optional
-
-That's actually use-case dependent, some of them might be mandatory.
-
-> and only drivers should control them.
-> And question is how to define sets of such clocks in the best way?
+> I'm not seeing which part you think is software policy here?  Which clocks
+> are driving which IP blocks is a hardware description.
 > 
+> Which clocks are actually gated, and if/when is software policy and should
+> be decided by the SoC-specific runtime PM and genpd implementations, but
+> describing which clocks are wired to which IP blocks is certainly hardware
+> description IMO.
+
+The clocks property is a hardware description, but a new property that would 
+hold a list of clocks to be managed by the runtime PM core is less so.
+
 > > The second option calls for storing the lists in SoC code under arch/. As
 > > we're trying to minimize the amount of SoC code there (and even remove SoC
 > > code completely when possible) I don't think that's a good option.
@@ -163,54 +156,10 @@ That's actually use-case dependent, some of them might be mandatory.
 > > it could be derived from DT (or any other source of hardware description)
 > > using C code, offering all the versatility we need.
 > 
-> Ok. if I understand right, you propose smth like this:
-> 1) DT based solution:
-> 
-> devA {
-> 	clocks = <&clkpa>, <&clkcpgmac>, <&chipclk12>;
-> 	rpm-clocks = <&clkpa>, <&clkcpgmac>;
-> - or -
-> 	clocks = <&clkpa>, <&clkcpgmac>, <&chipclk12>;
-> 	clock-names = "clk_pa", "clk_cpgmac", "cpsw_cpts_rft_clk";
-> 	rpm-clocks =  "clk_pa", "clk_cpgmac";
-> }
+> As is probably clear from above, I don't like this approach at all.
 
-On a side note I believe the "rpm-clocks" name is too tied to the Linux 
-implementation. A name similar to "functional-clocks" would be better.
-
-> in driver:
->  pm_runtime_enable();
-> 
->   |- of_clk_register_runtime_pm_clocks()
-> 
-> - or -
->  of_clk_register_runtime_pm_clocks()
->  pm_runtime_enable();
-
-I prefer the second option, as an explicit opt-in is less likely to cause 
-regressions, and would also offer an easy way for drivers to opt-out.
-
-> 2) Static solution:
-> char *con_ids_davinci[] =
->     { "fck", "master", "slave", NULL };
-> char *con_ids_keystone[] =
->     { "clk_pa", "clk_cpgmac" };
-> 
-> static struct of_device_id of_match[] = {
-> 	{ .compatible = "ti,keystone", con_ids_keystone},
-> 	{ .compatible = "ti,davinci", con_ids_davinci},
-> 	{},
-> };
-> 
-> Personally, I like option 1 and, seems, it will not break ABI.
-
-Is option 2 really representative of most use cases ? The list of clock inputs 
-to an IP core is a property of the IP core itself. How those inputs are 
-connected in the SoC is a property of the SoC integration. The clocks 
-references in DT can thus vary per-SoC, but the clock names should be pretty 
-much constant for a given IP core. Thus, if we have a single list of clocks to 
-manager for a given IP core, it shouldn't be difficult to pass that list to 
-the of_clk_register_runtime_pm_clocks() function.
+Do we at least agree that option 2 (storing the lists in arch/) is a bad idea 
+and should be ruled out ?
 
 > > The only drawback of this solution I can think of right now is that the
 > > runtime PM core couldn't manage device clocks before probing the device.
@@ -218,10 +167,28 @@ the of_clk_register_runtime_pm_clocks() function.
 > > that device. I somehow recall that someone raised this as being a
 > > problem, but I can't remember why.
 > 
-> I can recollect only OMAP2+ SoCs where some abstraction called HW_MOD is
-> used during platform initialization to reset all devices and turn off
-> unused ones before probing the devices. But clock_ops are not used by
-> OMAP2+:)
+> The bigger drawback of this approach is that the device-drivers become a
+> repository for SoC integration details that IMO don't belong in a device
+> driver for a specific IP block.
+
+I agree that SoC integration details don't belong in device drivers, but I 
+don't see this as SoC integration details. The driver knows that the IP core 
+it manages has two functional clock inputs, and knows how those clock inputs 
+are named. The name is a property of the IP core, not of the SoC. Only how 
+(and whether) those clocks are connected in the SoC is integration 
+information.
+
+Now, if the IP core itself can be synthesized with different clock option, 
+those synthesis options belong to DT, either explicitly in the clock-names 
+property or implicitly in the compatible property.
+
+> Over the last few years, we've created abstractions for this kind of SoC
+> integration information (pm_domains) as well as frameworks for handling
+> much of the common parts (genpd) and in doing so, have been able to
+> remove PM-related clock management from device drivers altogether.
+> 
+> I think managing this stuff back in device drivers would be a major step
+> backwards.
 
 -- 
 Regards,
