@@ -1,82 +1,184 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [RFC PATCH 2/3] soc: ti: Add wkup_m3_ipc driver
-Date: Fri, 12 Dec 2014 16:03:21 -0600
-Message-ID: <548B6629.6050203@ti.com>
-References: <cover.1417029919.git.d-gerlach@ti.com> <3334d8483dca2d061cf43da9c047ec27f31e8719.1417029919.git.d-gerlach@ti.com> <2763467.KfXHXHxPJd@wuerfel>
+From: "Lennart Sorensen" <lsorense@csclub.uwaterloo.ca>
+Subject: [PATCH 2/2] ARM: omap5/dra7xx: Fix counter frequency drift for
+ AM572x errata i856.
+Date: Fri, 12 Dec 2014 17:08:56 -0500
+Message-ID: <358281a880ccd89873efeea75edaa6c953eac2bd.1418421100.git.lsorense@csclub.uwaterloo.ca>
+References: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2763467.KfXHXHxPJd@wuerfel>
+Content-Disposition: inline
+In-Reply-To: <cover.1418421100.git.lsorense@csclub.uwaterloo.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@linaro.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <bcousson@baylibre.com>Ohad Ben-Cohen <ohad@wizery.com>
+To: Len Sorensen <lsorense@csclub.uwaterloo.ca>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/26/2014 03:51 PM, Arnd Bergmann wrote:
-> On Wednesday 26 November 2014 15:38:09 Dave Gerlach wrote:
->> +
->> +static const struct wkup_m3_wakeup_src wakeups[] = {
->> +       {.irq_nr = 35,  .src = "USB0_PHY"},
->> +       {.irq_nr = 36,  .src = "USB1_PHY"},
->> +       {.irq_nr = 40,  .src = "I2C0"},
->> +       {.irq_nr = 41,  .src = "RTC Timer"},
->> +       {.irq_nr = 42,  .src = "RTC Alarm"},
->> +       {.irq_nr = 43,  .src = "Timer0"},
->> +       {.irq_nr = 44,  .src = "Timer1"},
->> +       {.irq_nr = 45,  .src = "UART"},
->> +       {.irq_nr = 46,  .src = "GPIO0"},
->> +       {.irq_nr = 48,  .src = "MPU_WAKE"},
->> +       {.irq_nr = 49,  .src = "WDT0"},
->> +       {.irq_nr = 50,  .src = "WDT1"},
->> +       {.irq_nr = 51,  .src = "ADC_TSC"},
->> +       {.irq_nr = 0,   .src = "Unknown"},
->> +};
->>
-> 
-> This seems awfully specific to some SoC version, and not aware of
-> IRQ domains. It also seems to be only used in a dev_dbg statement,
-> so I guess you could just kill this off entirely.
+Errata i856 for the AM572x (DRA7xx) points out that the 32.768KHz external
+crystal is not enabled at power up.  Instead the CPU falls back to using
+an emulation for the 32KHz clock which is SYSCLK1/610.  SYSCLK1 is usually
+20MHz on boards so far (which gives an emulated frequency of 32.786KHz),
+but can also be 19.2 or 27MHz which result in much larger drift.
 
-This is determined by the firmware in use on the remote processor and works for
-both am335x and am437x. However it is not required information and I'd be fine
-with taking it out.
+Since this is used to drive the master counter at 32.768KHz * 375 /
+2 = 6.144MHz, the emulated speed for 20MHz is of by 570ppm, or about 43
+seconds per day, and more than the 500ppm NTP is able to tolerate.
 
-> 
->> +static struct rproc *wkup_m3_get_rproc(struct device *dev)
->> +{
->> +       struct device_node *node;
->> +       struct rproc *rp;
->> +
->> +       node = of_parse_phandle(dev->of_node, "ti,rproc", 0);
->> +       if (!node)
->> +               return NULL;
->> +
->> +       dev = bus_find_device(&platform_bus_type, NULL, node, match);
->> +       if (!dev)
->> +               return NULL;
->> +
->> +       rp = dev_get_drvdata(dev);
->> +       return rp;
-> 
-> This is wrong on a number of levels. I suspect what you really want
-> is an interface exported from drivers/remoteproc that looks up
-> a 'struct rproc' and performs the necessary reference counting.
-> 
-> That one can just use of_find_node_by_phandle() to get to
-> a device_node and use that to look up the rproc device in
-> a linked list it maintains.
+Checking the CTRL_CORE_BOOTSTRAP register can determine if the CPU
+is using the real 32.768KHz crystal or the emulated SYSCLK1/610, and
+by known that the real counter frequency can be determined and used.
+The real speed is then SYSCLK1 / 610 * 375 / 2 or SYSCLK1 * 75 / 244.
 
-Added Ohad as I should have cc'd him in the first place..
+Signed-off-by: Len Sorensen <lsorense@csclub.uwaterloo.ca>
+---
+ arch/arm/mach-omap2/timer.c |  120 +++++++++++++++++++++++++++++++------------
+ 1 file changed, 87 insertions(+), 33 deletions(-)
 
-Yes I agree that it's not the best solution. There used to be an
-rproc_get/rproc_put api but that was removed, I'll look into adding
-rproc_get_by_phandle into drivers/remoteproc as that would be ideal for this
-situation and a cleaner way of doing it. Thanks for the comments.
-
-Regards,
-Dave
-
-> 
-> 	Arnd
-> 
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index fb0cb2b..f00e4b4 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -497,6 +497,7 @@ static void __init realtime_counter_init(void)
+ 	static struct clk *sys_clk;
+ 	unsigned long rate;
+ 	unsigned int reg, num, den;
++	bool errata_i856_workaround = false;
+ 
+ 	base = ioremap(REALTIME_COUNTER_BASE, SZ_32);
+ 	if (!base) {
+@@ -510,39 +511,93 @@ static void __init realtime_counter_init(void)
+ 		return;
+ 	}
+ 
++	if (soc_is_dra7xx()) {
++		#define CTRL_CORE_BOOTSTRAP 0x4A0026C4
++		#define SPEEDSELECT_MASK 0x00000300
++		void __iomem *corebase;
++		corebase = ioremap(CTRL_CORE_BOOTSTRAP, SZ_4);
++		if (!corebase)
++			pr_err("%s: ioremap failed\n", __func__);
++		else {
++			reg = readl_relaxed(corebase) & SPEEDSELECT_MASK;
++			iounmap(corebase);
++			/*
++			 * Errata i856 says the 32.768KHz crystal does
++			 * not start at power on, so the CPU falls back in
++			 * an emulated 32KHz clock instead.  This causes
++			 * the master counter frequency to not be 6.144MHz
++			 * This affects at least the AM572x 1.0 and
++			 * 1.1 revisions.
++			 *
++			 * Of course any board built without a populated
++			 * 32.768KHz crystal would also need this fix
++			 * even if the CPU is fixed later.
++			 *
++			 * If the two speedselect bits are not 0, then the
++			 * 32.768KHz clock driving the course counter that
++			 * corrects the fine counter every time it ticks is
++			 * actually rate/610 rather than 32.768KHz and we
++			 * should compensate to avoid the 570ppm (At 20MHz,
++			 * much worse at other rates) too fast system time.
++			 */
++			if (reg) {
++				errata_i856_workaround = true;
++			}
++		}
++	}
++
+ 	rate = clk_get_rate(sys_clk);
+-	/* Numerator/denumerator values refer TRM Realtime Counter section */
+-	switch (rate) {
+-	case 12000000:
+-		num = 64;
+-		den = 125;
+-		break;
+-	case 13000000:
+-		num = 768;
+-		den = 1625;
+-		break;
+-	case 19200000:
+-		num = 8;
+-		den = 25;
+-		break;
+-	case 20000000:
+-		num = 192;
+-		den = 625;
+-		break;
+-	case 26000000:
+-		num = 384;
+-		den = 1625;
+-		break;
+-	case 27000000:
+-		num = 256;
+-		den = 1125;
+-		break;
+-	case 38400000:
+-	default:
+-		/* Program it for 38.4 MHz */
+-		num = 4;
+-		den = 25;
+-		break;
++	if (errata_i856_workaround) {
++		/*
++		 * Realtime Counter frequency is not based on a real
++		 * 32.768KHz time source, so calculate the real resulting
++		 * frequency instead.  It is not 6.144MHz in this case.
++		 *
++		 * The frequency is always rate / 610 + 375 / 2 which
++		 * is rate * 244 / 75 and will fit in 32 bit for all rates.
++		 *
++		 * The multiplication has to be first to keep accuracy
++		 * with integer math as high as possible.
++		 */
++		num = 75;
++		den = 244;
++		arch_timer_freq = (rate * num) / den;
++	} else {
++		/* Numerator/denumerator values refer TRM Realtime Counter section */
++		switch (rate) {
++		case 12000000:
++			num = 64;
++			den = 125;
++			break;
++		case 13000000:
++			num = 768;
++			den = 1625;
++			break;
++		case 19200000:
++			num = 8;
++			den = 25;
++			break;
++		case 20000000:
++			num = 192;
++			den = 625;
++			break;
++		case 26000000:
++			num = 384;
++			den = 1625;
++			break;
++		case 27000000:
++			num = 256;
++			den = 1125;
++			break;
++		case 38400000:
++		default:
++			/* Program it for 38.4 MHz */
++			num = 4;
++			den = 25;
++			break;
++		}
++		/* This divides cleanly and fits in 32 bits */
++		arch_timer_freq = (rate / den) * num;
+ 	}
+ 
+ 	/* Program numerator and denumerator registers */
+@@ -556,7 +611,6 @@ static void __init realtime_counter_init(void)
+ 	reg |= den;
+ 	writel_relaxed(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
+ 
+-	arch_timer_freq = (rate / den) * num;
+ 	set_cntfreq();
+ 
+ 	iounmap(base);
+-- 
+1.7.10.4
