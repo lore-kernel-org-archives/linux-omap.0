@@ -1,140 +1,112 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP3: clock: fix boot breakage in legacy mode
-Date: Fri, 12 Dec 2014 15:22:01 +0200
-Message-ID: <1418390521-7541-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 1/2] ARM: OMAP2+: clock: fix DPLL code to use new determine rate APIs
+Date: Fri, 12 Dec 2014 15:22:00 +0200
+Message-ID: <1418390521-7541-2-git-send-email-t-kristo@ti.com>
 References: <1418390521-7541-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35912 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967664AbaLLNVN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Dec 2014 08:21:13 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:51575 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967664AbaLLNVX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Dec 2014 08:21:23 -0500
 In-Reply-To: <1418390521-7541-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Mike Turquette <mturquette@linaro.org>, Tony Lindgren <tony@atomide.com>
 
-The new usage of determine_rate and set_rate_and_parent calls for
-OMAP DPLLs assumes the DPLLs must have two parents defined, even
-if it is the same clock. Legacy clock data did not fullfill this
-requirement and caused a boot crash. Fixed by adding the missing
-parent information to the DPLL clocks.
+While the change for determine_rate clock operation was merged,
+the OMAP counterpart using these calls was overlooked for some reason,
+and caused boot failures on at least OMAP4 platforms. Fixed by updating
+the DPLL API calls to use the new parameters.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Fixes: 2e1a7b014f ("ARM: OMAP3+: DPLL: use determine_rate() and...")
-Cc: Kevin Hilman <khilman@kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>
+Fixes: 646cafc6aa ("clk: Change clk_ops->determine_rate")
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Mike Turquette <mturquette@linaro.org>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/cclock3xxx_data.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/dpll3xxx.c |    6 +++---
+ arch/arm/mach-omap2/dpll44xx.c |    6 +++---
+ include/linux/clk/ti.h         |    4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
-index 5c5ebb4..644ff32 100644
---- a/arch/arm/mach-omap2/cclock3xxx_data.c
-+++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-@@ -111,6 +111,7 @@ static struct clk dpll3_ck;
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index 20e120d..c2da2a0 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -474,7 +474,7 @@ void omap3_noncore_dpll_disable(struct clk_hw *hw)
+  */
+ long omap3_noncore_dpll_determine_rate(struct clk_hw *hw, unsigned long rate,
+ 				       unsigned long *best_parent_rate,
+-				       struct clk **best_parent_clk)
++				       struct clk_hw **best_parent_clk)
+ {
+ 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+ 	struct dpll_data *dd;
+@@ -488,10 +488,10 @@ long omap3_noncore_dpll_determine_rate(struct clk_hw *hw, unsigned long rate,
  
- static const char *dpll3_ck_parent_names[] = {
- 	"sys_ck",
-+	"sys_ck",
- };
+ 	if (__clk_get_rate(dd->clk_bypass) == rate &&
+ 	    (dd->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
+-		*best_parent_clk = dd->clk_bypass;
++		*best_parent_clk = __clk_get_hw(dd->clk_bypass);
+ 	} else {
+ 		rate = omap2_dpll_round_rate(hw, rate, best_parent_rate);
+-		*best_parent_clk = dd->clk_ref;
++		*best_parent_clk = __clk_get_hw(dd->clk_ref);
+ 	}
  
- static const struct clk_ops dpll3_ck_ops = {
-@@ -733,6 +734,10 @@ static const char *corex2_fck_parent_names[] = {
- DEFINE_STRUCT_CLK_HW_OMAP(corex2_fck, NULL);
- DEFINE_STRUCT_CLK(corex2_fck, corex2_fck_parent_names, core_ck_ops);
+ 	*best_parent_rate = rate;
+diff --git a/arch/arm/mach-omap2/dpll44xx.c b/arch/arm/mach-omap2/dpll44xx.c
+index 535822f..0e58e5a 100644
+--- a/arch/arm/mach-omap2/dpll44xx.c
++++ b/arch/arm/mach-omap2/dpll44xx.c
+@@ -223,7 +223,7 @@ out:
+  */
+ long omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw, unsigned long rate,
+ 					unsigned long *best_parent_rate,
+-					struct clk **best_parent_clk)
++					struct clk_hw **best_parent_clk)
+ {
+ 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+ 	struct dpll_data *dd;
+@@ -237,11 +237,11 @@ long omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw, unsigned long rate,
  
-+static const char *cpefuse_fck_parent_names[] = {
-+	"sys_ck",
-+};
-+
- static struct clk cpefuse_fck;
+ 	if (__clk_get_rate(dd->clk_bypass) == rate &&
+ 	    (dd->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
+-		*best_parent_clk = dd->clk_bypass;
++		*best_parent_clk = __clk_get_hw(dd->clk_bypass);
+ 	} else {
+ 		rate = omap4_dpll_regm4xen_round_rate(hw, rate,
+ 						      best_parent_rate);
+-		*best_parent_clk = dd->clk_ref;
++		*best_parent_clk = __clk_get_hw(dd->clk_ref);
+ 	}
  
- static struct clk_hw_omap cpefuse_fck_hw = {
-@@ -744,7 +749,7 @@ static struct clk_hw_omap cpefuse_fck_hw = {
- 	.clkdm_name	= "core_l4_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(cpefuse_fck, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(cpefuse_fck, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk csi2_96m_fck;
- 
-@@ -775,7 +780,7 @@ static struct clk_hw_omap d2d_26m_fck_hw = {
- 	.clkdm_name	= "d2d_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(d2d_26m_fck, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(d2d_26m_fck, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk des1_ick;
- 
-@@ -1046,7 +1051,7 @@ static struct clk_hw_omap dss2_alwon_fck_hw = {
- 	.clkdm_name	= "dss_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(dss2_alwon_fck, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(dss2_alwon_fck, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk dss_96m_fck;
- 
-@@ -1368,7 +1373,7 @@ DEFINE_STRUCT_CLK(gpio1_dbck, gpio1_dbck_parent_names, aes2_ick_ops);
- static struct clk wkup_l4_ick;
- 
- DEFINE_STRUCT_CLK_HW_OMAP(wkup_l4_ick, "wkup_clkdm");
--DEFINE_STRUCT_CLK(wkup_l4_ick, dpll3_ck_parent_names, core_l4_ick_ops);
-+DEFINE_STRUCT_CLK(wkup_l4_ick, cpefuse_fck_parent_names, core_l4_ick_ops);
- 
- static struct clk gpio1_ick;
- 
-@@ -1862,7 +1867,7 @@ static struct clk_hw_omap hecc_ck_hw = {
- 	.clkdm_name	= "core_l3_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(hecc_ck, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(hecc_ck, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk hsotgusb_fck_am35xx;
- 
-@@ -1875,7 +1880,7 @@ static struct clk_hw_omap hsotgusb_fck_am35xx_hw = {
- 	.clkdm_name	= "core_l3_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(hsotgusb_fck_am35xx, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(hsotgusb_fck_am35xx, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk hsotgusb_ick_3430es1;
- 
-@@ -2411,7 +2416,7 @@ static struct clk_hw_omap modem_fck_hw = {
- 	.clkdm_name	= "d2d_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(modem_fck, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(modem_fck, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk mspro_fck;
- 
-@@ -2710,7 +2715,7 @@ static struct clk_hw_omap sr1_fck_hw = {
- 	.clkdm_name	= "wkup_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(sr1_fck, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(sr1_fck, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk sr2_fck;
- 
-@@ -2724,7 +2729,7 @@ static struct clk_hw_omap sr2_fck_hw = {
- 	.clkdm_name	= "wkup_clkdm",
- };
- 
--DEFINE_STRUCT_CLK(sr2_fck, dpll3_ck_parent_names, aes2_ick_ops);
-+DEFINE_STRUCT_CLK(sr2_fck, cpefuse_fck_parent_names, aes2_ick_ops);
- 
- static struct clk sr_l4_ick;
- 
+ 	*best_parent_rate = rate;
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 74e5341..55ef529 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -264,7 +264,7 @@ int omap3_noncore_dpll_set_rate_and_parent(struct clk_hw *hw,
+ long omap3_noncore_dpll_determine_rate(struct clk_hw *hw,
+ 				       unsigned long rate,
+ 				       unsigned long *best_parent_rate,
+-				       struct clk **best_parent_clk);
++				       struct clk_hw **best_parent_clk);
+ unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
+ 					 unsigned long parent_rate);
+ long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
+@@ -273,7 +273,7 @@ long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
+ long omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw,
+ 					unsigned long rate,
+ 					unsigned long *best_parent_rate,
+-					struct clk **best_parent_clk);
++					struct clk_hw **best_parent_clk);
+ u8 omap2_init_dpll_parent(struct clk_hw *hw);
+ unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate);
+ long omap2_dpll_round_rate(struct clk_hw *hw, unsigned long target_rate,
 -- 
 1.7.9.5
 
